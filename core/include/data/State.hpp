@@ -74,7 +74,7 @@ inline void from_indices( const State * state, int & idx_image, int & idx_chain,
     // In case of positive non-existing chain_idx throw exception
     if( idx_image >= state->chain->noi )
         spirit_throw(Utility::Exception_Classifier::Non_existing_Image, Utility::Log_Level::Warning,
-            "Non existing image. No action taken.");
+            fmt::format("Index {} points to non-existent image (NOI={}). No action taken.", idx_image, state->chain->noi));
     
     // Image
     if( idx_image < 0 )

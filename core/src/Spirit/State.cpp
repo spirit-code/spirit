@@ -81,6 +81,12 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         #else
             Log(Log_Level::Info, Log_Sender::All, "Not using CUDA");
         #endif
+        // Log threading info
+        #ifdef SPIRIT_USE_THREADS
+            Log(Log_Level::Info, Log_Sender::All, "Using std::thread");
+        #else
+            Log(Log_Level::Info, Log_Sender::All, "Not using std::thread");
+        #endif
         // Log Precision info
         #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
             Log(Log_Level::Info, Log_Sender::All, "Using double as scalar type");
