@@ -373,7 +373,7 @@ if( SPIRIT_BUILD_FOR_PYTHON )
     configure_file(${CMAKE_SOURCE_DIR}/LICENSE.txt ${SPIRIT_PYDIR}/LICENSE.txt COPYONLY)
     configure_file(${PROJECT_SOURCE_DIR}/CMake/__init__.py.in ${PYLIB_OUTPUT_DIR}/__init__.py)
     file( WRITE ${PYLIB_OUTPUT_DIR}/scalar.py "import ctypes\nscalar=ctypes.c_${SPIRIT_SCALAR_TYPE}")
-    file( WRITE ${PYLIB_OUTPUT_DIR}/version.py "version=\"${META_VERSION}\"")
+    file( WRITE ${PYLIB_OUTPUT_DIR}/version.py "version=\"${META_VERSION}\"\nrevision=\"${META_VERSION_REVISION}\"")
     ###
     if( NOT SPIRIT_USE_CUDA )
         MESSAGE( STATUS ">> Building shared library for Python" )
