@@ -46,8 +46,7 @@ namespace Engine
         
         /////////////////////////////////////////////////////////////////
         
-        void Build_Spins(vectorfield & positions, intfield & atom_types,
-                         const std::vector<Vector3> & cell_atoms, const intfield & cell_atom_types,
+        void Build_Spins(vectorfield & positions, const std::vector<Vector3> & cell_atoms,
                          const std::vector<Vector3> & translation_vectors, const intfield & n_cells)
         {
             // Check for erronous input placing two spins on the same location
@@ -99,7 +98,6 @@ namespace Engine
                             //spins[dim*nos + ispin] = spins[dim*nos + s];
                             // calculate the spin positions
                             positions[ispin] = cell_atoms[s] + build_array;
-                            atom_types[ispin] = cell_atom_types[s];
                         }// endfor s
                     }// endfor k
                 }// endfor j

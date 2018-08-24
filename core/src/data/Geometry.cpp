@@ -10,17 +10,18 @@
 #include "QhullFacetList.h"
 #include "QhullVertexSet.h"
 
+#include <random>
 #include <array>
 
 namespace Data
 {
     Geometry::Geometry(std::vector<Vector3> bravais_vectors, intfield n_cells,
-                        std::vector<Vector3> cell_atoms, scalarfield cell_mu_s,
-                        intfield cell_atom_types, scalar lattice_constant,
-                        Pinning pinning, Defects defects) :
+                        std::vector<Vector3> cell_atoms,  Basis_Cell_Composition cell_composition,
+                        scalar lattice_constant, Pinning pinning, Defects defects) :
         bravais_vectors(bravais_vectors), n_cells(n_cells), n_cell_atoms(cell_atoms.size()),
-        cell_mu_s(cell_mu_s), cell_atoms(cell_atoms), lattice_constant(lattice_constant),
-        nos(cell_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2]), cell_atom_types(cell_atom_types),
+        cell_atoms(cell_atoms), cell_composition(cell_composition), lattice_constant(lattice_constant),
+        nos(cell_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2]),
+        nos_nonvacant(cell_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2]),
         n_cells_total(n_cells[0] * n_cells[1] * n_cells[2]),
         pinning(pinning), defects(defects)
     {
@@ -36,44 +37,15 @@ namespace Data
         // Generate positions and atom types
         this->positions = vectorfield(nos);
         this->atom_types = intfield(nos, 0);
-        Engine::Vectormath::Build_Spins(positions, atom_types, cell_atoms, cell_atom_types, bravais_vectors, n_cells);
+        Engine::Vectormath::Build_Spins(positions, cell_atoms, bravais_vectors, n_cells);
 
-        // Generate mu_s and pinning masks
+        // Generate default mu_s and pinning masks
         this->mu_s = scalarfield(this->nos, 1);
         this->mask_unpinned = intfield(this->nos, 1);
         this->mask_pinned_cells = vectorfield(this->nos, { 0,0,0 });
-        int N  = this->n_cell_atoms;
-        int Na = this->n_cells[0];
-        int Nb = this->n_cells[1];
-        int Nc = this->n_cells[2];
-        int ispin;
 
-        for (int iatom = 0; iatom < N; ++iatom)
-        {
-            for (int na = 0; na < Na; ++na)
-            {
-                for (int nb = 0; nb < Nb; ++nb)
-                {
-                    for (int nc = 0; nc < Nc; ++nc)
-                    {
-                        ispin = N*na + N*Na*nb + N*Na*Nb*nc + iatom;
-
-                        // Magnetic moment
-                        this->mu_s[ispin] = cell_mu_s[iatom];
-
-                        // Pinning
-                        if( (na < pinning.na_left || na >= Na - pinning.na_right) ||
-                            (nb < pinning.nb_left || nb >= Nb - pinning.nb_right) ||
-                            (nc < pinning.nc_left || nc >= Nc - pinning.nc_right) )
-                        {
-                            // Pinned cells
-                            this->mask_unpinned[ispin] = 0;
-                            this->mask_pinned_cells[ispin] = pinning.pinned_cell[iatom];
-                        }
-                    }
-                }
-            }
-        }
+        // Set atom types, mu_s
+        this->applyCellComposition();
 
         // Apply additional pinned sites
         for( int isite=0; isite < pinning.sites.size(); ++isite )
@@ -362,6 +334,83 @@ namespace Data
         return { { 0.5, -0.5*std::sqrt(3), 0 },
                  { 0.5,  0.5*std::sqrt(3), 0 },
                  { 0,    0,                1 } };
+    }
+
+    void Geometry::applyCellComposition()
+    {
+        int N  = this->n_cell_atoms;
+        int Na = this->n_cells[0];
+        int Nb = this->n_cells[1];
+        int Nc = this->n_cells[2];
+        int ispin, iatom, atom_type;
+        scalar concentration, rvalue;
+        std::vector<bool> visited(N);
+
+        std::mt19937 prng;
+        std::uniform_real_distribution<scalar> distribution;
+        if( this->cell_composition.disordered )
+        {
+            // TODO: the seed should be a parameter and the instance a member of this class
+            prng = std::mt19937(2006);
+            distribution = std::uniform_real_distribution<scalar>(0, 1);
+            // In the disordered case, unvisited atoms will be vacancies
+            this->atom_types = intfield(nos, -1);
+        }
+
+        for (int na = 0; na < Na; ++na)
+        {
+            for (int nb = 0; nb < Nb; ++nb)
+            {
+                for (int nc = 0; nc < Nc; ++nc)
+                {
+                    std::fill(visited.begin(), visited.end(), false);
+
+                    for (int icomposition = 0; icomposition < this->cell_composition.iatom.size(); ++icomposition)
+                    {
+                        iatom = this->cell_composition.iatom[icomposition];
+
+                        if( !visited[iatom] )
+                        {
+                            ispin = N*na + N*Na*nb + N*Na*Nb*nc + iatom;
+
+                            // In the disordered case, we only visit an atom if the dice will it
+                            if( this->cell_composition.disordered )
+                            {
+                                concentration = this->cell_composition.concentration[icomposition];
+                                rvalue = distribution(prng);
+                                if( rvalue <= concentration )
+                                {
+                                    this->atom_types[ispin] = this->cell_composition.atom_type[icomposition];
+                                    this->mu_s[ispin]       = this->cell_composition.mu_s[icomposition];
+                                    visited[iatom] = true;
+                                    if( this->atom_types[ispin] < 0 )
+                                        --this->nos_nonvacant;
+                                }
+                            }
+                            // In the ordered case, we visit every atom
+                            else
+                            {
+                                this->atom_types[ispin] = this->cell_composition.atom_type[icomposition];
+                                this->mu_s[ispin]       = this->cell_composition.mu_s[icomposition];
+                                visited[iatom] = true;
+                                if( this->atom_types[ispin] < 0 )
+                                    --this->nos_nonvacant;
+                            }
+
+                            // Pinning of boundary layers
+                            if( (na < pinning.na_left || na >= Na - pinning.na_right) ||
+                                (nb < pinning.nb_left || nb >= Nb - pinning.nb_right) ||
+                                (nc < pinning.nc_left || nc >= Nc - pinning.nc_right) )
+                            {
+                                // Pinned cells
+                                this->mask_unpinned[ispin] = 0;
+                                this->mask_pinned_cells[ispin] = pinning.pinned_cell[iatom];
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 

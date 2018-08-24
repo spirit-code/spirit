@@ -239,14 +239,14 @@ namespace Engine
             {
                 int ispin = icell + ibasis;
                 if ( cu_check_atom_type(atom_types[ispin]) )
-                    Energy[ispin] -= mu_s[ibasis] * external_field_magnitude * external_field_normal.dot(spins[ispin]);
+                    Energy[ispin] -= mu_s[ispin] * external_field_magnitude * external_field_normal.dot(spins[ispin]);
             }
         }
     }
     void Hamiltonian_Heisenberg::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
     {
         int size = geometry->n_cells_total;
-        CU_E_Zeeman<<<(size+1023)/1024, 1024>>>(spins.data(), this->geometry->atom_types.data(), geometry->n_cell_atoms, geometry->cell_mu_s.data(), this->external_field_magnitude, this->external_field_normal, Energy.data(), size);
+        CU_E_Zeeman<<<(size+1023)/1024, 1024>>>(spins.data(), this->geometry->atom_types.data(), geometry->n_cell_atoms, geometry->mu_s.data(), this->external_field_magnitude, this->external_field_normal, Energy.data(), size);
         CU_CHECK_AND_SYNC();
     }
 
@@ -406,7 +406,7 @@ namespace Engine
         if (this->idx_zeeman >= 0)
         {
             if (check_atom_type(this->geometry->atom_types[ispin_in]))
-                Energy -= geometry->cell_mu_s[ibasis] * this->external_field_magnitude * this->external_field_normal.dot(spins[ispin_in]);
+                Energy -= geometry->mu_s[ispin_in] * this->external_field_magnitude * this->external_field_normal.dot(spins[ispin_in]);
         }
 
         // Anisotropy
@@ -463,12 +463,12 @@ namespace Engine
             {
                 if (ddi_pairs[ipair].i == ibasis)
                 {
-                    // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
-                    const scalar mult = 0.5 * geometry->cell_mu_s[ddi_pairs[ipair].i] * geometry->cell_mu_s[ddi_pairs[ipair].j]
-                        * C::mu_0 * std::pow(C::mu_B, 2) / ( 4*C::Pi * 1e-30 );
-
                     int ispin = ddi_pairs[ipair].i + icell*geometry->n_cell_atoms;
                     int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, ddi_pairs[ipair]);
+
+                    // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
+                    const scalar mult = 0.5 * geometry->mu_s[ispin] * geometry->mu_s[jspin]
+                        * C::mu_0 * std::pow(C::mu_B, 2) / ( 4*C::Pi * 1e-30 );
 
                     if (jspin >= 0)
                     {
@@ -535,14 +535,14 @@ namespace Engine
             {
                 int ispin = icell + ibasis;
                 if ( cu_check_atom_type(atom_types[ispin]) )
-                    gradient[ispin] -= mu_s[ibasis] * external_field_magnitude*external_field_normal;
+                    gradient[ispin] -= mu_s[ispin] * external_field_magnitude*external_field_normal;
             }
         }
     }
     void Hamiltonian_Heisenberg::Gradient_Zeeman(vectorfield & gradient)
     {
         int size = geometry->n_cells_total;
-        CU_Gradient_Zeeman<<<(size+1023)/1024, 1024>>>( this->geometry->atom_types.data(), geometry->n_cell_atoms, geometry->cell_mu_s.data(), this->external_field_magnitude, this->external_field_normal, gradient.data(), size );
+        CU_Gradient_Zeeman<<<(size+1023)/1024, 1024>>>( this->geometry->atom_types.data(), geometry->n_cell_atoms, geometry->mu_s.data(), this->external_field_magnitude, this->external_field_normal, gradient.data(), size );
         CU_CHECK_AND_SYNC();
     }
 

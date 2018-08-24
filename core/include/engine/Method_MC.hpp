@@ -54,6 +54,7 @@ namespace Engine
         scalar cone_angle;
         int n_rejected;
         scalar acceptance_ratio_current;
+        int nos_nonvacant;
 
         // Random vector array
         vectorfield xi;

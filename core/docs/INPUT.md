@@ -69,10 +69,16 @@ direction of the basis can be specified.
 ### The bravais lattice type
 bravais_lattice sc
 
+### µSpin
+mu_s 2.0
+
 ### Number of basis cells along principal
 ### directions (a b c)
 n_basis_cells 100 100 10
 ```
+
+If you have a nontrivial basis cell, note that you should specify `mu_s`
+for all atoms in your basis cell (see the next example).
 
 **2D honeycomb example:**
 
@@ -87,6 +93,9 @@ basis
 2
 0   0                      0
 0.86602540378443864676 0.5 0
+
+### µSpin
+mu_s 2.0 1.0
 
 ### Number of basis cells along principal
 ### directions (a b c)
@@ -150,8 +159,6 @@ boundary_conditions      1 1 0
 ### external magnetic field vector[T]
 external_field_magnitude 25.0
 external_field_normal    0.0 0.0 1.0
-### µSpin
-mu_s                     2.0
 
 ### Uniaxial anisotropy constant [meV]
 anisotropy_magnitude     0.0
@@ -160,8 +167,6 @@ anisotropy_normal        0.0 0.0 1.0
 ### Dipole-Dipole radius
 dd_radius          0.0
 ```
-
-If you have a nontrivial basis cell, note that you should specify `mu_s` for all atoms in your basis cell.
 
 *Anisotropy:*
 By specifying a number of anisotropy axes via `n_anisotropy`, one
@@ -431,14 +436,31 @@ Disorder and Defects <a name="Defects"></a>
 Note that for this feature you need to build with `SPIRIT_ENABLE_DEFECTS`
 set to `ON` in cmake.
 
-Disorder is not yet implemented.
-<!--Disorder is not yet implemented but you will specify the basis in the form
+In order to specify disorder across the lattice, you can write for example a
+single atom basis with 50% chance of containing one of two atom types (0 or 1):
 ```Python
-disorder 1
-0  0.5
-1  0.25
-2  0.25
-```-->
+# iatom  atom_type  mu_s  concentration
+atom_types 1
+    0        1       2.0     0.5
+```
+
+Note that you have to also specify the magnetic moment, as this is now site-
+and atom type dependent.
+
+A two-atom basis where
+- the first atom is type 0
+- the second atom is 70% type 1 and 30% type 2
+```Python
+# iatom  atom_type  mu_s  concentration
+atom_types 2
+    0        0       1.0      1
+    1        1       2.5     0.7
+    1        2       2.3     0.3
+```
+
+The total concentration on a site should not be more than `1`. If it is less
+than `1`, vacancies will appear.
+
 
 To specify defects, be it vacancies or impurities, you may fix atom types for
 sites of the whole lattice by inserting a list into your input. For example:

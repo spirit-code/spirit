@@ -283,16 +283,16 @@ namespace IO
             // Atoms in the basis
             std::vector<Vector3> cell_atoms = { Vector3{0,0,0} };
             int n_cell_atoms = cell_atoms.size();
-            // Spin moments
-            scalarfield mu_s = scalarfield(n_cell_atoms, 1);
+            // Basis cell composition information (atom types, magnetic moments, ...)
+            Data::Basis_Cell_Composition cell_composition{ false, {0}, {0}, {1}, {} };
             // Lattice Constant [Angstrom]
             scalar lattice_constant = 1;
             // Number of translations nT for each basis direction
             intfield n_cells = { 100, 100, 1 };
             // Atom types
-            intfield atom_types;
             field<Site> defect_sites(0);
             intfield    defect_types(0);
+            int n_atom_types = 0;
 
             // Utility 1D array to build vectors and use Vectormath
             Vector3 build_array = { 0, 0, 0 };
@@ -321,13 +321,16 @@ namespace IO
                         myfile.GetLine();
                         myfile.iss >> n_cell_atoms;
                         cell_atoms = std::vector<Vector3>(n_cell_atoms);
-                        mu_s = scalarfield(n_cell_atoms);
+                        cell_composition.iatom.resize(n_cell_atoms);
+                        cell_composition.atom_type = std::vector<int>(n_cell_atoms, 0);
+                        cell_composition.mu_s = std::vector<scalar>(n_cell_atoms, 1);
 
                         // Read atom positions
-                        for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
+                        for (iatom = 0; iatom < n_cell_atoms; ++iatom)
                         {
                             myfile.GetLine();
                             myfile.iss >> cell_atoms[iatom][0] >> cell_atoms[iatom][1] >> cell_atoms[iatom][2];
+                            cell_composition.iatom[iatom] = iatom;
                         }// endfor iatom
                     }
 
@@ -349,6 +352,33 @@ namespace IO
                         // The file name should be valid so we try to read it
                         Defects_from_File(defectsFile, n_defects, defect_sites, defect_types);
                     }
+
+                    // Disorder
+                    if( myfile.Find("atom_types") )
+                    {
+                        myfile.iss >> n_atom_types;
+                        cell_composition.disordered = true;
+                        cell_composition.iatom.resize(n_atom_types);
+                        cell_composition.atom_type.resize(n_atom_types);
+                        cell_composition.mu_s.resize(n_atom_types);
+                        cell_composition.concentration.resize(n_atom_types);
+                        for (int itype = 0; itype < n_atom_types; ++itype)
+                        {
+                            myfile.GetLine();
+                            myfile.iss >> cell_composition.iatom[itype];
+                            myfile.iss >> cell_composition.atom_type[itype];
+                            myfile.iss >> cell_composition.mu_s[itype];
+                            myfile.iss >> cell_composition.concentration[itype];
+                            // if ( !(myfile.iss >> mu_s[itype]) )
+                            // {
+                            //     Log(Log_Level::Warning, Log_Sender::IO,
+                            //         fmt::format("Not enough values specified after 'mu_s'. Expected {}. Using mu_s[{}]=mu_s[0]={}", n_cell_atoms, iatom, mu_s[0]));
+                            //     mu_s[iatom] = mu_s[0];
+                            // }
+                        }
+                        Log(Log_Level::Warning, Log_Sender::IO,
+                            fmt::format("{} atom types, iatom={} atom type={} concentration={}", n_atom_types, cell_composition.iatom[0], cell_composition.atom_type[0], cell_composition.concentration[0]));
+                    }
                     #endif
                 }// end try
                 catch( ... )
@@ -361,19 +391,39 @@ namespace IO
                     IO::Filter_File_Handle myfile(configFile);
 
                     // Spin moment
-                    if (myfile.Find("mu_s"))
+                    if( !myfile.Find("atom_types") )
                     {
-                        for (iatom = 0; iatom < n_cell_atoms; ++iatom)
+                        if( myfile.Find("mu_s") )
                         {
-                            if ( !(myfile.iss >> mu_s[iatom]) )
+                            for (iatom = 0; iatom < n_cell_atoms; ++iatom)
                             {
-                                Log(Log_Level::Warning, Log_Sender::IO,
-                                    fmt::format("Not enough values specified after 'mu_s'. Expected {}. Using mu_s[{}]=mu_s[0]={}", n_cell_atoms, iatom, mu_s[0]));
-                                mu_s[iatom] = mu_s[0];
+                                if ( !(myfile.iss >> cell_composition.mu_s[iatom]) )
+                                {
+                                    Log(Log_Level::Warning, Log_Sender::IO, fmt::format(
+                                        "Not enough values specified after 'mu_s'. Expected {}. Using mu_s[{}]=mu_s[0]={}",
+                                        n_cell_atoms, iatom, cell_composition.mu_s[0]));
+                                    cell_composition.mu_s[iatom] = cell_composition.mu_s[0];
+                                }
                             }
                         }
+                        else Log(Log_Level::Error, Log_Sender::IO, fmt::format("Keyword 'mu_s' not found. Using Default: {}", cell_composition.mu_s[0]));
                     }
-                    else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'mu_s' not found. Using Default: 2.0");
+                    // else
+                    // {
+                    //     cell_composition.mu_s = std::vector<scalar>(n_atom_types, 1);
+                    //     if( myfile.Find("mu_s") )
+                    //     {
+                    //         for (int itype = 0; itype < n_atom_types; ++itype)
+                    //         {
+                    //             myfile.iss >> cell_composition.mu_s[itype];
+                    //             // myfile.GetLine();
+                    //             // myfile.iss >> cell_composition.iatom[itype];
+                    //             // myfile.iss >> cell_composition.atom_type[itype];
+                    //             // myfile.iss >> cell_composition.concentration[itype];
+                    //         }
+                    //     }
+                    //     else Log(Log_Level::Error, Log_Sender::IO, fmt::format("Keyword 'mu_s' not found. Using Default: {}", cell_composition.mu_s[0]));
+                    // }
                 }// end try
                 catch( ... )
                 {
@@ -393,11 +443,13 @@ namespace IO
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        b = {}", bravais_vectors[1].transpose()));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        c = {}", bravais_vectors[2].transpose()));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Basis: {}  atom(s) at the following positions:", n_cell_atoms));
-            for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
-                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        atom {} at ({}), mu_s={}", iatom, cell_atoms[iatom].transpose(), mu_s[iatom]));
-
-            // Atom types (default: type 0, vacancy: < 0)
-            atom_types = intfield(cell_atoms.size(), 0);
+            if( !cell_composition.disordered )
+            {
+                for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
+                    Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        atom {} at ({}), mu_s={}", iatom, cell_atoms[iatom].transpose(), cell_composition.mu_s[iatom]));
+            }
+            else
+                Log(Log_Level::Parameter, Log_Sender::IO, "Note: the lattice has some disorder!");
 
             // Defects
             #ifdef SPIRIT_ENABLE_DEFECTS
@@ -419,7 +471,7 @@ namespace IO
 
             // Return geometry
             auto geometry = std::shared_ptr<Data::Geometry>(new
-                Data::Geometry( bravais_vectors, n_cells, cell_atoms, mu_s, atom_types, lattice_constant,
+                Data::Geometry( bravais_vectors, n_cells, cell_atoms, cell_composition, lattice_constant,
                     pinning, {defect_sites, defect_types} ));
 
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} spins", geometry->nos));

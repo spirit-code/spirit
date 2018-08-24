@@ -241,7 +241,7 @@ namespace Engine
     void Hamiltonian_Heisenberg::E_Zeeman(const vectorfield & spins, scalarfield & Energy)
     {
         const int N = geometry->n_cell_atoms;
-        auto& mu_s = this->geometry->cell_mu_s;
+        auto& mu_s = this->geometry->mu_s;
 
         #pragma omp parallel for
         for (int icell = 0; icell < geometry->n_cells_total; ++icell)
@@ -249,8 +249,8 @@ namespace Engine
             for (int ibasis = 0; ibasis < N; ++ibasis)
             {
                 int ispin = icell*N + ibasis;
-                if (check_atom_type(this->geometry->atom_types[ispin]))
-                    Energy[ispin] -= mu_s[ibasis] * this->external_field_magnitude * this->external_field_normal.dot(spins[ispin]);
+                if( check_atom_type(this->geometry->atom_types[ispin]) )
+                    Energy[ispin] -= mu_s[ispin] * this->external_field_magnitude * this->external_field_normal.dot(spins[ispin]);
             }
         }
     }
@@ -313,7 +313,7 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::E_DDI(const vectorfield & spins, scalarfield & Energy)
     {
-        auto& mu_s = this->geometry->cell_mu_s;
+        auto& mu_s = this->geometry->mu_s;
         // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
         const scalar mult = C::mu_0 * std::pow(C::mu_B, 2) / ( 4*C::Pi * 1e-30 );
 
@@ -336,9 +336,9 @@ namespace Engine
                             int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, ddi_pairs[i_pair]);
                             if (jspin >= 0)
                             {
-                                Energy[ispin] -= 0.5 * mu_s[i] * mu_s[j] * mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
+                                Energy[ispin] -= 0.5 * mu_s[ispin] * mu_s[jspin] * mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
                                     (3 * spins[ispin].dot(ddi_normals[i_pair]) * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin].dot(spins[ispin]));
-                                Energy[jspin] -= 0.5 * mu_s[i] * mu_s[j] * mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
+                                Energy[jspin] -= 0.5 * mu_s[ispin] * mu_s[jspin] * mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
                                     (3 * spins[ispin].dot(ddi_normals[i_pair]) * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin].dot(spins[ispin]));
                             }
                         }
@@ -382,143 +382,142 @@ namespace Engine
 
     scalar Hamiltonian_Heisenberg::Energy_Single_Spin(int ispin_in, const vectorfield & spins)
     {
-        int icell  = ispin_in / this->geometry->n_cell_atoms;
-        int ibasis = ispin_in - icell*this->geometry->n_cell_atoms;
-        auto& mu_s = this->geometry->cell_mu_s;
         scalar Energy = 0;
-
-        // External field
-        if (this->idx_zeeman >= 0)
+        if( check_atom_type(this->geometry->atom_types[ispin_in]) )
         {
-            if (check_atom_type(this->geometry->atom_types[ispin_in]))
-                Energy -= mu_s[ibasis] * this->external_field_magnitude * this->external_field_normal.dot(spins[ispin_in]);
-        }
+            int icell  = ispin_in / this->geometry->n_cell_atoms;
+            int ibasis = ispin_in - icell*this->geometry->n_cell_atoms;
+            auto& mu_s = this->geometry->mu_s;
 
-        // Anisotropy
-        if (this->idx_anisotropy >= 0)
-        {
-            for (int iani = 0; iani < anisotropy_indices.size(); ++iani)
+            // External field
+            if (this->idx_zeeman >= 0)
+                Energy -= mu_s[ispin_in] * this->external_field_magnitude * this->external_field_normal.dot(spins[ispin_in]);
+
+            // Anisotropy
+            if (this->idx_anisotropy >= 0)
             {
-                if (anisotropy_indices[iani] == ibasis)
+                for (int iani = 0; iani < anisotropy_indices.size(); ++iani)
                 {
-                    if (check_atom_type(this->geometry->atom_types[ispin_in]))
-                        Energy -= this->anisotropy_magnitudes[iani] * std::pow(anisotropy_normals[iani].dot(spins[ispin_in]), 2.0);
+                    if (anisotropy_indices[iani] == ibasis)
+                    {
+                        if (check_atom_type(this->geometry->atom_types[ispin_in]))
+                            Energy -= this->anisotropy_magnitudes[iani] * std::pow(anisotropy_normals[iani].dot(spins[ispin_in]), 2.0);
+                    }
                 }
             }
-        }
 
-        // Exchange
-        if (this->idx_exchange >= 0)
-        {
-            for (unsigned int ipair = 0; ipair < exchange_pairs.size(); ++ipair)
+            // Exchange
+            if (this->idx_exchange >= 0)
             {
-                if (exchange_pairs[ipair].i == ibasis)
+                for (unsigned int ipair = 0; ipair < exchange_pairs.size(); ++ipair)
                 {
-                    int ispin = exchange_pairs[ipair].i + icell*geometry->n_cell_atoms;
-                    int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[ipair]);
-                    if (jspin >= 0)
+                    if (exchange_pairs[ipair].i == ibasis)
                     {
-                        Energy -= 0.5 * this->exchange_magnitudes[ipair] * spins[ispin].dot(spins[jspin]);
+                        int ispin = exchange_pairs[ipair].i + icell*geometry->n_cell_atoms;
+                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[ipair]);
+                        if (jspin >= 0)
+                        {
+                            Energy -= 0.5 * this->exchange_magnitudes[ipair] * spins[ispin].dot(spins[jspin]);
+                        }
+                        #ifndef _OPENMP
+                        jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[ipair], true);
+                        if (jspin >= 0)
+                        {
+                            Energy -= 0.5 * this->exchange_magnitudes[ipair] * spins[ispin].dot(spins[jspin]);
+                        }
+                        #endif
                     }
+                }
+            }
+
+            // DMI
+            if (this->idx_dmi >= 0)
+            {
+                for (unsigned int ipair = 0; ipair < dmi_pairs.size(); ++ipair)
+                {
+                    if (dmi_pairs[ipair].i == ibasis)
+                    {
+                        int ispin = dmi_pairs[ipair].i + icell*geometry->n_cell_atoms;
+                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[ipair]);
+                        if (jspin >= 0)
+                        {
+                            Energy -= 0.5 * this->dmi_magnitudes[ipair] * this->dmi_normals[ipair].dot(spins[ispin].cross(spins[jspin]));
+                        }
+                        #ifndef _OPENMP
+                        jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[ipair], true);
+                        if (jspin >= 0)
+                        {
+                            Energy += 0.5 * this->dmi_magnitudes[ipair] * this->dmi_normals[ipair].dot(spins[ispin].cross(spins[jspin]));
+                        }
+                        #endif
+                    }
+                }
+            }
+
+            // DDI
+            if (this->idx_ddi >= 0)
+            {
+                for (unsigned int ipair = 0; ipair < ddi_pairs.size(); ++ipair)
+                {
+                    if (ddi_pairs[ipair].i == ibasis)
+                    {
+                        int ispin = ddi_pairs[ipair].i + icell*geometry->n_cell_atoms;
+                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, ddi_pairs[ipair]);
+
+                        // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
+                        const scalar mult = 0.5 * mu_s[ispin] * mu_s[jspin]
+                            * C::mu_0 * std::pow(C::mu_B, 2) / ( 4*C::Pi * 1e-30 );
+
+                        if (jspin >= 0)
+                        {
+                            Energy -= mult / std::pow(this->ddi_magnitudes[ipair], 3.0) *
+                                (3 * spins[ispin].dot(this->ddi_normals[ipair]) * spins[ispin].dot(this->ddi_normals[ipair]) - spins[ispin].dot(spins[ispin]));
+
+                        }
+                        #ifndef _OPENMP
+                        jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[ipair], true);
+                        if (jspin >= 0)
+                        {
+                            Energy += mult / std::pow(this->ddi_magnitudes[ipair], 3.0) *
+                                (3 * spins[ispin].dot(this->ddi_normals[ipair]) * spins[ispin].dot(this->ddi_normals[ipair]) - spins[ispin].dot(spins[ispin]));
+                        }
+                        #endif
+                    }
+                }
+            }
+
+            // Quadruplets
+            if (this->idx_quadruplet >= 0) 
+            {
+                for (unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad)
+                {
+                    auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_cell_atoms, icell);
+                    int ispin = quadruplets[iquad].i + icell*geometry->n_cell_atoms;
+                    int jspin = quadruplets[iquad].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_j);
+                    int kspin = quadruplets[iquad].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k);
+                    int lspin = quadruplets[iquad].l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l);
+                    
+                    if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
+                        check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
+                    {
+                        Energy -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
+                    }
+
                     #ifndef _OPENMP
-                    jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[ipair], true);
-                    if (jspin >= 0)
-                    {
-                        Energy -= 0.5 * this->exchange_magnitudes[ipair] * spins[ispin].dot(spins[jspin]);
-                    }
+                    // TODO: mirrored quadruplet when unique quadruplets are used
+                    // jspin = quadruplets[iquad].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_j, true);
+                    // kspin = quadruplets[iquad].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k, true);
+                    // lspin = quadruplets[iquad].l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l, true);
+                    
+                    // if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
+                    //      check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
+                    // {
+                    //     Energy -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
+                    // }
                     #endif
                 }
             }
         }
-
-        // DMI
-        if (this->idx_dmi >= 0)
-        {
-            for (unsigned int ipair = 0; ipair < dmi_pairs.size(); ++ipair)
-            {
-                if (dmi_pairs[ipair].i == ibasis)
-                {
-                    int ispin = dmi_pairs[ipair].i + icell*geometry->n_cell_atoms;
-                    int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[ipair]);
-                    if (jspin >= 0)
-                    {
-                        Energy -= 0.5 * this->dmi_magnitudes[ipair] * this->dmi_normals[ipair].dot(spins[ispin].cross(spins[jspin]));
-                    }
-                    #ifndef _OPENMP
-                    jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[ipair], true);
-                    if (jspin >= 0)
-                    {
-                        Energy += 0.5 * this->dmi_magnitudes[ipair] * this->dmi_normals[ipair].dot(spins[ispin].cross(spins[jspin]));
-                    }
-                    #endif
-                }
-            }
-        }
-
-        // DDI
-        if (this->idx_ddi >= 0)
-        {
-            for (unsigned int ipair = 0; ipair < ddi_pairs.size(); ++ipair)
-            {
-                if (ddi_pairs[ipair].i == ibasis)
-                {
-                    // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
-                    const scalar mult = 0.5 * mu_s[ddi_pairs[ipair].i] * mu_s[ddi_pairs[ipair].j]
-                        * C::mu_0 * std::pow(C::mu_B, 2) / ( 4*C::Pi * 1e-30 );
-
-                    int ispin = ddi_pairs[ipair].i + icell*geometry->n_cell_atoms;
-                    int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, ddi_pairs[ipair]);
-
-                    if (jspin >= 0)
-                    {
-                        Energy -= mult / std::pow(this->ddi_magnitudes[ipair], 3.0) *
-                            (3 * spins[ispin].dot(this->ddi_normals[ipair]) * spins[ispin].dot(this->ddi_normals[ipair]) - spins[ispin].dot(spins[ispin]));
-
-                    }
-                    #ifndef _OPENMP
-                    jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[ipair], true);
-                    if (jspin >= 0)
-                    {
-                        Energy += mult / std::pow(this->ddi_magnitudes[ipair], 3.0) *
-                            (3 * spins[ispin].dot(this->ddi_normals[ipair]) * spins[ispin].dot(this->ddi_normals[ipair]) - spins[ispin].dot(spins[ispin]));
-                    }
-                    #endif
-                }
-            }
-        }
-
-        // Quadruplets
-        if (this->idx_quadruplet >= 0) 
-        {
-            for (unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad)
-            {
-                auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_cell_atoms, icell);
-                int ispin = quadruplets[iquad].i + icell*geometry->n_cell_atoms;
-                int jspin = quadruplets[iquad].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_j);
-                int kspin = quadruplets[iquad].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k);
-                int lspin = quadruplets[iquad].l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l);
-                
-                if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
-                     check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
-                {
-                    Energy -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
-                }
-
-                #ifndef _OPENMP
-                // TODO: mirrored quadruplet when unique quadruplets are used
-                // jspin = quadruplets[iquad].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_j, true);
-                // kspin = quadruplets[iquad].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k, true);
-                // lspin = quadruplets[iquad].l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l, true);
-                
-                // if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
-                //      check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
-                // {
-                //     Energy -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
-                // }
-                #endif
-            }
-        }
-
         return Energy;
     }
 
@@ -548,7 +547,7 @@ namespace Engine
     void Hamiltonian_Heisenberg::Gradient_Zeeman(vectorfield & gradient)
     {
         const int N = geometry->n_cell_atoms;
-        auto& mu_s = this->geometry->cell_mu_s;
+        auto& mu_s = this->geometry->mu_s;
 
         #pragma omp parallel for
         for (int icell = 0; icell < geometry->n_cells_total; ++icell)
@@ -557,7 +556,7 @@ namespace Engine
             {
                 int ispin = icell*N + ibasis;
                 if (check_atom_type(this->geometry->atom_types[ispin]))
-                    gradient[ispin] -= mu_s[ibasis] * this->external_field_magnitude * this->external_field_normal;
+                    gradient[ispin] -= mu_s[ispin] * this->external_field_magnitude * this->external_field_normal;
             }
         }
     }
@@ -620,7 +619,7 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Gradient_DDI(const vectorfield & spins, vectorfield & gradient)
     {
-        auto& mu_s = this->geometry->cell_mu_s;
+        auto& mu_s = this->geometry->mu_s;
         // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
         const scalar mult = C::mu_0 * std::pow(C::mu_B, 2) / ( 4*C::Pi * 1e-30 );
         
@@ -643,8 +642,8 @@ namespace Engine
                             int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, ddi_pairs[i_pair]);
                             if (jspin >= 0)
                             {
-                                gradient[ispin] -= mu_s[j] * skalar_contrib * (3 * ddi_normals[i_pair] * spins[jspin].dot(ddi_normals[i_pair]) - spins[jspin]);
-                                gradient[jspin] -= mu_s[i] * skalar_contrib * (3 * ddi_normals[i_pair] * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin]);
+                                gradient[ispin] -= mu_s[jspin] * skalar_contrib * (3 * ddi_normals[i_pair] * spins[jspin].dot(ddi_normals[i_pair]) - spins[jspin]);
+                                gradient[jspin] -= mu_s[ispin] * skalar_contrib * (3 * ddi_normals[i_pair] * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin]);
                             }
                         }
                     }

@@ -24,7 +24,8 @@ namespace Engine
         this->SenderName = Log_Sender::MC;
 
         this->noi = this->systems.size();
-        this->nos = this->systems[0]->nos;
+        this->nos = this->systems[0]->geometry->nos;
+        this->nos_nonvacant = this->systems[0]->geometry->nos_nonvacant;
 
         this->xi = vectorfield(this->nos, {0,0,0});
 
@@ -49,8 +50,6 @@ namespace Engine
     //      if the range of neighbours for each atom is not pre-defined.
     void Method_MC::Iteration()
     {
-        int nos = this->systems[0]->spins->size();
-
         // Temporaries
         auto& spins_old       = *this->systems[0]->spins;
         auto  spins_new       = spins_old;
@@ -67,10 +66,8 @@ namespace Engine
     // Simple metropolis step
     void Method_MC::Metropolis(const vectorfield & spins_old, vectorfield & spins_new)
     {
-        this->n_rejected = 0;
-        int nos = spins_new.size();
         auto distribution = std::uniform_real_distribution<scalar>(0, 1);
-        auto distribution_idx = std::uniform_int_distribution<>(0, nos-1);
+        auto distribution_idx = std::uniform_int_distribution<>(0, this->nos-1);
         scalar kB_T = Constants::k_B * this->parameters_mc->temperature;
 
         scalar diff = 0.01;
@@ -78,18 +75,17 @@ namespace Engine
         // Cone angle feedback algorithm
         if (this->parameters_mc->metropolis_step_cone && this->parameters_mc->metropolis_cone_adaptive)
         {
-            this->acceptance_ratio_current = 1 - (scalar)this->n_rejected / (scalar)nos;
+            this->acceptance_ratio_current = 1 - (scalar)this->n_rejected / (scalar)this->nos_nonvacant;
 
             if( (this->acceptance_ratio_current < this->parameters_mc->acceptance_ratio_target) && (this->cone_angle > diff) )
-            {
                 this->cone_angle -= diff;
-            }
+
             if( (this->acceptance_ratio_current > this->parameters_mc->acceptance_ratio_target) && (this->cone_angle < Constants::Pi-diff) )
-            {
                 this->cone_angle += diff;
-            }
+
             this->parameters_mc->metropolis_cone_angle = this->cone_angle * 180.0 / Constants::Pi;
         }
+        this->n_rejected = 0;
 
         // One Metropolis step for each spin
         Vector3 e_z{0, 0, 1};
@@ -98,7 +94,7 @@ namespace Engine
         scalar cos_cone_angle = std::cos(cone_angle);
 
         // Loop over NOS samples (on average every spin should be hit once per Metropolis step)
-        for (int idx=0; idx < nos; ++idx)
+        for (int idx=0; idx < this->nos; ++idx)
         {
             int ispin;
             if (this->parameters_mc->metropolis_random_sample)
@@ -108,83 +104,86 @@ namespace Engine
                 // Faster, but worse statistics
                 ispin = idx;
 
-            // Sample a cone
-            if (this->parameters_mc->metropolis_step_cone)
+            if( Vectormath::check_atom_type(this->systems[0]->geometry->atom_types[ispin]) )
             {
-                // Calculate local basis for the spin
-                if (spins_old[ispin].z() < 1-1e-10)
+                // Sample a cone
+                if (this->parameters_mc->metropolis_step_cone)
                 {
-                    local_basis.col(2) = spins_old[ispin];
-                    local_basis.col(0) = (local_basis.col(2).cross(e_z)).normalized();
-                    local_basis.col(1) = local_basis.col(2).cross(local_basis.col(0));
-                }
-                else
-                {
-                    local_basis = Matrix3::Identity();
-                }
+                    // Calculate local basis for the spin
+                    if (spins_old[ispin].z() < 1-1e-10)
+                    {
+                        local_basis.col(2) = spins_old[ispin];
+                        local_basis.col(0) = (local_basis.col(2).cross(e_z)).normalized();
+                        local_basis.col(1) = local_basis.col(2).cross(local_basis.col(0));
+                    }
+                    else
+                    {
+                        local_basis = Matrix3::Identity();
+                    }
 
-                // Rotation angle between 0 and cone_angle degrees
-                costheta = 1 - (1 - cos_cone_angle) * distribution(this->parameters_mc->prng);
+                    // Rotation angle between 0 and cone_angle degrees
+                    costheta = 1 - (1 - cos_cone_angle) * distribution(this->parameters_mc->prng);
 
-                sintheta = std::sqrt(1 - costheta*costheta);
+                    sintheta = std::sqrt(1 - costheta*costheta);
 
-                // Random distribution of phi between 0 and 360 degrees
-                phi = 2*Constants::Pi * distribution(this->parameters_mc->prng);
+                    // Random distribution of phi between 0 and 360 degrees
+                    phi = 2*Constants::Pi * distribution(this->parameters_mc->prng);
 
-                // New spin orientation in local basis
-                Vector3 local_spin_new{ sintheta * std::cos(phi),
-                                        sintheta * std::sin(phi),
-                                        costheta };
-
-                // New spin orientation in regular basis
-                spins_new[ispin] = local_basis * local_spin_new;
-            }
-            // Sample the entire unit sphere
-            else
-            {
-                // Rotation angle between 0 and 180 degrees
-                costheta = distribution(this->parameters_mc->prng);
-
-                sintheta = std::sqrt(1 - costheta*costheta);
-
-                // Random distribution of phi between 0 and 360 degrees
-                phi = 2*Constants::Pi * distribution(this->parameters_mc->prng);
-
-                // New spin orientation in local basis
-                spins_new[ispin] = Vector3{ sintheta * std::cos(phi),
+                    // New spin orientation in local basis
+                    Vector3 local_spin_new{ sintheta * std::cos(phi),
                                             sintheta * std::sin(phi),
                                             costheta };
-            }
 
-            // Energy difference of configurations with and without displacement
-            scalar Eold  = this->systems[0]->hamiltonian->Energy_Single_Spin(ispin, spins_old);
-            scalar Enew  = this->systems[0]->hamiltonian->Energy_Single_Spin(ispin, spins_new);
-            scalar Ediff = Enew-Eold;
-
-            // Metropolis criterion: reject the step if energy rose
-            if (Ediff > 1e-14)
-            {
-                if (this->parameters_mc->temperature < 1e-12)
-                {
-                    // Restore the spin
-                    spins_new[ispin] = spins_old[ispin];
-                    // Counter for the number of rejections
-                    ++this->n_rejected;
+                    // New spin orientation in regular basis
+                    spins_new[ispin] = local_basis * local_spin_new;
                 }
+                // Sample the entire unit sphere
                 else
                 {
-                    // Exponential factor
-                    scalar exp_ediff    = std::exp( -Ediff/kB_T );
-                    // Metropolis random number
-                    scalar x_metropolis = distribution(this->parameters_mc->prng);
+                    // Rotation angle between 0 and 180 degrees
+                    costheta = distribution(this->parameters_mc->prng);
 
-                    // Only reject if random number is larger than exponential
-                    if (exp_ediff < x_metropolis)
+                    sintheta = std::sqrt(1 - costheta*costheta);
+
+                    // Random distribution of phi between 0 and 360 degrees
+                    phi = 2*Constants::Pi * distribution(this->parameters_mc->prng);
+
+                    // New spin orientation in local basis
+                    spins_new[ispin] = Vector3{ sintheta * std::cos(phi),
+                                                sintheta * std::sin(phi),
+                                                costheta };
+                }
+
+                // Energy difference of configurations with and without displacement
+                scalar Eold  = this->systems[0]->hamiltonian->Energy_Single_Spin(ispin, spins_old);
+                scalar Enew  = this->systems[0]->hamiltonian->Energy_Single_Spin(ispin, spins_new);
+                scalar Ediff = Enew-Eold;
+
+                // Metropolis criterion: reject the step if energy rose
+                if (Ediff > 1e-14)
+                {
+                    if (this->parameters_mc->temperature < 1e-12)
                     {
                         // Restore the spin
                         spins_new[ispin] = spins_old[ispin];
                         // Counter for the number of rejections
                         ++this->n_rejected;
+                    }
+                    else
+                    {
+                        // Exponential factor
+                        scalar exp_ediff    = std::exp( -Ediff/kB_T );
+                        // Metropolis random number
+                        scalar x_metropolis = distribution(this->parameters_mc->prng);
+
+                        // Only reject if random number is larger than exponential
+                        if (exp_ediff < x_metropolis)
+                        {
+                            // Restore the spin
+                            spins_new[ispin] = spins_old[ispin];
+                            // Counter for the number of rejections
+                            ++this->n_rejected;
+                        }
                     }
                 }
             }
@@ -223,8 +222,16 @@ namespace Engine
         block.push_back(fmt::format("                with {} iterations per step", this->n_iterations_log));
         if (this->parameters_mc->metropolis_step_cone)
         {
-            block.push_back(fmt::format("   Target acceptance {}", this->parameters_mc->acceptance_ratio_target));
-            block.push_back(fmt::format("   Cone angle (deg): {}", this->cone_angle*180/Constants::Pi));
+            if (this->parameters_mc->metropolis_cone_adaptive)
+            {
+                block.push_back(fmt::format("   Target acceptance {:>6.3f}", this->parameters_mc->acceptance_ratio_target));
+                block.push_back(fmt::format("   Cone angle (deg): {:>6.3f} (adaptive)", this->cone_angle*180/Constants::Pi));
+            }
+            else
+            {
+                block.push_back(fmt::format("   Target acceptance {:>6.3f}", this->parameters_mc->acceptance_ratio_target));
+                block.push_back(fmt::format("   Cone angle (deg): {:>6.3f} (non-adaptive)", this->cone_angle*180/Constants::Pi));
+            }
         }
         block.push_back("-----------------------------------------------------");
         Log.SendBlock(Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain);
@@ -247,8 +254,16 @@ namespace Engine
         block.push_back(fmt::format("    Iterations / sec:         {}", this->n_iterations_log / Timing::SecondsPassed(t_current - this->t_last)));
         if (this->parameters_mc->metropolis_step_cone)
         {
-            block.push_back(fmt::format("    Current acceptance ratio: {} (target {})", this->acceptance_ratio_current, this->parameters_mc->acceptance_ratio_target));
-            block.push_back(fmt::format("    Current cone angle (deg): {}", this->cone_angle*180/Constants::Pi));
+            if (this->parameters_mc->metropolis_cone_adaptive)
+            {
+                block.push_back(fmt::format("    Current acceptance ratio: {:>6.3f} (target {})", this->acceptance_ratio_current, this->parameters_mc->acceptance_ratio_target));
+                block.push_back(fmt::format("    Current cone angle (deg): {:>6.3f} (adaptive)", this->cone_angle*180/Constants::Pi));
+            }
+            else
+            {
+                block.push_back(fmt::format("    Current acceptance ratio: {:>6.3f}", this->acceptance_ratio_current));
+                block.push_back(fmt::format("    Current cone angle (deg): {:>6.3f} (non-adaptive)", this->cone_angle*180/Constants::Pi));
+            }
         }
         block.push_back(fmt::format("    Total energy:             {:20.10f}", this->systems[0]->E));
         Log.SendBlock(Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain);
@@ -283,8 +298,16 @@ namespace Engine
         block.push_back(fmt::format("    Iterations / sec: {}", this->iteration / Timing::SecondsPassed(t_end - this->t_start)));
         if (this->parameters_mc->metropolis_step_cone)
         {
-            block.push_back(fmt::format("    Acceptance ratio: {} (target {})", this->acceptance_ratio_current, this->parameters_mc->acceptance_ratio_target));
-            block.push_back(fmt::format("    Cone angle (deg): {}", this->cone_angle*180/Constants::Pi));
+            if (this->parameters_mc->metropolis_cone_adaptive)
+            {
+                block.push_back(fmt::format("    Acceptance ratio: {:>6.3f} (target {})", this->acceptance_ratio_current, this->parameters_mc->acceptance_ratio_target));
+                block.push_back(fmt::format("    Cone angle (deg): {:>6.3f} (adaptive)", this->cone_angle*180/Constants::Pi));
+            }
+            else
+            {
+                block.push_back(fmt::format("    Acceptance ratio: {:>6.3f}", this->acceptance_ratio_current));
+                block.push_back(fmt::format("    Cone angle (deg): {:>6.3f} (non-adaptive)", this->cone_angle*180/Constants::Pi));
+            }
         }
         block.push_back(fmt::format("    Total energy:     {:20.10f}", this->systems[0]->E));
         block.push_back("-----------------------------------------------------");

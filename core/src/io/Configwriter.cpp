@@ -88,10 +88,23 @@ namespace IO
         }
 
         // Magnetic moment
-        config += "mu_s                     ";
-        for (int i=0; i<geometry->n_cell_atoms; ++i)
-            config += fmt::format(" {}", geometry->cell_mu_s[i]);
-        config += "\n";
+        if( !geometry->cell_composition.disordered )
+        {
+            config += "mu_s                     ";
+            for (int i=0; i<geometry->n_cell_atoms; ++i)
+                config += fmt::format(" {}", geometry->mu_s[i]);
+            config += "\n";
+        }
+        else
+        {
+            auto& iatom         = geometry->cell_composition.iatom;
+            auto& atom_type     = geometry->cell_composition.atom_type;
+            auto& mu_s          = geometry->cell_composition.mu_s;
+            auto& concentration = geometry->cell_composition.concentration;
+            config += fmt::format("atom_types    {}\n", iatom.size());
+            for (int i=0; i<iatom.size(); ++i)
+                config += fmt::format("{}   {}   {}   {}\n", iatom[i], atom_type[i], mu_s[i], concentration[i]);
+        }
 
         // Optionally lattice constant
         if (std::abs(geometry->lattice_constant-1) > 1e-6)

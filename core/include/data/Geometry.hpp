@@ -55,6 +55,25 @@ namespace Data
         intfield    types;
     };
 
+    // Vector sizes: N_basis * N_atom_tyes
+    struct Basis_Cell_Composition
+    {
+        bool disordered;
+
+        // Indexing for the following information
+        std::vector<int>      iatom;
+
+        // Atom types of the atoms in a unit cell:
+        // type index 0..n or or vacancy (type < 0)
+        std::vector<int>      atom_type;
+
+        // Magnetic moment of an atom in mu_B
+        std::vector<scalar>   mu_s;
+
+        // Chemical concentration of an atom on a specific lattice site (if disorder is activated)
+        std::vector<scalar>   concentration;
+    };
+
 
     // Geometry contains all geometric information of a system
     class Geometry
@@ -63,9 +82,8 @@ namespace Data
         // ---------- Constructor
         //  Build a regular lattice from a defined basis cell and translations
         Geometry(std::vector<Vector3> bravais_vectors, intfield n_cells,
-            std::vector<Vector3> cell_atoms, scalarfield cell_mu_s,
-            intfield cell_atom_types, scalar lattice_constant,
-            Pinning pinning, Defects defects);
+            std::vector<Vector3> cell_atoms, Basis_Cell_Composition cell_composition,
+            scalar lattice_constant, Pinning pinning, Defects defects);
 
         // ---------- Convenience functions
         // Retrieve triangulation, if 2D
@@ -93,11 +111,8 @@ namespace Data
         int n_cell_atoms;
         // Array of basis atom positions
         std::vector<Vector3> cell_atoms;
-        // Spin moments of basis cell atoms
-        scalarfield cell_mu_s;
-        // Atom types of the atoms in a unit cell:
-        // type index 0..n or or vacancy (type < 0)
-        intfield cell_atom_types;
+        // Composition of the basis cell (atom types, mu_s, disorder)
+        Basis_Cell_Composition cell_composition;
         // Info on pinned spins
         Pinning pinning;
         // Info on defects
@@ -106,8 +121,10 @@ namespace Data
         // ---------- Inferrable information
         // The kind of geometry
         BravaisLatticeType classifier;
-        // Number of Spins total
+        // Number of sites (total)
         int nos;
+        // Number of non-vacancy sites (if defects are activated)
+        int nos_nonvacant;
         // Number of basis cells total
         int n_cells_total;
         // Positions of all the atoms
@@ -127,6 +144,8 @@ namespace Data
         Vector3 cell_bounds_min, cell_bounds_max;
 
     private:
+        // Apply the Basis_Cell_Composition to this geometry (i.e. set atom types, mu_s etc.)
+        void applyCellComposition();
         // Calculate and update the dimensionality of the points in this geometry
         void calculateDimensionality();
         // Calculate and update bounds of the System
