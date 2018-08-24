@@ -1,5 +1,7 @@
 #ifdef SPIRIT_USE_CUDA
 
+#define EIGEN_USE_GPU
+
 #include <engine/Hamiltonian_Heisenberg.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Neighbours.hpp>

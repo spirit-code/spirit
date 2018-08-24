@@ -1,5 +1,7 @@
 #ifdef SPIRIT_USE_CUDA
 
+#define EIGEN_USE_GPU
+
 #include <engine/Vectormath.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
@@ -564,7 +566,6 @@ namespace Engine
             {
                 auto translations_i = translations_from_idx(n_cells, geometry.n_cell_atoms, ispin); // transVec of spin i
                 // int k = i%geometry.n_cell_atoms; // index within unit cell - k=0 for all cases used in the thesis
-                scalar n = 0;
 
                 gradient[ispin].setZero();
 
