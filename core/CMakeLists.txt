@@ -25,6 +25,7 @@ option( SPIRIT_TEST_COVERAGE     "Build in debug with special flags for coverage
 option( SPIRIT_USE_CUDA          "Use CUDA to speed up certain parts of the code."         OFF )
 option( SPIRIT_USE_OPENMP        "Use OpenMP to speed up certain parts of the code."       OFF )
 option( SPIRIT_USE_THREADS       "Use std threads to speed up certain parts of the code."  OFF )
+option( SPIRIT_USE_FFTW "Use FFTW for Fourier Transformations" ON)
 ### Set the scalar type used in the Spirit library
 set( SPIRIT_SCALAR_TYPE double )
 #############################################
@@ -54,6 +55,7 @@ if( SPIRIT_USE_CUDA )
     set( SPIRIT_SCALAR_TYPE      float )
     set( SPIRIT_BUILD_FOR_JS     OFF )
     set( SPIRIT_BUILD_FOR_JULIA  OFF )
+    set( SPIRIT_USE_FFTW OFF )
 endif()
 #############################################
 if( SPIRIT_USE_OPENMP )
@@ -235,6 +237,39 @@ if ( SPIRIT_USE_OPENMP )
 endif( )
 #############################################
 
+######## FFT decisions ######################
+if(SPIRIT_USE_FFTW)
+    include(FindFFTW)
+    if(FFTW_FOUND)
+        message("-- >> Found the following FFTW libs: ${FFTW_LIBRARIES}" )
+    else()
+        message("-- >> ** WARNING **: Could not find any FFTW libs -> Using kissFFT fallback")
+        set(SPIRIT_USE_FFTW OFF)
+        set(SPIRIT_USE_KISSFFT ON)
+    endif()
+elseif(NOT SPIRIT_USE_CUDA)
+    message("-- >> Using kissFFT!")
+    set(SPIRIT_USE_KISSFFT ON)
+endif()
+
+if(SPIRIT_USE_FFTW)
+    #message("-- >> SPIRIT_USE_FFTW set")
+    add_definitions(-DSPIRIT_USE_FFTW)
+    set(FFT_LIB ${FFTW_LIB})
+    set(FFT_INCLUDE_DIRS ${FFTW_INCLUDES})
+elseif(SPIRIT_USE_KISSFFT)
+    #message("-- >> SPIRIT_USE_KISSFFT set")
+    add_definitions( "-Dkiss_fft_scalar=${SPIRIT_SCALAR_TYPE}" )
+    add_definitions(-DSPIRIT_USE_KISSFFT)
+    add_subdirectory(thirdparty/kiss_fft)
+    set( FFT_LIB kiss_fft)
+    set( FFT_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/thirdparty/kiss_fft
+                        ${PROJECT_SOURCE_DIR}/thirdparty/kiss_fft/tools )
+endif()
+
+message("-- >> Using FFT lib:    ${FFT_LIB}")
+message("-- >> With include dir: ${FFT_INCLUDE_DIRS}")
+#############################################
 
 ######### Coverage ##########################
 if( SPIRIT_BUILD_TEST AND SPIRIT_TEST_COVERAGE )
@@ -267,7 +302,9 @@ set( SPIRIT_INCLUDE_DIRS
      ${PROJECT_SOURCE_DIR}/src/utility
      ${EIGEN_INCLUDE_DIRS}
      ${SPECTRA_INCLUDE_DIRS}
-     ${qhull_INCLUDE_DIRS} )
+     ${qhull_INCLUDE_DIRS} 
+     ${FFT_INCLUDE_DIRS} 
+     )
 include_directories( ${SPIRIT_INCLUDE_DIRS} )
 #############################################
 
@@ -349,10 +386,10 @@ if( NOT SPIRIT_USE_CUDA )
         # Coverage flags and linking if needed
         if( SPIRIT_BUILD_TEST AND SPIRIT_TEST_COVERAGE )
             set_property(TARGET ${META_PROJECT_NAME}_static PROPERTY COMPILE_FLAGS ${CMAKE_CXX_FLAGS_COVERAGE} )
-            target_link_libraries( ${META_PROJECT_NAME}_static PUBLIC ${qhull_LIBS} ${THREAD_LIBS} ${CMAKE_CXX_FLAGS_COVERAGE} ${COVERAGE_LIBRARIES} )
+            target_link_libraries( ${META_PROJECT_NAME}_static PUBLIC ${qhull_LIBS} ${THREAD_LIBS} ${CMAKE_CXX_FLAGS_COVERAGE} ${COVERAGE_LIBRARIES} ${FFT_LIB})
         # Normal linking
         else()
-            target_link_libraries( ${META_PROJECT_NAME}_static ${qhull_LIBS} ${THREAD_LIBS} )
+            target_link_libraries( ${META_PROJECT_NAME}_static ${qhull_LIBS} ${THREAD_LIBS} ${FFT_LIB})
         endif()
     endif()
 else()
@@ -382,17 +419,17 @@ if( SPIRIT_BUILD_FOR_PYTHON )
         # Coverage flags and linking if needed
         if( SPIRIT_BUILD_TEST AND SPIRIT_TEST_COVERAGE )
             set_property(TARGET ${META_PROJECT_NAME}_python PROPERTY COMPILE_FLAGS ${CMAKE_CXX_FLAGS_COVERAGE} )
-            target_link_libraries( ${META_PROJECT_NAME}_python PUBLIC ${qhull_LIBS} ${THREAD_LIBS} ${CMAKE_CXX_FLAGS_COVERAGE} ${COVERAGE_LIBRARIES} )
+            target_link_libraries( ${META_PROJECT_NAME}_python PUBLIC ${qhull_LIBS} ${THREAD_LIBS} ${CMAKE_CXX_FLAGS_COVERAGE} ${COVERAGE_LIBRARIES} ${FFT_LIB})
         else()
         # Normal linking
-            target_link_libraries( ${META_PROJECT_NAME}_python ${qhull_LIBS} ${THREAD_LIBS} )
+            target_link_libraries( ${META_PROJECT_NAME}_python ${qhull_LIBS} ${THREAD_LIBS} ${FFT_LIB})
         endif()
     else()
         MESSAGE( STATUS ">> Building shared CUDA library for Python" )
         include_directories( ${META_PROJECT_NAME}_python PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/thirdparty)
         cuda_add_library( ${META_PROJECT_NAME}_python SHARED ${SPIRIT_LIBRARY_SOURCES} )
         add_dependencies(${META_PROJECT_NAME}_static ${qhull_LIBS})
-        target_link_libraries( ${META_PROJECT_NAME}_python ${qhull_LIBS} ${THREAD_LIBS} ${CUDA_LIBRARIES} )
+        target_link_libraries( ${META_PROJECT_NAME}_python ${qhull_LIBS} ${THREAD_LIBS} ${CUDA_LIBRARIES} ${FFT_LIB})
     endif()
     ### We want it to be called spirit, not spirit_python
     set_target_properties( ${META_PROJECT_NAME}_python PROPERTIES OUTPUT_NAME "${META_PROJECT_NAME}" )

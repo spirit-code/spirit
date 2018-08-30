@@ -5,14 +5,19 @@
 #include <engine/Neighbours.hpp>
 #include <data/Spin_System.hpp>
 #include <utility/Constants.hpp>
+#include <algorithm>
 
 #include <Eigen/Dense>
+#include <Eigen/Core>
+
 
 using namespace Data;
 using namespace Utility;
 namespace C = Utility::Constants;
 using Engine::Vectormath::check_atom_type;
 using Engine::Vectormath::idx_from_pair;
+using Engine::Vectormath::idx_from_tupel;
+
 
 namespace Engine
 {
@@ -160,6 +165,7 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Update_Energy_Contributions()
     {
+        Prepare_DDI();
         this->energy_contributions_per_spin = std::vector<std::pair<std::string, scalarfield>>(0);
 
         // External field
@@ -191,7 +197,7 @@ namespace Engine
         }
         else this->idx_dmi = -1;
         // Dipole-Dipole
-        if (this->ddi_pairs.size() > 0)
+        if (this->ddi_pairs.size() > 0 || true) //todo: get rid of ||true
         {
             this->energy_contributions_per_spin.push_back({"DD", scalarfield(0) });
             this->idx_ddi = this->energy_contributions_per_spin.size()-1;
@@ -233,7 +239,9 @@ namespace Engine
         // DMI
         if (this->idx_dmi >=0 )        E_DMI(spins,contributions[idx_dmi].second);
         // DD
-        if (this->idx_ddi >=0 )        E_DDI(spins, contributions[idx_ddi].second);
+        if (this->idx_ddi >=0 )    
+            // E_DDI(spins, contributions[idx_ddi].second);
+            E_DDI_FFT(spins, contributions[idx_ddi].second);
         // Quadruplets
         if (this->idx_quadruplet >=0 ) E_Quadruplet(spins, contributions[idx_quadruplet].second);
     }
@@ -348,6 +356,46 @@ namespace Engine
         }
     }// end DipoleDipole
 
+    void Hamiltonian_Heisenberg::E_DDI_FFT(const vectorfield & spins, scalarfield & Energy)
+    {
+        scalar Energy_DDI = 0;
+        vectorfield gradients_temp;
+        gradients_temp.resize(geometry->nos);
+        Vectormath::fill(gradients_temp, {0,0,0});
+        Gradient_DDI_FFT(spins, gradients_temp);
+
+        // === DEBUG: begin gradient comparison ===
+            // vectorfield gradients_temp_dir;
+            // gradients_temp_dir.resize(this->geometry->nos);
+            // Vectormath::fill(gradients_temp_dir, {0,0,0});
+            // Gradient_DDI_direct(spins, gradients_temp_dir);
+
+            // //get deviation
+            // std::array<scalar, 3> deviation = {0,0,0};
+            // std::array<scalar, 3> avg = {0,0,0};
+            // for(int i = 0; i < this->geometry->nos; i++)
+            // {
+            //     for(int d = 0; d < 3; d++)
+            //     {
+            //         deviation[d] += std::pow(gradients_temp[i][d] - gradients_temp_dir[i][d], 2);
+            //         avg[d] += gradients_temp_dir[i][d];
+            //     }
+            // }
+            // std::cerr << "Avg. Gradient = " << avg[0]/this->geometry->nos << " " << avg[1]/this->geometry->nos << " " << avg[2]/this->geometry->nos << std::endl;
+            // std::cerr << "Avg. Deviation = " << deviation[0]/this->geometry->nos << " " << deviation[1]/this->geometry->nos << " " << deviation[2]/this->geometry->nos << std::endl;
+        //==== DEBUG: end gradient comparison ====
+
+        for(int ib = 0; ib < this->geometry->n_cell_atoms; ib++)
+        {
+            auto mu = geometry->mu_s[ib];
+            for (int i_cell = 0; i_cell < geometry->n_cells_total; i_cell++)
+            {
+                auto idx = ib + i_cell * this->geometry->n_cell_atoms;
+                Energy[idx] += 0.5 * mu * spins[idx].dot(gradients_temp[idx]);
+                Energy_DDI += 0.5 * mu * spins[idx].dot(gradients_temp[idx]);
+            }
+        }
+    }
 
     void Hamiltonian_Heisenberg::E_Quadruplet(const vectorfield & spins, scalarfield & Energy)
     {
@@ -537,8 +585,11 @@ namespace Engine
         this->Gradient_Exchange(spins, gradient);
         // DMI
         this->Gradient_DMI(spins, gradient);
+        
         // DD
-        this->Gradient_DDI(spins, gradient);
+        // this->Gradient_DDI(spins, gradient);
+        // this->Gradient_DDI_direct(spins, gradient);
+        this->Gradient_DDI_FFT(spins, gradient);
 
         // Quadruplets
         this->Gradient_Quadruplet(spins, gradient);
@@ -651,6 +702,158 @@ namespace Engine
             }
         }
     }//end Field_DipoleDipole
+
+    void Hamiltonian_Heisenberg::Gradient_DDI_FFT(const vectorfield & spins, vectorfield & gradient)
+    {
+        //size of original geometry
+        int Na = geometry->n_cells[0];
+        int Nb = geometry->n_cells[1];
+        int Nc = geometry->n_cells[2];
+
+        //number of basis atoms (i.e sublattices)
+        int B = geometry->n_cell_atoms;
+
+        FFT_spins(spins);
+        
+        auto& ft_D_matrices = fft_plan_d.cpx_ptr;
+        auto& ft_spins = fft_plan_spins.cpx_ptr;
+
+        auto& res_iFFT = fft_plan_rev.real_ptr;
+        auto& res_mult = fft_plan_rev.cpx_ptr;
+
+        // auto mapSpins = Eigen::Map<Vector3c, 0, Eigen::Stride<1,Eigen::Dynamic> >
+        //                 (reinterpret_cast<std::complex<scalar>*>(NULL),
+        //                 Eigen::Stride<1,Eigen::Dynamic>(1,N));
+                    
+        // auto mapResult = Eigen::Map<Vector3c, 0, Eigen::Stride<1,Eigen::Dynamic> >
+        //                 (reinterpret_cast<std::complex<scalar>*>(NULL),
+        //                 Eigen::Stride<1,Eigen::Dynamic>(1,N));
+
+
+        for(int i_b1 = 0; i_b1 < B; ++i_b1)
+        {
+            std::fill(fft_plan_rev.cpx_ptr.data(), fft_plan_rev.cpx_ptr.data() + 3 * N * geometry->n_cell_atoms, FFT::FFT_cpx_type());
+            std::fill(res_iFFT.data(), res_iFFT.data() + 3 * N * geometry->n_cell_atoms, 0.0);
+            
+            #pragma omp parallel for
+            for(int i_b2 = 0; i_b2 < B; ++i_b2)
+            {
+                // Look up at which position the correct D-matrices are saved
+                int b_diff = b_diff_lookup[i_b1 + i_b2 * geometry->n_cell_atoms];
+
+                for(int c = 0; c < Npad[2]; ++c)
+                {
+                    for(int b = 0; b < Npad[1]; ++b)
+                    {
+                        for(int a = 0; a < Npad[0]; ++a)
+                        {
+                            // int idx = a + b * Npad[0] + c * Npad[0] * Npad[1];
+
+                            // auto& D_mat = d_mats_ft[idx + b_diff * N];
+
+                            // //need two maps now one for output, one for spins
+                            // new (&mapSpins) Eigen::Map<Vector3c, 0, Eigen::Stride<1,Eigen::Dynamic> >
+                            //     (reinterpret_cast<std::complex<scalar>*>(ft_spins.data() + idx + i_b2 * 3 * N),
+                            //     Eigen::Stride<1,Eigen::Dynamic>(1,N));
+
+                            // new (&mapResult) Eigen::Map<Vector3c, 0, Eigen::Stride<1,Eigen::Dynamic> >
+                            //      (reinterpret_cast<std::complex<scalar>*>(res_mult.data() + idx + i_b1 * 3 * N),
+                            //      Eigen::Stride<1,Eigen::Dynamic>(1,N));
+
+                            // mapResult += D_mat * mapSpins;
+
+                            #ifdef SPIRIT_USE_FFTW
+                                int component_stride = 1;
+                                int idx_b2 = idx_from_tupel({0, i_b2, a, b, c}, {3, B, Npad[0], Npad[1], Npad[2]});
+                                int idx_b1 = idx_from_tupel({0, i_b1, a, b, c}, {3, B, Npad[0], Npad[1], Npad[2]});
+                                int idx_d  = idx_from_tupel({0, b_diff, a, b, c}, {6, symmetry_count, Npad[0], Npad[1], Npad[2]});
+                            #else
+                                int component_stride = N;
+                                int idx_b2 = idx_from_tupel({a, b, c, 0, i_b2}, {Npad[0], Npad[1], Npad[2], 3, B});
+                                int idx_b1 = idx_from_tupel({a, b, c, 0, i_b1}, {Npad[0], Npad[1], Npad[2], 3, B});
+                                int idx_d  = idx_from_tupel({a, b, c, 0, b_diff}, {Npad[0], Npad[1], Npad[2], 6, symmetry_count});
+                            #endif
+
+                            auto& fs_x = ft_spins[idx_b2                       ];
+                            auto& fs_y = ft_spins[idx_b2 + 1 * component_stride];
+                            auto& fs_z = ft_spins[idx_b2 + 2 * component_stride];
+
+                            auto& fD_xx = ft_D_matrices[idx_d                       ];
+                            auto& fD_xy = ft_D_matrices[idx_d + 1 * component_stride];
+                            auto& fD_xz = ft_D_matrices[idx_d + 2 * component_stride];
+                            auto& fD_yy = ft_D_matrices[idx_d + 3 * component_stride];
+                            auto& fD_yz = ft_D_matrices[idx_d + 4 * component_stride];
+                            auto& fD_zz = ft_D_matrices[idx_d + 5 * component_stride];
+
+                            FFT::addTo(res_mult[idx_b1 + 0 * component_stride], FFT::mult3D(fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z));
+                            FFT::addTo(res_mult[idx_b1 + 1 * component_stride], FFT::mult3D(fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z));
+                            FFT::addTo(res_mult[idx_b1 + 2 * component_stride], FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z));
+                        }
+                    }
+                }//end iteration over padded lattice cells
+            }//end iteration over second sublattice
+ 
+            //Inverse Fourier Transform
+            FFT::batch_iFour_3D(fft_plan_rev);
+
+            //Place the gradients at the correct positions and mult with correct mu
+            for(int c = 0; c < geometry->n_cells[2]; ++c)
+            {
+                for(int b = 0; b < geometry->n_cells[1]; ++b)
+                {
+                    for(int a = 0; a < geometry->n_cells[0]; ++a)
+                    {
+                        int idx_orig = idx_from_tupel({i_b1, a, b, c}, {B, Na, Nb, Nc});
+                        #ifdef SPIRIT_USE_FFTW
+                            int component_stride = 1;
+                            int idx = idx_from_tupel({0, i_b1, a, b, c}, {3, B, Npad[0], Npad[1], Npad[2]});
+                        #else
+                            int component_stride = N;
+                            int idx = idx_from_tupel({a, b, c, 0, i_b1}, {Npad[0], Npad[1], Npad[2], 3, B});
+                        #endif
+
+                        gradient[idx_orig][0] -= res_iFFT[idx                       ] / N;   
+                        gradient[idx_orig][1] -= res_iFFT[idx + 1 * component_stride] / N;     
+                        gradient[idx_orig][2] -= res_iFFT[idx + 2 * component_stride] / N;   
+                    }
+                }
+            }  
+        }//end iteration sublattice 1
+    }
+
+    void Hamiltonian_Heisenberg::Gradient_DDI_direct(const vectorfield & spins, vectorfield & gradient)
+    {
+        scalar mult = 2 * C::mu_0 * std::pow(C::mu_B, 2) / ( 4*C::Pi * 1e-30 );
+        scalar diff, d, d3, d5, Dxx, Dxy, Dxz, Dyy, Dyz, Dzz;
+    
+        for(int idx1 = 0; idx1 < geometry->nos; idx1++)
+        {
+            for(int idx2 = 0; idx2 < geometry->nos; idx2++)
+            {
+                if(idx1 != idx2)
+                {
+                    auto& m2 = spins[idx2];
+                  
+                    auto diff = this->geometry->positions[idx2] - this->geometry->positions[idx1];
+                    auto d = diff.norm();
+                    auto d3 = d * d * d;
+                    auto d5 = d * d * d * d * d;
+                    scalar Dxx = mult * (3 * diff[0]*diff[0] / d5 - 1/d3);
+                    scalar Dxy = mult *  3 * diff[0]*diff[1] / d5;          //same as Dyx
+                    scalar Dxz = mult *  3 * diff[0]*diff[2] / d5;          //same as Dzx
+                    scalar Dyy = mult * (3 * diff[1]*diff[1] / d5 - 1/d3);
+                    scalar Dyz = mult *  3 * diff[1]*diff[2] / d5;          //same as Dzy
+                    scalar Dzz = mult * (3 * diff[2]*diff[2] / d5 - 1/d3);
+
+                    auto mu = geometry->mu_s[idx2 % geometry->n_cell_atoms];
+
+                    gradient[idx1][0] -= (Dxx * m2[0] + Dxy * m2[1] + Dxz * m2[2]) * mu;
+                    gradient[idx1][1] -= (Dxy * m2[0] + Dyy * m2[1] + Dyz * m2[2]) * mu;                    
+                    gradient[idx1][2] -= (Dxz * m2[0] + Dyz * m2[1] + Dzz * m2[2]) * mu;
+                }
+            }
+        }
+    }
 
 
     void Hamiltonian_Heisenberg::Gradient_Quadruplet(const vectorfield & spins, vectorfield & gradient)
@@ -819,6 +1022,213 @@ namespace Engine
         //}
 
         // Quadruplets
+    }
+
+    void Hamiltonian_Heisenberg::FFT_spins(const vectorfield & spins)
+    {
+        //size of original geometry
+        int Na = geometry->n_cells[0];
+        int Nb = geometry->n_cells[1];
+        int Nc = geometry->n_cells[2];
+        //bravais vectors
+        Vector3 ta = geometry->bravais_vectors[0];
+        Vector3 tb = geometry->bravais_vectors[1];
+        Vector3 tc = geometry->bravais_vectors[2];
+        int B = geometry->n_cell_atoms;
+
+        auto& fft_spin_inputs = fft_plan_spins.real_ptr;
+
+        for(int bi = 0; bi < B; ++bi)
+        {   
+            //iterate over the **original** system    
+            for(int c = 0; c < Nc; ++c)
+            {
+                for(int b = 0; b < Nb; ++b)
+                {
+                    for(int a = 0; a < Na; ++a)
+                    {
+                        int idx_orig = idx_from_tupel({bi, a, b, c}, {B, Na, Nb, Nc});
+                        #ifdef SPIRIT_USE_FFTW
+                                int component_stride = 1;
+                                int idx = idx_from_tupel({0, bi, a, b, c}, {3, B, Npad[0], Npad[1], Npad[2]});
+                        #else
+                                int component_stride = N;
+                                int idx = idx_from_tupel({a, b, c, 0, bi}, {Npad[0], Npad[1], Npad[2], 3, B});
+                        #endif
+
+                        fft_spin_inputs[idx                        ] = spins[idx_orig][0] * geometry->mu_s[bi];
+                        fft_spin_inputs[idx + 1 * component_stride ] = spins[idx_orig][1] * geometry->mu_s[bi];
+                        fft_spin_inputs[idx + 2 * component_stride ] = spins[idx_orig][2] * geometry->mu_s[bi];                                            
+                    }
+                }
+            }
+        }//end iteration over basis
+        FFT::batch_Four_3D(fft_plan_spins);
+    }
+
+    void Hamiltonian_Heisenberg::FFT_Dipole_Mats(std::array<int, 3> p_images)
+    {
+        //prefactor of ddi interaction
+        scalar mult = 2 * C::mu_0 * std::pow(C::mu_B, 2) / ( 4*C::Pi * 1e-30 );
+
+        //size of original geometry
+        int Na = geometry->n_cells[0];
+        int Nb = geometry->n_cells[1];
+        int Nc = geometry->n_cells[2];
+        //bravais vectors
+        Vector3 ta = geometry->bravais_vectors[0];
+        Vector3 tb = geometry->bravais_vectors[1];
+        Vector3 tc = geometry->bravais_vectors[2];
+        //number of basis atoms (i.e sublattices)
+        int B = geometry->n_cell_atoms;
+
+        auto& fft_dipole_inputs = fft_plan_d.real_ptr;
+
+        int count = -1;
+        for(int i_b1 = 0; i_b1 < B; ++i_b1)
+        {
+            for(int i_b2 = 0; i_b2 < B; ++i_b2)
+            {
+                if(i_b1 == i_b2 && i_b1 !=0)
+                {
+                    b_diff_lookup[i_b1 + i_b2 * geometry->n_cell_atoms] = 0;
+                    continue;
+                }
+                count++;
+                b_diff_lookup[i_b1 + i_b2 * geometry->n_cell_atoms] = count;
+
+                //iterate over the padded system    
+                for(int c = 0; c < Npad[2]; ++c)
+                {
+                    for(int b = 0; b < Npad[1]; ++b)
+                    {
+                        for(int a = 0; a < Npad[0]; ++a)
+                        {
+                            int a_idx = a < Na ? a : a - Npad[0];
+                            int b_idx = b < Nb ? b : b - Npad[1];
+                            int c_idx = c < Nc ? c : c - Npad[2];
+                            
+                            Vector3 diff =    (a_idx + geometry->cell_atoms[i_b1][0] - geometry->cell_atoms[i_b2][0]) * ta 
+                                            + (b_idx + geometry->cell_atoms[i_b1][1] - geometry->cell_atoms[i_b2][1]) * tb  
+                                            + (c_idx + geometry->cell_atoms[i_b1][2] - geometry->cell_atoms[i_b2][2]) * tc; 
+
+                            if(!(a==0 && b==0 && c==0 && i_b1 == i_b2))
+                            {
+                                auto d = diff.norm();
+                                auto d3 = d * d * d;
+                                auto d5 = d * d * d * d * d;
+                                scalar Dxx = mult * (3 * diff[0]*diff[0] / d5 - 1/d3);
+                                scalar Dxy = mult *  3 * diff[0]*diff[1] / d5;          //same as Dyx
+                                scalar Dxz = mult *  3 * diff[0]*diff[2] / d5;          //same as Dzx
+                                scalar Dyy = mult * (3 * diff[1]*diff[1] / d5 - 1/d3);
+                                scalar Dyz = mult *  3 * diff[1]*diff[2] / d5;          //same as Dzy
+                                scalar Dzz = mult * (3 * diff[2]*diff[2] / d5 - 1/d3);
+
+                                int idx_pad = a + b * Npad[0] + c * Npad[1] * Npad[0] + 6 * N * count; 
+                                
+                                #ifdef SPIRIT_USE_FFTW
+                                    int component_stride = 1;
+                                    int idx = idx_from_tupel({0, count, a, b, c}, {6, symmetry_count, Npad[0], Npad[1], Npad[2]});
+                                 #else
+                                    int component_stride = N;
+                                    int idx = idx_from_tupel({a, b, c, 0, count}, {Npad[0], Npad[1], Npad[2], 6, symmetry_count});
+                                #endif
+
+                                fft_dipole_inputs[idx                       ] = Dxx;
+                                fft_dipole_inputs[idx + 1 * component_stride] = Dxy;
+                                fft_dipole_inputs[idx + 2 * component_stride] = Dxz;
+                                fft_dipole_inputs[idx + 3 * component_stride] = Dyy;
+                                fft_dipole_inputs[idx + 4 * component_stride] = Dyz;
+                                fft_dipole_inputs[idx + 5 * component_stride] = Dzz;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        FFT::batch_Four_3D(fft_plan_d);
+    }
+
+    void Hamiltonian_Heisenberg::Prepare_DDI(std::array<int, 3> pb_images)
+    {
+        Npad.resize(3);
+        Npad[0] = (geometry->n_cells[0] > 1) ? 2 * geometry->n_cells[0] : 1;
+        Npad[1] = (geometry->n_cells[1] > 1) ? 2 * geometry->n_cells[1] : 1;
+        Npad[2] = (geometry->n_cells[2] > 1) ? 2 * geometry->n_cells[2] : 1;
+        N = Npad[0] * Npad[1] * Npad[2];
+
+        b_diff_lookup.resize(geometry->n_cell_atoms * geometry->n_cell_atoms);
+
+        //we dont need to transform over length 1 dims
+        std::vector<int> fft_dims;
+        for(int i = 2; i >= 0; i--) //notice that reverse order is important!
+        {
+            if(Npad[i] > 1)
+                fft_dims.push_back(Npad[i]);
+        }
+
+        //Count how many distinct inter-lattice contributions we need to store
+        symmetry_count = 0;
+        for(int i = 0; i < geometry->n_cell_atoms; i++)
+        {   
+            for(int j = 0; j < geometry->n_cell_atoms; j++)
+            {
+                if(i != 0 && i==j) continue;
+                symmetry_count++;
+            }
+        }
+
+        //Create fft plans.
+        fft_plan_d.dims     = fft_dims;
+        fft_plan_d.inverse  = false;
+        fft_plan_d.howmany  = 6 * symmetry_count;
+        fft_plan_d.real_ptr = field<FFT::FFT_real_type>(symmetry_count * 6 * N);
+        fft_plan_d.cpx_ptr  = field<FFT::FFT_cpx_type>(symmetry_count * 6 * N);
+        fft_plan_d.CreateConfiguration();
+
+        fft_plan_spins.dims     = fft_dims;
+        fft_plan_spins.inverse  = false;
+        fft_plan_spins.howmany  = 3 * geometry->n_cell_atoms;
+        fft_plan_spins.real_ptr = field<FFT::FFT_real_type>(3 * N * geometry->n_cell_atoms);
+        fft_plan_spins.cpx_ptr  = field<FFT::FFT_cpx_type>(3 * N * geometry->n_cell_atoms);
+        fft_plan_spins.CreateConfiguration();
+
+
+        fft_plan_rev.dims     = fft_dims;
+        fft_plan_rev.inverse  = true;
+        fft_plan_rev.howmany  = 3 * geometry->n_cell_atoms;
+        fft_plan_rev.cpx_ptr  = field<FFT::FFT_cpx_type>(3 * N * geometry->n_cell_atoms);
+        fft_plan_rev.real_ptr = field<FFT::FFT_real_type>(3 * N * geometry->n_cell_atoms);
+        fft_plan_rev.CreateConfiguration();
+
+        //perform FFT of dipole matrices
+        FFT_Dipole_Mats(pb_images);
+
+        d_mats_ft = field<Matrix3c>(N * symmetry_count);
+
+        //Write out ft dipole matrices
+        for(int b_diff = 0; b_diff < symmetry_count; ++b_diff)
+        {
+            for(int c = 0; c < Npad[2]; ++c)
+            {
+                for(int b = 0; b < Npad[1]; ++b)
+                {
+                    for(int a = 0; a < Npad[0]; ++a)
+                    {
+                        int idx = a + b * Npad[0] + c * Npad[0] * Npad[1] + 6 * N * b_diff;
+                        auto fD_xx = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx_from_tupel({a, b, c, 0, b_diff}, {Npad[0], Npad[1], Npad[2], 6, symmetry_count})]);
+                        auto fD_xy = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx_from_tupel({a, b, c, 1, b_diff}, {Npad[0], Npad[1], Npad[2], 6, symmetry_count})]);
+                        auto fD_xz = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx_from_tupel({a, b, c, 2, b_diff}, {Npad[0], Npad[1], Npad[2], 6, symmetry_count})]);
+                        auto fD_yy = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx_from_tupel({a, b, c, 3, b_diff}, {Npad[0], Npad[1], Npad[2], 6, symmetry_count})]);
+                        auto fD_yz = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx_from_tupel({a, b, c, 4, b_diff}, {Npad[0], Npad[1], Npad[2], 6, symmetry_count})]);
+                        auto fD_zz = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx_from_tupel({a, b, c, 5, b_diff}, {Npad[0], Npad[1], Npad[2], 6, symmetry_count})]);
+                        d_mats_ft[idx_from_tupel({b_diff, a, b, c}, {geometry->n_cell_atoms, Npad[0], Npad[1], Npad[2]})] <<  *fD_xx, *fD_xy, *fD_xz,
+                                                                                                                              *fD_xy, *fD_yy, *fD_yz,
+                                                                                                                              *fD_xz, *fD_yz, *fD_zz;
+                    }
+                }
+            }
+        }
     }
 
     // Hamiltonian name as string

@@ -9,6 +9,7 @@
 #include <engine/Vectormath_Defines.hpp>
 #include <engine/Hamiltonian.hpp>
 #include <data/Geometry.hpp>
+#include "FFT.hpp"
 
 namespace Engine
 {
@@ -110,6 +111,9 @@ namespace Engine
         void Gradient_DMI(const vectorfield & spins, vectorfield & gradient);
         // Calculates the Dipole-Dipole contribution to the effective field of spin ispin within system s
         void Gradient_DDI(const vectorfield& spins, vectorfield & gradient);
+        void Gradient_DDI_direct(const vectorfield& spins, vectorfield & gradient);
+        void Gradient_DDI_FFT(const vectorfield& spins, vectorfield & gradient);
+
         // Quadruplet
         void Gradient_Quadruplet(const vectorfield & spins, vectorfield & gradient);
 
@@ -126,9 +130,37 @@ namespace Engine
         void E_DMI(const vectorfield & spins, scalarfield & Energy);
         // calculates the Dipole-Dipole Energy
         void E_DDI(const vectorfield& spins, scalarfield & Energy);
+        void E_DDI_FFT(const vectorfield& spins, scalarfield & Energy);
+
         // Quadruplet
         void E_Quadruplet(const vectorfield & spins, scalarfield & Energy);
+        
+        //Preparations for DDI-Convolution Algorithm
+        void Prepare_DDI(std::array<int, 3> pb_images);
+        inline void Prepare_DDI()
+        {
+            Prepare_DDI({0, 0, 0});
+        }
 
+        //Plans for FT / rFT
+        FFT::FFT_Plan fft_plan_spins;
+        FFT::FFT_Plan fft_plan_d;
+        FFT::FFT_Plan fft_plan_rev;
+
+        field<Matrix3c> d_mats_ft;
+        int symmetry_count;
+          //At which index to look up the inter-sublattice D-matrices
+
+        field< int > b_diff_lookup;
+        //Lengths of padded system
+        field< int > Npad;
+        //Total number of padded spins per sublattice
+        int N;
+      
+        //Calculate the FT of the padded D matriess
+        void FFT_Dipole_Mats(std::array<int, 3> pb_images);
+        //Calculate the FT of the padded spins
+        void FFT_spins(const vectorfield & spins);
     };
 }
 #endif
