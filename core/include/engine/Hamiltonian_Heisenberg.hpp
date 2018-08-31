@@ -9,10 +9,19 @@
 #include <engine/Vectormath_Defines.hpp>
 #include <engine/Hamiltonian.hpp>
 #include <data/Geometry.hpp>
+#include <Spirit/Hamiltonian.h>
 #include "FFT.hpp"
 
 namespace Engine
 {
+    enum class DDI_Method
+    {
+        FFT    = SPIRIT_DDI_METHOD_FFT,
+        FMM    = SPIRIT_DDI_METHOD_FMM,
+        Cutoff = SPIRIT_DDI_METHOD_CUTOFF,
+        None   = SPIRIT_DDI_METHOD_NONE
+    };
+
     /*
         The Heisenberg Hamiltonian using Pairs contains all information on the interactions between spins.
         The information is presented in pair lists and parameter lists in order to easily e.g. calculate the energy of the system via summation.
@@ -26,7 +35,7 @@ namespace Engine
             intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
             pairfield exchange_pairs, scalarfield exchange_magnitudes,
             pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals,
-            scalar ddi_radius,
+            DDI_Method ddi_method, intfield ddi_n_periodic_images, scalar ddi_radius,
             quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
             std::shared_ptr<Data::Geometry> geometry,
             intfield boundary_conditions
@@ -37,7 +46,7 @@ namespace Engine
             intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
             scalarfield exchange_shell_magnitudes,
             scalarfield dmi_shell_magnitudes, int dm_chirality,
-            scalar ddi_radius,
+            DDI_Method ddi_method, intfield ddi_n_periodic_images, scalar ddi_radius,
             quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
             std::shared_ptr<Data::Geometry> geometry,
             intfield boundary_conditions
@@ -88,6 +97,9 @@ namespace Engine
         scalarfield dmi_magnitudes;
         vectorfield dmi_normals;
         // Dipole Dipole interaction
+        DDI_Method  ddi_method;
+        intfield    ddi_n_periodic_images;
+        //      ddi cutoff variables
         scalar      ddi_cutoff_radius;
         pairfield   ddi_pairs;
         scalarfield ddi_magnitudes;
@@ -130,23 +142,24 @@ namespace Engine
         void E_DMI(const vectorfield & spins, scalarfield & Energy);
         // calculates the Dipole-Dipole Energy
         void E_DDI(const vectorfield& spins, scalarfield & Energy);
+        void E_DDI_Cutoff(const vectorfield& spins, scalarfield & Energy);
         void E_DDI_FFT(const vectorfield& spins, scalarfield & Energy);
 
         // Quadruplet
         void E_Quadruplet(const vectorfield & spins, scalarfield & Energy);
         
-        //Preparations for DDI-Convolution Algorithm
+        // Preparations for DDI-Convolution Algorithm
         void Prepare_DDI();
 
-        //Plans for FT / rFT
+        // Plans for FT / rFT
         FFT::FFT_Plan fft_plan_spins;
         FFT::FFT_Plan fft_plan_d;
         FFT::FFT_Plan fft_plan_rev;
 
         field<Matrix3c> d_mats_ft;
         int symmetry_count;
-          //At which index to look up the inter-sublattice D-matrices
 
+        // At which index to look up the inter-sublattice D-matrices
         field< int > b_diff_lookup;
         //Lengths of padded system
         field< int > Npad;

@@ -231,7 +231,7 @@ namespace IO
         config += "###    External Field:\n";
         config += fmt::format("{:<25} {}\n", "external_field_magnitude", ham->external_field_magnitude / Constants::mu_B);
         config += fmt::format("{:<25} {}\n", "external_field_normal", ham->external_field_normal.transpose());
-        
+
         // Anisotropy
         config += "###    Anisotropy:\n";
         scalar K = 0;
@@ -243,7 +243,7 @@ namespace IO
         }
         config += fmt::format("{:<25} {}\n", "anisotropy_magnitude", K);
         config += fmt::format("{:<25} {}\n", "anisotropy_normal", K_normal.transpose());
-        
+
         config += "###    Interaction pairs:\n";
         config += fmt::format("n_interaction_pairs {}\n", ham->exchange_pairs.size() + ham->dmi_pairs.size());
         if (ham->exchange_pairs.size() + ham->dmi_pairs.size() > 0)
@@ -267,6 +267,19 @@ namespace IO
                     0.0, ham->dmi_magnitudes[i], ham->dmi_normals[i][0], ham->dmi_normals[i][1], ham->dmi_normals[i][2]);
             }
         }
+
+        // Dipole-dipole
+        std::string ddi_method;
+        if (ham->ddi_method == Engine::DDI_Method::None) ddi_method = "none";
+        else if (ham->ddi_method == Engine::DDI_Method::FFT) ddi_method = "fft";
+        else if (ham->ddi_method == Engine::DDI_Method::FMM) ddi_method = "fmm";
+        else if (ham->ddi_method == Engine::DDI_Method::Cutoff) ddi_method = "cutoff";
+        config += "### Dipole-dipole interaction caclulation method\n### (fft, fmm, cutoff, none)";
+        config += fmt::format("ddi_method                 {}\n", ddi_method);
+        config += "### DDI number of periodic images in (a b c)";
+        config += fmt::format("ddi_n_periodic_images      {} {} {}\n", ham->ddi_n_periodic_images[0], ham->ddi_n_periodic_images[1], ham->ddi_n_periodic_images[2]);
+        config += "### DDI cutoff radius (if cutoff is used)";
+        config += fmt::format("ddi_radius                 {}\n", ham->ddi_cutoff_radius);
 
         // Quadruplets
         config += "###    Quadruplets:\n";

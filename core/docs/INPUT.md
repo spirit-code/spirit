@@ -164,8 +164,15 @@ external_field_normal    0.0 0.0 1.0
 anisotropy_magnitude     0.0
 anisotropy_normal        0.0 0.0 1.0
 
-### Dipole-Dipole radius
-dd_radius          0.0
+### Dipole-dipole interaction caclulation method
+### (fft, fmm, cutoff)
+ddi_method                 fft
+
+### DDI number of periodic images (fft and fmm) in (a b c)
+ddi_n_periodic_images      4 4 4
+
+### DDI cutoff radius (if cutoff is used)
+ddi_radius                 0.0
 ```
 
 *Anisotropy:*
