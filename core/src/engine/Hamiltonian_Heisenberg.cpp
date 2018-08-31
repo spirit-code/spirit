@@ -365,7 +365,7 @@ namespace Engine
         Gradient_DDI_FFT(spins, gradients_temp);
 
         // === DEBUG: begin gradient comparison ===
-            // vectorfield gradients_temp_dir;
+            // vectorfield gr./sadients_temp_dir;
             // gradients_temp_dir.resize(this->geometry->nos);
             // Vectormath::fill(gradients_temp_dir, {0,0,0});
             // Gradient_DDI_direct(spins, gradients_temp_dir);
@@ -585,7 +585,7 @@ namespace Engine
         this->Gradient_Exchange(spins, gradient);
         // DMI
         this->Gradient_DMI(spins, gradient);
-        
+
         // DD
         // this->Gradient_DDI(spins, gradient);
         // this->Gradient_DDI_direct(spins, gradient);
@@ -732,6 +732,7 @@ namespace Engine
 
         for(int i_b1 = 0; i_b1 < B; ++i_b1)
         {
+            //should be removed
             std::fill(fft_plan_rev.cpx_ptr.data(), fft_plan_rev.cpx_ptr.data() + 3 * N * geometry->n_cell_atoms, FFT::FFT_cpx_type());
             std::fill(res_iFFT.data(), res_iFFT.data() + 3 * N * geometry->n_cell_atoms, 0.0);
             
@@ -761,33 +762,25 @@ namespace Engine
                             //      Eigen::Stride<1,Eigen::Dynamic>(1,N));
 
                             // mapResult += D_mat * mapSpins;
-
-                            #ifdef SPIRIT_USE_FFTW
-                                int component_stride = 1;
-                                int idx_b2 = idx_from_tupel({0, i_b2, a, b, c}, {3, B, Npad[0], Npad[1], Npad[2]});
-                                int idx_b1 = idx_from_tupel({0, i_b1, a, b, c}, {3, B, Npad[0], Npad[1], Npad[2]});
-                                int idx_d  = idx_from_tupel({0, b_diff, a, b, c}, {6, symmetry_count, Npad[0], Npad[1], Npad[2]});
-                            #else
-                                int component_stride = N;
-                                int idx_b2 = idx_from_tupel({a, b, c, 0, i_b2}, {Npad[0], Npad[1], Npad[2], 3, B});
-                                int idx_b1 = idx_from_tupel({a, b, c, 0, i_b1}, {Npad[0], Npad[1], Npad[2], 3, B});
-                                int idx_d  = idx_from_tupel({a, b, c, 0, b_diff}, {Npad[0], Npad[1], Npad[2], 6, symmetry_count});
-                            #endif
-
+                            
+                            int idx_b2 = i_b2 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c; 
+                            int idx_b1 = i_b1 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c; 
+                            int idx_d  = b_diff * d_stride.basis + a * d_stride.a + b * d_stride.b + c * d_stride.c; 
+  
                             auto& fs_x = ft_spins[idx_b2                       ];
-                            auto& fs_y = ft_spins[idx_b2 + 1 * component_stride];
-                            auto& fs_z = ft_spins[idx_b2 + 2 * component_stride];
+                            auto& fs_y = ft_spins[idx_b2 + 1 * spin_stride.comp];
+                            auto& fs_z = ft_spins[idx_b2 + 2 * spin_stride.comp];
 
-                            auto& fD_xx = ft_D_matrices[idx_d                       ];
-                            auto& fD_xy = ft_D_matrices[idx_d + 1 * component_stride];
-                            auto& fD_xz = ft_D_matrices[idx_d + 2 * component_stride];
-                            auto& fD_yy = ft_D_matrices[idx_d + 3 * component_stride];
-                            auto& fD_yz = ft_D_matrices[idx_d + 4 * component_stride];
-                            auto& fD_zz = ft_D_matrices[idx_d + 5 * component_stride];
+                            auto& fD_xx = ft_D_matrices[idx_d                    ];
+                            auto& fD_xy = ft_D_matrices[idx_d + 1 * d_stride.comp];
+                            auto& fD_xz = ft_D_matrices[idx_d + 2 * d_stride.comp];
+                            auto& fD_yy = ft_D_matrices[idx_d + 3 * d_stride.comp];
+                            auto& fD_yz = ft_D_matrices[idx_d + 4 * d_stride.comp];
+                            auto& fD_zz = ft_D_matrices[idx_d + 5 * d_stride.comp];
 
-                            FFT::addTo(res_mult[idx_b1 + 0 * component_stride], FFT::mult3D(fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z));
-                            FFT::addTo(res_mult[idx_b1 + 1 * component_stride], FFT::mult3D(fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z));
-                            FFT::addTo(res_mult[idx_b1 + 2 * component_stride], FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z));
+                            FFT::addTo(res_mult[idx_b1 + 0 * spin_stride.comp], FFT::mult3D(fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z));
+                            FFT::addTo(res_mult[idx_b1 + 1 * spin_stride.comp], FFT::mult3D(fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z));
+                            FFT::addTo(res_mult[idx_b1 + 2 * spin_stride.comp], FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z));
                         }
                     }
                 }//end iteration over padded lattice cells
@@ -803,18 +796,11 @@ namespace Engine
                 {
                     for(int a = 0; a < geometry->n_cells[0]; ++a)
                     {
-                        int idx_orig = idx_from_tupel({i_b1, a, b, c}, {B, Na, Nb, Nc});
-                        #ifdef SPIRIT_USE_FFTW
-                            int component_stride = 1;
-                            int idx = idx_from_tupel({0, i_b1, a, b, c}, {3, B, Npad[0], Npad[1], Npad[2]});
-                        #else
-                            int component_stride = N;
-                            int idx = idx_from_tupel({a, b, c, 0, i_b1}, {Npad[0], Npad[1], Npad[2], 3, B});
-                        #endif
-
+                        int idx_orig = i_b1 + B * (a + Na * (b + Nb * c));
+                        int idx = i_b1 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c; 
                         gradient[idx_orig][0] -= res_iFFT[idx                       ] / N;   
-                        gradient[idx_orig][1] -= res_iFFT[idx + 1 * component_stride] / N;     
-                        gradient[idx_orig][2] -= res_iFFT[idx + 2 * component_stride] / N;   
+                        gradient[idx_orig][1] -= res_iFFT[idx + 1 * spin_stride.comp] / N;     
+                        gradient[idx_orig][2] -= res_iFFT[idx + 2 * spin_stride.comp] / N;   
                     }
                 }
             }  
@@ -1047,18 +1033,20 @@ namespace Engine
                 {
                     for(int a = 0; a < Na; ++a)
                     {
-                        int idx_orig = idx_from_tupel({bi, a, b, c}, {B, Na, Nb, Nc});
-                        #ifdef SPIRIT_USE_FFTW
-                                int component_stride = 1;
-                                int idx = idx_from_tupel({0, bi, a, b, c}, {3, B, Npad[0], Npad[1], Npad[2]});
-                        #else
-                                int component_stride = N;
-                                int idx = idx_from_tupel({a, b, c, 0, bi}, {Npad[0], Npad[1], Npad[2], 3, B});
-                        #endif
+                        // int idx_orig = idx_from_tupel({bi, a, b, c}, {B, Na, Nb, Nc});
+                        // #ifdef SPIRIT_USE_FFTW
+                        //         int component_stride = 1;
+                        //         int idx = idx_from_tupel({0, bi, a, b, c}, {3, B, Npad[0], Npad[1], Npad[2]});
+                        // #else
+                        //         int component_stride = N;
+                        //         int idx = idx_from_tupel({a, b, c, 0, bi}, {Npad[0], Npad[1], Npad[2], 3, B});
+                        // #endif
+                        int idx_orig = bi + B * (a + Na * (b + Nb * c));
+                        int idx = bi * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c; 
 
                         fft_spin_inputs[idx                        ] = spins[idx_orig][0] * geometry->mu_s[bi];
-                        fft_spin_inputs[idx + 1 * component_stride ] = spins[idx_orig][1] * geometry->mu_s[bi];
-                        fft_spin_inputs[idx + 2 * component_stride ] = spins[idx_orig][2] * geometry->mu_s[bi];                                            
+                        fft_spin_inputs[idx + 1 * spin_stride.comp ] = spins[idx_orig][1] * geometry->mu_s[bi];
+                        fft_spin_inputs[idx + 2 * spin_stride.comp ] = spins[idx_orig][2] * geometry->mu_s[bi];                                            
                     }
                 }
             }
@@ -1124,22 +1112,14 @@ namespace Engine
                                 scalar Dyz = mult *  3 * diff[1]*diff[2] / d5;          //same as Dzy
                                 scalar Dzz = mult * (3 * diff[2]*diff[2] / d5 - 1/d3);
 
-                                int idx_pad = a + b * Npad[0] + c * Npad[1] * Npad[0] + 6 * N * count; 
-                                
-                                #ifdef SPIRIT_USE_FFTW
-                                    int component_stride = 1;
-                                    int idx = idx_from_tupel({0, count, a, b, c}, {6, symmetry_count, Npad[0], Npad[1], Npad[2]});
-                                 #else
-                                    int component_stride = N;
-                                    int idx = idx_from_tupel({a, b, c, 0, count}, {Npad[0], Npad[1], Npad[2], 6, symmetry_count});
-                                #endif
+                                int idx = count * d_stride.basis + a * d_stride.a + b * d_stride.b + c * d_stride.c;
 
-                                fft_dipole_inputs[idx                       ] = Dxx;
-                                fft_dipole_inputs[idx + 1 * component_stride] = Dxy;
-                                fft_dipole_inputs[idx + 2 * component_stride] = Dxz;
-                                fft_dipole_inputs[idx + 3 * component_stride] = Dyy;
-                                fft_dipole_inputs[idx + 4 * component_stride] = Dyz;
-                                fft_dipole_inputs[idx + 5 * component_stride] = Dzz;
+                                fft_dipole_inputs[idx                    ] = Dxx;
+                                fft_dipole_inputs[idx + 1 * d_stride.comp] = Dxy;
+                                fft_dipole_inputs[idx + 2 * d_stride.comp] = Dxz;
+                                fft_dipole_inputs[idx + 3 * d_stride.comp] = Dyy;
+                                fft_dipole_inputs[idx + 4 * d_stride.comp] = Dyz;
+                                fft_dipole_inputs[idx + 5 * d_stride.comp] = Dzz;
                             }
                         }
                     }
@@ -1158,6 +1138,7 @@ namespace Engine
         N = Npad[0] * Npad[1] * Npad[2];
 
         b_diff_lookup.resize(geometry->n_cell_atoms * geometry->n_cell_atoms);
+
 
         //we dont need to transform over length 1 dims
         std::vector<int> fft_dims;
@@ -1201,6 +1182,18 @@ namespace Engine
         fft_plan_rev.real_ptr = field<FFT::FFT_real_type>(3 * N * geometry->n_cell_atoms);
         fft_plan_rev.CreateConfiguration();
 
+        #ifdef SPIRIT_USE_FFTW
+            field<int*> temp_s = {&spin_stride.comp, &spin_stride.basis, &spin_stride.a, &spin_stride.b, &spin_stride.c};
+            field<int*> temp_d = {&d_stride.comp, &d_stride.basis, &d_stride.a, &d_stride.b, &d_stride.c};;
+            FFT::get_strides(temp_s, {3, this->geometry->n_cell_atoms, Npad[0], Npad[1], Npad[2]});
+            FFT::get_strides(temp_d, {6, symmetry_count, Npad[0], Npad[1], Npad[2]});
+        #else
+            field<int*> temp_s = {&spin_stride.a, &spin_stride.b, &spin_stride.c, &spin_stride.comp, &spin_stride.basis};
+            field<int*> temp_d = {&d_stride.a, &d_stride.b, &d_stride.c, &d_stride.comp, &d_stride.basis};;
+            FFT::get_strides(temp_s, {Npad[0], Npad[1], Npad[2], 3, this->geometry->n_cell_atoms});
+            FFT::get_strides(temp_d, {Npad[0], Npad[1], Npad[2], 6, symmetry_count});    
+        #endif
+
         //perform FFT of dipole matrices
         FFT_Dipole_Mats(pb_images);
 
@@ -1215,15 +1208,15 @@ namespace Engine
                 {
                     for(int a = 0; a < Npad[0]; ++a)
                     {
-                        int idx = a + b * Npad[0] + c * Npad[0] * Npad[1] + 6 * N * b_diff;
-                        auto fD_xx = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx_from_tupel({a, b, c, 0, b_diff}, {Npad[0], Npad[1], Npad[2], 6, symmetry_count})]);
-                        auto fD_xy = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx_from_tupel({a, b, c, 1, b_diff}, {Npad[0], Npad[1], Npad[2], 6, symmetry_count})]);
-                        auto fD_xz = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx_from_tupel({a, b, c, 2, b_diff}, {Npad[0], Npad[1], Npad[2], 6, symmetry_count})]);
-                        auto fD_yy = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx_from_tupel({a, b, c, 3, b_diff}, {Npad[0], Npad[1], Npad[2], 6, symmetry_count})]);
-                        auto fD_yz = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx_from_tupel({a, b, c, 4, b_diff}, {Npad[0], Npad[1], Npad[2], 6, symmetry_count})]);
-                        auto fD_zz = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx_from_tupel({a, b, c, 5, b_diff}, {Npad[0], Npad[1], Npad[2], 6, symmetry_count})]);
-                        d_mats_ft[idx_from_tupel({b_diff, a, b, c}, {geometry->n_cell_atoms, Npad[0], Npad[1], Npad[2]})] <<  *fD_xx, *fD_xy, *fD_xz,
-                                                                                                                              *fD_xy, *fD_yy, *fD_yz,
+                        int idx = b_diff * d_stride.basis + a * d_stride.a + b * d_stride.b + c * d_stride.c;
+                        auto fD_xx = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx                    ]);
+                        auto fD_xy = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx + d_stride.comp * 1]);
+                        auto fD_xz = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx + d_stride.comp * 2]);
+                        auto fD_yy = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx + d_stride.comp * 3]);
+                        auto fD_yz = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx + d_stride.comp * 4]);
+                        auto fD_zz = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx + d_stride.comp * 5]);
+                        d_mats_ft[b_diff + symmetry_count * (a + Npad[0] * (b + Npad[1] * c))] <<  *fD_xx, *fD_xy, *fD_xz,
+                                                                                                                               *fD_xy, *fD_yy, *fD_yz,
                                                                                                                               *fD_xz, *fD_yz, *fD_zz;
                     }
                 }

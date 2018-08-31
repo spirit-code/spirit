@@ -156,11 +156,16 @@ namespace Engine
         field< int > Npad;
         //Total number of padded spins per sublattice
         int N;
-      
+
+        FFT::StrideContainer spin_stride;
+        FFT::StrideContainer d_stride;
+
         //Calculate the FT of the padded D matriess
         void FFT_Dipole_Mats(std::array<int, 3> pb_images);
         //Calculate the FT of the padded spins
         void FFT_spins(const vectorfield & spins);
     };
+
+
 }
 #endif

@@ -88,6 +88,25 @@ namespace Engine
         }
         #endif
 
+        inline void get_strides(field<int*> & strides, const field<int> & maxVal)
+        {
+            strides.resize(maxVal.size());
+            *(strides[0]) = 1;
+            for(int i = 1; i < maxVal.size(); i++)
+            {
+                *(strides[i]) = *(strides[i-1]) * maxVal[i-1];
+            }
+        }
+
+        struct StrideContainer
+        {
+            int comp;
+            int basis;
+            int a;
+            int b;
+            int c;
+        };
+
         struct FFT_Plan
         {
             std::vector<int> dims;
