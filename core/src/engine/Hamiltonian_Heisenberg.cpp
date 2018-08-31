@@ -1054,7 +1054,7 @@ namespace Engine
         FFT::batch_Four_3D(fft_plan_spins);
     }
 
-    void Hamiltonian_Heisenberg::FFT_Dipole_Mats(std::array<int, 3> p_images)
+    void Hamiltonian_Heisenberg::FFT_Dipole_Mats(int img_a, int img_b, int img_c)
     {
         //prefactor of ddi interaction
         scalar mult = 2 * C::mu_0 * std::pow(C::mu_B, 2) / ( 4*C::Pi * 1e-30 );
@@ -1095,32 +1095,69 @@ namespace Engine
                             int a_idx = a < Na ? a : a - Npad[0];
                             int b_idx = b < Nb ? b : b - Npad[1];
                             int c_idx = c < Nc ? c : c - Npad[2];
-                            
-                            Vector3 diff =    (a_idx + geometry->cell_atoms[i_b1][0] - geometry->cell_atoms[i_b2][0]) * ta 
-                                            + (b_idx + geometry->cell_atoms[i_b1][1] - geometry->cell_atoms[i_b2][1]) * tb  
-                                            + (c_idx + geometry->cell_atoms[i_b1][2] - geometry->cell_atoms[i_b2][2]) * tc; 
+                            scalar Dxx = 0, Dxy = 0, Dxz = 0, Dyy = 0, Dyz = 0, Dzz = 0;
+                            Vector3 diff;
+                            //iterate over periodic images
 
-                            if(!(a==0 && b==0 && c==0 && i_b1 == i_b2))
+                            for(int a_pb = - img_a + 1; a_pb < img_a; a_pb++)
                             {
-                                auto d = diff.norm();
-                                auto d3 = d * d * d;
-                                auto d5 = d * d * d * d * d;
-                                scalar Dxx = mult * (3 * diff[0]*diff[0] / d5 - 1/d3);
-                                scalar Dxy = mult *  3 * diff[0]*diff[1] / d5;          //same as Dyx
-                                scalar Dxz = mult *  3 * diff[0]*diff[2] / d5;          //same as Dzx
-                                scalar Dyy = mult * (3 * diff[1]*diff[1] / d5 - 1/d3);
-                                scalar Dyz = mult *  3 * diff[1]*diff[2] / d5;          //same as Dzy
-                                scalar Dzz = mult * (3 * diff[2]*diff[2] / d5 - 1/d3);
-
-                                int idx = count * d_stride.basis + a * d_stride.a + b * d_stride.b + c * d_stride.c;
-
-                                fft_dipole_inputs[idx                    ] = Dxx;
-                                fft_dipole_inputs[idx + 1 * d_stride.comp] = Dxy;
-                                fft_dipole_inputs[idx + 2 * d_stride.comp] = Dxz;
-                                fft_dipole_inputs[idx + 3 * d_stride.comp] = Dyy;
-                                fft_dipole_inputs[idx + 4 * d_stride.comp] = Dyz;
-                                fft_dipole_inputs[idx + 5 * d_stride.comp] = Dzz;
+                                for(int b_pb = - img_b + 1; b_pb < img_b; b_pb++)
+                                {
+                                    for(int c_pb = -img_c + 1; c_pb < img_c; c_pb++)
+                                    {
+                                        diff =    (a_idx + a_pb * Na + geometry->cell_atoms[i_b1][0] - geometry->cell_atoms[i_b2][0]) * ta 
+                                                + (b_idx + b_pb * Nb + geometry->cell_atoms[i_b1][1] - geometry->cell_atoms[i_b2][1]) * tb  
+                                                + (c_idx + c_pb * Nc + geometry->cell_atoms[i_b1][2] - geometry->cell_atoms[i_b2][2]) * tc;
+                                        if(diff.norm() > 1e-10)
+                                        {
+                                            auto d = diff.norm();
+                                            auto d3 = d * d * d;
+                                            auto d5 = d * d * d * d * d;
+                                            Dxx += mult * (3 * diff[0]*diff[0] / d5 - 1/d3);
+                                            Dxy += mult *  3 * diff[0]*diff[1] / d5;          //same as Dyx
+                                            Dxz += mult *  3 * diff[0]*diff[2] / d5;          //same as Dzx
+                                            Dyy += mult * (3 * diff[1]*diff[1] / d5 - 1/d3);
+                                            Dyz += mult *  3 * diff[1]*diff[2] / d5;          //same as Dzy
+                                            Dzz += mult * (3 * diff[2]*diff[2] / d5 - 1/d3);
+                                        } 
+                                    }
+                                }
                             }
+
+                            int idx = count * d_stride.basis + a * d_stride.a + b * d_stride.b + c * d_stride.c;
+
+                            fft_dipole_inputs[idx                    ] = Dxx;
+                            fft_dipole_inputs[idx + 1 * d_stride.comp] = Dxy;
+                            fft_dipole_inputs[idx + 2 * d_stride.comp] = Dxz;
+                            fft_dipole_inputs[idx + 3 * d_stride.comp] = Dyy;
+                            fft_dipole_inputs[idx + 4 * d_stride.comp] = Dyz;
+                            fft_dipole_inputs[idx + 5 * d_stride.comp] = Dzz;
+
+                            // Vector3 diff =    (a_idx + geometry->cell_atoms[i_b1][0] - geometry->cell_atoms[i_b2][0]) * ta 
+                            //                 + (b_idx + geometry->cell_atoms[i_b1][1] - geometry->cell_atoms[i_b2][1]) * tb  
+                            //                 + (c_idx + geometry->cell_atoms[i_b1][2] - geometry->cell_atoms[i_b2][2]) * tc; 
+
+                            // if(!(a==0 && b==0 && c==0 && i_b1 == i_b2))
+                            // {
+                            //     auto d = diff.norm();
+                            //     auto d3 = d * d * d;
+                            //     auto d5 = d * d * d * d * d;
+                            //     scalar Dxx = mult * (3 * diff[0]*diff[0] / d5 - 1/d3);
+                            //     scalar Dxy = mult *  3 * diff[0]*diff[1] / d5;          //same as Dyx
+                            //     scalar Dxz = mult *  3 * diff[0]*diff[2] / d5;          //same as Dzx
+                            //     scalar Dyy = mult * (3 * diff[1]*diff[1] / d5 - 1/d3);
+                            //     scalar Dyz = mult *  3 * diff[1]*diff[2] / d5;          //same as Dzy
+                            //     scalar Dzz = mult * (3 * diff[2]*diff[2] / d5 - 1/d3);
+
+                            //     int idx = count * d_stride.basis + a * d_stride.a + b * d_stride.b + c * d_stride.c;
+
+                            //     fft_dipole_inputs[idx                    ] = Dxx;
+                            //     fft_dipole_inputs[idx + 1 * d_stride.comp] = Dxy;
+                            //     fft_dipole_inputs[idx + 2 * d_stride.comp] = Dxz;
+                            //     fft_dipole_inputs[idx + 3 * d_stride.comp] = Dyy;
+                            //     fft_dipole_inputs[idx + 4 * d_stride.comp] = Dyz;
+                            //     fft_dipole_inputs[idx + 5 * d_stride.comp] = Dzz;
+                            // }
                         }
                     }
                 }
@@ -1129,7 +1166,7 @@ namespace Engine
         FFT::batch_Four_3D(fft_plan_d);
     }
 
-    void Hamiltonian_Heisenberg::Prepare_DDI(std::array<int, 3> pb_images)
+    void Hamiltonian_Heisenberg::Prepare_DDI()
     {
         Npad.resize(3);
         Npad[0] = (geometry->n_cells[0] > 1) ? 2 * geometry->n_cells[0] : 1;
@@ -1195,7 +1232,10 @@ namespace Engine
         #endif
 
         //perform FFT of dipole matrices
-        FFT_Dipole_Mats(pb_images);
+        int img_a = boundary_conditions[0] == 0 ? 1 : 10;
+        int img_b = boundary_conditions[1] == 0 ? 1 : 10;
+        int img_c = boundary_conditions[2] == 0 ? 1 : 10;
+        FFT_Dipole_Mats(img_a, img_b, img_c);
 
         d_mats_ft = field<Matrix3c>(N * symmetry_count);
 

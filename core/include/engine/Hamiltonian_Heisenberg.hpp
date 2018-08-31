@@ -136,11 +136,7 @@ namespace Engine
         void E_Quadruplet(const vectorfield & spins, scalarfield & Energy);
         
         //Preparations for DDI-Convolution Algorithm
-        void Prepare_DDI(std::array<int, 3> pb_images);
-        inline void Prepare_DDI()
-        {
-            Prepare_DDI({0, 0, 0});
-        }
+        void Prepare_DDI();
 
         //Plans for FT / rFT
         FFT::FFT_Plan fft_plan_spins;
@@ -161,7 +157,7 @@ namespace Engine
         FFT::StrideContainer d_stride;
 
         //Calculate the FT of the padded D matriess
-        void FFT_Dipole_Mats(std::array<int, 3> pb_images);
+        void FFT_Dipole_Mats(int img_a, int img_b, int img_c);
         //Calculate the FT of the padded spins
         void FFT_spins(const vectorfield & spins);
     };
