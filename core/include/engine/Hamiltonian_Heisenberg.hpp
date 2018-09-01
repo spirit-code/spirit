@@ -123,7 +123,8 @@ namespace Engine
         void Gradient_DMI(const vectorfield & spins, vectorfield & gradient);
         // Calculates the Dipole-Dipole contribution to the effective field of spin ispin within system s
         void Gradient_DDI(const vectorfield& spins, vectorfield & gradient);
-        void Gradient_DDI_direct(const vectorfield& spins, vectorfield & gradient);
+        void Gradient_DDI_Cutoff(const vectorfield& spins, vectorfield & gradient);
+        void Gradient_DDI_Direct(const vectorfield& spins, vectorfield & gradient);
         void Gradient_DDI_FFT(const vectorfield& spins, vectorfield & gradient);
 
         // Quadruplet

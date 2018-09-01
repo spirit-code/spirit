@@ -241,7 +241,6 @@ namespace Engine
         if( this->idx_dmi >=0 )        E_DMI(spins,contributions[idx_dmi].second);
         // DDI
         if( this->idx_ddi >=0 )        E_DDI(spins, contributions[idx_ddi].second);
-
         // Quadruplets
         if (this->idx_quadruplet >=0 ) E_Quadruplet(spins, contributions[idx_quadruplet].second);
     }
@@ -377,7 +376,7 @@ namespace Engine
             // vectorfield gr./sadients_temp_dir;
             // gradients_temp_dir.resize(this->geometry->nos);
             // Vectormath::fill(gradients_temp_dir, {0,0,0});
-            // Gradient_DDI_direct(spins, gradients_temp_dir);
+            // Gradient_DDI_Direct(spins, gradients_temp_dir);
 
             // //get deviation
             // std::array<scalar, 3> deviation = {0,0,0};
@@ -589,13 +588,12 @@ namespace Engine
 
         // Exchange
         this->Gradient_Exchange(spins, gradient);
+
         // DMI
         this->Gradient_DMI(spins, gradient);
 
         // DD
-        // this->Gradient_DDI(spins, gradient);
-        // this->Gradient_DDI_direct(spins, gradient);
-        this->Gradient_DDI_FFT(spins, gradient);
+        this->Gradient_DDI(spins, gradient);
 
         // Quadruplets
         this->Gradient_Quadruplet(spins, gradient);
@@ -675,6 +673,14 @@ namespace Engine
     }
 
     void Hamiltonian_Heisenberg::Gradient_DDI(const vectorfield & spins, vectorfield & gradient)
+    {
+        if( this->ddi_method == DDI_Method::FFT )
+            this->Gradient_DDI_FFT(spins, gradient);
+        else if( this->ddi_method == DDI_Method::Cutoff )
+            this->Gradient_DDI_Cutoff(spins, gradient);
+    }
+
+    void Hamiltonian_Heisenberg::Gradient_DDI_Cutoff(const vectorfield & spins, vectorfield & gradient)
     {
         auto& mu_s = this->geometry->mu_s;
         // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
@@ -813,7 +819,7 @@ namespace Engine
         }//end iteration sublattice 1
     }
 
-    void Hamiltonian_Heisenberg::Gradient_DDI_direct(const vectorfield & spins, vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient_DDI_Direct(const vectorfield & spins, vectorfield & gradient)
     {
         scalar mult = 2 * C::mu_0 * C::mu_B / ( 4*C::Pi * 1e-30 );
         scalar mu, d, d3, d5, Dxx, Dxy, Dxz, Dyy, Dyz, Dzz;
