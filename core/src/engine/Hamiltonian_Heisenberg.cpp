@@ -398,8 +398,8 @@ namespace Engine
         #pragma omp parallel for
         for (int ispin = 0; ispin < geometry->nos; ispin++)
         {
-            Energy[ispin] += 0.5 * geometry->mu_s[ispin] * spins[ispin].dot(gradients_temp[ispin]);
-            Energy_DDI    += 0.5 * geometry->mu_s[ispin] * spins[ispin].dot(gradients_temp[ispin]);
+            Energy[ispin] += 0.5 * geometry->mu_s[ispin] * C::mu_B * spins[ispin].dot(gradients_temp[ispin]);
+            Energy_DDI    += 0.5 * geometry->mu_s[ispin] * C::mu_B * spins[ispin].dot(gradients_temp[ispin]);
         }
     }
 
@@ -678,7 +678,7 @@ namespace Engine
     {
         auto& mu_s = this->geometry->mu_s;
         // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
-        const scalar mult = C::mu_0 * std::pow(C::mu_B, 2) / ( 4*C::Pi * 1e-30 );
+        const scalar mult = C::mu_0 * C::mu_B / ( 4*C::Pi * 1e-30 );
 
         for (unsigned int i_pair = 0; i_pair < ddi_pairs.size(); ++i_pair)
         {
@@ -815,8 +815,9 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Gradient_DDI_direct(const vectorfield & spins, vectorfield & gradient)
     {
-        scalar mult = 2 * C::mu_0 * std::pow(C::mu_B, 2) / ( 4*C::Pi * 1e-30 );
-        scalar diff, d, d3, d5, Dxx, Dxy, Dxz, Dyy, Dyz, Dzz;
+        scalar mult = 2 * C::mu_0 * C::mu_B / ( 4*C::Pi * 1e-30 );
+        scalar mu, d, d3, d5, Dxx, Dxy, Dxz, Dyy, Dyz, Dzz;
+        Vector3 diff;
 
         for(int idx1 = 0; idx1 < geometry->nos; idx1++)
         {
@@ -826,16 +827,16 @@ namespace Engine
                 {
                     auto& m2 = spins[idx2];
 
-                    auto diff = this->geometry->positions[idx2] - this->geometry->positions[idx1];
-                    auto d = diff.norm();
-                    auto d3 = d * d * d;
-                    auto d5 = d * d * d * d * d;
-                    scalar Dxx = mult * (3 * diff[0]*diff[0] / d5 - 1/d3);
-                    scalar Dxy = mult *  3 * diff[0]*diff[1] / d5;          //same as Dyx
-                    scalar Dxz = mult *  3 * diff[0]*diff[2] / d5;          //same as Dzx
-                    scalar Dyy = mult * (3 * diff[1]*diff[1] / d5 - 1/d3);
-                    scalar Dyz = mult *  3 * diff[1]*diff[2] / d5;          //same as Dzy
-                    scalar Dzz = mult * (3 * diff[2]*diff[2] / d5 - 1/d3);
+                    diff = this->geometry->positions[idx2] - this->geometry->positions[idx1];
+                    d = diff.norm();
+                    d3 = d * d * d;
+                    d5 = d * d * d * d * d;
+                    Dxx = mult * (3 * diff[0]*diff[0] / d5 - 1/d3);
+                    Dxy = mult *  3 * diff[0]*diff[1] / d5;          //same as Dyx
+                    Dxz = mult *  3 * diff[0]*diff[2] / d5;          //same as Dzx
+                    Dyy = mult * (3 * diff[1]*diff[1] / d5 - 1/d3);
+                    Dyz = mult *  3 * diff[1]*diff[2] / d5;          //same as Dzy
+                    Dzz = mult * (3 * diff[2]*diff[2] / d5 - 1/d3);
 
                     auto mu = geometry->mu_s[idx2 % geometry->n_cell_atoms];
 
@@ -1063,7 +1064,7 @@ namespace Engine
     void Hamiltonian_Heisenberg::FFT_Dipole_Mats(int img_a, int img_b, int img_c)
     {
         //prefactor of ddi interaction
-        scalar mult = 2 * C::mu_0 * std::pow(C::mu_B, 2) / ( 4*C::Pi * 1e-30 );
+        scalar mult = 2 * C::mu_0 * C::mu_B / ( 4*C::Pi * 1e-30 );
 
         //size of original geometry
         int Na = geometry->n_cells[0];
@@ -1216,7 +1217,6 @@ namespace Engine
         fft_plan_spins.real_ptr = field<FFT::FFT_real_type>(3 * N * geometry->n_cell_atoms);
         fft_plan_spins.cpx_ptr  = field<FFT::FFT_cpx_type>(3 * N * geometry->n_cell_atoms);
         fft_plan_spins.CreateConfiguration();
-
 
         fft_plan_rev.dims     = fft_dims;
         fft_plan_rev.inverse  = true;
