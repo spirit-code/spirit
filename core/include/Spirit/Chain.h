@@ -14,6 +14,7 @@ DLLEXPORT bool Chain_prev_Image(State * state, int idx_chain=-1) noexcept;
 DLLEXPORT bool Chain_Jump_To_Image(State * state, int idx_image=-1, int idx_chain=-1) noexcept;
 
 // Insert/Replace/Delete images
+DLLEXPORT void Chain_Set_Length(State * state, int n_images, int idx_chain=-1) noexcept;
 DLLEXPORT void Chain_Image_to_Clipboard(State * state, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Chain_Replace_Image(State * state, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Chain_Insert_Image_Before(State * state, int idx_image=-1, int idx_chain=-1) noexcept;
