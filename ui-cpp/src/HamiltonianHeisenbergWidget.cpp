@@ -110,7 +110,7 @@ void HamiltonianHeisenbergWidget::Load_Contents()
 
     // DDI
     Hamiltonian_Get_DDI(state.get(), &ddi_method, ddi_n_periodic_images, &d);
-    this->checkBox_ddi->setChecked( ddi_method == SPIRIT_DDI_METHOD_NONE );
+    this->checkBox_ddi->setChecked( ddi_method != SPIRIT_DDI_METHOD_NONE );
     if( ddi_method == SPIRIT_DDI_METHOD_NONE )
         this->comboBox_ddi_method->setCurrentIndex(0);
     else if( ddi_method == SPIRIT_DDI_METHOD_FFT )

@@ -581,10 +581,10 @@ namespace Engine
         Vectormath::fill(gradient, {0,0,0});
 
         // External field
-        Gradient_Zeeman(gradient);
+        this->Gradient_Zeeman(gradient);
 
         // Anisotropy
-        Gradient_Anisotropy(spins, gradient);
+        this->Gradient_Anisotropy(spins, gradient);
 
         // Exchange
         this->Gradient_Exchange(spins, gradient);
@@ -717,13 +717,10 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Gradient_DDI_FFT(const vectorfield & spins, vectorfield & gradient)
     {
-        //size of original geometry
+        // Size of original geometry
         int Na = geometry->n_cells[0];
         int Nb = geometry->n_cells[1];
         int Nc = geometry->n_cells[2];
-
-        //number of basis atoms (i.e sublattices)
-        int B = geometry->n_cell_atoms;
 
         FFT_spins(spins);
 
@@ -742,25 +739,26 @@ namespace Engine
         //                 Eigen::Stride<1,Eigen::Dynamic>(1,N));
 
 
-        for(int i_b1 = 0; i_b1 < B; ++i_b1)
+        // Loop over basis atoms (i.e sublattices)
+        for(int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1)
         {
-            //should be removed
-            std::fill(fft_plan_rev.cpx_ptr.data(), fft_plan_rev.cpx_ptr.data() + 3 * N * geometry->n_cell_atoms, FFT::FFT_cpx_type());
-            std::fill(res_iFFT.data(), res_iFFT.data() + 3 * N * geometry->n_cell_atoms, 0.0);
+            // TODO: should be removed
+            std::fill(fft_plan_rev.cpx_ptr.data(), fft_plan_rev.cpx_ptr.data() + 3 * sublattice_size * geometry->n_cell_atoms, FFT::FFT_cpx_type());
+            std::fill(res_iFFT.data(), res_iFFT.data() + 3 * sublattice_size * geometry->n_cell_atoms, 0.0);
 
             #pragma omp parallel for
-            for(int i_b2 = 0; i_b2 < B; ++i_b2)
+            for(int i_b2 = 0; i_b2 < geometry->n_cell_atoms; ++i_b2)
             {
                 // Look up at which position the correct D-matrices are saved
                 int b_diff = b_diff_lookup[i_b1 + i_b2 * geometry->n_cell_atoms];
 
-                for(int c = 0; c < Npad[2]; ++c)
+                for(int c = 0; c < n_cells_padded[2]; ++c)
                 {
-                    for(int b = 0; b < Npad[1]; ++b)
+                    for(int b = 0; b < n_cells_padded[1]; ++b)
                     {
-                        for(int a = 0; a < Npad[0]; ++a)
+                        for(int a = 0; a < n_cells_padded[0]; ++a)
                         {
-                            // int idx = a + b * Npad[0] + c * Npad[0] * Npad[1];
+                            // int idx = a + b * n_cells_padded[0] + c * n_cells_padded[0] * n_cells_padded[1];
 
                             // auto& D_mat = d_mats_ft[idx + b_diff * N];
 
@@ -808,11 +806,11 @@ namespace Engine
                 {
                     for(int a = 0; a < geometry->n_cells[0]; ++a)
                     {
-                        int idx_orig = i_b1 + B * (a + Na * (b + Nb * c));
+                        int idx_orig = i_b1 + geometry->n_cell_atoms * (a + Na * (b + Nb * c));
                         int idx = i_b1 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
-                        gradient[idx_orig][0] -= res_iFFT[idx                       ] / N;
-                        gradient[idx_orig][1] -= res_iFFT[idx + 1 * spin_stride.comp] / N;
-                        gradient[idx_orig][2] -= res_iFFT[idx + 2 * spin_stride.comp] / N;
+                        gradient[idx_orig][0] -= res_iFFT[idx                       ] / sublattice_size;
+                        gradient[idx_orig][1] -= res_iFFT[idx + 1 * spin_stride.comp] / sublattice_size;
+                        gradient[idx_orig][2] -= res_iFFT[idx + 2 * spin_stride.comp] / sublattice_size;
                     }
                 }
             }
@@ -1049,10 +1047,10 @@ namespace Engine
                         // int idx_orig = idx_from_tupel({bi, a, b, c}, {B, Na, Nb, Nc});
                         // #ifdef SPIRIT_USE_FFTW
                         //         int component_stride = 1;
-                        //         int idx = idx_from_tupel({0, bi, a, b, c}, {3, B, Npad[0], Npad[1], Npad[2]});
+                        //         int idx = idx_from_tupel({0, bi, a, b, c}, {3, B, n_cells_padded[0], n_cells_padded[1], n_cells_padded[2]});
                         // #else
                         //         int component_stride = N;
-                        //         int idx = idx_from_tupel({a, b, c, 0, bi}, {Npad[0], Npad[1], Npad[2], 3, B});
+                        //         int idx = idx_from_tupel({a, b, c, 0, bi}, {n_cells_padded[0], n_cells_padded[1], n_cells_padded[2], 3, B});
                         // #endif
                         int idx_orig = bi + B * (a + Na * (b + Nb * c));
                         int idx = bi * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
@@ -1099,15 +1097,15 @@ namespace Engine
                 b_diff_lookup[i_b1 + i_b2 * geometry->n_cell_atoms] = count;
 
                 //iterate over the padded system
-                for(int c = 0; c < Npad[2]; ++c)
+                for(int c = 0; c < n_cells_padded[2]; ++c)
                 {
-                    for(int b = 0; b < Npad[1]; ++b)
+                    for(int b = 0; b < n_cells_padded[1]; ++b)
                     {
-                        for(int a = 0; a < Npad[0]; ++a)
+                        for(int a = 0; a < n_cells_padded[0]; ++a)
                         {
-                            int a_idx = a < Na ? a : a - Npad[0];
-                            int b_idx = b < Nb ? b : b - Npad[1];
-                            int c_idx = c < Nc ? c : c - Npad[2];
+                            int a_idx = a < Na ? a : a - n_cells_padded[0];
+                            int b_idx = b < Nb ? b : b - n_cells_padded[1];
+                            int c_idx = c < Nc ? c : c - n_cells_padded[2];
                             scalar Dxx = 0, Dxy = 0, Dxz = 0, Dyy = 0, Dyz = 0, Dzz = 0;
                             Vector3 diff;
                             //iterate over periodic images
@@ -1181,11 +1179,11 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Prepare_DDI()
     {
-        Npad.resize(3);
-        Npad[0] = (geometry->n_cells[0] > 1) ? 2 * geometry->n_cells[0] : 1;
-        Npad[1] = (geometry->n_cells[1] > 1) ? 2 * geometry->n_cells[1] : 1;
-        Npad[2] = (geometry->n_cells[2] > 1) ? 2 * geometry->n_cells[2] : 1;
-        N = Npad[0] * Npad[1] * Npad[2];
+        n_cells_padded.resize(3);
+        n_cells_padded[0] = (geometry->n_cells[0] > 1) ? 2 * geometry->n_cells[0] : 1;
+        n_cells_padded[1] = (geometry->n_cells[1] > 1) ? 2 * geometry->n_cells[1] : 1;
+        n_cells_padded[2] = (geometry->n_cells[2] > 1) ? 2 * geometry->n_cells[2] : 1;
+        sublattice_size = n_cells_padded[0] * n_cells_padded[1] * n_cells_padded[2];
 
         b_diff_lookup.resize(geometry->n_cell_atoms * geometry->n_cell_atoms);
 
@@ -1194,8 +1192,8 @@ namespace Engine
         std::vector<int> fft_dims;
         for(int i = 2; i >= 0; i--) //notice that reverse order is important!
         {
-            if(Npad[i] > 1)
-                fft_dims.push_back(Npad[i]);
+            if(n_cells_padded[i] > 1)
+                fft_dims.push_back(n_cells_padded[i]);
         }
 
         //Count how many distinct inter-lattice contributions we need to store
@@ -1213,34 +1211,34 @@ namespace Engine
         fft_plan_d.dims     = fft_dims;
         fft_plan_d.inverse  = false;
         fft_plan_d.howmany  = 6 * symmetry_count;
-        fft_plan_d.real_ptr = field<FFT::FFT_real_type>(symmetry_count * 6 * N);
-        fft_plan_d.cpx_ptr  = field<FFT::FFT_cpx_type>(symmetry_count * 6 * N);
+        fft_plan_d.real_ptr = field<FFT::FFT_real_type>(symmetry_count * 6 * sublattice_size);
+        fft_plan_d.cpx_ptr  = field<FFT::FFT_cpx_type>(symmetry_count * 6 * sublattice_size);
         fft_plan_d.CreateConfiguration();
 
         fft_plan_spins.dims     = fft_dims;
         fft_plan_spins.inverse  = false;
         fft_plan_spins.howmany  = 3 * geometry->n_cell_atoms;
-        fft_plan_spins.real_ptr = field<FFT::FFT_real_type>(3 * N * geometry->n_cell_atoms);
-        fft_plan_spins.cpx_ptr  = field<FFT::FFT_cpx_type>(3 * N * geometry->n_cell_atoms);
+        fft_plan_spins.real_ptr = field<FFT::FFT_real_type>(3 * sublattice_size * geometry->n_cell_atoms);
+        fft_plan_spins.cpx_ptr  = field<FFT::FFT_cpx_type>(3 * sublattice_size * geometry->n_cell_atoms);
         fft_plan_spins.CreateConfiguration();
 
         fft_plan_rev.dims     = fft_dims;
         fft_plan_rev.inverse  = true;
         fft_plan_rev.howmany  = 3 * geometry->n_cell_atoms;
-        fft_plan_rev.cpx_ptr  = field<FFT::FFT_cpx_type>(3 * N * geometry->n_cell_atoms);
-        fft_plan_rev.real_ptr = field<FFT::FFT_real_type>(3 * N * geometry->n_cell_atoms);
+        fft_plan_rev.cpx_ptr  = field<FFT::FFT_cpx_type>(3 * sublattice_size * geometry->n_cell_atoms);
+        fft_plan_rev.real_ptr = field<FFT::FFT_real_type>(3 * sublattice_size * geometry->n_cell_atoms);
         fft_plan_rev.CreateConfiguration();
 
         #ifdef SPIRIT_USE_FFTW
             field<int*> temp_s = {&spin_stride.comp, &spin_stride.basis, &spin_stride.a, &spin_stride.b, &spin_stride.c};
             field<int*> temp_d = {&d_stride.comp, &d_stride.basis, &d_stride.a, &d_stride.b, &d_stride.c};;
-            FFT::get_strides(temp_s, {3, this->geometry->n_cell_atoms, Npad[0], Npad[1], Npad[2]});
-            FFT::get_strides(temp_d, {6, symmetry_count, Npad[0], Npad[1], Npad[2]});
+            FFT::get_strides(temp_s, {3, this->geometry->n_cell_atoms, n_cells_padded[0], n_cells_padded[1], n_cells_padded[2]});
+            FFT::get_strides(temp_d, {6, symmetry_count, n_cells_padded[0], n_cells_padded[1], n_cells_padded[2]});
         #else
             field<int*> temp_s = {&spin_stride.a, &spin_stride.b, &spin_stride.c, &spin_stride.comp, &spin_stride.basis};
             field<int*> temp_d = {&d_stride.a, &d_stride.b, &d_stride.c, &d_stride.comp, &d_stride.basis};;
-            FFT::get_strides(temp_s, {Npad[0], Npad[1], Npad[2], 3, this->geometry->n_cell_atoms});
-            FFT::get_strides(temp_d, {Npad[0], Npad[1], Npad[2], 6, symmetry_count});
+            FFT::get_strides(temp_s, {n_cells_padded[0], n_cells_padded[1], n_cells_padded[2], 3, this->geometry->n_cell_atoms});
+            FFT::get_strides(temp_d, {n_cells_padded[0], n_cells_padded[1], n_cells_padded[2], 6, symmetry_count});
         #endif
 
         //perform FFT of dipole matrices
@@ -1249,16 +1247,16 @@ namespace Engine
         int img_c = boundary_conditions[2] == 0 ? 1 : 10;
         FFT_Dipole_Mats(img_a, img_b, img_c);
 
-        d_mats_ft = field<Matrix3c>(N * symmetry_count);
+        d_mats_ft = field<Matrix3c>(sublattice_size * symmetry_count);
 
         //Write out ft dipole matrices
         for(int b_diff = 0; b_diff < symmetry_count; ++b_diff)
         {
-            for(int c = 0; c < Npad[2]; ++c)
+            for(int c = 0; c < n_cells_padded[2]; ++c)
             {
-                for(int b = 0; b < Npad[1]; ++b)
+                for(int b = 0; b < n_cells_padded[1]; ++b)
                 {
-                    for(int a = 0; a < Npad[0]; ++a)
+                    for(int a = 0; a < n_cells_padded[0]; ++a)
                     {
                         int idx = b_diff * d_stride.basis + a * d_stride.a + b * d_stride.b + c * d_stride.c;
                         auto fD_xx = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx                    ]);
@@ -1267,9 +1265,9 @@ namespace Engine
                         auto fD_yy = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx + d_stride.comp * 3]);
                         auto fD_yz = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx + d_stride.comp * 4]);
                         auto fD_zz = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx + d_stride.comp * 5]);
-                        d_mats_ft[b_diff + symmetry_count * (a + Npad[0] * (b + Npad[1] * c))] <<  *fD_xx, *fD_xy, *fD_xz,
+                        d_mats_ft[b_diff + symmetry_count * (a + n_cells_padded[0] * (b + n_cells_padded[1] * c))] <<  *fD_xx, *fD_xy, *fD_xz,
                                                                                                                                *fD_xy, *fD_yy, *fD_yz,
-                                                                                                                              *fD_xz, *fD_yz, *fD_zz;
+                                                                                                                               *fD_xz, *fD_yz, *fD_zz;
                     }
                 }
             }

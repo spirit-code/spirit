@@ -1242,7 +1242,7 @@ namespace IO
         int n_shells_dmi = dmi_magnitudes.size();
         int dm_chirality = 1;
         
-        std::string ddi_method_str = "";
+        std::string ddi_method_str = "none";
         auto ddi_method = Engine::DDI_Method::None;
         intfield ddi_n_periodic_images = { 4, 4, 4 };
         scalar ddi_radius = 0.0;
@@ -1452,7 +1452,7 @@ namespace IO
                 else
                 {
                     Log(Log_Level::Warning, Log_Sender::IO, fmt::format(
-                        "Hamiltonian_Heisenberg: Keyword 'ddi_method' got passed invalid method {}. Setting to \"none\".", ddi_method_str));
+                        "Hamiltonian_Heisenberg: Keyword 'ddi_method' got passed invalid method \"{}\". Setting to \"none\".", ddi_method_str));
                     ddi_method_str = "none";
                 }
 

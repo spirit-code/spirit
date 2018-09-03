@@ -161,11 +161,11 @@ namespace Engine
         int symmetry_count;
 
         // At which index to look up the inter-sublattice D-matrices
-        field< int > b_diff_lookup;
-        //Lengths of padded system
-        field< int > Npad;
-        //Total number of padded spins per sublattice
-        int N;
+        field<int> b_diff_lookup;
+        // Lengths of padded system
+        field<int> n_cells_padded;
+        // Total number of padded spins per sublattice
+        int sublattice_size;
 
         FFT::StrideContainer spin_stride;
         FFT::StrideContainer d_stride;
