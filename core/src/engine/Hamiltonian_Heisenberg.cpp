@@ -397,8 +397,8 @@ namespace Engine
         #pragma omp parallel for
         for (int ispin = 0; ispin < geometry->nos; ispin++)
         {
-            Energy[ispin] += 0.5 * geometry->mu_s[ispin] * C::mu_B * spins[ispin].dot(gradients_temp[ispin]);
-            Energy_DDI    += 0.5 * geometry->mu_s[ispin] * C::mu_B * spins[ispin].dot(gradients_temp[ispin]);
+            Energy[ispin] += 0.5 * geometry->mu_s[ispin] * spins[ispin].dot(gradients_temp[ispin]);
+            Energy_DDI    += 0.5 * geometry->mu_s[ispin] * spins[ispin].dot(gradients_temp[ispin]);
         }
     }
 
@@ -684,7 +684,7 @@ namespace Engine
     {
         auto& mu_s = this->geometry->mu_s;
         // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
-        const scalar mult = C::mu_0 * C::mu_B / ( 4*C::Pi * 1e-30 );
+        const scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
 
         for (unsigned int i_pair = 0; i_pair < ddi_pairs.size(); ++i_pair)
         {
@@ -1068,7 +1068,7 @@ namespace Engine
     void Hamiltonian_Heisenberg::FFT_Dipole_Mats(int img_a, int img_b, int img_c)
     {
         //prefactor of ddi interaction
-        scalar mult = 2 * C::mu_0 * C::mu_B / ( 4*C::Pi * 1e-30 );
+        scalar mult = 2 * C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
 
         //size of original geometry
         int Na = geometry->n_cells[0];

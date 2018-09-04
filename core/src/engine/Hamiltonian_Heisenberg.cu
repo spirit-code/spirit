@@ -387,7 +387,7 @@ namespace Engine
     {
         for(int idx = blockIdx.x * blockDim.x + threadIdx.x; idx < nos; idx += blockDim.x * gridDim.x)
         {
-            Energy[idx] += 0.5 * mu_s[idx] * C::mu_B * spins[idx].dot(gradients[idx]);
+            Energy[idx] += 0.5 * mu_s[idx] * spins[idx].dot(gradients[idx]);
         }
     }
     void Hamiltonian_Heisenberg::E_DDI_FFT(const vectorfield & spins, scalarfield & Energy)
@@ -988,7 +988,7 @@ namespace Engine
     void Hamiltonian_Heisenberg::FFT_Dipole_Mats(std::array<int, 3> pb_images)
     {
         // Prefactor of ddi interaction
-        scalar mult = 2 * C::mu_0 * C::mu_B / ( 4*C::Pi * 1e-30 );
+        scalar mult = 2 * C::mu_0 * C::mu_B * C::mu_B  / ( 4*C::Pi * 1e-30 );
 
         // Size of original geometry
         int Na = geometry->n_cells[0];
