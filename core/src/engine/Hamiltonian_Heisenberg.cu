@@ -20,6 +20,7 @@ using Engine::Vectormath::cu_check_atom_type;
 using Engine::Vectormath::cu_idx_from_pair;
 using Engine::Vectormath::check_atom_type;
 using Engine::Vectormath::idx_from_pair;
+using Engine::Vectormath::tupel_from_idx;
 
 namespace Engine
 {
@@ -29,7 +30,7 @@ namespace Engine
         intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
         pairfield exchange_pairs, scalarfield exchange_magnitudes,
         pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals,
-        DDI_Method ddi_method, int ddi_n_periodic_images, scalar ddi_radius,
+        DDI_Method ddi_method, intfield ddi_n_periodic_images, scalar ddi_radius,
         quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
         std::shared_ptr<Data::Geometry> geometry,
         intfield boundary_conditions
@@ -53,7 +54,7 @@ namespace Engine
         intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
         scalarfield exchange_shell_magnitudes,
         scalarfield dmi_shell_magnitudes, int dmi_shell_chirality,
-        DDI_Method ddi_method, int ddi_n_periodic_images, scalar ddi_radius,
+        DDI_Method ddi_method, intfield ddi_n_periodic_images, scalar ddi_radius,
         quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
         std::shared_ptr<Data::Geometry> geometry,
         intfield boundary_conditions
@@ -398,8 +399,67 @@ namespace Engine
         Vectormath::fill(gradients_temp, {0,0,0});
         this->Gradient_DDI(spins, gradients_temp);
         CU_E_DDI_FFT<<<(geometry->nos + 1023)/1024, 1024>>>(Energy.data(), spins.data(), gradients_temp.data(), geometry->nos, geometry->n_cell_atoms, geometry->mu_s.data());
-    }// end DipoleDipole
+  
+        // === DEBUG: begin gradient comparison ===
+            // vectorfield gradients_temp_dir;
+            // gradients_temp_dir.resize(this->geometry->nos);
+            // Vectormath::fill(gradients_temp_dir, {0,0,0});
+            // Gradient_DDI_Direct(spins, gradients_temp_dir);
 
+            // //get deviation
+            // std::array<scalar, 3> deviation = {0,0,0};
+            // std::array<scalar, 3> avg = {0,0,0};
+            // std::array<scalar, 3> avg_ft = {0,0,0};
+
+            // for(int i = 0; i < this->geometry->nos; i++)
+            // {
+            //     for(int d = 0; d < 3; d++)
+            //     {
+            //         deviation[d] += std::pow(gradients_temp[i][d] - gradients_temp_dir[i][d], 2);
+            //         avg[d] += gradients_temp_dir[i][d];
+            //         avg_ft[d] += gradients_temp[i][d];
+            //     }
+            // }
+            // std::cerr << "Avg. Gradient (Direct) = " << avg[0]/this->geometry->nos << " " << avg[1]/this->geometry->nos << " " << avg[2]/this->geometry->nos << std::endl;
+            // std::cerr << "Avg. Gradient (FFT)    = " << avg_ft[0]/this->geometry->nos << " " << avg_ft[1]/this->geometry->nos << " " << avg_ft[2]/this->geometry->nos << std::endl;
+            // std::cerr << "Ratio                  = " << avg_ft[0]/avg[0] << " " << avg_ft[1]/avg[1] << " " << avg_ft[2]/avg[2] << std::endl;            
+            // std::cerr << "Avg. Deviation         = " << deviation[0]/this->geometry->nos << " " << deviation[1]/this->geometry->nos << " " << deviation[2]/this->geometry->nos << std::endl;
+            // std::cerr << " ---------------- " << std::endl;
+        // ==== DEBUG: end gradient comparison ====
+
+    }// end DipoleDipole
+    void Hamiltonian_Heisenberg::Gradient_DDI_Direct(const vectorfield & spins, vectorfield & gradient)
+    {
+        scalar mult = 2 * C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
+        scalar d, d3, d5, Dxx, Dxy, Dxz, Dyy, Dyz, Dzz;
+        Vector3 diff;
+
+        for(int idx1 = 0; idx1 < geometry->nos; idx1++)
+        {
+            for(int idx2 = 0; idx2 < geometry->nos; idx2++)
+            {
+                if(idx1 != idx2)
+                {
+                    auto& m2 = spins[idx2];
+
+                    diff = this->geometry->positions[idx2] - this->geometry->positions[idx1];
+                    d = diff.norm();
+                    d3 = d * d * d;
+                    d5 = d * d * d * d * d;
+                    Dxx = mult * (3 * diff[0]*diff[0] / d5 - 1/d3);
+                    Dxy = mult *  3 * diff[0]*diff[1] / d5;          //same as Dyx
+                    Dxz = mult *  3 * diff[0]*diff[2] / d5;          //same as Dzx
+                    Dyy = mult * (3 * diff[1]*diff[1] / d5 - 1/d3);
+                    Dyz = mult *  3 * diff[1]*diff[2] / d5;          //same as Dzy
+                    Dzz = mult * (3 * diff[2]*diff[2] / d5 - 1/d3);
+
+                    gradient[idx1][0] -= ((Dxx * m2[0] + Dxy * m2[1] + Dxz * m2[2]) * geometry->mu_s[idx2]);
+                    gradient[idx1][1] -= ((Dxy * m2[0] + Dyy * m2[1] + Dyz * m2[2]) * geometry->mu_s[idx2]);
+                    gradient[idx1][2] -= ((Dxz * m2[0] + Dyz * m2[1] + Dzz * m2[2]) * geometry->mu_s[idx2]);
+                }
+            }
+        }
+    }
 
     void Hamiltonian_Heisenberg::E_Quadruplet(const vectorfield & spins, scalarfield & Energy)
     {
@@ -679,64 +739,54 @@ namespace Engine
         // TODO
     }
 
-    __global__ void CU_FFT_Pointwise_Mult(Matrix3c * fmatrices, FFT::FFT_cpx_type * fspins, FFT::FFT_cpx_type * res, int * n_cells_padded)
+
+    __global__ void CU_FFT_Pointwise_Mult(FFT::FFT_cpx_type * ft_D_matrices, FFT::FFT_cpx_type * ft_spins, FFT::FFT_cpx_type * res_mult, int* iteration_bounds, int i_b1, int* b_diff_lookup, FFT::StrideContainer d_stride, FFT::StrideContainer spin_stride)
     {
-        int N = n_cells_padded[0] * n_cells_padded[1] * n_cells_padded[2];
-        auto mapSpins = Eigen::Map<Vector3c, 0, Eigen::Stride<1,Eigen::Dynamic> >
-                        (reinterpret_cast<std::complex<scalar>*>(NULL),
-                        Eigen::Stride<1,Eigen::Dynamic>(1,N));
-        auto mapResult = Eigen::Map<Vector3c, 0, Eigen::Stride<1,Eigen::Dynamic> >
-                        (reinterpret_cast<std::complex<scalar>*>(NULL),
-                        Eigen::Stride<1,Eigen::Dynamic>(1,N));
+        int n = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2] * iteration_bounds[3];
+        int tupel[4];
+        int idx_b1, idx_d, b_diff;
 
-        int index = blockIdx.x * blockDim.x + threadIdx.x;
-        int stride = blockDim.x * gridDim.x;
-
-
-        int t1 = n_cells_padded[0]/2 + 1;
-        int t2 = n_cells_padded[0] - t1;
-        // for(int i=index; i < n_cells_padded[0] * n_cells_padded[1] * n_cells_padded[2]; i+=stride)
-        for(int i=index; i < (n_cells_padded[0]/2+1) * n_cells_padded[1] * n_cells_padded[2]; i+=stride)
+        for(int idx_b2 = blockIdx.x * blockDim.x + threadIdx.x; idx_b2 < n; idx_b2 += blockDim.x * gridDim.x)
         {
-            int idx = i + i/t1 * t2;
-            auto& D_mat = fmatrices[idx];
-            new (&mapSpins) Eigen::Map<Vector3c, 0, Eigen::Stride<1,Eigen::Dynamic> >
-                (reinterpret_cast<std::complex<scalar>*>(fspins + idx),
-                Eigen::Stride<1,Eigen::Dynamic>(1,N));
+            tupel_from_idx(idx_b2, tupel, iteration_bounds, 4); // tupel now is {i_b2, a, b, c}
 
-            new (&mapResult) Eigen::Map<Vector3c, 0, Eigen::Stride<1,Eigen::Dynamic> >
-                    (reinterpret_cast<std::complex<scalar>*>(res + idx),
-                    Eigen::Stride<1,Eigen::Dynamic>(1,N));
+            b_diff = b_diff_lookup[i_b1 + tupel[0] * iteration_bounds[0]];
+            idx_b1 = i_b1 * spin_stride.basis + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b + tupel[3] * spin_stride.c;
+            idx_d  = b_diff * d_stride.basis + tupel[1] * d_stride.a + tupel[2] * d_stride.b + tupel[3] * d_stride.c;
 
-            mapResult += D_mat * mapSpins;
+            auto& fs_x = ft_spins[3 * idx_b2                       ];
+            auto& fs_y = ft_spins[3 * idx_b2 + 1 * spin_stride.comp];
+            auto& fs_z = ft_spins[3 * idx_b2 + 2 * spin_stride.comp];
+
+            auto& fD_xx = ft_D_matrices[idx_d                    ];
+            auto& fD_xy = ft_D_matrices[idx_d + 1 * d_stride.comp];
+            auto& fD_xz = ft_D_matrices[idx_d + 2 * d_stride.comp];
+            auto& fD_yy = ft_D_matrices[idx_d + 3 * d_stride.comp];
+            auto& fD_yz = ft_D_matrices[idx_d + 4 * d_stride.comp];
+            auto& fD_zz = ft_D_matrices[idx_d + 5 * d_stride.comp];
+
+            FFT::addTo(res_mult[idx_b1                       ], FFT::mult3D(fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z), tupel[0] == 0);
+            FFT::addTo(res_mult[idx_b1 + 1 * spin_stride.comp], FFT::mult3D(fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z), tupel[0] == 0);
+            FFT::addTo(res_mult[idx_b1 + 2 * spin_stride.comp], FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z), tupel[0] == 0);
         }
     }
 
-    __global__ void CU_Write_FFT_Gradients(FFT::FFT_real_type * res_mult, Vector3 * gradient, int * n_cells_padded, int * n_cells, int nbasis)
+    __global__ void CU_Write_FFT_Gradients(FFT::FFT_real_type * resiFFT, Vector3 * gradient, FFT::StrideContainer spin_stride , int * iteration_bounds, int n_cell_atoms, int bi, scalar * mu_s, int sublattice_size)
     {
-        int n_write = n_cells[0] * n_cells[1] * n_cells[2];
-        int sublattice_size = n_cells_padded[0] * n_cells_padded[1] * n_cells_padded[2];
-
-        int index = blockIdx.x * blockDim.x + threadIdx.x;
-        int stride = blockDim.x * gridDim.x;
-
-        for(int i=index; i<n_write; i+=stride)
+        int n_write = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2];
+        int tupel[3];
+        int idx_pad;
+        int idx_orig;
+        for(int idx = blockIdx.x * blockDim.x + threadIdx.x; idx < n_write; idx += blockDim.x * gridDim.x)
         {
-            int idx1 =  i * nbasis;
-
-            int c = i / (n_cells[0] * n_cells[1]);
-            int b = (i - c * n_cells[1] * n_cells[0]) / n_cells[0];
-            int a = (i - c * n_cells[1] * n_cells[0] - b * n_cells[0]);
-
-            int idx2 = a + b * n_cells_padded[0] + c * n_cells_padded[0] * n_cells_padded[1];
-            // int idx2 = (a + b * n_cells_padded[0] + c * n_cells_padded[0] * n_cells_padded[1]) * 3 * nbasis + 3 * ibasis;
-
-            for(int j = 0; j<3; j++)
-            {
-                gradient[idx1][j] -= (res_mult[idx2 + j * sublattice_size] / sublattice_size);
+            tupel_from_idx(idx, tupel, iteration_bounds, 3); //tupel now is {a, b, c}
+            idx_orig = bi + n_cell_atoms * idx;
+            idx_pad = bi * spin_stride.basis + tupel[0] * spin_stride.a + tupel[1] * spin_stride.b + tupel[2] * spin_stride.c;
+            gradient[idx_orig][0] -= resiFFT[idx_pad                       ] * mu_s[idx_orig] / sublattice_size;
+            gradient[idx_orig][1] -= resiFFT[idx_pad + 1 * spin_stride.comp] * mu_s[idx_orig] / sublattice_size;
+            gradient[idx_orig][2] -= resiFFT[idx_pad + 2 * spin_stride.comp] * mu_s[idx_orig] / sublattice_size;
             }
         }
-    }
 
     void Hamiltonian_Heisenberg::Gradient_DDI_FFT(const vectorfield & spins, vectorfield & gradient)
     {
@@ -747,35 +797,29 @@ namespace Engine
 
         FFT_spins(spins);
 
-        // auto& ft_D_matrices = fft_plan_d.cpx_ptr;
+        auto& ft_D_matrices = fft_plan_d.cpx_ptr;
         auto& ft_spins = fft_plan_spins.cpx_ptr;
 
         auto& res_iFFT = fft_plan_rev.real_ptr;
         auto& res_mult = fft_plan_rev.cpx_ptr;
 
-        auto mapSpins = Eigen::Map<Vector3c, 0, Eigen::Stride<1,Eigen::Dynamic> >
-                        (reinterpret_cast<std::complex<scalar>*>(NULL),
-                        Eigen::Stride<1,Eigen::Dynamic>(1,sublattice_size));
-
-        auto mapResult = Eigen::Map<Vector3c, 0, Eigen::Stride<1,Eigen::Dynamic> >
-                        (reinterpret_cast<std::complex<scalar>*>(NULL),
-                        Eigen::Stride<1,Eigen::Dynamic>(1,sublattice_size));
+        field<int> iteration_bounds = field<int>(4);
+        iteration_bounds[0] = geometry->n_cell_atoms;
+        iteration_bounds[1] = n_cells_padded[0];
+        iteration_bounds[2] = n_cells_padded[1];
+        iteration_bounds[3] = n_cells_padded[2];
 
         // Loop over basis atoms (i.e sublattices)
         for(int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1)
         {
-            std::fill(fft_plan_rev.cpx_ptr.data(), fft_plan_rev.cpx_ptr.data() + 3 * sublattice_size * geometry->n_cell_atoms, FFT::FFT_cpx_type());
-            std::fill(res_iFFT.data(), res_iFFT.data() + 3 * sublattice_size * geometry->n_cell_atoms, 0.0);
 
-            for(int i_b2 = 0; i_b2 < B; ++i_b2)
-            {
-                // Look up at which position the correct D-matrices are saved
-                int b_diff = b_diff_lookup[i_b1 + i_b2 * geometry->n_cell_atoms];
-                CU_FFT_Pointwise_Mult<<<((n_cells_padded[0]/2+1) * n_cells_padded[1] * n_cells_padded[2] + 1023 )/1024, 1024>>>(d_mats_ft.data() + b_diff * sublattice_size , ft_spins.data() + i_b2 * 3 * sublattice_size, res_mult.data() + i_b1 * 3 * sublattice_size, n_cells_padded.data());
-            }//end iteration over second sublattice
+            CU_FFT_Pointwise_Mult<<<(geometry->n_cell_atoms * sublattice_size + 1023) / 1024, 1024>>>(ft_D_matrices.data(), ft_spins.data(), res_mult.data(), iteration_bounds.data(), i_b1, b_diff_lookup.data(), d_stride, spin_stride);
             FFT::batch_iFour_3D(fft_plan_rev);
-            CU_Write_FFT_Gradients<<<(geometry->n_cells_total+1023)/1024, 1024 >>>(res_iFFT.data() + i_b1 * 3 * sublattice_size, gradient.data() + i_b1, n_cells_padded.data(), geometry->n_cells.data(), geometry->n_cell_atoms);
-        }//end iteration sublattice 1CU_CHECK_AND_SYNC();
+
+            //Place the gradients at the correct positions and mult with correct mu
+
+            CU_Write_FFT_Gradients<<<(geometry->n_cells_total + 1023) / 1024, 1024>>>(res_iFFT.data(), gradient.data(), spin_stride, geometry->n_cells.data(), geometry->n_cell_atoms, i_b1, geometry->mu_s.data(), sublattice_size);
+        }//end iteration sublattice 1
     }//end Field_DipoleDipole
 
 
@@ -948,62 +992,51 @@ namespace Engine
         // Quadruplets
     }
 
-    void Hamiltonian_Heisenberg::FFT_spins(const vectorfield & spins)
-    {
-        // Size of original geometry
-        int Na = geometry->n_cells[0];
-        int Nb = geometry->n_cells[1];
-        int Nc = geometry->n_cells[2];
-
-        // Bravais vectors
-        Vector3 ta = geometry->bravais_vectors[0];
-        Vector3 tb = geometry->bravais_vectors[1];
-        Vector3 tc = geometry->bravais_vectors[2];
-
-        auto& fft_spin_inputs = fft_plan_spins.real_ptr;
-
-        //iterate over the **original** system
-        for(int c = 0; c < Nc; ++c)
-        {
-            for(int b = 0; b < Nb; ++b)
-            {
-                for(int a = 0; a < Na; ++a)
+     __global__ void CU_Write_FFT_Input(FFT::FFT_real_type* fft_spin_inputs, const Vector3 * spins, int * iteration_bounds, FFT::StrideContainer spin_stride, scalar * mu_s)
                 {
-                    for(int bi = 0; bi < B; ++bi)
+        int nos = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2] * iteration_bounds[3];
+        int tupel[4];
+        int idx_pad;
+        for(int idx_orig = blockIdx.x * blockDim.x + threadIdx.x; idx_orig < nos; idx_orig += blockDim.x * gridDim.x)
                     {
-                        int idx_pad = a + b * n_cells_padded[0] + c * n_cells_padded[0] * n_cells_padded[1] + 3 * sublattice_size * bi;
-                        // int idx_pad = (a + b * n_cells_padded[0] + c * n_cells_padded[0] * n_cells_padded[1]) * 3 * geometry->n_cell_atoms + 3 * bi;
-                        int idx_orig = bi + a * geometry->n_cell_atoms + b * Na * geometry->n_cell_atoms  + c * Na * Nb * B;
-
-                        fft_spin_inputs[idx_pad        ] = spins[idx_orig][0] * geometry->mu_s[bi];
-                        fft_spin_inputs[idx_pad + 1 * sublattice_size] = spins[idx_orig][1] * geometry->mu_s[bi];
-                        fft_spin_inputs[idx_pad + 2 * sublattice_size] = spins[idx_orig][2] * geometry->mu_s[bi];
-                    }
-                }
+            tupel_from_idx(idx_orig, tupel, iteration_bounds, 4); //tupel nowis {ib, a, b, c}
+            idx_pad = tupel[0] * spin_stride.basis + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b + tupel[3] * spin_stride.c;
+            fft_spin_inputs[idx_pad                        ] = spins[idx_orig][0] * mu_s[idx_orig];
+            fft_spin_inputs[idx_pad + 1 * spin_stride.comp ] = spins[idx_orig][1] * mu_s[idx_orig];
+            fft_spin_inputs[idx_pad + 2 * spin_stride.comp ] = spins[idx_orig][2] * mu_s[idx_orig];
             }
         }
+    void Hamiltonian_Heisenberg::FFT_spins(const vectorfield & spins)
+    {
+        field<int> iteration_bounds = field<int>(4);
+        iteration_bounds[0] = geometry->n_cell_atoms;
+        iteration_bounds[1] = geometry->n_cells[0];
+        iteration_bounds[2] = geometry->n_cells[1];
+        iteration_bounds[3] = geometry->n_cells[2];
+
+        CU_Write_FFT_Input<<<(geometry->nos + 1023) / 1024, 1024>>>(fft_plan_spins.real_ptr.data(), spins.data(), iteration_bounds.data(), spin_stride, geometry->mu_s.data());
         FFT::batch_Four_3D(fft_plan_spins);
     }
 
-    void Hamiltonian_Heisenberg::FFT_Dipole_Mats(std::array<int, 3> pb_images)
+    void Hamiltonian_Heisenberg::FFT_Dipole_Mats(int img_a, int img_b, int img_c)
     {
-        // Prefactor of ddi interaction
-        scalar mult = 2 * C::mu_0 * C::mu_B * C::mu_B  / ( 4*C::Pi * 1e-30 );
+        //prefactor of ddi interaction
+        scalar mult = 2 * C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
 
-        // Size of original geometry
+        //size of original geometry
         int Na = geometry->n_cells[0];
         int Nb = geometry->n_cells[1];
         int Nc = geometry->n_cells[2];
-
-        // Bravais vectors
+        //bravais vectors
         Vector3 ta = geometry->bravais_vectors[0];
         Vector3 tb = geometry->bravais_vectors[1];
         Vector3 tc = geometry->bravais_vectors[2];
+        //number of basis atoms (i.e sublattices)
+        int B = geometry->n_cell_atoms;
 
         auto& fft_dipole_inputs = fft_plan_d.real_ptr;
 
         int count = -1;
-        // Loop over basis atoms (i.e sublattices)
         for(int i_b1 = 0; i_b1 < B; ++i_b1)
         {
             for(int i_b2 = 0; i_b2 < B; ++i_b2)
@@ -1026,34 +1059,45 @@ namespace Engine
                             int a_idx = a < Na ? a : a - n_cells_padded[0];
                             int b_idx = b < Nb ? b : b - n_cells_padded[1];
                             int c_idx = c < Nc ? c : c - n_cells_padded[2];
+                            scalar Dxx = 0, Dxy = 0, Dxz = 0, Dyy = 0, Dyz = 0, Dzz = 0;
+                            Vector3 diff;
+                            //iterate over periodic images
 
-                            Vector3 diff =    (a_idx + geometry->cell_atoms[i_b1][0] - geometry->cell_atoms[i_b2][0]) * ta
-                                            + (b_idx + geometry->cell_atoms[i_b1][1] - geometry->cell_atoms[i_b2][1]) * tb
-                                            + (c_idx + geometry->cell_atoms[i_b1][2] - geometry->cell_atoms[i_b2][2]) * tc;
-
-                            if(!(a==0 && b==0 && c==0 && i_b1 == i_b2))
+                            for(int a_pb = - img_a; a_pb <= img_a; a_pb++)
+                            {
+                                for(int b_pb = - img_b; b_pb <= img_b; b_pb++)
+                                {
+                                    for(int c_pb = -img_c; c_pb <= img_c; c_pb++)
+                                    {
+                                        diff =    (a_idx + a_pb * Na + geometry->cell_atoms[i_b1][0] - geometry->cell_atoms[i_b2][0]) * ta
+                                                + (b_idx + b_pb * Nb + geometry->cell_atoms[i_b1][1] - geometry->cell_atoms[i_b2][1]) * tb
+                                                + (c_idx + c_pb * Nc + geometry->cell_atoms[i_b1][2] - geometry->cell_atoms[i_b2][2]) * tc;
+                                        if(diff.norm() > 1e-10)
                             {
                                 auto d = diff.norm();
                                 auto d3 = d * d * d;
                                 auto d5 = d * d * d * d * d;
-                                scalar Dxx = mult * (3 * diff[0]*diff[0] / d5 - 1/d3);
-                                scalar Dxy = mult *  3 * diff[0]*diff[1] / d5;          //same as Dyx
-                                scalar Dxz = mult *  3 * diff[0]*diff[2] / d5;          //same as Dzx
-                                scalar Dyy = mult * (3 * diff[1]*diff[1] / d5 - 1/d3);
-                                scalar Dyz = mult *  3 * diff[1]*diff[2] / d5;          //same as Dzy
-                                scalar Dzz = mult * (3 * diff[2]*diff[2] / d5 - 1/d3);
-
-                                int idx_pad = a + b * n_cells_padded[0] + c * n_cells_padded[1] * n_cells_padded[0] + 6 * sublattice_size * count;
-
-                                // int idx_pad = (a + b * n_cells_padded[0] + c * n_cells_padded[0] * n_cells_padded[1]) * 6 * symmetry_count + 6 * (count-1);
-
-                                fft_dipole_inputs[idx_pad        ] = Dxx;
-                                fft_dipole_inputs[idx_pad + 1 * sublattice_size] = Dxy;
-                                fft_dipole_inputs[idx_pad + 2 * sublattice_size] = Dxz;
-                                fft_dipole_inputs[idx_pad + 3 * sublattice_size] = Dyy;
-                                fft_dipole_inputs[idx_pad + 4 * sublattice_size] = Dyz;
-                                fft_dipole_inputs[idx_pad + 5 * sublattice_size] = Dzz;
+                                            Dxx += mult * (3 * diff[0]*diff[0] / d5 - 1/d3);
+                                            Dxy += mult *  3 * diff[0]*diff[1] / d5;          //same as Dyx
+                                            Dxz += mult *  3 * diff[0]*diff[2] / d5;          //same as Dzx
+                                            Dyy += mult * (3 * diff[1]*diff[1] / d5 - 1/d3);
+                                            Dyz += mult *  3 * diff[1]*diff[2] / d5;          //same as Dzy
+                                            Dzz += mult * (3 * diff[2]*diff[2] / d5 - 1/d3);
+                                        }
+                                    }
+                                }
                             }
+
+                            int idx = count * d_stride.basis + a * d_stride.a + b * d_stride.b + c * d_stride.c;
+
+                            fft_dipole_inputs[idx                    ] = Dxx;
+                            fft_dipole_inputs[idx + 1 * d_stride.comp] = Dxy;
+                            fft_dipole_inputs[idx + 2 * d_stride.comp] = Dxz;
+                            fft_dipole_inputs[idx + 3 * d_stride.comp] = Dyy;
+                            fft_dipole_inputs[idx + 4 * d_stride.comp] = Dyz;
+                            fft_dipole_inputs[idx + 5 * d_stride.comp] = Dzz;
+
+                            
                         }
                     }
                 }
@@ -1062,7 +1106,7 @@ namespace Engine
         FFT::batch_Four_3D(fft_plan_d);
     }
 
-    void Hamiltonian_Heisenberg::Prepare_DDI(std::array<int, 3> pb_images)
+    void Hamiltonian_Heisenberg::Prepare_DDI()
     {
         n_cells_padded.resize(3);
         n_cells_padded[0] = (geometry->n_cells[0] > 1) ? 2 * geometry->n_cells[0] : 1;
@@ -1072,9 +1116,10 @@ namespace Engine
 
         b_diff_lookup.resize(geometry->n_cell_atoms * geometry->n_cell_atoms);
 
-        //Ee dont need to transform over length 1 dims
+
+        //we dont need to transform over length 1 dims
         std::vector<int> fft_dims;
-        for(int i = 2; i >= 0; i--) //notice reverse order is important!
+        for(int i = 2; i >= 0; i--) //notice that reverse order is important!
         {
             if(n_cells_padded[i] > 1)
                 fft_dims.push_back(n_cells_padded[i]);
@@ -1113,35 +1158,18 @@ namespace Engine
         fft_plan_rev.real_ptr = field<FFT::FFT_real_type>(3 * sublattice_size * geometry->n_cell_atoms);
         fft_plan_rev.CreateConfiguration();
 
+
+        field<int*> temp_s = {&spin_stride.comp, &spin_stride.basis, &spin_stride.a, &spin_stride.b, &spin_stride.c};
+        field<int*> temp_d = {&d_stride.comp, &d_stride.basis, &d_stride.a, &d_stride.b, &d_stride.c};;
+        FFT::get_strides(temp_s, {3, this->geometry->n_cell_atoms, n_cells_padded[0], n_cells_padded[1], n_cells_padded[2]});
+        FFT::get_strides(temp_d, {6, symmetry_count, n_cells_padded[0], n_cells_padded[1], n_cells_padded[2]});
+       
         //perform FFT of dipole matrices
-        FFT_Dipole_Mats(pb_images);
-        d_mats_ft = field<Matrix3c>(sublattice_size * symmetry_count);
+        int img_a = boundary_conditions[0] == 0 ? 0 : ddi_n_periodic_images[0];
+        int img_b = boundary_conditions[1] == 0 ? 0 : ddi_n_periodic_images[1];
+        int img_c = boundary_conditions[2] == 0 ? 0 : ddi_n_periodic_images[2];
+        FFT_Dipole_Mats(img_a, img_b, img_c);
 
-        //Write out ft dipole matrices
-        for(int c = 0; c < n_cells_padded[2]; ++c)
-        {
-            for(int b = 0; b < n_cells_padded[1]; ++b)
-            {
-                for(int a = 0; a < n_cells_padded[0]; ++a)
-                {
-                    for(int b_diff = 0; b_diff < symmetry_count; ++b_diff)
-                    {
-                        // int idx = (a + b * n_cells_padded[0] + c * n_cells_padded[0] * n_cells_padded[1]) * 6 * symmetry_count + 6 * b_diff;
-                        int idx = (a + b * n_cells_padded[0] + c * n_cells_padded[0] * n_cells_padded[1]) + 6 * sublattice_size * b_diff;
-
-                        auto fD_xx = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx        ]);
-                        auto fD_xy = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx + 1 * sublattice_size]);
-                        auto fD_xz = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx + 2 * sublattice_size]);
-                        auto fD_yy = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx + 3 * sublattice_size]);
-                        auto fD_yz = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx + 4 * sublattice_size]);
-                        auto fD_zz = reinterpret_cast<std::complex<scalar>* >(&fft_plan_d.cpx_ptr[idx + 5 * sublattice_size]);
-                        d_mats_ft[idx] <<   *fD_xx, *fD_xy, *fD_xz,
-                                            *fD_xy, *fD_yy, *fD_yz,
-                                            *fD_xz, *fD_yz, *fD_zz;
-                    }
-                }
-            }
-        }
     }//end prepare
 
     // Hamiltonian name as string

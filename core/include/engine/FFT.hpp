@@ -73,7 +73,7 @@ namespace Engine
         using FFT_cfg = cufftHandle;
 
         //scalar product of two complex vectors
-        inline FFT_cpx_type mult3D(FFT_cpx_type & d1, FFT_cpx_type & d2, FFT_cpx_type & d3, FFT_cpx_type & s1, FFT_cpx_type & s2, FFT_cpx_type & s3)
+        inline __device__ FFT_cpx_type mult3D(FFT_cpx_type & d1, FFT_cpx_type & d2, FFT_cpx_type & d3, FFT_cpx_type & s1, FFT_cpx_type & s2, FFT_cpx_type & s3)
         {
             FFT_cpx_type res;
             res.x = d1.x * s1.x + d2.x * s2.x + d3.x * s3.x - d1.y * s1.y - d2.y * s2.y - d3.y * s3.y;
@@ -81,10 +81,16 @@ namespace Engine
             return res;   
         }
 
-        inline void addTo(FFT_cpx_type & a, const FFT_cpx_type & b)
+        inline __device__ void addTo(FFT_cpx_type & a, const FFT_cpx_type & b, bool overwrite = false)
         {
-            a.x += b.x;
-            a.y += b.y;
+            if(overwrite)
+            {
+                a.x = b.x;
+                a.y = b.y;
+            } else {
+                a.x += b.x;
+                a.y += b.y;
+            }
         }
         #endif
 

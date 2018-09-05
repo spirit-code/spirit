@@ -46,6 +46,8 @@ namespace Engine
             return da*N + db*N*Na + dc*N*Na*Nb;
         }
 
+        #ifndef SPIRIT_USE_CUDA
+
         //Get the linear index in a n-D array where tupel contains the components in n-dimensions from fatest to slowest varying and maxVal is the extent in every dimension
         inline int idx_from_tupel(field<int> tupel, field<int> maxVal)
         {
@@ -64,7 +66,7 @@ namespace Engine
         {
             int idx_diff = idx;
             int div = 1;
-            for(int i = 0; i < tupel.size(); i++)
+            for(int i = 0; i < tupel.size()-1; i++)
                 div *= maxVal[i]; 
             for(int i = tupel.size() - 1; i > 0; i--)
             {
@@ -74,8 +76,6 @@ namespace Engine
             }
             tupel[0] = idx_diff / div;
         }
-
-        #ifndef SPIRIT_USE_CUDA
 
         inline int idx_from_translations(const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations_i, const std::array<int, 3> translations)
         {
@@ -113,6 +113,36 @@ namespace Engine
         #endif
         #ifdef SPIRIT_USE_CUDA
     
+         //Get the linear index in a n-D array where tupel contains the components in n-dimensions from fatest to slowest varying and maxVal is the extent in every dimension
+        inline __device__ int idx_from_tupel(field<int> tupel, field<int> maxVal)
+        {
+            int idx = 0;
+            int mult = 1;
+            for(int i = 0; i < tupel.size(); i++)
+            {
+                idx += mult * tupel[i];
+                mult *= maxVal[i];
+            }
+            return idx;
+        }
+
+        //reverse of idx_from_tupel
+        inline __device__ void tupel_from_idx(int & idx, int* tupel, int* maxVal, int n)
+        {
+            int idx_diff = idx;
+            int div = 1;
+            for(int i = 0; i < n-1; i++)
+                div *= maxVal[i]; 
+            for(int i = n - 1; i > 0; i--)
+            {
+                tupel[i] = idx_diff / div;
+                idx_diff -= tupel[i] * div;
+                div /= maxVal[i - 1];
+            }
+            tupel[0] = idx_diff / div;
+        }
+
+
         inline int idx_from_translations(const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations_i, const int translations[3])
         {
             int Na = n_cells[0];

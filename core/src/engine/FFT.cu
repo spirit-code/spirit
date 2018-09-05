@@ -32,7 +32,7 @@ namespace Engine
             int rank = this->dims.size();
             int *n = this->dims.data();
             int howmany = this->howmany;
-            int istride = 1, ostride = 1;
+            int istride = howmany, ostride = howmany;
             int *inembed = n, *onembed = n;
             
             int size = 1;
@@ -40,7 +40,7 @@ namespace Engine
             {
                 size *= k;
             }
-            int idist = size, odist = size;
+            int idist = 1, odist = 1;
 
             if(this->inverse == false)
             {
