@@ -744,19 +744,20 @@ namespace Engine
     {
         int n = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2] * iteration_bounds[3];
         int tupel[4];
-        int idx_b1, idx_d, b_diff;
+        int idx_b1, idx_b2, idx_d, b_diff;
 
-        for(int idx_b2 = blockIdx.x * blockDim.x + threadIdx.x; idx_b2 < n; idx_b2 += blockDim.x * gridDim.x)
+        for(int ispin = blockIdx.x * blockDim.x + threadIdx.x; ispin < n; ispin += blockDim.x * gridDim.x)
         {
-            tupel_from_idx(idx_b2, tupel, iteration_bounds, 4); // tupel now is {i_b2, a, b, c}
+            tupel_from_idx(ispin, tupel, iteration_bounds, 4); // tupel now is {i_b2, a, b, c}
 
             b_diff = b_diff_lookup[i_b1 + tupel[0] * iteration_bounds[0]];
             idx_b1 = i_b1 * spin_stride.basis + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b + tupel[3] * spin_stride.c;
+            idx_b2 = tupel[0] * spin_stride.basis + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b + tupel[3] * spin_stride.c;
             idx_d  = b_diff * d_stride.basis + tupel[1] * d_stride.a + tupel[2] * d_stride.b + tupel[3] * d_stride.c;
 
-            auto& fs_x = ft_spins[3 * idx_b2                       ];
-            auto& fs_y = ft_spins[3 * idx_b2 + 1 * spin_stride.comp];
-            auto& fs_z = ft_spins[3 * idx_b2 + 2 * spin_stride.comp];
+            auto& fs_x = ft_spins[idx_b2                       ];
+            auto& fs_y = ft_spins[idx_b2 + 1 * spin_stride.comp];
+            auto& fs_z = ft_spins[idx_b2 + 2 * spin_stride.comp];
 
             auto& fD_xx = ft_D_matrices[idx_d                    ];
             auto& fD_xy = ft_D_matrices[idx_d + 1 * d_stride.comp];
@@ -803,17 +804,18 @@ namespace Engine
         auto& res_iFFT = fft_plan_rev.real_ptr;
         auto& res_mult = fft_plan_rev.cpx_ptr;
 
-        field<int> iteration_bounds = field<int>(4);
-        iteration_bounds[0] = geometry->n_cell_atoms;
-        iteration_bounds[1] = n_cells_padded[0];
-        iteration_bounds[2] = n_cells_padded[1];
-        iteration_bounds[3] = n_cells_padded[2];
+        field<int> iteration_bounds = { geometry->n_cell_atoms, 
+                                        (n_cells_padded[0]/2+1), 
+                                        n_cells_padded[1], 
+                                        n_cells_padded[2] };
+
+        int number_of_mults = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2] * iteration_bounds[3];
 
         // Loop over basis atoms (i.e sublattices)
         for(int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1)
         {
 
-            CU_FFT_Pointwise_Mult<<<(geometry->n_cell_atoms * sublattice_size + 1023) / 1024, 1024>>>(ft_D_matrices.data(), ft_spins.data(), res_mult.data(), iteration_bounds.data(), i_b1, b_diff_lookup.data(), d_stride, spin_stride);
+            CU_FFT_Pointwise_Mult<<<(number_of_mults + 1023) / 1024, 1024>>>(ft_D_matrices.data(), ft_spins.data(), res_mult.data(), iteration_bounds.data(), i_b1, b_diff_lookup.data(), d_stride, spin_stride);
             FFT::batch_iFour_3D(fft_plan_rev);
 
             //Place the gradients at the correct positions and mult with correct mu
@@ -1008,11 +1010,12 @@ namespace Engine
         }
     void Hamiltonian_Heisenberg::FFT_spins(const vectorfield & spins)
     {
-        field<int> iteration_bounds = field<int>(4);
-        iteration_bounds[0] = geometry->n_cell_atoms;
-        iteration_bounds[1] = geometry->n_cells[0];
-        iteration_bounds[2] = geometry->n_cells[1];
-        iteration_bounds[3] = geometry->n_cells[2];
+        field<int> iteration_bounds =   {
+                                            geometry->n_cell_atoms,
+                                            geometry->n_cells[0],
+                                            geometry->n_cells[1],
+                                            geometry->n_cells[2],
+                                        };
 
         CU_Write_FFT_Input<<<(geometry->nos + 1023) / 1024, 1024>>>(fft_plan_spins.real_ptr.data(), spins.data(), iteration_bounds.data(), spin_stride, geometry->mu_s.data());
         FFT::batch_Four_3D(fft_plan_spins);
