@@ -373,7 +373,7 @@ namespace Engine
         this->Gradient_DDI_FFT(spins, gradients_temp);
 
         // === DEBUG: begin gradient comparison ===
-            // vectorfield gr./sadients_temp_dir;
+            // vectorfield gradients_temp_dir;
             // gradients_temp_dir.resize(this->geometry->nos);
             // Vectormath::fill(gradients_temp_dir, {0,0,0});
             // Gradient_DDI_Direct(spins, gradients_temp_dir);
@@ -819,7 +819,7 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Gradient_DDI_Direct(const vectorfield & spins, vectorfield & gradient)
     {
-        scalar mult = 2 * C::mu_0 * C::mu_B / ( 4*C::Pi * 1e-30 );
+        scalar mult = 2 * C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
         scalar mu, d, d3, d5, Dxx, Dxy, Dxz, Dyy, Dyz, Dzz;
         Vector3 diff;
 
@@ -1110,11 +1110,11 @@ namespace Engine
                             Vector3 diff;
                             //iterate over periodic images
 
-                            for(int a_pb = - img_a + 1; a_pb < img_a; a_pb++)
+                            for(int a_pb = - img_a; a_pb <= img_a; a_pb++)
                             {
-                                for(int b_pb = - img_b + 1; b_pb < img_b; b_pb++)
+                                for(int b_pb = - img_b; b_pb <= img_b; b_pb++)
                                 {
-                                    for(int c_pb = -img_c + 1; c_pb < img_c; c_pb++)
+                                    for(int c_pb = -img_c; c_pb <= img_c; c_pb++)
                                     {
                                         diff =    (a_idx + a_pb * Na + geometry->cell_atoms[i_b1][0] - geometry->cell_atoms[i_b2][0]) * ta
                                                 + (b_idx + b_pb * Nb + geometry->cell_atoms[i_b1][1] - geometry->cell_atoms[i_b2][1]) * tb
@@ -1242,9 +1242,9 @@ namespace Engine
         #endif
 
         //perform FFT of dipole matrices
-        int img_a = boundary_conditions[0] == 0 ? 1 : 10;
-        int img_b = boundary_conditions[1] == 0 ? 1 : 10;
-        int img_c = boundary_conditions[2] == 0 ? 1 : 10;
+        int img_a = boundary_conditions[0] == 0 ? 0 : ddi_n_periodic_images[0];
+        int img_b = boundary_conditions[1] == 0 ? 0 : ddi_n_periodic_images[1];
+        int img_c = boundary_conditions[2] == 0 ? 0 : ddi_n_periodic_images[2];
         FFT_Dipole_Mats(img_a, img_b, img_c);
 
         d_mats_ft = field<Matrix3c>(sublattice_size * symmetry_count);
