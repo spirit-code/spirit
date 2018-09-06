@@ -158,6 +158,10 @@ namespace Engine
         FFT::FFT_Plan fft_plan_rev;
 
         field<Matrix3c> d_mats_ft;
+
+        bool save_dipole_matrices = true;
+        field<Matrix3> dipole_matrices;
+
         int symmetry_count;
 
         // At which index to look up the inter-sublattice D-matrices

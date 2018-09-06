@@ -995,6 +995,38 @@ namespace Engine
             }
         }
 
+        // Tentative Dipole-Dipole (Note: this is very tentative and could be wrong)
+        field<int> tupel1 = field<int>(4);
+        field<int> tupel2 = field<int>(4);
+        field<int> maxVal = {geometry->n_cell_atoms, geometry->n_cells[0], geometry->n_cells[1], geometry->n_cells[2]};
+
+        if(save_dipole_matrices && false)
+        {
+            for(int idx1 = 0; idx1 < geometry->nos; idx1++)
+            {
+                Engine::Vectormath::tupel_from_idx(idx1, tupel1, maxVal); //tupel1 now is {ib1, a1, b1, c1}
+                for(int idx2 = 0; idx2 < geometry->nos; idx2++)
+                {
+                    Engine::Vectormath::tupel_from_idx(idx2, tupel2, maxVal); //tupel2 now is {ib2, a2, b2, c2}
+                    int& b_diff = b_diff_lookup[tupel1[0] + geometry->n_cell_atoms * tupel2[0]];
+                    int da = tupel2[1] - tupel1[1];
+                    int db = tupel2[2] - tupel1[2];
+                    int dc = tupel2[3] - tupel1[3];
+                    Matrix3 & D = dipole_matrices[b_diff + symmetry_count * (da + geometry->n_cells[0] * (db + geometry->n_cells[1] * dc))];
+                
+                    int i = 3 * idx1;
+                    int j = 3 * idx2;
+
+                    for(int alpha1 = 0; alpha1 < 3; alpha1++)
+                        for(int alpha2 = 0; alpha2 < 3; alpha2++)
+                        {
+                            hessian(i + alpha1, j + alpha2) = D(alpha1, alpha2);
+                            hessian(j + alpha1, i + alpha2) = D(alpha1, alpha2);
+                        }
+                }
+            }
+        }
+                 
         //// Dipole-Dipole
         //for (unsigned int i_pair = 0; i_pair < this->DD_indices.size(); ++i_pair)
         //{
@@ -1144,6 +1176,14 @@ namespace Engine
                             fft_dipole_inputs[idx + 4 * d_stride.comp] = Dyz;
                             fft_dipole_inputs[idx + 5 * d_stride.comp] = Dzz;
 
+                            //We explicitly ignore the different strides etc. here
+                            if(save_dipole_matrices && a < Na && b < Nb && c < Nc)
+                            {
+                                dipole_matrices[count + symmetry_count * (a + Na * (b + Nb * c))] <<    Dxx, Dxy, Dxz,
+                                                                                                        Dxy, Dyy, Dyz,
+                                                                                                        Dxz, Dyz, Dzz;
+                            }
+
                             // Vector3 diff =    (a_idx + geometry->cell_atoms[i_b1][0] - geometry->cell_atoms[i_b2][0]) * ta
                             //                 + (b_idx + geometry->cell_atoms[i_b1][1] - geometry->cell_atoms[i_b2][1]) * tb
                             //                 + (c_idx + geometry->cell_atoms[i_b1][2] - geometry->cell_atoms[i_b2][2]) * tc;
@@ -1245,6 +1285,9 @@ namespace Engine
         int img_a = boundary_conditions[0] == 0 ? 0 : ddi_n_periodic_images[0];
         int img_b = boundary_conditions[1] == 0 ? 0 : ddi_n_periodic_images[1];
         int img_c = boundary_conditions[2] == 0 ? 0 : ddi_n_periodic_images[2];
+
+        if(save_dipole_matrices)
+            dipole_matrices = field<Matrix3>(symmetry_count * geometry->n_cells_total);
         FFT_Dipole_Mats(img_a, img_b, img_c);
 
         d_mats_ft = field<Matrix3c>(sublattice_size * symmetry_count);

@@ -62,7 +62,7 @@ namespace Engine
         }
 
         //reverse of idx_from_tupel
-        inline void tupel_from_idx(int & idx, field<int> tupel, field<int> maxVal)
+        inline void tupel_from_idx(int & idx, field<int> & tupel, field<int> & maxVal)
         {
             int idx_diff = idx;
             int div = 1;
