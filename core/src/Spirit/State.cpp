@@ -87,6 +87,18 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         #else
             Log(Log_Level::Info, Log_Sender::All, "Not using std::thread");
         #endif
+        // Log defects info
+        #ifdef SPIRIT_ENABLE_DEFECTS
+            Log(Log_Level::Info, Log_Sender::All, "Defects are enabled");
+        #else
+            Log(Log_Level::Info, Log_Sender::All, "Defects are not enabled");
+        #endif
+        // Log pinning info
+        #ifdef SPIRIT_ENABLE_PINNING
+            Log(Log_Level::Info, Log_Sender::All, "Pinning is enabled");
+        #else
+            Log(Log_Level::Info, Log_Sender::All, "Pinning is not enabled");
+        #endif
         // Log Precision info
         #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
             Log(Log_Level::Info, Log_Sender::All, "Using double as scalar type");
