@@ -1224,6 +1224,15 @@ namespace Engine
         n_cells_padded[0] = (geometry->n_cells[0] > 1) ? 2 * geometry->n_cells[0] : 1;
         n_cells_padded[1] = (geometry->n_cells[1] > 1) ? 2 * geometry->n_cells[1] : 1;
         n_cells_padded[2] = (geometry->n_cells[2] > 1) ? 2 * geometry->n_cells[2] : 1;
+
+        //workaround for bug in kissfft
+        #ifndef SPIRIT_USE_FFTW
+        int number_of_one_dims = 0;
+        for(int i=0; i<3; i++)
+            if(n_cells_padded[i] == 1 && ++number_of_one_dims > 1)
+                n_cells_padded[i] = 2;
+        #endif
+
         sublattice_size = n_cells_padded[0] * n_cells_padded[1] * n_cells_padded[2];
 
         b_diff_lookup.resize(geometry->n_cell_atoms * geometry->n_cell_atoms);
@@ -1237,8 +1246,6 @@ namespace Engine
                 fft_dims.push_back(n_cells_padded[i]);
         }
         
-        if(geometry->n_cells_total == 1)
-            fft_dims.push_back(2);
 
         //Count how many distinct inter-lattice contributions we need to store
         symmetry_count = 0;

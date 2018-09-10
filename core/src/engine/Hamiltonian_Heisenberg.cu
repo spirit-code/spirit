@@ -1132,9 +1132,6 @@ namespace Engine
                 fft_dims.push_back(n_cells_padded[i]);
         }
 
-        if(geometry->n_cells_total == 1)
-        fft_dims.push_back(2);
-
         //Count how many distinct inter-lattice contributions we need to store
         symmetry_count = 0;
         for(int i = 0; i < geometry->n_cell_atoms; i++)
