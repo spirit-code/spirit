@@ -151,7 +151,10 @@ namespace Engine
         {
             Engine::Neighbours::DDI_from_Pair(
                 *this->geometry,
-                { this->ddi_pairs[i].i, this->ddi_pairs[i].j, this->ddi_pairs[i].translations },
+                { this->ddi_pairs[i].i, this->ddi_pairs[i].j, 
+                { this->ddi_pairs[i].translations[0], 
+                  this->ddi_pairs[i].translations[1], 
+                  this->ddi_pairs[i].translations[2] }},
                 this->ddi_magnitudes[i], this->ddi_normals[i]);
         }
         // Dipole-dipole (FFT)
