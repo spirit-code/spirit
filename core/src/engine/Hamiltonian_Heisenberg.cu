@@ -158,7 +158,8 @@ namespace Engine
                 this->ddi_magnitudes[i], this->ddi_normals[i]);
         }
         // Dipole-dipole (FFT)
-        this->Prepare_DDI();
+        if(ddi_method == DDI_Method::FFT)
+            this->Prepare_DDI();
 
         // Update, which terms still contribute
         this->Update_Energy_Contributions();

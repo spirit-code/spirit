@@ -159,7 +159,8 @@ namespace Engine
                 this->ddi_magnitudes[i], this->ddi_normals[i]);
         }
         // Dipole-dipole (FFT)
-        this->Prepare_DDI();
+        if(ddi_method == DDI_Method::FFT)
+            this->Prepare_DDI();
 
         // Update, which terms still contribute
         this->Update_Energy_Contributions();
@@ -1000,7 +1001,7 @@ namespace Engine
         field<int> tupel2 = field<int>(4);
         field<int> maxVal = {geometry->n_cell_atoms, geometry->n_cells[0], geometry->n_cells[1], geometry->n_cells[2]};
 
-        if(save_dipole_matrices && false)
+        if(save_dipole_matrices && ddi_method == DDI_Method::FFT && false)
         {
             for(int idx1 = 0; idx1 < geometry->nos; idx1++)
             {
