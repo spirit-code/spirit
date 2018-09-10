@@ -24,12 +24,16 @@ DLLEXPORT bool Chain_Delete_Image(State * state, int idx_image=-1, int idx_chain
 DLLEXPORT bool Chain_Pop_Back(State * state, int idx_chain=-1) noexcept;
 
 // Get Data
-DLLEXPORT void Chain_Get_Rx(State * state, float * Rx, int idx_chain = -1) noexcept;
-DLLEXPORT void Chain_Get_Rx_Interpolated(State * state, float * Rx_interpolated, int idx_chain = -1) noexcept;
-DLLEXPORT void Chain_Get_Energy(State * state, float * energy, int idx_chain = -1) noexcept;
-DLLEXPORT void Chain_Get_Energy_Interpolated(State * state, float * E_interpolated, int idx_chain = -1) noexcept;
+DLLEXPORT void Chain_Get_Rx(State * state, float * Rx, int idx_chain=-1) noexcept;
+DLLEXPORT void Chain_Get_Rx_Interpolated(State * state, float * Rx_interpolated, int idx_chain=-1) noexcept;
+DLLEXPORT void Chain_Get_Energy(State * state, float * energy, int idx_chain=-1) noexcept;
+DLLEXPORT void Chain_Get_Energy_Interpolated(State * state, float * E_interpolated, int idx_chain=-1) noexcept;
 // TODO: energy array getter
 // std::vector<std::vector<float>> Chain_Get_Energy_Array_Interpolated(State * state, int idx_chain=-1) noexcept;
+
+DLLEXPORT void Chain_Get_HTST_Info( State * state, float * eigenvalues_min, float * eigenvalues_sp, float * temperature_exponent,
+                          float * me, float * Omega_0, float * s, float * volume_min, float * volume_sp,
+                          float * prefactor_dynamical, float * prefactor, int idx_chain=-1 ) noexcept;
 
 // Update Data (primarily for plots)
 DLLEXPORT void Chain_Update_Data(State * state, int idx_chain=-1) noexcept;

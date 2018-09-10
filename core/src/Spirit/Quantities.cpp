@@ -70,17 +70,28 @@ float Quantity_Get_Topological_Charge(State * state, int idx_image, int idx_chai
 }
 
 
-
-
 float Quantity_Get_HTST_Prefactor(State * state, int idx_image_minimum, int idx_image_sp, int idx_chain)
+try
 {
     std::shared_ptr<Data::Spin_System> image_minimum, image_sp;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices(state, idx_image_minimum, idx_chain, image_minimum, chain);
     from_indices(state, idx_image_sp, idx_chain, image_sp, chain);
 
-    return (float)Engine::HTST::Get_Prefactor(image_minimum, image_sp);
+    auto& info = chain->htst_info;
+    info.minimum = image_minimum;
+    info.saddle_point = image_sp;
+
+    Engine::HTST::Calculate_Prefactor(chain->htst_info);
+
+    return (float)info.prefactor;
 }
+catch( ... )
+{
+    spirit_handle_exception_api(-1, idx_chain);
+    return 0;
+}
+
 
 void check_modes(const vectorfield & image, const vectorfield & grad, const MatrixX & tangent_basis, const VectorX & eigenvalues, const MatrixX & eigenvectors_2N, const vectorfield & minimum_mode)
 {

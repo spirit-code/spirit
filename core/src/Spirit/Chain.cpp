@@ -756,6 +756,75 @@ catch( ... )
     return E_at_failure;
 }
 
+void Chain_Get_HTST_Info( State * state, float * eigenvalues_min, float * eigenvalues_sp, float * temperature_exponent,
+                          float * me, float * Omega_0, float * s, float * volume_min, float * volume_sp,
+                          float * prefactor_dynamical, float * prefactor, int idx_chain ) noexcept
+try
+{
+    int idx_image = -1;
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    if( eigenvalues_min )
+    {
+        for( int i=0; i<2*image->nos && i<chain->htst_info.eigenvalues_min.size(); ++i )
+            eigenvalues_min[i] = chain->htst_info.eigenvalues_min[i];
+    }
+
+    if( eigenvalues_sp )
+    {
+        for( int i=0; i<2*image->nos && i<chain->htst_info.eigenvalues_sp.size(); ++i )
+            eigenvalues_sp[i] = chain->htst_info.eigenvalues_sp[i];
+    }
+
+    if( temperature_exponent )
+    {
+        *temperature_exponent = chain->htst_info.temperature_exponent;
+    }
+
+    if( me )
+    {
+        *me = chain->htst_info.me;
+    }
+
+    if( Omega_0 )
+    {
+        *Omega_0 = chain->htst_info.Omega_0;
+    }
+
+    if( s )
+    {
+        *s = chain->htst_info.s;
+    }
+
+    if( volume_min )
+    {
+        *volume_min = chain->htst_info.volume_min;
+    }
+
+    if( volume_sp )
+    {
+        *volume_sp = chain->htst_info.volume_sp;
+    }
+
+    if( prefactor_dynamical )
+    {
+        *prefactor_dynamical = chain->htst_info.prefactor_dynamical;
+    }
+
+    if( prefactor )
+    {
+        *prefactor = chain->htst_info.prefactor;
+    }
+}
+catch( ... )
+{
+    spirit_handle_exception_api(-1, idx_chain);
+}
+
 void Chain_Update_Data( State * state, int idx_chain ) noexcept
 try
 {

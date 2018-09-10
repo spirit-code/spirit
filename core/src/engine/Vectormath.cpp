@@ -20,8 +20,11 @@ namespace Engine
     {
         scalar angle(const Vector3 & v1, const Vector3 & v2)
         {
-            scalar cosa = v1.dot(v2);
-            return std::acos(cosa);
+            scalar r = v1.dot(v2);
+            // Prevent NaNs from occurring
+            r = std::fmax(-1.0, std::fmin(1.0, r));
+            // Angle
+            return std::acos(r);
         }
         
         void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out)

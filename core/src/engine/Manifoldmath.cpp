@@ -456,28 +456,15 @@ namespace Engine
         }
 
 
-
-
-        scalar dist_greatcircle(const Vector3 & v1, const Vector3 & v2)
-        {
-            scalar r = v1.dot(v2);
-
-            // Prevent NaNs from occurring
-            r = std::fmax(-1.0, std::fmin(1.0, r));
-
-            // Greatcircle distance
-            return std::acos(r);
-        }
-
-
         scalar dist_geodesic(const vectorfield & v1, const vectorfield & v2)
         {
             scalar dist = 0;
             #pragma omp parallel for reduction(+:dist)
             for (unsigned int i = 0; i < v1.size(); ++i)
-                dist += pow(dist_greatcircle(v1[i], v2[i]), 2);
+                dist += pow(Vectormath::angle(v1[i], v2[i]), 2);
             return sqrt(dist);
         }
+
 
         /*
         Calculates the 'tangent' vectors, i.e.in crudest approximation the difference between an image and the neighbouring
