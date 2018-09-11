@@ -7,6 +7,10 @@
 #include <iostream>
 #include <complex>
 
+#ifdef SPIRIT_USE_OPENMP
+#include <omp.h>
+#endif
+
 #ifdef SPIRIT_USE_KISSFFT
 #include "kiss_fft.h"
 #include "kiss_fftndr.h"
@@ -39,10 +43,16 @@ namespace Engine
             return res;
         }
 
-        inline void addTo(FFT_cpx_type & a, const FFT_cpx_type & b)
+        inline void addTo(FFT_cpx_type & a, const FFT_cpx_type & b, bool overwrite)
         {
+            if(overwrite)
+            {
+                a.r = b.r;
+                a.i = b.i;
+            } else {
             a.r += b.r;
             a.i += b.i;
+        }
         }
         #endif
 
@@ -59,10 +69,16 @@ namespace Engine
             return res;     
         }
 
-        inline void addTo(FFT_cpx_type & a, const FFT_cpx_type & b)
+        inline void addTo(FFT_cpx_type & a, const FFT_cpx_type & b, bool overwrite)
         {
-            a[0] += b[0];
-            a[1] += b[1];
+            if(overwrite)
+            {
+                a[0] = b[0];
+                a[1] = b[1];
+            } else {
+                a[0] += b[0];
+                a[1] += b[1];
+            }
         }
         #endif
 
@@ -122,10 +138,6 @@ namespace Engine
             field<FFT_cpx_type> cpx_ptr;
             field<FFT_real_type> real_ptr;
 
-            // just a test;
-            // FFT_cpx_type * cpx_ptr;
-            // FFT_real_type * real_ptr;
-
             std::string name;
 
             void CreateConfiguration();
@@ -134,6 +146,14 @@ namespace Engine
             // FFT_Plan(std::string name);
             ~FFT_Plan();
         };
+
+        inline void FFT_Init()
+        {
+            #if defined SPIRIT_USE_FFTW && defined SPIRIT_USE_OPENMP
+                fftw_init_threads();
+                fftw_plan_with_nthreads(omp_get_max_threads());
+            #endif
+        }
 
         void Four_3D(const FFT_Plan & plan, field<FFT_real_type> & in, field<FFT_cpx_type> & out);
         void iFour_3D(const FFT_Plan & plan, field<FFT_cpx_type> & in, field<FFT_real_type> & out);

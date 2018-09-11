@@ -731,6 +731,8 @@ namespace Engine
         auto& res_iFFT = fft_plan_rev.real_ptr;
         auto& res_mult = fft_plan_rev.cpx_ptr;
 
+        int idx_b1, idx_b2, idx_d;
+
         // auto mapSpins = Eigen::Map<Vector3c, 0, Eigen::Stride<1,Eigen::Dynamic> >
         //                 (reinterpret_cast<std::complex<scalar>*>(NULL),
         //                 Eigen::Stride<1,Eigen::Dynamic>(1,N));
@@ -741,24 +743,20 @@ namespace Engine
 
 
         // Loop over basis atoms (i.e sublattices)
+        #pragma omp parallel for
         for(int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1)
         {
-            // TODO: should be removed
-            std::fill(fft_plan_rev.cpx_ptr.data(), fft_plan_rev.cpx_ptr.data() + 3 * sublattice_size * geometry->n_cell_atoms, FFT::FFT_cpx_type());
-            std::fill(res_iFFT.data(), res_iFFT.data() + 3 * sublattice_size * geometry->n_cell_atoms, 0.0);
-
-            #pragma omp parallel for
-            for(int i_b2 = 0; i_b2 < geometry->n_cell_atoms; ++i_b2)
+            for(int c = 0; c < n_cells_padded[2]; ++c)
             {
-                // Look up at which position the correct D-matrices are saved
-                int b_diff = b_diff_lookup[i_b1 + i_b2 * geometry->n_cell_atoms];
-
-                for(int c = 0; c < n_cells_padded[2]; ++c)
+                for(int b = 0; b < n_cells_padded[1]; ++b)
                 {
-                    for(int b = 0; b < n_cells_padded[1]; ++b)
+                    for(int a = 0; a < n_cells_padded[0]; ++a)
                     {
-                        for(int a = 0; a < n_cells_padded[0]; ++a)
+                        for(int i_b2 = 0; i_b2 < geometry->n_cell_atoms; ++i_b2)
                         {
+                            // Look up at which position the correct D-matrices are saved
+                            int& b_diff = b_diff_lookup[i_b1 + i_b2 * geometry->n_cell_atoms];
+
                             // int idx = a + b * n_cells_padded[0] + c * n_cells_padded[0] * n_cells_padded[1];
 
                             // auto& D_mat = d_mats_ft[idx + b_diff * N];
@@ -774,9 +772,9 @@ namespace Engine
 
                             // mapResult += D_mat * mapSpins;
 
-                            int idx_b2 = i_b2 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
-                            int idx_b1 = i_b1 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
-                            int idx_d  = b_diff * d_stride.basis + a * d_stride.a + b * d_stride.b + c * d_stride.c;
+                            idx_b2 = i_b2 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
+                            idx_b1 = i_b1 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
+                            idx_d  = b_diff * d_stride.basis + a * d_stride.a + b * d_stride.b + c * d_stride.c;
 
                             auto& fs_x = ft_spins[idx_b2                       ];
                             auto& fs_y = ft_spins[idx_b2 + 1 * spin_stride.comp];
@@ -789,17 +787,21 @@ namespace Engine
                             auto& fD_yz = ft_D_matrices[idx_d + 4 * d_stride.comp];
                             auto& fD_zz = ft_D_matrices[idx_d + 5 * d_stride.comp];
 
-                            FFT::addTo(res_mult[idx_b1 + 0 * spin_stride.comp], FFT::mult3D(fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z));
-                            FFT::addTo(res_mult[idx_b1 + 1 * spin_stride.comp], FFT::mult3D(fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z));
-                            FFT::addTo(res_mult[idx_b1 + 2 * spin_stride.comp], FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z));
+                            FFT::addTo(res_mult[idx_b1 + 0 * spin_stride.comp], FFT::mult3D(fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z), i_b2 == 0);
+                            FFT::addTo(res_mult[idx_b1 + 1 * spin_stride.comp], FFT::mult3D(fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z), i_b2 == 0);
+                            FFT::addTo(res_mult[idx_b1 + 2 * spin_stride.comp], FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z), i_b2 == 0);
                         }
                     }
                 }//end iteration over padded lattice cells
             }//end iteration over second sublattice
+        }
 
-            //Inverse Fourier Transform
-            FFT::batch_iFour_3D(fft_plan_rev);
+        //Inverse Fourier Transform
+        FFT::batch_iFour_3D(fft_plan_rev);
 
+        #pragma omp parallel for
+        for(int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1)
+        {
             //Place the gradients at the correct positions and mult with correct mu
             for(int c = 0; c < geometry->n_cells[2]; ++c)
             {
@@ -807,11 +809,16 @@ namespace Engine
                 {
                     for(int a = 0; a < geometry->n_cells[0]; ++a)
                     {
-                        int idx_orig = i_b1 + geometry->n_cell_atoms * (a + Na * (b + Nb * c));
-                        int idx = i_b1 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
-                        gradient[idx_orig][0] -= res_iFFT[idx                       ] / sublattice_size;
-                        gradient[idx_orig][1] -= res_iFFT[idx + 1 * spin_stride.comp] / sublattice_size;
-                        gradient[idx_orig][2] -= res_iFFT[idx + 2 * spin_stride.comp] / sublattice_size;
+                        for(int i_b2 = 0; i_b2 < geometry->n_cell_atoms; ++i_b2)
+                        {
+                            // Look up at which position the correct D-matrices are saved
+                            int& b_diff = b_diff_lookup[i_b1 + i_b2 * geometry->n_cell_atoms];
+                            int idx_orig = i_b1 + geometry->n_cell_atoms * (a + Na * (b + Nb * c));
+                            int idx = i_b1 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
+                            gradient[idx_orig][0] -= res_iFFT[idx                       ] / sublattice_size;
+                            gradient[idx_orig][1] -= res_iFFT[idx + 1 * spin_stride.comp] / sublattice_size;
+                            gradient[idx_orig][2] -= res_iFFT[idx + 2 * spin_stride.comp] / sublattice_size;
+                        }
                     }
                 }
             }
@@ -1067,15 +1074,15 @@ namespace Engine
         int B = geometry->n_cell_atoms;
 
         auto& fft_spin_inputs = fft_plan_spins.real_ptr;
-
-        for(int bi = 0; bi < B; ++bi)
-        {
+       
             //iterate over the **original** system
-            for(int c = 0; c < Nc; ++c)
+        for(int c = 0; c < Nc; ++c)
+        {
+            for(int b = 0; b < Nb; ++b)
             {
-                for(int b = 0; b < Nb; ++b)
+                for(int a = 0; a < Na; ++a)
                 {
-                    for(int a = 0; a < Na; ++a)
+                    for(int bi = 0; bi < B; ++bi)
                     {
                         // int idx_orig = idx_from_tupel({bi, a, b, c}, {B, Na, Nb, Nc});
                         // #ifdef SPIRIT_USE_FFTW
@@ -1225,7 +1232,10 @@ namespace Engine
         n_cells_padded[1] = (geometry->n_cells[1] > 1) ? 2 * geometry->n_cells[1] : 1;
         n_cells_padded[2] = (geometry->n_cells[2] > 1) ? 2 * geometry->n_cells[2] : 1;
 
-        //workaround for bug in kissfft
+        FFT::FFT_Init();
+
+        //workaround for bug in kissfft 
+        //kissfft_ndr does not perform one-dimensional ffts properly
         #ifndef SPIRIT_USE_FFTW
         int number_of_one_dims = 0;
         for(int i=0; i<3; i++)
