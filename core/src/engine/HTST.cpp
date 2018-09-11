@@ -246,13 +246,12 @@ namespace Engine
         // TODO: this does not work in the 2d hexagonal case...
         scalar Calculate_Zero_Volume(const std::shared_ptr<Data::Spin_System> system)
         {
-            int   nos      = system->geometry->nos;
-            auto& n_cells  = system->geometry->n_cells;
-            auto& spins    = *system->spins;
-            auto& spin_positions = system->geometry->positions;
-            auto& geometry = *system->geometry;
-
-            scalar volume = 1;
+            int   nos             = system->geometry->nos;
+            auto& n_cells         = system->geometry->n_cells;
+            auto& spins           = *system->spins;
+            auto& spin_positions  = system->geometry->positions;
+            auto& geometry        = *system->geometry;
+            auto& bravais_vectors = system->geometry->bravais_vectors;
 
             // Dimensionality of the zero mode
             int zero_mode_dimensionality = 0;
@@ -285,44 +284,30 @@ namespace Engine
                 }
             }
 
-            // Calculate auxiliary basis?
-            Matrix3 basis;
-            for( int icol=0; icol<3; ++icol)
-                basis.col(icol) = system->geometry->bravais_vectors[icol];
-            Matrix3 auxb = basis;
-            for( int i=0; i<3; ++i )
-            {
-                for( int j=0; j<3; ++j )
-                {
-                    auxb(i,j) = basis(i,j)/basis.row(j).norm();
-                }
-            }
-
             // Calculate the volume depending on the number of periodical boundaries
-            Vector3 ll{0, 0, 0};
+            scalar zero_volume = 1;
             if( zero_mode_dimensionality == 1 )
             {
-                volume = zero_mode_length[0];
+                zero_volume = zero_mode_length[0];
             }
             else if( zero_mode_dimensionality == 2 )
             {
-                ll = auxb.row(0).cross(auxb.row(1));
-                volume = zero_mode_length[0]*zero_mode_length[1] * ll.norm();
+                scalar area_factor = ( bravais_vectors[0].normalized().cross(bravais_vectors[1].normalized()) ).norm();
+                zero_volume = zero_mode_length[0]*zero_mode_length[1] * area_factor;
             }
             else if( zero_mode_dimensionality == 3 )
             {
-                ll = auxb.row(0).cross(auxb.row(1));
-                volume = zero_mode_length[0]*zero_mode_length[1]*zero_mode_length[2] * std::abs( auxb.row(2).dot(ll) );
+                scalar volume_factor = std::abs( (bravais_vectors[0].normalized().cross(bravais_vectors[1].normalized()) ).dot(
+                    bravais_vectors[2].normalized()) );
+                zero_volume = zero_mode_length[0]*zero_mode_length[1]*zero_mode_length[2] *  volume_factor;
             }
 
             std::cerr << "ZV zero mode dimensionality = " << zero_mode_dimensionality << std::endl;
-            // std::cerr << "ZV                     auxb = " << std::endl << auxb << std::endl;
             std::cerr << "ZV         zero mode length = " << zero_mode_length.transpose() << std::endl;
-            std::cerr << "ZV                       ll = " << ll.transpose() << std::endl;
-            std::cerr << "ZV = " << volume << std::endl;
+            std::cerr << "ZV = " << zero_volume << std::endl;
 
             // Return
-            return volume;
+            return zero_volume;
         }
 
 
