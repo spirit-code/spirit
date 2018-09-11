@@ -800,8 +800,6 @@ namespace Engine
         int Nb = geometry->n_cells[1];
         int Nc = geometry->n_cells[2];
 
-        FFT_spins(spins);
-
         auto& ft_D_matrices = fft_plan_d.cpx_ptr;
         auto& ft_spins = fft_plan_spins.cpx_ptr;
 
@@ -815,17 +813,20 @@ namespace Engine
 
         int number_of_mults = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2] * iteration_bounds[3];
 
+        FFT_spins(spins);
+
+        // TODO: also parallelize over i_b1
         // Loop over basis atoms (i.e sublattices)
         for(int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1)
-        {
-
             CU_FFT_Pointwise_Mult<<<(number_of_mults + 1023) / 1024, 1024>>>(ft_D_matrices.data(), ft_spins.data(), res_mult.data(), iteration_bounds.data(), i_b1, b_diff_lookup.data(), d_stride, spin_stride);
-            FFT::batch_iFour_3D(fft_plan_rev);
+        
+        FFT::batch_iFour_3D(fft_plan_rev);
 
+        // TODO: also parallelize over i_b1
             //Place the gradients at the correct positions and mult with correct mu
-
+        for(int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1)
             CU_Write_FFT_Gradients<<<(geometry->n_cells_total + 1023) / 1024, 1024>>>(res_iFFT.data(), gradient.data(), spin_stride, geometry->n_cells.data(), geometry->n_cell_atoms, i_b1, geometry->mu_s.data(), sublattice_size);
-        }//end iteration sublattice 1
+
     }//end Field_DipoleDipole
 
 
