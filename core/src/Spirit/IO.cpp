@@ -480,7 +480,7 @@ void IO_Chain_Read( State *state, const char *file, int start_image_infile,
                         { 
                             chain->Unlock();
                             Chain_Image_to_Clipboard( state, noi-1 );
-                            for (int i=0; i<noi_to_add; i++) Chain_Push_Back( state );
+                            Chain_Set_Length(state, noi+noi_to_add);
                             chain->Lock(); 
                         } 
 
@@ -535,7 +535,7 @@ void IO_Chain_Read( State *state, const char *file, int start_image_infile,
                     { 
                         chain->Unlock();
                         Chain_Image_to_Clipboard( state, noi-1 );
-                        for (int i=0; i<noi_to_add; i++) Chain_Push_Back( state );
+                        Chain_Set_Length(state, noi+noi_to_add);
                         chain->Lock(); 
                     }
 

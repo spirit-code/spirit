@@ -34,14 +34,14 @@ namespace Engine
         // Note: translations must lie within bounds of n_cells
         inline int idx_from_translations(const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations)
         {
-            int Na = n_cells[0];
-            int Nb = n_cells[1];
-            int Nc = n_cells[2];
-            int N = n_cell_atoms;
+            auto& Na = n_cells[0];
+            auto& Nb = n_cells[1];
+            auto& Nc = n_cells[2];
+            auto& N = n_cell_atoms;
 
-            int da = translations[0];
-            int db = translations[1];
-            int dc = translations[2];
+            auto& da = translations[0];
+            auto& db = translations[1];
+            auto& dc = translations[2];
 
             return da*N + db*N*Na + dc*N*Na*Nb;
         }
@@ -49,7 +49,7 @@ namespace Engine
         #ifndef SPIRIT_USE_CUDA
 
         //Get the linear index in a n-D array where tupel contains the components in n-dimensions from fatest to slowest varying and maxVal is the extent in every dimension
-        inline int idx_from_tupel(field<int> tupel, field<int> maxVal)
+        inline int idx_from_tupel(const field<int> & tupel, const field<int> & maxVal)
         {
             int idx = 0;
             int mult = 1;
@@ -77,12 +77,12 @@ namespace Engine
             tupel[0] = idx_diff / div;
         }
 
-        inline int idx_from_translations(const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations_i, const std::array<int, 3> translations)
+        inline int idx_from_translations(const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations_i, const std::array<int, 3> & translations)
         {
-            int Na = n_cells[0];
-            int Nb = n_cells[1];
-            int Nc = n_cells[2];
-            int N = n_cell_atoms;
+            auto& Na = n_cells[0];
+            auto& Nb = n_cells[1];
+            auto& Nc = n_cells[2];
+            auto& N = n_cell_atoms;
 
             int da = translations_i[0] + translations[0];
             int db = translations_i[1] + translations[1];
@@ -95,9 +95,7 @@ namespace Engine
             if (translations[2] < 0)
                 dc += N*Na*Nb*Nc;
 
-            int idx = (da%Na)*N + (db%Nb)*N*Na + (dc%Nc)*N*Na*Nb;
-
-            return idx;
+            return (da%Na)*N + (db%Nb)*N*Na + (dc%Nc)*N*Na*Nb;
         }
 
         inline bool boundary_conditions_fulfilled(const intfield & n_cells, const intfield & boundary_conditions, const std::array<int, 3> & translations_i, const std::array<int, 3> & translations_j)

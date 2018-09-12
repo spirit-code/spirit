@@ -99,9 +99,6 @@ namespace Engine
         // Calculate spherical derivates and correction terms using jacobians and christoffel symbols
         void hessian_covariant(const vectorfield & image,  const vectorfield & gradient, const MatrixX & hessian, MatrixX & hessian_out);
 
-
-        // Greatcircle distance between two vectors
-        scalar dist_greatcircle(const Vector3 & v1, const Vector3 & v2);
         // Geodesic distance between two vectorfields
         scalar dist_geodesic(const vectorfield & v1, const vectorfield & v2);
 

@@ -918,7 +918,7 @@ namespace Engine
                         {
                             for (unsigned int i = 0; i < anisotropy_indices.size(); ++i)
                             {
-                                if ( check_atom_type(this->geometry->atom_types[anisotropy_indices[i]]) )
+                                if ( check_atom_type(this->geometry->atom_types[icell+anisotropy_indices[i]]) )
                                 {
                                     int idx_i = 3 * icell + anisotropy_indices[i] + alpha;
                                     int idx_j = 3 * icell + anisotropy_indices[i] + beta;

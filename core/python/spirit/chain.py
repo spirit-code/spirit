@@ -1,5 +1,6 @@
 import spirit.spiritlib as spiritlib
 import spirit.parameters as parameters
+import spirit.system as system
 import ctypes
 
 ### Load Library
@@ -35,6 +36,13 @@ _Jump_To_Image.restype     = ctypes.c_bool
 def jump_to_image(p_state, idx_image=-1, idx_chain=-1):
     return bool(_Jump_To_Image(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain)))
 
+
+### Set the number of images in the chain
+_Set_Length             = _spirit.Chain_Set_Length
+_Set_Length.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Set_Length.restype     = None
+def set_length(p_state, n_images, idx_chain=-1):
+    _Set_Length(ctypes.c_void_p(p_state), ctypes.c_int(n_images), ctypes.c_int(idx_chain))
 
 ### Copy active image to clipboard
 _Image_to_Clipboard             = _spirit.Chain_Image_to_Clipboard
@@ -148,3 +156,33 @@ def get_energy_interpolated(p_state, idx_chain=-1):
     Energy_interp = (len_Energy*ctypes.c_float)()
     _Get_Energy_Interpolated(ctypes.c_void_p(p_state), Energy_interp, ctypes.c_int(idx_chain))
     return [E for E in Energy_interp]
+
+### Get HTST transition rate components
+_Get_HTST_Info          = _spirit.Chain_Get_HTST_Info
+_Get_HTST_Info.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_float),
+                            ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_float),
+                            ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_float),
+                            ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_float), ctypes.c_int]
+_Get_HTST_Info.restype  = None
+def get_htst_info(p_state, idx_chain=-1):
+    nos = system.get_nos(p_state, -1, idx_chain)
+    eigenvalues_min = (2*nos*ctypes.c_float)()
+    eigenvalues_sp  = (2*nos*ctypes.c_float)()
+    temperature_exponent = ctypes.c_float()
+    me                   = ctypes.c_float()
+    Omega_0              = ctypes.c_float()
+    s                    = ctypes.c_float()
+    volume_min           = ctypes.c_float()
+    volume_sp            = ctypes.c_float()
+    prefactor_dynamical  = ctypes.c_float()
+    prefactor            = ctypes.c_float()
+
+    _Get_HTST_Info(ctypes.c_void_p(p_state), eigenvalues_min, eigenvalues_sp,
+                    ctypes.pointer(temperature_exponent), ctypes.pointer(me), ctypes.pointer(Omega_0),
+                    ctypes.pointer(s), ctypes.pointer(volume_min), ctypes.pointer(volume_sp),
+                    ctypes.pointer(prefactor_dynamical), ctypes.pointer(prefactor),
+                    ctypes.c_int(idx_chain))
+
+    return eigenvalues_min, eigenvalues_sp,\
+            temperature_exponent.value, me.value, Omega_0.value, s.value,\
+            volume_min.value, volume_sp.value, prefactor_dynamical.value, prefactor.value
