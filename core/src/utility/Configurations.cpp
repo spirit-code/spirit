@@ -509,6 +509,8 @@ namespace Utility
                 if (filter(spins[iatom], positions[iatom]))
                 {
                     geometry->atom_types[iatom] = atom_type;
+                    if(atom_type < 0)
+                        geometry->mu_s[iatom] = 0.0;
                 }
             }
         }

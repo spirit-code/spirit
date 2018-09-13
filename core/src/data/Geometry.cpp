@@ -66,6 +66,7 @@ namespace Data
                         this->n_cells, this->n_cell_atoms,
                         {defect.translations[0], defect.translations[1], defect.translations[2]} );
             this->atom_types[ispin] = defects.types[i];
+            this->mu_s[ispin] = 0.0;
         }
 
         // Calculate some info
