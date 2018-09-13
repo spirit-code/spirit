@@ -434,7 +434,7 @@ namespace Engine
     }// end DipoleDipole
     void Hamiltonian_Heisenberg::Gradient_DDI_Direct(const vectorfield & spins, vectorfield & gradient)
     {
-        scalar mult = 2 * C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
+        scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
         scalar d, d3, d5, Dxx, Dxy, Dxz, Dyy, Dyz, Dzz;
         Vector3 diff;
 
@@ -1029,7 +1029,7 @@ namespace Engine
     void Hamiltonian_Heisenberg::FFT_Dipole_Mats(int img_a, int img_b, int img_c)
     {
         //prefactor of ddi interaction
-        scalar mult = 2 * C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
+        scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
 
         //size of original geometry
         int Na = geometry->n_cells[0];

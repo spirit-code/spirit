@@ -800,25 +800,20 @@ namespace Engine
         FFT::batch_iFour_3D(fft_plan_rev);
 
         #pragma omp parallel for
-        for(int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1)
+        //Place the gradients at the correct positions and mult with correct mu
+        for(int c = 0; c < geometry->n_cells[2]; ++c)
         {
-            //Place the gradients at the correct positions and mult with correct mu
-            for(int c = 0; c < geometry->n_cells[2]; ++c)
+            for(int b = 0; b < geometry->n_cells[1]; ++b)
             {
-                for(int b = 0; b < geometry->n_cells[1]; ++b)
+                for(int a = 0; a < geometry->n_cells[0]; ++a)
                 {
-                    for(int a = 0; a < geometry->n_cells[0]; ++a)
+                    for(int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1)
                     {
-                        for(int i_b2 = 0; i_b2 < geometry->n_cell_atoms; ++i_b2)
-                        {
-                            // Look up at which position the correct D-matrices are saved
-                            int& b_diff = b_diff_lookup[i_b1 + i_b2 * geometry->n_cell_atoms];
-                            int idx_orig = i_b1 + geometry->n_cell_atoms * (a + Na * (b + Nb * c));
-                            int idx = i_b1 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
-                            gradient[idx_orig][0] -= res_iFFT[idx                       ] / sublattice_size;
-                            gradient[idx_orig][1] -= res_iFFT[idx + 1 * spin_stride.comp] / sublattice_size;
-                            gradient[idx_orig][2] -= res_iFFT[idx + 2 * spin_stride.comp] / sublattice_size;
-                        }
+                        int idx_orig = i_b1 + geometry->n_cell_atoms * (a + Na * (b + Nb * c));
+                        int idx = i_b1 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
+                        gradient[idx_orig][0] -= res_iFFT[idx                       ] / sublattice_size;
+                        gradient[idx_orig][1] -= res_iFFT[idx + 1 * spin_stride.comp] / sublattice_size;
+                        gradient[idx_orig][2] -= res_iFFT[idx + 2 * spin_stride.comp] / sublattice_size;
                     }
                 }
             }
@@ -827,7 +822,7 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Gradient_DDI_Direct(const vectorfield & spins, vectorfield & gradient)
     {
-        scalar mult = 2 * C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
+        scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
         scalar mu, d, d3, d5, Dxx, Dxy, Dxz, Dyy, Dyz, Dzz;
         Vector3 diff;
 
@@ -1108,7 +1103,7 @@ namespace Engine
     void Hamiltonian_Heisenberg::FFT_Dipole_Mats(int img_a, int img_b, int img_c)
     {
         //prefactor of ddi interaction
-        scalar mult = 2 * C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
+        scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
 
         //size of original geometry
         int Na = geometry->n_cells[0];
