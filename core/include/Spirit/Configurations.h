@@ -14,7 +14,7 @@ DLLEXPORT void Configuration_To_Clipboard(State *state, int idx_image=-1, int id
 // Pastes the clipboard spin configuration
 DLLEXPORT void Configuration_From_Clipboard(State *state, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1) noexcept;
 // Pastes the clipboard spin configuration
-DLLEXPORT bool Configuration_From_Clipboard_Shift(State *state, const float position_initial[3]=defaultPos, const float position_final[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted = false, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT bool Configuration_From_Clipboard_Shift(State *state, const float shift[3], const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted = false, int idx_image=-1, int idx_chain=-1) noexcept;
 
 // Creates a homogeneous domain
 DLLEXPORT void Configuration_Domain(State *state, const float direction[3], const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1) noexcept;
@@ -43,9 +43,9 @@ DLLEXPORT void Configuration_SpinSpiral(State *state, const char * direction_typ
 DLLEXPORT void Configuration_SpinSpiral_2q(State *state, const char * direction_type, float q1[3], float q2[3], float axis[3], float theta, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1) noexcept;
 
 // Pinning
-DLLEXPORT void Configuration_Pin(State *state, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void Configuration_Set_Pinned(State *state, bool pinned, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1) noexcept;
 // Defects
-DLLEXPORT void Configuration_Atom_Type(State *state, int type, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void Configuration_Set_Atom_Type(State *state, int type, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1) noexcept;
 
 #include "DLL_Undefine_Export.h"
 #endif

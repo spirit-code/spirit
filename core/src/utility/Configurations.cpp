@@ -498,7 +498,7 @@ namespace Utility
             }// endfor iatom
         }
 
-        void Atom_Types(Data::Spin_System & s, int atom_type, filterfunction filter)
+        void Set_Atom_Types(Data::Spin_System & s, int atom_type, filterfunction filter)
         {
             auto& spins = *s.spins;
             auto& geometry = s.geometry;
@@ -513,17 +513,18 @@ namespace Utility
             }
         }
 
-        void Add_Pinning(Data::Spin_System & s, filterfunction filter)
+        void Set_Pinned(Data::Spin_System & s, bool pinned, filterfunction filter)
         {
             auto& spins = *s.spins;
             auto& geometry = s.geometry;
             auto& positions = geometry->positions;
 
+            int unpinned = (int)!pinned;
             for (int iatom = 0; iatom < s.nos; ++iatom)
             {
                 if (filter(spins[iatom], positions[iatom]))
                 {
-                    geometry->mask_unpinned[iatom] = 0;
+                    geometry->mask_unpinned[iatom] = unpinned;
                     geometry->mask_pinned_cells[iatom] = spins[iatom];
                 }
             }

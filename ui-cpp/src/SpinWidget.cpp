@@ -186,9 +186,13 @@ void SpinWidget::dragpaste()
     float radius = system_radius_from_relative(this->drag_radius, size);
     float rect[3]{ -1, -1, -1 };
 
-    float last_position[3]{ last_drag_coords.x, last_drag_coords.y, 0.0f };
     float current_position[3]{ coords.x, coords.y, 0.0f };
-    Configuration_From_Clipboard_Shift(state.get(), last_position, current_position, rect, radius);
+    float shift[3]{
+        last_drag_coords.x - coords.x,
+        last_drag_coords.y - coords.y,
+        0.0f
+    };
+    Configuration_From_Clipboard_Shift(state.get(), shift, current_position, rect, radius);
 }
 
 void SpinWidget::defectpaste()
@@ -204,7 +208,12 @@ void SpinWidget::defectpaste()
     float rect[3]{ -1, -1, -1 };
 
     float current_position[3]{ coords.x, coords.y, 0.0f };
-    Configuration_Atom_Type(state.get(), this->paste_atom_type, current_position, rect, radius);
+    float center[3];
+    Geometry_Get_Center(this->state.get(), center);
+    current_position[0] -= center[0];
+    current_position[1] -= center[1];
+
+    Configuration_Set_Atom_Type(state.get(), this->paste_atom_type, current_position, rect, radius);
 }
 
 void SpinWidget::pinningpaste()
@@ -220,7 +229,12 @@ void SpinWidget::pinningpaste()
     float rect[3]{ -1, -1, -1 };
 
     float current_position[3]{ coords.x, coords.y, 0.0f };
-    Configuration_Pin(state.get(), current_position, rect, radius);
+    float center[3];
+    Geometry_Get_Center(this->state.get(), center);
+    current_position[0] -= center[0];
+    current_position[1] -= center[1];
+
+    Configuration_Set_Pinned(state.get(), this->m_dragging, current_position, rect, radius);
 }
 
 void SpinWidget::setPasteAtomType(int type)

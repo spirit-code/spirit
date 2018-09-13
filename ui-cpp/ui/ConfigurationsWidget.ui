@@ -79,7 +79,7 @@
           <property name="minimumSize">
            <size>
             <width>0</width>
-            <height>300</height>
+            <height>480</height>
            </size>
           </property>
           <attribute name="label">
@@ -92,23 +92,52 @@
               <string>Settings</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_80">
-              <item row="4" column="1">
-               <spacer name="verticalSpacer_7">
+              <item row="1" column="1">
+               <spacer name="verticalSpacer_19">
                 <property name="orientation">
                  <enum>Qt::Vertical</enum>
+                </property>
+                <property name="sizeType">
+                 <enum>QSizePolicy::Maximum</enum>
                 </property>
                 <property name="sizeHint" stdset="0">
                  <size>
                   <width>20</width>
-                  <height>40</height>
+                  <height>30</height>
                  </size>
                 </property>
                </spacer>
               </item>
-              <item row="3" column="1">
-               <layout class="QGridLayout" name="gridLayout_44">
+              <item row="0" column="1">
+               <layout class="QGridLayout" name="gridLayout_41">
+                <item row="0" column="0">
+                 <widget class="QCheckBox" name="checkBox_Configuration_Noise">
+                  <property name="maximumSize">
+                   <size>
+                    <width>180</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Add Noise - magnitude:</string>
+                  </property>
+                 </widget>
+                </item>
                 <item row="0" column="1">
-                 <spacer name="horizontalSpacer_2">
+                 <widget class="QLineEdit" name="lineEdit_Configuration_Noise">
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>1</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <spacer name="horizontalSpacer_56">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
@@ -120,10 +149,40 @@
                   </property>
                  </spacer>
                 </item>
-                <item row="0" column="0">
-                 <widget class="QCheckBox" name="checkBox_inverted">
+               </layout>
+              </item>
+              <item row="5" column="1">
+               <layout class="QGridLayout" name="gridLayout_20">
+                <item row="0" column="2">
+                 <spacer name="horizontalSpacer_9">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="lineEdit_atom_type">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
                   <property name="text">
-                   <string>Inverted</string>
+                   <string>0</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_3">
+                  <property name="text">
+                   <string>Atom type</string>
                   </property>
                  </widget>
                 </item>
@@ -131,6 +190,112 @@
               </item>
               <item row="2" column="1">
                <layout class="QGridLayout" name="gridLayout_84">
+                <item row="4" column="1">
+                 <widget class="QLineEdit" name="lineEdit_border_cylindrical">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>0</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_12">
+                  <property name="text">
+                   <string>Border (rectangular)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="5" column="0">
+                 <widget class="QCheckBox" name="checkBox_border_spherical">
+                  <property name="text">
+                   <string>Border (spherical)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_9">
+                  <property name="text">
+                   <string>Position (x,y,z)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <layout class="QGridLayout" name="gridLayout_8">
+                  <property name="sizeConstraint">
+                   <enum>QLayout::SetNoConstraint</enum>
+                  </property>
+                  <property name="verticalSpacing">
+                   <number>0</number>
+                  </property>
+                  <item row="0" column="2">
+                   <spacer name="horizontalSpacer_54">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                  <item row="0" column="0">
+                   <widget class="QCheckBox" name="checkBox_border_rectangular_x">
+                    <property name="text">
+                     <string>x</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
+                   <widget class="QLineEdit" name="lineEdit_border_x">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>22</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>40</width>
+                      <height>16777215</height>
+                     </size>
+                    </property>
+                    <property name="toolTip">
+                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;pos_x&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+                    </property>
+                    <property name="text">
+                     <string>0</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item row="5" column="1">
+                 <widget class="QLineEdit" name="lineEdit_border_spherical">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>0</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="4" column="0">
+                 <widget class="QCheckBox" name="checkBox_border_cylindrical">
+                  <property name="text">
+                   <string>Border (cylindrical)</string>
+                  </property>
+                 </widget>
+                </item>
                 <item row="0" column="1">
                  <layout class="QGridLayout" name="gridLayout_79">
                   <item row="0" column="2">
@@ -187,108 +352,14 @@
                   </item>
                  </layout>
                 </item>
-                <item row="1" column="1">
-                 <layout class="QGridLayout" name="gridLayout_8">
-                  <item row="0" column="2">
-                   <spacer name="horizontalSpacer_54">
-                    <property name="orientation">
-                     <enum>Qt::Horizontal</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>40</width>
-                      <height>20</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                  <item row="0" column="0">
-                   <widget class="QCheckBox" name="checkBox_border_rectangular_x">
-                    <property name="text">
-                     <string>x</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="0" column="1">
-                   <widget class="QLineEdit" name="lineEdit_border_x">
-                    <property name="minimumSize">
-                     <size>
-                      <width>0</width>
-                      <height>22</height>
-                     </size>
-                    </property>
-                    <property name="maximumSize">
-                     <size>
-                      <width>40</width>
-                      <height>16777215</height>
-                     </size>
-                    </property>
-                    <property name="toolTip">
-                     <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;pos_x&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-                    </property>
-                    <property name="text">
-                     <string>0</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item row="0" column="0">
-                 <widget class="QLabel" name="label_9">
-                  <property name="text">
-                   <string>Position (x,y,z)</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="3" column="1">
-                 <widget class="QLineEdit" name="lineEdit_border_cylindrical">
-                  <property name="maximumSize">
-                   <size>
-                    <width>40</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>0</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="3" column="0">
-                 <widget class="QCheckBox" name="checkBox_border_cylindrical">
-                  <property name="text">
-                   <string>Border (cylindrical)</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="0">
-                 <widget class="QLabel" name="label_12">
-                  <property name="text">
-                   <string>Border (rectangular)</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="4" column="1">
-                 <widget class="QLineEdit" name="lineEdit_border_spherical">
-                  <property name="maximumSize">
-                   <size>
-                    <width>40</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>0</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="4" column="0">
-                 <widget class="QCheckBox" name="checkBox_border_spherical">
-                  <property name="text">
-                   <string>Border (spherical)</string>
-                  </property>
-                 </widget>
-                </item>
                 <item row="2" column="1">
                  <layout class="QGridLayout" name="gridLayout_97">
+                  <property name="sizeConstraint">
+                   <enum>QLayout::SetNoConstraint</enum>
+                  </property>
+                  <property name="verticalSpacing">
+                   <number>0</number>
+                  </property>
                   <item row="0" column="1">
                    <widget class="QLineEdit" name="lineEdit_border_y">
                     <property name="minimumSize">
@@ -318,7 +389,40 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="1" column="1">
+                  <item row="0" column="2">
+                   <spacer name="horizontalSpacer_55">
+                    <property name="orientation">
+                     <enum>Qt::Horizontal</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>40</width>
+                      <height>20</height>
+                     </size>
+                    </property>
+                   </spacer>
+                  </item>
+                 </layout>
+                </item>
+                <item row="3" column="1">
+                 <layout class="QGridLayout" name="gridLayout_22">
+                  <property name="sizeConstraint">
+                   <enum>QLayout::SetNoConstraint</enum>
+                  </property>
+                  <property name="horizontalSpacing">
+                   <number>-1</number>
+                  </property>
+                  <property name="verticalSpacing">
+                   <number>0</number>
+                  </property>
+                  <item row="0" column="0">
+                   <widget class="QCheckBox" name="checkBox_border_rectangular_z">
+                    <property name="text">
+                     <string>z</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="0" column="1">
                    <widget class="QLineEdit" name="lineEdit_border_z">
                     <property name="minimumSize">
                      <size>
@@ -340,15 +444,8 @@
                     </property>
                    </widget>
                   </item>
-                  <item row="1" column="0">
-                   <widget class="QCheckBox" name="checkBox_border_rectangular_z">
-                    <property name="text">
-                     <string>z</string>
-                    </property>
-                   </widget>
-                  </item>
                   <item row="0" column="2">
-                   <spacer name="horizontalSpacer_55">
+                   <spacer name="horizontalSpacer_10">
                     <property name="orientation">
                      <enum>Qt::Horizontal</enum>
                     </property>
@@ -364,36 +461,10 @@
                 </item>
                </layout>
               </item>
-              <item row="0" column="1">
-               <layout class="QGridLayout" name="gridLayout_41">
-                <item row="0" column="0">
-                 <widget class="QCheckBox" name="checkBox_Configuration_Noise">
-                  <property name="maximumSize">
-                   <size>
-                    <width>180</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>Add Noise - magnitude:</string>
-                  </property>
-                 </widget>
-                </item>
+              <item row="3" column="1">
+               <layout class="QGridLayout" name="gridLayout_44">
                 <item row="0" column="1">
-                 <widget class="QLineEdit" name="lineEdit_Configuration_Noise">
-                  <property name="maximumSize">
-                   <size>
-                    <width>50</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>1</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="2">
-                 <spacer name="horizontalSpacer_56">
+                 <spacer name="horizontalSpacer_2">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
@@ -405,15 +476,19 @@
                   </property>
                  </spacer>
                 </item>
+                <item row="0" column="0">
+                 <widget class="QCheckBox" name="checkBox_inverted">
+                  <property name="text">
+                   <string>Inverted</string>
+                  </property>
+                 </widget>
+                </item>
                </layout>
               </item>
-              <item row="1" column="1">
-               <spacer name="verticalSpacer_19">
+              <item row="4" column="1">
+               <spacer name="verticalSpacer_7">
                 <property name="orientation">
                  <enum>Qt::Vertical</enum>
-                </property>
-                <property name="sizeType">
-                 <enum>QSizePolicy::Maximum</enum>
                 </property>
                 <property name="sizeHint" stdset="0">
                  <size>
@@ -423,42 +498,12 @@
                 </property>
                </spacer>
               </item>
-              <item row="5" column="1">
-               <layout class="QGridLayout" name="gridLayout_20">
-                <item row="0" column="1">
-                 <widget class="QLineEdit" name="lineEdit_atom_type">
-                  <property name="maximumSize">
-                   <size>
-                    <width>40</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>0</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="0">
-                 <widget class="QLabel" name="label_3">
-                  <property name="text">
-                   <string>Atom type</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="2">
-                 <spacer name="horizontalSpacer_9">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
+              <item row="6" column="1">
+               <widget class="QCheckBox" name="checkBox_pinned">
+                <property name="text">
+                 <string>Pinned</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>
@@ -1846,8 +1891,6 @@
   <tabstop>lineEdit_border_x</tabstop>
   <tabstop>checkBox_border_rectangular_y</tabstop>
   <tabstop>lineEdit_border_y</tabstop>
-  <tabstop>checkBox_border_rectangular_z</tabstop>
-  <tabstop>lineEdit_border_z</tabstop>
   <tabstop>checkBox_border_cylindrical</tabstop>
   <tabstop>lineEdit_border_cylindrical</tabstop>
   <tabstop>checkBox_border_spherical</tabstop>

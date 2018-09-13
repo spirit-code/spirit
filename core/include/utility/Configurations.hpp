@@ -44,9 +44,9 @@ namespace Utility
         void SpinSpiral(Data::Spin_System & s, std::string direction_type, Vector3 q1, Vector3 q2, Vector3 axis, scalar theta, filterfunction filter=defaultfilter);
 
         // Set atom types within a region of space
-        void Atom_Types(Data::Spin_System & s, int atom_type=0, filterfunction filter=defaultfilter);
+        void Set_Atom_Types(Data::Spin_System & s, int atom_type=0, filterfunction filter=defaultfilter);
         // Set spins to be pinned
-        void Add_Pinning(Data::Spin_System & s, filterfunction filter=defaultfilter);
+        void Set_Pinned(Data::Spin_System & s, bool pinned, filterfunction filter=defaultfilter);
     };//end namespace Configurations
 }//end namespace Utility
 
