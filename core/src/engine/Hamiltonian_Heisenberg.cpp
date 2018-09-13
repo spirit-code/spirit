@@ -1090,9 +1090,9 @@ namespace Engine
                         int idx_orig = bi + B * (a + Na * (b + Nb * c));
                         int idx = bi * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
 
-                        fft_spin_inputs[idx                        ] = spins[idx_orig][0] * geometry->mu_s[bi];
-                        fft_spin_inputs[idx + 1 * spin_stride.comp ] = spins[idx_orig][1] * geometry->mu_s[bi];
-                        fft_spin_inputs[idx + 2 * spin_stride.comp ] = spins[idx_orig][2] * geometry->mu_s[bi];
+                        fft_spin_inputs[idx                        ] = spins[idx_orig][0] * geometry->mu_s[idx_orig];
+                        fft_spin_inputs[idx + 1 * spin_stride.comp ] = spins[idx_orig][1] * geometry->mu_s[idx_orig];
+                        fft_spin_inputs[idx + 2 * spin_stride.comp ] = spins[idx_orig][2] * geometry->mu_s[idx_orig];
                     }
                 }
             }
