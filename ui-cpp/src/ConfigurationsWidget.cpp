@@ -303,14 +303,10 @@ void ConfigurationsWidget::set_atom_type_pressed()
 	float border_cyl = get_border_cylindrical();
 	float border_sph = get_border_spherical();
 	bool inverted = get_inverted();
-	// Get center
-	float center[3];
-	Geometry_Get_Center(this->state.get(), center);
-	pos[0] += center[0];
-	pos[1] += center[1];
 	// Set
 	int atom_type = lineEdit_atom_type->text().toInt();
-	Configuration_Atom_Type(this->state.get(), atom_type, pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+	Configuration_Set_Atom_Type(this->state.get(), atom_type, pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+	this->spinWidget->updateData();
 }
 
 void ConfigurationsWidget::set_pinned_pressed()
@@ -321,13 +317,9 @@ void ConfigurationsWidget::set_pinned_pressed()
 	float border_cyl = get_border_cylindrical();
 	float border_sph = get_border_spherical();
 	bool inverted = get_inverted();
-	// Get center
-	float center[3];
-	Geometry_Get_Center(this->state.get(), center);
-	pos[0] += center[0];
-	pos[1] += center[1];
 	// Set
-	Configuration_Pin(this->state.get(), pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+	Configuration_Set_Pinned(this->state.get(), this->checkBox_pinned->isChecked(), pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+	this->spinWidget->updateData();
 }
 
 void ConfigurationsWidget::configurationAddNoise()

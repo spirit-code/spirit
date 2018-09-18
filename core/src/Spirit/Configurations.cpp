@@ -138,7 +138,7 @@ try
 
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
-    Vector3 vpos = _pos; // image->geometry->center + _pos;
+    Vector3 vpos = image->geometry->center + _pos;
 
     // Create position filter
     auto filter = get_filter(vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
@@ -159,10 +159,9 @@ catch( ... )
     spirit_handle_exception_api(idx_image, idx_chain);
 }
 
-bool Configuration_From_Clipboard_Shift( State *state, const float position_initial[3],
-                                         const float position_final[3], const float r_cut_rectangular[3],
-                                         float r_cut_cylindrical, float r_cut_spherical, bool inverted,
-                                         int idx_image, int idx_chain ) noexcept
+bool Configuration_From_Clipboard_Shift( State *state, const float shift[3], const float position[3],
+                                         const float r_cut_rectangular[3], float r_cut_cylindrical,
+                                         float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
     // Apply configuration
@@ -175,11 +174,10 @@ try
         from_indices( state, idx_image, idx_chain, image, chain );
 
         // Get relative position
-        Vector3 pos_initial{ position_initial[0], position_initial[1], position_initial[2] };
-        Vector3 pos_final{ position_final[0], position_final[1], position_final[2] };
-        Vector3 shift = pos_initial - pos_final;
+        Vector3 vpos{ position[0], position[1], position[2] };
+        Vector3 vshift{ shift[0], shift[1], shift[2] };
 
-        Vector3 decomposed = Engine::Vectormath::decompose(shift, image->geometry->bravais_vectors);
+        Vector3 decomposed = Engine::Vectormath::decompose(vshift, image->geometry->bravais_vectors);
 
         int da = (int)std::round(decomposed[0]);
         int db = (int)std::round(decomposed[1]);
@@ -194,15 +192,14 @@ try
                     geometry.n_cell_atoms * geometry.n_cells[0] * geometry.n_cells[1] * dc;
 
         // Create position filter
-        auto filter = get_filter( pos_final, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical,
-                                    inverted );
+        auto filter = get_filter( vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
 
         image->Lock();
         Utility::Configurations::Insert(*image, *state->clipboard_spins, delta, filter);
         image->geometry->Apply_Pinning(*image->spins);
         image->Unlock();
 
-        auto filterstring = filter_to_string( position_final, r_cut_rectangular, r_cut_cylindrical,
+        auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical,
                                                 r_cut_spherical, inverted );
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                 "Set shifted spin configuration from clipboard. " + filterstring, idx_image, idx_chain);
@@ -641,7 +638,7 @@ catch( ... )
 }
 
 // Pinning
-void Configuration_Pin( State *state, const float position[3],
+void Configuration_Set_Pinned( State *state, bool pinned, const float position[3],
                            const float r_cut_rectangular[3], float r_cut_cylindrical,
                            float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
@@ -654,14 +651,14 @@ try
 
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
-    Vector3 vpos = _pos;
+    Vector3 vpos = image->geometry->center + _pos;
 
     // Create position filter
     auto filter = get_filter(vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
 
     // Apply configuration
     image->Lock();
-    Utility::Configurations::Add_Pinning(*image, filter);
+    Utility::Configurations::Set_Pinned(*image, pinned, filter);
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical,
@@ -676,7 +673,7 @@ catch( ... )
 }
 
 // Defects
-void Configuration_Atom_Type( State *state, int atom_type, const float position[3],
+void Configuration_Set_Atom_Type( State *state, int atom_type, const float position[3],
                             const float r_cut_rectangular[3], float r_cut_cylindrical,
                             float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
@@ -689,14 +686,14 @@ try
 
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
-    Vector3 vpos = _pos;
+    Vector3 vpos = image->geometry->center + _pos;
 
     // Create position filter
     auto filter = get_filter(vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
 
     // Apply configuration
     image->Lock();
-    Utility::Configurations::Atom_Types(*image, atom_type, filter);
+    Utility::Configurations::Set_Atom_Types(*image, atom_type, filter);
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical,
