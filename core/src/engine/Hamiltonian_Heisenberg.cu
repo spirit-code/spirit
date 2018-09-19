@@ -748,16 +748,17 @@ namespace Engine
     {
         int n = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2] * iteration_bounds[3];
         int tupel[4];
-        int idx_b1, idx_b2, idx_d, b_diff;
+        int idx_b1, idx_b2, idx_d;
 
         for(int ispin = blockIdx.x * blockDim.x + threadIdx.x; ispin < n; ispin += blockDim.x * gridDim.x)
         {
             tupel_from_idx(ispin, tupel, iteration_bounds, 4); // tupel now is {i_b2, a, b, c}
 
-            b_diff = b_diff_lookup[i_b1 + tupel[0] * iteration_bounds[0]];
-            idx_b1 = i_b1 * spin_stride.basis + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b + tupel[3] * spin_stride.c;
+            int& b_diff = b_diff_lookup[i_b1 + tupel[0] * iteration_bounds[0]];
+
+            idx_b1 = i_b1 * spin_stride.basis     + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b + tupel[3] * spin_stride.c;
             idx_b2 = tupel[0] * spin_stride.basis + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b + tupel[3] * spin_stride.c;
-            idx_d  = b_diff * d_stride.basis + tupel[1] * d_stride.a + tupel[2] * d_stride.b + tupel[3] * d_stride.c;
+            idx_d  = b_diff * d_stride.basis      + tupel[1] * d_stride.a    + tupel[2] * d_stride.b    + tupel[3] * d_stride.c;
 
             auto& fs_x = ft_spins[idx_b2                       ];
             auto& fs_y = ft_spins[idx_b2 + 1 * spin_stride.comp];
@@ -770,36 +771,43 @@ namespace Engine
             auto& fD_yz = ft_D_matrices[idx_d + 4 * d_stride.comp];
             auto& fD_zz = ft_D_matrices[idx_d + 5 * d_stride.comp];
 
-            FFT::addTo(res_mult[idx_b1                       ], FFT::mult3D(fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z), tupel[0] == 0);
-            FFT::addTo(res_mult[idx_b1 + 1 * spin_stride.comp], FFT::mult3D(fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z), tupel[0] == 0);
-            FFT::addTo(res_mult[idx_b1 + 2 * spin_stride.comp], FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z), tupel[0] == 0);
+            if(tupel[0] == 0)
+            {
+                res_mult[idx_b1                       ].x = FFT::mult3D(fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z).x;
+                res_mult[idx_b1                       ].y = FFT::mult3D(fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z).y;
+                res_mult[idx_b1 + 1 * spin_stride.comp].x = FFT::mult3D(fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z).x;
+                res_mult[idx_b1 + 1 * spin_stride.comp].y = FFT::mult3D(fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z).y;
+                res_mult[idx_b1 + 2 * spin_stride.comp].x = FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z).x;
+                res_mult[idx_b1 + 2 * spin_stride.comp].y = FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z).y;
+            } else {
+                atomicAdd(&res_mult[idx_b1                       ].x, FFT::mult3D(fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z).x);
+                atomicAdd(&res_mult[idx_b1                       ].y, FFT::mult3D(fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z).y);               
+                atomicAdd(&res_mult[idx_b1 + 1 * spin_stride.comp].x, FFT::mult3D(fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z).x);
+                atomicAdd(&res_mult[idx_b1 + 1 * spin_stride.comp].y, FFT::mult3D(fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z).y);                
+                atomicAdd(&res_mult[idx_b1 + 2 * spin_stride.comp].x, FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z).x);
+                atomicAdd(&res_mult[idx_b1 + 2 * spin_stride.comp].y, FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z).y);
+            }
         }
     }
 
-    __global__ void CU_Write_FFT_Gradients(FFT::FFT_real_type * resiFFT, Vector3 * gradient, FFT::StrideContainer spin_stride , int * iteration_bounds, int n_cell_atoms, int bi, scalar * mu_s, int sublattice_size)
+    __global__ void CU_Write_FFT_Gradients(FFT::FFT_real_type * resiFFT, Vector3 * gradient, FFT::StrideContainer spin_stride , int * iteration_bounds, int n_cell_atoms, scalar * mu_s, int sublattice_size)
     {
-        int n_write = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2];
-        int tupel[3];
+        int nos = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2] * iteration_bounds[3];
+        int tupel[4];
         int idx_pad;
-        int idx_orig;
-        for(int idx = blockIdx.x * blockDim.x + threadIdx.x; idx < n_write; idx += blockDim.x * gridDim.x)
+
+        for(int idx_orig = blockIdx.x * blockDim.x + threadIdx.x; idx_orig < nos; idx_orig += blockDim.x * gridDim.x)
         {
-            tupel_from_idx(idx, tupel, iteration_bounds, 3); //tupel now is {a, b, c}
-            idx_orig = bi + n_cell_atoms * idx;
-            idx_pad = bi * spin_stride.basis + tupel[0] * spin_stride.a + tupel[1] * spin_stride.b + tupel[2] * spin_stride.c;
-            gradient[idx_orig][0] -= resiFFT[idx_pad                       ] * mu_s[idx_orig] / sublattice_size;
-            gradient[idx_orig][1] -= resiFFT[idx_pad + 1 * spin_stride.comp] * mu_s[idx_orig] / sublattice_size;
-            gradient[idx_orig][2] -= resiFFT[idx_pad + 2 * spin_stride.comp] * mu_s[idx_orig] / sublattice_size;
-            }
+            tupel_from_idx(idx_orig, tupel, iteration_bounds, 4); //tupel now is {ib, a, b, c}
+            idx_pad = tupel[0] * spin_stride.basis + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b + tupel[3] * spin_stride.c;
+            gradient[idx_orig][0] -= resiFFT[idx_pad                       ] / sublattice_size;
+            gradient[idx_orig][1] -= resiFFT[idx_pad + 1 * spin_stride.comp] / sublattice_size;
+            gradient[idx_orig][2] -= resiFFT[idx_pad + 2 * spin_stride.comp] / sublattice_size;
         }
+    }
 
     void Hamiltonian_Heisenberg::Gradient_DDI_FFT(const vectorfield & spins, vectorfield & gradient)
     {
-        // Size of original geometry
-        int Na = geometry->n_cells[0];
-        int Nb = geometry->n_cells[1];
-        int Nc = geometry->n_cells[2];
-
         auto& ft_D_matrices = fft_plan_d.cpx_ptr;
         auto& ft_spins = fft_plan_spins.cpx_ptr;
 
@@ -807,7 +815,7 @@ namespace Engine
         auto& res_mult = fft_plan_rev.cpx_ptr;
 
         field<int> iteration_bounds = { geometry->n_cell_atoms, 
-                                        (n_cells_padded[0]/2+1), 
+                                        (n_cells_padded[0]/2 + 1), // due to redundancy in real fft
                                         n_cells_padded[1], 
                                         n_cells_padded[2] };
 
@@ -816,16 +824,19 @@ namespace Engine
         FFT_spins(spins);
 
         // TODO: also parallelize over i_b1
-        // Loop over basis atoms (i.e sublattices)
+        // Loop over basis atoms (i.e sublattices) and add contribution of each sublattice
         for(int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1)
             CU_FFT_Pointwise_Mult<<<(number_of_mults + 1023) / 1024, 1024>>>(ft_D_matrices.data(), ft_spins.data(), res_mult.data(), iteration_bounds.data(), i_b1, b_diff_lookup.data(), d_stride, spin_stride);
         
+        
         FFT::batch_iFour_3D(fft_plan_rev);
 
-        // TODO: also parallelize over i_b1
-            //Place the gradients at the correct positions and mult with correct mu
-        for(int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1)
-            CU_Write_FFT_Gradients<<<(geometry->n_cells_total + 1023) / 1024, 1024>>>(res_iFFT.data(), gradient.data(), spin_stride, geometry->n_cells.data(), geometry->n_cell_atoms, i_b1, geometry->mu_s.data(), sublattice_size);
+        field<int> iteration_bounds_write = { geometry->n_cell_atoms, 
+                                              geometry->n_cells[0],
+                                              geometry->n_cells[1], 
+                                              geometry->n_cells[2] };
+
+        CU_Write_FFT_Gradients<<<(geometry->nos + 1023) / 1024, 1024>>>(res_iFFT.data(), gradient.data(), spin_stride, iteration_bounds_write.data(), geometry->n_cell_atoms, geometry->mu_s.data(), sublattice_size);
 
     }//end Field_DipoleDipole
 
@@ -1006,13 +1017,14 @@ namespace Engine
         int idx_pad;
         for(int idx_orig = blockIdx.x * blockDim.x + threadIdx.x; idx_orig < nos; idx_orig += blockDim.x * gridDim.x)
                     {
-            tupel_from_idx(idx_orig, tupel, iteration_bounds, 4); //tupel nowis {ib, a, b, c}
+            tupel_from_idx(idx_orig, tupel, iteration_bounds, 4); //tupel now is {ib, a, b, c}
             idx_pad = tupel[0] * spin_stride.basis + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b + tupel[3] * spin_stride.c;
             fft_spin_inputs[idx_pad                        ] = spins[idx_orig][0] * mu_s[idx_orig];
             fft_spin_inputs[idx_pad + 1 * spin_stride.comp ] = spins[idx_orig][1] * mu_s[idx_orig];
             fft_spin_inputs[idx_pad + 2 * spin_stride.comp ] = spins[idx_orig][2] * mu_s[idx_orig];
             }
         }
+
     void Hamiltonian_Heisenberg::FFT_spins(const vectorfield & spins)
     {
         field<int> iteration_bounds =   {
@@ -1069,8 +1081,8 @@ namespace Engine
                             int c_idx = c < Nc ? c : c - n_cells_padded[2];
                             scalar Dxx = 0, Dxy = 0, Dxz = 0, Dyy = 0, Dyz = 0, Dzz = 0;
                             Vector3 diff;
-                            //iterate over periodic images
 
+                            //iterate over periodic images
                             for(int a_pb = - img_a; a_pb <= img_a; a_pb++)
                             {
                                 for(int b_pb = - img_b; b_pb <= img_b; b_pb++)
@@ -1080,6 +1092,7 @@ namespace Engine
                                         diff =    (a_idx + a_pb * Na + geometry->cell_atoms[i_b1][0] - geometry->cell_atoms[i_b2][0]) * ta
                                                 + (b_idx + b_pb * Nb + geometry->cell_atoms[i_b1][1] - geometry->cell_atoms[i_b2][1]) * tb
                                                 + (c_idx + c_pb * Nc + geometry->cell_atoms[i_b1][2] - geometry->cell_atoms[i_b2][2]) * tc;
+
                                         if(diff.norm() > 1e-10)
                             {
                                 auto d = diff.norm();
@@ -1097,15 +1110,12 @@ namespace Engine
                             }
 
                             int idx = count * d_stride.basis + a * d_stride.a + b * d_stride.b + c * d_stride.c;
-
                             fft_dipole_inputs[idx                    ] = Dxx;
                             fft_dipole_inputs[idx + 1 * d_stride.comp] = Dxy;
                             fft_dipole_inputs[idx + 2 * d_stride.comp] = Dxz;
                             fft_dipole_inputs[idx + 3 * d_stride.comp] = Dyy;
                             fft_dipole_inputs[idx + 4 * d_stride.comp] = Dyz;
                             fft_dipole_inputs[idx + 5 * d_stride.comp] = Dzz;
-
-                            
                         }
                     }
                 }
@@ -1123,7 +1133,6 @@ namespace Engine
         sublattice_size = n_cells_padded[0] * n_cells_padded[1] * n_cells_padded[2];
 
         b_diff_lookup.resize(geometry->n_cell_atoms * geometry->n_cell_atoms);
-
 
         //we dont need to transform over length 1 dims
         std::vector<int> fft_dims;
