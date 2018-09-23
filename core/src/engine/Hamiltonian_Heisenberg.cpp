@@ -103,6 +103,8 @@ namespace Engine
                 }
             }
         }
+        this->Build_Exchange_Table();
+        
 
         // DMI
         this->dmi_pairs      = pairfield(0);
@@ -137,11 +139,14 @@ namespace Engine
                 }
             }
         }
+        this->Build_DMI_Table();
+
 
         // Dipole-dipole
         this->ddi_pairs      = Engine::Neighbours::Get_Pairs_in_Radius(*this->geometry, this->ddi_cutoff_radius);
         this->ddi_magnitudes = scalarfield(this->ddi_pairs.size());
         this->ddi_normals    = vectorfield(this->ddi_pairs.size());
+        
 
         scalar magnitude;
         Vector3 normal;
@@ -255,6 +260,46 @@ namespace Engine
         }
     }
 
+    void Hamiltonian_Heisenberg::Build_Exchange_Table() {
+        this->exchange_table.clear();
+        pair_cache tmp;
+        for (int icell = 0; icell < geometry->n_cells_total; ++icell)
+        {
+            for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
+            {
+                int ispin = exchange_pairs[i_pair].i + icell*geometry->n_cell_atoms;
+                int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
+                if (jspin >= 0)
+                {
+                    tmp.ispin = ispin;
+                    tmp.jspin = jspin;
+                    tmp.i_pair = i_pair;
+                    this->exchange_table.push_back(tmp);
+                }
+            }
+        }
+    }
+
+    void Hamiltonian_Heisenberg::Build_DMI_Table() {
+        this->dmi_table.clear();
+        pair_cache tmp;
+        for (int icell = 0; icell < geometry->n_cells_total; ++icell)
+        {
+            for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
+            {
+                int ispin = dmi_pairs[i_pair].i + icell*geometry->n_cell_atoms;
+                int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
+                if (jspin >= 0)
+                {
+                    tmp.ispin = ispin;
+                    tmp.jspin = jspin;
+                    tmp.i_pair = i_pair;
+                    this->dmi_table.push_back(tmp);
+                }
+            }
+        }
+    }
+
     void Hamiltonian_Heisenberg::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
     {
         const int N = geometry->n_cell_atoms;
@@ -274,40 +319,23 @@ namespace Engine
     void Hamiltonian_Heisenberg::E_Exchange(const vectorfield & spins, scalarfield & Energy)
     {
         #pragma omp parallel for
-        for (unsigned int icell = 0; icell < geometry->n_cells_total; ++icell)
-        {
-            for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
-            {
-                int ispin = exchange_pairs[i_pair].i + icell*geometry->n_cell_atoms;
-                int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
-                if (jspin >= 0)
-                {
-                    Energy[ispin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
-                    #ifndef _OPENMP
-                    Energy[jspin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
-                    #endif
-                }
-            }
+        for (int i = 0; i < exchange_table.size(); i++) {
+            Energy[exchange_table[i].ispin] -= 0.5 * exchange_magnitudes[exchange_table[i].i_pair] * spins[exchange_table[i].ispin].dot(spins[exchange_table[i].jspin]);
+            #ifndef _OPENMP
+            Energy[exchange_table[i].jspin] -= 0.5 * exchange_magnitudes[exchange_table[i].i_pair] * spins[exchange_table[i].ispin].dot(spins[exchange_table[i].jspin]);
+            #endif
         }
     }
 
     void Hamiltonian_Heisenberg::E_DMI(const vectorfield & spins, scalarfield & Energy)
     {
         #pragma omp parallel for
-        for (unsigned int icell = 0; icell < geometry->n_cells_total; ++icell)
-        {
-            for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
-            {
-                int ispin = dmi_pairs[i_pair].i + icell*geometry->n_cell_atoms;
-                int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
-                if (jspin >= 0)
-                {
-                    Energy[ispin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
-                    #ifndef _OPENMP
-                    Energy[jspin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
-                    #endif
-                }
-            }
+        for (int i = 0; i < dmi_table.size(); i++) {
+            Energy[dmi_table[i].ispin] -= 0.5 * dmi_magnitudes[dmi_table[i].i_pair] * dmi_normals[dmi_table[i].i_pair]
+              .dot(spins[dmi_table[i].ispin].cross(spins[dmi_table[i].jspin]));
+            #ifndef _OPENMP
+            Energy[dmi_table[i].jspin] -= 0.5 * dmi_magnitudes[dmi_table[i].i_pair] * dmi_normals[dmi_table[i].i_pair].dot(spins[dmi_table[i].ispin].cross(spins[dmi_table[i].jspin]));
+            #endif
         }
     }
 
@@ -581,40 +609,22 @@ namespace Engine
     void Hamiltonian_Heisenberg::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
     {
         #pragma omp parallel for
-        for (int icell = 0; icell < geometry->n_cells_total; ++icell)
-        {
-            for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
-            {
-                int ispin = exchange_pairs[i_pair].i + icell*geometry->n_cell_atoms;
-                int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
-                if (jspin >= 0)
-                {
-                    gradient[ispin] -= exchange_magnitudes[i_pair] * spins[jspin];
-                    #ifndef _OPENMP
-                    gradient[jspin] -= exchange_magnitudes[i_pair] * spins[ispin];
-                    #endif
-                }
-            }
+        for (int i = 0; i < exchange_table.size(); i++) {
+            gradient[exchange_table[i].ispin] -= exchange_magnitudes[exchange_table[i].i_pair] * spins[exchange_table[i].jspin];
+            #ifndef _OPENMP
+            gradient[exchange_table[i].jspin] -= exchange_magnitudes[exchange_table[i].i_pair] * spins[exchange_table[i].ispin];
+            #endif
         }
     }
 
     void Hamiltonian_Heisenberg::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
     {
         #pragma omp parallel for
-        for (int icell = 0; icell < geometry->n_cells_total; ++icell)
-        {
-            for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
-            {
-                int ispin = dmi_pairs[i_pair].i + icell*geometry->n_cell_atoms;
-                int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
-                if (jspin >= 0)
-                {
-                    gradient[ispin] -= dmi_magnitudes[i_pair] * spins[jspin].cross(dmi_normals[i_pair]);
-                    #ifndef _OPENMP
-                    gradient[jspin] += dmi_magnitudes[i_pair] * spins[ispin].cross(dmi_normals[i_pair]);
-                    #endif
-                }
-            }
+        for (int i = 0; i < dmi_table.size(); i++) {
+            gradient[dmi_table[i].ispin] -= dmi_magnitudes[dmi_table[i].i_pair] * spins[dmi_table[i].jspin].cross(dmi_normals[dmi_table[i].i_pair]);
+            #ifndef _OPENMP
+            gradient[dmi_table[i].jspin] += dmi_magnitudes[dmi_table[i].i_pair] * spins[dmi_table[i].ispin].cross(dmi_normals[dmi_table[i].i_pair]);
+            #endif
         }
     }
 
