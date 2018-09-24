@@ -1010,20 +1010,20 @@ namespace Engine
         // Quadruplets
     }
 
-     __global__ void CU_Write_FFT_Input(FFT::FFT_real_type* fft_spin_inputs, const Vector3 * spins, int * iteration_bounds, FFT::StrideContainer spin_stride, scalar * mu_s)
-                {
+    __global__ void CU_Write_FFT_Spin_Input(FFT::FFT_real_type* fft_spin_inputs, const Vector3 * spins, int * iteration_bounds, FFT::StrideContainer spin_stride, scalar * mu_s)
+    {
         int nos = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2] * iteration_bounds[3];
         int tupel[4];
         int idx_pad;
         for(int idx_orig = blockIdx.x * blockDim.x + threadIdx.x; idx_orig < nos; idx_orig += blockDim.x * gridDim.x)
-                    {
+        {
             tupel_from_idx(idx_orig, tupel, iteration_bounds, 4); //tupel now is {ib, a, b, c}
             idx_pad = tupel[0] * spin_stride.basis + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b + tupel[3] * spin_stride.c;
             fft_spin_inputs[idx_pad                        ] = spins[idx_orig][0] * mu_s[idx_orig];
             fft_spin_inputs[idx_pad + 1 * spin_stride.comp ] = spins[idx_orig][1] * mu_s[idx_orig];
             fft_spin_inputs[idx_pad + 2 * spin_stride.comp ] = spins[idx_orig][2] * mu_s[idx_orig];
-            }
         }
+    }
 
     void Hamiltonian_Heisenberg::FFT_spins(const vectorfield & spins)
     {
@@ -1034,93 +1034,114 @@ namespace Engine
                                             geometry->n_cells[2],
                                         };
 
-        CU_Write_FFT_Input<<<(geometry->nos + 1023) / 1024, 1024>>>(fft_plan_spins.real_ptr.data(), spins.data(), iteration_bounds.data(), spin_stride, geometry->mu_s.data());
+        CU_Write_FFT_Spin_Input<<<(geometry->nos + 1023) / 1024, 1024>>>(fft_plan_spins.real_ptr.data(), spins.data(), iteration_bounds.data(), spin_stride, geometry->mu_s.data());
         FFT::batch_Four_3D(fft_plan_spins);
+    }
+
+    __global__ void CU_Write_FFT_Dipole_Input(FFT::FFT_real_type* fft_dipole_inputs, int* iteration_bounds, const Vector3* bravais_vectors, int n_cell_atoms, Vector3* cell_atoms, int* n_cells, int* b_diff_lookup, int* img, FFT::StrideContainer d_stride)
+    {
+        int tupel[3];
+        int sublattice_size = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2];
+        //prefactor of ddi interaction
+        scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
+        for(int i = blockIdx.x * blockDim.x + threadIdx.x; i < sublattice_size; i += blockDim.x * gridDim.x)
+        {
+            tupel_from_idx(i, tupel, iteration_bounds, 3); // tupel now is {a, b, c}
+            auto& a = tupel[0];
+            auto& b = tupel[1];
+            auto& c = tupel[2];
+            int count = -1;
+            for(int i_b1 = 0; i_b1 < n_cell_atoms; ++i_b1)
+            {
+                for(int i_b2 = 0; i_b2 < n_cell_atoms; ++i_b2)
+                {
+                    if(i_b1 != i_b2 || i_b1 == 0)
+                    {
+                        count++;
+                        b_diff_lookup[i_b1 + i_b2 * n_cell_atoms] = count;
+
+                        int a_idx = a < n_cells[0] ? a : a - iteration_bounds[0];
+                        int b_idx = b < n_cells[1] ? b : b - iteration_bounds[1];
+                        int c_idx = c < n_cells[2] ? c : c - iteration_bounds[2];
+                        scalar Dxx = 0, Dxy = 0, Dxz = 0, Dyy = 0, Dyz = 0, Dzz = 0;
+
+                        Vector3 diff;
+
+                        //iterate over periodic images
+                        for(int a_pb = - img[0]; a_pb <= img[0]; a_pb++)
+                        {
+                            for(int b_pb = - img[1]; b_pb <= img[1]; b_pb++)
+                            {
+                                for(int c_pb = -img[2]; c_pb <= img[2]; c_pb++)
+                                {
+
+                                    diff =    (a_idx + a_pb * n_cells[0] + cell_atoms[i_b1][0] - cell_atoms[i_b2][0]) * bravais_vectors[0]
+                                            + (b_idx + b_pb * n_cells[1] + cell_atoms[i_b1][1] - cell_atoms[i_b2][1]) * bravais_vectors[1]
+                                            + (c_idx + c_pb * n_cells[2] + cell_atoms[i_b1][2] - cell_atoms[i_b2][2]) * bravais_vectors[2];
+
+                                    if(diff.norm() > 1e-10)
+                                    {
+                                        auto d = diff.norm();
+                                        auto d3 = d * d * d;
+                                        auto d5 = d * d * d * d * d;
+                                        Dxx += mult * (3 * diff[0]*diff[0] / d5 - 1/d3);
+                                        Dxy += mult *  3 * diff[0]*diff[1] / d5;          //same as Dyx
+                                        Dxz += mult *  3 * diff[0]*diff[2] / d5;          //same as Dzx
+                                        Dyy += mult * (3 * diff[1]*diff[1] / d5 - 1/d3);
+                                        Dyz += mult *  3 * diff[1]*diff[2] / d5;          //same as Dzy
+                                        Dzz += mult * (3 * diff[2]*diff[2] / d5 - 1/d3);
+                                    }
+                                }
+                            }
+                        }
+
+                        int idx = count * d_stride.basis + a * d_stride.a + b * d_stride.b + c * d_stride.c;
+                        fft_dipole_inputs[idx                    ] = Dxx;
+                        fft_dipole_inputs[idx + 1 * d_stride.comp] = Dxy;
+                        fft_dipole_inputs[idx + 2 * d_stride.comp] = Dxz;
+                        fft_dipole_inputs[idx + 3 * d_stride.comp] = Dyy;
+                        fft_dipole_inputs[idx + 4 * d_stride.comp] = Dyz;
+                        fft_dipole_inputs[idx + 5 * d_stride.comp] = Dzz;
+
+                    } else {
+                        b_diff_lookup[i_b1 + i_b2 * n_cell_atoms] = 0;
+                    }
+                    
+                }
+            }
+        }
     }
 
     void Hamiltonian_Heisenberg::FFT_Dipole_Mats(int img_a, int img_b, int img_c)
     {
-        //prefactor of ddi interaction
-        scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
-
-        //size of original geometry
-        int Na = geometry->n_cells[0];
-        int Nb = geometry->n_cells[1];
-        int Nc = geometry->n_cells[2];
-        //bravais vectors
-        Vector3 ta = geometry->bravais_vectors[0];
-        Vector3 tb = geometry->bravais_vectors[1];
-        Vector3 tc = geometry->bravais_vectors[2];
-        //number of basis atoms (i.e sublattices)
-        int B = geometry->n_cell_atoms;
-
         auto& fft_dipole_inputs = fft_plan_d.real_ptr;
 
-        int count = -1;
-        for(int i_b1 = 0; i_b1 < B; ++i_b1)
-        {
-            for(int i_b2 = 0; i_b2 < B; ++i_b2)
-            {
-                if(i_b1 == i_b2 && i_b1 !=0)
-                {
-                    b_diff_lookup[i_b1 + i_b2 * geometry->n_cell_atoms] = 0;
-                    continue;
-                }
-                count++;
-                b_diff_lookup[i_b1 + i_b2 * geometry->n_cell_atoms] = count;
+        //Write FFT Dipole Inputs
+        field<int> iteration_bounds =   {
+                                            n_cells_padded[0],
+                                            n_cells_padded[1],
+                                            n_cells_padded[2]
+                                        };
+        field<int> img = {
+                            img_a,
+                            img_b,
+                            img_c
+                         };
 
-                //iterate over the padded system
-                for(int c = 0; c < n_cells_padded[2]; ++c)
-                {
-                    for(int b = 0; b < n_cells_padded[1]; ++b)
-                    {
-                        for(int a = 0; a < n_cells_padded[0]; ++a)
-                        {
-                            int a_idx = a < Na ? a : a - n_cells_padded[0];
-                            int b_idx = b < Nb ? b : b - n_cells_padded[1];
-                            int c_idx = c < Nc ? c : c - n_cells_padded[2];
-                            scalar Dxx = 0, Dxy = 0, Dxz = 0, Dyy = 0, Dyz = 0, Dzz = 0;
-                            Vector3 diff;
+        //work around to make bravais vectors and cell_atoms available to GPU
+        //as they are currently saves as std::vectors and not
+        auto bravais_vectors = field<Vector3>();
+        auto cell_atoms = field<Vector3>();
+        for(int i=0; i<3; i++)
+            bravais_vectors.push_back(geometry->bravais_vectors[i]);
+        for(int i=0; i<geometry->n_cell_atoms; i++)
+            cell_atoms.push_back(geometry->cell_atoms[i]);
 
-                            //iterate over periodic images
-                            for(int a_pb = - img_a; a_pb <= img_a; a_pb++)
-                            {
-                                for(int b_pb = - img_b; b_pb <= img_b; b_pb++)
-                                {
-                                    for(int c_pb = -img_c; c_pb <= img_c; c_pb++)
-                                    {
-                                        diff =    (a_idx + a_pb * Na + geometry->cell_atoms[i_b1][0] - geometry->cell_atoms[i_b2][0]) * ta
-                                                + (b_idx + b_pb * Nb + geometry->cell_atoms[i_b1][1] - geometry->cell_atoms[i_b2][1]) * tb
-                                                + (c_idx + c_pb * Nc + geometry->cell_atoms[i_b1][2] - geometry->cell_atoms[i_b2][2]) * tc;
-
-                                        if(diff.norm() > 1e-10)
-                            {
-                                auto d = diff.norm();
-                                auto d3 = d * d * d;
-                                auto d5 = d * d * d * d * d;
-                                            Dxx += mult * (3 * diff[0]*diff[0] / d5 - 1/d3);
-                                            Dxy += mult *  3 * diff[0]*diff[1] / d5;          //same as Dyx
-                                            Dxz += mult *  3 * diff[0]*diff[2] / d5;          //same as Dzx
-                                            Dyy += mult * (3 * diff[1]*diff[1] / d5 - 1/d3);
-                                            Dyz += mult *  3 * diff[1]*diff[2] / d5;          //same as Dzy
-                                            Dzz += mult * (3 * diff[2]*diff[2] / d5 - 1/d3);
-                                        }
-                                    }
-                                }
-                            }
-
-                            int idx = count * d_stride.basis + a * d_stride.a + b * d_stride.b + c * d_stride.c;
-                            fft_dipole_inputs[idx                    ] = Dxx;
-                            fft_dipole_inputs[idx + 1 * d_stride.comp] = Dxy;
-                            fft_dipole_inputs[idx + 2 * d_stride.comp] = Dxz;
-                            fft_dipole_inputs[idx + 3 * d_stride.comp] = Dyy;
-                            fft_dipole_inputs[idx + 4 * d_stride.comp] = Dyz;
-                            fft_dipole_inputs[idx + 5 * d_stride.comp] = Dzz;
-                        }
-                    }
-                }
-            }
-        }
+        CU_Write_FFT_Dipole_Input<<<(sublattice_size + 1023)/1024, 1024>>>
+        (   fft_dipole_inputs.data(), iteration_bounds.data(), bravais_vectors.data(), 
+            geometry->n_cell_atoms, cell_atoms.data(), geometry->n_cells.data(), 
+            b_diff_lookup.data(), img.data(), d_stride
+        );
         FFT::batch_Four_3D(fft_plan_d);
     }
 
@@ -1152,7 +1173,7 @@ namespace Engine
                 symmetry_count++;
             }
         }
-
+ 
         //Create fft plans.
         fft_plan_d.dims     = fft_dims;
         fft_plan_d.inverse  = false;
@@ -1186,7 +1207,6 @@ namespace Engine
         int img_b = boundary_conditions[1] == 0 ? 0 : ddi_n_periodic_images[1];
         int img_c = boundary_conditions[2] == 0 ? 0 : ddi_n_periodic_images[2];
         FFT_Dipole_Mats(img_a, img_b, img_c);
-
     }//end prepare
 
     // Hamiltonian name as string
