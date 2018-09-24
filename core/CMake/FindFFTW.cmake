@@ -50,6 +50,14 @@ if( FFTW_ROOT )
   )
 
   find_library(
+    FFTW_OMP_LIB
+    NAMES "fftw3_omp"
+    PATHS ${FFTW_ROOT}
+    PATH_SUFFIXES "lib" "lib64"
+    NO_DEFAULT_PATH
+  )
+
+  find_library(
     FFTW_THREADS_LIB
     NAMES "fftw3_threads"
     PATHS ${FFTW_ROOT}
@@ -107,6 +115,12 @@ else()
   )
 
   find_library(
+    FFTW_OMP_LIB
+    NAMES "fftw3_omp"
+    PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
+  )
+
+  find_library(
     FFTW_THREADS_LIB
     NAMES "fftw3_threads"
     PATHS ${PKG_FFTW_LIBRARY_DIRS} ${LIB_INSTALL_DIR}
@@ -156,4 +170,4 @@ include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(FFTW DEFAULT_MSG
                                   FFTW_INCLUDES FFTW_LIBRARIES)
 
-mark_as_advanced(FFTW_INCLUDES FFTW_LIBRARIES FFTW_LIB FFTWF_LIB FFTWL_LIB FFTW_THREADS_LIB FFTWF_THREADS_LIB FFTWL_THREADS_LIB)
+mark_as_advanced(FFTW_INCLUDES FFTW_LIBRARIES FFTW_LIB FFTWF_LIB FFTWL_LIB FFTW_OMP_LIB FFTW_THREADS_LIB FFTWF_THREADS_LIB FFTWL_THREADS_LIB)

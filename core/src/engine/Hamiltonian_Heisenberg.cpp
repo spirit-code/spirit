@@ -743,7 +743,7 @@ namespace Engine
 
 
         // Loop over basis atoms (i.e sublattices)
-        #pragma omp parallel for
+        #pragma omp parallel for collapse(5)
         for(int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1)
         {
             for(int c = 0; c < n_cells_padded[2]; ++c)
@@ -799,7 +799,7 @@ namespace Engine
         //Inverse Fourier Transform
         FFT::batch_iFour_3D(fft_plan_rev);
 
-        #pragma omp parallel for
+        #pragma omp parallel for collapse(4)
         //Place the gradients at the correct positions and mult with correct mu
         for(int c = 0; c < geometry->n_cells[2]; ++c)
         {
@@ -1071,6 +1071,7 @@ namespace Engine
         auto& fft_spin_inputs = fft_plan_spins.real_ptr;
        
             //iterate over the **original** system
+        #pragma omp parallel for collapse(4)
         for(int c = 0; c < Nc; ++c)
         {
             for(int b = 0; b < Nb; ++b)
@@ -1079,14 +1080,6 @@ namespace Engine
                 {
                     for(int bi = 0; bi < B; ++bi)
                     {
-                        // int idx_orig = idx_from_tupel({bi, a, b, c}, {B, Na, Nb, Nc});
-                        // #ifdef SPIRIT_USE_FFTW
-                        //         int component_stride = 1;
-                        //         int idx = idx_from_tupel({0, bi, a, b, c}, {3, B, n_cells_padded[0], n_cells_padded[1], n_cells_padded[2]});
-                        // #else
-                        //         int component_stride = N;
-                        //         int idx = idx_from_tupel({a, b, c, 0, bi}, {n_cells_padded[0], n_cells_padded[1], n_cells_padded[2], 3, B});
-                        // #endif
                         int idx_orig = bi + B * (a + Na * (b + Nb * c));
                         int idx = bi * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
 
