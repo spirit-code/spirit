@@ -33,6 +33,7 @@ namespace Utility
         MMF  = Log_Sender_MMF,
         API  = Log_Sender_API,
         UI   = Log_Sender_UI,
+        HTST = Log_Sender_HTST,
         EMA  = Log_Sender_EMA
     };
 

@@ -14,8 +14,7 @@
 #include <GenEigsRealShiftSolver.h>
 
 #include <fmt/format.h>
-
-#include <iostream>
+#include <fmt/ostream.h>
 
 namespace C = Utility::Constants;
 
@@ -27,84 +26,30 @@ namespace Engine
         // Non-extremal images may yield incorrect Hessians and thus incorrect results
         void Calculate_Prefactor(Data::HTST_Info & htst_info)
         {
-            std::cerr << "Getting Prefactor" << std::endl;
+            Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, "---- Prefactor calculation");
 
             bool is_afm = false;
-
-            scalar epsilon = 1e-4;
-
-            ////////////////////////////////////////////////////////////////////////
-            // Initial state minimum
-            std::cerr << std::endl << "Calculation for the Minimum" << std::endl;
-
-            // The gradient (unprojected)
-            std::cerr << "    Evaluation of the gradient..." << std::endl;
+            const scalar epsilon = 1e-4;
             auto& image_minimum = *htst_info.minimum->spins;
+            auto& image_sp = *htst_info.saddle_point->spins;
             int nos = image_minimum.size();
-            vectorfield gradient_minimum(nos, {0,0,0});
-            htst_info.minimum->hamiltonian->Gradient(image_minimum, gradient_minimum);
-
-            // Evaluation of the Hessian...
-            MatrixX hessian_minimum = MatrixX::Zero(3*nos,3*nos);
-            std::cerr << "    Evaluation of the Hessian..." << std::endl;
-            htst_info.minimum->hamiltonian->Hessian(image_minimum, hessian_minimum);
-
-            // Eigendecomposition
-            std::cerr << "    Eigendecomposition..." << std::endl;
-            MatrixX hessian_geodesic_minimum_3N(3*nos, 3*nos);
-            MatrixX hessian_geodesic_minimum_2N(2*nos, 2*nos);
-            VectorX eigenvalues_minimum = VectorX::Zero(2*nos);
-            MatrixX eigenvectors_minimum = MatrixX::Zero(2*nos, 2*nos);
-            Geodesic_Eigen_Decomposition(image_minimum, gradient_minimum, hessian_minimum,
-                hessian_geodesic_minimum_3N, hessian_geodesic_minimum_2N, eigenvalues_minimum, eigenvectors_minimum);
-
-            // Print some eigenvalues
-            std::cerr << "10 lowest eigenvalues at minimum:" << std::endl;
-            for (int i=0; i<10; ++i)
-                std::cerr << fmt::format("ew[{}]={:^20e}   ew[{}]={:^20e}", i, eigenvalues_minimum[i], i+2*nos-10, eigenvalues_minimum[i+2*nos-10]) << std::endl;
-
-            // Check for eigenvalues < 0 (i.e. not a minimum)
-            std::cerr << "Checking if actually a minimum..." << std::endl;
-            bool minimum = true;
-            for (int i=0; i < eigenvalues_minimum.size(); ++i)
-                if (eigenvalues_minimum[i] < -epsilon) minimum = false;
-            if (!minimum) std::cerr << "WARNING: NOT A MINIMUM!!" << std::endl;
-
-            // Checking for zero modes at the minimum...
-            std::cerr << "Checking for zero modes at the minimum..." << std::endl;
-            int n_zero_modes_minimum = 0;
-            for (int i=0; i < eigenvalues_minimum.size(); ++i)
-                if (std::abs(eigenvalues_minimum[i]) <= epsilon) ++n_zero_modes_minimum;
-
-            // Deal with zero modes if any (calculate volume)
-            scalar volume_minimum = 1;
-            if (n_zero_modes_minimum > 0)
-            {
-                std::cerr << fmt::format("ZERO MODES AT MINIMUM (N={})", n_zero_modes_minimum) << std::endl;
-
-                if (is_afm)
-                    volume_minimum = Calculate_Zero_Volume(htst_info.minimum);
-                else
-                    volume_minimum = Calculate_Zero_Volume(htst_info.minimum);
-            }
 
             ////////////////////////////////////////////////////////////////////////
             // Saddle point
-            std::cerr << std::endl << "Calculation for the Saddle Point" << std::endl;
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Calculation for the Saddle Point");
 
             // The gradient (unprojected)
-            std::cerr << "    Evaluation of the gradient..." << std::endl;
-            auto& image_sp = *htst_info.saddle_point->spins;
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluation of the gradient...");
             vectorfield gradient_sp(nos, {0,0,0});
             htst_info.saddle_point->hamiltonian->Gradient(image_sp, gradient_sp);
 
             // Evaluation of the Hessian...
             MatrixX hessian_sp = MatrixX::Zero(3*nos,3*nos);
-            std::cerr << "    Evaluation of the Hessian..." << std::endl;
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluation of the Hessian...");
             htst_info.saddle_point->hamiltonian->Hessian(image_sp, hessian_sp);
 
             // Eigendecomposition
-            std::cerr << "    Eigendecomposition..." << std::endl;
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Eigendecomposition...");
             MatrixX hessian_geodesic_sp_3N(3*nos, 3*nos);
             MatrixX hessian_geodesic_sp_2N(2*nos, 2*nos);
             VectorX eigenvalues_sp = VectorX::Zero(2*nos);
@@ -112,49 +57,56 @@ namespace Engine
             Geodesic_Eigen_Decomposition(image_sp, gradient_sp, hessian_sp,
                 hessian_geodesic_sp_3N, hessian_geodesic_sp_2N, eigenvalues_sp, eigenvectors_sp);
 
+            htst_info.eigenvalues_sp.assign(eigenvalues_sp.data(), eigenvalues_sp.data() + 2*nos);
+            // htst_info.eigenvectors_sp.assign(eigenvectors_sp.data(), eigenvectors_sp.data() + 2*3*nos);
+
             // Print some eigenvalues
-            std::cerr << "10 lowest eigenvalues at saddle point:" << std::endl;
+            std::vector<std::string> block{"10 lowest eigenvalues at saddle point:"};
             for (int i=0; i<10; ++i)
-                std::cerr << fmt::format("ew[{}]={:^20e}   ew[{}]={:^20e}", i, eigenvalues_sp[i], i+2*nos-10, eigenvalues_sp[i+2*nos-10]) << std::endl;
+                block.push_back(fmt::format("ew[{}]={:^20e}   ew[{}]={:^20e}", i, eigenvalues_sp[i], i+2*nos-10, eigenvalues_sp[i+2*nos-10]));
+            Log.SendBlock(Utility::Log_Level::Info, Utility::Log_Sender::HTST, block, -1, -1);
 
             // Check if lowest eigenvalue < 0 (else it's not a SP)
-            std::cerr << "Checking if actually a saddle point..." << std::endl;
-            bool saddlepoint = false;
-            if (eigenvalues_sp[0] < -epsilon) saddlepoint = true;  // QUESTION: is ev[0] the lowest? should I use Spectra here?
-            if (!saddlepoint) std::cerr << "NOT A SADDLE POINT" << std::endl;
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking if actually a saddle point...");
+            if (eigenvalues_sp[0] > -epsilon)
+            {
+                Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format(
+                    "HTST: the transition configuration is not a saddle point, it's lowest eigenvalue is above the threshold ({} > {})!", eigenvalues_sp[0], -epsilon ));
+                return;
+            }
 
             // Check if second-lowest eigenvalue < 0 (higher-order SP)
-            if (saddlepoint)
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking if higher order saddle point...");
+            int n_negative = 0;
+            for( int i=0; i < eigenvalues_sp.size(); ++i )
+                if (eigenvalues_sp[i] < -epsilon) ++n_negative;
+            if( n_negative > 1 )
             {
-                std::cerr << "Checking if higher order saddle point..." << std::endl;
-                int n_negative = 0;
-                for (int i=0; i < eigenvalues_sp.size(); ++i)
-                    if (eigenvalues_sp[i] < -epsilon) ++n_negative;
-
-                if (n_negative > 1)
-                    std::cerr << fmt::format("WARNING: HIGHER ORDER SADDLE POINT (N={})", n_negative) << std::endl;
+                Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format(
+                    "HTST: the image you passed is a higher order saddle point (N={})!", n_negative ));
+                return;
             }
 
             // Checking for zero modes at the saddle point...
-            std::cerr << "Checking for zero modes at the saddle point..." << std::endl;
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking for zero modes at the saddle point...");
             int n_zero_modes_sp = 0;
-            for (int i=0; i < eigenvalues_sp.size(); ++i)
+            for( int i=0; i < eigenvalues_sp.size(); ++i )
                 if (std::abs(eigenvalues_sp[i]) <= epsilon) ++n_zero_modes_sp;
 
             // Deal with zero modes if any (calculate volume)
-            scalar volume_sp = 1;
-            if (n_zero_modes_sp > 0)
+            htst_info.volume_sp = 1;
+            if( n_zero_modes_sp > 0 )
             {
-                std::cerr << fmt::format("ZERO MODES AT SADDLE POINT (N={})", n_zero_modes_sp) << std::endl;
+                Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, fmt::format("ZERO MODES AT SADDLE POINT (N={})", n_zero_modes_sp));
 
-                if (is_afm)
-                    volume_sp = Calculate_Zero_Volume(htst_info.saddle_point);
+                if( is_afm )
+                    htst_info.volume_sp = Calculate_Zero_Volume(htst_info.saddle_point);
                 else
-                    volume_sp = Calculate_Zero_Volume(htst_info.saddle_point);
+                    htst_info.volume_sp = Calculate_Zero_Volume(htst_info.saddle_point);
             }
 
             ////////////////////////////////////////////////////////////////////////
-            std::cerr << "Calculating perpendicular velocity ('a' factors)..." << std::endl;
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Calculating perpendicular velocity at saddle point ('a' factors)...");
             // Calculation of the 'a' parameters...
             VectorX perpendicular_velocity_sp(2*nos);
             MatrixX basis_sp(3*nos, 2*nos);
@@ -163,84 +115,125 @@ namespace Engine
             // TODO
             // Calculate_Perpendicular_Velocity_2N(image_sp, hessian_geodesic_sp_2N, basis_sp, eigenvectors_sp, perpendicular_velocity_sp);
             Calculate_Perpendicular_Velocity(image_sp, htst_info.saddle_point->geometry->mu_s, hessian_geodesic_sp_3N, basis_sp, eigenvectors_sp, perpendicular_velocity_sp);
-            // QUESTION: is scaling perpendicular_velocity_sp with mub/mry necessary?
+            htst_info.perpendicular_velocity.assign(perpendicular_velocity_sp.data(), perpendicular_velocity_sp.data() + 2*nos);
+
+            // Calculate "s" - QUESTION: what is it?
+            htst_info.s = 0;
+            for (int i = n_zero_modes_sp+1; i < 2*nos; ++i)
+                htst_info.s += std::pow(perpendicular_velocity_sp[i], 2) / eigenvalues_sp[i];
+            htst_info.s = std::sqrt(htst_info.s);
+
+            ////////////////////////////////////////////////////////////////////////
+            // Initial state minimum
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Calculation for the Minimum");
+
+            // The gradient (unprojected)
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluation of the gradient...");
+            vectorfield gradient_minimum(nos, {0,0,0});
+            htst_info.minimum->hamiltonian->Gradient(image_minimum, gradient_minimum);
+
+            // Evaluation of the Hessian...
+            MatrixX hessian_minimum = MatrixX::Zero(3*nos,3*nos);
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluation of the Hessian...");
+            htst_info.minimum->hamiltonian->Hessian(image_minimum, hessian_minimum);
+
+            // Eigendecomposition
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Eigendecomposition...");
+            MatrixX hessian_geodesic_minimum_3N(3*nos, 3*nos);
+            MatrixX hessian_geodesic_minimum_2N(2*nos, 2*nos);
+            VectorX eigenvalues_minimum = VectorX::Zero(2*nos);
+            MatrixX eigenvectors_minimum = MatrixX::Zero(2*nos, 2*nos);
+            Geodesic_Eigen_Decomposition(image_minimum, gradient_minimum, hessian_minimum,
+                hessian_geodesic_minimum_3N, hessian_geodesic_minimum_2N, eigenvalues_minimum, eigenvectors_minimum);
+
+            htst_info.eigenvalues_min.assign(eigenvalues_minimum.data(), eigenvalues_minimum.data() + 2*nos);
+            // htst_info.eigenvectors_min.assign(eigenvectors_minimum.data(), eigenvectors_minimum.data() + 2*3*nos);
+
+            // Print some eigenvalues
+            block = std::vector<std::string>{"10 lowest eigenvalues at minimum:"};
+            for (int i=0; i<10; ++i)
+                block.push_back(fmt::format("ew[{}]={:^20e}   ew[{}]={:^20e}", i, eigenvalues_minimum[i], i+2*nos-10, eigenvalues_minimum[i+2*nos-10]));
+            Log.SendBlock(Utility::Log_Level::Info, Utility::Log_Sender::HTST, block, -1, -1);
+
+            
+            // Check for eigenvalues < 0 (i.e. not a minimum)
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking if actually a minimum...");
+            if(eigenvalues_minimum[0] < -epsilon )
+            {
+                Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format(
+                    "HTST: the initial configuration is not a minimum, it's lowest eigenvalue is below the threshold ({} < {})!", eigenvalues_sp[0], -epsilon ));
+                return;
+            }
+
+            // Checking for zero modes at the minimum...
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking for zero modes at the minimum...");
+            int n_zero_modes_minimum = 0;
+            for (int i=0; i < eigenvalues_minimum.size(); ++i)
+                if (std::abs(eigenvalues_minimum[i]) <= epsilon) ++n_zero_modes_minimum;
+
+            // Deal with zero modes if any (calculate volume)
+            htst_info.volume_min = 1;
+            if( n_zero_modes_minimum > 0 )
+            {
+                Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, fmt::format("ZERO MODES AT MINIMUM (N={})", n_zero_modes_minimum));
+
+                if (is_afm)
+                    htst_info.volume_min = Calculate_Zero_Volume(htst_info.minimum);
+                else
+                    htst_info.volume_min = Calculate_Zero_Volume(htst_info.minimum);
+            }
 
             ////////////////////////////////////////////////////////////////////////
             // Calculation of the prefactor...
-            std::cerr << "Calculating prefactor..." << std::endl;
-            scalar prefactor, exponent;
-            // Calculate_Prefactor(nos, n_zero_modes_minimum, n_zero_modes_sp, volume_minimum, volume_sp, eigenvalues_minimum, eigenvalues_sp, perpendicular_velocity_sp,
-            //     prefactor, exponent);
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Calculating prefactor...");
 
             // Calculate the exponent for the temperature-dependence of the prefactor
             //      The exponent depends on the number of zero modes at the different states
-            exponent = 0.5 * (n_zero_modes_minimum - n_zero_modes_sp);
+            htst_info.temperature_exponent = 0.5 * (n_zero_modes_minimum - n_zero_modes_sp);
 
             // QUESTION: g_e is the electron's g-factor [unitless] -> mu_s = g_e * mu_B / hbar * Spin
             scalar g_e = 2.00231930436182;
 
             // Calculate "me" - QUESTION: what is this?
-            scalar me = 1;
+            htst_info.me = 1;
             for (int i=0; i < (n_zero_modes_minimum - n_zero_modes_sp); ++i)
-                me *= 2*C::Pi * C::k_B;
-            me = std::sqrt(me);
+                htst_info.me *= 2*C::Pi * C::k_B;
+            htst_info.me = std::sqrt(htst_info.me);
 
             // Calculate Omega_0, i.e. the entropy contribution
             // TODO: the `n_zero_modes_sp+1` should be `n_zero_modes_sp+n_negative_modes_sp`
-            scalar Omega_0 = 1;
+            htst_info.Omega_0 = 1;
             if( n_zero_modes_minimum > n_zero_modes_sp+1 )
             {
                 for( int i = n_zero_modes_sp+1; i<n_zero_modes_minimum; ++i )
-                    Omega_0 /= std::sqrt(eigenvalues_sp[i]);
+                    htst_info.Omega_0 /= std::sqrt(eigenvalues_sp[i]);
             }
             else if( n_zero_modes_minimum < n_zero_modes_sp+1 )
             {
                 for( int i = n_zero_modes_minimum; i<(n_zero_modes_sp+1); ++i )
-                    Omega_0 *= std::sqrt(eigenvalues_minimum[i]);
+                    htst_info.Omega_0 *= std::sqrt(eigenvalues_minimum[i]);
             }
             for( int i=std::max(n_zero_modes_minimum, n_zero_modes_sp+1); i < 2*nos; ++i )
-                Omega_0 *= std::sqrt(eigenvalues_minimum[i] / eigenvalues_sp[i]);
-            // Omega_0 = std::sqrt(Omega_0);
-
-            // Calculate "s" - QUESTION: what is it?
-            scalar s = 0;
-            for (int i = n_zero_modes_sp+1; i < 2*nos; ++i)
-                s += std::pow(perpendicular_velocity_sp[i], 2) / eigenvalues_sp[i];
-            s = std::sqrt(s);
+                htst_info.Omega_0 *= std::sqrt(eigenvalues_minimum[i] / eigenvalues_sp[i]);
 
             // Calculate the prefactor
-            scalar v = me * volume_sp / volume_minimum * s;
-            prefactor = g_e / (C::hbar * 1e-12) * Omega_0 * v / ( 2*C::Pi );
+            htst_info.prefactor_dynamical = htst_info.me * htst_info.volume_sp / htst_info.volume_min * htst_info.s;
+            htst_info.prefactor = g_e / (C::hbar * 1e-12) * htst_info.Omega_0 * htst_info.prefactor_dynamical / ( 2*C::Pi );
 
-            std::cerr << fmt::format("exponent    = {:^20e}", exponent)<< std::endl;
-            std::cerr << fmt::format("me          = {:^20e}", me) << std::endl;
-            std::cerr << fmt::format("m = Omega_0 = {:^20e}", Omega_0) << std::endl;
-            std::cerr << fmt::format("s           = {:^20e}", s) << std::endl;
-            std::cerr << fmt::format("volume_sp   = {:^20e}", volume_sp) << std::endl;
-            std::cerr << fmt::format("volume_min  = {:^20e}", volume_minimum) << std::endl;
-            std::cerr << fmt::format("hbar[meV*s] = {:^20e}", C::hbar*1e-12) << std::endl;
-            std::cerr << fmt::format("v = dynamical prefactor = {:^20e}", v) << std::endl;
-            std::cerr << fmt::format("prefactor               = {:^20e}", prefactor) << std::endl;
 
-            ////////////////////////////////////////////////////////////////////////
-            htst_info.eigenvalues_min.assign(eigenvalues_minimum.data(), eigenvalues_minimum.data() + 2*nos);
-            // htst_info.eigenvectors_min.assign(eigenvectors_minimum.data(), eigenvectors_minimum.data() + 2*3*nos);
-            htst_info.eigenvalues_sp.assign(eigenvalues_sp.data(), eigenvalues_sp.data() + 2*nos);
-            // htst_info.eigenvectors_sp.assign(eigenvectors_sp.data(), eigenvectors_sp.data() + 2*3*nos);
-            //     htst_info.eigenvectors_min = std::vector<Vector3>(2*nos);
-            // for( int i=0; i<2*nos; ++i )
-            // {
-            //     htst_info.eigenvectors_min[i] = eigenvectors_minimum[i];
-            // }
-
-            htst_info.temperature_exponent = exponent;
-            htst_info.volume_min           = volume_minimum;
-            htst_info.volume_sp            = volume_sp;
-            htst_info.me                   = me;
-            htst_info.s                    = s;
-            htst_info.Omega_0              = Omega_0;
-            htst_info.prefactor_dynamical  = v;
-            htst_info.prefactor            = prefactor;
+            Log.SendBlock(Utility::Log_Level::All, Utility::Log_Sender::HTST,
+                {
+                    "---- Prefactor calculation successful!",
+                    fmt::format("exponent    = {:^20e}", htst_info.temperature_exponent),
+                    fmt::format("me          = {:^20e}", htst_info.me),
+                    fmt::format("m = Omega_0 = {:^20e}", htst_info.Omega_0),
+                    fmt::format("s           = {:^20e}", htst_info.s),
+                    fmt::format("volume_sp   = {:^20e}", htst_info.volume_sp),
+                    fmt::format("volume_min  = {:^20e}", htst_info.volume_min),
+                    fmt::format("hbar[meV*s] = {:^20e}", C::hbar*1e-12),
+                    fmt::format("v = dynamical prefactor = {:^20e}", htst_info.prefactor_dynamical),
+                    fmt::format("prefactor               = {:^20e}", htst_info.prefactor)
+                }, -1, -1);
         }
 
         // TODO: this does not work in the 2d hexagonal case...
@@ -302,9 +295,12 @@ namespace Engine
                 zero_volume = zero_mode_length[0]*zero_mode_length[1]*zero_mode_length[2] *  volume_factor;
             }
 
-            std::cerr << "ZV zero mode dimensionality = " << zero_mode_dimensionality << std::endl;
-            std::cerr << "ZV         zero mode length = " << zero_mode_length.transpose() << std::endl;
-            std::cerr << "ZV = " << zero_volume << std::endl;
+            Log.SendBlock(Utility::Log_Level::Info, Utility::Log_Sender::HTST,
+                {
+                    fmt::format("ZV zero mode dimensionality = {}", zero_mode_dimensionality),
+                    fmt::format("ZV         zero mode length = {}", zero_mode_length.transpose()),
+                    fmt::format("ZV = {}", zero_volume)
+                }, -1, -1);
 
             // Return
             return zero_volume;
@@ -316,19 +312,19 @@ namespace Engine
         {
             int nos = spins.size();
 
-            std::cerr << "  Calculate_Perpendicular_Velocity: calculate velocity matrix" << std::endl;
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "  Calculate_Perpendicular_Velocity: calculate velocity matrix");
 
             // Calculate the velocity matrix in the 3N-basis
             MatrixX velocity(3*nos, 3*nos);
             Calculate_Dynamical_Matrix(spins, mu_s, hessian, velocity);
 
-            std::cerr << "  Calculate_Perpendicular_Velocity: project velocity matrix" << std::endl;
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "  Calculate_Perpendicular_Velocity: project velocity matrix");
 
             // Project the velocity matrix into the 2N tangent space
             MatrixX velocity_projected(2*nos, 2*nos);
             velocity_projected = basis.transpose()*velocity*basis;
 
-            std::cerr << "  Calculate_Perpendicular_Velocity: calculate a" << std::endl;
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "  Calculate_Perpendicular_Velocity: calculate a");
 
             // QUESTION: is this maybe just eigenbasis^T * velocity_projected * eigenbasis ?
             // Something
@@ -337,8 +333,11 @@ namespace Engine
             // std::cerr << "  Calculate_Perpendicular_Velocity: sorting" << std::endl;
             // std::sort(perpendicular_velocity.data(),perpendicular_velocity.data()+perpendicular_velocity.size());
 
+            std::vector<std::string> block(0);
             for (int i=0; i<10; ++i)
-                std::cerr << fmt::format("  a[{}] = {}", i, perpendicular_velocity[i]) << std::endl;
+                block.push_back(fmt::format("  a[{}] = {}", i, perpendicular_velocity[i]));
+            Log.SendBlock(Utility::Log_Level::Info, Utility::Log_Sender::HTST, block, -1, -1);
+
             // std::cerr << "without units:" << std::endl;
             // for (int i=0; i<10; ++i)
             //     std::cerr << "  a[" << i << "] = " << perpendicular_velocity[i]/C::mu_B << std::endl;
@@ -445,7 +444,7 @@ namespace Engine
         void Geodesic_Eigen_Decomposition(const vectorfield & image, const vectorfield & gradient, const MatrixX & hessian,
             MatrixX & hessian_geodesic_3N, MatrixX & hessian_geodesic_2N, VectorX & eigenvalues, MatrixX & eigenvectors)
         {
-            std::cerr << "---------- Geodesic Eigen Decomposition" << std::endl;
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "---------- Geodesic Eigen Decomposition");
 
             int nos = image.size();
 
@@ -454,7 +453,7 @@ namespace Engine
             hessian_bordered_3N(image, gradient, hessian, hessian_geodesic_3N);
 
             // Transform into geodesic Hessian
-            std::cerr << "    Transforming Hessian into geodesic Hessian..." << std::endl;
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Transforming Hessian into geodesic Hessian...");
             hessian_geodesic_2N = MatrixX::Zero(2*nos, 2*nos);
             // Manifoldmath::hessian_bordered(image, gradient, hessian, hessian_geodesic_2N);
             // Manifoldmath::hessian_projected(image, gradient, hessian, hessian_geodesic_2N);
@@ -470,14 +469,14 @@ namespace Engine
 
 
             // Calculate full eigenspectrum
-            std::cerr << "    Calculation of full eigenspectrum..." << std::endl;
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Calculation of full eigenspectrum..." );
             // std::cerr << hessian_geodesic_2N.cols() << "   " << hessian_geodesic_2N.rows() << std::endl;
             eigenvalues = VectorX::Zero(2*nos);
             eigenvectors = MatrixX::Zero(2*nos, 2*nos);
             Eigen_Decomposition(hessian_geodesic_2N, eigenvalues, eigenvectors);
             // Eigen_Decomposition_Spectra(hessian_geodesic_2N, eigenvalues, eigenvectors);
 
-            std::cerr << "---------- Geodesic Eigen Decomposition Done" << std::endl;
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "---------- Geodesic Eigen Decomposition Done");
         }
 
 

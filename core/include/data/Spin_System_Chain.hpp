@@ -27,6 +27,7 @@ namespace Data
         // vectorfield eigenvectors_min;
         scalarfield eigenvalues_sp;
         // vectorfield eigenvectors_sp;
+        scalarfield perpendicular_velocity;
 
         // Prefactor constituents
         scalar temperature_exponent;

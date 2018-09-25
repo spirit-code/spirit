@@ -28,7 +28,8 @@ typedef enum
     Log_Sender_MMF  = 5,
     Log_Sender_EMA  = 6,
     Log_Sender_API  = 7,
-    Log_Sender_UI   = 8
+    Log_Sender_UI   = 8,
+    Log_Sender_HTST = 9
 } Spirit_Log_Sender;
 
 struct State;
