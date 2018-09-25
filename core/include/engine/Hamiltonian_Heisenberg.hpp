@@ -154,30 +154,29 @@ namespace Engine
 
         // Plans for FT / rFT
         FFT::FFT_Plan fft_plan_spins;
-        FFT::FFT_Plan fft_plan_d;
-        FFT::FFT_Plan fft_plan_rev;
-
-        field<Matrix3c> d_mats_ft;
+        FFT::FFT_Plan fft_plan_dipole;
+        FFT::FFT_Plan fft_plan_reverse;
 
         bool save_dipole_matrices = true;
         field<Matrix3> dipole_matrices;
 
-        int symmetry_count;
-
+        // Number of inter-sublattice contributions
+        int n_inter_sublattice;
         // At which index to look up the inter-sublattice D-matrices
-        field<int> b_diff_lookup;
+        field<int> inter_sublattice_lookup;
+
         // Lengths of padded system
         field<int> n_cells_padded;
         // Total number of padded spins per sublattice
         int sublattice_size;
 
         FFT::StrideContainer spin_stride;
-        FFT::StrideContainer d_stride;
+        FFT::StrideContainer dipole_stride;
 
         //Calculate the FT of the padded D matriess
         void FFT_Dipole_Mats(int img_a, int img_b, int img_c);
         //Calculate the FT of the padded spins
-        void FFT_spins(const vectorfield & spins);
+        void FFT_Spins(const vectorfield & spins);
     };
 
 

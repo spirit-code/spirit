@@ -744,7 +744,7 @@ namespace Engine
     }
 
 
-    __global__ void CU_FFT_Pointwise_Mult(FFT::FFT_cpx_type * ft_D_matrices, FFT::FFT_cpx_type * ft_spins, FFT::FFT_cpx_type * res_mult, int* iteration_bounds, int i_b1, int* b_diff_lookup, FFT::StrideContainer d_stride, FFT::StrideContainer spin_stride)
+    __global__ void CU_FFT_Pointwise_Mult(FFT::FFT_cpx_type * ft_D_matrices, FFT::FFT_cpx_type * ft_spins, FFT::FFT_cpx_type * res_mult, int* iteration_bounds, int i_b1, int* inter_sublattice_lookup, FFT::StrideContainer dipole_stride, FFT::StrideContainer spin_stride)
     {
         int n = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2] * iteration_bounds[3];
         int tupel[4];
@@ -754,22 +754,22 @@ namespace Engine
         {
             tupel_from_idx(ispin, tupel, iteration_bounds, 4); // tupel now is {i_b2, a, b, c}
 
-            int& b_diff = b_diff_lookup[i_b1 + tupel[0] * iteration_bounds[0]];
+            int& b_inter = inter_sublattice_lookup[i_b1 + tupel[0] * iteration_bounds[0]];
 
             idx_b1 = i_b1 * spin_stride.basis     + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b + tupel[3] * spin_stride.c;
             idx_b2 = tupel[0] * spin_stride.basis + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b + tupel[3] * spin_stride.c;
-            idx_d  = b_diff * d_stride.basis      + tupel[1] * d_stride.a    + tupel[2] * d_stride.b    + tupel[3] * d_stride.c;
+            idx_d  = b_inter * dipole_stride.basis      + tupel[1] * dipole_stride.a    + tupel[2] * dipole_stride.b    + tupel[3] * dipole_stride.c;
 
             auto& fs_x = ft_spins[idx_b2                       ];
             auto& fs_y = ft_spins[idx_b2 + 1 * spin_stride.comp];
             auto& fs_z = ft_spins[idx_b2 + 2 * spin_stride.comp];
 
             auto& fD_xx = ft_D_matrices[idx_d                    ];
-            auto& fD_xy = ft_D_matrices[idx_d + 1 * d_stride.comp];
-            auto& fD_xz = ft_D_matrices[idx_d + 2 * d_stride.comp];
-            auto& fD_yy = ft_D_matrices[idx_d + 3 * d_stride.comp];
-            auto& fD_yz = ft_D_matrices[idx_d + 4 * d_stride.comp];
-            auto& fD_zz = ft_D_matrices[idx_d + 5 * d_stride.comp];
+            auto& fD_xy = ft_D_matrices[idx_d + 1 * dipole_stride.comp];
+            auto& fD_xz = ft_D_matrices[idx_d + 2 * dipole_stride.comp];
+            auto& fD_yy = ft_D_matrices[idx_d + 3 * dipole_stride.comp];
+            auto& fD_yz = ft_D_matrices[idx_d + 4 * dipole_stride.comp];
+            auto& fD_zz = ft_D_matrices[idx_d + 5 * dipole_stride.comp];
 
             if(tupel[0] == 0)
             {
@@ -808,11 +808,11 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Gradient_DDI_FFT(const vectorfield & spins, vectorfield & gradient)
     {
-        auto& ft_D_matrices = fft_plan_d.cpx_ptr;
+        auto& ft_D_matrices = fft_plan_dipole.cpx_ptr;
         auto& ft_spins = fft_plan_spins.cpx_ptr;
 
-        auto& res_iFFT = fft_plan_rev.real_ptr;
-        auto& res_mult = fft_plan_rev.cpx_ptr;
+        auto& res_iFFT = fft_plan_reverse.real_ptr;
+        auto& res_mult = fft_plan_reverse.cpx_ptr;
 
         field<int> iteration_bounds = { geometry->n_cell_atoms, 
                                         (n_cells_padded[0]/2 + 1), // due to redundancy in real fft
@@ -821,15 +821,15 @@ namespace Engine
 
         int number_of_mults = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2] * iteration_bounds[3];
 
-        FFT_spins(spins);
+        FFT_Spins(spins);
 
         // TODO: also parallelize over i_b1
         // Loop over basis atoms (i.e sublattices) and add contribution of each sublattice
         for(int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1)
-            CU_FFT_Pointwise_Mult<<<(number_of_mults + 1023) / 1024, 1024>>>(ft_D_matrices.data(), ft_spins.data(), res_mult.data(), iteration_bounds.data(), i_b1, b_diff_lookup.data(), d_stride, spin_stride);
+            CU_FFT_Pointwise_Mult<<<(number_of_mults + 1023) / 1024, 1024>>>(ft_D_matrices.data(), ft_spins.data(), res_mult.data(), iteration_bounds.data(), i_b1, inter_sublattice_lookup.data(), dipole_stride, spin_stride);
         
         
-        FFT::batch_iFour_3D(fft_plan_rev);
+        FFT::batch_iFour_3D(fft_plan_reverse);
 
         field<int> iteration_bounds_write = { geometry->n_cell_atoms, 
                                               geometry->n_cells[0],
@@ -1025,7 +1025,7 @@ namespace Engine
         }
     }
 
-    void Hamiltonian_Heisenberg::FFT_spins(const vectorfield & spins)
+    void Hamiltonian_Heisenberg::FFT_Spins(const vectorfield & spins)
     {
         field<int> iteration_bounds =   {
                                             geometry->n_cell_atoms,
@@ -1038,7 +1038,7 @@ namespace Engine
         FFT::batch_Four_3D(fft_plan_spins);
     }
 
-    __global__ void CU_Write_FFT_Dipole_Input(FFT::FFT_real_type* fft_dipole_inputs, int* iteration_bounds, const Vector3* bravais_vectors, int n_cell_atoms, Vector3* cell_atoms, int* n_cells, int* b_diff_lookup, int* img, FFT::StrideContainer d_stride)
+    __global__ void CU_Write_FFT_Dipole_Input(FFT::FFT_real_type* fft_dipole_inputs, int* iteration_bounds, const Vector3* bravais_vectors, int n_cell_atoms, Vector3* cell_atoms, int* n_cells, int* inter_sublattice_lookup, int* img, FFT::StrideContainer dipole_stride)
     {
         int tupel[3];
         int sublattice_size = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2];
@@ -1050,15 +1050,15 @@ namespace Engine
             auto& a = tupel[0];
             auto& b = tupel[1];
             auto& c = tupel[2];
-            int count = -1;
+            int b_inter = -1;
             for(int i_b1 = 0; i_b1 < n_cell_atoms; ++i_b1)
             {
                 for(int i_b2 = 0; i_b2 < n_cell_atoms; ++i_b2)
                 {
                     if(i_b1 != i_b2 || i_b1 == 0)
                     {
-                        count++;
-                        b_diff_lookup[i_b1 + i_b2 * n_cell_atoms] = count;
+                        b_inter++;
+                        inter_sublattice_lookup[i_b1 + i_b2 * n_cell_atoms] = b_inter;
 
                         int a_idx = a < n_cells[0] ? a : a - iteration_bounds[0];
                         int b_idx = b < n_cells[1] ? b : b - iteration_bounds[1];
@@ -1095,16 +1095,16 @@ namespace Engine
                             }
                         }
 
-                        int idx = count * d_stride.basis + a * d_stride.a + b * d_stride.b + c * d_stride.c;
+                        int idx = b_inter * dipole_stride.basis + a * dipole_stride.a + b * dipole_stride.b + c * dipole_stride.c;
                         fft_dipole_inputs[idx                    ] = Dxx;
-                        fft_dipole_inputs[idx + 1 * d_stride.comp] = Dxy;
-                        fft_dipole_inputs[idx + 2 * d_stride.comp] = Dxz;
-                        fft_dipole_inputs[idx + 3 * d_stride.comp] = Dyy;
-                        fft_dipole_inputs[idx + 4 * d_stride.comp] = Dyz;
-                        fft_dipole_inputs[idx + 5 * d_stride.comp] = Dzz;
+                        fft_dipole_inputs[idx + 1 * dipole_stride.comp] = Dxy;
+                        fft_dipole_inputs[idx + 2 * dipole_stride.comp] = Dxz;
+                        fft_dipole_inputs[idx + 3 * dipole_stride.comp] = Dyy;
+                        fft_dipole_inputs[idx + 4 * dipole_stride.comp] = Dyz;
+                        fft_dipole_inputs[idx + 5 * dipole_stride.comp] = Dzz;
 
                     } else {
-                        b_diff_lookup[i_b1 + i_b2 * n_cell_atoms] = 0;
+                        inter_sublattice_lookup[i_b1 + i_b2 * n_cell_atoms] = 0;
                     }
                     
                 }
@@ -1114,7 +1114,7 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::FFT_Dipole_Mats(int img_a, int img_b, int img_c)
     {
-        auto& fft_dipole_inputs = fft_plan_d.real_ptr;
+        auto& fft_dipole_inputs = fft_plan_dipole.real_ptr;
 
         //Write FFT Dipole Inputs
         field<int> iteration_bounds =   {
@@ -1140,9 +1140,9 @@ namespace Engine
         CU_Write_FFT_Dipole_Input<<<(sublattice_size + 1023)/1024, 1024>>>
         (   fft_dipole_inputs.data(), iteration_bounds.data(), bravais_vectors.data(), 
             geometry->n_cell_atoms, cell_atoms.data(), geometry->n_cells.data(), 
-            b_diff_lookup.data(), img.data(), d_stride
+            inter_sublattice_lookup.data(), img.data(), dipole_stride
         );
-        FFT::batch_Four_3D(fft_plan_d);
+        FFT::batch_Four_3D(fft_plan_dipole);
     }
 
     void Hamiltonian_Heisenberg::Prepare_DDI()
@@ -1153,7 +1153,7 @@ namespace Engine
         n_cells_padded[2] = (geometry->n_cells[2] > 1) ? 2 * geometry->n_cells[2] : 1;
         sublattice_size = n_cells_padded[0] * n_cells_padded[1] * n_cells_padded[2];
 
-        b_diff_lookup.resize(geometry->n_cell_atoms * geometry->n_cell_atoms);
+        inter_sublattice_lookup.resize(geometry->n_cell_atoms * geometry->n_cell_atoms);
 
         //we dont need to transform over length 1 dims
         std::vector<int> fft_dims;
@@ -1164,23 +1164,23 @@ namespace Engine
         }
 
         //Count how many distinct inter-lattice contributions we need to store
-        symmetry_count = 0;
+        n_inter_sublattice = 0;
         for(int i = 0; i < geometry->n_cell_atoms; i++)
         {
             for(int j = 0; j < geometry->n_cell_atoms; j++)
             {
                 if(i != 0 && i==j) continue;
-                symmetry_count++;
+                n_inter_sublattice++;
             }
         }
  
         //Create fft plans.
-        fft_plan_d.dims     = fft_dims;
-        fft_plan_d.inverse  = false;
-        fft_plan_d.howmany  = 6 * symmetry_count;
-        fft_plan_d.real_ptr = field<FFT::FFT_real_type>(symmetry_count * 6 * sublattice_size);
-        fft_plan_d.cpx_ptr  = field<FFT::FFT_cpx_type>(symmetry_count * 6 * sublattice_size);
-        fft_plan_d.CreateConfiguration();
+        fft_plan_dipole.dims     = fft_dims;
+        fft_plan_dipole.inverse  = false;
+        fft_plan_dipole.howmany  = 6 * n_inter_sublattice;
+        fft_plan_dipole.real_ptr = field<FFT::FFT_real_type>(6 * n_inter_sublattice * sublattice_size);
+        fft_plan_dipole.cpx_ptr  = field<FFT::FFT_cpx_type>(6 * n_inter_sublattice * sublattice_size);
+        fft_plan_dipole.CreateConfiguration();
 
         fft_plan_spins.dims     = fft_dims;
         fft_plan_spins.inverse  = false;
@@ -1189,18 +1189,18 @@ namespace Engine
         fft_plan_spins.cpx_ptr  = field<FFT::FFT_cpx_type>(3 * sublattice_size * geometry->n_cell_atoms);
         fft_plan_spins.CreateConfiguration();
 
-        fft_plan_rev.dims     = fft_dims;
-        fft_plan_rev.inverse  = true;
-        fft_plan_rev.howmany  = 3 * geometry->n_cell_atoms;
-        fft_plan_rev.cpx_ptr  = field<FFT::FFT_cpx_type>(3 * sublattice_size * geometry->n_cell_atoms);
-        fft_plan_rev.real_ptr = field<FFT::FFT_real_type>(3 * sublattice_size * geometry->n_cell_atoms);
-        fft_plan_rev.CreateConfiguration();
+        fft_plan_reverse.dims     = fft_dims;
+        fft_plan_reverse.inverse  = true;
+        fft_plan_reverse.howmany  = 3 * geometry->n_cell_atoms;
+        fft_plan_reverse.cpx_ptr  = field<FFT::FFT_cpx_type>(3 * sublattice_size * geometry->n_cell_atoms);
+        fft_plan_reverse.real_ptr = field<FFT::FFT_real_type>(3 * sublattice_size * geometry->n_cell_atoms);
+        fft_plan_reverse.CreateConfiguration();
 
 
         field<int*> temp_s = {&spin_stride.comp, &spin_stride.basis, &spin_stride.a, &spin_stride.b, &spin_stride.c};
-        field<int*> temp_d = {&d_stride.comp, &d_stride.basis, &d_stride.a, &d_stride.b, &d_stride.c};;
+        field<int*> temp_d = {&dipole_stride.comp, &dipole_stride.basis, &dipole_stride.a, &dipole_stride.b, &dipole_stride.c};;
         FFT::get_strides(temp_s, {3, this->geometry->n_cell_atoms, n_cells_padded[0], n_cells_padded[1], n_cells_padded[2]});
-        FFT::get_strides(temp_d, {6, symmetry_count, n_cells_padded[0], n_cells_padded[1], n_cells_padded[2]});
+        FFT::get_strides(temp_d, {6, n_inter_sublattice, n_cells_padded[0], n_cells_padded[1], n_cells_padded[2]});
        
         //perform FFT of dipole matrices
         int img_a = boundary_conditions[0] == 0 ? 0 : ddi_n_periodic_images[0];
