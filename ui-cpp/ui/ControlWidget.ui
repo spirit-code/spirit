@@ -319,6 +319,11 @@
        </item>
        <item>
         <property name="text">
+         <string>RK4</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
          <string>VP</string>
         </property>
        </item>

@@ -307,7 +307,7 @@ namespace Engine
                 }
             }
 
-            // TODO: parameter to switch between mode and gradient for escape from positive region
+            // TODO: parameter whether to *always* follow the minimum mode
             if (false)
             {
                 // Invert the gradient force along the minimum mode
@@ -544,6 +544,7 @@ namespace Engine
     template class Method_MMF<Solver::SIB>;
     template class Method_MMF<Solver::Heun>;
     template class Method_MMF<Solver::Depondt>;
+    template class Method_MMF<Solver::RungeKutta4>;
     template class Method_MMF<Solver::NCG>;
     template class Method_MMF<Solver::VP>;
 }

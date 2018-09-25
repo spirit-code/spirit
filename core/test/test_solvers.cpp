@@ -20,7 +20,7 @@ TEST_CASE( "Solvers testing", "[solvers]" )
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
     
     // Solvers to be tested
-    std::vector<int>  solvers { Solver_VP, Solver_Heun, Solver_SIB, Solver_Depondt };
+    std::vector<int>  solvers { Solver_VP, Solver_Heun, Solver_SIB, Solver_Depondt, Solver_RungeKutta4 };
     
     // Expected values
     float energy_expected = -5849.69140625f;

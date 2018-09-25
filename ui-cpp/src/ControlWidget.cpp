@@ -168,6 +168,8 @@ void ControlWidget::play_pause()
         solver = Solver_Depondt;
     else if( s_solver == "Heun" )
         solver = Solver_Heun;
+    else if( s_solver == "RK4" )
+        solver = Solver_RungeKutta4;
 
     if( Simulation_Running_On_Image(this->state.get()) ||
         Simulation_Running_On_Chain(this->state.get()) )

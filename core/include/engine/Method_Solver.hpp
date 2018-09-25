@@ -30,6 +30,7 @@ namespace Engine
         SIB = Solver_SIB,
         Heun = Solver_Heun,
         Depondt = Solver_Depondt,
+        RungeKutta4 = Solver_RungeKutta4,
         NCG = -2,
         BFGS = -3,
         VP = Solver_VP
@@ -169,6 +170,12 @@ namespace Engine
         // Virtual Forces used in the Steps
         std::vector<vectorfield> forces_virtual;
         std::vector<vectorfield> forces_virtual_predictor;
+
+        // RK 4
+        std::vector<std::shared_ptr<vectorfield>> configurations_k1;
+        std::vector<std::shared_ptr<vectorfield>> configurations_k2;
+        std::vector<std::shared_ptr<vectorfield>> configurations_k3;
+        std::vector<std::shared_ptr<vectorfield>> configurations_k4;
 
         // Random vector array
         vectorfield xi;
@@ -313,6 +320,7 @@ namespace Engine
     #include <engine/Solver_SIB.hpp>
     #include <engine/Solver_VP.hpp>
     #include <engine/Solver_Heun.hpp>
+    #include <engine/Solver_RK4.hpp>
     #include <engine/Solver_Depondt.hpp>
     #include <engine/Solver_NCG.hpp>
 }

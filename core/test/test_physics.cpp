@@ -24,7 +24,7 @@ TEST_CASE( "Larmor Precession","[physics]" )
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
 
     // Solvers to be tested
-    std::vector<int>  solvers{ Solver_Heun, Solver_Depondt, Solver_SIB };
+    std::vector<int>  solvers{ Solver_Heun, Solver_Depondt, Solver_SIB, Solver_RungeKutta4 };
 
     // Set up one the initial direction of the spin
     float init_direction[3] = { 1., 0., 0. };                // vec parallel to x-axis

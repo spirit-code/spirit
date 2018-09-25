@@ -406,6 +406,7 @@ namespace Engine
     template class Method_GNEB<Solver::SIB>;
     template class Method_GNEB<Solver::Heun>;
     template class Method_GNEB<Solver::Depondt>;
+    template class Method_GNEB<Solver::RungeKutta4>;
     template class Method_GNEB<Solver::NCG>;
     template class Method_GNEB<Solver::VP>;
 }

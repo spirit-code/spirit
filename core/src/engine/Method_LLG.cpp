@@ -403,6 +403,7 @@ namespace Engine
     template class Method_LLG<Solver::SIB>;
     template class Method_LLG<Solver::Heun>;
     template class Method_LLG<Solver::Depondt>;
+    template class Method_LLG<Solver::RungeKutta4>;
     template class Method_LLG<Solver::NCG>;
     template class Method_LLG<Solver::VP>;
 }
