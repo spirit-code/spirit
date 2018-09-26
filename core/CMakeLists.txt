@@ -207,7 +207,7 @@ configure_file(${PROJECT_SOURCE_DIR}/CMake/Spirit_Version.hpp.in ${PROJECT_SOURC
 
 
 ######### CUDA decisions ####################
-if ( SPIRIT_USE_CUDA )
+if( SPIRIT_USE_CUDA )
     # set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
     find_package( CUDA 8 REQUIRED )
     add_definitions( -DSPIRIT_USE_CUDA )
@@ -215,13 +215,17 @@ if ( SPIRIT_USE_CUDA )
     # --std=c++11 flag may be necessary, but it is propagated from global flags...
     # if it appears twice, for some reason the compilation breaks
     set( CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -lineinfo -arch=sm_60 --expt-relaxed-constexpr" )
-    message( STATUS ">> Using CUDA. Flags: ${CUDA_NVCC_FLAGS}" )
+    message( STATUS ">> Using CUDA" )
+    message( STATUS ">> CUDA flags:     ${CUDA_NVCC_FLAGS}" )
+    set( FFT_LIB ${CUDA_CUFFT_LIBRARIES} )
+    set( SPIRIT_CUDA_LIBS "${CUDA_LIBRARIES};${CUDA_CUFFT_LIBRARIES};${CUDA_curand_LIBRARY}" )
+    message( STATUS ">> CUDA libraries: ${SPIRIT_CUDA_LIBS}" )
 endif()
 #############################################
 
 
 ######### OpenMP decisions ##################
-if ( SPIRIT_USE_OPENMP )
+if( SPIRIT_USE_OPENMP )
     include( FindOpenMP )
     if( OPENMP_FOUND )
         set( CMAKE_C_FLAGS          "${CMAKE_C_FLAGS}          ${OpenMP_C_FLAGS}" )
@@ -240,10 +244,7 @@ endif( )
 
 
 ######## FFT decisions ######################
-if( SPIRIT_USE_CUDA )
-    message( STATUS ">> Using cuFFT" )
-    set( FFT_LIB cufft )
-else( )
+if( NOT SPIRIT_USE_CUDA )
     if( SPIRIT_USE_FFTW )
         include(FindFFTW)
         if( FFTW_FOUND )
@@ -407,7 +408,7 @@ else()
     if( SPIRIT_BUILD_FOR_CXX )
         cuda_add_library( ${META_PROJECT_NAME}_static STATIC ${SPIRIT_LIBRARY_SOURCES} )
         add_dependencies(${META_PROJECT_NAME}_static ${qhull_LIBS})
-        target_link_libraries( ${META_PROJECT_NAME}_static ${qhull_LIBS} ${THREAD_LIBS} ${CUDA_LIBRARIES} ${FFT_LIB} )
+        target_link_libraries( ${META_PROJECT_NAME}_static ${qhull_LIBS} ${THREAD_LIBS} ${SPIRIT_CUDA_LIBS} )
     endif()
 endif()
 #############################################
@@ -439,7 +440,7 @@ if( SPIRIT_BUILD_FOR_PYTHON )
         include_directories( ${META_PROJECT_NAME}_python PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/thirdparty )
         cuda_add_library( ${META_PROJECT_NAME}_python SHARED ${SPIRIT_LIBRARY_SOURCES} )
         add_dependencies(${META_PROJECT_NAME}_static ${qhull_LIBS})
-        target_link_libraries( ${META_PROJECT_NAME}_python ${qhull_LIBS} ${THREAD_LIBS} ${CUDA_LIBRARIES} ${FFT_LIB} )
+        target_link_libraries( ${META_PROJECT_NAME}_python ${qhull_LIBS} ${THREAD_LIBS} ${SPIRIT_CUDA_LIBS} )
     endif()
     ### We want it to be called spirit, not spirit_python
     set_target_properties( ${META_PROJECT_NAME}_python PROPERTIES OUTPUT_NAME "${META_PROJECT_NAME}" )
