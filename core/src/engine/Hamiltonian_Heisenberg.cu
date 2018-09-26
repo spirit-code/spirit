@@ -1038,7 +1038,7 @@ namespace Engine
         FFT::batch_Four_3D(fft_plan_spins);
     }
 
-    __global__ void CU_Write_FFT_Dipole_Input(FFT::FFT_real_type* fft_dipole_inputs, int* iteration_bounds, const Vector3* bravais_vectors, int n_cell_atoms, Vector3* cell_atoms, int* n_cells, int* inter_sublattice_lookup, int* img, FFT::StrideContainer dipole_stride)
+    __global__ void CU_Write_FFT_Dipole_Input(FFT::FFT_real_type* fft_dipole_inputs, int* iteration_bounds, const Vector3* bravais_vectors, int n_cell_atoms, Vector3* cell_atoms, int* n_cells, int* inter_sublattice_lookup, int* img, FFT::StrideContainer dipole_stride, scalar lattice_constant)
     {
         int tupel[3];
         int sublattice_size = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2];
@@ -1075,9 +1075,9 @@ namespace Engine
                                 for(int c_pb = -img[2]; c_pb <= img[2]; c_pb++)
                                 {
 
-                                    diff =    (a_idx + a_pb * n_cells[0] + cell_atoms[i_b1][0] - cell_atoms[i_b2][0]) * bravais_vectors[0]
-                                            + (b_idx + b_pb * n_cells[1] + cell_atoms[i_b1][1] - cell_atoms[i_b2][1]) * bravais_vectors[1]
-                                            + (c_idx + c_pb * n_cells[2] + cell_atoms[i_b1][2] - cell_atoms[i_b2][2]) * bravais_vectors[2];
+                                    diff =    lattice_constant * (a_idx + a_pb * n_cells[0] + cell_atoms[i_b1][0] - cell_atoms[i_b2][0]) * bravais_vectors[0]
+                                            + lattice_constant * (b_idx + b_pb * n_cells[1] + cell_atoms[i_b1][1] - cell_atoms[i_b2][1]) * bravais_vectors[1]
+                                            + lattice_constant * (c_idx + c_pb * n_cells[2] + cell_atoms[i_b1][2] - cell_atoms[i_b2][2]) * bravais_vectors[2];
 
                                     if(diff.norm() > 1e-10)
                                     {
@@ -1112,7 +1112,7 @@ namespace Engine
         }
     }
 
-    void Hamiltonian_Heisenberg::FFT_Dipole_Mats(int img_a, int img_b, int img_c)
+    void Hamiltonian_Heisenberg::FFT_Dipole_Matrices(int img_a, int img_b, int img_c)
     {
         auto& fft_dipole_inputs = fft_plan_dipole.real_ptr;
 
@@ -1140,7 +1140,7 @@ namespace Engine
         CU_Write_FFT_Dipole_Input<<<(sublattice_size + 1023)/1024, 1024>>>
         (   fft_dipole_inputs.data(), iteration_bounds.data(), bravais_vectors.data(), 
             geometry->n_cell_atoms, cell_atoms.data(), geometry->n_cells.data(), 
-            inter_sublattice_lookup.data(), img.data(), dipole_stride
+            inter_sublattice_lookup.data(), img.data(), dipole_stride, geometry->lattice_constant
         );
         FFT::batch_Four_3D(fft_plan_dipole);
     }
@@ -1206,7 +1206,7 @@ namespace Engine
         int img_a = boundary_conditions[0] == 0 ? 0 : ddi_n_periodic_images[0];
         int img_b = boundary_conditions[1] == 0 ? 0 : ddi_n_periodic_images[1];
         int img_c = boundary_conditions[2] == 0 ? 0 : ddi_n_periodic_images[2];
-        FFT_Dipole_Mats(img_a, img_b, img_c);
+        FFT_Dipole_Matrices(img_a, img_b, img_c);
     }//end prepare
 
     // Hamiltonian name as string

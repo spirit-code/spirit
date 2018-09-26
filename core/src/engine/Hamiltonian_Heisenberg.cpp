@@ -1078,7 +1078,7 @@ namespace Engine
         FFT::batch_Four_3D(fft_plan_spins);
     }
 
-    void Hamiltonian_Heisenberg::FFT_Dipole_Mats(int img_a, int img_b, int img_c)
+    void Hamiltonian_Heisenberg::FFT_Dipole_Matrices(int img_a, int img_b, int img_c)
     {
         //prefactor of ddi interaction
         scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
@@ -1127,9 +1127,9 @@ namespace Engine
                                 {
                                     for(int c_pb = -img_c; c_pb <= img_c; c_pb++)
                                     {
-                                        diff =    (a_idx + a_pb * Na + geometry->cell_atoms[i_b1][0] - geometry->cell_atoms[i_b2][0]) * ta
-                                                + (b_idx + b_pb * Nb + geometry->cell_atoms[i_b1][1] - geometry->cell_atoms[i_b2][1]) * tb
-                                                + (c_idx + c_pb * Nc + geometry->cell_atoms[i_b1][2] - geometry->cell_atoms[i_b2][2]) * tc;
+                                        diff =    geometry->lattice_constant * (a_idx + a_pb * Na + geometry->cell_atoms[i_b1][0] - geometry->cell_atoms[i_b2][0]) * ta
+                                                + geometry->lattice_constant * (b_idx + b_pb * Nb + geometry->cell_atoms[i_b1][1] - geometry->cell_atoms[i_b2][1]) * tb
+                                                + geometry->lattice_constant * (c_idx + c_pb * Nc + geometry->cell_atoms[i_b1][2] - geometry->cell_atoms[i_b2][2]) * tc;
                                         if(diff.norm() > 1e-10)
                                         {
                                             auto d = diff.norm();
@@ -1254,7 +1254,7 @@ namespace Engine
 
         if(save_dipole_matrices)
             dipole_matrices = field<Matrix3>(n_inter_sublattice * geometry->n_cells_total);
-        FFT_Dipole_Mats(img_a, img_b, img_c);
+        FFT_Dipole_Matrices(img_a, img_b, img_c);
     }
 
     // Hamiltonian name as string

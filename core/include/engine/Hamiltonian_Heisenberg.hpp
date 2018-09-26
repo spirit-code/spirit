@@ -174,7 +174,7 @@ namespace Engine
         FFT::StrideContainer dipole_stride;
 
         //Calculate the FT of the padded D matriess
-        void FFT_Dipole_Mats(int img_a, int img_b, int img_c);
+        void FFT_Dipole_Matrices(int img_a, int img_b, int img_c);
         //Calculate the FT of the padded spins
         void FFT_Spins(const vectorfield & spins);
     };
