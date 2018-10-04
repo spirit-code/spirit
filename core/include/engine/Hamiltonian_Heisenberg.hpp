@@ -177,6 +177,12 @@ namespace Engine
         void FFT_Dipole_Matrices(int img_a, int img_b, int img_c);
         //Calculate the FT of the padded spins
         void FFT_Spins(const vectorfield & spins);
+
+        //Bounds for nested for loops. Only important for the CUDA version
+        field<int> it_bounds_pointwise_mult;
+        field<int> it_bounds_write_gradients;
+        field<int> it_bounds_write_spins;
+        field<int> it_bounds_write_dipole;
     };
 
 

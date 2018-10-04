@@ -426,8 +426,8 @@ namespace Engine
             // }
             // std::cerr << "Avg. Gradient (Direct) = " << avg[0]/this->geometry->nos << " " << avg[1]/this->geometry->nos << " " << avg[2]/this->geometry->nos << std::endl;
             // std::cerr << "Avg. Gradient (FFT)    = " << avg_ft[0]/this->geometry->nos << " " << avg_ft[1]/this->geometry->nos << " " << avg_ft[2]/this->geometry->nos << std::endl;
-            // std::cerr << "Ratio                  = " << avg_ft[0]/avg[0] << " " << avg_ft[1]/avg[1] << " " << avg_ft[2]/avg[2] << std::endl;            
-            // std::cerr << "Avg. Deviation         = " << deviation[0]/this->geometry->nos << " " << deviation[1]/this->geometry->nos << " " << deviation[2]/this->geometry->nos << std::endl;
+            // std::cerr << "Relative Error in %    = " << (avg_ft[0]/avg[0]-1)*100 << " " << (avg_ft[1]/avg[1]-1)*100 << " " << (avg_ft[2]/avg[2]-1)*100 << std::endl;            
+            // std::cerr << "Avg. Deviation         = " << std::pow(deviation[0]/this->geometry->nos, 0.5) << " " << std::pow(deviation[1]/this->geometry->nos, 0.5) << " " << std::pow(deviation[2]/this->geometry->nos, 0.5) << std::endl;
             // std::cerr << " ---------------- " << std::endl;
         // ==== DEBUG: end gradient comparison ====
 
@@ -743,7 +743,6 @@ namespace Engine
         // TODO
     }
 
-
     __global__ void CU_FFT_Pointwise_Mult(FFT::FFT_cpx_type * ft_D_matrices, FFT::FFT_cpx_type * ft_spins, FFT::FFT_cpx_type * res_mult, int* iteration_bounds, int i_b1, int* inter_sublattice_lookup, FFT::StrideContainer dipole_stride, FFT::StrideContainer spin_stride)
     {
         int n = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2] * iteration_bounds[3];
@@ -756,9 +755,9 @@ namespace Engine
 
             int& b_inter = inter_sublattice_lookup[i_b1 + tupel[0] * iteration_bounds[0]];
 
-            idx_b1 = i_b1 * spin_stride.basis     + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b + tupel[3] * spin_stride.c;
-            idx_b2 = tupel[0] * spin_stride.basis + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b + tupel[3] * spin_stride.c;
-            idx_d  = b_inter * dipole_stride.basis      + tupel[1] * dipole_stride.a    + tupel[2] * dipole_stride.b    + tupel[3] * dipole_stride.c;
+            idx_b1 = i_b1 * spin_stride.basis      + tupel[1] * spin_stride.a   + tupel[2] * spin_stride.b   + tupel[3] * spin_stride.c;
+            idx_b2 = tupel[0] * spin_stride.basis  + tupel[1] * spin_stride.a   + tupel[2] * spin_stride.b   + tupel[3] * spin_stride.c;
+            idx_d  = b_inter * dipole_stride.basis + tupel[1] * dipole_stride.a + tupel[2] * dipole_stride.b + tupel[3] * dipole_stride.c;
 
             auto& fs_x = ft_spins[idx_b2                       ];
             auto& fs_y = ft_spins[idx_b2 + 1 * spin_stride.comp];
@@ -814,29 +813,18 @@ namespace Engine
         auto& res_iFFT = fft_plan_reverse.real_ptr;
         auto& res_mult = fft_plan_reverse.cpx_ptr;
 
-        field<int> iteration_bounds = { geometry->n_cell_atoms, 
-                                        (n_cells_padded[0]/2 + 1), // due to redundancy in real fft
-                                        n_cells_padded[1], 
-                                        n_cells_padded[2] };
-
-        int number_of_mults = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2] * iteration_bounds[3];
+        int number_of_mults = it_bounds_pointwise_mult[0] * it_bounds_pointwise_mult[1] * it_bounds_pointwise_mult[2] * it_bounds_pointwise_mult[3];
 
         FFT_Spins(spins);
 
         // TODO: also parallelize over i_b1
         // Loop over basis atoms (i.e sublattices) and add contribution of each sublattice
         for(int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1)
-            CU_FFT_Pointwise_Mult<<<(number_of_mults + 1023) / 1024, 1024>>>(ft_D_matrices.data(), ft_spins.data(), res_mult.data(), iteration_bounds.data(), i_b1, inter_sublattice_lookup.data(), dipole_stride, spin_stride);
-        
+            CU_FFT_Pointwise_Mult<<<(number_of_mults + 1023) / 1024, 1024>>>(ft_D_matrices.data(), ft_spins.data(), res_mult.data(), it_bounds_pointwise_mult.data(), i_b1, inter_sublattice_lookup.data(), dipole_stride, spin_stride);
         
         FFT::batch_iFour_3D(fft_plan_reverse);
 
-        field<int> iteration_bounds_write = { geometry->n_cell_atoms, 
-                                              geometry->n_cells[0],
-                                              geometry->n_cells[1], 
-                                              geometry->n_cells[2] };
-
-        CU_Write_FFT_Gradients<<<(geometry->nos + 1023) / 1024, 1024>>>(res_iFFT.data(), gradient.data(), spin_stride, iteration_bounds_write.data(), geometry->n_cell_atoms, geometry->mu_s.data(), sublattice_size);
+        CU_Write_FFT_Gradients<<<(geometry->nos + 1023) / 1024, 1024>>>(res_iFFT.data(), gradient.data(), spin_stride, it_bounds_write_gradients.data(), geometry->n_cell_atoms, geometry->mu_s.data(), sublattice_size);
 
     }//end Field_DipoleDipole
 
@@ -1027,14 +1015,7 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::FFT_Spins(const vectorfield & spins)
     {
-        field<int> iteration_bounds =   {
-                                            geometry->n_cell_atoms,
-                                            geometry->n_cells[0],
-                                            geometry->n_cells[1],
-                                            geometry->n_cells[2],
-                                        };
-
-        CU_Write_FFT_Spin_Input<<<(geometry->nos + 1023) / 1024, 1024>>>(fft_plan_spins.real_ptr.data(), spins.data(), iteration_bounds.data(), spin_stride, geometry->mu_s.data());
+        CU_Write_FFT_Spin_Input<<<(geometry->nos + 1023) / 1024, 1024>>>(fft_plan_spins.real_ptr.data(), spins.data(), it_bounds_write_spins.data(), spin_stride, geometry->mu_s.data());
         FFT::batch_Four_3D(fft_plan_spins);
     }
 
@@ -1116,12 +1097,6 @@ namespace Engine
     {
         auto& fft_dipole_inputs = fft_plan_dipole.real_ptr;
 
-        //Write FFT Dipole Inputs
-        field<int> iteration_bounds =   {
-                                            n_cells_padded[0],
-                                            n_cells_padded[1],
-                                            n_cells_padded[2]
-                                        };
         field<int> img = {
                             img_a,
                             img_b,
@@ -1138,7 +1113,7 @@ namespace Engine
             cell_atoms.push_back(geometry->cell_atoms[i]);
 
         CU_Write_FFT_Dipole_Input<<<(sublattice_size + 1023)/1024, 1024>>>
-        (   fft_dipole_inputs.data(), iteration_bounds.data(), bravais_vectors.data(), 
+        (   fft_dipole_inputs.data(), it_bounds_write_dipole.data(), bravais_vectors.data(), 
             geometry->n_cell_atoms, cell_atoms.data(), geometry->n_cells.data(), 
             inter_sublattice_lookup.data(), img.data(), dipole_stride, geometry->lattice_constant
         );
@@ -1174,6 +1149,26 @@ namespace Engine
             }
         }
  
+        //Set the iteration bounds for the nested for loops that are flattened in the kernels
+        it_bounds_write_spins     = { geometry->n_cell_atoms,
+                                      geometry->n_cells[0],
+                                      geometry->n_cells[1],
+                                      geometry->n_cells[2] };
+
+        it_bounds_write_dipole    = { n_cells_padded[0],
+                                      n_cells_padded[1],
+                                      n_cells_padded[2]};
+
+        it_bounds_pointwise_mult  = { geometry->n_cell_atoms, 
+                                      (n_cells_padded[0]/2 + 1), // due to redundancy in real fft
+                                      n_cells_padded[1], 
+                                      n_cells_padded[2] };
+
+        it_bounds_write_gradients = { geometry->n_cell_atoms, 
+                                      geometry->n_cells[0],
+                                      geometry->n_cells[1], 
+                                      geometry->n_cells[2] };
+ 
         //Create fft plans.
         fft_plan_dipole.dims     = fft_dims;
         fft_plan_dipole.inverse  = false;
@@ -1195,7 +1190,6 @@ namespace Engine
         fft_plan_reverse.cpx_ptr  = field<FFT::FFT_cpx_type>(3 * sublattice_size * geometry->n_cell_atoms);
         fft_plan_reverse.real_ptr = field<FFT::FFT_real_type>(3 * sublattice_size * geometry->n_cell_atoms);
         fft_plan_reverse.CreateConfiguration();
-
 
         field<int*> temp_s = {&spin_stride.comp, &spin_stride.basis, &spin_stride.a, &spin_stride.b, &spin_stride.c};
         field<int*> temp_d = {&dipole_stride.comp, &dipole_stride.basis, &dipole_stride.a, &dipole_stride.b, &dipole_stride.c};;
