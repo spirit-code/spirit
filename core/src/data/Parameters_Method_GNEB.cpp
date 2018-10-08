@@ -12,7 +12,8 @@ namespace Data
         output_energies_step(output[3]), output_energies_interpolated(output[4]), 
         output_energies_divide_by_nspins(output[5]), output_chain_step(output[6]),
         output_energies_add_readability_lines(output[7]), output_chain_filetype(output_chain_filetype),
-        temperature(0), rng_seed(2006), prng(std::mt19937(2006))
+        temperature(0), rng_seed(2006), prng(std::mt19937(2006)),
+        spring_force_ratio(0), path_shortening_constant(0)
     {
     }
 }

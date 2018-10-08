@@ -24,6 +24,13 @@ namespace Data
         // Strength of springs between images
         scalar spring_constant;
 
+        // The ratio of energy to reaction coordinate in the spring force
+        //      0 is Rx only, 1 is E only
+        scalar spring_force_ratio;
+
+        // With which minimum norm per spin the path shortening force should be applied
+        scalar path_shortening_constant;
+
         // Number of Energy interpolations between Images
         int n_E_interpolations;
 

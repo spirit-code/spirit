@@ -17,6 +17,8 @@ DLLEXPORT void Parameters_GNEB_Set_N_Iterations(State *state, int n_iterations, 
 // Simulation Parameters
 DLLEXPORT void Parameters_GNEB_Set_Convergence(State *state, float convergence, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_GNEB_Set_Spring_Constant(State *state, float spring_constant, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_GNEB_Set_Spring_Force_Ratio(State *state, float ratio, int idx_chain=-1) noexcept;
+DLLEXPORT void Parameters_GNEB_Set_Path_Shortening_Constant(State *state, float path_shortening_constant, int idx_chain=-1) noexcept;
 DLLEXPORT void Parameters_GNEB_Set_Climbing_Falling(State *state, int image_type, int idx_image=-1, int idx_chain=-1) noexcept;
 // Automatically set the image type for a chain.
 //    Maxima are set to climbing, minima to falling, others are not changed.
@@ -34,6 +36,8 @@ DLLEXPORT void Parameters_GNEB_Get_N_Iterations(State *state, int * iterations, 
 // Simulation Parameters
 DLLEXPORT float Parameters_GNEB_Get_Convergence(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT float Parameters_GNEB_Get_Spring_Constant(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT float Parameters_GNEB_Get_Spring_Force_Ratio(State *state, int idx_chain=-1) noexcept;
+DLLEXPORT float Parameters_GNEB_Get_Path_Shortening_Constant(State *state, int idx_chain=-1) noexcept;
 DLLEXPORT int Parameters_GNEB_Get_Climbing_Falling(State *state, int idx_image=-1, int idx_chain=-1) noexcept;
 DLLEXPORT int Parameters_GNEB_Get_N_Energy_Interpolations(State *state, int idx_chain=-1) noexcept;
 

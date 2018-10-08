@@ -164,6 +164,12 @@ void ParametersWidget::Load_Parameters_Contents()
     // GNEB Spring Constant
     d = Parameters_GNEB_Get_Spring_Constant(state.get());
     this->lineEdit_gneb_springconstant->setText(QString::number(d));
+    // Spring force ratio
+    d = Parameters_GNEB_Get_Spring_Force_Ratio(state.get());
+    this->lineEdit_gneb_springforceratio->setText(QString::number(d));
+    // Path shortening constant
+    d = Parameters_GNEB_Get_Path_Shortening_Constant(state.get());
+    this->spinBox_gneb_pathshorteningconstant->setValue(std::log10(d));
 
     // Normal/Climbing/Falling image radioButtons
     image_type = Parameters_GNEB_Get_Climbing_Falling(state.get());
@@ -399,10 +405,19 @@ void ParametersWidget::set_parameters_gneb()
     // Convergence
     d = std::pow(10, this->spinBox_gneb_convergence->value());
     Parameters_GNEB_Set_Convergence(this->state.get(), d, -1);
-    // Spring Constant
+    // Spring constant
     d = this->lineEdit_gneb_springconstant->text().toFloat();
     Parameters_GNEB_Set_Spring_Constant(state.get(), d, -1);
-    // Climbing/Falling Image
+    // Spring force ratio
+    d = this->lineEdit_gneb_springforceratio->text().toFloat();
+    Parameters_GNEB_Set_Spring_Force_Ratio(state.get(), d);
+    // Path shortening force
+    if( this->checkBox_gneb_pathshortening->isChecked() )
+        d = std::pow(10, this->spinBox_gneb_pathshorteningconstant->text().toFloat());
+    else
+        d = 0;
+    Parameters_GNEB_Set_Path_Shortening_Constant(state.get(), d);
+    // Climbing/falling image
     int image_type = 0;
     if (this->radioButton_ClimbingImage->isChecked())
         image_type = 1;
@@ -625,6 +640,9 @@ void ParametersWidget::Setup_Parameters_Slots()
     //      GNEB
     // Spring Constant
     connect(this->lineEdit_gneb_springconstant, SIGNAL(returnPressed()), this, SLOT(set_parameters_gneb()));
+    connect(this->lineEdit_gneb_springforceratio, SIGNAL(returnPressed()), this, SLOT(set_parameters_gneb()));
+    connect(this->checkBox_gneb_pathshortening, SIGNAL(stateChanged(int)), this, SLOT(set_parameters_gneb()));
+    connect(this->spinBox_gneb_pathshorteningconstant, SIGNAL(editingFinished()), this, SLOT(set_parameters_gneb()));
     // Image type
     connect(this->pushButton_auto_image_type, SIGNAL(clicked()), this, SLOT(set_gneb_auto_image_type()));
     connect(this->radioButton_Normal, SIGNAL(clicked()), this, SLOT(set_parameters_gneb()));
@@ -688,5 +706,6 @@ void ParametersWidget::Setup_Input_Validators()
     this->lineEdit_llg_temperature_dir_y->setValidator(this->number_validator);
     this->lineEdit_llg_temperature_dir_z->setValidator(this->number_validator);
     //      GNEB
-    this->lineEdit_gneb_springconstant->setValidator(this->number_validator);
+    this->lineEdit_gneb_springconstant->setValidator(this->number_validator_unsigned);
+    this->lineEdit_gneb_springforceratio->setValidator(this->number_validator_unsigned);
 }
