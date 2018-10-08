@@ -21,8 +21,16 @@ void Helper_System_Set_Geometry(std::shared_ptr<Data::Spin_System> system, const
     system->nos = nos;
     
     // Move the vector-fields to the new geometry
-    *system->spins = Engine::Vectormath::change_dimensions(*system->spins, old_geometry, new_geometry, {0,0,1});
-    system->effective_field = Engine::Vectormath::change_dimensions(system->effective_field, old_geometry, new_geometry, {0,0,0});
+    *system->spins = Engine::Vectormath::change_dimensions(
+        *system->spins,
+        old_geometry.n_cell_atoms, old_geometry.n_cells,
+        new_geometry.n_cell_atoms, new_geometry.n_cells,
+        {0,0,1});
+    system->effective_field = Engine::Vectormath::change_dimensions(
+        system->effective_field,
+        old_geometry.n_cell_atoms, old_geometry.n_cells,
+        new_geometry.n_cell_atoms, new_geometry.n_cells,
+        {0,0,0});
 
     // Update the system geometry
     *system->geometry = new_geometry;
@@ -81,7 +89,11 @@ void Helper_State_Set_Geometry(State * state, const Data::Geometry & old_geometr
 
     // Deal with clipboard configuration of State
     if (state->clipboard_spins)
-        *state->clipboard_spins = Engine::Vectormath::change_dimensions(*state->clipboard_spins, old_geometry, new_geometry, {0,0,1});
+        *state->clipboard_spins = Engine::Vectormath::change_dimensions(
+            *state->clipboard_spins,
+            old_geometry.n_cell_atoms, old_geometry.n_cells,
+            new_geometry.n_cell_atoms, new_geometry.n_cells,
+            {0,0,1});
 
     // TODO: Deal with Methods
     // for (auto& chain_method_image : state->method_image)
@@ -246,7 +258,6 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
-    image->Lock();
     try
     {
         auto& old_geometry = *state->active_image->geometry;
@@ -269,7 +280,6 @@ try
     {
         spirit_handle_exception_api(idx_image, idx_chain);
     }
-    image->Unlock();
 }
 catch( ... )
 {

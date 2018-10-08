@@ -403,18 +403,13 @@ namespace Engine
 
         // Re-distribute a given field according to a new set of dimensions.
         template <typename T>
-        field<T> change_dimensions(field<T> & oldfield, const Data::Geometry & geometry_old, const Data::Geometry & geometry_new,
+        field<T> change_dimensions(field<T> & oldfield, const int n_cell_atoms_old, const intfield & n_cells_old,
+            const int n_cell_atoms_new, const intfield & n_cells_new,
             T default_value, std::array<int,3> shift = std::array<int,3>{0,0,0})
         {
-            auto& n_cells_old      = geometry_old.n_cells;
-            auto& n_cell_atoms_old = geometry_old.n_cell_atoms;
-
-            auto& n_cells_new = geometry_new.n_cells;
             // As a workaround for compatibility with the intel compiler, the loop boundaries are copied to a local array;
             //  not sure whether the "parallel loops with collapse must be perfectly nested" error (without this) is a compiler bug or standard conform behaviour
-            const int n_cells_new_local_copy[] = {geometry_new.n_cells[0],geometry_new.n_cells[1],geometry_new.n_cells[2]};
-
-            auto& n_cell_atoms_new = geometry_new.n_cell_atoms;
+            const int n_cells_new_local_copy[] = {n_cells_new[0],n_cells_new[1],n_cells_new[2]};
 
             int N_new = n_cell_atoms_new * n_cells_new[0] * n_cells_new[1] * n_cells_new[2];
             field<T> newfield(N_new, default_value);

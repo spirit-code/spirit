@@ -195,10 +195,7 @@ namespace Engine
             scalar g_e = 2.00231930436182;
 
             // Calculate "me" - QUESTION: what is this?
-            htst_info.me = 1;
-            for (int i=0; i < (n_zero_modes_minimum - n_zero_modes_sp); ++i)
-                htst_info.me *= 2*C::Pi * C::k_B;
-            htst_info.me = std::sqrt(htst_info.me);
+            htst_info.me = std::pow(2*C::Pi * C::k_B, htst_info.temperature_exponent);
 
             // Calculate Omega_0, i.e. the entropy contribution
             // TODO: the `n_zero_modes_sp+1` should be `n_zero_modes_sp+n_negative_modes_sp`

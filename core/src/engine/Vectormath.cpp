@@ -185,7 +185,7 @@ namespace Engine
                 Vector3 A = 0.5 * force[i];
 
                 // 1/determinant(A)
-                scalar detAi = 1.0 / (1 + pow(A.norm(), 2.0));
+                scalar detAi = 1.0 / (1 + A.squaredNorm());
 
                 // calculate equation without the predictor?
                 Vector3 a2 = spins[i] - spins[i].cross(A);

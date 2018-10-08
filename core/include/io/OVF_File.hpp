@@ -62,6 +62,7 @@ namespace IO
         std::array<Vector3,3> base;
         Vector3 stepsize;
         std::array<int,3> nodes;
+        bool needs_dimension_change;
 
         // Check OVF version
         void check_version();

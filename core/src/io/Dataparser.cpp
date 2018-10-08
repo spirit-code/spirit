@@ -481,7 +481,9 @@ namespace IO
 
                 ++i_pair;
             }// end while GetLine
-            Log(Log_Level::Info, Log_Sender::IO, fmt::format("Done reading {} spin pairs from file \"{}\"", i_pair, pairsFile));
+            Log(Log_Level::Info, Log_Sender::IO, fmt::format(
+                "Done reading {} spin pairs from file \"{}\", giving {} exchange and {} DM (symmetry-reduced) pairs.",
+                i_pair, pairsFile, exchange_pairs.size(), dmi_pairs.size()));
             nop = i_pair;
         }// end try
         catch( ... )
