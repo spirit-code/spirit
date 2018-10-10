@@ -12,6 +12,11 @@
 
 namespace Engine
 {
+    typedef struct {
+      int ispin;
+      unsigned int i_pair;
+      int jspin;
+    } pair_cache;
     /*
         The Heisenberg Hamiltonian using Pairs contains all information on the interactions between spins.
         The information is presented in pair lists and parameter lists in order to easily e.g. calculate the energy of the system via summation.
@@ -43,7 +48,6 @@ namespace Engine
         );
 
         void Update_Interactions();
-
         void Update_Energy_Contributions() override;
 
         void Hessian(const vectorfield & spins, MatrixX & hessian) override;
@@ -77,6 +81,7 @@ namespace Engine
         scalarfield exchange_magnitudes_in;
         pairfield   exchange_pairs;
         scalarfield exchange_magnitudes;
+        field<pair_cache> exchange_table;
         // DMI
         scalarfield dmi_shell_magnitudes;
         int         dmi_shell_chirality;
@@ -86,6 +91,7 @@ namespace Engine
         pairfield   dmi_pairs;
         scalarfield dmi_magnitudes;
         vectorfield dmi_normals;
+        field<pair_cache> dmi_table;
         // Dipole Dipole interaction
         scalar      ddi_cutoff_radius;
         pairfield   ddi_pairs;
@@ -98,6 +104,10 @@ namespace Engine
 
     private:
         std::shared_ptr<Data::Geometry> geometry;
+
+        void Build_Exchange_Table();
+        void Build_DMI_Table();
+
 
         // ------------ Effective Field Functions ------------
         // Calculate the Zeeman effective field of a single Spin
