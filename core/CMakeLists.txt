@@ -244,7 +244,16 @@ endif( )
 
 
 ######## FFT decisions ######################
-if( NOT SPIRIT_USE_CUDA )
+
+## Comment these lines in (and edit the paths) if for some reason your fftw installation is not found
+# if(NOT SPIRIT_USE_CUDA)
+#     set(FFT_INCLUDE_DIRS "/usr/local/include/")
+#     set(FFT_LIB   "/usr/local/lib/libfftw3.so" 
+#                 "/usr/local/lib/libfftw3_omp.so")
+#     add_definitions(-DSPIRIT_USE_FFTW)
+# endif()
+
+if( NOT SPIRIT_USE_CUDA AND NOT FFT_LIB)
     if( SPIRIT_USE_FFTW )
         include(FindFFTW)
         if( FFTW_FOUND )
