@@ -30,7 +30,7 @@ namespace Engine
             fftw_execute(plan.cfg);
         }
 
-        void FFT_Plan::CreateConfiguration()
+        void FFT_Plan::Create_Configuration()
         {
             int rank = this->dims.size();
             int *n = this->dims.data();
@@ -48,6 +48,23 @@ namespace Engine
                 this->cfg = fftw_plan_many_dft_r2c(rank, n, howmany, this->real_ptr.data(), inembed, istride, idist, reinterpret_cast<fftw_complex*>(this->cpx_ptr.data()), onembed, ostride, odist, FFTW_MEASURE);
             else
                 this->cfg = fftw_plan_many_dft_c2r(rank, n, howmany, reinterpret_cast<fftw_complex*>(this->cpx_ptr.data()), inembed, istride, idist, this->real_ptr.data(), onembed, ostride, odist, FFTW_MEASURE);
+            this->freeable = true;
+        }
+
+        void FFT_Plan::Free_Configuration()
+        {
+            if(freeable)
+            {
+                fftw_destroy_plan(this->cfg);
+                this->freeable = false;
+            }
+        }
+
+        void FFT_Plan::Clean()
+        {
+            this->cpx_ptr = field<FFT_cpx_type>();
+            this->real_ptr = field<FFT_real_type>();
+            Free_Configuration();
         }
 
         // FFT_Plan::FFT_Plan(std::string name) : name(name) {
@@ -105,23 +122,31 @@ namespace Engine
             const auto& in = plan.cpx_ptr.data();
             const auto& out = plan.real_ptr.data();
 
-            //just for testing
-            // const auto& in = plan.cpx_ptr;
-            // const auto& out = plan.real_ptr;
-
             for(int dir = 0; dir < number; ++dir)
                 Engine::FFT::iFour_3D(plan.cfg, in + dir * size, out + dir * size);
         }
 
-        void FFT_Plan::CreateConfiguration()
+        void FFT_Plan::Create_Configuration()
         {
             this->cfg = kiss_fftndr_alloc(this->dims.data(), this->dims.size(), this->inverse, NULL, NULL);
+            this->freeable = true;
         }
 
-        // FFT_Plan::FFT_Plan(std::string name) : name(name) {
+        void FFT_Plan::Free_Configuration()
+        {
+            if(freeable)
+            {
+                free(this->cfg);
+                this->freeable = false;
+            }
+        }
 
-        //     std::cerr << "Calling constructor " << name << std::endl;
-        // }
+        void FFT_Plan::Clean()
+        {
+            this->cpx_ptr = field<FFT_cpx_type>();
+            this->real_ptr = field<FFT_real_type>();
+            Free_Configuration();
+        }
 
         FFT_Plan::~FFT_Plan()
         {

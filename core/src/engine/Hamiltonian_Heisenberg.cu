@@ -75,6 +75,7 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Update_Interactions()
     {
+        Clean_DDI();
         // When parallelising (cuda or openmp), we need all neighbours per spin
         const bool use_redundant_neighbours = true;
 
@@ -1175,21 +1176,21 @@ namespace Engine
         fft_plan_dipole.howmany  = 6 * n_inter_sublattice;
         fft_plan_dipole.real_ptr = field<FFT::FFT_real_type>(6 * n_inter_sublattice * sublattice_size);
         fft_plan_dipole.cpx_ptr  = field<FFT::FFT_cpx_type>(6 * n_inter_sublattice * sublattice_size);
-        fft_plan_dipole.CreateConfiguration();
+        fft_plan_dipole.Create_Configuration();
 
         fft_plan_spins.dims     = fft_dims;
         fft_plan_spins.inverse  = false;
         fft_plan_spins.howmany  = 3 * geometry->n_cell_atoms;
         fft_plan_spins.real_ptr = field<FFT::FFT_real_type>(3 * sublattice_size * geometry->n_cell_atoms);
         fft_plan_spins.cpx_ptr  = field<FFT::FFT_cpx_type>(3 * sublattice_size * geometry->n_cell_atoms);
-        fft_plan_spins.CreateConfiguration();
+        fft_plan_spins.Create_Configuration();
 
         fft_plan_reverse.dims     = fft_dims;
         fft_plan_reverse.inverse  = true;
         fft_plan_reverse.howmany  = 3 * geometry->n_cell_atoms;
         fft_plan_reverse.cpx_ptr  = field<FFT::FFT_cpx_type>(3 * sublattice_size * geometry->n_cell_atoms);
         fft_plan_reverse.real_ptr = field<FFT::FFT_real_type>(3 * sublattice_size * geometry->n_cell_atoms);
-        fft_plan_reverse.CreateConfiguration();
+        fft_plan_reverse.Create_Configuration();
 
         field<int*> temp_s = {&spin_stride.comp, &spin_stride.basis, &spin_stride.a, &spin_stride.b, &spin_stride.c};
         field<int*> temp_d = {&dipole_stride.comp, &dipole_stride.basis, &dipole_stride.a, &dipole_stride.b, &dipole_stride.c};;
@@ -1201,7 +1202,18 @@ namespace Engine
         int img_b = boundary_conditions[1] == 0 ? 0 : ddi_n_periodic_images[1];
         int img_c = boundary_conditions[2] == 0 ? 0 : ddi_n_periodic_images[2];
         FFT_Dipole_Matrices(img_a, img_b, img_c);
+
+        //We only need the transformed dipole matrices
+        fft_plan_dipole.real_ptr = field<FFT::FFT_real_type>();
+        fft_plan_dipole.Free_Configuration();
     }//end prepare
+
+    void Hamiltonian_Heisenberg::Clean_DDI()
+    {
+        fft_plan_spins.Clean();
+        fft_plan_dipole.Clean();
+        fft_plan_reverse.Clean();
+    }
 
     // Hamiltonian name as string
     static const std::string name = "Heisenberg";

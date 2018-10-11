@@ -27,7 +27,7 @@ namespace Engine
             cudaDeviceSynchronize();
         }
 
-        void FFT_Plan::CreateConfiguration()
+        void FFT_Plan::Create_Configuration()
         {
             int rank = this->dims.size();
             int *n = this->dims.data();
@@ -51,10 +51,17 @@ namespace Engine
             }
         }
 
-        // FFT_Plan::FFT_Plan(std::string name) : name(name) {
+        void FFT_Plan::Free_Configuration()
+        {
+            cufftDestroy(this->cfg);
+        }
 
-        //     std::cerr << "Calling constructor " << name << std::endl;
-        // }
+        void FFT_Plan::Clean()
+        {
+            this->cpx_ptr = field<FFT_cpx_type>();
+            this->real_ptr = field<FFT_real_type>();
+            Free_Configuration();
+        }
 
         FFT_Plan::~FFT_Plan()
         {

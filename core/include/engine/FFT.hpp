@@ -133,6 +133,7 @@ namespace Engine
         {
             std::vector<int> dims;
             bool inverse;
+            bool freeable = false;
             int howmany;
 
             field<FFT_cpx_type> cpx_ptr;
@@ -140,10 +141,11 @@ namespace Engine
 
             std::string name;
 
-            void CreateConfiguration();
+            void Create_Configuration();
+            void Free_Configuration();
+            void Clean();
             FFT_cfg cfg;
 
-            // FFT_Plan(std::string name);
             ~FFT_Plan();
         };
 

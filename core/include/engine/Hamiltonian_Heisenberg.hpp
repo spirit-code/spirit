@@ -151,6 +151,7 @@ namespace Engine
         
         // Preparations for DDI-Convolution Algorithm
         void Prepare_DDI();
+        void Clean_DDI();
 
         // Plans for FT / rFT
         FFT::FFT_Plan fft_plan_spins;

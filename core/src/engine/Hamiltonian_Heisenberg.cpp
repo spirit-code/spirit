@@ -71,6 +71,7 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Update_Interactions()
     {
+        Clean_DDI();
         #if defined(SPIRIT_USE_OPENMP)
         // When parallelising (cuda or openmp), we need all neighbours per spin
         const bool use_redundant_neighbours = true;
@@ -750,7 +751,7 @@ namespace Engine
             {
                 for(int b = 0; b < n_cells_padded[1]; ++b)
                 {
-                    for(int a = 0; a < n_cells_padded[0]; ++a)
+                for(int a = 0; a < n_cells_padded[0]; ++a)
                     {
                         for(int i_b2 = 0; i_b2 < geometry->n_cell_atoms; ++i_b2)
                         {
@@ -1108,6 +1109,7 @@ namespace Engine
                 inter_sublattice_lookup[i_b1 + i_b2 * geometry->n_cell_atoms] = b_inter;
 
                 //iterate over the padded system
+                #pragma omp parallel for collapse(3)
                 for(int c = 0; c < n_cells_padded[2]; ++c)
                 {
                     for(int b = 0; b < n_cells_padded[1]; ++b)
@@ -1219,21 +1221,21 @@ namespace Engine
         fft_plan_dipole.howmany  = 6 * n_inter_sublattice;
         fft_plan_dipole.real_ptr = field<FFT::FFT_real_type>(n_inter_sublattice * 6 * sublattice_size);
         fft_plan_dipole.cpx_ptr  = field<FFT::FFT_cpx_type>(n_inter_sublattice * 6 * sublattice_size);
-        fft_plan_dipole.CreateConfiguration();
+        fft_plan_dipole.Create_Configuration();
 
         fft_plan_spins.dims     = fft_dims;
         fft_plan_spins.inverse  = false;
         fft_plan_spins.howmany  = 3 * geometry->n_cell_atoms;
         fft_plan_spins.real_ptr = field<FFT::FFT_real_type>(3 * sublattice_size * geometry->n_cell_atoms);
         fft_plan_spins.cpx_ptr  = field<FFT::FFT_cpx_type>(3 * sublattice_size * geometry->n_cell_atoms);
-        fft_plan_spins.CreateConfiguration();
+        fft_plan_spins.Create_Configuration();
 
         fft_plan_reverse.dims     = fft_dims;
         fft_plan_reverse.inverse  = true;
         fft_plan_reverse.howmany  = 3 * geometry->n_cell_atoms;
         fft_plan_reverse.cpx_ptr  = field<FFT::FFT_cpx_type>(3 * sublattice_size * geometry->n_cell_atoms);
         fft_plan_reverse.real_ptr = field<FFT::FFT_real_type>(3 * sublattice_size * geometry->n_cell_atoms);
-        fft_plan_reverse.CreateConfiguration();
+        fft_plan_reverse.Create_Configuration();
 
         #ifdef SPIRIT_USE_FFTW
             field<int*> temp_s = {&spin_stride.comp, &spin_stride.basis, &spin_stride.a, &spin_stride.b, &spin_stride.c};
@@ -1255,6 +1257,15 @@ namespace Engine
         if(save_dipole_matrices)
             dipole_matrices = field<Matrix3>(n_inter_sublattice * geometry->n_cells_total);
         FFT_Dipole_Matrices(img_a, img_b, img_c);
+        fft_plan_dipole.real_ptr = field<FFT::FFT_real_type>();
+        fft_plan_dipole.Free_Configuration();
+    }
+
+    void Hamiltonian_Heisenberg::Clean_DDI()
+    {
+        fft_plan_spins.Clean();
+        fft_plan_dipole.Clean();
+        fft_plan_reverse.Clean();
     }
 
     // Hamiltonian name as string
