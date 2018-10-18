@@ -166,16 +166,9 @@ anisotropy_normal        0.0 0.0 1.0
 
 ### Dipole-dipole interaction caclulation method
 ### (none, fft, fmm, cutoff)
-### none   - ddi is neglected
-### fft    - Uses a convolution method to accelerate the calculatioin of ddi
-### cutoff - Lets only spins within a distance of 'ddi_radius' interact
-### fmm    - Uses the Fast-Multipole-Method (NOT YET IMPLEMENTED!)
 ddi_method                 fft
 
 ### DDI number of periodic images (fft and fmm) in (a b c)
-### If PBC are selected this specifies how many Images are taken in the respective direction
-### Note: The images are appended on *both* sides (the edges get filled too)
-###       i.e. 1 0 0 -> one image in +a direction and one image in -a direction
 ddi_n_periodic_images      4 4 4
 
 ### DDI cutoff radius (if cutoff is used)
@@ -188,6 +181,20 @@ or more anisotropy axes can be set for the atoms in the basis cell. Specify colu
 via headers: an index `i` and an axis `Kx Ky Kz` or `Ka Kb Kc`, as well as optionally
 a magnitude `K`.
 
+*Dipole-Dipole Interaction:*
+Via the keyword `ddi_method` the method employed to calculate the dipole-dipole interactions
+is specified.
+
+      `none`   -  Dipole-Dipole interactions are neglected
+      `fft`    -  Uses a fast convolution method to accelerate the calculation
+      `cutoff` -  Lets only spins within a maximal distance of 'ddi_radius' interact
+      `fmm`    -  Uses the Fast-Multipole-Method (NOT YET IMPLEMENTED!)
+
+If the `cutoff`-method has been chosen the cutoff-radius can be specified via `ddi_radius`.
+If the boundary conditions are periodic `ddi_n_periodic_images` specifies how many images are taken in the respective direction.
+
+Note: The images are appended on both sides (the edges get filled too)
+      i.e. 1 0 0 -> one image in +a direction and one image in -a direction
 
 **Neighbour shells**:
 

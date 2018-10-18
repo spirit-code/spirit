@@ -140,7 +140,7 @@ before_install:
   - python --version
   - if [ "$TRAVIS_OS_NAME" != "osx" ]; then sudo pip uninstall -y six chardet pyOpenSSL; fi
   - sudo pip install --upgrade pip six pyOpenSSL
-  - sudo pip install wheel numpy urllib==1.23 twine coveralls
+  - sudo pip install wheel numpy urllib3==1.23 twine coveralls
   # Run homebrew on osx
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
   # Setup default versions and override compiler if needed
