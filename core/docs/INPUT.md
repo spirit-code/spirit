@@ -165,10 +165,17 @@ anisotropy_magnitude     0.0
 anisotropy_normal        0.0 0.0 1.0
 
 ### Dipole-dipole interaction caclulation method
-### (fft, fmm, cutoff)
+### (none, fft, fmm, cutoff)
+### none   - ddi is neglected
+### fft    - Uses a convolution method to accelerate the calculatioin of ddi
+### cutoff - Lets only spins within a distance of 'ddi_radius' interact
+### fmm    - Uses the Fast-Multipole-Method (NOT YET IMPLEMENTED!)
 ddi_method                 fft
 
 ### DDI number of periodic images (fft and fmm) in (a b c)
+### If PBC are selected this specifies how many Images are taken in the respective direction
+### Note: The images are appended on *both* sides (the edges get filled too)
+###       i.e. 1 0 0 -> one image in +a direction and one image in -a direction
 ddi_n_periodic_images      4 4 4
 
 ### DDI cutoff radius (if cutoff is used)

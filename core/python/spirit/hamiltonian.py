@@ -10,6 +10,12 @@ CHIRALITY_NEEL          =  2
 CHIRALITY_BLOCH_INVERSE = -1
 CHIRALITY_NEEL_INVERSE  = -2
 
+### DDI METHOD
+DDI_METHOD_NONE         = 0
+DDI_METHOD_FFT          = 1
+DDI_METHOD_FMM          = 2
+DDI_METHOD_CUTOFF       = 3
+
 ### ---------------------------------- Set ----------------------------------
 
 ### Set boundary conditions
