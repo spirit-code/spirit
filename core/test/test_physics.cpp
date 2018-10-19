@@ -125,13 +125,27 @@ TEST_CASE( "Dipole-Dipole Interaction", "[physics]" )
     Configuration_Random( state.get() );
     
     auto& spins = *state->active_image->spins;
+
+    auto grad_fft = vectorfield( state->nos );
+    auto grad_direct = vectorfield( state->nos );
+
+    state->active_image->hamiltonian->Gradient( spins, grad_fft );
     auto energy_fft = state->active_image->hamiltonian->Energy(spins);
 
     auto n_periodic_images = std::vector<int> {0,0,0};
     Hamiltonian_Set_DDI(state.get(), SPIRIT_DDI_METHOD_CUTOFF, n_periodic_images.data(), -1);
+
+    state->active_image->hamiltonian->Gradient( spins, grad_direct );
     auto energy_direct = state->active_image->hamiltonian->Energy(spins);
 
-    INFO("##### energy_cutoff = " << energy_direct << "\n" );
+    for(int i=0; i<state->nos; i++)
+    {
+        INFO(grad_fft[i])
+        INFO(grad_direct[i])
+        REQUIRE(grad_fft[i].isApprox(grad_direct[i]));
+    }
+
+    INFO("##### energy_direct = " << energy_direct << "\n" );
     INFO("##### energy_fft = " << energy_fft << "\n");
     REQUIRE(Approx(energy_fft) == energy_direct);
 }
