@@ -50,16 +50,34 @@ namespace Engine
                 a.r = b.r;
                 a.i = b.i;
             } else {
-            a.r += b.r;
-            a.i += b.i;
-        }
+                a.r += b.r;
+                a.i += b.i;
+            }
         }
         #endif
 
         #ifdef SPIRIT_USE_FFTW
+
         using FFT_real_type = scalar;
         using FFT_cpx_type = std::array<scalar, 2>;
-        using FFT_cfg = fftw_plan;
+
+        #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
+            using   FFT_cfg = fftw_plan;
+            #define FFTW_EXECUTE            fftw_execute
+            #define FFTW_DESTROY_PLAN       fftw_destroy_plan
+            #define FFTW_PLAN_MANY_DFT_R2C  fftw_plan_many_dft_r2c
+            #define FFTW_PLAN_MANY_DFT_C2R  fftw_plan_many_dft_c2r
+            #define FFTW_COMPLEX            fftw_complex
+        #endif
+        #ifdef SPIRIT_SCALAR_TYPE_FLOAT
+        // #if SPIRIT_SCALAR_TYPE == float
+            using   FFT_cfg = fftwf_plan;
+            #define FFTW_EXECUTE            fftwf_execute
+            #define FFTW_DESTROY_PLAN       fftwf_destroy_plan
+            #define FFTW_PLAN_MANY_DFT_R2C  fftwf_plan_many_dft_r2c
+            #define FFTW_PLAN_MANY_DFT_C2R  fftwf_plan_many_dft_c2r
+            #define FFTW_COMPLEX            fftwf_complex
+        #endif
 
         inline FFT_cpx_type mult3D(FFT_cpx_type & d1, FFT_cpx_type & d2, FFT_cpx_type & d3, FFT_cpx_type & s1, FFT_cpx_type & s2, FFT_cpx_type & s3)
         {

@@ -246,10 +246,13 @@ endif( )
 ######## FFT decisions ######################
 
 ## Comment these lines in (and edit the paths) if for some reason your fftw installation is not found
+#  You only need to link against libfftw3_omp if you want to use OpenMP
+#  You only need to link against libfftw3f if you want to use float 
 # if(NOT SPIRIT_USE_CUDA)
 #     set(FFT_INCLUDE_DIRS "/usr/local/include/")
-#     set(FFT_LIB   "/usr/local/lib/libfftw3.so" 
-#                 "/usr/local/lib/libfftw3_omp.so")
+#     set(FFT_LIB          "/usr/local/lib/libfftw3.so" 
+#                          "/usr/local/lib/libfftwf3.so"
+#                          "/usr/local/lib/libfftw3_omp.so")
 #     add_definitions(-DSPIRIT_USE_FFTW)
 # endif()
 
@@ -259,18 +262,30 @@ if( NOT SPIRIT_USE_CUDA AND NOT FFT_LIB)
         if( FFTW_FOUND )
             message( STATUS ">> Using FFTW" )
             set( FFT_INCLUDE_DIRS ${FFTW_INCLUDES} )
-            if( SPIRIT_USE_OPENMP )
-                if( FFTW_OMP_LIB )
-                    set( FFT_LIB ${FFTW_LIB} ${FFTW_OMP_LIB} )
+
+            if (${SPIRIT_SCALAR_TYPE} STREQUAL "float")
+                if(FFTWF_LIB)
+                    set(FFT_LIB ${FFTWF_LIB})
                     add_definitions( -DSPIRIT_USE_FFTW )
                 else()
-                    message( WARNING "Could find FFTW but not lib_fftw_omp! -> Using kissFFT fallback")
+                    message(WARNING "Could find FFTW but not the single precision library 'libfftw3f' -> Using kissFFT fallback" )
                     set( FFTW_FOUND OFF )
                 endif()
             else()
                 set( FFT_LIB ${FFTW_LIB} )
                 add_definitions( -DSPIRIT_USE_FFTW )
             endif()
+
+            if( SPIRIT_USE_OPENMP)
+                if( FFTW_OMP_LIB )
+                    set( FFT_LIB ${FFT_LIB} ${FFTW_OMP_LIB} )
+                    add_definitions( -DSPIRIT_USE_FFTW )
+                else()
+                    message( WARNING "Could find FFTW but not libfftw3_omp! -> Using kissFFT fallback")
+                    set( FFTW_FOUND OFF )
+                endif()
+            endif()
+        
         else( )
             message( WARNING "Could not find any FFTW libs -> Using kissFFT fallback" )
         endif( )

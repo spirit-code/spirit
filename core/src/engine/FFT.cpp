@@ -22,12 +22,14 @@ namespace Engine
 
         void batch_Four_3D(FFT_Plan & plan)
         {
-            fftw_execute(plan.cfg);
+            FFTW_EXECUTE(plan.cfg);
+            // fftw_execute(plan.cfg);
         }
 
         void batch_iFour_3D(FFT_Plan & plan)
         {
-            fftw_execute(plan.cfg);
+            FFTW_EXECUTE(plan.cfg);
+            // fftw_execute(plan.cfg);
         }
 
         void FFT_Plan::Create_Configuration()
@@ -45,9 +47,10 @@ namespace Engine
             int idist = 1, odist = 1;
 
             if(this->inverse == false)
-                this->cfg = fftw_plan_many_dft_r2c(rank, n, howmany, this->real_ptr.data(), inembed, istride, idist, reinterpret_cast<fftw_complex*>(this->cpx_ptr.data()), onembed, ostride, odist, FFTW_MEASURE);
+                // this->cfg = fftw_plan_many_dft_r2c(rank, n, howmany, this->real_ptr.data(), inembed, istride, idist, reinterpret_cast<fftw_complex*>(this->cpx_ptr.data()), onembed, ostride, odist, FFTW_MEASURE);
+                this->cfg = FFTW_PLAN_MANY_DFT_R2C(rank, n, howmany, this->real_ptr.data(), inembed, istride, idist, reinterpret_cast<FFTW_COMPLEX*>(this->cpx_ptr.data()), onembed, ostride, odist, FFTW_MEASURE);
             else
-                this->cfg = fftw_plan_many_dft_c2r(rank, n, howmany, reinterpret_cast<fftw_complex*>(this->cpx_ptr.data()), inembed, istride, idist, this->real_ptr.data(), onembed, ostride, odist, FFTW_MEASURE);
+                this->cfg = FFTW_PLAN_MANY_DFT_C2R(rank, n, howmany, reinterpret_cast<FFTW_COMPLEX*>(this->cpx_ptr.data()), inembed, istride, idist, this->real_ptr.data(), onembed, ostride, odist, FFTW_MEASURE);
             this->freeable = true;
         }
 
@@ -55,7 +58,8 @@ namespace Engine
         {
             if(freeable)
             {
-                fftw_destroy_plan(this->cfg);
+                // fftw_destroy_plan(this->cfg);
+                FFTW_DESTROY_PLAN(this->cfg);
                 this->freeable = false;
             }
         }
