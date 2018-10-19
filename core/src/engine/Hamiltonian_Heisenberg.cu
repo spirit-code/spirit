@@ -360,6 +360,20 @@ namespace Engine
                 this->E_DDI_Direct(spins, Energy);
     }
 
+    void Hamiltonian_Heisenberg::E_DDI_Direct(const vectorfield & spins, scalarfield & Energy)
+    {
+        vectorfield gradients_temp;
+        gradients_temp.resize(geometry->nos);
+        Vectormath::fill(gradients_temp, {0,0,0});
+        this->Gradient_DDI_Direct(spins, gradients_temp);
+
+        #pragma omp parallel for
+        for (int ispin = 0; ispin < geometry->nos; ispin++)
+        {
+            Energy[ispin] += 0.5 * geometry->mu_s[ispin] * spins[ispin].dot(gradients_temp[ispin]);
+        }   
+    }
+
     void Hamiltonian_Heisenberg::E_DDI_Cutoff(const vectorfield & spins, scalarfield & Energy)
     {
         // //scalar mult = -mu_B*mu_B*1.0 / 4.0 / Pi; // multiply with mu_B^2
