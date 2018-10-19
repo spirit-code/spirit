@@ -116,3 +116,22 @@ TEST_CASE( "Finite Differences", "[physics]" )
         REQUIRE( hessian_fd.isApprox( hessian ) );
     }
 }
+
+TEST_CASE( "Dipole-Dipole Interaction", "[physics]" )
+{
+    //cfg where only ddi is enabled
+    auto state = std::shared_ptr<State> (State_Setup("core/test/input/physics_ddi.cfg"), State_Delete );
+
+    Configuration_Random( state.get() );
+    
+    auto& spins = *state->active_image->spins;
+    auto energy_fft = state->active_image->hamiltonian->Energy(spins);
+
+    auto n_periodic_images = std::vector<int> {0,0,0};
+    Hamiltonian_Set_DDI(state.get(), SPIRIT_DDI_METHOD_CUTOFF, n_periodic_images.data(), -1);
+    auto energy_direct = state->active_image->hamiltonian->Energy(spins);
+
+    INFO("##### energy_cutoff = " << energy_direct << "\n" );
+    INFO("##### energy_fft = " << energy_fft << "\n");
+    REQUIRE(Approx(energy_fft) == energy_direct);
+}

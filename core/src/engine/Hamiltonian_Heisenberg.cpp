@@ -325,7 +325,25 @@ namespace Engine
         if( this->ddi_method == DDI_Method::FFT )
             this->E_DDI_FFT(spins, Energy);
         else if( this->ddi_method == DDI_Method::Cutoff )
-            this->E_DDI_Cutoff(spins, Energy);
+            // TODO: Merge these implementations in the future
+            if(ddi_cutoff_radius >= 0)
+                this->E_DDI_Cutoff(spins, Energy);
+            else 
+                this->E_DDI_Direct(spins, Energy);
+    }
+
+    void Hamiltonian_Heisenberg::E_DDI_Direct(const vectorfield & spins, scalarfield & Energy)
+    {
+        vectorfield gradients_temp;
+        gradients_temp.resize(geometry->nos);
+        Vectormath::fill(gradients_temp, {0,0,0});
+        this->Gradient_DDI_Direct(spins, gradients_temp);
+
+        #pragma omp parallel for
+        for (int ispin = 0; ispin < geometry->nos; ispin++)
+        {
+            Energy[ispin] += 0.5 * geometry->mu_s[ispin] * spins[ispin].dot(gradients_temp[ispin]);
+        }   
     }
 
     void Hamiltonian_Heisenberg::E_DDI_Cutoff(const vectorfield & spins, scalarfield & Energy)
@@ -679,7 +697,11 @@ namespace Engine
         if( this->ddi_method == DDI_Method::FFT )
             this->Gradient_DDI_FFT(spins, gradient);
         else if( this->ddi_method == DDI_Method::Cutoff )
-            this->Gradient_DDI_Cutoff(spins, gradient);
+            // TODO: Merge these implementations in the future
+            if( this->ddi_cutoff_radius >= 0)
+                this->Gradient_DDI_Cutoff(spins, gradient);
+            else
+                this->Gradient_DDI_Direct(spins, gradient);
     }
 
     void Hamiltonian_Heisenberg::Gradient_DDI_Cutoff(const vectorfield & spins, vectorfield & gradient)

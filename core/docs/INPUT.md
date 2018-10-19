@@ -182,8 +182,7 @@ via headers: an index `i` and an axis `Kx Ky Kz` or `Ka Kb Kc`, as well as optio
 a magnitude `K`.
 
 *Dipole-Dipole Interaction:*
-Via the keyword `ddi_method` the method employed to calculate the dipole-dipole interactions
-is specified.
+Via the keyword `ddi_method` the method employed to calculate the dipole-dipole interactions is specified.
 
       `none`   -  Dipole-Dipole interactions are neglected
       `fft`    -  Uses a fast convolution method to accelerate the calculation
@@ -191,10 +190,11 @@ is specified.
       `fmm`    -  Uses the Fast-Multipole-Method (NOT YET IMPLEMENTED!)
 
 If the `cutoff`-method has been chosen the cutoff-radius can be specified via `ddi_radius`.
-If the boundary conditions are periodic `ddi_n_periodic_images` specifies how many images are taken in the respective direction.
+*Note:* If `ddi_radius` < 0 a direct summation (i.e. brute force) over the whole system is performed. This is very inefficient and only encouraged for very small systems and/or unit-testing/debugging.
 
-Note: The images are appended on both sides (the edges get filled too)
-      i.e. 1 0 0 -> one image in +a direction and one image in -a direction
+If the boundary conditions are periodic `ddi_n_periodic_images` specifies how many images are taken in the respective direction.
+*Note:* The images are appended on both sides (the edges get filled too)
+i.e. 1 0 0 -> one image in +a direction and one image in -a direction
 
 **Neighbour shells**:
 

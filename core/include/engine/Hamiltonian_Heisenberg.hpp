@@ -143,6 +143,7 @@ namespace Engine
         void E_DMI(const vectorfield & spins, scalarfield & Energy);
         // calculates the Dipole-Dipole Energy
         void E_DDI(const vectorfield& spins, scalarfield & Energy);
+        void E_DDI_Direct(const vectorfield& spins, scalarfield & Energy);
         void E_DDI_Cutoff(const vectorfield& spins, scalarfield & Energy);
         void E_DDI_FFT(const vectorfield& spins, scalarfield & Energy);
 
