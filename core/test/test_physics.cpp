@@ -132,7 +132,7 @@ TEST_CASE( "Dipole-Dipole Interaction", "[physics]" )
     state->active_image->hamiltonian->Gradient( spins, grad_fft );
     auto energy_fft = state->active_image->hamiltonian->Energy(spins);
 
-    auto n_periodic_images = std::vector<int> {0,0,0};
+    auto n_periodic_images = std::vector<int> {4,4,4};
     Hamiltonian_Set_DDI(state.get(), SPIRIT_DDI_METHOD_CUTOFF, n_periodic_images.data(), -1);
 
     state->active_image->hamiltonian->Gradient( spins, grad_direct );
@@ -141,7 +141,7 @@ TEST_CASE( "Dipole-Dipole Interaction", "[physics]" )
     for(int i=0; i<state->nos; i++)
     {
         INFO("Failed DDI-Gradient comparison at i = " << i);
-        INFO("Graddient (FFT):")
+        INFO("Gradient (FFT):")
         INFO(grad_fft[i])
         INFO("Gradient (Direct):")
         INFO(grad_direct[i])
