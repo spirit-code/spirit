@@ -140,12 +140,15 @@ TEST_CASE( "Dipole-Dipole Interaction", "[physics]" )
 
     for(int i=0; i<state->nos; i++)
     {
+        INFO("Failed DDI-Gradient comparison at i = " << i);
+        INFO("Graddient (FFT):")
         INFO(grad_fft[i])
+        INFO("Gradient (Direct):")
         INFO(grad_direct[i])
         REQUIRE(grad_fft[i].isApprox(grad_direct[i]));
     }
-
-    INFO("##### energy_direct = " << energy_direct << "\n" );
-    INFO("##### energy_fft = " << energy_fft << "\n");
+    INFO("Failed energy comparison test!")
+    INFO("Energy (Direct) = " << energy_direct << "\n" );
+    INFO("Energy (FFT)    = " << energy_fft << "\n");
     REQUIRE(Approx(energy_fft) == energy_direct);
 }
