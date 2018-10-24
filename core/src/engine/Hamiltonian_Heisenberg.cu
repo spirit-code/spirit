@@ -454,32 +454,53 @@ namespace Engine
     void Hamiltonian_Heisenberg::Gradient_DDI_Direct(const vectorfield & spins, vectorfield & gradient)
     {
         scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
-        scalar d, d3, d5, Dxx, Dxy, Dxz, Dyy, Dyz, Dzz;
+        scalar d, d3, d5;
         Vector3 diff;
+        Vector3 diff_img;
+
+        int img_a = boundary_conditions[0] == 0 ? 0 : ddi_n_periodic_images[0];
+        int img_b = boundary_conditions[1] == 0 ? 0 : ddi_n_periodic_images[1];
+        int img_c = boundary_conditions[2] == 0 ? 0 : ddi_n_periodic_images[2];
 
         for(int idx1 = 0; idx1 < geometry->nos; idx1++)
         {
             for(int idx2 = 0; idx2 < geometry->nos; idx2++)
             {
-                if(idx1 != idx2)
+                auto& m2 = spins[idx2];
+
+                diff = geometry->lattice_constant * (this->geometry->positions[idx2] - this->geometry->positions[idx1]);
+                scalar Dxx = 0, Dxy = 0, Dxz = 0, Dyy = 0, Dyz = 0, Dzz = 0;
+
+                for(int a_pb = - img_a; a_pb <= img_a; a_pb++)
                 {
-                    auto& m2 = spins[idx2];
-
-                    diff = this->geometry->positions[idx2] - this->geometry->positions[idx1];
-                    d = diff.norm();
-                    d3 = d * d * d;
-                    d5 = d * d * d * d * d;
-                    Dxx = mult * (3 * diff[0]*diff[0] / d5 - 1/d3);
-                    Dxy = mult *  3 * diff[0]*diff[1] / d5;          //same as Dyx
-                    Dxz = mult *  3 * diff[0]*diff[2] / d5;          //same as Dzx
-                    Dyy = mult * (3 * diff[1]*diff[1] / d5 - 1/d3);
-                    Dyz = mult *  3 * diff[1]*diff[2] / d5;          //same as Dzy
-                    Dzz = mult * (3 * diff[2]*diff[2] / d5 - 1/d3);
-
-                    gradient[idx1][0] -= ((Dxx * m2[0] + Dxy * m2[1] + Dxz * m2[2]) * geometry->mu_s[idx2]);
-                    gradient[idx1][1] -= ((Dxy * m2[0] + Dyy * m2[1] + Dyz * m2[2]) * geometry->mu_s[idx2]);
-                    gradient[idx1][2] -= ((Dxz * m2[0] + Dyz * m2[1] + Dzz * m2[2]) * geometry->mu_s[idx2]);
+                    for(int b_pb = - img_b; b_pb <= img_b; b_pb++)
+                    {
+                        for(int c_pb = -img_c; c_pb <= img_c; c_pb++)
+                        {
+                            diff_img = diff + geometry->lattice_constant * a_pb * geometry->n_cells[0] * geometry->bravais_vectors[0]
+                                            + geometry->lattice_constant * b_pb * geometry->n_cells[1] * geometry->bravais_vectors[1]
+                                            + geometry->lattice_constant * c_pb * geometry->n_cells[2] * geometry->bravais_vectors[2];
+                            d = diff_img.norm();
+                            if(d > 1e-10)
+                            {
+                                d3 = d * d * d;
+                                d5 = d * d * d * d * d;
+                                Dxx += mult * (3 * diff_img[0]*diff_img[0] / d5 - 1/d3);
+                                Dxy += mult *  3 * diff_img[0]*diff_img[1] / d5;          //same as Dyx
+                                Dxz += mult *  3 * diff_img[0]*diff_img[2] / d5;          //same as Dzx
+                                Dyy += mult * (3 * diff_img[1]*diff_img[1] / d5 - 1/d3);
+                                Dyz += mult *  3 * diff_img[1]*diff_img[2] / d5;          //same as Dzy
+                                Dzz += mult * (3 * diff_img[2]*diff_img[2] / d5 - 1/d3);
+                            }
+                        }
+                    }
                 }
+
+                auto& mu = geometry->mu_s[idx2];
+
+                gradient[idx1][0] -= (Dxx * m2[0] + Dxy * m2[1] + Dxz * m2[2]) * mu;
+                gradient[idx1][1] -= (Dxy * m2[0] + Dyy * m2[1] + Dyz * m2[2]) * mu;
+                gradient[idx1][2] -= (Dxz * m2[0] + Dyz * m2[1] + Dzz * m2[2]) * mu;
             }
         }
     }
