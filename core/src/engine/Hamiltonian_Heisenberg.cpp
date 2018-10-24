@@ -756,24 +756,15 @@ namespace Engine
 
         int idx_b1, idx_b2, idx_d;
 
-        // auto mapSpins = Eigen::Map<Vector3c, 0, Eigen::Stride<1,Eigen::Dynamic> >
-        //                 (reinterpret_cast<std::complex<scalar>*>(NULL),
-        //                 Eigen::Stride<1,Eigen::Dynamic>(1,N));
-
-        // auto mapResult = Eigen::Map<Vector3c, 0, Eigen::Stride<1,Eigen::Dynamic> >
-        //                 (reinterpret_cast<std::complex<scalar>*>(NULL),
-        //                 Eigen::Stride<1,Eigen::Dynamic>(1,N));
-
-
         // Loop over basis atoms (i.e sublattices)
         #pragma omp parallel for collapse(5)
         for(int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1)
         {
-            for(int c = 0; c < n_cells_padded[2]; ++c)
+            for(int c = 0; c < it_bounds_pointwise_mult[2]; ++c)
             {
-                for(int b = 0; b < n_cells_padded[1]; ++b)
+                for(int b = 0; b < it_bounds_pointwise_mult[1]; ++b)
                 {
-                for(int a = 0; a < n_cells_padded[0]; ++a)
+                    for(int a = 0; a < it_bounds_pointwise_mult[0]; ++a)
                     {
                         for(int i_b2 = 0; i_b2 < geometry->n_cell_atoms; ++i_b2)
                         {
@@ -1283,11 +1274,20 @@ namespace Engine
             field<int*> temp_d = {&dipole_stride.comp, &dipole_stride.basis, &dipole_stride.a, &dipole_stride.b, &dipole_stride.c};;
             FFT::get_strides(temp_s, {3, this->geometry->n_cell_atoms, n_cells_padded[0], n_cells_padded[1], n_cells_padded[2]});
             FFT::get_strides(temp_d, {6, n_inter_sublattice, n_cells_padded[0], n_cells_padded[1], n_cells_padded[2]});
+            it_bounds_pointwise_mult  = {   (n_cells_padded[0]/2 + 1), // due to redundancy in real fft
+                                            n_cells_padded[1], 
+                                            n_cells_padded[2] 
+                                        };
         #else
             field<int*> temp_s = {&spin_stride.a, &spin_stride.b, &spin_stride.c, &spin_stride.comp, &spin_stride.basis};
             field<int*> temp_d = {&dipole_stride.a, &dipole_stride.b, &dipole_stride.c, &dipole_stride.comp, &dipole_stride.basis};;
             FFT::get_strides(temp_s, {n_cells_padded[0], n_cells_padded[1], n_cells_padded[2], 3, this->geometry->n_cell_atoms});
             FFT::get_strides(temp_d, {n_cells_padded[0], n_cells_padded[1], n_cells_padded[2], 6, n_inter_sublattice});
+            it_bounds_pointwise_mult  = {   n_cells_padded[0], 
+                                            n_cells_padded[1], 
+                                            n_cells_padded[2] 
+                                        };
+            (it_bounds_pointwise_mult[fft_dims.size() - 1] /= 2 )++;
         #endif
 
         //perform FFT of dipole matrices
