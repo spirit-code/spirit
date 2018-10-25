@@ -62,6 +62,7 @@ typedef Eigen::Matrix<scalar, 3, 3> Matrix3;
     {
         int i, j, k;
         std::array<int,3> d_j, d_k;
+        std::array<double, 3> dn;
     };
     struct Quadruplet
     {
