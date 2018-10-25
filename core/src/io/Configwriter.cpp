@@ -277,6 +277,9 @@ namespace IO
             }
         }
 
+        // Triplets
+            // has to be done
+
         // Quadruplets
         config += "###    Quadruplets:\n";
         config += fmt::format("n_interaction_quadruplets {}\n", ham->quadruplets.size());

@@ -34,6 +34,7 @@ typedef Eigen::Matrix<scalar, 3, 3> Matrix3;
     {
         int i, j, k;
         int d_j[3], d_k[3];
+        float n[3];
     };
     struct Quadruplet
     {
@@ -62,7 +63,7 @@ typedef Eigen::Matrix<scalar, 3, 3> Matrix3;
     {
         int i, j, k;
         std::array<int,3> d_j, d_k;
-        std::array<double, 3> dn;
+        std::array<double, 3> n;
     };
     struct Quadruplet
     {

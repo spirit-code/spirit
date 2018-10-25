@@ -29,6 +29,7 @@ namespace Engine
         pairfield exchange_pairs, scalarfield exchange_magnitudes,
         pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals,
         scalar ddi_radius,
+        tripletfield triplets, scalarfield triplet_magnitudes1, scalarfield triplet_magnitudes2,
         quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
         std::shared_ptr<Data::Geometry> geometry,
         intfield boundary_conditions
@@ -39,6 +40,7 @@ namespace Engine
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
         exchange_pairs(exchange_pairs), exchange_magnitudes(exchange_magnitudes),
         dmi_pairs(dmi_pairs), dmi_magnitudes(dmi_magnitudes), dmi_normals(dmi_normals),
+        triplets(triplets), triplet_magnitudes1(triplet_magnitudes1), triplet_magnitudes2(triplet_magnitudes2),
         quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes)
     {
         // Generate DDI pairs, magnitudes, normals

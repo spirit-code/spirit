@@ -27,6 +27,7 @@ namespace Engine
             pairfield exchange_pairs, scalarfield exchange_magnitudes,
             pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals,
             scalar ddi_radius,
+			tripletfield triplets, scalarfield triplet_magnitudes1, scalarfield triplet_magnitudes2,
             quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
             std::shared_ptr<Data::Geometry> geometry,
             intfield boundary_conditions
@@ -70,6 +71,10 @@ namespace Engine
 		scalarfield ddi_magnitudes;
 		vectorfield ddi_normals;
 
+		// ------------ Triplet Interactions ------------
+		tripletfield triplets;
+		scalarfield  triplet_magnitudes1, triplet_magnitudes2;
+
 		// ------------ Quadruplet Interactions ------------
 		quadrupletfield quadruplets;
 		scalarfield     quadruplet_magnitudes;
@@ -88,12 +93,14 @@ namespace Engine
 		void Gradient_DMI(const vectorfield & spins, vectorfield & gradient);
 		// Calculates the Dipole-Dipole contribution to the effective field of spin ispin within system s
 		void Gradient_DDI(const vectorfield& spins, vectorfield & gradient);
+		// Triplet
+		void Gradient_Triplet(const vectorfield & spins, vectorfield & gradient);
 		// Quadruplet
 		void Gradient_Quadruplet(const vectorfield & spins, vectorfield & gradient);
 
 		// ------------ Energy Functions ------------
 		// Indices for Energy vector
-		int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet;
+		int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_triplet, idx_quadruplet;
 		// Calculate the Zeeman energy of a Spin System
 		void E_Zeeman(const vectorfield & spins, scalarfield & Energy);
 		// Calculate the Anisotropy energy of a Spin System
@@ -104,6 +111,8 @@ namespace Engine
 		void E_DMI(const vectorfield & spins, scalarfield & Energy);
 		// calculates the Dipole-Dipole Energy
 		void E_DDI(const vectorfield& spins, scalarfield & Energy);
+		// Triplet
+		void E_Triplet(const vectorfield & spins, scalarfield & Energy);
 		// Quadruplet
 		void E_Quadruplet(const vectorfield & spins, scalarfield & Energy);
 

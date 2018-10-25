@@ -35,6 +35,9 @@ namespace IO
                           pairfield& exchange_pairs, scalarfield& exchange_magnitudes,
                           pairfield& dmi_pairs, scalarfield& dmi_magnitudes, 
                           vectorfield& dmi_normals );
+    void Triplets_from_File( const std::string tripletsFile, 
+                                const std::shared_ptr<Data::Geometry> geometry, int& noq,
+                                tripletfield& triplets, scalarfield& triplet_magnitudes, scalarfield& triplet_magnitudes2 );
     void Quadruplets_from_File( const std::string quadrupletsFile, 
                                 const std::shared_ptr<Data::Geometry> geometry, int& noq,
                                 quadrupletfield& quadruplets, scalarfield& quadruplet_magnitudes );

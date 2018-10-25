@@ -732,7 +732,7 @@ namespace IO
      /*
     Read from Triplet file
     */
-    void triplets_from_File(const std::string tripletsFile, const std::shared_ptr<Data::Geometry>, int & noq,
+    void Triplets_from_File(const std::string tripletsFile, const std::shared_ptr<Data::Geometry>, int & noq,
         tripletfield & triplets, scalarfield & triplet_magnitudes1, scalarfield & triplet_magnitudes2)
     {
         Log(Log_Level::Info, Log_Sender::IO, "Reading spin triplets from file " + tripletsFile);
@@ -798,7 +798,7 @@ namespace IO
             int q_i = 0;
             int q_j = 0, q_da_j = 0, q_db_j = 0, q_dc_j = 0;
             int q_k = 0, q_da_k = 0, q_db_k = 0, q_dc_k = 0;
-            int q_na = 0, q_nb = 0, q_nc = 0;
+            scalar q_na = 0, q_nb = 0, q_nc = 0;
             scalar q_Q1, q_Q2;
 
             // Get actual triplets Data
@@ -849,9 +849,9 @@ namespace IO
                 
 
                 // Add the indices and parameter to the corresponding list
-                if (q_Q != 0)
+                if (q_Q1 != 0 || q_Q2 != 0)
                 {
-                    triplets.push_back({ q_i, q_j, q_k, q_l,
+                    triplets.push_back({ q_i, q_j, q_k,
                         { q_da_j, q_db_j, q_db_j },
                         { q_da_k, q_db_k, q_db_k },
                         { q_na, q_nb, q_nc } });

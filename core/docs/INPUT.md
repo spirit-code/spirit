@@ -214,6 +214,12 @@ i j   da db dc    Jij   Dij  Dijx Dijy Dijz
 0 0    0  1  0   10.0   6.0   0.0  1.0  0.0
 0 0    0  0  1   10.0   6.0   0.0  0.0  1.0
 
+### Triplets
+n_interaction_triplets 1
+i    j  da_j  db_j  dc_j    k  da_k  db_k  dc_k    na    nb    nc    Q1    Q2
+0    0  1     0     0       0  0     1     0       0     0     1     3.0   4.0
+```
+
 ### Quadruplets
 n_interaction_quadruplets 1
 i    j  da_j  db_j  dc_j    k  da_k  db_k  dc_k    l  da_l  db_l  dc_l    Q
@@ -235,20 +241,26 @@ Note that instead of specifying the DM-vector as `Dijx Dijy Dijz`, you may speci
 `Dija Dijb Dijc` if you prefer. You may also specify the magnitude separately as a column
 `Dij`, but note that if you do, the vector (e.g. `Dijx Dijy Dijz`) will be normalized.
 
+*Triplets:*
+Columns for these may also be placed in arbitrary order.
+
 *Quadruplets:*
 Columns for these may also be placed in arbitrary order.
 
 *Separate files:*
-The anisotropy, pairs and quadruplets can be placed into separate files,
-you can use `anisotropy_from_file`, `pairs_from_file` and `quadruplets_from_file`.
+The anisotropy, pairs, triplets and quadruplets can be placed into separate files,
+you can use `anisotropy_from_file`, `pairs_from_file`, `triplets_from_file` and `quadruplets_from_file`.
 
-If the headers for anisotropies, pairs or quadruplets are at the top of the respective file,
-it is not necessary to specify `n_anisotropy`, `n_interaction_pairs` or `n_interaction_quadruplets`
+If the headers for anisotropies, pairs, triplets or quadruplets are at the top of the respective file,
+it is not necessary to specify `n_anisotropy`, `n_interaction_pairs`, `n_interaction_triplets` or `n_interaction_quadruplets`
 respectively.
 
 ```Python
 ### Pairs
 interaction_pairs_file        input/pairs.txt
+
+### Triplets
+interaction_triplets_file  input/triplets.txt
 
 ### Quadruplets
 interaction_quadruplets_file  input/quadruplets.txt
