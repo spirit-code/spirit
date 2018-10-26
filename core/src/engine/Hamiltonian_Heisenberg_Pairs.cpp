@@ -568,20 +568,20 @@ namespace Engine
                         if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
                                 check_atom_type(this->geometry->atom_types[kspin]))
                         {
-                            gradient[ispin] -= 2 * triplet_magnitudes1[iquad] * spins[ispin].dot(spins[jspin].cross(spins[kspin]))
+                            gradient[ispin] -= 2.0/3.0 * triplet_magnitudes1[iquad] * spins[ispin].dot(spins[jspin].cross(spins[kspin]))
                                                 * spins[jspin].cross(spins[kspin]);
-                            gradient[jspin] -= 2 * triplet_magnitudes1[iquad] * spins[ispin].dot(spins[jspin].cross(spins[kspin]))
+                            gradient[jspin] -= 2.0/3.0 * triplet_magnitudes1[iquad] * spins[ispin].dot(spins[jspin].cross(spins[kspin]))
                                                 * spins[kspin].cross(spins[ispin]);
-                            gradient[kspin] -= 2 * triplet_magnitudes1[iquad] * spins[ispin].dot(spins[jspin].cross(spins[kspin]))
+                            gradient[kspin] -= 2.0/3.0 * triplet_magnitudes1[iquad] * spins[ispin].dot(spins[jspin].cross(spins[kspin]))
                                                 * spins[ispin].cross(spins[jspin]);
                              
-                            gradient[ispin] -= (spins[ispin][0] * n[0] + spins[ispin][1] * n[1] +spins[ispin][2] * n[2])
+                            gradient[ispin] -= 1.0/3.0 * (spins[ispin][0] * n[0] + spins[ispin][1] * n[1] +spins[ispin][2] * n[2])
                                                 * spins[jspin].cross(spins[kspin])
                                                + spins[ispin].dot(spins[jspin].cross(spins[kspin])) * n;
-                            gradient[jspin] -= (spins[jspin][0] * n[0] + spins[jspin][1] * n[1] +spins[jspin][2] * n[2])
+                            gradient[jspin] -= 1.0/3.0 * (spins[jspin][0] * n[0] + spins[jspin][1] * n[1] +spins[jspin][2] * n[2])
                                                 * spins[kspin].cross(spins[ispin])
                                                + spins[ispin].dot(spins[jspin].cross(spins[kspin])) * n;
-                            gradient[kspin] -= (spins[kspin][0] * n[0] + spins[kspin][1] * n[1] +spins[kspin][2] * n[2])
+                            gradient[kspin] -= 1.0/3.0 * (spins[kspin][0] * n[0] + spins[kspin][1] * n[1] +spins[kspin][2] * n[2])
                                                 * spins[ispin].cross(spins[jspin])
                                                + spins[ispin].dot(spins[jspin].cross(spins[kspin])) * n;
                         }
