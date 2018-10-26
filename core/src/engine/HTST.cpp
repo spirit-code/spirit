@@ -112,12 +112,11 @@ namespace Engine
             MatrixX basis_sp(3*nos, 2*nos);
             Manifoldmath::tangent_basis_spherical(image_sp, basis_sp);
             // Manifoldmath::tangent_basis(image_sp, basis_sp);
-            // TODO
             // Calculate_Perpendicular_Velocity_2N(image_sp, hessian_geodesic_sp_2N, basis_sp, eigenvectors_sp, perpendicular_velocity_sp);
             Calculate_Perpendicular_Velocity(image_sp, htst_info.saddle_point->geometry->mu_s, hessian_geodesic_sp_3N, basis_sp, eigenvectors_sp, perpendicular_velocity_sp);
             htst_info.perpendicular_velocity.assign(perpendicular_velocity_sp.data(), perpendicular_velocity_sp.data() + 2*nos);
 
-            // Calculate "s" - QUESTION: what is it?
+            // Calculate "s"
             htst_info.s = 0;
             for (int i = n_zero_modes_sp+1; i < 2*nos; ++i)
                 htst_info.s += std::pow(perpendicular_velocity_sp[i], 2) / eigenvalues_sp[i];
@@ -191,14 +190,10 @@ namespace Engine
             //      The exponent depends on the number of zero modes at the different states
             htst_info.temperature_exponent = 0.5 * (n_zero_modes_minimum - n_zero_modes_sp);
 
-            // QUESTION: g_e is the electron's g-factor [unitless] -> mu_s = g_e * mu_B / hbar * Spin
-            scalar g_e = 2.00231930436182;
-
-            // Calculate "me" - QUESTION: what is this?
+            // Calculate "me"
             htst_info.me = std::pow(2*C::Pi * C::k_B, htst_info.temperature_exponent);
 
             // Calculate Omega_0, i.e. the entropy contribution
-            // TODO: the `n_zero_modes_sp+1` should be `n_zero_modes_sp+n_negative_modes_sp`
             htst_info.Omega_0 = 1;
             if( n_zero_modes_minimum > n_zero_modes_sp+1 )
             {
@@ -215,8 +210,7 @@ namespace Engine
 
             // Calculate the prefactor
             htst_info.prefactor_dynamical = htst_info.me * htst_info.volume_sp / htst_info.volume_min * htst_info.s;
-            htst_info.prefactor = g_e / (C::hbar * 1e-12) * htst_info.Omega_0 * htst_info.prefactor_dynamical / ( 2*C::Pi );
-
+            htst_info.prefactor = C::g_e / (C::hbar * 1e-12) * htst_info.Omega_0 * htst_info.prefactor_dynamical / ( 2*C::Pi );
 
             Log.SendBlock(Utility::Log_Level::All, Utility::Log_Sender::HTST,
                 {
@@ -233,7 +227,6 @@ namespace Engine
                 }, -1, -1);
         }
 
-        // TODO: this does not work in the 2d hexagonal case...
         scalar Calculate_Zero_Volume(const std::shared_ptr<Data::Spin_System> system)
         {
             int   nos             = system->geometry->nos;
@@ -323,8 +316,7 @@ namespace Engine
 
             Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "  Calculate_Perpendicular_Velocity: calculate a");
 
-            // QUESTION: is this maybe just eigenbasis^T * velocity_projected * eigenbasis ?
-            // Something
+            // The velocity components orthogonal to the dividing surface
             perpendicular_velocity = eigenbasis.col(0).transpose() * (velocity_projected*eigenbasis);
 
             // std::cerr << "  Calculate_Perpendicular_Velocity: sorting" << std::endl;

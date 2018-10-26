@@ -60,7 +60,8 @@ namespace Engine
         void Gradient(const vectorfield & spins, vectorfield & gradient) override;
         void Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions) override;
 
-        // Calculate the total energy for a single spin
+        // Calculate the total energy for a single spin to be used in Monte Carlo.
+        //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
         scalar Energy_Single_Spin(int ispin, const vectorfield & spins) override;
 
         // Hamiltonian name as string

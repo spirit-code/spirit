@@ -292,7 +292,7 @@ namespace Engine
                 if (jspin >= 0)
                 {
                     Energy[ispin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
-                    #ifndef _OPENMP
+                    #ifndef SPIRIT_USE_OPENMP
                     Energy[jspin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
                     #endif
                 }
@@ -312,7 +312,7 @@ namespace Engine
                 if (jspin >= 0)
                 {
                     Energy[ispin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
-                    #ifndef _OPENMP
+                    #ifndef SPIRIT_USE_OPENMP
                     Energy[jspin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
                     #endif
                 }
@@ -453,18 +453,19 @@ namespace Engine
     }
 
 
-    scalar Hamiltonian_Heisenberg::Energy_Single_Spin(int ispin_in, const vectorfield & spins)
+    scalar Hamiltonian_Heisenberg::Energy_Single_Spin(int ispin, const vectorfield & spins)
     {
         scalar Energy = 0;
-        if( check_atom_type(this->geometry->atom_types[ispin_in]) )
+        if( check_atom_type(this->geometry->atom_types[ispin]) )
         {
-            int icell  = ispin_in / this->geometry->n_cell_atoms;
-            int ibasis = ispin_in - icell*this->geometry->n_cell_atoms;
+            int icell  = ispin / this->geometry->n_cell_atoms;
+            int ibasis = ispin - icell*this->geometry->n_cell_atoms;
             auto& mu_s = this->geometry->mu_s;
+            Pair pair_inv;
 
             // External field
             if (this->idx_zeeman >= 0)
-                Energy -= mu_s[ispin_in] * this->external_field_magnitude * this->external_field_normal.dot(spins[ispin_in]);
+                Energy -= mu_s[ispin] * this->external_field_magnitude * this->external_field_normal.dot(spins[ispin]);
 
             // Anisotropy
             if (this->idx_anisotropy >= 0)
@@ -473,33 +474,34 @@ namespace Engine
                 {
                     if (anisotropy_indices[iani] == ibasis)
                     {
-                        if (check_atom_type(this->geometry->atom_types[ispin_in]))
-                            Energy -= this->anisotropy_magnitudes[iani] * std::pow(anisotropy_normals[iani].dot(spins[ispin_in]), 2.0);
+                        if (check_atom_type(this->geometry->atom_types[ispin]))
+                            Energy -= this->anisotropy_magnitudes[iani] * std::pow(anisotropy_normals[iani].dot(spins[ispin]), 2.0);
                     }
                 }
             }
 
             // Exchange
-            if (this->idx_exchange >= 0)
+            if( this->idx_exchange >= 0 )
             {
-                for (unsigned int ipair = 0; ipair < exchange_pairs.size(); ++ipair)
+                for( unsigned int ipair = 0; ipair < exchange_pairs.size(); ++ipair )
                 {
-                    if (exchange_pairs[ipair].i == ibasis)
+                    const auto& pair = exchange_pairs[ipair];
+                    if( pair.i == ibasis )
                     {
-                        int ispin = exchange_pairs[ipair].i + icell*geometry->n_cell_atoms;
-                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[ipair]);
+                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, pair);
                         if (jspin >= 0)
-                        {
-                            Energy -= 0.5 * this->exchange_magnitudes[ipair] * spins[ispin].dot(spins[jspin]);
-                        }
-                        #ifndef _OPENMP
-                        jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[ipair], true);
-                        if (jspin >= 0)
-                        {
-                            Energy -= 0.5 * this->exchange_magnitudes[ipair] * spins[ispin].dot(spins[jspin]);
-                        }
-                        #endif
+                            Energy -= this->exchange_magnitudes[ipair] * spins[ispin].dot(spins[jspin]);
                     }
+                    #ifndef SPIRIT_USE_OPENMP
+                    if( pair.j == ibasis )
+                    {
+                        const auto& t = pair.translations;
+                        pair_inv = Pair{pair.j, pair.i, {-t[0], -t[1], -t[2]}};
+                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, pair_inv);
+                        if( jspin >= 0 )
+                            Energy -= this->exchange_magnitudes[ipair] * spins[ispin].dot(spins[jspin]);
+                    }
+                    #endif
                 }
             }
 
@@ -508,54 +510,23 @@ namespace Engine
             {
                 for (unsigned int ipair = 0; ipair < dmi_pairs.size(); ++ipair)
                 {
-                    if (dmi_pairs[ipair].i == ibasis)
+                    const auto& pair = dmi_pairs[ipair];
+                    if( pair.i == ibasis )
                     {
-                        int ispin = dmi_pairs[ipair].i + icell*geometry->n_cell_atoms;
-                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[ipair]);
+                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, pair);
                         if (jspin >= 0)
-                        {
-                            Energy -= 0.5 * this->dmi_magnitudes[ipair] * this->dmi_normals[ipair].dot(spins[ispin].cross(spins[jspin]));
-                        }
-                        #ifndef _OPENMP
-                        jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[ipair], true);
-                        if (jspin >= 0)
-                        {
-                            Energy += 0.5 * this->dmi_magnitudes[ipair] * this->dmi_normals[ipair].dot(spins[ispin].cross(spins[jspin]));
-                        }
-                        #endif
+                            Energy -= this->dmi_magnitudes[ipair] * this->dmi_normals[ipair].dot(spins[ispin].cross(spins[jspin]));
                     }
-                }
-            }
-
-            // DDI
-            if (this->idx_ddi >= 0)
-            {
-                for (unsigned int ipair = 0; ipair < ddi_pairs.size(); ++ipair)
-                {
-                    if (ddi_pairs[ipair].i == ibasis)
+                    #ifndef SPIRIT_USE_OPENMP
+                    if( pair.j == ibasis )
                     {
-                        int ispin = ddi_pairs[ipair].i + icell*geometry->n_cell_atoms;
-                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, ddi_pairs[ipair]);
-
-                        // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
-                        const scalar mult = 0.5 * mu_s[ispin] * mu_s[jspin]
-                            * C::mu_0 * std::pow(C::mu_B, 2) / ( 4*C::Pi * 1e-30 );
-
+                        const auto& t = pair.translations;
+                        pair_inv = Pair{pair.j, pair.i, {-t[0], -t[1], -t[2]}};
+                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, pair_inv);
                         if (jspin >= 0)
-                        {
-                            Energy -= mult / std::pow(this->ddi_magnitudes[ipair], 3.0) *
-                                (3 * spins[ispin].dot(this->ddi_normals[ipair]) * spins[ispin].dot(this->ddi_normals[ipair]) - spins[ispin].dot(spins[ispin]));
-
-                        }
-                        #ifndef _OPENMP
-                        jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[ipair], true);
-                        if (jspin >= 0)
-                        {
-                            Energy += mult / std::pow(this->ddi_magnitudes[ipair], 3.0) *
-                                (3 * spins[ispin].dot(this->ddi_normals[ipair]) * spins[ispin].dot(this->ddi_normals[ipair]) - spins[ispin].dot(spins[ispin]));
-                        }
-                        #endif
+                            Energy += this->dmi_magnitudes[ipair] * this->dmi_normals[ipair].dot(spins[ispin].cross(spins[jspin]));
                     }
+                    #endif
                 }
             }
 
@@ -576,7 +547,7 @@ namespace Engine
                         Energy -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
                     }
 
-                    #ifndef _OPENMP
+                    #ifndef SPIRIT_USE_OPENMP
                     // TODO: mirrored quadruplet when unique quadruplets are used
                     // jspin = quadruplets[iquad].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_j, true);
                     // kspin = quadruplets[iquad].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k, true);
@@ -664,7 +635,7 @@ namespace Engine
                 if (jspin >= 0)
                 {
                     gradient[ispin] -= exchange_magnitudes[i_pair] * spins[jspin];
-                    #ifndef _OPENMP
+                    #ifndef SPIRIT_USE_OPENMP
                     gradient[jspin] -= exchange_magnitudes[i_pair] * spins[ispin];
                     #endif
                 }
@@ -684,7 +655,7 @@ namespace Engine
                 if (jspin >= 0)
                 {
                     gradient[ispin] -= dmi_magnitudes[i_pair] * spins[jspin].cross(dmi_normals[i_pair]);
-                    #ifndef _OPENMP
+                    #ifndef SPIRIT_USE_OPENMP
                     gradient[jspin] += dmi_magnitudes[i_pair] * spins[ispin].cross(dmi_normals[i_pair]);
                     #endif
                 }
@@ -968,7 +939,7 @@ namespace Engine
                                 int j = 3 * jspin + alpha;
 
                                 hessian(i, j) += -exchange_magnitudes[i_pair];
-                                #ifndef _OPENMP
+                                #ifndef SPIRIT_USE_OPENMP
                                 hessian(j, i) += -exchange_magnitudes[i_pair];
                                 #endif
                             }
@@ -1002,7 +973,7 @@ namespace Engine
                             hessian(i+1, j)   +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
                             hessian(i, j+1)   += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
 
-                            #ifndef _OPENMP
+                            #ifndef SPIRIT_USE_OPENMP
                             hessian(j+1, i+2) +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
                             hessian(j+2, i+1) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
                             hessian(j+2, i)   +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];

@@ -22,15 +22,18 @@ namespace Utility
         // Planck constant [meV*ps/rad]
         double const hbar = 0.6582119514;
 
-        // Millirydberg [mRy/meV]
-        double const mRy = 1.0/13.605693009;
-
-        // Gyromagnetic ratio of electron [rad/(ps*T)] 
+        // Gyromagnetic ratio of electron [rad/(ps*T)]
         // Also gives the Larmor precession frequency for electron
         double const gamma = 0.1760859644;
 
-        // Electron g-factor [unitless]
+        // Electron (Landé) g-factor = gamma * hbar / mu_B [unitless]
         double const g_e = 2.00231930436182;
+
+        // Millirydberg [mRy/meV]
+        double const mRy = 1.0/13.605693009;
+
+        // erg [erg/meV]
+        double const erg = 6.2415091*1e14;
 
         // Pi [rad]
         double const Pi = 3.141592653589793238462643383279502884197169399375105820974;

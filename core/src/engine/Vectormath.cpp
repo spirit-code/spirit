@@ -218,12 +218,12 @@ namespace Engine
         void get_random_vector_unitsphere(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
         {
             scalar v_z = distribution(prng);
-            scalar phi = distribution(prng);
+            scalar phi = distribution(prng)*Pi;
 
             scalar r_xy = std::sqrt(1 - v_z*v_z);
 
-            vec[0] = r_xy * std::cos(2*Pi*phi);
-            vec[1] = r_xy * std::sin(2*Pi*phi);
+            vec[0] = r_xy * std::cos(phi);
+            vec[1] = r_xy * std::sin(phi);
             vec[2] = v_z;
         }
         void get_random_vectorfield_unitsphere(std::mt19937 & prng, vectorfield & xi)
