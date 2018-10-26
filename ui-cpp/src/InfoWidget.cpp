@@ -21,7 +21,7 @@ InfoWidget::InfoWidget(std::shared_ptr<State> state, SpinWidget *spinWidget, Con
 
     // Mouse events should be passed through to the SpinWidget behind
     setAttribute(Qt::WA_TransparentForMouseEvents, true);
-    
+
     // Update timer
     m_timer = new QTimer(this);
     connect(m_timer, &QTimer::timeout, this, &InfoWidget::updateData);
@@ -55,19 +55,23 @@ void InfoWidget::updateData()
 
     // Force
     double f_max = Simulation_Get_MaxTorqueComponent(state.get());
-    this->m_Label_Force_Max->setText(QString::fromLatin1("F (max): ") + QString::number(f_max, 'f', 12));
-    
+    this->m_Label_Force_Max->setText(QString::fromLatin1("F (max):     ") + QString::number(f_max, 'f', 12));
+    this->m_Label_Force_Max_2->setText(QString::fromLatin1("F (max):     ") + QString::number(f_max, 'E', 3));
+
     if (Simulation_Running_On_Chain(state.get()))
     {
         float * forces = new float[Chain_Get_NOI(state.get())];
         Simulation_Get_Chain_MaxTorqueComponents(state.get(), forces);
         float f_current = forces[System_Get_Index(state.get())];
         this->m_Label_Force_Current->show();
-        this->m_Label_Force_Current->setText(QString::fromLatin1("F (current): ") + QString::number(f_current, 'E', 2));
+        this->m_Label_Force_Current->setText(QString::fromLatin1("F (current): ") + QString::number(f_current, 'f', 12));
+        this->m_Label_Force_Current_2->show();
+        this->m_Label_Force_Current_2->setText(QString::fromLatin1("F (current): ") + QString::number(f_current, 'E', 3));
     }
     else
     {
         this->m_Label_Force_Current->hide();
+        this->m_Label_Force_Current_2->hide();
     }
 
     // Dimensions
@@ -105,7 +109,7 @@ void InfoWidget::updateData()
     QString qs_milliseconds = QString("%1").arg(miliseconds, 3, 10, QChar('0'));
     QString qs_walltime = qs_hours+":"+qs_minutes+":"+qs_seconds+"."+qs_milliseconds;
     this->m_Label_Wall_Time->setText(qs_walltime);
-    int ips = Simulation_Get_IterationsPerSecond(state.get());
+    float ips = Simulation_Get_IterationsPerSecond(state.get());
     int precision = 0;
     QString qstr_ips = "";
     if (ips < 1)
