@@ -1247,6 +1247,13 @@ namespace IO
         intfield ddi_n_periodic_images = { 4, 4, 4 };
         scalar ddi_radius = 0.0;
 
+        // ------------ Triplet Interactions ------------
+        int n_triplets = 0;
+        std::string triplets_file = "";
+        bool triplets_from_file = false;
+        tripletfield triplets(0); 
+        scalarfield triplet_magnitudes1(0);scalarfield triplet_magnitudes2(0);
+
         // ------------ Quadruplet Interactions ------------
         int n_quadruplets = 0;
         std::string quadruplets_file = "";
@@ -1471,6 +1478,27 @@ namespace IO
             try
             {
                 IO::Filter_File_Handle myfile(configFile);
+                // Interaction Triplets
+                if (myfile.Find("n_interaction_triplets"))
+                    triplets_file = configFile;
+                else if (myfile.Find("interaction_triplets_file"))
+                    myfile.iss >> triplets_file;
+                if (triplets_file.length() > 0)
+                {
+                    // The file name should be valid so we try to read it
+                    Triplets_from_File(triplets_file, geometry, n_triplets,
+                        triplets, triplet_magnitudes1, triplet_magnitudes2);
+                }
+            }
+            catch( ... )
+            {
+                spirit_handle_exception_core(fmt::format("Unable to read interaction triplets from config file  \"{}\"", configFile));
+            }
+            
+
+            try
+            {
+                IO::Filter_File_Handle myfile(configFile);
 
                 // Interaction Quadruplets
                 if (myfile.Find("n_interaction_quadruplets"))
@@ -1526,6 +1554,7 @@ namespace IO
                 exchange_magnitudes,
                 dmi_magnitudes, dm_chirality,
                 ddi_method, ddi_n_periodic_images, ddi_radius,
+                triplets, triplet_magnitudes1, triplet_magnitudes2, 
                 quadruplets, quadruplet_magnitudes,
                 geometry,
                 boundary_conditions
@@ -1539,6 +1568,7 @@ namespace IO
                 exchange_pairs, exchange_magnitudes,
                 dmi_pairs, dmi_magnitudes, dmi_normals,
                 ddi_method, ddi_n_periodic_images, ddi_radius,
+                triplets, triplet_magnitudes1, triplet_magnitudes2, 
                 quadruplets, quadruplet_magnitudes,
                 geometry,
                 boundary_conditions

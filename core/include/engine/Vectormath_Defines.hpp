@@ -46,6 +46,7 @@ using Matrix3c   = Eigen::Matrix<std::complex<scalar>, 3, 3>;
     {
         int i, j, k;
         int d_j[3], d_k[3];
+        scalar n[3]; 
     };
     struct Quadruplet
     {
@@ -73,6 +74,7 @@ using Matrix3c   = Eigen::Matrix<std::complex<scalar>, 3, 3>;
     {
         int i, j, k;
         std::array<int,3> d_j, d_k;
+        std::array<scalar, 3> n; 
     };
     struct Quadruplet
     {

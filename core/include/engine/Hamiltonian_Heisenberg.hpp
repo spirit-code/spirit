@@ -36,6 +36,7 @@ namespace Engine
             pairfield exchange_pairs, scalarfield exchange_magnitudes,
             pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals,
             DDI_Method ddi_method, intfield ddi_n_periodic_images, scalar ddi_radius,
+            tripletfield triplets, scalarfield triplet_magnitudes1, scalarfield triplet_magnitudes2, 
             quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
             std::shared_ptr<Data::Geometry> geometry,
             intfield boundary_conditions
@@ -47,6 +48,7 @@ namespace Engine
             scalarfield exchange_shell_magnitudes,
             scalarfield dmi_shell_magnitudes, int dm_chirality,
             DDI_Method ddi_method, intfield ddi_n_periodic_images, scalar ddi_radius,
+            tripletfield triplets, scalarfield triplet_magnitudes1, scalarfield triplet_magnitudes2, 
             quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
             std::shared_ptr<Data::Geometry> geometry,
             intfield boundary_conditions
@@ -105,6 +107,10 @@ namespace Engine
         scalarfield ddi_magnitudes;
         vectorfield ddi_normals;
 
+	    // ------------ Triplet Interactions ------------
+		tripletfield triplets;
+		scalarfield  triplet_magnitudes1, triplet_magnitudes2;
+
         // ------------ Quadruplet Interactions ------------
         quadrupletfield quadruplets;
         scalarfield     quadruplet_magnitudes;
@@ -127,12 +133,14 @@ namespace Engine
         void Gradient_DDI_Direct(const vectorfield& spins, vectorfield & gradient);
         void Gradient_DDI_FFT(const vectorfield& spins, vectorfield & gradient);
 
+	    // Triplet
+		void Gradient_Triplet(const vectorfield & spins, vectorfield & gradient);
         // Quadruplet
         void Gradient_Quadruplet(const vectorfield & spins, vectorfield & gradient);
 
         // ------------ Energy Functions ------------
         // Indices for Energy vector
-        int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet;
+ 		int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_triplet, idx_quadruplet; 
         // Calculate the Zeeman energy of a Spin System
         void E_Zeeman(const vectorfield & spins, scalarfield & Energy);
         // Calculate the Anisotropy energy of a Spin System
@@ -146,6 +154,9 @@ namespace Engine
         void E_DDI_Direct(const vectorfield& spins, scalarfield & Energy);
         void E_DDI_Cutoff(const vectorfield& spins, scalarfield & Energy);
         void E_DDI_FFT(const vectorfield& spins, scalarfield & Energy);
+
+	    // Triplet
+		void E_Triplet(const vectorfield & spins, scalarfield & Energy);
 
         // Quadruplet
         void E_Quadruplet(const vectorfield & spins, scalarfield & Energy);
