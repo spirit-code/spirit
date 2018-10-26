@@ -116,3 +116,39 @@ TEST_CASE( "Finite Differences", "[physics]" )
         REQUIRE( hessian_fd.isApprox( hessian ) );
     }
 }
+
+TEST_CASE( "Dipole-Dipole Interaction", "[physics]" )
+{
+    //cfg where only ddi is enabled
+    auto state = std::shared_ptr<State> (State_Setup("core/test/input/physics_ddi.cfg"), State_Delete );
+
+    Configuration_Random( state.get() );
+    
+    auto& spins = *state->active_image->spins;
+
+    auto grad_fft = vectorfield( state->nos );
+    auto grad_direct = vectorfield( state->nos );
+
+    state->active_image->hamiltonian->Gradient( spins, grad_fft );
+    auto energy_fft = state->active_image->hamiltonian->Energy(spins);
+
+    auto n_periodic_images = std::vector<int> {4,4,4};
+    Hamiltonian_Set_DDI(state.get(), SPIRIT_DDI_METHOD_CUTOFF, n_periodic_images.data(), -1);
+
+    state->active_image->hamiltonian->Gradient( spins, grad_direct );
+    auto energy_direct = state->active_image->hamiltonian->Energy(spins);
+
+    for(int i=0; i<state->nos; i++)
+    {
+        INFO("Failed DDI-Gradient comparison at i = " << i);
+        INFO("Gradient (FFT):")
+        INFO(grad_fft[i])
+        INFO("Gradient (Direct):")
+        INFO(grad_direct[i])
+        REQUIRE(grad_fft[i].isApprox(grad_direct[i]));
+    }
+    INFO("Failed energy comparison test!")
+    INFO("Energy (Direct) = " << energy_direct << "\n" );
+    INFO("Energy (FFT)    = " << energy_fft << "\n");
+    REQUIRE(Approx(energy_fft) == energy_direct);
+}

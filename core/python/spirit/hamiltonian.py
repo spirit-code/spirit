@@ -10,6 +10,12 @@ CHIRALITY_NEEL          =  2
 CHIRALITY_BLOCH_INVERSE = -1
 CHIRALITY_NEEL_INVERSE  = -2
 
+### DDI METHOD
+DDI_METHOD_NONE         = 0
+DDI_METHOD_FFT          = 1
+DDI_METHOD_FMM          = 2
+DDI_METHOD_CUTOFF       = 3
+
 ### ---------------------------------- Set ----------------------------------
 
 ### Set boundary conditions
@@ -64,11 +70,12 @@ def set_dmi(p_state, n_shells, D_ij, chirality=CHIRALITY_BLOCH, idx_image=-1, id
 
 ### Set dipole-dipole interaction in form of exact calculation within a cutoff radius
 _Set_DDI             = _spirit.Hamiltonian_Set_DDI
-_Set_DDI.argtypes    = [ctypes.c_void_p, ctypes.c_float,
+_Set_DDI.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.POINTER(ctypes.c_int), ctypes.c_float,
                         ctypes.c_int, ctypes.c_int]
 _Set_DDI.restype     = None
-def set_ddi(p_state, radius, idx_image=-1, idx_chain=-1):
-    _Set_DDI(ctypes.c_void_p(p_state), ctypes.c_float(radius),
+def set_ddi(p_state, ddi_method, n_periodic_images=[4,4,4], radius=0.0, idx_image=-1, idx_chain=-1):
+    vec3 = ctypes.c_int * 3
+    _Set_DDI(ctypes.c_void_p(p_state), ctypes.c_int(ddi_method) , vec3(*n_periodic_images), ctypes.c_float(radius),
              ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
 ### ---------------------------------- Get ----------------------------------

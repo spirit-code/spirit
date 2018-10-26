@@ -17,6 +17,8 @@ set(SOURCE_SPIRIT_ENGINE
 	${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.cu
 	${CMAKE_CURRENT_SOURCE_DIR}/Manifoldmath.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Manifoldmath.cu
+	${CMAKE_CURRENT_SOURCE_DIR}/FFT.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/FFT.cu
 	${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
 	PARENT_SCOPE # needed so the change of ${SOURCE} will persist to the parent scope
 )

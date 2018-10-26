@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <array>
+#include <complex>
 
 #include "Spirit_Defines.h"
 
@@ -16,6 +17,9 @@ using MatrixX    = Eigen::Matrix<scalar, -1, -1>;
 using Vector3    = Eigen::Matrix<scalar, 3, 1>;
 using RowVector3 = Eigen::Matrix<scalar, 1, 3>;
 using Matrix3    = Eigen::Matrix<scalar, 3, 3>;
+
+using Vector3c   = Eigen::Matrix<std::complex<scalar>, 3, 1>;
+using Matrix3c   = Eigen::Matrix<std::complex<scalar>, 3, 3>;
 
 // Different definitions for regular C++ and CUDA
 #ifdef SPIRIT_USE_CUDA

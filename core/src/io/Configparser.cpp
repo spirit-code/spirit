@@ -1242,6 +1242,9 @@ namespace IO
         int n_shells_dmi = dmi_magnitudes.size();
         int dm_chirality = 1;
         
+        std::string ddi_method_str = "none";
+        auto ddi_method = Engine::DDI_Method::None;
+        intfield ddi_n_periodic_images = { 4, 4, 4 };
         scalar ddi_radius = 0.0;
 
         // ------------ Quadruplet Interactions ------------
@@ -1392,10 +1395,12 @@ namespace IO
                     {
                         if (myfile.Find("jij"))
                         {
-                            for (iatom = 0; iatom < n_shells_exchange; ++iatom)
-                                myfile.iss >> exchange_magnitudes[iatom];
+                            for (int ishell = 0; ishell < n_shells_exchange; ++ishell)
+                                myfile.iss >> exchange_magnitudes[ishell];
                         }
-                        else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg: Keyword 'jij' not found. Using Default:  { 10.0 }");
+                        else
+                            Log(Log_Level::Warning, Log_Sender::IO, fmt::format(
+                                "Hamiltonian_Heisenberg: Keyword 'jij' not found. Using Default:  {}", exchange_magnitudes[0]));
                     }
                 }// end try
                 catch( ... )
@@ -1414,10 +1419,12 @@ namespace IO
                     {
                         if (myfile.Find("dij"))
                         {
-                            for (iatom = 0; iatom < n_shells_dmi; ++iatom)
-                                myfile.iss >> dmi_magnitudes[iatom];
+                            for (int ishell = 0; ishell < n_shells_dmi; ++ishell)
+                                myfile.iss >> dmi_magnitudes[ishell];
                         }
-                        else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg: Keyword 'dij' not found. Using Default:  { 6.0 }");
+                        else
+                            Log(Log_Level::Warning, Log_Sender::IO, fmt::format(
+                                "Hamiltonian_Heisenberg: Keyword 'dij' not found. Using Default:  {}", dmi_magnitudes[0]));
                     }
                     myfile.Read_Single(dm_chirality, "dm_chirality");
 
@@ -1432,9 +1439,29 @@ namespace IO
             {
                 IO::Filter_File_Handle myfile(configFile);
 
-                //		Dipole-Dipole Pairs
-                // Dipole Dipole radius
-                myfile.Read_Single(ddi_radius, "dd_radius");
+                // DDI method
+                myfile.Read_String(ddi_method_str, "ddi_method");
+                if( ddi_method_str == "none" )
+                    ddi_method = Engine::DDI_Method::None;
+                else if( ddi_method_str == "fft" )
+                    ddi_method = Engine::DDI_Method::FFT;
+                else if( ddi_method_str == "fmm" )
+                    ddi_method = Engine::DDI_Method::FMM;
+                else if( ddi_method_str == "cutoff" )
+                    ddi_method = Engine::DDI_Method::Cutoff;
+                else
+                {
+                    Log(Log_Level::Warning, Log_Sender::IO, fmt::format(
+                        "Hamiltonian_Heisenberg: Keyword 'ddi_method' got passed invalid method \"{}\". Setting to \"none\".", ddi_method_str));
+                    ddi_method_str = "none";
+                }
+
+                // Number of periodical images
+                myfile.Read_3Vector(ddi_n_periodic_images, "ddi_n_periodic_images");
+                // myfile.Read_Single(ddi_n_periodic_images, "ddi_n_periodic_images");
+
+                // Dipole-dipole cutoff radius
+                myfile.Read_Single(ddi_radius, "ddi_radius");
             }// end try
             catch( ... )
             {
@@ -1468,25 +1495,26 @@ namespace IO
         
         // Return
         Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg:");
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1} {2} {3}", "boundary conditions", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B[0]", B));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B_normal[0]", B_normal.transpose()));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {} {} {}", "boundary conditions", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "external field", B));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "field_normal", B_normal.transpose()));
         if (anisotropy_from_file)
             Log(Log_Level::Parameter, Log_Sender::IO, "        K                     from file");
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "K[0]", K));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "K_normal[0]", K_normal.transpose()));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "anisotropy[0]", K));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "anisotropy_normal[0]", K_normal.transpose()));
         if (hamiltonian_type == "heisenberg_neighbours")
         {
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "n_shells_exchange", n_shells_exchange));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "n_shells_exchange", n_shells_exchange));
             if (n_shells_exchange > 0)
-                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "J_ij[0]", exchange_magnitudes[0]));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "n_shells_dmi", n_shells_dmi));
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "J_ij[0]", exchange_magnitudes[0]));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "n_shells_dmi", n_shells_dmi));
             if (n_shells_dmi > 0)
-                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "D_ij[0]", dmi_magnitudes[0]));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "DM chirality", dm_chirality));
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "D_ij[0]", dmi_magnitudes[0]));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "DM chirality", dm_chirality));
         }
-
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "dd_radius", ddi_radius));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "ddi_method", ddi_method_str));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = ({} {} {})", "ddi_n_periodic_images", ddi_n_periodic_images[0], ddi_n_periodic_images[1], ddi_n_periodic_images[2]));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "ddi_radius", ddi_radius));
 
         std::unique_ptr<Engine::Hamiltonian_Heisenberg> hamiltonian;
 
@@ -1497,7 +1525,7 @@ namespace IO
                 anisotropy_index, anisotropy_magnitude, anisotropy_normal,
                 exchange_magnitudes,
                 dmi_magnitudes, dm_chirality,
-                ddi_radius,
+                ddi_method, ddi_n_periodic_images, ddi_radius,
                 quadruplets, quadruplet_magnitudes,
                 geometry,
                 boundary_conditions
@@ -1510,7 +1538,7 @@ namespace IO
                 anisotropy_index, anisotropy_magnitude, anisotropy_normal,
                 exchange_pairs, exchange_magnitudes,
                 dmi_pairs, dmi_magnitudes, dmi_normals,
-                ddi_radius,
+                ddi_method, ddi_n_periodic_images, ddi_radius,
                 quadruplets, quadruplet_magnitudes,
                 geometry,
                 boundary_conditions

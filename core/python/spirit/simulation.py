@@ -132,3 +132,10 @@ _Running_Anywhere_On_Chain.argtypes  = [ctypes.c_void_p, ctypes.c_int]
 _Running_Anywhere_On_Chain.restype   = ctypes.c_bool
 def running_anywhere_on_chain(p_state, idx_chain=-1):
     return bool(_Running_Anywhere_On_Chain(ctypes.c_void_p(p_state), ctypes.c_int(idx_chain)))
+
+# float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_chain) noexcept
+_Get_IterationsPerSecond = _spirit.Simulation_Get_IterationsPerSecond
+_Get_IterationsPerSecond.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Get_IterationsPerSecond.restype = ctypes.c_float
+def get_iterations_per_second(p_state, idx_image=-1, idx_chain=-1):
+    return float(_Get_IterationsPerSecond(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain)))

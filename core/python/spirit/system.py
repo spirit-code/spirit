@@ -37,6 +37,21 @@ def get_spin_directions(p_state, idx_image=-1, idx_chain=-1):
     array_view.shape = (nos, 3)
     return array_view
 
+### Get Pointer to Effective Field
+# NOTE: Changing the values of the array_view one can alter the value of the data of the state
+_Get_Effective_Field            = _spirit.System_Get_Effective_Field
+_Get_Effective_Field.argtypes   = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Get_Effective_Field.restype    = ctypes.POINTER(scalar)
+def get_effective_field(p_state, idx_image=-1, idx_chain=-1):
+    nos = get_nos(p_state, idx_image, idx_chain)
+    ArrayType = scalar*3*nos
+    Data = _Get_Effective_Field(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+    array_pointer = ctypes.cast(Data, ctypes.POINTER(ArrayType))
+    array = frombuffer(array_pointer.contents, dtype=scalar)
+    array_view = array.view()
+    array_view.shape = (nos, 3)
+    return array_view
+
 ### Get Pointer to an eigenmode
 # NOTE: Changing the values of the array_view one can alter the value of the data of the state
 _Get_Eigenmode            = _spirit.System_Get_Eigenmode
