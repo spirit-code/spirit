@@ -78,7 +78,7 @@ namespace Engine
 
         FFT_Plan::~FFT_Plan()
         {
-            std::cerr << "Calling Destructor " << name << std::endl;
+            // std::cerr << "Calling Destructor " << name << std::endl;
         }
 
         #endif
