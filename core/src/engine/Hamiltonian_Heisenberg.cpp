@@ -325,11 +325,13 @@ namespace Engine
         if( this->ddi_method == DDI_Method::FFT )
             this->E_DDI_FFT(spins, Energy);
         else if( this->ddi_method == DDI_Method::Cutoff )
+        {
             // TODO: Merge these implementations in the future
-            if(ddi_cutoff_radius >= 0)
+            if( ddi_cutoff_radius >= 0 )
                 this->E_DDI_Cutoff(spins, Energy);
             else 
                 this->E_DDI_Direct(spins, Energy);
+        }
     }
 
     void Hamiltonian_Heisenberg::E_DDI_Direct(const vectorfield & spins, scalarfield & Energy)
@@ -668,11 +670,13 @@ namespace Engine
         if( this->ddi_method == DDI_Method::FFT )
             this->Gradient_DDI_FFT(spins, gradient);
         else if( this->ddi_method == DDI_Method::Cutoff )
+        {
             // TODO: Merge these implementations in the future
-            if( this->ddi_cutoff_radius >= 0)
+            if( this->ddi_cutoff_radius >= 0 )
                 this->Gradient_DDI_Cutoff(spins, gradient);
             else
                 this->Gradient_DDI_Direct(spins, gradient);
+        }
     }
 
     void Hamiltonian_Heisenberg::Gradient_DDI_Cutoff(const vectorfield & spins, vectorfield & gradient)
@@ -807,7 +811,7 @@ namespace Engine
             {
                 auto& m2 = spins[idx2];
 
-                diff = geometry->lattice_constant * (this->geometry->positions[idx2] - this->geometry->positions[idx1]);
+                diff = this->geometry->positions[idx2] - this->geometry->positions[idx1];
                 scalar Dxx = 0, Dxy = 0, Dxz = 0, Dyy = 0, Dyz = 0, Dzz = 0;
 
                 for(int a_pb = - img_a; a_pb <= img_a; a_pb++)
@@ -816,9 +820,9 @@ namespace Engine
                     {
                         for(int c_pb = -img_c; c_pb <= img_c; c_pb++)
                         {
-                            diff_img = diff + geometry->lattice_constant * a_pb * geometry->n_cells[0] * geometry->bravais_vectors[0]
-                                            + geometry->lattice_constant * b_pb * geometry->n_cells[1] * geometry->bravais_vectors[1]
-                                            + geometry->lattice_constant * c_pb * geometry->n_cells[2] * geometry->bravais_vectors[2];
+                            diff_img = diff + a_pb * geometry->n_cells[0] * geometry->bravais_vectors[0]
+                                            + b_pb * geometry->n_cells[1] * geometry->bravais_vectors[1]
+                                            + c_pb * geometry->n_cells[2] * geometry->bravais_vectors[2];
                             d = diff_img.norm();
                             if(d > 1e-10)
                             {
@@ -1132,9 +1136,9 @@ namespace Engine
                                 {
                                     for(int c_pb = -img_c; c_pb <= img_c; c_pb++)
                                     {
-                                        diff =    geometry->lattice_constant * (a_idx + a_pb * Na + geometry->cell_atoms[i_b1][0] - geometry->cell_atoms[i_b2][0]) * ta
-                                                + geometry->lattice_constant * (b_idx + b_pb * Nb + geometry->cell_atoms[i_b1][1] - geometry->cell_atoms[i_b2][1]) * tb
-                                                + geometry->lattice_constant * (c_idx + c_pb * Nc + geometry->cell_atoms[i_b1][2] - geometry->cell_atoms[i_b2][2]) * tc;
+                                        diff =    (a_idx + a_pb * Na + geometry->cell_atoms[i_b1][0] - geometry->cell_atoms[i_b2][0]) * ta
+                                                + (b_idx + b_pb * Nb + geometry->cell_atoms[i_b1][1] - geometry->cell_atoms[i_b2][1]) * tb
+                                                + (c_idx + c_pb * Nc + geometry->cell_atoms[i_b1][2] - geometry->cell_atoms[i_b2][2]) * tc;
                                         if(diff.norm() > 1e-10)
                                         {
                                             auto d = diff.norm();

@@ -25,23 +25,31 @@ namespace Data
         n_cells_total(n_cells[0] * n_cells[1] * n_cells[2]),
         pinning(pinning), defects(defects)
     {
-        for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
+        // Get x,y,z of component of atom positions in unit of length (instead of in units of a,b,c)
+        for (int iatom = 0; iatom < this->n_cell_atoms; ++iatom)
         {
-            // Get x,y,z of component of atom positions in unit of length (instead of in units of a,b,c)
-            Vector3 build_array = bravais_vectors[0] * cell_atoms[iatom][0]
-                                + bravais_vectors[1] * cell_atoms[iatom][1]
-                                + bravais_vectors[2] * cell_atoms[iatom][2];
-            cell_atoms[iatom] = lattice_constant * build_array;
+            Vector3 build_array = this->bravais_vectors[0] * this->cell_atoms[iatom][0]
+                                + this->bravais_vectors[1] * this->cell_atoms[iatom][1]
+                                + this->bravais_vectors[2] * this->cell_atoms[iatom][2];
+            this->cell_atoms[iatom] = this->lattice_constant * build_array;
         }
 
         // Generate positions and atom types
-        this->positions = vectorfield(nos);
-        this->atom_types = intfield(nos, 0);
-        Engine::Vectormath::Build_Spins(positions, cell_atoms, bravais_vectors, n_cells);
+        this->positions = vectorfield(this->nos);
+        this->generatePositions();
 
-        // Generate default mu_s and pinning masks
-        this->mu_s = scalarfield(this->nos, 1);
-        this->mask_unpinned = intfield(this->nos, 1);
+        // Calculate some useful info
+        this->calculateBounds();
+        this->calculateUnitCellBounds();
+        this->calculateDimensionality();
+
+        // Calculate center of the System
+        this->center = 0.5 *  (this->bounds_min + this->bounds_max);
+
+        // Generate default atom_types, mu_s and pinning masks
+        this->atom_types        = intfield(this->nos, 0);
+        this->mu_s              = scalarfield(this->nos, 1);
+        this->mask_unpinned     = intfield(this->nos, 1);
         this->mask_pinned_cells = vectorfield(this->nos, { 0,0,0 });
 
         // Set atom types, mu_s
@@ -58,7 +66,7 @@ namespace Data
             this->mask_pinned_cells[ispin] = pinning.spins[isite];
         }
 
-        // Apply defects
+        // Apply additional defect sites
         for (int i = 0; i < defects.sites.size(); ++i)
         {
             auto& defect = defects.sites[i];
@@ -69,20 +77,77 @@ namespace Data
             this->mu_s[ispin] = 0.0;
         }
 
-        // Calculate some info
-        this->calculateBounds();
-        this->calculateUnitCellBounds();
-        this->calculateDimensionality();
-
-        // Calculate center of the System
-        this->center = 0.5 *  (this->bounds_min + this->bounds_max);
-
         // Calculate the type of geometry
         this->calculateGeometryType();
 
         // For updates of triangulation and tetrahedra
         this->last_update_n_cell_step = -1;
         this->last_update_n_cells = intfield(3, -1);
+    }
+
+    void Geometry::generatePositions()
+    {
+        // Check for erronous input placing two spins on the same location
+        int max_a = std::min(10, n_cells[0]);
+        int max_b = std::min(10, n_cells[1]);
+        int max_c = std::min(10, n_cells[2]);
+        Vector3 diff, translation;
+        for (int i = 0; i < n_cell_atoms; ++i)
+        {
+            for (int j = 0; j < n_cell_atoms; ++j)
+            {
+                for (int da = -max_a; da <= max_a; ++da)
+                {
+                    for (int db = -max_b; db <= max_b; ++db)
+                    {
+                        for (int dc = -max_c; dc <= max_c; ++dc)
+                        {
+                            translation = lattice_constant * (
+                                  da * bravais_vectors[0]
+                                + db * bravais_vectors[1]
+                                + dc * bravais_vectors[2] );
+
+                            // Norm is zero if translated basis atom is at position of another basis atom
+                            diff = cell_atoms[i] - ( cell_atoms[j] + translation );
+
+                            if( (i != j || da != 0 || db != 0 || dc != 0) && 
+                                std::abs(diff[0]) < 1e-9 &&
+                                std::abs(diff[1]) < 1e-9 &&
+                                std::abs(diff[2]) < 1e-9 )
+                            {
+                                spirit_throw(Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Severe,
+                                    "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Generate positions
+        for (int dc = 0; dc < n_cells[2]; ++dc)
+        {
+            for (int db = 0; db < n_cells[1]; ++db)
+            {
+                for (int da = 0; da < n_cells[0]; ++da)
+                {
+                    for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
+                    {
+                        int ispin = iatom
+                            + dc * n_cell_atoms * n_cells[1] * n_cells[0]
+                            + db * n_cell_atoms * n_cells[0]
+                            + da * n_cell_atoms;
+
+                        translation = lattice_constant * (
+                              da * bravais_vectors[0]
+                            + db * bravais_vectors[1]
+                            + dc * bravais_vectors[2] );
+
+                        positions[ispin] = cell_atoms[iatom] + translation;
+                    }
+                }
+            }
+        }
     }
 
 

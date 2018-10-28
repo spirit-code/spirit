@@ -353,11 +353,13 @@ namespace Engine
         if( this->ddi_method == DDI_Method::FFT )
             this->E_DDI_FFT(spins, Energy);
         else if( this->ddi_method == DDI_Method::Cutoff )
+        {
             // TODO: Merge these implementations in the future
-            if(ddi_cutoff_radius >= 0)
+            if( ddi_cutoff_radius >= 0 )
                 this->E_DDI_Cutoff(spins, Energy);
             else 
                 this->E_DDI_Direct(spins, Energy);
+        }
     }
 
     void Hamiltonian_Heisenberg::E_DDI_Direct(const vectorfield & spins, scalarfield & Energy)
@@ -468,7 +470,7 @@ namespace Engine
             {
                 auto& m2 = spins[idx2];
 
-                diff = geometry->lattice_constant * (this->geometry->positions[idx2] - this->geometry->positions[idx1]);
+                diff = this->geometry->positions[idx2] - this->geometry->positions[idx1];
                 scalar Dxx = 0, Dxy = 0, Dxz = 0, Dyy = 0, Dyz = 0, Dzz = 0;
 
                 for(int a_pb = - img_a; a_pb <= img_a; a_pb++)
@@ -477,9 +479,9 @@ namespace Engine
                     {
                         for(int c_pb = -img_c; c_pb <= img_c; c_pb++)
                         {
-                            diff_img = diff + geometry->lattice_constant * a_pb * geometry->n_cells[0] * geometry->bravais_vectors[0]
-                                            + geometry->lattice_constant * b_pb * geometry->n_cells[1] * geometry->bravais_vectors[1]
-                                            + geometry->lattice_constant * c_pb * geometry->n_cells[2] * geometry->bravais_vectors[2];
+                            diff_img = diff + a_pb * geometry->n_cells[0] * geometry->bravais_vectors[0]
+                                            + b_pb * geometry->n_cells[1] * geometry->bravais_vectors[1]
+                                            + c_pb * geometry->n_cells[2] * geometry->bravais_vectors[2];
                             d = diff_img.norm();
                             if(d > 1e-10)
                             {
@@ -749,11 +751,13 @@ namespace Engine
         if( this->ddi_method == DDI_Method::FFT )
             this->Gradient_DDI_FFT(spins, gradient);
         else if( this->ddi_method == DDI_Method::Cutoff )
+        {
             // TODO: Merge these implementations in the future
-            if( this->ddi_cutoff_radius >= 0)
+            if( this->ddi_cutoff_radius >= 0 )
                 this->Gradient_DDI_Cutoff(spins, gradient);
             else
                 this->Gradient_DDI_Direct(spins, gradient);
+        }
     }
 
     void Hamiltonian_Heisenberg::Gradient_DDI_Cutoff(const vectorfield & spins, vectorfield & gradient)
@@ -1037,7 +1041,7 @@ namespace Engine
         FFT::batch_Four_3D(fft_plan_spins);
     }
 
-    __global__ void CU_Write_FFT_Dipole_Input(FFT::FFT_real_type* fft_dipole_inputs, int* iteration_bounds, const Vector3* bravais_vectors, int n_cell_atoms, Vector3* cell_atoms, int* n_cells, int* inter_sublattice_lookup, int* img, FFT::StrideContainer dipole_stride, scalar lattice_constant)
+    __global__ void CU_Write_FFT_Dipole_Input(FFT::FFT_real_type* fft_dipole_inputs, int* iteration_bounds, const Vector3* bravais_vectors, int n_cell_atoms, Vector3* cell_atoms, int* n_cells, int* inter_sublattice_lookup, int* img, FFT::StrideContainer dipole_stride)
     {
         int tupel[3];
         int sublattice_size = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2];
@@ -1074,9 +1078,9 @@ namespace Engine
                                 for(int c_pb = -img[2]; c_pb <= img[2]; c_pb++)
                                 {
 
-                                    diff =    lattice_constant * (a_idx + a_pb * n_cells[0] + cell_atoms[i_b1][0] - cell_atoms[i_b2][0]) * bravais_vectors[0]
-                                            + lattice_constant * (b_idx + b_pb * n_cells[1] + cell_atoms[i_b1][1] - cell_atoms[i_b2][1]) * bravais_vectors[1]
-                                            + lattice_constant * (c_idx + c_pb * n_cells[2] + cell_atoms[i_b1][2] - cell_atoms[i_b2][2]) * bravais_vectors[2];
+                                    diff =    (a_idx + a_pb * n_cells[0] + cell_atoms[i_b1][0] - cell_atoms[i_b2][0]) * bravais_vectors[0]
+                                            + (b_idx + b_pb * n_cells[1] + cell_atoms[i_b1][1] - cell_atoms[i_b2][1]) * bravais_vectors[1]
+                                            + (c_idx + c_pb * n_cells[2] + cell_atoms[i_b1][2] - cell_atoms[i_b2][2]) * bravais_vectors[2];
 
                                     if(diff.norm() > 1e-10)
                                     {
@@ -1133,7 +1137,7 @@ namespace Engine
         CU_Write_FFT_Dipole_Input<<<(sublattice_size + 1023)/1024, 1024>>>
         (   fft_dipole_inputs.data(), it_bounds_write_dipole.data(), bravais_vectors.data(), 
             geometry->n_cell_atoms, cell_atoms.data(), geometry->n_cells.data(), 
-            inter_sublattice_lookup.data(), img.data(), dipole_stride, geometry->lattice_constant
+            inter_sublattice_lookup.data(), img.data(), dipole_stride
         );
         FFT::batch_Four_3D(fft_plan_dipole);
     }

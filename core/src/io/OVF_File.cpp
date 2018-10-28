@@ -202,7 +202,7 @@ namespace IO
                 {
                     this->needs_dimension_change = true;
                     Log(Log_Level::Warning, this->sender, fmt::format(
-                        "The geometry of the OVF file ({}x{}x{} cells, {} per cell) does not much the geometry of the current image ({}x{}x{} cells, {} per cell).",
+                        "The geometry of the OVF file ({}x{}x{} cells, {} per cell) does not match the geometry of the current image ({}x{}x{} cells, {} per cell).",
                         this->nodes[0], this->nodes[1], this->nodes[2], 1, geometry.n_cells[0], geometry.n_cells[1], geometry.n_cells[2], geometry.n_cell_atoms) );
                 }
             }

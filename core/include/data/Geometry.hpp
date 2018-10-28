@@ -144,6 +144,8 @@ namespace Data
         Vector3 cell_bounds_min, cell_bounds_max;
 
     private:
+        // Generate the full set of spin positions
+        void generatePositions();
         // Apply the Basis_Cell_Composition to this geometry (i.e. set atom types, mu_s etc.)
         void applyCellComposition();
         // Calculate and update the dimensionality of the points in this geometry
