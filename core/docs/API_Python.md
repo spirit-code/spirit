@@ -178,7 +178,7 @@ Parameters
 | -------------------------------------------------------------------------------------------------- | ------------- |
 | `set_iterations(p_state, n_iterations, n_iterations_log, idx_image=-1, idx_chain=-1)`               | `None`        |
 | `set_convergence(p_state, convergence, idx_image=-1, idx_chain=-1)`                                 | `None`        |
-| `set_spring_constant(p_state, c_spring, idx_image=-1, idx_chain=-1)`                                 | `None`        |
+| `set_spring_force(p_state, spring_constant=1, ratio=0, idx_image=-1, idx_chain=-1)`                 | `None`        |
 | `set_climbing_falling(p_state, image_type, idx_image=-1, idx_chain=-1)`                              | `None`        |
 | `set_image_type_automatically(p_state, idx_chain=-1)`                                                 | `None`        |
 
@@ -186,7 +186,7 @@ Parameters
 | -------------------------------------------------------------------- | ------------- |
 | `get_iterations(p_state, idx_chain=-1)`                               | `int, int`    |
 | `get_convergence(p_state, idx_image=-1, idx_chain=-1)`                | `float`       |
-| `get_spring_constant(p_state,  idx_image=-1, idx_chain=-1)`            | `float`       |
+| `get_spring_force(p_state, idx_image=-1, idx_chain=-1)`               | `float`       |
 | `get_climbing_falling(p_state, idx_image=-1, idx_chain=-1)`            | `int`         |
 | `get_energy_interpolations(p_state, idx_chain=-1)`                     | `int`         |
 

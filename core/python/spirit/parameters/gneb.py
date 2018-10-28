@@ -142,7 +142,7 @@ _GNEB_Get_Spring_Constant.restype  = ctypes.c_float
 _GNEB_Get_Spring_Force_Ratio          = _spirit.Parameters_GNEB_Get_Spring_Force_Ratio
 _GNEB_Get_Spring_Force_Ratio.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
 _GNEB_Get_Spring_Force_Ratio.restype  = ctypes.c_float
-def get_spring_constant(p_state, idx_image=-1, idx_chain=-1):
+def get_spring_force(p_state, idx_image=-1, idx_chain=-1):
     constant = float(_GNEB_Get_Spring_Constant(ctypes.c_void_p(p_state), 
                                            ctypes.c_int(idx_image), ctypes.c_int(idx_chain)))
     ratio    = float(_GNEB_Get_Spring_Force_Ratio(ctypes.c_void_p(p_state), 
