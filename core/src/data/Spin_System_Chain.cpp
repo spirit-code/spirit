@@ -20,6 +20,20 @@ namespace Data
         this->Rx_interpolated = std::vector<scalar>(size_interpolated, 0);
         this->E_interpolated = std::vector<scalar>(size_interpolated, 0);
         this->E_array_interpolated = std::vector<std::vector<scalar>>(7, std::vector<scalar>(size_interpolated, 0));
+
+        // Zero the HTST info
+        this->htst_info.eigenvalues_min        = scalarfield(0);
+        this->htst_info.eigenvalues_sp         = scalarfield(0);
+        this->htst_info.perpendicular_velocity = scalarfield(0);
+
+        this->htst_info.temperature_exponent = 0;
+        this->htst_info.me = 0;
+        this->htst_info.Omega_0 = 0;
+        this->htst_info.s = 0;
+        this->htst_info.volume_min = 0;
+        this->htst_info.volume_sp = 0;
+        this->htst_info.prefactor_dynamical = 0;
+        this->htst_info.prefactor = 0;
     }
 
     void Spin_System_Chain::Lock() const

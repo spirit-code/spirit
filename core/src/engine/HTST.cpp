@@ -28,11 +28,16 @@ namespace Engine
         {
             Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, "---- Prefactor calculation");
 
-            bool is_afm = false;
             const scalar epsilon = 1e-4;
+            const scalar epsilon_force = 1e-8;
+
             auto& image_minimum = *htst_info.minimum->spins;
             auto& image_sp = *htst_info.saddle_point->spins;
             int nos = image_minimum.size();
+            vectorfield force_tmp(nos, {0,0,0});
+
+            // TODO
+            bool is_afm = false;
 
             ////////////////////////////////////////////////////////////////////////
             // Saddle point
@@ -42,6 +47,18 @@ namespace Engine
             Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluation of the gradient...");
             vectorfield gradient_sp(nos, {0,0,0});
             htst_info.saddle_point->hamiltonian->Gradient(image_sp, gradient_sp);
+
+            // Check if the configuration is actually an extremum
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Checking if extremum...");
+            Vectormath::set_c_a(1, gradient_sp, force_tmp);
+            Manifoldmath::project_tangential(force_tmp, image_sp);
+            scalar fmax_sp = Vectormath::max_abs_component(force_tmp);
+            if( fmax_sp > epsilon_force )
+            {
+                Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format(
+                    "HTST: the transition configuration is not a converged saddle point, its max. force component is above the threshold ({} > {})!", fmax_sp, epsilon_force ));
+                return;
+            }
 
             // Evaluation of the Hessian...
             MatrixX hessian_sp = MatrixX::Zero(3*nos,3*nos);
@@ -62,16 +79,16 @@ namespace Engine
 
             // Print some eigenvalues
             std::vector<std::string> block{"10 lowest eigenvalues at saddle point:"};
-            for (int i=0; i<10; ++i)
+            for( int i=0; i<10; ++i )
                 block.push_back(fmt::format("ew[{}]={:^20e}   ew[{}]={:^20e}", i, eigenvalues_sp[i], i+2*nos-10, eigenvalues_sp[i+2*nos-10]));
             Log.SendBlock(Utility::Log_Level::Info, Utility::Log_Sender::HTST, block, -1, -1);
 
             // Check if lowest eigenvalue < 0 (else it's not a SP)
             Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking if actually a saddle point...");
-            if (eigenvalues_sp[0] > -epsilon)
+            if( eigenvalues_sp[0] > -epsilon )
             {
                 Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format(
-                    "HTST: the transition configuration is not a saddle point, it's lowest eigenvalue is above the threshold ({} > {})!", eigenvalues_sp[0], -epsilon ));
+                    "HTST: the transition configuration is not a saddle point, its lowest eigenvalue is above the threshold ({} > {})!", eigenvalues_sp[0], -epsilon ));
                 return;
             }
 
@@ -79,7 +96,10 @@ namespace Engine
             Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking if higher order saddle point...");
             int n_negative = 0;
             for( int i=0; i < eigenvalues_sp.size(); ++i )
-                if (eigenvalues_sp[i] < -epsilon) ++n_negative;
+            {
+                if( eigenvalues_sp[i] < -epsilon )
+                    ++n_negative;
+            }
             if( n_negative > 1 )
             {
                 Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format(
@@ -91,7 +111,10 @@ namespace Engine
             Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking for zero modes at the saddle point...");
             int n_zero_modes_sp = 0;
             for( int i=0; i < eigenvalues_sp.size(); ++i )
-                if (std::abs(eigenvalues_sp[i]) <= epsilon) ++n_zero_modes_sp;
+            {
+                if( std::abs(eigenvalues_sp[i] ) <= epsilon)
+                    ++n_zero_modes_sp;
+            }
 
             // Deal with zero modes if any (calculate volume)
             htst_info.volume_sp = 1;
@@ -118,7 +141,7 @@ namespace Engine
 
             // Calculate "s"
             htst_info.s = 0;
-            for (int i = n_zero_modes_sp+1; i < 2*nos; ++i)
+            for( int i = n_zero_modes_sp+1; i < 2*nos; ++i )
                 htst_info.s += std::pow(perpendicular_velocity_sp[i], 2) / eigenvalues_sp[i];
             htst_info.s = std::sqrt(htst_info.s);
 
@@ -130,6 +153,18 @@ namespace Engine
             Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluation of the gradient...");
             vectorfield gradient_minimum(nos, {0,0,0});
             htst_info.minimum->hamiltonian->Gradient(image_minimum, gradient_minimum);
+
+            // Check if the configuration is actually an extremum
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Checking if extremum...");
+            Vectormath::set_c_a(1, gradient_minimum, force_tmp);
+            Manifoldmath::project_tangential(force_tmp, image_minimum);
+            scalar fmax_minimum = Vectormath::max_abs_component(force_tmp);
+            if( fmax_minimum > epsilon_force )
+            {
+                Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format(
+                    "HTST: the initial configuration is not a converged minimum, its max. force component is above the threshold ({} > {})!", fmax_minimum, epsilon_force ));
+                return;
+            }
 
             // Evaluation of the Hessian...
             MatrixX hessian_minimum = MatrixX::Zero(3*nos,3*nos);
@@ -150,24 +185,24 @@ namespace Engine
 
             // Print some eigenvalues
             block = std::vector<std::string>{"10 lowest eigenvalues at minimum:"};
-            for (int i=0; i<10; ++i)
+            for( int i=0; i<10; ++i )
                 block.push_back(fmt::format("ew[{}]={:^20e}   ew[{}]={:^20e}", i, eigenvalues_minimum[i], i+2*nos-10, eigenvalues_minimum[i+2*nos-10]));
             Log.SendBlock(Utility::Log_Level::Info, Utility::Log_Sender::HTST, block, -1, -1);
 
             
             // Check for eigenvalues < 0 (i.e. not a minimum)
             Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking if actually a minimum...");
-            if(eigenvalues_minimum[0] < -epsilon )
+            if( eigenvalues_minimum[0] < -epsilon )
             {
                 Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format(
-                    "HTST: the initial configuration is not a minimum, it's lowest eigenvalue is below the threshold ({} < {})!", eigenvalues_sp[0], -epsilon ));
+                    "HTST: the initial configuration is not a minimum, its lowest eigenvalue is below the threshold ({} < {})!", eigenvalues_sp[0], -epsilon ));
                 return;
             }
 
             // Checking for zero modes at the minimum...
             Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking for zero modes at the minimum...");
             int n_zero_modes_minimum = 0;
-            for (int i=0; i < eigenvalues_minimum.size(); ++i)
+            for( int i=0; i < eigenvalues_minimum.size(); ++i )
                 if (std::abs(eigenvalues_minimum[i]) <= epsilon) ++n_zero_modes_minimum;
 
             // Deal with zero modes if any (calculate volume)
@@ -176,7 +211,7 @@ namespace Engine
             {
                 Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, fmt::format("ZERO MODES AT MINIMUM (N={})", n_zero_modes_minimum));
 
-                if (is_afm)
+                if( is_afm )
                     htst_info.volume_min = Calculate_Zero_Volume(htst_info.minimum);
                 else
                     htst_info.volume_min = Calculate_Zero_Volume(htst_info.minimum);
