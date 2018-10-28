@@ -5,15 +5,16 @@
 #include "Spirit_Defines.h"
 #include <data/Spin_System.hpp>
 #include <data/Parameters_Method_GNEB.hpp>
+#include <Spirit/Parameters_GNEB.h>
 
 namespace Data
 {
     enum class GNEB_Image_Type
     {
-        Normal,
-        Climbing,
-        Falling,
-        Stationary
+        Normal      = GNEB_IMAGE_NORMAL,
+        Climbing    = GNEB_IMAGE_CLIMBING,
+        Falling     = GNEB_IMAGE_FALLING,
+        Stationary  = GNEB_IMAGE_STATIONARY
     };
 
     struct HTST_Info

@@ -3,8 +3,12 @@
 #define INTERFACE_PARAMETERS_GNEB_H
 #include "IO.h"
 #include "DLL_Define_Export.h"
-
 struct State;
+
+#define GNEB_IMAGE_NORMAL     0
+#define GNEB_IMAGE_CLIMBING   1
+#define GNEB_IMAGE_FALLING    2
+#define GNEB_IMAGE_STATIONARY 3
 
 //      Set GNEB
 // Output

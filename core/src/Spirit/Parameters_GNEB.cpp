@@ -274,9 +274,13 @@ try
         scalar E2 = chain->images[img+1]->E;
 
         // Maximum
-        if (E0 < E1 && E1 > E2) Parameters_GNEB_Set_Climbing_Falling(state, 1, img);
+        if( E0 < E1 && E1 > E2 )
+            chain->image_type[img] = Data::GNEB_Image_Type::Climbing;
         // Minimum
-        if (E0 > E1 && E1 < E2) Parameters_GNEB_Set_Climbing_Falling(state, 2, img);
+        else if( E0 > E1 && E1 < E2 )
+            chain->image_type[img] = Data::GNEB_Image_Type::Falling;
+        else if( chain->image_type[img] != Data::GNEB_Image_Type::Stationary )
+            chain->image_type[img] = Data::GNEB_Image_Type::Normal;
     }
 }
 catch( ... )

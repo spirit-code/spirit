@@ -5,6 +5,12 @@ import ctypes
 ### Load Library
 _spirit = spiritlib.load_spirit_library()
 
+# GNEB image types
+IMAGE_NORMAL     = 0
+IMAGE_CLIMBING   = 1
+IMAGE_FALLING    = 2
+IMAGE_STATIONARY = 3
+
 ### ---------------------------------- Set ----------------------------------
 
 ### Set the output file tag, which is placed in front of all output files of GNEB simulations
@@ -71,12 +77,25 @@ def set_convergence(p_state, convergence, idx_image=-1, idx_chain=-1):
                           ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
 ### Set GNEB Spring Constant
-_GNEB_Set_Spring_Constant           = _spirit.Parameters_GNEB_Set_Spring_Constant
-_GNEB_Set_Spring_Constant.argtypes  = [ctypes.c_void_p, ctypes.c_float, ctypes.c_int, ctypes.c_int]
-_GNEB_Set_Spring_Constant.restype   = None
-def set_spring_constant(p_state, c_spring, idx_image=-1, idx_chain=-1):
-    _GNEB_Set_Spring_Constant(ctypes.c_void_p(p_state), ctypes.c_float(c_spring),
+_GNEB_Set_Spring_Constant          = _spirit.Parameters_GNEB_Set_Spring_Constant
+_GNEB_Set_Spring_Constant.argtypes = [ctypes.c_void_p, ctypes.c_float, ctypes.c_int, ctypes.c_int]
+_GNEB_Set_Spring_Constant.restype  = None
+_GNEB_Set_Spring_Force_Ratio          = _spirit.Parameters_GNEB_Set_Spring_Force_Ratio
+_GNEB_Set_Spring_Force_Ratio.argtypes = [ctypes.c_void_p, ctypes.c_float, ctypes.c_int, ctypes.c_int]
+_GNEB_Set_Spring_Force_Ratio.restype  = None
+def set_spring_force(p_state, spring_constant=1, ratio=0, idx_image=-1, idx_chain=-1):
+    _GNEB_Set_Spring_Constant(ctypes.c_void_p(p_state), ctypes.c_float(spring_constant),
                               ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+    _GNEB_Set_Spring_Force_Ratio(ctypes.c_void_p(p_state), ctypes.c_float(ratio),
+                              ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+### Set GNEB convergence
+_GNEB_Set_Path_Shortening_Constant           = _spirit.Parameters_GNEB_Set_Path_Shortening_Constant
+_GNEB_Set_Path_Shortening_Constant.argtypes  = [ctypes.c_void_p, ctypes.c_float, ctypes.c_int, ctypes.c_int]
+_GNEB_Set_Path_Shortening_Constant.restype   = None
+def set_path_shortening_constant(p_state, shortening_constant, idx_image=-1, idx_chain=-1):
+    _GNEB_Set_Path_Shortening_Constant(ctypes.c_void_p(p_state), ctypes.c_float(shortening_constant),
+                          ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
 ### Set GNEB climbing and falling images
 _GNEB_Set_Climbing_Falling             = _spirit.Parameters_GNEB_Set_Climbing_Falling
@@ -117,12 +136,26 @@ def get_convergence(p_state, idx_image=-1, idx_chain=-1):
                                         ctypes.c_int(idx_image), ctypes.c_int(idx_chain)))
 
 ### Get GNEB Spring Constant
-_GNEB_Get_Spring_Constant             = _spirit.Parameters_GNEB_Get_Spring_Constant
-_GNEB_Get_Spring_Constant.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_GNEB_Get_Spring_Constant.restype     = ctypes.c_float
+_GNEB_Get_Spring_Constant          = _spirit.Parameters_GNEB_Get_Spring_Constant
+_GNEB_Get_Spring_Constant.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_GNEB_Get_Spring_Constant.restype  = ctypes.c_float
+_GNEB_Get_Spring_Force_Ratio          = _spirit.Parameters_GNEB_Get_Spring_Force_Ratio
+_GNEB_Get_Spring_Force_Ratio.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_GNEB_Get_Spring_Force_Ratio.restype  = ctypes.c_float
 def get_spring_constant(p_state, idx_image=-1, idx_chain=-1):
-    return float(_GNEB_Get_Spring_Constant(ctypes.c_void_p(p_state), 
+    constant = float(_GNEB_Get_Spring_Constant(ctypes.c_void_p(p_state), 
                                            ctypes.c_int(idx_image), ctypes.c_int(idx_chain)))
+    ratio    = float(_GNEB_Get_Spring_Force_Ratio(ctypes.c_void_p(p_state), 
+                                           ctypes.c_int(idx_image), ctypes.c_int(idx_chain)))
+    return constant, ratio
+
+###
+_GNEB_Get_Path_Shortening_Constant           = _spirit.Parameters_GNEB_Get_Path_Shortening_Constant
+_GNEB_Get_Path_Shortening_Constant.argtypes  = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_GNEB_Get_Path_Shortening_Constant.restype   = ctypes.c_float
+def get_path_shortening_constant(p_state, idx_image=-1, idx_chain=-1):
+    return float( _GNEB_Get_Path_Shortening_Constant(ctypes.c_void_p(p_state), 
+                                        ctypes.c_int(idx_image), ctypes.c_int(idx_chain)))
 
 ### Get GNEB climbing and falling images
 _GNEB_Get_Climbing_Falling             = _spirit.Parameters_GNEB_Get_Climbing_Falling
