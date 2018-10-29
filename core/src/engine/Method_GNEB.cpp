@@ -111,7 +111,7 @@ namespace Engine
         // If a nonzero ratio of E to Rx is given, calculate path segment lengths
         if( chain->gneb_parameters->spring_force_ratio > 0 )
         {
-            scalar ratio_E = std::min(1.0, chain->gneb_parameters->spring_force_ratio);
+            scalar ratio_E = std::min(scalar(1.0), chain->gneb_parameters->spring_force_ratio);
             scalar ratio_Rx = 1 - ratio_E;
 
             // Calculate the inclinations at the data points

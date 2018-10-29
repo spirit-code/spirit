@@ -44,7 +44,7 @@ namespace Data
         this->calculateDimensionality();
 
         // Calculate center of the System
-        this->center = 0.5 *  (this->bounds_min + this->bounds_max);
+        this->center = 0.5 * (this->bounds_min + this->bounds_max);
 
         // Generate default atom_types, mu_s and pinning masks
         this->atom_types        = intfield(this->nos, 0);
@@ -87,6 +87,8 @@ namespace Data
 
     void Geometry::generatePositions()
     {
+        const scalar epsilon = 1e-6;
+
         // Check for erronous input placing two spins on the same location
         int max_a = std::min(10, n_cells[0]);
         int max_b = std::min(10, n_cells[1]);
@@ -111,12 +113,12 @@ namespace Data
                             diff = cell_atoms[i] - ( cell_atoms[j] + translation );
 
                             if( (i != j || da != 0 || db != 0 || dc != 0) && 
-                                std::abs(diff[0]) < 1e-9 &&
-                                std::abs(diff[1]) < 1e-9 &&
-                                std::abs(diff[2]) < 1e-9 )
+                                std::abs(diff[0]) < epsilon &&
+                                std::abs(diff[1]) < epsilon &&
+                                std::abs(diff[2]) < epsilon )
                             {
-                                spirit_throw(Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Severe,
-                                    "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
+                                spirit_throw(Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Severe, fmt::format(
+                                    "Unable to initialize Spin-System, since 2 spins occupy the same space within a margin of {}.\nPlease check the config file!", epsilon ));
                             }
                         }
                     }
@@ -485,32 +487,35 @@ namespace Data
         int dims_basis = 0, dims_translations = 0;
         Vector3 test_vec_basis, test_vec_translations;
 
+        const scalar epsilon = 1e-6;
+
         // ----- Find dimensionality of the basis -----
-        if      (n_cell_atoms == 1) dims_basis = 0;
-        else if (n_cell_atoms == 2) dims_basis = 1;
-        else if (n_cell_atoms == 3) dims_basis = 2;
+        if     ( n_cell_atoms == 1 ) dims_basis = 0;
+        else if( n_cell_atoms == 2 ) dims_basis = 1;
+        else if( n_cell_atoms == 3 ) dims_basis = 2;
         else
         {
             // Get basis atoms relative to the first atom
             Vector3 v0 = cell_atoms[0];
             std::vector<Vector3> b_vectors(n_cell_atoms-1);
-            for (int i = 1; i < n_cell_atoms; ++i)
-            {
+            for( int i = 1; i < n_cell_atoms; ++i )
                 b_vectors[i-1] = cell_atoms[i] - v0;
-            }
+
             // Calculate basis dimensionality
             // test vec is along line
             test_vec_basis = b_vectors[0];
-            //		is it 1D?
+            //      is it 1D?
             int n_parallel = 0;
-            for (unsigned int i = 1; i < b_vectors.size(); ++i)
+            for( unsigned int i = 1; i < b_vectors.size(); ++i )
             {
-                if (std::abs(b_vectors[i].dot(test_vec_basis) - 1.0) < 1e-9) ++n_parallel;
-                // else n_parallel will give us the last parallel vector
-                // also the if-statement for dims_basis=1 wont be met
-                else break;
+                if( std::abs(b_vectors[i].dot(test_vec_basis) - 1.0) < epsilon )
+                    ++n_parallel;
+                // Else n_parallel will give us the last parallel vector
+                // Also the if-statement for dims_basis=1 wont be met
+                else
+                    break;
             }
-            if (n_parallel == b_vectors.size() - 1)
+            if( n_parallel == b_vectors.size() - 1 )
             {
                 dims_basis = 1;
             }
@@ -518,16 +523,15 @@ namespace Data
             {
                 // test vec is normal to plane
                 test_vec_basis = b_vectors[0].cross(b_vectors[n_parallel+1]);
-                //		is it 2D?
+                //      is it 2D?
                 int n_in_plane = 0;
-                for (unsigned int i = 2; i < b_vectors.size(); ++i)
+                for( unsigned int i = 2; i < b_vectors.size(); ++i )
                 {
-                    if (std::abs(b_vectors[i].dot(test_vec_basis)) < 1e-9) ++n_in_plane;
+                    if (std::abs(b_vectors[i].dot(test_vec_basis)) < epsilon)
+                        ++n_in_plane;
                 }
-                if (n_in_plane == b_vectors.size() - 2)
-                {
+                if( n_in_plane == b_vectors.size() - 2 )
                     dims_basis = 2;
-                }
                 else
                 {
                     this->dimensionality = 3;
@@ -538,31 +542,34 @@ namespace Data
 
 
         // ----- Find dimensionality of the translations -----
-        //		The following are zero if the corresponding pair is parallel
+        //      The following are zero if the corresponding pair is parallel
         double t01, t02, t12;
         t01 = std::abs(bravais_vectors[0].dot(bravais_vectors[1]) - 1.0);
         t02 = std::abs(bravais_vectors[0].dot(bravais_vectors[2]) - 1.0);
         t12 = std::abs(bravais_vectors[1].dot(bravais_vectors[2]) - 1.0);
-        //		Check if pairs are linearly independent
+        //      Check if pairs are linearly independent
         int n_independent_pairs = 0;
-        if (t01>1e-9 && n_cells[0] > 1 && n_cells[1] > 1) ++n_independent_pairs;
-        if (t02>1e-9 && n_cells[0] > 1 && n_cells[2] > 1) ++n_independent_pairs;
-        if (t12>1e-9 && n_cells[1] > 1 && n_cells[2] > 1) ++n_independent_pairs;
-        //		Calculate translations dimensionality
-        if (n_cells[0] == 1 && n_cells[1] == 1 && n_cells[2] == 1) dims_translations = 0;
-        else if (n_independent_pairs == 0)
+        if( t01>epsilon && n_cells[0] > 1 && n_cells[1] > 1 ) ++n_independent_pairs;
+        if( t02>epsilon && n_cells[0] > 1 && n_cells[2] > 1 ) ++n_independent_pairs;
+        if( t12>epsilon && n_cells[1] > 1 && n_cells[2] > 1 ) ++n_independent_pairs;
+        //      Calculate translations dimensionality
+        if( n_cells[0] == 1 && n_cells[1] == 1 && n_cells[2] == 1 )
+        {
+            dims_translations = 0;
+        }
+        else if( n_independent_pairs == 0 )
         {
             dims_translations = 1;
-            // test vec is along the line
+            // Test if vec is along the line
             for (int i=0; i<3; ++i) if (n_cells[i] > 1) test_vec_translations = bravais_vectors[i];
         }
-        else if (n_independent_pairs < 3)
+        else if( n_independent_pairs < 3 )
         {
             dims_translations = 2;
-            // test vec is normal to plane
+            // Test if vec is normal to plane
             int n = 0;
             std::vector<Vector3> plane(2);
-            for (int i = 0; i < 3; ++i)
+            for( int i = 0; i < 3; ++i )
             {
                 if (n_cells[i] > 1) plane[n] = bravais_vectors[i];
                 ++n;
@@ -579,40 +586,40 @@ namespace Data
         // ----- Calculate dimensionality of system -----
         test_vec_basis.normalize();
         test_vec_translations.normalize();
-        //		If one dimensionality is zero, only the other counts
-        if (dims_basis == 0)
+        //      If one dimensionality is zero, only the other counts
+        if( dims_basis == 0 )
         {
             this->dimensionality = dims_translations;
             return;
         }
-        else if (dims_translations == 0)
+        else if( dims_translations == 0 )
         {
             this->dimensionality = dims_basis;
             return;
         }
-        //		If both are linear or both are planar, the test vectors should be parallel if the geometry is 1D or 2D
+        //      If both are linear or both are planar, the test vectors should be parallel if the geometry is 1D or 2D
         else if (dims_basis == dims_translations)
         {
-            if (std::abs(test_vec_basis.dot(test_vec_translations) - 1.0) < 1e-9)
+            if( std::abs(test_vec_basis.dot(test_vec_translations) - 1.0) < epsilon )
             {
                 this->dimensionality = dims_basis;
                 return;
             }
-            else if (dims_basis == 1)
+            else if( dims_basis == 1 )
             {
                 this->dimensionality = 2;
                 return;
             }
-            else if (dims_basis == 2)
+            else if( dims_basis == 2 )
             {
                 this->dimensionality = 3;
                 return;
             }
         }
-        //		If one is linear (1D), and the other planar (2D) then the test vectors should be orthogonal if the geometry is 2D
-        else if ( (dims_basis == 1 && dims_translations == 2) || (dims_basis == 2 && dims_translations == 1) )
+        //      If one is linear (1D), and the other planar (2D) then the test vectors should be orthogonal if the geometry is 2D
+        else if( (dims_basis == 1 && dims_translations == 2) || (dims_basis == 2 && dims_translations == 1) )
         {
-            if (std::abs(test_vec_basis.dot(test_vec_translations)) < 1e-9)
+            if( std::abs(test_vec_basis.dot(test_vec_translations)) < epsilon )
             {
                 this->dimensionality = 2;
                 return;
@@ -664,13 +671,15 @@ namespace Data
 
     void Geometry::calculateGeometryType()
     {
+        const scalar epsilon = 1e-6;
+
         // Automatically try to determine GeometryType
         // Single-atom unit cell
         if (cell_atoms.size() == 1)
         {
             // If the basis vectors are orthogonal, it is a rectilinear lattice
-            if (std::abs(bravais_vectors[0].dot(bravais_vectors[1])) < 1e-6 &&
-                std::abs(bravais_vectors[0].dot(bravais_vectors[2])) < 1e-6)
+            if (std::abs(bravais_vectors[0].dot(bravais_vectors[1])) < epsilon &&
+                std::abs(bravais_vectors[0].dot(bravais_vectors[2])) < epsilon)
             {
                 // If equidistant it is simple cubic
                 if (bravais_vectors[0].norm() == bravais_vectors[1].norm() == bravais_vectors[2].norm())
