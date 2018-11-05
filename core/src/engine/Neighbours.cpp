@@ -36,9 +36,7 @@ namespace Engine
                 current_radius = 1e10;
                 for (iatom = 0; iatom < geometry.n_cell_atoms; ++iatom)
                 {
-                    x0 =  geometry.cell_atoms[iatom][0] * a
-                        + geometry.cell_atoms[iatom][1] * b
-                        + geometry.cell_atoms[iatom][2] * c;
+                    x0 =  geometry.cell_atoms[iatom];
                     // Note: due to symmetry we only need to check half the space
                     for (i = imax; i >= 0; --i)
                     {
@@ -50,10 +48,7 @@ namespace Engine
                                 {
                                     if ( !( iatom==jatom && i==0 && j==0 && k==0 ) )
                                     {
-                                        x1 =  geometry.cell_atoms[jatom][0] * a
-                                            + geometry.cell_atoms[jatom][1] * b
-                                            + geometry.cell_atoms[jatom][2] * c
-                                            + i*a + j*b + k*c;
+                                        x1 = geometry.cell_atoms[jatom] + i*a + j*b + k*c;
                                         dx = (x0-x1).norm();
                                         if (dx - min_distance > shell_width && dx < current_radius)
                                         {
@@ -105,9 +100,7 @@ namespace Engine
                 else
                     jatommin=iatom;
 
-                x0 =  geometry.cell_atoms[iatom][0] * a
-                    + geometry.cell_atoms[iatom][1] * b
-                    + geometry.cell_atoms[iatom][2] * c;
+                x0 =  geometry.cell_atoms[iatom];
                 for (ishell = 0; ishell < n_shells; ++ishell)
                 {
                     radius = shell_radius[ishell];
@@ -123,10 +116,7 @@ namespace Engine
                                         (i>0 || (i==0 && j>0) || (i==0 && j==0 && k>0)) ||
                                         use_redundant_neighbours                        )
                                     {
-                                        x1 =  geometry.cell_atoms[jatom][0] * a
-                                            + geometry.cell_atoms[jatom][1] * b
-                                            + geometry.cell_atoms[jatom][2] * c
-                                            + i*a + j*b + k*c;
+                                        x1 =  geometry.cell_atoms[jatom] + i*a + j*b + k*c;
                                         dx = (x0-x1).norm();
                                         if (std::abs(dx - radius) < shell_width)
                                         {
