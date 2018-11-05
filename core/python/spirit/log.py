@@ -40,34 +40,34 @@ def append(p_state):
 ### Get number of Log entries
 _Get_N_Entries          = _spirit.Log_Get_N_Entries
 _Get_N_Entries.argtypes = [ctypes.c_void_p]
-_Get_N_Entries.restype  = None
+_Get_N_Entries.restype  = ctypes.c_int
 def get_n_entries(p_state):
     return int(_Get_N_Entries(ctypes.c_void_p(p_state)))
 
 ### Get number of error messages
 _Get_N_Errors          = _spirit.Log_Get_N_Errors
 _Get_N_Errors.argtypes = [ctypes.c_void_p]
-_Get_N_Errors.restype  = None
+_Get_N_Errors.restype  = ctypes.c_int
 def get_n_errors(p_state):
     return int(_Get_N_Errors(ctypes.c_void_p(p_state)))
 
 ### Get number of warning messages
 _Get_N_Warnings          = _spirit.Log_Get_N_Warnings
 _Get_N_Warnings.argtypes = [ctypes.c_void_p]
-_Get_N_Warnings.restype  = None
+_Get_N_Warnings.restype  = ctypes.c_int
 def get_n_warnings(p_state):
     return int(_Get_N_Warnings(ctypes.c_void_p(p_state)))
 
 ### Set the tag in front of the Log file
 _Set_Output_File_Tag          = _spirit.Log_Set_Output_File_Tag
-_Set_Output_File_Tag.argtypes = [ctypes.c_char_p]
+_Set_Output_File_Tag.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
 _Set_Output_File_Tag.restype  = None
 def set_output_file_tag(p_state, tag):
     _Set_Output_File_Tag(ctypes.c_void_p(p_state), ctypes.c_char_p(tag.encode('utf-8')))
 
 ### Set the tag in front of the Log file
 _Set_Output_Folder          = _spirit.Log_Set_Output_Folder
-_Set_Output_Folder.argtypes = [ctypes.c_char_p]
+_Set_Output_Folder.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
 _Set_Output_Folder.restype  = None
 def set_output_folder(p_state, tag):
     _Set_Output_Folder(ctypes.c_void_p(p_state), ctypes.c_char_p(tag.encode('utf-8')))
