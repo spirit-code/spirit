@@ -202,7 +202,7 @@ namespace Engine
     bool Method_Solver<solver>::Converged()
     {
         bool converged = false;
-        if ( this->force_max_abs_component < this->parameters->force_convergence ) converged = true;
+        if( this->force_max_abs_component < this->parameters->force_convergence ) converged = true;
         return converged;
     }
 
@@ -235,7 +235,7 @@ namespace Engine
         Log.SendBlock(Log_Level::All, this->SenderName,
             {
                 fmt::format("------------  Started  {} Calculation  ------------", this->Name()),
-                fmt::format("    Going to iterate {} steps", this->n_log),
+                fmt::format("    Going to iterate {} step(s)", this->n_log),
                 fmt::format("                with {} iterations per step", this->n_iterations_log),
                 fmt::format("    Force convergence parameter: {:." + fmt::format("{}", this->print_precision) + "f}", this->parameters->force_convergence),
                 fmt::format("    Maximum force component:     {:." + fmt::format("{}", this->print_precision) + "f}", this->force_max_abs_component),
@@ -256,8 +256,8 @@ namespace Engine
         Log.SendBlock(Log_Level::All, this->SenderName,
             {
                 fmt::format("----- {} Calculation ({} Solver): {}", this->Name(), this->SolverName(), Timing::DateTimePassed(t_current - this->t_start)),
-                fmt::format("    Step                         {} / {} (step size {})", this->step, this->n_log, this->n_iterations_log),
-                fmt::format("    Iteration                    {} / {}", this->iteration, n_iterations),
+                fmt::format("    Completed                    {} / {} step(s) (step size {})", this->step, this->n_log, this->n_iterations_log),
+                fmt::format("    Iteration                    {} / {}", this->iteration, this->n_iterations),
                 fmt::format("    Time since last step:        {}", Timing::DateTimePassed(t_current - this->t_last)),
                 fmt::format("    Iterations / sec:            {}", this->n_iterations_log / Timing::SecondsPassed(t_current - this->t_last)),
                 fmt::format("    Force convergence parameter: {:." + fmt::format("{}", this->print_precision) + "f}", this->parameters->force_convergence),
@@ -278,22 +278,22 @@ namespace Engine
 
         //---- Termination reason
         std::string reason = "";
-        if (this->StopFile_Present())
+        if( this->StopFile_Present() )
             reason = "A STOP file has been found";
-        else if (this->Converged())
+        else if( this->Converged() )
             reason = "The force converged";
-        else if (this->Walltime_Expired(t_end - this->t_start))
+        else if( this->Walltime_Expired(t_end - this->t_start) )
             reason = "The maximum walltime has been reached";
 
         //---- Log messages
         std::vector<std::string> block;
         block.push_back(fmt::format("------------ Terminated {} Calculation ------------", this->Name()));
-        if (reason.length() > 0)
+        if( reason.length() > 0 )
             block.push_back(fmt::format("----- Reason:   {}", reason));
         block.push_back(fmt::format("----- Duration:       {}", Timing::DateTimePassed(t_end - this->t_start)));
-        block.push_back(fmt::format("    Step              {} / {}", step, n_log));
-        block.push_back(fmt::format("    Iteration         {} / {}", this->iteration, n_iterations));
-        if (this->Name() == "LLG")
+        block.push_back(fmt::format("    Completed         {} / {} step(s)", this->step, this->n_log));
+        block.push_back(fmt::format("    Iteration         {} / {}", this->iteration, this->n_iterations));
+        if( this->Name() == "LLG" )
             block.push_back(fmt::format("    Simulated time:   {} ps", this->getTime()));
         block.push_back(fmt::format("    Iterations / sec: {}", this->iteration / Timing::SecondsPassed(t_end - this->t_start)));
         block.push_back(fmt::format("    Force convergence parameter: {:."+fmt::format("{}",this->print_precision)+"f}", this->parameters->force_convergence));
