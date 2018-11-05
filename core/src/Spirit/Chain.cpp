@@ -121,103 +121,94 @@ try
     std::string solver = Simulation_Get_Solver_Name(state, idx_image, idx_chain);
     std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
 
+    if( !state->clipboard_image.get() )
+    {
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            "Tried to increase length of chain, but clipboard was empty.", -1, idx_chain);
+        return;
+    }
+
     if( n_images > chain->noi )
     {
-        if (state->clipboard_image.get())
+        if( running )
         {
-            if (running)
-            {
-                chain->iteration_allowed = false;
-                Simulation_Stop( state, idx_image, idx_chain );
-            }
-
-            for( idx_image = chain->noi-1; idx_image < n_images-1; ++idx_image )
-            {
-                // Copy the clipboard image
-                state->clipboard_image->Lock();
-                auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->clipboard_image));
-                state->clipboard_image->Unlock();
-
-                chain->Lock();
-                copy->Lock();
-
-                // Add to chain
-                chain->noi++;
-                chain->images.push_back(copy);
-                chain->image_type.push_back(Data::GNEB_Image_Type::Normal);
-                    
-                // Add to state
-                state->method_image.push_back(std::shared_ptr<Engine::Method>());
-
-                chain->Unlock();
-            }
-
-            // Update state
-            State_Update(state);
-
-            // Update array lengths
-            Chain_Setup_Data(state, idx_chain);
-
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-                fmt::format("Increased length of chain to {}", chain->noi),
-                -1, idx_chain);
+            chain->iteration_allowed = false;
+            Simulation_Stop( state, idx_image, idx_chain );
         }
-        else
+
+        for( idx_image = chain->noi-1; idx_image < n_images-1; ++idx_image )
         {
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-                "Tried to increase length of chain, but clipboard was empty.", -1, idx_chain);
+            // Copy the clipboard image
+            state->clipboard_image->Lock();
+            auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*state->clipboard_image));
+            state->clipboard_image->Unlock();
+
+            chain->Lock();
+            copy->Lock();
+
+            // Add to chain
+            chain->noi++;
+            chain->images.push_back(copy);
+            chain->image_type.push_back(Data::GNEB_Image_Type::Normal);
+
+            // Add to state
+            state->method_image.push_back(std::shared_ptr<Engine::Method>());
+
+            chain->Unlock();
         }
+
+        // Update state
+        State_Update(state);
+
+        // Update array lengths
+        Chain_Setup_Data(state, idx_chain);
+
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            fmt::format("Increased length of chain to {}", chain->noi),
+            -1, idx_chain);
     }
     else if( n_images < chain->noi )
     {
-        if (state->clipboard_image.get())
+        if( running )
         {
-            if (running)
-            {
-                chain->iteration_allowed = false;
-                Simulation_Stop( state, idx_image, idx_chain );
-            }
-
-            for( idx_image = chain->noi-1; idx_image > n_images-1; --idx_image )
-            {
-                chain->Lock();
-                try
-                {
-                    // Add to chain
-                    chain->noi--;
-                    if (idx_image == chain->noi)
-                        Chain_prev_Image(state, idx_chain);
-
-                    state->noi = state->chain->noi;
-
-                    chain->images.back()->Unlock();
-                    chain->images.pop_back();
-                    chain->image_type.pop_back();
-
-                    // Add to state
-                    state->method_image.pop_back();
-                }
-                catch( ... )
-                {
-                    spirit_handle_exception_api(idx_image, idx_chain);
-                }
-                chain->Unlock();
-            }
-            // Update state
-            State_Update(state);
-
-            // Update array lengths
-            Chain_Setup_Data(state, idx_chain);
-
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-                fmt::format("Reduced length of chain to {}", chain->noi),
-                -1, idx_chain);
+            chain->iteration_allowed = false;
+            Simulation_Stop( state, idx_image, idx_chain );
         }
-        else
+
+        for( idx_image = chain->noi-1; idx_image > n_images-1; --idx_image )
         {
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-                "Tried to reduce length of chain, but clipboard was empty.", -1, idx_chain);
+            chain->Lock();
+            try
+            {
+                // Add to chain
+                chain->noi--;
+                if( chain->idx_active_image == chain->noi )
+                    Chain_prev_Image(state, idx_chain);
+
+                state->noi = state->chain->noi;
+
+                chain->images.back()->Unlock();
+                chain->images.pop_back();
+                chain->image_type.pop_back();
+
+                // Add to state
+                state->method_image.pop_back();
+            }
+            catch( ... )
+            {
+                spirit_handle_exception_api(idx_image, idx_chain);
+            }
+            chain->Unlock();
         }
+        // Update state
+        State_Update(state);
+
+        // Update array lengths
+        Chain_Setup_Data(state, idx_chain);
+
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            fmt::format("Reduced length of chain to {}", chain->noi),
+            -1, idx_chain);
     }
 }
 catch( ... )
@@ -309,11 +300,12 @@ try
     std::string solver = Simulation_Get_Solver_Name(state, idx_image, idx_chain);
     std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
 
-    if (state->clipboard_image.get())
+    if( state->clipboard_image.get() )
     {
-        if (running)
+        if( running )
         {
             chain->iteration_allowed = false;
+            Simulation_Stop( state, idx_image, idx_chain );
         }
 
         // Copy the clipboard image
@@ -348,9 +340,6 @@ try
         Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
             fmt::format("Inserted image before. NOI is now {}", chain->noi),
             idx_image, idx_chain);
-
-        if (running)
-            Simulation_Stop( state, idx_image, idx_chain);
     }
     else
     {
@@ -376,11 +365,12 @@ try
     std::string solver = Simulation_Get_Solver_Name(state, idx_image, idx_chain);
     std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
 
-    if (state->clipboard_image.get())
+    if( state->clipboard_image.get() )
     {
-        if (running)
+        if( running )
         {
             chain->iteration_allowed = false;
+            Simulation_Stop( state, idx_image, idx_chain );
         }
 
         // Copy the clipboard image
@@ -422,9 +412,6 @@ try
         Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
             fmt::format("Inserted image after. NOI is now {}", chain->noi),
             idx_image, idx_chain);
-
-        if (running)
-            Simulation_Stop( state, idx_image, idx_chain );
     }
     else
     {
@@ -452,11 +439,12 @@ try
     std::string solver = Simulation_Get_Solver_Name(state, idx_image, idx_chain);
     std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
 
-    if (state->clipboard_image.get())
+    if( state->clipboard_image.get() )
     {
-        if (running)
+        if( running )
         {
             chain->iteration_allowed = false;
+            Simulation_Stop( state, idx_image, idx_chain );
         }
 
         // Copy the clipboard image
@@ -515,18 +503,19 @@ try
     std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
 
     // Apply
-    if (chain->noi > 1)
+    if( chain->noi > 1 )
     {
-        if (running)
+        if( running )
         {
             chain->iteration_allowed = false;
+            Simulation_Stop( state, idx_image, idx_chain );
         }
 
         chain->Lock();
         try
         {
             chain->noi--;
-            if (idx_image == chain->noi)
+            if( chain->idx_active_image == chain->noi )
                 Chain_prev_Image(state, idx_chain);
 
             state->noi = state->chain->noi;
@@ -554,9 +543,6 @@ try
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                 fmt::format("Deleted image {} of {}", idx_image+1, chain->noi+1),
                 -1, idx_chain );
-
-        if (running)
-            Simulation_Stop( state, idx_image, idx_chain );
 
         return true;
     }
@@ -588,11 +574,12 @@ try
     std::string solver = Simulation_Get_Solver_Name(state, idx_image, idx_chain);
     std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
 
-    if (chain->noi > 1)
+    if( chain->noi > 1 )
     {
-        if (running)
+        if( running )
         {
             chain->iteration_allowed = false;
+            Simulation_Stop( state, idx_image, idx_chain );
         }
 
         chain->Lock();
@@ -600,7 +587,7 @@ try
         {
             // Add to chain
             chain->noi--;
-            if (idx_image == chain->noi)
+            if( chain->idx_active_image == chain->noi )
                 Chain_prev_Image(state, idx_chain);
 
             state->noi = state->chain->noi;
@@ -627,9 +614,6 @@ try
         Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
             fmt::format("Popped back image of chain. NOI is now {}", chain->noi),
             -1, idx_chain);
-
-        if (running)
-            Simulation_Stop( state, idx_image, idx_chain );
 
         return true;
     }
