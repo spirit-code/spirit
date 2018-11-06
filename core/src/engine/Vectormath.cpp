@@ -429,6 +429,22 @@ namespace Engine
                 vf[i] *= sc;
         }
 
+        void scale(vectorfield & vf, const scalarfield & sf, bool inverse)
+        {
+            if( inverse )
+            {
+                #pragma omp parallel for
+                for (unsigned int i=0; i<vf.size(); ++i)
+                    vf[i] /= sf[i];
+            }
+            else
+            {
+                #pragma omp parallel for
+                for (unsigned int i=0; i<vf.size(); ++i)
+                    vf[i] *= sf[i];
+            }
+        }
+
         Vector3 sum(const vectorfield & vf)
         {
             Vector3 ret = { 0,0,0 };

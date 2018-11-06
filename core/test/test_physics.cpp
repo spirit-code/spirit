@@ -68,9 +68,8 @@ TEST_CASE( "Larmor Precession","[physics]" )
             Simulation_SingleShot( state.get() );
 
             // Expected spin orientation
-            // TODO: the step size should not be scaled by mu_s
-            scalar phi_expected = mu_s * dtg * (i+1) * B_mag;
-            scalar sz_expected  = std::tanh( mu_s * damping * dtg * (i+1) * B_mag );
+            scalar phi_expected = dtg * (i+1) * B_mag;
+            scalar sz_expected  = std::tanh( damping * dtg * (i+1) * B_mag );
             scalar rxy_expected = std::sqrt( 1-sz_expected*sz_expected );
             scalar sx_expected  = std::cos(phi_expected) * rxy_expected;
 

@@ -547,6 +547,9 @@ namespace Engine
         // Scale a vectorfield by a given value
         void scale(vectorfield & vf, const scalar & sc);
 
+        // Scale a vectorfield by a scalarfield or its inverse
+        void scale(vectorfield & vf, const scalarfield & sf, bool inverse=false);
+
         // Sum over a vectorfield
         Vector3 sum(const vectorfield & vf);
 

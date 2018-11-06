@@ -63,6 +63,11 @@ namespace Engine
 
     protected:
 
+        // Prepare random numbers for thermal fields, if needed
+        virtual void Prepare_Thermal_Field()
+        {
+        }
+
         // Calculate Forces onto Systems
         //      This is currently overridden by methods to specify how the forces on a set of configurations should be
         //      calculated. This function is used in `the Solver_...` functions.
@@ -124,22 +129,22 @@ namespace Engine
         //////////// NCG ////////////////////////////////////////////////////////////
         // Check if the Newton-Raphson has converged
         bool NR_converged();
-        
+
         int jmax;     // max iterations for Newton-Raphson loop
         int n;        // number of iteration after which the nCG will restart
-        
+
         scalar tolerance_nCG, tolerance_NR;   // tolerances for solver and Newton-Raphson
         scalar epsilon_nCG, epsilon_NR;   // Newton-Raphson and solver tolerance squared
-        
-        bool restart_nCG, continue_NR;  // conditions for restarting nCG or continuing Newton-Raphson 
-        
+
+        bool restart_nCG, continue_NR;  // conditions for restarting nCG or continuing Newton-Raphson
+
         // Step sizes
         std::vector<scalarfield> alpha, beta;
-        
+
         // TODO: right type might be std::vector<scalar> and NOT std::vector<scalarfield>
         // Delta scalarfields
         std::vector<scalarfield> delta_0, delta_new, delta_old, delta_d;
-        
+
         // Residual and new configuration states
         std::vector<vectorfield> residual, direction;
 
@@ -248,7 +253,7 @@ namespace Engine
     void Method_Solver<solver>::Message_Step()
     {
         using namespace Utility;
-        
+
         // Update time of current step
         auto t_current = system_clock::now();
 
@@ -272,7 +277,7 @@ namespace Engine
     void Method_Solver<solver>::Message_End()
     {
         using namespace Utility;
-        
+
         //---- End timings
         auto t_end = system_clock::now();
 

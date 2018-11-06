@@ -795,6 +795,24 @@ namespace Engine
             CU_CHECK_AND_SYNC();
         }
 
+        __global__ void cu_scale(Vector3 *vf1, scalar * sf, bool inverse, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                if( inverse )
+                    vf1[idx] /= sf[idx];
+                else
+                    vf1[idx] *= sf[idx];
+            }
+        }
+        void scale(vectorfield & vf, const scalarfield & sf, bool inverse)
+        {
+            int n = vf.size();
+            cu_scale<<<(n+1023)/1024, 1024>>>(vf.data(), sf.data(), inverse, n);
+            CU_CHECK_AND_SYNC();
+        }
+
         Vector3 sum(const vectorfield & vf)
         {
             int N = vf.size();

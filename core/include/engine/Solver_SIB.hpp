@@ -22,6 +22,9 @@ void Method_Solver<Solver::SIB>::Initialize ()
 template <> inline
 void Method_Solver<Solver::SIB>::Iteration ()
 {
+    // Generate random vectors for this iteration
+    this->Prepare_Thermal_Field();
+
     // First part of the step
     this->Calculate_Force(this->configurations, this->forces);
     this->Calculate_Force_Virtual(this->configurations, this->forces, this->forces_virtual);
