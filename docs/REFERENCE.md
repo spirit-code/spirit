@@ -59,11 +59,26 @@ You may use e.g. the following TeX code:
     \bibitem{GNEB}
     P. F. Bessarab et al. \textit{Comp. Phys. Comm.} \textbf{196}, 335 (2015).
 
+**MMF Method**
+
+The mode following method, intended for saddle point searches,
+has been published by Müller et al.:
+https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.121.197202
+You may use e.g. the following TeX code:
+
+    \bibitem{MMF}
+    G. P. Müller et al. Phys. Rev. Lett. 121, 197202 (2018).
+
 
 ### Papers
 
-Here we will list select papers for which the Spirit framework was
-used, which may be of interest to you.
+Here we list a selection of papers for which the Spirit framework was used
+
+- "Antiskyrmions stabilized at interfaces by anisotropic Dzyaloshinskii-Moriya interactions" https://www.nature.com/articles/s41467-017-00313-0
+- "Duplication, collapse and escape of magnetic skyrmions revealed using a systematic saddle point search method" https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.121.197202
+- "Controlled creation and stability of k-Pi skyrmions on a discrete lattice" https://link.aps.org/doi/10.1103/PhysRevB.97.174436
+- "Binding a Hopfion in Chiral Magnet Nanodisk" http://arxiv.org/abs/1806.01682
+- "Experimental observation of chiral magnetic bobbers in B20-type FeGe" https://www.nature.com/articles/s41565-018-0093-3
 
 
 
