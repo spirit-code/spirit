@@ -159,7 +159,7 @@ namespace Engine
         {
             std::vector<int> dims;
             bool inverse;
-            int howmany;
+            int n_transforms;
 
             field<FFT_cpx_type> cpx_ptr;
             field<FFT_real_type> real_ptr;
@@ -175,12 +175,12 @@ namespace Engine
             FFT_Plan() : FFT_Plan({2,2,2}, true, 1, 8)
             {} 
 
-            FFT_Plan(std::vector<int> dims, bool inverse, int howmany, int len) :
+            FFT_Plan(std::vector<int> dims, bool inverse, int n_transforms, int len) :
                 dims(dims),
                 inverse(inverse),
-                howmany(howmany),
-                real_ptr(field<FFT::FFT_real_type>(howmany * len )),
-                cpx_ptr(field<FFT::FFT_cpx_type> (howmany * len))
+                n_transforms(n_transforms),
+                real_ptr(field<FFT::FFT_real_type>(n_transforms * len )),
+                cpx_ptr(field<FFT::FFT_cpx_type> (n_transforms * len))
 
             {
                 this->Create_Configuration();
@@ -191,7 +191,7 @@ namespace Engine
             {
                 this->dims     = other.dims;
                 this->inverse  = other.inverse;
-                this->howmany  = other.howmany;
+                this->n_transforms  = other.n_transforms;
                 this->name     = other.name;
                 this->cpx_ptr  = other.cpx_ptr;
                 this->real_ptr = other.real_ptr;
@@ -206,7 +206,7 @@ namespace Engine
                 {
                     this->dims     = other.dims;
                     this->inverse  = other.inverse;
-                    this->howmany  = other.howmany;
+                    this->n_transforms  = other.n_transforms;
                     this->name     = other.name;
                     this->cpx_ptr  = other.cpx_ptr;
                     this->real_ptr = other.real_ptr;
@@ -227,7 +227,7 @@ namespace Engine
                 {
                     this->dims     = std::move(other.dims);
                     this->inverse  = std::move(other.inverse);
-                    this->howmany  = std::move(other.howmany);
+                    this->n_transforms  = std::move(other.n_transforms);
                     this->name     = std::move(other.name);
                     this->cpx_ptr  = std::move(other.cpx_ptr);
                     this->real_ptr = std::move(other.real_ptr);

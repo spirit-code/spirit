@@ -34,8 +34,8 @@ namespace Engine
         {
             int rank = this->dims.size();
             int *n = this->dims.data();
-            int howmany = this->howmany;
-            int istride = howmany, ostride = howmany;
+            int n_transforms = this->n_transforms;
+            int istride = n_transforms, ostride = n_transforms;
             int *inembed = n, *onembed = n;
             
             int size = 1;
@@ -45,9 +45,9 @@ namespace Engine
             int idist = 1, odist = 1;
          
             if(this->inverse == false)
-                this->cfg = FFTW_PLAN_MANY_DFT_R2C(rank, n, howmany, this->real_ptr.data(), inembed, istride, idist, reinterpret_cast<FFTW_COMPLEX*>(this->cpx_ptr.data()), onembed, ostride, odist, FFTW_MEASURE);
+                this->cfg = FFTW_PLAN_MANY_DFT_R2C(rank, n, n_transforms, this->real_ptr.data(), inembed, istride, idist, reinterpret_cast<FFTW_COMPLEX*>(this->cpx_ptr.data()), onembed, ostride, odist, FFTW_MEASURE);
             else
-                this->cfg = FFTW_PLAN_MANY_DFT_C2R(rank, n, howmany, reinterpret_cast<FFTW_COMPLEX*>(this->cpx_ptr.data()), inembed, istride, idist, this->real_ptr.data(), onembed, ostride, odist, FFTW_MEASURE);
+                this->cfg = FFTW_PLAN_MANY_DFT_C2R(rank, n, n_transforms, reinterpret_cast<FFTW_COMPLEX*>(this->cpx_ptr.data()), inembed, istride, idist, this->real_ptr.data(), onembed, ostride, odist, FFTW_MEASURE);
         }
 
         void FFT_Plan::Free_Configuration()
@@ -78,7 +78,7 @@ namespace Engine
 
         void batch_Four_3D(FFT_Plan & plan)
         {
-            int number = plan.howmany;
+            int number = plan.n_transforms;
             int size = 1;
             for(auto k : plan.dims)
                 size *= k;
@@ -97,7 +97,7 @@ namespace Engine
         //same as above but iFFT
         void batch_iFour_3D(FFT_Plan & plan)
         {
-            int number = plan.howmany;
+            int number = plan.n_transforms;
             int size = 1;
             for(auto k : plan.dims)
                 size *= k;
