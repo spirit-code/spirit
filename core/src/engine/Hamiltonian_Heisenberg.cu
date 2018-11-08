@@ -42,7 +42,8 @@ namespace Engine
         exchange_pairs_in(exchange_pairs), exchange_magnitudes_in(exchange_magnitudes), exchange_shell_magnitudes(0),
         dmi_pairs_in(dmi_pairs), dmi_magnitudes_in(dmi_magnitudes), dmi_normals_in(dmi_normals), dmi_shell_magnitudes(0), dmi_shell_chirality(0),
         quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes),
-        ddi_method(ddi_method), ddi_n_periodic_images(ddi_n_periodic_images), ddi_cutoff_radius(ddi_radius)
+        ddi_method(ddi_method), ddi_n_periodic_images(ddi_n_periodic_images), ddi_cutoff_radius(ddi_radius),
+        fft_plan_dipole(FFT::FFT_Plan()), fft_plan_reverse(FFT::FFT_Plan()), fft_plan_spins(FFT::FFT_Plan())
     {
         // Generate interaction pairs, constants etc.
         this->Update_Interactions();
@@ -66,7 +67,8 @@ namespace Engine
         exchange_pairs_in(0), exchange_magnitudes_in(0), exchange_shell_magnitudes(exchange_shell_magnitudes),
         dmi_pairs_in(0), dmi_magnitudes_in(0), dmi_normals_in(0), dmi_shell_magnitudes(dmi_shell_magnitudes), dmi_shell_chirality(dmi_shell_chirality),
         quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes),
-        ddi_method(ddi_method), ddi_n_periodic_images(ddi_n_periodic_images), ddi_cutoff_radius(ddi_radius)
+        ddi_method(ddi_method), ddi_n_periodic_images(ddi_n_periodic_images), ddi_cutoff_radius(ddi_radius),
+        fft_plan_dipole(FFT::FFT_Plan()), fft_plan_reverse(FFT::FFT_Plan()), fft_plan_spins(FFT::FFT_Plan())
     {
         // Generate interaction pairs, constants etc.
         this->Update_Interactions();
@@ -75,7 +77,6 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Update_Interactions()
     {
-        Clean_DDI();
         // When parallelising (cuda or openmp), we need all neighbours per spin
         const bool use_redundant_neighbours = true;
 
@@ -159,8 +160,7 @@ namespace Engine
                 this->ddi_magnitudes[i], this->ddi_normals[i]);
         }
         // Dipole-dipole (FFT)
-        if(ddi_method == DDI_Method::FFT)
-            this->Prepare_DDI();
+        this->Prepare_DDI();
 
         // Update, which terms still contribute
         this->Update_Energy_Contributions();
@@ -1144,6 +1144,11 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Prepare_DDI()
     {
+        Clean_DDI();
+        
+        if(ddi_method != DDI_Method::FFT)
+            return;
+
         n_cells_padded.resize(3);
         n_cells_padded[0] = (geometry->n_cells[0] > 1) ? 2 * geometry->n_cells[0] : 1;
         n_cells_padded[1] = (geometry->n_cells[1] > 1) ? 2 * geometry->n_cells[1] : 1;
@@ -1191,27 +1196,9 @@ namespace Engine
                                       geometry->n_cells[1], 
                                       geometry->n_cells[2] };
  
-        //Create fft plans.
-        fft_plan_dipole.dims     = fft_dims;
-        fft_plan_dipole.inverse  = false;
-        fft_plan_dipole.howmany  = 6 * n_inter_sublattice;
-        fft_plan_dipole.real_ptr = field<FFT::FFT_real_type>(6 * n_inter_sublattice * sublattice_size);
-        fft_plan_dipole.cpx_ptr  = field<FFT::FFT_cpx_type>(6 * n_inter_sublattice * sublattice_size);
-        fft_plan_dipole.Create_Configuration();
-
-        fft_plan_spins.dims     = fft_dims;
-        fft_plan_spins.inverse  = false;
-        fft_plan_spins.howmany  = 3 * geometry->n_cell_atoms;
-        fft_plan_spins.real_ptr = field<FFT::FFT_real_type>(3 * sublattice_size * geometry->n_cell_atoms);
-        fft_plan_spins.cpx_ptr  = field<FFT::FFT_cpx_type>(3 * sublattice_size * geometry->n_cell_atoms);
-        fft_plan_spins.Create_Configuration();
-
-        fft_plan_reverse.dims     = fft_dims;
-        fft_plan_reverse.inverse  = true;
-        fft_plan_reverse.howmany  = 3 * geometry->n_cell_atoms;
-        fft_plan_reverse.cpx_ptr  = field<FFT::FFT_cpx_type>(3 * sublattice_size * geometry->n_cell_atoms);
-        fft_plan_reverse.real_ptr = field<FFT::FFT_real_type>(3 * sublattice_size * geometry->n_cell_atoms);
-        fft_plan_reverse.Create_Configuration();
+        fft_plan_dipole  = FFT::FFT_Plan(fft_dims, false, 6 * n_inter_sublattice, sublattice_size);
+        fft_plan_spins   = FFT::FFT_Plan(fft_dims, false, 3 * geometry->n_cell_atoms, sublattice_size);
+        fft_plan_reverse = FFT::FFT_Plan(fft_dims, true, 3 * geometry->n_cell_atoms, sublattice_size);
 
         field<int*> temp_s = {&spin_stride.comp, &spin_stride.basis, &spin_stride.a, &spin_stride.b, &spin_stride.c};
         field<int*> temp_d = {&dipole_stride.comp, &dipole_stride.basis, &dipole_stride.a, &dipole_stride.b, &dipole_stride.c};;
@@ -1231,9 +1218,9 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Clean_DDI()
     {
-        fft_plan_spins.Clean();
-        fft_plan_dipole.Clean();
-        fft_plan_reverse.Clean();
+        fft_plan_spins   = FFT::FFT_Plan();
+        fft_plan_dipole  = FFT::FFT_Plan();
+        fft_plan_reverse = FFT::FFT_Plan();
     }
 
     // Hamiltonian name as string

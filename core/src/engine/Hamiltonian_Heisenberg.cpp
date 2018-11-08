@@ -1227,8 +1227,8 @@ namespace Engine
         }
 
         //Create fft plans.
-        fft_plan_dipole = FFT::FFT_Plan(fft_dims, false, 6 * n_inter_sublattice, sublattice_size);
-        fft_plan_spins = FFT::FFT_Plan(fft_dims, false, 3 * geometry->n_cell_atoms, sublattice_size);
+        fft_plan_dipole  = FFT::FFT_Plan(fft_dims, false, 6 * n_inter_sublattice, sublattice_size);
+        fft_plan_spins   = FFT::FFT_Plan(fft_dims, false, 3 * geometry->n_cell_atoms, sublattice_size);
         fft_plan_reverse = FFT::FFT_Plan(fft_dims, true, 3 * geometry->n_cell_atoms, sublattice_size);
 
         #ifdef SPIRIT_USE_FFTW

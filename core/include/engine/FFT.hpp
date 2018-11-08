@@ -214,7 +214,6 @@ namespace Engine
                     this->cpx_ptr.shrink_to_fit();
                     this->real_ptr.shrink_to_fit();
 
-                    // FFTW_DESTROY_PLAN(this->cfg);
                     this->Free_Configuration();
                     this->Create_Configuration();
                 }
@@ -233,10 +232,9 @@ namespace Engine
                     this->cpx_ptr  = std::move(other.cpx_ptr);
                     this->real_ptr = std::move(other.real_ptr);
 
-                    // this->cpx_ptr.shrink_to_fit();
-                    // this->real_ptr.shrink_to_fit();
+                    this->cpx_ptr.shrink_to_fit();
+                    this->real_ptr.shrink_to_fit();
 
-                    // FFTW_DESTROY_PLAN(this->cfg);
                     this->Free_Configuration();
                     this->Create_Configuration();
                 }

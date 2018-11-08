@@ -55,18 +55,6 @@ namespace Engine
         {
             cufftDestroy(this->cfg);
         }
-
-        void FFT_Plan::Clean()
-        {
-            this->cpx_ptr = field<FFT_cpx_type>();
-            this->real_ptr = field<FFT_real_type>();
-            Free_Configuration();
-        }
-
-        FFT_Plan::~FFT_Plan()
-        {
-            // kiss_fft_free(this->cfg);
-        }
     }
 }
 #endif
