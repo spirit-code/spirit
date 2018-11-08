@@ -60,11 +60,6 @@ namespace Engine
             this->cpx_ptr = field<FFT_cpx_type>();
             this->real_ptr = field<FFT_real_type>();
             Free_Configuration();
-        }x
-
-        FFT_Plan::Free_Configuration()
-        {
-            FFTW_DESTROY_PLAN(this->cfg);
         }
         #endif //end fftw_backend
 
