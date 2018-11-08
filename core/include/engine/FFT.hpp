@@ -128,6 +128,14 @@ namespace Engine
         }
         #endif
 
+        inline void FFT_Init()
+        {
+            #if defined SPIRIT_USE_FFTW && defined SPIRIT_USE_OPENMP
+                fftw_init_threads();
+                fftw_plan_with_nthreads(omp_get_max_threads());
+            #endif
+        }
+        
         inline void get_strides(field<int*> & strides, const field<int> & maxVal)
         {
             strides.resize(maxVal.size());
@@ -151,7 +159,6 @@ namespace Engine
         {
             std::vector<int> dims;
             bool inverse;
-            bool freeable = false;
             int howmany;
 
             field<FFT_cpx_type> cpx_ptr;
@@ -164,16 +171,83 @@ namespace Engine
             void Clean();
             FFT_cfg cfg;
 
-            ~FFT_Plan();
-        };
+            //Constructor delegation
+            FFT_Plan() : FFT_Plan({2,2,2}, true, 1, 8)
+            {} 
 
-        inline void FFT_Init()
-        {
-            #if defined SPIRIT_USE_FFTW && defined SPIRIT_USE_OPENMP
-                fftw_init_threads();
-                fftw_plan_with_nthreads(omp_get_max_threads());
-            #endif
-        }
+            FFT_Plan(std::vector<int> dims, bool inverse, int howmany, int len) :
+                dims(dims),
+                inverse(inverse),
+                howmany(howmany),
+                real_ptr(field<FFT::FFT_real_type>(howmany * len )),
+                cpx_ptr(field<FFT::FFT_cpx_type> (howmany * len))
+
+            {
+                this->Create_Configuration();
+            }
+
+            //copy constructor
+            FFT_Plan(FFT_Plan const & other) 
+            {
+                this->dims     = other.dims;
+                this->inverse  = other.inverse;
+                this->howmany  = other.howmany;
+                this->name     = other.name;
+                this->cpx_ptr  = other.cpx_ptr;
+                this->real_ptr = other.real_ptr;
+
+                this->Create_Configuration();
+            }
+
+            // copy assignment operator
+            FFT_Plan& operator=(FFT_Plan const & other)
+            {
+                if(this != &other)
+                {
+                    this->dims     = other.dims;
+                    this->inverse  = other.inverse;
+                    this->howmany  = other.howmany;
+                    this->name     = other.name;
+                    this->cpx_ptr  = other.cpx_ptr;
+                    this->real_ptr = other.real_ptr;
+
+                    this->cpx_ptr.shrink_to_fit();
+                    this->real_ptr.shrink_to_fit();
+
+                    // FFTW_DESTROY_PLAN(this->cfg);
+                    this->Free_Configuration();
+                    this->Create_Configuration();
+                }
+                return *this;
+            }
+            
+            //move assignment operator
+            FFT_Plan& operator=(FFT_Plan const && other)
+            {
+                if(this != &other)
+                {
+                    this->dims     = std::move(other.dims);
+                    this->inverse  = std::move(other.inverse);
+                    this->howmany  = std::move(other.howmany);
+                    this->name     = std::move(other.name);
+                    this->cpx_ptr  = std::move(other.cpx_ptr);
+                    this->real_ptr = std::move(other.real_ptr);
+
+                    // this->cpx_ptr.shrink_to_fit();
+                    // this->real_ptr.shrink_to_fit();
+
+                    // FFTW_DESTROY_PLAN(this->cfg);
+                    this->Free_Configuration();
+                    this->Create_Configuration();
+                }
+                return *this;
+            }
+
+            ~FFT_Plan()
+            {
+                Free_Configuration();
+            }
+        };//end FFT_Plan
 
         void Four_3D(const FFT_Plan & plan, field<FFT_real_type> & in, field<FFT_cpx_type> & out);
         void iFour_3D(const FFT_Plan & plan, field<FFT_cpx_type> & in, field<FFT_real_type> & out);
