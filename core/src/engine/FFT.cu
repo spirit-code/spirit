@@ -31,8 +31,8 @@ namespace Engine
         {
             int rank = this->dims.size();
             int *n = this->dims.data();
-            int howmany = this->howmany;
-            int istride = howmany, ostride = howmany;
+            int n_transforms = this->n_transforms;
+            int istride = n_transforms, ostride = n_transforms;
             int *inembed = n, *onembed = n;
             
             int size = 1;
@@ -44,28 +44,16 @@ namespace Engine
 
             if(this->inverse == false)
             {
-                cufftPlanMany(&this->cfg, rank, n, inembed, istride, idist, onembed, ostride, odist, CUFFT_R2C, howmany);
+                cufftPlanMany(&this->cfg, rank, n, inembed, istride, idist, onembed, ostride, odist, CUFFT_R2C, n_transforms);
             } else 
             {
-                cufftPlanMany(&this->cfg, rank, n, inembed, istride, idist, onembed, ostride, odist, CUFFT_C2R, howmany);
+                cufftPlanMany(&this->cfg, rank, n, inembed, istride, idist, onembed, ostride, odist, CUFFT_C2R, n_transforms);
             }
         }
 
         void FFT_Plan::Free_Configuration()
         {
             cufftDestroy(this->cfg);
-        }
-
-        void FFT_Plan::Clean()
-        {
-            this->cpx_ptr = field<FFT_cpx_type>();
-            this->real_ptr = field<FFT_real_type>();
-            Free_Configuration();
-        }
-
-        FFT_Plan::~FFT_Plan()
-        {
-            // kiss_fft_free(this->cfg);
         }
     }
 }

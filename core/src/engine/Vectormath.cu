@@ -795,7 +795,7 @@ namespace Engine
             CU_CHECK_AND_SYNC();
         }
 
-        __global__ void cu_scale(Vector3 *vf1, scalar * sf, bool inverse, size_t N)
+        __global__ void cu_scale(Vector3 *vf1, const scalar * sf, bool inverse, size_t N)
         {
             int idx = blockIdx.x * blockDim.x + threadIdx.x;
             if(idx < N)
