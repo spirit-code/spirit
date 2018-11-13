@@ -39,7 +39,7 @@ namespace Engine
         exchange_pairs_in(exchange_pairs), exchange_magnitudes_in(exchange_magnitudes), exchange_shell_magnitudes(0),
         dmi_pairs_in(dmi_pairs), dmi_magnitudes_in(dmi_magnitudes), dmi_normals_in(dmi_normals), dmi_shell_magnitudes(0), dmi_shell_chirality(0),
         quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes),
-        ddi_method(ddi_method), ddi_n_periodic_images(ddi_n_periodic_images), ddi_cutoff_radius(ddi_radius), 
+        ddi_method(ddi_method), ddi_n_periodic_images(ddi_n_periodic_images), ddi_cutoff_radius(ddi_radius),
         fft_plan_reverse(FFT::FFT_Plan()), fft_plan_spins(FFT::FFT_Plan())
     {
         // Generate interaction pairs, constants etc.
@@ -90,7 +90,7 @@ namespace Engine
             // Generate Exchange neighbours
             intfield exchange_shells(0);
             Neighbours::Get_Neighbours_in_Shells(*geometry, exchange_shell_magnitudes.size(), exchange_pairs, exchange_shells, use_redundant_neighbours);
-            for (unsigned int ipair = 0; ipair < exchange_pairs.size(); ++ipair)
+            for( unsigned int ipair = 0; ipair < exchange_pairs.size(); ++ipair )
             {
                 this->exchange_magnitudes.push_back(exchange_shell_magnitudes[exchange_shells[ipair]]);
             }
@@ -135,7 +135,7 @@ namespace Engine
             this->dmi_normals    = this->dmi_normals_in;
             if( use_redundant_neighbours )
             {
-                for (int i = 0; i < dmi_pairs_in.size(); ++i)
+                for( int i = 0; i < dmi_pairs_in.size(); ++i )
                 {
                     auto& p = dmi_pairs_in[i];
                     auto& t = p.translations;
@@ -154,7 +154,7 @@ namespace Engine
         this->ddi_magnitudes = scalarfield(this->ddi_pairs.size());
         this->ddi_normals    = vectorfield(this->ddi_pairs.size());
 
-        for (unsigned int i = 0; i < this->ddi_pairs.size(); ++i)
+        for( unsigned int i = 0; i < this->ddi_pairs.size(); ++i )
         {
             Engine::Neighbours::DDI_from_Pair(
                 *this->geometry,
@@ -218,13 +218,13 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
     {
-        if (contributions.size() != this->energy_contributions_per_spin.size())
+        if( contributions.size() != this->energy_contributions_per_spin.size() )
         {
             contributions = this->energy_contributions_per_spin;
         }
 
         int nos = spins.size();
-        for (auto& contrib : contributions)
+        for( auto& contrib : contributions )
         {
             // Allocate if not already allocated
             if (contrib.second.size() != nos) contrib.second = scalarfield(nos, 0);
@@ -254,9 +254,9 @@ namespace Engine
         auto& mu_s = this->geometry->mu_s;
 
         #pragma omp parallel for
-        for (int icell = 0; icell < geometry->n_cells_total; ++icell)
+        for( int icell = 0; icell < geometry->n_cells_total; ++icell )
         {
-            for (int ibasis = 0; ibasis < N; ++ibasis)
+            for( int ibasis = 0; ibasis < N; ++ibasis )
             {
                 int ispin = icell*N + ibasis;
                 if( check_atom_type(this->geometry->atom_types[ispin]) )
@@ -270,9 +270,9 @@ namespace Engine
         const int N = geometry->n_cell_atoms;
 
         #pragma omp parallel for
-        for (int icell = 0; icell < geometry->n_cells_total; ++icell)
+        for( int icell = 0; icell < geometry->n_cells_total; ++icell )
         {
-            for (int iani = 0; iani < anisotropy_indices.size(); ++iani)
+            for( int iani = 0; iani < anisotropy_indices.size(); ++iani )
             {
                 int ispin = icell*N + anisotropy_indices[iani];
                 if (check_atom_type(this->geometry->atom_types[ispin]))
@@ -284,13 +284,13 @@ namespace Engine
     void Hamiltonian_Heisenberg::E_Exchange(const vectorfield & spins, scalarfield & Energy)
     {
         #pragma omp parallel for
-        for (unsigned int icell = 0; icell < geometry->n_cells_total; ++icell)
+        for( unsigned int icell = 0; icell < geometry->n_cells_total; ++icell )
         {
-            for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
+            for( unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair )
             {
                 int ispin = exchange_pairs[i_pair].i + icell*geometry->n_cell_atoms;
                 int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
-                if (jspin >= 0)
+                if( jspin >= 0 )
                 {
                     Energy[ispin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot(spins[jspin]);
                     #ifndef SPIRIT_USE_OPENMP
@@ -304,13 +304,13 @@ namespace Engine
     void Hamiltonian_Heisenberg::E_DMI(const vectorfield & spins, scalarfield & Energy)
     {
         #pragma omp parallel for
-        for (unsigned int icell = 0; icell < geometry->n_cells_total; ++icell)
+        for( unsigned int icell = 0; icell < geometry->n_cells_total; ++icell )
         {
-            for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
+            for( unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair )
             {
                 int ispin = dmi_pairs[i_pair].i + icell*geometry->n_cell_atoms;
                 int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
-                if (jspin >= 0)
+                if( jspin >= 0 )
                 {
                     Energy[ispin] -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot(spins[ispin].cross(spins[jspin]));
                     #ifndef SPIRIT_USE_OPENMP
@@ -330,7 +330,7 @@ namespace Engine
             // TODO: Merge these implementations in the future
             if( ddi_cutoff_radius >= 0 )
                 this->E_DDI_Cutoff(spins, Energy);
-            else 
+            else
                 this->E_DDI_Direct(spins, Energy);
         }
     }
@@ -343,10 +343,8 @@ namespace Engine
         this->Gradient_DDI_Direct(spins, gradients_temp);
 
         #pragma omp parallel for
-        for (int ispin = 0; ispin < geometry->nos; ispin++)
-        {
+        for( int ispin = 0; ispin < geometry->nos; ispin++ )
             Energy[ispin] += 0.5 * geometry->mu_s[ispin] * spins[ispin].dot(gradients_temp[ispin]);
-        }   
     }
 
     void Hamiltonian_Heisenberg::E_DDI_Cutoff(const vectorfield & spins, scalarfield & Energy)
@@ -357,22 +355,22 @@ namespace Engine
 
         scalar result = 0.0;
 
-        for (unsigned int i_pair = 0; i_pair < ddi_pairs.size(); ++i_pair)
+        for( unsigned int i_pair = 0; i_pair < ddi_pairs.size(); ++i_pair )
         {
-            if (ddi_magnitudes[i_pair] > 0.0)
+            if( ddi_magnitudes[i_pair] > 0.0 )
             {
-                for (int da = 0; da < geometry->n_cells[0]; ++da)
+                for( int da = 0; da < geometry->n_cells[0]; ++da )
                 {
-                    for (int db = 0; db < geometry->n_cells[1]; ++db)
+                    for( int db = 0; db < geometry->n_cells[1]; ++db )
                     {
-                        for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
+                        for( int dc = 0; dc < geometry->n_cells[2]; ++dc )
                         {
                             std::array<int, 3 > translations = { da, db, dc };
                             int i = ddi_pairs[i_pair].i;
                             int j = ddi_pairs[i_pair].j;
                             int ispin = i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
                             int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, ddi_pairs[i_pair]);
-                            if (jspin >= 0)
+                            if( jspin >= 0 )
                             {
                                 Energy[ispin] -= 0.5 * mu_s[ispin] * mu_s[jspin] * mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
                                     (3 * spins[ispin].dot(ddi_normals[i_pair]) * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin].dot(spins[ispin]));
@@ -418,7 +416,7 @@ namespace Engine
 
         // TODO: add dot_scaled to Vectormath and use that
         #pragma omp parallel for
-        for (int ispin = 0; ispin < geometry->nos; ispin++)
+        for( int ispin = 0; ispin < geometry->nos; ispin++ )
         {
             Energy[ispin] += 0.5 * geometry->mu_s[ispin] * spins[ispin].dot(gradients_temp[ispin]);
             Energy_DDI    += 0.5 * geometry->mu_s[ispin] * spins[ispin].dot(gradients_temp[ispin]);
@@ -427,13 +425,13 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::E_Quadruplet(const vectorfield & spins, scalarfield & Energy)
     {
-        for (unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad)
+        for( unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad )
         {
-            for (int da = 0; da < geometry->n_cells[0]; ++da)
+            for( int da = 0; da < geometry->n_cells[0]; ++da )
             {
-                for (int db = 0; db < geometry->n_cells[1]; ++db)
+                for( int db = 0; db < geometry->n_cells[1]; ++db )
                 {
-                    for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
+                    for( int dc = 0; dc < geometry->n_cells[2]; ++dc )
                     {
                         std::array<int, 3 > translations = { da, db, dc };
                         int ispin = quadruplets[iquad].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
@@ -441,8 +439,8 @@ namespace Engine
                         int kspin = quadruplets[iquad].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k);
                         int lspin = quadruplets[iquad].l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l);
 
-                        if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
-                                check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
+                        if( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
+                            check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
                         {
                             Energy[ispin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
                             Energy[jspin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
@@ -467,11 +465,11 @@ namespace Engine
             Pair pair_inv;
 
             // External field
-            if (this->idx_zeeman >= 0)
+            if( this->idx_zeeman >= 0 )
                 Energy -= mu_s[ispin] * this->external_field_magnitude * this->external_field_normal.dot(spins[ispin]);
 
             // Anisotropy
-            if (this->idx_anisotropy >= 0)
+            if( this->idx_anisotropy >= 0 )
             {
                 for (int iani = 0; iani < anisotropy_indices.size(); ++iani)
                 {
@@ -509,9 +507,9 @@ namespace Engine
             }
 
             // DMI
-            if (this->idx_dmi >= 0)
+            if( this->idx_dmi >= 0 )
             {
-                for (unsigned int ipair = 0; ipair < dmi_pairs.size(); ++ipair)
+                for( unsigned int ipair = 0; ipair < dmi_pairs.size(); ++ipair )
                 {
                     const auto& pair = dmi_pairs[ipair];
                     if( pair.i == ibasis )
@@ -534,9 +532,9 @@ namespace Engine
             }
 
             // Quadruplets
-            if (this->idx_quadruplet >= 0)
+            if( this->idx_quadruplet >= 0 )
             {
-                for (unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad)
+                for( unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad )
                 {
                     auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_cell_atoms, icell);
                     int ispin = quadruplets[iquad].i + icell*geometry->n_cell_atoms;
@@ -544,7 +542,7 @@ namespace Engine
                     int kspin = quadruplets[iquad].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k);
                     int lspin = quadruplets[iquad].l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l);
 
-                    if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
+                    if( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
                         check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
                     {
                         Energy -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
@@ -593,18 +591,19 @@ namespace Engine
         this->Gradient_Quadruplet(spins, gradient);
     }
 
+
     void Hamiltonian_Heisenberg::Gradient_Zeeman(vectorfield & gradient)
     {
         const int N = geometry->n_cell_atoms;
         auto& mu_s = this->geometry->mu_s;
 
         #pragma omp parallel for
-        for (int icell = 0; icell < geometry->n_cells_total; ++icell)
+        for( int icell = 0; icell < geometry->n_cells_total; ++icell )
         {
-            for (int ibasis = 0; ibasis < N; ++ibasis)
+            for( int ibasis = 0; ibasis < N; ++ibasis )
             {
                 int ispin = icell*N + ibasis;
-                if (check_atom_type(this->geometry->atom_types[ispin]))
+                if( check_atom_type(this->geometry->atom_types[ispin]) )
                     gradient[ispin] -= mu_s[ispin] * this->external_field_magnitude * this->external_field_normal;
             }
         }
@@ -615,12 +614,12 @@ namespace Engine
         const int N = geometry->n_cell_atoms;
 
         #pragma omp parallel for
-        for (int icell = 0; icell < geometry->n_cells_total; ++icell)
+        for( int icell = 0; icell < geometry->n_cells_total; ++icell )
         {
-            for (int iani = 0; iani < anisotropy_indices.size(); ++iani)
+            for( int iani = 0; iani < anisotropy_indices.size(); ++iani )
             {
                 int ispin = icell*N + anisotropy_indices[iani];
-                if (check_atom_type(this->geometry->atom_types[ispin]))
+                if( check_atom_type(this->geometry->atom_types[ispin]) )
                     gradient[ispin] -= 2.0 * this->anisotropy_magnitudes[iani] * this->anisotropy_normals[iani] * anisotropy_normals[iani].dot(spins[ispin]);
             }
         }
@@ -629,13 +628,13 @@ namespace Engine
     void Hamiltonian_Heisenberg::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
     {
         #pragma omp parallel for
-        for (int icell = 0; icell < geometry->n_cells_total; ++icell)
+        for( int icell = 0; icell < geometry->n_cells_total; ++icell )
         {
-            for (unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair)
+            for( unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair )
             {
                 int ispin = exchange_pairs[i_pair].i + icell*geometry->n_cell_atoms;
                 int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
-                if (jspin >= 0)
+                if( jspin >= 0 )
                 {
                     gradient[ispin] -= exchange_magnitudes[i_pair] * spins[jspin];
                     #ifndef SPIRIT_USE_OPENMP
@@ -649,13 +648,13 @@ namespace Engine
     void Hamiltonian_Heisenberg::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
     {
         #pragma omp parallel for
-        for (int icell = 0; icell < geometry->n_cells_total; ++icell)
+        for( int icell = 0; icell < geometry->n_cells_total; ++icell )
         {
-            for (unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair)
+            for( unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair )
             {
                 int ispin = dmi_pairs[i_pair].i + icell*geometry->n_cell_atoms;
                 int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
-                if (jspin >= 0)
+                if( jspin >= 0 )
                 {
                     gradient[ispin] -= dmi_magnitudes[i_pair] * spins[jspin].cross(dmi_normals[i_pair]);
                     #ifndef SPIRIT_USE_OPENMP
@@ -686,15 +685,15 @@ namespace Engine
         // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
         const scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
 
-        for (unsigned int i_pair = 0; i_pair < ddi_pairs.size(); ++i_pair)
+        for( unsigned int i_pair = 0; i_pair < ddi_pairs.size(); ++i_pair )
         {
-            if (ddi_magnitudes[i_pair] > 0.0)
+            if( ddi_magnitudes[i_pair] > 0.0 )
             {
-                for (int da = 0; da < geometry->n_cells[0]; ++da)
+                for( int da = 0; da < geometry->n_cells[0]; ++da )
                 {
-                    for (int db = 0; db < geometry->n_cells[1]; ++db)
+                    for( int db = 0; db < geometry->n_cells[1]; ++db )
                     {
-                        for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
+                        for( int dc = 0; dc < geometry->n_cells[2]; ++dc )
                         {
                             scalar skalar_contrib = mult / std::pow(ddi_magnitudes[i_pair], 3.0);
                             std::array<int, 3 > translations = { da, db, dc };
@@ -703,7 +702,7 @@ namespace Engine
                             int j = ddi_pairs[i_pair].j;
                             int ispin = i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
                             int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, ddi_pairs[i_pair]);
-                            if (jspin >= 0)
+                            if( jspin >= 0 )
                             {
                                 gradient[ispin] -= mu_s[jspin] * skalar_contrib * (3 * ddi_normals[i_pair] * spins[jspin].dot(ddi_normals[i_pair]) - spins[jspin]);
                                 gradient[jspin] -= mu_s[ispin] * skalar_contrib * (3 * ddi_normals[i_pair] * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin]);
@@ -734,15 +733,15 @@ namespace Engine
 
         // Loop over basis atoms (i.e sublattices)
         #pragma omp parallel for collapse(5)
-        for(int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1)
+        for( int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1 )
         {
-            for(int c = 0; c < it_bounds_pointwise_mult[2]; ++c)
+            for( int c = 0; c < it_bounds_pointwise_mult[2]; ++c )
             {
-                for(int b = 0; b < it_bounds_pointwise_mult[1]; ++b)
+                for( int b = 0; b < it_bounds_pointwise_mult[1]; ++b )
                 {
-                    for(int a = 0; a < it_bounds_pointwise_mult[0]; ++a)
+                    for( int a = 0; a < it_bounds_pointwise_mult[0]; ++a )
                     {
-                        for(int i_b2 = 0; i_b2 < geometry->n_cell_atoms; ++i_b2)
+                        for( int i_b2 = 0; i_b2 < geometry->n_cell_atoms; ++i_b2 )
                         {
                             // Look up at which position the correct D-matrices are saved
                             int& b_inter = inter_sublattice_lookup[i_b1 + i_b2 * geometry->n_cell_atoms];
@@ -776,13 +775,13 @@ namespace Engine
 
         #pragma omp parallel for collapse(4)
         //Place the gradients at the correct positions and mult with correct mu
-        for(int c = 0; c < geometry->n_cells[2]; ++c)
+        for( int c = 0; c < geometry->n_cells[2]; ++c )
         {
-            for(int b = 0; b < geometry->n_cells[1]; ++b)
+            for( int b = 0; b < geometry->n_cells[1]; ++b )
             {
-                for(int a = 0; a < geometry->n_cells[0]; ++a)
+                for( int a = 0; a < geometry->n_cells[0]; ++a )
                 {
-                    for(int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1)
+                    for( int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1 )
                     {
                         int idx_orig = i_b1 + geometry->n_cell_atoms * (a + Na * (b + Nb * c));
                         int idx = i_b1 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
@@ -806,26 +805,26 @@ namespace Engine
         int img_b = boundary_conditions[1] == 0 ? 0 : ddi_n_periodic_images[1];
         int img_c = boundary_conditions[2] == 0 ? 0 : ddi_n_periodic_images[2];
 
-        for(int idx1 = 0; idx1 < geometry->nos; idx1++)
+        for( int idx1 = 0; idx1 < geometry->nos; idx1++ )
         {
-            for(int idx2 = 0; idx2 < geometry->nos; idx2++)
+            for( int idx2 = 0; idx2 < geometry->nos; idx2++ )
             {
                 auto& m2 = spins[idx2];
 
                 diff = this->geometry->positions[idx2] - this->geometry->positions[idx1];
                 scalar Dxx = 0, Dxy = 0, Dxz = 0, Dyy = 0, Dyz = 0, Dzz = 0;
 
-                for(int a_pb = - img_a; a_pb <= img_a; a_pb++)
+                for( int a_pb = - img_a; a_pb <= img_a; a_pb++ )
                 {
-                    for(int b_pb = - img_b; b_pb <= img_b; b_pb++)
+                    for( int b_pb = - img_b; b_pb <= img_b; b_pb++ )
                     {
-                        for(int c_pb = -img_c; c_pb <= img_c; c_pb++)
+                        for( int c_pb = -img_c; c_pb <= img_c; c_pb++ )
                         {
                             diff_img = diff + a_pb * geometry->n_cells[0] * geometry->bravais_vectors[0]
                                             + b_pb * geometry->n_cells[1] * geometry->bravais_vectors[1]
                                             + c_pb * geometry->n_cells[2] * geometry->bravais_vectors[2];
                             d = diff_img.norm();
-                            if(d > 1e-10)
+                            if( d > 1e-10 )
                             {
                                 d3 = d * d * d;
                                 d5 = d * d * d * d * d;
@@ -852,17 +851,17 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Gradient_Quadruplet(const vectorfield & spins, vectorfield & gradient)
     {
-        for (unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad)
+        for( unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad )
         {
             int i = quadruplets[iquad].i;
             int j = quadruplets[iquad].j;
             int k = quadruplets[iquad].k;
             int l = quadruplets[iquad].l;
-            for (int da = 0; da < geometry->n_cells[0]; ++da)
+            for( int da = 0; da < geometry->n_cells[0]; ++da )
             {
-                for (int db = 0; db < geometry->n_cells[1]; ++db)
+                for( int db = 0; db < geometry->n_cells[1]; ++db )
                 {
-                    for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
+                    for( int dc = 0; dc < geometry->n_cells[2]; ++dc )
                     {
                         std::array<int, 3 > translations = { da, db, dc };
                         int ispin = i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
@@ -870,8 +869,8 @@ namespace Engine
                         int kspin = k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k);
                         int lspin = l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l);
 
-                        if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
-                                check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
+                        if( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
+                            check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
                         {
                             gradient[ispin] -= quadruplet_magnitudes[iquad] * spins[jspin] * (spins[kspin].dot(spins[lspin]));
                             gradient[jspin] -= quadruplet_magnitudes[iquad] * spins[ispin] * (spins[kspin].dot(spins[lspin]));
@@ -888,106 +887,88 @@ namespace Engine
     void Hamiltonian_Heisenberg::Hessian(const vectorfield & spins, MatrixX & hessian)
     {
         int nos = spins.size();
+        const int N = geometry->n_cell_atoms;
 
-        // Set to zero
+        // --- Set to zero
         hessian.setZero();
 
-        // Single Spin elements
-        for (int da = 0; da < geometry->n_cells[0]; ++da)
+        // --- Single Spin elements
+        #pragma omp parallel for
+        for( int icell = 0; icell < geometry->n_cells_total; ++icell )
         {
-            for (int db = 0; db < geometry->n_cells[1]; ++db)
+            for( int iani = 0; iani < anisotropy_indices.size(); ++iani )
             {
-                for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
+                int ispin = icell*N + anisotropy_indices[iani];
+                if( check_atom_type(this->geometry->atom_types[ispin]) )
                 {
-                    std::array<int, 3 > translations = { da, db, dc };
-                    int icell = Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
-                    for (int alpha = 0; alpha < 3; ++alpha)
+                    for( int alpha = 0; alpha < 3; ++alpha )
                     {
                         for ( int beta = 0; beta < 3; ++beta )
                         {
-                            for (unsigned int i = 0; i < anisotropy_indices.size(); ++i)
-                            {
-                                if ( check_atom_type(this->geometry->atom_types[icell+anisotropy_indices[i]]) )
-                                {
-                                    int idx_i = 3 * icell + anisotropy_indices[i] + alpha;
-                                    int idx_j = 3 * icell + anisotropy_indices[i] + beta;
-                                    // scalar x = -2.0*this->anisotropy_magnitudes[i] * std::pow(this->anisotropy_normals[i][alpha], 2);
-                                    hessian( idx_i, idx_j ) += -2.0 * this->anisotropy_magnitudes[i] *
-                                                                    this->anisotropy_normals[i][alpha] *
-                                                                    this->anisotropy_normals[i][beta];
-                                }
-                            }
+                            int i = 3 * ispin + alpha;
+                            int j = 3 * ispin + alpha;
+                            hessian(i, j) += -2.0 * this->anisotropy_magnitudes[iani] *
+                                                    this->anisotropy_normals[iani][alpha] *
+                                                    this->anisotropy_normals[iani][beta];
                         }
                     }
                 }
             }
         }
 
-        // Spin Pair elements
+        // --- Spin Pair elements
         // Exchange
-        for (int da = 0; da < geometry->n_cells[0]; ++da)
+        #pragma omp parallel for
+        for( int icell = 0; icell < geometry->n_cells_total; ++icell )
         {
-            for (int db = 0; db < geometry->n_cells[1]; ++db)
+            for( unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair )
             {
-                for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
+                int ispin = exchange_pairs[i_pair].i + icell*geometry->n_cell_atoms;
+                int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
+                if( jspin >= 0 )
                 {
-                    std::array<int, 3 > translations = { da, db, dc };
-                    for (unsigned int i_pair = 0; i_pair < this->exchange_pairs.size(); ++i_pair)
+                    for( int alpha = 0; alpha < 3; ++alpha )
                     {
-                        int ispin = exchange_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
-                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
-                        if (jspin >= 0)
-                        {
-                            for (int alpha = 0; alpha < 3; ++alpha)
-                            {
-                                int i = 3 * ispin + alpha;
-                                int j = 3 * jspin + alpha;
+                        int i = 3 * ispin + alpha;
+                        int j = 3 * jspin + alpha;
 
-                                hessian(i, j) += -exchange_magnitudes[i_pair];
-                                #ifndef SPIRIT_USE_OPENMP
-                                hessian(j, i) += -exchange_magnitudes[i_pair];
-                                #endif
-                            }
-                        }
+                        hessian(i, j) += -exchange_magnitudes[i_pair];
+                        #ifndef SPIRIT_USE_OPENMP
+                        hessian(j, i) += -exchange_magnitudes[i_pair];
+                        #endif
                     }
                 }
             }
         }
 
         // DMI
-        for (int da = 0; da < geometry->n_cells[0]; ++da)
+        #pragma omp parallel for
+        for( int icell = 0; icell < geometry->n_cells_total; ++icell )
         {
-            for (int db = 0; db < geometry->n_cells[1]; ++db)
+            for( unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair )
             {
-                for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
+                int ispin = dmi_pairs[i_pair].i + icell*geometry->n_cell_atoms;
+                int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
+                if( jspin >= 0 )
                 {
-                    std::array<int, 3 > translations = { da, db, dc };
-                    for (unsigned int i_pair = 0; i_pair < this->dmi_pairs.size(); ++i_pair)
-                    {
-                        int ispin = dmi_pairs[i_pair].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
-                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
-                        if (jspin >= 0)
-                        {
-                            int i = 3*ispin;
-                            int j = 3*jspin;
+                    int i = 3*ispin;
+                    int j = 3*jspin;
 
-                            hessian(i+2, j+1) +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-                            hessian(i+1, j+2) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-                            hessian(i, j+2)   +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-                            hessian(i+2, j)   += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-                            hessian(i+1, j)   +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
-                            hessian(i, j+1)   += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
+                    hessian(i+2, j+1) +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
+                    hessian(i+1, j+2) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
+                    hessian(i, j+2)   +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
+                    hessian(i+2, j)   += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
+                    hessian(i+1, j)   +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
+                    hessian(i, j+1)   += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
 
-                            #ifndef SPIRIT_USE_OPENMP
-                            hessian(j+1, i+2) +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-                            hessian(j+2, i+1) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-                            hessian(j+2, i)   +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-                            hessian(j, i+2)   += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-                            hessian(j, i+1)   +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
-                            hessian(j+1, i)   += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
-                            #endif
-                        }
-                    }
+                    #ifndef SPIRIT_USE_OPENMP
+                    hessian(j+1, i+2) +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
+                    hessian(j+2, i+1) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
+                    hessian(j+2, i)   +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
+                    hessian(j, i+2)   += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
+                    hessian(j, i+1)   +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
+                    hessian(j+1, i)   += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
+                    #endif
                 }
             }
         }
@@ -997,55 +978,57 @@ namespace Engine
         field<int> tupel2 = field<int>(4);
         field<int> maxVal = {geometry->n_cell_atoms, geometry->n_cells[0], geometry->n_cells[1], geometry->n_cells[2]};
 
-        if(save_dipole_matrices && ddi_method == DDI_Method::FFT && false)
+        if( save_dipole_matrices && ddi_method == DDI_Method::FFT && false )
         {
-            for(int idx1 = 0; idx1 < geometry->nos; idx1++)
+            for( int idx1 = 0; idx1 < geometry->nos; idx1++ )
             {
-                Engine::Vectormath::tupel_from_idx(idx1, tupel1, maxVal); //tupel1 now is {ib1, a1, b1, c1}
-                for(int idx2 = 0; idx2 < geometry->nos; idx2++)
+                Engine::Vectormath::tupel_from_idx(idx1, tupel1, maxVal); // tupel1 now is {ib1, a1, b1, c1}
+                for( int idx2 = 0; idx2 < geometry->nos; idx2++ )
                 {
-                    Engine::Vectormath::tupel_from_idx(idx2, tupel2, maxVal); //tupel2 now is {ib2, a2, b2, c2}
+                    Engine::Vectormath::tupel_from_idx(idx2, tupel2, maxVal); // tupel2 now is {ib2, a2, b2, c2}
                     int& b_inter = inter_sublattice_lookup[tupel1[0] + geometry->n_cell_atoms * tupel2[0]];
                     int da = tupel2[1] - tupel1[1];
                     int db = tupel2[2] - tupel1[2];
                     int dc = tupel2[3] - tupel1[3];
                     Matrix3 & D = dipole_matrices[b_inter + n_inter_sublattice * (da + geometry->n_cells[0] * (db + geometry->n_cells[1] * dc))];
-                
+
                     int i = 3 * idx1;
                     int j = 3 * idx2;
 
-                    for(int alpha1 = 0; alpha1 < 3; alpha1++)
-                        for(int alpha2 = 0; alpha2 < 3; alpha2++)
+                    for( int alpha1 = 0; alpha1 < 3; alpha1++ )
+                    {
+                        for( int alpha2 = 0; alpha2 < 3; alpha2++ )
                         {
                             hessian(i + alpha1, j + alpha2) = D(alpha1, alpha2);
                             hessian(j + alpha1, i + alpha2) = D(alpha1, alpha2);
                         }
+                    }
                 }
             }
         }
-                 
+
         //// Dipole-Dipole
         //for (unsigned int i_pair = 0; i_pair < this->DD_indices.size(); ++i_pair)
-        //{
-        //	// indices
-        //	int idx_1 = DD_indices[i_pair][0];
-        //	int idx_2 = DD_indices[i_pair][1];
-        //	// prefactor
-        //	scalar prefactor = 0.0536814951168
-        //		* mu_s[idx_1] * mu_s[idx_2]
-        //		/ std::pow(DD_magnitude[i_pair], 3);
-        //	// components
-        //	for (int alpha = 0; alpha < 3; ++alpha)
-        //	{
-        //		for (int beta = 0; beta < 3; ++beta)
-        //		{
-        //			int idx_h = idx_1 + alpha*nos + 3 * nos*(idx_2 + beta*nos);
-        //			if (alpha == beta)
-        //				hessian[idx_h] += prefactor;
-        //			hessian[idx_h] += -3.0*prefactor*DD_normal[i_pair][alpha] * DD_normal[i_pair][beta];
-        //		}
-        //	}
-        //}
+        // {
+        //     // indices
+        //     int idx_1 = DD_indices[i_pair][0];
+        //     int idx_2 = DD_indices[i_pair][1];
+        //     // prefactor
+        //     scalar prefactor = 0.0536814951168
+        //         * mu_s[idx_1] * mu_s[idx_2]
+        //         / std::pow(DD_magnitude[i_pair], 3);
+        //     // components
+        //     for (int alpha = 0; alpha < 3; ++alpha)
+        //     {
+        //         for (int beta = 0; beta < 3; ++beta)
+        //         {
+        //             int idx_h = idx_1 + alpha*nos + 3 * nos*(idx_2 + beta*nos);
+        //             if (alpha == beta)
+        //                 hessian[idx_h] += prefactor;
+        //             hessian[idx_h] += -3.0*prefactor*DD_normal[i_pair][alpha] * DD_normal[i_pair][beta];
+        //         }
+        //     }
+        // }
 
         // Quadruplets
     }
@@ -1063,16 +1046,16 @@ namespace Engine
         int B = geometry->n_cell_atoms;
 
         auto& fft_spin_inputs = fft_plan_spins.real_ptr;
-       
+
             //iterate over the **original** system
         #pragma omp parallel for collapse(4)
-        for(int c = 0; c < Nc; ++c)
+        for( int c = 0; c < Nc; ++c )
         {
-            for(int b = 0; b < Nb; ++b)
+            for( int b = 0; b < Nb; ++b )
             {
-                for(int a = 0; a < Na; ++a)
+                for( int a = 0; a < Na; ++a )
                 {
-                    for(int bi = 0; bi < B; ++bi)
+                    for( int bi = 0; bi < B; ++bi )
                     {
                         int idx_orig = bi + B * (a + Na * (b + Nb * c));
                         int idx = bi * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
@@ -1104,9 +1087,9 @@ namespace Engine
         auto& fft_dipole_inputs = fft_plan_dipole.real_ptr;
 
         int b_inter = -1;
-        for(int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1)
+        for( int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1 )
         {
-            for(int i_b2 = 0; i_b2 < geometry->n_cell_atoms; ++i_b2)
+            for( int i_b2 = 0; i_b2 < geometry->n_cell_atoms; ++i_b2 )
             {
                 if(i_b1 == i_b2 && i_b1 !=0)
                 {
@@ -1118,11 +1101,11 @@ namespace Engine
 
                 //iterate over the padded system
                 #pragma omp parallel for collapse(3)
-                for(int c = 0; c < n_cells_padded[2]; ++c)
+                for( int c = 0; c < n_cells_padded[2]; ++c )
                 {
-                    for(int b = 0; b < n_cells_padded[1]; ++b)
+                    for( int b = 0; b < n_cells_padded[1]; ++b )
                     {
-                        for(int a = 0; a < n_cells_padded[0]; ++a)
+                        for( int a = 0; a < n_cells_padded[0]; ++a )
                         {
                             int a_idx = a < Na ? a : a - n_cells_padded[0];
                             int b_idx = b < Nb ? b : b - n_cells_padded[1];
@@ -1131,16 +1114,16 @@ namespace Engine
                             Vector3 diff;
                             //iterate over periodic images
 
-                            for(int a_pb = - img_a; a_pb <= img_a; a_pb++)
+                            for( int a_pb = - img_a; a_pb <= img_a; a_pb++ )
                             {
-                                for(int b_pb = - img_b; b_pb <= img_b; b_pb++)
+                                for( int b_pb = - img_b; b_pb <= img_b; b_pb++ )
                                 {
-                                    for(int c_pb = -img_c; c_pb <= img_c; c_pb++)
+                                    for( int c_pb = -img_c; c_pb <= img_c; c_pb++ )
                                     {
                                         diff =    (a_idx + a_pb * Na + geometry->cell_atoms[i_b1][0] - geometry->cell_atoms[i_b2][0]) * ta
                                                 + (b_idx + b_pb * Nb + geometry->cell_atoms[i_b1][1] - geometry->cell_atoms[i_b2][1]) * tb
                                                 + (c_idx + c_pb * Nc + geometry->cell_atoms[i_b1][2] - geometry->cell_atoms[i_b2][2]) * tc;
-                                        if(diff.norm() > 1e-10)
+                                        if( diff.norm() > 1e-10 )
                                         {
                                             auto d = diff.norm();
                                             auto d3 = d * d * d;
@@ -1166,11 +1149,11 @@ namespace Engine
                             fft_dipole_inputs[idx + 5 * dipole_stride.comp] = Dzz;
 
                             //We explicitly ignore the different strides etc. here
-                            if(save_dipole_matrices && a < Na && b < Nb && c < Nc)
+                            if( save_dipole_matrices && a < Na && b < Nb && c < Nc )
                             {
-                                dipole_matrices[b_inter + n_inter_sublattice * (a + Na * (b + Nb * c))] <<    Dxx, Dxy, Dxz,
-                                                                                                        Dxy, Dyy, Dyz,
-                                                                                                        Dxz, Dyz, Dzz;
+                                dipole_matrices[b_inter + n_inter_sublattice * (a + Na * (b + Nb * c))] <<  Dxx, Dxy, Dxz,
+                                                                                                            Dxy, Dyy, Dyz,
+                                                                                                            Dxz, Dyz, Dzz;
                             }
                         }
                     }
@@ -1184,7 +1167,7 @@ namespace Engine
     {
         Clean_DDI();
 
-        if(ddi_method != DDI_Method::FFT)
+        if( ddi_method != DDI_Method::FFT )
             return;
 
         n_cells_padded.resize(3);
@@ -1194,11 +1177,11 @@ namespace Engine
 
         FFT::FFT_Init();
 
-        //workaround for bug in kissfft 
+        //workaround for bug in kissfft
         //kissfft_ndr does not perform one-dimensional ffts properly
         #ifndef SPIRIT_USE_FFTW
         int number_of_one_dims = 0;
-        for(int i=0; i<3; i++)
+        for( int i=0; i<3; i++ )
             if(n_cells_padded[i] == 1 && ++number_of_one_dims > 1)
                 n_cells_padded[i] = 2;
         #endif
@@ -1209,17 +1192,17 @@ namespace Engine
 
         //we dont need to transform over length 1 dims
         std::vector<int> fft_dims;
-        for(int i = 2; i >= 0; i--) //notice that reverse order is important!
+        for( int i = 2; i >= 0; i-- ) //notice that reverse order is important!
         {
             if(n_cells_padded[i] > 1)
                 fft_dims.push_back(n_cells_padded[i]);
         }
-        
+
         //Count how many distinct inter-lattice contributions we need to store
         n_inter_sublattice = 0;
-        for(int i = 0; i < geometry->n_cell_atoms; i++)
+        for( int i = 0; i < geometry->n_cell_atoms; i++ )
         {
-            for(int j = 0; j < geometry->n_cell_atoms; j++)
+            for( int j = 0; j < geometry->n_cell_atoms; j++ )
             {
                 if(i != 0 && i==j) continue;
                 n_inter_sublattice++;
@@ -1237,17 +1220,17 @@ namespace Engine
             FFT::get_strides(temp_s, {3, this->geometry->n_cell_atoms, n_cells_padded[0], n_cells_padded[1], n_cells_padded[2]});
             FFT::get_strides(temp_d, {6, n_inter_sublattice, n_cells_padded[0], n_cells_padded[1], n_cells_padded[2]});
             it_bounds_pointwise_mult  = {   (n_cells_padded[0]/2 + 1), // due to redundancy in real fft
-                                            n_cells_padded[1], 
-                                            n_cells_padded[2] 
+                                            n_cells_padded[1],
+                                            n_cells_padded[2]
                                         };
         #else
             field<int*> temp_s = {&spin_stride.a, &spin_stride.b, &spin_stride.c, &spin_stride.comp, &spin_stride.basis};
             field<int*> temp_d = {&dipole_stride.a, &dipole_stride.b, &dipole_stride.c, &dipole_stride.comp, &dipole_stride.basis};;
             FFT::get_strides(temp_s, {n_cells_padded[0], n_cells_padded[1], n_cells_padded[2], 3, this->geometry->n_cell_atoms});
             FFT::get_strides(temp_d, {n_cells_padded[0], n_cells_padded[1], n_cells_padded[2], 6, n_inter_sublattice});
-            it_bounds_pointwise_mult  = {   n_cells_padded[0], 
-                                            n_cells_padded[1], 
-                                            n_cells_padded[2] 
+            it_bounds_pointwise_mult  = {   n_cells_padded[0],
+                                            n_cells_padded[1],
+                                            n_cells_padded[2]
                                         };
             (it_bounds_pointwise_mult[fft_dims.size() - 1] /= 2 )++;
         #endif

@@ -885,110 +885,105 @@ namespace Engine
     void Hamiltonian_Heisenberg::Hessian(const vectorfield & spins, MatrixX & hessian)
     {
         int nos = spins.size();
+        const int N = geometry->n_cell_atoms;
 
-        // Set to zero
-        // for (auto& h : hessian) h = 0;
+        // --- Set to zero
         hessian.setZero();
 
-        // Single Spin elements
-        for (int alpha = 0; alpha < 3; ++alpha)
+        // --- Single Spin elements
+        for( int icell = 0; icell < geometry->n_cells_total; ++icell )
         {
-            for (unsigned int i = 0; i < anisotropy_indices.size(); ++i)
+            for( int iani = 0; iani < anisotropy_indices.size(); ++iani )
             {
-                int idx = anisotropy_indices[i];
-                // scalar x = -2.0*this->anisotropy_magnitudes[i] * std::pow(this->anisotropy_normals[i][alpha], 2);
-                hessian(3*idx + alpha, 3*idx + alpha) += -2.0*this->anisotropy_magnitudes[i]*std::pow(this->anisotropy_normals[i][alpha],2);
-            }
-        }
-
-        // std::cerr << "calculated hessian" << std::endl;
-
-        // Spin Pair elements
-        // Exchange
-        for (unsigned int i_pair = 0; i_pair < this->exchange_pairs.size(); ++i_pair)
-        {
-            for (int da = 0; da < geometry->n_cells[0]; ++da)
-            {
-                for (int db = 0; db < geometry->n_cells[1]; ++db)
+                int ispin = icell*N + anisotropy_indices[iani];
+                if( check_atom_type(this->geometry->atom_types[ispin]) )
                 {
-                    for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
+                    for( int alpha = 0; alpha < 3; ++alpha )
                     {
-                        std::array<int, 3 > translations = { da, db, dc };
-                        for (int alpha = 0; alpha < 3; ++alpha)
+                        for ( int beta = 0; beta < 3; ++beta )
                         {
-                            // int idx_i = 3 * exchange_pairs[i_pair].i + alpha;
-                            // int idx_j = 3 * exchange_pairs[i_pair].j + alpha;
-                            int idx_i = 3 * Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations) + alpha;
-                            int idx_j = 3 * Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, exchange_pairs[i_pair].translations) + alpha;
-                            hessian(idx_i, idx_j) += -exchange_magnitudes[i_pair];
-                            hessian(idx_j, idx_i) += -exchange_magnitudes[i_pair];
+                            int i = 3 * ispin + alpha;
+                            int j = 3 * ispin + alpha;
+                            hessian(i, j) += -2.0 * this->anisotropy_magnitudes[iani] *
+                                                    this->anisotropy_normals[iani][alpha] *
+                                                    this->anisotropy_normals[iani][beta];
                         }
                     }
                 }
             }
         }
 
-        // DMI
-        for (unsigned int i_pair = 0; i_pair < this->dmi_pairs.size(); ++i_pair)
+        // --- Spin Pair elements
+        // Exchange
+        for( int icell = 0; icell < geometry->n_cells_total; ++icell )
         {
-            for (int da = 0; da < geometry->n_cells[0]; ++da)
+            for( unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair )
             {
-                for (int db = 0; db < geometry->n_cells[1]; ++db)
+                int ispin = exchange_pairs[i_pair].i + icell*geometry->n_cell_atoms;
+                int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
+                if( jspin >= 0 )
                 {
-                    for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
+                    for( int alpha = 0; alpha < 3; ++alpha )
                     {
-                        std::array<int, 3 > translations = { da, db, dc };
-                        for (int alpha = 0; alpha < 3; ++alpha)
+                        int i = 3 * ispin + alpha;
+                        int j = 3 * jspin + alpha;
+
+                        hessian(i, j) += -exchange_magnitudes[i_pair];
+                    }
+                }
+            }
+        }
+
+        // DMI
+        for( int icell = 0; icell < geometry->n_cells_total; ++icell )
+        {
+            for( unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair )
+            {
+                int ispin = dmi_pairs[i_pair].i + icell*geometry->n_cell_atoms;
+                int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
+                if( jspin >= 0 )
+                {
+                    int i = 3*ispin;
+                    int j = 3*jspin;
+
+                    hessian(i+2, j+1) +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
+                    hessian(i+1, j+2) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
+                    hessian(i, j+2)   +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
+                    hessian(i+2, j)   += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
+                    hessian(i+1, j)   +=  dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
+                    hessian(i, j+1)   += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
+                }
+            }
+        }
+
+        // Tentative Dipole-Dipole (Note: this is very tentative and could be wrong)
+        field<int> tupel1 = field<int>(4);
+        field<int> tupel2 = field<int>(4);
+        field<int> maxVal = {geometry->n_cell_atoms, geometry->n_cells[0], geometry->n_cells[1], geometry->n_cells[2]};
+
+        if( save_dipole_matrices && ddi_method == DDI_Method::FFT && false )
+        {
+            for( int idx1 = 0; idx1 < geometry->nos; idx1++ )
+            {
+                Engine::Vectormath::tupel_from_idx(idx1, tupel1, maxVal); // tupel1 now is {ib1, a1, b1, c1}
+                for( int idx2 = 0; idx2 < geometry->nos; idx2++ )
+                {
+                    Engine::Vectormath::tupel_from_idx(idx2, tupel2, maxVal); // tupel2 now is {ib2, a2, b2, c2}
+                    int& b_inter = inter_sublattice_lookup[tupel1[0] + geometry->n_cell_atoms * tupel2[0]];
+                    int da = tupel2[1] - tupel1[1];
+                    int db = tupel2[2] - tupel1[2];
+                    int dc = tupel2[3] - tupel1[3];
+                    Matrix3 & D = dipole_matrices[b_inter + n_inter_sublattice * (da + geometry->n_cells[0] * (db + geometry->n_cells[1] * dc))];
+
+                    int i = 3 * idx1;
+                    int j = 3 * idx2;
+
+                    for( int alpha1 = 0; alpha1 < 3; alpha1++ )
+                    {
+                        for( int alpha2 = 0; alpha2 < 3; alpha2++ )
                         {
-                            for (int beta = 0; beta < 3; ++beta)
-                            {
-                                // int idx_i = 3 * dmi_pairs[i_pair].i + alpha;
-                                // int idx_j = 3 * dmi_pairs[i_pair].j + beta;
-                                int idx_i = 3 * Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations) + alpha;
-                                int idx_j = 3 * Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, dmi_pairs[i_pair].translations) + alpha;
-                                if ((alpha == 0 && beta == 1))
-                                {
-                                    hessian(idx_i, idx_j) +=
-                                        -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
-                                    hessian(idx_j, idx_i) +=
-                                        -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
-                                }
-                                else if ((alpha == 1 && beta == 0))
-                                {
-                                    hessian(idx_i, idx_j) +=
-                                        dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
-                                    hessian(idx_j, idx_i) +=
-                                        dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
-                                }
-                                else if ((alpha == 0 && beta == 2))
-                                {
-                                    hessian(idx_i, idx_j) +=
-                                        dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-                                    hessian(idx_j, idx_i) +=
-                                        dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-                                }
-                                else if ((alpha == 2 && beta == 0))
-                                {
-                                    hessian(idx_i, idx_j) +=
-                                        -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-                                    hessian(idx_j, idx_i) +=
-                                        -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-                                }
-                                else if ((alpha == 1 && beta == 2))
-                                {
-                                    hessian(idx_i, idx_j) +=
-                                        -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-                                    hessian(idx_j, idx_i) +=
-                                        -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-                                }
-                                else if ((alpha == 2 && beta == 1))
-                                {
-                                    hessian(idx_i, idx_j) +=
-                                        dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-                                    hessian(idx_j, idx_i) +=
-                                        dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-                                }
-                            }
+                            hessian(i + alpha1, j + alpha2) = D(alpha1, alpha2);
+                            hessian(j + alpha1, i + alpha2) = D(alpha1, alpha2);
                         }
                     }
                 }
@@ -997,26 +992,26 @@ namespace Engine
 
         //// Dipole-Dipole
         //for (unsigned int i_pair = 0; i_pair < this->DD_indices.size(); ++i_pair)
-        //{
-        //	// indices
-        //	int idx_1 = DD_indices[i_pair][0];
-        //	int idx_2 = DD_indices[i_pair][1];
-        //	// prefactor
-        //	scalar prefactor = 0.0536814951168
-        //		* geometry->cell_mu_s[idx_1] * geometry->cell_mu_s[idx_2]
-        //		/ std::pow(DD_magnitude[i_pair], 3);
-        //	// components
-        //	for (int alpha = 0; alpha < 3; ++alpha)
-        //	{
-        //		for (int beta = 0; beta < 3; ++beta)
-        //		{
-        //			int idx_h = idx_1 + alpha*nos + 3 * nos*(idx_2 + beta*nos);
-        //			if (alpha == beta)
-        //				hessian[idx_h] += prefactor;
-        //			hessian[idx_h] += -3.0*prefactor*DD_normal[i_pair][alpha] * DD_normal[i_pair][beta];
-        //		}
-        //	}
-        //}
+        // {
+        //     // indices
+        //     int idx_1 = DD_indices[i_pair][0];
+        //     int idx_2 = DD_indices[i_pair][1];
+        //     // prefactor
+        //     scalar prefactor = 0.0536814951168
+        //         * mu_s[idx_1] * mu_s[idx_2]
+        //         / std::pow(DD_magnitude[i_pair], 3);
+        //     // components
+        //     for (int alpha = 0; alpha < 3; ++alpha)
+        //     {
+        //         for (int beta = 0; beta < 3; ++beta)
+        //         {
+        //             int idx_h = idx_1 + alpha*nos + 3 * nos*(idx_2 + beta*nos);
+        //             if (alpha == beta)
+        //                 hessian[idx_h] += prefactor;
+        //             hessian[idx_h] += -3.0*prefactor*DD_normal[i_pair][alpha] * DD_normal[i_pair][beta];
+        //         }
+        //     }
+        // }
 
         // Quadruplets
     }
