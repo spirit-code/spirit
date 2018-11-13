@@ -35,21 +35,35 @@ namespace Engine
             auto& image_sp = *htst_info.saddle_point->spins;
             int nos = image_minimum.size();
             vectorfield force_tmp(nos, {0,0,0});
+            std::vector<std::string> block;
 
             // TODO
             bool is_afm = false;
 
-            ////////////////////////////////////////////////////////////////////////
-            // Saddle point
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Calculation for the Saddle Point");
+            // The gradient (unprojected)
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluation of the gradient at the initial configuration...");
+            vectorfield gradient_minimum(nos, {0,0,0});
+            htst_info.minimum->hamiltonian->Gradient(image_minimum, gradient_minimum);
+
+            // Check if the configuration is actually an extremum
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Checking if initial configuration is an extremum...");
+            Vectormath::set_c_a(1, gradient_minimum, force_tmp);
+            Manifoldmath::project_tangential(force_tmp, image_minimum);
+            scalar fmax_minimum = Vectormath::max_abs_component(force_tmp);
+            if( fmax_minimum > epsilon_force )
+            {
+                Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format(
+                    "HTST: the initial configuration is not a converged minimum, its max. force component is above the threshold ({} > {})!", fmax_minimum, epsilon_force ));
+                return;
+            }
 
             // The gradient (unprojected)
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluation of the gradient...");
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluation of the gradient at the transition configuration...");
             vectorfield gradient_sp(nos, {0,0,0});
             htst_info.saddle_point->hamiltonian->Gradient(image_sp, gradient_sp);
 
             // Check if the configuration is actually an extremum
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Checking if extremum...");
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Checking if transition configuration is an extremum...");
             Vectormath::set_c_a(1, gradient_sp, force_tmp);
             Manifoldmath::project_tangential(force_tmp, image_sp);
             scalar fmax_sp = Vectormath::max_abs_component(force_tmp);
@@ -60,59 +74,78 @@ namespace Engine
                 return;
             }
 
-            // Evaluation of the Hessian...
-            MatrixX hessian_sp = MatrixX::Zero(3*nos,3*nos);
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluation of the Hessian...");
-            htst_info.saddle_point->hamiltonian->Hessian(image_sp, hessian_sp);
-
-            // Eigendecomposition
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Eigendecomposition...");
-            MatrixX hessian_geodesic_sp_3N(3*nos, 3*nos);
-            MatrixX hessian_geodesic_sp_2N(2*nos, 2*nos);
-            VectorX eigenvalues_sp = VectorX::Zero(2*nos);
-            MatrixX eigenvectors_sp = MatrixX::Zero(2*nos, 2*nos);
-            Geodesic_Eigen_Decomposition(image_sp, gradient_sp, hessian_sp,
-                hessian_geodesic_sp_3N, hessian_geodesic_sp_2N, eigenvalues_sp, eigenvectors_sp);
-
-            htst_info.eigenvalues_sp.assign(eigenvalues_sp.data(), eigenvalues_sp.data() + 2*nos);
-            // htst_info.eigenvectors_sp.assign(eigenvectors_sp.data(), eigenvectors_sp.data() + 2*3*nos);
-
-            // Print some eigenvalues
-            std::vector<std::string> block{"10 lowest eigenvalues at saddle point:"};
-            for( int i=0; i<10; ++i )
-                block.push_back(fmt::format("ew[{}]={:^20e}   ew[{}]={:^20e}", i, eigenvalues_sp[i], i+2*nos-10, eigenvalues_sp[i+2*nos-10]));
-            Log.SendBlock(Utility::Log_Level::Info, Utility::Log_Sender::HTST, block, -1, -1);
-
-            // Check if lowest eigenvalue < 0 (else it's not a SP)
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking if actually a saddle point...");
-            if( eigenvalues_sp[0] > -epsilon )
+            ////////////////////////////////////////////////////////////////////////
+            // Saddle point
             {
-                Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format(
-                    "HTST: the transition configuration is not a saddle point, its lowest eigenvalue is above the threshold ({} > {})!", eigenvalues_sp[0], -epsilon ));
-                return;
-            }
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Calculation for the Saddle Point");
 
-            // Check if second-lowest eigenvalue < 0 (higher-order SP)
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking if higher order saddle point...");
-            int n_negative = 0;
-            for( int i=0; i < eigenvalues_sp.size(); ++i )
-            {
-                if( eigenvalues_sp[i] < -epsilon )
-                    ++n_negative;
+                // Evaluation of the Hessian...
+                MatrixX hessian_sp = MatrixX::Zero(3*nos,3*nos);
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluation of the Hessian...");
+                htst_info.saddle_point->hamiltonian->Hessian(image_sp, hessian_sp);
+
+                // Eigendecomposition
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Eigendecomposition...");
+                MatrixX hessian_geodesic_sp_3N(3*nos, 3*nos);
+                MatrixX hessian_geodesic_sp_2N(2*nos, 2*nos);
+                VectorX eigenvalues_sp = VectorX::Zero(2*nos);
+                MatrixX eigenvectors_sp = MatrixX::Zero(2*nos, 2*nos);
+                Geodesic_Eigen_Decomposition(image_sp, gradient_sp, hessian_sp,
+                    hessian_geodesic_sp_3N, hessian_geodesic_sp_2N, eigenvalues_sp, eigenvectors_sp);
+
+                htst_info.eigenvalues_sp.assign(eigenvalues_sp.data(), eigenvalues_sp.data() + 2*nos);
+                // htst_info.eigenvectors_sp.assign(eigenvectors_sp.data(), eigenvectors_sp.data() + 2*3*nos);
+
+                // Print some eigenvalues
+                block = std::vector<std::string>{"10 lowest eigenvalues at saddle point:"};
+                for( int i=0; i<10; ++i )
+                    block.push_back(fmt::format("ew[{}]={:^20e}   ew[{}]={:^20e}", i, htst_info.eigenvalues_sp[i], i+2*nos-10, htst_info.eigenvalues_sp[i+2*nos-10]));
+                Log.SendBlock(Utility::Log_Level::Info, Utility::Log_Sender::HTST, block, -1, -1);
+
+                // Check if lowest eigenvalue < 0 (else it's not a SP)
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking if actually a saddle point...");
+                if( htst_info.eigenvalues_sp[0] > -epsilon )
+                {
+                    Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format(
+                        "HTST: the transition configuration is not a saddle point, its lowest eigenvalue is above the threshold ({} > {})!", htst_info.eigenvalues_sp[0], -epsilon ));
+                    return;
+                }
+
+                // Check if second-lowest eigenvalue < 0 (higher-order SP)
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking if higher order saddle point...");
+                int n_negative = 0;
+                for( int i=0; i < htst_info.eigenvalues_sp.size(); ++i )
+                {
+                    if( htst_info.eigenvalues_sp[i] < -epsilon )
+                        ++n_negative;
+                }
+                if( n_negative > 1 )
+                {
+                    Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format(
+                        "HTST: the image you passed is a higher order saddle point (N={})!", n_negative ));
+                    return;
+                }
+
+                // Perpendicular velocity
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Calculating perpendicular velocity at saddle point ('a' factors)...");
+                // Calculation of the 'a' parameters...
+                VectorX perpendicular_velocity_sp(2*nos);
+                MatrixX basis_sp(3*nos, 2*nos);
+                Manifoldmath::tangent_basis_spherical(image_sp, basis_sp);
+                // Manifoldmath::tangent_basis(image_sp, basis_sp);
+                // Calculate_Perpendicular_Velocity_2N(image_sp, hessian_geodesic_sp_2N, basis_sp, eigenvectors_sp, perpendicular_velocity_sp);
+                Calculate_Perpendicular_Velocity(image_sp, htst_info.saddle_point->geometry->mu_s, hessian_geodesic_sp_3N, basis_sp, eigenvectors_sp, perpendicular_velocity_sp);
+                htst_info.perpendicular_velocity.assign(perpendicular_velocity_sp.data(), perpendicular_velocity_sp.data() + 2*nos);
             }
-            if( n_negative > 1 )
-            {
-                Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format(
-                    "HTST: the image you passed is a higher order saddle point (N={})!", n_negative ));
-                return;
-            }
+            // End saddle point
+            ////////////////////////////////////////////////////////////////////////
 
             // Checking for zero modes at the saddle point...
             Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking for zero modes at the saddle point...");
             int n_zero_modes_sp = 0;
-            for( int i=0; i < eigenvalues_sp.size(); ++i )
+            for( int i=0; i < htst_info.eigenvalues_sp.size(); ++i )
             {
-                if( std::abs(eigenvalues_sp[i] ) <= epsilon)
+                if( std::abs(htst_info.eigenvalues_sp[i] ) <= epsilon)
                     ++n_zero_modes_sp;
             }
 
@@ -128,82 +161,60 @@ namespace Engine
                     htst_info.volume_sp = Calculate_Zero_Volume(htst_info.saddle_point);
             }
 
-            ////////////////////////////////////////////////////////////////////////
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Calculating perpendicular velocity at saddle point ('a' factors)...");
-            // Calculation of the 'a' parameters...
-            VectorX perpendicular_velocity_sp(2*nos);
-            MatrixX basis_sp(3*nos, 2*nos);
-            Manifoldmath::tangent_basis_spherical(image_sp, basis_sp);
-            // Manifoldmath::tangent_basis(image_sp, basis_sp);
-            // Calculate_Perpendicular_Velocity_2N(image_sp, hessian_geodesic_sp_2N, basis_sp, eigenvectors_sp, perpendicular_velocity_sp);
-            Calculate_Perpendicular_Velocity(image_sp, htst_info.saddle_point->geometry->mu_s, hessian_geodesic_sp_3N, basis_sp, eigenvectors_sp, perpendicular_velocity_sp);
-            htst_info.perpendicular_velocity.assign(perpendicular_velocity_sp.data(), perpendicular_velocity_sp.data() + 2*nos);
-
             // Calculate "s"
             htst_info.s = 0;
             for( int i = n_zero_modes_sp+1; i < 2*nos; ++i )
-                htst_info.s += std::pow(perpendicular_velocity_sp[i], 2) / eigenvalues_sp[i];
+                htst_info.s += std::pow(htst_info.perpendicular_velocity[i], 2) / htst_info.eigenvalues_sp[i];
             htst_info.s = std::sqrt(htst_info.s);
 
             ////////////////////////////////////////////////////////////////////////
             // Initial state minimum
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Calculation for the Minimum");
-
-            // The gradient (unprojected)
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluation of the gradient...");
-            vectorfield gradient_minimum(nos, {0,0,0});
-            htst_info.minimum->hamiltonian->Gradient(image_minimum, gradient_minimum);
-
-            // Check if the configuration is actually an extremum
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Checking if extremum...");
-            Vectormath::set_c_a(1, gradient_minimum, force_tmp);
-            Manifoldmath::project_tangential(force_tmp, image_minimum);
-            scalar fmax_minimum = Vectormath::max_abs_component(force_tmp);
-            if( fmax_minimum > epsilon_force )
             {
-                Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format(
-                    "HTST: the initial configuration is not a converged minimum, its max. force component is above the threshold ({} > {})!", fmax_minimum, epsilon_force ));
-                return;
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Calculation for the Minimum");
+
+                // Evaluation of the Hessian...
+                MatrixX hessian_minimum = MatrixX::Zero(3*nos,3*nos);
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluation of the Hessian...");
+                htst_info.minimum->hamiltonian->Hessian(image_minimum, hessian_minimum);
+
+                // Eigendecomposition
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Eigendecomposition...");
+                MatrixX hessian_geodesic_minimum_3N(3*nos, 3*nos);
+                MatrixX hessian_geodesic_minimum_2N(2*nos, 2*nos);
+                VectorX eigenvalues_minimum = VectorX::Zero(2*nos);
+                MatrixX eigenvectors_minimum = MatrixX::Zero(2*nos, 2*nos);
+                Geodesic_Eigen_Decomposition(image_minimum, gradient_minimum, hessian_minimum,
+                    hessian_geodesic_minimum_3N, hessian_geodesic_minimum_2N, eigenvalues_minimum, eigenvectors_minimum);
+
+                htst_info.eigenvalues_min.assign(eigenvalues_minimum.data(), eigenvalues_minimum.data() + 2*nos);
+                // htst_info.eigenvectors_min.assign(eigenvectors_minimum.data(), eigenvectors_minimum.data() + 2*3*nos);
+
+                // Print some eigenvalues
+                block = std::vector<std::string>{"10 lowest eigenvalues at minimum:"};
+                for( int i=0; i<10; ++i )
+                    block.push_back(fmt::format("ew[{}]={:^20e}   ew[{}]={:^20e}", i, htst_info.eigenvalues_min[i], i+2*nos-10, htst_info.eigenvalues_min[i+2*nos-10]));
+                Log.SendBlock(Utility::Log_Level::Info, Utility::Log_Sender::HTST, block, -1, -1);
+
+                // Check for eigenvalues < 0 (i.e. not a minimum)
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking if actually a minimum...");
+                if( htst_info.eigenvalues_min[0] < -epsilon )
+                {
+                    Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format(
+                        "HTST: the initial configuration is not a minimum, its lowest eigenvalue is below the threshold ({} < {})!", htst_info.eigenvalues_min[0], -epsilon ));
+                    return;
+                }
             }
-
-            // Evaluation of the Hessian...
-            MatrixX hessian_minimum = MatrixX::Zero(3*nos,3*nos);
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluation of the Hessian...");
-            htst_info.minimum->hamiltonian->Hessian(image_minimum, hessian_minimum);
-
-            // Eigendecomposition
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Eigendecomposition...");
-            MatrixX hessian_geodesic_minimum_3N(3*nos, 3*nos);
-            MatrixX hessian_geodesic_minimum_2N(2*nos, 2*nos);
-            VectorX eigenvalues_minimum = VectorX::Zero(2*nos);
-            MatrixX eigenvectors_minimum = MatrixX::Zero(2*nos, 2*nos);
-            Geodesic_Eigen_Decomposition(image_minimum, gradient_minimum, hessian_minimum,
-                hessian_geodesic_minimum_3N, hessian_geodesic_minimum_2N, eigenvalues_minimum, eigenvectors_minimum);
-
-            htst_info.eigenvalues_min.assign(eigenvalues_minimum.data(), eigenvalues_minimum.data() + 2*nos);
-            // htst_info.eigenvectors_min.assign(eigenvectors_minimum.data(), eigenvectors_minimum.data() + 2*3*nos);
-
-            // Print some eigenvalues
-            block = std::vector<std::string>{"10 lowest eigenvalues at minimum:"};
-            for( int i=0; i<10; ++i )
-                block.push_back(fmt::format("ew[{}]={:^20e}   ew[{}]={:^20e}", i, eigenvalues_minimum[i], i+2*nos-10, eigenvalues_minimum[i+2*nos-10]));
-            Log.SendBlock(Utility::Log_Level::Info, Utility::Log_Sender::HTST, block, -1, -1);
-
-            
-            // Check for eigenvalues < 0 (i.e. not a minimum)
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking if actually a minimum...");
-            if( eigenvalues_minimum[0] < -epsilon )
-            {
-                Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format(
-                    "HTST: the initial configuration is not a minimum, its lowest eigenvalue is below the threshold ({} < {})!", eigenvalues_sp[0], -epsilon ));
-                return;
-            }
+            // End initial state minimum
+            ////////////////////////////////////////////////////////////////////////
 
             // Checking for zero modes at the minimum...
             Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking for zero modes at the minimum...");
             int n_zero_modes_minimum = 0;
-            for( int i=0; i < eigenvalues_minimum.size(); ++i )
-                if (std::abs(eigenvalues_minimum[i]) <= epsilon) ++n_zero_modes_minimum;
+            for( int i=0; i < htst_info.eigenvalues_min.size(); ++i )
+            {
+                if( std::abs(htst_info.eigenvalues_min[i]) <= epsilon )
+                    ++n_zero_modes_minimum;
+            }
 
             // Deal with zero modes if any (calculate volume)
             htst_info.volume_min = 1;
@@ -233,15 +244,15 @@ namespace Engine
             if( n_zero_modes_minimum > n_zero_modes_sp+1 )
             {
                 for( int i = n_zero_modes_sp+1; i<n_zero_modes_minimum; ++i )
-                    htst_info.Omega_0 /= std::sqrt(eigenvalues_sp[i]);
+                    htst_info.Omega_0 /= std::sqrt(htst_info.eigenvalues_sp[i]);
             }
             else if( n_zero_modes_minimum < n_zero_modes_sp+1 )
             {
                 for( int i = n_zero_modes_minimum; i<(n_zero_modes_sp+1); ++i )
-                    htst_info.Omega_0 *= std::sqrt(eigenvalues_minimum[i]);
+                    htst_info.Omega_0 *= std::sqrt(htst_info.eigenvalues_min[i]);
             }
             for( int i=std::max(n_zero_modes_minimum, n_zero_modes_sp+1); i < 2*nos; ++i )
-                htst_info.Omega_0 *= std::sqrt(eigenvalues_minimum[i] / eigenvalues_sp[i]);
+                htst_info.Omega_0 *= std::sqrt(htst_info.eigenvalues_min[i] / htst_info.eigenvalues_sp[i]);
 
             // Calculate the prefactor
             htst_info.prefactor_dynamical = htst_info.me * htst_info.volume_sp / htst_info.volume_min * htst_info.s;
@@ -443,12 +454,12 @@ namespace Engine
         {
             int n_steps = std::max(2, nos);
 
-            //		Create a Spectra solver
+            //      Create a Spectra solver
             Spectra::DenseGenMatProd<scalar> op(matrix);
             Spectra::GenEigsSolver< scalar, Spectra::SMALLEST_REAL, Spectra::DenseGenMatProd<scalar> > matrix_spectrum(&op, n_decompose, n_steps);
             matrix_spectrum.init();
 
-            //		Compute the specified spectrum
+            //      Compute the specified spectrum
             int nconv = matrix_spectrum.compute();
 
             if (matrix_spectrum.info() == Spectra::SUCCESSFUL)
