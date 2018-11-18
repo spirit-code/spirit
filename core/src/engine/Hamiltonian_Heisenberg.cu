@@ -20,7 +20,7 @@ using Engine::Vectormath::cu_check_atom_type;
 using Engine::Vectormath::cu_idx_from_pair;
 using Engine::Vectormath::check_atom_type;
 using Engine::Vectormath::idx_from_pair;
-using Engine::Vectormath::tupel_from_idx;
+using Engine::Vectormath::cu_tupel_from_idx;
 
 namespace Engine
 {
@@ -773,7 +773,7 @@ namespace Engine
 
         for(int ispin = blockIdx.x * blockDim.x + threadIdx.x; ispin < n; ispin += blockDim.x * gridDim.x)
         {
-            tupel_from_idx(ispin, tupel, iteration_bounds, 4); // tupel now is {i_b2, a, b, c}
+            cu_tupel_from_idx(ispin, tupel, iteration_bounds, 4); // tupel now is {i_b2, a, b, c}
 
             int& b_inter = inter_sublattice_lookup[i_b1 + tupel[0] * iteration_bounds[0]];
 
@@ -819,7 +819,7 @@ namespace Engine
 
         for(int idx_orig = blockIdx.x * blockDim.x + threadIdx.x; idx_orig < nos; idx_orig += blockDim.x * gridDim.x)
         {
-            tupel_from_idx(idx_orig, tupel, iteration_bounds, 4); //tupel now is {ib, a, b, c}
+            cu_tupel_from_idx(idx_orig, tupel, iteration_bounds, 4); //tupel now is {ib, a, b, c}
             idx_pad = tupel[0] * spin_stride.basis + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b + tupel[3] * spin_stride.c;
             gradient[idx_orig][0] -= resiFFT[idx_pad                       ] / sublattice_size;
             gradient[idx_orig][1] -= resiFFT[idx_pad + 1 * spin_stride.comp] / sublattice_size;
@@ -1023,7 +1023,7 @@ namespace Engine
         int idx_pad;
         for(int idx_orig = blockIdx.x * blockDim.x + threadIdx.x; idx_orig < nos; idx_orig += blockDim.x * gridDim.x)
         {
-            tupel_from_idx(idx_orig, tupel, iteration_bounds, 4); //tupel now is {ib, a, b, c}
+            cu_tupel_from_idx(idx_orig, tupel, iteration_bounds, 4); //tupel now is {ib, a, b, c}
             idx_pad = tupel[0] * spin_stride.basis + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b + tupel[3] * spin_stride.c;
             fft_spin_inputs[idx_pad                        ] = spins[idx_orig][0] * mu_s[idx_orig];
             fft_spin_inputs[idx_pad + 1 * spin_stride.comp ] = spins[idx_orig][1] * mu_s[idx_orig];
@@ -1045,7 +1045,7 @@ namespace Engine
         scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
         for(int i = blockIdx.x * blockDim.x + threadIdx.x; i < sublattice_size; i += blockDim.x * gridDim.x)
         {
-            tupel_from_idx(i, tupel, iteration_bounds, 3); // tupel now is {a, b, c}
+            cu_tupel_from_idx(i, tupel, iteration_bounds, 3); // tupel now is {a, b, c}
             auto& a = tupel[0];
             auto& b = tupel[1];
             auto& c = tupel[2];

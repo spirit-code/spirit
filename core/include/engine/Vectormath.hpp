@@ -112,7 +112,7 @@ namespace Engine
         #ifdef SPIRIT_USE_CUDA
     
          //Get the linear index in a n-D array where tupel contains the components in n-dimensions from fatest to slowest varying and maxVal is the extent in every dimension
-        inline __device__ int idx_from_tupel(field<int> tupel, field<int> maxVal)
+        inline __device__ int cu_idx_from_tupel(field<int>& tupel, field<int>& maxVal)
         {
             int idx = 0;
             int mult = 1;
@@ -125,13 +125,28 @@ namespace Engine
         }
 
         //reverse of idx_from_tupel
-        inline __device__ void tupel_from_idx(int & idx, int* tupel, int* maxVal, int n)
+        inline __device__ void cu_tupel_from_idx(int & idx, int* tupel, int* maxVal, int n)
         {
             int idx_diff = idx;
             int div = 1;
             for(int i = 0; i < n-1; i++)
                 div *= maxVal[i]; 
             for(int i = n - 1; i > 0; i--)
+            {
+                tupel[i] = idx_diff / div;
+                idx_diff -= tupel[i] * div;
+                div /= maxVal[i - 1];
+            }
+            tupel[0] = idx_diff / div;
+        }
+
+        inline void tupel_from_idx(int & idx, field<int> & tupel, const field<int> & maxVal)
+        {
+            int idx_diff = idx;
+            int div = 1;
+            for(int i = 0; i < maxVal.size()-1; i++)
+                div *= maxVal[i]; 
+            for(int i = maxVal.size()-1; i > 0; i--)
             {
                 tupel[i] = idx_diff / div;
                 idx_diff -= tupel[i] * div;
