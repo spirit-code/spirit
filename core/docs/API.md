@@ -28,10 +28,10 @@ of a **spin dynamics simulation**:
 #import "Spirit/State.h"
 #import "Spirit/Simulation.h"
 
-const char * cfgfile = "input/input.cfg";    // Input file
-State * p_state = State_Setup(cfgfile);      // State setup
-Simulation_PlayPause(p_state, "LLG", "SIB"); // Start a LLG simulation using the SIB solver
-State_Delete(p_state)                        // State cleanup
+const char * cfgfile = "input/input.cfg";  // Input file
+State * p_state = State_Setup(cfgfile);    // State setup
+Simulation_LLG_Start(p_state, Solver_SIB); // Start a LLG simulation using the SIB solver
+State_Delete(p_state)                      // State cleanup
 ```
 
 A new state can be created with `State_Setup()`, where you can pass
@@ -47,7 +47,7 @@ The State struct is passed around in an application to make the simulation's sta
 | `State_Setup( const char * config_file )`                                                                   | `State *` | Create new state by passing a config file |
 | `State_Update( State * )`                                                                                   | `void`    | Update the state to hold current values |
 | `State_Delete( State * )`                                                                                   | `void`    | Delete a state |
-| `State_To_Config( State *, const char * config_file, const char * original_config_file)`                    | `void`    | Write a config file which will result in the same state if used in `State_Setup()`  |
+| `State_To_Config( State *, const char * config_file, const char * comment)`                                 | `void`    | Write a config file which will result in the same state if used in `State_Setup()`  |
 | `State_DateTime( State * )`                                                                                 | `const char *` | Get datetime tag of the creation of the state |
 
 
@@ -82,22 +82,30 @@ With `Simulation_*` functions one can control and get information from the State
 
 | Simulation Basics                                                          | Effect |
 | -------------------------------------------------------------------------- | ------ |
-| `Simulation_SingleShot( State *, const char * c_method_type, const char * c_solver_type, int n_iterations, int n_iterations_log, int idx_image, int idx_chain )` | Executes a single Optimization iteration with a given method <br/> (CAUTION! does not check for already running simulations) |
-| `Simulation_PlayPause( State *, const char * c_method_type, const char * c_solver_type, int n_iterations, int n_iterations_log, int idx_image, int idx_chain )` | Play/Pause functionality |
-| `Simulation_Stop_All( State * )` | Stop all State's simulations |
+| `Simulation_MC_Start( State *, int n_iterations, int n_iterations_log, bool singleshot, int idx_image, int idx_chain )`                   | Start a Monte Carlo simulation |
+| `Simulation_LLG_Start( State *, int solver_type, int n_iterations, int n_iterations_log, bool singleshot, int idx_image, int idx_chain )` | Start a LLG simulation         |
+| `Simulation_GNEB_Start( State *, int solver_type, int n_iterations, int n_iterations_log, bool singleshot, int idx_chain )`               | Start a GNEB simulation        |
+| `Simulation_MMF_Start( State *, int solver_type, int n_iterations, int n_iterations_log, bool singleshot, int idx_image, int idx_chain )` | Start a MMF simulation         |
+| `Simulation_EMA_Start( State *, int n_iterations, int n_iterations_log, bool singleshot, int idx_image, int idx_chain )`                  | Start a EMA simulation         |
+| `Simulation_SingleShot( State *, int idx_image, int idx_chain )` | Run a single iteration of a started single-shot simulation on an image or chain |
+| `Simulation_Stop( State *, int idx_image, int idx_chain )`       | Stop the simulation on an image or chain |
+| `Simulation_Stop_All( State * )`                                 | Stop all State's simulations |
+
 
 | Simulation Data                                                                 | Return          | Effect |
 | ------------------------------------------------------------------------------- | --------------- | ------ |
 | `Simulation_Get_MaxTorqueComponent( State *, int idx_image, int idx_chain )`    | `float`         | Get Simulation's maximum torque component  |
 | `Simulation_Get_IterationsPerSecond( State *, int idx_image, int idx_chain )`   | `float`         | Get Simulation's iterations per second     |
-| `Simulation_Get_Solver_Name( State *, int idx_image, int idx_chain )`           | `const char *`  | Get Solver's name                       |
+| `Simulation_Get_Time( State *, int idx_image, int idx_chain )`                  | `float`         | Get time passed by the simulation in picoseconds |
+| `Simulation_Get_Wall_Time( State *, int idx_image, int idx_chain )`             | `float`         | Get number of miliseconds since the simulation was started |
+| `Simulation_Get_Solver_Name( State *, int idx_image, int idx_chain )`           | `const char *`  | Get Solver's name                          |
 | `Simulation_Get_Method_Name( State *, int idx_image, int idx_chain )`           | `const char *`  | Get Method's name                          |
 
 | Simulation Running Checking                                                     | Return          |
 | ------------------------------------------------------------------------------- | --------------- |
-| `Simulation_Running_Any_Anywhere( State * )`                                    | `bool`          |
-| `Simulation_Running_LLG_Anywhere( State * )`                                    | `bool`          |
-| `Simulation_Running_GNEB_Anywhere( State * )`                                   | `bool`          |
+| `Simulation_Running_On_Image( State *, int idx_img, int idx_chain )`            | `bool`          |
+| `Simulation_Running_On_Chain( State *, int idx_chain  )`                        | `bool`          |
+| `Simulation_Running_Anywhere_On_Chain( State *, int idx_chain )`                | `bool`          |
 | `Simulation_Running_LLG_Chain( State *state, int idx_chain )`                   | `bool`          |
 | `Simulation_Running_Any( State *, int idx_image, int idx_chain )`               | `bool`          |
 | `Simulation_Running_LLG( State *, int idx_image, int idx_chain)`                | `bool`          |
@@ -292,12 +300,11 @@ IO
 
 | Macros of File Formats for Vector Fields | values  | Description                                       |
 | ---------------------------------------- | :-----: | --------------------------------------------------|
-| `IO_Fileformat_Regular`                  | 0       | sx sy sz (separated by whitespace)                |
-| `IO_Fileformat_Regular_Pos`              | 1       | px py pz sx sy sz (separated by whitespace)       |
-| `IO_Fileformat_CSV`                      | 2       | sx, sy, sz (separated by commas)                  |
-| `IO_Fileformat_CSV_Pos`                  | 3       | px, py, pz, sx, sy, (sz separated by commas)      |
-| `IO_Fileformat_OVF_bin8`                 | 4       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format |
-| `IO_Fileformat_OVF_text`                 | 6       |                                                   |
+| `IO_Fileformat_OVF_bin`                  | 0       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (binary, automatically determined size)  |
+| `IO_Fileformat_OVF_bin`                  | 1       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (binary 4)  |
+| `IO_Fileformat_OVF_bin`                  | 2       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (binary 8)  |
+| `IO_Fileformat_OVF_text`                 | 3       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (plaintext) |
+| `IO_Fileformat_OVF_csv`                  | 4       | [OOMMF vector field (OVF) v2.0](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html) file format (comma-separated plaintext) |
 
 Read and Write functions
 

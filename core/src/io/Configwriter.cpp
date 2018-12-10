@@ -72,8 +72,10 @@ namespace IO
             config += "bravais_vectors\n";
             config += fmt::format("{0}\n{1}\n{2}\n", geometry->bravais_vectors[0].transpose(), geometry->bravais_vectors[1].transpose(), geometry->bravais_vectors[2].transpose());
         }
+
         // Number of cells
         config += fmt::format("n_basis_cells {} {} {}\n", geometry->n_cells[0], geometry->n_cells[1], geometry->n_cells[2]);
+
         // Optionally basis
         if (geometry->n_cell_atoms > 1)
         {
@@ -84,9 +86,30 @@ namespace IO
                 config += fmt::format("{}\n", geometry->cell_atoms[i].transpose());
             }
         }
+
+        // Magnetic moment
+        if( !geometry->cell_composition.disordered )
+        {
+            config += "mu_s                     ";
+            for (int i=0; i<geometry->n_cell_atoms; ++i)
+                config += fmt::format(" {}", geometry->mu_s[i]);
+            config += "\n";
+        }
+        else
+        {
+            auto& iatom         = geometry->cell_composition.iatom;
+            auto& atom_type     = geometry->cell_composition.atom_type;
+            auto& mu_s          = geometry->cell_composition.mu_s;
+            auto& concentration = geometry->cell_composition.concentration;
+            config += fmt::format("atom_types    {}\n", iatom.size());
+            for (int i=0; i<iatom.size(); ++i)
+                config += fmt::format("{}   {}   {}   {}\n", iatom[i], atom_type[i], mu_s[i], concentration[i]);
+        }
+
         // Optionally lattice constant
         if (std::abs(geometry->lattice_constant-1) > 1e-6)
             config += fmt::format("lattice_constant {}\n", geometry->lattice_constant);
+
         config += "################## End Geometry ##################";
         Append_String_to_File(config, configFile);
     }// end Geometry_to_Config
@@ -203,18 +226,12 @@ namespace IO
         int n_cells_tot = geometry->n_cells[0]*geometry->n_cells[1]*geometry->n_cells[2];
         std::string config = "";
         Engine::Hamiltonian_Heisenberg* ham = (Engine::Hamiltonian_Heisenberg *)hamiltonian.get();
-        
-        // Magnetic moment
-        config += "mu_s                     ";
-        for (int i=0; i<geometry->n_cell_atoms; ++i)
-            config += fmt::format(" {}", ham->mu_s[i]);
-        config += "\n";
 
         // External Field
         config += "###    External Field:\n";
         config += fmt::format("{:<25} {}\n", "external_field_magnitude", ham->external_field_magnitude / Constants::mu_B);
         config += fmt::format("{:<25} {}\n", "external_field_normal", ham->external_field_normal.transpose());
-        
+
         // Anisotropy
         config += "###    Anisotropy:\n";
         scalar K = 0;
@@ -226,7 +243,7 @@ namespace IO
         }
         config += fmt::format("{:<25} {}\n", "anisotropy_magnitude", K);
         config += fmt::format("{:<25} {}\n", "anisotropy_normal", K_normal.transpose());
-        
+
         config += "###    Interaction pairs:\n";
         config += fmt::format("n_interaction_pairs {}\n", ham->exchange_pairs.size() + ham->dmi_pairs.size());
         if (ham->exchange_pairs.size() + ham->dmi_pairs.size() > 0)
@@ -250,6 +267,19 @@ namespace IO
                     0.0, ham->dmi_magnitudes[i], ham->dmi_normals[i][0], ham->dmi_normals[i][1], ham->dmi_normals[i][2]);
             }
         }
+
+        // Dipole-dipole
+        std::string ddi_method;
+        if (ham->ddi_method == Engine::DDI_Method::None) ddi_method = "none";
+        else if (ham->ddi_method == Engine::DDI_Method::FFT) ddi_method = "fft";
+        else if (ham->ddi_method == Engine::DDI_Method::FMM) ddi_method = "fmm";
+        else if (ham->ddi_method == Engine::DDI_Method::Cutoff) ddi_method = "cutoff";
+        config += "### Dipole-dipole interaction caclulation method\n### (fft, fmm, cutoff, none)";
+        config += fmt::format("ddi_method                 {}\n", ddi_method);
+        config += "### DDI number of periodic images in (a b c)";
+        config += fmt::format("ddi_n_periodic_images      {} {} {}\n", ham->ddi_n_periodic_images[0], ham->ddi_n_periodic_images[1], ham->ddi_n_periodic_images[2]);
+        config += "### DDI cutoff radius (if cutoff is used)";
+        config += fmt::format("ddi_radius                 {}\n", ham->ddi_cutoff_radius);
 
         // Quadruplets
         config += "###    Quadruplets:\n";

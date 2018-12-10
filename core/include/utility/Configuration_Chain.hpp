@@ -14,9 +14,6 @@ namespace Utility
 		// Add noise to the images of a transition (except the border images)
 		void Add_Noise_Temperature(std::shared_ptr<Data::Spin_System_Chain> c, int idx_1, int idx_2, scalar temperature);
 
-		// Homogeneous rotation of all spins from configuration A to B for all images in a chain
-		void Homogeneous_Rotation(std::shared_ptr<Data::Spin_System_Chain> c, vectorfield A, vectorfield B);
-
 		// Homogeneous rotation of all spins from first to last configuration of the given configurations
 		void Homogeneous_Rotation(std::shared_ptr<Data::Spin_System_Chain> c, int idx_1, int idx_2);
 

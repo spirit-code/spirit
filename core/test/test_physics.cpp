@@ -3,9 +3,10 @@
 #include <Spirit/System.h>
 #include <Spirit/Simulation.h>
 #include <Spirit/Configurations.h>
+#include <Spirit/Geometry.h>
 #include <Spirit/Hamiltonian.h>
 #include <Spirit/Constants.h>
-#include <Spirit/Parameters.h>
+#include <Spirit/Parameters_LLG.h>
 #include <data/State.hpp>
 #include <Eigen/Dense>
 #include <Eigen/Core>
@@ -22,11 +23,8 @@ TEST_CASE( "Larmor Precession","[physics]" )
     // Create State
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
 
-    // Choose method
-    auto method = "LLG";
-
     // Solvers to be tested
-    std::vector<const char *>  solvers{ "Heun", "Depondt", "SIB" };
+    std::vector<int>  solvers{ Solver_Heun, Solver_Depondt, Solver_SIB, Solver_RungeKutta4 };
 
     // Set up one the initial direction of the spin
     float init_direction[3] = { 1., 0., 0. };                // vec parallel to x-axis
@@ -41,7 +39,7 @@ TEST_CASE( "Larmor Precession","[physics]" )
 
     // Make sure that mu_s is the same as the one define in input file
     float mu_s;
-    Hamiltonian_Get_mu_s( state.get(), &mu_s );
+    Geometry_Get_mu_s( state.get(), &mu_s );
     REQUIRE( mu_s == 2 );
 
     // Get the magnitude of the magnetic field ( it has only z-axis component )
@@ -51,8 +49,8 @@ TEST_CASE( "Larmor Precession","[physics]" )
 
     // Get time step of method
     scalar damping = 0.3;
-    float tstep = Parameters_Get_LLG_Time_Step( state.get() );
-    Parameters_Set_LLG_Damping( state.get(), damping );
+    float tstep = Parameters_LLG_Get_Time_Step( state.get() );
+    Parameters_LLG_Set_Damping( state.get(), damping );
 
     scalar dtg = tstep * Constants_gamma() / ( 1.0 + damping*damping );
 
@@ -60,24 +58,26 @@ TEST_CASE( "Larmor Precession","[physics]" )
     {
         // Set spin parallel to x-axis
         Configuration_Domain( state.get(), init_direction );
+        Simulation_LLG_Start( state.get(), opt, -1, -1, true);
 
         for( int i=0; i<100; i++ )
         {
-            INFO( std::string( opt ) << " failed spin trajectory test at iteration " << i );
+            INFO( "solver " << opt << " failed spin trajectory test at iteration " << i );
 
             // A single iteration
-            Simulation_SingleShot( state.get(), method, opt );
+            Simulation_SingleShot( state.get() );
 
             // Expected spin orientation
-            // TODO: the step size should not be scaled by mu_s
-            scalar phi_expected = mu_s * dtg * (i+1) * B_mag;
-            scalar sz_expected  = std::tanh( mu_s * damping * dtg * (i+1) * B_mag );
+            scalar phi_expected = dtg * (i+1) * B_mag;
+            scalar sz_expected  = std::tanh( damping * dtg * (i+1) * B_mag );
             scalar rxy_expected = std::sqrt( 1-sz_expected*sz_expected );
             scalar sx_expected  = std::cos(phi_expected) * rxy_expected;
 
             REQUIRE( Approx(direction[0]) == sx_expected );
             REQUIRE( Approx(direction[2]) == sz_expected );
         }
+
+        Simulation_Stop( state.get() );
     }
 }
 
@@ -114,4 +114,40 @@ TEST_CASE( "Finite Differences", "[physics]" )
 
         REQUIRE( hessian_fd.isApprox( hessian ) );
     }
+}
+
+TEST_CASE( "Dipole-Dipole Interaction", "[physics]" )
+{
+    //cfg where only ddi is enabled
+    auto state = std::shared_ptr<State> (State_Setup("core/test/input/physics_ddi.cfg"), State_Delete );
+
+    Configuration_Random( state.get() );
+    
+    auto& spins = *state->active_image->spins;
+
+    auto grad_fft = vectorfield( state->nos );
+    auto grad_direct = vectorfield( state->nos );
+
+    state->active_image->hamiltonian->Gradient( spins, grad_fft );
+    auto energy_fft = state->active_image->hamiltonian->Energy(spins);
+
+    auto n_periodic_images = std::vector<int> {4,4,4};
+    Hamiltonian_Set_DDI(state.get(), SPIRIT_DDI_METHOD_CUTOFF, n_periodic_images.data(), -1);
+
+    state->active_image->hamiltonian->Gradient( spins, grad_direct );
+    auto energy_direct = state->active_image->hamiltonian->Energy(spins);
+
+    for(int i=0; i<state->nos; i++)
+    {
+        INFO("Failed DDI-Gradient comparison at i = " << i);
+        INFO("Gradient (FFT):")
+        INFO(grad_fft[i])
+        INFO("Gradient (Direct):")
+        INFO(grad_direct[i])
+        REQUIRE(grad_fft[i].isApprox(grad_direct[i]));
+    }
+    INFO("Failed energy comparison test!")
+    INFO("Energy (Direct) = " << energy_direct << "\n" );
+    INFO("Energy (FFT)    = " << energy_fft << "\n");
+    REQUIRE(Approx(energy_fft) == energy_direct);
 }

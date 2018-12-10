@@ -58,13 +58,24 @@ Code design improvements, including the C API and CMake.
 -----------------
 
 
+### Moritz Sallermann
+* RWTH Aachen
+* PGI-1/IAS-1 at Forschungszentrum Jülich
+
+Implementation of the dipole-dipole interaction using FFT convolutions.
+
+(Apr. 2015 - Sept. 2016)
+
+-----------------
+
+
 ### Stefanos Mavros
 * RWTH Aachen
 
 Work on unit testing and documentation, implementation of the Depondt solver.<br />
 Also some general code design and IO improvements.
 
-(April 2017 - ongoing)
+(Apr. 2017 - Oct. 2018)
 
 -----------------
 
@@ -74,7 +85,7 @@ Also some general code design and IO improvements.
 
 Implementation and testing of gradient approximation of spin transfer torque.
 
-(April 2017 - Juli 2017)
+(Apr. 2017 - Jul. 2017)
 
 -----------------
 
@@ -86,7 +97,7 @@ Implementation and testing of gradient approximation of spin transfer torque.
 Bug-reports, feedback on code features and general help designing some of the
 functionality, user interface and input file format.
 
-(June 2016 - ongoing)
+(Jun. 2016 - ongoing)
 
 -----------------
 
@@ -96,7 +107,7 @@ functionality, user interface and input file format.
 
 Help with the initial GNEB implementation. Initial implementation of the HTST method.
 
-(April 2015 - ongoing)
+(Apr. 2015 - ongoing)
 
 -----------------
 

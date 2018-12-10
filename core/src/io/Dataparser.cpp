@@ -2,6 +2,7 @@
 #include <io/Filter_File_Handle.hpp>
 #include <io/OVF_File.hpp>
 #include <io/Dataparser.hpp>
+#include <io/OVF_File.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
@@ -97,6 +98,60 @@ namespace IO
         }
     }
 
+    void Read_Eigenmodes( std::shared_ptr<Data::Spin_System> image, const std::string filename )
+    {
+        auto& spins = *image->spins;
+        auto& modes = image->modes;
+        auto& eigenvalues = image->eigenvalues;
+        auto& geometry = *image->geometry;
+
+        File_OVF file_ovf( filename );
+
+        if( !file_ovf.is_OVF() )
+        {
+            spirit_throw( Exception_Classifier::Bad_File_Content, Log_Level::Error,
+                "IO::Read_Eigenmodes supports only OVF files" ); 
+        }
+        
+        int n_segments = file_ovf.get_n_segments();
+
+        // If the modes buffer's size is not the same as the n_segments then resize
+        if ( modes.size() != n_segments )
+        {
+            modes.resize( n_segments );
+            eigenvalues.resize( n_segments );
+            Log( Log_Level::Warning, Log_Sender::IO, fmt::format("Modes buffer resized "
+                    "since the number of modes in the OVF file was greater than its size") );
+        }
+        
+        Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Reading OVF file with "
+                "{} segments", n_segments ) );
+
+        // read in the modes
+        for (int idx=0; idx<n_segments; idx++)
+        {
+            // if the mode buffer is created by resizing then it needs to be allocated
+            if ( modes[idx] == NULL )
+                modes[idx] = std::shared_ptr<vectorfield>(
+                    new vectorfield( spins.size(), Vector3{1,0,0} ));
+            
+            file_ovf.read_segment( *modes[idx], geometry, idx );
+            file_ovf.Read_Variable_from_Comment( eigenvalues[idx], 
+                                                    "# Desc: eigenvalue = ", idx );
+        }
+
+        // if the modes vector was reseized adjust the n_modes value
+        if ( image->modes.size() != image->ema_parameters->n_modes )
+            image->ema_parameters->n_modes = image->modes.size();
+
+        // print the first eigenmodes
+        int n_log_eigenvalues = ( n_segments > 50 ) ? 50 : n_segments;
+
+        Log( Log_Level::Info, Log_Sender::IO, fmt::format( "The first {} eigenvalues are: {}",
+                n_log_eigenvalues, fmt::join( eigenvalues.begin(), eigenvalues.begin() + 
+                n_log_eigenvalues, ", " ) ) );
+    }
+
     /*
     Read from Anisotropy file
     */
@@ -187,7 +242,6 @@ namespace IO
                         file.iss >> sdump;
                 }
                 K_temp = { spin_K1, spin_K2, spin_K3 };
-                
                 // Anisotropy vector orientation
                 if (K_abc)
                 {
@@ -218,7 +272,6 @@ namespace IO
                     anisotropy_magnitude.push_back(spin_K);
                     anisotropy_normal.push_back(K_temp);
                 }
-                
                 ++i_anisotropy;
             }// end while getline
             n_indices = i_anisotropy;
@@ -428,7 +481,9 @@ namespace IO
 
                 ++i_pair;
             }// end while GetLine
-            Log(Log_Level::Info, Log_Sender::IO, fmt::format("Done reading {} spin pairs from file \"{}\"", i_pair, pairsFile));
+            Log(Log_Level::Info, Log_Sender::IO, fmt::format(
+                "Done reading {} spin pairs from file \"{}\", giving {} exchange and {} DM (symmetry-reduced) pairs.",
+                i_pair, pairsFile, exchange_pairs.size(), dmi_pairs.size()));
             nop = i_pair;
         }// end try
         catch( ... )
@@ -578,16 +633,17 @@ namespace IO
 
 
     void Defects_from_File(const std::string defectsFile, int & n_defects,
-        intfield & defect_indices, intfield & defect_types)
+        field<Site> & defect_sites, intfield & defect_types)
     {
         n_defects = 0;
+        defect_sites = field<Site>(0);
+        defect_types = intfield(0);
 
-        int nod = 0;
-        intfield indices(0), types(0);
         try
         {
             Log(Log_Level::Info, Log_Sender::IO, "Reading Defects");
             Filter_File_Handle myfile(defectsFile);
+            int nod = 0;
 
             if (myfile.Find("n_defects"))
             {
@@ -604,21 +660,16 @@ namespace IO
                 Log(Log_Level::Debug, Log_Sender::IO, "Trying to parse defects from top of file " + defectsFile);
             }
 
-            int i_defect = 0;
-            while (myfile.GetLine() && i_defect < nod)
+            while (myfile.GetLine() && n_defects < nod)
             {
-                int index, type;
-                myfile.iss >> index >> type;
-                indices.push_back(index);
-                types.push_back(type);
-                ++i_defect;
+                int _i, _da, _db, _dc, type;
+                myfile.iss >> _i >> _da >> _db >> _dc >> type;
+                defect_sites.push_back( {_i, {_da, _db, _dc}} );
+                defect_types.push_back(type);
+                ++n_defects;
             }
 
-            defect_indices = indices;
-            defect_types = types;
-            n_defects = i_defect;
-
-            Log(Log_Level::Info, Log_Sender::IO, "Done Reading Defects");
+            Log(Log_Level::Info, Log_Sender::IO, fmt::format("Done reading {} defects", n_defects));
         }
         catch( ... )
         {
@@ -627,13 +678,12 @@ namespace IO
     } // End Defects_from_File
 
     void Pinned_from_File(const std::string pinnedFile, int & n_pinned,
-        intfield & pinned_indices, vectorfield & pinned_spins)
+        field<Site> & pinned_sites, vectorfield & pinned_spins)
     {
-        n_pinned = 0;
-
         int nop = 0;
-        intfield indices(0);
-        vectorfield spins(0);
+        n_pinned = 0;
+        pinned_sites = field<Site>(0);
+        pinned_spins = vectorfield(0);
         try
         {
             Log(Log_Level::Info, Log_Sender::IO, "Reading pinned sites");
@@ -654,26 +704,21 @@ namespace IO
                 Log(Log_Level::Debug, Log_Sender::IO, "Trying to parse pinned sites from top of file " + pinnedFile);
             }
 
-            int i_pinned = 0;
-            while (myfile.GetLine() && i_pinned < nop)
+            while (myfile.GetLine() && n_pinned < nop)
             {
-                int index;
+                int _i, _da, _db, _dc;
                 scalar sx, sy, sz;
-                myfile.iss >> index >> sx >> sy >> sz;
-                indices.push_back(index);
-                spins.push_back({sx, sy, sz});
-                ++i_pinned;
+                myfile.iss >> _i >> _da >> _db >> _dc >> sx >> sy >> sz;
+                pinned_sites.push_back( {_i, {_da, _db, _dc}} );
+                pinned_spins.push_back({sx, sy, sz});
+                ++n_pinned;
             }
 
-            pinned_indices = indices;
-            pinned_spins = spins;
-            n_pinned = i_pinned;
-
-            Log(Log_Level::Info, Log_Sender::IO, "Done reading pinned sites");
+            Log(Log_Level::Info, Log_Sender::IO, fmt::format("Done reading {} pinned sites", n_pinned));
         }
         catch( ... )
         {
-            spirit_rethrow(    fmt::format("Could not read pinned sites file  \"{}\"", pinnedFile) );
+            spirit_rethrow( fmt::format("Could not read pinned sites file  \"{}\"", pinnedFile) );
         }
     } // End Pinned_from_File
 
@@ -712,5 +757,4 @@ namespace IO
 
         line[pos] = 0;
     }
-
 }// end namespace IO

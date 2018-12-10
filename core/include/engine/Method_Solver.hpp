@@ -3,6 +3,7 @@
 #define Method_Solver_H
 
 #include "Spirit_Defines.h"
+#include <Spirit/Simulation.h>
 #include <data/Parameters_Method.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <data/Parameters_Method.hpp>
@@ -25,13 +26,14 @@ namespace Engine
 {
     enum class Solver
     {
-        None,
-        SIB,
-        Heun,
-        Depondt,
-        NCG,
-        BFGS,
-        VP
+        None = -1,
+        SIB = Solver_SIB,
+        Heun = Solver_Heun,
+        Depondt = Solver_Depondt,
+        RungeKutta4 = Solver_RungeKutta4,
+        NCG = -2,
+        BFGS = -3,
+        VP = Solver_VP
     };
 
     /*
@@ -61,13 +63,18 @@ namespace Engine
 
     protected:
 
+        // Prepare random numbers for thermal fields, if needed
+        virtual void Prepare_Thermal_Field()
+        {
+        }
+
         // Calculate Forces onto Systems
         //      This is currently overridden by methods to specify how the forces on a set of configurations should be
         //      calculated. This function is used in `the Solver_...` functions.
         // TODO: maybe rename to separate from deterministic and stochastic force functions
         virtual void Calculate_Force(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
         {
-
+            Log(Utility::Log_Level::Error, Utility::Log_Sender::All, "Tried to use Method_Solver::Calculate_Force() of the Method_Solver class!", this->idx_image, this->idx_chain);
         }
 
         // Calculate virtual Forces onto Systems (can be precession and damping forces, correctly scaled)
@@ -75,27 +82,13 @@ namespace Engine
         //      precession and damping terms for the Hamiltonian, spin currents and
         //      temperature. This function is used in `the Solver_...` functions.
         // Default implementation: direct minimization
-        virtual void Calculate_Force_Virtual(const std::vector<std::shared_ptr<vectorfield>> & configurations, const std::vector<vectorfield> & forces, std::vector<vectorfield> & forces_virtual)
+        virtual void Calculate_Force_Virtual(
+            const std::vector<std::shared_ptr<vectorfield>> & configurations,
+            const std::vector<vectorfield> & forces,
+            std::vector<vectorfield> & forces_virtual)
         {
-            using namespace Utility;
-
-            // Calculate the cross product with the spin configuration to get direct minimization
-            for (unsigned int i=0; i<configurations.size(); ++i)
-            {
-                auto& image = *configurations[i];
-                auto& force = forces[i];
-                auto& force_virtual = forces_virtual[i];
-                auto& parameters = *this->systems[i]->llg_parameters;
-
-                // dt = time_step [ps] * gyromagnetic ratio / mu_B / (1+damping^2) <- not implemented
-                scalar dtg = parameters.dt * Constants::gamma / Constants::mu_B;
-                Vectormath::set_c_cross(0.5 * dtg, image, force, force_virtual);
-
-                // Apply Pinning
-                #ifdef SPIRIT_ENABLE_PINNING
-                    Vectormath::set_c_a(1, force_virtual, force_virtual, parameters.pinning->mask_unpinned);
-                #endif // SPIRIT_ENABLE_PINNING
-            }
+            // Not Implemented!
+            Log(Utility::Log_Level::Error, Utility::Log_Sender::All, "Tried to use Method_Solver::Calculate_Force_Virtual() of the Method_Solver class!", this->idx_image, this->idx_chain);
         }
 
 
@@ -136,22 +129,22 @@ namespace Engine
         //////////// NCG ////////////////////////////////////////////////////////////
         // Check if the Newton-Raphson has converged
         bool NR_converged();
-        
+
         int jmax;     // max iterations for Newton-Raphson loop
         int n;        // number of iteration after which the nCG will restart
-        
+
         scalar tolerance_nCG, tolerance_NR;   // tolerances for solver and Newton-Raphson
         scalar epsilon_nCG, epsilon_NR;   // Newton-Raphson and solver tolerance squared
-        
-        bool restart_nCG, continue_NR;  // conditions for restarting nCG or continuing Newton-Raphson 
-        
+
+        bool restart_nCG, continue_NR;  // conditions for restarting nCG or continuing Newton-Raphson
+
         // Step sizes
         std::vector<scalarfield> alpha, beta;
-        
+
         // TODO: right type might be std::vector<scalar> and NOT std::vector<scalarfield>
         // Delta scalarfields
         std::vector<scalarfield> delta_0, delta_new, delta_old, delta_d;
-        
+
         // Residual and new configuration states
         std::vector<vectorfield> residual, direction;
 
@@ -172,6 +165,30 @@ namespace Engine
         std::vector<scalar> projection;
         // |force|^2
         std::vector<scalar> force_norm2;
+
+        // Temporary Spins arrays
+        vectorfield temp1, temp2;
+
+        // Actual Forces on the configurations
+        std::vector<vectorfield> forces;
+        std::vector<vectorfield> forces_predictor;
+        // Virtual Forces used in the Steps
+        std::vector<vectorfield> forces_virtual;
+        std::vector<vectorfield> forces_virtual_predictor;
+
+        // RK 4
+        std::vector<std::shared_ptr<vectorfield>> configurations_k1;
+        std::vector<std::shared_ptr<vectorfield>> configurations_k2;
+        std::vector<std::shared_ptr<vectorfield>> configurations_k3;
+        std::vector<std::shared_ptr<vectorfield>> configurations_k4;
+
+        // Random vector array
+        vectorfield xi;
+
+        // Pointers to Configurations (for Solver methods)
+        std::vector<std::shared_ptr<vectorfield>> configurations;
+        std::vector<std::shared_ptr<vectorfield>> configurations_predictor;
+        std::vector<std::shared_ptr<vectorfield>> configurations_temp;
     };
 
 
@@ -190,7 +207,7 @@ namespace Engine
     bool Method_Solver<solver>::Converged()
     {
         bool converged = false;
-        if ( this->force_max_abs_component < this->parameters->force_convergence ) converged = true;
+        if( this->force_max_abs_component < this->parameters->force_convergence ) converged = true;
         return converged;
     }
 
@@ -223,7 +240,7 @@ namespace Engine
         Log.SendBlock(Log_Level::All, this->SenderName,
             {
                 fmt::format("------------  Started  {} Calculation  ------------", this->Name()),
-                fmt::format("    Going to iterate {} steps", this->n_log),
+                fmt::format("    Going to iterate {} step(s)", this->n_log),
                 fmt::format("                with {} iterations per step", this->n_iterations_log),
                 fmt::format("    Force convergence parameter: {:." + fmt::format("{}", this->print_precision) + "f}", this->parameters->force_convergence),
                 fmt::format("    Maximum force component:     {:." + fmt::format("{}", this->print_precision) + "f}", this->force_max_abs_component),
@@ -236,7 +253,7 @@ namespace Engine
     void Method_Solver<solver>::Message_Step()
     {
         using namespace Utility;
-        
+
         // Update time of current step
         auto t_current = system_clock::now();
 
@@ -244,8 +261,8 @@ namespace Engine
         Log.SendBlock(Log_Level::All, this->SenderName,
             {
                 fmt::format("----- {} Calculation ({} Solver): {}", this->Name(), this->SolverName(), Timing::DateTimePassed(t_current - this->t_start)),
-                fmt::format("    Step                         {} / {} (step size {})", this->step, this->n_log, this->n_iterations_log),
-                fmt::format("    Iteration                    {} / {}", this->iteration, n_iterations),
+                fmt::format("    Completed                    {} / {} step(s) (step size {})", this->step, this->n_log, this->n_iterations_log),
+                fmt::format("    Iteration                    {} / {}", this->iteration, this->n_iterations),
                 fmt::format("    Time since last step:        {}", Timing::DateTimePassed(t_current - this->t_last)),
                 fmt::format("    Iterations / sec:            {}", this->n_iterations_log / Timing::SecondsPassed(t_current - this->t_last)),
                 fmt::format("    Force convergence parameter: {:." + fmt::format("{}", this->print_precision) + "f}", this->parameters->force_convergence),
@@ -260,27 +277,29 @@ namespace Engine
     void Method_Solver<solver>::Message_End()
     {
         using namespace Utility;
-        
+
         //---- End timings
         auto t_end = system_clock::now();
 
         //---- Termination reason
         std::string reason = "";
-        if (this->StopFile_Present())
+        if( this->StopFile_Present() )
             reason = "A STOP file has been found";
-        else if (this->Converged())
+        else if( this->Converged() )
             reason = "The force converged";
-        else if (this->Walltime_Expired(t_end - this->t_start))
+        else if( this->Walltime_Expired(t_end - this->t_start) )
             reason = "The maximum walltime has been reached";
 
         //---- Log messages
         std::vector<std::string> block;
         block.push_back(fmt::format("------------ Terminated {} Calculation ------------", this->Name()));
-        if (reason.length() > 0)
+        if( reason.length() > 0 )
             block.push_back(fmt::format("----- Reason:   {}", reason));
         block.push_back(fmt::format("----- Duration:       {}", Timing::DateTimePassed(t_end - this->t_start)));
-        block.push_back(fmt::format("    Step              {} / {}", step, n_log));
-        block.push_back(fmt::format("    Iteration         {} / {}", this->iteration, n_iterations));
+        block.push_back(fmt::format("    Completed         {} / {} step(s)", this->step, this->n_log));
+        block.push_back(fmt::format("    Iteration         {} / {}", this->iteration, this->n_iterations));
+        if( this->Name() == "LLG" )
+            block.push_back(fmt::format("    Simulated time:   {} ps", this->getTime()));
         block.push_back(fmt::format("    Iterations / sec: {}", this->iteration / Timing::SecondsPassed(t_end - this->t_start)));
         block.push_back(fmt::format("    Force convergence parameter: {:."+fmt::format("{}",this->print_precision)+"f}", this->parameters->force_convergence));
         block.push_back(fmt::format("    Maximum force component:     {:."+fmt::format("{}",this->print_precision)+"f}", this->force_max_abs_component));
@@ -306,6 +325,7 @@ namespace Engine
     #include <engine/Solver_SIB.hpp>
     #include <engine/Solver_VP.hpp>
     #include <engine/Solver_Heun.hpp>
+    #include <engine/Solver_RK4.hpp>
     #include <engine/Solver_Depondt.hpp>
     #include <engine/Solver_NCG.hpp>
 }

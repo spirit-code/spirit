@@ -19,6 +19,7 @@ namespace IO
                                            const std::string file, int start_image_infile, 
                                            int end_image_infile, const int insert_idx, 
                                            int& noi_to_add, int& noi_to_read, const int idx_chain );
+    void Read_Eigenmodes( std::shared_ptr<Data::Spin_System> image, const std::string filename );
     void Anisotropy_from_File( const std::string anisotropyFile, 
                                const std::shared_ptr<Data::Geometry> geometry, int& n_indices,
                                intfield& anisotropy_index, scalarfield& anisotropy_magnitude, 
@@ -31,9 +32,7 @@ namespace IO
     void Quadruplets_from_File( const std::string quadrupletsFile, 
                                 const std::shared_ptr<Data::Geometry> geometry, int& noq,
                                 quadrupletfield& quadruplets, scalarfield& quadruplet_magnitudes );
-    void Defects_from_File( const std::string defectsFile, int& n_defects,
-                            intfield& defect_indices, intfield & defect_types );
-    void Pinned_from_File( const std::string pinnedFile, int& n_pinned,
-                           intfield& pinned_indices, vectorfield& pinned_spins );
+    void Defects_from_File( const std::string defectsFile, int & n_defects, field<Site> & defect_sites, intfield & defect_types );
+    void Pinned_from_File( const std::string pinnedFile, int & n_pinned, field<Site> & pinned_sites, vectorfield & pinned_spins );
 };// end namespace IO
 #endif

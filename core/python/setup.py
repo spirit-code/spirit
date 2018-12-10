@@ -14,7 +14,7 @@ from wheel.bdist_wheel import bdist_wheel as bdist_wheel_
 
 
 NAME = "spirit"
-PACKAGES = ['spirit']
+PACKAGES = ['spirit', 'spirit.parameters']
 META_PATH = os.path.join("spirit", "__init__.py")
 KEYWORDS = ["Spirit", "Spin Dynamics"]
 CLASSIFIERS = [
@@ -65,7 +65,9 @@ def get_git_commit_datetime():
         commit_hash = subprocess.check_output("git rev-parse HEAD", shell=True, stderr=subprocess.STDOUT).decode("utf-8").strip()
         commit_datetime = subprocess.check_output("git show -s --format=%ci "+commit_hash, shell=True, stderr=subprocess.STDOUT).decode("utf-8").strip()
         print(commit_datetime)
-        datetime_object = datetime.datetime.strptime(commit_datetime, '%Y-%m-%d %H:%M:%S +%f')
+        commit_datetime = ' '.join(commit_datetime.split()[:-1])
+        print(commit_datetime)
+        datetime_object = datetime.datetime.strptime(commit_datetime, '%Y-%m-%d %H:%M:%S')
         print("{:%Y%m%d%H%M%S}".format(datetime_object))
         return "{:%Y%m%d%H%M%S}".format(datetime_object)
     except subprocess.CalledProcessError as cpe:

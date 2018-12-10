@@ -62,7 +62,7 @@ private slots:
 	void view_toggle_fullscreen();
 	void toggleSpinWidget();
 	void toggleInfoWidget();
-	void view_toggleDragMode();
+	void view_togglePasteMode(SpinWidget::InteractionMode mode);
     void about();
 	void keyBindings();
 	void load_Configuration();
@@ -71,6 +71,8 @@ private slots:
 	void load_Spin_Configuration();
 	void save_Spin_Configuration_Chain();
 	void load_Spin_Configuration_Chain();
+	void save_Spin_Configuration_Eigenmodes();
+	void load_Spin_Configuration_Eigenmodes();
 	void save_System_Energy_Spins();
 	void save_Chain_Energies();
 	void save_Chain_Energies_Interpolated();

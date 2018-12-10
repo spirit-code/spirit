@@ -18,11 +18,18 @@ namespace Data
         Parameters_Method_GNEB(std::string output_folder, std::string output_file_tag, 
             std::array<bool,8> output, int output_chain_filetype,
             scalar force_convergence, long int n_iterations, 
-            long int n_iterations_log, long int max_walltime_sec, std::shared_ptr<Pinning> pinning, 
+            long int n_iterations_log, long int max_walltime_sec,
             scalar spring_constant, int n_E_interpolations);
 
         // Strength of springs between images
         scalar spring_constant;
+
+        // The ratio of energy to reaction coordinate in the spring force
+        //      0 is Rx only, 1 is E only
+        scalar spring_force_ratio;
+
+        // With which minimum norm per spin the path shortening force should be applied
+        scalar path_shortening_constant;
 
         // Number of Energy interpolations between Images
         int n_E_interpolations;

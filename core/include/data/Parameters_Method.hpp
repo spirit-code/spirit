@@ -3,7 +3,6 @@
 #define DATA_PARAMETERS_METHOD_H
 
 #include "Spirit_Defines.h"
-#include <data/Pinning.hpp>
 
 #include <string>
 #include <array>
@@ -18,7 +17,7 @@ namespace Data
         // Constructor
         Parameters_Method(std::string output_folder, std::string output_file_tag,
             std::array<bool,3> output, long int n_iterations, long int n_iterations_log, 
-            long int max_walltime_sec, std::shared_ptr<Pinning> pinning, scalar force_convergence );
+            long int max_walltime_sec, scalar force_convergence );
 
         // --------------- Iterations ------------
         // Number of iterations carried out when pressing "play" or calling "iterate"
@@ -28,10 +27,6 @@ namespace Data
 
         // Maximum walltime for Iterate in seconds
         long int max_walltime_sec;
-
-        // ---------------- Pinning --------------
-        // Info on pinned spins
-        std::shared_ptr<Pinning> pinning;
 
         // Force convergence criterium
         scalar force_convergence;

@@ -10,36 +10,72 @@
 #include "QhullFacetList.h"
 #include "QhullVertexSet.h"
 
+#include <random>
 #include <array>
 
 namespace Data
 {
-    Geometry::Geometry(std::vector<Vector3> bravais_vectors, intfield n_cells, std::vector<Vector3> cell_atoms,
-        intfield cell_atom_types, scalar lattice_constant) :
-        bravais_vectors(bravais_vectors), n_cells(n_cells),
-        n_cell_atoms(cell_atoms.size()), cell_atoms(cell_atoms), lattice_constant(lattice_constant),
-        nos(cell_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2]), cell_atom_types(cell_atom_types),
-        n_cells_total(n_cells[0] * n_cells[1] * n_cells[2])
+    Geometry::Geometry(std::vector<Vector3> bravais_vectors, intfield n_cells,
+                        std::vector<Vector3> cell_atoms,  Basis_Cell_Composition cell_composition,
+                        scalar lattice_constant, Pinning pinning, Defects defects) :
+        bravais_vectors(bravais_vectors), n_cells(n_cells), n_cell_atoms(cell_atoms.size()),
+        cell_atoms(cell_atoms), cell_composition(cell_composition), lattice_constant(lattice_constant),
+        nos(cell_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2]),
+        nos_nonvacant(cell_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2]),
+        n_cells_total(n_cells[0] * n_cells[1] * n_cells[2]),
+        pinning(pinning), defects(defects)
     {
-        for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
+        // Get x,y,z of component of atom positions in unit of length (instead of in units of a,b,c)
+        for (int iatom = 0; iatom < this->n_cell_atoms; ++iatom)
         {
-            // Get x,y,z of component of atom positions in unit of length (instead of in units of a,b,c)
-            Vector3 build_array = bravais_vectors[0] * cell_atoms[iatom][0] + bravais_vectors[1] * cell_atoms[iatom][1] + bravais_vectors[2] * cell_atoms[iatom][2];
-            cell_atoms[iatom] = lattice_constant * build_array;
+            Vector3 build_array = this->bravais_vectors[0] * this->cell_atoms[iatom][0]
+                                + this->bravais_vectors[1] * this->cell_atoms[iatom][1]
+                                + this->bravais_vectors[2] * this->cell_atoms[iatom][2];
+            this->cell_atoms[iatom] = this->lattice_constant * build_array;
         }
 
         // Generate positions and atom types
-        this->positions = vectorfield(nos);
-        this->atom_types = intfield(nos, 0);
-        Engine::Vectormath::Build_Spins(positions, atom_types, cell_atoms, cell_atom_types, bravais_vectors, n_cells);
+        this->positions = vectorfield(this->nos);
+        this->generatePositions();
 
-        // Calculate some info
+        // Calculate some useful info
         this->calculateBounds();
         this->calculateUnitCellBounds();
         this->calculateDimensionality();
 
         // Calculate center of the System
-        this->center = 0.5 *  (this->bounds_min + this->bounds_max);
+        this->center = 0.5 * (this->bounds_min + this->bounds_max);
+
+        // Generate default atom_types, mu_s and pinning masks
+        this->atom_types        = intfield(this->nos, 0);
+        this->mu_s              = scalarfield(this->nos, 1);
+        this->mask_unpinned     = intfield(this->nos, 1);
+        this->mask_pinned_cells = vectorfield(this->nos, { 0,0,0 });
+
+        // Set atom types, mu_s
+        this->applyCellComposition();
+
+        // Apply additional pinned sites
+        for( int isite=0; isite < pinning.sites.size(); ++isite )
+        {
+            auto& site = pinning.sites[isite];
+            int ispin = site.i + Engine::Vectormath::idx_from_translations(
+                        this->n_cells, this->n_cell_atoms,
+                        {site.translations[0], site.translations[1], site.translations[2]} );
+            this->mask_unpinned[ispin] = 0;
+            this->mask_pinned_cells[ispin] = pinning.spins[isite];
+        }
+
+        // Apply additional defect sites
+        for (int i = 0; i < defects.sites.size(); ++i)
+        {
+            auto& defect = defects.sites[i];
+            int ispin = defects.sites[i].i + Engine::Vectormath::idx_from_translations(
+                        this->n_cells, this->n_cell_atoms,
+                        {defect.translations[0], defect.translations[1], defect.translations[2]} );
+            this->atom_types[ispin] = defects.types[i];
+            this->mu_s[ispin] = 0.0;
+        }
 
         // Calculate the type of geometry
         this->calculateGeometryType();
@@ -47,6 +83,73 @@ namespace Data
         // For updates of triangulation and tetrahedra
         this->last_update_n_cell_step = -1;
         this->last_update_n_cells = intfield(3, -1);
+    }
+
+    void Geometry::generatePositions()
+    {
+        const scalar epsilon = 1e-6;
+
+        // Check for erronous input placing two spins on the same location
+        int max_a = std::min(10, n_cells[0]);
+        int max_b = std::min(10, n_cells[1]);
+        int max_c = std::min(10, n_cells[2]);
+        Vector3 diff, translation;
+        for (int i = 0; i < n_cell_atoms; ++i)
+        {
+            for (int j = 0; j < n_cell_atoms; ++j)
+            {
+                for (int da = -max_a; da <= max_a; ++da)
+                {
+                    for (int db = -max_b; db <= max_b; ++db)
+                    {
+                        for (int dc = -max_c; dc <= max_c; ++dc)
+                        {
+                            translation = lattice_constant * (
+                                  da * bravais_vectors[0]
+                                + db * bravais_vectors[1]
+                                + dc * bravais_vectors[2] );
+
+                            // Norm is zero if translated basis atom is at position of another basis atom
+                            diff = cell_atoms[i] - ( cell_atoms[j] + translation );
+
+                            if( (i != j || da != 0 || db != 0 || dc != 0) && 
+                                std::abs(diff[0]) < epsilon &&
+                                std::abs(diff[1]) < epsilon &&
+                                std::abs(diff[2]) < epsilon )
+                            {
+                                spirit_throw(Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Severe, fmt::format(
+                                    "Unable to initialize Spin-System, since 2 spins occupy the same space within a margin of {}.\nPlease check the config file!", epsilon ));
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Generate positions
+        for (int dc = 0; dc < n_cells[2]; ++dc)
+        {
+            for (int db = 0; db < n_cells[1]; ++db)
+            {
+                for (int da = 0; da < n_cells[0]; ++da)
+                {
+                    for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
+                    {
+                        int ispin = iatom
+                            + dc * n_cell_atoms * n_cells[1] * n_cells[0]
+                            + db * n_cell_atoms * n_cells[0]
+                            + da * n_cell_atoms;
+
+                        translation = lattice_constant * (
+                              da * bravais_vectors[0]
+                            + db * bravais_vectors[1]
+                            + dc * bravais_vectors[2] );
+
+                        positions[ispin] = cell_atoms[iatom] + translation;
+                    }
+                }
+            }
+        }
     }
 
 
@@ -289,16 +392,93 @@ namespace Data
 
     std::vector<Vector3> Geometry::BravaisVectorsHex2D60()
     {
-        return { { 1,   0,                0 },
-                 { 0.5, 0.5*std::sqrt(3), 0 },
-                 { 0,   0,                1 } };
+        return { { 0.5*std::sqrt(3), -0.5, 0 },
+                 { 0.5*std::sqrt(3),  0.5, 0 },
+                 { 0,   0,                 1 } };
     }
 
     std::vector<Vector3> Geometry::BravaisVectorsHex2D120()
     {
-        return { {  1,   0,                0 },
-                 { -0.5, 0.5*std::sqrt(3), 0 },
-                 {  0,   0,                1 } };
+        return { { 0.5, -0.5*std::sqrt(3), 0 },
+                 { 0.5,  0.5*std::sqrt(3), 0 },
+                 { 0,    0,                1 } };
+    }
+
+    void Geometry::applyCellComposition()
+    {
+        int N  = this->n_cell_atoms;
+        int Na = this->n_cells[0];
+        int Nb = this->n_cells[1];
+        int Nc = this->n_cells[2];
+        int ispin, iatom, atom_type;
+        scalar concentration, rvalue;
+        std::vector<bool> visited(N);
+
+        std::mt19937 prng;
+        std::uniform_real_distribution<scalar> distribution;
+        if( this->cell_composition.disordered )
+        {
+            // TODO: the seed should be a parameter and the instance a member of this class
+            prng = std::mt19937(2006);
+            distribution = std::uniform_real_distribution<scalar>(0, 1);
+            // In the disordered case, unvisited atoms will be vacancies
+            this->atom_types = intfield(nos, -1);
+        }
+
+        for (int na = 0; na < Na; ++na)
+        {
+            for (int nb = 0; nb < Nb; ++nb)
+            {
+                for (int nc = 0; nc < Nc; ++nc)
+                {
+                    std::fill(visited.begin(), visited.end(), false);
+
+                    for (int icomposition = 0; icomposition < this->cell_composition.iatom.size(); ++icomposition)
+                    {
+                        iatom = this->cell_composition.iatom[icomposition];
+
+                        if( !visited[iatom] )
+                        {
+                            ispin = N*na + N*Na*nb + N*Na*Nb*nc + iatom;
+
+                            // In the disordered case, we only visit an atom if the dice will it
+                            if( this->cell_composition.disordered )
+                            {
+                                concentration = this->cell_composition.concentration[icomposition];
+                                rvalue = distribution(prng);
+                                if( rvalue <= concentration )
+                                {
+                                    this->atom_types[ispin] = this->cell_composition.atom_type[icomposition];
+                                    this->mu_s[ispin]       = this->cell_composition.mu_s[icomposition];
+                                    visited[iatom] = true;
+                                    if( this->atom_types[ispin] < 0 )
+                                        --this->nos_nonvacant;
+                                }
+                            }
+                            // In the ordered case, we visit every atom
+                            else
+                            {
+                                this->atom_types[ispin] = this->cell_composition.atom_type[icomposition];
+                                this->mu_s[ispin]       = this->cell_composition.mu_s[icomposition];
+                                visited[iatom] = true;
+                                if( this->atom_types[ispin] < 0 )
+                                    --this->nos_nonvacant;
+                            }
+
+                            // Pinning of boundary layers
+                            if( (na < pinning.na_left || na >= Na - pinning.na_right) ||
+                                (nb < pinning.nb_left || nb >= Nb - pinning.nb_right) ||
+                                (nc < pinning.nc_left || nc >= Nc - pinning.nc_right) )
+                            {
+                                // Pinned cells
+                                this->mask_unpinned[ispin] = 0;
+                                this->mask_pinned_cells[ispin] = pinning.pinned_cell[iatom];
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -307,32 +487,35 @@ namespace Data
         int dims_basis = 0, dims_translations = 0;
         Vector3 test_vec_basis, test_vec_translations;
 
+        const scalar epsilon = 1e-6;
+
         // ----- Find dimensionality of the basis -----
-        if      (n_cell_atoms == 1) dims_basis = 0;
-        else if (n_cell_atoms == 2) dims_basis = 1;
-        else if (n_cell_atoms == 3) dims_basis = 2;
+        if     ( n_cell_atoms == 1 ) dims_basis = 0;
+        else if( n_cell_atoms == 2 ) dims_basis = 1;
+        else if( n_cell_atoms == 3 ) dims_basis = 2;
         else
         {
             // Get basis atoms relative to the first atom
             Vector3 v0 = cell_atoms[0];
             std::vector<Vector3> b_vectors(n_cell_atoms-1);
-            for (int i = 1; i < n_cell_atoms; ++i)
-            {
+            for( int i = 1; i < n_cell_atoms; ++i )
                 b_vectors[i-1] = cell_atoms[i] - v0;
-            }
+
             // Calculate basis dimensionality
             // test vec is along line
             test_vec_basis = b_vectors[0];
-            //		is it 1D?
+            //      is it 1D?
             int n_parallel = 0;
-            for (unsigned int i = 1; i < b_vectors.size(); ++i)
+            for( unsigned int i = 1; i < b_vectors.size(); ++i )
             {
-                if (std::abs(b_vectors[i].dot(test_vec_basis) - 1.0) < 1e-9) ++n_parallel;
-                // else n_parallel will give us the last parallel vector
-                // also the if-statement for dims_basis=1 wont be met
-                else break;
+                if( std::abs(b_vectors[i].dot(test_vec_basis) - 1.0) < epsilon )
+                    ++n_parallel;
+                // Else n_parallel will give us the last parallel vector
+                // Also the if-statement for dims_basis=1 wont be met
+                else
+                    break;
             }
-            if (n_parallel == b_vectors.size() - 1)
+            if( n_parallel == b_vectors.size() - 1 )
             {
                 dims_basis = 1;
             }
@@ -340,16 +523,15 @@ namespace Data
             {
                 // test vec is normal to plane
                 test_vec_basis = b_vectors[0].cross(b_vectors[n_parallel+1]);
-                //		is it 2D?
+                //      is it 2D?
                 int n_in_plane = 0;
-                for (unsigned int i = 2; i < b_vectors.size(); ++i)
+                for( unsigned int i = 2; i < b_vectors.size(); ++i )
                 {
-                    if (std::abs(b_vectors[i].dot(test_vec_basis)) < 1e-9) ++n_in_plane;
+                    if (std::abs(b_vectors[i].dot(test_vec_basis)) < epsilon)
+                        ++n_in_plane;
                 }
-                if (n_in_plane == b_vectors.size() - 2)
-                {
+                if( n_in_plane == b_vectors.size() - 2 )
                     dims_basis = 2;
-                }
                 else
                 {
                     this->dimensionality = 3;
@@ -360,31 +542,34 @@ namespace Data
 
 
         // ----- Find dimensionality of the translations -----
-        //		The following are zero if the corresponding pair is parallel
+        //      The following are zero if the corresponding pair is parallel
         double t01, t02, t12;
         t01 = std::abs(bravais_vectors[0].dot(bravais_vectors[1]) - 1.0);
         t02 = std::abs(bravais_vectors[0].dot(bravais_vectors[2]) - 1.0);
         t12 = std::abs(bravais_vectors[1].dot(bravais_vectors[2]) - 1.0);
-        //		Check if pairs are linearly independent
+        //      Check if pairs are linearly independent
         int n_independent_pairs = 0;
-        if (t01>1e-9 && n_cells[0] > 1 && n_cells[1] > 1) ++n_independent_pairs;
-        if (t02>1e-9 && n_cells[0] > 1 && n_cells[2] > 1) ++n_independent_pairs;
-        if (t12>1e-9 && n_cells[1] > 1 && n_cells[2] > 1) ++n_independent_pairs;
-        //		Calculate translations dimensionality
-        if (n_cells[0] == 1 && n_cells[1] == 1 && n_cells[2] == 1) dims_translations = 0;
-        else if (n_independent_pairs == 0)
+        if( t01>epsilon && n_cells[0] > 1 && n_cells[1] > 1 ) ++n_independent_pairs;
+        if( t02>epsilon && n_cells[0] > 1 && n_cells[2] > 1 ) ++n_independent_pairs;
+        if( t12>epsilon && n_cells[1] > 1 && n_cells[2] > 1 ) ++n_independent_pairs;
+        //      Calculate translations dimensionality
+        if( n_cells[0] == 1 && n_cells[1] == 1 && n_cells[2] == 1 )
+        {
+            dims_translations = 0;
+        }
+        else if( n_independent_pairs == 0 )
         {
             dims_translations = 1;
-            // test vec is along the line
+            // Test if vec is along the line
             for (int i=0; i<3; ++i) if (n_cells[i] > 1) test_vec_translations = bravais_vectors[i];
         }
-        else if (n_independent_pairs < 3)
+        else if( n_independent_pairs < 3 )
         {
             dims_translations = 2;
-            // test vec is normal to plane
+            // Test if vec is normal to plane
             int n = 0;
             std::vector<Vector3> plane(2);
-            for (int i = 0; i < 3; ++i)
+            for( int i = 0; i < 3; ++i )
             {
                 if (n_cells[i] > 1) plane[n] = bravais_vectors[i];
                 ++n;
@@ -401,40 +586,40 @@ namespace Data
         // ----- Calculate dimensionality of system -----
         test_vec_basis.normalize();
         test_vec_translations.normalize();
-        //		If one dimensionality is zero, only the other counts
-        if (dims_basis == 0)
+        //      If one dimensionality is zero, only the other counts
+        if( dims_basis == 0 )
         {
             this->dimensionality = dims_translations;
             return;
         }
-        else if (dims_translations == 0)
+        else if( dims_translations == 0 )
         {
             this->dimensionality = dims_basis;
             return;
         }
-        //		If both are linear or both are planar, the test vectors should be parallel if the geometry is 1D or 2D
+        //      If both are linear or both are planar, the test vectors should be parallel if the geometry is 1D or 2D
         else if (dims_basis == dims_translations)
         {
-            if (std::abs(test_vec_basis.dot(test_vec_translations) - 1.0) < 1e-9)
+            if( std::abs(test_vec_basis.dot(test_vec_translations) - 1.0) < epsilon )
             {
                 this->dimensionality = dims_basis;
                 return;
             }
-            else if (dims_basis == 1)
+            else if( dims_basis == 1 )
             {
                 this->dimensionality = 2;
                 return;
             }
-            else if (dims_basis == 2)
+            else if( dims_basis == 2 )
             {
                 this->dimensionality = 3;
                 return;
             }
         }
-        //		If one is linear (1D), and the other planar (2D) then the test vectors should be orthogonal if the geometry is 2D
-        else if ( (dims_basis == 1 && dims_translations == 2) || (dims_basis == 2 && dims_translations == 1) )
+        //      If one is linear (1D), and the other planar (2D) then the test vectors should be orthogonal if the geometry is 2D
+        else if( (dims_basis == 1 && dims_translations == 2) || (dims_basis == 2 && dims_translations == 1) )
         {
-            if (std::abs(test_vec_basis.dot(test_vec_translations)) < 1e-9)
+            if( std::abs(test_vec_basis.dot(test_vec_translations)) < epsilon )
             {
                 this->dimensionality = 2;
                 return;
@@ -486,13 +671,15 @@ namespace Data
 
     void Geometry::calculateGeometryType()
     {
+        const scalar epsilon = 1e-6;
+
         // Automatically try to determine GeometryType
         // Single-atom unit cell
         if (cell_atoms.size() == 1)
         {
             // If the basis vectors are orthogonal, it is a rectilinear lattice
-            if (std::abs(bravais_vectors[0].dot(bravais_vectors[1])) < 1e-6 &&
-                std::abs(bravais_vectors[0].dot(bravais_vectors[2])) < 1e-6)
+            if (std::abs(bravais_vectors[0].dot(bravais_vectors[1])) < epsilon &&
+                std::abs(bravais_vectors[0].dot(bravais_vectors[2])) < epsilon)
             {
                 // If equidistant it is simple cubic
                 if (bravais_vectors[0].norm() == bravais_vectors[1].norm() == bravais_vectors[2].norm())
@@ -514,6 +701,33 @@ namespace Data
         {
             this->classifier = BravaisLatticeType::Irregular;
         }
+    }
+
+    void Geometry::Apply_Pinning(vectorfield & vf)
+    {
+        #if defined(SPIRIT_ENABLE_PINNING)
+        int N  = this->n_cell_atoms;
+        int Na = this->n_cells[0];
+        int Nb = this->n_cells[1];
+        int Nc = this->n_cells[2];
+        int ispin;
+
+        for (int iatom = 0; iatom < N; ++iatom)
+        {
+            for (int na = 0; na < Na; ++na)
+            {
+                for (int nb = 0; nb < Nb; ++nb)
+                {
+                    for (int nc = 0; nc < Nc; ++nc)
+                    {
+                        ispin = N*na + N*Na*nb + N*Na*Nb*nc + iatom;
+                        if (!this->mask_unpinned[ispin])
+                            vf[ispin] = this->mask_pinned_cells[ispin];
+                    }
+                }
+            }
+        }
+        #endif
     }
 }
 

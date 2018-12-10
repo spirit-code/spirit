@@ -31,12 +31,13 @@ namespace Engine
         this->Rx = std::vector<scalar>(this->noi, 0);
 
         // Forces
-        this->forces     = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));
+        this->forces     = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));  // [noi][nos]
         // this->Gradient = std::vector<vectorfield>(this->noi, vectorfield(this->nos));
-        this->F_total    = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));	// [noi][nos]
-        this->F_gradient = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));	// [noi][nos]
-        this->F_spring   = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));	// [noi][nos]
-        this->xi = vectorfield(this->nos, {0,0,0});
+        this->F_total    = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));  // [noi][nos]
+        this->F_gradient = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));  // [noi][nos]
+        this->F_spring   = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));  // [noi][nos]
+        this->f_shrink   = vectorfield( this->nos, { 0, 0, 0 } );   // [nos]
+        this->xi = vectorfield(this->nos, {0,0,0});     // [nos]
 
         // Tangents
         this->tangents = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));	// [noi][nos]
@@ -74,7 +75,7 @@ namespace Engine
         int nos = configurations[0]->size();
 
         // We assume here that we receive a vector of configurations that corresponds to the vector of systems we gave the Solver.
-        //		The Solver shuld respect this, but there is no way to enforce it.
+        //      The Solver shuld respect this, but there is no way to enforce it.
         // Get Energy and Gradient of configurations
         for (int img = 0; img < chain->noi; ++img)
         {
@@ -92,22 +93,58 @@ namespace Engine
                     return;
                 }
             }
+
+            // We do it the following way so that the effective field can be e.g. displayed,
+            //      while the gradient force is manipulated (e.g. projected)
+            this->chain->images[img]->UpdateEffectiveField();
+            // F_gradient[img] = this->chain->images[img]->effective_field;
+            Vectormath::set_c_a(1, this->chain->images[img]->effective_field, F_gradient[img]);
+            // // this->chain->images[img]->hamiltonian->Effective_Field(image, this->chain->images[img]->effective_field);
         }
 
         // Calculate relevant tangent to magnetisation sphere, considering also the energies of images
         Manifoldmath::Tangents(configurations, energies, tangents);
+
+        // Line segment length in normalized Rx and E
+        std::vector<scalar> lengths(this->chain->noi, 0);
+
+        // If a nonzero ratio of E to Rx is given, calculate path segment lengths
+        if( chain->gneb_parameters->spring_force_ratio > 0 )
+        {
+            scalar ratio_E = std::min(scalar(1.0), chain->gneb_parameters->spring_force_ratio);
+            scalar ratio_Rx = 1 - ratio_E;
+
+            // Calculate the inclinations at the data points
+            std::vector<scalar> dE_dRx(chain->noi, 0);
+            for (int i = 0; i < chain->noi; ++i)
+                dE_dRx[i] = Vectormath::dot(this->chain->images[i]->effective_field, this->tangents[i]);
+
+            int n_interpolations = 20;
+            auto interp = Utility::Cubic_Hermite_Spline::Interpolate(Rx, energies, dE_dRx, n_interpolations);
+
+            scalar range_Rx = interp[0].at(std::distance(interp[0].begin(), std::max_element(interp[0].begin(), interp[0].end())))
+                            - interp[0].at(std::distance(interp[0].begin(), std::min_element(interp[0].begin(), interp[0].end())));
+            scalar range_E  = interp[1].at(std::distance(interp[1].begin(), std::max_element(interp[1].begin(), interp[1].end())))
+                            - interp[1].at(std::distance(interp[1].begin(), std::min_element(interp[1].begin(), interp[1].end())));
+
+            for( int idx_image=1; idx_image<this->chain->noi; ++idx_image )
+            {
+                for( int i=1; i<=n_interpolations; ++i )
+                {
+                    int idx = (idx_image-1)*(n_interpolations+1) + i;
+                    scalar dRx = ratio_Rx * (interp[0][idx] - interp[0][idx-1])/range_Rx;
+                    scalar dE  = ratio_E  * (interp[1][idx] - interp[1][idx-1])/range_E;
+                    lengths[idx_image] += std::sqrt(dRx*dRx + dE*dE);
+                }
+                lengths[idx_image] *= range_Rx;
+            }
+        }
 
         // Get the total force on the image chain
         // Loop over images to calculate the total force on each Image
         for (int img = 1; img < chain->noi - 1; ++img)
         {
             auto& image = *configurations[img];
-            // We do it the following way so that the effective field can be e.g. displayed,
-            //		while the gradient force is manipulated (e.g. projected)
-            this->chain->images[img]->UpdateEffectiveField();
-            // F_gradient[img] = this->chain->images[img]->effective_field;
-            Vectormath::set_c_a(1, this->chain->images[img]->effective_field, F_gradient[img]);
-            // // this->chain->images[img]->hamiltonian->Effective_Field(image, this->chain->images[img]->effective_field);
 
             // The gradient force (unprojected) is simply the effective field
             // this->chain->images[img]->hamiltonian->Gradient(image, F_gradient[img]);
@@ -134,21 +171,48 @@ namespace Engine
                 // We project the gradient force orthogonal to the TANGENT
                 Manifoldmath::project_orthogonal(F_gradient[img], tangents[img]);
 
+                // Calculate the path shortening force, if requested
+                if( chain->gneb_parameters->path_shortening_constant > 0 )
+                {
+                    // Calculate finite difference secants
+                    vectorfield t_plus(nos);
+                    vectorfield t_minus(nos);
+                    Vectormath::set_c_a(1, *this->chain->images[img+1]->spins, t_plus);
+                    Vectormath::add_c_a(-1, *this->chain->images[img]->spins, t_plus);
+                    Vectormath::set_c_a(1, *this->chain->images[img]->spins, t_minus);
+                    Vectormath::add_c_a(-1, *this->chain->images[img-1]->spins, t_minus);
+                    Manifoldmath::normalize(t_plus);
+                    Manifoldmath::normalize(t_minus);
+                    // Get the finite difference (path shrinking) direction
+                    Vectormath::set_c_a(1, t_plus, this->f_shrink);
+                    Vectormath::add_c_a(-1, t_minus, this->f_shrink);
+                    // Get gradient direction
+                    Vectormath::set_c_a(1, F_gradient[img], t_plus);
+                    scalar gradnorm = Manifoldmath::norm(t_plus);
+                    Vectormath::scale(t_plus, 1.0/gradnorm);
+                    // Orthogonalise the shrinking force to the gradient and local tangent directions
+                    Manifoldmath::project_orthogonal(this->f_shrink, t_plus);
+                    Manifoldmath::project_orthogonal(this->f_shrink, tangents[img]);
+                    Manifoldmath::normalize(this->f_shrink);
+                    // Set the minimum norm of the shortening force
+                    scalar scalefactor = std::max(gradnorm, nos*chain->gneb_parameters->path_shortening_constant);
+                    Vectormath::scale(this->f_shrink, scalefactor);
+                }
+
                 // Calculate the spring force
-                scalar d = this->chain->gneb_parameters->spring_constant * (Rx[img+1] - 2*Rx[img] + Rx[img-1]);
+                scalar d = 0;
+                if( chain->gneb_parameters->spring_force_ratio > 0 )
+                    d = this->chain->gneb_parameters->spring_constant * (lengths[img+1] - lengths[img]);
+                else
+                    d = this->chain->gneb_parameters->spring_constant * (Rx[img+1] - 2*Rx[img] + Rx[img-1]);
+
                 Vectormath::set_c_a(d, tangents[img], F_spring[img]);
-                // for (int i = 0; i < nos; ++i)
-                // {
-                // 	F_spring[img][i] = d * tangents[img][i];
-                // }
 
                 // Calculate the total force
                 Vectormath::set_c_a(1, F_gradient[img], F_total[img]);
                 Vectormath::add_c_a(1, F_spring[img], F_total[img]);
-                // for (int j = 0; j < nos; ++j)
-                // {
-                // 	F_total[img][j] = F_gradient[img][j] + F_spring[img][j];
-                // }
+                if( chain->gneb_parameters->path_shortening_constant > 0 )
+                    Vectormath::add_c_a(1, this->f_shrink, F_total[img]);
             }
             else
             {
@@ -156,7 +220,7 @@ namespace Engine
             }
             // Apply pinning mask
             #ifdef SPIRIT_ENABLE_PINNING
-                Vectormath::set_c_a(1, F_total[img], F_total[img], this->parameters->pinning->mask_unpinned);
+                Vectormath::set_c_a(1, F_total[img], F_total[img], chain->images[img]->geometry->mask_unpinned);
             #endif // SPIRIT_ENABLE_PINNING
 
             // Copy out
@@ -186,7 +250,7 @@ namespace Engine
 
             // Apply Pinning
             #ifdef SPIRIT_ENABLE_PINNING
-            Vectormath::set_c_a(1, force_virtual, force_virtual, parameters.pinning->mask_unpinned);
+            Vectormath::set_c_a(1, force_virtual, force_virtual, chain->images[i]->geometry->mask_unpinned);
             #endif // SPIRIT_ENABLE_PINNING
         }
     }
@@ -244,22 +308,30 @@ namespace Engine
             // 	dE_dRx[i] += this->chain->images[i]->effective_field[j].dot(this->tangents[i][j]);
             // }
         }
+        bool log=false;
+        if (this->n_iterations_log > 0)
+            log = this->iteration > 0 && 0 == fmod(this->iteration, this->n_iterations_log);
+        if ( log )
+        {
+            Log(Log_Level::All, Log_Sender::GNEB, fmt::format("Total path length = {}", this->Rx[chain->noi-1]), -1, this->idx_chain);
+        }
         // Interpolate data points
         auto interp = Utility::Cubic_Hermite_Spline::Interpolate(this->Rx, this->energies, dE_dRx, chain->gneb_parameters->n_E_interpolations);
         // Update the chain
-        //		Rx
+        //      Rx
         chain->Rx = this->Rx;
-        //		E
+        //      E
         for (int img = 1; img < chain->noi; ++img) chain->images[img]->E = this->energies[img];
-        //		Rx interpolated
+        //      Rx interpolated
         chain->Rx_interpolated = interp[0];
-        //		E interpolated
+        //      E interpolated
         chain->E_interpolated  = interp[1];
     }
 
     template <Solver solver>
     void Method_GNEB<solver>::Finalize()
     {
+        Log(Log_Level::All, Log_Sender::GNEB, fmt::format("Total path length = {}", this->Rx[chain->noi-1]), -1, -1);
         this->chain->iteration_allowed=false;
     }
 
@@ -300,9 +372,11 @@ namespace Engine
                     std::string chainFile = preChainFile + suffix + ".ovf";
 
                     // File format
-                    IO::VF_FileFormat format = IO::VF_FileFormat::OVF_BIN8;
+                    IO::VF_FileFormat format = IO::VF_FileFormat::OVF_BIN;
                     if (this->chain->gneb_parameters->output_chain_filetype == IO_Fileformat_OVF_bin4)
                         format = IO::VF_FileFormat::OVF_BIN4;
+                    else if (this->chain->gneb_parameters->output_chain_filetype == IO_Fileformat_OVF_bin8)
+                        format = IO::VF_FileFormat::OVF_BIN8;
                     else if (this->chain->gneb_parameters->output_chain_filetype == IO_Fileformat_OVF_text)
                         format = IO::VF_FileFormat::OVF_TEXT;
                     else if (this->chain->gneb_parameters->output_chain_filetype == IO_Fileformat_OVF_csv)
@@ -404,6 +478,7 @@ namespace Engine
     template class Method_GNEB<Solver::SIB>;
     template class Method_GNEB<Solver::Heun>;
     template class Method_GNEB<Solver::Depondt>;
+    template class Method_GNEB<Solver::RungeKutta4>;
     template class Method_GNEB<Solver::NCG>;
     template class Method_GNEB<Solver::VP>;
 }

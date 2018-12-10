@@ -18,18 +18,18 @@ class TestConfigurations(unittest.TestCase):
     def test(self):
         with state.State(cfgfile) as p_state:
             # Noise
-            configuration.Random(p_state)
-            configuration.Add_Noise_Temperature(p_state, 5)
+            configuration.random(p_state)
+            configuration.add_noise(p_state, 5)
             # Homogeneous
-            configuration.PlusZ(p_state)
-            configuration.MinusZ(p_state)
-            configuration.Domain(p_state, [1,1,1])
+            configuration.plus_z(p_state)
+            configuration.minus_z(p_state)
+            configuration.domain(p_state, [1,1,1])
             # Skyrmion
-            configuration.Skyrmion(p_state, 5)
+            configuration.skyrmion(p_state, 5)
             # Hopfion
-            configuration.Hopfion(p_state, 5)
+            configuration.hopfion(p_state, 5)
             # Spin Spiral
-            configuration.SpinSpiral(p_state, "Real Lattice", [0,0,0.1], [0,0,1], 30)
+            configuration.spin_spiral(p_state, "Real Lattice", [0,0,0.1], [0,0,1], 30)
 
 #########
 

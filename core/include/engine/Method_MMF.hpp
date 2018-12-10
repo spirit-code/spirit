@@ -5,7 +5,6 @@
 #include "Spirit_Defines.h"
 #include <engine/Method_Solver.hpp>
 #include <data/Parameters_Method_MMF.hpp>
-#include <data/Spin_System_Chain_Collection.hpp>
 
 namespace Engine
 {
@@ -17,7 +16,7 @@ namespace Engine
     {
     public:
         // Constructor
-        Method_MMF(std::shared_ptr<Data::Spin_System_Chain_Collection> collection, int idx_chain);
+        Method_MMF(std::shared_ptr<Data::Spin_System> system, int idx_chain);
 
         // Method name as string
         std::string Name() override;
@@ -25,9 +24,6 @@ namespace Engine
     private:
         // Calculate Forces onto Systems
         void Calculate_Force(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces) override;
-        
-        // Functions for getting the minimum mode of a Hessian
-        void Calculate_Force_Spectra_Matrix(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces);
         
         // Check if the Forces are converged
         bool Converged() override;
@@ -40,30 +36,34 @@ namespace Engine
         // A hook into the Method after an Iteration of the Solver
         void Hook_Post_Iteration() override;
 
-        // Sets iteration_allowed to false for the collection
+        // Sets iteration_allowed to false
         void Finalize() override;
         
-        bool Iterations_Allowed() override;
-        
+        std::shared_ptr<Data::Spin_System> system;
         
         bool switched1, switched2;
-        std::shared_ptr<Data::Spin_System_Chain_Collection> collection;
 
         // Last calculated hessian
-        std::vector<MatrixX> hessian;
+        MatrixX hessian;
         // Last calculated gradient
-        std::vector<vectorfield> gradient;
+        vectorfield gradient;
         // Last calculated minimum mode
-        std::vector<vectorfield> minimum_mode;
+        vectorfield minimum_mode;
+        int mode_follow_previous;
+        VectorX mode_2N_previous;
 
         // Last iterations spins and reaction coordinate
         scalar Rx_last;
-        std::vector<vectorfield> spins_last;
+        vectorfield spins_last;
 
         // Which minimum mode function to use
         // ToDo: move into parameters
         std::string mm_function;
-    };
+
+        // Functions for getting the minimum mode of a Hessian
+        void Calculate_Force_Spectra_Matrix(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces);
+        void Calculate_Force_Lanczos(const std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces);
+	};
 }
 
 #endif

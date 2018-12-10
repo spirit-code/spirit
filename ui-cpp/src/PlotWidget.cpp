@@ -2,7 +2,7 @@
 
 #include "Spirit/Chain.h"
 #include "Spirit/System.h"
-#include "Spirit/Parameters.h"
+#include "Spirit/Parameters_GNEB.h"
 
 #include <QtGui/QImage>
 #include <QtGui/QPainter>
@@ -10,16 +10,22 @@
 
 using namespace QtCharts;
 
-PlotWidget::PlotWidget(std::shared_ptr<State> state, bool plot_interpolated) :
-    plot_interpolated(plot_interpolated)
+static const int SIZE = 30;
+static const int INCR = 3;
+static const int REGU = 8;
+static const int TRIA = 10;
+
+PlotWidget::PlotWidget(std::shared_ptr<State> state, bool plot_image_energies, bool plot_interpolated) :
+    plot_image_energies(plot_image_energies), plot_interpolated(plot_interpolated)
 {
     this->state = state;
-    this->plot_interpolated_n = Parameters_Get_GNEB_N_Energy_Interpolations(state.get());
+    this->plot_interpolated_n = Parameters_GNEB_Get_N_Energy_Interpolations(state.get());
 
     // Create Chart
     chart = new QChart();
     chart->legend()->hide();
     chart->setTitle("");
+    chart->setMargins({0,0,0,0});
     chart->layout()->setContentsMargins(0, 0, 0, 0);
     chart->setBackgroundRoundness(0);
 
@@ -28,25 +34,25 @@ PlotWidget::PlotWidget(std::shared_ptr<State> state, bool plot_interpolated) :
     this->setRenderHint(QPainter::Antialiasing);
 
     // Create triangle painters
-    QRectF rect = QRectF(0, 0, 30, 30);
+    QRectF rect = QRectF(0, 0, SIZE, SIZE);
     QPainterPath triangleUpPath;
-    triangleUpPath.moveTo(rect.left() + (rect.width() / 2), rect.top()+3);
-    triangleUpPath.lineTo(rect.right()-3, rect.bottom()-3);
-    triangleUpPath.lineTo(rect.left()+3, rect.bottom()-3);
-    triangleUpPath.lineTo(rect.left() + (rect.width() / 2), rect.top()+3);
+    triangleUpPath.moveTo(rect.left() + (rect.width() / 2), rect.top()+INCR);
+    triangleUpPath.lineTo(rect.right()-INCR, rect.bottom()-INCR);
+    triangleUpPath.lineTo(rect.left()+INCR, rect.bottom()-INCR);
+    triangleUpPath.lineTo(rect.left() + (rect.width() / 2), rect.top()+INCR);
     QPainterPath triangleDownPath;
-    triangleDownPath.moveTo(rect.left() + (rect.width() / 2), rect.bottom()-3);
-    triangleDownPath.lineTo(rect.left()+3, rect.top()+3);
-    triangleDownPath.lineTo(rect.right()-3, rect.top()+3);
-    triangleDownPath.lineTo(rect.left() + (rect.width() / 2), rect.bottom()-3);
+    triangleDownPath.moveTo(rect.left() + (rect.width() / 2), rect.bottom()-INCR);
+    triangleDownPath.lineTo(rect.left()+INCR, rect.top()+INCR);
+    triangleDownPath.lineTo(rect.right()-INCR, rect.top()+INCR);
+    triangleDownPath.lineTo(rect.left() + (rect.width() / 2), rect.bottom()-INCR);
 
-    triangleUpRed = QImage(30, 30, QImage::Format_ARGB32);
+    triangleUpRed = QImage(SIZE, SIZE, QImage::Format_ARGB32);
     triangleUpRed.fill(Qt::transparent);
-    triangleDownRed = QImage(30, 30, QImage::Format_ARGB32);
+    triangleDownRed = QImage(SIZE, SIZE, QImage::Format_ARGB32);
     triangleDownRed.fill(Qt::transparent);
-    triangleUpBlue = QImage(30, 30, QImage::Format_ARGB32);
+    triangleUpBlue = QImage(SIZE, SIZE, QImage::Format_ARGB32);
     triangleUpBlue.fill(Qt::transparent);
-    triangleDownBlue = QImage(30, 30, QImage::Format_ARGB32);
+    triangleDownBlue = QImage(SIZE, SIZE, QImage::Format_ARGB32);
     triangleDownBlue.fill(Qt::transparent);
 
     QPainter painter1(&triangleUpRed);
@@ -75,26 +81,26 @@ PlotWidget::PlotWidget(std::shared_ptr<State> state, bool plot_interpolated) :
     // Normal images energies
     series_E_normal = new QScatterSeries();
     series_E_normal->setColor(QColor("RoyalBlue"));
-    series_E_normal->setMarkerSize(10);
+    series_E_normal->setMarkerSize(REGU);
     series_E_normal->setMarkerShape(QScatterSeries::MarkerShapeCircle);
     // Climbing images
     series_E_climbing = new QScatterSeries();
     series_E_climbing->setColor(QColor("RoyalBlue"));
-    series_E_climbing->setMarkerSize(12);
+    series_E_climbing->setMarkerSize(TRIA);
     series_E_climbing->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
-    series_E_climbing->setBrush(triangleUpBlue.scaled(12,12));
+    series_E_climbing->setBrush(triangleUpBlue.scaled(TRIA,TRIA));
     series_E_climbing->setPen(QColor(Qt::transparent));
     // Falling images
     series_E_falling = new QScatterSeries();
     series_E_falling->setColor(QColor("RoyalBlue"));
-    series_E_falling->setMarkerSize(12);
+    series_E_falling->setMarkerSize(TRIA);
     series_E_falling->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
-    series_E_falling->setBrush(triangleDownBlue.scaled(12,12));
+    series_E_falling->setBrush(triangleDownBlue.scaled(TRIA,TRIA));
     series_E_falling->setPen(QColor(Qt::transparent));
     // Stationary images
     series_E_stationary = new QScatterSeries();
     series_E_stationary->setColor(QColor("RoyalBlue"));
-    series_E_stationary->setMarkerSize(10);
+    series_E_stationary->setMarkerSize(REGU);
     series_E_stationary->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
     // Interpolated energies
     series_E_interp = new QLineSeries();
@@ -103,8 +109,8 @@ PlotWidget::PlotWidget(std::shared_ptr<State> state, bool plot_interpolated) :
     // Current energy
     series_E_current = new QScatterSeries();
     series_E_current->setColor(QColor("Red"));
-    series_E_current->setMarkerSize(10);
-    // series_E_current->setMarkerShape(QScatterSeries::MarkerShapeCircle);
+    series_E_current->setMarkerSize(REGU);
+    series_E_current->setMarkerShape(QScatterSeries::MarkerShapeCircle);
 
 
     // Add Series
@@ -138,10 +144,10 @@ void PlotWidget::plotEnergies()
     int noi = Chain_Get_NOI(state.get());
     int nos = System_Get_NOS(state.get());
 
-    if (this->plot_interpolated && this->plot_interpolated_n != Parameters_Get_GNEB_N_Energy_Interpolations(state.get()))
-        Parameters_Set_GNEB_N_Energy_Interpolations(state.get(), this->plot_interpolated_n);
+    if (this->plot_interpolated && this->plot_interpolated_n != Parameters_GNEB_Get_N_Energy_Interpolations(state.get()))
+        Parameters_GNEB_Set_N_Energy_Interpolations(state.get(), this->plot_interpolated_n);
 
-    int size_interp = noi + (noi - 1)*Parameters_Get_GNEB_N_Energy_Interpolations(state.get());
+    int size_interp = noi + (noi - 1)*Parameters_GNEB_Get_N_Energy_Interpolations(state.get());
 
     // Allocate arrays
     Rx = std::vector<float>(noi, 0);
@@ -174,22 +180,25 @@ void PlotWidget::plotEnergies()
     // Add data to series
     int idx_current = System_Get_Index(state.get());
     current.push_back(QPointF( Rx[idx_current]/Rx_tot, energies[idx_current]/nos ));
-    for (int i = 0; i < noi; ++i)
+    if (this->plot_image_energies)
     {
-        if (i > 0 && Rx_tot > 0) Rx[i] = Rx[i] / Rx_tot;
-        energies[i] = energies[i] / nos;
+        for (int i = 0; i < noi; ++i)
+        {
+            if (i > 0 && Rx_tot > 0) Rx[i] = Rx[i] / Rx_tot;
+            energies[i] = energies[i] / nos;
 
-        if (Parameters_Get_GNEB_Climbing_Falling(state.get(), i) == 0)
-            normal.push_back(QPointF(Rx[i], energies[i]));
-        else if (Parameters_Get_GNEB_Climbing_Falling(state.get(), i) == 1)
-            climbing.push_back(QPointF(Rx[i], energies[i]));
-        else if (Parameters_Get_GNEB_Climbing_Falling(state.get(), i) == 2)
-            falling.push_back(QPointF(Rx[i], energies[i]));
-        else if (Parameters_Get_GNEB_Climbing_Falling(state.get(), i) == 3)
-            stationary.push_back(QPointF(Rx[i], energies[i]));
+            if (Parameters_GNEB_Get_Climbing_Falling(state.get(), i) == 0)
+                normal.push_back(QPointF(Rx[i], energies[i]));
+            else if (Parameters_GNEB_Get_Climbing_Falling(state.get(), i) == 1)
+                climbing.push_back(QPointF(Rx[i], energies[i]));
+            else if (Parameters_GNEB_Get_Climbing_Falling(state.get(), i) == 2)
+                falling.push_back(QPointF(Rx[i], energies[i]));
+            else if (Parameters_GNEB_Get_Climbing_Falling(state.get(), i) == 3)
+                stationary.push_back(QPointF(Rx[i], energies[i]));
 
-        if (energies[i] < ymin) ymin = energies[i];
-        if (energies[i] > ymax) ymax = energies[i];
+            if (energies[i] < ymin) ymin = energies[i];
+            if (energies[i] > ymax) ymax = energies[i];
+        }
     }
     if (this->plot_interpolated)
     {
@@ -206,30 +215,30 @@ void PlotWidget::plotEnergies()
     }
 
     // Set marker type for current image
-    if (Parameters_Get_GNEB_Climbing_Falling(state.get()) == 0)
+    if (Parameters_GNEB_Get_Climbing_Falling(state.get()) == 0)
     {
         series_E_current->setMarkerShape(QScatterSeries::MarkerShapeCircle);
-        series_E_current->setMarkerSize(10);
+        series_E_current->setMarkerSize(REGU);
         series_E_current->setBrush(QColor("Red"));
     }
-    else if (Parameters_Get_GNEB_Climbing_Falling(state.get()) == 1)
+    else if (Parameters_GNEB_Get_Climbing_Falling(state.get()) == 1)
     {
         series_E_current->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
-        series_E_current->setMarkerSize(12);
-        series_E_current->setBrush(triangleUpRed.scaled(12,12));
+        series_E_current->setMarkerSize(TRIA);
+        series_E_current->setBrush(triangleUpRed.scaled(TRIA,TRIA));
         series_E_current->setPen(QColor(Qt::transparent));
     }
-    else if (Parameters_Get_GNEB_Climbing_Falling(state.get()) == 2)
+    else if (Parameters_GNEB_Get_Climbing_Falling(state.get()) == 2)
     {
         series_E_current->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
-        series_E_current->setMarkerSize(12);
-        series_E_current->setBrush(triangleDownRed.scaled(12,12));
+        series_E_current->setMarkerSize(TRIA);
+        series_E_current->setBrush(triangleDownRed.scaled(TRIA,TRIA));
         series_E_current->setPen(QColor(Qt::transparent));
     }
-    else if (Parameters_Get_GNEB_Climbing_Falling(state.get()) == 3)
+    else if (Parameters_GNEB_Get_Climbing_Falling(state.get()) == 3)
     {
         series_E_current->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
-        series_E_current->setMarkerSize(10);
+        series_E_current->setMarkerSize(REGU);
         series_E_current->setBrush(QColor("Red"));
     }
 

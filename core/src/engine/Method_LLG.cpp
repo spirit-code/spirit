@@ -19,7 +19,7 @@ namespace Engine
 {
     template <Solver solver>
     Method_LLG<solver>::Method_LLG(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain) :
-        Method_Solver<solver>(system->llg_parameters, idx_img, idx_chain)
+        Method_Solver<solver>(system->llg_parameters, idx_img, idx_chain), picoseconds_passed(0)
     {
         // Currently we only support a single image being iterated at once:
         this->systems = std::vector<std::shared_ptr<Data::Spin_System>>(1, system);
@@ -57,10 +57,62 @@ namespace Engine
         this->Initialize();
 
         // Initial force calculation s.t. it does not seem to be already converged
+        this->Prepare_Thermal_Field();
         this->Calculate_Force(this->configurations, this->forces);
         this->Calculate_Force_Virtual(this->configurations, this->forces, this->forces_virtual);
         // Post iteration hook to get forceMaxAbsComponent etc
         this->Hook_Post_Iteration();
+    }
+
+
+    template <Solver solver>
+    void Method_LLG<solver>::Prepare_Thermal_Field()
+    {
+        auto& parameters = *this->systems[0]->llg_parameters;
+        auto& geometry   = *this->systems[0]->geometry;
+        auto& damping    = parameters.damping;
+
+        if( parameters.temperature > 0 || parameters.temperature_gradient_inclination != 0 )
+        {
+            scalar epsilon =
+                std::sqrt( 2 * damping * parameters.dt * Constants::gamma / Constants::mu_B * Constants::k_B )
+                    / (1 + damping*damping);
+
+            // PRNG gives Gaussian RN with width 1 -> scale by epsilon and sqrt(T/mu_s)
+            auto distribution = std::normal_distribution<scalar>{0,1};
+
+            // If we have a temperature gradient, we use the distribution (scalarfield)
+            if( parameters.temperature_gradient_inclination != 0 )
+            {
+                // Calculate distribution
+                Vectormath::get_gradient_distribution(
+                    geometry,
+                    parameters.temperature_gradient_direction,
+                    parameters.temperature,
+                    parameters.temperature_gradient_inclination,
+                    this->temperature_distribution, 0, 1e30);
+
+                // TODO: parallelization of this is actually not quite so trivial
+                // #pragma omp parallel for
+                for( unsigned int i = 0; i < this->xi.size(); ++i )
+                {
+                    for( int dim=0; dim<3; ++dim)
+                        this->xi[i][dim] = epsilon * std::sqrt(this->temperature_distribution[i] / geometry.mu_s[i]) * distribution(parameters.prng);
+                }
+            }
+            // If we only have homogeneous temperature we do it more efficiently
+            else if( parameters.temperature > 0 )
+            {
+                // TODO: parallelization of this is actually not quite so trivial
+                // #pragma omp parallel for
+                for (unsigned int i = 0; i < this->xi.size(); ++i)
+                {
+                    for( int dim=0; dim<3; ++dim)
+                        this->xi[i][dim] = epsilon * std::sqrt(parameters.temperature / geometry.mu_s[i]) * distribution(parameters.prng);
+                }
+            }
+
+        }
     }
 
 
@@ -73,7 +125,7 @@ namespace Engine
             // Minus the gradient is the total Force here
             this->systems[img]->hamiltonian->Gradient(*configurations[img], Gradient[img]);
             #ifdef SPIRIT_ENABLE_PINNING
-                Vectormath::set_c_a(1, Gradient[img], Gradient[img], this->parameters->pinning->mask_unpinned);
+                Vectormath::set_c_a(1, Gradient[img], Gradient[img], this->systems[img]->geometry->mask_unpinned);
             #endif // SPIRIT_ENABLE_PINNING
             
             // Copy out
@@ -118,15 +170,17 @@ namespace Engine
             // Dynamics simulation
             else
             {
-                Vectormath::set_c_a( dtg, force, force_virtual);
-                Vectormath::add_c_cross( dtg * damping, image, force, force_virtual);
+                auto& geometry = *this->systems[0]->geometry;
+
+                Vectormath::set_c_a(dtg, force, force_virtual);
+                Vectormath::add_c_cross(dtg * damping, image, force, force_virtual);
+                Vectormath::scale(force_virtual, geometry.mu_s, true);
 
                 // STT
                 if (a_j > 0)
                 {
                     if (parameters.stt_use_gradient)
                     {
-                        auto& geometry = *this->systems[0]->geometry;
                         auto& boundary_conditions = this->systems[0]->hamiltonian->boundary_conditions;
                         // Gradient approximation for in-plane currents
                         Vectormath::directional_gradient(image, geometry, boundary_conditions, je, s_c_grad); // s_c_grad = (j_e*grad)*S
@@ -137,52 +191,30 @@ namespace Engine
                     else
                     {
                         // Monolayer approximation
-                        Vectormath::add_c_a    ( -dtg * a_j * ( damping - beta ), s_c_vec, force_virtual);
-                        Vectormath::add_c_cross( -dtg * a_j * ( 1 + beta * damping ), s_c_vec, image, force_virtual);
+                        Vectormath::add_c_a    (-dtg * a_j * ( damping - beta ), s_c_vec, force_virtual);
+                        Vectormath::add_c_cross(-dtg * a_j * ( 1 + beta * damping ), s_c_vec, image, force_virtual);
                     }
                 }
 
                 // Temperature
-                if (parameters.temperature > 0 || parameters.temperature_gradient_inclination != 0)
+                if( parameters.temperature > 0 || parameters.temperature_gradient_inclination != 0 )
                 {
-                    // Generate random directions
-                    Vectormath::get_random_vectorfield_unitsphere(parameters.prng, this->xi);
-
-                    // If we have a temperature gradient, we use the distribution (scalarfield)
-                    if (parameters.temperature_gradient_inclination != 0)
-                    {
-                        // Calculate distribution
-                        Vectormath::get_gradient_distribution(
-                            *this->systems[i]->geometry,
-                            parameters.temperature_gradient_direction,
-                            parameters.temperature,
-                            parameters.temperature_gradient_inclination,
-                            temperature_distribution, 0, 1e30);
-
-                        scalar epsilon = sqrtdtg * Utility::Constants::k_B;
-                        Vectormath::scale(temperature_distribution, epsilon);
-
-                        Vectormath::add_c_a(temperature_distribution, this->xi, force_virtual);
-
-                        Vectormath::scale(temperature_distribution, damping);
-                        Vectormath::add_c_cross(temperature_distribution, image, this->xi, force_virtual);
-                    }
-                    // If we only have homogeneous temperature we do it more efficiently
-                    else if (parameters.temperature > 0)
-                    {
-                        scalar epsilon = sqrtdtg * Utility::Constants::k_B * parameters.temperature;
-                        Vectormath::add_c_a    (epsilon, this->xi, force_virtual);
-                        Vectormath::add_c_cross(epsilon * damping, image, this->xi, force_virtual);
-                    }
+                    Vectormath::add_c_a    (1, this->xi, force_virtual);
+                    Vectormath::add_c_cross(damping, image, this->xi, force_virtual);
                 }
             }
             // Apply Pinning
             #ifdef SPIRIT_ENABLE_PINNING
-                Vectormath::set_c_a(1, force_virtual, force_virtual, parameters.pinning->mask_unpinned);
+                Vectormath::set_c_a(1, force_virtual, force_virtual, this->systems[0]->geometry->mask_unpinned);
             #endif // SPIRIT_ENABLE_PINNING
         }
     }
 
+    template <Solver solver>
+    scalar Method_LLG<solver>::getTime()
+    {
+        return this->picoseconds_passed;
+    }
 
     template <Solver solver>
     bool Method_LLG<solver>::Converged()
@@ -202,6 +234,9 @@ namespace Engine
     template <Solver solver>
     void Method_LLG<solver>::Hook_Post_Iteration()
     {
+        // Increment the time counter (picoseconds)
+        this->picoseconds_passed += this->systems[0]->llg_parameters->dt;
+
         // --- Convergence Parameter Update
         // Loop over images to calculate the maximum force components
         for (unsigned int img = 0; img < this->systems.size(); ++img)
@@ -297,9 +332,11 @@ namespace Engine
                         this->Name(), this->SolverFullName(), iteration, this->force_max_abs_component );
                     
                     // File format
-                    IO::VF_FileFormat format = IO::VF_FileFormat::OVF_BIN8;
+                    IO::VF_FileFormat format = IO::VF_FileFormat::OVF_BIN;
                     if (this->systems[0]->llg_parameters->output_configuration_filetype == IO_Fileformat_OVF_bin4)
                         format = IO::VF_FileFormat::OVF_BIN4;
+                    else if (this->systems[0]->llg_parameters->output_configuration_filetype == IO_Fileformat_OVF_bin8)
+                        format = IO::VF_FileFormat::OVF_BIN8;
                     else if (this->systems[0]->llg_parameters->output_configuration_filetype == IO_Fileformat_OVF_text)
                         format = IO::VF_FileFormat::OVF_TEXT;
                     else if (this->systems[0]->llg_parameters->output_configuration_filetype == IO_Fileformat_OVF_csv)
@@ -393,6 +430,7 @@ namespace Engine
     template class Method_LLG<Solver::SIB>;
     template class Method_LLG<Solver::Heun>;
     template class Method_LLG<Solver::Depondt>;
+    template class Method_LLG<Solver::RungeKutta4>;
     template class Method_LLG<Solver::NCG>;
     template class Method_LLG<Solver::VP>;
 }

@@ -9,9 +9,19 @@
 #include <engine/Vectormath_Defines.hpp>
 #include <engine/Hamiltonian.hpp>
 #include <data/Geometry.hpp>
+#include <Spirit/Hamiltonian.h>
+#include "FFT.hpp"
 
 namespace Engine
 {
+    enum class DDI_Method
+    {
+        FFT    = SPIRIT_DDI_METHOD_FFT,
+        FMM    = SPIRIT_DDI_METHOD_FMM,
+        Cutoff = SPIRIT_DDI_METHOD_CUTOFF,
+        None   = SPIRIT_DDI_METHOD_NONE
+    };
+
     /*
         The Heisenberg Hamiltonian using Pairs contains all information on the interactions between spins.
         The information is presented in pair lists and parameter lists in order to easily e.g. calculate the energy of the system via summation.
@@ -21,30 +31,28 @@ namespace Engine
     {
     public:
         Hamiltonian_Heisenberg(
-            scalarfield mu_s,
             scalar external_field_magnitude, Vector3 external_field_normal,
             intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
             pairfield exchange_pairs, scalarfield exchange_magnitudes,
             pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals,
-            scalar ddi_radius,
+            DDI_Method ddi_method, intfield ddi_n_periodic_images, scalar ddi_radius,
             quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
             std::shared_ptr<Data::Geometry> geometry,
             intfield boundary_conditions
         );
 
         Hamiltonian_Heisenberg(
-            scalarfield mu_s,
             scalar external_field_magnitude, Vector3 external_field_normal,
             intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
-            scalarfield exchange_magnitudes,
-            scalarfield dmi_magnitudes, int dm_chirality,
-            scalar ddi_radius,
+            scalarfield exchange_shell_magnitudes,
+            scalarfield dmi_shell_magnitudes, int dm_chirality,
+            DDI_Method ddi_method, intfield ddi_n_periodic_images, scalar ddi_radius,
             quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
             std::shared_ptr<Data::Geometry> geometry,
             intfield boundary_conditions
         );
 
-        void Update_DDI_Pairs();
+        void Update_Interactions();
 
         void Update_Energy_Contributions() override;
 
@@ -52,15 +60,14 @@ namespace Engine
         void Gradient(const vectorfield & spins, vectorfield & gradient) override;
         void Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions) override;
 
-        // Calculate the total energy for a single spin
+        // Calculate the total energy for a single spin to be used in Monte Carlo.
+        //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
         scalar Energy_Single_Spin(int ispin, const vectorfield & spins) override;
 
         // Hamiltonian name as string
         const std::string& Name() override;
         
         // ------------ Single Spin Interactions ------------
-        // Spin moments of basis cell atoms
-        scalarfield mu_s;
         // External magnetic field across the sample
         scalar external_field_magnitude;
         Vector3 external_field_normal;
@@ -76,15 +83,24 @@ namespace Engine
 
         // ------------ Pair Interactions ------------
         // Exchange interaction
-        int         exchange_n_shells;
+        scalarfield exchange_shell_magnitudes;
+        pairfield   exchange_pairs_in;
+        scalarfield exchange_magnitudes_in;
         pairfield   exchange_pairs;
         scalarfield exchange_magnitudes;
         // DMI
-        int         dmi_n_shells;
+        scalarfield dmi_shell_magnitudes;
+        int         dmi_shell_chirality;
+        pairfield   dmi_pairs_in;
+        scalarfield dmi_magnitudes_in;
+        vectorfield dmi_normals_in;
         pairfield   dmi_pairs;
         scalarfield dmi_magnitudes;
         vectorfield dmi_normals;
         // Dipole Dipole interaction
+        DDI_Method  ddi_method;
+        intfield    ddi_n_periodic_images;
+        //      ddi cutoff variables
         scalar      ddi_cutoff_radius;
         pairfield   ddi_pairs;
         scalarfield ddi_magnitudes;
@@ -108,6 +124,10 @@ namespace Engine
         void Gradient_DMI(const vectorfield & spins, vectorfield & gradient);
         // Calculates the Dipole-Dipole contribution to the effective field of spin ispin within system s
         void Gradient_DDI(const vectorfield& spins, vectorfield & gradient);
+        void Gradient_DDI_Cutoff(const vectorfield& spins, vectorfield & gradient);
+        void Gradient_DDI_Direct(const vectorfield& spins, vectorfield & gradient);
+        void Gradient_DDI_FFT(const vectorfield& spins, vectorfield & gradient);
+
         // Quadruplet
         void Gradient_Quadruplet(const vectorfield & spins, vectorfield & gradient);
 
@@ -124,9 +144,51 @@ namespace Engine
         void E_DMI(const vectorfield & spins, scalarfield & Energy);
         // calculates the Dipole-Dipole Energy
         void E_DDI(const vectorfield& spins, scalarfield & Energy);
+        void E_DDI_Direct(const vectorfield& spins, scalarfield & Energy);
+        void E_DDI_Cutoff(const vectorfield& spins, scalarfield & Energy);
+        void E_DDI_FFT(const vectorfield& spins, scalarfield & Energy);
+
         // Quadruplet
         void E_Quadruplet(const vectorfield & spins, scalarfield & Energy);
+        
+        // Preparations for DDI-Convolution Algorithm
+        void Prepare_DDI();
+        void Clean_DDI();
 
+        // Plans for FT / rFT
+        FFT::FFT_Plan fft_plan_spins;
+        FFT::FFT_Plan fft_plan_reverse;
+
+        field<FFT::FFT_cpx_type> transformed_dipole_matrices;
+
+        bool save_dipole_matrices = true;
+        field<Matrix3> dipole_matrices;
+
+        // Number of inter-sublattice contributions
+        int n_inter_sublattice;
+        // At which index to look up the inter-sublattice D-matrices
+        field<int> inter_sublattice_lookup;
+
+        // Lengths of padded system
+        field<int> n_cells_padded;
+        // Total number of padded spins per sublattice
+        int sublattice_size;
+
+        FFT::StrideContainer spin_stride;
+        FFT::StrideContainer dipole_stride;
+
+        //Calculate the FT of the padded D matriess
+        void FFT_Dipole_Matrices(FFT::FFT_Plan & fft_plan_dipole, int img_a, int img_b, int img_c);
+        //Calculate the FT of the padded spins
+        void FFT_Spins(const vectorfield & spins);
+
+        //Bounds for nested for loops. Only important for the CUDA version
+        field<int> it_bounds_pointwise_mult;
+        field<int> it_bounds_write_gradients;
+        field<int> it_bounds_write_spins;
+        field<int> it_bounds_write_dipole;
     };
+
+
 }
 #endif

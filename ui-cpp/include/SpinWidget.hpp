@@ -26,7 +26,7 @@ struct State;
 class SpinWidget : public QOpenGLWidget
 {
   Q_OBJECT
-  
+
 public:
 
     enum class Colormap {
@@ -41,42 +41,44 @@ public:
         OTHER
     };
 
-	enum class Color {
-		BLACK,
-		GRAY,
-		WHITE,
-		OTHER
-	};
+    enum class Color {
+        BLACK,
+        GRAY,
+        WHITE,
+        OTHER
+    };
 
-	enum class WidgetLocation {
-		BOTTOM_LEFT,
-		BOTTOM_RIGHT,
-		TOP_LEFT,
-		TOP_RIGHT
-	};
+    enum class WidgetLocation {
+        BOTTOM_LEFT,
+        BOTTOM_RIGHT,
+        TOP_LEFT,
+        TOP_RIGHT
+    };
 
-	enum class VisualizationMode {
-		SYSTEM,
-		SPHERE
-	};
+    enum class VisualizationMode {
+        SYSTEM,
+        SPHERE
+    };
 
-	enum class VisualizationSource {
-		SPINS,
-		EFF_FIELD
-	};
+    enum class VisualizationSource {
+        SPINS,
+        EFF_FIELD
+    };
 
-	enum class InteractionMode {
-		REGULAR,
-		DRAG
+    enum class InteractionMode {
+        REGULAR,
+        DRAG,
+        DEFECT,
+        PIN
   };
 
-	enum class SystemMode {
-		CUSTOM,
-		ISOSURFACE,
-		SLAB_X,
-		SLAB_Y,
-		SLAB_Z
-	};
+    enum class SystemMode {
+        CUSTOM,
+        ISOSURFACE,
+        SLAB_X,
+        SLAB_Y,
+        SLAB_Z
+    };
 
   SpinWidget(std::shared_ptr<State> state, QWidget *parent = 0);
   void setSuspended(bool suspended);
@@ -88,7 +90,7 @@ public:
   void paintGL();
   void screenShot(std::string filename);
   float getFramesPerSecond() const;
-  
+
   void setVisualisationSource(int source);
   int m_source;
 
@@ -193,16 +195,18 @@ public:
   // --- Light
   void setLightPosition(float theta, float phi);
   std::array<float,2> getLightPosition();
-  
+
+  void setPasteAtomType(int type);
+
 protected:
   virtual void mouseMoveEvent(QMouseEvent *event);
   virtual void mousePressEvent(QMouseEvent *event);
   virtual void mouseReleaseEvent(QMouseEvent *event);
   virtual void wheelEvent(QWheelEvent *event);
-  
+
   protected slots:
   void teardownGL();
-  
+
 private:
   std::shared_ptr<State> state;
   QPoint m_previous_mouse_position;
@@ -210,7 +214,8 @@ private:
   bool m_camera_rotate_free;
   bool m_camera_projection_perspective;
   float m_light_theta, m_light_phi;
-  
+  int paste_atom_type;
+
   // temporaries for system cycle
   void setSystemCycle(SystemMode mode);
   void setSlabRanges();
@@ -243,7 +248,7 @@ private:
   int n_basis_atoms;
 
   const VFRendering::Options& options() const;
-  
+
   // Parameters
   Colormap m_colormap_general;
   Colormap m_colormap_arrows;
@@ -259,7 +264,7 @@ private:
   glm::vec2 m_surface_x_range;
   glm::vec2 m_surface_y_range;
   glm::vec2 m_surface_z_range;
-  
+
   // Visualisation
   VFRendering::View m_view;
   VFRendering::VectorField m_vf;
@@ -267,10 +272,10 @@ private:
 
   // Interaction mode
   InteractionMode m_interactionmode;
-	bool   regular_mode_perspective;
-	glm::vec3 regular_mode_cam_pos;
-	glm::vec3 regular_mode_cam_focus;
-	glm::vec3 regular_mode_cam_up;
+    bool   regular_mode_perspective;
+    glm::vec3 regular_mode_cam_pos;
+    glm::vec3 regular_mode_cam_focus;
+    glm::vec3 regular_mode_cam_up;
   // Calculate coordinates relative to the system center from QT device pixel coordinates
   //  This assumes that mouse_pos is relative to the top left corner of the widget.
   //  winsize should be the device pixel size of the widget.
@@ -280,6 +285,8 @@ private:
   QTimer * m_timer_drag;
   QTimer * m_timer_drag_decoration;
   void dragpaste();
+  void defectpaste();
+  void pinningpaste();
   bool m_dragging;
   glm::vec2 last_drag_coords;
 
@@ -287,13 +294,13 @@ private:
   void updateMouseDecoration();
   MouseDecoratorWidget * mouse_decoration;
   float drag_radius;
-  
-	// Persistent Settings
-	void writeSettings();
-	void readSettings();
+
+    // Persistent Settings
+    void writeSettings();
+    void readSettings();
 
 protected:
-	void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *event);
 };
 
 #endif

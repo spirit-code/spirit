@@ -65,6 +65,7 @@ namespace Engine
         std::vector<vectorfield> F_total;
         std::vector<vectorfield> F_gradient;
         std::vector<vectorfield> F_spring;
+        vectorfield f_shrink;
         // Last calculated tangents
         std::vector<vectorfield> tangents;
     };

@@ -21,7 +21,7 @@ InfoWidget::InfoWidget(std::shared_ptr<State> state, SpinWidget *spinWidget, Con
 
     // Mouse events should be passed through to the SpinWidget behind
     setAttribute(Qt::WA_TransparentForMouseEvents, true);
-    
+
     // Update timer
     m_timer = new QTimer(this);
     connect(m_timer, &QTimer::timeout, this, &InfoWidget::updateData);
@@ -55,19 +55,23 @@ void InfoWidget::updateData()
 
     // Force
     double f_max = Simulation_Get_MaxTorqueComponent(state.get());
-    this->m_Label_Force_Max->setText(QString::fromLatin1("F (max): ") + QString::number(f_max, 'f', 12));
-    
-    if (Simulation_Running_Chain(state.get()))
+    this->m_Label_Force_Max->setText(QString::fromLatin1("F (max):     ") + QString::number(f_max, 'f', 12));
+    this->m_Label_Force_Max_2->setText(QString::fromLatin1("F (max):     ") + QString::number(f_max, 'E', 3));
+
+    if (Simulation_Running_On_Chain(state.get()))
     {
         float * forces = new float[Chain_Get_NOI(state.get())];
         Simulation_Get_Chain_MaxTorqueComponents(state.get(), forces);
         float f_current = forces[System_Get_Index(state.get())];
         this->m_Label_Force_Current->show();
-        this->m_Label_Force_Current->setText(QString::fromLatin1("F (current): ") + QString::number(f_current, 'E', 2));
+        this->m_Label_Force_Current->setText(QString::fromLatin1("F (current): ") + QString::number(f_current, 'f', 12));
+        this->m_Label_Force_Current_2->show();
+        this->m_Label_Force_Current_2->setText(QString::fromLatin1("F (current): ") + QString::number(f_current, 'E', 3));
     }
     else
     {
         this->m_Label_Force_Current->hide();
+        this->m_Label_Force_Current_2->hide();
     }
 
     // Dimensions
@@ -94,7 +98,18 @@ void InfoWidget::updateData()
     // Simulation
     this->m_Label_Method->setText(QString::fromStdString("Method: " + this->controlWidget->methodName()));
     this->m_Label_Solver->setText(QString::fromStdString("Solver: " + this->controlWidget->solverName()));
-    int ips = Simulation_Get_IterationsPerSecond(state.get());
+    int walltime = Simulation_Get_Wall_Time(state.get());
+    int hours       = walltime / (60*60*1000);
+    int minutes     = (walltime - 60*60*1000*hours) / (60*1000);
+    int seconds     = (walltime - 60*60*1000*hours - 60*1000*minutes) / 1000;
+    int miliseconds = walltime - 60*60*1000*hours - 60*1000*minutes - 1000*seconds;
+    QString qs_hours        = QString("%1").arg(hours,       2, 10, QChar('0'));
+    QString qs_minutes      = QString("%1").arg(minutes,     2, 10, QChar('0'));
+    QString qs_seconds      = QString("%1").arg(seconds,     2, 10, QChar('0'));
+    QString qs_milliseconds = QString("%1").arg(miliseconds, 3, 10, QChar('0'));
+    QString qs_walltime = qs_hours+":"+qs_minutes+":"+qs_seconds+"."+qs_milliseconds;
+    this->m_Label_Wall_Time->setText(qs_walltime);
+    float ips = Simulation_Get_IterationsPerSecond(state.get());
     int precision = 0;
     QString qstr_ips = "";
     if (ips < 1)
@@ -115,4 +130,7 @@ void InfoWidget::updateData()
     else
         qs_iter = QString::number(iter);
     this->m_Label_Iteration->setText(QString::fromLatin1("Iteration: ") + qs_iter);
+    float simulation_time = Simulation_Get_Time(state.get());
+    QString qs_time = QString::number(simulation_time, 'f', 2);
+    this->m_Label_Time->setText(qs_time);
 }

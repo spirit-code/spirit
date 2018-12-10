@@ -1,0 +1,17 @@
+EXPORTS
+kiss_fftri @1
+kiss_fftr @2
+kiss_fftr_alloc @3
+kiss_fftndri @4
+kiss_fftndr @5
+kiss_fftndr_alloc @6
+kiss_fftnd @7
+kiss_fftnd_alloc @8
+kfc_cleanup @9
+kfc_ifft @10
+kfc_fft @11
+kiss_fft_next_fast_size @12
+kiss_fft_cleanup @13
+kiss_fft_stride @14
+kiss_fft @15
+kiss_fft_alloc @16

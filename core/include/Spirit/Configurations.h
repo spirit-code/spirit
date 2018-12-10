@@ -14,11 +14,7 @@ DLLEXPORT void Configuration_To_Clipboard(State *state, int idx_image=-1, int id
 // Pastes the clipboard spin configuration
 DLLEXPORT void Configuration_From_Clipboard(State *state, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1) noexcept;
 // Pastes the clipboard spin configuration
-DLLEXPORT bool Configuration_From_Clipboard_Shift(State *state, const float position_initial[3]=defaultPos, const float position_final[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted = false, int idx_image=-1, int idx_chain=-1) noexcept;
-
-
-// Orients all spins with x>pos into the direction of the v
-// DLLEXPORT void Configuration_DomainWall(State *state, const float pos[3], float v[3], const bool greater = true, int idx_image=-1, int idx_chain=-1) noexcept;
+DLLEXPORT bool Configuration_From_Clipboard_Shift(State *state, const float shift[3], const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted = false, int idx_image=-1, int idx_chain=-1) noexcept;
 
 // Creates a homogeneous domain
 DLLEXPORT void Configuration_Domain(State *state, const float direction[3], const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1) noexcept;
@@ -32,6 +28,9 @@ DLLEXPORT void Configuration_Random(State *state, const float position[3]=defaul
 // Adds some random noise scaled by temperature
 DLLEXPORT void Configuration_Add_Noise_Temperature(State *state, float temperature, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1) noexcept;
 
+// Calculate the eigenmodes of the System (Image)
+DLLEXPORT void Configuration_Displace_Eigenmode(State *state, int idx_mode, int idx_image=-1, int idx_chain=-1) noexcept;
+
 // Create a toroidal Hopfion
 DLLEXPORT void Configuration_Hopfion(State *state, float r, int order=1, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false,  int idx_image=-1, int idx_chain=-1) noexcept;
 
@@ -43,8 +42,10 @@ DLLEXPORT void Configuration_SpinSpiral(State *state, const char * direction_typ
 // 2q Spin Spiral
 DLLEXPORT void Configuration_SpinSpiral_2q(State *state, const char * direction_type, float q1[3], float q2[3], float axis[3], float theta, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1) noexcept;
 
-// TODO: file read
-//DLLEXPORT void Configuration_from_File(State * state, const char * filename, int idx_image=-1, int idx_chain=-1) noexcept;
+// Pinning
+DLLEXPORT void Configuration_Set_Pinned(State *state, bool pinned, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1) noexcept;
+// Defects
+DLLEXPORT void Configuration_Set_Atom_Type(State *state, int type, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1) noexcept;
 
 #include "DLL_Undefine_Export.h"
 #endif

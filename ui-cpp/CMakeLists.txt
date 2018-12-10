@@ -242,9 +242,12 @@ target_include_directories( ${PROJECT_NAME} PRIVATE ${PROJECT_BINARY_DIR}/thirdp
 ######### Link the libraries into the executable
 target_link_libraries( ${PROJECT_NAME} ${SPIRIT_LIBRARIES_STATIC} )
 ### QT UI Libraries
-if ( UI_CXX_USE_QT )
+if( UI_CXX_USE_QT )
+    set( THREADS_PREFER_PTHREAD_FLAG ON )
+    find_package( Threads REQUIRED )
+    target_link_libraries( ${PROJECT_NAME} Threads::Threads )
     target_link_libraries( ${PROJECT_NAME} ${GL_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts Qt5::OpenGL VFRendering )
-endif ( )
+endif( )
 ### OSX and Unix need libdl
 if( APPLE OR UNIX )
     target_link_libraries( ${PROJECT_NAME} dl )

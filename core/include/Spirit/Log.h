@@ -26,8 +26,10 @@ typedef enum
     Log_Sender_LLG  = 3,
     Log_Sender_MC   = 4,
     Log_Sender_MMF  = 5,
-    Log_Sender_API  = 6,
-    Log_Sender_UI   = 7
+    Log_Sender_EMA  = 6,
+    Log_Sender_API  = 7,
+    Log_Sender_UI   = 8,
+    Log_Sender_HTST = 9
 } Spirit_Log_Sender;
 
 struct State;
@@ -56,10 +58,8 @@ DLLEXPORT int Log_Get_N_Warnings(State *state) noexcept;
 //      Set Log parameters
 DLLEXPORT void Log_Set_Output_File_Tag(State *state, const char * tag) noexcept;
 DLLEXPORT void Log_Set_Output_Folder(State *state, const char * folder) noexcept;
-DLLEXPORT void Log_Set_Output_To_Console(State *state, bool b) noexcept;
-DLLEXPORT void Log_Set_Output_Console_Level(State *state, int level) noexcept;
-DLLEXPORT void Log_Set_Output_To_File(State *state, bool b) noexcept;
-DLLEXPORT void Log_Set_Output_File_Level(State *state, int level) noexcept;
+DLLEXPORT void Log_Set_Output_To_Console(State *state, bool output, int level) noexcept;
+DLLEXPORT void Log_Set_Output_To_File(State *state, bool output, int level) noexcept;
 
 //      Get Log parameters
 DLLEXPORT const char * Log_Get_Output_File_Tag(State *state) noexcept;

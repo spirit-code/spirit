@@ -40,6 +40,7 @@ your disk removes the need for Spirit to clone and build it separately.
 
 A set of CMake variables is pushed to the parent scope by the core CMakeLists.
 These include:
+
 - SPIRIT_LIBRARIES
 - SPIRIT_LIBRARIES_STATIC
 - SPIRIT_INCLUDE_DIRS
@@ -66,7 +67,7 @@ fulfilled by the librarys functions.
 We use `CMake`s `CTest` for unit testing.
 You can run
 
-	cd build && ctest --output-on-failure && cd ..
+    cd build && ctest --output-on-failure && cd ..
 
 or execute any of the test executables manually.
 To execute the tests from the Visual Studio IDE, simply rebuild the `RUN_TESTS` project.
@@ -102,12 +103,12 @@ PYTHONPATH.
 To build a proper python package including binary wheel, you need to
 build the shared library for Python and then execute
 
-	cd path/to/Spirit/core/python
+    cd path/to/Spirit/core/python
     python setup.py sdist bdist_wheel
 
 The resulting package can then be installed with e.g.
 
-	pip install -e /path/to/package/dist/spirit-<tags>.whl
+    pip install -e /path/to/package/dist/spirit-<tags>.whl
 
 ---------------------------------------------
 

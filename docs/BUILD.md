@@ -116,11 +116,17 @@ Core Library <a name="Core"></a>
 
 For detailed build instructions concerning the standalone core library
 or how to include it in your own project, see [core/docs/BUILD.md](../core/docs/BUILD.md).
-* Shared and static library
-* Python bindings
-* Julia bindings
-* Transpiling to JavaScript
-* Unit Tests
+
+- Shared and static library
+- Python bindings
+- Julia bindings
+- Transpiling to JavaScript
+- Unit Tests
+
+| Dependencies | Versions |
+| :----------: | -------- |
+| Any compiler | C++11    |
+| CMake        | >= 3.1   |
 
 The **Root [CMakeLists.txt](../CMakeLists.txt)** has a few options you can set:
 
