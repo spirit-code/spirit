@@ -111,78 +111,86 @@ namespace Engine
             scalar charge = 0; 
             std::vector<Data::vector2_t> points;  
 
-            //compute delaunay for unitcell + basis with neighboring lattice sites a, b, and a+b
+            //compute delaunay for unitcell + basis with neighbouring lattice sites in directions a, b, and a+b
             std::vector<Data::vector2_t> basis_cell_points(geom.n_cell_atoms + 3);
             for(int i = 0; i < geom.n_cell_atoms; i++)
             {
-                basis_cell_points[i].x = (geom.cell_atoms[i][0]);
-                basis_cell_points[i].y = (geom.cell_atoms[i][1]);
+                for(int j=0; j<2; j++)
+                {
+                    basis_cell_points[i].x = (geom.cell_atoms[i][j] * geom.bravais_vectors[j][0]);
+                    basis_cell_points[i].y = (geom.cell_atoms[i][j] * geom.bravais_vectors[j][1]);
+                }
             }
-            basis_cell_points[geom.n_cell_atoms].x   = geom.bravais_vectors[1][0] + geom.bravais_vectors[0][0];
-            basis_cell_points[geom.n_cell_atoms].y   = geom.bravais_vectors[1][1] + geom.bravais_vectors[0][1];
-            basis_cell_points[geom.n_cell_atoms+1].x = geom.bravais_vectors[1][0];
-            basis_cell_points[geom.n_cell_atoms+1].y = geom.bravais_vectors[1][1];
-            basis_cell_points[geom.n_cell_atoms+2].x = geom.bravais_vectors[0][0];
-            basis_cell_points[geom.n_cell_atoms+2].y = geom.bravais_vectors[0][1];
-            
-            std::cout << "before delaunay" << std::endl;
-            for(auto p : basis_cell_points)
-                std::cout << p.x << " " << p.y << std::endl;
 
-            std::vector<Data::triangle_t> delaunay = Data::compute_delaunay_triangulation_2D(basis_cell_points);
-            
-            std::cout << "basis cell triangles" << std::endl;
-                for(auto tri : delaunay)
-                    std::cout << tri[0] << " " << tri[1] << " " << tri[2] << std::endl;
-            std::cout << "after delaunay" << std::endl;
+            Vector3 basis_offset = geom.cell_atoms[0][0] * geom.bravais_vectors[0] + geom.cell_atoms[0][1] * geom.bravais_vectors[1];
 
+            // a+b
+            basis_cell_points[geom.n_cell_atoms].x   = (geom.bravais_vectors[0] + geom.bravais_vectors[1] + basis_offset)[0];
+            basis_cell_points[geom.n_cell_atoms].y   = (geom.bravais_vectors[0] + geom.bravais_vectors[1] + basis_offset)[1];
+            // b
+            basis_cell_points[geom.n_cell_atoms+1].x = (geom.bravais_vectors[1] + basis_offset)[0];
+            basis_cell_points[geom.n_cell_atoms+1].y = (geom.bravais_vectors[1] + basis_offset)[1];
+            // a
+            basis_cell_points[geom.n_cell_atoms+2].x = (geom.bravais_vectors[0] + basis_offset)[0];
+            basis_cell_points[geom.n_cell_atoms+2].y = (geom.bravais_vectors[0] + basis_offset)[1];
+
+            std::vector<Data::triangle_t> triangulation;
+            if (geom.n_cell_atoms > 1)
+            {
+                triangulation = Data::compute_delaunay_triangulation_2D(basis_cell_points);
+            } else {
+                triangulation = {{0,1,2}, {0,3,1}};
+            }
+
+        for(Data::triangle_t tri : triangulation)
+        {
+            //compute the sign of this triangle
+            Vector3 triangle_normal;
+            vectorfield tri_positions(3);
+            for(int i=0; i<3; i++)
+            {
+                tri_positions[i] = {basis_cell_points[tri[i]].x, basis_cell_points[tri[i]].y, 0};
+            }
+            triangle_normal = (tri_positions[0]-tri_positions[1]).cross(tri_positions[0] - tri_positions[2]); 
+            triangle_normal.normalize();
+            scalar sign = triangle_normal[2]/std::abs(triangle_normal[2]) / (4*Pi);
+            
+            //we try to apply the delauny trinagulation at each bravais-lattice point (that is without basis)
+            //for each corner of the triangle we check wether it is "allowed" (which means either inside the simulation box or permitted by periodic boundary conditions)
+            //then we can add the top charge for all trios of spins connected by this triangle
             for(int b = 0; b < geom.n_cells[1]; ++b)
             {
                 for(int a = 0; a < geom.n_cells[0]; ++a)
                 { 
-                    for(Data::triangle_t tri : delaunay)
+                    std::array<Vector3, 3> tri_spins;
+                    //bools to check wether it is allowed to take the next lattice site in direction a, b or a+b
+                    bool a_next_allowed = (a+1 < geom.n_cells[0] || wrap_a);
+                    bool b_next_allowed = (b+1 < geom.n_cells[1] || wrap_b);
+                    bool ab_next_allowed = a_next_allowed && b_next_allowed;
+                    bool valid_triangle = true;
+                    for(int i = 0; i<3; ++i)
                     {
-                        std::array<Vector3, 3> positions;
-                        std::array<Vector3, 3> spins;
-
-                        //bools to check wether it is allowed to take the next lattice site in direction a, b or a+b
-                        bool a_next_allowed = (a+1 < geom.n_cells[0] || wrap_a);
-                        bool b_next_allowed = (b+1 < geom.n_cells[1] || wrap_b);
-                        bool ab_next_allowed = a_next_allowed && b_next_allowed;
-                        bool valid_triangle = true;
-
-                        //we try to apply the delauny trinagulation at each bravais-lattice point (that is without basis)
-                        //for each corner we check wether it is "allowed" (which means either inside the simulation box or permitted by periodic boundary conditions)
-                        //then we can add the top charge for all resulting triangles
-                        for(int i = 0; i<3; ++i)
+                        int idx;
+                        if(tri[i] < geom.n_cell_atoms) //tri[i] is an index of a basis atom, no wrap around can occur
                         {
-                            int idx;
-                            if(tri[i] < geom.n_cell_atoms) //tri[i] is an index of a basis atom, no wrap around can occur
-                            {
-                                idx = (tri[i] + a * geom.n_cell_atoms + b * geom.n_cell_atoms * geom.n_cells[0]);
-                                positions[i] = geom.cell_atoms[tri[i]] + a * geom.bravais_vectors[0] + b * geom.bravais_vectors[1];
-                            } else if (tri[i] == geom.n_cell_atoms + 2 && a_next_allowed) //translation by a 
-                            {
-                                idx = ((a + 1) % geom.n_cells[0]) * geom.n_cell_atoms + b * geom.n_cell_atoms * geom.n_cells[0];
-                                positions[i] = (a + 1) * geom.bravais_vectors[0] + b * geom.bravais_vectors[1];
-
-                            } else if (tri[i] == geom.n_cell_atoms + 1 && b_next_allowed) //translation by b
-                            {
-                                idx = a * geom.n_cell_atoms + ((b + 1) % geom.n_cells[1]) * geom.n_cell_atoms * geom.n_cells[0];
-                                positions[i] = a * geom.bravais_vectors[0] + (b + 1) * geom.bravais_vectors[1];
-
-                            } else if (tri[i] == geom.n_cell_atoms && ab_next_allowed) //translation by a + b
-                            {
-                                idx = ((a + 1) % geom.n_cells[0]) * geom.n_cell_atoms + ((b + 1) % geom.n_cells[1]) * geom.n_cell_atoms * geom.n_cells[0];
-                                positions[i] = (a + 1) * geom.bravais_vectors[0] + (b + 1) * geom.bravais_vectors[1];
-                            } else { //translation not allowed, skip to next triangle
-                                valid_triangle = false;
-                                break;
-                            }
-                            spins[i] = vf[idx];
+                            idx = (tri[i] + a * geom.n_cell_atoms + b * geom.n_cell_atoms * geom.n_cells[0]);
+                        } else if (tri[i] == geom.n_cell_atoms + 2 && a_next_allowed) //translation by a 
+                        {
+                            idx = ((a + 1) % geom.n_cells[0]) * geom.n_cell_atoms + b * geom.n_cell_atoms * geom.n_cells[0];
+                        } else if (tri[i] == geom.n_cell_atoms + 1 && b_next_allowed) //translation by b
+                        {
+                            idx = a * geom.n_cell_atoms + ((b + 1) % geom.n_cells[1]) * geom.n_cell_atoms * geom.n_cells[0];
+                        } else if (tri[i] == geom.n_cell_atoms && ab_next_allowed) //translation by a + b
+                        {
+                            idx = ((a + 1) % geom.n_cells[0]) * geom.n_cell_atoms + ((b + 1) % geom.n_cells[1]) * geom.n_cell_atoms * geom.n_cells[0];
+                        } else { //translation not allowed, skip to next triangle
+                            valid_triangle = false;
+                            break;
                         }
-                        if(valid_triangle)
-                            charge += _TopChargeTriangle(positions[0], positions[1], positions[2], spins[0], spins[1], spins[2]);
+                        tri_spins[i] = vf[idx];
+                    }
+                    if(valid_triangle)
+                        charge += sign * solid_angle_2(tri_spins[0], tri_spins[1], tri_spins[2]);
                     }
                 }
             }
