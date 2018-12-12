@@ -12,10 +12,10 @@ namespace Data
 {
     // TODO: replace that type with Eigen!
     typedef struct {
-        scalar x, y, z;
+        double x, y, z;
     } vector3_t;
     typedef struct {
-        scalar x, y;
+        double x, y;
     } vector2_t;
 
     typedef std::array<int, 4> tetrahedron_t;
@@ -166,5 +166,8 @@ namespace Data
         int last_update_n_cell_step;
         intfield last_update_n_cells;
     };
+    
+    //TODO: find better place (?)
+    std::vector<triangle_t> compute_delaunay_triangulation_2D(const std::vector<vector2_t> & points);
 }
 #endif

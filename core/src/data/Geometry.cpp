@@ -245,8 +245,8 @@ namespace Data
                             for (int ibasis=0; ibasis < n_cell_atoms; ++ibasis)
                             {
                                 idx = ibasis + n_cell_atoms*cell_a + n_cell_atoms*n_cells[0]*cell_b + n_cell_atoms*n_cells[0]*n_cells[1]*cell_c;
-                                points[icell].x = positions[idx][0];
-                                points[icell].y = positions[idx][1];
+                                points[icell].x = double(positions[idx][0]);
+                                points[icell].y = double(positions[idx][1]);
                                 ++icell;
                             }
                         }
@@ -348,9 +348,9 @@ namespace Data
                                 for (int ibasis=0; ibasis < n_cell_atoms; ++ibasis)
                                 {
                                     idx = ibasis + n_cell_atoms*cell_a + n_cell_atoms*n_cells[0]*cell_b + n_cell_atoms*n_cells[0]*n_cells[1]*cell_c;
-                                    points[icell].x = positions[idx][0];
-                                    points[icell].y = positions[idx][1];
-                                    points[icell].z = positions[idx][2];
+                                    points[icell].x = double(positions[idx][0]);
+                                    points[icell].y = double(positions[idx][1]);
+                                    points[icell].z = double(positions[idx][2]);
                                     ++icell;
                                 }
                             }
