@@ -452,7 +452,7 @@ namespace Engine
         // Calculate the mean of a vectorfield
         std::array<scalar, 3> Magnetization(const vectorfield & vf);
         // Calculate the topological charge inside a vectorfield
-        scalar TopologicalCharge(const vectorfield & vf, const Data::Geometry & geom, const int wrap_a=0, const int wrap_b=0);
+        scalar TopologicalCharge(const vectorfield & vf, const Data::Geometry & geom, const intfield & boundary_conditions);
         
         // Utility function for the SIB Solver - maybe create a MathUtil namespace?
         void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out);

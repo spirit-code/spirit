@@ -284,33 +284,96 @@ namespace Engine
             return solid_angle;
         }
 
-        scalar TopologicalCharge(const vectorfield & vf, const vectorfield & vf_pos, const std::vector<std::array<int, 3>> & triangulation)
+        scalar TopologicalCharge(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions)
         {
-            // TODO: this still ignores periodical boundaries, as they are not part of the delaunay triangulation!
+            // This implementations assumes
+            // 1. No basis atom lies outside the cell spanned by the basis vectors of the lattice
+            // 2. The geometry is a plane in x and y and spanned by the first 2 basis_vectors of the lattice
 
-            scalar charge = 0, sign;
-            Vector3 triangle_normal;
-            for (int i = 0; i < triangulation.size(); ++i)
+            const auto & pos = geometry.positions;
+            scalar charge = 0;
+
+            // Compute Delaunay for unitcell + basis with neighbouring lattice sites in directions a, b, and a+b
+            std::vector<Data::vector2_t> basis_cell_points(geometry.n_cell_atoms + 3);
+            for(int i = 0; i < geometry.n_cell_atoms; i++)
             {
-                int i1 = triangulation[i][0];
-                int i2 = triangulation[i][1];
-                int i3 = triangulation[i][2];
+                for(int j=0; j<2; j++)
+                {
+                    basis_cell_points[i].x = double(geometry.cell_atoms[i][j] * geometry.bravais_vectors[j][0]);
+                    basis_cell_points[i].y = double(geometry.cell_atoms[i][j] * geometry.bravais_vectors[j][1]);
+                }
+            }
 
-                auto& vp1 = vf_pos[i1];
-                auto& vp2 = vf_pos[i2];
-                auto& vp3 = vf_pos[i3];
+            Vector3 basis_offset = geometry.cell_atoms[0][0] * geometry.bravais_vectors[0] + geometry.cell_atoms[0][1] * geometry.bravais_vectors[1];
 
-                // TODO: this will only work if the vf_pos are in the xy-plane!
-                triangle_normal = (vp1-vp2).cross(vp1-vp3);
+            // a+b
+            basis_cell_points[geometry.n_cell_atoms].x   = double((geometry.bravais_vectors[0] + geometry.bravais_vectors[1] + basis_offset)[0]);
+            basis_cell_points[geometry.n_cell_atoms].y   = double((geometry.bravais_vectors[0] + geometry.bravais_vectors[1] + basis_offset)[1]);
+            // b
+            basis_cell_points[geometry.n_cell_atoms+1].x = double((geometry.bravais_vectors[1] + basis_offset)[0]);
+            basis_cell_points[geometry.n_cell_atoms+1].y = double((geometry.bravais_vectors[1] + basis_offset)[1]);
+            // a
+            basis_cell_points[geometry.n_cell_atoms+2].x = double((geometry.bravais_vectors[0] + basis_offset)[0]);
+            basis_cell_points[geometry.n_cell_atoms+2].y = double((geometry.bravais_vectors[0] + basis_offset)[1]);
+
+            std::vector<Data::triangle_t> triangulation;
+            triangulation = Data::compute_delaunay_triangulation_2D(basis_cell_points);
+
+            for(Data::triangle_t tri : triangulation)
+            {
+                // Compute the sign of this triangle
+                Vector3 triangle_normal;
+                vectorfield tri_positions(3);
+                for(int i=0; i<3; i++)
+                {
+                    tri_positions[i] = {basis_cell_points[tri[i]].x, basis_cell_points[tri[i]].y, 0};
+                }
+                triangle_normal = (tri_positions[0]-tri_positions[1]).cross(tri_positions[0] - tri_positions[2]);
                 triangle_normal.normalize();
-                sign = triangle_normal[2]/std::abs(triangle_normal[2]);
+                scalar sign = triangle_normal[2]/std::abs(triangle_normal[2]);
 
-                auto& v1 = vf[i1];
-                auto& v2 = vf[i2];
-                auto& v3 = vf[i3];
-
-                // charge += sign * solid_angle_1(v1, v2, v3);
-                charge += sign * solid_angle_2(v1, v2, v3);
+                // We try to apply the Delaunay triangulation at each bravais-lattice point
+                // For each corner of the triangle we check wether it is "allowed" (which means either inside the simulation box or permitted by periodic boundary conditions)
+                // Then we can add the top charge for all trios of spins connected by this triangle
+                for(int b = 0; b < geometry.n_cells[1]; ++b)
+                {
+                    for(int a = 0; a < geometry.n_cells[0]; ++a)
+                    {
+                        std::array<Vector3, 3> tri_spins;
+                        // bools to check wether it is allowed to take the next lattice site in direction a, b or a+b
+                        bool a_next_allowed = (a+1 < geometry.n_cells[0] || boundary_conditions[0]);
+                        bool b_next_allowed = (b+1 < geometry.n_cells[1] || boundary_conditions[1]);
+                        bool valid_triangle = true;
+                        for(int i = 0; i<3; ++i)
+                        {
+                            int idx;
+                            if(tri[i] < geometry.n_cell_atoms) // tri[i] is an index of a basis atom, no wrap around can occur
+                            {
+                                idx = (tri[i] + a * geometry.n_cell_atoms + b * geometry.n_cell_atoms * geometry.n_cells[0]);
+                            }
+                            else if (tri[i] == geometry.n_cell_atoms + 2 && a_next_allowed) // Translation by a
+                            {
+                                idx = ((a + 1) % geometry.n_cells[0]) * geometry.n_cell_atoms + b * geometry.n_cell_atoms * geometry.n_cells[0];
+                            }
+                            else if (tri[i] == geometry.n_cell_atoms + 1 && b_next_allowed) // Translation by b
+                            {
+                                idx = a * geometry.n_cell_atoms + ((b + 1) % geometry.n_cells[1]) * geometry.n_cell_atoms * geometry.n_cells[0];
+                            }
+                            else if (tri[i] == geometry.n_cell_atoms && a_next_allowed && b_next_allowed) // Translation by a + b
+                            {
+                                idx = ((a + 1) % geometry.n_cells[0]) * geometry.n_cell_atoms + ((b + 1) % geometry.n_cells[1]) * geometry.n_cell_atoms * geometry.n_cells[0];
+                            }
+                            else // Translation not allowed, skip to next triangle
+                            {
+                                valid_triangle = false;
+                                break;
+                            }
+                            tri_spins[i] = vf[idx];
+                        }
+                        if(valid_triangle)
+                            charge += sign * solid_angle_2(tri_spins[0], tri_spins[1], tri_spins[2]);
+                    }
+                }
             }
             return charge / (4*Pi);
         }
