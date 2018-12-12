@@ -19,9 +19,9 @@ env:
 
 matrix:
   include:
-    # OSX, xcode 8
+    # OSX, xcode 10
     - os: osx
-      osx_image: xcode8
+      osx_image: xcode10
       env: CMAKE_OPTIONS="-DUSER_PATH_QT=~/usr/local/Cellar/qt/5.11.0" PYPI=true
     # Linux, GCC 6
     - os: linux
