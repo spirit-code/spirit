@@ -12,10 +12,10 @@ namespace Data
 {
     // TODO: replace that type with Eigen!
     typedef struct {
-        scalar x, y, z;
+        double x, y, z;
     } vector3_t;
     typedef struct {
-        scalar x, y;
+        double x, y;
     } vector2_t;
 
     typedef std::array<int, 4> tetrahedron_t;
