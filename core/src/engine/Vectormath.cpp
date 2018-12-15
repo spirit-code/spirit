@@ -99,11 +99,8 @@ namespace Engine
             std::vector<Data::vector2_t> basis_cell_points(geometry.n_cell_atoms + 3);
             for(int i = 0; i < geometry.n_cell_atoms; i++)
             {
-                for(int j=0; j<2; j++)
-                {
-                    basis_cell_points[i].x = double(geometry.cell_atoms[i][j] * geometry.bravais_vectors[j][0]);
-                    basis_cell_points[i].y = double(geometry.cell_atoms[i][j] * geometry.bravais_vectors[j][1]);
-                }
+                basis_cell_points[i].x = double(geometry.cell_atoms[i][0]);
+                basis_cell_points[i].y = double(geometry.cell_atoms[i][1]);
             }
 
             Vector3 basis_offset = geometry.cell_atoms[0][0] * geometry.bravais_vectors[0] + geometry.cell_atoms[0][1] * geometry.bravais_vectors[1];

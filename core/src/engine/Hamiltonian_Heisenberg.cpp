@@ -1072,14 +1072,14 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::FFT_Dipole_Matrices(FFT::FFT_Plan & fft_plan_dipole, int img_a, int img_b, int img_c)
     {
-        //prefactor of ddi interaction
+        // Prefactor of ddi interaction
         scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
 
-        //size of original geometry
+        // Size of original geometry
         int Na = geometry->n_cells[0];
         int Nb = geometry->n_cells[1];
         int Nc = geometry->n_cells[2];
-        //bravais vectors
+        // Bravais vectors
         Vector3 ta = geometry->bravais_vectors[0];
         Vector3 tb = geometry->bravais_vectors[1];
         Vector3 tc = geometry->bravais_vectors[2];
@@ -1099,7 +1099,7 @@ namespace Engine
                 b_inter++;
                 inter_sublattice_lookup[i_b1 + i_b2 * geometry->n_cell_atoms] = b_inter;
 
-                //iterate over the padded system
+                // Iterate over the padded system
                 #pragma omp parallel for collapse(3)
                 for( int c = 0; c < n_cells_padded[2]; ++c )
                 {
@@ -1112,17 +1112,18 @@ namespace Engine
                             int c_idx = c < Nc ? c : c - n_cells_padded[2];
                             scalar Dxx = 0, Dxy = 0, Dxz = 0, Dyy = 0, Dyz = 0, Dzz = 0;
                             Vector3 diff;
-                            //iterate over periodic images
-
+                            // Iterate over periodic images
                             for( int a_pb = - img_a; a_pb <= img_a; a_pb++ )
                             {
                                 for( int b_pb = - img_b; b_pb <= img_b; b_pb++ )
                                 {
                                     for( int c_pb = -img_c; c_pb <= img_c; c_pb++ )
                                     {
-                                        diff =    (a_idx + a_pb * Na + geometry->cell_atoms[i_b1][0] - geometry->cell_atoms[i_b2][0]) * ta
-                                                + (b_idx + b_pb * Nb + geometry->cell_atoms[i_b1][1] - geometry->cell_atoms[i_b2][1]) * tb
-                                                + (c_idx + c_pb * Nc + geometry->cell_atoms[i_b1][2] - geometry->cell_atoms[i_b2][2]) * tc;
+                                        diff =    (a_idx + a_pb * Na) * ta
+                                                + (b_idx + b_pb * Nb) * tb
+                                                + (c_idx + c_pb * Nc) * tc
+                                                + geometry->cell_atoms[i_b1]
+                                                - geometry->cell_atoms[i_b2];
                                         if( diff.norm() > 1e-10 )
                                         {
                                             auto d = diff.norm();
@@ -1148,7 +1149,7 @@ namespace Engine
                             fft_dipole_inputs[idx + 4 * dipole_stride.comp] = Dyz;
                             fft_dipole_inputs[idx + 5 * dipole_stride.comp] = Dzz;
 
-                            //We explicitly ignore the different strides etc. here
+                            // We explicitly ignore the different strides etc. here
                             if( save_dipole_matrices && a < Na && b < Nb && c < Nc )
                             {
                                 dipole_matrices[b_inter + n_inter_sublattice * (a + Na * (b + Nb * c))] <<  Dxx, Dxy, Dxz,
