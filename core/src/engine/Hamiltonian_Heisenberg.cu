@@ -1073,11 +1073,12 @@ namespace Engine
                             {
                                 for(int c_pb = -img[2]; c_pb <= img[2]; c_pb++)
                                 {
-
-                                    diff =    (a_idx + a_pb * n_cells[0] + cell_atoms[i_b1][0] - cell_atoms[i_b2][0]) * bravais_vectors[0]
-                                            + (b_idx + b_pb * n_cells[1] + cell_atoms[i_b1][1] - cell_atoms[i_b2][1]) * bravais_vectors[1]
-                                            + (c_idx + c_pb * n_cells[2] + cell_atoms[i_b1][2] - cell_atoms[i_b2][2]) * bravais_vectors[2];
-
+                                    diff =    (a_idx + a_pb * n_cells[0]) * bravais_vectors[0]
+                                            + (b_idx + b_pb * n_cells[1]) * bravais_vectors[1]
+                                            + (c_idx + c_pb * n_cells[2]) * bravais_vectors[2]
+                                            + cell_atoms[i_b1]
+                                            - cell_atoms[i_b2];
+                                            
                                     if(diff.norm() > 1e-10)
                                     {
                                         auto d = diff.norm();
