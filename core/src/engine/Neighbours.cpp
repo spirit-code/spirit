@@ -143,7 +143,8 @@ namespace Engine
         {
             auto pairs = pairfield(0);
 
-            if (radius > 1e-6)
+            // Check for a meaningful radius
+            if (std::abs(radius) > 1e-6)
             {
                 Vector3 a = geometry.bravais_vectors[0];
                 Vector3 b = geometry.bravais_vectors[1];
@@ -157,18 +158,27 @@ namespace Engine
 
                 // This should give enough translations to contain all DDI pairs
                 int imax = 0, jmax = 0, kmax = 0;
-                if ( bounds_diff[0] > 0 )
-                    imax = std::min(geometry.n_cells[0], (int)(1.1 * radius * geometry.n_cells[0] / bounds_diff[0]));
-                if ( bounds_diff[1] > 0 )
-                    jmax = std::min(geometry.n_cells[1], (int)(1.1 * radius * geometry.n_cells[1] / bounds_diff[1]));
-                if ( bounds_diff[2] > 0 )
-                    kmax = std::min(geometry.n_cells[2], (int)(1.1 * radius * geometry.n_cells[2] / bounds_diff[2]));
+
+                // If radius < 0 we take all pairs
+                if(radius > 0)
+                {
+                    if ( bounds_diff[0] > 0 )
+                        imax = std::min(geometry.n_cells[0] - 1, (int)(1.1 * radius * geometry.n_cells[0] / bounds_diff[0]));
+                    if ( bounds_diff[1] > 0 )
+                        jmax = std::min(geometry.n_cells[1] - 1, (int)(1.1 * radius * geometry.n_cells[1] / bounds_diff[1]));
+                    if ( bounds_diff[2] > 0 )
+                        kmax = std::min(geometry.n_cells[2] - 1, (int)(1.1 * radius * geometry.n_cells[2] / bounds_diff[2]));
+                } else {
+                    imax = geometry.n_cells[0] - 1;
+                    jmax = geometry.n_cells[1] - 1;
+                    kmax = geometry.n_cells[2] - 1;
+                }
 
                 int i,j,k;
                 scalar dx;
                 Vector3 x0={0,0,0}, x1={0,0,0};
 
-                // Abort condidions for all 3 vectors
+                // Abort conditions for all 3 vectors
                 if (a.norm() == 0.0) imax = 0;
                 if (b.norm() == 0.0) jmax = 0;
                 if (c.norm() == 0.0) kmax = 0;
@@ -176,17 +186,18 @@ namespace Engine
                 for (int iatom = 0; iatom < geometry.n_cell_atoms; ++iatom)
                 {
                     x0 = geometry.cell_atoms[iatom];
-                    for (i = imax; i >= -imax; --i)
+
+                    for (i = -imax; i <= imax; ++i)
                     {
-                        for (j = jmax; j >= -jmax; --j)
+                        for (j = -jmax; j <= jmax; ++j)
                         {
-                            for (k = kmax; k >= -kmax; --k)
+                            for (k = -kmax; k <= kmax; ++k)
                             {
                                 for (int jatom = 0; jatom < geometry.n_cell_atoms; ++jatom)
                                 {
                                     x1 = geometry.cell_atoms[jatom] + i*a + j*b + k*c;
                                     dx = (x0-x1).norm();
-                                    if (dx < radius)
+                                    if (dx < radius && dx > 1e-8) // Exclude self-interactions
                                     {
                                         pairs.push_back( {iatom, jatom, {i, j, k} } );
                                     }

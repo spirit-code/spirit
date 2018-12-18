@@ -373,9 +373,7 @@ namespace Engine
                             if( jspin >= 0 )
                             {
                                 Energy[ispin] -= 0.5 * mu_s[ispin] * mu_s[jspin] * mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
-                                    (3 * spins[ispin].dot(ddi_normals[i_pair]) * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin].dot(spins[ispin]));
-                                Energy[jspin] -= 0.5 * mu_s[ispin] * mu_s[jspin] * mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
-                                    (3 * spins[ispin].dot(ddi_normals[i_pair]) * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin].dot(spins[ispin]));
+                                    (3 * spins[ispin].dot(ddi_normals[i_pair]) * spins[jspin].dot(ddi_normals[i_pair]) - spins[ispin].dot(spins[jspin]));
                             }
                         }
                     }
@@ -705,7 +703,6 @@ namespace Engine
                             if( jspin >= 0 )
                             {
                                 gradient[ispin] -= mu_s[jspin] * skalar_contrib * (3 * ddi_normals[i_pair] * spins[jspin].dot(ddi_normals[i_pair]) - spins[jspin]);
-                                gradient[jspin] -= mu_s[ispin] * skalar_contrib * (3 * ddi_normals[i_pair] * spins[ispin].dot(ddi_normals[i_pair]) - spins[ispin]);
                             }
                         }
                     }
