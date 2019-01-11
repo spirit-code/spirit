@@ -226,6 +226,16 @@ def run_apidoc(_):
     apidoc_dir = os.path.join(source_dir, 'docs', 'pyapidoc')
     package_dir = os.path.join(source_dir, 'core', 'python', 'spirit')
 
+    if not os.path.exists(apidoc_dir):
+        os.mkdir(apidoc_dir)
+    with open(os.path.join(apidoc_dir, 'parameters.rst'), "w") as parameters_file:
+        parameters_file.write("Parameters\n"
+                            "==================================\n\n"
+                            ".. toctree::\n    :maxdepth: 2\n\n"
+                            "    MC <spirit.parameters.mc>\n    LLG <spirit.parameters.llg>\n"
+                            "    GNEB <spirit.parameters.gneb>\n    EMA <spirit.parameters.ema>\n"
+                            "    MMF <spirit.parameters.mmf>")
+
     import subprocess
     cmd_path = 'sphinx-apidoc'
     if hasattr(sys, 'real_prefix'):  # Check to see if we are in a virtualenv

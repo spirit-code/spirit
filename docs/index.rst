@@ -30,15 +30,23 @@ Spirit - Spin Simulation Framework
     C API Reference               <../core/docs/API>
     Python API Reference          <../core/docs/API_Python>
 
-
-
-
 .. toctree::
-    :maxdepth: 1
+    :maxdepth: 2
     :caption: Python API Reference
-    :glob:
 
-    pyapidoc/*
+    Chain           <pyapidoc/spirit.chain>
+    Configuration   <pyapidoc/spirit.configuration>
+    Constants       <pyapidoc/spirit.constants>
+    Geometry        <pyapidoc/spirit.geometry>
+    Hamiltonian     <pyapidoc/spirit.hamiltonian>
+    I/O             <pyapidoc/spirit.io>
+    Log             <pyapidoc/spirit.log>
+    Parameters      <pyapidoc/parameters>
+    Quantities      <pyapidoc/spirit.quantities>
+    Simulation      <pyapidoc/spirit.simulation>
+    State           <pyapidoc/spirit.state>
+    System          <pyapidoc/spirit.system>
+    Transition      <pyapidoc/spirit.transition>
 
 .. toctree::
     :maxdepth: 1

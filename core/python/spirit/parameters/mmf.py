@@ -1,3 +1,8 @@
+"""
+Minimum mode following (MMF) method parameters
+-------------------------------------------------------------
+"""
+
 import spirit.spiritlib as spiritlib
 import ctypes
 

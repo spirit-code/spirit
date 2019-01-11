@@ -1,3 +1,8 @@
+"""
+Eigenmode analysis (EMA) method parameters
+-------------------------------------------------------------
+"""
+
 import spirit.spiritlib as spiritlib
 import ctypes
 

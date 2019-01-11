@@ -1,3 +1,8 @@
+"""
+Monte Carlo (MC) method parameters
+-------------------------------------------------------------
+"""
+
 import spirit.spiritlib as spiritlib
 from spirit.io import FILEFORMAT_OVF_TEXT
 import ctypes
