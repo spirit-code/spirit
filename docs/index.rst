@@ -30,6 +30,17 @@ Spirit - Spin Simulation Framework
    C API Reference               <../core/docs/API>
    Python API Reference          <../core/docs/API_Python>
 
+
+.. c:autodoc:: core/include/Spirit/Chain.h
+
+
+.. toctree::
+    :maxdepth: 1
+    :caption: Python API Reference
+
+    pyapidoc/spirit
+    pyapidoc/spirit.parameters
+
 .. toctree::
    :maxdepth: 1
    :caption: Further Information:

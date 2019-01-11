@@ -19,6 +19,9 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
+import sys, os
+sys.path.insert( 0, os.path.join( os.path.dirname( __file__ ), "core", "python", "spirit" ) )
+sys.path.insert( 0, os.path.join( os.path.dirname( __file__ ), "core", "python" ) )
 
 
 # At top on conf.py (with other import statements)
@@ -44,7 +47,7 @@
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = ['sphinx_markdown_tables', 'sphinx.ext.intersphinx',
-    'sphinx.ext.coverage']
+                'sphinx.ext.coverage', 'sphinx.ext.autodoc']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -210,3 +213,44 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}
+
+
+
+def run_apidoc(_):
+    """Runs sphinx-apidoc when building the documentation.
+    Needs to be done in conf.py in order to include the APIdoc in the
+    build on readthedocs.
+    See also https://github.com/rtfd/readthedocs.org/issues/1139
+    """
+    source_dir = os.path.abspath(os.path.dirname(__file__))
+    apidoc_dir = os.path.join(source_dir, 'docs', 'pyapidoc')
+    package_dir = os.path.join(source_dir, 'core', 'python', 'spirit')
+
+    import subprocess
+    cmd_path = 'sphinx-apidoc'
+    if hasattr(sys, 'real_prefix'):  # Check to see if we are in a virtualenv
+        # If we are, assemble the path manually
+        cmd_path = os.path.abspath(os.path.join(sys.prefix, 'bin', 'sphinx-apidoc'))
+
+    options = [
+        '-o', apidoc_dir, package_dir,
+        '--force',
+        '--no-headings',
+        '--module-first',
+        '--no-toc',
+        '--maxdepth', '4',
+    ]
+
+    builddir = os.path.join(source_dir, 'build')
+    if not os.path.exists(builddir):
+        os.mkdir(builddir)
+    subprocess.check_call(['cmake', '..', '-DSPIRIT_BUILD_FOR_CXX=OFF'], cwd=builddir)
+    subprocess.check_call(['make'], cwd=builddir)
+
+    # See https://stackoverflow.com/a/30144019
+    env = os.environ.copy()
+    env["SPHINX_APIDOC_OPTIONS"] = 'members,special-members,private-members,undoc-members,show-inheritance'
+    subprocess.check_call([cmd_path] + options, env=env)
+
+def setup(app):
+    app.connect('builder-inited', run_apidoc)

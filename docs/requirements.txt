@@ -1,2 +1,4 @@
 pandoc
 sphinx-markdown-tables
+cmake
+gcc7
