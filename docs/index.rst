@@ -28,25 +28,24 @@ Spirit - Spin Simulation Framework
     Input File Specification      <../core/docs/INPUT>
     Building the Core Library     <../core/docs/BUILD>
     C API Reference               <../core/docs/API>
-    Python API Reference          <../core/docs/API_Python>
 
 .. toctree::
     :maxdepth: 2
     :caption: Python API Reference
 
-    Chain           <pyapidoc/spirit.chain>
-    Configuration   <pyapidoc/spirit.configuration>
-    Constants       <pyapidoc/spirit.constants>
-    Geometry        <pyapidoc/spirit.geometry>
-    Hamiltonian     <pyapidoc/spirit.hamiltonian>
-    I/O             <pyapidoc/spirit.io>
-    Log             <pyapidoc/spirit.log>
-    Parameters      <pyapidoc/parameters>
-    Quantities      <pyapidoc/spirit.quantities>
-    Simulation      <pyapidoc/spirit.simulation>
-    State           <pyapidoc/spirit.state>
-    System          <pyapidoc/spirit.system>
-    Transition      <pyapidoc/spirit.transition>
+    spirit.chain           <pyapidoc/spirit.chain>
+    spirit.configuration   <pyapidoc/spirit.configuration>
+    spirit.constants       <pyapidoc/spirit.constants>
+    spirit.geometry        <pyapidoc/spirit.geometry>
+    spirit.hamiltonian     <pyapidoc/spirit.hamiltonian>
+    spirit.io              <pyapidoc/spirit.io>
+    spirit.log             <pyapidoc/spirit.log>
+    spirit.parameters      <pyapidoc/parameters>
+    spirit.quantities      <pyapidoc/spirit.quantities>
+    spirit.simulation      <pyapidoc/spirit.simulation>
+    spirit.state           <pyapidoc/spirit.state>
+    spirit.system          <pyapidoc/spirit.system>
+    spirit.transition      <pyapidoc/spirit.transition>
 
 .. toctree::
     :maxdepth: 1
