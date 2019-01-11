@@ -1,3 +1,10 @@
+"""
+Configuration
+--------------------
+
+Set various spin configurations, such as homogeneous domains, spirals or skyrmions.
+"""
+
 import spirit.spiritlib as spiritlib
 import ctypes
 

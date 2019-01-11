@@ -1,3 +1,8 @@
+"""
+System
+--------------------
+"""
+
 import spirit.spiritlib as spiritlib
 import ctypes
 

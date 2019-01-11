@@ -1,3 +1,10 @@
+"""
+Hamiltonian
+--------------------
+
+Set the parameters of the Heisenberg Hamiltonian, such as external field or exchange interaction.
+"""
+
 import spirit.spiritlib as spiritlib
 import ctypes
 

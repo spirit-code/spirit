@@ -1,3 +1,11 @@
+"""
+Chain
+--------------------
+
+Manipulate the chain of spin systems (images), e.g. add, remove or change active image.
+Get information, such as number of images or energies and reaction coordinates.
+"""
+
 import spirit.spiritlib as spiritlib
 import spirit.parameters as parameters
 import spirit.system as system
