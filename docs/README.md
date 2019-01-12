@@ -11,4 +11,3 @@ See the [Core reference section](../core/docs/README.md) for further information
 It includes
 * [Core build instructions](../core/docs/BUILD.md)
 * [Core API Reference](../core/docs/API.md)
-* [Python API Reference](core/docs/API_Python.md)

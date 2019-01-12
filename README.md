@@ -109,7 +109,6 @@ or in the [Reference section](docs/README.md) including
 - [Framework build instructions](docs/BUILD.md)
 - [Core build instructions](core/docs/BUILD.md)
 - [Core API Reference](core/docs/API.md)
-- [Python API Reference](core/docs/API_Python.md)
 - [Input File Reference](core/docs/INPUT.md)
 
 There is also a [Wiki](https://iffwiki.fz-juelich.de/index.php/Spirit "Click me..."),
@@ -162,7 +161,7 @@ or simply use
 
     pip install spirit
 
-With this package you have access to powerful [Python APIs](core/docs/API_Python.md) to run and control
+With this package you have access to powerful Python APIs to run and control
 dynamics simulations or optimizations.
 This is especially useful for work on clusters, where you can now script your
 workflow, never having to re-compile when testing, debugging or adding features.
