@@ -3,7 +3,7 @@ I/O
 --------------------
 
 Read and write spin configurations, chains or eigenmodes.
-Vectorfields are generally written in the [OOMMF vector field (OVF) file format](http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html).
+Vectorfields are generally written in the `OOMMF vector field (OVF) file format <http://math.nist.gov/oommf/doc/userguide12a5/userguide/OVF_2.0_format.html>`_.
 
 Note that, when reading an image or chain from file, the file will automatically be tested for an OVF header.
 If it cannot be identified as OVF, it will be tried to be read as three plain text columns (Sx Sy Sz).

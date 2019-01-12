@@ -1,5 +1,5 @@
 """
-Landau-Lifshitz-Gilbert (LLG) method parameters
+Landau-Lifshitz-Gilbert (LLG)
 -------------------------------------------------------------
 """
 

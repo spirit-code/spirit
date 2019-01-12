@@ -1,5 +1,5 @@
 """
-Monte Carlo (MC) method parameters
+Monte Carlo (MC)
 -------------------------------------------------------------
 """
 

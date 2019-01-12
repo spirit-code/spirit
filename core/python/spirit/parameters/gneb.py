@@ -1,5 +1,5 @@
 """
-Geodesic nudged elastic band (GNEB) method parameters
+Geodesic nudged elastic band (GNEB)
 -------------------------------------------------------------
 """
 

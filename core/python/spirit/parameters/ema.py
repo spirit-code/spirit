@@ -1,5 +1,5 @@
 """
-Eigenmode analysis (EMA) method parameters
+Eigenmode analysis (EMA)
 -------------------------------------------------------------
 
 This method, if needed, calculates modes (they can also be read in from a file)

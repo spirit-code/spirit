@@ -1,5 +1,5 @@
 """
-Minimum mode following (MMF) method parameters
+Minimum mode following (MMF)
 -------------------------------------------------------------
 """
 
