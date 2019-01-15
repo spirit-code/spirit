@@ -36,38 +36,38 @@ struct State;
 
 //      General functions
 // Send a Log message
-DLLEXPORT void Log_Send(State *state, Spirit_Log_Level level, Spirit_Log_Sender sender, const char * message, int idx_image=-1, int idx_chain=-1) noexcept;
+PREFIX void Log_Send(State *state, Spirit_Log_Level level, Spirit_Log_Sender sender, const char * message, int idx_image=-1, int idx_chain=-1) SUFFIX;
 // Get the entries from the Log and write new number of entries into given int
 // TODO: can this be written in a C-style way?
 namespace Utility
 {
     struct LogEntry;
 }
-std::vector<Utility::LogEntry> Log_Get_Entries(State *state) noexcept;
+std::vector<Utility::LogEntry> Log_Get_Entries(State *state) SUFFIX;
 // Append the Log to it's file
-DLLEXPORT void Log_Append(State *state) noexcept;
+PREFIX void Log_Append(State *state) SUFFIX;
 // Dump the Log into it's file
-DLLEXPORT void Log_Dump(State *state) noexcept;
+PREFIX void Log_Dump(State *state) SUFFIX;
 // Get the number of Log entries
-DLLEXPORT int Log_Get_N_Entries(State *state) noexcept;
+PREFIX int Log_Get_N_Entries(State *state) SUFFIX;
 // Get the number of errors in the Log
-DLLEXPORT int Log_Get_N_Errors(State *state) noexcept;
+PREFIX int Log_Get_N_Errors(State *state) SUFFIX;
 // Get the number of warnings in the Log
-DLLEXPORT int Log_Get_N_Warnings(State *state) noexcept;
+PREFIX int Log_Get_N_Warnings(State *state) SUFFIX;
 
 //      Set Log parameters
-DLLEXPORT void Log_Set_Output_File_Tag(State *state, const char * tag) noexcept;
-DLLEXPORT void Log_Set_Output_Folder(State *state, const char * folder) noexcept;
-DLLEXPORT void Log_Set_Output_To_Console(State *state, bool output, int level) noexcept;
-DLLEXPORT void Log_Set_Output_To_File(State *state, bool output, int level) noexcept;
+PREFIX void Log_Set_Output_File_Tag(State *state, const char * tag) SUFFIX;
+PREFIX void Log_Set_Output_Folder(State *state, const char * folder) SUFFIX;
+PREFIX void Log_Set_Output_To_Console(State *state, bool output, int level) SUFFIX;
+PREFIX void Log_Set_Output_To_File(State *state, bool output, int level) SUFFIX;
 
 //      Get Log parameters
-DLLEXPORT const char * Log_Get_Output_File_Tag(State *state) noexcept;
-DLLEXPORT const char * Log_Get_Output_Folder(State *state) noexcept;
-DLLEXPORT bool Log_Get_Output_To_Console(State *state) noexcept;
-DLLEXPORT int Log_Get_Output_Console_Level(State *state) noexcept;
-DLLEXPORT bool Log_Get_Output_To_File(State *state) noexcept;
-DLLEXPORT int Log_Get_Output_File_Level(State *state) noexcept;
+PREFIX const char * Log_Get_Output_File_Tag(State *state) SUFFIX;
+PREFIX const char * Log_Get_Output_Folder(State *state) SUFFIX;
+PREFIX bool Log_Get_Output_To_Console(State *state) SUFFIX;
+PREFIX int Log_Get_Output_Console_Level(State *state) SUFFIX;
+PREFIX bool Log_Get_Output_To_File(State *state) SUFFIX;
+PREFIX int Log_Get_Output_File_Level(State *state) SUFFIX;
 
 #include "DLL_Undefine_Export.h"
 #endif

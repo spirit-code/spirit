@@ -12,55 +12,55 @@ struct State;
 #define IO_Fileformat_OVF_csv   4
 
 // From Config File
-DLLEXPORT int IO_System_From_Config( State * state, const char * file, int idx_image=-1,
-                                     int idx_chain=-1 ) noexcept;
+PREFIX int IO_System_From_Config( State * state, const char * file, int idx_image=-1,
+                                     int idx_chain=-1 ) SUFFIX;
 
 // Geometry
-DLLEXPORT void IO_Positions_Write( State * state, const char *file, int format=IO_Fileformat_OVF_bin, 
-                                   const char *comment = "-", int idx_image=-1, int idx_chain=-1 ) noexcept;
+PREFIX void IO_Positions_Write( State * state, const char *file, int format=IO_Fileformat_OVF_bin, 
+                                   const char *comment = "-", int idx_image=-1, int idx_chain=-1 ) SUFFIX;
 
 ///// TODO: give bool returns for these functions to indicate success??
 
 // Images
-DLLEXPORT int IO_N_Images_In_File( State * state, const char *file, int idx_image=-1, int idx_chain=-1 ) noexcept;
-DLLEXPORT void IO_Image_Read( State *state, const char *file, int idx_image_infile=0, 
-                              int idx_image_inchain=-1, int idx_chain=-1 ) noexcept;
-DLLEXPORT void IO_Image_Write( State *state, const char *file, int format=IO_Fileformat_OVF_bin, 
-                               const char *comment = "-", int idx_image=-1, int idx_chain=-1 ) noexcept;
-DLLEXPORT void IO_Image_Append( State *state, const char *file, int format=IO_Fileformat_OVF_bin, 
-                                const char *comment = "-", int idx_image=-1, int idx_chain=-1 ) noexcept;
+PREFIX int IO_N_Images_In_File( State * state, const char *file, int idx_image=-1, int idx_chain=-1 ) SUFFIX;
+PREFIX void IO_Image_Read( State *state, const char *file, int idx_image_infile=0, 
+                              int idx_image_inchain=-1, int idx_chain=-1 ) SUFFIX;
+PREFIX void IO_Image_Write( State *state, const char *file, int format=IO_Fileformat_OVF_bin, 
+                               const char *comment = "-", int idx_image=-1, int idx_chain=-1 ) SUFFIX;
+PREFIX void IO_Image_Append( State *state, const char *file, int format=IO_Fileformat_OVF_bin, 
+                                const char *comment = "-", int idx_image=-1, int idx_chain=-1 ) SUFFIX;
 
 // Chains
-DLLEXPORT void IO_Chain_Read( State *state, const char *file, int start_image_infile=0, 
-                              int end_image_infile=-1, int insert_idx=0, int idx_chain=-1 ) noexcept;
-DLLEXPORT void IO_Chain_Write( State *state, const char *file, int format=IO_Fileformat_OVF_text, 
-                               const char* comment = "-", int idx_chain=-1 ) noexcept;
-DLLEXPORT void IO_Chain_Append( State *state, const char *file, int format=IO_Fileformat_OVF_text, 
-                                const char* comment = "-", int idx_chain=-1 ) noexcept;
+PREFIX void IO_Chain_Read( State *state, const char *file, int start_image_infile=0, 
+                              int end_image_infile=-1, int insert_idx=0, int idx_chain=-1 ) SUFFIX;
+PREFIX void IO_Chain_Write( State *state, const char *file, int format=IO_Fileformat_OVF_text, 
+                               const char* comment = "-", int idx_chain=-1 ) SUFFIX;
+PREFIX void IO_Chain_Append( State *state, const char *file, int format=IO_Fileformat_OVF_text, 
+                                const char* comment = "-", int idx_chain=-1 ) SUFFIX;
 
 // Save the interactions
-DLLEXPORT void IO_Image_Write_Neighbours_Exchange( State * state, const char * file, 
-                                         int idx_image=-1, int idx_chain=-1 ) noexcept;
-DLLEXPORT void IO_Image_Write_Neighbours_DMI( State * state, const char * file, 
-                                    int idx_image=-1, int idx_chain=-1 ) noexcept;
+PREFIX void IO_Image_Write_Neighbours_Exchange( State * state, const char * file, 
+                                         int idx_image=-1, int idx_chain=-1 ) SUFFIX;
+PREFIX void IO_Image_Write_Neighbours_DMI( State * state, const char * file, 
+                                    int idx_image=-1, int idx_chain=-1 ) SUFFIX;
 
 // Save the spin-resolved energy contributions of a spin system
-DLLEXPORT void IO_Image_Write_Energy_per_Spin( State *state, const char *file, int idx_image=-1, 
-                                               int idx_chain = -1 ) noexcept;
+PREFIX void IO_Image_Write_Energy_per_Spin( State *state, const char *file, int idx_image=-1, 
+                                               int idx_chain = -1 ) SUFFIX;
 // Save the Energy contributions of a spin system
-DLLEXPORT void IO_Image_Write_Energy( State *state, const char *file, int idx_image=-1, 
-                                      int idx_chain=-1 ) noexcept;
+PREFIX void IO_Image_Write_Energy( State *state, const char *file, int idx_image=-1, 
+                                      int idx_chain=-1 ) SUFFIX;
 
 // Save the Energy contributions of a chain of spin systems
-DLLEXPORT void IO_Chain_Write_Energies( State *state, const char *file, int idx_chain = -1 ) noexcept;
+PREFIX void IO_Chain_Write_Energies( State *state, const char *file, int idx_chain = -1 ) SUFFIX;
 // Save the interpolated energies of a chain of spin systems
-DLLEXPORT void IO_Chain_Write_Energies_Interpolated( State *state, const char *file, 
-                                                     int idx_chain = -1 ) noexcept;
+PREFIX void IO_Chain_Write_Energies_Interpolated( State *state, const char *file, 
+                                                     int idx_chain = -1 ) SUFFIX;
 
 // Eigenmodes
-DLLEXPORT void IO_Eigenmodes_Read( State *state, const char *file, int idx_image_inchain=-1, int idx_chain=-1 ) noexcept;
-DLLEXPORT void IO_Eigenmodes_Write( State *state, const char *file, int format=IO_Fileformat_OVF_text, 
-                                    const char *comment = "-", int idx_image=-1, int idx_chain=-1 ) noexcept;
+PREFIX void IO_Eigenmodes_Read( State *state, const char *file, int idx_image_inchain=-1, int idx_chain=-1 ) SUFFIX;
+PREFIX void IO_Eigenmodes_Write( State *state, const char *file, int format=IO_Fileformat_OVF_text, 
+                                    const char *comment = "-", int idx_image=-1, int idx_chain=-1 ) SUFFIX;
 
 #include "DLL_Undefine_Export.h"
 #endif
