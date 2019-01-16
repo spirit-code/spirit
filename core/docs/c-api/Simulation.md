@@ -7,18 +7,68 @@ Simulation
 #include "Spirit/Simulation.h"
 ```
 
-TODO: explain single shot.
+This API of Spirit is used to run and monitor iterative calculation methods.
+
+If many iterations are called individually, one should use the single shot simulation functionality.
+It avoids the allocations etc. involved when a simulation is started and ended and behaves like a
+regular simulation, except that the iterations have to be triggered manually.
 
 
 
 Definition of solvers
 --------------------------------------------------------------------
 
-- `VP`: Verlet-like velocity projection
-- `SIB`: Verlet-like velocity projection
-- `Depondt`: Verlet-like velocity projection
-- `Heun`: Verlet-like velocity projection
-- `RK4`: Verlet-like velocity projection
+Note that the VP and NCG Solvers are only meant for direct minimization and not for dynamics.
+
+
+
+### Solver_VP
+
+```C
+Solver_VP          0
+```
+
+`VP`: Verlet-like velocity projection
+
+
+
+### Solver_SIB
+
+```C
+Solver_SIB         1
+```
+
+`SIB`: Verlet-like velocity projection
+
+
+
+### Solver_Depondt
+
+```C
+Solver_Depondt     2
+```
+
+`Depondt`: Verlet-like velocity projection
+
+
+
+### Solver_Heun
+
+```C
+Solver_Heun        3
+```
+
+`Heun`: Verlet-like velocity projection
+
+
+
+### Solver_RungeKutta4
+
+```C
+Solver_RungeKutta4 4
+```
+
+`RK4`: Verlet-like velocity projection
 
 
 
