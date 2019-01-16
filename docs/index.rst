@@ -39,6 +39,11 @@ Spirit - Spin Simulation Framework
     Hamiltonian     <../core/docs/c-api/Hamiltonian>
     IO              <../core/docs/c-api/IO>
     Log             <../core/docs/c-api/Log>
+    Parameters_MC   <../core/docs/c-api/Parameters_MC>
+    Parameters_LLG  <../core/docs/c-api/Parameters_LLG>
+    Parameters_GNEB <../core/docs/c-api/Parameters_GNEB>
+    Parameters_EMA  <../core/docs/c-api/Parameters_EMA>
+    Parameters_MMF  <../core/docs/c-api/Parameters_MMF>
     Quantities      <../core/docs/c-api/Quantities>
     Simulation      <../core/docs/c-api/Simulation>
     State           <../core/docs/c-api/State>
