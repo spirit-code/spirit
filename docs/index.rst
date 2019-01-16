@@ -10,23 +10,19 @@ Spirit - Spin Simulation Framework
 
 .. toctree::
     :maxdepth: 1
-    :caption: Introduction:
+    :caption: Introduction
 
-    General                       <../README>
-    Desktop User Interface        <UI-Qt>
-
-.. toctree::
-    :maxdepth: 1
-    :caption: Framework:
-
-    Building Framework Components <BUILD>
+    General                     <../README>
+    Desktop User Interface      <UI-Qt>
+    Input File Specification    <../core/docs/INPUT>
 
 .. toctree::
     :maxdepth: 1
-    :caption: Core Library:
+    :caption: Building
 
-    Input File Specification      <../core/docs/INPUT>
-    Building the Core Library     <../core/docs/BUILD>
+    The Core Library        <../core/docs/BUILD>
+    Framework Components    <BUILD>
+
 
 .. toctree::
     :maxdepth: 2
@@ -54,29 +50,29 @@ Spirit - Spin Simulation Framework
     :maxdepth: 2
     :caption: Python API Reference
 
-    spirit.chain           <pyapidoc/spirit.chain>
-    spirit.configuration   <pyapidoc/spirit.configuration>
-    spirit.constants       <pyapidoc/spirit.constants>
-    spirit.geometry        <pyapidoc/spirit.geometry>
-    spirit.hamiltonian     <pyapidoc/spirit.hamiltonian>
-    spirit.io              <pyapidoc/spirit.io>
-    spirit.log             <pyapidoc/spirit.log>
-    spirit.parameters      <pyapidoc/parameters>
-    spirit.quantities      <pyapidoc/spirit.quantities>
-    spirit.simulation      <pyapidoc/spirit.simulation>
-    spirit.state           <pyapidoc/spirit.state>
-    spirit.system          <pyapidoc/spirit.system>
-    spirit.transition      <pyapidoc/spirit.transition>
+    spirit.chain            <pyapidoc/spirit.chain>
+    spirit.configuration    <pyapidoc/spirit.configuration>
+    spirit.constants        <pyapidoc/spirit.constants>
+    spirit.geometry         <pyapidoc/spirit.geometry>
+    spirit.hamiltonian      <pyapidoc/spirit.hamiltonian>
+    spirit.io               <pyapidoc/spirit.io>
+    spirit.log              <pyapidoc/spirit.log>
+    spirit.parameters       <pyapidoc/parameters>
+    spirit.quantities       <pyapidoc/spirit.quantities>
+    spirit.simulation       <pyapidoc/spirit.simulation>
+    spirit.state            <pyapidoc/spirit.state>
+    spirit.system           <pyapidoc/spirit.system>
+    spirit.transition       <pyapidoc/spirit.transition>
 
 .. toctree::
     :maxdepth: 1
-    :caption: Further Information:
+    :caption: Further Information
 
-    License                       <https://github.com/spirit-code/spirit/blob/master/LICENSE.txt>
-    Contributing                  <CONTRIBUTING>
-    Contributors                  <CONTRIBUTORS>
-    Referencing this Code         <REFERENCE>
-    Included Dependencies         <dependencies>
+    License                 <https://github.com/spirit-code/spirit/blob/master/LICENSE.txt>
+    Contributing            <CONTRIBUTING>
+    Contributors            <CONTRIBUTORS>
+    Referencing this Code   <REFERENCE>
+    Included dependencies   <dependencies>
 
 
 Indices and tables
