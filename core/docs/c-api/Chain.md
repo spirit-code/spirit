@@ -10,16 +10,6 @@ A chain of spin systems can be used for example for
 
 
 
-### State
-
-```C
-struct State
-```
-
-Forward declaration of opaque State struct.
-
-
-
 ### Chain_Get_NOI
 
 ```C

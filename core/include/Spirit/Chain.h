@@ -2,6 +2,7 @@
 #ifndef INTERFACE_CHAIN_H
 #define INTERFACE_CHAIN_H
 #include "DLL_Define_Export.h"
+struct State;
 
 /*
 Chain
@@ -12,10 +13,6 @@ A chain of spin systems can be used for example for
 - running multiple (e.g. LLG) calculations in parallel
 - calculate HTST transition rates
 */
-
-
-// Forward declaration of opaque State struct.
-struct State;
 
 // Returns the number of images in the chain.
 PREFIX int Chain_Get_NOI(State * state, int idx_chain=-1) SUFFIX;

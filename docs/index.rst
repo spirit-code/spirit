@@ -33,8 +33,10 @@ Spirit - Spin Simulation Framework
     :maxdepth: 2
     :caption: C API Reference
 
-    Chain       <../core/docs/c-api/Chain>
-    Geometry    <../core/docs/c-api/Geometry>
+    Chain           <../core/docs/c-api/Chain>
+    Configurations  <../core/docs/c-api/Configurations>
+    Constants       <../core/docs/c-api/Constants>
+    Geometry        <../core/docs/c-api/Geometry>
 
 .. toctree::
     :maxdepth: 2
