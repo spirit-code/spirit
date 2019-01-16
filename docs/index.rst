@@ -38,6 +38,7 @@ Spirit - Spin Simulation Framework
     Geometry        <../core/docs/c-api/Geometry>
     Hamiltonian     <../core/docs/c-api/Hamiltonian>
     IO              <../core/docs/c-api/IO>
+    Log             <../core/docs/c-api/Log>
     State           <../core/docs/c-api/State>
     System          <../core/docs/c-api/System>
     Transition      <../core/docs/c-api/Transition>
