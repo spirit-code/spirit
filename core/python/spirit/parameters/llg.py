@@ -156,7 +156,7 @@ def set_temperature(p_state, temperature, gradient_inclination=0, gradient_direc
     """Set the temperature configuration.
 
     - temperature: homogeneous base temperature [K]
-    - gradient_inclination: inclination of the temperature gradient [K/Å]
+    - gradient_inclination: inclination of the temperature gradient [K/a]
     - gradient_direction: direction of the temperature gradient, array of shape (3)
     """
     _LLG_Set_Temperature(ctypes.c_void_p(p_state), ctypes.c_float(temperature),
@@ -244,7 +244,7 @@ def get_temperature(p_state, idx_image=-1, idx_chain=-1):
     """Returns the temperature configuration.
 
     - global base temperature [K]
-    - inclination of the temperature gradient [K/Å]
+    - inclination of the temperature gradient [K/a]
     - direction of the temperature gradient, array of shape (3)
     """
     temperature = float(_LLG_Get_Temperature(ctypes.c_void_p(p_state), ctypes.c_int(idx_image),

@@ -102,8 +102,8 @@ def skyrmion(p_state, radius, order=1, phase=1, up_down=False, achiral=False, ri
     """
     vec3 = ctypes.c_float * 3
     _Skyrmion(ctypes.c_void_p(p_state), ctypes.c_float(radius), ctypes.c_float(order),
-              ctypes.c_float(phase), ctypes.c_bool(upDown), ctypes.c_bool(achiral),
-              ctypes.c_bool(rightleft), vec3(*pos), vec3(*border_rectangular),
+              ctypes.c_float(phase), ctypes.c_bool(up_down), ctypes.c_bool(achiral),
+              ctypes.c_bool(right_left), vec3(*pos), vec3(*border_rectangular),
               ctypes.c_float(border_cylindrical), ctypes.c_float(border_spherical),
               ctypes.c_bool(inverted), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
