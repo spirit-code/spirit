@@ -8,6 +8,10 @@ struct State;
 Hamiltonian
 ====================================================================
 
+```C
+#include "Spirit/Hamiltonian.h"
+```
+
 This currently only provides an interface to the Heisenberg Hamiltonian.
 */
 

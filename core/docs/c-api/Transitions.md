@@ -3,6 +3,10 @@
 Transitions
 ====================================================================
 
+```C
+#include "Spirit/Transitions.h"
+```
+
 Setting transitions between spin configurations over a chain.
 
 

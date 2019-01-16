@@ -10,6 +10,10 @@ struct State;
 System
 ====================================================================
 
+```C
+#include "Spirit/Transitions.h"
+```
+
 Spin systems are often referred to as "images" throughout Spirit.
 The `idx_image` is used throughout the API to specify which system
 out of the chain a function should be applied to.

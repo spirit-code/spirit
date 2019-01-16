@@ -8,11 +8,15 @@ struct State;
 I/O
 ====================================================================
 
+```C
+#include "Spirit/IO.h"
+```
+
 TODO: give bool returns for these functions to indicate success?
 */
 
 /*
-Define File Formats for Vector Fields
+Definition of file formats for vectorfields
 --------------------------------------------------------------------
 
 Spirit uses the OOMMF vector field file format with some minor variations.

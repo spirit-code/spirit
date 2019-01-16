@@ -10,6 +10,10 @@ struct State;
 Geometry
 ====================================================================
 
+```C
+#include "Spirit/Geometry.h"
+```
+
 This set of functions can be used to get information about the
 geometric setup of the system and to change it.
 
@@ -18,7 +22,11 @@ calculation, as this has not been so thoroughly tested.
 */
 
 
-// Define Bravais lattice types
+/*
+Definition of Bravais lattice types
+--------------------------------------------------------------------
+*/
+
 typedef enum
 {
     Bravais_Lattice_Irregular   = 0,

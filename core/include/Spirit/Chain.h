@@ -8,6 +8,10 @@ struct State;
 Chain
 ====================================================================
 
+```C
+#include "Spirit/Chain.h"
+```
+
 A chain of spin systems can be used for example for
 - calculating minimum energy paths using the GNEB method
 - running multiple (e.g. LLG) calculations in parallel

@@ -9,6 +9,10 @@
 Constants
 ====================================================================
 
+```C
+#include "Spirit/Constants.h"
+```
+
 Physical constants in units compatible to what is used in Spirit.
 */
 

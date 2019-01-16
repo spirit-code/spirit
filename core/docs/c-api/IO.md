@@ -3,11 +3,15 @@
 I/O
 ====================================================================
 
+```C
+#include "Spirit/IO.h"
+```
+
 TODO: give bool returns for these functions to indicate success?
 
 
 
-Define File Formats for Vector Fields
+Definition of file formats for vectorfields
 --------------------------------------------------------------------
 
 Spirit uses the OOMMF vector field file format with some minor variations.
@@ -75,7 +79,7 @@ Other
 int IO_System_From_Config( State * state, const char * file, int idx_image=-1, int idx_chain=-1 )
 ```
 
-From Config File
+Initialise a spin system using a config file.
 
 
 
@@ -85,7 +89,7 @@ From Config File
 PREFIX void IO_Positions_Write( State * state, const char *file, int format=IO_Fileformat_OVF_bin, const char *comment = "-", int idx_image=-1, int idx_chain=-1 ) SUFFIX
 ```
 
-Geometry
+Write the spin positions as a vector field to file.
 
 
 
@@ -100,7 +104,37 @@ Spin configurations
 int IO_N_Images_In_File( State * state, const char *file, int idx_image=-1, int idx_chain=-1 )
 ```
 
-Images
+Returns the number of images (i.e. OVF segments) in a given file.
+
+
+
+### IO_Image_Read
+
+```C
+PREFIX void IO_Image_Read( State *state, const char *file, int idx_image_infile=0, int idx_image_inchain=-1, int idx_chain=-1 ) SUFFIX
+```
+
+Reads a spin configuration from a file.
+
+
+
+### IO_Image_Write
+
+```C
+PREFIX void IO_Image_Write( State *state, const char *file, int format=IO_Fileformat_OVF_bin, const char *comment = "-", int idx_image=-1, int idx_chain=-1 ) SUFFIX
+```
+
+Writes a spin configuration to file.
+
+
+
+### IO_Image_Append
+
+```C
+PREFIX void IO_Image_Append( State *state, const char *file, int format=IO_Fileformat_OVF_bin, const char *comment = "-", int idx_image=-1, int idx_chain=-1 ) SUFFIX
+```
+
+Appends a spin configuration to a file.
 
 
 
@@ -115,7 +149,30 @@ Chains
 PREFIX void IO_Chain_Read( State *state, const char *file, int start_image_infile=0, int end_image_infile=-1, int insert_idx=0, int idx_chain=-1 ) SUFFIX
 ```
 
-Chains
+Read a chain of spin configurations from a file.
+
+If the current chain is not long enough to fit the file contents, systems
+will be appended accordingly.
+
+
+
+### IO_Chain_Write
+
+```C
+PREFIX void IO_Chain_Write( State *state, const char *file, int format=IO_Fileformat_OVF_text, const char* comment = "-", int idx_chain=-1 ) SUFFIX
+```
+
+Write the current chain of spin configurations to file
+
+
+
+### IO_Chain_Append
+
+```C
+PREFIX void IO_Chain_Append( State *state, const char *file, int format=IO_Fileformat_OVF_text, const char* comment = "-", int idx_chain=-1 ) SUFFIX
+```
+
+Append the current chain of spin configurations to a file
 
 
 
@@ -130,7 +187,17 @@ Neighbours
 void IO_Image_Write_Neighbours_Exchange( State * state, const char * file, int idx_image=-1, int idx_chain=-1 )
 ```
 
-Save the interactions
+Save the exchange interactions
+
+
+
+### IO_Image_Write_Neighbours_DMI
+
+```C
+void IO_Image_Write_Neighbours_DMI( State * state, const char * file, int idx_image=-1, int idx_chain=-1 )
+```
+
+Save the DM interactions
 
 
 

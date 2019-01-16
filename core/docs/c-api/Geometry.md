@@ -3,6 +3,10 @@
 Geometry
 ====================================================================
 
+```C
+#include "Spirit/Geometry.h"
+```
+
 This set of functions can be used to get information about the
 geometric setup of the system and to change it.
 
@@ -11,13 +15,8 @@ calculation, as this has not been so thoroughly tested.
 
 
 
-### 
-
-```C
-typedef enum { Bravais_Lattice_Irregular   = 0, Bravais_Lattice_Rectilinear = 1, Bravais_Lattice_SC          = 2, Bravais_Lattice_Hex2D       = 3, Bravais_Lattice_Hex2D_60    = 4, Bravais_Lattice_Hex2D_120   = 5, Bravais_Lattice_HCP         = 6, Bravais_Lattice_BCC         = 7, Bravais_Lattice_FCC         = 8 } Bravais_Lattice_Type
-```
-
-Define Bravais lattice types
+Definition of Bravais lattice types
+--------------------------------------------------------------------
 
 
 

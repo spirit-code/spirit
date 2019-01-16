@@ -8,6 +8,10 @@ struct State;
 Configurations
 ====================================================================
 
+```C
+#include "Spirit/Configurations.h"
+```
+
 Setting spin configurations for individual spin systems.
 
 The position of the relative center and a set of conditions can be defined.

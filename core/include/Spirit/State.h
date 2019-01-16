@@ -7,6 +7,10 @@
 State
 ====================================================================
 
+```C
+#include "Spirit/Transitions.h"
+```
+
 To create a new state with one chain containing a single image,
 initialized by an [input file](INPUT.md), and run the most simple example
 of a **spin dynamics simulation**:
