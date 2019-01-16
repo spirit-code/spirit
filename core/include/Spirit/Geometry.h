@@ -6,6 +6,18 @@ struct State;
 
 #include "Spirit_Defines.h"
 
+/*
+Geometry
+====================================================================
+
+This set of functions can be used to get information about the
+geometric setup of the system and to change it.
+
+Note that it is not fully safe to change the geometry during a
+calculation, as this has not been so thoroughly tested.
+*/
+
+
 // Define Bravais lattice types
 typedef enum
 {
@@ -22,7 +34,7 @@ typedef enum
 
 /*
 Setters
-====================================================================
+--------------------------------------------------------------------
 */
 
 /*
@@ -63,12 +75,11 @@ PREFIX void Geometry_Set_Lattice_Constant(State *state, float lattice_constant) 
 
 /*
 Getters
-====================================================================
+--------------------------------------------------------------------
 */
 
 /*
-The overall lattice
-----------------------------------------
+### The overall lattice
 */
 
 /*
@@ -127,8 +138,7 @@ Get number of basis cells in the three translation directions.
 PREFIX void Geometry_Get_N_Cells(State *state, int n_cells[3], int idx_image=-1, int idx_chain=-1) SUFFIX;
 
 /*
-The basis cell
-----------------------------------------
+### The basis cell
 */
 
 /*
@@ -147,8 +157,7 @@ Get basis cell atoms.
 PREFIX int Geometry_Get_Cell_Atoms(State *state, scalar ** atoms, int idx_image=-1, int idx_chain=-1) SUFFIX;
 
 /*
-Triangulation and tetrahedra
-----------------------------------------
+### Triangulation and tetrahedra
 */
 
 /*

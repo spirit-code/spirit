@@ -31,6 +31,13 @@ Spirit - Spin Simulation Framework
 
 .. toctree::
     :maxdepth: 2
+    :caption: C API Reference
+
+    Chain       <../core/docs/c-api/Chain>
+    Geometry    <../core/docs/c-api/Geometry>
+
+.. toctree::
+    :maxdepth: 2
     :caption: Python API Reference
 
     spirit.chain           <pyapidoc/spirit.chain>

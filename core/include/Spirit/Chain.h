@@ -3,17 +3,26 @@
 #define INTERFACE_CHAIN_H
 #include "DLL_Define_Export.h"
 
+/*
+Chain
+====================================================================
+
+A chain of spin systems can be used for example for
+- calculating minimum energy paths using the GNEB method
+- running multiple (e.g. LLG) calculations in parallel
+- calculate HTST transition rates
+*/
+
+
 // Forward declaration of opaque State struct.
 struct State;
 
-/*
-Returns the number of images in the chain.
-*/
+// Returns the number of images in the chain.
 PREFIX int Chain_Get_NOI(State * state, int idx_chain=-1) SUFFIX;
 
 /*
 Change the active image
-====================================================================
+--------------------------------------------------------------------
 */
 
 /*
@@ -40,7 +49,7 @@ PREFIX bool Chain_Jump_To_Image(State * state, int idx_image=-1, int idx_chain=-
 
 /*
 Insert/replace/delete images
-====================================================================
+--------------------------------------------------------------------
 */
 
 /*
@@ -106,7 +115,7 @@ PREFIX bool Chain_Pop_Back(State * state, int idx_chain=-1) SUFFIX;
 
 /*
 Calculate data
-====================================================================
+--------------------------------------------------------------------
 */
 
 /*
