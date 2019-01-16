@@ -392,7 +392,7 @@ void SpinWidget::updateVectorFieldGeometry()
     //      get tetrahedra
     if (Geometry_Get_Dimensionality(state.get()) == 3)
     {
-        if( n_cell_step > 1 && n_cells[0]/n_cell_step < 2 || n_cells[1]/n_cell_step < 2 || n_cells[2]/n_cell_step < 2 )
+        if( n_cell_step > 1 && (n_cells[0]/n_cell_step < 2 || n_cells[1]/n_cell_step < 2 || n_cells[2]/n_cell_step < 2) )
         {
             geometry = VFRendering::Geometry(positions, {}, {}, true);
         }
