@@ -27,7 +27,6 @@ Spirit - Spin Simulation Framework
 
     Input File Specification      <../core/docs/INPUT>
     Building the Core Library     <../core/docs/BUILD>
-    C API Reference               <../core/docs/API>
 
 .. toctree::
     :maxdepth: 2
@@ -39,6 +38,7 @@ Spirit - Spin Simulation Framework
     Geometry        <../core/docs/c-api/Geometry>
     Hamiltonian     <../core/docs/c-api/Hamiltonian>
     IO              <../core/docs/c-api/IO>
+    State           <../core/docs/c-api/State>
 
 .. toctree::
     :maxdepth: 2
