@@ -39,6 +39,8 @@ Spirit - Spin Simulation Framework
     Hamiltonian     <../core/docs/c-api/Hamiltonian>
     IO              <../core/docs/c-api/IO>
     State           <../core/docs/c-api/State>
+    System          <../core/docs/c-api/System>
+    Transition      <../core/docs/c-api/Transition>
 
 .. toctree::
     :maxdepth: 2

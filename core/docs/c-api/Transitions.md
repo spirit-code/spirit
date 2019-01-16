@@ -1,17 +1,18 @@
-#pragma once
-#ifndef INTERFACE_TRANSITIONS_H
-#define INTERFACE_TRANSITIONS_H
-#include "DLL_Define_Export.h"
-struct State;
 
-/*
+
 Transitions
 ====================================================================
 
 Setting transitions between spin configurations over a chain.
-*/
 
-/*
+
+
+### Transition_Homogeneous
+
+```C
+void Transition_Homogeneous(State *state, int idx_1, int idx_2, int idx_chain=-1)
+```
+
 A linear interpolation between two spin configurations on a chain.
 
 The spins are moved along great circles connecting the start and end
@@ -20,17 +21,18 @@ two configurations.
 
 - `idx_1`: the index of the first image
 - `idx_2`: the index of the second image. `idx_2 > idx_1` is required
-*/
-PREFIX void Transition_Homogeneous(State *state, int idx_1, int idx_2, int idx_chain=-1) SUFFIX;
 
-/*
+
+
+### Transition_Add_Noise_Temperature
+
+```C
+void Transition_Add_Noise_Temperature(State *state, float temperature, int idx_1, int idx_2, int idx_chain=-1)
+```
+
 Adds some stochastic noise to the transition between two images.
 
 - `temperature`: a measure of the intensity of the noise
 - `idx_1`: the index of the first image
 - `idx_2`: the index of the second image. `idx_2 > idx_1` is required
-*/
-PREFIX void Transition_Add_Noise_Temperature(State *state, float temperature, int idx_1, int idx_2, int idx_chain=-1) SUFFIX;
 
-#include "DLL_Undefine_Export.h"
-#endif
