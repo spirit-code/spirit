@@ -37,6 +37,8 @@ Spirit - Spin Simulation Framework
     Configurations  <../core/docs/c-api/Configurations>
     Constants       <../core/docs/c-api/Constants>
     Geometry        <../core/docs/c-api/Geometry>
+    Hamiltonian     <../core/docs/c-api/Hamiltonian>
+    IO              <../core/docs/c-api/IO>
 
 .. toctree::
     :maxdepth: 2
