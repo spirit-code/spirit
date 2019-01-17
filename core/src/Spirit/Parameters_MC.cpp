@@ -124,7 +124,7 @@ void Parameters_MC_Set_Output_Configuration( State *state, bool configuration_st
         image->Lock();
         image->mc_parameters->output_configuration_step = configuration_step;
         image->mc_parameters->output_configuration_archive = configuration_archive;
-        image->mc_parameters->output_configuration_filetype = configuration_filetype;
+        image->mc_parameters->output_vf_filetype = IO::VF_FileFormat(configuration_filetype);
         image->Unlock();
     }
     catch( ... )
@@ -343,7 +343,7 @@ void Parameters_MC_Get_Output_Configuration( State *state, bool * configuration_
 
         *configuration_step = image->mc_parameters->output_configuration_step;
         *configuration_archive = image->mc_parameters->output_configuration_archive;
-        *configuration_filetype = image->mc_parameters->output_configuration_filetype;
+        *configuration_filetype = (int)image->mc_parameters->output_vf_filetype;
     }
     catch( ... )
     {
