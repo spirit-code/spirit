@@ -728,17 +728,21 @@ namespace Engine
 
         int idx_b1, idx_b2, idx_d;
 
+        // Workaround for compability with intel compiler
+        const int c_n_cell_atoms = geometry->n_cell_atoms;
+        const int * c_it_bounds_pointwise_mult = it_bounds_pointwise_mult.data();
+
         // Loop over basis atoms (i.e sublattices)
         #pragma omp parallel for collapse(5)
-        for( int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1 )
+        for( int i_b1 = 0; i_b1 <c_n_cell_atoms; ++i_b1 )
         {
-            for( int c = 0; c < it_bounds_pointwise_mult[2]; ++c )
+            for( int c = 0; c < c_it_bounds_pointwise_mult[2]; ++c )
             {
-                for( int b = 0; b < it_bounds_pointwise_mult[1]; ++b )
+                for( int b = 0; b < c_it_bounds_pointwise_mult[1]; ++b )
                 {
-                    for( int a = 0; a < it_bounds_pointwise_mult[0]; ++a )
+                    for( int a = 0; a < c_it_bounds_pointwise_mult[0]; ++a )
                     {
-                        for( int i_b2 = 0; i_b2 < geometry->n_cell_atoms; ++i_b2 )
+                        for( int i_b2 = 0; i_b2 < c_n_cell_atoms; ++i_b2 )
                         {
                             // Look up at which position the correct D-matrices are saved
                             int& b_inter = inter_sublattice_lookup[i_b1 + i_b2 * geometry->n_cell_atoms];
@@ -763,22 +767,24 @@ namespace Engine
                             FFT::addTo(res_mult[idx_b1 + 2 * spin_stride.comp], FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z), i_b2 == 0);
                         }
                     }
-                }//end iteration over padded lattice cells
-            }//end iteration over second sublattice
+                }// end iteration over padded lattice cells
+            }// end iteration over second sublattice
         }
 
-        //Inverse Fourier Transform
+        // Inverse Fourier Transform
         FFT::batch_iFour_3D(fft_plan_reverse);
 
-        #pragma omp parallel for collapse(4)
-        //Place the gradients at the correct positions and mult with correct mu
-        for( int c = 0; c < geometry->n_cells[2]; ++c )
+        // Workaround for compability with intel compiler
+        const int * c_n_cells = geometry->n_cells.data();
+
+        // Place the gradients at the correct positions and mult with correct mu
+        for( int c = 0; c < c_n_cells[2]; ++c )
         {
-            for( int b = 0; b < geometry->n_cells[1]; ++b )
+            for( int b = 0; b < c_n_cells[1]; ++b )
             {
-                for( int a = 0; a < geometry->n_cells[0]; ++a )
+                for( int a = 0; a < c_n_cells[0]; ++a )
                 {
-                    for( int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1 )
+                    for( int i_b1 = 0; i_b1 < c_n_cell_atoms; ++i_b1 )
                     {
                         int idx_orig = i_b1 + geometry->n_cell_atoms * (a + Na * (b + Nb * c));
                         int idx = i_b1 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
@@ -1097,12 +1103,13 @@ namespace Engine
                 inter_sublattice_lookup[i_b1 + i_b2 * geometry->n_cell_atoms] = b_inter;
 
                 // Iterate over the padded system
+                const int * c_n_cells_padded = n_cells_padded.data(); 
                 #pragma omp parallel for collapse(3)
-                for( int c = 0; c < n_cells_padded[2]; ++c )
+                for( int c = 0; c < c_n_cells_padded[2]; ++c )
                 {
-                    for( int b = 0; b < n_cells_padded[1]; ++b )
+                    for( int b = 0; b < c_n_cells_padded[1]; ++b )
                     {
-                        for( int a = 0; a < n_cells_padded[0]; ++a )
+                        for( int a = 0; a < c_n_cells_padded[0]; ++a )
                         {
                             int a_idx = a < Na ? a : a - n_cells_padded[0];
                             int b_idx = b < Nb ? b : b - n_cells_padded[1];
