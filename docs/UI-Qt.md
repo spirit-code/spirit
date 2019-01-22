@@ -1,6 +1,8 @@
 Spirit Desktop UI
 ======================
 
+![Logo](https://imgur.com/lGZNdop.png "Spirit Logo")
+
 The cross-platform QT desktop user interface provides a productive tool for Spin simulations,
 providing powerful real-time visualisations and access to simulation parameters,
 as well as other very useful features.

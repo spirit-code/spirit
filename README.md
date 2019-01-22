@@ -3,6 +3,9 @@ SPIRIT
 **SPIN SIMULATION FRAMEWORK**<br />
 
 
+![Logo](https://imgur.com/iWc1kuE.png "Spirit Logo")
+
+
 &nbsp;
 
 
