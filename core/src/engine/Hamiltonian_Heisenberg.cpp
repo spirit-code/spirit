@@ -823,9 +823,9 @@ namespace Engine
                     {
                         for( int c_pb = -img_c; c_pb <= img_c; c_pb++ )
                         {
-                            diff_img = diff + a_pb * geometry->n_cells[0] * geometry->bravais_vectors[0]
-                                            + b_pb * geometry->n_cells[1] * geometry->bravais_vectors[1]
-                                            + c_pb * geometry->n_cells[2] * geometry->bravais_vectors[2];
+                            diff_img = diff + a_pb * geometry->n_cells[0] * geometry->bravais_vectors[0] * geometry->lattice_constant
+                                            + b_pb * geometry->n_cells[1] * geometry->bravais_vectors[1] * geometry->lattice_constant
+                                            + c_pb * geometry->n_cells[2] * geometry->bravais_vectors[2] * geometry->lattice_constant;
                             d = diff_img.norm();
                             if( d > 1e-10 )
                             {
@@ -1083,9 +1083,9 @@ namespace Engine
         int Nb = geometry->n_cells[1];
         int Nc = geometry->n_cells[2];
         // Bravais vectors
-        Vector3 ta = geometry->bravais_vectors[0];
-        Vector3 tb = geometry->bravais_vectors[1];
-        Vector3 tc = geometry->bravais_vectors[2];
+        Vector3 ta = geometry->bravais_vectors[0] * geometry->lattice_constant;
+        Vector3 tb = geometry->bravais_vectors[1] * geometry->lattice_constant;
+        Vector3 tc = geometry->bravais_vectors[2] * geometry->lattice_constant;
 
         auto& fft_dipole_inputs = fft_plan_dipole.real_ptr;
 

@@ -479,9 +479,9 @@ namespace Engine
                     {
                         for(int c_pb = -img_c; c_pb <= img_c; c_pb++)
                         {
-                            diff_img = diff + a_pb * geometry->n_cells[0] * geometry->bravais_vectors[0]
-                                            + b_pb * geometry->n_cells[1] * geometry->bravais_vectors[1]
-                                            + c_pb * geometry->n_cells[2] * geometry->bravais_vectors[2];
+                            diff_img = diff + a_pb * geometry->n_cells[0] * geometry->bravais_vectors[0] * geometry->lattice_constant
+                                            + b_pb * geometry->n_cells[1] * geometry->bravais_vectors[1] * geometry->lattice_constant
+                                            + c_pb * geometry->n_cells[2] * geometry->bravais_vectors[2] * geometry->lattice_constant;
                             d = diff_img.norm();
                             if(d > 1e-10)
                             {
@@ -1037,7 +1037,7 @@ namespace Engine
         FFT::batch_Four_3D(fft_plan_spins);
     }
 
-    __global__ void CU_Write_FFT_Dipole_Input(FFT::FFT_real_type* fft_dipole_inputs, int* iteration_bounds, const Vector3* bravais_vectors, int n_cell_atoms, Vector3* cell_atoms, int* n_cells, int* inter_sublattice_lookup, int* img, FFT::StrideContainer dipole_stride)
+    __global__ void CU_Write_FFT_Dipole_Input(FFT::FFT_real_type* fft_dipole_inputs, int* iteration_bounds, const Vector3* translation_vectors, int n_cell_atoms, Vector3* cell_atoms, int* n_cells, int* inter_sublattice_lookup, int* img, FFT::StrideContainer dipole_stride)
     {
         int tupel[3];
         int sublattice_size = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2];
@@ -1073,9 +1073,9 @@ namespace Engine
                             {
                                 for(int c_pb = -img[2]; c_pb <= img[2]; c_pb++)
                                 {
-                                    diff =    (a_idx + a_pb * n_cells[0]) * bravais_vectors[0]
-                                            + (b_idx + b_pb * n_cells[1]) * bravais_vectors[1]
-                                            + (c_idx + c_pb * n_cells[2]) * bravais_vectors[2]
+                                    diff =    (a_idx + a_pb * n_cells[0]) * translation_vectors[0]
+                                            + (b_idx + b_pb * n_cells[1]) * translation_vectors[1]
+                                            + (c_idx + c_pb * n_cells[2]) * translation_vectors[2]
                                             + cell_atoms[i_b1]
                                             - cell_atoms[i_b2];
                                             
@@ -1124,15 +1124,15 @@ namespace Engine
 
         //work around to make bravais vectors and cell_atoms available to GPU
         //as they are currently saves as std::vectors and not
-        auto bravais_vectors = field<Vector3>();
+        auto translation_vectors = field<Vector3>();
         auto cell_atoms = field<Vector3>();
         for(int i=0; i<3; i++)
-            bravais_vectors.push_back(geometry->bravais_vectors[i]);
+            bravais_vectors.push_back(geometry->lattice_constant * geometry->bravais_vectors[i]);
         for(int i=0; i<geometry->n_cell_atoms; i++)
             cell_atoms.push_back(geometry->cell_atoms[i]);
 
         CU_Write_FFT_Dipole_Input<<<(sublattice_size + 1023)/1024, 1024>>>
-        (   fft_dipole_inputs.data(), it_bounds_write_dipole.data(), bravais_vectors.data(), 
+        (   fft_dipole_inputs.data(), it_bounds_write_dipole.data(), translation_vectors.data(), 
             geometry->n_cell_atoms, cell_atoms.data(), geometry->n_cells.data(), 
             inter_sublattice_lookup.data(), img.data(), dipole_stride
         );
