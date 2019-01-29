@@ -372,7 +372,7 @@ namespace Engine
         #pragma omp parallel for
         for (int ispin = 0; ispin < geometry->nos; ispin++)
         {
-            Energy[ispin] += 0.5 * geometry->mu_s[ispin] * spins[ispin].dot(gradients_temp[ispin]);
+            Energy[ispin] += 0.5 * spins[ispin].dot(gradients_temp[ispin]);
         }   
     }
 
@@ -413,7 +413,7 @@ namespace Engine
     {
         for(int idx = blockIdx.x * blockDim.x + threadIdx.x; idx < nos; idx += blockDim.x * gridDim.x)
         {
-            Energy[idx] += 0.5 * mu_s[idx] * spins[idx].dot(gradients[idx]);
+            Energy[idx] += 0.5 * spins[idx].dot(gradients[idx]);
         }
     }
     void Hamiltonian_Heisenberg::E_DDI_FFT(const vectorfield & spins, scalarfield & Energy)
@@ -500,9 +500,9 @@ namespace Engine
 
                 auto& mu = geometry->mu_s[idx2];
 
-                gradient[idx1][0] -= (Dxx * m2[0] + Dxy * m2[1] + Dxz * m2[2]) * mu;
-                gradient[idx1][1] -= (Dxy * m2[0] + Dyy * m2[1] + Dyz * m2[2]) * mu;
-                gradient[idx1][2] -= (Dxz * m2[0] + Dyz * m2[1] + Dzz * m2[2]) * mu;
+                gradient[idx1][0] -= (Dxx * m2[0] + Dxy * m2[1] + Dxz * m2[2]) * geometry->mu_s[idx1] * geometry->mu_s[idx2];
+                gradient[idx1][1] -= (Dxy * m2[0] + Dyy * m2[1] + Dyz * m2[2]) * geometry->mu_s[idx1] * geometry->mu_s[idx2];
+                gradient[idx1][2] -= (Dxz * m2[0] + Dyz * m2[1] + Dzz * m2[2]) * geometry->mu_s[idx1] * geometry->mu_s[idx2];
             }
         }
     }
@@ -821,9 +821,9 @@ namespace Engine
         {
             cu_tupel_from_idx(idx_orig, tupel, iteration_bounds, 4); //tupel now is {ib, a, b, c}
             idx_pad = tupel[0] * spin_stride.basis + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b + tupel[3] * spin_stride.c;
-            gradient[idx_orig][0] -= resiFFT[idx_pad                       ] / sublattice_size;
-            gradient[idx_orig][1] -= resiFFT[idx_pad + 1 * spin_stride.comp] / sublattice_size;
-            gradient[idx_orig][2] -= resiFFT[idx_pad + 2 * spin_stride.comp] / sublattice_size;
+            gradient[idx_orig][0] -= mu_s[idx_orig] * resiFFT[idx_pad                       ] / sublattice_size;
+            gradient[idx_orig][1] -= mu_s[idx_orig] * resiFFT[idx_pad + 1 * spin_stride.comp] / sublattice_size;
+            gradient[idx_orig][2] -= mu_s[idx_orig] * resiFFT[idx_pad + 2 * spin_stride.comp] / sublattice_size;
         }
     }
 

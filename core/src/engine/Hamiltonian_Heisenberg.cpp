@@ -344,7 +344,7 @@ namespace Engine
 
         #pragma omp parallel for
         for( int ispin = 0; ispin < geometry->nos; ispin++ )
-            Energy[ispin] += 0.5 * geometry->mu_s[ispin] * spins[ispin].dot(gradients_temp[ispin]);
+            Energy[ispin] += 0.5 * spins[ispin].dot(gradients_temp[ispin]);
     }
 
     void Hamiltonian_Heisenberg::E_DDI_Cutoff(const vectorfield & spins, scalarfield & Energy)
@@ -416,8 +416,8 @@ namespace Engine
         #pragma omp parallel for
         for( int ispin = 0; ispin < geometry->nos; ispin++ )
         {
-            Energy[ispin] += 0.5 * geometry->mu_s[ispin] * spins[ispin].dot(gradients_temp[ispin]);
-            Energy_DDI    += 0.5 * geometry->mu_s[ispin] * spins[ispin].dot(gradients_temp[ispin]);
+            Energy[ispin] += 0.5 * spins[ispin].dot(gradients_temp[ispin]);
+            // Energy_DDI    += 0.5 * spins[ispin].dot(gradients_temp[ispin]);
         }
     }
 
@@ -702,7 +702,7 @@ namespace Engine
                             int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, ddi_pairs[i_pair]);
                             if( jspin >= 0 )
                             {
-                                gradient[ispin] -= mu_s[jspin] * skalar_contrib * (3 * ddi_normals[i_pair] * spins[jspin].dot(ddi_normals[i_pair]) - spins[jspin]);
+                                gradient[ispin] -= mu_s[jspin] * mu_s[ispin] * skalar_contrib * (3 * ddi_normals[i_pair] * spins[jspin].dot(ddi_normals[i_pair]) - spins[jspin]);
                             }
                         }
                     }
@@ -788,9 +788,9 @@ namespace Engine
                     {
                         int idx_orig = i_b1 + geometry->n_cell_atoms * (a + Na * (b + Nb * c));
                         int idx = i_b1 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
-                        gradient[idx_orig][0] -= res_iFFT[idx                       ] / sublattice_size;
-                        gradient[idx_orig][1] -= res_iFFT[idx + 1 * spin_stride.comp] / sublattice_size;
-                        gradient[idx_orig][2] -= res_iFFT[idx + 2 * spin_stride.comp] / sublattice_size;
+                        gradient[idx_orig][0] -= geometry->mu_s[idx_orig] * res_iFFT[idx                       ] / sublattice_size;
+                        gradient[idx_orig][1] -= geometry->mu_s[idx_orig] * res_iFFT[idx + 1 * spin_stride.comp] / sublattice_size;
+                        gradient[idx_orig][2] -= geometry->mu_s[idx_orig] * res_iFFT[idx + 2 * spin_stride.comp] / sublattice_size;
                     }
                 }
             }
@@ -842,11 +842,9 @@ namespace Engine
                     }
                 }
 
-                auto& mu = geometry->mu_s[idx2];
-
-                gradient[idx1][0] -= (Dxx * m2[0] + Dxy * m2[1] + Dxz * m2[2]) * mu;
-                gradient[idx1][1] -= (Dxy * m2[0] + Dyy * m2[1] + Dyz * m2[2]) * mu;
-                gradient[idx1][2] -= (Dxz * m2[0] + Dyz * m2[1] + Dzz * m2[2]) * mu;
+                gradient[idx1][0] -= (Dxx * m2[0] + Dxy * m2[1] + Dxz * m2[2]) * geometry->mu_s[idx1] * geometry->mu_s[idx2];
+                gradient[idx1][1] -= (Dxy * m2[0] + Dyy * m2[1] + Dyz * m2[2]) * geometry->mu_s[idx1] * geometry->mu_s[idx2];
+                gradient[idx1][2] -= (Dxz * m2[0] + Dyz * m2[1] + Dzz * m2[2]) * geometry->mu_s[idx1] * geometry->mu_s[idx2];
             }
         }
     }
