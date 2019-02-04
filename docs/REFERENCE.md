@@ -7,10 +7,18 @@ visualisations that used Spirit, you should add a reference.
 
 ### The Framework
 
-If you used any components of this framework please add a
-reference to our GitHub page.
+If you used Spirit to produce scientific results or when referring to it as a
+scientific project, please cite the paper.
+
+    \bibitem{mueller_spirit_2019}{
+        G. P. Müller, M. Hoffmann, C. Disselkamp, D. Schürhoff, S. Mavros, M. Sallermann, N. S. Kiselev, H. Jónsson, S. Blügel.
+        "Spirit: Multifunctional Framework for Atomistic Spin Simulations."
+        arXiv:1901.11350
+    }
+
+When referring to code of this framework please add a reference to our GitHub page.
 You may use e.g. the following TeX code:
-    
+
     \bibitem{spirit}
     {Spirit spin simulation framework} (see spirit-code.github.io)
 
@@ -22,7 +30,7 @@ The following need only be cited if used.
 **Depondt Solver**
 
 This Heun-like method for solving the LLG equation including the
-stochastic term has been published by Depondt et al.: 
+stochastic term has been published by Depondt et al.:
 http://iopscience.iop.org/0953-8984/21/33/336005
 You may use e.g. the following TeX code:
 
@@ -32,7 +40,7 @@ You may use e.g. the following TeX code:
 **SIB Solver**
 
 This stable method for solving the LLG equation efficiently and
-including the stochastic term has been published by Mentink et al.: 
+including the stochastic term has been published by Mentink et al.:
 http://iopscience.iop.org/0953-8984/22/17/176001
 You may use e.g. the following TeX code:
 
@@ -42,7 +50,7 @@ You may use e.g. the following TeX code:
 **VP Solver**
 
 This intuitive direct minimization routine has been published as
-supplementary material by Bessarab et al.: 
+supplementary material by Bessarab et al.:
 http://www.sciencedirect.com/science/article/pii/S0010465515002696
 You may use e.g. the following TeX code:
 
@@ -68,18 +76,6 @@ You may use e.g. the following TeX code:
 
     \bibitem{MMF}
     G. P. Müller et al. Phys. Rev. Lett. 121, 197202 (2018).
-
-
-### Papers
-
-Here we list a selection of papers for which the Spirit framework was used
-
-- "Antiskyrmions stabilized at interfaces by anisotropic Dzyaloshinskii-Moriya interactions" https://www.nature.com/articles/s41467-017-00313-0
-- "Duplication, collapse and escape of magnetic skyrmions revealed using a systematic saddle point search method" https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.121.197202
-- "Controlled creation and stability of k-Pi skyrmions on a discrete lattice" https://link.aps.org/doi/10.1103/PhysRevB.97.174436
-- "Binding a Hopfion in Chiral Magnet Nanodisk" http://arxiv.org/abs/1806.01682
-- "Experimental observation of chiral magnetic bobbers in B20-type FeGe" https://www.nature.com/articles/s41565-018-0093-3
-
 
 
 ---
