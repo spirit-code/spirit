@@ -356,7 +356,10 @@ void SpinWidget::updateVectorFieldGeometry()
     Geometry_Get_N_Cells(this->state.get(), n_cells);
     int n_cell_atoms = Geometry_Get_N_Cell_Atoms(this->state.get());
 
-    int n_cells_draw[3] = {std::max(1, n_cells[0]/n_cell_step), std::max(1, n_cells[1]/n_cell_step), std::max(1, n_cells[2]/n_cell_step)};
+    int n_cells_draw[3] = {
+        std::max(1, n_cells[0]/n_cell_step),
+        std::max(1, n_cells[1]/n_cell_step),
+        std::max(1, n_cells[2]/n_cell_step) };
     int nos_draw = n_cell_atoms*n_cells_draw[0]*n_cells_draw[1]*n_cells_draw[2];
 
     // Positions of the vectorfield
@@ -370,15 +373,16 @@ void SpinWidget::updateVectorFieldGeometry()
     spin_pos = Geometry_Get_Positions(state.get());
     atom_types = Geometry_Get_Atom_Types(state.get());
     int icell = 0;
-    for (int cell_c=0; cell_c<n_cells_draw[2]; cell_c++)
+    for( int cell_c=0; cell_c<n_cells_draw[2]; cell_c++ )
     {
-        for (int cell_b=0; cell_b<n_cells_draw[1]; cell_b++)
+        for( int cell_b=0; cell_b<n_cells_draw[1]; cell_b++ )
         {
-            for (int cell_a=0; cell_a<n_cells_draw[0]; cell_a++)
+            for( int cell_a=0; cell_a<n_cells_draw[0]; cell_a++ )
             {
-                for (int ibasis=0; ibasis < n_cell_atoms; ++ibasis)
+                for( int ibasis=0; ibasis < n_cell_atoms; ++ibasis )
                 {
-                    int idx = ibasis + n_cell_atoms*cell_a*n_cell_step + n_cell_atoms*n_cells[0]*cell_b*n_cell_step + n_cell_atoms*n_cells[0]*n_cells[1]*cell_c*n_cell_step;
+                    int idx = ibasis + n_cell_atoms * n_cell_step * (
+                        + cell_a + n_cells[0]*cell_b + n_cells[0]*n_cells[1]*cell_c );
                     positions[icell] = glm::vec3(spin_pos[3*idx], spin_pos[1 + 3*idx], spin_pos[2 + 3*idx]);
                     ++icell;
                 }
@@ -390,7 +394,7 @@ void SpinWidget::updateVectorFieldGeometry()
     VFRendering::Geometry geometry;
     VFRendering::Geometry geometry_surf2D;
     //      get tetrahedra
-    if (Geometry_Get_Dimensionality(state.get()) == 3)
+    if( Geometry_Get_Dimensionality(state.get()) == 3 )
     {
         if( n_cell_step > 1 && (n_cells[0]/n_cell_step < 2 || n_cells[1]/n_cell_step < 2 || n_cells[2]/n_cell_step < 2) )
         {
@@ -404,23 +408,23 @@ void SpinWidget::updateVectorFieldGeometry()
             geometry = VFRendering::Geometry(positions, {}, tetrahedra_indices, false);
         }
     }
-    else if (Geometry_Get_Dimensionality(state.get()) == 2)
+    else if( Geometry_Get_Dimensionality(state.get()) == 2 )
     {
         // Determine two basis vectors
         std::array<glm::vec3, 2> basis;
         float eps = 1e-6;
-        for (int i=1, j=0; i < nos && j < 2; ++i)
+        for( int i=1, j=0; i < nos && j < 2; ++i )
         {
-            if ( glm::length(positions[i] - positions[0]) > eps )
+            if( glm::length(positions[i] - positions[0]) > eps )
             {
-                if ( j < 1 )
+                if( j < 1 )
                 {
                     basis[j] = glm::normalize(positions[i] - positions[0]);
                     ++j;
                 }
                 else
                 {
-                    if ( 1-std::abs(glm::dot(basis[0], glm::normalize(positions[i] - positions[0]))) > eps )
+                    if( 1-std::abs(glm::dot(basis[0], glm::normalize(positions[i] - positions[0]))) > eps )
                     {
                         basis[j] = glm::normalize(positions[i] - positions[0]);
                         ++j;
@@ -429,18 +433,27 @@ void SpinWidget::updateVectorFieldGeometry()
             }
         }
         glm::vec3 normal = this->arrowSize() * glm::normalize(glm::cross(basis[0], basis[1]));
+        // By default, +z is up, which is where we want the normal oriented towards
+        if( glm::dot(normal, glm::vec3{0,0,1}) < 1e-6 )
+            normal = -normal;
+
         // Rectilinear with one basis atom
-        if (Geometry_Get_N_Cell_Atoms(state.get()) == 1 &&
-            std::abs(glm::dot(basis[0], basis[1])) < 1e-6)
+        if( n_cell_atoms == 1 && std::abs(glm::dot(basis[0], basis[1])) < 1e-6 )
         {
             std::vector<float> xs(n_cells_draw[0]), ys(n_cells_draw[1]), zs(n_cells_draw[2]);
-            for (int i = 0; i < n_cells_draw[0]; ++i) xs[i] = positions[i].x;
-            for (int i = 0; i < n_cells_draw[1]; ++i) ys[i] = positions[i*n_cells_draw[0]].y;
-            for (int i = 0; i < n_cells_draw[2]; ++i) zs[i] = positions[i*n_cells_draw[0] * n_cells_draw[1]].z;
+            for( int i = 0; i < n_cells_draw[0]; ++i )
+                xs[i] = positions[i].x;
+            for( int i = 0; i < n_cells_draw[1]; ++i )
+                ys[i] = positions[i*n_cells_draw[0]].y;
+            for( int i = 0; i < n_cells_draw[2]; ++i )
+                zs[i] = positions[i*n_cells_draw[0] * n_cells_draw[1]].z;
             geometry = VFRendering::Geometry::rectilinearGeometry(xs, ys, zs);
-            for (int i = 0; i < n_cells_draw[0]; ++i) xs[i] = (positions[i] - normal).x;
-            for (int i = 0; i < n_cells_draw[1]; ++i) ys[i] = (positions[i*n_cells_draw[0]] - normal).y;
-            for (int i = 0; i < n_cells_draw[2]; ++i) zs[i] = (positions[i*n_cells_draw[0] * n_cells_draw[1]] - normal).z;
+            for( int i = 0; i < n_cells_draw[0]; ++i )
+                xs[i] = (positions[i] - normal).x;
+            for( int i = 0; i < n_cells_draw[1]; ++i )
+                ys[i] = (positions[i*n_cells_draw[0]] - normal).y;
+            for( int i = 0; i < n_cells_draw[2]; ++i )
+                zs[i] = (positions[i*n_cells_draw[0] * n_cells_draw[1]] - normal).z;
             geometry_surf2D = VFRendering::Geometry::rectilinearGeometry(xs, ys, zs);
         }
         // All others
@@ -450,7 +463,8 @@ void SpinWidget::updateVectorFieldGeometry()
             int num_triangles = Geometry_Get_Triangulation(state.get(), reinterpret_cast<const int **>(&triangle_indices_ptr), n_cell_step);
             std::vector<std::array<VFRendering::Geometry::index_type, 3>>  triangle_indices(triangle_indices_ptr, triangle_indices_ptr + num_triangles);
             geometry = VFRendering::Geometry(positions, triangle_indices, {}, true);
-            for (int i = 0; i < n_cells_draw[0]*n_cells_draw[1]*n_cells_draw[2]; ++i) positions[i] = positions[i] - normal;
+            for( int i = 0; i < nos_draw; ++i )
+                positions[i] = positions[i] - normal;
             geometry_surf2D = VFRendering::Geometry(positions, triangle_indices, {}, true);
         }
 
