@@ -22,21 +22,21 @@ namespace IO
     /*
     Reads a non-OVF spins file with plain text and discarding any headers starting with '#'
     */
-    void Read_NonOVF_Spin_Configuration( vectorfield& spins, Data::Geometry& geometry, 
-                                         const int nos, const int idx_image_infile, 
+    void Read_NonOVF_Spin_Configuration( vectorfield& spins, Data::Geometry& geometry,
+                                         const int nos, const int idx_image_infile,
                                          const std::string file )
     {
         IO::Filter_File_Handle file_handle( file, "#" );
-         
+
         // jump to the specified image in the file
-        for (int i=0; i<( nos * idx_image_infile ); i++) 
-            file_handle.GetLine(); 
+        for (int i=0; i<( nos * idx_image_infile ); i++)
+            file_handle.GetLine();
 
         for (int i=0; i<nos && file_handle.GetLine(","); i++)
         {
-            file_handle.iss >> spins[i][0]; 
-            file_handle.iss >> spins[i][1]; 
-            file_handle.iss >> spins[i][2]; 
+            file_handle.iss >> spins[i][0];
+            file_handle.iss >> spins[i][1];
+            file_handle.iss >> spins[i][2];
 
             if (spins[i].norm() < 1e-5)
             {
@@ -53,21 +53,21 @@ namespace IO
     }
 
 
-    void Check_NonOVF_Chain_Configuration( std::shared_ptr<Data::Spin_System_Chain> chain, 
-                                           const std::string file, int start_image_infile, 
-                                           int end_image_infile, const int insert_idx, 
+    void Check_NonOVF_Chain_Configuration( std::shared_ptr<Data::Spin_System_Chain> chain,
+                                           const std::string file, int start_image_infile,
+                                           int end_image_infile, const int insert_idx,
                                            int& noi_to_add, int& noi_to_read, const int idx_chain )
     {
-        IO::Filter_File_Handle file_handle( file, "#" ); 
-        
+        IO::Filter_File_Handle file_handle( file, "#" );
+
         int nol = file_handle.Get_N_Non_Comment_Lines();
         int noi = chain->noi;
         int nos = chain->images[0]->nos;
-       
+
         int noi_infile = nol/nos;
         int remainder = nol%nos;
 
-        if ( remainder != 0 )
+        if( remainder != 0 )
         {
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::IO,
                  fmt::format( "Calculated number of images in the nonOVF file is not integer"),
@@ -75,25 +75,25 @@ namespace IO
         }
 
         // Check if the ending image is valid otherwise set it to the last image infile
-        if ( end_image_infile < start_image_infile || end_image_infile >= noi_infile )
+        if( end_image_infile < start_image_infile || end_image_infile >= noi_infile )
         {
             end_image_infile = noi_infile - 1;
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
                  fmt::format( "Invalid end_image_infile. Value was set to the last image "
                  "of the file"), insert_idx, idx_chain );
         }
-          
+
         // If the idx of the starting image is valid
-        if ( start_image_infile < noi_infile )
+        if( start_image_infile < noi_infile )
         {
             noi_to_read = end_image_infile - start_image_infile + 1;
-           
+
             noi_to_add = noi_to_read - ( noi - insert_idx );
         }
         else
         {
             Log( Utility::Log_Level::Error, Utility::Log_Sender::IO,
-                 fmt::format( "Invalid starting_idx. File {} has {} noi", file, 
+                 fmt::format( "Invalid starting_idx. File {} has {} noi", file,
                  noi_infile ), insert_idx, idx_chain );
         }
     }
@@ -110,45 +110,45 @@ namespace IO
         if( !file_ovf.is_OVF() )
         {
             spirit_throw( Exception_Classifier::Bad_File_Content, Log_Level::Error,
-                "IO::Read_Eigenmodes supports only OVF files" ); 
+                "IO::Read_Eigenmodes supports only OVF files" );
         }
-        
+
         int n_segments = file_ovf.get_n_segments();
 
         // If the modes buffer's size is not the same as the n_segments then resize
-        if ( modes.size() != n_segments )
+        if( modes.size() != n_segments )
         {
             modes.resize( n_segments );
             eigenvalues.resize( n_segments );
             Log( Log_Level::Warning, Log_Sender::IO, fmt::format("Modes buffer resized "
                     "since the number of modes in the OVF file was greater than its size") );
         }
-        
+
         Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Reading OVF file with "
                 "{} segments", n_segments ) );
 
         // read in the modes
-        for (int idx=0; idx<n_segments; idx++)
+        for( int idx=0; idx<n_segments; idx++ )
         {
             // if the mode buffer is created by resizing then it needs to be allocated
             if ( modes[idx] == NULL )
                 modes[idx] = std::shared_ptr<vectorfield>(
                     new vectorfield( spins.size(), Vector3{1,0,0} ));
-            
+
             file_ovf.read_segment( *modes[idx], geometry, idx );
-            file_ovf.Read_Variable_from_Comment( eigenvalues[idx], 
+            file_ovf.Read_Variable_from_Comment( eigenvalues[idx],
                                                     "# Desc: eigenvalue = ", idx );
         }
 
         // if the modes vector was reseized adjust the n_modes value
-        if ( image->modes.size() != image->ema_parameters->n_modes )
+        if( image->modes.size() != image->ema_parameters->n_modes )
             image->ema_parameters->n_modes = image->modes.size();
 
         // print the first eigenmodes
         int n_log_eigenvalues = ( n_segments > 50 ) ? 50 : n_segments;
 
         Log( Log_Level::Info, Log_Sender::IO, fmt::format( "The first {} eigenvalues are: {}",
-                n_log_eigenvalues, fmt::join( eigenvalues.begin(), eigenvalues.begin() + 
+                n_log_eigenvalues, fmt::join( eigenvalues.begin(), eigenvalues.begin() +
                 n_log_eigenvalues, ", " ) ) );
     }
 
@@ -171,7 +171,7 @@ namespace IO
 
             Filter_File_Handle file(anisotropyFile);
 
-            if (file.Find("n_anisotropy"))
+            if( file.Find("n_anisotropy") )
             {
                 // Read n interaction pairs
                 file.iss >> n_anisotropy;
@@ -188,23 +188,26 @@ namespace IO
 
             // Get column indices
             file.GetLine(); // first line contains the columns
-            for (unsigned int i = 0; i < columns.size(); ++i)
+            for( unsigned int i = 0; i < columns.size(); ++i )
             {
                 file.iss >> columns[i];
-                if (!columns[i].compare(0, 1, "i"))    col_i = i;
-                else if (!columns[i].compare(0, 2, "k")) { col_K = i;    K_magnitude = true; }
-                else if (!columns[i].compare(0, 2, "kx"))    col_Kx = i;
-                else if (!columns[i].compare(0, 2, "ky"))    col_Ky = i;
-                else if (!columns[i].compare(0, 2, "kz"))    col_Kz = i;
-                else if (!columns[i].compare(0, 2, "ka"))    col_Ka = i;
-                else if (!columns[i].compare(0, 2, "kb"))    col_Kb = i;
-                else if (!columns[i].compare(0, 2, "kc"))    col_Kc = i;
+                std::transform( columns[i].begin(), columns[i].end(), columns[i].begin(), ::tolower );
+                if      (columns[i] == "i")  col_i = i;
+                else if (columns[i] == "k")  { col_K = i; K_magnitude = true; }
+                else if (columns[i] == "kx") col_Kx = i;
+                else if (columns[i] == "ky") col_Ky = i;
+                else if (columns[i] == "kz") col_Kz = i;
+                else if (columns[i] == "ka") col_Ka = i;
+                else if (columns[i] == "kb") col_Kb = i;
+                else if (columns[i] == "kc") col_Kc = i;
 
                 if (col_Kx >= 0 && col_Ky >= 0 && col_Kz >= 0) K_xyz = true;
                 if (col_Ka >= 0 && col_Kb >= 0 && col_Kc >= 0) K_abc = true;
             }
 
-            if (!K_xyz && !K_abc) Log(Log_Level::Warning, Log_Sender::IO, "No anisotropy data could be found in header of file " + anisotropyFile);
+            if( !K_xyz && !K_abc )
+                Log(Log_Level::Warning, Log_Sender::IO, fmt::format(
+                    "No anisotropy data could be found in header of file \"{}\"", anisotropyFile));
 
             // Indices
             int spin_i = 0;
@@ -217,7 +220,7 @@ namespace IO
             // Get actual Data
             int i_anisotropy = 0;
             std::string sdump;
-            while (file.GetLine() && i_anisotropy < n_anisotropy)
+            while( file.GetLine() && i_anisotropy < n_anisotropy )
             {
                 // Read a line from the File
                 for (unsigned int i = 0; i < columns.size(); ++i)
@@ -304,7 +307,7 @@ namespace IO
             // Get column indices
             Filter_File_Handle file(pairsFile);
 
-            if (file.Find("n_interaction_pairs"))
+            if( file.Find("n_interaction_pairs") )
             {
                 // Read n interaction pairs
                 file.iss >> n_pairs;
@@ -319,10 +322,11 @@ namespace IO
                 Log(Log_Level::Info, Log_Sender::IO, "Trying to parse spin pairs columns from top of file " + pairsFile);
             }
 
-            file.GetLine(); 
+            file.GetLine();
             for (unsigned int i = 0; i < columns.size(); ++i)
             {
                 file.iss >> columns[i];
+                std::transform( columns[i].begin(), columns[i].end(), columns[i].begin(), ::tolower );
                 if      (columns[i] == "i")    col_i = i;
                 else if (columns[i] == "j")    col_j = i;
                 else if (columns[i] == "da")   col_da = i;
@@ -342,7 +346,9 @@ namespace IO
             }
 
             // Check if interactions have been found in header
-            if (!J && !DMI_xyz && !DMI_abc) Log(Log_Level::Warning, Log_Sender::IO, "No interactions could be found in pairs file " + pairsFile);
+            if (!J && !DMI_xyz && !DMI_abc)
+                Log(Log_Level::Warning, Log_Sender::IO, fmt::format(
+                    "No interactions could be found in pairs file \"{}\"", pairsFile));
 
             // Get actual Pairs Data
             int i_pair = 0;
@@ -388,8 +394,8 @@ namespace IO
                 // DMI vector orientation
                 if (DMI_abc)
                 {
-                    pair_D_temp =  pair_D1 * geometry->bravais_vectors[0] 
-                                 + pair_D2 * geometry->bravais_vectors[1] 
+                    pair_D_temp =  pair_D1 * geometry->bravais_vectors[0]
+                                 + pair_D2 * geometry->bravais_vectors[1]
                                  + pair_D3 * geometry->bravais_vectors[2];
                     pair_D1 = pair_D_temp[0];
                     pair_D2 = pair_D_temp[1];
@@ -518,7 +524,7 @@ namespace IO
             // Get column indices
             Filter_File_Handle file(quadrupletsFile);
 
-            if (file.Find("n_interaction_quadruplets"))
+            if( file.Find("n_interaction_quadruplets") )
             {
                 // Read n interaction quadruplets
                 file.iss >> n_quadruplets;
@@ -537,6 +543,7 @@ namespace IO
             for (unsigned int i = 0; i < columns.size(); ++i)
             {
                 file.iss >> columns[i];
+                std::transform( columns[i].begin(), columns[i].end(), columns[i].begin(), ::tolower );
                 if      (columns[i] == "i")    col_i = i;
                 else if (columns[i] == "j")    col_j = i;
                 else if (columns[i] == "da_j")    col_da_j = i;
@@ -554,7 +561,9 @@ namespace IO
             }
 
             // Check if interactions have been found in header
-            if (!Q) Log(Log_Level::Warning, Log_Sender::IO, "No interactions could be found in header of quadruplets file " + quadrupletsFile);
+            if (!Q)
+                Log(Log_Level::Warning, Log_Sender::IO, fmt::format(
+                    "No interactions could be found in header of quadruplets file ", quadrupletsFile));
 
             // Quadruplet Indices
             int q_i = 0;
@@ -608,7 +617,7 @@ namespace IO
                     else
                         file.iss >> sdump;
                 }// end for columns
-                
+
 
                 // Add the indices and parameter to the corresponding list
                 if (q_Q != 0)
@@ -645,7 +654,7 @@ namespace IO
             Filter_File_Handle myfile(defectsFile);
             int nod = 0;
 
-            if (myfile.Find("n_defects"))
+            if( myfile.Find("n_defects") )
             {
                 // Read n interaction pairs
                 myfile.iss >> nod;
@@ -660,7 +669,7 @@ namespace IO
                 Log(Log_Level::Debug, Log_Sender::IO, "Trying to parse defects from top of file " + defectsFile);
             }
 
-            while (myfile.GetLine() && n_defects < nod)
+            while( myfile.GetLine() && n_defects < nod )
             {
                 int _i, _da, _db, _dc, type;
                 myfile.iss >> _i >> _da >> _db >> _dc >> type;
@@ -689,7 +698,7 @@ namespace IO
             Log(Log_Level::Info, Log_Sender::IO, "Reading pinned sites");
             Filter_File_Handle myfile(pinnedFile);
 
-            if (myfile.Find("n_pinned"))
+            if( myfile.Find("n_pinned") )
             {
                 // Read n interaction pairs
                 myfile.iss >> nop;
@@ -704,7 +713,7 @@ namespace IO
                 Log(Log_Level::Debug, Log_Sender::IO, "Trying to parse pinned sites from top of file " + pinnedFile);
             }
 
-            while (myfile.GetLine() && n_pinned < nop)
+            while( myfile.GetLine() && n_pinned < nop )
             {
                 int _i, _da, _db, _dc;
                 scalar sx, sy, sz;
@@ -727,22 +736,22 @@ namespace IO
     {
         char c;
         int pos=0;
-        
+
         do
         {
             c = (char)fgetc(fp); // Get current char and move pointer to the next position
             if (c != EOF && c != '\n') line[pos++] = c; // If it's not the end of the file
         }
         while(c != EOF && c != '\n'); // If it's not the end of the file or end of the line
-        
+
         line[pos] = 0; // Complete the read line
         if ((pos==0 || line[0]!='#') && c != EOF)
             return ReadHeaderLine(fp, line);// Recursive call for ReadHeaderLine if the current line is empty
-        
+
         // The last symbol is the line end symbol
         return pos-1;
     }
-    
+
     void ReadDataLine(FILE * fp, char * line)
     {
         char c;
