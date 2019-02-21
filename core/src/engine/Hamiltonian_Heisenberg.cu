@@ -1127,7 +1127,7 @@ namespace Engine
         auto translation_vectors = field<Vector3>();
         auto cell_atoms = field<Vector3>();
         for(int i=0; i<3; i++)
-            bravais_vectors.push_back(geometry->lattice_constant * geometry->bravais_vectors[i]);
+            translation_vectors.push_back(geometry->lattice_constant * geometry->bravais_vectors[i]);
         for(int i=0; i<geometry->n_cell_atoms; i++)
             cell_atoms.push_back(geometry->cell_atoms[i]);
 
