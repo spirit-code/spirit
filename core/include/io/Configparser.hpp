@@ -18,6 +18,7 @@ namespace IO
     void Log_from_Config(const std::string configFile, bool force_quiet=false);
     std::unique_ptr<Data::Spin_System> Spin_System_from_Config(const std::string configFile);
     Data::Pinning Pinning_from_Config(const std::string configFile, int n_cell_atoms);
+    Data::Cluster_Lattice Impurity_Clusters_from_Config(const std::string configFile);
     std::shared_ptr<Data::Geometry> Geometry_from_Config(const std::string configFile);
     std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config(const std::string configFile);
     std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config(const std::string configFile);

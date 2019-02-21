@@ -5,6 +5,7 @@
 #include <engine/Neighbours.hpp>
 #include <data/Spin_System.hpp>
 #include <utility/Constants.hpp>
+
 #include <algorithm>
 
 #include <Eigen/Dense>
@@ -29,11 +30,13 @@ namespace Engine
         pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals,
         DDI_Method ddi_method, intfield ddi_n_periodic_images, scalar ddi_radius,
         quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
+        std::shared_ptr<Hamiltonian_Impurity> impurity_hamiltonian,
         std::shared_ptr<Data::Geometry> geometry,
         intfield boundary_conditions
     ) :
         Hamiltonian(boundary_conditions),
         geometry(geometry),
+        impurity_hamiltonian(impurity_hamiltonian),
         external_field_magnitude(external_field_magnitude * C::mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
         exchange_pairs_in(exchange_pairs), exchange_magnitudes_in(exchange_magnitudes), exchange_shell_magnitudes(0),
@@ -54,11 +57,13 @@ namespace Engine
         scalarfield dmi_shell_magnitudes, int dm_chirality,
         DDI_Method ddi_method, intfield ddi_n_periodic_images, scalar ddi_radius,
         quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
+        std::shared_ptr<Hamiltonian_Impurity> impurity_hamiltonian,
         std::shared_ptr<Data::Geometry> geometry,
         intfield boundary_conditions
     ) :
         Hamiltonian(boundary_conditions),
         geometry(geometry),
+        impurity_hamiltonian(impurity_hamiltonian),
         external_field_magnitude(external_field_magnitude * C::mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
         exchange_pairs_in(0), exchange_magnitudes_in(0), exchange_shell_magnitudes(exchange_shell_magnitudes),
@@ -172,6 +177,9 @@ namespace Engine
     {
         this->energy_contributions_per_spin = std::vector<std::pair<std::string, scalarfield>>(0);
 
+        // Impurity cluster
+        this->impurity_hamiltonian->Update_Energy_Contributions();
+
         // External field
         if( this->external_field_magnitude > 0 )
         {
@@ -180,21 +188,21 @@ namespace Engine
         }
         else this->idx_zeeman = -1;
         // Anisotropy
-        if( this->anisotropy_indices.size() > 0 )
+        if( this->anisotropy_indices.size() > 0 || this->impurity_hamiltonian->anisotropy_indices.size() > 0 )
         {
             this->energy_contributions_per_spin.push_back({"Anisotropy", scalarfield(0) });
             this->idx_anisotropy = this->energy_contributions_per_spin.size()-1;
         }
         else this->idx_anisotropy = -1;
         // Exchange
-        if( this->exchange_pairs.size() > 0 )
+        if( this->exchange_pairs.size() > 0 || this->impurity_hamiltonian->exchange_pairs.size() > 0 )
         {
             this->energy_contributions_per_spin.push_back({"Exchange", scalarfield(0) });
             this->idx_exchange = this->energy_contributions_per_spin.size()-1;
         }
         else this->idx_exchange = -1;
         // DMI
-        if( this->dmi_pairs.size() > 0 )
+        if( this->dmi_pairs.size() > 0 || this->impurity_hamiltonian->dmi_pairs.size() > 0 )
         {
             this->energy_contributions_per_spin.push_back({"DMI", scalarfield(0) });
             this->idx_dmi = this->energy_contributions_per_spin.size()-1;
@@ -233,15 +241,31 @@ namespace Engine
         }
 
         // External field
-        if( this->idx_zeeman >=0 )     E_Zeeman(spins, contributions[idx_zeeman].second);
+        if( this->idx_zeeman >=0 )
+        {
+            this->E_Zeeman(spins, contributions[idx_zeeman].second);
+            this->impurity_hamiltonian->E_Zeeman(spins, contributions[idx_zeeman].second);
+        }
 
         // Anisotropy
-        if( this->idx_anisotropy >=0 ) E_Anisotropy(spins, contributions[idx_anisotropy].second);
+        if( this->idx_anisotropy >=0 )
+        {
+            this->E_Anisotropy(spins, contributions[idx_anisotropy].second);
+            this->impurity_hamiltonian->E_Anisotropy(spins, contributions[idx_anisotropy].second);
+        }
 
         // Exchange
-        if( this->idx_exchange >=0 )   E_Exchange(spins, contributions[idx_exchange].second);
+        if( this->idx_exchange >=0 )
+        {
+            E_Exchange(spins, contributions[idx_exchange].second);
+            this->impurity_hamiltonian->E_Exchange(spins, contributions[idx_exchange].second);
+        }
         // DMI
-        if( this->idx_dmi >=0 )        E_DMI(spins,contributions[idx_dmi].second);
+        if( this->idx_dmi >=0 )
+        {
+            E_DMI(spins,contributions[idx_dmi].second);
+            this->impurity_hamiltonian->E_DMI(spins, contributions[idx_dmi].second);
+        }
         // DDI
         if( this->idx_ddi >=0 )        E_DDI(spins, contributions[idx_ddi].second);
         // Quadruplets
@@ -572,15 +596,19 @@ namespace Engine
 
         // External field
         this->Gradient_Zeeman(gradient);
+        this->impurity_hamiltonian->Gradient_Zeeman(gradient);
 
         // Anisotropy
         this->Gradient_Anisotropy(spins, gradient);
+        this->impurity_hamiltonian->Gradient_Anisotropy(spins, gradient);
 
         // Exchange
         this->Gradient_Exchange(spins, gradient);
+        this->impurity_hamiltonian->Gradient_Exchange(spins, gradient);
 
         // DMI
         this->Gradient_DMI(spins, gradient);
+        this->impurity_hamiltonian->Gradient_DMI(spins, gradient);
 
         // DD
         this->Gradient_DDI(spins, gradient);
@@ -1034,6 +1062,9 @@ namespace Engine
         // }
 
         // Quadruplets
+
+        // Impurity cluster
+        this->impurity_hamiltonian->Hessian(spins, hessian);
     }
 
     void Hamiltonian_Heisenberg::FFT_Spins(const vectorfield & spins)

@@ -355,9 +355,11 @@ void SpinWidget::updateVectorFieldGeometry()
     int n_cells[3];
     Geometry_Get_N_Cells(this->state.get(), n_cells);
     int n_cell_atoms = Geometry_Get_N_Cell_Atoms(this->state.get());
+    int n_additional = nos - n_cells[0]*n_cells[1]*n_cells[2]*n_cell_atoms;
 
     int n_cells_draw[3] = {std::max(1, n_cells[0]/n_cell_step), std::max(1, n_cells[1]/n_cell_step), std::max(1, n_cells[2]/n_cell_step)};
-    int nos_draw = n_cell_atoms*n_cells_draw[0]*n_cells_draw[1]*n_cells_draw[2];
+    int n_cells_draw_tot = n_cell_atoms*n_cells_draw[0]*n_cells_draw[1]*n_cells_draw[2];
+    int nos_draw = n_cells_draw_tot + n_additional;
 
     // Positions of the vectorfield
     std::vector<glm::vec3> positions = std::vector<glm::vec3>(nos_draw);
@@ -384,6 +386,11 @@ void SpinWidget::updateVectorFieldGeometry()
                 }
             }
         }
+    }
+    for( int i=0; i<n_additional; ++i )
+    {
+        int idx = nos - n_additional + i;
+        positions[n_cells_draw_tot + i] = glm::vec3(spin_pos[3*idx], spin_pos[1 + 3*idx], spin_pos[2 + 3*idx]);
     }
 
     // Generate the right geometry (triangles and tetrahedra)
@@ -437,7 +444,12 @@ void SpinWidget::updateVectorFieldGeometry()
             for (int i = 0; i < n_cells_draw[0]; ++i) xs[i] = positions[i].x;
             for (int i = 0; i < n_cells_draw[1]; ++i) ys[i] = positions[i*n_cells_draw[0]].y;
             for (int i = 0; i < n_cells_draw[2]; ++i) zs[i] = positions[i*n_cells_draw[0] * n_cells_draw[1]].z;
-            geometry = VFRendering::Geometry::rectilinearGeometry(xs, ys, zs);
+
+            if( n_additional > 0 )
+                geometry = VFRendering::Geometry(positions, {}, {}, true);
+            else
+                geometry = VFRendering::Geometry::rectilinearGeometry(xs, ys, zs);
+
             for (int i = 0; i < n_cells_draw[0]; ++i) xs[i] = (positions[i] - normal).x;
             for (int i = 0; i < n_cells_draw[1]; ++i) ys[i] = (positions[i*n_cells_draw[0]] - normal).y;
             for (int i = 0; i < n_cells_draw[2]; ++i) zs[i] = (positions[i*n_cells_draw[0] * n_cells_draw[1]] - normal).z;
@@ -472,9 +484,11 @@ void SpinWidget::updateVectorFieldDirections()
     int n_cells[3];
     Geometry_Get_N_Cells(this->state.get(), n_cells);
     int n_cell_atoms = Geometry_Get_N_Cell_Atoms(this->state.get());
+    int n_additional = nos - n_cells[0]*n_cells[1]*n_cells[2]*n_cell_atoms;
 
     int n_cells_draw[3] = {std::max(1, n_cells[0]/n_cell_step), std::max(1, n_cells[1]/n_cell_step), std::max(1, n_cells[2]/n_cell_step)};
-    int nos_draw = n_cell_atoms*n_cells_draw[0]*n_cells_draw[1]*n_cells_draw[2];
+    int n_cells_draw_tot = n_cell_atoms*n_cells_draw[0]*n_cells_draw[1]*n_cells_draw[2];
+    int nos_draw = n_cells_draw_tot + n_additional;
 
     // Directions of the vectorfield
     std::vector<glm::vec3> directions = std::vector<glm::vec3>(nos_draw);
@@ -511,6 +525,11 @@ void SpinWidget::updateVectorFieldDirections()
                 }
             }
         }
+    }
+    for( int i=0; i<n_additional; ++i )
+    {
+        int idx = nos - n_additional + i;
+        directions[n_cells_draw_tot + i] = glm::vec3(spins[3*idx], spins[1 + 3*idx], spins[2 + 3*idx]);
     }
     //		rescale if effective field
     if (this->m_source == 1)

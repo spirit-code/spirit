@@ -7,6 +7,7 @@
 #include <Spirit/Geometry.h>
 
 #include <vector>
+#include <array>
 
 namespace Data
 {
@@ -55,6 +56,25 @@ namespace Data
         intfield    types;
     };
 
+
+    struct Cluster_Lattice
+    {
+        // The base position relative to the host, in (integer) units of host Bravais vectors
+        intfield origin;
+
+        // Bravais vectors of the cluster lattice in (integer) units of host Bravais vectors
+        std::array<intfield, 3> bravais_vectors;
+
+        // Number of clusters {na, nb, nc}
+        intfield n_clusters;
+
+        // Additional atoms, relative to a cluster's position
+        scalarfield mu_s;
+        // Translations of the atom in units of host Bravais vectors
+        vectorfield atoms;
+    };
+
+
     // Vector sizes: N_basis * N_atom_tyes
     struct Basis_Cell_Composition
     {
@@ -83,7 +103,8 @@ namespace Data
         //  Build a regular lattice from a defined basis cell and translations
         Geometry(std::vector<Vector3> bravais_vectors, intfield n_cells,
             std::vector<Vector3> cell_atoms, Basis_Cell_Composition cell_composition,
-            scalar lattice_constant, Pinning pinning, Defects defects);
+            scalar lattice_constant, Pinning pinning, Defects defects,
+            Cluster_Lattice impurity_clusters);
 
         // ---------- Convenience functions
         // Retrieve triangulation, if 2D
@@ -117,6 +138,8 @@ namespace Data
         Pinning pinning;
         // Info on defects
         Defects defects;
+        // Additional atoms (e.g. adatoms)
+        Cluster_Lattice impurity_clusters;
 
         // ---------- Inferrable information
         // The kind of geometry
@@ -142,6 +165,8 @@ namespace Data
         Vector3 center, bounds_min, bounds_max;
         // Unit Cell Bounds
         Vector3 cell_bounds_min, cell_bounds_max;
+        // Number of impurity clusters
+        int n_impurity_clusters;
 
     private:
         // Generate the full set of spin positions

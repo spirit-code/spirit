@@ -3,6 +3,7 @@ set(HEADER_SPIRIT_ENGINE
     ${CMAKE_CURRENT_SOURCE_DIR}/Neighbours.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Impurity.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Gaussian.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/Eigenmodes.hpp
 	${CMAKE_CURRENT_SOURCE_DIR}/HTST.hpp

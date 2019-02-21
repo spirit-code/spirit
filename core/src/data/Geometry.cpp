@@ -17,14 +17,16 @@ namespace Data
 {
     Geometry::Geometry(std::vector<Vector3> bravais_vectors, intfield n_cells,
                         std::vector<Vector3> cell_atoms,  Basis_Cell_Composition cell_composition,
-                        scalar lattice_constant, Pinning pinning, Defects defects) :
+                        scalar lattice_constant, Pinning pinning, Defects defects, Cluster_Lattice impurity_clusters) :
         bravais_vectors(bravais_vectors), n_cells(n_cells), n_cell_atoms(cell_atoms.size()),
         cell_atoms(cell_atoms), cell_composition(cell_composition), lattice_constant(lattice_constant),
-        nos(cell_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2]),
-        nos_nonvacant(cell_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2]),
+        nos(cell_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2] + impurity_clusters.atoms.size() * impurity_clusters.n_clusters[0] * impurity_clusters.n_clusters[1] * impurity_clusters.n_clusters[2]),
+        nos_nonvacant(cell_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2] + impurity_clusters.atoms.size() * impurity_clusters.n_clusters[0] * impurity_clusters.n_clusters[1] * impurity_clusters.n_clusters[2]),
+        n_impurity_clusters(impurity_clusters.n_clusters[0] * impurity_clusters.n_clusters[1] * impurity_clusters.n_clusters[2]),
         n_cells_total(n_cells[0] * n_cells[1] * n_cells[2]),
-        pinning(pinning), defects(defects)
+        pinning(pinning), defects(defects), impurity_clusters(impurity_clusters)
     {
+        Log(Utility::Log_Level::Warning, Utility::Log_Sender::IO, fmt::format(".................... n_impurity_clusters {}", n_impurity_clusters));
         // Get x,y,z of component of atom positions in unit of length (instead of in units of a,b,c)
         for (int iatom = 0; iatom < this->n_cell_atoms; ++iatom)
         {
@@ -32,6 +34,15 @@ namespace Data
                                 + this->bravais_vectors[1] * this->cell_atoms[iatom][1]
                                 + this->bravais_vectors[2] * this->cell_atoms[iatom][2];
             this->cell_atoms[iatom] = this->lattice_constant * build_array;
+        }
+        // Same for impurity clusters
+        Log(Utility::Log_Level::Warning, Utility::Log_Sender::IO, fmt::format(".................... cluster atoms {}", this->impurity_clusters.atoms.size()));
+        for (int iatom = 0; iatom < this->impurity_clusters.atoms.size(); ++iatom)
+        {
+            Vector3 build_array = this->bravais_vectors[0] * this->impurity_clusters.atoms[iatom][0]
+                                + this->bravais_vectors[1] * this->impurity_clusters.atoms[iatom][1]
+                                + this->bravais_vectors[2] * this->impurity_clusters.atoms[iatom][2];
+            this->impurity_clusters.atoms[iatom] = this->lattice_constant * build_array;
         }
 
         // Generate positions and atom types
@@ -112,7 +123,7 @@ namespace Data
                             // Norm is zero if translated basis atom is at position of another basis atom
                             diff = cell_atoms[i] - ( cell_atoms[j] + translation );
 
-                            if( (i != j || da != 0 || db != 0 || dc != 0) && 
+                            if( (i != j || da != 0 || db != 0 || dc != 0) &&
                                 std::abs(diff[0]) < epsilon &&
                                 std::abs(diff[1]) < epsilon &&
                                 std::abs(diff[2]) < epsilon )
@@ -126,7 +137,7 @@ namespace Data
             }
         }
 
-        // Generate positions
+        // Generate lattice positions
         for (int dc = 0; dc < n_cells[2]; ++dc)
         {
             for (int db = 0; db < n_cells[1]; ++db)
@@ -150,8 +161,39 @@ namespace Data
                 }
             }
         }
-    }
 
+        // Generate impurity cluster additional atom positions
+        int istart = n_cells[2] * n_cells[1] * n_cells[0] * n_cell_atoms;
+        Vector3 origin = lattice_constant * (
+              impurity_clusters.origin[0] * bravais_vectors[0]
+            + impurity_clusters.origin[1] * bravais_vectors[1]
+            + impurity_clusters.origin[2] * bravais_vectors[2] );
+        int n_cluster_atoms = impurity_clusters.atoms.size();
+        auto& n_clusters = impurity_clusters.n_clusters;
+        for (int dc = 0; dc < n_clusters[2]; ++dc)
+        {
+            for (int db = 0; db < n_clusters[1]; ++db)
+            {
+                for (int da = 0; da < n_clusters[0]; ++da)
+                {
+                    for (int iatom = 0; iatom < n_cluster_atoms; ++iatom)
+                    {
+                        int ispin = istart + iatom
+                            + dc * n_cluster_atoms * n_clusters[1] * n_clusters[0]
+                            + db * n_cluster_atoms * n_clusters[0]
+                            + da * n_cluster_atoms;
+
+                        translation = origin + lattice_constant * (
+                              da * bravais_vectors[0]
+                            + db * bravais_vectors[1]
+                            + dc * bravais_vectors[2] );
+
+                        positions[ispin] = impurity_clusters.atoms[iatom] + translation;
+                    }
+                }
+            }
+        }
+    }
 
 
     std::vector<tetrahedron_t> compute_delaunay_triangulation_3D(const std::vector<vector3_t> & points)
@@ -229,7 +271,7 @@ namespace Data
                 this->last_update_n_cells[0]  = n_cells[0];
                 this->last_update_n_cells[1]  = n_cells[1];
                 this->last_update_n_cells[2]  = n_cells[2];
-                
+
                 _triangulation.clear();
 
                 std::vector<vector2_t> points;
@@ -310,7 +352,7 @@ namespace Data
                         0, x_offset, x_offset+y_offset, y_offset,
                         z_offset, x_offset+z_offset, x_offset+y_offset+z_offset, y_offset+z_offset
                         };
-                
+
                     for (int ix = 0; ix < (n_cells[0]-1)/n_cell_step; ix++)
                     {
                         for (int iy = 0; iy < (n_cells[1]-1)/n_cell_step; iy++)
@@ -333,7 +375,7 @@ namespace Data
                     }
                 }
                 // For general basis cells we calculate the Delaunay tetrahedra
-                else 
+                else
                 {
                     std::vector<vector3_t> points;
                     points.resize(positions.size());

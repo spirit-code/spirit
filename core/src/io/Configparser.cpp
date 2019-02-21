@@ -2,6 +2,7 @@
 #include <io/Filter_File_Handle.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Neighbours.hpp>
+#include <engine/Hamiltonian_Impurity.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
@@ -470,10 +471,14 @@ namespace IO
             // Pinning configuration
             auto pinning = Pinning_from_Config(configFile, cell_atoms.size());
 
+            // Impurity clusters
+            auto impurities = Impurity_Clusters_from_Config(configFile);
+            Log(Utility::Log_Level::Warning, Utility::Log_Sender::IO, fmt::format("created impurities. {} {} {} {}", impurities.atoms.size(), impurities.n_clusters[0], impurities.n_clusters[1], impurities.n_clusters[2]));
+
             // Return geometry
             auto geometry = std::shared_ptr<Data::Geometry>(new
                 Data::Geometry( bravais_vectors, n_cells, cell_atoms, cell_composition, lattice_constant,
-                    pinning, {defect_sites, defect_types} ));
+                    pinning, {defect_sites, defect_types}, impurities ));
 
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} spins", geometry->nos));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry is {}-dimensional", geometry->dimensionality));
@@ -635,6 +640,62 @@ namespace IO
                 field<Site>(0),
                 vectorfield(0) };
         #endif // SPIRIT_ENABLE_PINNING
+    }
+
+    Data::Cluster_Lattice Impurity_Clusters_from_Config(const std::string configFile)
+    {
+        intfield n_clusters = { 0, 0, 0 };
+        intfield cluster_position = { 0, 0, 0 };
+        std::array<intfield, 3> bravais_vectors = { intfield{1,0,0}, intfield{0,1,0}, intfield{0,0,1} };
+        std::vector<scalar> mu_s = {};
+        std::vector<Vector3> atoms = {};
+
+        Log(Log_Level::Info, Log_Sender::IO, "Geometry: reading impurity clusters");
+        //------------------------------- Parser --------------------------------
+        // iteration variables
+        int iatom = 0, dim = 0;
+        if( configFile != "" )
+        {
+            try
+            {
+                IO::Filter_File_Handle myfile(configFile);
+
+                myfile.Read_3Vector(n_clusters, "n_clusters");
+                myfile.Read_3Vector(cluster_position, "cluster_position");
+
+                if (myfile.Find("cluster_bravais_vectors"))
+                {
+                    myfile.GetLine();
+                    myfile.iss >> bravais_vectors[0][0] >> bravais_vectors[0][1] >> bravais_vectors[0][2];
+                    myfile.GetLine();
+                    myfile.iss >> bravais_vectors[1][0] >> bravais_vectors[1][1] >> bravais_vectors[1][2];
+                    myfile.GetLine();
+                    myfile.iss >> bravais_vectors[2][0] >> bravais_vectors[2][1] >> bravais_vectors[2][2];
+                }
+                
+                if (myfile.Find("cluster_additional_atoms"))
+                {
+                    int N = 0;
+                    myfile.iss >> N;
+                    atoms = std::vector<Vector3>(N);
+                    mu_s = std::vector<scalar>(N);
+                    for( int i=0; i<N; ++i )
+                    {
+                        myfile.GetLine();
+                        myfile.iss >> atoms[i][0] >> atoms[i][1] >> atoms[i][2] >> mu_s[i];
+                    }
+                }
+            }
+            catch( ... )
+            {
+                spirit_rethrow(	fmt::format("Unable to parse impurity clusters from config file  \"{}\"", configFile) );
+            }
+        }
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("n_clusters = {} {} {}", n_clusters[0], n_clusters[1], n_clusters[2]));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("cluster_position = {} {} {}", cluster_position[0], cluster_position[1], cluster_position[2]));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("n_additional_atoms = {}", atoms.size()));
+        Log(Log_Level::Info, Log_Sender::IO, "Geometry: finished reading impurity clusters");
+        return Data::Cluster_Lattice{cluster_position, bravais_vectors, n_clusters, mu_s, atoms};
     }
 
     std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config(const std::string configFile)
@@ -1133,6 +1194,9 @@ namespace IO
         bool quadruplets_from_file = false;
         quadrupletfield quadruplets(0); scalarfield quadruplet_magnitudes(0);
 
+        // ------------ Impurity cluster -------------------
+        std::shared_ptr<Engine::Hamiltonian_Impurity> impurity_hamiltonian;
+
         //------------------------------- Parser --------------------------------
         Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Heisenberg: building");
         // iteration variables
@@ -1397,6 +1461,15 @@ namespace IO
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = ({} {} {})", "ddi_n_periodic_images", ddi_n_periodic_images[0], ddi_n_periodic_images[1], ddi_n_periodic_images[2]));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "ddi_radius", ddi_radius));
 
+        impurity_hamiltonian = std::shared_ptr<Engine::Hamiltonian_Impurity>(new Engine::Hamiltonian_Impurity(
+            B, B_normal,
+            anisotropy_index, anisotropy_magnitude, anisotropy_normal,
+            {}, {},
+            {}, {}, {}, // TODO
+            geometry,
+            boundary_conditions
+        ));
+
         std::unique_ptr<Engine::Hamiltonian_Heisenberg> hamiltonian;
 
         if (hamiltonian_type == "heisenberg_neighbours")
@@ -1408,7 +1481,7 @@ namespace IO
                 dmi_magnitudes, dm_chirality,
                 ddi_method, ddi_n_periodic_images, ddi_radius,
                 quadruplets, quadruplet_magnitudes,
-                geometry,
+                impurity_hamiltonian, geometry,
                 boundary_conditions
             ));
         }
@@ -1421,7 +1494,7 @@ namespace IO
                 dmi_pairs, dmi_magnitudes, dmi_normals,
                 ddi_method, ddi_n_periodic_images, ddi_radius,
                 quadruplets, quadruplet_magnitudes,
-                geometry,
+                impurity_hamiltonian, geometry,
                 boundary_conditions
             ));
         }

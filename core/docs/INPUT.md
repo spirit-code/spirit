@@ -5,12 +5,13 @@ The following sections will list and explain the input file keywords.
 
 1. [General Settings and Log](#General)
 2. [Geometry](#Geometry)
-2. [Heisenberg Hamiltonian](#Heisenberg)
-2. [Gaussian Hamiltonian](#Gaussian)
-2. [Method Output](#MethodOutput)
-2. [Method Parameters](#MethodParameters)
-2. [Pinning](#Pinning)
-2. [Disorder and Defects](#Defects)
+3. [Heisenberg Hamiltonian](#Heisenberg)
+4. [Gaussian Hamiltonian](#Gaussian)
+5. [Method Output](#MethodOutput)
+6. [Method Parameters](#MethodParameters)
+7. [Pinning](#Pinning)
+8. [Disorder and Defects](#Defects)
+9. [Impurity Clusters](#Clusters)
 
 
 General Settings and Log <a name="General"></a>
@@ -503,6 +504,45 @@ defects_from_file input/defects.txt
 The file should either contain only the defects or you need to specify `n_defects`
 inside the file.
 
+
+
+Impurity clusters <a name="Clusters"></a>
+--------------------------------------------------
+Works with the Heisenberg Hamiltonians.
+
+Example input:
+```Python
+# The position of the "first" cluster in host lattice translations
+cluster_position 15 15 1
+# The clusters are repeated along translation vectors
+n_clusters 1 1 1
+# The translation vectors for the cluster "lattice"
+# Note: in units of the host bravais vectors
+cluster_bravais_vectors
+20 0 0
+0  1 0
+0  0 1
+
+# dx  dy  dz   mu_s
+# the position can be anywhere (also non-integer translations)
+# and is specified relative to cluster_position
+cluster_additional_atoms 1
+   0   0  0.5   2.0
+
+# i, j, relative position i, relative position j, Jij, ...
+# translations are relative to the cluster_position
+n_cluster_interaction_pairs 2
+i j  dai dbi dci  daj dbj dcj Jij
+0 0   1  0  0    1  0  0    1.0
+0 0   0  1  0    1  0  0   1.0
+
+# note that i here means something different:
+# it is the index of the adatom
+n_cluster_interaction_pairs 2
+i j  da db dc   Jij
+0 0   1  0  0   1.0
+0 0   0  1  0   1.0
+```
 
 ---
 

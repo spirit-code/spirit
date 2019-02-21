@@ -8,9 +8,10 @@
 #include "Spirit_Defines.h"
 #include <engine/Vectormath_Defines.hpp>
 #include <engine/Hamiltonian.hpp>
+#include <engine/Hamiltonian_Impurity.hpp>
+#include <engine/FFT.hpp>
 #include <data/Geometry.hpp>
 #include <Spirit/Hamiltonian.h>
-#include "FFT.hpp"
 
 namespace Engine
 {
@@ -37,6 +38,7 @@ namespace Engine
             pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals,
             DDI_Method ddi_method, intfield ddi_n_periodic_images, scalar ddi_radius,
             quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
+            std::shared_ptr<Hamiltonian_Impurity> impurity_hamiltonian,
             std::shared_ptr<Data::Geometry> geometry,
             intfield boundary_conditions
         );
@@ -48,6 +50,7 @@ namespace Engine
             scalarfield dmi_shell_magnitudes, int dm_chirality,
             DDI_Method ddi_method, intfield ddi_n_periodic_images, scalar ddi_radius,
             quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
+            std::shared_ptr<Hamiltonian_Impurity> impurity_hamiltonian,
             std::shared_ptr<Data::Geometry> geometry,
             intfield boundary_conditions
         );
@@ -112,6 +115,7 @@ namespace Engine
 
     private:
         std::shared_ptr<Data::Geometry> geometry;
+        std::shared_ptr<Hamiltonian_Impurity> impurity_hamiltonian;
 
         // ------------ Effective Field Functions ------------
         // Calculate the Zeeman effective field of a single Spin

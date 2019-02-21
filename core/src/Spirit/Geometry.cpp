@@ -156,7 +156,7 @@ try
     auto& old_geometry = *state->active_image->geometry;
     auto  new_geometry = Data::Geometry(bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms,
                         old_geometry.cell_composition, old_geometry.lattice_constant,
-                        old_geometry.pinning, old_geometry.defects);
+                        old_geometry.pinning, old_geometry.defects, old_geometry.impurity_clusters);
 
     // Update the State
     Helper_State_Set_Geometry(state, old_geometry, new_geometry);
@@ -179,7 +179,7 @@ try
     auto& old_geometry = *state->active_image->geometry;
     auto  new_geometry = Data::Geometry(old_geometry.bravais_vectors, n_cells, old_geometry.cell_atoms,
                         old_geometry.cell_composition, old_geometry.lattice_constant,
-                        old_geometry.pinning, old_geometry.defects);
+                        old_geometry.pinning, old_geometry.defects, old_geometry.impurity_clusters);
 
     // Update the State
     Helper_State_Set_Geometry(state, old_geometry, new_geometry);
@@ -233,7 +233,8 @@ try
 
     // The new geometry
     auto  new_geometry = Data::Geometry(old_geometry.bravais_vectors, old_geometry.n_cells, cell_atoms,
-                        new_composition, old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects);
+                        new_composition, old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects,
+                        old_geometry.impurity_clusters);
 
     // Update the State
     Helper_State_Set_Geometry(state, old_geometry, new_geometry);
@@ -268,7 +269,8 @@ try
 
         // The new geometry
         auto  new_geometry = Data::Geometry(old_geometry.bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms,
-                            new_composition, old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects);
+                            new_composition, old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects,
+                            old_geometry.impurity_clusters);
 
         // Update the State
         Helper_State_Set_Geometry(state, old_geometry, new_geometry);
@@ -300,7 +302,8 @@ try
 
     // The new geometry
     auto new_geometry = Data::Geometry(old_geometry.bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms,
-                        new_composition, old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects);
+                        new_composition, old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects,
+                        old_geometry.impurity_clusters);
 
     // Update the State
     Helper_State_Set_Geometry(state, old_geometry, new_geometry);
@@ -325,7 +328,7 @@ try
     auto& old_geometry = *state->active_image->geometry;
     auto  new_geometry = Data::Geometry(bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms,
                         old_geometry.cell_composition, old_geometry.lattice_constant,
-                        old_geometry.pinning, old_geometry.defects);
+                        old_geometry.pinning, old_geometry.defects, old_geometry.impurity_clusters);
 
     // Update the State
     Helper_State_Set_Geometry(state, old_geometry, new_geometry);
@@ -345,7 +348,7 @@ try
     auto& old_geometry = *state->active_image->geometry;
     auto  new_geometry = Data::Geometry(old_geometry.bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms,
                         old_geometry.cell_composition, lattice_constant,
-                        old_geometry.pinning, old_geometry.defects);
+                        old_geometry.pinning, old_geometry.defects, old_geometry.impurity_clusters);
 
     // Update the State
     Helper_State_Set_Geometry(state, old_geometry, new_geometry);
