@@ -1040,15 +1040,11 @@ namespace Engine
         int Na = geometry->n_cells[0];
         int Nb = geometry->n_cells[1];
         int Nc = geometry->n_cells[2];
-        //bravais vectors
-        Vector3 ta = geometry->bravais_vectors[0];
-        Vector3 tb = geometry->bravais_vectors[1];
-        Vector3 tc = geometry->bravais_vectors[2];
-        int B = geometry->n_cell_atoms;
+        int n_cell_atoms = geometry->n_cell_atoms;
 
         auto& fft_spin_inputs = fft_plan_spins.real_ptr;
 
-            //iterate over the **original** system
+        //iterate over the **original** system
         #pragma omp parallel for collapse(4)
         for( int c = 0; c < Nc; ++c )
         {
@@ -1056,10 +1052,10 @@ namespace Engine
             {
                 for( int a = 0; a < Na; ++a )
                 {
-                    for( int bi = 0; bi < B; ++bi )
+                    for( int bi = 0; bi < n_cell_atoms; ++bi )
                     {
-                        int idx_orig = bi + B * (a + Na * (b + Nb * c));
-                        int idx = bi * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
+                        int idx_orig = bi + n_cell_atoms * (a + Na * (b + Nb * c));
+                        int idx      = bi * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
 
                         fft_spin_inputs[idx                        ] = spins[idx_orig][0] * geometry->mu_s[idx_orig];
                         fft_spin_inputs[idx + 1 * spin_stride.comp ] = spins[idx_orig][1] * geometry->mu_s[idx_orig];
@@ -1080,10 +1076,6 @@ namespace Engine
         int Na = geometry->n_cells[0];
         int Nb = geometry->n_cells[1];
         int Nc = geometry->n_cells[2];
-        // Bravais vectors
-        Vector3 ta = geometry->bravais_vectors[0] * geometry->lattice_constant;
-        Vector3 tb = geometry->bravais_vectors[1] * geometry->lattice_constant;
-        Vector3 tc = geometry->bravais_vectors[2] * geometry->lattice_constant;
 
         auto& fft_dipole_inputs = fft_plan_dipole.real_ptr;
 
@@ -1121,11 +1113,14 @@ namespace Engine
                                 {
                                     for( int c_pb = -img_c; c_pb <= img_c; c_pb++ )
                                     {
-                                        diff =    (a_idx + a_pb * Na) * ta
-                                                + (b_idx + b_pb * Nb) * tb
-                                                + (c_idx + c_pb * Nc) * tc
-                                                + geometry->cell_atoms[i_b1]
-                                                - geometry->cell_atoms[i_b2];
+
+                                        diff =  geometry->lattice_constant *
+                                                (   (a_idx + a_pb * Na) * geometry->bravais_vectors[0]
+                                                  + (b_idx + b_pb * Nb) * geometry->bravais_vectors[1]
+                                                  + (c_idx + c_pb * Nc) * geometry->bravais_vectors[2]
+                                                  + geometry->cell_atoms[i_b1]
+                                                  - geometry->cell_atoms[i_b2] );
+
                                         if( diff.norm() > 1e-10 )
                                         {
                                             auto d = diff.norm();
@@ -1144,7 +1139,7 @@ namespace Engine
 
                             int idx = b_inter * dipole_stride.basis + a * dipole_stride.a + b * dipole_stride.b + c * dipole_stride.c;
 
-                            fft_dipole_inputs[idx                    ] = Dxx;
+                            fft_dipole_inputs[idx                         ] = Dxx;
                             fft_dipole_inputs[idx + 1 * dipole_stride.comp] = Dxy;
                             fft_dipole_inputs[idx + 2 * dipole_stride.comp] = Dxz;
                             fft_dipole_inputs[idx + 3 * dipole_stride.comp] = Dyy;

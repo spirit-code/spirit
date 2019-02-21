@@ -31,7 +31,7 @@ namespace Data
             Vector3 build_array = this->bravais_vectors[0] * this->cell_atoms[iatom][0]
                                 + this->bravais_vectors[1] * this->cell_atoms[iatom][1]
                                 + this->bravais_vectors[2] * this->cell_atoms[iatom][2];
-            this->cell_atoms[iatom] = this->lattice_constant * build_array;
+            this->cell_atoms[iatom] = build_array;
         }
 
         // Generate positions and atom types
@@ -104,7 +104,7 @@ namespace Data
                     {
                         for (int dc = -max_c; dc <= max_c; ++dc)
                         {
-                            translation = lattice_constant * (
+                            translation = (
                                   da * bravais_vectors[0]
                                 + db * bravais_vectors[1]
                                 + dc * bravais_vectors[2] );
@@ -140,12 +140,11 @@ namespace Data
                             + db * n_cell_atoms * n_cells[0]
                             + da * n_cell_atoms;
 
-                        translation = lattice_constant * (
-                              da * bravais_vectors[0]
-                            + db * bravais_vectors[1]
-                            + dc * bravais_vectors[2] );
-
-                        positions[ispin] = cell_atoms[iatom] + translation;
+                        positions[ispin] = lattice_constant * (
+                                  da * bravais_vectors[0]
+                                + db * bravais_vectors[1]
+                                + dc * bravais_vectors[2] 
+                                + cell_atoms[iatom] );
                     }
                 }
             }

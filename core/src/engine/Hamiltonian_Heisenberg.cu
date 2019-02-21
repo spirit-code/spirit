@@ -1037,7 +1037,7 @@ namespace Engine
         FFT::batch_Four_3D(fft_plan_spins);
     }
 
-    __global__ void CU_Write_FFT_Dipole_Input(FFT::FFT_real_type* fft_dipole_inputs, int* iteration_bounds, const Vector3* translation_vectors, int n_cell_atoms, Vector3* cell_atoms, int* n_cells, int* inter_sublattice_lookup, int* img, FFT::StrideContainer dipole_stride)
+    __global__ void CU_Write_FFT_Dipole_Input(FFT::FFT_real_type* fft_dipole_inputs, int* iteration_bounds, const Vector3* translation_vectors, int n_cell_atom_translations, Vector3* cell_atoms, int* n_cells, int* inter_sublattice_lookup, int* img, FFT::StrideContainer dipole_stride)
     {
         int tupel[3];
         int sublattice_size = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2];
@@ -1076,8 +1076,8 @@ namespace Engine
                                     diff =    (a_idx + a_pb * n_cells[0]) * translation_vectors[0]
                                             + (b_idx + b_pb * n_cells[1]) * translation_vectors[1]
                                             + (c_idx + c_pb * n_cells[2]) * translation_vectors[2]
-                                            + cell_atoms[i_b1]
-                                            - cell_atoms[i_b2];
+                                            + cell_atom_translations[i_b1]
+                                            - cell_atom_translations[i_b2];
                                             
                                     if(diff.norm() > 1e-10)
                                     {
@@ -1122,18 +1122,19 @@ namespace Engine
                             img_c
                          };
 
-        //work around to make bravais vectors and cell_atoms available to GPU
-        //as they are currently saves as std::vectors and not
+        // Work around to make bravais vectors and cell_atoms available to GPU as they are currently saves as std::vectors and not fields ...
         auto translation_vectors = field<Vector3>();
-        auto cell_atoms = field<Vector3>();
+        auto cell_atom_translations = field<Vector3>();
+
         for(int i=0; i<3; i++)
             translation_vectors.push_back(geometry->lattice_constant * geometry->bravais_vectors[i]);
+
         for(int i=0; i<geometry->n_cell_atoms; i++)
-            cell_atoms.push_back(geometry->cell_atoms[i]);
+            cell_atom_translations.push_back(geometry->lattice_constant * geometry->cell_atoms[i]);
 
         CU_Write_FFT_Dipole_Input<<<(sublattice_size + 1023)/1024, 1024>>>
         (   fft_dipole_inputs.data(), it_bounds_write_dipole.data(), translation_vectors.data(), 
-            geometry->n_cell_atoms, cell_atoms.data(), geometry->n_cells.data(), 
+            geometry->n_cell_atoms, cell_atom_translations.data(), geometry->n_cells.data(), 
             inter_sublattice_lookup.data(), img.data(), dipole_stride
         );
         FFT::batch_Four_3D(fft_plan_dipole);
