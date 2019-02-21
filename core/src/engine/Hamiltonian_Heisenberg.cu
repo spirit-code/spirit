@@ -1037,7 +1037,7 @@ namespace Engine
         FFT::batch_Four_3D(fft_plan_spins);
     }
 
-    __global__ void CU_Write_FFT_Dipole_Input(FFT::FFT_real_type* fft_dipole_inputs, int* iteration_bounds, const Vector3* translation_vectors, int n_cell_atom_translations, Vector3* cell_atoms, int* n_cells, int* inter_sublattice_lookup, int* img, FFT::StrideContainer dipole_stride)
+    __global__ void CU_Write_FFT_Dipole_Input(FFT::FFT_real_type* fft_dipole_inputs, int* iteration_bounds, const Vector3* translation_vectors, int n_cell_atoms, Vector3* cell_atom_translations, int* n_cells, int* inter_sublattice_lookup, int* img, FFT::StrideContainer dipole_stride)
     {
         int tupel[3];
         int sublattice_size = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2];
