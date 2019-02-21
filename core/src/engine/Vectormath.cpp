@@ -103,7 +103,8 @@ namespace Engine
                 basis_cell_points[i].y = double(geometry.cell_atoms[i][1]);
             }
 
-            Vector3 basis_offset = geometry.cell_atoms[0][0] * geometry.bravais_vectors[0] + geometry.cell_atoms[0][1] * geometry.bravais_vectors[1];
+            // For the rare case where the first basis atoms does not lie at (0,0,0)
+            Vector3 basis_offset = geometry.cell_atoms[0];
 
             // a+b
             basis_cell_points[geometry.n_cell_atoms].x   = double((geometry.bravais_vectors[0] + geometry.bravais_vectors[1] + basis_offset)[0]);
