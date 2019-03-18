@@ -207,7 +207,11 @@ try
     {
         for (int i=0; i<n_atoms; ++i)
         {
-            cell_atoms.push_back({atoms[i][0], atoms[i][1], atoms[i][2]});
+            Vector3 cell_atom =
+                  old_geometry.bravais_vectors[0] * atoms[i][0]
+                + old_geometry.bravais_vectors[1] * atoms[i][1]
+                + old_geometry.bravais_vectors[2] * atoms[i][2];
+            cell_atoms.push_back(cell_atom);
             iatom.push_back(i);
             if( i < old_geometry.n_cell_atoms )
             {

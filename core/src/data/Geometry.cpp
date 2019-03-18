@@ -10,6 +10,8 @@
 #include "QhullFacetList.h"
 #include "QhullVertexSet.h"
 
+#include <fmt/ostream.h>
+
 #include <random>
 #include <array>
 
@@ -25,15 +27,6 @@ namespace Data
         n_cells_total(n_cells[0] * n_cells[1] * n_cells[2]),
         pinning(pinning), defects(defects)
     {
-        // Get x,y,z of component of atom positions in unit of length (instead of in units of a,b,c)
-        for (int iatom = 0; iatom < this->n_cell_atoms; ++iatom)
-        {
-            Vector3 build_array = this->bravais_vectors[0] * this->cell_atoms[iatom][0]
-                                + this->bravais_vectors[1] * this->cell_atoms[iatom][1]
-                                + this->bravais_vectors[2] * this->cell_atoms[iatom][2];
-            this->cell_atoms[iatom] = this->lattice_constant * build_array;
-        }
-
         // Generate positions and atom types
         this->positions = vectorfield(this->nos);
         this->generatePositions();
@@ -117,8 +110,10 @@ namespace Data
                                 std::abs(diff[1]) < epsilon &&
                                 std::abs(diff[2]) < epsilon )
                             {
-                                spirit_throw(Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Severe, fmt::format(
-                                    "Unable to initialize Spin-System, since 2 spins occupy the same space within a margin of {}.\nPlease check the config file!", epsilon ));
+                                std::string message = fmt::format(
+                                    "Unable to initialize Spin-System, since 2 spins occupy the same space within a margin of {} at position ({}).\n"
+                                    "Please check the config file!", epsilon, cell_atoms[i].transpose());
+                                spirit_throw(Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Severe, message);
                             }
                         }
                     }
@@ -502,16 +497,20 @@ namespace Data
         const scalar epsilon = 1e-6;
 
         // ----- Find dimensionality of the basis -----
-        if     ( n_cell_atoms == 1 ) dims_basis = 0;
-        else if( n_cell_atoms == 2 ) dims_basis = 1;
-        else if( n_cell_atoms == 3 ) dims_basis = 2;
+        if     ( n_cell_atoms == 1 )
+            dims_basis = 0;
+        else if( n_cell_atoms == 2 )
+        {
+            dims_basis = 1;
+            test_vec_basis = cell_atoms[0] - cell_atoms[1];
+        }
         else
         {
             // Get basis atoms relative to the first atom
             Vector3 v0 = cell_atoms[0];
             std::vector<Vector3> b_vectors(n_cell_atoms-1);
             for( int i = 1; i < n_cell_atoms; ++i )
-                b_vectors[i-1] = cell_atoms[i] - v0;
+                b_vectors[i-1] = (cell_atoms[i] - v0).normalized();
 
             // Calculate basis dimensionality
             // test vec is along line
