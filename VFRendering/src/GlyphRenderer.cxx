@@ -146,6 +146,7 @@ void GlyphRenderer::setGlyph(const std::vector<glm::vec3>& positions, const std:
         m_indices = indices;
         return;
     }
+    glBindVertexArray(m_vao);
     glBindBuffer(GL_ARRAY_BUFFER, m_position_vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * positions.size(), positions.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, m_normal_vbo);
