@@ -1130,7 +1130,7 @@ namespace Engine
             translation_vectors.push_back(geometry->lattice_constant * geometry->bravais_vectors[i]);
 
         for(int i=0; i<geometry->n_cell_atoms; i++)
-            cell_atom_translations.push_back(geometry->lattice_constant * geometry->cell_atoms[i]);
+            cell_atom_translations.push_back(geometry->positions[i]);
 
         CU_Write_FFT_Dipole_Input<<<(sublattice_size + 1023)/1024, 1024>>>
         (   fft_dipole_inputs.data(), it_bounds_write_dipole.data(), translation_vectors.data(), 

@@ -1093,7 +1093,7 @@ namespace Engine
                 inter_sublattice_lookup[i_b1 + i_b2 * geometry->n_cell_atoms] = b_inter;
 
                 // Iterate over the padded system
-                const int * c_n_cells_padded = n_cells_padded.data(); 
+                const int * c_n_cells_padded = n_cells_padded.data();
                 #pragma omp parallel for collapse(3)
                 for( int c = 0; c < c_n_cells_padded[2]; ++c )
                 {
@@ -1113,13 +1113,10 @@ namespace Engine
                                 {
                                     for( int c_pb = -img_c; c_pb <= img_c; c_pb++ )
                                     {
-
-                                        diff =  geometry->lattice_constant *
-                                                (   (a_idx + a_pb * Na) * geometry->bravais_vectors[0]
-                                                  + (b_idx + b_pb * Nb) * geometry->bravais_vectors[1]
-                                                  + (c_idx + c_pb * Nc) * geometry->bravais_vectors[2]
-                                                  + geometry->cell_atoms[i_b1]
-                                                  - geometry->cell_atoms[i_b2] );
+                                        diff =  geometry->lattice_constant * (
+                                              (a_idx + a_pb * Na + geometry->cell_atoms[i_b1][0] - geometry->cell_atoms[i_b2][0]) * geometry->bravais_vectors[0]
+                                            + (b_idx + b_pb * Nb + geometry->cell_atoms[i_b1][1] - geometry->cell_atoms[i_b2][1]) * geometry->bravais_vectors[1]
+                                            + (c_idx + c_pb * Nc + geometry->cell_atoms[i_b1][2] - geometry->cell_atoms[i_b2][2]) * geometry->bravais_vectors[2] );
 
                                         if( diff.norm() > 1e-10 )
                                         {

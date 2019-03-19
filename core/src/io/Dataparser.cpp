@@ -248,9 +248,9 @@ namespace IO
                 // Anisotropy vector orientation
                 if (K_abc)
                 {
-                    spin_K1 = K_temp.dot(geometry->bravais_vectors[0]);
-                    spin_K2 = K_temp.dot(geometry->bravais_vectors[1]);
-                    spin_K3 = K_temp.dot(geometry->bravais_vectors[2]);
+                    spin_K1 = K_temp.dot(geometry->lattice_constant*geometry->bravais_vectors[0]);
+                    spin_K2 = K_temp.dot(geometry->lattice_constant*geometry->bravais_vectors[1]);
+                    spin_K3 = K_temp.dot(geometry->lattice_constant*geometry->bravais_vectors[2]);
                     K_temp = { spin_K1, spin_K2, spin_K3 };
                 }
 
@@ -394,9 +394,9 @@ namespace IO
                 // DMI vector orientation
                 if (DMI_abc)
                 {
-                    pair_D_temp =  pair_D1 * geometry->bravais_vectors[0]
-                                 + pair_D2 * geometry->bravais_vectors[1]
-                                 + pair_D3 * geometry->bravais_vectors[2];
+                    pair_D_temp =  pair_D1 * geometry->lattice_constant * geometry->bravais_vectors[0]
+                                 + pair_D2 * geometry->lattice_constant * geometry->bravais_vectors[1]
+                                 + pair_D3 * geometry->lattice_constant * geometry->bravais_vectors[2];
                     pair_D1 = pair_D_temp[0];
                     pair_D2 = pair_D_temp[1];
                     pair_D3 = pair_D_temp[2];

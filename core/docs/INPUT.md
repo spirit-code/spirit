@@ -139,6 +139,10 @@ A lattice constant can be used for scaling:
 ### Scaling constant
 lattice_constant 1.0
 ```
+Note that it scales the Bravais vectors and therefore the
+translations, atom positions in the basis cell and potentially
+-- if you specified them in terms of the Bravais vectors --
+also the anisotropy and DM vectors.
 
 
 Heisenberg Hamiltonian <a name="Heisenberg"></a>

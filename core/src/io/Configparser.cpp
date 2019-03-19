@@ -448,19 +448,15 @@ namespace IO
             for( int iatom = 0; iatom < n_cell_atoms && iatom < 10; ++iatom )
                 Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        atom {} at ({}), mu_s={}", iatom, cell_atoms[iatom].transpose(), cell_composition.mu_s[iatom]));
 
-            // Get x,y,z of component of atom positions in unit of length (instead of in units of a,b,c)
-            for( int iatom = 0; iatom < n_cell_atoms; ++iatom )
-            {
-                Vector3 cell_atom =
-                      bravais_vectors[0] * cell_atoms[iatom][0]
-                    + bravais_vectors[1] * cell_atoms[iatom][1]
-                    + bravais_vectors[2] * cell_atoms[iatom][2];
-                cell_atoms[iatom] = lattice_constant * cell_atom;
-            }
-
             Log(Log_Level::Parameter, Log_Sender::IO, "Absolute atom positions (first 10):", n_cell_atoms);
             for( int iatom = 0; iatom < n_cell_atoms && iatom < 10; ++iatom )
-                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        atom {} at ({}), mu_s={}", iatom, cell_atoms[iatom].transpose(), cell_composition.mu_s[iatom]));
+            {
+                Vector3 cell_atom = lattice_constant * (
+                      bravais_vectors[0] * cell_atoms[iatom][0]
+                    + bravais_vectors[1] * cell_atoms[iatom][1]
+                    + bravais_vectors[2] * cell_atoms[iatom][2] );
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        atom {} at ({})", iatom, cell_atom.transpose()));
+            }
 
             if( cell_composition.disordered )
                 Log(Log_Level::Parameter, Log_Sender::IO, "Note: the lattice has some disorder!");

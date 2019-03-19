@@ -57,7 +57,7 @@ PREFIX void Geometry_Set_N_Cells(State * state, int n_cells[3]) SUFFIX;
 
 /*
 Set the number and positions of atoms in a basis cell.
-Positions are in units of the bravais vectors.
+Positions are in units of the bravais vectors (scaled by the lattice constant).
 */
 PREFIX void Geometry_Set_Cell_Atoms(State *state, int n_atoms, float ** atoms) SUFFIX;
 
@@ -127,11 +127,6 @@ Get bravais vectors ta, tb, tc.
 PREFIX void Geometry_Get_Bravais_Vectors(State *state, float a[3], float b[3], float c[3], int idx_image=-1, int idx_chain=-1) SUFFIX;
 
 /*
-Get translation vectors ta, tb, tc.
-*/
-PREFIX void Geometry_Get_Translation_Vectors(State *state, float ta[3], float tb[3], float tc[3], int idx_image=-1, int idx_chain=-1) SUFFIX;
-
-/*
 Retrieve dimensionality of the system (0, 1, 2, 3).
 */
 PREFIX int Geometry_Get_Dimensionality(State * state, int idx_image=-1, int idx_chain=-1) SUFFIX;
@@ -161,7 +156,7 @@ Get number of atoms in a basis cell.
 PREFIX int Geometry_Get_N_Cell_Atoms(State *state, int idx_image=-1, int idx_chain=-1) SUFFIX;
 
 /*
-Get basis cell atoms.
+Get basis cell atom positions in units of the bravais vectors (scaled by the lattice constant).
 */
 PREFIX int Geometry_Get_Cell_Atoms(State *state, scalar ** atoms, int idx_image=-1, int idx_chain=-1) SUFFIX;
 

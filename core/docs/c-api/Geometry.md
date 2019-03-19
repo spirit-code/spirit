@@ -52,7 +52,7 @@ void Geometry_Set_Cell_Atoms(State *state, int n_atoms, float ** atoms)
 ```
 
 Set the number and positions of atoms in a basis cell.
-Positions are in units of the bravais vectors.
+Positions are in units of the bravais vectors (scaled by the lattice constant).
 
 
 
@@ -175,16 +175,6 @@ Get bravais vectors ta, tb, tc.
 
 
 
-### Geometry_Get_Translation_Vectors
-
-```C
-void Geometry_Get_Translation_Vectors(State *state, float ta[3], float tb[3], float tc[3], int idx_image=-1, int idx_chain=-1)
-```
-
-Get translation vectors ta, tb, tc.
-
-
-
 ### Geometry_Get_Dimensionality
 
 ```C
@@ -245,7 +235,7 @@ Get number of atoms in a basis cell.
 int Geometry_Get_Cell_Atoms(State *state, scalar ** atoms, int idx_image=-1, int idx_chain=-1)
 ```
 
-Get basis cell atoms.
+Get basis cell atom positions in units of the bravais vectors (scaled by the lattice constant).
 
 
 
