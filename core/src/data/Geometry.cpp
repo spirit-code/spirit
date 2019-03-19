@@ -98,7 +98,7 @@ namespace Data
                         for (int dc = -max_c; dc <= max_c; ++dc)
                         {
                             // Norm is zero if translated basis atom is at position of another basis atom
-                            diff = cell_atoms[i] - ( cell_atoms[j] + Vector3{da, db, dc} );
+                            diff = cell_atoms[i] - ( cell_atoms[j] + Vector3{scalar(da), scalar(db), scalar(dc)} );
 
                             if( (i != j || da != 0 || db != 0 || dc != 0) &&
                                 std::abs(diff[0]) < epsilon &&
@@ -553,9 +553,9 @@ namespace Data
         // ----- Find dimensionality of the translations -----
         //      The following are zero if the corresponding pair is parallel or antiparallel
         double t01, t02, t12;
-        t01 = std::abs(bravais_vectors[0].dot(bravais_vectors[1])) - 1.0;
-        t02 = std::abs(bravais_vectors[0].dot(bravais_vectors[2])) - 1.0;
-        t12 = std::abs(bravais_vectors[1].dot(bravais_vectors[2])) - 1.0;
+        t01 = std::abs(bravais_vectors[0].normalized().dot(bravais_vectors[1].normalized())) - 1.0;
+        t02 = std::abs(bravais_vectors[0].normalized().dot(bravais_vectors[2].normalized())) - 1.0;
+        t12 = std::abs(bravais_vectors[1].normalized().dot(bravais_vectors[2].normalized())) - 1.0;
         //      Check if pairs are linearly independent
         int n_independent_pairs = 0;
         if( t01 < epsilon && n_cells[0] > 1 && n_cells[1] > 1 ) ++n_independent_pairs;
@@ -580,8 +580,11 @@ namespace Data
             std::vector<Vector3> plane(2);
             for( int i = 0; i < 3; ++i )
             {
-                if (n_cells[i] > 1) plane[n] = bravais_vectors[i];
-                ++n;
+                if( n_cells[i] > 1 )
+                {
+                    plane[n] = bravais_vectors[i];
+                    ++n;
+                }
             }
             test_vec_translations = plane[0].cross(plane[1]);
         }
@@ -687,8 +690,8 @@ namespace Data
         if (cell_atoms.size() == 1)
         {
             // If the basis vectors are orthogonal, it is a rectilinear lattice
-            if (std::abs(bravais_vectors[0].dot(bravais_vectors[1])) < epsilon &&
-                std::abs(bravais_vectors[0].dot(bravais_vectors[2])) < epsilon)
+            if (std::abs(bravais_vectors[0].normalized().dot(bravais_vectors[1].normalized())) < epsilon &&
+                std::abs(bravais_vectors[0].normalized().dot(bravais_vectors[2].normalized())) < epsilon)
             {
                 // If equidistant it is simple cubic
                 if (bravais_vectors[0].norm() == bravais_vectors[1].norm() == bravais_vectors[2].norm())
