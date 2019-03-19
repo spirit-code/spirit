@@ -23,8 +23,10 @@ namespace Engine
             {"force_max_abs_component", {this->force_max_abs_component}} };
 
         // TODO: is this a good idea?
-        this->n_iterations     = this->parameters->n_iterations;
-        this->n_iterations_log = std::max(long(1), std::min(this->parameters->n_iterations_log, this->n_iterations));
+        this->n_iterations     = std::max(long(1), this->parameters->n_iterations);
+        this->n_iterations_log = std::min(this->parameters->n_iterations_log, this->n_iterations);
+        if( this->n_iterations_log <= long(0) )
+            this->n_iterations_log = this->n_iterations;
         this->n_log            = this->n_iterations / this->n_iterations_log;
 
         // Setup timings

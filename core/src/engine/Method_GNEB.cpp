@@ -281,8 +281,8 @@ namespace Engine
         // --- Convergence Parameter Update
         this->force_max_abs_component = 0;
         std::fill(this->force_max_abs_component_all.begin(), this->force_max_abs_component_all.end(), 0);
-        
-        
+
+
         for (int img = 1; img < chain->noi - 1; ++img)
         {
             scalar fmax = this->Force_on_Image_MaxAbsComponent(*(this->systems[img]->spins), F_total[img]);
@@ -351,14 +351,14 @@ namespace Engine
             std::string preChainFile;
             std::string preEnergiesFile;
             std::string fileTag;
-            
+
             if (this->parameters->output_file_tag == "<time>")
                 fileTag = starttime + "_";
             else if (this->parameters->output_file_tag != "")
                 fileTag = this->parameters->output_file_tag + "_";
-            else 
+            else
                 fileTag = "";
-            
+
             preChainFile = this->parameters->output_folder + "/" + fileTag + "Chain";
             preEnergiesFile = this->parameters->output_folder + "/" + fileTag + "Chain_Energies";
 
@@ -372,15 +372,7 @@ namespace Engine
                     std::string chainFile = preChainFile + suffix + ".ovf";
 
                     // File format
-                    IO::VF_FileFormat format = IO::VF_FileFormat::OVF_BIN;
-                    if (this->chain->gneb_parameters->output_chain_filetype == IO_Fileformat_OVF_bin4)
-                        format = IO::VF_FileFormat::OVF_BIN4;
-                    else if (this->chain->gneb_parameters->output_chain_filetype == IO_Fileformat_OVF_bin8)
-                        format = IO::VF_FileFormat::OVF_BIN8;
-                    else if (this->chain->gneb_parameters->output_chain_filetype == IO_Fileformat_OVF_text)
-                        format = IO::VF_FileFormat::OVF_TEXT;
-                    else if (this->chain->gneb_parameters->output_chain_filetype == IO_Fileformat_OVF_csv)
-                        format = IO::VF_FileFormat::OVF_CSV;
+                    IO::VF_FileFormat format = this->chain->gneb_parameters->output_vf_filetype;
 
                     // Chain
                     std::string output_comment = fmt::format( "{} simulation ({} solver)\n#       Iteration: {}\n#       Maximum force component: {}",
@@ -389,18 +381,18 @@ namespace Engine
                     IO::File_OVF file_ovf( chainFile, format );
 
                     // write/append the first image
-                    file_ovf.write_segment( *this->chain->images[0]->spins, 
+                    file_ovf.write_segment( *this->chain->images[0]->spins,
                                             *this->chain->images[0]->geometry,
                                             output_comment, append );
                     // append all the others
                     for ( int i=1; i<this->chain->noi; i++ )
-                        file_ovf.write_segment( *this->chain->images[i]->spins, 
+                        file_ovf.write_segment( *this->chain->images[i]->spins,
                                                 *this->chain->images[i]->geometry,
-                                                output_comment, true ); 
+                                                output_comment, true );
                 }
                 catch( ... )
                 {
-                   spirit_handle_exception_core( "GNEB output failed" ); 
+                   spirit_handle_exception_core( "GNEB output failed" );
                 }
             };
 

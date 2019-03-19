@@ -119,11 +119,12 @@ namespace IO
             ifile->Read_Single( this->max.z(), "# zmax:" );
 
             ifile->Require_Single( this->meshtype, "# meshtype:" );
+            std::transform( this->meshtype.begin(), this->meshtype.end(), this->meshtype.begin(), ::tolower );
 
             if( this->meshtype != "rectangular" && this->meshtype != "irregular" )
             {
-                spirit_throw(Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
-                    "Mesh type must be either \"rectangular\" or \"irregular\"");
+                spirit_throw(Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error, fmt::format(
+                    "Mesh type must be either \"rectangular\" or \"irregular\". Found \"{}\"", this->meshtype));
             }
 
             // Emit Header to Log
@@ -230,10 +231,12 @@ namespace IO
             ifile->Read_String( this->datatype_in, "# Begin: Data" );
             std::istringstream repr( this->datatype_in );
             repr >> this->datatype_in;
+            // Decapitalise the data type
+            std::transform( this->datatype_in.begin(), this->datatype_in.end(), this->datatype_in.begin(), ::tolower );
+
+            this->binary_length = 0;
             if( this->datatype_in == "binary" )
                 repr >> this->binary_length;
-            else
-                this->binary_length = 0;
 
             Log( lvl, this->sender, fmt::format( "# OVF data representation = {}", this->datatype_in ) );
             Log( lvl, this->sender, fmt::format( "# OVF binary length       = {}", this->binary_length ) );
@@ -243,16 +246,16 @@ namespace IO
                 this->datatype_in != "binary" &&
                 this->datatype_in != "csv" )
             {
-                spirit_throw( Utility::Exception_Classifier::Bad_File_Content,
-                              Utility::Log_Level::Error, "Data representation must be "
-                              "either \"text\", \"binary\" or \"csv\"");
+                spirit_throw( Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error, fmt::format(
+                    "Data representation must be either \"text\", \"binary\" or \"csv\". Found \"{}\"", datatype_in) );
             }
 
             if( this->datatype_in == "binary" &&
                 this->binary_length != 4 && this->binary_length != 8  )
             {
-                spirit_throw( Exception_Classifier::Bad_File_Content, Log_Level::Error,
-                              "Binary representation can be either \"binary 8\" or \"binary 4\"");
+                spirit_throw( Exception_Classifier::Bad_File_Content, Log_Level::Error, fmt::format(
+                              "Binary representation can be either \"binary 8\" or \"binary 4\". Found \"{} {}\"",
+                              this->datatype_in, this->binary_length) );
             }
 
             // Read the data
@@ -519,8 +522,7 @@ namespace IO
         }
         catch( ... )
         {
-            spirit_rethrow( fmt::format("Failed to increment n_segments in OVF file \"{}\".",
-                            this->filename) );
+            spirit_rethrow( fmt::format("Failed to increment n_segments in OVF file \"{}\".", this->filename) );
         }
     }
 
@@ -564,9 +566,7 @@ namespace IO
 
             std::ios::pos_type end = this->ifile->GetPosition( std::ios::end );
 
-            // NOTE: the keyword to find must be lower case since the Filter File Handle
-            // converts the content of the input file to lower case automatically
-            while( ifile->Find( "# begin: segment" ) )
+            while( ifile->Find( "# begin: segment", true ) )
             {
                 std::ios::pos_type pos = this->ifile->GetPosition();
                 this->segment_fpos.push_back( pos );

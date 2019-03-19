@@ -114,7 +114,7 @@ try
 
     chain->Lock();
     chain->gneb_parameters->output_chain_step = chain_step;
-    chain->gneb_parameters->output_chain_filetype = chain_filetype;
+    chain->gneb_parameters->output_vf_filetype = IO::VF_FileFormat(chain_filetype);
     chain->Unlock();
 }
 catch( ... )
@@ -406,7 +406,7 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     *chain_step = chain->gneb_parameters->output_chain_step;
-    *chain_filetype = chain->gneb_parameters->output_chain_filetype;
+    *chain_filetype = (int)chain->gneb_parameters->output_vf_filetype;
 }
 catch( ... )
 {

@@ -57,6 +57,7 @@ PREFIX void Geometry_Set_N_Cells(State * state, int n_cells[3]) SUFFIX;
 
 /*
 Set the number and positions of atoms in a basis cell.
+Positions are in units of the bravais vectors.
 */
 PREFIX void Geometry_Set_Cell_Atoms(State *state, int n_atoms, float ** atoms) SUFFIX;
 

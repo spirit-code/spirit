@@ -33,17 +33,34 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         Log(Log_Level::All,  Log_Sender::All, "=====================================================");
         Log(Log_Level::All,  Log_Sender::All, "========== Spirit State: Initialising... ============");
         Log(Log_Level::All,  Log_Sender::All, "==========     Version:  " + std::string(version));
-        
+
         // Log revision hash
-        Log( Log_Level::All,  Log_Sender::All, "==========     Revision: " + 
+        Log( Log_Level::All,  Log_Sender::All, "==========     Revision: " +
                 std::string(version_revision));
-        
+
         // Log if quiet mode
         if (state->quiet)
             Log( Log_Level::All, Log_Sender::All, "Going to run in QUIET mode (only Error messages, no output files)" );
-        
+
+        // Check if config file exists
+        if( state->config_file != "" )
+        {
+            try
+            {
+                IO::Filter_File_Handle myfile(state->config_file);
+            }
+            catch( ... )
+            {
+                Log(Log_Level::Error, Log_Sender::All, fmt::format("Could not find config file \"{}\"", state->config_file));
+                state->config_file = "";
+            }
+        }
+
         // Log Config file info
-        Log(Log_Level::All, Log_Sender::All, "Config file: " + state->config_file);
+        if( state->config_file != "" )
+            Log(Log_Level::All, Log_Sender::All, fmt::format("Config file: {}", state->config_file));
+        else
+            Log(Log_Level::All, Log_Sender::All, "No config file. Will use default parameters.");
     }
     catch (...)
     {
@@ -142,10 +159,10 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
     try
     {
         // Get parameters
-        auto params_gneb = 
+        auto params_gneb =
             std::shared_ptr<Data::Parameters_Method_GNEB>(
                 IO::Parameters_Method_GNEB_from_Config( state->config_file ));
-        
+
         // Create the chain
         auto sv = std::vector<std::shared_ptr<Data::Spin_System>>();
         sv.push_back(state->active_image);
@@ -220,7 +237,7 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         Log(Log_Level::All, Log_Sender::All, "    Number of Warnings: " + fmt::format("{}", Log_Get_N_Warnings(state)));
         Log(Log_Level::All, Log_Sender::All, "=====================================================");
         Log.Append_to_File();
-        
+
         // Return
         return state;
     }
@@ -241,7 +258,7 @@ try
 
     Log(Log_Level::All, Log_Sender::All,  "=====================================================");
     Log(Log_Level::All, Log_Sender::All,  "============ Spirit State: Deleting... ==============");
-    
+
     // Final file writing (input, positions, neighbours)
     Save_Initial_Final( state, false );
 
@@ -254,7 +271,7 @@ try
 
     // Delete
     delete(state);
-    
+
     Log(Log_Level::All, Log_Sender::All,  "============== Spirit State: Deleted ================");
     Log(Log_Level::All, Log_Sender::All,  "=====================================================");
     Log.Append_to_File();
@@ -275,7 +292,7 @@ try
         state->chain->idx_active_image = state->chain->noi-1;
 
     // Update Image
-    state->idx_active_image = state->chain->idx_active_image; 
+    state->idx_active_image = state->chain->idx_active_image;
     state->active_image     = state->chain->images[state->idx_active_image];
 
     // Update NOS, NOI
@@ -303,7 +320,7 @@ try
         header = std::string(comment)+"\n";
     IO::String_to_File(header, cfg);
     // Folders
-    IO::Folders_to_Config( cfg, state->active_image->llg_parameters, state->active_image->mc_parameters, 
+    IO::Folders_to_Config( cfg, state->active_image->llg_parameters, state->active_image->mc_parameters,
                             state->chain->gneb_parameters, state->active_image->mmf_parameters );
     // Log Parameters
     IO::Append_String_to_File("\n\n\n", cfg);
@@ -373,7 +390,7 @@ void Save_Initial_Final( State * state, bool initial )
              (Log.save_input_final   && !initial) )
         {
             std::string file = folder + "/input/" + tag + suffix + ".cfg";
-            std::string comment = fmt::format("###\n### Original configuration file was called\n###   {}\n###\n", state->config_file);
+            std::string comment = fmt::format("###\n### Original configuration file was called\n###   \"{}\"\n###\n", state->config_file);
             State_To_Config(state, file.c_str(), comment.c_str());
         }
     }

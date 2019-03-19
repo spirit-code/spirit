@@ -8,6 +8,8 @@
 Spirit - Spin Simulation Framework
 ==================================
 
+.. image:: https://imgur.com/iWc1kuE.png
+
 .. toctree::
     :maxdepth: 1
     :caption: Introduction

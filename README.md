@@ -3,6 +3,9 @@ SPIRIT
 **SPIN SIMULATION FRAMEWORK**<br />
 
 
+![Logo](https://imgur.com/iWc1kuE.png "Spirit Logo")
+
+
 &nbsp;
 
 
@@ -27,7 +30,7 @@ SPIRIT
 
 The code is released under [MIT License](LICENSE.txt).<br />
 If you intend to *present and/or publish* scientific results or visualisations for which you used Spirit,
-please read the [REFERENCE.md](docs/REFERENCE.md)
+please cite `G. P. Müller et al., arXiv:1901.11350` and read the [REFERENCE.md](docs/REFERENCE.md).
 
 **This is an open project and contributions and collaborations are always welcome!!**
 See [CONTRIBUTING.md](docs/CONTRIBUTING.md) on how to contribute or write an email to g.mueller@fz-juelich.de<br />

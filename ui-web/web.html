@@ -251,6 +251,15 @@
                   <label for="input-anisotropy-directionx" class="col-sm-6 control-label">Direction: </label><div class="col-sm-2"><input type="text" id="input-anisotropy-directionx" class="form-control" value="0" /></div>
                   <div class="col-sm-2"><input type="text" id="input-anisotropy-directiony" class="form-control" value="0" /></div><div class="col-sm-2"><input type="text" id="input-anisotropy-directionz" class="form-control" value="1" /></div>
                 </div>
+                <div class="form-group">
+                  <div class="col-sm-5">
+                    <div class="checkbox">
+                      <label>
+                        <input type="checkbox" id="input-ddi">Dipole-dipole
+                      </label>
+                    </div>
+                  </div>
+                </div>
               </form>
             <!--</div>-->
 
@@ -371,7 +380,7 @@
                   </div>
                   <div class="checkbox col-sm-12">
                     <label>
-                      <input type="checkbox" checked="checked" id="input-show-coordinatesystem"> Show Coordinate System
+                      <input type="checkbox" id="input-show-coordinatesystem"> Show Coordinate System
                     </label>
                   </div>
                   <label for="select-colormap" class="col-sm-6 control-label">Coordinate System Position</label>
@@ -431,8 +440,8 @@
                   <div class="col-sm-6">
                     <select id="select-backgroundcolor">
                       <option value="black">Black</option>
-                      <option value="gray" selected="selected">Gray</option>
-                      <option value="white">White</option>
+                      <option value="gray">Gray</option>
+                      <option value="white" selected="selected">White</option>
                     </select>
                   </div>
                 </div>

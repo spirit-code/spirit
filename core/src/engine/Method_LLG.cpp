@@ -35,7 +35,7 @@ namespace Engine
         this->xi = vectorfield(this->nos, {0,0,0});
         this->s_c_grad = vectorfield(this->nos, {0,0,0});
         this->temperature_distribution = scalarfield(this->nos, 0);
-        
+
         // We assume it is not converged before the first iteration
         this->force_converged = std::vector<bool>(this->noi, false);
         this->force_max_abs_component = system->llg_parameters->force_convergence + 1.0;
@@ -127,7 +127,7 @@ namespace Engine
             #ifdef SPIRIT_ENABLE_PINNING
                 Vectormath::set_c_a(1, Gradient[img], Gradient[img], this->systems[img]->geometry->mask_unpinned);
             #endif // SPIRIT_ENABLE_PINNING
-            
+
             // Copy out
             Vectormath::set_c_a(-1, Gradient[img], forces[img]);
         }
@@ -184,8 +184,8 @@ namespace Engine
                         auto& boundary_conditions = this->systems[0]->hamiltonian->boundary_conditions;
                         // Gradient approximation for in-plane currents
                         Vectormath::directional_gradient(image, geometry, boundary_conditions, je, s_c_grad); // s_c_grad = (j_e*grad)*S
-                        Vectormath::add_c_a    ( dtg * a_j * ( damping - beta ), s_c_grad, force_virtual); // TODO: a_j durch b_j ersetzen 
-                        Vectormath::add_c_cross( dtg * a_j * ( 1 + beta * damping ), s_c_grad, image, force_virtual); // TODO: a_j durch b_j ersetzen 
+                        Vectormath::add_c_a    ( dtg * a_j * ( damping - beta ), s_c_grad, force_virtual); // TODO: a_j durch b_j ersetzen
+                        Vectormath::add_c_cross( dtg * a_j * ( 1 + beta * damping ), s_c_grad, image, force_virtual); // TODO: a_j durch b_j ersetzen
                         // Gradient in current richtung, daher => *(-1)
                     }
                     else
@@ -309,17 +309,17 @@ namespace Engine
             std::string preSpinsFile;
             std::string preEnergyFile;
             std::string fileTag;
-            
+
             if (this->systems[0]->llg_parameters->output_file_tag == "<time>")
                 fileTag = starttime + "_";
             else if (this->systems[0]->llg_parameters->output_file_tag != "")
                 fileTag = this->systems[0]->llg_parameters->output_file_tag + "_";
             else
                 fileTag = "";
-                
+
             preSpinsFile = this->parameters->output_folder + "/" + fileTag + "Image-" + s_img + "_Spins";
             preEnergyFile = this->parameters->output_folder + "/"+ fileTag + "Image-" + s_img + "_Energy";
-            
+
 
             // Function to write or append image and energy files
             auto writeOutputConfiguration = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
@@ -330,27 +330,19 @@ namespace Engine
                     std::string spinsFile = preSpinsFile + suffix + ".ovf";
                     std::string output_comment = fmt::format( "{} simulation ({} solver)\n#       Iteration: {}\n#       Maximum force component: {}",
                         this->Name(), this->SolverFullName(), iteration, this->force_max_abs_component );
-                    
+
                     // File format
-                    IO::VF_FileFormat format = IO::VF_FileFormat::OVF_BIN;
-                    if (this->systems[0]->llg_parameters->output_configuration_filetype == IO_Fileformat_OVF_bin4)
-                        format = IO::VF_FileFormat::OVF_BIN4;
-                    else if (this->systems[0]->llg_parameters->output_configuration_filetype == IO_Fileformat_OVF_bin8)
-                        format = IO::VF_FileFormat::OVF_BIN8;
-                    else if (this->systems[0]->llg_parameters->output_configuration_filetype == IO_Fileformat_OVF_text)
-                        format = IO::VF_FileFormat::OVF_TEXT;
-                    else if (this->systems[0]->llg_parameters->output_configuration_filetype == IO_Fileformat_OVF_csv)
-                        format = IO::VF_FileFormat::OVF_CSV;
+                    IO::VF_FileFormat format = this->systems[0]->llg_parameters->output_vf_filetype;
 
                     // Spin Configuration
                     IO::File_OVF file_ovf( spinsFile, format );
-                    file_ovf.write_segment( *( this->systems[0] )->spins, 
+                    file_ovf.write_segment( *( this->systems[0] )->spins,
                                             *( this->systems[0] )->geometry,
                                             output_comment, append );
                 }
                 catch( ... )
                 {
-                   spirit_handle_exception_core( "LLG output failed" ); 
+                   spirit_handle_exception_core( "LLG output failed" );
                 }
             };
 
@@ -382,7 +374,7 @@ namespace Engine
                     }
                 }
             };
-            
+
             // Initial image before simulation
             if (initial && this->parameters->output_initial)
             {
@@ -395,7 +387,7 @@ namespace Engine
                 writeOutputConfiguration("-final", false);
                 writeOutputEnergy("-final", false);
             }
-            
+
             // Single file output
             if (this->systems[0]->llg_parameters->output_configuration_step)
             {

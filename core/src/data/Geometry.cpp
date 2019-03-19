@@ -10,6 +10,8 @@
 #include "QhullFacetList.h"
 #include "QhullVertexSet.h"
 
+#include <fmt/ostream.h>
+
 #include <random>
 #include <array>
 
@@ -25,15 +27,6 @@ namespace Data
         n_cells_total(n_cells[0] * n_cells[1] * n_cells[2]),
         pinning(pinning), defects(defects)
     {
-        // Get x,y,z of component of atom positions in unit of length (instead of in units of a,b,c)
-        for (int iatom = 0; iatom < this->n_cell_atoms; ++iatom)
-        {
-            Vector3 build_array = this->bravais_vectors[0] * this->cell_atoms[iatom][0]
-                                + this->bravais_vectors[1] * this->cell_atoms[iatom][1]
-                                + this->bravais_vectors[2] * this->cell_atoms[iatom][2];
-            this->cell_atoms[iatom] = build_array;
-        }
-
         // Generate positions and atom types
         this->positions = vectorfield(this->nos);
         this->generatePositions();
@@ -112,13 +105,15 @@ namespace Data
                             // Norm is zero if translated basis atom is at position of another basis atom
                             diff = cell_atoms[i] - ( cell_atoms[j] + translation );
 
-                            if( (i != j || da != 0 || db != 0 || dc != 0) && 
+                            if( (i != j || da != 0 || db != 0 || dc != 0) &&
                                 std::abs(diff[0]) < epsilon &&
                                 std::abs(diff[1]) < epsilon &&
                                 std::abs(diff[2]) < epsilon )
                             {
-                                spirit_throw(Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Severe, fmt::format(
-                                    "Unable to initialize Spin-System, since 2 spins occupy the same space within a margin of {}.\nPlease check the config file!", epsilon ));
+                                std::string message = fmt::format(
+                                    "Unable to initialize Spin-System, since 2 spins occupy the same space within a margin of {} at position ({}).\n"
+                                    "Please check the config file!", epsilon, cell_atoms[i].transpose());
+                                spirit_throw(Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Severe, message);
                             }
                         }
                     }
@@ -154,6 +149,7 @@ namespace Data
 
 
     std::vector<tetrahedron_t> compute_delaunay_triangulation_3D(const std::vector<vector3_t> & points)
+    try
     {
         const int ndim = 3;
         std::vector<tetrahedron_t> tetrahedra;
@@ -177,8 +173,14 @@ namespace Data
         }
         return tetrahedra;
     }
+    catch( ... )
+    {
+        spirit_handle_exception_core( "Could not compute 3D Delaunay triangulation of the Geometry. Probably Qhull threw an exception." );
+        return std::vector<tetrahedron_t>(0);
+    }
 
     std::vector<triangle_t> compute_delaunay_triangulation_2D(const std::vector<vector2_t> & points)
+    try
     {
         const int ndim = 2;
         std::vector<triangle_t> triangles;
@@ -200,6 +202,11 @@ namespace Data
             }
         }
         return triangles;
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core( "Could not compute 2D Delaunay triangulation of the Geometry. Probably Qhull threw an exception." );
+        return std::vector<triangle_t>(0);
     }
 
     const std::vector<triangle_t>& Geometry::triangulation(int n_cell_step)
@@ -228,7 +235,7 @@ namespace Data
                 this->last_update_n_cells[0]  = n_cells[0];
                 this->last_update_n_cells[1]  = n_cells[1];
                 this->last_update_n_cells[2]  = n_cells[2];
-                
+
                 _triangulation.clear();
 
                 std::vector<vector2_t> points;
@@ -309,7 +316,7 @@ namespace Data
                         0, x_offset, x_offset+y_offset, y_offset,
                         z_offset, x_offset+z_offset, x_offset+y_offset+z_offset, y_offset+z_offset
                         };
-                
+
                     for (int ix = 0; ix < (n_cells[0]-1)/n_cell_step; ix++)
                     {
                         for (int iy = 0; iy < (n_cells[1]-1)/n_cell_step; iy++)
@@ -332,7 +339,7 @@ namespace Data
                     }
                 }
                 // For general basis cells we calculate the Delaunay tetrahedra
-                else 
+                else
                 {
                     std::vector<vector3_t> points;
                     points.resize(positions.size());
@@ -489,16 +496,20 @@ namespace Data
         const scalar epsilon = 1e-6;
 
         // ----- Find dimensionality of the basis -----
-        if     ( n_cell_atoms == 1 ) dims_basis = 0;
-        else if( n_cell_atoms == 2 ) dims_basis = 1;
-        else if( n_cell_atoms == 3 ) dims_basis = 2;
+        if     ( n_cell_atoms == 1 )
+            dims_basis = 0;
+        else if( n_cell_atoms == 2 )
+        {
+            dims_basis = 1;
+            test_vec_basis = cell_atoms[0] - cell_atoms[1];
+        }
         else
         {
             // Get basis atoms relative to the first atom
             Vector3 v0 = cell_atoms[0];
             std::vector<Vector3> b_vectors(n_cell_atoms-1);
             for( int i = 1; i < n_cell_atoms; ++i )
-                b_vectors[i-1] = cell_atoms[i] - v0;
+                b_vectors[i-1] = (cell_atoms[i] - v0).normalized();
 
             // Calculate basis dimensionality
             // test vec is along line
@@ -507,7 +518,7 @@ namespace Data
             int n_parallel = 0;
             for( unsigned int i = 1; i < b_vectors.size(); ++i )
             {
-                if( std::abs(b_vectors[i].dot(test_vec_basis) - 1.0) < epsilon )
+                if( std::abs(b_vectors[i].dot(test_vec_basis)) - 1 < epsilon )
                     ++n_parallel;
                 // Else n_parallel will give us the last parallel vector
                 // Also the if-statement for dims_basis=1 wont be met
@@ -539,18 +550,17 @@ namespace Data
             }
         }
 
-
         // ----- Find dimensionality of the translations -----
-        //      The following are zero if the corresponding pair is parallel
+        //      The following are zero if the corresponding pair is parallel or antiparallel
         double t01, t02, t12;
-        t01 = std::abs(bravais_vectors[0].dot(bravais_vectors[1]) - 1.0);
-        t02 = std::abs(bravais_vectors[0].dot(bravais_vectors[2]) - 1.0);
-        t12 = std::abs(bravais_vectors[1].dot(bravais_vectors[2]) - 1.0);
+        t01 = std::abs(bravais_vectors[0].dot(bravais_vectors[1])) - 1.0;
+        t02 = std::abs(bravais_vectors[0].dot(bravais_vectors[2])) - 1.0;
+        t12 = std::abs(bravais_vectors[1].dot(bravais_vectors[2])) - 1.0;
         //      Check if pairs are linearly independent
         int n_independent_pairs = 0;
-        if( t01>epsilon && n_cells[0] > 1 && n_cells[1] > 1 ) ++n_independent_pairs;
-        if( t02>epsilon && n_cells[0] > 1 && n_cells[2] > 1 ) ++n_independent_pairs;
-        if( t12>epsilon && n_cells[1] > 1 && n_cells[2] > 1 ) ++n_independent_pairs;
+        if( t01 < epsilon && n_cells[0] > 1 && n_cells[1] > 1 ) ++n_independent_pairs;
+        if( t02 < epsilon && n_cells[0] > 1 && n_cells[2] > 1 ) ++n_independent_pairs;
+        if( t12 < epsilon && n_cells[1] > 1 && n_cells[2] > 1 ) ++n_independent_pairs;
         //      Calculate translations dimensionality
         if( n_cells[0] == 1 && n_cells[1] == 1 && n_cells[2] == 1 )
         {
@@ -596,10 +606,10 @@ namespace Data
             this->dimensionality = dims_basis;
             return;
         }
-        //      If both are linear or both are planar, the test vectors should be parallel if the geometry is 1D or 2D
+        //      If both are linear or both are planar, the test vectors should be (anti)parallel if the geometry is 1D or 2D
         else if (dims_basis == dims_translations)
         {
-            if( std::abs(test_vec_basis.dot(test_vec_translations) - 1.0) < epsilon )
+            if( std::abs(test_vec_basis.dot(test_vec_translations)) - 1 < epsilon )
             {
                 this->dimensionality = dims_basis;
                 return;

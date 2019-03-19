@@ -124,7 +124,7 @@ void Parameters_LLG_Set_Output_Configuration( State *state, bool configuration_s
         image->Lock();
         image->llg_parameters->output_configuration_step = configuration_step;
         image->llg_parameters->output_configuration_archive = configuration_archive;
-        image->llg_parameters->output_configuration_filetype = configuration_filetype;
+        image->llg_parameters->output_vf_filetype = IO::VF_FileFormat(configuration_filetype);
         image->Unlock();
     }
     catch( ... )
@@ -455,7 +455,7 @@ void Parameters_LLG_Get_Output_Configuration( State *state, bool * configuration
 
         *configuration_step = image->llg_parameters->output_configuration_step;
         *configuration_archive = image->llg_parameters->output_configuration_archive;
-        *configuration_filetype = image->llg_parameters->output_configuration_filetype;
+        *configuration_filetype = (int)image->llg_parameters->output_vf_filetype;
     }
     catch( ... )
     {
