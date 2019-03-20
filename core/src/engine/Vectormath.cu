@@ -289,7 +289,8 @@ namespace Engine
             // This implementations assumes
             // 1. No basis atom lies outside the cell spanned by the basis vectors of the lattice
             // 2. The geometry is a plane in x and y and spanned by the first 2 basis_vectors of the lattice
-
+            // 3. The first basis atom lies at (0,0)
+            
             const auto & positions = geometry.positions;
             scalar charge = 0;
 
@@ -301,6 +302,10 @@ namespace Engine
                 basis_cell_points[i].y = double(positions[i][1]);
             }
 
+            // To avoid cases where the basis atoms lie on the boundary of the convex hull the corners of the parallelogram
+            // spanned by the lattice sites 0, a, b and a+b are stretched away from the center for the triangulation
+            scalar stretch_factor = 0.1;
+
             // For the rare case where the first basis atoms does not lie at (0,0,0)
             Vector3 basis_offset = positions[0];
 
@@ -308,15 +313,19 @@ namespace Engine
             Vector3 tb = geometry.lattice_constant * geometry.bravais_vectors[1];
             Vector3 tc = geometry.lattice_constant * geometry.bravais_vectors[2];
 
+            // basis_cell_points[0] coincides with the '0' lattice site (plus basis_offset)
+            basis_cell_points[0].x -= stretch_factor * (ta + tb)[0];
+            basis_cell_points[0].y -= stretch_factor * (ta + tb)[1];
+
             // a+b
-            basis_cell_points[geometry.n_cell_atoms].x   = double((ta + tb + positions[0])[0]);
-            basis_cell_points[geometry.n_cell_atoms].y   = double((ta + tb + positions[0])[1]);
+            basis_cell_points[geometry.n_cell_atoms].x   = double((ta + tb + positions[0] + stretch_factor * (ta + tb))[0]);
+            basis_cell_points[geometry.n_cell_atoms].y   = double((ta + tb + positions[0] + stretch_factor * (ta + tb))[1]);
             // b
-            basis_cell_points[geometry.n_cell_atoms+1].x = double((tb + positions[0])[0]);
-            basis_cell_points[geometry.n_cell_atoms+1].y = double((tb + positions[0])[1]);
+            basis_cell_points[geometry.n_cell_atoms+1].x = double((tb + positions[0] - stretch_factor * (ta - tb))[0]);
+            basis_cell_points[geometry.n_cell_atoms+1].y = double((tb + positions[0] - stretch_factor * (ta - tb))[1]);
             // a
-            basis_cell_points[geometry.n_cell_atoms+2].x = double((ta + positions[0])[0]);
-            basis_cell_points[geometry.n_cell_atoms+2].y = double((ta + positions[0])[1]);
+            basis_cell_points[geometry.n_cell_atoms+2].x = double((ta + positions[0] + stretch_factor * (ta - tb))[0]);
+            basis_cell_points[geometry.n_cell_atoms+2].y = double((ta + positions[0] + stretch_factor * (ta - tb))[1]);
 
             std::vector<Data::triangle_t> triangulation;
             triangulation = Data::compute_delaunay_triangulation_2D(basis_cell_points);
