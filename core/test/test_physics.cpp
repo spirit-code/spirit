@@ -104,7 +104,12 @@ TEST_CASE( "Finite Differences", "[physics]" )
         state->active_image->hamiltonian->Gradient( vf, grad );
 
         for( int i=0; i<state->nos; i++)
+        {
+            INFO("i = " << i << "\n" );
+            INFO("Gradient (FD) = " << grad_fd[i].transpose() << "\n" );
+            INFO("Gradient      = " << grad[i].transpose() << "\n" );
             REQUIRE( grad_fd[i].isApprox( grad[i] ) );
+        }
 
         auto hessian = MatrixX( 3*state->nos, 3*state->nos );
         auto hessian_fd = MatrixX( 3*state->nos, 3*state->nos );
@@ -112,6 +117,8 @@ TEST_CASE( "Finite Differences", "[physics]" )
         state->active_image->hamiltonian->Hessian_FD( vf, hessian_fd );
         state->active_image->hamiltonian->Hessian( vf, hessian );
 
+        INFO("Hessian (FD) = " << hessian_fd << "\n" );
+        INFO("Hessian      = " << hessian << "\n" );
         REQUIRE( hessian_fd.isApprox( hessian ) );
     }
 }
