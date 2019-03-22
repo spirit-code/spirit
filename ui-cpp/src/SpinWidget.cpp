@@ -45,7 +45,7 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
 
     setColormapGeneral(Colormap::HSV);
     setColormapArrows(Colormap::HSV);
-    setColormapRotationInverted(0, false, false);
+    setColormapRotationInverted(0, false, false, glm::vec3{1,0,0}, glm::vec3{0,1,0}, glm::vec3{0,0,1});
 
     m_view.setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>(0.125f);
     m_view.setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>(0.3f);
@@ -1552,7 +1552,9 @@ SpinWidget::Colormap SpinWidget::colormap_arrows() const
 void SpinWidget::setColormapGeneral(Colormap colormap)
 {
     m_colormap_general = colormap;
-    auto colormap_implementation = getColormapRotationInverted(m_colormap_general, colormap_rotation(), m_colormap_invert_z, m_colormap_invert_xy);
+    auto colormap_implementation = getColormapRotationInverted(
+        m_colormap_general, m_colormap_rotation, m_colormap_invert_z, m_colormap_invert_xy,
+        m_colormap_cardinal_a, m_colormap_cardinal_b, m_colormap_cardinal_c);
 
     // Set overall colormap
     makeCurrent();
@@ -1567,7 +1569,9 @@ void SpinWidget::setColormapGeneral(Colormap colormap)
 void SpinWidget::setColormapArrows(Colormap colormap)
 {
     m_colormap_arrows = colormap;
-    auto colormap_implementation = getColormapRotationInverted(m_colormap_arrows, colormap_rotation(), m_colormap_invert_z, m_colormap_invert_xy);
+    auto colormap_implementation = getColormapRotationInverted(
+        m_colormap_arrows, m_colormap_rotation, m_colormap_invert_z, m_colormap_invert_xy,
+        m_colormap_cardinal_a, m_colormap_cardinal_b, m_colormap_cardinal_c);
 
     // Set arrows colormap
     makeCurrent();
@@ -1588,11 +1592,30 @@ std::array<bool, 2> SpinWidget::colormap_inverted()
     return std::array<bool, 2>{this->m_colormap_invert_z, this->m_colormap_invert_xy};
 }
 
-void SpinWidget::setColormapRotationInverted(int phi, bool invert_z, bool invert_xy)
+glm::vec3 SpinWidget::colormap_cardinal_a()
+{
+    return this->m_colormap_cardinal_a;
+}
+
+glm::vec3 SpinWidget::colormap_cardinal_b()
+{
+    return this->m_colormap_cardinal_b;
+}
+
+glm::vec3 SpinWidget::colormap_cardinal_c()
+{
+    return this->m_colormap_cardinal_c;
+}
+
+void SpinWidget::setColormapRotationInverted(int phi, bool invert_z, bool invert_xy,
+                                            glm::vec3 cardinal_a, glm::vec3 cardinal_b, glm::vec3 cardinal_c)
 {
     this->m_colormap_rotation = phi;
     this->m_colormap_invert_z = invert_z;
     this->m_colormap_invert_xy = invert_xy;
+    this->m_colormap_cardinal_a = cardinal_a;
+    this->m_colormap_cardinal_b = cardinal_b;
+    this->m_colormap_cardinal_c = cardinal_c;
 
     this->setColormapGeneral(this->colormap_general());
     this->setColormapArrows(this->colormap_arrows());
@@ -1600,41 +1623,32 @@ void SpinWidget::setColormapRotationInverted(int phi, bool invert_z, bool invert
     QTimer::singleShot(1, this, SLOT(update()));
 }
 
-std::string SpinWidget::getColormapRotationInverted(Colormap colormap, int phi, bool invert_z, bool invert_xy)
+std::string SpinWidget::getColormapRotationInverted(Colormap colormap, int phi, bool invert_z, bool invert_xy,
+                                                    glm::vec3 cardinal_a, glm::vec3 cardinal_b, glm::vec3 cardinal_c)
 {
     int sign_z  = 1 - 2 * (int)invert_z;
     int sign_xy = 1 - 2 * (int)invert_xy;
 
     float P = glm::radians((float)phi)   / 3.14159;
 
-    // Get strings from floats - For some reason the locale is messed up...
-    auto old = std::locale::global(std::locale::classic());
-    std::locale::global(old);
-    // setlocale(LC_ALL, "en_US");
-    char s_phi[50];
-    sprintf (s_phi, "%f", P);
-    char s_sign_z[50];
-    sprintf (s_sign_z, "%i", sign_z);
-    char s_sign_xy[50];
-    sprintf (s_sign_xy, "%i", sign_xy);
     std::string colormap_implementation;
     switch (colormap)
     {
-        case Colormap::WHITE:
-            colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::WHITE);
-            break;
-        case Colormap::GRAY:
-            colormap_implementation = R"(
-                vec3 colormap(vec3 direction) {
-                    return vec3(0.5, 0.5, 0.5);
-                }
-            )";
-            break;
-        case Colormap::BLACK:
+    case Colormap::WHITE:
+        colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::WHITE);
+        break;
+    case Colormap::GRAY:
+        colormap_implementation = R"(
+        vec3 colormap(vec3 direction) {
+            return vec3(0.5, 0.5, 0.5);
+        }
+        )";
+        break;
+    case Colormap::BLACK:
             colormap_implementation = VFRendering::Utilities::getColormapImplementation(VFRendering::Utilities::Colormap::BLACK);
             break;
-        // Custom color maps not included in VFRendering:
-        case Colormap::HSV:
+    // Custom color maps not included in VFRendering:
+    case Colormap::HSV:
         colormap_implementation = R"(
         float atan2(float y, float x) {
             return x == 0.0 ? sign(y)*3.14159/2.0 : atan(y, x);
@@ -1645,9 +1659,12 @@ std::string SpinWidget::getColormapRotationInverted(Colormap colormap, int phi, 
             return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
         }
         vec3 colormap(vec3 direction) {
-            vec2 xy = normalize(direction.xy);
-            float hue = atan2()" + std::string(s_sign_xy) + R"(*xy.x, xy.y) / 3.14159 / 2.0 + )" + std::string(s_phi) + R"(/2.0;
-            float saturation = direction.z * )" + std::string(s_sign_z) + R"(;
+            vec3 cardinal_a = vec3()" + std::to_string(cardinal_a.x) + ", " + std::to_string(cardinal_a.y) + ", " + std::to_string(cardinal_a.z) + R"();
+            vec3 cardinal_b = vec3()" + std::to_string(cardinal_b.x) + ", " + std::to_string(cardinal_b.y) + ", " + std::to_string(cardinal_b.z) + R"();
+            vec3 cardinal_c = vec3()" + std::to_string(cardinal_c.x) + ", " + std::to_string(cardinal_c.y) + ", " + std::to_string(cardinal_c.z) + R"();
+            vec3 projection = vec3( dot(direction, cardinal_a), dot(direction, cardinal_b), dot(direction, cardinal_c) );
+            float hue = atan2()" + std::to_string(sign_xy) + R"(*projection.x, projection.y) / 3.14159 / 2.0 + )" + std::to_string(P) + R"(/2.0;
+            float saturation = projection.z * )" + std::to_string(sign_z) + R"(;
             if (saturation > 0.0) {
                 return hsv2rgb(vec3(hue, 1.0-saturation, 1.0));
             } else {
@@ -1667,8 +1684,11 @@ std::string SpinWidget::getColormapRotationInverted(Colormap colormap, int phi, 
             return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
         }
         vec3 colormap(vec3 direction) {
-            vec2 xy = normalize(direction.xy);
-            float hue = atan2()" + std::string(s_sign_xy) + R"(*xy.x, xy.y) / 3.14159 / 2.0 + )" + std::string(s_phi) + R"(;
+            vec3 cardinal_a = vec3()" + std::to_string(cardinal_a.x) + ", " + std::to_string(cardinal_a.y) + ", " + std::to_string(cardinal_a.z) + R"();
+            vec3 cardinal_b = vec3()" + std::to_string(cardinal_b.x) + ", " + std::to_string(cardinal_b.y) + ", " + std::to_string(cardinal_b.z) + R"();
+            vec3 cardinal_c = vec3()" + std::to_string(cardinal_c.x) + ", " + std::to_string(cardinal_c.y) + ", " + std::to_string(cardinal_c.z) + R"();
+            vec3 projection = vec3( dot(direction, cardinal_a), dot(direction, cardinal_b), dot(direction, cardinal_c) );
+            float hue = atan2()" + std::to_string(sign_xy) + R"(*projection.x, projection.y) / 3.14159 / 2.0 + )" + std::to_string(P) + R"(;
             return hsv2rgb(vec3(hue, 1.0, 1.0));
         }
         )";
@@ -1676,7 +1696,11 @@ std::string SpinWidget::getColormapRotationInverted(Colormap colormap, int phi, 
     case Colormap::BLUE_RED:
         colormap_implementation = R"(
         vec3 colormap(vec3 direction) {
-            float z_sign = direction.z * )" + std::string(s_sign_z) + R"(;
+            vec3 cardinal_a = vec3()" + std::to_string(cardinal_a.x) + ", " + std::to_string(cardinal_a.y) + ", " + std::to_string(cardinal_a.z) + R"();
+            vec3 cardinal_b = vec3()" + std::to_string(cardinal_b.x) + ", " + std::to_string(cardinal_b.y) + ", " + std::to_string(cardinal_b.z) + R"();
+            vec3 cardinal_c = vec3()" + std::to_string(cardinal_c.x) + ", " + std::to_string(cardinal_c.y) + ", " + std::to_string(cardinal_c.z) + R"();
+            vec3 projection = vec3( dot(direction, cardinal_a), dot(direction, cardinal_b), dot(direction, cardinal_c) );
+            float z_sign = projection.z * )" + std::to_string(sign_z) + R"(;
             vec3 color_down = vec3(0.0, 0.0, 1.0);
             vec3 color_up = vec3(1.0, 0.0, 0.0);
             return mix(color_down, color_up, z_sign*0.5+0.5);
@@ -1693,9 +1717,12 @@ std::string SpinWidget::getColormapRotationInverted(Colormap colormap, int phi, 
             vec3 p = abs(fract(c.xxx + K.xyz) * 6.0 - K.www);
             return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
         }
-
         vec3 colormap(vec3 direction) {
-            float hue = 1.0/3.0-normalize(direction).z/3.0* )" + std::string(s_sign_z) + R"(;
+            vec3 cardinal_a = vec3()" + std::to_string(cardinal_a.x) + ", " + std::to_string(cardinal_a.y) + ", " + std::to_string(cardinal_a.z) + R"();
+            vec3 cardinal_b = vec3()" + std::to_string(cardinal_b.x) + ", " + std::to_string(cardinal_b.y) + ", " + std::to_string(cardinal_b.z) + R"();
+            vec3 cardinal_c = vec3()" + std::to_string(cardinal_c.x) + ", " + std::to_string(cardinal_c.y) + ", " + std::to_string(cardinal_c.z) + R"();
+            vec3 projection = vec3( dot(direction, cardinal_a), dot(direction, cardinal_b), dot(direction, cardinal_c) );
+            float hue = 1.0/3.0-normalize(projection).z/3.0* )" + std::to_string(sign_z) + R"(;
             return hsv2rgb(vec3(hue, 1.0, 1.0));
         }
         )";
@@ -1703,7 +1730,11 @@ std::string SpinWidget::getColormapRotationInverted(Colormap colormap, int phi, 
     case Colormap::BLUE_WHITE_RED:
         colormap_implementation = R"(
         vec3 colormap(vec3 direction) {
-            float z_sign = direction.z * )" + std::string(s_sign_z) + R"(;
+            vec3 cardinal_a = vec3()" + std::to_string(cardinal_a.x) + ", " + std::to_string(cardinal_a.y) + ", " + std::to_string(cardinal_a.z) + R"();
+            vec3 cardinal_b = vec3()" + std::to_string(cardinal_b.x) + ", " + std::to_string(cardinal_b.y) + ", " + std::to_string(cardinal_b.z) + R"();
+            vec3 cardinal_c = vec3()" + std::to_string(cardinal_c.x) + ", " + std::to_string(cardinal_c.y) + ", " + std::to_string(cardinal_c.z) + R"();
+            vec3 projection = vec3( dot(direction, cardinal_a), dot(direction, cardinal_b), dot(direction, cardinal_c) );
+            float z_sign = projection.z * )" + std::to_string(sign_z) + R"(;
             if (z_sign < 0) {
                 vec3 color_down = vec3(0.0, 0.0, 1.0);
                 vec3 color_up = vec3(1.0, 1.0, 1.0);
@@ -1728,9 +1759,12 @@ std::string SpinWidget::getColormapRotationInverted(Colormap colormap, int phi, 
             return c.z * mix(K.xxx, clamp(p - K.xxx, 0.0, 1.0), c.y);
         }
         vec3 colormap(vec3 direction) {
-            vec2 xy = normalize(direction.xy);
-            float hue = atan2()" + std::string(s_sign_xy) + R"(*xy.x, xy.y) / 3.14159 / 2.0 + )" + std::string(s_phi) + R"(/2.0;
-            float saturation = direction.z * )" + std::string(s_sign_z) + R"(;
+            vec3 cardinal_a = vec3()" + std::to_string(cardinal_a.x) + ", " + std::to_string(cardinal_a.y) + ", " + std::to_string(cardinal_a.z) + R"();
+            vec3 cardinal_b = vec3()" + std::to_string(cardinal_b.x) + ", " + std::to_string(cardinal_b.y) + ", " + std::to_string(cardinal_b.z) + R"();
+            vec3 cardinal_c = vec3()" + std::to_string(cardinal_c.x) + ", " + std::to_string(cardinal_c.y) + ", " + std::to_string(cardinal_c.z) + R"();
+            vec3 projection = vec3( dot(direction, cardinal_a), dot(direction, cardinal_b), dot(direction, cardinal_c) );
+            float hue = atan2()" + std::to_string(sign_xy) + R"(*projection.x, projection.y) / 3.14159 / 2.0 + )" + std::to_string(P) + R"(/2.0;
+            float saturation = projection.z * )" + std::to_string(sign_z) + R"(;
             if (saturation > 0.0) {
                 return hsv2rgb(vec3(hue, 1.0-saturation, 1.0));
             } else {
@@ -2103,7 +2137,16 @@ void SpinWidget::writeSettings()
     settings.setValue("Colormap Arrows", (int)colormap_arrows());
     settings.setValue("Colormap_invert_z", m_colormap_invert_z);
     settings.setValue("Colormap_invert_xy", m_colormap_invert_xy);
-    settings.setValue("Colormap_rotation",   m_colormap_rotation);
+    settings.setValue("Colormap_rotation",  m_colormap_rotation);
+    settings.setValue("Colormap_cardinal_a_x",  m_colormap_cardinal_a.x);
+    settings.setValue("Colormap_cardinal_a_y",  m_colormap_cardinal_a.y);
+    settings.setValue("Colormap_cardinal_a_z",  m_colormap_cardinal_a.z);
+    settings.setValue("Colormap_cardinal_b_x",  m_colormap_cardinal_b.x);
+    settings.setValue("Colormap_cardinal_b_y",  m_colormap_cardinal_b.y);
+    settings.setValue("Colormap_cardinal_b_z",  m_colormap_cardinal_b.z);
+    settings.setValue("Colormap_cardinal_c_x",  m_colormap_cardinal_c.x);
+    settings.setValue("Colormap_cardinal_c_y",  m_colormap_cardinal_c.y);
+    settings.setValue("Colormap_cardinal_c_z",  m_colormap_cardinal_c.z);
     settings.endGroup();
 
     // Camera
@@ -2207,7 +2250,17 @@ void SpinWidget::readSettings()
         bool invert_z = settings.value("Colormap_invert_z").toInt();
         bool invert_xy = settings.value("Colormap_invert_xy").toInt();
         int phi   = settings.value("Colormap_rotation").toInt();
-        this->setColormapRotationInverted(phi, invert_z, invert_xy);
+        glm::vec3 cardinal_a{1, 0, 0}, cardinal_b{0, 1, 0}, cardinal_c{0, 0, 1};
+        cardinal_a.x = settings.value("Colormap_cardinal_a_x").toFloat();
+        cardinal_a.y = settings.value("Colormap_cardinal_a_y").toFloat();
+        cardinal_a.z = settings.value("Colormap_cardinal_a_z").toFloat();
+        cardinal_b.x = settings.value("Colormap_cardinal_b_x").toFloat();
+        cardinal_b.y = settings.value("Colormap_cardinal_b_y").toFloat();
+        cardinal_b.z = settings.value("Colormap_cardinal_b_z").toFloat();
+        cardinal_c.x = settings.value("Colormap_cardinal_c_x").toFloat();
+        cardinal_c.y = settings.value("Colormap_cardinal_c_y").toFloat();
+        cardinal_c.z = settings.value("Colormap_cardinal_c_z").toFloat();
+        this->setColormapRotationInverted(phi, invert_z, invert_xy, cardinal_a, cardinal_b, cardinal_c);
         settings.endGroup();
     }
 

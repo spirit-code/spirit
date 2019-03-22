@@ -59,7 +59,7 @@
        <item>
         <widget class="QToolBox" name="toolBox">
          <property name="currentIndex">
-          <number>0</number>
+          <number>4</number>
          </property>
          <widget class="QWidget" name="page">
           <property name="geometry">
@@ -67,7 +67,7 @@
             <x>0</x>
             <y>0</y>
             <width>468</width>
-            <height>1019</height>
+            <height>984</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1437,7 +1437,7 @@
              <property name="minimumSize">
               <size>
                <width>0</width>
-               <height>180</height>
+               <height>220</height>
               </size>
              </property>
              <property name="title">
@@ -1460,6 +1460,25 @@
               </item>
               <item row="4" column="1">
                <layout class="QGridLayout" name="gridLayout_82">
+                <item row="0" column="1">
+                 <widget class="QSlider" name="horizontalSlider_colormap_rotate_phi">
+                  <property name="minimumSize">
+                   <size>
+                    <width>90</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>100</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                 </widget>
+                </item>
                 <item row="0" column="0">
                  <widget class="QLineEdit" name="lineEdit_colormap_rotate_phi">
                   <property name="minimumSize">
@@ -1479,18 +1498,18 @@
                   </property>
                  </widget>
                 </item>
-                <item row="0" column="1">
-                 <widget class="QSlider" name="horizontalSlider_colormap_rotate_phi">
-                  <property name="maximumSize">
-                   <size>
-                    <width>100</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
+                <item row="0" column="2">
+                 <spacer name="horizontalSpacer_2">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
-                 </widget>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
                 </item>
                </layout>
               </item>
@@ -1504,7 +1523,7 @@
               <item row="7" column="1">
                <widget class="QCheckBox" name="checkBox_colormap_invert_xy">
                 <property name="text">
-                 <string>Invert xy-component</string>
+                 <string>Invert phi component</string>
                 </property>
                </widget>
               </item>
@@ -1518,7 +1537,7 @@
               <item row="6" column="1">
                <widget class="QCheckBox" name="checkBox_colormap_invert_z">
                 <property name="text">
-                 <string>Invert z-component</string>
+                 <string>Invert theta component</string>
                 </property>
                </widget>
               </item>
@@ -1676,6 +1695,69 @@
                  </size>
                 </property>
                </spacer>
+              </item>
+              <item row="3" column="0">
+               <widget class="QLabel" name="label_2">
+                <property name="text">
+                 <string>Cardinal Axis</string>
+                </property>
+               </widget>
+              </item>
+              <item row="3" column="1">
+               <layout class="QGridLayout" name="gridLayout_7">
+                <item row="0" column="2">
+                 <widget class="QLineEdit" name="lineEdit_cm_axis_z">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>24</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>1</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <widget class="QLineEdit" name="lineEdit_cm_axis_x">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>24</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>0</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QLineEdit" name="lineEdit_cm_axis_y">
+                  <property name="maximumSize">
+                   <size>
+                    <width>40</width>
+                    <height>24</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>0</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="3">
+                 <spacer name="horizontalSpacer">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
               </item>
              </layout>
             </widget>
@@ -1899,16 +1981,21 @@
   <tabstop>lineEdit_camera_upvector_y</tabstop>
   <tabstop>lineEdit_camera_upvector_z</tabstop>
   <tabstop>lineEdit_camera_fov</tabstop>
+  <tabstop>lineEdit_cm_axis_x</tabstop>
+  <tabstop>lineEdit_cm_axis_y</tabstop>
+  <tabstop>lineEdit_cm_axis_z</tabstop>
   <tabstop>lineEdit_colormap_rotate_phi</tabstop>
-  <tabstop>horizontalSlider_colormap_rotate_phi</tabstop>
-  <tabstop>checkBox_colormap_invert_xy</tabstop>
   <tabstop>checkBox_colormap_invert_z</tabstop>
+  <tabstop>checkBox_colormap_invert_xy</tabstop>
+  <tabstop>lineEdit_arrows_lod</tabstop>
+  <tabstop>comboBox_colormap_general</tabstop>
+  <tabstop>comboBox_colormap_arrows</tabstop>
+  <tabstop>horizontalSlider_colormap_rotate_phi</tabstop>
   <tabstop>comboBox_backgroundColor</tabstop>
+  <tabstop>horizontalSlider_arrowsize</tabstop>
   <tabstop>horizontalSlider_spherePointSize</tabstop>
   <tabstop>horizontalSlider_light_theta</tabstop>
   <tabstop>horizontalSlider_light_phi</tabstop>
-  <tabstop>horizontalSlider_arrowsize</tabstop>
-  <tabstop>lineEdit_arrows_lod</tabstop>
  </tabstops>
  <resources/>
  <connections/>

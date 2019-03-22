@@ -68,6 +68,9 @@ void VisualisationSettingsWidget::Setup_Input_Validators()
     //      Arrows
     this->lineEdit_arrows_lod->setValidator(this->number_validator_int_unsigned);
     //      Colormap
+    this->lineEdit_cm_axis_x->setValidator(this->number_validator);
+    this->lineEdit_cm_axis_y->setValidator(this->number_validator);
+    this->lineEdit_cm_axis_z->setValidator(this->number_validator);
     this->lineEdit_colormap_rotate_phi->setValidator(this->number_validator_int_unsigned);
     //      Camera
     this->lineEdit_camera_pos_x->setValidator(this->number_validator);
@@ -235,6 +238,10 @@ void VisualisationSettingsWidget::Load_Visualization_Contents()
     comboBox_colormap_arrows->setCurrentIndex(idx_cma + 1);
     float cm_rotation = spinWidget->colormap_rotation();
     auto cm_inverted = spinWidget->colormap_inverted();
+    glm::vec3 cm_cardinal_c = spinWidget->colormap_cardinal_c();
+    lineEdit_cm_axis_x->setText(QString::number(cm_cardinal_c.x));
+    lineEdit_cm_axis_y->setText(QString::number(cm_cardinal_c.y));
+    lineEdit_cm_axis_z->setText(QString::number(cm_cardinal_c.z));
     horizontalSlider_colormap_rotate_phi->setRange(0, 360);
     horizontalSlider_colormap_rotate_phi->setValue(cm_rotation);
     lineEdit_colormap_rotate_phi->setText(QString::number(cm_rotation));
@@ -666,7 +673,6 @@ void VisualisationSettingsWidget::set_visualization_colormap()
     spinWidget->setColormapArrows(colormap_arrows);
 }
 
-
 void VisualisationSettingsWidget::set_visualization_colormap_rotation_slider()
 {
     int phi = this->horizontalSlider_colormap_rotate_phi->value();
@@ -675,18 +681,68 @@ void VisualisationSettingsWidget::set_visualization_colormap_rotation_slider()
 
     this->lineEdit_colormap_rotate_phi->setText(QString::number(phi));
 
-    this->spinWidget->setColormapRotationInverted(phi, invert_z, invert_xy);
+    this->set_visualization_colormap_axis();
 }
 
 void VisualisationSettingsWidget::set_visualization_colormap_rotation_lineEdit()
 {
     int phi = this->lineEdit_colormap_rotate_phi->text().toInt();
-    bool invert_z = this->checkBox_colormap_invert_z->isChecked();
-    bool invert_xy = this->checkBox_colormap_invert_xy->isChecked();
-
     this->horizontalSlider_colormap_rotate_phi->setValue(phi);
 
-    this->spinWidget->setColormapRotationInverted(phi, invert_z, invert_xy);
+    this->set_visualization_colormap_axis();
+}
+
+void VisualisationSettingsWidget::set_visualization_colormap_axis()
+{
+    const float epsilon = 1e-5;
+
+    const glm::vec3 ex{1,0,0};
+    const glm::vec3 ey{0,1,0};
+    const glm::vec3 ez{0,0,1};
+
+    glm::vec3 temp1{1,0,0};
+    glm::vec3 temp2{0,1,0};
+    glm::vec3 cardinal_c{0,0,1};
+    cardinal_c.x = this->lineEdit_cm_axis_x->text().toFloat();
+    cardinal_c.y = this->lineEdit_cm_axis_y->text().toFloat();
+    cardinal_c.z = this->lineEdit_cm_axis_z->text().toFloat();
+    if( glm::length(cardinal_c) > 0 )
+        cardinal_c = glm::normalize(cardinal_c);
+
+    if( cardinal_c[2] == 0 )
+    {
+        temp1 = ez;
+        temp2 = glm::cross(cardinal_c, ez);
+    }
+    // Else its either above or below the xy-plane.
+    //      if its above the xy-plane, it points in z-direction
+    //      the vectors should be: cardinal_c, ex, -ey
+    else if( cardinal_c[2] > 0 )
+    {
+        temp1 = ex;
+        temp2 = -ey;
+    }
+    //      if its below the xy-plane, it points in -z-direction
+    //      the vectors should be: cardinal_c, ex, ey
+    else
+    {
+        temp1 = ex;
+        temp2 = ey;
+    }
+
+    // First vector: orthogonalize temp1 w.r.t. cardinal_c
+    glm::vec3 cardinal_a = temp1 - glm::dot(temp1, cardinal_c) * cardinal_c;
+    cardinal_a = glm::normalize(cardinal_a);
+
+    // Second vector: orthogonalize temp2 w.r.t. cardinal_c and cardinal_a
+    glm::vec3 cardinal_b = temp2 - glm::dot(temp2, cardinal_c)*cardinal_c - glm::dot(temp2, cardinal_a)*cardinal_a;
+    cardinal_b = glm::normalize(cardinal_b);
+
+    // Set
+    int phi = this->lineEdit_colormap_rotate_phi->text().toInt();
+    bool invert_z = this->checkBox_colormap_invert_z->isChecked();
+    bool invert_xy = this->checkBox_colormap_invert_xy->isChecked();
+    this->spinWidget->setColormapRotationInverted(phi, invert_z, invert_xy, cardinal_a, cardinal_b, cardinal_c);
 }
 
 void VisualisationSettingsWidget::set_visualization_background()
@@ -918,6 +974,9 @@ void VisualisationSettingsWidget::Setup_Visualization_Slots()
     connect(comboBox_colormap_general, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_colormap()));
     connect(comboBox_colormap_arrows, SIGNAL(currentIndexChanged(int)), this, SLOT(set_visualization_colormap()));
     connect(horizontalSlider_colormap_rotate_phi, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_colormap_rotation_slider()));
+    connect(this->lineEdit_cm_axis_x, SIGNAL(returnPressed()), this, SLOT(set_visualization_colormap_axis()));
+    connect(this->lineEdit_cm_axis_y, SIGNAL(returnPressed()), this, SLOT(set_visualization_colormap_axis()));
+    connect(this->lineEdit_cm_axis_z, SIGNAL(returnPressed()), this, SLOT(set_visualization_colormap_axis()));
     connect(this->lineEdit_colormap_rotate_phi, SIGNAL(returnPressed()), this, SLOT(set_visualization_colormap_rotation_lineEdit()));
     connect(this->checkBox_colormap_invert_z, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_colormap_rotation_lineEdit()));
     connect(this->checkBox_colormap_invert_xy, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_colormap_rotation_slider()));
