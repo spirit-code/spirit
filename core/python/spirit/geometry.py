@@ -131,7 +131,7 @@ _Get_Bravais_Vectors.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float)
                                ctypes.c_int, ctypes.c_int]
 _Get_Bravais_Vectors.restype  = None
 def get_bravais_vectors(p_state, idx_image=-1, idx_chain=-1):
-    """Get the bravais vectors.
+    """Get the Bravais vectors.
 
     Returns three arrays of shape (3).
     """
@@ -153,23 +153,6 @@ def get_n_cells(p_state, idx_image=-1, idx_chain=-1):
     n_cells = (3*ctypes.c_int)()
     _Get_N_Cells(ctypes.c_void_p(p_state), n_cells, ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
     return [n for n in n_cells]
-
-_Get_Translation_Vectors          = _spirit.Geometry_Get_Translation_Vectors
-_Get_Translation_Vectors.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float),
-                                     ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_float),
-                                     ctypes.c_int, ctypes.c_int]
-_Get_Translation_Vectors.restype  = None
-def get_translation_vectors(p_state, idx_image=-1, idx_chain=-1):
-    """Get the translation vectors in global coordinates.
-
-    Returns three arrays of shape (3).
-    """
-    ta = (3*ctypes.c_float)()
-    tb = (3*ctypes.c_float)()
-    tc = (3*ctypes.c_float)()
-    _Get_Translation_Vectors(ctypes.c_void_p(p_state), ta, tb, tc,
-                             ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
-    return [a for a in ta], [b for b in tb], [c for c in tc]
 
 _Get_Dimensionality          = _spirit.Geometry_Get_Dimensionality
 _Get_Dimensionality.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]

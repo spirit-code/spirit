@@ -91,29 +91,43 @@ namespace Engine
             // This implementations assumes
             // 1. No basis atom lies outside the cell spanned by the basis vectors of the lattice
             // 2. The geometry is a plane in x and y and spanned by the first 2 basis_vectors of the lattice
-
-            const auto & pos = geometry.positions;
+            // 3. The first basis atom lies at (0,0)
+            
+            const auto & positions = geometry.positions;
             scalar charge = 0;
 
             // Compute Delaunay for unitcell + basis with neighbouring lattice sites in directions a, b, and a+b
             std::vector<Data::vector2_t> basis_cell_points(geometry.n_cell_atoms + 3);
             for(int i = 0; i < geometry.n_cell_atoms; i++)
             {
-                basis_cell_points[i].x = double(geometry.cell_atoms[i][0]);
-                basis_cell_points[i].y = double(geometry.cell_atoms[i][1]);
+                basis_cell_points[i].x = double(positions[i][0]);
+                basis_cell_points[i].y = double(positions[i][1]);
             }
 
-            Vector3 basis_offset = geometry.cell_atoms[0][0] * geometry.bravais_vectors[0] + geometry.cell_atoms[0][1] * geometry.bravais_vectors[1];
+            // To avoid cases where the basis atoms lie on the boundary of the convex hull the corners of the parallelogram
+            // spanned by the lattice sites 0, a, b and a+b are stretched away from the center for the triangulation
+            scalar stretch_factor = 0.1;
+
+            // For the rare case where the first basis atoms does not lie at (0,0,0)
+            Vector3 basis_offset = positions[0];
+
+            Vector3 ta = geometry.lattice_constant * geometry.bravais_vectors[0];
+            Vector3 tb = geometry.lattice_constant * geometry.bravais_vectors[1];
+            Vector3 tc = geometry.lattice_constant * geometry.bravais_vectors[2];
+
+            // basis_cell_points[0] coincides with the '0' lattice site (plus basis_offset)
+            basis_cell_points[0].x -= stretch_factor * (ta + tb)[0];
+            basis_cell_points[0].y -= stretch_factor * (ta + tb)[1];
 
             // a+b
-            basis_cell_points[geometry.n_cell_atoms].x   = double((geometry.bravais_vectors[0] + geometry.bravais_vectors[1] + basis_offset)[0]);
-            basis_cell_points[geometry.n_cell_atoms].y   = double((geometry.bravais_vectors[0] + geometry.bravais_vectors[1] + basis_offset)[1]);
+            basis_cell_points[geometry.n_cell_atoms].x   = double((ta + tb + positions[0] + stretch_factor * (ta + tb))[0]);
+            basis_cell_points[geometry.n_cell_atoms].y   = double((ta + tb + positions[0] + stretch_factor * (ta + tb))[1]);
             // b
-            basis_cell_points[geometry.n_cell_atoms+1].x = double((geometry.bravais_vectors[1] + basis_offset)[0]);
-            basis_cell_points[geometry.n_cell_atoms+1].y = double((geometry.bravais_vectors[1] + basis_offset)[1]);
+            basis_cell_points[geometry.n_cell_atoms+1].x = double((tb + positions[0] - stretch_factor * (ta - tb))[0]);
+            basis_cell_points[geometry.n_cell_atoms+1].y = double((tb + positions[0] - stretch_factor * (ta - tb))[1]);
             // a
-            basis_cell_points[geometry.n_cell_atoms+2].x = double((geometry.bravais_vectors[0] + basis_offset)[0]);
-            basis_cell_points[geometry.n_cell_atoms+2].y = double((geometry.bravais_vectors[0] + basis_offset)[1]);
+            basis_cell_points[geometry.n_cell_atoms+2].x = double((ta + positions[0] + stretch_factor * (ta - tb))[0]);
+            basis_cell_points[geometry.n_cell_atoms+2].y = double((ta + positions[0] + stretch_factor * (ta - tb))[1]);
 
             std::vector<Data::triangle_t> triangulation;
             triangulation = Data::compute_delaunay_triangulation_2D(basis_cell_points);
@@ -265,10 +279,6 @@ namespace Engine
             vectorfield translations = { { 0,0,0 }, { 0,0,0 }, { 0,0,0 } };
             auto& n_cells = geometry.n_cells;
 
-            Vector3 a = geometry.bravais_vectors[0]; // translation vectors of the system
-            Vector3 b = geometry.bravais_vectors[1];
-            Vector3 c = geometry.bravais_vectors[2];
-
             neighbourfield neigh;
 
             // TODO: calculate Neighbours outside iterations
@@ -329,38 +339,38 @@ namespace Engine
                 // TODO: both loops together.
 
                 // Loop over neighbours of this vector to calculate contributions of finite differences to current direction
-                for(unsigned int j = 0; j < neigh.size(); ++j)
+                for( unsigned int j = 0; j < neigh.size(); ++j )
                 {
-                    if ( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
+                    if( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
                     {
                         // Index of neighbour
                         int ineigh = idx_from_translations(n_cells, geometry.n_cell_atoms, translations_i, neigh[j].translations);
-                        if (ineigh >= 0)
+                        if( ineigh >= 0 )
                         {
                             auto d = geometry.positions[ineigh] - geometry.positions[ispin];
-                            for (int dim=0; dim<3; ++dim)
+                            for( int dim=0; dim<3; ++dim )
                             {
                                 proj[dim] += std::abs(euclidean[dim].dot(d.normalized()));
                             }
                         }
                     }
                 }
-                for (int dim=0; dim<3; ++dim)
+                for( int dim=0; dim<3; ++dim )
                 {
-                    if (std::abs(proj[dim]) > 1e-10)
+                    if( std::abs(proj[dim]) > 1e-10 )
                         projection_inv[dim] = 1.0/proj[dim];
                 }
                 // Loop over neighbours of this vector to calculate finite differences
-                for(unsigned int j = 0; j < neigh.size(); ++j)
+                for( unsigned int j = 0; j < neigh.size(); ++j )
                 {
-                    if ( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
+                    if( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
                     {
                         // Index of neighbour
                         int ineigh = idx_from_translations(n_cells, geometry.n_cell_atoms, translations_i, neigh[j].translations);
-                        if (ineigh >= 0)
+                        if( ineigh >= 0 )
                         {
                             auto d = geometry.positions[ineigh] - geometry.positions[ispin];
-                            for (int dim=0; dim<3; ++dim)
+                            for( int dim=0; dim<3; ++dim )
                             {
                                 contrib[dim] += euclidean[dim].dot(d) / d.dot(d) * ( vf[ineigh] - vf[ispin] );
                             }
@@ -368,7 +378,7 @@ namespace Engine
                     }
                 }
 
-                for (int dim=0; dim<3; ++dim)
+                for( int dim=0; dim<3; ++dim )
                 {
                     gradient[ispin] += direction[dim]*projection_inv[dim] * contrib[dim];
                 }

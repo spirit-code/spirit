@@ -86,7 +86,7 @@ namespace Data
         int max_a = std::min(10, n_cells[0]);
         int max_b = std::min(10, n_cells[1]);
         int max_c = std::min(10, n_cells[2]);
-        Vector3 diff, translation;
+        Vector3 diff;
         for (int i = 0; i < n_cell_atoms; ++i)
         {
             for (int j = 0; j < n_cell_atoms; ++j)
@@ -97,22 +97,23 @@ namespace Data
                     {
                         for (int dc = -max_c; dc <= max_c; ++dc)
                         {
-                            translation = lattice_constant * (
-                                  da * bravais_vectors[0]
-                                + db * bravais_vectors[1]
-                                + dc * bravais_vectors[2] );
-
                             // Norm is zero if translated basis atom is at position of another basis atom
-                            diff = cell_atoms[i] - ( cell_atoms[j] + translation );
+                            diff = cell_atoms[i] - ( cell_atoms[j] + Vector3{scalar(da), scalar(db), scalar(dc)} );
 
                             if( (i != j || da != 0 || db != 0 || dc != 0) &&
                                 std::abs(diff[0]) < epsilon &&
                                 std::abs(diff[1]) < epsilon &&
                                 std::abs(diff[2]) < epsilon )
                             {
+                                Vector3 position = lattice_constant * (
+                                      (da + cell_atoms[i][0]) * bravais_vectors[0]
+                                    + (db + cell_atoms[i][1]) * bravais_vectors[1]
+                                    + (dc + cell_atoms[i][2]) * bravais_vectors[2] );
                                 std::string message = fmt::format(
-                                    "Unable to initialize Spin-System, since 2 spins occupy the same space within a margin of {} at position ({}).\n"
-                                    "Please check the config file!", epsilon, cell_atoms[i].transpose());
+                                    "Unable to initialize Spin-System, since 2 spins occupy the same space"
+                                    "within a margin of {} at absolute position ({}).\n"
+                                    "Index combination: i={} j={}, translations=({}, {}, {}).\n"
+                                    "Please check the config file!", epsilon, position.transpose(), i, j, da, db, dc);
                                 spirit_throw(Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Severe, message);
                             }
                         }
@@ -135,12 +136,10 @@ namespace Data
                             + db * n_cell_atoms * n_cells[0]
                             + da * n_cell_atoms;
 
-                        translation = lattice_constant * (
-                              da * bravais_vectors[0]
-                            + db * bravais_vectors[1]
-                            + dc * bravais_vectors[2] );
-
-                        positions[ispin] = cell_atoms[iatom] + translation;
+                        positions[ispin] = lattice_constant * (
+                                  (da + cell_atoms[iatom][0]) * bravais_vectors[0]
+                                + (db + cell_atoms[iatom][1]) * bravais_vectors[1]
+                                + (dc + cell_atoms[iatom][2]) * bravais_vectors[2] );
                     }
                 }
             }
@@ -502,15 +501,15 @@ namespace Data
         else if( n_cell_atoms == 2 )
         {
             dims_basis = 1;
-            test_vec_basis = cell_atoms[0] - cell_atoms[1];
+            test_vec_basis = positions[0] - positions[1];
         }
         else
         {
             // Get basis atoms relative to the first atom
-            Vector3 v0 = cell_atoms[0];
+            Vector3 v0 = positions[0];
             std::vector<Vector3> b_vectors(n_cell_atoms-1);
             for( int i = 1; i < n_cell_atoms; ++i )
-                b_vectors[i-1] = (cell_atoms[i] - v0).normalized();
+                b_vectors[i-1] = (positions[i] - v0).normalized();
 
             // Calculate basis dimensionality
             // test vec is along line
@@ -554,9 +553,9 @@ namespace Data
         // ----- Find dimensionality of the translations -----
         //      The following are zero if the corresponding pair is parallel or antiparallel
         double t01, t02, t12;
-        t01 = std::abs(bravais_vectors[0].dot(bravais_vectors[1])) - 1.0;
-        t02 = std::abs(bravais_vectors[0].dot(bravais_vectors[2])) - 1.0;
-        t12 = std::abs(bravais_vectors[1].dot(bravais_vectors[2])) - 1.0;
+        t01 = std::abs(bravais_vectors[0].normalized().dot(bravais_vectors[1].normalized())) - 1.0;
+        t02 = std::abs(bravais_vectors[0].normalized().dot(bravais_vectors[2].normalized())) - 1.0;
+        t12 = std::abs(bravais_vectors[1].normalized().dot(bravais_vectors[2].normalized())) - 1.0;
         //      Check if pairs are linearly independent
         int n_independent_pairs = 0;
         if( t01 < epsilon && n_cells[0] > 1 && n_cells[1] > 1 ) ++n_independent_pairs;
@@ -581,8 +580,11 @@ namespace Data
             std::vector<Vector3> plane(2);
             for( int i = 0; i < 3; ++i )
             {
-                if (n_cells[i] > 1) plane[n] = bravais_vectors[i];
-                ++n;
+                if( n_cells[i] > 1 )
+                {
+                    plane[n] = bravais_vectors[i];
+                    ++n;
+                }
             }
             test_vec_translations = plane[0].cross(plane[1]);
         }
@@ -650,8 +652,8 @@ namespace Data
         {
             for (int dim = 0; dim < 3; ++dim)
             {
-                if (this->positions[iatom][dim] < this->bounds_min[dim]) this->bounds_min[dim] = positions[iatom][dim];
-                if (this->positions[iatom][dim] > this->bounds_max[dim]) this->bounds_max[dim] = positions[iatom][dim];
+                if (this->positions[iatom][dim] < this->bounds_min[dim]) this->bounds_min[dim] = this->positions[iatom][dim];
+                if (this->positions[iatom][dim] > this->bounds_max[dim]) this->bounds_max[dim] = this->positions[iatom][dim];
             }
         }
     }
@@ -660,12 +662,12 @@ namespace Data
     {
         this->cell_bounds_max.setZero();
         this->cell_bounds_min.setZero();
-        for (unsigned int ivec = 0; ivec < bravais_vectors.size(); ++ivec)
+        for (unsigned int ivec = 0; ivec < this->bravais_vectors.size(); ++ivec)
         {
-            for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
+            for (int iatom = 0; iatom < this->n_cell_atoms; ++iatom)
             {
-                auto neighbour1 = cell_atoms[iatom] + bravais_vectors[ivec];
-                auto neighbour2 = cell_atoms[iatom] - bravais_vectors[ivec];
+                auto neighbour1 = this->positions[iatom] + this->lattice_constant * this->bravais_vectors[ivec];
+                auto neighbour2 = this->positions[iatom] - this->lattice_constant * this->bravais_vectors[ivec];
                 for (int dim = 0; dim < 3; ++dim)
                 {
                     if (neighbour1[dim] < this->cell_bounds_min[dim]) this->cell_bounds_min[dim] = neighbour1[dim];
@@ -688,8 +690,8 @@ namespace Data
         if (cell_atoms.size() == 1)
         {
             // If the basis vectors are orthogonal, it is a rectilinear lattice
-            if (std::abs(bravais_vectors[0].dot(bravais_vectors[1])) < epsilon &&
-                std::abs(bravais_vectors[0].dot(bravais_vectors[2])) < epsilon)
+            if (std::abs(bravais_vectors[0].normalized().dot(bravais_vectors[1].normalized())) < epsilon &&
+                std::abs(bravais_vectors[0].normalized().dot(bravais_vectors[2].normalized())) < epsilon)
             {
                 // If equidistant it is simple cubic
                 if (bravais_vectors[0].norm() == bravais_vectors[1].norm() == bravais_vectors[2].norm())
