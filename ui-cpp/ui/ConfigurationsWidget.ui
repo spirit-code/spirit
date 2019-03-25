@@ -1050,9 +1050,6 @@
                     <height>16777215</height>
                    </size>
                   </property>
-                  <property name="locale">
-                   <locale language="C" country="AnyCountry"/>
-                  </property>
                   <property name="decimals">
                    <number>3</number>
                   </property>
@@ -1210,9 +1207,6 @@
                     <height>16777215</height>
                    </size>
                   </property>
-                  <property name="locale">
-                   <locale language="C" country="AnyCountry"/>
-                  </property>
                   <property name="decimals">
                    <number>3</number>
                   </property>
@@ -1327,9 +1321,6 @@
                       <height>16777215</height>
                      </size>
                     </property>
-                    <property name="locale">
-                     <locale language="C" country="AnyCountry"/>
-                    </property>
                     <property name="minimum">
                      <double>-100.000000000000000</double>
                     </property>
@@ -1349,9 +1340,6 @@
                       <height>16777215</height>
                      </size>
                     </property>
-                    <property name="locale">
-                     <locale language="C" country="AnyCountry"/>
-                    </property>
                     <property name="minimum">
                      <double>-100.000000000000000</double>
                     </property>
@@ -1367,9 +1355,6 @@
                       <width>50</width>
                       <height>16777215</height>
                      </size>
-                    </property>
-                    <property name="locale">
-                     <locale language="C" country="AnyCountry"/>
                     </property>
                     <property name="minimum">
                      <double>-100.000000000000000</double>

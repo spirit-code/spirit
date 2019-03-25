@@ -15,7 +15,6 @@
 #include <VFRendering/VectorSphereRenderer.hxx>
 #include <VFRendering/CoordinateSystemRenderer.hxx>
 
-#include <locale>
 #include <glm/gtc/type_ptr.hpp>
 
 #include "Spirit/Geometry.h"

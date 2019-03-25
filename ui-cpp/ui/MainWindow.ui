@@ -19,6 +19,9 @@
   <property name="windowTitle">
    <string>Spirit - Atomistic Spin Code (QT UI)</string>
   </property>
+  <property name="locale">
+   <locale language="C" country="AnyCountry"/>
+  </property>
   <property name="unifiedTitleAndToolBarOnMac">
    <bool>true</bool>
   </property>

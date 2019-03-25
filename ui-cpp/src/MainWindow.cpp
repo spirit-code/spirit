@@ -15,9 +15,14 @@
 #include "Spirit/Log.h"
 
 #include <algorithm>
+#include <locale>
 
 MainWindow::MainWindow(std::shared_ptr<State> state)
 {
+    // Fix the locale, which QApplication changes on creation
+    auto old = std::locale::global(std::locale::classic());
+    std::locale::global(old);
+
     // State
     this->state = state;
     // Widgets
