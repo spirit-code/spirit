@@ -28,7 +28,7 @@ template<typename DstScalar,typename SrcScalar> struct assign_op {
   { internal::pstoret<DstScalar,Packet,Alignment>(a,b); }
 };
 
-// Empty overload for void type (used by PermutationMatrix
+// Empty overload for void type (used by PermutationMatrix)
 template<typename DstScalar> struct assign_op<DstScalar,void> {};
 
 template<typename DstScalar,typename SrcScalar>
@@ -144,7 +144,7 @@ template<typename Scalar> struct swap_assign_op {
   EIGEN_EMPTY_STRUCT_CTOR(swap_assign_op)
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void assignCoeff(Scalar& a, const Scalar& b) const
   {
-#ifdef __CUDACC__
+#ifdef EIGEN_GPUCC
     // FIXME is there some kind of cuda::swap?
     Scalar t=b; const_cast<Scalar&>(b)=a; a=t;
 #else
@@ -157,7 +157,16 @@ template<typename Scalar>
 struct functor_traits<swap_assign_op<Scalar> > {
   enum {
     Cost = 3 * NumTraits<Scalar>::ReadCost,
-    PacketAccess = packet_traits<Scalar>::Vectorizable
+    PacketAccess = 
+    #if defined(EIGEN_VECTORIZE_AVX) && EIGEN_COMP_CLANG && (EIGEN_COMP_CLANG<800 || defined(__apple_build_version__))
+    // This is a partial workaround for a bug in clang generating bad code
+    // when mixing 256/512 bits loads and 128 bits moves.
+    // See http://eigen.tuxfamily.org/bz/show_bug.cgi?id=1684
+    //     https://bugs.llvm.org/show_bug.cgi?id=40815
+    0
+    #else
+    packet_traits<Scalar>::Vectorizable
+    #endif
   };
 };
 

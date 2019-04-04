@@ -76,7 +76,7 @@ EIGEN_DONT_INLINE void triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conju
 
     conj_if<Conjugate> conj;
     gebp_kernel<Scalar, Scalar, Index, OtherMapper, Traits::mr, Traits::nr, Conjugate, false> gebp_kernel;
-    gemm_pack_lhs<Scalar, Index, TriMapper, Traits::mr, Traits::LhsProgress, TriStorageOrder> pack_lhs;
+    gemm_pack_lhs<Scalar, Index, TriMapper, Traits::mr, Traits::LhsProgress, typename Traits::LhsPacket4Packing, TriStorageOrder> pack_lhs;
     gemm_pack_rhs<Scalar, Index, OtherMapper, Traits::nr, ColMajor, false, true> pack_rhs;
 
     // the goal here is to subdivise the Rhs panels such that we keep some cache
@@ -183,7 +183,7 @@ EIGEN_DONT_INLINE void triangular_solve_matrix<Scalar,Index,OnTheLeft,Mode,Conju
     }
   }
 
-/* Optimized triangular solver with multiple left hand sides and the trinagular matrix on the right
+/* Optimized triangular solver with multiple left hand sides and the triangular matrix on the right
  */
 template <typename Scalar, typename Index, int Mode, bool Conjugate, int TriStorageOrder>
 struct triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conjugate,TriStorageOrder,ColMajor>
@@ -202,6 +202,7 @@ EIGEN_DONT_INLINE void triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conj
     level3_blocking<Scalar,Scalar>& blocking)
   {
     Index rows = otherSize;
+    typedef typename NumTraits<Scalar>::Real RealScalar;
 
     typedef blas_data_mapper<Scalar, Index, ColMajor> LhsMapper;
     typedef const_blas_data_mapper<Scalar, Index, TriStorageOrder> RhsMapper;
@@ -228,7 +229,7 @@ EIGEN_DONT_INLINE void triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conj
     gebp_kernel<Scalar, Scalar, Index, LhsMapper, Traits::mr, Traits::nr, false, Conjugate> gebp_kernel;
     gemm_pack_rhs<Scalar, Index, RhsMapper, Traits::nr, RhsStorageOrder> pack_rhs;
     gemm_pack_rhs<Scalar, Index, RhsMapper, Traits::nr, RhsStorageOrder,false,true> pack_rhs_panel;
-    gemm_pack_lhs<Scalar, Index, LhsMapper, Traits::mr, Traits::LhsProgress, ColMajor, false, true> pack_lhs_panel;
+    gemm_pack_lhs<Scalar, Index, LhsMapper, Traits::mr, Traits::LhsProgress, typename Traits::LhsPacket4Packing, ColMajor, false, true> pack_lhs_panel;
 
     for(Index k2=IsLower ? size : 0;
         IsLower ? k2>0 : k2<size;
@@ -306,9 +307,9 @@ EIGEN_DONT_INLINE void triangular_solve_matrix<Scalar,Index,OnTheRight,Mode,Conj
               }
               if((Mode & UnitDiag)==0)
               {
-                Scalar b = conj(rhs(j,j));
+                Scalar inv_rjj = RealScalar(1)/conj(rhs(j,j));
                 for (Index i=0; i<actual_mc; ++i)
-                  r[i] /= b;
+                  r[i] *= inv_rjj;
               }
             }
 
