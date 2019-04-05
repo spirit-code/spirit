@@ -24,6 +24,7 @@ Spirit - Spin Simulation Framework
 
     The Core Library        <../core/docs/BUILD>
     Framework Components    <BUILD>
+    Using Docker            <Docker>
 
 
 .. toctree::
