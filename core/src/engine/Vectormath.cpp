@@ -138,9 +138,7 @@ namespace Engine
                 Vector3 triangle_normal;
                 vectorfield tri_positions(3);
                 for(int i=0; i<3; i++)
-                {
-                    tri_positions[i] = {basis_cell_points[tri[i]].x, basis_cell_points[tri[i]].y, 0};
-                }
+                    tri_positions[i] = {scalar(basis_cell_points[tri[i]].x), scalar(basis_cell_points[tri[i]].y), scalar(0)};
                 triangle_normal = (tri_positions[0]-tri_positions[1]).cross(tri_positions[0] - tri_positions[2]);
                 triangle_normal.normalize();
                 scalar sign = triangle_normal[2]/std::abs(triangle_normal[2]);
