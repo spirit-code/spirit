@@ -7,8 +7,8 @@
 // Public License v. 2.0. If a copy of the MPL was not distributed
 // with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-#ifndef EIGEN_PACKET_MATH_CUDA_H
-#define EIGEN_PACKET_MATH_CUDA_H
+#ifndef EIGEN_PACKET_MATH_GPU_H
+#define EIGEN_PACKET_MATH_GPU_H
 
 namespace Eigen {
 
@@ -17,7 +17,7 @@ namespace internal {
 // Make sure this is only available when targeting a GPU: we don't want to
 // introduce conflicts between these packet_traits definitions and the ones
 // we'll use on the host side (SSE, AVX, ...)
-#if defined(__CUDACC__) && defined(EIGEN_USE_GPU)
+#if defined(EIGEN_GPUCC) && defined(EIGEN_USE_GPU)
 template<> struct is_arithmetic<float4>  { enum { value = true }; };
 template<> struct is_arithmetic<double2> { enum { value = true }; };
 
@@ -44,11 +44,16 @@ template<> struct packet_traits<float> : default_packet_traits
     HasPolygamma = 1,
     HasErf = 1,
     HasErfc = 1,
+    HasI0e = 1,
+    HasI1e = 1,
     HasIGamma = 1,
+    HasIGammaDerA = 1,
+    HasGammaSampleDerAlpha = 1,
     HasIGammac = 1,
     HasBetaInc = 1,
 
     HasBlend = 0,
+    HasFloor = 1,
   };
 };
 
@@ -73,17 +78,22 @@ template<> struct packet_traits<double> : default_packet_traits
     HasPolygamma = 1,
     HasErf = 1,
     HasErfc = 1,
+    HasI0e = 1,
+    HasI1e = 1,
     HasIGamma = 1,
+    HasIGammaDerA = 1,
+    HasGammaSampleDerAlpha = 1,
     HasIGammac = 1,
     HasBetaInc = 1,
 
     HasBlend = 0,
+    HasFloor = 1,
   };
 };
 
 
-template<> struct unpacket_traits<float4>  { typedef float  type; enum {size=4, alignment=Aligned16}; typedef float4 half; };
-template<> struct unpacket_traits<double2> { typedef double type; enum {size=2, alignment=Aligned16}; typedef double2 half; };
+template<> struct unpacket_traits<float4>  { typedef float  type; enum {size=4, alignment=Aligned16, vectorizable=true}; typedef float4 half; };
+template<> struct unpacket_traits<double2> { typedef double type; enum {size=2, alignment=Aligned16, vectorizable=true}; typedef double2 half; };
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pset1<float4>(const float&  from) {
   return make_float4(from, from, from, from);
@@ -92,6 +102,117 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2 pset1<double2>(const do
   return make_double2(from, from);
 }
 
+namespace {
+
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float bitwise_and(const float& a,
+                                                        const float& b) {
+  return __int_as_float(__float_as_int(a) & __float_as_int(b));
+}
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double bitwise_and(const double& a,
+                                                         const double& b) {
+  return __longlong_as_double(__double_as_longlong(a) &
+                              __double_as_longlong(b));
+}
+
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float bitwise_or(const float& a,
+                                                       const float& b) {
+  return __int_as_float(__float_as_int(a) | __float_as_int(b));
+}
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double bitwise_or(const double& a,
+                                                        const double& b) {
+  return __longlong_as_double(__double_as_longlong(a) |
+                              __double_as_longlong(b));
+}
+
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float bitwise_xor(const float& a,
+                                                        const float& b) {
+  return __int_as_float(__float_as_int(a) ^ __float_as_int(b));
+}
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double bitwise_xor(const double& a,
+                                                         const double& b) {
+  return __longlong_as_double(__double_as_longlong(a) ^
+                              __double_as_longlong(b));
+}
+
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float bitwise_andnot(const float& a,
+                                                           const float& b) {
+  return __int_as_float(__float_as_int(a) & ~__float_as_int(b));
+}
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double bitwise_andnot(const double& a,
+                                                            const double& b) {
+  return __longlong_as_double(__double_as_longlong(a) &
+                              ~__double_as_longlong(b));
+}
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float eq_mask(const float& a,
+                                                    const float& b) {
+  return __int_as_float(a == b ? 0xffffffffu : 0u);
+}
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double eq_mask(const double& a,
+                                                     const double& b) {
+  return __longlong_as_double(a == b ? 0xffffffffffffffffull : 0ull);
+}
+
+}  // namespace
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pand<float4>(const float4& a,
+                                                          const float4& b) {
+  return make_float4(bitwise_and(a.x, b.x), bitwise_and(a.y, b.y),
+                     bitwise_and(a.z, b.z), bitwise_and(a.w, b.w));
+}
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2 pand<double2>(const double2& a,
+                                                            const double2& b) {
+  return make_double2(bitwise_and(a.x, b.x), bitwise_and(a.y, b.y));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 por<float4>(const float4& a,
+                                                         const float4& b) {
+  return make_float4(bitwise_or(a.x, b.x), bitwise_or(a.y, b.y),
+                     bitwise_or(a.z, b.z), bitwise_or(a.w, b.w));
+}
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2 por<double2>(const double2& a,
+                                                           const double2& b) {
+  return make_double2(bitwise_or(a.x, b.x), bitwise_or(a.y, b.y));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pxor<float4>(const float4& a,
+                                                          const float4& b) {
+  return make_float4(bitwise_xor(a.x, b.x), bitwise_xor(a.y, b.y),
+                     bitwise_xor(a.z, b.z), bitwise_xor(a.w, b.w));
+}
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2 pxor<double2>(const double2& a,
+                                                            const double2& b) {
+  return make_double2(bitwise_xor(a.x, b.x), bitwise_xor(a.y, b.y));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pandnot<float4>(const float4& a,
+                                                             const float4& b) {
+  return make_float4(bitwise_andnot(a.x, b.x), bitwise_andnot(a.y, b.y),
+                     bitwise_andnot(a.z, b.z), bitwise_andnot(a.w, b.w));
+}
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
+pandnot<double2>(const double2& a, const double2& b) {
+  return make_double2(bitwise_andnot(a.x, b.x), bitwise_andnot(a.y, b.y));
+}
+
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 pcmp_eq<float4>(const float4& a,
+                                                             const float4& b) {
+  return make_float4(eq_mask(a.x, b.x), eq_mask(a.y, b.y), eq_mask(a.z, b.z),
+                     eq_mask(a.w, b.w));
+}
+template <>
+EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2
+pcmp_eq<double2>(const double2& a, const double2& b) {
+  return make_double2(eq_mask(a.x, b.x), eq_mask(a.y, b.y));
+}
 
 template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 plset<float4>(const float& a) {
   return make_float4(a, a+1, a+2, a+3);
@@ -167,10 +288,10 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2 ploadu<double2>(const d
   return make_double2(from[0], from[1]);
 }
 
-template<> EIGEN_STRONG_INLINE float4 ploaddup<float4>(const float*   from) {
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE float4 ploaddup<float4>(const float*   from) {
   return make_float4(from[0], from[0], from[1], from[1]);
 }
-template<> EIGEN_STRONG_INLINE double2 ploaddup<double2>(const double*  from) {
+template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE double2 ploaddup<double2>(const double*  from) {
   return make_double2(from[0], from[0]);
 }
 
@@ -196,7 +317,7 @@ template<> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void pstoreu<double>(double* to
 
 template<>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE float4 ploadt_ro<float4, Aligned>(const float* from) {
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
+#if defined(EIGEN_CUDA_ARCH) && EIGEN_CUDA_ARCH >= 350
   return __ldg((const float4*)from);
 #else
   return make_float4(from[0], from[1], from[2], from[3]);
@@ -204,7 +325,7 @@ EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE float4 ploadt_ro<float4, Aligned>(const fl
 }
 template<>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE double2 ploadt_ro<double2, Aligned>(const double* from) {
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
+#if defined(EIGEN_CUDA_ARCH) && EIGEN_CUDA_ARCH >= 350
   return __ldg((const double2*)from);
 #else
   return make_double2(from[0], from[1]);
@@ -213,7 +334,7 @@ EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE double2 ploadt_ro<double2, Aligned>(const 
 
 template<>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE float4 ploadt_ro<float4, Unaligned>(const float* from) {
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
+#if defined(EIGEN_CUDA_ARCH) && EIGEN_CUDA_ARCH >= 350
   return make_float4(__ldg(from+0), __ldg(from+1), __ldg(from+2), __ldg(from+3));
 #else
   return make_float4(from[0], from[1], from[2], from[3]);
@@ -221,7 +342,7 @@ EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE float4 ploadt_ro<float4, Unaligned>(const 
 }
 template<>
 EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE double2 ploadt_ro<double2, Unaligned>(const double* from) {
-#if defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 350
+#if defined(EIGEN_CUDA_ARCH) && EIGEN_CUDA_ARCH >= 350
   return make_double2(__ldg(from+0), __ldg(from+1));
 #else
   return make_double2(from[0], from[1]);
@@ -289,9 +410,16 @@ template<> EIGEN_DEVICE_FUNC inline double2 pabs<double2>(const double2& a) {
   return make_double2(fabs(a.x), fabs(a.y));
 }
 
+template<> EIGEN_DEVICE_FUNC inline float4  pfloor<float4>(const float4& a) {
+  return make_float4(floorf(a.x), floorf(a.y), floorf(a.z), floorf(a.w));
+}
+template<> EIGEN_DEVICE_FUNC inline double2 pfloor<double2>(const double2& a) {
+  return make_double2(floor(a.x), floor(a.y));
+}
+
 EIGEN_DEVICE_FUNC inline void
 ptranspose(PacketBlock<float4,4>& kernel) {
-  double tmp = kernel.packet[0].y;
+  float tmp = kernel.packet[0].y;
   kernel.packet[0].y = kernel.packet[1].x;
   kernel.packet[1].x = tmp;
 
@@ -330,4 +458,4 @@ ptranspose(PacketBlock<double2,2>& kernel) {
 } // end namespace Eigen
 
 
-#endif // EIGEN_PACKET_MATH_CUDA_H
+#endif // EIGEN_PACKET_MATH_GPU_H

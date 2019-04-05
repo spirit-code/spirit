@@ -1,2 +1,0 @@
-i   j da_j db_j dc_j   k da_k db_k dc_k   l da_l db_l dc_l    Q
-0   0  1    0    0     0  0    1    0     0  0    0    1     1.0

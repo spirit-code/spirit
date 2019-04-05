@@ -13,6 +13,8 @@ using namespace Utility;
 using Utility::Constants::mu_B;
 using Utility::Constants::mu_0;
 using Utility::Constants::Pi;
+using Engine::Vectormath::check_atom_type;
+using Engine::Vectormath::idx_from_pair;
 using Engine::Vectormath::cu_check_atom_type;
 using Engine::Vectormath::cu_idx_from_pair;
 
@@ -117,7 +119,7 @@ namespace Engine
             Neighbours::Get_Neighbours_in_Shells(*geometry, dmi_shell_magnitudes.size(), dmi_pairs, dmi_shells, use_redundant_neighbours);
             for (unsigned int ineigh = 0; ineigh < dmi_pairs.size(); ++ineigh)
             {
-                this->dmi_normals.push_back(Neighbours::DMI_Normal_from_Pair(*geometry, dmi_pairs[ineigh], dm_chirality));
+                this->dmi_normals.push_back(Neighbours::DMI_Normal_from_Pair(*geometry, dmi_pairs[ineigh], dmi_shell_chirality));
                 this->dmi_magnitudes.push_back(dmi_shell_magnitudes[dmi_shells[ineigh]]);
             }
         }
