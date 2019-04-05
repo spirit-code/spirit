@@ -377,37 +377,37 @@ namespace Data
 
     std::vector<Vector3> Geometry::BravaisVectorsSC()
     {
-        return { { 1,0,0 },
-                 { 0,1,0 },
-                 { 0,0,1 } };
+        return { { scalar(1), scalar(0), scalar(0) },
+                 { scalar(0), scalar(1), scalar(0) },
+                 { scalar(0), scalar(0), scalar(1) } };
     }
 
     std::vector<Vector3> Geometry::BravaisVectorsFCC()
     {
-        return { { 0.5,0.0,0.5 },
-                 { 0.5,0.5,0.0 },
-                 { 0.0,0.5,0.5 } };
+        return { { scalar(0.5), scalar(0.0), scalar(0.5) },
+                 { scalar(0.5), scalar(0.5), scalar(0.0) },
+                 { scalar(0.0), scalar(0.5), scalar(0.5) } };
     }
 
     std::vector<Vector3> Geometry::BravaisVectorsBCC()
     {
-        return { { 0.5, 0.5,-0.5 },
-                 { -0.5, 0.5,-0.5 },
-                 { 0.5,-0.5, 0.5 } };
+        return { { scalar( 0.5), scalar( 0.5), scalar(-0.5) },
+                 { scalar(-0.5), scalar( 0.5), scalar(-0.5) },
+                 { scalar( 0.5), scalar(-0.5), scalar( 0.5) } };
     }
 
     std::vector<Vector3> Geometry::BravaisVectorsHex2D60()
     {
-        return { { 0.5*std::sqrt(3), -0.5, 0 },
-                 { 0.5*std::sqrt(3),  0.5, 0 },
-                 { 0,   0,                 1 } };
+        return { { scalar(0.5*std::sqrt(3)), scalar(-0.5), scalar(0) },
+                 { scalar(0.5*std::sqrt(3)), scalar( 0.5), scalar(0) },
+                 { scalar(0),                scalar( 0),   scalar(1) } };
     }
 
     std::vector<Vector3> Geometry::BravaisVectorsHex2D120()
     {
-        return { { 0.5, -0.5*std::sqrt(3), 0 },
-                 { 0.5,  0.5*std::sqrt(3), 0 },
-                 { 0,    0,                1 } };
+        return { { scalar(0.5), scalar(-0.5*std::sqrt(3)), scalar(0) },
+                 { scalar(0.5), scalar( 0.5*std::sqrt(3)), scalar(0) },
+                 { scalar(0),   scalar( 0),                scalar(1) } };
     }
 
     void Geometry::applyCellComposition()
