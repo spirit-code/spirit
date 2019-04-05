@@ -1,7 +1,5 @@
 #ifdef SPIRIT_USE_CUDA
 
-#define EIGEN_USE_GPU
-
 #include <engine/Vectormath.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Logging.hpp>

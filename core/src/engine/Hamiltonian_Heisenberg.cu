@@ -1,7 +1,5 @@
 #ifdef SPIRIT_USE_CUDA
 
-#define EIGEN_USE_GPU
-
 #include <engine/Hamiltonian_Heisenberg.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Neighbours.hpp>
@@ -15,9 +13,7 @@
 
 using namespace Data;
 using namespace Utility;
-using Utility::Constants::mu_B;
-using Utility::Constants::mu_0;
-using Utility::Constants::Pi;
+namespace C = Utility::Constants;
 using Engine::Vectormath::check_atom_type;
 using Engine::Vectormath::idx_from_pair;
 using Engine::Vectormath::cu_check_atom_type;

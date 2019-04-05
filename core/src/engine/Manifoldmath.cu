@@ -1,7 +1,5 @@
 #ifdef SPIRIT_USE_CUDA
 
-#define EIGEN_USE_GPU
-
 #include <Vectormath.hpp>
 #include <Manifoldmath.hpp>
 #include <utility/Constants.hpp>
