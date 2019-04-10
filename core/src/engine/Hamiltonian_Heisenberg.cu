@@ -154,6 +154,9 @@ namespace Engine
                 { this->ddi_pairs[i].i, this->ddi_pairs[i].j, {ddi_pairs[i].translations[0], ddi_pairs[i].translations[1], ddi_pairs[i].translations[2]} },
                 this->ddi_magnitudes[i], this->ddi_normals[i]);
         }
+
+        // Update, which terms still contribute
+        this->Update_Energy_Contributions();
     }
 
     void Hamiltonian_Heisenberg::Update_Energy_Contributions()
