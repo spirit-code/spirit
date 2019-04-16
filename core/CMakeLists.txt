@@ -25,8 +25,10 @@ option( SPIRIT_TEST_COVERAGE     "Build in debug with special flags for coverage
 option( SPIRIT_USE_CUDA          "Use CUDA to speed up certain parts of the code."         OFF )
 option( SPIRIT_USE_OPENMP        "Use OpenMP to speed up certain parts of the code."       OFF )
 option( SPIRIT_USE_THREADS       "Use std threads to speed up certain parts of the code."  OFF )
-### Set the scalar type used in the Spirit library
-set( SPIRIT_SCALAR_TYPE double )
+# ### Set the scalar type used in the Spirit library
+option( SPIRIT_SCALAR_TYPE       "Use std threads to speed up certain parts of the code."  "double" )
+# ### Set the compute capability for CUDA compilation
+option( SPIRIT_CUDA_ARCH         "Use std threads to speed up certain parts of the code."  "sm_60"  )
 #############################################
 
 
@@ -190,7 +192,7 @@ if ( SPIRIT_USE_CUDA )
 	# set (CUDA_PROPAGATE_HOST_FLAGS ON)
 	# --std=c++11 flag may be necessary, but it is propagated from global flags...
 	# if it appears twice, for some reason the compilation breaks
-    set( CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -lineinfo -arch=sm_60 --expt-relaxed-constexpr" )
+    set( CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -lineinfo -arch=${SPIRIT_CUDA_ARCH} --expt-relaxed-constexpr" )
 	message( STATUS ">> Using CUDA. Flags: ${CUDA_NVCC_FLAGS}" )
 endif()
 #############################################

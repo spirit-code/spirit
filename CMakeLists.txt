@@ -26,7 +26,9 @@ SET( SPIRIT_USE_CUDA          OFF  CACHE BOOL "Use CUDA to speed up certain part
 SET( SPIRIT_USE_OPENMP        OFF  CACHE BOOL "Use OpenMP to speed up certain parts of the code." )
 SET( SPIRIT_USE_THREADS       OFF  CACHE BOOL "Use std threads to speed up certain parts of the code." )
 ### Set the scalar type used in the Spirit library
-set( SPIRIT_SCALAR_TYPE double )
+SET( SPIRIT_SCALAR_TYPE "double" CACHE STRING "The scalar type to be used in the Spirit library." )
+### Set the compute capability for CUDA compilation
+SET( SPIRIT_CUDA_ARCH   "sm_60"  CACHE STRING "The CUDA compute architecture to use in case of a CUDA build." )
 #############################################
 ### CMake Verbosity
 option( PRINT_SOURCES    "Print Headers and Sources from Cmake."                         OFF )
