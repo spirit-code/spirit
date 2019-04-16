@@ -11,5 +11,9 @@ DLLEXPORT const char * Spirit_Version() noexcept;
 DLLEXPORT const char * Spirit_Version_Revision() noexcept;
 DLLEXPORT const char * Spirit_Version_Full() noexcept;
 
+DLLEXPORT const char * Spirit_Compiler() noexcept;
+DLLEXPORT const char * Spirit_Compiler_Version() noexcept;
+DLLEXPORT const char * Spirit_Compiler_Full() noexcept;
+
 #include "DLL_Undefine_Export.h"
 #endif

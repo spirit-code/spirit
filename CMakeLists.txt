@@ -56,7 +56,7 @@ if( SPIRIT_USE_CUDA )
 			# set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
 		elseif (WIN32)
 			set( CUDA_TOOLKIT_ROOT_DIR "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v8.0/" )
-			MESSAGE( STATUS ">> We are on Windows... CUDA_TOOLKIT_ROOT_DIR may need to be passed to cmake..." )
+			MESSAGE( WARNING ">> We are on Windows... CUDA_TOOLKIT_ROOT_DIR may need to be passed to cmake..." )
 		endif()
 	endif()
 	### Set compilers
