@@ -19,13 +19,14 @@ using Utility::Constants::Pi;
 
 
 /*
-allowed:   arch <  7 and toolkit <  9   ->   no  shfl_sync and not needed
+allowed:   arch <  7 and toolkit <  9   ->   no shfl_sync and not needed
+allowed:   arch <  7 and toolkit >= 9   ->   shfl_sync not needed but available (non-sync is deprecated)
 allowed:   arch >= 7 and toolkit >= 9   ->   shfl_sync needed and available
-forbidden: arch <  7 and toolkit >= 9   ->   deprecated shfl without sync
+forbidden: arch <  7 and toolkit >= 11  ->   likely removed shfl without sync
 forbidden: arch >= 7 and toolkit <  9   ->   shfl_sync needed but not available
 */
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 700) && (CUDART_VERSION >= 9000)
-    #error "When compiling for compute capability < 7.0, this code requires CUDA Toolkit version < 9.0"
+#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 700) && (CUDART_VERSION >= 11000)
+    #error "When compiling for compute capability < 7.0, this code requires CUDA Toolkit version < 11.0"
 #endif
 #if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 700) && (CUDART_VERSION < 9000)
     #error "When compiling for compute capability >= 7.0, this code requires CUDA Toolkit version >= 9.0"
@@ -43,12 +44,12 @@ namespace Engine
         __inline__ __device__
         scalar warpReduceSum(scalar val)
         {
-            #if (__CUDA_ARCH__ < 700) || (CUDART_VERSION < 9000)
-            for (int offset = warpSize/2; offset > 0; offset /= 2)
-                val += __shfl_down(val, offset);
-            #else
+            #if (CUDART_VERSION >= 9000)
             for (int offset = warpSize/2; offset > 0; offset /= 2)
                 val += __shfl_down_sync(0xffffffff, val, offset);
+            #else
+            for (int offset = warpSize/2; offset > 0; offset /= 2)
+                val += __shfl_down(val, offset);
             #endif
             return val;
         }
@@ -93,19 +94,19 @@ namespace Engine
         __inline__ __device__
         Vector3 warpReduceSum(Vector3 val)
         {
-            #if (__CUDA_ARCH__ < 700) || (CUDART_VERSION < 9000)
-            for (int offset = warpSize/2; offset > 0; offset /= 2)
-            {
-                val[0] += __shfl_down(val[0], offset);
-                val[1] += __shfl_down(val[1], offset);
-                val[2] += __shfl_down(val[2], offset);
-            }
-            #else
+            #if (CUDART_VERSION >= 9000)
             for (int offset = warpSize/2; offset > 0; offset /= 2)
             {
                 val[0] += __shfl_down_sync(0xffffffff, val[0], offset);
                 val[1] += __shfl_down_sync(0xffffffff, val[1], offset);
                 val[2] += __shfl_down_sync(0xffffffff, val[2], offset);
+            }
+            #else
+            for (int offset = warpSize/2; offset > 0; offset /= 2)
+            {
+                val[0] += __shfl_down(val[0], offset);
+                val[1] += __shfl_down(val[1], offset);
+                val[2] += __shfl_down(val[2], offset);
             }
             #endif
             return val;
@@ -154,24 +155,24 @@ namespace Engine
         __inline__ __device__
         scalar warpReduceMin(scalar val)
         {
-            #if (__CUDA_ARCH__ < 700) || (CUDART_VERSION < 9000)
-            for (int offset = warpSize/2; offset > 0; offset /= 2)
-                val  = min(val, __shfl_down(val, offset));
-            #else
+            #if (CUDART_VERSION >= 9000)
             for (int offset = warpSize/2; offset > 0; offset /= 2)
                 val  = min(val, __shfl_down_sync(0xffffffff, val, offset));
+            #else
+            for (int offset = warpSize/2; offset > 0; offset /= 2)
+                val  = min(val, __shfl_down(val, offset));
             #endif
             return val;
         }
         __inline__ __device__
         scalar warpReduceMax(scalar val)
         {
-            #if (__CUDA_ARCH__ < 700) || (CUDART_VERSION < 9000)
-            for (int offset = warpSize/2; offset > 0; offset /= 2)
-                val = max(val, __shfl_down(val, offset));
-            #else
+            #if (CUDART_VERSION >= 9000)
             for (int offset = warpSize/2; offset > 0; offset /= 2)
                 val = max(val, __shfl_down_sync(0xffffffff, val, offset));
+            #else
+            for (int offset = warpSize/2; offset > 0; offset /= 2)
+                val = max(val, __shfl_down(val, offset));
             #endif
             return val;
         }
