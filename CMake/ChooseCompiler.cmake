@@ -5,7 +5,7 @@ if (SPIRIT_BUILD_FOR_JS)
 	### 
 	MESSAGE( STATUS ">> Choosing compiler:             emcc" )
 	### Set the path to emscripten
-	SET(EMSCRIPTEN_ROOT_PATH "/usr/local/emsdk_portable/emscripten/1.35.0/")
+	SET(EMSCRIPTEN_ROOT_PATH "/usr/local/emsdk/emscripten/1.38.29/")
 	### Use the Emscripten toolchain file
 	SET(CMAKE_TOOLCHAIN_FILE Emscripten)
 ######################################################################
