@@ -652,6 +652,10 @@ $(document).ready(function() {
     downloadURI(webglspins._canvas.toDataURL(), "spirit_screenshot.png");
   });
 
+  $('#button-export-ovf').on('click', function(e) {
+    downloadURI(window.currentSimulation.exportOVFDataURI(), "export.ovf");
+  });
+
   var isSimulating = false;
   
   function updateSimulation(sim){  

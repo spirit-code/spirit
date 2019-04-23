@@ -346,4 +346,18 @@ Module.ready(function() {
         Module._free(ncells_ptr);
         this.update();
     }
+    Module.IO_Image_Write = Module.cwrap('IO_Image_Write', null, ['number', 'string', 'number', 'string', 'number', 'number']);
+    Simulation.prototype.exportOVFDataURI = function () {
+        Module.IO_Image_Write(this._state, "/export.ovf", 0, 'Generated with Spirit Web UI', -1, -1);
+        var ovf_data = FS.readFile("/export.ovf");
+        function uint8ArrayToString_chunked(data){
+          var CHUNK_SIZE = 32768;
+          var chunks = [];
+          for (var i=0; i < data.length; i += CHUNK_SIZE) {
+            chunks.push(String.fromCharCode.apply(null, data.subarray(i, i+CHUNK_SIZE)));
+          }
+          return chunks.join("");
+        }
+        return "data:application/octet-stream;base64," + btoa(uint8ArrayToString_chunked(ovf_data));
+    }
 });
