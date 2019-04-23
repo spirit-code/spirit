@@ -637,6 +637,21 @@ $(document).ready(function() {
     webglspins.alignCamera([0, 0, -1], [0, 1, 0]);
   });
 
+  function downloadURI(uri, name) {
+    var link = document.createElement("a");
+    link.download = name;
+    link.href = uri;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    delete link;
+  }
+
+  $('#button-screenshot').on('click', function(e) {
+    webglspins.draw();
+    downloadURI(webglspins._canvas.toDataURL(), "spirit_screenshot.png");
+  });
+
   var isSimulating = false;
   
   function updateSimulation(sim){  
