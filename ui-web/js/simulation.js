@@ -333,4 +333,17 @@ Module.ready(function() {
         Module._free(ncells_ptr);
         return [NX, NY, NZ];
     }
+    Module.Geometry_Set_N_Cells = Module.cwrap('Geometry_Set_N_Cells', null, ['number', 'number']);
+    Simulation.prototype.setNCells = function (n_cells) {
+        var ncells_ptr = Module._malloc(3*Module.HEAP32.BYTES_PER_ELEMENT);
+        var na_ptr = ncells_ptr+0*Module.HEAP32.BYTES_PER_ELEMENT;
+        var nb_ptr = ncells_ptr+1*Module.HEAP32.BYTES_PER_ELEMENT;
+        var nc_ptr = ncells_ptr+2*Module.HEAP32.BYTES_PER_ELEMENT;
+        Module.HEAP32[na_ptr/Module.HEAP32.BYTES_PER_ELEMENT] = n_cells[0];
+        Module.HEAP32[nb_ptr/Module.HEAP32.BYTES_PER_ELEMENT] = n_cells[1];
+        Module.HEAP32[nc_ptr/Module.HEAP32.BYTES_PER_ELEMENT] = n_cells[2];
+        Module.Geometry_Set_N_Cells(this._state, ncells_ptr);
+        Module._free(ncells_ptr);
+        this.update();
+    }
 });

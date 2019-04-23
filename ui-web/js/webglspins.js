@@ -283,6 +283,16 @@ WebGLSpins.prototype.alignCamera = function(forward, up) {
     this.draw();
 };
 
+WebGLSpins.prototype.updateCenterLocation = function(centerLocation) {
+    this._options.cameraLocation[0] = this._options.cameraLocation[0] - this._options.centerLocation[0] + centerLocation[0];
+    this._options.cameraLocation[1] = this._options.cameraLocation[1] - this._options.centerLocation[1] + centerLocation[1];
+    this._options.cameraLocation[2] = this._options.cameraLocation[2] - this._options.centerLocation[2] + centerLocation[2];
+    this._options.centerLocation[0] = centerLocation[0];
+    this._options.centerLocation[1] = centerLocation[1];
+    this._options.centerLocation[2] = centerLocation[2];
+    this.draw();
+};
+
 WebGLSpins.prototype._rotationHelper = function(deltaX, deltaY) {
     var forwardVector = WebGLSpins._difference(this._options.centerLocation, this._options.cameraLocation);
     var cameraDistance = WebGLSpins._length(forwardVector);

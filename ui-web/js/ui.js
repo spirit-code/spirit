@@ -104,6 +104,16 @@ $(document).ready(function() {
     sim.setAllSpinsRandom();
   });
 
+
+  $('#button-gridsize-update').on('click', function(e) {
+    var x = Number($('#input-gridsize-x').val());
+    var y = Number($('#input-gridsize-y').val());
+    var z = Number($('#input-gridsize-z').val());
+    var sim = window.currentSimulation;
+    sim.setNCells([x, y, z]);
+    webglspins.updateCenterLocation([(x-1)/2, (y-1)/2, (z-1)/2]);
+  });
+
   $('#button-skyrmion-create').on('click', function(e) {
     var order = Number($('#input-skyrmion-order').val());
     var phase = Number($('#input-skyrmion-phase').val());
