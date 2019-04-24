@@ -360,4 +360,12 @@ Module.ready(function() {
         }
         return "data:application/octet-stream;base64," + btoa(uint8ArrayToString_chunked(ovf_data));
     }
+    Module.IO_Image_Read = Module.cwrap('IO_Image_Read', null, ['number', 'string', 'number', 'number', 'number']);
+    Simulation.prototype.importOVFData = function (ovf_data) {
+        var stream = FS.open('/import.ovf', 'w');
+        FS.write(stream, ovf_data, 0, ovf_data.length, 0);
+        FS.close(stream);
+        Module.IO_Image_Read(this._state, "/import.ovf", 0, -1, -1);
+        this.update();
+    }
 });
