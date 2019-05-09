@@ -199,44 +199,6 @@ namespace IO
         Append_String_to_File(line, filename);
     }
 
-    void Write_Image_Energy_per_Spin( const Data::Spin_System & s, const std::string filename,
-                                      bool normalize_by_nos, bool readability_toggle )
-    {
-        scalar nd = 1.0; // nos divide
-        if (normalize_by_nos) nd = 1.0 / s.nos;
-        else nd = 1;
-
-        // s.UpdateEnergy();
-
-        Write_Energy_Header(s, filename, {"ispin", "E_tot"});
-
-        std::vector<std::pair<std::string, scalarfield>> contributions_spins(0);
-        s.hamiltonian->Energy_Contributions_per_Spin(*s.spins, contributions_spins);
-
-        std::string data = "";
-        for (int ispin=0; ispin<s.nos; ++ispin)
-        {
-            scalar E_spin=0;
-
-            // BUG: if the energy is not updated at least one this will raise a SIGSEGV
-
-            for (auto& contribution : contributions_spins) E_spin += contribution.second[ispin];
-            data += fmt::format(" {:^20} || {:^20.10f} |", ispin, E_spin * nd);
-            for (auto pair : contributions_spins)
-            {
-                data += fmt::format("| {:^20.10f} ", pair.second[ispin] * nd);
-            }
-            data += "\n";
-        }
-
-        if (!readability_toggle) std::replace( data.begin(), data.end(), '|', ' ');
-        Append_String_to_File(data, filename);
-    }
-
-    void Write_System_Force(const Data::Spin_System & s, const std::string filename)
-    {
-    }
-
     void Write_Chain_Energies( const Data::Spin_System_Chain & c, const int iteration,
                                const std::string filename, bool normalize_by_nos,
                                bool readability_toggle )
@@ -310,69 +272,6 @@ namespace IO
                 if( isystem == chain.noi-1 )
                     break;
             }
-        }
-    }
-
-
-    void Write_Chain_Forces(const Data::Spin_System_Chain & c, const std::string filename)
-    {
-        /////////////////
-        // TODO: rewrite like save_energy functions
-        /////////////////
-
-        // //========================= Init local vars ================================
-        // int isystem;
-        // bool readability_toggle = true;
-        // bool divide_by_nos = true;
-        // scalar nd = 1.0; // nos divide
-        // const int buffer_length = 200;
-        // std::string output_to_file = "";
-        // output_to_file.reserve(int(1E+08));
-        // char buffer_string_conversion[buffer_length + 2];
-        // snprintf(buffer_string_conversion, buffer_length, " isystem ||        |Force|        ||         F_max");
-        // if (!readability_toggle) { std::replace(buffer_string_conversion, buffer_string_conversion + strlen(buffer_string_conversion), '|', ' '); }
-        // output_to_file.append(buffer_string_conversion);
-        // snprintf(buffer_string_conversion, buffer_length, "\n---------++----------------------++---------------------");
-        // if (readability_toggle) { output_to_file.append(buffer_string_conversion); }
-        // //------------------------ End Init ----------------------------------------
-
-        // for (isystem = 0; isystem < (int)c.images.size(); ++isystem) {
-        // 	//c.images[isystem]->UpdateEnergy();
-        // 	// TODO: Need image->UpdateForce() which can also be used for convergence tests
-        // 	if (divide_by_nos) { nd = 1.0 / c.images[isystem]->nos; }
-        // 	else { nd = 1; }
-        // 	snprintf(buffer_string_conversion, buffer_length, "\n %6i  ||  %18.10f  ||  %18.10f",
-        // 		isystem, 0.0 * nd, 0.0);
-        // 	if (!readability_toggle) { std::replace(buffer_string_conversion, buffer_string_conversion + strlen(buffer_string_conversion), '|', ' '); }
-        // 	output_to_file.append(buffer_string_conversion);
-        // }
-        // Dump_to_File(output_to_file, filename);
-    }
-
-    void Write_Eigenmodes( const std::vector<scalar>& eigenvalues,
-                           const std::vector<std::shared_ptr<vectorfield>>& modes,
-                           const Data::Geometry& geometry, const std::string filename,
-                           VF_FileFormat format, const std::string comment, bool append )
-    {
-        int n_modes = modes.size();
-        switch( format )
-        {
-            case VF_FileFormat::OVF_BIN:
-            case VF_FileFormat::OVF_BIN8:
-            case VF_FileFormat::OVF_BIN4:
-            case VF_FileFormat::OVF_TEXT:
-            {
-                File_OVF file_ovf( filename, format );
-                file_ovf.write_eigenmodes( eigenvalues, modes, geometry );
-                break;
-            }
-            default:
-            Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Non "
-                "existent file format {}", (int)format ), -1, -1 );
-
-            // TODO: throw some exception to avoid logging "success" by API function
-
-            break;
         }
     }
 }

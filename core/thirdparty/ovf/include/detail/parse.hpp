@@ -266,6 +266,9 @@ namespace parse
     }
     catch( max_index_error )
     {
+        file._state->current_line = 0;
+        file._state->current_column = 0;
+        file._state->bin_data_idx = 0;
         return OVF_OK;
     }
     catch( pegtl::parse_error err )

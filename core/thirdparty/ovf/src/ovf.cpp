@@ -330,7 +330,7 @@ try
         return OVF_ERROR;
     }
 
-    int retcode = ovf::detail::write::segment(ovf_file_ptr, segment, data, true, false, format);
+    int retcode = ovf::detail::write::segment(ovf_file_ptr, segment, data, false, format);
     if (retcode != OVF_OK)
         ovf_file_ptr->_state->message_latest += "\novf_write_segment_4 failed.";
     return retcode;
@@ -381,7 +381,7 @@ try
         return OVF_ERROR;
     }
 
-    int retcode = ovf::detail::write::segment(ovf_file_ptr, segment, data, true, false, format);
+    int retcode = ovf::detail::write::segment(ovf_file_ptr, segment, data, false, format);
     if (retcode != OVF_OK)
         ovf_file_ptr->_state->message_latest += "\novf_write_segment_8 failed.";
     return retcode;
@@ -419,7 +419,7 @@ try
         return OVF_ERROR;
     }
 
-    if( !ovf_file_ptr->is_ovf )
+    if( ovf_file_ptr->found && !ovf_file_ptr->is_ovf )
     {
         ovf_file_ptr->_state->message_latest = "libovf ovf_append_segment_4: file is not ovf...";
         return OVF_ERROR;
@@ -438,8 +438,8 @@ try
         return OVF_ERROR;
     }
 
-    bool write_header = !ovf_file_ptr->found;
-    int retcode = ovf::detail::write::segment(ovf_file_ptr, segment, data, write_header, true, format);
+    bool append = ovf_file_ptr->found;
+    int retcode = ovf::detail::write::segment(ovf_file_ptr, segment, data, append, format);
     if (retcode != OVF_OK)
         ovf_file_ptr->_state->message_latest += "\novf_append_segment_4 failed.";
     return retcode;
@@ -481,7 +481,7 @@ try
         format == OVF_FORMAT_BIN4 )
         format = OVF_FORMAT_BIN;
 
-    if( !ovf_file_ptr->is_ovf )
+    if( ovf_file_ptr->found && !ovf_file_ptr->is_ovf )
     {
         ovf_file_ptr->_state->message_latest = "libovf ovf_append_segment_8: file is not ovf...";
         return OVF_ERROR;
@@ -496,8 +496,8 @@ try
         return OVF_ERROR;
     }
 
-    bool write_header = !ovf_file_ptr->found;
-    int retcode = ovf::detail::write::segment(ovf_file_ptr, segment, data, write_header, true, format);
+    bool append = ovf_file_ptr->found;
+    int retcode = ovf::detail::write::segment(ovf_file_ptr, segment, data, append, format);
     if (retcode != OVF_OK)
         ovf_file_ptr->_state->message_latest += "\novf_append_segment_8 failed.";
     return retcode;

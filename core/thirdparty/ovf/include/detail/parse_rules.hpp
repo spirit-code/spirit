@@ -679,7 +679,7 @@ namespace parse
                 }
                 else if( f._state->keyword == "pointcount" )
                 {
-                    if( segment.meshtype != "" && std::string(segment.meshtype) != "irregular" )
+                    if( std::string(segment.meshtype) != "" && std::string(segment.meshtype) != "irregular" )
                         throw tao::pegtl::parse_error( fmt::format(
                             "pointcount is only for irregular meshes! Mesh type is \"{}\"", segment.meshtype), in );
                     segment.meshtype = strdup("irregular");
@@ -720,8 +720,7 @@ namespace parse
             : pegtl::seq<
                 begin, TAO_PEGTL_ISTRING("Data Binary 4"), pegtl::eol,
                 bin_4_check_value,
-                pegtl::until< pegtl::eol, bin_4_value >,
-                end, TAO_PEGTL_ISTRING("Data Binary 4"), pegtl::eol
+                pegtl::until< pegtl::seq<end, TAO_PEGTL_ISTRING("Data Binary 4"), pegtl::eol>, bin_4_value >
                 >
         {};
 
@@ -729,8 +728,7 @@ namespace parse
             : pegtl::seq<
                 begin, TAO_PEGTL_ISTRING("Data Binary 8"), pegtl::eol,
                 bin_8_check_value,
-                pegtl::until< pegtl::eol, bin_8_value >,
-                end, TAO_PEGTL_ISTRING("Data Binary 8"), pegtl::eol
+                pegtl::until< pegtl::seq<end, TAO_PEGTL_ISTRING("Data Binary 8"), pegtl::eol>, bin_8_value >
                 >
         {};
 

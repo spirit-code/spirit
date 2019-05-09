@@ -192,7 +192,7 @@ namespace write
 
     template <typename T>
     int segment( ovf_file *file, const ovf_segment * segment, const T * vf,
-                bool write_header, const bool append = false, int format = OVF_FORMAT_BIN8 )
+                const bool append = false, int format = OVF_FORMAT_BIN8 )
     try
     {
         if( file->_state->file_contents.size() > 0 && append )
@@ -357,17 +357,9 @@ namespace write
         else
         {
             file_handle handle(file->file_name, false);
-
-            // If we are not appending or the file does not exists we need to write the top header
-            // and to turn the file_exists attribute to true so we can append more segments
-            if( write_header )
-            {
-                file->n_segments = 0;
-                file->version = 2;
-                handle.write({top_header_string(), output_to_file});
-            }
-            else
-                handle.write({output_to_file});
+            file->n_segments = 0;
+            file->version = 2;
+            handle.write( {top_header_string(), output_to_file} );
         }
         file->found  = true;
         file->is_ovf = true;
