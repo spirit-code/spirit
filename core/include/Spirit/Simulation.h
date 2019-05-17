@@ -31,17 +31,23 @@ Note that the VP and NCG Solvers are only meant for direct minimization and not 
 // `VP`: Verlet-like velocity projection
 #define Solver_VP          0
 
-// `SIB`: Verlet-like velocity projection
+// `SIB`: Semi-implicit midpoint method B
 #define Solver_SIB         1
 
-// `Depondt`: Verlet-like velocity projection
+// `Depondt`: Heun method using rotations
 #define Solver_Depondt     2
 
-// `Heun`: Verlet-like velocity projection
+// `Heun`: second-order midpoint
 #define Solver_Heun        3
 
-// `RK4`: Verlet-like velocity projection
+// `RK4`: 4th order Runge-Kutta
 #define Solver_RungeKutta4 4
+
+// `NCG`: Nonlinear conjugate gradients
+#define Solver_NCG         5
+
+// `LBFGS`: Limited memory Broyden-Fletcher-Goldfarb-Shanno
+// #define Solver_LBFGS       6
 
 /*
 Start or stop a simulation

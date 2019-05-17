@@ -1,193 +1,212 @@
+#pragma once
+
+#include <utility/Constants.hpp>
+
+#include <algorithm>
+
+using namespace Utility;
+
 template <> inline
 void Method_Solver<Solver::NCG>::Initialize ()
 {
     this->jmax    = 500;    // max iterations
     this->n       = 50;     // restart every n iterations XXX: what's the appropriate val?
-    
-    this->tolerance_NR  = 1e-5;   // Newton-Raphson error tolerance
-    this->tolerance_nCG = 1e-5;   // solver's error tolerance1
-	this->epsilon_NR  = 1e-5;// pow(this->tolerance_NR, 2);   // for Newton-Raphson's convergence condition 
-    this->epsilon_nCG = pow( this->tolerance_nCG, 2 );  // for solver's convergence condition
-    
-    this->alpha = std::vector<scalarfield>( this->noi, scalarfield( this->nos, 0 ) );
-    this->beta  = std::vector<scalarfield>( this->noi, scalarfield( this->nos, 0 ) );
-    
-    // XXX: right type might be std::vector<scalar> and NOT std::vector<scalarfield>
-    this->delta_0   = std::vector<scalarfield>( this->noi, scalarfield( this->nos, 0 ) );
-    this->delta_new = std::vector<scalarfield>( this->noi, scalarfield( this->nos, 0 ) );
-    this->delta_old = std::vector<scalarfield>( this->noi, scalarfield( this->nos, 0 ) );
-    this->delta_d   = std::vector<scalarfield>( this->noi, scalarfield( this->nos, 0 ) );
-    
-    this->residual  = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
-    this->direction = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
-    
-    this->r_dot_d = std::vector<scalarfield>( this->noi, scalarfield( this->nos, 0 ) );
-    this->dda2    = std::vector<scalarfield>( this->noi, scalarfield( this->nos, 0 ) );
-    
-	// F = - grad
-    this->Calculate_Force( this->configurations, this->forces );
-    
-    for (int img=0; img<this->noi; img++)
-    {
-        // Project force into the tangent space of the spin configuration
-        Manifoldmath::project_tangential(this->forces[img], *this->configurations[img]);
 
-        // set residual = - f'(x)
-        Vectormath::set_c_a( 1, this->forces[img], this->residual[img] );
-        
-        // direction = residual
-        Vectormath::set_c_a( 1, this->residual[img], this->direction[img] );
-        
-        // delta new = r * r
-        Vectormath::dot( this->residual[img], this->residual[img], this->delta_new[img] );
-        
-        // save initial delta
-        this->delta_0[img] = this->delta_new[img];
-    }
+    // Polak-Ribiere criterion
+    this->beta  = scalarfield( this->noi, 0 );
+
+    this->forces  = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
+    this->forces_virtual  = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
+    this->forces_displaced  = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
+
+    this->residuals  = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
+    this->residuals_last  = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
+
+    this->directions = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
+    this->directions_displaced = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
+
+    this->axes  = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
+    this->angles  = std::vector<scalarfield>( this->noi, scalarfield( this->nos, 0 ) );
+
+    this->configurations_displaced = std::vector<std::shared_ptr<vectorfield>>( this->noi );
+    for (int i=0; i<this->noi; i++)
+        configurations_displaced[i] = std::shared_ptr<vectorfield>( new vectorfield( this->nos, {0, 0, 0} ) );
 };
 
 
+inline scalar inexact_line_search(scalar r, scalar E0, scalar Er, scalar g0, scalar gr)
+{
+    scalar c1 = - 2*(Er - E0) / std::pow(r, 3) + (gr + g0) / std::pow(r, 2);
+    scalar c2 = 3*(Er - E0) / std::pow(r, 2) - (gr + 2*g0) / r;
+    scalar c3 = g0;
+    scalar c4 = E0;
+
+    return std::abs( (-c2 + std::sqrt(c2*c2 - 3*c1*c3)) / (3*c1) ) / r;
+}
+
+
+inline void full_inexact_line_search(const Data::Spin_System & system,
+    const vectorfield & image, vectorfield & image_displaced,
+    const vectorfield & force, const vectorfield & force_displaced,
+    const scalarfield & angle, const vectorfield & axis, scalar & step_size, int & n_step)
+{
+    // Calculate geodesic distance between image and image_displaced, if not pre-determined
+    scalar r = Manifoldmath::dist_geodesic(image, image_displaced);
+    if( r < 1e-6 )
+    {
+        step_size = 0;
+        return;
+    }
+
+    scalar E0 = system.hamiltonian->Energy(image);
+    // E0 = this->systems[img]->E;
+    scalar Er = system.hamiltonian->Energy(image_displaced);
+
+    // TODO: parallelize reduction
+    scalar g0 = 0;
+    scalar gr = 0;
+    for( int i=0; i<image.size(); ++i )
+    {
+        g0 += force[i].dot(axis[i]);
+        // TODO: displace dir by rotating into other spin
+        // ACTUALLY: the direction is orthogonal to the rotation plane, so it does not change
+        gr += ( image_displaced[i].cross(force_displaced[i]) ).dot(axis[i]);
+    }
+
+    // Approximate ine search
+    ++n_step;
+    step_size *= inexact_line_search(r, E0, Er, g0, gr);// * Constants::gamma / Constants::mu_B;
+    for( int i=0; i<image.size(); ++i )
+    {
+        Vectormath::rotate(image[i], axis[i], step_size * angle[i], image_displaced[i]);
+    }
+    Er = system.hamiltonian->Energy(image_displaced);
+    // this->Calculate_Force( this->configurations_displaced, this->forces_displaced );
+    if( n_step < 20 && Er > E0+std::abs(E0)*1e-4 )
+    {
+        full_inexact_line_search(system, image, image_displaced, force, force_displaced, angle, axis, step_size, n_step);
+    }
+}
+
 /*
+    Implemented according to Aleksei Ivanov's paper: https://arxiv.org/abs/1904.02669
+    TODO: reference painless conjugate gradients
+    See also Jorge Nocedal and Stephen J. Wright 'Numerical Optimization' Second Edition, 2006 (p. 121)
+
     Template instantiation of the Simulation class for use with the NCG Solver
     The method of nonlinear conjugate gradients is a proven and effective solver.
-    TODO: reference painless conjugate gradients
 */
 template <> inline
 void Method_Solver<Solver::NCG>::Iteration ()
 {
-	// By default continue Newton-Raphson
-    this->continue_NR = true;
-	// By default do not restart( XXX:reset?? ) the whole method
-    this->restart_nCG = false;
-    
-    // Calculate delta_d
-    for (int img=0; img<this->noi; img++)
-        Engine::Vectormath::dot( this->direction[img], this->direction[img], this->delta_d[img] );
-    
-    // Perform a Newton-Raphson line search in order to determine the minimum along d  
-    for( int j=0; j<jmax && continue_NR; j++ )
-    {
-        // Calculate force F = - grad
-        this->Calculate_Force(this->configurations, this->forces);
-
-		// Do line search per image
-        for (int img = 0; img < this->noi; img++)
-        {
-            // Project force into the tangent space of the spin configuration
-            Manifoldmath::project_tangential(this->forces[img], *this->configurations[img]);
-
-            // Calculate Hessian
-            auto hessian = MatrixX(3 * this->nos, 3 * this->nos);
-            this->systems[img]->hamiltonian->Hessian(*this->configurations[img], hessian);
-
-            // Calculate alpha (NR step length)
-            // alpha = - (f'*d)/(d*f''*d)	// TODO: How to get the second derivative from here??
-            Eigen::Ref<VectorX> direction_ref = Eigen::Map<VectorX>(this->direction[img][0].data(), this->nos);
-            scalar denominator = direction_ref.dot( hessian * direction_ref );
-            scalar numerator = Engine::Vectormath::dot(this->forces[img], this->direction[img]); // / ppp;
-            scalar ratio = 1;
-            if (std::abs(denominator) > 0)
-                ratio = numerator / denominator;
-            Vectormath::fill(this->alpha[img], ratio);
-
-            // Update the spins (NR step)
-            // x = x + alpha*direction where x is the spin configuration
-            // Engine::Vectormath::add_c_a(this->alpha[img], this->direction[img], *this->configurations[img]);
-            Engine::Vectormath::add_c_a(ratio, this->direction[img], *this->configurations[img]);
-            Vectormath::normalize_vectors(*this->configurations[img]);
-                
-			// Check NR convergence
-            // Square alpha: alpha[i] = alpha[i]*alpha[i] (in next iteration we will have new alpha)
-            Engine::Vectormath::dot( this->alpha[img], this->alpha[img], this->alpha[img] ); 
-            // Calculate dda2[i] = delta_d[i] * alpha_sq[i]
-            Engine::Vectormath::dot( this->delta_d[img], this->alpha[img], this->dda2[img] );
-            // Check that convergence is achieved for every spin of that image
-            scalar dmax = 0;
-            for (auto& x : this->dda2[img]) dmax = std::max(dmax, std::abs(x));
-            if (dmax < this->epsilon_NR)
-            {
-                this->continue_NR = false; // stop Newton-Raphson
-                break;                     // break the convergence check
-            }
-        } // end of convergence test
-    } // end Newton-Raphson
-    
-    // Calculate force F = - grad from the new configurations
+    // Current force
     this->Calculate_Force( this->configurations, this->forces );
-    
-    // Update the direction
+
+    scalar dir_norm = 0;
+    scalar dir_max = 0;
+    // scalar dir_avg = 0;
+    scalar top=0, bot=0;
     for (int img=0; img<this->noi; img++)
     {
-        // Project force into the tangent space of the spin configuration
-        Manifoldmath::project_tangential(this->forces[img], *this->configurations[img]);
+        auto& image         = *this->configurations[img];
+        auto& image_displaced = *this->configurations_displaced[img];
+        auto& force         = this->forces[img];
+        auto& residual      = this->residuals[img];
+        auto& residual_last = this->residuals_last[img];
+        auto& direction     = this->directions[img];
+        auto& direction_displaced = this->directions_displaced[img];
+        auto& angle         = this->angles[img];
+        auto& axis          = this->axes[img];
 
-        // Set residual = - f'(x)
-        Engine::Vectormath::set_c_a( 1, this->forces[img], this->residual[img] );
-
-        // delta_old = delta_new
-        this->delta_old[img] = this->delta_new[img];
-
-        // delta_new = residual * residual
-        Engine::Vectormath::dot( this->residual[img], this->residual[img], this->delta_new[img] );
-
-        // beta = delta_new / delta_old
-        Engine::Vectormath::divide( this->delta_new[img], this->delta_old[img], this->beta[img] );
-
-        // direction = residual + beta*direction
-        Engine::Vectormath::set_c_a( this->beta[img], this->direction[img], this->direction[img] ); // direction = beta*direction
-        Engine::Vectormath::add_c_a( 1, this->residual[img], this->direction[img] );                // direction += residual
-    }
-
-    // Restart if direction is not a descent direction or after nos iterations
-    //    The latter improves convergence for small nos
-
-    // XXX: probably the issuing of the restarting can be in a seperate function since it has
-    // its own semantics
-
-    // In case you are in the nth iteration restart nCG
-    if ( this->iteration > 0 && ( this->iteration % this->n ) != 0 )
-    this->restart_nCG = true;
-
-    // In case there is no previous request to restart nCG check restarting criterion rd < 0 
-    if ( this->restart_nCG == false )
-    {
-        this->restart_nCG = true; // set restarting to true
-    
-        for (int img=0; img<this->noi && this->restart_nCG == true; img++)
+        // TODO: parallelize
+        for( int i=0; i<image.size(); ++i )
         {
-            // r_dot_d = residual * direction for that image
-            Engine::Vectormath::dot( this->residual[img], this->direction[img], this->r_dot_d[img] );
-            
-            // TODO: better check with minmax_component
-            for (int sp=0; sp<this->nos; sp++)
-            {
-                // In case of residual*direction not meeting the restarting criterion set restarting to false
-                // break this loop and the outermost loop will not continue due to its conditional
-                if( this->r_dot_d[img][sp] > 0 )
-                {
-                    this->restart_nCG = false;
-                    break;    
-                }
-            }
+            // Set residuals
+            residual_last[i] = residual[i];
+            residual[i] = image[i].cross(force[i]);
+            // TODO: this is for comparison with VP etc. and needs to be fixed!
+            //       in fact, all solvers should use the force, not dt*force=displacement
+            this->forces_virtual[img][i] = this->systems[0]->llg_parameters->dt * residual[i];
+
+            bot += residual_last[i].dot(residual_last[i]);
+            // Polak-Ribiere formula
+            // TODO: this finite difference *should* be done covariantly (i.e. displaced)
+            // Vectormath::rotate(residual_last[i], axis[i], step_size * angle[i], residual_last[i]);
+            top += residual[i].dot( residual[i] - residual_last[i] );
+            // Fletcher-Reeves formula
+            // top += residual[i].dot( residual[i] );
+        }
+        if( std::abs(bot) > 0 )
+            // Polak-Ribiere
+            this->beta[img] = std::max(top/bot, scalar(0));
+        else
+            this->beta[img] = 0;
+        for( int i=0; i<image.size(); ++i )
+        {
+            // direction = residual + beta*direction
+            direction[i] = residual[i] + beta[img]*direction[i];
+            scalar dir_norm_i = direction[i].norm();
+            // direction[i] = residual[i] + beta[img]*residual_last[i];
+            axis[i] = direction[i].normalized();
+            if( dir_norm_i > dir_max )
+                dir_max = direction[i].norm();
+            // dir_avg += dir_norm_i;
+            // angle[i] = direction[i].norm();
+        }
+        // dir_avg /= image.size();
+        if( dir_max < 1e-12 )
+            return;
+        // TODO: parallelize
+        for( int i=0; i<image.size(); ++i )
+        {
+            // Set rotation
+            angle[i] = direction[i].norm() / dir_max;
+            // Rotate
+            Vectormath::rotate(image[i], axis[i], angle[i], image_displaced[i]);
         }
     }
-    
-    // Reset direction in case of restart
-    if ( this->restart_nCG )
+
+    // Displaced force
+    this->Calculate_Force( this->configurations_displaced, this->forces_displaced );
+
+    for (int img=0; img<this->noi; img++)
     {
-        for (int img=0; img<this->noi; img++)
-            Engine::Vectormath::set_c_a( 1, { 0, 0, 0 }, this->direction[img] );
+        auto& image             = *this->configurations[img];
+        auto& image_displaced   = *this->configurations_displaced[img];
+        auto& force_displaced   = this->forces_displaced[img];
+        auto& residual_last     = this->residuals_last[img];
+        auto& residual          = this->residuals[img];
+        auto& direction         = this->directions[img];
+        // auto& direction_displaced = this->directions_displaced[img];
+        auto& angle             = this->angles[img];
+        auto& axis              = this->axes[img];
+
+        scalar step_size = 1.0;
+        int n_step = 0;
+        full_inexact_line_search(*this->systems[img], image, image_displaced,
+            residual, force_displaced, angle, axis, step_size, n_step);
+
+        // TODO: parallelize
+        for( int i=0; i<image.size(); ++i )
+        {
+            Vectormath::rotate(image[i], axis[i], step_size * angle[i], image[i]);
+            Vectormath::rotate(residual[i], axis[i], step_size * angle[i], residual[i]);
+        }
+        // For debugging
+        // scalar angle_norm = Vectormath::sum(angle);
+        // std::cerr << fmt::format("dir_max = {:^14}  dir_avg = {:^14}    beta = {:^14}  =  {:^14} / {:^14}   angle = {:^14}\n",
+        //     dir_max, dir_avg, this->beta[img], top, bot, angle_norm);
     }
-};
+}
 
 template <> inline
 std::string Method_Solver<Solver::NCG>::SolverName()
 {
     return "NCG";
-};
+}
 
 template <> inline
 std::string Method_Solver<Solver::NCG>::SolverFullName()
 {
     return "Nonlinear conjugate gradients";
-};
+}

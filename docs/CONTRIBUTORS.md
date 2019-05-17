@@ -80,6 +80,16 @@ Also some general code design and IO improvements.
 -----------------
 
 
+### Aleksei Ivanov
+* University of Iceland
+
+Initial implementation (Python/C) of the NCG and BFGS solvers.
+
+(Jan. 2019 - June 2019)
+
+-----------------
+
+
 ### Constantin Disselkamp
 * RWTH Aachen
 

@@ -20,6 +20,9 @@
 #include <sstream>
 #include <iomanip>
 
+#include <Eigen/Core>
+#include <Eigen/Dense>
+
 #include <fmt/format.h>
 
 namespace Engine
@@ -31,8 +34,8 @@ namespace Engine
         Heun = Solver_Heun,
         Depondt = Solver_Depondt,
         RungeKutta4 = Solver_RungeKutta4,
-        NCG = -2,
-        BFGS = -3,
+        NCG = Solver_NCG,
+        // LBFGS = Solver_LBFGS,
         VP = Solver_VP
     };
 
@@ -133,23 +136,29 @@ namespace Engine
         int jmax;     // max iterations for Newton-Raphson loop
         int n;        // number of iteration after which the nCG will restart
 
-        scalar tolerance_nCG, tolerance_NR;   // tolerances for solver and Newton-Raphson
-        scalar epsilon_nCG, epsilon_NR;   // Newton-Raphson and solver tolerance squared
+        scalar tolerance_NCG;//, tolerance_NR;   // tolerances for solver and Newton-Raphson
+        scalar epsilon_NCG;//, epsilon_NR;   // Newton-Raphson and solver tolerance squared
 
-        bool restart_nCG, continue_NR;  // conditions for restarting nCG or continuing Newton-Raphson
+        // bool restart_NCG;//, continue_NR;  // conditions for restarting nCG or continuing Newton-Raphson
 
         // Step sizes
-        std::vector<scalarfield> alpha, beta;
+        // std::vector<scalarfield> alpha, beta;
+        scalarfield beta;
 
         // TODO: right type might be std::vector<scalar> and NOT std::vector<scalarfield>
         // Delta scalarfields
-        std::vector<scalarfield> delta_0, delta_new, delta_old, delta_d;
+        // std::vector<scalarfield> delta_0, delta_new, delta_old, delta_d;
+
+        std::vector<std::shared_ptr<vectorfield>> configurations_displaced;
 
         // Residual and new configuration states
-        std::vector<vectorfield> residual, direction;
+        std::vector<vectorfield> residuals, residuals_last, directions, directions_displaced;
+        std::vector<vectorfield> forces_displaced;
+        std::vector<vectorfield> axes;
+        std::vector<scalarfield> angles;
 
         // buffer variables for checking convergence for solver and Newton-Raphson
-        std::vector<scalarfield> r_dot_d, dda2;
+        // std::vector<scalarfield> r_dot_d, dda2;
 
         //////////// VP ///////////////////////////////////////////////////////////////
         // "Mass of our particle" which we accelerate
@@ -323,10 +332,10 @@ namespace Engine
 
     // Include headers which specialize the Solver functions
     #include <engine/Solver_SIB.hpp>
-    #include <engine/Solver_VP.hpp>
     #include <engine/Solver_Heun.hpp>
-    #include <engine/Solver_RK4.hpp>
     #include <engine/Solver_Depondt.hpp>
+    #include <engine/Solver_RK4.hpp>
+    #include <engine/Solver_VP.hpp>
     #include <engine/Solver_NCG.hpp>
 }
 

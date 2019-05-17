@@ -142,9 +142,9 @@ try
         else if (solver_type == int(Engine::Solver::RungeKutta4))
             method = std::shared_ptr<Engine::Method>(
                 new Engine::Method_LLG<Engine::Solver::RungeKutta4>( image, idx_image, idx_chain ) );
-        // else if (solver_type == int(Engine::Solver::NCG))
-        //     method = std::shared_ptr<Engine::Method>(
-        //         new Engine::Method_LLG<Engine::Solver::NCG>( image, idx_image, idx_chain ) );
+        else if (solver_type == int(Engine::Solver::NCG))
+            method = std::shared_ptr<Engine::Method>(
+                new Engine::Method_LLG<Engine::Solver::NCG>( image, idx_image, idx_chain ) );
         else if (solver_type == int(Engine::Solver::VP))
             method = std::shared_ptr<Engine::Method>(
                 new Engine::Method_LLG<Engine::Solver::VP>( image, idx_image, idx_chain ) );
