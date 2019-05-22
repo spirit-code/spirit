@@ -92,7 +92,7 @@ namespace Engine
             // 1. No basis atom lies outside the cell spanned by the basis vectors of the lattice
             // 2. The geometry is a plane in x and y and spanned by the first 2 basis_vectors of the lattice
             // 3. The first basis atom lies at (0,0)
-            
+
             const auto & positions = geometry.positions;
             scalar charge = 0;
 
@@ -187,26 +187,6 @@ namespace Engine
                 }
             }
             return charge / (4*Pi);
-        }
-
-        // Utility function for the SIB Solver
-        void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out)
-        {
-            #pragma omp parallel for
-            for (unsigned int i = 0; i < spins.size(); ++i)
-            {
-                Vector3 A = 0.5 * force[i];
-
-                // 1/determinant(A)
-                scalar detAi = 1.0 / (1 + A.squaredNorm());
-
-                // calculate equation without the predictor?
-                Vector3 a2 = spins[i] - spins[i].cross(A);
-
-                out[i][0] = (a2[0] * (A[0] * A[0] + 1   ) + a2[1] * (A[0] * A[1] - A[2]) + a2[2] * (A[0] * A[2] + A[1])) * detAi;
-                out[i][1] = (a2[0] * (A[1] * A[0] + A[2]) + a2[1] * (A[1] * A[1] + 1   ) + a2[2] * (A[1] * A[2] - A[0])) * detAi;
-                out[i][2] = (a2[0] * (A[2] * A[0] - A[1]) + a2[1] * (A[2] * A[1] + A[0]) + a2[2] * (A[2] * A[2] + 1   )) * detAi;
-            }
         }
 
         void get_random_vector(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)

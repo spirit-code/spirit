@@ -1,6 +1,6 @@
 #pragma once
-#ifndef VECTORMATH_NEW_H
-#define VECTORMATH_NEW_H
+#ifndef VECTORMATH_H
+#define VECTORMATH_H
 
 #include <vector>
 #include <memory>
@@ -22,9 +22,9 @@ namespace Engine
         scalar angle(const Vector3 & v1, const Vector3 & v2);
         // Rotate a vector around an axis by a certain degree (Implemented with Rodrigue's formula)
         void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out);
-        void rotate( const vectorfield & v, const vectorfield & axis, const scalarfield & angle, 
+        void rotate( const vectorfield & v, const vectorfield & axis, const scalarfield & angle,
                      vectorfield & v_out );
-        
+
         // Decompose a vector into numbers of translations in a basis
         Vector3 decompose(const Vector3 & v, const std::vector<Vector3> & basis);
 
@@ -67,7 +67,7 @@ namespace Engine
             int idx_diff = idx;
             int div = 1;
             for(int i = 0; i < tupel.size()-1; i++)
-                div *= maxVal[i]; 
+                div *= maxVal[i];
             for(int i = tupel.size() - 1; i > 0; i--)
             {
                 tupel[i] = idx_diff / div;
@@ -110,7 +110,7 @@ namespace Engine
 
         #endif
         #ifdef SPIRIT_USE_CUDA
-    
+
          //Get the linear index in a n-D array where tupel contains the components in n-dimensions from fatest to slowest varying and maxVal is the extent in every dimension
         inline __device__ int cu_idx_from_tupel(field<int>& tupel, field<int>& maxVal)
         {
@@ -130,7 +130,7 @@ namespace Engine
             int idx_diff = idx;
             int div = 1;
             for(int i = 0; i < n-1; i++)
-                div *= maxVal[i]; 
+                div *= maxVal[i];
             for(int i = n - 1; i > 0; i--)
             {
                 tupel[i] = idx_diff / div;
@@ -145,7 +145,7 @@ namespace Engine
             int idx_diff = idx;
             int div = 1;
             for(int i = 0; i < maxVal.size()-1; i++)
-                div *= maxVal[i]; 
+                div *= maxVal[i];
             for(int i = maxVal.size()-1; i > 0; i--)
             {
                 tupel[i] = idx_diff / div;
@@ -162,20 +162,20 @@ namespace Engine
             int Nb = n_cells[1];
             int Nc = n_cells[2];
             int N = n_cell_atoms;
-    
+
             int da = translations_i[0] + translations[0];
             int db = translations_i[1] + translations[1];
             int dc = translations_i[2] + translations[2];
-    
+
             if (translations[0] < 0)
                 da += N*Na;
             if (translations[1] < 0)
                 db += N*Na*Nb;
             if (translations[2] < 0)
                 dc += N*Na*Nb*Nc;
-    
+
             int idx = (da%Na)*N + (db%Nb)*N*Na + (dc%Nc)*N*Na*Nb;
-    
+
             return idx;
         }
 
@@ -304,7 +304,7 @@ namespace Engine
             // Invalid index if atom type of spin j is not correct
             if ( pair.j != jspin%N || !cu_check_atom_type(atom_types[jspin]) )
                 return -1;
-            
+
             // Return a valid index
             return jspin;
         }
@@ -440,7 +440,7 @@ namespace Engine
             // Invalid index if atom type of spin j is not correct
             if ( !check_atom_type(atom_types[jspin]) )
                 return -1;
-            
+
             // Return a valid index
             return jspin;
         }
@@ -453,9 +453,6 @@ namespace Engine
         std::array<scalar, 3> Magnetization(const vectorfield & vf);
         // Calculate the topological charge inside a vectorfield
         scalar TopologicalCharge(const vectorfield & vf, const Data::Geometry & geom, const intfield & boundary_conditions);
-        
-        // Utility function for the SIB Solver - maybe create a MathUtil namespace?
-        void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out);
 
         void get_random_vector(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec);
         void get_random_vectorfield(std::mt19937 & prng, vectorfield & xi);
@@ -522,7 +519,7 @@ namespace Engine
         // sf is a scalarfield
         // s is a scalar
         void fill(scalarfield & sf, scalar s);
-        
+
         // TODO: Add the test
         void fill(scalarfield & sf, scalar s, const intfield & mask);
 
@@ -546,11 +543,11 @@ namespace Engine
         // v is a vector
         void fill(vectorfield & vf, const Vector3 & v);
         void fill(vectorfield & vf, const Vector3 & v, const intfield & mask);
-        
+
         // Normalize the vectors of a vectorfield
         void normalize_vectors(vectorfield & vf);
-        
-        // Get the norm of a vectorfield 
+
+        // Get the norm of a vectorfield
         void norm( const vectorfield & vf, scalarfield & norm );
 
         // Pair of Minimum and Maximum of any component of any vector of a vectorfield
@@ -581,7 +578,7 @@ namespace Engine
         // computes the inner products of vectors in v1 and v2
         // v1 and v2 are vectorfields
         void dot(const vectorfield & vf1, const vectorfield & vf2, scalarfield & out);
-        
+
         // TODO: find a more appropriate name
         // computes the product of scalars in sf1 and sf2
         // sf1 and sf2 are vectorfields
@@ -590,12 +587,12 @@ namespace Engine
         // computes the vector (cross) products of vectors in v1 and v2
         // v1 and v2 are vector fields
         void cross(const vectorfield & vf1, const vectorfield & vf2, vectorfield & out);
-        
+
         // out[i] += c*a
         void add_c_a(const scalar & c, const Vector3 & a, vectorfield & out);
         // out[i] += c*a[i]
-		void add_c_a(const scalar & c, const vectorfield & vf, vectorfield & out);
-		void add_c_a(const scalar & c, const vectorfield & vf, vectorfield & out, const intfield & mask);
+        void add_c_a(const scalar & c, const vectorfield & vf, vectorfield & out);
+        void add_c_a(const scalar & c, const vectorfield & vf, vectorfield & out, const intfield & mask);
         // out[i] += c[i]*a[i]
         void add_c_a( const scalarfield & c, const vectorfield & vf, vectorfield & out );
 
@@ -612,7 +609,7 @@ namespace Engine
         void add_c_dot(const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out);
         // out[i] += c * a[i]*b[i]
         void add_c_dot(const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out);
-        
+
         // out[i] = c * a*b[i]
         void set_c_dot(const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out);
         // out[i] = c * a[i]*b[i]
@@ -624,7 +621,7 @@ namespace Engine
         void add_c_cross(const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out);
         // out[i] += c[i] * a[i] x b[i]
         void add_c_cross(const scalarfield & c, const vectorfield & a, const vectorfield & b, vectorfield & out);
-        
+
         // out[i] = c * a x b[i]
         void set_c_cross(const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out);
         // out[i] = c * a[i] x b[i]

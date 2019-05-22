@@ -288,7 +288,7 @@ namespace Engine
             // 1. No basis atom lies outside the cell spanned by the basis vectors of the lattice
             // 2. The geometry is a plane in x and y and spanned by the first 2 basis_vectors of the lattice
             // 3. The first basis atom lies at (0,0)
-            
+
             const auto & positions = geometry.positions;
             scalar charge = 0;
 
@@ -385,35 +385,6 @@ namespace Engine
                 }
             }
             return charge / (4*Pi);
-        }
-
-        // Utility function for the SIB Solver
-        __global__ void cu_transform(const Vector3 * spins, const Vector3 * force, Vector3 * out, size_t N)
-        {
-            int idx = blockIdx.x * blockDim.x + threadIdx.x;
-            Vector3 e1, a2, A;
-            scalar detAi;
-            if(idx < N)
-            {
-                e1 = spins[idx];
-                A = 0.5 * force[idx];
-
-                // 1/determinant(A)
-                detAi = 1.0 / (1 + pow(A.norm(), 2.0));
-
-                // calculate equation without the predictor?
-                a2 = e1 - e1.cross(A);
-
-                out[idx][0] = (a2[0] * (A[0] * A[0] + 1   ) + a2[1] * (A[0] * A[1] - A[2]) + a2[2] * (A[0] * A[2] + A[1])) * detAi;
-                out[idx][1] = (a2[0] * (A[1] * A[0] + A[2]) + a2[1] * (A[1] * A[1] + 1   ) + a2[2] * (A[1] * A[2] - A[0])) * detAi;
-                out[idx][2] = (a2[0] * (A[2] * A[0] - A[1]) + a2[1] * (A[2] * A[1] + A[0]) + a2[2] * (A[2] * A[2] + 1   )) * detAi;
-            }
-        }
-        void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out)
-        {
-            int n = spins.size();
-            cu_transform<<<(n+1023)/1024, 1024>>>(spins.data(), force.data(), out.data(), n);
-            CU_CHECK_AND_SYNC();
         }
 
         void get_random_vector(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)

@@ -33,7 +33,7 @@ void Method_Solver<Solver::SIB>::Iteration ()
         auto& image     = *this->systems[i]->spins;
         auto& predictor = *this->configurations_predictor[i];
 
-        Vectormath::transform(image, forces_virtual[i], predictor);
+        Solver_Kernels::sib_transform(image, forces_virtual[i], predictor);
         Vectormath::add_c_a(1, image, predictor);
         Vectormath::scale(predictor, 0.5);
     }
@@ -45,7 +45,7 @@ void Method_Solver<Solver::SIB>::Iteration ()
     {
         auto& image     = *this->systems[i]->spins;
 
-        Vectormath::transform(image, forces_virtual_predictor[i], image);
+        Solver_Kernels::sib_transform(image, forces_virtual_predictor[i], image);
     }
 };
 

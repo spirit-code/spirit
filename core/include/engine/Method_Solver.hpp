@@ -10,6 +10,7 @@
 #include <engine/Method.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
+#include <engine/Solver_Kernels.hpp>
 #include <utility/Timing.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Constants.hpp>
