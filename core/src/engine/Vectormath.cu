@@ -14,6 +14,8 @@
 #include <curand.h>
 #include <curand_kernel.h>
 
+#include <cub/cub.cuh>
+
 using namespace Utility;
 using Utility::Constants::Pi;
 
@@ -25,367 +27,7 @@ namespace Engine
         /////////////////////////////////////////////////////////////////
         // BOILERPLATE CUDA Reductions
 
-        __inline__ __device__
-        scalar warpReduceSum(scalar val)
-        {
-            for (int offset = warpSize/2; offset > 0; offset /= 2)
-                val += __shfl_down(val, offset);
-            return val;
-        }
-
-        __inline__ __device__
-        scalar blockReduceSum(scalar val)
-        {
-            static __shared__ scalar shared[32]; // Shared mem for 32 partial sums
-            int lane = threadIdx.x % warpSize;
-            int wid = threadIdx.x / warpSize;
-
-            val = warpReduceSum(val);     // Each warp performs partial reduction
-
-            if (lane==0) shared[wid]=val; // Write reduced value to shared memory
-
-            __syncthreads();              // Wait for all partial reductions
-
-            //read from shared memory only if that warp existed
-            val = (threadIdx.x < blockDim.x / warpSize) ? shared[lane] : 0;
-
-            if (wid==0) val = warpReduceSum(val); //Final reduce within first warp
-
-            return val;
-        }
-
-        __global__ void cu_sum(const scalar *in, scalar* out, int N)
-        {
-            scalar sum = int(0);
-            for(int i = blockIdx.x * blockDim.x + threadIdx.x;
-                i < N;
-                i += blockDim.x * gridDim.x)
-            {
-                sum += in[i];
-            }
-            sum = blockReduceSum(sum);
-            if (threadIdx.x == 0)
-                atomicAdd(out, sum);
-        }
-
-
-
-        __inline__ __device__
-        Vector3 warpReduceSum(Vector3 val)
-        {
-            for (int offset = warpSize/2; offset > 0; offset /= 2)
-            {
-                val[0] += __shfl_down(val[0], offset);
-                val[1] += __shfl_down(val[1], offset);
-                val[2] += __shfl_down(val[2], offset);
-            }
-            return val;
-        }
-
-        __inline__ __device__
-        Vector3 blockReduceSum(Vector3 val)
-        {
-            static __shared__ Vector3 shared[32]; // Shared mem for 32 partial sums
-            int lane = threadIdx.x % warpSize;
-            int wid = threadIdx.x / warpSize;
-
-            val = warpReduceSum(val);     // Each warp performs partial reduction
-
-            if (lane==0) shared[wid]=val; // Write reduced value to shared memory
-
-            __syncthreads();              // Wait for all partial reductions
-
-            // Read from shared memory only if that warp existed
-            val = (threadIdx.x < blockDim.x / warpSize) ? shared[lane] : Vector3{0,0,0};
-
-            if (wid==0) val = warpReduceSum(val); //Final reduce within first warp
-
-            return val;
-        }
-
-        __global__ void cu_sum(const Vector3 *in, Vector3* out, int N)
-        {
-            Vector3 sum{0,0,0};
-            for(int i = blockIdx.x * blockDim.x + threadIdx.x;
-                i < N;
-                i += blockDim.x * gridDim.x)
-            {
-                sum += in[i];
-            }
-            sum = blockReduceSum(sum);
-            if (threadIdx.x == 0)
-            {
-                atomicAdd(&out[0][0], sum[0]);
-                atomicAdd(&out[0][1], sum[1]);
-                atomicAdd(&out[0][2], sum[2]);
-            }
-        }
-
-
-        __inline__ __device__
-        scalar warpReduceMin(scalar val)
-        {
-            for (int offset = warpSize/2; offset > 0; offset /= 2)
-            {
-                val  = min(val, __shfl_down(val, offset));
-            }
-            return val;
-        }
-        __inline__ __device__
-        scalar warpReduceMax(scalar val)
-        {
-            for (int offset = warpSize/2; offset > 0; offset /= 2)
-            {
-                val = max(val, __shfl_down(val, offset));
-            }
-            return val;
-        }
-
-        __inline__ __device__
-        void blockReduceMinMax(scalar val, scalar *out_min, scalar *out_max)
-        {
-            static __shared__ scalar shared_min[32]; // Shared mem for 32 partial minmax comparisons
-            static __shared__ scalar shared_max[32]; // Shared mem for 32 partial minmax comparisons
-
-            int lane = threadIdx.x % warpSize;
-            int wid = threadIdx.x / warpSize;
-
-            scalar _min = warpReduceMin(val);  // Each warp performs partial reduction
-            scalar _max = warpReduceMax(val);  // Each warp performs partial reduction
-
-            if (lane==0) shared_min[wid]=_min;  // Write reduced minmax to shared memory
-            if (lane==0) shared_max[wid]=_max;  // Write reduced minmax to shared memory
-            __syncthreads();                      // Wait for all partial reductions
-
-            // Read from shared memory only if that warp existed
-            _min  = (threadIdx.x < blockDim.x / warpSize) ? shared_min[lane] : 0;
-            _max  = (threadIdx.x < blockDim.x / warpSize) ? shared_max[lane] : 0;
-
-            if (wid==0) _min  = warpReduceMin(_min);  // Final minmax reduce within first warp
-            if (wid==0) _max  = warpReduceMax(_max);  // Final minmax reduce within first warp
-
-            out_min[0] = _min;
-            out_max[0] = _max;
-        }
-
-        __global__ void cu_MinMax(const scalar *in, scalar* out_min, scalar* out_max, int N)
-        {
-            scalar tmp, tmp_min{0}, tmp_max{0};
-            scalar _min{0}, _max{0};
-            for(int i = blockIdx.x * blockDim.x + threadIdx.x;
-                i < N;
-                i += blockDim.x * gridDim.x)
-            {
-                _min = min(_min, in[i]);
-                _max = max(_max, in[i]);
-            }
-
-            tmp_min = _min;
-            tmp_max = _max;
-
-            blockReduceMinMax(tmp_min, &_min, &tmp);
-            blockReduceMinMax(tmp_max, &tmp, &_max);
-
-            if (threadIdx.x==0)
-            {
-                out_min[blockIdx.x] = _min;
-                out_max[blockIdx.x] = _max;
-            }
-        }
-
-        std::pair<scalar, scalar> minmax_component(const vectorfield & vf)
-        {
-            int N = 3*vf.size();
-            int threads = 512;
-            int blocks = min((N + threads - 1) / threads, 1024);
-
-            static scalarfield out_min(blocks, 0);
-            Vectormath::fill(out_min, 0);
-            static scalarfield out_max(blocks, 0);
-            Vectormath::fill(out_max, 0);
-            static scalarfield temp(1, 0);
-            Vectormath::fill(temp, 0);
-
-            cu_MinMax<<<blocks, threads>>>(&vf[0][0], out_min.data(), out_max.data(), N);
-            cu_MinMax<<<1, 1024>>>(out_min.data(), out_min.data(), temp.data(), blocks);
-            cu_MinMax<<<1, 1024>>>(out_max.data(), temp.data(), out_max.data(), blocks);
-            CU_CHECK_AND_SYNC();
-
-            return std::pair<scalar, scalar>{out_min[0], out_max[0]};
-        }
-
-
-        /////////////////////////////////////////////////////////////////
-
-        scalar angle(const Vector3 & v1, const Vector3 & v2)
-        {
-            scalar cosa = v1.dot(v2);
-            return std::acos(cosa);
-        }
-
-        void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out)
-        {
-            v_out = v * std::cos(angle) + axis.cross(v) * std::sin(angle) +
-                    axis * axis.dot(v) * (1 - std::cos(angle));
-        }
-
-        // XXX: should we add test for that function since it's calling the already tested rotat()
-        void rotate( const vectorfield & v, const vectorfield & axis, const scalarfield & angle,
-                        vectorfield & v_out )
-        {
-            for( unsigned int i=0; i<v_out.size(); i++)
-            rotate( v[i], axis[i], angle[i], v_out[i] );
-        }
-
-        Vector3 decompose(const Vector3 & v, const std::vector<Vector3> & basis)
-        {
-            Eigen::Ref<const Matrix3> A = Eigen::Map<const Matrix3>(basis[0].data());
-            return A.colPivHouseholderQr().solve(v);
-        }
-
-
-        /////////////////////////////////////////////////////////////////
-
-
-        std::array<scalar, 3> Magnetization(const vectorfield & vf)
-        {
-            auto M = mean(vf);
-            return std::array<scalar,3>{M[0], M[1], M[2]};
-        }
-
-        scalar solid_angle_1(const Vector3 & v1, const Vector3 & v2, const Vector3 & v3)
-        {
-            // Get sign
-            scalar pm = v1.dot(v2.cross(v3));
-            if (pm != 0) pm /= std::abs(pm);
-
-            // angle
-            scalar solid_angle = ( 1 + v1.dot(v2) + v2.dot(v3) + v3.dot(v1) ) /
-                                std::sqrt( 2 * (1+v1.dot(v2)) * (1+v2.dot(v3)) * (1+v3.dot(v1)) );
-            if (solid_angle == 1)
-                solid_angle = 0;
-            else
-                solid_angle = pm * 2 * std::acos(solid_angle);
-
-            return solid_angle;
-        }
-
-        scalar solid_angle_2(const Vector3 & v1, const Vector3 & v2, const Vector3 & v3)
-        {
-            // Using the solid angle formula by Oosterom and Strackee (note we assume vectors to be normalized to 1)
-            // https://en.wikipedia.org/wiki/Solid_angle#Tetrahedron
-
-            scalar x = v1.dot(v2.cross(v3));
-            scalar y = 1 + v1.dot(v2) + v1.dot(v3) + v2.dot(v3);
-            scalar solid_angle = 2 * std::atan2( x , y );
-
-            return solid_angle;
-        }
-
-        scalar TopologicalCharge(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions)
-        {
-            // This implementations assumes
-            // 1. No basis atom lies outside the cell spanned by the basis vectors of the lattice
-            // 2. The geometry is a plane in x and y and spanned by the first 2 basis_vectors of the lattice
-            // 3. The first basis atom lies at (0,0)
-
-            const auto & positions = geometry.positions;
-            scalar charge = 0;
-
-            // Compute Delaunay for unitcell + basis with neighbouring lattice sites in directions a, b, and a+b
-            std::vector<Data::vector2_t> basis_cell_points(geometry.n_cell_atoms + 3);
-            for(int i = 0; i < geometry.n_cell_atoms; i++)
-            {
-                basis_cell_points[i].x = double(positions[i][0]);
-                basis_cell_points[i].y = double(positions[i][1]);
-            }
-
-            // To avoid cases where the basis atoms lie on the boundary of the convex hull the corners of the parallelogram
-            // spanned by the lattice sites 0, a, b and a+b are stretched away from the center for the triangulation
-            scalar stretch_factor = 0.1;
-
-            // For the rare case where the first basis atoms does not lie at (0,0,0)
-            Vector3 basis_offset = positions[0];
-
-            Vector3 ta = geometry.lattice_constant * geometry.bravais_vectors[0];
-            Vector3 tb = geometry.lattice_constant * geometry.bravais_vectors[1];
-            Vector3 tc = geometry.lattice_constant * geometry.bravais_vectors[2];
-
-            // basis_cell_points[0] coincides with the '0' lattice site (plus basis_offset)
-            basis_cell_points[0].x -= stretch_factor * (ta + tb)[0];
-            basis_cell_points[0].y -= stretch_factor * (ta + tb)[1];
-
-            // a+b
-            basis_cell_points[geometry.n_cell_atoms].x   = double((ta + tb + positions[0] + stretch_factor * (ta + tb))[0]);
-            basis_cell_points[geometry.n_cell_atoms].y   = double((ta + tb + positions[0] + stretch_factor * (ta + tb))[1]);
-            // b
-            basis_cell_points[geometry.n_cell_atoms+1].x = double((tb + positions[0] - stretch_factor * (ta - tb))[0]);
-            basis_cell_points[geometry.n_cell_atoms+1].y = double((tb + positions[0] - stretch_factor * (ta - tb))[1]);
-            // a
-            basis_cell_points[geometry.n_cell_atoms+2].x = double((ta + positions[0] + stretch_factor * (ta - tb))[0]);
-            basis_cell_points[geometry.n_cell_atoms+2].y = double((ta + positions[0] + stretch_factor * (ta - tb))[1]);
-
-            std::vector<Data::triangle_t> triangulation;
-            triangulation = Data::compute_delaunay_triangulation_2D(basis_cell_points);
-
-            for(Data::triangle_t tri : triangulation)
-            {
-                // Compute the sign of this triangle
-                Vector3 triangle_normal;
-                vectorfield tri_positions(3);
-                for(int i=0; i<3; i++)
-                {
-                    tri_positions[i] = {basis_cell_points[tri[i]].x, basis_cell_points[tri[i]].y, 0};
-                }
-                triangle_normal = (tri_positions[0]-tri_positions[1]).cross(tri_positions[0] - tri_positions[2]);
-                triangle_normal.normalize();
-                scalar sign = triangle_normal[2]/std::abs(triangle_normal[2]);
-
-                // We try to apply the Delaunay triangulation at each bravais-lattice point
-                // For each corner of the triangle we check wether it is "allowed" (which means either inside the simulation box or permitted by periodic boundary conditions)
-                // Then we can add the top charge for all trios of spins connected by this triangle
-                for(int b = 0; b < geometry.n_cells[1]; ++b)
-                {
-                    for(int a = 0; a < geometry.n_cells[0]; ++a)
-                    {
-                        std::array<Vector3, 3> tri_spins;
-                        // bools to check wether it is allowed to take the next lattice site in direction a, b or a+b
-                        bool a_next_allowed = (a+1 < geometry.n_cells[0] || boundary_conditions[0]);
-                        bool b_next_allowed = (b+1 < geometry.n_cells[1] || boundary_conditions[1]);
-                        bool valid_triangle = true;
-                        for(int i = 0; i<3; ++i)
-                        {
-                            int idx;
-                            if(tri[i] < geometry.n_cell_atoms) // tri[i] is an index of a basis atom, no wrap around can occur
-                            {
-                                idx = (tri[i] + a * geometry.n_cell_atoms + b * geometry.n_cell_atoms * geometry.n_cells[0]);
-                            }
-                            else if (tri[i] == geometry.n_cell_atoms + 2 && a_next_allowed) // Translation by a
-                            {
-                                idx = ((a + 1) % geometry.n_cells[0]) * geometry.n_cell_atoms + b * geometry.n_cell_atoms * geometry.n_cells[0];
-                            }
-                            else if (tri[i] == geometry.n_cell_atoms + 1 && b_next_allowed) // Translation by b
-                            {
-                                idx = a * geometry.n_cell_atoms + ((b + 1) % geometry.n_cells[1]) * geometry.n_cell_atoms * geometry.n_cells[0];
-                            }
-                            else if (tri[i] == geometry.n_cell_atoms && a_next_allowed && b_next_allowed) // Translation by a + b
-                            {
-                                idx = ((a + 1) % geometry.n_cells[0]) * geometry.n_cell_atoms + ((b + 1) % geometry.n_cells[1]) * geometry.n_cell_atoms * geometry.n_cells[0];
-                            }
-                            else // Translation not allowed, skip to next triangle
-                            {
-                                valid_triangle = false;
-                                break;
-                            }
-                            tri_spins[i] = vf[idx];
-                        }
-                        if(valid_triangle)
-                            charge += sign * solid_angle_2(tri_spins[0], tri_spins[1], tri_spins[2]);
-                    }
-                }
-            }
-            return charge / (4*Pi);
-        }
+        
 
         void get_random_vector(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
         {
@@ -395,7 +37,9 @@ namespace Engine
             }
         }
 
-        __global__ void cu_get_random_vectorfield(Vector3 * xi, size_t N)
+        // TODO: improve random number generation - this one might give undefined behaviour!
+        __global__
+        void cu_get_random_vectorfield(Vector3 * xi, size_t N)
         {
             unsigned long long subsequence = 0;
             unsigned long long offset= 0;
@@ -700,31 +344,22 @@ namespace Engine
 
         scalar sum(const scalarfield & sf)
         {
-            int N = sf.size();
-            int threads = 512;
-            int blocks = min((N + threads - 1) / threads, 1024);
-
             static scalarfield ret(1, 0);
             Vectormath::fill(ret, 0);
-            cu_sum<<<blocks, threads>>>(sf.data(), ret.data(), N);
+            // Determine temporary storage size and allocate
+            void * d_temp_storage = NULL;
+            size_t temp_storage_bytes = 0;
+            cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, sf.data(), ret.data(), sf.size());
+            cudaMalloc(&d_temp_storage, temp_storage_bytes);
+            // Reduction
+            cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, sf.data(), ret.data(), sf.size());
             CU_CHECK_AND_SYNC();
             return ret[0];
         }
 
         scalar mean(const scalarfield & sf)
         {
-            int N = sf.size();
-            int threads = 512;
-            int blocks = min((N + threads - 1) / threads, 1024);
-
-            static scalarfield ret(1, 0);
-            Vectormath::fill(ret, 0);
-
-            cu_sum<<<blocks, threads>>>(sf.data(), ret.data(), N);
-            CU_CHECK_AND_SYNC();
-
-            ret[0] = ret[0]/N;
-            return ret[0];
+            return sum(sf)/sf.size();
         }
 
         __global__ void cu_divide(const scalar * numerator, const scalar * denominator, scalar * out, size_t N)
@@ -808,15 +443,32 @@ namespace Engine
             CU_CHECK_AND_SYNC();
         }
 
+        // Functor for finding the maximum absolute value
+        struct CustomMaxAbs
+        {
+            template <typename T>
+            __device__ __forceinline__
+            T operator()(const T &a, const T &b) const {
+                return (a > b) ? a : b;
+            }
+        };
         scalar max_abs_component(const vectorfield & vf)
         {
-            // We want the Maximum of Absolute Values of all force components on all images
-            // Find minimum and maximum values
-            std::pair<scalar,scalar> minmax = minmax_component(vf);
-            scalar absmin = std::abs(minmax.first);
-            scalar absmax = std::abs(minmax.second);
-            // Maximum of absolute values
-            return std::max(absmin, absmax);
+            // Declare, allocate, and initialize device-accessible pointers for input and output
+            CustomMaxAbs    max_op;
+            size_t N = 3*vf.size();
+            scalarfield out(1, 0);
+            scalar init = 0;
+            // Determine temporary device storage requirements
+            void     *d_temp_storage = NULL;
+            size_t   temp_storage_bytes = 0;
+            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf[0].data(), out.data(), N, max_op, init);
+            // Allocate temporary storage
+            cudaMalloc(&d_temp_storage, temp_storage_bytes);
+            // Run reduction
+            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf[0].data(), out.data(), N, max_op, init);
+            CU_CHECK_AND_SYNC();
+            return std::abs(out[0]);
         }
 
         __global__ void cu_scale(Vector3 *vf1, scalar sc, size_t N)
@@ -852,33 +504,37 @@ namespace Engine
             CU_CHECK_AND_SYNC();
         }
 
+        // Functor for adding Vector3's
+        struct CustomAdd
+        {
+            template <typename T>
+            __device__ __forceinline__
+            T operator()(const T &a, const T &b) const {
+                return a + b;
+            }
+        };
         Vector3 sum(const vectorfield & vf)
         {
-            int N = vf.size();
-            int threads = 512;
-            int blocks = min((N + threads - 1) / threads, 1024);
-
             static vectorfield ret(1, {0,0,0});
             Vectormath::fill(ret, {0,0,0});
-            cu_sum<<<blocks, threads>>>(vf.data(), ret.data(), N);
+            // Declare, allocate, and initialize device-accessible pointers for input and output
+            CustomAdd    add_op;
+            static const Vector3 init{0,0,0};
+            // Determine temporary device storage requirements
+            void     *d_temp_storage = NULL;
+            size_t   temp_storage_bytes = 0;
+            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf.data(), ret.data(), vf.size(), add_op, init);
+            // Allocate temporary storage
+            cudaMalloc(&d_temp_storage, temp_storage_bytes);
+            // Run reduction
+            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf.data(), ret.data(), vf.size(), add_op, init);
             CU_CHECK_AND_SYNC();
             return ret[0];
         }
 
         Vector3 mean(const vectorfield & vf)
         {
-            int N = vf.size();
-            int threads = 512;
-            int blocks = min((N + threads - 1) / threads, 1024);
-
-            static vectorfield ret(1, {0,0,0});
-            Vectormath::fill(ret, {0,0,0});
-
-            cu_sum<<<blocks, threads>>>(vf.data(), ret.data(), N);
-            CU_CHECK_AND_SYNC();
-
-            ret[0] = ret[0]/N;
-            return ret[0];
+            return sum(vf)/vf.size();
         }
 
 

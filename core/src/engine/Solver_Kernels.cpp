@@ -1,5 +1,4 @@
-#ifndef SPIRIT_USE_CUDA
-
+#include <engine/Solver_Kernels.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <utility/Constants.hpp>
@@ -18,6 +17,8 @@ namespace Engine
 {
 namespace Solver_Kernels
 {
+    #ifndef SPIRIT_USE_CUDA
+
     void sib_transform(const vectorfield & spins, const vectorfield & force, vectorfield & out)
     {
         #pragma omp parallel for
@@ -35,18 +36,6 @@ namespace Solver_Kernels
             out[i][1] = (a2[0] * (A[1] * A[0] + A[2]) + a2[1] * (A[1] * A[1] + 1   ) + a2[2] * (A[1] * A[2] - A[0])) * detAi;
             out[i][2] = (a2[0] * (A[2] * A[0] - A[1]) + a2[1] * (A[2] * A[1] + A[0]) + a2[2] * (A[2] * A[2] + 1   )) * detAi;
         }
-    }
-
-
-
-    inline scalar inexact_line_search(scalar r, scalar E0, scalar Er, scalar g0, scalar gr)
-    {
-        scalar c1 = - 2*(Er - E0) / std::pow(r, 3) + (gr + g0) / std::pow(r, 2);
-        scalar c2 = 3*(Er - E0) / std::pow(r, 2) - (gr + 2*g0) / r;
-        scalar c3 = g0;
-        scalar c4 = E0;
-
-        return std::abs( (-c2 + std::sqrt(c2*c2 - 3*c1*c3)) / (3*c1) ) / r;
     }
 
 
@@ -166,7 +155,7 @@ namespace Solver_Kernels
             Vectormath::rotate(residual[i], axis[i], step_size * angle[i], residual[i]);
         }
     }
-}
-}
 
-#endif
+    #endif
+}
+}
