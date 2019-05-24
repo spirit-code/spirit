@@ -427,7 +427,7 @@ namespace IO
                 }// end try
                 catch( ... )
                 {
-                    spirit_handle_exception_core(fmt::format("Unable to read mu_s from config file  \"{}\"", configFile));
+                    spirit_handle_exception_core(fmt::format("Unable to read mu_s from config file \"{}\"", configFile));
                 }
             }// end if file=""
             else
@@ -491,7 +491,7 @@ namespace IO
         }
         catch( ... )
         {
-            spirit_rethrow(	fmt::format("Unable to parse geometry from config file  \"{}\"", configFile) );
+            spirit_rethrow(	fmt::format("Unable to parse geometry from config file \"{}\"", configFile) );
         }
 
         return nullptr;
@@ -1064,7 +1064,7 @@ namespace IO
             }// end try
             catch( ... )
             {
-                spirit_handle_exception_core(fmt::format("Unable to read Hamiltonian type from config file  \"{}\". Using default.", configFile));
+                spirit_handle_exception_core(fmt::format("Unable to read Hamiltonian type from config file \"{}\". Using default.", configFile));
                 hamiltonian_type = "heisenberg_neighbours";
             }
         }
@@ -1075,22 +1075,18 @@ namespace IO
         std::unique_ptr<Engine::Hamiltonian> hamiltonian;
         try
         {
-            if (hamiltonian_type == "heisenberg_neighbours" || hamiltonian_type == "heisenberg_pairs")
-            {
+            if( hamiltonian_type == "heisenberg_neighbours" || hamiltonian_type == "heisenberg_pairs" )
                 hamiltonian = Hamiltonian_Heisenberg_from_Config(configFile, geometry, hamiltonian_type);
-            }
-            else if (hamiltonian_type == "gaussian")
-            {
+            else if( hamiltonian_type == "micromagnetic" )
+                hamiltonian = std::move(Hamiltonian_Micromagnetic_from_Config(configFile, geometry));
+            else if( hamiltonian_type == "gaussian" )
                 hamiltonian = std::move(Hamiltonian_Gaussian_from_Config(configFile, geometry));
-            }
             else
-            {
                 spirit_throw(Exception_Classifier::System_not_Initialized, Log_Level::Severe, fmt::format("Hamiltonian: Invalid type \"{}\"", hamiltonian_type));
-            }
         }
         catch( ... )
         {
-            spirit_handle_exception_core(fmt::format("Unable to initialize Hamiltonian from config file  \"{}\"", configFile));
+            spirit_handle_exception_core(fmt::format("Unable to initialize Hamiltonian from config file \"{}\"", configFile));
         }
 
         // Return
@@ -1160,7 +1156,7 @@ namespace IO
             }// end try
             catch( ... )
             {
-                spirit_handle_exception_core(fmt::format("Unable to read boundary conditions from config file  \"{}\"", configFile));
+                spirit_handle_exception_core(fmt::format("Unable to read boundary conditions from config file \"{}\"", configFile));
             }
 
 
@@ -1180,7 +1176,7 @@ namespace IO
             }// end try
             catch( ... )
             {
-                spirit_handle_exception_core(fmt::format("Unable to read external field from config file  \"{}\"", configFile));
+                spirit_handle_exception_core(fmt::format("Unable to read external field from config file \"{}\"", configFile));
             }
 
             try
@@ -1237,7 +1233,7 @@ namespace IO
             }// end try
             catch( ... )
             {
-                spirit_handle_exception_core(fmt::format("Unable to read anisotropy from config file  \"{}\"", configFile));
+                spirit_handle_exception_core(fmt::format("Unable to read anisotropy from config file \"{}\"", configFile));
             }
 
             if (hamiltonian_type == "heisenberg_pairs")
@@ -1268,7 +1264,7 @@ namespace IO
                 }// end try
                 catch( ... )
                 {
-                    spirit_handle_exception_core(fmt::format("Unable to read interaction pairs from config file  \"{}\"", configFile));
+                    spirit_handle_exception_core(fmt::format("Unable to read interaction pairs from config file \"{}\"", configFile));
                 }
             }
             else
@@ -1354,7 +1350,7 @@ namespace IO
             }// end try
             catch( ... )
             {
-                spirit_handle_exception_core(fmt::format("Unable to read DDI radius from config file  \"{}\"", configFile));
+                spirit_handle_exception_core(fmt::format("Unable to read DDI radius from config file \"{}\"", configFile));
             }
 
             try
@@ -1377,7 +1373,7 @@ namespace IO
             }// end try
             catch( ... )
             {
-                spirit_handle_exception_core(fmt::format("Unable to read interaction quadruplets from config file  \"{}\"", configFile));
+                spirit_handle_exception_core(fmt::format("Unable to read interaction quadruplets from config file \"{}\"", configFile));
             }
         }
         else
@@ -1439,6 +1435,99 @@ namespace IO
     }// end Hamiltonian_Heisenberg_From_Config
 
 
+    std::unique_ptr<Engine::Hamiltonian_Micromagnetic> Hamiltonian_Micromagnetic_from_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry)
+    {
+        //-------------- Insert default values here -----------------------------
+        // Boundary conditions (a, b, c)
+        std::vector<int> boundary_conditions_i = { 0, 0, 0 };
+        intfield boundary_conditions = { false, false, false };
+
+        // The order of the finite difference approximation of the spatial gradient
+        int spatial_gradient_order = 1;
+
+        // External Magnetic Field
+        scalar field = 0;
+        Vector3 field_normal = { 0.0, 0.0, 1.0 };
+
+        Matrix3 anisotropy_tensor;
+        scalar  exchange_magnitude = 0;
+        Matrix3 exchange_tensor;
+        scalar  dmi_magnitude = 0;
+        Matrix3 dmi_tensor;
+
+        //------------------------------- Parser --------------------------------
+        Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Micromagnetic: building");
+        try
+        {
+            IO::Filter_File_Handle myfile(configFile);
+
+            myfile.Read_Single(spatial_gradient_order, "spatial_gradient_order");
+
+            try
+            {
+                IO::Filter_File_Handle myfile(configFile);
+
+                // Boundary conditions
+                myfile.Read_3Vector(boundary_conditions_i, "boundary_conditions");
+                boundary_conditions[0] = (boundary_conditions_i[0] != 0);
+                boundary_conditions[1] = (boundary_conditions_i[1] != 0);
+                boundary_conditions[2] = (boundary_conditions_i[2] != 0);
+            }// end try
+            catch( ... )
+            {
+                spirit_handle_exception_core(fmt::format("Unable to read boundary conditions from config file \"{}\"", configFile));
+            }
+
+            // TODO:
+            // if (myfile.Find("tensor_exchange"))
+            //     ...
+            // else if (myfile.Find("exchange"))
+            //     ...
+            // else
+            //     ...
+
+            // // Interaction Pairs
+            // if (myfile.Find("spatial_gradient_order"))
+            //     interaction_pairs_file = configFile;
+            // else if (myfile.Find("interaction_pairs_file"))
+            //     myfile.iss >> interaction_pairs_file;
+
+            // if (interaction_pairs_file.length() > 0)
+            // {
+            //     // The file name should be valid so we try to read it
+            //     Pairs_from_File(interaction_pairs_file, geometry, n_pairs,
+            //         exchange_pairs, exchange_magnitudes,
+            //         dmi_pairs, dmi_magnitudes, dmi_normals);
+            // }
+            //else
+            //{
+            //	Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg: Default Interaction pairs have not been implemented yet.");
+            //	throw Exception::System_not_Initialized;
+            //	// Not implemented!
+            //}
+        }// end try
+        catch( ... )
+        {
+            spirit_handle_exception_core(fmt::format(
+                "Unable to parse all parameters of the Micromagnetic Hamiltonian from \"{}\"", configFile));
+        }
+
+        auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Micromagnetic>(new Engine::Hamiltonian_Micromagnetic(
+            field, field_normal,
+            anisotropy_tensor,
+            exchange_tensor,
+            dmi_tensor,
+            geometry,
+            spatial_gradient_order,
+            boundary_conditions
+        ));
+        
+        Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Micromagnetic: built");
+        return hamiltonian;
+
+    }// end Hamiltonian_Micromagnetic_from_Config
+
+
     std::unique_ptr<Engine::Hamiltonian_Gaussian> Hamiltonian_Gaussian_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry)
     {
         //-------------- Insert default values here -----------------------------
@@ -1486,7 +1575,7 @@ namespace IO
             }// end try
             catch( ... )
             {
-                spirit_handle_exception_core(fmt::format("Unable to read Hamiltonian_Gaussian parameters from config file  \"{}\"", configFile));
+                spirit_handle_exception_core(fmt::format("Unable to read Hamiltonian_Gaussian parameters from config file \"{}\"", configFile));
             }
         }
         else
