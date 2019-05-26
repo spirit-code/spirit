@@ -60,16 +60,24 @@ namespace Data
         this->E = other.E;
         this->E_array = other.E_array;
         this->effective_field = other.effective_field;
+        this->M = other.M;
 
         this->geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(*other.geometry));
 
         if (other.hamiltonian->Name() == "Heisenberg")
         {
-            this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Heisenberg(*(Engine::Hamiltonian_Heisenberg*)(other.hamiltonian.get())));
+            this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(
+                new Engine::Hamiltonian_Heisenberg(*(Engine::Hamiltonian_Heisenberg*)(other.hamiltonian.get())));
+        }
+        else if (other.hamiltonian->Name() == "Micromagnetic")
+        {
+            this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(
+                new Engine::Hamiltonian_Micromagnetic(*(Engine::Hamiltonian_Micromagnetic*)(other.hamiltonian.get())));
         }
         else if (other.hamiltonian->Name() == "Gaussian")
         {
-            this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Gaussian(*(Engine::Hamiltonian_Gaussian*)(other.hamiltonian.get())));
+            this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(
+                new Engine::Hamiltonian_Gaussian(*(Engine::Hamiltonian_Gaussian*)(other.hamiltonian.get())));
         }
 
         this->llg_parameters = std::shared_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG(*other.llg_parameters));
@@ -103,16 +111,28 @@ namespace Data
             this->E = other.E;
             this->E_array = other.E_array;
             this->effective_field = other.effective_field;
+            this->M = other.M;
 
             this->geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(*other.geometry));
 
             if (other.hamiltonian->Name() == "Heisenberg")
             {
-                this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Heisenberg(*(Engine::Hamiltonian_Heisenberg*)(other.hamiltonian.get())));
+                auto ham = std::shared_ptr<Engine::Hamiltonian_Heisenberg>(
+                    new Engine::Hamiltonian_Heisenberg(*(Engine::Hamiltonian_Heisenberg*)(other.hamiltonian.get())));
+                ham->geometry = this->geometry;
+                this->hamiltonian = ham;
+            }
+            else if (other.hamiltonian->Name() == "Micromagnetic")
+            {
+                auto ham = std::shared_ptr<Engine::Hamiltonian_Micromagnetic>(
+                    new Engine::Hamiltonian_Micromagnetic(*(Engine::Hamiltonian_Micromagnetic*)(other.hamiltonian.get())));
+                ham->geometry = this->geometry;
+                this->hamiltonian = ham;
             }
             else if (other.hamiltonian->Name() == "Gaussian")
             {
-                this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Gaussian(*(Engine::Hamiltonian_Gaussian*)(other.hamiltonian.get())));
+                this->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(
+                    new Engine::Hamiltonian_Gaussian(*(Engine::Hamiltonian_Gaussian*)(other.hamiltonian.get())));
             }
 
             this->llg_parameters = std::shared_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG(*other.llg_parameters));

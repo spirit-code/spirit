@@ -61,6 +61,8 @@ namespace Engine
         // Hamiltonian name as string
         const std::string& Name() override;
 
+        std::shared_ptr<Data::Geometry> geometry;
+
         // ------------ ... ------------
         int spatial_gradient_order;
         intfield boundary_conditions;
@@ -78,8 +80,6 @@ namespace Engine
         Matrix3 dmi_tensor;
 
     private:
-        std::shared_ptr<Data::Geometry> geometry;
-
         // ------------ Effective Field Functions ------------
         // Calculate the Zeeman effective field of a single Spin
         void Gradient_Zeeman(vectorfield & gradient);

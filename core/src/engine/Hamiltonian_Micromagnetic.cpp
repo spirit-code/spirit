@@ -37,6 +37,22 @@ namespace Engine
         this->Update_Interactions();
     }
 
+    Hamiltonian_Micromagnetic::Hamiltonian_Micromagnetic(
+        scalar external_field_magnitude, Vector3 external_field_normal,
+        Matrix3 anisotropy_tensor,
+        scalar exchange_constant,
+        scalar dmi_constant,
+        std::shared_ptr<Data::Geometry> geometry,
+        int spatial_gradient_order,
+        intfield boundary_conditions
+    ) : Hamiltonian(boundary_conditions), spatial_gradient_order(spatial_gradient_order), geometry(geometry),
+        external_field_magnitude(external_field_magnitude), external_field_normal(external_field_normal),
+        anisotropy_tensor(anisotropy_tensor)
+    {
+        // Generate interaction pairs, constants etc.
+        this->Update_Interactions();
+    }
+
     void Hamiltonian_Micromagnetic::Update_Interactions()
     {
         #if defined(SPIRIT_USE_OPENMP)

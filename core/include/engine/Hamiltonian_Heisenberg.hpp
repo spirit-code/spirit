@@ -66,6 +66,8 @@ namespace Engine
 
         // Hamiltonian name as string
         const std::string& Name() override;
+
+        std::shared_ptr<Data::Geometry> geometry;
         
         // ------------ Single Spin Interactions ------------
         // External magnetic field across the sample
@@ -111,8 +113,6 @@ namespace Engine
         scalarfield     quadruplet_magnitudes;
 
     private:
-        std::shared_ptr<Data::Geometry> geometry;
-
         // ------------ Effective Field Functions ------------
         // Calculate the Zeeman effective field of a single Spin
         void Gradient_Zeeman(vectorfield & gradient);
@@ -188,7 +188,6 @@ namespace Engine
         field<int> it_bounds_write_spins;
         field<int> it_bounds_write_dipole;
     };
-
 
 }
 #endif
