@@ -64,22 +64,24 @@ void SettingsWidget::updateHamiltonian(Hamiltonian_Type type)
 {
     // Update the state
     Hamiltonian_Set_Kind(this->state.get(), type);
+    // Determine type (result of Hamiltonian_Set_Kind is unclear)
+    std::string type_str = Hamiltonian_Get_Name(this->state.get());
 
     // Update the GUI
     this->hamiltonianHeisenbergWidget->hide();
     this->hamiltonianMicromagneticWidget->hide();
     this->hamiltonianGaussianWidget->hide();
-    if( type == Hamiltonian_Heisenberg )
+    if( type_str == "Heisenberg" )
     {
         this->hamiltonianHeisenbergWidget->show();
         this->hamiltonianHeisenbergWidget->updateData();
     }
-    else if( type == Hamiltonian_Micromagnetic )
+    else if( type_str == "Micromagnetic" )
     {
         this->hamiltonianMicromagneticWidget->show();
         this->hamiltonianMicromagneticWidget->updateData();
     }
-    else if( type == Hamiltonian_Gaussian )
+    else if( type_str == "Gaussian" )
     {
         this->hamiltonianGaussianWidget->show();
         this->hamiltonianGaussianWidget->updateData();
