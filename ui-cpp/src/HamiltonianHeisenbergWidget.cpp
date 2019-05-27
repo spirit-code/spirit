@@ -27,15 +27,6 @@ HamiltonianHeisenbergWidget::HamiltonianHeisenbergWidget(std::shared_ptr<State> 
     // Setup User Interface
     this->setupUi(this);
 
-    // We use a regular expression (regex) to filter the input into the lineEdits
-    QRegularExpression re("[+|-]?[\\d]*[\\.]?[\\d]*");
-    this->number_validator = new QRegularExpressionValidator(re);
-    QRegularExpression re2("[\\d]*[\\.]?[\\d]*");
-    this->number_validator_unsigned = new QRegularExpressionValidator(re2);
-    QRegularExpression re3("[+|-]?[\\d]*");
-    this->number_validator_int = new QRegularExpressionValidator(re3);
-    QRegularExpression re4("[\\d]*");
-    this->number_validator_int_unsigned = new QRegularExpressionValidator(re4);
     // Setup the validators for the various input fields
     this->Setup_Input_Validators();
 
@@ -126,6 +117,22 @@ void HamiltonianHeisenbergWidget::Load_Contents()
 }
 
 
+
+void HamiltonianHeisenbergWidget::clicked_change_hamiltonian()
+{
+    bool ok;
+    std::string type_str = QInputDialog::getItem( this, "Select the Hamiltonian to use", "",
+        {"Heisenberg", "Micromagnetic", "Gaussian"}, 0, false, &ok ).toStdString();
+    if( ok )
+    {
+        if( type_str == "Heisenberg" )
+            emit hamiltonianChanged(Hamiltonian_Heisenberg);
+        else if( type_str == "Micromagnetic" )
+            emit hamiltonianChanged(Hamiltonian_Micromagnetic);
+        else if( type_str == "Gaussian" )
+            emit hamiltonianChanged(Hamiltonian_Gaussian);
+    }
+}
 
 
 // -----------------------------------------------------------------------------------
@@ -505,14 +512,24 @@ void HamiltonianHeisenbergWidget::set_pairs_from_text()
 
 void HamiltonianHeisenbergWidget::Setup_Input_Validators()
 {
-    //		mu_s
+    // We use a regular expression (regex) to filter the input into the lineEdits
+    QRegularExpression re("[+|-]?[\\d]*[\\.]?[\\d]*");
+    this->number_validator = new QRegularExpressionValidator(re);
+    QRegularExpression re2("[\\d]*[\\.]?[\\d]*");
+    this->number_validator_unsigned = new QRegularExpressionValidator(re2);
+    QRegularExpression re3("[+|-]?[\\d]*");
+    this->number_validator_int = new QRegularExpressionValidator(re3);
+    QRegularExpression re4("[\\d]*");
+    this->number_validator_int_unsigned = new QRegularExpressionValidator(re4);
+
+    //      mu_s
     this->lineEdit_muSpin_aniso->setValidator(this->number_validator);
-    //		external field
+    //      external field
     this->lineEdit_extH_aniso->setValidator(this->number_validator);
     this->lineEdit_extHx_aniso->setValidator(this->number_validator);
     this->lineEdit_extHy_aniso->setValidator(this->number_validator);
     this->lineEdit_extHz_aniso->setValidator(this->number_validator);
-    //		anisotropy
+    //      anisotropy
     this->lineEdit_ani_aniso->setValidator(this->number_validator);
     this->lineEdit_anix_aniso->setValidator(this->number_validator);
     this->lineEdit_aniy_aniso->setValidator(this->number_validator);
@@ -524,6 +541,7 @@ void HamiltonianHeisenbergWidget::Setup_Input_Validators()
 
 void HamiltonianHeisenbergWidget::Setup_Slots()
 {
+    connect(this->pushButton_changeHamiltonian, SIGNAL(clicked()), this, SLOT(clicked_change_hamiltonian()));
     // Boundary Conditions
     connect(this->checkBox_aniso_periodical_a, SIGNAL(stateChanged(int)), this, SLOT(set_boundary_conditions()));
     connect(this->checkBox_aniso_periodical_b, SIGNAL(stateChanged(int)), this, SLOT(set_boundary_conditions()));
