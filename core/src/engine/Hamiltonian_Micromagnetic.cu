@@ -13,10 +13,12 @@
 
 using namespace Data;
 using namespace Utility;
-namespace C = Utility::Constants;
+namespace C = Utility::Constants_Micromagnetic;
 using Engine::Vectormath::check_atom_type;
 using Engine::Vectormath::idx_from_pair;
-using Engine::Vectormath::idx_from_tupel;
+using Engine::Vectormath::cu_check_atom_type;
+using Engine::Vectormath::cu_idx_from_pair;
+using Engine::Vectormath::cu_tupel_from_idx;
 
 
 namespace Engine

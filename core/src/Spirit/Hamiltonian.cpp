@@ -72,6 +72,10 @@ try
                 "Hamiltonian is already of {} kind. Not doing anything.", kind_str), -1, idx_chain );
             return;
         }
+
+        Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format(
+            "Cannot yet set Hamiltonian kind to {} - this function is only a stub!", kind_str), -1, idx_chain );
+        return;
     }
 
     for( auto& image : chain->images )
@@ -81,16 +85,18 @@ try
         {
             if( type == Hamiltonian_Heisenberg )
             {
-                // TODO
-                // image->hamiltonian = std::shared_ptr<...>(new Engine::Hamiltonian_Heisenberg(...));
-
-                Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format(
-                    "Cannot yet set Hamiltonian kind to {} - this function is only a stub!", kind_str), -1, idx_chain );
-                return;
+                // TODO: are these the desired defaults?
+                image->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Heisenberg(
+                    0, Vector3{0, 0, 1},
+                    {}, {}, {},
+                    {}, {}, SPIRIT_CHIRALITY_NEEL, Engine::DDI_Method::None,
+                    {0, 0, 0}, 0, {}, {},
+                    image->geometry,
+                    image->hamiltonian->boundary_conditions));
             }
             else if( type == Hamiltonian_Micromagnetic )
             {
-                // TODO
+                // TODO: are these the desired defaults?
                 image->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Micromagnetic(
                     0, Vector3{0, 0, 1},
                     Matrix3::Zero(),
@@ -104,10 +110,6 @@ try
             {
                 // TODO
                 // image->hamiltonian = std::shared_ptr<...>(new Engine::Hamiltonian_Gaussian(...));
-
-                Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format(
-                    "Cannot yet set Hamiltonian kind to {} - this function is only a stub!", kind_str), -1, idx_chain );
-                return;
             }
         }
         catch( ... )
