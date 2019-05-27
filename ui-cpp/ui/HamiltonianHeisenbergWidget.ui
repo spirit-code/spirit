@@ -14,7 +14,7 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="9" column="2">
+   <item row="11" column="2">
     <widget class="QScrollArea" name="scrollArea_5">
      <property name="frameShape">
       <enum>QFrame::NoFrame</enum>
@@ -28,7 +28,7 @@
         <x>0</x>
         <y>0</y>
         <width>376</width>
-        <height>1136</height>
+        <height>1079</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_29">
@@ -136,7 +136,7 @@
          <item row="10" column="0">
           <widget class="QCheckBox" name="checkBox_ani_aniso">
            <property name="text">
-            <string>Anisotropy</string>
+            <string>Anisotropy [meV]</string>
            </property>
           </widget>
          </item>
@@ -226,7 +226,7 @@
          <item row="7" column="0">
           <widget class="QCheckBox" name="checkBox_extH_aniso">
            <property name="text">
-            <string>External Field</string>
+            <string>External Field [T]</string>
            </property>
            <property name="checked">
             <bool>false</bool>
@@ -252,14 +252,7 @@
          <item row="15" column="0">
           <widget class="QCheckBox" name="checkBox_dmi">
            <property name="text">
-            <string>DMI</string>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QCheckBox" name="checkBox_aniso_periodical_a">
-           <property name="text">
-            <string>Periodical a</string>
+            <string>DMI [meV]</string>
            </property>
           </widget>
          </item>
@@ -313,7 +306,7 @@
          <item row="13" column="0">
           <widget class="QCheckBox" name="checkBox_exchange">
            <property name="text">
-            <string>Exchange</string>
+            <string>Exchange [meV]</string>
            </property>
           </widget>
          </item>
@@ -332,13 +325,6 @@
             </size>
            </property>
           </spacer>
-         </item>
-         <item row="5" column="0">
-          <widget class="QCheckBox" name="checkBox_aniso_periodical_c">
-           <property name="text">
-            <string>Periodical c</string>
-           </property>
-          </widget>
          </item>
          <item row="7" column="1">
           <layout class="QGridLayout" name="gridLayout_36">
@@ -386,7 +372,7 @@
          <item row="19" column="0">
           <widget class="QCheckBox" name="checkBox_ddi">
            <property name="text">
-            <string>Dipole-dipole</string>
+            <string>Dipolar</string>
            </property>
           </widget>
          </item>
@@ -503,13 +489,6 @@
            </item>
           </layout>
          </item>
-         <item row="4" column="0">
-          <widget class="QCheckBox" name="checkBox_aniso_periodical_b">
-           <property name="text">
-            <string>Periodical b</string>
-           </property>
-          </widget>
-         </item>
          <item row="10" column="1">
           <layout class="QGridLayout" name="gridLayout_42">
            <item row="0" column="0">
@@ -623,6 +602,51 @@
             </widget>
            </item>
           </layout>
+         </item>
+         <item row="1" column="1">
+          <layout class="QGridLayout" name="gridLayout_9">
+           <item row="0" column="1">
+            <widget class="QCheckBox" name="checkBox_aniso_periodical_b">
+             <property name="text">
+              <string>b</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QCheckBox" name="checkBox_aniso_periodical_a">
+             <property name="text">
+              <string>a</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="2">
+            <widget class="QCheckBox" name="checkBox_aniso_periodical_c">
+             <property name="text">
+              <string>c</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="3">
+            <spacer name="horizontalSpacer_10">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_8">
+           <property name="text">
+            <string>Periodical boundaries</string>
+           </property>
+          </widget>
          </item>
         </layout>
        </item>
@@ -892,14 +916,61 @@ i  j  k  l   da_j  db_j  dc_j   da_k  db_k  dc_k   da_l  db_l  dc_l   Q</string>
      </widget>
     </widget>
    </item>
+   <item row="2" column="2">
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="2">
+    <layout class="QGridLayout" name="gridLayout_10">
+     <item row="0" column="2">
+      <spacer name="horizontalSpacer_11">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_9">
+       <property name="font">
+        <font>
+         <pointsize>14</pointsize>
+         <italic>true</italic>
+        </font>
+       </property>
+       <property name="text">
+        <string>Heisenberg</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QPushButton" name="pushButton_changeHamiltonian">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Change</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
   </layout>
  </widget>
  <tabstops>
   <tabstop>scrollArea_5</tabstop>
   <tabstop>comboBox_Hamiltonian_Ani_ApplyTo</tabstop>
-  <tabstop>checkBox_aniso_periodical_a</tabstop>
-  <tabstop>checkBox_aniso_periodical_b</tabstop>
-  <tabstop>checkBox_aniso_periodical_c</tabstop>
   <tabstop>checkBox_extH_aniso</tabstop>
   <tabstop>lineEdit_extH_aniso</tabstop>
   <tabstop>lineEdit_muSpin_aniso</tabstop>

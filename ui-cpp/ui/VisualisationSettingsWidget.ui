@@ -59,7 +59,7 @@
        <item>
         <widget class="QToolBox" name="toolBox">
          <property name="currentIndex">
-          <number>4</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="page">
           <property name="geometry">
@@ -458,19 +458,6 @@
                 </property>
                </widget>
               </item>
-              <item row="1" column="4">
-               <spacer name="horizontalSpacer_21">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
               <item row="3" column="2">
                <layout class="QGridLayout" name="gridLayout_76">
                 <item row="0" column="2">
@@ -510,6 +497,19 @@
                 </item>
                </layout>
               </item>
+              <item row="1" column="3">
+               <spacer name="horizontalSpacer_21">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
              </layout>
             </widget>
            </item>
@@ -536,8 +536,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>468</width>
-            <height>1019</height>
+            <width>189</width>
+            <height>146</height>
            </rect>
           </property>
           <attribute name="label">
@@ -606,8 +606,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>468</width>
-            <height>1019</height>
+            <width>179</width>
+            <height>559</height>
            </rect>
           </property>
           <attribute name="label">
@@ -919,8 +919,8 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>468</width>
-            <height>1019</height>
+            <width>194</width>
+            <height>276</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1102,7 +1102,7 @@
             <x>0</x>
             <y>0</y>
             <width>468</width>
-            <height>1019</height>
+            <height>984</height>
            </rect>
           </property>
           <attribute name="label">
