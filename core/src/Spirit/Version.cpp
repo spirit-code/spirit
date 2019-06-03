@@ -30,3 +30,18 @@ const char * Spirit_Version_Full() noexcept
 {
     return Utility::version_full.c_str();
 }
+
+const char * Spirit_Compiler() noexcept
+{
+    return Utility::compiler.c_str();
+}
+
+const char * Spirit_Compiler_Version() noexcept
+{
+    return Utility::compiler_version.c_str();
+}
+
+const char * Spirit_Compiler_Full() noexcept
+{
+    return Utility::compiler_full.c_str();
+}

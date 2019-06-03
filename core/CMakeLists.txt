@@ -27,7 +27,9 @@ option( SPIRIT_USE_OPENMP        "Use OpenMP to speed up certain parts of the co
 option( SPIRIT_USE_THREADS       "Use std threads to speed up certain parts of the code."  OFF )
 option( SPIRIT_USE_FFTW          "If available, use the FFTW library instead of kissFFT."  ON  )
 ### Set the scalar type used in the Spirit library
-set( SPIRIT_SCALAR_TYPE double )
+option( SPIRIT_SCALAR_TYPE       "Use std threads to speed up certain parts of the code."  "double" )
+### Set the compute capability for CUDA compilation
+option( SPIRIT_CUDA_ARCH         "Use std threads to speed up certain parts of the code."  "sm_60"  )
 #############################################
 
 
@@ -92,7 +94,7 @@ list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" )
 ######### Get git revision ##################
 include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REFSPEC GIT_SHA1)
-string(SUBSTRING "${GIT_SHA1}" 0 12 GIT_REV)
+string(SUBSTRING "${GIT_SHA1}" 0 13 GIT_REV)
 #############################################
 
 
@@ -105,9 +107,13 @@ set(META_AUTHOR_MAINTAINER    "Gideon Mueller")
 set(META_AUTHOR_EMAIL         "g.mueller@fz-juelich.de")
 set(META_VERSION_MAJOR        "1")
 set(META_VERSION_MINOR        "8")
-set(META_VERSION_PATCH        "7")
+set(META_VERSION_PATCH        "9")
 set(META_VERSION              "${META_VERSION_MAJOR}.${META_VERSION_MINOR}.${META_VERSION_PATCH}")
 set(META_VERSION_REVISION     "${GIT_REV}")
+### Compiler
+set(META_COMPILER         "${CMAKE_CXX_COMPILER_ID}")
+set(META_COMPILER_VERSION "${CMAKE_CXX_COMPILER_VERSION}")
+set(META_COMPILER_FULL    "${CMAKE_CXX_COMPILER_ID} (${CMAKE_CXX_COMPILER_VERSION})")
 ### Propagate version and name_version upwards
 set(SPIRIT_META_VERSION       "${META_VERSION}" PARENT_SCOPE)
 set(SPIRIT_META_NAME_VERSION  "${META_PROJECT_NAME} v${META_VERSION} (${META_VERSION_REVISION})" PARENT_SCOPE)
@@ -186,6 +192,28 @@ endif()
 #############################################
 
 
+######### CUDA decisions ####################
+if( SPIRIT_USE_CUDA )
+# set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
+find_package( CUDA 8 REQUIRED )
+add_definitions( -DSPIRIT_USE_CUDA )
+# set( CUDA_PROPAGATE_HOST_FLAGS ON )
+# --std=c++11 flag may be necessary, but it is propagated from global flags...
+# if it appears twice, for some reason the compilation breaks
+set( CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -lineinfo -arch=${SPIRIT_CUDA_ARCH} --expt-relaxed-constexpr" )
+message( STATUS ">> Using CUDA. Flags: ${CUDA_NVCC_FLAGS}" )
+message( STATUS ">> CUDA toolkit path: ${CUDA_TOOLKIT_ROOT_DIR}" )
+set( META_COMPILER         "${META_COMPILER} and nvcc" )
+set( META_COMPILER_VERSION "${META_COMPILER_VERSION} and ${CUDA_VERSION}" )
+set( META_COMPILER_FULL    "${META_COMPILER_FULL} and nvcc (${CUDA_VERSION}) for cuda arch \\\"${SPIRIT_CUDA_ARCH}\\\"" )
+set( FFT_LIB ${CUDA_CUFFT_LIBRARIES} )
+set( SPIRIT_CUDA_LIBS "${CUDA_LIBRARIES};${CUDA_CUFFT_LIBRARIES};${CUDA_curand_LIBRARY}" )
+message( STATUS ">> CUDA libraries: ${SPIRIT_CUDA_LIBS}" )
+endif()
+message( STATUS ">> Compiler information: ${META_COMPILER_FULL}" )
+#############################################
+
+
 ######### Generate Spirit_Defines.h ################
 string(TOUPPER ${SPIRIT_SCALAR_TYPE} SPIRIT_SCALAR_TYPE_UPPERCASE)
 if ( SPIRIT_ENABLE_DEFECTS )
@@ -203,24 +231,6 @@ if ( SPIRIT_USE_THREADS )
 endif()
 configure_file(${PROJECT_SOURCE_DIR}/CMake/Spirit_Defines.h.in ${PROJECT_SOURCE_DIR}/include/Spirit_Defines.h)
 configure_file(${PROJECT_SOURCE_DIR}/CMake/Spirit_Version.hpp.in ${PROJECT_SOURCE_DIR}/include/utility/Version.hpp)
-#############################################
-
-
-######### CUDA decisions ####################
-if( SPIRIT_USE_CUDA )
-    # set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
-    find_package( CUDA 8 REQUIRED )
-    add_definitions( -DSPIRIT_USE_CUDA )
-    # set (CUDA_PROPAGATE_HOST_FLAGS ON)
-    # --std=c++11 flag may be necessary, but it is propagated from global flags...
-    # if it appears twice, for some reason the compilation breaks
-    set( CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -lineinfo -arch=sm_60 --expt-relaxed-constexpr" )
-    message( STATUS ">> Using CUDA" )
-    message( STATUS ">> CUDA flags:     ${CUDA_NVCC_FLAGS}" )
-    set( FFT_LIB ${CUDA_CUFFT_LIBRARIES} )
-    set( SPIRIT_CUDA_LIBS "${CUDA_LIBRARIES};${CUDA_CUFFT_LIBRARIES};${CUDA_curand_LIBRARY}" )
-    message( STATUS ">> CUDA libraries: ${SPIRIT_CUDA_LIBS}" )
-endif()
 #############################################
 
 
