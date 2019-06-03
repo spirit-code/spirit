@@ -1178,20 +1178,29 @@ void MainWindow::view_cycle_camera()
 
 void MainWindow::about()
 {
-    QMessageBox::about(this, tr("About Spirit"),
-        QString::fromStdString(std::string("Spirit version ") + Spirit_Version_Full() +"<br><br>") +
+    QMessageBox about;
+    about.setInformativeText(
         QString::fromLatin1(
-            "The <b>Spirit</b> application incorporates intuitive visualisation,<br>"
+            "Library version ") + Spirit_Version_Full() +
+        QString::fromLatin1(
+            "<br><br>"
+            "The <b>Spirit</b> GUI application incorporates intuitive visualisation,<br>"
             "powerful <b>Spin Dynamics</b> and <b>Nudged Elastic Band</b> tools<br>"
             "into a cross-platform user interface.<br>"
             "<br>"
-            "Main developer:<br>"
+            "Main developers:<br>"
             "  - Gideon Mueller (<a href=\"mailto:g.mueller@fz-juelich.de\">g.mueller@fz-juelich.de</a>)<br>"
+            "  - Moritz Sallermann (<a href=\"mailto:m.sallermann@fz-juelich.de\">m.sallermann@fz-juelich.de</a>)<br>"
             "at the Institute for Advanced Simulation 1 of the Forschungszentrum Juelich.<br>"
             "For more information about us, visit <a href=\"http://juspin.de\">juSpin.de</a><br>"
-            "or see the <a href=\"http://www.fz-juelich.de/pgi/pgi-1/DE/Home/home_node.html\">IAS-1 Website</a><br>"
+            "or see the <a href=\"http://www.fz-juelich.de/pgi/pgi-1/DE/Home/home_node.html\">IAS-1 Website</a>.<br>"
             "<br>"
-            "<b>Copyright 2016</b><br>"));
+            "The sources are hosted at <a href=\"https://spirit-code.github.io\">spirit-code.github.io</a>"
+            " and the documentation can be found at <a href=\"https://spirit-docs.readthedocs.io\">spirit-docs.readthedocs.io</a>.<br>"));
+    about.setStandardButtons(QMessageBox::Close);
+    about.setDefaultButton(QMessageBox::Close);
+    about.setIconPixmap(QPixmap(":/Icons/Logo_Ghost").scaled(QSize(256, 256), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    about.exec();
 }
 
 void MainWindow::keyBindings()
@@ -1248,7 +1257,9 @@ void MainWindow::keyBindings()
             " - <b>Ctrl+Left/Right</b>:  Insert left/right of current index<br>"
             " - <b>Del</b>:              Delete image<br>"
             "<br>"
-            "<i>Note that some of the keybindings may only work correctly on US keyboard layout.</i><br>"));
+            "<i>Note that some of the keybindings may only work correctly on US keyboard layout.</i><br>"
+            "<br>"
+            "For more information see the documentation at <a href=\"https://spirit-docs.readthedocs.io\">spirit-docs.readthedocs.io</a>"));
 }
 
 void MainWindow::return_focus()
