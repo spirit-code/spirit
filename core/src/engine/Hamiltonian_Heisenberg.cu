@@ -1039,7 +1039,7 @@ namespace Engine
         int tupel[3];
         int sublattice_size = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2];
         //prefactor of ddi interaction
-        scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
+        scalar mult = 2.0133545*1e-28 * 0.057883817555 * 0.057883817555 / ( 4*3.141592653589793238462643383279502884197169399375105820974 * 1e-30 );
         for(int i = blockIdx.x * blockDim.x + threadIdx.x; i < sublattice_size; i += blockDim.x * gridDim.x)
         {
             cu_tupel_from_idx(i, tupel, iteration_bounds, 3); // tupel now is {a, b, c}
