@@ -57,7 +57,7 @@ matrix:
           - sourceline: 'ppa:jonathonf/python-2.7'
     # Linux, GCC 6 CUDA build
     - os: linux
-      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 RUNTESTS=false USE_CUDA=true CMAKE_OPTIONS="-DUI_CXX_USE_QT=OFF -DSPIRIT_USE_CUDA=ON" PYPI=false
+      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 RUNTESTS=false USE_CUDA=true CMAKE_OPTIONS="-DUI_CXX_USE_QT=OFF -DSPIRIT_USE_CUDA=ON -DSPIRIT_CUDA_ARCH=sm_70" PYPI=false
       compiler: g++
       addons:
         apt:

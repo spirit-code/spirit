@@ -270,7 +270,7 @@ namespace Engine
             {
                 int ispin = icell*n_cell_atoms + anisotropy_indices[iani];
                 if ( cu_check_atom_type(atom_types[ispin]) )
-                    Energy[ispin] -= anisotropy_magnitude[iani] * std::pow(anisotropy_normal[iani].dot(spins[ispin]), 2.0);
+                    Energy[ispin] -= anisotropy_magnitude[iani] * pow(anisotropy_normal[iani].dot(spins[ispin]), 2);
             }
         }
     }
@@ -426,7 +426,7 @@ namespace Engine
                 if (anisotropy_indices[iani] == ibasis)
                 {
                     if (check_atom_type(this->geometry->atom_types[ispin_in]))
-                        Energy -= this->anisotropy_magnitudes[iani] * std::pow(anisotropy_normals[iani].dot(spins[ispin_in]), 2.0);
+                        Energy -= this->anisotropy_magnitudes[iani] * std::pow(anisotropy_normals[iani].dot(spins[ispin_in]), 2);
                 }
             }
         }
@@ -481,7 +481,7 @@ namespace Engine
 
                     if (jspin >= 0)
                     {
-                        Energy -= mult / std::pow(this->ddi_magnitudes[ipair], 3.0) *
+                        Energy -= mult / std::pow(this->ddi_magnitudes[ipair], 3) *
                             (3 * spins[ispin].dot(this->ddi_normals[ipair]) * spins[ispin].dot(this->ddi_normals[ipair]) - spins[ispin].dot(spins[ispin]));
                     }
                 }
@@ -656,7 +656,7 @@ namespace Engine
         // 			{
         // 				for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
         // 				{
-        // 					scalar skalar_contrib = mult / std::pow(ddi_magnitudes[i_pair], 3.0);
+        // 					scalar skalar_contrib = mult / std::pow(ddi_magnitudes[i_pair], 3);
         // 					// int idx_i = ddi_pairs[i_pair].i;
         // 					// int idx_j = ddi_pairs[i_pair].j;
         // 					std::array<int, 3 > translations = { da, db, dc };
@@ -720,7 +720,7 @@ namespace Engine
             {
                 int idx = anisotropy_indices[i];
                 // scalar x = -2.0*this->anisotropy_magnitudes[i] * std::pow(this->anisotropy_normals[i][alpha], 2);
-                hessian(3*idx + alpha, 3*idx + alpha) += -2.0*this->anisotropy_magnitudes[i]*std::pow(this->anisotropy_normals[i][alpha],2);
+                hessian(3*idx + alpha, 3*idx + alpha) += -2.0*this->anisotropy_magnitudes[i]*std::pow(this->anisotropy_normals[i][alpha], 2);
             }
         }
 

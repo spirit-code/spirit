@@ -26,7 +26,9 @@ SET( SPIRIT_USE_CUDA          OFF  CACHE BOOL "Use CUDA to speed up certain part
 SET( SPIRIT_USE_OPENMP        OFF  CACHE BOOL "Use OpenMP to speed up certain parts of the code." )
 SET( SPIRIT_USE_THREADS       OFF  CACHE BOOL "Use std threads to speed up certain parts of the code." )
 ### Set the scalar type used in the Spirit library
-set( SPIRIT_SCALAR_TYPE double )
+SET( SPIRIT_SCALAR_TYPE "double" CACHE STRING "The scalar type to be used in the Spirit library." )
+### Set the compute capability for CUDA compilation
+SET( SPIRIT_CUDA_ARCH   "sm_60"  CACHE STRING "The CUDA compute architecture to use in case of a CUDA build." )
 #############################################
 ### CMake Verbosity
 option( PRINT_SOURCES    "Print Headers and Sources from Cmake."                         OFF )
@@ -54,7 +56,7 @@ if( SPIRIT_USE_CUDA )
 			# set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
 		elseif (WIN32)
 			set( CUDA_TOOLKIT_ROOT_DIR "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v8.0/" )
-			MESSAGE( STATUS ">> We are on Windows... CUDA_TOOLKIT_ROOT_DIR may need to be passed to cmake..." )
+			MESSAGE( WARNING ">> We are on Windows... CUDA_TOOLKIT_ROOT_DIR may need to be passed to cmake..." )
 		endif()
 	endif()
 	### Set compilers
