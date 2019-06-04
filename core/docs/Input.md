@@ -6,11 +6,12 @@ The following sections will list and explain the input file keywords.
 1. [General Settings and Log](#General)
 2. [Geometry](#Geometry)
 3. [Heisenberg Hamiltonian](#Heisenberg)
-4. [Gaussian Hamiltonian](#Gaussian)
-5. [Method Output](#MethodOutput)
-6. [Method Parameters](#MethodParameters)
-7. [Pinning](#Pinning)
-8. [Disorder and Defects](#Defects)
+4. [Micromagnetic Hamiltonian](#Micromagnetic)
+5. [Gaussian Hamiltonian](#Gaussian)
+6. [Method Output](#MethodOutput)
+7. [Method Parameters](#MethodParameters)
+8. [Pinning](#Pinning)
+9. [Disorder and Defects](#Defects)
 
 
 General Settings and Log <a name="General"></a>
@@ -159,10 +160,10 @@ Heisenberg Hamiltonian <a name="Heisenberg"></a>
 To use a Heisenberg Hamiltonian, use either `heisenberg_neighbours` or `heisenberg_pairs`
 as input parameter after the `hamiltonian` keyword.
 
-**General Parameters**:
+**General Parameters:**
 
 ```Python
-### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, gaussian)
+### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, micromagnetic, gaussian)
 hamiltonian              heisenberg_neighbours
 
 ### Boundary conditions (in a b c) = 0(open), 1(periodical)
@@ -208,7 +209,7 @@ If the boundary conditions are periodic `ddi_n_periodic_images` specifies how ma
 *Note:* The images are appended on both sides (the edges get filled too)
 i.e. 1 0 0 -> one image in +a direction and one image in -a direction
 
-**Neighbour shells**:
+**Neighbour shells:**
 
 Using `hamiltonian heisenberg_neighbours`, pair-wise interactions are handled in terms of
 (isotropic) neighbour shells:
@@ -290,6 +291,80 @@ Pairwise interactions are specified in meV per unique pair,
 while quadruplets are specified in meV per unique quadruplet.
 
 
+Micromagnetic Hamiltonian <a name="Micromagnetic"></a>
+--------------------------------------------------
+
+To use a micromagnetic Hamiltonian, use `micromagnetic` as input parameter after the `hamiltonian` keyword.
+
+Note that Spirit only supports rectilinear geometries when using this Hamiltonian.
+
+**Units:**
+
+In the micromagnetic model, Spirit uses SI units:
+- `m` (meter) for distances
+- `J` (Joule) for energies
+- `s` (second) for time
+
+Therefore,
+- `A [J/m]` for exchange stiffness
+- `D [J/m^2]` for DMI
+- `K [J/m^3]` for anisotropy
+- `Ms [A/m]` for saturation magnetisation
+
+**General Parameters:**
+
+```Python
+### boundary_conditions (in a b c) = 0(open), 1(periodical)
+boundary_conditions 0 0 0
+
+### The order of the finite difference approximation of the spatial gradient
+spatial_gradient_order 2
+```
+
+**Static:**
+
+```Python
+# Saturation magnetisation [A/m]
+Ms 1.3e6
+```
+while the magnetocrystalline anisotropy can be specified as an axis,
+```Python
+# Anisotropy [J/m^3]
+anisotropy 0.3e6
+```
+or as a tensor
+```Python
+# Anisotropy [J/m^3]
+tensor_anisotropy
+0.3e6   0       0
+0       0.3e6   0
+0       0       0.3e6
+```
+
+**Interactions:**
+
+The exchange interaction and DMI can each be set either as a constant,
+```Python
+# Stiffness [J/m]
+exchange 10e-12
+# DMI [J/m^2]
+dmi 6e-3
+```
+or as a tensor,
+```Python
+# Stiffness [J/m]
+tensor_exchange
+10e-12   0       0
+ 0      10e-12   0
+ 0       0      10e-12
+# DMI [J/m^2]
+tensor_dmi
+ 0      -6e-3    6e-3
+ 6e-3    0      -6e-3
+-6e-3    6e-3    0
+```
+
+
 Gaussian Hamiltonian <a name="Gaussian"></a>
 --------------------------------------------------
 
@@ -346,7 +421,7 @@ llg_output_configuration_step      1    # Save spin configuration at each step
 llg_output_configuration_archive   0    # Archive spin configuration at each step
 ```
 
-**MC**:
+**MC:**
 ```Python
 mc_output_energy_step             0
 mc_output_energy_archive          1
@@ -357,7 +432,7 @@ mc_output_configuration_step    1
 mc_output_configuration_archive 0
 ```
 
-**GNEB**:
+**GNEB:**
 ```Python
 gneb_output_energies_step             0 # Save energies of images in chain
 gneb_output_energies_interpolated     1 # Also save interpolated energies
