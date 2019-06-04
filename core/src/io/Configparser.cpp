@@ -1449,6 +1449,8 @@ namespace IO
         scalar field = 0;
         Vector3 field_normal = { 0.0, 0.0, 1.0 };
 
+        scalar anisotropy_magnitude;
+        Vector3 anisotropy_normal;
         Matrix3 anisotropy_tensor;
         scalar  exchange_magnitude = 0;
         Matrix3 exchange_tensor;
@@ -1460,9 +1462,6 @@ namespace IO
         try
         {
             IO::Filter_File_Handle myfile(configFile);
-
-            myfile.Read_Single(spatial_gradient_order, "spatial_gradient_order");
-
             try
             {
                 IO::Filter_File_Handle myfile(configFile);
@@ -1472,39 +1471,115 @@ namespace IO
                 boundary_conditions[0] = (boundary_conditions_i[0] != 0);
                 boundary_conditions[1] = (boundary_conditions_i[1] != 0);
                 boundary_conditions[2] = (boundary_conditions_i[2] != 0);
-            }// end try
+            }
             catch( ... )
             {
                 spirit_handle_exception_core(fmt::format("Unable to read boundary conditions from config file \"{}\"", configFile));
             }
 
-            // TODO:
-            // if (myfile.Find("tensor_exchange"))
-            //     ...
-            // else if (myfile.Find("exchange"))
-            //     ...
-            // else
-            //     ...
+            // Precision of the spatial gradient calculation
+            myfile.Read_Single(spatial_gradient_order, "spatial_gradient_order");
 
-            // // Interaction Pairs
-            // if (myfile.Find("spatial_gradient_order"))
-            //     interaction_pairs_file = configFile;
-            // else if (myfile.Find("interaction_pairs_file"))
-            //     myfile.iss >> interaction_pairs_file;
+            // Field
+            myfile.Read_Single(field, "external_field_magnitude");
+            myfile.Read_Vector3(field_normal, "external_field_normal");
+            field_normal.normalize();
+            if (field_normal.norm() < 1e-8)
+            {
+                field_normal = { 0,0,1 };
+                Log(Log_Level::Warning, Log_Sender::IO, "Input for 'external_field_normal' had norm zero and has been set to (0,0,1)");
+            }
 
-            // if (interaction_pairs_file.length() > 0)
-            // {
-            //     // The file name should be valid so we try to read it
-            //     Pairs_from_File(interaction_pairs_file, geometry, n_pairs,
-            //         exchange_pairs, exchange_magnitudes,
-            //         dmi_pairs, dmi_magnitudes, dmi_normals);
-            // }
-            //else
-            //{
-            //	Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg: Default Interaction pairs have not been implemented yet.");
-            //	throw Exception::System_not_Initialized;
-            //	// Not implemented!
-            //}
+            // TODO: anisotropy
+            if( myfile.Find("tensor_anisotropy") )
+            {
+                for( int dim = 0; dim < 3; ++dim )
+                {
+                    myfile.GetLine();
+                    myfile.iss >> anisotropy_tensor(dim, 0) >> anisotropy_tensor(dim, 1) >> anisotropy_tensor(dim, 2);
+                }
+            }
+            else
+            {
+                // Read parameters from config
+                myfile.Read_Single(anisotropy_magnitude, "anisotropy_magnitude");
+                myfile.Read_Vector3(anisotropy_normal, "anisotropy_normal");
+                anisotropy_normal.normalize();
+                auto& Kn = anisotropy_normal;
+                anisotropy_tensor << Kn[0]*Kn[0], Kn[0]*Kn[1], Kn[0]*Kn[2],
+                                     Kn[1]*Kn[0], Kn[1]*Kn[1], Kn[1]*Kn[2],
+                                     Kn[2]*Kn[0], Kn[2]*Kn[1], Kn[2]*Kn[2];
+                anisotropy_tensor *= anisotropy_magnitude;
+            }
+
+            // TODO: exchange
+            if( myfile.Find("tensor_exchange") )
+            {
+                for( int dim = 0; dim < 3; ++dim )
+                {
+                    myfile.GetLine();
+                    myfile.iss >> exchange_tensor(dim, 0) >> exchange_tensor(dim, 1) >> exchange_tensor(dim, 2);
+                }
+            }
+            else
+            {
+                myfile.Read_Single(exchange_magnitude, "exchange");
+                exchange_tensor << exchange_magnitude, 0, 0,
+                                   0, exchange_magnitude, 0,
+                                   0, 0, exchange_magnitude;
+            }
+
+            // TODO: dmi
+            if( myfile.Find("tensor_dmi") )
+            {
+                for( int dim = 0; dim < 3; ++dim )
+                {
+                    myfile.GetLine();
+                    myfile.iss >> dmi_tensor(dim, 0) >> dmi_tensor(dim, 1) >> dmi_tensor(dim, 2);
+                }
+            }
+            else
+            {
+                myfile.Read_Single(dmi_magnitude, "dmi");
+                // dmi_tensor << dmi_magnitude, 0, 0,
+                //               0, dmi_magnitude, 0,
+                //               0, 0, dmi_magnitude;
+                Log(Log_Level::Warning, Log_Sender::IO, "'dmi' is not a supported input!");
+            }
+
+            // TODO: dipolar
+            try
+            {
+                IO::Filter_File_Handle myfile(configFile);
+
+                // // DDI method
+                // myfile.Read_String(ddi_method_str, "ddi_method");
+                // if( ddi_method_str == "none" )
+                //     ddi_method = Engine::DDI_Method::None;
+                // else if( ddi_method_str == "fft" )
+                //     ddi_method = Engine::DDI_Method::FFT;
+                // else if( ddi_method_str == "fmm" )
+                //     ddi_method = Engine::DDI_Method::FMM;
+                // else if( ddi_method_str == "cutoff" )
+                //     ddi_method = Engine::DDI_Method::Cutoff;
+                // else
+                // {
+                //     Log(Log_Level::Warning, Log_Sender::IO, fmt::format(
+                //         "Hamiltonian_Heisenberg: Keyword 'ddi_method' got passed invalid method \"{}\". Setting to \"none\".", ddi_method_str));
+                //     ddi_method_str = "none";
+                // }
+
+                // // Number of periodical images
+                // myfile.Read_3Vector(ddi_n_periodic_images, "ddi_n_periodic_images");
+                // // myfile.Read_Single(ddi_n_periodic_images, "ddi_n_periodic_images");
+
+                // // Dipole-dipole cutoff radius
+                // myfile.Read_Single(ddi_radius, "ddi_radius");
+            }// end try
+            catch( ... )
+            {
+                spirit_handle_exception_core(fmt::format("Unable to read DDI radius from config file \"{}\"", configFile));
+            }
         }// end try
         catch( ... )
         {
@@ -1521,7 +1596,7 @@ namespace IO
             spatial_gradient_order,
             boundary_conditions
         ));
-        
+
         Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Micromagnetic: built");
         return hamiltonian;
 
