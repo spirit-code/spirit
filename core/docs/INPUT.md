@@ -5,12 +5,13 @@ The following sections will list and explain the input file keywords.
 
 1. [General Settings and Log](#General)
 2. [Geometry](#Geometry)
-2. [Heisenberg Hamiltonian](#Heisenberg)
-2. [Gaussian Hamiltonian](#Gaussian)
-2. [Method Output](#MethodOutput)
-2. [Method Parameters](#MethodParameters)
-2. [Pinning](#Pinning)
-2. [Disorder and Defects](#Defects)
+3. [Heisenberg Hamiltonian](#Heisenberg)
+4. [Micromagnetic Hamiltonian](#Micromagnetic)
+5. [Gaussian Hamiltonian](#Gaussian)
+6. [Method Output](#MethodOutput)
+7. [Method Parameters](#MethodParameters)
+8. [Pinning](#Pinning)
+9. [Disorder and Defects](#Defects)
 
 
 General Settings and Log <a name="General"></a>
@@ -151,10 +152,10 @@ Heisenberg Hamiltonian <a name="Heisenberg"></a>
 To use a Heisenberg Hamiltonian, use either `heisenberg_neighbours` or `heisenberg_pairs`
 as input parameter after the `hamiltonian` keyword.
 
-**General Parameters**:
+**General Parameters:**
 
 ```Python
-### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, gaussian)
+### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, micromagnetic, gaussian)
 hamiltonian              heisenberg_neighbours
 
 ### boundary_conditions (in a b c) = 0(open), 1(periodical)
@@ -200,13 +201,13 @@ If the boundary conditions are periodic `ddi_n_periodic_images` specifies how ma
 *Note:* The images are appended on both sides (the edges get filled too)
 i.e. 1 0 0 -> one image in +a direction and one image in -a direction
 
-**Neighbour shells**:
+**Neighbour shells:**
 
 Using `hamiltonian heisenberg_neighbours`, pair-wise interactions are handled in terms of
 (isotropic) neighbour shells:
 
 ```Python
-### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, gaussian)
+### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, micromagnetic, gaussian)
 hamiltonian              heisenberg_neighbours
 
 ### Exchange: number of shells and constants [meV / unique pair]
@@ -224,14 +225,14 @@ Note that pair-wise interaction parameters always mean energy per unique pair
 (not per neighbour).
 
 
-**Specify Pairs**:
+**Specify Pairs:**
 
 Using `hamiltonian heisenberg_pairs`, you may input interactions explicitly,
 in form of unique pairs, giving you more granular control over the system and
 the ability to specify non-isotropic interactions:
 
 ```Python
-### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, gaussian)
+### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, micromagnetic, gaussian)
 hamiltonian                 heisenberg_pairs
 
 ### Pairs
@@ -277,6 +278,80 @@ interaction_quadruplets_file  input/quadruplets.txt
 ```
 
 
+Micromagnetic Hamiltonian <a name="Micromagnetic"></a>
+--------------------------------------------------
+
+To use a micromagnetic Hamiltonian, use `micromagnetic` as input parameter after the `hamiltonian` keyword.
+
+Note that Spirit only supports rectilinear geometries when using this Hamiltonian.
+
+**Units:**
+
+In the micromagnetic model, Spirit uses SI units:
+- `m` (meter) for distances
+- `J` (Joule) for energies
+- `s` (second) for time
+
+Therefore,
+- `A [J/m]` for exchange stiffness
+- `D [J/m^2]` for DMI
+- `K [J/m^3]` for anisotropy
+- `Ms [A/m]` for saturation magnetisation
+
+**General Parameters:**
+
+```Python
+### boundary_conditions (in a b c) = 0(open), 1(periodical)
+boundary_conditions 0 0 0
+
+### The order of the finite difference approximation of the spatial gradient
+spatial_gradient_order 2
+```
+
+**Static:**
+
+```Python
+# Saturation magnetisation [A/m]
+Ms 1.3e6
+```
+while the magnetocrystalline anisotropy can be specified as an axis,
+```Python
+# Anisotropy [J/m^3]
+anisotropy 0.3e6
+```
+or as a tensor
+```Python
+# Anisotropy [J/m^3]
+tensor_anisotropy
+0.3e6   0       0
+0       0.3e6   0
+0       0       0.3e6
+```
+
+**Interactions:**
+
+The exchange interaction and DMI can each be set either as a constant,
+```Python
+# Stiffness [J/m]
+exchange 10e-12
+# DMI [J/m^2]
+dmi 6e-3
+```
+or as a tensor,
+```Python
+# Stiffness [J/m]
+tensor_exchange
+10e-12   0       0
+ 0      10e-12   0
+ 0       0      10e-12
+# DMI [J/m^2]
+tensor_dmi
+ 0      -6e-3    6e-3
+ 6e-3    0      -6e-3
+-6e-3    6e-3    0
+```
+
+
 Gaussian Hamiltonian <a name="Gaussian"></a>
 --------------------------------------------------
 
@@ -318,7 +393,13 @@ Note in the following that `step` means after each `N` iterations and
 denotes a separate file for each step, whereas `archive` denotes that
 results are appended to an archive file at each step.
 
-**LLG**:
+The output file type can be specified for example as
+```Python
+llg_output_configuration_filetype 0
+```
+The possible file types are specified in [the IO API](c-api/IO.md)
+
+**LLG:**
 ```Python
 llg_output_energy_step             0    # Save system energy at each step
 llg_output_energy_archive          1    # Archive system energy at each step
@@ -329,7 +410,7 @@ llg_output_configuration_step      1    # Save spin configuration at each step
 llg_output_configuration_archive   0    # Archive spin configuration at each step
 ```
 
-**MC**:
+**MC:**
 ```Python
 mc_output_energy_step             0
 mc_output_energy_archive          1
@@ -340,7 +421,7 @@ mc_output_configuration_step    1
 mc_output_configuration_archive 0
 ```
 
-**GNEB**:
+**GNEB:**
 ```Python
 gneb_output_energies_step             0 # Save energies of images in chain
 gneb_output_energies_interpolated     1 # Also save interpolated energies
@@ -369,7 +450,7 @@ llg_n_iterations        2000000
 llg_n_iterations_log    2000
 ```
 
-**LLG**:
+**LLG:**
 ```Python
 ### Seed for Random Number Generator
 llg_seed            20006
@@ -391,7 +472,7 @@ llg_stt_magnitude  0.0
 llg_stt_polarisation_normal	1.0 0.0 0.0
 ```
 
-**MC**:
+**MC:**
 ```Python
 ### Seed for Random Number Generator
 mc_seed	            20006
@@ -403,7 +484,7 @@ mc_temperature      0
 mc_acceptance_ratio 0.5
 ```
 
-**GNEB**:
+**GNEB:**
 ```Python
 ### Constant for the spring force
 gneb_spring_constant 1.0
