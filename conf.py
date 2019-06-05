@@ -245,7 +245,7 @@ def run_apidoc(_):
     builddir = os.path.join(source_dir, 'build')
     if not os.path.exists(builddir):
         os.mkdir(builddir)
-    subprocess.check_call(['cmake', '..', '-DSPIRIT_BUILD_FOR_CXX=OFF'], cwd=builddir)
+    subprocess.check_call(['cmake', '..', '-DSPIRIT_BUILD_FOR_CXX=OFF', '-DSPIRIT_SKIP_HTST=ON'], cwd=builddir)
     subprocess.check_call(['make'], cwd=builddir)
 
     # See https://stackoverflow.com/a/30144019

@@ -1,3 +1,5 @@
+#ifndef SPIRIT_SKIP_HTST
+
 #include <engine/HTST.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
@@ -513,7 +515,7 @@ namespace Engine
 
             Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "---------- Geodesic Eigen Decomposition Done");
         }
-
-
     }// end namespace HTST
 }// end namespace Engine
+
+#endif

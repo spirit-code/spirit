@@ -43,7 +43,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
         this->setStyleSheet("QWidget{font-size:8pt}");
     #endif
 
-    
+
     // Setup User Interface
     this->setupUi(this);
 
@@ -83,7 +83,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
     connect(this->actionSave_Spin_Configuration_Eigenmodes, SIGNAL(triggered()), SLOT(save_Spin_Configuration_Eigenmodes()));
     connect(this->actionSave_Spin_Configuration_Chain, SIGNAL(triggered()), this, SLOT(save_Spin_Configuration_Chain()));
     connect(this->actionTake_Screenshot, SIGNAL(triggered()), this, SLOT(takeScreenshot()));
-    
+
     // Edit Menu
     connect(this->actionCut_Configuration, SIGNAL(triggered()), this, SLOT(edit_cut()));
     connect(this->actionCopy_Configuration, SIGNAL(triggered()), this, SLOT(edit_copy()));
@@ -91,7 +91,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
     connect(this->actionInsert_Left, SIGNAL(triggered()), this, SLOT(edit_insert_left()));
     connect(this->actionInsert_Right, SIGNAL(triggered()), this, SLOT(edit_insert_right()));
     connect(this->actionDelete_Configuration, SIGNAL(triggered()), this, SLOT(edit_delete()));
-    
+
     // Control Menu
     connect(this->actionPlay_Pause_Simulation, SIGNAL(triggered()), this, SLOT(control_playpause()));
     connect(this->actionRandomize_Spins, SIGNAL(triggered()), this, SLOT(control_random()));
@@ -117,7 +117,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
     connect(this->actionToggle_fullscreen_window, SIGNAL(triggered()), this, SLOT(view_toggle_fullscreen()));
 
     // Help Menu
-    connect(this->actionKey_Bindings, SIGNAL(triggered()), this, SLOT(keyBindings()));	
+    connect(this->actionKey_Bindings, SIGNAL(triggered()), this, SLOT(keyBindings()));
     connect(this->actionAbout_this_Application, SIGNAL(triggered()), this, SLOT(about()));
 
     // MenuBar updates
@@ -179,7 +179,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
     this->createStatusBar();
     //		MenuBar checkboxes
     QTimer::singleShot(1000, this, SLOT(updateMenuBar()));
-    
+
 
     // Set up Update Timers
     m_timer = new QTimer(this);
@@ -187,7 +187,7 @@ MainWindow::MainWindow(std::shared_ptr<State> state)
     m_timer_control = new QTimer(this);
     //m_timer_plots = new QTimer(this);
     //m_timer_spins = new QTimer(this);
-    
+
     // Connect the Timers
     connect(m_timer, &QTimer::timeout, this, &MainWindow::updateStatusBar);
     connect(m_timer_camera, &QTimer::timeout, this, &MainWindow::move_and_rotate_camera);
@@ -255,7 +255,7 @@ void MainWindow::view_toggle_spins_only()
     {
         this->view_spins_only = true;
         Ui::MainWindow::statusBar->showMessage(tr("Hiding UI controls"), 5000);
-        
+
         this->pre_spins_only_settings_hidden = dockWidget_Settings->isHidden();
         this->pre_spins_only_settings_size = dockWidget_Settings->topLevelWidget()->size();
         this->pre_spins_only_settings_pos = dockWidget_Settings->pos();
@@ -365,7 +365,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
             case Qt::Key_Right:
                 this->edit_insert_right();
                 break;
-            
+
             // CTRL+F - Fullscreen mode
             case Qt::Key_F:
                 if (k->modifiers() & Qt::ShiftModifier)
@@ -640,7 +640,7 @@ void MainWindow::keyPressEvent(QKeyEvent *k)
         }
     }
     this->return_focus();
-    
+
     if (std::any_of(this->camera_keys_pressed.begin(), this->camera_keys_pressed.end(),
         [](const std::pair<char, bool> & key) -> bool { return key.second; }))
         m_timer_camera->start(10);
@@ -713,7 +713,7 @@ void MainWindow::move_and_rotate_camera()
         scale = 1;
         shiftpressed = true;
     }
-    
+
     w = (int)this->camera_keys_pressed['w'];
     a = (int)this->camera_keys_pressed['a'];
     s = (int)this->camera_keys_pressed['s'];
@@ -981,7 +981,7 @@ void MainWindow::updateStatusBar()
         }
     }
 
-    
+
     int n_cells[3];
     Geometry_Get_N_Cells(this->state.get(), n_cells);
     int nth = this->spinWidget->visualisationNCellSteps();
@@ -1178,20 +1178,29 @@ void MainWindow::view_cycle_camera()
 
 void MainWindow::about()
 {
-    QMessageBox::about(this, tr("About Spirit"),
-        QString::fromStdString(std::string("Spirit version ") + Spirit_Version_Full() +"<br><br>") +
+    QMessageBox about;
+    about.setInformativeText(
         QString::fromLatin1(
-            "The <b>Spirit</b> application incorporates intuitive visualisation,<br>"
+            "Library version ") + Spirit_Version_Full() +
+        QString::fromLatin1(
+            "<br><br>"
+            "The <b>Spirit</b> GUI application incorporates intuitive visualisation,<br>"
             "powerful <b>Spin Dynamics</b> and <b>Nudged Elastic Band</b> tools<br>"
             "into a cross-platform user interface.<br>"
             "<br>"
-            "Main developer:<br>"
+            "Main developers:<br>"
             "  - Gideon Mueller (<a href=\"mailto:g.mueller@fz-juelich.de\">g.mueller@fz-juelich.de</a>)<br>"
+            "  - Moritz Sallermann (<a href=\"mailto:m.sallermann@fz-juelich.de\">m.sallermann@fz-juelich.de</a>)<br>"
             "at the Institute for Advanced Simulation 1 of the Forschungszentrum Juelich.<br>"
             "For more information about us, visit <a href=\"http://juspin.de\">juSpin.de</a><br>"
-            "or see the <a href=\"http://www.fz-juelich.de/pgi/pgi-1/DE/Home/home_node.html\">IAS-1 Website</a><br>"
+            "or see the <a href=\"http://www.fz-juelich.de/pgi/pgi-1/DE/Home/home_node.html\">IAS-1 Website</a>.<br>"
             "<br>"
-            "<b>Copyright 2016</b><br>"));
+            "The sources are hosted at <a href=\"https://spirit-code.github.io\">spirit-code.github.io</a>"
+            " and the documentation can be found at <a href=\"https://spirit-docs.readthedocs.io\">spirit-docs.readthedocs.io</a>.<br>"));
+    about.setStandardButtons(QMessageBox::Close);
+    about.setDefaultButton(QMessageBox::Close);
+    about.setIconPixmap(QPixmap(":/Icons/Logo_Ghost").scaled(QSize(256, 256), Qt::KeepAspectRatio, Qt::SmoothTransformation));
+    about.exec();
 }
 
 void MainWindow::keyBindings()
@@ -1248,7 +1257,9 @@ void MainWindow::keyBindings()
             " - <b>Ctrl+Left/Right</b>:  Insert left/right of current index<br>"
             " - <b>Del</b>:              Delete image<br>"
             "<br>"
-            "<i>Note that some of the keybindings may only work correctly on US keyboard layout.</i><br>"));
+            "<i>Note that some of the keybindings may only work correctly on US keyboard layout.</i><br>"
+            "<br>"
+            "For more information see the documentation at <a href=\"https://spirit-docs.readthedocs.io\">spirit-docs.readthedocs.io</a>"));
 }
 
 void MainWindow::return_focus()
@@ -1300,7 +1311,7 @@ void MainWindow::load_Spin_Configuration()
     int n_files = fileNames.size();
     int n_images_read  = 0;
     int i_start = System_Get_Index(this->state.get());
-    
+
     for (auto& fileName : fileNames)
     {
         int noi = Chain_Get_NOI(this->state.get());
@@ -1325,7 +1336,7 @@ void MainWindow::load_Spin_Configuration()
             // Read the file
             auto file = string_q2std(fileName);
             IO_Image_Read( this->state.get(), file.c_str() );
-            
+
             ++n_images_read;
         }
     }
@@ -1370,7 +1381,7 @@ void MainWindow::load_Spin_Configuration_Eigenmodes()
     if (!fileName.isEmpty())
     {
         auto file = string_q2std(fileName);
-        IO_Eigenmodes_Read(this->state.get(), file.c_str()); 
+        IO_Eigenmodes_Read(this->state.get(), file.c_str());
     }
 }
 
@@ -1428,7 +1439,7 @@ void MainWindow::load_Configuration()
     if (!fileName.isEmpty())
     {
         auto file = string_q2std(fileName);
-        
+
         // Set current image
         if (!IO_System_From_Config(this->state.get(), file.c_str()))
         {
@@ -1468,7 +1479,7 @@ void MainWindow::save_System_Energy_Spins()
     if (!fileName.isEmpty())
     {
         auto file = string_q2std(fileName);
-        IO_Image_Write_Energy_per_Spin(this->state.get(), file.c_str());
+        IO_Image_Write_Energy_per_Spin(this->state.get(), file.c_str(), IO_Fileformat_OVF_text);
     }
 }
 

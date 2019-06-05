@@ -12,24 +12,23 @@
 
 namespace IO
 {
-    void Read_NonOVF_Spin_Configuration( vectorfield& spins, Data::Geometry& geometry, 
-                                         const int nos, const int idx_image_infile, 
+    void Read_NonOVF_Spin_Configuration( vectorfield& spins, Data::Geometry& geometry,
+                                         const int nos, const int idx_image_infile,
                                          const std::string file );
-    void Check_NonOVF_Chain_Configuration( std::shared_ptr<Data::Spin_System_Chain> chain, 
-                                           const std::string file, int start_image_infile, 
-                                           int end_image_infile, const int insert_idx, 
+    void Check_NonOVF_Chain_Configuration( std::shared_ptr<Data::Spin_System_Chain> chain,
+                                           const std::string file, int start_image_infile,
+                                           int end_image_infile, const int insert_idx,
                                            int& noi_to_add, int& noi_to_read, const int idx_chain );
-    void Read_Eigenmodes( std::shared_ptr<Data::Spin_System> image, const std::string filename );
-    void Anisotropy_from_File( const std::string anisotropyFile, 
+    void Anisotropy_from_File( const std::string anisotropyFile,
                                const std::shared_ptr<Data::Geometry> geometry, int& n_indices,
-                               intfield& anisotropy_index, scalarfield& anisotropy_magnitude, 
+                               intfield& anisotropy_index, scalarfield& anisotropy_magnitude,
                                vectorfield& anisotropy_normal );
-    void Pairs_from_File( const std::string pairsFile, 
+    void Pairs_from_File( const std::string pairsFile,
                           const std::shared_ptr<Data::Geometry> geometry, int& nop,
                           pairfield& exchange_pairs, scalarfield& exchange_magnitudes,
-                          pairfield& dmi_pairs, scalarfield& dmi_magnitudes, 
+                          pairfield& dmi_pairs, scalarfield& dmi_magnitudes,
                           vectorfield& dmi_normals );
-    void Quadruplets_from_File( const std::string quadrupletsFile, 
+    void Quadruplets_from_File( const std::string quadrupletsFile,
                                 const std::shared_ptr<Data::Geometry> geometry, int& noq,
                                 quadrupletfield& quadruplets, scalarfield& quadruplet_magnitudes );
     void Defects_from_File( const std::string defectsFile, int & n_defects, field<Site> & defect_sites, intfield & defect_types );

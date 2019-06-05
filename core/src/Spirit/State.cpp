@@ -29,15 +29,15 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         state->config_file = config_file;
         state->quiet = quiet;
 
-        // Log version info
         Log(Log_Level::All,  Log_Sender::All, "=====================================================");
         Log(Log_Level::All,  Log_Sender::All, "========== Spirit State: Initialising... ============");
-        Log(Log_Level::All,  Log_Sender::All, "==========     Version:  " + std::string(version));
-
+        // Log version info
+        Log(Log_Level::All,  Log_Sender::All, "==========     Version:  " + version);
         // Log revision hash
-        Log( Log_Level::All,  Log_Sender::All, "==========     Revision: " +
-                std::string(version_revision));
-
+        Log(Log_Level::All,  Log_Sender::All, "==========     Revision: " + version_revision);
+        // Log compiler
+        Log(Log_Level::Info, Log_Sender::All, "==========     Compiled with: " + compiler_full);
+        
         // Log if quiet mode
         if (state->quiet)
             Log( Log_Level::All, Log_Sender::All, "Going to run in QUIET mode (only Error messages, no output files)" );

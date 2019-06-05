@@ -82,7 +82,9 @@ try
     info.minimum = image_minimum;
     info.saddle_point = image_sp;
 
+    #ifndef SPIRIT_SKIP_HTST
     Engine::HTST::Calculate_Prefactor(chain->htst_info);
+    #endif
 
     return (float)info.prefactor;
 }
