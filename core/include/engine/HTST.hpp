@@ -1,6 +1,7 @@
 #pragma once
 #ifndef HTST_H
 #define HTST_H
+#ifndef SPIRIT_SKIP_HTST
 
 #include "Spirit_Defines.h"
 #include <data/Spin_System.hpp>
@@ -30,5 +31,5 @@ namespace Engine
     };
 }
 
-
+#endif
 #endif

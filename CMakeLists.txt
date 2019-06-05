@@ -202,6 +202,11 @@ include_directories( ${qhull_INCLUDE_DIRS} )
 #############################################
 
 
+if( SPIRIT_SKIP_HTST )
+    add_definitions("-DSPIRIT_SKIP_HTST")
+    MESSAGE( STATUS ">> Skipping compilation of HTST!" )
+endif( )
+
 
 ######### Add Subdirectory Projects #########
 ### Spirit library is built in any case
