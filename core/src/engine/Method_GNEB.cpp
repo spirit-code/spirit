@@ -7,6 +7,7 @@
 #include <io/OVF_File.hpp>
 #include <utility/Cubic_Hermite_Spline.hpp>
 #include <utility/Logging.hpp>
+#include <utility/Version.hpp>
 
 #include <iostream>
 #include <math.h>
@@ -375,20 +376,31 @@ namespace Engine
                     IO::VF_FileFormat format = this->chain->gneb_parameters->output_vf_filetype;
 
                     // Chain
-                    std::string output_comment = fmt::format( "{} simulation ({} solver)\n#       Iteration: {}\n#       Maximum force component: {}",
+                    std::string output_comment_base = fmt::format(
+                        "{} simulation ({} solver)\n"
+                        "# Desc:      Iteration: {}\n"
+                        "# Desc:      Maximum force component: {}",
                         this->Name(), this->SolverFullName(), iteration, this->force_max_abs_component );
 
-                    IO::File_OVF file_ovf( chainFile, format );
-
                     // write/append the first image
-                    file_ovf.write_segment( *this->chain->images[0]->spins,
-                                            *this->chain->images[0]->geometry,
-                                            output_comment, append );
+                    auto segment = IO::OVF_Segment(*this->chain->images[0]);
+                    std::string title = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                    segment.title = strdup(title.c_str());
+                    std::string output_comment = fmt::format("{}\n# Desc: Image {} of {}", output_comment_base, 0, chain->noi);
+                    segment.comment = strdup(output_comment.c_str());
+                    segment.valuedim = 3;
+                    segment.valuelabels = strdup("spin_x spin_y spin_z");
+                    segment.valueunits  = strdup("none none none");
+                    auto& spins = *this->chain->images[0]->spins;
+                    IO::OVF_File(chainFile).write_segment(segment, spins[0].data(), int(format));
                     // append all the others
                     for ( int i=1; i<this->chain->noi; i++ )
-                        file_ovf.write_segment( *this->chain->images[i]->spins,
-                                                *this->chain->images[i]->geometry,
-                                                output_comment, true );
+                    {
+                        auto& spins = *this->chain->images[i]->spins;
+                        output_comment = fmt::format("{}\n# Desc: Image {} of {}", output_comment_base, i, chain->noi);
+                        segment.comment = strdup(output_comment.c_str());
+                        IO::OVF_File(chainFile).append_segment(segment, spins[0].data(), int(format));
+                    }
                 }
                 catch( ... )
                 {

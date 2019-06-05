@@ -6,10 +6,10 @@
 #include <io/IO.hpp>
 #include <io/OVF_File.hpp>
 #include <utility/Logging.hpp>
+#include <utility/Version.hpp>
 
 #include <iostream>
 #include <ctime>
-#include <math.h>
 
 #include <fmt/format.h>
 
@@ -328,17 +328,25 @@ namespace Engine
                 {
                     // File name and comment
                     std::string spinsFile = preSpinsFile + suffix + ".ovf";
-                    std::string output_comment = fmt::format( "{} simulation ({} solver)\n#       Iteration: {}\n#       Maximum force component: {}",
+                    std::string output_comment = fmt::format( "{} simulation ({} solver)\n# Desc:      Iteration: {}\n# Desc:      Maximum force component: {}",
                         this->Name(), this->SolverFullName(), iteration, this->force_max_abs_component );
 
                     // File format
                     IO::VF_FileFormat format = this->systems[0]->llg_parameters->output_vf_filetype;
 
                     // Spin Configuration
-                    IO::File_OVF file_ovf( spinsFile, format );
-                    file_ovf.write_segment( *( this->systems[0] )->spins,
-                                            *( this->systems[0] )->geometry,
-                                            output_comment, append );
+                    auto& spins = *this->systems[0]->spins;
+                    auto segment = IO::OVF_Segment(*this->systems[0]);
+                    std::string title = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                    segment.title = strdup(title.c_str());
+                    segment.comment = strdup(output_comment.c_str());
+                    segment.valuedim = 3;
+                    segment.valuelabels = strdup("spin_x spin_y spin_z");
+                    segment.valueunits  = strdup("none none none");
+                    if( append )
+                        IO::OVF_File(spinsFile).append_segment(segment, spins[0].data(), int(format));
+                    else
+                        IO::OVF_File(spinsFile).append_segment(segment, spins[0].data(), int(format));
                 }
                 catch( ... )
                 {
@@ -370,7 +378,54 @@ namespace Engine
                     IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize, readability);
                     if (this->systems[0]->llg_parameters->output_energy_spin_resolved)
                     {
-                        IO::Write_Image_Energy_per_Spin(*this->systems[0], energyFilePerSpin, normalize, readability);
+                        // Gather the data
+                        std::vector<std::pair<std::string, scalarfield>> contributions_spins(0);
+                        this->systems[0]->UpdateEnergy();
+                        this->systems[0]->hamiltonian->Energy_Contributions_per_Spin(*this->systems[0]->spins, contributions_spins);
+                        int datasize = (1+contributions_spins.size())*this->systems[0]->nos;
+                        scalarfield data(datasize, 0);
+                        for( int ispin=0; ispin<this->systems[0]->nos; ++ispin )
+                        {
+                            scalar E_spin=0;
+                            int j = 1;
+                            for( auto& contribution : contributions_spins )
+                            {
+                                E_spin += contribution.second[ispin];
+                                data[ispin+j] = contribution.second[ispin];
+                                ++j;
+                            }
+                            data[ispin] = E_spin;
+                        }
+
+                        // Segment
+                        auto segment = IO::OVF_Segment(*this->systems[0]);
+
+                        std::string title = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                        segment.title = strdup(title.c_str());
+                        std::string comment = fmt::format("Energy per spin. Total={}meV", this->systems[0]->E);
+                        for( auto& contribution : this->systems[0]->E_array )
+                            comment += fmt::format(", {}={}meV", contribution.first, contribution.second);
+                        segment.comment = strdup(comment.c_str());
+                        segment.valuedim = 1 + this->systems[0]->E_array.size();
+
+                        std::string valuelabels = "Total";
+                        std::string valueunits  = "meV";
+                        for( auto& pair : this->systems[0]->E_array )
+                        {
+                            valuelabels += fmt::format(" {}", pair.first);
+                            valueunits  += " meV";
+                        }
+                        segment.valuelabels = strdup(valuelabels.c_str());
+
+                        // File format
+                        IO::VF_FileFormat format = this->systems[0]->llg_parameters->output_vf_filetype;
+
+                        // open and write
+                        IO::OVF_File(energyFilePerSpin).write_segment(segment, data.data(), int(format));
+
+                        Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format(
+                            "Wrote spins to file \"{}\" with format {}", energyFilePerSpin, int(format) ),
+                            -1, -1 );
                     }
                 }
             };

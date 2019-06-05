@@ -8,44 +8,30 @@
 
 namespace IO
 {
-    // Write Spin_System's eigenmodes to file
-    void Write_Eigenmodes( const std::vector<scalar>& eigenvalues,
-                           const std::vector<std::shared_ptr<vectorfield>>& modes, 
-                           const Data::Geometry& geometry, const std::string filename, 
-                           VF_FileFormat format, const std::string comment, bool append = false );
-
     // =========================== Saving Interactions =======================
-    void Write_Neighbours_Exchange( const Data::Spin_System& system, const std::string filename ); 
-    void Write_Neighbours_DMI( const Data::Spin_System& system, const std::string filename ); 
+    void Write_Neighbours_Exchange( const Data::Spin_System& system, const std::string filename );
+    void Write_Neighbours_DMI( const Data::Spin_System& system, const std::string filename );
+
     // =========================== Saving Energies ===========================
-    void Write_Energy_Header( const Data::Spin_System& s, const std::string filename, 
-                              std::vector<std::string> firstcolumns={"iteration", "E_tot"}, 
+    void Write_Energy_Header( const Data::Spin_System& s, const std::string filename,
+                              std::vector<std::string> firstcolumns={"iteration", "E_tot"},
                               bool contributions=true, bool normalize_nos=true,
                               bool readability_toggle = true  );
     // Appends the Energy of a spin system with energy contributions (without header)
-    void Append_Image_Energy( const Data::Spin_System& s, const int iteration, 
+    void Append_Image_Energy( const Data::Spin_System& s, const int iteration,
                                const std::string filename, bool normalize_nos=true,
                                bool readability_toggle = true );
     // Save energy contributions of a spin system
-    void Write_Image_Energy( const Data::Spin_System& system, const std::string filename, 
+    void Write_Image_Energy( const Data::Spin_System& system, const std::string filename,
                              bool normalize_by_nos=true, bool readability_toggle = true );
-    // Save energy contributions of a spin system per spin
-    void Write_Image_Energy_per_Spin( const Data::Spin_System & s, const std::string filename, 
-                                      bool normalize_nos=true, bool readability_toggle = true );
 
     // Saves Energies of all images with header and contributions
-    void Write_Chain_Energies( const Data::Spin_System_Chain& c, const int iteration, 
+    void Write_Chain_Energies( const Data::Spin_System_Chain& c, const int iteration,
                                const std::string filename, bool normalize_nos=true,
                                bool readability_toggle = true );
     // Saves the Energies interpolated by the GNEB method
-    void Write_Chain_Energies_Interpolated( const Data::Spin_System_Chain& c, 
+    void Write_Chain_Energies_Interpolated( const Data::Spin_System_Chain& c,
                                             const std::string filename, bool normalize_nos=true,
                                             bool readability_toggle = true);
-
-    // =========================== Saving Forces ===========================
-    // Saves the forces on an image chain
-    void Write_System_Force( const Data::Spin_System& s, const std::string filename );
-    // Saves the forces on an image chain
-    void Write_Chain_Forces( const Data::Spin_System_Chain& c, const std::string filename );
 };
 #endif
