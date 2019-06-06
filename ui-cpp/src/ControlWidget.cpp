@@ -641,7 +641,6 @@ void ControlWidget::writeSettings()
     settings.endGroup();
 }
 
-
 void ControlWidget::closeEvent(QCloseEvent *event)
 {
     writeSettings();
