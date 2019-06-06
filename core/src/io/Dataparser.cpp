@@ -445,7 +445,6 @@ namespace IO
     }
 
 
-
     /*
     Read from Quadruplet file
     */
@@ -569,9 +568,9 @@ namespace IO
                 if (q_Q != 0)
                 {
                     quadruplets.push_back({ q_i, q_j, q_k, q_l,
-                        { q_da_j, q_db_j, q_db_j },
-                        { q_da_k, q_db_k, q_db_k },
-                        { q_da_l, q_db_l, q_db_l } });
+                        { q_da_j, q_db_j, q_dc_j },
+                        { q_da_k, q_db_k, q_dc_k },
+                        { q_da_l, q_db_l, q_dc_l } });
                     quadruplet_magnitudes.push_back(q_Q);
                 }
 
