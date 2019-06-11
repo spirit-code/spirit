@@ -25,6 +25,7 @@ namespace Utility
         else if(sender == Log_Sender::IO)   result.append("IO  ");
         else if(sender == Log_Sender::API)  result.append("API ");
         else if(sender == Log_Sender::GNEB) result.append("GNEB");
+        else if(sender == Log_Sender::HTST) result.append("HTST");
         else if(sender == Log_Sender::LLG)  result.append("LLG ");
         else if(sender == Log_Sender::MC)   result.append("MC  ");
         else if(sender == Log_Sender::MMF)  result.append("MMF ");

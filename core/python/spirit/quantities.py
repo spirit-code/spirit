@@ -27,14 +27,6 @@ def get_magnetization(p_state, idx_image=-1, idx_chain=-1):
     return [float(i) for i in magnetization]
 
 
-_Get_HTST_Prefactor             = _spirit.Quantity_Get_HTST_Prefactor
-_Get_HTST_Prefactor.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int]
-_Get_HTST_Prefactor.restype     = ctypes.c_float
-def get_htst_prefactor(p_state, idx_image_minimum, idx_image_sp, idx_chain=-1):
-    """Calculates and returns the HTST rate prefactor."""
-    return _Get_HTST_Prefactor(p_state, idx_image_minimum, idx_image_sp, idx_chain)
-
-
 ### Temporary info function for MMF
 _Get_MinimumMode            = _spirit.Quantity_Get_Grad_Force_MinimumMode
 _Get_MinimumMode.argtypes   = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_float),

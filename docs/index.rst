@@ -36,6 +36,7 @@ Spirit - Spin Simulation Framework
     Constants       <../core/docs/c-api/Constants>
     Geometry        <../core/docs/c-api/Geometry>
     Hamiltonian     <../core/docs/c-api/Hamiltonian>
+    HTST            <../core/docs/c-api/HTST>
     IO              <../core/docs/c-api/IO>
     Log             <../core/docs/c-api/Log>
     MC Parameters   <../core/docs/c-api/Parameters_MC>
@@ -58,6 +59,7 @@ Spirit - Spin Simulation Framework
     spirit.constants        <pyapidoc/spirit.constants>
     spirit.geometry         <pyapidoc/spirit.geometry>
     spirit.hamiltonian      <pyapidoc/spirit.hamiltonian>
+    spirit.htst             <pyapidoc/spirit.htst>
     spirit.io               <pyapidoc/spirit.io>
     spirit.log              <pyapidoc/spirit.log>
     spirit.parameters       <pyapidoc/parameters>

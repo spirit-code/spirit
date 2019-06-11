@@ -10,7 +10,6 @@ Chain
 A chain of spin systems can be used for example for
 - calculating minimum energy paths using the GNEB method
 - running multiple (e.g. LLG) calculations in parallel
-- calculate HTST transition rates
 
 
 
@@ -213,33 +212,6 @@ void Chain_Get_Energy_Interpolated(State * state, float * E_interpolated, int id
 ```
 
 Fills an array with the interpolated energy values along the chain.
-
-
-
-TODO: energy array getter
-std::vector<std::vector<float>> Chain_Get_Energy_Array_Interpolated(State * state, int idx_chain=-1) SUFFIX;
-
-
-
-### Chain_Get_HTST_Info
-
-```C
-PREFIX void Chain_Get_HTST_Info( State * state, float * eigenvalues_min, float * eigenvalues_sp, float * temperature_exponent, float * me, float * Omega_0, float * s, float * volume_min, float * volume_sp, float * prefactor_dynamical, float * prefactor, int idx_chain=-1 ) SUFFIX
-```
-
-Retrieves a set of arrays and single values from HTST:
-- eigenvalues_min: eigenvalues at the minimum (array of length 2*NOS)
-- eigenvalues_sp: eigenvalues at the saddle point (array of length 2*NOS)
-- temperature_exponent: the exponent of the temperature-dependent prefactor
-- me:
-- Omega_0:
-- s:
-- volume_min: zero mode volume at the minimum
-- volume_sp: zero mode volume at the saddle point
-- prefactor_dynamical: the dynamical rate prefactor
-- prefactor: the total rate prefactor for the transition
-
-**Note:** for this function to retrieve anything, you need to first calculate the data
 
 
 

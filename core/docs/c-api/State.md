@@ -4,7 +4,7 @@ State
 ====================================================================
 
 ```C
-#include "Spirit/Transitions.h"
+#include "Spirit/State.h"
 ```
 
 To create a new state with one chain containing a single image,

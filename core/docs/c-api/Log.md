@@ -14,7 +14,7 @@ Definition of log levels and senders
 
 
 
-### 
+### Spirit_Log_Level
 
 ```C
 typedef enum { Log_Level_All       = 0, Log_Level_Severe    = 1, Log_Level_Error     = 2, Log_Level_Warning   = 3, Log_Level_Parameter = 4, Log_Level_Info      = 5, Log_Level_Debug     = 6 } Spirit_Log_Level
@@ -24,7 +24,7 @@ Levels
 
 
 
-### 
+### Spirit_Log_Sender
 
 ```C
 typedef enum { Log_Sender_All  = 0, Log_Sender_IO   = 1, Log_Sender_GNEB = 2, Log_Sender_LLG  = 3, Log_Sender_MC   = 4, Log_Sender_MMF  = 5, Log_Sender_EMA  = 6, Log_Sender_API  = 7, Log_Sender_UI   = 8, Log_Sender_HTST = 9 } Spirit_Log_Sender

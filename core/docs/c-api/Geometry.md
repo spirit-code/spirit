@@ -18,6 +18,21 @@ calculation, as this has not been so thoroughly tested.
 Definition of Bravais lattice types
 --------------------------------------------------------------------
 
+```C
+typedef enum
+{
+    Bravais_Lattice_Irregular   = 0,
+    Bravais_Lattice_Rectilinear = 1,
+    Bravais_Lattice_SC          = 2,
+    Bravais_Lattice_Hex2D       = 3,
+    Bravais_Lattice_Hex2D_60    = 4,
+    Bravais_Lattice_Hex2D_120   = 5,
+    Bravais_Lattice_HCP         = 6,
+    Bravais_Lattice_BCC         = 7,
+    Bravais_Lattice_FCC         = 8
+} Bravais_Lattice_Type;
+```
+
 
 
 Setters
@@ -98,10 +113,6 @@ Set the overall lattice scaling constant.
 
 Getters
 --------------------------------------------------------------------
-
-
-
-### The overall lattice
 
 
 
