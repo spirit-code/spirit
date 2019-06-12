@@ -21,16 +21,23 @@ Spirit - Spin Simulation Framework
     :maxdepth: 2
     :caption: Installation
 
-    Build on Unix/OSX       <Build_Unix_OSX>
-    Build on Windows        <Build_Windows>
-    Using Docker            <Docker>
+    Build on Unix/OSX   <Build_Unix_OSX>
+    Build on Windows    <Build_Windows>
+    Using Docker        <Docker>
 
 .. toctree::
     :maxdepth: 3
-    :caption: API Reference
+    :caption: C API
 
-    C API       <../core/docs/c-api/API>
-    Python API  <../core/docs/python-api/API>
+    Usage           <../core/docs/C_API>
+    Full Reference  <../core/docs/c-api/API_Reference>
+
+.. toctree::
+    :maxdepth: 3
+    :caption: Python API
+
+    Usage           <../core/docs/Python_API>
+    Full Reference  <../core/docs/python-api/API_Reference>
 
 .. toctree::
     :maxdepth: 1

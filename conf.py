@@ -209,11 +209,8 @@ texinfo_documents = [
 ]
 
 
-
-
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}
-
 
 
 def run_apidoc(_):
@@ -242,11 +239,11 @@ def run_apidoc(_):
         '--maxdepth', '4',
     ]
 
-    builddir = os.path.join(source_dir, 'build')
-    if not os.path.exists(builddir):
-        os.mkdir(builddir)
-    subprocess.check_call(['cmake', '..', '-DSPIRIT_BUILD_FOR_CXX=OFF', '-DSPIRIT_SKIP_HTST=ON'], cwd=builddir)
-    subprocess.check_call(['make'], cwd=builddir)
+    build_dir = os.path.join(source_dir, 'build')
+    if not os.path.exists(build_dir):
+        os.mkdir(build_dir)
+    subprocess.check_call(['cmake', '..', '-DSPIRIT_BUILD_FOR_CXX=OFF', '-DSPIRIT_SKIP_HTST=ON'], cwd=build_dir)
+    subprocess.check_call(['make'], cwd=build_dir)
 
     # See https://stackoverflow.com/a/30144019
     env = os.environ.copy()
@@ -255,7 +252,7 @@ def run_apidoc(_):
 
     #####################
     with open(os.path.join(apidoc_dir, 'parameters.rst'), "w") as parameters_file:
-        parameters_file.write("Parameters\n==================================\n\n")
+        parameters_file.write("spirit.parameters\n==================================\n\n")
         with open(os.path.join(apidoc_dir, 'spirit.parameters.mc.rst'), 'r') as generated_file:
             parameters_file.write(generated_file.read())
         with open(os.path.join(apidoc_dir, 'spirit.parameters.llg.rst'), 'r') as generated_file:
