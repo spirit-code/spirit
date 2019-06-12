@@ -32,13 +32,13 @@ SET( SPIRIT_SCALAR_TYPE "double" CACHE STRING "The scalar type to be used in the
 SET( SPIRIT_CUDA_ARCH   "sm_60"  CACHE STRING "The CUDA compute architecture to use in case of a CUDA build." )
 #############################################
 ### CMake Verbosity
-option( PRINT_SOURCES    "Print Headers and Sources from Cmake."                         OFF )
+option( SPIRIT_PRINT_SOURCES  "Print Headers and Sources from Cmake."                         OFF )
 ### Decide CXX UI
-option( UI_CXX_USE_QT    "Build the QT User Interface instead of console version."       ON  )
+option( SPIRIT_UI_CXX_USE_QT  "Build the QT User Interface instead of console version."       ON  )
 ### Bundle option
-option( BUNDLE_APP       "On installation, bundle the executable with its dependencies." OFF )
+option( SPIRIT_BUNDLE_APP     "On installation, bundle the executable with its dependencies." OFF )
 ### Option for building on the IFF cluster
-option( USER_PATHS_IFF   "Use the compiler and library paths etc. for the IFF Cluster."  OFF )
+option( SPIRIT_USER_PATHS_IFF "Use the compiler and library paths etc. for the IFF Cluster."  OFF )
 #############################################
 
 
@@ -216,9 +216,9 @@ if( SPIRIT_BUILD_FOR_JS )
     add_subdirectory( ui-web )
 ### CXX UI
 elseif( SPIRIT_BUILD_FOR_CXX )
-    if ( UI_CXX_USE_QT )
+    if ( SPIRIT_UI_CXX_USE_QT )
         add_subdirectory( VFRendering )
-        add_definitions( -DUI_CXX_USE_QT )
+        add_definitions( -DSPIRIT_UI_CXX_USE_QT )
     endif()
     add_subdirectory( ui-cpp )
 endif()

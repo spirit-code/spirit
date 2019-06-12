@@ -27,6 +27,7 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     ### Message
     MESSAGE( STATUS ">> Chose compiler:                MSVC" )
     ### Compiler Flags
+    ###     disable unnecessary warnings on Windows, such as C4996 and C4267, C4244
     set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNOMINMAX /wd4018 /wd4244 /wd4267 /wd4661 /wd4996" )
 ######################################################################
 
