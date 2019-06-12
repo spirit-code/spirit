@@ -5,7 +5,7 @@
 #include <utility/Exception.hpp>
 
 
-float HTST_Calculate_Prefactor(State * state, int idx_image_minimum, int idx_image_sp, int idx_chain)
+float HTST_Calculate(State * state, int idx_image_minimum, int idx_image_sp, int n_eigenmodes_keep, int idx_chain)
 try
 {
     std::shared_ptr<Data::Spin_System> image_minimum, image_sp;
@@ -18,7 +18,7 @@ try
     info.saddle_point = image_sp;
 
     #ifndef SPIRIT_SKIP_HTST
-    Engine::HTST::Calculate_Prefactor(chain->htst_info);
+    Engine::HTST::Calculate(chain->htst_info, n_eigenmodes_keep);
     #endif
 
     return (float)info.prefactor;

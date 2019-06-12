@@ -12,8 +12,8 @@ scientific project, please cite the paper.
 
     \bibitem{mueller_spirit_2019}{
         G. P. Müller, M. Hoffmann, C. Disselkamp, D. Schürhoff, S. Mavros, M. Sallermann, N. S. Kiselev, H. Jónsson, S. Blügel.
-        "Spirit: Multifunctional Framework for Atomistic Spin Simulations."
-        arXiv:1901.11350
+        "Spirit: Multifunctional framework for atomistic spin simulations."
+        Phys. Rev. B \textbf{99}, 224414 (2019)
     }
 
 When referring to code of this framework please add a reference to our GitHub page.

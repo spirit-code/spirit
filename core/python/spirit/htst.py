@@ -16,12 +16,15 @@ import ctypes
 _spirit = spiritlib.load_spirit_library()
 
 
-_Calculate_Prefactor             = _spirit.HTST_Calculate_Prefactor
-_Calculate_Prefactor.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int]
-_Calculate_Prefactor.restype     = ctypes.c_float
-def calculate_prefactor(p_state, idx_image_minimum, idx_image_sp, idx_chain=-1):
-    """Calculates and returns the HTST rate prefactor."""
-    return _Calculate_Prefactor(p_state, idx_image_minimum, idx_image_sp, idx_chain)
+_Calculate          = _spirit.HTST_Calculate
+_Calculate.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int]
+_Calculate.restype  = ctypes.c_float
+def calculate(p_state, idx_image_minimum, idx_image_sp, idx_chain=-1):
+    """Performs an HTST calculation and returns rate prefactor.
+
+    *Note:* this function must be called before any of the getters.
+    """
+    return _Calculate(p_state, idx_image_minimum, idx_image_sp, idx_chain)
 
 
 ### Get HTST transition rate components
@@ -32,10 +35,8 @@ _Get_Info.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.PO
                         ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_float), ctypes.c_int]
 _Get_Info.restype  = None
 def get_info(p_state, idx_chain=-1):
-    """Calculates and returns a set of HTST information:
+    """Returns a set of HTST information:
 
-    - eigenvalues at the minimum
-    - eigenvalues at the saddle point
     - the exponent of the temperature-dependence
     - `me`
     - `Omega_0`
@@ -67,7 +68,8 @@ _Get_Eigenvalues_Min          = _spirit.HTST_Get_Eigenvalues_Min
 _Get_Eigenvalues_Min.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int]
 _Get_Eigenvalues_Min.restype  = None
 def get_eigenvalues_min(p_state, idx_chain=-1):
-    """Shape (2*nos)
+    """Returns the eigenvalues at the minimum.
+    Shape (2*nos)
     """
     nos             = system.get_nos(p_state, -1, idx_chain)
     eigenvalues_min = (2*nos*ctypes.c_float)()
@@ -79,7 +81,8 @@ _Get_Eigenvectors_Min          = _spirit.HTST_Get_Eigenvectors_Min
 _Get_Eigenvectors_Min.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int]
 _Get_Eigenvectors_Min.restype  = None
 def get_eigenvectors_min(p_state, idx_chain=-1):
-    """Shape (2*nos*nos)
+    """Returns the eigenvectors at the minimum.
+    Shape (2*nos*nos)
     """
     nos              = system.get_nos(p_state, -1, idx_chain)
     eigenvectors_min = (2*nos*nos*ctypes.c_float)()
@@ -91,7 +94,8 @@ _Get_Eigenvalues_SP          = _spirit.HTST_Get_Eigenvalues_SP
 _Get_Eigenvalues_SP.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int]
 _Get_Eigenvalues_SP.restype  = None
 def get_eigenvalues_sp(p_state, idx_chain=-1):
-    """Shape (2*nos)
+    """Returns the eigenvalues at the saddle point.
+    Shape (2*nos)
     """
     nos            = system.get_nos(p_state, -1, idx_chain)
     eigenvalues_sp = (2*nos*ctypes.c_float)()
@@ -103,7 +107,8 @@ _Get_Eigenvectors_SP          = _spirit.HTST_Get_Eigenvectors_SP
 _Get_Eigenvectors_SP.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int]
 _Get_Eigenvectors_SP.restype  = None
 def get_eigenvectors_sp(p_state, idx_chain=-1):
-    """Shape (2*nos*nos)
+    """Returns the eigenvectors at the saddle point.
+    Shape (2*nos*nos)
     """
     nos                 = system.get_nos(p_state, -1, idx_chain)
     eigenvectors_sp     = (2*nos*nos*ctypes.c_float)()
@@ -116,7 +121,8 @@ _Get_Velocities.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float),
                             ctypes.POINTER(ctypes.c_float), ctypes.c_int]
 _Get_Velocities.restype  = None
 def get_velocities(p_state, idx_chain=-1):
-    """Shape (2*nos)
+    """Returns the velocities perpendicular to the dividing surface.
+    Shape (2*nos)
     """
     nos        = system.get_nos(p_state, -1, idx_chain)
     velocities = (2*nos*ctypes.c_float)()

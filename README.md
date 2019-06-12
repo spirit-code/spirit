@@ -30,11 +30,11 @@ SPIRIT
 
 The code is released under [MIT License](LICENSE.txt).<br />
 If you intend to *present and/or publish* scientific results or visualisations for which you used Spirit,
-please cite `G. P. Müller et al., arXiv:1901.11350` and read the [REFERENCE.md](docs/REFERENCE.md).
+please cite [`G. P. Müller et al., Phys. Rev. B 99, 224414 (2019)`](https://link.aps.org/doi/10.1103/PhysRevB.99.224414) and read the [docs/REFERENCE.md](docs/REFERENCE.md).
 
 **This is an open project and contributions and collaborations are always welcome!!**
-See [CONTRIBUTING.md](docs/CONTRIBUTING.md) on how to contribute or write an email to g.mueller@fz-juelich.de<br />
-For contributions and affiliations, see [CONTRIBUTORS.md](docs/CONTRIBUTORS.md).
+See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) on how to contribute or write an email to g.mueller@fz-juelich.de<br />
+For contributions and affiliations, see [docs/CONTRIBUTORS.md](docs/CONTRIBUTORS.md).
 
 Please note that a version of the *Spirit Web interface* is hosted by the Research Centre Jülich at
 http://juspin.de
@@ -128,7 +128,7 @@ hosted by the Research Centre Jülich.
 Getting started with the Desktop Interface <a name="Desktop"></a>
 ---------------------------------------------
 
-See [BUILD.md](docs/BUILD.md) on how to install the desktop user interface.
+See [docs/BUILD.md](docs/BUILD.md) on how to install the desktop user interface.
 
 ![Desktop UI with Isosurfaces in a thin layer](http://imgur.com/QUcN4aG.jpg "Isosurfaces in a thin layer")
 

@@ -26,7 +26,7 @@ namespace Engine
     {
         // Note the two images should correspond to one minimum and one saddle point
         // Non-extremal images may yield incorrect Hessians and thus incorrect results
-        void Calculate_Prefactor(Data::HTST_Info & htst_info)
+        void Calculate(Data::HTST_Info & htst_info, int n_eigenmodes_keep)
         {
             Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, "---- Prefactor calculation");
 
@@ -35,7 +35,13 @@ namespace Engine
 
             auto& image_minimum = *htst_info.minimum->spins;
             auto& image_sp = *htst_info.saddle_point->spins;
+
             int nos = image_minimum.size();
+
+            if( n_eigenmodes_keep < 0 )
+                n_eigenmodes_keep = nos;
+            n_eigenmodes_keep = std::min(nos, n_eigenmodes_keep);
+
             vectorfield force_tmp(nos, {0,0,0});
             std::vector<std::string> block;
 
@@ -134,6 +140,10 @@ namespace Engine
                 // Manifoldmath::tangent_basis(image_sp, basis_sp);
                 // Calculate_Perpendicular_Velocity_2N(image_sp, hessian_geodesic_sp_2N, basis_sp, htst_info.eigenvectors_sp, perpendicular_velocity_sp);
                 Calculate_Perpendicular_Velocity(image_sp, htst_info.saddle_point->geometry->mu_s, hessian_geodesic_sp_3N, basis_sp, htst_info.eigenvectors_sp, htst_info.perpendicular_velocity);
+
+                // Reduce the number of saved eigenmodes
+                htst_info.eigenvalues_sp.conservativeResize(n_eigenmodes_keep);
+                htst_info.eigenvectors_sp.conservativeResize(2*nos, n_eigenmodes_keep);
             }
             // End saddle point
             ////////////////////////////////////////////////////////////////////////
@@ -198,6 +208,10 @@ namespace Engine
                         "HTST: the initial configuration is not a minimum, its lowest eigenvalue is below the threshold ({} < {})!", htst_info.eigenvalues_min[0], -epsilon ));
                     return;
                 }
+
+                // Reduce the number of saved eigenmodes
+                htst_info.eigenvalues_min.conservativeResize(n_eigenmodes_keep);
+                htst_info.eigenvectors_min.conservativeResize(2*nos, n_eigenmodes_keep);
             }
             // End initial state minimum
             ////////////////////////////////////////////////////////////////////////

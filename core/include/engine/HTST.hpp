@@ -13,7 +13,7 @@ namespace Engine
     namespace HTST
     {
         // Note the two images should correspond to one minimum and one saddle point
-        void Calculate_Prefactor(Data::HTST_Info & htst_info);
+        void Calculate(Data::HTST_Info & htst_info, int n_eigenmodes_keep = 0);
 
         // Calculate the 'a' component of the prefactor
         void Calculate_Perpendicular_Velocity(const vectorfield & spins, const scalarfield & mu_s, const MatrixX & hessian,
