@@ -109,10 +109,9 @@ control of parameters.
 More details may be found at [spirit-docs.readthedocs.io](http://spirit-docs.readthedocs.io)
 or in the [Reference section](docs/README.md) including
 
-- [Framework build instructions](docs/BUILD.md)
-- [Core build instructions](core/docs/BUILD.md)
-- [Core API Reference](core/docs/API.md)
-- [Input File Reference](core/docs/INPUT.md)
+- [Unix/OSX build instructions](docs/Build_Unix_OSX.md)
+- [Windows build instructions](docs/Build_Windows.md)
+- [Input File Reference](core/docs/Input.md)
 
 There is also a [Wiki](https://iffwiki.fz-juelich.de/index.php/Spirit "Click me..."),
 hosted by the Research Centre Jülich.
@@ -128,7 +127,8 @@ hosted by the Research Centre Jülich.
 Getting started with the Desktop Interface <a name="Desktop"></a>
 ---------------------------------------------
 
-See [docs/BUILD.md](docs/BUILD.md) on how to install the desktop user interface.
+See the build instructions for [Unix/OSX](docs/Build_Unix_OSX.md) or
+[Windows](docs/Build_Windows.md) on how to get the desktop user interface.
 
 ![Desktop UI with Isosurfaces in a thin layer](http://imgur.com/QUcN4aG.jpg "Isosurfaces in a thin layer")
 
@@ -159,8 +159,9 @@ to the restrictive license on QT-Charts.*
 Getting started with the Python Package <a name="Python"></a>
 ---------------------------------------------
 
-To install the *Spirit python package*, either [build and install from source](docs/BUILD.md)
-or simply use
+To install the *Spirit python package*, either build and install from source
+([Unix/OSX](docs/Build_Unix_OSX.md), [Windows](docs/Build_Windows.md)) or
+simply use
 
     pip install spirit
 

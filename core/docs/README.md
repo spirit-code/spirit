@@ -23,7 +23,5 @@ The `State` is the object that holds every information needed for the simulation
 +-----------------------------+
 ```
 
-Further reading
-* [Core build instructions](BUILD.md)
-* [Core API Reference](API.md)
-* [Input File Reference](INPUT.md)
+### Further information
+* [Input File Reference](Input.md)

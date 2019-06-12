@@ -174,9 +174,3 @@ You may also take a look at the [contributors graph][1].
 
 
 [1]: https://github.com/spirit-code/spirit/graphs/contributors
-
-
-
----
-
-[Home](Readme.md)

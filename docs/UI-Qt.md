@@ -1,14 +1,16 @@
 Spirit Desktop UI
 ======================
 
+
 ![Logo](https://imgur.com/lGZNdop.png "Spirit Logo")
 
 The cross-platform QT desktop user interface provides a productive tool for Spin simulations,
 providing powerful real-time visualisations and access to simulation parameters,
 as well as other very useful features.
 
-See the [framework build instructions](BUILD.md) for information on how to build
-the user interface on your machine.
+See the build instructions for [Unix/OSX](Build_Unix_OSX.md) and [Windows](Build_Windows.md)
+for information on how to build the graphical user interface on your machine.
+
 
 Physics features
 ----------------
@@ -34,26 +36,22 @@ your calculation.
 
 Real-time visualisation
 -----------------------
+
 This feature is most powerful for 3D systems but shows great use for the analysis
 of dynamical processes and understanding what is happening in your system during
 a simulation instead of post-processing your data.
 
-- Arrows, Surface (2D/3D), Isosurface
-- Spins or Eff. Field
+- Arrows, Surface (2D/3D), Isosurfaces
+- Spins or eff. field
 - Every n'th arrow
-- Spin Sphere
-- Directional & Position filters
-- Colormaps
+- Spin sphere
+- Directional & position filters
+- Various colourmaps
 
 You can also create quite complicate visualisations by combining these different features
 in order to visualise complex states in 3D systems:
 
 ![Visualisation of a complicated state](http://i.imgur.com/IznxguU.png "Complicated visualisation combinating isosurface, arrows and filters")
-
-Note that a data plot is available to visualise your chain of spin systems. It can also
-show interpolated energies if you run a GNEB calculation.
-
-![GNEB Transition Plot](http://i.imgur.com/TQpOcuh.png "Minimum energy path")
 
 
 Additional features
@@ -62,6 +60,29 @@ Additional features
 - Screenshot
 - Read configuration or chain
 - Save configuration or chain
+
+
+How to perform an energy minimisation
+--------------------------------------------
+
+*Descriptions will appear here*
+
+
+How to perform an LLG dynamics calculation
+--------------------------------------------
+
+*Descriptions will appear here*
+
+
+How to perform a GNEB calculation
+--------------------------------------------
+
+*Descriptions will appear here*
+
+A data plot is available to visualise your chain of spin systems. It can also
+show interpolated energies if you run a GNEB calculation.
+
+![GNEB Transition Plot](http://i.imgur.com/TQpOcuh.png "Minimum energy path")
 
 
 Key bindings

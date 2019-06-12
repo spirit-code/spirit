@@ -109,7 +109,7 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ['.github', '_build', 'pyapidoc/spirit.rst', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['.github', '_build', '../core/docs/python-api/spirit.rst', 'Thumbs.db', '.DS_Store']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
@@ -223,7 +223,7 @@ def run_apidoc(_):
     See also https://github.com/rtfd/readthedocs.org/issues/1139
     """
     source_dir = os.path.abspath(os.path.dirname(__file__))
-    apidoc_dir = os.path.join(source_dir, 'docs', 'pyapidoc')
+    apidoc_dir = os.path.join(source_dir, 'core', 'docs', 'python-api')
     package_dir = os.path.join(source_dir, 'core', 'python', 'spirit')
 
     import subprocess

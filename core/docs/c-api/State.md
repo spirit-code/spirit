@@ -8,7 +8,7 @@ State
 ```
 
 To create a new state with one chain containing a single image,
-initialized by an [input file](INPUT.md), and run the most simple example
+initialized by an [input file](Input.md), and run the most simple example
 of a **spin dynamics simulation**:
 
 ```C
@@ -55,7 +55,7 @@ The opaque state struct, containing all calculation data.
 This is passed to and is operated on by the API functions.
 
 A new state can be created with `State_Setup()`, where you can pass
-a [config file](INPUT.md) specifying your initial system parameters.
+a [config file](Input.md) specifying your initial system parameters.
 If you do not pass a config file, the implemented defaults are used.
 **Note that you currently cannot change the geometry of the systems
 in your state once they are initialized.**
