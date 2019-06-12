@@ -25,3 +25,9 @@ The `State` is the object that holds every information needed for the simulation
 
 ### Further information
 * [Input File Reference](Input.md)
+* [How to: Energy minimisation](Use_Minimisation.md)
+* [How to: LLG dynamics](Use_LLG.md)
+* [How to: GNEB](Use_GNEB.md)
+* [How to: HTST](Use_HTST.md)
+* [How to: MMF](Use_MMF.md)
+* [Input File Reference](Input.md)

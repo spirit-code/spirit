@@ -216,7 +216,8 @@ When linking statically, you can also link the object file `ovf.cpp.o` instead o
 
 
 File format v2.0 specification <a name="specification"></a>
-=================================
+---------------------------------
+
 
 This specification is written according to the
 [NIST user guide for OOMMF](https://math.nist.gov/oommf/doc/userguide20a0/userguide/OVF_2.0_format.html)
@@ -225,8 +226,7 @@ and has been implemented, but not tested or verified against OOMMF.
 *Note: The OVF 2.0 format is a modification to the OVF 1.0 format that also supports fields across three spatial dimensions but having values of arbitrary (but fixed) dimension. The following is a full specification of the 2.0 format.*
 
 
-General
----------------------------------
+### General
 
 - An OVF file has an ASCII header and trailer, and data blocks that may be either ASCII or binary.
 - All non-data lines begin with a `#` character
@@ -241,16 +241,14 @@ After an overall header, the file consists of segment blocks, each composed of a
 - The field can be of any arbitrary dimension `N > 0` (This dimension, however, is fixed within each segment).
 
 
-Header
----------------------------------
+### Header
 
 - The first line of an OVF 2.0 file must be `# OOMMF OVF 2.0`
 - The header should also contain the number of segments, specified as e.g. `# Segment count: 000001`
 - Zero-padding of the segment count is not specified
 
 
-Segments
----------------------------------
+### Segments
 
 **Segment Header**
 
@@ -297,8 +295,7 @@ For binary data:
 - The first character after the last data value should be a newline
 
 
-Extensions made by this library
----------------------------------
+### Extensions made by this library
 
 These extensions are mainly to help with data for atomistic systems.
 
@@ -309,8 +306,7 @@ These extensions are mainly to help with data for atomistic systems.
 - `csv` is also a valid ASCII data representation and corresponds to comma-separated columns of `text` type
 
 
-Current limitations of this library
----------------------------------
+### Current limitations of this library
 
 - naming of variables in structs/classes is inconsistent with the file format specifications
 - not all defaults in the segment are guaranteed to be sensible
@@ -319,8 +315,7 @@ Current limitations of this library
 - `irregular` mesh type is not supported properly, as positions are not accounted for in read or write
 
 
-Example
----------------------------------
+### Example
 
 An example OVF 2.0 file for an irregular mesh with N = 2:
 
@@ -376,8 +371,7 @@ An example OVF 2.0 file for an irregular mesh with N = 2:
 # End: segment
 ```
 
-Comparison to OVF 1.0
----------------------------------
+### Comparison to OVF 1.0
 
 - The first line reads `# OOMMF OVF 2.0` for both regular and irregular meshes. 
 - In the segment header block

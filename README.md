@@ -172,57 +172,56 @@ workflow, never having to re-compile when testing, debugging or adding features.
 
 The most simple example of a **spin dynamics simulation** would be
 ``` python
-    from spirit import state, simulation
-    with state.State("input/input.cfg") as p_state:
-        simulation.PlayPause(p_state, "LLG", "SIB")
+from spirit import state, simulation
+with state.State("input/input.cfg") as p_state:
+    simulation.start(p_state, simulation.METHOD_LLG, simulation.SOLVER_SIB)
 ```
-Where `"SIB"` denotes the semi-implicit method B and the starting configuration
+Where `SOLVER_SIB` denotes the semi-implicit method B and the starting configuration
 will be random.
 
 To add some meaningful content, we can change the **initial configuration** by
 inserting a Skyrmion into a homogeneous background:
 ``` python
-    def skyrmion_on_homogeneous(p_state):
-        from spirit import configuration
-        configuration.PlusZ(p_state)
-        configuration.Skyrmion(p_state, 5.0, phase=-90.0)
+def skyrmion_on_homogeneous(p_state):
+    from spirit import configuration
+    configuration.plus_z(p_state)
+    configuration.skyrmion(p_state, 5.0, phase=-90.0)
 ```
 
 If we want to calculate a **minimum energy path** for a transition, we need to generate
 a sensible initial guess for the path and use the **GNEB method**. Let us consider
 the collapse of a skyrmion to the homogeneous state:
 ``` python
-    from spirit import state, chain, configuration, transition, simulation 
+from spirit import state, chain, configuration, transition, simulation
 
-    ### Copy the system a few times
-    chain.Image_to_Clipboard(p_state)
-    for number in range(1,7):
-        chain.Insert_Image_After(p_state)
-    noi = chain.Get_NOI(p_state)
+### Copy the system and set chain length
+chain.image_to_clipboard(p_state)
+noi = 7
+chain.set_length(p_state, noi)
 
-    ### First image is homogeneous with a Skyrmion in the center
-    configuration.PlusZ(p_state, idx_image=0)
-    configuration.Skyrmion(p_state, 5.0, phase=-90.0, idx_image=0)
-    simulation.PlayPause(p_state, "LLG", "VP", idx_image=0)
-    ### Last image is homogeneous
-    configuration.PlusZ(p_state, idx_image=noi-1)
-    simulation.PlayPause(p_state, "LLG", "VP", idx_image=noi-1)
+### First image is homogeneous with a Skyrmion in the center
+configuration.plus_z(p_state, idx_image=0)
+configuration.skyrmion(p_state, 5.0, phase=-90.0, idx_image=0)
+simulation.start(p_state, simulation.METHOD_LLG, simulation.SOLVER_VP, idx_image=0)
+### Last image is homogeneous
+configuration.plus_z(p_state, idx_image=noi-1)
+simulation.start(p_state, simulation.METHOD_LLG, simulation.SOLVER_VP, idx_image=noi-1)
 
-    ### Create transition of images between first and last
-    transition.Homogeneous(p_state, 0, noi-1)
+### Create transition of images between first and last
+transition.homogeneous(p_state, 0, noi-1)
 
-    ### GNEB calculation
-    simulation.PlayPause(p_state, "GNEB", "VP")
+### GNEB calculation
+simulation.start(p_state, simulation.METHOD_GNEB, simulation.SOLVER_VP)
 ```
-where `"VP"` denotes a direct minimization with the velocity projection algorithm.
+where `SOLVER_VP` denotes a direct minimization with the velocity projection algorithm.
 
 You may also use *Spirit* order to **extract quantitative data**, such as the energy.
 ``` python
-    def evaluate(p_state):
-        from spirit import system, quantities
-        M = quantities.Get_Magnetization(p_state)
-        E = system.Get_Energy(p_state)
-        return M, E
+def evaluate(p_state):
+    from spirit import system, quantities
+    M = quantities.get_magnetization(p_state)
+    E = system.get_energy(p_state)
+    return M, E
 ```
 
 Obviously you may easily create significantly more complex workflows and use Python
