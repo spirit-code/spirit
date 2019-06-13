@@ -8,15 +8,10 @@ or the desktop user interface yourself.
 The **Spirit** framework is designed to run across different
 platforms and uses `CMake` for its build process, which will
 generate the appropriate build scripts for each platform.
-To list all available build options, call
-```
-cd build
-cmake -LH ..
-```
 
 
 Core library
--------------------------
+--------------------------------------
 
 The Visual Studio Version needs to be specified and it usually
 makes sense to specify 64bit, as it otherwise defaults to 32bit.
@@ -46,12 +41,12 @@ for debugging.
 
 
 Desktop GUI
--------------------------
+--------------------------------------
 
 By default, the desktop GUI will try to build. The corresponding
 CMake option is `SPIRIT_UI_CXX_USE_QT`.
 
-### Additional requirements
+**Additional requirements**
 
 - Qt >= 5.7 (including qt-charts)
 - OpenGL drivers >= 3.3
@@ -64,7 +59,7 @@ remotely modern graphics card.
 
 
 Python package
--------------------------
+--------------------------------------
 
 The Python package is built by default. The corresponding
 CMake option is `SPIRIT_BUILD_FOR_PYTHON`.
@@ -79,7 +74,7 @@ e.g. `pip install spirit --user`.
 
 
 OpenMP backend
--------------------------
+--------------------------------------
 
 Using OpenMP on Windows is not officially supported.
 While it is possible to use it, the build process is
@@ -87,7 +82,7 @@ nontrivial.
 
 
 CUDA backend
--------------------------
+--------------------------------------
 
 The CUDA backend can be used to speed up calculations by
 using a GPU.
@@ -98,10 +93,7 @@ At least version 8 of the CUDA toolkit is required!
 to `float` in order to avoid the performance cost of `double`
 precision operations on GPUs.
 
-### Build
-
-The CMake option you need to set to `ON` is called
-`SPIRIT_BUILD_FOR_JS`.
+**Build**
 
 You need to set the corresponding `SPIRIT_USE_CUDA` CMake
 variable, e.g. by calling
@@ -115,16 +107,41 @@ cd ..
 or by setting the option in the CMake GUI and re-generating.
 
 You may additionally need to
-- manually set the host compiler ("C:/Program Files (x86)/.../bin/cl.exe)
-- select the appropriate arch for your GPU using the `SPIRIT_CUDA_ARCH` CMake variable
+- manually set the host compiler
+  ("C:/Program Files (x86)/.../bin/cl.exe)
+- manually set the CUDA Toolkit directory in the CMake GUI or
+  pass the `CUDA_TOOLKIT_ROOT_DIR` to cmake or edit it in the
+  root CMakeLists.txt
+- select the appropriate arch for your GPU using the
+  `SPIRIT_CUDA_ARCH` CMake variable
+- add the CUDA Toolkit directory to the Windows PATH, so that
+  the libraries will be found when the code is executed
 
 
 Web assembly library
--------------------------
+--------------------------------------
 
 Using emscripten, Spirit can be built as a Web assembly
 library, meaning that it can be used e.g. from within
 JavaScript.
 
+The CMake option you need to set to `ON` is called
+`SPIRIT_BUILD_FOR_JS`.
+
 The build process on Windows has not been tested by us
 and we do not officially support it.
+
+
+Further build configuration options
+--------------------------------------
+
+More options than described above are available,
+allowing for example to deactivate building the
+Python library or the unit tests.
+
+To list all available build options, call
+```
+cd build
+cmake -LH ..
+```
+The build options of Spirit all start with `SPIRIT_`.

@@ -8,11 +8,6 @@ or the desktop user interface yourself.
 The **Spirit** framework is designed to run across different
 platforms and uses `CMake` for its build process, which will
 generate the appropriate build scripts for each platform.
-To list all available build options, call
-```
-cd build
-cmake -LH ..
-```
 
 System-wide installation is not actively supported.
 While you can call `make install` after building,
@@ -20,14 +15,14 @@ you may not achieve the desired results.
 
 
 Core library
--------------------------
+--------------------------------------
 
-### Requirements
+**Requirements**
 
 - cmake >= 3.2
 - compiler with C++11 support, e.g. gcc >= 5.1
 
-### Build
+**Build**
 
 CMake is used to automatically generate makefiles.
 
@@ -39,20 +34,22 @@ $ cd spirit
 $ mkdir build
 $ cd build
 
-# Generate a solution file
+# Generate makefiles
 $ cmake ..
 
-# To manually specify the build type, call `cmake --build . --config Release`
-# Or (default build type is "Release") simply run
+# Build
 $ make
 ```
 
 Note that you can use the `-j` option of make to run the
 build in parallel.
 
+To manually specify the build type (default is 'Release'),
+call `cmake --build . --config Release` instead of `make`.
+
 
 Desktop GUI
--------------------------
+--------------------------------------
 
 By default, the desktop GUI will try to build. The corresponding
 CMake option is `SPIRIT_UI_CXX_USE_QT`.
@@ -67,7 +64,7 @@ remotely modern graphics card.
 
 
 Python package
--------------------------
+--------------------------------------
 
 The Python package is built by default. The corresponding
 CMake option is `SPIRIT_BUILD_FOR_PYTHON`.
@@ -82,7 +79,7 @@ e.g. `pip install spirit --user`.
 
 
 OpenMP backend
--------------------------
+--------------------------------------
 
 The OpenMP backend can be used to speed up calculations by
 using a multicore CPU.
@@ -90,7 +87,7 @@ using a multicore CPU.
 At least version 4.5 of OpenMP needs to be supported by your
 compiler.
 
-### Build
+**Build**
 
 You need to set the corresponding CMake variable, e.g.
 by calling
@@ -103,7 +100,7 @@ cd ..
 
 
 CUDA backend
--------------------------
+--------------------------------------
 
 The CUDA backend can be used to speed up calculations by
 using a GPU.
@@ -116,10 +113,10 @@ Spirit uses [unified memory](https://devblogs.nvidia.com/unified-memory-cuda-beg
 to `float` in order to avoid the performance cost of `double`
 precision operations on GPUs.
 
-### Build
+**Build**
 
-You need to set the corresponding CMake variable, e.g.
-by calling
+You need to set the corresponding `SPIRIT_USE_CUDA` CMake
+variable, e.g. by calling
 
 ```
 cd build
@@ -128,17 +125,20 @@ cd ..
 ```
 
 You may additionally need to
-- select the appropriate arch for your GPU using the `SPIRIT_CUDA_ARCH` CMake variable
+- pass the `CUDA_TOOLKIT_ROOT_DIR` to cmake or edit it in
+  the root CMakeLists.txt
+- select the appropriate arch for your GPU using the
+  `SPIRIT_CUDA_ARCH` CMake variable
 
 
 Web assembly library
--------------------------
+--------------------------------------
 
 Using emscripten, Spirit can be built as a Web assembly
 library, meaning that it can be used e.g. from within
 JavaScript.
 
-### Build
+**Build**
 
 The CMake option you need to set to `ON` is called
 `SPIRIT_BUILD_FOR_JS`.
@@ -154,3 +154,18 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE=/usr/local/emsdk/emscripten/1.38.29/cmake/Module
 make
 cd ..
 ```
+
+
+Further build configuration options
+--------------------------------------
+
+More options than described above are available,
+allowing for example to deactivate building the
+Python library or the unit tests.
+
+To list all available build options, call
+```
+cd build
+cmake -LH ..
+```
+The build options of Spirit all start with `SPIRIT_`.
