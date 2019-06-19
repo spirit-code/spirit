@@ -217,7 +217,7 @@ if( SPIRIT_BUILD_FOR_JS )
 ### CXX UI
 elseif( SPIRIT_BUILD_FOR_CXX )
     if ( SPIRIT_UI_CXX_USE_QT )
-        add_subdirectory( VFRendering )
+        add_subdirectory( thirdparty/VFRendering )
         add_definitions( -DSPIRIT_UI_CXX_USE_QT )
     endif()
     add_subdirectory( ui-cpp )

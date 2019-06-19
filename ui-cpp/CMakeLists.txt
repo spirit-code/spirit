@@ -85,7 +85,7 @@ if( SPIRIT_UI_CXX_USE_QT )
     include_directories(${GLAD_INCLUDE_DIRS}
                         ${GLM_INCLUDE_DIRS}
                         ${GL_INCLUDE_DIRS}
-                        ${CMAKE_SOURCE_DIR}/VFRendering/include)
+                        ${CMAKE_SOURCE_DIR}/thirdparty/VFRendering/include)
     ###########################
 
 
