@@ -5,7 +5,7 @@ set( CMAKE_CXX_STANDARD 11 )
 cmake_policy( SET CMP0025 NEW )
 
 # The project name and version
-project( magnoom VERSION 0.0 LANGUAGES CXX )
+project( Spirit_NanoGUI VERSION 0.0 LANGUAGES CXX )
 set( SPIRIT_GUI_INCLUDE_DIRS )
 set( SPIRIT_GUI_DEPENDENCIES )
 
@@ -39,7 +39,10 @@ set( SPIRIT_GUI_DEPENDENCIES ${SPIRIT_GUI_DEPENDENCIES} VFRendering )
 ############################################
 
 ### The GUI ################################
-add_executable( spirit main.cpp )
-target_include_directories( spirit PRIVATE ${PROJECT_SOURCE_DIR}/include ${SPIRIT_GUI_INCLUDE_DIRS} )
-target_link_libraries( spirit ${SPIRIT_GUI_DEPENDENCIES} )
+add_executable( ${PROJECT_NAME} main.cpp )
+target_include_directories( ${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/include ${SPIRIT_GUI_INCLUDE_DIRS} )
+target_link_libraries( ${PROJECT_NAME} ${SPIRIT_GUI_DEPENDENCIES} )
+### Set executable name
+set( SPIRIT_EXE_NAME "spirit" )
+set_target_properties( ${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${SPIRIT_EXE_NAME} )
 ############################################
