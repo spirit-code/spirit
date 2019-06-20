@@ -1,0 +1,139 @@
+stages:
+    - build
+    - pages
+
+Build (Ubuntu 16.04 / make / clang):
+    stage: build
+    image: ubuntu:16.04
+    script:
+        - apt-get update -qq && apt-get install -y -qq git make clang
+        - CC=clang CXX=clang++ make
+
+Build (Ubuntu 16.04 / make / gcc):
+    stage: build
+    image: ubuntu:16.04
+    script:
+        - apt-get update -qq && apt-get install -y -qq git make gcc g++
+        - CC=gcc CXX=g++ make
+
+Build (Ubuntu 16.04 / CMake / clang):
+    stage: build
+    image: ubuntu:16.04
+    script:
+        - apt-get update -qq && apt-get install -y -qq git cmake clang
+        - mkdir build
+        - cd build
+        - cmake .. -DBUILD_DEMO=OFF -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang
+        - make
+
+Build Demo (Ubuntu 16.04 / CMake / clang):
+    stage: build
+    image: ubuntu:16.04
+    script:
+        - apt-get update -qq && apt-get install -y -qq git cmake clang libglfw3-dev
+        - mkdir build
+        - cd build
+        - cmake .. -DBUILD_DEMO=ON -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang
+        - make
+
+Build (Ubuntu 16.04 / CMake / gcc):
+    stage: build
+    image: ubuntu:16.04
+    script:
+        - apt-get update -qq && apt-get install -y -qq git cmake gcc g++
+        - mkdir build
+        - cd build
+        - cmake .. -DBUILD_DEMO=OFF -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc
+        - make
+
+Build Demo (Ubuntu 16.04 / CMake / gcc):
+    stage: build
+    image: ubuntu:16.04
+    script:
+        - apt-get update -qq && apt-get install -y -qq git cmake gcc g++ libglfw3-dev
+        - mkdir build
+        - cd build
+        - cmake .. -DBUILD_DEMO=ON -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc
+        - make
+
+Build (Ubuntu 18.04 / make / clang):
+    stage: build
+    image: ubuntu:18.04
+    script:
+        - apt-get update -qq && apt-get install -y -qq git make clang
+        - CC=clang CXX=clang++ make
+
+Build (Ubuntu 18.04 / make / gcc):
+    stage: build
+    image: ubuntu:18.04
+    script:
+        - apt-get update -qq && apt-get install -y -qq git make gcc g++
+        - CC=gcc CXX=g++ make
+
+Build (Ubuntu 18.04 / CMake / clang):
+    stage: build
+    image: ubuntu:18.04
+    script:
+        - apt-get update -qq && apt-get install -y -qq git cmake clang
+        - mkdir build
+        - cd build
+        - cmake .. -DBUILD_DEMO=OFF -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang
+        - make
+
+Build Demo (Ubuntu 18.04 / CMake / clang):
+    stage: build
+    image: ubuntu:18.04
+    script:
+        - apt-get update -qq && apt-get install -y -qq git cmake clang libglfw3-dev
+        - mkdir build
+        - cd build
+        - cmake .. -DBUILD_DEMO=ON -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang
+        - make
+
+Build (Ubuntu 18.04 / CMake / gcc):
+    stage: build
+    image: ubuntu:18.04
+    script:
+        - apt-get update -qq && apt-get install -y -qq git cmake gcc g++
+        - mkdir build
+        - cd build
+        - cmake .. -DBUILD_DEMO=OFF -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc
+        - make
+
+Build Demo (Ubuntu 18.04 / CMake / gcc):
+    stage: build
+    image: ubuntu:18.04
+    script:
+        - apt-get update -qq && apt-get install -y -qq git cmake gcc g++ libglfw3-dev
+        - mkdir build
+        - cd build
+        - cmake .. -DBUILD_DEMO=ON -DCMAKE_CXX_COMPILER=g++ -DCMAKE_C_COMPILER=gcc
+        - make
+
+Build (Debian 8 / make / clang):
+    stage: build
+    image: debian:8
+    script:
+        - apt-get update -qq && apt-get install -y -qq git make clang
+        - CC=clang CXX=clang++ make
+
+Build (Debian 8 / make / gcc):
+    stage: build
+    image: debian:8
+    script:
+        - apt-get update -qq && apt-get install -y -qq git make gcc g++
+        - CC=gcc CXX=g++ make
+
+pages:
+    stage: pages
+    image: ubuntu:latest
+    only:
+        - master
+    script:
+        - apt-get update -qq && apt-get install -y -qq doxygen
+        - doxygen Doxyfile
+        - mv docs/html public
+    artifacts:
+        paths:
+            - public
+

@@ -56,11 +56,13 @@ endif()
 set(SOURCE_FILES
     src/ArrowRenderer.cxx
     src/BoundingBoxRenderer.cxx
+    src/ParallelepipedRenderer.cxx 
     src/CombinedRenderer.cxx
     src/CoordinateSystemRenderer.cxx
     src/FPSCounter.cxx
     src/Geometry.cxx
     src/GlyphRenderer.cxx
+    src/DotRenderer.cxx
     src/IsosurfaceRenderer.cxx
     src/Options.cxx
     src/RendererBase.cxx
@@ -79,10 +81,12 @@ set(HEADER_FILES
     include/VectorfieldIsosurface.hxx
     include/VFRendering/ArrowRenderer.hxx
     include/VFRendering/BoundingBoxRenderer.hxx
+    include/VFRendering/ParallelepipedRenderer.hxx
     include/VFRendering/CombinedRenderer.hxx
     include/VFRendering/CoordinateSystemRenderer.hxx
     include/VFRendering/FPSCounter.hxx
     include/VFRendering/GlyphRenderer.hxx
+    include/VFRendering/DotRenderer.hxx
     include/VFRendering/Geometry.hxx
     include/VFRendering/IsosurfaceRenderer.hxx
     include/VFRendering/Options.hxx
@@ -95,6 +99,8 @@ set(HEADER_FILES
     include/VFRendering/VectorSphereRenderer.hxx
     include/VFRendering/View.hxx
     include/shaders
+    include/shaders/dot.frag.glsl.hxx
+    include/shaders/dot.vert.glsl.hxx
     include/shaders/glyphs.frag.glsl.hxx
     include/shaders/glyphs.vert.glsl.hxx
     include/shaders/boundingbox.frag.glsl.hxx

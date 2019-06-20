@@ -78,6 +78,7 @@ void GlyphRenderer::optionsHaveChanged(const std::vector<int>& changed_options) 
         switch (option_index) {
         case View::Option::COLORMAP_IMPLEMENTATION:
         case View::Option::IS_VISIBLE_IMPLEMENTATION:
+        case GlyphRenderer::Option::ROTATE_GLYPHS:
             update_shader = true;
             break;
         }
@@ -114,7 +115,7 @@ void GlyphRenderer::draw(float aspect_ratio) {
     auto model_view_matrix = matrices.first;
     auto projection_matrix = matrices.second;
     glm::vec3 camera_position = options().get<View::Option::CAMERA_POSITION>();
-    glm::vec3 light_position = options().get<View::Option::LIGHT_POSITION>();
+    glm::vec4 light_position = model_view_matrix * glm::vec4(camera_position, 1.0);
 
     glUniformMatrix4fv(glGetUniformLocation(m_program, "uProjectionMatrix"), 1, false, glm::value_ptr(projection_matrix));
     glUniformMatrix4fv(glGetUniformLocation(m_program, "uModelviewMatrix"), 1, false, glm::value_ptr(model_view_matrix));
@@ -132,10 +133,15 @@ void GlyphRenderer::updateShaderProgram() {
     if (m_program) {
         glDeleteProgram(m_program);
     }
-    std::string vertex_shader_source = ARROWS_VERT_GLSL;
+    std::string vertex_shader_source;
+    if (options().get<GlyphRenderer::Option::ROTATE_GLYPHS>()) {
+        vertex_shader_source = GLYPHS_ROTATED_VERT_GLSL;
+    } else {
+        vertex_shader_source = GLYPHS_UNROTATED_VERT_GLSL;
+    }
     vertex_shader_source += options().get<View::Option::COLORMAP_IMPLEMENTATION>();
     vertex_shader_source += options().get<View::Option::IS_VISIBLE_IMPLEMENTATION>();
-    std::string fragment_shader_source = ARROWS_FRAG_GLSL;
+    std::string fragment_shader_source = GLYPHS_FRAG_GLSL;
     m_program = Utilities::createProgram(vertex_shader_source, fragment_shader_source, {"ivPosition", "ivNormal", "ivInstanceOffset", "ivInstanceDirection"});
 }
 

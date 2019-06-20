@@ -1,0 +1,83 @@
+/* Custom CSS for Doxygen by Florian Rhiem <florian.rhiem@gmail.com> */
+
+body {
+	display:inline-block;
+	min-width:100%;
+}
+
+#MSearchBox {
+	right:initial;
+}
+
+div.tabs {
+	background-image:none;
+	background-color:#444444;
+}
+ul.tablist > li {
+	background-image:none;
+}
+ul.tablist > li > a, ul.tablist > li > a:hover {
+	background-image:none;
+	text-shadow:none;
+	color:#ffffff;
+}
+ul.tablist > li.current > a {
+	background-image:none;
+	text-shadow:none;
+	color:#ffffff;
+	background-color:#007fff;
+}
+ul.tablist > li:hover > a {
+	background-color:#007fff;
+}
+
+#titlearea {
+	border:none;
+}
+
+span#projectnumber {
+	font:inherit;
+}
+
+img#projectlogo {
+	float:left;
+	margin:1em;
+}
+#titlearea > div {
+	display:inline-block;
+	margin:1em;
+}
+.icon {
+	background-color:#444444;
+	vertical-align:middle;
+	line-height:1.25em;
+	border-radius:0.25em;
+}
+div.header {
+	background:none;
+	border:none;
+}
+.navpath > ul {
+	background:none;
+	background-color:#444444;
+	border:none;
+}
+.navpath > ul > li.navelem {
+	background:none;
+}
+.navpath > ul > li.navelem:hover {
+	background:none;
+	background-color:#007fff;
+}
+.navpath > ul > li.navelem > a {
+	color:#ffffff;
+	text-shadow:none;
+}
+.navpath > ul > li.navelem > b {
+	color:#ffffff;
+	text-shadow:none;
+}
+.navpath > ul > li.navelem > a:hover {
+	color:#ffffff;
+	text-shadow:none;
+}

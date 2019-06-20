@@ -142,6 +142,10 @@ void View::setFramebufferSize(float width, float height) {
     m_framebuffer_size = glm::vec2(width, height);
 }
 
+glm::vec2 View::getFramebufferSize() const {
+    return m_framebuffer_size;
+}
+
 void View::setCamera(glm::vec3 camera_position, glm::vec3 center_position, glm::vec3 up_vector) {
     Options options;
     options.set<Option::CAMERA_POSITION>(camera_position);

@@ -1,0 +1,87 @@
+version: "{build}"
+
+
+# x64 is a CMake-compatible solution platform name.
+# This allows us to pass %PLATFORM% to CMake -A.
+platform:
+  - x64
+
+
+environment:
+
+  matrix:
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      configuration: Release
+      QTDIR:  "C:\\Qt\\5.9.1\\msvc2017_64"
+      PYTHON: "C:\\Python36-x64"
+      PYPI: true
+
+
+install:
+  # Ensure submodules are pulled
+  - git submodule update --init --recursive
+
+  # Log out the python version just so we know it
+  - ECHO "%PYTHON_VERSION%"
+
+  # update path to use installed pip
+  - set PATH=%PYTHON%;%PYTHON%\\scripts;%PATH%
+
+  # Install numpy wheel and twine
+  - "%PYTHON%/Scripts/pip.exe install numpy wheel twine"
+
+
+# Cmake will autodetect the compiler, but we set the arch
+before_build:
+  - cmake -H. -BBuild -A%PLATFORM% -DBUILD_PYTHON_BINDINGS=ON
+
+
+# Build with MSBuild
+build:
+  project: Build\VFRendering.sln # path to Visual Studio solution or project
+  parallel: true                 # enable MSBuild parallel builds
+  verbosity: normal              # MSBuild verbosity level {quiet|minimal|normal|detailed}
+
+
+# Deployment:
+after_test:
+  - echo Going to build python package and wheel
+  - ps: if ("$Env:APPVEYOR_REPO_BRANCH" -eq "master") {$env:VFRENDERING_ADD_VERSION_EXTENSION="false"} else {$env:VFRENDERING_ADD_VERSION_EXTENSION="true"}
+  - ps: echo "Add suffix to VFRendering version tag for python package $env:VFRENDERING_ADD_VERSION_EXTENSION"
+
+  # Build source distro and wheel
+  - "%PYTHON%/python setup.py sdist bdist_wheel"
+
+  # Specify account details for PyPI
+  - echo [distutils]                                  > %USERPROFILE%\\.pypirc
+  - echo index-servers =                             >> %USERPROFILE%\\.pypirc
+  - echo     pypi                                    >> %USERPROFILE%\\.pypirc
+  - echo     testpypi                                >> %USERPROFILE%\\.pypirc
+  - echo [pypi]                                      >> %USERPROFILE%\\.pypirc
+  - echo repository=https://upload.pypi.org/legacy/  >> %USERPROFILE%\\.pypirc
+  - echo username=%PYPIUSER%                         >> %USERPROFILE%\\.pypirc
+  - echo password=%PYPIPASSWORD%                     >> %USERPROFILE%\\.pypirc
+  - echo [testpypi]                                  >> %USERPROFILE%\\.pypirc
+  - echo repository=https://test.pypi.org/legacy/    >> %USERPROFILE%\\.pypirc
+  - echo username=%PYPIUSER%                         >> %USERPROFILE%\\.pypirc
+  - echo password=%PYPIPASSWORD%                     >> %USERPROFILE%\\.pypirc
+
+  # Workaround required to ensure setup.py finds the .pypirc under Windows
+  - set HOME=%USERPROFILE%
+
+  # Publish python package
+  - ps: echo "PYPI deployment:"
+  - ps: if ("$Env:PYPI" -ne "true") {echo "Not going to deploy because not configured to."}
+  # Do not build pull requests
+  - ps: if (Test-Path env:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH) {echo "Not going to deploy because pull request."}
+  - ps: if (Test-Path env:APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH) {$env:PYPI="false"}
+  # Upload to pypi on master commits (if PYPI == true)
+  - ps: if (("$Env:PYPI" -eq "true")  -and ("$Env:APPVEYOR_REPO_BRANCH" -eq "master")) {echo "Deploying to pypi because on master branch."} else {echo "Not deploying to pypi."}
+  - ps: if (("$Env:PYPI" -eq "true")  -and ("$Env:APPVEYOR_REPO_BRANCH" -eq "master")) {Invoke-Expression "twine upload -r pypi --skip-existing dist/*"}
+  # Upload to testpypi on all commits (if PYPI == true)
+  - ps: if (("$Env:PYPI" -eq "true")) {echo "Deploying to testpypi."} else {echo "Not deploying to testpypi."}
+  - ps: if (("$Env:PYPI" -eq "true")) {Invoke-Expression "twine upload -r testpypi --skip-existing dist/*"}
+
+
+artifacts:
+- path: core\python\dist\*

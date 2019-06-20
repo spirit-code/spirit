@@ -43,6 +43,7 @@ public:
     void mouseScroll(const float& wheel_delta);
     void setFramebufferSize(float width, float height);
     float getFramerate() const;
+    glm::vec2 getFramebufferSize() const;
 
     void updateOptions(const Options& options);
     template<int index>

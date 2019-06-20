@@ -835,7 +835,7 @@ public:
             nullptr, nullptr, holder);
     }
 
-    template <typename T> using cast_op_type = detail::cast_op_type<T>;
+    template <typename T> using cast_op_type = cast_op_type<T>;
 
     operator itype*() { return (type *) value; }
     operator itype&() { if (!value) throw reference_cast_error(); return *((itype *) value); }
@@ -980,12 +980,11 @@ public:
     static handle cast(T src, return_value_policy /* policy */, handle /* parent */) {
         if (std::is_floating_point<T>::value) {
             return PyFloat_FromDouble((double) src);
-        } else if (sizeof(T) <= sizeof(ssize_t)) {
-            // This returns a long automatically if needed
+        } else if (sizeof(T) <= sizeof(long)) {
             if (std::is_signed<T>::value)
-                return PYBIND11_LONG_FROM_SIGNED(src);
+                return PyLong_FromLong((long) src);
             else
-                return PYBIND11_LONG_FROM_UNSIGNED(src);
+                return PyLong_FromUnsignedLong((unsigned long) src);
         } else {
             if (std::is_signed<T>::value)
                 return PyLong_FromLongLong((long long) src);
@@ -1416,7 +1415,7 @@ protected:
     bool load_value(value_and_holder &&v_h) {
         if (v_h.holder_constructed()) {
             value = v_h.value_ptr();
-            holder = v_h.template holder<holder_type>();
+            holder = v_h.holder<holder_type>();
             return true;
         } else {
             throw cast_error("Unable to cast from non-held to held instance (T& to Holder<T>) "
@@ -1576,7 +1575,7 @@ template <typename T, typename SFINAE> type_caster<T, SFINAE> &load_type(type_ca
         throw cast_error("Unable to cast Python instance to C++ type (compile in debug mode for details)");
 #else
         throw cast_error("Unable to cast Python instance of type " +
-            (std::string) str(handle.get_type()) + " to C++ type '" + type_id<T>() + "'");
+            (std::string) str(handle.get_type()) + " to C++ type '" + type_id<T>() + "''");
 #endif
     }
     return conv;
@@ -1800,10 +1799,6 @@ struct function_call {
 
     /// The `convert` value the arguments should be loaded with
     std::vector<bool> args_convert;
-
-    /// Extra references for the optional `py::args` and/or `py::kwargs` arguments (which, if
-    /// present, are also in `args` but without a reference).
-    object args_ref, kwargs_ref;
 
     /// The parent, if any
     handle parent;

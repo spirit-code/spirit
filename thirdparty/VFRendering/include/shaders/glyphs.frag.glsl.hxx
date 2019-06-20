@@ -1,7 +1,7 @@
-#ifndef ARROWS_FRAG_GLSL_HXX
-#define ARROWS_FRAG_GLSL_HXX
+#ifndef GLYPHS_FRAG_GLSL_HXX
+#define GLYPHS_FRAG_GLSL_HXX
 
-static const std::string ARROWS_FRAG_GLSL = R"LITERAL(
+static const std::string GLYPHS_FRAG_GLSL = R"LITERAL(
 #version 330
 uniform vec3 uLightPosition;
 in vec3 vfPosition;
