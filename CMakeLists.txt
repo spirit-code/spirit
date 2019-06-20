@@ -32,13 +32,14 @@ SET( SPIRIT_SCALAR_TYPE "double" CACHE STRING "The scalar type to be used in the
 SET( SPIRIT_CUDA_ARCH   "sm_60"  CACHE STRING "The CUDA compute architecture to use in case of a CUDA build." )
 #############################################
 ### CMake Verbosity
-option( SPIRIT_PRINT_SOURCES  "Print Headers and Sources from Cmake."                         OFF )
+option( SPIRIT_PRINT_SOURCES    "Print headers and sources from cmake."                         OFF )
 ### Decide CXX UI
-option( SPIRIT_UI_CXX_USE_QT  "Build the QT User Interface instead of console version."       ON  )
+option( SPIRIT_UI_CXX_USE_QT    "Build the QT user interface instead of console version."       OFF )
+option( SPIRIT_UI_CXX_USE_NGUI  "Build the NanoGUI user interface"                              ON  )
 ### Bundle option
-option( SPIRIT_BUNDLE_APP     "On installation, bundle the executable with its dependencies." OFF )
+option( SPIRIT_BUNDLE_APP       "On installation, bundle the executable with its dependencies." OFF )
 ### Option for building on the IFF cluster
-option( SPIRIT_USER_PATHS_IFF "Use the compiler and library paths etc. for the IFF Cluster."  OFF )
+option( SPIRIT_USER_PATHS_IFF   "Use the compiler and library paths etc. for the IFF cluster."  OFF )
 #############################################
 
 
@@ -216,11 +217,14 @@ if( SPIRIT_BUILD_FOR_JS )
     add_subdirectory( ui-web )
 ### CXX UI
 elseif( SPIRIT_BUILD_FOR_CXX )
-    if ( SPIRIT_UI_CXX_USE_QT )
+    if( SPIRIT_UI_CXX_USE_QT )
         add_subdirectory( thirdparty/VFRendering )
         add_definitions( -DSPIRIT_UI_CXX_USE_QT )
     endif()
     add_subdirectory( ui-cpp )
+    if( SPIRIT_UI_CXX_USE_NGUI )
+        add_subdirectory( ui-nanogui )
+    endif()
 endif()
 #############################################
 
