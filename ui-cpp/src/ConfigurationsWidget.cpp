@@ -2,18 +2,15 @@
 
 #include "ConfigurationsWidget.hpp"
 
-#include <Spirit/Parameters.h>
 #include <Spirit/Configurations.h>
 #include "Spirit/Transitions.h"
 #include <Spirit/System.h>
 #include <Spirit/Geometry.h>
 #include <Spirit/Chain.h>
-#include <Spirit/Collection.h>
 #include <Spirit/Log.h>
-#include <Spirit/Hamiltonian.h> // remove when transition of stt and temperature to Parameters is complete
 
 // Small function for normalization of vectors
-#define Exception_Division_by_zero 666666666666
+#define Exception_Division_by_zero 6666
 template <typename T>
 void normalize(T v[3])
 {
@@ -297,6 +294,34 @@ void ConfigurationsWidget::domainPressed()
 	this->spinWidget->updateData();
 }
 
+
+void ConfigurationsWidget::set_atom_type_pressed()
+{
+	// Get settings
+	auto pos = get_position();
+	auto border_rect = get_border_rectangular();
+	float border_cyl = get_border_cylindrical();
+	float border_sph = get_border_spherical();
+	bool inverted = get_inverted();
+	// Set
+	int atom_type = lineEdit_atom_type->text().toInt();
+	Configuration_Set_Atom_Type(this->state.get(), atom_type, pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+	this->spinWidget->updateData();
+}
+
+void ConfigurationsWidget::set_pinned_pressed()
+{
+	// Get settings
+	auto pos = get_position();
+	auto border_rect = get_border_rectangular();
+	float border_cyl = get_border_cylindrical();
+	float border_sph = get_border_spherical();
+	bool inverted = get_inverted();
+	// Set
+	Configuration_Set_Pinned(this->state.get(), this->checkBox_pinned->isChecked(), pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+	this->spinWidget->updateData();
+}
+
 void ConfigurationsWidget::configurationAddNoise()
 {
 	// Add Noise
@@ -478,6 +503,8 @@ void ConfigurationsWidget::Setup_Input_Validators()
 	this->lineEdit_domain_dir_y->setValidator(this->number_validator);
 	this->lineEdit_domain_dir_z->setValidator(this->number_validator);
 
+	//		Atom types
+	this->lineEdit_atom_type->setValidator(this->number_validator_int);
 
 	// Transitions
 	this->lineEdit_Transition_Noise->setValidator(this->number_validator_unsigned);
@@ -533,6 +560,11 @@ void ConfigurationsWidget::Setup_Configurations_Slots()
 	connect(this->doubleSpinBox_SS_q2_dir_x, SIGNAL(editingFinished()), this, SLOT(create_SpinSpiral()));
 	connect(this->doubleSpinBox_SS_q2_dir_y, SIGNAL(editingFinished()), this, SLOT(create_SpinSpiral()));
 	connect(this->doubleSpinBox_SS_q2_dir_z, SIGNAL(editingFinished()), this, SLOT(create_SpinSpiral()));
+
+	// Pinning and atom types
+	connect(this->pushButton_set_atom_type, SIGNAL(clicked()), this, SLOT(set_atom_type_pressed()));
+	connect(this->pushButton_set_pinned,    SIGNAL(clicked()), this, SLOT(set_pinned_pressed()));
+	connect(this->lineEdit_atom_type,       &QLineEdit::returnPressed, this, [this]{ this->spinWidget->setPasteAtomType(this->lineEdit_atom_type->text().toInt()); });
 }
 
 void ConfigurationsWidget::Setup_Transitions_Slots()

@@ -2,7 +2,7 @@
 
 #include "Spirit/Chain.h"
 #include "Spirit/System.h"
-#include "Spirit/Parameters.h"
+#include "Spirit/Parameters_GNEB.h"
 
 #include <QtGui/QImage>
 #include <QtGui/QPainter>
@@ -19,7 +19,7 @@ PlotWidget::PlotWidget(std::shared_ptr<State> state, bool plot_image_energies, b
     plot_image_energies(plot_image_energies), plot_interpolated(plot_interpolated)
 {
     this->state = state;
-    this->plot_interpolated_n = Parameters_Get_GNEB_N_Energy_Interpolations(state.get());
+    this->plot_interpolated_n = Parameters_GNEB_Get_N_Energy_Interpolations(state.get());
 
     // Create Chart
     chart = new QChart();
@@ -144,10 +144,10 @@ void PlotWidget::plotEnergies()
     int noi = Chain_Get_NOI(state.get());
     int nos = System_Get_NOS(state.get());
 
-    if (this->plot_interpolated && this->plot_interpolated_n != Parameters_Get_GNEB_N_Energy_Interpolations(state.get()))
-        Parameters_Set_GNEB_N_Energy_Interpolations(state.get(), this->plot_interpolated_n);
+    if (this->plot_interpolated && this->plot_interpolated_n != Parameters_GNEB_Get_N_Energy_Interpolations(state.get()))
+        Parameters_GNEB_Set_N_Energy_Interpolations(state.get(), this->plot_interpolated_n);
 
-    int size_interp = noi + (noi - 1)*Parameters_Get_GNEB_N_Energy_Interpolations(state.get());
+    int size_interp = noi + (noi - 1)*Parameters_GNEB_Get_N_Energy_Interpolations(state.get());
 
     // Allocate arrays
     Rx = std::vector<float>(noi, 0);
@@ -187,13 +187,13 @@ void PlotWidget::plotEnergies()
             if (i > 0 && Rx_tot > 0) Rx[i] = Rx[i] / Rx_tot;
             energies[i] = energies[i] / nos;
 
-            if (Parameters_Get_GNEB_Climbing_Falling(state.get(), i) == 0)
+            if (Parameters_GNEB_Get_Climbing_Falling(state.get(), i) == 0)
                 normal.push_back(QPointF(Rx[i], energies[i]));
-            else if (Parameters_Get_GNEB_Climbing_Falling(state.get(), i) == 1)
+            else if (Parameters_GNEB_Get_Climbing_Falling(state.get(), i) == 1)
                 climbing.push_back(QPointF(Rx[i], energies[i]));
-            else if (Parameters_Get_GNEB_Climbing_Falling(state.get(), i) == 2)
+            else if (Parameters_GNEB_Get_Climbing_Falling(state.get(), i) == 2)
                 falling.push_back(QPointF(Rx[i], energies[i]));
-            else if (Parameters_Get_GNEB_Climbing_Falling(state.get(), i) == 3)
+            else if (Parameters_GNEB_Get_Climbing_Falling(state.get(), i) == 3)
                 stationary.push_back(QPointF(Rx[i], energies[i]));
 
             if (energies[i] < ymin) ymin = energies[i];
@@ -215,27 +215,27 @@ void PlotWidget::plotEnergies()
     }
 
     // Set marker type for current image
-    if (Parameters_Get_GNEB_Climbing_Falling(state.get()) == 0)
+    if (Parameters_GNEB_Get_Climbing_Falling(state.get()) == 0)
     {
         series_E_current->setMarkerShape(QScatterSeries::MarkerShapeCircle);
         series_E_current->setMarkerSize(REGU);
         series_E_current->setBrush(QColor("Red"));
     }
-    else if (Parameters_Get_GNEB_Climbing_Falling(state.get()) == 1)
+    else if (Parameters_GNEB_Get_Climbing_Falling(state.get()) == 1)
     {
         series_E_current->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
         series_E_current->setMarkerSize(TRIA);
         series_E_current->setBrush(triangleUpRed.scaled(TRIA,TRIA));
         series_E_current->setPen(QColor(Qt::transparent));
     }
-    else if (Parameters_Get_GNEB_Climbing_Falling(state.get()) == 2)
+    else if (Parameters_GNEB_Get_Climbing_Falling(state.get()) == 2)
     {
         series_E_current->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
         series_E_current->setMarkerSize(TRIA);
         series_E_current->setBrush(triangleDownRed.scaled(TRIA,TRIA));
         series_E_current->setPen(QColor(Qt::transparent));
     }
-    else if (Parameters_Get_GNEB_Climbing_Falling(state.get()) == 3)
+    else if (Parameters_GNEB_Get_Climbing_Falling(state.get()) == 3)
     {
         series_E_current->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
         series_E_current->setMarkerSize(REGU);

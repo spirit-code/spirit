@@ -101,22 +101,11 @@ void Log_Set_Output_Folder(State *state, const char * folder) noexcept
     }
 }
 
-void Log_Set_Output_To_Console(State *state, bool b) noexcept
+void Log_Set_Output_To_Console(State *state, bool output, int level) noexcept
 {
     try
     {
-        Log.messages_to_console = b;
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api(-1, -1);
-    }
-}
-
-void Log_Set_Output_Console_Level(State *state, int level) noexcept
-{
-    try
-    {
+        Log.messages_to_console = output;
         Log.level_console = Utility::Log_Level(level);
     }
     catch( ... )
@@ -125,22 +114,11 @@ void Log_Set_Output_Console_Level(State *state, int level) noexcept
     }
 }
 
-void Log_Set_Output_To_File(State *state, bool b) noexcept
+void Log_Set_Output_To_File(State *state, bool output, int level) noexcept
 {
     try
     {
-        Log.messages_to_file = b;
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api(-1, -1);
-    }
-}
-
-void Log_Set_Output_File_Level(State *state, int level) noexcept
-{
-    try
-    {
+        Log.messages_to_file = output;
         Log.level_file = Utility::Log_Level(level);
     }
     catch( ... )

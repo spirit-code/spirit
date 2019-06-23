@@ -482,6 +482,16 @@ $(document).ready(function() {
   $('#input-anisotropy-directiony').on('change', updateHamiltonianAnisotropy);
   $('#input-anisotropy-directionz').on('change', updateHamiltonianAnisotropy);
 
+  function updateHamiltonianDDI() {
+    if ($('#input-ddi')[0].checked) {
+      window.currentSimulation.updateHamiltonianDDI(1, 4);
+    }
+    else {
+      window.currentSimulation.updateHamiltonianDDI(0, 4);
+    }
+  }
+  $('#input-ddi').on('change', updateHamiltonianDDI);
+
   function updateHamiltonianSpinTorque() {
     if ($('#input-spintorque')[0].checked) {
       var magnitude = Number($('#input-spintorque-magnitude').val());
@@ -633,6 +643,7 @@ $(document).ready(function() {
     updateHamiltonianExchange();
     updateHamiltonianDMI();
     updateHamiltonianAnisotropy();
+    updateHamiltonianDDI();
     updateHamiltonianSpinTorque();
     updateHamiltonianTemperature();
     updateLLGDamping();
@@ -661,8 +672,8 @@ $(document).ready(function() {
       }
     });
     function update(sim) {
-      sim.performIteration();
       if (isSimulating) {
+        sim.performIteration();
         window.requestAnimationFrame(function () {
           update(sim)
         });
@@ -672,12 +683,16 @@ $(document).ready(function() {
       isSimulating = !isSimulating;
       $("#btn-play").toggleClass("fa-play fa-pause");
       if (isSimulating) {
+        sim.startSimulation();
         window.requestAnimationFrame(function () {
           update(sim);
         });
       }
+      else {
+        sim.stopSimulation();
+      }
     });
-    update(sim);
+    sim.updateLLGConvergence(-1);
   };
   Module.ready(function() {
     new Simulation(updateSimulation);

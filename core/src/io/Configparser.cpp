@@ -26,9 +26,9 @@ namespace IO
         int i_level_file = 5, i_level_console = 5;
         std::string output_folder = ".";
         std::string file_tag = "";
-        bool messages_to_file    = true, 
-             messages_to_console = true, 
-             save_input_initial  = false, 
+        bool messages_to_file    = true,
+             messages_to_console = true,
+             save_input_initial  = false,
              save_input_final    = false,
              save_positions_initial  = false,
              save_positions_final    = false,
@@ -57,7 +57,7 @@ namespace IO
         }
 
         //------------------------------- Parser --------------------------------
-        if (configFile != "")
+        if( configFile != "" )
         {
             try
             {
@@ -69,7 +69,7 @@ namespace IO
 
                 // Output folder
                 myfile.Read_Single(output_folder, "log_output_folder");
-                
+
                 // Save Output (Log Messages) to file
                 myfile.Read_Single(messages_to_file, "log_to_file");
                 // File Accept Level
@@ -84,12 +84,12 @@ namespace IO
                 myfile.Read_Single(save_input_initial, "save_input_initial");
                 // Save Input (parameters from config file and defaults) on State Delete
                 myfile.Read_Single(save_input_final, "save_input_final");
-                
+
                 // Save Input (parameters from config file and defaults) on State Setup
                 myfile.Read_Single(save_positions_initial, "save_positions_initial");
                 // Save Input (parameters from config file and defaults) on State Delete
                 myfile.Read_Single(save_positions_final, "save_positions_final");
-                
+
                  // Save Input (parameters from config file and defaults) on State Setup
                  myfile.Read_Single(save_neighbours_initial, "save_neighbours_initial");
                  // Save Input (parameters from config file and defaults) on State Delete
@@ -104,18 +104,18 @@ namespace IO
 
         // Log the parameters
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("File tag on output     = {}", file_tag));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log output folder      = {0}", output_folder));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log to file            = {0}", messages_to_file));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log file accept level  = {0}", i_level_file));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log to console         = {0}", messages_to_console));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log print accept level = {0}", i_level_console));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log input save initial = {0}", save_input_initial));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log input save final   = {0}", save_input_final));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log positions save initial  = {0}", save_positions_initial));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log positions save final    = {0}", save_positions_final));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log neighbours save initial = {0}", save_neighbours_initial));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log neighbours save final   = {0}", save_neighbours_final));
-        
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log output folder      = \"{}\"", output_folder));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log to file            = {}", messages_to_file));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log file accept level  = {}", i_level_file));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log to console         = {}", messages_to_console));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log print accept level = {}", i_level_console));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log input save initial = {}", save_input_initial));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log input save final   = {}", save_input_final));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log positions save initial  = {}", save_positions_initial));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log positions save final    = {}", save_positions_final));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log neighbours save initial = {}", save_neighbours_initial));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Log neighbours save final   = {}", save_neighbours_final));
+
         // Update the Log
         if (!force_quiet)
         {
@@ -134,7 +134,7 @@ namespace IO
 
         Log.file_tag      = file_tag;
         Log.output_folder = output_folder;
-        
+
         if ( file_tag == "<time>" )
             Log.fileName = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
         else if ( file_tag != "" )
@@ -145,37 +145,40 @@ namespace IO
     }// End Log_Levels_from_Config
 
 
-    std::unique_ptr<Data::Spin_System> Spin_System_from_Config(const std::string configFile)
+    std::unique_ptr<Data::Spin_System> Spin_System_from_Config(std::string configFile)
     {
+        // Parse
         try
         {
             Log(Log_Level::Info, Log_Sender::IO, "-------------- Initialising Spin System ------------");
-            // ----------------------------------------------------------------------------------------------
+
             // Geometry
             auto geometry = Geometry_from_Config(configFile);
-            // Pinning configuration
-            auto pinning = Pinning_from_Config(configFile, geometry);
             // LLG Parameters
-            auto llg_params = Parameters_Method_LLG_from_Config(configFile, pinning);
+            auto llg_params = Parameters_Method_LLG_from_Config(configFile);
             // MC Parameters
-            auto mc_params = Parameters_Method_MC_from_Config(configFile, pinning);
+            auto mc_params = Parameters_Method_MC_from_Config(configFile);
+            // EMA Parameters
+            auto ema_params = Parameters_Method_EMA_from_Config(configFile);
+            // MMF Parameters
+            auto mmf_params = Parameters_Method_MMF_from_Config(configFile);
             // Hamiltonian
             auto hamiltonian = std::move(Hamiltonian_from_Config(configFile, geometry));
             // Spin System
-            auto system = std::unique_ptr<Data::Spin_System>(new Data::Spin_System(std::move(hamiltonian), std::move(geometry), std::move(llg_params), std::move(mc_params), false));
-            // ----------------------------------------------------------------------------------------------
+            auto system = std::unique_ptr<Data::Spin_System>(new Data::Spin_System(std::move(hamiltonian),
+                std::move(geometry), std::move(llg_params), std::move(mc_params), std::move(ema_params), std::move(mmf_params), false));
+
             Log(Log_Level::Info, Log_Sender::IO, "-------------- Spin System Initialised -------------");
 
-            // Return
             return system;
         }
-        catch (...)
+        catch( ... )
         {
-            spirit_handle_exception_core(fmt::format("Unable to initialize spin system from config file  \"{}\"", configFile));
+            spirit_handle_exception_core(fmt::format("Unable to initialize spin system from config file \"{}\"", configFile));
         }
 
         return nullptr;
-    }// End Spin_System_from_Config		
+    }// End Spin_System_from_Config
 
 
     void Bravais_Vectors_from_Config(const std::string configFile, std::vector<Vector3> & bravais_vectors, Data::BravaisLatticeType & bravais_lattice_type)
@@ -280,14 +283,16 @@ namespace IO
             // Atoms in the basis
             std::vector<Vector3> cell_atoms = { Vector3{0,0,0} };
             int n_cell_atoms = cell_atoms.size();
+            // Basis cell composition information (atom types, magnetic moments, ...)
+            Data::Basis_Cell_Composition cell_composition{ false, {0}, {0}, {1}, {} };
             // Lattice Constant [Angstrom]
             scalar lattice_constant = 1;
             // Number of translations nT for each basis direction
             intfield n_cells = { 100, 100, 1 };
             // Atom types
-            intfield atom_types;
-            intfield defect_indices(0);
-            intfield defects(0);
+            field<Site> defect_sites(0);
+            intfield    defect_types(0);
+            int n_atom_types = 0;
 
             // Utility 1D array to build vectors and use Vectormath
             Vector3 build_array = { 0, 0, 0 };
@@ -296,7 +301,7 @@ namespace IO
             //------------------------------- Parser --------------------------------
             // iteration variables
             int iatom = 0, dim = 0;
-            if (configFile != "")
+            if( configFile != "" )
             {
                 try
                 {
@@ -316,12 +321,16 @@ namespace IO
                         myfile.GetLine();
                         myfile.iss >> n_cell_atoms;
                         cell_atoms = std::vector<Vector3>(n_cell_atoms);
+                        cell_composition.iatom.resize(n_cell_atoms);
+                        cell_composition.atom_type = std::vector<int>(n_cell_atoms, 0);
+                        cell_composition.mu_s = std::vector<scalar>(n_cell_atoms, 1);
 
                         // Read atom positions
-                        for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
+                        for (iatom = 0; iatom < n_cell_atoms; ++iatom)
                         {
                             myfile.GetLine();
                             myfile.iss >> cell_atoms[iatom][0] >> cell_atoms[iatom][1] >> cell_atoms[iatom][2];
+                            cell_composition.iatom[iatom] = iatom;
                         }// endfor iatom
                     }
 
@@ -341,8 +350,34 @@ namespace IO
                     if (defectsFile.length() > 0)
                     {
                         // The file name should be valid so we try to read it
-                        Defects_from_File(defectsFile, n_defects,
-                            defect_indices, defects);
+                        Defects_from_File(defectsFile, n_defects, defect_sites, defect_types);
+                    }
+
+                    // Disorder
+                    if( myfile.Find("atom_types") )
+                    {
+                        myfile.iss >> n_atom_types;
+                        cell_composition.disordered = true;
+                        cell_composition.iatom.resize(n_atom_types);
+                        cell_composition.atom_type.resize(n_atom_types);
+                        cell_composition.mu_s.resize(n_atom_types);
+                        cell_composition.concentration.resize(n_atom_types);
+                        for (int itype = 0; itype < n_atom_types; ++itype)
+                        {
+                            myfile.GetLine();
+                            myfile.iss >> cell_composition.iatom[itype];
+                            myfile.iss >> cell_composition.atom_type[itype];
+                            myfile.iss >> cell_composition.mu_s[itype];
+                            myfile.iss >> cell_composition.concentration[itype];
+                            // if ( !(myfile.iss >> mu_s[itype]) )
+                            // {
+                            //     Log(Log_Level::Warning, Log_Sender::IO,
+                            //         fmt::format("Not enough values specified after 'mu_s'. Expected {}. Using mu_s[{}]=mu_s[0]={}", n_cell_atoms, iatom, mu_s[0]));
+                            //     mu_s[iatom] = mu_s[0];
+                            // }
+                        }
+                        Log(Log_Level::Warning, Log_Sender::IO,
+                            fmt::format("{} atom types, iatom={} atom type={} concentration={}", n_atom_types, cell_composition.iatom[0], cell_composition.atom_type[0], cell_composition.concentration[0]));
                     }
                     #endif
                 }// end try
@@ -350,8 +385,53 @@ namespace IO
                 {
                     spirit_handle_exception_core(fmt::format("Failed to read Geometry parameters from file \"{}\". Leaving values at default.", configFile));
                 }
+
+                try
+                {
+                    IO::Filter_File_Handle myfile(configFile);
+
+                    // Spin moment
+                    if( !myfile.Find("atom_types") )
+                    {
+                        if( myfile.Find("mu_s") )
+                        {
+                            for (iatom = 0; iatom < n_cell_atoms; ++iatom)
+                            {
+                                if ( !(myfile.iss >> cell_composition.mu_s[iatom]) )
+                                {
+                                    Log(Log_Level::Warning, Log_Sender::IO, fmt::format(
+                                        "Not enough values specified after 'mu_s'. Expected {}. Using mu_s[{}]=mu_s[0]={}",
+                                        n_cell_atoms, iatom, cell_composition.mu_s[0]));
+                                    cell_composition.mu_s[iatom] = cell_composition.mu_s[0];
+                                }
+                            }
+                        }
+                        else Log(Log_Level::Error, Log_Sender::IO, fmt::format("Keyword 'mu_s' not found. Using Default: {}", cell_composition.mu_s[0]));
+                    }
+                    // else
+                    // {
+                    //     cell_composition.mu_s = std::vector<scalar>(n_atom_types, 1);
+                    //     if( myfile.Find("mu_s") )
+                    //     {
+                    //         for (int itype = 0; itype < n_atom_types; ++itype)
+                    //         {
+                    //             myfile.iss >> cell_composition.mu_s[itype];
+                    //             // myfile.GetLine();
+                    //             // myfile.iss >> cell_composition.iatom[itype];
+                    //             // myfile.iss >> cell_composition.atom_type[itype];
+                    //             // myfile.iss >> cell_composition.concentration[itype];
+                    //         }
+                    //     }
+                    //     else Log(Log_Level::Error, Log_Sender::IO, fmt::format("Keyword 'mu_s' not found. Using Default: {}", cell_composition.mu_s[0]));
+                    // }
+                }// end try
+                catch( ... )
+                {
+                    spirit_handle_exception_core(fmt::format("Unable to read mu_s from config file  \"{}\"", configFile));
+                }
             }// end if file=""
-            else Log(Log_Level::Warning, Log_Sender::IO, "Geometry: Using default configuration!");
+            else
+                Log(Log_Level::Parameter, Log_Sender::IO, "Geometry: Using default configuration!");
 
             // Log the parameters
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Lattice constant = {} angstrom", lattice_constant));
@@ -363,23 +443,31 @@ namespace IO
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        a = {}", bravais_vectors[0].transpose()));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        b = {}", bravais_vectors[1].transpose()));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        c = {}", bravais_vectors[2].transpose()));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Basis: {}  atom(s) at the following positions:", n_cell_atoms));
-            for (int iatom = 0; iatom < n_cell_atoms; ++iatom)
-                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        atom {0} at {1}", iatom, cell_atoms[iatom].transpose()));
-            Log(Log_Level::Info, Log_Sender::IO, "Basis: built");
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Basis cell: {}  atom(s)", n_cell_atoms));
+            Log(Log_Level::Parameter, Log_Sender::IO, "Relative positions (first 10):");
+            for( int iatom = 0; iatom < n_cell_atoms && iatom < 10; ++iatom )
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        atom {} at ({}), mu_s={}", iatom, cell_atoms[iatom].transpose(), cell_composition.mu_s[iatom]));
 
+            Log(Log_Level::Parameter, Log_Sender::IO, "Absolute atom positions (first 10):", n_cell_atoms);
+            for( int iatom = 0; iatom < n_cell_atoms && iatom < 10; ++iatom )
+            {
+                Vector3 cell_atom = lattice_constant * (
+                      bravais_vectors[0] * cell_atoms[iatom][0]
+                    + bravais_vectors[1] * cell_atoms[iatom][1]
+                    + bravais_vectors[2] * cell_atoms[iatom][2] );
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        atom {} at ({})", iatom, cell_atom.transpose()));
+            }
 
-            // Atom types (default: type 0, vacancy: < 0)
-            atom_types = intfield(cell_atoms.size(), 0);
+            if( cell_composition.disordered )
+                Log(Log_Level::Parameter, Log_Sender::IO, "Note: the lattice has some disorder!");
 
             // Defects
             #ifdef SPIRIT_ENABLE_DEFECTS
-            int n_defects = defect_indices.size();
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} defects. Printing the first 10 indices:", n_defects));
-            for (int i = 0; i < n_defects; ++i)
-            {
-                if (i < 10) Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("  defect[{0}]: ispin={1}, type=", i, defect_indices[i], defects[i]));
-            }
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} defects. Printing the first 10:", defect_sites.size()));
+            for (int i = 0; i < defect_sites.size(); ++i)
+                if (i < 10) Log(Log_Level::Parameter, Log_Sender::IO, fmt::format(
+                    "  defect[{}]: translations=({} {} {}), type=",
+                    i, defect_sites[i].translations[0], defect_sites[i].translations[1], defect_sites[i].translations[2], defect_types[i]));
             #endif
 
             // Log parameters
@@ -387,14 +475,14 @@ namespace IO
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       na = {}", n_cells[0]));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       nb = {}", n_cells[1]));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       nc = {}", n_cells[2]));
-            
-            // Return geometry
-            auto geometry = std::shared_ptr<Data::Geometry>(new Data::Geometry(bravais_vectors, n_cells, cell_atoms, atom_types, lattice_constant));
 
-            #ifdef SPIRIT_ENABLE_DEFECTS
-            for (int i = 0; i < n_defects; ++i)
-                geometry->atom_types[defect_indices[i]] = defects[i]; // TODO: maybe a function instead of a for-loop?
-            #endif
+            // Pinning configuration
+            auto pinning = Pinning_from_Config(configFile, cell_atoms.size());
+
+            // Return geometry
+            auto geometry = std::shared_ptr<Data::Geometry>(new
+                Data::Geometry( bravais_vectors, n_cells, cell_atoms, cell_composition, lattice_constant,
+                    pinning, {defect_sites, defect_types} ));
 
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} spins", geometry->nos));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry is {}-dimensional", geometry->dimensionality));
@@ -409,15 +497,15 @@ namespace IO
         return nullptr;
     }// end Geometry from Config
 
-    std::shared_ptr<Data::Pinning> Pinning_from_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry)
+    Data::Pinning Pinning_from_Config(const std::string configFile, int n_cell_atoms)
     {
         //-------------- Insert default values here -----------------------------
         int na = 0, na_left = 0, na_right = 0;
         int nb = 0, nb_left = 0, nb_right = 0;
         int nc = 0, nc_left = 0, nc_right = 0;
-        vectorfield pinned_cell(geometry->n_cell_atoms, Vector3{ 0,0,1 });
+        vectorfield pinned_cell(n_cell_atoms, Vector3{ 0,0,1 });
         // Additional pinned sites
-        intfield pinned_indices(0);
+        field<Site> pinned_sites(0);
         vectorfield pinned_spins(0);
         int n_pinned = 0;
 
@@ -427,7 +515,7 @@ namespace IO
         #ifdef SPIRIT_ENABLE_PINNING
             Log(Log_Level::Info, Log_Sender::IO, "Reading Pinning Configuration");
             //------------------------------- Parser --------------------------------
-            if (configFile != "")
+            if( configFile != "" )
             {
                 try
                 {
@@ -446,7 +534,7 @@ namespace IO
                     // N_b
                     myfile.Read_Single(nb_left, "pin_nb_left", false);
                     myfile.Read_Single(nb_right, "pin_nb_right", false);
-                    myfile.Read_Single(nb, "pin_nb ",  false);
+                    myfile.Read_Single(nb, "pin_nb ", false);
                     if (nb > 0 && (nb_left == 0 || nb_right == 0))
                     {
                         nb_left = nb;
@@ -456,7 +544,7 @@ namespace IO
                     // N_c
                     myfile.Read_Single(nc_left, "pin_nc_left", false);
                     myfile.Read_Single(nc_right, "pin_nc_right", false);
-                    myfile.Read_Single(nc, "pin_nc ",  false);
+                    myfile.Read_Single(nc, "pin_nc ", false);
                     if (nc > 0 && (nc_left == 0 || nc_right == 0))
                     {
                         nc_left = nc;
@@ -470,7 +558,7 @@ namespace IO
                     {
                         if (myfile.Find("pinning_cell"))
                         {
-                            for (int i = 0; i < geometry->n_cell_atoms; ++i)
+                            for (int i = 0; i < n_cell_atoms; ++i)
                             {
                                 myfile.GetLine();
                                 myfile.iss >> pinned_cell[i][0] >> pinned_cell[i][1] >> pinned_cell[i][2];
@@ -492,51 +580,51 @@ namespace IO
                     else if (myfile.Find("pinned_from_file"))
                         myfile.iss >> pinnedFile;
 
-                    if (pinnedFile.length() > 0)
+                    if(pinnedFile != "")
                     {
                         // The file name should be valid so we try to read it
-                        Pinned_from_File(pinnedFile, n_pinned,
-                            pinned_indices, pinned_spins);
+                        Pinned_from_File(pinnedFile, n_pinned, pinned_sites, pinned_spins);
                     }
+                    else Log(Log_Level::Parameter, Log_Sender::IO, "wtf no pinnedFile");
+
                 }// end try
-                catch (...)
+                catch( ... )
                 {
                     spirit_handle_exception_core(fmt::format("Failed to read Pinning from file \"{}\". Leaving values at default.", configFile));
                 }
-                
+
             }// end if file=""
             else Log(Log_Level::Parameter, Log_Sender::IO, "No pinning");
 
             // Create Pinning
-            auto pinning = std::shared_ptr<Data::Pinning>(new Data::Pinning( geometry,
+            auto pinning = Data::Pinning{
                 na_left, na_right,
                 nb_left, nb_right,
                 nc_left, nc_right,
-                pinned_cell) );
+                pinned_cell,
+                pinned_sites, pinned_spins};
 
-            // Apply additional pinned sites
-            for (int i = 0; i < n_pinned; ++i)
-            {
-                int idx = pinned_indices[i];
-                pinning->mask_unpinned[idx] = 0;
-                pinning->mask_pinned_cells[idx] = pinned_spins[i];
-            }
 
             // Return Pinning
             Log(Log_Level::Parameter, Log_Sender::IO, "Pinning:");
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        n_a: left={0}, right={1}", na_left, na_right));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        n_b: left={0}, right={1}", nb_left, nb_right));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        n_c: left={0}, right={1}", nc_left, nc_right));
-            for (int i = 0; i < geometry->n_cell_atoms; ++i)
-                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        cell atom[0]      = ({0})", pinned_cell[0].transpose()));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {} additional pinned sites: ", n_pinned));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        n_a: left={}, right={}", na_left, na_right));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        n_b: left={}, right={}", nb_left, nb_right));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        n_c: left={}, right={}", nc_left, nc_right));
+            for (int i = 0; i < n_cell_atoms; ++i)
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        cell atom[{}]      = ({})", i, pinned_cell[0].transpose()));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {} additional pinned sites. Showing the first 10:", n_pinned));
             for (int i = 0; i < n_pinned; ++i)
-                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        pinned site[0]           = ({0})", pinned_spins[0].transpose()));
+            {
+                if( i<10 )
+                    Log(Log_Level::Parameter, Log_Sender::IO, fmt::format(
+                        "             pinned site[{}]: {} at ({} {} {}) = ({})",
+                        i, pinned_sites[i].i, pinned_sites[i].translations[0], pinned_sites[i].translations[1], pinned_sites[i].translations[2], pinned_spins[0].transpose()));
+            }
             Log(Log_Level::Info, Log_Sender::IO, "Pinning: read");
             return pinning;
         #else // SPIRIT_ENABLE_PINNING
             Log(Log_Level::Info, Log_Sender::IO, "Pinning is disabled");
-            if (configFile != "")
+            if( configFile != "" )
             {
                 try
                 {
@@ -550,408 +638,408 @@ namespace IO
                 }
             }
 
-            auto pinning = std::shared_ptr<Data::Pinning>(new Data::Pinning(geometry,
-                intfield(geometry->nos, 1),
-                vectorfield(0)));
-            return pinning;
+            return Data::Pinning{
+                0, 0, 0, 0, 0, 0,
+                vectorfield(0),
+                field<Site>(0),
+                vectorfield(0) };
         #endif // SPIRIT_ENABLE_PINNING
     }
 
-    std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning)
+    std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config(const std::string configFile)
     {
-        //-------------- Insert default values here -----------------------------
-        // Output folder for results
-        std::string output_folder = "output_llg";
-        // Save output when logging
-        std::string output_file_tag = ""; 
-        bool output_any = true, 
-             output_initial = true, 
-             output_final = true;
-        bool output_energy_divide_by_nspins=true, 
-             output_energy_spin_resolved=true, 
-             output_energy_step=true, 
-             output_energy_archive=true,
-             output_energy_add_readability_lines=true;
-        bool output_configuration_step = false, 
-             output_configuration_archive = false;
-        int output_configuration_filetype = int(IO::VF_FileFormat::OVF_TEXT);
-        // Maximum walltime in seconds
-        long int max_walltime = 0;
-        std::string str_max_walltime;
+        // Default parameters
+        auto parameters = std::unique_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG());
+
         // PRNG Seed
         std::srand((unsigned int)std::time(0));
-        int seed = std::rand();
-        // number of iterations carried out when pressing "play" or calling "iterate"
-        long int n_iterations = (int)2E+6;
-        // Number of iterations after which the system is logged to file
-        long int n_iterations_log = 100;
-        // Temperature in K
-        scalar temperature = 0.0;
-        // Temperature gradient
-        Vector3 temperature_gradient_direction = Vector3{ 1,0,0 };
-        scalar temperature_gradient_inclination = 0;
-        // Damping constant
-        scalar damping = 0.5;
-        // non-adiabatic parameter
-        scalar beta = 0.0;
-        // iteration time step
-        scalar dt = 1.0E-02;
-        // Whether to renormalize spins after every SD iteration
-        bool renorm_sd = 1;
-        // use the gradient method for stt
-        bool stt_use_gradient = false;
-        // spin transfer torque vector
-        scalar stt_magnitude = 1.5;
-        // spin_current polarisation normal vector
-        Vector3 stt_polarisation_normal = { 1.0, -1.0, 0.0 };
-        // Force convergence parameter
-        scalar force_convergence = 10e-9;
+        parameters->rng_seed = std::rand();
 
-        //------------------------------- Parser --------------------------------
+        // Maximum wall time
+        std::string str_max_walltime = "0";
+
+        // Configuration output filetype
+        int output_configuration_filetype = (int)parameters->output_vf_filetype;
+
+        // Parse
         Log(Log_Level::Info, Log_Sender::IO, "Parameters LLG: building");
-        if (configFile != "")
+        if( configFile != "" )
         {
             try
             {
                 IO::Filter_File_Handle myfile(configFile);
 
-                myfile.Read_Single(output_file_tag,"output_file_tag");
-                myfile.Read_Single(output_folder,  "llg_output_folder");
-                myfile.Read_Single(output_any,     "llg_output_any");
-                myfile.Read_Single(output_initial, "llg_output_initial");
-                myfile.Read_Single(output_final,   "llg_output_final");
-                myfile.Read_Single(output_energy_spin_resolved,         "llg_output_energy_spin_resolved");
-                myfile.Read_Single(output_energy_step,                  "llg_output_energy_step");
-                myfile.Read_Single(output_energy_archive,               "llg_output_energy_archive");
-                myfile.Read_Single(output_energy_divide_by_nspins,      "llg_output_energy_divide_by_nspins");
-                myfile.Read_Single(output_energy_add_readability_lines, "llg_output_energy_add_readability_lines");
-                myfile.Read_Single(output_configuration_step,           "llg_output_configuration_step");
-                myfile.Read_Single(output_configuration_archive,        "llg_output_configuration_archive");
-                myfile.Read_Single(output_configuration_filetype,       "llg_output_configuration_filetype");
+                // Output parameters
+                myfile.Read_Single(parameters->output_file_tag,"output_file_tag");
+                myfile.Read_Single(parameters->output_folder,  "llg_output_folder");
+                myfile.Read_Single(parameters->output_any,     "llg_output_any");
+                myfile.Read_Single(parameters->output_initial, "llg_output_initial");
+                myfile.Read_Single(parameters->output_final,   "llg_output_final");
+                myfile.Read_Single(parameters->output_energy_spin_resolved,         "llg_output_energy_spin_resolved");
+                myfile.Read_Single(parameters->output_energy_step,                  "llg_output_energy_step");
+                myfile.Read_Single(parameters->output_energy_archive,               "llg_output_energy_archive");
+                myfile.Read_Single(parameters->output_energy_divide_by_nspins,      "llg_output_energy_divide_by_nspins");
+                myfile.Read_Single(parameters->output_energy_add_readability_lines, "llg_output_energy_add_readability_lines");
+                myfile.Read_Single(parameters->output_configuration_step,           "llg_output_configuration_step");
+                myfile.Read_Single(parameters->output_configuration_archive,        "llg_output_configuration_archive");
+                myfile.Read_Single(output_configuration_filetype,                   "llg_output_configuration_filetype");
+                parameters->output_vf_filetype = IO::VF_FileFormat(output_configuration_filetype);
+                // Method parameters
                 myfile.Read_Single(str_max_walltime, "llg_max_walltime");
-                myfile.Read_Single(seed, "llg_seed");
-                myfile.Read_Single(n_iterations, "llg_n_iterations");
-                myfile.Read_Single(n_iterations_log, "llg_n_iterations_log");
-                myfile.Read_Single(dt, "llg_dt");
-                myfile.Read_Single(temperature, "llg_temperature");
-                myfile.Read_Vector3(temperature_gradient_direction, "llg_temperature_gradient_direction");
-                temperature_gradient_direction.normalize();
-                myfile.Read_Single(temperature_gradient_inclination, "llg_temperature_gradient_inclination");
-                myfile.Read_Single(damping, "llg_damping");
-                myfile.Read_Single(beta, "llg_beta");
-                myfile.Read_Single(renorm_sd, "llg_renorm");
-                myfile.Read_Single(stt_use_gradient, "llg_stt_use_gradient");
-                myfile.Read_Single(stt_magnitude, "llg_stt_magnitude");
-                myfile.Read_Vector3(stt_polarisation_normal, "llg_stt_polarisation_normal");
-                myfile.Read_Single(force_convergence, "llg_force_convergence");
-            }// end try
-            catch (...)
+                parameters->max_walltime_sec = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
+                myfile.Read_Single(parameters->rng_seed, "llg_seed");
+                myfile.Read_Single(parameters->n_iterations, "llg_n_iterations");
+                myfile.Read_Single(parameters->n_iterations_log, "llg_n_iterations_log");
+                myfile.Read_Single(parameters->dt, "llg_dt");
+                myfile.Read_Single(parameters->temperature, "llg_temperature");
+                myfile.Read_Vector3(parameters->temperature_gradient_direction, "llg_temperature_gradient_direction");
+                parameters->temperature_gradient_direction.normalize();
+                myfile.Read_Single(parameters->temperature_gradient_inclination, "llg_temperature_gradient_inclination");
+                myfile.Read_Single(parameters->damping, "llg_damping");
+                myfile.Read_Single(parameters->beta, "llg_beta");
+                // myfile.Read_Single(parameters->renorm_sd, "llg_renorm");
+                myfile.Read_Single(parameters->stt_use_gradient, "llg_stt_use_gradient");
+                myfile.Read_Single(parameters->stt_magnitude, "llg_stt_magnitude");
+                myfile.Read_Vector3(parameters->stt_polarisation_normal, "llg_stt_polarisation_normal");
+                parameters->stt_polarisation_normal.normalize();
+                myfile.Read_Single(parameters->force_convergence, "llg_force_convergence");
+            }
+            catch( ... )
             {
-                spirit_handle_exception_core(fmt::format("Unable to parse LLG parameters from config file \"{}\"", configFile));
+                spirit_handle_exception_core(fmt::format(
+                    "Unable to parse LLG parameters from config file \"{}\"", configFile));
             }
         }
-        else Log(Log_Level::Warning, Log_Sender::IO, "Parameters LLG: Using default configuration!");
-
-        // Normalize vectors
-        stt_polarisation_normal.normalize();
+        else
+            Log(Log_Level::Parameter, Log_Sender::IO, "Parameters LLG: Using default configuration!");
 
         // Return
         Log(Log_Level::Parameter, Log_Sender::IO, "Parameters LLG:");
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "seed", seed));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "time step [ps]", dt));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "temperature [K]", temperature));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "temperature gradient direction", temperature_gradient_direction.transpose()));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "temperature gradient inclination", temperature_gradient_inclination));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "damping", damping));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "beta", beta));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "stt use gradient", stt_use_gradient));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "stt magnitude", stt_magnitude));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "stt normal", stt_polarisation_normal.transpose()));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1:e}", "force convergence", force_convergence));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "maximum walltime", str_max_walltime));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_iterations", n_iterations));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_iterations_log", n_iterations_log));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_folder", output_folder));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_any", output_any));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_initial", output_initial));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_final", output_final));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_step", output_energy_step));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_archive", output_energy_archive));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_spin_resolved", output_energy_spin_resolved));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_divide_by_nspins", output_energy_divide_by_nspins));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_add_readability_lines", output_energy_add_readability_lines));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_step", output_configuration_step));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_archive", output_configuration_archive));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_filetype", output_configuration_filetype));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "seed", parameters->rng_seed));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "time step [ps]", parameters->dt));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "temperature [K]", parameters->temperature));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "temperature gradient direction", parameters->temperature_gradient_direction.transpose()));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "temperature gradient inclination", parameters->temperature_gradient_inclination));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "damping", parameters->damping));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "beta", parameters->beta));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "stt use gradient", parameters->stt_use_gradient));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "stt magnitude", parameters->stt_magnitude));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "stt normal", parameters->stt_polarisation_normal.transpose()));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {:e}", "force convergence", parameters->force_convergence));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "maximum walltime", str_max_walltime));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "n_iterations", parameters->n_iterations));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "n_iterations_log", parameters->n_iterations_log));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = \"{}\"", "output_folder", parameters->output_folder));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "output_any", parameters->output_any));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "output_initial", parameters->output_initial));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "output_final", parameters->output_final));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_energy_step", parameters->output_energy_step));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_energy_archive", parameters->output_energy_archive));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_energy_spin_resolved", parameters->output_energy_spin_resolved));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_energy_divide_by_nspins", parameters->output_energy_divide_by_nspins));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_energy_add_readability_lines", parameters->output_energy_add_readability_lines));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_configuration_step", parameters->output_configuration_step));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_configuration_archive", parameters->output_configuration_archive));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_configuration_filetype", (int)parameters->output_vf_filetype));
 
-        max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
-        auto llg_params = std::unique_ptr<Data::Parameters_Method_LLG>(new Data::Parameters_Method_LLG(
-            output_folder, output_file_tag,
-            { output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_spin_resolved, output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive, output_energy_add_readability_lines},
-            output_configuration_filetype, force_convergence, n_iterations, n_iterations_log, max_walltime, pinning, seed,
-            temperature, temperature_gradient_direction, temperature_gradient_inclination,
-            damping, beta, dt, renorm_sd, stt_use_gradient, stt_magnitude, stt_polarisation_normal));
         Log(Log_Level::Info, Log_Sender::IO, "Parameters LLG: built");
-        return llg_params;
+        return parameters;
     }// end Parameters_Method_LLG_from_Config
 
-    std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning)
+    std::unique_ptr<Data::Parameters_Method_EMA> Parameters_Method_EMA_from_Config(const std::string configFile)
     {
-        //-------------- Insert default values here -----------------------------
-        // Output folder for results
-        std::string output_folder = "output_mc";
-        // Save output when logging
-        std::string output_file_tag; 
-        bool output_any = true, 
-             output_initial = true, 
-             output_final = true;
-        bool output_energy_divide_by_nspins = true, 
-             output_energy_spin_resolved = true, 
-             output_energy_step = true, 
-             output_energy_archive = true,
-             output_energy_add_readability_lines = true;
-        bool output_configuration_step = false,
-             output_configuration_archive = false;
-        int output_configuration_filetype = int(IO::VF_FileFormat::OVF_TEXT);
-        // Maximum walltime in seconds
-        long int max_walltime = 0;
-        std::string str_max_walltime;
-        // PRNG Seed
-        std::srand((int)std::time(0));
-        int seed = std::rand();
-        // number of iterations carried out when pressing "play" or calling "iterate"
-        int n_iterations = (int)2E+6;
-        // Number of iterations after which the system is logged to file
-        int n_iterations_log = 100;
-        // Temperature in K
-        scalar temperature = 0.0;
-        // Acceptance ratio
-        scalar acceptance_ratio = 0.5;
+        // Default parameters
+        auto parameters = std::unique_ptr<Data::Parameters_Method_EMA>(new Data::Parameters_Method_EMA());
 
-        //------------------------------- Parser --------------------------------
-        Log(Log_Level::Info, Log_Sender::IO, "Parameters MC: building");
+        // Maximum wall time
+        std::string str_max_walltime = "0";
 
-        if (configFile != "")
+        // Parse
+        Log(Log_Level::Info, Log_Sender::IO, "Parameters EMA: building");
+        if( configFile != "" )
         {
             try
             {
                 IO::Filter_File_Handle myfile(configFile);
 
-                myfile.Read_Single(output_file_tag, "output_file_tag");
-                myfile.Read_Single(output_folder,   "mc_output_folder");
-                myfile.Read_Single(output_any,      "mc_output_any");
-                myfile.Read_Single(output_initial,  "mc_output_initial");
-                myfile.Read_Single(output_final,    "mc_output_final");
-                myfile.Read_Single(output_energy_spin_resolved,    "mc_output_energy_spin_resolved");
-                myfile.Read_Single(output_energy_step,             "mc_output_energy_step");
-                myfile.Read_Single(output_energy_archive,          "mc_output_energy_archive");
-                myfile.Read_Single(output_energy_divide_by_nspins, "mc_output_energy_divide_by_nspins");
-                myfile.Read_Single(output_energy_add_readability_lines, "mc_output_energy_add_readability_lines");
-                myfile.Read_Single(output_configuration_step,      "mc_output_configuration_step");
-                myfile.Read_Single(output_configuration_archive,   "mc_output_configuration_archive");
-                myfile.Read_Single(output_configuration_filetype,  "mc_output_configuration_filetype");
-                myfile.Read_Single(str_max_walltime, "mc_max_walltime");
-                myfile.Read_Single(seed, "mc_seed");
-                myfile.Read_Single(n_iterations, "mc_n_iterations");
-                myfile.Read_Single(n_iterations_log, "mc_n_iterations_log");
-                myfile.Read_Single(temperature, "mc_temperature");
-                myfile.Read_Single(acceptance_ratio, "mc_acceptance_ratio");
-            }// end try
-            catch (...)
+                // Output parameters
+                myfile.Read_Single(parameters->output_folder,  "ema_output_folder");
+                myfile.Read_Single(parameters->output_file_tag,"output_file_tag");
+                myfile.Read_Single(parameters->output_any,     "ema_output_any");
+                myfile.Read_Single(parameters->output_initial, "ema_output_initial");
+                myfile.Read_Single(parameters->output_final,   "ema_output_final");
+                myfile.Read_Single(parameters->output_energy_divide_by_nspins, "ema_output_energy_divide_by_nspins");
+                myfile.Read_Single(parameters->output_energy_spin_resolved,    "ema_output_energy_spin_resolved");
+                myfile.Read_Single(parameters->output_energy_step,             "ema_output_energy_step");
+                myfile.Read_Single(parameters->output_energy_archive,          "ema_output_energy_archive");
+                myfile.Read_Single(parameters->output_configuration_step,      "ema_output_configuration_step");
+                myfile.Read_Single(parameters->output_configuration_archive,   "ema_output_configuration_archive");
+                // Method parameters
+                myfile.Read_Single(str_max_walltime, "ema_max_walltime");
+                parameters->max_walltime_sec = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
+                myfile.Read_Single(parameters->n_iterations, "ema_n_iterations");
+                myfile.Read_Single(parameters->n_iterations_log, "ema_n_iterations_log");
+                myfile.Read_Single(parameters->n_modes, "ema_n_modes");
+                myfile.Read_Single(parameters->n_mode_follow, "ema_n_mode_follow");
+                myfile.Read_Single(parameters->frequency, "ema_frequency");
+                myfile.Read_Single(parameters->amplitude, "ema_amplitude");
+            }
+            catch( ... )
             {
-                spirit_handle_exception_core(fmt::format("Unable to parse MC parameters from config file \"{}\"", configFile));
+                spirit_handle_exception_core(fmt::format(
+                    "Unable to parse EMA parameters from config file \"{}\"", configFile));
             }
         }
-        else Log(Log_Level::Warning, Log_Sender::IO, "Parameters MC: Using default configuration!");
+        else
+            Log(Log_Level::Parameter, Log_Sender::IO, "Parameters EMA: Using default configuration!");
+
+        // Return
+        Log(Log_Level::Parameter, Log_Sender::IO, "Parameters EMA:");
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "n_modes", parameters->n_modes));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "n_mode_follow", parameters->n_mode_follow));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "frequency", parameters->frequency));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "amplitude", parameters->amplitude));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "n_iterations_log", parameters->n_iterations_log));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "n_iterations", parameters->n_iterations));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "maximum walltime", str_max_walltime));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_configuration_archive", parameters->output_configuration_archive));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_configuration_step", parameters->output_configuration_step));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_energy_archive", parameters->output_energy_archive));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_energy_step", parameters->output_energy_step));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_energy_spin_resolved", parameters->output_energy_spin_resolved));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_energy_divide_by_nspins", parameters->output_energy_divide_by_nspins));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "output_final", parameters->output_final));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "output_initial", parameters->output_initial));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "output_any", parameters->output_any));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = \"{}\"", "output_folder", parameters->output_folder));
+
+        Log(Log_Level::Info, Log_Sender::IO, "Parameters EMA: built");
+        return parameters;
+    }
+
+    std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config(const std::string configFile)
+    {
+        // Default parameters
+        auto parameters = std::unique_ptr<Data::Parameters_Method_MC>(new Data::Parameters_Method_MC());
+
+        // PRNG Seed
+        std::srand((unsigned int)std::time(0));
+        parameters->rng_seed = std::rand();
+
+        // Maximum wall time
+        std::string str_max_walltime = "0";
+
+        // Configuration output filetype
+        int output_configuration_filetype = (int)parameters->output_vf_filetype;
+
+        // Parse
+        Log(Log_Level::Info, Log_Sender::IO, "Parameters MC: building");
+        if( configFile != "" )
+        {
+            try
+            {
+                IO::Filter_File_Handle myfile(configFile);
+
+                // Output parameters
+                myfile.Read_Single(parameters->output_file_tag, "output_file_tag");
+                myfile.Read_Single(parameters->output_folder,   "mc_output_folder");
+                myfile.Read_Single(parameters->output_any,      "mc_output_any");
+                myfile.Read_Single(parameters->output_initial,  "mc_output_initial");
+                myfile.Read_Single(parameters->output_final,    "mc_output_final");
+                myfile.Read_Single(parameters->output_energy_spin_resolved,     "mc_output_energy_spin_resolved");
+                myfile.Read_Single(parameters->output_energy_step,              "mc_output_energy_step");
+                myfile.Read_Single(parameters->output_energy_archive,           "mc_output_energy_archive");
+                myfile.Read_Single(parameters->output_energy_divide_by_nspins,  "mc_output_energy_divide_by_nspins");
+                myfile.Read_Single(parameters->output_energy_add_readability_lines, "mc_output_energy_add_readability_lines");
+                myfile.Read_Single(parameters->output_configuration_step,       "mc_output_configuration_step");
+                myfile.Read_Single(parameters->output_configuration_archive,    "mc_output_configuration_archive");
+                myfile.Read_Single(output_configuration_filetype,               "mc_output_configuration_filetype");
+                parameters->output_vf_filetype = IO::VF_FileFormat(output_configuration_filetype);
+                // Method parameters
+                myfile.Read_Single(str_max_walltime, "mc_max_walltime");
+                parameters->max_walltime_sec = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
+                myfile.Read_Single(parameters->rng_seed, "mc_seed");
+                myfile.Read_Single(parameters->n_iterations, "mc_n_iterations");
+                myfile.Read_Single(parameters->n_iterations_log, "mc_n_iterations_log");
+                myfile.Read_Single(parameters->temperature, "mc_temperature");
+                myfile.Read_Single(parameters->acceptance_ratio_target, "mc_acceptance_ratio");
+            }
+            catch( ... )
+            {
+                spirit_handle_exception_core(fmt::format(
+                    "Unable to parse MC parameters from config file \"{}\"", configFile));
+            }
+        }
+        else
+            Log(Log_Level::Parameter, Log_Sender::IO, "Parameters MC: Using default configuration!");
 
         // Return
         Log(Log_Level::Parameter, Log_Sender::IO, "Parameters MC:");
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "seed", seed));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "temperature", temperature));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "acceptance_ratio", acceptance_ratio));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "maximum walltime", str_max_walltime));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_iterations", n_iterations));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_iterations_log", n_iterations_log));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_folder", output_folder));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_any", output_any));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_initial", output_initial));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_final", output_final));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_step", output_energy_step));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_archive", output_energy_archive));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_spin_resolved", output_energy_spin_resolved));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_divide_by_nspins", output_energy_divide_by_nspins));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_add_readability_lines", output_energy_add_readability_lines));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_step", output_configuration_step));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_archive", output_configuration_archive));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_filetype", output_configuration_filetype));
-        max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
-        auto mc_params = std::unique_ptr<Data::Parameters_Method_MC>(new Data::Parameters_Method_MC(output_folder, output_file_tag, { output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_spin_resolved,
-            output_energy_divide_by_nspins, output_configuration_step, output_configuration_archive, output_energy_add_readability_lines }, output_configuration_filetype, n_iterations, n_iterations_log, max_walltime, pinning, seed, temperature, acceptance_ratio));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "seed", parameters->rng_seed));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "temperature", parameters->temperature));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "acceptance_ratio", parameters->acceptance_ratio_target));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "maximum walltime", str_max_walltime));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "n_iterations", parameters->n_iterations));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "n_iterations_log", parameters->n_iterations_log));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = \"{}\"", "output_folder", parameters->output_folder));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "output_any", parameters->output_any));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "output_initial", parameters->output_initial));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "output_final", parameters->output_final));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_energy_step", parameters->output_energy_step));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_energy_archive", parameters->output_energy_archive));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_energy_spin_resolved", parameters->output_energy_spin_resolved));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_energy_divide_by_nspins", parameters->output_energy_divide_by_nspins));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_energy_add_readability_lines", parameters->output_energy_add_readability_lines));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_configuration_step", parameters->output_configuration_step));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_configuration_archive", parameters->output_configuration_archive));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_configuration_filetype", (int)parameters->output_vf_filetype));
+
         Log(Log_Level::Info, Log_Sender::IO, "Parameters MC: built");
-        return mc_params;
+        return parameters;
     }
 
-    std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning)
+    std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config(const std::string configFile)
     {
-        //-------------- Insert default values here -----------------------------
-        // Output folder for results
-        std::string output_folder = "output_gneb";
-        // Save output when logging
-        std::string output_file_tag = "";
-        bool output_any = true,
-                output_initial = false,
-                output_final = true,
-                output_energies_step = false,
-                output_energies_interpolated = true,
-                output_energies_divide_by_nspins = true,
-                output_energies_add_readability_lines = true,
-                output_chain_step = false;
-        int output_chain_filetype = int(IO::VF_FileFormat::OVF_TEXT);
-        // Maximum walltime in seconds
-        long int max_walltime = 0;
-        std::string str_max_walltime;
-        // Spring constant
-        scalar spring_constant = 1.0;
-        // Force convergence parameter
-        scalar force_convergence = 10e-9;
-        // number of iterations carried out when pressing "play" or calling "iterate"
-        int n_iterations = (int)2E+6;
-        // Number of iterations after which the system is logged to file
-        int n_iterations_log = 100;
-        // Number of Energy Interpolation points
-        int n_E_interpolations = 10;
-        //------------------------------- Parser --------------------------------
+        // Default parameters
+        auto parameters = std::unique_ptr<Data::Parameters_Method_GNEB>(new Data::Parameters_Method_GNEB());
+
+        // Maximum wall time
+        std::string str_max_walltime = "0";
+
+        // Chain output filetype
+        int output_chain_filetype = (int)parameters->output_vf_filetype;
+
+        // Parse
         Log(Log_Level::Info, Log_Sender::IO, "Parameters GNEB: building");
-        if (configFile != "")
+        if( configFile != "" )
         {
             try
             {
                 IO::Filter_File_Handle myfile(configFile);
 
-                myfile.Read_Single(output_file_tag, "output_file_tag");
-                myfile.Read_Single(output_folder, "gneb_output_folder");
-                myfile.Read_Single(output_any, "gneb_output_any");
-                myfile.Read_Single(output_initial, "gneb_output_initial");
-                myfile.Read_Single(output_final, "gneb_output_final");
-                myfile.Read_Single(output_energies_step, "gneb_output_energies_step");
-                myfile.Read_Single(output_energies_add_readability_lines, "gneb_output_energies_add_readability_lines");
-                myfile.Read_Single(output_energies_interpolated, "gneb_output_energies_interpolated");
-                myfile.Read_Single(output_energies_divide_by_nspins, "gneb_output_energies_divide_by_nspins");
-                myfile.Read_Single(output_chain_step, "gneb_output_chain_step");
-                myfile.Read_Single(output_chain_filetype, "gneb_output_chain_filetype");
+                // Output parameters
+                myfile.Read_Single(parameters->output_file_tag, "output_file_tag");
+                myfile.Read_Single(parameters->output_folder,   "gneb_output_folder");
+                myfile.Read_Single(parameters->output_any,      "gneb_output_any");
+                myfile.Read_Single(parameters->output_initial,  "gneb_output_initial");
+                myfile.Read_Single(parameters->output_final,    "gneb_output_final");
+                myfile.Read_Single(parameters->output_energies_step,                "gneb_output_energies_step");
+                myfile.Read_Single(parameters->output_energies_add_readability_lines, "gneb_output_energies_add_readability_lines");
+                myfile.Read_Single(parameters->output_energies_interpolated,        "gneb_output_energies_interpolated");
+                myfile.Read_Single(parameters->output_energies_divide_by_nspins,    "gneb_output_energies_divide_by_nspins");
+                myfile.Read_Single(parameters->output_chain_step,                   "gneb_output_chain_step");
+                myfile.Read_Single(output_chain_filetype,                           "gneb_output_chain_filetype");
+                parameters->output_vf_filetype = IO::VF_FileFormat(output_chain_filetype);
+                // Method parameters
                 myfile.Read_Single(str_max_walltime, "gneb_max_walltime");
-                myfile.Read_Single(spring_constant, "gneb_spring_constant");
-                myfile.Read_Single(force_convergence, "gneb_force_convergence");
-                myfile.Read_Single(n_iterations, "gneb_n_iterations");
-                myfile.Read_Single(n_iterations_log, "gneb_n_iterations_log");
-                myfile.Read_Single(n_E_interpolations, "gneb_n_energy_interpolations");
-            }// end try
-            catch (...)
+                parameters->max_walltime_sec = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
+                myfile.Read_Single(parameters->spring_constant, "gneb_spring_constant");
+                myfile.Read_Single(parameters->force_convergence, "gneb_force_convergence");
+                myfile.Read_Single(parameters->n_iterations, "gneb_n_iterations");
+                myfile.Read_Single(parameters->n_iterations_log, "gneb_n_iterations_log");
+                myfile.Read_Single(parameters->n_E_interpolations, "gneb_n_energy_interpolations");
+            }
+            catch( ... )
             {
-                spirit_handle_exception_core(fmt::format("Unable to parse GNEB parameters from config file \"{}\"", configFile));
+                spirit_handle_exception_core(fmt::format(
+                    "Unable to parse GNEB parameters from config file \"{}\"", configFile));
             }
         }
-        else Log(Log_Level::Warning, Log_Sender::IO, "Parameters GNEB: Using default configuration!");
+        else
+            Log(Log_Level::Parameter, Log_Sender::IO, "Parameters GNEB: Using default configuration!");
 
         // Return
         Log(Log_Level::Parameter, Log_Sender::IO, "Parameters GNEB:");
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "spring_constant", spring_constant));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "n_E_interpolations", n_E_interpolations));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1:e}", "force convergence", force_convergence));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "maximum walltime", str_max_walltime));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "n_iterations", n_iterations));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "n_iterations_log", n_iterations_log));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_folder", output_folder));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_any", output_any));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_initial", output_initial));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_final", output_final));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_energies_step", output_energies_step));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_energies_add_readability_lines", output_energies_add_readability_lines));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_chain_step", output_chain_step));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<18} = {1}", "output_chain_filetype", output_chain_filetype));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<18} = {}", "spring_constant", parameters->spring_constant));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<18} = {}", "n_E_interpolations", parameters->n_E_interpolations));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<18} = {:e}", "force convergence", parameters->force_convergence));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<18} = {}", "maximum walltime", str_max_walltime));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<18} = {}", "n_iterations", parameters->n_iterations));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<18} = {}", "n_iterations_log", parameters->n_iterations_log));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<18} = \"{}\"", "output_folder", parameters->output_folder));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<18} = {}", "output_any", parameters->output_any));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<18} = {}", "output_initial", parameters->output_initial));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<18} = {}", "output_final", parameters->output_final));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<18} = {}", "output_energies_step", parameters->output_energies_step));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<18} = {}", "output_energies_add_readability_lines", parameters->output_energies_add_readability_lines));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<18} = {}", "output_chain_step", parameters->output_chain_step));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<18} = {}", "output_chain_filetype", (int)parameters->output_vf_filetype));
 
-        max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
-        auto gneb_params = std::unique_ptr<Data::Parameters_Method_GNEB>(new Data::Parameters_Method_GNEB(output_folder, output_file_tag, { output_any, output_initial, output_final, output_energies_step, output_energies_interpolated, output_energies_divide_by_nspins, output_chain_step, output_energies_add_readability_lines},
-            output_chain_filetype, force_convergence, n_iterations, n_iterations_log, max_walltime, pinning, spring_constant, n_E_interpolations));
         Log(Log_Level::Info, Log_Sender::IO, "Parameters GNEB: built");
-        return gneb_params;
+        return parameters;
     }// end Parameters_Method_LLG_from_Config
 
-    std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config(const std::string configFile, const std::shared_ptr<Data::Pinning> pinning)
+    std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config(const std::string configFile)
     {
-        //-------------- Insert default values here -----------------------------
-        // Output folder for results
-        std::string output_folder = "output_mmf";
-        // Save output when logging
-        std::string output_file_tag = "";
-        bool output_any = true, 
-                output_initial = false, 
-                output_final = true, 
-                output_energy_step = false, 
-                output_energy_archive = true, 
-                output_energy_divide_by_nspins = true, 
-                output_configuration_step = false, 
-                output_configuration_archive = true;
-        // Maximum walltime in seconds
-        long int max_walltime = 0;
-        std::string str_max_walltime;
-        // Force convergence parameter
-        scalar force_convergence = 10e-9;
-        // Number of iterations carried out when pressing "play" or calling "iterate"
-        int n_iterations = (int)2E+6;
-        // Number of iterations after which the system is logged to file
-        int n_iterations_log = 100;
-        
-        //------------------------------- Parser --------------------------------
+        // Default parameters
+        auto parameters = std::unique_ptr<Data::Parameters_Method_MMF>(new Data::Parameters_Method_MMF());
+
+        // Maximum wall time
+        std::string str_max_walltime = "0";
+
+        // Configuration output filetype
+        int output_configuration_filetype = (int)parameters->output_vf_filetype;
+
+        // Parse
         Log(Log_Level::Info, Log_Sender::IO, "Parameters MMF: building");
-        if (configFile != "")
+        if( configFile != "" )
         {
             try
             {
                 IO::Filter_File_Handle myfile(configFile);
 
-                myfile.Read_Single(output_file_tag, "output_file_tag");
-                myfile.Read_Single(output_folder, "mmf_output_folder");
-                myfile.Read_Single(output_any, "mmf_output_any");
-                myfile.Read_Single(output_initial, "mmf_output_initial");
-                myfile.Read_Single(output_final, "mmf_output_final");
-                myfile.Read_Single(output_energy_step, "mmf_output_energy_step");
-                myfile.Read_Single(output_energy_archive, "mmf_output_energy_archive");
-                myfile.Read_Single(output_energy_divide_by_nspins, "mmf_output_energy_divide_by_nspins");
-                myfile.Read_Single(output_configuration_step, "mmf_output_configuration_step");
-                myfile.Read_Single(output_configuration_archive, "mmf_output_configuration_archive");
-                myfile.Read_Single(str_max_walltime, "mmf_max_walltime");
-                myfile.Read_Single(force_convergence, "mmf_force_convergence");
-                myfile.Read_Single(n_iterations, "mmf_n_iterations");
-                myfile.Read_Single(n_iterations_log, "mmf_n_iterations_log");
-            }// end try
-            catch (...)
+                // Output parameters
+                myfile.Read_Single(parameters->output_file_tag, "output_file_tag");
+                myfile.Read_Single(parameters->output_folder,   "mmf_output_folder");
+                myfile.Read_Single(parameters->output_any,      "mmf_output_any");
+                myfile.Read_Single(parameters->output_initial,  "mmf_output_initial");
+                myfile.Read_Single(parameters->output_final,    "mmf_output_final");
+                myfile.Read_Single(parameters->output_energy_step,                  "mmf_output_energy_step");
+                myfile.Read_Single(parameters->output_energy_archive,               "mmf_output_energy_archive");
+                myfile.Read_Single(parameters->output_energy_divide_by_nspins,      "mmf_output_energy_divide_by_nspins");
+                myfile.Read_Single(parameters->output_energy_add_readability_lines, "mmf_output_energy_add_readability_lines");
+                myfile.Read_Single(parameters->output_configuration_step,           "mmf_output_configuration_step");
+                myfile.Read_Single(parameters->output_configuration_archive,        "mmf_output_configuration_archive");
+                myfile.Read_Single(output_configuration_filetype,                   "mmf_output_configuration_filetype");
+                parameters->output_vf_filetype = IO::VF_FileFormat(output_configuration_filetype);
+                // Method parameters
+                myfile.Read_Single(str_max_walltime,  "mmf_max_walltime");
+                parameters->max_walltime_sec = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
+                myfile.Read_Single(parameters->force_convergence, "mmf_force_convergence");
+                myfile.Read_Single(parameters->n_iterations,      "mmf_n_iterations");
+                myfile.Read_Single(parameters->n_iterations_log,  "mmf_n_iterations_log");
+                myfile.Read_Single(parameters->n_modes,           "mmf_n_modes");
+                myfile.Read_Single(parameters->n_mode_follow,     "mmf_n_mode_follow");
+            }
+            catch( ... )
             {
-                spirit_handle_exception_core(fmt::format("Unable to parse MMF parameters from config file \"{}\"", configFile));
+                spirit_handle_exception_core(fmt::format(
+                    "Unable to parse MMF parameters from config file \"{}\"", configFile));
             }
         }
-        else Log(Log_Level::Warning, Log_Sender::IO, "Parameters MMF: Using default configuration!");
+        else
+            Log(Log_Level::Parameter, Log_Sender::IO, "Parameters MMF: Using default configuration!");
 
         // Return
         Log(Log_Level::Parameter, Log_Sender::IO, "Parameters MMF:");
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1:e}", "force convergence", force_convergence));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "maximum walltime", str_max_walltime));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_iterations", n_iterations));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "n_iterations_log", n_iterations_log));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_folder", output_folder));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_any", output_any));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_initial", output_initial));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<17} = {1}", "output_final", output_final));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_step", output_energy_step));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_archive", output_energy_archive));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_energy_divide_by_nspins", output_energy_divide_by_nspins));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_step", output_configuration_step));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<30} = {1}", "output_configuration_archive", output_configuration_archive));
-        max_walltime = (long int)Utility::Timing::DurationFromString(str_max_walltime).count();
-        auto mmf_params = std::unique_ptr<Data::Parameters_Method_MMF>(new Data::Parameters_Method_MMF(output_folder, output_file_tag, {output_any, output_initial, output_final, output_energy_step, output_energy_archive, output_energy_divide_by_nspins, output_configuration_step,output_configuration_archive },
-            force_convergence, n_iterations, n_iterations_log, max_walltime, pinning));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {:e}", "force convergence", parameters->force_convergence));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "maximum walltime", str_max_walltime));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "n_iterations", parameters->n_iterations));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "n_iterations_log", parameters->n_iterations_log));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = \"{}\"", "output_folder", parameters->output_folder));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "output_any", parameters->output_any));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "output_initial", parameters->output_initial));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<17} = {}", "output_final", parameters->output_final));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_energy_step", parameters->output_energy_step));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_energy_archive", parameters->output_energy_archive));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_energy_divide_by_nspins", parameters->output_energy_divide_by_nspins));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_energy_add_readability_lines", parameters->output_energy_add_readability_lines));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_configuration_step", parameters->output_configuration_step));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_configuration_archive", parameters->output_configuration_archive));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<30} = {}", "output_configuration_filetype", (int)parameters->output_vf_filetype));
+
         Log(Log_Level::Info, Log_Sender::IO, "Parameters MMF: built");
-        return mmf_params;
+        return parameters;
     }
 
     std::unique_ptr<Engine::Hamiltonian> Hamiltonian_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry)
@@ -964,7 +1052,7 @@ namespace IO
         Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian: building");
 
         // Hamiltonian type
-        if (configFile != "")
+        if( configFile != "" )
         {
             try
             {
@@ -974,13 +1062,14 @@ namespace IO
                 // What hamiltonian do we use?
                 myfile.Read_Single(hamiltonian_type, "hamiltonian");
             }// end try
-            catch (...)
+            catch( ... )
             {
                 spirit_handle_exception_core(fmt::format("Unable to read Hamiltonian type from config file  \"{}\". Using default.", configFile));
                 hamiltonian_type = "heisenberg_neighbours";
             }
         }
-        else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian: Using default Hamiltonian: " + hamiltonian_type);
+        else
+            Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian: Using default Hamiltonian: " + hamiltonian_type);
 
         // Hamiltonian
         std::unique_ptr<Engine::Hamiltonian> hamiltonian;
@@ -999,11 +1088,11 @@ namespace IO
                 spirit_throw(Exception_Classifier::System_not_Initialized, Log_Level::Severe, fmt::format("Hamiltonian: Invalid type \"{}\"", hamiltonian_type));
             }
         }
-        catch (...)
+        catch( ... )
         {
             spirit_handle_exception_core(fmt::format("Unable to initialize Hamiltonian from config file  \"{}\"", configFile));
         }
-        
+
         // Return
         Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian: built hamiltonian of type: " + hamiltonian_type);
         return hamiltonian;
@@ -1016,13 +1105,10 @@ namespace IO
         std::vector<int> boundary_conditions_i = { 0, 0, 0 };
         intfield boundary_conditions = { false, false, false };
 
-        // Spin moment
-        scalarfield mu_s = scalarfield(geometry->n_cell_atoms, 2);
-
         // External Magnetic Field
         scalar B = 0;
         Vector3 B_normal = { 0.0, 0.0, 1.0 };
-        
+
         // Anisotropy
         std::string anisotropy_file = "";
         scalar K = 0;
@@ -1044,7 +1130,10 @@ namespace IO
         // DM constant
         int n_shells_dmi = dmi_magnitudes.size();
         int dm_chirality = 1;
-        
+
+        std::string ddi_method_str = "none";
+        auto ddi_method = Engine::DDI_Method::None;
+        intfield ddi_n_periodic_images = { 4, 4, 4 };
         scalar ddi_radius = 0.0;
 
         // ------------ Quadruplet Interactions ------------
@@ -1057,7 +1146,7 @@ namespace IO
         Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Heisenberg: building");
         // iteration variables
         int iatom = 0;
-        if (configFile != "")
+        if( configFile != "" )
         {
             try
             {
@@ -1074,29 +1163,6 @@ namespace IO
                 spirit_handle_exception_core(fmt::format("Unable to read boundary conditions from config file  \"{}\"", configFile));
             }
 
-            try
-            {
-                IO::Filter_File_Handle myfile(configFile);
-
-                // Spin moment
-                if (myfile.Find("mu_s"))
-                {
-                    for (iatom = 0; iatom < geometry->n_cell_atoms; ++iatom)
-                    {
-                        if ( !(myfile.iss >> mu_s[iatom]) )
-                        {
-                            Log(Log_Level::Warning, Log_Sender::IO,
-                                fmt::format("Not enough values specified after 'mu_s'. Expected {}. Using mu_s[{}]=mu_s[0]={}", geometry->n_cell_atoms, iatom, mu_s[0]));
-                            mu_s[iatom] = mu_s[0];
-                        }
-                    }
-                }
-                else Log(Log_Level::Error, Log_Sender::IO, "Keyword 'mu_s' not found. Using Default: 2.0");
-            }// end try
-            catch( ... )
-            {
-                spirit_handle_exception_core(fmt::format("Unable to read mu_s from config file  \"{}\"", configFile));
-            }
 
             try
             {
@@ -1218,10 +1284,12 @@ namespace IO
                     {
                         if (myfile.Find("jij"))
                         {
-                            for (iatom = 0; iatom < n_shells_exchange; ++iatom)
-                                myfile.iss >> exchange_magnitudes[iatom];
+                            for (int ishell = 0; ishell < n_shells_exchange; ++ishell)
+                                myfile.iss >> exchange_magnitudes[ishell];
                         }
-                        else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg: Keyword 'jij' not found. Using Default:  { 10.0 }");
+                        else
+                            Log(Log_Level::Warning, Log_Sender::IO, fmt::format(
+                                "Hamiltonian_Heisenberg: Keyword 'jij' not found. Using Default:  {}", exchange_magnitudes[0]));
                     }
                 }// end try
                 catch( ... )
@@ -1240,10 +1308,12 @@ namespace IO
                     {
                         if (myfile.Find("dij"))
                         {
-                            for (iatom = 0; iatom < n_shells_dmi; ++iatom)
-                                myfile.iss >> dmi_magnitudes[iatom];
+                            for (int ishell = 0; ishell < n_shells_dmi; ++ishell)
+                                myfile.iss >> dmi_magnitudes[ishell];
                         }
-                        else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg: Keyword 'dij' not found. Using Default:  { 6.0 }");
+                        else
+                            Log(Log_Level::Warning, Log_Sender::IO, fmt::format(
+                                "Hamiltonian_Heisenberg: Keyword 'dij' not found. Using Default:  {}", dmi_magnitudes[0]));
                     }
                     myfile.Read_Single(dm_chirality, "dm_chirality");
 
@@ -1253,14 +1323,34 @@ namespace IO
                     spirit_handle_exception_core(fmt::format("Failed to read DMI parameters from config file \"{}\"", configFile));
                 }
             }
-            
+
             try
             {
                 IO::Filter_File_Handle myfile(configFile);
 
-                //		Dipole-Dipole Pairs
-                // Dipole Dipole radius
-                myfile.Read_Single(ddi_radius, "dd_radius");
+                // DDI method
+                myfile.Read_String(ddi_method_str, "ddi_method");
+                if( ddi_method_str == "none" )
+                    ddi_method = Engine::DDI_Method::None;
+                else if( ddi_method_str == "fft" )
+                    ddi_method = Engine::DDI_Method::FFT;
+                else if( ddi_method_str == "fmm" )
+                    ddi_method = Engine::DDI_Method::FMM;
+                else if( ddi_method_str == "cutoff" )
+                    ddi_method = Engine::DDI_Method::Cutoff;
+                else
+                {
+                    Log(Log_Level::Warning, Log_Sender::IO, fmt::format(
+                        "Hamiltonian_Heisenberg: Keyword 'ddi_method' got passed invalid method \"{}\". Setting to \"none\".", ddi_method_str));
+                    ddi_method_str = "none";
+                }
+
+                // Number of periodical images
+                myfile.Read_3Vector(ddi_n_periodic_images, "ddi_n_periodic_images");
+                // myfile.Read_Single(ddi_n_periodic_images, "ddi_n_periodic_images");
+
+                // Dipole-dipole cutoff radius
+                myfile.Read_Single(ddi_radius, "ddi_radius");
             }// end try
             catch( ... )
             {
@@ -1290,42 +1380,42 @@ namespace IO
                 spirit_handle_exception_core(fmt::format("Unable to read interaction quadruplets from config file  \"{}\"", configFile));
             }
         }
-        else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg: Using default configuration!");
-        
+        else
+            Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg: Using default configuration!");
+
         // Return
         Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg:");
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1} {2} {3}", "boundary conditions", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B[0]", B));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "B_normal[0]", B_normal.transpose()));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "mu_s[0]", mu_s[0]));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {} {} {}", "boundary conditions", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "external field", B));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "field_normal", B_normal.transpose()));
         if (anisotropy_from_file)
             Log(Log_Level::Parameter, Log_Sender::IO, "        K                     from file");
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "K[0]", K));
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "K_normal[0]", K_normal.transpose()));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "anisotropy[0]", K));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "anisotropy_normal[0]", K_normal.transpose()));
         if (hamiltonian_type == "heisenberg_neighbours")
         {
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "n_shells_exchange", n_shells_exchange));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "n_shells_exchange", n_shells_exchange));
             if (n_shells_exchange > 0)
-                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "J_ij[0]", exchange_magnitudes[0]));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "n_shells_dmi", n_shells_dmi));
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "J_ij[0]", exchange_magnitudes[0]));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "n_shells_dmi", n_shells_dmi));
             if (n_shells_dmi > 0)
-                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "D_ij[0]", dmi_magnitudes[0]));
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "DM chirality", dm_chirality));
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "D_ij[0]", dmi_magnitudes[0]));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "DM chirality", dm_chirality));
         }
-
-        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {0:<19} = {1}", "dd_radius", ddi_radius));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "ddi_method", ddi_method_str));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = ({} {} {})", "ddi_n_periodic_images", ddi_n_periodic_images[0], ddi_n_periodic_images[1], ddi_n_periodic_images[2]));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "ddi_radius", ddi_radius));
 
         std::unique_ptr<Engine::Hamiltonian_Heisenberg> hamiltonian;
 
         if (hamiltonian_type == "heisenberg_neighbours")
         {
             hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg>(new Engine::Hamiltonian_Heisenberg(
-                mu_s,
                 B, B_normal,
                 anisotropy_index, anisotropy_magnitude, anisotropy_normal,
                 exchange_magnitudes,
                 dmi_magnitudes, dm_chirality,
-                ddi_radius,
+                ddi_method, ddi_n_periodic_images, ddi_radius,
                 quadruplets, quadruplet_magnitudes,
                 geometry,
                 boundary_conditions
@@ -1334,12 +1424,11 @@ namespace IO
         else
         {
             hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg>(new Engine::Hamiltonian_Heisenberg(
-                mu_s,
                 B, B_normal,
                 anisotropy_index, anisotropy_magnitude, anisotropy_normal,
                 exchange_pairs, exchange_magnitudes,
                 dmi_pairs, dmi_magnitudes, dmi_normals,
-                ddi_radius,
+                ddi_method, ddi_n_periodic_images, ddi_radius,
                 quadruplets, quadruplet_magnitudes,
                 geometry,
                 boundary_conditions
@@ -1364,8 +1453,8 @@ namespace IO
 
         //------------------------------- Parser --------------------------------
         Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Gaussian: building");
-        
-        if (configFile != "")
+
+        if( configFile != "" )
         {
             try
             {
@@ -1400,7 +1489,8 @@ namespace IO
                 spirit_handle_exception_core(fmt::format("Unable to read Hamiltonian_Gaussian parameters from config file  \"{}\"", configFile));
             }
         }
-        else Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Gaussian: Using default configuration!");
+        else
+            Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Gaussian: Using default configuration!");
 
 
         // Return

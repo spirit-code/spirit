@@ -11,6 +11,11 @@ import unittest
 
 ##########
 
+LLG = simulation.METHOD_LLG
+SIB = simulation.SOLVER_SIB
+
+##########
+
 cfgfile = spirit_py_dir + "/../test/input/solvers.cfg"     # Input File
 
 p_state = state.setup(cfgfile)              # State setup
@@ -20,38 +25,36 @@ class TestParameters(unittest.TestCase):
     def setUp(self):
         ''' Setup a p_state and copy it to Clipboard'''
         self.p_state = p_state
-    
+
 class Simulation_StartStop(TestParameters):
     
     def test_singleshot(self):
-        configuration.PlusZ(self.p_state)
-        simulation.SingleShot(self.p_state, "LLG", "SIB", n_iterations=1)
-    
+        configuration.plus_z(self.p_state)
+        simulation.start(self.p_state, LLG, SIB, n_iterations=1, single_shot=True)
+        simulation.single_shot(self.p_state)
+        simulation.start(self.p_state, LLG, SIB, single_shot=True)
+        simulation.single_shot(self.p_state)
+        simulation.stop(self.p_state)
+
     def test_playpause(self):
-        configuration.PlusZ(self.p_state)
-        configuration.Skyrmion(p_state, 5)
-        simulation.PlayPause(self.p_state, "LLG", "SIB")
-    
+        configuration.plus_z(self.p_state)
+        configuration.skyrmion(p_state, 5)
+        simulation.start(self.p_state, LLG, SIB)
+
     def test_stopall(self):
-        simulation.Stop_All(self.p_state)
+        simulation.stop_all(self.p_state)
 
 class Simulation_Running(TestParameters):
     
     def test_running_image(self):
-        self.assertFalse(simulation.Running_Image(self.p_state))
-    
+        self.assertFalse(simulation.running_on_image(self.p_state))
+
     def test_running_chain(self):
-        self.assertFalse(simulation.Running_Chain(self.p_state))
-    
-    def test_running_collection(self):
-        self.assertFalse(simulation.Running_Collection(self.p_state))
-    
+        self.assertFalse(simulation.running_on_chain(self.p_state))
+
     def test_running_anywhere_chain(self):
-        self.assertFalse(simulation.Running_Anywhere_Chain(self.p_state))
-    
-    def test_running_anywhere_collection(self):
-        self.assertFalse(simulation.Running_Anywhere_Collection(self.p_state))
-    
+        self.assertFalse(simulation.running_anywhere_on_chain(self.p_state))
+
 #########
 
 def suite():

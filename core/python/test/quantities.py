@@ -24,8 +24,8 @@ class TestParameters(unittest.TestCase):
 class Quantities_Get(TestParameters):
     
     def test_magnetization(self):
-        configuration.PlusZ(self.p_state)
-        M = quantities.Get_Magnetization(self.p_state)
+        configuration.plus_z(self.p_state)
+        M = quantities.get_magnetization(self.p_state)
         self.assertAlmostEqual(M[0], 0)
         self.assertAlmostEqual(M[1], 0)
         self.assertAlmostEqual(M[2], 1)

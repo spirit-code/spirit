@@ -3,50 +3,40 @@
 #define DATA_PARAMETERS_METHOD_H
 
 #include "Spirit_Defines.h"
-#include <data/Pinning.hpp>
+#include <io/Fileformat.hpp>
 
 #include <string>
-#include <array>
-#include <random>
 
 namespace Data
 {
     // Solver Parameters Base Class
-    class Parameters_Method
+    struct Parameters_Method
     {
-    public:
-        // Constructor
-        Parameters_Method(std::string output_folder, std::string output_file_tag,
-            std::array<bool,3> output, long int n_iterations, long int n_iterations_log, 
-            long int max_walltime_sec, std::shared_ptr<Pinning> pinning, scalar force_convergence );
-
         // --------------- Iterations ------------
         // Number of iterations carried out when pressing "play" or calling "iterate"
-        long int n_iterations;
+        long int n_iterations = 1e6;
         // Number of iterations after which the Method should save data
-        long int n_iterations_log;
+        long int n_iterations_log = 1e3;
 
         // Maximum walltime for Iterate in seconds
-        long int max_walltime_sec;
-
-        // ---------------- Pinning --------------
-        // Info on pinned spins
-        std::shared_ptr<Pinning> pinning;
+        long int max_walltime_sec = 0;
 
         // Force convergence criterium
-        scalar force_convergence;
+        scalar force_convergence = 1e-10;
 
         // ----------------- Output --------------
         // Data output folder
-        std::string output_folder;
+        std::string output_folder = "output";
         // Put a tag in front of output files (if "<time>" is used then the tag is the timestamp)
-        std::string output_file_tag;
+        std::string output_file_tag = "<time>";
         // Save any output when logging
-        bool output_any;
+        bool output_any = false;
         // Save output at initial state
-        bool output_initial;
+        bool output_initial = false;
         // Save output at final state
-        bool output_final;
+        bool output_final = false;
+        // Vectorfield output file format
+        IO::VF_FileFormat output_vf_filetype = IO::VF_FileFormat::OVF_TEXT;
     };
 }
 #endif

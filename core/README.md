@@ -11,12 +11,6 @@ easily be generalised.
 The library is written in C++ but has been wrapped in Python for easier install and use.
 Other bindings should be easy to create.
 
-### Documentation
-* [Build instructions](docs/BUILD.md)
-* [API Reference](docs/API.md)
-* [Python API Reference](docs/API_Python.md)
-* [Input File Reference](docs/INPUT.md)
-
 ### Backends
 The core can be parallelized on GPU (CUDA) and CPU (OpenMP). This is realized by
 a subset of function definitions being implemented twice, while there is only
@@ -24,3 +18,6 @@ one set of function declarations.
 
 The CUDA backend uses unified memory to avoid manual allocations and data transfers
 between host and device and to duplicate as little code as possible.
+
+### Further information
+* [Input File Reference](docs/Input.md)

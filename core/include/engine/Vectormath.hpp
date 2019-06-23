@@ -18,6 +18,8 @@ namespace Engine
         /////////////////////////////////////////////////////////////////
         //////// Single Vector Math
 
+        // Angle between two vectors, assuming both are normalized
+        scalar angle(const Vector3 & v1, const Vector3 & v2);
         // Rotate a vector around an axis by a certain degree (Implemented with Rodrigue's formula)
         void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out);
         void rotate( const vectorfield & v, const vectorfield & axis, const scalarfield & angle, 
@@ -32,26 +34,55 @@ namespace Engine
         // Note: translations must lie within bounds of n_cells
         inline int idx_from_translations(const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations)
         {
-            int Na = n_cells[0];
-            int Nb = n_cells[1];
-            int Nc = n_cells[2];
-            int N = n_cell_atoms;
+            auto& Na = n_cells[0];
+            auto& Nb = n_cells[1];
+            auto& Nc = n_cells[2];
+            auto& N = n_cell_atoms;
 
-            int da = translations[0];
-            int db = translations[1];
-            int dc = translations[2];
+            auto& da = translations[0];
+            auto& db = translations[1];
+            auto& dc = translations[2];
 
             return da*N + db*N*Na + dc*N*Na*Nb;
         }
 
         #ifndef SPIRIT_USE_CUDA
 
-        inline int idx_from_translations(const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations_i, const std::array<int, 3> translations)
+        //Get the linear index in a n-D array where tupel contains the components in n-dimensions from fatest to slowest varying and maxVal is the extent in every dimension
+        inline int idx_from_tupel(const field<int> & tupel, const field<int> & maxVal)
         {
-            int Na = n_cells[0];
-            int Nb = n_cells[1];
-            int Nc = n_cells[2];
-            int N = n_cell_atoms;
+            int idx = 0;
+            int mult = 1;
+            for(int i = 0; i < tupel.size(); i++)
+            {
+                idx += mult * tupel[i];
+                mult *= maxVal[i];
+            }
+            return idx;
+        }
+
+        //reverse of idx_from_tupel
+        inline void tupel_from_idx(int & idx, field<int> & tupel, field<int> & maxVal)
+        {
+            int idx_diff = idx;
+            int div = 1;
+            for(int i = 0; i < tupel.size()-1; i++)
+                div *= maxVal[i]; 
+            for(int i = tupel.size() - 1; i > 0; i--)
+            {
+                tupel[i] = idx_diff / div;
+                idx_diff -= tupel[i] * div;
+                div /= maxVal[i - 1];
+            }
+            tupel[0] = idx_diff / div;
+        }
+
+        inline int idx_from_translations(const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations_i, const std::array<int, 3> & translations)
+        {
+            auto& Na = n_cells[0];
+            auto& Nb = n_cells[1];
+            auto& Nc = n_cells[2];
+            auto& N = n_cell_atoms;
 
             int da = translations_i[0] + translations[0];
             int db = translations_i[1] + translations[1];
@@ -64,9 +95,7 @@ namespace Engine
             if (translations[2] < 0)
                 dc += N*Na*Nb*Nc;
 
-            int idx = (da%Na)*N + (db%Nb)*N*Na + (dc%Nc)*N*Na*Nb;
-
-            return idx;
+            return (da%Na)*N + (db%Nb)*N*Na + (dc%Nc)*N*Na*Nb;
         }
 
         inline bool boundary_conditions_fulfilled(const intfield & n_cells, const intfield & boundary_conditions, const std::array<int, 3> & translations_i, const std::array<int, 3> & translations_j)
@@ -82,6 +111,51 @@ namespace Engine
         #endif
         #ifdef SPIRIT_USE_CUDA
     
+         //Get the linear index in a n-D array where tupel contains the components in n-dimensions from fatest to slowest varying and maxVal is the extent in every dimension
+        inline __device__ int cu_idx_from_tupel(field<int>& tupel, field<int>& maxVal)
+        {
+            int idx = 0;
+            int mult = 1;
+            for(int i = 0; i < tupel.size(); i++)
+            {
+                idx += mult * tupel[i];
+                mult *= maxVal[i];
+            }
+            return idx;
+        }
+
+        //reverse of idx_from_tupel
+        inline __device__ void cu_tupel_from_idx(int & idx, int* tupel, int* maxVal, int n)
+        {
+            int idx_diff = idx;
+            int div = 1;
+            for(int i = 0; i < n-1; i++)
+                div *= maxVal[i]; 
+            for(int i = n - 1; i > 0; i--)
+            {
+                tupel[i] = idx_diff / div;
+                idx_diff -= tupel[i] * div;
+                div /= maxVal[i - 1];
+            }
+            tupel[0] = idx_diff / div;
+        }
+
+        inline void tupel_from_idx(int & idx, field<int> & tupel, const field<int> & maxVal)
+        {
+            int idx_diff = idx;
+            int div = 1;
+            for(int i = 0; i < maxVal.size()-1; i++)
+                div *= maxVal[i]; 
+            for(int i = maxVal.size()-1; i > 0; i--)
+            {
+                tupel[i] = idx_diff / div;
+                idx_diff -= tupel[i] * div;
+                div /= maxVal[i - 1];
+            }
+            tupel[0] = idx_diff / div;
+        }
+
+
         inline int idx_from_translations(const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations_i, const int translations[3])
         {
             int Na = n_cells[0];
@@ -375,15 +449,11 @@ namespace Engine
         /////////////////////////////////////////////////////////////////
         //////// Vectorfield Math - special stuff
 
-        // Build an array of spin positions and atom types. TODO: find a better name for this function
-        void Build_Spins(vectorfield & positions, intfield & atom_types,
-                         const std::vector<Vector3> & cell_atoms, const intfield & cell_atom_types,
-                         const std::vector<Vector3> & translation_vectors, const intfield & n_cells);
         // Calculate the mean of a vectorfield
         std::array<scalar, 3> Magnetization(const vectorfield & vf);
         // Calculate the topological charge inside a vectorfield
-        scalar TopologicalCharge(const vectorfield & vf, const vectorfield & vf_pos, const std::vector<std::array<int, 3>> & triangulation);
-
+        scalar TopologicalCharge(const vectorfield & vf, const Data::Geometry & geom, const intfield & boundary_conditions);
+        
         // Utility function for the SIB Solver - maybe create a MathUtil namespace?
         void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out);
 
@@ -404,18 +474,13 @@ namespace Engine
 
         // Re-distribute a given field according to a new set of dimensions.
         template <typename T>
-        field<T> change_dimensions(field<T> & oldfield, const Data::Geometry & geometry_old, const Data::Geometry & geometry_new,
+        field<T> change_dimensions(field<T> & oldfield, const int n_cell_atoms_old, const intfield & n_cells_old,
+            const int n_cell_atoms_new, const intfield & n_cells_new,
             T default_value, std::array<int,3> shift = std::array<int,3>{0,0,0})
         {
-            auto& n_cells_old      = geometry_old.n_cells;
-            auto& n_cell_atoms_old = geometry_old.n_cell_atoms;
-
-            auto& n_cells_new = geometry_new.n_cells;
             // As a workaround for compatibility with the intel compiler, the loop boundaries are copied to a local array;
             //  not sure whether the "parallel loops with collapse must be perfectly nested" error (without this) is a compiler bug or standard conform behaviour
-            const int n_cells_new_local_copy[] = {geometry_new.n_cells[0],geometry_new.n_cells[1],geometry_new.n_cells[2]};
-
-            auto& n_cell_atoms_new = geometry_new.n_cell_atoms;
+            const int n_cells_new_local_copy[] = {n_cells_new[0],n_cells_new[1],n_cells_new[2]};
 
             int N_new = n_cell_atoms_new * n_cells_new[0] * n_cells_new[1] * n_cells_new[2];
             field<T> newfield(N_new, default_value);
@@ -496,6 +561,9 @@ namespace Engine
 
         // Scale a vectorfield by a given value
         void scale(vectorfield & vf, const scalar & sc);
+
+        // Scale a vectorfield by a scalarfield or its inverse
+        void scale(vectorfield & vf, const scalarfield & sf, bool inverse=false);
 
         // Sum over a vectorfield
         Vector3 sum(const vectorfield & vf);

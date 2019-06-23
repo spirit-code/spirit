@@ -2,585 +2,601 @@
 #include <engine/Method_MMF.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
+#include <engine/Eigenmodes.hpp>
 #include <io/IO.hpp>
 #include <io/OVF_File.hpp>
 #include <utility/Logging.hpp>
+#include <utility/Version.hpp>
+
+#include <string.h>
 
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
-//#include <unsupported/Eigen/CXX11/Tensor>
-#include <GenEigsSolver.h>  // Also includes <MatOp/DenseGenMatProd.h>
-#include <GenEigsRealShiftSolver.h>
 
 #include <fmt/format.h>
 
 using Utility::Log_Level;
 using Utility::Log_Sender;
+namespace C = Utility::Constants;
 
 namespace Engine
 {
-	template <Solver solver>
-    Method_MMF<solver>::Method_MMF(std::shared_ptr<Data::Spin_System_Chain_Collection> collection, int idx_chain) :
-        Method_Solver<solver>(collection->parameters, -1, idx_chain), collection(collection)
+    template <Solver solver>
+    Method_MMF<solver>::Method_MMF(std::shared_ptr<Data::Spin_System> system, int idx_chain) :
+        Method_Solver<solver>(system->mmf_parameters, -1, idx_chain)
     {
-		int noc = collection->noc;
-		int nos = collection->chains[0]->images[0]->nos;
-		switched1 = false;
-		switched2 = false;
-		this->SenderName = Utility::Log_Sender::MMF;
-        
-        // The systems we use are the last image of each respective chain
-        for (int ichain = 0; ichain < noc; ++ichain)
-		{
-			this->systems.push_back(this->collection->chains[ichain]->images.back());
-		}
+        this->systems = std::vector<std::shared_ptr<Data::Spin_System>>(1, system);
+        this->system = system;
+        this->noi = this->systems.size();
+        this->nos = this->systems[0]->nos;
 
-		// History
+        switched1 = false;
+        switched2 = false;
+        this->SenderName = Utility::Log_Sender::MMF;
+
+        // History
         this->history = std::map<std::string, std::vector<scalar>>{
-			{"max_torque_component", {this->force_max_abs_component}} };
+            {"max_torque_component", {this->force_max_abs_component}} };
 
-		// We assume that the systems are not converged before the first iteration
-		this->force_max_abs_component = this->collection->parameters->force_convergence + 1.0;
+        // We assume that the systems are not converged before the first iteration
+        this->force_max_abs_component = system->mmf_parameters->force_convergence + 1.0;
 
-		this->hessian = std::vector<MatrixX>(noc, MatrixX(3*nos, 3*nos));	// [noc][3nos]
-		// Forces
-		this->gradient   = std::vector<vectorfield>(noc, vectorfield(nos));	// [noc][3nos]
-		this->minimum_mode = std::vector<vectorfield>(noc, vectorfield(nos));	// [noc][3nos]
-		this->xi = vectorfield(this->nos, {0,0,0});
+        this->hessian = MatrixX(3*this->nos, 3*this->nos);
+        // Forces
+        this->gradient     = vectorfield(this->nos, {0,0,0});
+        this->minimum_mode = vectorfield(this->nos, {0,0,0});
+        this->xi           = vectorfield(this->nos, {0,0,0});
 
-		// Last iteration
-		this->spins_last = std::vector<vectorfield>(noc, vectorfield(nos));	// [noc][3nos]
-		this->spins_last[0] = *this->systems[0]->spins;
-		this->Rx_last = 0.0;
+        // Last iteration
+        this->spins_last = vectorfield(this->nos);
+        this->Rx_last = 0.0;
 
-		// Force function
-		// ToDo: move into parameters
-		this->mm_function = "Spectra Matrix"; // "Spectra Matrix" "Spectra Prefactor" "Lanczos"
+        // Force function
+        // ToDo: move into parameters
+        this->mm_function = "Spectra Matrix"; // "Spectra Matrix" "Spectra Prefactor" "Lanczos"
+
+        this->mode_follow_previous = 0;
+
+        // Create shared pointers to the method's systems' spin configurations
+        this->configurations = std::vector<std::shared_ptr<vectorfield>>(1);
+        this->configurations[0] = this->system->spins;
 
         //---- Initialise Solver-specific variables
         this->Initialize();
     }
-	
 
-	template <Solver solver>
+
+    template <Solver solver>
     void Method_MMF<solver>::Calculate_Force(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
     {
-		if (this->mm_function == "Spectra Matrix")
-		{
-			this->Calculate_Force_Spectra_Matrix(configurations, forces);
-		}
-		/*else if (this->mm_function == "Spectra Prefactor")
-		{
-			this->Calculate_Force_Spectra_Prefactor(configurations, forces);
-		}
-		else if (this->mm_function == "Lanczos")
-		{
-			this->Calculate_Force_Lanczos(configurations, forces);
-		}*/
-		#ifdef SPIRIT_ENABLE_PINNING
-			Vectormath::set_c_a(1, forces[0], forces[0], this->parameters->pinning->mask_unpinned);
-		#endif // SPIRIT_ENABLE_PINNING
+        // if (this->mm_function == "Spectra Matrix")
+        // {
+            this->Calculate_Force_Spectra_Matrix(configurations, forces);
+        // }
+        // else if (this->mm_function == "Lanczos")
+        // {
+        //     this->Calculate_Force_Lanczos(configurations, forces);
+        // }
+        #ifdef SPIRIT_ENABLE_PINNING
+            Vectormath::set_c_a(1, forces[0], forces[0], this->systems[0]->geometry->mask_unpinned);
+        #endif // SPIRIT_ENABLE_PINNING
     }
 
-	MatrixX projector(vectorfield & image)
-	{
-		int nos = image.size();
-		int size = 3*nos;
 
-		// Get projection matrix M=1-S, blockwise S=x*x^T
-		MatrixX proj = MatrixX::Identity(size, size);
-		for (int i = 0; i < nos; ++i)
-		{
-			proj.block<3, 3>(3*i, 3*i) -= image[i] * image[i].transpose();
-		}
+    void check_modes(const vectorfield & image, const vectorfield & gradient, const MatrixX & tangent_basis, const VectorX & eigenvalues, const MatrixX & eigenvectors_2N, const vectorfield & minimum_mode)
+    {
+        int nos = image.size();
 
-		return proj;
-	}
-
-	template <Solver solver>
-	void Method_MMF<solver>::Calculate_Force_Spectra_Matrix(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
-	{
-		const int nos = configurations[0]->size();
-		// std::cerr << "mmf iteration" << std::endl;
-		
-		// Loop over chains and calculate the forces
-		for (int ichain = 0; ichain < this->collection->noc; ++ichain)
-		{
-			auto& image = *configurations[ichain];
-			auto& hess = hessian[ichain];
-
-			// Copy std::vector<Eigen::Vector3> into one single Eigen::VectorX
-			Eigen::Ref<VectorX> x = Eigen::Map<VectorX>(image[0].data(), 3 * nos);
-			
-			// The gradient (unprojected)
-			this->systems[ichain]->hamiltonian->Gradient(image, gradient[ichain]);
-
-			// The Hessian (unprojected)
-			this->systems[ichain]->hamiltonian->Hessian(image, hess);
-
-			// The projection matrix
-			auto P = projector(image);
-
-			// std::cerr << "------------------------" << std::endl;
-			// std::cerr << "x:             " << x.transpose() << std::endl;
-			// std::cerr << "gradient:      " << gradient.transpose() << std::endl;
-			// std::cerr << "hessian:       " << std::endl << hess << std::endl;
-			// std::cerr << "projector:     " << std::endl << P << std::endl;
-			// std::cerr << "gradient proj: " << std::endl << (P*grad).transpose() << std::endl;
-			// std::cerr << "hessian proj:  " << std::endl << P*hess*P << std::endl;
-
-			// Eigen::EigenSolver<Eigen::MatrixXd> estest1(hess);
-			// td::cerr << "hessian:    " << std::endl << hess << std::endl;
-			// std::cerr << "eigen vals: " << std::endl << estest1.eigenvalues() << std::endl;
-			// std::cerr << "eigen vecs: " << std::endl << estest1.eigenvectors().real() << std::endl;
+        // ////////////////////////////////////////////////////////////////
+        // // Check for complex numbers in the eigenvalues
+        // if (std::abs(hessian_spectrum.eigenvalues().imag()[0]) > 1e-8)
+        //     std::cerr << "     >>>>>>>> WARNING  nonzero complex EW    WARNING" << std::endl;
+        // for (int ispin=0; ispin<nos; ++ispin)
+        // {
+        //     if (std::abs(hessian_spectrum.eigenvectors().col(0).imag()[0]) > 1e-8)
+        //         std::cerr << "     >>>>>>>> WARNING  nonzero complex EV x  WARNING" << std::endl;
+        //     if (std::abs(hessian_spectrum.eigenvectors().col(0).imag()[1]) > 1e-8)
+        //         std::cerr << "     >>>>>>>> WARNING  nonzero complex EV y  WARNING" << std::endl;
+        //     if (std::abs(hessian_spectrum.eigenvectors().col(0).imag()[2]) > 1e-8)
+        //         std::cerr << "     >>>>>>>> WARNING  nonzero complex EV z  WARNING" << std::endl;
+        // }
+        // ////////////////////////////////////////////////////////////////
 
 
-			/*
-			/  Remove Hessian's components in the basis of the image (project it into tangent space)
-			/      and add the gradient contributions (inner and outer product)
-			*/
-
-			// Correction components
-			// TODO: write Kernel for this
-			//     the following is equivalent to hess = P*hess*P but that could not be parallelized on the GPU
-			// for (int i = 0; i < nos; ++i)
-			// {
-			// 	for (int j = 0; j < nos; ++j)
-			// 	{
-			// 		hess.block<3, 3>(3*i, 3*j) = P.block<3, 3>(3*i, 3*i) * hess.block<3, 3>(3*i, 3*j) * P.block<3, 3>(3*j, 3*j);
-			// 	}
-			// }
-
-			// // Hessian projection components (diagonal contribution blocks)
-			// // TODO: write Kernel for this
-			// for (int i = 0; i < nos; ++i)
-			// {
-			// 	hess.block<3, 3>(3*i, 3*i) -= P.block<3, 3>(3*i, 3*i)*(image[i].dot(gradient[ichain][i])) + (P.block<3, 3>(3*i, 3*i)*gradient[ichain][i])*image[i].transpose();
-			// }
-			
-			// // std::cerr << "hessian final: " << std::endl << hess << std::endl;
-
-
-    		// // Eigen::EigenSolver<Eigen::MatrixXd> estest1(hess);
-			// // Eigen::VectorXd estestvals = estest1.eigenvalues().real();
-			// // std::sort(estestvals.data(),estestvals.data()+estestvals.size());
-			// // std::cerr << "eigen vals (" << estestvals.size() << "): " << std::endl << estestvals.transpose() << std::endl;
-			// // int n_zero=0;
-			// // for (int _i=0; _i<estestvals.size(); ++_i)
-			// // {
-			// // 	if (std::abs(estestvals[_i]) < 1e-7) ++n_zero;
-			// // }
-			// // std::cerr << std::endl << "number of zero eigenvalues: " << n_zero << std::endl;
-
-			// // Get the lowest Eigenvector
-			// //		Create a Spectra solver
-			// Spectra::DenseGenMatProd<scalar> op(hess);
-			// Spectra::GenEigsSolver< scalar, Spectra::SMALLEST_REAL, Spectra::DenseGenMatProd<scalar> > hessian_spectrum(&op, 1, 3*nos);
-			// hessian_spectrum.init();
-			// //		Compute the specified spectrum
-			// int nconv = hessian_spectrum.compute();
-			// if (hessian_spectrum.info() == Spectra::SUCCESSFUL)
-			// {
-			// 	// Calculate the Force
-			// 	// 		Retrieve the Eigenvalues
-			// 	VectorX evalues = hessian_spectrum.eigenvalues().real();
-				
-			// 	//std::cerr << "spectra val: " << std::endl << hessian_spectrum.eigenvalues() << std::endl;
-			// 	//std::cerr << "spectra vec: " << std::endl << -reorder_vector(hessian_spectrum.eigenvectors().col(0).real()) << std::endl;
-				
-			// 	// 		Check if the lowest eigenvalue is negative
-			// 	if (evalues[0] < -1e-5)// || switched2)
-			// 	{
-			// 		// std::cerr << "negative region " << evalues.transpose() << std::endl;
-			// 		if (switched1)
-			// 			switched2 = true;
-			// 		// Retrieve the Eigenvectors
-			// 		MatrixX evectors = hessian_spectrum.eigenvectors().real();
-			// 		Eigen::Ref<VectorX> evec = evectors.col(0);
-
-			// 		// The following line does not seem to work with Eigen3.3
-			// 		// this->minimum_mode[ichain] = vectorfield(evec.data(), evec.data() + evec.rows()*evec.cols());
-			// 		// TODO: use Eigen's Map or Ref instead
-			// 		for (int n=0; n<nos; ++n)
-			// 		{
-			// 			this->minimum_mode[ichain][n] = {evec[3*n], evec[3*n+1], evec[3*n+2]};
-			// 		}
-
-			// 		scalar check = Vectormath::dot(minimum_mode[ichain], image);
-			// 		scalar checknorm = Manifoldmath::norm(minimum_mode[ichain]);
-			// 		if (std::abs(check) > 1e-8 || std::abs(checknorm) < 1e-8)
-			// 		{
-			// 			std::cerr << "-------------------------" << std::endl;
-			// 			std::cerr << "BAD MODE! evalue = " << evalues[0] << std::endl;
-			// 			std::cerr << "-------------------------" << std::endl;
-			// 		}
+        ////////////////////////////////////////////////////////////////
+        // For one of the tests
+        auto gradient_tangential = gradient;
+        Manifoldmath::project_tangential(gradient_tangential, image);
+        // Get the tangential gradient in 2N-representation
+        Eigen::Ref<VectorX> gradient_tangent_3N = Eigen::Map<VectorX>(gradient_tangential[0].data(), 3 * nos);
+        VectorX gradient_tangent_2N             = tangent_basis.transpose() * gradient_tangent_3N;
+        // Eigenstuff
+        scalar eval_lowest = eigenvalues[0];
+        VectorX evec_lowest_2N = eigenvectors_2N.col(0);
+        VectorX evec_lowest_3N = tangent_basis * evec_lowest_2N;
+        /////////
+        // Norms
+        scalar image_norm           = Manifoldmath::norm(image);
+        scalar grad_norm            = Manifoldmath::norm(gradient);
+        scalar grad_tangent_norm    = Manifoldmath::norm(gradient_tangential);
+        scalar mode_norm            = Manifoldmath::norm(minimum_mode);
+        scalar mode_norm_2N         = evec_lowest_2N.norm();
+        // Scalar products
+        scalar mode_dot_image       = std::abs(Vectormath::dot(minimum_mode, image) / mode_norm); // mode should be orthogonal to image in 3N-space
+        scalar mode_grad_angle      = std::abs(evec_lowest_3N.dot(gradient_tangent_3N) / evec_lowest_3N.norm() / gradient_tangent_3N.norm());
+        scalar mode_grad_angle_2N   = std::abs(evec_lowest_2N.dot(gradient_tangent_2N) / evec_lowest_2N.norm() / gradient_tangent_2N.norm());
+        // Do some more checks to ensure the mode fulfills our requirements
+        bool bad_image_norm         = 1e-8  < std::abs( image_norm - std::sqrt((scalar)nos) ); // image norm should be sqrt(nos)
+        bool bad_grad_norm          = 1e-8  > grad_norm;         // gradient should not be a zero vector
+        bool bad_grad_tangent_norm  = 1e-8  > grad_tangent_norm; // gradient should not be a zero vector in tangent space
+        bool bad_mode_norm          = 1e-8  > mode_norm;         // mode should not be a zero vector
+        /////////
+        bool bad_mode_dot_image     = 1e-10 < mode_dot_image;     // mode should be orthogonal to image in 3N-space
+        bool bad_mode_grad_angle    = 1e-8  > mode_grad_angle;    // mode should not be orthogonal to gradient in 3N-space
+        bool bad_mode_grad_angle_2N = 1e-8  > mode_grad_angle_2N; // mode should not be orthogonal to gradient in 2N-space
+        /////////
+        bool eval_nonzero           = 1e-8  < std::abs(eval_lowest);
+        /////////
+        if ( bad_image_norm     || bad_mode_norm  || bad_grad_norm        || bad_grad_tangent_norm   ||
+             bad_mode_dot_image || ( eval_nonzero && (bad_mode_grad_angle || bad_mode_grad_angle_2N) ) )
+        {
+            // scalar theta, phi;
+            // Manifoldmath::spherical_from_cartesian(image[1], theta, phi);
+            std::cerr << "-------------------------"                       << std::endl;
+            std::cerr << "BAD MODE! evalue =      " << eigenvalues[0]          << std::endl;
+            // std::cerr << "image (theta,phi):      " << theta << " " << phi << std::endl;
+            std::cerr << "image norm:             " << image_norm          << std::endl;
+            std::cerr << "mode norm:              " << mode_norm           << std::endl;
+            std::cerr << "mode norm 2N:           " << mode_norm_2N        << std::endl;
+            std::cerr << "grad norm:              " << grad_norm           << std::endl;
+            std::cerr << "grad norm tangential:   " << grad_tangent_norm   << std::endl;
+            if (bad_image_norm)
+                std::cerr << "   image norm is not equal to sqrt(nos): " << image_norm << std::endl;
+            if (bad_mode_norm)
+                std::cerr << "   mode norm is too small: "               << mode_norm  << std::endl;
+            if (bad_grad_norm)
+                std::cerr << "   gradient norm is too small: "           << grad_norm  << std::endl;
+            if (bad_mode_dot_image)
+            {
+                std::cerr << "   mode NOT TANGENTIAL to SPINS: "         << mode_dot_image << std::endl;
+                std::cerr << "             >>> check the (3N x 2N) spherical basis matrix" << std::endl;
+            }
+            if ( eval_nonzero && (bad_mode_grad_angle || bad_mode_grad_angle_2N) )
+            {
+                std::cerr << "   mode is ORTHOGONAL to GRADIENT: 3N = " << mode_grad_angle << std::endl;
+                std::cerr << "                              >>>  2N = " << mode_grad_angle_2N << std::endl;
+            }
+            std::cerr << "-------------------------" << std::endl;
+        }
+        ////////////////////////////////////////////////////////////////
+    }
 
 
-			// 		//for (int _i = 0; _i < forces[ichain].size(); ++_i) minimum_mode[ichain][_i] = -minimum_mode[ichain][_i];
-			// 		// 		Normalize the mode vector in 3N dimensions
-			// 		Engine::Manifoldmath::normalize(this->minimum_mode[ichain]);
-					
-					
-			// 		// Invert the gradient force along the minimum mode
-			// 		Engine::Manifoldmath::invert_parallel(gradient[ichain], minimum_mode[ichain]);
-			// 		// Copy out the forces
-			// 		for (unsigned int _i = 0; _i < forces[ichain].size(); ++_i) forces[ichain][_i] = -gradient[ichain][_i];
-			// 		//forces[ichain] = gradient[ichain];
-					
-			// 		// std::cerr << "grad      " << gradient[ichain][0] << " " << gradient[ichain][1] << " " << gradient[ichain][2] << std::endl;
-			// 		// std::cerr << "min mode: " << std::endl << evec << std::endl;
-			// 		// std::cerr << "mode      " << minimum_mode[ichain][0] << " " << minimum_mode[ichain][1] << " " << minimum_mode[ichain][2] << std::endl;
-			// 		// std::cerr << "force     " << forces[ichain][0] << " " << forces[ichain][1] << " " << forces[ichain][2] << std::endl;
-			// 	}
-			// 	//		Otherwise we seek for the lowest nonzero eigenvalue
-			// 	else
-			// 	{
-			// 		switched1 = true;
-			// 		// std::cerr << "positive region " << evalues.transpose() << std::endl;
-			// 		///////////////////////////////////
-			// 		//// The Eigen way... calculate them all... Inefficient! Do it the spectra way instead!
-			// 		//Eigen::EigenSolver<Eigen::MatrixXd> estest1(hess);
-			// 		//std::cerr << "hessian:    " << std::endl << hess << std::endl;
-			// 		//std::cerr << "eigen vals: " << std::endl << estest1.eigenvalues() << std::endl;
-			// 		//std::cerr << "eigen vecs: " << std::endl << reorder_matrix(estest1.eigenvectors().real()) << std::endl;
-			// 		///////////////////////////////////
 
-			// 		// // Create the Minimum Mode
-			// 		// Spectra::DenseGenRealShiftSolve<scalar> op_pos(hess);
-			// 		// Spectra::GenEigsRealShiftSolver< scalar, Spectra::SMALLEST_REAL, Spectra::DenseGenRealShiftSolve<scalar> > hessian_spectrum_pos(&op_pos, 1, 3 * nos, 1.0e-5);
-			// 		// hessian_spectrum_pos.init();
-			// 		// //		Compute the specified spectrum
-			// 		// int nconv = hessian_spectrum_pos.compute();
-			// 		// // 		Retrieve the Eigenvectors
-			// 		// //std::cerr << "-----" << std::endl;
-			// 		// //std::cerr << "spectra:" << std::endl;
-			// 		// //std::cerr << hessian_spectrum_pos.eigenvalues() << std::endl;
-			// 		// //std::cerr << hessian_spectrum_pos.eigenvectors().real() << std::endl;
-			// 		// //std::cerr << "-----" << std::endl;
-			// 		// Eigen::MatrixXd evectors = hessian_spectrum_pos.eigenvectors().real();
-			// 		// //auto evec = evectors.col(0);
-			// 		// Eigen::Ref<Eigen::VectorXd> evec = evectors.col(0);
+    template <Solver solver>
+    void Method_MMF<solver>::Calculate_Force_Spectra_Matrix(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
+    {
+        auto& image = *configurations[0];
+        auto& force = forces[0];
+        // auto& force_virtual = forces_virtual[0];
+        auto& parameters = *this->systems[0]->mmf_parameters;
 
-			// 		// for (int n=0; n<nos; ++n)
-			// 		// {
-			// 		// 	this->minimum_mode[ichain][n] = {evec[3*n], evec[3*n+1], evec[3*n+2]};
-			// 		// }
+        const int nos = this->nos;
 
-			// 		// Engine::Manifoldmath::normalize(this->minimum_mode[ichain]);
+        // Number of lowest modes to be calculated
+        int n_modes = parameters.n_modes;
+        // Mode to follow in the positive region
+        int mode_positive = parameters.n_mode_follow;
+        mode_positive = std::max(0, std::min(n_modes-1, mode_positive));
+        // Mode to follow in the negative region
+        int mode_negative = parameters.n_mode_follow;
+        if (false)  // if (parameters.negative_follow_lowest)
+            mode_negative = 0;
+        mode_negative = std::max(0, std::min(n_modes-1, mode_negative));
+
+        // The gradient (unprojected)
+        this->systems[0]->hamiltonian->Gradient(image, gradient);
+        Vectormath::set_c_a(1, gradient, gradient, this->systems[0]->geometry->mask_unpinned);
+
+        // The Hessian (unprojected)
+        this->systems[0]->hamiltonian->Hessian(image, hessian);
+
+        Eigen::Ref<VectorX> image_3N = Eigen::Map<VectorX>(image[0].data(), 3*nos);
+        Eigen::Ref<VectorX> gradient_3N  = Eigen::Map<VectorX>(gradient[0].data(), 3*nos);
+
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+        // Get the eigenspectrum
+        MatrixX hessian_final = MatrixX::Zero(2*nos, 2*nos);
+        MatrixX basis_3Nx2N = MatrixX::Zero(3*nos, 2*nos);
+        VectorX eigenvalues;
+        MatrixX eigenvectors;
+        bool successful = Eigenmodes::Hessian_Partial_Spectrum(this->parameters, image, gradient, hessian, n_modes, basis_3Nx2N, hessian_final, eigenvalues, eigenvectors);
+
+        if (successful)
+        {
+            // TODO: if the mode that is followed in the positive region is not no. 0,
+            //       the following won't work!!
+            //       Need to save the mode_follow as a local variable and update it as necessary.
+            //       Question: what to do when MMF is paused and re-started? Do we remember the
+            //       correct mode, and if yes how?
+            //       Note: it should be distinguished if we are starting in the positive or negative
+            //       region. Probably some of this should go into the constructor.
+
+            // Determine the mode to follow
+            int mode_follow = mode_negative;
+            if (eigenvalues[0] > -1e-6)
+                mode_follow = mode_positive;
 
 
-			// 		// //this->minimum_mode[ichain] = std::vector<scalar>(evec.data(), evec.data() + evec.rows()*evec.cols());
-			// 		// ////for (int _i = 0; _i < forces[ichain].size(); ++_i) minimum_mode[ichain][_i] = -minimum_mode[ichain][_i];
-			// 		// //// 		Normalize the mode vector in 3N dimensions
-			// 		// //Utility::Vectormath::Normalize(this->minimum_mode[ichain]);
+            if (true)// && eigenvalues[0] > -1e-6)
+            {
+                // Determine if we are still following the same mode and correct if not
+                // std::abs(mode_2N_previous.dot(eigenvectors.col(mode_follow))) < 1e-2
+                // std::abs(mode_2N_previous.dot(eigenvectors.col(itest)))       >= 1-1e-4
+                if (mode_2N_previous.size() > 0)
+                {
+                    mode_follow = mode_follow_previous;
+                    scalar mode_dot_mode = std::abs(mode_2N_previous.dot(eigenvectors.col(mode_follow)));
+                    if (mode_dot_mode < 0.99)
+                    {
+                        // Need to look for our mode
+                        std::cerr << fmt::format("Looking for previous mode, which used to be {}...", mode_follow_previous);
+                        int ntest = 6;
+                        // int start = std::max(0, mode_follow_previous-ntest);
+                        // int stop  = std::min(n_modes, mode_follow_previous+ntest);
+                        for (int itest = 0; itest < n_modes; ++itest)
+                        {
+                            scalar m_dot_m_test = std::abs(mode_2N_previous.dot(eigenvectors.col(itest)));
+                            if (m_dot_m_test > mode_dot_mode)
+                            {
+                                mode_follow = itest;
+                                mode_dot_mode = m_dot_m_test;
+                            }
+                        }
+                        if (mode_follow != mode_follow_previous)
+                            std::cerr << fmt::format("Found mode no. {}", mode_follow) << std::endl;
+                        else
+                            std::cerr << "Did not find a new mode..." << std::endl;
+                    }
+                }
 
-			// 		// ////// 		Copy via assignment
-			// 		// ////this->minimum_mode[ichain] = std::vector<scalar>(evec_min.data(), evec_min.data() + evec_min.rows()*evec_min.cols());
-			// 		// ////// 		Normalize the mode vector in 3N dimensions
-			// 		// ////Utility::Vectormath::Normalize(this->minimum_mode[ichain]);
-			// 		// ////// We are too close to the local minimum so we have to use a strong force
-			// 		// //////		We apply the force against the minimum mode of the positive eigenvalue
-			// 		// scalar v1v2 = 0.0;
-			// 		// for (int i = 0; i < nos; ++i)
-			// 		// {
-			// 		// 	v1v2 += gradient[ichain][i].dot(minimum_mode[ichain][i]);
-			// 		// }
-			// 		// // Take out component in direction of v2
-			// 		// for (int i = 0; i < nos; ++i)
-			// 		// {
-			// 		// 	gradient[ichain][i] =  -v1v2 * minimum_mode[ichain][i]; // -gradient[ichain][i]
-			// 		// }
+                // Save chosen mode as "previous" for next iteration
+                mode_follow_previous = mode_follow;
+                mode_2N_previous = eigenvectors.col(mode_follow);
+            }
 
-			// 		// for (int i = 0; i < nos; ++i)
-			// 		// {
-			// 		// 	forces[ichain][i] =  -gradient[ichain][i];
-			// 		// }
 
-			// 		// Copy out the forces
-			// 		forces[ichain] = gradient[ichain];
-			// 	}
-			// 	//std::cerr << "------------------------" << std::endl;
-			// }
-			// else
-			// {
-			// 	Log(Log_Level::Error, Log_Sender::MMF, "Failed to calculate eigenvectors of the Hessian!");
-			// 	Log(Log_Level::Info, Log_Sender::MMF, "Zeroing the MMF force...");
-			// 	for (Vector3 x : forces[ichain]) x.setZero();
-			// }
-		}
-		// std::cerr << "mmf iteration done" << std::endl;
-	}
+            // Ref to correct mode
+            Eigen::Ref<VectorX> mode_2N = eigenvectors.col(mode_follow);
+            scalar mode_evalue = eigenvalues[mode_follow];
 
-	
 
-	void printmatrix(MatrixX & m)
-	{
-		std::cerr << m << std::endl;
-	}
+            // Retrieve the chosen mode as vectorfield
+            VectorX mode_3N = basis_3Nx2N * mode_2N;
+            for (int n=0; n<nos; ++n)
+                this->minimum_mode[n] = {mode_3N[3*n], mode_3N[3*n+1], mode_3N[3*n+2]};
 
-		
+            // Get the scalar product of mode and gradient
+            scalar mode_grad = mode_3N.dot(gradient_3N);
+            // Get the angle between mode and gradient (in the tangent plane!)
+            VectorX graient_tangent_3N = gradient_3N - gradient_3N.dot(image_3N) * image_3N;
+            scalar mode_grad_angle = std::abs( mode_grad / (mode_3N.norm()*gradient_3N.norm()) );
+
+            // Make sure there is nothing wrong
+            check_modes(image, gradient, basis_3Nx2N, eigenvalues, eigenvectors, minimum_mode);
+
+            Manifoldmath::project_tangential(gradient, image);
+
+            // Some debugging prints
+            if (mode_evalue < -1e-6 && mode_grad_angle > 1e-8)// -1e-6)// || switched2)
+            {
+                std::cerr << fmt::format("negative region: {:<65}   mode={}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), mode_follow, std::acos(std::min(mode_grad_angle, scalar(1.0)))*180.0/C::Pi, std::abs(mode_grad)) << std::endl;
+            }
+            else if (mode_grad_angle > 1e-8)
+            {
+                std::cerr << fmt::format("positive region: {:<65}   mode={}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), mode_follow, std::acos(std::min(mode_grad_angle, scalar(1.0)))*180.0/C::Pi, std::abs(mode_grad)) << std::endl;
+            }
+            else
+            {
+                if (std::abs(mode_evalue) > 1e-8)
+                {
+                    std::cerr << fmt::format("bad region:      {:<65}   mode={}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), mode_follow, std::acos(std::min(mode_grad_angle, scalar(1.0)))*180.0/C::Pi, std::abs(mode_grad)) << std::endl;
+                }
+                else
+                {
+                    std::cerr << fmt::format("zero region:     {:<65}   mode={}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(), mode_follow, std::acos(std::min(mode_grad_angle, scalar(1.0)))*180.0/C::Pi, std::abs(mode_grad)) << std::endl;
+                }
+            }
+
+            // TODO: parameter whether to *always* follow the minimum mode
+            if (false)
+            {
+                // Invert the gradient force along the minimum mode
+                Manifoldmath::invert_parallel(gradient, minimum_mode);
+
+                // Copy out the forces
+                Vectormath::set_c_a(-1, gradient, force, this->systems[0]->geometry->mask_unpinned);
+            }
+            else
+            {
+                if (eigenvalues[0] < -1e-6 && mode_grad_angle > 1e-8)// -1e-6)// || switched2)
+                {
+                    // Invert the gradient force along the minimum mode
+                    Manifoldmath::invert_parallel(gradient, minimum_mode);
+
+                    // Copy out the forces
+                    Vectormath::set_c_a(-1, gradient, force, this->systems[0]->geometry->mask_unpinned);
+                }
+                else if (mode_grad_angle > 1e-8)
+                {
+                    // TODO: add switch between gradient and mode following for positive region
+                    if (false)
+                    {
+                        // Calculate the force
+                        // Vectormath::set_c_a(mode_grad, this->minimum_mode, force, this->systems[0]->geometry->mask_unpinned);
+                        int sign = (scalar(0) < mode_grad) - (mode_grad < scalar(0));
+                        Vectormath::set_c_a(sign, this->minimum_mode, force, this->systems[0]->geometry->mask_unpinned);
+                    }
+                    else
+                    {
+                        // Copy out the forces
+                        Vectormath::set_c_a(1, gradient, force, this->systems[0]->geometry->mask_unpinned);
+                    }
+                }
+                else
+                {
+                    if (std::abs(mode_evalue) > 1e-8)
+                    {
+                        // Invert the gradient force along the minimum mode
+                        Manifoldmath::invert_parallel(gradient, minimum_mode);
+
+                        // Copy out the forces
+                        Vectormath::set_c_a(-1, gradient, force, this->systems[0]->geometry->mask_unpinned);
+                    }
+                    else
+                    {
+                        // Copy out the forces
+                        Vectormath::set_c_a(1, gradient, force, this->systems[0]->geometry->mask_unpinned);
+                    }
+                }
+            }
+        }
+        else
+        {
+            // Spectra was not successful in calculating an eigenvector
+            Log(Log_Level::Error, Log_Sender::MMF, "Failed to calculate eigenvectors of the Hessian!");
+            Log(Log_Level::Info,  Log_Sender::MMF, "Zeroing the MMF force...");
+            Vectormath::fill(force, Vector3{0,0,0});
+        }
+    }
+
+
+    void printmatrix(MatrixX & m)
+    {
+        std::cerr << m << std::endl;
+    }
+
+
     // Check if the Forces are converged
-	template <Solver solver>
+    template <Solver solver>
     bool Method_MMF<solver>::Converged()
     {
-		if (this->force_max_abs_component < this->collection->parameters->force_convergence) return true;
-		return false;
+        if (this->force_max_abs_component < this->systems[0]->mmf_parameters->force_convergence) return true;
+        return false;
     }
 
-	template <Solver solver>
+    template <Solver solver>
     void Method_MMF<solver>::Hook_Pre_Iteration()
     {
 
-	}
+    }
 
-	template <Solver solver>
+    template <Solver solver>
     void Method_MMF<solver>::Hook_Post_Iteration()
     {
         // --- Convergence Parameter Update
-		this->force_max_abs_component = 0;
-		for (int ichain = 0; ichain < collection->noc; ++ichain)
-		{
-			scalar fmax = this->Force_on_Image_MaxAbsComponent(*(this->systems[ichain]->spins), gradient[ichain]);
-			if (fmax > this->force_max_abs_component) this->force_max_abs_component = fmax;
-		}
-
-        // --- Update the chains' last images
-		for (auto system : this->systems) system->UpdateEnergy();
-		for (auto chain : collection->chains)
-		{
-			int i = chain->noi - 1;
-			if (i>0) chain->Rx[i] = chain->Rx[i - 1] + Engine::Manifoldmath::dist_geodesic(*chain->images[i]->spins, *chain->images[i-1]->spins);
-		}
+        this->force_max_abs_component = 0;
+        // Loop over images to calculate the maximum force components
+        for (unsigned int img = 0; img < this->systems.size(); ++img)
+        {
+            auto fmax = this->Force_on_Image_MaxAbsComponent(*(this->systems[img]->spins), this->forces_virtual[img]);
+            if (fmax > 0) this->force_max_abs_component = fmax;
+            else this->force_max_abs_component = 0;
+        }
     }
 
-	template <Solver solver>
+    template <Solver solver>
     void Method_MMF<solver>::Save_Current(std::string starttime, int iteration, bool initial, bool final)
-	{
-		// History save
+    {
+        // History save
         this->history["max_torque_component"].push_back(this->force_max_abs_component);
 
-		// File save
-		if (this->parameters->output_any)
-		{
-			// Convert indices to formatted strings
-            std::string s_img = fmt::format("{:0>2}", this->idx_image);
+        // File save
+        if (this->parameters->output_any)
+        {
+            // Convert indices to formatted strings
+            auto s_img  = fmt::format("{:0>2}", this->idx_image);
+            int base = (int)log10(this->parameters->n_iterations);
+            std::string s_iter = fmt::format("{:0>"+fmt::format("{}",base)+"}", iteration);
 
-			std::string preSpinsFile;
-			std::string preEnergyFile;
+            std::string preSpinsFile;
+            std::string preEnergyFile;
             std::string fileTag;
-            
-			if (this->collection->parameters->output_file_tag == "<time>")
+
+            if (this->parameters->output_file_tag == "<time>")
                 fileTag = starttime + "_";
-            else if (this->collection->parameters->output_file_tag != "")
-                fileTag = this->collection->parameters->output_file_tag + "_";
+            else if (this->parameters->output_file_tag != "")
+                fileTag = this->parameters->output_file_tag + "_";
             else
                 fileTag = "";
-            
-			preSpinsFile = this->parameters->output_folder + "/" + fileTag + "Spins_" + s_img;
-			preEnergyFile = this->parameters->output_folder + "/" + fileTag + "Energy_" + s_img;
-			
-			// Function to write or append image and energy files
-			auto writeOutputConfiguration = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
-			{
+
+            preSpinsFile = this->parameters->output_folder + "/" + fileTag + "Image-" + s_img + "_Spins";
+            preEnergyFile = this->parameters->output_folder + "/"+ fileTag + "Image-" + s_img + "_Energy";
+
+            // Function to write or append image and energy files
+            auto writeOutputConfiguration = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
+            {
                 try
                 {
                     // File name and comment
                     std::string spinsFile = preSpinsFile + suffix + ".ovf";
-                    std::string comment = std::to_string( iteration );
-                    
+                    std::string output_comment = fmt::format( "{} simulation ({} solver)\n# Desc:      Iteration: {}\n# Desc:      Maximum force component: {}",
+                        this->Name(), this->SolverFullName(), iteration, this->force_max_abs_component );
+
+                    // File format
+                    IO::VF_FileFormat format = this->systems[0]->mmf_parameters->output_vf_filetype;
+
                     // Spin Configuration
-                    IO::File_OVF file_ovf( spinsFile, IO::VF_FileFormat::OVF_TEXT );
-                    file_ovf.write_segment( *( this->systems[0] )->spins, 
-                                            *( this->systems[0] )->geometry,
-                                            comment, append );
+                    auto& spins = *this->systems[0]->spins;
+                    auto segment = IO::OVF_Segment(*this->systems[0]);
+                    std::string title = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                    segment.title = strdup(title.c_str());
+                    segment.comment = strdup(output_comment.c_str());
+                    segment.valuedim = 3;
+                    segment.valuelabels = strdup("spin_x spin_y spin_z");
+                    segment.valueunits  = strdup("none none none");
+                    if( append )
+                        IO::OVF_File(spinsFile).append_segment(segment, spins[0].data(), int(format));
+                    else
+                        IO::OVF_File(spinsFile).write_segment(segment, spins[0].data(), int(format));
                 }
                 catch( ... )
                 {
-                   spirit_handle_exception_core( "MMF output failed" ); 
+                   spirit_handle_exception_core( "LLG output failed" );
                 }
-			};
+            };
 
-			auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
-			{
-				int base = (int)log10(this->parameters->n_iterations);
-				std::string s_iter = fmt::format("{:0>"+fmt::format("{}",base)+"}", iteration);
-				bool normalize = this->systems[0]->llg_parameters->output_energy_divide_by_nspins;
+            auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
+            {
+                bool normalize = this->systems[0]->llg_parameters->output_energy_divide_by_nspins;
+                bool readability = this->systems[0]->llg_parameters->output_energy_add_readability_lines;
 
-				// File name
-				std::string energyFile = preEnergyFile + suffix + ".txt";
-				std::string energyFilePerSpin = preEnergyFile + suffix + "_perSpin.txt";
+                // File name
+                std::string energyFile = preEnergyFile + suffix + ".txt";
+                std::string energyFilePerSpin = preEnergyFile + "-perSpin" + suffix + ".txt";
 
-				// Energy
-				// Check if Energy File exists and write Header if it doesn't
-				std::ifstream f(energyFile);
-				if (!f.good()) IO::Write_Energy_Header(*this->systems[0], energyFile);
-				// Append Energy to File
-				//IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize);
+                // Energy
+                if (append)
+                {
+                    // Check if Energy File exists and write Header if it doesn't
+                    std::ifstream f(energyFile);
+                    if (!f.good()) IO::Write_Energy_Header(*this->systems[0], energyFile, {"iteration", "E_tot"}, true, normalize, readability);
+                    // Append Energy to File
+                    IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize, readability);
+                }
+                else
+                {
+                    IO::Write_Energy_Header(*this->systems[0], energyFile, {"iteration", "E_tot"}, true, normalize, readability);
+                    IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize, readability);
+                    if (this->systems[0]->mmf_parameters->output_energy_spin_resolved)
+                    {
+                        // Gather the data
+                        std::vector<std::pair<std::string, scalarfield>> contributions_spins(0);
+                        this->systems[0]->UpdateEnergy();
+                        this->systems[0]->hamiltonian->Energy_Contributions_per_Spin(*this->systems[0]->spins, contributions_spins);
+                        int datasize = (1+contributions_spins.size())*this->systems[0]->nos;
+                        scalarfield data(datasize, 0);
+                        for( int ispin=0; ispin<this->systems[0]->nos; ++ispin )
+                        {
+                            scalar E_spin=0;
+                            int j = 1;
+                            for( auto& contribution : contributions_spins )
+                            {
+                                E_spin += contribution.second[ispin];
+                                data[ispin+j] = contribution.second[ispin];
+                                ++j;
+                            }
+                            data[ispin] = E_spin;
+                        }
 
-				//
-				scalar Rx = Rx_last + Engine::Manifoldmath::dist_geodesic(spins_last[0], *this->systems[0]->spins);
-				spins_last[0] = *this->systems[0]->spins;
-				Rx_last = Rx;
-				//
-				scalar nd = 1.0;
-				if (this->collection->parameters->output_energy_divide_by_nspins) nd /= this->systems[0]->nos; // nos divide
-				std::string output_to_file = s_iter + fmt::format("    {18.10f}    {18.10f}\n", Rx, this->systems[0]->E * nd);
-				IO::Append_String_to_File(output_to_file, energyFile);
-			};
+                        // Segment
+                        auto segment = IO::OVF_Segment(*this->systems[0]);
 
+                        std::string title = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                        segment.title = strdup(title.c_str());
+                        std::string comment = fmt::format("Energy per spin. Total={}meV", this->systems[0]->E);
+                        for( auto& contribution : this->systems[0]->E_array )
+                            comment += fmt::format(", {}={}meV", contribution.first, contribution.second);
+                        segment.comment = strdup(comment.c_str());
+                        segment.valuedim = 1 + this->systems[0]->E_array.size();
 
-			// Initial image before simulation
-			if (initial && this->parameters->output_initial)
-			{
-				writeOutputConfiguration("_initial", false);
-				writeOutputEnergy("_initial", false);
-			}
-			// Final image after simulation
-			else if (final && this->parameters->output_final)
-			{
-				writeOutputConfiguration("_final", false);
-				writeOutputEnergy("_final", false);
-			}
+                        std::string valuelabels = "Total";
+                        std::string valueunits  = "meV";
+                        for( auto& pair : this->systems[0]->E_array )
+                        {
+                            valuelabels += fmt::format(" {}", pair.first);
+                            valueunits  += " meV";
+                        }
+                        segment.valuelabels = strdup(valuelabels.c_str());
 
-			// Single file output
-            int base = (int)log10(this->parameters->n_iterations);
-            std::string s_iter = fmt::format("{:0>"+fmt::format("{}",base)+"}", iteration);
-			if (this->systems[0]->llg_parameters->output_configuration_step)
-			{
-				writeOutputConfiguration("_" + s_iter, false);
-			}
-			if (this->systems[0]->llg_parameters->output_energy_step)
-			{
-				writeOutputEnergy("_" + s_iter, false);
-			}
+                        // File format
+                        IO::VF_FileFormat format = this->systems[0]->llg_parameters->output_vf_filetype;
 
-			// Archive file output (appending)
-			if (this->systems[0]->llg_parameters->output_configuration_archive)
-			{
-				writeOutputConfiguration("_archive", true);
-			}
-			if (this->systems[0]->llg_parameters->output_energy_archive)
-			{
-				writeOutputEnergy("_archive", true);
-			}
+                        // open and write
+                        IO::OVF_File(energyFilePerSpin).write_segment(segment, data.data(), int(format));
 
+                        Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format(
+                            "Wrote spins to file \"{}\" with format {}", energyFilePerSpin, int(format) ),
+                            -1, -1 );
+                    }
+                }
+            };
 
-			//if (initial && this->parameters->output_initial) return;
+            // Initial image before simulation
+            if (initial && this->parameters->output_initial)
+            {
+                writeOutputConfiguration("-initial", false);
+                writeOutputEnergy("-initial", false);
+            }
+            // Final image after simulation
+            else if (final && this->parameters->output_final)
+            {
+                writeOutputConfiguration("-final", false);
+                writeOutputEnergy("-final", false);
+            }
 
-			// Insert copies of the current systems into their corresponding chains
-			// - this way we will be able to look at the history of the optimizations
-			// for (int ichain=0; ichain<collection->noc; ++ichain)
-			// {
-			//     // Copy the image
-			//	   this->systems[ichain]->Lock()
-			//     auto copy = std::shared_ptr<Data::Spin_System>(new Data::Spin_System(*this->systems[ichain]));
-			//	   this->systems[ichain]->Unlock()
-				
-			//     // Insert into chain
-			//     auto chain = collection->chains[ichain];
-			//     chain->noi++;
-			//     chain->images.insert(chain->images.end(), copy);
-			//     chain->climbing_image.insert(chain->climbing_image.end(), false);
-			//     chain->falling_image.insert(chain->falling_image.end(), false);
-			// }
+            // Single file output
+            if (this->systems[0]->mmf_parameters->output_configuration_step)
+            {
+                writeOutputConfiguration("_" + s_iter, false);
+            }
+            if (this->systems[0]->mmf_parameters->output_energy_step)
+            {
+                writeOutputEnergy("_" + s_iter, false);
+            }
 
-			// Reallocate and recalculate the chains' Rx, E and interpolated values for their last two images
+            // Archive file output (appending)
+            if (this->systems[0]->mmf_parameters->output_configuration_archive)
+            {
+                writeOutputConfiguration("-archive", true);
+            }
+            if (this->systems[0]->mmf_parameters->output_energy_archive)
+            {
+                writeOutputEnergy("-archive", true);
+            }
 
-			// Append Each chain's new image to it's corresponding archive
-
-			// In the final save, we save all chains to file?
-			//if (final && this->parameters->output_final)
-			//{
-
-			//}
-
-			//auto writeoutput = [this, starttime, iteration](std::string suffix)
-			//{
-			//	// Convert indices to formatted strings
-			//	auto s_img = IO::int_to_formatted_string(this->idx_image, 2);
-			//	auto s_iter = IO::int_to_formatted_string(iteration, 6);
-
-			//	// if (this->parameters->output_archive)
-			//	// {
-			//		// Append Spin configuration to Spin_Archieve_File
-			//		std::string spinsFile, energyFile;
-			//		if (this->collection->parameters->output_tag_time)
-			//			spinsFile = this->parameters->output_folder + "/" + starttime + "_Spins_" + s_img + suffix + ".txt";
-			//		else
-			//			spinsFile = this->parameters->output_folder + "/Spins_" + s_img + suffix + ".txt";
-			//		IO::Write_Spin_Configuration( *(this->systems[0])->spins, iteration, spinsFile, 
-            //                                     true );
-			//		
-			//		if (this->collection->parameters->output_energy)
-			//		{
-			//			// Append iteration, Rx and E to Energy file
-			//			scalar nd = 1.0 / this->systems[0]->nos; // nos divide
-			//			const int buffer_length = 200;
-			//			std::string output_to_file = "";
-			//			output_to_file.reserve(int(1E+08));
-			//			char buffer_string_conversion[buffer_length + 2];
-			//			if (this->collection->parameters->output_tag_time)
-			//				energyFile = this->parameters->output_folder + "/" + starttime + "_Energy_" + s_img + suffix + ".txt";
-			//			else
-			//				energyFile = this->parameters->output_folder + "/Energy_" + s_img + suffix + ".txt";
-			//			//
-			//			scalar Rx = Rx_last + Engine::Manifoldmath::dist_geodesic(spins_last[0], *this->systems[0]->spins);
-			//			//
-			//			snprintf(buffer_string_conversion, buffer_length, "    %18.10f    %18.10f\n",
-			//				Rx, this->systems[0]->E * nd);
-			//			//
-			//			spins_last[0] = *this->systems[0]->spins;
-			//			Rx_last = Rx;
-			//			//
-			//			output_to_file += s_iter;
-			//			output_to_file.append(buffer_string_conversion);
-			//			IO::Append_String_to_File(output_to_file, energyFile);
-			//		}
-			//	// }
-
-			//	//// Do it manually to avoid the adding of header
-			//	//auto s = this->systems[0];
-			//	//const int buffer_length = 80;
-			//	//std::string output_to_file = "";
-			//	//output_to_file.reserve(int(1E+08));
-			//	//char buffer_string_conversion[buffer_length + 2];
-			//	////------------------------ End Init ----------------------------------------
-
-			//	//for (int iatom = 0; iatom < s->nos; ++iatom) {
-			//	//	snprintf(buffer_string_conversion, buffer_length, "\n %18.10f %18.10f %18.10f",
-			//	//		(*s->spins)[0 * s->nos + iatom], (*s->spins)[1 * s->nos + iatom], (*s->spins)[2 * s->nos + iatom]);
-			//	//	output_to_file.append(buffer_string_conversion);
-			//	//}
-			//	//output_to_file.append("\n");
-			//	//IO::Append_String_to_File(output_to_file, spinsFile);
-
-			//};
-
-			//std::string suffix = "_archive";
-			//writeoutput(suffix);
-		}
+            // Save Log
+            Log.Append_to_File();
+        }
     }
 
-	template <Solver solver>
+    template <Solver solver>
     void Method_MMF<solver>::Finalize()
     {
-        this->collection->iteration_allowed=false;
+        this->systems[0]->iteration_allowed = false;
     }
 
-	template <Solver solver>
-    bool Method_MMF<solver>::Iterations_Allowed()
-	{
-		return this->collection->iteration_allowed;
-	}
-
     // Method name as string
-	template <Solver solver>
+    template <Solver solver>
     std::string Method_MMF<solver>::Name() { return "MMF"; }
 
-	// Template instantiations
-	template class Method_MMF<Solver::SIB>;
-	template class Method_MMF<Solver::Heun>;
-	template class Method_MMF<Solver::Depondt>;
-	template class Method_MMF<Solver::NCG>;
-	template class Method_MMF<Solver::VP>;
+    // Template instantiations
+    template class Method_MMF<Solver::SIB>;
+    template class Method_MMF<Solver::Heun>;
+    template class Method_MMF<Solver::Depondt>;
+    template class Method_MMF<Solver::RungeKutta4>;
+    template class Method_MMF<Solver::NCG>;
+    template class Method_MMF<Solver::VP>;
 }
