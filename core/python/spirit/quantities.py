@@ -1,6 +1,6 @@
 """
 Quantities
---------------------
+====================
 """
 
 import spirit.spiritlib as spiritlib

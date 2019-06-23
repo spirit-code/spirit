@@ -129,7 +129,9 @@ html_theme = 'sphinx_rtd_theme'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    "collapse_navigation" : False
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -264,6 +266,18 @@ def run_apidoc(_):
         with open(os.path.join(apidoc_dir, 'spirit.parameters.mmf.rst'), 'r') as generated_file:
             parameters_file.write(generated_file.read())
 
+    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+    testfile = os.path.join(apidoc_dir, 'spirit.log.rst')
+    with open(testfile, 'r') as f:
+        print(f.read())
+    print("yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy")
+    print("yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy")
+    testfile = os.path.join(apidoc_dir, 'spirit.geometry.rst')
+    with open(testfile, 'r') as f:
+        print(f.read())
+    print("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz")
+    print("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz")
 
     if not os.path.exists(apidoc_dir):
         os.mkdir(apidoc_dir)

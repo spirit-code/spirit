@@ -1,6 +1,6 @@
 """
 Hamiltonian
---------------------
+====================
 
 Set the parameters of the Heisenberg Hamiltonian, such as external field or exchange interaction.
 """
