@@ -250,31 +250,27 @@ void VisualisationSettingsWidget::Load_Visualization_Contents()
 
     // Perspective / FOV
     if (spinWidget->cameraProjection())
-    {
         radioButton_perspectiveProjection->setChecked(true);
-    }
     else
-    {
         radioButton_orthographicProjection->setChecked(true);
-    }
     this->horizontalSlider_camera_fov->setRange(0, 160);
     this->lineEdit_camera_fov->setText(QString::number(spinWidget->verticalFieldOfView()));
     this->horizontalSlider_camera_fov->setValue((int)(spinWidget->verticalFieldOfView()));
 
 
     // Arrows: size and lod
-    horizontalSlider_arrowsize->setRange(0, 20);
+    this->horizontalSlider_arrowsize->setRange(0, 20);
     float logs = std::log10(spinWidget->arrowSize());
-    horizontalSlider_arrowsize->setValue((int)((logs + 1) * 10));
-    lineEdit_arrows_lod->setText(QString::number(spinWidget->arrowLOD()));
+    this->horizontalSlider_arrowsize->setValue((int)((logs + 1) * 10));
+    this->lineEdit_arrows_lod->setText(QString::number(spinWidget->arrowLOD()));
 
     // Sphere
-    horizontalSlider_spherePointSize->setRange(1, 10);
-    horizontalSlider_spherePointSize->setValue((int)spinWidget->spherePointSizeRange().y);
+    this->horizontalSlider_spherePointSize->setRange(1, 10);
+    this->horizontalSlider_spherePointSize->setValue((int)spinWidget->spherePointSizeRange().y);
 
     // Light
-    horizontalSlider_light_theta->setRange(0, 180);
-    horizontalSlider_light_phi->setRange(0, 360);
+    this->horizontalSlider_light_theta->setRange(0, 180);
+    this->horizontalSlider_light_phi->setRange(0, 360);
 
     // Bounding Box
     //checkBox_showBoundingBox->setChecked(spinWidget->isBoundingBoxEnabled());

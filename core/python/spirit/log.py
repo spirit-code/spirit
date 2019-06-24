@@ -1,6 +1,6 @@
 """
 Log
---------------------
+====================
 """
 
 import spirit.spiritlib as spiritlib

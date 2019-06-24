@@ -1,6 +1,6 @@
 """
 Constants
---------------------
+====================
 """
 
 import spirit.spiritlib as spiritlib

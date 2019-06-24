@@ -11,5 +11,9 @@ PREFIX const char * Spirit_Version() SUFFIX;
 PREFIX const char * Spirit_Version_Revision() SUFFIX;
 PREFIX const char * Spirit_Version_Full() SUFFIX;
 
+PREFIX const char * Spirit_Compiler() SUFFIX;
+PREFIX const char * Spirit_Compiler_Version() SUFFIX;
+PREFIX const char * Spirit_Compiler_Full() SUFFIX;
+
 #include "DLL_Undefine_Export.h"
 #endif

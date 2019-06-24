@@ -8,12 +8,12 @@ visualisations that used Spirit, you should add a reference.
 ### The Framework
 
 If you used Spirit to produce scientific results or when referring to it as a
-scientific project, please cite the paper.
+scientific project, please cite [the paper](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.99.224414).
 
     \bibitem{mueller_spirit_2019}{
         G. P. Müller, M. Hoffmann, C. Disselkamp, D. Schürhoff, S. Mavros, M. Sallermann, N. S. Kiselev, H. Jónsson, S. Blügel.
-        "Spirit: Multifunctional Framework for Atomistic Spin Simulations."
-        arXiv:1901.11350
+        "Spirit: Multifunctional framework for atomistic spin simulations."
+        Phys. Rev. B \textbf{99}, 224414 (2019)
     }
 
 When referring to code of this framework please add a reference to our GitHub page.
@@ -62,6 +62,16 @@ You may use e.g. the following TeX code:
 This specialized nudged elastic band method for calculating transition
 paths of spin systems has been published by Bessarab et al.:
 http://www.sciencedirect.com/science/article/pii/S0010465515002696
+You may use e.g. the following TeX code:
+
+    \bibitem{GNEB}
+    P. F. Bessarab et al. \textit{Comp. Phys. Comm.} \textbf{196}, 335 (2015).
+
+**HTST**
+
+The harmonic transition state theory for calculating transition
+rates of spin systems has been published by Bessarab et al.:
+https://link.aps.org/doi/10.1103/PhysRevB.85.184409
 You may use e.g. the following TeX code:
 
     \bibitem{GNEB}

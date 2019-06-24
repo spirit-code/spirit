@@ -12,181 +12,12 @@
 using namespace Utility;
 using Utility::Constants::Pi;
 
+#ifndef SPIRIT_USE_CUDA
+
 namespace Engine
 {
 namespace Vectormath
 {
-    scalar angle(const Vector3 & v1, const Vector3 & v2)
-    {
-        scalar r = v1.dot(v2);
-        // Prevent NaNs from occurring
-        r = std::fmax(-1.0, std::fmin(1.0, r));
-        // Angle
-        return std::acos(r);
-    }
-
-    void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out)
-    {
-        v_out = v * std::cos(angle) + axis.cross(v) * std::sin(angle) +
-                axis * axis.dot(v) * (1 - std::cos(angle));
-    }
-
-    // XXX: should we add test for that function since it's calling the already tested rotat()
-    void rotate( const vectorfield & v, const vectorfield & axis, const scalarfield & angle,
-                    vectorfield & v_out )
-    {
-        for( unsigned int i=0; i<v_out.size(); i++)
-            rotate( v[i], axis[i], angle[i], v_out[i] );
-    }
-
-    Vector3 decompose(const Vector3 & v, const std::vector<Vector3> & basis)
-    {
-        Eigen::Ref<const Matrix3> A = Eigen::Map<const Matrix3>(basis[0].data());
-        return A.colPivHouseholderQr().solve(v);
-    }
-
-    /////////////////////////////////////////////////////////////////
-
-
-    std::array<scalar,3> Magnetization(const vectorfield & vf)
-    {
-        Vector3 vfmean = mean(vf);
-        std::array<scalar, 3> M{vfmean[0], vfmean[1], vfmean[2]};
-        return M;
-    }
-
-    scalar solid_angle_1(const Vector3 & v1, const Vector3 & v2, const Vector3 & v3)
-    {
-        // Get sign
-        scalar pm = v1.dot(v2.cross(v3));
-        if (pm != 0) pm /= std::abs(pm);
-
-        // angle
-        scalar solid_angle = ( 1 + v1.dot(v2) + v2.dot(v3) + v3.dot(v1) ) /
-                            std::sqrt( 2 * (1+v1.dot(v2)) * (1+v2.dot(v3)) * (1+v3.dot(v1)) );
-        if (solid_angle == 1)
-            solid_angle = 0;
-        else
-            solid_angle = pm * 2 * std::acos(solid_angle);
-
-        return solid_angle;
-    }
-
-    scalar solid_angle_2(const Vector3 & v1, const Vector3 & v2, const Vector3 & v3)
-    {
-        // Using the solid angle formula by Oosterom and Strackee (note we assume vectors to be normalized to 1)
-        // https://en.wikipedia.org/wiki/Solid_angle#Tetrahedron
-
-        scalar x = v1.dot(v2.cross(v3));
-        scalar y = 1 + v1.dot(v2) + v1.dot(v3) + v2.dot(v3);
-        scalar solid_angle = 2 * std::atan2( x , y );
-
-        return solid_angle;
-    }
-
-    scalar TopologicalCharge(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions)
-    {
-        // This implementations assumes
-        // 1. No basis atom lies outside the cell spanned by the basis vectors of the lattice
-        // 2. The geometry is a plane in x and y and spanned by the first 2 basis_vectors of the lattice
-        // 3. The first basis atom lies at (0,0)
-
-        const auto & positions = geometry.positions;
-        scalar charge = 0;
-
-        // Compute Delaunay for unitcell + basis with neighbouring lattice sites in directions a, b, and a+b
-        std::vector<Data::vector2_t> basis_cell_points(geometry.n_cell_atoms + 3);
-        for(int i = 0; i < geometry.n_cell_atoms; i++)
-        {
-            basis_cell_points[i].x = double(positions[i][0]);
-            basis_cell_points[i].y = double(positions[i][1]);
-        }
-
-        // To avoid cases where the basis atoms lie on the boundary of the convex hull the corners of the parallelogram
-        // spanned by the lattice sites 0, a, b and a+b are stretched away from the center for the triangulation
-        scalar stretch_factor = 0.1;
-
-        // For the rare case where the first basis atoms does not lie at (0,0,0)
-        Vector3 basis_offset = positions[0];
-
-        Vector3 ta = geometry.lattice_constant * geometry.bravais_vectors[0];
-        Vector3 tb = geometry.lattice_constant * geometry.bravais_vectors[1];
-        Vector3 tc = geometry.lattice_constant * geometry.bravais_vectors[2];
-
-        // basis_cell_points[0] coincides with the '0' lattice site (plus basis_offset)
-        basis_cell_points[0].x -= stretch_factor * (ta + tb)[0];
-        basis_cell_points[0].y -= stretch_factor * (ta + tb)[1];
-
-        // a+b
-        basis_cell_points[geometry.n_cell_atoms].x   = double((ta + tb + positions[0] + stretch_factor * (ta + tb))[0]);
-        basis_cell_points[geometry.n_cell_atoms].y   = double((ta + tb + positions[0] + stretch_factor * (ta + tb))[1]);
-        // b
-        basis_cell_points[geometry.n_cell_atoms+1].x = double((tb + positions[0] - stretch_factor * (ta - tb))[0]);
-        basis_cell_points[geometry.n_cell_atoms+1].y = double((tb + positions[0] - stretch_factor * (ta - tb))[1]);
-        // a
-        basis_cell_points[geometry.n_cell_atoms+2].x = double((ta + positions[0] + stretch_factor * (ta - tb))[0]);
-        basis_cell_points[geometry.n_cell_atoms+2].y = double((ta + positions[0] + stretch_factor * (ta - tb))[1]);
-
-        std::vector<Data::triangle_t> triangulation;
-        triangulation = Data::compute_delaunay_triangulation_2D(basis_cell_points);
-
-        for(Data::triangle_t tri : triangulation)
-        {
-            // Compute the sign of this triangle
-            Vector3 triangle_normal;
-            vectorfield tri_positions(3);
-            for(int i=0; i<3; i++)
-                tri_positions[i] = {scalar(basis_cell_points[tri[i]].x), scalar(basis_cell_points[tri[i]].y), scalar(0)};
-            triangle_normal = (tri_positions[0]-tri_positions[1]).cross(tri_positions[0] - tri_positions[2]);
-            triangle_normal.normalize();
-            scalar sign = triangle_normal[2]/std::abs(triangle_normal[2]);
-
-            // We try to apply the Delaunay triangulation at each bravais-lattice point
-            // For each corner of the triangle we check wether it is "allowed" (which means either inside the simulation box or permitted by periodic boundary conditions)
-            // Then we can add the top charge for all trios of spins connected by this triangle
-            for(int b = 0; b < geometry.n_cells[1]; ++b)
-            {
-                for(int a = 0; a < geometry.n_cells[0]; ++a)
-                {
-                    std::array<Vector3, 3> tri_spins;
-                    // bools to check wether it is allowed to take the next lattice site in direction a, b or a+b
-                    bool a_next_allowed = (a+1 < geometry.n_cells[0] || boundary_conditions[0]);
-                    bool b_next_allowed = (b+1 < geometry.n_cells[1] || boundary_conditions[1]);
-                    bool valid_triangle = true;
-                    for(int i = 0; i<3; ++i)
-                    {
-                        int idx;
-                        if(tri[i] < geometry.n_cell_atoms) // tri[i] is an index of a basis atom, no wrap around can occur
-                        {
-                            idx = (tri[i] + a * geometry.n_cell_atoms + b * geometry.n_cell_atoms * geometry.n_cells[0]);
-                        }
-                        else if (tri[i] == geometry.n_cell_atoms + 2 && a_next_allowed) // Translation by a
-                        {
-                            idx = ((a + 1) % geometry.n_cells[0]) * geometry.n_cell_atoms + b * geometry.n_cell_atoms * geometry.n_cells[0];
-                        }
-                        else if (tri[i] == geometry.n_cell_atoms + 1 && b_next_allowed) // Translation by b
-                        {
-                            idx = a * geometry.n_cell_atoms + ((b + 1) % geometry.n_cells[1]) * geometry.n_cell_atoms * geometry.n_cells[0];
-                        }
-                        else if (tri[i] == geometry.n_cell_atoms && a_next_allowed && b_next_allowed) // Translation by a + b
-                        {
-                            idx = ((a + 1) % geometry.n_cells[0]) * geometry.n_cell_atoms + ((b + 1) % geometry.n_cells[1]) * geometry.n_cell_atoms * geometry.n_cells[0];
-                        }
-                        else // Translation not allowed, skip to next triangle
-                        {
-                            valid_triangle = false;
-                            break;
-                        }
-                        tri_spins[i] = vf[idx];
-                    }
-                    if(valid_triangle)
-                        charge += sign * solid_angle_2(tri_spins[0], tri_spins[1], tri_spins[2]);
-                }
-            }
-        }
-        return charge / (4*Pi);
-    }
-
     #ifndef SPIRIT_USE_CUDA
 
     void get_random_vector(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
@@ -231,208 +62,76 @@ namespace Vectormath
         }
     }
 
-    void get_gradient_distribution(const Data::Geometry & geometry, Vector3 gradient_direction, scalar gradient_start, scalar gradient_inclination, scalarfield & distribution, scalar range_min, scalar range_max)
-    {
-        // Ensure a normalized direction vector
-        gradient_direction.normalize();
+        /////////////////////////////////////////////////////////////////
 
-        // Basic linear gradient distribution
-        set_c_dot(gradient_inclination, gradient_direction, geometry.positions, distribution);
-
-        // Get the minimum (i.e. starting point) of the distribution
-        scalar bmin = geometry.bounds_min.dot(gradient_direction);
-        scalar bmax = geometry.bounds_max.dot(gradient_direction);
-        scalar dist_min = std::min(bmin, bmax);
-        // Set the starting point
-        add(distribution, gradient_start - gradient_inclination*dist_min);
-
-        // Cut off negative values
-        set_range(distribution, range_min, range_max);
-    }
-
-
-    void directional_gradient(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions, const Vector3 & direction, vectorfield & gradient)
-    {
-        // std::cout << "start gradient" << std::endl;
-        vectorfield translations = { { 0,0,0 }, { 0,0,0 }, { 0,0,0 } };
-        auto& n_cells = geometry.n_cells;
-
-        neighbourfield neigh;
-
-        // TODO: calculate Neighbours outside iterations
-        // Neighbours::get_Neighbours(geometry, neigh);
-
-        // TODO: proper usage of neighbours
-        // Hardcoded neighbours - for spin current in a rectangular lattice
-        neigh = neighbourfield(0);
-        Neighbour neigh_tmp;
-        neigh_tmp.i = 0;
-        neigh_tmp.j = 0;
-        neigh_tmp.idx_shell = 0;
-
-        neigh_tmp.translations[0] = 1;
-        neigh_tmp.translations[1] = 0;
-        neigh_tmp.translations[2] = 0;
-        neigh.push_back(neigh_tmp);
-
-        neigh_tmp.translations[0] = -1;
-        neigh_tmp.translations[1] = 0;
-        neigh_tmp.translations[2] = 0;
-        neigh.push_back(neigh_tmp);
-
-        neigh_tmp.translations[0] = 0;
-        neigh_tmp.translations[1] = 1;
-        neigh_tmp.translations[2] = 0;
-        neigh.push_back(neigh_tmp);
-
-        neigh_tmp.translations[0] = 0;
-        neigh_tmp.translations[1] = -1;
-        neigh_tmp.translations[2] = 0;
-        neigh.push_back(neigh_tmp);
-
-        neigh_tmp.translations[0] = 0;
-        neigh_tmp.translations[1] = 0;
-        neigh_tmp.translations[2] = 1;
-        neigh.push_back(neigh_tmp);
-
-        neigh_tmp.translations[0] = 0;
-        neigh_tmp.translations[1] = 0;
-        neigh_tmp.translations[2] = -1;
-        neigh.push_back(neigh_tmp);
-
-        // Loop over vectorfield
-        for(unsigned int ispin = 0; ispin < vf.size(); ++ispin)
+        void fill(scalarfield & sf, scalar s)
         {
-            auto translations_i = translations_from_idx(n_cells, geometry.n_cell_atoms, ispin); // transVec of spin i
-            // int k = i%geometry.n_cell_atoms; // index within unit cell - k=0 for all cases used in the thesis
-            scalar n = 0;
-
-            gradient[ispin].setZero();
-
-            std::vector<Vector3> euclidean { {1,0,0}, {0,1,0}, {0,0,1} };
-            std::vector<Vector3> contrib = { {0, 0, 0}, {0, 0, 0}, {0, 0, 0} };
-            Vector3 proj = {0, 0, 0};
-            Vector3 projection_inv = {0, 0, 0};
-
-            // TODO: both loops together.
-
-            // Loop over neighbours of this vector to calculate contributions of finite differences to current direction
-            for( unsigned int j = 0; j < neigh.size(); ++j )
-            {
-                if( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
-                {
-                    // Index of neighbour
-                    int ineigh = idx_from_translations(n_cells, geometry.n_cell_atoms, translations_i, neigh[j].translations);
-                    if( ineigh >= 0 )
-                    {
-                        auto d = geometry.positions[ineigh] - geometry.positions[ispin];
-                        for( int dim=0; dim<3; ++dim )
-                        {
-                            proj[dim] += std::abs(euclidean[dim].dot(d.normalized()));
-                        }
-                    }
-                }
-            }
-            for( int dim=0; dim<3; ++dim )
-            {
-                if( std::abs(proj[dim]) > 1e-10 )
-                    projection_inv[dim] = 1.0/proj[dim];
-            }
-            // Loop over neighbours of this vector to calculate finite differences
-            for( unsigned int j = 0; j < neigh.size(); ++j )
-            {
-                if( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
-                {
-                    // Index of neighbour
-                    int ineigh = idx_from_translations(n_cells, geometry.n_cell_atoms, translations_i, neigh[j].translations);
-                    if( ineigh >= 0 )
-                    {
-                        auto d = geometry.positions[ineigh] - geometry.positions[ispin];
-                        for( int dim=0; dim<3; ++dim )
-                        {
-                            contrib[dim] += euclidean[dim].dot(d) / d.dot(d) * ( vf[ineigh] - vf[ispin] );
-                        }
-                    }
-                }
-            }
-
-            for( int dim=0; dim<3; ++dim )
-            {
-                gradient[ispin] += direction[dim]*projection_inv[dim] * contrib[dim];
-            }
+            #pragma omp parallel for
+            for (unsigned int i = 0; i<sf.size(); ++i)
+                sf[i] = s;
         }
-    }
+        void fill(scalarfield & sf, scalar s, const intfield & mask)
+        {
+            #pragma omp parallel for
+            for (unsigned int i=0; i<sf.size(); ++i)
+                sf[i] = mask[i]*s;
+        }
 
-    /////////////////////////////////////////////////////////////////
+        void scale(scalarfield & sf, scalar s)
+        {
+            #pragma omp parallel for
+            for (unsigned int i = 0; i<sf.size(); ++i)
+                sf[i] *= s;
+        }
 
-    void fill(scalarfield & sf, scalar s)
-    {
-        #pragma omp parallel for
-        for (unsigned int i = 0; i<sf.size(); ++i)
-            sf[i] = s;
-    }
-    void fill(scalarfield & sf, scalar s, const intfield & mask)
-    {
-        #pragma omp parallel for
-        for (unsigned int i=0; i<sf.size(); ++i)
-            sf[i] = mask[i]*s;
-    }
+        void add(scalarfield & sf, scalar s)
+        {
+            #pragma omp parallel for
+            for (unsigned int i = 0; i<sf.size(); ++i)
+                sf[i] += s;
+        }
 
-    void scale(scalarfield & sf, scalar s)
-    {
-        #pragma omp parallel for
-        for (unsigned int i = 0; i<sf.size(); ++i)
-            sf[i] *= s;
-    }
+        scalar sum(const scalarfield & sf)
+        {
+            scalar ret = 0;
+            #pragma omp parallel for reduction(+:ret)
+            for (unsigned int i = 0; i<sf.size(); ++i)
+                ret += sf[i];
+            return ret;
+        }
 
-    void add(scalarfield & sf, scalar s)
-    {
-        #pragma omp parallel for
-        for (unsigned int i = 0; i<sf.size(); ++i)
-            sf[i] += s;
-    }
+        scalar mean(const scalarfield & sf)
+        {
+            scalar ret = sum(sf)/sf.size();
+            return ret;
+        }
 
-    scalar sum(const scalarfield & sf)
-    {
-        scalar ret = 0;
-        #pragma omp parallel for reduction(+:ret)
-        for (unsigned int i = 0; i<sf.size(); ++i)
-            ret += sf[i];
-        return ret;
-    }
+        void set_range(scalarfield & sf, scalar sf_min, scalar sf_max)
+        {
+            #pragma omp parallel for
+            for (unsigned int i = 0; i<sf.size(); ++i)
+                sf[i] = std::min( std::max( sf_min, sf[i] ), sf_max );
+        }
 
-    scalar mean(const scalarfield & sf)
-    {
-        scalar ret = sum(sf)/sf.size();
-        return ret;
-    }
+        void fill(vectorfield & vf, const Vector3 & v)
+        {
+            #pragma omp parallel for
+            for (unsigned int i=0; i<vf.size(); ++i)
+                vf[i] = v;
+        }
+        void fill(vectorfield & vf, const Vector3 & v, const intfield & mask)
+        {
+            #pragma omp parallel for
+            for (unsigned int i=0; i<vf.size(); ++i)
+                vf[i] = mask[i]*v;
+        }
 
-    void set_range(scalarfield & sf, scalar sf_min, scalar sf_max)
-    {
-        #pragma omp parallel for
-        for (unsigned int i = 0; i<sf.size(); ++i)
-            sf[i] = std::min( std::max( sf_min, sf[i] ), sf_max );
-    }
-
-    void fill(vectorfield & vf, const Vector3 & v)
-    {
-        #pragma omp parallel for
-        for (unsigned int i=0; i<vf.size(); ++i)
-            vf[i] = v;
-    }
-    void fill(vectorfield & vf, const Vector3 & v, const intfield & mask)
-    {
-        #pragma omp parallel for
-        for (unsigned int i=0; i<vf.size(); ++i)
-            vf[i] = mask[i]*v;
-    }
-
-    void normalize_vectors(vectorfield & vf)
-    {
-        #pragma omp parallel for
-        for (unsigned int i=0; i<vf.size(); ++i)
-            vf[i].normalize();
-    }
+        void normalize_vectors(vectorfield & vf)
+        {
+            #pragma omp parallel for
+            for (unsigned int i=0; i<vf.size(); ++i)
+                vf[i].normalize();
+        }
 
     void norm( const vectorfield & vf, scalarfield & norm )
     {
@@ -688,4 +387,314 @@ namespace Vectormath
     
     #endif
 }
+}
+
+#endif
+
+namespace Engine
+{
+    namespace Vectormath
+    {
+        scalar angle(const Vector3 & v1, const Vector3 & v2)
+        {
+            scalar r = v1.dot(v2);
+            // Prevent NaNs from occurring
+            r = std::fmax(-1.0, std::fmin(1.0, r));
+            // Angle
+            return std::acos(r);
+        }
+
+        void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out)
+        {
+            v_out = v * std::cos(angle) + axis.cross(v) * std::sin(angle) +
+                    axis * axis.dot(v) * (1 - std::cos(angle));
+        }
+
+        // XXX: should we add test for that function since it's calling the already tested rotat()
+        void rotate( const vectorfield & v, const vectorfield & axis, const scalarfield & angle,
+                     vectorfield & v_out )
+        {
+            for( unsigned int i=0; i<v_out.size(); i++)
+                rotate( v[i], axis[i], angle[i], v_out[i] );
+        }
+
+        Vector3 decompose(const Vector3 & v, const std::vector<Vector3> & basis)
+        {
+            Eigen::Ref<const Matrix3> A = Eigen::Map<const Matrix3>(basis[0].data());
+            return A.colPivHouseholderQr().solve(v);
+        }
+
+        /////////////////////////////////////////////////////////////////
+
+
+        std::array<scalar, 3> Magnetization(const vectorfield & vf)
+        {
+            auto M = mean(vf);
+            return std::array<scalar,3>{M[0], M[1], M[2]};
+        }
+
+        scalar solid_angle_1(const Vector3 & v1, const Vector3 & v2, const Vector3 & v3)
+        {
+            // Get sign
+            scalar pm = v1.dot(v2.cross(v3));
+            if (pm != 0) pm /= std::abs(pm);
+
+            // angle
+            scalar solid_angle = ( 1 + v1.dot(v2) + v2.dot(v3) + v3.dot(v1) ) /
+                                std::sqrt( 2 * (1+v1.dot(v2)) * (1+v2.dot(v3)) * (1+v3.dot(v1)) );
+            if (solid_angle == 1)
+                solid_angle = 0;
+            else
+                solid_angle = pm * 2 * std::acos(solid_angle);
+
+            return solid_angle;
+        }
+
+        scalar solid_angle_2(const Vector3 & v1, const Vector3 & v2, const Vector3 & v3)
+        {
+            // Using the solid angle formula by Oosterom and Strackee (note we assume vectors to be normalized to 1)
+            // https://en.wikipedia.org/wiki/Solid_angle#Tetrahedron
+
+            scalar x = v1.dot(v2.cross(v3));
+            scalar y = 1 + v1.dot(v2) + v1.dot(v3) + v2.dot(v3);
+            scalar solid_angle = 2 * std::atan2( x , y );
+
+            return solid_angle;
+        }
+
+        scalar TopologicalCharge(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions)
+        {
+            // This implementations assumes
+            // 1. No basis atom lies outside the cell spanned by the basis vectors of the lattice
+            // 2. The geometry is a plane in x and y and spanned by the first 2 basis_vectors of the lattice
+            // 3. The first basis atom lies at (0,0)
+            
+            const auto & positions = geometry.positions;
+            scalar charge = 0;
+
+            // Compute Delaunay for unitcell + basis with neighbouring lattice sites in directions a, b, and a+b
+            std::vector<Data::vector2_t> basis_cell_points(geometry.n_cell_atoms + 3);
+            for(int i = 0; i < geometry.n_cell_atoms; i++)
+            {
+                basis_cell_points[i].x = double(positions[i][0]);
+                basis_cell_points[i].y = double(positions[i][1]);
+            }
+
+            // To avoid cases where the basis atoms lie on the boundary of the convex hull the corners of the parallelogram
+            // spanned by the lattice sites 0, a, b and a+b are stretched away from the center for the triangulation
+            scalar stretch_factor = 0.1;
+
+            // For the rare case where the first basis atoms does not lie at (0,0,0)
+            Vector3 basis_offset = positions[0];
+
+            Vector3 ta = geometry.lattice_constant * geometry.bravais_vectors[0];
+            Vector3 tb = geometry.lattice_constant * geometry.bravais_vectors[1];
+            Vector3 tc = geometry.lattice_constant * geometry.bravais_vectors[2];
+
+            // basis_cell_points[0] coincides with the '0' lattice site (plus basis_offset)
+            basis_cell_points[0].x -= stretch_factor * (ta + tb)[0];
+            basis_cell_points[0].y -= stretch_factor * (ta + tb)[1];
+
+            // a+b
+            basis_cell_points[geometry.n_cell_atoms].x   = double((ta + tb + positions[0] + stretch_factor * (ta + tb))[0]);
+            basis_cell_points[geometry.n_cell_atoms].y   = double((ta + tb + positions[0] + stretch_factor * (ta + tb))[1]);
+            // b
+            basis_cell_points[geometry.n_cell_atoms+1].x = double((tb + positions[0] - stretch_factor * (ta - tb))[0]);
+            basis_cell_points[geometry.n_cell_atoms+1].y = double((tb + positions[0] - stretch_factor * (ta - tb))[1]);
+            // a
+            basis_cell_points[geometry.n_cell_atoms+2].x = double((ta + positions[0] + stretch_factor * (ta - tb))[0]);
+            basis_cell_points[geometry.n_cell_atoms+2].y = double((ta + positions[0] + stretch_factor * (ta - tb))[1]);
+
+            std::vector<Data::triangle_t> triangulation;
+            triangulation = Data::compute_delaunay_triangulation_2D(basis_cell_points);
+
+            for(Data::triangle_t tri : triangulation)
+            {
+                // Compute the sign of this triangle
+                Vector3 triangle_normal;
+                vectorfield tri_positions(3);
+                for(int i=0; i<3; i++)
+                    tri_positions[i] = {scalar(basis_cell_points[tri[i]].x), scalar(basis_cell_points[tri[i]].y), scalar(0)};
+                triangle_normal = (tri_positions[0]-tri_positions[1]).cross(tri_positions[0] - tri_positions[2]);
+                triangle_normal.normalize();
+                scalar sign = triangle_normal[2]/std::abs(triangle_normal[2]);
+
+                // We try to apply the Delaunay triangulation at each bravais-lattice point
+                // For each corner of the triangle we check wether it is "allowed" (which means either inside the simulation box or permitted by periodic boundary conditions)
+                // Then we can add the top charge for all trios of spins connected by this triangle
+                for(int b = 0; b < geometry.n_cells[1]; ++b)
+                {
+                    for(int a = 0; a < geometry.n_cells[0]; ++a)
+                    {
+                        std::array<Vector3, 3> tri_spins;
+                        // bools to check wether it is allowed to take the next lattice site in direction a, b or a+b
+                        bool a_next_allowed = (a+1 < geometry.n_cells[0] || boundary_conditions[0]);
+                        bool b_next_allowed = (b+1 < geometry.n_cells[1] || boundary_conditions[1]);
+                        bool valid_triangle = true;
+                        for(int i = 0; i<3; ++i)
+                        {
+                            int idx;
+                            if(tri[i] < geometry.n_cell_atoms) // tri[i] is an index of a basis atom, no wrap around can occur
+                            {
+                                idx = (tri[i] + a * geometry.n_cell_atoms + b * geometry.n_cell_atoms * geometry.n_cells[0]);
+                            }
+                            else if (tri[i] == geometry.n_cell_atoms + 2 && a_next_allowed) // Translation by a
+                            {
+                                idx = ((a + 1) % geometry.n_cells[0]) * geometry.n_cell_atoms + b * geometry.n_cell_atoms * geometry.n_cells[0];
+                            }
+                            else if (tri[i] == geometry.n_cell_atoms + 1 && b_next_allowed) // Translation by b
+                            {
+                                idx = a * geometry.n_cell_atoms + ((b + 1) % geometry.n_cells[1]) * geometry.n_cell_atoms * geometry.n_cells[0];
+                            }
+                            else if (tri[i] == geometry.n_cell_atoms && a_next_allowed && b_next_allowed) // Translation by a + b
+                            {
+                                idx = ((a + 1) % geometry.n_cells[0]) * geometry.n_cell_atoms + ((b + 1) % geometry.n_cells[1]) * geometry.n_cell_atoms * geometry.n_cells[0];
+                            }
+                            else // Translation not allowed, skip to next triangle
+                            {
+                                valid_triangle = false;
+                                break;
+                            }
+                            tri_spins[i] = vf[idx];
+                        }
+                        if(valid_triangle)
+                            charge += sign * solid_angle_2(tri_spins[0], tri_spins[1], tri_spins[2]);
+                    }
+                }
+            }
+            return charge / (4*Pi);
+        }
+
+        void get_gradient_distribution(const Data::Geometry & geometry, Vector3 gradient_direction, scalar gradient_start, scalar gradient_inclination, scalarfield & distribution, scalar range_min, scalar range_max)
+        {
+            // Ensure a normalized direction vector
+            gradient_direction.normalize();
+
+            // Basic linear gradient distribution
+            set_c_dot(gradient_inclination, gradient_direction, geometry.positions, distribution);
+
+            // Get the minimum (i.e. starting point) of the distribution
+            scalar bmin = geometry.bounds_min.dot(gradient_direction);
+            scalar bmax = geometry.bounds_max.dot(gradient_direction);
+            scalar dist_min = std::min(bmin, bmax);
+            // Set the starting point
+            add(distribution, gradient_start - gradient_inclination*dist_min);
+
+            // Cut off negative values
+            set_range(distribution, range_min, range_max);
+        }
+
+
+        void directional_gradient(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions, const Vector3 & direction, vectorfield & gradient)
+        {
+            // std::cout << "start gradient" << std::endl;
+            vectorfield translations = { { 0,0,0 }, { 0,0,0 }, { 0,0,0 } };
+            auto& n_cells = geometry.n_cells;
+
+            neighbourfield neigh;
+
+            // TODO: calculate Neighbours outside iterations
+            // Neighbours::get_Neighbours(geometry, neigh);
+
+            // TODO: proper usage of neighbours
+            // Hardcoded neighbours - for spin current in a rectangular lattice
+            neigh = neighbourfield(0);
+            Neighbour neigh_tmp;
+            neigh_tmp.i = 0;
+            neigh_tmp.j = 0;
+            neigh_tmp.idx_shell = 0;
+
+            neigh_tmp.translations[0] = 1;
+            neigh_tmp.translations[1] = 0;
+            neigh_tmp.translations[2] = 0;
+            neigh.push_back(neigh_tmp);
+
+            neigh_tmp.translations[0] = -1;
+            neigh_tmp.translations[1] = 0;
+            neigh_tmp.translations[2] = 0;
+            neigh.push_back(neigh_tmp);
+
+            neigh_tmp.translations[0] = 0;
+            neigh_tmp.translations[1] = 1;
+            neigh_tmp.translations[2] = 0;
+            neigh.push_back(neigh_tmp);
+
+            neigh_tmp.translations[0] = 0;
+            neigh_tmp.translations[1] = -1;
+            neigh_tmp.translations[2] = 0;
+            neigh.push_back(neigh_tmp);
+
+            neigh_tmp.translations[0] = 0;
+            neigh_tmp.translations[1] = 0;
+            neigh_tmp.translations[2] = 1;
+            neigh.push_back(neigh_tmp);
+
+            neigh_tmp.translations[0] = 0;
+            neigh_tmp.translations[1] = 0;
+            neigh_tmp.translations[2] = -1;
+            neigh.push_back(neigh_tmp);
+
+            // Loop over vectorfield
+            for(unsigned int ispin = 0; ispin < vf.size(); ++ispin)
+            {
+                auto translations_i = translations_from_idx(n_cells, geometry.n_cell_atoms, ispin); // transVec of spin i
+                // int k = i%geometry.n_cell_atoms; // index within unit cell - k=0 for all cases used in the thesis
+                scalar n = 0;
+
+                gradient[ispin].setZero();
+
+                std::vector<Vector3> euclidean { {1,0,0}, {0,1,0}, {0,0,1} };
+                std::vector<Vector3> contrib = { {0, 0, 0}, {0, 0, 0}, {0, 0, 0} };
+                Vector3 proj = {0, 0, 0};
+                Vector3 projection_inv = {0, 0, 0};
+
+                // TODO: both loops together.
+
+                // Loop over neighbours of this vector to calculate contributions of finite differences to current direction
+                for( unsigned int j = 0; j < neigh.size(); ++j )
+                {
+                    if( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
+                    {
+                        // Index of neighbour
+                        int ineigh = idx_from_translations(n_cells, geometry.n_cell_atoms, translations_i, neigh[j].translations);
+                        if( ineigh >= 0 )
+                        {
+                            auto d = geometry.positions[ineigh] - geometry.positions[ispin];
+                            for( int dim=0; dim<3; ++dim )
+                            {
+                                proj[dim] += std::abs(euclidean[dim].dot(d.normalized()));
+                            }
+                        }
+                    }
+                }
+                for( int dim=0; dim<3; ++dim )
+                {
+                    if( std::abs(proj[dim]) > 1e-10 )
+                        projection_inv[dim] = 1.0/proj[dim];
+                }
+                // Loop over neighbours of this vector to calculate finite differences
+                for( unsigned int j = 0; j < neigh.size(); ++j )
+                {
+                    if( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
+                    {
+                        // Index of neighbour
+                        int ineigh = idx_from_translations(n_cells, geometry.n_cell_atoms, translations_i, neigh[j].translations);
+                        if( ineigh >= 0 )
+                        {
+                            auto d = geometry.positions[ineigh] - geometry.positions[ispin];
+                            for( int dim=0; dim<3; ++dim )
+                            {
+                                contrib[dim] += euclidean[dim].dot(d) / d.dot(d) * ( vf[ineigh] - vf[ispin] );
+                            }
+                        }
+                    }
+                }
+
+                for( int dim=0; dim<3; ++dim )
+                {
+                    gradient[ispin] += direction[dim]*projection_inv[dim] * contrib[dim];
+                }
+            }
+        }
+    }
 }

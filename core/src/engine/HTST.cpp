@@ -1,3 +1,5 @@
+#ifndef SPIRIT_SKIP_HTST
+
 #include <engine/HTST.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
@@ -24,7 +26,7 @@ namespace Engine
     {
         // Note the two images should correspond to one minimum and one saddle point
         // Non-extremal images may yield incorrect Hessians and thus incorrect results
-        void Calculate_Prefactor(Data::HTST_Info & htst_info)
+        void Calculate(Data::HTST_Info & htst_info, int n_eigenmodes_keep)
         {
             Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, "---- Prefactor calculation");
 
@@ -33,7 +35,13 @@ namespace Engine
 
             auto& image_minimum = *htst_info.minimum->spins;
             auto& image_sp = *htst_info.saddle_point->spins;
+
             int nos = image_minimum.size();
+
+            if( n_eigenmodes_keep < 0 )
+                n_eigenmodes_keep = nos;
+            n_eigenmodes_keep = std::min(nos, n_eigenmodes_keep);
+
             vectorfield force_tmp(nos, {0,0,0});
             std::vector<std::string> block;
 
@@ -86,15 +94,12 @@ namespace Engine
 
                 // Eigendecomposition
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Eigendecomposition...");
-                MatrixX hessian_geodesic_sp_3N(3*nos, 3*nos);
-                MatrixX hessian_geodesic_sp_2N(2*nos, 2*nos);
-                VectorX eigenvalues_sp = VectorX::Zero(2*nos);
-                MatrixX eigenvectors_sp = MatrixX::Zero(2*nos, 2*nos);
+                MatrixX hessian_geodesic_sp_3N = MatrixX::Zero(3*nos, 3*nos);
+                MatrixX hessian_geodesic_sp_2N = MatrixX::Zero(2*nos, 2*nos);
+                htst_info.eigenvalues_sp  = VectorX::Zero(2*nos);
+                htst_info.eigenvectors_sp = MatrixX::Zero(2*nos, 2*nos);
                 Geodesic_Eigen_Decomposition(image_sp, gradient_sp, hessian_sp,
-                    hessian_geodesic_sp_3N, hessian_geodesic_sp_2N, eigenvalues_sp, eigenvectors_sp);
-
-                htst_info.eigenvalues_sp.assign(eigenvalues_sp.data(), eigenvalues_sp.data() + 2*nos);
-                // htst_info.eigenvectors_sp.assign(eigenvectors_sp.data(), eigenvectors_sp.data() + 2*3*nos);
+                    hessian_geodesic_sp_3N, hessian_geodesic_sp_2N, htst_info.eigenvalues_sp, htst_info.eigenvectors_sp);
 
                 // Print some eigenvalues
                 block = std::vector<std::string>{"10 lowest eigenvalues at saddle point:"};
@@ -129,13 +134,16 @@ namespace Engine
                 // Perpendicular velocity
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Calculating perpendicular velocity at saddle point ('a' factors)...");
                 // Calculation of the 'a' parameters...
-                VectorX perpendicular_velocity_sp(2*nos);
-                MatrixX basis_sp(3*nos, 2*nos);
+                htst_info.perpendicular_velocity = VectorX::Zero(2*nos);
+                MatrixX basis_sp = MatrixX::Zero(3*nos, 2*nos);
                 Manifoldmath::tangent_basis_spherical(image_sp, basis_sp);
                 // Manifoldmath::tangent_basis(image_sp, basis_sp);
-                // Calculate_Perpendicular_Velocity_2N(image_sp, hessian_geodesic_sp_2N, basis_sp, eigenvectors_sp, perpendicular_velocity_sp);
-                Calculate_Perpendicular_Velocity(image_sp, htst_info.saddle_point->geometry->mu_s, hessian_geodesic_sp_3N, basis_sp, eigenvectors_sp, perpendicular_velocity_sp);
-                htst_info.perpendicular_velocity.assign(perpendicular_velocity_sp.data(), perpendicular_velocity_sp.data() + 2*nos);
+                // Calculate_Perpendicular_Velocity_2N(image_sp, hessian_geodesic_sp_2N, basis_sp, htst_info.eigenvectors_sp, perpendicular_velocity_sp);
+                Calculate_Perpendicular_Velocity(image_sp, htst_info.saddle_point->geometry->mu_s, hessian_geodesic_sp_3N, basis_sp, htst_info.eigenvectors_sp, htst_info.perpendicular_velocity);
+
+                // Reduce the number of saved eigenmodes
+                htst_info.eigenvalues_sp.conservativeResize(n_eigenmodes_keep);
+                htst_info.eigenvectors_sp.conservativeResize(2*nos, n_eigenmodes_keep);
             }
             // End saddle point
             ////////////////////////////////////////////////////////////////////////
@@ -179,15 +187,12 @@ namespace Engine
 
                 // Eigendecomposition
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Eigendecomposition...");
-                MatrixX hessian_geodesic_minimum_3N(3*nos, 3*nos);
-                MatrixX hessian_geodesic_minimum_2N(2*nos, 2*nos);
-                VectorX eigenvalues_minimum = VectorX::Zero(2*nos);
-                MatrixX eigenvectors_minimum = MatrixX::Zero(2*nos, 2*nos);
+                MatrixX hessian_geodesic_minimum_3N = MatrixX::Zero(3*nos, 3*nos);
+                MatrixX hessian_geodesic_minimum_2N = MatrixX::Zero(2*nos, 2*nos);
+                htst_info.eigenvalues_min  = VectorX::Zero(2*nos);
+                htst_info.eigenvectors_min = MatrixX::Zero(2*nos, 2*nos);
                 Geodesic_Eigen_Decomposition(image_minimum, gradient_minimum, hessian_minimum,
-                    hessian_geodesic_minimum_3N, hessian_geodesic_minimum_2N, eigenvalues_minimum, eigenvectors_minimum);
-
-                htst_info.eigenvalues_min.assign(eigenvalues_minimum.data(), eigenvalues_minimum.data() + 2*nos);
-                // htst_info.eigenvectors_min.assign(eigenvectors_minimum.data(), eigenvectors_minimum.data() + 2*3*nos);
+                    hessian_geodesic_minimum_3N, hessian_geodesic_minimum_2N, htst_info.eigenvalues_min, htst_info.eigenvectors_min);
 
                 // Print some eigenvalues
                 block = std::vector<std::string>{"10 lowest eigenvalues at minimum:"};
@@ -203,6 +208,10 @@ namespace Engine
                         "HTST: the initial configuration is not a minimum, its lowest eigenvalue is below the threshold ({} < {})!", htst_info.eigenvalues_min[0], -epsilon ));
                     return;
                 }
+
+                // Reduce the number of saved eigenmodes
+                htst_info.eigenvalues_min.conservativeResize(n_eigenmodes_keep);
+                htst_info.eigenvectors_min.conservativeResize(2*nos, n_eigenmodes_keep);
             }
             // End initial state minimum
             ////////////////////////////////////////////////////////////////////////
@@ -513,7 +522,7 @@ namespace Engine
 
             Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "---------- Geodesic Eigen Decomposition Done");
         }
-
-
     }// end namespace HTST
 }// end namespace Engine
+
+#endif

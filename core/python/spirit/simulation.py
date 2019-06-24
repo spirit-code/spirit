@@ -1,6 +1,6 @@
 """
 Simulation
---------------------
+====================
 
 This module of Spirit is used to run and monitor iterative calculation methods.
 

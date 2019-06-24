@@ -13,6 +13,10 @@ namespace Utility
     const std::string version          = "${META_VERSION}";
     const std::string version_revision = "${META_VERSION_REVISION}";
     const std::string version_full     = "${META_VERSION} (${META_VERSION_REVISION})";
+
+    const std::string compiler         = "${META_COMPILER}";
+    const std::string compiler_version = "${META_COMPILER_VERSION}";
+    const std::string compiler_full    = "${META_COMPILER_FULL}";
 }
 
 #endif

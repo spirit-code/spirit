@@ -86,7 +86,7 @@ Initialise a spin system using a config file.
 ### IO_Positions_Write
 
 ```C
-PREFIX void IO_Positions_Write( State * state, const char *file, int format=IO_Fileformat_OVF_bin, const char *comment = "-", int idx_image=-1, int idx_chain=-1 ) SUFFIX
+void IO_Positions_Write( State * state, const char *file, int format=IO_Fileformat_OVF_bin, const char *comment = "-", int idx_image=-1, int idx_chain=-1 )
 ```
 
 Write the spin positions as a vector field to file.
@@ -111,7 +111,7 @@ Returns the number of images (i.e. OVF segments) in a given file.
 ### IO_Image_Read
 
 ```C
-PREFIX void IO_Image_Read( State *state, const char *file, int idx_image_infile=0, int idx_image_inchain=-1, int idx_chain=-1 ) SUFFIX
+void IO_Image_Read( State *state, const char *file, int idx_image_infile=0, int idx_image_inchain=-1, int idx_chain=-1 )
 ```
 
 Reads a spin configuration from a file.
@@ -121,7 +121,7 @@ Reads a spin configuration from a file.
 ### IO_Image_Write
 
 ```C
-PREFIX void IO_Image_Write( State *state, const char *file, int format=IO_Fileformat_OVF_bin, const char *comment = "-", int idx_image=-1, int idx_chain=-1 ) SUFFIX
+void IO_Image_Write( State *state, const char *file, int format=IO_Fileformat_OVF_bin, const char *comment = "-", int idx_image=-1, int idx_chain=-1 )
 ```
 
 Writes a spin configuration to file.
@@ -131,7 +131,7 @@ Writes a spin configuration to file.
 ### IO_Image_Append
 
 ```C
-PREFIX void IO_Image_Append( State *state, const char *file, int format=IO_Fileformat_OVF_bin, const char *comment = "-", int idx_image=-1, int idx_chain=-1 ) SUFFIX
+void IO_Image_Append( State *state, const char *file, int format=IO_Fileformat_OVF_bin, const char *comment = "-", int idx_image=-1, int idx_chain=-1 )
 ```
 
 Appends a spin configuration to a file.
@@ -146,7 +146,7 @@ Chains
 ### IO_Chain_Read
 
 ```C
-PREFIX void IO_Chain_Read( State *state, const char *file, int start_image_infile=0, int end_image_infile=-1, int insert_idx=0, int idx_chain=-1 ) SUFFIX
+void IO_Chain_Read( State *state, const char *file, int start_image_infile=0, int end_image_infile=-1, int insert_idx=0, int idx_chain=-1 )
 ```
 
 Read a chain of spin configurations from a file.
@@ -159,7 +159,7 @@ will be appended accordingly.
 ### IO_Chain_Write
 
 ```C
-PREFIX void IO_Chain_Write( State *state, const char *file, int format=IO_Fileformat_OVF_text, const char* comment = "-", int idx_chain=-1 ) SUFFIX
+void IO_Chain_Write( State *state, const char *file, int format=IO_Fileformat_OVF_text, const char* comment = "-", int idx_chain=-1 )
 ```
 
 Write the current chain of spin configurations to file
@@ -169,7 +169,7 @@ Write the current chain of spin configurations to file
 ### IO_Chain_Append
 
 ```C
-PREFIX void IO_Chain_Append( State *state, const char *file, int format=IO_Fileformat_OVF_text, const char* comment = "-", int idx_chain=-1 ) SUFFIX
+void IO_Chain_Append( State *state, const char *file, int format=IO_Fileformat_OVF_text, const char* comment = "-", int idx_chain=-1 )
 ```
 
 Append the current chain of spin configurations to a file
@@ -209,7 +209,7 @@ Energies
 ### IO_Image_Write_Energy_per_Spin
 
 ```C
-void IO_Image_Write_Energy_per_Spin( State *state, const char *file, int idx_image=-1, int idx_chain = -1 )
+void IO_Image_Write_Energy_per_Spin( State *state, const char *file, int format, int idx_image=-1, int idx_chain = -1 )
 ```
 
 Save the spin-resolved energy contributions of a spin system
@@ -267,7 +267,7 @@ each be interpreted as one eigenmode of the system.
 ### IO_Eigenmodes_Write
 
 ```C
-PREFIX void IO_Eigenmodes_Write( State *state, const char *file, int format=IO_Fileformat_OVF_text, const char *comment = "-", int idx_image=-1, int idx_chain=-1 ) SUFFIX
+void IO_Eigenmodes_Write( State *state, const char *file, int format=IO_Fileformat_OVF_text, const char *comment = "-", int idx_image=-1, int idx_chain=-1 )
 ```
 
 Write eigenmodes of a spin system to a file.

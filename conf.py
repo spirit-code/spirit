@@ -109,7 +109,7 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ['.github', '_build', 'pyapidoc/spirit.rst', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ['.github', '_build', '../core/docs/python-api/spirit.rst', 'Thumbs.db', '.DS_Store']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
@@ -129,7 +129,9 @@ html_theme = 'sphinx_rtd_theme'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    "collapse_navigation" : False
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -209,11 +211,8 @@ texinfo_documents = [
 ]
 
 
-
-
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'https://docs.python.org/': None}
-
 
 
 def run_apidoc(_):
@@ -223,7 +222,7 @@ def run_apidoc(_):
     See also https://github.com/rtfd/readthedocs.org/issues/1139
     """
     source_dir = os.path.abspath(os.path.dirname(__file__))
-    apidoc_dir = os.path.join(source_dir, 'docs', 'pyapidoc')
+    apidoc_dir = os.path.join(source_dir, 'core', 'docs', 'python-api')
     package_dir = os.path.join(source_dir, 'core', 'python', 'spirit')
 
     import subprocess
@@ -242,11 +241,11 @@ def run_apidoc(_):
         '--maxdepth', '4',
     ]
 
-    builddir = os.path.join(source_dir, 'build')
-    if not os.path.exists(builddir):
-        os.mkdir(builddir)
-    subprocess.check_call(['cmake', '..', '-DSPIRIT_BUILD_FOR_CXX=OFF'], cwd=builddir)
-    subprocess.check_call(['make'], cwd=builddir)
+    build_dir = os.path.join(source_dir, 'build')
+    if not os.path.exists(build_dir):
+        os.mkdir(build_dir)
+    subprocess.check_call(['cmake', '..', '-DSPIRIT_BUILD_FOR_CXX=OFF', '-DSPIRIT_SKIP_HTST=ON'], cwd=build_dir)
+    subprocess.check_call(['make'], cwd=build_dir)
 
     # See https://stackoverflow.com/a/30144019
     env = os.environ.copy()
@@ -255,7 +254,7 @@ def run_apidoc(_):
 
     #####################
     with open(os.path.join(apidoc_dir, 'parameters.rst'), "w") as parameters_file:
-        parameters_file.write("Parameters\n==================================\n\n")
+        parameters_file.write("spirit.parameters\n==================================\n\n")
         with open(os.path.join(apidoc_dir, 'spirit.parameters.mc.rst'), 'r') as generated_file:
             parameters_file.write(generated_file.read())
         with open(os.path.join(apidoc_dir, 'spirit.parameters.llg.rst'), 'r') as generated_file:
@@ -267,6 +266,18 @@ def run_apidoc(_):
         with open(os.path.join(apidoc_dir, 'spirit.parameters.mmf.rst'), 'r') as generated_file:
             parameters_file.write(generated_file.read())
 
+    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
+    testfile = os.path.join(apidoc_dir, 'spirit.log.rst')
+    with open(testfile, 'r') as f:
+        print(f.read())
+    print("yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy")
+    print("yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy")
+    testfile = os.path.join(apidoc_dir, 'spirit.geometry.rst')
+    with open(testfile, 'r') as f:
+        print(f.read())
+    print("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz")
+    print("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz")
 
     if not os.path.exists(apidoc_dir):
         os.mkdir(apidoc_dir)

@@ -19,16 +19,12 @@
 using namespace Utility;
 using Utility::Constants::Pi;
 
+
 // CUDA Version
 namespace Engine
 {
     namespace Vectormath
     {
-        /////////////////////////////////////////////////////////////////
-        // BOILERPLATE CUDA Reductions
-
-        
-
         void get_random_vector(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
         {
             for (int dim = 0; dim < 3; ++dim)
@@ -115,171 +111,7 @@ namespace Engine
             }
         }
 
-        void get_gradient_distribution(const Data::Geometry & geometry, Vector3 gradient_direction, scalar gradient_start, scalar gradient_inclination, scalarfield & distribution, scalar range_min, scalar range_max)
-        {
-            // Starting value
-            fill(distribution, gradient_start);
-
-            // Basic linear gradient distribution
-            add_c_dot(gradient_inclination, gradient_direction, geometry.positions, distribution);
-
-            // Get the minimum (i.e. starting point) of the distribution
-            scalar bmin = geometry.bounds_min.dot(gradient_direction);
-            scalar bmax = geometry.bounds_max.dot(gradient_direction);
-            scalar dist_min = std::min(bmin, bmax);
-            // Set the starting point
-            add(distribution, -dist_min);
-
-            // Cut off negative values
-            set_range(distribution, range_min, range_max);
-        }
-
-
-        void directional_gradient(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions, const Vector3 & direction, vectorfield & gradient)
-        {
-            // std::cout << "start gradient" << std::endl;
-            vectorfield translations = { { 0,0,0 }, { 0,0,0 }, { 0,0,0 } };
-            auto& n_cells = geometry.n_cells;
-
-            neighbourfield neigh;
-
-            // TODO: calculate Neighbours outside iterations
-            // Neighbours::get_Neighbours(geometry, neigh);
-
-            // TODO: proper usage of neighbours
-            // Hardcoded neighbours - for spin current in a rectangular lattice
-            neigh = neighbourfield(0);
-            Neighbour neigh_tmp;
-            neigh_tmp.i = 0;
-            neigh_tmp.j = 0;
-            neigh_tmp.idx_shell = 0;
-
-            neigh_tmp.translations[0] = 1;
-            neigh_tmp.translations[1] = 0;
-            neigh_tmp.translations[2] = 0;
-            neigh.push_back(neigh_tmp);
-
-            neigh_tmp.translations[0] = -1;
-            neigh_tmp.translations[1] = 0;
-            neigh_tmp.translations[2] = 0;
-            neigh.push_back(neigh_tmp);
-
-            neigh_tmp.translations[0] = 0;
-            neigh_tmp.translations[1] = 1;
-            neigh_tmp.translations[2] = 0;
-            neigh.push_back(neigh_tmp);
-
-            neigh_tmp.translations[0] = 0;
-            neigh_tmp.translations[1] = -1;
-            neigh_tmp.translations[2] = 0;
-            neigh.push_back(neigh_tmp);
-
-            neigh_tmp.translations[0] = 0;
-            neigh_tmp.translations[1] = 0;
-            neigh_tmp.translations[2] = 1;
-            neigh.push_back(neigh_tmp);
-
-            neigh_tmp.translations[0] = 0;
-            neigh_tmp.translations[1] = 0;
-            neigh_tmp.translations[2] = -1;
-            neigh.push_back(neigh_tmp);
-
-            // Loop over vectorfield
-            for( unsigned int ispin = 0; ispin < vf.size(); ++ispin )
-            {
-                auto translations_i = translations_from_idx(n_cells, geometry.n_cell_atoms, ispin); // transVec of spin i
-                // int k = i%geometry.n_cell_atoms; // index within unit cell - k=0 for all cases used in the thesis
-
-                gradient[ispin].setZero();
-
-                std::vector<Vector3> euclidean { {1,0,0}, {0,1,0}, {0,0,1} };
-                std::vector<Vector3> contrib = { {0, 0, 0}, {0, 0, 0}, {0, 0, 0} };
-                Vector3 proj = {0, 0, 0};
-                Vector3 projection_inv = {0, 0, 0};
-
-                // TODO: both loops together.
-
-                // Loop over neighbours of this vector to calculate contributions of finite differences to current direction
-                for( unsigned int j = 0; j < neigh.size(); ++j )
-                {
-                    if( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
-                    {
-                        // Index of neighbour
-                        int ineigh = idx_from_translations(n_cells, geometry.n_cell_atoms, translations_i, neigh[j].translations);
-                        if( ineigh >= 0 )
-                        {
-                            auto d = geometry.positions[ineigh] - geometry.positions[ispin];
-                            for( int dim=0; dim<3; ++dim )
-                            {
-                                proj[dim] += std::abs(euclidean[dim].dot(d.normalized()));
-                            }
-                        }
-                    }
-                }
-                for( int dim=0; dim<3; ++dim )
-                {
-                    if( std::abs(proj[dim]) > 1e-10 )
-                        projection_inv[dim] = 1.0/proj[dim];
-                }
-                // Loop over neighbours of this vector to calculate finite differences
-                for( unsigned int j = 0; j < neigh.size(); ++j )
-                {
-                    if ( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
-                    {
-                        // Index of neighbour
-                        int ineigh = idx_from_translations(n_cells, geometry.n_cell_atoms, translations_i, neigh[j].translations);
-                        if( ineigh >= 0 )
-                        {
-                            auto d = geometry.positions[ineigh] - geometry.positions[ispin];
-                            for( int dim=0; dim<3; ++dim )
-                            {
-                                contrib[dim] += euclidean[dim].dot(d) / d.dot(d) * ( vf[ineigh] - vf[ispin] );
-                            }
-                        }
-                    }
-                }
-
-                for( int dim=0; dim<3; ++dim )
-                {
-                    gradient[ispin] += direction[dim]*projection_inv[dim] * contrib[dim];
-                }
-            }
-        }
-
-
-
-        /////////////////////////////////////////////////////////////////
-
-        vectorfield change_dimensions(vectorfield & sf, int n_cell_atoms, intfield n_cells,
-            intfield dimensions_new, std::array<int,3> shift)
-        {
-            int N_old = n_cell_atoms*n_cells[0]*n_cells[1]*dimensions_new[2];
-            int N_new = n_cell_atoms*dimensions_new[0]*dimensions_new[1]*dimensions_new[2];
-            vectorfield newfield(N_new);
-
-            for (int i=0; i<dimensions_new[0]; ++i)
-            {
-                for (int j=0; j<dimensions_new[1]; ++j)
-                {
-                    for (int k=0; k<dimensions_new[2]; ++k)
-                    {
-                        for (int iatom=0; iatom<n_cell_atoms; ++iatom)
-                        {
-                            int idx_old = iatom + idx_from_translations(n_cells, n_cell_atoms, {i,j,k});
-
-                            int idx_new = iatom + idx_from_translations(dimensions_new, n_cell_atoms, {i,j,k}, shift.data());
-
-                            if ( (i>=n_cells[0]) || (j>=n_cells[1]) || (k>=n_cells[2]))
-                                newfield[idx_new] = {0,0,1};
-                            else
-                                newfield[idx_new] = sf[idx_old];
-                        }
-                    }
-                }
-            }
-            return newfield;
-        }
-
+       
         /////////////////////////////////////////////////////////////////
 
 
@@ -538,8 +370,6 @@ namespace Engine
         }
 
 
-
-
         __global__ void cu_dot(const Vector3 *vf1, const Vector3 *vf2, scalar *out, size_t N)
         {
             int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -610,8 +440,6 @@ namespace Engine
             cu_cross<<<(n+1023)/1024, 1024>>>(vf1.data(), vf2.data(), s.data(), n);
             CU_CHECK_AND_SYNC();
         }
-
-
 
 
         __global__ void cu_add_c_a(scalar c, Vector3 a, Vector3 * out, size_t N)
@@ -758,7 +586,6 @@ namespace Engine
         }
 
 
-
         __global__ void cu_add_c_dot(scalar c, Vector3 a, const Vector3 * b, scalar * out, size_t N)
         {
             int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -823,7 +650,6 @@ namespace Engine
             cu_set_c_dot<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
             CU_CHECK_AND_SYNC();
         }
-
 
 
         // out[i] += c * a x b[i]

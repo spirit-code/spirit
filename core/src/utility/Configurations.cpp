@@ -275,46 +275,37 @@ namespace Utility
             else if (axis[2] > 0)
             {
                 e1 = vx;
-                e2 = -vy;
+                e2 = vy;
             }
             //		if its below the xy-plane, it points in -z-direction
             //		the vectors should be: axis, vx, vy
             else if (axis[2] < 0)
             {
                 e1 = vx;
-                e2 = vy;
+                e2 = -vy;
             }
 
             // Some normalisations
             theta = theta / 180.0 * Pi;
             scalar qnorm = q.norm();
-            scalar axnorm = axis.norm();
-            axis.normalize();
 
             // Grahm-Schmidt orthogonalization: two vectors orthogonal to an axis
             Vector3 v1, v2;
             //u1 = axis
             //u2 = v1 = vx - vx*axis/|axis|^2 * axis
             //u3 = v2 = vy - vy*axis/|axis|^2 * axis - vy*v1/|v1|^2 * v1
-            scalar proj1 = 0, proj2 = 0, proj3 = 0, proj1a=0, proj2a=0, proj3a=0, proj1b=0, proj2b=0, proj3b=0;
             // Projections
-            proj1a = e1.dot(axis);
-            proj2a = e2.dot(axis);
-            proj1b = axis.dot(axis);
-            proj2b = axis.dot(axis);
-            proj1 += proj1a / proj1b;
-            proj2 += proj2a / proj2b;
+            scalar proj1 = e1.dot(axis);
+            scalar proj2 = e2.dot(axis);
 
             // First vector
-            v1 = e1 - proj1 * axis;
+            v1 = (e1 - proj1 * axis).normalized();
 
             // One more projection
-            proj3a = e2.dot(v1);
-            proj3b = v1.dot(v1);
-            proj3 = proj3a / proj3b;
+            scalar proj3 = e2.dot(v1);
 
             // Second vector
-            v2 = e2 - proj2 * axis - proj3*v1;
+            v2 = (e2 - proj2 * axis - proj3*v1).normalized();
 
             // -------------------- Spin Spiral creation --------------------
             auto& spins = *s.spins;

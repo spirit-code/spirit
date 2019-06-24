@@ -51,8 +51,8 @@ function(get_git_head_revision _refspecvar _hashvar)
 
 		if(GIT_PARENT_DIR STREQUAL GIT_PREVIOUS_PARENT)
 			# We have reached the root directory, we are not in git
-			set(${_refspecvar} "GITDIR-NOTFOUND" PARENT_SCOPE)
-			set(${_hashvar} "GITDIR-NOTFOUND" PARENT_SCOPE)
+			set(${_refspecvar} "Not Available" PARENT_SCOPE)
+			set(${_hashvar} "Not Available" PARENT_SCOPE)
 			return()
 		endif()
 		set(GIT_DIR "${GIT_PARENT_DIR}/.git")

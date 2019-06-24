@@ -12,7 +12,7 @@
     #include <omp.h>
 #endif
 
-#ifdef UI_CXX_USE_QT
+#ifdef SPIRIT_UI_CXX_USE_QT
     #include "MainWindow.hpp"
 #endif
 
@@ -80,7 +80,7 @@ int main(int argc, char ** argv)
         Log_Send(state.get(), Log_Level_Info, Log_Sender_UI, ("Using OpenMP with n=" + std::to_string(nt) + " threads").c_str());
     #endif
 
-    #ifdef UI_CXX_USE_QT
+    #ifdef SPIRIT_UI_CXX_USE_QT
         //------------------------ User Interface ---------------------------------------
         // Initialise Application and MainWindow
         QApplication app(argc, argv);

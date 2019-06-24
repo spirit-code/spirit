@@ -11,7 +11,7 @@ System
 ====================================================================
 
 ```C
-#include "Spirit/Transitions.h"
+#include "Spirit/System.h"
 ```
 
 Spin systems are often referred to as "images" throughout Spirit.

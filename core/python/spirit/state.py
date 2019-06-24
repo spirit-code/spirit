@@ -1,6 +1,6 @@
 """
 State
---------------------
+====================
 
 The state contains the chain of spin systems (also called images).
 
