@@ -1112,11 +1112,13 @@ namespace IO
         // Anisotropy
         std::string anisotropy_file = "";
         scalar K = 0;
+        scalar K4 = 0;
         Vector3 K_normal = { 0.0, 0.0, 1.0 };
         bool anisotropy_from_file = false;
         intfield    anisotropy_index(geometry->n_cell_atoms);
         scalarfield anisotropy_magnitude(geometry->n_cell_atoms, 0.0);
         vectorfield anisotropy_normal(geometry->n_cell_atoms, K_normal);
+        scalarfield cubic_anisotropy_magnitude(geometry->n_cell_atoms, 0.0);
 
         // ------------ Pair Interactions ------------
         int n_pairs = 0;
@@ -1234,6 +1236,17 @@ namespace IO
                         anisotropy_normal = vectorfield(0);
                     }
                 }
+
+
+                if (myfile.Find("cubic_anisotropy_magnitude"))
+                {
+                    myfile.Read_Single(K4, "cubic_anisotropy_magnitude");
+                    for (int i = 0; i < anisotropy_index.size(); ++i)
+                    {
+                        cubic_anisotropy_magnitude[i] = K4;
+                    }
+                }
+
             }// end try
             catch( ... )
             {
@@ -1413,6 +1426,7 @@ namespace IO
             hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg>(new Engine::Hamiltonian_Heisenberg(
                 B, B_normal,
                 anisotropy_index, anisotropy_magnitude, anisotropy_normal,
+                cubic_anisotropy_magnitude,
                 exchange_magnitudes,
                 dmi_magnitudes, dm_chirality,
                 ddi_method, ddi_n_periodic_images, ddi_radius,
@@ -1426,6 +1440,7 @@ namespace IO
             hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg>(new Engine::Hamiltonian_Heisenberg(
                 B, B_normal,
                 anisotropy_index, anisotropy_magnitude, anisotropy_normal,
+                cubic_anisotropy_magnitude,
                 exchange_pairs, exchange_magnitudes,
                 dmi_pairs, dmi_magnitudes, dmi_normals,
                 ddi_method, ddi_n_periodic_images, ddi_radius,
