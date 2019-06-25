@@ -1586,7 +1586,12 @@ namespace IO
             spirit_handle_exception_core(fmt::format(
                 "Unable to parse all parameters of the Micromagnetic Hamiltonian from \"{}\"", configFile));
         }
-
+		// Return
+		Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg:");
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {} {} {}", "boundary conditions", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "external field", field));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "field_normal", field_normal.transpose()));
+		
         auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Micromagnetic>(new Engine::Hamiltonian_Micromagnetic(
             field, field_normal,
             anisotropy_tensor,
