@@ -6,7 +6,6 @@
 #include <utility/Configurations.hpp>
 #include <utility/Configuration_Chain.hpp>
 #include <utility/Logging.hpp>
-#include <utility/Exception.hpp>
 
 #include <fmt/format.h>
 
@@ -42,9 +41,26 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         // Log if quiet mode
         if (state->quiet)
             Log( Log_Level::All, Log_Sender::All, "Going to run in QUIET mode (only Error messages, no output files)" );
-        
+
+        // Check if config file exists
+        if( state->config_file != "" )
+        {
+            try
+            {
+                IO::Filter_File_Handle myfile(state->config_file);
+            }
+            catch( ... )
+            {
+                Log(Log_Level::Error, Log_Sender::All, fmt::format("Could not find config file \"{}\"", state->config_file));
+                state->config_file = "";
+            }
+        }
+
         // Log Config file info
-        Log(Log_Level::All, Log_Sender::All, "Config file: " + state->config_file);
+        if( state->config_file != "" )
+            Log(Log_Level::All, Log_Sender::All, fmt::format("Config file: {}", state->config_file));
+        else
+            Log(Log_Level::All, Log_Sender::All, "No config file. Will use default parameters.");
     }
     catch (...)
     {
@@ -81,6 +97,24 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
             Log(Log_Level::Info, Log_Sender::All, "Using CUDA");
         #else
             Log(Log_Level::Info, Log_Sender::All, "Not using CUDA");
+        #endif
+        // Log threading info
+        #ifdef SPIRIT_USE_THREADS
+            Log(Log_Level::Info, Log_Sender::All, "Using std::thread");
+        #else
+            Log(Log_Level::Info, Log_Sender::All, "Not using std::thread");
+        #endif
+        // Log defects info
+        #ifdef SPIRIT_ENABLE_DEFECTS
+            Log(Log_Level::Info, Log_Sender::All, "Defects are enabled");
+        #else
+            Log(Log_Level::Info, Log_Sender::All, "Defects are not enabled");
+        #endif
+        // Log pinning info
+        #ifdef SPIRIT_ENABLE_PINNING
+            Log(Log_Level::Info, Log_Sender::All, "Pinning is enabled");
+        #else
+            Log(Log_Level::Info, Log_Sender::All, "Pinning is not enabled");
         #endif
         // Log Precision info
         #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
@@ -125,38 +159,15 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
     try
     {
         // Get parameters
-        auto params_gneb = 
+        auto params_gneb =
             std::shared_ptr<Data::Parameters_Method_GNEB>(
-                IO::Parameters_Method_GNEB_from_Config( state->config_file, 
-                                                        state->active_image->llg_parameters->pinning));
-        
+                IO::Parameters_Method_GNEB_from_Config( state->config_file ));
+
         // Create the chain
         auto sv = std::vector<std::shared_ptr<Data::Spin_System>>();
         sv.push_back(state->active_image);
-        state->active_chain = std::shared_ptr<Data::Spin_System_Chain>(
+        state->chain = std::shared_ptr<Data::Spin_System_Chain>(
             new Data::Spin_System_Chain(sv, params_gneb, false));
-    }
-    catch (...)
-    {
-        spirit_handle_exception_api(-1, -1);
-    }
-    //-------------------------------------------------------------------------------
-
-    //----------------------- Initialize spin system chain collection ---------------
-    try
-    {
-        // Get parameters
-        auto params_mmf = 
-            std::shared_ptr<Data::Parameters_Method_MMF>(
-                IO::Parameters_Method_MMF_from_Config( state->config_file, 
-                                                        state->active_image->llg_parameters->pinning));
-        
-        // Create the collection
-        auto cv = std::vector<std::shared_ptr<Data::Spin_System_Chain>>();
-        cv.push_back(state->active_chain);
-        state->collection = 
-            std::shared_ptr<Data::Spin_System_Chain_Collection>(
-                new Data::Spin_System_Chain_Collection( cv, params_mmf, false ) );
     }
     catch (...)
     {
@@ -168,21 +179,15 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
     try
     {
         // active images
-        state->idx_active_chain = 0;
         state->idx_active_image = 0;
 
         // Info
-        state->noc = 1;
         state->noi = 1;
         state->nos = state->active_image->nos;
 
         // Methods
-        state->method_image = 
-            std::vector<std::vector<std::shared_ptr<Engine::Method>>>( state->noc, 
-                std::vector<std::shared_ptr<Engine::Method>>(state->noi));
-        state->method_chain = 
-            std::vector<std::shared_ptr<Engine::Method>>(state->noc);
-        state->method_collection = std::shared_ptr<Engine::Method>();
+        state->method_image = std::vector<std::shared_ptr<Engine::Method>>(state->noi);
+        state->method_chain = std::shared_ptr<Engine::Method>();
     }
     catch (...)
     {
@@ -197,8 +202,7 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         {
             state->active_image->llg_parameters->output_any = false;
             state->active_image->mc_parameters->output_any = false;
-            state->active_chain->gneb_parameters->output_any = false;
-            state->collection->parameters->output_any = false;
+            state->chain->gneb_parameters->output_any = false;
         }
     }
     catch (...)
@@ -225,7 +229,7 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         // Log
         Log(Log_Level::All, Log_Sender::All, "=====================================================");
         Log(Log_Level::All, Log_Sender::All, "============ Spirit State: Initialised ==============");
-        Log(Log_Level::All, Log_Sender::All, "============     " + fmt::format("NOS={} NOI={} NOC={}", state->nos, state->noi, state->noc));
+        Log(Log_Level::All, Log_Sender::All, "============     " + fmt::format("NOS={} NOI={}", state->nos, state->noi));
         auto now = system_clock::now();
         auto diff = Timing::DateTimePassed(now - state->datetime_creation);
         Log(Log_Level::All, Log_Sender::All, "    Initialisation took " + diff);
@@ -233,7 +237,7 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         Log(Log_Level::All, Log_Sender::All, "    Number of Warnings: " + fmt::format("{}", Log_Get_N_Warnings(state)));
         Log(Log_Level::All, Log_Sender::All, "=====================================================");
         Log.Append_to_File();
-        
+
         // Return
         return state;
     }
@@ -248,122 +252,113 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
 }
 
 void State_Delete(State * state) noexcept
+try
 {
-    try
-    {
-        Log(Log_Level::All, Log_Sender::All,  "=====================================================");
-        Log(Log_Level::All, Log_Sender::All,  "============ Spirit State: Deleting... ==============");
-        
-        // Final file writing (input, positions, neighbours)
-        Save_Initial_Final( state, false );
+    check_state(state);
 
-        // Timing
-        auto now = system_clock::now();
-        auto diff = Timing::DateTimePassed(now - state->datetime_creation);
-        Log( Log_Level::All, Log_Sender::All,  "    State existed for " + diff );
-        Log( Log_Level::All, Log_Sender::All,  "    Number of  Errors:  " + fmt::format("{}", Log_Get_N_Errors(state)) );
-        Log( Log_Level::All, Log_Sender::All,  "    Number of Warnings: " + fmt::format("{}", Log_Get_N_Warnings(state)) );
+    Log(Log_Level::All, Log_Sender::All,  "=====================================================");
+    Log(Log_Level::All, Log_Sender::All,  "============ Spirit State: Deleting... ==============");
 
-        // Delete
-        delete(state);
-        
-        Log(Log_Level::All, Log_Sender::All,  "============== Spirit State: Deleted ================");
-        Log(Log_Level::All, Log_Sender::All,  "=====================================================");
-        Log.Append_to_File();
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api(-1, -1);
-    }
+    // Final file writing (input, positions, neighbours)
+    Save_Initial_Final( state, false );
+
+    // Timing
+    auto now = system_clock::now();
+    auto diff = Timing::DateTimePassed(now - state->datetime_creation);
+    Log( Log_Level::All, Log_Sender::All,  "    State existed for " + diff );
+    Log( Log_Level::All, Log_Sender::All,  "    Number of  Errors:  " + fmt::format("{}", Log_Get_N_Errors(state)) );
+    Log( Log_Level::All, Log_Sender::All,  "    Number of Warnings: " + fmt::format("{}", Log_Get_N_Warnings(state)) );
+
+    // Delete
+    delete(state);
+
+    Log(Log_Level::All, Log_Sender::All,  "============== Spirit State: Deleted ================");
+    Log(Log_Level::All, Log_Sender::All,  "=====================================================");
+    Log.Append_to_File();
+}
+catch( ... )
+{
+    spirit_handle_exception_api(-1, -1);
 }
 
 
 void State_Update(State * state) noexcept
+try
 {
-    try
-    {
-        // Correct for removed chains - active_chain can maximally be noc-1
-        if ( state->collection->idx_active_chain >= state->collection->noc )
-            state->collection->idx_active_chain = state->collection->noc-1;
-            
-        // Update Chain
-        state->idx_active_chain = state->collection->idx_active_chain;
-        state->active_chain     = state->collection->chains[state->idx_active_chain];
+    check_state(state);
 
-        // Correct for removed images - active_image can maximally be noi-1
-        if ( state->active_chain->idx_active_image >= state->active_chain->noi )
-            state->active_chain->idx_active_image = state->active_chain->noi-1;
+    // Correct for removed images - active_image can maximally be noi-1
+    if( state->chain->idx_active_image >= state->chain->noi )
+        state->chain->idx_active_image = state->chain->noi-1;
 
-        // Update Image
-        state->idx_active_image = state->active_chain->idx_active_image; 
-        state->active_image     = state->active_chain->images[state->idx_active_image];
+    // Update Image
+    state->idx_active_image = state->chain->idx_active_image;
+    state->active_image     = state->chain->images[state->idx_active_image];
 
-        // Update NOS, NOI, NOC
-        state->noc = state->collection->noc;
-        state->noi = state->active_chain->noi;
-        state->nos = state->active_image->nos;
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api(-1, -1);
-    }
+    // Update NOS, NOI
+    state->noi = state->chain->noi;
+    state->nos = state->active_image->nos;
+}
+catch( ... )
+{
+    spirit_handle_exception_api(-1, -1);
 }
 
 
-void State_To_Config(State * state, const char * config_file, const char * original_config_file) noexcept
+void State_To_Config(State * state, const char * config_file, const char * comment) noexcept
+try
 {
-    try
-    {
-        Log(Log_Level::Info, Log_Sender::All, "Writing State configuration to file " + std::string(config_file));
+    check_state(state);
 
-        std::string cfg = std::string(config_file);
-        
-        // Header
-        std::string header = "###\n### Original configuration file was called\n###   " + 
-                             std::string(original_config_file) + "\n###\n\n";
-        IO::String_to_File(header, cfg);
-        // Folders
-        IO::Folders_to_Config( cfg, state->active_image->llg_parameters, state->active_image->mc_parameters, 
-                               state->active_chain->gneb_parameters, state->collection->parameters );
-        // Log Parameters
-        IO::Append_String_to_File("\n\n\n", cfg);
-        IO::Log_Levels_to_Config(cfg);
-        // Geometry
-        IO::Append_String_to_File("\n\n\n", cfg);
-        IO::Geometry_to_Config(cfg, state->active_image->geometry);
-        // LLG
-        IO::Append_String_to_File("\n\n\n", cfg);
-        IO::Parameters_Method_LLG_to_Config(cfg, state->active_image->llg_parameters);
-        // MC
-        IO::Append_String_to_File("\n\n\n", cfg);
-        IO::Parameters_Method_MC_to_Config(cfg, state->active_image->mc_parameters);
-        // GNEB
-        IO::Append_String_to_File("\n\n\n", cfg);
-        IO::Parameters_Method_GNEB_to_Config(cfg, state->active_chain->gneb_parameters);
-        // MMF
-        IO::Append_String_to_File("\n\n\n", cfg);
-        IO::Parameters_Method_MMF_to_Config(cfg, state->collection->parameters);
-        // Hamiltonian
-        IO::Append_String_to_File("\n\n\n", cfg);
-        IO::Hamiltonian_to_Config(cfg, state->active_image->hamiltonian, state->active_image->geometry);
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api(-1, -1);
-    }
+    Log(Log_Level::Info, Log_Sender::All, "Writing State configuration to file " + std::string(config_file));
+
+    std::string cfg = std::string(config_file);
+
+    // Header
+    std::string header = "";
+    if( std::string(comment) != "" )
+        header = std::string(comment)+"\n";
+    IO::String_to_File(header, cfg);
+    // Folders
+    IO::Folders_to_Config( cfg, state->active_image->llg_parameters, state->active_image->mc_parameters,
+                            state->chain->gneb_parameters, state->active_image->mmf_parameters );
+    // Log Parameters
+    IO::Append_String_to_File("\n\n\n", cfg);
+    IO::Log_Levels_to_Config(cfg);
+    // Geometry
+    IO::Append_String_to_File("\n\n\n", cfg);
+    IO::Geometry_to_Config(cfg, state->active_image->geometry);
+    // LLG
+    IO::Append_String_to_File("\n\n\n", cfg);
+    IO::Parameters_Method_LLG_to_Config(cfg, state->active_image->llg_parameters);
+    // MC
+    IO::Append_String_to_File("\n\n\n", cfg);
+    IO::Parameters_Method_MC_to_Config(cfg, state->active_image->mc_parameters);
+    // GNEB
+    IO::Append_String_to_File("\n\n\n", cfg);
+    IO::Parameters_Method_GNEB_to_Config(cfg, state->chain->gneb_parameters);
+    // MMF
+    IO::Append_String_to_File("\n\n\n", cfg);
+    IO::Parameters_Method_MMF_to_Config(cfg, state->active_image->mmf_parameters);
+    // Hamiltonian
+    IO::Append_String_to_File("\n\n\n", cfg);
+    IO::Hamiltonian_to_Config(cfg, state->active_image->hamiltonian, state->active_image->geometry);
+}
+catch( ... )
+{
+    spirit_handle_exception_api(-1, -1);
 }
 
 const char * State_DateTime(State * state) noexcept
+try
 {
-    try
-    {
-        return state->datetime_creation_string.c_str();
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api(-1, -1);
-        return "00:00:00";
-    }
+    check_state(state);
+    return state->datetime_creation_string.c_str();
+}
+catch( ... )
+{
+    spirit_handle_exception_api(-1, -1);
+    return "00:00:00";
 }
 
 
@@ -395,7 +390,8 @@ void Save_Initial_Final( State * state, bool initial )
              (Log.save_input_final   && !initial) )
         {
             std::string file = folder + "/input/" + tag + suffix + ".cfg";
-            State_To_Config(state, file.c_str(), state->config_file.c_str());
+            std::string comment = fmt::format("###\n### Original configuration file was called\n###   \"{}\"\n###\n", state->config_file);
+            State_To_Config(state, file.c_str(), comment.c_str());
         }
     }
     catch( ... )
@@ -410,7 +406,7 @@ void Save_Initial_Final( State * state, bool initial )
              (Log.save_positions_final   && !initial) )
         {
             std::string file = folder + "/output/" + tag + "positions_" + suffix + ".txt";
-            IO_Positions_Write(state, file.c_str(), IO_Fileformat_Regular, state->config_file.c_str());
+            IO_Positions_Write(state, file.c_str(), IO_Fileformat_OVF_text, state->config_file.c_str());
         }
     }
     catch( ... )
@@ -433,44 +429,5 @@ void Save_Initial_Final( State * state, bool initial )
     catch( ... )
     {
         spirit_handle_exception_api(-1, -1);
-    }
-}
-
-
-void from_indices( const State * state, int & idx_image, int & idx_chain, 
-                   std::shared_ptr<Data::Spin_System> & image, 
-                   std::shared_ptr<Data::Spin_System_Chain> & chain )
-{
-    // In case of positive non-existing image_idx throw exception
-    if ( idx_chain >= state->collection->noc )
-        spirit_throw(Exception_Classifier::Non_existing_Chain, Log_Level::Warning, "Non existing chain. No action taken.");
-    
-    // Chain
-    if ( idx_chain < 0 || idx_chain == state->idx_active_chain )
-    {
-        chain = state->active_chain;
-        idx_chain = state->idx_active_chain;
-    }
-    else
-    {
-        chain = state->active_chain;
-        idx_chain = state->idx_active_chain;
-    }
-
-    // In case of positive non-existing chain_idx throw exception
-    if (  idx_image >= state->active_chain->noi )
-        spirit_throw(Exception_Classifier::Non_existing_Image, Log_Level::Warning, "Non existing image. No action taken.");
-    
-    // Image
-    if ( idx_chain == state->idx_active_chain && 
-        (idx_image < 0 || idx_image == state->idx_active_image ) )
-    {
-        image = state->active_image;
-        idx_image = state->idx_active_image;
-    }
-    else
-    {
-        image = chain->images[idx_image];
-        idx_image = idx_image;
     }
 }

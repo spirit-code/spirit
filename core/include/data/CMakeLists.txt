@@ -1,17 +1,16 @@
 set(HEADER_SPIRIT_DATA
     ${HEADER_SPIRIT_DATA}
-	${CMAKE_CURRENT_SOURCE_DIR}/State.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Geometry.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Spin_System.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Spin_System_Chain.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Spin_System_Chain_Collection.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_Solver.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_LLG.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_GNEB.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_MMF.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_MC.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Pinning.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/State.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Geometry.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Spin_System.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Spin_System_Chain.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_Solver.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_LLG.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_GNEB.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_MMF.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_MC.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method_EMA.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     PARENT_SCOPE
 )

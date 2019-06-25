@@ -19,12 +19,12 @@ TEST_CASE( "State", "[state]" )
         // Test the default config explicitly
         CHECK_NOTHROW( state = std::shared_ptr<State>( State_Setup(), State_Delete ) );
         CHECK_NOTHROW( Configuration_PlusZ(state.get()) );
-        CHECK_NOTHROW( Simulation_PlayPause(state.get(), "LLG", "VP", 1) );
+        CHECK_NOTHROW( Simulation_LLG_Start(state.get(), Solver_VP, 1) );
 
         // Test the default config with a nonexistent file
         CHECK_NOTHROW( state = std::shared_ptr<State>( State_Setup("__surely__nonexistent__file__.cfg"), State_Delete ) );
         CHECK_NOTHROW( Configuration_PlusZ(state.get()) );
-        CHECK_NOTHROW( Simulation_PlayPause(state.get(), "LLG", "VP", 1) );
+        CHECK_NOTHROW( Simulation_LLG_Start(state.get(), Solver_VP, 1) );
 
         // Test the default input file
         CHECK_NOTHROW( state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete ) );
@@ -55,13 +55,6 @@ TEST_CASE( "State", "[state]" )
         idx_image = -5;
         CHECK_NOTHROW( from_indices( state.get(), idx_image, idx_chain, image, chain ) );
         REQUIRE( idx_image == 1 ); // the negative index image must be promoted to the active image
-        
-        // Test for non-existing chains
-        idx_chain = 5;
-        idx_image = 0;
-        CHECK_THROWS_AS( from_indices( state.get(), idx_image, idx_chain, image, chain ),
-                         const Utility::S_Exception & ex );
-        // TODO: find a way to see if the exception thrown was the right one
         
         idx_chain = -5;
         idx_image = 0;

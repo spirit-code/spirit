@@ -6,10 +6,10 @@
 #include <io/IO.hpp>
 #include <io/OVF_File.hpp>
 #include <utility/Logging.hpp>
+#include <utility/Version.hpp>
 
 #include <iostream>
 #include <ctime>
-#include <math.h>
 
 #include <fmt/format.h>
 
@@ -35,7 +35,7 @@ namespace Engine
         this->xi = vectorfield(this->nos, {0,0,0});
         this->s_c_grad = vectorfield(this->nos, {0,0,0});
         this->temperature_distribution = scalarfield(this->nos, 0);
-        
+
         // We assume it is not converged before the first iteration
         this->force_converged = std::vector<bool>(this->noi, false);
         this->force_max_abs_component = system->llg_parameters->force_convergence + 1.0;
@@ -57,10 +57,62 @@ namespace Engine
         this->Initialize();
 
         // Initial force calculation s.t. it does not seem to be already converged
+        this->Prepare_Thermal_Field();
         this->Calculate_Force(this->configurations, this->forces);
         this->Calculate_Force_Virtual(this->configurations, this->forces, this->forces_virtual);
         // Post iteration hook to get forceMaxAbsComponent etc
         this->Hook_Post_Iteration();
+    }
+
+
+    template <Solver solver>
+    void Method_LLG<solver>::Prepare_Thermal_Field()
+    {
+        auto& parameters = *this->systems[0]->llg_parameters;
+        auto& geometry   = *this->systems[0]->geometry;
+        auto& damping    = parameters.damping;
+
+        if( parameters.temperature > 0 || parameters.temperature_gradient_inclination != 0 )
+        {
+            scalar epsilon =
+                std::sqrt( 2 * damping * parameters.dt * Constants::gamma / Constants::mu_B * Constants::k_B )
+                    / (1 + damping*damping);
+
+            // PRNG gives Gaussian RN with width 1 -> scale by epsilon and sqrt(T/mu_s)
+            auto distribution = std::normal_distribution<scalar>{0,1};
+
+            // If we have a temperature gradient, we use the distribution (scalarfield)
+            if( parameters.temperature_gradient_inclination != 0 )
+            {
+                // Calculate distribution
+                Vectormath::get_gradient_distribution(
+                    geometry,
+                    parameters.temperature_gradient_direction,
+                    parameters.temperature,
+                    parameters.temperature_gradient_inclination,
+                    this->temperature_distribution, 0, 1e30);
+
+                // TODO: parallelization of this is actually not quite so trivial
+                // #pragma omp parallel for
+                for( unsigned int i = 0; i < this->xi.size(); ++i )
+                {
+                    for( int dim=0; dim<3; ++dim)
+                        this->xi[i][dim] = epsilon * std::sqrt(this->temperature_distribution[i] / geometry.mu_s[i]) * distribution(parameters.prng);
+                }
+            }
+            // If we only have homogeneous temperature we do it more efficiently
+            else if( parameters.temperature > 0 )
+            {
+                // TODO: parallelization of this is actually not quite so trivial
+                // #pragma omp parallel for
+                for (unsigned int i = 0; i < this->xi.size(); ++i)
+                {
+                    for( int dim=0; dim<3; ++dim)
+                        this->xi[i][dim] = epsilon * std::sqrt(parameters.temperature / geometry.mu_s[i]) * distribution(parameters.prng);
+                }
+            }
+
+        }
     }
 
 
@@ -73,9 +125,9 @@ namespace Engine
             // Minus the gradient is the total Force here
             this->systems[img]->hamiltonian->Gradient(*configurations[img], Gradient[img]);
             #ifdef SPIRIT_ENABLE_PINNING
-                Vectormath::set_c_a(1, Gradient[img], Gradient[img], this->parameters->pinning->mask_unpinned);
+                Vectormath::set_c_a(1, Gradient[img], Gradient[img], this->systems[img]->geometry->mask_unpinned);
             #endif // SPIRIT_ENABLE_PINNING
-            
+
             // Copy out
             Vectormath::set_c_a(-1, Gradient[img], forces[img]);
         }
@@ -118,67 +170,42 @@ namespace Engine
             // Dynamics simulation
             else
             {
-                Vectormath::set_c_a( dtg, force, force_virtual);
-                Vectormath::add_c_cross( dtg * damping, image, force, force_virtual);
+                auto& geometry = *this->systems[0]->geometry;
+
+                Vectormath::set_c_a(dtg, force, force_virtual);
+                Vectormath::add_c_cross(dtg * damping, image, force, force_virtual);
+                Vectormath::scale(force_virtual, geometry.mu_s, true);
 
                 // STT
                 if (a_j > 0)
                 {
                     if (parameters.stt_use_gradient)
                     {
-                        auto& geometry = *this->systems[0]->geometry;
                         auto& boundary_conditions = this->systems[0]->hamiltonian->boundary_conditions;
                         // Gradient approximation for in-plane currents
                         Vectormath::directional_gradient(image, geometry, boundary_conditions, je, s_c_grad); // s_c_grad = (j_e*grad)*S
-                        Vectormath::add_c_a    ( dtg * a_j * ( damping - beta ), s_c_grad, force_virtual); // TODO: a_j durch b_j ersetzen 
-                        Vectormath::add_c_cross( dtg * a_j * ( 1 + beta * damping ), s_c_grad, image, force_virtual); // TODO: a_j durch b_j ersetzen 
+                        Vectormath::add_c_a    ( dtg * a_j * ( damping - beta ), s_c_grad, force_virtual); // TODO: a_j durch b_j ersetzen
+                        Vectormath::add_c_cross( dtg * a_j * ( 1 + beta * damping ), s_c_grad, image, force_virtual); // TODO: a_j durch b_j ersetzen
                         // Gradient in current richtung, daher => *(-1)
                     }
                     else
                     {
                         // Monolayer approximation
-                        Vectormath::add_c_a    ( -dtg * a_j * ( damping - beta ), s_c_vec, force_virtual);
-                        Vectormath::add_c_cross( -dtg * a_j * ( 1 + beta * damping ), s_c_vec, image, force_virtual);
+                        Vectormath::add_c_a    (-dtg * a_j * ( damping - beta ), s_c_vec, force_virtual);
+                        Vectormath::add_c_cross(-dtg * a_j * ( 1 + beta * damping ), s_c_vec, image, force_virtual);
                     }
                 }
 
                 // Temperature
-                if (parameters.temperature > 0 || parameters.temperature_gradient_inclination != 0)
+                if( parameters.temperature > 0 || parameters.temperature_gradient_inclination != 0 )
                 {
-                    // Generate random directions
-                    Vectormath::get_random_vectorfield_unitsphere(parameters.prng, this->xi);
-
-                    // If we have a temperature gradient, we use the distribution (scalarfield)
-                    if (parameters.temperature_gradient_inclination != 0)
-                    {
-                        // Calculate distribution
-                        Vectormath::get_gradient_distribution(
-                            *this->systems[i]->geometry,
-                            parameters.temperature_gradient_direction,
-                            parameters.temperature,
-                            parameters.temperature_gradient_inclination,
-                            temperature_distribution, 0, 1e30);
-
-                        scalar epsilon = sqrtdtg * Utility::Constants::k_B;
-                        Vectormath::scale(temperature_distribution, epsilon);
-
-                        Vectormath::add_c_a(temperature_distribution, this->xi, force_virtual);
-
-                        Vectormath::scale(temperature_distribution, damping);
-                        Vectormath::add_c_cross(temperature_distribution, image, this->xi, force_virtual);
-                    }
-                    // If we only have homogeneous temperature we do it more efficiently
-                    else if (parameters.temperature > 0)
-                    {
-                        scalar epsilon = sqrtdtg * Utility::Constants::k_B * parameters.temperature;
-                        Vectormath::add_c_a    (epsilon, this->xi, force_virtual);
-                        Vectormath::add_c_cross(epsilon * damping, image, this->xi, force_virtual);
-                    }
+                    Vectormath::add_c_a    (1, this->xi, force_virtual);
+                    Vectormath::add_c_cross(damping, image, this->xi, force_virtual);
                 }
             }
             // Apply Pinning
             #ifdef SPIRIT_ENABLE_PINNING
-                Vectormath::set_c_a(1, force_virtual, force_virtual, parameters.pinning->mask_unpinned);
+                Vectormath::set_c_a(1, force_virtual, force_virtual, this->systems[0]->geometry->mask_unpinned);
             #endif // SPIRIT_ENABLE_PINNING
         }
     }
@@ -282,17 +309,17 @@ namespace Engine
             std::string preSpinsFile;
             std::string preEnergyFile;
             std::string fileTag;
-            
+
             if (this->systems[0]->llg_parameters->output_file_tag == "<time>")
                 fileTag = starttime + "_";
             else if (this->systems[0]->llg_parameters->output_file_tag != "")
                 fileTag = this->systems[0]->llg_parameters->output_file_tag + "_";
             else
                 fileTag = "";
-                
+
             preSpinsFile = this->parameters->output_folder + "/" + fileTag + "Image-" + s_img + "_Spins";
             preEnergyFile = this->parameters->output_folder + "/"+ fileTag + "Image-" + s_img + "_Energy";
-            
+
 
             // Function to write or append image and energy files
             auto writeOutputConfiguration = [this, preSpinsFile, preEnergyFile, iteration](std::string suffix, bool append)
@@ -301,27 +328,29 @@ namespace Engine
                 {
                     // File name and comment
                     std::string spinsFile = preSpinsFile + suffix + ".ovf";
-                    std::string output_comment = fmt::format( "{} simulation ({} solver)\n#       Iteration: {}\n#       Maximum force component: {}",
+                    std::string output_comment = fmt::format( "{} simulation ({} solver)\n# Desc:      Iteration: {}\n# Desc:      Maximum force component: {}",
                         this->Name(), this->SolverFullName(), iteration, this->force_max_abs_component );
-                    
+
                     // File format
-                    IO::VF_FileFormat format = IO::VF_FileFormat::OVF_BIN8;
-                    if (this->systems[0]->llg_parameters->output_configuration_filetype == IO_Fileformat_OVF_bin4)
-                        format = IO::VF_FileFormat::OVF_BIN4;
-                    else if (this->systems[0]->llg_parameters->output_configuration_filetype == IO_Fileformat_OVF_text)
-                        format = IO::VF_FileFormat::OVF_TEXT;
-                    else if (this->systems[0]->llg_parameters->output_configuration_filetype == IO_Fileformat_OVF_csv)
-                        format = IO::VF_FileFormat::OVF_CSV;
+                    IO::VF_FileFormat format = this->systems[0]->llg_parameters->output_vf_filetype;
 
                     // Spin Configuration
-                    IO::File_OVF file_ovf( spinsFile, format );
-                    file_ovf.write_segment( *( this->systems[0] )->spins, 
-                                            *( this->systems[0] )->geometry,
-                                            output_comment, append );
+                    auto& spins = *this->systems[0]->spins;
+                    auto segment = IO::OVF_Segment(*this->systems[0]);
+                    std::string title = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                    segment.title = strdup(title.c_str());
+                    segment.comment = strdup(output_comment.c_str());
+                    segment.valuedim = 3;
+                    segment.valuelabels = strdup("spin_x spin_y spin_z");
+                    segment.valueunits  = strdup("none none none");
+                    if( append )
+                        IO::OVF_File(spinsFile).append_segment(segment, spins[0].data(), int(format));
+                    else
+                        IO::OVF_File(spinsFile).append_segment(segment, spins[0].data(), int(format));
                 }
                 catch( ... )
                 {
-                   spirit_handle_exception_core( "LLG output failed" ); 
+                   spirit_handle_exception_core( "LLG output failed" );
                 }
             };
 
@@ -349,11 +378,58 @@ namespace Engine
                     IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize, readability);
                     if (this->systems[0]->llg_parameters->output_energy_spin_resolved)
                     {
-                        IO::Write_Image_Energy_per_Spin(*this->systems[0], energyFilePerSpin, normalize, readability);
+                        // Gather the data
+                        std::vector<std::pair<std::string, scalarfield>> contributions_spins(0);
+                        this->systems[0]->UpdateEnergy();
+                        this->systems[0]->hamiltonian->Energy_Contributions_per_Spin(*this->systems[0]->spins, contributions_spins);
+                        int datasize = (1+contributions_spins.size())*this->systems[0]->nos;
+                        scalarfield data(datasize, 0);
+                        for( int ispin=0; ispin<this->systems[0]->nos; ++ispin )
+                        {
+                            scalar E_spin=0;
+                            int j = 1;
+                            for( auto& contribution : contributions_spins )
+                            {
+                                E_spin += contribution.second[ispin];
+                                data[ispin+j] = contribution.second[ispin];
+                                ++j;
+                            }
+                            data[ispin] = E_spin;
+                        }
+
+                        // Segment
+                        auto segment = IO::OVF_Segment(*this->systems[0]);
+
+                        std::string title = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                        segment.title = strdup(title.c_str());
+                        std::string comment = fmt::format("Energy per spin. Total={}meV", this->systems[0]->E);
+                        for( auto& contribution : this->systems[0]->E_array )
+                            comment += fmt::format(", {}={}meV", contribution.first, contribution.second);
+                        segment.comment = strdup(comment.c_str());
+                        segment.valuedim = 1 + this->systems[0]->E_array.size();
+
+                        std::string valuelabels = "Total";
+                        std::string valueunits  = "meV";
+                        for( auto& pair : this->systems[0]->E_array )
+                        {
+                            valuelabels += fmt::format(" {}", pair.first);
+                            valueunits  += " meV";
+                        }
+                        segment.valuelabels = strdup(valuelabels.c_str());
+
+                        // File format
+                        IO::VF_FileFormat format = this->systems[0]->llg_parameters->output_vf_filetype;
+
+                        // open and write
+                        IO::OVF_File(energyFilePerSpin).write_segment(segment, data.data(), int(format));
+
+                        Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format(
+                            "Wrote spins to file \"{}\" with format {}", energyFilePerSpin, int(format) ),
+                            -1, -1 );
                     }
                 }
             };
-            
+
             // Initial image before simulation
             if (initial && this->parameters->output_initial)
             {
@@ -366,7 +442,7 @@ namespace Engine
                 writeOutputConfiguration("-final", false);
                 writeOutputEnergy("-final", false);
             }
-            
+
             // Single file output
             if (this->systems[0]->llg_parameters->output_configuration_step)
             {
@@ -401,6 +477,7 @@ namespace Engine
     template class Method_LLG<Solver::SIB>;
     template class Method_LLG<Solver::Heun>;
     template class Method_LLG<Solver::Depondt>;
+    template class Method_LLG<Solver::RungeKutta4>;
     template class Method_LLG<Solver::NCG>;
     template class Method_LLG<Solver::VP>;
 }

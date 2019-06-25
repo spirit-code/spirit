@@ -52,44 +52,6 @@ void Hamiltonian_Set_Boundary_Conditions(State *state, const bool * periodical, 
     }
 }
 
-void Hamiltonian_Set_mu_s(State *state, float mu_s, int idx_image, int idx_chain) noexcept
-{
-    try
-    {
-        std::shared_ptr<Data::Spin_System> image;
-        std::shared_ptr<Data::Spin_System_Chain> chain;
-        
-        // Fetch correct indices and pointers
-        from_indices( state, idx_image, idx_chain, image, chain );
-        
-        image->Lock();
-        
-        try
-        {
-            if (image->hamiltonian->Name() == "Heisenberg")
-            {
-                auto ham = (Engine::Hamiltonian_Heisenberg*)image->hamiltonian.get();
-                for (auto& m : ham->mu_s) m = mu_s;
-                Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-                    fmt::format("Set mu_s to {}", mu_s), idx_image, idx_chain);
-            }
-            else
-                Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                    "mu_s cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain );
-        }
-        catch( ... )
-        {
-            spirit_handle_exception_api(idx_image, idx_chain);
-        }
-        
-        image->Unlock();
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api(idx_image, idx_chain);
-    }
-}
-
 void Hamiltonian_Set_Field(State *state, float magnitude, const float * normal, int idx_image, int idx_chain) noexcept
 {
     try
@@ -261,6 +223,16 @@ void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int chir
         from_indices( state, idx_image, idx_chain, image, chain );
         image->Lock();
 
+        if( chirality != SPIRIT_CHIRALITY_BLOCH         &&
+            chirality != SPIRIT_CHIRALITY_NEEL          &&
+            chirality != SPIRIT_CHIRALITY_BLOCH_INVERSE &&
+            chirality != SPIRIT_CHIRALITY_NEEL_INVERSE  )
+        {
+            Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format(
+                "Hamiltonian_Set_DMI: Invalid DM chirality {}", chirality), idx_image, idx_chain );
+            return;
+        }
+
         try
         {
             if (image->hamiltonian->Name() == "Heisenberg")
@@ -295,7 +267,7 @@ void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int chir
     }
 }
 
-void Hamiltonian_Set_DDI(State *state, float radius, int idx_image, int idx_chain) noexcept
+void Hamiltonian_Set_DDI(State *state, int ddi_method, int n_periodic_images[3], float cutoff_radius, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -312,25 +284,16 @@ void Hamiltonian_Set_DDI(State *state, float radius, int idx_image, int idx_chai
             {
                 auto ham = (Engine::Hamiltonian_Heisenberg*)image->hamiltonian.get();
 
-                auto pairs = Engine::Neighbours::Get_Pairs_in_Radius(*image->geometry, radius);
-                scalarfield magnitudes(0);
-                vectorfield normals(0);
-                scalar magnitude;
-                Vector3 normal;
-                for (auto& pair : pairs)
-                {
-                    Engine::Neighbours::DDI_from_Pair(*image->geometry, pair, magnitude, normal);
-                    magnitudes.push_back(magnitude);
-                    normals.push_back(normal);
-                }
-                ham->ddi_pairs = pairs;
-                ham->ddi_magnitudes = magnitudes;
-                ham->ddi_normals = normals;
+                ham->ddi_method = Engine::DDI_Method(ddi_method);
+                ham->ddi_n_periodic_images[0] = n_periodic_images[0];
+                ham->ddi_n_periodic_images[1] = n_periodic_images[1];
+                ham->ddi_n_periodic_images[2] = n_periodic_images[2];
+                ham->ddi_cutoff_radius = cutoff_radius;
+                ham->Update_Interactions();
 
-                // Update the list of different contributions
-                ham->Update_Energy_Contributions();
-
-                Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format("Set ddi radius to {}", radius), idx_image, idx_chain );
+                Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format(
+                    "Set ddi to method {}, periodic images {} {} {} and cutoff radius {}",
+                    ddi_method, n_periodic_images[0], n_periodic_images[1], n_periodic_images[2], cutoff_radius), idx_image, idx_chain );
             }
             else
                 Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, "DDI cannot be set on " + 
@@ -385,29 +348,6 @@ void Hamiltonian_Get_Boundary_Conditions(State *state, bool * periodical, int id
         periodical[0] = image->hamiltonian->boundary_conditions[0];
         periodical[1] = image->hamiltonian->boundary_conditions[1];
         periodical[2] = image->hamiltonian->boundary_conditions[2];
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api(idx_image, idx_chain);
-    }
-}
-
-void Hamiltonian_Get_mu_s(State *state, float * mu_s, int idx_image, int idx_chain) noexcept
-{
-    try
-    {
-        std::shared_ptr<Data::Spin_System> image;
-        std::shared_ptr<Data::Spin_System_Chain> chain;
-        
-        // Fetch correct indices and pointers
-        from_indices( state, idx_image, idx_chain, image, chain );
-        
-        if (image->hamiltonian->Name() == "Heisenberg")
-        {
-            auto ham = (Engine::Hamiltonian_Heisenberg*)image->hamiltonian.get();
-            for (int i=0; i<image->geometry->n_cell_atoms; ++i)
-                mu_s[i] = (float)ham->mu_s[i];
-        }
     }
     catch( ... )
     {
@@ -612,7 +552,7 @@ int  Hamiltonian_Get_DMI_N_Pairs(State *state, int idx_image, int idx_chain) noe
     }
 }
 
-void Hamiltonian_Get_DDI(State *state, float * radius, int idx_image, int idx_chain) noexcept
+void Hamiltonian_Get_DDI(State *state, int * ddi_method, int n_periodic_images[3], float * cutoff_radius, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -626,7 +566,11 @@ void Hamiltonian_Get_DDI(State *state, float * radius, int idx_image, int idx_ch
         {
             auto ham = (Engine::Hamiltonian_Heisenberg*)image->hamiltonian.get();
 
-            *radius = (float)ham->ddi_cutoff_radius;
+            *ddi_method          = (int)ham->ddi_method;
+            n_periodic_images[0] = (int)ham->ddi_n_periodic_images[0];
+            n_periodic_images[1] = (int)ham->ddi_n_periodic_images[1];
+            n_periodic_images[2] = (int)ham->ddi_n_periodic_images[2];
+            *cutoff_radius       = (float)ham->ddi_cutoff_radius;
         }
     }
     catch( ... )

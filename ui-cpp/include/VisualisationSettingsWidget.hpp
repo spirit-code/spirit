@@ -53,6 +53,7 @@ private slots:
 	void set_visualization_colormap();
 	void set_visualization_colormap_rotation_slider();
 	void set_visualization_colormap_rotation_lineEdit();
+	void set_visualization_colormap_axis();
 	void set_visualization_background();
 
 	// Visualisation - Camera

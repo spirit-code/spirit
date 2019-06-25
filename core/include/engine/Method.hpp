@@ -31,6 +31,8 @@ namespace Engine
         // `Iterate` is supposed to iteratively solve a problem
         virtual void Iterate();
 
+        // ------------------------------------------------------
+
         // Calculate a smooth but current IPS value
         virtual scalar getIterationsPerSecond() final;
 
@@ -50,6 +52,8 @@ namespace Engine
         // The default is that this returns simply {getForceMaxAbsComponent()}
         virtual std::vector<scalar> getForceMaxAbsComponent_All();
 
+        // ------------------------------------------------------
+
         // Method name as string
         virtual std::string Name();
 
@@ -57,11 +61,10 @@ namespace Engine
         virtual std::string SolverName();
         virtual std::string SolverFullName();
 
+        // ------------------------------------------------------
 
-    protected:
         // One iteration of the Method
         virtual void Iteration();
-
 
         // Initialize arrays etc. before `Iterate` starts
         virtual void Initialize();
@@ -114,6 +117,29 @@ namespace Engine
         virtual bool StopFile_Present() final;
 
 
+        std::chrono::time_point<std::chrono::system_clock> t_start, t_last;
+
+        // Number of iterations that have been executed
+        long iteration;
+        // Number of steps (set of iterations between logs) that have been executed
+        long step;
+
+        // Timings and Iterations per Second
+        scalar ips;
+        std::deque<std::chrono::time_point<std::chrono::system_clock>> t_iterations;
+        // The time at which this Solver's Iterate() was last called
+        std::string starttime;
+
+        //////////// Parameters //////////////////////////////////////////////////////
+        // Number of iterations
+        long n_iterations;
+        // Number of iterations until log
+        long n_iterations_log;
+        // Number of times to save
+        long n_log;
+
+    protected:
+
         //////////// Information for Logging and Save_Current ////////////////////////
         int idx_image;
         int idx_chain;
@@ -123,10 +149,6 @@ namespace Engine
         // Number of spins in an image
         int nos;
 
-        // Number of iterations that have been executed
-        int iteration;
-        // Number of steps (set of iterations between logs) that have been executed
-        int step;
 
         // Method name as enum
         Utility::Log_Sender SenderName;
@@ -136,22 +158,6 @@ namespace Engine
         std::vector<scalar> force_max_abs_component_all;
         // History of relevant quantities
         std::map<std::string, std::vector<scalar>> history;
-        // The time at which this Solver's Iterate() was last called
-        std::string starttime;
-        // Timings and Iterations per Second
-        scalar ips;
-        std::deque<std::chrono::time_point<std::chrono::system_clock>> t_iterations;
-        
-        std::chrono::time_point<std::chrono::system_clock> t_start, t_last;
-
-
-        //////////// Parameters //////////////////////////////////////////////////////
-        // Number of iterations
-        int n_iterations;
-        // Number of iterations until log
-        int n_iterations_log;
-        // Number of times to save
-        int n_log;
 
 
         //////////// General /////////////////////////////////////////////////////////
@@ -161,23 +167,6 @@ namespace Engine
 
         // Method Parameters
         std::shared_ptr<Data::Parameters_Method> parameters;
-        
-        // Actual Forces on the configurations
-        std::vector<vectorfield> forces;
-        std::vector<vectorfield> forces_predictor;
-        // Virtual Forces used in the Steps
-        std::vector<vectorfield> forces_virtual;
-        std::vector<vectorfield> forces_virtual_predictor;
-        // Random vector array
-        vectorfield xi;
-        
-        // Temporary Spins arrays
-        vectorfield temp1, temp2;
-
-        // Pointers to Configurations (for Solver methods)
-        std::vector<std::shared_ptr<vectorfield>> configurations;
-        std::vector<std::shared_ptr<vectorfield>> configurations_predictor;
-        std::vector<std::shared_ptr<vectorfield>> configurations_temp;
 
         // Precision for the conversion of scalar to string
         int print_precision;

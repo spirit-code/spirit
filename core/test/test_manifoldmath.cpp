@@ -78,7 +78,7 @@ TEST_CASE( "Manifold operations", "[manifold]" )
     Engine::Vectormath::normalize_vectors( vf3 );             // normalize components of vf3
     Engine::Vectormath::normalize_vectors( vf4 );             // normalize components of vf4
     
-    scalar dist = Engine::Manifoldmath::dist_greatcircle( vf3[0], vf4[0] );
+    scalar dist = Engine::Vectormath::angle( vf3[0], vf4[0] );
     REQUIRE( dist == Approx( std::acos(-1)*0.5 ) );   // distance should be pi/2
     
     // antiparallel vectors ( angle pi between them )
@@ -90,7 +90,7 @@ TEST_CASE( "Manifold operations", "[manifold]" )
     Engine::Vectormath::normalize_vectors( vf5 );             // normalize components of vf5
     Engine::Vectormath::normalize_vectors( vf6 );             // normalize components of vf6
     
-    scalar dist2 = Engine::Manifoldmath::dist_greatcircle( vf5[0], vf6[0] );
+    scalar dist2 = Engine::Vectormath::angle( vf5[0], vf6[0] );
     REQUIRE( dist2 == Approx( std::acos(-1) ) );      // distance should be pi
   }
   
@@ -104,7 +104,7 @@ TEST_CASE( "Manifold operations", "[manifold]" )
     Engine::Manifoldmath::normalize( v4 );
     
     scalar dist = Engine::Manifoldmath::dist_geodesic( v3, v4 );
-    scalar dist_gc = Engine::Manifoldmath::dist_greatcircle( v3[0], v4[0] );
+    scalar dist_gc = Engine::Vectormath::angle( v3[0], v4[0] );
     REQUIRE( dist == Approx( sqrt( N * dist_gc * dist_gc ) ) );
   }
 }

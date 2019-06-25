@@ -2,31 +2,20 @@
 
 #include <Vectormath.hpp>
 #include <Manifoldmath.hpp>
+#include <utility/Constants.hpp>
 
-#include <vector>
-#include <memory>
-#include <cmath>
-#include <iostream>
-#include <stdio.h>
+#include <Eigen/Dense>
+
+#include <GenEigsSolver.h>  // Also includes <MatOp/DenseGenMatProd.h>
+#include <GenEigsRealShiftSolver.h>
+
+namespace C = Utility::Constants;
 
 // CUDA Version
 namespace Engine
 {
     namespace Manifoldmath
     {
-        scalar norm(const vectorfield & vf)
-        {
-            scalar x = Vectormath::dot(vf, vf);
-            return std::sqrt(x);
-        }
-
-        void normalize(vectorfield & vf)
-        {
-            scalar sc = 1.0/norm(vf);
-            Vectormath::scale(vf, sc);
-        }
-
-
         void project_parallel(vectorfield & vf1, const vectorfield & vf2)
         {
             vectorfield vf3 = vf1;
@@ -43,7 +32,6 @@ namespace Engine
                 vf1[idx] -= proj*vf2[idx];
             }
         }
-
         // The wrapper for the calling of the actual kernel
         void project_orthogonal(vectorfield & vf1, const vectorfield & vf2)
         {

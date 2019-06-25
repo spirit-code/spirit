@@ -22,22 +22,22 @@ class TestConstants(unittest.TestCase):
     # TODO: Find a way to easily switch between units system (eg milli-eV to milli-Ry) and test it
 
     def test_Bohr_magneton(self):
-        self.assertEqual( scalar(constants.mu_B()).value, scalar(0.057883817555).value )
+        self.assertEqual( scalar(constants.mu_B).value, scalar(0.057883817555).value )
     
     def test_Boltzmann_Constant(self):
-        self.assertEqual( scalar(constants.k_B()).value, scalar(0.08617330350).value )
+        self.assertEqual( scalar(constants.k_B).value, scalar(0.08617330350).value )
         
     def test_Planck_constant(self):
-        self.assertEqual( scalar(constants.hbar()).value, scalar(0.6582119514).value )
+        self.assertEqual( scalar(constants.hbar).value, scalar(0.6582119514).value )
         
     def test_millirydberg(self):
-        self.assertEqual( scalar(constants.mRy()).value, scalar(1.0/13.605693009).value )
+        self.assertEqual( scalar(constants.mRy).value, scalar(1.0/13.605693009).value )
         
     def test_gyromagnetic_ratio_of_electron(self):
-        self.assertEqual( scalar(constants.gamma()).value, scalar(0.1760859644).value )
+        self.assertEqual( scalar(constants.gamma).value, scalar(0.1760859644).value )
     
     def test_electron_g_factor(self):
-        self.assertEqual( scalar(constants.g_e()).value, scalar(2.00231930436182).value )
+        self.assertEqual( scalar(constants.g_e).value, scalar(2.00231930436182).value )
         
 
 #########

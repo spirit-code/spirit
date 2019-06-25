@@ -3,6 +3,9 @@ SPIRIT
 **SPIN SIMULATION FRAMEWORK**<br />
 
 
+![Logo](https://imgur.com/iWc1kuE.png "Spirit Logo")
+
+
 &nbsp;
 
 
@@ -27,11 +30,11 @@ SPIRIT
 
 The code is released under [MIT License](LICENSE.txt).<br />
 If you intend to *present and/or publish* scientific results or visualisations for which you used Spirit,
-please read the [REFERENCE.md](docs/REFERENCE.md)
+please cite [`G. P. Müller et al., Phys. Rev. B 99, 224414 (2019)`](https://link.aps.org/doi/10.1103/PhysRevB.99.224414) and read the [docs/REFERENCE.md](docs/REFERENCE.md).
 
 **This is an open project and contributions and collaborations are always welcome!!**
-See [CONTRIBUTING.md](docs/CONTRIBUTING.md) on how to contribute or write an email to g.mueller@fz-juelich.de<br />
-For contributions and affiliations, see [CONTRIBUTORS.md](docs/CONTRIBUTORS.md).
+See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) on how to contribute or write an email to g.mueller@fz-juelich.de<br />
+For contributions and affiliations, see [docs/CONTRIBUTORS.md](docs/CONTRIBUTORS.md).
 
 Please note that a version of the *Spirit Web interface* is hosted by the Research Centre Jülich at
 http://juspin.de
@@ -106,11 +109,9 @@ control of parameters.
 More details may be found at [spirit-docs.readthedocs.io](http://spirit-docs.readthedocs.io)
 or in the [Reference section](docs/README.md) including
 
-- [Framework build instructions](docs/BUILD.md)
-- [Core build instructions](core/docs/BUILD.md)
-- [Core API Reference](core/docs/API.md)
-- [Python API Reference](core/docs/API_Python.md)
-- [Input File Reference](core/docs/INPUT.md)
+- [Unix/OSX build instructions](docs/Build_Unix_OSX.md)
+- [Windows build instructions](docs/Build_Windows.md)
+- [Input File Reference](core/docs/Input.md)
 
 There is also a [Wiki](https://iffwiki.fz-juelich.de/index.php/Spirit "Click me..."),
 hosted by the Research Centre Jülich.
@@ -126,7 +127,8 @@ hosted by the Research Centre Jülich.
 Getting started with the Desktop Interface <a name="Desktop"></a>
 ---------------------------------------------
 
-See [BUILD.md](docs/BUILD.md) on how to install the desktop user interface.
+See the build instructions for [Unix/OSX](docs/Build_Unix_OSX.md) or
+[Windows](docs/Build_Windows.md) on how to get the desktop user interface.
 
 ![Desktop UI with Isosurfaces in a thin layer](http://imgur.com/QUcN4aG.jpg "Isosurfaces in a thin layer")
 
@@ -157,69 +159,69 @@ to the restrictive license on QT-Charts.*
 Getting started with the Python Package <a name="Python"></a>
 ---------------------------------------------
 
-To install the *Spirit python package*, either [build and install from source](docs/BUILD.md)
-or simply use
+To install the *Spirit python package*, either build and install from source
+([Unix/OSX](docs/Build_Unix_OSX.md), [Windows](docs/Build_Windows.md)) or
+simply use
 
     pip install spirit
 
-With this package you have access to powerful [Python APIs](core/docs/API_Python.md) to run and control
+With this package you have access to powerful Python APIs to run and control
 dynamics simulations or optimizations.
 This is especially useful for work on clusters, where you can now script your
 workflow, never having to re-compile when testing, debugging or adding features.
 
 The most simple example of a **spin dynamics simulation** would be
 ``` python
-    from spirit import state, simulation
-    with state.State("input/input.cfg") as p_state:
-        simulation.PlayPause(p_state, "LLG", "SIB")
+from spirit import state, simulation
+with state.State("input/input.cfg") as p_state:
+    simulation.start(p_state, simulation.METHOD_LLG, simulation.SOLVER_SIB)
 ```
-Where `"SIB"` denotes the semi-implicit method B and the starting configuration
+Where `SOLVER_SIB` denotes the semi-implicit method B and the starting configuration
 will be random.
 
 To add some meaningful content, we can change the **initial configuration** by
 inserting a Skyrmion into a homogeneous background:
 ``` python
-    def skyrmion_on_homogeneous(p_state):
-        from spirit import configuration
-        configuration.PlusZ(p_state)
-        configuration.Skyrmion(p_state, 5.0, phase=-90.0)
+def skyrmion_on_homogeneous(p_state):
+    from spirit import configuration
+    configuration.plus_z(p_state)
+    configuration.skyrmion(p_state, 5.0, phase=-90.0)
 ```
 
 If we want to calculate a **minimum energy path** for a transition, we need to generate
 a sensible initial guess for the path and use the **GNEB method**. Let us consider
 the collapse of a skyrmion to the homogeneous state:
 ``` python
-    from spirit import state, chain, configuration, transition, simulation 
+from spirit import state, chain, configuration, transition, simulation
 
-    ### Copy the system a few times
-    chain.Image_to_Clipboard(p_state)
-    for number in range(1,7):
-        chain.Insert_Image_After(p_state)
-    noi = chain.Get_NOI(p_state)
+### Copy the system and set chain length
+chain.image_to_clipboard(p_state)
+noi = 7
+chain.set_length(p_state, noi)
 
-    ### First image is homogeneous with a Skyrmion in the center
-    configuration.PlusZ(p_state, idx_image=0)
-    configuration.Skyrmion(p_state, 5.0, phase=-90.0, idx_image=0)
-    simulation.PlayPause(p_state, "LLG", "VP", idx_image=0)
-    ### Last image is homogeneous
-    configuration.PlusZ(p_state, idx_image=noi-1)
-    simulation.PlayPause(p_state, "LLG", "VP", idx_image=noi-1)
+### First image is homogeneous with a Skyrmion in the center
+configuration.plus_z(p_state, idx_image=0)
+configuration.skyrmion(p_state, 5.0, phase=-90.0, idx_image=0)
+simulation.start(p_state, simulation.METHOD_LLG, simulation.SOLVER_VP, idx_image=0)
+### Last image is homogeneous
+configuration.plus_z(p_state, idx_image=noi-1)
+simulation.start(p_state, simulation.METHOD_LLG, simulation.SOLVER_VP, idx_image=noi-1)
 
-    ### Create transition of images between first and last
-    transition.Homogeneous(p_state, 0, noi-1)
+### Create transition of images between first and last
+transition.homogeneous(p_state, 0, noi-1)
 
-    ### GNEB calculation
-    simulation.PlayPause(p_state, "GNEB", "VP")
+### GNEB calculation
+simulation.start(p_state, simulation.METHOD_GNEB, simulation.SOLVER_VP)
 ```
-where `"VP"` denotes a direct minimization with the velocity projection algorithm.
+where `SOLVER_VP` denotes a direct minimization with the velocity projection algorithm.
 
 You may also use *Spirit* order to **extract quantitative data**, such as the energy.
 ``` python
-    def evaluate(p_state):
-        from spirit import system, quantities
-        M = quantities.Get_Magnetization(p_state)
-        E = system.Get_Energy(p_state)
-        return M, E
+def evaluate(p_state):
+    from spirit import system, quantities
+    M = quantities.get_magnetization(p_state)
+    E = system.get_energy(p_state)
+    return M, E
 ```
 
 Obviously you may easily create significantly more complex workflows and use Python

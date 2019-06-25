@@ -43,18 +43,28 @@ Module.ready(function() {
         // var cfgfile = "input/nanostrip_skyrmions.cfg";
         var cfgfile = "";
         this.getConfig(cfgfile, function(config) {
-            FS.writeFile("/input.cfg", config);
-            this._state = Module.State_Setup("/input.cfg");
+            // FS.writeFile("/input.cfg", config);
+            this._state = Module.State_Setup("");
             this.showBoundingBox = true;
             finishedCallback(this);
         }.bind(this));
     };
 
-    Module.iterate = Module.cwrap('JS_LLG_Iteration', null, ['number']);
+    Module.iteration = Module.cwrap('Simulation_SingleShot', null, ['number', 'number', 'number']);
     Simulation.prototype.performIteration = function() {
-        Module.iterate(this._state);
+        Module.iteration(this._state);
         this.update();
     };
+
+    Module.startsim = Module.cwrap('Simulation_LLG_Start', null, ['number', 'number', 'number', 'number', Boolean, 'number', 'number']);
+    Simulation.prototype.startSimulation = function() {
+        Module.startsim(this._state, 1, 1000000, 1000, true);
+    }
+
+    Module.stopsim = Module.cwrap('Simulation_Stop', null, ['number', 'number', 'number']);
+    Simulation.prototype.stopSimulation = function() {
+        Module.stopsim(this._state);
+    }
 
     Simulation.prototype.getConfig = function(cfg_name, callback) {
         if (cfg_name != "")
@@ -89,6 +99,7 @@ Module.ready(function() {
     Simulation.prototype.spiritVersion = function() {
         return Module.Spirit_Version_Full();
     };
+
     Module.getSpinDirections = Module.cwrap('System_Get_Spin_Directions', 'number', ['number']);
     Module.getSpinPositions = Module.cwrap('Geometry_Get_Positions', 'number', ['number']);
     Simulation.prototype.update = function() {
@@ -212,7 +223,7 @@ Module.ready(function() {
         Module._free(periodical_ptr);
         this.update();
     };
-    Module.Hamiltonian_Set_mu_s = Module.cwrap('Hamiltonian_Set_mu_s', null, ['number', 'number', 'number']);
+    Module.Hamiltonian_Set_mu_s = Module.cwrap('Geometry_Set_mu_s', null, ['number', 'number', 'number']);
     Simulation.prototype.updateHamiltonianMuSpin = function(mu_spin) {
         Module.Hamiltonian_Set_mu_s(this._state, mu_spin, -1, -1);
         this.update();
@@ -252,38 +263,42 @@ Module.ready(function() {
         Module._free(normal_ptr);
         this.update();
     };
-    Module.Parameters_Set_LLG_STT = Module.cwrap('Parameters_Set_LLG_STT', null, ['number', 'number', 'number', 'number', 'number', 'number']);
+    Module.Hamiltonian_Set_DDI = Module.cwrap('Hamiltonian_Set_DDI', null, ['number', 'number', 'number', 'number', 'number', 'number']);
+    Simulation.prototype.updateHamiltonianDDI = function(method, n_periodical) {
+        var periodical = new Int32Array([n_periodical, n_periodical, n_periodical]);
+        var periodical_ptr = Module._malloc(periodical.length * periodical.BYTES_PER_ELEMENT);
+        Module.HEAP32.set(periodical, periodical_ptr/Module.HEAP32.BYTES_PER_ELEMENT);
+        Module.Hamiltonian_Set_DDI(this._state, method, periodical_ptr, 0);
+        Module._free(periodical_ptr);
+        this.update();
+    };
+    Module.Parameters_LLG_Set_Convergence = Module.cwrap('Parameters_LLG_Set_Convergence', null, ['number', 'number', 'number', 'number']);
+    Simulation.prototype.updateLLGConvergence = function(convergence) {
+        Module.Parameters_LLG_Set_Convergence(this._state, convergence, -1 -1);
+        this.update();
+    };
+    Module.Parameters_LLG_Set_STT = Module.cwrap('Parameters_LLG_Set_STT', null, ['number', 'number', 'number', 'number', 'number', 'number']);
     Simulation.prototype.updateHamiltonianSpinTorque = function(magnitude, normal_x, normal_y, normal_z) {
         var normal = new Float32Array([normal_x, normal_y, normal_z]);
         var normal_ptr = Module._malloc(normal.length * normal.BYTES_PER_ELEMENT);
         Module.HEAPF32.set(normal, normal_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
-        Module.Parameters_Set_LLG_STT(this._state, false, magnitude, normal_ptr, -1, -1);
+        Module.Parameters_LLG_Set_STT(this._state, false, magnitude, normal_ptr, -1, -1);
         Module._free(normal_ptr);
         this.update();
     };
-    Module.Parameters_Set_LLG_Temperature = Module.cwrap('Parameters_Set_LLG_Temperature', null, ['number', 'number', 'number', 'number']);
+    Module.Parameters_LLG_Set_Temperature = Module.cwrap('Parameters_LLG_Set_Temperature', null, ['number', 'number', 'number', 'number']);
     Simulation.prototype.updateHamiltonianTemperature = function(temperature) {
-        Module.Parameters_Set_LLG_Temperature(this._state, temperature, -1, -1);
+        Module.Parameters_LLG_Set_Temperature(this._state, temperature, -1, -1);
         this.update();
     };
-    Module.Parameters_Set_LLG_Time_Step = Module.cwrap('Parameters_Set_LLG_Time_Step', null, ['number', 'number', 'number', 'number']);
+    Module.Parameters_LLG_Set_Time_Step = Module.cwrap('Parameters_LLG_Set_Time_Step', null, ['number', 'number', 'number', 'number']);
     Simulation.prototype.updateLLGTimeStep = function(time_step) {
-        Module.Parameters_Set_LLG_Time_Step(this._state, time_step, -1, -1);
+        Module.Parameters_LLG_Set_Time_Step(this._state, time_step, -1, -1);
         this.update();
     };
-    Module.Parameters_Set_LLG_Damping = Module.cwrap('Parameters_Set_LLG_Damping', null, ['number', 'number', 'number', 'number']);
+    Module.Parameters_LLG_Set_Damping = Module.cwrap('Parameters_LLG_Set_Damping', null, ['number', 'number', 'number', 'number']);
     Simulation.prototype.updateLLGDamping = function(damping) {
-        Module.Parameters_Set_LLG_Damping(this._state, damping, -1, -1);
-        this.update();
-    };
-    Module.Parameters_Set_GNEB_Spring_Constant = Module.cwrap('Parameters_Set_GNEB_Spring_Constant', null, ['number', 'number', 'number', 'number']);
-    Simulation.prototype.updateGNEBSpringConstant = function(spring_constant) {
-        Module.Parameters_Set_GNEB_Spring_Constant(this._state, spring_constant, -1, -1);
-        this.update();
-    };
-    Module.Parameters_Set_GNEB_Climbing_Falling = Module.cwrap('Parameters_Set_GNEB_Climbing_Falling', null, ['number', 'number', 'number', 'number', 'number']);
-    Simulation.prototype.updateGNEBClimbingFalling = function(climbing, falling) {
-        Module.Parameters_Set_GNEB_Climbing_Falling(this._state, climbing, falling, -1, -1);
+        Module.Parameters_LLG_Set_Damping(this._state, damping);
         this.update();
     };
     Module.Geometry_Get_Bounds = Module.cwrap('Geometry_Get_Bounds', null, ['number', 'number', 'number']);

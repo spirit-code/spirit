@@ -27,13 +27,13 @@ class Hamiltonian_set_get(TestParameters):
     def test_set_field(self):
         mag_set = 10
         dir_set = [1., 1., 0.]
-        hamiltonian.Set_Field(self.p_state, mag_set, dir_set)
+        hamiltonian.set_field(self.p_state, mag_set, dir_set)
         # TODO: test the functionality of that function when the corresponding get will be available
     
     def test_set_anisotropy(self):
         mag_set = 0.5
         dir_set = [1., 1., 0.]
-        hamiltonian.Set_Anisotropy(self.p_state, mag_set, dir_set)
+        hamiltonian.set_anisotropy(self.p_state, mag_set, dir_set)
         # TODO: test the functionality of that function when the corresponding get will be available
         
     

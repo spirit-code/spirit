@@ -254,8 +254,6 @@ namespace Engine
         /////////////////////////////////////////////////////////////////
 
 
-
-
         // Utility function for the SIB Solver
         __global__ void cu_transform(const Vector3 * spins, const Vector3 * force, Vector3 * out, size_t N)
         {
@@ -565,6 +563,24 @@ namespace Engine
         {
             int n = vf.size();
             cu_scale<<<(n+1023)/1024, 1024>>>(vf.data(), sc, n);
+            CU_CHECK_AND_SYNC();
+        }
+
+        __global__ void cu_scale(Vector3 *vf1, const scalar * sf, bool inverse, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                if( inverse )
+                    vf1[idx] /= sf[idx];
+                else
+                    vf1[idx] *= sf[idx];
+            }
+        }
+        void scale(vectorfield & vf, const scalarfield & sf, bool inverse)
+        {
+            int n = vf.size();
+            cu_scale<<<(n+1023)/1024, 1024>>>(vf.data(), sf.data(), inverse, n);
             CU_CHECK_AND_SYNC();
         }
 

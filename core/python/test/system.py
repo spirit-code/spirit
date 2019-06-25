@@ -23,17 +23,17 @@ class TestSystem(unittest.TestCase):
 class SystemGetters(TestSystem):
     
     def test_get_index(self):
-        index = system.Get_Index(self.p_state)
+        index = system.get_index(self.p_state)
         self.assertEqual(index, 0)
     
     def test_get_nos(self):
-        nos = system.Get_NOS(self.p_state)
+        nos = system.get_nos(self.p_state)
         self.assertEqual(nos, 4)
     
     def test_get_spin_directions(self):
-        configuration.PlusZ(self.p_state)
-        nos = system.Get_NOS(self.p_state)
-        arr = system.Get_Spin_Directions(self.p_state)
+        configuration.plus_z(self.p_state)
+        nos = system.get_nos(self.p_state)
+        arr = system.get_spin_directions(self.p_state)
         for i in range(nos):
             self.assertAlmostEqual( arr[i][0], 0. )
             self.assertAlmostEqual( arr[i][1], 0. )
@@ -41,7 +41,7 @@ class SystemGetters(TestSystem):
     
     def test_get_energy(self):
         # NOTE: that test is trivial
-        E = system.Get_Energy(self.p_state)
+        E = system.get_energy(self.p_state)
     
     
     # NOTE: there is no way to test the system.Update_Data() and system.Print_Energy_Array()

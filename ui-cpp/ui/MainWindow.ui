@@ -19,6 +19,9 @@
   <property name="windowTitle">
    <string>Spirit - Atomistic Spin Code (QT UI)</string>
   </property>
+  <property name="locale">
+   <locale language="C" country="AnyCountry"/>
+  </property>
   <property name="unifiedTitleAndToolBarOnMac">
    <bool>true</bool>
   </property>
@@ -94,10 +97,13 @@
     <addaction name="actionSave_Cfg_File"/>
     <addaction name="separator"/>
     <addaction name="actionLoad_Spin_Configuration"/>
-    <addaction name="actionLoad_Spin_Configuration_Chain"/>
-    <addaction name="separator"/>
     <addaction name="action_Save_Spin_Configuration"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoad_Spin_Configuration_Chain"/>
     <addaction name="actionSave_Spin_Configuration_Chain"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoad_Spin_Configuration_Eigenmodes"/>
+    <addaction name="actionSave_Spin_Configuration_Eigenmodes"/>
     <addaction name="separator"/>
     <addaction name="actionSave_Energy_per_Spin"/>
     <addaction name="actionSave_Energies"/>
@@ -153,7 +159,10 @@
     <addaction name="actionRandomize_Spins"/>
     <addaction name="actionCycle_Method"/>
     <addaction name="actionCycle_Solver"/>
+    <addaction name="separator"/>
     <addaction name="actionToggle_Dragging_mode"/>
+    <addaction name="actionToggle_Defect_mode"/>
+    <addaction name="actionToggle_Pinning_mode"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuEdit"/>
@@ -552,6 +561,32 @@
    </property>
    <property name="text">
     <string>Toggle Info-Widget</string>
+   </property>
+  </action>
+  <action name="actionLoad_Spin_Configuration_Eigenmodes">
+   <property name="text">
+    <string>Load Spin Configuration Eigenmodes</string>
+   </property>
+  </action>
+  <action name="actionSave_Spin_Configuration_Eigenmodes">
+   <property name="text">
+    <string>Save Spin Configuration Eigenmodes</string>
+   </property>
+  </action>
+  <action name="actionToggle_Defect_mode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Toggle &quot;Defect&quot; mode</string>
+   </property>
+  </action>
+  <action name="actionToggle_Pinning_mode">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Toggle &quot;Pinning&quot; mode</string>
    </property>
   </action>
  </widget>

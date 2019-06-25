@@ -48,13 +48,16 @@ namespace Engine
         void Message_End() override;
 
 
-
         std::shared_ptr<Data::Parameters_Method_MC> parameters_mc;
 
         // Cosine of current cone angle
         scalar cone_angle;
         int n_rejected;
         scalar acceptance_ratio_current;
+        int nos_nonvacant;
+
+        // Random vector array
+        vectorfield xi;
     };
 }
 

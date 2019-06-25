@@ -1,7 +1,7 @@
 UI - CPP
 ------------
 
-By setting the CMake switch `UI_CXX_USE_QT`, you can choose wether to use a regular
+By setting the CMake switch `SPIRIT_UI_CXX_USE_QT`, you can choose wether to use a regular
 command line interface or a powerful QT user interface.
 
 Both interfaces can be stopped with `Ctrl+C`.

@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <array>
+#include <complex>
 
 #include "Spirit_Defines.h"
 
@@ -17,6 +18,9 @@ using Vector3    = Eigen::Matrix<scalar, 3, 1>;
 using RowVector3 = Eigen::Matrix<scalar, 1, 3>;
 using Matrix3    = Eigen::Matrix<scalar, 3, 3>;
 
+using Vector3c   = Eigen::Matrix<std::complex<scalar>, 3, 1>;
+using Matrix3c   = Eigen::Matrix<std::complex<scalar>, 3, 3>;
+
 // Different definitions for regular C++ and CUDA
 #ifdef SPIRIT_USE_CUDA
     // The general field, using the managed allocator
@@ -24,6 +28,13 @@ using Matrix3    = Eigen::Matrix<scalar, 3, 3>;
     template<typename T>
     using field = std::vector<T, managed_allocator<T>>;
 
+    struct Site
+    {
+        // Basis index
+        int i;
+        // Translations of the basis cell
+        int translations[3];
+    };
     struct Pair
     {
         // Basis indices of first and second atom of pair
@@ -46,6 +57,13 @@ using Matrix3    = Eigen::Matrix<scalar, 3, 3>;
     template<typename T>
     using field = std::vector<T>;
 
+    struct Site
+    {
+        // Basis index
+        int i;
+        // Translations of the basis cell
+        std::array<int,3> translations;
+    };
     struct Pair
     {
         int i, j;
