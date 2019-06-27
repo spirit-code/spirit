@@ -553,9 +553,6 @@ namespace Engine
         // Get the norm of a vectorfield 
         void norm( const vectorfield & vf, scalarfield & norm );
 
-        // Pair of Minimum and Maximum of any component of any vector of a vectorfield
-        std::pair<scalar, scalar> minmax_component(const vectorfield & v1);
-
         // Maximum absolute component of a vectorfield
         scalar max_abs_component(const vectorfield & vf);
 
