@@ -333,4 +333,39 @@ Module.ready(function() {
         Module._free(ncells_ptr);
         return [NX, NY, NZ];
     }
+    Module.Geometry_Set_N_Cells = Module.cwrap('Geometry_Set_N_Cells', null, ['number', 'number']);
+    Simulation.prototype.setNCells = function (n_cells) {
+        var ncells_ptr = Module._malloc(3*Module.HEAP32.BYTES_PER_ELEMENT);
+        var na_ptr = ncells_ptr+0*Module.HEAP32.BYTES_PER_ELEMENT;
+        var nb_ptr = ncells_ptr+1*Module.HEAP32.BYTES_PER_ELEMENT;
+        var nc_ptr = ncells_ptr+2*Module.HEAP32.BYTES_PER_ELEMENT;
+        Module.HEAP32[na_ptr/Module.HEAP32.BYTES_PER_ELEMENT] = n_cells[0];
+        Module.HEAP32[nb_ptr/Module.HEAP32.BYTES_PER_ELEMENT] = n_cells[1];
+        Module.HEAP32[nc_ptr/Module.HEAP32.BYTES_PER_ELEMENT] = n_cells[2];
+        Module.Geometry_Set_N_Cells(this._state, ncells_ptr);
+        Module._free(ncells_ptr);
+        this.update();
+    }
+    Module.IO_Image_Write = Module.cwrap('IO_Image_Write', null, ['number', 'string', 'number', 'string', 'number', 'number']);
+    Simulation.prototype.exportOVFDataURI = function () {
+        Module.IO_Image_Write(this._state, "/export.ovf", 0, 'Generated with Spirit Web UI', -1, -1);
+        var ovf_data = FS.readFile("/export.ovf");
+        function uint8ArrayToString_chunked(data){
+          var CHUNK_SIZE = 32768;
+          var chunks = [];
+          for (var i=0; i < data.length; i += CHUNK_SIZE) {
+            chunks.push(String.fromCharCode.apply(null, data.subarray(i, i+CHUNK_SIZE)));
+          }
+          return chunks.join("");
+        }
+        return "data:application/octet-stream;base64," + btoa(uint8ArrayToString_chunked(ovf_data));
+    }
+    Module.IO_Image_Read = Module.cwrap('IO_Image_Read', null, ['number', 'string', 'number', 'number', 'number']);
+    Simulation.prototype.importOVFData = function (ovf_data) {
+        var stream = FS.open('/import.ovf', 'w');
+        FS.write(stream, ovf_data, 0, ovf_data.length, 0);
+        FS.close(stream);
+        Module.IO_Image_Read(this._state, "/import.ovf", 0, -1, -1);
+        this.update();
+    }
 });

@@ -26,6 +26,31 @@
   <aside id="settings-container">
     <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
       <div class="panel panel-default">
+        <div class="panel-heading" role="tab" id="heading-geometry">
+          <h4 class="panel-title">
+            <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse-geometry" aria-expanded="true" aria-controls="collapse-geometry">
+              Geometry
+            </a>
+          </h4>
+        </div>
+        <div id="collapse-geometry" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-geometry">
+          <div class="panel-body">
+            <h5>Grid</h5>
+            <div class="well well-sm">
+              <form class="form-horizontal">
+                <div class="form-group">
+                  <label for="input-gridsize-x" class="col-sm-3 control-label">Size: </label>
+                  <div class="col-sm-3"><input type="text" id="input-gridsize-x" class="form-control" value="10" /></div>
+                  <div class="col-sm-3"><input type="text" id="input-gridsize-y" class="form-control" value="10" /></div>
+                  <div class="col-sm-3"><input type="text" id="input-gridsize-z" class="form-control" value="1" /></div>
+                </div>
+                <button type="button" class="btn btn-block btn-default" id="button-gridsize-update">Create Grid</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-default">
         <div class="panel-heading" role="tab" id="heading-configurations">
           <h4 class="panel-title">
             <a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse-configurations" aria-expanded="true" aria-controls="collapse-configurations">
@@ -36,6 +61,16 @@
         <div id="collapse-configurations" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-configurations">
           <div class="panel-body">
 
+            <h5>Configuration Files</h5>
+            <div class="well well-sm">
+              <form class="form-horizontal">
+                <div class="form-group">
+                  <label for="input-import-ovf" class="col-sm-6 control-label">Import OVF File: </label>
+                  <input type="file" class="btn btn-default col-sm-6" id="input-import-ovf" />
+                </div>
+                <button type="button" class="btn btn-block btn-default" id="button-export-ovf">Export OVF File</button>
+              </form>
+            </div>
             <h5>Basic Configuration</h5>
             <div class="well well-sm">
               <div class="text-center">
@@ -476,6 +511,12 @@
                   <button type="button" class="btn btn-default" id="button-camera-z">Z</button>
                 </div>
               </div>
+            </div>
+            <h5>Screenshot</h5>
+            <div class="well well-sm">
+              <form class="form-horizontal">
+                <button type="button" class="btn btn-block btn-default" id="button-screenshot">Save Screenshot</button>
+              </form>
             </div>
           </div>
         </div>

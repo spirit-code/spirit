@@ -104,6 +104,16 @@ $(document).ready(function() {
     sim.setAllSpinsRandom();
   });
 
+
+  $('#button-gridsize-update').on('click', function(e) {
+    var x = Number($('#input-gridsize-x').val());
+    var y = Number($('#input-gridsize-y').val());
+    var z = Number($('#input-gridsize-z').val());
+    var sim = window.currentSimulation;
+    sim.setNCells([x, y, z]);
+    webglspins.updateCenterLocation([(x-1)/2, (y-1)/2, (z-1)/2]);
+  });
+
   $('#button-skyrmion-create').on('click', function(e) {
     var order = Number($('#input-skyrmion-order').val());
     var phase = Number($('#input-skyrmion-phase').val());
@@ -625,6 +635,39 @@ $(document).ready(function() {
   });
   $('#button-camera-z').on('click', function(e) {
     webglspins.alignCamera([0, 0, -1], [0, 1, 0]);
+  });
+
+  function downloadURI(uri, name) {
+    var link = document.createElement("a");
+    link.download = name;
+    link.href = uri;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    delete link;
+  }
+
+  $('#button-screenshot').on('click', function(e) {
+    webglspins.draw();
+    downloadURI(webglspins._canvas.toDataURL(), "spirit_screenshot.png");
+  });
+  if (window.File && window.FileReader && window.FileList && window.Blob) {
+    $('#input-import-ovf').on('change', function (e) {
+      if (e.target.files.length < 1) {
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function() {
+        window.currentSimulation.importOVFData(new Uint8Array(reader.result));
+      };
+      reader.readAsArrayBuffer(e.target.files[0]);
+    });
+  } else {
+    $('#input-import-ovf').parent().hide();
+  }
+
+  $('#button-export-ovf').on('click', function(e) {
+    downloadURI(window.currentSimulation.exportOVFDataURI(), "export.ovf");
   });
 
   var isSimulating = false;
