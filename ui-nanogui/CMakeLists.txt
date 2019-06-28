@@ -1,3 +1,6 @@
+MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
+MESSAGE( STATUS ">> --------------------- UI - NGUI ------------------------------------ <<" ) 
+
 cmake_minimum_required( VERSION 3.2 FATAL_ERROR )
 # We need at least C++11
 set( CMAKE_CXX_STANDARD 11 )
@@ -39,10 +42,13 @@ set( SPIRIT_GUI_DEPENDENCIES ${SPIRIT_GUI_DEPENDENCIES} VFRendering )
 ############################################
 
 ### The GUI ################################
-add_executable( ${PROJECT_NAME} main.cpp )
+add_subdirectory( ${PROJECT_SOURCE_DIR}/src )
+add_executable( ${PROJECT_NAME} ${SPIRIT_GUI_SOURCES} main.cpp )
 target_include_directories( ${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/include ${SPIRIT_GUI_INCLUDE_DIRS} )
 target_link_libraries( ${PROJECT_NAME} ${SPIRIT_GUI_DEPENDENCIES} )
 ### Set executable name
 set( SPIRIT_EXE_NAME "spirit" )
 set_target_properties( ${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${SPIRIT_EXE_NAME} )
 ############################################
+MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
+MESSAGE( STATUS ">> --------------------- UI - NGUI - Done  ---------------------------- <<" ) 

@@ -56,6 +56,7 @@
 
 #include <GLCanvas.hpp>
 #include <ConfigurationsWindow.hpp>
+#include <AdvancedGraph.hpp>
 
 #include <Spirit/State.h>
 #include <Spirit/Chain.h>
@@ -86,6 +87,23 @@ public:
         configurations->setLayout(new GroupLayout());
         configurations->setUpdateCallback([&] {this->gl_canvas->updateData();});
 
+        auto w = new Window(this, "Example Graph");
+        w->setLayout(new GroupLayout());
+        w->setSize({300,200});
+        auto graph = new AdvancedGraph(w, Marker::SQUARE, Color(0,0,255,255), 1.4);
+        graph->setSize({300, 200});
+        graph->setPosition({0,0});
+        graph->setGrid(true);
+        graph->setMarginBot(40);
+        graph->setXLabel("Reaction Coordinate");
+        graph->setYLabel("Energy [meV]");
+        graph->setXMin(0);
+        graph->setXMax(9.5);
+        graph->setNTicksX(10);
+        graph->setYMin(1e6); 
+        graph->setYMax(5e6);
+        graph->setLine(true);
+        graph->setValues( {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, {1.2e6, 2.2e6, 3e6, 4.02e6, 2e6, 4.5e6, 3.7e6, 3.8e6, 2.9e6, 10e6} );
         performLayout();
     }
 
