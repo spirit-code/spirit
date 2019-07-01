@@ -60,7 +60,6 @@ set( INTERFACE_EXPORT_FUNCTIONS
     '_Chain_Get_Rx_Interpolated'
     '_Chain_Get_Energy'
     '_Chain_Get_Energy_Interpolated'
-    '_Chain_Get_HTST_Info'
     '_Chain_Update_Data'
     '_Chain_Setup_Data'
     # Configuration
@@ -265,8 +264,6 @@ set( INTERFACE_EXPORT_FUNCTIONS
     # Quantity
     '_Quantity_Get_Magnetization'
     '_Quantity_Get_Topological_Charge'
-    '_Quantity_Get_Grad_Force_MinimumMode'
-    '_Quantity_Get_HTST_Prefactor'
     # Simulation
     '_Simulation_MC_Start'
     '_Simulation_LLG_Start'

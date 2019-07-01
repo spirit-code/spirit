@@ -667,10 +667,24 @@ $(document).ready(function() {
   }
 
   $('#button-export-ovf').on('click', function(e) {
-    downloadURI(window.currentSimulation.exportOVFDataURI(), "export.ovf");
+    downloadURI(window.currentSimulation.exportOVFDataURI(), $('#input-export-spins').val()+'.ovf');
+  });
+
+  $('#button-export-energy').on('click', function(e) {
+    window.currentSimulation.System_Update_Data();
+    downloadURI(window.currentSimulation.exportEnergyDataURI(), $('#input-export-energy').val()+'.txt');
   });
 
   var isSimulating = false;
+  
+  function update(sim) {
+    if (isSimulating) {
+      sim.performIteration();
+      window.requestAnimationFrame(function () {
+        update(sim)
+      });
+    }
+  };
   
   function updateSimulation(sim){  
     window.currentSimulation = sim;
@@ -714,14 +728,6 @@ $(document).ready(function() {
         webglspins.draw();
       }
     });
-    function update(sim) {
-      if (isSimulating) {
-        sim.performIteration();
-        window.requestAnimationFrame(function () {
-          update(sim)
-        });
-      }
-    };
     $("#btn-play").click(function() {
       isSimulating = !isSimulating;
       $("#btn-play").toggleClass("fa-play fa-pause");
@@ -737,6 +743,38 @@ $(document).ready(function() {
     });
     sim.updateLLGConvergence(-1);
   };
+
+  window.addEventListener('keydown', function(event) {
+    var key = event.keyCode || event.which;
+    if (key == 32) { // space
+        var sim = window.currentSimulation;
+        isSimulating = sim.simulationRunning();
+        // isSimulating = !isSimulating; // module.simulation_running()
+        $("#btn-play").toggleClass("fa-play fa-pause");
+        if (!isSimulating) {
+          sim.startSimulation();
+          window.requestAnimationFrame(function () {
+            update(sim);
+          });
+        }
+        else {
+          sim.stopSimulation();
+        }
+        isSimulating = sim.simulationRunning();
+    }
+    else if (key == 88) { // x
+      webglspins.alignCamera([-1, 0, 0], [0, 0, 1]);
+    }
+    else if (key == 89) { // y
+      webglspins.alignCamera([0, 1, 0], [0, 0, 1]);
+    }
+    else if (key == 90) { // z
+      webglspins.alignCamera([0, 0, -1], [0, 1, 0]);
+    }
+    else{
+        console.log('key code ' + key + ' was pressed!');
+    }
+  });
   Module.ready(function() {
     new Simulation(updateSimulation);
 

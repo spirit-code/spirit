@@ -66,6 +66,11 @@ Module.ready(function() {
         Module.stopsim(this._state);
     }
 
+    Module.simulation_running = Module.cwrap('Simulation_Running_Anywhere_On_Chain', Boolean, ['number', 'number']);
+    Simulation.prototype.simulationRunning = function() {
+        return Module.simulation_running(this._state);
+    }
+
     Simulation.prototype.getConfig = function(cfg_name, callback) {
         if (cfg_name != "")
         {
@@ -348,7 +353,7 @@ Module.ready(function() {
     }
     Module.IO_Image_Write = Module.cwrap('IO_Image_Write', null, ['number', 'string', 'number', 'string', 'number', 'number']);
     Simulation.prototype.exportOVFDataURI = function () {
-        Module.IO_Image_Write(this._state, "/export.ovf", 0, 'Generated with Spirit Web UI', -1, -1);
+        Module.IO_Image_Write(this._state, "/export.ovf", 3, 'Generated with Spirit Web UI', -1, -1);
         var ovf_data = FS.readFile("/export.ovf");
         function uint8ArrayToString_chunked(data){
           var CHUNK_SIZE = 32768;
@@ -367,5 +372,23 @@ Module.ready(function() {
         FS.close(stream);
         Module.IO_Image_Read(this._state, "/import.ovf", 0, -1, -1);
         this.update();
+    }
+    Module.System_Update_Data = Module.cwrap('System_Update_Data', null, ['number', 'number', 'number']);
+    Simulation.prototype.System_Update_Data = function () {
+        Module.System_Update_Data(this._state, -1, -1);
+    }
+    Module.IO_Image_Write_Energy_per_Spin = Module.cwrap('IO_Image_Write_Energy_per_Spin', null, ['number', 'string', 'number', 'number', 'number']);
+    Simulation.prototype.exportEnergyDataURI = function () {
+        Module.IO_Image_Write_Energy_per_Spin(this._state, "/energy.txt", 3, -1, -1);
+        var energy_data = FS.readFile("/energy.txt");
+        function uint8ArrayToString_chunked(data){
+          var CHUNK_SIZE = 32768;
+          var chunks = [];
+          for (var i=0; i < data.length; i += CHUNK_SIZE) {
+            chunks.push(String.fromCharCode.apply(null, data.subarray(i, i+CHUNK_SIZE)));
+          }
+          return chunks.join("");
+        }
+        return "data:application/octet-stream;base64," + btoa(uint8ArrayToString_chunked(energy_data));
     }
 });

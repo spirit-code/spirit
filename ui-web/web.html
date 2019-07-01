@@ -40,8 +40,8 @@
               <form class="form-horizontal">
                 <div class="form-group">
                   <label for="input-gridsize-x" class="col-sm-3 control-label">Size: </label>
-                  <div class="col-sm-3"><input type="text" id="input-gridsize-x" class="form-control" value="10" /></div>
-                  <div class="col-sm-3"><input type="text" id="input-gridsize-y" class="form-control" value="10" /></div>
+                  <div class="col-sm-3"><input type="text" id="input-gridsize-x" class="form-control" value="100" /></div>
+                  <div class="col-sm-3"><input type="text" id="input-gridsize-y" class="form-control" value="100" /></div>
                   <div class="col-sm-3"><input type="text" id="input-gridsize-z" class="form-control" value="1" /></div>
                 </div>
                 <button type="button" class="btn btn-block btn-default" id="button-gridsize-update">Create Grid</button>
@@ -60,7 +60,6 @@
         </div>
         <div id="collapse-configurations" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-configurations">
           <div class="panel-body">
-
             <h5>Configuration Files</h5>
             <div class="well well-sm">
               <form class="form-horizontal">
@@ -68,6 +67,7 @@
                   <label for="input-import-ovf" class="col-sm-6 control-label">Import OVF File: </label>
                   <input type="file" class="btn btn-default col-sm-6" id="input-import-ovf" />
                 </div>
+                <div class="col-sm-12"><div class="input-group"><input type="text" id="input-export-spins" class="form-control" value="spins" /><span class="input-group-addon">.ovf</span></div></div>
                 <button type="button" class="btn btn-block btn-default" id="button-export-ovf">Export OVF File</button>
               </form>
             </div>
@@ -206,17 +206,20 @@
         </div>
         <div id="collapse-hamiltonian" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-hamiltonian">
           <div class="panel-body">
-
-
             <!--<form class="form-inline">
               <div class="form-group">
                 <label for="select-hamiltonian-applyto" class="col-sm-6 control-label">Apply to: </label><div class="col-sm-6"><select id="select-hamiltonian-applyto"><option>Current Image</option></select></div>
               </div>
             </form>-->
-
             <!--<h5>Current image interaction parameters</h5>
             <div class="well well-sm">-->
               <form class="form-horizontal">
+                <div class="form-group">
+                  <div class="col-sm-12">
+                    <div class="col-sm-12"><div class="input-group"><input type="text" id="input-export-energy" class="form-control" value="energy" /><span class="input-group-addon">.txt</span></div></div>
+                    <button type="button" class="btn btn-block btn-default" id="button-export-energy">Export Energy</button>
+                  </div>
+                </div>
                 <div class="form-group">
                   <div class="checkbox col-sm-12">
                     <label>
