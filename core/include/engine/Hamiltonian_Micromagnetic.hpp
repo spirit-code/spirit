@@ -79,7 +79,7 @@ namespace Engine
         Matrix3 dmi_tensor;
 		neighbourfield neigh;
 		field<Matrix3> spatial_gradient;
-		bool A_is_nondiagonal=true;
+		bool A_is_nondiagonal=false;
 
     private:
         // ------------ Effective Field Functions ------------

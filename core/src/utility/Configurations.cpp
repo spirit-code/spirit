@@ -203,36 +203,66 @@ namespace Utility
 
         void Skyrmion(Data::Spin_System & s, Vector3 pos, scalar r, scalar order, scalar phase, bool upDown, bool achiral, bool rl, bool experimental, filterfunction filter)
         {
-            //bool experimental uses Method similar to PHYSICAL REVIEW B 67, 020401(R) (2003)
+			/*
+			//bool experimental uses Method similar to PHYSICAL REVIEW B 67, 020401(R) (2003)
 
-            auto& spins = *s.spins;
-            auto& positions = s.geometry->positions;
+			auto& spins = *s.spins;
+			auto& positions = s.geometry->positions;
 
-            // skaled to fit with
-            scalar r_new = r;
-            if (experimental) { r_new = r*1.2; }
-            int iatom, ksi = ((int)rl) * 2 - 1, dir = ((int)upDown) * 2 - 1;
-            scalar distance, phi_i, theta_i;
-            for (iatom = 0; iatom < s.nos; ++iatom)
-            {
-                distance = std::sqrt(std::pow(s.geometry->positions[iatom][0] - pos[0], 2) + std::pow(s.geometry->positions[iatom][1] - pos[1], 2));
-                distance = distance / r_new;
-                if (filter(spins[iatom], positions[iatom]))
-                {
-                    double x = (s.geometry->positions[iatom][0] - pos[0]) / distance / r_new;
-                    phi_i = std::acos(std::max(-1.0, std::min(1.0, x)));
-                    if (distance == 0) { phi_i = 0; }
-                    if (s.geometry->positions[iatom][1] - pos[1] < 0.0) { phi_i = - phi_i ; }
-                    phi_i += phase / 180 * Pi;
-                    if (experimental) { theta_i = Pi - 4 * std::asin(std::tanh(distance)); }
-                    else { theta_i = Pi - Pi *distance; }
+			// skaled to fit with
+			scalar r_new = r;
+			if (experimental) { r_new = r * 1.2; }
+			int iatom, ksi = ((int)rl) * 2 - 1, dir = ((int)upDown) * 2 - 1;
+			scalar distance, phi_i, theta_i;
+			for (iatom = 0; iatom < s.nos; ++iatom)
+			{
+				distance = std::sqrt(std::pow(s.geometry->positions[iatom][0] - pos[0], 2) + std::pow(s.geometry->positions[iatom][1] - pos[1], 2));
+				distance = distance / r_new;
+				if (filter(spins[iatom], positions[iatom]))
+				{
+					double x = (s.geometry->positions[iatom][0] - pos[0]) / distance / r_new;
+					double y = (s.geometry->positions[iatom][1] - pos[1]) / distance / r_new;
+					phi_i = std::atan2(y, x);
+					if (distance == 0) { phi_i = 0; }
+					if (experimental) { theta_i = Pi - 4 * std::asin(std::tanh(distance)); }
+					else { theta_i = Pi - Pi * distance; }
 
-                    spins[iatom][0] = ksi * std::sin(theta_i) * std::cos(order * phi_i);
-                    spins[iatom][1] = ksi * std::sin(theta_i) * std::sin(order * (phi_i + achiral * Pi));
-                    spins[iatom][2] = std::cos(theta_i) * -dir;
-                }
-            }
-            for (auto& v : spins) v.normalize();
+					spins[iatom][0] = -std::sin(order * phi_i);
+					spins[iatom][1] = std::cos(order * (phi_i));
+					spins[iatom][2] = 0;
+				}
+			}
+			for (auto& v : spins) v.normalize();*/
+			//bool experimental uses Method similar to PHYSICAL REVIEW B 67, 020401(R) (2003)
+
+			auto& spins = *s.spins;
+			auto& positions = s.geometry->positions;
+
+			// skaled to fit with 
+			scalar r_new = r;
+			if (experimental) { r_new = r * 1.2; }
+			int iatom, ksi = ((int)rl) * 2 - 1, dir = ((int)upDown) * 2 - 1;
+			scalar distance, phi_i, theta_i;
+			for (iatom = 0; iatom < s.nos; ++iatom)
+			{
+				distance = std::sqrt(std::pow(s.geometry->positions[iatom][0] - pos[0], 2) + std::pow(s.geometry->positions[iatom][1] - pos[1], 2));
+				distance = distance / r_new;
+				if (filter(spins[iatom], positions[iatom]))
+				{
+					double x = (s.geometry->positions[iatom][0] - pos[0]) / distance / r_new;
+					phi_i = std::acos(std::max(-1.0, std::min(1.0, x)));
+					if (distance == 0) { phi_i = 0; }
+					if (s.geometry->positions[iatom][1] - pos[1] < 0.0) { phi_i = -phi_i; }
+					phi_i += phase / 180 * Pi;
+					if (experimental) { theta_i = Pi - 4 * std::asin(std::tanh(distance)); }
+					else { theta_i = Pi - Pi * distance; }
+
+					spins[iatom][0] = ksi * std::sin(theta_i) * std::cos(order * phi_i);
+					spins[iatom][1] = ksi * std::sin(theta_i) * std::sin(order * (phi_i + achiral * Pi));
+					spins[iatom][2] = std::cos(theta_i) * -dir;
+				}
+			}
+			for (auto& v : spins) v.normalize();
         }
         // end Skyrmion
 
