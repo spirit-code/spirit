@@ -123,16 +123,6 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
         }
     }
 
-    SECTION( "MIN and MAX components" )
-    {
-        vectorfield vftest( N, Vector3{ 1., 1., 1. } );
-        vftest[0][1] = 10000;
-        vftest[N/2][2] = -10000;
-        std::pair< scalar, scalar > mm = Engine::Vectormath::minmax_component( vftest );
-        REQUIRE( mm.first == -10000 );    // check min
-        REQUIRE( mm.second == 10000 );    // check max
-    }
-
     SECTION( "MAX Abs component" )
     {
         Vector3 vtest1 = vf1[0].normalized();

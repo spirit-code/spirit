@@ -99,21 +99,21 @@ def set_output_to_console(p_state, output, level):
 _Set_Output_To_File          = _spirit.Log_Set_Output_To_File
 _Set_Output_To_File.argtypes = [ctypes.c_void_p, ctypes.c_bool, ctypes.c_int]
 _Set_Output_To_File.restype  = None
-def set_outputToFile(p_state, output, level):
+def set_output_to_file(p_state, output, level):
     """Set whether the Log is output to a file and the level up to which messages are logged."""
     _Set_Output_To_File(ctypes.c_void_p(p_state), ctypes.c_bool(output), ctypes.c_int(level))
 
 _Get_Output_To_Console          = _spirit.Log_Get_Output_To_Console
 _Get_Output_To_Console.argtypes = [ctypes.c_void_p]
 _Get_Output_To_Console.restype  = ctypes.c_bool
-def GetOutputToConsole(p_state):
+def get_output_to_console(p_state):
     """Returns a bool indicating whether the Log is output to the console."""
     return bool(_Get_Output_To_Console(ctypes.c_void_p(p_state)))
 
 _Get_Output_Console_Level          = _spirit.Log_Get_Output_Console_Level
 _Get_Output_Console_Level.argtypes = [ctypes.c_void_p]
 _Get_Output_Console_Level.restype  = ctypes.c_int
-def GetOutputConsoleLevel(p_state):
+def get_output_console_level(p_state):
     """Returns the level up to which the Log is output to the console.
 
     The return value will be one of the integers defined above.
@@ -123,14 +123,14 @@ def GetOutputConsoleLevel(p_state):
 _Get_Output_To_File          = _spirit.Log_Get_Output_To_File
 _Get_Output_To_File.argtypes = [ctypes.c_void_p]
 _Get_Output_To_File.restype  = ctypes.c_bool
-def GetOutputToFile(p_state):
+def get_output_to_file(p_state):
     """Returns a bool indicating whether the Log is output to a file."""
     return bool(_Get_Output_To_File(ctypes.c_void_p(p_state)))
 
 _Get_Output_File_Level          = _spirit.Log_Get_Output_File_Level
 _Get_Output_File_Level.argtypes = [ctypes.c_void_p]
 _Get_Output_File_Level.restype  = ctypes.c_int
-def GetOutputFileLevel(p_state):
+def get_output_file_level(p_state):
     """Returns the level up to which the Log is output to a file.
 
     The return value will be one of the integers defined above.

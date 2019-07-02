@@ -6,20 +6,12 @@ The following sections will list and explain the input file keywords.
 1. [General Settings and Log](#General)
 2. [Geometry](#Geometry)
 3. [Heisenberg Hamiltonian](#Heisenberg)
-<<<<<<< HEAD:core/docs/INPUT.md
 4. [Micromagnetic Hamiltonian](#Micromagnetic)
 5. [Gaussian Hamiltonian](#Gaussian)
 6. [Method Output](#MethodOutput)
 7. [Method Parameters](#MethodParameters)
 8. [Pinning](#Pinning)
 9. [Disorder and Defects](#Defects)
-=======
-4. [Gaussian Hamiltonian](#Gaussian)
-5. [Method Output](#MethodOutput)
-6. [Method Parameters](#MethodParameters)
-7. [Pinning](#Pinning)
-8. [Disorder and Defects](#Defects)
->>>>>>> 246b7d621608f9a7f24e0e8fdc3b17e9581394bf:core/docs/Input.md
 
 
 General Settings and Log <a name="General"></a>
@@ -223,13 +215,8 @@ Using `hamiltonian heisenberg_neighbours`, pair-wise interactions are handled in
 (isotropic) neighbour shells:
 
 ```Python
-<<<<<<< HEAD:core/docs/INPUT.md
 ### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, micromagnetic, gaussian)
 hamiltonian              heisenberg_neighbours
-=======
-### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, gaussian)
-hamiltonian       heisenberg_neighbours
->>>>>>> 246b7d621608f9a7f24e0e8fdc3b17e9581394bf:core/docs/Input.md
 
 ### Exchange: number of shells and constants [meV / unique pair]
 n_shells_exchange 2
@@ -245,25 +232,16 @@ dij	              6.0 0.5
 Note that pair-wise interaction parameters always mean energy per unique pair
 (not per neighbour).
 
-<<<<<<< HEAD:core/docs/INPUT.md
 
 **Specify Pairs:**
-=======
-**Specify Pairs**:
->>>>>>> 246b7d621608f9a7f24e0e8fdc3b17e9581394bf:core/docs/Input.md
 
 Using `hamiltonian heisenberg_pairs`, you may input interactions explicitly,
 in form of unique pairs, giving you more granular control over the system and
 the ability to specify non-isotropic interactions:
 
 ```Python
-<<<<<<< HEAD:core/docs/INPUT.md
 ### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, micromagnetic, gaussian)
 hamiltonian                 heisenberg_pairs
-=======
-### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, gaussian)
-hamiltonian       heisenberg_pairs
->>>>>>> 246b7d621608f9a7f24e0e8fdc3b17e9581394bf:core/docs/Input.md
 
 ### Pairs
 n_interaction_pairs 3
@@ -430,7 +408,6 @@ Note in the following that `step` means after each `N` iterations and
 denotes a separate file for each step, whereas `archive` denotes that
 results are appended to an archive file at each step.
 
-<<<<<<< HEAD:core/docs/INPUT.md
 The output file type can be specified for example as
 ```Python
 llg_output_configuration_filetype 0
@@ -438,12 +415,6 @@ llg_output_configuration_filetype 0
 The possible file types are specified in [the IO API](c-api/IO.md)
 
 **LLG:**
-=======
-The energy output files are in units of meV, and can be switched to
-meV per spin with `<method>_output_energy_divide_by_nspins`.
-
-**LLG**:
->>>>>>> 246b7d621608f9a7f24e0e8fdc3b17e9581394bf:core/docs/Input.md
 ```Python
 llg_output_energy_step             0    # Save system energy at each step
 llg_output_energy_archive          1    # Archive system energy at each step
@@ -495,12 +466,8 @@ llg_n_iterations        2000000
 llg_n_iterations_log    2000
 ```
 
-<<<<<<< HEAD:core/docs/INPUT.md
-**LLG:**
-=======
 **LLG**:
 
->>>>>>> 246b7d621608f9a7f24e0e8fdc3b17e9581394bf:core/docs/Input.md
 ```Python
 ### Seed for Random Number Generator
 llg_seed            20006
@@ -522,15 +489,11 @@ llg_stt_magnitude   0.0
 llg_stt_polarisation_normal	1.0 0.0 0.0
 ```
 
-<<<<<<< HEAD:core/docs/INPUT.md
-**MC:**
-=======
 The time step `dt` is given in picoseconds.
 The temperature is given in Kelvin and the temperature gradient in Kelvin/Angstrom.
 
 **MC**:
 
->>>>>>> 246b7d621608f9a7f24e0e8fdc3b17e9581394bf:core/docs/Input.md
 ```Python
 ### Seed for Random Number Generator
 mc_seed	            20006
@@ -542,12 +505,8 @@ mc_temperature      0
 mc_acceptance_ratio 0.5
 ```
 
-<<<<<<< HEAD:core/docs/INPUT.md
-**GNEB:**
-=======
 **GNEB**:
 
->>>>>>> 246b7d621608f9a7f24e0e8fdc3b17e9581394bf:core/docs/Input.md
 ```Python
 ### Constant for the spring force
 gneb_spring_constant 1.0

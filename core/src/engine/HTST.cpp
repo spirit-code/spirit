@@ -39,8 +39,8 @@ namespace Engine
             int nos = image_minimum.size();
 
             if( n_eigenmodes_keep < 0 )
-                n_eigenmodes_keep = nos;
-            n_eigenmodes_keep = std::min(nos, n_eigenmodes_keep);
+                n_eigenmodes_keep = 2*nos;
+            n_eigenmodes_keep = std::min(2*nos, n_eigenmodes_keep);
 
             vectorfield force_tmp(nos, {0,0,0});
             std::vector<std::string> block;

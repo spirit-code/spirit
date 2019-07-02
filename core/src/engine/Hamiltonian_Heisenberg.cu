@@ -167,7 +167,7 @@ namespace Engine
 	void Hamiltonian_Heisenberg::Update_Energy_Contributions()
 	{
 		this->energy_contributions_per_spin = std::vector<std::pair<std::string, scalarfield>>(0);
-
+		CU_CHECK_AND_SYNC();
 		// External field
 		if (this->external_field_magnitude > 0)
 		{
