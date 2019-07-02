@@ -5,6 +5,7 @@ set(SOURCE_SPIRIT
     ${CMAKE_CURRENT_SOURCE_DIR}/Simulation.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Configurations.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/HTST.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_MC.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_LLG.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_GNEB.cpp

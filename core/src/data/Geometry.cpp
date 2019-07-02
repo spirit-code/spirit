@@ -393,7 +393,7 @@ namespace Data
     {
         return { { scalar( 0.5), scalar( 0.5), scalar(-0.5) },
                  { scalar(-0.5), scalar( 0.5), scalar(-0.5) },
-                 { scalar( 0.5), scalar(-0.5), scalar( 0.5) } };
+                 { scalar( 0.5), scalar(-0.5), scalar(-0.5) } };
     }
 
     std::vector<Vector3> Geometry::BravaisVectorsHex2D60()

@@ -1,30 +1,30 @@
 MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
 MESSAGE( STATUS ">> --------------------- Platforms.cmake ------------------------------ <<" )
 ######## Apple #######################################################
-if (APPLE)
-	SET ( PLATFORM_NAME "Apple" )
-	if ( BUNDLE_APP )
-		set( OS_BUNDLE MACOSX_BUNDLE )
-	endif ()
+if( APPLE )
+    set( PLATFORM_NAME "Apple" )
+    if( SPIRIT_BUNDLE_APP )
+        set( OS_BUNDLE MACOSX_BUNDLE )
+    endif( )
 ######################################################################
 
 ######## UNIX ########################################################
-elseif (UNIX)
-	SET ( PLATFORM_NAME "UNIX" )
+elseif( UNIX)
+    set( PLATFORM_NAME "UNIX" )
 ######################################################################
 
 ######## Windows #####################################################
-elseif (WIN32)
-	SET ( PLATFORM_NAME "Win32" )
+elseif( WIN32 )
+    set( PLATFORM_NAME "Win32" )
 ######################################################################
 
 ######## The End #####################################################
-endif()
+endif( )
 ######## Print platform info
-MESSAGE( STATUS ">> We are on the platform:        " ${PLATFORM_NAME} )
-if ( APPLE AND BUNDLE_APP )
-	MESSAGE( STATUS ">> Going to create .app Bundle" )
-endif ()
+message( STATUS ">> We are on the platform:        " ${PLATFORM_NAME} )
+if( APPLE AND SPIRIT_BUNDLE_APP )
+    message( STATUS ">> Going to create .app Bundle" )
+endif( )
 ######################################################################
-MESSAGE( STATUS ">> --------------------- Platforms.cmake done ------------------------- <<" )
-MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
+message( STATUS ">> --------------------- Platforms.cmake done ------------------------- <<" )
+message( STATUS ">> -------------------------------------------------------------------- <<" )

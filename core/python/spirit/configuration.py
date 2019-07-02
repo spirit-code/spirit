@@ -1,6 +1,6 @@
 """
 Configuration
---------------------
+====================
 
 Set various spin configurations, such as homogeneous domains, spirals or skyrmions.
 """

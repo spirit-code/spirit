@@ -7,6 +7,7 @@ set(HEADER_SPIRIT
     ${CMAKE_CURRENT_SOURCE_DIR}/Simulation.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Configurations.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/HTST.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_MC.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_LLG.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_GNEB.h

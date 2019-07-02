@@ -1,6 +1,6 @@
 """
 Transition
---------------------
+====================
 """
 
 import spirit.spiritlib as spiritlib

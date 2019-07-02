@@ -303,7 +303,7 @@ void ControlWidget::prev_image()
     {
         // Change active image!
         Chain_prev_Image(this->state.get());
-        
+
         // Update
         this->updateData();
         this->updateOthers();
@@ -416,7 +416,7 @@ void ControlWidget::prev_mode()
     Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: previousmode");
 
     int following_mode = Parameters_EMA_Get_N_Mode_Follow(state.get());
-        
+
     // Change mode
     Parameters_EMA_Set_N_Mode_Follow(this->state.get(), following_mode-1 );
 
@@ -430,7 +430,7 @@ void ControlWidget::jump_to_mode()
     // Change active image
     int mode_idx = this->lineEdit_ModeNumber->text().toInt()-1;
 
-    Parameters_EMA_Set_N_Mode_Follow(this->state.get(), mode_idx-1 );	
+    Parameters_EMA_Set_N_Mode_Follow(this->state.get(), mode_idx-1 );
 
     // Update
     this->updateData();
@@ -448,8 +448,8 @@ void ControlWidget::calculate()
     if ( !Simulation_Running_On_Image(state.get()) )
         this->threads_image[System_Get_Index(state.get())] =
             std::thread(&System_Update_Eigenmodes, this->state.get(), -1, -1);
-            
-    QFuture<void> future = QtConcurrent::run( 
+
+    QFuture<void> future = QtConcurrent::run(
         &threads_image[System_Get_Index(state.get())], &std::thread::join );
     this->watcher.setFuture(future);
 }
@@ -457,9 +457,9 @@ void ControlWidget::calculate()
 void ControlWidget::apply_mode()
 {
     Log_Send(state.get(), Log_Level_Debug, Log_Sender_UI, "Button: apply mode");
-    
+
     int following_mode = Parameters_EMA_Get_N_Mode_Follow(state.get());
-    
+
     Configuration_Displace_Eigenmode( state.get(), following_mode );
 
     this->spinWidget->updateData();
@@ -476,7 +476,7 @@ void ControlWidget::calculate_disable_widget()
     this->lineEdit_ImageNumber->setEnabled(false);
     this->pushButton_NextImage->setEnabled(false);
     this->pushButton_ApplyMode->setEnabled(false);
-    
+
     this->comboBox_Method->setEnabled(false);
     this->comboBox_Solver->setEnabled(false);
 
@@ -501,7 +501,7 @@ void ControlWidget::calculate_enable_widget()
     this->lineEdit_ImageNumber->setEnabled(true);
     this->pushButton_NextImage->setEnabled(true);
     this->pushButton_ApplyMode->setEnabled(true);
-    
+
     this->comboBox_Method->setEnabled(true);
     this->comboBox_Solver->setEnabled(true);
 
@@ -605,7 +605,7 @@ void ControlWidget::save_EPressed()
     fullNameInterpolated.append(fileNameInterpolated);
 
     // Save Energies and Energies_Spins
-    IO_Image_Write_Energy_per_Spin(this->state.get(), fullNameSpins.c_str());
+    IO_Image_Write_Energy_per_Spin(this->state.get(), fullNameSpins.c_str(), IO_Fileformat_OVF_text);
     IO_Chain_Write_Energies(this->state.get(), fullName.c_str());
     IO_Chain_Write_Energies_Interpolated(this->state.get(), fullNameInterpolated.c_str());
 
@@ -640,7 +640,6 @@ void ControlWidget::writeSettings()
     settings.setValue("Solver", this->comboBox_Solver->currentIndex());
     settings.endGroup();
 }
-
 
 void ControlWidget::closeEvent(QCloseEvent *event)
 {

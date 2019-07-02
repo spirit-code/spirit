@@ -1,6 +1,6 @@
 ######### IFF Cluster Paths ######################
-if( USER_PATHS_IFF )
-	MESSAGE( STATUS ">> Using IFF Paths" )
+if( SPIRIT_USER_PATHS_IFF )
+    MESSAGE( STATUS ">> Using IFF Paths" )
     ### GCC Compiler
     set( USER_COMPILER_C    "gcc" )
     set( USER_COMPILER_CXX  "g++" )

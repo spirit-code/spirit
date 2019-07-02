@@ -77,10 +77,10 @@ Start or stop a simulation
 
 
 
-### Simulation_MC_Start
+### PREFIX
 
 ```C
-PREFIX void Simulation_MC_Start(State *state, int n_iterations=-1, int n_iterations_log=-1, bool singleshot=false, int idx_image=-1, int idx_chain=-1) SUFFIX
+
 ```
 
 Monte Carlo
@@ -90,7 +90,7 @@ Monte Carlo
 ### Simulation_LLG_Start
 
 ```C
-PREFIX void Simulation_LLG_Start(State *state, int solver_type, int n_iterations=-1, int n_iterations_log=-1, bool singleshot=false, int idx_image=-1, int idx_chain=-1) SUFFIX
+void Simulation_LLG_Start(State *state, int solver_type, int n_iterations=-1, int n_iterations_log=-1, bool singleshot=false, int idx_image=-1, int idx_chain=-1)
 ```
 
 Landau-Lifshitz-Gilbert dynamics and energy minimisation
@@ -100,7 +100,7 @@ Landau-Lifshitz-Gilbert dynamics and energy minimisation
 ### Simulation_GNEB_Start
 
 ```C
-PREFIX void Simulation_GNEB_Start(State *state, int solver_type, int n_iterations=-1, int n_iterations_log=-1, bool singleshot=false, int idx_chain=-1) SUFFIX
+void Simulation_GNEB_Start(State *state, int solver_type, int n_iterations=-1, int n_iterations_log=-1, bool singleshot=false, int idx_chain=-1)
 ```
 
 Geodesic nudged elastic band method
@@ -110,7 +110,7 @@ Geodesic nudged elastic band method
 ### Simulation_MMF_Start
 
 ```C
-PREFIX void Simulation_MMF_Start(State *state, int solver_type, int n_iterations=-1, int n_iterations_log=-1, bool singleshot=false, int idx_image=-1, int idx_chain=-1) SUFFIX
+void Simulation_MMF_Start(State *state, int solver_type, int n_iterations=-1, int n_iterations_log=-1, bool singleshot=false, int idx_image=-1, int idx_chain=-1)
 ```
 
 Minimum mode following method
@@ -120,7 +120,7 @@ Minimum mode following method
 ### Simulation_EMA_Start
 
 ```C
-PREFIX void Simulation_EMA_Start(State *state, int n_iterations=-1, int n_iterations_log=-1, bool singleshot=false, int idx_image=-1, int idx_chain=-1) SUFFIX
+void Simulation_EMA_Start(State *state, int n_iterations=-1, int n_iterations_log=-1, bool singleshot=false, int idx_image=-1, int idx_chain=-1)
 ```
 
 Eigenmode analysis

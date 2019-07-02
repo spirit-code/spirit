@@ -88,10 +88,6 @@ Getters
 */
 
 /*
-### The overall lattice
-*/
-
-/*
 **Returns:** the number of spins.
 */
 PREFIX int Geometry_Get_NOS(State * state) SUFFIX;

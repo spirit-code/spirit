@@ -57,7 +57,7 @@ matrix:
           - sourceline: 'ppa:jonathonf/python-2.7'
     # Linux, GCC 6 CUDA build
     - os: linux
-      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 RUNTESTS=false USE_CUDA=true CMAKE_OPTIONS="-DUI_CXX_USE_QT=OFF -DSPIRIT_USE_CUDA=ON" PYPI=false
+      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 RUNTESTS=false USE_CUDA=true CMAKE_OPTIONS="-DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_USE_CUDA=ON -DSPIRIT_CUDA_ARCH=sm_70" PYPI=false
       compiler: g++
       addons:
         apt:
@@ -73,7 +73,7 @@ matrix:
           - sourceline: 'ppa:jonathonf/python-2.7'
     # Linux, GCC 6 OpenMP build
     - os: linux
-      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 OMP_NUM_THREADS=4 CMAKE_OPTIONS="-DUI_CXX_USE_QT=OFF -DSPIRIT_USE_OPENMP=ON" PYPI=false
+      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 OMP_NUM_THREADS=4 CMAKE_OPTIONS="-DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_USE_OPENMP=ON" PYPI=false
       compiler: g++
       addons:
         apt:
@@ -89,7 +89,7 @@ matrix:
           - sourceline: 'ppa:jonathonf/python-2.7'
     # Linux, GCC 6 pinning and defects build
     - os: linux
-      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 CMAKE_OPTIONS="-DUI_CXX_USE_QT=OFF -DSPIRIT_ENABLE_PINNING=ON -DSPIRIT_ENABLE_DEFECTS=ON" PYPI=false
+      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 CMAKE_OPTIONS="-DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_ENABLE_PINNING=ON -DSPIRIT_ENABLE_DEFECTS=ON" PYPI=false
       compiler: g++
       addons:
         apt:
@@ -104,7 +104,7 @@ matrix:
           - sourceline: 'ppa:jonathonf/python-2.7'
     # Linux, GCC 6 coverage build
     - os: linux
-      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 CMAKE_OPTIONS="-DUI_CXX_USE_QT=OFF -DSPIRIT_TEST_COVERAGE=ON" PYPI=false COVERAGE=true RUNTESTS=false
+      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 CMAKE_OPTIONS="-DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_TEST_COVERAGE=ON" PYPI=false COVERAGE=true RUNTESTS=false
       compiler: g++
       addons:
         apt:

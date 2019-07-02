@@ -12,60 +12,32 @@ Spirit - Spin Simulation Framework
 
 .. toctree::
     :maxdepth: 1
-    :caption: Introduction
 
-    General                     <../README>
-    Desktop User Interface      <UI-Qt>
-    Input File Specification    <../core/docs/INPUT>
-
-.. toctree::
-    :maxdepth: 1
-    :caption: Building
-
-    The Core Library        <../core/docs/BUILD>
-    Framework Components    <BUILD>
-    Using Docker            <Docker>
-
+    Introduction                <../README>
+    Desktop user interface      <UI-Qt>
+    Input file specification    <../core/docs/Input>
 
 .. toctree::
     :maxdepth: 2
-    :caption: C API Reference
+    :caption: Installation
 
-    Chain           <../core/docs/c-api/Chain>
-    Configurations  <../core/docs/c-api/Configurations>
-    Constants       <../core/docs/c-api/Constants>
-    Geometry        <../core/docs/c-api/Geometry>
-    Hamiltonian     <../core/docs/c-api/Hamiltonian>
-    IO              <../core/docs/c-api/IO>
-    Log             <../core/docs/c-api/Log>
-    MC Parameters   <../core/docs/c-api/Parameters_MC>
-    LLG Parameters  <../core/docs/c-api/Parameters_LLG>
-    GNEB Parameters <../core/docs/c-api/Parameters_GNEB>
-    EMA Parameters  <../core/docs/c-api/Parameters_EMA>
-    MMF Parameters  <../core/docs/c-api/Parameters_MMF>
-    Quantities      <../core/docs/c-api/Quantities>
-    Simulation      <../core/docs/c-api/Simulation>
-    State           <../core/docs/c-api/State>
-    System          <../core/docs/c-api/System>
-    Transition      <../core/docs/c-api/Transition>
+    Build on Unix/OSX   <Build_Unix_OSX>
+    Build on Windows    <Build_Windows>
+    Using Docker        <Docker>
 
 .. toctree::
-    :maxdepth: 2
-    :caption: Python API Reference
+    :maxdepth: 3
+    :caption: C API
 
-    spirit.chain            <pyapidoc/spirit.chain>
-    spirit.configuration    <pyapidoc/spirit.configuration>
-    spirit.constants        <pyapidoc/spirit.constants>
-    spirit.geometry         <pyapidoc/spirit.geometry>
-    spirit.hamiltonian      <pyapidoc/spirit.hamiltonian>
-    spirit.io               <pyapidoc/spirit.io>
-    spirit.log              <pyapidoc/spirit.log>
-    spirit.parameters       <pyapidoc/parameters>
-    spirit.quantities       <pyapidoc/spirit.quantities>
-    spirit.simulation       <pyapidoc/spirit.simulation>
-    spirit.state            <pyapidoc/spirit.state>
-    spirit.system           <pyapidoc/spirit.system>
-    spirit.transition       <pyapidoc/spirit.transition>
+    Usage           <../core/docs/C_API>
+    Full Reference  <../core/docs/c-api/API_Reference>
+
+.. toctree::
+    :maxdepth: 3
+    :caption: Python API
+
+    Usage           <../core/docs/Python_API>
+    Full Reference  <../core/docs/python-api/API_Reference>
 
 .. toctree::
     :maxdepth: 1
@@ -75,7 +47,7 @@ Spirit - Spin Simulation Framework
     Contributing            <CONTRIBUTING>
     Contributors            <CONTRIBUTORS>
     Referencing this Code   <REFERENCE>
-    Included dependencies   <dependencies>
+    Included dependencies   <Dependencies>
 
 
 Indices and tables

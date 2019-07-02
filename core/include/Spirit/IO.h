@@ -108,7 +108,7 @@ Energies
 */
 
 // Save the spin-resolved energy contributions of a spin system
-PREFIX void IO_Image_Write_Energy_per_Spin( State *state, const char *file, int idx_image=-1, int idx_chain = -1 ) SUFFIX;
+PREFIX void IO_Image_Write_Energy_per_Spin( State *state, const char *file, int format, int idx_image=-1, int idx_chain = -1 ) SUFFIX;
 // Save the Energy contributions of a spin system
 PREFIX void IO_Image_Write_Energy( State *state, const char *file, int idx_image=-1, int idx_chain=-1 ) SUFFIX;
 

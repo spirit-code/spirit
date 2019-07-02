@@ -151,9 +151,9 @@ namespace Engine
         {
             Engine::Neighbours::DDI_from_Pair(
                 *this->geometry,
-                { this->ddi_pairs[i].i, this->ddi_pairs[i].j, 
-                { this->ddi_pairs[i].translations[0], 
-                  this->ddi_pairs[i].translations[1], 
+                { this->ddi_pairs[i].i, this->ddi_pairs[i].j,
+                { this->ddi_pairs[i].translations[0],
+                  this->ddi_pairs[i].translations[1],
                   this->ddi_pairs[i].translations[2] }},
                 this->ddi_magnitudes[i], this->ddi_normals[i]);
         }
@@ -274,7 +274,7 @@ namespace Engine
             {
                 int ispin = icell*n_cell_atoms + anisotropy_indices[iani];
                 if ( cu_check_atom_type(atom_types[ispin]) )
-                    Energy[ispin] -= anisotropy_magnitude[iani] * std::pow(anisotropy_normal[iani].dot(spins[ispin]), 2.0);
+                    Energy[ispin] -= anisotropy_magnitude[iani] * pow(anisotropy_normal[iani].dot(spins[ispin]), 2);
             }
         }
     }
@@ -355,7 +355,7 @@ namespace Engine
             // TODO: Merge these implementations in the future
             if( ddi_cutoff_radius >= 0 )
                 this->E_DDI_Cutoff(spins, Energy);
-            else 
+            else
                 this->E_DDI_Direct(spins, Energy);
         }
     }
@@ -371,7 +371,7 @@ namespace Engine
         for (int ispin = 0; ispin < geometry->nos; ispin++)
         {
             Energy[ispin] += 0.5 * spins[ispin].dot(gradients_temp[ispin]);
-        }   
+        }
     }
 
     void Hamiltonian_Heisenberg::E_DDI_Cutoff(const vectorfield & spins, scalarfield & Energy)
@@ -422,7 +422,7 @@ namespace Engine
         Vectormath::fill(gradients_temp, {0,0,0});
         this->Gradient_DDI(spins, gradients_temp);
         CU_E_DDI_FFT<<<(geometry->nos + 1023)/1024, 1024>>>(Energy.data(), spins.data(), gradients_temp.data(), geometry->nos, geometry->n_cell_atoms, geometry->mu_s.data());
-  
+
         // === DEBUG: begin gradient comparison ===
             // vectorfield gradients_temp_dir;
             // gradients_temp_dir.resize(this->geometry->nos);
@@ -445,7 +445,7 @@ namespace Engine
             // }
             // std::cerr << "Avg. Gradient (Direct) = " << avg[0]/this->geometry->nos << " " << avg[1]/this->geometry->nos << " " << avg[2]/this->geometry->nos << std::endl;
             // std::cerr << "Avg. Gradient (FFT)    = " << avg_ft[0]/this->geometry->nos << " " << avg_ft[1]/this->geometry->nos << " " << avg_ft[2]/this->geometry->nos << std::endl;
-            // std::cerr << "Relative Error in %    = " << (avg_ft[0]/avg[0]-1)*100 << " " << (avg_ft[1]/avg[1]-1)*100 << " " << (avg_ft[2]/avg[2]-1)*100 << std::endl;            
+            // std::cerr << "Relative Error in %    = " << (avg_ft[0]/avg[0]-1)*100 << " " << (avg_ft[1]/avg[1]-1)*100 << " " << (avg_ft[2]/avg[2]-1)*100 << std::endl;
             // std::cerr << "Avg. Deviation         = " << std::pow(deviation[0]/this->geometry->nos, 0.5) << " " << std::pow(deviation[1]/this->geometry->nos, 0.5) << " " << std::pow(deviation[2]/this->geometry->nos, 0.5) << std::endl;
             // std::cerr << " ---------------- " << std::endl;
         // ==== DEBUG: end gradient comparison ====
@@ -800,9 +800,9 @@ namespace Engine
                 res_mult[idx_b1 + 2 * spin_stride.comp].y = FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z).y;
             } else {
                 atomicAdd(&res_mult[idx_b1                       ].x, FFT::mult3D(fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z).x);
-                atomicAdd(&res_mult[idx_b1                       ].y, FFT::mult3D(fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z).y);               
+                atomicAdd(&res_mult[idx_b1                       ].y, FFT::mult3D(fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z).y);
                 atomicAdd(&res_mult[idx_b1 + 1 * spin_stride.comp].x, FFT::mult3D(fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z).x);
-                atomicAdd(&res_mult[idx_b1 + 1 * spin_stride.comp].y, FFT::mult3D(fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z).y);                
+                atomicAdd(&res_mult[idx_b1 + 1 * spin_stride.comp].y, FFT::mult3D(fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z).y);
                 atomicAdd(&res_mult[idx_b1 + 2 * spin_stride.comp].x, FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z).x);
                 atomicAdd(&res_mult[idx_b1 + 2 * spin_stride.comp].y, FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z).y);
             }
@@ -842,11 +842,10 @@ namespace Engine
         // Loop over basis atoms (i.e sublattices) and add contribution of each sublattice
         for(int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1)
             CU_FFT_Pointwise_Mult<<<(number_of_mults + 1023) / 1024, 1024>>>(ft_D_matrices.data(), ft_spins.data(), res_mult.data(), it_bounds_pointwise_mult.data(), i_b1, inter_sublattice_lookup.data(), dipole_stride, spin_stride);
-        
+
         FFT::batch_iFour_3D(fft_plan_reverse);
 
         CU_Write_FFT_Gradients<<<(geometry->nos + 1023) / 1024, 1024>>>(res_iFFT.data(), gradient.data(), spin_stride, it_bounds_write_gradients.data(), geometry->n_cell_atoms, geometry->mu_s.data(), sublattice_size);
-
     }//end Field_DipoleDipole
 
 
@@ -1040,7 +1039,7 @@ namespace Engine
         int tupel[3];
         int sublattice_size = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2];
         //prefactor of ddi interaction
-        scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
+        scalar mult = 2.0133545*1e-28 * 0.057883817555 * 0.057883817555 / ( 4*3.141592653589793238462643383279502884197169399375105820974 * 1e-30 );
         for(int i = blockIdx.x * blockDim.x + threadIdx.x; i < sublattice_size; i += blockDim.x * gridDim.x)
         {
             cu_tupel_from_idx(i, tupel, iteration_bounds, 3); // tupel now is {a, b, c}
@@ -1076,7 +1075,7 @@ namespace Engine
                                             + (c_idx + c_pb * n_cells[2]) * translation_vectors[2]
                                             + cell_atom_translations[i_b1]
                                             - cell_atom_translations[i_b2];
-                                            
+
                                     if(diff.norm() > 1e-10)
                                     {
                                         auto d = diff.norm();
@@ -1104,7 +1103,7 @@ namespace Engine
                     } else {
                         inter_sublattice_lookup[i_b1 + i_b2 * n_cell_atoms] = 0;
                     }
-                    
+
                 }
             }
         }
@@ -1131,8 +1130,8 @@ namespace Engine
             cell_atom_translations.push_back(geometry->positions[i]);
 
         CU_Write_FFT_Dipole_Input<<<(sublattice_size + 1023)/1024, 1024>>>
-        (   fft_dipole_inputs.data(), it_bounds_write_dipole.data(), translation_vectors.data(), 
-            geometry->n_cell_atoms, cell_atom_translations.data(), geometry->n_cells.data(), 
+        (   fft_dipole_inputs.data(), it_bounds_write_dipole.data(), translation_vectors.data(),
+            geometry->n_cell_atoms, cell_atom_translations.data(), geometry->n_cells.data(),
             inter_sublattice_lookup.data(), img.data(), dipole_stride
         );
         FFT::batch_Four_3D(fft_plan_dipole);
@@ -1141,7 +1140,7 @@ namespace Engine
     void Hamiltonian_Heisenberg::Prepare_DDI()
     {
         Clean_DDI();
-        
+
         if(ddi_method != DDI_Method::FFT)
             return;
 
@@ -1171,7 +1170,7 @@ namespace Engine
                 n_inter_sublattice++;
             }
         }
- 
+
         //Set the iteration bounds for the nested for loops that are flattened in the kernels
         it_bounds_write_spins     = { geometry->n_cell_atoms,
                                       geometry->n_cells[0],
@@ -1182,16 +1181,16 @@ namespace Engine
                                       n_cells_padded[1],
                                       n_cells_padded[2]};
 
-        it_bounds_pointwise_mult  = { geometry->n_cell_atoms, 
+        it_bounds_pointwise_mult  = { geometry->n_cell_atoms,
                                       (n_cells_padded[0]/2 + 1), // due to redundancy in real fft
-                                      n_cells_padded[1], 
+                                      n_cells_padded[1],
                                       n_cells_padded[2] };
 
-        it_bounds_write_gradients = { geometry->n_cell_atoms, 
+        it_bounds_write_gradients = { geometry->n_cell_atoms,
                                       geometry->n_cells[0],
-                                      geometry->n_cells[1], 
+                                      geometry->n_cells[1],
                                       geometry->n_cells[2] };
- 
+
         FFT::FFT_Plan fft_plan_dipole = FFT::FFT_Plan(fft_dims, false, 6 * n_inter_sublattice, sublattice_size);
         fft_plan_spins   = FFT::FFT_Plan(fft_dims, false, 3 * geometry->n_cell_atoms, sublattice_size);
         fft_plan_reverse = FFT::FFT_Plan(fft_dims, true, 3 * geometry->n_cell_atoms, sublattice_size);
@@ -1200,7 +1199,7 @@ namespace Engine
         field<int*> temp_d = {&dipole_stride.comp, &dipole_stride.basis, &dipole_stride.a, &dipole_stride.b, &dipole_stride.c};;
         FFT::get_strides(temp_s, {3, this->geometry->n_cell_atoms, n_cells_padded[0], n_cells_padded[1], n_cells_padded[2]});
         FFT::get_strides(temp_d, {6, n_inter_sublattice, n_cells_padded[0], n_cells_padded[1], n_cells_padded[2]});
-       
+
         //perform FFT of dipole matrices
         int img_a = boundary_conditions[0] == 0 ? 0 : ddi_n_periodic_images[0];
         int img_b = boundary_conditions[1] == 0 ? 0 : ddi_n_periodic_images[1];

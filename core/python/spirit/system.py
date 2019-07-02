@@ -1,6 +1,6 @@
 """
 System
---------------------
+====================
 """
 
 import spirit.spiritlib as spiritlib

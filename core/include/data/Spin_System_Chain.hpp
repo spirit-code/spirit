@@ -24,21 +24,21 @@ namespace Data
         std::shared_ptr<Spin_System> saddle_point;
 
         // Eigenmodes
-        scalarfield eigenvalues_min;
-        // vectorfield eigenvectors_min;
-        scalarfield eigenvalues_sp;
-        // vectorfield eigenvectors_sp;
-        scalarfield perpendicular_velocity;
+        VectorX eigenvalues_min         = VectorX(0);
+        MatrixX eigenvectors_min        = MatrixX(0, 0);
+        VectorX eigenvalues_sp          = VectorX(0);
+        MatrixX eigenvectors_sp         = MatrixX(0, 0);
+        VectorX perpendicular_velocity  = VectorX(0);
 
         // Prefactor constituents
-        scalar temperature_exponent;
-        scalar me;
-        scalar Omega_0;
-        scalar s;
-        scalar volume_min;
-        scalar volume_sp;
-        scalar prefactor_dynamical;
-        scalar prefactor;
+        scalar temperature_exponent = 0;
+        scalar me                   = 0;
+        scalar Omega_0              = 0;
+        scalar s                    = 0;
+        scalar volume_min           = 0;
+        scalar volume_sp            = 0;
+        scalar prefactor_dynamical  = 0;
+        scalar prefactor            = 0;
     };
 
     class Spin_System_Chain
