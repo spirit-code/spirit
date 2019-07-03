@@ -5,9 +5,9 @@
 #include <nanogui/serializer/core.h>
 #include <sstream>
 
-AdvancedGraph::AdvancedGraph(Widget * parent, const Marker & default_marker, const Color & default_marker_color, float default_marker_scale) : Widget(parent),
-x_values({}), y_values({}), markers({}), marker_scale({}), marker_colors({}), default_marker(default_marker), default_marker_color(default_marker_color),
-default_marker_scale(default_marker_scale)
+AdvancedGraph::AdvancedGraph(Widget * parent, const Marker & default_marker, const Color & default_marker_color, float default_marker_scale)
+    : Widget(parent), x_values({}), y_values({}), markers({}), marker_scale({}), marker_colors({}), default_marker(default_marker),
+        default_marker_color(default_marker_color), default_marker_scale(default_marker_scale)
 { };
 
 void AdvancedGraph::setValues(const std::vector<float> & x_values, const std::vector<float> & y_values)
@@ -119,7 +119,8 @@ void AdvancedGraph::drawMarkers(NVGcontext * ctx)
 
     // Note: We add some hard-coded additional scaling to the markers such that 
     // they look roughly the same size for the same value of marker scale
-    for (size_t i = 0; i < (size_t) y_values.size(); i++) {
+    for (size_t i = 0; i < (size_t) y_values.size(); i++)
+    {
         // Only draw markers withing the min/max constraints
         if (x_values[i] >= mx_min && x_values[i] <= mx_max && y_values[i] >= my_min && y_values[i] <= my_max)
         {
@@ -267,15 +268,17 @@ void AdvancedGraph::drawLineSegments(NVGcontext * ctx)
     dataToPixel({x_values[0], y_values[0]}, cur_pos);
     nvgMoveTo(ctx, cur_pos.x(), cur_pos.y()); // Begin path at first data point
 
-    for ( size_t i = 1; i < (size_t) y_values.size(); i++) 
+    for( size_t i = 1; i < (size_t) y_values.size(); i++ ) 
     {
         // If the previous and the current value lie within the boundary box we can simply draw the segment
         if( checkBoundary(x_values[i-1], y_values[i-1]) & checkBoundary(x_values[i], y_values[i]) )
         {
             dataToPixel({x_values[i], y_values[i]}, cur_pos);    
             nvgLineTo(ctx, cur_pos.x(), cur_pos.y());
-        } else { // Otherwise we compute the intersections
-            if ( computeLineIntersection({x_values[i-1], y_values[i-1]}, {x_values[i], y_values[i]}, inter1, inter2) )
+        }
+        else // Otherwise we compute the intersections
+        {
+            if( computeLineIntersection({x_values[i-1], y_values[i-1]}, {x_values[i], y_values[i]}, inter1, inter2) )
             {
                 dataToPixel( inter1, cur_pos );
                 nvgMoveTo(ctx, cur_pos[0], cur_pos[1]); // Move to left intersection
@@ -291,7 +294,8 @@ void AdvancedGraph::drawLineSegments(NVGcontext * ctx)
     // nvgFillColor(ctx, mForegroundColor);
 }
 
-void AdvancedGraph::draw(NVGcontext *ctx){
+void AdvancedGraph::draw(NVGcontext *ctx)
+{
     Widget::draw(ctx);
     nvgBeginPath(ctx);
 
@@ -300,16 +304,16 @@ void AdvancedGraph::draw(NVGcontext *ctx){
     nvgFillColor(ctx, mBackgroundColor);
     nvgFill(ctx);
 
-    if (y_values.size() < 2)
+    if( y_values.size() < 2 )
         return;
 
-    if(show_grid)
+    if( show_grid )
         drawGrid(ctx);
 
-    if(show_box)
+    if( show_box )
         drawBox(ctx);
 
-    if(show_line)
+    if( show_line )
         drawLineSegments(ctx);
 
     drawMarkers(ctx);

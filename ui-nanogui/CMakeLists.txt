@@ -17,6 +17,12 @@ set( SPIRIT_GUI_INCLUDE_DIRS ${SPIRIT_GUI_INCLUDE_DIRS} ${SPIRIT_INCLUDE_DIRS} )
 set( SPIRIT_GUI_DEPENDENCIES ${SPIRIT_GUI_DEPENDENCIES} ${SPIRIT_LIBRARIES_STATIC} )
 ############################################
 
+### VFRendering ############################
+# add_subdirectory( ${CMAKE_SOURCE_DIR}/thirdparty/VFRendering )
+set( SPIRIT_GUI_INCLUDE_DIRS ${SPIRIT_GUI_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/thirdparty/VFRendering/include )
+set( SPIRIT_GUI_DEPENDENCIES ${SPIRIT_GUI_DEPENDENCIES} VFRendering )
+############################################
+
 ### nanogui ################################
 # Disable building extras we won't need (pure C++ project)
 set( NANOGUI_BUILD_EXAMPLE OFF CACHE BOOL " " FORCE )
@@ -35,14 +41,8 @@ set( SPIRIT_GUI_INCLUDE_DIRS ${SPIRIT_GUI_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/th
 set( SPIRIT_GUI_DEPENDENCIES ${SPIRIT_GUI_DEPENDENCIES} nanogui ${NANOGUI_EXTRA_LIBS} )
 ############################################
 
-### VFRendering ############################
-# add_subdirectory( ${CMAKE_SOURCE_DIR}/thirdparty/VFRendering )
-set( SPIRIT_GUI_INCLUDE_DIRS ${SPIRIT_GUI_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/thirdparty/VFRendering/include )
-set( SPIRIT_GUI_DEPENDENCIES ${SPIRIT_GUI_DEPENDENCIES} VFRendering )
-############################################
-
 ### The GUI ################################
-add_subdirectory( ${PROJECT_SOURCE_DIR}/src )
+set( SPIRIT_GUI_SOURCES src/AdvancedGraph.cpp src/EnergyGraph.cpp )
 add_executable( ${PROJECT_NAME} ${SPIRIT_GUI_SOURCES} main.cpp )
 target_include_directories( ${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/include ${SPIRIT_GUI_INCLUDE_DIRS} )
 target_link_libraries( ${PROJECT_NAME} ${SPIRIT_GUI_DEPENDENCIES} )

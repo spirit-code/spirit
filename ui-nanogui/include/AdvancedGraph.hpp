@@ -5,7 +5,7 @@
 
 enum Marker
 {
-    NONE        = 0, 
+    NONE        = 0,
     CIRCLE      = 1,
     SQUARE      = 2,
     TRIANG_UP   = 3,
@@ -17,7 +17,7 @@ class AdvancedGraph : public nanogui::Widget
 {
     using Color = nanogui::Color;
 
-    public: // TODO: maybe write getters/setters for these ...
+public: // TODO: maybe write getters/setters for these ...
 
     virtual void drawMarkers(NVGcontext * ctx);
     virtual void drawTicks(NVGcontext * ctx);
@@ -32,7 +32,7 @@ class AdvancedGraph : public nanogui::Widget
     virtual void dataToPixel(const nanogui::Vector2f & data, nanogui::Vector2i & pixel);
     virtual void pixelToData(const nanogui::Vector2i & pixel, nanogui::Vector2f & data);
 
-    public:
+public:
     // Construct the Widget, the default values are used for initialization, and when adding data without specifying the marker etc
     AdvancedGraph(Widget * parent, const Marker & default_marker = Marker::CIRCLE, const Color & default_marker_color = Color(0,0,0,255), float default_marker_scale = 1.0 );
 
@@ -72,22 +72,18 @@ class AdvancedGraph : public nanogui::Widget
     // Set the color of the marker at idx
     void setMarkerColor(int idx, const Color & color) { this->marker_colors[idx] = color; }
     // Set the colors of the markers to colors
-    void setMarkerColor(const std::vector<Color> & colors) 
-    { 
-        if(this->y_values.size() == colors.size()) 
-        {
+    void setMarkerColor(const std::vector<Color> & colors)
+    {
+        if(this->y_values.size() == colors.size())
             this->marker_colors = colors;
-        } else {
+        else
             throw std::runtime_error("Color array has wrong size!");
-        }
     }
     // Set the color of all markers
-    void setMarkerColor(const Color & color) 
-    {  
+    void setMarkerColor(const Color & color)
+    {
         for(auto & c : marker_colors)
-        {
             c = color;
-        }
     }
     const Color & getMarkerColor(int idx) { return this->marker_colors[idx]; }
 
@@ -97,9 +93,7 @@ class AdvancedGraph : public nanogui::Widget
     void setMarker(Marker marker)
     {
         for(auto & m : markers)
-        {
             m = marker;
-        }
     }
     // Set markers according to the vector markers
     void setMarker(const std::vector<Marker> & markers)
@@ -114,12 +108,10 @@ class AdvancedGraph : public nanogui::Widget
     // Set the marker scale at idx
     void setMarkerScale(int idx, float scale) {this->marker_scale[idx] = scale;};
     // Set the marker scale for all markers
-    void setMarkerScale(float scale) 
+    void setMarkerScale(float scale)
     {
         for(auto & s : marker_scale)
-        {
             s = scale;
-        }  
     }
     // Set the marker scales according to vector markers
     void setMarkerScale(const std::vector<float> & scales)
@@ -162,7 +154,7 @@ class AdvancedGraph : public nanogui::Widget
     int getMarginTop(){ return this->margin_top; }
     void setMarginBot(int margin_bot){ this->margin_bot = margin_bot; }
     int getMarginBot(){ return this->margin_bot; }
-  
+
     // Font for ticks and labels
     void setFontSize(int font_size){ this->fontSize = font_size; }
     int getFontSize(){ return this->fontSize; }
@@ -175,7 +167,7 @@ class AdvancedGraph : public nanogui::Widget
     void setLineThickness(int thickness) { this->line_thickness = thickness; }
     int  getLineThickness() { return this->line_thickness; }
     void setLineColor(const Color & color) { this->lineColor = color; }
-    Color & getLineColor() { return this->lineColor; } 
+    Color & getLineColor() { return this->lineColor; }
 
     // Boundary Box properties
     void setBox(bool show_box){ this->show_box = show_box; }
@@ -183,7 +175,7 @@ class AdvancedGraph : public nanogui::Widget
     void setBoxThickness(int thickness) { this->box_thickness = thickness; }
     int  getBoxThickness() { return this->box_thickness; }
     void setBoxColor(const Color & color) { this->boxColor = color; }
-    Color & getBoxColor() { return this->boxColor; } 
+    Color & getBoxColor() { return this->boxColor; }
 
     // Background colors
     void setBackgroundColor(const Color & color) { this->mBackgroundColor = color;}
@@ -200,9 +192,7 @@ class AdvancedGraph : public nanogui::Widget
         getBoxColor().w() = alpha;
         getGridColor().w() = alpha;
         for( auto & c : marker_colors )
-        {
             c.w() = alpha;
-        }
     }
 
     virtual void draw(NVGcontext *ctx) override;
@@ -286,14 +276,14 @@ class AdvancedGraph : public nanogui::Widget
             inter2[1] = y2;
         }
 
-        if ( checkBoundary(p1[0], p1[1]) )
+        if( checkBoundary(p1[0], p1[1]) )
         {
             inter1 = p1;
-        } 
+        }
         if( checkBoundary(p2[0], p2[1]) )
         {
             inter2 = p2;
-        } 
+        }
 
         return checkBoundary( inter1[0], inter1[1] ) || checkBoundary( inter2[0], inter2[1] );
     }

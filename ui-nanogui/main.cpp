@@ -41,9 +41,6 @@
 #  pragma warning(disable: 4457 4456 4005 4312)
 #endif
 
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-
 #if defined(_WIN32)
 #  pragma warning(pop)
 #endif
@@ -56,7 +53,7 @@
 
 #include <GLCanvas.hpp>
 #include <ConfigurationsWindow.hpp>
-#include <AdvancedGraph.hpp>
+#include <EnergyGraph.hpp>
 
 #include <Spirit/State.h>
 #include <Spirit/Chain.h>
@@ -82,7 +79,7 @@ public:
         gl_canvas = new VFGLCanvas(this, state);
         gl_canvas->setSize(this->size());
 
-        ConfigurationsWindow *configurations = new ConfigurationsWindow(this, state);
+        auto configurations = new ConfigurationsWindow(this, state);
         configurations->setPosition(Vector2i(-100, 100));
         configurations->setLayout(new GroupLayout());
         configurations->setUpdateCallback([&] {this->gl_canvas->updateData();});
@@ -90,20 +87,8 @@ public:
         auto w = new Window(this, "Example Graph");
         w->setLayout(new GroupLayout());
         w->setSize({300,200});
-        auto graph = new AdvancedGraph(w, Marker::SQUARE, Color(0,0,255,255), 1.4);
-        graph->setSize({300, 200});
-        graph->setPosition({0,0});
-        graph->setGrid(true);
-        graph->setMarginBot(40);
-        graph->setXLabel("Reaction Coordinate");
-        graph->setYLabel("Energy [meV]");
-        graph->setXMin(0);
-        graph->setXMax(9.5);
-        graph->setNTicksX(10);
-        graph->setYMin(1e6); 
-        graph->setYMax(5e6);
-        graph->setLine(true);
-        graph->setValues( {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}, {1.2e6, 2.2e6, 3e6, 4.02e6, 2e6, 4.5e6, 3.7e6, 3.8e6, 2.9e6, 10e6} );
+        this->energy_graph = new EnergyGraph(w, state);
+
         performLayout();
     }
 
@@ -114,6 +99,37 @@ public:
         {
             setVisible(false);
             return true;
+        }
+        if( key == GLFW_KEY_LEFT && action == GLFW_PRESS && !modifiers )
+        {
+            if( System_Get_Index(state.get()) > 0 )
+            {
+                Chain_prev_Image(state.get());
+                this->gl_canvas->updateData();
+            }
+        }
+        if( key == GLFW_KEY_RIGHT && action == GLFW_PRESS && !modifiers )
+        {
+            if( System_Get_Index(state.get()) < Chain_Get_NOI(state.get())-1 )
+            {
+                Chain_next_Image(state.get());
+                this->gl_canvas->updateData();
+            }
+        }
+        if( key == GLFW_KEY_C && action == GLFW_PRESS && modifiers == GLFW_MOD_CONTROL)
+        {
+            Chain_Image_to_Clipboard(state.get());
+            this->energy_graph->updateData();
+        }
+        if( key == GLFW_KEY_LEFT && action == GLFW_PRESS && modifiers == GLFW_MOD_CONTROL)
+        {
+            Chain_Insert_Image_Before(state.get());
+            this->energy_graph->updateData();
+        }
+        if( key == GLFW_KEY_RIGHT && action == GLFW_PRESS && modifiers == GLFW_MOD_CONTROL)
+        {
+            Chain_Insert_Image_After(state.get());
+            this->energy_graph->updateData();
         }
         return false;
     }
@@ -140,6 +156,7 @@ public:
 private:
     std::shared_ptr<State> state;
     VFGLCanvas *gl_canvas;
+    EnergyGraph *energy_graph;
     nanogui::TabHeader *header;
 };
 
