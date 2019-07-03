@@ -164,13 +164,22 @@ public:
         auto prev = current_position-relative_position;
         glm::vec2 previous = {prev.x(), prev.y()};
         glm::vec2 current = {current_position.x(), current_position.y()};
-        view.mouseMove(previous, current, VFRendering::CameraMovementModes::ROTATE_BOUNDED);
-        return true;
+        if( button & (1 << GLFW_MOUSE_BUTTON_LEFT)  )
+        {
+            view.mouseMove(previous, current, VFRendering::CameraMovementModes::ROTATE_BOUNDED);
+            return true;
+        }
+        else if( button & (1 << GLFW_MOUSE_BUTTON_RIGHT) )
+        {
+            view.mouseMove(previous, current, VFRendering::CameraMovementModes::TRANSLATE);
+            return true;
+        }
+        return false;
     }
 
     virtual bool scrollEvent(const Eigen::Vector2i &p, const Eigen::Vector2f &relative_position) override
     {
-        view.mouseScroll(relative_position.y());
+        view.mouseScroll(-relative_position.y());
         return true;
     }
 

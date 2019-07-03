@@ -12,13 +12,13 @@ AdvancedGraph::AdvancedGraph(Widget * parent, const Marker & default_marker, con
 
 void AdvancedGraph::setValues(const std::vector<float> & x_values, const std::vector<float> & y_values)
 {
-    if(x_values.size() != y_values.size())
+    if (x_values.size() != y_values.size() )
         throw std::runtime_error("Value vectors x and y need to have the same length!");
 
     this->x_values      = x_values;
     this->y_values      = y_values;
 
-    if(x_values.size() != markers.size())
+    if( x_values.size() != markers.size() )
     {
         this->markers.resize(x_values.size(), this->default_marker);
         this->marker_scale.resize(x_values.size(), this->default_marker_scale);
@@ -119,33 +119,36 @@ void AdvancedGraph::drawMarkers(NVGcontext * ctx)
 
     // Note: We add some hard-coded additional scaling to the markers such that 
     // they look roughly the same size for the same value of marker scale
-    for (size_t i = 0; i < (size_t) y_values.size(); i++)
+    for( size_t i = 0; i < (size_t) y_values.size(); i++ )
     {
         // Only draw markers withing the min/max constraints
-        if (x_values[i] >= mx_min && x_values[i] <= mx_max && y_values[i] >= my_min && y_values[i] <= my_max)
+        if( x_values[i] >= mx_min && x_values[i] <= mx_max && y_values[i] >= my_min && y_values[i] <= my_max )
         {
             dataToPixel({x_values[i], y_values[i]}, cur_pos);
             int cur_marker_scale = _internal_marker_scale * this->marker_scale[i];
 
-            if(this->markers[i] != Marker::NONE)
+            if( this->markers[i] != Marker::NONE )
             {
                 nvgBeginPath(ctx);
                 nvgMoveTo(ctx, cur_pos.x(), cur_pos.y());
                 nvgFillColor(ctx, marker_colors[i]);
 
-                if(this->markers[i] == Marker::CIRCLE)
+                if( this->markers[i] == Marker::CIRCLE )
                 {
                     cur_marker_scale *= 0.56;
                     nvgCircle(ctx, cur_pos.x(), cur_pos.y(), cur_marker_scale);
-                } else if (this->markers[i] == Marker::SQUARE)
+                }
+                else if( this->markers[i] == Marker::SQUARE )
                 {
                     // Need to offset the origin to the left and up, because it denotes the top/left corner of the rectangle
                     nvgRect(ctx, cur_pos.x()-cur_marker_scale/2, cur_pos.y()-cur_marker_scale/2, cur_marker_scale, cur_marker_scale);
-                } else if (this->markers[i] == Marker::TRIANG_UP)
+                }
+                else if( this->markers[i] == Marker::TRIANG_UP )
                 {
                     cur_marker_scale *= 1.3;
                     nvgTriangUp(ctx, cur_pos.x(), cur_pos.y(), cur_marker_scale);
-                } else if (this->markers[i] == Marker::TRIANG_DOWN)
+                }
+                else if( this->markers[i] == Marker::TRIANG_DOWN )
                 {
                     cur_marker_scale *= 1.3;
                     nvgTriangDown(ctx, cur_pos.x(), cur_pos.y(), cur_marker_scale);
@@ -258,7 +261,6 @@ void AdvancedGraph::drawGrid(NVGcontext * ctx)
 // Note: We kind of require the x_values to be ordered ...
 void AdvancedGraph::drawLineSegments(NVGcontext * ctx)
 {
-
     nanogui::Vector2i cur_pos = {0,0};
     nanogui::Vector2i prev_pos = {0,0};
     nanogui::Vector2f inter1 = {0,0};

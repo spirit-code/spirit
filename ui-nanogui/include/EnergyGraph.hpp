@@ -38,6 +38,8 @@ public:
         }
 
         // TODO: set data values
+        float E_min=1e8, E_max=-1e8;
+        int idx_current = System_Get_Index(state.get());
         if( this->plot_image_energies )
         {
             for( int i = 0; i < noi; ++i )
@@ -45,10 +47,35 @@ public:
                 if( i > 0 && Rx_tot > 0 )
                     Rx[i] = Rx[i] / Rx_tot;
                 energies[i] = energies[i] / nos;
+                if( energies[i] > E_max )
+                    E_max = energies[i];
+                if( energies[i] < E_min )
+                    E_min = energies[i];
+
+                if( i != idx_current )
+                    this->marker_colors[i] = nanogui::Color(55,126,184,255);
+                else
+                    this->marker_colors[i] = nanogui::Color(228,26,28,255);
+
+                std::cerr << i << " " << Rx[i] << " " << energies[i] << " Rx_tot: " << Rx_tot << "\n";
             }
         }
-        this->setValues( Rx, energies );
 
+        this->x_values  = Rx;
+        this->y_values  = energies;
+
+        float delta = 0.1*(E_max - E_min);
+        if (delta < 1e-6)
+            delta = 0.1;
+        this->my_min = E_min - delta;
+        this->my_max = E_max + delta;
+
+        if( this->x_values.size() != this->markers.size() )
+        {
+            this->markers.resize(x_values.size(), this->default_marker);
+            this->marker_scale.resize(x_values.size(), this->default_marker_scale);
+            this->marker_colors.resize(x_values.size(), this->default_marker_color);
+        }
     }
 
 private:
