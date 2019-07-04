@@ -87,7 +87,14 @@ CUDA backend
 The CUDA backend can be used to speed up calculations by
 using a GPU.
 
-At least version 8 of the CUDA toolkit is required!
+At least version 8 of the CUDA toolkit is required and the
+GPU needs compute capability 3.0 or higher!
+
+Note that **the GUI cannot be used on the CUDA backend on Windows**!
+(see the CUDA programming guide:
+[coherency](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#um-coherency-hd)
+and
+[requirements](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#um-requirements))
 
 *Note:* the precision of the core will be automatically set
 to `float` in order to avoid the performance cost of `double`
