@@ -115,6 +115,9 @@ void nvgTriangUp(NVGcontext* ctx, float x, float y, float l)
 
 void AdvancedGraph::drawMarkers(NVGcontext * ctx)
 {
+    if( x_values.size() < 1 )
+        return;
+        
     nanogui::Vector2i cur_pos = {0,0};
 
     // Note: We add some hard-coded additional scaling to the markers such that 
@@ -261,6 +264,9 @@ void AdvancedGraph::drawGrid(NVGcontext * ctx)
 // Note: We kind of require the x_values to be ordered ...
 void AdvancedGraph::drawLineSegments(NVGcontext * ctx)
 {
+    if( x_values.size() < 2 )
+        return;
+
     nanogui::Vector2i cur_pos = {0,0};
     nanogui::Vector2i prev_pos = {0,0};
     nanogui::Vector2f inter1 = {0,0};
@@ -305,9 +311,6 @@ void AdvancedGraph::draw(NVGcontext *ctx)
     nvgRect(ctx, mPos.x(), mPos.y(), mSize.x(), mSize.y());
     nvgFillColor(ctx, mBackgroundColor);
     nvgFill(ctx);
-
-    if( y_values.size() < 2 )
-        return;
 
     if( show_grid )
         drawGrid(ctx);
