@@ -105,9 +105,19 @@ CUDA backend
 The CUDA backend can be used to speed up calculations by
 using a GPU.
 
+Spirit uses [unified memory](https://devblogs.nvidia.com/unified-memory-cuda-beginners).
 At least version 8 of the CUDA toolkit is required and the
 GPU needs compute capability 3.0 or higher!
-Spirit uses [unified memory](https://devblogs.nvidia.com/unified-memory-cuda-beginners).
+
+If the GUI is used, compute capability 6.0 or higher is
+required! (see the CUDA programming guide:
+[coherency](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#um-coherency-hd))
+
+Note that **the GUI cannot be used on the CUDA backend on OSX**!
+(see the CUDA programming guide:
+[coherency](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#um-coherency-hd)
+and
+[requirements](https://docs.nvidia.com/cuda/cuda-c-programming-guide/index.html#um-requirements))
 
 *Note:* the precision of the core will be automatically set
 to `float` in order to avoid the performance cost of `double`
