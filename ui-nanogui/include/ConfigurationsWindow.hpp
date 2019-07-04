@@ -26,6 +26,12 @@ public:
             this->mUpdateCallback();
         });
         // b_skyrmion->setTooltip("set a skyrmion configuration");
+
+        Button *b_random = new Button(this, "Random");
+        b_random->setCallback([&] {
+            Configuration_Random(this->state.get());
+            this->mUpdateCallback();
+        });
     }
 
     void setUpdateCallback(const std::function<void()> &callback)

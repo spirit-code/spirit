@@ -143,13 +143,13 @@ public:
         {
             Chain_Image_to_Clipboard(state.get());
         }
-        if( key == GLFW_KEY_LEFT && action == GLFW_PRESS && modifiers == GLFW_MOD_CONTROL )
+        if( key == GLFW_KEY_LEFT && action == GLFW_PRESS && modifiers == GLFW_MOD_SUPER )
         {
             Chain_Insert_Image_Before(state.get());
             Chain_Update_Data(state.get());
             this->energy_graph->updateData();
         }
-        if( key == GLFW_KEY_RIGHT && action == GLFW_PRESS && modifiers == GLFW_MOD_CONTROL )
+        if( key == GLFW_KEY_RIGHT && action == GLFW_PRESS && modifiers == GLFW_MOD_SUPER )
         {
             Chain_Insert_Image_After(state.get());
             Chain_Update_Data(state.get());
