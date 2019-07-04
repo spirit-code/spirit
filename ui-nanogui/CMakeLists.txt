@@ -42,7 +42,7 @@ set( SPIRIT_GUI_DEPENDENCIES ${SPIRIT_GUI_DEPENDENCIES} nanogui ${NANOGUI_EXTRA_
 ############################################
 
 ### The GUI ################################
-set( SPIRIT_GUI_SOURCES src/AdvancedGraph.cpp src/EnergyGraph.cpp )
+set( SPIRIT_GUI_SOURCES src/AdvancedGraph.cpp src/EnergyGraph.cpp src/MethodWidget.cpp)
 add_executable( ${PROJECT_NAME} ${SPIRIT_GUI_SOURCES} main.cpp )
 target_include_directories( ${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/include ${SPIRIT_GUI_INCLUDE_DIRS} )
 target_link_libraries( ${PROJECT_NAME} ${SPIRIT_GUI_DEPENDENCIES} )

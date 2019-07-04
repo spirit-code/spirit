@@ -131,6 +131,8 @@ public:
     {
         using namespace nanogui;
         glEnable(GL_DEPTH_TEST);
+        if( Simulation_Running_On_Image(this->state.get(), System_Get_Index(this->state.get())) )
+            this->updateDirections();
         this->view.draw();
         glDisable(GL_DEPTH_TEST);
     }

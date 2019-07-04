@@ -54,6 +54,7 @@
 #include <GLCanvas.hpp>
 #include <ConfigurationsWindow.hpp>
 #include <EnergyGraph.hpp>
+#include <MethodWidget.hpp>
 
 #include <Spirit/State.h>
 #include <Spirit/System.h>
@@ -87,6 +88,8 @@ public:
         w->setPosition({0,0});
         this->energy_graph = new EnergyGraph(w, state);
         this->energy_graph->updateData();
+
+        auto method = new MethodWidget(this, state);
 
         auto configurations = new ConfigurationsWindow(this, state);
         configurations->setPosition(Vector2i(350, 0));
