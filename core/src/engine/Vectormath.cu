@@ -14,23 +14,10 @@
 #include <curand.h>
 #include <curand_kernel.h>
 
+#include <cub/cub.cuh>
+
 using namespace Utility;
 using Utility::Constants::Pi;
-
-
-/*
-allowed:   arch <  7 and toolkit <  9   ->   no shfl_sync and not needed
-allowed:   arch <  7 and toolkit >= 9   ->   shfl_sync not needed but available (non-sync is deprecated)
-allowed:   arch >= 7 and toolkit >= 9   ->   shfl_sync needed and available
-forbidden: arch <  7 and toolkit >= 11  ->   likely removed shfl without sync
-forbidden: arch >= 7 and toolkit <  9   ->   shfl_sync needed but not available
-*/
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 700) && (CUDART_VERSION >= 11000)
-    #error "When compiling for compute capability < 7.0, this code requires CUDA Toolkit version < 11.0"
-#endif
-#if defined(__CUDA_ARCH__) && (__CUDA_ARCH__ >= 700) && (CUDART_VERSION < 9000)
-    #error "When compiling for compute capability >= 7.0, this code requires CUDA Toolkit version >= 9.0"
-#endif
 
 
 // CUDA Version
@@ -38,222 +25,6 @@ namespace Engine
 {
     namespace Vectormath
     {
-        /////////////////////////////////////////////////////////////////
-        // BOILERPLATE CUDA Reductions
-
-        __inline__ __device__
-        scalar warpReduceSum(scalar val)
-        {
-            #if (CUDART_VERSION >= 9000)
-            for (int offset = warpSize/2; offset > 0; offset /= 2)
-                val += __shfl_down_sync(0xffffffff, val, offset);
-            #else
-            for (int offset = warpSize/2; offset > 0; offset /= 2)
-                val += __shfl_down(val, offset);
-            #endif
-            return val;
-        }
-
-        __inline__ __device__
-        scalar blockReduceSum(scalar val)
-        {
-            static __shared__ scalar shared[32]; // Shared mem for 32 partial sums
-            int lane = threadIdx.x % warpSize;
-            int wid = threadIdx.x / warpSize;
-
-            val = warpReduceSum(val);     // Each warp performs partial reduction
-
-            if (lane==0) shared[wid]=val; // Write reduced value to shared memory
-
-            __syncthreads();              // Wait for all partial reductions
-
-            //read from shared memory only if that warp existed
-            val = (threadIdx.x < blockDim.x / warpSize) ? shared[lane] : 0;
-
-            if (wid==0) val = warpReduceSum(val); //Final reduce within first warp
-
-            return val;
-        }
-
-        __global__ void cu_sum(const scalar *in, scalar* out, int N)
-        {
-            scalar sum = int(0);
-            for(int i = blockIdx.x * blockDim.x + threadIdx.x;
-                i < N;
-                i += blockDim.x * gridDim.x)
-            {
-                sum += in[i];
-            }
-            sum = blockReduceSum(sum);
-            if (threadIdx.x == 0)
-                atomicAdd(out, sum);
-        }
-
-
-
-        __inline__ __device__
-        Vector3 warpReduceSum(Vector3 val)
-        {
-            #if (CUDART_VERSION >= 9000)
-            for (int offset = warpSize/2; offset > 0; offset /= 2)
-            {
-                val[0] += __shfl_down_sync(0xffffffff, val[0], offset);
-                val[1] += __shfl_down_sync(0xffffffff, val[1], offset);
-                val[2] += __shfl_down_sync(0xffffffff, val[2], offset);
-            }
-            #else
-            for (int offset = warpSize/2; offset > 0; offset /= 2)
-            {
-                val[0] += __shfl_down(val[0], offset);
-                val[1] += __shfl_down(val[1], offset);
-                val[2] += __shfl_down(val[2], offset);
-            }
-            #endif
-            return val;
-        }
-
-        __inline__ __device__
-        Vector3 blockReduceSum(Vector3 val)
-        {
-            static __shared__ Vector3 shared[32]; // Shared mem for 32 partial sums
-            int lane = threadIdx.x % warpSize;
-            int wid = threadIdx.x / warpSize;
-
-            val = warpReduceSum(val);     // Each warp performs partial reduction
-
-            if (lane==0) shared[wid]=val; // Write reduced value to shared memory
-
-            __syncthreads();              // Wait for all partial reductions
-
-            // Read from shared memory only if that warp existed
-            val = (threadIdx.x < blockDim.x / warpSize) ? shared[lane] : Vector3{0,0,0};
-
-            if (wid==0) val = warpReduceSum(val); //Final reduce within first warp
-
-            return val;
-        }
-
-        __global__ void cu_sum(const Vector3 *in, Vector3* out, int N)
-        {
-            Vector3 sum{0,0,0};
-            for(int i = blockIdx.x * blockDim.x + threadIdx.x;
-                i < N;
-                i += blockDim.x * gridDim.x)
-            {
-                sum += in[i];
-            }
-            sum = blockReduceSum(sum);
-            if (threadIdx.x == 0)
-            {
-                atomicAdd(&out[0][0], sum[0]);
-                atomicAdd(&out[0][1], sum[1]);
-                atomicAdd(&out[0][2], sum[2]);
-            }
-        }
-
-
-        __inline__ __device__
-        scalar warpReduceMin(scalar val)
-        {
-            #if (CUDART_VERSION >= 9000)
-            for (int offset = warpSize/2; offset > 0; offset /= 2)
-                val  = min(val, __shfl_down_sync(0xffffffff, val, offset));
-            #else
-            for (int offset = warpSize/2; offset > 0; offset /= 2)
-                val  = min(val, __shfl_down(val, offset));
-            #endif
-            return val;
-        }
-        __inline__ __device__
-        scalar warpReduceMax(scalar val)
-        {
-            #if (CUDART_VERSION >= 9000)
-            for (int offset = warpSize/2; offset > 0; offset /= 2)
-                val = max(val, __shfl_down_sync(0xffffffff, val, offset));
-            #else
-            for (int offset = warpSize/2; offset > 0; offset /= 2)
-                val = max(val, __shfl_down(val, offset));
-            #endif
-            return val;
-        }
-
-        __inline__ __device__
-        void blockReduceMinMax(scalar val, scalar *out_min, scalar *out_max)
-        {
-            static __shared__ scalar shared_min[32]; // Shared mem for 32 partial minmax comparisons
-            static __shared__ scalar shared_max[32]; // Shared mem for 32 partial minmax comparisons
-
-            int lane = threadIdx.x % warpSize;
-            int wid = threadIdx.x / warpSize;
-
-            scalar _min = warpReduceMin(val);  // Each warp performs partial reduction
-            scalar _max = warpReduceMax(val);  // Each warp performs partial reduction
-
-            if (lane==0) shared_min[wid]=_min;  // Write reduced minmax to shared memory
-            if (lane==0) shared_max[wid]=_max;  // Write reduced minmax to shared memory
-            __syncthreads();                      // Wait for all partial reductions
-
-            // Read from shared memory only if that warp existed
-            _min  = (threadIdx.x < blockDim.x / warpSize) ? shared_min[lane] : 0;
-            _max  = (threadIdx.x < blockDim.x / warpSize) ? shared_max[lane] : 0;
-
-            if (wid==0) _min  = warpReduceMin(_min);  // Final minmax reduce within first warp
-            if (wid==0) _max  = warpReduceMax(_max);  // Final minmax reduce within first warp
-
-            out_min[0] = _min;
-            out_max[0] = _max;
-        }
-
-        __global__ void cu_MinMax(const scalar *in, scalar* out_min, scalar* out_max, int N)
-        {
-            scalar tmp, tmp_min{0}, tmp_max{0};
-            scalar _min{0}, _max{0};
-            for(int i = blockIdx.x * blockDim.x + threadIdx.x;
-                i < N;
-                i += blockDim.x * gridDim.x)
-            {
-                _min = min(_min, in[i]);
-                _max = max(_max, in[i]);
-            }
-
-            tmp_min = _min;
-            tmp_max = _max;
-
-            blockReduceMinMax(tmp_min, &_min, &tmp);
-            blockReduceMinMax(tmp_max, &tmp, &_max);
-
-            if (threadIdx.x==0)
-            {
-                out_min[blockIdx.x] = _min;
-                out_max[blockIdx.x] = _max;
-            }
-        }
-
-        std::pair<scalar, scalar> minmax_component(const vectorfield & vf)
-        {
-            int N = 3*vf.size();
-            int threads = 512;
-            int blocks = min((N + threads - 1) / threads, 1024);
-
-            static scalarfield out_min(blocks, 0);
-            Vectormath::fill(out_min, 0);
-            static scalarfield out_max(blocks, 0);
-            Vectormath::fill(out_max, 0);
-            static scalarfield temp(1, 0);
-            Vectormath::fill(temp, 0);
-
-            cu_MinMax<<<blocks, threads>>>(&vf[0][0], out_min.data(), out_max.data(), N);
-            cu_MinMax<<<1, 1024>>>(out_min.data(), out_min.data(), temp.data(), blocks);
-            cu_MinMax<<<1, 1024>>>(out_max.data(), temp.data(), out_max.data(), blocks);
-            CU_CHECK_AND_SYNC();
-
-            return std::pair<scalar, scalar>{out_min[0], out_max[0]};
-        }
-
-
-        /////////////////////////////////////////////////////////////////
-
-
         // Utility function for the SIB Solver
         __global__ void cu_transform(const Vector3 * spins, const Vector3 * force, Vector3 * out, size_t N)
         {
@@ -291,6 +62,7 @@ namespace Engine
             }
         }
 
+        // TODO: improve random number generation - this one might give undefined behaviour!
         __global__ void cu_get_random_vectorfield(Vector3 * xi, size_t N)
         {
             unsigned long long subsequence = 0;
@@ -432,31 +204,22 @@ namespace Engine
 
         scalar sum(const scalarfield & sf)
         {
-            int N = sf.size();
-            int threads = 512;
-            int blocks = min((N + threads - 1) / threads, 1024);
-
             static scalarfield ret(1, 0);
             Vectormath::fill(ret, 0);
-            cu_sum<<<blocks, threads>>>(sf.data(), ret.data(), N);
+            // Determine temporary storage size and allocate
+            void * d_temp_storage = NULL;
+            size_t temp_storage_bytes = 0;
+            cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, sf.data(), ret.data(), sf.size());
+            cudaMalloc(&d_temp_storage, temp_storage_bytes);
+            // Reduction
+            cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, sf.data(), ret.data(), sf.size());
             CU_CHECK_AND_SYNC();
             return ret[0];
         }
 
         scalar mean(const scalarfield & sf)
         {
-            int N = sf.size();
-            int threads = 512;
-            int blocks = min((N + threads - 1) / threads, 1024);
-
-            static scalarfield ret(1, 0);
-            Vectormath::fill(ret, 0);
-
-            cu_sum<<<blocks, threads>>>(sf.data(), ret.data(), N);
-            CU_CHECK_AND_SYNC();
-
-            ret[0] = ret[0]/N;
-            return ret[0];
+            return sum(sf)/sf.size();
         }
 
         __global__ void cu_divide(const scalar * numerator, const scalar * denominator, scalar * out, size_t N)
@@ -540,15 +303,32 @@ namespace Engine
             CU_CHECK_AND_SYNC();
         }
 
+        // Functor for finding the maximum absolute value
+        struct CustomMaxAbs
+        {
+            template <typename T>
+            __device__ __forceinline__
+            T operator()(const T &a, const T &b) const {
+                return (a > b) ? a : b;
+            }
+        };
         scalar max_abs_component(const vectorfield & vf)
         {
-            // We want the Maximum of Absolute Values of all force components on all images
-            // Find minimum and maximum values
-            std::pair<scalar,scalar> minmax = minmax_component(vf);
-            scalar absmin = std::abs(minmax.first);
-            scalar absmax = std::abs(minmax.second);
-            // Maximum of absolute values
-            return std::max(absmin, absmax);
+            // Declare, allocate, and initialize device-accessible pointers for input and output
+            CustomMaxAbs    max_op;
+            size_t N = 3*vf.size();
+            scalarfield out(1, 0);
+            scalar init = 0;
+            // Determine temporary device storage requirements
+            void     *d_temp_storage = NULL;
+            size_t   temp_storage_bytes = 0;
+            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf[0].data(), out.data(), N, max_op, init);
+            // Allocate temporary storage
+            cudaMalloc(&d_temp_storage, temp_storage_bytes);
+            // Run reduction
+            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf[0].data(), out.data(), N, max_op, init);
+            CU_CHECK_AND_SYNC();
+            return std::abs(out[0]);
         }
 
         __global__ void cu_scale(Vector3 *vf1, scalar sc, size_t N)
@@ -584,33 +364,37 @@ namespace Engine
             CU_CHECK_AND_SYNC();
         }
 
+        // Functor for adding Vector3's
+        struct CustomAdd
+        {
+            template <typename T>
+            __device__ __forceinline__
+            T operator()(const T &a, const T &b) const {
+                return a + b;
+            }
+        };
         Vector3 sum(const vectorfield & vf)
         {
-            int N = vf.size();
-            int threads = 512;
-            int blocks = min((N + threads - 1) / threads, 1024);
-
             static vectorfield ret(1, {0,0,0});
             Vectormath::fill(ret, {0,0,0});
-            cu_sum<<<blocks, threads>>>(vf.data(), ret.data(), N);
+            // Declare, allocate, and initialize device-accessible pointers for input and output
+            CustomAdd    add_op;
+            static const Vector3 init{0,0,0};
+            // Determine temporary device storage requirements
+            void     *d_temp_storage = NULL;
+            size_t   temp_storage_bytes = 0;
+            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf.data(), ret.data(), vf.size(), add_op, init);
+            // Allocate temporary storage
+            cudaMalloc(&d_temp_storage, temp_storage_bytes);
+            // Run reduction
+            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf.data(), ret.data(), vf.size(), add_op, init);
             CU_CHECK_AND_SYNC();
             return ret[0];
         }
 
         Vector3 mean(const vectorfield & vf)
         {
-            int N = vf.size();
-            int threads = 512;
-            int blocks = min((N + threads - 1) / threads, 1024);
-
-            static vectorfield ret(1, {0,0,0});
-            Vectormath::fill(ret, {0,0,0});
-
-            cu_sum<<<blocks, threads>>>(vf.data(), ret.data(), N);
-            CU_CHECK_AND_SYNC();
-
-            ret[0] = ret[0]/N;
-            return ret[0];
+            return sum(vf)/vf.size();
         }
 
 
