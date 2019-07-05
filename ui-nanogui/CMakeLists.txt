@@ -1,5 +1,5 @@
 MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
-MESSAGE( STATUS ">> --------------------- UI - NGUI ------------------------------------ <<" ) 
+MESSAGE( STATUS ">> --------------------- UI - NGUI ------------------------------------ <<" )
 
 cmake_minimum_required( VERSION 3.2 FATAL_ERROR )
 # We need at least C++11
@@ -42,11 +42,18 @@ set( SPIRIT_GUI_DEPENDENCIES ${SPIRIT_GUI_DEPENDENCIES} nanogui ${NANOGUI_EXTRA_
 ############################################
 
 ### The GUI ################################
-set( SPIRIT_GUI_SOURCES src/AdvancedGraph.cpp src/EnergyGraph.cpp src/MethodWidget.cpp)
+# Flag for fmt to be header-only
+add_definitions( -DFMT_HEADER_ONLY )
+# Sources
+set( SPIRIT_GUI_SOURCES
+    src/AdvancedGraph.cpp
+    src/EnergyGraph.cpp
+    src/MethodWidget.cpp )
+# Build
 add_executable( ${PROJECT_NAME} ${SPIRIT_GUI_SOURCES} main.cpp )
 target_include_directories( ${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/include ${SPIRIT_GUI_INCLUDE_DIRS} )
 target_link_libraries( ${PROJECT_NAME} ${SPIRIT_GUI_DEPENDENCIES} )
-### Set executable name
+# Set executable name
 set( SPIRIT_EXE_NAME "spirit" )
 set_target_properties( ${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${SPIRIT_EXE_NAME} )
 ############################################
@@ -62,5 +69,5 @@ if ( WIN32 )
 endif()
 #############################################
 
+MESSAGE( STATUS ">> --------------------- UI - NGUI - Done  ---------------------------- <<" )
 MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
-MESSAGE( STATUS ">> --------------------- UI - NGUI - Done  ---------------------------- <<" ) 

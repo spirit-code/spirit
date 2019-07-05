@@ -29,16 +29,19 @@ class MethodWidget : public nanogui::Window
     };
     const std::vector<std::string> solver_strings = {"VP", "SIB", "Depondt", "Heun", "RK4"};
 
-    public:
+public:
     MethodWidget(nanogui::Widget * parent, std::shared_ptr<State> state);
+    ~MethodWidget();
     void updateThreads();
+    void update();
+    void start_stop();
     virtual void draw(NVGcontext *ctx) override;
     // This window should not be draggable
     bool mouseDragEvent(const Eigen::Vector2i& /* p */, const Eigen::Vector2i& /* rel */, int /* button */, int /* modifiers*/) override
     { return true; }
 
-    protected:
-    nanogui::Button * play_pause_button;
+protected:
+    nanogui::Button * start_stop_button;
     nanogui::ComboBox * method_select;
     nanogui::ComboBox * solver_select;
     nanogui::Label * image_label;

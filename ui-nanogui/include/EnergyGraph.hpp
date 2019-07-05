@@ -59,9 +59,7 @@ public:
                 } else {
                     this->marker_colors[i] = nanogui::Color(228,26,28,255);
                     this->marker_scale[i] = this->default_marker_scale * 1.2;
-                }   
-
-                std::cerr << i << " " << Rx[i] << " " << energies[i] << " Rx_tot: " << Rx_tot << "\n";
+                }
             }
         }
 

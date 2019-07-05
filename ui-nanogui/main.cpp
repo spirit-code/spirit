@@ -70,6 +70,12 @@
     #include <omp.h>
 #endif
 
+#ifdef __APPLE__
+auto CTRL = GLFW_MOD_SUPER;
+#else
+auto CTRL = GLFW_MOD_CONTROL;
+#endif
+
 class MainWindow : public nanogui::Screen
 {
 public:
@@ -89,7 +95,7 @@ public:
         this->energy_graph = new EnergyGraph(w, state);
         this->energy_graph->updateData();
 
-        auto method = new MethodWidget(this, state);
+        this->method = new MethodWidget(this, state);
 
         auto configurations = new ConfigurationsWindow(this, state);
         configurations->setPosition(Vector2i(350, 0));
@@ -113,6 +119,11 @@ public:
             setVisible(false);
             return true;
         }
+        if( key == GLFW_KEY_SPACE && action == GLFW_PRESS && !modifiers )
+        {
+            this->method->start_stop();
+            this->method->update();
+        }
         if( key == GLFW_KEY_LEFT && action == GLFW_PRESS && !modifiers )
         {
             if( System_Get_Index(state.get()) > 0 )
@@ -121,6 +132,7 @@ public:
                 this->gl_canvas->updateData();
                 this->energy_graph->updateData();
             }
+            this->method->update();
         }
         if( key == GLFW_KEY_RIGHT && action == GLFW_PRESS && !modifiers )
         {
@@ -130,35 +142,41 @@ public:
                 this->gl_canvas->updateData();
                 this->energy_graph->updateData();
             }
+            this->method->update();
         }
-        if( key == GLFW_KEY_X && action == GLFW_PRESS && modifiers == GLFW_MOD_CONTROL )
+        if( key == GLFW_KEY_X && action == GLFW_PRESS && modifiers == CTRL )
         {
             Chain_Image_to_Clipboard(state.get());
             Chain_Delete_Image(state.get());
+            this->method->update();
         }
-        if( key == GLFW_KEY_V && action == GLFW_PRESS && modifiers == GLFW_MOD_CONTROL )
+        if( key == GLFW_KEY_V && action == GLFW_PRESS && modifiers == CTRL )
         {
             Chain_Replace_Image(state.get());
             Chain_Update_Data(state.get());
             this->energy_graph->updateData();
         }
-        if( key == GLFW_KEY_C && action == GLFW_PRESS && modifiers == GLFW_MOD_CONTROL )
+        if( key == GLFW_KEY_C && action == GLFW_PRESS && modifiers == CTRL )
         {
             Chain_Image_to_Clipboard(state.get());
         }
-        if( key == GLFW_KEY_LEFT && action == GLFW_PRESS && modifiers == GLFW_MOD_SUPER )
+        if( key == GLFW_KEY_LEFT && action == GLFW_PRESS && modifiers == CTRL )
         {
             Chain_Insert_Image_Before(state.get());
             Chain_Update_Data(state.get());
             this->energy_graph->updateData();
+            this->method->update();
+            this->method->updateThreads();
         }
-        if( key == GLFW_KEY_RIGHT && action == GLFW_PRESS && modifiers == GLFW_MOD_SUPER )
+        if( key == GLFW_KEY_RIGHT && action == GLFW_PRESS && modifiers == CTRL )
         {
             Chain_Insert_Image_After(state.get());
             Chain_Update_Data(state.get());
             this->energy_graph->updateData();
+            this->method->update();
+            this->method->updateThreads();
         }
-        if( key == GLFW_KEY_R && action == GLFW_PRESS && modifiers == GLFW_MOD_CONTROL )
+        if( key == GLFW_KEY_R && action == GLFW_PRESS && modifiers == CTRL )
         {
             Configuration_Random(state.get());
             Chain_Update_Data(state.get());
@@ -191,6 +209,7 @@ private:
     std::shared_ptr<State> state;
     VFGLCanvas *gl_canvas;
     EnergyGraph *energy_graph;
+    MethodWidget *method;
     nanogui::TabHeader *header;
 };
 
