@@ -140,6 +140,14 @@ public:
     void setSize(const Eigen::Vector2i & size)
     {
         nanogui::GLCanvas::setSize(size);
+        nanogui::Vector2i fs = this->fixedSize();
+        nanogui::Vector2i newSize = {fs[0] > 0 ? fs[0] : size[0], fs[1] > 0 ? fs[1] : size[1] };
+        view.setFramebufferSize(newSize[0]*this->screen()->pixelRatio(), newSize[1]*this->screen()->pixelRatio());
+    }
+
+    void setFixedSize(const Eigen::Vector2i & size)
+    {
+        nanogui::GLCanvas::setFixedSize(size);
         view.setFramebufferSize(this->size()[0]*this->screen()->pixelRatio(), this->size()[1]*this->screen()->pixelRatio());
     }
 
