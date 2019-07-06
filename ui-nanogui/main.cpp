@@ -84,21 +84,31 @@ public:
         state(state)
     {
         using namespace nanogui;
+        using Anchor = AdvancedGridLayout::Anchor;
+        this->setSize({800,600});
+        
+        auto grid = new AdvancedGridLayout({200,200}, {200, 30});
+        this->setLayout(grid);
+        grid->setRowStretch(0,1);
+        grid->setRowStretch(1,0);
+        grid->setColStretch(0,1);
+        grid->setColStretch(1,0);
 
-        gl_canvas = new VFGLCanvas(this, state);
-        gl_canvas->setSize(this->size());
+        this->gl_canvas = new VFGLCanvas(this, state);
+        gl_canvas->setSize({400,400});
+        grid->setAnchor(gl_canvas, Anchor(0,0,1,1, Alignment::Fill, Alignment::Fill));
 
         auto w = new Window(this, "");
         w->setLayout(new GroupLayout());
-        w->setSize({300,200});
+        w->setSize({300,230});
         w->setPosition({0,0});
         this->energy_graph = new EnergyGraph(w, state);
+        this->energy_graph->setSize({300,200});
         this->energy_graph->updateData();
+        grid->setAnchor(w, Anchor(0,0,1,1, Alignment::Middle, Alignment::Middle));
 
-        this->method = new MethodWidget(this, state);
-
-        auto configurations = new ConfigurationsWindow(this, state);
-        configurations->setPosition(Vector2i(350, 0));
+        this->configurations = new ConfigurationsWindow(this, state);
+        grid->setAnchor(configurations, Anchor(1,0,1,2,Alignment::Fill, Alignment::Fill));
         configurations->setLayout(new GroupLayout());
         configurations->setUpdateCallback([&] {
             System_Update_Data(state.get());
@@ -106,6 +116,9 @@ public:
             this->gl_canvas->updateData();
             this->energy_graph->updateData();
         });
+
+        this->method = new MethodWidget(this, state);
+        grid->setAnchor(method, Anchor(0,1,1,1, Alignment::Fill, Alignment::Fill));
 
         performLayout();
     }
@@ -189,8 +202,9 @@ public:
     virtual bool resizeEvent(const Eigen::Vector2i & size)
     {
         nanogui::Screen::resizeEvent(size);
-        this->gl_canvas->setSize(size);
+        // this->gl_canvas->setSize(size);
         this->gl_canvas->drawGL();
+        performLayout();
         return true;
     }
 
@@ -205,9 +219,18 @@ public:
         this->gl_canvas->drawGL();
     }
 
+    void performLayout()
+    {
+        Screen::performLayout();
+        // A bit of a hack, we need to do this since Widget::setSize is non-virtual, 
+        // and the layout container therefore does not adjust the framebuffer size properly
+        this->gl_canvas->setSize(this->gl_canvas->size());
+    }
+
 private:
     std::shared_ptr<State> state;
     VFGLCanvas *gl_canvas;
+    ConfigurationsWindow * configurations;
     EnergyGraph *energy_graph;
     MethodWidget *method;
     nanogui::TabHeader *header;

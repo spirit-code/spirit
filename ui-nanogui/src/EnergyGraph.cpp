@@ -6,7 +6,6 @@ EnergyGraph::EnergyGraph(Widget * parent, std::shared_ptr<State> state)
     : AdvancedGraph(parent, Marker::CIRCLE, nanogui::Color(0,0,255,255), 1.4), state(state),
     plot_image_energies(true), plot_interpolated(false), plot_interpolated_n(10)
 {
-    this->setSize({300, 200});
     this->setGrid(true);
     this->setMarginBot(40);
     this->setXLabel("Reaction Coordinate");

@@ -28,7 +28,7 @@
 
 class VFGLCanvas : public nanogui::GLCanvas {
 public:
-    VFGLCanvas(nanogui::Screen *parent, std::shared_ptr<State> state)
+    VFGLCanvas(nanogui::Widget *parent, std::shared_ptr<State> state)
         : nanogui::GLCanvas(parent), state(state)
     {
         using namespace nanogui;
@@ -37,8 +37,6 @@ public:
         this->view = VFRendering::View();
         glm::vec3 color = { 0.5, 0.5, 0.5 };
         this->view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(color);
-
-        this->setSize(parent->size());
 
         int nos = System_Get_NOS(state.get());
         int n_cells[3];
@@ -149,6 +147,12 @@ public:
     {
         nanogui::GLCanvas::setFixedSize(size);
         view.setFramebufferSize(this->size()[0]*this->screen()->pixelRatio(), this->size()[1]*this->screen()->pixelRatio());
+    }
+
+    // We set a small value here to allow layout container to shrink this
+    virtual nanogui::Vector2i preferredSize(NVGcontext *ctx) const override
+    {
+        return {100, 100};
     }
 
     void updateRenderers()
