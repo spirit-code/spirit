@@ -40,7 +40,7 @@ set(SOURCE_UI_WEB_ROOT)
 #############################################
 
 
-######## Set export functions for Web UI #############################
+######## Set export functions for Spirit #############################
 ### Place all functions which should be exported by emcc into this list
 set( INTERFACE_EXPORT_FUNCTIONS
     # Chain
@@ -313,26 +313,56 @@ set( INTERFACE_EXPORT_FUNCTIONS
     # Transition
     '_Transition_Homogeneous'
     '_Transition_Add_Noise_Temperature'
-    )
+)
+######## Set export functions for VFRendering ########################
+set( INTERFACE_EXPORT_FUNCTIONS ${INTERFACE_EXPORT_FUNCTIONS}
+    '_initialize'
+    '_draw'
+    '_mouse_move'
+    '_mouse_scroll'
+    '_set_camera'
+    '_align_camera'
+    '_set_boundingbox'
+    '_set_coordinate_system'
+    '_set_dots'
+    '_set_arrows'
+    '_set_isosurface'
+    '_update_directions'
+    '_update_directions'
+)
 ### Replace ; in the list with , while transforming into a string
 string( REPLACE ";" ", " INTERFACE_EXPORT_FUNCTIONS_STRING "${INTERFACE_EXPORT_FUNCTIONS}")
 ######################################################################
 
+###  ###################
+add_executable( webui src/wrapper.cxx )
+target_link_libraries( webui ${SPIRIT_LIBRARIES_STATIC} VFRendering )
 
-### We use executable to it actually gets compiled
-add_executable( spirit_js main_js.cxx ${SPIRIT_OBJS} )
+# target_link_libraries( webui ${SPIRIT_LINK_DEPS} )
 
-target_link_libraries( spirit_js ${SPIRIT_LINK_DEPS} )
+set_target_properties( webui PROPERTIES OUTPUT_NAME "libSpirit" )
 
-set_target_properties( spirit_js PROPERTIES OUTPUT_NAME "spirit" )
+### We want it to be placed under ui-web/js/ s.t. it is directly part of the python core module/package
+set_target_properties( webui PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/ui-web/js/ )
 
-### We want it to be placed under ui-web/ s.t. it is directly part of the python core module/package
-set( SPIRIT_JS_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/ui-web/ )
-set_target_properties( spirit_js PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${SPIRIT_JS_OUTPUT_DIR} )
+set_property( TARGET webui PROPERTY CXX_STANDARD 11 )
+set_property( TARGET webui PROPERTY CXX_STANDARD_REQUIRED ON )
+set_property( TARGET webui PROPERTY CXX_EXTENSIONS OFF )
+
+target_include_directories( webui PUBLIC ${CMAKE_SOURCE_DIR}/core/include )
+# target_include_directories( webui PUBLIC ${PROJECT_SOURCE_DIR}/include )
+# target_include_directories( webui PUBLIC ${PROJECT_SOURCE_DIR}/thirdparty/glm/include )
+# target_include_directories( webui PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty/glad/include )
+# target_include_directories( webui PRIVATE ${qhull_INCLUDE_DIRS} )
 
 ### Set specific flags for emcc
-set_property( TARGET spirit_js PROPERTY COMPILE_FLAGS "-O3 -s WASM=1" )
-set_property( TARGET spirit_js PROPERTY LINK_FLAGS    "-O3 -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=\"[${INTERFACE_EXPORT_FUNCTIONS_STRING}]\" -s EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" )
+set_property( TARGET webui PROPERTY COMPILE_FLAGS
+    "-O3 -g -s EXPORT_NAME=\"'Module_Spirit'\" -s MODULARIZE=1 -s USE_WEBGL2=1 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ASSERTIONS=1 -s DISABLE_EXCEPTION_CATCHING=0" )
+
+set_property( TARGET webui PROPERTY LINK_FLAGS
+    "-O3 -g -s EXPORT_NAME=\"'Module_Spirit'\" -s MODULARIZE=1 -s USE_WEBGL2=1 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ASSERTIONS=1 -s DISABLE_EXCEPTION_CATCHING=0 -s ALLOW_MEMORY_GROWTH=1 -s EXPORTED_FUNCTIONS=\"[${INTERFACE_EXPORT_FUNCTIONS_STRING}]\" -s EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap']" )
+
+######################################################################
 
 
 ######### Header and Source messages ########
