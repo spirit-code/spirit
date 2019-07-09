@@ -1,8 +1,9 @@
 #ifndef BOUNDINGBOX_FRAG_GLSL_HXX
 #define BOUNDINGBOX_FRAG_GLSL_HXX
 
-static const std::string BOUNDINGBOX_FRAG_GLSL = R"LITERAL(
-#version 330
+#include "shader_header.hxx"
+
+static const std::string BOUNDINGBOX_FRAG_GLSL = SHADER_HEADER + R"LITERAL(
 
 uniform vec3 uColor;
 

@@ -28,9 +28,8 @@ public:
 
 protected:
     virtual void options(const Options& options);
-
-private:
     const View& m_view;
+private:
     Options m_options;
 };
 

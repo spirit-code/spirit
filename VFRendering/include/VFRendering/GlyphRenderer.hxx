@@ -6,6 +6,9 @@
 namespace VFRendering {
 class GlyphRenderer : public VectorFieldRenderer {
 public:
+    enum Option {
+      ROTATE_GLYPHS = 1000
+    };
 
     GlyphRenderer(const View& view, const VectorField& vf);
     virtual ~GlyphRenderer();
@@ -33,6 +36,13 @@ private:
     unsigned int m_num_indices = 0;
     unsigned int m_num_instances = 0;
 };
+
+namespace Utilities {
+template<>
+struct Options::Option<GlyphRenderer::Option::ROTATE_GLYPHS> {
+    bool default_value = true;
+};
+}
 }
 
 #endif

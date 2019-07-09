@@ -1,8 +1,9 @@
 #ifndef SPHERE_POINTS_FRAG_GLSL_HXX
 #define SPHERE_POINTS_FRAG_GLSL_HXX
 
-static const std::string SPHERE_POINTS_FRAG_GLSL = R"LITERAL(
-#version 330
+#include "shader_header.hxx"
+
+static const std::string SPHERE_POINTS_FRAG_GLSL = SHADER_HEADER + R"LITERAL(
 
 in vec3 vfPosition;
 in vec3 vfDirection;

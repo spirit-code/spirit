@@ -3,7 +3,11 @@
 #include <iostream>
 
 #include <glm/gtx/transform.hpp>
+#ifndef __EMSCRIPTEN__
 #include <glad/glad.h>
+#else
+#include <GLES3/gl3.h>
+#endif
 
 #include "VFRendering/RendererBase.hxx"
 #include "VFRendering/ArrowRenderer.hxx"
@@ -23,10 +27,12 @@ void View::initialize() {
     }
     m_is_initialized = true;
 
+#ifndef EMSCRIPTEN
     if (!gladLoadGL()) {
         std::cerr << "Failed to initialize glad" << std::endl;
         return;
     }
+#endif
     // Reset any errors potentially caused by the extension loader
     glGetError();
     glEnable(GL_DEPTH_TEST);
@@ -140,6 +146,10 @@ void View::mouseScroll(const float& wheel_delta) {
 
 void View::setFramebufferSize(float width, float height) {
     m_framebuffer_size = glm::vec2(width, height);
+}
+
+glm::vec2 View::getFramebufferSize() const {
+    return m_framebuffer_size;
 }
 
 void View::setCamera(glm::vec3 camera_position, glm::vec3 center_position, glm::vec3 up_vector) {

@@ -1,8 +1,9 @@
-#ifndef ARROWS_FRAG_GLSL_HXX
-#define ARROWS_FRAG_GLSL_HXX
+#ifndef GLYPHS_FRAG_GLSL_HXX
+#define GLYPHS_FRAG_GLSL_HXX
 
-static const std::string ARROWS_FRAG_GLSL = R"LITERAL(
-#version 330
+#include "shader_header.hxx"
+
+static const std::string GLYPHS_FRAG_GLSL = SHADER_HEADER + R"LITERAL(
 uniform vec3 uLightPosition;
 in vec3 vfPosition;
 in vec3 vfNormal;
