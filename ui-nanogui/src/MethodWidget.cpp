@@ -25,10 +25,10 @@ MethodWidget::MethodWidget(nanogui::Widget * parent, std::shared_ptr<State> stat
     this->image_label = new nanogui::Label(this, fmt::format("{}/{}", System_Get_Index(this->state.get())+1, Chain_Get_NOI(this->state.get())));
 
     new nanogui::Label(this, "  Method: ");
-    this->method_select = new nanogui::ComboBox(this, method_strings);
+    this->method_select = new ListSelect(this, method_strings);
 
     new nanogui::Label(this, "  Solver:");
-    this->solver_select = new nanogui::ComboBox(this, solver_strings);
+    this->solver_select = new ListSelect(this, solver_strings);
 }
 
 MethodWidget::~MethodWidget()

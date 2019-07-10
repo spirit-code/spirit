@@ -4,6 +4,7 @@
 
 #include "Spirit/Simulation.h"
 #include <nanogui/window.h>
+#include <ListSelect.hpp>
 #include <thread>
 
 class MethodWidget : public nanogui::Window
@@ -42,8 +43,8 @@ public:
 
 protected:
     nanogui::Button * start_stop_button;
-    nanogui::ComboBox * method_select;
-    nanogui::ComboBox * solver_select;
+    ListSelect * method_select;
+    ListSelect * solver_select;
     nanogui::Label * image_label;
     int idx_img   = -1;
     int idx_chain = -1;
