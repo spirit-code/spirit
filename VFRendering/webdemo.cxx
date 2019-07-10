@@ -25,7 +25,7 @@ void framebufferSizeCallback(EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context, int width,
 extern "C" void display() {
     EmscriptenWebGLContextAttributes attrs;
     emscripten_webgl_init_context_attributes(&attrs);
-    attrs.majorVersion=2;
+    attrs.majorVersion=1;
     attrs.minorVersion=0;
 
     EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context = emscripten_webgl_create_context("#myCanvas", &attrs);

@@ -142,8 +142,7 @@ void DotRenderer::updateShaderProgram()
         options().get<View::Option::IS_VISIBLE_IMPLEMENTATION>();
 
     // Fragment shader options 
-    std::string fragment_shader_source =
-        getDotStyle( (const DotStyle)options().get<DotRenderer::Option::DOT_STYLE>() );
+    std::string fragment_shader_source = getDotStyle(options().get<DotRenderer::Option::DOT_STYLE>());
     
     // Compile & link shader Program. Pass uniforms. 
     m_program = Utilities::createProgram( vertex_shader_source, 

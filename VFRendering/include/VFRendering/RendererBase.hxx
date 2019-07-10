@@ -40,7 +40,7 @@ void RendererBase::setOption(const typename Options::Type<index>::type& value) {
 
 template<int index>
 const typename Options::Type<index>::type& RendererBase::getOption() const {
-    return m_options.get<index>();;
+    return m_options.get<index>();
 }
 
 }

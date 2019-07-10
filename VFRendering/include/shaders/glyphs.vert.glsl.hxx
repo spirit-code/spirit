@@ -3,7 +3,7 @@
 
 #include "shader_header.hxx"
 
-static const std::string GLYPHS_ROTATED_VERT_GLSL = SHADER_HEADER + R"LITERAL(
+static const std::string GLYPHS_ROTATED_VERT_GLSL = VERT_SHADER_HEADER + R"LITERAL(
 uniform mat4 uProjectionMatrix;
 uniform mat4 uModelviewMatrix;
 uniform vec2 uZRange;
@@ -54,7 +54,7 @@ void main(void) {
 }
 )LITERAL";
 
-static const std::string GLYPHS_UNROTATED_VERT_GLSL = SHADER_HEADER + R"LITERAL(
+static const std::string GLYPHS_UNROTATED_VERT_GLSL = VERT_SHADER_HEADER + R"LITERAL(
 uniform mat4 uProjectionMatrix;
 uniform mat4 uModelviewMatrix;
 uniform vec2 uZRange;

@@ -3,11 +3,10 @@
 
 #include "shader_header.hxx"
 
-static const std::string COORDINATESYSTEM_FRAG_GLSL = SHADER_HEADER + R"LITERAL(
+static const std::string COORDINATESYSTEM_FRAG_GLSL = FRAG_SHADER_HEADER + R"LITERAL(
 
 in vec3 vfColor;
 in vec3 vfNormal;
-out vec4 fo_FragColor;
 
 void main(void) {
   fo_FragColor = vec4(vfColor*abs(normalize(vfNormal).z), 1.0);

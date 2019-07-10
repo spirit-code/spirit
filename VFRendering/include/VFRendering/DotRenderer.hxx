@@ -50,8 +50,8 @@ struct Options::Option<DotRenderer::Option::DOT_RADIUS> {
 };
 
 template<>
-struct Options::Option<DotRenderer::Option::DOT_STYLE> { 
-    int default_value = DotRenderer::DotStyle::CIRCLE;
+struct Options::Option<DotRenderer::Option::DOT_STYLE> {
+    DotRenderer::DotStyle default_value = DotRenderer::DotStyle::CIRCLE;
 };
 
 // COLORMAP_IMPLEMENTATION & IS_VISIBLE_IMPLEMENTATION define in View.hxx

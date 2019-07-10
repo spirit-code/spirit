@@ -3,7 +3,7 @@
 
 #include "shader_header.hxx"
 
-static const std::string SPHERE_BACKGROUND_VERT_GLSL = SHADER_HEADER + R"LITERAL(
+static const std::string SPHERE_BACKGROUND_VERT_GLSL = VERT_SHADER_HEADER + R"LITERAL(
 
 uniform float uAspectRatio;
 uniform float uInnerSphereRadius;

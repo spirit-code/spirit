@@ -3,7 +3,7 @@
 
 #include "shader_header.hxx"
 
-static const std::string SPHERE_POINTS_VERT_GLSL = SHADER_HEADER + R"LITERAL(
+static const std::string SPHERE_POINTS_VERT_GLSL = VERT_SHADER_HEADER + R"LITERAL(
 
 uniform mat4 uProjectionMatrix;
 uniform mat4 uModelviewMatrix;
