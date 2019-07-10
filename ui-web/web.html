@@ -40,9 +40,9 @@
               <form class="form-horizontal">
                 <div class="form-group">
                   <label for="input-gridsize-x" class="col-sm-3 control-label">Size: </label>
-                  <div class="col-sm-3"><input type="text" id="input-gridsize-x" class="form-control" value="100" /></div>
-                  <div class="col-sm-3"><input type="text" id="input-gridsize-y" class="form-control" value="100" /></div>
-                  <div class="col-sm-3"><input type="text" id="input-gridsize-z" class="form-control" value="1" /></div>
+                  <div class="col-sm-3"><input type="text" id="input-gridsize-x" class="form-control" value="21" /></div>
+                  <div class="col-sm-3"><input type="text" id="input-gridsize-y" class="form-control" value="21" /></div>
+                  <div class="col-sm-3"><input type="text" id="input-gridsize-z" class="form-control" value="21" /></div>
                 </div>
                 <button type="button" class="btn btn-block btn-default" id="button-gridsize-update">Create Grid</button>
               </form>
@@ -120,6 +120,22 @@
                   </div>-->
                 </div>
                 <button type="button" class="btn btn-block btn-default" id="button-skyrmion-create">Create Skyrmion</button>
+              </form>
+            </div>
+            <h5>Hopfions</h5>
+            <div class="well well-sm">
+              <form class="form-horizontal">
+                <div class="form-group">
+                  <label for="input-hopfion-order" class="col-sm-3 control-label">Order: </label><div class="col-sm-9"><input type="text" id="input-hopfion-order" class="form-control" value="1" /></div>
+                </div>
+                <div class="form-group">
+                  <label for="input-hopfion-radius" class="col-sm-3 control-label">Radius: </label><div class="col-sm-9"><input type="text" id="input-hopfion-radius" class="form-control" value="5" /></div>
+                </div>
+                <div class="form-group">
+                  <label for="input-hopfion-positionx" class="col-sm-3 control-label">Position: </label><div class="col-sm-3"><input type="text" id="input-hopfion-positionx" class="form-control" value="0" /></div>
+                  <div class="col-sm-3"><input type="text" id="input-hopfion-positiony" class="form-control" value="0" /></div><div class="col-sm-3"><input type="text" id="input-hopfion-positionz" class="form-control" value="0" /></div>
+                </div>
+                <button type="button" class="btn btn-block btn-default" id="button-hopfion-create">Create Hopfion</button>
               </form>
             </div>
             <h5>Spin Spiral</h5>
@@ -264,6 +280,8 @@
                   </div>
                   <label for="input-dmi-magnitude" class="col-sm-4 control-label">Magnitudes</label>
                   <div class="col-sm-4"><div class="input-group"><input type="text" id="input-exchangemagnitudes1" class="form-control" value="10" /><span class="input-group-addon">meV</span></div></div><div class="col-sm-4"><div class="input-group"><input type="text" id="input-exchangemagnitudes2" class="form-control" value="0" /><span class="input-group-addon">meV</span></div></div>
+                  <label for="input-dmi-magnitude" class="col-sm-4 control-label"></label>
+                  <div class="col-sm-4"><div class="input-group"><input type="text" id="input-exchangemagnitudes3" class="form-control" value="0" /><span class="input-group-addon">meV</span></div></div><div class="col-sm-4"><div class="input-group"><input type="text" id="input-exchangemagnitudes4" class="form-control" value="0" /><span class="input-group-addon">meV</span></div></div>
                 </div>
                 <div class="form-group">
                   <div class="col-sm-5">
@@ -398,7 +416,9 @@
         </div>
         <div id="collapse-visualization" class="panel-collapse collapse" role="tabpanel" aria-labelledby="heading-visualization">
           <div class="panel-body">
-
+            <form class="form-horizontal">
+              <button type="button" class="btn btn-block btn-default" id="button-screenshot">Save Screenshot</button>
+            </form>
             <h5>Renderers</h5>
             <div class="well well-sm">
               <form class="form-horizontal">
@@ -406,10 +426,19 @@
                   <label for="select-rendermode" class="col-sm-6 control-label">Rendermode</label>
                   <div class="col-sm-6">
                     <select id="select-rendermode">
-                      <option value="ARROWS">Arrows</option>
-                      <option value="SURFACE">Surface</option>
+                      <option value="SYSTEM">System</option>
                       <option value="SPHERE">Sphere</option>
                     </select>
+                  </div>
+                  <div class="checkbox col-sm-12">
+                    <label>
+                      <input type="checkbox" id="input-show-miniview"> Show Miniview
+                    </label>
+                  </div>
+                  <div class="checkbox col-sm-12">
+                    <label>
+                      <input type="checkbox" id="input-show-coordinatesystem"> Show Coordinate System
+                    </label>
                   </div>
                   <div class="checkbox col-sm-12">
                     <label>
@@ -418,41 +447,33 @@
                   </div>
                   <div class="checkbox col-sm-12">
                     <label>
-                      <input type="checkbox" id="input-show-coordinatesystem"> Show Coordinate System
+                      <input type="checkbox" id="input-show-dots"> Show Dots
                     </label>
-                  </div>
-                  <label for="select-colormap" class="col-sm-6 control-label">Coordinate System Position</label>
-                  <div class="col-sm-6">
-                    <select id="select-coordinatesystemwidget-position">
-                      <option value="[0, 0.05, 0.2, 0.2]">Bottom left</option>
-                      <option value="[0.8, 0.05, 0.2, 0.2]">Bottom right</option>
-                      <option value="[0.8, 0.75, 0.2, 0.2]">Top right</option>
-                      <option value="[0, 0.75, 0.2, 0.2]" selected="selected">Top left</option>
-                    </select>
                   </div>
                   <div class="checkbox col-sm-12">
                     <label>
-                      <input type="checkbox" checked="checked" id="input-show-spinspherewidget"> Show Spin Sphere/Surface Miniview
+                      <input type="checkbox" checked="checked" id="input-show-arrows"> Show Arrows
                     </label>
                   </div>
-                </div>
-                <div class="form-group">
-                  <label for="select-colormap" class="col-sm-6 control-label">Miniview Position</label>
-                  <div class="col-sm-6">
-                    <select id="select-spinspherewidget-position">
-                      <option value="[0, 0.05, 0.2, 0.2]" selected="selected">Bottom left</option>
-                      <option value="[0.8, 0.05, 0.2, 0.2]">Bottom right</option>
-                      <option value="[0.8, 0.75, 0.2, 0.2]">Top right</option>
-                      <option value="[0, 0.75, 0.2, 0.2]">Top left</option>
-                    </select>
+                  <div class="checkbox col-sm-12">
+                    <label>
+                      <input type="checkbox" id="input-show-spheres"> Show Spheres
+                    </label>
                   </div>
-                </div>
-              </form>
-              <form class="form">
-                <div class="form-group">
-                  <label for="input-zrange-filter" class="control-label">Spin Sphere Point Size</label>
-                  <div style="margin-left:20px;">
-                    <input id="input-spinspherewidget-pointsize" type="text" class="span2" style="padding:2em" value="" data-slider-min="1" data-slider-max="10" data-slider-step="1" data-slider-value="[1,1]" data-slider-ticks="[1, 5, 10]"/>
+                  <div class="checkbox col-sm-12">
+                    <label>
+                      <input type="checkbox" id="input-show-boxes"> Show Boxes
+                    </label>
+                  </div>
+                  <div class="checkbox col-sm-12">
+                    <label>
+                      <input type="checkbox" checked="checked" id="input-show-isosurface"> Show Isosurface
+                    </label>
+                  </div>
+                  <div class="checkbox col-sm-12">
+                    <label>
+                      <input type="checkbox" id="input-show-surface"> Show Surface
+                    </label>
                   </div>
                 </div>
               </form>
@@ -515,10 +536,45 @@
                 </div>
               </div>
             </div>
-            <h5>Screenshot</h5>
+            <h5>Details</h5>
             <div class="well well-sm">
               <form class="form-horizontal">
-                <button type="button" class="btn btn-block btn-default" id="button-screenshot">Save Screenshot</button>
+                <form class="form">
+                  <div class="form-group">
+                    <label for="select-colormap" class="col-sm-6 control-label">Coordinate System Position</label>
+                    <div class="col-sm-6">
+                      <select id="select-coordinatesystem-position">
+                        <option>Top left</option>
+                        <option>Top right</option>
+                        <option selected="selected">Bottom right</option>
+                        <option>Bottom left</option>
+                      </select>
+                    </div>
+                  </div>
+                </form>
+                <form class="form">
+                  <div class="form-group">
+                    <label for="select-colormap" class="col-sm-6 control-label">Miniview Position</label>
+                    <div class="form-group">
+                      <div class="col-sm-6">
+                        <select id="select-miniview-position">
+                          <option>Top left</option>
+                          <option>Top right</option>
+                          <option>Bottom right</option>
+                          <option selected="selected">Bottom left</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </form>
+                <form class="form">
+                  <div class="form-group">
+                    <label for="input-zrange-filter" class="control-label">Spin Sphere Point Size</label>
+                    <div style="margin-left:20px;">
+                      <input id="input-spinspherewidget-pointsize" type="text" class="span2" style="padding:2em" value="" data-slider-min="1" data-slider-max="10" data-slider-step="1" data-slider-value="[1,1]" data-slider-ticks="[1, 5, 10]"/>
+                    </div>
+                  </div>
+                </form>
               </form>
             </div>
           </div>
@@ -540,15 +596,16 @@
             <p>Spirit is <strong>platform-independent, open-source</strong> code with optional visualization, written in C++11.
             The source code is available on <a href="https://github.com/spirit-code/spirit" title="spirit-code/spirit">GitHub</a> under the terms of the <a href="https://github.com/spirit-code/spirit/blob/master/LICENSE.txt" title="Spirit License">MIT license</a>.</p>
             <p>While this web-based demo version is limited to Spin Dynamics simulations, the Spirit code has been developed as a flexible solution to various use-cases, including:</p>
-<ul>
-    <li><strong>Spin Dynamics simulations</strong> obeying the <a href="https://en.wikipedia.org/wiki/Landau%E2%80%93Lifshitz%E2%80%93Gilbert_equation" title="Landau-Lifschitz-Gilbert equation - Wikipedia">Landau-Lifschitz-Gilbert equation</a></li>
-    <li>Direct <strong>Energy minimisation</strong> of a spin system</li>
-    <li><strong>Minimum Energy Path calculations</strong> for transitions between different spin configurations, using the GNEB method</li>
-</ul>
-<p>More details may be found on <a href="https://github.com/spirit-code/spirit" title="spirit-code/spirit">GitHub</a> or in the <a href="https://iffwiki.fz-juelich.de/index.php/Spirit" title="Spirit - iffwiki">Wiki</a>.</p>
-<p>Main author of the Spirit code is Gideon Müller (<a href="http://www.fz-juelich.de/pgi/pgi-1/EN/Home/home_node.html" title="PGI-1">Quantum Theory of Materials</a> department of the <a href="http://www.fz-juelich.de/pgi/EN/Home/home_node.html" title="PGI">Peter Grünberg Institute </a>).</p>
-<p>The Web Interface is being developed by Florian Rhiem (<a href="https://pgi-jcns.fz-juelich.de/portal/pages/about.html" title="PGI-JCNS">Scientific IT-Systems, PGI/JCNS Technical Services and Administration</a>).</p>
-<p>For a full list of contributors and affiliations, see <a href="https://github.com/spirit-code/spirit/blob/master/docs/CONTRIBUTORS.md" title="Contributors">here</a>.</p>
+            <ul>
+                <li><strong>Spin Dynamics simulations</strong> obeying the <a href="https://en.wikipedia.org/wiki/Landau%E2%80%93Lifshitz%E2%80%93Gilbert_equation" title="Landau-Lifschitz-Gilbert equation - Wikipedia">Landau-Lifschitz-Gilbert equation</a></li>
+                <li>Direct <strong>Energy minimisation</strong> of a spin system</li>
+                <li><strong>Minimum Energy Path calculations</strong> for transitions between different spin configurations, using the GNEB method</li>
+            </ul>
+            <p>The visualisation is performed by <a href="https://github.com/FlorianRhiem/VFRendering" title="FlorianRhiem/VFRendering">VFRendering</a>.</p>
+            <p>More details may be found on <a href="https://github.com/spirit-code/spirit" title="spirit-code/spirit">GitHub</a> or in the <a href="https://spirit-docs.readthedocs.io" title="Spirit documentation">documentation</a>.</p>
+            <p>Main author of the Spirit code is Gideon Müller (<a href="http://www.fz-juelich.de/pgi/pgi-1/EN/Home/home_node.html" title="PGI-1">Quantum Theory of Materials</a> department of the <a href="http://www.fz-juelich.de/pgi/EN/Home/home_node.html" title="PGI">Peter Grünberg Institute </a>).</p>
+            <p>The Web Interface is being developed by Florian Rhiem (<a href="https://pgi-jcns.fz-juelich.de/portal/pages/about.html" title="PGI-JCNS">Scientific IT-Systems, PGI/JCNS Technical Services and Administration</a>).</p>
+            <p>For a full list of contributors and affiliations, see <a href="https://github.com/spirit-code/spirit/blob/master/docs/CONTRIBUTORS.md" title="Contributors">here</a>.</p>
           </div>
         </div>
       </div>
@@ -559,6 +616,7 @@
 <script src="https://code.jquery.com/jquery-2.2.4.min.js" integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44=" crossorigin="anonymous"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-slider/7.1.0/bootstrap-slider.min.js"></script>
+<script src="https://hammerjs.github.io/dist/hammer.min.js"></script>
 <script src="js/libSpirit.js"></script>
 <script src="js/spirit.js"></script>
 <script src="js/ui.js"></script>

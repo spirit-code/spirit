@@ -16,6 +16,10 @@ function VFRendering(Module, canvas, finishedCallback)
 
     this._options = {};
     this._mergeOptions(this._options, VFRendering.defaultOptions);
+    // this.updateOptions(this._options, VFRendering.defaultOptions);
+
+    this._createVFRenderingBindings(Module);
+
     // this._gl = null;
     // this._gl_initialized = false;
     // this._renderers = [];
@@ -34,22 +38,20 @@ function VFRendering(Module, canvas, finishedCallback)
 
     this._currentScale = 1;
     this.isTouchDevice = 'ontouchstart' in document.documentElement;
-    // this._options.useTouch = (this._options.useTouch && this.isTouchDevice);
-    // if (this.isTouchDevice) {
-    //     this._lastPanDeltaX = 0;
-    //     this._lastPanDeltaY = 0;
-    //     var mc = new Hammer.Manager(canvas, {});
-    //     mc.add(new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 0, pointers: 1}));
-    //     mc.on("pan", this._handlePan.bind(this));
-    //     mc.add(new Hammer.Pinch({}));
-    //     mc.on("pinchin pinchout pinchmove pinchend", this._handlePinch.bind(this));
-    //     mc.on("pinchstart", this._handlePinchStart.bind(this));
-    // }
+    this._options.useTouch = (VFRendering.defaultOptions.useTouch && this.isTouchDevice);
+    if (this.isTouchDevice) {
+        this._lastPanDeltaX = 0;
+        this._lastPanDeltaY = 0;
+        var mc = new Hammer.Manager(canvas, {});
+        mc.add(new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 0, pointers: 1}));
+        mc.on("pan", this._handlePan.bind(this));
+        mc.add(new Hammer.Pinch({}));
+        mc.on("pinchin pinchout pinchmove pinchend", this._handlePinch.bind(this));
+        mc.on("pinchstart", this._handlePinchStart.bind(this));
+    }
     this._mouseDown = false;
     this._lastMouseX = null;
     this._lastMouseY = null;
-
-    this._createVFRenderingBindings(Module);
 
     canvas.addEventListener('mousewheel',       this._handleMouseScroll.bind(this));
     canvas.addEventListener('DOMMouseScroll',   this._handleMouseScroll.bind(this));
@@ -72,27 +74,59 @@ VFRendering.defaultOptions.boundingBox = null;
 VFRendering.defaultOptions.boundingBoxColor = [1, 1, 1];
 VFRendering.defaultOptions.useTouch = true;
 
+VFRendering.defaultOptions.pointSizeRange = [1.0, 1.0];
+VFRendering.defaultOptions.innerSphereRadius = 0.95;
+VFRendering.defaultOptions.useSphereFakePerspective = false;
 
-VFRendering.prototype._mergeOptions = function(options, defaultOptions)
+
+VFRendering.prototype.updateOptions = function(options)
 {
+    var changedOptions = [];
+    for (var option in options) {
+        if (this._options.hasOwnProperty(option)) {
+            if (this._options[option] !== options[option]) {
+                this._options[option] = options[option];
+                changedOptions.push(option);
+            }
+        } else {
+            console.warn("VFRendering does not recognize option '" + option +"'.");
+        }
+    }
+    if (changedOptions.length == 0) {
+        return;
+    }
+    // ///////////////////////////
+    // this._options = {};
+    // for (var option in VFRendering.defaultOptions)
+    // {
+    //     this._options[option] = VFRendering.defaultOptions[option];
+    // }
+    // for (var option in options)
+    // {
+    //     if (VFRendering.defaultOptions.hasOwnProperty(option))
+    //     {
+    //         this._options[option] = options[option];
+    //     }
+    //     else
+    //     {
+    //         console.warn("VFRendering does not recognize option '" + option +"'.");
+    //     }
+    // }
+};
+
+VFRendering.prototype._mergeOptions = function(options, defaultOptions) {
     this._options = {};
-    for (var option in defaultOptions)
-    {
+    for (var option in defaultOptions) {
         this._options[option] = defaultOptions[option];
     }
-    for (var option in options)
-    {
-        if (defaultOptions.hasOwnProperty(option))
-        {
+    for (var option in options) {
+        if (defaultOptions.hasOwnProperty(option)) {
             this._options[option] = options[option];
-        }
-        else
-        {
+        } else {
             console.warn("VFRendering does not recognize option '" + option +"'.");
         }
     }
 };
-
 
 // Module_Spirit().then(function(Module) {
 // Module.ready(function() {
@@ -136,6 +170,36 @@ Core.prototype._createSpiritBindings = function(Module)
         }
     };
 
+    // ------------------------------------------------
+
+    Module.Geometry_Get_N_Cells = Module.cwrap('Geometry_Get_N_Cells', null, ['number', 'number', 'number']);
+    Core.prototype.getNCells = function () {
+        var ncells_ptr = Module._malloc(3*Module.HEAP32.BYTES_PER_ELEMENT);
+        var na_ptr = ncells_ptr+0*Module.HEAP32.BYTES_PER_ELEMENT;
+        var nb_ptr = ncells_ptr+1*Module.HEAP32.BYTES_PER_ELEMENT;
+        var nc_ptr = ncells_ptr+2*Module.HEAP32.BYTES_PER_ELEMENT;
+        Module.Geometry_Get_N_Cells(this._state, ncells_ptr, -1, -1);
+        var NX = Module.HEAP32[na_ptr/Module.HEAP32.BYTES_PER_ELEMENT];
+        var NY = Module.HEAP32[nb_ptr/Module.HEAP32.BYTES_PER_ELEMENT];
+        var NZ = Module.HEAP32[nc_ptr/Module.HEAP32.BYTES_PER_ELEMENT];
+        Module._free(ncells_ptr);
+        return [NX, NY, NZ];
+    }
+    Module.Geometry_Set_N_Cells = Module.cwrap('Geometry_Set_N_Cells', null, ['number', 'number']);
+    Core.prototype.setNCells = function (n_cells) {
+        var ncells_ptr = Module._malloc(3*Module.HEAP32.BYTES_PER_ELEMENT);
+        var na_ptr = ncells_ptr+0*Module.HEAP32.BYTES_PER_ELEMENT;
+        var nb_ptr = ncells_ptr+1*Module.HEAP32.BYTES_PER_ELEMENT;
+        var nc_ptr = ncells_ptr+2*Module.HEAP32.BYTES_PER_ELEMENT;
+        Module.HEAP32[na_ptr/Module.HEAP32.BYTES_PER_ELEMENT] = n_cells[0];
+        Module.HEAP32[nb_ptr/Module.HEAP32.BYTES_PER_ELEMENT] = n_cells[1];
+        Module.HEAP32[nc_ptr/Module.HEAP32.BYTES_PER_ELEMENT] = n_cells[2];
+        Module.Geometry_Set_N_Cells(this._state, ncells_ptr);
+        Module._free(ncells_ptr);
+    }
+
+    // ------------------------------------------------
+
     Module.Simulation_SingleShot = Module.cwrap('Simulation_SingleShot', null, ['number', 'number', 'number']);
     Core.prototype.performIteration = function() {
         Module.Simulation_SingleShot(this._state);
@@ -156,20 +220,6 @@ Core.prototype._createSpiritBindings = function(Module)
     Core.prototype.simulationRunning = function() {
         return Module.simulation_running(this._state);
     }
-
-    // Core.prototype._mergeOptions = function(options, defaultOptions) {
-    //     this._options = {};
-    //     for (var option in defaultOptions) {
-    //         this._options[option] = defaultOptions[option];
-    //     }
-    //     for (var option in options) {
-    //         if (defaultOptions.hasOwnProperty(option)) {
-    //             this._options[option] = options[option];
-    //         } else {
-    //             console.warn("Spirit Simulation does not recognize option '" + option +"'.");
-    //         }
-    //     }
-    // };
 
     Module.Spirit_Version_Full = Module.cwrap('Spirit_Version_Full', 'string', []);
     Core.prototype.spiritVersion = function() {
@@ -230,6 +280,18 @@ Core.prototype._createSpiritBindings = function(Module)
         var border_ptr = Module._malloc(border.length * border.BYTES_PER_ELEMENT);
         Module.HEAPF32.set(border, border_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
         Module.Configuration_Skyrmion(this._state, radius, order, phase, updown, achiral, rl, position_ptr, border_ptr, -1, -1, 0, 0, -1, -1);
+        Module._free(position_ptr);
+        // this.update();
+    };
+    Module.Configuration_Hopfion = Module.cwrap('Configuration_Hopfion', null, ['number', 'number', 'number', 'number', 'number', 'number', 'number', 'number']);
+    Core.prototype.createHopfion = function(radius, order, position) {
+        position = new Float32Array(position);
+        var position_ptr = Module._malloc(position.length * position.BYTES_PER_ELEMENT);
+        Module.HEAPF32.set(position, position_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
+        var border = new Float32Array([-1,-1,-1]);
+        var border_ptr = Module._malloc(border.length * border.BYTES_PER_ELEMENT);
+        Module.HEAPF32.set(border, border_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
+        Module.Configuration_Hopfion(this._state, radius, order, position_ptr, border_ptr, -1, -1, 0, 0, -1, -1);
         Module._free(position_ptr);
         // this.update();
     };
@@ -416,13 +478,13 @@ Core.prototype._createSpiritBindings = function(Module)
     }
 };
 
-
+// ------------------------------------------------
 
 VFRendering.prototype._createVFRenderingBindings = function(Module)
 {
-    Module.initialize = Module.cwrap('initialize');
+    Module.initialize = Module.cwrap('initialize', null, ['number']);
     VFRendering.prototype.initialize = function() {
-        Module.initialize();
+        Module.initialize(this._state);
     };
 
     Module.draw = Module.cwrap('draw');
@@ -454,6 +516,72 @@ VFRendering.prototype._createVFRenderingBindings = function(Module)
         Module._align_camera(direction_ptr, up_ptr);
     };
 
+    VFRendering.prototype.recenter_camera = function() {
+        Module._recenter_camera();
+    };
+
+    Module.set_background = Module.cwrap('set_background', null, ['number']);
+    VFRendering.prototype.set_background = function(colour) {
+        colour = new Float32Array(colour);
+        var colour_ptr = Module._malloc(colour.length * colour.BYTES_PER_ELEMENT);
+        Module.HEAPF32.set(colour, colour_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
+        Module.set_background(colour_ptr);
+    };
+
+    Module.set_coordinate_system = Module.cwrap('set_coordinate_system', null, ['number', 'number']);
+    VFRendering.prototype.set_coordinatesystem = function(show, position) {
+        Module.set_coordinate_system(this._state, show, position);
+    };
+
+    Module.set_miniview = Module.cwrap('set_miniview', null, ['number', 'number']);
+    VFRendering.prototype.set_miniview = function(show, position) {
+        Module.set_miniview(this._state, show, position);
+        Module._draw();
+    }
+
+    Module.set_boundingbox_colour = Module.cwrap('set_boundingbox_colour', null, ['number', 'number', 'number']);
+    VFRendering.prototype.set_boundingbox_colour = function(colour) {
+        colour = new Float32Array(colour);
+        var colour_ptr = Module._malloc(colour.length * colour.BYTES_PER_ELEMENT);
+        Module.HEAPF32.set(colour, colour_ptr/Module.HEAPF32.BYTES_PER_ELEMENT);
+        Module.set_boundingbox_colour(colour_ptr);
+    };
+
+    Module.set_boundingbox = Module.cwrap('set_boundingbox', null, ['number', 'number']);
+    VFRendering.prototype.set_boundingbox = function(show) {
+        Module.set_boundingbox(this._state, show);
+    };
+
+    Module.set_dots = Module.cwrap('set_dots', null, ['number', 'number']);
+    VFRendering.prototype.set_dots = function(show) {
+        Module.set_dots(this._state, show);
+    };
+
+    Module.set_arrows = Module.cwrap('set_arrows', null, ['number', 'number']);
+    VFRendering.prototype.set_arrows = function(show) {
+        Module.set_arrows(this._state, show);
+    };
+
+    Module.set_spheres = Module.cwrap('set_spheres', null, ['number', 'number']);
+    VFRendering.prototype.set_spheres = function(show) {
+        Module.set_spheres(this._state, show);
+    };
+
+    Module.set_boxes = Module.cwrap('set_boxes', null, ['number', 'number']);
+    VFRendering.prototype.set_boxes = function(show) {
+        Module.set_boxes(this._state, show);
+    };
+
+    Module.set_surface = Module.cwrap('set_surface', null, ['number', 'number']);
+    VFRendering.prototype.set_surface = function(show) {
+        Module.set_surface(this._state, show);
+    };
+
+    Module.set_isosurface = Module.cwrap('set_isosurface', null, ['number', 'number']);
+    VFRendering.prototype.set_isosurface = function(show) {
+        Module.set_isosurface(this._state, show);
+    };
+
     // ----------------------- Functions
 
     VFRendering.prototype.draw = function() {
@@ -469,10 +597,121 @@ VFRendering.prototype._createVFRenderingBindings = function(Module)
         Module._draw();
     }
 
+    VFRendering.prototype.updateGeometry = function() {
+        Module._update_geometry(this._state);
+        Module._draw();
+    }
+
+    VFRendering.prototype.set_rendermode = function(mode) {
+        Module._set_rendermode(mode);
+        Module._draw();
+    }
+
+    VFRendering.prototype.updateVisibility = function(zRange) {
+        Module._set_visibility(zRange[0], zRange[1]);
+        Module._draw();
+    }
+
+    VFRendering.prototype.setVectorSphere = function(pointSizeRange) {
+        Module._set_vectorsphere(pointSizeRange[0], pointSizeRange[1]);
+        Module._draw();
+    }
+
+    VFRendering.prototype.setColormap = function(colormap) {
+        var idx_cmap = 0;
+        if( colormap == "hsv" )
+        {
+            idx_cmap = 0;
+        }
+        else if( colormap == "hue" )
+        {
+            idx_cmap = 1;
+        }
+        else if( colormap == "bluered" )
+        {
+            idx_cmap = 2;
+        }
+        else if( colormap == "bluegreenred" )
+        {
+            idx_cmap = 3;
+        }
+        else if( colormap == "bluewhitered" )
+        {
+            idx_cmap = 4;
+        }
+        else if( colormap == "red" )
+        {
+            idx_cmap = 5;
+        }
+        else if( colormap == "white" )
+        {
+            idx_cmap = 6;
+        }
+        else if( colormap == "gray" )
+        {
+            idx_cmap = 7;
+        }
+        else if( colormap == "black" )
+        {
+            idx_cmap = 8;
+        }
+        else if( colormap == "black" )
+        {
+            idx_cmap = 8;
+        }
+        Module._set_colormap(idx_cmap);
+        Module._draw();
+    }
+
     // ----------------------- Handlers
 
+    VFRendering.prototype._handlePinch = function(event) {
+        if (!this._options.useTouch) return;
+        if (event.scale > 1) {
+            Module._mouse_scroll(-event.scale);
+        } else {
+            Module._mouse_scroll(1/event.scale);
+        }
+        this.draw();
+    };
+
+    VFRendering.prototype._handlePinchStart = function(event) {
+        if (!this._options.useTouch) return;
+        var forwardVector = VFRendering._difference(this._options.centerLocation, this._options.cameraLocation);
+        var cameraDistance = VFRendering._length(forwardVector);
+        this._currentScale = cameraDistance;
+    };
+
+    VFRendering.prototype._handlePan = function(event) {
+        if (!this._options.useTouch) return;
+        var deltaX = event.deltaX;
+        var deltaY = event.deltaY;
+
+        var prev = Module._malloc(2*Module.HEAPF32.BYTES_PER_ELEMENT);
+        var na_ptr = prev+0*Module.HEAPF32.BYTES_PER_ELEMENT;
+        var nb_ptr = prev+1*Module.HEAPF32.BYTES_PER_ELEMENT;
+        Module.HEAPF32[na_ptr/Module.HEAPF32.BYTES_PER_ELEMENT] = this._lastPanDeltaX;
+        Module.HEAPF32[nb_ptr/Module.HEAPF32.BYTES_PER_ELEMENT] = this._lastPanDeltaY;
+        var current = Module._malloc(2*Module.HEAPF32.BYTES_PER_ELEMENT);
+        var na_ptr = current+0*Module.HEAPF32.BYTES_PER_ELEMENT;
+        var nb_ptr = current+1*Module.HEAPF32.BYTES_PER_ELEMENT;
+        Module.HEAPF32[na_ptr/Module.HEAPF32.BYTES_PER_ELEMENT] = deltaX;
+        Module.HEAPF32[nb_ptr/Module.HEAPF32.BYTES_PER_ELEMENT] = deltaY;
+
+        if (event.isFinal) {
+            this._lastPanDeltaX = 0;
+            this._lastPanDeltaY = 0;
+        } else {
+            this._lastPanDeltaX = event.deltaX;
+            this._lastPanDeltaY = event.deltaY;
+        }
+
+        Module._mouse_move(prev, current, 1);
+        this.draw();
+    };
+
     VFRendering.prototype._handleMouseDown = function(event) {
-        // if (this._options.useTouch) return;
+        if (this._options.useTouch) return;
         if (!this._options.allowCameraMovement) {
             return;
         }
@@ -482,51 +721,21 @@ VFRendering.prototype._createVFRenderingBindings = function(Module)
     };
 
     VFRendering.prototype._handleMouseUp = function(event) {
-        // if (this._options.useTouch) return;
+        if (this._options.useTouch) return;
         this._mouseDown = false;
     };
 
     VFRendering.prototype._handleMouseMove = function(event) {
-        // console.log(event);
-        // if (this._options.useTouch) return;
+        if (this._options.useTouch) return;
         if (!this._options.allowCameraMovement) {
             return;
         }
         if (!this._mouseDown) {
-        return;
+            return;
         }
         var newX = event.clientX;
         var newY = event.clientY;
-        var deltaX = newX - this._lastMouseX;
-        var deltaY = newY - this._lastMouseY;
-        // if (event.shiftKey)
-        // {
-        //     this.zoom(deltaY > 0 ? 1 : -1);
-        // }
-        // else
-        // {
-        //     var forwardVector = VFRendering._difference(this._options.centerLocation, this._options.cameraLocation);
-        //     var cameraDistance = VFRendering._length(forwardVector);
-        //     forwardVector = VFRendering._normalize(forwardVector);
-        //     this._options.upVector = VFRendering._normalize(this._options.upVector);
-        //     var rightVector = VFRendering._cross(forwardVector, this._options.upVector);
-        //     this._options.upVector = VFRendering._cross(rightVector, forwardVector);
-        //     this._options.upVector = VFRendering._normalize(this._options.upVector);
-        //     if (event.altKey) {
-        //         var translation =  [
-        //             (deltaY / 100 * this._options.upVector[0] - deltaX / 100 * rightVector[0])*cameraDistance*0.1,
-        //             (deltaY / 100 * this._options.upVector[1] - deltaX / 100 * rightVector[1])*cameraDistance*0.1,
-        //             (deltaY / 100 * this._options.upVector[2] - deltaX / 100 * rightVector[2])*cameraDistance*0.1];
-        //         this._options.cameraLocation[0] += translation[0];
-        //         this._options.cameraLocation[1] += translation[1];
-        //         this._options.cameraLocation[2] += translation[2];
-        //         this._options.centerLocation[0] += translation[0];
-        //         this._options.centerLocation[1] += translation[1];
-        //         this._options.centerLocation[2] += translation[2];
-        //     } else {
-        //         this._rotationHelper(deltaX, deltaY);
-        //     }
-        // }
+
         var prev = Module._malloc(2*Module.HEAPF32.BYTES_PER_ELEMENT);
         var na_ptr = prev+0*Module.HEAPF32.BYTES_PER_ELEMENT;
         var nb_ptr = prev+1*Module.HEAPF32.BYTES_PER_ELEMENT;
@@ -542,69 +751,30 @@ VFRendering.prototype._createVFRenderingBindings = function(Module)
         this.draw();
         this._lastMouseX = newX;
         this._lastMouseY = newY;
-        // console.log(newX);
-        // console.log(newY);
-        // this.draw();
     };
 
     VFRendering.prototype._handleMouseScroll = function(event) {
-        // if (this._options.useTouch) return;
+        if (this._options.useTouch) return;
         if (!this._options.allowCameraMovement) {
             return;
         }
-        var scale = 10;
+        var scale = 1;
         if (event.shiftKey)
         {
-            scale = 1;
+            scale = 0.1;
         }
         var delta = Math.max(-1, Math.min(1, (event.wheelDelta || -event.detail)));
-        Module._mouse_scroll(delta, scale);
+        Module._mouse_scroll(-delta*scale);
         this.draw();
     };
 };
 
-
+// --------------------------------------
 
 function Spirit(Module, canvas, finishedCallback)
 {
     this.core = new Core(Module);
     this.vfr = new VFRendering(Module, canvas);
-
-    // ------------------------------------------------
-    Module.Geometry_Get_N_Cells = Module.cwrap('Geometry_Get_N_Cells', null, ['number', 'number', 'number']);
-    Spirit.prototype.getNCells = function () {
-        var ncells_ptr = Module._malloc(3*Module.HEAP32.BYTES_PER_ELEMENT);
-        var na_ptr = ncells_ptr+0*Module.HEAP32.BYTES_PER_ELEMENT;
-        var nb_ptr = ncells_ptr+1*Module.HEAP32.BYTES_PER_ELEMENT;
-        var nc_ptr = ncells_ptr+2*Module.HEAP32.BYTES_PER_ELEMENT;
-        Module.Geometry_Get_N_Cells(this._state, ncells_ptr, -1, -1);
-        var NX = Module.HEAP32[na_ptr/Module.HEAP32.BYTES_PER_ELEMENT];
-        var NY = Module.HEAP32[nb_ptr/Module.HEAP32.BYTES_PER_ELEMENT];
-        var NZ = Module.HEAP32[nc_ptr/Module.HEAP32.BYTES_PER_ELEMENT];
-        Module._free(ncells_ptr);
-        return [NX, NY, NZ];
-    }
-    Module.Geometry_Set_N_Cells = Module.cwrap('Geometry_Set_N_Cells', null, ['number', 'number']);
-    Spirit.prototype.setNCells = function (n_cells) {
-        var ncells_ptr = Module._malloc(3*Module.HEAP32.BYTES_PER_ELEMENT);
-        var na_ptr = ncells_ptr+0*Module.HEAP32.BYTES_PER_ELEMENT;
-        var nb_ptr = ncells_ptr+1*Module.HEAP32.BYTES_PER_ELEMENT;
-        var nc_ptr = ncells_ptr+2*Module.HEAP32.BYTES_PER_ELEMENT;
-        Module.HEAP32[na_ptr/Module.HEAP32.BYTES_PER_ELEMENT] = n_cells[0];
-        Module.HEAP32[nb_ptr/Module.HEAP32.BYTES_PER_ELEMENT] = n_cells[1];
-        Module.HEAP32[nc_ptr/Module.HEAP32.BYTES_PER_ELEMENT] = n_cells[2];
-        Module.Geometry_Set_N_Cells(this.core._state, ncells_ptr);
-        Module._free(ncells_ptr);
-        // this.update();
-        // TODO:
-        // this.vfr._update_geometry(...);
-    }
-    // ------------------------------------------------
-
-    // function(Module, canvas, finishedCallback)
-    // {
-    //     this.x = 10;
-    // };
 
     // // FS.writeFile("/input.cfg", "translation_vectors\n1 0 0 20\n0 1 0 20\n0 0 1 1\n");
 
@@ -619,11 +789,7 @@ function Spirit(Module, canvas, finishedCallback)
     //     finishedCallback(this);
     // }.bind(this));
 
-    this.vfr.initialize();
     this.core.setup("");
     this.vfr._state = this.core._state;
-
-
-    //////////// --------------------------------------
-
+    this.vfr.initialize();
 };
