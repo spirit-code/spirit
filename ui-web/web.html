@@ -14,7 +14,7 @@
   <label for="input-show-settings"><i class="fa fa-bars fa-2x" aria-hidden="true"></i></label>
   <input type="checkbox" id="input-show-settings" />
   <main id="visualization-container">
-    <canvas id="webgl-canvas" width="300" height="300"></canvas>
+    <canvas id="webgl-canvas" tabindex="1" width="300" height="300"></canvas>
     <div id="webgl-controls"><i class="fa fa-play" aria-hidden="true" id="btn-play"></i><!--<span class="spacer-25"></span><i class="fa fa-rotate-right" aria-hidden="true"></i><i class="fa fa-arrows" aria-hidden="true"></i><i class="fa fa-ellipsis-h" aria-hidden="true" id="btn-extended-controls"></i>--></div>
     <div id="webgl-extended-controls" class="hidden">
       <div>Reset camera</div>
@@ -40,9 +40,9 @@
               <form class="form-horizontal">
                 <div class="form-group">
                   <label for="input-gridsize-x" class="col-sm-3 control-label">Size: </label>
-                  <div class="col-sm-3"><input type="text" id="input-gridsize-x" class="form-control" value="21" /></div>
-                  <div class="col-sm-3"><input type="text" id="input-gridsize-y" class="form-control" value="21" /></div>
-                  <div class="col-sm-3"><input type="text" id="input-gridsize-z" class="form-control" value="21" /></div>
+                  <div class="col-sm-3"><input type="text" id="input-gridsize-x" class="form-control" value="100" /></div>
+                  <div class="col-sm-3"><input type="text" id="input-gridsize-y" class="form-control" value="100" /></div>
+                  <div class="col-sm-3"><input type="text" id="input-gridsize-z" class="form-control" value="1" /></div>
                 </div>
                 <button type="button" class="btn btn-block btn-default" id="button-gridsize-update">Create Grid</button>
               </form>

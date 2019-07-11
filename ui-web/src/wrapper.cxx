@@ -278,6 +278,30 @@ extern "C" void set_isosurface(State * state, bool show)
 extern "C" void set_surface(State * state, bool show)
 {
     show_surface = show;
+
+    glm::vec3 max = geometry->max();
+    glm::vec3 min = geometry->min();
+    if( Geometry_Get_Dimensionality(state) == 3 )
+    {
+        surface_renderer_3d_ptr->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>(
+            [min, max] (const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
+                (void)direction;
+
+                glm::vec3 _min = min + glm::vec3{0.00001f, 0.00001f, 0.00001f};
+                glm::vec3 _max = max - glm::vec3{0.00001f, 0.00001f, 0.00001f};
+
+                /* Transform position in selected cuboid to position in unit cube [-1,1]^3 */
+                glm::vec3 normalized_position = 2.0f * (position - _min) / (_max - _min) - 1.0f;
+
+                /* Calculate maximum metric / Chebyshev distance */
+                glm::vec3 absolute_normalized_position = glm::abs(normalized_position);
+                float max_norm = glm::max(glm::max(absolute_normalized_position.x, absolute_normalized_position.y), absolute_normalized_position.z);
+
+                /* Translate so that the selected cuboid surface has an isovalue of 0 */
+                return max_norm - 1.0f;
+            });
+    }
+
     update_renderers(state);
 }
 
@@ -347,8 +371,7 @@ extern "C" void set_visibility(float zmin, float zmax)
     dot_renderer_ptr->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>(visibility);
     sphere_renderer_ptr->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>(visibility);
     box_renderer_ptr->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>(visibility);
-    // TODO
-    // surface_renderer_2d_ptr->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>(visibility);
+    surface_renderer_2d_ptr->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>(visibility);
     surface_renderer_3d_ptr->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>(visibility);
     isosurface_renderer_ptr->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>(visibility);
 }
@@ -538,14 +561,9 @@ extern "C" void initialize(State * state)
     box_renderer_ptr->setOption<VFRendering::ParallelepipedRenderer::LENGTH_C>(0.5);
     box_renderer_ptr->setOption<VFRendering::ParallelepipedRenderer::ROTATE_GLYPHS>(false);
     // Surface (2D)
-    // TODO...
+    surface_renderer_2d_ptr = std::make_shared<VFRendering::SurfaceRenderer>(view, *vf);
     // Surface (3D)
     surface_renderer_3d_ptr = std::make_shared<VFRendering::IsosurfaceRenderer>(view, *vf);
-    surface_renderer_3d_ptr->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>(
-        [] (const glm::vec3& position, const glm::vec3& direction) -> VFRendering::IsosurfaceRenderer::isovalue_type {
-            (void)direction;
-            return position.x;
-        });
     surface_renderer_3d_ptr->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>(0.0);
     // Isosurface
     isosurface_renderer_ptr = std::make_shared<VFRendering::IsosurfaceRenderer>(view, *vf);

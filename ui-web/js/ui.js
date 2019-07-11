@@ -3,117 +3,10 @@ $(document).ready(function()
 {
     $('form').attr('onsubmit', 'return false;');
     var isSimulating = false;
-
-    window.addEventListener('keydown', function(event) {
-    //     var key = event.keyCode || event.which;
-    //     if (key == 32) { // space
-    //         // var sim = window.currentSimulation;
-    //         // isSimulating = sim.simulationRunning();
-    //         // // isSimulating = !isSimulating; // module.simulation_running()
-    //         // $("#btn-play").toggleClass("fa-play fa-pause");
-    //         // if (!isSimulating) {
-    //         // sim.startSimulation();
-    //         // window.requestAnimationFrame(function () {
-    //         //     update(sim);
-    //         // });
-    //         // }
-    //         // else {
-    //         // sim.stopSimulation();
-    //         // }
-    //         // isSimulating = sim.simulationRunning();
-    //     }
-    //     else{
-    //         console.log('key code ' + key + ' was pressed!');
-    //     }
-    });
-
-    // Module_VFR.ready(function() {
-    //     console.log("ready VFR");
-    //     vfr = new VFRendering(document.getElementById("webgl-canvas"));
-    //     vfr.draw();
-    //     console.log("ready VFR done");
-    // });
-
-
-    function updateFromSpirit(spirit){
-    }
-
-    // Module_Spirit.ready(function() {
-        
-    //     console.log("ready Spirit");
-    //     new Spirit(updateFromSpirit);
-    //     console.log("ready Spirit done");
-
-    //     // var version = window.currentSimulation.spiritVersion();
-    //     // document.getElementById("spirit-version").textContent="Version" + version;
-    // });
-
+    var canvas = document.getElementById("webgl-canvas");
 
     Module_Spirit().then(function(Module) {
-        // this is reached when everything is ready, and you can call methods on Module
-        // console.log("ready Spirit");
-        window.spirit = new Spirit(Module, document.getElementById("webgl-canvas"), updateFromSpirit);
-        // console.log(spirit.core);
-        // spirit.core.setcells();
-        // this._state = Module._State_Setup("");
-
-        // x = function(finishedCallback) {
-        //     // var defaultOptions = {
-        //     // };
-        //     // this._options = {};
-        //     // this._mergeOptions(options, defaultOptions);
-    
-        //     // FS.writeFile("/input.cfg", "translation_vectors\n1 0 0 20\n0 1 0 20\n0 0 1 1\n");
-    
-        //     // var cfgfile = "input/skyrmions_2D.cfg";
-        //     // var cfgfile = "input/skyrmions_3D.cfg";
-        //     // var cfgfile = "input/nanostrip_skyrmions.cfg";
-        //     // var cfgfile = "";
-        //     // this.getConfig(cfgfile, function(config) {
-        //     //     // FS.writeFile("/input.cfg", config);
-        //     //     this._state = Module.State_Setup("");
-        //     //     this.showBoundingBox = true;
-        //     //     finishedCallback(this);
-        //     // }.bind(this));
-        //     this._state = Module._State_Setup("");
-        //     finishedCallback(this);
-        // }
-
-        // Default geometry
-        spirit.core.setNCells([21, 21, 21]);
-        spirit.vfr.updateGeometry();
-        spirit.vfr.updateDirections();
-        spirit.vfr.recenter_camera();
-
-        // Default Hamiltonian
-        spirit.core.updateHamiltonianMuSpin(2);
-        spirit.core.updateHamiltonianExternalField(25, 0, 0, 1);
-        spirit.core.updateHamiltonianExchange([10]);
-        spirit.core.updateHamiltonianDMI([6]);
-
-        // Default configuration
-        spirit.core.setAllSpinsPlusZ();
-        spirit.core.setAllSpinsRandom();
-        // spirit.core.createSkyrmion(1, -90, 5, [0, 0, 0], false, false, false);
-        
-        // console.log("ready Spirit done");
-        
-        // ----------------------------------
-        // console.log("ready VFR");
-        spirit.vfr.draw();
-
-        // console.log("ready VFR done");
-
-        // console.log("before directions update");
-        // var _n = spirit.getNCells();
-        // var NX = _n[0];
-        // var NY = _n[1];
-        // var NZ = _n[2];
-        // var N = NX*NY*NZ;
-
-        // var directions_ptr = spirit.core.getSpinDirections();
-        spirit.vfr.updateDirections();
-
+        window.spirit = new Spirit(Module, canvas);
     }
     ).then(function()
     {
@@ -138,7 +31,8 @@ $(document).ready(function()
             }
         });
 
-        $("#btn-play").click(function() {
+        function simulation_start_stop()
+        {
             isSimulating = !isSimulating;
             $("#btn-play").toggleClass("fa-play fa-pause");
             if (isSimulating) {
@@ -150,6 +44,20 @@ $(document).ready(function()
             else {
                 spirit.core.stopSimulation();
             }
+        }
+
+        $("#btn-play").click(function() {
+            simulation_start_stop();
+        });
+
+        canvas.addEventListener('keydown', function(event) {
+            var key = event.keyCode || event.which;
+            if (key == 32) { // space
+                simulation_start_stop();
+            }
+            // else{
+            //     console.log('key code ' + key + ' was pressed!');
+            // }
         });
 
         window.addEventListener('keydown', function(event) {
@@ -174,9 +82,8 @@ $(document).ready(function()
         function update() {
             if (isSimulating) {
                 spirit.core.performIteration();
-                // var directions_ptr = spirit.core.getSpinDirections();
-
                 spirit.vfr.updateDirections();
+                spirit.vfr.draw();
                 window.requestAnimationFrame(function () {
                     update()
                 });
@@ -185,7 +92,7 @@ $(document).ready(function()
 
         // --------------------------
 
-        $('#button-gridsize-update').on('click', function(e) {
+        function updateGridSize() {
             var x = Number($('#input-gridsize-x').val());
             var y = Number($('#input-gridsize-y').val());
             var z = Number($('#input-gridsize-z').val());
@@ -194,6 +101,9 @@ $(document).ready(function()
             spirit.vfr.updateDirections();
             spirit.vfr.recenter_camera();
             spirit.vfr.draw();
+        }
+        $('#button-gridsize-update').on('click', function(e) {
+            updateGridSize();
         });
 
         // --------------------------
@@ -577,7 +487,6 @@ $(document).ready(function()
             spirit.vfr.set_boundingbox(show_boundingbox);
             spirit.vfr.draw();
         }
-
         $('#input-periodical-a').on('change', updateHamiltonianBoundaryConditions);
         $('#input-periodical-b').on('change', updateHamiltonianBoundaryConditions);
         $('#input-periodical-c').on('change', updateHamiltonianBoundaryConditions);
@@ -586,13 +495,13 @@ $(document).ready(function()
             var muspin = Number($('#input-externalfield-muspin').val());
             var valid = true;
             if (Number.isNaN(muspin)) {
-            valid = false;
-            $('#input-externalfield-muspin').parent().addClass('has-error');
+                valid = false;
+                $('#input-externalfield-muspin').parent().addClass('has-error');
             } else {
-            $('#input-externalfield-muspin').parent().removeClass('has-error');
+                $('#input-externalfield-muspin').parent().removeClass('has-error');
             }
             if (valid) {
-            spirit.core.updateHamiltonianMuSpin(muspin);
+                spirit.core.updateHamiltonianMuSpin(muspin);
             }
         }
         $('#input-externalfield-muspin').on('change', updateHamiltonianMuSpin);
@@ -632,7 +541,7 @@ $(document).ready(function()
                 spirit.core.updateHamiltonianExternalField(magnitude, normalx, normaly, normalz);
             }
             } else {
-            spirit.core.updateHamiltonianExternalField(0, 0, 0, 1);
+                spirit.core.updateHamiltonianExternalField(0, 0, 0, 1);
             }
         }
         $('#input-externalfield').on('change', updateHamiltonianExternalField);
@@ -699,7 +608,7 @@ $(document).ready(function()
                 spirit.core.updateHamiltonianDMI([dij]);
             }
             } else {
-            spirit.core.updateHamiltonianDMI([0]);
+                spirit.core.updateHamiltonianDMI([0]);
             }
         }
         $('#input-dmi').on('change', updateHamiltonianDMI);
@@ -740,7 +649,7 @@ $(document).ready(function()
                 spirit.core.updateHamiltonianAnisotropy(magnitude, normalx, normaly, normalz);
             }
             } else {
-            spirit.core.updateHamiltonianAnisotropy(0, 0, 0, 1);
+                spirit.core.updateHamiltonianAnisotropy(0, 0, 0, 1);
             }
         }
         $('#input-anisotropy').on('change', updateHamiltonianAnisotropy);
@@ -751,10 +660,10 @@ $(document).ready(function()
 
         function updateHamiltonianDDI() {
             if ($('#input-ddi')[0].checked) {
-            spirit.core.updateHamiltonianDDI(1, 4);
+                spirit.core.updateHamiltonianDDI(1, 4);
             }
             else {
-            spirit.core.updateHamiltonianDDI(0, 4);
+                spirit.core.updateHamiltonianDDI(0, 4);
             }
         }
         $('#input-ddi').on('change', updateHamiltonianDDI);
@@ -794,7 +703,7 @@ $(document).ready(function()
                 spirit.core.updateHamiltonianSpinTorque(magnitude, normalx, normaly, normalz);
             }
             } else {
-            spirit.core.updateHamiltonianSpinTorque(0, 0, 0, 1);
+                spirit.core.updateHamiltonianSpinTorque(0, 0, 0, 1);
             }
         }
         $('#input-spintorque').on('change', updateHamiltonianSpinTorque);
@@ -827,13 +736,13 @@ $(document).ready(function()
             var damping = Number($('#input-llg-damping').val());
             var valid = true;
             if (Number.isNaN(damping)) {
-            valid = false;
-            $('#input-llg-damping').parent().addClass('has-error');
+                valid = false;
+                $('#input-llg-damping').parent().addClass('has-error');
             } else {
-            $('#input-llg-damping').parent().removeClass('has-error');
+                $('#input-llg-damping').parent().removeClass('has-error');
             }
             if (valid) {
-            spirit.core.updateLLGDamping(damping);
+                spirit.core.updateLLGDamping(damping);
             }
         }
         $('#input-llg-damping').on('change', updateLLGDamping);
@@ -842,13 +751,13 @@ $(document).ready(function()
             var time_step = Number($('#input-llg-timestep').val());
             var valid = true;
             if (Number.isNaN(time_step)) {
-            valid = false;
-            $('#input-llg-timestep').parent().addClass('has-error');
+                valid = false;
+                $('#input-llg-timestep').parent().addClass('has-error');
             } else {
-            $('#input-llg-timestep').parent().removeClass('has-error');
+                $('#input-llg-timestep').parent().removeClass('has-error');
             }
             if (valid) {
-            spirit.core.updateLLGTimeStep(time_step);
+                spirit.core.updateLLGTimeStep(time_step);
             }
         }
         $('#input-llg-timestep').on('change', updateLLGTimeStep);
@@ -882,8 +791,8 @@ $(document).ready(function()
             VFRendering.updateOptions({useTouch: useTouch});
         }
         $('#input-use-touch').on('change', updateUseTouch);
-        
-        
+
+
         $('#button-camera-x').on('click', function(e) {
             spirit.vfr.align_camera([-1, 0, 0], [0, 0, 1]);
             spirit.vfr.draw();
@@ -896,7 +805,7 @@ $(document).ready(function()
             spirit.vfr.align_camera([0, 0, -1], [0, 1, 0]);
             spirit.vfr.draw();
         });
-        
+
         function downloadURI(uri, name) {
             var link = document.createElement("a");
             link.download = name;
@@ -906,10 +815,10 @@ $(document).ready(function()
             document.body.removeChild(link);
             delete link;
         }
-        
+
         $('#button-screenshot').on('click', function(e) {
             spirit.vfr.draw();
-            downloadURI(spirit.vfr._canvas.toDataURL(), "spirit_screenshot.png");
+            downloadURI(canvas.toDataURL(), "spirit_screenshot.png");
         });
         if (window.File && window.FileReader && window.FileList && window.Blob) {
             $('#input-import-ovf').on('change', function (e) {
@@ -925,16 +834,103 @@ $(document).ready(function()
         } else {
             $('#input-import-ovf').parent().hide();
         }
-        
+
         $('#button-export-ovf').on('click', function(e) {
             downloadURI(spirit.core.exportOVFDataURI(), $('#input-export-spins').val()+'.ovf');
         });
-        
+
         $('#button-export-energy').on('click', function(e) {
             spirit.core.System_Update_Data();
             downloadURI(spirit.core.exportEnergyDataURI(), $('#input-export-energy').val()+'.txt');
         });
 
+        // ---------------------------------------------------------------------
+
+        var url_string = window.location.href;
+        var url = new URL(url_string);
+        var example = String(url.searchParams.get("example"));
+
+        // console.log(example);
+        // console.log(example.localeCompare("racetrack"));
+        // console.log(example.localeCompare("hopfion"));
+
+        if( example.localeCompare("racetrack") == 0 )
+        {
+            // Geometry
+            spirit.core.setNCells([120, 30, 1]);
+            document.getElementById('input-gridsize-x').value = 120;
+            document.getElementById('input-gridsize-y').value = 30;
+            document.getElementById('input-gridsize-z').value = 1;
+
+            // Configuration
+            spirit.core.setAllSpinsPlusZ();
+            spirit.core.createSkyrmion(1, -90, 5, [-15, 0, 0], false, false, false);
+            spirit.core.createSkyrmion(1, -90, 5, [15, 0, 0], false, false, false);
+
+            // Hamiltonian
+            // spirit.core.updateHamiltonianBoundaryConditions(true, false, false);
+            document.getElementById('input-periodical-a').checked = true;
+            document.getElementById('input-periodical-b').checked = false;
+            document.getElementById('input-periodical-c').checked = false;
+
+            // Parameters
+            // spirit.core.updateHamiltonianSpinTorque(0.5, 1, 0, 0);
+            document.getElementById('input-spintorque').checked = true;
+            document.getElementById('input-spintorque-magnitude').value = 0.5;
+            document.getElementById('input-spintorque-directionx').value = -0.5;
+            document.getElementById('input-spintorque-directiony').value = 1;
+            document.getElementById('input-spintorque-directionz').value = 0;
+
+        }
+        else if( example.localeCompare("hopfion") == 0 )
+        {
+            // Geometry
+            spirit.core.setNCells([30, 30, 30]);
+            document.getElementById('input-gridsize-x').value = 30;
+            document.getElementById('input-gridsize-y').value = 30;
+            document.getElementById('input-gridsize-z').value = 30;
+
+            // Configuration
+            spirit.core.setAllSpinsPlusZ();
+            spirit.core.createHopfion(5, 1, [0, 0, 0]);
+
+            // Hamiltonian (TODO)
+            // spirit.core.updateHamiltonianExternalField(5, 0, 0, 1);
+            // spirit.core.updateHamiltonianAnisotropy(0, 0, 0, 1);
+            // spirit.core.updateHamiltonianExchange([1, 0, 0, -0.1]);
+            // spirit.core.updateHamiltonianDMI([0.1]);
+            document.getElementById('input-periodical-a').checked = true;
+            document.getElementById('input-periodical-b').checked = true;
+            document.getElementById('input-periodical-c').checked = true;
+            document.getElementById('input-externalfield').checked = false;
+            document.getElementById('input-externalfield-magnitude').value = 0;
+            document.getElementById('input-externalfield-directionx').value = 0;
+            document.getElementById('input-externalfield-directiony').value = 0;
+            document.getElementById('input-externalfield-directionz').value = 1;
+            document.getElementById('input-anisotropy').checked = false;
+            document.getElementById('input-anisotropy-magnitude').value = 0;
+            document.getElementById('input-anisotropy-directionx').value = 0;
+            document.getElementById('input-anisotropy-directiony').value = 0;
+            document.getElementById('input-anisotropy-directionz').value = 1;
+            document.getElementById('input-exchangemagnitudes1').value = 1;
+            document.getElementById('input-exchangemagnitudes2').value = 0;
+            document.getElementById('input-exchangemagnitudes3').value = 0;
+            document.getElementById('input-exchangemagnitudes4').value = -0.25;
+            document.getElementById('input-dmi').checked = false;
+            document.getElementById('input-dmi-magnitude').value = 0;
+
+            // Visualisation
+            document.getElementById('input-show-arrows').checked = false;
+            document.getElementById('input-show-isosurface').checked = true;
+        }
+        else
+        {
+            console.log("unknown example: ", example)
+        }
+        // Grid
+        updateGridSize();
+
+        // Hamiltonian
         updateHamiltonianBoundaryConditions();
         updateHamiltonianMuSpin();
         updateHamiltonianExternalField();
@@ -942,11 +938,15 @@ $(document).ready(function()
         updateHamiltonianDMI();
         updateHamiltonianAnisotropy();
         updateHamiltonianDDI();
+
+        // Parameters
         updateHamiltonianSpinTorque();
         updateHamiltonianTemperature();
         updateLLGDamping();
         updateLLGTimeStep();
 
+        // Visualisation
+        updateRenderers();
     }
     ).then(function()
     {

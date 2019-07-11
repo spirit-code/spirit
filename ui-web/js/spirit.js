@@ -1,14 +1,9 @@
 "use strict";
 
-// var canvas = document.getElementById("webgl-canvas");
-
-
 function Core(Module, finishedCallback)
 {
     this._createSpiritBindings(Module);
 }
-
-
 
 function VFRendering(Module, canvas, finishedCallback)
 {
@@ -16,25 +11,8 @@ function VFRendering(Module, canvas, finishedCallback)
 
     this._options = {};
     this._mergeOptions(this._options, VFRendering.defaultOptions);
-    // this.updateOptions(this._options, VFRendering.defaultOptions);
 
     this._createVFRenderingBindings(Module);
-
-    // this._gl = null;
-    // this._gl_initialized = false;
-    // this._renderers = [];
-    // for (var i = 0; i < this._options.renderers.length; i++) {
-    //     var renderer = this._options.renderers[i];
-    //     var viewport = [0, 0, 1, 1];
-    //     if (typeof renderer === typeof []) {
-    //         viewport = renderer[1];
-    //         renderer = renderer[0];
-    //     }
-    //     this._renderers.push([new renderer(this), viewport]);
-    // }
-    // this._initGLContext();
-    // this._instancePositionArray = null;
-    // this._instanceDirectionArray = null;
 
     this._currentScale = 1;
     this.isTouchDevice = 'ontouchstart' in document.documentElement;
@@ -95,23 +73,6 @@ VFRendering.prototype.updateOptions = function(options)
     if (changedOptions.length == 0) {
         return;
     }
-    // ///////////////////////////
-    // this._options = {};
-    // for (var option in VFRendering.defaultOptions)
-    // {
-    //     this._options[option] = VFRendering.defaultOptions[option];
-    // }
-    // for (var option in options)
-    // {
-    //     if (VFRendering.defaultOptions.hasOwnProperty(option))
-    //     {
-    //         this._options[option] = options[option];
-    //     }
-    //     else
-    //     {
-    //         console.warn("VFRendering does not recognize option '" + option +"'.");
-    //     }
-    // }
 };
 
 VFRendering.prototype._mergeOptions = function(options, defaultOptions) {
@@ -128,28 +89,8 @@ VFRendering.prototype._mergeOptions = function(options, defaultOptions) {
     }
 };
 
-// Module_Spirit().then(function(Module) {
-// Module.ready(function() {
 Core.prototype._createSpiritBindings = function(Module)
 {
-    // this.core.setcells = function() {
-    //     console.log(",,,,,,,,,,,,,,");
-    //     // core._state = state;
-    //     // Module.Geometry_Set_N_Cells = Module.cwrap('Geometry_Set_N_Cells', null, ['number', 'number']);
-    //     // this.prototype.setNCells = function (n_cells) {
-    //     //     var ncells_ptr = Module._malloc(3*Module.HEAP32.BYTES_PER_ELEMENT);
-    //     //     var na_ptr = ncells_ptr+0*Module.HEAP32.BYTES_PER_ELEMENT;
-    //     //     var nb_ptr = ncells_ptr+1*Module.HEAP32.BYTES_PER_ELEMENT;
-    //     //     var nc_ptr = ncells_ptr+2*Module.HEAP32.BYTES_PER_ELEMENT;
-    //     //     Module.HEAP32[na_ptr/Module.HEAP32.BYTES_PER_ELEMENT] = n_cells[0];
-    //     //     Module.HEAP32[nb_ptr/Module.HEAP32.BYTES_PER_ELEMENT] = n_cells[1];
-    //     //     Module.HEAP32[nc_ptr/Module.HEAP32.BYTES_PER_ELEMENT] = n_cells[2];
-    //     //     Module.Geometry_Set_N_Cells(this._state, ncells_ptr);
-    //     //     Module._free(ncells_ptr);
-    //     //     // this.update();
-    //     // }
-    // };
-
     Module.State_Setup = Module.cwrap('State_Setup', 'number', ['string']);
     Core.prototype.setup = function(config) {
         this._state = Module.State_Setup(config);
@@ -771,25 +712,36 @@ VFRendering.prototype._createVFRenderingBindings = function(Module)
 
 // --------------------------------------
 
-function Spirit(Module, canvas, finishedCallback)
+function Spirit(Module, canvas)
 {
     this.core = new Core(Module);
     this.vfr = new VFRendering(Module, canvas);
 
-    // // FS.writeFile("/input.cfg", "translation_vectors\n1 0 0 20\n0 1 0 20\n0 0 1 1\n");
-
-    // // var cfgfile = "input/skyrmions_2D.cfg";
-    // // var cfgfile = "input/skyrmions_3D.cfg";
-    // // var cfgfile = "input/nanostrip_skyrmions.cfg";
-    // var cfgfile = "";
-    // this.getConfig(cfgfile, function(config) {
-    //     // FS.writeFile("/input.cfg", config);
-    //     this._state = Module.State_Setup("");
-    //     this.showBoundingBox = true;
-    //     finishedCallback(this);
-    // }.bind(this));
+    // ---------------------------------------
 
     this.core.setup("");
+
+    // Default geometry
+    this.core.setNCells([100, 100, 1]);
+
+    // Default Hamiltonian
+    this.core.updateHamiltonianMuSpin(2);
+    this.core.updateHamiltonianExternalField(25, 0, 0, 1);
+    this.core.updateHamiltonianExchange([10]);
+    this.core.updateHamiltonianDMI([6]);
+
+    // Default configuration
+    // this.core.setAllSpinsPlusZ();
+    this.core.setAllSpinsRandom();
+
+    // ---------------------------------------
+
     this.vfr._state = this.core._state;
     this.vfr.initialize();
+
+    // console.log("ready VFR");
+    this.vfr.updateGeometry();
+    this.vfr.updateDirections();
+    this.vfr.recenter_camera();
+    this.vfr.draw();
 };
