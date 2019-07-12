@@ -8,7 +8,7 @@
 #include "eol.hpp"
 #include "tracking_mode.hpp"
 
-#if defined( __unix__ ) || ( defined( __APPLE__ ) && defined( __MACH__ ) )
+#if !defined(EMSCRIPTEN) && (defined( __unix__ ) || ( defined( __APPLE__ ) && defined( __MACH__ ) ))
 #include <unistd.h>  // Required for _POSIX_MAPPED_FILES
 #endif
 

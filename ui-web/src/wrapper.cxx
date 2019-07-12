@@ -363,6 +363,10 @@ extern "C" void set_colormap(int colormap)
 
 extern "C" void set_visibility(float zmin, float zmax)
 {
+    if( zmin <= -1 )
+        zmin = -1.1f;
+    if( zmax >= 1 )
+        zmax = 1.1f;
     std::string s_zmin = std::to_string(zmin);
     std::string s_zmax = std::to_string(zmax);
     std::string visibility = "bool is_visible(vec3 position, vec3 direction) { return direction.z <= "+s_zmax+" && direction.z >= "+s_zmin+"; }";

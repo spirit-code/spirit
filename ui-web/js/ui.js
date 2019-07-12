@@ -6,6 +6,7 @@ $(document).ready(function()
     var canvas = document.getElementById("webgl-canvas");
 
     Module_Spirit().then(function(Module) {
+        window.FS = Module.FS
         window.spirit = new Spirit(Module, canvas);
     }
     ).then(function()
@@ -822,14 +823,15 @@ $(document).ready(function()
         });
         if (window.File && window.FileReader && window.FileList && window.Blob) {
             $('#input-import-ovf').on('change', function (e) {
-            if (e.target.files.length < 1) {
-                return;
-            }
-            var reader = new FileReader();
-            reader.onload = function() {
-                spirit.core.importOVFData(new Uint8Array(reader.result));
-            };
-            reader.readAsArrayBuffer(e.target.files[0]);
+                if (e.target.files.length < 1) {
+                    return;
+                }
+                var reader = new FileReader();
+                reader.onload = function() {
+                    spirit.core.importOVFData(new Uint8Array(reader.result));
+                    spirit.vfr.updateDirections();
+                };
+                reader.readAsArrayBuffer(e.target.files[0]);
             });
         } else {
             $('#input-import-ovf').parent().hide();
