@@ -55,7 +55,9 @@
 #include <ConfigurationsWindow.hpp>
 #include <EnergyGraph.hpp>
 #include <MethodWidget.hpp>
+#include <MainWindowLayout.hpp>
 
+#include <VisualisationWidget.hpp>
 #include <Spirit/State.h>
 #include <Spirit/System.h>
 #include <Spirit/Chain.h>
@@ -87,7 +89,8 @@ public:
         using Anchor = AdvancedGridLayout::Anchor;
         this->setSize({800,600});
         
-        auto grid = new AdvancedGridLayout({200,200}, {200, 30});
+        auto grid = new MainWindowLayout({200,200}, {200, 30});
+
         this->setLayout(grid);
         grid->setRowStretch(0,1);
         grid->setRowStretch(1,0);
@@ -106,6 +109,11 @@ public:
         this->energy_graph->setSize({300,200});
         this->energy_graph->updateData();
         grid->setAnchor(w, Anchor(0,0,1,1, Alignment::Middle, Alignment::Middle));
+
+        auto vis = new VisualisationWidget(this, gl_canvas);
+        vis->setFixedWidth(200);
+        grid->setAnchor(vis, Anchor(0,0,1,1, Alignment::Middle, Alignment::Middle));
+        vis->addRenderer(new ArrowRendererWidget(vis, gl_canvas));
 
         this->configurations = new ConfigurationsWindow(this, state);
         grid->setAnchor(configurations, Anchor(1,0,1,2,Alignment::Fill, Alignment::Fill));

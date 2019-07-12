@@ -29,7 +29,7 @@
 class VFGLCanvas : public nanogui::GLCanvas {
 public:
     VFGLCanvas(nanogui::Widget *parent, std::shared_ptr<State> state)
-        : nanogui::GLCanvas(parent), state(state)
+        : nanogui::GLCanvas(parent), state(state), renderers({})
     {
         using namespace nanogui;
 
@@ -157,19 +157,27 @@ public:
 
     void updateRenderers()
     {
-        this->renderers = {};
-        // if this->bounding_box.show:
-            this->renderers.push_back(this->m_renderer_boundingbox);
-        // if this->dots.show:
-            this->renderers.push_back(this->m_renderer_dots);
-        // if this->arrows.show:
-            // this->renderers.push_back(this->m_renderer_arrows);
-        // if this->cubes.show:
-            // this->renderers.push_back(this->m_renderer_parallelpipeds);
-
         // Combine renderers
         auto renderers_system = std::shared_ptr<VFRendering::CombinedRenderer>(new VFRendering::CombinedRenderer( this->view, this->renderers ));
         this->view.renderers({{renderers_system, {0.0, 0.0, 1.0, 1.0}}}, false);
+    }
+
+    void addRenderer(std::shared_ptr<VFRendering::RendererBase> & renderer)
+    {
+        this->renderers.push_back(renderer);
+        updateRenderers();
+    }
+
+    void removeRenderer(std::shared_ptr<VFRendering::RendererBase> & renderer)
+    {
+        for(int i=0; i<renderers.size(); i++)
+        {
+            if (renderers[i] == renderer)
+            {
+                this->renderers.erase(renderers.begin() + i);
+            }
+        }
+        updateRenderers();
     }
 
     virtual bool mouseDragEvent(const Eigen::Vector2i &current_position,
@@ -214,6 +222,14 @@ public:
         this->drawGL();
     }
 
+    const VFRendering::View & View() {
+        return view;
+    }
+
+    const VFRendering::VectorField & Vf()
+    {
+        return *vf;
+    }
 
     VFRendering::Geometry geometry;
     std::vector<glm::vec3> directions;

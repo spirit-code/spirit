@@ -28,6 +28,9 @@ class ListSelect : public nanogui::Widget
                 this->mSelectedIndex = i;
                 listWindow->setVisible(false);
                 this->setVisible(true);
+
+                if(mCallback)
+                    mCallback(i);
             } 
         );
 
@@ -120,6 +123,8 @@ class ListSelect : public nanogui::Widget
         Widget::performLayout(ctx);
     }
 
+    void setCallback(const std::function<void(int)> &callback) { mCallback = callback; }
+
     /// Set the currently active font (2 are available by default: 'sans' and 'sans-bold')
     void setFont(const std::string &font) { mFont = font; }
     /// Get the currently active font
@@ -135,8 +140,9 @@ class ListSelect : public nanogui::Widget
     ListWindow * listWindow;
     bool enter_list_window;
     std::string mFont = "sans";
-
     int size_x = -1;
+    std::function<void(int)> mCallback;
+
 };
 
 #endif
