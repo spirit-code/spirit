@@ -111,12 +111,12 @@ def start(p_state, method_type, solver_type=None, n_iterations=-1, n_iterations_
             single_shot=False, idx_image=-1, idx_chain=-1):
     """Start any kind of iterative calculation method.
 
-    - method_type: one of the integers defined above
-    - solver_type: only used for LLG, GNEB and MMF methods (default: None)
-    - n_iterations: the maximum number of iterations that will be performed (default: take from parameters)
-    - n_iterations_log: the number of iterations after which to log the status and write output (default: take from parameters)
-    - single_shot: if set to `True`, iterations have to be triggered individually
-    - idx_image: the image on which to run the calculation (default: active image). Not used for GNEB
+    - `method_type`: one of the integers defined above
+    - `solver_type`: only used for LLG, GNEB and MMF methods (default: None)
+    - `n_iterations`: the maximum number of iterations that will be performed (default: take from parameters)
+    - `n_iterations_log`: the number of iterations after which to log the status and write output (default: take from parameters)
+    - `single_shot`: if set to `True`, iterations have to be triggered individually
+    - `idx_image`: the image on which to run the calculation (default: active image). Not used for GNEB
     """
 
     if method_type == METHOD_MC:

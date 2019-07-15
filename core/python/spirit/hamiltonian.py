@@ -99,10 +99,10 @@ _Set_DDI.restype     = None
 def set_ddi(p_state, ddi_method, n_periodic_images=[4,4,4], radius=0.0, idx_image=-1, idx_chain=-1):
     """Set the dipolar interaction calculation method.
 
-    - ddi_method -- one of the integers defined above
-    - n_periodic_images -- the number of periodical images in the three translation directions, taken into account
-      when boundaries in the corresponding direction are periodical
-    - radius -- the cutoff radius for the direct summation method
+    - `ddi_method`: one of the integers defined above
+    - `n_periodic_images`: the number of periodical images in the three translation directions,
+      taken into account when boundaries in the corresponding direction are periodical
+    - `radius`: the cutoff radius for the direct summation method
     """
     vec3 = ctypes.c_int * 3
     _Set_DDI(ctypes.c_void_p(p_state), ctypes.c_int(ddi_method) , vec3(*n_periodic_images), ctypes.c_float(radius),
@@ -122,8 +122,8 @@ _Get_Boundary_Conditions.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_bo
                                      ctypes.c_int, ctypes.c_int]
 _Get_Boundary_Conditions.restype  = None
 def get_boundary_conditions(p_state, idx_image=-1, idx_chain=-1):
-    """Returns an array of shape (3) containing the boundary conditions in the
-    three translation directions [a, b, c] of the lattice.
+    """Returns an array of `shape(3)` containing the boundary conditions in the
+    three translation directions `[a, b, c]` of the lattice.
     """
     boundaries = (3*ctypes.c_bool)()
     _Get_Boundary_Conditions(ctypes.c_void_p(p_state), boundaries,
@@ -135,7 +135,7 @@ _Get_Field.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float),
                        ctypes.POINTER(ctypes.c_float), ctypes.c_int, ctypes.c_int]
 _Get_Field.restype  = None
 def get_field(p_state, idx_image=-1, idx_chain=-1):
-    """Returns the magnitude and an array of shape (3) containing the direction of
+    """Returns the magnitude and an array of `shape(3)` containing the direction of
     the external magnetic field.
     """
     magnitude = (1*ctypes.c_float)()

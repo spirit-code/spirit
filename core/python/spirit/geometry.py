@@ -20,14 +20,31 @@ import numpy as np
 
 ### Bravais lattice types
 BRAVAIS_LATTICE_IRREGULAR   = 0
+"""Irregular"""
+
 BRAVAIS_LATTICE_RECTILINEAR = 1
+"""Rectilinear"""
+
 BRAVAIS_LATTICE_SC          = 2
+"""Simple cubic"""
+
 BRAVAIS_LATTICE_HEX2D       = 3
+"""Hexagonal (60deg)"""
+
 BRAVAIS_LATTICE_HEX2D_60    = 4
+"""Hexagonal (60deg)"""
+
 BRAVAIS_LATTICE_HEX2D_120   = 5
+"""Hexagonal (120deg)"""
+
 BRAVAIS_LATTICE_HCP         = 6
+"""Hexagonal close packed"""
+
 BRAVAIS_LATTICE_BCC         = 7
+"""Body centered cubic"""
+
 BRAVAIS_LATTICE_FCC         = 8
+"""Face centered cubic"""
 
 ### ---------------------------------- Set ----------------------------------
 
@@ -35,15 +52,9 @@ _Set_Bravais_Lattice_Type          = _spirit.Geometry_Set_Bravais_Lattice_Type
 _Set_Bravais_Lattice_Type.argtypes = [ctypes.c_void_p, ctypes.c_int]
 _Set_Bravais_Lattice_Type.restype  = None
 def set_bravais_lattice_type(p_state, lattice_type, idx_image=-1, idx_chain=-1):
-    """Set the bravais vectors to a pre-defined lattice type:
-
-    - sc:       simple cubic
-    - bcc:      body centered cubic
-    - fcc:      face centered cubic
-    - hex2d:    hexagonal (120deg)
-    - hed2d120: hexagonal (120deg)
-    - hex2d60:  hexagonal (60deg)
-    """
+    """Set the bravais vectors to one of the pre-defined lattice types.
+    
+    Note: `Irregular`, `Rectilinear` and `HCP` cannot be used."""
     _Set_Bravais_Lattice_Type(ctypes.c_void_p(p_state), ctypes.c_int(lattice_type))
 
 _Set_N_Cells          = _spirit.Geometry_Set_N_Cells
@@ -97,7 +108,7 @@ _Get_Bounds.restype  = None
 def get_bounds(p_state, idx_image=-1, idx_chain=-1):
     """Get the bounds of the system in global coordinates.
 
-    Returns two arrays of shape (3) containing minimum and maximum bounds respectively.
+    Returns two arrays of `shape(3)` containing minimum and maximum bounds respectively.
     """
     _min = (3*ctypes.c_float)()
     _max = (3*ctypes.c_float)()
@@ -111,7 +122,7 @@ _Get_Center.restype  = None
 def get_center(p_state, idx_image=-1, idx_chain=-1):
     """Get the center of the system in global coordinates.
 
-    Returns an array of shape (3).
+    Returns an array of `shape(3)`.
     """
     _center = (3*ctypes.c_float)()
     _Get_Center(ctypes.c_void_p(p_state), _center, ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
@@ -133,7 +144,7 @@ _Get_Bravais_Vectors.restype  = None
 def get_bravais_vectors(p_state, idx_image=-1, idx_chain=-1):
     """Get the Bravais vectors.
 
-    Returns three arrays of shape (3).
+    Returns three arrays of `shape(3)`.
     """
     _a = (3*ctypes.c_float)()
     _b = (3*ctypes.c_float)()
@@ -148,7 +159,7 @@ _Get_N_Cells.restype  = None
 def get_n_cells(p_state, idx_image=-1, idx_chain=-1):
     """Get the number of basis cells along the three bravais vectors.
 
-    Returns an array of shape (3).
+    Returns an array of `shape(3)`.
     """
     n_cells = (3*ctypes.c_int)()
     _Get_N_Cells(ctypes.c_void_p(p_state), n_cells, ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
@@ -167,7 +178,7 @@ _Get_Positions            = _spirit.Geometry_Get_Positions
 _Get_Positions.argtypes   = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
 _Get_Positions.restype    = ctypes.POINTER(scalar)
 def get_positions(p_state, idx_image=-1, idx_chain=-1):
-    """Returns a `numpy.array_view` of shape (NOS, 3) with the components of each spins position.
+    """Returns a `numpy.array_view` of `shape(NOS, 3)` with the components of each spins position.
 
     Changing the contents of this array_view will have direct effect on the state and should not be done.
     """
@@ -193,7 +204,7 @@ _Get_Atom_Types            = _spirit.Geometry_Get_Atom_Types
 _Get_Atom_Types.argtypes   = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
 _Get_Atom_Types.restype    = ctypes.POINTER(ctypes.c_int)
 def get_atom_types(p_state, idx_image=-1, idx_chain=-1):
-    """Get the types of all atoms as a `numpy.array_view` of shape (NOS).
+    """Get the types of all atoms as a `numpy.array_view` of `shape(NOS)`.
 
     If e.g. disorder is activated, this allows to view and manipulate the types of individual atoms.
     """

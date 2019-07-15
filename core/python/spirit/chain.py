@@ -179,7 +179,7 @@ _Get_Rx          = _spirit.Chain_Get_Rx
 _Get_Rx.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int]
 _Get_Rx.restype  = None
 def get_reaction_coordinate(p_state, idx_chain=-1):
-    """Returns an array of shape (NOI) containing the reaction coordinates of the images."""
+    """Returns an array of `shape(NOI)` containing the reaction coordinates of the images."""
     noi = get_noi(p_state, idx_chain)
     Rx = (noi*ctypes.c_float)()
     _Get_Rx(ctypes.c_void_p(p_state), Rx, ctypes.c_int(idx_chain))
@@ -206,7 +206,7 @@ _Get_Energy          = _spirit.Chain_Get_Energy
 _Get_Energy.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int]
 _Get_Energy.restype  = None
 def get_energy(p_state, idx_chain=-1):
-    """Returns an array of shape (NOI) containing the energies of the images."""
+    """Returns an array of `shape(NOI)` containing the energies of the images."""
     noi = get_noi(p_state, idx_chain)
     Energy = (noi*ctypes.c_float)()
     _Get_Energy(ctypes.c_void_p(p_state), Energy, ctypes.c_int(idx_chain))
