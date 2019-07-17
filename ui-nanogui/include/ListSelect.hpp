@@ -53,7 +53,7 @@ class ListSelect : public nanogui::Widget
         NVGpaint bg = nvgLinearGradient(ctx, mPos.x(), mPos.y(), mPos.x(),
                                     mPos.y() + mSize.y(), gradTop, gradBot);
 
-        nvgStrokeColor(ctx, mTheme->mTextColor);
+        nvgStrokeColor(ctx, mTheme->mBorderDark);
         nvgStroke(ctx);
         nvgFillPaint(ctx, bg);
         nvgFill(ctx);
@@ -69,7 +69,7 @@ class ListSelect : public nanogui::Widget
             nvgTextBox(ctx, mPos.x(), mPos.y(), mFixedSize.x(), this->items[this->mSelectedIndex].c_str(), nullptr);
         } else {
             nvgTextAlign(ctx, NVG_ALIGN_CENTER | NVG_ALIGN_TOP);
-            nvgTextBox(ctx, mPos.x(), mPos.y(), size_x, this->items[this->mSelectedIndex].c_str(), nullptr);
+            nvgTextBox(ctx, mPos.x(), mPos.y(), mSize.x(), this->items[this->mSelectedIndex].c_str(), nullptr);
         }
     }
 
@@ -97,6 +97,7 @@ class ListSelect : public nanogui::Widget
                 return true;
             }
         }
+        return false;
     }
 
     void showListWindow()
@@ -121,6 +122,7 @@ class ListSelect : public nanogui::Widget
     void performLayout(NVGcontext * ctx) override
     {
         Widget::performLayout(ctx);
+        this->listWindow->setWidth(this->size()[0]);
     }
 
     void setCallback(const std::function<void(int)> &callback) { mCallback = callback; }
