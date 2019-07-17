@@ -102,6 +102,25 @@ class RendererBaseWidget : public nanogui::Window
         Widget::draw(ctx);
     }
 
+    // We also add some space to the preferred size in x-direction
+    virtual Eigen::Vector2i preferredSize(NVGcontext *ctx) const override
+    {
+        if (mButtonPanel)
+            mButtonPanel->setVisible(false);
+        Eigen::Vector2i result = Widget::preferredSize(ctx);
+        if (mButtonPanel)
+            mButtonPanel->setVisible(true);
+
+        nvgFontSize(ctx, 18.0f);
+        nvgFontFace(ctx, "sans-bold");
+        float bounds[4];
+        nvgTextBounds(ctx, 0, 0, mTitle.c_str(), nullptr, bounds);
+
+        return result.cwiseMax(Eigen::Vector2i(
+            bounds[2]-bounds[0] + 80, bounds[3]-bounds[1]
+        ));
+    }
+
     // This window should not be draggable
     virtual bool mouseDragEvent(const Eigen::Vector2i& /* p */, const Eigen::Vector2i& /* rel */, int /* button */, int /* modifiers*/) override
     { return true; }

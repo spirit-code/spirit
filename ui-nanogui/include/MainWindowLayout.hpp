@@ -39,6 +39,11 @@ class MainWindowLayout : public nanogui::AdvancedGridLayout
                 auto it = mAnchor.find(w);
                 if (it == mAnchor.end())
                 {
+                    Vector2i pref = w->preferredSize(ctx), fix = w->fixedSize();
+                    w->setSize(Vector2i(
+                        fix[0] ? fix[0] : pref[0],
+                        fix[1] ? fix[1] : pref[1]
+                    ));
                     w->performLayout(ctx);
                     continue;
                 }

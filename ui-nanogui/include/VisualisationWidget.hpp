@@ -27,7 +27,6 @@ class VisualisationWidget : public nanogui::Window
         add_renderer_btn->setIconPosition(nanogui::Button::IconPosition::Right);
 
         add_renderer_btn->popup()->setLayout(new nanogui::GroupLayout(10));
-        add_renderer_btn->popup()->setSize({150,130});
 
         auto btn = new nanogui::Button(add_renderer_btn->popup(), "Arrow");
         btn->setCallback(

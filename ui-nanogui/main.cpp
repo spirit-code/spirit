@@ -108,11 +108,13 @@ public:
         this->energy_graph = new EnergyGraph(w, state);
         this->energy_graph->setSize({300,200});
         this->energy_graph->updateData();
-        grid->setAnchor(w, Anchor(0,0,1,1, Alignment::Middle, Alignment::Middle));
+        // grid->setAnchor(w, Anchor(0,0,1,1, Alignment::Middle, Alignment::Middle));
 
         auto vis = new VisualisationWidget(this, gl_canvas);
-        vis->setFixedWidth(200);
-        grid->setAnchor(vis, Anchor(0,0,1,1, Alignment::Middle, Alignment::Middle));
+        vis->setPosition({0,0});
+        vis->setSize({200,300});
+
+        // grid->setAnchor(vis, Anchor(0,0,1,1, Alignment::Middle, Alignment::Middle));
         vis->addRenderer(new ArrowRendererWidget(vis, gl_canvas));
 
         this->configurations = new ConfigurationsWindow(this, state);
@@ -229,6 +231,7 @@ public:
 
     void performLayout()
     {
+        std::cout << "mwindow layout \n";
         Screen::performLayout();
         // A bit of a hack, we need to do this since Widget::setSize is non-virtual, 
         // and the layout container therefore does not adjust the framebuffer size properly
