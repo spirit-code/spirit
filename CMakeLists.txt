@@ -213,6 +213,7 @@ endif( )
 add_subdirectory( core )
 ### Web UI
 if( SPIRIT_BUILD_FOR_JS )
+    add_subdirectory( VFRendering )
     add_subdirectory( ui-web )
 ### CXX UI
 elseif( SPIRIT_BUILD_FOR_CXX )

@@ -1,11 +1,11 @@
 #ifndef SPHERE_BACKGROUND_FRAG_GLSL_HXX
 #define SPHERE_BACKGROUND_FRAG_GLSL_HXX
 
-static const std::string SPHERE_BACKGROUND_FRAG_GLSL = R"LITERAL(
-#version 330
+#include "shader_header.hxx"
+
+static const std::string SPHERE_BACKGROUND_FRAG_GLSL = FRAG_SHADER_HEADER + R"LITERAL(
 
 in vec3 vfPosition;
-out vec4 fo_FragColor;
 
 void main(void) {
   float l = length(vfPosition);

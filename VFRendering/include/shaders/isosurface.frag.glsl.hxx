@@ -1,13 +1,13 @@
 #ifndef ISOSURFACE_FRAG_GLSL_HXX
 #define ISOSURFACE_FRAG_GLSL_HXX
 
-static const std::string ISOSURFACE_FRAG_GLSL = R"LITERAL(
-#version 330
+#include "shader_header.hxx"
+
+static const std::string ISOSURFACE_FRAG_GLSL = FRAG_SHADER_HEADER + R"LITERAL(
 
 in vec3 vfPosition;
 in vec3 vfDirection;
 in vec3 vfNormal;
-out vec4 fo_FragColor;
 
 vec3 colormap(vec3 direction);
 bool is_visible(vec3 position, vec3 direction);

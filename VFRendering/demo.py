@@ -21,7 +21,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import pyqtSlot, QTimer
 from PyQt5.QtCore import Qt
 
-import build.pyVFRendering as vfr
+import pyVFRendering as vfr
 
 
 class MainWindow(QMainWindow):
@@ -85,7 +85,7 @@ class glWidget(QOpenGLWidget):
         renderer_cs.setNormalize(True)
         # Add renderers to view
         self.renderers = [ (renderer_arrows, [0.0, 0.0, 1.0, 1.0]), (renderer_boundingbox, [0.0, 0.0, 1.0, 1.0]), (renderer_cs, [0.0, 0.0, 0.2, 0.2]) ]
-        self.view.renderers(self.renderers)
+        self.view.renderers(self.renderers, True)
 
         # Options
         self.options = vfr.Options()

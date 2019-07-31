@@ -1,7 +1,12 @@
 #include "VFRendering/Utilities.hxx"
 
 #include <iostream>
+#ifndef __EMSCRIPTEN__
 #include <glad/glad.h>
+#else
+#include <GLES3/gl3.h>
+#endif
+
 #include <glm/gtc/matrix_transform.hpp>
 
 #include "VFRendering/View.hxx"
@@ -37,6 +42,9 @@ static GLuint createShader(GLenum shader_type, const std::string& shader_source)
             message += info_log;
             delete[] info_log;
         }
+#ifdef __EMSCRIPTEN__
+        std::cerr << message << std::endl;
+#endif
         throw OpenGLException(message);
     }
     return shader;
@@ -54,7 +62,9 @@ unsigned int createProgram(const std::string& vertex_shader_source, const std::s
     for (std::vector<std::string>::size_type i = 0; i < attributes.size(); i++) {
         glBindAttribLocation(program, i, attributes[i].c_str());
     }
+#ifndef EMSCRIPTEN
     glBindFragDataLocation(program, 0, "fo_FragColor");
+#endif
     glLinkProgram(program);
     glDeleteShader(vertex_shader);
     glDeleteShader(fragment_shader);
@@ -77,6 +87,9 @@ unsigned int createProgram(const std::string& vertex_shader_source, const std::s
             message += info_log;
             delete[] info_log;
         }
+#ifdef __EMSCRIPTEN__
+        std::cerr << message << std::endl;
+#endif
         throw OpenGLException(message);
     }
     return program;

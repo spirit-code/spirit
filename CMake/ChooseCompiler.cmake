@@ -2,12 +2,12 @@ MESSAGE( STATUS ">> ------------------------------------------------------------
 MESSAGE( STATUS ">> --------------------- ChooseCompiler.cmake ------------------------- <<" )
 ######## UI Web - this means we need emcc ###########################
 if (SPIRIT_BUILD_FOR_JS)
-    ###
+    ### 
     MESSAGE( STATUS ">> Choosing compiler:             emcc" )
     ### Set the path to emscripten
-    # SET(EMSCRIPTEN_ROOT_PATH "/usr/local/emsdk/emscripten/1.38.29/")
+    SET(EMSCRIPTEN_ROOT_PATH "/usr/local/emsdk/emscripten/1.38.29/")
     ### Use the Emscripten toolchain file
-    # SET(CMAKE_TOOLCHAIN_FILE /usr/local/emsdk/emscripten/1.38.13/cmake/Modules/Platform/Emscripten)
+    SET(CMAKE_TOOLCHAIN_FILE Emscripten)
 ######################################################################
 
 
