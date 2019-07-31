@@ -488,9 +488,9 @@ VFRendering.prototype._createVFRenderingBindings = function(Module)
         Module.set_boundingbox_colour(colour_ptr);
     };
 
-    Module.set_boundingbox = Module.cwrap('set_boundingbox', null, ['number', 'number']);
-    VFRendering.prototype.set_boundingbox = function(show) {
-        Module.set_boundingbox(this._state, show);
+    Module.set_boundingbox = Module.cwrap('set_boundingbox', null, ['number', 'number', 'number']);
+    VFRendering.prototype.set_boundingbox = function(show, line_width) {
+        Module.set_boundingbox(this._state, show, line_width);
     };
 
     Module.set_dots = Module.cwrap('set_dots', null, ['number', 'number']);

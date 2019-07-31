@@ -29,8 +29,6 @@ std::vector<glm::vec3> directions;
 std::shared_ptr<VFRendering::Geometry> geometry;
 std::shared_ptr<VFRendering::VectorField> vf;
 
-glm::ivec3 n_cells{21, 21, 21};
-
 // Which to show
 static bool show_bounding_box       = true;
 static bool show_dots               = true;
@@ -165,11 +163,11 @@ extern "C" void set_camera(float position[3], float center[3], float up[3])
 
 extern "C" void align_camera(float direction[3], float up[3])
 {
-    VFRendering::Options options;
-    glm::vec3 d = options.get<VFRendering::View::Option::CENTER_POSITION>() - options.get<VFRendering::View::Option::CAMERA_POSITION>();
+    glm::vec3 d = view.getOption<VFRendering::View::Option::CENTER_POSITION>() - view.getOption<VFRendering::View::Option::CAMERA_POSITION>();
     float dist = glm::length(d);
     glm::vec3 dir{direction[0], direction[1], direction[2]};
     glm::normalize(dir);
+    VFRendering::Options options;
     options.set<VFRendering::View::Option::CAMERA_POSITION>((geometry->min() + geometry->max()) * 0.5f - dist*dir);
     // options.set<VFRendering::View::Option::CENTER_POSITION>({center[0], center[1], center[2]});
     options.set<VFRendering::View::Option::CENTER_POSITION>((geometry->min() + geometry->max()) * 0.5f);
@@ -209,7 +207,7 @@ extern "C" void set_miniview(State * state, bool show, int position)
     update_renderers(state);
 }
 
-extern "C" void set_boundingbox(State * state, bool show)
+extern "C" void set_boundingbox(State * state, bool show, float line_width)
 {
     show_bounding_box = show;
 
@@ -219,22 +217,23 @@ extern "C" void set_boundingbox(State * state, bool show)
     float indi_length = std::max(0.1f, glm::length(geometry->max()-geometry->min())*0.1f);
     glm::vec3 indis{ indi_length*periodical[0], indi_length*periodical[1], indi_length*periodical[2] };
     int   indi_dashes = 5;
-    float indi_dashes_per_length = (float)indi_dashes / indi_length;
+    float indi_dashes_per_length = 0.9f*(float)indi_dashes / indi_length;
 
-    // std::cerr << "------- boundingbox\n";
-    // std::cerr << "geo min " << geometry->min().x << " " << geometry->min().y << " " << geometry->min().z << "\n";
-    // std::cerr << "geo max " << geometry->max().x << " " << geometry->max().y << " " << geometry->max().z << "\n";
-    // std::cerr << "per: " << periodical[0] << " " << periodical[1] << " " << periodical[2] << std::endl;
-    // std::cerr << "len: " << indi_length << std::endl;
-    // std::cerr << "per: " << indi_dashes_per_length << std::endl;
-    // std::cerr << "ind: " << indis[0] << " " << indis[1] << " " << indis[2] << std::endl;
-    // std::cerr << "-------\n";
+    int n_cells[3];
+    Geometry_Get_N_Cells(state, n_cells);
+    auto cell_size = glm::vec3{0,0,0};
+    for( int dim=0; dim<3; ++dim)
+    {
+        if( n_cells[dim] > 1 )
+            cell_size[dim] = 1;
+    }
 
     glm::vec3 c = bounding_box_renderer_ptr->getOption<VFRendering::BoundingBoxRenderer::Option::COLOR>();
     bounding_box_renderer_ptr = std::make_shared<VFRendering::BoundingBoxRenderer>(
         VFRendering::BoundingBoxRenderer::forCuboid(
-            view, (geometry->min()+geometry->max())*0.5f, geometry->max()-geometry->min(), indis, indi_dashes_per_length));
+            view, (geometry->min()+geometry->max())*0.5f, geometry->max()-geometry->min() + cell_size, indis, indi_dashes_per_length));
     bounding_box_renderer_ptr->setOption<VFRendering::BoundingBoxRenderer::Option::COLOR>(c);
+    bounding_box_renderer_ptr->setOption<VFRendering::BoundingBoxRenderer::Option::LINE_WIDTH>(line_width);
     update_renderers(state);
 }
 
@@ -450,7 +449,8 @@ extern "C" void update_geometry(State * state)
     }
     vf->updateGeometry(*geometry);
 
-    set_boundingbox(state, show_bounding_box);
+    auto line_width = bounding_box_renderer_ptr->getOption<VFRendering::BoundingBoxRenderer::Option::LINE_WIDTH>();
+    set_boundingbox(state, show_bounding_box, line_width);
 }
 
 extern "C" void update_directions(State * state)

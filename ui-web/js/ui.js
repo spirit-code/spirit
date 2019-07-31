@@ -395,6 +395,7 @@ $(document).ready(function()
             var show_miniview           = $('#input-show-miniview').is(':checked');
             var show_coordinatesystem   = $('#input-show-coordinatesystem').is(':checked');
             var show_boundingbox        = $('#input-show-boundingbox').is(':checked');
+            var boundingbox_line_width  = 0;
             var show_dots               = $('#input-show-dots').is(':checked');
             var show_arrows             = $('#input-show-arrows').is(':checked');
             var show_spheres            = $('#input-show-spheres').is(':checked');
@@ -419,7 +420,7 @@ $(document).ready(function()
 
             spirit.vfr.set_miniview(show_miniview, miniViewPosition);
             spirit.vfr.set_coordinatesystem(show_coordinatesystem, coordinateSystemPosition);
-            spirit.vfr.set_boundingbox(show_boundingbox);
+            spirit.vfr.set_boundingbox(show_boundingbox, boundingbox_line_width);
             spirit.vfr.set_dots(show_dots);
             spirit.vfr.set_arrows(show_arrows);
             spirit.vfr.set_spheres(show_spheres);
@@ -485,7 +486,8 @@ $(document).ready(function()
             }
             spirit.core.updateHamiltonianBoundaryConditions(periodical_a, periodical_b, periodical_c);
             var show_boundingbox = $('#input-show-boundingbox').is(':checked');
-            spirit.vfr.set_boundingbox(show_boundingbox);
+            var boundingbox_line_width  = 0;
+            spirit.vfr.set_boundingbox(show_boundingbox, boundingbox_line_width);
             spirit.vfr.draw();
         }
         $('#input-periodical-a').on('change', updateHamiltonianBoundaryConditions);
@@ -856,6 +858,9 @@ $(document).ready(function()
         // console.log(example.localeCompare("racetrack"));
         // console.log(example.localeCompare("hopfion"));
 
+        // Default camera
+        spirit.vfr.set_camera([50, 50, 100], [50, 50, 0], [0, 1, 0]);
+
         if( example.localeCompare("racetrack") == 0 )
         {
             // Geometry
@@ -870,19 +875,22 @@ $(document).ready(function()
             spirit.core.createSkyrmion(1, -90, 5, [15, 0, 0], false, false, false);
 
             // Hamiltonian
-            // spirit.core.updateHamiltonianBoundaryConditions(true, false, false);
             document.getElementById('input-periodical-a').checked = true;
             document.getElementById('input-periodical-b').checked = false;
             document.getElementById('input-periodical-c').checked = false;
 
             // Parameters
-            // spirit.core.updateHamiltonianSpinTorque(0.5, 1, 0, 0);
             document.getElementById('input-spintorque').checked = true;
             document.getElementById('input-spintorque-magnitude').value = 0.5;
             document.getElementById('input-spintorque-directionx').value = -0.5;
             document.getElementById('input-spintorque-directiony').value = 1;
             document.getElementById('input-spintorque-directionz').value = 0;
 
+            // Visualisation
+            document.getElementById('input-show-arrows').checked = false;
+            document.getElementById('input-show-surface').checked = true;
+            document.getElementById('select-colormap').value = "bluewhitered";
+            spirit.vfr.set_camera([60, 15, 80], [60, 15, 0], [0, 1, 0]);
         }
         else if( example.localeCompare("hopfion") == 0 )
         {
@@ -924,11 +932,13 @@ $(document).ready(function()
             // Visualisation
             document.getElementById('input-show-arrows').checked = false;
             document.getElementById('input-show-isosurface').checked = true;
+            spirit.vfr.set_camera([-25, -25, 50], [15, 15, 15], [0, 0, 1]);
         }
         else
         {
             console.log("unknown example: ", example)
         }
+
         // Grid
         updateGridSize();
 
@@ -949,6 +959,7 @@ $(document).ready(function()
 
         // Visualisation
         updateRenderers();
+        updateColormap();
     }
     ).then(function()
     {
