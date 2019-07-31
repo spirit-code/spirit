@@ -79,7 +79,10 @@ void DotRenderer::optionsHaveChanged( const std::vector<int>& changed_options )
 }
 
 void DotRenderer::update( bool keep_geometry ) 
-{ 
+{
+    if (!m_is_initialized) {
+        return;
+    }
     glBindVertexArray( m_vao );
    
     // If geometry is changed copy the new data into position's VBO
