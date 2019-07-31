@@ -14,7 +14,6 @@ function VFRendering(Module, canvas, finishedCallback)
 
     this._createVFRenderingBindings(Module);
 
-    this._currentScale = 1;
     this.isTouchDevice = 'ontouchstart' in document.documentElement;
     this._options.useTouch = (VFRendering.defaultOptions.useTouch && this.isTouchDevice);
     if (this.isTouchDevice) {
@@ -24,8 +23,7 @@ function VFRendering(Module, canvas, finishedCallback)
         mc.add(new Hammer.Pan({ direction: Hammer.DIRECTION_ALL, threshold: 0, pointers: 1}));
         mc.on("pan", this._handlePan.bind(this));
         mc.add(new Hammer.Pinch({}));
-        mc.on("pinchin pinchout pinchmove pinchend", this._handlePinch.bind(this));
-        mc.on("pinchstart", this._handlePinchStart.bind(this));
+        mc.on("pinchstart pinchin pinchout pinchmove pinchend", this._handlePinch.bind(this));
     }
     this._mouseDown = false;
     this._lastMouseX = null;
@@ -40,22 +38,8 @@ function VFRendering(Module, canvas, finishedCallback)
 
 
 VFRendering.defaultOptions = {};
-VFRendering.defaultOptions.verticalFieldOfView = 45;
 VFRendering.defaultOptions.allowCameraMovement = true;
-// VFRendering.defaultOptions.colormapImplementation = VFRendering.colormapImplementations['red'];
-VFRendering.defaultOptions.cameraLocation = [50, 50, 100];
-VFRendering.defaultOptions.centerLocation = [50, 50, 0];
-VFRendering.defaultOptions.upVector = [0, 0, 1];
-VFRendering.defaultOptions.backgroundColor = [0.5, 0.5, 0.5];
-VFRendering.defaultOptions.zRange = [-1, 1];
-VFRendering.defaultOptions.boundingBox = null;
-VFRendering.defaultOptions.boundingBoxColor = [1, 1, 1];
 VFRendering.defaultOptions.useTouch = true;
-
-VFRendering.defaultOptions.pointSizeRange = [1.0, 1.0];
-VFRendering.defaultOptions.innerSphereRadius = 0.95;
-VFRendering.defaultOptions.useSphereFakePerspective = false;
-
 
 VFRendering.prototype.updateOptions = function(options)
 {
@@ -609,18 +593,11 @@ VFRendering.prototype._createVFRenderingBindings = function(Module)
     VFRendering.prototype._handlePinch = function(event) {
         if (!this._options.useTouch) return;
         if (event.scale > 1) {
-            Module._mouse_scroll(-event.scale);
+            Module._mouse_scroll(-0.3*event.scale);
         } else {
-            Module._mouse_scroll(1/event.scale);
+            Module._mouse_scroll(0.3/event.scale);
         }
         this.draw();
-    };
-
-    VFRendering.prototype._handlePinchStart = function(event) {
-        if (!this._options.useTouch) return;
-        var forwardVector = VFRendering._difference(this._options.centerLocation, this._options.cameraLocation);
-        var cameraDistance = VFRendering._length(forwardVector);
-        this._currentScale = cameraDistance;
     };
 
     VFRendering.prototype._handlePan = function(event) {

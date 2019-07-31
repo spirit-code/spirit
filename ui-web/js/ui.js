@@ -378,10 +378,6 @@ $(document).ready(function()
                 'gray': [1.0, 1.0, 1.0],
                 'black': [1.0, 1.0, 1.0]
             };
-            spirit.vfr.updateOptions({
-                backgroundColor: colors[backgroundColor],
-                boundingBoxColor: boundingBoxColors[backgroundColor]
-            });
             spirit.vfr.set_background(colors[backgroundColor]);
             spirit.vfr.set_boundingbox_colour(boundingBoxColors[backgroundColor]);
             spirit.vfr.draw();
@@ -447,9 +443,6 @@ $(document).ready(function()
         $("#input-zrange-filter").slider();
         function updateZRangeFilter() {
             var zRange = $("#input-zrange-filter").slider('getValue');
-            spirit.vfr.updateOptions({
-                zRange: zRange
-            });
             spirit.vfr.updateVisibility(zRange);
         }
         $('#input-zrange-filter').on('change', updateZRangeFilter);
@@ -458,9 +451,6 @@ $(document).ready(function()
         $("#input-spinspherewidget-pointsize").slider();
         function updateSpherePointSize() {
             var pointSizeRange = $("#input-spinspherewidget-pointsize").slider('getValue');
-            spirit.vfr.updateOptions({
-                pointSizeRange: pointSizeRange
-            });
             spirit.vfr.setVectorSphere(pointSizeRange);
         }
         $('#input-spinspherewidget-pointsize').on('change', updateSpherePointSize);
