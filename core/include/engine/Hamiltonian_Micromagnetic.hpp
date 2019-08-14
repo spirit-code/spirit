@@ -77,7 +77,7 @@ namespace Engine
         Matrix3 exchange_tensor;
         // DMI
         Matrix3 dmi_tensor;
-		neighbourfield neigh;
+		pairfield neigh;
 		field<Matrix3> spatial_gradient;
 		bool A_is_nondiagonal=false;
 

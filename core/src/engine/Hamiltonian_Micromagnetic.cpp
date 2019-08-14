@@ -74,7 +74,7 @@ namespace Engine
 
         // Update, which terms still contribute
 
-		neigh = neighbourfield(0);
+		neigh = pairfield(0);
 		Neighbour neigh_tmp;
 		neigh_tmp.i = 0;
 		neigh_tmp.j = 0;
@@ -359,7 +359,7 @@ namespace Engine
 
     void Hamiltonian_Micromagnetic::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
     {
-		scalar delta[3] = { 3e-10,3e-10,3e-10 };
+		scalar delta[3] = { 3e-11,3e-11,3e-10 };
 		scalar Ms = 1.4e6;
 		//nongradient implementation
 		/*
@@ -550,7 +550,7 @@ namespace Engine
     }
 
 	void Hamiltonian_Micromagnetic::Spatial_Gradient(const vectorfield & spins) {
-		scalar delta[3] = { 3e-10,3e-10,3e-10 };
+		scalar delta[3] = { 3e-11,3e-11,3e-10 };
 		/*
 		dn1/dr1 dn1/dr2 dn1/dr3
 		dn2/dr1 dn2/dr2 dn2/dr3
