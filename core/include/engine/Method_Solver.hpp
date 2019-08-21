@@ -36,6 +36,7 @@ namespace Engine
         Depondt = Solver_Depondt,
         RungeKutta4 = Solver_RungeKutta4,
         NCG = Solver_NCG,
+        NCG_OSO = Solver_NCG_OSO,
         // LBFGS = Solver_LBFGS,
         VP = Solver_VP
     };
@@ -157,6 +158,20 @@ namespace Engine
         std::vector<vectorfield> forces_displaced;
         std::vector<vectorfield> axes;
         std::vector<scalarfield> angles;
+
+        // OSO ncg
+        std::vector<vectorfield> a_coords;
+        std::vector<vectorfield> a_coords_displaced;
+        std::vector<vectorfield> a_directions;
+        std::vector<vectorfield> a_residuals;
+        std::vector<vectorfield> a_residuals_last;
+        std::vector<vectorfield> a_residuals_displaced;
+        std::vector<std::shared_ptr<vectorfield>> reference_configurations;
+        scalarfield E0;
+        scalarfield g0;
+        scalarfield a_direction_norm;
+        scalarfield step_size;
+        std::vector<bool> finish;
 
         // buffer variables for checking convergence for solver and Newton-Raphson
         // std::vector<scalarfield> r_dot_d, dda2;
@@ -338,6 +353,7 @@ namespace Engine
     #include <engine/Solver_RK4.hpp>
     #include <engine/Solver_VP.hpp>
     #include <engine/Solver_NCG.hpp>
+    #include <engine/Solver_NCG_OSO.hpp>
 }
 
 #endif

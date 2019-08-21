@@ -479,5 +479,6 @@ namespace Engine
     template class Method_LLG<Solver::Depondt>;
     template class Method_LLG<Solver::RungeKutta4>;
     template class Method_LLG<Solver::NCG>;
+    template class Method_LLG<Solver::NCG_OSO>;
     template class Method_LLG<Solver::VP>;
 }

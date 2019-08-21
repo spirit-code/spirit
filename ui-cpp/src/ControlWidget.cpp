@@ -172,6 +172,8 @@ void ControlWidget::play_pause()
         solver = Solver_RungeKutta4;
     else if( s_solver == "NCG" )
         solver = Solver_NCG;
+    else if( s_solver == "NCG_OSO" )
+        solver = Solver_NCG_OSO;
 
     if( Simulation_Running_On_Image(this->state.get()) ||
         Simulation_Running_On_Chain(this->state.get()) )

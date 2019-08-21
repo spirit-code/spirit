@@ -156,6 +156,145 @@ namespace Solver_Kernels
         }
     }
 
+    // Calculates the residuals for a certain spin configuration
+    void ncg_OSO_residual( vectorfield & a_residuals, vectorfield & a_residuals_last, const vectorfield & spins, const vectorfield & a_coords,
+                       const vectorfield & forces, bool approx)
+    {
+        using cpx = std::complex<scalar>;
+
+        if(approx) // Use approximate gradient
+        {
+            #pragma omp parallel for
+            for( int i =0; i<spins.size(); i++)
+            {
+                a_residuals_last[i] = a_residuals[i];
+                Vector3 temp = -spins[i].cross(forces[i]);
+                a_residuals[i][0] = temp[2];
+                a_residuals[i][1] = -temp[1];
+                a_residuals[i][2] = temp[0];
+            }
+        } else { // Use exact gradient
+            //todo
+            // const scalar & a = a_coords[i][0], b = a_coords[i][1], c = a_coords[i][2];
+            // scalar x = sqrt(a*a + b*b + c*c);
+            // cpx lambda2 = cpx(0,-x);
+            // cpx lambda3 = cpx(0,x);
+            // Eigen::Matrix<3,3> V;
+        }
+    }
+
+    // Transforms the a coordinates to spins
+    void ncg_OSO_a_to_spins(vectorfield & spins, const vectorfield & a_coords, const vectorfield & reference_configuration)
+    {
+        using cpx = std::complex<scalar>;
+        #pragma omp parallel for
+        for( int i =0; i<spins.size(); i++ )
+        {
+            const scalar & a = a_coords[i][0], b = a_coords[i][1], c = a_coords[i][2];
+            scalar x    = sqrt(a*a + b*b + c*c);
+            scalar pref = 1/( x * sqrt(2 * (a*a + c*c)) );
+            cpx lambda2 = cpx(0,-x);
+            cpx lambda3 = cpx(0,x);
+            Vector3c L1 = {1/x * c, 1/x * -b, 1/x * a};
+            Vector3c L2 = {cpx(b*c, a*x), a*a + c*c, cpx(a*b, -c*x) };
+            Vector3c L  = {1, exp(lambda2), exp(lambda3)};
+            Eigen::Matrix<cpx, 3, 3> V;
+            V << L1, pref*L2, (pref*L2).conjugate();
+            spins[i] = (V * L.asDiagonal() * V.adjoint() * reference_configuration[i]).real();
+        }
+    }
+
+    void ncg_OSO_update_reference_spins(vectorfield & reference_spins, vectorfield & a_coords, const vectorfield & spins)
+    {
+        #pragma omp parallel for
+        for( int i=0; i<spins.size(); ++i )
+        {
+            a_coords[i] = {0,0,0};
+            reference_spins[i] = spins[i];
+        }
+    }
+
+    void ncg_OSO_displace( std::vector<std::shared_ptr<vectorfield>> & configurations_displaced, std::vector<std::shared_ptr<vectorfield>> & reference_configurations, std::vector<vectorfield> & a_coords,
+                           std::vector<vectorfield> & a_coords_displaced, std::vector<vectorfield> & a_directions, std::vector<bool> finish, scalarfield step_size )
+    {
+        int noi = configurations_displaced.size();
+        int nos = configurations_displaced[0]->size();
+
+        for(int img=0; img<noi; ++img)
+        {
+            if(finish[img])
+                continue;
+
+            // First calculate displaced coordinates
+            for(int i=0; i < nos; i++)
+            {
+                a_coords_displaced[img][i] = a_coords[img][i] + step_size[img] * a_directions[img][i];
+            }
+            // Get displaced spin directions
+            Solver_Kernels::ncg_OSO_a_to_spins(*configurations_displaced[img], a_coords_displaced[img], *reference_configurations[img]);
+        }
+    }
+
+    void ncg_OSO_line_search( std::vector<std::shared_ptr<vectorfield>> & configurations_displaced, std::vector<vectorfield> & a_coords_displaced, std::vector<vectorfield> & a_directions,
+                              std::vector<vectorfield> & forces_displaced, std::vector<vectorfield> & a_residuals_displaced, std::vector<std::shared_ptr<Data::Spin_System>> systems, std::vector<bool> & finish,
+                              scalarfield & E0, scalarfield & g0, scalarfield & a_direction_norm, scalarfield & step_size )
+    {
+        int noi = configurations_displaced.size();
+        int nos = configurations_displaced[0]->size();
+
+        for( int img=0; img<noi; ++img )
+        {
+            fmt::print("line search\n");
+
+            if(finish[img])
+                continue;
+
+            // Calculate displaced energy
+            scalar Er = systems[img]->hamiltonian->Energy(*configurations_displaced[img]);
+
+            if( std::abs(Er - E0[img]) < 1e-16 )
+            {
+                fmt::print("Energy too close\n");
+                step_size[img] = 0;
+                finish[img] = true;
+                continue;
+            }
+
+            // Calculate displaced residual
+            Solver_Kernels::ncg_OSO_residual(a_residuals_displaced[img], a_residuals_displaced[img], *configurations_displaced[img], a_coords_displaced[img], forces_displaced[img]);
+
+            // Calculate displaced directional derivative
+            scalar gr = 0;
+            #pragma omp parallel for reduction(+:gr)
+            for( int i=0; i<nos; ++i )
+            {
+                gr -= a_residuals_displaced[img][i].dot(a_directions[img][i])/a_direction_norm[img];
+            }
+
+            fmt::print("E0   = {}\n", E0[img]);
+            fmt::print("Er   = {}\n", Er);
+            fmt::print("diff = {}\n", Er-E0[img]);
+            fmt::print("g0   = {}\n", g0[img]);
+            fmt::print("gr   = {}\n", gr);
+
+            // If wolfe conditions are fulfilled terminate, else suggest new step size
+            if( ncg_OSO_wolfe_conditions(E0[img], Er, g0[img], gr, step_size[img]*a_direction_norm[img]) )
+            {
+                fmt::print("finished\n");
+                finish[img] = true;
+            } else {
+                scalar factor = inexact_line_search(step_size[img]*a_direction_norm[img], E0[img], Er, g0[img], gr);
+                fmt::print("continueing\n");
+                fmt::print("factor = {}\n", factor);
+                if(!isnan(factor))
+                {
+                    step_size[img] *= factor;
+                } else {
+                    step_size[img] *= 0.5;
+                }
+            }
+        }
+    }
     #endif
 }
 }
