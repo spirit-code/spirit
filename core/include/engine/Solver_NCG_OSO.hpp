@@ -88,7 +88,7 @@ void Method_Solver<Solver::NCG_OSO>::Iteration()
             this->beta[img] = 0;
         }
 
-        // Reset direction to steepes descent if line search failed
+        // Reset direction to steepest descent if line search failed
         if(!this->finish[img])
             this->beta[img] = 0;
 
@@ -103,10 +103,10 @@ void Method_Solver<Solver::NCG_OSO>::Iteration()
         this->a_direction_norm[img] = Manifoldmath::norm( a_directions );
         // Manifoldmath::normalize( a_directions );
 
-        // Before the line search set step_size to 0 and precalculate E0 and g0
-        step_size[img]  = 1.0e0;
-        E0[img]         = this->systems[img]->hamiltonian->Energy(image);
-        g0[img]         = 0;
+        // Before the line search, set step_size and precalculate E0 and g0
+        step_size[img] = 1.0e0;
+        E0[img]        = this->systems[img]->hamiltonian->Energy(image);
+        g0[img]        = 0;
 
         #pragma omp parallel for reduction(+:g0)
         for( int i=0; i<this->nos; ++i )
@@ -140,10 +140,10 @@ void Method_Solver<Solver::NCG_OSO>::Iteration()
 
     for (int img=0; img<this->noi; img++)
     {
-        auto& image                 = *this->configurations[img];
-        auto& image_displaced       = *this->configurations_displaced[img];
-        auto& a_coords              = this->a_coords[img];
-        auto& a_coords_displaced    = this->a_coords_displaced[img];
+        auto& image              = *this->configurations[img];
+        auto& image_displaced    = *this->configurations_displaced[img];
+        auto& a_coords           = this->a_coords[img];
+        auto& a_coords_displaced = this->a_coords_displaced[img];
 
         // Update current image
         for(int i=0; i<image.size(); i++)
@@ -165,13 +165,13 @@ void Method_Solver<Solver::NCG_OSO>::Iteration()
 template <> inline
 std::string Method_Solver<Solver::NCG_OSO>::SolverName()
 {
-    return "NCG_Atlas";
+    return "NCG_OSO";
 }
 
 template <> inline
 std::string Method_Solver<Solver::NCG_OSO>::SolverFullName()
 {
-    return "Nonlinear conjugate gradients with Atlas method";
+    return "Nonlinear conjugate gradients with exponential transform";
 }
 
 #endif
