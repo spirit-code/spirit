@@ -151,6 +151,9 @@ try
         else if (solver_type == int(Engine::Solver::NCG_OSO))
             method = std::shared_ptr<Engine::Method>(
                 new Engine::Method_LLG<Engine::Solver::NCG_OSO>( image, idx_image, idx_chain ) );
+        else if (solver_type == int(Engine::Solver::LBFGS))
+            method = std::shared_ptr<Engine::Method>(
+                new Engine::Method_LLG<Engine::Solver::LBFGS>( image, idx_image, idx_chain ) );
         else
             spirit_throw(Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Warning, fmt::format(
                 "Invalid solver_type {}", solver_type));

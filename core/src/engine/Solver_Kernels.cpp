@@ -295,6 +295,43 @@ namespace Solver_Kernels
             }
         }
     }
+
+
+    // Basically https://en.wikipedia.org/wiki/Limited-memory_BFGS (note different signs)
+    void lbfgs_get_descent_direction(int iteration, int n_lbfgs_memory, vectorfield & a_direction, vectorfield & residual, const std::vector<vectorfield> & spin_updates, const std::vector<vectorfield> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp)
+    {
+        if( iteration == 0 ) // First iteration uses steepest descent
+        {
+            Vectormath::set_c_a(1, residual, a_direction);
+            return;
+        }
+
+        int n_updates = std::min(n_lbfgs_memory, iteration);
+
+        for(int i = iteration; i > iteration - n_updates; i--)
+        {
+            int idx = (i-1) % n_lbfgs_memory;
+            alpha_temp[idx] = rho_temp[idx] * Vectormath::dot(residual, spin_updates[idx]); //
+            Vectormath::add_c_a( -alpha_temp[idx], grad_updates[idx], residual); //
+        }
+
+        scalar top = Vectormath::dot(spin_updates[(iteration-1) % n_lbfgs_memory], grad_updates[(iteration-1) % n_lbfgs_memory]);
+        scalar bot = Vectormath::dot(grad_updates[(iteration-1) % n_lbfgs_memory], grad_updates[(iteration-1) % n_lbfgs_memory]);
+        scalar gamma = -top/bot;
+
+        Vectormath::set_c_a(gamma, residual, a_direction);
+        for(int j = iteration - n_updates + 1; j<=iteration; j++)
+        {
+            int idx = (j-1) % n_lbfgs_memory;
+            scalar beta = rho_temp[idx] * Vectormath::dot(grad_updates[idx], a_direction);
+
+            if(std::isnan(beta))
+                beta=0;
+
+            Vectormath::add_c_a( -(alpha_temp[idx]-beta), spin_updates[idx], a_direction);
+        }
+    }
+
     #endif
 }
 }

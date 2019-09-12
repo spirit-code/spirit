@@ -37,7 +37,7 @@ namespace Engine
         RungeKutta4 = Solver_RungeKutta4,
         NCG = Solver_NCG,
         NCG_OSO = Solver_NCG_OSO,
-        // LBFGS = Solver_LBFGS,
+        LBFGS = Solver_LBFGS,
         VP = Solver_VP
     };
 
@@ -172,6 +172,13 @@ namespace Engine
         scalarfield a_direction_norm;
         scalarfield step_size;
         std::vector<bool> finish;
+
+        // LBFGS
+        int n_lbfgs_memory;
+        std::vector<std::vector<vectorfield>> spin_updates;
+        std::vector<std::vector<vectorfield>> grad_updates;
+        std::vector<scalarfield> rho_temp;
+        std::vector<scalarfield> alpha_temp;
 
         // buffer variables for checking convergence for solver and Newton-Raphson
         // std::vector<scalarfield> r_dot_d, dda2;
@@ -354,6 +361,7 @@ namespace Engine
     #include <engine/Solver_VP.hpp>
     #include <engine/Solver_NCG.hpp>
     #include <engine/Solver_NCG_OSO.hpp>
+    #include <engine/Solver_LBFGS.hpp>
 }
 
 #endif

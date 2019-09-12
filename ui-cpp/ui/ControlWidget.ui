@@ -332,9 +332,14 @@
          <string>NCG</string>
         </property>
        </item>
-        <item>
+       <item>
         <property name="text">
          <string>NCG_OSO</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>LBFGS</string>
         </property>
        </item>
       </widget>

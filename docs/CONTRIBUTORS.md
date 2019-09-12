@@ -29,7 +29,7 @@ Implementation of the dipole-dipole interaction using FFT convolutions.
 
 email: m.sallermann@fz-juelich.de
 
-(Apr. 2015 - Sept. 2016)
+(May 2018 - ongoing)
 
 -----------------
 
@@ -69,7 +69,7 @@ email: n.kiselev@fz-juelich.de
 
 Implementation of C++ OpenGL code (VFRendering library),
 as well as JavaScript Web UI and WebGL code.<br />
-Code design improvements, including the C API and CMake. 
+Code design improvements, including the C API and CMake.
 
 (Jan. 2016 - ongoing)
 

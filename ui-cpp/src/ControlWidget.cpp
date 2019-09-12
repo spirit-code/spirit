@@ -174,6 +174,8 @@ void ControlWidget::play_pause()
         solver = Solver_NCG;
     else if( s_solver == "NCG_OSO" )
         solver = Solver_NCG_OSO;
+    else if( s_solver == "LBFGS" )
+        solver = Solver_LBFGS;
 
     if( Simulation_Running_On_Image(this->state.get()) ||
         Simulation_Running_On_Chain(this->state.get()) )

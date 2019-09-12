@@ -72,6 +72,7 @@ namespace Solver_Kernels
         return (Er <= E0 + c1 * step * gr) && (std::abs(gr) <= c2 * std::abs(g0) );
     }
 
+    void lbfgs_get_descent_direction(int iteration, int n_lbfgs_memory, vectorfield & a_direction ,vectorfield & residual, const std::vector<vectorfield> & spin_updates, const std::vector<vectorfield> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp);
 }
 }
 
