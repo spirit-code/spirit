@@ -37,6 +37,7 @@ namespace Engine
         RungeKutta4 = Solver_RungeKutta4,
         NCG = Solver_NCG,
         NCG_OSO = Solver_NCG_OSO,
+        NCG_Atlas = Solver_NCG_Atlas,
         LBFGS = Solver_LBFGS,
         VP = Solver_VP
     };
@@ -172,6 +173,15 @@ namespace Engine
         scalarfield a_direction_norm;
         scalarfield step_size;
         std::vector<bool> finish;
+
+        // Atlas ncg
+        std::vector<vector2field> atlas_coords;
+        std::vector<scalarfield>  atlas_coords3;
+        std::vector<vector2field> atlas_coords_displaced;
+        std::vector<vector2field> atlas_directions;
+        std::vector<vector2field> atlas_residuals;
+        std::vector<vector2field> atlas_residuals_last;
+        std::vector<vector2field> atlas_residuals_displaced;
 
         // LBFGS
         int n_lbfgs_memory;
@@ -361,6 +371,7 @@ namespace Engine
     #include <engine/Solver_VP.hpp>
     #include <engine/Solver_NCG.hpp>
     #include <engine/Solver_NCG_OSO.hpp>
+    #include <engine/Solver_NCG_Atlas.hpp>
     #include <engine/Solver_LBFGS.hpp>
 }
 

@@ -156,6 +156,7 @@ namespace Solver_Kernels
         }
     }
 
+    // NCG_OSO
     // Calculates the residuals for a certain spin configuration
     void ncg_OSO_residual( vectorfield & a_residuals, vectorfield & a_residuals_last, const vectorfield & spins, const vectorfield & a_coords,
                        const vectorfield & forces, bool approx)
@@ -297,6 +298,206 @@ namespace Solver_Kernels
     }
 
 
+
+
+    // NCG Atlas
+    void ncg_atlas_residual( vector2field & residuals, vector2field & residuals_last, const vectorfield & spins,
+                             const vectorfield & forces, const scalarfield & a3_coords )
+    {
+        #pragma omp parallel for
+        for(int i=0; i < spins.size(); i++)
+        {
+            Eigen::Matrix<scalar, 3,2 > J;
+            const auto & s  = spins[i];
+            const auto & a3 = a3_coords[i];
+
+            J(0,0) =  s[1]*s[1]  + s[2]*(s[2] + a3);
+            J(0,1) = -s[0]*s[1];
+            J(1,0) = -s[0]*s[1];
+            J(1,1) =  s[0]*s[0]  + s[2]*(s[2] + a3);
+            J(2,0) = -s[0]*(s[2] + a3);
+            J(2,1) = -s[1]*(s[2] + a3);
+
+            // If the two adresses are different we save the old residuals
+            if( &residuals != &residuals_last )
+                residuals_last[i] = residuals[i];
+
+            residuals[i] = forces[i].transpose() * J;
+        }
+    }
+
+    void ncg_atlas_to_spins(const vector2field & atlas_coords, const scalarfield & a3_coords, vectorfield & spins)
+    {
+        #pragma omp_parallel_for
+        for(int i=0; i<atlas_coords.size(); i++)
+        {
+            auto &        s = spins[i];
+            const auto &  a = atlas_coords[i];
+            const auto & a3 = a3_coords[i];
+
+            s[0] = 2*a[0] / (1 + a[0]*a[0] + a[1]*a[1]);
+            s[1] = 2*a[1] / (1 + a[0]*a[0] + a[1]*a[1]);
+            s[2] = a3 * (1 - a[0]*a[0] - a[1]*a[1]) / (1 + a[0]*a[0] + a[1]*a[1]);
+        }
+    }
+
+    void ncg_spins_to_atlas(const vectorfield & spins, vector2field & atlas_coords, scalarfield & a3_coords)
+    {
+        #pragma omp_parallel_for
+        for(int i=0; i<spins.size(); i++)
+        {
+            const auto & s = spins[i];
+            auto &       a = atlas_coords[i];
+            auto &      a3 = a3_coords[i];
+
+            a3 = (s[2] > 0) ? 1 : -1;
+            a[0] = s[0] / (1 + s[2]*a3);
+            a[1] = s[1] / (1 + s[2]*a3);
+        }
+    }
+
+    void ncg_atlas_check_coordinates(const vectorfield & spins, vector2field & a_coords, scalarfield & a3_coords, vector2field & a_directions)
+    {
+         // Check if we need to reset the maps
+        bool reset = false;
+
+        #pragma omp parallel for
+        for( int i=0; i<spins.size(); i++ )
+        {
+            // If for one spin the z component deviates too much from the pole we perform a reset for *all* spins
+            // Note: I am not sure why we reset for all spins ... but this is in agreement with the method of F. Rybakov
+            if(spins[i][2]*a3_coords[i] < -0.5)
+            {
+                reset = true;
+                break;
+            }
+        }
+
+        if(reset)
+        {
+            #pragma omp parallel for
+            for( int i=0; i<spins.size(); ++i )
+            {
+                const auto & s = spins[i];
+                auto &       a = a_coords[i];
+                auto &      a3 = a3_coords[i];
+
+                if( spins[i][2]*a3_coords[i] < 0 )
+                {
+                    // Transform coordinates to optimal map
+                    a3 = (s[2] > 0) ? 1 : -1;
+                    a[0] = s[0] / (1 + s[2]*a3);
+                    a[1] = s[1] / (1 + s[2]*a3);
+
+                    // Also transform search direction to new map
+                    a_directions[i] *= (1 - a3 * s[2]) / (1 + a3 * s[2]);
+                }
+            }
+        }
+    }
+
+    void ncg_atlas_displace( std::vector<std::shared_ptr<vectorfield>> & configurations_displaced, std::vector<vector2field> & a_coords, std::vector<scalarfield> & a3_coords,
+                             std::vector<vector2field> & a_coords_displaced, std::vector<vector2field> & a_directions, std::vector<bool> finish, scalarfield step_size )
+    {
+        int noi = configurations_displaced.size();
+        int nos = configurations_displaced[0]->size();
+
+        #pragma omp parallel for
+        for(int img=0; img<noi; ++img)
+        {
+            if(finish[img])
+                continue;
+
+            // First calculate displaced coordinates
+            for(int i=0; i < nos; i++)
+            {
+                a_coords_displaced[img][i] = a_coords[img][i] + step_size[img] * a_directions[img][i];
+            }
+            // Get displaced spin directions
+            Solver_Kernels::ncg_atlas_to_spins(a_coords_displaced[img], a3_coords[img], *configurations_displaced[img]);
+        }
+    }
+
+    bool ncg_atlas_line_search(  std::vector<std::shared_ptr<vectorfield>> & configurations_displaced, std::vector<vector2field> & a_coords_displaced, std::vector<scalarfield>  & a3_coords, std::vector<vector2field> & a_directions,
+                                 std::vector<vectorfield> & forces_displaced, std::vector<vector2field> & a_residuals_displaced, std::vector<std::shared_ptr<Data::Spin_System>> systems,
+                                 std::vector<bool> & finish, scalarfield & E0, scalarfield & g0, scalarfield & a_direction_norm, scalarfield & step_size)
+    {
+        int noi = configurations_displaced.size();
+        int nos = configurations_displaced[0]->size();
+
+        for( int img=0; img<noi; ++img )
+        {
+            fmt::print("line search\n");
+
+            if(finish[img])
+                continue;
+
+            // Calculate displaced energy
+            scalar Er = systems[img]->hamiltonian->Energy(*configurations_displaced[img]);
+
+            if( std::abs(Er - E0[img]) < 1e-16 )
+            {
+                fmt::print("Energy too close\n");
+                step_size[img] = 0;
+                finish[img] = true;
+                continue;
+            }
+
+            // Calculate displaced residual
+            Solver_Kernels::ncg_atlas_residual(a_residuals_displaced[img], a_residuals_displaced[img], *configurations_displaced[img], forces_displaced[img], a3_coords[img] );
+
+            // Calculate displaced directional derivative
+            scalar gr = 0;
+            #pragma omp parallel for reduction(+:gr)
+            for( int i=0; i<nos; ++i )
+            {
+                gr -= a_residuals_displaced[img][i].dot(a_directions[img][i])/a_direction_norm[img];
+            }
+
+            fmt::print("E0   = {}\n", E0[img]);
+            fmt::print("Er   = {}\n", Er);
+            fmt::print("diff = {}\n", Er-E0[img]);
+            fmt::print("g0   = {}\n", g0[img]);
+            fmt::print("gr   = {}\n", gr);
+
+            // If wolfe conditions are fulfilled terminate, else suggest new step size
+            if( ncg_OSO_wolfe_conditions(E0[img], Er, g0[img], gr, step_size[img]*a_direction_norm[img]) )
+            {
+                fmt::print("finished\n");
+                finish[img] = true;
+            } else {
+                scalar factor = inexact_line_search(step_size[img]*a_direction_norm[img], E0[img], Er, g0[img], gr);
+                fmt::print("continueing\n");
+                fmt::print("factor = {}\n", factor);
+                if(!isnan(factor))
+                {
+                    step_size[img] *= factor;
+                } else {
+                    step_size[img] *= 0.5;
+                }
+            }
+        }
+    }
+
+    scalar ncg_atlas_norm(const vector2field & a_coords)
+    {
+        scalar dist = 0;
+        #pragma omp parallel for reduction(+:dist)
+        for (unsigned int i = 0; i < a_coords.size(); ++i)
+            dist += (a_coords[i]).squaredNorm();
+        return sqrt(dist);
+    }
+
+    scalar ncg_atlas_distance(const vector2field & a_coords1, const vector2field & a_coords2)
+    {
+        scalar dist = 0;
+        #pragma omp parallel for reduction(+:dist)
+        for (unsigned int i = 0; i < a_coords2.size(); ++i)
+            dist += (a_coords1[i] - a_coords2[i]).squaredNorm() ;
+        return sqrt(dist);
+    }
+
+    // LBFGS
     // Basically https://en.wikipedia.org/wiki/Limited-memory_BFGS (note different signs)
     void lbfgs_get_descent_direction(int iteration, int n_lbfgs_memory, vectorfield & a_direction, vectorfield & residual, const std::vector<vectorfield> & spin_updates, const std::vector<vectorfield> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp)
     {

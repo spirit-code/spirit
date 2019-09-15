@@ -339,6 +339,11 @@
        </item>
        <item>
         <property name="text">
+         <string>NCG_Atlas</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
          <string>LBFGS</string>
         </property>
        </item>

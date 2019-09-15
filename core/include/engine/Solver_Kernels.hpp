@@ -38,6 +38,9 @@ namespace Solver_Kernels
     void ncg_rotate_2(vectorfield & image, vectorfield & residual, vectorfield & axis,
         scalarfield & angle, scalar step_size);
 
+
+
+    // NCG_OSO
     void ncg_OSO_residual( vectorfield & residuals, vectorfield & residuals_last, const vectorfield & spins, const vectorfield & a_coords,
                           const vectorfield & forces, bool approx = true);
     void ncg_OSO_a_to_spins(vectorfield & spins, const vectorfield & a_coords, const vectorfield & reference_spins);
@@ -51,20 +54,6 @@ namespace Solver_Kernels
                               std::vector<vectorfield> & forces_displaced, std::vector<vectorfield> & a_residuals_displaced, std::vector<std::shared_ptr<Data::Spin_System>> systems, std::vector<bool> & finish,
                               scalarfield & E0, scalarfield & g0, scalarfield & a_direction_norm, scalarfield & step_size  );
 
-    inline scalar ncg_OSO_dir_max(vectorfield & a_directions)
-    {
-        scalar res = 0;
-        # pragma omp parallel for
-        for(int i=0; i<a_directions.size(); i++)
-        {
-            if( a_directions[i].norm() > res )
-            {
-                res = a_directions[i].norm();
-            }
-        }
-        return res;
-    }
-
     inline bool ncg_OSO_wolfe_conditions(scalar E0, scalar Er, scalar g0, scalar gr, scalar step)
     {
         constexpr scalar c1 = 1e-4;
@@ -72,6 +61,26 @@ namespace Solver_Kernels
         return (Er <= E0 + c1 * step * gr) && (std::abs(gr) <= c2 * std::abs(g0) );
     }
 
+
+    // NCG_Atlas
+    void ncg_atlas_residual( std::vector<Vector2> & residuals, std::vector<Vector2> & residuals_last, const vectorfield & spins,
+                             const vectorfield & forces, const scalarfield & a3_coords );
+    void ncg_atlas_to_spins(const vector2field & a_coords, const scalarfield & a3_coords, vectorfield & spins);
+    void ncg_spins_to_atlas(const vectorfield & spins, vector2field & a_coords, scalarfield & a3_coords);
+    void ncg_atlas_check_coordinates(const vectorfield & spins, vector2field & a_coords, scalarfield & a3_coords, vector2field & a_directions);
+    void ncg_atlas_displace( std::vector<std::shared_ptr<vectorfield>> & configurations_displaced, std::vector<vector2field> & a_coords, std::vector<scalarfield> & a3_coords,
+                             std::vector<vector2field> & a_coords_displaced, std::vector<vector2field> & a_directions, std::vector<bool> finish, scalarfield step_size );
+
+    bool ncg_atlas_line_search(  std::vector<std::shared_ptr<vectorfield>> & configurations_displaced, std::vector<vector2field> & a_coords_displaced, std::vector<scalarfield>  & a3_coords, std::vector<vector2field> & a_directions,
+                                 std::vector<vectorfield> & forces_displaced, std::vector<vector2field> & a_residuals_displaced, std::vector<std::shared_ptr<Data::Spin_System>> systems, std::vector<bool> & finish,
+                                 scalarfield & E0, scalarfield & g0, scalarfield & a_direction_norm, scalarfield & step_size);
+
+
+    scalar ncg_atlas_norm(const vector2field & a_coords);
+
+    scalar ncg_atlas_distance(const vector2field & a_coords1, const vector2field & a_coords2);
+
+    // LBFGS
     void lbfgs_get_descent_direction(int iteration, int n_lbfgs_memory, vectorfield & a_direction ,vectorfield & residual, const std::vector<vectorfield> & spin_updates, const std::vector<vectorfield> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp);
 }
 }
