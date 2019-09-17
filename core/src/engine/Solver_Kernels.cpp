@@ -245,8 +245,6 @@ namespace Solver_Kernels
 
         for( int img=0; img<noi; ++img )
         {
-            fmt::print("line search\n");
-
             if(finish[img])
                 continue;
 
@@ -255,8 +253,8 @@ namespace Solver_Kernels
 
             if( std::abs(Er - E0[img]) < 1e-16 )
             {
-                fmt::print("Energy too close\n");
-                step_size[img] = 0;
+                fmt::print("[ Line search ] Energy too close\n");
+                // step_size[img] = 0;
                 finish[img] = true;
                 continue;
             }
@@ -272,21 +270,21 @@ namespace Solver_Kernels
                 gr -= a_residuals_displaced[img][i].dot(a_directions[img][i])/a_direction_norm[img];
             }
 
-            fmt::print("E0   = {}\n", E0[img]);
-            fmt::print("Er   = {}\n", Er);
-            fmt::print("diff = {}\n", Er-E0[img]);
-            fmt::print("g0   = {}\n", g0[img]);
-            fmt::print("gr   = {}\n", gr);
+            fmt::print("[ Line search ] E0   = {}\n", E0[img]);
+            fmt::print("[ Line search ] Er   = {}\n", Er);
+            fmt::print("[ Line search ] diff = {}\n", Er-E0[img]);
+            fmt::print("[ Line search ] g0   = {}\n", g0[img]);
+            fmt::print("[ Line search ] gr   = {}\n", gr);
 
             // If wolfe conditions are fulfilled terminate, else suggest new step size
             if( ncg_OSO_wolfe_conditions(E0[img], Er, g0[img], gr, step_size[img]*a_direction_norm[img]) )
             {
-                fmt::print("finished\n");
+                fmt::print("[ Line search ] >>> Finished <<<\n");
                 finish[img] = true;
             } else {
                 scalar factor = inexact_line_search(step_size[img]*a_direction_norm[img], E0[img], Er, g0[img], gr);
-                fmt::print("continueing\n");
-                fmt::print("factor = {}\n", factor);
+                fmt::print("[ Line search ] Continueing ...\n");
+                fmt::print("[ Line search ] factor = {}\n", factor);
                 if(!isnan(factor))
                 {
                     step_size[img] *= factor;
@@ -498,10 +496,10 @@ namespace Solver_Kernels
     }
 
     // LBFGS
-    // Basically https://en.wikipedia.org/wiki/Limited-memory_BFGS (note different signs)
-    void lbfgs_get_descent_direction(int iteration, int n_lbfgs_memory, vectorfield & a_direction, vectorfield & residual, const std::vector<vectorfield> & spin_updates, const std::vector<vectorfield> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp)
+    // The "two-loop recursion", see https://en.wikipedia.org/wiki/Limited-memory_BFGS
+    void lbfgs_get_descent_direction(int iteration, int n_lbfgs_memory, vectorfield & a_direction, const vectorfield & residual, const std::vector<vectorfield> & spin_updates, const std::vector<vectorfield> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp)
     {
-        if( iteration == 0 ) // First iteration uses steepest descent
+        if( iteration <= 1 ) // First iteration uses steepest descent
         {
             Vectormath::set_c_a(1, residual, a_direction);
             return;
@@ -509,27 +507,25 @@ namespace Solver_Kernels
 
         int n_updates = std::min(n_lbfgs_memory, iteration);
 
+        Vectormath::set_c_a(1, residual, a_direction); // copy residual to a_direction
         for(int i = iteration; i > iteration - n_updates; i--)
         {
             int idx = (i-1) % n_lbfgs_memory;
-            alpha_temp[idx] = rho_temp[idx] * Vectormath::dot(residual, spin_updates[idx]); //
-            Vectormath::add_c_a( -alpha_temp[idx], grad_updates[idx], residual); //
+            alpha_temp[idx] = rho_temp[idx] * Vectormath::dot(a_direction, spin_updates[idx]);
+            Vectormath::add_c_a( -alpha_temp[idx], grad_updates[idx], a_direction );
         }
 
-        scalar top = Vectormath::dot(spin_updates[(iteration-1) % n_lbfgs_memory], grad_updates[(iteration-1) % n_lbfgs_memory]);
-        scalar bot = Vectormath::dot(grad_updates[(iteration-1) % n_lbfgs_memory], grad_updates[(iteration-1) % n_lbfgs_memory]);
-        scalar gamma = -top/bot;
+        int idx_last = (iteration - 1) % n_lbfgs_memory;
+        scalar top = Vectormath::dot(spin_updates[idx_last], grad_updates[idx_last]);
+        scalar bot = Vectormath::dot(grad_updates[idx_last], grad_updates[idx_last]);
+        scalar gamma = top/bot;
 
-        Vectormath::set_c_a(gamma, residual, a_direction);
-        for(int j = iteration - n_updates + 1; j<=iteration; j++)
+        Vectormath::set_c_a(-gamma, a_direction, a_direction);
+        for(int j = iteration - n_updates + 1; j <= iteration; j++)
         {
-            int idx = (j-1) % n_lbfgs_memory;
-            scalar beta = rho_temp[idx] * Vectormath::dot(grad_updates[idx], a_direction);
-
-            if(std::isnan(beta))
-                beta=0;
-
-            Vectormath::add_c_a( -(alpha_temp[idx]-beta), spin_updates[idx], a_direction);
+            int idx = (j-1) % n_updates;
+            scalar beta = -rho_temp[idx] * Vectormath::dot(grad_updates[idx], a_direction);
+            Vectormath::add_c_a( -(alpha_temp[idx] - beta), spin_updates[idx], a_direction);
         }
     }
 

@@ -81,7 +81,7 @@ namespace Solver_Kernels
     scalar ncg_atlas_distance(const vector2field & a_coords1, const vector2field & a_coords2);
 
     // LBFGS
-    void lbfgs_get_descent_direction(int iteration, int n_lbfgs_memory, vectorfield & a_direction ,vectorfield & residual, const std::vector<vectorfield> & spin_updates, const std::vector<vectorfield> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp);
+    void lbfgs_get_descent_direction(int iteration, int n_lbfgs_memory, vectorfield & a_direction, const vectorfield & residual, const std::vector<vectorfield> & spin_updates, const std::vector<vectorfield> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp);
 }
 }
 

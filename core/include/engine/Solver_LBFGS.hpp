@@ -86,13 +86,14 @@ void Method_Solver<Solver::LBFGS>::Iteration()
         // Keep track of residual updates
         if(this->iteration > 0)
         {
+            int idx = (this->iteration-1) % n_lbfgs_memory;
             #pragma omp parallel for
             for(int i=0; i<this->nos; i++)
             {
-                this->grad_updates[img][ (this->iteration-1) % n_lbfgs_memory][i] = a_residuals[i] - a_residuals_last[i];
+                this->grad_updates[img][idx][i] = a_residuals[i] - a_residuals_last[i];
             }
 
-            this->rho_temp[img][ (this->iteration-1) % n_lbfgs_memory] = 1/Vectormath::dot(this->grad_updates[img][ (this->iteration-1) % n_lbfgs_memory], this->spin_updates[img][ (this->iteration-1) % n_lbfgs_memory]);
+            this->rho_temp[img][idx] = 1/Vectormath::dot(this->grad_updates[img][idx], this->spin_updates[img][idx]);
 
             // if(!this->finish[img] || this->step_size[img]<1e-12)
             // {
@@ -166,13 +167,14 @@ void Method_Solver<Solver::LBFGS>::Iteration()
         // Update current image
         for(int i=0; i<image.size(); i++)
         {
+            int idx = this->iteration % this->n_lbfgs_memory;
             if(this->finish[img]) // only if line search was successfull
             {
                 a_coords[i] = a_coords_displaced[i];
-                this->spin_updates[img][this->iteration % this->n_lbfgs_memory][i] = image_displaced[i] - image[i]; // keep track of spin_updates
+                this->spin_updates[img][idx][i] = image_displaced[i] - image[i]; // keep track of spin_updates
                 image[i]    = image_displaced[i];
             } else {
-                this->spin_updates[img][this->iteration % this->n_lbfgs_memory][i] = {0,0,0}; // keep track of spin_updates
+                this->spin_updates[img][idx][i] = {0,0,0}; // keep track of spin_updates
             }
         }
 
