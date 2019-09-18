@@ -15,7 +15,7 @@ void Method_Solver<Solver::LBFGS>::Initialize ()
     this->n    = 50;     // restart every n iterations XXX: what's the appropriate val?
     this->n_lbfgs_memory = 10; // how many updates the solver tracks to estimate the hessian
 
-    this->spin_updates = std::vector<std::vector<vectorfield>>( this->noi, std::vector<vectorfield>( this->n_lbfgs_memory, vectorfield(this->nos, { 0,0,0 } ) ));
+    this->a_updates    = std::vector<std::vector<vectorfield>>( this->noi, std::vector<vectorfield>( this->n_lbfgs_memory, vectorfield(this->nos, { 0,0,0 } ) ));
     this->grad_updates = std::vector<std::vector<vectorfield>>( this->noi, std::vector<vectorfield>( this->n_lbfgs_memory, vectorfield(this->nos, { 0,0,0 } ) ));
     this->rho_temp     = std::vector<scalarfield>( this->noi, scalarfield( this->n_lbfgs_memory, 0 ) );
     this->alpha_temp   = std::vector<scalarfield>( this->noi, scalarfield( this->n_lbfgs_memory, 0 ) );
@@ -93,7 +93,7 @@ void Method_Solver<Solver::LBFGS>::Iteration()
                 this->grad_updates[img][idx][i] = a_residuals[i] - a_residuals_last[i];
             }
 
-            this->rho_temp[img][idx] = 1/Vectormath::dot(this->grad_updates[img][idx], this->spin_updates[img][idx]);
+            this->rho_temp[img][idx] = 1/Vectormath::dot(this->grad_updates[img][idx], this->a_updates[img][idx]);
 
             // if(!this->finish[img] || this->step_size[img]<1e-12)
             // {
@@ -107,7 +107,7 @@ void Method_Solver<Solver::LBFGS>::Iteration()
             this->beta[img] = 0;
 
         // Calculate new search direction
-        Solver_Kernels::lbfgs_get_descent_direction(this->iteration, this->n_lbfgs_memory, a_directions, a_residuals, this->spin_updates[img], this->grad_updates[img], this->rho_temp[img], this->alpha_temp[img]);
+        Solver_Kernels::lbfgs_get_descent_direction(this->iteration, this->n_lbfgs_memory, a_directions, a_residuals, this->a_updates[img], this->grad_updates[img], this->rho_temp[img], this->alpha_temp[img]);
         this->a_direction_norm[img] = Manifoldmath::norm( a_directions );
 
         // Debug
@@ -170,11 +170,11 @@ void Method_Solver<Solver::LBFGS>::Iteration()
             int idx = this->iteration % this->n_lbfgs_memory;
             if(this->finish[img]) // only if line search was successfull
             {
+                this->a_updates[img][idx][i] = a_coords_displaced[i] - a_coords[i]; // keep track of a_updates
                 a_coords[i] = a_coords_displaced[i];
-                this->spin_updates[img][idx][i] = image_displaced[i] - image[i]; // keep track of spin_updates
                 image[i]    = image_displaced[i];
             } else {
-                this->spin_updates[img][idx][i] = {0,0,0}; // keep track of spin_updates
+                this->a_updates[img][idx][i] = {0,0,0}; // keep track of a_updates
             }
         }
 
