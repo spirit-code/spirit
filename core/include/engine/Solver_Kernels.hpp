@@ -71,7 +71,7 @@ namespace Solver_Kernels
     void ncg_atlas_displace( std::vector<std::shared_ptr<vectorfield>> & configurations_displaced, std::vector<vector2field> & a_coords, std::vector<scalarfield> & a3_coords,
                              std::vector<vector2field> & a_coords_displaced, std::vector<vector2field> & a_directions, std::vector<bool> finish, scalarfield step_size );
 
-    bool ncg_atlas_line_search(  std::vector<std::shared_ptr<vectorfield>> & configurations_displaced, std::vector<vector2field> & a_coords_displaced, std::vector<scalarfield>  & a3_coords, std::vector<vector2field> & a_directions,
+    void ncg_atlas_line_search(  std::vector<std::shared_ptr<vectorfield>> & configurations_displaced, std::vector<vector2field> & a_coords_displaced, std::vector<scalarfield>  & a3_coords, std::vector<vector2field> & a_directions,
                                  std::vector<vectorfield> & forces_displaced, std::vector<vector2field> & a_residuals_displaced, std::vector<std::shared_ptr<Data::Spin_System>> systems, std::vector<bool> & finish,
                                  scalarfield & E0, scalarfield & g0, scalarfield & a_direction_norm, scalarfield & step_size);
 

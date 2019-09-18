@@ -30,7 +30,7 @@ void Method_Solver<Solver::LBFGS>::Initialize ()
     this->a_coords                 = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
     this->a_coords_displaced       = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
     this->a_directions             = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
-    this->a_direction_norm         = std::vector<scalar>     ( this->noi, 0 );
+    this->a_direction_norm         = scalarfield     ( this->noi, 0 );
 
     this->a_residuals              = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
     this->a_residuals_last         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
@@ -64,7 +64,7 @@ void Method_Solver<Solver::LBFGS>::Iteration()
     // Current force
     this->Calculate_Force( this->configurations, this->forces );
 
-    #pragma omp parallel for collapse
+    #pragma omp parallel for
     for( int img=0; img<this->noi; img++ )
     {
         auto& image                 = *this->configurations[img];

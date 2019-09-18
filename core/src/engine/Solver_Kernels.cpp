@@ -416,7 +416,7 @@ namespace Solver_Kernels
         }
     }
 
-    bool ncg_atlas_line_search(  std::vector<std::shared_ptr<vectorfield>> & configurations_displaced, std::vector<vector2field> & a_coords_displaced, std::vector<scalarfield>  & a3_coords, std::vector<vector2field> & a_directions,
+    void ncg_atlas_line_search(  std::vector<std::shared_ptr<vectorfield>> & configurations_displaced, std::vector<vector2field> & a_coords_displaced, std::vector<scalarfield>  & a3_coords, std::vector<vector2field> & a_directions,
                                  std::vector<vectorfield> & forces_displaced, std::vector<vector2field> & a_residuals_displaced, std::vector<std::shared_ptr<Data::Spin_System>> systems,
                                  std::vector<bool> & finish, scalarfield & E0, scalarfield & g0, scalarfield & a_direction_norm, scalarfield & step_size)
     {
@@ -499,7 +499,7 @@ namespace Solver_Kernels
     // The "two-loop recursion", see https://en.wikipedia.org/wiki/Limited-memory_BFGS
     void lbfgs_get_descent_direction(int iteration, int n_updates, vectorfield & a_direction, const vectorfield & residual, const std::vector<vectorfield> & a_updates, const std::vector<vectorfield> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp)
     {
-        if( n_updates <= 1 ) // First iteration uses steepest descent
+        if( n_updates <= 5 ) // First iteration uses steepest descent
         {
             Vectormath::set_c_a(1, residual, a_direction);
             return;
