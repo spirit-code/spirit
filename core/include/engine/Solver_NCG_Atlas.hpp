@@ -24,7 +24,7 @@ void Method_Solver<Solver::NCG_Atlas>::Initialize ()
     this->atlas_coords3             = std::vector< scalarfield >( this->noi, scalarfield(this->nos, 1) );
     this->atlas_coords_displaced    = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
     this->atlas_directions          = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
-    this->a_direction_norm          = std::vector<scalar>     ( this->noi, 0 );
+    this->a_direction_norm          = scalarfield     ( this->noi, 0 );
     this->atlas_residuals           = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
     this->atlas_residuals_last      = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
     this->atlas_residuals_displaced = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
@@ -55,7 +55,7 @@ void Method_Solver<Solver::NCG_Atlas>::Iteration()
     // Current force
     this->Calculate_Force( this->configurations, this->forces );
 
-    #pragma omp parallel for collapse
+    #pragma omp parallel for
     for( int img=0; img<this->noi; img++ )
     {
         auto& image                 = *this->configurations[img];
@@ -109,7 +109,7 @@ void Method_Solver<Solver::NCG_Atlas>::Iteration()
         E0[img]        = this->systems[img]->hamiltonian->Energy(image);
         g0[img]        = 0;
 
-        #pragma omp parallel for reduction(+:g0)
+        #pragma omp parallel for reduction(+:g0[img])
         for( int i=0; i<this->nos; ++i )
         {
             g0[img] -= a_residuals[i].dot(a_directions[i]) / a_direction_norm[img];

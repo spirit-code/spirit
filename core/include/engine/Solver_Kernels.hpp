@@ -63,7 +63,7 @@ namespace Solver_Kernels
 
 
     // NCG_Atlas
-    void ncg_atlas_residual( std::vector<Vector2> & residuals, std::vector<Vector2> & residuals_last, const vectorfield & spins,
+    void ncg_atlas_residual( vector2field & residuals, vector2field & residuals_last, const vectorfield & spins,
                              const vectorfield & forces, const scalarfield & a3_coords );
     void ncg_atlas_to_spins(const vector2field & a_coords, const scalarfield & a3_coords, vectorfield & spins);
     void ncg_spins_to_atlas(const vectorfield & spins, vector2field & a_coords, scalarfield & a3_coords);
@@ -71,7 +71,7 @@ namespace Solver_Kernels
     void ncg_atlas_displace( std::vector<std::shared_ptr<vectorfield>> & configurations_displaced, std::vector<vector2field> & a_coords, std::vector<scalarfield> & a3_coords,
                              std::vector<vector2field> & a_coords_displaced, std::vector<vector2field> & a_directions, std::vector<bool> finish, scalarfield step_size );
 
-    bool ncg_atlas_line_search(  std::vector<std::shared_ptr<vectorfield>> & configurations_displaced, std::vector<vector2field> & a_coords_displaced, std::vector<scalarfield>  & a3_coords, std::vector<vector2field> & a_directions,
+    void ncg_atlas_line_search(  std::vector<std::shared_ptr<vectorfield>> & configurations_displaced, std::vector<vector2field> & a_coords_displaced, std::vector<scalarfield>  & a3_coords, std::vector<vector2field> & a_directions,
                                  std::vector<vectorfield> & forces_displaced, std::vector<vector2field> & a_residuals_displaced, std::vector<std::shared_ptr<Data::Spin_System>> systems, std::vector<bool> & finish,
                                  scalarfield & E0, scalarfield & g0, scalarfield & a_direction_norm, scalarfield & step_size);
 
