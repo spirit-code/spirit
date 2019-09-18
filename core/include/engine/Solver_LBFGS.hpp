@@ -14,6 +14,7 @@ void Method_Solver<Solver::LBFGS>::Initialize ()
     this->jmax = 500;    // max iterations
     this->n    = 50;     // restart every n iterations XXX: what's the appropriate val?
     this->n_lbfgs_memory = 10; // how many updates the solver tracks to estimate the hessian
+    this->n_updates = intfield( this->noi, 0 );
 
     this->a_updates    = std::vector<std::vector<vectorfield>>( this->noi, std::vector<vectorfield>( this->n_lbfgs_memory, vectorfield(this->nos, { 0,0,0 } ) ));
     this->grad_updates = std::vector<std::vector<vectorfield>>( this->noi, std::vector<vectorfield>( this->n_lbfgs_memory, vectorfield(this->nos, { 0,0,0 } ) ));
@@ -94,36 +95,37 @@ void Method_Solver<Solver::LBFGS>::Iteration()
             }
 
             this->rho_temp[img][idx] = 1/Vectormath::dot(this->grad_updates[img][idx], this->a_updates[img][idx]);
-
-            // if(!this->finish[img] || this->step_size[img]<1e-12)
-            // {
-            //     this->rho_temp[img][ (this->iteration-1) % n_lbfgs_memory] = 0;
-            // } else {
-            // }
         }
 
         // Reset direction to steepest descent if line search failed
         if(!this->finish[img])
-            this->beta[img] = 0;
-
-        // Calculate new search direction
-        Solver_Kernels::lbfgs_get_descent_direction(this->iteration, this->n_lbfgs_memory, a_directions, a_residuals, this->a_updates[img], this->grad_updates[img], this->rho_temp[img], this->alpha_temp[img]);
-        this->a_direction_norm[img] = Manifoldmath::norm( a_directions );
-
-        // Debug
-        for(int i=0; i<n_lbfgs_memory; i++)
-            fmt::print("rho_temp[{}] = {}\n", i, this->rho_temp[img][i]);
-
-        for(int i=0; i<this->nos; i++)
         {
-            fmt::print("a_direction[{}] = [{}, {}, {}]\n", i, this->a_directions[img][i][0], this->a_directions[img][i][1], this->a_directions[img][i][2]);
-
-            if(std::isnan(this->a_directions[img][i][0]))
-                throw 0;
+            fmt::print("resetting\n");
+            this->n_updates[img] = 0;
         }
 
+        // Calculate new search direction
+        Solver_Kernels::lbfgs_get_descent_direction(this->iteration, this->n_updates[img], a_directions, a_residuals, this->a_updates[img], this->grad_updates[img], this->rho_temp[img], this->alpha_temp[img]);
+        this->a_direction_norm[img] = Manifoldmath::norm( a_directions );
+
+        if(this->n_updates[img] < this->n_lbfgs_memory)
+           this->n_updates[img]++;
+
+
+        // Debug
+        // for(int i=0; i<n_lbfgs_memory; i++)
+        //     fmt::print("rho_temp[{}] = {}\n", i, this->rho_temp[img][i]);
+
+        // for(int i=0; i<this->nos; i++)
+        // {
+        //     fmt::print("a_direction[{}] = [{}, {}, {}]\n", i, this->a_directions[img][i][0], this->a_directions[img][i][1], this->a_directions[img][i][2]);
+
+        //     // if(std::isnan(this->a_directions[img][i][0]))
+        //     //     throw 0;
+        // }
+
         // Before the line search, set step_size and precalculate E0 and g0
-        step_size[img] = 1.0e-2;
+        step_size[img] = 1.0;
         E0[img]        = this->systems[img]->hamiltonian->Energy(image);
         g0[img]        = 0;
 
@@ -137,7 +139,7 @@ void Method_Solver<Solver::LBFGS>::Iteration()
 
     int n_search_steps     = 0;
     int n_search_steps_max = 20;
-    bool run = true;
+    bool run = true;;
     while(run)
     {
         Solver_Kernels::ncg_OSO_displace(this->configurations_displaced, this->reference_configurations, this->a_coords,

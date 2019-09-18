@@ -497,25 +497,23 @@ namespace Solver_Kernels
 
     // LBFGS
     // The "two-loop recursion", see https://en.wikipedia.org/wiki/Limited-memory_BFGS
-    void lbfgs_get_descent_direction(int iteration, int n_lbfgs_memory, vectorfield & a_direction, const vectorfield & residual, const std::vector<vectorfield> & a_updates, const std::vector<vectorfield> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp)
+    void lbfgs_get_descent_direction(int iteration, int n_updates, vectorfield & a_direction, const vectorfield & residual, const std::vector<vectorfield> & a_updates, const std::vector<vectorfield> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp)
     {
-        if( iteration <= 1 ) // First iteration uses steepest descent
+        if( n_updates <= 1 ) // First iteration uses steepest descent
         {
             Vectormath::set_c_a(1, residual, a_direction);
             return;
         }
 
-        int n_updates = std::min(n_lbfgs_memory, iteration);
-
         Vectormath::set_c_a(1, residual, a_direction); // copy residual to a_direction
         for(int i = iteration; i > iteration - n_updates; i--)
         {
-            int idx = (i-1) % n_lbfgs_memory;
+            int idx = (i-1) % n_updates;
             alpha_temp[idx] = rho_temp[idx] * Vectormath::dot(a_direction, a_updates[idx]);
             Vectormath::add_c_a( -alpha_temp[idx], grad_updates[idx], a_direction );
         }
 
-        int idx_last = (iteration - 1) % n_lbfgs_memory;
+        int idx_last = (iteration - 1) % n_updates;
         scalar top = Vectormath::dot(a_updates[idx_last], grad_updates[idx_last]);
         scalar bot = Vectormath::dot(grad_updates[idx_last], grad_updates[idx_last]);
         scalar gamma = top/bot;

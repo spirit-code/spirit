@@ -185,6 +185,7 @@ namespace Engine
 
         // LBFGS
         int n_lbfgs_memory;
+        intfield n_updates;
         std::vector<std::vector<vectorfield>> a_updates;
         std::vector<std::vector<vectorfield>> grad_updates;
         std::vector<scalarfield> rho_temp;
