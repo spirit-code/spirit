@@ -495,7 +495,7 @@ namespace Solver_Kernels
         return sqrt(dist);
     }
 
-    // LBFGS
+    // LBFGS_OSO
     // The "two-loop recursion", see https://en.wikipedia.org/wiki/Limited-memory_BFGS
     void lbfgs_get_descent_direction(int iteration, int n_updates, vectorfield & a_direction, const vectorfield & residual, const std::vector<vectorfield> & a_updates, const std::vector<vectorfield> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp)
     {

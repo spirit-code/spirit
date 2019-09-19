@@ -38,7 +38,7 @@ namespace Engine
         NCG = Solver_NCG,
         NCG_OSO = Solver_NCG_OSO,
         NCG_Atlas = Solver_NCG_Atlas,
-        LBFGS = Solver_LBFGS,
+        LBFGS_OSO = Solver_LBFGS_OSO,
         VP = Solver_VP
     };
 
@@ -183,7 +183,7 @@ namespace Engine
         std::vector<vector2field> atlas_residuals_last;
         std::vector<vector2field> atlas_residuals_displaced;
 
-        // LBFGS
+        // LBFGS_OSO
         int n_lbfgs_memory;
         intfield n_updates;
         std::vector<std::vector<vectorfield>> a_updates;
@@ -373,7 +373,7 @@ namespace Engine
     #include <engine/Solver_NCG.hpp>
     #include <engine/Solver_NCG_OSO.hpp>
     #include <engine/Solver_NCG_Atlas.hpp>
-    #include <engine/Solver_LBFGS.hpp>
+    #include <engine/Solver_LBFGS_OSO.hpp>
 }
 
 #endif

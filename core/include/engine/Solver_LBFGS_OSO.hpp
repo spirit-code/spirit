@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SOLVER_LBFGS_HPP
-#define SOLVER_LBFGS_HPP
+#ifndef SOLVER_LBFGS_OSO_HPP
+#define SOLVER_LBFGS_OSO_HPP
 
 #include <utility/Constants.hpp>
 // #include <utility/Exception.hpp>
@@ -9,7 +9,7 @@
 using namespace Utility;
 
 template <> inline
-void Method_Solver<Solver::LBFGS>::Initialize ()
+void Method_Solver<Solver::LBFGS_OSO>::Initialize ()
 {
     this->jmax = 500;    // max iterations
     this->n    = 50;     // restart every n iterations XXX: what's the appropriate val?
@@ -59,7 +59,7 @@ void Method_Solver<Solver::LBFGS>::Initialize ()
 */
 
 template <> inline
-void Method_Solver<Solver::LBFGS>::Iteration()
+void Method_Solver<Solver::LBFGS_OSO>::Iteration()
 {
     // Current force
     this->Calculate_Force( this->configurations, this->forces );
@@ -189,13 +189,13 @@ void Method_Solver<Solver::LBFGS>::Iteration()
 }
 
 template <> inline
-std::string Method_Solver<Solver::LBFGS>::SolverName()
+std::string Method_Solver<Solver::LBFGS_OSO>::SolverName()
 {
-    return "LBFGS";
+    return "LBFGS_OSO";
 }
 
 template <> inline
-std::string Method_Solver<Solver::LBFGS>::SolverFullName()
+std::string Method_Solver<Solver::LBFGS_OSO>::SolverFullName()
 {
     return "Limited memory Broyden-Fletcher-Goldfarb-Shanno";
 }
