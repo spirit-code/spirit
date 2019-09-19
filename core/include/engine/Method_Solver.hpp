@@ -39,6 +39,7 @@ namespace Engine
         NCG_OSO = Solver_NCG_OSO,
         NCG_Atlas = Solver_NCG_Atlas,
         LBFGS_OSO = Solver_LBFGS_OSO,
+        LBFGS_Atlas = Solver_LBFGS_Atlas,
         VP = Solver_VP
     };
 
@@ -183,6 +184,7 @@ namespace Engine
         std::vector<vector2field> atlas_residuals_last;
         std::vector<vector2field> atlas_residuals_displaced;
 
+
         // LBFGS_OSO
         int n_lbfgs_memory;
         intfield n_updates;
@@ -190,6 +192,10 @@ namespace Engine
         std::vector<std::vector<vectorfield>> grad_updates;
         std::vector<scalarfield> rho_temp;
         std::vector<scalarfield> alpha_temp;
+
+        // LBFGS_Atlas
+        std::vector<std::vector<vector2field>> atlas_updates;
+        std::vector<std::vector<vector2field>> grad_atlas_updates;
 
         // buffer variables for checking convergence for solver and Newton-Raphson
         // std::vector<scalarfield> r_dot_d, dda2;
@@ -374,6 +380,7 @@ namespace Engine
     #include <engine/Solver_NCG_OSO.hpp>
     #include <engine/Solver_NCG_Atlas.hpp>
     #include <engine/Solver_LBFGS_OSO.hpp>
+    #include <engine/Solver_LBFGS_Atlas.hpp>
 }
 
 #endif
