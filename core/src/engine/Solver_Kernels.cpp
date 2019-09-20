@@ -364,7 +364,7 @@ namespace Solver_Kernels
         {
             // If for one spin the z component deviates too much from the pole we perform a reset for *all* spins
             // Note: I am not sure why we reset for all spins ... but this is in agreement with the method of F. Rybakov
-            if(spins[i][2]*a3_coords[i] < -0.5)
+            if(spins[i][2]*a3_coords[i] < -0.6)
             {
                 reset = true;
                 break;
@@ -524,6 +524,41 @@ namespace Solver_Kernels
             int idx = (j-1) % n_updates;
             scalar beta = -rho_temp[idx] * Vectormath::dot(grad_updates[idx], a_direction);
             Vectormath::add_c_a( -(alpha_temp[idx] - beta), a_updates[idx], a_direction);
+        }
+    }
+
+    void lbfgs_atlas_get_descent_direction(int iteration, int n_updates, vector2field & a_direction, const vector2field & residual, const std::vector<vector2field> & a_updates, const std::vector<vector2field> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp)
+    {
+        static auto dot2D = [](const Vector2 & v1, const Vector2 &v2){return v1.dot(v2);};
+
+        if( n_updates <= 5 ) // First iteration uses steepest descent
+        {
+            Vectormath::set(a_direction, residual, [](Vector2 x){return x;});
+            return;
+        }
+
+        a_direction = residual; // copy residual to a_direction
+        for(int i = iteration; i > iteration - n_updates; i--)
+        {
+            int idx = (i-1) % n_updates;
+            alpha_temp[idx] = rho_temp[idx] * Vectormath::reduce(a_direction, a_updates[idx], dot2D);
+            // Vectormath::add_c_a( -alpha_temp[idx], grad_updates[idx], a_direction );
+            Vectormath::set( a_direction, grad_updates[idx], [&alpha_temp, idx](const Vector2 & v){return alpha_temp[idx] * v;} );
+        }
+
+        int idx_last = (iteration - 1) % n_updates;
+        scalar top = Vectormath::reduce(a_updates[idx_last], grad_updates[idx_last], dot2D);
+        scalar bot = Vectormath::reduce(grad_updates[idx_last], grad_updates[idx_last], dot2D);
+        scalar gamma = top/bot;
+
+        // Vectormath::set_c_a(-gamma, a_direction, a_direction);
+        Vectormath::set(a_direction, a_direction, [gamma](const Vector2 & v){return -gamma*v;});
+
+        for(int j = iteration - n_updates + 1; j <= iteration; j++)
+        {
+            int idx = (j-1) % n_updates;
+            scalar beta = -rho_temp[idx] * Vectormath::reduce(grad_updates[idx], a_direction, dot2D);
+            Vectormath::set( a_direction, a_updates[idx], [idx, &alpha_temp, beta](const Vector2 & v){return -(alpha_temp[idx] - beta) * v;});
         }
     }
 
