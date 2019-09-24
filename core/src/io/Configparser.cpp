@@ -416,7 +416,7 @@ namespace IO
                             scalar V = std::pow(lattice_constant * 1e-10, 3)
                                         * (bravais_vectors[0].cross(bravais_vectors[1])).dot(bravais_vectors[2]);
                                         // * n_cells[0] * n_cells[1] * n_cells[2] * n_cell_atoms;
-                            scalar mu_s = Ms * 1.0782822e23 * V; // per lattice site
+                            scalar mu_s = Ms * 1.0782822e23 * V; // per cell
 
                             for (iatom = 0; iatom < n_cell_atoms; ++iatom)
                                 cell_composition.mu_s[iatom] = mu_s;
@@ -1484,6 +1484,12 @@ namespace IO
         scalar  dmi_magnitude = 0;
         Matrix3 dmi_tensor;
 
+        // Dipolar
+        std::string ddi_method_str = "none";
+        auto ddi_method = Engine::DDI_Method::None;
+        intfield ddi_n_periodic_images = { 4, 4, 4 };
+        scalar ddi_radius = 0.0;
+
         //------------------------------- Parser --------------------------------
         Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Micromagnetic: building");
         try
@@ -1568,50 +1574,51 @@ namespace IO
             else
             {
                 myfile.Read_Single(dmi_magnitude, "dmi");
-                dmi_tensor << 0, dmi_magnitude/std::sqrt(3), 0,
-                              -dmi_magnitude/std::sqrt(3), 0,0,
-                              0, 0, 0;
-                // dmi_tensor << dmi_magnitude/std::sqrt(3), 0, 0,
-                //               0, dmi_magnitude/std::sqrt(3), 0,
-                //               0, 0, dmi_magnitude/std::sqrt(3);
+                // dmi_tensor << 0, dmi_magnitude/std::sqrt(3), 0,
+                //               -dmi_magnitude/std::sqrt(3), 0,0,
+                //               0, 0, 0;
+                dmi_tensor << dmi_magnitude/std::sqrt(3), 0, 0,
+                              0, dmi_magnitude/std::sqrt(3), 0,
+                              0, 0, dmi_magnitude/std::sqrt(3);
                 // dmi_tensor << 0, dmi_magnitude, -dmi_magnitude,
                 //               -dmi_magnitude, 0, dmi_magnitude,
                 //               dmi_magnitude, -dmi_magnitude, 0;
             }
 
-            // TODO: dipolar
+
             try
             {
                 IO::Filter_File_Handle myfile(configFile);
 
-                // // DDI method
-                // myfile.Read_String(ddi_method_str, "ddi_method");
-                // if( ddi_method_str == "none" )
-                //     ddi_method = Engine::DDI_Method::None;
-                // else if( ddi_method_str == "fft" )
-                //     ddi_method = Engine::DDI_Method::FFT;
-                // else if( ddi_method_str == "fmm" )
-                //     ddi_method = Engine::DDI_Method::FMM;
-                // else if( ddi_method_str == "cutoff" )
-                //     ddi_method = Engine::DDI_Method::Cutoff;
-                // else
-                // {
-                //     Log(Log_Level::Warning, Log_Sender::IO, fmt::format(
-                //         "Hamiltonian_Heisenberg: Keyword 'ddi_method' got passed invalid method \"{}\". Setting to \"none\".", ddi_method_str));
-                //     ddi_method_str = "none";
-                // }
+                // DDI method
+                myfile.Read_String(ddi_method_str, "ddi_method");
+                if( ddi_method_str == "none" )
+                    ddi_method = Engine::DDI_Method::None;
+                else if( ddi_method_str == "fft" )
+                    ddi_method = Engine::DDI_Method::FFT;
+                else if( ddi_method_str == "fmm" )
+                    ddi_method = Engine::DDI_Method::FMM;
+                else if( ddi_method_str == "cutoff" )
+                    ddi_method = Engine::DDI_Method::Cutoff;
+                else
+                {
+                    Log(Log_Level::Warning, Log_Sender::IO, fmt::format(
+                        "Hamiltonian_Heisenberg: Keyword 'ddi_method' got passed invalid method \"{}\". Setting to \"none\".", ddi_method_str));
+                    ddi_method_str = "none";
+                }
 
-                // // Number of periodical images
-                // myfile.Read_3Vector(ddi_n_periodic_images, "ddi_n_periodic_images");
-                // // myfile.Read_Single(ddi_n_periodic_images, "ddi_n_periodic_images");
+                // Number of periodical images
+                myfile.Read_3Vector(ddi_n_periodic_images, "ddi_n_periodic_images");
+                // myfile.Read_Single(ddi_n_periodic_images, "ddi_n_periodic_images");
 
-                // // Dipole-dipole cutoff radius
-                // myfile.Read_Single(ddi_radius, "ddi_radius");
+                // Dipole-dipole cutoff radius
+                myfile.Read_Single(ddi_radius, "ddi_radius");
             }// end try
             catch( ... )
             {
                 spirit_handle_exception_core(fmt::format("Unable to read DDI radius from config file \"{}\"", configFile));
             }
+
         }// end try
         catch( ... )
         {
@@ -1634,6 +1641,9 @@ namespace IO
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<24} = {}", "dmi tensor", dmi_tensor.row(0)));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<24}   {}", " ", dmi_tensor.row(1)));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<24}   {}", " ", dmi_tensor.row(2)));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "ddi_method", ddi_method_str));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = ({} {} {})", "ddi_n_periodic_images", ddi_n_periodic_images[0], ddi_n_periodic_images[1], ddi_n_periodic_images[2]));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "ddi_radius", ddi_radius));
 
         auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Micromagnetic>(new Engine::Hamiltonian_Micromagnetic(
             Ms,
@@ -1641,6 +1651,7 @@ namespace IO
             anisotropy_tensor,
             exchange_tensor,
             dmi_tensor,
+            ddi_method, ddi_n_periodic_images, ddi_radius,
             geometry,
             spatial_gradient_order,
             boundary_conditions

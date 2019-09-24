@@ -8,18 +8,11 @@
 #include "Spirit_Defines.h"
 #include <engine/Vectormath_Defines.hpp>
 #include <engine/Hamiltonian.hpp>
+#include <engine/FFT.hpp>
 #include <data/Geometry.hpp>
 
 namespace Engine
 {
-    // enum class DDI_Method
-    // {
-    //     FFT    = SPIRIT_DDI_METHOD_FFT,
-    //     FMM    = SPIRIT_DDI_METHOD_FMM,
-    //     Cutoff = SPIRIT_DDI_METHOD_CUTOFF,
-    //     None   = SPIRIT_DDI_METHOD_NONE
-    // };
-
     /*
         The Micromagnetic Hamiltonian
     */
@@ -33,6 +26,7 @@ namespace Engine
             Matrix3 anisotropy_tensor,
             Matrix3 exchange_tensor,
             Matrix3 dmi_tensor,
+            DDI_Method ddi_method, intfield ddi_n_periodic_images, scalar ddi_radius,
             std::shared_ptr<Data::Geometry> geometry,
             int spatial_gradient_order,
             intfield boundary_conditions
@@ -45,7 +39,7 @@ namespace Engine
         void Hessian(const vectorfield & spins, MatrixX & hessian) override;
         void Gradient(const vectorfield & spins, vectorfield & gradient) override;
         void Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions) override;
-		void Energy_Update(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions, vectorfield & gradient);
+        void Energy_Update(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions, vectorfield & gradient);
         // Calculate the total energy for a single spin to be used in Monte Carlo.
         //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
         scalar Energy_Single_Spin(int ispin, const vectorfield & spins) override;
@@ -70,9 +64,16 @@ namespace Engine
         Matrix3 exchange_tensor;
         // DMI
         Matrix3 dmi_tensor;
-		pairfield neigh;
-		field<Matrix3> spatial_gradient;
-		bool A_is_nondiagonal=true;
+        pairfield neigh;
+        field<Matrix3> spatial_gradient;
+        bool A_is_nondiagonal=true;
+        // Dipole-dipole interaction
+        DDI_Method  ddi_method;
+        intfield    ddi_n_periodic_images;
+        scalar      ddi_cutoff_radius;
+        pairfield   ddi_pairs;
+        scalarfield ddi_magnitudes;
+        vectorfield ddi_normals;
 
     private:
         // ------------ Effective Field Functions ------------
@@ -84,12 +85,12 @@ namespace Engine
         void Gradient_Exchange(const vectorfield & spins, vectorfield & gradient);
         // Calculate the DMI effective field of a Spin Pair
         void Gradient_DMI(const vectorfield & spins, vectorfield & gradient);
-		void Spatial_Gradient(const vectorfield & spins);
+        void Spatial_Gradient(const vectorfield & spins);
 
         // ------------ Energy Functions ------------
         // Indices for Energy vector
         int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi;
-		void E_Update(const vectorfield & spins, scalarfield & Energy, vectorfield & gradient);
+        void E_Update(const vectorfield & spins, scalarfield & Energy, vectorfield & gradient);
         // Calculate the Zeeman energy of a Spin System
         void E_Zeeman(const vectorfield & spins, scalarfield & Energy);
         // Calculate the Anisotropy energy of a Spin System
@@ -100,6 +101,12 @@ namespace Engine
         void E_DMI(const vectorfield & spins, scalarfield & Energy);
         // Dipolar interactions
         void E_DDI(const vectorfield & spins, scalarfield & Energy);
+
+        // Plans for FT / rFT
+        FFT::FFT_Plan fft_plan_spins;
+        FFT::FFT_Plan fft_plan_reverse;
+
+        field<FFT::FFT_cpx_type> transformed_dipole_matrices;
     };
 
 

@@ -29,12 +29,15 @@ namespace Engine
         Matrix3 anisotropy_tensor,
         Matrix3 exchange_tensor,
         Matrix3 dmi_tensor,
+        DDI_Method ddi_method, intfield ddi_n_periodic_images, scalar ddi_radius,
         std::shared_ptr<Data::Geometry> geometry,
         int spatial_gradient_order,
         intfield boundary_conditions
     ) : Hamiltonian(boundary_conditions), Ms(Ms), spatial_gradient_order(spatial_gradient_order), geometry(geometry),
         external_field_magnitude(external_field_magnitude), external_field_normal(external_field_normal),
-        anisotropy_tensor(anisotropy_tensor), exchange_tensor(exchange_tensor), dmi_tensor(dmi_tensor)
+        anisotropy_tensor(anisotropy_tensor), exchange_tensor(exchange_tensor), dmi_tensor(dmi_tensor),
+        ddi_method(ddi_method), ddi_n_periodic_images(ddi_n_periodic_images), ddi_cutoff_radius(ddi_radius),
+        fft_plan_reverse(FFT::FFT_Plan()), fft_plan_spins(FFT::FFT_Plan())
     {
         // Generate interaction pairs, constants etc.
         this->Update_Interactions();
@@ -310,13 +313,14 @@ namespace Engine
 
     void Hamiltonian_Micromagnetic::Gradient_Zeeman(vectorfield & gradient)
     {
+        // In this context this is magnetisation per cell
         auto& mu_s = this->geometry->mu_s;
 
         #pragma omp parallel for
         for( int icell = 0; icell < geometry->n_cells_total; ++icell )
         {
             if( check_atom_type(this->geometry->atom_types[icell]) )
-                gradient[icell] -= mu_s[icell] * this->external_field_magnitude * this->external_field_normal;
+                gradient[icell] -= mu_s[icell]*C::mu_B * this->external_field_magnitude * this->external_field_normal;
         }
     }
 
