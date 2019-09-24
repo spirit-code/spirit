@@ -26,6 +26,8 @@ signals:
 private slots:
     void clicked_change_hamiltonian();
     void set_boundary_conditions();
+    void set_Ms();
+    void set_external_field();
 
 private:
     void Setup_Input_Validators();

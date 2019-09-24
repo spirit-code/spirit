@@ -9,6 +9,16 @@
 #include <Spirit/Log.h>
 #include <Spirit/Hamiltonian.h>
 
+// Small function for normalization of vectors
+#define Exception_Division_by_zero 6666
+template <typename T>
+void normalize(T v[3])
+{
+    T len = 0.0;
+    for (int i = 0; i < 3; ++i) len += std::pow(v[i], 2);
+    if (len == 0.0) throw Exception_Division_by_zero;
+    for (int i = 0; i < 3; ++i) v[i] /= std::sqrt(len);
+}
 
 HamiltonianMicromagneticWidget::HamiltonianMicromagneticWidget(std::shared_ptr<State> state, SpinWidget * spinWidget)
 {
@@ -43,17 +53,17 @@ void HamiltonianMicromagneticWidget::updateData()
     this->checkBox_aniso_periodical_b->setChecked(boundary_conditions[1]);
     this->checkBox_aniso_periodical_c->setChecked(boundary_conditions[2]);
 
-    // mu_s
+    // Ms
     Geometry_Get_mu_s(state.get(), mu_s.data());
-    this->lineEdit_muSpin_aniso->setText(QString::number(mu_s[0]));
+    this->lineEdit_mm_Ms->setText(QString::number(mu_s[0]));
 
     // External magnetic field
     Hamiltonian_Get_Field(state.get(), &d, vd);
-    this->lineEdit_extH_aniso->setText(QString::number(d));
-    this->lineEdit_extHx_aniso->setText(QString::number(vd[0]));
-    this->lineEdit_extHy_aniso->setText(QString::number(vd[1]));
-    this->lineEdit_extHz_aniso->setText(QString::number(vd[2]));
-    if (d > 0.0) this->checkBox_extH_aniso->setChecked(true);
+    this->lineEdit_mm_field->setText(QString::number(d));
+    this->lineEdit_mm_field_x->setText(QString::number(vd[0]));
+    this->lineEdit_mm_field_y->setText(QString::number(vd[1]));
+    this->lineEdit_mm_field_z->setText(QString::number(vd[2]));
+    if (d > 0.0) this->checkBox_mm_field->setChecked(true);
 
     // Anisotropy
     Hamiltonian_Get_Anisotropy(state.get(), &d, vd);
@@ -85,19 +95,19 @@ void HamiltonianMicromagneticWidget::updateData()
 
     // DDI
     Hamiltonian_Get_DDI(state.get(), &ddi_method, ddi_n_periodic_images, &d);
-    this->checkBox_ddi->setChecked( ddi_method != SPIRIT_DDI_METHOD_NONE );
+    this->checkBox_mm_ddi->setChecked( ddi_method != SPIRIT_DDI_METHOD_NONE );
     if( ddi_method == SPIRIT_DDI_METHOD_NONE )
-        this->comboBox_ddi_method->setCurrentIndex(0);
+        this->comboBox_mm_ddi_method->setCurrentIndex(0);
     else if( ddi_method == SPIRIT_DDI_METHOD_FFT )
-        this->comboBox_ddi_method->setCurrentIndex(0);
+        this->comboBox_mm_ddi_method->setCurrentIndex(0);
     else if( ddi_method == SPIRIT_DDI_METHOD_FMM )
-        this->comboBox_ddi_method->setCurrentIndex(1);
+        this->comboBox_mm_ddi_method->setCurrentIndex(1);
     else if( ddi_method == SPIRIT_DDI_METHOD_CUTOFF )
-        this->comboBox_ddi_method->setCurrentIndex(2);
-    this->spinBox_ddi_n_periodic_a->setValue(ddi_n_periodic_images[0]);
-    this->spinBox_ddi_n_periodic_b->setValue(ddi_n_periodic_images[1]);
-    this->spinBox_ddi_n_periodic_c->setValue(ddi_n_periodic_images[2]);
-    this->doubleSpinBox_ddi_radius->setValue(d);
+        this->comboBox_mm_ddi_method->setCurrentIndex(2);
+    this->spinBox_mm_ddi_n_periodic_a->setValue(ddi_n_periodic_images[0]);
+    this->spinBox_mm_ddi_n_periodic_b->setValue(ddi_n_periodic_images[1]);
+    this->spinBox_mm_ddi_n_periodic_c->setValue(ddi_n_periodic_images[2]);
+    this->doubleSpinBox_mm_ddi_radius->setValue(d);
 }
 
 void HamiltonianMicromagneticWidget::clicked_change_hamiltonian()
@@ -156,6 +166,89 @@ void HamiltonianMicromagneticWidget::set_boundary_conditions()
     this->spinWidget->updateBoundingBoxIndicators();
 }
 
+void HamiltonianMicromagneticWidget::set_Ms()
+{
+    // Closure to set the parameters of a specific spin system
+    auto apply = [this](int idx_image) -> void
+    {
+        // Ms
+        float Ms = this->lineEdit_mm_Ms->text().toFloat();
+        Geometry_Set_mu_s(state.get(), Ms, idx_image);
+    };
+
+    if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
+    {
+        apply(System_Get_Index(state.get()));
+    }
+    else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
+    {
+        for (int i = 0; i<Chain_Get_NOI(state.get()); ++i)
+        {
+            apply(i);
+        }
+    }
+    else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
+    {
+        for (int img = 0; img<Chain_Get_NOI(state.get()); ++img)
+        {
+            apply(img);
+        }
+    }
+}
+
+void HamiltonianMicromagneticWidget::set_external_field()
+{
+    // Closure to set the parameters of a specific spin system
+    auto apply = [this](int idx_image) -> void
+    {
+        float d, vd[3];
+
+        // External magnetic field
+        //      magnitude
+        if( this->checkBox_mm_field->isChecked() ) d = this->lineEdit_mm_field->text().toFloat();
+        else d = 0.0;
+        //      normal
+        vd[0] = lineEdit_mm_field_x->text().toFloat();
+        vd[1] = lineEdit_mm_field_y->text().toFloat();
+        vd[2] = lineEdit_mm_field_z->text().toFloat();
+        try {
+            normalize(vd);
+        }
+        catch (int ex) {
+            if (ex == Exception_Division_by_zero) {
+                vd[0] = 0.0;
+                vd[1] = 0.0;
+                vd[2] = 1.0;
+                Log_Send(state.get(), Log_Level_Warning, Log_Sender_UI, "B_vec = {0,0,0} replaced by {0,0,1}");
+                lineEdit_mm_field_x->setText(QString::number(0.0));
+                lineEdit_mm_field_y->setText(QString::number(0.0));
+                lineEdit_mm_field_z->setText(QString::number(1.0));
+            }
+            else { throw(ex); }
+        }
+        Hamiltonian_Set_Field(state.get(), d, vd, idx_image);
+    };
+
+    if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
+    {
+        apply(System_Get_Index(state.get()));
+    }
+    else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image Chain")
+    {
+        for (int i = 0; i<Chain_Get_NOI(state.get()); ++i)
+        {
+            apply(i);
+        }
+    }
+    else if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "All Images")
+    {
+        for (int img = 0; img<Chain_Get_NOI(state.get()); ++img)
+        {
+            apply(img);
+        }
+    }
+}
+
 
 // -----------------------------------------------------------------------------------
 // --------------------------------- Setup -------------------------------------------
@@ -174,13 +267,13 @@ void HamiltonianMicromagneticWidget::Setup_Input_Validators()
     QRegularExpression re4("[\\d]*");
     this->number_validator_int_unsigned = new QRegularExpressionValidator(re4);
 
-    //      mu_s
-    this->lineEdit_muSpin_aniso->setValidator(this->number_validator);
+    //      Ms
+    this->lineEdit_mm_Ms->setValidator(this->number_validator);
     //      external field
-    this->lineEdit_extH_aniso->setValidator(this->number_validator);
-    this->lineEdit_extHx_aniso->setValidator(this->number_validator);
-    this->lineEdit_extHy_aniso->setValidator(this->number_validator);
-    this->lineEdit_extHz_aniso->setValidator(this->number_validator);
+    this->lineEdit_mm_field->setValidator(this->number_validator);
+    this->lineEdit_mm_field_x->setValidator(this->number_validator);
+    this->lineEdit_mm_field_y->setValidator(this->number_validator);
+    this->lineEdit_mm_field_z->setValidator(this->number_validator);
     //      anisotropy
     this->lineEdit_ani_aniso->setValidator(this->number_validator);
     this->lineEdit_anix_aniso->setValidator(this->number_validator);
@@ -191,8 +284,16 @@ void HamiltonianMicromagneticWidget::Setup_Input_Validators()
 void HamiltonianMicromagneticWidget::Setup_Slots()
 {
     connect(this->pushButton_changeHamiltonian, SIGNAL(clicked()), this, SLOT(clicked_change_hamiltonian()));
-    // Boundary Conditions
+    // Boundary conditions
     connect(this->checkBox_aniso_periodical_a, SIGNAL(stateChanged(int)), this, SLOT(set_boundary_conditions()));
     connect(this->checkBox_aniso_periodical_b, SIGNAL(stateChanged(int)), this, SLOT(set_boundary_conditions()));
     connect(this->checkBox_aniso_periodical_c, SIGNAL(stateChanged(int)), this, SLOT(set_boundary_conditions()));
+    // Ms
+    connect(this->lineEdit_mm_Ms, SIGNAL(returnPressed()), this, SLOT(set_Ms()));
+    // External field
+    connect(this->checkBox_mm_field, SIGNAL(stateChanged(int)), this, SLOT(set_external_field()));
+    connect(this->lineEdit_mm_field, SIGNAL(returnPressed()), this, SLOT(set_external_field()));
+    connect(this->lineEdit_mm_field_x, SIGNAL(returnPressed()), this, SLOT(set_external_field()));
+    connect(this->lineEdit_mm_field_y, SIGNAL(returnPressed()), this, SLOT(set_external_field()));
+    connect(this->lineEdit_mm_field_z, SIGNAL(returnPressed()), this, SLOT(set_external_field()));
 }
