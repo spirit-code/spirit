@@ -5,6 +5,8 @@
 #include <engine/Neighbours.hpp>
 #include <data/Spin_System.hpp>
 #include <utility/Constants.hpp>
+
+#include <iostream>
 #include <algorithm>
 
 #include <Eigen/Dense>
@@ -13,7 +15,7 @@
 
 using namespace Data;
 using namespace Utility;
-namespace C = Utility::Constants_Micromagnetic;
+namespace C = Utility::Constants;
 using Engine::Vectormath::check_atom_type;
 using Engine::Vectormath::idx_from_pair;
 using Engine::Vectormath::idx_from_tupel;
@@ -22,6 +24,7 @@ using Engine::Vectormath::idx_from_tupel;
 namespace Engine
 {
     Hamiltonian_Micromagnetic::Hamiltonian_Micromagnetic(
+        scalar Ms,
         scalar external_field_magnitude, Vector3 external_field_normal,
         Matrix3 anisotropy_tensor,
         Matrix3 exchange_tensor,
@@ -29,23 +32,7 @@ namespace Engine
         std::shared_ptr<Data::Geometry> geometry,
         int spatial_gradient_order,
         intfield boundary_conditions
-    ) : Hamiltonian(boundary_conditions), spatial_gradient_order(spatial_gradient_order), geometry(geometry),
-        external_field_magnitude(external_field_magnitude), external_field_normal(external_field_normal),
-        anisotropy_tensor(anisotropy_tensor), exchange_tensor(exchange_tensor), dmi_tensor(dmi_tensor)
-    {
-        // Generate interaction pairs, constants etc.
-        this->Update_Interactions();
-    }
-
-    Hamiltonian_Micromagnetic::Hamiltonian_Micromagnetic(
-        scalar external_field_magnitude, Vector3 external_field_normal,
-        Matrix3 anisotropy_tensor,
-        scalar exchange_constant,
-        scalar dmi_constant,
-        std::shared_ptr<Data::Geometry> geometry,
-        int spatial_gradient_order,
-        intfield boundary_conditions
-    ) : Hamiltonian(boundary_conditions), spatial_gradient_order(spatial_gradient_order), geometry(geometry),
+    ) : Hamiltonian(boundary_conditions), Ms(Ms), spatial_gradient_order(spatial_gradient_order), geometry(geometry),
         external_field_magnitude(external_field_magnitude), external_field_normal(external_field_normal),
         anisotropy_tensor(anisotropy_tensor), exchange_tensor(exchange_tensor), dmi_tensor(dmi_tensor)
     {
@@ -74,103 +61,103 @@ namespace Engine
 
         // Update, which terms still contribute
 
-		neigh = pairfield(0);
-		Neighbour neigh_tmp;
-		neigh_tmp.i = 0;
-		neigh_tmp.j = 0;
-		neigh_tmp.idx_shell = 0;
-		//order x -x y -y z -z xy (-x)(-y) x(-y) (-x)y xz (-x)(-z) x(-z) (-x)z yz (-y)(-z) y(-z) (-y)z results in 9 parts of Hessian 
-		neigh_tmp.translations[0] = 1;
-		neigh_tmp.translations[1] = 0;
-		neigh_tmp.translations[2] = 0;
-		neigh.push_back(neigh_tmp);
+        neigh = pairfield(0);
+        Neighbour neigh_tmp;
+        neigh_tmp.i = 0;
+        neigh_tmp.j = 0;
+        neigh_tmp.idx_shell = 0;
+        //order x -x y -y z -z xy (-x)(-y) x(-y) (-x)y xz (-x)(-z) x(-z) (-x)z yz (-y)(-z) y(-z) (-y)z results in 9 parts of Hessian
+        neigh_tmp.translations[0] = 1;
+        neigh_tmp.translations[1] = 0;
+        neigh_tmp.translations[2] = 0;
+        neigh.push_back(neigh_tmp);
 
-		neigh_tmp.translations[0] = -1;
-		neigh_tmp.translations[1] = 0;
-		neigh_tmp.translations[2] = 0;
-		neigh.push_back(neigh_tmp);
+        neigh_tmp.translations[0] = -1;
+        neigh_tmp.translations[1] = 0;
+        neigh_tmp.translations[2] = 0;
+        neigh.push_back(neigh_tmp);
 
-		neigh_tmp.translations[0] = 0;
-		neigh_tmp.translations[1] = 1;
-		neigh_tmp.translations[2] = 0;
-		neigh.push_back(neigh_tmp);
+        neigh_tmp.translations[0] = 0;
+        neigh_tmp.translations[1] = 1;
+        neigh_tmp.translations[2] = 0;
+        neigh.push_back(neigh_tmp);
 
-		neigh_tmp.translations[0] = 0;
-		neigh_tmp.translations[1] = -1;
-		neigh_tmp.translations[2] = 0;
-		neigh.push_back(neigh_tmp);
+        neigh_tmp.translations[0] = 0;
+        neigh_tmp.translations[1] = -1;
+        neigh_tmp.translations[2] = 0;
+        neigh.push_back(neigh_tmp);
 
-		neigh_tmp.translations[0] = 0;
-		neigh_tmp.translations[1] = 0;
-		neigh_tmp.translations[2] = 1;
-		neigh.push_back(neigh_tmp);
+        neigh_tmp.translations[0] = 0;
+        neigh_tmp.translations[1] = 0;
+        neigh_tmp.translations[2] = 1;
+        neigh.push_back(neigh_tmp);
 
-		neigh_tmp.translations[0] = 0;
-		neigh_tmp.translations[1] = 0;
-		neigh_tmp.translations[2] = -1;
-		neigh.push_back(neigh_tmp);
+        neigh_tmp.translations[0] = 0;
+        neigh_tmp.translations[1] = 0;
+        neigh_tmp.translations[2] = -1;
+        neigh.push_back(neigh_tmp);
 
-		neigh_tmp.translations[0] = 1;
-		neigh_tmp.translations[1] = 1;
-		neigh_tmp.translations[2] = 0;
-		neigh.push_back(neigh_tmp);
+        neigh_tmp.translations[0] = 1;
+        neigh_tmp.translations[1] = 1;
+        neigh_tmp.translations[2] = 0;
+        neigh.push_back(neigh_tmp);
 
-		neigh_tmp.translations[0] = -1;
-		neigh_tmp.translations[1] = -1;
-		neigh_tmp.translations[2] = 0;
-		neigh.push_back(neigh_tmp);
+        neigh_tmp.translations[0] = -1;
+        neigh_tmp.translations[1] = -1;
+        neigh_tmp.translations[2] = 0;
+        neigh.push_back(neigh_tmp);
 
-		neigh_tmp.translations[0] = 1;
-		neigh_tmp.translations[1] = -1;
-		neigh_tmp.translations[2] = 0;
-		neigh.push_back(neigh_tmp);
+        neigh_tmp.translations[0] = 1;
+        neigh_tmp.translations[1] = -1;
+        neigh_tmp.translations[2] = 0;
+        neigh.push_back(neigh_tmp);
 
-		neigh_tmp.translations[0] = -1;
-		neigh_tmp.translations[1] = +1;
-		neigh_tmp.translations[2] = 0;
-		neigh.push_back(neigh_tmp);
+        neigh_tmp.translations[0] = -1;
+        neigh_tmp.translations[1] = +1;
+        neigh_tmp.translations[2] = 0;
+        neigh.push_back(neigh_tmp);
 
-		neigh_tmp.translations[0] = 1;
-		neigh_tmp.translations[1] = 0;
-		neigh_tmp.translations[2] = 1;
-		neigh.push_back(neigh_tmp);
+        neigh_tmp.translations[0] = 1;
+        neigh_tmp.translations[1] = 0;
+        neigh_tmp.translations[2] = 1;
+        neigh.push_back(neigh_tmp);
 
-		neigh_tmp.translations[0] = -1;
-		neigh_tmp.translations[1] = 0;
-		neigh_tmp.translations[2] = -1;
-		neigh.push_back(neigh_tmp);
+        neigh_tmp.translations[0] = -1;
+        neigh_tmp.translations[1] = 0;
+        neigh_tmp.translations[2] = -1;
+        neigh.push_back(neigh_tmp);
 
-		neigh_tmp.translations[0] = 1;
-		neigh_tmp.translations[1] = 0;
-		neigh_tmp.translations[2] = -1;
-		neigh.push_back(neigh_tmp);
+        neigh_tmp.translations[0] = 1;
+        neigh_tmp.translations[1] = 0;
+        neigh_tmp.translations[2] = -1;
+        neigh.push_back(neigh_tmp);
 
-		neigh_tmp.translations[0] = -1;
-		neigh_tmp.translations[1] = 0;
-		neigh_tmp.translations[2] = 1;
-		neigh.push_back(neigh_tmp);
+        neigh_tmp.translations[0] = -1;
+        neigh_tmp.translations[1] = 0;
+        neigh_tmp.translations[2] = 1;
+        neigh.push_back(neigh_tmp);
 
-		neigh_tmp.translations[0] = 0;
-		neigh_tmp.translations[1] = 1;
-		neigh_tmp.translations[2] = 1;
-		neigh.push_back(neigh_tmp);
+        neigh_tmp.translations[0] = 0;
+        neigh_tmp.translations[1] = 1;
+        neigh_tmp.translations[2] = 1;
+        neigh.push_back(neigh_tmp);
 
-		neigh_tmp.translations[0] = 0;
-		neigh_tmp.translations[1] = -1;
-		neigh_tmp.translations[2] = -1;
-		neigh.push_back(neigh_tmp);
+        neigh_tmp.translations[0] = 0;
+        neigh_tmp.translations[1] = -1;
+        neigh_tmp.translations[2] = -1;
+        neigh.push_back(neigh_tmp);
 
-		neigh_tmp.translations[0] = 0;
-		neigh_tmp.translations[1] = 1;
-		neigh_tmp.translations[2] = -1;
-		neigh.push_back(neigh_tmp);
+        neigh_tmp.translations[0] = 0;
+        neigh_tmp.translations[1] = 1;
+        neigh_tmp.translations[2] = -1;
+        neigh.push_back(neigh_tmp);
 
-		neigh_tmp.translations[0] = 0;
-		neigh_tmp.translations[1] = -1;
-		neigh_tmp.translations[2] = 1;
-		neigh.push_back(neigh_tmp);
+        neigh_tmp.translations[0] = 0;
+        neigh_tmp.translations[1] = -1;
+        neigh_tmp.translations[2] = 1;
+        neigh.push_back(neigh_tmp);
 
-		this->spatial_gradient = field<Matrix3>(geometry->nos, Matrix3::Zero());
+        this->spatial_gradient = field<Matrix3>(geometry->nos, Matrix3::Zero());
         this->Update_Energy_Contributions();
     }
 
@@ -219,7 +206,7 @@ namespace Engine
         // else
             this->idx_ddi = -1;
     }
-	
+
     void Hamiltonian_Micromagnetic::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
     {
         if( contributions.size() != this->energy_contributions_per_spin.size() )
@@ -235,7 +222,7 @@ namespace Engine
             // Otherwise set to zero
             else Vectormath::fill(contrib.second, 0);
         }
-		
+
         // External field
         if( this->idx_zeeman >=0 )     E_Zeeman(spins, contributions[idx_zeeman].second);
 
@@ -244,6 +231,7 @@ namespace Engine
 
         // Exchange
         if( this->idx_exchange >=0 )   E_Exchange(spins, contributions[idx_exchange].second);
+
         // DMI
         if( this->idx_dmi >=0 )        E_DMI(spins,contributions[idx_dmi].second);
     }
@@ -260,20 +248,19 @@ namespace Engine
         }
     }
 
-	void Hamiltonian_Micromagnetic::E_Update(const vectorfield & spins, scalarfield & Energy, vectorfield & gradient) {
-		scalar Ms = 1.4e6;
-		#pragma omp parallel for
-		for (int icell = 0; icell < geometry->n_cells_total; ++icell)
-		{
-			Energy[icell] -= 0.5 *Ms* gradient[icell].dot(spins[icell]);
-		}
-	}
+    void Hamiltonian_Micromagnetic::E_Update(const vectorfield & spins, scalarfield & Energy, vectorfield & gradient) {
+        #pragma omp parallel for
+        for( int icell = 0; icell < geometry->n_cells_total; ++icell )
+        {
+            Energy[icell] -= 0.5 * Ms * gradient[icell].dot(spins[icell]);
+        }
+    }
 
     void Hamiltonian_Micromagnetic::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
     {
     }
 
-	void Hamiltonian_Micromagnetic::E_Exchange(const vectorfield & spins, scalarfield & Energy)
+    void Hamiltonian_Micromagnetic::E_Exchange(const vectorfield & spins, scalarfield & Energy)
     {
     }
 
@@ -293,14 +280,11 @@ namespace Engine
     }
 
 
-	void Hamiltonian_Micromagnetic::Gradient(const vectorfield & spins, vectorfield & gradient)
+    void Hamiltonian_Micromagnetic::Gradient(const vectorfield & spins, vectorfield & gradient)
     {
-		// std::cout << this->boundary_conditions[0] << std::endl;
-		// std::cout << boundary_conditions[0] << std::endl;	
-
         // Set to zero
         Vectormath::fill(gradient, {0,0,0});
-		this->Spatial_Gradient(spins);
+        this->Spatial_Gradient(spins);
 
         // External field
         this->Gradient_Zeeman(gradient);
@@ -313,15 +297,14 @@ namespace Engine
 
         // DMI
         this->Gradient_DMI(spins, gradient);
-		scalar Ms = 1.4e6;
-		double energy=0;
-		#pragma omp parallel for reduction(-:energy)
-		for (int icell = 0; icell < geometry->n_cells_total; ++icell)
-		{
-			energy -= 0.5 *Ms* gradient[icell].dot(spins[icell]);
-		}
-		// printf("Energy total: %f\n", energy/ geometry->n_cells_total);
 
+        // double energy=0;
+        // #pragma omp parallel for reduction(-:energy)
+        // for( int icell = 0; icell < geometry->n_cells_total; ++icell )
+        // {
+        //     energy -= 0.5 * Ms * gradient[icell].dot(spins[icell]);
+        // }
+        // printf("Energy total: %f\n", energy/ geometry->n_cells_total);
     }
 
 
@@ -339,259 +322,253 @@ namespace Engine
 
     void Hamiltonian_Micromagnetic::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
     {
-		scalar Ms = 1.4e6;
-		Vector3 temp1{ 1,0,0 };
-		Vector3 temp2{ 0,1,0 };
-		Vector3 temp3{ 0,0,1 };
-		#pragma omp parallel for
-		for (int icell = 0; icell < geometry->n_cells_total; ++icell)
-		{
-			for (int iani = 0; iani < 1; ++iani)
-			{
-				int ispin = icell;
-				gradient[ispin] -= 2.0 * 8.44e6 / Ms * temp3 * temp3.dot(spins[ispin]);
-				//gradient[ispin] -= 2.0 * this->anisotropy_magnitudes[iani] / Ms * ((pow(temp2.dot(spins[ispin]),2)+ pow(temp3.dot(spins[ispin]), 2))*(temp1.dot(spins[ispin])*temp1)+ (pow(temp1.dot(spins[ispin]), 2) + pow(temp3.dot(spins[ispin]), 2))*(temp2.dot(spins[ispin])*temp2)+(pow(temp1.dot(spins[ispin]),2)+ pow(temp2.dot(spins[ispin]), 2))*(temp3.dot(spins[ispin])*temp3));
-				//gradient[ispin] += 2.0 * 50000 / Ms * ((pow(temp2.dot(spins[ispin]), 2) + pow(temp3.dot(spins[ispin]), 2))*(temp1.dot(spins[ispin])*temp1) + (pow(temp1.dot(spins[ispin]), 2) + pow(temp3.dot(spins[ispin]), 2))*(temp2.dot(spins[ispin])*temp2));
-
-			}
-		}
+        Vector3 temp1{ 1,0,0 };
+        Vector3 temp2{ 0,1,0 };
+        Vector3 temp3{ 0,0,1 };
+        #pragma omp parallel for
+        for( int icell = 0; icell < geometry->n_cells_total; ++icell )
+        {
+            // for( int iani = 0; iani < 1; ++iani )
+            // {
+                // gradient[icell] -= 2.0 * 8.44e6 / Ms * temp3 * temp3.dot(spins[icell]);
+                gradient[icell] -= 2.0 * C::mu_B * anisotropy_tensor * spins[icell] / Ms;
+                //gradient[icell] -= 2.0 * this->anisotropy_magnitudes[iani] / Ms * ((pow(temp2.dot(spins[icell]),2)+ pow(temp3.dot(spins[icell]), 2))*(temp1.dot(spins[icell])*temp1)+ (pow(temp1.dot(spins[icell]), 2) + pow(temp3.dot(spins[icell]), 2))*(temp2.dot(spins[icell])*temp2)+(pow(temp1.dot(spins[icell]),2)+ pow(temp2.dot(spins[icell]), 2))*(temp3.dot(spins[icell])*temp3));
+                //gradient[icell] += 2.0 * 50000 / Ms * ((pow(temp2.dot(spins[icell]), 2) + pow(temp3.dot(spins[icell]), 2))*(temp1.dot(spins[icell])*temp1) + (pow(temp1.dot(spins[icell]), 2) + pow(temp3.dot(spins[icell]), 2))*(temp2.dot(spins[icell])*temp2));
+            // }
+        }
     }
 
     void Hamiltonian_Micromagnetic::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
     {
-		scalar delta[3] = { 3e-11,3e-11,3e-10 };
-		scalar Ms = 1.4e6;
-		//nongradient implementation
-		/*
-		#pragma omp parallel for
-		for (unsigned int icell = 0; icell < geometry->n_cells_total; ++icell)
-		{
-			int ispin = icell;//basically id of a cell
-			for (unsigned int i = 0; i < 3; ++i)
-			{
+        auto& delta = geometry->cell_size;
+        // scalar delta[3] = { 3e-10, 3e-10, 3e-9 };
+        // scalar delta[3] = { 277e-12, 277e-12, 277e-12 };
 
-				int ispin_plus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[i]);
-				int ispin_minus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[i + 1]);
-				if (ispin_plus == -1) {
-					ispin_plus = ispin;
-				}
-				if (ispin_minus == -1) {
-					ispin_minus = ispin;
-				}
-				gradient[ispin][i] -= exchange_tensor(i, i)*(spins[ispin_plus][i] - 2 * spins[ispin][i] + spins[ispin_minus][i]) / (delta[i]) / (delta[i]);
+        //nongradient implementation
+        /*
+        #pragma omp parallel for
+        for (unsigned int icell = 0; icell < geometry->n_cells_total; ++icell)
+        {
+            int ispin = icell;//basically id of a cell
+            for (unsigned int i = 0; i < 3; ++i)
+            {
 
-			}
-			if (A_is_nondiagonal == true) {
-				int ispin_plus_plus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[6]);
-				int ispin_minus_minus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[7]);
-				int ispin_plus_minus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[8]);
-				int ispin_minus_plus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[9]);
+                int ispin_plus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[i]);
+                int ispin_minus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[i + 1]);
+                if (ispin_plus == -1) {
+                    ispin_plus = ispin;
+                }
+                if (ispin_minus == -1) {
+                    ispin_minus = ispin;
+                }
+                gradient[ispin][i] -= exchange_tensor(i, i)*(spins[ispin_plus][i] - 2 * spins[ispin][i] + spins[ispin_minus][i]) / (delta[i]) / (delta[i]);
 
-				if (ispin_plus_plus == -1) {
-					ispin_plus_plus = ispin;
-				}
-				if (ispin_minus_minus == -1) {
-					ispin_minus_minus = ispin;
-				}
-				if (ispin_plus_minus == -1) {
-					ispin_plus_minus = ispin;
-				}
-				if (ispin_minus_plus == -1) {
-					ispin_minus_plus = ispin;
-				}
-				gradient[ispin][0] -= exchange_tensor(0, 1)*(spins[ispin_plus_plus][1] - spins[ispin_plus_minus][1] - spins[ispin_minus_plus][1] + spins[ispin_minus_minus][1]) / (delta[0]) / (delta[1]) / 4;
-				gradient[ispin][1] -= exchange_tensor(1, 0)*(spins[ispin_plus_plus][0] - spins[ispin_plus_minus][0] - spins[ispin_minus_plus][0] + spins[ispin_minus_minus][0]) / (delta[0]) / (delta[1]) / 4;
+            }
+            if (A_is_nondiagonal == true) {
+                int ispin_plus_plus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[6]);
+                int ispin_minus_minus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[7]);
+                int ispin_plus_minus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[8]);
+                int ispin_minus_plus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[9]);
 
-				ispin_plus_plus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[10]);
-				ispin_minus_minus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[11]);
-				ispin_plus_minus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[12]);
-				ispin_minus_plus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[13]);
+                if (ispin_plus_plus == -1) {
+                    ispin_plus_plus = ispin;
+                }
+                if (ispin_minus_minus == -1) {
+                    ispin_minus_minus = ispin;
+                }
+                if (ispin_plus_minus == -1) {
+                    ispin_plus_minus = ispin;
+                }
+                if (ispin_minus_plus == -1) {
+                    ispin_minus_plus = ispin;
+                }
+                gradient[ispin][0] -= exchange_tensor(0, 1)*(spins[ispin_plus_plus][1] - spins[ispin_plus_minus][1] - spins[ispin_minus_plus][1] + spins[ispin_minus_minus][1]) / (delta[0]) / (delta[1]) / 4;
+                gradient[ispin][1] -= exchange_tensor(1, 0)*(spins[ispin_plus_plus][0] - spins[ispin_plus_minus][0] - spins[ispin_minus_plus][0] + spins[ispin_minus_minus][0]) / (delta[0]) / (delta[1]) / 4;
 
-				if (ispin_plus_plus == -1) {
-					ispin_plus_plus = ispin;
-				}
-				if (ispin_minus_minus == -1) {
-					ispin_minus_minus = ispin;
-				}
-				if (ispin_plus_minus == -1) {
-					ispin_plus_minus = ispin;
-				}
-				if (ispin_minus_plus == -1) {
-					ispin_minus_plus = ispin;
-				}
-				gradient[ispin][0] -= exchange_tensor(0, 2)*(spins[ispin_plus_plus][2] - spins[ispin_plus_minus][2] - spins[ispin_minus_plus][2] + spins[ispin_minus_minus][2]) / (delta[0]) / (delta[2]) / 4;
-				gradient[ispin][2] -= exchange_tensor(2, 0)*(spins[ispin_plus_plus][0] - spins[ispin_plus_minus][0] - spins[ispin_minus_plus][0] + spins[ispin_minus_minus][0]) / (delta[0]) / (delta[2]) / 4;
+                ispin_plus_plus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[10]);
+                ispin_minus_minus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[11]);
+                ispin_plus_minus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[12]);
+                ispin_minus_plus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[13]);
 
-				ispin_plus_plus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[14]);
-				ispin_minus_minus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[15]);
-				ispin_plus_minus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[16]);
-				ispin_minus_plus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[17]);
+                if (ispin_plus_plus == -1) {
+                    ispin_plus_plus = ispin;
+                }
+                if (ispin_minus_minus == -1) {
+                    ispin_minus_minus = ispin;
+                }
+                if (ispin_plus_minus == -1) {
+                    ispin_plus_minus = ispin;
+                }
+                if (ispin_minus_plus == -1) {
+                    ispin_minus_plus = ispin;
+                }
+                gradient[ispin][0] -= exchange_tensor(0, 2)*(spins[ispin_plus_plus][2] - spins[ispin_plus_minus][2] - spins[ispin_minus_plus][2] + spins[ispin_minus_minus][2]) / (delta[0]) / (delta[2]) / 4;
+                gradient[ispin][2] -= exchange_tensor(2, 0)*(spins[ispin_plus_plus][0] - spins[ispin_plus_minus][0] - spins[ispin_minus_plus][0] + spins[ispin_minus_minus][0]) / (delta[0]) / (delta[2]) / 4;
 
-				if (ispin_plus_plus == -1) {
-					ispin_plus_plus = ispin;
-				}
-				if (ispin_minus_minus == -1) {
-					ispin_minus_minus = ispin;
-				}
-				if (ispin_plus_minus == -1) {
-					ispin_plus_minus = ispin;
-				}
-				if (ispin_minus_plus == -1) {
-					ispin_minus_plus = ispin;
-				}
-				gradient[ispin][1] -= exchange_tensor(1, 2)*(spins[ispin_plus_plus][2] - spins[ispin_plus_minus][2] - spins[ispin_minus_plus][2] + spins[ispin_minus_minus][2]) / (delta[1]) / (delta[2]) / 4;
-				gradient[ispin][2] -= exchange_tensor(2, 1)*(spins[ispin_plus_plus][1] - spins[ispin_plus_minus][1] - spins[ispin_minus_plus][1] + spins[ispin_minus_minus][1]) / (delta[1]) / (delta[2]) / 4;
-			}
+                ispin_plus_plus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[14]);
+                ispin_minus_minus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[15]);
+                ispin_plus_minus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[16]);
+                ispin_minus_plus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[17]);
 
-		}*/
+                if (ispin_plus_plus == -1) {
+                    ispin_plus_plus = ispin;
+                }
+                if (ispin_minus_minus == -1) {
+                    ispin_minus_minus = ispin;
+                }
+                if (ispin_plus_minus == -1) {
+                    ispin_plus_minus = ispin;
+                }
+                if (ispin_minus_plus == -1) {
+                    ispin_minus_plus = ispin;
+                }
+                gradient[ispin][1] -= exchange_tensor(1, 2)*(spins[ispin_plus_plus][2] - spins[ispin_plus_minus][2] - spins[ispin_minus_plus][2] + spins[ispin_minus_minus][2]) / (delta[1]) / (delta[2]) / 4;
+                gradient[ispin][2] -= exchange_tensor(2, 1)*(spins[ispin_plus_plus][1] - spins[ispin_plus_minus][1] - spins[ispin_minus_plus][1] + spins[ispin_minus_minus][1]) / (delta[1]) / (delta[2]) / 4;
+            }
 
-		//gradient implementation
-		#pragma omp parallel for
-		for (unsigned int icell = 0; icell < geometry->n_cells_total; ++icell)
-		{
-			int ispin = icell;//basically id of a cell
-			for (unsigned int i = 0; i < 3; ++i)
-			{
+        }*/
 
-				int ispin_plus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[2*i]);
-				int ispin_minus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[2*i + 1]);
-				if (ispin_plus == -1) {
-					ispin_plus = ispin;
-				}
-				if (ispin_minus == -1) {
-					ispin_minus = ispin;
-				}
-				
-				gradient[ispin][0] -= 2 * exchange_tensor(i, i) / Ms *(spins[ispin_plus][0] - 2 * spins[ispin][0] + spins[ispin_minus][0]) / (delta[i]) / (delta[i]);
-				gradient[ispin][1] -= 2 * exchange_tensor(i, i) / Ms * (spins[ispin_plus][1] - 2 * spins[ispin][1] + spins[ispin_minus][1]) / (delta[i]) / (delta[i]);
-				gradient[ispin][2] -= 2 * exchange_tensor(i, i) / Ms * (spins[ispin_plus][2] - 2 * spins[ispin][2] + spins[ispin_minus][2]) / (delta[i]) / (delta[i]);
+        // Gradient implementation
+        #pragma omp parallel for
+        for( unsigned int icell = 0; icell < geometry->n_cells_total; ++icell )
+        {
+            for( unsigned int i = 0; i < 3; ++i )
+            {
+                int icell_plus  = idx_from_pair(icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[2*i]);
+                int icell_minus = idx_from_pair(icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[2*i+1]);
 
-			}
-			if (this->A_is_nondiagonal == true) {
-				//xy
-				int ispin_right = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[0]);
-				int ispin_left = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[1]);
-				int ispin_top = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[2]);
-				int ispin_bottom = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[3]);
+                if( icell_plus >= 0 || icell_minus >= 0 )
+                {
+                    if( icell_plus == -1 )
+                        icell_plus = icell;
+                    if( icell_minus == -1 )
+                        icell_minus = icell;
 
-				if (ispin_right == -1) {
-					ispin_right = ispin;
-				}
-				if (ispin_left == -1) {
-					ispin_left = ispin;
-				}
-				if (ispin_top == -1) {
-					ispin_top = ispin;
-				}
-				if (ispin_bottom == -1) {
-					ispin_bottom = ispin;
-				}
-				gradient[ispin][0] -= exchange_tensor(0, 1) / Ms *((spatial_gradient[ispin_top](0, 0) - spatial_gradient[ispin_bottom](0, 0)) / 4 / delta[1] + (spatial_gradient[ispin_right](0, 1) - spatial_gradient[ispin_left](0, 1)) / 4 / delta[0]);
-				gradient[ispin][0] -= exchange_tensor(1, 0) / Ms * ((spatial_gradient[ispin_top](0, 0) - spatial_gradient[ispin_bottom](0, 0)) / 4 / delta[1] + (spatial_gradient[ispin_right](0, 1) - spatial_gradient[ispin_left](0, 1)) / 4 / delta[0]);
-				gradient[ispin][1] -= exchange_tensor(0, 1) / Ms * ((spatial_gradient[ispin_top](1, 0) - spatial_gradient[ispin_bottom](1, 0)) / 4 / delta[1] + (spatial_gradient[ispin_right](1, 1) - spatial_gradient[ispin_left](1, 1)) / 4 / delta[0]);
-				gradient[ispin][1] -= exchange_tensor(1, 0) / Ms *((spatial_gradient[ispin_top](1, 0) - spatial_gradient[ispin_bottom](1, 0)) / 4 / delta[1] + (spatial_gradient[ispin_right](1, 1) - spatial_gradient[ispin_left](1, 1)) / 4 / delta[0]);
-				gradient[ispin][2] -= exchange_tensor(0, 1) / Ms * ((spatial_gradient[ispin_top](2, 0) - spatial_gradient[ispin_bottom](2, 0)) / 4 / delta[1] + (spatial_gradient[ispin_right](2, 1) - spatial_gradient[ispin_left](2, 1)) / 4 / delta[0]);
-				gradient[ispin][2] -= exchange_tensor(1, 0) / Ms * ((spatial_gradient[ispin_top](2, 0) - spatial_gradient[ispin_bottom](2, 0)) / 4 / delta[1] + (spatial_gradient[ispin_right](2, 1) - spatial_gradient[ispin_left](2, 1)) / 4 / delta[0]);
+                    gradient[icell] -= 2 * C::mu_B * exchange_tensor * (spins[icell_plus] - 2*spins[icell] + spins[icell_minus]) / (Ms*delta[i]*delta[i]);
+                }
 
-				//xz
-				ispin_right = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[0]);
-				ispin_left = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[1]);
-				ispin_top = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[4]);
-				ispin_bottom = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[5]);
+                // gradient[icell][0] -= 2*exchange_tensor(i, i) / Ms * (spins[icell_plus][0] - 2*spins[icell][0] + spins[icell_minus][0]) / (delta[i]) / (delta[i]);
+                // gradient[icell][1] -= 2*exchange_tensor(i, i) / Ms * (spins[icell_plus][1] - 2*spins[icell][1] + spins[icell_minus][1]) / (delta[i]) / (delta[i]);
+                // gradient[icell][2] -= 2*exchange_tensor(i, i) / Ms * (spins[icell_plus][2] - 2*spins[icell][2] + spins[icell_minus][2]) / (delta[i]) / (delta[i]);
+            }
+            // if( this->A_is_nondiagonal )
+            // {
+            //     int ispin = icell;
 
-				if (ispin_right == -1) {
-					ispin_right = ispin;
-				}
-				if (ispin_left == -1) {
-					ispin_left = ispin;
-				}
-				if (ispin_top == -1) {
-					ispin_top = ispin;
-				}
-				if (ispin_bottom == -1) {
-					ispin_bottom = ispin;
-				}
-				gradient[ispin][0] -= exchange_tensor(0, 2) / Ms * ((spatial_gradient[ispin_top](0, 0) - spatial_gradient[ispin_bottom](0, 0)) / 4 / delta[2] + (spatial_gradient[ispin_right](0, 2) - spatial_gradient[ispin_left](0, 2)) / 4 / delta[0]);
-				gradient[ispin][0] -= exchange_tensor(2, 0) / Ms * ((spatial_gradient[ispin_top](0, 0) - spatial_gradient[ispin_bottom](0, 0)) / 4 / delta[2] + (spatial_gradient[ispin_right](0, 2) - spatial_gradient[ispin_left](0, 2)) / 4 / delta[0]);
-				gradient[ispin][1] -= exchange_tensor(0, 2) / Ms * ((spatial_gradient[ispin_top](1, 0) - spatial_gradient[ispin_bottom](1, 0)) / 4 / delta[2] + (spatial_gradient[ispin_right](1, 2) - spatial_gradient[ispin_left](1, 2)) / 4 / delta[0]);
-				gradient[ispin][1] -= exchange_tensor(2, 0) / Ms * ((spatial_gradient[ispin_top](1, 0) - spatial_gradient[ispin_bottom](1, 0)) / 4 / delta[2] + (spatial_gradient[ispin_right](1, 2) - spatial_gradient[ispin_left](1, 2)) / 4 / delta[0]);
-				gradient[ispin][2] -= exchange_tensor(0, 2) / Ms * ((spatial_gradient[ispin_top](2, 0) - spatial_gradient[ispin_bottom](2, 0)) / 4 / delta[2] + (spatial_gradient[ispin_right](2, 2) - spatial_gradient[ispin_left](2, 2)) / 4 / delta[0]);
-				gradient[ispin][2] -= exchange_tensor(2, 0) / Ms * ((spatial_gradient[ispin_top](2, 0) - spatial_gradient[ispin_bottom](2, 0)) / 4 / delta[2] + (spatial_gradient[ispin_right](2, 2) - spatial_gradient[ispin_left](2, 2)) / 4 / delta[0]);
+            //     // xy
+            //     int ispin_right  = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[0]);
+            //     int ispin_left   = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[1]);
+            //     int ispin_top    = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[2]);
+            //     int ispin_bottom = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[3]);
 
-				//yz
-				ispin_right = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[2]);
-				ispin_left = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[3]);
-				ispin_top = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[4]);
-				ispin_bottom = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[5]);
+            //     if( ispin_right == -1 )
+            //         ispin_right = ispin;
+            //     if( ispin_left == -1 )
+            //         ispin_left = ispin;
+            //     if( ispin_top == -1 )
+            //         ispin_top = ispin;
+            //     if( ispin_bottom == -1 )
+            //         ispin_bottom = ispin;
 
-				if (ispin_right == -1) {
-					ispin_right = ispin;
-				}
-				if (ispin_left == -1) {
-					ispin_left = ispin;
-				}
-				if (ispin_top == -1) {
-					ispin_top = ispin;
-				}
-				if (ispin_bottom == -1) {
-					ispin_bottom = ispin;
-				}		
-				gradient[ispin][0] -= exchange_tensor(1, 2) / Ms * ((spatial_gradient[ispin_top](0, 1) - spatial_gradient[ispin_bottom](0, 1)) / 4 / delta[2] + (spatial_gradient[ispin_right](0, 2) - spatial_gradient[ispin_left](0, 2)) / 4 / delta[0]);
-				gradient[ispin][0] -= exchange_tensor(2, 1) / Ms * ((spatial_gradient[ispin_top](0, 1) - spatial_gradient[ispin_bottom](0, 1)) / 4 / delta[2] + (spatial_gradient[ispin_right](0, 2) - spatial_gradient[ispin_left](0, 2)) / 4 / delta[0]);
-				gradient[ispin][1] -= exchange_tensor(1, 2) / Ms * ((spatial_gradient[ispin_top](1, 1) - spatial_gradient[ispin_bottom](1, 1)) / 4 / delta[2] + (spatial_gradient[ispin_right](1, 2) - spatial_gradient[ispin_left](1, 2)) / 4 / delta[0]);
-				gradient[ispin][1] -= exchange_tensor(2, 1) / Ms * ((spatial_gradient[ispin_top](1, 1) - spatial_gradient[ispin_bottom](1, 1)) / 4 / delta[2] + (spatial_gradient[ispin_right](1, 2) - spatial_gradient[ispin_left](1, 2)) / 4 / delta[0]);
-				gradient[ispin][2] -= exchange_tensor(1, 2) / Ms * ((spatial_gradient[ispin_top](2, 1) - spatial_gradient[ispin_bottom](2, 1)) / 4 / delta[2] + (spatial_gradient[ispin_right](2, 2) - spatial_gradient[ispin_left](2, 2)) / 4 / delta[0]);
-				gradient[ispin][2] -= exchange_tensor(2, 1) / Ms * ((spatial_gradient[ispin_top](2, 1) - spatial_gradient[ispin_bottom](2, 1)) / 4 / delta[2] + (spatial_gradient[ispin_right](2, 2) - spatial_gradient[ispin_left](2, 2)) / 4 / delta[0]);
+            //     gradient[ispin][0] -= 2*exchange_tensor(0, 1) / Ms * ((spatial_gradient[ispin_top](0, 0) - spatial_gradient[ispin_bottom](0, 0)) / 4 / delta[1] + (spatial_gradient[ispin_right](0, 1) - spatial_gradient[ispin_left](0, 1)) / 4 / delta[0]);
+            //     gradient[ispin][0] -= 2*exchange_tensor(1, 0) / Ms * ((spatial_gradient[ispin_top](0, 0) - spatial_gradient[ispin_bottom](0, 0)) / 4 / delta[1] + (spatial_gradient[ispin_right](0, 1) - spatial_gradient[ispin_left](0, 1)) / 4 / delta[0]);
+            //     gradient[ispin][1] -= 2*exchange_tensor(0, 1) / Ms * ((spatial_gradient[ispin_top](1, 0) - spatial_gradient[ispin_bottom](1, 0)) / 4 / delta[1] + (spatial_gradient[ispin_right](1, 1) - spatial_gradient[ispin_left](1, 1)) / 4 / delta[0]);
+            //     gradient[ispin][1] -= 2*exchange_tensor(1, 0) / Ms * ((spatial_gradient[ispin_top](1, 0) - spatial_gradient[ispin_bottom](1, 0)) / 4 / delta[1] + (spatial_gradient[ispin_right](1, 1) - spatial_gradient[ispin_left](1, 1)) / 4 / delta[0]);
+            //     gradient[ispin][2] -= 2*exchange_tensor(0, 1) / Ms * ((spatial_gradient[ispin_top](2, 0) - spatial_gradient[ispin_bottom](2, 0)) / 4 / delta[1] + (spatial_gradient[ispin_right](2, 1) - spatial_gradient[ispin_left](2, 1)) / 4 / delta[0]);
+            //     gradient[ispin][2] -= 2*exchange_tensor(1, 0) / Ms * ((spatial_gradient[ispin_top](2, 0) - spatial_gradient[ispin_bottom](2, 0)) / 4 / delta[1] + (spatial_gradient[ispin_right](2, 1) - spatial_gradient[ispin_left](2, 1)) / 4 / delta[0]);
 
-			}
+            //     // xz
+            //     ispin_right  = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[0]);
+            //     ispin_left   = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[1]);
+            //     ispin_top    = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[4]);
+            //     ispin_bottom = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[5]);
 
-		}
-		
+            //     if( ispin_right == -1 )
+            //         ispin_right = ispin;
+            //     if( ispin_left == -1 )
+            //         ispin_left = ispin;
+            //     if( ispin_top == -1 )
+            //         ispin_top = ispin;
+            //     if( ispin_bottom == -1 )
+            //         ispin_bottom = ispin;
+
+            //     gradient[ispin][0] -= 2*exchange_tensor(0, 2) / Ms * ((spatial_gradient[ispin_top](0, 0) - spatial_gradient[ispin_bottom](0, 0)) / 4 / delta[2] + (spatial_gradient[ispin_right](0, 2) - spatial_gradient[ispin_left](0, 2)) / 4 / delta[0]);
+            //     gradient[ispin][0] -= 2*exchange_tensor(2, 0) / Ms * ((spatial_gradient[ispin_top](0, 0) - spatial_gradient[ispin_bottom](0, 0)) / 4 / delta[2] + (spatial_gradient[ispin_right](0, 2) - spatial_gradient[ispin_left](0, 2)) / 4 / delta[0]);
+            //     gradient[ispin][1] -= 2*exchange_tensor(0, 2) / Ms * ((spatial_gradient[ispin_top](1, 0) - spatial_gradient[ispin_bottom](1, 0)) / 4 / delta[2] + (spatial_gradient[ispin_right](1, 2) - spatial_gradient[ispin_left](1, 2)) / 4 / delta[0]);
+            //     gradient[ispin][1] -= 2*exchange_tensor(2, 0) / Ms * ((spatial_gradient[ispin_top](1, 0) - spatial_gradient[ispin_bottom](1, 0)) / 4 / delta[2] + (spatial_gradient[ispin_right](1, 2) - spatial_gradient[ispin_left](1, 2)) / 4 / delta[0]);
+            //     gradient[ispin][2] -= 2*exchange_tensor(0, 2) / Ms * ((spatial_gradient[ispin_top](2, 0) - spatial_gradient[ispin_bottom](2, 0)) / 4 / delta[2] + (spatial_gradient[ispin_right](2, 2) - spatial_gradient[ispin_left](2, 2)) / 4 / delta[0]);
+            //     gradient[ispin][2] -= 2*exchange_tensor(2, 0) / Ms * ((spatial_gradient[ispin_top](2, 0) - spatial_gradient[ispin_bottom](2, 0)) / 4 / delta[2] + (spatial_gradient[ispin_right](2, 2) - spatial_gradient[ispin_left](2, 2)) / 4 / delta[0]);
+
+            //     // yz
+            //     ispin_right  = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[2]);
+            //     ispin_left   = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[3]);
+            //     ispin_top    = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[4]);
+            //     ispin_bottom = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[5]);
+
+            //     if( ispin_right == -1 )
+            //         ispin_right = ispin;
+            //     if( ispin_left == -1 )
+            //         ispin_left = ispin;
+            //     if( ispin_top == -1 )
+            //         ispin_top = ispin;
+            //     if( ispin_bottom == -1 )
+            //         ispin_bottom = ispin;
+
+            //     gradient[ispin][0] -= 2 * exchange_tensor(1, 2) / Ms * ((spatial_gradient[ispin_top](0, 1) - spatial_gradient[ispin_bottom](0, 1)) / 4 / delta[2] + (spatial_gradient[ispin_right](0, 2) - spatial_gradient[ispin_left](0, 2)) / 4 / delta[0]);
+            //     gradient[ispin][0] -= 2 * exchange_tensor(2, 1) / Ms * ((spatial_gradient[ispin_top](0, 1) - spatial_gradient[ispin_bottom](0, 1)) / 4 / delta[2] + (spatial_gradient[ispin_right](0, 2) - spatial_gradient[ispin_left](0, 2)) / 4 / delta[0]);
+            //     gradient[ispin][1] -= 2 * exchange_tensor(1, 2) / Ms * ((spatial_gradient[ispin_top](1, 1) - spatial_gradient[ispin_bottom](1, 1)) / 4 / delta[2] + (spatial_gradient[ispin_right](1, 2) - spatial_gradient[ispin_left](1, 2)) / 4 / delta[0]);
+            //     gradient[ispin][1] -= 2 * exchange_tensor(2, 1) / Ms * ((spatial_gradient[ispin_top](1, 1) - spatial_gradient[ispin_bottom](1, 1)) / 4 / delta[2] + (spatial_gradient[ispin_right](1, 2) - spatial_gradient[ispin_left](1, 2)) / 4 / delta[0]);
+            //     gradient[ispin][2] -= 2 * exchange_tensor(1, 2) / Ms * ((spatial_gradient[ispin_top](2, 1) - spatial_gradient[ispin_bottom](2, 1)) / 4 / delta[2] + (spatial_gradient[ispin_right](2, 2) - spatial_gradient[ispin_left](2, 2)) / 4 / delta[0]);
+            //     gradient[ispin][2] -= 2 * exchange_tensor(2, 1) / Ms * ((spatial_gradient[ispin_top](2, 1) - spatial_gradient[ispin_bottom](2, 1)) / 4 / delta[2] + (spatial_gradient[ispin_right](2, 2) - spatial_gradient[ispin_left](2, 2)) / 4 / delta[0]);
+
+            // }
+        }
     }
 
-	void Hamiltonian_Micromagnetic::Spatial_Gradient(const vectorfield & spins) {
-		scalar delta[3] = { 3e-11,3e-11,3e-10 };
-		/*
-		dn1/dr1 dn1/dr2 dn1/dr3
-		dn2/dr1 dn2/dr2 dn2/dr3
-		dn3/dr1 dn3/dr2 dn3/dr3
-		*/
-		#pragma omp parallel for
-		for (unsigned int icell = 0; icell < geometry->n_cells_total; ++icell)
-		{
-			int ispin = icell;//basically id of a cell
-			for (unsigned int i = 0; i < 3; ++i)
-			{
-				int ispin_plus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[2*i]);
-				int ispin_minus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[2*i + 1]);
-				if (ispin_plus == -1) {
-					ispin_plus = ispin;
-				}
-				if (ispin_minus == -1) {
-					ispin_minus = ispin;
-				}
-				spatial_gradient[ispin](0, i) = (spins[ispin_plus][0] - spins[ispin_minus][0]) / (delta[i]) / 2;
-				spatial_gradient[ispin](1, i) = (spins[ispin_plus][1] - spins[ispin_minus][1]) / (delta[i]) / 2;
-				spatial_gradient[ispin](2, i) = (spins[ispin_plus][2] - spins[ispin_minus][2]) / (delta[i]) / 2;
+    void Hamiltonian_Micromagnetic::Spatial_Gradient(const vectorfield & spins)
+    {
+        auto& delta = geometry->cell_size;
+        // scalar delta[3] = { 3e-10,3e-10,3e-9 };
+        // scalar delta[3] = { 277e-12, 277e-12, 277e-12 };
+        /*
+        dn1/dr1 dn1/dr2 dn1/dr3
+        dn2/dr1 dn2/dr2 dn2/dr3
+        dn3/dr1 dn3/dr2 dn3/dr3
+        */
+        #pragma omp parallel for
+        for( unsigned int icell = 0; icell < geometry->n_cells_total; ++icell )
+        {
+            spatial_gradient[icell] = Matrix3::Zero();
+            for( unsigned int i = 0; i < 3; ++i )
+            {
+                int icell_plus  = idx_from_pair(icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[2*i]);
+                int icell_minus = idx_from_pair(icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[2*i+1]);
 
-			}
-		}
-	}
+                if( icell_plus >= 0 || icell_minus >= 0 )
+                {
+                    if( icell_plus == -1 )
+                        icell_plus = icell;
+                    if( icell_minus == -1 )
+                        icell_minus = icell;
+
+                    spatial_gradient[icell].col(i) += (spins[icell_plus] - spins[icell_minus]) / (2*delta[i]);
+                }
+            }
+        }
+    }
 
     void Hamiltonian_Micromagnetic::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
     {
-		scalar Ms = 1.4e6;
-		#pragma omp parallel for
-		for (unsigned int icell = 0; icell < geometry->n_cells_total; ++icell)
-		{
-			int ispin = icell;//basically id of a cell
-			for (unsigned int i = 0; i < 3; ++i)
-			{
-				gradient[ispin][0] += 2*dmi_tensor(1, i) / Ms *spatial_gradient[ispin](2, i) - 2*dmi_tensor(2, i) / Ms *spatial_gradient[ispin](1, i);
-				gradient[ispin][1] += 2*dmi_tensor(2, i) / Ms *spatial_gradient[ispin](0, i) - 2*dmi_tensor(0, i) / Ms *spatial_gradient[ispin](2, i);
-				gradient[ispin][2] += 2*dmi_tensor(0, i) / Ms *spatial_gradient[ispin](1, i) - 2*dmi_tensor(1, i) / Ms *spatial_gradient[ispin](0, i);
-			}
-		}
+        #pragma omp parallel for
+        for( unsigned int icell = 0; icell < geometry->n_cells_total; ++icell )
+        {
+            for( unsigned int i = 0; i < 3; ++i )
+            {
+                gradient[icell][0] -= 4*C::mu_B*( dmi_tensor(1,i) * spatial_gradient[icell](2,i) - dmi_tensor(2,i) * spatial_gradient[icell](1,i) ) / Ms;
+                gradient[icell][1] -= 4*C::mu_B*( dmi_tensor(2,i) * spatial_gradient[icell](0,i) - dmi_tensor(0,i) * spatial_gradient[icell](2,i) ) / Ms;
+                gradient[icell][2] -= 4*C::mu_B*( dmi_tensor(0,i) * spatial_gradient[icell](1,i) - dmi_tensor(1,i) * spatial_gradient[icell](0,i) ) / Ms;
+            }
+        }
     }
 
 

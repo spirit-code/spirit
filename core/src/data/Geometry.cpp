@@ -679,6 +679,9 @@ namespace Data
         }
         this->cell_bounds_min *= 0.5;
         this->cell_bounds_max *= 0.5;
+
+        // Cell size in m
+        this->cell_size = 1e-10 * (this->cell_bounds_max - this->cell_bounds_min);
     }
 
     void Geometry::calculateGeometryType()

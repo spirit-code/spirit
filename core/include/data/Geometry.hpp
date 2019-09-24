@@ -138,10 +138,12 @@ namespace Data
         vectorfield mask_pinned_cells;
         // Dimensionality of the points
         int dimensionality;
-        // Center and Bounds
+        // Center and bounds [Å]
         Vector3 center, bounds_min, bounds_max;
-        // Unit Cell Bounds
+        // Unit cell bounds [Å]
         Vector3 cell_bounds_min, cell_bounds_max;
+        // Unit cell size [m]
+        Vector3 cell_size;
 
     private:
         // Generate the full set of spin positions
@@ -160,14 +162,14 @@ namespace Data
         //
         std::vector<triangle_t>    _triangulation;
         std::vector<tetrahedron_t> _tetrahedra;
-        
+
         // Temporaries to tell wether the triangulation or tetrahedra
         // need to be updated when the corresponding function is called
         int last_update_n_cell_step;
         intfield last_update_n_cells;
     };
-    
-    //TODO: find better place (?)
+
+    // TODO: find better place (?)
     std::vector<triangle_t> compute_delaunay_triangulation_2D(const std::vector<vector2_t> & points);
 }
 #endif

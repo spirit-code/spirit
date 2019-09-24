@@ -26,17 +26,9 @@ namespace Engine
     class Hamiltonian_Micromagnetic : public Hamiltonian
     {
     public:
-        Hamiltonian_Micromagnetic(
-            scalar external_field_magnitude, Vector3 external_field_normal,
-            Matrix3 anisotropy_tensor,
-            scalar exchange_constant,
-            scalar dmi_constant,
-            std::shared_ptr<Data::Geometry> geometry,
-            int spatial_gradient_order,
-            intfield boundary_conditions
-        );
 
         Hamiltonian_Micromagnetic(
+            scalar Ms,
             scalar external_field_magnitude, Vector3 external_field_normal,
             Matrix3 anisotropy_tensor,
             Matrix3 exchange_tensor,
@@ -71,6 +63,7 @@ namespace Engine
         scalar external_field_magnitude;
         Vector3 external_field_normal;
         Matrix3 anisotropy_tensor;
+        scalar Ms;
 
         // ------------ Pair Interactions ------------
         // Exchange interaction

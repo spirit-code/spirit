@@ -6,6 +6,8 @@
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
+#include <Eigen/Dense>
+
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -406,7 +408,22 @@ namespace IO
                                 }
                             }
                         }
-                        else Log(Log_Level::Error, Log_Sender::IO, fmt::format("Keyword 'mu_s' not found. Using Default: {}", cell_composition.mu_s[0]));
+                        else if( myfile.Find("Ms") )
+                        {
+                            // Total magnetisation
+                            scalar Ms = 1e6; // [A/m] which is [1.0782822e23 mu_B / m^3]
+                            myfile.Read_Single(Ms, "Ms");
+                            scalar V = std::pow(lattice_constant * 1e-10, 3)
+                                        * (bravais_vectors[0].cross(bravais_vectors[1])).dot(bravais_vectors[2]);
+                                        // * n_cells[0] * n_cells[1] * n_cells[2] * n_cell_atoms;
+                            scalar mu_s = Ms * 1.0782822e23 * V; // per lattice site
+
+                            for (iatom = 0; iatom < n_cell_atoms; ++iatom)
+                                cell_composition.mu_s[iatom] = mu_s;
+                        }
+                        else
+                            Log(Log_Level::Error, Log_Sender::IO, fmt::format(
+                                "Neither keyword 'mu_s' nor 'Ms' found. Using Default: {} mu_B", cell_composition.mu_s[0]));
                     }
                     // else
                     // {
@@ -427,7 +444,7 @@ namespace IO
                 }// end try
                 catch( ... )
                 {
-                    spirit_handle_exception_core(fmt::format("Unable to read mu_s from config file \"{}\"", configFile));
+                    spirit_handle_exception_core(fmt::format("Unable to read mu_s or Ms from config file \"{}\"", configFile));
                 }
             }// end if file=""
             else
@@ -446,7 +463,7 @@ namespace IO
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Basis cell: {}  atom(s)", n_cell_atoms));
             Log(Log_Level::Parameter, Log_Sender::IO, "Relative positions (first 10):");
             for( int iatom = 0; iatom < n_cell_atoms && iatom < 10; ++iatom )
-                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        atom {} at ({}), mu_s={}", iatom, cell_atoms[iatom].transpose(), cell_composition.mu_s[iatom]));
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        atom {} at ({}), mu_s = {} mu_B", iatom, cell_atoms[iatom].transpose(), cell_composition.mu_s[iatom]));
 
             Log(Log_Level::Parameter, Log_Sender::IO, "Absolute atom positions (first 10):", n_cell_atoms);
             for( int iatom = 0; iatom < n_cell_atoms && iatom < 10; ++iatom )
@@ -484,8 +501,9 @@ namespace IO
                 Data::Geometry( bravais_vectors, n_cells, cell_atoms, cell_composition, lattice_constant,
                     pinning, {defect_sites, defect_types} ));
 
-            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry: {} spins", geometry->nos));
             Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Geometry is {}-dimensional", geometry->dimensionality));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       containing {} spins", geometry->nos));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("       unit cell size: {}", geometry->cell_size.transpose()));
             Log(Log_Level::Info, Log_Sender::IO, "Geometry: built");
             return geometry;
         }
@@ -1437,6 +1455,12 @@ namespace IO
 
     std::unique_ptr<Engine::Hamiltonian_Micromagnetic> Hamiltonian_Micromagnetic_from_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry)
     {
+        if( geometry->classifier != Data::BravaisLatticeType::Rectilinear &&
+            geometry->classifier != Data::BravaisLatticeType::SC)
+        {
+            spirit_throw(Exception_Classifier::System_not_Initialized, Log_Level::Severe, fmt::format(
+                "Hamiltonian: Cannot use micromagnetic Hamiltonian on non-rectilinear geometry (type {})", int(geometry->classifier)));
+        }
         //-------------- Insert default values here -----------------------------
         // Boundary conditions (a, b, c)
         std::vector<int> boundary_conditions_i = { 0, 0, 0 };
@@ -1444,6 +1468,9 @@ namespace IO
 
         // The order of the finite difference approximation of the spatial gradient
         int spatial_gradient_order = 1;
+
+        // Total magnetisation
+        scalar Ms = 1e6;
 
         // External Magnetic Field
         scalar field = 0;
@@ -1541,10 +1568,15 @@ namespace IO
             else
             {
                 myfile.Read_Single(dmi_magnitude, "dmi");
-                // dmi_tensor << dmi_magnitude, 0, 0,
-                //               0, dmi_magnitude, 0,
-                //               0, 0, dmi_magnitude;
-                Log(Log_Level::Warning, Log_Sender::IO, "'dmi' is not a supported input!");
+                dmi_tensor << 0, dmi_magnitude/std::sqrt(3), 0,
+                              -dmi_magnitude/std::sqrt(3), 0,0,
+                              0, 0, 0;
+                // dmi_tensor << dmi_magnitude/std::sqrt(3), 0, 0,
+                //               0, dmi_magnitude/std::sqrt(3), 0,
+                //               0, 0, dmi_magnitude/std::sqrt(3);
+                // dmi_tensor << 0, dmi_magnitude, -dmi_magnitude,
+                //               -dmi_magnitude, 0, dmi_magnitude,
+                //               dmi_magnitude, -dmi_magnitude, 0;
             }
 
             // TODO: dipolar
@@ -1586,13 +1618,25 @@ namespace IO
             spirit_handle_exception_core(fmt::format(
                 "Unable to parse all parameters of the Micromagnetic Hamiltonian from \"{}\"", configFile));
         }
-		// Return
-		Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg:");
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {} {} {}", "boundary conditions", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "external field", field));
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "field_normal", field_normal.transpose()));
-		
+        // Return
+        Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg:");
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<24} = {}", "discretisation order", spatial_gradient_order));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<24} = {} {} {}", "boundary conditions", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<24} = {}", "saturation magnetisation", Ms));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<24} = {}", "external field", field));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<24} = {}", "field normal", field_normal.transpose()));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<24} = {}", "anisotropy tensor", anisotropy_tensor.row(0)));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<24}   {}", " ", anisotropy_tensor.row(1)));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<24}   {}", " ", anisotropy_tensor.row(2)));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<24} = {}", "exchange tensor", exchange_tensor.row(0)));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<24}   {}", " ", exchange_tensor.row(1)));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<24}   {}", " ", exchange_tensor.row(2)));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<24} = {}", "dmi tensor", dmi_tensor.row(0)));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<24}   {}", " ", dmi_tensor.row(1)));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<24}   {}", " ", dmi_tensor.row(2)));
+
         auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Micromagnetic>(new Engine::Hamiltonian_Micromagnetic(
+            Ms,
             field, field_normal,
             anisotropy_tensor,
             exchange_tensor,
