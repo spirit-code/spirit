@@ -25,14 +25,14 @@ namespace Engine
 {
 	Hamiltonian_Micromagnetic::Hamiltonian_Micromagnetic(
         scalar Ms,
-		scalar external_field_magnitude, Vector3 external_field_normal,
-		Matrix3 anisotropy_tensor,
-		Matrix3 exchange_tensor,
-		Matrix3 dmi_tensor,
+        scalar external_field_magnitude, Vector3 external_field_normal,
+        Matrix3 anisotropy_tensor,
+        Matrix3 exchange_tensor,
+        Matrix3 dmi_tensor,
         DDI_Method ddi_method, intfield ddi_n_periodic_images, scalar ddi_radius,
-		std::shared_ptr<Data::Geometry> geometry,
-		int spatial_gradient_order,
-		intfield boundary_conditions
+        std::shared_ptr<Data::Geometry> geometry,
+        int spatial_gradient_order,
+        intfield boundary_conditions
 	) : Hamiltonian(boundary_conditions), spatial_gradient_order(spatial_gradient_order), geometry(geometry),
 		external_field_magnitude(external_field_magnitude), external_field_normal(external_field_normal),
 		anisotropy_tensor(anisotropy_tensor), exchange_tensor(exchange_tensor), dmi_tensor(dmi_tensor)
@@ -317,7 +317,7 @@ namespace Engine
 			{
 				int ispin = icell + ibasis;
 				if (cu_check_atom_type(atom_types[ispin]))
-					gradient[ispin] -= mu_s[ispin] * external_field_magnitude*external_field_normal;
+					gradient[ispin] -= mu_s[ispin] * C::mu_B * external_field_magnitude*external_field_normal;
 			}
 		}
 	}
@@ -328,7 +328,7 @@ namespace Engine
 		CU_CHECK_AND_SYNC();
 	}
 
-	__global__ void CU_Gradient_Anisotropy1(const Vector3 * spins, const int * atom_types, const int n_cell_atoms, Vector3 * gradient, size_t n_cells_total)
+	__global__ void CU_Gradient_Anisotropy1(const Vector3 * spins, const int * atom_types, const int n_cell_atoms, Vector3 * gradient, size_t n_cells_total, Matrix3 anisotropy_tensor)
 	{
 		scalar Ms = 1.4e6;
 		Vector3 temp1{ 1,0,0 };
@@ -338,52 +338,47 @@ namespace Engine
 			icell < n_cells_total;
 			icell += blockDim.x * gridDim.x)
 		{
-			for (int iani = 0; iani < 1; ++iani)
-			{
-				int ispin = icell;
-				gradient[ispin] -= 2.0 * 8.44e6 / Ms * temp3 * temp3.dot(spins[ispin]);
-				//gradient[ispin] -= 2.0 * this->anisotropy_magnitudes[iani] / Ms * ((pow(temp2.dot(spins[ispin]),2)+ pow(temp3.dot(spins[ispin]), 2))*(temp1.dot(spins[ispin])*temp1)+ (pow(temp1.dot(spins[ispin]), 2) + pow(temp3.dot(spins[ispin]), 2))*(temp2.dot(spins[ispin])*temp2)+(pow(temp1.dot(spins[ispin]),2)+ pow(temp2.dot(spins[ispin]), 2))*(temp3.dot(spins[ispin])*temp3));
-				//gradient[ispin] += 2.0 * 50000 / Ms * ((pow(temp2.dot(spins[ispin]), 2) + pow(temp3.dot(spins[ispin]), 2))*(temp1.dot(spins[ispin])*temp1) + (pow(temp1.dot(spins[ispin]), 2) + pow(temp3.dot(spins[ispin]), 2))*(temp2.dot(spins[ispin])*temp2));
-
-			}
+            int ispin = icell;
+            gradient[ispin] -= 2.0 * C::mu_B * anisotropy_tensor * spins[ispin] / Ms;
+            //gradient[ispin] -= 2.0 * this->anisotropy_magnitudes[iani] / Ms * ((pow(temp2.dot(spins[ispin]),2)+ pow(temp3.dot(spins[ispin]), 2))*(temp1.dot(spins[ispin])*temp1)+ (pow(temp1.dot(spins[ispin]), 2) + pow(temp3.dot(spins[ispin]), 2))*(temp2.dot(spins[ispin])*temp2)+(pow(temp1.dot(spins[ispin]),2)+ pow(temp2.dot(spins[ispin]), 2))*(temp3.dot(spins[ispin])*temp3));
+            //gradient[ispin] += 2.0 * 50000 / Ms * ((pow(temp2.dot(spins[ispin]), 2) + pow(temp3.dot(spins[ispin]), 2))*(temp1.dot(spins[ispin])*temp1) + (pow(temp1.dot(spins[ispin]), 2) + pow(temp3.dot(spins[ispin]), 2))*(temp2.dot(spins[ispin])*temp2));
 		}
 	}
 
 	void Hamiltonian_Micromagnetic::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
 	{
 		int size = geometry->n_cells_total;
-		CU_Gradient_Anisotropy1 << <(size + 1023) / 1024, 1024 >> > (spins.data(), this->geometry->atom_types.data(), this->geometry->n_cell_atoms, gradient.data(), size);
+		CU_Gradient_Anisotropy1 << <(size + 1023) / 1024, 1024 >> > (spins.data(), this->geometry->atom_types.data(), this->geometry->n_cell_atoms, gradient.data(), size, this->anisotropy_tensor);
 		CU_CHECK_AND_SYNC();
 	}
 
 	__global__ void CU_Gradient_Exchange1(const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells, int n_cell_atoms,
-		int n_pairs, const Pair * neigh, Vector3 * gradient, size_t size, bool A_is_nondiagonal, Matrix3 exchange_tensor)
+		int n_pairs, const Pair * neigh, Vector3 * gradient, size_t size, bool A_is_nondiagonal, Matrix3 exchange_tensor, const scalar * delta, const scalar Ms)
 	{
 		int bc[3] = { boundary_conditions[0],boundary_conditions[1],boundary_conditions[2] };
+
 		int nc[3] = { n_cells[0],n_cells[1],n_cells[2] };
-		scalar delta[3] = { 3e-11,3e-11,3e-10 };
-		scalar Ms = 1.4e6;
+
 		for (auto icell = blockIdx.x * blockDim.x + threadIdx.x;
 			icell < size;
 			icell += blockDim.x * gridDim.x)
 		{
-			int ispin = icell;//basically id of a cell
+			// int ispin = icell;//basically id of a cell
 			for (unsigned int i = 0; i < 3; ++i)
 			{
 
-				int ispin_plus = cu_idx_from_pair(ispin, bc, nc, n_cell_atoms, atom_types, neigh[2 * i]);
-				int ispin_minus = cu_idx_from_pair(ispin, bc, nc, n_cell_atoms, atom_types, neigh[2 * i + 1]);
-				if (ispin_plus == -1) {
-					ispin_plus = ispin;
-				}
-				if (ispin_minus == -1) {
-					ispin_minus = ispin;
-				}
+				int icell_plus  = cu_idx_from_pair(icell, bc, nc, n_cell_atoms, atom_types, neigh[2*i]);
+				int icell_minus = cu_idx_from_pair(icell, bc, nc, n_cell_atoms, atom_types, neigh[2*i + 1]);
 
-				gradient[ispin][0] -= 2 * exchange_tensor(i, i) / Ms * (spins[ispin_plus][0] - 2 * spins[ispin][0] + spins[ispin_minus][0]) / (delta[i]) / (delta[i]);
-				gradient[ispin][1] -= 2 * exchange_tensor(i, i) / Ms * (spins[ispin_plus][1] - 2 * spins[ispin][1] + spins[ispin_minus][1]) / (delta[i]) / (delta[i]);
-				gradient[ispin][2] -= 2 * exchange_tensor(i, i) / Ms * (spins[ispin_plus][2] - 2 * spins[ispin][2] + spins[ispin_minus][2]) / (delta[i]) / (delta[i]);
+                if( icell_plus >= 0 || icell_minus >= 0 )
+                {
+                    if( icell_plus == -1 )
+                        icell_plus = icell;
+                    if( icell_minus == -1 )
+                        icell_minus = icell;
 
+                    gradient[icell] -= 2 * C::mu_B * exchange_tensor * (spins[icell_plus] - 2*spins[icell] + spins[icell_minus]) / (Ms*delta[i]*delta[i]);
+                }
 			}
 			/*if (A_is_nondiagonal == true) {
 				//xy
@@ -467,74 +462,73 @@ namespace Engine
 	}
 	void Hamiltonian_Micromagnetic::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
 	{
-		int size = geometry->n_cells_total;
+		int size       = geometry->n_cells_total;
+        scalar * delta = geometry->cell_size.data();
 		CU_Gradient_Exchange1 << <(size + 1023) / 1024, 1024 >> > (spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_cell_atoms,
-			this->neigh.size(), this->neigh.data(), gradient.data(), size, A_is_nondiagonal, exchange_tensor);
+			this->neigh.size(), this->neigh.data(), gradient.data(), size, A_is_nondiagonal, exchange_tensor, delta, this->Ms );
 		CU_CHECK_AND_SYNC();
 	}
 
 	__global__ void CU_Spatial_Gradient(const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells, int n_cell_atoms,
-		int n_pairs, const Pair * neigh, Matrix3 * spatial_gradient, size_t size)
+		int n_pairs, const Pair * neigh, Matrix3 * spatial_gradient, size_t size, scalar * delta, scalar Ms)
 	{
-		scalar delta[3] = { 3e-11,3e-11,3e-10 };
 		/*
 		dn1/dr1 dn1/dr2 dn1/dr3
 		dn2/dr1 dn2/dr2 dn2/dr3
 		dn3/dr1 dn3/dr2 dn3/dr3
 		*/
-		int bc[3] = { boundary_conditions[0],boundary_conditions[1],boundary_conditions[2] };
-		int nc[3] = { n_cells[0],n_cells[1],n_cells[2] };
-		scalar Ms = 1.4e6;
+		int bc[3] = { boundary_conditions[0], boundary_conditions[1], boundary_conditions[2] };
+		int nc[3] = { n_cells[0], n_cells[1], n_cells[2] };
+
 		for (auto icell = blockIdx.x * blockDim.x + threadIdx.x;
 			icell < size;
 			icell += blockDim.x * gridDim.x)
-		{
-			int ispin = icell;//basically id of a cell
+        {
 			for (unsigned int i = 0; i < 3; ++i)
 			{
-				int ispin_plus = cu_idx_from_pair(ispin, bc,nc, n_cell_atoms, atom_types, neigh[2 * i]);
-				int ispin_minus = cu_idx_from_pair(ispin, bc, nc, n_cell_atoms, atom_types, neigh[2 * i + 1]);
-				if (ispin_plus == -1) {
-					ispin_plus = ispin;
-				}
-				if (ispin_minus == -1) {
-					ispin_minus = ispin;
-				}
-				spatial_gradient[ispin](0, i) = (spins[ispin_plus][0] - spins[ispin_minus][0]) / (delta[i]) / 2;
-				spatial_gradient[ispin](1, i) = (spins[ispin_plus][1] - spins[ispin_minus][1]) / (delta[i]) / 2;
-				spatial_gradient[ispin](2, i) = (spins[ispin_plus][2] - spins[ispin_minus][2]) / (delta[i]) / 2;
+				int icell_plus  = cu_idx_from_pair(icell, bc, nc, n_cell_atoms, atom_types, neigh[2*i]);
+				int icell_minus = cu_idx_from_pair(icell, bc, nc, n_cell_atoms, atom_types, neigh[2*i + 1]);
+
+			    if( icell_plus >= 0 || icell_minus >= 0 )
+                {
+                    if( icell_plus == -1 )
+                        icell_plus = icell;
+                    if( icell_minus == -1 )
+                        icell_minus = icell;
+
+                    spatial_gradient[icell].col(i) += (spins[icell_plus] - spins[icell_minus]) / (2*delta[i]);
+                }
 
 			}
 		}
 	}
+
 	void Hamiltonian_Micromagnetic::Spatial_Gradient(const vectorfield & spins)
 	{
 		int size = geometry->n_cells_total;
 		CU_Spatial_Gradient << <(size + 1023) / 1024, 1024 >> > (spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(), geometry->n_cell_atoms,
-			this->neigh.size(), this->neigh.data(), spatial_gradient.data(), size);
+			this->neigh.size(), this->neigh.data(), spatial_gradient.data(), size, geometry->cell_size.data(), this->Ms);
 		CU_CHECK_AND_SYNC();
 	}
 
-	__global__ void CU_Gradient_DMI1(const Vector3 * spins, Vector3 * gradient, Matrix3 * spatial_gradient, size_t size, Matrix3 dmi_tensor)
+	__global__ void CU_Gradient_DMI1(const Vector3 * spins, Vector3 * gradient, Matrix3 * spatial_gradient, size_t size, Matrix3 dmi_tensor, scalar Ms)
 	{
-		scalar Ms = 1.4e6;
 		for (auto icell = blockIdx.x * blockDim.x + threadIdx.x;
 			icell < size;
 			icell += blockDim.x * gridDim.x)
 		{
-			int ispin = icell;//basically id of a cell
 			for (unsigned int i = 0; i < 3; ++i)
 			{
-				gradient[ispin][0] += 2 * dmi_tensor(1, i) / Ms * spatial_gradient[ispin](2, i) - 2 * dmi_tensor(2, i) / Ms * spatial_gradient[ispin](1, i);
-				gradient[ispin][1] += 2 * dmi_tensor(2, i) / Ms * spatial_gradient[ispin](0, i) - 2 * dmi_tensor(0, i) / Ms * spatial_gradient[ispin](2, i);
-				gradient[ispin][2] += 2 * dmi_tensor(0, i) / Ms * spatial_gradient[ispin](1, i) - 2 * dmi_tensor(1, i) / Ms * spatial_gradient[ispin](0, i);
+				gradient[icell][0] -= 4 * C::mu_B * (dmi_tensor(1, i) * spatial_gradient[icell](2, i) - 2 * dmi_tensor(2, i) * spatial_gradient[icell](1, i)) / Ms;
+				gradient[icell][1] -= 4 * C::mu_B * (dmi_tensor(2, i) * spatial_gradient[icell](0, i) - 2 * dmi_tensor(0, i) * spatial_gradient[icell](2, i)) / Ms;
+				gradient[icell][2] -= 4 * C::mu_B * (dmi_tensor(0, i) * spatial_gradient[icell](1, i) - 2 * dmi_tensor(1, i) * spatial_gradient[icell](0, i)) / Ms;
 			}
 		}
 	}
 	void Hamiltonian_Micromagnetic::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
 	{
 		int size = geometry->n_cells_total;
-		CU_Gradient_DMI1 << <(size + 1023) / 1024, 1024 >> > (spins.data(), gradient.data(), spatial_gradient.data(), size, dmi_tensor);
+		CU_Gradient_DMI1 << <(size + 1023) / 1024, 1024 >> > (spins.data(), gradient.data(), spatial_gradient.data(), size, dmi_tensor, this->Ms);
 		CU_CHECK_AND_SYNC();
 	}
 
