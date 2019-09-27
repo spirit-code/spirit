@@ -41,6 +41,10 @@ using Matrix3c   = Eigen::Matrix<std::complex<scalar>, 3, 3>;
         int i, j;
         // Translations of the basis cell of second atom of pair
         int translations[3];
+        bool operator ==(const Pair &b) const
+        {
+            return (i==b.i && j==b.j && translations[0] == b.translations[0] && translations[1] == b.translations[1] && translations[2] == b.translations[2]);
+        }
     };
     struct Triplet
     {
@@ -68,6 +72,10 @@ using Matrix3c   = Eigen::Matrix<std::complex<scalar>, 3, 3>;
     {
         int i, j;
         std::array<int,3> translations;
+        bool operator ==(const Pair &b) const
+        {
+            return (i==b.i && j==b.j && translations[0] == b.translations[0] && translations[1] == b.translations[1] && translations[2] == b.translations[2]);
+        }
     };
     struct Triplet
     {

@@ -10,6 +10,7 @@
 #include <engine/Hamiltonian.hpp>
 #include <data/Geometry.hpp>
 #include <Spirit/Hamiltonian.h>
+#include <engine/Kernels.hpp>
 #include "FFT.hpp"
 
 namespace Engine
@@ -66,7 +67,7 @@ namespace Engine
 
         // Hamiltonian name as string
         const std::string& Name() override;
-        
+
         // ------------ Single Spin Interactions ------------
         // External magnetic field across the sample
         scalar external_field_magnitude;
@@ -77,7 +78,7 @@ namespace Engine
         //   vectorfield external_field_normals;
         // Anisotropy axes of a basis cell
         // (indexed, as any atom of the basis cell can have one or more anisotropy axes)
-        intfield anisotropy_indices;
+        intfield    anisotropy_indices;
         scalarfield anisotropy_magnitudes;
         vectorfield anisotropy_normals;
 
@@ -88,6 +89,10 @@ namespace Engine
         scalarfield exchange_magnitudes_in;
         pairfield   exchange_pairs;
         scalarfield exchange_magnitudes;
+
+        pairfield      full_pairs;
+        field<Matrix3> full_exchange_matrices;
+
         // DMI
         scalarfield dmi_shell_magnitudes;
         int         dmi_shell_chirality;
@@ -150,7 +155,7 @@ namespace Engine
 
         // Quadruplet
         void E_Quadruplet(const vectorfield & spins, scalarfield & Energy);
-        
+
         // Preparations for DDI-Convolution Algorithm
         void Prepare_DDI();
         void Clean_DDI();
