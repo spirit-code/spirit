@@ -6,10 +6,11 @@
 #include <data/Spin_System.hpp>
 #include <utility/Constants.hpp>
 #include <algorithm>
+#include <complex>
 
 #include <Eigen/Dense>
 #include <Eigen/Core>
-
+#include "FFT.hpp"
 
 using namespace Data;
 using namespace Utility;
@@ -55,24 +56,24 @@ namespace Engine
 		this->Update_Interactions();
 	}
 
-    void Hamiltonian_Micromagnetic::Update_Interactions()
-    {
-        #if defined(SPIRIT_USE_OPENMP)
-        // When parallelising (cuda or openmp), we need all neighbours per spin
-        const bool use_redundant_neighbours = true;
-        #else
-        // When running on a single thread, we can ignore redundant neighbours
-        const bool use_redundant_neighbours = false;
-        #endif
+	void Hamiltonian_Micromagnetic::Update_Interactions()
+	{
+#if defined(SPIRIT_USE_OPENMP)
+		// When parallelising (cuda or openmp), we need all neighbours per spin
+		const bool use_redundant_neighbours = true;
+#else
+		// When running on a single thread, we can ignore redundant neighbours
+		const bool use_redundant_neighbours = false;
+#endif
 
-        // TODO: make sure that the geometry can be treated with this model:
-        //       - rectilinear, only one "atom" per cell
-        // if( geometry->n_cell_atoms != 1 )
-        //     Log(...)
+		// TODO: make sure that the geometry can be treated with this model:
+		//       - rectilinear, only one "atom" per cell
+		// if( geometry->n_cell_atoms != 1 )
+		//     Log(...)
 
-        // TODO: generate neighbour information for pairwise interactions
+		// TODO: generate neighbour information for pairwise interactions
 
-        // TODO: prepare dipolar interactions
+		// TODO: prepare dipolar interactions
 		neigh = pairfield(0);
 		Neighbour neigh_tmp;
 		neigh_tmp.i = 0;
@@ -169,84 +170,86 @@ namespace Engine
 		neigh_tmp.translations[2] = 1;
 		neigh.push_back(neigh_tmp);
 		this->spatial_gradient = field<Matrix3>(geometry->nos, Matrix3::Zero());
-        // Update, which terms still contribute
-        this->Update_Energy_Contributions();
-    }
 
-    void Hamiltonian_Micromagnetic::Update_Energy_Contributions()
-    {
-        this->energy_contributions_per_spin = std::vector<std::pair<std::string, scalarfield>>(0);
-		CU_CHECK_AND_SYNC();
-        // External field
-        if( this->external_field_magnitude > 0 )
-        {
-            this->energy_contributions_per_spin.push_back({"Zeeman", scalarfield(0)});
-            this->idx_zeeman = this->energy_contributions_per_spin.size()-1;
-        }
-        else
-            this->idx_zeeman = -1;
-        // TODO: Anisotropy
-        // if( ... )
-        // {
-        //     this->energy_contributions_per_spin.push_back({"Anisotropy", scalarfield(0) });
-        //     this->idx_anisotropy = this->energy_contributions_per_spin.size()-1;
-        // }
-        // else
-            this->idx_anisotropy = -1;
-        // TODO: Exchange
-        // if( ... )
-        // {
-        //     this->energy_contributions_per_spin.push_back({"Exchange", scalarfield(0) });
-        //     this->idx_exchange = this->energy_contributions_per_spin.size()-1;
-        // }
-        // else
-            this->idx_exchange = -1;
-        // TODO: DMI
-        // if( ... )
-        // {
-        //     this->energy_contributions_per_spin.push_back({"DMI", scalarfield(0) });
-        //     this->idx_dmi = this->energy_contributions_per_spin.size()-1;
-        // }
-        // else
-            this->idx_dmi = -1;
-        // TODO: DDI
-        // if( ... )
-        // {
-        //     this->energy_contributions_per_spin.push_back({"DDI", scalarfield(0) });
-        //     this->idx_ddi = this->energy_contributions_per_spin.size()-1;
-        // }
-        // else
-            this->idx_ddi = -1;
-    }
+		// Dipole-dipole (FFT)
+		this->Prepare_DDI();
+		// Update, which terms still contribute
+		this->Update_Energy_Contributions();
+	}
 
-    void Hamiltonian_Micromagnetic::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
-    {
-        if( contributions.size() != this->energy_contributions_per_spin.size() )
-        {
-            contributions = this->energy_contributions_per_spin;
-        }
+	void Hamiltonian_Micromagnetic::Update_Energy_Contributions()
+	{
+		this->energy_contributions_per_spin = std::vector<std::pair<std::string, scalarfield>>(0);
 
-        int nos = spins.size();
-        for( auto& contrib : contributions )
-        {
-            // Allocate if not already allocated
-            if (contrib.second.size() != nos) contrib.second = scalarfield(nos, 0);
-            // Otherwise set to zero
-            else Vectormath::fill(contrib.second, 0);
-        }
+		// External field
+		if (this->external_field_magnitude > 0)
+		{
+			this->energy_contributions_per_spin.push_back({ "Zeeman", scalarfield(0) });
+			this->idx_zeeman = this->energy_contributions_per_spin.size() - 1;
+		}
+		else
+			this->idx_zeeman = -1;
+		// TODO: Anisotropy
+		// if( ... )
+		// {
+		//     this->energy_contributions_per_spin.push_back({"Anisotropy", scalarfield(0) });
+		//     this->idx_anisotropy = this->energy_contributions_per_spin.size()-1;
+		// }
+		// else
+		this->idx_anisotropy = -1;
+		// TODO: Exchange
+		// if( ... )
+		// {
+		//     this->energy_contributions_per_spin.push_back({"Exchange", scalarfield(0) });
+		//     this->idx_exchange = this->energy_contributions_per_spin.size()-1;
+		// }
+		// else
+		this->idx_exchange = -1;
+		// TODO: DMI
+		// if( ... )
+		// {
+		//     this->energy_contributions_per_spin.push_back({"DMI", scalarfield(0) });
+		//     this->idx_dmi = this->energy_contributions_per_spin.size()-1;
+		// }
+		// else
+		this->idx_dmi = -1;
+		// TODO: DDI
+		// if( ... )
+		// {
+		//     this->energy_contributions_per_spin.push_back({"DDI", scalarfield(0) });
+		//     this->idx_ddi = this->energy_contributions_per_spin.size()-1;
+		// }
+		// else
+		this->idx_ddi = -1;
+	}
 
-        // External field
-        if( this->idx_zeeman >=0 )     E_Zeeman(spins, contributions[idx_zeeman].second);
+	void Hamiltonian_Micromagnetic::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
+	{
+		if (contributions.size() != this->energy_contributions_per_spin.size())
+		{
+			contributions = this->energy_contributions_per_spin;
+		}
 
-        // Anisotropy
-        if( this->idx_anisotropy >=0 ) E_Anisotropy(spins, contributions[idx_anisotropy].second);
+		int nos = spins.size();
+		for (auto& contrib : contributions)
+		{
+			// Allocate if not already allocated
+			if (contrib.second.size() != nos) contrib.second = scalarfield(nos, 0);
+			// Otherwise set to zero
+			else Vectormath::fill(contrib.second, 0);
+		}
 
-        // Exchange
-        if( this->idx_exchange >=0 )   E_Exchange(spins, contributions[idx_exchange].second);
-        // DMI
-        if( this->idx_dmi >=0 )        E_DMI(spins,contributions[idx_dmi].second);
+		// External field
+		if (this->idx_zeeman >= 0)     E_Zeeman(spins, contributions[idx_zeeman].second);
 
-    }
+		// Anisotropy
+		if (this->idx_anisotropy >= 0) E_Anisotropy(spins, contributions[idx_anisotropy].second);
+
+		// Exchange
+		if (this->idx_exchange >= 0)   E_Exchange(spins, contributions[idx_exchange].second);
+		// DMI
+		if (this->idx_dmi >= 0)        E_DMI(spins, contributions[idx_dmi].second);
+	}
 
 	__global__ void CU_E_Zeeman1(const Vector3 * spins, const int * atom_types, const int n_cell_atoms, const scalar * mu_s, const scalar external_field_magnitude, const Vector3 external_field_normal, scalar * Energy, size_t n_cells_total)
 	{
@@ -269,56 +272,58 @@ namespace Engine
 		CU_CHECK_AND_SYNC();
 	}
 
-    void Hamiltonian_Micromagnetic::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
-    {
-    }
+	void Hamiltonian_Micromagnetic::E_Anisotropy(const vectorfield & spins, scalarfield & Energy)
+	{
+	}
 
-    void Hamiltonian_Micromagnetic::E_Exchange(const vectorfield & spins, scalarfield & Energy)
-    {
-    }
+	void Hamiltonian_Micromagnetic::E_Exchange(const vectorfield & spins, scalarfield & Energy)
+	{
+	}
 
-    void Hamiltonian_Micromagnetic::E_DMI(const vectorfield & spins, scalarfield & Energy)
-    {
-    }
+	void Hamiltonian_Micromagnetic::E_DMI(const vectorfield & spins, scalarfield & Energy)
+	{
+	}
 
-    void Hamiltonian_Micromagnetic::E_DDI(const vectorfield & spins, scalarfield & Energy)
-    {
-    }
-
-
-    scalar Hamiltonian_Micromagnetic::Energy_Single_Spin(int ispin, const vectorfield & spins)
-    {
-        scalar Energy = 0;
-        return Energy;
-    }
+	/*    void Hamiltonian_Micromagnetic::E_DDI(const vectorfield & spins, scalarfield & Energy)
+		{
+		}*/
 
 
-    void Hamiltonian_Micromagnetic::Gradient(const vectorfield & spins, vectorfield & gradient)
-    {
-        // Set to zero
-        Vectormath::fill(gradient, {0,0,0});
+	scalar Hamiltonian_Micromagnetic::Energy_Single_Spin(int ispin, const vectorfield & spins)
+	{
+		scalar Energy = 0;
+		return Energy;
+	}
+
+
+	void Hamiltonian_Micromagnetic::Gradient(const vectorfield & spins, vectorfield & gradient)
+	{
+		// Set to zero
+		Vectormath::fill(gradient, { 0,0,0 });
 		this->Spatial_Gradient(spins);
-        // External field
-        this->Gradient_Zeeman(gradient);
+		// External field
+	   /* this->Gradient_Zeeman(gradient);
 
-        // Anisotropy
-        this->Gradient_Anisotropy(spins, gradient);
+		// Anisotropy
+		this->Gradient_Anisotropy(spins, gradient);
 
-        // Exchange
-        this->Gradient_Exchange(spins, gradient);
+		// Exchange
+		this->Gradient_Exchange(spins, gradient);
 
-        // DMI
-        this->Gradient_DMI(spins, gradient);
+		// DMI
+		this->Gradient_DMI(spins, gradient);*/
+		// DDI
+		this->Gradient_DDI(spins, gradient);
 		scalar Ms = 1.4e6;
 		double energy = 0;
-		#pragma omp parallel for reduction(-:energy)
+#pragma omp parallel for reduction(-:energy)
 		for (int icell = 0; icell < geometry->n_cells_total; ++icell)
 		{
 			//energy -= 0.5 *Ms* gradient[icell].dot(spins[icell]);
 		}
 		//printf("Energy total: %f\n", energy/ geometry->n_cells_total);
 
-    }
+	}
 
 
 	__global__ void CU_Gradient_Zeeman1(const int * atom_types, const int n_cell_atoms, const scalar * mu_s, const scalar external_field_magnitude, const Vector3 external_field_normal, Vector3 * gradient, size_t n_cells_total)
@@ -355,7 +360,7 @@ namespace Engine
 			for (int iani = 0; iani < 1; ++iani)
 			{
 				int ispin = icell;
-				gradient[ispin] -= 2.0 * 8.44e6 / Ms * temp3 * temp3.dot(spins[ispin]);
+				//gradient[ispin] -= 2.0 * 8.44e6 / Ms * temp3 * temp3.dot(spins[ispin]);
 				//gradient[ispin] -= 2.0 * this->anisotropy_magnitudes[iani] / Ms * ((pow(temp2.dot(spins[ispin]),2)+ pow(temp3.dot(spins[ispin]), 2))*(temp1.dot(spins[ispin])*temp1)+ (pow(temp1.dot(spins[ispin]), 2) + pow(temp3.dot(spins[ispin]), 2))*(temp2.dot(spins[ispin])*temp2)+(pow(temp1.dot(spins[ispin]),2)+ pow(temp2.dot(spins[ispin]), 2))*(temp3.dot(spins[ispin])*temp3));
 				//gradient[ispin] += 2.0 * 50000 / Ms * ((pow(temp2.dot(spins[ispin]), 2) + pow(temp3.dot(spins[ispin]), 2))*(temp1.dot(spins[ispin])*temp1) + (pow(temp1.dot(spins[ispin]), 2) + pow(temp3.dot(spins[ispin]), 2))*(temp2.dot(spins[ispin])*temp2));
 
@@ -506,7 +511,7 @@ namespace Engine
 			int ispin = icell;//basically id of a cell
 			for (unsigned int i = 0; i < 3; ++i)
 			{
-				int ispin_plus = cu_idx_from_pair(ispin, bc,nc, n_cell_atoms, atom_types, neigh[2 * i]);
+				int ispin_plus = cu_idx_from_pair(ispin, bc, nc, n_cell_atoms, atom_types, neigh[2 * i]);
 				int ispin_minus = cu_idx_from_pair(ispin, bc, nc, n_cell_atoms, atom_types, neigh[2 * i + 1]);
 				if (ispin_plus == -1) {
 					ispin_plus = ispin;
@@ -529,7 +534,7 @@ namespace Engine
 		CU_CHECK_AND_SYNC();
 	}
 
-	__global__ void CU_Gradient_DMI1(const Vector3 * spins, Vector3 * gradient, Matrix3 * spatial_gradient, size_t size, Matrix3 dmi_tensor)
+	__global__ void CU_Gradient_DMI1(const Vector3 * spins, Vector3 * gradient, const Matrix3 * spatial_gradient, size_t size, Matrix3 dmi_tensor)
 	{
 		scalar Ms = 1.4e6;
 		for (auto icell = blockIdx.x * blockDim.x + threadIdx.x;
@@ -551,16 +556,326 @@ namespace Engine
 		CU_Gradient_DMI1 << <(size + 1023) / 1024, 1024 >> > (spins.data(), gradient.data(), spatial_gradient.data(), size, dmi_tensor);
 		CU_CHECK_AND_SYNC();
 	}
+	double g(double x, double y, double z) {
+		double R = sqrt(x*x + y * y + z * z);
+		return (x*y*z*asinh(z / sqrt(x*x + y * y)) + (y / 6)*(3 * z*z - y * y)*asinh(x / sqrt(y*y + z * z)) + (x / 6)*(3 * z*z - x * x)*asinh(y / sqrt(x*x + z * z)) - (z*z*z / 6)*atan(x*y / z / R) - (z*y*y / 2)*atan(x*z / y / R) - (z*x*x / 2)*atan(y*z / x / R) - x * y*R / 3);
+	}
+	double f(double x, double y, double z) {
+		double R = sqrt(x*x + y * y + z * z);
+		return (y / 2)*(z*z - x * x)*asinh(y / sqrt(x*x + z * z)) + (z / 2)*(y*y - x * x)*asinh(z / sqrt(x*x + y * y)) - x * y*z*atan(y*z / x / R) + 1 / 6 * (2 * x*x - y * y - z * z)*R;
+	}
+	double F2(double x, double y, double z) {
+		return f(x, y, z) - f(x, 0, z) - f(x, y, 0) + f(x, 0, 0);
+	}
+	double F1(double x, double y, double z, double dx, double dy, double dz) {
+		return F2(x, y, z) - F2(x, y - dy, z) - F2(x, y, z - dz) + F2(x, y - dy, z - dz);
+	}
+	double F0(double x, double y, double z, double dx, double dy, double dz) {
+		return F1(x, y + dy, z + dz, dx, dy, dz) - F1(x, y, z + dz, dx, dy, dz) - F1(x, y + dy, z, dx, dy, dz) + F1(x, y, z, dx, dy, dz);
+	}
+	double Nii(double x, double y, double z, double dx, double dy, double dz) {
+		double pi = 3.1415926535f;
+		return 1 / (4 * pi*dx*dy*dz)*(2 * F0(x, y, z, dx, dy, dz) - F0(x + dx, y, z, dx, dy, dz) - F0(x - dx, y, z, dx, dy, dz));
+	}
+	double G2(double x, double y, double z) {
+		return g(x, y, z) - g(x, y, 0);
+	}
+	double G1(double x, double y, double z, double dx, double dy, double dz) {
+		return G2(x + dx, y, z + dz) - G2(x + dz, y, z) - G2(x, y, z + dz) + G2(x, y, z);
+	}
+	double G0(double x, double y, double z, double dx, double dy, double dz) {
+		return G1(x, y, z, dx, dy, dz) - G1(x, y - dy, z, dx, dy, dz) - G1(x, y, z - dz, dx, dy, dz) + G1(x, y - dy, z - dz, dx, dy, dz);
+	}
+	double Nij(double x, double y, double z, double dx, double dy, double dz) {
+		double pi = 3.1415926535f;
+		return 1 / (4 * pi*dx*dy*dz)*(G0(x, y, z, dx, dy, dz) - G0(x - dx, y, z, dx, dy, dz) - G0(x, y + dy, z, dx, dy, dz) + G0(x - dx, y + dy, z, dx, dy, dz));
+	}
+	double r(int I, int J, int K, int i, int k, int j, double dx, double dy, double dz) {
+		return sqrt((I + i - 0.5f)*(I + i - 0.5f)*dx*dx + (J + j - 0.5f)*(J + j - 0.5f)*dy*dy + (K + k - 0.5f)*(K + k - 0.5f)*dz*dz);
+	}
+	double Kxx(int I, int J, int K, double dx, double dy, double dz) {
+		double result = 0;
+		for (int i = 0; i < 1; i++) {
+			for (int j = 0; j < 1; j++) {
+				for (int k = 0; k < 1; k++) {
+					result += pow(-1.0f, i + j + k)*atan(abs((K + k - 0.5f)*(J + j - 0.5f)*dz*dy / ((I + i - 0.5f)*dx*r(I, J, K, i, j, k, dx, dy, dz))));
+				}
+			}
+		}
+		return result;
+	}
+	double Kxy(int I, int J, int K, double dx, double dy, double dz) {
+		double result = 0;
+		for (int i = 0; i < 1; i++) {
+			for (int j = 0; j < 1; j++) {
+				for (int k = 0; k < 1; k++) {
+					result += -pow(-1.0f, i + j + k)*log(abs((K + k - 0.5f)*dz + r(I, J, K, i, j, k, dx, dy, dz)));
+				}
+			}
+		}
+		return result;
+	}
 
 
-    void Hamiltonian_Micromagnetic::Hessian(const vectorfield & spins, MatrixX & hessian)
-    {
-    }
+	__global__ void CU_FFT_Pointwise_Mult1(FFT::FFT_cpx_type * ft_D_matrices, FFT::FFT_cpx_type * ft_spins, FFT::FFT_cpx_type * res_mult, int* iteration_bounds, int i_b1, int* inter_sublattice_lookup, FFT::StrideContainer dipole_stride, FFT::StrideContainer spin_stride)
+	{
+		int n = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2] * iteration_bounds[3];
+		int tupel[4];
+		int idx_b1, idx_b2, idx_d;
+
+		for (int ispin = blockIdx.x * blockDim.x + threadIdx.x; ispin < n; ispin += blockDim.x * gridDim.x)
+		{
+			cu_tupel_from_idx(ispin, tupel, iteration_bounds, 4); // tupel now is {i_b2, a, b, c}
+
+			int& b_inter = inter_sublattice_lookup[i_b1 + tupel[0] * iteration_bounds[0]];
+
+			idx_b1 = i_b1 * spin_stride.basis + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b + tupel[3] * spin_stride.c;
+			idx_b2 = tupel[0] * spin_stride.basis + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b + tupel[3] * spin_stride.c;
+			idx_d = b_inter * dipole_stride.basis + tupel[1] * dipole_stride.a + tupel[2] * dipole_stride.b + tupel[3] * dipole_stride.c;
+
+			auto& fs_x = ft_spins[idx_b2];
+			auto& fs_y = ft_spins[idx_b2 + 1 * spin_stride.comp];
+			auto& fs_z = ft_spins[idx_b2 + 2 * spin_stride.comp];
+
+			auto& fD_xx = ft_D_matrices[idx_d];
+			auto& fD_xy = ft_D_matrices[idx_d + 1 * dipole_stride.comp];
+			auto& fD_xz = ft_D_matrices[idx_d + 2 * dipole_stride.comp];
+			auto& fD_yy = ft_D_matrices[idx_d + 3 * dipole_stride.comp];
+			auto& fD_yz = ft_D_matrices[idx_d + 4 * dipole_stride.comp];
+			auto& fD_zz = ft_D_matrices[idx_d + 5 * dipole_stride.comp];
+
+			if (tupel[0] == 0)
+			{
+				res_mult[idx_b1].x = FFT::mult3D(fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z).x;
+				res_mult[idx_b1].y = FFT::mult3D(fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z).y;
+				res_mult[idx_b1 + 1 * spin_stride.comp].x = FFT::mult3D(fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z).x;
+				res_mult[idx_b1 + 1 * spin_stride.comp].y = FFT::mult3D(fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z).y;
+				res_mult[idx_b1 + 2 * spin_stride.comp].x = FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z).x;
+				res_mult[idx_b1 + 2 * spin_stride.comp].y = FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z).y;
+			}
+			else {
+				atomicAdd(&res_mult[idx_b1].x, FFT::mult3D(fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z).x);
+				atomicAdd(&res_mult[idx_b1].y, FFT::mult3D(fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z).y);
+				atomicAdd(&res_mult[idx_b1 + 1 * spin_stride.comp].x, FFT::mult3D(fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z).x);
+				atomicAdd(&res_mult[idx_b1 + 1 * spin_stride.comp].y, FFT::mult3D(fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z).y);
+				atomicAdd(&res_mult[idx_b1 + 2 * spin_stride.comp].x, FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z).x);
+				atomicAdd(&res_mult[idx_b1 + 2 * spin_stride.comp].y, FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z).y);
+			}
+		}
+	}
+
+	__global__ void CU_Write_FFT_Gradients1(FFT::FFT_real_type * resiFFT, Vector3 * gradient, FFT::StrideContainer spin_stride, int * iteration_bounds, int n_cell_atoms, scalar * mu_s, int sublattice_size)
+	{
+		int nos = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2] * iteration_bounds[3];
+		int tupel[4];
+		int idx_pad;
+
+		for (int idx_orig = blockIdx.x * blockDim.x + threadIdx.x; idx_orig < nos; idx_orig += blockDim.x * gridDim.x)
+		{
+			cu_tupel_from_idx(idx_orig, tupel, iteration_bounds, 4); //tupel now is {ib, a, b, c}
+			idx_pad = tupel[0] * spin_stride.basis + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b + tupel[3] * spin_stride.c;
+			gradient[idx_orig][0] -= mu_s[idx_orig] * resiFFT[idx_pad] / sublattice_size;
+			gradient[idx_orig][1] -= mu_s[idx_orig] * resiFFT[idx_pad + 1 * spin_stride.comp] / sublattice_size;
+			gradient[idx_orig][2] -= mu_s[idx_orig] * resiFFT[idx_pad + 2 * spin_stride.comp] / sublattice_size;
+		}
+	}
+
+	void Hamiltonian_Micromagnetic::Gradient_DDI(const vectorfield & spins, vectorfield & gradient)
+	{
+		auto& ft_D_matrices = transformed_dipole_matrices;
+		auto& ft_spins = fft_plan_spins.cpx_ptr;
+
+		auto& res_iFFT = fft_plan_reverse.real_ptr;
+		auto& res_mult = fft_plan_reverse.cpx_ptr;
+		int number_of_mults = it_bounds_pointwise_mult[0] * it_bounds_pointwise_mult[1] * it_bounds_pointwise_mult[2] * it_bounds_pointwise_mult[3];
+		FFT_Spins(spins);
+		for (int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1)
+			CU_FFT_Pointwise_Mult1 << <(number_of_mults + 1023) / 1024, 1024 >> > (ft_D_matrices.data(), ft_spins.data(), res_mult.data(), it_bounds_pointwise_mult.data(), i_b1, inter_sublattice_lookup.data(), dipole_stride, spin_stride);
+
+		FFT::batch_iFour_3D(fft_plan_reverse);
+
+		CU_Write_FFT_Gradients1 << <(geometry->nos + 1023) / 1024, 1024 >> > (res_iFFT.data(), gradient.data(), spin_stride, it_bounds_write_gradients.data(), geometry->n_cell_atoms, geometry->mu_s.data(), sublattice_size);
 
 
-    // Hamiltonian name as string
-    static const std::string name = "Micromagnetic";
-    const std::string& Hamiltonian_Micromagnetic::Name() { return name; }
+	}
+	__global__ void CU_Write_FFT_Spin_Input1(FFT::FFT_real_type* fft_spin_inputs, const Vector3 * spins, int * iteration_bounds, FFT::StrideContainer spin_stride, scalar * mu_s)
+	{
+		int nos = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2] * iteration_bounds[3];
+		int tupel[4];
+		int idx_pad;
+		for (int idx_orig = blockIdx.x * blockDim.x + threadIdx.x; idx_orig < nos; idx_orig += blockDim.x * gridDim.x)
+		{
+			cu_tupel_from_idx(idx_orig, tupel, iteration_bounds, 4); //tupel now is {ib, a, b, c}
+			idx_pad = tupel[0] * spin_stride.basis + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b + tupel[3] * spin_stride.c;
+			fft_spin_inputs[idx_pad] = spins[idx_orig][0] * mu_s[idx_orig];
+			fft_spin_inputs[idx_pad + 1 * spin_stride.comp] = spins[idx_orig][1] * mu_s[idx_orig];
+			fft_spin_inputs[idx_pad + 2 * spin_stride.comp] = spins[idx_orig][2] * mu_s[idx_orig];
+		}
+	}
+
+	void Hamiltonian_Micromagnetic::FFT_Spins(const vectorfield & spins)
+	{
+		CU_Write_FFT_Spin_Input1 << <(geometry->nos + 1023) / 1024, 1024 >> > (fft_plan_spins.real_ptr.data(), spins.data(), it_bounds_write_spins.data(), spin_stride, geometry->mu_s.data());
+		FFT::batch_Four_3D(fft_plan_spins);
+	}
+	__global__ void CU_Write_FFT_Dipole_Input1(FFT::FFT_real_type* fft_dipole_inputs, int* iteration_bounds, const Vector3* translation_vectors, int n_cell_atoms, Vector3* cell_atom_translations, int* n_cells, int* inter_sublattice_lookup, int* img, FFT::StrideContainer dipole_stride)
+	{
+		int tupel[3];
+		int sublattice_size = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2];
+		//prefactor of ddi interaction
+		//scalar mult = 2.0133545*1e-28 * 0.057883817555 * 0.057883817555 / (4 * 3.141592653589793238462643383279502884197169399375105820974 * 1e-30);
+		scalar mult = 1e-0 / (4 * 3.141592653589793238462643383279502884197169399375105820974);
+		for (int i = blockIdx.x * blockDim.x + threadIdx.x; i < sublattice_size; i += blockDim.x * gridDim.x)
+		{
+			cu_tupel_from_idx(i, tupel, iteration_bounds, 3); // tupel now is {a, b, c}
+			auto& a = tupel[0];
+			auto& b = tupel[1];
+			auto& c = tupel[2];
+			int b_inter = -1;
+			for (int i_b1 = 0; i_b1 < n_cell_atoms; ++i_b1)
+			{
+				b_inter++;
+				inter_sublattice_lookup[i_b1] = b_inter;
+
+				int a_idx = a < n_cells[0] ? a : a - iteration_bounds[0];
+				int b_idx = b < n_cells[1] ? b : b - iteration_bounds[1];
+				int c_idx = c < n_cells[2] ? c : c - iteration_bounds[2];
+				scalar Dxx = 0, Dxy = 0, Dxz = 0, Dyy = 0, Dyz = 0, Dzz = 0;
+				double x = cell_atom_translations[i_b1][0];
+				double y = cell_atom_translations[i_b1][1];
+				double z = cell_atom_translations[i_b1][2];
+				scalar delta[3] = { 3e-11,3e-11,3e-10 };
+				int idx = b_inter * dipole_stride.basis + a * dipole_stride.a + b * dipole_stride.b + c * dipole_stride.c;
+				for (int i = 0; i < 2; i++) {
+					for (int j = 0; j < 2; j++) {
+						for (int k = 0; k < 2; k++) {
+							double r = sqrt((a + i - 0.5f)*(a + i - 0.5f)*delta[0] * delta[0] + (b + j - 0.5f)*(b + j - 0.5f)*delta[1] * delta[1] + (c + k - 0.5f)*(c + k - 0.5f)*delta[2] * delta[2]);
+							fft_dipole_inputs[idx] += mult * pow(-1.0f, i + j + k) * atan((c + k - 0.5f) * (b + j - 0.5f) * delta[1] / r / (a + i - 0.5f));
+							fft_dipole_inputs[idx + 1 * dipole_stride.comp] += -mult * pow(-1.0f, i + j + k) * log((c + k - 0.5f)* delta[2] + r);
+							fft_dipole_inputs[idx + 2 * dipole_stride.comp] += -mult * pow(-1.0f, i + j + k) * log((b + j - 0.5f)* delta[1] + r);
+							fft_dipole_inputs[idx + 3 * dipole_stride.comp] += mult * pow(-1.0f, i + j + k) * atan((a + i - 0.5f) * (c + k - 0.5f) * delta[2] / r / (b + j - 0.5f));
+							fft_dipole_inputs[idx + 4 * dipole_stride.comp] += -mult * pow(-1.0f, i + j + k) * log((a + i - 0.5f)* delta[0] + r);
+							fft_dipole_inputs[idx + 5 * dipole_stride.comp] += mult * pow(-1.0f, i + j + k) * atan((b + j - 0.5f) * (a + i - 0.5f) * delta[0] / r / (c + k - 0.5f));
+						}
+					}
+				}
+
+			}
+		}
+	}
+
+	void Hamiltonian_Micromagnetic::FFT_Dipole_Matrices(FFT::FFT_Plan & fft_plan_dipole, int img_a, int img_b, int img_c)
+	{
+		auto& fft_dipole_inputs = fft_plan_dipole.real_ptr;
+
+		field<int> img = {
+							img_a,
+							img_b,
+							img_c
+		};
+
+		// Work around to make bravais vectors and cell_atoms available to GPU as they are currently saves as std::vectors and not fields ...
+		auto translation_vectors = field<Vector3>();
+		auto cell_atom_translations = field<Vector3>();
+
+		for (int i = 0; i < 3; i++)
+			translation_vectors.push_back(geometry->lattice_constant * geometry->bravais_vectors[i]);
+
+		for (int i = 0; i < geometry->n_cell_atoms; i++)
+			cell_atom_translations.push_back(geometry->positions[i]);
+
+		CU_Write_FFT_Dipole_Input1 << <(sublattice_size + 1023) / 1024, 1024 >> >
+			(fft_dipole_inputs.data(), it_bounds_write_dipole.data(), translation_vectors.data(),
+				geometry->n_cell_atoms, cell_atom_translations.data(), geometry->n_cells.data(),
+				inter_sublattice_lookup.data(), img.data(), dipole_stride
+				);
+		FFT::batch_Four_3D(fft_plan_dipole);
+	}
+	void Hamiltonian_Micromagnetic::Prepare_DDI()
+	{
+		Clean_DDI();
+
+		n_cells_padded.resize(3);
+		n_cells_padded[0] = (geometry->n_cells[0] > 1) ? 2 * geometry->n_cells[0] : 1;
+		n_cells_padded[1] = (geometry->n_cells[1] > 1) ? 2 * geometry->n_cells[1] : 1;
+		n_cells_padded[2] = (geometry->n_cells[2] > 1) ? 2 * geometry->n_cells[2] : 1;
+		sublattice_size = n_cells_padded[0] * n_cells_padded[1] * n_cells_padded[2];
+
+		inter_sublattice_lookup.resize(geometry->n_cell_atoms * geometry->n_cell_atoms);
+
+		//we dont need to transform over length 1 dims
+		std::vector<int> fft_dims;
+		for (int i = 2; i >= 0; i--) //notice that reverse order is important!
+		{
+			if (n_cells_padded[i] > 1)
+				fft_dims.push_back(n_cells_padded[i]);
+		}
+
+		//Count how many distinct inter-lattice contributions we need to store
+		n_inter_sublattice = 0;
+		for (int i = 0; i < geometry->n_cell_atoms; i++)
+		{
+			for (int j = 0; j < geometry->n_cell_atoms; j++)
+			{
+				if (i != 0 && i == j) continue;
+				n_inter_sublattice++;
+			}
+		}
+
+		//Set the iteration bounds for the nested for loops that are flattened in the kernels
+		it_bounds_write_spins = { geometry->n_cell_atoms,
+									  geometry->n_cells[0],
+									  geometry->n_cells[1],
+									  geometry->n_cells[2] };
+
+		it_bounds_write_dipole = { n_cells_padded[0],
+									  n_cells_padded[1],
+									  n_cells_padded[2] };
+
+		it_bounds_pointwise_mult = { geometry->n_cell_atoms,
+									  (n_cells_padded[0] / 2 + 1), // due to redundancy in real fft
+									  n_cells_padded[1],
+									  n_cells_padded[2] };
+
+		it_bounds_write_gradients = { geometry->n_cell_atoms,
+									  geometry->n_cells[0],
+									  geometry->n_cells[1],
+									  geometry->n_cells[2] };
+
+		FFT::FFT_Plan fft_plan_dipole = FFT::FFT_Plan(fft_dims, false, 6 * n_inter_sublattice, sublattice_size);
+		fft_plan_spins = FFT::FFT_Plan(fft_dims, false, 3 * geometry->n_cell_atoms, sublattice_size);
+		fft_plan_reverse = FFT::FFT_Plan(fft_dims, true, 3 * geometry->n_cell_atoms, sublattice_size);
+
+		field<int*> temp_s = { &spin_stride.comp, &spin_stride.basis, &spin_stride.a, &spin_stride.b, &spin_stride.c };
+		field<int*> temp_d = { &dipole_stride.comp, &dipole_stride.basis, &dipole_stride.a, &dipole_stride.b, &dipole_stride.c };;
+		FFT::get_strides(temp_s, { 3, this->geometry->n_cell_atoms, n_cells_padded[0], n_cells_padded[1], n_cells_padded[2] });
+		FFT::get_strides(temp_d, { 6, n_inter_sublattice, n_cells_padded[0], n_cells_padded[1], n_cells_padded[2] });
+		/*
+		//perform FFT of dipole matrices
+		int img_a = boundary_conditions[0] == 0 ? 0 : ddi_n_periodic_images[0];
+		int img_b = boundary_conditions[1] == 0 ? 0 : ddi_n_periodic_images[1];
+		int img_c = boundary_conditions[2] == 0 ? 0 : ddi_n_periodic_images[2];
+
+		FFT_Dipole_Matrices(fft_plan_dipole, img_a, img_b, img_c); */
+		FFT_Dipole_Matrices(fft_plan_dipole, 0, 0, 0);
+
+		transformed_dipole_matrices = std::move(fft_plan_dipole.cpx_ptr);
+	}//end prepare
+
+	void Hamiltonian_Micromagnetic::Clean_DDI()
+	{
+		fft_plan_spins = FFT::FFT_Plan();
+		fft_plan_reverse = FFT::FFT_Plan();
+	}
+
+	void Hamiltonian_Micromagnetic::Hessian(const vectorfield & spins, MatrixX & hessian)
+	{
+	}
+
+
+	// Hamiltonian name as string
+	static const std::string name = "Micromagnetic";
+	const std::string& Hamiltonian_Micromagnetic::Name() { return name; }
 }
 
 #endif
