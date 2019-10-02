@@ -13,7 +13,7 @@ void Method_Solver<Solver::LBFGS_OSO>::Initialize ()
 {
     this->jmax = 500;    // max iterations
     this->n    = 50;     // restart every n iterations XXX: what's the appropriate val?
-    this->n_lbfgs_memory = 10; // how many updates the solver tracks to estimate the hessian
+    this->n_lbfgs_memory = 3; // how many updates the solver tracks to estimate the hessian
     this->n_updates = intfield( this->noi, 0 );
 
     this->a_updates    = std::vector<std::vector<vectorfield>>( this->noi, std::vector<vectorfield>( this->n_lbfgs_memory, vectorfield(this->nos, { 0,0,0 } ) ));
@@ -42,6 +42,7 @@ void Method_Solver<Solver::LBFGS_OSO>::Initialize ()
     this->g0                       = scalarfield(this->noi, 0);
     this->finish                   = std::vector<bool>( this->noi, false );
     this->step_size                = scalarfield(this->noi, 0);
+
     for (int i=0; i<this->noi; i++)
     {
         configurations_displaced[i] = std::shared_ptr<vectorfield>( new vectorfield( this->nos, {0, 0, 0} ) );
@@ -97,13 +98,6 @@ void Method_Solver<Solver::LBFGS_OSO>::Iteration()
             this->rho_temp[img][idx] = 1/Vectormath::dot(this->grad_updates[img][idx], this->a_updates[img][idx]);
         }
 
-        // Reset direction to steepest descent if line search failed
-        if(!this->finish[img])
-        {
-            fmt::print("resetting\n");
-            this->n_updates[img] = 0;
-        }
-
         // Calculate new search direction
         Solver_Kernels::lbfgs_get_descent_direction(this->iteration, this->n_updates[img], a_directions, a_residuals, this->a_updates[img], this->grad_updates[img], this->rho_temp[img], this->alpha_temp[img]);
         this->a_direction_norm[img] = Manifoldmath::norm( a_directions );
@@ -124,40 +118,13 @@ void Method_Solver<Solver::LBFGS_OSO>::Iteration()
         //     //     throw 0;
         // }
 
-        // Before the line search, set step_size and precalculate E0 and g0
         step_size[img] = 1.0;
-        E0[img]        = this->systems[img]->hamiltonian->Energy(image);
-        g0[img]        = 0;
 
-        #pragma omp parallel for reduction(+:g0)
-        for( int i=0; i<this->nos; ++i )
-        {
-            g0[img] -= a_residuals[i].dot(a_directions[i]) / a_direction_norm[img];
-            this->finish[img] = false;
-        }
     }
 
-    int n_search_steps     = 0;
-    int n_search_steps_max = 20;
-    bool run = true;;
-    while(run)
-    {
-        Solver_Kernels::ncg_OSO_displace(this->configurations_displaced, this->reference_configurations, this->a_coords,
+
+    Solver_Kernels::ncg_OSO_displace(this->configurations_displaced, this->reference_configurations, this->a_coords,
                                         this->a_coords_displaced, this->a_directions, this->finish, this->step_size);
-
-        // Calculate forces for displaced spin directions
-        this->Calculate_Force( configurations_displaced, forces_displaced );
-
-        Solver_Kernels::ncg_OSO_line_search( this->configurations_displaced, this->a_coords_displaced, this->a_directions,
-                             this->forces_displaced, this->a_residuals_displaced, this->systems, this->finish, E0, g0, this->a_direction_norm, step_size );
-
-        n_search_steps++;
-        fmt::print("line search step {}\n", n_search_steps);
-
-        run = (n_search_steps >= n_search_steps_max) ? false : true;
-        for(int img=0; img<this->noi; img++)
-            run = (run && !finish[img]);
-    }
 
     for (int img=0; img<this->noi; img++)
     {
@@ -170,21 +137,11 @@ void Method_Solver<Solver::LBFGS_OSO>::Iteration()
         for(int i=0; i<image.size(); i++)
         {
             int idx = this->iteration % this->n_lbfgs_memory;
-            if(this->finish[img]) // only if line search was successfull
-            {
-                this->a_updates[img][idx][i] = a_coords_displaced[i] - a_coords[i]; // keep track of a_updates
-                a_coords[i] = a_coords_displaced[i];
-                image[i]    = image_displaced[i];
-            } else {
-                this->a_updates[img][idx][i] = {0,0,0}; // keep track of a_updates
-            }
+            this->a_updates[img][idx][i] = a_coords_displaced[i] - a_coords[i]; // keep track of a_updates
+            a_coords[i] = a_coords_displaced[i];
+            image[i]    = image_displaced[i];
         }
-
-        if( this->iteration % this->n == 0)
-        {
-            Solver_Kernels::ncg_OSO_update_reference_spins(*this->reference_configurations[img], a_coords, image);
-        }
-
+        Solver_Kernels::ncg_OSO_update_reference_spins(*this->reference_configurations[img], a_coords, image);
     }
 }
 
