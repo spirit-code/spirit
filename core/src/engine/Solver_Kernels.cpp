@@ -222,16 +222,29 @@ namespace Solver_Kernels
 
             auto scaling = (theta_rms > max_rot) ? max_rot/theta_rms : 1.0;
 
+            Matrix3 tmp;
+            Matrix3 A_prime;
+
             for( int i=0; i<nos; i++)
             {
                 scalar theta = (a_directions[img][i]).norm() * scaling;
-                Matrix3 A_prime;
+
+                // scalar  q = cos(theta), w = 1-q,
+                //         x = a_directions[img][i][0]/theta, y = a_directions[img][i][1]/theta, z = a_directions[img][i][2]/theta,
+                //         s1 = -y*z*w, s2 = x*z*w, s3 = -x*y*w,
+                //         p1 = x * sin(theta), p2 = y * sin(theta), p3 = z * sin(theta);
+
+                // tmp <<  q+z*z*w, s1+p1, s2+p2,
+                //         s1-p1, q+y*y*w, s3+p3,
+                //         s2-p2, s3-p3, q+x*x*w;
+
                 A_prime <<                         0,  a_directions[img][i][0], a_directions[img][i][1],
                             -a_directions[img][i][0],                        0, a_directions[img][i][2],
                             -a_directions[img][i][1], -a_directions[img][i][2],                       0;
 
                 A_prime /= theta;
-                Matrix3 tmp = Matrix3::Identity() + sin(theta) * A_prime + (1-cos(theta)) * A_prime * A_prime;
+                tmp = Matrix3::Identity() + sin(theta) * A_prime + (1-cos(theta)) * A_prime * A_prime;
+
                 (*configurations[img])[i] = tmp * (*configurations[img])[i] ;
             }
         }
