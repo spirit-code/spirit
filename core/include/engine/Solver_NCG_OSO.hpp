@@ -73,7 +73,7 @@ void Method_Solver<Solver::NCG_OSO>::Iteration()
             this->forces_virtual[img][i] = image[i].cross(this->forces[img][i]);
 
         // Calculate residuals for current parameters and save the old residuals
-        Solver_Kernels::ncg_OSO_residual(a_residuals, a_residuals_last, image, a_coords, this->forces[img]);
+        // Solver_Kernels::ncg_OSO_residual(a_residuals, a_residuals_last, image, a_coords, this->forces[img]);
 
         // Calculate beta
         scalar top = 0, bot = 0;
@@ -121,8 +121,8 @@ void Method_Solver<Solver::NCG_OSO>::Iteration()
     bool run = true;
     while(run)
     {
-        Solver_Kernels::ncg_OSO_displace(this->configurations_displaced, this->reference_configurations, this->a_coords,
-                                        this->a_coords_displaced, this->a_directions, this->finish, this->step_size);
+        // Solver_Kernels::ncg_OSO_displace(this->configurations_displaced, this->reference_configurations, this->a_coords,
+        //                                 this->a_coords_displaced, this->a_directions, this->finish, this->step_size);
 
         // Calculate forces for displaced spin directions
         this->Calculate_Force( configurations_displaced, forces_displaced );

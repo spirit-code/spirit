@@ -158,29 +158,22 @@ namespace Solver_Kernels
 
     // NCG_OSO
     // Calculates the residuals for a certain spin configuration
-    void ncg_OSO_residual( vectorfield & a_residuals, vectorfield & a_residuals_last, const vectorfield & spins, const vectorfield & a_coords,
-                       const vectorfield & forces, bool approx)
+    void ncg_OSO_residual( vectorfield & a_residuals, vectorfield & a_residuals_last, const vectorfield & spins, const vectorfield & forces, bool approx)
     {
         using cpx = std::complex<scalar>;
 
         if(approx) // Use approximate gradient
         {
             #pragma omp parallel for
-            for( int i =0; i<spins.size(); i++)
+            for( int i=0; i<spins.size(); i++)
             {
                 a_residuals_last[i] = a_residuals[i];
                 Vector3 temp = -spins[i].cross(forces[i]);
-                a_residuals[i][0] = temp[2];
+                a_residuals[i][0] =  temp[2];
                 a_residuals[i][1] = -temp[1];
-                a_residuals[i][2] = temp[0];
+                a_residuals[i][2] =  temp[0];
             }
-        } else { // Use exact gradient
-            //todo
-            // const scalar & a = a_coords[i][0], b = a_coords[i][1], c = a_coords[i][2];
-            // scalar x = sqrt(a*a + b*b + c*c);
-            // cpx lambda2 = cpx(0,-x);
-            // cpx lambda3 = cpx(0,x);
-            // Eigen::Matrix<3,3> V;
+        } else {
         }
     }
 
@@ -215,24 +208,24 @@ namespace Solver_Kernels
         }
     }
 
-    void ncg_OSO_displace( std::vector<std::shared_ptr<vectorfield>> & configurations_displaced, std::vector<std::shared_ptr<vectorfield>> & reference_configurations, std::vector<vectorfield> & a_coords,
-                           std::vector<vectorfield> & a_coords_displaced, std::vector<vectorfield> & a_directions, std::vector<bool> finish, scalarfield step_size )
+    void ncg_OSO_displace( std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & a_directions, scalarfield step_size )
     {
-        int noi = configurations_displaced.size();
-        int nos = configurations_displaced[0]->size();
-
+        int noi = configurations.size();
+        int nos = configurations[0]->size();
         for(int img=0; img<noi; ++img)
         {
-            if(finish[img])
-                continue;
-
-            // First calculate displaced coordinates
-            for(int i=0; i < nos; i++)
+            for( int i=0; i<nos; i++)
             {
-                a_coords_displaced[img][i] = a_coords[img][i] + step_size[img] * a_directions[img][i];
+                scalar theta = (a_directions[img][i]).norm();
+                Matrix3 A_prime;
+                A_prime <<                         0,  a_directions[img][i][0], a_directions[img][i][1],
+                            -a_directions[img][i][0],                        0, a_directions[img][i][2],
+                            -a_directions[img][i][1], -a_directions[img][i][2],                       0;
+
+                A_prime /= theta;
+                Matrix3 tmp = Matrix3::Identity() + sin(theta) * A_prime + (1-cos(theta)) * A_prime * A_prime;
+                (*configurations[img])[i] = tmp * (*configurations[img])[i] ;
             }
-            // Get displaced spin directions
-            Solver_Kernels::ncg_OSO_a_to_spins(*configurations_displaced[img], a_coords_displaced[img], *reference_configurations[img]);
         }
     }
 
@@ -260,7 +253,7 @@ namespace Solver_Kernels
             }
 
             // Calculate displaced residual
-            Solver_Kernels::ncg_OSO_residual(a_residuals_displaced[img], a_residuals_displaced[img], *configurations_displaced[img], a_coords_displaced[img], forces_displaced[img]);
+            Solver_Kernels::ncg_OSO_residual(a_residuals_displaced[img], a_residuals_displaced[img], *configurations_displaced[img], forces_displaced[img]);
 
             // Calculate displaced directional derivative
             scalar gr = 0;
