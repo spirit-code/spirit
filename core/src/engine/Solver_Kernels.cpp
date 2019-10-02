@@ -309,7 +309,7 @@ namespace Solver_Kernels
             const auto & s  = spins[i];
             const auto & a3 = a3_coords[i];
 
-            J(0,0) =  s[1]*s[1]  + s[2]*(s[2] + a3);
+            J(0,0) =  s[1]*s[1] + s[2]*(s[2] + a3);
             J(0,1) = -s[0]*s[1];
             J(1,0) = -s[0]*s[1];
             J(1,1) =  s[0]*s[0]  + s[2]*(s[2] + a3);
@@ -354,42 +354,63 @@ namespace Solver_Kernels
         }
     }
 
-    void ncg_atlas_check_coordinates(const vectorfield & spins, vector2field & a_coords, scalarfield & a3_coords, vector2field & a_directions)
+    bool ncg_atlas_check_coordinates(const vectorfield & spins, scalarfield & a3_coords)
     {
-         // Check if we need to reset the maps
-        bool reset = false;
-
+        // Check if we need to reset the maps
         #pragma omp parallel for
         for( int i=0; i<spins.size(); i++ )
         {
             // If for one spin the z component deviates too much from the pole we perform a reset for *all* spins
             // Note: I am not sure why we reset for all spins ... but this is in agreement with the method of F. Rybakov
-            if(spins[i][2]*a3_coords[i] < -0.6)
+            if( spins[i][2]*a3_coords[i] < -0.6 )
             {
-                reset = true;
-                break;
+                return true;
             }
         }
+        return false;
+    }
 
-        if(reset)
+    void ncg_atlas_transform_direction(const vectorfield & spins, vector2field & a_coords, scalarfield & a3_coords, vector2field & a_directions)
+    {
+        #pragma omp parallel for
+        for( int i=0; i<spins.size(); ++i )
         {
-            #pragma omp parallel for
-            for( int i=0; i<spins.size(); ++i )
+            const auto & s = spins[i];
+            auto &       a = a_coords[i];
+            auto &      a3 = a3_coords[i];
+
+            if( spins[i][2]*a3_coords[i] < 0 )
             {
-                const auto & s = spins[i];
-                auto &       a = a_coords[i];
-                auto &      a3 = a3_coords[i];
+                // Transform coordinates to optimal map
+                a3 = (s[2] > 0) ? 1 : -1;
+                a[0] = s[0] / (1 + s[2]*a3);
+                a[1] = s[1] / (1 + s[2]*a3);
 
-                if( spins[i][2]*a3_coords[i] < 0 )
-                {
-                    // Transform coordinates to optimal map
-                    a3 = (s[2] > 0) ? 1 : -1;
-                    a[0] = s[0] / (1 + s[2]*a3);
-                    a[1] = s[1] / (1 + s[2]*a3);
+                // Also transform search direction to new map
+                a_directions[i] *= (1 - a3 * s[2]) / (1 + a3 * s[2]);
+            }
+        }
+    }
 
-                    // Also transform search direction to new map
-                    a_directions[i] *= (1 - a3 * s[2]) / (1 + a3 * s[2]);
-                }
+    void lbfgs_atlas_transform_direction(const vectorfield & spins, vector2field & a_coords, scalarfield & a3_coords, field<vector2field> & directions)
+    {
+        #pragma omp parallel for
+        for( int i=0; i<spins.size(); ++i )
+        {
+            const auto & s = spins[i];
+            auto &       a = a_coords[i];
+            auto &      a3 = a3_coords[i];
+
+            if( spins[i][2]*a3_coords[i] < 0 )
+            {
+                // Transform coordinates to optimal map
+                a3 = (s[2] > 0) ? 1 : -1;
+                a[0] = s[0] / (1 + s[2]*a3);
+                a[1] = s[1] / (1 + s[2]*a3);
+
+                // Also transform search direction to new map
+                for(auto & dirs : directions)
+                    dirs[i] *= (1 - a3 * s[2]) / (1 + a3 * s[2]);
             }
         }
     }
@@ -499,7 +520,7 @@ namespace Solver_Kernels
     // The "two-loop recursion", see https://en.wikipedia.org/wiki/Limited-memory_BFGS
     void lbfgs_get_descent_direction(int iteration, int n_updates, vectorfield & a_direction, const vectorfield & residual, const std::vector<vectorfield> & a_updates, const std::vector<vectorfield> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp)
     {
-        if( n_updates <= 5 ) // First iteration uses steepest descent
+        if( n_updates <= 1 ) // First iteration uses steepest descent
         {
             Vectormath::set_c_a(1, residual, a_direction);
             return;
@@ -531,7 +552,7 @@ namespace Solver_Kernels
     {
         static auto dot2D = [](const Vector2 & v1, const Vector2 &v2){return v1.dot(v2);};
 
-        if( n_updates <= 5 ) // First iteration uses steepest descent
+        if( n_updates <= 3 ) // First iteration uses steepest descent
         {
             Vectormath::set(a_direction, residual, [](Vector2 x){return x;});
             return;

@@ -178,7 +178,10 @@ void Method_Solver<Solver::LBFGS_Atlas>::Iteration()
             }
         }
 
-        Solver_Kernels::ncg_atlas_check_coordinates(image, a_coords, a3_coords, this->atlas_directions[img]);
+        if( Solver_Kernels::ncg_atlas_check_coordinates(image, a3_coords) )
+        {
+            Solver_Kernels::lbfgs_atlas_transform_direction(image, a_coords, a3_coords, this->atlas_updates[img]);
+        }
 
     }
 }
