@@ -89,6 +89,18 @@ email: bessarab@hi.is
 -----------------
 
 
+### Aleksei V. Ivanov
+* University of Iceland
+* St. Petersburg State University
+
+Help with the initial implementation of conjugate gradient and L-BFGS solvers.
+Initial implementation of conjugate gradient and L-BFGS solvers, using the exponential transform.
+
+(Sep. 2019 - ongoing)
+
+-----------------
+
+
 ### Daniel Schürhoff
 * RWTH Aachen
 * PGI-1/IAS-1 at Forschungszentrum Jülich

@@ -45,6 +45,12 @@ void Method_Solver<Solver::LBFGS_Atlas>::Initialize ()
     }
 };
 
+
+/*
+    Stereographic coordinate system implemented according to an idea of F. Rybakov
+    TODO: reference painless conjugate gradients
+    See also Jorge Nocedal and Stephen J. Wright 'Numerical Optimization' Second Edition, 2006 (p. 121)
+*/
 template <> inline
 void Method_Solver<Solver::LBFGS_Atlas>::Iteration()
 {

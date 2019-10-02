@@ -41,7 +41,7 @@ void Method_Solver<Solver::NCG_Atlas>::Initialize ()
 };
 
 /*
-    Implemented according to Aleksei Ivanov's paper: https://arxiv.org/abs/1904.02669
+    Implemented according to an idea of F. Rybakov
     TODO: reference painless conjugate gradients
     See also Jorge Nocedal and Stephen J. Wright 'Numerical Optimization' Second Edition, 2006 (p. 121)
 
