@@ -44,6 +44,8 @@ void Method_Solver<Solver::LBFGS_OSO>::Initialize ()
 template <> inline
 void Method_Solver<Solver::LBFGS_OSO>::Iteration()
 {
+    scalar max_rot = Constants::Pi * 0.6;
+
     // Current force
     this->Calculate_Force( this->configurations, this->forces );
 
@@ -84,10 +86,9 @@ void Method_Solver<Solver::LBFGS_OSO>::Iteration()
            this->n_updates[img]++;
 
         step_size[img] = 1.0;
-
     }
 
-    Solver_Kernels::ncg_OSO_displace( this->configurations, this->a_directions, this->step_size );
+    Solver_Kernels::ncg_OSO_displace( this->configurations, this->a_directions, this->step_size, max_rot );
 
     for (int img=0; img<this->noi; img++)
     {

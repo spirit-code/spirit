@@ -208,15 +208,23 @@ namespace Solver_Kernels
         }
     }
 
-    void ncg_OSO_displace( std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & a_directions, scalarfield step_size )
+    void ncg_OSO_displace( std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & a_directions, scalarfield step_size, scalar max_rot)
     {
         int noi = configurations.size();
         int nos = configurations[0]->size();
         for(int img=0; img<noi; ++img)
         {
+            scalar theta_rms = 0;
+            #pragma omp parallel for reduce(+:theta_rms)
+            for(int i=0; i<nos; ++i)
+                theta_rms += (a_directions[img][i]).squaredNorm();
+            theta_rms = sqrt(theta_rms)/nos;
+
+            auto scaling = (theta_rms > max_rot) ? max_rot/theta_rms : 1.0;
+
             for( int i=0; i<nos; i++)
             {
-                scalar theta = (a_directions[img][i]).norm();
+                scalar theta = (a_directions[img][i]).norm() * scaling;
                 Matrix3 A_prime;
                 A_prime <<                         0,  a_directions[img][i][0], a_directions[img][i][1],
                             -a_directions[img][i][0],                        0, a_directions[img][i][2],
