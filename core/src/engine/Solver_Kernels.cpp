@@ -546,33 +546,48 @@ namespace Solver_Kernels
 
     // LBFGS_OSO
     // The "two-loop recursion", see https://en.wikipedia.org/wiki/Limited-memory_BFGS
-    void lbfgs_get_descent_direction(int iteration, int n_updates, vectorfield & a_direction, const vectorfield & residual, const std::vector<vectorfield> & a_updates, const std::vector<vectorfield> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp)
+    // void lbfgs_get_descent_direction(int iteration, int n_updates, vectorfield & a_direction, const vectorfield & residual, const std::vector<vectorfield> & a_updates, const std::vector<vectorfield> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp)
+    void lbfgs_get_descent_direction(int iteration, field<int> & n_updates, field<vectorfield> & a_direction, const field<vectorfield> & residual, const field<field<vectorfield>> & a_updates, const field<field<vectorfield>> & grad_updates, const field<scalarfield> & rho_temp, field<scalarfield> & alpha_temp)
     {
-        if( n_updates == 0 ) // First iteration uses steepest descent
-        {
-            Vectormath::set_c_a(1, residual, a_direction);
-            return;
-        }
+        int noi = a_direction.size();
+        int nos = a_direction[0].size();
 
-        Vectormath::set_c_a(1, residual, a_direction); // copy residual to a_direction
-        for(int i = iteration; i > iteration - n_updates; i--)
+        for(int img=0; img<noi; img++)
         {
-            int idx = (i-1) % n_updates;
-            alpha_temp[idx] = rho_temp[idx] * Vectormath::dot(a_direction, a_updates[idx]);
-            Vectormath::add_c_a( -alpha_temp[idx], grad_updates[idx], a_direction );
-        }
+            auto & res = residual[img];
+            auto & dir = a_direction[img];
+            auto & alpha = alpha_temp[img];
+            auto & a_up = a_updates[img];
+            auto & grad_up = grad_updates[img];
+            auto & rho = rho_temp[img];
+            auto & n_up = n_updates[img];
 
-        int idx_last = (iteration - 1) % n_updates;
-        scalar top = Vectormath::dot(a_updates[idx_last], grad_updates[idx_last]);
-        scalar bot = Vectormath::dot(grad_updates[idx_last], grad_updates[idx_last]);
-        scalar gamma = top/bot;
+            if( n_up == 0 ) // First iteration uses steepest descent
+            {
+                Vectormath::set_c_a(1, res, dir);
+                return;
+            }
 
-        Vectormath::set_c_a(-gamma, a_direction, a_direction);
-        for(int j = iteration - n_updates + 1; j <= iteration; j++)
-        {
-            int idx = (j-1) % n_updates;
-            scalar beta = -rho_temp[idx] * Vectormath::dot(grad_updates[idx], a_direction);
-            Vectormath::add_c_a( -(alpha_temp[idx] - beta), a_updates[idx], a_direction);
+            Vectormath::set_c_a(1, res, dir); // copy res to dir
+            for(int i = iteration; i > iteration - n_up; i--)
+            {
+                int idx = (i-1) % n_up;
+                alpha[idx] = rho[idx] * Vectormath::dot(dir, a_up[idx]);
+                Vectormath::add_c_a( -alpha[idx], grad_up[idx], dir );
+            }
+
+            int idx_last = (iteration - 1) % n_up;
+            scalar top = Vectormath::dot(a_up[idx_last], grad_up[idx_last]);
+            scalar bot = Vectormath::dot(grad_up[idx_last], grad_up[idx_last]);
+            scalar gamma = top/bot;
+
+            Vectormath::set_c_a(-gamma, dir, dir);
+            for(int j = iteration - n_up + 1; j <= iteration; j++)
+            {
+                int idx = (j-1) % n_up;
+                scalar beta = -rho[idx] * Vectormath::dot(grad_up[idx], dir);
+                Vectormath::add_c_a( -(alpha[idx] - beta), a_up[idx], dir);
+            }
         }
     }
 

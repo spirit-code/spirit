@@ -47,7 +47,6 @@ void Method_Solver<Solver::LBFGS_OSO>::Iteration()
     for( int img=0; img<this->noi; img++ )
     {
         auto& image            = *this->configurations[img];
-        auto& a_coords         = this->a_coords[img];
         auto& a_directions     = this->a_directions[img];
         auto& a_residuals      = this->a_residuals[img];
         auto& a_residuals_last = this->a_residuals_last[img];
@@ -75,12 +74,14 @@ void Method_Solver<Solver::LBFGS_OSO>::Iteration()
             {
                 this->n_updates[img] = 0;
             }
-
         }
+    }
 
-        // Calculate new search direction
-        Solver_Kernels::lbfgs_get_descent_direction(this->iteration, this->n_updates[img], a_directions, a_residuals, this->a_updates[img], this->grad_updates[img], this->rho_temp[img], this->alpha_temp[img]);
+    // Calculate new search direction
+    Solver_Kernels::lbfgs_get_descent_direction(this->iteration, this->n_updates, this->a_directions, this->a_residuals, this->a_updates, this->grad_updates, this->rho_temp, this->alpha_temp);
 
+    for( int img=0; img<this->noi; img++ )
+    {
         if(this->n_updates[img] < this->n_lbfgs_memory)
            this->n_updates[img]++;
 
