@@ -158,29 +158,22 @@ namespace Solver_Kernels
 
     // NCG_OSO
     // Calculates the residuals for a certain spin configuration
-    void ncg_OSO_residual( vectorfield & a_residuals, vectorfield & a_residuals_last, const vectorfield & spins, const vectorfield & a_coords,
-                       const vectorfield & forces, bool approx)
+    void ncg_OSO_residual( vectorfield & a_residuals, vectorfield & a_residuals_last, const vectorfield & spins, const vectorfield & forces, bool approx)
     {
         using cpx = std::complex<scalar>;
 
         if(approx) // Use approximate gradient
         {
             #pragma omp parallel for
-            for( int i =0; i<spins.size(); i++)
+            for( int i=0; i<spins.size(); i++)
             {
                 a_residuals_last[i] = a_residuals[i];
                 Vector3 temp = -spins[i].cross(forces[i]);
-                a_residuals[i][0] = temp[2];
+                a_residuals[i][0] =  temp[2];
                 a_residuals[i][1] = -temp[1];
-                a_residuals[i][2] = temp[0];
+                a_residuals[i][2] =  temp[0];
             }
-        } else { // Use exact gradient
-            //todo
-            // const scalar & a = a_coords[i][0], b = a_coords[i][1], c = a_coords[i][2];
-            // scalar x = sqrt(a*a + b*b + c*c);
-            // cpx lambda2 = cpx(0,-x);
-            // cpx lambda3 = cpx(0,x);
-            // Eigen::Matrix<3,3> V;
+        } else {
         }
     }
 
@@ -215,24 +208,59 @@ namespace Solver_Kernels
         }
     }
 
-    void ncg_OSO_displace( std::vector<std::shared_ptr<vectorfield>> & configurations_displaced, std::vector<std::shared_ptr<vectorfield>> & reference_configurations, std::vector<vectorfield> & a_coords,
-                           std::vector<vectorfield> & a_coords_displaced, std::vector<vectorfield> & a_directions, std::vector<bool> finish, scalarfield step_size )
+    void ncg_OSO_displace( std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & a_directions, scalarfield & step_size, scalar max_rot)
     {
-        int noi = configurations_displaced.size();
-        int nos = configurations_displaced[0]->size();
-
+        int noi = configurations.size();
+        int nos = configurations[0]->size();
         for(int img=0; img<noi; ++img)
         {
-            if(finish[img])
-                continue;
+            scalar theta_rms = 0;
+            #pragma omp parallel for reduce(+:theta_rms)
+            for(int i=0; i<nos; ++i)
+                theta_rms += (a_directions[img][i]).squaredNorm();
+            theta_rms = sqrt(theta_rms)/nos;
 
-            // First calculate displaced coordinates
-            for(int i=0; i < nos; i++)
+            auto scaling = (theta_rms > max_rot) ? max_rot/theta_rms : 1.0;
+            step_size[img] *= scaling;
+
+            // Debug
+            // if(scaling < 1.0)
+            // {
+            //     std::cout << "WARNING applying scaling with " << scaling <<"\n";
+            //     std::cout << "theta_rms/Pi is " << theta_rms/Constants::Pi << "\n";
+            // }
+
+            Matrix3 tmp;
+            Matrix3 A_prime;
+
+            for( int i=0; i<nos; i++)
             {
-                a_coords_displaced[img][i] = a_coords[img][i] + step_size[img] * a_directions[img][i];
+                scalar theta = (a_directions[img][i]).norm();
+
+                if(theta < 1e-20)
+                {
+                    tmp = Matrix3::Identity();
+                } else {
+
+                    // Ugly version
+                    // scalar  q = cos(theta), w = 1-q,
+                    //         x = a_directions[img][i][0]/theta, y = a_directions[img][i][1]/theta, z = a_directions[img][i][2]/theta,
+                    //         s1 = -y*z*w, s2 = x*z*w, s3 = -x*y*w,
+                    //         p1 = x * sin(theta), p2 = y * sin(theta), p3 = z * sin(theta);
+
+                    // tmp <<  q+z*z*w, s1+p1, s2+p2,
+                    //         s1-p1, q+y*y*w, s3+p3,
+                    //         s2-p2, s3-p3, q+x*x*w;
+
+                    A_prime <<                         0,  a_directions[img][i][0], a_directions[img][i][1],
+                                -a_directions[img][i][0],                        0, a_directions[img][i][2],
+                                -a_directions[img][i][1], -a_directions[img][i][2],                       0;
+
+                    A_prime /= theta;
+                    tmp = Matrix3::Identity() + sin(theta*scaling) * A_prime + (1-cos(theta*scaling)) * A_prime * A_prime;
+                }
+                (*configurations[img])[i] = tmp * (*configurations[img])[i] ;
             }
-            // Get displaced spin directions
-            Solver_Kernels::ncg_OSO_a_to_spins(*configurations_displaced[img], a_coords_displaced[img], *reference_configurations[img]);
         }
     }
 
@@ -260,7 +288,7 @@ namespace Solver_Kernels
             }
 
             // Calculate displaced residual
-            Solver_Kernels::ncg_OSO_residual(a_residuals_displaced[img], a_residuals_displaced[img], *configurations_displaced[img], a_coords_displaced[img], forces_displaced[img]);
+            Solver_Kernels::ncg_OSO_residual(a_residuals_displaced[img], a_residuals_displaced[img], *configurations_displaced[img], forces_displaced[img]);
 
             // Calculate displaced directional derivative
             scalar gr = 0;
@@ -309,7 +337,7 @@ namespace Solver_Kernels
             const auto & s  = spins[i];
             const auto & a3 = a3_coords[i];
 
-            J(0,0) =  s[1]*s[1]  + s[2]*(s[2] + a3);
+            J(0,0) =  s[1]*s[1] + s[2]*(s[2] + a3);
             J(0,1) = -s[0]*s[1];
             J(1,0) = -s[0]*s[1];
             J(1,1) =  s[0]*s[0]  + s[2]*(s[2] + a3);
@@ -354,42 +382,63 @@ namespace Solver_Kernels
         }
     }
 
-    void ncg_atlas_check_coordinates(const vectorfield & spins, vector2field & a_coords, scalarfield & a3_coords, vector2field & a_directions)
+    bool ncg_atlas_check_coordinates(const vectorfield & spins, scalarfield & a3_coords)
     {
-         // Check if we need to reset the maps
-        bool reset = false;
-
+        // Check if we need to reset the maps
         #pragma omp parallel for
         for( int i=0; i<spins.size(); i++ )
         {
             // If for one spin the z component deviates too much from the pole we perform a reset for *all* spins
             // Note: I am not sure why we reset for all spins ... but this is in agreement with the method of F. Rybakov
-            if(spins[i][2]*a3_coords[i] < -0.5)
+            if( spins[i][2]*a3_coords[i] < -0.6 )
             {
-                reset = true;
-                break;
+                return true;
             }
         }
+        return false;
+    }
 
-        if(reset)
+    void ncg_atlas_transform_direction(const vectorfield & spins, vector2field & a_coords, scalarfield & a3_coords, vector2field & a_directions)
+    {
+        #pragma omp parallel for
+        for( int i=0; i<spins.size(); ++i )
         {
-            #pragma omp parallel for
-            for( int i=0; i<spins.size(); ++i )
+            const auto & s = spins[i];
+            auto &       a = a_coords[i];
+            auto &      a3 = a3_coords[i];
+
+            if( spins[i][2]*a3_coords[i] < 0 )
             {
-                const auto & s = spins[i];
-                auto &       a = a_coords[i];
-                auto &      a3 = a3_coords[i];
+                // Transform coordinates to optimal map
+                a3 = (s[2] > 0) ? 1 : -1;
+                a[0] = s[0] / (1 + s[2]*a3);
+                a[1] = s[1] / (1 + s[2]*a3);
 
-                if( spins[i][2]*a3_coords[i] < 0 )
-                {
-                    // Transform coordinates to optimal map
-                    a3 = (s[2] > 0) ? 1 : -1;
-                    a[0] = s[0] / (1 + s[2]*a3);
-                    a[1] = s[1] / (1 + s[2]*a3);
+                // Also transform search direction to new map
+                a_directions[i] *= (1 - a3 * s[2]) / (1 + a3 * s[2]);
+            }
+        }
+    }
 
-                    // Also transform search direction to new map
-                    a_directions[i] *= (1 - a3 * s[2]) / (1 + a3 * s[2]);
-                }
+    void lbfgs_atlas_transform_direction(const vectorfield & spins, vector2field & a_coords, scalarfield & a3_coords, field<vector2field> & directions)
+    {
+        #pragma omp parallel for
+        for( int i=0; i<spins.size(); ++i )
+        {
+            const auto & s = spins[i];
+            auto &       a = a_coords[i];
+            auto &      a3 = a3_coords[i];
+
+            if( spins[i][2]*a3_coords[i] < 0 )
+            {
+                // Transform coordinates to optimal map
+                a3 = (s[2] > 0) ? 1 : -1;
+                a[0] = s[0] / (1 + s[2]*a3);
+                a[1] = s[1] / (1 + s[2]*a3);
+
+                // Also transform search direction to new map
+                for(auto & dirs : directions)
+                    dirs[i] *= (1 - a3 * s[2]) / (1 + a3 * s[2]);
             }
         }
     }
@@ -495,35 +544,85 @@ namespace Solver_Kernels
         return sqrt(dist);
     }
 
-    // LBFGS
+    // LBFGS_OSO
     // The "two-loop recursion", see https://en.wikipedia.org/wiki/Limited-memory_BFGS
-    void lbfgs_get_descent_direction(int iteration, int n_updates, vectorfield & a_direction, const vectorfield & residual, const std::vector<vectorfield> & a_updates, const std::vector<vectorfield> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp)
+    // void lbfgs_get_descent_direction(int iteration, int n_updates, vectorfield & a_direction, const vectorfield & residual, const std::vector<vectorfield> & a_updates, const std::vector<vectorfield> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp)
+    void lbfgs_get_descent_direction(int iteration, field<int> & n_updates, field<vectorfield> & a_direction, const field<vectorfield> & residual, const field<field<vectorfield>> & a_updates, const field<field<vectorfield>> & grad_updates, const field<scalarfield> & rho_temp, field<scalarfield> & alpha_temp)
     {
-        if( n_updates <= 5 ) // First iteration uses steepest descent
+        int noi = a_direction.size();
+        int nos = a_direction[0].size();
+
+        for(int img=0; img<noi; img++)
         {
-            Vectormath::set_c_a(1, residual, a_direction);
+            auto & res = residual[img];
+            auto & dir = a_direction[img];
+            auto & alpha = alpha_temp[img];
+            auto & a_up = a_updates[img];
+            auto & grad_up = grad_updates[img];
+            auto & rho = rho_temp[img];
+            auto & n_up = n_updates[img];
+
+            if( n_up == 0 ) // First iteration uses steepest descent
+            {
+                Vectormath::set_c_a(1, res, dir);
+                return;
+            }
+
+            Vectormath::set_c_a(1, res, dir); // copy res to dir
+            for(int i = iteration; i > iteration - n_up; i--)
+            {
+                int idx = (i-1) % n_up;
+                alpha[idx] = rho[idx] * Vectormath::dot(dir, a_up[idx]);
+                Vectormath::add_c_a( -alpha[idx], grad_up[idx], dir );
+            }
+
+            int idx_last = (iteration - 1) % n_up;
+            scalar top = Vectormath::dot(a_up[idx_last], grad_up[idx_last]);
+            scalar bot = Vectormath::dot(grad_up[idx_last], grad_up[idx_last]);
+            scalar gamma = top/bot;
+
+            Vectormath::set_c_a(-gamma, dir, dir);
+            for(int j = iteration - n_up + 1; j <= iteration; j++)
+            {
+                int idx = (j-1) % n_up;
+                scalar beta = -rho[idx] * Vectormath::dot(grad_up[idx], dir);
+                Vectormath::add_c_a( -(alpha[idx] - beta), a_up[idx], dir);
+            }
+        }
+    }
+
+    void lbfgs_atlas_get_descent_direction(int iteration, int n_updates, vector2field & a_direction, const vector2field & residual, const std::vector<vector2field> & a_updates, const std::vector<vector2field> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp)
+    {
+        static auto dot2D = [](const Vector2 & v1, const Vector2 &v2){return v1.dot(v2);};
+
+        if( n_updates <= 3 ) // First iteration uses steepest descent
+        {
+            Vectormath::set(a_direction, residual, [](Vector2 x){return x;});
             return;
         }
 
-        Vectormath::set_c_a(1, residual, a_direction); // copy residual to a_direction
+        a_direction = residual; // copy residual to a_direction
         for(int i = iteration; i > iteration - n_updates; i--)
         {
             int idx = (i-1) % n_updates;
-            alpha_temp[idx] = rho_temp[idx] * Vectormath::dot(a_direction, a_updates[idx]);
-            Vectormath::add_c_a( -alpha_temp[idx], grad_updates[idx], a_direction );
+            alpha_temp[idx] = rho_temp[idx] * Vectormath::reduce(a_direction, a_updates[idx], dot2D);
+            // Vectormath::add_c_a( -alpha_temp[idx], grad_updates[idx], a_direction );
+            Vectormath::set( a_direction, grad_updates[idx], [&alpha_temp, idx](const Vector2 & v){return alpha_temp[idx] * v;} );
         }
 
         int idx_last = (iteration - 1) % n_updates;
-        scalar top = Vectormath::dot(a_updates[idx_last], grad_updates[idx_last]);
-        scalar bot = Vectormath::dot(grad_updates[idx_last], grad_updates[idx_last]);
+        scalar top = Vectormath::reduce(a_updates[idx_last], grad_updates[idx_last], dot2D);
+        scalar bot = Vectormath::reduce(grad_updates[idx_last], grad_updates[idx_last], dot2D);
         scalar gamma = top/bot;
 
-        Vectormath::set_c_a(-gamma, a_direction, a_direction);
+        // Vectormath::set_c_a(-gamma, a_direction, a_direction);
+        Vectormath::set(a_direction, a_direction, [gamma](const Vector2 & v){return -gamma*v;});
+
         for(int j = iteration - n_updates + 1; j <= iteration; j++)
         {
             int idx = (j-1) % n_updates;
-            scalar beta = -rho_temp[idx] * Vectormath::dot(grad_updates[idx], a_direction);
-            Vectormath::add_c_a( -(alpha_temp[idx] - beta), a_updates[idx], a_direction);
+            scalar beta = -rho_temp[idx] * Vectormath::reduce(grad_updates[idx], a_direction, dot2D);
+            Vectormath::set( a_direction, a_updates[idx], [idx, &alpha_temp, beta](const Vector2 & v){return -(alpha_temp[idx] - beta) * v;});
         }
     }
 

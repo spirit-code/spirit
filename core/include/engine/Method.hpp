@@ -152,10 +152,10 @@ namespace Engine
 
         // Method name as enum
         Utility::Log_Sender SenderName;
-        // Maximum force component of all images
-        scalar force_max_abs_component;
-        // Maximum force component per image
-        std::vector<scalar> force_max_abs_component_all;
+        // Maximum torque of all images
+        scalar max_torque;
+        // Maximum torque per image
+        std::vector<scalar> max_torque_all;
         // History of relevant quantities
         std::map<std::string, std::vector<scalar>> history;
 

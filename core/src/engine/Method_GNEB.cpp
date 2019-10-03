@@ -44,8 +44,8 @@ namespace Engine
         this->tangents = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));	// [noi][nos]
 
         // We assume that the chain is not converged before the first iteration
-        this->force_max_abs_component = this->chain->gneb_parameters->force_convergence + 1.0;
-        this->force_max_abs_component_all = std::vector<scalar>(this->noi, 0);
+        this->max_torque = this->chain->gneb_parameters->force_convergence + 1.0;
+        this->max_torque_all = std::vector<scalar>(this->noi, 0);
 
         // Create shared pointers to the method's systems' spin configurations
         this->configurations = std::vector<std::shared_ptr<vectorfield>>(this->noi);
@@ -53,7 +53,7 @@ namespace Engine
 
         // History
         this->history = std::map<std::string, std::vector<scalar>>{
-            {"max_torque_component", {this->force_max_abs_component}} };
+            {"max_torque", {this->max_torque}} };
 
         //---- Initialise Solver-specific variables
         this->Initialize();
@@ -66,7 +66,7 @@ namespace Engine
     template <Solver solver>
     std::vector<scalar> Method_GNEB<solver>::getForceMaxAbsComponent_All()
     {
-        return this->force_max_abs_component_all;
+        return this->max_torque_all;
     }
 
 
@@ -260,7 +260,7 @@ namespace Engine
     bool Method_GNEB<solver>::Converged()
     {
         // return this->isConverged;
-        if (this->force_max_abs_component < this->chain->gneb_parameters->force_convergence) return true;
+        if (this->max_torque < this->chain->gneb_parameters->force_convergence) return true;
         return false;
     }
 
@@ -280,17 +280,17 @@ namespace Engine
     void Method_GNEB<solver>::Hook_Post_Iteration()
     {
         // --- Convergence Parameter Update
-        this->force_max_abs_component = 0;
-        std::fill(this->force_max_abs_component_all.begin(), this->force_max_abs_component_all.end(), 0);
+        this->max_torque = 0;
+        std::fill(this->max_torque_all.begin(), this->max_torque_all.end(), 0);
 
 
         for (int img = 1; img < chain->noi - 1; ++img)
         {
-            scalar fmax = this->Force_on_Image_MaxAbsComponent(*(this->systems[img]->spins), F_total[img]);
+            scalar fmax = this->MaxTorque_on_Image(*(this->systems[img]->spins), F_total[img]);
             // Set maximum per image
-            if (fmax > this->force_max_abs_component_all[img]) this->force_max_abs_component_all[img] = fmax;
+            if (fmax > this->max_torque_all[img]) this->max_torque_all[img] = fmax;
             // Set maximum overall
-            if (fmax > this->force_max_abs_component) this->force_max_abs_component = fmax;
+            if (fmax > this->max_torque) this->max_torque = fmax;
 
             // Set the effective fields
             Manifoldmath::project_tangential(this->forces[img], *this->systems[img]->spins);
@@ -341,7 +341,7 @@ namespace Engine
     void Method_GNEB<solver>::Save_Current(std::string starttime, int iteration, bool initial, bool final)
     {
         // History save
-        this->history["max_torque_component"].push_back(this->force_max_abs_component);
+        this->history["max_torque"].push_back(this->max_torque);
 
         // File save
         if (this->parameters->output_any)
@@ -379,8 +379,8 @@ namespace Engine
                     std::string output_comment_base = fmt::format(
                         "{} simulation ({} solver)\n"
                         "# Desc:      Iteration: {}\n"
-                        "# Desc:      Maximum force component: {}",
-                        this->Name(), this->SolverFullName(), iteration, this->force_max_abs_component );
+                        "# Desc:      Maximum torque: {}",
+                        this->Name(), this->SolverFullName(), iteration, this->max_torque );
 
                     // write/append the first image
                     auto segment = IO::OVF_Segment(*this->chain->images[0]);
@@ -486,6 +486,7 @@ namespace Engine
     template class Method_GNEB<Solver::NCG>;
     template class Method_GNEB<Solver::NCG_OSO>;
     template class Method_GNEB<Solver::NCG_Atlas>;
-    template class Method_GNEB<Solver::LBFGS>;
+    template class Method_GNEB<Solver::LBFGS_OSO>;
+    template class Method_GNEB<Solver::LBFGS_Atlas>;
     template class Method_GNEB<Solver::VP>;
 }

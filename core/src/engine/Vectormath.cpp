@@ -156,6 +156,7 @@ namespace Vectormath
         minmax.second = maxval;
         return minmax;
     }
+
     scalar  max_abs_component(const vectorfield & vf)
     {
         // We want the Maximum of Absolute Values of all force components on all images
@@ -168,6 +169,18 @@ namespace Vectormath
         // Return
         return absmax;
     }
+
+    scalar max_norm(const vectorfield & vf)
+    {
+        scalar max_norm = 0;
+        #pragma omp parallel for
+        for(auto & v : vf)
+        {
+            max_norm = std::max(max_norm, v.norm());
+        }
+        return max_norm;
+    }
+
 
     void scale(vectorfield & vf, const scalar & sc)
     {
@@ -384,7 +397,7 @@ namespace Vectormath
         for(unsigned int idx = 0; idx < out.size(); ++idx)
             out[idx] = c*a[idx].cross(b[idx]);
     }
-    
+
     #endif
 }
 }
@@ -468,7 +481,7 @@ namespace Engine
             // 1. No basis atom lies outside the cell spanned by the basis vectors of the lattice
             // 2. The geometry is a plane in x and y and spanned by the first 2 basis_vectors of the lattice
             // 3. The first basis atom lies at (0,0)
-            
+
             const auto & positions = geometry.positions;
             scalar charge = 0;
 

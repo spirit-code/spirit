@@ -108,6 +108,30 @@ namespace Engine
                     (boundary_conditions[2] || (0 <= dc && dc < n_cells[2])));
         }
 
+        // result = sum_i  f( vf1[i], vf2[i] )
+        template<typename A, typename B, typename F>
+        scalar reduce(const field<A> & vf1, const field<B> & vf2, const F & f)
+        {
+            scalar res=0;
+            #pragma omp parallel for reduce(+:res)
+            for(unsigned int idx = 0; idx < vf1.size(); ++idx)
+            {
+                res += f(vf1[idx], vf2[idx]);
+            }
+            return res;
+        }
+
+        // vf1[i] = f( vf2[i] )
+        template<typename A, typename B, typename F>
+        void set(field<A> & vf1, const field<B> & vf2, const F & f)
+        {
+            #pragma omp parallel for
+            for(unsigned int idx = 0; idx < vf1.size(); ++idx)
+            {
+                vf1[idx] = f(vf2[idx]);
+            }
+        }
+
         #endif
         #ifdef SPIRIT_USE_CUDA
 
@@ -556,6 +580,9 @@ namespace Engine
         // Maximum absolute component of a vectorfield
         scalar max_abs_component(const vectorfield & vf);
 
+        // Maximum norm of a vectorfield
+        scalar max_norm(const vectorfield & vf);
+
         // Scale a vectorfield by a given value
         void scale(vectorfield & vf, const scalar & sc);
 
@@ -626,7 +653,6 @@ namespace Engine
         void set_c_cross(const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out);
         // out[i] = c * a[i] x b[i]
         void set_c_cross(const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out);
-
     }
 }
 

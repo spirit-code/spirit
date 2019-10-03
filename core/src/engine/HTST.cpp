@@ -57,11 +57,11 @@ namespace Engine
             Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Checking if initial configuration is an extremum...");
             Vectormath::set_c_a(1, gradient_minimum, force_tmp);
             Manifoldmath::project_tangential(force_tmp, image_minimum);
-            scalar fmax_minimum = Vectormath::max_abs_component(force_tmp);
+            scalar fmax_minimum = Vectormath::max_norm(force_tmp);
             if( fmax_minimum > epsilon_force )
             {
                 Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format(
-                    "HTST: the initial configuration is not a converged minimum, its max. force component is above the threshold ({} > {})!", fmax_minimum, epsilon_force ));
+                    "HTST: the initial configuration is not a converged minimum, its max. torque is above the threshold ({} > {})!", fmax_minimum, epsilon_force ));
                 return;
             }
 
@@ -74,11 +74,11 @@ namespace Engine
             Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Checking if transition configuration is an extremum...");
             Vectormath::set_c_a(1, gradient_sp, force_tmp);
             Manifoldmath::project_tangential(force_tmp, image_sp);
-            scalar fmax_sp = Vectormath::max_abs_component(force_tmp);
+            scalar fmax_sp = Vectormath::max_norm(force_tmp);
             if( fmax_sp > epsilon_force )
             {
                 Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format(
-                    "HTST: the transition configuration is not a converged saddle point, its max. force component is above the threshold ({} > {})!", fmax_sp, epsilon_force ));
+                    "HTST: the transition configuration is not a converged saddle point, its max. torque is above the threshold ({} > {})!", fmax_sp, epsilon_force ));
                 return;
             }
 

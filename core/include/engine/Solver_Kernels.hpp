@@ -41,14 +41,16 @@ namespace Solver_Kernels
 
 
     // NCG_OSO
-    void ncg_OSO_residual( vectorfield & residuals, vectorfield & residuals_last, const vectorfield & spins, const vectorfield & a_coords,
-                          const vectorfield & forces, bool approx = true);
+    void ncg_OSO_residual( vectorfield & residuals, vectorfield & residuals_last, const vectorfield & spins, const vectorfield & forces, bool approx = true);
     void ncg_OSO_a_to_spins(vectorfield & spins, const vectorfield & a_coords, const vectorfield & reference_spins);
 
     void ncg_OSO_update_reference_spins(vectorfield & reference_spins, vectorfield & a_coords, const vectorfield & spins);
 
-    void ncg_OSO_displace( std::vector<std::shared_ptr<vectorfield>> & configurations_displaced, std::vector<std::shared_ptr<vectorfield>> & reference_configurations, std::vector<vectorfield> & a_coords,
-                           std::vector<vectorfield> & a_coords_displaced, std::vector<vectorfield> & a_directions, std::vector<bool> finish, scalarfield step_size );
+    // void ncg_OSO_displace( std::vector<std::shared_ptr<vectorfield>> & configurations_displaced, std::vector<std::shared_ptr<vectorfield>> & reference_configurations, std::vector<vectorfield> & a_coords,
+                        //    std::vector<vectorfield> & a_coords_displaced, std::vector<vectorfield> & a_directions, std::vector<bool> finish, scalarfield step_size );
+
+    void ncg_OSO_displace( std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & a_directions, scalarfield & step_size, scalar max_rot);
+
 
     void ncg_OSO_line_search( std::vector<std::shared_ptr<vectorfield>> & configurations_displaced, std::vector<vectorfield> & a_coords_displaced, std::vector<vectorfield> & a_directions,
                               std::vector<vectorfield> & forces_displaced, std::vector<vectorfield> & a_residuals_displaced, std::vector<std::shared_ptr<Data::Spin_System>> systems, std::vector<bool> & finish,
@@ -63,11 +65,14 @@ namespace Solver_Kernels
 
 
     // NCG_Atlas
-    void ncg_atlas_residual( std::vector<Vector2> & residuals, std::vector<Vector2> & residuals_last, const vectorfield & spins,
+    void ncg_atlas_residual( vector2field & residuals, vector2field & residuals_last, const vectorfield & spins,
                              const vectorfield & forces, const scalarfield & a3_coords );
     void ncg_atlas_to_spins(const vector2field & a_coords, const scalarfield & a3_coords, vectorfield & spins);
     void ncg_spins_to_atlas(const vectorfield & spins, vector2field & a_coords, scalarfield & a3_coords);
-    void ncg_atlas_check_coordinates(const vectorfield & spins, vector2field & a_coords, scalarfield & a3_coords, vector2field & a_directions);
+
+    bool ncg_atlas_check_coordinates(const vectorfield & spins, scalarfield & a3_coords);
+    void ncg_atlas_transform_direction(const vectorfield & spins, vector2field & a_coords, scalarfield & a3_coords, vector2field & a_directions);
+
     void ncg_atlas_displace( std::vector<std::shared_ptr<vectorfield>> & configurations_displaced, std::vector<vector2field> & a_coords, std::vector<scalarfield> & a3_coords,
                              std::vector<vector2field> & a_coords_displaced, std::vector<vector2field> & a_directions, std::vector<bool> finish, scalarfield step_size );
 
@@ -80,8 +85,13 @@ namespace Solver_Kernels
 
     scalar ncg_atlas_distance(const vector2field & a_coords1, const vector2field & a_coords2);
 
-    // LBFGS
-    void lbfgs_get_descent_direction(int iteration, int n_lbfgs_memory, vectorfield & a_direction, const vectorfield & residual, const std::vector<vectorfield> & a_updates, const std::vector<vectorfield> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp);
+    // LBFGS_OSO
+    void lbfgs_get_descent_direction(int iteration, field<int> & n_updates, field<vectorfield> & a_direction, const field<vectorfield> & residual, const field<field<vectorfield>> & a_updates, const field<field<vectorfield>> & grad_updates, const field<scalarfield> & rho_temp, field<scalarfield> & alpha_temp);
+
+    // LBFGS_Atlas
+    void lbfgs_atlas_get_descent_direction(int iteration, int n_updates, vector2field & a_direction, const vector2field & residual, const std::vector<vector2field> & a_updates, const std::vector<vector2field> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp);
+    void lbfgs_atlas_transform_direction(const vectorfield & spins, vector2field & a_coords, scalarfield & a3_coords, field<vector2field> & directions);
+
 }
 }
 

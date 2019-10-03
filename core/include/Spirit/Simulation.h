@@ -46,14 +46,17 @@ Note that the VP and NCG Solvers are only meant for direct minimization and not 
 // `NCG`: Nonlinear conjugate gradients
 #define Solver_NCG         5
 
-// `LBFGS`: Limited memory Broyden-Fletcher-Goldfarb-Shanno
-#define Solver_LBFGS       6
+// `LBFGS_OSO`: Limited memory Broyden-Fletcher-Goldfarb-Shanno, exponential transform
+#define Solver_LBFGS_OSO   6
+
+// `LBFGS_OSO`: Limited memory Broyden-Fletcher-Goldfarb-Shannon, stereographic projection
+#define Solver_LBFGS_Atlas 7
 
 // `NCG_OSO`: Nonlinear conjugate gradients, exponential transform
-#define Solver_NCG_OSO  7
+#define Solver_NCG_OSO     8
 
 // `NCG_Atlas`: Nonlinear conjugate gradients, stereographic projection
-#define Solver_NCG_Atlas  8
+#define Solver_NCG_Atlas   9
 
 /*
 Start or stop a simulation
