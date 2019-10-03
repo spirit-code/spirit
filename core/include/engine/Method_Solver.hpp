@@ -102,6 +102,9 @@ namespace Engine
         // Calculate maximum of absolute values of force components for a spin configuration
         virtual scalar Force_on_Image_MaxAbsComponent(const vectorfield & image, vectorfield & force) final;
 
+        // Calculate maximum torque for a spin configuration
+        virtual scalar MaxTorque_on_Image(const vectorfield & image, vectorfield & force) final;
+
         // ...
         // virtual bool Iterations_Allowed() override;
         // Check if the forces are converged
@@ -252,11 +255,20 @@ namespace Engine
         return Vectormath::max_abs_component(force);
     }
 
+    // Return the maximum norm of the torque for an image
+    template<Solver solver>
+    scalar Method_Solver<solver>::MaxTorque_on_Image(const vectorfield & image, vectorfield & force)
+    {
+        // Take out component in direction of v2
+        Manifoldmath::project_tangential(force, image);
+        return Vectormath::max_norm(force);
+    }
+
     template<Solver solver>
     bool Method_Solver<solver>::Converged()
     {
         bool converged = false;
-        if( this->force_max_abs_component < this->parameters->force_convergence ) converged = true;
+        if( this->max_torque < this->parameters->force_convergence ) converged = true;
         return converged;
     }
 
@@ -292,7 +304,7 @@ namespace Engine
                 fmt::format("    Going to iterate {} step(s)", this->n_log),
                 fmt::format("                with {} iterations per step", this->n_iterations_log),
                 fmt::format("    Force convergence parameter: {:." + fmt::format("{}", this->print_precision) + "f}", this->parameters->force_convergence),
-                fmt::format("    Maximum force component:     {:." + fmt::format("{}", this->print_precision) + "f}", this->force_max_abs_component),
+                fmt::format("    Maximum torque:              {:." + fmt::format("{}", this->print_precision) + "f}", this->max_torque),
                 fmt::format("    Solver: {}", this->SolverFullName()),
                 "-----------------------------------------------------"
             }, this->idx_image, this->idx_chain);
@@ -315,7 +327,7 @@ namespace Engine
                 fmt::format("    Time since last step:        {}", Timing::DateTimePassed(t_current - this->t_last)),
                 fmt::format("    Iterations / sec:            {}", this->n_iterations_log / Timing::SecondsPassed(t_current - this->t_last)),
                 fmt::format("    Force convergence parameter: {:." + fmt::format("{}", this->print_precision) + "f}", this->parameters->force_convergence),
-                fmt::format("    Maximum force component:     {:." + fmt::format("{}", this->print_precision) + "f}", this->force_max_abs_component)
+                fmt::format("    Maximum torque:              {:." + fmt::format("{}", this->print_precision) + "f}", this->max_torque)
             }, this->idx_image, this->idx_chain);
 
         // Update time of last step
@@ -351,7 +363,7 @@ namespace Engine
             block.push_back(fmt::format("    Simulated time:   {} ps", this->getTime()));
         block.push_back(fmt::format("    Iterations / sec: {}", this->iteration / Timing::SecondsPassed(t_end - this->t_start)));
         block.push_back(fmt::format("    Force convergence parameter: {:."+fmt::format("{}",this->print_precision)+"f}", this->parameters->force_convergence));
-        block.push_back(fmt::format("    Maximum force component:     {:."+fmt::format("{}",this->print_precision)+"f}", this->force_max_abs_component));
+        block.push_back(fmt::format("    Maximum torque:              {:."+fmt::format("{}",this->print_precision)+"f}", this->max_torque));
         block.push_back(fmt::format("    Solver: " + this->SolverFullName()));
         block.push_back("-----------------------------------------------------");
         Log.SendBlock(Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain);

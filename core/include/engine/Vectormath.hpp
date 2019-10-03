@@ -580,6 +580,9 @@ namespace Engine
         // Maximum absolute component of a vectorfield
         scalar max_abs_component(const vectorfield & vf);
 
+        // Maximum norm of a vectorfield
+        scalar max_norm(const vectorfield & vf);
+
         // Scale a vectorfield by a given value
         void scale(vectorfield & vf, const scalar & sc);
 
