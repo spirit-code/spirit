@@ -13,16 +13,13 @@ void Method_Solver<Solver::LBFGS_OSO>::Initialize ()
 {
     this->jmax = 500;    // max iterations
     this->n    = 50;     // restart every n iterations XXX: what's the appropriate val?
-    this->n_lbfgs_memory = 3; // how many updates the solver tracks to estimate the hessian
+    this->n_lbfgs_memory = 5; // how many updates the solver tracks to estimate the hessian
     this->n_updates = intfield( this->noi, 0 );
 
     this->a_updates    = std::vector<std::vector<vectorfield>>( this->noi, std::vector<vectorfield>( this->n_lbfgs_memory, vectorfield(this->nos, { 0,0,0 } ) ));
     this->grad_updates = std::vector<std::vector<vectorfield>>( this->noi, std::vector<vectorfield>( this->n_lbfgs_memory, vectorfield(this->nos, { 0,0,0 } ) ));
     this->rho_temp     = std::vector<scalarfield>( this->noi, scalarfield( this->n_lbfgs_memory, 0 ) );
     this->alpha_temp   = std::vector<scalarfield>( this->noi, scalarfield( this->n_lbfgs_memory, 0 ) );
-
-    // Polak-Ribiere criterion
-    this->beta  = scalarfield( this->noi, 0 );
 
     this->forces                   = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
     this->forces_virtual           = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
@@ -35,10 +32,7 @@ void Method_Solver<Solver::LBFGS_OSO>::Initialize ()
 /*
     Implemented according to Aleksei Ivanov's paper: https://arxiv.org/abs/1904.02669
     TODO: reference painless conjugate gradients
-    See also Jorge Nocedal and Stephen J. Wright 'Numerical Optimization' Second Edition, 2006 (p. 121)
-
-    Template instantiation of the Simulation class for use with the NCG Solver
-    The method of nonlinear conjugate gradients is a proven and effective solver.
+    See also Jorge Nocedal and Stephen J. Wright 'Numerical Optimization' Second Edition, 2006 (p. 121).
 */
 
 template <> inline
@@ -97,7 +91,7 @@ void Method_Solver<Solver::LBFGS_OSO>::Iteration()
 
     for (int img=0; img<this->noi; img++)
     {
-        auto& image              = *this->configurations[img];
+        auto& image = *this->configurations[img];
 
         // Update current image
         for(int i=0; i<image.size(); i++)

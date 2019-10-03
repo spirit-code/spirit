@@ -246,6 +246,9 @@ try
             else if (solver_type == int(Engine::Solver::VP))
                 method = std::shared_ptr<Engine::Method>(
                     new Engine::Method_GNEB<Engine::Solver::VP>( chain, idx_chain ) );
+            else if (solver_type == int(Engine::Solver::LBFGS_OSO))
+                method = std::shared_ptr<Engine::Method>(
+                    new Engine::Method_GNEB<Engine::Solver::LBFGS_OSO>( chain, idx_chain ) );
             else
                 spirit_throw(Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Warning, fmt::format(
                     "Invalid solver_type {}", solver_type));
