@@ -547,7 +547,7 @@ namespace Solver_Kernels
     // The "two-loop recursion", see https://en.wikipedia.org/wiki/Limited-memory_BFGS
     void lbfgs_get_descent_direction(int iteration, int n_updates, vectorfield & a_direction, const vectorfield & residual, const std::vector<vectorfield> & a_updates, const std::vector<vectorfield> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp)
     {
-        if( n_updates <= 1 ) // First iteration uses steepest descent
+        if( n_updates == 0 ) // First iteration uses steepest descent
         {
             Vectormath::set_c_a(1, residual, a_direction);
             return;

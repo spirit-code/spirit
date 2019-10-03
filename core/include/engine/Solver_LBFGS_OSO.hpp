@@ -44,7 +44,7 @@ void Method_Solver<Solver::LBFGS_OSO>::Initialize ()
 template <> inline
 void Method_Solver<Solver::LBFGS_OSO>::Iteration()
 {
-    scalar max_rot = Constants::Pi * 0.6;
+    scalar max_rot = Constants::Pi * 0.2;
 
     // Current force
     this->Calculate_Force( this->configurations, this->forces );
@@ -76,6 +76,12 @@ void Method_Solver<Solver::LBFGS_OSO>::Iteration()
             }
 
             this->rho_temp[img][idx] = 1/Vectormath::dot(this->grad_updates[img][idx], this->a_updates[img][idx]);
+
+            if(this->rho_temp[img][idx] > 0)
+            {
+                this->n_updates[img] = 0;
+            }
+
         }
 
         // Calculate new search direction
