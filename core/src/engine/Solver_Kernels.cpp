@@ -222,29 +222,42 @@ namespace Solver_Kernels
 
             auto scaling = (theta_rms > max_rot) ? max_rot/theta_rms : 1.0;
 
+            // Debug
+            // if(scaling < 1.0)
+            // {
+            //     std::cout << "WARNING applying scaling with " << scaling <<"\n";
+            //     std::cout << "theta_rms/Pi is " << theta_rms/Constants::Pi << "\n";
+            // }
+
             Matrix3 tmp;
             Matrix3 A_prime;
 
             for( int i=0; i<nos; i++)
             {
-                scalar theta = (a_directions[img][i]).norm() * scaling;
+                scalar theta = (a_directions[img][i]).norm();
 
-                // scalar  q = cos(theta), w = 1-q,
-                //         x = a_directions[img][i][0]/theta, y = a_directions[img][i][1]/theta, z = a_directions[img][i][2]/theta,
-                //         s1 = -y*z*w, s2 = x*z*w, s3 = -x*y*w,
-                //         p1 = x * sin(theta), p2 = y * sin(theta), p3 = z * sin(theta);
+                if(theta < 1e-20)
+                {
+                    tmp = Matrix3::Identity();
+                } else {
 
-                // tmp <<  q+z*z*w, s1+p1, s2+p2,
-                //         s1-p1, q+y*y*w, s3+p3,
-                //         s2-p2, s3-p3, q+x*x*w;
+                    // Ugly version
+                    // scalar  q = cos(theta), w = 1-q,
+                    //         x = a_directions[img][i][0]/theta, y = a_directions[img][i][1]/theta, z = a_directions[img][i][2]/theta,
+                    //         s1 = -y*z*w, s2 = x*z*w, s3 = -x*y*w,
+                    //         p1 = x * sin(theta), p2 = y * sin(theta), p3 = z * sin(theta);
 
-                A_prime <<                         0,  a_directions[img][i][0], a_directions[img][i][1],
-                            -a_directions[img][i][0],                        0, a_directions[img][i][2],
-                            -a_directions[img][i][1], -a_directions[img][i][2],                       0;
+                    // tmp <<  q+z*z*w, s1+p1, s2+p2,
+                    //         s1-p1, q+y*y*w, s3+p3,
+                    //         s2-p2, s3-p3, q+x*x*w;
 
-                A_prime /= theta;
-                tmp = Matrix3::Identity() + sin(theta) * A_prime + (1-cos(theta)) * A_prime * A_prime;
+                    A_prime <<                         0,  a_directions[img][i][0], a_directions[img][i][1],
+                                -a_directions[img][i][0],                        0, a_directions[img][i][2],
+                                -a_directions[img][i][1], -a_directions[img][i][2],                       0;
 
+                    A_prime /= theta;
+                    tmp = Matrix3::Identity() + sin(theta*scaling) * A_prime + (1-cos(theta*scaling)) * A_prime * A_prime;
+                }
                 (*configurations[img])[i] = tmp * (*configurations[img])[i] ;
             }
         }

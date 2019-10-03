@@ -52,12 +52,11 @@ void Method_Solver<Solver::LBFGS_OSO>::Iteration()
     #pragma omp parallel for
     for( int img=0; img<this->noi; img++ )
     {
-        auto& image                 = *this->configurations[img];
-        auto& beta                  = this->beta[img];
-        auto& a_coords              = this->a_coords[img];
-        auto& a_directions          = this->a_directions[img];
-        auto& a_residuals           = this->a_residuals[img];
-        auto& a_residuals_last      = this->a_residuals_last[img];
+        auto& image            = *this->configurations[img];
+        auto& a_coords         = this->a_coords[img];
+        auto& a_directions     = this->a_directions[img];
+        auto& a_residuals      = this->a_residuals[img];
+        auto& a_residuals_last = this->a_residuals_last[img];
 
         // Update virtual force
         for(int i=0; i<this->nos; ++i)
@@ -112,7 +111,7 @@ std::string Method_Solver<Solver::LBFGS_OSO>::SolverName()
 template <> inline
 std::string Method_Solver<Solver::LBFGS_OSO>::SolverFullName()
 {
-    return "Limited memory Broyden-Fletcher-Goldfarb-Shanno";
+    return "Limited memory Broyden-Fletcher-Goldfarb-Shanno with exponential transform";
 }
 
 #endif
