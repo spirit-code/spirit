@@ -208,7 +208,7 @@ namespace Solver_Kernels
         }
     }
 
-    void ncg_OSO_displace( std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & a_directions, scalarfield step_size, scalar max_rot)
+    void ncg_OSO_displace( std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & a_directions, scalarfield & step_size, scalar max_rot)
     {
         int noi = configurations.size();
         int nos = configurations[0]->size();
@@ -221,6 +221,7 @@ namespace Solver_Kernels
             theta_rms = sqrt(theta_rms)/nos;
 
             auto scaling = (theta_rms > max_rot) ? max_rot/theta_rms : 1.0;
+            step_size[img] *= scaling;
 
             // Debug
             // if(scaling < 1.0)
