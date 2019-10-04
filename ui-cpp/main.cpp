@@ -7,6 +7,7 @@
 #include "Spirit/Transitions.h"
 #include "Spirit/Simulation.h"
 #include "Spirit/Log.h"
+#include "Spirit/IO.h"
 
 #ifdef _OPENMP
     #include <omp.h>
@@ -45,10 +46,17 @@ int main(int argc, char ** argv)
     // std::string chainfile = "input/chain.txt";
 
     //--- Initialise State
+    Configuration_PlusZ(state.get());
+
     state = std::shared_ptr<State>(State_Setup(cfgfile.c_str(), quiet), State_Delete);
 
+    const std::string & image_file = cmdline.getCmdOption("-i");
+    if( !image_file.empty() )
+    {
+        IO_Image_Read( state.get(), image_file.c_str());
+    }
+
     //--- Initial spin configuration
-    Configuration_PlusZ(state.get());
     // // Read Image from file
     // Configuration_from_File(state.get(), spinsfile, 0);
 
