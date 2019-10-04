@@ -591,6 +591,140 @@ namespace Solver_Kernels
         }
     }
 
+    // LBFGS_OSO
+    void lbfgs_get_searchdir(int & local_iter,
+           field<scalarfield> & rho,
+           field<scalarfield> & alpha,
+           field<vectorfield> & q_vec,
+           field<vectorfield> & searchdir,
+           field<field<vectorfield>> & delta_a,
+           field<field<vectorfield>> & delta_grad,
+           const field<vectorfield> & grad,
+           field<vectorfield> & grad_pr,
+           const int num_mem,
+           const double maxmove
+           )
+    {
+        int noi = grad.size();
+        int nos = grad[0].size();
+        int m_index = local_iter % num_mem; // memory index
+        int c_ind = 0;
+        double scaling = 1.0;
+
+        if (local_iter == 0){  // gradient descent algorithm
+            #pragma omp parallel for
+            for(int img=0; img<noi; img++) {
+                Vectormath::set_c_a(1.0, grad[img], grad_pr[img]);
+                auto & dir = searchdir[img];
+                auto & g_cur = grad[img];
+                scaling = maximum_rotation(g_cur, maxmove);
+                Vectormath::set_c_a(-scaling, g_cur, dir);
+                auto & da = delta_a[img];
+                auto & dg = delta_grad[img];
+                for (int i = 0; i < num_mem; i++){
+                    rho[img][i] = 0.0;
+                    Vectormath::set_c_a(1.0, {0,0,0}, da[i]);
+                    Vectormath::set_c_a(1.0, {0,0,0}, dg[i]);
+                }
+            }
+        }
+        else{
+            #pragma omp parallel for
+            for (int img=0; img<noi; img++) {
+                // this is for a single image:
+                Vectormath::set_c_a(1, searchdir[img], delta_a[img][m_index]);
+                for (int i = 0; i < nos; i++)
+                    delta_grad[img][m_index][i] = grad[img][i] - grad_pr[img][i];
+
+                scalar rinv_temp = Vectormath::dot(delta_grad[img][m_index], delta_a[img][m_index]);
+                if (rinv_temp > 1.0e-40)
+                    rho[img][m_index] = 1.0 / rinv_temp;
+                else rho[img][m_index] = 1.0e40;
+                if (rho[img][m_index] < 0.0){
+                    local_iter = 0;
+                    return lbfgs_get_searchdir(local_iter, rho, alpha, q_vec, searchdir,
+                            delta_a, delta_grad, grad, grad_pr, num_mem, maxmove);
+                }
+                Vectormath::set_c_a(1.0, grad[img], q_vec[img]);
+                for (int k = num_mem - 1; k > -1; k--) {
+                    c_ind = (k + m_index + 1) % num_mem;
+                    alpha[img][c_ind] = rho[img][c_ind] * Vectormath::dot(delta_a[img][c_ind], q_vec[img]);
+                    Vectormath::add_c_a(-alpha[img][c_ind], delta_grad[img][c_ind], q_vec[img]);
+                }
+                scalar dy2 = Vectormath::dot(delta_grad[img][m_index], delta_grad[img][m_index]);
+                scalar rhody2 = dy2 * rho[img][m_index];
+                scalar inv_rhody2 = 0.0;
+                if (rhody2 > 1.0e-40)
+                    inv_rhody2 = 1.0 / rhody2;
+                else
+                    inv_rhody2 = 1.0e40;
+                Vectormath::set_c_a(inv_rhody2, q_vec[img], searchdir[img]);
+                for (int k = 0; k < num_mem; k++) {
+                    if (local_iter < num_mem) c_ind = k;
+                    else c_ind = (k + m_index + 1) % num_mem;
+                    scalar rhopdg = Vectormath::dot(delta_grad[img][c_ind], searchdir[img]);
+                    rhopdg *= rho[img][c_ind];
+                    Vectormath::add_c_a((alpha[img][c_ind] - rhopdg), delta_a[img][c_ind], searchdir[img]);
+                }
+                scaling = maximum_rotation(searchdir[img], maxmove);
+                Vectormath::set_c_a(1.0, grad[img], grad_pr[img]);
+                Vectormath::set_c_a(-scaling, searchdir[img], searchdir[img]);
+            }
+        }
+        local_iter++;
+    }
+
+    void oso_calc_gradients(vectorfield & grad,  const vectorfield & spins, const vectorfield & forces)
+    {
+        #pragma omp parallel for
+        for( int i=0; i<spins.size(); i++)
+        {
+            Vector3 temp = -spins[i].cross(forces[i]);
+            grad[i][0] =  temp[2];
+            grad[i][1] = -temp[1];
+            grad[i][2] =  temp[0];
+        }
+    }
+
+    void oso_rotate( std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & searchdir)
+    {
+        int noi = configurations.size();
+        int nos = configurations[0]->size();
+        for(int img=0; img<noi; ++img)
+        {
+
+            Matrix3 tmp;
+            Matrix3 A_prime;
+            for( int i=0; i<nos; i++)
+            {
+                scalar theta = (searchdir[img][i]).norm();
+                if(theta < 1.0e-20)
+                {
+                    tmp = Matrix3::Identity();
+                } else {
+                    A_prime <<                         0,  -searchdir[img][i][0], -searchdir[img][i][1],
+                            searchdir[img][i][0],                        0, -searchdir[img][i][2],
+                            searchdir[img][i][1], searchdir[img][i][2],                       0;
+
+                    A_prime /= theta;
+                    tmp = Matrix3::Identity() + sin(theta) * A_prime + (1-cos(theta)) * A_prime * A_prime;
+                }
+                (*configurations[img])[i] = tmp * (*configurations[img])[i] ;
+            }
+        }
+    }
+
+    double maximum_rotation(const vectorfield & searchdir, double maxmove){
+        int nos = searchdir.size();
+        double theta_rms = 0;
+        #pragma omp parallel for reduce(+:theta_rms)
+        for(int i=0; i<nos; ++i)
+            theta_rms += (searchdir[i]).squaredNorm();
+        theta_rms = sqrt(theta_rms/nos);
+        double scaling = (theta_rms > maxmove) ? maxmove/theta_rms : 1.0;
+        return scaling;
+    }
+
     void lbfgs_atlas_get_descent_direction(int iteration, int n_updates, vector2field & a_direction, const vector2field & residual, const std::vector<vector2field> & a_updates, const std::vector<vector2field> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp)
     {
         static auto dot2D = [](const Vector2 & v1, const Vector2 &v2){return v1.dot(v2);};
