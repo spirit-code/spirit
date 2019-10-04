@@ -86,6 +86,24 @@ namespace Solver_Kernels
     scalar ncg_atlas_distance(const vector2field & a_coords1, const vector2field & a_coords2);
 
     // LBFGS_OSO
+    void lbfgs_get_searchdir(int &local_iter,
+                             field<scalarfield> & rho,
+                             field<scalarfield> & alpha,
+                             field<vectorfield> & q_vec,
+                             field<vectorfield> & searchdir,
+                             field<field<vectorfield>> & delta_a,
+                             field<field<vectorfield>> & delta_grad,
+                             const field<vectorfield> & grad,
+                             field<vectorfield> & grad_pr,
+                             const int num_mem,
+                             const double maxmove);
+
+    void oso_rotate( std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & searchdir);
+
+    void oso_calc_gradients( vectorfield & residuals,const vectorfield & spins, const vectorfield & forces);
+
+    double maximum_rotation(const vectorfield & searchdir, double maxmove);
+
     void lbfgs_get_descent_direction(int iteration, field<int> & n_updates, field<vectorfield> & a_direction, const field<vectorfield> & residual, const field<field<vectorfield>> & a_updates, const field<field<vectorfield>> & grad_updates, const field<scalarfield> & rho_temp, field<scalarfield> & alpha_temp);
 
     // LBFGS_Atlas

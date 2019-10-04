@@ -190,13 +190,24 @@ namespace Engine
 
         // LBFGS_OSO
         int n_lbfgs_memory;
+        std::vector<std::vector<vectorfield>> delta_a;
+        std::vector<std::vector<vectorfield>> delta_grad;
+        std::vector<scalarfield> rho;
+        std::vector<scalarfield> alpha;
+        std::vector<vectorfield> searchdir;
+        std::vector<vectorfield> grad;
+        std::vector<vectorfield> grad_pr;
+        std::vector<vectorfield> q_vec;
+
+        int local_iter;
+        double maxmove;
+
+        // LBFGS_Atlas
         intfield n_updates;
         std::vector<std::vector<vectorfield>> a_updates;
         std::vector<std::vector<vectorfield>> grad_updates;
         std::vector<scalarfield> rho_temp;
         std::vector<scalarfield> alpha_temp;
-
-        // LBFGS_Atlas
         std::vector<std::vector<vector2field>> atlas_updates;
         std::vector<std::vector<vector2field>> grad_atlas_updates;
 

@@ -11,22 +11,26 @@ using namespace Utility;
 template <> inline
 void Method_Solver<Solver::LBFGS_OSO>::Initialize ()
 {
-    this->jmax = 500;    // max iterations
-    this->n    = 50;     // restart every n iterations XXX: what's the appropriate val?
-    this->n_lbfgs_memory = 5; // how many updates the solver tracks to estimate the hessian
-    this->n_updates = intfield( this->noi, 0 );
 
-    this->a_updates    = std::vector<std::vector<vectorfield>>( this->noi, std::vector<vectorfield>( this->n_lbfgs_memory, vectorfield(this->nos, { 0,0,0 } ) ));
-    this->grad_updates = std::vector<std::vector<vectorfield>>( this->noi, std::vector<vectorfield>( this->n_lbfgs_memory, vectorfield(this->nos, { 0,0,0 } ) ));
-    this->rho_temp     = std::vector<scalarfield>( this->noi, scalarfield( this->n_lbfgs_memory, 0 ) );
-    this->alpha_temp   = std::vector<scalarfield>( this->noi, scalarfield( this->n_lbfgs_memory, 0 ) );
+    this->n_lbfgs_memory = 3; // how many previous iterations are stored in the memory
 
-    this->forces                   = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
-    this->forces_virtual           = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
-    this->a_directions             = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
-    this->a_residuals              = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
-    this->a_residuals_last         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
-    this->step_size                = scalarfield(this->noi, 0);
+    this->delta_a = std::vector<std::vector<vectorfield>>(
+            this->noi, std::vector<vectorfield>( this->n_lbfgs_memory, vectorfield(this->nos, { 0,0,0 } ) ));
+    this->delta_grad = std::vector<std::vector<vectorfield>>(
+            this->noi, std::vector<vectorfield>( this->n_lbfgs_memory, vectorfield(this->nos, { 0,0,0 } ) ));
+    this->rho = std::vector<scalarfield>( this->noi, scalarfield( this->n_lbfgs_memory, 0 ) );
+    this->alpha = std::vector<scalarfield>( this->noi, scalarfield( this->n_lbfgs_memory, 0 ) );
+
+    this->forces = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
+    this->forces_virtual = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
+
+    this->searchdir = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
+    this->grad = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
+    this->grad_pr = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
+    this->q_vec = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
+
+    this->local_iter = 0;
+    this->maxmove = Constants::Pi / 200.0;
 };
 
 /*
@@ -38,70 +42,31 @@ void Method_Solver<Solver::LBFGS_OSO>::Initialize ()
 template <> inline
 void Method_Solver<Solver::LBFGS_OSO>::Iteration()
 {
-    scalar max_rot = Constants::Pi * 0.2;
-
-    // Current force
+    // update forces which are -dE/ds
     this->Calculate_Force( this->configurations, this->forces );
-
+    // calculate gradients for OSO
     #pragma omp parallel for
-    for( int img=0; img<this->noi; img++ )
-    {
-        auto& image            = *this->configurations[img];
-        auto& a_directions     = this->a_directions[img];
-        auto& a_residuals      = this->a_residuals[img];
-        auto& a_residuals_last = this->a_residuals_last[img];
-
-        // Update virtual force
-        for(int i=0; i<this->nos; ++i)
-            this->forces_virtual[img][i] = image[i].cross(this->forces[img][i]);
-
-        // Calculate residuals for current parameters and save the old residuals
-        Solver_Kernels::ncg_OSO_residual(a_residuals, a_residuals_last, image, this->forces[img]);
-
-        // Keep track of residual updates
-        if(this->iteration > 0)
-        {
-            int idx = (this->iteration-1) % n_lbfgs_memory;
-            #pragma omp parallel for
-            for(int i=0; i<this->nos; i++)
-            {
-                this->grad_updates[img][idx][i] = a_residuals[i] - a_residuals_last[i];
-            }
-
-            this->rho_temp[img][idx] = 1/Vectormath::dot(this->grad_updates[img][idx], this->a_updates[img][idx]);
-
-            if(this->rho_temp[img][idx] > 0)
-            {
-                this->n_updates[img] = 0;
-            }
-        }
-    }
-
-    // Calculate new search direction
-    Solver_Kernels::lbfgs_get_descent_direction(this->iteration, this->n_updates, this->a_directions, this->a_residuals, this->a_updates, this->grad_updates, this->rho_temp, this->alpha_temp);
-
-    for( int img=0; img<this->noi; img++ )
-    {
-        if(this->n_updates[img] < this->n_lbfgs_memory)
-           this->n_updates[img]++;
-
-        step_size[img] = 1.0;
-    }
-
-    Solver_Kernels::ncg_OSO_displace( this->configurations, this->a_directions, this->step_size, max_rot );
-
-    for (int img=0; img<this->noi; img++)
+    for( int img=0; img < this->noi; img++ )
     {
         auto& image = *this->configurations[img];
-
-        // Update current image
-        for(int i=0; i<image.size(); i++)
-        {
-            int idx = this->iteration % this->n_lbfgs_memory;
-            this->a_updates[img][idx][i] = step_size[img] * a_directions[img][i]; // keep track of a_updates
+        auto& grad_ref = this->grad[img];
+        for (int i = 0; i < this->nos; ++i){
+            this->forces_virtual[img][i] = image[i].cross(this->forces[img][i]);
         }
+        Solver_Kernels::oso_calc_gradients(grad_ref, image, this->forces[img]);
     }
+
+    // calculate search direction
+    Solver_Kernels::lbfgs_get_searchdir(this->local_iter,
+            this->rho, this->alpha, this->q_vec,
+            this->searchdir, this->delta_a,
+            this->delta_grad, this->grad, this->grad_pr,
+            this->n_lbfgs_memory, maxmove);
+    // rotate spins
+    Solver_Kernels::oso_rotate( this->configurations, this->searchdir);
+
 }
+
 
 template <> inline
 std::string Method_Solver<Solver::LBFGS_OSO>::SolverName()
