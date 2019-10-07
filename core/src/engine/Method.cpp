@@ -143,11 +143,21 @@ namespace Engine
 
     scalar Method::getForceMaxAbsComponent()
     {
-        return this->max_torque;
+        return this->force_max_abs_component;
     }
 
 
     std::vector<scalar> Method::getForceMaxAbsComponent_All()
+    {
+        return {this->force_max_abs_component};
+    }
+
+    scalar Method::getTorqueMaxNorm()
+    {
+        return this->max_torque;
+    }
+
+    std::vector<scalar> Method::getTorqueMaxNorm_All()
     {
         return {this->max_torque};
     }

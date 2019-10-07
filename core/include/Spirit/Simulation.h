@@ -119,6 +119,22 @@ Will only work if a GNEB simulation is running.
 PREFIX void Simulation_Get_Chain_MaxTorqueComponents(State * state, float * torques, int idx_chain=-1) SUFFIX;
 
 /*
+Get maximum torque norm.
+
+If a MC, LLG, MMF or EMA simulation is running this returns the max. torque on the current image.
+
+If a GNEB simulation is running this returns the max. torque on the current chain.
+*/
+PREFIX float Simulation_Get_MaxTorqueNorm(State * state, int idx_image=-1, int idx_chain=-1) SUFFIX;
+
+/*
+Get maximum torque norms on the images of a chain.
+
+Will only work if a GNEB simulation is running.
+*/
+PREFIX void Simulation_Get_Chain_MaxTorqueNorms(State * state, float * torques, int idx_chain=-1) SUFFIX;
+
+/*
 Returns the iterations per second (IPS).
 
 If a MC, LLG, MMF or EMA simulation is running this returns the IPS on the current image.

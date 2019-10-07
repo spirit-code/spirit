@@ -618,6 +618,68 @@ void Simulation_Get_Chain_MaxTorqueComponents(State * state, float * torques, in
 }
 
 
+float Simulation_Get_MaxTorqueNorm(State * state, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+
+        if (Simulation_Running_On_Image(state, idx_image, idx_chain))
+        {
+            if (state->method_image[idx_image])
+                return (float) state->method_image[idx_image]->getTorqueMaxNorm();
+        }
+        else if (Simulation_Running_On_Chain(state, idx_chain))
+        {
+            if (state->method_chain)
+                return (float) state->method_chain->getTorqueMaxNorm();
+        }
+
+        return 0;
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+        return 0;
+    }
+}
+
+
+void Simulation_Get_Chain_MaxTorqueNorms(State * state, float * torques, int idx_chain) noexcept
+{
+    int idx_image = -1;
+
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+
+        if (Simulation_Running_On_Chain(state, idx_chain))
+        {
+            std::vector<scalar> t(chain->noi, 0);
+
+            if (state->method_chain)
+                t = state->method_chain->getTorqueMaxNorm_All();
+
+            for (int i=0; i<chain->noi; ++i)
+            {
+                torques[i] = t[i];
+            }
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+
 float Simulation_Get_IterationsPerSecond(State *state, int idx_image, int idx_chain) noexcept
 {
     try
