@@ -66,6 +66,12 @@ namespace Engine
     template <Solver solver>
     std::vector<scalar> Method_GNEB<solver>::getForceMaxAbsComponent_All()
     {
+        return this->force_max_abs_component_all;
+    }
+
+    template <Solver solver>
+    std::vector<scalar>  Method_GNEB<solver>::getTorqueMaxNorm_All()
+    {
         return this->max_torque_all;
     }
 
@@ -288,7 +294,7 @@ namespace Engine
         {
             scalar fmax = this->MaxTorque_on_Image(*(this->systems[img]->spins), F_total[img]);
             // Set maximum per image
-            if (fmax > this->max_torque_all[img]) this->max_torque_all[img] = fmax;
+            this->max_torque_all[img] = fmax;
             // Set maximum overall
             if (fmax > this->max_torque) this->max_torque = fmax;
 

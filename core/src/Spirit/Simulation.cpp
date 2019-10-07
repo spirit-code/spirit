@@ -603,7 +603,7 @@ void Simulation_Get_Chain_MaxTorqueComponents(State * state, float * torques, in
             std::vector<scalar> t(chain->noi, 0);
 
             if (state->method_chain)
-                t = state->method_chain->getForceMaxAbsComponent_All();
+                t = state->method_chain->getTorqueMaxNorm_All();
 
             for (int i=0; i<chain->noi; ++i)
             {
