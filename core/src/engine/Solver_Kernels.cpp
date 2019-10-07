@@ -611,7 +611,7 @@ namespace Solver_Kernels
         int c_ind = 0;
         double scaling = 1.0;
 
-        if (local_iter == 0){  // gradient descent algorithm
+        if (local_iter == 0) {  // gradient descent algorithm
             #pragma omp parallel for
             for(int img=0; img<noi; img++) {
                 Vectormath::set_c_a(1.0, grad[img], grad_pr[img]);
@@ -627,31 +627,56 @@ namespace Solver_Kernels
                     Vectormath::set_c_a(1.0, {0,0,0}, dg[i]);
                 }
             }
-        }
-        else{
+        } else {
             #pragma omp parallel for
             for (int img=0; img<noi; img++) {
                 // this is for a single image:
                 Vectormath::set_c_a(1, searchdir[img], delta_a[img][m_index]);
                 for (int i = 0; i < nos; i++)
                     delta_grad[img][m_index][i] = grad[img][i] - grad_pr[img][i];
+            }
 
-                scalar rinv_temp = Vectormath::dot(delta_grad[img][m_index], delta_a[img][m_index]);
+            scalar rinv_temp = 0;
+            for (int img=0; img<noi; img++) {
+                rinv_temp += Vectormath::dot(delta_grad[img][m_index], delta_a[img][m_index]);
+            }
+
+            for (int img=0; img<noi; img++)
+            {
                 if (rinv_temp > 1.0e-40)
                     rho[img][m_index] = 1.0 / rinv_temp;
                 else rho[img][m_index] = 1.0e40;
-                if (rho[img][m_index] < 0.0){
+                if (rho[img][m_index] < 0.0)
+                {
                     local_iter = 0;
                     return lbfgs_get_searchdir(local_iter, rho, alpha, q_vec, searchdir,
                             delta_a, delta_grad, grad, grad_pr, num_mem, maxmove);
                 }
                 Vectormath::set_c_a(1.0, grad[img], q_vec[img]);
-                for (int k = num_mem - 1; k > -1; k--) {
-                    c_ind = (k + m_index + 1) % num_mem;
-                    alpha[img][c_ind] = rho[img][c_ind] * Vectormath::dot(delta_a[img][c_ind], q_vec[img]);
+            }
+
+            for (int k = num_mem - 1; k > -1; k--)
+            {
+                c_ind = (k + m_index + 1) % num_mem;
+                scalar temp=0;
+                for (int img=0; img<noi; img++)
+                {
+                    temp += Vectormath::dot(delta_a[img][c_ind], q_vec[img]);
+                }
+                for (int img=0; img<noi; img++)
+                {
+                    alpha[img][c_ind] = rho[img][c_ind] * temp;
                     Vectormath::add_c_a(-alpha[img][c_ind], delta_grad[img][c_ind], q_vec[img]);
                 }
-                scalar dy2 = Vectormath::dot(delta_grad[img][m_index], delta_grad[img][m_index]);
+            }
+
+            scalar dy2=0;
+            for (int img=0; img<noi; img++)
+            {
+                dy2 += Vectormath::dot(delta_grad[img][m_index], delta_grad[img][m_index]);
+            }
+            for (int img=0; img<noi; img++)
+            {
                 scalar rhody2 = dy2 * rho[img][m_index];
                 scalar inv_rhody2 = 0.0;
                 if (rhody2 > 1.0e-40)
@@ -659,18 +684,33 @@ namespace Solver_Kernels
                 else
                     inv_rhody2 = 1.0e40;
                 Vectormath::set_c_a(inv_rhody2, q_vec[img], searchdir[img]);
-                for (int k = 0; k < num_mem; k++) {
-                    if (local_iter < num_mem) c_ind = k;
-                    else c_ind = (k + m_index + 1) % num_mem;
-                    scalar rhopdg = Vectormath::dot(delta_grad[img][c_ind], searchdir[img]);
-                    rhopdg *= rho[img][c_ind];
+            }
+
+            for (int k = 0; k < num_mem; k++)
+            {
+                if (local_iter < num_mem)
+                        c_ind = k;
+                    else
+                        c_ind = (k + m_index + 1) % num_mem;
+
+                scalar rhopdg = 0;
+                for(int img=0; img<noi; img++)
+                    rhopdg += Vectormath::dot(delta_grad[img][c_ind], searchdir[img]);
+
+                rhopdg *= rho[0][c_ind];
+
+                for (int img=0; img<noi; img++)
                     Vectormath::add_c_a((alpha[img][c_ind] - rhopdg), delta_a[img][c_ind], searchdir[img]);
-                }
-                scaling = maximum_rotation(searchdir[img], maxmove);
+            }
+            for(int img=0; img<noi; img++)
+                scaling = std::min(maximum_rotation(searchdir[img], maxmove), scaling);
+
+            for (int img=0; img<noi; img++)
+            {
                 Vectormath::set_c_a(1.0, grad[img], grad_pr[img]);
                 Vectormath::set_c_a(-scaling, searchdir[img], searchdir[img]);
             }
-        }
+    }
         local_iter++;
     }
 
@@ -692,7 +732,6 @@ namespace Solver_Kernels
         int nos = configurations[0]->size();
         for(int img=0; img<noi; ++img)
         {
-
             Matrix3 tmp;
             Matrix3 A_prime;
             for( int i=0; i<nos; i++)
