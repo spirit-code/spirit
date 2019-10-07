@@ -40,6 +40,21 @@ SOLVER_HEUN = 3
 SOLVER_RK4 = 4
 """4th order Runge-Kutta method."""
 
+SOLVER_NCG         = 5
+"""Non-linear conjugate gradient solver, using rotation matrices."""
+
+SOLVER_LBFGS_OSO   = 6
+"""Limited memory Broyden-Fletcher-Goldfarb-Shannon, using exponential transforms."""
+
+SOLVER_LBFGS_Atlas = 7
+"""Limited memory Broyden-Fletcher-Goldfarb-Shannon, using stereographic transforms"""
+
+SOLVER_NCG_OSO     = 8
+"""Non-linear conjugate gradient solver, using exponential transforms."""
+
+SOLVER_NCG_Atlas   = 9
+"""Non-linear conjugate gradient solver, using stereographic transforms."""
+
 
 METHOD_MC   = 0
 """Monte Carlo.
