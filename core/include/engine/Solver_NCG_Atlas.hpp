@@ -107,14 +107,16 @@ void Method_Solver<Solver::NCG_Atlas>::Iteration()
         // Before the line search, set step_size and precalculate E0 and g0
         step_size[img] = 1.0e0;
         E0[img]        = this->systems[img]->hamiltonian->Energy(image);
-        g0[img]        = 0;
 
-        #pragma omp parallel for reduction(+:g0[img])
+        scalar g0=  0;
+        #pragma omp parallel for reduction(+:g0)
         for( int i=0; i<this->nos; ++i )
         {
-            g0[img] -= a_residuals[i].dot(a_directions[i]) / a_direction_norm[img];
+            g0 -= a_residuals[i].dot(a_directions[i]) / a_direction_norm[img];
             this->finish[img] = false;
         }
+        this->g0[img] = g0;
+
     }
 
     int n_search_steps     = 0;

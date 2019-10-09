@@ -45,11 +45,11 @@ void Method_Solver<Solver::LBFGS_OSO>::Iteration()
     // update forces which are -dE/ds
     this->Calculate_Force( this->configurations, this->forces );
     // calculate gradients for OSO
-    #pragma omp parallel for
     for( int img=0; img < this->noi; img++ )
     {
         auto& image = *this->configurations[img];
         auto& grad_ref = this->grad[img];
+        #pragma omp parallel for
         for (int i = 0; i < this->nos; ++i){
             this->forces_virtual[img][i] = image[i].cross(this->forces[img][i]);
         }

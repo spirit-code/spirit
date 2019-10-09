@@ -113,7 +113,7 @@ namespace Engine
         scalar reduce(const field<A> & vf1, const field<B> & vf2, const F & f)
         {
             scalar res=0;
-            #pragma omp parallel for reduce(+:res)
+            #pragma omp parallel for reduction(+:res)
             for(unsigned int idx = 0; idx < vf1.size(); ++idx)
             {
                 res += f(vf1[idx], vf2[idx]);

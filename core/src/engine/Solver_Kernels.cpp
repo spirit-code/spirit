@@ -215,7 +215,7 @@ namespace Solver_Kernels
         for(int img=0; img<noi; ++img)
         {
             scalar theta_rms = 0;
-            #pragma omp parallel for reduce(+:theta_rms)
+            #pragma omp parallel for reduction(+:theta_rms)
             for(int i=0; i<nos; ++i)
                 theta_rms += (a_directions[img][i]).squaredNorm();
             theta_rms = sqrt(theta_rms)/nos;
@@ -313,7 +313,7 @@ namespace Solver_Kernels
                 scalar factor = inexact_line_search(step_size[img]*a_direction_norm[img], E0[img], Er, g0[img], gr);
                 fmt::print("[ Line search ] Continueing ...\n");
                 fmt::print("[ Line search ] factor = {}\n", factor);
-                if(!isnan(factor))
+                if(!std::isnan(factor))
                 {
                     step_size[img] *= factor;
                 } else {
@@ -322,8 +322,6 @@ namespace Solver_Kernels
             }
         }
     }
-
-
 
 
     // NCG Atlas
@@ -385,6 +383,7 @@ namespace Solver_Kernels
     bool ncg_atlas_check_coordinates(const vectorfield & spins, scalarfield & a3_coords)
     {
         // Check if we need to reset the maps
+        bool result = false;
         #pragma omp parallel for
         for( int i=0; i<spins.size(); i++ )
         {
@@ -392,10 +391,10 @@ namespace Solver_Kernels
             // Note: I am not sure why we reset for all spins ... but this is in agreement with the method of F. Rybakov
             if( spins[i][2]*a3_coords[i] < -0.6 )
             {
-                return true;
+                result = true;
             }
         }
-        return false;
+        return result;
     }
 
     void ncg_atlas_transform_direction(const vectorfield & spins, vector2field & a_coords, scalarfield & a3_coords, vector2field & a_directions)
@@ -516,7 +515,7 @@ namespace Solver_Kernels
                 scalar factor = inexact_line_search(step_size[img]*a_direction_norm[img], E0[img], Er, g0[img], gr);
                 fmt::print("continueing\n");
                 fmt::print("factor = {}\n", factor);
-                if(!isnan(factor))
+                if(!std::isnan(factor))
                 {
                     step_size[img] *= factor;
                 } else {
@@ -628,10 +627,9 @@ namespace Solver_Kernels
                 }
             }
         } else {
-            #pragma omp parallel for
             for (int img=0; img<noi; img++) {
-                // this is for a single image:
                 Vectormath::set_c_a(1, searchdir[img], delta_a[img][m_index]);
+                #pragma omp parallel for
                 for (int i = 0; i < nos; i++)
                     delta_grad[img][m_index][i] = grad[img][i] - grad_pr[img][i];
             }
@@ -710,7 +708,7 @@ namespace Solver_Kernels
                 Vectormath::set_c_a(1.0, grad[img], grad_pr[img]);
                 Vectormath::set_c_a(-scaling, searchdir[img], searchdir[img]);
             }
-    }
+        }
         local_iter++;
     }
 
@@ -756,7 +754,7 @@ namespace Solver_Kernels
     double maximum_rotation(const vectorfield & searchdir, double maxmove){
         int nos = searchdir.size();
         double theta_rms = 0;
-        #pragma omp parallel for reduce(+:theta_rms)
+        #pragma omp parallel for reduction(+:theta_rms)
         for(int i=0; i<nos; ++i)
             theta_rms += (searchdir[i]).squaredNorm();
         theta_rms = sqrt(theta_rms/nos);
