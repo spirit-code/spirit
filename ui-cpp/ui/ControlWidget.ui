@@ -352,6 +352,11 @@
          <string>LBFGS_Atlas</string>
         </property>
        </item>
+       <item>
+        <property name="text">
+         <string>VP_OSO</string>
+        </property>
+       </item>
       </widget>
      </item>
      <item row="1" column="0">

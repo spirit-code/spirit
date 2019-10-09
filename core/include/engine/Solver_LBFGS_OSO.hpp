@@ -62,9 +62,9 @@ void Method_Solver<Solver::LBFGS_OSO>::Iteration()
             this->searchdir, this->delta_a,
             this->delta_grad, this->grad, this->grad_pr,
             this->n_lbfgs_memory, maxmove);
+
     // rotate spins
     Solver_Kernels::oso_rotate( this->configurations, this->searchdir);
-
 }
 
 

@@ -58,6 +58,8 @@ Note that the VP and NCG Solvers are only meant for direct minimization and not 
 // `NCG_Atlas`: Nonlinear conjugate gradients, stereographic projection
 #define Solver_NCG_Atlas   9
 
+#define Solver_VP_OSO      10
+
 /*
 Start or stop a simulation
 --------------------------------------------------------------------

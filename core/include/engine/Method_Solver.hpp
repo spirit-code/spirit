@@ -40,7 +40,8 @@ namespace Engine
         NCG_Atlas = Solver_NCG_Atlas,
         LBFGS_OSO = Solver_LBFGS_OSO,
         LBFGS_Atlas = Solver_LBFGS_Atlas,
-        VP = Solver_VP
+        VP = Solver_VP,
+        VP_OSO = Solver_VP_OSO
     };
 
     /*
@@ -399,6 +400,7 @@ namespace Engine
     #include <engine/Solver_Depondt.hpp>
     #include <engine/Solver_RK4.hpp>
     #include <engine/Solver_VP.hpp>
+    #include <engine/Solver_VP_OSO.hpp>
     #include <engine/Solver_NCG.hpp>
     #include <engine/Solver_NCG_OSO.hpp>
     #include <engine/Solver_NCG_Atlas.hpp>

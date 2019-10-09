@@ -488,4 +488,5 @@ namespace Engine
     template class Method_LLG<Solver::LBFGS_OSO>;
     template class Method_LLG<Solver::LBFGS_Atlas>;
     template class Method_LLG<Solver::VP>;
+    template class Method_LLG<Solver::VP_OSO>;
 }

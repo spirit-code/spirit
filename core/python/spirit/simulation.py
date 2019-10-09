@@ -55,6 +55,8 @@ SOLVER_NCG_OSO     = 8
 SOLVER_NCG_Atlas   = 9
 """Non-linear conjugate gradient solver, using stereographic transforms."""
 
+SOLVER_VP_OSO      = 10
+
 
 METHOD_MC   = 0
 """Monte Carlo.

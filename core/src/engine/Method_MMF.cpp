@@ -603,4 +603,5 @@ namespace Engine
     template class Method_MMF<Solver::LBFGS_OSO>;
     template class Method_MMF<Solver::LBFGS_Atlas>;
     template class Method_MMF<Solver::VP>;
+    template class Method_MMF<Solver::VP_OSO>;
 }
