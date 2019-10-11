@@ -15,21 +15,21 @@ TEST_CASE( "Solvers testing", "[solvers]" )
 {
     // Input file
     auto inputfile = "core/test/input/solvers.cfg";
-    
+
     // State
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
-    
+
     // Solvers to be tested
-    std::vector<int>  solvers { Solver_VP, Solver_Heun, Solver_SIB, Solver_Depondt, Solver_RungeKutta4 };
-    
+    std::vector<int>  solvers { Solver_LBFGS_OSO, Solver_VP, Solver_Heun, Solver_SIB, Solver_Depondt, Solver_RungeKutta4 };
+
     // Expected values
     float energy_expected = -5849.69140625f;
     std::vector<float> magnetization_expected{ 0, 0, 0.79977f };
-    
+
     // Result values
     scalar energy;
     std::vector<float> magnetization{ 0, 0, 0 };
-    
+
     // Calculate energy and magnetization for every solvers
     for ( auto solver : solvers )
     {
@@ -43,7 +43,7 @@ TEST_CASE( "Solvers testing", "[solvers]" )
         // Save energy and magnetization
         energy = System_Get_Energy( state.get() );
         Quantity_Get_Magnetization( state.get(), magnetization.data() );
-            
+
         // Log the name of the solvers
         INFO( "LLG using " << solver << " solver" );
 
@@ -67,7 +67,7 @@ TEST_CASE( "Solvers testing", "[solvers]" )
         // Save energy and magnetization
         energy = System_Get_Energy( state.get() );
         Quantity_Get_Magnetization( state.get(), magnetization.data() );
-            
+
         // Log the name of the solvers
         INFO( "LLG using " << solver << " solver (direct)" );
 
@@ -76,15 +76,15 @@ TEST_CASE( "Solvers testing", "[solvers]" )
         for (int dim=0; dim<3; dim++)
             REQUIRE( magnetization[dim] == Approx( magnetization_expected[dim] ) );
     }
-    
+
     Chain_Image_to_Clipboard(state.get());
-    int noi = 4;
-    
+    int noi = 9;
+
     for (int i=1; i<noi; ++i)
       Chain_Insert_Image_After(state.get());
 
     // Solvers to be tested
-    solvers = { Solver_VP, Solver_Heun, Solver_Depondt };
+    solvers = { Solver_LBFGS_OSO, Solver_VP, Solver_Heun, Solver_Depondt };
 
     // Expected values
     float energy_sp_expected = -5811.5244140625f;
@@ -103,7 +103,7 @@ TEST_CASE( "Solvers testing", "[solvers]" )
         Configuration_PlusZ(state.get());
         Chain_Jump_To_Image(state.get(), 0);
         Transition_Homogeneous(state.get(), 0, noi-1);
-    
+
         // Do simulation
         Simulation_GNEB_Start( state.get(), solver, 2e4 );
         Parameters_GNEB_Set_Image_Type_Automatically( state.get() );
@@ -112,17 +112,25 @@ TEST_CASE( "Solvers testing", "[solvers]" )
         // Get saddle point index
         int i_max = 1;
         float E_max = System_Get_Energy(state.get(), 0);
-        
+
+        float E_temp = 0;
         for (int i=1; i<noi-1; ++i)
-            if (System_Get_Energy(state.get(), i) > E_max) i_max = i;
-    
+        {
+            E_temp = System_Get_Energy(state.get(), i);
+            if (E_temp > E_max)
+            {
+                i_max = i;
+                E_max = E_temp;
+            }
+        }
+
         // Save energy and magnetization
-        energy_sp = System_Get_Energy( state.get(), i_max );
+        energy_sp = E_max;
         Quantity_Get_Magnetization( state.get(), magnetization_sp.data(), i_max );
-            
+
         // Log the name of the solver
         INFO( "GNEB using " << solver << " solver" );
-        
+
         // Check the values of energy and magnetization
         REQUIRE( energy_sp == Approx( energy_sp_expected ) );
         for (int dim=0; dim<3; dim++)
