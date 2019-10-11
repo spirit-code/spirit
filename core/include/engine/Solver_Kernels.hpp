@@ -71,7 +71,8 @@ namespace Solver_Kernels
     void ncg_atlas_to_spins(const vector2field & a_coords, const scalarfield & a3_coords, vectorfield & spins);
     void ncg_spins_to_atlas(const vectorfield & spins, vector2field & a_coords, scalarfield & a3_coords);
 
-    bool ncg_atlas_check_coordinates(const vectorfield & spins, scalarfield & a3_coords);
+    bool ncg_atlas_check_coordinates(const field<std::shared_ptr<vectorfield>> & spins, field<scalarfield> & a3_coords, scalar tol = -0.6);
+
     void ncg_atlas_transform_direction(const vectorfield & spins, vector2field & a_coords, scalarfield & a3_coords, vector2field & a_directions);
 
     void ncg_atlas_displace( std::vector<std::shared_ptr<vectorfield>> & configurations_displaced, std::vector<vector2field> & a_coords, std::vector<scalarfield> & a3_coords,
@@ -88,12 +89,21 @@ namespace Solver_Kernels
 
 
     void oso_rotate( std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & searchdir);
-
-    void oso_calc_gradients( vectorfield & residuals,const vectorfield & spins, const vectorfield & forces);
-
+    void oso_calc_gradients( vectorfield & residuals, const vectorfield & spins, const vectorfield & forces);
     double maximum_rotation(const vectorfield & searchdir, double maxmove);
 
+
+
+    // LBFGS_Atlas
+    void lbfgs_atlas_get_descent_direction(int iteration, int n_updates, vector2field & a_direction, const vector2field & residual, const std::vector<vector2field> & a_updates, const std::vector<vector2field> & grad_updates, const scalarfield & rho_temp, scalarfield & alpha_temp);
+
+    void lbfgs_atlas_transform_direction(field<std::shared_ptr<vectorfield>> & configurations, field<vector2field> & a_coords, field<scalarfield> & a3_coords, field<field<vector2field>> & atlas_updates,
+                                         field<field<vector2field>> & grad_updates, field<vector2field> & searchdir, field<vector2field> & grad_pr, field<scalarfield> & rho);
+
+    void atlas_calc_gradients(vector2field & residuals, const vectorfield & spins, const vectorfield & forces, const scalarfield & a3_coords);
     void lbfgs_get_descent_direction(int iteration, field<int> & n_updates, field<vectorfield> & a_direction, const field<vectorfield> & residual, const field<field<vectorfield>> & a_updates, const field<field<vectorfield>> & grad_updates, const field<scalarfield> & rho_temp, field<scalarfield> & alpha_temp);
+    void atlas_rotate(std::vector<std::shared_ptr<vectorfield>> & configurations, field <vector2field> & a_coords, field<scalarfield> & a3_coords, std::vector<vector2field> & searchdir);
+
     // LBFGS_OSO
     template <typename Vec>
     void lbfgs_get_searchdir(int & local_iter, field<scalarfield> & rho, field<scalarfield> & alpha, field<field<Vec>> & q_vec, field<field<Vec>> & searchdir,

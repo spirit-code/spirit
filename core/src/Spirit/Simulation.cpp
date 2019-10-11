@@ -252,6 +252,9 @@ try
             else if (solver_type == int(Engine::Solver::LBFGS_OSO))
                 method = std::shared_ptr<Engine::Method>(
                     new Engine::Method_GNEB<Engine::Solver::LBFGS_OSO>( chain, idx_chain ) );
+            else if (solver_type == int(Engine::Solver::LBFGS_Atlas))
+                method = std::shared_ptr<Engine::Method>(
+                    new Engine::Method_GNEB<Engine::Solver::LBFGS_Atlas>( chain, idx_chain ) );
             else if (solver_type == int(Engine::Solver::VP_OSO))
                 method = std::shared_ptr<Engine::Method>(
                     new Engine::Method_GNEB<Engine::Solver::VP_OSO>( chain, idx_chain ) );

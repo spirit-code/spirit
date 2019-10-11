@@ -211,6 +211,8 @@ namespace Engine
         std::vector<scalarfield> alpha_temp;
         std::vector<std::vector<vector2field>> atlas_updates;
         std::vector<std::vector<vector2field>> grad_atlas_updates;
+        std::vector<vector2field> atlas_q_vec;
+
 
         // buffer variables for checking convergence for solver and Newton-Raphson
         // std::vector<scalarfield> r_dot_d, dda2;

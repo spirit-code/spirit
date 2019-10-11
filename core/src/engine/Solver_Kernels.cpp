@@ -380,18 +380,24 @@ namespace Solver_Kernels
         }
     }
 
-    bool ncg_atlas_check_coordinates(const vectorfield & spins, scalarfield & a3_coords)
+    bool ncg_atlas_check_coordinates(const field<std::shared_ptr<vectorfield>> & spins, field<scalarfield> & a3_coords, scalar tol)
     {
+        int noi = spins.size();
+        int nos = (*spins[0]).size();
         // Check if we need to reset the maps
         bool result = false;
-        #pragma omp parallel for
-        for( int i=0; i<spins.size(); i++ )
+        for(int img=0; img<noi; img++)
         {
-            // If for one spin the z component deviates too much from the pole we perform a reset for *all* spins
-            // Note: I am not sure why we reset for all spins ... but this is in agreement with the method of F. Rybakov
-            if( spins[i][2]*a3_coords[i] < -0.6 )
+            #pragma omp parallel for
+            for( int i=0; i<nos; i++ )
             {
-                result = true;
+                // If for one spin the z component deviates too much from the pole we perform a reset for *all* spins
+                // Note: I am not sure why we reset for all spins ... but this is in agreement with the method of F. Rybakov
+                // printf("blabla %f\n", (*spins[img])[i][2]*a3_coords[img][i] );
+                if( (*spins[img])[i][2]*a3_coords[img][i] < tol )
+                {
+                    result = true;
+                }
             }
         }
         return result;
@@ -419,42 +425,19 @@ namespace Solver_Kernels
         }
     }
 
-    void lbfgs_atlas_transform_direction(const vectorfield & spins, vector2field & a_coords, scalarfield & a3_coords, field<vector2field> & directions)
-    {
-        #pragma omp parallel for
-        for( int i=0; i<spins.size(); ++i )
-        {
-            const auto & s = spins[i];
-            auto &       a = a_coords[i];
-            auto &      a3 = a3_coords[i];
-
-            if( spins[i][2]*a3_coords[i] < 0 )
-            {
-                // Transform coordinates to optimal map
-                a3 = (s[2] > 0) ? 1 : -1;
-                a[0] = s[0] / (1 + s[2]*a3);
-                a[1] = s[1] / (1 + s[2]*a3);
-
-                // Also transform search direction to new map
-                for(auto & dirs : directions)
-                    dirs[i] *= (1 - a3 * s[2]) / (1 + a3 * s[2]);
-            }
-        }
-    }
-
     void ncg_atlas_displace( std::vector<std::shared_ptr<vectorfield>> & configurations_displaced, std::vector<vector2field> & a_coords, std::vector<scalarfield> & a3_coords,
                              std::vector<vector2field> & a_coords_displaced, std::vector<vector2field> & a_directions, std::vector<bool> finish, scalarfield step_size )
     {
         int noi = configurations_displaced.size();
         int nos = configurations_displaced[0]->size();
 
-        #pragma omp parallel for
         for(int img=0; img<noi; ++img)
         {
             if(finish[img])
                 continue;
 
             // First calculate displaced coordinates
+            #pragma omp parallel for
             for(int i=0; i < nos; i++)
             {
                 a_coords_displaced[img][i] = a_coords[img][i] + step_size[img] * a_directions[img][i];
@@ -794,6 +777,94 @@ namespace Solver_Kernels
             int idx = (j-1) % n_updates;
             scalar beta = -rho_temp[idx] * Vectormath::reduce(grad_updates[idx], a_direction, dot2D);
             Vectormath::set( a_direction, a_updates[idx], [idx, &alpha_temp, beta](const Vector2 & v){return -(alpha_temp[idx] - beta) * v;});
+        }
+    }
+
+    void atlas_rotate(std::vector<std::shared_ptr<vectorfield>> & configurations, field <vector2field> & a_coords, field<scalarfield> & a3_coords, std::vector<vector2field> & searchdir)
+    {
+        int noi = configurations.size();
+        int nos = configurations[0]->size();
+        for(int img=0; img<noi; img++ )
+        {
+            #pragma omp parallel for
+            for(int i=0; i < nos; i++)
+            {
+                a_coords[img][i] += searchdir[img][i];
+            }
+            // Get displaced spin directions
+            Solver_Kernels::ncg_atlas_to_spins(a_coords[img], a3_coords[img], *configurations[img]);
+        }
+    }
+
+    void atlas_calc_gradients(vector2field & residuals, const vectorfield & spins, const vectorfield & forces, const scalarfield & a3_coords)
+    {
+        Eigen::Matrix<scalar, 3,2 > J;
+        #pragma omp parallel for
+        for(int i=0; i < spins.size(); i++)
+        {
+            const auto & s  = spins[i];
+            const auto & a3 = a3_coords[i];
+
+            J(0,0) =  s[1]*s[1] + s[2]*(s[2] + a3);
+            J(0,1) = -s[0]*s[1];
+            J(1,0) = -s[0]*s[1];
+            J(1,1) =  s[0]*s[0]  + s[2]*(s[2] + a3);
+            J(2,0) = -s[0]*(s[2] + a3);
+            J(2,1) = -s[1]*(s[2] + a3);
+            residuals[i] = -forces[i].transpose() * J;
+        }
+    }
+
+    void lbfgs_atlas_transform_direction(field<std::shared_ptr<vectorfield>> & configurations, field<vector2field> & a_coords, field<scalarfield> & a3_coords, field<field<vector2field>> & atlas_updates, field<field<vector2field>> & grad_updates, field<vector2field> & searchdir, field<vector2field> & grad_pr, field<scalarfield> & rho)
+    {
+        int noi = configurations.size();
+        int nos = configurations[0]->size();
+
+        for(int img=0; img<noi; img++)
+        {
+            for(int n=0; n<atlas_updates[img].size(); n++)
+            {
+                rho[img][n] = 1/rho[img][n];
+            }
+        }
+
+        for(int img=0; img<noi; img++)
+        {
+            scalar factor = 1;
+            #pragma omp parallel for
+            for( int i=0; i<nos; ++i )
+            {
+                const auto & s =  (*configurations[img])[i];
+                auto &       a = a_coords[img][i];
+                auto &      a3 = a3_coords[img][i];
+
+                if( s[2]*a3 < 0 )
+                {
+                    // Transform coordinates to optimal map
+                    a3 = (s[2] > 0) ? 1 : -1;
+                    a[0] = s[0] / (1 + s[2]*a3);
+                    a[1] = s[1] / (1 + s[2]*a3);
+
+                    factor = (1 - a3 * s[2]) / (1 + a3 * s[2]);
+                    searchdir[img][i]  *= factor;
+                    grad_pr[img][i]    *= factor;
+
+                    for(int n=0; n<atlas_updates[img].size(); n++)
+                    {
+                        rho[img][n] += (factor-1)*(factor-1) * atlas_updates[img][n][i].dot(grad_updates[img][n][i]);
+                        atlas_updates[img][n][i] *= factor;
+                        grad_updates[img][n][i]  *= factor;
+                    }
+                }
+            }
+        }
+
+        for(int img=0; img<noi; img++)
+        {
+            for(int n=0; n<atlas_updates[img].size(); n++)
+            {
+                rho[img][n] = 1/rho[img][n];
+            }
         }
     }
 
