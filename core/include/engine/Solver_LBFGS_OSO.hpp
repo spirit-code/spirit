@@ -63,6 +63,16 @@ void Method_Solver<Solver::LBFGS_OSO>::Iteration()
             this->delta_grad, this->grad, this->grad_pr,
             this->n_lbfgs_memory, maxmove);
 
+    // Scale direction
+    scalar scaling = 1;
+    for(int img=0; img<noi; img++)
+        scaling = std::min(Solver_Kernels::maximum_rotation(searchdir[img], maxmove), scaling);
+
+    for(int img=0; img<noi; img++)
+    {
+        Vectormath::scale(searchdir[img], scaling);
+    }
+
     // rotate spins
     Solver_Kernels::oso_rotate( this->configurations, this->searchdir);
 }

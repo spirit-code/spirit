@@ -132,6 +132,17 @@ namespace Engine
             }
         }
 
+        // f( vf1[idx], idx ) for all i
+        template<typename F>
+        void apply(int N, const F & f)
+        {
+            #pragma omp parallel for
+            for(unsigned int idx = 0; idx < N; ++idx)
+            {
+                f(idx);
+            }
+        }
+
         #endif
         #ifdef SPIRIT_USE_CUDA
 
