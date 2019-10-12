@@ -24,9 +24,9 @@ void Method_Solver<Solver::LBFGS_Atlas>::Initialize ()
     this->forces                    = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
     this->forces_virtual            = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
     this->forces_displaced          = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
-    this->atlas_coords              = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
+    // this->atlas_coords              = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
     this->atlas_coords3             = std::vector< scalarfield >( this->noi, scalarfield(this->nos, 1) );
-    this->atlas_coords_displaced    = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
+    // this->atlas_coords_displaced    = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
     this->atlas_directions          = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
     this->a_direction_norm          = scalarfield     ( this->noi, 0 );
     this->atlas_residuals           = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
@@ -43,9 +43,14 @@ void Method_Solver<Solver::LBFGS_Atlas>::Initialize ()
 
     this->local_iter = 0;
 
-    for (int i=0; i<this->noi; i++)
+    for (int img=0; img<this->noi; img++)
     {
-        Solver_Kernels::ncg_spins_to_atlas( *this->configurations[i], this->atlas_coords[i], this->atlas_coords3[i] );
+        // Choose atlas3 coordinates
+        for(int i=0; i<this->nos; i++)
+        {
+            this->atlas_coords3[img][i] = (*this->configurations[img])[i][2] > 0 ? 1.0 : -1.0;
+            // Solver_Kernels::ncg_spins_to_atlas( *this->configurations[i], this->atlas_coords[i], this->atlas_coords3[i] );
+        }
     }
 }
 
@@ -97,18 +102,17 @@ void Method_Solver<Solver::LBFGS_Atlas>::Iteration()
     }
 
     scaling = (temp < maxmove) ? 1.0 : maxmove/temp;
-
     for(int img=0; img<noi; img++)
     {
         Vectormath::apply(nos, [&](int idx){atlas_directions[img][idx] *= scaling;});
     }
 
     // Rotate spins
-    Solver_Kernels::atlas_rotate( this->configurations, this->atlas_coords, this->atlas_coords3, this->atlas_directions );
+    Solver_Kernels::atlas_rotate( this->configurations, this->atlas_coords3, this->atlas_directions );
 
     if(Solver_Kernels::ncg_atlas_check_coordinates(this->configurations, this->atlas_coords3, -0.6))
     {
-        Solver_Kernels::lbfgs_atlas_transform_direction(this->configurations, this->atlas_coords, this->atlas_coords3, this->atlas_updates, this->grad_atlas_updates, this->atlas_directions, this->atlas_residuals_last, this->rho);
+        Solver_Kernels::lbfgs_atlas_transform_direction(this->configurations, this->atlas_coords3, this->atlas_updates, this->grad_atlas_updates, this->atlas_directions, this->atlas_residuals_last, this->rho);
     }
 
 

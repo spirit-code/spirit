@@ -780,19 +780,23 @@ namespace Solver_Kernels
         }
     }
 
-    void atlas_rotate(std::vector<std::shared_ptr<vectorfield>> & configurations, field <vector2field> & a_coords, field<scalarfield> & a3_coords, std::vector<vector2field> & searchdir)
+    void atlas_rotate(std::vector<std::shared_ptr<vectorfield>> & configurations, const field<scalarfield> & a3_coords, const std::vector<vector2field> & searchdir)
     {
         int noi = configurations.size();
         int nos = configurations[0]->size();
         for(int img=0; img<noi; img++ )
         {
+            field<Vector3> & spins = *configurations[img];
+            const field<Vector2> & d = searchdir[img];
             #pragma omp parallel for
             for(int i=0; i < nos; i++)
             {
-                a_coords[img][i] += searchdir[img][i];
+                const scalar gamma = (1 + spins[i][2] * a3_coords[img][i]);
+                const scalar denom = (spins[i].head<2>().squaredNorm())/gamma + 2 * d[i].head<2>().dot( spins[i].head<2>() ) + gamma * d[i].head<2>().squaredNorm();
+                spins[i].head<2>() = 2*(spins[i].head<2>() + d[i]*gamma);
+                spins[i][2] = a3_coords[img][i] * (gamma - denom);
+                spins[i] *= 1/(gamma + denom);
             }
-            // Get displaced spin directions
-            Solver_Kernels::ncg_atlas_to_spins(a_coords[img], a3_coords[img], *configurations[img]);
         }
     }
 
@@ -815,7 +819,7 @@ namespace Solver_Kernels
         }
     }
 
-    void lbfgs_atlas_transform_direction(field<std::shared_ptr<vectorfield>> & configurations, field<vector2field> & a_coords, field<scalarfield> & a3_coords, field<field<vector2field>> & atlas_updates, field<field<vector2field>> & grad_updates, field<vector2field> & searchdir, field<vector2field> & grad_pr, field<scalarfield> & rho)
+    void lbfgs_atlas_transform_direction(field<std::shared_ptr<vectorfield>> & configurations, field<scalarfield> & a3_coords, field<field<vector2field>> & atlas_updates, field<field<vector2field>> & grad_updates, field<vector2field> & searchdir, field<vector2field> & grad_pr, field<scalarfield> & rho)
     {
         int noi = configurations.size();
         int nos = configurations[0]->size();
@@ -835,16 +839,12 @@ namespace Solver_Kernels
             for( int i=0; i<nos; ++i )
             {
                 const auto & s =  (*configurations[img])[i];
-                auto &       a = a_coords[img][i];
                 auto &      a3 = a3_coords[img][i];
 
                 if( s[2]*a3 < 0 )
                 {
                     // Transform coordinates to optimal map
                     a3 = (s[2] > 0) ? 1 : -1;
-                    a[0] = s[0] / (1 + s[2]*a3);
-                    a[1] = s[1] / (1 + s[2]*a3);
-
                     factor = (1 - a3 * s[2]) / (1 + a3 * s[2]);
                     searchdir[img][i]  *= factor;
                     grad_pr[img][i]    *= factor;
