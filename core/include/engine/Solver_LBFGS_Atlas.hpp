@@ -11,10 +11,7 @@ using namespace Utility;
 template <> inline
 void Method_Solver<Solver::LBFGS_Atlas>::Initialize ()
 {
-    this->jmax    = 500;    // max iterations
-    this->n       = 50;     // restart every n iterations XXX: what's the appropriate val?
-    this->n_lbfgs_memory = 10; // how many updates the solver tracks to estimate the hessian
-    this->n_updates = intfield( this->noi, 0 );
+    this->n_lbfgs_memory = 3; // how many updates the solver tracks to estimate the hessian
 
     this->atlas_updates      = std::vector<std::vector<vector2field>>( this->noi, std::vector<vector2field>( this->n_lbfgs_memory, vector2field(this->nos, { 0,0 } ) ));
     this->grad_atlas_updates = std::vector<std::vector<vector2field>>( this->noi, std::vector<vector2field>( this->n_lbfgs_memory, vector2field(this->nos, { 0,0 } ) ));
@@ -24,15 +21,10 @@ void Method_Solver<Solver::LBFGS_Atlas>::Initialize ()
     this->forces                    = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
     this->forces_virtual            = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
     this->forces_displaced          = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
-    // this->atlas_coords              = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
     this->atlas_coords3             = std::vector< scalarfield >( this->noi, scalarfield(this->nos, 1) );
-    // this->atlas_coords_displaced    = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
     this->atlas_directions          = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
-    this->a_direction_norm          = scalarfield     ( this->noi, 0 );
     this->atlas_residuals           = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
     this->atlas_residuals_last      = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
-    this->atlas_residuals_displaced = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
-    this->configurations_displaced  = std::vector<std::shared_ptr<vectorfield>>( this->noi );
     this->atlas_q_vec = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
 
     this->E0                        = scalarfield(this->noi, 0);
