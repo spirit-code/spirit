@@ -39,11 +39,7 @@ void Method_Solver<Solver::VP_OSO>::Iteration ()
     for (int img = 0; img < noi; ++img)
     {
         auto& image = *this->configurations[img];
-        for (int i = 0; i < this->nos; ++i)
-        {
-            this->forces_virtual[img][i] = image[i].cross(this->forces[img][i]);
-        }
-        Vectormath::set_c_a(1.0, forces[img],   forces_previous[img]);
+        Vectormath::set_c_a(1.0, grad[img],  grad_pr[img]);
         Vectormath::set_c_a(1.0, velocities[img], velocities_previous[img]);
     }
 
@@ -51,16 +47,16 @@ void Method_Solver<Solver::VP_OSO>::Iteration ()
     this->Calculate_Force(configurations, forces);
     this->Calculate_Force_Virtual(configurations, forces, forces_virtual);
 
-
     #pragma omp parallel for
     for( int img=0; img < this->noi; img++ )
     {
         auto& image = *this->configurations[img];
-        auto& grad_ref = this->grad[img];
+        auto& grad = this->grad[img];
         for (int i = 0; i < this->nos; ++i){
             this->forces_virtual[img][i] = image[i].cross(this->forces[img][i]);
         }
-        Solver_Kernels::oso_calc_gradients(grad_ref, image, this->forces[img]);
+        Solver_Kernels::oso_calc_gradients(grad, image, this->forces[img]);
+        Vectormath::scale(grad, -1.0);
     }
 
     for (int i = 0; i < noi; ++i)
@@ -74,7 +70,7 @@ void Method_Solver<Solver::VP_OSO>::Iteration ()
         Vectormath::add_c_a(0.5/m, force, velocity);
 
         // Get the projection of the velocity on the force
-        projection[i] = Vectormath::dot(velocity, force);
+        projection[i]  = Vectormath::dot(velocity, force);
         force_norm2[i] = Vectormath::dot(force, force);
     }
     for (int i = 0; i < noi; ++i)
@@ -101,8 +97,8 @@ void Method_Solver<Solver::VP_OSO>::Iteration ()
             Vectormath::set_c_a(1.0, force, velocity);
             Vectormath::scale(velocity, projection_full / force_norm2_full);
         }
-        Vectormath::set_c_a(-dt, velocity, this->searchdir[i]);
-        Vectormath::add_c_a(-0.5 / m * dt, force, this->searchdir[i]); // Note: as force is scaled with dt, this corresponds to dt^2
+        Vectormath::set_c_a(dt, velocity, this->searchdir[i]);
+        Vectormath::add_c_a(0.5 / m * dt, force, this->searchdir[i]); // Note: as force is scaled with dt, this corresponds to dt^2
     }
     Solver_Kernels::oso_rotate( this->configurations, this->searchdir);
 }
