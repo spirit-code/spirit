@@ -20,7 +20,7 @@ TEST_CASE( "Solvers testing", "[solvers]" )
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
 
     // Solvers to be tested
-    std::vector<int>  solvers { Solver_LBFGS_OSO, Solver_VP, Solver_Heun, Solver_SIB, Solver_Depondt, Solver_RungeKutta4 };
+    std::vector<int>  solvers { Solver_LBFGS_Atlas, Solver_LBFGS_OSO, Solver_VP, Solver_Heun, Solver_SIB, Solver_Depondt, Solver_RungeKutta4 };
 
     // Expected values
     float energy_expected = -5849.69140625f;
@@ -84,7 +84,7 @@ TEST_CASE( "Solvers testing", "[solvers]" )
       Chain_Insert_Image_After(state.get());
 
     // Solvers to be tested
-    solvers = { Solver_LBFGS_OSO, Solver_VP, Solver_Heun, Solver_Depondt };
+    solvers = { Solver_LBFGS_Atlas, Solver_LBFGS_OSO, Solver_VP, Solver_Heun, Solver_Depondt };
 
     // Expected values
     float energy_sp_expected = -5811.5244140625f;
