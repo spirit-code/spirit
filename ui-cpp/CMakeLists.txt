@@ -50,7 +50,9 @@ set( CMAKE_DISABLE_IN_SOURCE_BUILD ON )
 
 add_subdirectory    ( ${PROJECT_SOURCE_DIR}/utility )
 include_directories ( ${PROJECT_SOURCE_DIR}/include
-                      ${SPIRIT_INCLUDE_DIRS} )
+                      ${SPIRIT_INCLUDE_DIRS}
+                      ${PROJECT_SOURCE_DIR}/thirdparty/Lyra/include
+                    )
 
 if( SPIRIT_UI_CXX_USE_QT )
 
@@ -138,7 +140,7 @@ if( SPIRIT_UI_CXX_USE_QT )
 
         # For Apple set the icns file containing icons
         # set how it shows up in the Info.plist file
-        SET( MACOSX_BUNDLE_ICON_FILE AppIcon.icns ) 
+        SET( MACOSX_BUNDLE_ICON_FILE AppIcon.icns )
         # set where in the bundle to put the icns file
         SET_SOURCE_FILES_PROPERTIES( ${CMAKE_CURRENT_SOURCE_DIR}/res/AppIcon.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources )
         # include the icns file in the target
@@ -173,7 +175,7 @@ if( SPIRIT_UI_CXX_USE_QT )
             if( NOT "${QT_LIBRARY_DIR}" STREQUAL "/lib" AND NOT "${QT_LIBRARY_DIR}" STREQUAL "/usr/lib" AND NOT "${QT_LIBRARY_DIR}" STREQUAL "/lib64" AND NOT "${QT_LIBRARY_DIR}" STREQUAL "/usr/lib64" )
             set( QT_NEED_RPATH TRUE )
         endif( )
-        
+
         SET( OS_BUNDLE_NAME MACOSX_BUNDLE )
     ENDIF( APPLE AND SPIRIT_BUNDLE_APP )
     ###
