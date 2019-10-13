@@ -17,6 +17,17 @@ namespace Utility
     const std::string compiler         = "${META_COMPILER}";
     const std::string compiler_version = "${META_COMPILER_VERSION}";
     const std::string compiler_full    = "${META_COMPILER_FULL}";
+
+    const std::string scalartype = "${SPIRIT_SCALAR_TYPE}";
+
+    const std::string pinning = "${SPIRIT_ENABLE_PINNING}";
+    const std::string defects = "${SPIRIT_ENABLE_DEFECTS}";
+
+    const std::string cuda    = "${SPIRIT_USE_CUDA}";
+    const std::string openmp  = "${SPIRIT_USE_OPENMP}";
+    const std::string threads = "${SPIRIT_USE_THREADS}";
+
+    const std::string fftw = "${SPIRIT_USE_FFTW}";
 }
 
 #endif
