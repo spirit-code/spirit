@@ -13,85 +13,97 @@
 
 namespace Engine
 {
-	// enum class DDI_Method
-	// {
-	//     FFT    = SPIRIT_DDI_METHOD_FFT,
-	//     FMM    = SPIRIT_DDI_METHOD_FMM,
-	//     Cutoff = SPIRIT_DDI_METHOD_CUTOFF,
-	//     None   = SPIRIT_DDI_METHOD_NONE
-	// };
+	/*enum class DDI_Method
+    {
+        FFT    = SPIRIT_DDI_METHOD_FFT,
+        FMM    = SPIRIT_DDI_METHOD_FMM,
+        Cutoff = SPIRIT_DDI_METHOD_CUTOFF,
+        None   = SPIRIT_DDI_METHOD_NONE
+    };
+*/
+    /*
+        The Micromagnetic Hamiltonian
+    */
+    class Hamiltonian_Micromagnetic : public Hamiltonian
+    {
+    public:
+        Hamiltonian_Micromagnetic(
+            scalar external_field_magnitude, Vector3 external_field_normal,
+            scalar anisotropy_magnitude,
+            scalar exchange_constant,
+            scalar dmi_constant,
+            std::shared_ptr<Data::Geometry> geometry,
+            int spatial_gradient_order,
+            intfield boundary_conditions,
+            Vector3 cell_sizes,
+            scalar Ms
+        );
 
-	/*
-		The Micromagnetic Hamiltonian
-	*/
-	class Hamiltonian_Micromagnetic : public Hamiltonian
-	{
-	public:
-		Hamiltonian_Micromagnetic(
-			scalar external_field_magnitude, Vector3 external_field_normal,
-			Matrix3 anisotropy_tensor,
-			scalar exchange_constant,
-			scalar dmi_constant,
-			std::shared_ptr<Data::Geometry> geometry,
-			int spatial_gradient_order,
-			intfield boundary_conditions
-		);
+        Hamiltonian_Micromagnetic(
+            scalar external_field_magnitude, Vector3 external_field_normal,
+            scalar anisotropy_magnitude,
+            Matrix3 exchange_tensor,
+            Matrix3 dmi_tensor,
+            std::shared_ptr<Data::Geometry> geometry,
+            int spatial_gradient_order,
+            intfield boundary_conditions,
+            Vector3 cell_sizes,
+            scalar Ms
+        );
 
-		Hamiltonian_Micromagnetic(
-			scalar external_field_magnitude, Vector3 external_field_normal,
-			Matrix3 anisotropy_tensor,
-			Matrix3 exchange_tensor,
-			Matrix3 dmi_tensor,
-			std::shared_ptr<Data::Geometry> geometry,
-			int spatial_gradient_order,
-			intfield boundary_conditions
-		);
+        void Update_Interactions();
 
-		void Update_Interactions();
+        void Update_Energy_Contributions() override;
 
-		void Update_Energy_Contributions() override;
-
-		void Hessian(const vectorfield & spins, MatrixX & hessian) override;
-		void Gradient(const vectorfield & spins, vectorfield & gradient) override;
-		void Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions) override;
+        void Hessian(const vectorfield & spins, MatrixX & hessian) override;
+        void Gradient(const vectorfield & spins, vectorfield & gradient) override;
+        void Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions) override;
 		void Energy_Update(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions, vectorfield & gradient);
-		// Calculate the total energy for a single spin to be used in Monte Carlo.
-		//      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
-		scalar Energy_Single_Spin(int ispin, const vectorfield & spins) override;
+        // Calculate the total energy for a single spin to be used in Monte Carlo.
+        //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
+        scalar Energy_Single_Spin(int ispin, const vectorfield & spins) override;
 
-		// Hamiltonian name as string
-		const std::string& Name() override;
+        // Hamiltonian name as string
+        const std::string& Name() override;
 
-		std::shared_ptr<Data::Geometry> geometry;
+        std::shared_ptr<Data::Geometry> geometry;
+        scalar Ms;
+        // ------------ ... ------------
+        int spatial_gradient_order;
 
-		// ------------ ... ------------
-		int spatial_gradient_order;
-
-		// ------------ Single Spin Interactions ------------
-		// External magnetic field across the sample
-		scalar external_field_magnitude;
-		Vector3 external_field_normal;
-		Matrix3 anisotropy_tensor;
-
-		// ------------ Pair Interactions ------------
-		// Exchange interaction
-		Matrix3 exchange_tensor;
-		// DMI
-		Matrix3 dmi_tensor;
+        // ------------ Single Spin Interactions ------------
+        // External magnetic field across the sample
+        scalar external_field_magnitude;
+        Vector3 external_field_normal;
+        Matrix3 anisotropy_tensor;
+        scalar anisotropy_magnitude;
+        // ------------ Pair Interactions ------------
+        // Exchange interaction
+        Matrix3 exchange_tensor;
+        // DMI
+        Matrix3 dmi_tensor;
+        //DDI_Method  ddi_method;
+		intfield    ddi_n_periodic_images;
+		Vector3 cell_sizes;
+		//      ddi cutoff variables
+		scalar      ddi_cutoff_radius;
+		pairfield   ddi_pairs;
+		scalarfield ddi_magnitudes;
+		vectorfield ddi_normals;
 		pairfield neigh;
 		field<Matrix3> spatial_gradient;
-		bool A_is_nondiagonal = false;
+		bool A_is_nondiagonal=false;
 
-	private:
-		// ------------ Effective Field Functions ------------
-		// Calculate the Zeeman effective field of a single Spin
-		void Gradient_Zeeman(vectorfield & gradient);
-		// Calculate the Anisotropy effective field of a single Spin
-		void Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient);
-		// Calculate the exchange interaction effective field of a Spin Pair
-		void Gradient_Exchange(const vectorfield & spins, vectorfield & gradient);
-		// Calculate the DMI effective field of a Spin Pair
-		void Gradient_DMI(const vectorfield & spins, vectorfield & gradient);
+    private:
+        // ------------ Effective Field Functions ------------
+        // Calculate the Zeeman effective field of a single Spin
+        void Gradient_Zeeman(vectorfield & gradient);
+        // Calculate the Anisotropy effective field of a single Spin
+        void Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient);
+        // Calculate the exchange interaction effective field of a Spin Pair
+        void Gradient_Exchange(const vectorfield & spins, vectorfield & gradient);
+        // Calculate the DMI effective field of a Spin Pair
+        void Gradient_DMI(const vectorfield & spins, vectorfield & gradient);
 		void Spatial_Gradient(const vectorfield & spins);
 		// Calculates the Dipole-Dipole contribution to the effective field of spin ispin within system s
 		void Gradient_DDI(const vectorfield& spins, vectorfield & gradient);
@@ -99,20 +111,20 @@ namespace Engine
 		void Gradient_DDI_Direct(const vectorfield& spins, vectorfield & gradient);
 		void Gradient_DDI_FFT(const vectorfield& spins, vectorfield & gradient);
 
-		// ------------ Energy Functions ------------
-		// Indices for Energy vector
-		int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi;
+        // ------------ Energy Functions ------------
+        // Indices for Energy vector
+        int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi;
 		void E_Update(const vectorfield & spins, scalarfield & Energy, vectorfield & gradient);
-		// Calculate the Zeeman energy of a Spin System
-		void E_Zeeman(const vectorfield & spins, scalarfield & Energy);
-		// Calculate the Anisotropy energy of a Spin System
-		void E_Anisotropy(const vectorfield & spins, scalarfield & Energy);
-		// Calculate the exchange interaction energy of a Spin System
-		void E_Exchange(const vectorfield & spins, scalarfield & Energy);
-		// Calculate the DMI energy of a Spin System
-		void E_DMI(const vectorfield & spins, scalarfield & Energy);
-
-		// Dipolar interactions
+        // Calculate the Zeeman energy of a Spin System
+        void E_Zeeman(const vectorfield & spins, scalarfield & Energy);
+        // Calculate the Anisotropy energy of a Spin System
+        void E_Anisotropy(const vectorfield & spins, scalarfield & Energy);
+        // Calculate the exchange interaction energy of a Spin System
+        void E_Exchange(const vectorfield & spins, scalarfield & Energy);
+        // Calculate the DMI energy of a Spin System
+        void E_DMI(const vectorfield & spins, scalarfield & Energy);
+		
+        // Dipolar interactions
 		void E_DDI(const vectorfield& spins, scalarfield & Energy);
 		void E_DDI_Direct(const vectorfield& spins, scalarfield & Energy);
 		void E_DDI_Cutoff(const vectorfield& spins, scalarfield & Energy);
@@ -157,7 +169,7 @@ namespace Engine
 		field<int> it_bounds_write_gradients;
 		field<int> it_bounds_write_spins;
 		field<int> it_bounds_write_dipole;
-	};
+    };
 
 
 }

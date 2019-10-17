@@ -1446,9 +1446,10 @@ namespace IO
         int spatial_gradient_order = 1;
 
         // External Magnetic Field
+        scalar Ms;
         scalar field = 0;
         Vector3 field_normal = { 0.0, 0.0, 1.0 };
-
+        Vector3 cell_sizes;
         scalar anisotropy_magnitude;
         Vector3 anisotropy_normal;
         Matrix3 anisotropy_tensor;
@@ -1475,8 +1476,13 @@ namespace IO
             catch( ... )
             {
                 spirit_handle_exception_core(fmt::format("Unable to read boundary conditions from config file \"{}\"", configFile));
-            }
 
+            }
+            if( myfile.Find("cell_sizes") )
+            {
+            	myfile.iss >> cell_sizes[0] >> cell_sizes[1] >> cell_sizes[2];
+            }
+            myfile.Read_Single(Ms, "Ms");
             // Precision of the spatial gradient calculation
             myfile.Read_Single(spatial_gradient_order, "spatial_gradient_order");
 
@@ -1491,6 +1497,13 @@ namespace IO
             }
 
             // TODO: anisotropy
+            myfile.Read_Single(anisotropy_magnitude, "anisotropy_cubic");
+            /*
+            if( myfile.Find("anisotropy_cubic") )
+			{
+				myfile.iss >> anisotropy_magnitude;
+			}*/
+            /*
             if( myfile.Find("tensor_anisotropy") )
             {
                 for( int dim = 0; dim < 3; ++dim )
@@ -1510,7 +1523,7 @@ namespace IO
                                      Kn[1]*Kn[0], Kn[1]*Kn[1], Kn[1]*Kn[2],
                                      Kn[2]*Kn[0], Kn[2]*Kn[1], Kn[2]*Kn[2];
                 anisotropy_tensor *= anisotropy_magnitude;
-            }
+            }*/
 
             // TODO: exchange
             if( myfile.Find("tensor_exchange") )
@@ -1587,21 +1600,23 @@ namespace IO
                 "Unable to parse all parameters of the Micromagnetic Hamiltonian from \"{}\"", configFile));
         }
 		// Return
-		Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg:");
+		Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Micromagnetic:");
 		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {} {} {}", "boundary conditions", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
 		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "external field", field));
 		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "field_normal", field_normal.transpose()));
-		
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "anisotropy_magnitude", anisotropy_magnitude));
+		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "exchange_magnitude", exchange_tensor(0,0)));
         auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Micromagnetic>(new Engine::Hamiltonian_Micromagnetic(
             field, field_normal,
-            anisotropy_tensor,
+            anisotropy_magnitude,
             exchange_tensor,
             dmi_tensor,
             geometry,
             spatial_gradient_order,
-            boundary_conditions
+            boundary_conditions,
+            cell_sizes,
+            Ms
         ));
-
         Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Micromagnetic: built");
         return hamiltonian;
 
