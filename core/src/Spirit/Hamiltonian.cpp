@@ -99,12 +99,15 @@ try
                 // TODO: are these the desired defaults?
                 image->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Micromagnetic(
                     0, Vector3{0, 0, 1},
-                    Matrix3::Zero(),
+                    0,
                     0,
                     0,
                     image->geometry,
                     2,
-                    image->hamiltonian->boundary_conditions));
+                    image->hamiltonian->boundary_conditions,
+                	Vector3{5e-11, 5e-11, 5e-10},
+                	8e5
+                	));
             }
             else if( type == Hamiltonian_Gaussian )
             {
