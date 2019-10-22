@@ -201,7 +201,7 @@ namespace Engine
         std::vector<vectorfield> q_vec;
 
         int local_iter;
-        double maxmove;
+        scalar maxmove;
 
         // LBFGS_Atlas
         intfield n_updates;

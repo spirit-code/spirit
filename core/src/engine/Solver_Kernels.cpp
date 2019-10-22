@@ -380,7 +380,7 @@ namespace Solver_Kernels
         }
     }
 
-    bool ncg_atlas_check_coordinates(const field<std::shared_ptr<vectorfield>> & spins, field<scalarfield> & a3_coords, scalar tol)
+    bool ncg_atlas_check_coordinates(const std::vector<std::shared_ptr<vectorfield>> & spins, std::vector<scalarfield> & a3_coords, scalar tol)
     {
         int noi = spins.size();
         int nos = (*spins[0]).size();
@@ -584,14 +584,14 @@ namespace Solver_Kernels
            const field<vectorfield> & grad,
            field<vectorfield> & grad_pr,
            const int num_mem,
-           const double maxmove
+           const scalar maxmove
            )
     {
         int noi = grad.size();
         int nos = grad[0].size();
         int m_index = local_iter % num_mem; // memory index
         int c_ind = 0;
-        double scaling = 1.0;
+        scalar scaling = 1.0;
 
         if (local_iter == 0) {  // gradient descent algorithm
             #pragma omp parallel for
@@ -734,14 +734,14 @@ namespace Solver_Kernels
         }
     }
 
-    double maximum_rotation(const vectorfield & searchdir, double maxmove){
+    scalar maximum_rotation(const vectorfield & searchdir, scalar maxmove){
         int nos = searchdir.size();
-        double theta_rms = 0;
+        scalar theta_rms = 0;
         #pragma omp parallel for reduction(+:theta_rms)
         for(int i=0; i<nos; ++i)
             theta_rms += (searchdir[i]).squaredNorm();
         theta_rms = sqrt(theta_rms/nos);
-        double scaling = (theta_rms > maxmove) ? maxmove/theta_rms : 1.0;
+        scalar scaling = (theta_rms > maxmove) ? maxmove/theta_rms : 1.0;
         return scaling;
     }
 
