@@ -173,7 +173,7 @@ namespace Vectormath
     scalar max_norm(const vectorfield & vf)
     {
         scalar max_norm = 0;
-        #pragma omp parallel for
+        #pragma omp parallel for reduction(max : max_norm)
         for(auto & v : vf)
         {
             max_norm = std::max(max_norm, v.norm());
