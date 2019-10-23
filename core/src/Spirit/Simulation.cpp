@@ -142,18 +142,9 @@ try
         else if (solver_type == int(Engine::Solver::RungeKutta4))
             method = std::shared_ptr<Engine::Method>(
                 new Engine::Method_LLG<Engine::Solver::RungeKutta4>( image, idx_image, idx_chain ) );
-        else if (solver_type == int(Engine::Solver::NCG))
-            method = std::shared_ptr<Engine::Method>(
-                new Engine::Method_LLG<Engine::Solver::NCG>( image, idx_image, idx_chain ) );
         else if (solver_type == int(Engine::Solver::VP))
             method = std::shared_ptr<Engine::Method>(
                 new Engine::Method_LLG<Engine::Solver::VP>( image, idx_image, idx_chain ) );
-        else if (solver_type == int(Engine::Solver::NCG_OSO))
-            method = std::shared_ptr<Engine::Method>(
-                new Engine::Method_LLG<Engine::Solver::NCG_OSO>( image, idx_image, idx_chain ) );
-        else if (solver_type == int(Engine::Solver::NCG_Atlas))
-            method = std::shared_ptr<Engine::Method>(
-                new Engine::Method_LLG<Engine::Solver::NCG_Atlas>( image, idx_image, idx_chain ) );
         else if (solver_type == int(Engine::Solver::LBFGS_OSO))
             method = std::shared_ptr<Engine::Method>(
                 new Engine::Method_LLG<Engine::Solver::LBFGS_OSO>( image, idx_image, idx_chain ) );
@@ -243,9 +234,6 @@ try
             else if (solver_type == int(Engine::Solver::Depondt))
                 method = std::shared_ptr<Engine::Method>(
                     new Engine::Method_GNEB<Engine::Solver::Depondt>( chain, idx_chain ) );
-            // else if (solver_type == int(Engine::Solver::NCG))
-            //     method = std::shared_ptr<Engine::Method>(
-            //         new Engine::Method_GNEB<Engine::Solver::NCG>( chain, idx_chain ) );
             else if (solver_type == int(Engine::Solver::VP))
                 method = std::shared_ptr<Engine::Method>(
                     new Engine::Method_GNEB<Engine::Solver::VP>( chain, idx_chain ) );

@@ -8,7 +8,7 @@ If many iterations are called individually, one should use the single shot simul
 It avoids the allocations etc. involved when a simulation is started and ended and behaves like a
 regular simulation, except that the iterations have to be triggered manually.
 
-Note that the VP and NCG Solvers are only meant for direct minimization and not for dynamics.
+Note that the VP and LBFGS Solvers are only meant for direct minimization and not for dynamics.
 """
 
 import spirit.spiritlib as spiritlib
@@ -40,22 +40,14 @@ SOLVER_HEUN = 3
 SOLVER_RK4 = 4
 """4th order Runge-Kutta method."""
 
-SOLVER_NCG         = 5
-"""Non-linear conjugate gradient solver, using rotation matrices."""
-
-SOLVER_LBFGS_OSO   = 6
+SOLVER_LBFGS_OSO = 5
 """Limited memory Broyden-Fletcher-Goldfarb-Shannon, using exponential transforms."""
 
-SOLVER_LBFGS_Atlas = 7
+SOLVER_LBFGS_Atlas = 6
 """Limited memory Broyden-Fletcher-Goldfarb-Shannon, using stereographic transforms"""
 
-SOLVER_NCG_OSO     = 8
-"""Non-linear conjugate gradient solver, using exponential transforms."""
-
-SOLVER_NCG_Atlas   = 9
-"""Non-linear conjugate gradient solver, using stereographic transforms."""
-
-SOLVER_VP_OSO      = 10
+SOLVER_VP_OSO = 7
+"""Verlet-like velocity projection method, using exponential transforms."""
 
 
 METHOD_MC   = 0

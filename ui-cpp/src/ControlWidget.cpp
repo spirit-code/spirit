@@ -170,12 +170,6 @@ void ControlWidget::play_pause()
         solver = Solver_Heun;
     else if( s_solver == "RK4" )
         solver = Solver_RungeKutta4;
-    else if( s_solver == "NCG" )
-        solver = Solver_NCG;
-    else if( s_solver == "NCG_OSO" )
-        solver = Solver_NCG_OSO;
-    else if( s_solver == "NCG_Atlas" )
-        solver = Solver_NCG_Atlas;
     else if( s_solver == "LBFGS_OSO" )
         solver = Solver_LBFGS_OSO;
     else if( s_solver == "LBFGS_Atlas" )

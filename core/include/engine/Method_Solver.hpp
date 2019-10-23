@@ -35,9 +35,6 @@ namespace Engine
         Heun = Solver_Heun,
         Depondt = Solver_Depondt,
         RungeKutta4 = Solver_RungeKutta4,
-        NCG = Solver_NCG,
-        NCG_OSO = Solver_NCG_OSO,
-        NCG_Atlas = Solver_NCG_Atlas,
         LBFGS_OSO = Solver_LBFGS_OSO,
         LBFGS_Atlas = Solver_LBFGS_Atlas,
         VP = Solver_VP,
@@ -137,82 +134,32 @@ namespace Engine
         // Preccession angle
         scalarfield angle;
 
-        //////////// NCG ////////////////////////////////////////////////////////////
-        // Check if the Newton-Raphson has converged
-        bool NR_converged();
 
-        int jmax;     // max iterations for Newton-Raphson loop
-        int n;        // number of iteration after which the nCG will restart
+        //////////// LBFGS ////////////////////////////////////////////////////////////
 
-        scalar tolerance_NCG;//, tolerance_NR;   // tolerances for solver and Newton-Raphson
-        scalar epsilon_NCG;//, epsilon_NR;   // Newton-Raphson and solver tolerance squared
+        // General
+        int n_lbfgs_memory;
+        int local_iter;
+        scalar maxmove;
+        std::vector<scalarfield> rho;
+        std::vector<scalarfield> alpha;
 
-        // bool restart_NCG;//, continue_NR;  // conditions for restarting nCG or continuing Newton-Raphson
-
-        // Step sizes
-        // std::vector<scalarfield> alpha, beta;
-        scalarfield beta;
-
-        // TODO: right type might be std::vector<scalar> and NOT std::vector<scalarfield>
-        // Delta scalarfields
-        // std::vector<scalarfield> delta_0, delta_new, delta_old, delta_d;
-
-        std::vector<std::shared_ptr<vectorfield>> configurations_displaced;
-
-        // Residual and new configuration states
-        std::vector<vectorfield> residuals, residuals_last, directions, directions_displaced;
-        std::vector<vectorfield> forces_displaced;
-        std::vector<vectorfield> axes;
-        std::vector<scalarfield> angles;
-
-        // OSO ncg
-        std::vector<vectorfield> a_coords;
-        std::vector<vectorfield> a_coords_displaced;
-        std::vector<vectorfield> a_directions;
-        std::vector<vectorfield> a_residuals;
-        std::vector<vectorfield> a_residuals_last;
-        std::vector<vectorfield> a_residuals_displaced;
-        std::vector<std::shared_ptr<vectorfield>> reference_configurations;
-        scalarfield E0;
-        scalarfield g0;
-        scalarfield a_direction_norm;
-        scalarfield step_size;
-        std::vector<bool> finish;
-
-        // Atlas ncg
-        std::vector<vector2field> atlas_coords;
+        // Atlas coords
+        std::vector<std::vector<vector2field>> atlas_updates;
+        std::vector<std::vector<vector2field>> grad_atlas_updates;
         std::vector<scalarfield>  atlas_coords3;
-        std::vector<vector2field> atlas_coords_displaced;
         std::vector<vector2field> atlas_directions;
         std::vector<vector2field> atlas_residuals;
         std::vector<vector2field> atlas_residuals_last;
-        std::vector<vector2field> atlas_residuals_displaced;
+        std::vector<vector2field> atlas_q_vec;
 
-
-        // LBFGS_OSO
-        int n_lbfgs_memory;
+        // OSO
         std::vector<std::vector<vectorfield>> delta_a;
         std::vector<std::vector<vectorfield>> delta_grad;
-        std::vector<scalarfield> rho;
-        std::vector<scalarfield> alpha;
         std::vector<vectorfield> searchdir;
         std::vector<vectorfield> grad;
         std::vector<vectorfield> grad_pr;
         std::vector<vectorfield> q_vec;
-
-        int local_iter;
-        scalar maxmove;
-
-        // LBFGS_Atlas
-        intfield n_updates;
-        std::vector<std::vector<vectorfield>> a_updates;
-        std::vector<std::vector<vectorfield>> grad_updates;
-        std::vector<scalarfield> rho_temp;
-        std::vector<scalarfield> alpha_temp;
-        std::vector<std::vector<vector2field>> atlas_updates;
-        std::vector<std::vector<vector2field>> grad_atlas_updates;
-        std::vector<vector2field> atlas_q_vec;
-
 
         // buffer variables for checking convergence for solver and Newton-Raphson
         // std::vector<scalarfield> r_dot_d, dda2;
@@ -403,9 +350,6 @@ namespace Engine
     #include <engine/Solver_RK4.hpp>
     #include <engine/Solver_VP.hpp>
     #include <engine/Solver_VP_OSO.hpp>
-    #include <engine/Solver_NCG.hpp>
-    #include <engine/Solver_NCG_OSO.hpp>
-    #include <engine/Solver_NCG_Atlas.hpp>
     #include <engine/Solver_LBFGS_OSO.hpp>
     #include <engine/Solver_LBFGS_Atlas.hpp>
 }

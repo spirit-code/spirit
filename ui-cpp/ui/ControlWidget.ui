@@ -329,21 +329,6 @@
        </item>
        <item>
         <property name="text">
-         <string>NCG</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>NCG_OSO</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
-         <string>NCG_Atlas</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
          <string>LBFGS_OSO</string>
         </property>
        </item>

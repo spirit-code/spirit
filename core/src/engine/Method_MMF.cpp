@@ -597,9 +597,6 @@ namespace Engine
     template class Method_MMF<Solver::Heun>;
     template class Method_MMF<Solver::Depondt>;
     template class Method_MMF<Solver::RungeKutta4>;
-    template class Method_MMF<Solver::NCG>;
-    template class Method_MMF<Solver::NCG_OSO>;
-    template class Method_MMF<Solver::NCG_Atlas>;
     template class Method_MMF<Solver::LBFGS_OSO>;
     template class Method_MMF<Solver::LBFGS_Atlas>;
     template class Method_MMF<Solver::VP>;

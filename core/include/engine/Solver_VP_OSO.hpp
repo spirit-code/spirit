@@ -11,13 +11,11 @@ void Method_Solver<Solver::VP_OSO>::Initialize ()
     this->velocities          = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));	// [noi][nos]
     this->velocities_previous = velocities;	// [noi][nos]
     this->forces_previous     = velocities;	// [noi][nos]
-    this->grad    = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
-    this->grad_pr = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
+    this->grad                = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
+    this->grad_pr             = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
     this->projection          = std::vector<scalar>(this->noi, 0);	// [noi]
     this->force_norm2         = std::vector<scalar>(this->noi, 0);	// [noi]
-
-    this->searchdir = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
-
+    this->searchdir           = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
 };
 
 
@@ -112,5 +110,5 @@ std::string Method_Solver<Solver::VP_OSO>::SolverName()
 template <> inline
 std::string Method_Solver<Solver::VP_OSO>::SolverFullName()
 {
-	return "Velocity Projection";
+	return "Velocity Projection using exponential transforms";
 };

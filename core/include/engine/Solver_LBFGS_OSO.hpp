@@ -14,21 +14,16 @@ void Method_Solver<Solver::LBFGS_OSO>::Initialize ()
 
     this->n_lbfgs_memory = 3; // how many previous iterations are stored in the memory
 
-    this->delta_a = std::vector<std::vector<vectorfield>>(
-            this->noi, std::vector<vectorfield>( this->n_lbfgs_memory, vectorfield(this->nos, { 0,0,0 } ) ));
-    this->delta_grad = std::vector<std::vector<vectorfield>>(
-            this->noi, std::vector<vectorfield>( this->n_lbfgs_memory, vectorfield(this->nos, { 0,0,0 } ) ));
-    this->rho = std::vector<scalarfield>( this->noi, scalarfield( this->n_lbfgs_memory, 0 ) );
-    this->alpha = std::vector<scalarfield>( this->noi, scalarfield( this->n_lbfgs_memory, 0 ) );
-
-    this->forces = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
+    this->delta_a    = std::vector<std::vector<vectorfield>>( this->noi, std::vector<vectorfield>( this->n_lbfgs_memory, vectorfield(this->nos, { 0,0,0 } ) ));
+    this->delta_grad = std::vector<std::vector<vectorfield>>( this->noi, std::vector<vectorfield>( this->n_lbfgs_memory, vectorfield(this->nos, { 0,0,0 } ) ));
+    this->rho        = std::vector<scalarfield>( this->noi, scalarfield( this->n_lbfgs_memory, 0 ) );
+    this->alpha      = std::vector<scalarfield>( this->noi, scalarfield( this->n_lbfgs_memory, 0 ) );
+    this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
     this->forces_virtual = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
-
     this->searchdir = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
-    this->grad = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
-    this->grad_pr = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
-    this->q_vec = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
-
+    this->grad      = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
+    this->grad_pr   = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
+    this->q_vec     = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
     this->local_iter = 0;
     this->maxmove = Constants::Pi / 200.0;
 };
@@ -87,7 +82,7 @@ std::string Method_Solver<Solver::LBFGS_OSO>::SolverName()
 template <> inline
 std::string Method_Solver<Solver::LBFGS_OSO>::SolverFullName()
 {
-    return "Limited memory Broyden-Fletcher-Goldfarb-Shanno with exponential transform";
+    return "Limited memory Broyden-Fletcher-Goldfarb-Shanno using exponential transforms";
 }
 
 #endif

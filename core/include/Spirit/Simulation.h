@@ -25,7 +25,7 @@ regular simulation, except that the iterations have to be triggered manually.
 Definition of solvers
 --------------------------------------------------------------------
 
-Note that the VP and NCG Solvers are only meant for direct minimization and not for dynamics.
+Note that the VP and LBFGS Solvers are only meant for direct minimization and not for dynamics.
 */
 
 // `VP`: Verlet-like velocity projection
@@ -43,22 +43,14 @@ Note that the VP and NCG Solvers are only meant for direct minimization and not 
 // `RK4`: 4th order Runge-Kutta
 #define Solver_RungeKutta4 4
 
-// `NCG`: Nonlinear conjugate gradients
-#define Solver_NCG         5
-
 // `LBFGS_OSO`: Limited memory Broyden-Fletcher-Goldfarb-Shanno, exponential transform
-#define Solver_LBFGS_OSO   6
+#define Solver_LBFGS_OSO   5
 
-// `LBFGS_OSO`: Limited memory Broyden-Fletcher-Goldfarb-Shannon, stereographic projection
-#define Solver_LBFGS_Atlas 7
+// `LBFGS_Atlas`: Limited memory Broyden-Fletcher-Goldfarb-Shannon, stereographic projection
+#define Solver_LBFGS_Atlas 6
 
-// `NCG_OSO`: Nonlinear conjugate gradients, exponential transform
-#define Solver_NCG_OSO     8
-
-// `NCG_Atlas`: Nonlinear conjugate gradients, stereographic projection
-#define Solver_NCG_Atlas   9
-
-#define Solver_VP_OSO      10
+// `Solver_VP_OSO`: Verlet-like velocity projection, exponential transform
+#define Solver_VP_OSO      7
 
 /*
 Start or stop a simulation

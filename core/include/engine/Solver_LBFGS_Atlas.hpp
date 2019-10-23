@@ -12,25 +12,18 @@ template <> inline
 void Method_Solver<Solver::LBFGS_Atlas>::Initialize ()
 {
     this->n_lbfgs_memory = 3; // how many updates the solver tracks to estimate the hessian
-
     this->atlas_updates      = std::vector<std::vector<vector2field>>( this->noi, std::vector<vector2field>( this->n_lbfgs_memory, vector2field(this->nos, { 0,0 } ) ));
     this->grad_atlas_updates = std::vector<std::vector<vector2field>>( this->noi, std::vector<vector2field>( this->n_lbfgs_memory, vector2field(this->nos, { 0,0 } ) ));
-    this->rho           = std::vector<scalarfield>( this->noi, scalarfield( this->n_lbfgs_memory, 0 ) );
-    this->alpha         = std::vector<scalarfield>( this->noi, scalarfield( this->n_lbfgs_memory, 0 ) );
+    this->rho                = std::vector<scalarfield>( this->noi, scalarfield( this->n_lbfgs_memory, 0 ) );
+    this->alpha              = std::vector<scalarfield>( this->noi, scalarfield( this->n_lbfgs_memory, 0 ) );
+    this->forces               = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
+    this->forces_virtual       = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
+    this->atlas_coords3        = std::vector<scalarfield>( this->noi, scalarfield(this->nos, 1) );
+    this->atlas_directions     = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
+    this->atlas_residuals      = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
+    this->atlas_residuals_last = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
+    this->atlas_q_vec          = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
 
-    this->forces                    = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
-    this->forces_virtual            = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
-    this->forces_displaced          = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
-    this->atlas_coords3             = std::vector< scalarfield >( this->noi, scalarfield(this->nos, 1) );
-    this->atlas_directions          = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
-    this->atlas_residuals           = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
-    this->atlas_residuals_last      = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
-    this->atlas_q_vec = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
-
-    this->E0                        = scalarfield(this->noi, 0);
-    this->g0                        = scalarfield(this->noi, 0);
-    this->finish                    = std::vector<bool>( this->noi, false );
-    this->step_size                 = scalarfield(this->noi, 0);
     this->maxmove = 0.05;
 
     this->local_iter = 0;
@@ -119,7 +112,7 @@ std::string Method_Solver<Solver::LBFGS_Atlas>::SolverName()
 template <> inline
 std::string Method_Solver<Solver::LBFGS_Atlas>::SolverFullName()
 {
-    return "Limited memory Broyden-Fletcher-Goldfarb-Shanno";
+    return "Limited memory Broyden-Fletcher-Goldfarb-Shanno using stereographic atlas";
 }
 
 #endif

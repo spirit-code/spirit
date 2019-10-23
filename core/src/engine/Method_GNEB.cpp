@@ -489,9 +489,6 @@ namespace Engine
     template class Method_GNEB<Solver::Heun>;
     template class Method_GNEB<Solver::Depondt>;
     template class Method_GNEB<Solver::RungeKutta4>;
-    template class Method_GNEB<Solver::NCG>;
-    template class Method_GNEB<Solver::NCG_OSO>;
-    template class Method_GNEB<Solver::NCG_Atlas>;
     template class Method_GNEB<Solver::LBFGS_OSO>;
     template class Method_GNEB<Solver::LBFGS_Atlas>;
     template class Method_GNEB<Solver::VP>;
