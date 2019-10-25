@@ -150,7 +150,7 @@ namespace Solver_Kernels
         return result;
     }
 
-    void lbfgs_atlas_transform_direction(field<std::shared_ptr<vectorfield>> & configurations, field<scalarfield> & a3_coords, field<field<vector2field>> & atlas_updates, field<field<vector2field>> & grad_updates, field<vector2field> & searchdir, field<vector2field> & grad_pr, field<scalarfield> & rho)
+    void lbfgs_atlas_transform_direction(std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<scalarfield> & a3_coords, std::vector<std::vector<vector2field>> & atlas_updates, std::vector<std::vector<vector2field>> & grad_updates, std::vector<vector2field> & searchdir, std::vector<vector2field> & grad_pr, std::vector<scalarfield> & rho)
     {
         int noi = configurations.size();
         int nos = configurations[0]->size();

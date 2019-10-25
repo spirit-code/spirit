@@ -4,6 +4,7 @@
 
 #include <utility/Constants.hpp>
 // #include <utility/Exception.hpp>
+#include <engine/Backend_par.hpp>
 #include <algorithm>
 
 using namespace Utility;
@@ -12,8 +13,8 @@ template <> inline
 void Method_Solver<Solver::LBFGS_Atlas>::Initialize ()
 {
     this->n_lbfgs_memory = 3; // how many updates the solver tracks to estimate the hessian
-    this->atlas_updates      = std::vector<std::vector<vector2field>>( this->noi, std::vector<vector2field>( this->n_lbfgs_memory, vector2field(this->nos, { 0,0 } ) ));
-    this->grad_atlas_updates = std::vector<std::vector<vector2field>>( this->noi, std::vector<vector2field>( this->n_lbfgs_memory, vector2field(this->nos, { 0,0 } ) ));
+    this->atlas_updates      = std::vector<field<vector2field>>( this->noi, field<vector2field>( this->n_lbfgs_memory, vector2field(this->nos, { 0,0 } ) ));
+    this->grad_atlas_updates = std::vector<field<vector2field>>( this->noi, field<vector2field>( this->n_lbfgs_memory, vector2field(this->nos, { 0,0 } ) ));
     this->rho                = std::vector<scalarfield>( this->noi, scalarfield( this->n_lbfgs_memory, 0 ) );
     this->alpha              = std::vector<scalarfield>( this->noi, scalarfield( this->n_lbfgs_memory, 0 ) );
     this->forces               = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
@@ -23,9 +24,7 @@ void Method_Solver<Solver::LBFGS_Atlas>::Initialize ()
     this->atlas_residuals      = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
     this->atlas_residuals_last = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
     this->atlas_q_vec          = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0,0 } ) );
-
     this->maxmove = 0.05;
-
     this->local_iter = 0;
 
     for (int img=0; img<this->noi; img++)
@@ -89,7 +88,10 @@ void Method_Solver<Solver::LBFGS_Atlas>::Iteration()
     scaling = (temp < maxmove) ? 1.0 : maxmove/temp;
     for(int img=0; img<noi; img++)
     {
-        Vectormath::apply(nos, [&](int idx){atlas_directions[img][idx] *= scaling;});
+        auto d = atlas_directions[img].data();
+        Backend::seq::apply(nos, [scaling, d] (int idx){
+            d[idx] *= scaling;
+        });
     }
 
     // Rotate spins

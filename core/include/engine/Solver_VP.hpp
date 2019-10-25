@@ -1,3 +1,5 @@
+#include <engine/Backend_par.hpp>
+
 template <> inline
 void Method_Solver<Solver::VP>::Initialize ()
 {
@@ -33,8 +35,15 @@ void Method_Solver<Solver::VP>::Iteration ()
     // Set previous
     for (int i = 0; i < noi; ++i)
     {
-        Vectormath::set_c_a(1.0, forces[i],   forces_previous[i]);
-        Vectormath::set_c_a(1.0, velocities[i], velocities_previous[i]);
+        auto f    = forces[i].data();
+        auto f_pr = forces_previous[i].data();
+        auto v    = velocities[i].data();
+        auto v_pr = velocities_previous[i].data();
+
+        Backend::par::apply( forces[i].size(), [f, f_pr, v, v_pr] SPIRIT_LAMBDA (int idx) {
+            f_pr[idx] = f[idx];
+            v_pr[idx] = v[idx];
+        } );
     }
 
     // Get the forces on the configurations
@@ -47,9 +56,18 @@ void Method_Solver<Solver::VP>::Iteration ()
         auto& force         = forces[i];
         auto& force_prev    = forces_previous[i];
 
+        auto f    = forces[i].data();
+        auto f_pr = forces_previous[i].data();
+        auto v    = velocities[i].data();
+        auto m_temp = this->m;
+
         // Calculate the new velocity
-        Vectormath::add_c_a(0.5/m, force_prev, velocity);
-        Vectormath::add_c_a(0.5/m, force, velocity);
+        Backend::par::apply(force.size(), [f,f_pr,v,m_temp] SPIRIT_LAMBDA (int idx) {
+            v[idx] += 0.5/m_temp * (f_pr[idx] + f[idx]);
+        });
+
+        // Vectormath::add_c_a(0.5/m, force_prev, velocity);
+        // Vectormath::add_c_a(0.5/m, force, velocity);
 
         // Get the projection of the velocity on the force
         projection[i]  = Vectormath::dot(velocity, force);
@@ -67,29 +85,44 @@ void Method_Solver<Solver::VP>::Iteration ()
         auto& configuration      = *(configurations[i]);
         auto& configuration_temp = *(configurations_temp[i]);
 
+        auto f    = forces[i].data();
+        auto v    = velocities[i].data();
+        auto conf = (configurations[i])->data();
+        auto conf_temp = (configurations_temp[i])->data();
+
         scalar dt = this->systems[i]->llg_parameters->dt;
+        scalar ratio = projection_full/force_norm2_full;
+        auto m_temp = this->m;
 
         // Calculate the projected velocity
         if (projection_full <= 0)
         {
             Vectormath::fill(velocity, { 0,0,0 });
+        } else {
+            Backend::par::apply(force.size(), [f,v,ratio] SPIRIT_LAMBDA (int idx) {
+                v[idx] = f[idx] * ratio;
+            });
+
+            // Vectormath::set_c_a(1.0, force, velocity);
+            // Vectormath::scale(velocity, projection_full / force_norm2_full);
         }
-        else
-        {
-            Vectormath::set_c_a(1.0, force, velocity);
-            Vectormath::scale(velocity, projection_full / force_norm2_full);
-        }
 
-        // Copy in
-        Vectormath::set_c_a(1.0, configuration, configuration_temp);
+        Backend::par::apply( force.size(), [conf, conf_temp, dt, m_temp, v, f] SPIRIT_LAMBDA (int idx) {
+            conf_temp[idx] = conf[idx] + dt * v[idx] + 0.5/m_temp * dt * f[idx];
+            conf[idx] = conf_temp[idx].normalized();
+        } ); 
+        // Vectormath::normalize_vectors(configuration);
 
-        // Move the spins
-        Vectormath::add_c_a(dt, velocity, configuration_temp);
-        Vectormath::add_c_a(0.5 / m * dt, force, configuration_temp); // Note: as force is scaled with dt, this corresponds to dt^2
-        Vectormath::normalize_vectors(configuration_temp);
+        // // Copy in
+        // Vectormath::set_c_a(1.0, configuration, configuration_temp);
 
-        // Copy out
-        Vectormath::set_c_a(1.0, configuration_temp, configuration);
+        // // Move the spins
+        // Vectormath::add_c_a(dt, velocity, configuration_temp);
+        // Vectormath::add_c_a(0.5 / m * dt, force, configuration_temp); // Note: as force is scaled with dt, this corresponds to dt^2
+        // Vectormath::normalize_vectors(configuration_temp);
+
+        // // Copy out
+        // Vectormath::set_c_a(1.0, configuration_temp, configuration);
     }
 };
 

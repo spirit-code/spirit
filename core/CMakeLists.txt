@@ -194,21 +194,21 @@ endif()
 
 ######### CUDA decisions ####################
 if( SPIRIT_USE_CUDA )
-# set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
-find_package( CUDA 8 REQUIRED )
-add_definitions( -DSPIRIT_USE_CUDA )
-# set( CUDA_PROPAGATE_HOST_FLAGS ON )
-# --std=c++11 flag may be necessary, but it is propagated from global flags...
-# if it appears twice, for some reason the compilation breaks
-set( CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -lineinfo -arch=${SPIRIT_CUDA_ARCH} --expt-relaxed-constexpr" )
-message( STATUS ">> Using CUDA. Flags: ${CUDA_NVCC_FLAGS}" )
-message( STATUS ">> CUDA toolkit path: ${CUDA_TOOLKIT_ROOT_DIR}" )
-set( META_COMPILER         "${META_COMPILER} and nvcc" )
-set( META_COMPILER_VERSION "${META_COMPILER_VERSION} and ${CUDA_VERSION}" )
-set( META_COMPILER_FULL    "${META_COMPILER_FULL} and nvcc (${CUDA_VERSION}) for cuda arch \\\"${SPIRIT_CUDA_ARCH}\\\"" )
-set( FFT_LIB ${CUDA_CUFFT_LIBRARIES} )
-set( SPIRIT_CUDA_LIBS "${CUDA_LIBRARIES};${CUDA_CUFFT_LIBRARIES};${CUDA_curand_LIBRARY}" )
-message( STATUS ">> CUDA libraries: ${SPIRIT_CUDA_LIBS}" )
+    # set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
+    find_package( CUDA 8 REQUIRED )
+    add_definitions( -DSPIRIT_USE_CUDA )
+    # set( CUDA_PROPAGATE_HOST_FLAGS ON )
+    # --std=c++11 flag may be necessary, but it is propagated from global flags...
+    # if it appears twice, for some reason the compilation breaks
+    set( CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -lineinfo -arch=${SPIRIT_CUDA_ARCH} --expt-relaxed-constexpr --expt-extended-lambda" )
+    message( STATUS ">> Using CUDA. Flags: ${CUDA_NVCC_FLAGS}" )
+    message( STATUS ">> CUDA toolkit path: ${CUDA_TOOLKIT_ROOT_DIR}" )
+    set( META_COMPILER         "${META_COMPILER} and nvcc" )
+    set( META_COMPILER_VERSION "${META_COMPILER_VERSION} and ${CUDA_VERSION}" )
+    set( META_COMPILER_FULL    "${META_COMPILER_FULL} and nvcc (${CUDA_VERSION}) for cuda arch \\\"${SPIRIT_CUDA_ARCH}\\\"" )
+    set( FFT_LIB ${CUDA_CUFFT_LIBRARIES} )
+    set( SPIRIT_CUDA_LIBS "${CUDA_LIBRARIES};${CUDA_CUFFT_LIBRARIES};${CUDA_curand_LIBRARY}" )
+    message( STATUS ">> CUDA libraries: ${SPIRIT_CUDA_LIBS}" )
 endif()
 message( STATUS ">> Compiler information: ${META_COMPILER_FULL}" )
 #############################################
@@ -444,6 +444,21 @@ if( NOT SPIRIT_USE_CUDA )
         endif()
     endif()
 else()
+    set_source_files_properties(
+        # ${SPIRIT_LIBRARY_SOURCES}
+        # ${PROJECT_SOURCE_DIR}/src/data/Geometry.cpp
+        # ${PROJECT_SOURCE_DIR}/src/data/Spin_System.cpp
+        # ${PROJECT_SOURCE_DIR}/src/engine/Hamiltonian.cpp
+        # ${PROJECT_SOURCE_DIR}/src/engine/Hamiltonian_Gaussian.cpp
+        ${PROJECT_SOURCE_DIR}/src/engine/Eigenmodes.cpp
+        ${PROJECT_SOURCE_DIR}/src/engine/Method.cpp
+        ${PROJECT_SOURCE_DIR}/src/engine/Method_LLG.cpp
+        ${PROJECT_SOURCE_DIR}/src/engine/Method_GNEB.cpp
+        ${PROJECT_SOURCE_DIR}/src/engine/Method_MMF.cpp
+        ${PROJECT_SOURCE_DIR}/src/engine/Solver_Kernels.cpp
+        ${PROJECT_SOURCE_DIR}/src/Spirit/Simulation.cpp
+        PROPERTIES CUDA_SOURCE_PROPERTY_FORMAT OBJ 
+        )
     include_directories( ${META_PROJECT_NAME}_static PUBLIC ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/thirdparty)
     if( SPIRIT_BUILD_FOR_CXX )
         cuda_add_library( ${META_PROJECT_NAME}_static STATIC ${SPIRIT_LIBRARY_SOURCES} )

@@ -276,29 +276,33 @@ namespace Engine
         }
 
         // Functor for finding the maximum absolute value
-        struct CustomMaxAbs
-        {
-            template <typename T>
-            __device__ __forceinline__
-            T operator()(const T &a, const T &b) const {
-                return (a > b) ? a : b;
-            }
-        };
+        // struct CustomMaxAbs
+        // {
+        //     template <typename T>
+        //     __device__ __forceinline__
+        //     T operator()(const T &a, const T &b) const {
+        //         return (a > b) ? a : b;
+        //     }
+        // };
         scalar max_abs_component(const vectorfield & vf)
         {
             // Declare, allocate, and initialize device-accessible pointers for input and output
-            CustomMaxAbs    max_op;
+            // CustomMaxAbs    max_op;
             size_t N = 3*vf.size();
             scalarfield out(1, 0);
             scalar init = 0;
             // Determine temporary device storage requirements
             void     *d_temp_storage = NULL;
             size_t   temp_storage_bytes = 0;
-            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf[0].data(), out.data(), N, max_op, init);
+            auto lam = [] __device__ (const scalar & a, const scalar & b)
+            {
+                return (a > b) ? a : b;
+            };
+            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf[0].data(), out.data(), N, lam, init);
             // Allocate temporary storage
             cudaMalloc(&d_temp_storage, temp_storage_bytes);
             // Run reduction
-            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf[0].data(), out.data(), N, max_op, init);
+            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf[0].data(), out.data(), N, lam, init);
             CU_CHECK_AND_SYNC();
             return std::abs(out[0]);
         }
@@ -383,6 +387,10 @@ namespace Engine
         {
             int n = vf1.size();
             static scalarfield sf(n, 0);
+            
+            if(sf.size() != vf1.size())
+                sf.resize(vf1.size());
+
             Vectormath::fill(sf, 0);
             scalar ret;
 

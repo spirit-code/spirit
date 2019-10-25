@@ -3,7 +3,7 @@
 #define METHOD_EMA_H
 
 #include "Spirit_Defines.h"
-#include <engine/Method_Solver.hpp>
+#include <engine/Method.hpp>
 
 #include <data/Parameters_Method_LLG.hpp>
 #include <data/Parameters_Method_EMA.hpp>

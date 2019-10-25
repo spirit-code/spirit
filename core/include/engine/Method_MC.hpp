@@ -3,7 +3,8 @@
 #define METHOD_MC_H
 
 #include "Spirit_Defines.h"
-#include <engine/Method_Solver.hpp>
+#include <engine/Method.hpp>
+// #include <engine/Method_Solver.hpp>
 #include <data/Spin_System.hpp>
 // #include <data/Parameters_Method_MC.hpp>
 

@@ -5,6 +5,7 @@
 #include <data/Spin_System_Chain.hpp>
 #include <io/IO.hpp>
 #include <utility/Logging.hpp>
+#include <utility/Constants.hpp>
 
 #include <Eigen/Dense>
 

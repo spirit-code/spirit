@@ -11,11 +11,9 @@ using namespace Utility;
 template <> inline
 void Method_Solver<Solver::LBFGS_OSO>::Initialize ()
 {
-
     this->n_lbfgs_memory = 3; // how many previous iterations are stored in the memory
-
-    this->delta_a    = std::vector<std::vector<vectorfield>>( this->noi, std::vector<vectorfield>( this->n_lbfgs_memory, vectorfield(this->nos, { 0,0,0 } ) ));
-    this->delta_grad = std::vector<std::vector<vectorfield>>( this->noi, std::vector<vectorfield>( this->n_lbfgs_memory, vectorfield(this->nos, { 0,0,0 } ) ));
+    this->delta_a    = std::vector<field<vectorfield>>( this->noi, field<vectorfield>( this->n_lbfgs_memory, vectorfield(this->nos, { 0,0,0 } ) ));
+    this->delta_grad = std::vector<field<vectorfield>>( this->noi, field<vectorfield>( this->n_lbfgs_memory, vectorfield(this->nos, { 0,0,0 } ) ));
     this->rho        = std::vector<scalarfield>( this->noi, scalarfield( this->n_lbfgs_memory, 0 ) );
     this->alpha      = std::vector<scalarfield>( this->noi, scalarfield( this->n_lbfgs_memory, 0 ) );
     this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
@@ -44,10 +42,15 @@ void Method_Solver<Solver::LBFGS_OSO>::Iteration()
     {
         auto& image = *this->configurations[img];
         auto& grad_ref = this->grad[img];
-        #pragma omp parallel for
-        for (int i = 0; i < this->nos; ++i){
-            this->forces_virtual[img][i] = image[i].cross(this->forces[img][i]);
-        }
+
+        auto fv = this->forces_virtual[img].data();
+        auto f = this->forces[img].data();
+        auto s = image.data();
+
+        Backend::par::apply( this->nos, [f,fv,s] SPIRIT_LAMBDA (int idx) {
+            fv[idx] = s[idx].cross(f[idx]);
+        } );
+
         Solver_Kernels::oso_calc_gradients(grad_ref, image, this->forces[img]);
     }
 
