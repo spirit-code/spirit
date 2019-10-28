@@ -13,7 +13,7 @@
 
 #include <curand.h>
 #include <curand_kernel.h>
-
+#include <engine/Backend_par.hpp>
 #include <cub/cub.cuh>
 
 using namespace Utility;
@@ -305,6 +305,37 @@ namespace Engine
             cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf[0].data(), out.data(), N, lam, init);
             CU_CHECK_AND_SYNC();
             return std::abs(out[0]);
+        }
+
+        scalar max_norm(const vectorfield & vf)
+        {
+            static scalarfield ret(1, 0);
+
+            // Declare, allocate, and initialize device-accessible pointers for input and output
+            size_t N = vf.size();
+            scalarfield temp(N, 0);
+            auto o = temp.data();
+            auto v = vf.data();
+            Backend::par::apply(N, [o,v] SPIRIT_LAMBDA (int idx) {
+                o[idx] = v[idx][0]*v[idx][0] + v[idx][1]*v[idx][1] + v[idx][2]*v[idx][2];
+            });
+
+            void     *d_temp_storage = NULL;
+            size_t   temp_storage_bytes = 0;
+            auto lam = [] __device__ (const scalar & a, const scalar & b)
+            {
+                return (a > b) ? a : b;
+            };
+
+            scalar init = 0;
+            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, temp.data(), ret.data(), N, lam, init);
+            // Allocate temporary storage
+            cudaMalloc(&d_temp_storage, temp_storage_bytes);
+            // Run reduction
+            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, temp.data(), ret.data(), N, lam, init);
+            CU_CHECK_AND_SYNC();
+
+            return std::sqrt(ret[0]);
         }
 
         __global__ void cu_scale(Vector3 *vf1, scalar sc, size_t N)

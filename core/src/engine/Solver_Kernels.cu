@@ -82,10 +82,6 @@ namespace Solver_Kernels
 
             auto s  = configurations[img]->data();
             auto sd = searchdir[img].data();
- 
-            // tmp <<  q+z*z*w, s1+p1, s2+p2,
-            //         s1-p1, q+y*y*w, s3+p3,
-            //         s2-p2, s3-p3, q+x*x*w;
             
             Backend::par::apply( nos, [s, sd] SPIRIT_LAMBDA (int idx) 
                 {
@@ -125,60 +121,62 @@ namespace Solver_Kernels
         int nos = configurations[0]->size();
         for(int img=0; img<noi; img++ )
         {
-            field<Vector3> & spins = *configurations[img];
-            const field<Vector2> & d = searchdir[img];
-            #pragma omp parallel for
-            for(int i=0; i < nos; i++)
-            {
-                const scalar gamma = (1 + spins[i][2] * a3_coords[img][i]);
-                const scalar denom = (spins[i].head<2>().squaredNorm())/gamma + 2 * d[i].head<2>().dot( spins[i].head<2>() ) + gamma * d[i].head<2>().squaredNorm();
-                spins[i].head<2>() = 2*(spins[i].head<2>() + d[i]*gamma);
-                spins[i][2] = a3_coords[img][i] * (gamma - denom);
-                spins[i] *= 1/(gamma + denom);
-            }
+            auto spins = configurations[img]->data();
+            auto d     = searchdir[img].data();
+            auto a3    = a3_coords[img].data();
+            Backend::par::apply(nos, [nos, spins, d, a3] SPIRIT_LAMBDA (int idx) {
+                const scalar gamma = (1 + spins[idx][2] * a3[idx]);
+                const scalar denom = (spins[idx].head<2>().squaredNorm())/gamma + 2 * d[idx].dot( spins[idx].head<2>() ) + gamma * d[idx].squaredNorm();
+                spins[idx].head<2>() = 2*(spins[idx].head<2>() + d[idx]*gamma);
+                spins[idx][2] = a3[idx] * (gamma - denom);
+                spins[idx] *= 1/(gamma + denom);
+            } );
         }
     }
 
     void atlas_calc_gradients(vector2field & residuals, const vectorfield & spins, const vectorfield & forces, const scalarfield & a3_coords)
     {
-        Eigen::Matrix<scalar, 3,2 > J;
-        #pragma omp parallel for
-        for(int i=0; i < spins.size(); i++)
-        {
-            const auto & s  = spins[i];
-            const auto & a3 = a3_coords[i];
+        auto s = spins.data();
+        auto a3 = a3_coords.data();
+        auto g = residuals.data();
+        auto f = forces.data();
 
-            J(0,0) =  s[1]*s[1] + s[2]*(s[2] + a3);
-            J(0,1) = -s[0]*s[1];
-            J(1,0) = -s[0]*s[1];
-            J(1,1) =  s[0]*s[0]  + s[2]*(s[2] + a3);
-            J(2,0) = -s[0]*(s[2] + a3);
-            J(2,1) = -s[1]*(s[2] + a3);
-            residuals[i] = -forces[i].transpose() * J;
-        }
+        Backend::par::apply(spins.size(), [s, a3, g, f] SPIRIT_LAMBDA (int idx) {
+
+            scalar J00 =  s[idx][1] * s[idx][1] + s[idx][2]*(s[idx][2] + a3[idx]);
+            scalar J10 = -s[idx][0] * s[idx][1];
+            scalar J01 = -s[idx][0] * s[idx][1];
+            scalar J11 =  s[idx][0] * s[idx][0]  + s[idx][2]*(s[idx][2] + a3[idx]);
+            scalar J02 = -s[idx][0] * (s[idx][2] + a3[idx]);
+            scalar J12 = -s[idx][1] * (s[idx][2] + a3[idx]);
+
+            g[idx][0] = -(J00 * f[idx][0] + J01 * f[idx][1] + J02 * f[idx][2]);
+            g[idx][1] = -(J10 * f[idx][0] + J11 * f[idx][1] + J12 * f[idx][2]);
+        });
     }
 
     bool ncg_atlas_check_coordinates(const std::vector<std::shared_ptr<vectorfield>> & spins, std::vector<scalarfield> & a3_coords, scalar tol)
     {
         int noi = spins.size();
         int nos = (*spins[0]).size();
-        // Check if we need to reset the maps
-        bool result = false;
+
+        // We use `int` instead of `bool`, because somehow cuda does not like pointers to bool
+        // TODO: fix in future
+        field<int> result = field<int>(1, int(false));
+
         for(int img=0; img<noi; img++)
         {
-            #pragma omp parallel for
-            for( int i=0; i<nos; i++ )
-            {
-                // If for one spin the z component deviates too much from the pole we perform a reset for *all* spins
-                // Note: I am not sure why we reset for all spins ... but this is in agreement with the method of F. Rybakov
-                // printf("blabla %f\n", (*spins[img])[i][2]*a3_coords[img][i] );
-                if( (*spins[img])[i][2]*a3_coords[img][i] < tol )
-                {
-                    result = true;
-                }
-            }
+            auto s = spins[0]->data();
+            auto a3 = a3_coords[img].data();
+            int *res = &result[0];
+
+            Backend::par::apply( nos, [s, a3, tol, res] SPIRIT_LAMBDA (int idx) {
+                    if (s[idx][2]*a3[idx] < tol && res[0] == int(false))
+                        res[0] = int(true);
+            } );
         }
-        return result;
+
+        return bool(result[0]);
     }
 
     void lbfgs_atlas_transform_direction(std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<scalarfield> & a3_coords, std::vector<field<vector2field>> & atlas_updates, std::vector<field<vector2field>> & grad_updates, std::vector<vector2field> & searchdir, std::vector<vector2field> & grad_pr, std::vector<scalarfield> & rho)
@@ -196,29 +194,42 @@ namespace Solver_Kernels
 
         for(int img=0; img<noi; img++)
         {
-            scalar factor = 1;
-            #pragma omp parallel for
-            for( int i=0; i<nos; ++i )
-            {
-                const auto & s =  (*configurations[img])[i];
-                auto &      a3 = a3_coords[img][i];
+            auto s = (*configurations[img]).data();
+            auto a3 = a3_coords[img].data();
+            auto sd = searchdir[img].data();
+            auto g_pr = grad_pr[img].data();
+            auto rh = rho[img].data();
 
-                if( s[2]*a3 < 0 )
+            auto n_mem = atlas_updates[img].size();
+
+            field<Vector2*> t1(n_mem), t2(n_mem);
+            for(int n=0; n<n_mem; n++)
+            {
+                t1[n] = (atlas_updates[img][n].data());
+                t2[n] = (grad_updates[img][n].data());
+            }
+
+            auto a_up = t1.data();
+            auto g_up = t2.data();
+
+            Backend::par::apply(nos, [s, a3, sd, g_pr, rh, a_up, g_up, n_mem] SPIRIT_LAMBDA (int idx) {
+                scalar factor = 1;
+                if( s[idx][2]*a3[idx] < 0 )
                 {
                     // Transform coordinates to optimal map
-                    a3 = (s[2] > 0) ? 1 : -1;
-                    factor = (1 - a3 * s[2]) / (1 + a3 * s[2]);
-                    searchdir[img][i]  *= factor;
-                    grad_pr[img][i]    *= factor;
+                    a3[idx] = (s[idx][2] > 0) ? 1 : -1;
+                    factor  = (1 - a3[idx] * s[idx][2]) / (1 + a3[idx] * s[idx][2]);
+                    sd[idx]   *= factor;
+                    g_pr[idx] *= factor;
 
-                    for(int n=0; n<atlas_updates[img].size(); n++)
+                    for(int n=0; n<n_mem; n++)
                     {
-                        rho[img][n] += (factor-1)*(factor-1) * atlas_updates[img][n][i].dot(grad_updates[img][n][i]);
-                        atlas_updates[img][n][i] *= factor;
-                        grad_updates[img][n][i]  *= factor;
+                        rh[n] = rh[n] + (factor*factor-1) * a_up[n][idx].dot(g_up[n][idx]);
+                        a_up[n][idx] *= factor;
+                        g_up[n][idx] *= factor;
                     }
                 }
-            }
+            });
         }
 
         for(int img=0; img<noi; img++)

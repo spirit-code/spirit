@@ -58,6 +58,7 @@ namespace Solver_Kernels
         {
             Matrix3 tmp;
             Matrix3 A_prime;
+            #pragma omp parallel for private(tmp, A_prime)
             for( int i=0; i<nos; i++)
             {
                 scalar theta = (searchdir[img][i]).norm();
@@ -111,7 +112,7 @@ namespace Solver_Kernels
     void atlas_calc_gradients(vector2field & residuals, const vectorfield & spins, const vectorfield & forces, const scalarfield & a3_coords)
     {
         Eigen::Matrix<scalar, 3,2 > J;
-        #pragma omp parallel for
+        #pragma omp parallel for private(J)
         for(int i=0; i < spins.size(); i++)
         {
             const auto & s  = spins[i];
@@ -165,10 +166,10 @@ namespace Solver_Kernels
 
         for(int img=0; img<noi; img++)
         {
-            scalar factor = 1;
             #pragma omp parallel for
             for( int i=0; i<nos; ++i )
             {
+                scalar factor = 1;
                 const auto & s =  (*configurations[img])[i];
                 auto &      a3 = a3_coords[img][i];
 
@@ -177,12 +178,12 @@ namespace Solver_Kernels
                     // Transform coordinates to optimal map
                     a3 = (s[2] > 0) ? 1 : -1;
                     factor = (1 - a3 * s[2]) / (1 + a3 * s[2]);
-                    searchdir[img][i]  *= factor;
-                    grad_pr[img][i]    *= factor;
+                    searchdir[img][i] *= factor;
+                    grad_pr[img][i]   *= factor;
 
                     for(int n=0; n<atlas_updates[img].size(); n++)
                     {
-                        rho[img][n] += (factor-1)*(factor-1) * atlas_updates[img][n][i].dot(grad_updates[img][n][i]);
+                        rho[img][n] += (factor*factor-1) * atlas_updates[img][n][i].dot(grad_updates[img][n][i]);
                         atlas_updates[img][n][i] *= factor;
                         grad_updates[img][n][i]  *= factor;
                     }

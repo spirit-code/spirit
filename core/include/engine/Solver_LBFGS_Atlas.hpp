@@ -58,11 +58,13 @@ void Method_Solver<Solver::LBFGS_Atlas>::Iteration()
         auto& image = *this->configurations[img];
         auto& grad_ref = this->atlas_residuals[img];
 
-        #pragma omp parallel for
-        for (int i = 0; i < this->nos; ++i)
-        {
-            this->forces_virtual[img][i] = image[i].cross(this->forces[img][i]);
-        }
+        auto fv = this->forces_virtual[img].data();
+        auto f = this->forces[img].data();
+        auto s = image.data();
+
+        Backend::par::apply( this->nos, [f,fv,s] SPIRIT_LAMBDA (int idx) {
+            fv[idx] = s[idx].cross(f[idx]);
+        } );
 
         Solver_Kernels::atlas_calc_gradients(grad_ref, image, this->forces[img], this->atlas_coords3[img]);
     }
@@ -74,22 +76,18 @@ void Method_Solver<Solver::LBFGS_Atlas>::Iteration()
             this->grad_atlas_updates, this->atlas_residuals, this->atlas_residuals_last,
             this->n_lbfgs_memory, maxmove);
 
-    scalar scaling = 1;
-    scalar temp = 0;
+    scalar a_norm_rms = 0;
+    // Scale by averaging
     for(int img=0; img<noi; img++)
     {
-        for(int i=0; i<nos; i++)
-        {
-            temp = std::max(temp, this->atlas_directions[img][i].norm());
-            // printf("dir norm %f\n", this->atlas_directions[img][i].norm());
-        }
+        a_norm_rms = std::max(a_norm_rms, sqrt( Backend::par::reduce(this->atlas_directions[img], [] SPIRIT_LAMBDA (const Vector2 & v){ return v.squaredNorm(); }) / nos ));
     }
+    scalar scaling = (a_norm_rms > maxmove) ? maxmove/a_norm_rms : 1.0;
 
-    scaling = (temp < maxmove) ? 1.0 : maxmove/temp;
     for(int img=0; img<noi; img++)
     {
         auto d = atlas_directions[img].data();
-        Backend::seq::apply(nos, [scaling, d] (int idx){
+        Backend::par::apply(nos, [scaling, d] SPIRIT_LAMBDA (int idx){
             d[idx] *= scaling;
         });
     }
@@ -101,8 +99,6 @@ void Method_Solver<Solver::LBFGS_Atlas>::Iteration()
     {
         Solver_Kernels::lbfgs_atlas_transform_direction(this->configurations, this->atlas_coords3, this->atlas_updates, this->grad_atlas_updates, this->atlas_directions, this->atlas_residuals_last, this->rho);
     }
-
-
 }
 
 template <> inline

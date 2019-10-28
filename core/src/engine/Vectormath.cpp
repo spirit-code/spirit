@@ -385,6 +385,16 @@ namespace Vectormath
             out[idx] = c*a[idx].cross(b[idx]);
     }
 
+    scalar max_norm(const vectorfield & vf)
+    {
+        scalar max_norm = 0;
+        #pragma omp parallel for reduction(max : max_norm)
+        for(int i=0; i<vf.size(); i++)
+        {
+            max_norm = std::max(max_norm, vf[i].squaredNorm());
+        }
+        return sqrt(max_norm);
+    }
 }
 }
 
@@ -394,17 +404,6 @@ namespace Engine
 {
 namespace Vectormath
 {
-        scalar max_norm(const vectorfield & vf)
-        {
-            scalar max_norm = 0;
-            #pragma omp parallel for reduction(max : max_norm)
-            for(int i=0; i<vf.size(); i++)
-            {
-                max_norm = std::max(max_norm, vf[i].norm());
-            }
-            return max_norm;
-        }
-
         scalar angle(const Vector3 & v1, const Vector3 & v2)
         {
             scalar r = v1.dot(v2);
