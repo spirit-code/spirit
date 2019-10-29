@@ -86,6 +86,11 @@ namespace Engine
         // Calculate the DMI effective field of a Spin Pair
         void Gradient_DMI(const vectorfield & spins, vectorfield & gradient);
         void Spatial_Gradient(const vectorfield & spins);
+		// Calculates the Dipole-Dipole contribution to the effective field of spin ispin within system s
+		void Gradient_DDI(const vectorfield& spins, vectorfield & gradient);
+		void Gradient_DDI_Cutoff(const vectorfield& spins, vectorfield & gradient);
+		void Gradient_DDI_Direct(const vectorfield& spins, vectorfield & gradient);
+		void Gradient_DDI_FFT(const vectorfield& spins, vectorfield & gradient);
 
         // ------------ Energy Functions ------------
         // Indices for Energy vector
@@ -101,12 +106,45 @@ namespace Engine
         void E_DMI(const vectorfield & spins, scalarfield & Energy);
         // Dipolar interactions
         void E_DDI(const vectorfield & spins, scalarfield & Energy);
-
+		void E_DDI_Direct(const vectorfield& spins, scalarfield & Energy);
+		void E_DDI_Cutoff(const vectorfield& spins, scalarfield & Energy);
+		void E_DDI_FFT(const vectorfield& spins, scalarfield & Energy);
+		
+		// Preparations for DDI-Convolution Algorithm
+		void Prepare_DDI();
+		void Clean_DDI();
+		
         // Plans for FT / rFT
         FFT::FFT_Plan fft_plan_spins;
         FFT::FFT_Plan fft_plan_reverse;
 
         field<FFT::FFT_cpx_type> transformed_dipole_matrices;
+		bool save_dipole_matrices = true;
+		field<Matrix3> dipole_matrices;
+
+		// Number of inter-sublattice contributions
+		int n_inter_sublattice;
+		// At which index to look up the inter-sublattice D-matrices
+		field<int> inter_sublattice_lookup;
+
+		// Lengths of padded system
+		field<int> n_cells_padded;
+		// Total number of padded spins per sublattice
+		int sublattice_size;
+
+		FFT::StrideContainer spin_stride;
+		FFT::StrideContainer dipole_stride;
+
+		//Calculate the FT of the padded D matriess
+		void FFT_Dipole_Matrices(FFT::FFT_Plan & fft_plan_dipole, int img_a, int img_b, int img_c);
+		//Calculate the FT of the padded spins
+		void FFT_Spins(const vectorfield & spins);
+
+		//Bounds for nested for loops. Only important for the CUDA version
+		field<int> it_bounds_pointwise_mult;
+		field<int> it_bounds_write_gradients;
+		field<int> it_bounds_write_spins;
+		field<int> it_bounds_write_dipole;
     };
 
 
