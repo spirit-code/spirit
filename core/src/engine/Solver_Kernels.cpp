@@ -151,17 +151,14 @@ namespace Solver_Kernels
         return result;
     }
 
-    void lbfgs_atlas_transform_direction(std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<scalarfield> & a3_coords, std::vector<std::vector<vector2field>> & atlas_updates, std::vector<std::vector<vector2field>> & grad_updates, std::vector<vector2field> & searchdir, std::vector<vector2field> & grad_pr, std::vector<scalarfield> & rho)
+    void lbfgs_atlas_transform_direction(std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<scalarfield> & a3_coords, std::vector<std::vector<vector2field>> & atlas_updates, std::vector<std::vector<vector2field>> & grad_updates, std::vector<vector2field> & searchdir, std::vector<vector2field> & grad_pr, scalarfield & rho)
     {
         int noi = configurations.size();
         int nos = configurations[0]->size();
 
-        for(int img=0; img<noi; img++)
+        for(int n=0; n<atlas_updates[0].size(); n++)
         {
-            for(int n=0; n<atlas_updates[img].size(); n++)
-            {
-                rho[img][n] = 1/rho[img][n];
-            }
+            rho[n] = 1/rho[n];
         }
 
         for(int img=0; img<noi; img++)
@@ -183,7 +180,7 @@ namespace Solver_Kernels
 
                     for(int n=0; n<atlas_updates[img].size(); n++)
                     {
-                        rho[img][n] += (factor*factor-1) * atlas_updates[img][n][i].dot(grad_updates[img][n][i]);
+                        rho[n] += (factor*factor-1) * atlas_updates[img][n][i].dot(grad_updates[img][n][i]);
                         atlas_updates[img][n][i] *= factor;
                         grad_updates[img][n][i]  *= factor;
                     }
@@ -191,12 +188,9 @@ namespace Solver_Kernels
             }
         }
 
-        for(int img=0; img<noi; img++)
+        for(int n=0; n<atlas_updates[0].size(); n++)
         {
-            for(int n=0; n<atlas_updates[img].size(); n++)
-            {
-                rho[img][n] = 1/rho[img][n];
-            }
+            rho[n] = 1/rho[n];
         }
     }
 

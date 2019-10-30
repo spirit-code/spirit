@@ -15,8 +15,8 @@ void Method_Solver<Solver::LBFGS_Atlas>::Initialize ()
     this->n_lbfgs_memory = 3; // how many updates the solver tracks to estimate the hessian
     this->atlas_updates      = std::vector<field<vector2field>>( this->noi, field<vector2field>( this->n_lbfgs_memory, vector2field(this->nos, { 0,0 } ) ));
     this->grad_atlas_updates = std::vector<field<vector2field>>( this->noi, field<vector2field>( this->n_lbfgs_memory, vector2field(this->nos, { 0,0 } ) ));
-    this->rho                = std::vector<scalarfield>( this->noi, scalarfield( this->n_lbfgs_memory, 0 ) );
-    this->alpha              = std::vector<scalarfield>( this->noi, scalarfield( this->n_lbfgs_memory, 0 ) );
+    this->rho                  = scalarfield( this->n_lbfgs_memory, 0 );
+    this->alpha                = scalarfield( this->n_lbfgs_memory, 0 );
     this->forces               = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
     this->forces_virtual       = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0,0,0 } ) );
     this->atlas_coords3        = std::vector<scalarfield>( this->noi, scalarfield(this->nos, 1) );

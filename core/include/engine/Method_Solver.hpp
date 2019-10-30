@@ -141,8 +141,8 @@ namespace Engine
         int n_lbfgs_memory;
         int local_iter;
         scalar maxmove;
-        std::vector<scalarfield> rho;
-        std::vector<scalarfield> alpha;
+        scalarfield rho;
+        scalarfield alpha;
 
         // Atlas coords
         std::vector<field<vector2field>> atlas_updates;
