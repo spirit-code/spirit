@@ -41,6 +41,12 @@ namespace Solver_Kernels
         static auto dot = [] SPIRIT_LAMBDA (const Vec & v1, const Vec &v2) {return v1.dot(v2);};
         static auto set = [] SPIRIT_LAMBDA (const Vec & x) {return x;};
 
+        scalar epsilon;
+        if(sizeof(scalar) == sizeof(float))
+            epsilon = 1e-30;
+        else
+            epsilon = 1e-300;
+
         int noi = grad.size();
         int nos = grad[0].size();
         int m_index = local_iter % num_mem; // memory index
@@ -87,18 +93,15 @@ namespace Solver_Kernels
 
             for (int img=0; img<noi; img++)
             {
-                if (rinv_temp > 1.0e-40)
+                if (rinv_temp > epsilon)
                     rho[img][m_index] = 1.0 / rinv_temp;
-                else rho[img][m_index] = 1.0e40;
-                if (rho[img][m_index] < 0.0)
-                {
+                else {
                     local_iter = 0;
                     return lbfgs_get_searchdir(local_iter, rho, alpha, q_vec, searchdir,
                             delta_a, delta_grad, grad, grad_pr, num_mem, maxmove);
                 }
                 // Vectormath::set_c_a(1.0, grad[img], q_vec[img]);
                 Backend::par::set(q_vec[img], grad[img], set);
-
             }
 
             for (int k = num_mem - 1; k > -1; k--)
@@ -131,10 +134,10 @@ namespace Solver_Kernels
             {
                 scalar rhody2 = dy2 * rho[img][m_index];
                 scalar inv_rhody2 = 0.0;
-                if (rhody2 > 1.0e-40)
+                if (rhody2 > epsilon)
                     inv_rhody2 = 1.0 / rhody2;
                 else
-                    inv_rhody2 = 1.0e40;
+                    inv_rhody2 = 1.0/(epsilon);
                 // Vectormath::set_c_a(inv_rhody2, q_vec[img], searchdir[img]);
                 Backend::par::set(searchdir[img], q_vec[img], [inv_rhody2] SPIRIT_LAMBDA (const Vec & q){
                     return inv_rhody2 * q;
@@ -144,9 +147,9 @@ namespace Solver_Kernels
             for (int k = 0; k < num_mem; k++)
             {
                 if (local_iter < num_mem)
-                        c_ind = k;
-                    else
-                        c_ind = (k + m_index + 1) % num_mem;
+                    c_ind = k;
+                else
+                    c_ind = (k + m_index + 1) % num_mem;
 
                 scalar rhopdg = 0;
                 for(int img=0; img<noi; img++)
