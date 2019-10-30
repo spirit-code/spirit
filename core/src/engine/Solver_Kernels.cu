@@ -179,26 +179,23 @@ namespace Solver_Kernels
         return bool(result[0]);
     }
 
-    void lbfgs_atlas_transform_direction(std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<scalarfield> & a3_coords, std::vector<field<vector2field>> & atlas_updates, std::vector<field<vector2field>> & grad_updates, std::vector<vector2field> & searchdir, std::vector<vector2field> & grad_pr, std::vector<scalarfield> & rho)
+    void lbfgs_atlas_transform_direction(std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<scalarfield> & a3_coords, std::vector<field<vector2field>> & atlas_updates, std::vector<field<vector2field>> & grad_updates, std::vector<vector2field> & searchdir, std::vector<vector2field> & grad_pr, scalarfield & rho)
     {
         int noi = configurations.size();
         int nos = configurations[0]->size();
 
-        for(int img=0; img<noi; img++)
+        for(int n=0; n<atlas_updates[0].size(); n++)
         {
-            for(int n=0; n<atlas_updates[img].size(); n++)
-            {
-                rho[img][n] = 1/rho[img][n];
-            }
+            rho[n] = 1/rho[n];
         }
-
+        
         for(int img=0; img<noi; img++)
         {
             auto s = (*configurations[img]).data();
             auto a3 = a3_coords[img].data();
             auto sd = searchdir[img].data();
             auto g_pr = grad_pr[img].data();
-            auto rh = rho[img].data();
+            auto rh = rho.data();
 
             auto n_mem = atlas_updates[img].size();
 
@@ -232,12 +229,9 @@ namespace Solver_Kernels
             });
         }
 
-        for(int img=0; img<noi; img++)
+        for(int n=0; n<atlas_updates[0].size(); n++)
         {
-            for(int n=0; n<atlas_updates[img].size(); n++)
-            {
-                rho[img][n] = 1/rho[img][n];
-            }
+            rho[n] = 1/rho[n];
         }
     }
 }
