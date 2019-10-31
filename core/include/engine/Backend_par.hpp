@@ -17,7 +17,6 @@ namespace Backend
 {
 namespace par
 {
-    auto test_lambda = [] () -> int {return 2;};
 
 #ifdef SPIRIT_USE_CUDA
 
@@ -119,6 +118,7 @@ namespace par
         cu_set_lambda<<<(N+1023)/1024, 1024>>>(vf1.data(), vf2.data(), f, N);
         CU_CHECK_AND_SYNC();
     }
+    
 #else
 
     template<typename A, typename F>
