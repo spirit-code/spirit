@@ -41,11 +41,7 @@ namespace Solver_Kernels
         static auto dot = [] SPIRIT_LAMBDA (const Vec & v1, const Vec &v2) {return v1.dot(v2);};
         static auto set = [] SPIRIT_LAMBDA (const Vec & x) {return x;};
 
-        scalar epsilon;
-        if(sizeof(scalar) == sizeof(float))
-            epsilon = 1e-30;
-        else
-            epsilon = 1e-300;
+        scalar epsilon = sizeof(scalar) == sizeof(float) ? 1e-30 : 1e-300;
 
         int noi = grad.size();
         int nos = grad[0].size();
