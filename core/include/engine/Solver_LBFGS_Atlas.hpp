@@ -80,7 +80,7 @@ void Method_Solver<Solver::LBFGS_Atlas>::Iteration()
     // Scale by averaging
     for(int img=0; img<noi; img++)
     {
-        a_norm_rms = std::max(a_norm_rms, sqrt( Backend::par::reduce(this->atlas_directions[img], [] SPIRIT_LAMBDA (const Vector2 & v){ return v.squaredNorm(); }) / nos ));
+        a_norm_rms = std::max(a_norm_rms, scalar( sqrt( Backend::par::reduce(this->atlas_directions[img], [] SPIRIT_LAMBDA (const Vector2 & v){ return v.squaredNorm(); }) / nos )));
     }
     scalar scaling = (a_norm_rms > maxmove) ? maxmove/a_norm_rms : 1.0;
 
