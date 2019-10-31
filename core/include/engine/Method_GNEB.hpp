@@ -24,6 +24,9 @@ namespace Engine
         // Return maximum force components of the images in the chain
         std::vector<scalar> getForceMaxAbsComponent_All() override;
 
+        // Return maximum force components of the images in the chain
+        std::vector<scalar> getTorqueMaxNorm_All() override;
+
         // Method name as string
         std::string Name() override;
 
@@ -31,7 +34,7 @@ namespace Engine
         // Calculate Forces onto Systems
         void Calculate_Force(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces) override;
         void Calculate_Force_Virtual(const std::vector<std::shared_ptr<vectorfield>> & configurations, const std::vector<vectorfield> & forces, std::vector<vectorfield> & forces_virtual) override;
-        
+
         // Check if the Forces are converged
         bool Converged() override;
 
@@ -45,7 +48,7 @@ namespace Engine
 
         // Sets iteration_allowed to false for the chain
         void Finalize() override;
-        
+
         bool Iterations_Allowed() override;
 
 

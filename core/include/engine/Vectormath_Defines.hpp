@@ -21,6 +21,9 @@ using Matrix3    = Eigen::Matrix<scalar, 3, 3>;
 using Vector3c   = Eigen::Matrix<std::complex<scalar>, 3, 1>;
 using Matrix3c   = Eigen::Matrix<std::complex<scalar>, 3, 3>;
 
+// 2D Eigen typedefs
+using Vector2 = Eigen::Matrix<scalar, 2, 1>;
+
 // Different definitions for regular C++ and CUDA
 #ifdef SPIRIT_USE_CUDA
     // The general field, using the managed allocator
@@ -101,3 +104,4 @@ using pairfield       = field<Pair>;
 using tripletfield    = field<Triplet>;
 using quadrupletfield = field<Quadruplet>;
 using neighbourfield  = field<Neighbour>;
+using vector2field    = field<Vector2>;

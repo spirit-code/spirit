@@ -1,6 +1,7 @@
 #include <engine/Eigenmodes.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
+// #include <engine/Backend_par.hpp>
 
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
@@ -62,6 +63,11 @@ namespace Engine
 
             // The gradient (unprojected)
             system->hamiltonian->Gradient(spins_initial, gradient);
+            auto mask=system->geometry->mask_unpinned.data();
+            auto g=gradient.data();
+            // Backend::par::apply(gradient.size(), [g, mask] SPIRIT_LAMBDA (int idx) {
+            //     g[idx] = mask[idx]*g[idx];
+            // });
             Vectormath::set_c_a(1, gradient, gradient, system->geometry->mask_unpinned);
 
             // The Hessian (unprojected)

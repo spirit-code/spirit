@@ -1,24 +1,25 @@
 set(SOURCE_SPIRIT_ENGINE
-	${SOURCE_SPIRIT_ENGINE}
-	${CMAKE_CURRENT_SOURCE_DIR}/Neighbours.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Gaussian.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Eigenmodes.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/HTST.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Method.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Method_LLG.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Method_GNEB.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Method_MC.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Method_MMF.cpp
+    ${SOURCE_SPIRIT_ENGINE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Neighbours.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg.cu
+    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Gaussian.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Eigenmodes.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/HTST.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Method.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Method_LLG.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Method_GNEB.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Method_MC.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Method_MMF.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Method_EMA.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/Manifoldmath.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Manifoldmath.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/FFT.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/FFT.cu
-	${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
-	PARENT_SCOPE # needed so the change of ${SOURCE} will persist to the parent scope
+    ${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.cu
+    ${CMAKE_CURRENT_SOURCE_DIR}/Manifoldmath.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Manifoldmath.cu
+    ${CMAKE_CURRENT_SOURCE_DIR}/Solver_Kernels.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/FFT.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/FFT.cu
+    ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
+    PARENT_SCOPE # needed so the change of ${SOURCE} will persist to the parent scope
 )

@@ -170,6 +170,12 @@ void ControlWidget::play_pause()
         solver = Solver_Heun;
     else if( s_solver == "RK4" )
         solver = Solver_RungeKutta4;
+    else if( s_solver == "LBFGS_OSO" )
+        solver = Solver_LBFGS_OSO;
+    else if( s_solver == "LBFGS_Atlas" )
+        solver = Solver_LBFGS_Atlas;
+    if( s_solver == "VP_OSO" )
+        solver = Solver_VP_OSO;
 
     if( Simulation_Running_On_Image(this->state.get()) ||
         Simulation_Running_On_Chain(this->state.get()) )

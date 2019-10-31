@@ -13,6 +13,8 @@
 
 #include <curand.h>
 #include <curand_kernel.h>
+#include <engine/Backend_par.hpp>
+#include <cub/cub.cuh>
 
 #include <cub/cub.cuh>
 
@@ -25,35 +27,6 @@ namespace Engine
 {
     namespace Vectormath
     {
-        // Utility function for the SIB Solver
-        __global__ void cu_transform(const Vector3 * spins, const Vector3 * force, Vector3 * out, size_t N)
-        {
-            int idx = blockIdx.x * blockDim.x + threadIdx.x;
-            Vector3 e1, a2, A;
-            scalar detAi;
-            if(idx < N)
-            {
-                e1 = spins[idx];
-                A = 0.5 * force[idx];
-
-                // 1/determinant(A)
-                detAi = 1.0 / (1 + pow(A.norm(), 2));
-
-                // calculate equation without the predictor?
-                a2 = e1 - e1.cross(A);
-
-                out[idx][0] = (a2[0] * (A[0] * A[0] + 1   ) + a2[1] * (A[0] * A[1] - A[2]) + a2[2] * (A[0] * A[2] + A[1])) * detAi;
-                out[idx][1] = (a2[0] * (A[1] * A[0] + A[2]) + a2[1] * (A[1] * A[1] + 1   ) + a2[2] * (A[1] * A[2] - A[0])) * detAi;
-                out[idx][2] = (a2[0] * (A[2] * A[0] - A[1]) + a2[1] * (A[2] * A[1] + A[0]) + a2[2] * (A[2] * A[2] + 1   )) * detAi;
-            }
-        }
-        void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out)
-        {
-            int n = spins.size();
-            cu_transform<<<(n+1023)/1024, 1024>>>(spins.data(), force.data(), out.data(), n);
-            CU_CHECK_AND_SYNC();
-        }
-
         void get_random_vector(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
         {
             for (int dim = 0; dim < 3; ++dim)
@@ -63,7 +36,8 @@ namespace Engine
         }
 
         // TODO: improve random number generation - this one might give undefined behaviour!
-        __global__ void cu_get_random_vectorfield(Vector3 * xi, size_t N)
+        __global__
+        void cu_get_random_vectorfield(Vector3 * xi, size_t N)
         {
             unsigned long long subsequence = 0;
             unsigned long long offset= 0;
@@ -304,31 +278,66 @@ namespace Engine
         }
 
         // Functor for finding the maximum absolute value
-        struct CustomMaxAbs
-        {
-            template <typename T>
-            __device__ __forceinline__
-            T operator()(const T &a, const T &b) const {
-                return (a > b) ? a : b;
-            }
-        };
+        // struct CustomMaxAbs
+        // {
+        //     template <typename T>
+        //     __device__ __forceinline__
+        //     T operator()(const T &a, const T &b) const {
+        //         return (a > b) ? a : b;
+        //     }
+        // };
         scalar max_abs_component(const vectorfield & vf)
         {
             // Declare, allocate, and initialize device-accessible pointers for input and output
-            CustomMaxAbs    max_op;
+            // CustomMaxAbs    max_op;
             size_t N = 3*vf.size();
             scalarfield out(1, 0);
             scalar init = 0;
             // Determine temporary device storage requirements
             void     *d_temp_storage = NULL;
             size_t   temp_storage_bytes = 0;
-            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf[0].data(), out.data(), N, max_op, init);
+            auto lam = [] __device__ (const scalar & a, const scalar & b)
+            {
+                return (a > b) ? a : b;
+            };
+            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf[0].data(), out.data(), N, lam, init);
             // Allocate temporary storage
             cudaMalloc(&d_temp_storage, temp_storage_bytes);
             // Run reduction
-            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf[0].data(), out.data(), N, max_op, init);
+            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf[0].data(), out.data(), N, lam, init);
             CU_CHECK_AND_SYNC();
             return std::abs(out[0]);
+        }
+
+        scalar max_norm(const vectorfield & vf)
+        {
+            static scalarfield ret(1, 0);
+
+            // Declare, allocate, and initialize device-accessible pointers for input and output
+            size_t N = vf.size();
+            scalarfield temp(N, 0);
+            auto o = temp.data();
+            auto v = vf.data();
+            Backend::par::apply(N, [o,v] SPIRIT_LAMBDA (int idx) {
+                o[idx] = v[idx][0]*v[idx][0] + v[idx][1]*v[idx][1] + v[idx][2]*v[idx][2];
+            });
+
+            void     *d_temp_storage = NULL;
+            size_t   temp_storage_bytes = 0;
+            auto lam = [] __device__ (const scalar & a, const scalar & b)
+            {
+                return (a > b) ? a : b;
+            };
+
+            scalar init = 0;
+            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, temp.data(), ret.data(), N, lam, init);
+            // Allocate temporary storage
+            cudaMalloc(&d_temp_storage, temp_storage_bytes);
+            // Run reduction
+            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, temp.data(), ret.data(), N, lam, init);
+            CU_CHECK_AND_SYNC();
+
+            return std::sqrt(ret[0]);
         }
 
         __global__ void cu_scale(Vector3 *vf1, scalar sc, size_t N)
@@ -411,6 +420,10 @@ namespace Engine
         {
             int n = vf1.size();
             static scalarfield sf(n, 0);
+            
+            if(sf.size() != vf1.size())
+                sf.resize(vf1.size());
+
             Vectormath::fill(sf, 0);
             scalar ret;
 

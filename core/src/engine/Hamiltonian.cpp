@@ -1,6 +1,5 @@
 #include <engine/Hamiltonian.hpp>
 #include <engine/Vectormath.hpp>
-#include <engine/Manifoldmath.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 

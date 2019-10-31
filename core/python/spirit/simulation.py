@@ -8,7 +8,7 @@ If many iterations are called individually, one should use the single shot simul
 It avoids the allocations etc. involved when a simulation is started and ended and behaves like a
 regular simulation, except that the iterations have to be triggered manually.
 
-Note that the VP and NCG Solvers are only meant for direct minimization and not for dynamics.
+Note that the VP and LBFGS Solvers are only meant for direct minimization and not for dynamics.
 """
 
 import spirit.spiritlib as spiritlib
@@ -39,6 +39,15 @@ SOLVER_HEUN = 3
 
 SOLVER_RK4 = 4
 """4th order Runge-Kutta method."""
+
+SOLVER_LBFGS_OSO = 5
+"""Limited memory Broyden-Fletcher-Goldfarb-Shannon, using exponential transforms."""
+
+SOLVER_LBFGS_Atlas = 6
+"""Limited memory Broyden-Fletcher-Goldfarb-Shannon, using stereographic transforms"""
+
+SOLVER_VP_OSO = 7
+"""Verlet-like velocity projection method, using exponential transforms."""
 
 
 METHOD_MC   = 0
@@ -208,3 +217,17 @@ _Get_IterationsPerSecond.restype = ctypes.c_float
 def get_iterations_per_second(p_state, idx_image=-1, idx_chain=-1):
     """Returns the current estimation of the number of iterations per second."""
     return float(_Get_IterationsPerSecond(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain)))
+
+_Get_MaxTorqueNorm = _spirit.Simulation_Get_MaxTorqueNorm
+_Get_MaxTorqueNorm.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Get_MaxTorqueNorm.restype  = ctypes.c_float
+def get_max_torque_norm(p_state, idx_image=-1, idx_chain=-1):
+    """Returns the current maximum norm of the torque acting on any spin."""
+    return float(_Get_MaxTorqueNorm(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain)))
+
+_Get_Wall_Time= _spirit.Simulation_Get_Wall_Time
+_Get_Wall_Time.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Get_Wall_Time.restype  = ctypes.c_int
+def get_wall_time(p_state, idx_image=-1, idx_chain=-1):
+    """Returns the current maximum norm of the torque acting on any spin."""
+    return int(_Get_Wall_Time(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain)))
