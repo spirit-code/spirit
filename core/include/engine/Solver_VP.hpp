@@ -66,9 +66,6 @@ void Method_Solver<Solver::VP>::Iteration ()
             v[idx] += 0.5/m_temp * (f_pr[idx] + f[idx]);
         });
 
-        // Vectormath::add_c_a(0.5/m, force_prev, velocity);
-        // Vectormath::add_c_a(0.5/m, force, velocity);
-
         // Get the projection of the velocity on the force
         projection[i]  = Vectormath::dot(velocity, force);
         force_norm2[i] = Vectormath::dot(force, force);
@@ -102,27 +99,12 @@ void Method_Solver<Solver::VP>::Iteration ()
             Backend::par::apply(force.size(), [f,v,ratio] SPIRIT_LAMBDA (int idx) {
                 v[idx] = f[idx] * ratio;
             });
-
-            // Vectormath::set_c_a(1.0, force, velocity);
-            // Vectormath::scale(velocity, projection_full / force_norm2_full);
         }
 
         Backend::par::apply( force.size(), [conf, conf_temp, dt, m_temp, v, f] SPIRIT_LAMBDA (int idx) {
             conf_temp[idx] = conf[idx] + dt * v[idx] + 0.5/m_temp * dt * f[idx];
             conf[idx] = conf_temp[idx].normalized();
-        } ); 
-        // Vectormath::normalize_vectors(configuration);
-
-        // // Copy in
-        // Vectormath::set_c_a(1.0, configuration, configuration_temp);
-
-        // // Move the spins
-        // Vectormath::add_c_a(dt, velocity, configuration_temp);
-        // Vectormath::add_c_a(0.5 / m * dt, force, configuration_temp); // Note: as force is scaled with dt, this corresponds to dt^2
-        // Vectormath::normalize_vectors(configuration_temp);
-
-        // // Copy out
-        // Vectormath::set_c_a(1.0, configuration_temp, configuration);
+        }); 
     }
 };
 

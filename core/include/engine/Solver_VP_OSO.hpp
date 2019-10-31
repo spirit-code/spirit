@@ -26,7 +26,11 @@ void Method_Solver<Solver::VP_OSO>::Initialize ()
 	Paper: P. F. Bessarab et al., Method for finding mechanism and activation energy
 		   of magnetic transitions, applied to skyrmion and antivortex annihilation,
 		   Comp. Phys. Comm. 196, 335 (2015).
+
+    Instead of the cartesian update scheme with re-normalization, this implementation uses the orthogonal spin optimization scheme,
+    described by A. Ivanov in https://arxiv.org/abs/1904.02669.
 */
+
 template <> inline
 void Method_Solver<Solver::VP_OSO>::Iteration ()
 {
@@ -36,67 +40,74 @@ void Method_Solver<Solver::VP_OSO>::Iteration ()
     // Set previous
     for (int img = 0; img < noi; ++img)
     {
-        auto& image = *this->configurations[img];
-        Vectormath::set_c_a(1.0, grad[img],  grad_pr[img]);
-        Vectormath::set_c_a(1.0, velocities[img], velocities_previous[img]);
+        auto g    = grad[img].data();
+        auto g_pr = grad_pr[img].data();
+        auto v    = velocities[img].data();
+        auto v_pr = velocities_previous[img].data();
+
+        Backend::par::apply( nos, [g, g_pr, v, v_pr] SPIRIT_LAMBDA (int idx) {
+            g_pr[idx] = g[idx];
+            v_pr[idx] = v[idx];
+        } );
     }
 
     // Get the forces on the configurations
     this->Calculate_Force(configurations, forces);
     this->Calculate_Force_Virtual(configurations, forces, forces_virtual);
 
-    #pragma omp parallel for
     for( int img=0; img < this->noi; img++ )
     {
         auto& image = *this->configurations[img];
         auto& grad = this->grad[img];
-        for (int i = 0; i < this->nos; ++i){
-            this->forces_virtual[img][i] = image[i].cross(this->forces[img][i]);
-        }
         Solver_Kernels::oso_calc_gradients(grad, image, this->forces[img]);
         Vectormath::scale(grad, -1.0);
     }
 
-    for (int i = 0; i < noi; ++i)
+    for (int img = 0; img < noi; ++img )
     {
-        auto& velocity      = velocities[i];
-        auto& force         = this->grad[i];
-        auto& force_prev    = this->grad_pr[i];
+        auto& velocity = velocities[img];
+        auto g        = this->grad[img].data();
+        auto g_pr     = this->grad_pr[img].data();
+        auto v        = velocities[img].data();
+        auto m_temp   = this->m;
 
         // Calculate the new velocity
-        Vectormath::add_c_a(0.5/m, force_prev, velocity);
-        Vectormath::add_c_a(0.5/m, force, velocity);
+        Backend::par::apply(nos, [g,g_pr,v,m_temp] SPIRIT_LAMBDA (int idx) {
+            v[idx] += 0.5/m_temp * (g_pr[idx] + g[idx]);
+        });
 
         // Get the projection of the velocity on the force
-        projection[i]  = Vectormath::dot(velocity, force);
-        force_norm2[i] = Vectormath::dot(force, force);
+        projection[img]  = Vectormath::dot(velocity, this->grad[img]);
+        force_norm2[img] = Vectormath::dot(this->grad[img], this->grad[img]);
     }
-    for (int i = 0; i < noi; ++i)
+    for (int img = 0; img < noi; ++img)
     {
-        projection_full += projection[i];
-        force_norm2_full += force_norm2[i];
+        projection_full  += projection[img];
+        force_norm2_full += force_norm2[img];
     }
-    for (int i = 0; i < noi; ++i)
+    for (int img = 0; img < noi; ++img)
     {
-        auto& velocity           = velocities[i];
-        auto& force              = this->grad[i];
-        auto& configuration      = *(configurations[i]);
-        auto& configuration_temp = *(configurations_temp[i]);
+        auto sd        = this->searchdir[img].data();
+        auto v         = this->velocities[img].data();
+        auto g         = this->grad[img].data();
+        auto m_temp   = this->m;
 
-        scalar dt = this->systems[i]->llg_parameters->dt;
+        scalar dt = this->systems[img]->llg_parameters->dt;
+        scalar ratio = projection_full/force_norm2_full;
 
         // Calculate the projected velocity
         if (projection_full <= 0)
         {
-            Vectormath::fill(velocity, { 0,0,0 });
+            Vectormath::fill(velocities[img], { 0,0,0 });
+        } else {
+            Backend::par::apply(nos, [g,v,ratio] SPIRIT_LAMBDA (int idx) {
+                v[idx] = g[idx] * ratio;
+            });
         }
-        else
-        {
-            Vectormath::set_c_a(1.0, force, velocity);
-            Vectormath::scale(velocity, projection_full / force_norm2_full);
-        }
-        Vectormath::set_c_a(dt, velocity, this->searchdir[i]);
-        Vectormath::add_c_a(0.5 / m * dt, force, this->searchdir[i]); // Note: as force is scaled with dt, this corresponds to dt^2
+
+        Backend::par::apply( nos, [sd, dt, m_temp, v, g] SPIRIT_LAMBDA (int idx) {
+            sd[idx] = dt * v[idx] + 0.5/m_temp * dt * g[idx];
+        }); 
     }
     Solver_Kernels::oso_rotate( this->configurations, this->searchdir);
 }
