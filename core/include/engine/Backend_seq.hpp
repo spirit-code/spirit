@@ -10,6 +10,17 @@ namespace Backend
 {
 namespace seq
 {
+    template<typename A, typename F>
+    scalar reduce(const field<A> & vf1, const F f)
+    {
+        scalar res=0;
+        #pragma omp parallel for reduction(+:res)
+        for(unsigned int idx = 0; idx < vf1.size(); ++idx)
+        {
+            res += f(vf1[idx]);
+        }
+        return res;
+    }
 
     // result = sum_i  f( vf1[i], vf2[i] )
     template<typename A, typename B, typename F>
