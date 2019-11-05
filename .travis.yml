@@ -200,7 +200,7 @@ install:
 before_script:
   # Test everything
   # Do not run this section if flag was set to false
-  - if [ "$RUNTESTS" != "false" ]; then ./ctest.sh; fi
+  - if [ "$RUNTESTS" != "false" ]; then travis_wait ./ctest.sh; fi
 
 
 script:
@@ -244,7 +244,7 @@ script:
   # Run C++ coverage report generation and upload to codecov
   - cd ../../build
   - if [ "$COVERAGE" == "true" ]; then lcov -c -i --no-external --directory . --base-directory ../core -o baseline.info; fi
-  - if [ "$COVERAGE" == "true" ]; then make test; fi
+  - if [ "$COVERAGE" == "true" ]; then travis_wait make test; fi
   - if [ "$COVERAGE" == "true" ]; then lcov -c --no-external --directory . --base-directory ../core -o after_test.info; fi
   - if [ "$COVERAGE" == "true" ]; then lcov -a baseline.info -a after_test.info -o total_test.info; fi
   - if [ "$COVERAGE" == "true" ]; then lcov -r total_test.info \*thirdparty\* \*/test/\* \*Collection\* \*DLL_\* -o coverage.info; fi
