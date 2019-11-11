@@ -87,10 +87,10 @@ void Method_Solver<Solver::VP_OSO>::Iteration ()
     }
     for (int img = 0; img < noi; ++img)
     {
-        auto sd        = this->searchdir[img].data();
-        auto v         = this->velocities[img].data();
-        auto g         = this->grad[img].data();
-        auto m_temp   = this->m;
+        auto sd     = this->searchdir[img].data();
+        auto v      = this->velocities[img].data();
+        auto g      = this->grad[img].data();
+        auto m_temp = this->m;
 
         scalar dt = this->systems[img]->llg_parameters->dt;
         scalar ratio = projection_full/force_norm2_full;

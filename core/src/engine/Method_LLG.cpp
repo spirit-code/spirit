@@ -162,7 +162,7 @@ namespace Engine
             //////////
 
             // Direct minimisation
-            if (parameters.direct_minimization || solver == Solver::VP)
+            if (parameters.direct_minimization || solver == Solver::VP || solver == Solver::VP_OSO)
             {
                 dtg = parameters.dt * Constants::gamma / Constants::mu_B;
                 Vectormath::set_c_cross( dtg, image, force, force_virtual);
