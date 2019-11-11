@@ -109,8 +109,7 @@ def get_eigenvectors_sp(p_state, idx_chain=-1):
 
 
 _Get_Velocities          = _spirit.HTST_Get_Velocities
-_Get_Velocities.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float),
-                            ctypes.POINTER(ctypes.c_float), ctypes.c_int]
+_Get_Velocities.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int]
 _Get_Velocities.restype  = None
 def get_velocities(p_state, idx_chain=-1):
     """Returns the velocities perpendicular to the dividing surface with `shape(2*nos)`."""

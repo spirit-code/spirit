@@ -225,6 +225,13 @@ def get_max_torque_norm(p_state, idx_image=-1, idx_chain=-1):
     """Returns the current maximum norm of the torque acting on any spin."""
     return float(_Get_MaxTorqueNorm(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain)))
 
+_Get_Time = _spirit.Simulation_Get_Time
+_Get_Time.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Get_Time.restype  = ctypes.c_float
+def get_time(p_state, idx_image=-1, idx_chain=-1):
+    """ If an LLG simulation is running returns the cumulatively summed time steps `dt`, otherwise returns 0"""
+    return _Get_Time(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
 _Get_Wall_Time= _spirit.Simulation_Get_Wall_Time
 _Get_Wall_Time.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
 _Get_Wall_Time.restype  = ctypes.c_int
