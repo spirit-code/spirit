@@ -385,8 +385,12 @@ catch( ... )
     spirit_handle_exception_api(idx_image, idx_chain);
 }
 
-
 void Simulation_SingleShot(State *state, int idx_image, int idx_chain) noexcept
+{
+    Simulation_N_Shot(state, 1, idx_image, idx_chain);
+}
+
+void Simulation_N_Shot(State *state, int N, int idx_image, int idx_chain) noexcept
 try
 {
     // Fetch correct indices and pointers for image and chain
@@ -415,34 +419,33 @@ try
     if( method->ContinueIterating() &&
         !method->Walltime_Expired(t_current - method->t_start) )
     {
-
         // Lock Systems
         method->Lock();
-
-        // Pre-iteration hook
-        method->Hook_Pre_Iteration();
-        // Do one single Iteration
-        method->Iteration();
-        // Post-iteration hook
-        method->Hook_Post_Iteration();
-
-        // Recalculate FPS
-        method->t_iterations.pop_front();
-        method->t_iterations.push_back(system_clock::now());
-
-        // Log Output every n_iterations_log steps
-        bool log = false;
-        if( method->n_iterations_log > 0 )
-            log = method->iteration > 0 && 0 == fmod(method->iteration, method->n_iterations_log);
-        if( log )
+        for(int i=0; i<N; i++)
         {
-            ++method->step;
-            method->Message_Step();
-            method->Save_Current(method->starttime, method->iteration, false, false);
+            // Pre-iteration hook
+            method->Hook_Pre_Iteration();
+            // Do one single Iteration
+            method->Iteration();
+            // Post-iteration hook
+            method->Hook_Post_Iteration();
+
+            // Recalculate FPS
+            method->t_iterations.pop_front();
+            method->t_iterations.push_back(system_clock::now());
+
+            // Log Output every n_iterations_log steps
+            bool log = false;
+            if( method->n_iterations_log > 0 )
+                log = method->iteration > 0 && 0 == fmod(method->iteration, method->n_iterations_log);
+            if( log )
+            {
+                ++method->step;
+                method->Message_Step();
+                method->Save_Current(method->starttime, method->iteration, false, false);
+            }
+            ++method->iteration;
         }
-
-        ++method->iteration;
-
         // Unlock systems
         method->Unlock();
     }

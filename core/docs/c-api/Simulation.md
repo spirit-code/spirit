@@ -160,6 +160,19 @@ Otherwise, nothing will happen.
 
 
 
+### Simulation_N_Shot
+
+```C
+void Simulation_N_Shot(State *state, int N, int idx_image=-1, int idx_chain=-1);
+```
+
+N iterations of a Method
+
+If `singleshot=true` was passed to `Simulation_..._Start` before, this will perform N iterations.
+Otherwise, nothing will happen.
+
+
+
 ### Simulation_Stop
 
 ```C

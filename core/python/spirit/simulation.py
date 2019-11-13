@@ -173,7 +173,18 @@ def single_shot(p_state, idx_image=-1, idx_chain=-1):
     """
     spiritlib.wrap_function(_SingleShot, [ctypes.c_void_p(p_state),
                                          ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
-    # _SingleShot(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+_N_Shot          = _spirit.Simulation_N_Shot
+_N_Shot.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int]
+_N_Shot.restype  = None
+def n_shot(p_state, N, idx_image=-1, idx_chain=-1):
+    """Perform a single iteration.
+
+    In order to use this, a single shot simulation must be running on the corresponding image or chain.
+    """
+    spiritlib.wrap_function(_N_Shot, [ctypes.c_void_p(p_state), ctypes.c_int(N),
+                                         ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
+
 
 _Stop           = _spirit.Simulation_Stop
 _Stop.argtypes  = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
