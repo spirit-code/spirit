@@ -66,7 +66,7 @@ namespace Engine
 
         // Hamiltonian name as string
         const std::string& Name() override;
-        
+
         // ------------ Single Spin Interactions ------------
         // External magnetic field across the sample
         scalar external_field_magnitude;
@@ -111,8 +111,9 @@ namespace Engine
         quadrupletfield quadruplets;
         scalarfield     quadruplet_magnitudes;
 
-    private:
         std::shared_ptr<Data::Geometry> geometry;
+
+    private:
 
         // ------------ Effective Field Functions ------------
         // Calculate the Zeeman effective field of a single Spin

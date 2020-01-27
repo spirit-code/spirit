@@ -36,7 +36,22 @@ scalar Constants_g_e() noexcept
     return (scalar)Utility::Constants::g_e;
 }
 
+scalar Constants_erg() noexcept
+{
+    return (scalar)Utility::Constants::erg;
+}
+
+scalar Constants_Joule() noexcept
+{
+    return (scalar)Utility::Constants::Joule;
+}
+
 scalar Constants_Pi() noexcept
 {
     return (scalar)Utility::Constants::Pi;
+}
+
+scalar Constants_Pi_2() noexcept
+{
+    return (scalar)Utility::Constants::Pi_2;
 }

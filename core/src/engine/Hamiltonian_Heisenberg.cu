@@ -166,7 +166,7 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Update_Energy_Contributions()
     {
-        this->energy_contributions_per_spin = std::vector<std::pair<std::string, scalarfield>>(0);
+        /*this->energy_contributions_per_spin = std::vector<std::pair<std::string, scalarfield>>(0);
 
         // External field
         if( this->external_field_magnitude > 0 )
@@ -209,13 +209,13 @@ namespace Engine
             this->energy_contributions_per_spin.push_back({"Quadruplets", scalarfield(0) });
             this->idx_quadruplet = this->energy_contributions_per_spin.size()-1;
         }
-        else this->idx_quadruplet = -1;
+        else this->idx_quadruplet = -1;*/
     }
 
 
     void Hamiltonian_Heisenberg::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
     {
-        int nos = spins.size();
+        /*int nos = spins.size();
         for (auto& pair : contributions)
         {
             // Allocate if not already allocated
@@ -238,7 +238,7 @@ namespace Engine
         if( this->idx_ddi >=0 )        E_DDI(spins, contributions[idx_ddi].second);
 
         // Quadruplets
-        if (this->idx_quadruplet >=0 ) E_Quadruplet(spins, contributions[idx_quadruplet].second);
+        if (this->idx_quadruplet >=0 ) E_Quadruplet(spins, contributions[idx_quadruplet].second);*/
     }
 
 

@@ -33,5 +33,6 @@ namespace IO
                                 quadrupletfield& quadruplets, scalarfield& quadruplet_magnitudes );
     void Defects_from_File( const std::string defectsFile, int & n_defects, field<Site> & defect_sites, intfield & defect_types );
     void Pinned_from_File( const std::string pinnedFile, int & n_pinned, field<Site> & pinned_sites, vectorfield & pinned_spins );
+    void Regions_from_File(const std::string regionsFile, intfield & regions);
 };// end namespace IO
 #endif

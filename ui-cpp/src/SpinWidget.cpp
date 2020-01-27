@@ -23,7 +23,6 @@
 #include "Spirit/Simulation.h"
 #include "Spirit/Hamiltonian.h"
 
-
 SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLWidget(parent), m_vf({},{}), m_vf_surf2D({},{})
 {
     this->state = state;
@@ -497,15 +496,37 @@ void SpinWidget::updateVectorFieldDirections()
     scalar *spins;
     int *atom_types;
     atom_types = Geometry_Get_Atom_Types(state.get());
-    if (this->m_source == 0)
-        spins = System_Get_Spin_Directions(state.get());
-    else if (this->m_source == 1)
-        spins = System_Get_Effective_Field(state.get());
-    else
-        spins = System_Get_Spin_Directions(state.get());
+    #ifndef SPIRIT_LOW_MEMORY
+        if (this->m_source == 0)
+            spins = System_Get_Spin_Directions(state.get());
+        else if (this->m_source == 1)
+            spins = System_Get_Effective_Field(state.get());
+        else if (this->m_source == 2)//exchange
+            spins = System_Get_Exchange_Field(state.get());
+        else if (this->m_source == 3)//anisotropy
+            spins = System_Get_Anisotropy_Field(state.get());
+        else if (this->m_source == 4)//DMI
+            spins = System_Get_DMI_Field(state.get());
+        else if (this->m_source == 5)//DDI
+            spins = System_Get_DDI_Field(state.get());
+        else if (this->m_source == 6)//Zeeman
+            spins = System_Get_Zeeman_Field(state.get());
+        else
+            spins = System_Get_Spin_Directions(state.get());
+    #endif
+    #ifdef SPIRIT_LOW_MEMORY
+        if (this->m_source == 0)
+            spins = System_Get_Spin_Directions(state.get());
+        else if (this->m_source == 1)
+            spins = System_Get_Effective_Field(state.get());
+        else
+            spins = System_Get_Spin_Directions(state.get());
+    #endif
+
     //        copy
     /*positions.assign(spin_pos, spin_pos + 3*nos);
     directions.assign(spins, spins + 3*nos);*/
+
     int icell = 0;
     for (int cell_c=0; cell_c<n_cells_draw[2]; cell_c++)
     {
@@ -517,6 +538,11 @@ void SpinWidget::updateVectorFieldDirections()
                 {
                     int idx = ibasis + n_cell_atoms*cell_a*n_cell_step + n_cell_atoms*n_cells[0]*cell_b*n_cell_step + n_cell_atoms*n_cells[0]*n_cells[1]*cell_c*n_cell_step;
                     // std::cerr << idx << " " << icell << std::endl;
+
+                    /*std::cout << spins[3 * idx] << " ";
+                    std::cout << spins[1+3 * idx] << " ";
+                    std::cout << spins[2+3 * idx]<< " ";*/
+
                     directions[icell] = glm::vec3(spins[3*idx], spins[1 + 3*idx], spins[2 + 3*idx]);
                     if (atom_types[idx] < 0) directions[icell] *= 0;
                     ++icell;
@@ -525,7 +551,7 @@ void SpinWidget::updateVectorFieldDirections()
         }
     }
     //        rescale if effective field
-    if (this->m_source == 1)
+    if (this->m_source > 0)
     {
         float max_length = 0;
         for (auto direction : directions)
@@ -553,7 +579,6 @@ void SpinWidget::updateData()
     // Update the VectorField
     this->updateVectorFieldDirections();
     this->updateVectorFieldGeometry();
-
     // Update the View
     float b_min[3], b_max[3];
     Geometry_Get_Bounds(state.get(), b_min, b_max);

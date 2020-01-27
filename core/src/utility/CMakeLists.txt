@@ -4,6 +4,8 @@ set(SOURCE_SPIRIT_UTILITY
     ${CMAKE_CURRENT_SOURCE_DIR}/Configurations.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Configuration_Chain.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Cubic_Hermite_Spline.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Custom_Field.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Custom_Field.cu
     ${CMAKE_CURRENT_SOURCE_DIR}/Logging.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Timing.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt

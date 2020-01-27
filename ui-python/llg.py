@@ -10,9 +10,10 @@ sys.path.insert(0, spirit_py_dir)
 from spirit import state
 from spirit import configuration
 from spirit import simulation
+from spirit import hamiltonian
 from spirit import io
 
-cfgfile = "input/input.cfg"
+cfgfile = "../input/input.cfg"
 quiet = False
 
 with state.State(cfgfile, quiet) as p_state:
@@ -22,9 +23,13 @@ with state.State(cfgfile, quiet) as p_state:
 
     ### First image is homogeneous with a skyrmion in the center
     configuration.plus_z(p_state, idx_image=0)
-    configuration.skyrmion(p_state, 5.0, phase=-90.0, idx_image=0)
-
+    configuration.skyrmion(p_state, 200.0, phase=0.0, idx_image=0)
+    configuration.set_region(p_state, region_id=1, pos=[0,0,0], border_rectangular=[100,100,1],idx_image=0)
+    hamiltonian.set_field_m(p_state, 200, [0,0,1], 0) 
+    hamiltonian.set_field_m(p_state, 200, [0,0,-1], 1) 
     ### LLG dynamics simulation
     LLG = simulation.METHOD_LLG
-    DEPONDT = simulation.SOLVER_DEPONDT # Velocity projection minimiser
-    simulation.start(p_state, LLG, DEPONDT)
+    LBFGS_OSO = simulation.SOLVER_LBFGS_OSO # Velocity projection minimiser
+    
+    simulation.start(p_state, LLG, LBFGS_OSO)
+    io.image_write(p_state, "out.ovf")

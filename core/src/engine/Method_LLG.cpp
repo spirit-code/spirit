@@ -236,13 +236,12 @@ namespace Engine
     {
         // Increment the time counter (picoseconds)
         this->picoseconds_passed += this->systems[0]->llg_parameters->dt;
-
+        this->systems[0]->hamiltonian->picoseconds_passed=this->picoseconds_passed;
         // --- Convergence Parameter Update
         // Loop over images to calculate the maximum torques
         for (unsigned int img = 0; img < this->systems.size(); ++img)
         {
             this->force_converged[img] = false;
-            // auto fmax = this->Force_on_Image_MaxAbsComponent(*(this->systems[img]->spins), this->forces_virtual[img]);
             auto fmax = this->MaxTorque_on_Image(*(this->systems[img]->spins), this->forces_virtual[img]);
 
             if (fmax > 0)

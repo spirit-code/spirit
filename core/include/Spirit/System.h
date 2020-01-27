@@ -39,7 +39,13 @@ Returns a pointer to the effective field data.
 The array is contiguous and of shape (NOS, 3).
 */
 PREFIX scalar * System_Get_Effective_Field(State * state, int idx_image=-1, int idx_chain=-1) SUFFIX;
-
+#ifndef SPIRIT_LOW_MEMORY
+	PREFIX scalar * System_Get_Exchange_Field(State * state, int idx_image=-1, int idx_chain=-1) SUFFIX;
+	PREFIX scalar * System_Get_Anisotropy_Field(State * state, int idx_image=-1, int idx_chain=-1) SUFFIX;
+	PREFIX scalar * System_Get_DMI_Field(State * state, int idx_image=-1, int idx_chain=-1) SUFFIX;
+	PREFIX scalar * System_Get_DDI_Field(State * state, int idx_image=-1, int idx_chain=-1) SUFFIX;
+	PREFIX scalar * System_Get_Zeeman_Field(State * state, int idx_image=-1, int idx_chain=-1) SUFFIX;
+#endif
 /*
 Returns a pointer to the data of the N'th eigenmode of a spin system.
 

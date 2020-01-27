@@ -92,6 +92,60 @@ def set_dmi(p_state, n_shells, D_ij, chirality=CHIRALITY_BLOCH, idx_image=-1, id
     _Set_DMI(ctypes.c_void_p(p_state), ctypes.c_int(n_shells), vec(*D_ij),
              ctypes.c_int(chirality), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
+
+
+# Micromagnetics
+_Set_Ms             = _spirit.Hamiltonian_Set_Field_Regions
+_Set_Ms.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.c_int,
+                          ctypes.c_int, ctypes.c_int]
+_Set_Ms.restype     = None
+def set_ms(p_state, Ms, region_id, idx_image=-1, idx_chain=-1):
+    """Set the (homogeneous) external magnetic field."""
+    _Set_Ms(ctypes.c_void_p(p_state), ctypes.c_float(Ms), ctypes.c_int(region_id),
+               ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+_Set_Field_m             = _spirit.Hamiltonian_Set_Field_Regions
+_Set_Field_m.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.POINTER(ctypes.c_float), ctypes.c_int,
+                          ctypes.c_int, ctypes.c_int]
+_Set_Field_m.restype     = None
+def set_field_m(p_state, magnitude, normal, region_id, idx_image=-1, idx_chain=-1):
+    """Set the (homogeneous) external magnetic field."""
+    vec3 = ctypes.c_float * 3
+    _Set_Field_m(ctypes.c_void_p(p_state), ctypes.c_float(magnitude), vec3(*normal), ctypes.c_int(region_id),
+               ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+_Set_Anisotropy_m             = _spirit.Hamiltonian_Set_Anisotropy_Regions
+_Set_Anisotropy_m.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.POINTER(ctypes.c_float), ctypes.c_int,
+                               ctypes.c_int, ctypes.c_int]
+_Set_Anisotropy_m.restype     = None
+def set_anisotropy_m(p_state, magnitude, normal, region_id, idx_image=-1, idx_chain=-1):
+    """Set the (homogeneous) magnetocrystalline anisotropy."""
+    vec3 = ctypes.c_float * 3
+    _Set_Anisotropy_m(ctypes.c_void_p(p_state), ctypes.c_float(magnitude), vec3(*normal), ctypes.c_int(region_id),
+                    ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+_Set_Exchange_m             = _spirit.Hamiltonian_Set_Exchange_Tensor
+_Set_Exchange_m.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.c_int,
+                               ctypes.c_int, ctypes.c_int]
+_Set_Exchange_m.restype     = None
+def set_exchange_m(p_state, exchange_tensor, region_id, idx_image=-1, idx_chain=-1):
+    """Set the Exchange interaction in terms of neighbour shells."""
+    _Set_Exchange_m(ctypes.c_void_p(p_state), ctypes.c_float(exchange_tensor), ctypes.c_int(region_id),
+                  ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+_Set_DMI_m             = _spirit.Hamiltonian_Set_DMI_Tensor
+_Set_DMI_m.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.c_int,
+                        ctypes.c_int, ctypes.c_int]
+_Set_DMI_m.restype     = None
+def set_dmi_m(p_state, dmi_tensor, region_id, idx_image=-1, idx_chain=-1):
+    """Set the Dzyaloshinskii-Moriya interaction in terms of neighbour shells."""
+    _Set_DMI_m(ctypes.c_void_p(p_state), ctypes.c_float(dmi_tensor), ctypes.c_int(region_id),
+             ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+
+
+
+
 _Set_DDI             = _spirit.Hamiltonian_Set_DDI
 _Set_DDI.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.POINTER(ctypes.c_int), ctypes.c_float, ctypes.c_bool,
                         ctypes.c_int, ctypes.c_int]
@@ -156,6 +210,6 @@ def get_ddi(p_state, idx_image=-1, idx_chain=-1):
     pb_zero_padding = ctypes.c_bool()
     _Get_DDI(ctypes.c_void_p(p_state), ctypes.byref(ddi_method), n_periodic_images, ctypes.byref(cutoff_radius), ctypes.byref(pb_zero_padding), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
     return { "ddi_method" : ddi_method.value,
-            "n_periodic_images" : [ i for i in n_periodic_images ],
-            "cutoff_radius" : cutoff_radius.value,
-            "pb_zero_padding" : pb_zero_padding.value }
+             "n_periodic_images" : [ i for i in n_periodic_images ],
+             "cutoff_radius" : cutoff_radius.value,
+             "pb_zero_padding" : pb_zero_padding.value }

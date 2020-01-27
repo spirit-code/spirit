@@ -15,7 +15,7 @@ InfoWidget::InfoWidget(std::shared_ptr<State> state, SpinWidget *spinWidget, Con
 {
     this->state = state;
     this->spinWidget = spinWidget;
-    this->controlWidget = controlWidget;
+    this->controlWidget = controlWidget;//why do we need control widget here?
     // Setup User Interface
     this->setupUi(this);
 
@@ -30,6 +30,7 @@ InfoWidget::InfoWidget(std::shared_ptr<State> state, SpinWidget *spinWidget, Con
 
 void InfoWidget::updateData()
 {
+	
     // FPS
     this->m_Label_FPS->setText(QString::fromLatin1("FPS: ") + QString::number((int)this->spinWidget->getFramesPerSecond()));
 
@@ -54,14 +55,14 @@ void InfoWidget::updateData()
     this->m_Label_Mz->setText(QString::fromLatin1("Mz: ") + QString::number(M[2], 'f', 8));
 
     // Force
-    double f_max = Simulation_Get_MaxTorqueNorm(state.get());
+    double f_max = Simulation_Get_MaxTorqueComponent(state.get());
     this->m_Label_Force_Max->setText(QString::fromLatin1("F (max):     ") + QString::number(f_max, 'f', 12));
     this->m_Label_Force_Max_2->setText(QString::fromLatin1("F (max):     ") + QString::number(f_max, 'E', 3));
 
     if (Simulation_Running_On_Chain(state.get()))
     {
         float * forces = new float[Chain_Get_NOI(state.get())];
-        Simulation_Get_Chain_MaxTorqueNorms(state.get(), forces);
+        Simulation_Get_Chain_MaxTorqueComponents(state.get(), forces);
         float f_current = forces[System_Get_Index(state.get())];
         this->m_Label_Force_Current->show();
         this->m_Label_Force_Current->setText(QString::fromLatin1("F (current): ") + QString::number(f_current, 'f', 12));

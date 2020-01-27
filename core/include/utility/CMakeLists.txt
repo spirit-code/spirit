@@ -4,6 +4,7 @@ set(HEADER_SPIRIT_UTILITY
     ${CMAKE_CURRENT_SOURCE_DIR}/Configurations.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Configuration_Chain.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Cubic_Hermite_Spline.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Custom_Field.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Logging.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Exception.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Timing.hpp

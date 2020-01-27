@@ -4,6 +4,7 @@
 #include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
+#include <engine/Hamiltonian_Micromagnetic.hpp>
 
 #include <Eigen/Dense>
 
@@ -70,7 +71,7 @@ namespace Utility
             if (v.norm() < 1e-8)
             {
                 Log( Log_Level::Warning, Log_Sender::All, fmt::format("Homogeneous vector was ({}, {}, {}) and got set to (0, 0, 1)", v[0], v[1], v[2]) );
-                v[0] = 0.0; v[1] = 0.0; v[2] = 1.0;		// if vector is zero -> set vector to 0,0,1 (posZdir)
+                v[0] = 0.0; v[1] = 0.0; v[2] = 1.0; // If vector is zero -> set vector to 0,0,1 (posZdir)
             }
             else
             {
@@ -177,7 +178,7 @@ namespace Utility
                         }
                         T = acos(T);
                         // ...
-                        t = d / r;	// r is a big radius of the torus
+                        t = d / r; // R is a big radius of the torus
                         t = 1.0 + 4.22 / (t*t);
                         tmp = Pi*(1.0 - 1.0 / sqrt(t));
                         t = sin(tmp)*sin(T);
@@ -222,10 +223,10 @@ namespace Utility
                     double x = (s.geometry->positions[iatom][0] - pos[0]) / distance / r_new;
                     phi_i = std::acos(std::max(-1.0, std::min(1.0, x)));
                     if (distance == 0) { phi_i = 0; }
-                    if (s.geometry->positions[iatom][1] - pos[1] < 0.0) { phi_i = - phi_i ; }
+                    if (s.geometry->positions[iatom][1] - pos[1] < 0.0) { phi_i = -phi_i; }
                     phi_i += phase / 180 * Pi;
                     if (experimental) { theta_i = Pi - 4 * std::asin(std::tanh(distance)); }
-                    else { theta_i = Pi - Pi *distance; }
+                    else { theta_i = Pi - Pi * distance; }
 
                     spins[iatom][0] = ksi * std::sin(theta_i) * std::cos(order * phi_i);
                     spins[iatom][1] = ksi * std::sin(theta_i) * std::sin(order * (phi_i + achiral * Pi));
@@ -260,25 +261,25 @@ namespace Utility
             */
 
             // Choose orthogonalisation basis for Grahm-Schmidt
-            //		We will need two vectors with which the axis always forms the
-            //		same orientation (händigkeit des vektor-dreibeins)
+            //        We will need two vectors with which the axis always forms the
+            //        same orientation (händigkeit des vektor-dreibeins)
             // If axis_z=0 its in the xy-plane
-            //		the vectors should be: axis, vz, (axis x vz)
+            //        the vectors should be: axis, vz, (axis x vz)
             if (axis[2] == 0)
             {
                 e2 = axis.cross(vz);
                 e1 = vz;
             }
             // Else its either above or below the xy-plane.
-            //		if its above the xy-plane, it points in z-direction
-            //		the vectors should be: axis, vx, -vy
+            //        if its above the xy-plane, it points in z-direction
+            //        the vectors should be: axis, vx, -vy
             else if (axis[2] > 0)
             {
                 e1 = vx;
                 e2 = vy;
             }
-            //		if its below the xy-plane, it points in -z-direction
-            //		the vectors should be: axis, vx, vy
+            //        if its below the xy-plane, it points in -z-direction
+            //        the vectors should be: axis, vx, vy
             else if (axis[2] < 0)
             {
                 e1 = vx;
@@ -343,7 +344,7 @@ namespace Utility
                     phase = s.geometry->positions[iatom].dot(q);
                     //phase = phase / 180.0 * Pi;// / period;
                     // The opening angle determines how far from the axis the spins rotate around it.
-                    //		The rotation is done by alternating between v1 and v2 periodically
+                    //        The rotation is done by alternating between v1 and v2 periodically
                     scalar norms = 0.0;
                     spins[iatom] = axis * std::cos(theta)
                         + v1 * std::cos(phase) * std::sin(theta)
@@ -377,25 +378,25 @@ namespace Utility
             */
 
             // Choose orthogonalisation basis for Grahm-Schmidt
-            //		We will need two vectors with which the axis always forms the
-            //		same orientation (händigkeit des vektor-dreibeins)
+            //        We will need two vectors with which the axis always forms the
+            //        same orientation (händigkeit des vektor-dreibeins)
             // If axis_z=0 its in the xy-plane
-            //		the vectors should be: axis, vz, (axis x vz)
+            //        the vectors should be: axis, vz, (axis x vz)
             if (axis[2] == 0)
             {
                 e2 = axis.cross(vz);
                 e1 = vz;
             }
             // Else its either above or below the xy-plane.
-            //		if its above the xy-plane, it points in z-direction
-            //		the vectors should be: axis, vx, -vy
+            //        if its above the xy-plane, it points in z-direction
+            //        the vectors should be: axis, vx, -vy
             else if (axis[2] > 0)
             {
                 e1 = vx;
                 e2 = -vy;
             }
-            //		if its below the xy-plane, it points in -z-direction
-            //		the vectors should be: axis, vx, vy
+            //        if its below the xy-plane, it points in -z-direction
+            //        the vectors should be: axis, vx, vy
             else if (axis[2] < 0)
             {
                 e1 = vx;
@@ -479,9 +480,9 @@ namespace Utility
                     auto& r = s.geometry->positions[iatom];
                     //phase = phase / 180.0 * Pi;// / period;
                     // The opening angle determines how far from the axis the spins rotate around it.
-                    //		The rotation is done by alternating between v1 and v2 periodically
+                    //        The rotation is done by alternating between v1 and v2 periodically
                     scalar norms = 0.0;
-                    spins[iatom] =	axis * std::sin(r.dot(qm))
+                    spins[iatom] = axis * std::sin(r.dot(qm))
                         + v1 * std::cos(r.dot(qm)) * std::sin(r.dot(qk))
                         + v2 * std::cos(r.dot(qm)) * std::cos(r.dot(qk));
                     spins[iatom].normalize();
@@ -502,6 +503,22 @@ namespace Utility
                     geometry->atom_types[iatom] = atom_type;
                     if(atom_type < 0)
                         geometry->mu_s[iatom] = 0.0;
+                }
+            }
+        }
+
+        void Set_Region(Data::Spin_System & s, int region_id, filterfunction filter)
+        {
+            auto& spins = *s.spins;
+            auto ham = (Engine::Hamiltonian_Micromagnetic*) s.hamiltonian.get();
+            auto& geometry = s.geometry;
+            auto& positions = geometry->positions;
+
+            for (int iatom = 0; iatom < s.nos; ++iatom)
+            {
+                if (filter(spins[iatom], positions[iatom]))
+                {
+                    ham->regions[iatom] = region_id;
                 }
             }
         }
