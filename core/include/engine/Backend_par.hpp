@@ -65,6 +65,7 @@ namespace par
         // Reduction
         cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, sf.data(), ret.data(), sf.size());
         CU_CHECK_AND_SYNC();
+        cudaFree(d_temp_storage);
         return ret[0];
     }
 
@@ -94,6 +95,7 @@ namespace par
         // Reduction
         cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, sf.data(), ret.data(), sf.size());
         CU_CHECK_AND_SYNC();
+        cudaFree(d_temp_storage);
         return ret[0];
     }
 

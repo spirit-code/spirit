@@ -188,6 +188,7 @@ namespace Engine
             // Reduction
             cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, sf.data(), ret.data(), sf.size());
             CU_CHECK_AND_SYNC();
+            cudaFree(d_temp_storage);
             return ret[0];
         }
 
@@ -306,6 +307,7 @@ namespace Engine
             // Run reduction
             cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf[0].data(), out.data(), N, lam, init);
             CU_CHECK_AND_SYNC();
+            cudaFree(d_temp_storage);
             return std::abs(out[0]);
         }
 
@@ -336,7 +338,7 @@ namespace Engine
             // Run reduction
             cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, temp.data(), ret.data(), N, lam, init);
             CU_CHECK_AND_SYNC();
-
+            cudaFree(d_temp_storage);
             return std::sqrt(ret[0]);
         }
 
@@ -398,6 +400,7 @@ namespace Engine
             // Run reduction
             cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf.data(), ret.data(), vf.size(), add_op, init);
             CU_CHECK_AND_SYNC();
+            cudaFree(d_temp_storage);
             return ret[0];
         }
 
