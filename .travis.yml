@@ -1,5 +1,5 @@
 sudo: required
-dist: trusty
+dist: bionic
 language: cpp
 
 
@@ -25,36 +25,38 @@ matrix:
       env: CMAKE_OPTIONS="-DUSER_PATH_QT=~/usr/local/Cellar/qt/5.11.0" PYPI=true
     # Linux, GCC 6
     - os: linux
-      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 CMAKE_OPTIONS="-DUSER_PATH_QT=~/opt/qt57" PYPI=true
+      env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 CMAKE_OPTIONS="-DUSER_PATH_QT=~/opt/qt511" PYPI=true
       compiler: g++
       addons:
         apt:
           packages:
           - g++-6
-          - qt57base
-          - qt57charts-no-lgpl
+          - qt511base
+          - qt511charts-no-lgpl
           - ca-certificates
           - python2.7
+          - mesa-common-dev
           sources:
           - sourceline: 'ppa:ubuntu-toolchain-r/test'
-          - sourceline: 'ppa:beineri/opt-qt571-trusty'
-          - sourceline: 'ppa:jonathonf/python-2.7'
+          - sourceline: 'ppa:beineri/opt-qt-5.11.1-bionic'
+          # - sourceline: 'ppa:jonathonf/python-2.7'
     # Linux, GCC 5
     - os: linux
-      env: COMPILER_C=gcc-5 COMPILER_CXX=g++-5 CMAKE_OPTIONS="-DUSER_PATH_QT=~/opt/qt57" PYPI=false
+      env: COMPILER_C=gcc-5 COMPILER_CXX=g++-5 CMAKE_OPTIONS="-DUSER_PATH_QT=~/opt/qt511" PYPI=false
       compiler: g++
       addons:
         apt:
           packages:
           - g++-5
-          - qt57base
-          - qt57charts-no-lgpl
+          - qt511base
+          - qt511charts-no-lgpl
           - ca-certificates
           - python2.7
+          - mesa-common-dev
           sources:
           - sourceline: 'ppa:ubuntu-toolchain-r/test'
-          - sourceline: 'ppa:beineri/opt-qt571-trusty'
-          - sourceline: 'ppa:jonathonf/python-2.7'
+          - sourceline: 'ppa:beineri/opt-qt-5.11.1-bionic'
+          # - sourceline: 'ppa:jonathonf/python-2.7'
     # Linux, GCC 6 CUDA build
     - os: linux
       env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 RUNTESTS=false USE_CUDA=true CMAKE_OPTIONS="-DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_USE_CUDA=ON -DSPIRIT_CUDA_ARCH=sm_70" PYPI=false
@@ -63,14 +65,15 @@ matrix:
         apt:
           packages:
           - g++-6
-          - qt57base
-          - qt57charts-no-lgpl
+          - qt511base
+          - qt511charts-no-lgpl
           - ca-certificates
           - python2.7
+          - mesa-common-dev
           sources:
           - sourceline: 'ppa:ubuntu-toolchain-r/test'
-          - sourceline: 'ppa:beineri/opt-qt571-trusty'
-          - sourceline: 'ppa:jonathonf/python-2.7'
+          - sourceline: 'ppa:beineri/opt-qt-5.11.1-bionic'
+          # - sourceline: 'ppa:jonathonf/python-2.7'
     # Linux, GCC 6 OpenMP build
     - os: linux
       env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 OMP_NUM_THREADS=4 CMAKE_OPTIONS="-DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_USE_OPENMP=ON" PYPI=false
@@ -79,14 +82,15 @@ matrix:
         apt:
           packages:
           - g++-6
-          - qt57base
-          - qt57charts-no-lgpl
+          - qt511base
+          - qt511charts-no-lgpl
           - ca-certificates
           - python2.7
+          - mesa-common-dev
           sources:
           - sourceline: 'ppa:ubuntu-toolchain-r/test'
-          - sourceline: 'ppa:beineri/opt-qt571-trusty'
-          - sourceline: 'ppa:jonathonf/python-2.7'
+          - sourceline: 'ppa:beineri/opt-qt-5.11.1-bionic'
+          # - sourceline: 'ppa:jonathonf/python-2.7'
     # Linux, GCC 6 pinning and defects build
     - os: linux
       env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 CMAKE_OPTIONS="-DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_ENABLE_PINNING=ON -DSPIRIT_ENABLE_DEFECTS=ON" PYPI=false
@@ -95,13 +99,14 @@ matrix:
         apt:
           packages:
           - g++-6
-          - qt57base
+          - qt511base
           - ca-certificates
           - python2.7
+          - mesa-common-dev
           sources:
           - sourceline: 'ppa:ubuntu-toolchain-r/test'
-          - sourceline: 'ppa:beineri/opt-qt571-trusty'
-          - sourceline: 'ppa:jonathonf/python-2.7'
+          - sourceline: 'ppa:beineri/opt-qt-5.11.1-bionic'
+          # - sourceline: 'ppa:jonathonf/python-2.7'
     # Linux, GCC 6 coverage build
     - os: linux
       env: COMPILER_C=gcc-6 COMPILER_CXX=g++-6 CMAKE_OPTIONS="-DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_TEST_COVERAGE=ON" PYPI=false COVERAGE=true RUNTESTS=false
@@ -111,13 +116,14 @@ matrix:
           packages:
           - g++-6
           - lcov
-          - qt57base
+          - qt511base
           - ca-certificates
           - python2.7
+          - mesa-common-dev
           sources:
           - sourceline: 'ppa:ubuntu-toolchain-r/test'
-          - sourceline: 'ppa:beineri/opt-qt571-trusty'
-          - sourceline: 'ppa:jonathonf/python-2.7'
+          - sourceline: 'ppa:beineri/opt-qt-5.11.1-bionic'
+          # - sourceline: 'ppa:jonathonf/python-2.7'
 
     # - compiler: clang
     #   addons:
@@ -143,7 +149,7 @@ before_install:
   - python --version
   - if [ "$TRAVIS_OS_NAME" != "osx" ]; then sudo pip uninstall -y six chardet pyOpenSSL; fi
   - sudo pip install --upgrade pip six pyOpenSSL
-  - sudo pip install wheel numpy urllib3==1.23 twine coveralls
+  - sudo pip install wheel numpy urllib3==1.23 twine coveralls chardet
   # Run homebrew on osx
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
   # Setup default versions and override compiler if needed
@@ -157,7 +163,7 @@ before_install:
       mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
       export PATH=${DEPS_DIR}/cmake/bin:${PATH}
       export CC=${COMPILER_C} CXX=${COMPILER_CXX}
-      source /opt/qt57/bin/qt57-env.sh
+      source /opt/qt511/bin/qt511-env.sh
     else
       if ! brew ls --version cmake &>/dev/null; then brew install cmake; fi
       brew install cppcheck qt
@@ -168,9 +174,10 @@ before_install:
   - |
     if [[ "$USE_CUDA" == "true" ]]; then
       export CUDA=10.1.105-1
-      # get cuda-repo-ubuntu1404
-      travis_retry wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1404/x86_64/cuda-repo-ubuntu1404_${CUDA}_amd64.deb
-      travis_retry sudo dpkg -i cuda-repo-ubuntu1404_${CUDA}_amd64.deb
+      # get cuda-repo-ubuntu1804
+      travis_retry wget http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/cuda-repo-ubuntu1804_${CUDA}_amd64.deb
+      travis_retry sudo apt-key adv --fetch-keys http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
+      travis_retry sudo dpkg -i cuda-repo-ubuntu1804_${CUDA}_amd64.deb
       # install
       travis_retry sudo apt-get update -qq
       export CUDA_APT=${CUDA:0:4}
