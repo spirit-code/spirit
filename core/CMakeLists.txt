@@ -476,7 +476,27 @@ if( SPIRIT_BUILD_FOR_PYTHON )
     configure_file(${CMAKE_SOURCE_DIR}/LICENSE.txt ${SPIRIT_PYDIR}/LICENSE.txt COPYONLY)
     configure_file(${PROJECT_SOURCE_DIR}/CMake/__init__.py.in ${PYLIB_OUTPUT_DIR}/__init__.py)
     file( WRITE ${PYLIB_OUTPUT_DIR}/scalar.py "import ctypes\nscalar=ctypes.c_${SPIRIT_SCALAR_TYPE}")
-    file( WRITE ${PYLIB_OUTPUT_DIR}/version.py "version=\"${META_VERSION}\"\nrevision=\"${META_VERSION_REVISION}\"")
+
+    set(SPIRIT_VERSION_PY
+        "version_major = ${META_VERSION_MAJOR}\n"
+        "version_minor = ${META_VERSION_MINOR}\n"
+        "version_patch = ${META_VERSION_PATCH}\n"
+        "version          = \"${META_VERSION}\"\n"
+        "revision = \"${META_VERSION_REVISION}\"\n"
+        "version_full     = \"${META_VERSION} (${META_VERSION_REVISION})\"\n"
+        "compiler         = \"${META_COMPILER}\"\n"
+        "compiler_version = \"${META_COMPILER_VERSION}\"\n"
+        "compiler_full    = \"${META_COMPILER_FULL}\"\n"
+        "scalartype = \"${SPIRIT_SCALAR_TYPE}\"\n"
+        "pinning = \"${SPIRIT_ENABLE_PINNING}\"\n"
+        "defects = \"${SPIRIT_ENABLE_DEFECTS}\"\n"
+        "cuda    = \"${SPIRIT_USE_CUDA}\"\n"
+        "openmp  = \"${SPIRIT_USE_OPENMP}\"\n"
+        "threads = \"${SPIRIT_USE_THREADS}\"\n"
+        "fftw = \"${SPIRIT_USE_FFTW}\""
+    )
+    file( WRITE ${PYLIB_OUTPUT_DIR}/version.py ${SPIRIT_VERSION_PY})
+    
     ###
     if( NOT SPIRIT_USE_CUDA )
         MESSAGE( STATUS ">> Building shared library for Python" )
