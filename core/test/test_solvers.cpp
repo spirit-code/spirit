@@ -9,7 +9,9 @@
 #include <Spirit/System.h>
 #include <Spirit/Chain.h>
 #include <Spirit/Quantities.h>
+#include <Spirit/Version.h>
 #include <iostream>
+#include <string.h>
 
 TEST_CASE( "Solvers testing", "[solvers]" )
 {
@@ -18,6 +20,16 @@ TEST_CASE( "Solvers testing", "[solvers]" )
 
     // State
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
+
+    // Reduce precision if float accuracy
+    double epsilon_apprx = 1e-5;
+    if(strcmp(Spirit_Scalar_Type(), "float") == 0)
+    {
+        WARN("Detected single precision calculation. Reducing precision requirements.");
+        Parameters_LLG_Set_Convergence(state.get(), 1e-5);
+        Parameters_GNEB_Set_Convergence(state.get(), 1e-4);
+        epsilon_apprx = 5e-3;
+    }
 
     // Solvers to be tested
     std::vector<int>  solvers { Solver_LBFGS_Atlas, Solver_LBFGS_OSO, Solver_VP_OSO, Solver_VP, Solver_Heun, Solver_SIB, Solver_Depondt, Solver_RungeKutta4 };
@@ -29,29 +41,6 @@ TEST_CASE( "Solvers testing", "[solvers]" )
     // Result values
     scalar energy;
     std::vector<float> magnetization{ 0, 0, 0 };
-
-    // Calculate energy and magnetization for every solvers
-    for ( auto solver : solvers )
-    {
-        // Put a skyrmion in the center of the space
-        Configuration_PlusZ( state.get() );
-        Configuration_Skyrmion( state.get(), 5, 1, -90, false, false, false);
-
-        // Do simulation
-        Simulation_LLG_Start( state.get(), solver );
-
-        // Save energy and magnetization
-        energy = System_Get_Energy( state.get() );
-        Quantity_Get_Magnetization( state.get(), magnetization.data() );
-
-        // Log the name of the solvers
-        INFO( "LLG using " << solver << " solver" );
-
-        // Check the values of energy and magnetization
-        REQUIRE( energy == Approx( energy_expected ) );
-        for (int dim=0; dim<3; dim++)
-            REQUIRE( magnetization[dim] == Approx( magnetization_expected[dim] ) );
-    }
 
     // Calculate energy and magnetization for every solvers with direct minimization
     Parameters_LLG_Set_Direct_Minimization( state.get(), true );
@@ -72,9 +61,9 @@ TEST_CASE( "Solvers testing", "[solvers]" )
         INFO( "LLG using " << solver << " solver (direct)" );
 
         // Check the values of energy and magnetization
-        REQUIRE( energy == Approx( energy_expected ) );
+        REQUIRE( energy == Approx( energy_expected ).epsilon(epsilon_apprx) );
         for (int dim=0; dim<3; dim++)
-            REQUIRE( magnetization[dim] == Approx( magnetization_expected[dim] ) );
+            REQUIRE( magnetization[dim] == Approx( magnetization_expected[dim] ).epsilon(epsilon_apprx) );
     }
 
     Chain_Image_to_Clipboard(state.get());
@@ -132,9 +121,9 @@ TEST_CASE( "Solvers testing", "[solvers]" )
         INFO( "GNEB using " << solver << " solver" );
 
         // Check the values of energy and magnetization
-        REQUIRE( energy_sp == Approx( energy_sp_expected ) );
+        REQUIRE( energy_sp == Approx( energy_sp_expected ).epsilon(epsilon_apprx) );
         for (int dim=0; dim<3; dim++)
-            REQUIRE( magnetization_sp[dim] == Approx( magnetization_sp_expected[dim] ) );
+            REQUIRE( magnetization_sp[dim] == Approx( magnetization_sp_expected[dim] ).epsilon(epsilon_apprx) );
     }
 
 }
