@@ -185,6 +185,8 @@ ddi_n_periodic_images    4 4 4
 
 ### DDI cutoff radius (if cutoff is used)
 ddi_radius               0.0
+
+ddi_pb_zero_padding      1.0
 ```
 
 *Anisotropy:*
@@ -197,7 +199,7 @@ a magnitude `K`.
 Via the keyword `ddi_method` the method employed to calculate the dipole-dipole interactions is specified.
 
       `none`   -  Dipole-Dipole interactions are neglected
-      `fft`    -  Uses a fast convolution method to accelerate the calculation
+      `fft`    -  Uses a fast convolution method to accelerate the calculation (RECOMMENDED)
       `cutoff` -  Lets only spins within a maximal distance of 'ddi_radius' interact
       `fmm`    -  Uses the Fast-Multipole-Method (NOT YET IMPLEMENTED!)
 
@@ -207,6 +209,10 @@ If the `cutoff`-method has been chosen the cutoff-radius can be specified via `d
 If the boundary conditions are periodic `ddi_n_periodic_images` specifies how many images are taken in the respective direction.
 *Note:* The images are appended on both sides (the edges get filled too)
 i.e. 1 0 0 -> one image in +a direction and one image in -a direction
+
+If the boundary conditions are open in a lattice direction and sufficiently many periodic images are chosen, zero-padding in that direction can be skipped. 
+This improves the speed and memory footprint of the calculation, but comes at the cost of a very slight asymmetry in the interactions (decreasing with increasing periodic images). 
+If `ddi_pb_zero_padding` is set to 1, zero-padding is performed - even if the boundary condition is periodic in a direction. If it is set to 0, zero-padding is skipped.
 
 **Neighbour shells**:
 

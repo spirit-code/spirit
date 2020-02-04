@@ -1135,6 +1135,7 @@ namespace IO
         auto ddi_method = Engine::DDI_Method::None;
         intfield ddi_n_periodic_images = { 4, 4, 4 };
         scalar ddi_radius = 0.0;
+        bool ddi_pb_zero_padding = true;
 
         // ------------ Quadruplet Interactions ------------
         int n_quadruplets = 0;
@@ -1347,7 +1348,7 @@ namespace IO
 
                 // Number of periodical images
                 myfile.Read_3Vector(ddi_n_periodic_images, "ddi_n_periodic_images");
-                // myfile.Read_Single(ddi_n_periodic_images, "ddi_n_periodic_images");
+                myfile.Read_Single(ddi_pb_zero_padding, "ddi_pb_zero_padding");
 
                 // Dipole-dipole cutoff radius
                 myfile.Read_Single(ddi_radius, "ddi_radius");
@@ -1405,6 +1406,7 @@ namespace IO
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "ddi_method", ddi_method_str));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = ({} {} {})", "ddi_n_periodic_images", ddi_n_periodic_images[0], ddi_n_periodic_images[1], ddi_n_periodic_images[2]));
         Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "ddi_radius", ddi_radius));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "ddi_pb_zero_padding", ddi_pb_zero_padding));
 
         std::unique_ptr<Engine::Hamiltonian_Heisenberg> hamiltonian;
 
@@ -1415,7 +1417,7 @@ namespace IO
                 anisotropy_index, anisotropy_magnitude, anisotropy_normal,
                 exchange_magnitudes,
                 dmi_magnitudes, dm_chirality,
-                ddi_method, ddi_n_periodic_images, ddi_radius,
+                ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius,
                 quadruplets, quadruplet_magnitudes,
                 geometry,
                 boundary_conditions
@@ -1428,7 +1430,7 @@ namespace IO
                 anisotropy_index, anisotropy_magnitude, anisotropy_normal,
                 exchange_pairs, exchange_magnitudes,
                 dmi_pairs, dmi_magnitudes, dmi_normals,
-                ddi_method, ddi_n_periodic_images, ddi_radius,
+                ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius,
                 quadruplets, quadruplet_magnitudes,
                 geometry,
                 boundary_conditions

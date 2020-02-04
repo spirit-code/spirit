@@ -85,8 +85,9 @@ Configure the dipole-dipole interaction
   boundary conditions are used
 - `cutoff_radius`: the distance at which to stop the direct summation,
   if used
+- `pb_zero_padding`: if `True` zero padding is used even for periodical directions
 */
-PREFIX void Hamiltonian_Set_DDI(State *state, int ddi_method, int n_periodic_images[3], float cutoff_radius=0, int idx_image=-1, int idx_chain=-1) SUFFIX;
+PREFIX void Hamiltonian_Set_DDI(State *state, int ddi_method, int n_periodic_images[3], float cutoff_radius=0, bool pb_zero_padding=true, int idx_image=-1, int idx_chain=-1) SUFFIX;
 
 /*
 Getters
@@ -133,13 +134,12 @@ PREFIX int  Hamiltonian_Get_DMI_N_Pairs(State *state, int idx_image=-1, int idx_
 Retrieves the dipole-dipole interaction configuration.
 
 - `ddi_method`: see integers defined above
-- `n_periodic_images`: how many repetition of the spin configuration to
-  append along the translation directions [a, b, c], if periodical
-  boundary conditions are used
-- `cutoff_radius`: the distance at which to stop the direct summation,
-  if used
+- `n_periodic_images`: how many repetitions of the spin configuration to
+  append along the translation directions [a, b, c], if periodical boundary conditions are used
+- `cutoff_radius`: the distance at which to stop the direct summation, if method_cutoff is used
+- `pb_zero_padding`: if `True` zero padding is used even for periodical directions
 */
-PREFIX void Hamiltonian_Get_DDI(State *state, int * ddi_method, int n_periodic_images[3], float * cutoff_radius, int idx_image=-1, int idx_chain=-1) SUFFIX;
+PREFIX void Hamiltonian_Get_DDI(State *state, int * ddi_method, int n_periodic_images[3], float * cutoff_radius,  bool * pb_zero_padding, int idx_image=-1, int idx_chain=-1) SUFFIX;
 
 #include "DLL_Undefine_Export.h"
 #endif

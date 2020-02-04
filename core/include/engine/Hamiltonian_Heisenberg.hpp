@@ -35,7 +35,7 @@ namespace Engine
             intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
             pairfield exchange_pairs, scalarfield exchange_magnitudes,
             pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals,
-            DDI_Method ddi_method, intfield ddi_n_periodic_images, scalar ddi_radius,
+            DDI_Method ddi_method, intfield ddi_n_periodic_images, bool ddi_pb_zero_padding, scalar ddi_radius,
             quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
             std::shared_ptr<Data::Geometry> geometry,
             intfield boundary_conditions
@@ -46,7 +46,7 @@ namespace Engine
             intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
             scalarfield exchange_shell_magnitudes,
             scalarfield dmi_shell_magnitudes, int dm_chirality,
-            DDI_Method ddi_method, intfield ddi_n_periodic_images, scalar ddi_radius,
+            DDI_Method ddi_method, intfield ddi_n_periodic_images, bool ddi_pb_zero_padding, scalar ddi_radius,
             quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
             std::shared_ptr<Data::Geometry> geometry,
             intfield boundary_conditions
@@ -100,6 +100,7 @@ namespace Engine
         // Dipole Dipole interaction
         DDI_Method  ddi_method;
         intfield    ddi_n_periodic_images;
+        bool        ddi_pb_zero_padding;
         //      ddi cutoff variables
         scalar      ddi_cutoff_radius;
         pairfield   ddi_pairs;
@@ -177,12 +178,12 @@ namespace Engine
         FFT::StrideContainer spin_stride;
         FFT::StrideContainer dipole_stride;
 
-        //Calculate the FT of the padded D matriess
+        // Calculate the FT of the padded D-matrics
         void FFT_Dipole_Matrices(FFT::FFT_Plan & fft_plan_dipole, int img_a, int img_b, int img_c);
-        //Calculate the FT of the padded spins
+        // Calculate the FT of the padded spins
         void FFT_Spins(const vectorfield & spins);
 
-        //Bounds for nested for loops. Only important for the CUDA version
+        // Bounds for nested for loops. Only important for the CUDA version
         field<int> it_bounds_pointwise_mult;
         field<int> it_bounds_write_gradients;
         field<int> it_bounds_write_spins;

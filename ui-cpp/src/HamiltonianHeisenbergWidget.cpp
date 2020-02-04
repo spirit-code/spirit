@@ -57,6 +57,7 @@ void HamiltonianHeisenbergWidget::Load_Contents()
 {
     float d, vd[3], jij[100], dij[100];
     int ddi_method, ddi_n_periodic_images[3];
+    bool pb_zero_padding;
     int n_neigh_shells_exchange, n_neigh_shells_dmi, dm_chirality;
     int n_basis_atoms = Geometry_Get_N_Cell_Atoms(state.get());
     std::vector<float> mu_s(n_basis_atoms);
@@ -109,7 +110,7 @@ void HamiltonianHeisenbergWidget::Load_Contents()
     for (int i = 0; i < n_neigh_shells_dmi; ++i) this->dmi_shells[i]->setValue(dij[i]);
 
     // DDI
-    Hamiltonian_Get_DDI(state.get(), &ddi_method, ddi_n_periodic_images, &d);
+    Hamiltonian_Get_DDI(state.get(), &ddi_method, ddi_n_periodic_images, &d, &pb_zero_padding);
     this->checkBox_ddi->setChecked( ddi_method != SPIRIT_DDI_METHOD_NONE );
     if( ddi_method == SPIRIT_DDI_METHOD_NONE )
         this->comboBox_ddi_method->setCurrentIndex(0);
@@ -123,6 +124,7 @@ void HamiltonianHeisenbergWidget::Load_Contents()
     this->spinBox_ddi_n_periodic_b->setValue(ddi_n_periodic_images[1]);
     this->spinBox_ddi_n_periodic_c->setValue(ddi_n_periodic_images[2]);
     this->doubleSpinBox_ddi_radius->setValue(d);
+    this->checkBox_ddi_pb_zero_padding->setChecked(pb_zero_padding);
 }
 
 
@@ -464,8 +466,8 @@ void HamiltonianHeisenbergWidget::set_ddi()
         n_periodic_images[2] = this->spinBox_ddi_n_periodic_c->value();
 
         float radius = this->doubleSpinBox_ddi_radius->value();
-
-        Hamiltonian_Set_DDI(state.get(), method, n_periodic_images, radius, idx_image);
+        bool pb_zero_padding = this->checkBox_ddi_pb_zero_padding->isChecked();
+        Hamiltonian_Set_DDI(state.get(), method, n_periodic_images, radius, pb_zero_padding, idx_image);
     };
 
     if (this->comboBox_Hamiltonian_Ani_ApplyTo->currentText() == "Current Image")
@@ -556,6 +558,7 @@ void HamiltonianHeisenbergWidget::Setup_Slots()
     connect(this->spinBox_ddi_n_periodic_b, SIGNAL(editingFinished()), this, SLOT(set_ddi()));
     connect(this->spinBox_ddi_n_periodic_c, SIGNAL(editingFinished()), this, SLOT(set_ddi()));
     connect(this->doubleSpinBox_ddi_radius, SIGNAL(editingFinished()), this, SLOT(set_ddi()));
+    connect(this->checkBox_ddi_pb_zero_padding, SIGNAL(stateChanged(int)), this, SLOT(set_ddi()));
     // Pairs
     connect(this->pushButton_pairs_apply, SIGNAL(clicked()), this, SLOT(set_pairs_from_text()));
     connect(this->pushButton_pairs_fromfile, SIGNAL(clicked()), this, SLOT(set_pairs_from_file()));

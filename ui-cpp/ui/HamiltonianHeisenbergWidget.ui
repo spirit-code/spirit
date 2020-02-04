@@ -537,13 +537,6 @@
            </item>
           </layout>
          </item>
-         <item row="21" column="1">
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_ddi_radius">
-           <property name="maximum">
-            <double>1000000.000000000000000</double>
-           </property>
-          </widget>
-         </item>
          <item row="19" column="1">
           <widget class="QComboBox" name="comboBox_ddi_method">
            <item>
@@ -575,6 +568,17 @@
             <widget class="QSpinBox" name="spinBox_ddi_n_periodic_c"/>
            </item>
           </layout>
+         </item>
+         <item row="21" column="1">
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_ddi_radius">
+           <property name="maximum">
+             <double>1000000.000000000000000</double>
+           </property>
+          </widget>
+          </item>
+          <item row="22" column="1">
+              <widget class="QCheckBox" name="checkBox_ddi_pb_zero_padding">
+              </widget>
          </item>
          <item row="20" column="0">
           <layout class="QGridLayout" name="gridLayout_7">
@@ -619,6 +623,30 @@
             <widget class="QLabel" name="label_7">
              <property name="text">
               <string>cutoff radius</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item row="22" column="0">
+          <layout class="QGridLayout" name="gridLayout_9">
+           <item row="0" column="0">
+            <spacer name="horizontalSpacer_10">
+             <property name="orientation">
+              <enum>Qt::Horizontal</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>40</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item row="0" column="1">
+            <widget class="QLabel" name="label_8">
+             <property name="text">
+              <string>PB zero padding</string>
              </property>
             </widget>
            </item>

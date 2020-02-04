@@ -267,7 +267,7 @@ void Hamiltonian_Set_DMI(State *state, int n_shells, const float * dij, int chir
     }
 }
 
-void Hamiltonian_Set_DDI(State *state, int ddi_method, int n_periodic_images[3], float cutoff_radius, int idx_image, int idx_chain) noexcept
+void Hamiltonian_Set_DDI(State *state, int ddi_method, int n_periodic_images[3], float cutoff_radius, bool pb_zero_padding, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -289,11 +289,12 @@ void Hamiltonian_Set_DDI(State *state, int ddi_method, int n_periodic_images[3],
                 ham->ddi_n_periodic_images[1] = n_periodic_images[1];
                 ham->ddi_n_periodic_images[2] = n_periodic_images[2];
                 ham->ddi_cutoff_radius = cutoff_radius;
+                ham->ddi_pb_zero_padding = pb_zero_padding;
                 ham->Update_Interactions();
 
                 Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format(
-                    "Set ddi to method {}, periodic images {} {} {} and cutoff radius {}",
-                    ddi_method, n_periodic_images[0], n_periodic_images[1], n_periodic_images[2], cutoff_radius), idx_image, idx_chain );
+                    "Set ddi to method {}, periodic images {} {} {}, cutoff radius {} and pb_zero_padding {}",
+                    ddi_method, n_periodic_images[0], n_periodic_images[1], n_periodic_images[2], cutoff_radius, pb_zero_padding), idx_image, idx_chain );
             }
             else
                 Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, "DDI cannot be set on " + 
@@ -552,7 +553,7 @@ int  Hamiltonian_Get_DMI_N_Pairs(State *state, int idx_image, int idx_chain) noe
     }
 }
 
-void Hamiltonian_Get_DDI(State *state, int * ddi_method, int n_periodic_images[3], float * cutoff_radius, int idx_image, int idx_chain) noexcept
+void Hamiltonian_Get_DDI(State *state, int * ddi_method, int n_periodic_images[3], float * cutoff_radius, bool * pb_zero_padding, int idx_image, int idx_chain) noexcept
 {
     try
     {
@@ -571,6 +572,7 @@ void Hamiltonian_Get_DDI(State *state, int * ddi_method, int n_periodic_images[3
             n_periodic_images[1] = (int)ham->ddi_n_periodic_images[1];
             n_periodic_images[2] = (int)ham->ddi_n_periodic_images[2];
             *cutoff_radius       = (float)ham->ddi_cutoff_radius;
+            *pb_zero_padding     = ham->ddi_pb_zero_padding;
         }
     }
     catch( ... )
