@@ -94,6 +94,7 @@ def set_dmi(p_state, n_shells, D_ij, chirality=CHIRALITY_BLOCH, idx_image=-1, id
 
 
 
+
 # Micromagnetics
 _Set_Ms             = _spirit.Hamiltonian_Set_Field_Regions
 _Set_Ms.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.c_int,
@@ -141,8 +142,6 @@ def set_dmi_m(p_state, dmi_tensor, region_id, idx_image=-1, idx_chain=-1):
     """Set the Dzyaloshinskii-Moriya interaction in terms of neighbour shells."""
     _Set_DMI_m(ctypes.c_void_p(p_state), ctypes.c_float(dmi_tensor), ctypes.c_int(region_id),
              ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
-
-
 
 
 

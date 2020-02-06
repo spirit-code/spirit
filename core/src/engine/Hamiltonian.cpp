@@ -134,20 +134,20 @@ namespace Engine
 
     std::vector<std::pair<std::string, scalar>> Hamiltonian::Energy_Contributions(const vectorfield & spins)
     {
-		#ifndef SPIRIT_LOW_MEMORY
-			Energy_Contributions_per_Spin(spins, this->energy_contributions_per_spin);
-			std::vector<std::pair<std::string, scalar>> energy(this->energy_contributions_per_spin.size());
-			for (unsigned int i = 0; i < energy.size(); ++i)
-			{
-				energy[i] = { this->energy_contributions_per_spin[i].first, Vectormath::sum(this->energy_contributions_per_spin[i].second) };
-			}
-			return energy;
-		#endif
-    	#ifdef SPIRIT_LOW_MEMORY
-			return this->energy_array;
-    	#endif
+        #ifndef SPIRIT_LOW_MEMORY
+            Energy_Contributions_per_Spin(spins, this->energy_contributions_per_spin);
+            std::vector<std::pair<std::string, scalar>> energy(this->energy_contributions_per_spin.size());
+            for (unsigned int i = 0; i < energy.size(); ++i)
+            {
+                energy[i] = { this->energy_contributions_per_spin[i].first, Vectormath::sum(this->energy_contributions_per_spin[i].second) };
+            }
+            return energy;
+        #endif
+        #ifdef SPIRIT_LOW_MEMORY
+            return this->energy_array;
+        #endif
 
-		//return NULL;
+        //return NULL;
     }
 
     void Hamiltonian::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)

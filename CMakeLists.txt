@@ -20,10 +20,10 @@ SET( SPIRIT_BUILD_FOR_CXX     ON   CACHE BOOL "Build the static library for C++ 
 SET( SPIRIT_ENABLE_PINNING    OFF  CACHE BOOL "Enable pinning individual or rows of spins." )
 SET( SPIRIT_ENABLE_DEFECTS    OFF  CACHE BOOL "Enable defects and disorder in the lattice." )
 ### Options for Spirit
-SET( SPIRIT_BUILD_TEST        OFF  CACHE BOOL "Build unit tests for the Spirit library." )
+SET( SPIRIT_BUILD_TEST        ON   CACHE BOOL "Build unit tests for the Spirit library." )
 SET( SPIRIT_TEST_COVERAGE     OFF  CACHE BOOL "Build in debug mode with special flags for coverage checks." )
 SET( SPIRIT_USE_CUDA          OFF  CACHE BOOL "Use CUDA to speed up certain parts of the code." )
-SET( SPIRIT_USE_OPENMP        ON  CACHE BOOL "Use OpenMP to speed up certain parts of the code." )
+SET( SPIRIT_USE_OPENMP        OFF  CACHE BOOL "Use OpenMP to speed up certain parts of the code." )
 SET( SPIRIT_USE_THREADS       OFF  CACHE BOOL "Use std threads to speed up certain parts of the code." )
 SET( SPIRIT_USE_FFTW          ON   CACHE BOOL "If available, use the FFTW library instead of kissFFT." )
 ### Set the scalar type used in the Spirit library
@@ -67,7 +67,7 @@ endif()
 ### the CUDA_TOOLKIT_ROOT_DIR variable.
 if( SPIRIT_USE_CUDA )
     ### Deactivate OpenMP
-    ### set( SPIRIT_USE_OPENMP          ON )
+    set( SPIRIT_USE_OPENMP          OFF )
     ### Set cuda toolkit path
     if( NOT CUDA_TOOLKIT_ROOT_DIR )
         if ( APPLE OR UNIX )
@@ -78,16 +78,16 @@ if( SPIRIT_USE_CUDA )
             MESSAGE( WARNING ">> We are on Windows... CUDA_TOOLKIT_ROOT_DIR may need to be passed to cmake..." )
         endif()
     endif()
-   ### Set compilers
+    ### Set compilers
     if( APPLE OR UNIX )
         if( DEFINED CUDA_TOOLKIT_ROOT_DIR )
             MESSAGE( STATUS ">> CUDA toolkit root dir: ${CUDA_TOOLKIT_ROOT_DIR}" )
             if( NOT DEFINED CMAKE_C_COMPILER )
-                set( CMAKE_C_COMPILER   /usr/bin/gcc-7 )
+                set( CMAKE_C_COMPILER   ${CUDA_TOOLKIT_ROOT_DIR}/bin/gcc )
                 MESSAGE( STATUS ">> Set C compiler accordingly" )
             endif( )
             if( NOT DEFINED CMAKE_CXX_COMPILER )
-                set( CMAKE_CXX_COMPILER /usr/bin/g++-7 )
+                set( CMAKE_CXX_COMPILER ${CUDA_TOOLKIT_ROOT_DIR}/bin/g++ )
                 MESSAGE( STATUS ">> Set CXX compiler accordingly" )
             endif( )
         else( )
@@ -100,6 +100,7 @@ endif( )
 #############################################
 
 
+
 ######### General Paths #####################
 ### Set the cmake subdirectory
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" )
@@ -110,7 +111,7 @@ include(PathsIFF)
 # set( USER_COMPILER_CXX  "g++" )
 # set( USER_PATH_COMPILER "/usr/bin" )
 ### Set this if you need cmake to find your QT installation
-set( USER_PATH_QT       "~/Qt/5.13.1" )
+# set( USER_PATH_QT       "~/QT/5.7" )
 #############################################
 
 

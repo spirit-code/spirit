@@ -1436,7 +1436,6 @@ namespace IO
         return hamiltonian;
     }// end Hamiltonian_Heisenberg_From_Config
 
-
     std::unique_ptr<Engine::Hamiltonian_Micromagnetic> Hamiltonian_Micromagnetic_from_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry)
     {
         //-------------- Insert default values here -----------------------------

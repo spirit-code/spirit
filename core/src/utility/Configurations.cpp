@@ -261,8 +261,8 @@ namespace Utility
             */
 
             // Choose orthogonalisation basis for Grahm-Schmidt
-            //        We will need two vectors with which the axis always forms the
-            //        same orientation (händigkeit des vektor-dreibeins)
+            // We will need two vectors with which the axis always forms the
+            // same orientation (händigkeit des vektor-dreibeins)
             // If axis_z=0 its in the xy-plane
             //        the vectors should be: axis, vz, (axis x vz)
             if (axis[2] == 0)
@@ -271,15 +271,15 @@ namespace Utility
                 e1 = vz;
             }
             // Else its either above or below the xy-plane.
-            //        if its above the xy-plane, it points in z-direction
-            //        the vectors should be: axis, vx, -vy
+            // if its above the xy-plane, it points in z-direction
+            // the vectors should be: axis, vx, -vy
             else if (axis[2] > 0)
             {
                 e1 = vx;
                 e2 = vy;
             }
-            //        if its below the xy-plane, it points in -z-direction
-            //        the vectors should be: axis, vx, vy
+            // if its below the xy-plane, it points in -z-direction
+            // the vectors should be: axis, vx, vy
             else if (axis[2] < 0)
             {
                 e1 = vx;
@@ -344,7 +344,7 @@ namespace Utility
                     phase = s.geometry->positions[iatom].dot(q);
                     //phase = phase / 180.0 * Pi;// / period;
                     // The opening angle determines how far from the axis the spins rotate around it.
-                    //        The rotation is done by alternating between v1 and v2 periodically
+                    // The rotation is done by alternating between v1 and v2 periodically
                     scalar norms = 0.0;
                     spins[iatom] = axis * std::cos(theta)
                         + v1 * std::cos(phase) * std::sin(theta)
@@ -378,25 +378,25 @@ namespace Utility
             */
 
             // Choose orthogonalisation basis for Grahm-Schmidt
-            //        We will need two vectors with which the axis always forms the
-            //        same orientation (händigkeit des vektor-dreibeins)
+            // We will need two vectors with which the axis always forms the
+            // same orientation (händigkeit des vektor-dreibeins)
             // If axis_z=0 its in the xy-plane
-            //        the vectors should be: axis, vz, (axis x vz)
+            // the vectors should be: axis, vz, (axis x vz)
             if (axis[2] == 0)
             {
                 e2 = axis.cross(vz);
                 e1 = vz;
             }
             // Else its either above or below the xy-plane.
-            //        if its above the xy-plane, it points in z-direction
-            //        the vectors should be: axis, vx, -vy
+            // if its above the xy-plane, it points in z-direction
+            // the vectors should be: axis, vx, -vy
             else if (axis[2] > 0)
             {
                 e1 = vx;
                 e2 = -vy;
             }
-            //        if its below the xy-plane, it points in -z-direction
-            //        the vectors should be: axis, vx, vy
+            // if its below the xy-plane, it points in -z-direction
+            // the vectors should be: axis, vx, vy
             else if (axis[2] < 0)
             {
                 e1 = vx;
@@ -480,7 +480,7 @@ namespace Utility
                     auto& r = s.geometry->positions[iatom];
                     //phase = phase / 180.0 * Pi;// / period;
                     // The opening angle determines how far from the axis the spins rotate around it.
-                    //        The rotation is done by alternating between v1 and v2 periodically
+                    // The rotation is done by alternating between v1 and v2 periodically
                     scalar norms = 0.0;
                     spins[iatom] = axis * std::sin(r.dot(qm))
                         + v1 * std::cos(r.dot(qm)) * std::sin(r.dot(qk))

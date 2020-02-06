@@ -579,6 +579,7 @@ void SpinWidget::updateData()
     // Update the VectorField
     this->updateVectorFieldDirections();
     this->updateVectorFieldGeometry();
+
     // Update the View
     float b_min[3], b_max[3];
     Geometry_Get_Bounds(state.get(), b_min, b_max);

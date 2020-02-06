@@ -51,7 +51,7 @@ namespace Engine
         for (int i = 0; i<this->noi; ++i) this->configurations[i] = this->systems[i]->spins;
 
         // Allocate force array
-        //this->force = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));	// [noi][3*nos]
+        //this->force = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));    // [noi][3*nos]
 
         //---- Initialise Solver-specific variables
         this->Initialize();
@@ -272,10 +272,10 @@ namespace Engine
         //         //Vectormath::Normalize(3, s->nos, s->spins);
         //     }
         //     catch (Exception ex)
-        // 	{
+        //     {
         //         if (ex == Exception::Division_by_zero)
-        // 		{
-        // 			Log(Utility::Log_Level::Warning, Utility::Log_Sender::LLG, "During Iteration Spin = (0,0,0) was detected. Using Random Spin Array");
+        //         {
+        //             Log(Utility::Log_Level::Warning, Utility::Log_Sender::LLG, "During Iteration Spin = (0,0,0) was detected. Using Random Spin Array");
         //             //Utility::Configurations::Random(s, false);
         //         }
         //         else { throw(ex); }
