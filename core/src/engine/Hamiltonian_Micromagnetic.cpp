@@ -43,9 +43,9 @@ namespace Engine
         Regionvalues test;
 
         regions_book = regionbook(region_num);
-        for (int i=0;i<region_num;i++)
+        for (int i=0; i<region_num; i++)
         {
-            test.external_field_magnitude=external_field_magnitude[i];
+            test.external_field_magnitude = external_field_magnitude[i];
             test.external_field_normal = external_field_normal[i];
             test.Ms = Ms[i];
             test.Dmi = dmi[i];
@@ -69,6 +69,21 @@ namespace Engine
                 exchange_table[i][j] = (this->regions_book[i].Aexch + this->regions_book[j].Aexch) / 2;
             }
         }
+
+        exchange_tensor <<  exchange_stiffness[0], 0, 0,
+                            0, exchange_stiffness[0], 0, 
+                            0, 0, exchange_stiffness[0];
+        std::cout << "\n\nexchange_tensor\n" << exchange_tensor << "\n\n";
+
+        dmi_tensor <<   dmi[0], 0, 0,
+                        0, dmi[0], 0, 
+                        0, 0, dmi[0];
+        std::cout << "\n\ndmi_tensor\n" << dmi_tensor << "\n\n";
+
+        std::cout << "\n\nMs " << Ms[0] << "\n\n";
+        std::cout << "\n\nexternal field magnitude " << external_field_magnitude[0] << "\n\n";
+        std::cout << "\n\nexternal field normal " << external_field_normal[0].transpose() << "\n\n";
+
         this->Update_Interactions();
     }
 
@@ -82,107 +97,32 @@ namespace Engine
         const bool use_redundant_neighbours = false;
         #endif
 
-        neigh = pairfield(0);
-        Neighbour neigh_tmp;
-        neigh_tmp.i = 0;
-        neigh_tmp.j = 0;
-        neigh_tmp.idx_shell = 0;
-        // order x -x y -y z -z xy (-x)(-y) x(-y) (-x)y xz (-x)(-z) x(-z) (-x)z yz (-y)(-z) y(-z) (-y)z results in 9 parts of Hessian 
-        neigh_tmp.translations[0] = 1;
-        neigh_tmp.translations[1] = 0;
-        neigh_tmp.translations[2] = 0;
-        neigh.push_back(neigh_tmp);
+        Pair t{0,0,{0,0,0}};
+        neigh = pairfield(18, t);
 
-        neigh_tmp.translations[0] = -1;
-        neigh_tmp.translations[1] = 0;
-        neigh_tmp.translations[2] = 0;
-        neigh.push_back(neigh_tmp);
-
-        neigh_tmp.translations[0] = 0;
-        neigh_tmp.translations[1] = 1;
-        neigh_tmp.translations[2] = 0;
-        neigh.push_back(neigh_tmp);
-
-        neigh_tmp.translations[0] = 0;
-        neigh_tmp.translations[1] = -1;
-        neigh_tmp.translations[2] = 0;
-        neigh.push_back(neigh_tmp);
-
-        neigh_tmp.translations[0] = 0;
-        neigh_tmp.translations[1] = 0;
-        neigh_tmp.translations[2] = 1;
-        neigh.push_back(neigh_tmp);
-
-        neigh_tmp.translations[0] = 0;
-        neigh_tmp.translations[1] = 0;
-        neigh_tmp.translations[2] = -1;
-        neigh.push_back(neigh_tmp);
-
-        neigh_tmp.translations[0] = 1;
-        neigh_tmp.translations[1] = 1;
-        neigh_tmp.translations[2] = 0;
-        neigh.push_back(neigh_tmp);
-
-        neigh_tmp.translations[0] = -1;
-        neigh_tmp.translations[1] = -1;
-        neigh_tmp.translations[2] = 0;
-        neigh.push_back(neigh_tmp);
-
-        neigh_tmp.translations[0] = 1;
-        neigh_tmp.translations[1] = -1;
-        neigh_tmp.translations[2] = 0;
-        neigh.push_back(neigh_tmp);
-
-        neigh_tmp.translations[0] = -1;
-        neigh_tmp.translations[1] = +1;
-        neigh_tmp.translations[2] = 0;
-        neigh.push_back(neigh_tmp);
-
-        neigh_tmp.translations[0] = 1;
-        neigh_tmp.translations[1] = 0;
-        neigh_tmp.translations[2] = 1;
-        neigh.push_back(neigh_tmp);
-
-        neigh_tmp.translations[0] = -1;
-        neigh_tmp.translations[1] = 0;
-        neigh_tmp.translations[2] = -1;
-        neigh.push_back(neigh_tmp);
-
-        neigh_tmp.translations[0] = 1;
-        neigh_tmp.translations[1] = 0;
-        neigh_tmp.translations[2] = -1;
-        neigh.push_back(neigh_tmp);
-
-        neigh_tmp.translations[0] = -1;
-        neigh_tmp.translations[1] = 0;
-        neigh_tmp.translations[2] = 1;
-        neigh.push_back(neigh_tmp);
-
-        neigh_tmp.translations[0] = 0;
-        neigh_tmp.translations[1] = 1;
-        neigh_tmp.translations[2] = 1;
-        neigh.push_back(neigh_tmp);
-
-        neigh_tmp.translations[0] = 0;
-        neigh_tmp.translations[1] = -1;
-        neigh_tmp.translations[2] = -1;
-        neigh.push_back(neigh_tmp);
-
-        neigh_tmp.translations[0] = 0;
-        neigh_tmp.translations[1] = 1;
-        neigh_tmp.translations[2] = -1;
-        neigh.push_back(neigh_tmp);
-
-        neigh_tmp.translations[0] = 0;
-        neigh_tmp.translations[1] = -1;
-        neigh_tmp.translations[2] = 1;
-        neigh.push_back(neigh_tmp);
+        neigh[0].translations = {1, 0, 0};
+        neigh[1].translations = {-1, 0, 0};
+        neigh[2].translations = {0, 1, 0};
+        neigh[3].translations = {0, -1, 0};
+        neigh[4].translations = {0, 0, 1};
+        neigh[5].translations = {0, 0, -1};
+        neigh[6].translations = {1, 1, 0};
+        neigh[7].translations = {-1, -1, 0};
+        neigh[8].translations = {1, -1, 0};
+        neigh[9].translations = {-1, 1, 0};
+        neigh[10].translations = {1, 0, 1};
+        neigh[11].translations = {-1, 0, -1};
+        neigh[12].translations = {1, 0, -1};
+        neigh[13].translations = {-1, 0, 1};
+        neigh[14].translations = {0, 1, 1};
+        neigh[15].translations = {0, -1, -1};
+        neigh[16].translations = {0, 1, -1};
+        neigh[17].translations = {0, -1, 1};
 
         this->spatial_gradient = field<Matrix3>(geometry->nos, Matrix3::Zero());
+
         // Update, which terms still contribute
         this->Update_Energy_Contributions();
-        // Exchange tensor
-        this->Prepare_Exchange();
         // Dipole-dipole (FFT)
         this->Prepare_DDI();
         external_field=vectorfield(geometry->nos,Vector3{0,0,0});
@@ -264,7 +204,6 @@ namespace Engine
             this->energy_array.push_back({"DDI", 0 });
             this->idx_ddi = this->energy_array.size()-1;
         #endif
-
     }
 
     void Hamiltonian_Micromagnetic::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
@@ -297,7 +236,7 @@ namespace Engine
             if( this->idx_ddi >=0 )        Energy_Set(spins, contributions[this->idx_ddi].second, this->gradient_contributions_per_spin[this->idx_ddi].second);
         #endif
         #ifdef SPIRIT_LOW_MEMORY
-            //Energy already set in Gradient
+            // Energy already set in Gradient
         #endif
     }
 
@@ -306,7 +245,7 @@ namespace Engine
         #pragma omp parallel for
         for( int icell = 0; icell < geometry->n_cells_total; ++icell )
         {
-            Energy[icell] = 0.5 *regions_book[regions[icell]].Ms* gradient[icell].dot(spins[icell]);
+            Energy[icell] = 0.5 * regions_book[regions[icell]].Ms * gradient[icell].dot(spins[icell]);
         }
     }
     #ifdef SPIRIT_LOW_MEMORY
@@ -315,7 +254,7 @@ namespace Engine
             #pragma omp parallel for
             for( int icell = 0; icell < geometry->n_cells_total; ++icell )
             {
-                temp_energies[icell] = 0.5 *regions_book[regions[icell]].Ms* gradient[icell].dot(spins[icell]);
+                temp_energies[icell] = 0.5 * regions_book[regions[icell]].Ms * gradient[icell].dot(spins[icell]);
             }
             return Vectormath::sum(temp_energies);
         }
@@ -332,16 +271,18 @@ namespace Engine
         Vectormath::fill(gradient, {0,0,0});
         this->Spatial_Gradient(spins);
         #ifndef SPIRIT_LOW_MEMORY
+
             Gradient_Zeeman(this->gradient_contributions_per_spin[this->idx_zeeman].second);
             Gradient_Anisotropy(spins, this->gradient_contributions_per_spin[this->idx_anisotropy].second);
             Gradient_Exchange(spins, this->gradient_contributions_per_spin[this->idx_exchange].second);
             Gradient_DMI(spins, this->gradient_contributions_per_spin[this->idx_dmi].second);
             Gradient_DDI(spins, this->gradient_contributions_per_spin[this->idx_ddi].second);
-            Vectormath::add_c_a(1,this->gradient_contributions_per_spin[this->idx_zeeman].second,gradient);
-            Vectormath::add_c_a(1,this->gradient_contributions_per_spin[this->idx_anisotropy].second,gradient);
-            Vectormath::add_c_a(1,this->gradient_contributions_per_spin[this->idx_exchange].second,gradient);
-            Vectormath::add_c_a(1,this->gradient_contributions_per_spin[this->idx_dmi].second,gradient);
-            Vectormath::add_c_a(1,this->gradient_contributions_per_spin[this->idx_ddi].second,gradient);
+
+            Vectormath::add_c_a(1, this->gradient_contributions_per_spin[this->idx_zeeman].second, gradient);
+            Vectormath::add_c_a(1, this->gradient_contributions_per_spin[this->idx_anisotropy].second, gradient);
+            Vectormath::add_c_a(1, this->gradient_contributions_per_spin[this->idx_exchange].second, gradient);
+            Vectormath::add_c_a(1, this->gradient_contributions_per_spin[this->idx_dmi].second, gradient);
+            Vectormath::add_c_a(1, this->gradient_contributions_per_spin[this->idx_ddi].second, gradient);
         #endif
         #ifdef SPIRIT_LOW_MEMORY
             scalar temp=0;
@@ -375,7 +316,7 @@ namespace Engine
 
     void Hamiltonian_Micromagnetic::Gradient_Zeeman(vectorfield & gradient)
     {
-        scalar m0 = (4 * 3.14159265358979)*1e-7;
+        scalar m0 = (4 * C::Pi) * 1e-7;
         Utility::Custom_Field::CustomField(geometry->n_cells_total, this->geometry->positions.data(),this->geometry->center, picoseconds_passed, external_field.data());
         #pragma omp parallel for
         for( int icell = 0; icell < geometry->n_cells_total; ++icell )
@@ -403,7 +344,6 @@ namespace Engine
             #endif
             for (int i = 0; i < regions_book[regions[icell]].n_anisotropies; i++)
             {
-
                 gradient[icell] -= 2.0 * regions_book[regions[icell]].anisotropy_magnitudes[i] / regions_book[regions[icell]].Ms * regions_book[regions[icell]].anisotropy_normals[i] * regions_book[regions[icell]].anisotropy_normals[i].dot(spins[icell]);
                 //gradient[ispin] = -2.0 * anisotropy_magnitude / Ms * anisotropy_normal * (anisotropy_normal[0]*spins[ispin][0]+anisotropy_normal[1]*spins[ispin][1]+anisotropy_normal[2]*spins[ispin][2]);
                 //gradient[ispin] -= 2.0 * 500000 / Ms * temp2 * temp2.dot(spins[ispin]);
@@ -424,21 +364,21 @@ namespace Engine
                 gradient[icell][1]=0;
                 gradient[icell][2]=0;
             #endif
+
             for (unsigned int i = 0; i < 3; ++i)
             {
-                int ispin_plus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[2 * i]);
+                int ispin_plus  = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[2 * i]);
                 int ispin_minus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[2 * i + 1]);
+
                 if (ispin_plus == -1) {
                     ispin_plus = ispin;
                 }
                 if (ispin_minus == -1) {
                     ispin_minus = ispin;
                 }
+                scalar Aexch = 0.25 * (2 * regions_book[regions[ispin]].Aexch + regions_book[regions[ispin_plus]].Aexch + regions_book[regions[ispin_minus]].Aexch);
 
-                gradient[ispin][0] -= 2 * exchange_tensors[ispin](i, i)/regions_book[regions[ispin]].Ms * (spins[ispin_plus][0] - 2 * spins[ispin][0] + spins[ispin_minus][0]) / (cell_sizes[i]) / (cell_sizes[i]);
-                gradient[ispin][1] -= 2 * exchange_tensors[ispin](i, i)/regions_book[regions[ispin]].Ms * (spins[ispin_plus][1] - 2 * spins[ispin][1] + spins[ispin_minus][1]) / (cell_sizes[i]) / (cell_sizes[i]);
-                gradient[ispin][2] -= 2 * exchange_tensors[ispin](i, i)/regions_book[regions[ispin]].Ms * (spins[ispin_plus][2] - 2 * spins[ispin][2] + spins[ispin_minus][2]) / (cell_sizes[i]) / (cell_sizes[i]);
-
+                gradient[ispin] -= 2 * Aexch / regions_book[regions[ispin]].Ms * (spins[ispin_plus] - 2 * spins[ispin] + spins[ispin_minus]) / (cell_sizes[i] * cell_sizes[i]);
             }
         }
     }
@@ -618,10 +558,9 @@ namespace Engine
             int tupel1[3];
             int tupel2[3];
             int sublattice_size = it_bounds_write_dipole[0] * it_bounds_write_dipole[1] * it_bounds_write_dipole[2];
-                    //prefactor of ddi interaction
-                    //scalar mult = 2.0133545*1e-28 * 0.057883817555 * 0.057883817555 / (4 * 3.141592653589793238462643383279502884197169399375105820974 * 1e-30);
-            scalar mult = 1 / (4 * 3.141592653589793238462643383279502884197169399375105820974);
-            scalar m0 = (4 * 3.141592653589793238462643383279502884197169399375105820974)*1e-7;
+
+            scalar mult = 1 / (4 * C::Pi);
+            scalar m0 = (4 * C::Pi) * 1e-7;
             int img_a = boundary_conditions[0] == 0 ? 0 : ddi_n_periodic_images[0];
             int img_b = boundary_conditions[1] == 0 ? 0 : ddi_n_periodic_images[1];
             int img_c = boundary_conditions[2] == 0 ? 0 : ddi_n_periodic_images[2];
@@ -857,26 +796,7 @@ namespace Engine
 
         transformed_dipole_matrices = std::move(fft_plan_dipole.cpx_ptr);
     }//end prepare
-    void Hamiltonian_Micromagnetic::Prepare_Exchange()
-    {
-        //int bc[3] = { boundary_conditions[0],boundary_conditions[1],boundary_conditions[2] };
-        //int nc[3] = { geometry->n_cells[0],geometry->n_cells[1],geometry->n_cells[2] };
-        exchange_tensors=matrixfield(geometry->nos, Matrix3::Zero());
-        for (int ispin=0; ispin<geometry->nos; ispin++){
-            for (unsigned int i = 0; i < 3; ++i)
-                {
-                    int ispin_plus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[2 * i]);
-                    int ispin_minus = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, neigh[2 * i + 1]);
-                    if (ispin_plus == -1) {
-                        ispin_plus = ispin;
-                    }
-                    if (ispin_minus == -1) {
-                        ispin_minus = ispin;
-                    }
-                    exchange_tensors[ispin](i,i)=(exchange_table[regions[ispin]][regions[ispin_minus]]+exchange_table[regions[ispin]][regions[ispin_plus]])/2;
-                }
-        }
-    }
+
     void Hamiltonian_Micromagnetic::Clean_DDI()
     {
         fft_plan_spins = FFT::FFT_Plan();

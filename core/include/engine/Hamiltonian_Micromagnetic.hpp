@@ -13,9 +13,7 @@
 
 namespace Engine
 {
-
     // The Micromagnetic Hamiltonian
-
     class Hamiltonian_Micromagnetic : public Hamiltonian
     {
     public:
@@ -141,8 +139,6 @@ namespace Engine
 
         // Preparations for DDI-Convolution Algorithm
         void Prepare_DDI();
-        // Preparations for Exchange regions constant
-        void Prepare_Exchange();
         void Clean_DDI();
 
         // Plans for FT / rFT
@@ -154,7 +150,6 @@ namespace Engine
         bool save_dipole_matrices = true;
         field<Matrix3> dipole_matrices;
 
-        matrixfield exchange_tensors;
         // Number of inter-sublattice contributions
         int n_inter_sublattice;
         // At which index to look up the inter-sublattice D-matrices
@@ -182,7 +177,5 @@ namespace Engine
         int prev_position=0;
         int iteration_num=0;
     };
-
-
 }
 #endif
