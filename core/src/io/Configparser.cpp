@@ -98,7 +98,7 @@ namespace IO
             }// end try
             catch( ... )
             {
-                spirit_rethrow(	fmt::format("Failed to read Log Levels from file \"{}\". Leaving values at default.", configFile) );
+                spirit_rethrow(    fmt::format("Failed to read Log Levels from file \"{}\". Leaving values at default.", configFile) );
             }
         }
 
@@ -264,7 +264,7 @@ namespace IO
         }
         catch( ... )
         {
-            spirit_rethrow(	fmt::format("Unable to parse bravais vectors from config file \"{}\"", configFile) );
+            spirit_rethrow(    fmt::format("Unable to parse bravais vectors from config file \"{}\"", configFile) );
         }
     }// End Basis_from_Config
 
@@ -491,7 +491,7 @@ namespace IO
         }
         catch( ... )
         {
-            spirit_rethrow(	fmt::format("Unable to parse geometry from config file \"{}\"", configFile) );
+            spirit_rethrow(    fmt::format("Unable to parse geometry from config file \"{}\"", configFile) );
         }
 
         return nullptr;
@@ -1258,9 +1258,9 @@ namespace IO
                     }
                     //else
                     //{
-                    //	Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg: Default Interaction pairs have not been implemented yet.");
-                    //	throw Exception::System_not_Initialized;
-                    //	// Not implemented!
+                    //    Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg: Default Interaction pairs have not been implemented yet.");
+                    //    throw Exception::System_not_Initialized;
+                    //    // Not implemented!
                     //}
                 }// end try
                 catch( ... )
@@ -1485,96 +1485,100 @@ namespace IO
             }
             if( myfile.Find("cell_sizes") )
             {
-            	myfile.iss >> cell_sizes[0] >> cell_sizes[1] >> cell_sizes[2];
+                myfile.iss >> cell_sizes[0] >> cell_sizes[1] >> cell_sizes[2];
             }
             myfile.Read_Single(region_num, "number_regions");
-            Ms=scalarfield(region_num,0);
+            Ms = scalarfield(region_num, 0);
             if( myfile.Find("Ms") )
             {
-            	for( int i = 0; i < region_num; i++ )
-            	{
-            		myfile.GetLine();
-            		myfile.iss >> Ms[i];
-				}
-			}
+                for( int i = 0; i < region_num; i++ )
+                {
+                    myfile.GetLine();
+                    myfile.iss >> Ms[i];
+                }
+            }
+
             // Precision of the spatial gradient calculation
             myfile.Read_Single(spatial_gradient_order, "spatial_gradient_order");
 
             // Field
             external_field_magnitude=scalarfield(region_num,0);
-			if( myfile.Find("external_field_magnitude") )
-			{
-				for( int i = 0; i < region_num; i++ )
-				{
-					myfile.GetLine();
-					myfile.iss >> external_field_magnitude[i];
-				}
-			}
-			external_field_normal=vectorfield(region_num, Vector3{0,0,1});
-			if( myfile.Find("external_field_normal") )
-			{
-				for( int i = 0; i < region_num; i++ )
-				{
-					myfile.GetLine();
-					myfile.iss >> external_field_normal[i][0] >> external_field_normal[i][1] >> external_field_normal[i][2];
-					external_field_normal[i].normalize();
-					if (external_field_normal[i].norm() < 1e-8)
-					{
-						external_field_normal[i] = { 0,0,1 };
-						Log(Log_Level::Warning, Log_Sender::IO, "Input for 'external_field_normal' had norm zero and has been set to (0,0,1)");
-					}
-				}
-			}
+            if( myfile.Find("external_field_magnitude") )
+            {
+                for( int i = 0; i < region_num; i++ )
+                {
+                    myfile.GetLine();
+                    myfile.iss >> external_field_magnitude[i];
+                }
+            }
+
+            external_field_normal=vectorfield(region_num, Vector3{0,0,1});
+            if( myfile.Find("external_field_normal") )
+            {
+                for( int i = 0; i < region_num; i++ )
+                {
+                    myfile.GetLine();
+                    myfile.iss >> external_field_normal[i][0] >> external_field_normal[i][1] >> external_field_normal[i][2];
+                    external_field_normal[i].normalize();
+                    if (external_field_normal[i].norm() < 1e-8)
+                    {
+                        external_field_normal[i] = { 0,0,1 };
+                        Log(Log_Level::Warning, Log_Sender::IO, "Input for 'external_field_normal' had norm zero and has been set to (0,0,1)");
+                    }
+                }
+            }
 
             // TODO: anisotropy
-			n_anisotropies=intfield(region_num,0);
-			if( myfile.Find("number_anisotropies") )
-			{
-				for( int i = 0; i < region_num; i++ )
-				{
-					myfile.GetLine();
-					myfile.iss >> n_anisotropies[i];
-				}
-			}
-			anisotropy_magnitudes=std::vector<std::vector<scalar>>(region_num);
-			anisotropy_normals=std::vector<std::vector<Vector3>>(region_num);
-			for( int i = 0; i < region_num; i++ )
-			{
-				anisotropy_magnitudes[i]=std::vector<scalar>(n_anisotropies[i],0);
-				anisotropy_normals[i]=std::vector<Vector3>(n_anisotropies[i],Vector3 {0,0,1});
-			}
+            n_anisotropies=intfield(region_num,0);
+            if( myfile.Find("number_anisotropies") )
+            {
+                for( int i = 0; i < region_num; i++ )
+                {
+                    myfile.GetLine();
+                    myfile.iss >> n_anisotropies[i];
+                }
+            }
+
+            anisotropy_magnitudes=std::vector<std::vector<scalar>>(region_num);
+            anisotropy_normals=std::vector<std::vector<Vector3>>(region_num);
+            for( int i = 0; i < region_num; i++ )
+            {
+                anisotropy_magnitudes[i]=std::vector<scalar>(n_anisotropies[i],0);
+                anisotropy_normals[i]=std::vector<Vector3>(n_anisotropies[i],Vector3 {0,0,1});
+            }
 
             if( myfile.Find("anisotropies_vectors") )
-			{
-				for( int i = 0; i < region_num; i++ )
-				{
-					for( int j = 0; j <  n_anisotropies[i]; j++ )
-					{
-						myfile.GetLine();
-						myfile.iss >> anisotropy_normals[i][j][0] >> anisotropy_normals[i][j][1] >> anisotropy_normals[i][j][2] >> anisotropy_magnitudes[i][j];
-					}
-				}
-			}
+            {
+                for( int i = 0; i < region_num; i++ )
+                {
+                    for( int j = 0; j <  n_anisotropies[i]; j++ )
+                    {
+                        myfile.GetLine();
+                        myfile.iss >> anisotropy_normals[i][j][0] >> anisotropy_normals[i][j][1] >> anisotropy_normals[i][j][2] >> anisotropy_magnitudes[i][j];
+                    }
+                }
+            }
 
             // TODO: exchange
             exchange_stiffness=scalarfield(region_num,0);
             if( myfile.Find("exchange_stiffness") )
             {
-            	for( int i = 0; i < region_num; i++ )
-            	{
-					myfile.GetLine();
-					myfile.iss >> exchange_stiffness[i];
-				}
+                for( int i = 0; i < region_num; i++ )
+                {
+                    myfile.GetLine();
+                    myfile.iss >> exchange_stiffness[i];
+                }
             }
+
             dmi=scalarfield(region_num,0);
-			if( myfile.Find("dmi") )
-			{
-				for( int i = 0; i < region_num; i++ )
-				{
-					myfile.GetLine();
-					myfile.iss >> dmi[i];
-				}
-			}
+            if( myfile.Find("dmi") )
+            {
+                for( int i = 0; i < region_num; i++ )
+                {
+                    myfile.GetLine();
+                    myfile.iss >> dmi[i];
+                }
+            }
 
             // TODO: dipolar
             try
@@ -1615,18 +1619,18 @@ namespace IO
             spirit_handle_exception_core(fmt::format(
                 "Unable to parse all parameters of the Micromagnetic Hamiltonian from \"{}\"", configFile));
         }
-		// Return
-		Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Micromagnetic:");
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {} {} {}", "boundary conditions", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
-		/*Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "external field", field));
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "field_normal", field_normal.transpose()));
-		for (int i=0;i<n_anisotropies;i++){
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {} {}", "anisotropy_magnitude", i, anisotropy_magnitudes[i]));
-		}
-		Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "exchange_magnitude", exchange_tensor(0,0)));*/
+        // Return
+        Log(Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Micromagnetic:");
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {} {} {}", "boundary conditions", boundary_conditions[0], boundary_conditions[1], boundary_conditions[2]));
+        /*Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "external field", field));
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "field_normal", field_normal.transpose()));
+        for (int i=0;i<n_anisotropies;i++){
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {} {}", "anisotropy_magnitude", i, anisotropy_magnitudes[i]));
+        }
+        Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "exchange_magnitude", exchange_tensor(0,0)));*/
 
         auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Micromagnetic>(new Engine::Hamiltonian_Micromagnetic(
-        	external_field_magnitude, external_field_normal,
+            external_field_magnitude, external_field_normal,
             n_anisotropies, anisotropy_magnitudes, anisotropy_normals,
             exchange_stiffness,
             dmi,
@@ -1634,13 +1638,13 @@ namespace IO
             spatial_gradient_order,
             boundary_conditions,
             cell_sizes,
-            Ms,region_num
+            Ms,
+            region_num
         ));
         Log(Log_Level::Info, Log_Sender::IO, "Hamiltonian_Micromagnetic: built");
         return hamiltonian;
 
     }// end Hamiltonian_Micromagnetic_from_Config
-
 
     std::unique_ptr<Engine::Hamiltonian_Gaussian> Hamiltonian_Gaussian_from_Config(const std::string configFile, std::shared_ptr<Data::Geometry> geometry)
     {
