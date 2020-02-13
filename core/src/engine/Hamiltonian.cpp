@@ -93,6 +93,12 @@ namespace Engine
         this->Gradient_FD(spins, gradient);
     }
 
+    void Hamiltonian::Gradient_and_Energy(const vectorfield & spins, vectorfield & gradient, scalar & energy)
+    {
+        this->Gradient(spins, gradient);
+        energy = this->Energy(spins);
+    }
+
     void Hamiltonian::Gradient_FD(const vectorfield & spins, vectorfield & gradient)
     {
         int nos = spins.size();

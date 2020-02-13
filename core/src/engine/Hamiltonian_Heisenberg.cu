@@ -6,7 +6,7 @@
 #include <data/Spin_System.hpp>
 #include <utility/Constants.hpp>
 #include <complex>
-
+#include <engine/Backend_par.hpp>
 #include <Eigen/Dense>
 #include <Eigen/Core>
 #include "FFT.hpp"
@@ -621,20 +621,75 @@ namespace Engine
         Vectormath::fill(gradient, {0,0,0});
 
         // External field
-        this->Gradient_Zeeman(gradient);
+        if(idx_zeeman >= 0)
+            this->Gradient_Zeeman(gradient);
 
         // Anisotropy
-        this->Gradient_Anisotropy(spins, gradient);
+        if(idx_zeeman >= 0)
+            this->Gradient_Anisotropy(spins, gradient);
 
-        // Pairs
         //    Exchange
-        this->Gradient_Exchange(spins, gradient);
+        if(idx_exchange >= 0)
+            this->Gradient_Exchange(spins, gradient);
+
         //    DMI
-        this->Gradient_DMI(spins, gradient);
+        if(idx_dmi >= 0)
+            this->Gradient_DMI(spins, gradient);
+
         //    DDI
-        this->Gradient_DDI(spins, gradient);
+        if(idx_ddi >= 0)
+            this->Gradient_DDI(spins, gradient);
+
         //    Quadruplet
-        this->Gradient_Quadruplet(spins, gradient);
+        if(idx_quadruplet)
+            this->Gradient_Quadruplet(spins, gradient);
+    }
+
+    void Hamiltonian_Heisenberg::Gradient_and_Energy(const vectorfield & spins, vectorfield & gradient, scalar & energy)
+    {
+        // Set to zero
+        Vectormath::fill(gradient, {0,0,0});
+        energy = 0;
+
+        auto N = spins.size();
+        auto s = spins.data();
+        auto mu_s = geometry->mu_s.data();
+        auto g = gradient.data();
+
+        // Anisotropy
+        if(idx_anisotropy >= 0)
+            this->Gradient_Anisotropy(spins, gradient);
+
+        // Exchange
+        if(idx_exchange >= 0)
+            this->Gradient_Exchange(spins, gradient);
+
+        // DMI
+        if(idx_dmi >= 0)
+            this->Gradient_DMI(spins, gradient);
+
+        // DDI
+        if(idx_ddi >= 0)
+            this->Gradient_DDI(spins, gradient);
+
+        energy += Backend::par::reduce( N, [s,g] SPIRIT_LAMBDA ( int idx ) { return 0.5 * g[idx].dot(s[idx]) ;} );
+
+        // External field
+        if(idx_zeeman >= 0)
+        {
+            Vector3 ext_field = external_field_normal * external_field_magnitude;
+            this->Gradient_Zeeman(gradient);
+            energy += Backend::par::reduce( N, [s, ext_field, mu_s] SPIRIT_LAMBDA ( int idx ) { return -mu_s[idx] * ext_field.dot(s[idx]) ;} );
+        }
+
+        // Quadruplets
+        if(idx_quadruplet > 0)
+        {
+            // Kind of a bandaid fix
+            this->Gradient_Quadruplet(spins, gradient);
+            E_Quadruplet(spins, energy_contributions_per_spin[idx_quadruplet].second);
+            energy += Vectormath::sum(energy_contributions_per_spin[idx_quadruplet].second);
+        }
     }
 
 

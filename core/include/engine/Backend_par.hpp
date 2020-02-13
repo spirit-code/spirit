@@ -37,6 +37,32 @@ namespace par
         CU_CHECK_AND_SYNC();
     }
 
+    template<typename F>
+    scalar reduce(int N, const F f)
+    {
+        static scalarfield sf(N, 0);
+        // Vectormath::fill(sf, 0);
+
+        if(sf.size() != N)
+            sf.resize(N);
+
+        auto s  = sf.data();
+        apply( N, [f, s] SPIRIT_LAMBDA (int idx) { s[idx] = f(idx); } );
+
+        static scalarfield ret(1, 0);
+
+        // Determine temporary storage size and allocate
+        void * d_temp_storage = NULL;
+        size_t temp_storage_bytes = 0;
+        cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, sf.data(), ret.data(), sf.size());
+        cudaMalloc(&d_temp_storage, temp_storage_bytes);
+        // Reduction
+        cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, sf.data(), ret.data(), sf.size());
+        CU_CHECK_AND_SYNC();
+        cudaFree(d_temp_storage);
+        return ret[0];
+    }
+
     template<typename A, typename F>
     scalar reduce(const field<A> & vf1, const F f)
     {
@@ -122,6 +148,18 @@ namespace par
     }
     
 #else
+
+    template<typename F>
+    scalar reduce(int N, const F f)
+    {
+        scalar res = 0;
+        #pragma omp parallel for reduction(+:res)
+        for(unsigned int idx = 0; idx < N; ++idx)
+        {
+            res += f(idx);
+        }
+        return res;
+    }
 
     template<typename A, typename F>
     scalar reduce(const field<A> & vf1, const F f)

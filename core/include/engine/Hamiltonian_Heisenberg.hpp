@@ -58,6 +58,8 @@ namespace Engine
 
         void Hessian(const vectorfield & spins, MatrixX & hessian) override;
         void Gradient(const vectorfield & spins, vectorfield & gradient) override;
+        void Gradient_and_Energy(const vectorfield & spins, vectorfield & gradient, scalar & energy) override;
+
         void Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions) override;
 
         // Calculate the total energy for a single spin to be used in Monte Carlo.
