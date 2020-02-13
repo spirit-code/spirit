@@ -8,6 +8,7 @@
 #include <utility/Cubic_Hermite_Spline.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Version.hpp>
+#include <engine/Backend_par.hpp>
 
 #include <iostream>
 #include <math.h>
@@ -88,8 +89,22 @@ namespace Engine
         {
             auto& image = *configurations[img];
 
-            // Calculate the Energy of the image
-            energies[img] = this->chain->images[img]->hamiltonian->Energy(image);
+            // Calculate the Gradient and Energy of the image
+            this->chain->images[img]->hamiltonian->Gradient_and_Energy(image, this->chain->images[img]->effective_field, energies[img]);
+
+            // Multiply gradient with -1 to get effective field and copy to F_gradient.
+            // We do it the following way so that the effective field can be e.g. displayed,
+            //      while the gradient force is manipulated (e.g. projected)
+            auto eff_field = this->chain->images[img]->effective_field.data();
+            auto f_grad    = F_gradient[img].data();
+            Backend::par::apply( image.size(), 
+                [eff_field, f_grad] SPIRIT_LAMBDA (int idx)
+                {
+                    eff_field[idx] *= -1; 
+                    f_grad[idx] = eff_field[idx];
+                }
+            );
+
             if (img > 0)
             {
                 Rx[img] = Rx[img-1] + Manifoldmath::dist_geodesic(image, *configurations[img-1]);
@@ -100,13 +115,6 @@ namespace Engine
                     return;
                 }
             }
-
-            // We do it the following way so that the effective field can be e.g. displayed,
-            //      while the gradient force is manipulated (e.g. projected)
-            this->chain->images[img]->UpdateEffectiveField();
-            // F_gradient[img] = this->chain->images[img]->effective_field;
-            Vectormath::set_c_a(1, this->chain->images[img]->effective_field, F_gradient[img]);
-            // // this->chain->images[img]->hamiltonian->Effective_Field(image, this->chain->images[img]->effective_field);
         }
 
         // Calculate relevant tangent to magnetisation sphere, considering also the energies of images

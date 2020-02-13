@@ -123,7 +123,8 @@ namespace Engine
         for (unsigned int img = 0; img < this->systems.size(); ++img)
         {
             // Minus the gradient is the total Force here
-            this->systems[img]->hamiltonian->Gradient(*configurations[img], Gradient[img]);
+            this->systems[img]->hamiltonian->Gradient_and_Energy(*configurations[img], Gradient[img], current_energy);
+
             #ifdef SPIRIT_ENABLE_PINNING
                 Vectormath::set_c_a(1, Gradient[img], Gradient[img], this->systems[img]->geometry->mask_unpinned);
             #endif // SPIRIT_ENABLE_PINNING
@@ -255,7 +256,8 @@ namespace Engine
         // --- Image Data Update
         // Update the system's Energy
         // ToDo: copy instead of recalculating
-        this->systems[0]->UpdateEnergy();
+
+        this->systems[0]->E = current_energy;
 
         // ToDo: How to update eff_field without numerical overhead?
         // systems[0]->effective_field = Gradient[0];

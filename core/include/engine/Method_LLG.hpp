@@ -54,6 +54,8 @@ namespace Engine
         scalarfield temperature_distribution;
         // Field for stt gradient method
         vectorfield s_c_grad;
+        // Current energy
+        scalar current_energy;
 
         // Measure of simulated time in picoseconds
         scalar picoseconds_passed;
