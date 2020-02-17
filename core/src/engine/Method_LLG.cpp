@@ -162,8 +162,12 @@ namespace Engine
             Vector3 je = s_c_vec;// direction of current
             //////////
 
-            // Direct minimisation
-            if (parameters.direct_minimization || solver == Solver::VP || solver == Solver::VP_OSO)
+            // This is the force calculation as it should be for direct minimization
+            // TODO: Also calculate force for VP solvers without additional scaling
+            if(solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas)
+            {
+                Vectormath::set_c_cross( 1.0, image, force, force_virtual);
+            } else if (parameters.direct_minimization || solver == Solver::VP || solver == Solver::VP_OSO)
             {
                 dtg = parameters.dt * Constants::gamma / Constants::mu_B;
                 Vectormath::set_c_cross( dtg, image, force, force_virtual);
