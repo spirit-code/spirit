@@ -625,7 +625,7 @@ namespace Engine
             this->Gradient_Zeeman(gradient);
 
         // Anisotropy
-        if(idx_zeeman >= 0)
+        if(idx_anisotropy >= 0)
             this->Gradient_Anisotropy(spins, gradient);
 
         //    Exchange

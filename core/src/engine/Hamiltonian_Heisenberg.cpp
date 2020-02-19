@@ -579,7 +579,7 @@ namespace Engine
             this->Gradient_Anisotropy(spins, gradient);
 
         // Exchange
-        if(idx_zeeman >= 0)
+        if(idx_exchange >= 0)
             this->Gradient_Exchange(spins, gradient);
 
         // DMI
