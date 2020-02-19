@@ -169,7 +169,7 @@ namespace Engine
         this->energy_contributions_per_spin = std::vector<std::pair<std::string, scalarfield>>(0);
 
         // External field
-        if( this->external_field_magnitude > 0 )
+        if( std::abs(this->external_field_magnitude) > 1e-60 )
         {
             this->energy_contributions_per_spin.push_back({"Zeeman", scalarfield(0)});
             this->idx_zeeman = this->energy_contributions_per_spin.size()-1;
