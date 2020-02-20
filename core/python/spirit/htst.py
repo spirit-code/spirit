@@ -120,12 +120,22 @@ _Get_Eigenvectors_Min          = _spirit.HTST_Get_Eigenvectors_Min
 _Get_Eigenvectors_Min.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int]
 _Get_Eigenvectors_Min.restype  = None
 def get_eigenvectors_min(p_state, idx_chain=-1):
-    """Returns the eigenvectors at the minimum with `shape(2*nos*n_eigenmodes_keep)`."""
+    """Returns a numpy array view to the eigenvectors at the minimum with `shape(n_eigenmodes_keep, 2*nos)`."""
     n_modes          = get_info_dict(p_state)["n_eigenmodes_keep"]
     nos              = system.get_nos(p_state, -1, idx_chain)
     eigenvectors_min = (2*nos*n_modes*ctypes.c_float)()
-    _Get_Eigenvectors_Min(ctypes.c_void_p(p_state), eigenvectors_min, ctypes.c_int(idx_chain))
-    return eigenvectors_min
+
+    ArrayType           = ctypes.c_float * (2*nos*n_modes)
+    ev_list = []*(2*nos*n_modes)
+    _ev_buffer = ArrayType(*ev_list)
+
+    _Get_Eigenvectors_Min(ctypes.c_void_p(p_state),_ev_buffer, ctypes.c_int(idx_chain))
+
+    ev_array = np.array(_ev_buffer)
+    ev_view = ev_array.view()
+    ev_view.shape = (n_modes, 2*nos)
+
+    return ev_view
 
 
 _Get_Eigenvalues_SP          = _spirit.HTST_Get_Eigenvalues_SP
@@ -143,12 +153,22 @@ _Get_Eigenvectors_SP          = _spirit.HTST_Get_Eigenvectors_SP
 _Get_Eigenvectors_SP.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int]
 _Get_Eigenvectors_SP.restype  = None
 def get_eigenvectors_sp(p_state, idx_chain=-1):
-    """Returns the eigenvectors at the saddle point with `shape(2*nos*n_eigenmodes_keep)`."""
+    """Returns a numpy array view to the eigenvectors at the saddle point with `shape(n_eigenmodes_keep, 2*nos)`."""
+
     n_modes             = get_info_dict(p_state)["n_eigenmodes_keep"]
     nos                 = system.get_nos(p_state, -1, idx_chain)
-    eigenvectors_sp     = (2*nos*n_modes*ctypes.c_float)()
-    _Get_Eigenvectors_SP(ctypes.c_void_p(p_state), eigenvectors_sp, ctypes.c_int(idx_chain))
-    return eigenvectors_sp
+
+    ArrayType           = ctypes.c_float * (2*nos*n_modes)
+    ev_list = []*(2*nos*n_modes)
+    _ev_buffer = ArrayType(*ev_list)
+
+    _Get_Eigenvectors_SP(ctypes.c_void_p(p_state), _ev_buffer, ctypes.c_int(idx_chain))
+
+    ev_array = np.array(_ev_buffer)
+    ev_view = ev_array.view()
+    ev_view.shape = (n_modes, 2*nos)
+
+    return ev_view
 
 
 _Get_Velocities          = _spirit.HTST_Get_Velocities
