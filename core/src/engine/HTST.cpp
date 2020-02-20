@@ -456,7 +456,6 @@ namespace Engine
         {
             // Create a Spectra solver
             Eigen::SelfAdjointEigenSolver<MatrixX> matrix_solver(matrix);
-            std::cout << evectors << "\n";
             evalues = matrix_solver.eigenvalues().real();
             evectors = matrix_solver.eigenvectors().real();
         }
