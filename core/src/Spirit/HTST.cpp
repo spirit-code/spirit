@@ -32,7 +32,7 @@ catch( ... )
 
 void HTST_Get_Info( State * state, float * temperature_exponent, float * me,
                     float * Omega_0, float * s, float * volume_min, float * volume_sp,
-                    float * prefactor_dynamical, float * prefactor, int idx_chain ) noexcept
+                    float * prefactor_dynamical, float * prefactor, int * n_eigenmodes_keep, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -65,6 +65,9 @@ try
 
     if( prefactor )
         *prefactor = chain->htst_info.prefactor;
+
+    if(n_eigenmodes_keep)
+        *n_eigenmodes_keep = chain->htst_info.n_eigenmodes_keep;
 }
 catch( ... )
 {
@@ -85,7 +88,7 @@ try
     if( eigenvalues_min )
     {
         int nos = image->nos;
-        for( int i=0; i<2*nos && i<chain->htst_info.eigenvalues_min.size(); ++i )
+        for( int i=0; i<chain->htst_info.eigenvalues_min.size(); ++i )
             eigenvalues_min[i] = chain->htst_info.eigenvalues_min[i];
     }
     else
@@ -110,7 +113,7 @@ try
     if( eigenvectors_min )
     {
         int nos = image->nos;
-        for( int i=0; i<2*nos*nos && i<chain->htst_info.eigenvectors_min.size(); ++i )
+        for( int i=0; i<chain->htst_info.eigenvectors_min.size(); ++i )
             eigenvectors_min[i] = chain->htst_info.eigenvectors_min(i);
     }
     else
@@ -160,7 +163,7 @@ try
     if( eigenvectors_sp )
     {
         int nos = image->nos;
-        for( int i=0; i<2*nos*nos && i<chain->htst_info.eigenvectors_sp.size(); ++i )
+        for( int i=0; i<chain->htst_info.eigenvectors_sp.size(); ++i )
             eigenvectors_sp[i] = chain->htst_info.eigenvectors_sp(i);
     }
     else

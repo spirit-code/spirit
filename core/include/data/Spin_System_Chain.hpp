@@ -24,6 +24,7 @@ namespace Data
         std::shared_ptr<Spin_System> saddle_point;
 
         // Eigenmodes
+        int n_eigenmodes_keep;
         VectorX eigenvalues_min         = VectorX(0);
         MatrixX eigenvectors_min        = MatrixX(0, 0);
         VectorX eigenvalues_sp          = VectorX(0);

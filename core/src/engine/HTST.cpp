@@ -41,6 +41,8 @@ namespace Engine
             if( n_eigenmodes_keep < 0 )
                 n_eigenmodes_keep = 2*nos;
             n_eigenmodes_keep = std::min(2*nos, n_eigenmodes_keep);
+            htst_info.n_eigenmodes_keep = n_eigenmodes_keep;
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format( "    Saving the first {} eigenvectors.", n_eigenmodes_keep));
 
             vectorfield force_tmp(nos, {0,0,0});
             std::vector<std::string> block;
@@ -142,7 +144,7 @@ namespace Engine
                 Calculate_Perpendicular_Velocity(image_sp, htst_info.saddle_point->geometry->mu_s, hessian_geodesic_sp_3N, basis_sp, htst_info.eigenvectors_sp, htst_info.perpendicular_velocity);
 
                 // Reduce the number of saved eigenmodes
-                htst_info.eigenvalues_sp.conservativeResize(n_eigenmodes_keep);
+                htst_info.eigenvalues_sp.conservativeResize(2*nos);
                 htst_info.eigenvectors_sp.conservativeResize(2*nos, n_eigenmodes_keep);
             }
             // End saddle point
@@ -210,7 +212,7 @@ namespace Engine
                 }
 
                 // Reduce the number of saved eigenmodes
-                htst_info.eigenvalues_min.conservativeResize(n_eigenmodes_keep);
+                htst_info.eigenvalues_min.conservativeResize(2*nos);
                 htst_info.eigenvectors_min.conservativeResize(2*nos, n_eigenmodes_keep);
             }
             // End initial state minimum
@@ -454,7 +456,7 @@ namespace Engine
         {
             // Create a Spectra solver
             Eigen::SelfAdjointEigenSolver<MatrixX> matrix_solver(matrix);
-
+            std::cout << evectors << "\n";
             evalues = matrix_solver.eigenvalues().real();
             evectors = matrix_solver.eigenvectors().real();
         }
