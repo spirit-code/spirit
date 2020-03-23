@@ -47,6 +47,9 @@ namespace Engine
         // A hook into the Method after an Iteration of the Solver
         void Hook_Post_Iteration() override;
 
+        // A helper method that calculates the interpolated energies, split up into the different energy contributions
+        void Calculate_Interpolated_Energy_Contributions();
+
         // Sets iteration_allowed to false for the chain
         void Finalize() override;
 

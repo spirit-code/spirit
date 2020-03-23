@@ -156,6 +156,11 @@ namespace Engine
             "Tried to use  Hamiltonian::Energy_Contributions_per_Spin() of the Hamiltonian base class!");
     }
 
+    int Hamiltonian::Number_of_Interactions()
+    {
+        return energy_contributions_per_spin.size();
+    }
+
     scalar Hamiltonian::Energy_Single_Spin(int ispin, const vectorfield & spins)
     {
         // Not Implemented!

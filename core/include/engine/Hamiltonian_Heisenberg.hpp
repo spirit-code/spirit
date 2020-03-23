@@ -113,7 +113,6 @@ namespace Engine
         quadrupletfield quadruplets;
         scalarfield     quadruplet_magnitudes;
 
-    private:
         std::shared_ptr<Data::Geometry> geometry;
 
         // ------------ Effective Field Functions ------------
@@ -127,16 +126,19 @@ namespace Engine
         void Gradient_DMI(const vectorfield & spins, vectorfield & gradient);
         // Calculates the Dipole-Dipole contribution to the effective field of spin ispin within system s
         void Gradient_DDI(const vectorfield& spins, vectorfield & gradient);
-        void Gradient_DDI_Cutoff(const vectorfield& spins, vectorfield & gradient);
-        void Gradient_DDI_Direct(const vectorfield& spins, vectorfield & gradient);
-        void Gradient_DDI_FFT(const vectorfield& spins, vectorfield & gradient);
 
         // Quadruplet
         void Gradient_Quadruplet(const vectorfield & spins, vectorfield & gradient);
 
         // ------------ Energy Functions ------------
-        // Indices for Energy vector
-        int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet;
+        // Getters for Indices of the energy vector
+        inline int Idx_Zeeman() {return idx_zeeman;};
+        inline int Idx_Anisotropy() {return idx_anisotropy;};
+        inline int Idx_Exchange()  {return idx_exchange;};
+        inline int Idx_DMI() {return idx_dmi;};
+        inline int Idx_DDI() {return idx_ddi;};
+        inline int Idx_Quadruplet() {return idx_quadruplet;};
+
         // Calculate the Zeeman energy of a Spin System
         void E_Zeeman(const vectorfield & spins, scalarfield & Energy);
         // Calculate the Anisotropy energy of a Spin System
@@ -145,15 +147,20 @@ namespace Engine
         void E_Exchange(const vectorfield & spins, scalarfield & Energy);
         // Calculate the DMI energy of a Spin System
         void E_DMI(const vectorfield & spins, scalarfield & Energy);
-        // calculates the Dipole-Dipole Energy
+        // Calculate the Dipole-Dipole energy
         void E_DDI(const vectorfield& spins, scalarfield & Energy);
+        // Calculate the Quadruplet energy
+        void E_Quadruplet(const vectorfield & spins, scalarfield & Energy);
+
+        private:
+        int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet;
+        void Gradient_DDI_Cutoff(const vectorfield& spins, vectorfield & gradient);
+        void Gradient_DDI_Direct(const vectorfield& spins, vectorfield & gradient);
+        void Gradient_DDI_FFT(const vectorfield& spins, vectorfield & gradient);
         void E_DDI_Direct(const vectorfield& spins, scalarfield & Energy);
         void E_DDI_Cutoff(const vectorfield& spins, scalarfield & Energy);
         void E_DDI_FFT(const vectorfield& spins, scalarfield & Energy);
 
-        // Quadruplet
-        void E_Quadruplet(const vectorfield & spins, scalarfield & Energy);
-        
         // Preparations for DDI-Convolution Algorithm
         void Prepare_DDI();
         void Clean_DDI();

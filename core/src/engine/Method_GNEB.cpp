@@ -344,6 +344,124 @@ namespace Engine
     }
 
     template <Solver solver>
+    void Method_GNEB<solver>::Calculate_Interpolated_Energy_Contributions()
+    {
+        // This whole method could be made faster by calculating the energies from the gradients and not allocating the temporaries eacht time the method is called,
+        // but since this method should be called rather sparingly it should not matter very much.
+
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::GNEB, std::string("Calculating interpolated energy contributions"), -1, -1);
+
+        int nos = this->configurations[0]->size();
+        int noi = this->chain->noi;
+
+        if(chain->images[0]->hamiltonian->Name() != "Heisenberg")
+        {
+            Log(Utility::Log_Level::Error, Utility::Log_Sender::GNEB, std::string("Cannot calculate interpolated energy contribution for non-Heisenberg Hamiltonian!"), -1, -1);
+            return;
+        }
+        Engine::Hamiltonian_Heisenberg & ham = ( Engine::Hamiltonian_Heisenberg & ) *(chain->images[0]->hamiltonian);
+        int n_interactions = ham.Number_of_Interactions();
+
+        // Allocate temporaries
+        field<Vector3> temp_field(nos, {0,0,0});
+        field<scalar> temp_energy(nos, 0);
+
+        std::vector<std::vector<scalar>> temp_dE_dRx(n_interactions, std::vector<scalar>(noi, 0));
+        std::vector<std::vector<scalar>> temp_energies(n_interactions, std::vector<scalar>(noi, 0));
+
+        // Calculate the energies and the inclinations
+        // TODO: Find a better way to do this without so much code duplication. Probably requires extension of the Hamiltonian in a way that allows to request information about the different contributions.
+        for(int img=0; img<noi; img++)
+        {
+            auto& image = *this->configurations[img];
+            if(ham.Idx_Exchange() >= 0)
+            {
+                Vectormath::fill(temp_field, Vector3::Zero());
+                Vectormath::fill(temp_energy, 0);
+                ham.E_Exchange(image, temp_energy);
+                temp_energies[ham.Idx_Exchange()][img] = Vectormath::sum(temp_energy);
+                ham.Gradient_Exchange(image, temp_field);
+                temp_dE_dRx[ham.Idx_Exchange()][img] = -Vectormath::dot(temp_field, this->tangents[img]);
+            }
+            if(ham.Idx_Zeeman() >= 0)
+            {
+                Vectormath::fill(temp_field, Vector3::Zero());
+                Vectormath::fill(temp_energy, 0);
+                ham.E_Zeeman(image, temp_energy);
+                temp_energies[ham.Idx_Zeeman()][img] = Vectormath::sum(temp_energy);
+                ham.Gradient_Zeeman(temp_field);
+                temp_dE_dRx[ham.Idx_Zeeman()][img] = -Vectormath::dot(temp_field, this->tangents[img]);
+            }
+            if(ham.Idx_Anisotropy() >= 0)
+            {
+                Vectormath::fill(temp_field, Vector3::Zero());
+                Vectormath::fill(temp_energy, 0);
+                ham.E_Anisotropy(image, temp_energy);
+                temp_energies[ham.Idx_Anisotropy()][img] = Vectormath::sum(temp_energy);
+                ham.Gradient_Anisotropy(image, temp_field);
+                temp_dE_dRx[ham.Idx_Anisotropy()][img] = -Vectormath::dot(temp_field, this->tangents[img]);
+            }
+            if(ham.Idx_DMI() >= 0)
+            {
+                Vectormath::fill(temp_field, Vector3::Zero());
+                Vectormath::fill(temp_energy, 0);
+                ham.E_DMI(image, temp_energy);
+                temp_energies[ham.Idx_DMI()][img] = Vectormath::sum(temp_energy);
+                ham.Gradient_DMI(image, temp_field);
+                temp_dE_dRx[ham.Idx_DMI()][img] = -Vectormath::dot(temp_field, this->tangents[img]);
+            }
+            if(ham.Idx_DDI() >= 0)
+            {
+                Vectormath::fill(temp_field, Vector3::Zero());
+                Vectormath::fill(temp_energy, 0);
+                ham.E_DDI(image, temp_energy);
+                temp_energies[ham.Idx_DDI()][img] = Vectormath::sum(temp_energy);
+                ham.Gradient_DDI(image, temp_field);
+                temp_dE_dRx[ham.Idx_DDI()][img] = -Vectormath::dot(temp_field, this->tangents[img]);
+            }
+            if(ham.Idx_Quadruplet() >= 0)
+            {
+                Vectormath::fill(temp_field, Vector3::Zero());
+                Vectormath::fill(temp_energy, 0);
+                ham.E_Quadruplet(image, temp_energy);
+                temp_energies[ham.Idx_Quadruplet()][img] = Vectormath::sum(temp_energy);
+                ham.Gradient_Quadruplet(image, temp_field);
+                temp_dE_dRx[ham.Idx_Quadruplet()][img] = -Vectormath::dot(temp_field, this->tangents[img]);
+            }
+        }
+        if(ham.Idx_Exchange() >= 0)
+        {
+            auto interp = Utility::Cubic_Hermite_Spline::Interpolate(this->Rx, temp_energies[ham.Idx_Exchange()], temp_dE_dRx[ham.Idx_Exchange()], this->chain->gneb_parameters->n_E_interpolations);
+            this->chain->E_array_interpolated[ham.Idx_Exchange()] = interp[1];
+        }
+        if(ham.Idx_Zeeman() >= 0)
+        {
+            auto interp = Utility::Cubic_Hermite_Spline::Interpolate(this->Rx, temp_energies[ham.Idx_Zeeman()], temp_dE_dRx[ham.Idx_Zeeman()], this->chain->gneb_parameters->n_E_interpolations);
+            this->chain->E_array_interpolated[ham.Idx_Zeeman()] = interp[1];
+        }
+        if(ham.Idx_Anisotropy() >= 0)
+        {
+            auto interp = Utility::Cubic_Hermite_Spline::Interpolate(this->Rx, temp_energies[ham.Idx_Anisotropy()], temp_dE_dRx[ham.Idx_Anisotropy()], this->chain->gneb_parameters->n_E_interpolations);
+            this->chain->E_array_interpolated[ham.Idx_Anisotropy()] = interp[1];
+        }
+        if(ham.Idx_DMI() >= 0)
+        {
+            auto interp = Utility::Cubic_Hermite_Spline::Interpolate(this->Rx, temp_energies[ham.Idx_DMI()], temp_dE_dRx[ham.Idx_DMI()], this->chain->gneb_parameters->n_E_interpolations);
+            this->chain->E_array_interpolated[ham.Idx_DMI()] = interp[1];
+        }
+        if(ham.Idx_DDI() >= 0)
+        {
+            auto interp = Utility::Cubic_Hermite_Spline::Interpolate(this->Rx, temp_energies[ham.Idx_DDI()], temp_dE_dRx[ham.Idx_DDI()], this->chain->gneb_parameters->n_E_interpolations);
+            this->chain->E_array_interpolated[ham.Idx_DDI()] = interp[1];
+        }
+        if(ham.Idx_Quadruplet() >= 0)
+        {
+            auto interp = Utility::Cubic_Hermite_Spline::Interpolate(this->Rx, temp_energies[ham.Idx_Quadruplet()], temp_dE_dRx[ham.Idx_Quadruplet()], this->chain->gneb_parameters->n_E_interpolations);
+            this->chain->E_array_interpolated[ham.Idx_Quadruplet()] = interp[1];
+        }
+    }
+
+    template <Solver solver>
     void Method_GNEB<solver>::Finalize()
     {
         Log(Log_Level::All, Log_Sender::GNEB, fmt::format("Total path length = {}", this->Rx[chain->noi-1]), -1, -1);
@@ -422,6 +540,7 @@ namespace Engine
                 }
             };
 
+            Calculate_Interpolated_Energy_Contributions();
             auto writeOutputEnergies = [this, preChainFile, preEnergiesFile, iteration](std::string suffix)
             {
                 bool normalize = this->chain->gneb_parameters->output_energies_divide_by_nspins;

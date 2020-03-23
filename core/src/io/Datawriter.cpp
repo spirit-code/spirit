@@ -250,14 +250,14 @@ namespace IO
 
                 // TODO: interpolated Energy contributions
                 bool first = true;
-                for (auto pair : system.E_array)
+                for (int p=0; p<system.E_array.size(); p++)
                 {
                     if (first)
                         first = false;
                     else
                         line += "|";
 
-                    line += fmt::format(" {:^20.10f} ", 0.0);
+                    line += fmt::format(" {:^20.10f} ", chain.E_array_interpolated[p][idx] * nd);
                 }
                 line += "\n";
 
