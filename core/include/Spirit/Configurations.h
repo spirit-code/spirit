@@ -101,5 +101,7 @@ PREFIX void Configuration_Set_Pinned(State *state, bool pinned, const float posi
 // Atom types
 PREFIX void Configuration_Set_Atom_Type(State *state, int type, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1) SUFFIX;
 
+PREFIX void Configuration_Set_Region(State *state, int type, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1) SUFFIX;
+
 #include "DLL_Undefine_Export.h"
 #endif

@@ -66,6 +66,88 @@ catch( ... )
     return nullptr;
 }
 
+#ifndef SPIRIT_LOW_MEMORY
+	scalar * System_Get_Exchange_Field(State * state, int idx_image, int idx_chain) noexcept
+	try
+	{
+	    std::shared_ptr<Data::Spin_System> image;
+	    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+	    // Fetch correct indices and pointers
+	    from_indices( state, idx_image, idx_chain, image, chain );
+	    return image->hamiltonian->gradient_contributions_per_spin[image->hamiltonian->idx_exchange].second[0].data();
+	}
+	catch( ... )
+	{
+	    spirit_handle_exception_api(idx_image, idx_chain);
+	    return nullptr;
+	}
+
+	scalar * System_Get_Anisotropy_Field(State * state, int idx_image, int idx_chain) noexcept
+	try
+	{
+	    std::shared_ptr<Data::Spin_System> image;
+	    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+	    // Fetch correct indices and pointers
+	    from_indices( state, idx_image, idx_chain, image, chain );
+	    return image->hamiltonian->gradient_contributions_per_spin[image->hamiltonian->idx_anisotropy].second[0].data();
+	}
+	catch( ... )
+	{
+	    spirit_handle_exception_api(idx_image, idx_chain);
+	    return nullptr;
+	}
+
+	scalar * System_Get_DMI_Field(State * state, int idx_image, int idx_chain) noexcept
+	try
+	{
+	    std::shared_ptr<Data::Spin_System> image;
+	    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+	    // Fetch correct indices and pointers
+	    from_indices( state, idx_image, idx_chain, image, chain );
+	    return image->hamiltonian->gradient_contributions_per_spin[image->hamiltonian->idx_dmi].second[0].data();
+	}
+	catch( ... )
+	{
+	    spirit_handle_exception_api(idx_image, idx_chain);
+	    return nullptr;
+	}
+
+	scalar * System_Get_DDI_Field(State * state, int idx_image, int idx_chain) noexcept
+	try
+	{
+	    std::shared_ptr<Data::Spin_System> image;
+	    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+	    // Fetch correct indices and pointers
+	    from_indices( state, idx_image, idx_chain, image, chain );
+	    return image->hamiltonian->gradient_contributions_per_spin[image->hamiltonian->idx_ddi].second[0].data();
+	}
+	catch( ... )
+	{
+	    spirit_handle_exception_api(idx_image, idx_chain);
+	    return nullptr;
+	}
+
+	scalar * System_Get_Zeeman_Field(State * state, int idx_image, int idx_chain) noexcept
+	try
+	{
+	    std::shared_ptr<Data::Spin_System> image;
+	    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+	    // Fetch correct indices and pointers
+	    from_indices( state, idx_image, idx_chain, image, chain );
+	    return image->hamiltonian->gradient_contributions_per_spin[image->hamiltonian->idx_zeeman].second[0].data();
+	}
+	catch( ... )
+	{
+	    spirit_handle_exception_api(idx_image, idx_chain);
+	    return nullptr;
+	}
+#endif
+
 scalar * System_Get_Eigenmode(State * state, int idx_mode, int idx_image, int idx_chain) noexcept
 try
 {

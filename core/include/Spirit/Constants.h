@@ -37,8 +37,17 @@ PREFIX scalar Constants_gamma() SUFFIX;
 // Electron g-factor [unitless]
 PREFIX scalar Constants_g_e() SUFFIX;
 
+// Erg [erg / meV]
+PREFIX scalar Constants_erg() SUFFIX;
+
+// Joule [J / meV]
+PREFIX scalar Constants_Joule() SUFFIX;
+
 // Pi [rad]
 PREFIX scalar Constants_Pi() SUFFIX;
+
+// Pi/2 [rad]
+PREFIX scalar Constants_Pi_2() SUFFIX;
 
 #include "DLL_Undefine_Export.h"
 #endif

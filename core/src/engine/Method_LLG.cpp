@@ -51,7 +51,7 @@ namespace Engine
         for (int i = 0; i<this->noi; ++i) this->configurations[i] = this->systems[i]->spins;
 
         // Allocate force array
-        //this->force = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));	// [noi][3*nos]
+        //this->force = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));    // [noi][3*nos]
 
         //---- Initialise Solver-specific variables
         this->Initialize();
@@ -241,13 +241,12 @@ namespace Engine
     {
         // Increment the time counter (picoseconds)
         this->picoseconds_passed += this->systems[0]->llg_parameters->dt;
-
+        this->systems[0]->hamiltonian->picoseconds_passed=this->picoseconds_passed;
         // --- Convergence Parameter Update
         // Loop over images to calculate the maximum torques
         for (unsigned int img = 0; img < this->systems.size(); ++img)
         {
             this->force_converged[img] = false;
-            // auto fmax = this->Force_on_Image_MaxAbsComponent(*(this->systems[img]->spins), this->forces_virtual[img]);
             auto fmax = this->MaxTorque_on_Image(*(this->systems[img]->spins), this->forces_virtual[img]);
 
             if (fmax > 0)
@@ -279,10 +278,10 @@ namespace Engine
         //         //Vectormath::Normalize(3, s->nos, s->spins);
         //     }
         //     catch (Exception ex)
-        // 	{
+        //     {
         //         if (ex == Exception::Division_by_zero)
-        // 		{
-        // 			Log(Utility::Log_Level::Warning, Utility::Log_Sender::LLG, "During Iteration Spin = (0,0,0) was detected. Using Random Spin Array");
+        //         {
+        //             Log(Utility::Log_Level::Warning, Utility::Log_Sender::LLG, "During Iteration Spin = (0,0,0) was detected. Using Random Spin Array");
         //             //Utility::Configurations::Random(s, false);
         //         }
         //         else { throw(ex); }

@@ -7,9 +7,17 @@
 
 #include "Spirit_Defines.h"
 #include <engine/Vectormath_Defines.hpp>
+#include <Spirit/Hamiltonian.h>
 
 namespace Engine
 {
+    enum class DDI_Method
+    {
+        FFT    = SPIRIT_DDI_METHOD_FFT,
+        FMM    = SPIRIT_DDI_METHOD_FMM,
+        Cutoff = SPIRIT_DDI_METHOD_CUTOFF,
+        None   = SPIRIT_DDI_METHOD_NONE
+    };
     /*
         The Hamiltonian contains the interaction parameters of a System.
         It also defines the functions to calculate the Effective Field and Energy.
@@ -82,10 +90,20 @@ namespace Engine
 
         // Boundary conditions
         intfield boundary_conditions; // [3] (a, b, c)
-
+        int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi;
+        scalar picoseconds_passed;
+		#ifndef SPIRIT_LOW_MEMORY
+			std::vector<std::pair<std::string, vectorfield>> gradient_contributions_per_spin;
+			// Energy contributions per spin
+			std::vector<std::pair<std::string, scalarfield>> energy_contributions_per_spin;
+		#endif
+		#ifdef SPIRIT_LOW_MEMORY
+			// Energy contributions
+			std::vector<std::pair<std::string, scalar>> energy_array;
+		#endif
     protected:
         // Energy contributions per spin
-        std::vector<std::pair<std::string, scalarfield>> energy_contributions_per_spin;
+        //std::vector<std::pair<std::string, scalarfield>> energy_contributions_per_spin;
 
         std::mt19937 prng;
         std::uniform_int_distribution<int> distribution_int;

@@ -55,6 +55,17 @@ using Vector2 = Eigen::Matrix<scalar, 2, 1>;
         int i, j, k, l;
         int d_j[3], d_k[3], d_l[3];
     };
+    struct Regionvalues
+    {
+    	scalar Ms;
+    	scalar Aexch;
+    	scalar Dmi;
+    	scalar external_field_magnitude;
+    	Vector3 external_field_normal;
+    	int n_anisotropies;
+    	scalar anisotropy_magnitudes[8];
+    	Vector3 anisotropy_normals[8];
+    };
 #else
     // The general field
     template<typename T>
@@ -82,7 +93,17 @@ using Vector2 = Eigen::Matrix<scalar, 2, 1>;
         int i, j, k, l;
         std::array<int,3> d_j, d_k, d_l;
     };
-
+    struct Regionvalues
+	{
+		scalar Ms;
+		scalar Aexch;
+		scalar Dmi;
+		scalar external_field_magnitude;
+		Vector3 external_field_normal;
+		int n_anisotropies;
+		scalar anisotropy_magnitudes[8];
+		Vector3 anisotropy_normals[8];
+	};
     // Definition for OpenMP reduction operation using Vector3's
     #pragma omp declare reduction (+: Vector3: omp_out=omp_out+omp_in)\
         initializer(omp_priv=Vector3::Zero())
@@ -94,10 +115,14 @@ struct Neighbour : Pair
     int idx_shell;
 };
 
+//Region book
+using regionbook = field<Regionvalues>;
+
 // Important fields
 using intfield    = field<int>;
 using scalarfield = field<scalar>;
 using vectorfield = field<Vector3>;
+using matrixfield = field<Matrix3>;
 
 // Additional fields
 using pairfield       = field<Pair>;

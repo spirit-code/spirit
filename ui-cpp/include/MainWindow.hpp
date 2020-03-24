@@ -92,6 +92,7 @@ private:
 
 	// State
 	std::shared_ptr<State> state;
+	std::shared_ptr<State> state_copy;
 	// Widgets
 	SpinWidget *spinWidget;
 	InfoWidget *infoWidget;

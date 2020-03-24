@@ -45,6 +45,7 @@ namespace Utility
 
         // Set atom types within a region of space
         void Set_Atom_Types(Data::Spin_System & s, int atom_type=0, filterfunction filter=defaultfilter);
+        void Set_Region(Data::Spin_System & s, int region_id=0, filterfunction filter=defaultfilter);
         // Set spins to be pinned
         void Set_Pinned(Data::Spin_System & s, bool pinned, filterfunction filter=defaultfilter);
     };//end namespace Configurations

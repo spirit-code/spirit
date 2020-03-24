@@ -39,6 +39,8 @@ option( SPIRIT_UI_CXX_USE_QT  "Build the QT User Interface instead of console ve
 option( SPIRIT_BUNDLE_APP     "On installation, bundle the executable with its dependencies." OFF )
 ### Option for building on the IFF cluster
 option( SPIRIT_USER_PATHS_IFF "Use the compiler and library paths etc. for the IFF Cluster."  OFF )
+### Memory conservation option
+option( SPIRIT_LOW_MEMORY "Greatly reduces memory used by Spirit at the cost of some features" OFF )
 #############################################
 
 
@@ -155,7 +157,11 @@ if ( SPIRIT_USE_OPENMP )
 endif( )
 #############################################
 
-
+#############################################
+if ( SPIRIT_LOW_MEMORY )
+    add_definitions( -DSPIRIT_LOW_MEMORY )
+endif()
+#############################################
 
 ######### External Project: QHull ###########
 set (       CMAKE_QHULL_ARGS "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/thirdparty-install")

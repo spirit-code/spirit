@@ -17,7 +17,7 @@ namespace Engine
 
     void Hamiltonian_Gaussian::Update_Energy_Contributions()
     {
-        this->energy_contributions_per_spin = { { "Gaussian", scalarfield(0) } };
+        /*this->energy_contributions_per_spin = { { "Gaussian", scalarfield(0) } };*/
     }
 
     void Hamiltonian_Gaussian::Hessian(const vectorfield & spins, MatrixX & hessian)
@@ -76,7 +76,7 @@ namespace Engine
 
     void Hamiltonian_Gaussian::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
     {
-        int nos = spins.size();
+        /*int nos = spins.size();
 
         // Allocate if not already allocated
         if (this->energy_contributions_per_spin[0].second.size() != nos) this->energy_contributions_per_spin = { { "Gaussian", scalarfield(nos,0) } };
@@ -93,12 +93,12 @@ namespace Engine
                 // Energy contribution
                 this->energy_contributions_per_spin[0].second[ispin] += this->amplitude[i] * std::exp(-std::pow(l, 2) / (2.0*std::pow(this->width[i], 2)));
             }
-        }
+        }*/
     }
 
     scalar Hamiltonian_Gaussian::Energy_Single_Spin(int ispin, const vectorfield & spins)
     {
-        scalar Energy = 0;
+        /*scalar Energy = 0;
         for (int i = 0; i < this->n_gaussians; ++i)
         {
             // Distance between spin and gaussian center
@@ -106,7 +106,8 @@ namespace Engine
             // Energy contribution
             this->energy_contributions_per_spin[0].second[ispin] += this->amplitude[i] * std::exp(-std::pow(l, 2) / (2.0*std::pow(this->width[i], 2)));
         }
-        return Energy;
+        return Energy;*/
+	return 0;
     }
 
     // Hamiltonian name as string

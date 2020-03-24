@@ -7,6 +7,8 @@
 #include <memory>
 #include <thread>
 
+#include <Spirit/Hamiltonian.h>
+
 #include "SpinWidget.hpp"
 #include "IsosurfaceWidget.hpp"
 //#include "SettingsWidget.hpp"
@@ -20,10 +22,16 @@ class HamiltonianGaussianWidget : public QWidget, private Ui::HamiltonianGaussia
     Q_OBJECT
 
 public:
-	HamiltonianGaussianWidget(std::shared_ptr<State> state);
-	void updateData();
+    HamiltonianGaussianWidget(std::shared_ptr<State> state);
+    void updateData();
 
-	std::shared_ptr<State> state;
+    std::shared_ptr<State> state;
+
+signals:
+    void hamiltonianChanged(Hamiltonian_Type newType);
+
+private slots:
+    void clicked_change_hamiltonian();
 };
 
 #endif

@@ -200,3 +200,19 @@ def set_atom_type(p_state, atom_type=0, pos=[0.0,0.0,0.0], border_rectangular=[-
     _Set_Atom_Type(ctypes.c_void_p(p_state), ctypes.c_int(atom_type), vec3(*pos), vec3(*border_rectangular),
            ctypes.c_float(border_cylindrical), ctypes.c_float(border_spherical),
            ctypes.c_bool(inverted), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+_Set_Region             = _spirit.Configuration_Set_Region
+_Set_Region.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.POINTER(ctypes.c_float),
+                            ctypes.POINTER(ctypes.c_float), ctypes.c_float, ctypes.c_float, ctypes.c_bool,
+                            ctypes.c_int, ctypes.c_int]
+_Set_Region.restype     = None
+def set_region(p_state, region_id=0, pos=[0.0,0.0,0.0], border_rectangular=[-1.0,-1.0,-1.0], border_cylindrical=-1.0,
+          border_spherical=-1.0, inverted=False, idx_image=-1, idx_chain=-1):
+    """Set the type of the atoms in the given region (default: 0).
+
+    This can be used e.g. to insert defects (-1).
+    """
+    vec3 = ctypes.c_float * 3
+    _Set_Region(ctypes.c_void_p(p_state), ctypes.c_int(region_id), vec3(*pos), vec3(*border_rectangular),
+           ctypes.c_float(border_cylindrical), ctypes.c_float(border_spherical),
+           ctypes.c_bool(inverted), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))

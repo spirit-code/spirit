@@ -4,6 +4,8 @@ set(SOURCE_SPIRIT_ENGINE
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg.cu
+    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Micromagnetic.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Micromagnetic.cu
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Gaussian.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Eigenmodes.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/HTST.cpp

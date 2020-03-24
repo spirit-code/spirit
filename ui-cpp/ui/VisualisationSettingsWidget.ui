@@ -67,7 +67,7 @@
             <x>0</x>
             <y>0</y>
             <width>468</width>
-            <height>984</height>
+            <height>999</height>
            </rect>
           </property>
           <attribute name="label">
@@ -325,6 +325,31 @@
                 </item>
                 <item>
                  <property name="text">
+                  <string>Gradient exchange</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Gradient anisotropy</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Gradient DMI</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Gradient DDI</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Gradient Zeeman</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
                   <string>External Magnetic Field</string>
                  </property>
                 </item>
@@ -458,19 +483,6 @@
                 </property>
                </widget>
               </item>
-              <item row="1" column="4">
-               <spacer name="horizontalSpacer_21">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
               <item row="3" column="2">
                <layout class="QGridLayout" name="gridLayout_76">
                 <item row="0" column="2">
@@ -510,6 +522,19 @@
                 </item>
                </layout>
               </item>
+              <item row="1" column="3">
+               <spacer name="horizontalSpacer_21">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
              </layout>
             </widget>
            </item>
@@ -537,7 +562,7 @@
             <x>0</x>
             <y>0</y>
             <width>468</width>
-            <height>1019</height>
+            <height>999</height>
            </rect>
           </property>
           <attribute name="label">
@@ -607,7 +632,7 @@
             <x>0</x>
             <y>0</y>
             <width>468</width>
-            <height>1019</height>
+            <height>999</height>
            </rect>
           </property>
           <attribute name="label">
@@ -920,7 +945,7 @@
             <x>0</x>
             <y>0</y>
             <width>468</width>
-            <height>1019</height>
+            <height>999</height>
            </rect>
           </property>
           <attribute name="label">
@@ -1102,7 +1127,7 @@
             <x>0</x>
             <y>0</y>
             <width>468</width>
-            <height>1019</height>
+            <height>999</height>
            </rect>
           </property>
           <attribute name="label">
@@ -2000,7 +2025,7 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup"/>
   <buttongroup name="buttonGroup_2"/>
+  <buttongroup name="buttonGroup"/>
  </buttongroups>
 </ui>

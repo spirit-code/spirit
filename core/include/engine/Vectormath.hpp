@@ -77,6 +77,20 @@ namespace Engine
             tupel[0] = idx_diff / div;
         }
 
+        inline void tupel_from_idx_2(int & idx, int* tupel, int* maxVal, int n)
+        {
+            int idx_diff = idx;
+            int div = 1;
+            for(int i = 0; i < n-1; i++)
+                div *= maxVal[i];
+            for(int i = n - 1; i > 0; i--)
+            {
+                tupel[i] = idx_diff / div;
+                idx_diff -= tupel[i] * div;
+                div /= maxVal[i - 1];
+            }
+            tupel[0] = idx_diff / div;
+        }
         inline int idx_from_translations(const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations_i, const std::array<int, 3> & translations)
         {
             auto& Na = n_cells[0];
@@ -175,6 +189,20 @@ namespace Engine
             tupel[0] = idx_diff / div;
         }
 
+        inline void tupel_from_idx_2(int & idx, int* tupel, int* maxVal, int n)
+        {
+            int idx_diff = idx;
+            int div = 1;
+            for(int i = 0; i < n-1; i++)
+                div *= maxVal[i];
+            for(int i = n - 1; i > 0; i--)
+            {
+                tupel[i] = idx_diff / div;
+                idx_diff -= tupel[i] * div;
+                div /= maxVal[i - 1];
+            }
+            tupel[0] = idx_diff / div;
+        }
         inline void tupel_from_idx(int & idx, field<int> & tupel, const field<int> & maxVal)
         {
             int idx_diff = idx;
@@ -228,7 +256,7 @@ namespace Engine
         {
             #ifdef SPIRIT_ENABLE_DEFECTS
                 // If defects are enabled we check for
-                //		vacancies (type < 0)
+                //        vacancies (type < 0)
                 if (atom_type >= 0) return true;
                 else return false;
             #else
@@ -241,7 +269,7 @@ namespace Engine
         {
             #ifdef SPIRIT_ENABLE_DEFECTS
                 // If defects are enabled we do a check if
-                //		atom types match.
+                //        atom types match.
                 if (atom_type == reference_type) return true;
                 else return false;
             #else
@@ -365,7 +393,7 @@ namespace Engine
         {
             #ifdef SPIRIT_ENABLE_DEFECTS
                 // If defects are enabled we check for
-                //		vacancies (type < 0)
+                // vacancies (type < 0)
                 if (atom_type >= 0) return true;
                 else return false;
             #else
@@ -377,7 +405,7 @@ namespace Engine
         {
             #ifdef SPIRIT_ENABLE_DEFECTS
                 // If defects are enabled we do a check if
-                //		atom types match.
+                // atom types match.
                 if (atom_type == reference_type) return true;
                 else return false;
             #else

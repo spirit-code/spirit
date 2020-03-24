@@ -706,3 +706,36 @@ catch( ... )
 {
     spirit_handle_exception_api(idx_image, idx_chain);
 }
+void Configuration_Set_Region( State *state, int region, const float position[3],
+                            const float r_cut_rectangular[3], float r_cut_cylindrical,
+                            float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
+try
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    // Get relative position
+    Vector3 _pos{ position[0], position[1], position[2] };
+    Vector3 vpos = image->geometry->center + _pos;
+
+    // Create position filter
+    auto filter = get_filter(vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
+
+    // Apply configuration
+    image->Lock();
+    Utility::Configurations::Set_Region(*image, region, filter);
+    image->Unlock();
+
+    auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical,
+                                            r_cut_spherical, inverted );
+    Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+        fmt::format("Set region to {}. {}", region, filterstring),
+        idx_image, idx_chain );
+}
+catch( ... )
+{
+    spirit_handle_exception_api(idx_image, idx_chain);
+}
