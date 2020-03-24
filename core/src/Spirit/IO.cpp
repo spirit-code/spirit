@@ -852,7 +852,8 @@ try
     std::vector<std::pair<std::string, scalarfield>> contributions_spins(0);
     system.UpdateEnergy();
     system.hamiltonian->Energy_Contributions_per_Spin(spins, contributions_spins);
-    int datasize = (1+contributions_spins.size())*system.nos;
+    int dataperspin = 1+contributions_spins.size();
+    int datasize = dataperspin*system.nos;
     scalarfield data(datasize, 0);
     for( int ispin=0; ispin<system.nos; ++ispin )
     {
@@ -861,10 +862,10 @@ try
         for( auto& contribution : contributions_spins )
         {
             E_spin += contribution.second[ispin];
-            data[ispin+j] = contribution.second[ispin];
+            data[ispin*dataperspin+j] = contribution.second[ispin];
             ++j;
         }
-        data[ispin] = E_spin;
+        data[ispin*dataperspin] = E_spin;
     }
 
     try
