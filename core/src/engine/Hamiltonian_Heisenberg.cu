@@ -215,6 +215,10 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions)
     {
+        if( contributions.size() != this->energy_contributions_per_spin.size() )
+        {
+            contributions = this->energy_contributions_per_spin;
+        }
         int nos = spins.size();
         for (auto& pair : contributions)
         {
