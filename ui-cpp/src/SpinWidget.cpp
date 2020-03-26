@@ -666,45 +666,42 @@ void SpinWidget::mouseMoveEvent(QMouseEvent *event)
     if (this->m_suspended)
         return;
 
-    float scale = 1;
-
-    if (event->modifiers() & Qt::ShiftModifier)
-    {
-        scale = 0.1f;
-    }
 
     if (m_interactionmode == InteractionMode::DRAG)
-        dragpaste();
-    else if (m_interactionmode == InteractionMode::DEFECT)
-        defectpaste();
-    else if (m_interactionmode == InteractionMode::PIN)
-        pinningpaste();
-    else
     {
+        dragpaste();
+        QTimer::singleShot(1, this, SLOT(update()));
+    }
+    else if (m_interactionmode == InteractionMode::DEFECT)
+    {
+        defectpaste();
+        QTimer::singleShot(1, this, SLOT(update()));
+    }
+    else if (m_interactionmode == InteractionMode::PIN)
+    {
+        pinningpaste();
+        QTimer::singleShot(1, this, SLOT(update()));
+    }
+    else if (event->buttons() & Qt::LeftButton || event->buttons() & Qt::RightButton)
+    {
+        float scale = 1;
+        if (event->modifiers() & Qt::ShiftModifier)
+            scale = 0.1f;
+
         glm::vec2 current_mouse_position = glm::vec2(event->pos().x(), event->pos().y()) * (float)devicePixelRatio() * scale;
         glm::vec2 previous_mouse_position = glm::vec2(m_previous_mouse_position.x(), m_previous_mouse_position.y()) * (float)devicePixelRatio() * scale;
         m_previous_mouse_position = event->pos();
 
-        if (event->buttons() & Qt::LeftButton || event->buttons() & Qt::RightButton)
+        VFRendering::CameraMovementModes movement_mode = VFRendering::CameraMovementModes::ROTATE_BOUNDED;
+        if (this->m_camera_rotate_free) movement_mode = VFRendering::CameraMovementModes::ROTATE_FREE;
+        if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier || event->buttons() & Qt::RightButton)
         {
-            VFRendering::CameraMovementModes movement_mode = VFRendering::CameraMovementModes::ROTATE_BOUNDED;
-            if (this->m_camera_rotate_free) movement_mode = VFRendering::CameraMovementModes::ROTATE_FREE;
-            if ((event->modifiers() & Qt::AltModifier) == Qt::AltModifier || event->buttons() & Qt::RightButton)
-            {
-                movement_mode = VFRendering::CameraMovementModes::TRANSLATE;
-            }
-            this->m_view.mouseMove(previous_mouse_position, current_mouse_position, movement_mode);
-
-            QTimer::singleShot(1, this, SLOT(update()));
+            movement_mode = VFRendering::CameraMovementModes::TRANSLATE;
         }
+        this->m_view.mouseMove(previous_mouse_position, current_mouse_position, movement_mode);
+
+        QTimer::singleShot(1, this, SLOT(update()));
     }
-}
-
-
-
-float SpinWidget::getFramesPerSecond() const
-{
-    return this->m_view.getFramerate();
 }
 
 void SpinWidget::wheelEvent(QWheelEvent *event)
@@ -738,6 +735,12 @@ void SpinWidget::updateMouseDecoration()
 {
     auto pos = this->mapFromGlobal(QCursor::pos() - QPoint(drag_radius, drag_radius));
     this->mouse_decoration->move((int)pos.x(), (int)pos.y());
+}
+
+
+float SpinWidget::getFramesPerSecond() const
+{
+    return this->m_view.getFramerate();
 }
 
 
