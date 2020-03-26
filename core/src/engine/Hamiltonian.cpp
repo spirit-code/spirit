@@ -1,6 +1,5 @@
 #include <engine/Hamiltonian.hpp>
 #include <engine/Vectormath.hpp>
-#include <engine/Manifoldmath.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
@@ -94,6 +93,12 @@ namespace Engine
         this->Gradient_FD(spins, gradient);
     }
 
+    void Hamiltonian::Gradient_and_Energy(const vectorfield & spins, vectorfield & gradient, scalar & energy)
+    {
+        this->Gradient(spins, gradient);
+        energy = this->Energy(spins);
+    }
+
     void Hamiltonian::Gradient_FD(const vectorfield & spins, vectorfield & gradient)
     {
         int nos = spins.size();
@@ -149,6 +154,11 @@ namespace Engine
         // Not Implemented!
         spirit_throw(Exception_Classifier::Not_Implemented, Log_Level::Error,
             "Tried to use  Hamiltonian::Energy_Contributions_per_Spin() of the Hamiltonian base class!");
+    }
+
+    int Hamiltonian::Number_of_Interactions()
+    {
+        return energy_contributions_per_spin.size();
     }
 
     scalar Hamiltonian::Energy_Single_Spin(int ispin, const vectorfield & spins)

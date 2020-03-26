@@ -90,7 +90,7 @@ try
                     0, Vector3{0, 0, 1},
                     {}, {}, {},
                     {}, {}, SPIRIT_CHIRALITY_NEEL,
-                    Engine::DDI_Method::None, {0, 0, 0}, 0,
+                    Engine::DDI_Method::None, {0, 0, 0}, false, 0,
                     {}, {},
                     image->geometry,
                     image->hamiltonian->boundary_conditions));
@@ -456,7 +456,7 @@ catch( ... )
     spirit_handle_exception_api(idx_image, idx_chain);
 }
 
-void Hamiltonian_Set_DDI(State *state, int ddi_method, int n_periodic_images[3], float cutoff_radius, int idx_image, int idx_chain) noexcept
+void Hamiltonian_Set_DDI(State *state, int ddi_method, int n_periodic_images[3], float cutoff_radius, bool pb_zero_padding, int idx_image, int idx_chain) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -485,7 +485,12 @@ try
             ham->ddi_n_periodic_images[1] = n_periodic_images[1];
             ham->ddi_n_periodic_images[2] = n_periodic_images[2];
             ham->ddi_cutoff_radius = cutoff_radius;
+            ham->ddi_pb_zero_padding = pb_zero_padding;
             ham->Update_Interactions();
+
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format(
+                "Set ddi to method {}, periodic images {} {} {}, cutoff radius {} and pb_zero_padding {}",
+                ddi_method, n_periodic_images[0], n_periodic_images[1], n_periodic_images[2], cutoff_radius, pb_zero_padding), idx_image, idx_chain );
         }
         else if( image->hamiltonian->Name() == "Micromagnetic" )
         {
@@ -494,11 +499,6 @@ try
             image->Unlock();
             return;
         }
-
-        Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format(
-                "Set DDI to method {}, periodic images {} {} {} and cutoff radius {}",
-                ddi_method, n_periodic_images[0], n_periodic_images[1], n_periodic_images[2], cutoff_radius),
-            idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -585,7 +585,7 @@ try
         normal[1] = 0;
         normal[2] = 1;
     }
-    
+
 }
 catch( ... )
 {
@@ -669,7 +669,7 @@ try
     {
         *n_shells = 0;
     }
-    
+
 }
 catch( ... )
 {
@@ -744,7 +744,7 @@ try
     {
         *n_shells = 0;
     }
-    
+
 }
 catch( ... )
 {
@@ -770,7 +770,7 @@ catch( ... )
     return 0;
 }
 
-void Hamiltonian_Get_DDI(State *state, int * ddi_method, int n_periodic_images[3], float * cutoff_radius, int idx_image, int idx_chain) noexcept
+void Hamiltonian_Get_DDI(State *state, int * ddi_method, int n_periodic_images[3], float * cutoff_radius, bool * pb_zero_padding, int idx_image, int idx_chain) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -788,6 +788,7 @@ try
         n_periodic_images[1] = (int)ham->ddi_n_periodic_images[1];
         n_periodic_images[2] = (int)ham->ddi_n_periodic_images[2];
         *cutoff_radius       = (float)ham->ddi_cutoff_radius;
+        *pb_zero_padding     = ham->ddi_pb_zero_padding;
     }
     else if( image->hamiltonian->Name() == "Micromagnetic" )
     {

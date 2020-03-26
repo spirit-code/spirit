@@ -25,23 +25,32 @@ regular simulation, except that the iterations have to be triggered manually.
 Definition of solvers
 --------------------------------------------------------------------
 
-Note that the VP and NCG Solvers are only meant for direct minimization and not for dynamics.
+Note that the VP and LBFGS Solvers are only meant for direct minimization and not for dynamics.
 */
 
 // `VP`: Verlet-like velocity projection
 #define Solver_VP          0
 
-// `SIB`: Verlet-like velocity projection
+// `SIB`: Semi-implicit midpoint method B
 #define Solver_SIB         1
 
-// `Depondt`: Verlet-like velocity projection
+// `Depondt`: Heun method using rotations
 #define Solver_Depondt     2
 
-// `Heun`: Verlet-like velocity projection
+// `Heun`: second-order midpoint
 #define Solver_Heun        3
 
-// `RK4`: Verlet-like velocity projection
+// `RK4`: 4th order Runge-Kutta
 #define Solver_RungeKutta4 4
+
+// `LBFGS_OSO`: Limited memory Broyden-Fletcher-Goldfarb-Shanno, exponential transform
+#define Solver_LBFGS_OSO   5
+
+// `LBFGS_Atlas`: Limited memory Broyden-Fletcher-Goldfarb-Shannon, stereographic projection
+#define Solver_LBFGS_Atlas 6
+
+// `Solver_VP_OSO`: Verlet-like velocity projection, exponential transform
+#define Solver_VP_OSO      7
 
 /*
 Start or stop a simulation
@@ -76,6 +85,14 @@ Otherwise, nothing will happen.
 */
 PREFIX void Simulation_SingleShot(State *state, int idx_image=-1, int idx_chain=-1) SUFFIX;
 
+/*
+N iterations of a Method
+
+If `singleshot=true` was passed to `Simulation_..._Start` before, this will perform N iterations.
+Otherwise, nothing will happen.
+*/
+PREFIX void Simulation_N_Shot(State *state, int N, int idx_image=-1, int idx_chain=-1) SUFFIX;
+
 // Stop a simulation running on an image or chain
 PREFIX void Simulation_Stop(State *state, int idx_image=-1, int idx_chain=-1) SUFFIX;
 
@@ -102,6 +119,22 @@ Get maximum torque components on the images of a chain.
 Will only work if a GNEB simulation is running.
 */
 PREFIX void Simulation_Get_Chain_MaxTorqueComponents(State * state, float * torques, int idx_chain=-1) SUFFIX;
+
+/*
+Get maximum torque norm.
+
+If a MC, LLG, MMF or EMA simulation is running this returns the max. torque on the current image.
+
+If a GNEB simulation is running this returns the max. torque on the current chain.
+*/
+PREFIX float Simulation_Get_MaxTorqueNorm(State * state, int idx_image=-1, int idx_chain=-1) SUFFIX;
+
+/*
+Get maximum torque norms on the images of a chain.
+
+Will only work if a GNEB simulation is running.
+*/
+PREFIX void Simulation_Get_Chain_MaxTorqueNorms(State * state, float * torques, int idx_chain=-1) SUFFIX;
 
 /*
 Returns the iterations per second (IPS).

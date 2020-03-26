@@ -93,19 +93,20 @@ def set_dmi(p_state, n_shells, D_ij, chirality=CHIRALITY_BLOCH, idx_image=-1, id
              ctypes.c_int(chirality), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
 _Set_DDI             = _spirit.Hamiltonian_Set_DDI
-_Set_DDI.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.POINTER(ctypes.c_int), ctypes.c_float,
+_Set_DDI.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.POINTER(ctypes.c_int), ctypes.c_float, ctypes.c_bool,
                         ctypes.c_int, ctypes.c_int]
 _Set_DDI.restype     = None
-def set_ddi(p_state, ddi_method, n_periodic_images=[4,4,4], radius=0.0, idx_image=-1, idx_chain=-1):
+def set_ddi(p_state, ddi_method, n_periodic_images=[4,4,4], radius=0.0, pb_zero_padding=True, idx_image=-1, idx_chain=-1):
     """Set the dipolar interaction calculation method.
 
     - `ddi_method`: one of the integers defined above
     - `n_periodic_images`: the number of periodical images in the three translation directions,
       taken into account when boundaries in the corresponding direction are periodical
     - `radius`: the cutoff radius for the direct summation method
+    - `pb_zero_padding`: if `True` zero padding is used for periodical directions
     """
     vec3 = ctypes.c_int * 3
-    _Set_DDI(ctypes.c_void_p(p_state), ctypes.c_int(ddi_method) , vec3(*n_periodic_images), ctypes.c_float(radius),
+    _Set_DDI(ctypes.c_void_p(p_state), ctypes.c_int(ddi_method) , vec3(*n_periodic_images), ctypes.c_float(radius), ctypes.c_bool(pb_zero_padding),
              ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
 ### ---------------------------------- Get ----------------------------------
@@ -145,9 +146,16 @@ def get_field(p_state, idx_image=-1, idx_chain=-1):
     return float(magnitude), [n for n in normal]
 
 _Get_DDI          = _spirit.Hamiltonian_Get_DDI
-_Get_DDI.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_Get_DDI.restype  = ctypes.c_float
+_Get_DDI.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_bool), ctypes.c_int, ctypes.c_int]
+_Get_DDI.restype  = None
 def get_ddi(p_state, idx_image=-1, idx_chain=-1):
-    """Returns the cutoff radius of the DDI."""
-    return float(_Get_DDI(ctypes.c_void_p(p_state), ctypes.c_int(idx_image),
-                          ctypes.c_int(idx_chain)))
+    """Returns a dictionary, containing information about the used ddi settings"""
+    ddi_method = ctypes.c_int()
+    n_periodic_images = (3*ctypes.c_int)()
+    cutoff_radius = ctypes.c_float()
+    pb_zero_padding = ctypes.c_bool()
+    _Get_DDI(ctypes.c_void_p(p_state), ctypes.byref(ddi_method), n_periodic_images, ctypes.byref(cutoff_radius), ctypes.byref(pb_zero_padding), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+    return { "ddi_method" : ddi_method.value,
+            "n_periodic_images" : [ i for i in n_periodic_images ],
+            "cutoff_radius" : cutoff_radius.value,
+            "pb_zero_padding" : pb_zero_padding.value }

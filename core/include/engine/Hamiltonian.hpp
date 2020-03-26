@@ -59,6 +59,15 @@ namespace Engine
         virtual void Gradient(const vectorfield & spins, vectorfield & gradient);
 
         /*
+            Calculates the gradient and total energy. 
+            Child classes can override this to provide a more efficient implementation, than calculating
+            gradient and energy separately.
+            The implementation provided here is a fallback for derived classes and *not* more efficient than
+            separate calls.
+        */
+        virtual void Gradient_and_Energy(const vectorfield & spins, vectorfield & gradient, scalar & energy);
+
+        /*
             Calculate the energy gradient of a spin configuration.
             This function uses finite differences and may thus be quite inefficient.
         */
@@ -75,7 +84,9 @@ namespace Engine
 
         // Calculate the total energy for a single spin
         virtual scalar Energy_Single_Spin(int ispin, const vectorfield & spins);
-        
+
+        virtual int Number_of_Interactions();
+
         // Hamiltonian name as string
         virtual const std::string& Name();
 

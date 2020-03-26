@@ -14,7 +14,7 @@
    <string>Form</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="11" column="2">
+   <item row="9" column="2">
     <widget class="QScrollArea" name="scrollArea_5">
      <property name="frameShape">
       <enum>QFrame::NoFrame</enum>
@@ -28,7 +28,7 @@
         <x>0</x>
         <y>0</y>
         <width>376</width>
-        <height>1079</height>
+        <height>1136</height>
        </rect>
       </property>
       <layout class="QGridLayout" name="gridLayout_29">
@@ -256,6 +256,13 @@
            </property>
           </widget>
          </item>
+         <item row="1" column="0">
+          <widget class="QCheckBox" name="checkBox_aniso_periodical_a">
+           <property name="text">
+            <string>Periodical a</string>
+           </property>
+          </widget>
+         </item>
          <item row="11" column="1">
           <layout class="QGridLayout" name="gridLayout_47">
            <item row="0" column="0">
@@ -325,6 +332,13 @@
             </size>
            </property>
           </spacer>
+         </item>
+         <item row="5" column="0">
+          <widget class="QCheckBox" name="checkBox_aniso_periodical_c">
+           <property name="text">
+            <string>Periodical c</string>
+           </property>
+          </widget>
          </item>
          <item row="7" column="1">
           <layout class="QGridLayout" name="gridLayout_36">
@@ -489,6 +503,13 @@
            </item>
           </layout>
          </item>
+         <item row="4" column="0">
+          <widget class="QCheckBox" name="checkBox_aniso_periodical_b">
+           <property name="text">
+            <string>Periodical b</string>
+           </property>
+          </widget>
+         </item>
          <item row="10" column="1">
           <layout class="QGridLayout" name="gridLayout_42">
            <item row="0" column="0">
@@ -515,13 +536,6 @@
             </spacer>
            </item>
           </layout>
-         </item>
-         <item row="21" column="1">
-          <widget class="QDoubleSpinBox" name="doubleSpinBox_ddi_radius">
-           <property name="maximum">
-            <double>1000000.000000000000000</double>
-           </property>
-          </widget>
          </item>
          <item row="19" column="1">
           <widget class="QComboBox" name="comboBox_ddi_method">
@@ -554,6 +568,17 @@
             <widget class="QSpinBox" name="spinBox_ddi_n_periodic_c"/>
            </item>
           </layout>
+         </item>
+         <item row="21" column="1">
+          <widget class="QDoubleSpinBox" name="doubleSpinBox_ddi_radius">
+           <property name="maximum">
+             <double>1000000.000000000000000</double>
+           </property>
+          </widget>
+          </item>
+          <item row="22" column="1">
+              <widget class="QCheckBox" name="checkBox_ddi_pb_zero_padding">
+              </widget>
          </item>
          <item row="20" column="0">
           <layout class="QGridLayout" name="gridLayout_7">
@@ -603,30 +628,9 @@
            </item>
           </layout>
          </item>
-         <item row="1" column="1">
+         <item row="22" column="0">
           <layout class="QGridLayout" name="gridLayout_9">
-           <item row="0" column="1">
-            <widget class="QCheckBox" name="checkBox_aniso_periodical_b">
-             <property name="text">
-              <string>b</string>
-             </property>
-            </widget>
-           </item>
            <item row="0" column="0">
-            <widget class="QCheckBox" name="checkBox_aniso_periodical_a">
-             <property name="text">
-              <string>a</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="2">
-            <widget class="QCheckBox" name="checkBox_aniso_periodical_c">
-             <property name="text">
-              <string>c</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="3">
             <spacer name="horizontalSpacer_10">
              <property name="orientation">
               <enum>Qt::Horizontal</enum>
@@ -639,14 +643,14 @@
              </property>
             </spacer>
            </item>
+           <item row="0" column="1">
+            <widget class="QLabel" name="label_8">
+             <property name="text">
+              <string>PB zero padding</string>
+             </property>
+            </widget>
+           </item>
           </layout>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="label_8">
-           <property name="text">
-            <string>Periodical boundaries</string>
-           </property>
-          </widget>
          </item>
         </layout>
        </item>
@@ -971,6 +975,9 @@ i  j  k  l   da_j  db_j  dc_j   da_k  db_k  dc_k   da_l  db_l  dc_l   Q</string>
  <tabstops>
   <tabstop>scrollArea_5</tabstop>
   <tabstop>comboBox_Hamiltonian_Ani_ApplyTo</tabstop>
+  <tabstop>checkBox_aniso_periodical_a</tabstop>
+  <tabstop>checkBox_aniso_periodical_b</tabstop>
+  <tabstop>checkBox_aniso_periodical_c</tabstop>
   <tabstop>checkBox_extH_aniso</tabstop>
   <tabstop>lineEdit_extH_aniso</tabstop>
   <tabstop>lineEdit_muSpin_aniso</tabstop>

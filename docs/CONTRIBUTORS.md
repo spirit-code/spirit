@@ -29,7 +29,7 @@ Implementation of the dipole-dipole interaction using FFT convolutions.
 
 email: m.sallermann@fz-juelich.de
 
-(Apr. 2015 - Sept. 2016)
+(May 2018 - ongoing)
 
 -----------------
 
@@ -69,7 +69,7 @@ email: n.kiselev@fz-juelich.de
 
 Implementation of C++ OpenGL code (VFRendering library),
 as well as JavaScript Web UI and WebGL code.<br />
-Code design improvements, including the C API and CMake. 
+Code design improvements, including the C API and CMake.
 
 (Jan. 2016 - ongoing)
 
@@ -85,6 +85,18 @@ Initial (Fortran90) implementation of the HTST method.
 email: bessarab@hi.is
 
 (Apr. 2015 - ongoing)
+
+-----------------
+
+
+### Aleksei V. Ivanov
+* University of Iceland
+* St. Petersburg State University
+
+Help with the initial implementation of conjugate gradient and L-BFGS solvers.
+Initial implementation of conjugate gradient and L-BFGS solvers, using the exponential transform.
+
+(Sep. 2019 - ongoing)
 
 -----------------
 
@@ -109,6 +121,16 @@ Work on unit testing and documentation, implementation of the Depondt solver.<br
 Also some general code design and IO improvements.
 
 (Apr. 2017 - Oct. 2018)
+
+-----------------
+
+
+### Aleksei Ivanov
+* University of Iceland
+
+Initial implementation (Python/C) of the NCG and BFGS solvers.
+
+(Jan. 2019 - June 2019)
 
 -----------------
 

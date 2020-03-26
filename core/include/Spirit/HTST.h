@@ -43,7 +43,7 @@ Retrieves a set of information from HTST:
 */
 PREFIX void HTST_Get_Info( State * state, float * temperature_exponent, float * me,
                             float * Omega_0, float * s, float * volume_min, float * volume_sp,
-                            float * prefactor_dynamical, float * prefactor, int idx_chain=-1 ) SUFFIX;
+                            float * prefactor_dynamical, float * prefactor, int * n_eigenmodes_keep, int idx_chain=-1 ) SUFFIX;
 
 /*
 Fetches HTST information eigenvalues at the min (array of length 2*NOS)
@@ -51,7 +51,7 @@ Fetches HTST information eigenvalues at the min (array of length 2*NOS)
 PREFIX void HTST_Get_Eigenvalues_Min( State * state, float * eigenvalues_min, int idx_chain=-1 ) SUFFIX;
 
 /*
-Fetches HTST eigenvectors at the minimum (array of length 2*NOS*NOS)
+Fetches HTST eigenvectors at the minimum (array of length 2*NOS*htst_info.n_eigenmodes_keep)
 */
 PREFIX void HTST_Get_Eigenvectors_Min( State * state, float * eigenvectors_min, int idx_chain=-1 ) SUFFIX;
 
@@ -61,7 +61,7 @@ Fetches HTST eigenvalues at the saddle point (array of length 2*NOS)
 PREFIX void HTST_Get_Eigenvalues_SP( State * state, float * eigenvalues_sp, int idx_chain=-1 ) SUFFIX;
 
 /*
-Fetches HTST eigenvectors at the saddle point (array of length 2*NOS*NOS)
+Fetches HTST eigenvectors at the saddle point (array of length 2*NOS*htst_info.n_eigenmodes_keep)
 */
 PREFIX void HTST_Get_Eigenvectors_SP( State * state, float * eigenvectors_sp, int idx_chain=-1 ) SUFFIX;
 

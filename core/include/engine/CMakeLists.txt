@@ -5,26 +5,29 @@ set(HEADER_SPIRIT_ENGINE
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Micromagnetic.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Gaussian.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Eigenmodes.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/HTST.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Solver_SIB.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Solver_Heun.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Solver_Depondt.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Solver_NCG.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Solver_VP.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Solver_RK4.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Method.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Method_Solver.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Method_LLG.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Method_GNEB.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Method_MC.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Method_MMF.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Eigenmodes.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/HTST.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Solver_SIB.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Solver_Heun.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Solver_Depondt.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Solver_RK4.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Solver_VP.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Solver_VP_OSO.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Solver_LBFGS_OSO.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Solver_LBFGS_Atlas.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Method.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Method_Solver.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Method_LLG.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Method_GNEB.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Method_MC.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Method_MMF.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Method_EMA.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Vectormath_Defines.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Manifoldmath.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/Managed_Allocator.hpp
-	${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
-	${CMAKE_CURRENT_SOURCE_DIR}/FFT.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Vectormath_Defines.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Manifoldmath.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Solver_Kernels.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Managed_Allocator.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
+    ${CMAKE_CURRENT_SOURCE_DIR}/FFT.hpp
     PARENT_SCOPE
 )

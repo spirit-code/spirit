@@ -26,7 +26,7 @@ namespace Engine
             intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
             pairfield exchange_pairs, scalarfield exchange_magnitudes,
             pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals,
-            DDI_Method ddi_method, intfield ddi_n_periodic_images, scalar ddi_radius,
+            DDI_Method ddi_method, intfield ddi_n_periodic_images, bool ddi_pb_zero_padding, scalar ddi_radius,
             quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
             std::shared_ptr<Data::Geometry> geometry,
             intfield boundary_conditions
@@ -37,7 +37,7 @@ namespace Engine
             intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
             scalarfield exchange_shell_magnitudes,
             scalarfield dmi_shell_magnitudes, int dm_chirality,
-            DDI_Method ddi_method, intfield ddi_n_periodic_images, scalar ddi_radius,
+            DDI_Method ddi_method, intfield ddi_n_periodic_images, bool ddi_pb_zero_padding, scalar ddi_radius,
             quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
             std::shared_ptr<Data::Geometry> geometry,
             intfield boundary_conditions
@@ -49,6 +49,8 @@ namespace Engine
 
         void Hessian(const vectorfield & spins, MatrixX & hessian) override;
         void Gradient(const vectorfield & spins, vectorfield & gradient) override;
+        void Gradient_and_Energy(const vectorfield & spins, vectorfield & gradient, scalar & energy) override;
+
         void Energy_Contributions_per_Spin(const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions) override;
 
         // Calculate the total energy for a single spin to be used in Monte Carlo.
@@ -59,7 +61,7 @@ namespace Engine
         const std::string& Name() override;
 
         std::shared_ptr<Data::Geometry> geometry;
-        
+
         // ------------ Single Spin Interactions ------------
         // External magnetic field across the sample
         scalar external_field_magnitude;
@@ -93,6 +95,8 @@ namespace Engine
         // Dipole-dipole interaction
         DDI_Method  ddi_method;
         intfield    ddi_n_periodic_images;
+        bool        ddi_pb_zero_padding;
+        //      ddi cutoff variables
         scalar      ddi_cutoff_radius;
         pairfield   ddi_pairs;
         scalarfield ddi_magnitudes;
@@ -102,7 +106,6 @@ namespace Engine
         quadrupletfield quadruplets;
         scalarfield     quadruplet_magnitudes;
 
-    private:
         // ------------ Effective Field Functions ------------
         // Calculate the Zeeman effective field of a single Spin
         void Gradient_Zeeman(vectorfield & gradient);
@@ -114,16 +117,19 @@ namespace Engine
         void Gradient_DMI(const vectorfield & spins, vectorfield & gradient);
         // Calculates the Dipole-Dipole contribution to the effective field of spin ispin within system s
         void Gradient_DDI(const vectorfield& spins, vectorfield & gradient);
-        void Gradient_DDI_Cutoff(const vectorfield& spins, vectorfield & gradient);
-        void Gradient_DDI_Direct(const vectorfield& spins, vectorfield & gradient);
-        void Gradient_DDI_FFT(const vectorfield& spins, vectorfield & gradient);
 
         // Quadruplet
         void Gradient_Quadruplet(const vectorfield & spins, vectorfield & gradient);
 
         // ------------ Energy Functions ------------
-        // Indices for Energy vector
-        int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet;
+        // Getters for Indices of the energy vector
+        inline int Idx_Zeeman() {return idx_zeeman;};
+        inline int Idx_Anisotropy() {return idx_anisotropy;};
+        inline int Idx_Exchange()  {return idx_exchange;};
+        inline int Idx_DMI() {return idx_dmi;};
+        inline int Idx_DDI() {return idx_ddi;};
+        inline int Idx_Quadruplet() {return idx_quadruplet;};
+
         // Calculate the Zeeman energy of a Spin System
         void E_Zeeman(const vectorfield & spins, scalarfield & Energy);
         // Calculate the Anisotropy energy of a Spin System
@@ -132,15 +138,20 @@ namespace Engine
         void E_Exchange(const vectorfield & spins, scalarfield & Energy);
         // Calculate the DMI energy of a Spin System
         void E_DMI(const vectorfield & spins, scalarfield & Energy);
-        // calculates the Dipole-Dipole Energy
+        // Calculate the Dipole-Dipole energy
         void E_DDI(const vectorfield& spins, scalarfield & Energy);
+        // Calculate the Quadruplet energy
+        void E_Quadruplet(const vectorfield & spins, scalarfield & Energy);
+
+        private:
+        int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet;
+        void Gradient_DDI_Cutoff(const vectorfield& spins, vectorfield & gradient);
+        void Gradient_DDI_Direct(const vectorfield& spins, vectorfield & gradient);
+        void Gradient_DDI_FFT(const vectorfield& spins, vectorfield & gradient);
         void E_DDI_Direct(const vectorfield& spins, scalarfield & Energy);
         void E_DDI_Cutoff(const vectorfield& spins, scalarfield & Energy);
         void E_DDI_FFT(const vectorfield& spins, scalarfield & Energy);
 
-        // Quadruplet
-        void E_Quadruplet(const vectorfield & spins, scalarfield & Energy);
-        
         // Preparations for DDI-Convolution Algorithm
         void Prepare_DDI();
         void Clean_DDI();
@@ -167,12 +178,12 @@ namespace Engine
         FFT::StrideContainer spin_stride;
         FFT::StrideContainer dipole_stride;
 
-        //Calculate the FT of the padded D matriess
+        // Calculate the FT of the padded D-matrics
         void FFT_Dipole_Matrices(FFT::FFT_Plan & fft_plan_dipole, int img_a, int img_b, int img_c);
-        //Calculate the FT of the padded spins
+        // Calculate the FT of the padded spins
         void FFT_Spins(const vectorfield & spins);
 
-        //Bounds for nested for loops. Only important for the CUDA version
+        // Bounds for nested for loops. Only important for the CUDA version
         field<int> it_bounds_pointwise_mult;
         field<int> it_bounds_write_gradients;
         field<int> it_bounds_write_spins;

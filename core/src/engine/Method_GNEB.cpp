@@ -8,6 +8,7 @@
 #include <utility/Cubic_Hermite_Spline.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Version.hpp>
+#include <engine/Backend_par.hpp>
 
 #include <iostream>
 #include <math.h>
@@ -44,8 +45,8 @@ namespace Engine
         this->tangents = std::vector<vectorfield>(this->noi, vectorfield( this->nos, { 0, 0, 0 } ));	// [noi][nos]
 
         // We assume that the chain is not converged before the first iteration
-        this->force_max_abs_component = this->chain->gneb_parameters->force_convergence + 1.0;
-        this->force_max_abs_component_all = std::vector<scalar>(this->noi, 0);
+        this->max_torque = this->chain->gneb_parameters->force_convergence + 1.0;
+        this->max_torque_all = std::vector<scalar>(this->noi, 0);
 
         // Create shared pointers to the method's systems' spin configurations
         this->configurations = std::vector<std::shared_ptr<vectorfield>>(this->noi);
@@ -53,7 +54,7 @@ namespace Engine
 
         // History
         this->history = std::map<std::string, std::vector<scalar>>{
-            {"max_torque_component", {this->force_max_abs_component}} };
+            {"max_torque", {this->max_torque}} };
 
         //---- Initialise Solver-specific variables
         this->Initialize();
@@ -69,6 +70,12 @@ namespace Engine
         return this->force_max_abs_component_all;
     }
 
+    template <Solver solver>
+    std::vector<scalar>  Method_GNEB<solver>::getTorqueMaxNorm_All()
+    {
+        return this->max_torque_all;
+    }
+
 
     template <Solver solver>
     void Method_GNEB<solver>::Calculate_Force(const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces)
@@ -82,8 +89,22 @@ namespace Engine
         {
             auto& image = *configurations[img];
 
-            // Calculate the Energy of the image
-            energies[img] = this->chain->images[img]->hamiltonian->Energy(image);
+            // Calculate the Gradient and Energy of the image
+            this->chain->images[img]->hamiltonian->Gradient_and_Energy(image, this->chain->images[img]->effective_field, energies[img]);
+
+            // Multiply gradient with -1 to get effective field and copy to F_gradient.
+            // We do it the following way so that the effective field can be e.g. displayed,
+            //      while the gradient force is manipulated (e.g. projected)
+            auto eff_field = this->chain->images[img]->effective_field.data();
+            auto f_grad    = F_gradient[img].data();
+            Backend::par::apply( image.size(), 
+                [eff_field, f_grad] SPIRIT_LAMBDA (int idx)
+                {
+                    eff_field[idx] *= -1; 
+                    f_grad[idx] = eff_field[idx];
+                }
+            );
+
             if (img > 0)
             {
                 Rx[img] = Rx[img-1] + Manifoldmath::dist_geodesic(image, *configurations[img-1]);
@@ -94,13 +115,6 @@ namespace Engine
                     return;
                 }
             }
-
-            // We do it the following way so that the effective field can be e.g. displayed,
-            //      while the gradient force is manipulated (e.g. projected)
-            this->chain->images[img]->UpdateEffectiveField();
-            // F_gradient[img] = this->chain->images[img]->effective_field;
-            Vectormath::set_c_a(1, this->chain->images[img]->effective_field, F_gradient[img]);
-            // // this->chain->images[img]->hamiltonian->Effective_Field(image, this->chain->images[img]->effective_field);
         }
 
         // Calculate relevant tangent to magnetisation sphere, considering also the energies of images
@@ -260,7 +274,7 @@ namespace Engine
     bool Method_GNEB<solver>::Converged()
     {
         // return this->isConverged;
-        if (this->force_max_abs_component < this->chain->gneb_parameters->force_convergence) return true;
+        if (this->max_torque < this->chain->gneb_parameters->force_convergence) return true;
         return false;
     }
 
@@ -280,17 +294,17 @@ namespace Engine
     void Method_GNEB<solver>::Hook_Post_Iteration()
     {
         // --- Convergence Parameter Update
-        this->force_max_abs_component = 0;
-        std::fill(this->force_max_abs_component_all.begin(), this->force_max_abs_component_all.end(), 0);
+        this->max_torque = 0;
+        std::fill(this->max_torque_all.begin(), this->max_torque_all.end(), 0);
 
 
         for (int img = 1; img < chain->noi - 1; ++img)
         {
-            scalar fmax = this->Force_on_Image_MaxAbsComponent(*(this->systems[img]->spins), F_total[img]);
+            scalar fmax = this->MaxTorque_on_Image(*(this->systems[img]->spins), F_total[img]);
             // Set maximum per image
-            if (fmax > this->force_max_abs_component_all[img]) this->force_max_abs_component_all[img] = fmax;
+            this->max_torque_all[img] = fmax;
             // Set maximum overall
-            if (fmax > this->force_max_abs_component) this->force_max_abs_component = fmax;
+            if (fmax > this->max_torque) this->max_torque = fmax;
 
             // Set the effective fields
             Manifoldmath::project_tangential(this->forces[img], *this->systems[img]->spins);
@@ -330,6 +344,124 @@ namespace Engine
     }
 
     template <Solver solver>
+    void Method_GNEB<solver>::Calculate_Interpolated_Energy_Contributions()
+    {
+        // This whole method could be made faster by calculating the energies from the gradients and not allocating the temporaries eacht time the method is called,
+        // but since this method should be called rather sparingly it should not matter very much.
+
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::GNEB, std::string("Calculating interpolated energy contributions"), -1, -1);
+
+        int nos = this->configurations[0]->size();
+        int noi = this->chain->noi;
+
+        if(chain->images[0]->hamiltonian->Name() != "Heisenberg")
+        {
+            Log(Utility::Log_Level::Error, Utility::Log_Sender::GNEB, std::string("Cannot calculate interpolated energy contribution for non-Heisenberg Hamiltonian!"), -1, -1);
+            return;
+        }
+        Engine::Hamiltonian_Heisenberg & ham = ( Engine::Hamiltonian_Heisenberg & ) *(chain->images[0]->hamiltonian);
+        int n_interactions = ham.Number_of_Interactions();
+
+        // Allocate temporaries
+        field<Vector3> temp_field(nos, {0,0,0});
+        field<scalar> temp_energy(nos, 0);
+
+        std::vector<std::vector<scalar>> temp_dE_dRx(n_interactions, std::vector<scalar>(noi, 0));
+        std::vector<std::vector<scalar>> temp_energies(n_interactions, std::vector<scalar>(noi, 0));
+
+        // Calculate the energies and the inclinations
+        // TODO: Find a better way to do this without so much code duplication. Probably requires extension of the Hamiltonian in a way that allows to request information about the different contributions.
+        for(int img=0; img<noi; img++)
+        {
+            auto& image = *this->configurations[img];
+            if(ham.Idx_Exchange() >= 0)
+            {
+                Vectormath::fill(temp_field, Vector3::Zero());
+                Vectormath::fill(temp_energy, 0);
+                ham.E_Exchange(image, temp_energy);
+                temp_energies[ham.Idx_Exchange()][img] = Vectormath::sum(temp_energy);
+                ham.Gradient_Exchange(image, temp_field);
+                temp_dE_dRx[ham.Idx_Exchange()][img] = -Vectormath::dot(temp_field, this->tangents[img]);
+            }
+            if(ham.Idx_Zeeman() >= 0)
+            {
+                Vectormath::fill(temp_field, Vector3::Zero());
+                Vectormath::fill(temp_energy, 0);
+                ham.E_Zeeman(image, temp_energy);
+                temp_energies[ham.Idx_Zeeman()][img] = Vectormath::sum(temp_energy);
+                ham.Gradient_Zeeman(temp_field);
+                temp_dE_dRx[ham.Idx_Zeeman()][img] = -Vectormath::dot(temp_field, this->tangents[img]);
+            }
+            if(ham.Idx_Anisotropy() >= 0)
+            {
+                Vectormath::fill(temp_field, Vector3::Zero());
+                Vectormath::fill(temp_energy, 0);
+                ham.E_Anisotropy(image, temp_energy);
+                temp_energies[ham.Idx_Anisotropy()][img] = Vectormath::sum(temp_energy);
+                ham.Gradient_Anisotropy(image, temp_field);
+                temp_dE_dRx[ham.Idx_Anisotropy()][img] = -Vectormath::dot(temp_field, this->tangents[img]);
+            }
+            if(ham.Idx_DMI() >= 0)
+            {
+                Vectormath::fill(temp_field, Vector3::Zero());
+                Vectormath::fill(temp_energy, 0);
+                ham.E_DMI(image, temp_energy);
+                temp_energies[ham.Idx_DMI()][img] = Vectormath::sum(temp_energy);
+                ham.Gradient_DMI(image, temp_field);
+                temp_dE_dRx[ham.Idx_DMI()][img] = -Vectormath::dot(temp_field, this->tangents[img]);
+            }
+            if(ham.Idx_DDI() >= 0)
+            {
+                Vectormath::fill(temp_field, Vector3::Zero());
+                Vectormath::fill(temp_energy, 0);
+                ham.E_DDI(image, temp_energy);
+                temp_energies[ham.Idx_DDI()][img] = Vectormath::sum(temp_energy);
+                ham.Gradient_DDI(image, temp_field);
+                temp_dE_dRx[ham.Idx_DDI()][img] = -Vectormath::dot(temp_field, this->tangents[img]);
+            }
+            if(ham.Idx_Quadruplet() >= 0)
+            {
+                Vectormath::fill(temp_field, Vector3::Zero());
+                Vectormath::fill(temp_energy, 0);
+                ham.E_Quadruplet(image, temp_energy);
+                temp_energies[ham.Idx_Quadruplet()][img] = Vectormath::sum(temp_energy);
+                ham.Gradient_Quadruplet(image, temp_field);
+                temp_dE_dRx[ham.Idx_Quadruplet()][img] = -Vectormath::dot(temp_field, this->tangents[img]);
+            }
+        }
+        if(ham.Idx_Exchange() >= 0)
+        {
+            auto interp = Utility::Cubic_Hermite_Spline::Interpolate(this->Rx, temp_energies[ham.Idx_Exchange()], temp_dE_dRx[ham.Idx_Exchange()], this->chain->gneb_parameters->n_E_interpolations);
+            this->chain->E_array_interpolated[ham.Idx_Exchange()] = interp[1];
+        }
+        if(ham.Idx_Zeeman() >= 0)
+        {
+            auto interp = Utility::Cubic_Hermite_Spline::Interpolate(this->Rx, temp_energies[ham.Idx_Zeeman()], temp_dE_dRx[ham.Idx_Zeeman()], this->chain->gneb_parameters->n_E_interpolations);
+            this->chain->E_array_interpolated[ham.Idx_Zeeman()] = interp[1];
+        }
+        if(ham.Idx_Anisotropy() >= 0)
+        {
+            auto interp = Utility::Cubic_Hermite_Spline::Interpolate(this->Rx, temp_energies[ham.Idx_Anisotropy()], temp_dE_dRx[ham.Idx_Anisotropy()], this->chain->gneb_parameters->n_E_interpolations);
+            this->chain->E_array_interpolated[ham.Idx_Anisotropy()] = interp[1];
+        }
+        if(ham.Idx_DMI() >= 0)
+        {
+            auto interp = Utility::Cubic_Hermite_Spline::Interpolate(this->Rx, temp_energies[ham.Idx_DMI()], temp_dE_dRx[ham.Idx_DMI()], this->chain->gneb_parameters->n_E_interpolations);
+            this->chain->E_array_interpolated[ham.Idx_DMI()] = interp[1];
+        }
+        if(ham.Idx_DDI() >= 0)
+        {
+            auto interp = Utility::Cubic_Hermite_Spline::Interpolate(this->Rx, temp_energies[ham.Idx_DDI()], temp_dE_dRx[ham.Idx_DDI()], this->chain->gneb_parameters->n_E_interpolations);
+            this->chain->E_array_interpolated[ham.Idx_DDI()] = interp[1];
+        }
+        if(ham.Idx_Quadruplet() >= 0)
+        {
+            auto interp = Utility::Cubic_Hermite_Spline::Interpolate(this->Rx, temp_energies[ham.Idx_Quadruplet()], temp_dE_dRx[ham.Idx_Quadruplet()], this->chain->gneb_parameters->n_E_interpolations);
+            this->chain->E_array_interpolated[ham.Idx_Quadruplet()] = interp[1];
+        }
+    }
+
+    template <Solver solver>
     void Method_GNEB<solver>::Finalize()
     {
         Log(Log_Level::All, Log_Sender::GNEB, fmt::format("Total path length = {}", this->Rx[chain->noi-1]), -1, -1);
@@ -341,7 +473,7 @@ namespace Engine
     void Method_GNEB<solver>::Save_Current(std::string starttime, int iteration, bool initial, bool final)
     {
         // History save
-        this->history["max_torque_component"].push_back(this->force_max_abs_component);
+        this->history["max_torque"].push_back(this->max_torque);
 
         // File save
         if (this->parameters->output_any)
@@ -379,8 +511,8 @@ namespace Engine
                     std::string output_comment_base = fmt::format(
                         "{} simulation ({} solver)\n"
                         "# Desc:      Iteration: {}\n"
-                        "# Desc:      Maximum force component: {}",
-                        this->Name(), this->SolverFullName(), iteration, this->force_max_abs_component );
+                        "# Desc:      Maximum torque: {}",
+                        this->Name(), this->SolverFullName(), iteration, this->max_torque );
 
                     // write/append the first image
                     auto segment = IO::OVF_Segment(*this->chain->images[0]);
@@ -408,6 +540,7 @@ namespace Engine
                 }
             };
 
+            Calculate_Interpolated_Energy_Contributions();
             auto writeOutputEnergies = [this, preChainFile, preEnergiesFile, iteration](std::string suffix)
             {
                 bool normalize = this->chain->gneb_parameters->output_energies_divide_by_nspins;
@@ -483,6 +616,8 @@ namespace Engine
     template class Method_GNEB<Solver::Heun>;
     template class Method_GNEB<Solver::Depondt>;
     template class Method_GNEB<Solver::RungeKutta4>;
-    template class Method_GNEB<Solver::NCG>;
+    template class Method_GNEB<Solver::LBFGS_OSO>;
+    template class Method_GNEB<Solver::LBFGS_Atlas>;
     template class Method_GNEB<Solver::VP>;
+    template class Method_GNEB<Solver::VP_OSO>;
 }

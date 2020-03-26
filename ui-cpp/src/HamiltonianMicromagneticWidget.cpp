@@ -94,7 +94,8 @@ void HamiltonianMicromagneticWidget::updateData()
     // for (int i = 0; i < n_neigh_shells_dmi; ++i) this->dmi_shells[i]->setValue(dij[i]);
 
     // DDI
-    Hamiltonian_Get_DDI(state.get(), &ddi_method, ddi_n_periodic_images, &d);
+    bool padding = false;
+    Hamiltonian_Get_DDI(state.get(), &ddi_method, ddi_n_periodic_images, &d, &padding);
     this->checkBox_mm_ddi->setChecked( ddi_method != SPIRIT_DDI_METHOD_NONE );
     if( ddi_method == SPIRIT_DDI_METHOD_NONE )
         this->comboBox_mm_ddi_method->setCurrentIndex(0);
