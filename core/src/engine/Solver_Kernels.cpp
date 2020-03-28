@@ -61,11 +61,11 @@ namespace Solver_Kernels
 
             auto s  = configurations[img]->data();
             auto sd = searchdir[img].data();
-            
-            Backend::par::apply( nos, [s, sd] SPIRIT_LAMBDA (int idx) 
+
+            Backend::par::apply( nos, [s, sd] SPIRIT_LAMBDA (int idx)
                 {
                     scalar theta = (sd[idx]).norm();
-                    scalar q = cos(theta), w = 1-q, 
+                    scalar q = cos(theta), w = 1-q,
                            x = -sd[idx][0]/theta, y = -sd[idx][1]/theta, z = -sd[idx][2]/theta,
                            s1 = -y*z*w, s2 = x*z*w, s3 = -x*y*w,
                            p1 = x*sin(theta), p2 = y*sin(theta), p3 = z*sin(theta);
@@ -89,7 +89,7 @@ namespace Solver_Kernels
     {
         int nos = searchdir.size();
         scalar theta_rms = 0;
-        theta_rms = sqrt( Backend::par::reduce(searchdir, [] SPIRIT_LAMBDA (const Vector3 & v){ return v.squaredNorm(); }) / nos );
+        theta_rms = sqrt( Backend::par::reduce([] SPIRIT_LAMBDA (const Vector3 & v){ return v.squaredNorm(); }, searchdir) / nos );
         scalar scaling = (theta_rms > maxmove) ? maxmove/theta_rms : 1.0;
         return scaling;
     }
@@ -167,7 +167,7 @@ namespace Solver_Kernels
         {
             rho[n] = 1/rho[n];
         }
-        
+
         for(int img=0; img<noi; img++)
         {
             auto s = (*configurations[img]).data();

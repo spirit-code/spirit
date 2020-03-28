@@ -623,14 +623,18 @@ namespace Engine
         if(idx_ddi >= 0)
             this->Gradient_DDI(spins, gradient);
 
-        energy += Backend::par::reduce( N, [s,g] SPIRIT_LAMBDA ( int idx ) { return 0.5 * g[idx].dot(s[idx]) ;} );
+        energy += Backend::par::reduce( [] SPIRIT_LAMBDA ( const Vector3 & s, const Vector3 & g ) {
+                return 0.5 * g.dot(s);
+            }, spins, gradient );
 
         // External field
         if(idx_zeeman >= 0)
         {
             Vector3 ext_field = external_field_normal * external_field_magnitude;
             this->Gradient_Zeeman(gradient);
-            energy += Backend::par::reduce( N, [s, ext_field, mu_s] SPIRIT_LAMBDA ( int idx ) { return -mu_s[idx] * ext_field.dot(s[idx]) ;} );
+            energy += Backend::par::reduce( [ext_field] SPIRIT_LAMBDA ( const Vector3 & s, const scalar & mu_s ) {
+                    return -mu_s * ext_field.dot(s);
+                }, spins, geometry->mu_s );
         }
 
         // Quadruplets
