@@ -207,9 +207,9 @@ def eigenmodes_write(p_state, filename, fileformat=FILEFORMAT_OVF_TEXT, comment=
 
 _Image_Write_Energy_per_Spin             = _spirit.IO_Image_Write_Energy_per_Spin
 _Image_Write_Energy_per_Spin.argtypes    = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_int,
-                                 ctypes.c_int, ctypes.c_int]
-_Eigenmodes_Write.restype     = None
-def Image_Write_Energy_per_Spin(p_state, filename, fileformat=FILEFORMAT_OVF_TEXT, idx_image=-1, idx_chain=-1):
+                                            ctypes.c_int, ctypes.c_int]
+_Image_Write_Energy_per_Spin.restype     = None
+def image_write_energy_per_spin(p_state, filename, fileformat=FILEFORMAT_OVF_TEXT, idx_image=-1, idx_chain=-1):
     """Write the energies per spin to a file.
 
     Arguments:
