@@ -236,6 +236,37 @@ namespace Utility
         }
         // end Skyrmion
 
+        void DW_Skyrmion(Data::Spin_System & s, Vector3 pos, scalar dw_radius, scalar dw_width, scalar order, scalar phase, bool upDown, bool achiral, bool rl, filterfunction filter)
+        {
+            auto& spins = *s.spins;
+            auto& positions = s.geometry->positions;
+
+            int iatom, ksi = ((int)rl) * 2 - 1, dir = ((int)upDown) * 2 - 1;
+            scalar distance, phi_i, theta_i;
+            for (iatom = 0; iatom < s.nos; ++iatom)
+            {
+                distance = std::sqrt(std::pow(s.geometry->positions[iatom][0] - pos[0], 2) + std::pow(s.geometry->positions[iatom][1] - pos[1], 2));
+                if (filter(spins[iatom], positions[iatom]))
+                {
+                    theta_i = std::asin(std::tanh(-2*(distance + dw_radius) / dw_width )) + std::asin(std::tanh(-2*(distance - dw_radius) / dw_width )) + Constants::Pi;
+
+                    double x = (s.geometry->positions[iatom][0] - pos[0]) / distance;
+
+                    phi_i = std::acos(std::max(-1.0, std::min(1.0, x)));
+                    if (distance == 0) { phi_i = 0; }
+                    if (s.geometry->positions[iatom][1] - pos[1] < 0.0) { phi_i = - phi_i ; }
+                    phi_i += phase / 180 * Pi;
+
+                    spins[iatom][0] = ksi * std::sin(theta_i) * std::cos(order * phi_i);
+                    spins[iatom][1] = ksi * std::sin(theta_i) * std::sin(order * phi_i + achiral * Pi);
+                    spins[iatom][2] = std::cos(theta_i) * -dir;
+                }
+            }
+
+            for (auto& v : spins)
+                v.normalize();
+        }
+
         void SpinSpiral(Data::Spin_System & s, std::string direction_type, Vector3 q, Vector3 axis, scalar theta, filterfunction filter)
         {
             scalar phase;
