@@ -84,6 +84,9 @@ Localised
 // Create a skyrmion configuration
 PREFIX void Configuration_Skyrmion(State *state, float r, float order, float phase, bool upDown, bool achiral, bool rl, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1) SUFFIX;
 
+// Create a skyrmion configuration with the circular domain wall ("swiss knife") profile
+PREFIX void Configuration_DW_Skyrmion(State *state, float dw_radius, float dw_width, float order, float phase, bool upDown, bool achiral, bool rl, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1) SUFFIX;
+
 // Create a toroidal Hopfion
 PREFIX void Configuration_Hopfion(State *state, float r, int order=1, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false,  int idx_image=-1, int idx_chain=-1) SUFFIX;
 

@@ -118,6 +118,38 @@ def skyrmion(p_state, radius, order=1, phase=1, up_down=False, achiral=False, ri
               ctypes.c_float(border_cylindrical), ctypes.c_float(border_spherical),
               ctypes.c_bool(inverted), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
+_DW_Skyrmion             = _spirit.Configuration_DW_Skyrmion
+_DW_Skyrmion.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float,
+                         ctypes.c_bool, ctypes.c_bool, ctypes.c_bool, ctypes.POINTER(ctypes.c_float),
+                         ctypes.POINTER(ctypes.c_float), ctypes.c_float, ctypes.c_float, ctypes.c_bool,
+                         ctypes.c_int, ctypes.c_int]
+_DW_Skyrmion.restype     = None
+def dw_skyrmion(p_state, dw_radius, dw_width, order=1, phase=1, up_down=False, achiral=False, right_left=False,
+             pos=[0,0,0], border_rectangular=[-1,-1,-1], border_cylindrical=-1, border_spherical=-1,
+             inverted=False, idx_image=-1, idx_chain=-1):
+    """Set a 360 degree domain wall skyrmion configuration.
+
+    Arguments:
+
+    - `dw_radius`: the radius of the circular domain wall skyrmion.
+    - `dw_width`: the width of the domain wall circumference of the skyrmion.
+
+    Keyword arguments:
+
+    - `order`: the number of twists along a circle cutting the skyrmion
+    - `phase`: 0 corresponds to a Neel skyrmion, -90 to a Bloch skyrmion
+    - `up_down`: if `True`, the z-orientation is inverted
+    - `achiral`: if `True`, the topological charge is inverted
+    - `right_left`: if `True`, the in-plane rotation is inverted
+
+    """
+    vec3 = ctypes.c_float * 3
+    _DW_Skyrmion(ctypes.c_void_p(p_state), ctypes.c_float(dw_radius), ctypes.c_float(dw_width), ctypes.c_float(order),
+              ctypes.c_float(phase), ctypes.c_bool(up_down), ctypes.c_bool(achiral),
+              ctypes.c_bool(right_left), vec3(*pos), vec3(*border_rectangular),
+              ctypes.c_float(border_cylindrical), ctypes.c_float(border_spherical),
+              ctypes.c_bool(inverted), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
 _Hopfion             = _spirit.Configuration_Hopfion
 _Hopfion.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.c_int, ctypes.POINTER(ctypes.c_float),
                         ctypes.POINTER(ctypes.c_float), ctypes.c_float, ctypes.c_float, ctypes.c_bool,

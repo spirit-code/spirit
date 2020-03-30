@@ -35,9 +35,13 @@ namespace Utility
 
         // Creates a toroid
         void Hopfion(Data::Spin_System & s, Vector3 pos, scalar r, int order=1, filterfunction filter=defaultfilter);
-        // points a sperical region of spins of radius r
-        // into direction of vec at position pos
-        void Skyrmion(Data::Spin_System & s, Vector3 pos, scalar r, scalar speed, scalar order, bool upDown, bool achiral, bool rl, bool experimental, filterfunction filter=defaultfilter);
+
+        // Creates a Skyrmion
+        void Skyrmion(Data::Spin_System & s, Vector3 pos, scalar r, scalar order, scalar phase, bool upDown, bool achiral, bool rl, bool experimental, filterfunction filter=defaultfilter);
+
+        // Creates a Skyrmion, following the circular domain wall ("swiss knife") profile
+        void DW_Skyrmion(Data::Spin_System & s, Vector3 pos, scalar dw_radius, scalar dw_width, scalar order, scalar phase, bool upDown, bool achiral, bool rl, filterfunction filter=defaultfilter);
+
         // Spin Spiral
         void SpinSpiral(Data::Spin_System & s, std::string direction_type, Vector3 q, Vector3 axis, scalar theta, filterfunction filter=defaultfilter);
         // 2q Spin Spiral
