@@ -260,12 +260,12 @@ endif()
 
 ######### Generate a .user file for VS to set the VS Working Directory
 if ( WIN32 )
-	set( USERFILE_PLATFORM "Win32" )
-	set( USERFILE_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )
-	MESSAGE( STATUS ">> Windows Platform:           " ${USERFILE_PLATFORM} )
-	MESSAGE( STATUS ">> Windows Working Dir:        " ${USERFILE_WORKING_DIRECTORY} )
-	### Output a .user file for VS to use, setting the VS Working Directory
-	configure_file( ${CMAKE_SOURCE_DIR}/CMake/working_directory.vcxproj.user.in ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.vcxproj.user @ONLY )
+    set( USERFILE_PLATFORM "Win32" )
+    set( USERFILE_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )
+    MESSAGE( STATUS ">> Windows Platform:           " ${USERFILE_PLATFORM} )
+    MESSAGE( STATUS ">> Windows Working Dir:        " ${USERFILE_WORKING_DIRECTORY} )
+    ### Output a .user file for VS to use, setting the VS Working Directory
+    configure_file( ${CMAKE_SOURCE_DIR}/CMake/working_directory.vcxproj.user.in ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.vcxproj.user @ONLY )
 endif()
 #############################################
 

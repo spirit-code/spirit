@@ -1,5 +1,5 @@
 set(UI_FILES
-	${UI_FILES}
+    ${UI_FILES}
     ${CMAKE_CURRENT_SOURCE_DIR}/MainWindow.ui
     ${CMAKE_CURRENT_SOURCE_DIR}/ControlWidget.ui
     ${CMAKE_CURRENT_SOURCE_DIR}/ConfigurationsWidget.ui
@@ -13,5 +13,5 @@ set(UI_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianHeisenbergWidget.ui
     ${CMAKE_CURRENT_SOURCE_DIR}/HamiltonianGaussianWidget.ui
     ${CMAKE_CURRENT_SOURCE_DIR}/VisualisationSettingsWidget.ui
-	PARENT_SCOPE
+    PARENT_SCOPE
 )

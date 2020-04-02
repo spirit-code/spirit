@@ -1,12 +1,12 @@
 #pragma once
-#ifndef INFOWIDGET_H
-#define INFOWIDGET_H
+#ifndef SPIRIT_INFOWIDGET_HPP
+#define SPIRIT_INFOWIDGET_HPP
+
+#include "ui_InfoWidget.h"
 
 #include <QtWidgets/QWidget>
 
 #include <memory>
-
-#include "ui_InfoWidget.h"
 
 struct State;
 class SpinWidget;
@@ -17,7 +17,7 @@ class InfoWidget : public QWidget, private Ui::InfoWidget
     Q_OBJECT
 
 public:
-    InfoWidget(std::shared_ptr<State> state, SpinWidget *spinWidget, ControlWidget *controlWidget);
+    InfoWidget( std::shared_ptr<State> state, SpinWidget * spinWidget, ControlWidget * controlWidget );
 
 private:
     void updateData();
