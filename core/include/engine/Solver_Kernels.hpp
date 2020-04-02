@@ -90,7 +90,7 @@ namespace Solver_Kernels
 
             scalar rinv_temp = 0;
             for (int img=0; img<noi; img++)
-                rinv_temp += Backend::par::reduce(dot, delta_grad[img][m_index], delta_a[img][m_index]);
+                rinv_temp += Backend::par::reduce(nos, dot, delta_grad[img][m_index], delta_a[img][m_index]);
 
             if (rinv_temp > epsilon)
                 rho[m_index] = 1.0 / rinv_temp;
@@ -109,7 +109,7 @@ namespace Solver_Kernels
                 c_ind = (k + m_index + 1) % num_mem;
                 scalar temp=0;
                 for (int img=0; img<noi; img++)
-                    temp += Backend::par::reduce(dot, delta_a[img][c_ind], q_vec[img]);
+                    temp += Backend::par::reduce(nos, dot, delta_a[img][c_ind], q_vec[img]);
 
                 alpha[c_ind] = rho[c_ind] * temp;
                 for (int img=0; img<noi; img++)
@@ -125,7 +125,7 @@ namespace Solver_Kernels
 
             scalar dy2=0;
             for (int img=0; img<noi; img++)
-                dy2 += Backend::par::reduce(dot, delta_grad[img][m_index], delta_grad[img][m_index]);
+                dy2 += Backend::par::reduce(nos, dot, delta_grad[img][m_index], delta_grad[img][m_index]);
 
             for (int img=0; img<noi; img++)
             {
@@ -149,7 +149,7 @@ namespace Solver_Kernels
 
                 scalar rhopdg = 0;
                 for(int img=0; img<noi; img++)
-                    rhopdg += Backend::par::reduce(dot, delta_grad[img][c_ind], searchdir[img]);
+                    rhopdg += Backend::par::reduce(nos, dot, delta_grad[img][c_ind], searchdir[img]);
 
                 rhopdg *= rho[c_ind];
 

@@ -89,7 +89,7 @@ namespace Solver_Kernels
     {
         int nos = searchdir.size();
         scalar theta_rms = 0;
-        theta_rms = sqrt( Backend::par::reduce([] SPIRIT_LAMBDA (const Vector3 & v){ return v.squaredNorm(); }, searchdir) / nos );
+        theta_rms = sqrt( Backend::par::reduce( nos, [] SPIRIT_LAMBDA (const Vector3 & v){ return v.squaredNorm(); }, searchdir) / nos );
         scalar scaling = (theta_rms > maxmove) ? maxmove/theta_rms : 1.0;
         return scaling;
     }

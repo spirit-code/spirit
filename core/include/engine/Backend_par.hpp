@@ -23,17 +23,17 @@ namespace par
 #ifdef SPIRIT_USE_CUDA
 
     // f(i) for all i
-    template<typename F>
+    template<typename Lambda>
     __global__
-    void cu_apply(int N, F f)
+    void cu_apply(int N, Lambda f)
     {
         int idx = blockIdx.x * blockDim.x + threadIdx.x;
         if(idx < N)
             f(idx);
     }
     // f(i) for all i
-    template<typename F>
-    void apply(int N, F f)
+    template<typename Lambda>
+    void apply(int N, Lambda f)
     {
         cu_apply<<<(N+1023)/1024, 1024>>>(N, f);
         CU_CHECK_AND_SYNC();
@@ -57,19 +57,21 @@ namespace par
         CU_CHECK_AND_SYNC();
     }
 
-    // result = sum_i f(args[i]...)
-    template<typename Lambda, typename... args> inline
-    scalar pointer_reduce(int N, const Lambda & lambda, const args *... vf_args)
+
+    template<typename Lambda>
+    scalar reduce(int N, const Lambda f)
     {
-        // TODO: remove the reliance on a temporary scalar field (maybe thrust::dot with generalized operations)
         static scalarfield sf(N, 0);
+        // Vectormath::fill(sf, 0);
+
         if(sf.size() != N)
             sf.resize(N);
 
         auto s  = sf.data();
-        apply( N, [s, vf_args...] SPIRIT_LAMBDA (int idx) { s[idx] = f(vf_args[idx]...); } );
+        apply( N, [f, s] SPIRIT_LAMBDA (int idx) { s[idx] = f(idx); } );
 
         static scalarfield ret(1, 0);
+
         // Determine temporary storage size and allocate
         void * d_temp_storage = NULL;
         size_t temp_storage_bytes = 0;
@@ -81,13 +83,67 @@ namespace par
         cudaFree(d_temp_storage);
         return ret[0];
     }
-    // result = sum_i f(args[i]...)
-    template<typename Lambda, typename... args> inline
-    scalar reduce(const Lambda & lambda, const field<args> &... vf_args)
+
+    template<typename A, typename Lambda>
+    scalar reduce(int N, const Lambda f, const field<A> & vf1)
     {
-        auto N = std::get<0>(std::tuple<const field<args> &...>(vf_args...)).size();
-        // We take this umweg so that `.data()` won't be called for every element of each field
-        return pointer_reduce(N, lambda, vf_args.data()...);
+        // TODO: remove the reliance on a temporary scalar field (maybe thrust::dot with generalized operations)
+        // We also use this workaround for a single field as argument, because cub does not support non-commutative reduction operations
+
+        int n = vf1.size();
+        static scalarfield sf(n, 0);
+        // Vectormath::fill(sf, 0);
+
+        if(sf.size() != vf1.size())
+            sf.resize(vf1.size());
+
+        auto s  = sf.data();
+        auto v1 = vf1.data();
+        apply( n, [f, s, v1] SPIRIT_LAMBDA (int idx) { s[idx] = f(v1[idx]); } );
+
+        static scalarfield ret(1, 0);
+        // Vectormath::fill(ret, 0);
+
+        // Determine temporary storage size and allocate
+        void * d_temp_storage = NULL;
+        size_t temp_storage_bytes = 0;
+        cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, sf.data(), ret.data(), sf.size());
+        cudaMalloc(&d_temp_storage, temp_storage_bytes);
+        // Reduction
+        cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, sf.data(), ret.data(), sf.size());
+        CU_CHECK_AND_SYNC();
+        cudaFree(d_temp_storage);
+        return ret[0];
+    }
+
+    template<typename A, typename B, typename F>
+    scalar reduce(int N, const F f, const field<A> & vf1, const field<B> & vf2)
+    {
+        // TODO: remove the reliance on a temporary scalar field (maybe thrust::dot with generalized operations)
+        int n = vf1.size();
+        static scalarfield sf(n, 0);
+        // Vectormath::fill(sf, 0);
+
+        if(sf.size() != vf1.size())
+            sf.resize(vf1.size());
+
+        auto s  = sf.data();
+        auto v1 = vf1.data();
+        auto v2 = vf2.data();
+        apply( n, [f, s, v1, v2] SPIRIT_LAMBDA (int idx) { s[idx] = f(v1[idx], v2[idx]); } );
+
+        static scalarfield ret(1, 0);
+        // Vectormath::fill(ret, 0);
+        // Determine temporary storage size and allocate
+        void * d_temp_storage = NULL;
+        size_t temp_storage_bytes = 0;
+        cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, sf.data(), ret.data(), sf.size());
+        cudaMalloc(&d_temp_storage, temp_storage_bytes);
+        // Reduction
+        cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, sf.data(), ret.data(), sf.size());
+        CU_CHECK_AND_SYNC();
+        cudaFree(d_temp_storage);
+        return ret[0];
     }
 
 #else
@@ -133,9 +189,8 @@ namespace par
     }
     // result = sum_i f(args[i]...)
     template<typename Lambda, typename... args> inline
-    scalar reduce(const Lambda & lambda, const field<args> &... vf_args)
+    scalar reduce(int N, const Lambda & lambda, const field<args> &... vf_args)
     {
-        auto N = std::get<0>(std::tuple<const field<args> &...>(vf_args...)).size();
         // We take this umweg so that `.data()` won't be called for every element of each field
         return pointer_reduce(N, lambda, vf_args.data()...);
     }
