@@ -16,6 +16,7 @@ Spirit - Spin Simulation Framework
     Introduction                <../README>
     Desktop user interface      <UI-Qt>
     Input file specification    <../core/docs/Input>
+    Additional features         <../core/docs/Features>
 
 .. toctree::
     :maxdepth: 2
