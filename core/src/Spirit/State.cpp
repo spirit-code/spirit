@@ -29,15 +29,17 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
         state->config_file = config_file;
         state->quiet = quiet;
 
-        Log(Log_Level::All,  Log_Sender::All, "=====================================================");
-        Log(Log_Level::All,  Log_Sender::All, "========== Spirit State: Initialising... ============");
+        std::vector<std::string> block;
+        block.push_back( "=====================================================" );
+        block.push_back( "========== Spirit State: Initialising... ============" );
         // Log version info
-        Log(Log_Level::All,  Log_Sender::All, "==========     Version:  " + version);
+        block.push_back( "==========     Version:  " + version );
         // Log revision hash
-        Log(Log_Level::All,  Log_Sender::All, "==========     Revision: " + version_revision);
+        block.push_back( "==========     Revision: " + version_revision );
+        Log.SendBlock( Log_Level::All, Log_Sender::All, block );
         // Log compiler
-        Log(Log_Level::Info, Log_Sender::All, "==========     Compiled with: " + compiler_full);
-        
+        Log( Log_Level::Info, Log_Sender::All, "==========     Compiled with: " + compiler_full );
+
         // Log if quiet mode
         if (state->quiet)
             Log( Log_Level::All, Log_Sender::All, "Going to run in QUIET mode (only Error messages, no output files)" );
@@ -51,16 +53,17 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
             }
             catch( ... )
             {
-                Log(Log_Level::Error, Log_Sender::All, fmt::format("Could not find config file \"{}\"", state->config_file));
+                Log( Log_Level::Error, Log_Sender::All, fmt::format("Could not find config file \"{}\"", state->config_file) );
                 state->config_file = "";
             }
         }
 
         // Log Config file info
         if( state->config_file != "" )
-            Log(Log_Level::All, Log_Sender::All, fmt::format("Config file: {}", state->config_file));
+            Log( Log_Level::All, Log_Sender::All, fmt::format("Config file: {}", state->config_file) );
         else
-            Log(Log_Level::All, Log_Sender::All, "No config file. Will use default parameters.");
+            Log( Log_Level::All, Log_Sender::All, "No config file. Will use default parameters." );
+
     }
     catch (...)
     {
@@ -83,46 +86,48 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
     //----------------------- Additional info log ----------------------------------------------
     try
     {
-        Log(Log_Level::Info, Log_Sender::All, "=====================================================");
-        Log(Log_Level::Info, Log_Sender::All, "========== Optimization Info");
+        std::vector<std::string> block;
+        block.push_back( "=====================================================" );
+        block.push_back( "========== Optimization Info" );
         // Log OpenMP info
         #ifdef SPIRIT_USE_OPENMP
             int nt = omp_get_max_threads();
-            Log(Log_Level::Info, Log_Sender::All, fmt::format("Using OpenMP (max. {} threads)", nt).c_str() );
+            block.push_back( fmt::format("Using OpenMP (max. {} threads)", nt).c_str()  );
         #else
-            Log(Log_Level::Info, Log_Sender::All, "Not using OpenMP");
+            block.push_back( "Not using OpenMP" );
         #endif
         // Log CUDA info
         #ifdef SPIRIT_USE_CUDA
-            Log(Log_Level::Info, Log_Sender::All, "Using CUDA");
+            block.push_back( "Using CUDA" );
         #else
-            Log(Log_Level::Info, Log_Sender::All, "Not using CUDA");
+            block.push_back( "Not using CUDA" );
         #endif
         // Log threading info
         #ifdef SPIRIT_USE_THREADS
-            Log(Log_Level::Info, Log_Sender::All, "Using std::thread");
+            block.push_back( "Using std::thread" );
         #else
-            Log(Log_Level::Info, Log_Sender::All, "Not using std::thread");
+            block.push_back( "Not using std::thread" );
         #endif
         // Log defects info
         #ifdef SPIRIT_ENABLE_DEFECTS
-            Log(Log_Level::Info, Log_Sender::All, "Defects are enabled");
+            block.push_back( "Defects are enabled" );
         #else
-            Log(Log_Level::Info, Log_Sender::All, "Defects are not enabled");
+            block.push_back( "Defects are not enabled" );
         #endif
         // Log pinning info
         #ifdef SPIRIT_ENABLE_PINNING
-            Log(Log_Level::Info, Log_Sender::All, "Pinning is enabled");
+            block.push_back( "Pinning is enabled" );
         #else
-            Log(Log_Level::Info, Log_Sender::All, "Pinning is not enabled");
+            block.push_back( "Pinning is not enabled" );
         #endif
         // Log Precision info
         #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
-            Log(Log_Level::Info, Log_Sender::All, "Using double as scalar type");
+            block.push_back( "Using double as scalar type" );
         #endif
         #ifdef SPIRIT_SCALAR_TYPE_FLOAT
-            Log(Log_Level::Info, Log_Sender::All, "Using float as scalar type");
+            block.push_back( "Using float as scalar type" );
         #endif
+        Log.SendBlock( Log_Level::Info, Log_Sender::All, block );
         Log(Log_Level::All,  Log_Sender::All, "=====================================================");
     }
     catch (...)
@@ -226,16 +231,18 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
     //----------------------- Final log ---------------------------------------------
     try
     {
+        std::vector<std::string> block;
         // Log
-        Log(Log_Level::All, Log_Sender::All, "=====================================================");
-        Log(Log_Level::All, Log_Sender::All, "============ Spirit State: Initialised ==============");
-        Log(Log_Level::All, Log_Sender::All, "============     " + fmt::format("NOS={} NOI={}", state->nos, state->noi));
+        block.push_back( "=====================================================" );
+        block.push_back( "============ Spirit State: Initialised ==============" );
+        block.push_back( "============     " + fmt::format("NOS={} NOI={}", state->nos, state->noi) );
         auto now = system_clock::now();
-        auto diff = Timing::DateTimePassed(now - state->datetime_creation);
-        Log(Log_Level::All, Log_Sender::All, "    Initialisation took " + diff);
-        Log(Log_Level::All, Log_Sender::All, "    Number of  Errors:  " + fmt::format("{}", Log_Get_N_Errors(state)));
-        Log(Log_Level::All, Log_Sender::All, "    Number of Warnings: " + fmt::format("{}", Log_Get_N_Warnings(state)));
-        Log(Log_Level::All, Log_Sender::All, "=====================================================");
+        auto diff = Timing::DateTimePassed( now - state->datetime_creation );
+        block.push_back( "    Initialisation took " + diff );
+        block.push_back( "    Number of  Errors:  " + fmt::format("{}", Log_Get_N_Errors(state)) );
+        block.push_back( "    Number of Warnings: " + fmt::format("{}", Log_Get_N_Warnings(state)) );
+        block.push_back( "=====================================================" );
+        Log.SendBlock( Log_Level::All, Log_Sender::All, block );
         Log.Append_to_File();
 
         // Return
@@ -256,24 +263,27 @@ try
 {
     check_state(state);
 
-    Log(Log_Level::All, Log_Sender::All,  "=====================================================");
-    Log(Log_Level::All, Log_Sender::All,  "============ Spirit State: Deleting... ==============");
+    std::vector<std::string> block;
+    block.push_back( "=====================================================" );
+    block.push_back( "============ Spirit State: Deleting... ==============" );
 
     // Final file writing (input, positions, neighbours)
     Save_Initial_Final( state, false );
 
     // Timing
     auto now = system_clock::now();
-    auto diff = Timing::DateTimePassed(now - state->datetime_creation);
-    Log( Log_Level::All, Log_Sender::All,  "    State existed for " + diff );
-    Log( Log_Level::All, Log_Sender::All,  "    Number of  Errors:  " + fmt::format("{}", Log_Get_N_Errors(state)) );
-    Log( Log_Level::All, Log_Sender::All,  "    Number of Warnings: " + fmt::format("{}", Log_Get_N_Warnings(state)) );
+    auto diff = Timing::DateTimePassed( now - state->datetime_creation );
+    block.push_back("    State existed for " + diff );
+    block.push_back("    Number of  Errors:  " + fmt::format("{}", Log_Get_N_Errors(state)) );
+    block.push_back("    Number of Warnings: " + fmt::format("{}", Log_Get_N_Warnings(state)) );
 
     // Delete
     delete(state);
 
-    Log(Log_Level::All, Log_Sender::All,  "============== Spirit State: Deleted ================");
-    Log(Log_Level::All, Log_Sender::All,  "=====================================================");
+    block.push_back( "============== Spirit State: Deleted ================" );
+    block.push_back( "=====================================================" );
+
+    Log.SendBlock( Log_Level::All, Log_Sender::All, block );
     Log.Append_to_File();
 }
 catch( ... )

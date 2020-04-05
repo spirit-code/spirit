@@ -216,7 +216,7 @@ namespace Engine
     }
 
     template <Solver solver>
-    scalar Method_LLG<solver>::getTime()
+    double Method_LLG<solver>::get_simulated_time()
     {
         return this->picoseconds_passed;
     }
