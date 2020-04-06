@@ -97,10 +97,10 @@ namespace Engine
             //      while the gradient force is manipulated (e.g. projected)
             auto eff_field = this->chain->images[img]->effective_field.data();
             auto f_grad    = F_gradient[img].data();
-            Backend::par::apply( image.size(), 
+            Backend::par::apply( image.size(),
                 [eff_field, f_grad] SPIRIT_LAMBDA (int idx)
                 {
-                    eff_field[idx] *= -1; 
+                    eff_field[idx] *= -1;
                     f_grad[idx] = eff_field[idx];
                 }
             );
@@ -231,7 +231,7 @@ namespace Engine
             }
             else
             {
-                Vectormath::fill(F_total[img], { 0,0,0 });
+                Backend::par::assign(F_total[img], [] SPIRIT_LAMBDA () -> Vector3 {return { 0,0,0 };});
             }
             // Apply pinning mask
             #ifdef SPIRIT_ENABLE_PINNING
@@ -373,20 +373,22 @@ namespace Engine
         // TODO: Find a better way to do this without so much code duplication. Probably requires extension of the Hamiltonian in a way that allows to request information about the different contributions.
         for(int img=0; img<noi; img++)
         {
+            auto tf = temp_field.data();
+            auto te = temp_energy.data();
+            Backend::par::apply(nos, [tf, te] SPIRIT_LAMBDA (int idx) {
+                tf[idx] = {0,0,0};
+                te[idx] = 0;
+            });
             auto& image = *this->configurations[img];
             if(ham.Idx_Exchange() >= 0)
             {
-                Vectormath::fill(temp_field, Vector3::Zero());
-                Vectormath::fill(temp_energy, 0);
                 ham.E_Exchange(image, temp_energy);
-                temp_energies[ham.Idx_Exchange()][img] = Vectormath::sum(temp_energy);
                 ham.Gradient_Exchange(image, temp_field);
+                temp_energies[ham.Idx_Exchange()][img] = Vectormath::sum(temp_energy);
                 temp_dE_dRx[ham.Idx_Exchange()][img] = -Vectormath::dot(temp_field, this->tangents[img]);
             }
             if(ham.Idx_Zeeman() >= 0)
             {
-                Vectormath::fill(temp_field, Vector3::Zero());
-                Vectormath::fill(temp_energy, 0);
                 ham.E_Zeeman(image, temp_energy);
                 temp_energies[ham.Idx_Zeeman()][img] = Vectormath::sum(temp_energy);
                 ham.Gradient_Zeeman(temp_field);
@@ -394,8 +396,6 @@ namespace Engine
             }
             if(ham.Idx_Anisotropy() >= 0)
             {
-                Vectormath::fill(temp_field, Vector3::Zero());
-                Vectormath::fill(temp_energy, 0);
                 ham.E_Anisotropy(image, temp_energy);
                 temp_energies[ham.Idx_Anisotropy()][img] = Vectormath::sum(temp_energy);
                 ham.Gradient_Anisotropy(image, temp_field);
@@ -403,8 +403,6 @@ namespace Engine
             }
             if(ham.Idx_DMI() >= 0)
             {
-                Vectormath::fill(temp_field, Vector3::Zero());
-                Vectormath::fill(temp_energy, 0);
                 ham.E_DMI(image, temp_energy);
                 temp_energies[ham.Idx_DMI()][img] = Vectormath::sum(temp_energy);
                 ham.Gradient_DMI(image, temp_field);
@@ -412,8 +410,6 @@ namespace Engine
             }
             if(ham.Idx_DDI() >= 0)
             {
-                Vectormath::fill(temp_field, Vector3::Zero());
-                Vectormath::fill(temp_energy, 0);
                 ham.E_DDI(image, temp_energy);
                 temp_energies[ham.Idx_DDI()][img] = Vectormath::sum(temp_energy);
                 ham.Gradient_DDI(image, temp_field);
@@ -421,8 +417,6 @@ namespace Engine
             }
             if(ham.Idx_Quadruplet() >= 0)
             {
-                Vectormath::fill(temp_field, Vector3::Zero());
-                Vectormath::fill(temp_energy, 0);
                 ham.E_Quadruplet(image, temp_energy);
                 temp_energies[ham.Idx_Quadruplet()][img] = Vectormath::sum(temp_energy);
                 ham.Gradient_Quadruplet(image, temp_field);

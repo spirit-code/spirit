@@ -113,38 +113,9 @@ namespace Engine
             }
         }
 
-       
+
         /////////////////////////////////////////////////////////////////
 
-
-        __global__ void cu_fill(scalar *sf, scalar s, size_t N)
-        {
-            int idx = blockIdx.x * blockDim.x + threadIdx.x;
-            if(idx < N)
-            {
-                sf[idx] = s;
-            }
-        }
-        void fill(scalarfield & sf, scalar s)
-        {
-            int n = sf.size();
-            cu_fill<<<(n+1023)/1024, 1024>>>(sf.data(), s, n);
-            CU_CHECK_AND_SYNC();
-        }
-        __global__ void cu_fill_mask(scalar *sf, scalar s, const int * mask, size_t N)
-        {
-            int idx = blockIdx.x * blockDim.x + threadIdx.x;
-            if(idx < N)
-            {
-                sf[idx] = mask[idx]*s;
-            }
-        }
-        void fill(scalarfield & sf, scalar s, const intfield & mask)
-        {
-            int n = sf.size();
-            cu_fill_mask<<<(n+1023)/1024, 1024>>>(sf.data(), s, mask.data(), n);
-            CU_CHECK_AND_SYNC();
-        }
 
         __global__ void cu_scale(scalar *sf, scalar s, size_t N)
         {
@@ -179,7 +150,7 @@ namespace Engine
         scalar sum(const scalarfield & sf)
         {
             static scalarfield ret(1, 0);
-            Vectormath::fill(ret, 0);
+            Backend::par::assign(ret, [] SPIRIT_LAMBDA (int idx) {return 0;});
             // Determine temporary storage size and allocate
             void * d_temp_storage = NULL;
             size_t temp_storage_bytes = 0;
@@ -217,50 +188,6 @@ namespace Engine
             #pragma omp parallel for
             for (unsigned int i = 0; i<sf.size(); ++i)
                 sf[i] = std::min( std::max( sf_min, sf[i] ), sf_max );
-        }
-
-        __global__ void cu_fill(Vector3 *vf1, Vector3 v2, size_t N)
-        {
-            int idx = blockIdx.x * blockDim.x + threadIdx.x;
-            if(idx < N)
-            {
-                vf1[idx] = v2;
-            }
-        }
-        void fill(vectorfield & vf, const Vector3 & v)
-        {
-            int n = vf.size();
-            cu_fill<<<(n+1023)/1024, 1024>>>(vf.data(), v, n);
-            CU_CHECK_AND_SYNC();
-        }
-        __global__ void cu_fill_mask(Vector3 *vf1, Vector3 v2, const int * mask, size_t N)
-        {
-            int idx = blockIdx.x * blockDim.x + threadIdx.x;
-            if(idx < N)
-            {
-                vf1[idx] = v2;
-            }
-        }
-        void fill(vectorfield & vf, const Vector3 & v, const intfield & mask)
-        {
-            int n = vf.size();
-            cu_fill_mask<<<(n+1023)/1024, 1024>>>(vf.data(), v, mask.data(), n);
-            CU_CHECK_AND_SYNC();
-        }
-
-        __global__ void cu_normalize_vectors(Vector3 *vf, size_t N)
-        {
-            int idx = blockIdx.x * blockDim.x + threadIdx.x;
-            if(idx < N)
-            {
-                vf[idx].normalize();
-            }
-        }
-        void normalize_vectors(vectorfield & vf)
-        {
-            int n = vf.size();
-            cu_normalize_vectors<<<(n+1023)/1024, 1024>>>(vf.data(), n);
-            CU_CHECK_AND_SYNC();
         }
 
         __global__ void cu_norm(const Vector3 * vf, scalar * norm, size_t N)
@@ -387,7 +314,7 @@ namespace Engine
         Vector3 sum(const vectorfield & vf)
         {
             static vectorfield ret(1, {0,0,0});
-            Vectormath::fill(ret, {0,0,0});
+            Backend::par::assign(ret, [] SPIRIT_LAMBDA (int idx) -> Vector3 {return {0, 0, 0};});
             // Declare, allocate, and initialize device-accessible pointers for input and output
             CustomAdd    add_op;
             static const Vector3 init{0,0,0};
@@ -423,11 +350,11 @@ namespace Engine
         {
             int n = vf1.size();
             static scalarfield sf(n, 0);
-            
+
             if(sf.size() != vf1.size())
                 sf.resize(vf1.size());
 
-            Vectormath::fill(sf, 0);
+            Backend::par::assign(sf, [] SPIRIT_LAMBDA (int idx) {return 0;});
             scalar ret;
 
             // Dot product

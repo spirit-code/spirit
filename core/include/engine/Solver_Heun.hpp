@@ -40,17 +40,14 @@ void Method_Solver<Solver::Heun>::Iteration ()
     // Predictor for each image
     for (int i = 0; i < this->noi; ++i)
     {
-        auto& conf           = *this->configurations[i];
-        auto& conf_temp      = *this->configurations_temp[i];
-        auto& conf_predictor = *this->configurations_predictor[i];
+        auto conf           = this->configurations[i]->data();
+        auto conf_predictor = this->configurations_predictor[i]->data();
+        auto f_virtual      = this->forces_virtual[i].data();
 
         // First step - Predictor
-        Vectormath::set_c_cross( -1, conf, forces_virtual[i], conf_temp );  // temp1 = -( conf x A )
-        Vectormath::set_c_a( 1, conf, conf_predictor );                   // configurations_predictor = conf
-        Vectormath::add_c_a( 1, conf_temp, conf_predictor );         // configurations_predictor = conf + dt*temp1
-
-        // Normalize spins
-        Vectormath::normalize_vectors( conf_predictor );
+        Backend::par::apply( nos, [conf, conf_predictor, f_virtual] SPIRIT_LAMBDA (int idx) {
+            conf_predictor[idx] = ( conf[idx] - conf[idx].cross( f_virtual[idx] ) ).normalized();
+        } );
     }
 
     // Calculate_Force for the Corrector
@@ -60,21 +57,17 @@ void Method_Solver<Solver::Heun>::Iteration ()
     // Corrector step for each image
     for (int i=0; i < this->noi; i++)
     {
-        auto& conf           = *this->configurations[i];
-        auto& conf_temp      = *this->configurations_temp[i];
-        auto& conf_predictor = *this->configurations_predictor[i];
+        auto conf           = this->configurations[i]->data();
+        auto conf_predictor = this->configurations_predictor[i]->data();
+        auto f_virtual      = this->forces_virtual[i].data();
+        auto f_virtual_predictor = this->forces_virtual_predictor[i].data();
 
         // Second step - Corrector
-        Vectormath::scale( conf_temp, 0.5 );                                     // configurations_temp = 0.5 * configurations_temp
-        Vectormath::add_c_a( 1, conf, conf_temp );                               // configurations_temp = conf + 0.5 * configurations_temp
-        Vectormath::set_c_cross( -1, conf_predictor, forces_virtual_predictor[i], temp1 );   // temp1 = - ( conf' x A' )
-        Vectormath::add_c_a( 0.5, temp1, conf_temp );                            // configurations_temp = conf + 0.5 * configurations_temp + 0.5 * temp1
-
-        // Normalize spins
-        Vectormath::normalize_vectors( conf_temp );
-
-        // Copy out
-        conf = conf_temp;
+        Backend::par::apply( nos, [conf, conf_predictor, f_virtual, f_virtual_predictor] SPIRIT_LAMBDA (int idx) {
+            conf[idx] = (
+                conf[idx] + 0.5*( conf[idx] - 0.5*conf[idx].cross(f_virtual[idx]) - conf_predictor[idx].cross(f_virtual_predictor[idx]) )
+            ).normalized();
+        } );
     }
 };
 

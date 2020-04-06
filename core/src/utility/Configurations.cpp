@@ -1,6 +1,7 @@
 #include <utility/Configurations.hpp>
 #include <data/Spin_System.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/Backend_par.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
@@ -137,9 +138,15 @@ namespace Utility
             auto distribution = std::uniform_real_distribution<scalar>(-1, 1);
 
             Engine::Vectormath::get_random_vectorfield_unitsphere(*prng, xi);
-            Engine::Vectormath::scale(xi, epsilon);
-            Engine::Vectormath::add_c_a(1, xi, *s.spins, mask);
-            Engine::Vectormath::normalize_vectors(*s.spins);
+            auto xip = xi.data();
+            auto maskp = mask.data();
+            auto spinsp = spins.data();
+            Engine::Backend::par::apply(spins.size(), [epsilon, spinsp, maskp, xip] SPIRIT_LAMBDA (int idx) {
+                xip[idx] *= epsilon;
+                if( maskp[idx] )
+                    spinsp[idx] += xip[idx];
+                spinsp[idx].normalize();
+            });
         }
 
         void Hopfion(Data::Spin_System & s, Vector3 pos, scalar r, int order, filterfunction filter)

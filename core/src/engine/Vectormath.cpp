@@ -62,19 +62,6 @@ namespace Vectormath
 
     /////////////////////////////////////////////////////////////////
 
-    void fill(scalarfield & sf, scalar s)
-    {
-        #pragma omp parallel for
-        for (unsigned int i = 0; i<sf.size(); ++i)
-            sf[i] = s;
-    }
-    void fill(scalarfield & sf, scalar s, const intfield & mask)
-    {
-        #pragma omp parallel for
-        for (unsigned int i=0; i<sf.size(); ++i)
-            sf[i] = mask[i]*s;
-    }
-
     void scale(scalarfield & sf, scalar s)
     {
         #pragma omp parallel for
@@ -109,26 +96,6 @@ namespace Vectormath
         #pragma omp parallel for
         for (unsigned int i = 0; i<sf.size(); ++i)
             sf[i] = std::min( std::max( sf_min, sf[i] ), sf_max );
-    }
-
-    void fill(vectorfield & vf, const Vector3 & v)
-    {
-        #pragma omp parallel for
-        for (unsigned int i=0; i<vf.size(); ++i)
-            vf[i] = v;
-    }
-    void fill(vectorfield & vf, const Vector3 & v, const intfield & mask)
-    {
-        #pragma omp parallel for
-        for (unsigned int i=0; i<vf.size(); ++i)
-            vf[i] = mask[i]*v;
-    }
-
-    void normalize_vectors(vectorfield & vf)
-    {
-        #pragma omp parallel for
-        for (unsigned int i=0; i<vf.size(); ++i)
-            vf[i].normalize();
     }
 
     void norm( const vectorfield & vf, scalarfield & norm )

@@ -21,11 +21,11 @@ void Method_Solver<Solver::VP_OSO>::Initialize ()
 
 /*
     Template instantiation of the Simulation class for use with the VP Solver.
-		The velocity projection method is often efficient for direct minimization,
-		but deals poorly with quickly varying fields or stochastic noise.
-	Paper: P. F. Bessarab et al., Method for finding mechanism and activation energy
-		   of magnetic transitions, applied to skyrmion and antivortex annihilation,
-		   Comp. Phys. Comm. 196, 335 (2015).
+        The velocity projection method is often efficient for direct minimization,
+        but deals poorly with quickly varying fields or stochastic noise.
+    Paper: P. F. Bessarab et al., Method for finding mechanism and activation energy
+            of magnetic transitions, applied to skyrmion and antivortex annihilation,
+            Comp. Phys. Comm. 196, 335 (2015).
 
     Instead of the cartesian update scheme with re-normalization, this implementation uses the orthogonal spin optimization scheme,
     described by A. Ivanov in https://arxiv.org/abs/1904.02669.
@@ -97,9 +97,9 @@ void Method_Solver<Solver::VP_OSO>::Iteration ()
 
         // Calculate the projected velocity
         if (projection_full <= 0)
+            Backend::par::assign(velocities[img], [] SPIRIT_LAMBDA () -> Vector3 {return {0, 0, 0};});
+        else
         {
-            Vectormath::fill(velocities[img], { 0,0,0 });
-        } else {
             Backend::par::apply(nos, [g,v,ratio] SPIRIT_LAMBDA (int idx) {
                 v[idx] = g[idx] * ratio;
             });
@@ -107,7 +107,7 @@ void Method_Solver<Solver::VP_OSO>::Iteration ()
 
         Backend::par::apply( nos, [sd, dt, m_temp, v, g] SPIRIT_LAMBDA (int idx) {
             sd[idx] = dt * v[idx] + 0.5/m_temp * dt * g[idx];
-        }); 
+        });
     }
     Solver_Kernels::oso_rotate( this->configurations, this->searchdir);
 }

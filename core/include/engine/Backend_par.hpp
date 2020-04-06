@@ -62,7 +62,6 @@ namespace par
     scalar reduce(int N, const Lambda f)
     {
         static scalarfield sf(N, 0);
-        // Vectormath::fill(sf, 0);
 
         if(sf.size() != N)
             sf.resize(N);
@@ -92,7 +91,6 @@ namespace par
 
         int n = vf1.size();
         static scalarfield sf(n, 0);
-        // Vectormath::fill(sf, 0);
 
         if(sf.size() != vf1.size())
             sf.resize(vf1.size());
@@ -102,7 +100,6 @@ namespace par
         apply( n, [f, s, v1] SPIRIT_LAMBDA (int idx) { s[idx] = f(v1[idx]); } );
 
         static scalarfield ret(1, 0);
-        // Vectormath::fill(ret, 0);
 
         // Determine temporary storage size and allocate
         void * d_temp_storage = NULL;
@@ -122,7 +119,6 @@ namespace par
         // TODO: remove the reliance on a temporary scalar field (maybe thrust::dot with generalized operations)
         int n = vf1.size();
         static scalarfield sf(n, 0);
-        // Vectormath::fill(sf, 0);
 
         if(sf.size() != vf1.size())
             sf.resize(vf1.size());
@@ -133,7 +129,6 @@ namespace par
         apply( n, [f, s, v1, v2] SPIRIT_LAMBDA (int idx) { s[idx] = f(v1[idx], v2[idx]); } );
 
         static scalarfield ret(1, 0);
-        // Vectormath::fill(ret, 0);
         // Determine temporary storage size and allocate
         void * d_temp_storage = NULL;
         size_t temp_storage_bytes = 0;

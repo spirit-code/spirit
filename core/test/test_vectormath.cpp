@@ -1,19 +1,20 @@
 #include <catch.hpp>
 #include <engine/Vectormath_Defines.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/Backend_par.hpp>
 
 
 TEST_CASE( "Vectormath operations", "[vectormath]" )
 {
     int N = 10000;
-	int N_check = std::min(100, N);
+    int N_check = std::min(100, N);
     scalarfield sf(N, 1);
     vectorfield vf1(N, Vector3{ 1.0, 1.0, 1.0 });
     vectorfield vf2(N, Vector3{ -1.0, 1.0, 1.0 });
 
     SECTION("Magnetization")
     {
-        Engine::Vectormath::fill( vf1, { 0, 0, 1 } );
+        Engine::Backend::par::assign(vf1, [] SPIRIT_LAMBDA () -> Vector3 {return {0, 0, 1};});
         auto m = Engine::Vectormath::Magnetization( vf1 );
         REQUIRE( m[0] == Approx( 0 ) );
         REQUIRE( m[1] == Approx( 0 ) );
@@ -50,8 +51,8 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
     {
         scalar stest = 333;
         Vector3 vtest{ 0, stest, 0 };
-        Engine::Vectormath::fill(sf, stest);
-        Engine::Vectormath::fill(vf1, vtest);
+        Engine::Backend::par::assign(sf, [stest] SPIRIT_LAMBDA () -> scalar {return stest;});
+        Engine::Backend::par::assign(vf1, [vtest] SPIRIT_LAMBDA () -> Vector3 {return vtest;});
         for (int i = 0; i < N_check; ++i)
         {
             REQUIRE(sf[i] == stest);
@@ -114,8 +115,12 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
 
         Vector3 vtest1 = vf1[0].normalized();
         Vector3 vtest2 = vf2[0].normalized();
-        Engine::Vectormath::normalize_vectors(vf1);
-        Engine::Vectormath::normalize_vectors(vf2);
+        auto vf1p = vf1.data();
+        auto vf2p = vf2.data();
+        Engine::Backend::par::apply(vf1.size(), [vf1p, vf2p] SPIRIT_LAMBDA (int idx) {
+            vf1p[idx].normalize();
+            vf2p[idx].normalize();
+        });
         for (int i = 0; i < N_check; ++i)
         {
             REQUIRE(vf1[i] == vtest1);
@@ -130,8 +135,12 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
         scalar vmc1 = std::max( vtest1[0], std::max( vtest1[1], vtest1[2] ) );
         scalar vmc2 = std::max( vtest2[0], std::max( vtest2[1], vtest2[2] ) );
 
-        Engine::Vectormath::normalize_vectors(vf1);
-        Engine::Vectormath::normalize_vectors(vf2);
+        auto vf1p = vf1.data();
+        auto vf2p = vf2.data();
+        Engine::Backend::par::apply(vf1.size(), [vf1p, vf2p] SPIRIT_LAMBDA (int idx) {
+            vf1p[idx].normalize();
+            vf2p[idx].normalize();
+        });
         scalar vfmc1 = Engine::Vectormath::max_abs_component( vf1 );
         scalar vfmc2 = Engine::Vectormath::max_abs_component( vf2 );
 

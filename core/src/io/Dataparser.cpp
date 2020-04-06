@@ -46,10 +46,9 @@ namespace IO
                 geometry.atom_types[i] = -1;
             #endif
             }
-        }
 
-        // normalize read in spins
-        Vectormath::normalize_vectors( spins );
+            spins[i].normalize();
+        }
     }
 
 
