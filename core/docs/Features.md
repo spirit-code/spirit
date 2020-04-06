@@ -4,10 +4,15 @@ Additional features
 
 Command line options
 ----------------------------------------------------
+- `-?`, `-h` or `--help` to display available command line options
+- `--version` to display information about the current spirit version
+- `-q` or `--quiet` to run quietly
+- `-f` or `--cfg` to set an inputfile
+- `-i` or `--image` to read in an initial spin configuration file
+- `-c` or `--chain` to in an initial spin configuration chain file
 
-- `--quiet` to run quietly
-- `-f` or `-i` to set an inputfile
-
+*Note*: When reading an initial image (or chain), the number of spins (per image) should match the number of spins specified in the input file.
+*Note*: When both parameters `-c <file>` and `-i <file>` are used, only the chain is read while `-i <file>` is ignored.
 
 Running quietly
 ----------------------------------------------------
