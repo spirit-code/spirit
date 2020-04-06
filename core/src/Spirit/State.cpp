@@ -60,10 +60,9 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
 
         // Log Config file info
         if( state->config_file != "" )
-            Log( Log_Level::All, Log_Sender::All, fmt::format("Config file: {}", state->config_file) );
+            Log( Log_Level::All, Log_Sender::All, fmt::format("Config file: \"{}\"", state->config_file) );
         else
             Log( Log_Level::All, Log_Sender::All, "No config file. Will use default parameters." );
-
     }
     catch (...)
     {
@@ -94,38 +93,38 @@ State * State_Setup(const char * config_file, bool quiet) noexcept
             int nt = omp_get_max_threads();
             block.push_back( fmt::format("Using OpenMP (max. {} threads)", nt).c_str()  );
         #else
-            block.push_back( "Not using OpenMP" );
+            block.push_back( "    Not using OpenMP" );
         #endif
         // Log CUDA info
         #ifdef SPIRIT_USE_CUDA
-            block.push_back( "Using CUDA" );
+            block.push_back( "    Using CUDA" );
         #else
-            block.push_back( "Not using CUDA" );
+            block.push_back( "    Not using CUDA" );
         #endif
         // Log threading info
         #ifdef SPIRIT_USE_THREADS
-            block.push_back( "Using std::thread" );
+            block.push_back( "    Using std::thread" );
         #else
-            block.push_back( "Not using std::thread" );
+            block.push_back( "    Not using std::thread" );
         #endif
         // Log defects info
         #ifdef SPIRIT_ENABLE_DEFECTS
-            block.push_back( "Defects are enabled" );
+            block.push_back( "    Defects are enabled" );
         #else
-            block.push_back( "Defects are not enabled" );
+            block.push_back( "    Defects are not enabled" );
         #endif
         // Log pinning info
         #ifdef SPIRIT_ENABLE_PINNING
-            block.push_back( "Pinning is enabled" );
+            block.push_back( "    Pinning is enabled" );
         #else
-            block.push_back( "Pinning is not enabled" );
+            block.push_back( "    Pinning is not enabled" );
         #endif
         // Log Precision info
         #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
-            block.push_back( "Using double as scalar type" );
+            block.push_back( "    Using double as scalar type" );
         #endif
         #ifdef SPIRIT_SCALAR_TYPE_FLOAT
-            block.push_back( "Using float as scalar type" );
+            block.push_back( "    Using float as scalar type" );
         #endif
         Log.SendBlock( Log_Level::Info, Log_Sender::All, block );
         Log(Log_Level::All,  Log_Sender::All, "=====================================================");
