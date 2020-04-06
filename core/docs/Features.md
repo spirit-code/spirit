@@ -14,6 +14,7 @@ Command line options
 *Note*: When reading an initial image (or chain), the number of spins (per image) should match the number of spins specified in the input file.
 *Note*: When both parameters `-c <file>` and `-i <file>` are used, only the chain is read while `-i <file>` is ignored.
 
+
 Running quietly
 ----------------------------------------------------
 
