@@ -22,7 +22,7 @@ Total Magnetization
 ### Quantity_Get_Topological_Charge
 
 ```C
-float Quantity_Get_Topological_Charge(State * state, int idx_image=-1, int idx_chain=-1)
+float Quantity_Get_Topological_Charge(State * state, int layer=0, int sublattice=-1, int idx_image=-1, int idx_chain=-1)
 ```
 
 Topological Charge

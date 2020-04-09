@@ -472,30 +472,43 @@ namespace Vectormath
         return M;
     }
 
-    scalar TopologicalCharge(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions)
+    scalar TopologicalCharge(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions, int layer, int sublattice)
     {
         // This implementations assumes
         // 1. No basis atom lies outside the cell spanned by the basis vectors of the lattice
         // 2. The geometry is a plane in x and y and spanned by the first 2 basis_vectors of the lattice
         // 3. The first basis atom lies at (0,0)
 
+        int Na = geometry.n_cells[0];
+        int Nb = geometry.n_cells[1];
+        int Nc = geometry.n_cells[2];
+        int n_cell_atoms = geometry.n_cell_atoms;
         const auto & positions = geometry.positions;
         scalar charge = 0;
+        layer = layer % Nc; // Wrap around layer
 
-        // Compute Delaunay for unitcell + basis with neighbouring lattice sites in directions a, b, and a+b
-        std::vector<Data::vector2_t> basis_cell_points(geometry.n_cell_atoms + 3);
-        for(int i = 0; i < geometry.n_cell_atoms; i++)
+        // Input Validation
+        if(sublattice >= n_cell_atoms)
         {
-            basis_cell_points[i].x = double(positions[i][0]);
-            basis_cell_points[i].y = double(positions[i][1]);
+            spirit_throw(Utility::Exception_Classifier::Standard_Exception, Utility::Log_Level::Error,
+                    fmt::format("Tried to compute topological charge for invalid sublattice. Tried {}, but a maximum of {} possible.", sublattice, n_cell_atoms-1));
+        }
+
+        std::vector<Data::vector2_t> basis_cell_points;
+        if(sublattice < 0) // We want to triangulate over the whole unit cell, so we push back all the basis atoms
+        {
+            for(int i = 0; i < geometry.n_cell_atoms; i++)
+            {
+                basis_cell_points.push_back({positions[i][0], positions[i][1]});
+            }
+        } else 
+        { // else we only add the first atom
+                basis_cell_points.push_back({positions[0][0], positions[0][1]});
         }
 
         // To avoid cases where the basis atoms lie on the boundary of the convex hull the corners of the parallelogram
         // spanned by the lattice sites 0, a, b and a+b are stretched away from the center for the triangulation
         scalar stretch_factor = 0.1;
-
-        // For the rare case where the first basis atoms does not lie at (0,0,0)
-        Vector3 basis_offset = positions[0];
 
         Vector3 ta = geometry.lattice_constant * geometry.bravais_vectors[0];
         Vector3 tb = geometry.lattice_constant * geometry.bravais_vectors[1];
@@ -505,19 +518,28 @@ namespace Vectormath
         basis_cell_points[0].x -= stretch_factor * (ta + tb)[0];
         basis_cell_points[0].y -= stretch_factor * (ta + tb)[1];
 
-        // a+b
-        basis_cell_points[geometry.n_cell_atoms].x   = double((ta + tb + positions[0] + stretch_factor * (ta + tb))[0]);
-        basis_cell_points[geometry.n_cell_atoms].y   = double((ta + tb + positions[0] + stretch_factor * (ta + tb))[1]);
-        // b
-        basis_cell_points[geometry.n_cell_atoms+1].x = double((tb + positions[0] - stretch_factor * (ta - tb))[0]);
-        basis_cell_points[geometry.n_cell_atoms+1].y = double((tb + positions[0] - stretch_factor * (ta - tb))[1]);
+
         // a
-        basis_cell_points[geometry.n_cell_atoms+2].x = double((ta + positions[0] + stretch_factor * (ta - tb))[0]);
-        basis_cell_points[geometry.n_cell_atoms+2].y = double((ta + positions[0] + stretch_factor * (ta - tb))[1]);
+        basis_cell_points.push_back( { double((ta + positions[0] + stretch_factor * (ta - tb))[0]),
+                                       double((ta + positions[0] + stretch_factor * (ta - tb))[1]) } );
+
+        // b
+        basis_cell_points.push_back( { double((tb + positions[0] - stretch_factor * (ta - tb))[0]),
+                                       double((tb + positions[0] - stretch_factor * (ta - tb))[1]) } );
+
+        // a+b
+        basis_cell_points.push_back( { double((ta + tb + positions[0] + stretch_factor * (ta + tb))[0]),
+                                       double((ta + tb + positions[0] + stretch_factor * (ta + tb))[1]) } );
+
+        for (auto b : basis_cell_points)
+        {
+            std::cout << b.x << ", " << b.y << "\n";
+        }
 
         std::vector<Data::triangle_t> triangulation;
         triangulation = Data::compute_delaunay_triangulation_2D(basis_cell_points);
 
+        // Iterate over the triangles
         for(Data::triangle_t tri : triangulation)
         {
             // Compute the sign of this triangle
@@ -532,6 +554,7 @@ namespace Vectormath
             // We try to apply the Delaunay triangulation at each bravais-lattice point
             // For each corner of the triangle we check wether it is "allowed" (which means either inside the simulation box or permitted by periodic boundary conditions)
             // Then we can add the top charge for all trios of spins connected by this triangle
+            int n_triangulation_points = basis_cell_points.size();
             for(int b = 0; b < geometry.n_cells[1]; ++b)
             {
                 for(int a = 0; a < geometry.n_cells[0]; ++a)
@@ -544,19 +567,19 @@ namespace Vectormath
                     for(int i = 0; i<3; ++i)
                     {
                         int idx;
-                        if(tri[i] < geometry.n_cell_atoms) // tri[i] is an index of a basis atom, no wrap around can occur
+                        if(tri[i] <= n_triangulation_points-4) // tri[i] is an index of a basis atom, no wrap around can occur
                         {
                             idx = (tri[i] + a * geometry.n_cell_atoms + b * geometry.n_cell_atoms * geometry.n_cells[0]);
                         }
-                        else if (tri[i] == geometry.n_cell_atoms + 2 && a_next_allowed) // Translation by a
+                        else if (tri[i] == n_triangulation_points-3 && a_next_allowed) // Translation by a
                         {
                             idx = ((a + 1) % geometry.n_cells[0]) * geometry.n_cell_atoms + b * geometry.n_cell_atoms * geometry.n_cells[0];
                         }
-                        else if (tri[i] == geometry.n_cell_atoms + 1 && b_next_allowed) // Translation by b
+                        else if (tri[i] == n_triangulation_points-2 && b_next_allowed) // Translation by b
                         {
                             idx = a * geometry.n_cell_atoms + ((b + 1) % geometry.n_cells[1]) * geometry.n_cell_atoms * geometry.n_cells[0];
                         }
-                        else if (tri[i] == geometry.n_cell_atoms && a_next_allowed && b_next_allowed) // Translation by a + b
+                        else if (tri[i] == n_triangulation_points-1 && a_next_allowed && b_next_allowed) // Translation by a + b
                         {
                             idx = ((a + 1) % geometry.n_cells[0]) * geometry.n_cell_atoms + ((b + 1) % geometry.n_cells[1]) * geometry.n_cell_atoms * geometry.n_cells[0];
                         }
@@ -564,6 +587,11 @@ namespace Vectormath
                         {
                             valid_triangle = false;
                             break;
+                        }
+                        idx += layer * n_cell_atoms * Na * Nb;
+                        if(sublattice >= 0)
+                        {
+                            idx += sublattice;
                         }
                         tri_spins[i] = vf[idx];
                     }

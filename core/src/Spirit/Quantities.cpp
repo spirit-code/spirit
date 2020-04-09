@@ -39,7 +39,7 @@ void Quantity_Get_Magnetization(State * state,  float m[3], int idx_image, int i
     }
 }
 
-float Quantity_Get_Topological_Charge(State * state, int idx_image, int idx_chain)
+float Quantity_Get_Topological_Charge(State * state, int layer, int sublattice, int idx_image, int idx_chain)
 {
     try
     {
@@ -52,10 +52,9 @@ float Quantity_Get_Topological_Charge(State * state, int idx_image, int idx_chai
         // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
 
         scalar charge = 0;
-        int dimensionality = Geometry_Get_Dimensionality(state, idx_image, idx_chain);
-        if (dimensionality == 2)
-            charge = Engine::Vectormath::TopologicalCharge(*image->spins,
-                *image->geometry, image->hamiltonian->boundary_conditions);
+        // int dimensionality = Geometry_Get_Dimensionality(state, idx_image, idx_chain);
+        // if (dimensionality == 2)
+        charge = Engine::Vectormath::TopologicalCharge(*image->spins, *image->geometry, image->hamiltonian->boundary_conditions, layer, sublattice);
 
         // image->Unlock();
 

@@ -72,9 +72,9 @@ def get_mmf_info(p_state, idx_image=-1, idx_chain=-1):
 
 
 _Get_Topological_Charge          = _spirit.Quantity_Get_Topological_Charge
-_Get_Topological_Charge.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Get_Topological_Charge.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int, ctypes.c_int]
 _Get_Topological_Charge.restype  = ctypes.c_float
-def get_topological_charge(p_state, idx_image=-1, idx_chain=-1):
+def get_topological_charge(p_state, layer=0, sublattice=-1, idx_image=-1, idx_chain=-1):
     """Calculates and returns the total topological charge of 2D systems.
 
     Note that the charge can take unphysical non-integer values for open boundaries,
@@ -82,5 +82,5 @@ def get_topological_charge(p_state, idx_image=-1, idx_chain=-1):
 
     Returns 0 for systems of other dimensionality.
     """
-    return float(_Get_Topological_Charge(ctypes.c_void_p(p_state),
+    return float(_Get_Topological_Charge(ctypes.c_void_p(p_state), ctypes.c_int(layer), ctypes.c_int(sublattice),
                        ctypes.c_int(idx_image), ctypes.c_int(idx_chain)))

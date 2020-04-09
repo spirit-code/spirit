@@ -487,7 +487,7 @@ namespace Engine
         // Calculate the mean of a vectorfield
         std::array<scalar, 3> Magnetization(const vectorfield & vf);
         // Calculate the topological charge inside a vectorfield
-        scalar TopologicalCharge(const vectorfield & vf, const Data::Geometry & geom, const intfield & boundary_conditions);
+        scalar TopologicalCharge(const vectorfield & vf, const Data::Geometry & geom, const intfield & boundary_conditions, int layer=0, int sublattice=-1);
 
         void get_random_vector(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec);
         void get_random_vectorfield(std::mt19937 & prng, vectorfield & xi);
