@@ -1,50 +1,34 @@
 MESSAGE( STATUS ">> -------------------------------------------------------------------- <<" )
 MESSAGE( STATUS ">> --------------------- UI - CPP ------------------------------------- <<" )
 
+
 ######### CMake Version #####################
 cmake_minimum_required( VERSION 3.0 )
 #############################################
-
 
 
 ######### Project Name ######################
 project( Spirit_UI_CPP )
 #############################################
 
-
-
-### Find includes in corresponding build directories
-set( CMAKE_INCLUDE_CURRENT_DIR ON )
-### Let CMake run moc on QT ui files automatically
-set( CMAKE_AUTOMOC ON )
-### Let CMake collect QT Resources automatically
-set( CMAKE_AUTORCC ON )
-### Let CMake handle .ui files automatically
-# set(CMAKE_AUTOUIC ON) # unfortunately, for this, .ui files ned to be next to corresponding .cpp files
-######### Have the binary placed into the source head
-### Output paths for single-config builds
-# set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
-# set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin)
-# set(PROJECT_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin2)
-# set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
-# set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/lib)
-set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR} )
+######### Basics
+### Don't accidentally build in the source tree
+set( CMAKE_DISABLE_IN_SOURCE_BUILD ON )
+# set( CMAKE_DISABLE_SOURCE_CHANGES  ON )
+# ### Find includes in corresponding build directories
+# set( CMAKE_INCLUDE_CURRENT_DIR ON )
+### Have the binary placed into the source head unless bundling
+set( SPIRIT_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR} )
+# if( SPIRIT_BUNDLE_APP )
+#     set( SPIRIT_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR} )
+# endif()
 ### Output paths for multi-config builds (e.g. msvc)
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${SPIRIT_OUTPUT_DIRECTORY} )
 foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
     string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )
-    set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${CMAKE_SOURCE_DIR} )
-    # set( CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${youroutputdirectory} )
-    # set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${youroutputdirectory} )
-endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
-### Apple app bundle path
-if ( APPLE AND SPIRIT_BUNDLE_APP )
-    set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_INSTALL_PREFIX}/bin )
-endif ( )
-### Installation
-set( CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR} )
-#############################################
-# set( CMAKE_DISABLE_SOURCE_CHANGES  ON )
-set( CMAKE_DISABLE_IN_SOURCE_BUILD ON )
+    set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${SPIRIT_OUTPUT_DIRECTORY} )
+endforeach()
+# set( CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR} )
 #############################################
 
 
@@ -54,7 +38,15 @@ include_directories ( ${PROJECT_SOURCE_DIR}/include
                       ${PROJECT_SOURCE_DIR}/thirdparty/Lyra/include
                     )
 
+
 if( SPIRIT_UI_CXX_USE_QT )
+
+    ### Let CMake run moc on QT ui files automatically
+    set( CMAKE_AUTOMOC ON )
+    ### Let CMake collect QT Resources automatically
+    set( CMAKE_AUTORCC ON )
+    ### Let CMake handle .ui files automatically
+    # set(CMAKE_AUTOUIC ON) # unfortunately, for this, .ui files ned to be next to corresponding .cpp files
 
     ######### QT Path ########################
     if( USER_PATH_QT )
@@ -74,13 +66,11 @@ if( SPIRIT_UI_CXX_USE_QT )
     ##########################################
 
 
-
     ######### Find the Qt libraries ##########
     find_package( Qt5 5.7 REQUIRED COMPONENTS Core Gui Widgets Charts OpenGL )
     MESSAGE( STATUS ">> QT version:  " ${Qt5_VERSION} )
     MESSAGE( STATUS ">> Found QT at: " ${Qt5_DIR} )
     ###########################################
-
 
 
     ######### Where to search for library headers
@@ -100,13 +90,14 @@ if( SPIRIT_UI_CXX_USE_QT )
     add_subdirectory( ${PROJECT_SOURCE_DIR}/src )
     add_subdirectory( ${PROJECT_SOURCE_DIR}/include )
     add_subdirectory( ${PROJECT_SOURCE_DIR}/ui )
-    ### Folder include
+    ### IDE folder include
     source_group( "include" FILES ${HEADER_UI_QT_ROOT} )
-    ### Folder src
+    ### IDE folder src
     source_group( ""    FILES ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
     source_group( "src" FILES ${SOURCE_UI_QT_ROOT} )
     source_group( "ui"  FILES ${UI_FILES} )
     ###########################
+
 
     ######### Convert UI Files to Headers
     qt5_wrap_ui( UI_SOURCE ${UI_FILES} )
@@ -139,37 +130,45 @@ if( SPIRIT_UI_CXX_USE_QT )
     IF( APPLE AND SPIRIT_BUNDLE_APP )
 
         # For Apple set the icns file containing icons
-        # set how it shows up in the Info.plist file
-        SET( MACOSX_BUNDLE_ICON_FILE AppIcon.icns )
         # set where in the bundle to put the icns file
-        SET_SOURCE_FILES_PROPERTIES( ${CMAKE_CURRENT_SOURCE_DIR}/res/AppIcon.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources )
+        SET_SOURCE_FILES_PROPERTIES(
+            ${CMAKE_CURRENT_SOURCE_DIR}/res/AppIcon.icns
+            ${CMAKE_CURRENT_SOURCE_DIR}/res/AppIcon.ico
+            ${CMAKE_CURRENT_SOURCE_DIR}/res/AppIcon32.png
+            ${CMAKE_CURRENT_SOURCE_DIR}/res/AppIcon128.png
+            ${CMAKE_CURRENT_SOURCE_DIR}/res/Logo_Ghost.png
+            PROPERTIES MACOSX_PACKAGE_LOCATION Resources )
         # include the icns file in the target
-        SET( SOURCE_UI_QT_ROOT ${SOURCE_UI_QT_ROOT} ${CMAKE_CURRENT_SOURCE_DIR}/QtTest.icns )
+        SET( SOURCE_UI_QT_ROOT ${SOURCE_UI_QT_ROOT}
+            ${CMAKE_CURRENT_SOURCE_DIR}/res/AppIcon.icns
+            ${CMAKE_CURRENT_SOURCE_DIR}/res/AppIcon.ico
+            ${CMAKE_CURRENT_SOURCE_DIR}/res/AppIcon32.png
+            ${CMAKE_CURRENT_SOURCE_DIR}/res/AppIcon128.png
+            ${CMAKE_CURRENT_SOURCE_DIR}/res/Logo_Ghost.png )
 
         # Setup RPATH so that built executable targets will run in both the
         # build tree and the install location without having to set a
         # (DYLD|LD)_LIBRARY_PATH override.
-        #
 
         # use the full RPATH of the build tree
-        set ( CMAKE_SKIP_BUILD_RPATH FALSE )
+        set( CMAKE_SKIP_BUILD_RPATH FALSE )
 
         # when building, don't use the install RPATH, it will still be used
         # later on in the install phase
-        set ( CMAKE_BUILD_WITH_INSTALL_RPATH FALSE )
+        set( CMAKE_BUILD_WITH_INSTALL_RPATH FALSE )
 
-        # set (CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${WSJT_LIB_DESTINATION}")
+        # set( CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${WSJT_LIB_DESTINATION}")
 
         # add the automaticaly determined parts of the RPATH which point to
         # directories outside of the build tree to the install RPATH
-        set ( CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE )
+        set( CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE )
 
         # the RPATH to be used when installing, but only if it's not a system
         # directory
         # list (FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/${WSJT_LIB_DESTINATION}" isSystemDir)
         # if ("${isSystemDir}" STREQUAL "-1")
-        #   set (CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${WSJT_LIB_DESTINATION}")
-        # endif ("${isSystemDir}" STREQUAL "-1")
+        #   set( CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${WSJT_LIB_DESTINATION}" )
+        # endif( "${isSystemDir}" STREQUAL "-1" )
 
         set( QT_NEED_RPATH FALSE )
             if( NOT "${QT_LIBRARY_DIR}" STREQUAL "/lib" AND NOT "${QT_LIBRARY_DIR}" STREQUAL "/usr/lib" AND NOT "${QT_LIBRARY_DIR}" STREQUAL "/lib64" AND NOT "${QT_LIBRARY_DIR}" STREQUAL "/usr/lib64" )
@@ -184,11 +183,11 @@ if( SPIRIT_UI_CXX_USE_QT )
     ENDIF ( WIN32 AND SPIRIT_BUNDLE_APP )
     ###
     IF( WIN32 )
-        set(ICON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/res/AppIcon.ico)
+        set( ICON_FILE ${CMAKE_CURRENT_SOURCE_DIR}/res/AppIcon.ico )
         configure_file(
             ${CMAKE_CURRENT_SOURCE_DIR}/res/windows_metafile.rc.in
             ${CMAKE_CURRENT_SOURCE_DIR}/windows_metafile.rc )
-        SET( SOURCE_UI_QT_ROOT ${SOURCE_UI_QT_ROOT} "windows_metafile.rc" )
+        SET( SOURCE_UI_QT_ROOT ${SOURCE_UI_QT_ROOT} ${CMAKE_CURRENT_SOURCE_DIR}/res/windows_metafile.rc )
         set(CMAKE_RC_COMPILER_INIT windres)
         ENABLE_LANGUAGE(RC)
         SET(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>")
@@ -217,9 +216,6 @@ if( SPIRIT_UI_CXX_USE_QT )
 endif( SPIRIT_UI_CXX_USE_QT )
 
 
-
-
-
 ######### Tell CMake to create the executable
 ### Set sources
 set( ALL_SOURCES main.cpp ${UI_CPP_UTILITY} )
@@ -229,13 +225,16 @@ if( SPIRIT_UI_CXX_USE_QT )
         ${HEADER_UI_QT_ROOT}
         ${SOURCE_UI_QT_ROOT}
         ${UI_SOURCE}
-        resources.qrc )
-endif( )
-### Bundle Var will be empty if bundle should
+        ${CMAKE_CURRENT_SOURCE_DIR}/resources.qrc )
+endif()
+### Bundle var will be empty if bundle should
 ### not be created
 add_executable( ${PROJECT_NAME} ${OS_BUNDLE_NAME} ${ALL_SOURCES} )
 ### Set executable name
 set( SPIRIT_EXE_NAME "spirit" )
+IF( APPLE AND SPIRIT_BUNDLE_APP )
+    set( SPIRIT_EXE_NAME "Spirit" )
+endif()
 set_target_properties( ${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${SPIRIT_EXE_NAME} )
 #############################################
 
@@ -249,7 +248,7 @@ if( SPIRIT_UI_CXX_USE_QT )
     find_package( Threads REQUIRED )
     target_link_libraries( ${PROJECT_NAME} Threads::Threads )
     target_link_libraries( ${PROJECT_NAME} ${GL_LIBRARIES} Qt5::Core Qt5::Gui Qt5::Widgets Qt5::Charts Qt5::OpenGL VFRendering )
-endif( )
+endif()
 ### OSX and Unix need libdl
 if( APPLE OR UNIX )
     target_link_libraries( ${PROJECT_NAME} dl )
@@ -259,13 +258,13 @@ endif()
 
 
 ######### Generate a .user file for VS to set the VS Working Directory
-if ( WIN32 )
-	set( USERFILE_PLATFORM "Win32" )
-	set( USERFILE_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )
-	MESSAGE( STATUS ">> Windows Platform:           " ${USERFILE_PLATFORM} )
-	MESSAGE( STATUS ">> Windows Working Dir:        " ${USERFILE_WORKING_DIRECTORY} )
-	### Output a .user file for VS to use, setting the VS Working Directory
-	configure_file( ${CMAKE_SOURCE_DIR}/CMake/working_directory.vcxproj.user.in ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.vcxproj.user @ONLY )
+if( WIN32 )
+    set( USERFILE_PLATFORM "Win32" )
+    set( USERFILE_WORKING_DIRECTORY ${CMAKE_SOURCE_DIR} )
+    MESSAGE( STATUS ">> Windows Platform:           " ${USERFILE_PLATFORM} )
+    MESSAGE( STATUS ">> Windows Working Dir:        " ${USERFILE_WORKING_DIRECTORY} )
+    ### Output a .user file for VS to use, setting the VS Working Directory
+    configure_file( ${CMAKE_SOURCE_DIR}/CMake/working_directory.vcxproj.user.in ${PROJECT_BINARY_DIR}/${PROJECT_NAME}.vcxproj.user @ONLY )
 endif()
 #############################################
 
@@ -280,9 +279,9 @@ SET( qtconf_dest_dir bin )
 SET( APPS "\${CMAKE_INSTALL_PREFIX}/bin/${SPIRIT_EXE_NAME}" )
 
 IF( APPLE AND SPIRIT_BUNDLE_APP )
-    SET(plugin_dest_dir ${PROJECT_NAME}.app/Contents )
-    SET(qtconf_dest_dir ${PROJECT_NAME}.app/Contents/Resources )
-    SET(APPS "\${CMAKE_INSTALL_PREFIX}/bin/${SPIRIT_EXE_NAME}.app" )
+    SET( plugin_dest_dir ${SPIRIT_EXE_NAME}.app/Contents )
+    SET( qtconf_dest_dir ${SPIRIT_EXE_NAME}.app/Contents/Resources )
+    set( APPS "\${CMAKE_INSTALL_PREFIX}/${SPIRIT_EXE_NAME}.app" )
 ENDIF( APPLE AND SPIRIT_BUNDLE_APP )
 
 IF( WIN32 )
@@ -293,14 +292,28 @@ ENDIF( WIN32 )
 #--------------------------------------------------------------------------------
 # Install the QtTest application, on Apple, the bundle is at the root of the
 # install tree, and on other platforms it'll go into the bin directory.
-INSTALL( TARGETS ${PROJECT_NAME} DESTINATION bin )
-    # BUNDLE DESTINATION . COMPONENT Runtime
-    # RUNTIME DESTINATION bin COMPONENT Runtime )
+install( TARGETS ${PROJECT_NAME}
+    BUNDLE DESTINATION . COMPONENT Runtime
+    RUNTIME DESTINATION bin COMPONENT Runtime )
 
 # install(DIRECTORY docs DESTINATION docs/Spirit/ui-qt)
 
 
 if( SPIRIT_UI_CXX_USE_QT )
+    target_include_directories( ${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_BINARY_DIR} )
+
+    if( APPLE AND SPIRIT_BUNDLE_APP )
+        set_target_properties( ${PROJECT_NAME} PROPERTIES
+            # MACOSX_BUNDLE_INFO_PLIST    ${CMAKE_BINARY_DIR}/packaging/macosx/Info.plist
+            MACOSX_BUNDLE_BUNDLE_NAME           "Spirit"
+            MACOSX_BUNDLE_GUI_IDENTIFIER        "org.spirit.Spirit"
+            MACOSX_BUNDLE_ICON_FILE             "AppIcon.icns"
+            MACOSX_BUNDLE_INFO_STRING           "Spirit GUI version ${SPIRIT_META_VERSION}"
+            MACOSX_BUNDLE_BUNDLE_VERSION        "${SPIRIT_META_VERSION}"
+            MACOSX_BUNDLE_SHORT_VERSION_STRING  "${SPIRIT_META_VERSION}"
+            MACOSX_BUNDLE_LONG_VERSION_STRING   "${SPIRIT_META_NAME_VERSION}"
+            MACOSX_BUNDLE_COPYRIGHT             "© Spirit development team")
+    endif()
 
     #--------------------------------------------------------------------------------
     # Install needed Qt plugins by copying directories from the qt installation
@@ -310,7 +323,7 @@ if( SPIRIT_UI_CXX_USE_QT )
                 ${QT_PLUGINS_DIR}/platforms
                 ${QT_PLUGINS_DIR}/imageformats
             DESTINATION
-                ${plugin_dest_dir}/PlugIns
+                "${plugin_dest_dir}/PlugIns"
             COMPONENT
                 Runtime
             FILES_MATCHING
@@ -318,14 +331,14 @@ if( SPIRIT_UI_CXX_USE_QT )
                 PATTERN "*minimal*${CMAKE_SHARED_LIBRARY_SUFFIX}" EXCLUDE
                 PATTERN "*offscreen*${CMAKE_SHARED_LIBRARY_SUFFIX}" EXCLUDE
                 PATTERN "*quick*${CMAKE_SHARED_LIBRARY_SUFFIX}" EXCLUDE
-                PATTERN "*_debug${CMAKE_SHARED_LIBRARY_SUFFIX}" EXCLUDE )
+                PATTERN "*_debug*${CMAKE_SHARED_LIBRARY_SUFFIX}" EXCLUDE
+                PATTERN "*dSYM*" EXCLUDE )
 
     #--------------------------------------------------------------------------------
     # install a qt.conf file
-    # this inserts some cmake code into the install script to write the file
-    INSTALL( CODE "
-        file(WRITE \"\${CMAKE_INSTALL_PREFIX}/bin/qt.conf\" \"\")
-        " COMPONENT Runtime )
+    # INSTALL( CODE "
+    #     file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"\")
+    #     " COMPONENT Runtime )
 
 
     #--------------------------------------------------------------------------------
@@ -334,7 +347,7 @@ if( SPIRIT_UI_CXX_USE_QT )
     # for dependencies.  If they are not system dependencies, they are copied.
 
     # directories to look for dependencies
-    SET( DIRS ${QT_LIBRARY_DIRS} )
+    SET( DIRS ${QT_LIBRARY_DIRS} ${QT_LIBRARY_DIR} )
 
     # Now the work of copying dependencies into the bundle/package
     # The quotes are escaped and variables to use at install time have their $ escaped
@@ -343,9 +356,16 @@ if( SPIRIT_UI_CXX_USE_QT )
     # over.
     INSTALL( CODE "
         file(GLOB_RECURSE QTPLUGINS
-        \"\${CMAKE_BINARY_DIR}/${plugin_dest_dir}/plugins/*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
+            \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/PlugIns/*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
         include(BundleUtilities)
-        fixup_bundle(\"${APPS}\" \"\${QTPLUGINS}\" \"${DIRS}\")
+        fixup_bundle(\"${APPS}\" \"\${QTPLUGINS}\" \"\${DIRS}\")
+        " COMPONENT Runtime )
+
+
+    # Need to make the app and binary executable
+    INSTALL( CODE "
+        execute_process( COMMAND chmod +x \"\${CMAKE_INSTALL_PREFIX}/${SPIRIT_EXE_NAME}.app\" )
+        execute_process( COMMAND chmod +x \"\${CMAKE_INSTALL_PREFIX}/${SPIRIT_EXE_NAME}.app/Contents/MacOS/${SPIRIT_EXE_NAME}\" )
         " COMPONENT Runtime )
 
 endif( SPIRIT_UI_CXX_USE_QT )
@@ -355,17 +375,11 @@ endif( SPIRIT_UI_CXX_USE_QT )
 # where CPackConfig.cmake is created by including CPack
 # And then there's ways to customize this as well
 INCLUDE( InstallRequiredSystemLibraries )
+set( CPACK_GENERATOR "DRAGNDROP" )
 set( CPACK_BINARY_DRAGNDROP ON )
 include( CPack )
 
-
-#--------------------------------------------------------------------------------
-if( APPLE AND SPIRIT_BUNDLE_APP )
-    execute_process( COMMAND chmod +x "${CMAKE_BINARY_DIR}/${SPIRIT_EXE_NAME}.app" )
-    execute_process( COMMAND chmod +x "${CMAKE_BINARY_DIR}/${SPIRIT_EXE_NAME}.app/Contents/MacOS/${SPIRIT_EXE_NAME}" )
-endif( )
 #############################################
-
 
 
 ######### Header and Source messages ########
