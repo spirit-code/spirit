@@ -531,10 +531,6 @@ namespace Vectormath
         basis_cell_points.push_back( { double((ta + tb + positions[0] + stretch_factor * (ta + tb))[0]),
                                        double((ta + tb + positions[0] + stretch_factor * (ta + tb))[1]) } );
 
-        for (auto b : basis_cell_points)
-        {
-            std::cout << b.x << ", " << b.y << "\n";
-        }
 
         std::vector<Data::triangle_t> triangulation;
         triangulation = Data::compute_delaunay_triangulation_2D(basis_cell_points);
