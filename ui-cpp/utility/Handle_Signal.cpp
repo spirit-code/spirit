@@ -4,7 +4,7 @@
 #include "Spirit/Log.h"
 
 // TODO: Replace this
-#include "Timing.hpp"
+#include <utility/Timing.hpp>
 
 #include <memory>
 #include <stdlib.h>
