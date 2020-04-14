@@ -270,16 +270,16 @@ endif()
 ######### Bundling #################################################
 #--------------------------------------------------
 #----- Paths
-set( plugin_dest_dir bin )
+set( plugin_dest_dir bin/plugins )
 set( qtconf_dest_dir bin )
 set( APPS "\${CMAKE_INSTALL_PREFIX}/bin/${SPIRIT_EXE_NAME}" )
 
 if( WIN32 )
-    set( APPS "\${CMAKE_INSTALL_PREFIX}/bin/${SPIRIT_EXE_NAME}.exe" )
+    set( APPS "${CMAKE_INSTALL_PREFIX}/bin/${SPIRIT_EXE_NAME}.exe" )
 endif( WIN32 )
 
 if( APPLE AND SPIRIT_BUNDLE_APP )
-    set( plugin_dest_dir ${SPIRIT_EXE_NAME}.app/Contents )
+    set( plugin_dest_dir ${SPIRIT_EXE_NAME}.app/Contents/PlugIns )
     set( qtconf_dest_dir ${SPIRIT_EXE_NAME}.app/Contents/Resources )
     set( APPS "\${CMAKE_INSTALL_PREFIX}/${SPIRIT_EXE_NAME}.app" )
 endif( APPLE AND SPIRIT_BUNDLE_APP )
@@ -366,9 +366,14 @@ endif()
 #----- Executable
 # The bundle is at the root of the install tree,
 # otherwiese it'll go into the bin directory.
-install( TARGETS ${PROJECT_NAME}
-    BUNDLE DESTINATION . COMPONENT bundle
-    RUNTIME DESTINATION bin COMPONENT runtime )
+if( WIN32 )
+    install( FILES ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon.ico DESTINATION bin COMPONENT icons )
+    install( TARGETS ${PROJECT_NAME} DESTINATION bin COMPONENT bundle )
+else()
+    install( TARGETS ${PROJECT_NAME}
+        BUNDLE DESTINATION . COMPONENT bundle
+        RUNTIME DESTINATION bin COMPONENT runtime )
+endif()
 
 #--------------------------------------------------
 # install(DIRECTORY docs DESTINATION docs/Spirit/ui-qt)
@@ -382,7 +387,7 @@ if( SPIRIT_UI_CXX_USE_QT )
                 ${QT_PLUGINS_DIR}/platforms
                 ${QT_PLUGINS_DIR}/imageformats
             DESTINATION
-                "${plugin_dest_dir}/PlugIns"
+                "${plugin_dest_dir}"
             COMPONENT
                 bundle
             FILES_MATCHING
@@ -410,17 +415,19 @@ if( SPIRIT_BUNDLE_APP )
         # Note that the image plugins depend on QtSvg and QtXml, and it got those copied over.
         install( CODE "
             file(GLOB_RECURSE QTPLUGINS
-                \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/PlugIns/*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
+                \"\${CMAKE_INSTALL_PREFIX}/${plugin_dest_dir}/*${CMAKE_SHARED_LIBRARY_SUFFIX}\")
             include(BundleUtilities)
             fixup_bundle(\"${APPS}\" \"\${QTPLUGINS}\" \"\${DIRS}\")
             " COMPONENT bundle )
     endif()
 
     ### Need to make the app and binary executable
-    INSTALL( CODE "
-        execute_process( COMMAND chmod +x \"\${CMAKE_INSTALL_PREFIX}/${SPIRIT_EXE_NAME}.app\" )
-        execute_process( COMMAND chmod +x \"\${CMAKE_INSTALL_PREFIX}/${SPIRIT_EXE_NAME}.app/Contents/MacOS/${SPIRIT_EXE_NAME}\" )
-        " COMPONENT bundle )
+    if( APPLE )
+        install( CODE "
+            execute_process( COMMAND chmod +x \"\${CMAKE_INSTALL_PREFIX}/${SPIRIT_EXE_NAME}.app\" )
+            execute_process( COMMAND chmod +x \"\${CMAKE_INSTALL_PREFIX}/${SPIRIT_EXE_NAME}.app/Contents/MacOS/${SPIRIT_EXE_NAME}\" )
+            " COMPONENT bundle )
+    endif()
 endif()
 ####################################################################
 
@@ -431,10 +438,21 @@ endif()
 # where CPackConfig.cmake is created by including CPack
 # And then there's ways to customize this as well
 include( InstallRequiredSystemLibraries )
-set( CPACK_GENERATOR "DragNDrop" )
-set( CPACK_BINARY_DRAGNDROP ON )
+if( APPLE  )
+    set( CPACK_GENERATOR "DragNDrop" )
+    set( CPACK_BINARY_DRAGNDROP ON )
+    set( CPACK_COMPONENTS_ALL bundle )
+elseif( WIN32 )
+    set( CPACK_GENERATOR "ZIP" )
+    set( CPACK_BINARY_DRAGNDROP ON )
+    set( CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE )
+    set( CPACK_COMPONENTS_ALL
+        bundle icons spirit_core_documentation spirit_core_headers spirit_core_archives )
+endif()
 set( CPACK_ARCHIVE_COMPONENT_INSTALL ON )
-set( CPACK_COMPONENTS_ALL bundle )
+set( CPACK_PACKAGE_VERSION_MAJOR ${SPIRIT_META_VERSION_MAJOR} )
+set( CPACK_PACKAGE_VERSION_MINOR ${SPIRIT_META_VERSION_MINOR} )
+set( CPACK_PACKAGE_VERSION_PATCH ${SPIRIT_META_VERSION_PATCH} )
 include( CPack )
 ####################################################################
 

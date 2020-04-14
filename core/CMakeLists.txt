@@ -113,6 +113,9 @@ set(META_COMPILER             "${CMAKE_CXX_COMPILER_ID}")
 set(META_COMPILER_VERSION     "${CMAKE_CXX_COMPILER_VERSION}")
 set(META_COMPILER_FULL        "${CMAKE_CXX_COMPILER_ID} (${CMAKE_CXX_COMPILER_VERSION})")
 #----- Propagate version and name_version upwards
+set(SPIRIT_META_VERSION_MAJOR ${META_VERSION_MAJOR} PARENT_SCOPE)
+set(SPIRIT_META_VERSION_MINOR ${META_VERSION_MINOR} PARENT_SCOPE)
+set(SPIRIT_META_VERSION_PATCH ${META_VERSION_PATCH} PARENT_SCOPE)
 set(SPIRIT_META_VERSION       "${META_VERSION}" PARENT_SCOPE)
 set(SPIRIT_META_NAME_VERSION  "${META_PROJECT_NAME} v${META_VERSION} (${META_VERSION_REVISION})" PARENT_SCOPE)
 ####################################################################
@@ -385,7 +388,8 @@ if( SPIRIT_BUILD_FOR_CXX OR SPIRIT_BUILD_FOR_JS )
             # Include Directories
             target_include_directories( ${testName} PRIVATE
                 ${PROJECT_SOURCE_DIR}/test
-                ${CMAKE_CURRENT_LIST_DIR}/thirdparty )
+                ${CMAKE_CURRENT_LIST_DIR}/thirdparty
+                ${CMAKE_CURRENT_LIST_DIR}/thirdparty/kiss_fft )
             # Apply public compile definitions from the object library
             target_compile_definitions( ${testName} PRIVATE
                 $<TARGET_PROPERTY:${META_PROJECT_NAME},INTERFACE_COMPILE_DEFINITIONS> )
@@ -424,11 +428,11 @@ if( SPIRIT_BUILD_FOR_PYTHON )
     message( STATUS ">> Building shared library for Python" )
     add_library( ${META_PROJECT_NAME}_python SHARED $<TARGET_OBJECTS:${META_PROJECT_NAME}> )
     ### Forward public includes from the object library
-    target_include_directories(${META_PROJECT_NAME}_python PUBLIC
-        $<TARGET_PROPERTY:${META_PROJECT_NAME},INTERFACE_INCLUDE_DIRECTORIES>)
+    target_include_directories( ${META_PROJECT_NAME}_python PUBLIC
+        $<TARGET_PROPERTY:${META_PROJECT_NAME},INTERFACE_INCLUDE_DIRECTORIES> )
     ### Apply interface link dependencies from the object library
-    target_link_libraries(${META_PROJECT_NAME}_python PRIVATE
-        $<TARGET_PROPERTY:${META_PROJECT_NAME},INTERFACE_LINK_LIBRARIES>)
+    target_link_libraries( ${META_PROJECT_NAME}_python PRIVATE
+        $<TARGET_PROPERTY:${META_PROJECT_NAME},INTERFACE_LINK_LIBRARIES> )
     #--------------------------------------------------
 
     #--------------------------------------------------
@@ -437,8 +441,8 @@ if( SPIRIT_BUILD_FOR_PYTHON )
     set( PYLIB_OUTPUT_DIR ${SPIRIT_PYTHON_MODULE_DIR}/spirit )
 
     #----- Utility python files
-    configure_file(${CMAKE_SOURCE_DIR}/LICENSE.txt ${SPIRIT_PYTHON_MODULE_DIR}/LICENSE.txt COPYONLY)
-    configure_file(${PROJECT_SOURCE_DIR}/CMake/__init__.py.in ${PYLIB_OUTPUT_DIR}/__init__.py)
+    configure_file( ${CMAKE_SOURCE_DIR}/LICENSE.txt ${SPIRIT_PYTHON_MODULE_DIR}/LICENSE.txt COPYONLY )
+    configure_file( ${PROJECT_SOURCE_DIR}/CMake/__init__.py.in ${PYLIB_OUTPUT_DIR}/__init__.py )
 
     file( WRITE ${PYLIB_OUTPUT_DIR}/scalar.py
         "import ctypes\n"
@@ -467,11 +471,14 @@ if( SPIRIT_BUILD_FOR_PYTHON )
     ### be placed under python/spirit/ s.t. it is directly part of
     ### the python spirit bindings module/package
     set_target_properties( ${META_PROJECT_NAME}_python PROPERTIES
-        OUTPUT_NAME             "${META_PROJECT_NAME}"
-        LIBRARY_OUTPUT_DIRECTORY ${PYLIB_OUTPUT_DIR} )
+        OUTPUT_NAME "${META_PROJECT_NAME}"
+        LIBRARY_OUTPUT_DIRECTORY ${PYLIB_OUTPUT_DIR}
+        RUNTIME_OUTPUT_DIRECTORY ${PYLIB_OUTPUT_DIR} )
     foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
         string( TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG )
-        set_target_properties( ${META_PROJECT_NAME}_python PROPERTIES LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG}          ${PYLIB_OUTPUT_DIR} )
+        set_target_properties( ${META_PROJECT_NAME}_python PROPERTIES
+            LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PYLIB_OUTPUT_DIR}
+            RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PYLIB_OUTPUT_DIR} )
     endforeach( OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES )
     #--------------------------------------------------
 
@@ -570,32 +577,32 @@ source_group( "src\\spirit"  FILES ${SOURCE_SPIRIT} )
 
 ######### Install ##################################################
 #----- Documentation
-install( DIRECTORY docs DESTINATION docs/Spirit/core COMPONENT documentation )
+install( DIRECTORY docs DESTINATION docs/Spirit/core COMPONENT spirit_core_documentation )
 #--------------------------------------------------
 
 #----- Include folder
-install( DIRECTORY include/Spirit DESTINATION include COMPONENT headers
+install( DIRECTORY include/Spirit DESTINATION include COMPONENT spirit_core_headers
     FILES_MATCHING PATTERN "*.h" )
 #--------------------------------------------------
 
 #----- Static library and tests
 if( SPIRIT_BUILD_FOR_CXX )
-    install( TARGETS ${META_PROJECT_NAME}_static DESTINATION lib COMPONENT archives )
+    install( TARGETS ${META_PROJECT_NAME}_static DESTINATION lib COMPONENT spirit_core_archives )
     if( SPIRIT_BUILD_TEST )
-        install( TARGETS ${TEST_EXECUTABLES} DESTINATION test COMPONENT tests )
-        install( DIRECTORY test/input DESTINATION test COMPONENT tests )
+        install( TARGETS ${TEST_EXECUTABLES} DESTINATION test COMPONENT spirit_core_tests )
+        install( DIRECTORY test/input DESTINATION test COMPONENT spirit_core_tests )
     endif()
 endif()
 #--------------------------------------------------
 
 #----- Shared library and python tests
 if( SPIRIT_BUILD_FOR_PYTHON )
-    install( TARGETS ${META_PROJECT_NAME}_python DESTINATION bin COMPONENT libraries )
-    install( DIRECTORY python/spirit DESTINATION python COMPONENT python
+    install( TARGETS ${META_PROJECT_NAME}_python DESTINATION bin COMPONENT spirit_core_python )
+    install( DIRECTORY python/spirit DESTINATION python COMPONENT spirit_core_python
         FILES_MATCHING PATTERN "*.py" )
     if( SPIRIT_BUILD_TEST )
         # install( TARGETS ${PYTHON_TEST_EXECUTABLES} DESTINATION python/test )
-        install( DIRECTORY python/test/ DESTINATION test/python COMPONENT tests
+        install( DIRECTORY python/test/ DESTINATION test/python COMPONENT spirit_core_python
             FILES_MATCHING PATTERN "*.py" )
     endif()
 endif()
