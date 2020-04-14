@@ -86,7 +86,7 @@ target_include_directories( ${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/thirdp
 add_library( ${PROJECT_NAME}_static $<TARGET_OBJECTS:${PROJECT_NAME}> )
 
 install( TARGETS ${PROJECT_NAME}_static DESTINATION lib )
-install( DIRECTORY include DESTINATION include )
+install( FILES include/ovf.h DESTINATION include )
 
 
 ### Build Python bindings
