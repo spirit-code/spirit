@@ -342,13 +342,13 @@ endif()
 
 ### Definitions corresponding to build options
 if( SPIRIT_ENABLE_DEFECTS )
-    target_compile_definitions( ${METHA_PROJECT_NAME} PRIVATE -DSPIRIT_ENABLE_DEFECTS )
+    target_compile_definitions( ${META_PROJECT_NAME} PRIVATE -DSPIRIT_ENABLE_DEFECTS )
 endif()
 if( SPIRIT_ENABLE_PINNING )
-    target_compile_definitions( ${METHA_PROJECT_NAME} PRIVATE -DSPIRIT_ENABLE_PINNING )
+    target_compile_definitions( ${META_PROJECT_NAME} PRIVATE -DSPIRIT_ENABLE_PINNING )
 endif()
 if( SPIRIT_USE_THREADS )
-    target_compile_definitions( ${METHA_PROJECT_NAME} PRIVATE -DSPIRIT_USE_THREADS )
+    target_compile_definitions( ${META_PROJECT_NAME} PRIVATE -DSPIRIT_USE_THREADS )
 endif()
 ####################################################################
 
