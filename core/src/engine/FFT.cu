@@ -1,6 +1,9 @@
 #ifdef SPIRIT_USE_CUDA
-#include "FFT.hpp"
+
+#include <engine/FFT.hpp>
+
 #include <cufft.h>
+
 namespace Engine
 {
     namespace FFT
@@ -12,7 +15,7 @@ namespace Engine
         }
         void iFour_3D(FFT_cfg cfg, FFT_cpx_type * in, FFT_real_type * out)
         {
-            std::cerr << "NOT IMPLEMENTED FOR cuFFT" << std::endl;   
+            std::cerr << "NOT IMPLEMENTED FOR cuFFT" << std::endl;
         }
 
         void batch_Four_3D(FFT_Plan & plan)
@@ -34,7 +37,7 @@ namespace Engine
             int n_transforms = this->n_transforms;
             int istride = n_transforms, ostride = n_transforms;
             int *inembed = n, *onembed = n;
-            
+
             int size = 1;
             for(auto k : dims)
             {
@@ -45,7 +48,7 @@ namespace Engine
             if(this->inverse == false)
             {
                 cufftPlanMany(&this->cfg, rank, n, inembed, istride, idist, onembed, ostride, odist, CUFFT_R2C, n_transforms);
-            } else 
+            } else
             {
                 cufftPlanMany(&this->cfg, rank, n, inembed, istride, idist, onembed, ostride, odist, CUFFT_C2R, n_transforms);
             }

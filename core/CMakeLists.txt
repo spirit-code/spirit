@@ -136,17 +136,28 @@ include(CompilerFlags)
 if( SPIRIT_USE_CUDA )
     # set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
     find_package( CUDA 8 REQUIRED )
-    add_definitions( -DSPIRIT_USE_CUDA )
+
     # set( CUDA_PROPAGATE_HOST_FLAGS ON )
     # --std=c++11 flag may be necessary, but it is propagated from global flags...
     # if it appears twice, for some reason the compilation breaks
 
-    set( CUDA_NVCC_FLAGS       "${CUDA_NVCC_FLAGS} -lineinfo -arch=${SPIRIT_CUDA_ARCH} --expt-relaxed-constexpr --expt-extended-lambda" )
+    set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -lineinfo -arch=${SPIRIT_CUDA_ARCH} --expt-relaxed-constexpr --expt-extended-lambda" )
+    set( SPIRIT_CUDA_LIBS "${CUDA_LIBRARIES};${CUDA_CUFFT_LIBRARIES};${CUDA_curand_LIBRARY}" )
+    set( FFT_LIB          ${CUDA_CUFFT_LIBRARIES} )
+
+    ### Deactivate CUDA warning inside Eigen such as "warning: __host__ annotation is ignored on a function("Quaternion") that is explicitly defaulted on its first declaration"
+    set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcudafe=\"--diag_suppress=esa_on_defaulted_function_ignored\"")
+    ### Display warning number when writing a warning
+    set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcudafe \"--display_error_number\"" )
+
     set( META_COMPILER         "${META_COMPILER} and nvcc" )
     set( META_COMPILER_VERSION "${META_COMPILER_VERSION} and ${CUDA_VERSION}" )
     set( META_COMPILER_FULL    "${META_COMPILER_FULL} and nvcc (${CUDA_VERSION}) for cuda arch \\\"${SPIRIT_CUDA_ARCH}\\\"" )
-    set( FFT_LIB               ${CUDA_CUFFT_LIBRARIES} )
-    set( SPIRIT_CUDA_LIBS      "${CUDA_LIBRARIES};${CUDA_CUFFT_LIBRARIES};${CUDA_curand_LIBRARY}" )
+
+    if( NOT DEFINED CMAKE_CUDA_STANDARD )
+        set( CMAKE_CUDA_STANDARD 11 )
+        set( CMAKE_CUDA_STANDARD_REQUIRED ON )
+    endif()
 
     message( STATUS ">> Using CUDA. Flags: ${CUDA_NVCC_FLAGS}" )
     message( STATUS ">> CUDA toolkit path: ${CUDA_TOOLKIT_ROOT_DIR}" )
@@ -325,6 +336,55 @@ add_dependencies( ${META_PROJECT_NAME} ${qhull_LIBS} )
 if( SPIRIT_USE_CUDA )
     target_include_directories( ${META_PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include )
     target_link_libraries( ${META_PROJECT_NAME} INTERFACE ${SPIRIT_CUDA_LIBS} )
+    target_compile_definitions( ${META_PROJECT_NAME} PRIVATE -DSPIRIT_USE_CUDA )
+    set_target_properties( ${META_PROJECT_NAME} PROPERTIES CUDA_SEPERABLE_COMPILATION ON )
+
+    ### Need to use nvcc on many source files because they indirectly include cuda.h
+    set_source_files_properties(
+        ${PROJECT_SOURCE_DIR}/src/data/Geometry.cpp
+        ${PROJECT_SOURCE_DIR}/src/data/Spin_System.cpp
+        ${PROJECT_SOURCE_DIR}/src/data/Spin_System_Chain.cpp
+        ${PROJECT_SOURCE_DIR}/src/engine/Eigenmodes.cpp
+        ${PROJECT_SOURCE_DIR}/src/engine/Hamiltonian.cpp
+        ${PROJECT_SOURCE_DIR}/src/engine/Hamiltonian_Gaussian.cpp
+        ${PROJECT_SOURCE_DIR}/src/engine/HTST.cpp
+        ${PROJECT_SOURCE_DIR}/src/engine/Manifoldmath.cpp
+        ${PROJECT_SOURCE_DIR}/src/engine/Method.cpp
+        ${PROJECT_SOURCE_DIR}/src/engine/Method_MC.cpp
+        ${PROJECT_SOURCE_DIR}/src/engine/Method_LLG.cpp
+        ${PROJECT_SOURCE_DIR}/src/engine/Method_GNEB.cpp
+        ${PROJECT_SOURCE_DIR}/src/engine/Method_MMF.cpp
+        ${PROJECT_SOURCE_DIR}/src/engine/Method_EMA.cpp
+        ${PROJECT_SOURCE_DIR}/src/engine/Neighbours.cpp
+        ${PROJECT_SOURCE_DIR}/src/engine/Solver_Kernels.cpp
+        ${PROJECT_SOURCE_DIR}/src/engine/Vectormath.cpp
+        ${PROJECT_SOURCE_DIR}/src/io/Configwriter.cpp
+        ${PROJECT_SOURCE_DIR}/src/io/Configparser.cpp
+        ${PROJECT_SOURCE_DIR}/src/io/Dataparser.cpp
+        ${PROJECT_SOURCE_DIR}/src/io/Datawriter.cpp
+        ${PROJECT_SOURCE_DIR}/src/io/IO.cpp
+        ${PROJECT_SOURCE_DIR}/src/io/Filter_File_Handle.cpp
+        ${PROJECT_SOURCE_DIR}/src/io/OVF_File.cpp
+        ${PROJECT_SOURCE_DIR}/src/Spirit/Chain.cpp
+        ${PROJECT_SOURCE_DIR}/src/Spirit/Configurations.cpp
+        ${PROJECT_SOURCE_DIR}/src/Spirit/Geometry.cpp
+        ${PROJECT_SOURCE_DIR}/src/Spirit/Hamiltonian.cpp
+        ${PROJECT_SOURCE_DIR}/src/Spirit/HTST.cpp
+        ${PROJECT_SOURCE_DIR}/src/Spirit/IO.cpp
+        ${PROJECT_SOURCE_DIR}/src/Spirit/Parameters_EMA.cpp
+        ${PROJECT_SOURCE_DIR}/src/Spirit/Parameters_GNEB.cpp
+        ${PROJECT_SOURCE_DIR}/src/Spirit/Parameters_LLG.cpp
+        ${PROJECT_SOURCE_DIR}/src/Spirit/Parameters_MC.cpp
+        ${PROJECT_SOURCE_DIR}/src/Spirit/Parameters_MMF.cpp
+        ${PROJECT_SOURCE_DIR}/src/Spirit/Simulation.cpp
+        ${PROJECT_SOURCE_DIR}/src/Spirit/State.cpp
+        ${PROJECT_SOURCE_DIR}/src/Spirit/System.cpp
+        ${PROJECT_SOURCE_DIR}/src/Spirit/Transitions.cpp
+        ${PROJECT_SOURCE_DIR}/src/Spirit/Quantities.cpp
+        ${PROJECT_SOURCE_DIR}/src/utility/Configurations.cpp
+        ${PROJECT_SOURCE_DIR}/src/utility/Configuration_Chain.cpp
+        ${PROJECT_SOURCE_DIR}/src/utility/Logging.cpp
+        PROPERTIES LANGUAGE CUDA )
 endif()
 
 ### Coverage flags and linking if needed
