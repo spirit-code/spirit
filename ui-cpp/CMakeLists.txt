@@ -142,7 +142,7 @@ target_link_libraries( ${PROJECT_NAME} PRIVATE ${SPIRIT_LIBRARIES_STATIC} )
 
 ### OSX and Unix need libdl
 if( APPLE OR UNIX )
-    target_link_libraries( ${PROJECT_NAME} PRIVATE dl )
+    target_link_libraries( ${PROJECT_NAME} PUBLIC dl )
 endif()
 ####################################################################
 
