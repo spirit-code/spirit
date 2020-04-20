@@ -30,8 +30,8 @@ void Method_Solver<Solver::SIB>::Iteration ()
     this->Calculate_Force_Virtual(this->configurations, this->forces, this->forces_virtual);
     for (int i = 0; i < this->noi; ++i)
     {
-        auto image      = *this->systems[i]->spins;
-        auto predictor  = *this->configurations_predictor[i];
+        auto& image     = *this->systems[i]->spins;
+        auto& predictor = *this->configurations_predictor[i];
         Solver_Kernels::sib_transform(image, forces_virtual[i], predictor);
 
         auto imagep     = this->systems[i]->spins->data();

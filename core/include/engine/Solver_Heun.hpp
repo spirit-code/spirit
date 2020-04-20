@@ -65,7 +65,7 @@ void Method_Solver<Solver::Heun>::Iteration ()
         // Second step - Corrector
         Backend::par::apply( nos, [conf, conf_predictor, f_virtual, f_virtual_predictor] SPIRIT_LAMBDA (int idx) {
             conf[idx] = (
-                conf[idx] + 0.5*( conf[idx] - 0.5*conf[idx].cross(f_virtual[idx]) - conf_predictor[idx].cross(f_virtual_predictor[idx]) )
+                conf[idx] - 0.5 * ( conf[idx].cross( f_virtual[idx] ) + conf_predictor[idx].cross(f_virtual_predictor[idx]) )
             ).normalized();
         } );
     }
