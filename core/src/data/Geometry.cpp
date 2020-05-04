@@ -518,7 +518,7 @@ namespace Data
             int n_parallel = 0;
             for( unsigned int i = 1; i < b_vectors.size(); ++i )
             {
-                if( std::abs(b_vectors[i].dot(test_vec_basis)) - 1 < epsilon )
+                if( 1 - std::abs(b_vectors[i].dot(test_vec_basis)) < epsilon )
                     ++n_parallel;
                 // Else n_parallel will give us the last parallel vector
                 // Also the if-statement for dims_basis=1 wont be met
