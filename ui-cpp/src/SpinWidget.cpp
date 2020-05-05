@@ -430,7 +430,18 @@ void SpinWidget::updateVectorFieldGeometry()
                 }
             }
         }
-        glm::vec3 normal = this->arrowSize() * glm::normalize(glm::cross(basis[0], basis[1]));
+
+        int n_cells[3];
+        Geometry_Get_N_Cells(this->state.get(), n_cells);
+        float bounds_min[3], bounds_max[3];
+        Geometry_Get_Bounds(state.get(), bounds_min, bounds_max);
+        float density = 0.01f;
+        if (n_cells[0] > 1) density = std::max(density, n_cells[0] / (bounds_max[0] - bounds_min[0]));
+        if (n_cells[1] > 1) density = std::max(density, n_cells[1] / (bounds_max[1] - bounds_min[1]));
+        if (n_cells[2] > 1) density = std::max(density, n_cells[2] / (bounds_max[2] - bounds_min[2]));
+        density /= n_cell_step;
+        glm::vec3 normal = this->arrowSize()/density * glm::normalize(glm::cross(basis[0], basis[1]));
+
         // By default, +z is up, which is where we want the normal oriented towards
         if( glm::dot(normal, glm::vec3{0,0,1}) < 1e-6 )
             normal = -normal;
