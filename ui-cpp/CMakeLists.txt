@@ -310,7 +310,7 @@ if( SPIRIT_UI_CXX_USE_QT )
                 ${QT_PLUGINS_DIR}/platforms
                 ${QT_PLUGINS_DIR}/imageformats
             DESTINATION
-                ${plugin_dest_dir}/PlugIns
+                ${plugin_dest_dir}/plugins
             COMPONENT
                 Runtime
             FILES_MATCHING
