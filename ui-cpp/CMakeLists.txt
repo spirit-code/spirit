@@ -140,14 +140,7 @@ target_include_directories( ${PROJECT_NAME} PRIVATE
 
 target_link_libraries( ${PROJECT_NAME} PRIVATE ${SPIRIT_LIBRARIES_STATIC} )
 
-### OSX and Unix need libdl
-if( APPLE OR UNIX )
-    target_link_libraries( ${PROJECT_NAME} PUBLIC dl )
-endif()
-####################################################################
-
-
-######### Optionally add Qt to the target ##########################
+### Optionally add Qt to the target
 if( SPIRIT_UI_CXX_USE_QT )
     #--------------------------------------------------
     #----- Qt headers, sources and ui files
@@ -240,6 +233,11 @@ if( SPIRIT_UI_CXX_USE_QT )
     set( THREADS_PREFER_PTHREAD_FLAG ON )
     find_package( Threads REQUIRED )
     target_link_libraries( ${PROJECT_NAME} PRIVATE Threads::Threads )
+endif()
+
+### OSX and Unix need libdl
+if( APPLE OR UNIX )
+    target_link_libraries( ${PROJECT_NAME} PUBLIC dl )
 endif()
 ####################################################################
 
