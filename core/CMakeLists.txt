@@ -449,7 +449,7 @@ if( SPIRIT_BUILD_FOR_CXX OR SPIRIT_BUILD_FOR_JS )
             target_include_directories( ${testName} PRIVATE
                 ${PROJECT_SOURCE_DIR}/test
                 ${CMAKE_CURRENT_LIST_DIR}/thirdparty
-                ${CMAKE_CURRENT_LIST_DIR}/thirdparty/kiss_fft )
+                ${FFT_INCLUDE_DIRS} )
             # Apply public compile definitions from the object library
             target_compile_definitions( ${testName} PRIVATE
                 $<TARGET_PROPERTY:${META_PROJECT_NAME},INTERFACE_COMPILE_DEFINITIONS> )
