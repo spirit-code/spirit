@@ -121,7 +121,7 @@ set(SPIRIT_META_NAME_VERSION  "${META_PROJECT_NAME} v${META_VERSION} (${META_VER
 ####################################################################
 
 
-######### Project Name #############################################
+######### Project name #############################################
 message( STATUS ">> Building ${META_PROJECT_NAME} core library v${META_VERSION} (revision ${META_VERSION_REVISION})" )
 project( ${META_PROJECT_NAME} VERSION ${META_VERSION} )
 ####################################################################
@@ -175,8 +175,8 @@ if( SPIRIT_USE_THREADS )
     find_package( Threads REQUIRED )
     set( THREAD_LIBS Threads::Threads )
 endif()
-configure_file( ${PROJECT_SOURCE_DIR}/CMake/Spirit_Defines.h.in ${PROJECT_SOURCE_DIR}/include/Spirit_Defines.h )
-configure_file( ${PROJECT_SOURCE_DIR}/CMake/Spirit_Version.hpp.in ${PROJECT_SOURCE_DIR}/include/utility/Version.hpp )
+configure_file( ${CMAKE_CURRENT_LIST_DIR}/CMake/Spirit_Defines.h.in   ${CMAKE_CURRENT_LIST_DIR}/include/Spirit_Defines.h )
+configure_file( ${CMAKE_CURRENT_LIST_DIR}/CMake/Spirit_Version.hpp.in ${CMAKE_CURRENT_LIST_DIR}/include/utility/Version.hpp )
 ####################################################################
 
 
@@ -187,7 +187,7 @@ if( SPIRIT_USE_OPENMP )
         set( CMAKE_C_FLAGS          "${CMAKE_C_FLAGS}          ${OpenMP_C_FLAGS}" )
         set( CMAKE_CXX_FLAGS        "${CMAKE_CXX_FLAGS}        ${OpenMP_CXX_FLAGS}" )
         set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
-        add_definitions( -DSPIRIT_USE_OPENMP )
+        set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DSPIRIT_USE_OPENMP )
         message( STATUS ">> OpenMP found." )
         message( STATUS ">> OpenMP C Flags:          ${OpenMP_C_FLAGS}" )
         message( STATUS ">> OpenMP CXX Flags:        ${OpenMP_CXX_FLAGS}" )
@@ -209,7 +209,7 @@ endif()
 #     set(FFT_LIB          "/usr/local/lib/libfftw3.so"
 #                          "/usr/local/lib/libfftwf3.so"
 #                          "/usr/local/lib/libfftw3_omp.so")
-#     add_definitions(-DSPIRIT_USE_FFTW)
+#     set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DSPIRIT_USE_FFTW )
 # endif()
 
 if( NOT SPIRIT_USE_CUDA AND NOT FFT_LIB )
@@ -246,14 +246,14 @@ if( NOT SPIRIT_USE_CUDA AND NOT FFT_LIB )
         if( FFTW_FOUND )
             message( STATUS ">> Using FFTW" )
             set( FFT_INCLUDE_DIRS ${FFTW_INCLUDES} )
-            add_definitions( -DSPIRIT_USE_FFTW )
+            set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DSPIRIT_USE_FFTW )
         endif()
     endif()
 
     if( (NOT SPIRIT_USE_FFTW) OR (NOT FFTW_FOUND) )
         message( STATUS ">> Using kissFFT" )
         add_definitions( -Dkiss_fft_scalar=${SPIRIT_SCALAR_TYPE} )
-        add_definitions( -DSPIRIT_USE_KISSFFT )
+        set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DSPIRIT_USE_KISSFFT )
         add_subdirectory( ${PROJECT_SOURCE_DIR}/thirdparty/kiss_fft )
         set( FFT_LIB kiss_fft )
         set( FFT_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/thirdparty/kiss_fft
@@ -327,63 +327,71 @@ target_link_libraries( ${META_PROJECT_NAME} INTERFACE
     ${qhull_LIBS} ${OVF_LIBRARIES_STATIC} ${FFT_LIB} ${THREAD_LIBS} )
 
 ### Flag needed to use fmt as header-only
-target_compile_definitions( ${META_PROJECT_NAME} PUBLIC -DFMT_HEADER_ONLY )
+set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DFMT_HEADER_ONLY )
 
 ### Need to wait for QHull to finish before building
 add_dependencies( ${META_PROJECT_NAME} ${qhull_LIBS} )
 
 ### Extra CUDA things
 if( SPIRIT_USE_CUDA )
-    target_include_directories( ${META_PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include )
     target_link_libraries( ${META_PROJECT_NAME} INTERFACE ${SPIRIT_CUDA_LIBS} )
-    target_compile_definitions( ${META_PROJECT_NAME} PRIVATE -DSPIRIT_USE_CUDA )
     set_target_properties( ${META_PROJECT_NAME} PROPERTIES CUDA_SEPERABLE_COMPILATION ON )
+    set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DSPIRIT_USE_CUDA )
 
     ### Need to use nvcc on many source files because they indirectly include cuda.h
     set_source_files_properties(
-        ${PROJECT_SOURCE_DIR}/src/data/Geometry.cpp
-        ${PROJECT_SOURCE_DIR}/src/data/Spin_System.cpp
-        ${PROJECT_SOURCE_DIR}/src/data/Spin_System_Chain.cpp
-        ${PROJECT_SOURCE_DIR}/src/engine/Eigenmodes.cpp
-        ${PROJECT_SOURCE_DIR}/src/engine/Hamiltonian.cpp
-        ${PROJECT_SOURCE_DIR}/src/engine/Hamiltonian_Gaussian.cpp
-        ${PROJECT_SOURCE_DIR}/src/engine/HTST.cpp
-        ${PROJECT_SOURCE_DIR}/src/engine/Manifoldmath.cpp
-        ${PROJECT_SOURCE_DIR}/src/engine/Method.cpp
-        ${PROJECT_SOURCE_DIR}/src/engine/Method_MC.cpp
-        ${PROJECT_SOURCE_DIR}/src/engine/Method_LLG.cpp
-        ${PROJECT_SOURCE_DIR}/src/engine/Method_GNEB.cpp
-        ${PROJECT_SOURCE_DIR}/src/engine/Method_MMF.cpp
-        ${PROJECT_SOURCE_DIR}/src/engine/Method_EMA.cpp
-        ${PROJECT_SOURCE_DIR}/src/engine/Neighbours.cpp
-        ${PROJECT_SOURCE_DIR}/src/engine/Solver_Kernels.cpp
-        ${PROJECT_SOURCE_DIR}/src/engine/Vectormath.cpp
-        ${PROJECT_SOURCE_DIR}/src/io/Configwriter.cpp
-        ${PROJECT_SOURCE_DIR}/src/io/Configparser.cpp
-        ${PROJECT_SOURCE_DIR}/src/io/Dataparser.cpp
-        ${PROJECT_SOURCE_DIR}/src/io/Datawriter.cpp
-        ${PROJECT_SOURCE_DIR}/src/io/IO.cpp
-        ${PROJECT_SOURCE_DIR}/src/io/Filter_File_Handle.cpp
-        ${PROJECT_SOURCE_DIR}/src/io/OVF_File.cpp
-        ${PROJECT_SOURCE_DIR}/src/Spirit/Chain.cpp
-        ${PROJECT_SOURCE_DIR}/src/Spirit/Configurations.cpp
-        ${PROJECT_SOURCE_DIR}/src/Spirit/Geometry.cpp
-        ${PROJECT_SOURCE_DIR}/src/Spirit/Hamiltonian.cpp
-        ${PROJECT_SOURCE_DIR}/src/Spirit/HTST.cpp
-        ${PROJECT_SOURCE_DIR}/src/Spirit/IO.cpp
-        ${PROJECT_SOURCE_DIR}/src/Spirit/Parameters_EMA.cpp
-        ${PROJECT_SOURCE_DIR}/src/Spirit/Parameters_GNEB.cpp
-        ${PROJECT_SOURCE_DIR}/src/Spirit/Parameters_LLG.cpp
-        ${PROJECT_SOURCE_DIR}/src/Spirit/Parameters_MC.cpp
-        ${PROJECT_SOURCE_DIR}/src/Spirit/Parameters_MMF.cpp
-        ${PROJECT_SOURCE_DIR}/src/Spirit/Simulation.cpp
-        ${PROJECT_SOURCE_DIR}/src/Spirit/State.cpp
-        ${PROJECT_SOURCE_DIR}/src/Spirit/System.cpp
-        ${PROJECT_SOURCE_DIR}/src/Spirit/Transitions.cpp
-        ${PROJECT_SOURCE_DIR}/src/Spirit/Quantities.cpp
-        ${PROJECT_SOURCE_DIR}/src/utility/Configurations.cpp
-        ${PROJECT_SOURCE_DIR}/src/utility/Configuration_Chain.cpp
-        ${PROJECT_SOURCE_DIR}/src/utility/Logging.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/data/Geometry.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/data/Spin_System.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/data/Spin_System_Chain.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Eigenmodes.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Hamiltonian.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Hamiltonian_Gaussian.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/HTST.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Manifoldmath.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Method.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Method_MC.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Method_LLG.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Method_GNEB.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Method_MMF.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Method_EMA.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Neighbours.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Solver_Kernels.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Vectormath.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/io/Configwriter.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/io/Configparser.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/io/Dataparser.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/io/Datawriter.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/io/IO.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/io/Filter_File_Handle.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/io/OVF_File.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Chain.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Configurations.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Geometry.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Hamiltonian.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/HTST.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/IO.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Parameters_EMA.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Parameters_GNEB.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Parameters_LLG.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Parameters_MC.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Parameters_MMF.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Simulation.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/State.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/System.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Transitions.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Quantities.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/utility/Configurations.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/utility/Configuration_Chain.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/utility/Logging.cpp
+        PROPERTIES LANGUAGE CUDA )
+
+    set_source_files_properties(
+        ${CMAKE_CURRENT_LIST_DIR}/test/test_api.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/test/test_io.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/test/test_physics.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/test/test_vectormath.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/test/test_manifoldmath.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/test/test_ema.cpp
         PROPERTIES LANGUAGE CUDA )
 endif()
 
@@ -402,14 +410,17 @@ endif()
 
 ### Definitions corresponding to build options
 if( SPIRIT_ENABLE_DEFECTS )
-    target_compile_definitions( ${META_PROJECT_NAME} PRIVATE -DSPIRIT_ENABLE_DEFECTS )
+    set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DSPIRIT_ENABLE_DEFECTS )
 endif()
 if( SPIRIT_ENABLE_PINNING )
-    target_compile_definitions( ${META_PROJECT_NAME} PRIVATE -DSPIRIT_ENABLE_PINNING )
+    set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DSPIRIT_ENABLE_PINNING )
 endif()
 if( SPIRIT_USE_THREADS )
-    target_compile_definitions( ${META_PROJECT_NAME} PRIVATE -DSPIRIT_USE_THREADS )
+    set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DSPIRIT_USE_THREADS )
 endif()
+
+### Add compile definitions
+target_compile_definitions( ${META_PROJECT_NAME} PRIVATE ${SPIRIT_COMPILE_DEFINITIONS} )
 ####################################################################
 
 
@@ -447,12 +458,14 @@ if( SPIRIT_BUILD_FOR_CXX OR SPIRIT_BUILD_FOR_JS )
                 RUNTIME_OUTPUT_DIRECTORY ${TEST_RUNTIME_OUTPUT_DIRECTORY} )
             # Include Directories
             target_include_directories( ${testName} PRIVATE
-                ${PROJECT_SOURCE_DIR}/test
+                ${CMAKE_CURRENT_LIST_DIR}/test
                 ${CMAKE_CURRENT_LIST_DIR}/thirdparty
                 ${FFT_INCLUDE_DIRS} )
-            # Apply public compile definitions from the object library
-            target_compile_definitions( ${testName} PRIVATE
-                $<TARGET_PROPERTY:${META_PROJECT_NAME},INTERFACE_COMPILE_DEFINITIONS> )
+            # Apply public includes from the object library
+            target_include_directories( ${testName} PUBLIC
+                $<TARGET_PROPERTY:${META_PROJECT_NAME},INTERFACE_INCLUDE_DIRECTORIES>)
+            # Apply the compile definitions, since some tests include "private" headers
+            target_compile_definitions( ${testName} PRIVATE ${SPIRIT_COMPILE_DEFINITIONS} )
             # Coverage flags and linking if needed
             if( SPIRIT_BUILD_TEST AND SPIRIT_TEST_COVERAGE )
                 set_property( TARGET ${testName} PROPERTY COMPILE_FLAGS ${CMAKE_CXX_FLAGS_COVERAGE} )
@@ -497,12 +510,12 @@ if( SPIRIT_BUILD_FOR_PYTHON )
 
     #--------------------------------------------------
     #----- Python module & library directories
-    set( SPIRIT_PYTHON_MODULE_DIR ${PROJECT_SOURCE_DIR}/python )
+    set( SPIRIT_PYTHON_MODULE_DIR ${CMAKE_CURRENT_LIST_DIR}/python )
     set( PYLIB_OUTPUT_DIR ${SPIRIT_PYTHON_MODULE_DIR}/spirit )
 
     #----- Utility python files
     configure_file( ${CMAKE_SOURCE_DIR}/LICENSE.txt ${SPIRIT_PYTHON_MODULE_DIR}/LICENSE.txt COPYONLY )
-    configure_file( ${PROJECT_SOURCE_DIR}/CMake/__init__.py.in ${PYLIB_OUTPUT_DIR}/__init__.py )
+    configure_file( ${CMAKE_CURRENT_LIST_DIR}/CMake/__init__.py.in ${PYLIB_OUTPUT_DIR}/__init__.py )
 
     file( WRITE ${PYLIB_OUTPUT_DIR}/scalar.py
         "import ctypes\n"
@@ -552,18 +565,18 @@ if( SPIRIT_BUILD_FOR_PYTHON )
         enable_testing()
 
         #----- Test creation macro
-        macro(add_python_test test_name src)
+        macro( add_python_test test_name src )
             # Add the test
             add_test(
                 NAME                ${test_name}
                 WORKING_DIRECTORY   ${CMAKE_SOURCE_DIR}
-                COMMAND             ${PYTHON_EXECUTABLE} "${SPIRIT_PYTHON_MODULE_DIR}/test/${src}")
+                COMMAND             ${PYTHON_EXECUTABLE} "${SPIRIT_PYTHON_MODULE_DIR}/test/${src}" )
             # Properties
-            set_tests_properties(${test_name}
-                PROPERTIES ENVIRONMENT "PYTHONPATH=${SPIRIT_PYTHON_MODULE_DIR}:$PYTHONPATH")
+            set_tests_properties( ${test_name}
+                PROPERTIES ENVIRONMENT "PYTHONPATH=${SPIRIT_PYTHON_MODULE_DIR}:$PYTHONPATH" )
             # Add to list
             set( PYTHON_TEST_EXECUTABLES ${PYTHON_TEST_EXECUTABLES} ${test_name} )
-        endmacro(add_python_test)
+        endmacro( add_python_test )
 
         #----- Create test executables
         set( PYTHON_TEST_EXECUTABLES )
@@ -604,7 +617,7 @@ if( SPIRIT_BUILD_FOR_JULIA )
     ### We want it to be called spirit, not spirit_julia, and to
     ### be placed under julia/spirit/ s.t. it is directly part of
     ### the julia spirit bindings module/package
-    set( JLLIB_OUTPUT_DIR ${PROJECT_SOURCE_DIR}/julia/Spirit/ )
+    set( JLLIB_OUTPUT_DIR ${CMAKE_CURRENT_LIST_DIR}/julia/Spirit/ )
     set_target_properties( ${META_PROJECT_NAME}_julia PROPERTIES
         OUTPUT_NAME              "${META_PROJECT_NAME}"
         LIBRARY_OUTPUT_DIRECTORY ${JLLIB_OUTPUT_DIR} )
