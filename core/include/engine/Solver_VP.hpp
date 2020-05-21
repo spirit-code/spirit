@@ -20,11 +20,11 @@ void Method_Solver<Solver::VP>::Initialize ()
 
 /*
     Template instantiation of the Simulation class for use with the VP Solver.
-		The velocity projection method is often efficient for direct minimization,
-		but deals poorly with quickly varying fields or stochastic noise.
-	Paper: P. F. Bessarab et al., Method for finding mechanism and activation energy
-		   of magnetic transitions, applied to skyrmion and antivortex annihilation,
-		   Comp. Phys. Comm. 196, 335 (2015).
+        The velocity projection method is often efficient for direct minimization,
+        but deals poorly with quickly varying fields or stochastic noise.
+    Paper: P. F. Bessarab et al., Method for finding mechanism and activation energy
+            of magnetic transitions, applied to skyrmion and antivortex annihilation,
+            Comp. Phys. Comm. 196, 335 (2015).
 */
 template <> inline
 void Method_Solver<Solver::VP>::Iteration ()
@@ -39,7 +39,6 @@ void Method_Solver<Solver::VP>::Iteration ()
         auto f_pr = forces_previous[i].data();
         auto v    = velocities[i].data();
         auto v_pr = velocities_previous[i].data();
-
         Backend::par::apply( forces[i].size(), [f, f_pr, v, v_pr] SPIRIT_LAMBDA (int idx) {
             f_pr[idx] = f[idx];
             v_pr[idx] = v[idx];
@@ -52,21 +51,17 @@ void Method_Solver<Solver::VP>::Iteration ()
 
     for (int i = 0; i < noi; ++i)
     {
-        auto& velocity      = velocities[i];
-        auto& force         = forces[i];
-        auto& force_prev    = forces_previous[i];
-
         auto f    = forces[i].data();
         auto f_pr = forces_previous[i].data();
         auto v    = velocities[i].data();
         auto m_temp = this->m;
-
-        // Calculate the new velocity
-        Backend::par::apply(force.size(), [f,f_pr,v,m_temp] SPIRIT_LAMBDA (int idx) {
+        Backend::par::apply(nos, [f,f_pr,v,m_temp] SPIRIT_LAMBDA (int idx) {
             v[idx] += 0.5/m_temp * (f_pr[idx] + f[idx]);
         });
 
         // Get the projection of the velocity on the force
+        auto& velocity      = velocities[i];
+        auto& force         = forces[i];
         projection[i]  = Vectormath::dot(velocity, force);
         force_norm2[i] = Vectormath::dot(force, force);
     }
@@ -77,11 +72,6 @@ void Method_Solver<Solver::VP>::Iteration ()
     }
     for (int i = 0; i < noi; ++i)
     {
-        auto& velocity           = velocities[i];
-        auto& force              = forces[i];
-        auto& configuration      = *(configurations[i]);
-        auto& configuration_temp = *(configurations_temp[i]);
-
         auto f    = forces[i].data();
         auto v    = velocities[i].data();
         auto conf = (configurations[i])->data();
@@ -93,18 +83,18 @@ void Method_Solver<Solver::VP>::Iteration ()
 
         // Calculate the projected velocity
         if (projection_full <= 0)
+            Backend::par::assign(velocities[i], [] SPIRIT_LAMBDA () -> Vector3 {return {0, 0, 0};});
+        else
         {
-            Vectormath::fill(velocity, { 0,0,0 });
-        } else {
-            Backend::par::apply(force.size(), [f,v,ratio] SPIRIT_LAMBDA (int idx) {
+            Backend::par::apply(nos, [f,v,ratio] SPIRIT_LAMBDA (int idx) {
                 v[idx] = f[idx] * ratio;
             });
         }
 
-        Backend::par::apply( force.size(), [conf, conf_temp, dt, m_temp, v, f] SPIRIT_LAMBDA (int idx) {
+        Backend::par::apply( nos, [conf, conf_temp, dt, m_temp, v, f] SPIRIT_LAMBDA (int idx) {
             conf_temp[idx] = conf[idx] + dt * v[idx] + 0.5/m_temp * dt * f[idx];
             conf[idx] = conf_temp[idx].normalized();
-        }); 
+        });
     }
 };
 

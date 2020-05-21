@@ -32,10 +32,13 @@ void Method_Solver<Solver::SIB>::Iteration ()
     {
         auto& image     = *this->systems[i]->spins;
         auto& predictor = *this->configurations_predictor[i];
-
         Solver_Kernels::sib_transform(image, forces_virtual[i], predictor);
-        Vectormath::add_c_a(1, image, predictor);
-        Vectormath::scale(predictor, 0.5);
+
+        auto imagep     = this->systems[i]->spins->data();
+        auto predictorp = this->configurations_predictor[i]->data();
+        Backend::par::apply( nos, [imagep, predictorp] SPIRIT_LAMBDA (int idx) {
+            predictorp[idx] = 0.5 * (imagep[idx] + predictorp[idx]);
+        } );
     }
 
     // Second part of the step
@@ -43,8 +46,7 @@ void Method_Solver<Solver::SIB>::Iteration ()
     this->Calculate_Force_Virtual(this->configurations_predictor, this->forces_predictor, this->forces_virtual_predictor);
     for (int i = 0; i < this->noi; ++i)
     {
-        auto& image     = *this->systems[i]->spins;
-
+        auto& image = *this->systems[i]->spins;
         Solver_Kernels::sib_transform(image, forces_virtual_predictor[i], image);
     }
 };

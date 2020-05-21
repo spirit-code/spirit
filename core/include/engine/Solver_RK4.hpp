@@ -51,19 +51,15 @@ void Method_Solver<Solver::RungeKutta4>::Iteration ()
     // Predictor for each image
     for (int i = 0; i < this->noi; ++i)
     {
-        auto& conf           = *this->configurations[i];
-        auto& k1             = *this->configurations_k1[i];
-        auto& conf_predictor = *this->configurations_predictor[i];
-        auto& force          =  this->forces_virtual[i];
+        auto conf           = this->configurations[i]->data();
+        auto conf_predictor = this->configurations_predictor[i]->data();
+        auto force          = this->forces_virtual[i].data();
+        auto k1             = this->configurations_k1[i]->data();
 
-        // k1
-        Vectormath::set_c_cross( -1, conf, force, k1 );
-
-        // Predictor for k2
-        Vectormath::set_c_a( 1, conf, conf_predictor );
-        Vectormath::add_c_a( 0.5, k1, conf_predictor );
-        // Normalize
-        Vectormath::normalize_vectors( conf_predictor );
+        Backend::par::apply( nos, [conf, conf_predictor, force, k1] SPIRIT_LAMBDA (int idx) {
+            k1[idx] = - conf[idx].cross(force[idx]);
+            conf_predictor[idx] = (conf[idx] + 0.5*k1[idx]).normalized();
+        } );
     }
 
     // Calculate_Force for the predictor
@@ -73,19 +69,15 @@ void Method_Solver<Solver::RungeKutta4>::Iteration ()
     // Predictor for each image
     for (int i = 0; i < this->noi; ++i)
     {
-        auto& conf           = *this->configurations[i];
-        auto& k2             = *this->configurations_k2[i];
-        auto& conf_predictor = *this->configurations_predictor[i];
-        auto& force          =  this->forces_virtual_predictor[i];
+        auto conf           = this->configurations[i]->data();
+        auto conf_predictor = this->configurations_predictor[i]->data();
+        auto force          = this->forces_virtual_predictor[i].data();
+        auto k2             = this->configurations_k2[i]->data();
 
-        // k2
-        Vectormath::set_c_cross( -1, conf_predictor, force, k2 );
-
-        // Predictor for k3
-        Vectormath::set_c_a( 1, conf, conf_predictor );
-        Vectormath::add_c_a( 0.5, k2, conf_predictor );
-        // Normalize
-        Vectormath::normalize_vectors( conf_predictor );
+        Backend::par::apply( nos, [conf, conf_predictor, force, k2] SPIRIT_LAMBDA (int idx) {
+            k2[idx] = - conf_predictor[idx].cross(force[idx]);
+            conf_predictor[idx] = (conf[idx] + 0.5*k2[idx]).normalized();
+        } );
     }
 
     // Calculate_Force for the predictor (k3)
@@ -95,19 +87,15 @@ void Method_Solver<Solver::RungeKutta4>::Iteration ()
     // Predictor for each image
     for (int i = 0; i < this->noi; ++i)
     {
-        auto& conf           = *this->configurations[i];
-        auto& k3             = *this->configurations_k3[i];
-        auto& conf_predictor = *this->configurations_predictor[i];
-        auto& force          =  this->forces_virtual_predictor[i];
+        auto conf           = this->configurations[i]->data();
+        auto conf_predictor = this->configurations_predictor[i]->data();
+        auto force          = this->forces_virtual_predictor[i].data();
+        auto k3             = this->configurations_k3[i]->data();
 
-        // k3
-        Vectormath::set_c_cross( -1, conf_predictor, force, k3 );
-
-        // Predictor for k4
-        Vectormath::set_c_a( 1, conf, conf_predictor );
-        Vectormath::add_c_a( 1, k3, conf_predictor );
-        // Normalize
-        Vectormath::normalize_vectors( conf_predictor );
+        Backend::par::apply( nos, [conf, conf_predictor, force, k3] SPIRIT_LAMBDA (int idx) {
+            k3[idx] = - conf_predictor[idx].cross(force[idx]);
+            conf_predictor[idx] = (conf[idx] + k3[idx]).normalized();
+        } );
     }
 
     // Calculate_Force for the predictor (k4)
@@ -117,30 +105,18 @@ void Method_Solver<Solver::RungeKutta4>::Iteration ()
     // Corrector step for each image
     for (int i=0; i < this->noi; i++)
     {
-        auto& conf           = *this->configurations[i];
-        auto& k1             = *this->configurations_k1[i];
-        auto& k2             = *this->configurations_k2[i];
-        auto& k3             = *this->configurations_k3[i];
-        auto& k4             = *this->configurations_k4[i];
-        auto& conf_predictor = *this->configurations_predictor[i];
-        auto& conf_temp      = *this->configurations_temp[i];
-        auto& force          =  this->forces_virtual_predictor[i];
+        auto conf           = this->configurations[i]->data();
+        auto conf_predictor = this->configurations_predictor[i]->data();
+        auto force          = this->forces_virtual_predictor[i].data();
+        auto k1             = this->configurations_k1[i]->data();
+        auto k2             = this->configurations_k2[i]->data();
+        auto k3             = this->configurations_k3[i]->data();
+        auto k4             = this->configurations_k4[i]->data();
 
-        // k4
-        Vectormath::set_c_cross( -1, conf_predictor, force, k4 );
-
-        // 4th order Runge Kutta step
-        Vectormath::set_c_a( 1, conf, conf_temp );
-        Vectormath::add_c_a( 1.0/6.0, k1, conf_temp );
-        Vectormath::add_c_a( 1.0/3.0, k2, conf_temp );
-        Vectormath::add_c_a( 1.0/3.0, k3, conf_temp );
-        Vectormath::add_c_a( 1.0/6.0, k4, conf_temp );
-
-        // Normalize spins
-        Vectormath::normalize_vectors( conf_temp );
-
-        // Copy out
-        conf = conf_temp;
+        Backend::par::apply( nos, [conf, conf_predictor, force, k1, k2, k3, k4] SPIRIT_LAMBDA (int idx) {
+            k4[idx] = - conf_predictor[idx].cross(force[idx]);
+            conf[idx] = (conf[idx] + 1.0/6.0*k1[idx] + 1.0/3.0*k2[idx] + 1.0/3.0*k3[idx] + 1.0/6.0*k4[idx]).normalized();
+        } );
     }
 };
 

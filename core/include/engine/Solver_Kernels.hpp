@@ -38,8 +38,8 @@ namespace Solver_Kernels
                              std::vector<field<field<Vec>>> & delta_a, std::vector<field<field<Vec>>> & delta_grad, const std::vector<field<Vec>> & grad, std::vector<field<Vec>> & grad_pr,
                              const int num_mem, const scalar maxmove) {
         // std::cerr << "lbfgs searchdir \n";
-        static auto dot = [] SPIRIT_LAMBDA (const Vec & v1, const Vec &v2) {return v1.dot(v2);};
-        static auto set = [] SPIRIT_LAMBDA (const Vec & x) {return x;};
+        static auto set = [] SPIRIT_LAMBDA (const Vec & x) -> Vec {return x;};
+        static auto dot = [] SPIRIT_LAMBDA (const Vec & v1, const Vec &v2) -> scalar {return v1.dot(v2);};
 
         scalar epsilon = sizeof(scalar) == sizeof(float) ? 1e-30 : 1e-300;
 
@@ -50,11 +50,15 @@ namespace Solver_Kernels
 
         if (local_iter == 0) // gradient descent
         {
-            for(int img=0; img<noi; img++) {
-                Backend::par::set(grad_pr[img], grad[img], set);
-                auto & dir = searchdir[img];
-                auto & g_cur = grad[img];
-                Backend::par::set(dir, g_cur, [] SPIRIT_LAMBDA (const Vec & x){return -x;});
+            for(int img=0; img<noi; img++)
+            {
+                auto g_ptr = grad[img].data();
+                auto g_pr_ptr = grad_pr[img].data();
+                auto dir_ptr = searchdir[img].data();
+                Backend::par::apply(nos, [g_ptr, g_pr_ptr, dir_ptr] SPIRIT_LAMBDA (int idx){
+                    g_pr_ptr[idx] = g_ptr[idx];
+                    dir_ptr[idx] = -g_ptr[idx];
+                });
                 auto & da = delta_a[img];
                 auto & dg = delta_grad[img];
                 for (int i = 0; i < num_mem; i++)
@@ -68,7 +72,9 @@ namespace Solver_Kernels
                     });
                 }
             }
-        } else {
+        }
+        else
+        {
             for (int img=0; img<noi; img++)
             {
                 auto da = delta_a[img][m_index].data();
@@ -84,7 +90,7 @@ namespace Solver_Kernels
 
             scalar rinv_temp = 0;
             for (int img=0; img<noi; img++)
-                rinv_temp += Backend::par::reduce(delta_grad[img][m_index], delta_a[img][m_index], dot);
+                rinv_temp += Backend::par::reduce(nos, dot, delta_grad[img][m_index], delta_a[img][m_index]);
 
             if (rinv_temp > epsilon)
                 rho[m_index] = 1.0 / rinv_temp;
@@ -96,14 +102,14 @@ namespace Solver_Kernels
             }
 
             for (int img=0; img<noi; img++)
-                Backend::par::set(q_vec[img], grad[img], set);
+                Backend::par::assign(q_vec[img], set, grad[img]);
 
             for (int k = num_mem - 1; k > -1; k--)
             {
                 c_ind = (k + m_index + 1) % num_mem;
                 scalar temp=0;
                 for (int img=0; img<noi; img++)
-                    temp += Backend::par::reduce(delta_a[img][c_ind], q_vec[img], dot);
+                    temp += Backend::par::reduce(nos, dot, delta_a[img][c_ind], q_vec[img]);
 
                 alpha[c_ind] = rho[c_ind] * temp;
                 for (int img=0; img<noi; img++)
@@ -119,7 +125,7 @@ namespace Solver_Kernels
 
             scalar dy2=0;
             for (int img=0; img<noi; img++)
-                dy2 += Backend::par::reduce(delta_grad[img][m_index], delta_grad[img][m_index], dot);
+                dy2 += Backend::par::reduce(nos, dot, delta_grad[img][m_index], delta_grad[img][m_index]);
 
             for (int img=0; img<noi; img++)
             {
@@ -129,9 +135,9 @@ namespace Solver_Kernels
                     inv_rhody2 = 1.0 / rhody2;
                 else
                     inv_rhody2 = 1.0/(epsilon);
-                Backend::par::set(searchdir[img], q_vec[img], [inv_rhody2] SPIRIT_LAMBDA (const Vec & q){
+                Backend::par::assign(searchdir[img], [inv_rhody2] SPIRIT_LAMBDA (const Vec & q){
                     return inv_rhody2 * q;
-                } );
+                }, q_vec[img] );
             }
 
             for (int k = 0; k < num_mem; k++)
@@ -143,7 +149,7 @@ namespace Solver_Kernels
 
                 scalar rhopdg = 0;
                 for(int img=0; img<noi; img++)
-                    rhopdg += Backend::par::reduce(delta_grad[img][c_ind], searchdir[img], dot);
+                    rhopdg += Backend::par::reduce(nos, dot, delta_grad[img][c_ind], searchdir[img]);
 
                 rhopdg *= rho[c_ind];
 

@@ -152,11 +152,12 @@ namespace Engine
         // Calculate the Quadruplet energy
         void E_Quadruplet(const vectorfield & spins, scalarfield & Energy);
 
-        private:
-        int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet;
         void Gradient_DDI_Cutoff(const vectorfield& spins, vectorfield & gradient);
         void Gradient_DDI_Direct(const vectorfield& spins, vectorfield & gradient);
         void Gradient_DDI_FFT(const vectorfield& spins, vectorfield & gradient);
+
+    private:
+        int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet;
         void E_DDI_Direct(const vectorfield& spins, scalarfield & Energy);
         void E_DDI_Cutoff(const vectorfield& spins, scalarfield & Energy);
         void E_DDI_FFT(const vectorfield& spins, scalarfield & Energy);

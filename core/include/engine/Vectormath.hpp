@@ -550,14 +550,6 @@ namespace Engine
         /////////////////////////////////////////////////////////////////
         //////// Vectormath-like operations
 
-        // sets sf := s
-        // sf is a scalarfield
-        // s is a scalar
-        void fill(scalarfield & sf, scalar s);
-
-        // TODO: Add the test
-        void fill(scalarfield & sf, scalar s, const intfield & mask);
-
         // Scale a scalarfield by a given value
         void scale(scalarfield & sf, scalar s);
 
@@ -573,14 +565,6 @@ namespace Engine
         // Cut off all values to remain in a certain range
         void set_range(scalarfield & sf, scalar sf_min, scalar sf_max);
 
-        // sets vf := v
-        // vf is a vectorfield
-        // v is a vector
-        void fill(vectorfield & vf, const Vector3 & v);
-        void fill(vectorfield & vf, const Vector3 & v, const intfield & mask);
-
-        // Normalize the vectors of a vectorfield
-        void normalize_vectors(vectorfield & vf);
 
         // Get the norm of a vectorfield
         void norm( const vectorfield & vf, scalarfield & norm );

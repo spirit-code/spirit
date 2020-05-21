@@ -1,5 +1,6 @@
 #include <engine/Hamiltonian_Gaussian.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/Backend_par.hpp>
 #include <utility/Exception.hpp>
 
 using namespace Data;
@@ -82,7 +83,8 @@ namespace Engine
         if (this->energy_contributions_per_spin[0].second.size() != nos) this->energy_contributions_per_spin = { { "Gaussian", scalarfield(nos,0) } };
 
         // Set to zero
-        for (auto& pair : energy_contributions_per_spin) Vectormath::fill(pair.second, 0);
+        for (auto& pair : energy_contributions_per_spin)
+            Backend::par::assign(pair.second, [] SPIRIT_LAMBDA () {return 0;});
 
         for (int i = 0; i < this->n_gaussians; ++i)
         {

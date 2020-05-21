@@ -225,7 +225,11 @@ namespace Engine
             // Allocate if not already allocated
             if (pair.second.size() != nos) pair.second = scalarfield(nos, 0);
             // Otherwise set to zero
-            else for (auto& pair : contributions) Vectormath::fill(pair.second, 0);
+            else
+            {
+                for (auto& pair : contributions)
+                    Backend::par::assign(pair.second, [] SPIRIT_LAMBDA () {return 0;});
+            }
         }
 
         // External field
@@ -366,13 +370,11 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::E_DDI_Direct(const vectorfield & spins, scalarfield & Energy)
     {
-        vectorfield gradients_temp;
-        gradients_temp.resize(geometry->nos);
-        Vectormath::fill(gradients_temp, {0,0,0});
+        vectorfield gradients_temp(spins.size(), {0, 0, 0});
         this->Gradient_DDI_Direct(spins, gradients_temp);
 
         #pragma omp parallel for
-        for (int ispin = 0; ispin < geometry->nos; ispin++)
+        for (int ispin = 0; ispin < spins.size(); ispin++)
         {
             Energy[ispin] += 0.5 * spins[ispin].dot(gradients_temp[ispin]);
         }
@@ -420,17 +422,17 @@ namespace Engine
     }
     void Hamiltonian_Heisenberg::E_DDI_FFT(const vectorfield & spins, scalarfield & Energy)
     {
+        auto N = spins.size();
         //todo maybe the gradient should be cached somehow, it is quite inefficient to calculate it
         //again just for the energy
-        vectorfield gradients_temp(geometry->nos);
-        Vectormath::fill(gradients_temp, {0,0,0});
-        this->Gradient_DDI(spins, gradients_temp);
-        CU_E_DDI_FFT<<<(geometry->nos + 1023)/1024, 1024>>>(Energy.data(), spins.data(), gradients_temp.data(), geometry->nos, geometry->n_cell_atoms, geometry->mu_s.data());
+        vectorfield gradients_temp(N, {0, 0, 0});
+        this->Gradient_DDI_FFT(spins, gradients_temp);
+        CU_E_DDI_FFT<<<(N + 1023)/1024, 1024>>>(Energy.data(), spins.data(), gradients_temp.data(), N, geometry->n_cell_atoms, geometry->mu_s.data());
 
         // === DEBUG: begin gradient comparison ===
             // vectorfield gradients_temp_dir;
             // gradients_temp_dir.resize(this->geometry->nos);
-            // Vectormath::fill(gradients_temp_dir, {0,0,0});
+            // Backend::par::assign(gradients_temp_dir, [] SPIRIT_LAMBDA () -> Vector3 {return {0, 0, 0};});
             // Gradient_DDI_Direct(spins, gradients_temp_dir);
 
             // //get deviation
@@ -622,7 +624,7 @@ namespace Engine
     void Hamiltonian_Heisenberg::Gradient(const vectorfield & spins, vectorfield & gradient)
     {
         // Set to zero
-        Vectormath::fill(gradient, {0,0,0});
+        Backend::par::assign(gradient, [] SPIRIT_LAMBDA () -> Vector3 {return {0, 0, 0};});
 
         // External field
         if(idx_zeeman >= 0)
@@ -652,7 +654,7 @@ namespace Engine
     void Hamiltonian_Heisenberg::Gradient_and_Energy(const vectorfield & spins, vectorfield & gradient, scalar & energy)
     {
         // Set to zero
-        Vectormath::fill(gradient, {0,0,0});
+        Backend::par::assign(gradient, [] SPIRIT_LAMBDA () -> Vector3 {return {0, 0, 0};});
         energy = 0;
 
         auto N = spins.size();

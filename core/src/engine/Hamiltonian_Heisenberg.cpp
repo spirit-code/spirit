@@ -227,9 +227,11 @@ namespace Engine
         for( auto& contrib : contributions )
         {
             // Allocate if not already allocated
-            if (contrib.second.size() != nos) contrib.second = scalarfield(nos, 0);
+            if (contrib.second.size() != nos)
+                contrib.second = scalarfield(nos, 0);
             // Otherwise set to zero
-            else Vectormath::fill(contrib.second, 0);
+            else
+                Backend::par::assign(contrib.second, [] SPIRIT_LAMBDA () {return 0;});
         }
 
         // External field
@@ -339,7 +341,7 @@ namespace Engine
     {
         vectorfield gradients_temp;
         gradients_temp.resize(geometry->nos);
-        Vectormath::fill(gradients_temp, {0,0,0});
+        Backend::par::assign(gradients_temp, [] SPIRIT_LAMBDA () -> Vector3 {return {0,0,0};});
         this->Gradient_DDI_Direct(spins, gradients_temp);
 
         #pragma omp parallel for
@@ -388,13 +390,13 @@ namespace Engine
         scalar Energy_DDI = 0;
         vectorfield gradients_temp;
         gradients_temp.resize(geometry->nos);
-        Vectormath::fill(gradients_temp, {0,0,0});
+        Backend::par::assign(gradients_temp, [] SPIRIT_LAMBDA () -> Vector3 {return {0,0,0};});
         this->Gradient_DDI_FFT(spins, gradients_temp);
 
         // === DEBUG: begin gradient comparison ===
             // vectorfield gradients_temp_dir;
             // gradients_temp_dir.resize(this->geometry->nos);
-            // Vectormath::fill(gradients_temp_dir, {0,0,0});
+            // Backend::par::assign(gradients_temp_dir, [] SPIRIT_LAMBDA (int idx) {return {0,0,0};});
             // Gradient_DDI_Direct(spins, gradients_temp_dir);
 
             // //get deviation
@@ -568,7 +570,7 @@ namespace Engine
     void Hamiltonian_Heisenberg::Gradient(const vectorfield & spins, vectorfield & gradient)
     {
         // Set to zero
-        Vectormath::fill(gradient, {0,0,0});
+        Backend::par::assign(gradient, [] SPIRIT_LAMBDA () -> Vector3 {return {0,0,0};});
 
         // External field
         if(idx_zeeman >= 0)
@@ -597,9 +599,8 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Gradient_and_Energy(const vectorfield & spins, vectorfield & gradient, scalar & energy)
     {
-
         // Set to zero
-        Vectormath::fill(gradient, {0,0,0});
+        Backend::par::assign(gradient, [] SPIRIT_LAMBDA () { return Vector3{0,0,0}; });
         energy = 0;
 
         auto N = spins.size();
@@ -623,14 +624,18 @@ namespace Engine
         if(idx_ddi >= 0)
             this->Gradient_DDI(spins, gradient);
 
-        energy += Backend::par::reduce( N, [s,g] SPIRIT_LAMBDA ( int idx ) { return 0.5 * g[idx].dot(s[idx]) ;} );
+        energy += Backend::par::reduce( spins.size(), [] SPIRIT_LAMBDA ( const Vector3 & s, const Vector3 & g ) {
+                return 0.5 * g.dot(s);
+            }, spins, gradient );
 
         // External field
         if(idx_zeeman >= 0)
         {
             Vector3 ext_field = external_field_normal * external_field_magnitude;
             this->Gradient_Zeeman(gradient);
-            energy += Backend::par::reduce( N, [s, ext_field, mu_s] SPIRIT_LAMBDA ( int idx ) { return -mu_s[idx] * ext_field.dot(s[idx]) ;} );
+            energy += Backend::par::reduce( spins.size(), [ext_field] SPIRIT_LAMBDA ( const Vector3 & s, const scalar & mu_s ) {
+                    return -mu_s * ext_field.dot(s);
+                }, spins, geometry->mu_s );
         }
 
         // Quadruplets

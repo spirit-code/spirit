@@ -368,7 +368,7 @@ namespace Engine
             // Spectra was not successful in calculating an eigenvector
             Log(Log_Level::Error, Log_Sender::MMF, "Failed to calculate eigenvectors of the Hessian!");
             Log(Log_Level::Info,  Log_Sender::MMF, "Zeroing the MMF force...");
-            Vectormath::fill(force, Vector3{0,0,0});
+            Backend::par::assign(force, [] SPIRIT_LAMBDA () -> Vector3 {return {0, 0, 0};});
         }
     }
 
