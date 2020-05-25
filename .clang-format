@@ -28,7 +28,7 @@ Cpp11BracedListStyle:               false
 CompactNamespaces:                  true
 ConstructorInitializerAllOnOneLineOrOnePerLine: true
 ConstructorInitializerIndentWidth:  8
-FixNamespaceComments:               false
+FixNamespaceComments:               true
 IncludeCategories:
   - Regex:    '".*"'
     Priority: 1

@@ -8,8 +8,10 @@ namespace Utility
 {
 namespace Handle_Signal
 {
+
 void Handle_SigInt( int sig );
+
 }
-}
+} // namespace Utility
 
 #endif

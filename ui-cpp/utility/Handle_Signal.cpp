@@ -17,6 +17,7 @@ using std::chrono::time_point;
 
 namespace Utility
 {
+
 static system_clock::time_point t_last_sigint = system_clock::now();
 
 // Handle interrupt by signal SIGINT
@@ -66,4 +67,5 @@ void Handle_Signal::Handle_SigInt( int sig )
     // Update time of last interrupt
     t_last_sigint = system_clock::now();
 }
-}
+
+} // namespace Utility
