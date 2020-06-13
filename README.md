@@ -13,8 +13,8 @@ SPIRIT
 
 | Service | System | Compiler | Status |
 | :------ | :----: | :------: | -----: |
-|  [Travis-CI](https://travis-ci.org/spirit-code/spirit) | Ubuntu 14.04 <br/> macOS | GCC 6 <br/> Clang | master: [![Build Status](https://travis-ci.org/spirit-code/spirit.svg?branch=master)](https://travis-ci.org/spirit-code/spirit)<br />develop: [![Build Status](https://travis-ci.org/spirit-code/spirit.svg?branch=develop)](https://travis-ci.org/spirit-code/spirit) |
-|  [AppVeyor](https://ci.appveyor.com/project/GPMueller/spirit) | Windows | MSVC14 <br/> MSVC14.1 | master: [![Build status](https://ci.appveyor.com/api/projects/status/m15hlxkgmuyx8aj5/branch/master?svg=true)](https://ci.appveyor.com/project/GPMueller/spirit)<br />develop: [![Build status](https://ci.appveyor.com/api/projects/status/m15hlxkgmuyx8aj5/branch/develop?svg=true)](https://ci.appveyor.com/project/GPMueller/spirit) |
+|  [Travis-CI](https://travis-ci.com/github/spirit-code/spirit) | Ubuntu 14.04 <br/> macOS | GCC 6 <br/> Clang | master: [![Build Status](https://api.travis-ci.com/spirit-code/spirit.svg?branch=master)](https://travis-ci.com/github/spirit-code/spirit)<br />develop: [![Build Status](https://api.travis-ci.com/spirit-code/spirit.svg?branch=develop)](https://travis-ci.com/github/spirit-code/spirit) |
+|  [AppVeyor](https://ci.appveyor.com/project/spirit-code/spirit) | Windows | MSVC14 <br/> MSVC14.1 | master: [![Build status](https://ci.appveyor.com/api/projects/status/ol2070klobsrpl9e/branch/master?svg=true)](https://ci.appveyor.com/project/spirit-code/spirit)<br />develop: [![Build status](https://ci.appveyor.com/api/projects/status/ol2070klobsrpl9e/branch/develop?svg=true)](https://ci.appveyor.com/project/spirit-code/spirit) |
 
 
 **[Python package](https://pypi.org/project/spirit/):** [![PyPI version](https://badge.fury.io/py/spirit.svg)](https://badge.fury.io/py/spirit)
@@ -102,7 +102,7 @@ control of parameters.
 - Standalone core library with C API which can be used from almost any programming language
 - **Python package** making complex simulation workflows easy
 - Desktop UI with powerful, live **3D visualisations** and direct control of most system parameters
-- Modular backends including **parallelisation on GPU** (CUDA) and **CPU** (OpenMP) 
+- Modular backends including **parallelisation on GPU** (CUDA) and **CPU** (OpenMP)
 
 ### *Documentation*
 
@@ -154,7 +154,7 @@ to the restrictive license on QT-Charts.*
 
 &nbsp;
 
- 
+
 
 Getting started with the Python Package <a name="Python"></a>
 ---------------------------------------------
