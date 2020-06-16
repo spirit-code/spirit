@@ -1,5 +1,6 @@
 #ifdef SPIRIT_USE_CUDA
 
+#include <engine/Backend_par.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
@@ -13,8 +14,6 @@
 
 #include <curand.h>
 #include <curand_kernel.h>
-#include <engine/Backend_par.hpp>
-#include <cub/cub.cuh>
 
 #include <cub/cub.cuh>
 
@@ -113,7 +112,7 @@ namespace Engine
             }
         }
 
-       
+
         /////////////////////////////////////////////////////////////////
 
 
@@ -423,7 +422,7 @@ namespace Engine
         {
             int n = vf1.size();
             static scalarfield sf(n, 0);
-            
+
             if(sf.size() != vf1.size())
                 sf.resize(vf1.size());
 

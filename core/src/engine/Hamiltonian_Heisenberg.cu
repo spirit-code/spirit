@@ -1,15 +1,17 @@
 #ifdef SPIRIT_USE_CUDA
 
+#include <data/Spin_System.hpp>
 #include <engine/Hamiltonian_Heisenberg.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Neighbours.hpp>
-#include <data/Spin_System.hpp>
-#include <utility/Constants.hpp>
-#include <complex>
+#include <engine/FFT.hpp>
 #include <engine/Backend_par.hpp>
+#include <utility/Constants.hpp>
+
 #include <Eigen/Dense>
 #include <Eigen/Core>
-#include "FFT.hpp"
+
+#include <complex>
 
 using namespace Data;
 using namespace Utility;

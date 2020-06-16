@@ -154,12 +154,12 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then brew update; fi
   # Setup default versions and override compiler if needed
   - if [[ "${LLVM_VERSION}" == "default" ]]; then LLVM_VERSION=3.9.0; fi
-  # Install a recent CMake (unless already installed on OS X)
+  # Install a sufficiently recent CMake (unless already installed on OS X)
   - |
     if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
       DEPS_DIR="${TRAVIS_BUILD_DIR}/deps"
       mkdir -p ${DEPS_DIR} && cd ${DEPS_DIR}
-      CMAKE_URL="http://www.cmake.org/files/v3.5/cmake-3.5.2-Linux-x86_64.tar.gz"
+      CMAKE_URL="http://www.cmake.org/files/v3.12/cmake-3.12.4-Linux-x86_64.tar.gz"
       mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -xz -C cmake
       export PATH=${DEPS_DIR}/cmake/bin:${PATH}
       export CC=${COMPILER_C} CXX=${COMPILER_CXX}

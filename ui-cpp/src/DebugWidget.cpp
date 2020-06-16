@@ -3,7 +3,7 @@
 #include "DebugWidget.hpp"
 
 ///// TODO: Find a way around this...
-#include "Logging.hpp"
+#include <utility/Logging.hpp>
 using Utility::Log_Level;
 using Utility::Log_Sender;
 ///////////////////////////////////
@@ -11,7 +11,7 @@ using Utility::Log_Sender;
 DebugWidget::DebugWidget(std::shared_ptr<State> state)
 {
 	this->state = state;
-    
+
 	// Setup User Interface
     this->setupUi(this);
 

@@ -9,9 +9,19 @@ The **Spirit** framework is designed to run across different
 platforms and uses `CMake` for its build process, which will
 generate the appropriate build scripts for each platform.
 
+Note that you may use the CMake GUI to configure the options
+or use the command line, for example through the git bash.
+
 
 Core library
 --------------------------------------
+
+**Requirements**
+
+- cmake >= 3.10
+- compiler with C++11 support, e.g. msvc 14 2015
+
+**Build**
 
 The Visual Studio Version needs to be specified and it usually
 makes sense to specify 64bit, as it otherwise defaults to 32bit.
@@ -152,3 +162,18 @@ cd build
 cmake -LH ..
 ```
 The build options of Spirit all start with `SPIRIT_`.
+
+
+Installation
+--------------------------------------
+
+*Please note that the following steps are not well-tested!*
+
+This step is not needed, unless you wish to redistribute spirit.
+A system-wide installation is not supported.
+
+Setting the CMake option `SPIRIT_BUNDLE_APP=ON` will cause the install step
+to create a redistibutable folder containing all the necessary binaries.
+
+If you then trigger the packaging step, a zip of this folder will be
+generated.

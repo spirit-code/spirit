@@ -29,7 +29,7 @@ namespace IO
 #endif
 
 // This is a single-include setup
-#include <Configparser.hpp>
-#include <Configwriter.hpp>
-#include <Dataparser.hpp>
-#include <io/Datawriter.hpp>
+#include "Configparser.hpp"
+#include "Configwriter.hpp"
+#include "Dataparser.hpp"
+#include "Datawriter.hpp"
