@@ -14,6 +14,12 @@ project( Spirit_UI_CPP )
 
 ######### Options ##################################################
 #--------------------------------------------------
+#----- Ensure only one of the two GUIs is used
+if( SPIRIT_UI_CXX_USE_IMGUI )
+    set( SPIRIT_UI_CXX_USE_QT OFF )
+endif()
+
+#--------------------------------------------------
 #----- Output names
 set( SPIRIT_EXE_NAME "spirit" )
 set( OS_BUNDLE_NAME )
@@ -49,7 +55,7 @@ if( APPLE AND SPIRIT_BUNDLE_APP )
     # the RPATH to be used when installing, but only if it's not a system
     # directory
     # list (FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/${WSJT_LIB_DESTINATION}" isSystemDir)
-    # if ("${isSystemDir}" STREQUAL "-1")
+    # if("${isSystemDir}" STREQUAL "-1")
     #   set( CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/${WSJT_LIB_DESTINATION}" )
     # endif( "${isSystemDir}" STREQUAL "-1" )
 endif()
@@ -83,6 +89,8 @@ endif()
 
 ######### Handle Qt if to be used ##########################
 if( SPIRIT_UI_CXX_USE_QT )
+message( STATUS ">> Using Qt GUI for Spirit" )
+
     #--------------------------------------------------
     #----- Qt path
     if( USER_PATH_QT )
@@ -105,6 +113,48 @@ if( SPIRIT_UI_CXX_USE_QT )
     find_package( Qt5 5.7 REQUIRED COMPONENTS Core Gui Widgets Charts OpenGL )
     message( STATUS ">> Qt version:  ${Qt5_VERSION}" )
     message( STATUS ">> Found Qt at: \"${Qt5_DIR}\"" )
+endif()
+####################################################################
+
+
+######### Handle Qt if to be used ##########################
+if( SPIRIT_UI_CXX_USE_IMGUI )
+    message( STATUS ">> Using immediate mode GUI for Spirit" )
+
+    set( IMGUI_COMPILE_GLFW ON  )
+    set( IMGUI_TARGET_WEB   OFF )
+
+    if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten" )
+        set( IMGUI_COMPILE_GLFW OFF )
+        set( IMGUI_TARGET_WEB   ON  )
+    endif()
+
+    #----- GLFW subproject
+    if( IMGUI_COMPILE_GLFW )
+        set( GLFW_BUILD_EXAMPLES OFF CACHE BOOL "the folder is not in this repo" FORCE )
+        set( GLFW_BUILD_TESTS    OFF CACHE BOOL "the folder is not in this repo" FORCE )
+        set( GLFW_BUILD_DOCS     OFF CACHE BOOL "the folder is not in this repo" FORCE )
+
+        add_subdirectory( ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/glfw )
+    endif()
+
+    #----- Dear ImGui library
+    set( IMGUI_SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/imgui )
+
+    set( IMGUI_PUBLIC_HEADERS ${IMGUI_SRC_DIR}/imgui.h )
+
+    set( IMGUI_SOURCES
+        ${IMGUI_SRC_DIR}/imgui.cpp
+        ${IMGUI_SRC_DIR}/imgui_draw.cpp
+        ${IMGUI_SRC_DIR}/imgui_demo.cpp
+        ${IMGUI_SRC_DIR}/imgui_widgets.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/glad/src/glad.c )
+
+    add_library( imgui STATIC ${IMGUI_SOURCES} )
+    target_include_directories( imgui PRIVATE
+        ${IMGUI_SRC_DIR}
+        ${CMAKE_CURRENT_LIST_DIR}/thirdparty
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/glad/include )
 endif()
 ####################################################################
 
@@ -200,9 +250,9 @@ if( SPIRIT_UI_CXX_USE_QT )
     #--------------------------------------------------
     #----- Amend the target
     target_sources( ${PROJECT_NAME} PRIVATE
-        ${HEADER_SPIRIT_UI_QT}
-        ${SOURCE_SPIRIT_UI_QT}
-        ${UI_SOURCE}
+        ${HEADER_SPIRIT_UI}
+        ${SOURCE_SPIRIT_UI}
+        ${UI_FILES_SPIRIT_UI_QT}
         # ${CMAKE_CURRENT_LIST_DIR}/ui/InfoWidget.ui
         # ${CMAKE_CURRENT_LIST_DIR}/ui/IsoSurfaceWidget.ui
         ${CMAKE_CURRENT_LIST_DIR}/ui-qt/resources.qrc )
@@ -221,6 +271,8 @@ if( SPIRIT_UI_CXX_USE_QT )
         ${GL_INCLUDE_DIRS}
         ${CMAKE_SOURCE_DIR}/VFRendering/include )
 
+    target_compile_definitions( ${PROJECT_NAME} PRIVATE -DSPIRIT_UI_CXX_USE_QT )
+
     target_link_libraries( ${PROJECT_NAME} PRIVATE
         ${GL_LIBRARIES}
         VFRendering
@@ -233,6 +285,68 @@ if( SPIRIT_UI_CXX_USE_QT )
     set( THREADS_PREFER_PTHREAD_FLAG ON )
     find_package( Threads REQUIRED )
     target_link_libraries( ${PROJECT_NAME} PRIVATE Threads::Threads )
+endif()
+
+### Optionally add Imgui sources to the target and link
+if( SPIRIT_UI_CXX_USE_IMGUI )
+    set( HEADER_SPIRIT_UI )
+
+    set( SOURCE_SPIRIT_UI
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/main_window.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/fonts.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/styles.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/widgets.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/imgui_impl/opengl3.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/imgui_impl/glfw.cpp )
+
+    target_sources( ${PROJECT_NAME} PRIVATE
+        ${HEADER_SPIRIT_UI}
+        ${SOURCE_SPIRIT_UI} )
+
+    target_sources( ${PROJECT_NAME} PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon.icns
+        ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon.ico
+        ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon32.png
+        ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon128.png
+        ${CMAKE_CURRENT_LIST_DIR}/res/Logo_Ghost.png )
+
+    target_include_directories( ${PROJECT_NAME} PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/include
+        ${GLM_INCLUDE_DIRS}
+        ${GL_INCLUDE_DIRS}
+        ${CMAKE_SOURCE_DIR}/VFRendering/include
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/glad/include
+        ${CMAKE_SOURCE_DIR}/core/thirdparty )
+
+    target_compile_definitions( ${PROJECT_NAME} PRIVATE -DSPIRIT_UI_CXX_USE_IMGUI )
+
+    target_link_libraries( ${PROJECT_NAME} PRIVATE
+        ${GL_LIBRARIES}
+        imgui
+        VFRendering )
+
+    ### Note: emscripten brings its own glfw, so we don't need to build it in that case
+    if( IMGUI_COMPILE_GLFW )
+        target_link_libraries( ${PROJECT_NAME} PRIVATE glfw )
+        # target_compile_definitions( ${PROJECT_NAME} PRIVATE -D )
+        target_compile_definitions( ${PROJECT_NAME} PUBLIC "-DGLFW_INCLUDE_NONE" )
+
+        set( THREADS_PREFER_PTHREAD_FLAG ON )
+        find_package( Threads REQUIRED )
+        target_link_libraries( ${PROJECT_NAME} PRIVATE Threads::Threads )
+
+    elseif( IMGUI_TARGET_WEB )
+        ### Set specific flags for emcc and to place the result under ui-web/js/
+        set_target_properties( ${PROJECT_NAME} PROPERTIES
+            COMPILE_FLAGS "-O3 -g -s WASM=1 -s USE_WEBGL2=1 -s USE_GLFW=3 -s FULL_ES3=1 -s DEMANGLE_SUPPORT=1 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ASSERTIONS=1 -s DISABLE_EXCEPTION_CATCHING=0 -s FORCE_FILESYSTEM=1"
+            LINK_FLAGS "-O3 -g -s WASM=1 -s USE_WEBGL2=1 -s USE_GLFW=3 -s FULL_ES3=1 -s DEMANGLE_SUPPORT=1 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ASSERTIONS=1 -s DISABLE_EXCEPTION_CATCHING=0 -s FORCE_FILESYSTEM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap, FS']"
+            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/ui-web/js
+            # SUFFIX ".html"
+        )
+
+        target_compile_definitions( ${PROJECT_NAME} PRIVATE -DIMGUIAPP_TARGET_WEB )
+    endif()
 endif()
 
 ### OSX and Unix need libdl
@@ -254,10 +368,10 @@ if( WIN32 )
     MESSAGE( STATUS ">> Windows Working Dir: \"${USERFILE_WORKING_DIRECTORY}\"" )
 
     ### IDE folders
-    source_group( "include" FILES ${HEADER_SPIRIT_UI_QT} )
+    source_group( "include" FILES ${HEADER_SPIRIT_UI} )
     source_group( ""        FILES ${CMAKE_CURRENT_LIST_DIR}/main.cpp)
     if( SPIRIT_UI_CXX_USE_QT )
-        source_group( "src" FILES ${SOURCE_SPIRIT_UI_QT} )
+        source_group( "src" FILES ${SOURCE_SPIRIT_UI} )
         source_group( "ui"  FILES ${UI_FILES_SPIRIT_UI_QT} )
         set( AUTOGEN_TARGETS_FOLDER "autogenerated" )
     endif()
@@ -290,11 +404,11 @@ if( SPIRIT_BUNDLE_APP )
         # For Apple set the icns file containing icons
         # set where in the bundle to put the icns file
         set_source_files_properties(
-            ${CMAKE_CURRENT_SOURCE_DIR}/res/AppIcon.icns
-            ${CMAKE_CURRENT_SOURCE_DIR}/res/AppIcon.ico
-            ${CMAKE_CURRENT_SOURCE_DIR}/res/AppIcon32.png
-            ${CMAKE_CURRENT_SOURCE_DIR}/res/AppIcon128.png
-            ${CMAKE_CURRENT_SOURCE_DIR}/res/Logo_Ghost.png
+            ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon.icns
+            ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon.ico
+            ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon32.png
+            ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon128.png
+            ${CMAKE_CURRENT_LIST_DIR}/res/Logo_Ghost.png
             PROPERTIES MACOSX_PACKAGE_LOCATION Resources )
         ### Apple bundle Info.plist file
         set_target_properties( ${PROJECT_NAME} PROPERTIES
@@ -313,7 +427,7 @@ if( SPIRIT_BUNDLE_APP )
         configure_file(
             ${CMAKE_CURRENT_LIST_DIR}/res/windows_metafile.rc.in
             ${CMAKE_CURRENT_LIST_DIR}/windows_metafile.rc )
-        SET( SOURCE_SPIRIT_UI_QT ${SOURCE_SPIRIT_UI_QT} ${CMAKE_CURRENT_LIST_DIR}/res/windows_metafile.rc )
+        SET( SOURCE_SPIRIT_UI ${SOURCE_SPIRIT_UI} ${CMAKE_CURRENT_LIST_DIR}/res/windows_metafile.rc )
         set( CMAKE_RC_COMPILER_INIT windres )
         enable_language( RC )
         SET( CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>" )
@@ -458,9 +572,11 @@ include( CPack )
 ######### Header and Source messages ###############################
 if( SPIRIT_PRINT_SOURCES )
     MESSAGE( STATUS ">> Base files:                 ${SOURCE_SPIRIT_UI_CXX}" )
-    MESSAGE( STATUS ">> Qt headers:                 ${HEADER_SPIRIT_UI_QT}" )
-    MESSAGE( STATUS ">> Qt sources:                 ${SOURCE_SPIRIT_UI_QT}" )
-    MESSAGE( STATUS ">> Qt ui files:                ${UI_FILES_SPIRIT_UI_QT}" )
+    MESSAGE( STATUS ">> UI headers:                 ${HEADER_SPIRIT_UI}" )
+    MESSAGE( STATUS ">> UI sources:                 ${SOURCE_SPIRIT_UI}" )
+    if( SPIRIT_UI_CXX_USE_QT )
+        MESSAGE( STATUS ">> UI ui files:                ${UI_FILES_SPIRIT_UI}" )
+    endif()
 endif()
 ####################################################################
 

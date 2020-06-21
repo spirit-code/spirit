@@ -30,13 +30,14 @@ set( SPIRIT_SCALAR_TYPE "double" CACHE STRING "The scalar type to be used in the
 set( SPIRIT_CUDA_ARCH   "sm_60"  CACHE STRING "The CUDA compute architecture to use in case of a CUDA build." )
 ####################################################################
 ### CMake Verbosity
-option( SPIRIT_PRINT_SOURCES  "Print Headers and Sources from Cmake."                         OFF )
+option( SPIRIT_PRINT_SOURCES    "Print Headers and Sources from Cmake."                          OFF )
 ### Decide CXX UI
-option( SPIRIT_UI_CXX_USE_QT  "Build the QT User Interface instead of console version."       ON  )
+option( SPIRIT_UI_CXX_USE_QT    "Build the QT user interface instead of the console version."    OFF )
+option( SPIRIT_UI_CXX_USE_IMGUI "Build the ImGUI user interface instead of the console version." ON  )
 ### Bundle option
-option( SPIRIT_BUNDLE_APP     "On installation, bundle the executable with its dependencies." OFF )
+option( SPIRIT_BUNDLE_APP       "On installation, bundle the executable with its dependencies."  OFF )
 ### Option for building on the IFF cluster
-option( SPIRIT_USER_PATHS_IFF "Use the compiler and library paths etc. for the IFF Cluster."  OFF )
+option( SPIRIT_USER_PATHS_IFF   "Use the compiler and library paths etc. for the IFF Cluster."   OFF )
 ####################################################################
 
 
@@ -80,10 +81,10 @@ if( SPIRIT_USE_CUDA )
     set( SPIRIT_USE_OPENMP OFF )
     ### Set cuda toolkit path
     if( NOT CUDA_TOOLKIT_ROOT_DIR )
-        if ( APPLE OR UNIX )
+        if( APPLE OR UNIX )
             set( CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda )
             # set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
-        elseif (WIN32)
+        elseif( WIN32 )
             set( CUDA_TOOLKIT_ROOT_DIR "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v8.0/" )
             message( WARNING ">> We are on Windows... CUDA_TOOLKIT_ROOT_DIR may need to be passed to cmake..." )
         endif()
@@ -157,11 +158,11 @@ elseif( WIN32 )
     set( PLATFORM_NAME "Win32" )
 endif()
 ### Compiler-specific flags
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.1)
-        message(FATAL_ERROR "GCC version must be at least 5.1!")
+if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" )
+    if( CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.1 )
+        message( FATAL_ERROR "GCC version must be at least 5.1!" )
     endif()
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+elseif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" )
     ### Disable unnecessary warnings on Windows, such as C4996 and C4267, C4244
     set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNOMINMAX /wd4018 /wd4244 /wd4267 /wd4661 /wd4996" )
 endif()
@@ -255,9 +256,13 @@ if( SPIRIT_BUILD_FOR_JS )
     add_subdirectory( ui-web )
 ### CXX UI
 elseif( SPIRIT_BUILD_FOR_CXX )
-    if ( SPIRIT_UI_CXX_USE_QT )
-        add_subdirectory( VFRendering )
+    if( SPIRIT_UI_CXX_USE_QT )
         add_definitions( -DSPIRIT_UI_CXX_USE_QT )
+        add_subdirectory( VFRendering )
+    endif()
+    if( SPIRIT_UI_CXX_USE_IMGUI )
+        add_definitions( -DSPIRIT_UI_CXX_USE_IMGUI )
+        add_subdirectory( VFRendering )
     endif()
     add_subdirectory( ui-cpp )
 endif()
