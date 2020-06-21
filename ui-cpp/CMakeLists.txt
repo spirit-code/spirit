@@ -76,7 +76,7 @@ if( SPIRIT_UI_CXX_USE_QT )
     set( CMAKE_AUTORCC ON )
     ### Let CMake handle Qt .ui files automatically
     set( CMAKE_AUTOUIC ON )
-    set( CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_LIST_DIR}/ui )
+    set( CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_LIST_DIR}/ui-qt/ui )
 endif()
 ####################################################################
 
@@ -133,7 +133,6 @@ foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
 endforeach()
 
 target_include_directories( ${PROJECT_NAME} PRIVATE
-    ${PROJECT_SOURCE_DIR}/include
     ${SPIRIT_INCLUDE_DIRS}
     ${PROJECT_SOURCE_DIR}/thirdparty/Lyra/include
     ${PROJECT_BINARY_DIR}/thirdparty-install/include )
@@ -216,6 +215,7 @@ if( SPIRIT_UI_CXX_USE_QT )
         ${CMAKE_CURRENT_LIST_DIR}/res/Logo_Ghost.png )
 
     target_include_directories( ${PROJECT_NAME} PRIVATE
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include
         ${GLAD_INCLUDE_DIRS}
         ${GLM_INCLUDE_DIRS}
         ${GL_INCLUDE_DIRS}
