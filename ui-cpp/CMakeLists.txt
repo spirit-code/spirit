@@ -144,58 +144,58 @@ target_link_libraries( ${PROJECT_NAME} PRIVATE ${SPIRIT_LIBRARIES_STATIC} )
 if( SPIRIT_UI_CXX_USE_QT )
     #--------------------------------------------------
     #----- Qt headers, sources and ui files
-    set( HEADER_SPIRIT_UI_QT
-        ${CMAKE_CURRENT_LIST_DIR}/include/SpinWidget.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/include/MainWindow.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/include/ControlWidget.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/include/HamiltonianHeisenbergWidget.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/include/HamiltonianGaussianWidget.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/include/ConfigurationsWidget.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/include/GeometryWidget.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/include/MouseDecoratorWidget.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/include/SettingsWidget.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/include/ParametersWidget.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/include/VisualisationSettingsWidget.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/include/PlotsWidget.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/include/DebugWidget.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/include/PlotWidget.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/include/IsosurfaceWidget.hpp
-        ${CMAKE_CURRENT_LIST_DIR}/include/InfoWidget.hpp
+    set( HEADER_SPIRIT_UI
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/SpinWidget.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/MainWindow.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/ControlWidget.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/HamiltonianHeisenbergWidget.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/HamiltonianGaussianWidget.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/ConfigurationsWidget.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/GeometryWidget.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/MouseDecoratorWidget.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/SettingsWidget.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/ParametersWidget.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/VisualisationSettingsWidget.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/PlotsWidget.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/DebugWidget.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/PlotWidget.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/IsosurfaceWidget.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/InfoWidget.hpp
     )
 
-    set( SOURCE_SPIRIT_UI_QT
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/SpinWidget.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/MainWindow.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/ControlWidget.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/HamiltonianHeisenbergWidget.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/HamiltonianGaussianWidget.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/ConfigurationsWidget.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/GeometryWidget.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/MouseDecoratorWidget.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/SettingsWidget.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/ParametersWidget.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/VisualisationSettingsWidget.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotsWidget.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/DebugWidget.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/PlotWidget.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/IsosurfaceWidget.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/InfoWidget.cpp
+    set( SOURCE_SPIRIT_UI
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/SpinWidget.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/MainWindow.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/ControlWidget.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/HamiltonianHeisenbergWidget.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/HamiltonianGaussianWidget.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/ConfigurationsWidget.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/GeometryWidget.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/MouseDecoratorWidget.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/SettingsWidget.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/ParametersWidget.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/VisualisationSettingsWidget.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/PlotsWidget.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/DebugWidget.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/PlotWidget.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/IsosurfaceWidget.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/InfoWidget.cpp
     )
 
     set( UI_FILES_SPIRIT_UI_QT
-        ${CMAKE_CURRENT_SOURCE_DIR}/ui/MainWindow.ui
-        ${CMAKE_CURRENT_SOURCE_DIR}/ui/ControlWidget.ui
-        ${CMAKE_CURRENT_SOURCE_DIR}/ui/ConfigurationsWidget.ui
-        ${CMAKE_CURRENT_SOURCE_DIR}/ui/GeometryWidget.ui
-        ${CMAKE_CURRENT_SOURCE_DIR}/ui/PlotsWidget.ui
-        ${CMAKE_CURRENT_SOURCE_DIR}/ui/DebugWidget.ui
-        ${CMAKE_CURRENT_SOURCE_DIR}/ui/IsosurfaceWidget.ui
-        ${CMAKE_CURRENT_SOURCE_DIR}/ui/InfoWidget.ui
-        ${CMAKE_CURRENT_SOURCE_DIR}/ui/SettingsWidget.ui
-        ${CMAKE_CURRENT_SOURCE_DIR}/ui/ParametersWidget.ui
-        ${CMAKE_CURRENT_SOURCE_DIR}/ui/HamiltonianHeisenbergWidget.ui
-        ${CMAKE_CURRENT_SOURCE_DIR}/ui/HamiltonianGaussianWidget.ui
-        ${CMAKE_CURRENT_SOURCE_DIR}/ui/VisualisationSettingsWidget.ui
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/ui/MainWindow.ui
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/ui/ControlWidget.ui
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/ui/ConfigurationsWidget.ui
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/ui/GeometryWidget.ui
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/ui/PlotsWidget.ui
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/ui/DebugWidget.ui
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/ui/IsosurfaceWidget.ui
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/ui/InfoWidget.ui
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/ui/SettingsWidget.ui
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/ui/ParametersWidget.ui
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/ui/HamiltonianHeisenbergWidget.ui
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/ui/HamiltonianGaussianWidget.ui
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/ui/VisualisationSettingsWidget.ui
     )
 
     #--------------------------------------------------
@@ -206,7 +206,7 @@ if( SPIRIT_UI_CXX_USE_QT )
         ${UI_SOURCE}
         # ${CMAKE_CURRENT_LIST_DIR}/ui/InfoWidget.ui
         # ${CMAKE_CURRENT_LIST_DIR}/ui/IsoSurfaceWidget.ui
-        ${CMAKE_CURRENT_LIST_DIR}/resources.qrc )
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/resources.qrc )
 
     target_sources( ${PROJECT_NAME} PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon.icns
@@ -255,7 +255,7 @@ if( WIN32 )
 
     ### IDE folders
     source_group( "include" FILES ${HEADER_SPIRIT_UI_QT} )
-    source_group( ""    FILES ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+    source_group( ""        FILES ${CMAKE_CURRENT_LIST_DIR}/main.cpp)
     if( SPIRIT_UI_CXX_USE_QT )
         source_group( "src" FILES ${SOURCE_SPIRIT_UI_QT} )
         source_group( "ui"  FILES ${UI_FILES_SPIRIT_UI_QT} )
