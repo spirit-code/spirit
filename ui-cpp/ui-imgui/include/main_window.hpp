@@ -14,8 +14,10 @@ public:
     main_window( std::shared_ptr<State> state );
     // ~main_window();
     int run();
+    void loop();
 
 private:
+    void quit();
     void intitialize_gl();
     void draw_gl( int display_w, int display_h );
 

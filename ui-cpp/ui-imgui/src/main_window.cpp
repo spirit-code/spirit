@@ -1,16 +1,3 @@
-#include <fonts.hpp>
-#include <main_window.hpp>
-#include <styles.hpp>
-#include <widgets.hpp>
-
-#include <VFRendering/ArrowRenderer.hxx>
-#include <VFRendering/BoundingBoxRenderer.hxx>
-#include <VFRendering/CombinedRenderer.hxx>
-#include <VFRendering/CoordinateSystemRenderer.hxx>
-#include <VFRendering/IsosurfaceRenderer.hxx>
-#include <VFRendering/SphereRenderer.hxx>
-#include <VFRendering/View.hxx>
-
 #include <imgui_impl/glfw.h>
 #include <imgui_impl/opengl3.h>
 
@@ -20,12 +7,29 @@
 
 #include <glad/glad.h>
 
+#include <fonts.hpp>
+#include <main_window.hpp>
+#include <styles.hpp>
+#include <widgets.hpp>
+
 #include <GLFW/glfw3.h>
+
+// #include <GLES3/gl3.h>
+#include <emscripten/html5.h>
+
+#include <VFRendering/ArrowRenderer.hxx>
+#include <VFRendering/BoundingBoxRenderer.hxx>
+#include <VFRendering/CombinedRenderer.hxx>
+#include <VFRendering/CoordinateSystemRenderer.hxx>
+#include <VFRendering/IsosurfaceRenderer.hxx>
+#include <VFRendering/SphereRenderer.hxx>
+#include <VFRendering/View.hxx>
 
 #include <fmt/format.h>
 
 #include <stdio.h>
 #include <cmath>
+#include <exception>
 
 static GLFWwindow * g_window;
 static ImVec4 background_colour = ImVec4( 0.4f, 0.4f, 0.4f, 1.f );
@@ -47,7 +51,10 @@ static ImFont * font_18 = nullptr;
 static VFRendering::View vfr_view;
 static VFRendering::Geometry vfr_geometry;
 static VFRendering::VectorField vfr_vectorfield = VFRendering::VectorField( {}, {} );
-static std::shared_ptr<VFRendering::ArrowRenderer> vfr_arrow_renderer_ptr;
+// static std::shared_ptr<VFRendering::ArrowRenderer> vfr_arrow_renderer_ptr;
+static std::vector<std::shared_ptr<VFRendering::RendererBase>> vfr_renderers( 0 );
+
+static main_window * global_window_handle;
 
 /////////////////////////////////////////////////////////////////////
 
@@ -85,10 +92,12 @@ void mousePositionCallback( GLFWwindow * window, double x_position, double y_pos
     if( glfwGetMouseButton( window, GLFW_MOUSE_BUTTON_LEFT ) == GLFW_PRESS )
     {
         auto movement_mode = VFRendering::CameraMovementModes::ROTATE_BOUNDED;
-        if( glfwGetKey( window, GLFW_KEY_LEFT_CONTROL ) == GLFW_PRESS )
-        {
-            movement_mode = VFRendering::CameraMovementModes::TRANSLATE;
-        }
+        vfr_view.mouseMove( previous_mouse_position, current_mouse_position, movement_mode );
+        // needs_redraw = true;
+    }
+    else if( glfwGetMouseButton( window, GLFW_MOUSE_BUTTON_RIGHT ) == GLFW_PRESS )
+    {
+        auto movement_mode = VFRendering::CameraMovementModes::TRANSLATE;
         vfr_view.mouseMove( previous_mouse_position, current_mouse_position, movement_mode );
         // needs_redraw = true;
     }
@@ -139,6 +148,14 @@ void windowRefreshCallback( GLFWwindow * window )
 
 void main_window::intitialize_gl()
 {
+#ifdef __EMSCRIPTEN__
+    EmscriptenWebGLContextAttributes attrs;
+    emscripten_webgl_init_context_attributes( &attrs );
+    attrs.majorVersion = 1;
+    attrs.minorVersion = 0;
+#endif
+    std::cout << "OpenGL Version: " << glGetString( GL_VERSION ) << std::endl;
+
     vfr_view.setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( 0.125f );
     vfr_view.setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( 0.3f );
     vfr_view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( 0.0625f );
@@ -146,9 +163,7 @@ void main_window::intitialize_gl()
     vfr_view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
         { background_colour.x, background_colour.y, background_colour.z } );
 
-    vfr_arrow_renderer_ptr = std::make_shared<VFRendering::ArrowRenderer>( vfr_view, vfr_vectorfield );
-
-    int n_cells[3]                      = { 10, 10, 10 };
+    int n_cells[3]                      = { 6, 6, 6 };
     std::vector<glm::vec3> positions    = std::vector<glm::vec3>( n_cells[0] * n_cells[1] * n_cells[2] );
     std::vector<glm::vec3> orientations = std::vector<glm::vec3>( n_cells[0] * n_cells[1] * n_cells[2] );
     for( int cell_c = 0; cell_c < n_cells[2]; cell_c++ )
@@ -165,7 +180,7 @@ void main_window::intitialize_gl()
     }
     // vfr_geometry = VFRendering::Geometry( positions, {}, {}, false );
     vfr_geometry = VFRendering::Geometry::cartesianGeometry(
-        { n_cells[0], n_cells[1], n_cells[2] }, { 0, 0, 0 }, { 10, 10, 10 } );
+        { n_cells[0], n_cells[1], n_cells[2] }, { 0, 0, 0 }, { n_cells[0], n_cells[1], n_cells[2] } );
 
     // VFRendering::Geometry geometry = VFRendering::Geometry::cartesianGeometry({21, 21, 21}, {-20, -20, -20}, {20, 20,
     // 20}); VFRendering::VectorField vf = VFRendering::VectorField(geometry, directions);
@@ -179,131 +194,175 @@ void main_window::intitialize_gl()
     // options.set<VFRendering::View::Option::SYSTEM_CENTER>( { 0, 0, 0 } );
     options.set<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>(
         VFRendering::Utilities::getColormapImplementation( VFRendering::Utilities::Colormap::HSV ) );
-    options.set<VFRendering::View::Option::CAMERA_POSITION>( { 0, 0, 30 } );
+    options.set<VFRendering::View::Option::CAMERA_POSITION>( { -20, -20, 20 } );
     options.set<VFRendering::View::Option::CENTER_POSITION>( options.get<VFRendering::View::Option::SYSTEM_CENTER>() );
     options.set<VFRendering::View::Option::UP_VECTOR>( { 0, 0, 1 } );
+    options.set<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>( 45 );
+    options.set<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>( 45 );
     vfr_view.updateOptions( options );
 
-    std::cerr << "min       " << vfr_geometry.min().x << " " << vfr_geometry.min().y << " " << vfr_geometry.min().z
+    std::cout << "min       " << vfr_geometry.min().x << " " << vfr_geometry.min().y << " " << vfr_geometry.min().z
               << "\n";
-    std::cerr << "max       " << vfr_geometry.max().x << " " << vfr_geometry.max().y << " " << vfr_geometry.max().z
+    std::cout << "max       " << vfr_geometry.max().x << " " << vfr_geometry.max().y << " " << vfr_geometry.max().z
               << "\n";
-    std::cerr << "center at " << center.x << " " << center.y << " " << center.z << "\n";
-    auto cam = options.get<VFRendering::View::Option::CENTER_POSITION>();
-    std::cerr << "camera at " << cam.x << " " << cam.y << " " << cam.z << "\n";
+    auto sys_center = options.get<VFRendering::View::Option::SYSTEM_CENTER>();
+    std::cout << "system center at " << sys_center.x << " " << sys_center.y << " " << sys_center.z << "\n";
+    auto cam_center = options.get<VFRendering::View::Option::CENTER_POSITION>();
+    std::cout << "camera center at " << cam_center.x << " " << cam_center.y << " " << cam_center.z << "\n";
+    auto cam = options.get<VFRendering::View::Option::CAMERA_POSITION>();
+    std::cout << "camera position at " << cam.x << " " << cam.y << " " << cam.z << "\n";
 
-    std::vector<std::shared_ptr<VFRendering::RendererBase>> renderers = { vfr_arrow_renderer_ptr };
+    auto vfr_arrow_renderer_ptr = std::make_shared<VFRendering::ArrowRenderer>( vfr_view, vfr_vectorfield );
+    vfr_renderers.push_back( vfr_arrow_renderer_ptr );
+
     vfr_view.renderers(
-        { { std::make_shared<VFRendering::CombinedRenderer>( vfr_view, renderers ), { { 0, 0, 1, 1 } } } } );
+        { { std::make_shared<VFRendering::CombinedRenderer>( vfr_view, vfr_renderers ), { { 0, 0, 1, 1 } } } } );
 }
 
 void main_window::draw_gl( int display_w, int display_h )
 {
+#ifdef __EMSCRIPTEN__
+    EmscriptenWebGLContextAttributes attrs;
+    emscripten_webgl_init_context_attributes( &attrs );
+    attrs.majorVersion = 1;
+    attrs.minorVersion = 0;
+#endif
+
     glViewport( 0, 0, display_w, display_h );
     vfr_view.setFramebufferSize( float( display_w ), float( display_h ) );
     vfr_view.draw();
 }
 
-int main_window::run()
+void main_window::loop()
 {
-    while( !glfwWindowShouldClose( g_window ) )
-    {
 #ifdef __EMSCRIPTEN__
-        int width  = canvas_get_width();
-        int height = canvas_get_height();
+    int width  = canvas_get_width();
+    int height = canvas_get_height();
 
-        glfwSetWindowSize( g_window, width, height );
+    glfwSetWindowSize( g_window, width, height );
 #endif
 
-        glfwPollEvents();
+    glfwPollEvents();
 
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
 
-        ImGui::PushFont( font_14 );
+    ImGui::PushFont( font_14 );
 
-        widgets::show_menu_bar( g_window, font_16, dark_mode, background_colour, selected_mode, vfr_view );
-        bool p_open = true;
-        widgets::show_overlay( &p_open );
+    widgets::show_menu_bar( g_window, font_16, dark_mode, background_colour, selected_mode, vfr_view );
+    bool p_open = true;
+    widgets::show_overlay( &p_open );
 
-        if( show_another_window )
-        {
-            ImGui::Begin( "Another Window", &show_another_window );
-            ImGui::Text( "Hello from another window!" );
-            if( ImGui::Button( "Close Me" ) )
-                show_another_window = false;
-            ImGui::End();
-        }
-
-        if( show_demo_window )
-        {
-            ImGui::SetNextWindowPos( ImVec2( 650, 20 ), ImGuiCond_FirstUseEver );
-            ImGui::ShowDemoWindow( &show_demo_window );
-        }
-
-        {
-            static float f     = 0.0f;
-            static int counter = 0;
-            ImGui::Text( "Hello, world!" );
-            ImGui::SliderFloat( "float", &f, 0.0f, 1.0f );
-            if( ImGui::ColorEdit3( "clear color", (float *)&background_colour ) )
-            {
-                vfr_view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-                    { background_colour.x, background_colour.y, background_colour.z } );
-            }
-
-            ImGui::Text( "Windows" );
-            ImGui::Checkbox( "Demo Window", &show_demo_window );
-            ImGui::Checkbox( "Another Window", &show_another_window );
-
-            if( ImGui::Button( "Button" ) )
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text( "counter = %d", counter );
-
-            ImGui::Text(
-                "Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
-                ImGui::GetIO().Framerate );
-
-            static int antialiasing = 0;
-            ImGui::Text( fmt::format( "{}x antialiasing", antialiasing ).c_str() );
-            ImGui::SameLine();
-            ImGui::SliderInt( "antialiasing", &antialiasing, 0, 16 );
-            // glfwWindowHint( GLFW_SAMPLES, antialiasing ); // 16x antialiasing
-
-            if( ImGui::Button( "apply antialiasing" ) )
-                glfwWindowHint( GLFW_SAMPLES, antialiasing ); // 16x antialiasing
-        }
-
-        ImGui::PopFont();
-
-        ImGui::Render();
-
-        int display_w, display_h;
-        glfwMakeContextCurrent( g_window );
-        glfwGetFramebufferSize( g_window, &display_w, &display_h );
-
-        draw_gl( display_w, display_h );
-
-        ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );
-
-        glfwSwapBuffers( g_window );
+    if( show_another_window )
+    {
+        ImGui::Begin( "Another Window", &show_another_window );
+        ImGui::Text( "Hello from another window!" );
+        if( ImGui::Button( "Close Me" ) )
+            show_another_window = false;
+        ImGui::End();
     }
+
+    if( show_demo_window )
+    {
+        ImGui::SetNextWindowPos( ImVec2( 650, 20 ), ImGuiCond_FirstUseEver );
+        ImGui::ShowDemoWindow( &show_demo_window );
+    }
+
+    {
+        static float f     = 0.0f;
+        static int counter = 0;
+        ImGui::Text( "Hello, world!" );
+        ImGui::SliderFloat( "float", &f, 0.0f, 1.0f );
+        if( ImGui::ColorEdit3( "clear color", (float *)&background_colour ) )
+        {
+            vfr_view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
+                { background_colour.x, background_colour.y, background_colour.z } );
+        }
+
+        ImGui::Text( "Windows" );
+        ImGui::Checkbox( "Demo Window", &show_demo_window );
+        ImGui::Checkbox( "Another Window", &show_another_window );
+
+        if( ImGui::Button( "Button" ) )
+            counter++;
+        ImGui::SameLine();
+        ImGui::Text( "counter = %d", counter );
+
+        ImGui::Text(
+            "Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
+            ImGui::GetIO().Framerate );
+
+        static int antialiasing = 0;
+        ImGui::Text( fmt::format( "{}x antialiasing", antialiasing ).c_str() );
+        ImGui::SameLine();
+        ImGui::SliderInt( "antialiasing", &antialiasing, 0, 16 );
+        // glfwWindowHint( GLFW_SAMPLES, antialiasing ); // 16x antialiasing
+
+        if( ImGui::Button( "apply antialiasing" ) )
+            glfwWindowHint( GLFW_SAMPLES, antialiasing ); // 16x antialiasing
+    }
+
+    ImGui::PopFont();
+
+    ImGui::Render();
+
+    int display_w, display_h;
+    glfwMakeContextCurrent( g_window );
+    glfwGetFramebufferSize( g_window, &display_w, &display_h );
+
+    draw_gl( display_w, display_h );
+
+    ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );
+
+    glfwSwapBuffers( g_window );
+}
+
+void main_window::quit()
+{
+    // Cleanup
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    glfwDestroyWindow( g_window );
+    glfwTerminate();
+}
+
+void emscripten_loop()
+{
+    global_window_handle->loop();
+}
+
+int main_window::run()
+{
+#ifdef __EMSCRIPTEN__
+    emscripten_set_main_loop( emscripten_loop, 0, 1 );
+#else
+    while( !glfwWindowShouldClose( g_window ) )
+    {
+        loop();
+    }
+#endif
+
+    quit();
+
     return 0;
 }
 
 main_window::main_window( std::shared_ptr<State> state )
 {
+    global_window_handle = this;
+
     this->state = state;
 
     glfwSetErrorCallback( glfw_error_callback );
 
     if( !glfwInit() )
     {
-        std::cerr << fmt::format( "Failed to initialize GLFW\n" );
+        std::cout << fmt::format( "Failed to initialize GLFW\n" );
         // return 1;
-        throw;
+        throw std::runtime_error( "Failed to initialize GLFW" );
     }
 
     glfwWindowHint( GLFW_SAMPLES, 16 ); // 16x antialiasing
@@ -321,14 +380,16 @@ main_window::main_window( std::shared_ptr<State> state )
     int canvasHeight = 720;
     g_window         = glfwCreateWindow( canvasWidth, canvasHeight, "Spirit - Magnetism Simulation Tool", NULL, NULL );
     glfwMakeContextCurrent( g_window );
+#ifndef __EMSCRIPTEN__
     glfwSwapInterval( 1 ); // Enable vsync
+#endif
 
     if( g_window == NULL )
     {
-        std::cerr << fmt::format( "Failed to open GLFW window.\n" );
+        std::cout << fmt::format( "Failed to open GLFW window.\n" );
         glfwTerminate();
         // return -1;
-        throw;
+        throw std::runtime_error( "Failed to open GLFW window." );
     }
 
     gladLoadGL( (GLADloadfunc)glfwGetProcAddress ); // Initialize GLAD

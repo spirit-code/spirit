@@ -41,6 +41,10 @@ int main( int argc, char ** argv )
     std::string imagefile = "";
     std::string chainfile = "";
 
+#ifdef __EMSCRIPTEN__
+    cfgfile = "";
+#endif
+
     // Command line arguments
     auto cli
         = lyra::cli_parser()

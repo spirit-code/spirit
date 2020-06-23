@@ -32,6 +32,8 @@ libSpirit.js
 libSpirit.js.mem
 libSpirit.wasm
 libSpirit.wast
+spirit.js
+spirit.wasm
 
 ### Generated Files
 core/python/LICENSE.txt

@@ -17,6 +17,7 @@ project( Spirit_UI_CPP )
 #----- Ensure only one of the two GUIs is used
 if( SPIRIT_UI_CXX_USE_IMGUI )
     set( SPIRIT_UI_CXX_USE_QT OFF )
+    set( SPIRIT_BUNDLE_APP    OFF )
 endif()
 
 #--------------------------------------------------
@@ -72,10 +73,14 @@ set( CMAKE_DISABLE_IN_SOURCE_BUILD ON )
 # set( CMAKE_DISABLE_SOURCE_CHANGES  ON )
 ### Find includes in corresponding build directories
 # set( CMAKE_INCLUDE_CURRENT_DIR ON )
+####################################################################
 
-#--------------------------------------------------
-#----- Automatic Qt meta-compilation
+
+######### Handle Qt GUI if to be used ##############################
 if( SPIRIT_UI_CXX_USE_QT )
+    message( STATUS ">> Using Qt GUI for Spirit" )
+
+#----- Automatic Qt meta-compilation
     ### Let CMake run moc on Qt sources automatically
     set( CMAKE_AUTOMOC ON )
     ### Let CMake handle Qt .rcc files automatically
@@ -83,13 +88,6 @@ if( SPIRIT_UI_CXX_USE_QT )
     ### Let CMake handle Qt .ui files automatically
     set( CMAKE_AUTOUIC ON )
     set( CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_LIST_DIR}/ui-qt/ui )
-endif()
-####################################################################
-
-
-######### Handle Qt if to be used ##########################
-if( SPIRIT_UI_CXX_USE_QT )
-message( STATUS ">> Using Qt GUI for Spirit" )
 
     #--------------------------------------------------
     #----- Qt path
@@ -117,7 +115,7 @@ endif()
 ####################################################################
 
 
-######### Handle Qt if to be used ##########################
+######### Handle IMGUI if to be used ###############################
 if( SPIRIT_UI_CXX_USE_IMGUI )
     message( STATUS ">> Using immediate mode GUI for Spirit" )
 
@@ -127,6 +125,7 @@ if( SPIRIT_UI_CXX_USE_IMGUI )
     if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten" )
         set( IMGUI_COMPILE_GLFW OFF )
         set( IMGUI_TARGET_WEB   ON  )
+        message( STATUS ">> Building immediate mode web-GUI" )
     endif()
 
     #----- GLFW subproject
@@ -168,6 +167,15 @@ set( SOURCE_SPIRIT_UI_CXX
 ### Note: OS_BUNDLE_NAME will be empty if bundle should not be created
 add_executable( ${PROJECT_NAME} ${OS_BUNDLE_NAME} ${SOURCE_SPIRIT_UI_CXX} )
 
+target_compile_definitions( ${PROJECT_NAME} PRIVATE -DFMT_HEADER_ONLY )
+
+target_include_directories( ${PROJECT_NAME} PRIVATE
+    ${SPIRIT_INCLUDE_DIRS}
+    ${PROJECT_SOURCE_DIR}/thirdparty/Lyra/include
+    ${PROJECT_BINARY_DIR}/thirdparty-install/include )
+
+target_link_libraries( ${PROJECT_NAME} PRIVATE ${SPIRIT_LIBRARIES_STATIC} )
+
 set_target_properties( ${PROJECT_NAME} PROPERTIES
     OUTPUT_NAME              ${SPIRIT_EXE_NAME}
     RUNTIME_OUTPUT_DIRECTORY ${SPIRIT_OUTPUT_DIRECTORY}
@@ -181,13 +189,6 @@ foreach( OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES} )
     set_target_properties( ${PROJECT_NAME} PROPERTIES
         RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${SPIRIT_OUTPUT_DIRECTORY} )
 endforeach()
-
-target_include_directories( ${PROJECT_NAME} PRIVATE
-    ${SPIRIT_INCLUDE_DIRS}
-    ${PROJECT_SOURCE_DIR}/thirdparty/Lyra/include
-    ${PROJECT_BINARY_DIR}/thirdparty-install/include )
-
-target_link_libraries( ${PROJECT_NAME} PRIVATE ${SPIRIT_LIBRARIES_STATIC} )
 
 ### Optionally add Qt to the target
 if( SPIRIT_UI_CXX_USE_QT )
@@ -339,9 +340,9 @@ if( SPIRIT_UI_CXX_USE_IMGUI )
     elseif( IMGUI_TARGET_WEB )
         ### Set specific flags for emcc and to place the result under ui-web/js/
         set_target_properties( ${PROJECT_NAME} PROPERTIES
-            COMPILE_FLAGS "-O3 -g -s WASM=1 -s USE_WEBGL2=1 -s USE_GLFW=3 -s FULL_ES3=1 -s DEMANGLE_SUPPORT=1 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ASSERTIONS=1 -s DISABLE_EXCEPTION_CATCHING=0 -s FORCE_FILESYSTEM=1"
-            LINK_FLAGS "-O3 -g -s WASM=1 -s USE_WEBGL2=1 -s USE_GLFW=3 -s FULL_ES3=1 -s DEMANGLE_SUPPORT=1 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ASSERTIONS=1 -s DISABLE_EXCEPTION_CATCHING=0 -s FORCE_FILESYSTEM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap, FS']"
-            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/ui-web/js
+            COMPILE_FLAGS "-O3 -g -s WASM=1 -s USE_WEBGL2=0 -s USE_GLFW=3 -s DEMANGLE_SUPPORT=1 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ASSERTIONS=1 -s DISABLE_EXCEPTION_CATCHING=0 -s FORCE_FILESYSTEM=1"
+            LINK_FLAGS    "-O3 -g -s WASM=1 -s USE_WEBGL2=0 -s USE_GLFW=3 -s DEMANGLE_SUPPORT=1 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ASSERTIONS=1 -s DISABLE_EXCEPTION_CATCHING=0 -s FORCE_FILESYSTEM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap, FS']"
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/ui-web/js
             # SUFFIX ".html"
         )
 
