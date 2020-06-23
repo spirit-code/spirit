@@ -23,24 +23,35 @@ environment:
       configuration: Release
       QTDIR:  "C:\\Qt\\5.10.1\\msvc2017_64"
       PYTHON: "C:\\Python36-x64"
+      CMAKE_OPTIONS: "-DSPIRIT_UI_CXX_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF"
       EXCLUDETESTS:
       PYPI: true
+    - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
+      configuration: Release
+      QTDIR:  "C:\\Qt\\5.10.1\\msvc2017_64"
+      PYTHON: "C:\\Python36-x64"
+      CMAKE_OPTIONS: "-DSPIRIT_UI_CXX_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=ON"
+      EXCLUDETESTS:
+      PYPI:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2017
       configuration: Debug
       QTDIR:  "C:\\Qt\\5.10.1\\msvc2017_64"
       PYTHON: "C:\\Python36-x64"
+      CMAKE_OPTIONS: "-DSPIRIT_UI_CXX_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=ON"
       EXCLUDETESTS: solver
       PYPI:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       configuration: Release
       QTDIR:  "C:\\Qt\\5.10.1\\msvc2015_64"
       PYTHON: "C:\\Python36-x64"
+      CMAKE_OPTIONS: "-DSPIRIT_UI_CXX_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=ON"
       EXCLUDETESTS:
       PYPI:
     - APPVEYOR_BUILD_WORKER_IMAGE: Visual Studio 2015
       configuration: Debug
       QTDIR:  "C:\\Qt\\5.10.1\\msvc2015_64"
       PYTHON: "C:\\Python36-x64"
+      CMAKE_OPTIONS: "-DSPIRIT_UI_CXX_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=ON"
       EXCLUDETESTS: solver
       PYPI:
     # Build and test with pinning and defects
@@ -48,7 +59,7 @@ environment:
       configuration: Release
       QTDIR:  "C:\\Qt\\5.10.1\\msvc2017_64"
       PYTHON: "C:\\Python36-x64"
-      CMAKE_OPTIONS: "-DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_ENABLE_PINNING=ON -DSPIRIT_ENABLE_DEFECTS=ON"
+      CMAKE_OPTIONS: "-DSPIRIT_UI_CXX_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_ENABLE_PINNING=ON -DSPIRIT_ENABLE_DEFECTS=ON"
       EXCLUDETESTS:
       PYPI:
 
@@ -91,7 +102,7 @@ after_test:
   - echo Going to build python package and wheel
   - ps: if ("$Env:APPVEYOR_REPO_BRANCH" -eq "master") {$env:SPIRIT_ADD_VERSION_SUFFIX="false"} else {$env:SPIRIT_ADD_VERSION_SUFFIX="true"}
   - ps: echo "Add suffix to spirit version tag for python package $env:SPIRIT_ADD_VERSION_SUFFIX"
-  
+
   - cd core/python
   - "%PYTHON%/python setup.py sdist bdist_wheel"
 
