@@ -19,7 +19,8 @@ public:
 private:
     void quit();
     void intitialize_gl();
-    void draw_gl( int display_w, int display_h );
+    void draw_vfr( int display_w, int display_h );
+    void draw_imgui( int display_w, int display_h );
 
     std::shared_ptr<State> state;
 };

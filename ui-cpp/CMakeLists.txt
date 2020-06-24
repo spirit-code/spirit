@@ -80,7 +80,7 @@ set( CMAKE_DISABLE_IN_SOURCE_BUILD ON )
 if( SPIRIT_UI_CXX_USE_QT )
     message( STATUS ">> Using Qt GUI for Spirit" )
 
-#----- Automatic Qt meta-compilation
+    #----- Automatic Qt meta-compilation
     ### Let CMake run moc on Qt sources automatically
     set( CMAKE_AUTOMOC ON )
     ### Let CMake handle Qt .rcc files automatically

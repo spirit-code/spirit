@@ -2,6 +2,8 @@
 #ifndef SPIRIT_IMGUI_WIDGETS_HPP
 #define SPIRIT_IMGUI_WIDGETS_HPP
 
+#include <enums.hpp>
+
 #include <GLFW/glfw3.h>
 
 #include <VFRendering/View.hxx>
@@ -10,7 +12,7 @@ namespace widgets
 {
 
 void show_menu_bar(
-    GLFWwindow * window, ImFont * font, bool & dark_mode, ImVec4 & background_colour, int & selected_mode,
+    GLFWwindow * window, ImFont * font, bool & dark_mode, ImVec4 & background_colour, GUI_Mode & selected_mode,
     VFRendering::View & vfr_view );
 void help_marker( const char * description );
 void show_overlay( bool * p_open );

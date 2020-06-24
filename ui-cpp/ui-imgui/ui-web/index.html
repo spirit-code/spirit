@@ -30,7 +30,6 @@
     /* the canvas *must not* have any border or padding, or mouse coords will be wrong */
     canvas.emscripten {
       border: 0px none;
-      background-color: black;
     }
   </style>
 </head>
@@ -38,7 +37,10 @@
 <body>
 
   <div class="emscripten_border">
-    <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()"></canvas>
+    <canvas class="emscripten" id="vfr-canvas" tabindex="1" style="z-index: 1; position:absolute; left:0px; top:0px;"
+      width="300" height="300" oncontextmenu="event.preventDefault()"></canvas>
+    <canvas class="emscripten" id="imgui-canvas" tabindex="2" style="z-index: 3; position:absolute; left:0px; top:0px;"
+      width="300" height="300" oncontextmenu="event.preventDefault()"></canvas>
   </div>
 
   <script type='text/javascript'>
@@ -47,11 +49,13 @@
       postRun: [],
       print: (function () { })(),
       printErr: function (text) { },
+      vfr_canvas: (function () {
+        var canvas = document.getElementById('vfr-canvas');
+        canvas.addEventListener("webglcontextlost", function (e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
+        return canvas;
+      })(),
       canvas: (function () {
-        var canvas = document.getElementById('canvas');
-        // As a default initial behavior, pop up an alert when webgl context is lost. To make your
-        // application robust, you may want to override this behavior before shipping!
-        // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
+        var canvas = document.getElementById('imgui-canvas');
         canvas.addEventListener("webglcontextlost", function (e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
         return canvas;
       })(),
@@ -59,10 +63,13 @@
       totalDependencies: 0,
       monitorRunDependencies: function (left) { }
     };
+
     window.addEventListener('resize', js_resizeCanvas, false);
     function js_resizeCanvas() {
-      document.getElementById('canvas').width = window.innerWidth;
-      document.getElementById('canvas').height = window.innerHeight;
+      document.getElementById('vfr-canvas').width = window.innerWidth;
+      document.getElementById('vfr-canvas').height = window.innerHeight;
+      document.getElementById('imgui-canvas').width = window.innerWidth;
+      document.getElementById('imgui-canvas').height = window.innerHeight;
     }
 
   </script>

@@ -3,19 +3,19 @@
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
+#include <emscripten/html5.h>
+// #include <GLES3/gl3.h>
 #endif
 
 #include <glad/glad.h>
 
+#include <enums.hpp>
 #include <fonts.hpp>
 #include <main_window.hpp>
 #include <styles.hpp>
 #include <widgets.hpp>
 
 #include <GLFW/glfw3.h>
-
-// #include <GLES3/gl3.h>
-#include <emscripten/html5.h>
 
 #include <VFRendering/ArrowRenderer.hxx>
 #include <VFRendering/BoundingBoxRenderer.hxx>
@@ -31,11 +31,11 @@
 #include <cmath>
 #include <exception>
 
-static GLFWwindow * g_window;
-static ImVec4 background_colour = ImVec4( 0.4f, 0.4f, 0.4f, 1.f );
-static bool show_demo_window    = true;
-static bool show_another_window = false;
-static int selected_mode        = 1;
+static GLFWwindow * glfw_window;
+static ImVec4 background_colour = ImVec4( 0.4f, 0.4f, 0.4f, 0.f );
+static bool show_demo_window    = false;
+static bool show_keybindings    = false;
+static GUI_Mode selected_mode   = GUI_Mode::Minimizer;
 
 static bool dark_mode = true;
 
@@ -62,6 +62,14 @@ static main_window * global_window_handle;
 EM_JS( int, canvas_get_width, (), { return Module.canvas.width; } );
 EM_JS( int, canvas_get_height, (), { return Module.canvas.height; } );
 EM_JS( void, resizeCanvas, (), { js_resizeCanvas(); } );
+
+EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context_imgui;
+EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context_vfr;
+
+void emscripten_loop()
+{
+    global_window_handle->loop();
+}
 #endif
 
 static void glfw_error_callback( int error, const char * description )
@@ -71,6 +79,9 @@ static void glfw_error_callback( int error, const char * description )
 
 void mouseWheelCallback( GLFWwindow * window, double x_offset, double y_offset )
 {
+    if( ImGui::GetIO().WantCaptureMouse )
+        return;
+
     (void)window;
     (void)x_offset;
     float scale = 10;
@@ -109,6 +120,10 @@ void framebufferSizeCallback( GLFWwindow * window, int width, int height )
     (void)window;
     vfr_view.setFramebufferSize( width, height );
     // needs_redraw = true;
+
+#ifdef __EMSCRIPTEN__
+    resizeCanvas();
+#endif
 }
 
 void keyCallback( GLFWwindow * window, int key, int scancode, int action, int mods )
@@ -149,10 +164,25 @@ void windowRefreshCallback( GLFWwindow * window )
 void main_window::intitialize_gl()
 {
 #ifdef __EMSCRIPTEN__
-    EmscriptenWebGLContextAttributes attrs;
-    emscripten_webgl_init_context_attributes( &attrs );
-    attrs.majorVersion = 1;
-    attrs.minorVersion = 0;
+    EmscriptenWebGLContextAttributes attrs_imgui;
+    emscripten_webgl_init_context_attributes( &attrs_imgui );
+    attrs_imgui.majorVersion = 1;
+    attrs_imgui.minorVersion = 0;
+    attrs_imgui.alpha        = 1;
+
+    EmscriptenWebGLContextAttributes attrs_vfr;
+    emscripten_webgl_init_context_attributes( &attrs_vfr );
+    attrs_vfr.majorVersion = 1;
+    attrs_vfr.minorVersion = 0;
+
+    context_imgui = emscripten_webgl_create_context( "#imgui-canvas", &attrs_imgui );
+    context_vfr   = emscripten_webgl_create_context( "#vfr-canvas", &attrs_vfr );
+
+    int width  = canvas_get_width();
+    int height = canvas_get_height();
+
+    emscripten_webgl_make_context_current( context_imgui );
+    glfwSetWindowSize( glfw_window, width, height );
 #endif
     std::cout << "OpenGL Version: " << glGetString( GL_VERSION ) << std::endl;
 
@@ -219,47 +249,66 @@ void main_window::intitialize_gl()
         { { std::make_shared<VFRendering::CombinedRenderer>( vfr_view, vfr_renderers ), { { 0, 0, 1, 1 } } } } );
 }
 
-void main_window::draw_gl( int display_w, int display_h )
-{
-#ifdef __EMSCRIPTEN__
-    EmscriptenWebGLContextAttributes attrs;
-    emscripten_webgl_init_context_attributes( &attrs );
-    attrs.majorVersion = 1;
-    attrs.minorVersion = 0;
-#endif
-
-    glViewport( 0, 0, display_w, display_h );
-    vfr_view.setFramebufferSize( float( display_w ), float( display_h ) );
-    vfr_view.draw();
-}
-
 void main_window::loop()
 {
+    int display_w, display_h;
 #ifdef __EMSCRIPTEN__
-    int width  = canvas_get_width();
-    int height = canvas_get_height();
+    display_w = canvas_get_width();
+    display_h = canvas_get_height();
+    glfwSetWindowSize( glfw_window, display_w, display_h );
+#else
+    glfwMakeContextCurrent( glfw_window );
+    glfwGetFramebufferSize( glfw_window, &display_w, &display_h );
+#endif
 
-    glfwSetWindowSize( g_window, width, height );
+#ifdef __EMSCRIPTEN__
+    emscripten_webgl_make_context_current( context_imgui );
+    glViewport( 0, 0, display_w, display_h );
+    glClearColor( 0, 0, 0, 0 );
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 #endif
 
     glfwPollEvents();
 
+    draw_imgui( display_w, display_h );
+
+    glfwSwapBuffers( glfw_window );
+
+#ifdef __EMSCRIPTEN__
+    emscripten_webgl_make_context_current( context_vfr );
+#endif
+
+    draw_vfr( display_w, display_h );
+}
+
+void main_window::draw_vfr( int display_w, int display_h )
+{
+    vfr_view.setFramebufferSize( float( display_w ), float( display_h ) );
+    vfr_view.draw();
+}
+
+void main_window::draw_imgui( int display_w, int display_h )
+{
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
     ImGui::PushFont( font_14 );
 
-    widgets::show_menu_bar( g_window, font_16, dark_mode, background_colour, selected_mode, vfr_view );
+    widgets::show_menu_bar( glfw_window, font_16, dark_mode, background_colour, selected_mode, vfr_view );
     bool p_open = true;
     widgets::show_overlay( &p_open );
 
-    if( show_another_window )
+    if( show_keybindings )
     {
-        ImGui::Begin( "Another Window", &show_another_window );
-        ImGui::Text( "Hello from another window!" );
-        if( ImGui::Button( "Close Me" ) )
-            show_another_window = false;
+        ImGui::Begin( "Keybindings", &show_keybindings );
+        ImGui::Text( "F1: this window" );
+        ImGui::Text( "1-5: Choose mode" );
+        ImGui::Text( "c: switch camera projection (perspective/parallel)" );
+        ImGui::Text( "wasd: ..." );
+        ImGui::Text( "arrows: ..." );
+        if( ImGui::Button( "Close" ) )
+            show_keybindings = false;
         ImGui::End();
     }
 
@@ -269,53 +318,37 @@ void main_window::loop()
         ImGui::ShowDemoWindow( &show_demo_window );
     }
 
+    ImGui::Begin( "Test-window" );
+
+    static float f     = 0.0f;
+    static int counter = 0;
+    ImGui::Text( "Hello, world!" );
+    ImGui::SliderFloat( "float", &f, 0.0f, 1.0f );
+    if( ImGui::ColorEdit3( "clear color", (float *)&background_colour ) )
     {
-        static float f     = 0.0f;
-        static int counter = 0;
-        ImGui::Text( "Hello, world!" );
-        ImGui::SliderFloat( "float", &f, 0.0f, 1.0f );
-        if( ImGui::ColorEdit3( "clear color", (float *)&background_colour ) )
-        {
-            vfr_view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-                { background_colour.x, background_colour.y, background_colour.z } );
-        }
-
-        ImGui::Text( "Windows" );
-        ImGui::Checkbox( "Demo Window", &show_demo_window );
-        ImGui::Checkbox( "Another Window", &show_another_window );
-
-        if( ImGui::Button( "Button" ) )
-            counter++;
-        ImGui::SameLine();
-        ImGui::Text( "counter = %d", counter );
-
-        ImGui::Text(
-            "Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
-            ImGui::GetIO().Framerate );
-
-        static int antialiasing = 0;
-        ImGui::Text( fmt::format( "{}x antialiasing", antialiasing ).c_str() );
-        ImGui::SameLine();
-        ImGui::SliderInt( "antialiasing", &antialiasing, 0, 16 );
-        // glfwWindowHint( GLFW_SAMPLES, antialiasing ); // 16x antialiasing
-
-        if( ImGui::Button( "apply antialiasing" ) )
-            glfwWindowHint( GLFW_SAMPLES, antialiasing ); // 16x antialiasing
+        vfr_view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
+            { background_colour.x, background_colour.y, background_colour.z } );
     }
+
+    ImGui::Text( "Windows" );
+    ImGui::Checkbox( "Demo Window", &show_demo_window );
+    ImGui::Checkbox( "Keybindings", &show_keybindings );
+
+    if( ImGui::Button( "Button" ) )
+        counter++;
+    ImGui::SameLine();
+    ImGui::Text( "counter = %d", counter );
+
+    ImGui::Text(
+        "Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate );
+
+    ImGui::End();
 
     ImGui::PopFont();
 
     ImGui::Render();
 
-    int display_w, display_h;
-    glfwMakeContextCurrent( g_window );
-    glfwGetFramebufferSize( g_window, &display_w, &display_h );
-
-    draw_gl( display_w, display_h );
-
     ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );
-
-    glfwSwapBuffers( g_window );
 }
 
 void main_window::quit()
@@ -325,21 +358,16 @@ void main_window::quit()
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 
-    glfwDestroyWindow( g_window );
+    glfwDestroyWindow( glfw_window );
     glfwTerminate();
-}
-
-void emscripten_loop()
-{
-    global_window_handle->loop();
 }
 
 int main_window::run()
 {
 #ifdef __EMSCRIPTEN__
-    emscripten_set_main_loop( emscripten_loop, 0, 1 );
+    emscripten_set_main_loop( emscripten_loop, 0, true );
 #else
-    while( !glfwWindowShouldClose( g_window ) )
+    while( !glfwWindowShouldClose( glfw_window ) )
     {
         loop();
     }
@@ -378,13 +406,13 @@ main_window::main_window( std::shared_ptr<State> state )
     // Open a window and create its OpenGL context
     int canvasWidth  = 1280;
     int canvasHeight = 720;
-    g_window         = glfwCreateWindow( canvasWidth, canvasHeight, "Spirit - Magnetism Simulation Tool", NULL, NULL );
-    glfwMakeContextCurrent( g_window );
+    glfw_window      = glfwCreateWindow( canvasWidth, canvasHeight, "Spirit - Magnetism Simulation Tool", NULL, NULL );
+    glfwMakeContextCurrent( glfw_window );
 #ifndef __EMSCRIPTEN__
     glfwSwapInterval( 1 ); // Enable vsync
 #endif
 
-    if( g_window == NULL )
+    if( glfw_window == NULL )
     {
         std::cout << fmt::format( "Failed to open GLFW window.\n" );
         glfwTerminate();
@@ -400,7 +428,7 @@ main_window::main_window( std::shared_ptr<State> state )
     ImGuiIO & io   = ImGui::GetIO();
     io.IniFilename = "imgui_state.ini";
 
-    ImGui_ImplGlfw_InitForOpenGL( g_window, false );
+    ImGui_ImplGlfw_InitForOpenGL( glfw_window, false );
     ImGui_ImplOpenGL3_Init();
 
     intitialize_gl();
@@ -413,10 +441,10 @@ main_window::main_window( std::shared_ptr<State> state )
     font_16 = fonts::font_combined( 16 );
     font_18 = fonts::font_combined( 18 );
 
-    glfwSetScrollCallback( g_window, mouseWheelCallback );
-    glfwSetCursorPosCallback( g_window, mousePositionCallback );
-    glfwSetFramebufferSizeCallback( g_window, framebufferSizeCallback );
-    glfwSetKeyCallback( g_window, keyCallback );
+    glfwSetScrollCallback( glfw_window, mouseWheelCallback );
+    glfwSetCursorPosCallback( glfw_window, mousePositionCallback );
+    glfwSetFramebufferSizeCallback( glfw_window, framebufferSizeCallback );
+    glfwSetKeyCallback( glfw_window, keyCallback );
 
 #ifdef __EMSCRIPTEN__
     resizeCanvas();

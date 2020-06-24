@@ -6,13 +6,22 @@
 
 #include <fmt/format.h>
 
+#include <map>
 #include <string>
+
+static auto modes = std::map<GUI_Mode, std::pair<std::string, std::string>>{
+    { GUI_Mode::Minimizer, { "Minimizer", "(1) energy minimisation" } },
+    { GUI_Mode::MC, { "Monte Carlo", "(2) Monte Carlo Stochastical sampling" } },
+    { GUI_Mode::LLG, { "LLG", "(3) Landau-Lifshitz-Gilbert dynamics" } },
+    { GUI_Mode::GNEB, { "GNEB", "(4) geodesic nudged elastic band calculation" } },
+    { GUI_Mode::EMA, { "Eigenmodes", "(5) eigenmode calculation and visualisation" } }
+};
 
 namespace widgets
 {
 
 void show_menu_bar(
-    GLFWwindow * window, ImFont * font, bool & dark_mode, ImVec4 & background_colour, int & selected_mode,
+    GLFWwindow * window, ImFont * font, bool & dark_mode, ImVec4 & background_colour, GUI_Mode & selected_mode,
     VFRendering::View & vfr_view )
 {
     ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 7.f, 7.f ) );
@@ -78,10 +87,12 @@ void show_menu_bar(
 
         auto io            = ImGui::GetIO();
         auto & style       = ImGui::GetStyle();
-        float font_size_px = 14;
+        float font_size_px = font->FontSize;
         float right_edge   = ImGui::GetWindowContentRegionMax().x;
         float bar_height   = ImGui::GetWindowContentRegionMax().y + 2 * style.FramePadding.y;
         float width;
+
+        ImGui::PushStyleVar( ImGuiStyleVar_SelectableTextAlign, ImVec2( .5f, .5f ) );
 
         width = 2.5f * font_size_px;
         ImGui::SameLine( right_edge - width );
@@ -109,17 +120,25 @@ void show_menu_bar(
         }
         right_edge -= ( width + style.FramePadding.x );
 
-        std::string label;
-        static int N = 4;
-        for( int n = N; n > 0; n-- )
+        for( int n = modes.size(); n > 0; n-- )
         {
-            label = fmt::format( "Mode {}", n );
-            width = label.length() * font_size_px;
+            auto mode         = GUI_Mode( n );
+            std::string label = modes[mode].first;
+            width             = label.length() * font_size_px * 0.6;
             ImGui::SameLine( right_edge - width );
-            if( ImGui::Selectable( label.c_str(), selected_mode == n, 0, ImVec2( width, bar_height ) ) )
-                selected_mode = n;
-            right_edge -= ( width + style.FramePadding.x );
+            if( ImGui::Selectable( label.c_str(), selected_mode == mode, 0, ImVec2( width, bar_height ) ) )
+                selected_mode = mode;
+
+            if( ImGui::IsItemHovered() )
+            {
+                ImGui::BeginTooltip();
+                ImGui::Text( modes[mode].second.c_str() );
+                ImGui::EndTooltip();
+            }
+            right_edge -= ( width + 2 * style.FramePadding.x );
         }
+
+        ImGui::PopStyleVar();
 
         ImGui::EndMainMenuBar();
     }
