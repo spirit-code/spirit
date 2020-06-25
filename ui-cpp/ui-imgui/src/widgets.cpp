@@ -6,6 +6,8 @@
 
 #include <fmt/format.h>
 
+#include <nfd.h>
+
 #include <map>
 #include <string>
 
@@ -38,27 +40,83 @@ void show_menu_bar(
             if( ImGui::MenuItem( "New" ) )
             {
             }
-            if( ImGui::MenuItem( "Open", "Ctrl+O" ) )
+            if( ImGui::MenuItem( "Open", "ctrl+o" ) )
             {
+                nfdpathset_t pathSet;
+                nfdresult_t result = NFD_OpenDialogMultiple( "ovf;txt;csv", NULL, &pathSet );
+                if( result == NFD_OKAY )
+                {
+                    size_t i;
+                    for( i = 0; i < NFD_PathSet_GetCount( &pathSet ); ++i )
+                    {
+                        nfdchar_t * path = NFD_PathSet_GetPath( &pathSet, i );
+                        fmt::print( "File open path {}: \"{}\"\n", (int)i, path );
+                    }
+                    NFD_PathSet_Free( &pathSet );
+                }
+                else if( result == NFD_CANCEL )
+                {
+                    fmt::print( "User pressed cancel.\n" );
+                }
+                else
+                {
+                    fmt::print( "Error: {}\n", NFD_GetError() );
+                }
+            }
+            if( ImGui::MenuItem( "Save", "ctrl+s" ) )
+            {
+                nfdchar_t * savePath = NULL;
+                nfdresult_t result   = NFD_SaveDialog( "ovf;txt;csv", NULL, &savePath );
+                if( result == NFD_OKAY )
+                {
+                    fmt::print( "File save path: \"{}\"\n", savePath );
+                    free( savePath );
+                }
+                else if( result == NFD_CANCEL )
+                {
+                    fmt::print( "User pressed cancel.\n" );
+                }
+                else
+                {
+                    fmt::print( "Error: {}\n", NFD_GetError() );
+                }
+            }
+            if( ImGui::MenuItem( "Choose output folder" ) )
+            {
+                nfdchar_t * outPath = NULL;
+                nfdresult_t result  = NFD_PickFolder( NULL, &outPath );
+                if( result == NFD_OKAY )
+                {
+                    fmt::print( "Folder path: \"{}\"\n", outPath );
+                    free( outPath );
+                }
+                else if( result == NFD_CANCEL )
+                {
+                    fmt::print( "User pressed cancel.\n" );
+                }
+                else
+                {
+                    fmt::print( "Error: {}\n", NFD_GetError() );
+                }
             }
             ImGui::EndMenu();
         }
         if( ImGui::BeginMenu( "Edit" ) )
         {
-            if( ImGui::MenuItem( "Undo", "CTRL+Z" ) )
+            if( ImGui::MenuItem( "Undo", "ctrl+z" ) )
             {
             }
-            if( ImGui::MenuItem( "Redo", "CTRL+Y", false, false ) )
+            if( ImGui::MenuItem( "Redo", "ctrl+y", false, false ) )
             {
             } // Disabled item
             ImGui::Separator();
-            if( ImGui::MenuItem( "Cut", "CTRL+X" ) )
+            if( ImGui::MenuItem( "Cut", "ctrl+x" ) )
             {
             }
-            if( ImGui::MenuItem( "Copy", "CTRL+C" ) )
+            if( ImGui::MenuItem( "Copy", "ctrl+c" ) )
             {
             }
-            if( ImGui::MenuItem( "Paste", "CTRL+V" ) )
+            if( ImGui::MenuItem( "Paste", "ctrl+v" ) )
             {
             }
             ImGui::EndMenu();
@@ -69,7 +127,7 @@ void show_menu_bar(
             {
             }
             ImGui::Separator();
-            if( ImGui::MenuItem( "Fullscreen", "CTRL+SHIFT+F" ) )
+            if( ImGui::MenuItem( "Fullscreen", "ctrl+shift+f" ) )
             {
             }
             ImGui::EndMenu();

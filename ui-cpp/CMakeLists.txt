@@ -154,6 +154,25 @@ if( SPIRIT_UI_CXX_USE_IMGUI )
         ${IMGUI_SRC_DIR}
         ${CMAKE_CURRENT_LIST_DIR}/thirdparty
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/glad/include )
+
+    #----- Native file dialog
+    set( NFD_SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/nativefiledialog/src )
+
+    set( NFD_SOURCES
+        ${NFD_SRC_DIR}/nfd_common.c )
+
+    add_library( nativefiledialog STATIC ${NFD_SOURCES} )
+    target_include_directories( nativefiledialog PRIVATE ${NFD_SRC_DIR}/include )
+
+    if( APPLE )
+        target_sources( nativefiledialog PRIVATE ${NFD_SRC_DIR}/nfd_cocoa.m )
+    elseif( WIN32 )
+        target_sources( nativefiledialog PRIVATE ${NFD_SRC_DIR}/nfd_win.cpp )
+    elseif( IMGUI_TARGET_WEB )
+        target_sources( nativefiledialog PRIVATE ${NFD_SRC_DIR}/nfd_emscripten.cpp )
+    elseif(UNIX)
+        target_sources( nativefiledialog PRIVATE ${NFD_SRC_DIR}/nfd_gtk.c )
+    endif()
 endif()
 ####################################################################
 
@@ -318,6 +337,7 @@ if( SPIRIT_UI_CXX_USE_IMGUI )
         ${CMAKE_SOURCE_DIR}/VFRendering/include
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/glad/include
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/nativefiledialog/src/include
         ${CMAKE_SOURCE_DIR}/core/thirdparty )
 
     target_compile_definitions( ${PROJECT_NAME} PRIVATE -DSPIRIT_UI_CXX_USE_IMGUI )
@@ -325,7 +345,8 @@ if( SPIRIT_UI_CXX_USE_IMGUI )
     target_link_libraries( ${PROJECT_NAME} PRIVATE
         ${GL_LIBRARIES}
         imgui
-        VFRendering )
+        VFRendering
+        nativefiledialog )
 
     ### Note: emscripten brings its own glfw, so we don't need to build it in that case
     if( IMGUI_COMPILE_GLFW )
