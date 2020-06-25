@@ -27,8 +27,6 @@
 
 #include <fmt/format.h>
 
-#include <stdio.h>
-#include <cmath>
 #include <exception>
 
 static GLFWwindow * glfw_window;
@@ -74,7 +72,7 @@ void emscripten_loop()
 
 static void glfw_error_callback( int error, const char * description )
 {
-    std::cerr << fmt::format( "Glfw Error {}: {}\n", error, description );
+    fmt::print( "Glfw Error {}: {}\n", error, description );
 }
 
 void mouseWheelCallback( GLFWwindow * window, double x_offset, double y_offset )
@@ -184,7 +182,7 @@ void main_window::intitialize_gl()
     emscripten_webgl_make_context_current( context_imgui );
     glfwSetWindowSize( glfw_window, width, height );
 #endif
-    std::cout << "OpenGL Version: " << glGetString( GL_VERSION ) << std::endl;
+    fmt::print( "OpenGL Version: {}\n", glGetString( GL_VERSION ) );
 
     vfr_view.setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( 0.125f );
     vfr_view.setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( 0.3f );
@@ -231,16 +229,14 @@ void main_window::intitialize_gl()
     options.set<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>( 45 );
     vfr_view.updateOptions( options );
 
-    std::cout << "min       " << vfr_geometry.min().x << " " << vfr_geometry.min().y << " " << vfr_geometry.min().z
-              << "\n";
-    std::cout << "max       " << vfr_geometry.max().x << " " << vfr_geometry.max().y << " " << vfr_geometry.max().z
-              << "\n";
+    fmt::print( "min       {} {} {}\n", vfr_geometry.min().x, vfr_geometry.min().y, vfr_geometry.min().z );
+    fmt::print( "max       {} {} {}\n", vfr_geometry.max().x, vfr_geometry.max().y, vfr_geometry.max().z );
     auto sys_center = options.get<VFRendering::View::Option::SYSTEM_CENTER>();
-    std::cout << "system center at " << sys_center.x << " " << sys_center.y << " " << sys_center.z << "\n";
+    fmt::print( "system center at {} {} {}\n", sys_center.x, sys_center.y, sys_center.z );
     auto cam_center = options.get<VFRendering::View::Option::CENTER_POSITION>();
-    std::cout << "camera center at " << cam_center.x << " " << cam_center.y << " " << cam_center.z << "\n";
+    fmt::print( "camera center at {} {} {}\n", cam_center.x, cam_center.y, cam_center.z );
     auto cam = options.get<VFRendering::View::Option::CAMERA_POSITION>();
-    std::cout << "camera position at " << cam.x << " " << cam.y << " " << cam.z << "\n";
+    fmt::print( "camera position at {} {} {}\n", cam.x, cam.y, cam.z );
 
     auto vfr_arrow_renderer_ptr = std::make_shared<VFRendering::ArrowRenderer>( vfr_view, vfr_vectorfield );
     vfr_renderers.push_back( vfr_arrow_renderer_ptr );
@@ -388,7 +384,7 @@ main_window::main_window( std::shared_ptr<State> state )
 
     if( !glfwInit() )
     {
-        std::cout << fmt::format( "Failed to initialize GLFW\n" );
+        fmt::print( "Failed to initialize GLFW\n" );
         // return 1;
         throw std::runtime_error( "Failed to initialize GLFW" );
     }
@@ -414,7 +410,7 @@ main_window::main_window( std::shared_ptr<State> state )
 
     if( glfw_window == NULL )
     {
-        std::cout << fmt::format( "Failed to open GLFW window.\n" );
+        fmt::print( "Failed to open GLFW window.\n" );
         glfwTerminate();
         // return -1;
         throw std::runtime_error( "Failed to open GLFW window." );
