@@ -8,7 +8,8 @@ enum class GUI_Mode
     MC        = 2,
     LLG       = 3,
     GNEB      = 4,
-    EMA       = 5
+    MMF       = 5,
+    EMA       = 6
 };
 
 #endif

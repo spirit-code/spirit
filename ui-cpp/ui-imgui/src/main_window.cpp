@@ -33,6 +33,7 @@ static GLFWwindow * glfw_window;
 static ImVec4 background_colour = ImVec4( 0.4f, 0.4f, 0.4f, 0.f );
 static bool show_demo_window    = false;
 static bool show_keybindings    = false;
+static bool show_about          = false;
 static GUI_Mode selected_mode   = GUI_Mode::Minimizer;
 
 static bool dark_mode = true;
@@ -128,26 +129,115 @@ void keyCallback( GLFWwindow * window, int key, int scancode, int action, int mo
 {
     (void)window;
     (void)scancode;
-    if( mods != 0 )
-    {
-        return;
-    }
     if( action != GLFW_PRESS && action != GLFW_REPEAT )
     {
         return;
     }
+    if( mods & GLFW_MOD_CONTROL )
+    {
+        switch( key )
+        {
+            case GLFW_KEY_R:
+            {
+                VFRendering::Options options;
+                options.set<VFRendering::View::Option::CAMERA_POSITION>( { 0, 0, 30 } );
+                options.set<VFRendering::View::Option::CENTER_POSITION>( { 0, 0, 0 } );
+                options.set<VFRendering::View::Option::UP_VECTOR>( { 0, 1, 0 } );
+                vfr_view.updateOptions( options );
+                // needs_redraw = true;
+                break;
+            }
+        }
+    }
     switch( key )
     {
+        case GLFW_KEY_F1:
+        {
+            show_keybindings = !show_keybindings;
+            break;
+        }
+        //-----------------------------------------------------
+        // TODO: deactivate method selection if a calculation is running
+        case GLFW_KEY_1:
+        {
+            selected_mode = GUI_Mode::Minimizer;
+            break;
+        }
+        case GLFW_KEY_2:
+        {
+            selected_mode = GUI_Mode::MC;
+            break;
+        }
+        case GLFW_KEY_3:
+        {
+            selected_mode = GUI_Mode::LLG;
+            break;
+        }
+        case GLFW_KEY_4:
+        {
+            selected_mode = GUI_Mode::GNEB;
+            break;
+        }
+        case GLFW_KEY_5:
+        {
+            selected_mode = GUI_Mode::MMF;
+            break;
+        }
+        case GLFW_KEY_6:
+        {
+            selected_mode = GUI_Mode::EMA;
+            break;
+        }
+        //-----------------------------------------------------
+        case GLFW_KEY_W:
+        {
+            break;
+        }
+        case GLFW_KEY_A:
+        {
+            break;
+        }
+        case GLFW_KEY_S:
+        {
+            break;
+        }
+        case GLFW_KEY_D:
+        {
+            break;
+        }
+        case GLFW_KEY_Q:
+        {
+            break;
+        }
+        case GLFW_KEY_E:
+        {
+            break;
+        }
+        //-----------------------------------------------------
+        case GLFW_KEY_T:
+        {
+            break;
+        }
+        case GLFW_KEY_F:
+        {
+            break;
+        }
+        case GLFW_KEY_G:
+        {
+            break;
+        }
+        case GLFW_KEY_H:
+        {
+            break;
+        }
         case GLFW_KEY_R:
         {
-            VFRendering::Options options;
-            options.set<VFRendering::View::Option::CAMERA_POSITION>( { 0, 0, 30 } );
-            options.set<VFRendering::View::Option::CENTER_POSITION>( { 0, 0, 0 } );
-            options.set<VFRendering::View::Option::UP_VECTOR>( { 0, 1, 0 } );
-            vfr_view.updateOptions( options );
+            break;
         }
-        // needs_redraw = true;
-        break;
+        case GLFW_KEY_Z:
+        {
+            break;
+        }
     }
 }
 
@@ -291,22 +381,17 @@ void main_window::draw_imgui( int display_w, int display_h )
 
     ImGui::PushFont( font_14 );
 
-    widgets::show_menu_bar( glfw_window, font_16, dark_mode, background_colour, selected_mode, vfr_view );
+    widgets::show_menu_bar(
+        glfw_window, font_16, dark_mode, background_colour, selected_mode, vfr_view, show_keybindings, show_about );
     bool p_open = true;
-    widgets::show_overlay( &p_open );
+    widgets::show_overlay_system( &p_open );
+    widgets::show_overlay_calculation( &p_open, selected_mode );
 
-    if( show_keybindings )
-    {
-        ImGui::Begin( "Keybindings", &show_keybindings );
-        ImGui::Text( "F1: this window" );
-        ImGui::Text( "1-5: Choose mode" );
-        ImGui::Text( "c: switch camera projection (perspective/parallel)" );
-        ImGui::Text( "wasd: ..." );
-        ImGui::Text( "arrows: ..." );
-        if( ImGui::Button( "Close" ) )
-            show_keybindings = false;
-        ImGui::End();
-    }
+    widgets::show_parameters( selected_mode );
+
+    widgets::show_keybindings( show_keybindings );
+
+    widgets::show_about( show_about );
 
     if( show_demo_window )
     {
