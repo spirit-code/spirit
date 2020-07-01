@@ -3,6 +3,7 @@
 #include <widgets.hpp>
 
 #include <Spirit/Simulation.h>
+#include <Spirit/System.h>
 #include <Spirit/Version.h>
 
 #include <imgui/imgui.h>
@@ -13,6 +14,7 @@
 
 #include <map>
 #include <string>
+#include <thread>
 
 static auto modes = std::map<GUI_Mode, std::pair<std::string, std::string>>{
     { GUI_Mode::Minimizer, { "Minimizer", "(1) energy minimisation" } },
@@ -23,7 +25,13 @@ static auto modes = std::map<GUI_Mode, std::pair<std::string, std::string>>{
     { GUI_Mode::EMA, { "Eigenmodes", "(6) eigenmode calculation and visualisation" } }
 };
 
-static auto solvers = std::map<int, std::pair<std::string, std::string>>{
+static auto solvers_llg
+    = std::map<int, std::pair<std::string, std::string>>{ { Solver_SIB, { "SIB", "Semi-implicit method B" } },
+                                                          { Solver_Depondt, { "Depondt", "Depondt" } },
+                                                          { Solver_Heun, { "Heun", "Heun" } },
+                                                          { Solver_RungeKutta4, { "RK4", "4th order Runge-Kutta" } } };
+
+static auto solvers_min = std::map<int, std::pair<std::string, std::string>>{
     { Solver_VP, { "VP", "Velocity Projection" } },
     { Solver_VP_OSO, { "VP (OSO)", "Velocity Projection (OSO)" } },
     { Solver_SIB, { "SIB", "Semi-implicit method B" } },
@@ -39,7 +47,8 @@ namespace widgets
 
 void show_menu_bar(
     GLFWwindow * window, ImFont * font, bool & dark_mode, ImVec4 & background_colour, GUI_Mode & selected_mode,
-    VFRendering::View & vfr_view, bool & show_keybindings, bool & show_about )
+    int & selected_solver, VFRendering::View & vfr_view, bool & show_keybindings, bool & show_about,
+    std::shared_ptr<State> state, std::vector<std::thread> & threads_image, std::thread & thread_chain )
 {
     ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 7.f, 7.f ) );
     ImGui::PushFont( font );
@@ -300,12 +309,13 @@ void show_menu_bar(
             ImGui::EndMenu();
         }
 
+        float menu_end = ImGui::GetCursorPosX();
+
         auto io            = ImGui::GetIO();
         auto & style       = ImGui::GetStyle();
         float font_size_px = font->FontSize;
         float right_edge   = ImGui::GetWindowContentRegionMax().x;
         float bar_height   = ImGui::GetWindowContentRegionMax().y + 2 * style.FramePadding.y;
-        float middle       = 0.5f * ( ImGui::GetWindowContentRegionMax().x - ImGui::GetWindowContentRegionMin().x );
         float width;
 
         ImGui::PushStyleVar( ImGuiStyleVar_SelectableTextAlign, ImVec2( .5f, .5f ) );
@@ -317,7 +327,7 @@ void show_menu_bar(
             if( ImGui::Button( ICON_FA_SUN, ImVec2( width, bar_height ) ) )
             {
                 ImGui::StyleColorsLight();
-                background_colour = ImVec4( 0.7f, 0.7f, 0.7f, 1.f );
+                background_colour = ImVec4( 0.9f, 0.9f, 0.9f, 1.f );
                 dark_mode         = false;
                 vfr_view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
                     { background_colour.x, background_colour.y, background_colour.z } );
@@ -355,26 +365,90 @@ void show_menu_bar(
             right_edge -= ( width + 2 * style.FramePadding.x );
         }
 
-        width = 2.5f * font_size_px;
-        ImGui::SameLine( middle - width, 0 );
-        static bool calculation_running = false;
+        width             = 2.5f * font_size_px;
+        float total_width = 3 * width + 40 + 4 * style.FramePadding.x;
+        float start       = menu_end + 0.5f * ( right_edge - menu_end - total_width );
+
+        ImGui::SameLine( start, 0 );
+        bool calculation_running
+            = Simulation_Running_On_Chain( state.get() ) || Simulation_Running_On_Image( state.get() );
         if( calculation_running )
         {
             if( ImGui::Button( ICON_FA_STOP_CIRCLE, ImVec2( width, bar_height ) ) )
             {
+                // Running, so we stop it
+                Simulation_Stop( state.get() );
+                // Join the thread of the stopped simulation
+                if( threads_image[System_Get_Index( state.get() )].joinable() )
+                    threads_image[System_Get_Index( state.get() )].join();
+                else if( thread_chain.joinable() )
+                    thread_chain.join();
+                // this->spinWidget->updateData();
             }
         }
         else
         {
             if( ImGui::Button( ICON_FA_PLAY_CIRCLE, ImVec2( width, bar_height ) ) )
             {
+                // Not running, so we start it
+                if( selected_mode == GUI_Mode::Minimizer )
+                {
+                    int idx = System_Get_Index( state.get() );
+                    if( threads_image[idx].joinable() )
+                        threads_image[System_Get_Index( state.get() )].join();
+                    threads_image[System_Get_Index( state.get() )]
+                        = std::thread( &Simulation_LLG_Start, state.get(), selected_solver, -1, -1, false, -1, -1 );
+                }
+                else if( selected_mode == GUI_Mode::LLG )
+                {
+                    int idx = System_Get_Index( state.get() );
+                    if( threads_image[idx].joinable() )
+                        threads_image[System_Get_Index( state.get() )].join();
+                    threads_image[System_Get_Index( state.get() )]
+                        = std::thread( &Simulation_LLG_Start, state.get(), selected_solver, -1, -1, false, -1, -1 );
+                }
+                else if( selected_mode == GUI_Mode::MC )
+                {
+                    int idx = System_Get_Index( state.get() );
+                    if( threads_image[idx].joinable() )
+                        threads_image[System_Get_Index( state.get() )].join();
+                    threads_image[System_Get_Index( state.get() )]
+                        = std::thread( &Simulation_MC_Start, state.get(), -1, -1, false, -1, -1 );
+                }
+                else if( selected_mode == GUI_Mode::GNEB )
+                {
+                    if( thread_chain.joinable() )
+                        thread_chain.join();
+                    thread_chain
+                        = std::thread( &Simulation_GNEB_Start, state.get(), selected_solver, -1, -1, false, -1 );
+                }
+                else if( selected_mode == GUI_Mode::MMF )
+                {
+                    int idx = System_Get_Index( state.get() );
+                    if( threads_image[idx].joinable() )
+                        threads_image[System_Get_Index( state.get() )].join();
+                    threads_image[System_Get_Index( state.get() )]
+                        = std::thread( &Simulation_MMF_Start, state.get(), selected_solver, -1, -1, false, -1, -1 );
+                }
+                else if( selected_mode == GUI_Mode::EMA )
+                {
+                    int idx = System_Get_Index( state.get() );
+                    if( threads_image[idx].joinable() )
+                        threads_image[System_Get_Index( state.get() )].join();
+                    threads_image[System_Get_Index( state.get() )]
+                        = std::thread( &Simulation_EMA_Start, state.get(), -1, -1, false, -1, -1 );
+                }
             }
         }
+
         if( ImGui::Button( ICON_FA_ARROW_LEFT, ImVec2( width, bar_height ) ) )
         {
         }
-        // static char image_number[6] = "0";
-        // ImGui::InputText( "", image_number, 6, ImGuiInputTextFlags_CharsDecimal );
+
+        static ImU32 image_number = (ImU32)1;
+        ImGui::SetNextItemWidth( 40 );
+        ImGui::InputScalar( "", ImGuiDataType_U32, &image_number, NULL, NULL, "%u" );
+
         if( ImGui::Button( ICON_FA_ARROW_RIGHT, ImVec2( width, bar_height ) ) )
         {
         }
@@ -384,6 +458,78 @@ void show_menu_bar(
         ImGui::EndMainMenuBar();
     }
     ImGui::PopFont();
+}
+
+void show_energy_plot()
+{
+    auto & style = ImGui::GetStyle();
+
+    static bool plot_image_energies        = true;
+    static bool plot_interpolated_energies = true;
+
+    static bool animate = true;
+    // static float values[90]    = {};
+    static std::vector<float> energies( 90, 0 );
+    static int values_offset   = 0;
+    static double refresh_time = 0.0;
+    if( !animate || refresh_time == 0.0 )
+        refresh_time = ImGui::GetTime();
+    while( refresh_time < ImGui::GetTime() ) // Create dummy data at fixed 60 Hz rate for the demo
+    {
+        static float phase      = 0.0f;
+        energies[values_offset] = cosf( phase );
+        values_offset           = ( values_offset + 1 ) % energies.size();
+        phase += 0.10f * values_offset;
+        refresh_time += 1.0f / 60.0f;
+    }
+
+    ImGui::Begin( "Plots" );
+    {
+        ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
+        if( ImGui::BeginTabBar( "plots_tab_bar", tab_bar_flags ) )
+        {
+            if( ImGui::BeginTabItem( "Energy" ) )
+            {
+                std::string overlay = fmt::format( "{:.3e}", energies[energies.size() - 1] );
+
+                // ImGui::Text( "E" );
+                // ImGui::SameLine();
+                ImGui::PlotLines(
+                    "", energies.data(), energies.size(), values_offset, overlay.c_str(), -1.0f, 1.0f,
+                    ImVec2(
+                        ImGui::GetWindowContentRegionMax().x - 2 * style.FramePadding.x,
+                        ImGui::GetWindowContentRegionMax().y - 110.f ) );
+
+                ImGui::Checkbox( "Image energies", &plot_image_energies );
+                ImGui::Checkbox( "Interpolated energies", &plot_interpolated_energies );
+                ImGui::SameLine();
+                static bool inputs_step = true;
+                const ImU32 u32_one     = (ImU32)1;
+                static ImU32 u32_v      = (ImU32)10;
+                ImGui::PushItemWidth( 100 );
+                ImGui::InputScalar( " ", ImGuiDataType_U32, &u32_v, inputs_step ? &u32_one : NULL, NULL, "%u" );
+                ImGui::PopItemWidth();
+
+                ImGui::EndTabItem();
+            }
+            if( ImGui::BeginTabItem( "Convergence" ) )
+            {
+                std::string overlay = fmt::format( "{:.3e}", energies[energies.size() - 1] );
+
+                // ImGui::Text( "F" );
+                // ImGui::SameLine();
+                ImGui::PlotLines(
+                    "", energies.data(), energies.size(), values_offset, overlay.c_str(), -1.0f, 1.0f,
+                    ImVec2(
+                        ImGui::GetWindowContentRegionMax().x - 2 * style.FramePadding.x,
+                        ImGui::GetWindowContentRegionMax().y - 90.f ) );
+
+                ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
+        }
+    }
+    ImGui::End();
 }
 
 void show_parameters( GUI_Mode & selected_mode )
@@ -521,9 +667,8 @@ void show_overlay_system( bool * p_open )
     ImGui::End();
 }
 
-void show_overlay_calculation( bool * p_open, GUI_Mode & selected_mode )
+void show_overlay_calculation( bool * p_open, GUI_Mode & selected_mode, int & selected_solver )
 {
-    static int selected_solver  = Solver_VP_OSO;
     static float simulated_time = 0;
     static float wall_time      = 0;
     static int iteration        = 0;
@@ -559,6 +704,10 @@ void show_overlay_calculation( bool * p_open, GUI_Mode & selected_mode )
         if( selected_mode == GUI_Mode::Minimizer || selected_mode == GUI_Mode::LLG || selected_mode == GUI_Mode::GNEB
             || selected_mode == GUI_Mode::MMF )
         {
+            auto & solvers = solvers_min;
+            if( selected_mode == GUI_Mode::LLG )
+                solvers = solvers_llg;
+
             if( ImGui::Button( fmt::format( "Solver: {}", solvers[selected_solver].first ).c_str() ) )
                 ImGui::OpenPopup( "solver_popup" );
             if( ImGui::BeginPopup( "solver_popup" ) )
@@ -576,7 +725,6 @@ void show_overlay_calculation( bool * p_open, GUI_Mode & selected_mode )
             ImGui::Text( fmt::format( "t = {} ps", simulated_time ).c_str() );
         }
 
-        ImGui::Text( "- x\n- y [xy](https://google.com)" );
         ImGui::Text( fmt::format( "{:0>2d}:{:0>2d}:{:0>2d}.{:0>3d}", hours, minutes, seconds, milliseconds ).c_str() );
         ImGui::Text( fmt::format( "Iteration: {}", iteration ).c_str() );
         ImGui::Text( fmt::format( "IPS: {:.2f}", ips ).c_str() );
