@@ -11,6 +11,8 @@
 #include <thread>
 #include <vector>
 
+struct State;
+
 namespace widgets
 {
 

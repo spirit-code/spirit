@@ -224,14 +224,24 @@ void main_window::handle_mouse()
 {
     auto & io = ImGui::GetIO();
 
-    float scale = 10;
+    float scroll = 10;
     if( io.KeyShift )
-        scale = 1;
+        scroll = 1;
+
+#ifndef __EMSCRIPTEN__
+    scroll *= -io.MouseWheel;
+#else
+    scroll *= ( io.MouseWheel > 0 ? 1 : ( io.MouseWheel < 0 ? -1 : 0 ) );
+#endif
 
     if( io.MouseWheel )
     {
-        vfr_view.mouseScroll( -scale * io.MouseWheel );
+        vfr_view.mouseScroll( scroll );
     }
+
+    float scale = 10;
+    if( io.KeyShift )
+        scale = 1;
 
     if( ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_LEFT ) && !ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_RIGHT ) )
     {
