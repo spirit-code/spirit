@@ -16,32 +16,6 @@
 #include <string>
 #include <thread>
 
-static auto modes = std::map<GUI_Mode, std::pair<std::string, std::string>>{
-    { GUI_Mode::Minimizer, { "Minimizer", "(1) energy minimisation" } },
-    { GUI_Mode::MC, { "Monte Carlo", "(2) Monte Carlo Stochastical sampling" } },
-    { GUI_Mode::LLG, { "LLG", "(3) Landau-Lifshitz-Gilbert dynamics" } },
-    { GUI_Mode::GNEB, { "GNEB", "(4) geodesic nudged elastic band calculation" } },
-    { GUI_Mode::MMF, { "MMF", "(5) minimum mode following saddle point search" } },
-    { GUI_Mode::EMA, { "Eigenmodes", "(6) eigenmode calculation and visualisation" } }
-};
-
-static auto solvers_llg
-    = std::map<int, std::pair<std::string, std::string>>{ { Solver_SIB, { "SIB", "Semi-implicit method B" } },
-                                                          { Solver_Depondt, { "Depondt", "Depondt" } },
-                                                          { Solver_Heun, { "Heun", "Heun" } },
-                                                          { Solver_RungeKutta4, { "RK4", "4th order Runge-Kutta" } } };
-
-static auto solvers_min = std::map<int, std::pair<std::string, std::string>>{
-    { Solver_VP, { "VP", "Velocity Projection" } },
-    { Solver_VP_OSO, { "VP (OSO)", "Velocity Projection (OSO)" } },
-    { Solver_SIB, { "SIB", "Semi-implicit method B" } },
-    { Solver_Depondt, { "Depondt", "Depondt" } },
-    { Solver_Heun, { "Heun", "Heun" } },
-    { Solver_RungeKutta4, { "RK4", "4th order Runge-Kutta" } },
-    { Solver_LBFGS_OSO, { "LBFGS (OSO)", "LBFGS (OSO)" } },
-    { Solver_LBFGS_Atlas, { "LBFGS (Atlas)", "LBFGS (Atlas)" } }
-};
-
 namespace widgets
 {
 
@@ -50,6 +24,15 @@ void show_menu_bar(
     int & selected_solver, VFRendering::View & vfr_view, bool & show_keybindings, bool & show_about,
     std::shared_ptr<State> state, std::vector<std::thread> & threads_image, std::thread & thread_chain )
 {
+    static auto modes = std::map<GUI_Mode, std::pair<std::string, std::string>>{
+        { GUI_Mode::Minimizer, { "Minimizer", "(1) energy minimisation" } },
+        { GUI_Mode::MC, { "Monte Carlo", "(2) Monte Carlo Stochastical sampling" } },
+        { GUI_Mode::LLG, { "LLG", "(3) Landau-Lifshitz-Gilbert dynamics" } },
+        { GUI_Mode::GNEB, { "GNEB", "(4) geodesic nudged elastic band calculation" } },
+        { GUI_Mode::MMF, { "MMF", "(5) minimum mode following saddle point search" } },
+        { GUI_Mode::EMA, { "Eigenmodes", "(6) eigenmode calculation and visualisation" } }
+    };
+
     ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 7.f, 7.f ) );
     ImGui::PushFont( font );
 
@@ -669,6 +652,24 @@ void show_overlay_system( bool * p_open )
 
 void show_overlay_calculation( bool * p_open, GUI_Mode & selected_mode, int & selected_solver )
 {
+    static auto solvers_llg
+        = std::map<int, std::pair<std::string, std::string>>{ { Solver_SIB, { "SIB", "Semi-implicit method B" } },
+                                                              { Solver_Depondt, { "Depondt", "Depondt" } },
+                                                              { Solver_Heun, { "Heun", "Heun" } },
+                                                              { Solver_RungeKutta4,
+                                                                { "RK4", "4th order Runge-Kutta" } } };
+
+    static auto solvers_min = std::map<int, std::pair<std::string, std::string>>{
+        { Solver_VP, { "VP", "Velocity Projection" } },
+        { Solver_VP_OSO, { "VP (OSO)", "Velocity Projection (OSO)" } },
+        { Solver_SIB, { "SIB", "Semi-implicit method B" } },
+        { Solver_Depondt, { "Depondt", "Depondt" } },
+        { Solver_Heun, { "Heun", "Heun" } },
+        { Solver_RungeKutta4, { "RK4", "4th order Runge-Kutta" } },
+        { Solver_LBFGS_OSO, { "LBFGS (OSO)", "LBFGS (OSO)" } },
+        { Solver_LBFGS_Atlas, { "LBFGS (Atlas)", "LBFGS (Atlas)" } }
+    };
+
     static float simulated_time = 0;
     static float wall_time      = 0;
     static int iteration        = 0;
