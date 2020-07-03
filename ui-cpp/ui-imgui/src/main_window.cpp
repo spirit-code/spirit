@@ -569,6 +569,7 @@ void main_window::handle_keyboard()
 }
 
 void main_window::start_stop()
+try
 {
     Log_Send( state.get(), Log_Level_Debug, Log_Sender_UI, "Start/Stop" );
 
@@ -634,12 +635,16 @@ void main_window::start_stop()
             this->threads_image[System_Get_Index( state.get() )]
                 = std::thread( &Simulation_EMA_Start, this->state.get(), -1, -1, false, -1, -1 );
         }
-        // New button text
     }
-    // this->spinWidget->updateData();
+}
+catch( const std::exception & e )
+{
+    Log_Send(
+        state.get(), Log_Level_Error, Log_Sender_UI, fmt::format( "caught std::exception: {}\n", e.what() ).c_str() );
 }
 
 void main_window::stop_current()
+try
 {
     Log_Send( state.get(), Log_Level_Debug, Log_Sender_UI, "Stopping all" );
 
@@ -664,6 +669,11 @@ void main_window::stop_current()
         else if( thread_chain.joinable() )
             thread_chain.join();
     }
+}
+catch( const std::exception & e )
+{
+    Log_Send(
+        state.get(), Log_Level_Error, Log_Sender_UI, fmt::format( "caught std::exception: {}\n", e.what() ).c_str() );
 }
 
 void main_window::loop()

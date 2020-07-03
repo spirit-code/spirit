@@ -1,9 +1,11 @@
+#ifndef __EMSCRIPTEN__
+
 #include "utility/Handle_Signal.hpp"
 #include <lyra/lyra.hpp>
 
 #ifdef SPIRIT_UI_CXX_USE_QT
 #include "MainWindow.hpp"
-#elif SPIRIT_UI_CXX_USE_IMGUI
+#elif SPIRIT_UI_USE_IMGUI
 #include "main_window.hpp"
 #endif
 
@@ -40,10 +42,6 @@ int main( int argc, char ** argv )
     std::string cfgfile   = "input/input.cfg";
     std::string imagefile = "";
     std::string chainfile = "";
-
-#ifdef __EMSCRIPTEN__
-    cfgfile = "";
-#endif
 
     // Command line arguments
     auto cli
@@ -146,7 +144,7 @@ int main( int argc, char ** argv )
     state.reset();
     return exec;
     //-------------------------------------------------------------------------------
-#elif defined( SPIRIT_UI_CXX_USE_IMGUI )
+#elif defined( SPIRIT_UI_USE_IMGUI )
     main_window window( state );
 
     // Open the Application
@@ -166,3 +164,5 @@ int main( int argc, char ** argv )
     state.reset();
     return 0;
 }
+
+#endif

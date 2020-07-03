@@ -31,9 +31,9 @@ set( SPIRIT_CUDA_ARCH   "sm_60"  CACHE STRING "The CUDA compute architecture to 
 ####################################################################
 ### CMake Verbosity
 option( SPIRIT_PRINT_SOURCES    "Print Headers and Sources from Cmake."                          OFF )
-### Decide CXX UI
+### Decide UI
+option( SPIRIT_UI_USE_IMGUI     "Build the ImGUI user interface instead of the console version." ON  )
 option( SPIRIT_UI_CXX_USE_QT    "Build the QT user interface instead of the console version."    OFF )
-option( SPIRIT_UI_CXX_USE_IMGUI "Build the ImGUI user interface instead of the console version." ON  )
 ### Bundle option
 option( SPIRIT_BUNDLE_APP       "On installation, bundle the executable with its dependencies."  OFF )
 ### Option for building on the IFF cluster
@@ -68,6 +68,10 @@ set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 set( CMAKE_CXX_STANDARD 11 )
 ### Set the cmake subdirectory
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" )
+### Need to use pthread if emscripten is used
+if( SPIRIT_BUILD_FOR_JS AND SPIRIT_UI_USE_IMGUI )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=2")
+endif()
 ####################################################################
 
 
@@ -253,10 +257,11 @@ add_subdirectory( core )
 ### Web UI
 if( SPIRIT_BUILD_FOR_JS )
     add_subdirectory( VFRendering )
-    add_subdirectory( ui-web )
-    if( SPIRIT_UI_CXX_USE_IMGUI )
-        add_definitions( -DSPIRIT_UI_CXX_USE_IMGUI )
+    if( SPIRIT_UI_USE_IMGUI )
+        add_definitions( -DSPIRIT_UI_USE_IMGUI )
         add_subdirectory( ui-cpp )
+    else()
+        add_subdirectory( ui-web )
     endif()
 ### CXX UI
 elseif( SPIRIT_BUILD_FOR_CXX )
@@ -264,8 +269,8 @@ elseif( SPIRIT_BUILD_FOR_CXX )
         add_definitions( -DSPIRIT_UI_CXX_USE_QT )
         add_subdirectory( VFRendering )
     endif()
-    if( SPIRIT_UI_CXX_USE_IMGUI )
-        add_definitions( -DSPIRIT_UI_CXX_USE_IMGUI )
+    if( SPIRIT_UI_USE_IMGUI )
+        add_definitions( -DSPIRIT_UI_USE_IMGUI )
         add_subdirectory( VFRendering )
     endif()
     add_subdirectory( ui-cpp )

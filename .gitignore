@@ -34,6 +34,7 @@ libSpirit.wasm
 libSpirit.wast
 spirit.js
 spirit.wasm
+spirit.worker.js
 
 ### Generated Files
 core/python/LICENSE.txt
