@@ -24,6 +24,7 @@ void show_parameters( GUI_Mode & selected_mode );
 void show_overlay_system( bool * p_open );
 void show_overlay_calculation( bool * p_open, GUI_Mode & selected_mode, int & selected_solver );
 void show_energy_plot();
+void show_visualisation_settings( VFRendering::View & vfr_view, ImVec4 & background_colour );
 void show_keybindings( bool & show_keybindings );
 void show_about( bool & show_about );
 void help_marker( const char * description );

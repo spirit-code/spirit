@@ -8,6 +8,8 @@
 
 #include <imgui/imgui.h>
 
+#include <imgui-gizmo3d/imGuIZMOquat.h>
+
 #include <fmt/format.h>
 
 #include <nfd.h>
@@ -430,7 +432,7 @@ void show_menu_bar(
 
         static ImU32 image_number = (ImU32)1;
         ImGui::SetNextItemWidth( 40 );
-        ImGui::InputScalar( "", ImGuiDataType_U32, &image_number, NULL, NULL, "%u" );
+        ImGui::InputScalar( "##imagenumber", ImGuiDataType_U32, &image_number, NULL, NULL, "%u" );
 
         if( ImGui::Button( ICON_FA_ARROW_RIGHT, ImVec2( width, bar_height ) ) )
         {
@@ -490,7 +492,8 @@ void show_energy_plot()
                 const ImU32 u32_one     = (ImU32)1;
                 static ImU32 u32_v      = (ImU32)10;
                 ImGui::PushItemWidth( 100 );
-                ImGui::InputScalar( " ", ImGuiDataType_U32, &u32_v, inputs_step ? &u32_one : NULL, NULL, "%u" );
+                ImGui::InputScalar(
+                    "##energies", ImGuiDataType_U32, &u32_v, inputs_step ? &u32_one : NULL, NULL, "%u" );
                 ImGui::PopItemWidth();
 
                 ImGui::EndTabItem();
@@ -556,9 +559,32 @@ void show_parameters( GUI_Mode & selected_mode )
     ImGui::End();
 }
 
-void show_visualisation_settings()
+void show_visualisation_settings( VFRendering::View & vfr_view, ImVec4 & background_colour )
 {
-    ImGui::Begin( "Visualisation Settings" );
+    ImGui::Begin( "Visualisation settings" );
+
+    ImGui::Text( "Background color" );
+    if( ImGui::ColorEdit3( "##bgcolour", (float *)&background_colour ) )
+    {
+        vfr_view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
+            { background_colour.x, background_colour.y, background_colour.z } );
+    }
+
+    ImGui::Separator();
+
+    static vgm::Vec3 dir( 0, 0, -1 );
+    ImGui::Text( "Light direction" );
+    ImGui::Columns( 2, "lightdircolumns", false ); // 3-ways, no border
+    if( ImGui::gizmo3D( "##dir", dir ) )
+    {
+        vfr_view.setOption<VFRendering::View::Option::LIGHT_POSITION>(
+            { -1000 * dir.x, -1000 * dir.y, -1000 * dir.z } );
+    }
+    ImGui::NextColumn();
+    ImGui::Text( fmt::format( "{:>6.3f}", dir.x ).c_str() );
+    ImGui::Text( fmt::format( "{:>6.3f}", dir.y ).c_str() );
+    ImGui::Text( fmt::format( "{:>6.3f}", dir.z ).c_str() );
+    ImGui::Columns( 1 );
     ImGui::End();
 }
 

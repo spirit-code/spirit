@@ -949,6 +949,8 @@ void main_window::draw_imgui( int display_w, int display_h )
 
     widgets::show_parameters( selected_mode );
 
+    widgets::show_visualisation_settings( vfr_view, background_colour );
+
     widgets::show_energy_plot();
 
     widgets::show_keybindings( show_keybindings );
@@ -967,11 +969,6 @@ void main_window::draw_imgui( int display_w, int display_h )
     static int counter = 0;
     ImGui::Text( "Hello, world!" );
     ImGui::SliderFloat( "float", &f, 0.0f, 1.0f );
-    if( ImGui::ColorEdit3( "clear color", (float *)&background_colour ) )
-    {
-        vfr_view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-            { background_colour.x, background_colour.y, background_colour.z } );
-    }
 
     ImGui::Text( "Windows" );
     ImGui::Checkbox( "Demo Window", &show_demo_window );
