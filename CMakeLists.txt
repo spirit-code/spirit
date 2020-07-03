@@ -201,6 +201,10 @@ if( SPIRIT_SKIP_HTST )
     add_definitions( "-DSPIRIT_SKIP_HTST" )
     message( STATUS ">> Skipping compilation of HTST!" )
 endif()
+###
+if( SPIRIT_BUILD_FOR_JS )
+    set( SPIRIT_BUILD_FOR_CXX OFF )
+endif()
 ####################################################################
 
 
