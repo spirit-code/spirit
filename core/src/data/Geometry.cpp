@@ -209,7 +209,7 @@ namespace Data
         return std::vector<triangle_t>(0);
     }
 
-    const std::vector<triangle_t>& Geometry::triangulation(int n_cell_step)
+    const std::vector<triangle_t>& Geometry::triangulation(int n_cell_step, std::array<int, 6> ranges)
     {
         // Only every n_cell_step'th cell is used. So we check if there is still enough cells in all
         //      directions. Note: when visualising, 'n_cell_step' can be used to e.g. olny visualise
@@ -229,24 +229,46 @@ namespace Data
             if (this->last_update_n_cell_step != n_cell_step ||
                 this->last_update_n_cells[0]  != n_cells[0]  ||
                 this->last_update_n_cells[1]  != n_cells[1]  ||
-                this->last_update_n_cells[2]  != n_cells[2]  )
+                this->last_update_n_cells[2]  != n_cells[2]  ||
+                this->last_update_cell_ranges != ranges)
             {
                 this->last_update_n_cell_step = n_cell_step;
                 this->last_update_n_cells[0]  = n_cells[0];
                 this->last_update_n_cells[1]  = n_cells[1];
                 this->last_update_n_cells[2]  = n_cells[2];
+                this->last_update_cell_ranges = ranges;
 
                 _triangulation.clear();
 
                 std::vector<vector2_t> points;
-                points.resize(positions.size());
 
                 int icell = 0, idx;
-                for (int cell_c=0; cell_c<n_cells[2]; cell_c+=n_cell_step)
+
+                int a_min = ranges[0] >= 0 & ranges[0] <= n_cells[0] ? ranges[0] : 0;
+                int a_max = ranges[1] >= 0 & ranges[1] <= n_cells[0] ? ranges[1] : n_cells[0];
+                int b_min = ranges[2] >= 0 & ranges[2] <= n_cells[1] ? ranges[2] : 0;
+                int b_max = ranges[3] >= 0 & ranges[3] <= n_cells[1] ? ranges[3] : n_cells[1];
+                int c_min = ranges[4] >= 0 & ranges[4] <= n_cells[2] ? ranges[4] : 0;
+                int c_max = ranges[5] >= 0 & ranges[5] <= n_cells[2] ? ranges[5] : n_cells[2];
+
+                int n_a = std::max(1, int(ceil( double((a_max - a_min)) / double(n_cell_step) )));
+                int n_b = std::max(1, int(ceil( double((b_max - b_min)) / double(n_cell_step) )));
+                int n_c = std::max(1, int(ceil( double((c_max - c_min)) / double(n_cell_step) )));
+
+                int n_points = n_cell_atoms * n_a * n_b * n_c;
+
+                if( ( (n_a <= 1 || n_b <= 1) && dimensionality_basis != 2 ) || n_points < 3)
                 {
-                    for (int cell_b=0; cell_b<n_cells[1]; cell_b+=n_cell_step)
+                    _triangulation.clear();
+                    return _triangulation;
+                }
+                points.resize(n_points);
+
+                for (int cell_c=c_min; cell_c<c_max; cell_c+=n_cell_step)
+                {
+                    for (int cell_b=b_min; cell_b<b_max; cell_b+=n_cell_step)
                     {
-                        for (int cell_a=0; cell_a<n_cells[0]; cell_a+=n_cell_step)
+                        for (int cell_a=a_min; cell_a<a_max; cell_a+=n_cell_step)
                         {
                             for (int ibasis=0; ibasis < n_cell_atoms; ++ibasis)
                             {
@@ -269,7 +291,7 @@ namespace Data
         return _triangulation;
     }
 
-    const std::vector<tetrahedron_t>& Geometry::tetrahedra(int n_cell_step)
+    const std::vector<tetrahedron_t>& Geometry::tetrahedra(int n_cell_step, std::array<int, 6> ranges)
     {
         // Only every n_cell_step'th cell is used. So we check if there is still enough cells in all
         //      directions. Note: when visualising, 'n_cell_step' can be used to e.g. olny visualise
@@ -287,12 +309,33 @@ namespace Data
             if (this->last_update_n_cell_step != n_cell_step ||
                 this->last_update_n_cells[0]  != n_cells[0]  ||
                 this->last_update_n_cells[1]  != n_cells[1]  ||
-                this->last_update_n_cells[2]  != n_cells[2]  )
+                this->last_update_n_cells[2]  != n_cells[2]  ||
+                this->last_update_cell_ranges != ranges
+                )
             {
                 this->last_update_n_cell_step = n_cell_step;
                 this->last_update_n_cells[0]  = n_cells[0];
                 this->last_update_n_cells[1]  = n_cells[1];
                 this->last_update_n_cells[2]  = n_cells[2];
+                this->last_update_cell_ranges = ranges;
+
+                int a_min = ranges[0] >= 0 & ranges[0] <= n_cells[0] ? ranges[0] : 0;
+                int a_max = ranges[1] >= 0 & ranges[1] <= n_cells[0] ? ranges[1] : n_cells[0];
+                int b_min = ranges[2] >= 0 & ranges[2] <= n_cells[1] ? ranges[2] : 0;
+                int b_max = ranges[3] >= 0 & ranges[3] <= n_cells[1] ? ranges[3] : n_cells[1];
+                int c_min = ranges[4] >= 0 & ranges[4] <= n_cells[2] ? ranges[4] : 0;
+                int c_max = ranges[5] >= 0 & ranges[5] <= n_cells[2] ? ranges[5] : n_cells[2];
+
+                int n_a = std::max(1, int(ceil( double((a_max - a_min)) / double(n_cell_step) )));
+                int n_b = std::max(1, int(ceil( double((b_max - b_min)) / double(n_cell_step) )));
+                int n_c = std::max(1, int(ceil( double((c_max - c_min)) / double(n_cell_step) )));
+                int n_points = n_cell_atoms * n_a * n_b * n_c;
+
+                if( ( (n_a <= 1 || n_b <= 1 || n_c <= 1) && dimensionality_basis < 3 ) || n_points < 4)
+                {
+                    _tetrahedra.clear();
+                    return _tetrahedra;
+                }
 
                 // If we have only one spin in the basis our lattice is a simple regular geometry
                 bool is_simple_regular_geometry = n_cell_atoms == 1;
@@ -310,18 +353,18 @@ namespace Data
                         0, 4, 3, 5
                         };
                     int x_offset = 1;
-                    int y_offset = n_cells[0]/n_cell_step;
-                    int z_offset = n_cells[0]/n_cell_step*n_cells[1]/n_cell_step;
+                    int y_offset = n_a;
+                    int z_offset = n_a * n_b;
                     int offsets[] = {
                         0, x_offset, x_offset+y_offset, y_offset,
                         z_offset, x_offset+z_offset, x_offset+y_offset+z_offset, y_offset+z_offset
                         };
 
-                    for (int ix = 0; ix < (n_cells[0]-1)/n_cell_step; ix++)
+                    for (int ix = 0; ix < n_a-1; ix++)
                     {
-                        for (int iy = 0; iy < (n_cells[1]-1)/n_cell_step; iy++)
+                        for (int iy = 0; iy < n_b-1; iy++)
                         {
-                            for (int iz = 0; iz < (n_cells[2]-1)/n_cell_step; iz++)
+                            for (int iz = 0; iz < n_c-1; iz++)
                             {
                                 int base_index = ix*x_offset+iy*y_offset+iz*z_offset;
                                 for (int j = 0; j < 6; j++)
@@ -342,14 +385,13 @@ namespace Data
                 else
                 {
                     std::vector<vector3_t> points;
-                    points.resize(positions.size());
-
+                    points.resize(n_points);
                     int icell = 0, idx;
-                    for (int cell_c=0; cell_c<n_cells[2]; cell_c+=n_cell_step)
+                    for (int cell_c=c_min; cell_c<c_max; cell_c+=n_cell_step)
                     {
-                        for (int cell_b=0; cell_b<n_cells[1]; cell_b+=n_cell_step)
+                        for (int cell_b=b_min; cell_b<b_max; cell_b+=n_cell_step)
                         {
-                            for (int cell_a=0; cell_a<n_cells[0]; cell_a+=n_cell_step)
+                            for (int cell_a=a_min; cell_a<a_max; cell_a+=n_cell_step)
                             {
                                 for (int ibasis=0; ibasis < n_cell_atoms; ++ibasis)
                                 {
@@ -490,17 +532,17 @@ namespace Data
 
     void Geometry::calculateDimensionality()
     {
-        int dims_basis = 0, dims_translations = 0;
+        int dims_translations = 0;
         Vector3 test_vec_basis, test_vec_translations;
 
         const scalar epsilon = 1e-6;
 
         // ----- Find dimensionality of the basis -----
         if     ( n_cell_atoms == 1 )
-            dims_basis = 0;
+            dimensionality_basis = 0;
         else if( n_cell_atoms == 2 )
         {
-            dims_basis = 1;
+            dimensionality_basis = 1;
             test_vec_basis = positions[0] - positions[1];
         }
         else
@@ -521,13 +563,13 @@ namespace Data
                 if( 1 - std::abs(b_vectors[i].dot(test_vec_basis)) < epsilon )
                     ++n_parallel;
                 // Else n_parallel will give us the last parallel vector
-                // Also the if-statement for dims_basis=1 wont be met
+                // Also the if-statement for dimensionality_basis=1 wont be met
                 else
                     break;
             }
             if( n_parallel == b_vectors.size() - 1 )
             {
-                dims_basis = 1;
+                dimensionality_basis = 1;
             }
             else
             {
@@ -541,9 +583,10 @@ namespace Data
                         ++n_in_plane;
                 }
                 if( n_in_plane == b_vectors.size() - 2 )
-                    dims_basis = 2;
+                    dimensionality_basis = 2;
                 else
                 {
+                    this->dimensionality_basis = 3;
                     this->dimensionality = 3;
                     return;
                 }
@@ -599,37 +642,37 @@ namespace Data
         test_vec_basis.normalize();
         test_vec_translations.normalize();
         //      If one dimensionality is zero, only the other counts
-        if( dims_basis == 0 )
+        if( dimensionality_basis == 0 )
         {
             this->dimensionality = dims_translations;
             return;
         }
         else if( dims_translations == 0 )
         {
-            this->dimensionality = dims_basis;
+            this->dimensionality = dimensionality_basis;
             return;
         }
         //      If both are linear or both are planar, the test vectors should be (anti)parallel if the geometry is 1D or 2D
-        else if (dims_basis == dims_translations)
+        else if (dimensionality_basis == dims_translations)
         {
             if( std::abs(test_vec_basis.dot(test_vec_translations)) - 1 < epsilon )
             {
-                this->dimensionality = dims_basis;
+                this->dimensionality = dimensionality_basis;
                 return;
             }
-            else if( dims_basis == 1 )
+            else if( dimensionality_basis == 1 )
             {
                 this->dimensionality = 2;
                 return;
             }
-            else if( dims_basis == 2 )
+            else if( dimensionality_basis == 2 )
             {
                 this->dimensionality = 3;
                 return;
             }
         }
         //      If one is linear (1D), and the other planar (2D) then the test vectors should be orthogonal if the geometry is 2D
-        else if( (dims_basis == 1 && dims_translations == 2) || (dims_basis == 2 && dims_translations == 1) )
+        else if( (dimensionality_basis == 1 && dims_translations == 2) || (dimensionality_basis == 2 && dims_translations == 1) )
         {
             if( std::abs(test_vec_basis.dot(test_vec_translations)) < epsilon )
             {

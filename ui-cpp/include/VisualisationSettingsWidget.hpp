@@ -43,8 +43,14 @@ private slots:
 	void set_visualization_system_arrows();
 	void set_visualization_system_boundingbox();
 	void set_visualization_system_surface();
-	void set_visualization_system_overall_direction();
-	void set_visualization_system_overall_position();
+	void set_visualization_system_overall_direction_line_edits();
+	void set_visualization_system_overall_direction_sliders();
+	void set_visualization_system_overall_direction(float range_xmin, float range_xmax, float range_ymin, float range_ymax, float range_zmin, float range_zmax);
+	void reset_visualization_system_overall_direction();
+	void set_visualization_system_overall_position_line_edits();
+	void set_visualization_system_overall_position_sliders();
+	void set_visualization_system_overall_position(float range_xmin, float range_xmax, float range_ymin, float range_ymax, float range_zmin, float range_zmax);
+	void reset_visualization_system_overall_position();
 	void set_visualization_system_isosurface();
 	void add_isosurface();
 	void update_isosurfaces();
@@ -55,6 +61,11 @@ private slots:
 	void set_visualization_colormap_rotation_lineEdit();
 	void set_visualization_colormap_axis();
 	void set_visualization_background();
+
+	void set_visualization_system_cells_line_edits();
+	void set_visualization_system_cells_sliders();
+	void reset_visualization_system_cells();
+	void cell_on_checkbox();
 
 	// Visualisation - Camera
 	void read_camera();
