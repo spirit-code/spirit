@@ -656,6 +656,30 @@ catch( ... )
     return 0;
 }
 
+int Geometry_Get_Triangulation_Ranged( State * state, const int ** indices_ptr, int n_cell_step, int ranges[6], int idx_image, int idx_chain ) noexcept
+try
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
+    std::array<int, 6> range = {ranges[0], ranges[1], ranges[2], ranges[3], ranges[4], ranges[5]};
+    auto g = image->geometry;
+    auto& triangles = g->triangulation(n_cell_step, range);
+    if (indices_ptr != nullptr) {
+        *indices_ptr = reinterpret_cast<const int *>(triangles.data());
+    }
+    return triangles.size();
+}
+catch( ... )
+{
+    spirit_handle_exception_api(idx_image, idx_chain);
+    return 0;
+}
+
 int Geometry_Get_Tetrahedra( State * state, const int ** indices_ptr, int n_cell_step,
                              int idx_image, int idx_chain ) noexcept
 try
@@ -666,6 +690,28 @@ try
 
     auto g = image->geometry;
     auto& tetrahedra = g->tetrahedra(n_cell_step);
+    if (indices_ptr != nullptr) {
+        *indices_ptr = reinterpret_cast<const int *>(tetrahedra.data());
+    }
+    return tetrahedra.size();
+}
+catch( ... )
+{
+    spirit_handle_exception_api(idx_image, idx_chain);
+    return 0;
+}
+
+int Geometry_Get_Tetrahedra_Ranged(State * state, const int **indices_ptr, int n_cell_step, int ranges[6], int idx_image, int idx_chain) noexcept
+try
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    auto g = image->geometry;
+    std::array<int, 6> range = {ranges[0], ranges[1], ranges[2], ranges[3], ranges[4], ranges[5]};
+
+    auto& tetrahedra = g->tetrahedra(n_cell_step, range);
     if (indices_ptr != nullptr) {
         *indices_ptr = reinterpret_cast<const int *>(tetrahedra.data());
     }

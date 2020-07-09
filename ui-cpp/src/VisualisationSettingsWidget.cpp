@@ -79,6 +79,27 @@ void VisualisationSettingsWidget::Setup_Input_Validators()
     this->lineEdit_camera_focus_x->setValidator(this->number_validator);
     this->lineEdit_camera_focus_y->setValidator(this->number_validator);
     this->lineEdit_camera_focus_z->setValidator(this->number_validator);
+
+    this->lineEdit_cell_a_min->setValidator(this->number_validator_int_unsigned);
+    this->lineEdit_cell_a_max->setValidator(this->number_validator_int_unsigned);
+    this->lineEdit_cell_b_min->setValidator(this->number_validator_int_unsigned);
+    this->lineEdit_cell_b_max->setValidator(this->number_validator_int_unsigned);
+    this->lineEdit_cell_c_min->setValidator(this->number_validator_int_unsigned);
+    this->lineEdit_cell_c_max->setValidator(this->number_validator_int_unsigned);
+
+    this->lineEdit_overall_pos_xmin->setValidator(this->number_validator_unsigned);
+    this->lineEdit_overall_pos_xmax->setValidator(this->number_validator_unsigned);
+    this->lineEdit_overall_pos_ymin->setValidator(this->number_validator_unsigned);
+    this->lineEdit_overall_pos_ymax->setValidator(this->number_validator_unsigned);
+    this->lineEdit_overall_pos_zmin->setValidator(this->number_validator_unsigned);
+    this->lineEdit_overall_pos_zmax->setValidator(this->number_validator_unsigned);
+
+    this->lineEdit_overall_dir_xmin->setValidator(this->number_validator);
+    this->lineEdit_overall_dir_xmax->setValidator(this->number_validator);
+    this->lineEdit_overall_dir_ymin->setValidator(this->number_validator);
+    this->lineEdit_overall_dir_ymax->setValidator(this->number_validator);
+    this->lineEdit_overall_dir_zmin->setValidator(this->number_validator);
+    this->lineEdit_overall_dir_zmax->setValidator(this->number_validator);
 }
 
 
@@ -113,7 +134,7 @@ void VisualisationSettingsWidget::Load_Visualization_Contents()
     this->checkBox_showCoordinateSystem->setChecked(spinWidget->isCoordinateSystemEnabled());
     this->comboBox_coordinateSystemPosition->setCurrentIndex((int)spinWidget->coordinateSystemPosition());
 
-    // Z Range Arrows
+    // Range Arrows
     auto x_range = spinWidget->xRangeDirection();
     auto y_range = spinWidget->yRangeDirection();
     auto z_range = spinWidget->zRangeDirection();
@@ -162,8 +183,8 @@ void VisualisationSettingsWidget::Load_Visualization_Contents()
 
     // Overall position filter X
     //horizontalSlider_overall_pos_xmin->setInvertedAppearance(true);
-    range_min = x_range.x / b_range[0] - b_min[0];
-    range_max = x_range.y / b_range[0] - b_min[0];
+    range_min = (x_range.x - b_min[0]) / b_range[0];
+    range_max = (x_range.y - b_min[0]) / b_range[0];
     horizontalSlider_overall_pos_xmin->setRange(0, 10000);
     horizontalSlider_overall_pos_xmin->setValue((int)(range_min * 10000));
     horizontalSlider_overall_pos_xmax->setRange(0, 10000);
@@ -172,8 +193,8 @@ void VisualisationSettingsWidget::Load_Visualization_Contents()
     horizontalSlider_overall_pos_xmax->setTracking(true);
     // Overall position filter Y
     //horizontalSlider_overall_pos_ymin->setInvertedAppearance(true);
-    range_min = y_range.x / b_range[1] - b_min[1];
-    range_max = y_range.y / b_range[1] - b_min[1];
+    range_min = (y_range.x - b_min[1]) / b_range[1];
+    range_max = (y_range.y - b_min[1]) / b_range[1];
     horizontalSlider_overall_pos_ymin->setRange(0, 10000);
     horizontalSlider_overall_pos_ymin->setValue((int)(range_min * 10000));
     horizontalSlider_overall_pos_ymax->setRange(0, 10000);
@@ -182,14 +203,42 @@ void VisualisationSettingsWidget::Load_Visualization_Contents()
     horizontalSlider_overall_pos_ymax->setTracking(true);
     // Overall position filter Z
     //horizontalSlider_overall_pos_zmin->setInvertedAppearance(true);
-    range_min = z_range.x / b_range[2] - b_min[2];
-    range_max = z_range.y / b_range[2] - b_min[2];
+    range_min = (z_range.x  - b_min[2]) / b_range[2];
+    range_max = (z_range.y  - b_min[2]) / b_range[2];
     horizontalSlider_overall_pos_zmin->setRange(0, 10000);
     horizontalSlider_overall_pos_zmin->setValue((int)(range_min * 10000));
     horizontalSlider_overall_pos_zmax->setRange(0, 10000);
     horizontalSlider_overall_pos_zmax->setValue((int)(range_max * 10000));
     horizontalSlider_overall_pos_zmin->setTracking(true);
     horizontalSlider_overall_pos_zmax->setTracking(true);
+
+    // Cells filter
+    auto cell_ranges = spinWidget->getCellFilter();
+    int n_cells[3];
+    Geometry_Get_N_Cells(state.get(), n_cells);
+    horizontalSlider_cell_a_min->setRange(1, n_cells[0]);
+    horizontalSlider_cell_a_max->setRange(1, n_cells[0]);
+    horizontalSlider_cell_b_min->setRange(1, n_cells[1]);
+    horizontalSlider_cell_b_max->setRange(1, n_cells[1]);
+    horizontalSlider_cell_c_min->setRange(1, n_cells[2]);
+    horizontalSlider_cell_c_max->setRange(1, n_cells[2]);
+
+    horizontalSlider_cell_a_min->setValue(cell_ranges[0]+1);
+    horizontalSlider_cell_a_max->setValue(cell_ranges[1]+1);
+    horizontalSlider_cell_b_min->setValue(cell_ranges[2]+1);
+    horizontalSlider_cell_b_max->setValue(cell_ranges[3]+1);
+    horizontalSlider_cell_c_min->setValue(cell_ranges[4]+1);
+    horizontalSlider_cell_c_max->setValue(cell_ranges[5]+1);
+
+    lineEdit_cell_a_min->setText(QString::number(cell_ranges[0]+1));
+    lineEdit_cell_a_max->setText(QString::number(cell_ranges[1]+1));
+    lineEdit_cell_b_min->setText(QString::number(cell_ranges[2]+1));
+    lineEdit_cell_b_max->setText(QString::number(cell_ranges[3]+1));
+    lineEdit_cell_c_min->setText(QString::number(cell_ranges[4]+1));
+    lineEdit_cell_c_max->setText(QString::number(cell_ranges[5]+1));
+    checkBox_cell_a->setChecked(true);
+    checkBox_cell_b->setChecked(true);
+    checkBox_cell_c->setChecked(true);
 
     float bounds_min[3], bounds_max[3];
     Geometry_Get_Bounds(state.get(), bounds_min, bounds_max);
@@ -468,11 +517,49 @@ void VisualisationSettingsWidget::set_visualization_system_surface()
     spinWidget->setSurface(x_range, y_range, z_range);
 }
 
-void VisualisationSettingsWidget::set_visualization_system_overall_direction()
+void VisualisationSettingsWidget::set_visualization_system_overall_direction_line_edits()
+{
+    float range_xmin = lineEdit_overall_dir_xmin->text().toFloat();
+    float range_xmax = lineEdit_overall_dir_xmax->text().toFloat();
+    float range_ymin = lineEdit_overall_dir_ymin->text().toFloat();
+    float range_ymax = lineEdit_overall_dir_ymax->text().toFloat();
+    float range_zmin = lineEdit_overall_dir_zmin->text().toFloat();
+    float range_zmax = lineEdit_overall_dir_zmax->text().toFloat();
+    horizontalSlider_overall_dir_xmin->setValue(-100 * range_xmax);
+    horizontalSlider_overall_dir_xmax->setValue(100  * range_xmin);
+    horizontalSlider_overall_dir_ymin->setValue(-100 * range_ymin);
+    horizontalSlider_overall_dir_ymax->setValue(100  * range_ymax);
+    horizontalSlider_overall_dir_zmin->setValue(-100 * range_zmin);
+    horizontalSlider_overall_dir_zmax->setValue(100  * range_zmax);
+    set_visualization_system_overall_direction(range_xmin, range_xmax, range_ymin, range_ymax, range_zmin, range_zmax);
+}
+
+void VisualisationSettingsWidget::set_visualization_system_overall_direction_sliders()
+{
+    float range_xmin = -horizontalSlider_overall_dir_xmin->value()/100.0;
+    float range_xmax = horizontalSlider_overall_dir_xmax->value()/100.0;
+    float range_ymin = -horizontalSlider_overall_dir_ymin->value()/100.0;
+    float range_ymax = horizontalSlider_overall_dir_ymax->value()/100.0;
+    float range_zmin = -horizontalSlider_overall_dir_zmin->value()/100.0;
+    float range_zmax = horizontalSlider_overall_dir_zmax->value()/100.0;
+    lineEdit_overall_dir_xmin->setText( QString::number(range_xmin) );
+    lineEdit_overall_dir_xmax->setText( QString::number(range_xmax) );
+    lineEdit_overall_dir_ymin->setText( QString::number(range_ymin) );
+    lineEdit_overall_dir_ymax->setText( QString::number(range_ymax) );
+    lineEdit_overall_dir_zmin->setText( QString::number(range_zmin) );
+    lineEdit_overall_dir_zmax->setText( QString::number(range_zmax) );
+    set_visualization_system_overall_direction(range_xmin, range_xmax, range_ymin, range_ymax, range_zmin, range_zmax);
+}
+
+void VisualisationSettingsWidget::set_visualization_system_overall_direction(float range_xmin, float range_xmax, float range_ymin, float range_ymax, float range_zmin, float range_zmax)
 {
     // X
-    float range_min = -horizontalSlider_overall_dir_xmin->value() / 100.0;
-    float range_max = horizontalSlider_overall_dir_xmax->value() / 100.0;
+    float range_min;
+    float range_max;
+
+    range_min = range_xmin;
+    range_max = range_xmax;
+
     if (range_min > range_max)
     {
         float t = range_min;
@@ -488,8 +575,8 @@ void VisualisationSettingsWidget::set_visualization_system_overall_direction()
     glm::vec2 x_range(range_min, range_max);
 
     // Y
-    range_min = -horizontalSlider_overall_dir_ymin->value() / 100.0;
-    range_max = horizontalSlider_overall_dir_ymax->value() / 100.0;
+    range_min = range_ymin;
+    range_max = range_ymax;
     if (range_min > range_max)
     {
         float t = range_min;
@@ -505,8 +592,9 @@ void VisualisationSettingsWidget::set_visualization_system_overall_direction()
     glm::vec2 y_range(range_min, range_max);
 
     // Z
-    range_min = -horizontalSlider_overall_dir_zmin->value() / 100.0;
-    range_max = horizontalSlider_overall_dir_zmax->value() / 100.0;
+    range_min = range_zmin;
+    range_max = range_zmax;
+
     if (range_min > range_max)
     {
         float t = range_min;
@@ -524,15 +612,50 @@ void VisualisationSettingsWidget::set_visualization_system_overall_direction()
     spinWidget->setOverallDirectionRange(x_range, y_range, z_range);
 }
 
-void VisualisationSettingsWidget::set_visualization_system_overall_position()
+void VisualisationSettingsWidget::set_visualization_system_overall_position_line_edits()
+{
+    float range_xmax = lineEdit_overall_pos_xmax->text().toFloat();
+    float range_xmin = lineEdit_overall_pos_xmin->text().toFloat();
+    float range_ymin = lineEdit_overall_pos_ymin->text().toFloat();
+    float range_ymax = lineEdit_overall_pos_ymax->text().toFloat();
+    float range_zmin = lineEdit_overall_pos_zmin->text().toFloat();
+    float range_zmax = lineEdit_overall_pos_zmax->text().toFloat();
+    horizontalSlider_overall_pos_xmin->setValue(10000 * range_xmin);
+    horizontalSlider_overall_pos_xmax->setValue(10000  * range_xmax);
+    horizontalSlider_overall_pos_ymin->setValue(10000 * range_ymin);
+    horizontalSlider_overall_pos_ymax->setValue(10000  * range_ymax);
+    horizontalSlider_overall_pos_zmin->setValue(10000 * range_zmin);
+    horizontalSlider_overall_pos_zmax->setValue(10000  * range_zmax);
+    set_visualization_system_overall_position(range_xmin, range_xmax, range_ymin, range_ymax, range_zmin, range_zmax);
+}
+
+void VisualisationSettingsWidget::set_visualization_system_overall_position_sliders()
+{
+    float range_xmin = horizontalSlider_overall_pos_xmin->value()/10000.0;
+    float range_xmax = horizontalSlider_overall_pos_xmax->value()/10000.0;
+    float range_ymin = horizontalSlider_overall_pos_ymin->value()/10000.0;
+    float range_ymax = horizontalSlider_overall_pos_ymax->value()/10000.0;
+    float range_zmin = horizontalSlider_overall_pos_zmin->value()/10000.0;
+    float range_zmax = horizontalSlider_overall_pos_zmax->value()/10000.0;
+    lineEdit_overall_pos_xmin->setText( QString::number(range_xmin) );
+    lineEdit_overall_pos_xmax->setText( QString::number(range_xmax) );
+    lineEdit_overall_pos_ymin->setText( QString::number(range_ymin) );
+    lineEdit_overall_pos_ymax->setText( QString::number(range_ymax) );
+    lineEdit_overall_pos_zmin->setText( QString::number(range_zmin) );
+    lineEdit_overall_pos_zmax->setText( QString::number(range_zmax) );
+    set_visualization_system_overall_position(range_xmin, range_xmax, range_ymin, range_ymax, range_zmin, range_zmax);
+}
+
+void VisualisationSettingsWidget::set_visualization_system_overall_position(float range_xmin, float range_xmax, float range_ymin, float range_ymax, float range_zmin, float range_zmax)
 {
     float b_min[3], b_max[3], b_range[3];
     Geometry_Get_Bounds(state.get(), b_min, b_max);
     for (int dim = 0; dim < 3; ++dim) b_range[dim] = b_max[dim] - b_min[dim];
-
+    float range_min;
+    float range_max;
     // X
-    float range_min = horizontalSlider_overall_pos_xmin->value() / 10000.0;
-    float range_max = horizontalSlider_overall_pos_xmax->value() / 10000.0;
+    range_min = range_xmin;
+    range_max = range_xmax;
     if (range_min > range_max)
     {
         float t = range_min;
@@ -548,8 +671,8 @@ void VisualisationSettingsWidget::set_visualization_system_overall_position()
     glm::vec2 x_range(b_min[0] + range_min*b_range[0], b_min[0] + range_max*b_range[0]);
 
     // Y
-    range_min = horizontalSlider_overall_pos_ymin->value() / 10000.0;
-    range_max = horizontalSlider_overall_pos_ymax->value() / 10000.0;
+    range_min = range_ymin;
+    range_max = range_ymax;
     if (range_min > range_max)
     {
         float t = range_min;
@@ -565,8 +688,8 @@ void VisualisationSettingsWidget::set_visualization_system_overall_position()
     glm::vec2 y_range(b_min[1] + range_min*b_range[1], b_min[1] + range_max*b_range[1]);
 
     // Z
-    range_min = horizontalSlider_overall_pos_zmin->value() / 10000.0;
-    range_max = horizontalSlider_overall_pos_zmax->value() / 10000.0;
+    range_min = range_zmin;
+    range_max = range_zmax;
     if (range_min > range_max)
     {
         float t = range_min;
@@ -582,6 +705,151 @@ void VisualisationSettingsWidget::set_visualization_system_overall_position()
     glm::vec2 z_range(b_min[2] + range_min*b_range[2], b_min[2] + range_max*b_range[2]);
 
     spinWidget->setOverallPositionRange(x_range, y_range, z_range);
+}
+
+
+void VisualisationSettingsWidget::set_visualization_system_cells_line_edits()
+{
+    int n_cells[3];
+    Geometry_Get_N_Cells(state.get(), n_cells);
+    std::array<QLineEdit*, 6> lineEdits = {lineEdit_cell_a_min, lineEdit_cell_a_max, lineEdit_cell_b_min, lineEdit_cell_b_max, lineEdit_cell_c_min, lineEdit_cell_c_max};
+    std::array<QSlider*, 6> horizontalSliders = {horizontalSlider_cell_a_min, horizontalSlider_cell_a_max, horizontalSlider_cell_b_min, horizontalSlider_cell_b_max, horizontalSlider_cell_c_min, horizontalSlider_cell_c_max};
+    std::array<int, 6> cell;
+    for (int i=0; i<6; i++)
+    {
+        cell[i] = lineEdits[i]->text().toFloat();
+        if(cell[i] > n_cells[i/2])
+            lineEdits[i]->setText(QString::number(n_cells[i/2]));
+        else if(cell[i] < 1)
+            lineEdits[i]->setText(QString::number(1));
+        horizontalSliders[i]->setValue(cell[i]); // Note: This invokes set_visualization_system_cells_sliders()
+    }
+}
+
+void VisualisationSettingsWidget::set_visualization_system_cells_sliders()
+{
+    int n_cells[3];
+    Geometry_Get_N_Cells(state.get(), n_cells);
+    std::array<QLineEdit*, 6> lineEdits = {lineEdit_cell_a_min, lineEdit_cell_a_max, lineEdit_cell_b_min, lineEdit_cell_b_max, lineEdit_cell_c_min, lineEdit_cell_c_max};
+    std::array<QSlider*, 6> horizontalSliders = {horizontalSlider_cell_a_min, horizontalSlider_cell_a_max, horizontalSlider_cell_b_min, horizontalSlider_cell_b_max, horizontalSlider_cell_c_min, horizontalSlider_cell_c_max};
+    std::array<QCheckBox*, 3> checkBoxes = {checkBox_cell_a, checkBox_cell_b, checkBox_cell_c};
+    std::array<int, 6> cell = {};
+
+    for (int i=0; i<3; i++)
+    {
+        cell[2*i] = horizontalSliders[2*i]->value();
+        if(!checkBoxes[i]->isChecked())
+        {
+            cell[2*i+1] = cell[2*i];
+            horizontalSliders[2*i+1]->blockSignals(true);
+            horizontalSliders[2*i+1]->setValue(cell[2*i]);
+            horizontalSliders[2*i+1]->blockSignals(false);
+        } else {
+            cell[2*i+1] = horizontalSliders[2*i+1]->value();
+        }
+        if(cell[2*i] > cell[2*i+1])
+        {
+            auto temp = cell[2*i + 1];
+            cell[2*i+1] = cell[2*i];
+            cell[2*i] = temp;
+            horizontalSliders[2*i]->blockSignals(true);
+            horizontalSliders[2*i+1]->blockSignals(true);
+
+            horizontalSliders[2*i]->setValue(cell[2*i]);
+            horizontalSliders[2*i+1]->setValue(cell[2*i + 1]);
+
+            horizontalSliders[2*i]->blockSignals(false);
+            horizontalSliders[2*i+1]->blockSignals(false);
+        }
+        lineEdits[2*i]->setText(QString::number(cell[2*i]));
+        lineEdits[2*i+1]->setText(QString::number(cell[2*i+1]));
+    }
+    spinWidget->setCellFilter(cell[0]-1, cell[1]-1, cell[2]-1, cell[3]-1, cell[4]-1, cell[5]-1);
+    spinWidget->updateData();
+}
+
+void VisualisationSettingsWidget::reset_visualization_system_overall_direction()
+{
+    std::array<QSlider*, 6> horizontalSliders = {horizontalSlider_overall_dir_xmin, horizontalSlider_overall_dir_xmax, horizontalSlider_overall_dir_ymin, horizontalSlider_overall_dir_ymax, horizontalSlider_overall_dir_zmin, horizontalSlider_overall_dir_zmax};
+    for(int i=0; i<3; i++)
+    {
+        horizontalSliders[2*i]->blockSignals(true);
+        horizontalSliders[2*i+1]->blockSignals(true);
+        horizontalSliders[2*i]->setValue(100);
+        horizontalSliders[2*i+1]->setValue(100);
+        horizontalSliders[2*i]->blockSignals(false);
+        horizontalSliders[2*i+1]->blockSignals(false);
+    }
+    set_visualization_system_overall_direction_sliders();
+}
+
+void VisualisationSettingsWidget::reset_visualization_system_overall_position()
+{
+    std::array<QSlider*, 6> horizontalSliders = {horizontalSlider_overall_pos_xmin, horizontalSlider_overall_pos_xmax, horizontalSlider_overall_pos_ymin, horizontalSlider_overall_pos_ymax, horizontalSlider_overall_pos_zmin, horizontalSlider_overall_pos_zmax};
+    for(int i=0; i<3; i++)
+    {
+        horizontalSliders[2*i]->blockSignals(true);
+        horizontalSliders[2*i+1]->blockSignals(true);
+        horizontalSliders[2*i]->setValue(0);
+        horizontalSliders[2*i+1]->setValue(10000);
+        horizontalSliders[2*i]->blockSignals(false);
+        horizontalSliders[2*i+1]->blockSignals(false);
+    }
+    set_visualization_system_overall_position_sliders();
+}
+
+void VisualisationSettingsWidget::reset_visualization_system_cells()
+{
+    std::array<QLineEdit*, 6> lineEdits = {lineEdit_cell_a_min, lineEdit_cell_a_max, lineEdit_cell_b_min, lineEdit_cell_b_max, lineEdit_cell_c_min, lineEdit_cell_c_max};
+    std::array<QSlider*, 6> horizontalSliders = {horizontalSlider_cell_a_min, horizontalSlider_cell_a_max, horizontalSlider_cell_b_min, horizontalSlider_cell_b_max, horizontalSlider_cell_c_min, horizontalSlider_cell_c_max};
+    std::array<QCheckBox*, 3> checkBoxes = {checkBox_cell_a, checkBox_cell_b, checkBox_cell_c};
+
+    std::array<int, 3> n_cells;
+    Geometry_Get_N_Cells(state.get(), n_cells.data());
+
+    for(int i=0; i<3; i++)
+    {
+        checkBoxes[i]->blockSignals(true);
+        checkBoxes[i]->setChecked(true);
+        checkBoxes[i]->blockSignals(false);
+
+        horizontalSliders[2*i]->blockSignals(true);
+        horizontalSliders[2*i+1]->blockSignals(true);
+        horizontalSliders[2*i]->setValue(1);
+        horizontalSliders[2*i+1]->setValue(n_cells[i]);
+        horizontalSliders[2*i]->blockSignals(false);
+        horizontalSliders[2*i+1]->blockSignals(false);
+    }
+    set_visualization_system_cells_sliders();
+}
+
+void VisualisationSettingsWidget::cell_on_checkbox()
+{
+    if(checkBox_cell_a->isChecked())
+    {
+        horizontalSlider_cell_a_max->setEnabled(true);
+        lineEdit_cell_a_max->setEnabled(true);
+    } else {
+        horizontalSlider_cell_a_max->setEnabled(false);
+        lineEdit_cell_a_max->setEnabled(false);
+    }
+    if(checkBox_cell_b->isChecked())
+    {
+        horizontalSlider_cell_b_max->setEnabled(true);
+        lineEdit_cell_b_max->setEnabled(true);
+    } else {
+        horizontalSlider_cell_b_max->setEnabled(false);
+        lineEdit_cell_b_max->setEnabled(false);
+    }
+    if(checkBox_cell_c->isChecked())
+    {
+        horizontalSlider_cell_c_max->setEnabled(true);
+        lineEdit_cell_c_max->setEnabled(true);
+    } else {
+        horizontalSlider_cell_c_max->setEnabled(false);
+        lineEdit_cell_c_max->setEnabled(false);
+    }
+    set_visualization_system_cells_sliders();
 }
 
 
@@ -947,19 +1215,55 @@ void VisualisationSettingsWidget::Setup_Visualization_Slots()
     connect(horizontalSlider_surface_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
     connect(horizontalSlider_surface_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_surface()));
     //      overall direction
-    connect(horizontalSlider_overall_dir_xmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction()));
-    connect(horizontalSlider_overall_dir_xmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction()));
-    connect(horizontalSlider_overall_dir_ymin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction()));
-    connect(horizontalSlider_overall_dir_ymax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction()));
-    connect(horizontalSlider_overall_dir_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction()));
-    connect(horizontalSlider_overall_dir_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction()));
+    connect(horizontalSlider_overall_dir_xmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction_sliders()));
+    connect(horizontalSlider_overall_dir_xmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction_sliders()));
+    connect(horizontalSlider_overall_dir_ymin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction_sliders()));
+    connect(horizontalSlider_overall_dir_ymax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction_sliders()));
+    connect(horizontalSlider_overall_dir_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction_sliders()));
+    connect(horizontalSlider_overall_dir_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_direction_sliders()));
+    connect(this->lineEdit_overall_dir_xmin, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_overall_direction_line_edits()));
+    connect(this->lineEdit_overall_dir_xmax, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_overall_direction_line_edits()));
+    connect(this->lineEdit_overall_dir_ymin, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_overall_direction_line_edits()));
+    connect(this->lineEdit_overall_dir_ymax, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_overall_direction_line_edits()));
+    connect(this->lineEdit_overall_dir_zmin, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_overall_direction_line_edits()));
+    connect(this->lineEdit_overall_dir_zmax, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_overall_direction_line_edits()));
+    connect(pushButton_reset_direction_filter, SIGNAL(clicked()), this, SLOT(reset_visualization_system_overall_direction()));
+
     //      overall position
-    connect(horizontalSlider_overall_pos_xmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position()));
-    connect(horizontalSlider_overall_pos_xmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position()));
-    connect(horizontalSlider_overall_pos_ymin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position()));
-    connect(horizontalSlider_overall_pos_ymax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position()));
-    connect(horizontalSlider_overall_pos_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position()));
-    connect(horizontalSlider_overall_pos_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position()));
+    connect(horizontalSlider_overall_pos_xmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position_sliders()));
+    connect(horizontalSlider_overall_pos_xmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position_sliders()));
+    connect(horizontalSlider_overall_pos_ymin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position_sliders()));
+    connect(horizontalSlider_overall_pos_ymax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position_sliders()));
+    connect(horizontalSlider_overall_pos_zmin, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position_sliders()));
+    connect(horizontalSlider_overall_pos_zmax, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_overall_position_sliders()));
+    connect(this->lineEdit_overall_pos_xmin, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_overall_position_line_edits()));
+    connect(this->lineEdit_overall_pos_xmax, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_overall_position_line_edits()));
+    connect(this->lineEdit_overall_pos_ymin, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_overall_position_line_edits()));
+    connect(this->lineEdit_overall_pos_ymax, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_overall_position_line_edits()));
+    connect(this->lineEdit_overall_pos_zmin, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_overall_position_line_edits()));
+    connect(this->lineEdit_overall_pos_zmax, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_overall_position_line_edits()));
+    connect(pushButton_reset_position_filter, SIGNAL(clicked()), this, SLOT(reset_visualization_system_overall_position()));
+
+    // cell filter
+    connect(this->lineEdit_cell_a_min, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_cells_line_edits()));
+    connect(this->lineEdit_cell_a_max, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_cells_line_edits()));
+    connect(this->lineEdit_cell_b_min, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_cells_line_edits()));
+    connect(this->lineEdit_cell_b_max, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_cells_line_edits()));
+    connect(this->lineEdit_cell_c_min, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_cells_line_edits()));
+    connect(this->lineEdit_cell_c_max, SIGNAL(returnPressed()), this, SLOT(set_visualization_system_cells_line_edits()));
+
+    connect(this->horizontalSlider_cell_a_min, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_cells_sliders()));
+    connect(this->horizontalSlider_cell_a_max, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_cells_sliders()));
+    connect(this->horizontalSlider_cell_b_min, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_cells_sliders()));
+    connect(this->horizontalSlider_cell_b_max, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_cells_sliders()));
+    connect(this->horizontalSlider_cell_c_min, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_cells_sliders()));
+    connect(this->horizontalSlider_cell_c_max, SIGNAL(valueChanged(int)), this, SLOT(set_visualization_system_cells_sliders()));
+
+    connect(this->checkBox_cell_a, SIGNAL(stateChanged(int)), this, SLOT(cell_on_checkbox()));
+    connect(this->checkBox_cell_b, SIGNAL(stateChanged(int)), this, SLOT(cell_on_checkbox()));
+    connect(this->checkBox_cell_c, SIGNAL(stateChanged(int)), this, SLOT(cell_on_checkbox()));
+    connect(pushButton_reset_cell_filter, SIGNAL(clicked()), this, SLOT(reset_visualization_system_cells()));
+
     //      isosurface
     connect(checkBox_isosurfaceshadows, SIGNAL(stateChanged(int)), this, SLOT(set_visualization_system_isosurface()));
     connect(pushButton_addIsosurface, SIGNAL(clicked()), this, SLOT(add_isosurface()));
@@ -989,6 +1293,8 @@ void VisualisationSettingsWidget::Setup_Visualization_Slots()
     connect(this->pushButton_save_camera, SIGNAL(clicked()), this, SLOT(save_camera()));
     connect(this->pushButton_load_camera, SIGNAL(clicked()), this, SLOT(load_camera()));
     connect(this->lineEdit_camera_fov, SIGNAL(returnPressed()), this, SLOT(set_camera_fov_lineedit()));
+
+
     connect(horizontalSlider_camera_fov, SIGNAL(valueChanged(int)), this, SLOT(set_camera_fov_slider()));
     // Light
     connect(horizontalSlider_light_theta, SIGNAL(valueChanged(int)), this, SLOT(set_light_position()));

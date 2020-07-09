@@ -65,6 +65,15 @@ SpinWidget::SpinWidget(std::shared_ptr<State> state, QWidget *parent) : QOpenGLW
     this->m_surface_y_range = y_range;
     this->m_surface_z_range = z_range;
 
+    int n_cell[3];
+    Geometry_Get_N_Cells(state.get(), n_cell);
+    this->m_cell_a_min=0;
+    this->m_cell_a_max=n_cell[0]-1;
+    this->m_cell_b_min=0;
+    this->m_cell_b_max=n_cell[1]-1;
+    this->m_cell_c_min=0;
+    this->m_cell_c_max=n_cell[2]-1;
+
     this->m_source = 0;
     this->visMode = VisualizationMode::SYSTEM;
     this->m_location_coordinatesystem = WidgetLocation::BOTTOM_RIGHT;
@@ -355,9 +364,11 @@ void SpinWidget::updateVectorFieldGeometry()
     int n_cell_atoms = Geometry_Get_N_Cell_Atoms(this->state.get());
 
     int n_cells_draw[3] = {
-        std::max(1, n_cells[0]/n_cell_step),
-        std::max(1, n_cells[1]/n_cell_step),
-        std::max(1, n_cells[2]/n_cell_step) };
+            std::max(1, int(ceil( (m_cell_a_max - m_cell_a_min + 1.0)/n_cell_step )) ),
+            std::max(1, int(ceil( (m_cell_b_max - m_cell_b_min + 1.0)/n_cell_step )) ),
+            std::max(1, int(ceil( (m_cell_c_max - m_cell_c_min + 1.0)/n_cell_step )) ) 
+        };
+
     int nos_draw = n_cell_atoms*n_cells_draw[0]*n_cells_draw[1]*n_cells_draw[2];
 
     // Positions of the vectorfield
@@ -371,16 +382,15 @@ void SpinWidget::updateVectorFieldGeometry()
     spin_pos = Geometry_Get_Positions(state.get());
     atom_types = Geometry_Get_Atom_Types(state.get());
     int icell = 0;
-    for( int cell_c=0; cell_c<n_cells_draw[2]; cell_c++ )
+    for( int cell_c=m_cell_c_min; cell_c<m_cell_c_max+1; cell_c+=n_cell_step )
     {
-        for( int cell_b=0; cell_b<n_cells_draw[1]; cell_b++ )
+        for( int cell_b=m_cell_b_min; cell_b<m_cell_b_max+1; cell_b+=n_cell_step )
         {
-            for( int cell_a=0; cell_a<n_cells_draw[0]; cell_a++ )
+            for( int cell_a=m_cell_a_min; cell_a<m_cell_a_max+1; cell_a+=n_cell_step )
             {
                 for( int ibasis=0; ibasis < n_cell_atoms; ++ibasis )
                 {
-                    int idx = ibasis + n_cell_atoms * n_cell_step * (
-                        + cell_a + n_cells[0]*cell_b + n_cells[0]*n_cells[1]*cell_c );
+                    int idx = ibasis + n_cell_atoms * ( cell_a + n_cells[0] * (cell_b + n_cells[1] * cell_c ) );
                     positions[icell] = glm::vec3(spin_pos[3*idx], spin_pos[1 + 3*idx], spin_pos[2 + 3*idx]);
                     ++icell;
                 }
@@ -394,14 +404,15 @@ void SpinWidget::updateVectorFieldGeometry()
     //      get tetrahedra
     if( Geometry_Get_Dimensionality(state.get()) == 3 )
     {
-        if( n_cell_step > 1 && (n_cells[0]/n_cell_step < 2 || n_cells[1]/n_cell_step < 2 || n_cells[2]/n_cell_step < 2) )
+        if( (n_cells_draw[0] <= 1 || n_cells_draw[1] <= 1 || n_cells_draw[2] <= 1) )
         {
             geometry = VFRendering::Geometry(positions, {}, {}, true);
         }
         else
         {
+            int temp_ranges[6] = {m_cell_a_min, m_cell_a_max+1, m_cell_b_min, m_cell_b_max+1, m_cell_c_min, m_cell_c_max+1};
             const std::array<VFRendering::Geometry::index_type, 4> *tetrahedra_indices_ptr = nullptr;
-            int num_tetrahedra = Geometry_Get_Tetrahedra(state.get(), reinterpret_cast<const int **>(&tetrahedra_indices_ptr), n_cell_step);
+            int num_tetrahedra = Geometry_Get_Tetrahedra_Ranged(state.get(), reinterpret_cast<const int **>(&tetrahedra_indices_ptr), n_cell_step, temp_ranges);
             std::vector<std::array<VFRendering::Geometry::index_type, 4>>  tetrahedra_indices(tetrahedra_indices_ptr, tetrahedra_indices_ptr + num_tetrahedra);
             geometry = VFRendering::Geometry(positions, {}, tetrahedra_indices, false);
         }
@@ -411,7 +422,7 @@ void SpinWidget::updateVectorFieldGeometry()
         // Determine two basis vectors
         std::array<glm::vec3, 2> basis;
         float eps = 1e-6;
-        for( int i=1, j=0; i < nos && j < 2; ++i )
+        for( int i=1, j=0; i < nos_draw && j < 2; ++i )
         {
             if( glm::length(positions[i] - positions[0]) > eps )
             {
@@ -447,7 +458,7 @@ void SpinWidget::updateVectorFieldGeometry()
             normal = -normal;
 
         // Rectilinear with one basis atom
-        if( n_cell_atoms == 1 && std::abs(glm::dot(basis[0], basis[1])) < 1e-6 )
+        if( n_cell_atoms == 1 && std::abs(glm::dot(basis[0], basis[1])) < 1e-6 && glm::length(basis[0]) > 1e-6 && glm::length(basis[1]) > 1e-6 ) // Check for length of the basis so that we do not get 1D geometries here
         {
             std::vector<float> xs(n_cells_draw[0]), ys(n_cells_draw[1]), zs(n_cells_draw[2]);
             for( int i = 0; i < n_cells_draw[0]; ++i )
@@ -469,7 +480,17 @@ void SpinWidget::updateVectorFieldGeometry()
         else
         {
             const std::array<VFRendering::Geometry::index_type, 3> *triangle_indices_ptr = nullptr;
-            int num_triangles = Geometry_Get_Triangulation(state.get(), reinterpret_cast<const int **>(&triangle_indices_ptr), n_cell_step);
+            // int num_triangles = Geometry_Get_Triangulation(state.get(), reinterpret_cast<const int **>(&triangle_indices_ptr), n_cell_step);
+            int temp_ranges[6] = {m_cell_a_min, m_cell_a_max+1, m_cell_b_min, m_cell_b_max+1, m_cell_c_min, m_cell_c_max+1};
+            int num_triangles = Geometry_Get_Triangulation_Ranged(state.get(), reinterpret_cast<const int **>(&triangle_indices_ptr), n_cell_step, temp_ranges, -1, -1);
+
+            // If the geometry cannot be triangulated, it may e.g be one dimensional due to filters etc. we push a dummy triangle, otherwise we get a lot of VFRendering error messages
+            if(num_triangles < 1 && this->show_surface)
+            {
+                num_triangles = 1;
+                triangle_indices_ptr = new const std::array<VFRendering::Geometry::index_type, 3>();
+            }
+
             std::vector<std::array<VFRendering::Geometry::index_type, 3>>  triangle_indices(triangle_indices_ptr, triangle_indices_ptr + num_triangles);
             geometry = VFRendering::Geometry(positions, triangle_indices, {}, true);
             for( int i = 0; i < nos_draw; ++i )
@@ -496,7 +517,12 @@ void SpinWidget::updateVectorFieldDirections()
     Geometry_Get_N_Cells(this->state.get(), n_cells);
     int n_cell_atoms = Geometry_Get_N_Cell_Atoms(this->state.get());
 
-    int n_cells_draw[3] = {std::max(1, n_cells[0]/n_cell_step), std::max(1, n_cells[1]/n_cell_step), std::max(1, n_cells[2]/n_cell_step)};
+    int n_cells_draw[3] = {
+            std::max(1, int(ceil( (m_cell_a_max - m_cell_a_min + 1.0)/n_cell_step )) ),
+            std::max(1, int(ceil( (m_cell_b_max - m_cell_b_min + 1.0)/n_cell_step )) ),
+            std::max(1, int(ceil( (m_cell_c_max - m_cell_c_min + 1.0)/n_cell_step )) ) 
+        };
+
     int nos_draw = n_cell_atoms*n_cells_draw[0]*n_cells_draw[1]*n_cells_draw[2];
 
     // Directions of the vectorfield
@@ -518,16 +544,15 @@ void SpinWidget::updateVectorFieldDirections()
     /*positions.assign(spin_pos, spin_pos + 3*nos);
     directions.assign(spins, spins + 3*nos);*/
     int icell = 0;
-    for (int cell_c=0; cell_c<n_cells_draw[2]; cell_c++)
+    for( int cell_c=m_cell_c_min; cell_c<m_cell_c_max+1; cell_c+=n_cell_step )
     {
-        for (int cell_b=0; cell_b<n_cells_draw[1]; cell_b++)
+        for( int cell_b=m_cell_b_min; cell_b<m_cell_b_max+1; cell_b+=n_cell_step )
         {
-            for (int cell_a=0; cell_a<n_cells_draw[0]; cell_a++)
+            for( int cell_a=m_cell_a_min; cell_a<m_cell_a_max+1; cell_a+=n_cell_step )
             {
                 for (int ibasis=0; ibasis < n_cell_atoms; ++ibasis)
                 {
-                    int idx = ibasis + n_cell_atoms*cell_a*n_cell_step + n_cell_atoms*n_cells[0]*cell_b*n_cell_step + n_cell_atoms*n_cells[0]*n_cells[1]*cell_c*n_cell_step;
-                    // std::cerr << idx << " " << icell << std::endl;
+                    int idx = ibasis + n_cell_atoms * (cell_a + n_cells[0] * (cell_b + n_cells[1] * cell_c ) );
                     directions[icell] = glm::vec3(spins[3*idx], spins[1 + 3*idx], spins[2 + 3*idx]);
                     if (atom_types[idx] < 0) directions[icell] *= 0;
                     ++icell;
@@ -1311,6 +1336,7 @@ void SpinWidget::setOverallPositionRange(glm::vec2 x_range, glm::vec2 y_range, g
 
 void SpinWidget::updateIsVisibleImplementation()
 {
+    float epsilon = 1e-5;
     std::ostringstream sstream;
     std::string is_visible_implementation;
     sstream << "bool is_visible(vec3 position, vec3 direction) {";
@@ -1323,9 +1349,9 @@ void SpinWidget::updateIsVisibleImplementation()
     else
     {
         sstream << "float x_min_pos = ";
-        sstream << m_x_range_position.x;
+        sstream << m_x_range_position.x - epsilon;
         sstream << "; float x_max_pos = ";
-        sstream << m_x_range_position.y;
+        sstream << m_x_range_position.y + epsilon;
         sstream << "; bool is_visible_x_pos = position.x <= x_max_pos && position.x >= x_min_pos;";
     }
     // Y
@@ -1334,9 +1360,9 @@ void SpinWidget::updateIsVisibleImplementation()
     }
     else {
         sstream << "float y_min_pos = ";
-        sstream << m_y_range_position.x;
+        sstream << m_y_range_position.x - epsilon;
         sstream << "; float y_max_pos = ";
-        sstream << m_y_range_position.y;
+        sstream << m_y_range_position.y + epsilon;
         sstream << "; bool is_visible_y_pos = position.y <= y_max_pos && position.y >= y_min_pos;";
     }
     // Z
@@ -1345,9 +1371,9 @@ void SpinWidget::updateIsVisibleImplementation()
     }
     else {
         sstream << "float z_min_pos = ";
-        sstream << m_z_range_position.x;
+        sstream << m_z_range_position.x - epsilon;
         sstream << "; float z_max_pos = ";
-        sstream << m_z_range_position.y;
+        sstream << m_z_range_position.y + epsilon;
         sstream << "; bool is_visible_z_pos = position.z <= z_max_pos && position.z >= z_min_pos;";
     }
     //        direction
@@ -1359,21 +1385,21 @@ void SpinWidget::updateIsVisibleImplementation()
     else if (m_x_range_direction.x <= -1)
     {
         sstream << "float x_max_dir = ";
-        sstream << m_x_range_direction.y;
+        sstream << m_x_range_direction.y + epsilon;
         sstream << "; bool is_visible_x_dir = normalize(direction).x <= x_max_dir;";
     }
     else if (m_x_range_direction.y >= 1)
     {
         sstream << "float x_min_dir = ";
-        sstream << m_x_range_direction.x;
+        sstream << m_x_range_direction.x - epsilon;
         sstream << "; bool is_visible_x_dir = normalize(direction).x >= x_min_dir;";
     }
     else
     {
         sstream << "float x_min_dir = ";
-        sstream << m_x_range_direction.x;
+        sstream << m_x_range_direction.x - epsilon;
         sstream << "; float x_max_dir = ";
-        sstream << m_x_range_direction.y;
+        sstream << m_x_range_direction.y + epsilon;
         sstream << "; float x_dir = normalize(direction).x; bool is_visible_x_dir = x_dir >= x_min_dir && x_dir <= x_max_dir;";
     }
     // Y
@@ -1382,19 +1408,19 @@ void SpinWidget::updateIsVisibleImplementation()
     }
     else if (m_y_range_direction.x <= -1) {
         sstream << "float y_max_dir = ";
-        sstream << m_y_range_direction.y;
+        sstream << m_y_range_direction.y + epsilon;
         sstream << "; bool is_visible_y_dir = normalize(direction).y <= y_max_dir;";
     }
     else if (m_y_range_direction.y >= 1) {
         sstream << "float y_min_dir = ";
-        sstream << m_y_range_direction.x;
+        sstream << m_y_range_direction.x - epsilon;
         sstream << "; bool is_visible_y_dir = normalize(direction).y >= y_min_dir;";
     }
     else {
         sstream << "float y_min_dir = ";
-        sstream << m_y_range_direction.x;
+        sstream << m_y_range_direction.x - epsilon;
         sstream << "; float y_max_dir = ";
-        sstream << m_y_range_direction.y;
+        sstream << m_y_range_direction.y + epsilon;
         sstream << "; float y_dir = normalize(direction).y;  bool is_visible_y_dir = y_dir >= y_min_dir && y_dir <= y_max_dir;";
     }
     // Z
@@ -1403,19 +1429,19 @@ void SpinWidget::updateIsVisibleImplementation()
     }
     else if (m_z_range_direction.x <= -1) {
         sstream << "float z_max_dir = ";
-        sstream << m_z_range_direction.y;
+        sstream << m_z_range_direction.y + epsilon;
         sstream << "; bool is_visible_z_dir = normalize(direction).z <= z_max_dir;";
     }
     else if (m_z_range_direction.y >= 1) {
         sstream << "float z_min_dir = ";
-        sstream << m_z_range_direction.x;
+        sstream << m_z_range_direction.x - epsilon;
         sstream << "; bool is_visible_z_dir = normalize(direction).z >= z_min_dir;";
     }
     else {
         sstream << "float z_min_dir = ";
-        sstream << m_z_range_direction.x;
+        sstream << m_z_range_direction.x - epsilon;
         sstream << "; float z_max_dir = ";
-        sstream << m_z_range_direction.y;
+        sstream << m_z_range_direction.y + epsilon;
         sstream << "; float z_dir = normalize(direction).z;  bool is_visible_z_dir = z_dir >= z_min_dir && z_dir <= z_max_dir;";
     }
     //
