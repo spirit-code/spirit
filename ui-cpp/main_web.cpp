@@ -13,6 +13,8 @@
 #include <Spirit/Transitions.h>
 #include <Spirit/Version.h>
 
+#include <fmt/format.h>
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif

@@ -643,6 +643,27 @@ catch( const std::exception & e )
         state.get(), Log_Level_Error, Log_Sender_UI, fmt::format( "caught std::exception: {}\n", e.what() ).c_str() );
 }
 
+void main_window::stop_all()
+try
+{
+    Log_Send( state.get(), Log_Level_Debug, Log_Sender_UI, "Stopping all calculations" );
+
+    Simulation_Stop_All( state.get() );
+
+    for( unsigned int i = 0; i < threads_image.size(); ++i )
+    {
+        if( threads_image[i].joinable() )
+            threads_image[i].join();
+    }
+    if( thread_chain.joinable() )
+        thread_chain.join();
+}
+catch( const std::exception & e )
+{
+    Log_Send(
+        state.get(), Log_Level_Error, Log_Sender_UI, fmt::format( "caught std::exception: {}\n", e.what() ).c_str() );
+}
+
 void main_window::stop_current()
 try
 {
@@ -993,6 +1014,9 @@ void main_window::draw_imgui( int display_w, int display_h )
 
 void main_window::quit()
 {
+    // Stop and wait for any running calculations
+    this->stop_all();
+
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();

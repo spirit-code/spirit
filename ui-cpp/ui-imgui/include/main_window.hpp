@@ -37,6 +37,7 @@ private:
     void handle_keyboard();
 
     void start_stop();
+    void stop_all();
     void stop_current();
 
     int selected_method;
