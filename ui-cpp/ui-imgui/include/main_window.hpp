@@ -42,6 +42,15 @@ private:
 
     int selected_method;
     int selected_solver;
+
+    bool show_overlays               = true;
+    bool show_parameters_settings    = true;
+    bool show_visualisation_settings = true;
+    bool show_hamiltonian_settings   = true;
+    bool show_geometry_settings      = true;
+
+    bool show_keybindings = false;
+    bool show_about       = false;
 };
 
 #endif

@@ -23,8 +23,9 @@ namespace widgets
 
 void show_menu_bar(
     GLFWwindow * window, ImFont * font, bool & dark_mode, ImVec4 & background_colour, GUI_Mode & selected_mode,
-    int & selected_solver, VFRendering::View & vfr_view, bool & show_keybindings, bool & show_about,
-    std::shared_ptr<State> state, std::vector<std::thread> & threads_image, std::thread & thread_chain )
+    int & selected_solver, VFRendering::View & vfr_view, bool & show_keybindings, bool & show_overlays,
+    bool & show_about, std::shared_ptr<State> state, std::vector<std::thread> & threads_image,
+    std::thread & thread_chain )
 {
     static auto modes = std::map<GUI_Mode, std::pair<std::string, std::string>>{
         { GUI_Mode::Minimizer, { "Minimizer", "(1) energy minimisation" } },
@@ -46,7 +47,7 @@ void show_menu_bar(
         // ImGui::SameLine();
         if( ImGui::BeginMenu( "File" ) )
         {
-            if( ImGui::MenuItem( "Load cfg" ) )
+            if( ImGui::MenuItem( "Load config-file" ) )
             {
                 nfdpathset_t pathSet;
                 nfdresult_t result = NFD_OpenDialogMultiple( "cfg", NULL, &pathSet );
@@ -237,21 +238,11 @@ void show_menu_bar(
         }
         if( ImGui::BeginMenu( "View" ) )
         {
-            if( ImGui::MenuItem( "Toggle info-widgets", "i" ) )
-            {
-            }
-            if( ImGui::MenuItem( "Toggle settings" ) )
-            {
-            }
-            if( ImGui::MenuItem( "Toggle plots" ) )
-            {
-            }
-            if( ImGui::MenuItem( "Toggle geometry" ) )
-            {
-            }
-            if( ImGui::MenuItem( "Toggle debug" ) )
-            {
-            }
+            ImGui::MenuItem( "Toggle info-widgets", "i", &show_overlays );
+            ImGui::MenuItem( "Toggle settings" );
+            ImGui::MenuItem( "Toggle plots" );
+            ImGui::MenuItem( "Toggle geometry" );
+            ImGui::MenuItem( "Toggle debug" );
             ImGui::Separator();
             if( ImGui::MenuItem( "Regular mode" ) )
             {
@@ -518,9 +509,12 @@ void show_energy_plot()
     ImGui::End();
 }
 
-void show_parameters( GUI_Mode & selected_mode )
+void show_parameters( GUI_Mode & selected_mode, bool & show )
 {
-    ImGui::Begin( "Parameters" );
+    if( !show )
+        return;
+
+    ImGui::Begin( "Parameters", &show );
 
     if( selected_mode == GUI_Mode::Minimizer )
     {
@@ -588,8 +582,11 @@ void show_visualisation_settings( VFRendering::View & vfr_view, ImVec4 & backgro
     ImGui::End();
 }
 
-void show_overlay_system( bool * p_open )
+void show_overlay_system( bool & show )
 {
+    if( !show )
+        return;
+
     static float energy = 0;
     static float m_x    = 0;
     static float m_y    = 0;
@@ -621,7 +618,7 @@ void show_overlay_system( bool * p_open )
                                     | ImGuiWindowFlags_NoNav;
     if( corner != -1 )
         window_flags |= ImGuiWindowFlags_NoMove;
-    if( ImGui::Begin( "System information overlay", p_open, window_flags ) )
+    if( ImGui::Begin( "System information overlay", &show, window_flags ) )
     {
         ImGui::Text( fmt::format( "FPS: {:d}", int( io.Framerate ) ).c_str() );
 
@@ -668,16 +665,19 @@ void show_overlay_system( bool * p_open )
                 corner = 2;
             if( ImGui::MenuItem( "Bottom-right", NULL, corner == 3 ) )
                 corner = 3;
-            if( p_open && ImGui::MenuItem( "Close" ) )
-                *p_open = false;
+            if( show && ImGui::MenuItem( "Close" ) )
+                show = false;
             ImGui::EndPopup();
         }
     }
     ImGui::End();
 }
 
-void show_overlay_calculation( bool * p_open, GUI_Mode & selected_mode, int & selected_solver )
+void show_overlay_calculation( bool & show, GUI_Mode & selected_mode, int & selected_solver )
 {
+    if( !show )
+        return;
+
     static auto solvers_llg
         = std::map<int, std::pair<std::string, std::string>>{ { Solver_SIB, { "SIB", "Semi-implicit method B" } },
                                                               { Solver_Depondt, { "Depondt", "Depondt" } },
@@ -726,7 +726,7 @@ void show_overlay_calculation( bool * p_open, GUI_Mode & selected_mode, int & se
                                     | ImGuiWindowFlags_NoNav;
     if( corner != -1 )
         window_flags |= ImGuiWindowFlags_NoMove;
-    if( ImGui::Begin( "Calculation information overlay", p_open, window_flags ) )
+    if( ImGui::Begin( "Calculation information overlay", &show, window_flags ) )
     {
         if( selected_mode == GUI_Mode::Minimizer || selected_mode == GUI_Mode::LLG || selected_mode == GUI_Mode::GNEB
             || selected_mode == GUI_Mode::MMF )
@@ -776,20 +776,20 @@ void show_overlay_calculation( bool * p_open, GUI_Mode & selected_mode, int & se
                 corner = 2;
             if( ImGui::MenuItem( "Bottom-right", NULL, corner == 3 ) )
                 corner = 3;
-            if( p_open && ImGui::MenuItem( "Close" ) )
-                *p_open = false;
+            if( show && ImGui::MenuItem( "Close" ) )
+                show = false;
             ImGui::EndPopup();
         }
     }
     ImGui::End();
 }
 
-void show_keybindings( bool & show_keybindings )
+void show_keybindings( bool & show )
 {
-    if( !show_keybindings )
+    if( !show )
         return;
 
-    ImGui::Begin( "Keybindings" );
+    ImGui::Begin( "Keybindings", &show );
 
     ImGui::Text( "UI controls" );
     ImGui::BulletText( "F1: Show this" );
@@ -847,7 +847,7 @@ void show_keybindings( bool & show_keybindings )
     ImGui::Text( "" );
 
     if( ImGui::Button( "Close" ) )
-        show_keybindings = false;
+        show = false;
     ImGui::End();
 }
 

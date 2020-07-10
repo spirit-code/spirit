@@ -43,8 +43,6 @@
 static GLFWwindow * glfw_window;
 static ImVec4 background_colour = ImVec4( 0.4f, 0.4f, 0.4f, 0.f );
 static bool show_demo_window    = false;
-static bool show_keybindings    = false;
-static bool show_about          = false;
 static GUI_Mode selected_mode   = GUI_Mode::Minimizer;
 
 static bool dark_mode = true;
@@ -87,55 +85,6 @@ void emscripten_loop()
 static void glfw_error_callback( int error, const char * description )
 {
     fmt::print( "Glfw Error {}: {}\n", error, description );
-}
-
-void mouseWheelCallback( GLFWwindow * window, double x_offset, double y_offset )
-{
-    if( ImGui::GetIO().WantCaptureMouse )
-        return;
-
-    (void)window;
-    (void)x_offset;
-    float scale = 10;
-    // TODO:
-    // if( shift_pressed )
-    //     scale = 1;
-    vfr_view.mouseScroll( -scale * y_offset );
-    // needs_redraw = true;
-}
-
-void mousePositionCallback( GLFWwindow * window, double x_position, double y_position )
-{
-    static glm::vec2 previous_mouse_position( 0, 0 );
-
-    if( ImGui::GetIO().WantCaptureMouse )
-        return;
-
-    glm::vec2 current_mouse_position( x_position, y_position );
-    if( glfwGetMouseButton( window, GLFW_MOUSE_BUTTON_LEFT ) == GLFW_PRESS )
-    {
-        auto movement_mode = VFRendering::CameraMovementModes::ROTATE_BOUNDED;
-        vfr_view.mouseMove( previous_mouse_position, current_mouse_position, movement_mode );
-        // needs_redraw = true;
-    }
-    else if( glfwGetMouseButton( window, GLFW_MOUSE_BUTTON_RIGHT ) == GLFW_PRESS )
-    {
-        auto movement_mode = VFRendering::CameraMovementModes::TRANSLATE;
-        vfr_view.mouseMove( previous_mouse_position, current_mouse_position, movement_mode );
-        // needs_redraw = true;
-    }
-    previous_mouse_position = current_mouse_position;
-}
-
-void framebufferSizeCallback( GLFWwindow * window, int width, int height )
-{
-    (void)window;
-    vfr_view.setFramebufferSize( width, height );
-    // needs_redraw = true;
-
-#ifdef __EMSCRIPTEN__
-    resizeCanvas();
-#endif
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -224,37 +173,36 @@ void main_window::handle_mouse()
 {
     auto & io = ImGui::GetIO();
 
-    float scroll = 10;
-    if( io.KeyShift )
-        scroll = 1;
-
-#ifndef __EMSCRIPTEN__
-    scroll *= -io.MouseWheel;
+#if defined( __APPLE__ )
+    float scroll = -0.1 * io.MouseWheel;
+#elif defined( __EMSCRIPTEN__ )
+    float scroll = ( io.MouseWheel > 0 ? 1 : ( io.MouseWheel < 0 ? -1 : 0 ) );
 #else
-    scroll *= ( io.MouseWheel > 0 ? 1 : ( io.MouseWheel < 0 ? -1 : 0 ) );
+    float scroll = -io.MouseWheel;
 #endif
+
+    if( !io.KeyShift )
+        scroll *= 10;
 
     if( io.MouseWheel )
     {
         vfr_view.mouseScroll( scroll );
     }
 
-    float scale = 10;
+    float scale = 1;
     if( io.KeyShift )
-        scale = 1;
+        scale = 0.1f;
 
     if( ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_LEFT ) && !ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_RIGHT ) )
     {
-        // ImVec2 delta = ImGui::GetMouseDragDelta( GLFW_MOUSE_BUTTON_LEFT );
         vfr_view.mouseMove(
-            glm::vec2( 0, 0 ), glm::vec2( 0.1f * scale * io.MouseDelta.x, 0.1f * scale * io.MouseDelta.y ),
+            glm::vec2( 0, 0 ), glm::vec2( scale * io.MouseDelta.x, scale * io.MouseDelta.y ),
             VFRendering::CameraMovementModes::ROTATE_BOUNDED );
     }
     else if( ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_RIGHT ) && !ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_LEFT ) )
     {
-        // ImVec2 delta = ImGui::GetMouseDragDelta( GLFW_MOUSE_BUTTON_RIGHT );
         vfr_view.mouseMove(
-            glm::vec2( 0, 0 ), glm::vec2( 0.1f * scale * io.MouseDelta.x, 0.1f * scale * io.MouseDelta.y ),
+            glm::vec2( 0, 0 ), glm::vec2( scale * io.MouseDelta.x, scale * io.MouseDelta.y ),
             VFRendering::CameraMovementModes::TRANSLATE );
     }
 }
@@ -263,14 +211,20 @@ void main_window::handle_keyboard()
 {
     auto & io = ImGui::GetIO();
 
-    if( io.KeyCtrl && io.KeyShift )
+#ifdef __APPLE__
+    bool ctrl = io.KeySuper;
+#else
+    bool ctrl    = io.KeyCtrl;
+#endif
+
+    if( ctrl && io.KeyShift )
     {
         if( ImGui::IsKeyPressed( GLFW_KEY_R ) )
         {
             this->reset_camera();
         }
     }
-    else if( io.KeyCtrl )
+    else if( ctrl )
     {
         if( ImGui::IsKeyPressed( GLFW_KEY_R ) )
         {
@@ -534,9 +488,13 @@ void main_window::handle_keyboard()
 
         //-----------------------------------------------------
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_F1 ) )
+        if( ImGui::IsKeyPressed( GLFW_KEY_F1, false ) )
         {
             show_keybindings = !show_keybindings;
+        }
+        if( ImGui::IsKeyPressed( GLFW_KEY_I, false ) )
+        {
+            show_overlays = !show_overlays;
         }
 
         //-----------------------------------------------------
@@ -568,8 +526,7 @@ void main_window::handle_keyboard()
     }
 }
 
-void main_window::start_stop()
-try
+void main_window::start_stop() try
 {
     Log_Send( state.get(), Log_Level_Debug, Log_Sender_UI, "Start/Stop" );
 
@@ -643,8 +600,7 @@ catch( const std::exception & e )
         state.get(), Log_Level_Error, Log_Sender_UI, fmt::format( "caught std::exception: {}\n", e.what() ).c_str() );
 }
 
-void main_window::stop_all()
-try
+void main_window::stop_all() try
 {
     Log_Send( state.get(), Log_Level_Debug, Log_Sender_UI, "Stopping all calculations" );
 
@@ -664,10 +620,9 @@ catch( const std::exception & e )
         state.get(), Log_Level_Error, Log_Sender_UI, fmt::format( "caught std::exception: {}\n", e.what() ).c_str() );
 }
 
-void main_window::stop_current()
-try
+void main_window::stop_current() try
 {
-    Log_Send( state.get(), Log_Level_Debug, Log_Sender_UI, "Stopping all" );
+    Log_Send( state.get(), Log_Level_Debug, Log_Sender_UI, "Stopping current calculation" );
 
     if( Simulation_Running_On_Image( this->state.get() ) || Simulation_Running_On_Chain( this->state.get() ) )
     {
@@ -963,12 +918,12 @@ void main_window::draw_imgui( int display_w, int display_h )
 
     widgets::show_menu_bar(
         glfw_window, font_16, dark_mode, background_colour, selected_mode, selected_solver, vfr_view, show_keybindings,
-        show_about, state, threads_image, thread_chain );
-    bool p_open = true;
-    widgets::show_overlay_system( &p_open );
-    widgets::show_overlay_calculation( &p_open, selected_mode, selected_solver );
+        show_overlays, show_about, state, threads_image, thread_chain );
 
-    widgets::show_parameters( selected_mode );
+    widgets::show_overlay_system( show_overlays );
+    widgets::show_overlay_calculation( show_overlays, selected_mode, selected_solver );
+
+    widgets::show_parameters( selected_mode, show_parameters_settings );
 
     widgets::show_visualisation_settings( vfr_view, background_colour );
 
