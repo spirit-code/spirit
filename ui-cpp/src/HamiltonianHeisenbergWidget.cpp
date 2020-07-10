@@ -79,7 +79,7 @@ void HamiltonianHeisenbergWidget::Load_Contents()
     this->lineEdit_extHx_aniso->setText(QString::number(vd[0]));
     this->lineEdit_extHy_aniso->setText(QString::number(vd[1]));
     this->lineEdit_extHz_aniso->setText(QString::number(vd[2]));
-    if (d > 0.0) this->checkBox_extH_aniso->setChecked(true);
+    if ( std::abs(d) > 0.0 ) this->checkBox_extH_aniso->setChecked(true);
 
     // Anisotropy
     Hamiltonian_Get_Anisotropy(state.get(), &d, vd);
@@ -326,6 +326,7 @@ void HamiltonianHeisenbergWidget::set_nshells_exchange()
         for (int n = n_shells_current; n < n_shells; ++n)
         {
             auto x = new QDoubleSpinBox();
+            x->setDecimals(4);
             x->setRange(-1000, 1000);
             this->exchange_shells.push_back(x);
             this->gridLayout_exchange->addWidget(x);
@@ -391,6 +392,7 @@ void HamiltonianHeisenbergWidget::set_nshells_dmi()
         for (int n = n_shells_current; n < n_shells; ++n)
         {
             auto x = new QDoubleSpinBox();
+            x->setDecimals(4);
             x->setRange(-1000, 1000);
             this->dmi_shells.push_back(x);
             this->gridLayout_dmi->addWidget(x);

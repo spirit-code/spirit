@@ -190,13 +190,19 @@ void ConfigurationsWidget::create_Skyrmion()
 	bool inverted = get_inverted();
 	// Create configuration
 	float rad = lineEdit_skyrmion_radius->text().toFloat();
-	float speed = lineEdit_skyrmion_order->text().toFloat();
+	float order = lineEdit_skyrmion_order->text().toFloat();
 	float phase = lineEdit_skyrmion_phase->text().toFloat();
 	bool upDown = checkBox_skyrmion_UpDown->isChecked();
 	bool achiral = checkBox_skyrmion_achiral->isChecked();
 	bool rl = checkBox_skyrmion_RL->isChecked();
+	bool dw = checkBox_DW->isChecked();
+	float dw_width = lineEdit_DW->text().toFloat();
 	// bool experimental = checkBox_sky_experimental->isChecked();
-	Configuration_Skyrmion(this->state.get(), rad, speed, phase, upDown, achiral, rl, pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+
+	if (!dw)
+		Configuration_Skyrmion(this->state.get(), rad, order, phase, upDown, achiral, rl, pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
+	else
+		Configuration_DW_Skyrmion(this->state.get(), rad, dw_width, order, phase, upDown, achiral, rl, pos.data(), border_rect.data(), border_cyl, border_sph, inverted);
 
 	// Optionally add noise
 	this->configurationAddNoise();
@@ -414,6 +420,18 @@ void ConfigurationsWidget::homogeneousTransitionFirstLastPressed()
 	this->spinWidget->updateData();
 }
 
+void ConfigurationsWidget::homogeneousTransitionInterpolatePressed()
+{
+    int noi = Chain_Get_NOI(this->state.get());
+    int n_interpolate = lineEdit_Transition_Homogeneous_Interpolate->text().toFloat();
+
+    if(n_interpolate == 0 || noi < 2)
+    {
+        return;
+    }
+    Transition_Homogeneous_Insert_Interpolated(state.get(), n_interpolate);
+}
+
 
 // -----------------------------------------------------------------------------------
 // -------------- Helpers for fetching Configurations Settings -----------------------
@@ -490,6 +508,8 @@ void ConfigurationsWidget::Setup_Input_Validators()
 	this->lineEdit_skyrmion_order->setValidator(this->number_validator_int_unsigned);
 	this->lineEdit_skyrmion_phase->setValidator(this->number_validator);
 	this->lineEdit_skyrmion_radius->setValidator(this->number_validator);
+	this->lineEdit_DW->setValidator(this->number_validator);
+
 	//		Spin Spiral
 	this->lineEdit_SS_dir_x->setValidator(this->number_validator);
 	this->lineEdit_SS_dir_y->setValidator(this->number_validator);
@@ -510,8 +530,20 @@ void ConfigurationsWidget::Setup_Input_Validators()
 	this->lineEdit_Transition_Noise->setValidator(this->number_validator_unsigned);
 	this->lineEdit_Transition_Homogeneous_First->setValidator(this->number_validator_int_unsigned);
 	this->lineEdit_Transition_Homogeneous_Last->setValidator(this->number_validator_int_unsigned);
+	this->lineEdit_Transition_Homogeneous_Interpolate->setValidator(this->number_validator_int_unsigned);
+
 }
 
+void ConfigurationsWidget::DW_Width_CheckBox_State_Changed()
+{
+    if (checkBox_DW->isChecked())
+    {
+        lineEdit_DW->setEnabled(true);
+    } else 
+    {
+        lineEdit_DW->setEnabled(false);
+    }
+}
 
 void ConfigurationsWidget::Setup_Configurations_Slots()
 {
@@ -544,6 +576,8 @@ void ConfigurationsWidget::Setup_Configurations_Slots()
 	connect(this->lineEdit_skyrmion_order, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
 	connect(this->lineEdit_skyrmion_phase, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
 	connect(this->lineEdit_skyrmion_radius, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
+	connect(this->lineEdit_DW, SIGNAL(returnPressed()), this, SLOT(create_Skyrmion()));
+    connect(this->checkBox_DW, SIGNAL(stateChanged(int)), this, SLOT(DW_Width_CheckBox_State_Changed()));
 
 	// SpinSpiral
 	connect(this->doubleSpinBox_spiral_q, SIGNAL(editingFinished()), this, SLOT(create_SpinSpiral()));
@@ -572,4 +606,5 @@ void ConfigurationsWidget::Setup_Transitions_Slots()
 	// Homogeneous Transition
 	connect(this->pushButton_Transition_Homogeneous, SIGNAL(clicked()), this, SLOT(homogeneousTransitionPressed()));
 	connect(this->pushButton_Transition_Homogeneous_First_Last, SIGNAL(clicked()), this, SLOT(homogeneousTransitionFirstLastPressed()));
+	connect(this->pushButton_Transition_Homogeneous_Interpolate, SIGNAL(clicked()), this, SLOT(homogeneousTransitionInterpolatePressed()));
 }

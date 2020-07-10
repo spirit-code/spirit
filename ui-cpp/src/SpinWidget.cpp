@@ -584,23 +584,29 @@ void SpinWidget::updateVectorFieldDirections()
         this->m_vf_surf2D.updateVectors(directions);
 }
 
-void SpinWidget::updateData()
+void SpinWidget::updateData(bool update_directions, bool update_geometry, bool update_camera)
 {
     // Update the VectorField
-    this->updateVectorFieldDirections();
-    this->updateVectorFieldGeometry();
+    if(update_directions)
+        this->updateVectorFieldDirections();
+
+    if(update_geometry)
+        this->updateVectorFieldGeometry();
 
     // Update the View
-    float b_min[3], b_max[3];
-    Geometry_Get_Bounds(state.get(), b_min, b_max);
-    glm::vec3 bounds_min = glm::make_vec3(b_min);
-    glm::vec3 bounds_max = glm::make_vec3(b_max);
-    glm::vec3 center = (bounds_min + bounds_max) * 0.5f;
-    this->m_view.setOption<VFRendering::View::Option::SYSTEM_CENTER>(center);
-    if (this->_reset_camera)
+    if(update_camera)
     {
-        setCameraToDefault();
-        this->_reset_camera = false;
+        float b_min[3], b_max[3];
+        Geometry_Get_Bounds(state.get(), b_min, b_max);
+        glm::vec3 bounds_min = glm::make_vec3(b_min);
+        glm::vec3 bounds_max = glm::make_vec3(b_max);
+        glm::vec3 center = (bounds_min + bounds_max) * 0.5f;
+        this->m_view.setOption<VFRendering::View::Option::SYSTEM_CENTER>(center);
+        if (this->_reset_camera)
+        {
+            setCameraToDefault();
+            this->_reset_camera = false;
+        }
     }
 
     // Update Widget
@@ -616,7 +622,7 @@ void SpinWidget::paintGL()
          Simulation_Running_On_Chain(this->state.get()) ||
          this->m_dragging)
     {
-        this->updateData();
+        this->updateData(true, false, true);
     }
 
     this->m_view.draw();

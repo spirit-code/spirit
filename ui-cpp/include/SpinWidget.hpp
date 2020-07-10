@@ -82,7 +82,7 @@ public:
 
     SpinWidget(std::shared_ptr<State> state, QWidget *parent = 0);
     void setSuspended(bool suspended);
-    void updateData();
+    void updateData(bool update_directions=true, bool update_geometry=true, bool update_camera=true);
     void updateVectorFieldDirections();
     void updateVectorFieldGeometry();
     void initializeGL();

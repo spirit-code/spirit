@@ -566,7 +566,7 @@ try
     Vector3 vpos = image->geometry->center + _pos;
 
     // Set cutoff radius
-    if (r_cut_cylindrical < 0) r_cut_cylindrical = 2*dw_radius;
+    if (r_cut_cylindrical < 0) r_cut_cylindrical = std::max(3*dw_radius, 3*dw_width);
 
     // Create position filter
     auto filter = get_filter(vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);

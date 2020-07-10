@@ -812,6 +812,8 @@ void VisualisationSettingsWidget::reset_visualization_system_cells()
         checkBoxes[i]->blockSignals(true);
         checkBoxes[i]->setChecked(true);
         checkBoxes[i]->blockSignals(false);
+        horizontalSliders[2*i+1]->setEnabled(true);
+        lineEdits[2*i+1]->setEnabled(true);
 
         horizontalSliders[2*i]->blockSignals(true);
         horizontalSliders[2*i+1]->blockSignals(true);
