@@ -145,7 +145,7 @@ int main( int argc, char ** argv )
     return exec;
     //-------------------------------------------------------------------------------
 #elif defined( SPIRIT_UI_USE_IMGUI )
-    main_window window( state );
+    MainWindow window( state );
 
     // Open the Application
     int exec = window.run();

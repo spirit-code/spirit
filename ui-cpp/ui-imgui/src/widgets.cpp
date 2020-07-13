@@ -12,431 +12,12 @@
 
 #include <fmt/format.h>
 
-#include <nfd.h>
-
 #include <map>
-#include <string>
-#include <thread>
 
 namespace widgets
 {
 
-void show_menu_bar(
-    GLFWwindow * window, ImFont * font, bool & dark_mode, ImVec4 & background_colour, GUI_Mode & selected_mode,
-    int & selected_solver, VFRendering::View & vfr_view, bool & show_keybindings, bool & show_overlays,
-    bool & show_about, std::shared_ptr<State> state, std::vector<std::thread> & threads_image,
-    std::thread & thread_chain )
-{
-    static auto modes = std::map<GUI_Mode, std::pair<std::string, std::string>>{
-        { GUI_Mode::Minimizer, { "Minimizer", "(1) energy minimisation" } },
-        { GUI_Mode::MC, { "Monte Carlo", "(2) Monte Carlo Stochastical sampling" } },
-        { GUI_Mode::LLG, { "LLG", "(3) Landau-Lifshitz-Gilbert dynamics" } },
-        { GUI_Mode::GNEB, { "GNEB", "(4) geodesic nudged elastic band calculation" } },
-        { GUI_Mode::MMF, { "MMF", "(5) minimum mode following saddle point search" } },
-        { GUI_Mode::EMA, { "Eigenmodes", "(6) eigenmode calculation and visualisation" } }
-    };
-
-    ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 7.f, 7.f ) );
-    ImGui::PushFont( font );
-
-    if( ImGui::BeginMainMenuBar() )
-    {
-        // mainmenu_height = ImGui::GetWindowSize().y;
-        ImGui::PopStyleVar();
-
-        // ImGui::SameLine();
-        if( ImGui::BeginMenu( "File" ) )
-        {
-            if( ImGui::MenuItem( "Load config-file" ) )
-            {
-                nfdpathset_t pathSet;
-                nfdresult_t result = NFD_OpenDialogMultiple( "cfg", NULL, &pathSet );
-                if( result == NFD_OKAY )
-                {
-                    size_t i;
-                    for( i = 0; i < NFD_PathSet_GetCount( &pathSet ); ++i )
-                    {
-                        nfdchar_t * path = NFD_PathSet_GetPath( &pathSet, i );
-                        fmt::print( "File open path {}: \"{}\"\n", (int)i, path );
-                    }
-                    NFD_PathSet_Free( &pathSet );
-                }
-                else if( result != NFD_CANCEL )
-                {
-                    fmt::print( "Error: {}\n", NFD_GetError() );
-                }
-            }
-            if( ImGui::MenuItem( "Save current cfg" ) )
-            {
-                nfdchar_t * savePath = NULL;
-                nfdresult_t result   = NFD_SaveDialog( "cfg", NULL, &savePath );
-                if( result == NFD_OKAY )
-                {
-                    fmt::print( "File save path: \"{}\"\n", savePath );
-                    free( savePath );
-                }
-                else if( result != NFD_CANCEL )
-                {
-                    fmt::print( "Error: {}\n", NFD_GetError() );
-                }
-            }
-            ImGui::Separator();
-            if( ImGui::MenuItem( "Load spin configuration" ) )
-            {
-                nfdpathset_t pathSet;
-                nfdresult_t result = NFD_OpenDialogMultiple( "ovf;txt;csv", NULL, &pathSet );
-                if( result == NFD_OKAY )
-                {
-                    size_t i;
-                    for( i = 0; i < NFD_PathSet_GetCount( &pathSet ); ++i )
-                    {
-                        nfdchar_t * path = NFD_PathSet_GetPath( &pathSet, i );
-                        fmt::print( "File open path {}: \"{}\"\n", (int)i, path );
-                    }
-                    NFD_PathSet_Free( &pathSet );
-                }
-                else if( result != NFD_CANCEL )
-                {
-                    fmt::print( "Error: {}\n", NFD_GetError() );
-                }
-            }
-            if( ImGui::MenuItem( "Save spin configuration" ) )
-            {
-                nfdchar_t * savePath = NULL;
-                nfdresult_t result   = NFD_SaveDialog( "ovf;txt;csv", NULL, &savePath );
-                if( result == NFD_OKAY )
-                {
-                    fmt::print( "File save path: \"{}\"\n", savePath );
-                    free( savePath );
-                }
-                else if( result != NFD_CANCEL )
-                {
-                    fmt::print( "Error: {}\n", NFD_GetError() );
-                }
-            }
-            if( ImGui::MenuItem( "Load system eigenmodes" ) )
-            {
-            }
-            if( ImGui::MenuItem( "Save system eigenmodes" ) )
-            {
-            }
-            if( ImGui::MenuItem( "Save energy per spin" ) )
-            {
-            }
-            ImGui::Separator();
-            if( ImGui::MenuItem( "Load chain" ) )
-            {
-                nfdpathset_t pathSet;
-                nfdresult_t result = NFD_OpenDialogMultiple( "ovf;txt;csv", NULL, &pathSet );
-                if( result == NFD_OKAY )
-                {
-                    size_t i;
-                    for( i = 0; i < NFD_PathSet_GetCount( &pathSet ); ++i )
-                    {
-                        nfdchar_t * path = NFD_PathSet_GetPath( &pathSet, i );
-                        fmt::print( "File open path {}: \"{}\"\n", (int)i, path );
-                    }
-                    NFD_PathSet_Free( &pathSet );
-                }
-                else if( result != NFD_CANCEL )
-                {
-                    fmt::print( "Error: {}\n", NFD_GetError() );
-                }
-            }
-            if( ImGui::MenuItem( "Save chain" ) )
-            {
-                nfdchar_t * savePath = NULL;
-                nfdresult_t result   = NFD_SaveDialog( "ovf;txt;csv", NULL, &savePath );
-                if( result == NFD_OKAY )
-                {
-                    fmt::print( "File save path: \"{}\"\n", savePath );
-                    free( savePath );
-                }
-                else if( result != NFD_CANCEL )
-                {
-                    fmt::print( "Error: {}\n", NFD_GetError() );
-                }
-            }
-            if( ImGui::MenuItem( "Save energies" ) )
-            {
-            }
-            if( ImGui::MenuItem( "Save interpolated energies" ) )
-            {
-            }
-            ImGui::Separator();
-            if( ImGui::MenuItem( "Choose output folder" ) )
-            {
-                nfdchar_t * outPath = NULL;
-                nfdresult_t result  = NFD_PickFolder( NULL, &outPath );
-                if( result == NFD_OKAY )
-                {
-                    fmt::print( "Folder path: \"{}\"\n", outPath );
-                    free( outPath );
-                }
-                else if( result == NFD_CANCEL )
-                {
-                    fmt::print( "User pressed cancel.\n" );
-                }
-                else
-                {
-                    fmt::print( "Error: {}\n", NFD_GetError() );
-                }
-            }
-            ImGui::Separator();
-            if( ImGui::MenuItem( "Take Screenshot" ) )
-            {
-            }
-            ImGui::EndMenu();
-        }
-        if( ImGui::BeginMenu( "Edit" ) )
-        {
-            if( ImGui::MenuItem( "Cut system", "ctrl+x" ) )
-            {
-            }
-            if( ImGui::MenuItem( "Copy system", "ctrl+c" ) )
-            {
-            }
-            if( ImGui::MenuItem( "Paste system", "ctrl+v" ) )
-            {
-            }
-            if( ImGui::MenuItem( "Insert left", "ctrl+leftarrow" ) )
-            {
-            }
-            if( ImGui::MenuItem( "Insert right", "ctrl+rightarrow" ) )
-            {
-            }
-            if( ImGui::MenuItem( "Delete system", "del" ) )
-            {
-            }
-            ImGui::EndMenu();
-        }
-        if( ImGui::BeginMenu( "Controls" ) )
-        {
-            if( ImGui::MenuItem( "Start/stop calculation", "space" ) )
-            {
-            }
-            if( ImGui::MenuItem( "Randomize spins", "ctrl+r" ) )
-            {
-            }
-            if( ImGui::MenuItem( "Cycle method", "ctrl+m" ) )
-            {
-            }
-            if( ImGui::MenuItem( "Cycle solver", "ctrl+s" ) )
-            {
-            }
-            ImGui::Separator();
-            if( ImGui::MenuItem( "Toggle dragging mode", "F5" ) )
-            {
-            }
-            if( ImGui::MenuItem( "Toggle defect mode", "F6" ) )
-            {
-            }
-            if( ImGui::MenuItem( "Toggle pinning mode", "F7" ) )
-            {
-            }
-            ImGui::EndMenu();
-        }
-        if( ImGui::BeginMenu( "View" ) )
-        {
-            ImGui::MenuItem( "Toggle info-widgets", "i", &show_overlays );
-            ImGui::MenuItem( "Toggle settings" );
-            ImGui::MenuItem( "Toggle plots" );
-            ImGui::MenuItem( "Toggle geometry" );
-            ImGui::MenuItem( "Toggle debug" );
-            ImGui::Separator();
-            if( ImGui::MenuItem( "Regular mode" ) )
-            {
-            }
-            if( ImGui::MenuItem( "Isosurface mode" ) )
-            {
-            }
-            if( ImGui::MenuItem( "Slab mode X" ) )
-            {
-            }
-            if( ImGui::MenuItem( "Slab mode Y" ) )
-            {
-            }
-            if( ImGui::MenuItem( "Slab mode Z" ) )
-            {
-            }
-            ImGui::Separator();
-            if( ImGui::MenuItem( "Toggle camera projection", "c" ) )
-            {
-            }
-            ImGui::Separator();
-            if( ImGui::MenuItem( "Toggle visualisation", "ctrl+f" ) )
-            {
-            }
-            if( ImGui::MenuItem( "Fullscreen", "ctrl+shift+f" ) )
-            {
-            }
-            ImGui::EndMenu();
-        }
-        if( ImGui::BeginMenu( "Help" ) )
-        {
-            if( ImGui::MenuItem( "Keybindings", "F1" ) )
-            {
-                show_keybindings = true;
-            }
-            if( ImGui::MenuItem( "About" ) )
-            {
-                show_about = true;
-            }
-            ImGui::EndMenu();
-        }
-
-        float menu_end = ImGui::GetCursorPosX();
-
-        auto io            = ImGui::GetIO();
-        auto & style       = ImGui::GetStyle();
-        float font_size_px = font->FontSize;
-        float right_edge   = ImGui::GetWindowContentRegionMax().x;
-        float bar_height   = ImGui::GetWindowContentRegionMax().y + 2 * style.FramePadding.y;
-        float width;
-
-        ImGui::PushStyleVar( ImGuiStyleVar_SelectableTextAlign, ImVec2( .5f, .5f ) );
-
-        width = 2.5f * font_size_px;
-        ImGui::SameLine( right_edge - width, 0 );
-        if( dark_mode )
-        {
-            if( ImGui::Button( ICON_FA_SUN, ImVec2( width, bar_height ) ) )
-            {
-                ImGui::StyleColorsLight();
-                background_colour = ImVec4( 0.9f, 0.9f, 0.9f, 1.f );
-                dark_mode         = false;
-                vfr_view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-                    { background_colour.x, background_colour.y, background_colour.z } );
-            }
-        }
-        else
-        {
-            if( ImGui::Button( ICON_FA_MOON, ImVec2( width, bar_height ) ) )
-            {
-                styles::apply_charcoal();
-                background_colour = ImVec4( 0.4f, 0.4f, 0.4f, 1.f );
-                dark_mode         = true;
-                vfr_view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-                    { background_colour.x, background_colour.y, background_colour.z } );
-            }
-        }
-        right_edge -= ( width + style.FramePadding.x );
-
-        // TODO: deactivate method selection if a calculation is running
-        for( int n = modes.size(); n > 0; n-- )
-        {
-            auto mode         = GUI_Mode( n );
-            std::string label = modes[mode].first;
-            width             = label.length() * font_size_px * 0.6;
-            ImGui::SameLine( right_edge - width, 0 );
-            if( ImGui::Selectable( label.c_str(), selected_mode == mode, 0, ImVec2( width, bar_height ) ) )
-                selected_mode = mode;
-
-            if( ImGui::IsItemHovered() )
-            {
-                ImGui::BeginTooltip();
-                ImGui::Text( modes[mode].second.c_str() );
-                ImGui::EndTooltip();
-            }
-            right_edge -= ( width + 2 * style.FramePadding.x );
-        }
-
-        width             = 2.5f * font_size_px;
-        float total_width = 3 * width + 40 + 4 * style.FramePadding.x;
-        float start       = menu_end + 0.5f * ( right_edge - menu_end - total_width );
-
-        ImGui::SameLine( start, 0 );
-        bool calculation_running
-            = Simulation_Running_On_Chain( state.get() ) || Simulation_Running_On_Image( state.get() );
-        if( calculation_running )
-        {
-            if( ImGui::Button( ICON_FA_STOP_CIRCLE, ImVec2( width, bar_height ) ) )
-            {
-                // Running, so we stop it
-                Simulation_Stop( state.get() );
-                // Join the thread of the stopped simulation
-                if( threads_image[System_Get_Index( state.get() )].joinable() )
-                    threads_image[System_Get_Index( state.get() )].join();
-                else if( thread_chain.joinable() )
-                    thread_chain.join();
-                // this->spinWidget->updateData();
-            }
-        }
-        else
-        {
-            if( ImGui::Button( ICON_FA_PLAY_CIRCLE, ImVec2( width, bar_height ) ) )
-            {
-                // Not running, so we start it
-                if( selected_mode == GUI_Mode::Minimizer )
-                {
-                    int idx = System_Get_Index( state.get() );
-                    if( threads_image[idx].joinable() )
-                        threads_image[System_Get_Index( state.get() )].join();
-                    threads_image[System_Get_Index( state.get() )]
-                        = std::thread( &Simulation_LLG_Start, state.get(), selected_solver, -1, -1, false, -1, -1 );
-                }
-                else if( selected_mode == GUI_Mode::LLG )
-                {
-                    int idx = System_Get_Index( state.get() );
-                    if( threads_image[idx].joinable() )
-                        threads_image[System_Get_Index( state.get() )].join();
-                    threads_image[System_Get_Index( state.get() )]
-                        = std::thread( &Simulation_LLG_Start, state.get(), selected_solver, -1, -1, false, -1, -1 );
-                }
-                else if( selected_mode == GUI_Mode::MC )
-                {
-                    int idx = System_Get_Index( state.get() );
-                    if( threads_image[idx].joinable() )
-                        threads_image[System_Get_Index( state.get() )].join();
-                    threads_image[System_Get_Index( state.get() )]
-                        = std::thread( &Simulation_MC_Start, state.get(), -1, -1, false, -1, -1 );
-                }
-                else if( selected_mode == GUI_Mode::GNEB )
-                {
-                    if( thread_chain.joinable() )
-                        thread_chain.join();
-                    thread_chain
-                        = std::thread( &Simulation_GNEB_Start, state.get(), selected_solver, -1, -1, false, -1 );
-                }
-                else if( selected_mode == GUI_Mode::MMF )
-                {
-                    int idx = System_Get_Index( state.get() );
-                    if( threads_image[idx].joinable() )
-                        threads_image[System_Get_Index( state.get() )].join();
-                    threads_image[System_Get_Index( state.get() )]
-                        = std::thread( &Simulation_MMF_Start, state.get(), selected_solver, -1, -1, false, -1, -1 );
-                }
-                else if( selected_mode == GUI_Mode::EMA )
-                {
-                    int idx = System_Get_Index( state.get() );
-                    if( threads_image[idx].joinable() )
-                        threads_image[System_Get_Index( state.get() )].join();
-                    threads_image[System_Get_Index( state.get() )]
-                        = std::thread( &Simulation_EMA_Start, state.get(), -1, -1, false, -1, -1 );
-                }
-            }
-        }
-
-        if( ImGui::Button( ICON_FA_ARROW_LEFT, ImVec2( width, bar_height ) ) )
-        {
-        }
-
-        static ImU32 image_number = (ImU32)1;
-        ImGui::SetNextItemWidth( 40 );
-        ImGui::InputScalar( "##imagenumber", ImGuiDataType_U32, &image_number, NULL, NULL, "%u" );
-
-        if( ImGui::Button( ICON_FA_ARROW_RIGHT, ImVec2( width, bar_height ) ) )
-        {
-        }
-
-        ImGui::PopStyleVar();
-
-        ImGui::EndMainMenuBar();
-    }
-    ImGui::PopFont();
-}
-
-void show_energy_plot()
+void show_plots( bool & show )
 {
     auto & style = ImGui::GetStyle();
 
@@ -459,7 +40,10 @@ void show_energy_plot()
         refresh_time += 1.0f / 60.0f;
     }
 
-    ImGui::Begin( "Plots" );
+    if( !show )
+        return;
+
+    ImGui::Begin( "Plots", &show );
     {
         ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
         if( ImGui::BeginTabBar( "plots_tab_bar", tab_bar_flags ) )
@@ -509,7 +93,7 @@ void show_energy_plot()
     ImGui::End();
 }
 
-void show_parameters( GUI_Mode & selected_mode, bool & show )
+void show_parameters( bool & show, GUI_Mode & selected_mode )
 {
     if( !show )
         return;
@@ -553,15 +137,17 @@ void show_parameters( GUI_Mode & selected_mode, bool & show )
     ImGui::End();
 }
 
-void show_visualisation_settings( VFRendering::View & vfr_view, ImVec4 & background_colour )
+void show_visualisation_settings( bool & show, VFRendering::View & vfr_view, glm::vec4 & background_colour )
 {
-    ImGui::Begin( "Visualisation settings" );
+    if( !show )
+        return;
+
+    ImGui::Begin( "Visualisation settings", &show );
 
     ImGui::Text( "Background color" );
     if( ImGui::ColorEdit3( "##bgcolour", (float *)&background_colour ) )
     {
-        vfr_view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-            { background_colour.x, background_colour.y, background_colour.z } );
+        vfr_view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>( background_colour );
     }
 
     ImGui::Separator();
@@ -673,7 +259,8 @@ void show_overlay_system( bool & show )
     ImGui::End();
 }
 
-void show_overlay_calculation( bool & show, GUI_Mode & selected_mode, int & selected_solver )
+void show_overlay_calculation(
+    bool & show, GUI_Mode & selected_mode, int & selected_solver_min, int & selected_solver_llg )
 {
     if( !show )
         return;
@@ -688,12 +275,12 @@ void show_overlay_calculation( bool & show, GUI_Mode & selected_mode, int & sele
     static auto solvers_min = std::map<int, std::pair<std::string, std::string>>{
         { Solver_VP, { "VP", "Velocity Projection" } },
         { Solver_VP_OSO, { "VP (OSO)", "Velocity Projection (OSO)" } },
+        { Solver_LBFGS_OSO, { "LBFGS (OSO)", "LBFGS (OSO)" } },
+        { Solver_LBFGS_Atlas, { "LBFGS (Atlas)", "LBFGS (Atlas)" } },
         { Solver_SIB, { "SIB", "Semi-implicit method B" } },
         { Solver_Depondt, { "Depondt", "Depondt" } },
         { Solver_Heun, { "Heun", "Heun" } },
-        { Solver_RungeKutta4, { "RK4", "4th order Runge-Kutta" } },
-        { Solver_LBFGS_OSO, { "LBFGS (OSO)", "LBFGS (OSO)" } },
-        { Solver_LBFGS_Atlas, { "LBFGS (Atlas)", "LBFGS (Atlas)" } }
+        { Solver_RungeKutta4, { "RK4", "4th order Runge-Kutta" } }
     };
 
     static float simulated_time = 0;
@@ -707,6 +294,8 @@ void show_overlay_calculation( bool & show, GUI_Mode & selected_mode, int & sele
     int milliseconds = wall_time - 60 * 60 * 1000 * hours - 60 * 1000 * minutes - 1000 * seconds;
 
     static float force_max = 0;
+
+    // ips = Simulation_Get_IterationsPerSecond( state.get() );
 
     const float DISTANCE = 50.0f;
     static int corner    = 1;
@@ -728,27 +317,31 @@ void show_overlay_calculation( bool & show, GUI_Mode & selected_mode, int & sele
         window_flags |= ImGuiWindowFlags_NoMove;
     if( ImGui::Begin( "Calculation information overlay", &show, window_flags ) )
     {
-        if( selected_mode == GUI_Mode::Minimizer || selected_mode == GUI_Mode::LLG || selected_mode == GUI_Mode::GNEB
-            || selected_mode == GUI_Mode::MMF )
+        if( selected_mode == GUI_Mode::Minimizer || selected_mode == GUI_Mode::GNEB || selected_mode == GUI_Mode::MMF )
         {
-            auto & solvers = solvers_min;
-            if( selected_mode == GUI_Mode::LLG )
-                solvers = solvers_llg;
-
-            if( ImGui::Button( fmt::format( "Solver: {}", solvers[selected_solver].first ).c_str() ) )
-                ImGui::OpenPopup( "solver_popup" );
-            if( ImGui::BeginPopup( "solver_popup" ) )
+            if( ImGui::Button( fmt::format( "Solver: {}", solvers_min[selected_solver_min].first ).c_str() ) )
+                ImGui::OpenPopup( "solver_popup_min" );
+            if( ImGui::BeginPopup( "solver_popup_min" ) )
             {
-                // ImGui::Text( "Aquarium" );
-                for( auto solver : solvers )
+                for( auto solver : solvers_min )
                     if( ImGui::Selectable( solver.second.first.c_str() ) )
-                        selected_solver = solver.first;
+                        selected_solver_min = solver.first;
                 ImGui::EndPopup();
             }
             ImGui::Separator();
         }
-        if( selected_mode == GUI_Mode::LLG )
+        else if( selected_mode == GUI_Mode::LLG )
         {
+            if( ImGui::Button( fmt::format( "Solver: {}", solvers_llg[selected_solver_llg].first ).c_str() ) )
+                ImGui::OpenPopup( "solver_popup_llg" );
+            if( ImGui::BeginPopup( "solver_popup_llg" ) )
+            {
+                for( auto solver : solvers_llg )
+                    if( ImGui::Selectable( solver.second.first.c_str() ) )
+                        selected_solver_llg = solver.first;
+                ImGui::EndPopup();
+            }
+            ImGui::Separator();
             ImGui::Text( fmt::format( "t = {} ps", simulated_time ).c_str() );
         }
 
@@ -856,14 +449,16 @@ void show_about( bool & show_about )
     if( !show_about )
         return;
 
-    ImGui::Begin( "About" );
+    ImGui::Begin( fmt::format( "About Spirit {}", Spirit_Version() ).c_str() );
 
-    ImGui::Text( fmt::format( "Library version {}", Spirit_Version_Full() ).c_str() );
-    ImGui::Text( "" );
     ImGui::TextWrapped( "The <b>Spirit</b> GUI application incorporates intuitive visualisation,"
                         "powerful <b>Spin Dynamics</b> and <b>Nudged Elastic Band</b> tools"
                         "into a cross-platform user interface." );
+
     ImGui::Text( "" );
+    ImGui::Separator();
+    ImGui::Text( "" );
+
     ImGui::Text( "Main developers:" );
     ImGui::BulletText(
         "Moritz Sallermann (<a href=\"mailto:m.sallermann@fz-juelich.de\">m.sallermann@fz-juelich.de</a>)" );
@@ -872,10 +467,39 @@ void show_about( bool & show_about )
         "at the Institute for Advanced Simulation 1 of the Forschungszentrum Juelich.\n"
         "For more information about us, visit <a href=\"http://juspin.de\">juSpin.de</a>"
         " or see the <a href=\"http://www.fz-juelich.de/pgi/pgi-1/DE/Home/home_node.html\">IAS-1 Website</a>." );
+
     ImGui::Text( "" );
+
     ImGui::TextWrapped( "The sources are hosted at <a href=\"https://spirit-code.github.io\">spirit-code.github.io</a>"
                         " and the documentation can be found at <a "
                         "href=\"https://spirit-docs.readthedocs.io\">spirit-docs.readthedocs.io</a>." );
+
+    ImGui::Text( "" );
+    ImGui::Separator();
+    ImGui::Text( "" );
+
+    ImGui::Text( fmt::format( "Full library version {}", Spirit_Version_Full() ).c_str() );
+    ImGui::Text( fmt::format( "Built with {}", Spirit_Compiler_Full() ).c_str() );
+
+    ImGui::Text( "" );
+
+    ImGui::Text( fmt::format( "Floating point precision = {}", Spirit_Scalar_Type() ).c_str() );
+
+    ImGui::Text( "" );
+
+    ImGui::Columns( 2, "aboutinfocolumns", false );
+
+    ImGui::Text( "Parallelisation:" );
+    ImGui::Text( fmt::format( "   - OpenMP  = {}", Spirit_OpenMP() ).c_str() );
+    ImGui::Text( fmt::format( "   - Cuda    = {}", Spirit_Cuda() ).c_str() );
+    ImGui::Text( fmt::format( "   - Threads = {}", Spirit_Threads() ).c_str() );
+    ImGui::NextColumn();
+    ImGui::Text( "Other:" );
+    ImGui::Text( fmt::format( "   - Defects = {}", Spirit_Defects() ).c_str() );
+    ImGui::Text( fmt::format( "   - Pinning = {}", Spirit_Pinning() ).c_str() );
+    ImGui::Text( fmt::format( "   - FFTW    = {}", Spirit_FFTW() ).c_str() );
+    ImGui::Columns( 1 );
+
     ImGui::Text( "" );
 
     if( ImGui::Button( "Close" ) )

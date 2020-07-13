@@ -58,7 +58,7 @@ try
         ( "Using OpenMP with n=" + std::to_string( nt ) + " threads" ).c_str() );
 #endif
 
-    main_window window( state );
+    MainWindow window( state );
 
     // Open the Application
     int exec = window.run();

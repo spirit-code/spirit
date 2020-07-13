@@ -15,16 +15,6 @@
 #include <styles.hpp>
 #include <widgets.hpp>
 
-#include <GLFW/glfw3.h>
-
-#include <VFRendering/ArrowRenderer.hxx>
-#include <VFRendering/BoundingBoxRenderer.hxx>
-#include <VFRendering/CombinedRenderer.hxx>
-#include <VFRendering/CoordinateSystemRenderer.hxx>
-#include <VFRendering/IsosurfaceRenderer.hxx>
-#include <VFRendering/SphereRenderer.hxx>
-#include <VFRendering/View.hxx>
-
 #include <imgui/imgui_internal.h>
 
 #include <glm/gtc/type_ptr.hpp>
@@ -38,33 +28,13 @@
 
 #include <fmt/format.h>
 
+#include <nfd.h>
+
 #include <exception>
+#include <map>
+#include <string>
 
-static GLFWwindow * glfw_window;
-static ImVec4 background_colour = ImVec4( 0.4f, 0.4f, 0.4f, 0.f );
-static bool show_demo_window    = false;
-static GUI_Mode selected_mode   = GUI_Mode::Minimizer;
-
-static bool dark_mode = true;
-
-static bool drag_main_window = false;
-static double wx_start, wy_start;
-static double cx_start, cy_start;
-static bool main_window_maximized = false;
-
-static ImFont * font_14 = nullptr;
-static ImFont * font_16 = nullptr;
-static ImFont * font_18 = nullptr;
-
-static VFRendering::View vfr_view;
-static VFRendering::Geometry vfr_geometry;
-static VFRendering::VectorField vfr_vectorfield        = VFRendering::VectorField( {}, {} );
-static VFRendering::VectorField vfr_vectorfield_surf2D = VFRendering::VectorField( {}, {} );
-// static std::shared_ptr<VFRendering::ArrowRenderer> vfr_arrow_renderer_ptr;
-static std::vector<std::shared_ptr<VFRendering::RendererBase>> vfr_renderers( 0 );
-static int n_cell_step = 1;
-
-static main_window * global_window_handle;
+static MainWindow * global_window_handle;
 
 /////////////////////////////////////////////////////////////////////
 
@@ -78,7 +48,8 @@ EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context_vfr;
 
 void emscripten_loop()
 {
-    global_window_handle->loop();
+    glfwPollEvents();
+    global_window_handle->draw();
 }
 #endif
 
@@ -87,9 +58,15 @@ static void glfw_error_callback( int error, const char * description )
     fmt::print( "Glfw Error {}: {}\n", error, description );
 }
 
+static void framebufferSizeCallback( GLFWwindow * window, int width, int height )
+{
+    (void)window;
+    global_window_handle->resize( width, height );
+}
+
 /////////////////////////////////////////////////////////////////////
 
-void main_window::intitialize_gl()
+void MainWindow::intitialize_gl()
 {
 #ifdef __EMSCRIPTEN__
     EmscriptenWebGLContextAttributes attrs_imgui;
@@ -129,14 +106,14 @@ void main_window::intitialize_gl()
     vfr_view.setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>(
         VFRendering::Utilities::getColormapImplementation( VFRendering::Utilities::Colormap::HSV ) );
 
-    auto vfr_arrow_renderer_ptr = std::make_shared<VFRendering::ArrowRenderer>( vfr_view, vfr_vectorfield );
-    vfr_renderers.push_back( vfr_arrow_renderer_ptr );
+    vfr_arrow_renderer_ptr = std::make_shared<VFRendering::ArrowRenderer>( vfr_view, vfr_vectorfield );
+    vfr_system_renderers.push_back( vfr_arrow_renderer_ptr );
 
     vfr_view.renderers(
-        { { std::make_shared<VFRendering::CombinedRenderer>( vfr_view, vfr_renderers ), { { 0, 0, 1, 1 } } } } );
+        { { std::make_shared<VFRendering::CombinedRenderer>( vfr_view, vfr_system_renderers ), { { 0, 0, 1, 1 } } } } );
 }
 
-void main_window::reset_camera()
+void MainWindow::reset_camera()
 {
     float camera_distance = 30.0f;
     // auto center_position  = ( vfr_geometry.min() + vfr_geometry.max() ) * 0.5f;
@@ -166,10 +143,10 @@ void main_window::reset_camera()
     auto cam = options.get<VFRendering::View::Option::CAMERA_POSITION>();
     fmt::print( "camera position at {} {} {}\n", cam.x, cam.y, cam.z );
 
-    // needs_redraw = true;
+    vfr_needs_redraw = true;
 }
 
-void main_window::handle_mouse()
+void MainWindow::handle_mouse()
 {
     auto & io = ImGui::GetIO();
 
@@ -187,6 +164,7 @@ void main_window::handle_mouse()
     if( io.MouseWheel )
     {
         vfr_view.mouseScroll( scroll );
+        vfr_needs_redraw = true;
     }
 
     float scale = 1;
@@ -198,16 +176,18 @@ void main_window::handle_mouse()
         vfr_view.mouseMove(
             glm::vec2( 0, 0 ), glm::vec2( scale * io.MouseDelta.x, scale * io.MouseDelta.y ),
             VFRendering::CameraMovementModes::ROTATE_BOUNDED );
+        vfr_needs_redraw = true;
     }
     else if( ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_RIGHT ) && !ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_LEFT ) )
     {
         vfr_view.mouseMove(
             glm::vec2( 0, 0 ), glm::vec2( scale * io.MouseDelta.x, scale * io.MouseDelta.y ),
             VFRendering::CameraMovementModes::TRANSLATE );
+        vfr_needs_redraw = true;
     }
 }
 
-void main_window::handle_keyboard()
+void MainWindow::handle_keyboard()
 {
     auto & io = ImGui::GetIO();
 
@@ -222,6 +202,7 @@ void main_window::handle_keyboard()
         if( ImGui::IsKeyPressed( GLFW_KEY_R ) )
         {
             this->reset_camera();
+            vfr_needs_redraw = true;
         }
     }
     else if( ctrl )
@@ -229,6 +210,7 @@ void main_window::handle_keyboard()
         if( ImGui::IsKeyPressed( GLFW_KEY_R ) )
         {
             Configuration_Random( state.get() );
+            vfr_needs_data = true;
         }
 
         //-----------------------------------------------------
@@ -249,6 +231,7 @@ void main_window::handle_keyboard()
                         this->threads_image[idx].join();
                     this->threads_image.erase( threads_image.begin() + idx );
                 }
+                vfr_needs_data = true;
             }
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_C ) )
@@ -260,6 +243,7 @@ void main_window::handle_keyboard()
             // Paste a Spin System into current System
             this->stop_current();
             Chain_Replace_Image( state.get() );
+            vfr_needs_data = true;
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_LEFT ) )
         {
@@ -270,6 +254,7 @@ void main_window::handle_keyboard()
             this->threads_image.insert( threads_image.begin() + idx, std::thread() );
             // Switch to the inserted image
             Chain_prev_Image( this->state.get() );
+            vfr_needs_data = true;
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_RIGHT ) )
         {
@@ -280,6 +265,7 @@ void main_window::handle_keyboard()
             this->threads_image.insert( threads_image.begin() + idx + 1, std::thread() );
             // Switch to the inserted image
             Chain_next_Image( this->state.get() );
+            vfr_needs_data = true;
         }
     }
     else
@@ -300,10 +286,12 @@ void main_window::handle_keyboard()
         if( ImGui::IsKeyPressed( GLFW_KEY_W ) && !ImGui::IsKeyPressed( GLFW_KEY_S ) )
         {
             vfr_view.mouseScroll( -scale );
+            vfr_needs_redraw = true;
         }
         else if( ImGui::IsKeyPressed( GLFW_KEY_S ) && !ImGui::IsKeyPressed( GLFW_KEY_W ) )
         {
             vfr_view.mouseScroll( scale );
+            vfr_needs_redraw = true;
         }
 
         bool rotate_camera = false;
@@ -359,9 +347,15 @@ void main_window::handle_keyboard()
         }
 
         if( rotate_camera )
+        {
             vfr_view.mouseMove( { 0, 0 }, { phi, theta }, VFRendering::CameraMovementModes::ROTATE_BOUNDED );
+            vfr_needs_redraw = true;
+        }
         if( move_camera )
+        {
             vfr_view.mouseMove( { 0, 0 }, { dx, dy }, VFRendering::CameraMovementModes::TRANSLATE );
+            vfr_needs_redraw = true;
+        }
 
         // Reset the key repeat parameters
         io.KeyRepeatRate  = backup_repeat_rate;
@@ -392,6 +386,7 @@ void main_window::handle_keyboard()
             options.set<VFRendering::View::Option::CENTER_POSITION>( center_position );
             options.set<VFRendering::View::Option::UP_VECTOR>( up_vector );
             vfr_view.updateOptions( options );
+            vfr_needs_redraw = true;
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_Y, false ) )
         {
@@ -412,6 +407,7 @@ void main_window::handle_keyboard()
             options.set<VFRendering::View::Option::CENTER_POSITION>( center_position );
             options.set<VFRendering::View::Option::UP_VECTOR>( up_vector );
             vfr_view.updateOptions( options );
+            vfr_needs_redraw = true;
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_Z, false ) )
         {
@@ -432,6 +428,7 @@ void main_window::handle_keyboard()
             options.set<VFRendering::View::Option::CENTER_POSITION>( center_position );
             options.set<VFRendering::View::Option::UP_VECTOR>( up_vector );
             vfr_view.updateOptions( options );
+            vfr_needs_redraw = true;
         }
 
         //-----------------------------------------------------
@@ -448,8 +445,7 @@ void main_window::handle_keyboard()
                 // Change active image
                 Chain_next_Image( this->state.get() );
 
-                // // Update
-                // this->updateData();
+                vfr_needs_data = true;
             }
         }
 
@@ -461,8 +457,7 @@ void main_window::handle_keyboard()
                 // Change active image!
                 Chain_prev_Image( this->state.get() );
 
-                // // Update
-                // this->updateData();
+                vfr_needs_data = true;
             }
         }
 
@@ -481,8 +476,7 @@ void main_window::handle_keyboard()
                     this->threads_image.erase( threads_image.begin() + idx );
                 }
 
-                //     // Update
-                //     this->updateData();
+                vfr_needs_data = true;
             }
         }
 
@@ -526,7 +520,7 @@ void main_window::handle_keyboard()
     }
 }
 
-void main_window::start_stop() try
+void MainWindow::start_stop() try
 {
     Log_Send( state.get(), Log_Level_Debug, Log_Sender_UI, "Start/Stop" );
 
@@ -551,7 +545,7 @@ void main_window::start_stop() try
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )]
-                = std::thread( &Simulation_LLG_Start, this->state.get(), selected_solver, -1, -1, false, -1, -1 );
+                = std::thread( &Simulation_LLG_Start, this->state.get(), selected_solver_min, -1, -1, false, -1, -1 );
         }
         if( selected_mode == GUI_Mode::LLG )
         {
@@ -559,7 +553,7 @@ void main_window::start_stop() try
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )]
-                = std::thread( &Simulation_LLG_Start, this->state.get(), selected_solver, -1, -1, false, -1, -1 );
+                = std::thread( &Simulation_LLG_Start, this->state.get(), selected_solver_llg, -1, -1, false, -1, -1 );
         }
         else if( selected_mode == GUI_Mode::MC )
         {
@@ -574,7 +568,7 @@ void main_window::start_stop() try
             if( thread_chain.joinable() )
                 thread_chain.join();
             this->thread_chain
-                = std::thread( &Simulation_GNEB_Start, this->state.get(), selected_solver, -1, -1, false, -1 );
+                = std::thread( &Simulation_GNEB_Start, this->state.get(), selected_solver_min, -1, -1, false, -1 );
         }
         else if( selected_mode == GUI_Mode::MMF )
         {
@@ -582,7 +576,7 @@ void main_window::start_stop() try
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )]
-                = std::thread( &Simulation_MMF_Start, this->state.get(), selected_solver, -1, -1, false, -1, -1 );
+                = std::thread( &Simulation_MMF_Start, this->state.get(), selected_solver_min, -1, -1, false, -1, -1 );
         }
         else if( selected_mode == GUI_Mode::EMA )
         {
@@ -593,6 +587,7 @@ void main_window::start_stop() try
                 = std::thread( &Simulation_EMA_Start, this->state.get(), -1, -1, false, -1, -1 );
         }
     }
+    vfr_needs_data = true;
 }
 catch( const std::exception & e )
 {
@@ -600,7 +595,7 @@ catch( const std::exception & e )
         state.get(), Log_Level_Error, Log_Sender_UI, fmt::format( "caught std::exception: {}\n", e.what() ).c_str() );
 }
 
-void main_window::stop_all() try
+void MainWindow::stop_all() try
 {
     Log_Send( state.get(), Log_Level_Debug, Log_Sender_UI, "Stopping all calculations" );
 
@@ -613,6 +608,8 @@ void main_window::stop_all() try
     }
     if( thread_chain.joinable() )
         thread_chain.join();
+
+    vfr_needs_data = true;
 }
 catch( const std::exception & e )
 {
@@ -620,7 +617,7 @@ catch( const std::exception & e )
         state.get(), Log_Level_Error, Log_Sender_UI, fmt::format( "caught std::exception: {}\n", e.what() ).c_str() );
 }
 
-void main_window::stop_current() try
+void MainWindow::stop_current() try
 {
     Log_Send( state.get(), Log_Level_Debug, Log_Sender_UI, "Stopping current calculation" );
 
@@ -645,6 +642,8 @@ void main_window::stop_current() try
         else if( thread_chain.joinable() )
             thread_chain.join();
     }
+
+    vfr_needs_data = true;
 }
 catch( const std::exception & e )
 {
@@ -652,7 +651,7 @@ catch( const std::exception & e )
         state.get(), Log_Level_Error, Log_Sender_UI, fmt::format( "caught std::exception: {}\n", e.what() ).c_str() );
 }
 
-void main_window::loop()
+void MainWindow::draw()
 {
     int display_w, display_h;
 #ifdef __EMSCRIPTEN__
@@ -671,8 +670,6 @@ void main_window::loop()
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 #endif
 
-    glfwPollEvents();
-
     auto & io = ImGui::GetIO();
 
     if( !io.WantCaptureMouse )
@@ -689,17 +686,30 @@ void main_window::loop()
     emscripten_webgl_make_context_current( context_vfr );
 #endif
 
+    if( Simulation_Running_On_Image( this->state.get() ) || Simulation_Running_On_Chain( this->state.get() )
+        || this->m_dragging )
+    {
+        vfr_needs_data = true;
+    }
+
     draw_vfr( display_w, display_h );
 }
 
-void main_window::draw_vfr( int display_w, int display_h )
+void MainWindow::draw_vfr( int display_w, int display_h )
 {
-    update_vf_directions();
-    vfr_view.setFramebufferSize( float( display_w ), float( display_h ) );
-    vfr_view.draw();
+    if( vfr_needs_data )
+    {
+        update_vf_directions();
+        vfr_needs_redraw = true;
+    }
+    if( vfr_needs_redraw )
+    {
+        vfr_view.setFramebufferSize( float( display_w ), float( display_h ) );
+        vfr_view.draw();
+    }
 }
 
-void main_window::update_vf_geometry()
+void MainWindow::update_vf_geometry()
 {
     int nos = System_Get_NOS( state.get() );
     int n_cells[3];
@@ -834,7 +844,7 @@ void main_window::update_vf_geometry()
     vfr_vectorfield.updateGeometry( geometry );
 }
 
-void main_window::update_vf_directions()
+void MainWindow::update_vf_directions()
 {
     int nos = System_Get_NOS( state.get() );
     int n_cells[3];
@@ -908,26 +918,26 @@ void main_window::update_vf_directions()
         vfr_vectorfield_surf2D.updateVectors( directions );
 }
 
-void main_window::draw_imgui( int display_w, int display_h )
+void MainWindow::draw_imgui( int display_w, int display_h )
 {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::PushFont( font_14 );
+    ImGui::PushFont( font_karla_14 );
 
-    widgets::show_menu_bar(
-        glfw_window, font_16, dark_mode, background_colour, selected_mode, selected_solver, vfr_view, show_keybindings,
-        show_overlays, show_about, state, threads_image, thread_chain );
+    this->show_menu_bar();
 
+    ImGui::PushFont( font_cousine_14 );
     widgets::show_overlay_system( show_overlays );
-    widgets::show_overlay_calculation( show_overlays, selected_mode, selected_solver );
+    widgets::show_overlay_calculation( show_overlays, selected_mode, selected_solver_min, selected_solver_llg );
+    ImGui::PopFont();
 
-    widgets::show_parameters( selected_mode, show_parameters_settings );
+    widgets::show_parameters( show_parameters_settings, selected_mode );
 
-    widgets::show_visualisation_settings( vfr_view, background_colour );
+    widgets::show_visualisation_settings( show_visualisation_settings, vfr_view, background_colour );
 
-    widgets::show_energy_plot();
+    widgets::show_plots( show_plots );
 
     widgets::show_keybindings( show_keybindings );
 
@@ -941,19 +951,9 @@ void main_window::draw_imgui( int display_w, int display_h )
 
     ImGui::Begin( "Test-window" );
 
-    static float f     = 0.0f;
-    static int counter = 0;
-    ImGui::Text( "Hello, world!" );
-    ImGui::SliderFloat( "float", &f, 0.0f, 1.0f );
-
     ImGui::Text( "Windows" );
     ImGui::Checkbox( "Demo Window", &show_demo_window );
     ImGui::Checkbox( "Keybindings", &show_keybindings );
-
-    if( ImGui::Button( "Button" ) )
-        counter++;
-    ImGui::SameLine();
-    ImGui::Text( "counter = %d", counter );
 
     ImGui::Text(
         "Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate );
@@ -967,43 +967,396 @@ void main_window::draw_imgui( int display_w, int display_h )
     ImGui_ImplOpenGL3_RenderDrawData( ImGui::GetDrawData() );
 }
 
-void main_window::quit()
+void MainWindow::show_menu_bar()
 {
-    // Stop and wait for any running calculations
-    this->stop_all();
+    static auto modes = std::map<GUI_Mode, std::pair<std::string, std::string>>{
+        { GUI_Mode::Minimizer, { "Minimizer", "(1) energy minimisation" } },
+        { GUI_Mode::MC, { "Monte Carlo", "(2) Monte Carlo Stochastical sampling" } },
+        { GUI_Mode::LLG, { "LLG", "(3) Landau-Lifshitz-Gilbert dynamics" } },
+        { GUI_Mode::GNEB, { "GNEB", "(4) geodesic nudged elastic band calculation" } },
+        { GUI_Mode::MMF, { "MMF", "(5) minimum mode following saddle point search" } },
+        { GUI_Mode::EMA, { "Eigenmodes", "(6) eigenmode calculation and visualisation" } }
+    };
+    static std::vector<float> mode_button_hovered_duration( modes.size(), 0 );
+    static ImU32 image_number = (ImU32)1;
 
-    // Cleanup
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
+    ImGui::PushFont( font_karla_16 );
+    float font_size_px = font_karla_16->FontSize;
 
-    glfwDestroyWindow( glfw_window );
-    glfwTerminate();
+    ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 7.f, 7.f ) );
+    if( ImGui::BeginMainMenuBar() )
+    {
+        ImGui::PopStyleVar();
+
+        if( ImGui::BeginMenu( "File" ) )
+        {
+            if( ImGui::MenuItem( "Load config-file" ) )
+            {
+                nfdpathset_t pathSet;
+                nfdresult_t result = NFD_OpenDialogMultiple( "cfg", NULL, &pathSet );
+                if( result == NFD_OKAY )
+                {
+                    size_t i;
+                    for( i = 0; i < NFD_PathSet_GetCount( &pathSet ); ++i )
+                    {
+                        nfdchar_t * path = NFD_PathSet_GetPath( &pathSet, i );
+                        fmt::print( "File open path {}: \"{}\"\n", (int)i, path );
+                    }
+                    NFD_PathSet_Free( &pathSet );
+                }
+                else if( result != NFD_CANCEL )
+                {
+                    fmt::print( "Error: {}\n", NFD_GetError() );
+                }
+            }
+            if( ImGui::MenuItem( "Save current cfg" ) )
+            {
+                nfdchar_t * savePath = NULL;
+                nfdresult_t result   = NFD_SaveDialog( "cfg", NULL, &savePath );
+                if( result == NFD_OKAY )
+                {
+                    fmt::print( "File save path: \"{}\"\n", savePath );
+                    free( savePath );
+                }
+                else if( result != NFD_CANCEL )
+                {
+                    fmt::print( "Error: {}\n", NFD_GetError() );
+                }
+            }
+            ImGui::Separator();
+            if( ImGui::MenuItem( "Load spin configuration" ) )
+            {
+                nfdpathset_t pathSet;
+                nfdresult_t result = NFD_OpenDialogMultiple( "ovf;txt;csv", NULL, &pathSet );
+                if( result == NFD_OKAY )
+                {
+                    size_t i;
+                    for( i = 0; i < NFD_PathSet_GetCount( &pathSet ); ++i )
+                    {
+                        nfdchar_t * path = NFD_PathSet_GetPath( &pathSet, i );
+                        fmt::print( "File open path {}: \"{}\"\n", (int)i, path );
+                    }
+                    NFD_PathSet_Free( &pathSet );
+                }
+                else if( result != NFD_CANCEL )
+                {
+                    fmt::print( "Error: {}\n", NFD_GetError() );
+                }
+            }
+            if( ImGui::MenuItem( "Save spin configuration" ) )
+            {
+                nfdchar_t * savePath = NULL;
+                nfdresult_t result   = NFD_SaveDialog( "ovf;txt;csv", NULL, &savePath );
+                if( result == NFD_OKAY )
+                {
+                    fmt::print( "File save path: \"{}\"\n", savePath );
+                    free( savePath );
+                }
+                else if( result != NFD_CANCEL )
+                {
+                    fmt::print( "Error: {}\n", NFD_GetError() );
+                }
+            }
+            if( ImGui::MenuItem( "Load system eigenmodes" ) )
+            {
+            }
+            if( ImGui::MenuItem( "Save system eigenmodes" ) )
+            {
+            }
+            if( ImGui::MenuItem( "Save energy per spin" ) )
+            {
+            }
+            ImGui::Separator();
+            if( ImGui::MenuItem( "Load chain" ) )
+            {
+                nfdpathset_t pathSet;
+                nfdresult_t result = NFD_OpenDialogMultiple( "ovf;txt;csv", NULL, &pathSet );
+                if( result == NFD_OKAY )
+                {
+                    size_t i;
+                    for( i = 0; i < NFD_PathSet_GetCount( &pathSet ); ++i )
+                    {
+                        nfdchar_t * path = NFD_PathSet_GetPath( &pathSet, i );
+                        fmt::print( "File open path {}: \"{}\"\n", (int)i, path );
+                    }
+                    NFD_PathSet_Free( &pathSet );
+                }
+                else if( result != NFD_CANCEL )
+                {
+                    fmt::print( "Error: {}\n", NFD_GetError() );
+                }
+            }
+            if( ImGui::MenuItem( "Save chain" ) )
+            {
+                nfdchar_t * savePath = NULL;
+                nfdresult_t result   = NFD_SaveDialog( "ovf;txt;csv", NULL, &savePath );
+                if( result == NFD_OKAY )
+                {
+                    fmt::print( "File save path: \"{}\"\n", savePath );
+                    free( savePath );
+                }
+                else if( result != NFD_CANCEL )
+                {
+                    fmt::print( "Error: {}\n", NFD_GetError() );
+                }
+            }
+            if( ImGui::MenuItem( "Save energies" ) )
+            {
+            }
+            if( ImGui::MenuItem( "Save interpolated energies" ) )
+            {
+            }
+            ImGui::Separator();
+            if( ImGui::MenuItem( "Choose output folder" ) )
+            {
+                nfdchar_t * outPath = NULL;
+                nfdresult_t result  = NFD_PickFolder( NULL, &outPath );
+                if( result == NFD_OKAY )
+                {
+                    fmt::print( "Folder path: \"{}\"\n", outPath );
+                    free( outPath );
+                }
+                else if( result == NFD_CANCEL )
+                {
+                    fmt::print( "User pressed cancel.\n" );
+                }
+                else
+                {
+                    fmt::print( "Error: {}\n", NFD_GetError() );
+                }
+            }
+            ImGui::Separator();
+            if( ImGui::MenuItem( "Take Screenshot" ) )
+            {
+            }
+            ImGui::EndMenu();
+        }
+        if( ImGui::BeginMenu( "Edit" ) )
+        {
+            if( ImGui::MenuItem( "Cut system", "ctrl+x" ) )
+            {
+            }
+            if( ImGui::MenuItem( "Copy system", "ctrl+c" ) )
+            {
+            }
+            if( ImGui::MenuItem( "Paste system", "ctrl+v" ) )
+            {
+            }
+            if( ImGui::MenuItem( "Insert left", "ctrl+leftarrow" ) )
+            {
+            }
+            if( ImGui::MenuItem( "Insert right", "ctrl+rightarrow" ) )
+            {
+            }
+            if( ImGui::MenuItem( "Delete system", "del" ) )
+            {
+            }
+            ImGui::EndMenu();
+        }
+        if( ImGui::BeginMenu( "Controls" ) )
+        {
+            if( ImGui::MenuItem( "Start/stop calculation", "space" ) )
+            {
+            }
+            if( ImGui::MenuItem( "Randomize spins", "ctrl+r" ) )
+            {
+            }
+            if( ImGui::MenuItem( "Cycle method", "ctrl+m" ) )
+            {
+            }
+            if( ImGui::MenuItem( "Cycle solver", "ctrl+s" ) )
+            {
+            }
+            ImGui::Separator();
+            if( ImGui::MenuItem( "Toggle dragging mode", "F5" ) )
+            {
+            }
+            if( ImGui::MenuItem( "Toggle defect mode", "F6" ) )
+            {
+            }
+            if( ImGui::MenuItem( "Toggle pinning mode", "F7" ) )
+            {
+            }
+            ImGui::EndMenu();
+        }
+        if( ImGui::BeginMenu( "View" ) )
+        {
+            ImGui::MenuItem( "Show info-widgets", "i", &show_overlays );
+            ImGui::MenuItem( "Show settings" );
+            ImGui::MenuItem( "Show plots", "", &show_plots );
+            ImGui::MenuItem( "Show geometry", "", &show_geometry_settings );
+            ImGui::MenuItem( "Show debug" );
+            ImGui::Separator();
+            if( ImGui::MenuItem( "Regular mode" ) )
+            {
+            }
+            if( ImGui::MenuItem( "Isosurface mode" ) )
+            {
+            }
+            if( ImGui::MenuItem( "Slab mode X" ) )
+            {
+            }
+            if( ImGui::MenuItem( "Slab mode Y" ) )
+            {
+            }
+            if( ImGui::MenuItem( "Slab mode Z" ) )
+            {
+            }
+            ImGui::Separator();
+            if( ImGui::MenuItem( "Toggle camera projection", "c" ) )
+            {
+            }
+            ImGui::Separator();
+            if( ImGui::MenuItem( "Toggle visualisation", "ctrl+f" ) )
+            {
+            }
+            if( ImGui::MenuItem( "Fullscreen", "ctrl+shift+f" ) )
+            {
+            }
+            ImGui::EndMenu();
+        }
+        if( ImGui::BeginMenu( "Help" ) )
+        {
+            if( ImGui::MenuItem( "Keybindings", "F1" ) )
+            {
+                show_keybindings = true;
+            }
+            if( ImGui::MenuItem( "About" ) )
+            {
+                show_about = true;
+            }
+            ImGui::EndMenu();
+        }
+
+        float menu_end = ImGui::GetCursorPosX();
+
+        auto io             = ImGui::GetIO();
+        auto & style        = ImGui::GetStyle();
+        float right_edge    = ImGui::GetWindowContentRegionMax().x;
+        float button_height = ImGui::GetWindowContentRegionMax().y + style.FramePadding.y;
+        float bar_height    = ImGui::GetWindowContentRegionMax().y + 2 * style.FramePadding.y;
+        float width, height;
+
+        ImGui::PushStyleVar( ImGuiStyleVar_SelectableTextAlign, ImVec2( .5f, .5f ) );
+
+        width = 2.5f * font_size_px;
+        ImGui::SameLine( right_edge - width, 0 );
+        if( dark_mode )
+        {
+            if( ImGui::Button( ICON_FA_SUN, ImVec2( width, bar_height ) ) )
+            {
+                ImGui::StyleColorsLight();
+                background_colour = glm::vec4{ 0.9f, 0.9f, 0.9f, 1.f };
+                dark_mode         = false;
+                vfr_view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>( background_colour );
+            }
+        }
+        else
+        {
+            if( ImGui::Button( ICON_FA_MOON, ImVec2( width, bar_height ) ) )
+            {
+                styles::apply_charcoal();
+                background_colour = glm::vec4{ 0.4f, 0.4f, 0.4f, 1.f };
+                dark_mode         = true;
+                vfr_view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>( background_colour );
+            }
+        }
+        right_edge -= ( width + style.FramePadding.x );
+
+        // TODO: deactivate method selection if a calculation is running
+
+        for( int n = modes.size(); n > 0; n-- )
+        {
+            auto mode         = GUI_Mode( n );
+            std::string label = modes[mode].first;
+            ImVec2 text_size  = ImGui::CalcTextSize( label.c_str(), NULL, true );
+            width             = text_size.x + 2 * style.FramePadding.x;
+            height            = text_size.y + 2 * style.FramePadding.y;
+
+            ImGui::SameLine( right_edge - width, 0 );
+            if( ImGui::Selectable( label.c_str(), selected_mode == mode, 0, ImVec2( width, height ) ) )
+                selected_mode = mode;
+            right_edge -= ( width + 2 * style.FramePadding.x );
+
+            if( ImGui::IsItemHovered() )
+            {
+                // 1.5s delay before showing tooltip
+                mode_button_hovered_duration[n - 1] += io.DeltaTime;
+                if( mode_button_hovered_duration[n - 1] > 1.5f )
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::Text( modes[mode].second.c_str() );
+                    ImGui::EndTooltip();
+                }
+            }
+            else
+            {
+                mode_button_hovered_duration[n - 1] = 0;
+            }
+        }
+
+        width             = 2.f * font_size_px;
+        float total_width = 3 * width + 40 + 4 * style.FramePadding.x;
+        float start       = menu_end + 0.5f * ( right_edge - menu_end - total_width );
+
+        ImGui::SameLine( start, 0 );
+        bool calculation_running
+            = Simulation_Running_On_Chain( state.get() ) || Simulation_Running_On_Image( state.get() );
+        if( calculation_running )
+        {
+            if( ImGui::Button( ICON_FA_STOP, ImVec2( width, button_height ) ) )
+            {
+                this->start_stop();
+            }
+        }
+        else
+        {
+            if( ImGui::Button( ICON_FA_PLAY, ImVec2( width, button_height ) ) )
+            {
+                this->start_stop();
+            }
+        }
+
+        if( ImGui::Button( ICON_FA_ARROW_LEFT, ImVec2( width, button_height ) ) )
+        {
+        }
+
+        image_number = ( ImU32 )( System_Get_Index( state.get() ) + 1 );
+        ImGui::SetNextItemWidth( 40 );
+        ImGui::InputScalar( "##imagenumber", ImGuiDataType_U32, &image_number, NULL, NULL, "%u" );
+
+        if( ImGui::Button( ICON_FA_ARROW_RIGHT, ImVec2( width, button_height ) ) )
+        {
+        }
+
+        ImGui::PopStyleVar(); // ImGuiStyleVar_SelectableTextAlign
+
+        ImGui::EndMainMenuBar();
+    }
+    ImGui::PopFont();
 }
 
-int main_window::run()
+int MainWindow::run()
 {
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop( emscripten_loop, 0, true );
 #else
     while( !glfwWindowShouldClose( glfw_window ) )
     {
-        loop();
+        glfwPollEvents();
+        this->draw();
     }
 #endif
-
-    quit();
 
     return 0;
 }
 
-main_window::main_window( std::shared_ptr<State> state )
+MainWindow::MainWindow( std::shared_ptr<State> state )
 {
     global_window_handle = this;
 
-    this->state           = state;
-    this->selected_solver = Solver_VP_OSO;
-    this->threads_image   = std::vector<std::thread>( Chain_Get_NOI( this->state.get() ) );
+    this->state         = state;
+    this->threads_image = std::vector<std::thread>( Chain_Get_NOI( this->state.get() ) );
 
     glfwSetErrorCallback( glfw_error_callback );
 
@@ -1058,16 +1411,38 @@ main_window::main_window( std::shared_ptr<State> state )
     styles::apply_charcoal();
 
     // Load Fonts
-    font_14 = fonts::font_combined( 14 );
-    font_16 = fonts::font_combined( 16 );
-    font_18 = fonts::font_combined( 18 );
+    font_cousine_14 = fonts::cousine( 14 );
+    font_karla_14   = fonts::karla( 14 );
+    font_karla_16   = fonts::karla( 16 );
 
     glfwSetScrollCallback( glfw_window, ImGui_ImplGlfw_ScrollCallback );
     glfwSetMouseButtonCallback( glfw_window, ImGui_ImplGlfw_MouseButtonCallback );
     glfwSetKeyCallback( glfw_window, ImGui_ImplGlfw_KeyCallback );
     glfwSetCharCallback( glfw_window, ImGui_ImplGlfw_CharCallback );
 
+    glfwSetFramebufferSizeCallback( glfw_window, framebufferSizeCallback );
+
 #ifdef __EMSCRIPTEN__
     resizeCanvas();
 #endif
+}
+
+MainWindow::~MainWindow()
+{
+    // Stop and wait for any running calculations
+    this->stop_all();
+
+    // Cleanup
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+
+    glfwDestroyWindow( glfw_window );
+    glfwTerminate();
+}
+
+void MainWindow::resize( int width, int height )
+{
+    vfr_needs_redraw = true;
+    this->draw();
 }
