@@ -119,6 +119,9 @@ endif()
 if( SPIRIT_UI_USE_IMGUI )
     message( STATUS ">> Using immediate mode GUI for Spirit" )
 
+    list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" )
+    include( CMakeRC )
+
     set( IMGUI_COMPILE_GLFW ON  )
     set( IMGUI_TARGET_WEB   OFF )
 
@@ -127,6 +130,12 @@ if( SPIRIT_UI_USE_IMGUI )
         set( IMGUI_TARGET_WEB   ON  )
         message( STATUS ">> Building immediate mode web-GUI" )
     endif()
+
+    #----- Resources
+    cmrc_add_resource_library(
+        spirit_imgui_rc
+        NAMESPACE resources
+        res/Logo_Ghost.png )
 
     #----- GLFW subproject
     if( IMGUI_COMPILE_GLFW )
@@ -324,7 +333,9 @@ if( SPIRIT_UI_USE_IMGUI )
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/main_window.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/fonts.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/styles.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/textures.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/widgets.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/rendering_layer.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/imgui_impl/opengl3.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/imgui_impl/glfw.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/imgui-gizmo3d/imGuIZMOquat.cpp )
@@ -357,7 +368,8 @@ if( SPIRIT_UI_USE_IMGUI )
         ${GL_LIBRARIES}
         imgui
         VFRendering
-        nativefiledialog )
+        nativefiledialog
+        spirit_imgui_rc )
         # pthread )
 
     # set_target_properties( ${SPIRIT_LIBRARIES_STATIC} PROPERTIES

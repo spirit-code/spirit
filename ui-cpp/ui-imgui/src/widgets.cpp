@@ -1,5 +1,6 @@
 #include <fonts.hpp>
 #include <styles.hpp>
+#include <textures.hpp>
 #include <widgets.hpp>
 
 #include <Spirit/Simulation.h>
@@ -447,14 +448,32 @@ void show_keybindings( bool & show )
 
 void show_about( bool & show_about )
 {
+    static bool logo_loaded              = false;
+    static int my_image_width            = 0;
+    static int my_image_height           = 0;
+    static unsigned int my_image_texture = 0;
+
     if( !show_about )
         return;
 
+    if( !logo_loaded )
+    {
+        logo_loaded
+            = textures::load_from_file( "res/Logo_Ghost.png", &my_image_texture, &my_image_width, &my_image_height );
+        IM_ASSERT( logo_loaded );
+        logo_loaded = true;
+    }
+
     ImGui::Begin( fmt::format( "About Spirit {}", Spirit_Version() ).c_str() );
 
-    ImGui::TextWrapped( "The <b>Spirit</b> GUI application incorporates intuitive visualisation,"
-                        "powerful <b>Spin Dynamics</b> and <b>Nudged Elastic Band</b> tools"
-                        "into a cross-platform user interface." );
+    int scaled_width  = ImGui::GetWindowContentRegionMax().x;
+    int scaled_height = my_image_height * scaled_width / my_image_width;
+    ImGui::Image( (void *)(intptr_t)my_image_texture, ImVec2( scaled_width, scaled_height ) );
+
+    ImGui::TextWrapped( "The Spirit GUI application incorporates intuitive visualisations,"
+                        "powerful energy minimization, monte carlo, spin dynamics and"
+                        "nudged elastic band calculation tools into a cross-platform user"
+                        "interface." );
 
     ImGui::Text( "" );
     ImGui::Separator();
