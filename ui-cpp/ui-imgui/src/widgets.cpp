@@ -267,23 +267,27 @@ void show_overlay_calculation(
     if( !show )
         return;
 
-    static auto solvers_llg
-        = std::map<int, std::pair<std::string, std::string>>{ { Solver_SIB, { "SIB", "Semi-implicit method B" } },
-                                                              { Solver_Depondt, { "Depondt", "Depondt" } },
-                                                              { Solver_Heun, { "Heun", "Heun" } },
-                                                              { Solver_RungeKutta4,
-                                                                { "RK4", "4th order Runge-Kutta" } } };
+    static auto solvers_llg = std::map<int, std::pair<std::string, std::string>>{
+        { Solver_SIB, { "SIB", "Semi-implicit method B (Heun using approximated exponential transforms)" } },
+        { Solver_Depondt, { "Depondt", "Depondt (Heun using rotations)" } },
+        { Solver_Heun,
+          { "Heun", "Heun's midpoint method, corresponding to RK2 (using cartesian finite differences)" } },
+        { Solver_RungeKutta4, { "RK4", "4th order Runge-Kutta (using cartesian finite differences)" } }
+    };
 
     static auto solvers_min = std::map<int, std::pair<std::string, std::string>>{
-        { Solver_VP, { "VP", "Velocity Projection" } },
-        { Solver_VP_OSO, { "VP (OSO)", "Velocity Projection (OSO)" } },
-        { Solver_LBFGS_OSO, { "LBFGS (OSO)", "LBFGS (OSO)" } },
-        { Solver_LBFGS_Atlas, { "LBFGS (Atlas)", "LBFGS (Atlas)" } },
-        { Solver_SIB, { "SIB", "Semi-implicit method B" } },
-        { Solver_Depondt, { "Depondt", "Depondt" } },
-        { Solver_Heun, { "Heun", "Heun" } },
-        { Solver_RungeKutta4, { "RK4", "4th order Runge-Kutta" } }
+        { Solver_VP, { "VP", "Verlet-like velocity projection (using cartesian finite differences)" } },
+        { Solver_VP_OSO, { "VP (OSO)", "Verlet-like velocity projection (using exponential transformations)" } },
+        { Solver_LBFGS_OSO, { "LBFGS (OSO)", "LBFGS (using exponential transformations)" } },
+        { Solver_LBFGS_Atlas, { "LBFGS (Atlas)", "LBFGS (using an atlas of coordinate maps)" } },
+        { Solver_SIB, { "SIB", "Semi-implicit method B (Heun using approximated exponential transforms)" } },
+        { Solver_Depondt, { "Depondt", "Depondt (Heun using rotations)" } },
+        { Solver_Heun,
+          { "Heun", "Heun's midpoint method, corresponding to RK2 (using cartesian finite differences)" } },
+        { Solver_RungeKutta4, { "RK4", "4th order Runge-Kutta (using cartesian finite differences)" } }
     };
+
+    static float solver_button_hovered_duration = 0;
 
     static float simulated_time = 0;
     static float wall_time      = 0;
@@ -321,7 +325,26 @@ void show_overlay_calculation(
     {
         if( selected_mode == GUI_Mode::Minimizer || selected_mode == GUI_Mode::GNEB || selected_mode == GUI_Mode::MMF )
         {
-            if( ImGui::Button( fmt::format( "Solver: {}", solvers_min[selected_solver_min].first ).c_str() ) )
+            bool open_popup
+                = ImGui::Button( fmt::format( "Solver: {}", solvers_min[selected_solver_min].first ).c_str() );
+
+            if( ImGui::IsItemHovered() )
+            {
+                // 1.5s delay before showing tooltip
+                solver_button_hovered_duration += io.DeltaTime;
+                if( solver_button_hovered_duration > 1.5f )
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::Text( solvers_min[selected_solver_min].second.c_str() );
+                    ImGui::EndTooltip();
+                }
+            }
+            else
+            {
+                solver_button_hovered_duration = 0;
+            }
+
+            if( open_popup )
                 ImGui::OpenPopup( "solver_popup_min" );
             if( ImGui::BeginPopup( "solver_popup_min" ) )
             {
@@ -334,7 +357,26 @@ void show_overlay_calculation(
         }
         else if( selected_mode == GUI_Mode::LLG )
         {
-            if( ImGui::Button( fmt::format( "Solver: {}", solvers_llg[selected_solver_llg].first ).c_str() ) )
+            bool open_popup
+                = ImGui::Button( fmt::format( "Solver: {}", solvers_llg[selected_solver_llg].first ).c_str() );
+
+            if( ImGui::IsItemHovered() )
+            {
+                // 1.5s delay before showing tooltip
+                solver_button_hovered_duration += io.DeltaTime;
+                if( solver_button_hovered_duration > 1.5f )
+                {
+                    ImGui::BeginTooltip();
+                    ImGui::Text( solvers_llg[selected_solver_llg].second.c_str() );
+                    ImGui::EndTooltip();
+                }
+            }
+            else
+            {
+                solver_button_hovered_duration = 0;
+            }
+
+            if( open_popup )
                 ImGui::OpenPopup( "solver_popup_llg" );
             if( ImGui::BeginPopup( "solver_popup_llg" ) )
             {
