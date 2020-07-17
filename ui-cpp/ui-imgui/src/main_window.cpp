@@ -25,6 +25,7 @@
 #include <Spirit/Geometry.h>
 #include <Spirit/Log.h>
 #include <Spirit/Simulation.h>
+#include <Spirit/State.h>
 #include <Spirit/System.h>
 
 #include <fmt/format.h>
@@ -884,6 +885,9 @@ void MainWindow::show_menu_bar()
             ImGui::Separator();
             if( ImGui::MenuItem( "Take Screenshot" ) )
             {
+                ++n_screenshots;
+                std::string name = fmt::format( "{}_Screenshot_{}", State_DateTime( state.get() ), n_screenshots );
+                rendering_layer.screenshot_png( name );
             }
             ImGui::EndMenu();
         }

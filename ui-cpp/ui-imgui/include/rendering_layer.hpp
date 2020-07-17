@@ -30,6 +30,7 @@ struct RenderingLayer
 
     void initialize_gl();
     void draw( int display_w, int display_h );
+    void screenshot_png( std::string filename = "screenshot" );
 
     void update_vf_geometry();
     void update_vf_directions();

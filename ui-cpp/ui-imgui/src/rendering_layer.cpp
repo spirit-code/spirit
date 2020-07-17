@@ -7,7 +7,12 @@
 #include <Spirit/Simulation.h>
 #include <Spirit/System.h>
 
+#include <glad/glad.h>
+
 #include <fmt/format.h>
+
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb/stb_image_write.h>
 
 RenderingLayer::RenderingLayer( std::shared_ptr<State> state ) : state( state ) {}
 
@@ -26,6 +31,26 @@ void RenderingLayer::draw( int display_w, int display_h )
         view.setFramebufferSize( float( display_w ), float( display_h ) );
         view.draw();
     }
+}
+
+void RenderingLayer::screenshot_png( std::string filename )
+{
+    auto display_w = view.getFramebufferSize().x;
+    auto display_h = view.getFramebufferSize().y;
+
+    std::vector<GLubyte> pixels = std::vector<GLubyte>( 3 * display_w * display_h, 0 );
+    glPixelStorei( GL_PACK_ALIGNMENT, 1 );
+    glReadPixels( 0, 0, display_w, display_h, GL_RGB, GL_UNSIGNED_BYTE, pixels.data() );
+
+    // The order of pixel rows in OpenGL and STB is opposite, so we invert the ordering
+    for( int line = 0; line < display_h / 2; ++line )
+    {
+        std::swap_ranges(
+            pixels.begin() + 3 * display_w * line, pixels.begin() + 3 * display_w * ( line + 1 ),
+            pixels.begin() + 3 * display_w * ( display_h - line - 1 ) );
+    }
+
+    stbi_write_png( fmt::format( "{}.png", filename ).c_str(), display_w, display_h, 3, pixels.data(), display_w * 3 );
 }
 
 void RenderingLayer::needs_redraw()
@@ -116,7 +141,8 @@ void RenderingLayer::update_vf_geometry()
         else
         {
             const std::array<VFRendering::Geometry::index_type, 4> * tetrahedra_indices_ptr = nullptr;
-            int num_tetrahedra                                                              = Geometry_Get_Tetrahedra(
+
+            int num_tetrahedra = Geometry_Get_Tetrahedra(
                 state.get(), reinterpret_cast<const int **>( &tetrahedra_indices_ptr ), n_cell_step );
             std::vector<std::array<VFRendering::Geometry::index_type, 4>> tetrahedra_indices(
                 tetrahedra_indices_ptr, tetrahedra_indices_ptr + num_tetrahedra );

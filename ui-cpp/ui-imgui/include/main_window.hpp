@@ -91,6 +91,9 @@ private:
 
     // Interaction
     bool m_dragging = false;
+
+    // Other state
+    int n_screenshots        = 0;
 };
 
 #endif
