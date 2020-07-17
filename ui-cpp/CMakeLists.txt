@@ -135,7 +135,8 @@ if( SPIRIT_UI_USE_IMGUI )
     cmrc_add_resource_library(
         spirit_imgui_rc
         NAMESPACE resources
-        res/Logo_Ghost.png )
+        res/Logo_Ghost.png
+        res/Logo_Ghost_Final_Notext.png )
 
     #----- GLFW subproject
     if( IMGUI_COMPILE_GLFW )
@@ -179,7 +180,7 @@ if( SPIRIT_UI_USE_IMGUI )
         target_sources( nativefiledialog PRIVATE ${NFD_SRC_DIR}/nfd_win.cpp )
     elseif( IMGUI_TARGET_WEB )
         target_sources( nativefiledialog PRIVATE ${NFD_SRC_DIR}/nfd_emscripten.cpp )
-    elseif(UNIX)
+    elseif( UNIX )
         target_sources( nativefiledialog PRIVATE ${NFD_SRC_DIR}/nfd_gtk.c )
     endif()
 endif()
@@ -298,8 +299,6 @@ if( SPIRIT_UI_CXX_USE_QT )
     target_sources( ${PROJECT_NAME} PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon.icns
         ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon.ico
-        ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon32.png
-        ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon128.png
         ${CMAKE_CURRENT_LIST_DIR}/res/Logo_Ghost.png )
 
     target_include_directories( ${PROJECT_NAME} PRIVATE
@@ -333,7 +332,7 @@ if( SPIRIT_UI_USE_IMGUI )
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/main_window.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/fonts.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/styles.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/textures.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/images.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/widgets.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/rendering_layer.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/imgui_impl/opengl3.cpp
@@ -347,8 +346,6 @@ if( SPIRIT_UI_USE_IMGUI )
     target_sources( ${PROJECT_NAME} PRIVATE
         ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon.icns
         ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon.ico
-        ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon32.png
-        ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon128.png
         ${CMAKE_CURRENT_LIST_DIR}/res/Logo_Ghost.png )
 
     target_include_directories( ${PROJECT_NAME} PRIVATE
@@ -399,6 +396,18 @@ if( SPIRIT_UI_USE_IMGUI )
 
         target_compile_definitions( ${PROJECT_NAME} PRIVATE -DIMGUIAPP_TARGET_WEB )
     endif()
+endif()
+
+### Application icon on Windows
+if( WIN32 AND SPIRIT_BUILD_FOR_CXX AND (SPIRIT_UI_USE_IMGUI OR SPIRIT_UI_CXX_USE_QT) )
+    set( ICON_FILE ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon.ico )
+    configure_file(
+        ${CMAKE_CURRENT_LIST_DIR}/res/windows_metafile.rc.in
+        ${CMAKE_CURRENT_LIST_DIR}/res/windows_metafile.rc )
+    target_sources( ${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/res/windows_metafile.rc )
+    set( CMAKE_RC_COMPILER_INIT windres )
+    enable_language( RC )
+    set( CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>" )
 endif()
 
 ### OSX and Unix need libdl
@@ -458,8 +467,6 @@ if( SPIRIT_BUNDLE_APP )
         set_source_files_properties(
             ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon.icns
             ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon.ico
-            ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon32.png
-            ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon128.png
             ${CMAKE_CURRENT_LIST_DIR}/res/Logo_Ghost.png
             PROPERTIES MACOSX_PACKAGE_LOCATION Resources )
         ### Apple bundle Info.plist file
@@ -473,16 +480,6 @@ if( SPIRIT_BUNDLE_APP )
             MACOSX_BUNDLE_SHORT_VERSION_STRING  "${SPIRIT_META_VERSION}"
             MACOSX_BUNDLE_LONG_VERSION_STRING   "${SPIRIT_META_NAME_VERSION}"
             MACOSX_BUNDLE_COPYRIGHT             "© Spirit development team")
-    #--------------------------------------------------
-    elseif( WIN32 )
-        set( ICON_FILE ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon.ico )
-        configure_file(
-            ${CMAKE_CURRENT_LIST_DIR}/res/windows_metafile.rc.in
-            ${CMAKE_CURRENT_LIST_DIR}/windows_metafile.rc )
-        SET( SOURCE_SPIRIT_UI ${SOURCE_SPIRIT_UI} ${CMAKE_CURRENT_LIST_DIR}/res/windows_metafile.rc )
-        set( CMAKE_RC_COMPILER_INIT windres )
-        enable_language( RC )
-        SET( CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>" )
     endif()
     #--------------------------------------------------
 

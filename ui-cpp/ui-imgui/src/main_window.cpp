@@ -11,6 +11,7 @@
 
 #include <enums.hpp>
 #include <fonts.hpp>
+#include <images.hpp>
 #include <main_window.hpp>
 #include <styles.hpp>
 #include <widgets.hpp>
@@ -1209,6 +1210,8 @@ MainWindow::MainWindow( std::shared_ptr<State> state ) : rendering_layer( state 
     glfwSetWindowSize( glfw_window, width, height );
 #endif
     fmt::print( "OpenGL Version: {}\n", glGetString( GL_VERSION ) );
+
+    bool icon_set = images::glfw_set_app_icon( glfw_window );
 
     rendering_layer.initialize_gl();
     this->reset_camera();

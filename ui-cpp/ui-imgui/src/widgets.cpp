@@ -1,6 +1,6 @@
 #include <fonts.hpp>
+#include <images.hpp>
 #include <styles.hpp>
-#include <textures.hpp>
 #include <widgets.hpp>
 
 #include <Spirit/Simulation.h>
@@ -163,9 +163,9 @@ void show_visualisation_settings( bool & show, RenderingLayer & rendering_layer 
             { -1000 * dir.x, -1000 * dir.y, -1000 * dir.z } );
     }
     ImGui::NextColumn();
-    ImGui::Text( fmt::format( "{:>6.3f}", dir.x ).c_str() );
-    ImGui::Text( fmt::format( "{:>6.3f}", dir.y ).c_str() );
-    ImGui::Text( fmt::format( "{:>6.3f}", dir.z ).c_str() );
+    ImGui::TextUnformatted( fmt::format( "{:>6.3f}", dir.x ).c_str() );
+    ImGui::TextUnformatted( fmt::format( "{:>6.3f}", dir.y ).c_str() );
+    ImGui::TextUnformatted( fmt::format( "{:>6.3f}", dir.z ).c_str() );
     ImGui::Columns( 1 );
     ImGui::End();
 }
@@ -208,25 +208,25 @@ void show_overlay_system( bool & show )
         window_flags |= ImGuiWindowFlags_NoMove;
     if( ImGui::Begin( "System information overlay", &show, window_flags ) )
     {
-        ImGui::Text( fmt::format( "FPS: {:d}", int( io.Framerate ) ).c_str() );
+        ImGui::TextUnformatted( fmt::format( "FPS: {:d}", int( io.Framerate ) ).c_str() );
 
         ImGui::Separator();
 
-        ImGui::Text( fmt::format( "E      = {:.10f}", energy ).c_str() );
-        ImGui::Text( fmt::format( "E dens = {:.10f}", energy / nos ).c_str() );
+        ImGui::TextUnformatted( fmt::format( "E      = {:.10f}", energy ).c_str() );
+        ImGui::TextUnformatted( fmt::format( "E dens = {:.10f}", energy / nos ).c_str() );
 
         ImGui::Separator();
 
-        ImGui::Text( fmt::format( "M_x = {:.8f}", m_x ).c_str() );
-        ImGui::Text( fmt::format( "M_y = {:.8f}", m_y ).c_str() );
-        ImGui::Text( fmt::format( "M_z = {:.8f}", m_z ).c_str() );
+        ImGui::TextUnformatted( fmt::format( "M_x = {:.8f}", m_x ).c_str() );
+        ImGui::TextUnformatted( fmt::format( "M_y = {:.8f}", m_y ).c_str() );
+        ImGui::TextUnformatted( fmt::format( "M_z = {:.8f}", m_z ).c_str() );
 
         ImGui::Separator();
 
-        ImGui::Text( fmt::format( "NOI: {}", noi ).c_str() );
-        ImGui::Text( fmt::format( "NOS: {}", nos ).c_str() );
-        ImGui::Text( fmt::format( "N basis atoms: {}", n_basis_atoms ).c_str() );
-        ImGui::Text( fmt::format( "Cells: {}x{}x{}", n_a, n_b, n_c ).c_str() );
+        ImGui::TextUnformatted( fmt::format( "NOI: {}", noi ).c_str() );
+        ImGui::TextUnformatted( fmt::format( "NOS: {}", nos ).c_str() );
+        ImGui::TextUnformatted( fmt::format( "N basis atoms: {}", n_basis_atoms ).c_str() );
+        ImGui::TextUnformatted( fmt::format( "Cells: {}x{}x{}", n_a, n_b, n_c ).c_str() );
 
         ImGui::Separator();
 
@@ -386,19 +386,20 @@ void show_overlay_calculation(
                 ImGui::EndPopup();
             }
             ImGui::Separator();
-            ImGui::Text( fmt::format( "t = {} ps", simulated_time ).c_str() );
+            ImGui::TextUnformatted( fmt::format( "t = {} ps", simulated_time ).c_str() );
         }
 
-        ImGui::Text( fmt::format( "{:0>2d}:{:0>2d}:{:0>2d}.{:0>3d}", hours, minutes, seconds, milliseconds ).c_str() );
-        ImGui::Text( fmt::format( "Iteration: {}", iteration ).c_str() );
-        ImGui::Text( fmt::format( "IPS: {:.2f}", ips ).c_str() );
+        ImGui::TextUnformatted(
+            fmt::format( "{:0>2d}:{:0>2d}:{:0>2d}.{:0>3d}", hours, minutes, seconds, milliseconds ).c_str() );
+        ImGui::TextUnformatted( fmt::format( "Iteration: {}", iteration ).c_str() );
+        ImGui::TextUnformatted( fmt::format( "IPS: {:.2f}", ips ).c_str() );
 
         ImGui::Separator();
 
-        ImGui::Text( fmt::format( "F_max = {:.5e}", force_max ).c_str() );
+        ImGui::TextUnformatted( fmt::format( "F_max = {:.5e}", force_max ).c_str() );
         if( selected_mode == GUI_Mode::GNEB )
         {
-            ImGui::Text( fmt::format( "F_current = {:.5e}", simulated_time ).c_str() );
+            ImGui::TextUnformatted( fmt::format( "F_current = {:.5e}", simulated_time ).c_str() );
         }
 
         if( ImGui::BeginPopupContextWindow() )
@@ -490,79 +491,83 @@ void show_keybindings( bool & show )
 
 void show_about( bool & show_about )
 {
-    static bool logo_loaded              = false;
-    static int my_image_width            = 0;
-    static int my_image_height           = 0;
-    static unsigned int my_image_texture = 0;
+    static bool logo_loaded          = false;
+    static int logo_width            = 0;
+    static int logo_height           = 0;
+    static unsigned int logo_texture = 0;
 
     if( !show_about )
         return;
 
+    auto & style = ImGui::GetStyle();
+    ImVec2 spacing{ 2 * style.FramePadding.x, 2 * style.FramePadding.y };
+
     if( !logo_loaded )
     {
-        logo_loaded
-            = textures::load_from_file( "res/Logo_Ghost.png", &my_image_texture, &my_image_width, &my_image_height );
-        IM_ASSERT( logo_loaded );
-        logo_loaded = true;
+        images::Image logo( "res/Logo_Ghost.png" );
+        if( logo.image_data )
+        {
+            logo.get_gl_texture( logo_texture );
+            logo_width  = logo.width;
+            logo_height = logo.height;
+            logo_loaded = true;
+        }
     }
 
     ImGui::Begin( fmt::format( "About Spirit {}", Spirit_Version() ).c_str() );
 
-    int scaled_width  = ImGui::GetWindowContentRegionMax().x;
-    int scaled_height = my_image_height * scaled_width / my_image_width;
-    ImGui::Image( (void *)(intptr_t)my_image_texture, ImVec2( scaled_width, scaled_height ) );
+    int scaled_width  = ImGui::GetContentRegionAvailWidth() * 0.8;
+    int scaled_height = logo_height * scaled_width / logo_width;
+    ImGui::SameLine( ImGui::GetContentRegionAvailWidth() * 0.1, 0 );
+    ImGui::Image( (void *)(intptr_t)logo_texture, ImVec2( scaled_width, scaled_height ) );
 
     ImGui::TextWrapped( "The Spirit GUI application incorporates intuitive visualisations,"
-                        "powerful energy minimization, monte carlo, spin dynamics and"
-                        "nudged elastic band calculation tools into a cross-platform user"
-                        "interface." );
+                        " powerful energy minimization, Monte Carlo, spin dynamics and"
+                        " nudged elastic band calculation tools into a cross-platform user"
+                        " interface." );
 
-    ImGui::Text( "" );
+    ImGui::Dummy( spacing );
     ImGui::Separator();
-    ImGui::Text( "" );
+    ImGui::Dummy( spacing );
 
-    ImGui::Text( "Main developers:" );
-    ImGui::BulletText(
-        "Moritz Sallermann (<a href=\"mailto:m.sallermann@fz-juelich.de\">m.sallermann@fz-juelich.de</a>)" );
-    ImGui::BulletText( "Gideon Mueller (<a href=\"mailto:g.mueller@fz-juelich.de\">g.mueller@fz-juelich.de</a>)" );
-    ImGui::TextWrapped(
-        "at the Institute for Advanced Simulation 1 of the Forschungszentrum Juelich.\n"
-        "For more information about us, visit <a href=\"http://juspin.de\">juSpin.de</a>"
-        " or see the <a href=\"http://www.fz-juelich.de/pgi/pgi-1/DE/Home/home_node.html\">IAS-1 Website</a>." );
+    ImGui::TextWrapped( "Current maintainer:" );
+    ImGui::TextWrapped( "Moritz Sallermann (m.sallermann@fz-juelich.de)" );
 
-    ImGui::Text( "" );
+    ImGui::Dummy( spacing );
 
-    ImGui::TextWrapped( "The sources are hosted at <a href=\"https://spirit-code.github.io\">spirit-code.github.io</a>"
-                        " and the documentation can be found at <a "
-                        "href=\"https://spirit-docs.readthedocs.io\">spirit-docs.readthedocs.io</a>." );
+    ImGui::TextWrapped( "For more information, visit http://juspin.de" );
 
-    ImGui::Text( "" );
+    ImGui::Dummy( spacing );
+
+    ImGui::TextWrapped( "The sources are hosted at spirit-code.github.io"
+                        " and the documentation can be found at https://spirit-docs.readthedocs.io" );
+
+    ImGui::Dummy( spacing );
     ImGui::Separator();
-    ImGui::Text( "" );
+    ImGui::Dummy( spacing );
 
-    ImGui::Text( fmt::format( "Full library version {}", Spirit_Version_Full() ).c_str() );
-    ImGui::Text( fmt::format( "Built with {}", Spirit_Compiler_Full() ).c_str() );
+    ImGui::TextUnformatted( fmt::format( "Full library version {}", Spirit_Version_Full() ).c_str() );
+    ImGui::TextUnformatted( fmt::format( "Built with {}", Spirit_Compiler_Full() ).c_str() );
 
-    ImGui::Text( "" );
+    ImGui::Dummy( spacing );
 
-    ImGui::Text( fmt::format( "Floating point precision = {}", Spirit_Scalar_Type() ).c_str() );
+    ImGui::TextUnformatted( fmt::format( "Floating point precision = {}", Spirit_Scalar_Type() ).c_str() );
 
-    ImGui::Text( "" );
+    ImGui::Dummy( spacing );
 
     ImGui::Columns( 2, "aboutinfocolumns", false );
-
-    ImGui::Text( "Parallelisation:" );
-    ImGui::Text( fmt::format( "   - OpenMP  = {}", Spirit_OpenMP() ).c_str() );
-    ImGui::Text( fmt::format( "   - Cuda    = {}", Spirit_Cuda() ).c_str() );
-    ImGui::Text( fmt::format( "   - Threads = {}", Spirit_Threads() ).c_str() );
+    ImGui::TextUnformatted( "Parallelisation:" );
+    ImGui::TextUnformatted( fmt::format( "   - OpenMP  = {}", Spirit_OpenMP() ).c_str() );
+    ImGui::TextUnformatted( fmt::format( "   - Cuda    = {}", Spirit_Cuda() ).c_str() );
+    ImGui::TextUnformatted( fmt::format( "   - Threads = {}", Spirit_Threads() ).c_str() );
     ImGui::NextColumn();
-    ImGui::Text( "Other:" );
-    ImGui::Text( fmt::format( "   - Defects = {}", Spirit_Defects() ).c_str() );
-    ImGui::Text( fmt::format( "   - Pinning = {}", Spirit_Pinning() ).c_str() );
-    ImGui::Text( fmt::format( "   - FFTW    = {}", Spirit_FFTW() ).c_str() );
+    ImGui::TextUnformatted( "Other:" );
+    ImGui::TextUnformatted( fmt::format( "   - Defects = {}", Spirit_Defects() ).c_str() );
+    ImGui::TextUnformatted( fmt::format( "   - Pinning = {}", Spirit_Pinning() ).c_str() );
+    ImGui::TextUnformatted( fmt::format( "   - FFTW    = {}", Spirit_FFTW() ).c_str() );
     ImGui::Columns( 1 );
 
-    ImGui::Text( "" );
+    ImGui::Dummy( spacing );
 
     if( ImGui::Button( "Close" ) )
         show_about = false;
