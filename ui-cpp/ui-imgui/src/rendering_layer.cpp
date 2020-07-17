@@ -7,8 +7,6 @@
 #include <Spirit/Simulation.h>
 #include <Spirit/System.h>
 
-#include <glad/glad.h>
-
 #include <fmt/format.h>
 
 RenderingLayer::RenderingLayer( std::shared_ptr<State> state ) : state( state ) {}
@@ -42,29 +40,6 @@ void RenderingLayer::needs_data()
 
 void RenderingLayer::initialize_gl()
 {
-#ifdef __EMSCRIPTEN__
-    EmscriptenWebGLContextAttributes attrs_imgui;
-    emscripten_webgl_init_context_attributes( &attrs_imgui );
-    attrs_imgui.majorVersion = 1;
-    attrs_imgui.minorVersion = 0;
-    attrs_imgui.alpha        = 1;
-
-    EmscriptenWebGLContextAttributes attrs_vfr;
-    emscripten_webgl_init_context_attributes( &attrs_vfr );
-    attrs_vfr.majorVersion = 1;
-    attrs_vfr.minorVersion = 0;
-
-    context_imgui = emscripten_webgl_create_context( "#imgui-canvas", &attrs_imgui );
-    context_vfr   = emscripten_webgl_create_context( "#vfr-canvas", &attrs_vfr );
-
-    int width  = canvas_get_width();
-    int height = canvas_get_height();
-
-    emscripten_webgl_make_context_current( context_imgui );
-    glfwSetWindowSize( glfw_window, width, height );
-#endif
-    fmt::print( "OpenGL Version: {}\n", glGetString( GL_VERSION ) );
-
     view.setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( 0.125f );
     view.setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( 0.3f );
     view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( 0.0625f );

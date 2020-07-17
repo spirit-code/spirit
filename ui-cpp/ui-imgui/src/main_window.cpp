@@ -419,7 +419,8 @@ void MainWindow::handle_keyboard()
     }
 }
 
-void MainWindow::start_stop() try
+void MainWindow::start_stop()
+try
 {
     Log_Send( state.get(), Log_Level_Debug, Log_Sender_UI, "Start/Stop" );
 
@@ -494,7 +495,8 @@ catch( const std::exception & e )
         state.get(), Log_Level_Error, Log_Sender_UI, fmt::format( "caught std::exception: {}\n", e.what() ).c_str() );
 }
 
-void MainWindow::stop_all() try
+void MainWindow::stop_all()
+try
 {
     Log_Send( state.get(), Log_Level_Debug, Log_Sender_UI, "Stopping all calculations" );
 
@@ -516,7 +518,8 @@ catch( const std::exception & e )
         state.get(), Log_Level_Error, Log_Sender_UI, fmt::format( "caught std::exception: {}\n", e.what() ).c_str() );
 }
 
-void MainWindow::stop_current() try
+void MainWindow::stop_current()
+try
 {
     Log_Send( state.get(), Log_Level_Debug, Log_Sender_UI, "Stopping current calculation" );
 
@@ -1183,6 +1186,29 @@ MainWindow::MainWindow( std::shared_ptr<State> state ) : rendering_layer( state 
 
     ImGui_ImplGlfw_InitForOpenGL( glfw_window, false );
     ImGui_ImplOpenGL3_Init();
+
+#ifdef __EMSCRIPTEN__
+    EmscriptenWebGLContextAttributes attrs_imgui;
+    emscripten_webgl_init_context_attributes( &attrs_imgui );
+    attrs_imgui.majorVersion = 1;
+    attrs_imgui.minorVersion = 0;
+    attrs_imgui.alpha        = 1;
+
+    EmscriptenWebGLContextAttributes attrs_vfr;
+    emscripten_webgl_init_context_attributes( &attrs_vfr );
+    attrs_vfr.majorVersion = 1;
+    attrs_vfr.minorVersion = 0;
+
+    context_imgui = emscripten_webgl_create_context( "#imgui-canvas", &attrs_imgui );
+    context_vfr   = emscripten_webgl_create_context( "#vfr-canvas", &attrs_vfr );
+
+    int width  = canvas_get_width();
+    int height = canvas_get_height();
+
+    emscripten_webgl_make_context_current( context_imgui );
+    glfwSetWindowSize( glfw_window, width, height );
+#endif
+    fmt::print( "OpenGL Version: {}\n", glGetString( GL_VERSION ) );
 
     rendering_layer.initialize_gl();
     this->reset_camera();

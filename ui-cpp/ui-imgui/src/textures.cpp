@@ -40,7 +40,6 @@ bool load_from_file( const char * filename, unsigned int * out_texture, int * ou
     glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 
     // Upload pixels into texture
-    glPixelStorei( GL_UNPACK_ROW_LENGTH, 0 );
     glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data );
     stbi_image_free( image_data );
 
