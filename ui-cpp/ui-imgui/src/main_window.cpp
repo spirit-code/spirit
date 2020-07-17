@@ -66,53 +66,6 @@ static void framebufferSizeCallback( GLFWwindow * window, int width, int height 
 
 /////////////////////////////////////////////////////////////////////
 
-void MainWindow::intitialize_gl()
-{
-#ifdef __EMSCRIPTEN__
-    EmscriptenWebGLContextAttributes attrs_imgui;
-    emscripten_webgl_init_context_attributes( &attrs_imgui );
-    attrs_imgui.majorVersion = 1;
-    attrs_imgui.minorVersion = 0;
-    attrs_imgui.alpha        = 1;
-
-    EmscriptenWebGLContextAttributes attrs_vfr;
-    emscripten_webgl_init_context_attributes( &attrs_vfr );
-    attrs_vfr.majorVersion = 1;
-    attrs_vfr.minorVersion = 0;
-
-    context_imgui = emscripten_webgl_create_context( "#imgui-canvas", &attrs_imgui );
-    context_vfr   = emscripten_webgl_create_context( "#vfr-canvas", &attrs_vfr );
-
-    int width  = canvas_get_width();
-    int height = canvas_get_height();
-
-    emscripten_webgl_make_context_current( context_imgui );
-    glfwSetWindowSize( glfw_window, width, height );
-#endif
-    fmt::print( "OpenGL Version: {}\n", glGetString( GL_VERSION ) );
-
-    vfr_view.setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( 0.125f );
-    vfr_view.setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( 0.3f );
-    vfr_view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( 0.0625f );
-    vfr_view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>( 0.35f );
-    vfr_view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-        { background_colour.x, background_colour.y, background_colour.z } );
-
-    this->update_vf_geometry();
-    this->update_vf_directions();
-
-    this->reset_camera();
-
-    vfr_view.setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>(
-        VFRendering::Utilities::getColormapImplementation( VFRendering::Utilities::Colormap::HSV ) );
-
-    vfr_arrow_renderer_ptr = std::make_shared<VFRendering::ArrowRenderer>( vfr_view, vfr_vectorfield );
-    vfr_system_renderers.push_back( vfr_arrow_renderer_ptr );
-
-    vfr_view.renderers(
-        { { std::make_shared<VFRendering::CombinedRenderer>( vfr_view, vfr_system_renderers ), { { 0, 0, 1, 1 } } } } );
-}
-
 void MainWindow::reset_camera()
 {
     float camera_distance = 30.0f;
@@ -132,18 +85,9 @@ void MainWindow::reset_camera()
     options.set<VFRendering::View::Option::CAMERA_POSITION>( camera_position );
     options.set<VFRendering::View::Option::CENTER_POSITION>( center_position );
     options.set<VFRendering::View::Option::UP_VECTOR>( up_vector );
-    vfr_view.updateOptions( options );
+    rendering_layer.view.updateOptions( options );
 
-    fmt::print( "min       {} {} {}\n", vfr_geometry.min().x, vfr_geometry.min().y, vfr_geometry.min().z );
-    fmt::print( "max       {} {} {}\n", vfr_geometry.max().x, vfr_geometry.max().y, vfr_geometry.max().z );
-    auto sys_center = options.get<VFRendering::View::Option::SYSTEM_CENTER>();
-    fmt::print( "system center at {} {} {}\n", sys_center.x, sys_center.y, sys_center.z );
-    auto cam_center = options.get<VFRendering::View::Option::CENTER_POSITION>();
-    fmt::print( "camera center at {} {} {}\n", cam_center.x, cam_center.y, cam_center.z );
-    auto cam = options.get<VFRendering::View::Option::CAMERA_POSITION>();
-    fmt::print( "camera position at {} {} {}\n", cam.x, cam.y, cam.z );
-
-    vfr_needs_redraw = true;
+    rendering_layer.needs_redraw();
 }
 
 void MainWindow::handle_mouse()
@@ -163,8 +107,8 @@ void MainWindow::handle_mouse()
 
     if( io.MouseWheel )
     {
-        vfr_view.mouseScroll( scroll );
-        vfr_needs_redraw = true;
+        rendering_layer.view.mouseScroll( scroll );
+        rendering_layer.needs_redraw();
     }
 
     float scale = 1;
@@ -173,17 +117,17 @@ void MainWindow::handle_mouse()
 
     if( ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_LEFT ) && !ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_RIGHT ) )
     {
-        vfr_view.mouseMove(
+        rendering_layer.view.mouseMove(
             glm::vec2( 0, 0 ), glm::vec2( scale * io.MouseDelta.x, scale * io.MouseDelta.y ),
             VFRendering::CameraMovementModes::ROTATE_BOUNDED );
-        vfr_needs_redraw = true;
+        rendering_layer.needs_redraw();
     }
     else if( ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_RIGHT ) && !ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_LEFT ) )
     {
-        vfr_view.mouseMove(
+        rendering_layer.view.mouseMove(
             glm::vec2( 0, 0 ), glm::vec2( scale * io.MouseDelta.x, scale * io.MouseDelta.y ),
             VFRendering::CameraMovementModes::TRANSLATE );
-        vfr_needs_redraw = true;
+        rendering_layer.needs_redraw();
     }
 }
 
@@ -202,7 +146,7 @@ void MainWindow::handle_keyboard()
         if( ImGui::IsKeyPressed( GLFW_KEY_R ) )
         {
             this->reset_camera();
-            vfr_needs_redraw = true;
+            rendering_layer.needs_redraw();
         }
     }
     else if( ctrl )
@@ -210,29 +154,14 @@ void MainWindow::handle_keyboard()
         if( ImGui::IsKeyPressed( GLFW_KEY_R ) )
         {
             Configuration_Random( state.get() );
-            vfr_needs_data = true;
+            rendering_layer.needs_data();
         }
 
         //-----------------------------------------------------
 
         if( ImGui::IsKeyPressed( GLFW_KEY_X ) )
         {
-            if( Chain_Get_NOI( state.get() ) > 1 )
-            {
-                stop_current();
-
-                Chain_Image_to_Clipboard( state.get() );
-
-                int idx = System_Get_Index( state.get() );
-                if( Chain_Delete_Image( state.get(), idx ) )
-                {
-                    // Make the llg_threads vector smaller
-                    if( this->threads_image[idx].joinable() )
-                        this->threads_image[idx].join();
-                    this->threads_image.erase( threads_image.begin() + idx );
-                }
-                vfr_needs_data = true;
-            }
+            this->cut_image();
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_C ) )
         {
@@ -240,32 +169,15 @@ void MainWindow::handle_keyboard()
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_V ) )
         {
-            // Paste a Spin System into current System
-            this->stop_current();
-            Chain_Replace_Image( state.get() );
-            vfr_needs_data = true;
+            this->paste_image();
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_LEFT ) )
         {
-            int idx = System_Get_Index( state.get() );
-            // Insert Image
-            Chain_Insert_Image_Before( state.get() );
-            // Make the llg_threads vector larger
-            this->threads_image.insert( threads_image.begin() + idx, std::thread() );
-            // Switch to the inserted image
-            Chain_prev_Image( this->state.get() );
-            vfr_needs_data = true;
+            this->insert_image_left();
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_RIGHT ) )
         {
-            int idx = System_Get_Index( state.get() );
-            // Insert Image
-            Chain_Insert_Image_After( state.get() );
-            // Make the llg_threads vector larger
-            this->threads_image.insert( threads_image.begin() + idx + 1, std::thread() );
-            // Switch to the inserted image
-            Chain_next_Image( this->state.get() );
-            vfr_needs_data = true;
+            this->insert_image_right();
         }
     }
     else
@@ -285,13 +197,13 @@ void MainWindow::handle_keyboard()
 
         if( ImGui::IsKeyPressed( GLFW_KEY_W ) && !ImGui::IsKeyPressed( GLFW_KEY_S ) )
         {
-            vfr_view.mouseScroll( -scale );
-            vfr_needs_redraw = true;
+            rendering_layer.view.mouseScroll( -scale );
+            rendering_layer.needs_redraw();
         }
         else if( ImGui::IsKeyPressed( GLFW_KEY_S ) && !ImGui::IsKeyPressed( GLFW_KEY_W ) )
         {
-            vfr_view.mouseScroll( scale );
-            vfr_needs_redraw = true;
+            rendering_layer.view.mouseScroll( scale );
+            rendering_layer.needs_redraw();
         }
 
         bool rotate_camera = false;
@@ -348,13 +260,14 @@ void MainWindow::handle_keyboard()
 
         if( rotate_camera )
         {
-            vfr_view.mouseMove( { 0, 0 }, { phi, theta }, VFRendering::CameraMovementModes::ROTATE_BOUNDED );
-            vfr_needs_redraw = true;
+            rendering_layer.view.mouseMove(
+                { 0, 0 }, { phi, theta }, VFRendering::CameraMovementModes::ROTATE_BOUNDED );
+            rendering_layer.needs_redraw();
         }
         if( move_camera )
         {
-            vfr_view.mouseMove( { 0, 0 }, { dx, dy }, VFRendering::CameraMovementModes::TRANSLATE );
-            vfr_needs_redraw = true;
+            rendering_layer.view.mouseMove( { 0, 0 }, { dx, dy }, VFRendering::CameraMovementModes::TRANSLATE );
+            rendering_layer.needs_redraw();
         }
 
         // Reset the key repeat parameters
@@ -366,9 +279,9 @@ void MainWindow::handle_keyboard()
         if( ImGui::IsKeyPressed( GLFW_KEY_X, false ) )
         {
             float camera_distance = glm::length(
-                vfr_view.options().get<VFRendering::View::Option::CENTER_POSITION>()
-                - vfr_view.options().get<VFRendering::View::Option::CAMERA_POSITION>() );
-            auto center_position = vfr_view.options().get<VFRendering::View::Option::SYSTEM_CENTER>();
+                rendering_layer.view.options().get<VFRendering::View::Option::CENTER_POSITION>()
+                - rendering_layer.view.options().get<VFRendering::View::Option::CAMERA_POSITION>() );
+            auto center_position = rendering_layer.view.options().get<VFRendering::View::Option::SYSTEM_CENTER>();
             auto camera_position = center_position;
             auto up_vector       = glm::vec3( 0, 0, 1 );
 
@@ -385,15 +298,15 @@ void MainWindow::handle_keyboard()
             options.set<VFRendering::View::Option::CAMERA_POSITION>( camera_position );
             options.set<VFRendering::View::Option::CENTER_POSITION>( center_position );
             options.set<VFRendering::View::Option::UP_VECTOR>( up_vector );
-            vfr_view.updateOptions( options );
-            vfr_needs_redraw = true;
+            rendering_layer.view.updateOptions( options );
+            rendering_layer.needs_redraw();
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_Y, false ) )
         {
             float camera_distance = glm::length(
-                vfr_view.options().get<VFRendering::View::Option::CENTER_POSITION>()
-                - vfr_view.options().get<VFRendering::View::Option::CAMERA_POSITION>() );
-            auto center_position = vfr_view.options().get<VFRendering::View::Option::SYSTEM_CENTER>();
+                rendering_layer.view.options().get<VFRendering::View::Option::CENTER_POSITION>()
+                - rendering_layer.view.options().get<VFRendering::View::Option::CAMERA_POSITION>() );
+            auto center_position = rendering_layer.view.options().get<VFRendering::View::Option::SYSTEM_CENTER>();
             auto camera_position = center_position;
             auto up_vector       = glm::vec3( 0, 0, 1 );
 
@@ -406,15 +319,15 @@ void MainWindow::handle_keyboard()
             options.set<VFRendering::View::Option::CAMERA_POSITION>( camera_position );
             options.set<VFRendering::View::Option::CENTER_POSITION>( center_position );
             options.set<VFRendering::View::Option::UP_VECTOR>( up_vector );
-            vfr_view.updateOptions( options );
-            vfr_needs_redraw = true;
+            rendering_layer.view.updateOptions( options );
+            rendering_layer.needs_redraw();
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_Z, false ) )
         {
             float camera_distance = glm::length(
-                vfr_view.options().get<VFRendering::View::Option::CENTER_POSITION>()
-                - vfr_view.options().get<VFRendering::View::Option::CAMERA_POSITION>() );
-            auto center_position = vfr_view.options().get<VFRendering::View::Option::SYSTEM_CENTER>();
+                rendering_layer.view.options().get<VFRendering::View::Option::CENTER_POSITION>()
+                - rendering_layer.view.options().get<VFRendering::View::Option::CAMERA_POSITION>() );
+            auto center_position = rendering_layer.view.options().get<VFRendering::View::Option::SYSTEM_CENTER>();
             auto camera_position = center_position;
             auto up_vector       = glm::vec3( 0, 1, 0 );
 
@@ -427,8 +340,8 @@ void MainWindow::handle_keyboard()
             options.set<VFRendering::View::Option::CAMERA_POSITION>( camera_position );
             options.set<VFRendering::View::Option::CENTER_POSITION>( center_position );
             options.set<VFRendering::View::Option::UP_VECTOR>( up_vector );
-            vfr_view.updateOptions( options );
-            vfr_needs_redraw = true;
+            rendering_layer.view.updateOptions( options );
+            rendering_layer.needs_redraw();
         }
 
         //-----------------------------------------------------
@@ -445,7 +358,7 @@ void MainWindow::handle_keyboard()
                 // Change active image
                 Chain_next_Image( this->state.get() );
 
-                vfr_needs_data = true;
+                rendering_layer.needs_data();
             }
         }
 
@@ -457,27 +370,13 @@ void MainWindow::handle_keyboard()
                 // Change active image!
                 Chain_prev_Image( this->state.get() );
 
-                vfr_needs_data = true;
+                rendering_layer.needs_data();
             }
         }
 
         if( ImGui::IsKeyPressed( GLFW_KEY_DELETE ) )
         {
-            if( Chain_Get_NOI( state.get() ) > 1 )
-            {
-                this->stop_current();
-
-                int idx = System_Get_Index( state.get() );
-                if( Chain_Delete_Image( state.get() ) )
-                {
-                    // Make the llg_threads vector smaller
-                    if( this->threads_image[idx].joinable() )
-                        this->threads_image[idx].join();
-                    this->threads_image.erase( threads_image.begin() + idx );
-                }
-
-                vfr_needs_data = true;
-            }
+            this->delete_image();
         }
 
         //-----------------------------------------------------
@@ -587,7 +486,7 @@ void MainWindow::start_stop() try
                 = std::thread( &Simulation_EMA_Start, this->state.get(), -1, -1, false, -1, -1 );
         }
     }
-    vfr_needs_data = true;
+    rendering_layer.needs_data();
 }
 catch( const std::exception & e )
 {
@@ -609,7 +508,7 @@ void MainWindow::stop_all() try
     if( thread_chain.joinable() )
         thread_chain.join();
 
-    vfr_needs_data = true;
+    rendering_layer.needs_data();
 }
 catch( const std::exception & e )
 {
@@ -643,12 +542,87 @@ void MainWindow::stop_current() try
             thread_chain.join();
     }
 
-    vfr_needs_data = true;
+    rendering_layer.needs_data();
 }
 catch( const std::exception & e )
 {
     Log_Send(
         state.get(), Log_Level_Error, Log_Sender_UI, fmt::format( "caught std::exception: {}\n", e.what() ).c_str() );
+}
+
+void MainWindow::cut_image()
+{
+    if( Chain_Get_NOI( state.get() ) > 1 )
+    {
+        stop_current();
+
+        Chain_Image_to_Clipboard( state.get() );
+
+        int idx = System_Get_Index( state.get() );
+        if( Chain_Delete_Image( state.get(), idx ) )
+        {
+            // Make the threads_image vector smaller
+            if( this->threads_image[idx].joinable() )
+                this->threads_image[idx].join();
+            this->threads_image.erase( threads_image.begin() + idx );
+        }
+        rendering_layer.needs_data();
+    }
+}
+
+void MainWindow::paste_image()
+{
+    // Paste a Spin System into current System
+    this->stop_current();
+    Chain_Replace_Image( state.get() );
+    rendering_layer.needs_data();
+}
+
+void MainWindow::insert_image_left()
+{
+    if( Simulation_Running_On_Chain( state.get() ) )
+        this->stop_current();
+
+    int idx = System_Get_Index( state.get() );
+    // Insert Image
+    Chain_Insert_Image_Before( state.get() );
+    // Make the llg_threads vector larger
+    this->threads_image.insert( threads_image.begin() + idx, std::thread() );
+    // Switch to the inserted image
+    Chain_prev_Image( this->state.get() );
+}
+
+void MainWindow::insert_image_right()
+{
+    if( Simulation_Running_On_Chain( state.get() ) )
+        this->stop_current();
+
+    int idx = System_Get_Index( state.get() );
+    // Insert Image
+    Chain_Insert_Image_After( state.get() );
+    // Make the llg_threads vector larger
+    this->threads_image.insert( threads_image.begin() + idx + 1, std::thread() );
+    // Switch to the inserted image
+    Chain_next_Image( this->state.get() );
+}
+
+void MainWindow::delete_image()
+{
+    if( Chain_Get_NOI( state.get() ) > 1 )
+    {
+        this->stop_current();
+
+        int idx = System_Get_Index( state.get() );
+        if( Chain_Delete_Image( state.get() ) )
+        {
+            // Make the llg_threads vector smaller
+            if( this->threads_image[idx].joinable() )
+                this->threads_image[idx].join();
+            this->threads_image.erase( threads_image.begin() + idx );
+        }
+
+        rendering_layer.needs_data();
+    }
 }
 
 void MainWindow::draw()
@@ -689,233 +663,10 @@ void MainWindow::draw()
     if( Simulation_Running_On_Image( this->state.get() ) || Simulation_Running_On_Chain( this->state.get() )
         || this->m_dragging )
     {
-        vfr_needs_data = true;
+        rendering_layer.needs_data();
     }
 
-    draw_vfr( display_w, display_h );
-}
-
-void MainWindow::draw_vfr( int display_w, int display_h )
-{
-    if( vfr_needs_data )
-    {
-        update_vf_directions();
-        vfr_needs_redraw = true;
-    }
-    if( vfr_needs_redraw )
-    {
-        vfr_view.setFramebufferSize( float( display_w ), float( display_h ) );
-        vfr_view.draw();
-    }
-}
-
-void MainWindow::update_vf_geometry()
-{
-    int nos = System_Get_NOS( state.get() );
-    int n_cells[3];
-    Geometry_Get_N_Cells( this->state.get(), n_cells );
-    int n_cell_atoms = Geometry_Get_N_Cell_Atoms( this->state.get() );
-
-    int n_cells_draw[3] = { std::max( 1, n_cells[0] / n_cell_step ), std::max( 1, n_cells[1] / n_cell_step ),
-                            std::max( 1, n_cells[2] / n_cell_step ) };
-    int nos_draw        = n_cell_atoms * n_cells_draw[0] * n_cells_draw[1] * n_cells_draw[2];
-
-    // Positions of the vectorfield
-    std::vector<glm::vec3> positions = std::vector<glm::vec3>( nos_draw );
-
-    // ToDo: Update the pointer to our Data instead of copying Data?
-    // Positions
-    //        get pointer
-    scalar * spin_pos;
-    int * atom_types;
-    spin_pos   = Geometry_Get_Positions( state.get() );
-    atom_types = Geometry_Get_Atom_Types( state.get() );
-    int icell  = 0;
-    for( int cell_c = 0; cell_c < n_cells_draw[2]; cell_c++ )
-    {
-        for( int cell_b = 0; cell_b < n_cells_draw[1]; cell_b++ )
-        {
-            for( int cell_a = 0; cell_a < n_cells_draw[0]; cell_a++ )
-            {
-                for( int ibasis = 0; ibasis < n_cell_atoms; ++ibasis )
-                {
-                    int idx = ibasis
-                              + n_cell_atoms * n_cell_step
-                                    * ( +cell_a + n_cells[0] * cell_b + n_cells[0] * n_cells[1] * cell_c );
-                    positions[icell] = glm::vec3( spin_pos[3 * idx], spin_pos[1 + 3 * idx], spin_pos[2 + 3 * idx] );
-                    ++icell;
-                }
-            }
-        }
-    }
-
-    // Generate the right geometry (triangles and tetrahedra)
-    VFRendering::Geometry geometry;
-    VFRendering::Geometry geometry_surf2D;
-    //      get tetrahedra
-    if( Geometry_Get_Dimensionality( state.get() ) == 3 )
-    {
-        if( n_cell_step > 1
-            && ( n_cells[0] / n_cell_step < 2 || n_cells[1] / n_cell_step < 2 || n_cells[2] / n_cell_step < 2 ) )
-        {
-            geometry = VFRendering::Geometry( positions, {}, {}, true );
-        }
-        else
-        {
-            const std::array<VFRendering::Geometry::index_type, 4> * tetrahedra_indices_ptr = nullptr;
-            int num_tetrahedra                                                              = Geometry_Get_Tetrahedra(
-                state.get(), reinterpret_cast<const int **>( &tetrahedra_indices_ptr ), n_cell_step );
-            std::vector<std::array<VFRendering::Geometry::index_type, 4>> tetrahedra_indices(
-                tetrahedra_indices_ptr, tetrahedra_indices_ptr + num_tetrahedra );
-            geometry = VFRendering::Geometry( positions, {}, tetrahedra_indices, false );
-        }
-    }
-    else if( Geometry_Get_Dimensionality( state.get() ) == 2 )
-    {
-        // Determine two basis vectors
-        std::array<glm::vec3, 2> basis;
-        float eps = 1e-6;
-        for( int i = 1, j = 0; i < nos && j < 2; ++i )
-        {
-            if( glm::length( positions[i] - positions[0] ) > eps )
-            {
-                if( j < 1 )
-                {
-                    basis[j] = glm::normalize( positions[i] - positions[0] );
-                    ++j;
-                }
-                else
-                {
-                    if( 1 - std::abs( glm::dot( basis[0], glm::normalize( positions[i] - positions[0] ) ) ) > eps )
-                    {
-                        basis[j] = glm::normalize( positions[i] - positions[0] );
-                        ++j;
-                    }
-                }
-            }
-        }
-        glm::vec3 normal = glm::normalize( glm::cross( basis[0], basis[1] ) );
-        // By default, +z is up, which is where we want the normal oriented towards
-        if( glm::dot( normal, glm::vec3{ 0, 0, 1 } ) < 1e-6 )
-            normal = -normal;
-
-        // Rectilinear with one basis atom
-        if( n_cell_atoms == 1 && std::abs( glm::dot( basis[0], basis[1] ) ) < 1e-6 )
-        {
-            std::vector<float> xs( n_cells_draw[0] ), ys( n_cells_draw[1] ), zs( n_cells_draw[2] );
-            for( int i = 0; i < n_cells_draw[0]; ++i )
-                xs[i] = positions[i].x;
-            for( int i = 0; i < n_cells_draw[1]; ++i )
-                ys[i] = positions[i * n_cells_draw[0]].y;
-            for( int i = 0; i < n_cells_draw[2]; ++i )
-                zs[i] = positions[i * n_cells_draw[0] * n_cells_draw[1]].z;
-            geometry = VFRendering::Geometry::rectilinearGeometry( xs, ys, zs );
-            for( int i = 0; i < n_cells_draw[0]; ++i )
-                xs[i] = ( positions[i] - normal ).x;
-            for( int i = 0; i < n_cells_draw[1]; ++i )
-                ys[i] = ( positions[i * n_cells_draw[0]] - normal ).y;
-            for( int i = 0; i < n_cells_draw[2]; ++i )
-                zs[i] = ( positions[i * n_cells_draw[0] * n_cells_draw[1]] - normal ).z;
-            geometry_surf2D = VFRendering::Geometry::rectilinearGeometry( xs, ys, zs );
-        }
-        // All others
-        else
-        {
-            const std::array<VFRendering::Geometry::index_type, 3> * triangle_indices_ptr = nullptr;
-            int num_triangles                                                             = Geometry_Get_Triangulation(
-                state.get(), reinterpret_cast<const int **>( &triangle_indices_ptr ), n_cell_step );
-            std::vector<std::array<VFRendering::Geometry::index_type, 3>> triangle_indices(
-                triangle_indices_ptr, triangle_indices_ptr + num_triangles );
-            geometry = VFRendering::Geometry( positions, triangle_indices, {}, true );
-            for( int i = 0; i < nos_draw; ++i )
-                positions[i] = positions[i] - normal;
-            geometry_surf2D = VFRendering::Geometry( positions, triangle_indices, {}, true );
-        }
-
-        // Update the vectorfield geometry
-        vfr_vectorfield_surf2D.updateGeometry( geometry_surf2D );
-    }
-    else
-    {
-        geometry = VFRendering::Geometry( positions, {}, {}, true );
-    }
-
-    // Update the vectorfield
-    vfr_vectorfield.updateGeometry( geometry );
-}
-
-void MainWindow::update_vf_directions()
-{
-    int nos = System_Get_NOS( state.get() );
-    int n_cells[3];
-    Geometry_Get_N_Cells( this->state.get(), n_cells );
-    int n_cell_atoms = Geometry_Get_N_Cell_Atoms( this->state.get() );
-
-    int n_cells_draw[3] = { std::max( 1, n_cells[0] / n_cell_step ), std::max( 1, n_cells[1] / n_cell_step ),
-                            std::max( 1, n_cells[2] / n_cell_step ) };
-    int nos_draw        = n_cell_atoms * n_cells_draw[0] * n_cells_draw[1] * n_cells_draw[2];
-
-    // Directions of the vectorfield
-    std::vector<glm::vec3> directions = std::vector<glm::vec3>( nos_draw );
-
-    // ToDo: Update the pointer to our Data instead of copying Data?
-    // Directions
-    //        get pointer
-    scalar * spins;
-    int * atom_types;
-    atom_types = Geometry_Get_Atom_Types( state.get() );
-    // if( this->m_source == 0 )
-    spins = System_Get_Spin_Directions( state.get() );
-    // else if( this->m_source == 1 )
-    //     spins = System_Get_Effective_Field( state.get() );
-    // else spins = System_Get_Spin_Directions( state.get() );
-
-    //        copy
-    /*positions.assign(spin_pos, spin_pos + 3*nos);
-    directions.assign(spins, spins + 3*nos);*/
-    int icell = 0;
-    for( int cell_c = 0; cell_c < n_cells_draw[2]; cell_c++ )
-    {
-        for( int cell_b = 0; cell_b < n_cells_draw[1]; cell_b++ )
-        {
-            for( int cell_a = 0; cell_a < n_cells_draw[0]; cell_a++ )
-            {
-                for( int ibasis = 0; ibasis < n_cell_atoms; ++ibasis )
-                {
-                    int idx = ibasis + n_cell_atoms * cell_a * n_cell_step
-                              + n_cell_atoms * n_cells[0] * cell_b * n_cell_step
-                              + n_cell_atoms * n_cells[0] * n_cells[1] * cell_c * n_cell_step;
-                    // std::cerr << idx << " " << icell << std::endl;
-                    directions[icell] = glm::vec3( spins[3 * idx], spins[1 + 3 * idx], spins[2 + 3 * idx] );
-                    if( atom_types[idx] < 0 )
-                        directions[icell] *= 0;
-                    ++icell;
-                }
-            }
-        }
-    }
-    // //        rescale if effective field
-    // if( this->m_source == 1 )
-    // {
-    //     float max_length = 0;
-    //     for( auto direction : directions )
-    //     {
-    //         max_length = std::max( max_length, glm::length( direction ) );
-    //     }
-    //     if( max_length > 0 )
-    //     {
-    //         for( auto & direction : directions )
-    //         {
-    //             direction /= max_length;
-    //         }
-    //     }
-    // }
-
-    // Update the vectorfield
-    vfr_vectorfield.updateVectors( directions );
-
-    if( Geometry_Get_Dimensionality( state.get() ) == 2 )
-        vfr_vectorfield_surf2D.updateVectors( directions );
+    rendering_layer.draw( display_w, display_h );
 }
 
 void MainWindow::draw_imgui( int display_w, int display_h )
@@ -935,7 +686,7 @@ void MainWindow::draw_imgui( int display_w, int display_h )
 
     widgets::show_parameters( show_parameters_settings, selected_mode );
 
-    widgets::show_visualisation_settings( show_visualisation_settings, vfr_view, background_colour );
+    widgets::show_visualisation_settings( show_visualisation_settings, rendering_layer );
 
     widgets::show_plots( show_plots );
 
@@ -979,6 +730,7 @@ void MainWindow::show_menu_bar()
     };
     static std::vector<float> mode_button_hovered_duration( modes.size(), 0 );
     static ImU32 image_number = (ImU32)1;
+    static ImU32 chain_length = (ImU32)1;
 
     ImGui::PushFont( font_karla_16 );
     float font_size_px = font_karla_16->FontSize;
@@ -1135,12 +887,15 @@ void MainWindow::show_menu_bar()
         {
             if( ImGui::MenuItem( "Cut system", "ctrl+x" ) )
             {
+                this->cut_image();
             }
             if( ImGui::MenuItem( "Copy system", "ctrl+c" ) )
             {
+                Chain_Image_to_Clipboard( this->state.get() );
             }
             if( ImGui::MenuItem( "Paste system", "ctrl+v" ) )
             {
+                this->paste_image();
             }
             if( ImGui::MenuItem( "Insert left", "ctrl+leftarrow" ) )
             {
@@ -1150,6 +905,7 @@ void MainWindow::show_menu_bar()
             }
             if( ImGui::MenuItem( "Delete system", "del" ) )
             {
+                this->delete_image();
             }
             ImGui::EndMenu();
         }
@@ -1246,9 +1002,10 @@ void MainWindow::show_menu_bar()
             if( ImGui::Button( ICON_FA_SUN, ImVec2( width, bar_height ) ) )
             {
                 ImGui::StyleColorsLight();
-                background_colour = glm::vec4{ 0.9f, 0.9f, 0.9f, 1.f };
-                dark_mode         = false;
-                vfr_view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>( background_colour );
+                dark_mode                         = false;
+                rendering_layer.background_colour = glm::vec4{ 0.9f, 0.9f, 0.9f, 1.f };
+                rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
+                    rendering_layer.background_colour );
             }
         }
         else
@@ -1256,9 +1013,10 @@ void MainWindow::show_menu_bar()
             if( ImGui::Button( ICON_FA_MOON, ImVec2( width, bar_height ) ) )
             {
                 styles::apply_charcoal();
-                background_colour = glm::vec4{ 0.4f, 0.4f, 0.4f, 1.f };
-                dark_mode         = true;
-                vfr_view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>( background_colour );
+                dark_mode                         = true;
+                rendering_layer.background_colour = glm::vec4{ 0.4f, 0.4f, 0.4f, 1.f };
+                rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
+                    rendering_layer.background_colour );
             }
         }
         right_edge -= ( width + style.FramePadding.x );
@@ -1322,8 +1080,29 @@ void MainWindow::show_menu_bar()
         }
 
         image_number = ( ImU32 )( System_Get_Index( state.get() ) + 1 );
+        chain_length = ( ImU32 )( Chain_Get_NOI( state.get() ) );
         ImGui::SetNextItemWidth( 40 );
-        ImGui::InputScalar( "##imagenumber", ImGuiDataType_U32, &image_number, NULL, NULL, "%u" );
+        if( ImGui::InputScalar(
+                "##imagenumber", ImGuiDataType_U32, &image_number, NULL, NULL, "%u",
+                ImGuiInputTextFlags_EnterReturnsTrue ) )
+            Chain_Jump_To_Image( state.get(), image_number - 1 );
+        ImGui::Text( "/" );
+        ImGui::SetNextItemWidth( 40 );
+        if( ImGui::InputScalar(
+                "##chainlength", ImGuiDataType_U32, &chain_length, NULL, NULL, "%u",
+                ImGuiInputTextFlags_EnterReturnsTrue ) )
+        {
+            int length = Chain_Get_NOI( state.get() );
+            Chain_Set_Length( state.get(), chain_length );
+            int new_length = Chain_Get_NOI( state.get() );
+            if( new_length < length )
+            {
+                for( int i = length - 1; i >= new_length; --i )
+                    if( threads_image[i].joinable() )
+                        threads_image[i].join();
+                threads_image.pop_back();
+            }
+        }
 
         if( ImGui::Button( ICON_FA_ARROW_RIGHT, ImVec2( width, button_height ) ) )
         {
@@ -1351,7 +1130,7 @@ int MainWindow::run()
     return 0;
 }
 
-MainWindow::MainWindow( std::shared_ptr<State> state )
+MainWindow::MainWindow( std::shared_ptr<State> state ) : rendering_layer( state )
 {
     global_window_handle = this;
 
@@ -1405,7 +1184,8 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
     ImGui_ImplGlfw_InitForOpenGL( glfw_window, false );
     ImGui_ImplOpenGL3_Init();
 
-    intitialize_gl();
+    rendering_layer.initialize_gl();
+    this->reset_camera();
 
     // Setup style
     styles::apply_charcoal();
@@ -1443,6 +1223,6 @@ MainWindow::~MainWindow()
 
 void MainWindow::resize( int width, int height )
 {
-    vfr_needs_redraw = true;
+    rendering_layer.needs_redraw();
     this->draw();
 }

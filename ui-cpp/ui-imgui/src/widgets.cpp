@@ -137,7 +137,7 @@ void show_parameters( bool & show, GUI_Mode & selected_mode )
     ImGui::End();
 }
 
-void show_visualisation_settings( bool & show, VFRendering::View & vfr_view, glm::vec4 & background_colour )
+void show_visualisation_settings( bool & show, RenderingLayer & rendering_layer )
 {
     if( !show )
         return;
@@ -145,9 +145,10 @@ void show_visualisation_settings( bool & show, VFRendering::View & vfr_view, glm
     ImGui::Begin( "Visualisation settings", &show );
 
     ImGui::Text( "Background color" );
-    if( ImGui::ColorEdit3( "##bgcolour", (float *)&background_colour ) )
+    if( ImGui::ColorEdit3( "##bgcolour", (float *)&( rendering_layer.background_colour ) ) )
     {
-        vfr_view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>( background_colour );
+        rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
+            rendering_layer.background_colour );
     }
 
     ImGui::Separator();
@@ -157,7 +158,7 @@ void show_visualisation_settings( bool & show, VFRendering::View & vfr_view, glm
     ImGui::Columns( 2, "lightdircolumns", false ); // 3-ways, no border
     if( ImGui::gizmo3D( "##dir", dir ) )
     {
-        vfr_view.setOption<VFRendering::View::Option::LIGHT_POSITION>(
+        rendering_layer.view.setOption<VFRendering::View::Option::LIGHT_POSITION>(
             { -1000 * dir.x, -1000 * dir.y, -1000 * dir.z } );
     }
     ImGui::NextColumn();

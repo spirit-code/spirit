@@ -4,7 +4,7 @@
 
 #include <enums.hpp>
 
-#include <VFRendering/View.hxx>
+#include <rendering_layer.hpp>
 
 #include <thread>
 #include <vector>
@@ -16,7 +16,7 @@ namespace widgets
 void help_marker( const char * description );
 
 void show_parameters( bool & show, GUI_Mode & selected_mode );
-void show_visualisation_settings( bool & show, VFRendering::View & vfr_view, glm::vec4 & background_colour );
+void show_visualisation_settings( bool & show, RenderingLayer & rendering_layer );
 
 void show_plots( bool & show );
 

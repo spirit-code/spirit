@@ -3,6 +3,7 @@
 #define SPIRIT_IMGUI_MAIN_WINDOW_HPP
 
 #include <enums.hpp>
+#include <rendering_layer.hpp>
 
 #include <imgui/imgui.h>
 
@@ -37,12 +38,7 @@ public:
 private:
     void show_menu_bar();
 
-    void intitialize_gl();
-    void draw_vfr( int display_w, int display_h );
     void draw_imgui( int display_w, int display_h );
-
-    void update_vf_geometry();
-    void update_vf_directions();
 
     void reset_camera();
     void handle_mouse();
@@ -52,7 +48,15 @@ private:
     void stop_all();
     void stop_current();
 
+    void cut_image();
+    void paste_image();
+    void insert_image_left();
+    void insert_image_right();
+    void delete_image();
+
     GLFWwindow * glfw_window;
+
+    RenderingLayer rendering_layer;
 
     ImFont * font_cousine_14 = nullptr;
     ImFont * font_karla_14   = nullptr;
@@ -84,21 +88,6 @@ private:
     bool dark_mode  = true;
     bool maximized  = false;
     bool fullscreen = false;
-
-    // Visualisation settings
-    bool vfr_needs_redraw       = true;
-    bool vfr_needs_data         = true;
-    glm::vec4 background_colour = glm::vec4{ 0.4f, 0.4f, 0.4f, 0.f };
-
-    VFRendering::View vfr_view;
-    VFRendering::Geometry vfr_geometry;
-    VFRendering::VectorField vfr_vectorfield        = VFRendering::VectorField( {}, {} );
-    VFRendering::VectorField vfr_vectorfield_surf2D = VFRendering::VectorField( {}, {} );
-
-    std::shared_ptr<VFRendering::ArrowRenderer> vfr_arrow_renderer_ptr;
-    std::vector<std::shared_ptr<VFRendering::RendererBase>> vfr_system_renderers{};
-
-    int n_cell_step = 1;
 
     // Interaction
     bool m_dragging = false;
