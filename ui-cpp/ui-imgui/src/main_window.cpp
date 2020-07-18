@@ -32,6 +32,7 @@
 
 #include <nfd.h>
 
+#include <cmath>
 #include <exception>
 #include <map>
 #include <string>
@@ -418,6 +419,16 @@ void MainWindow::handle_keyboard()
         {
             selected_mode = GUI_Mode::EMA;
         }
+
+        //-----------------------------------------------------
+
+        if( ImGui::IsKeyPressed( GLFW_KEY_HOME, false ) )
+        {
+            ++n_screenshots;
+            std::string name = fmt::format( "{}_Screenshot_{}", State_DateTime( state.get() ), n_screenshots );
+            rendering_layer.screenshot_png( name );
+            notify( fmt::format( ICON_FA_DESKTOP "  Captured \"{}\"", name ), 4 );
+        }
     }
 }
 
@@ -437,6 +448,7 @@ try
             threads_image[System_Get_Index( state.get() )].join();
         else if( thread_chain.joinable() )
             thread_chain.join();
+        this->notify( "stopped calculation" );
     }
     else
     {
@@ -488,6 +500,7 @@ try
             this->threads_image[System_Get_Index( state.get() )]
                 = std::thread( &Simulation_EMA_Start, this->state.get(), -1, -1, false, -1, -1 );
         }
+        this->notify( "started calculation" );
     }
     rendering_layer.needs_data();
 }
@@ -511,6 +524,8 @@ try
     }
     if( thread_chain.joinable() )
         thread_chain.join();
+
+    this->notify( "stopped all calculations" );
 
     rendering_layer.needs_data();
 }
@@ -547,6 +562,7 @@ try
             thread_chain.join();
     }
 
+    this->notify( "stopped current calculation" );
     rendering_layer.needs_data();
 }
 catch( const std::exception & e )
@@ -570,6 +586,8 @@ void MainWindow::cut_image()
             if( this->threads_image[idx].joinable() )
                 this->threads_image[idx].join();
             this->threads_image.erase( threads_image.begin() + idx );
+
+            this->notify( fmt::format( "cut image {}", idx + 1 ) );
         }
         rendering_layer.needs_data();
     }
@@ -581,6 +599,8 @@ void MainWindow::paste_image()
     this->stop_current();
     Chain_Replace_Image( state.get() );
     rendering_layer.needs_data();
+
+    this->notify( "pasted image from clipboard" );
 }
 
 void MainWindow::insert_image_left()
@@ -595,6 +615,8 @@ void MainWindow::insert_image_left()
     this->threads_image.insert( threads_image.begin() + idx, std::thread() );
     // Switch to the inserted image
     Chain_prev_Image( this->state.get() );
+
+    this->notify( "inserted image to the left" );
 }
 
 void MainWindow::insert_image_right()
@@ -609,6 +631,8 @@ void MainWindow::insert_image_right()
     this->threads_image.insert( threads_image.begin() + idx + 1, std::thread() );
     // Switch to the inserted image
     Chain_next_Image( this->state.get() );
+
+    this->notify( "inserted image to the right" );
 }
 
 void MainWindow::delete_image()
@@ -624,6 +648,8 @@ void MainWindow::delete_image()
             if( this->threads_image[idx].joinable() )
                 this->threads_image[idx].join();
             this->threads_image.erase( threads_image.begin() + idx );
+
+            this->notify( fmt::format( "deleted image {}", idx + 1 ) );
         }
 
         rendering_layer.needs_data();
@@ -683,6 +709,7 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     ImGui::PushFont( font_karla_14 );
 
     this->show_menu_bar();
+    this->show_notification();
 
     ImGui::PushFont( font_cousine_14 );
     widgets::show_overlay_system( show_overlays );
@@ -888,6 +915,7 @@ void MainWindow::show_menu_bar()
                 ++n_screenshots;
                 std::string name = fmt::format( "{}_Screenshot_{}", State_DateTime( state.get() ), n_screenshots );
                 rendering_layer.screenshot_png( name );
+                notify( fmt::format( ICON_FA_DESKTOP "  Captured \"{}\"", name ), 4 );
             }
             ImGui::EndMenu();
         }
@@ -1123,6 +1151,47 @@ void MainWindow::show_menu_bar()
     ImGui::PopFont();
 }
 
+void MainWindow::show_notification()
+{
+    if( notification.empty() )
+        return;
+
+    bool show = true;
+    auto & io = ImGui::GetIO();
+
+    float fade  = 0.25f; // * this->notification_timeout
+    float alpha = 0.8f;
+    if( notification_timer < fade || notification_timer > this->notification_timeout - fade )
+        alpha *= std::abs( std::sinf( 1.5707963 * notification_timer / fade ) );
+
+    ImVec2 text_size  = ImGui::CalcTextSize( notification.c_str(), NULL, true );
+    ImVec2 window_pos = ImVec2( 0.5 * ( io.DisplaySize.x - text_size.x ), io.DisplaySize.y - 50 );
+
+    ImGui::SetNextWindowPos( window_pos, ImGuiCond_Always );
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize
+                                    | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing
+                                    | ImGuiWindowFlags_NoNav;
+
+    ImGui::PushStyleVar( ImGuiStyleVar_WindowBorderSize, 0 );
+    ImGui::PushStyleVar( ImGuiStyleVar_Alpha, alpha );
+
+    if( ImGui::Begin( "Notification", &show, window_flags ) )
+    {
+        ImGui::TextUnformatted( notification.c_str() );
+    }
+    ImGui::End();
+
+    ImGui::PopStyleVar();
+    ImGui::PopStyleVar();
+
+    if( notification_timer > this->notification_timeout )
+    {
+        notification_timer = 0;
+        notification       = "";
+    }
+    notification_timer += io.DeltaTime;
+}
+
 int MainWindow::run()
 {
 #ifdef __EMSCRIPTEN__
@@ -1258,4 +1327,11 @@ void MainWindow::resize( int width, int height )
 {
     rendering_layer.needs_redraw();
     this->draw();
+}
+
+void MainWindow::notify( std::string notification, float timeout )
+{
+    this->notification         = notification;
+    this->notification_timer   = 0;
+    this->notification_timeout = timeout > 1 ? timeout : 1;
 }

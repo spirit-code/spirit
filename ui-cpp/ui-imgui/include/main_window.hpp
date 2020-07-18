@@ -34,9 +34,11 @@ public:
     int run();
     void draw();
     void resize( int width, int height );
+    void notify( std::string notification, float time = 3 );
 
 private:
     void show_menu_bar();
+    void show_notification();
 
     void draw_imgui( int display_w, int display_h );
 
@@ -93,7 +95,10 @@ private:
     bool m_dragging = false;
 
     // Other state
-    int n_screenshots        = 0;
+    int n_screenshots          = 0;
+    std::string notification   = "";
+    float notification_timer   = 0;
+    float notification_timeout = 3;
 };
 
 #endif
