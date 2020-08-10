@@ -57,6 +57,8 @@ namespace Engine
         void Update_Energy_Contributions() override;
 
         void Hessian(const vectorfield & spins, MatrixX & hessian) override;
+        void Sparse_Hessian(const vectorfield & spins, SpMatrixX & hessian) override;
+
         void Gradient(const vectorfield & spins, vectorfield & gradient) override;
         void Gradient_and_Energy(const vectorfield & spins, vectorfield & gradient, scalar & energy) override;
 
