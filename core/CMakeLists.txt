@@ -347,6 +347,7 @@ if( SPIRIT_USE_CUDA )
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/Hamiltonian.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/Hamiltonian_Gaussian.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/HTST.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Sparse_HTST.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/Manifoldmath.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/Method.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/Method_MC.cpp
