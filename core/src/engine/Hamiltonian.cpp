@@ -30,6 +30,12 @@ namespace Engine
         this->Hessian_FD(spins, hessian);
     }
 
+    void Hamiltonian::Sparse_Hessian(const vectorfield & spins, SpMatrixX & hessian)
+    {
+        // Not implemented
+        return;
+    }
+
     void Hamiltonian::Hessian_FD(const vectorfield & spins, MatrixX & hessian)
     {
         // This is a regular finite difference implementation (probably not very efficient)

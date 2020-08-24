@@ -54,6 +54,8 @@ namespace Engine
         //      The basis will be a 3Nx2N matrix.
         void tangent_basis_spherical(const vectorfield & vf, MatrixX & basis);
 
+        void sparse_tangent_basis_spherical(const vectorfield & vf, SpMatrixX & basis);
+
         // Calculate a matrix of orthonormal basis vectors that span the tangent space to
         //      a vectorfield, considered to live on the direct product of N unit spheres.
         //      The basis vectors will be generated from cross products with euclidean basis

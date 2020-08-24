@@ -1088,6 +1088,101 @@ namespace Engine
         // Quadruplets
     }
 
+    void Hamiltonian_Heisenberg::Sparse_Hessian(const vectorfield & spins, SpMatrixX & hessian)
+    {
+        int nos = spins.size();
+        const int N = geometry->n_cell_atoms;
+
+        typedef Eigen::Triplet<scalar> T;
+        std::vector<T> tripletList;
+        tripletList.reserve( geometry->n_cells_total * (anisotropy_indices.size() * 9 + exchange_pairs.size() * 2 + dmi_pairs.size() * 3) );
+
+        // --- Single Spin elements
+        #pragma omp parallel for
+        for( int icell = 0; icell < geometry->n_cells_total; ++icell )
+        {
+            for( int iani = 0; iani < anisotropy_indices.size(); ++iani )
+            {
+                int ispin = icell*N + anisotropy_indices[iani];
+                if( check_atom_type(this->geometry->atom_types[ispin]) )
+                {
+                    for( int alpha = 0; alpha < 3; ++alpha )
+                    {
+                        for ( int beta = 0; beta < 3; ++beta )
+                        {
+                            int i = 3 * ispin + alpha;
+                            int j = 3 * ispin + alpha;
+                            scalar res = -2.0 * this->anisotropy_magnitudes[iani] *
+                                                    this->anisotropy_normals[iani][alpha] *
+                                                    this->anisotropy_normals[iani][beta];
+                            tripletList.push_back( T(i, j, res ) );
+                        }
+                    }
+                }
+            }
+        }
+
+        // --- Spin Pair elements
+        // Exchange
+        #pragma omp parallel for
+        for( int icell = 0; icell < geometry->n_cells_total; ++icell )
+        {
+            for( unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair )
+            {
+                int ispin = exchange_pairs[i_pair].i + icell*geometry->n_cell_atoms;
+                int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
+                if( jspin >= 0 )
+                {
+                    for( int alpha = 0; alpha < 3; ++alpha )
+                    {
+                        int i = 3 * ispin + alpha;
+                        int j = 3 * jspin + alpha;
+
+                        tripletList.push_back( T(i, j, -exchange_magnitudes[i_pair] ) );
+                        #ifndef SPIRIT_USE_OPENMP
+                        tripletList.push_back( T(j, i, -exchange_magnitudes[i_pair] ) );
+                        #endif
+                    }
+                }
+            }
+        }
+
+        // DMI
+        #pragma omp parallel for
+        for( int icell = 0; icell < geometry->n_cells_total; ++icell )
+        {
+            for( unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair )
+            {
+                int ispin = dmi_pairs[i_pair].i + icell*geometry->n_cell_atoms;
+                int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
+                if( jspin >= 0 )
+                {
+                    int i = 3*ispin;
+                    int j = 3*jspin;
+
+                    tripletList.push_back( T(i+2, j+1,   dmi_magnitudes[i_pair] * dmi_normals[i_pair][0] ) );
+                    tripletList.push_back( T(i+1, j+2,  -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0] ) );
+                    tripletList.push_back( T(i, j+2,     dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] ) );
+                    tripletList.push_back( T(i+2, j,    -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] ) );
+                    tripletList.push_back( T(i+1, j,     dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] ) );
+                    tripletList.push_back( T(i, j+1,    -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] ) );
+
+                    #ifndef SPIRIT_USE_OPENMP
+                    tripletList.push_back( T(j+1, i+2,  dmi_magnitudes[i_pair] * dmi_normals[i_pair][0]) );
+                    tripletList.push_back( T(j+2, i+1, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0]) );
+                    tripletList.push_back( T(j+2, i  ,  dmi_magnitudes[i_pair] * dmi_normals[i_pair][1]) );
+                    tripletList.push_back( T(j, i+2  , -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1]) );
+                    tripletList.push_back( T(j, i+1  ,  dmi_magnitudes[i_pair] * dmi_normals[i_pair][2]) );
+                    tripletList.push_back( T(j+1, i  , -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2]) );
+                    #endif
+                }
+            }
+        }
+
+        hessian.setFromTriplets(tripletList.begin(), tripletList.end());
+    }
+
+
     void Hamiltonian_Heisenberg::FFT_Spins(const vectorfield & spins)
     {
         //size of original geometry
@@ -1148,6 +1243,13 @@ namespace Engine
 
                 // Iterate over the padded system
                 const int * c_n_cells_padded = n_cells_padded.data();
+
+                std::array<scalar, 3> cell_sizes = {geometry->lattice_constant * geometry->bravais_vectors[0].norm(), 
+                                                    geometry->lattice_constant * geometry->bravais_vectors[1].norm(), 
+                                                    geometry->lattice_constant * geometry->bravais_vectors[2].norm()};
+
+                std::cout << cell_sizes[0] << " " << cell_sizes[1] << " " << cell_sizes[2] << "\n";
+
                 #pragma omp parallel for collapse(3)
                 for( int c = 0; c < c_n_cells_padded[2]; ++c )
                 {
@@ -1167,7 +1269,7 @@ namespace Engine
                                 {
                                     for( int c_pb = -img_c; c_pb <= img_c; c_pb++ )
                                     {
-                                        diff =  geometry->lattice_constant * (
+                                        diff = geometry->lattice_constant * (
                                               (a_idx + a_pb * Na + geometry->cell_atoms[i_b1][0] - geometry->cell_atoms[i_b2][0]) * geometry->bravais_vectors[0]
                                             + (b_idx + b_pb * Nb + geometry->cell_atoms[i_b1][1] - geometry->cell_atoms[i_b2][1]) * geometry->bravais_vectors[1]
                                             + (c_idx + c_pb * Nc + geometry->cell_atoms[i_b1][2] - geometry->cell_atoms[i_b2][2]) * geometry->bravais_vectors[2] );

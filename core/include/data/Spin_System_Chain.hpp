@@ -19,17 +19,21 @@ namespace Data
 
     struct HTST_Info
     {
+        bool sparse = false;
+
         // Relevant images
         std::shared_ptr<Spin_System> minimum;
         std::shared_ptr<Spin_System> saddle_point;
 
         // Eigenmodes
-        int n_eigenmodes_keep;
+        int n_eigenmodes_keep = 0;
         VectorX eigenvalues_min         = VectorX(0);
         MatrixX eigenvectors_min        = MatrixX(0, 0);
         VectorX eigenvalues_sp          = VectorX(0);
         MatrixX eigenvectors_sp         = MatrixX(0, 0);
         VectorX perpendicular_velocity  = VectorX(0);
+        scalar det_min = 0;
+        scalar det_sp = 0;
 
         // Prefactor constituents
         scalar temperature_exponent = 0;
