@@ -73,7 +73,7 @@ Introduction <a name="Introduction"></a>
 #### A modern framework for magnetism science on clusters, desktops & laptops and even your Phone
 
 **Spirit** is a **platform-independent** framework for spin dynamics, written in C++11.
-It combines the traditional cluster work, using using the command-line, with modern
+It combines the traditional cluster work, using the command-line, with modern
 visualisation capabilites in order to maximize scientists' productivity.
 
 > "It is unworthy of excellent men to lose hours like slaves in
