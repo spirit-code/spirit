@@ -3,6 +3,7 @@
 #define SPIRIT_IMGUI_VFR_LAYER_HPP
 
 #include <enums.hpp>
+#include <settings.hpp>
 
 #include <imgui/imgui.h>
 
@@ -24,9 +25,12 @@
 
 struct State;
 
+namespace ui
+{
+
 struct RenderingLayer
 {
-    RenderingLayer( std::shared_ptr<State> state );
+    RenderingLayer( std::shared_ptr<ui::Settings> settings, std::shared_ptr<State> state );
 
     void initialize_gl();
     void draw( int display_w, int display_h );
@@ -40,8 +44,10 @@ struct RenderingLayer
 
     // Visualisation Settings
     VFRendering::View view;
+    std::shared_ptr<ui::Settings> settings;
 
-    glm::vec4 background_colour = glm::vec4{ 0.4f, 0.4f, 0.4f, 0.f };
+    glm::vec4 background_colour_dark  = glm::vec4{ 0.4f, 0.4f, 0.4f, 0.f };
+    glm::vec4 background_colour_light = glm::vec4{ 0.7f, 0.7f, 0.7f, 0.f };
 
     int n_cell_step = 1;
 
@@ -59,5 +65,7 @@ private:
     std::shared_ptr<VFRendering::ArrowRenderer> arrow_renderer_ptr;
     std::vector<std::shared_ptr<VFRendering::RendererBase>> system_renderers{};
 };
+
+} // namespace ui
 
 #endif

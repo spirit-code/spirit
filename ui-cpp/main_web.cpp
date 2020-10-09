@@ -47,7 +47,7 @@ try
     float dij[1] = { 0.3f };
     Hamiltonian_Set_DMI( state.get(), 1, dij );
 
-    MainWindow window( state );
+    ui::MainWindow window( state );
 
     // Open the Application
     int exec = window.run();

@@ -2,8 +2,8 @@
 #ifndef SPIRIT_IMGUI_MAIN_WINDOW_HPP
 #define SPIRIT_IMGUI_MAIN_WINDOW_HPP
 
-#include <enums.hpp>
 #include <rendering_layer.hpp>
+#include <settings.hpp>
 
 #include <imgui/imgui.h>
 
@@ -17,13 +17,14 @@
 #include <VFRendering/SphereRenderer.hxx>
 #include <VFRendering/View.hxx>
 
-#include <Spirit/Simulation.h>
-
 #include <memory>
 #include <thread>
 #include <vector>
 
 struct State;
+
+namespace ui
+{
 
 class MainWindow
 {
@@ -58,6 +59,8 @@ private:
 
     GLFWwindow * glfw_window;
 
+    std::shared_ptr<ui::Settings> settings = std::make_shared<ui::Settings>();
+
     RenderingLayer rendering_layer;
 
     ImFont * font_cousine_14 = nullptr;
@@ -70,29 +73,18 @@ private:
     std::vector<std::thread> threads_image;
     std::thread thread_chain;
 
-    // Window settings
-    int selected_solver_min = Solver_VP_OSO;
-    int selected_solver_llg = Solver_Depondt;
-    GUI_Mode selected_mode  = GUI_Mode::Minimizer;
-
     bool show_overlays               = true;
     bool show_parameters_settings    = true;
     bool show_visualisation_settings = true;
     bool show_hamiltonian_settings   = true;
     bool show_geometry_settings      = true;
     bool show_plots                  = true;
+    bool show_settings               = false;
 
     bool show_demo_window = false;
 
     bool show_keybindings = false;
     bool show_about       = false;
-
-    bool dark_mode  = true;
-    bool maximized  = false;
-    bool fullscreen = false;
-
-    // Interaction
-    bool m_dragging = false;
 
     // Other state
     int n_screenshots          = 0;
@@ -100,5 +92,7 @@ private:
     float notification_timer   = 0;
     float notification_timeout = 3;
 };
+
+} // namespace ui
 
 #endif

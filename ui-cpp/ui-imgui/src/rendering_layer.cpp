@@ -14,7 +14,13 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
 
-RenderingLayer::RenderingLayer( std::shared_ptr<State> state ) : state( state ) {}
+namespace ui
+{
+
+RenderingLayer::RenderingLayer( std::shared_ptr<ui::Settings> settings, std::shared_ptr<State> state )
+        : settings( settings ), state( state )
+{
+}
 
 void RenderingLayer::draw( int display_w, int display_h )
 {
@@ -69,8 +75,12 @@ void RenderingLayer::initialize_gl()
     view.setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( 0.3f );
     view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( 0.0625f );
     view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>( 0.35f );
-    view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-        { background_colour.x, background_colour.y, background_colour.z } );
+    if( settings->dark_mode )
+        view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
+            { background_colour_dark.x, background_colour_dark.y, background_colour_dark.z } );
+    else
+        view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
+            { background_colour_light.x, background_colour_light.y, background_colour_light.z } );
 
     this->update_vf_geometry();
     this->update_vf_directions();
@@ -296,3 +306,5 @@ void RenderingLayer::update_vf_directions()
     if( Geometry_Get_Dimensionality( state.get() ) == 2 )
         vectorfield_surf2D.updateVectors( directions );
 }
+
+} // namespace ui

@@ -37,7 +37,7 @@
 #include <map>
 #include <string>
 
-static MainWindow * global_window_handle;
+static ui::MainWindow * global_window_handle;
 
 /////////////////////////////////////////////////////////////////////
 
@@ -45,6 +45,8 @@ static MainWindow * global_window_handle;
 EM_JS( int, canvas_get_width, (), { return Module.canvas.width; } );
 EM_JS( int, canvas_get_height, (), { return Module.canvas.height; } );
 EM_JS( void, resizeCanvas, (), { js_resizeCanvas(); } );
+
+EM_JS( std::string, fs_read_file, (), { return FS.readFile( "Log.txt" ); } );
 
 EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context_imgui;
 EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context_vfr;
@@ -68,6 +70,9 @@ static void framebufferSizeCallback( GLFWwindow * window, int width, int height 
 }
 
 /////////////////////////////////////////////////////////////////////
+
+namespace ui
+{
 
 void MainWindow::reset_camera()
 {
@@ -397,27 +402,27 @@ void MainWindow::handle_keyboard()
         // TODO: deactivate method selection if a calculation is running
         if( ImGui::IsKeyPressed( GLFW_KEY_1, false ) )
         {
-            selected_mode = GUI_Mode::Minimizer;
+            settings->selected_mode = GUI_Mode::Minimizer;
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_2, false ) )
         {
-            selected_mode = GUI_Mode::MC;
+            settings->selected_mode = GUI_Mode::MC;
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_3, false ) )
         {
-            selected_mode = GUI_Mode::LLG;
+            settings->selected_mode = GUI_Mode::LLG;
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_4, false ) )
         {
-            selected_mode = GUI_Mode::GNEB;
+            settings->selected_mode = GUI_Mode::GNEB;
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_5, false ) )
         {
-            selected_mode = GUI_Mode::MMF;
+            settings->selected_mode = GUI_Mode::MMF;
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_6, false ) )
         {
-            selected_mode = GUI_Mode::EMA;
+            settings->selected_mode = GUI_Mode::EMA;
         }
 
         //-----------------------------------------------------
@@ -453,23 +458,23 @@ try
     else
     {
         // Not running, so we start it
-        if( selected_mode == GUI_Mode::Minimizer )
+        if( settings->selected_mode == GUI_Mode::Minimizer )
         {
             int idx = System_Get_Index( state.get() );
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
-            this->threads_image[System_Get_Index( state.get() )]
-                = std::thread( &Simulation_LLG_Start, this->state.get(), selected_solver_min, -1, -1, false, -1, -1 );
+            this->threads_image[System_Get_Index( state.get() )] = std::thread(
+                &Simulation_LLG_Start, this->state.get(), settings->selected_solver_min, -1, -1, false, -1, -1 );
         }
-        if( selected_mode == GUI_Mode::LLG )
+        if( settings->selected_mode == GUI_Mode::LLG )
         {
             int idx = System_Get_Index( state.get() );
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
-            this->threads_image[System_Get_Index( state.get() )]
-                = std::thread( &Simulation_LLG_Start, this->state.get(), selected_solver_llg, -1, -1, false, -1, -1 );
+            this->threads_image[System_Get_Index( state.get() )] = std::thread(
+                &Simulation_LLG_Start, this->state.get(), settings->selected_solver_llg, -1, -1, false, -1, -1 );
         }
-        else if( selected_mode == GUI_Mode::MC )
+        else if( settings->selected_mode == GUI_Mode::MC )
         {
             int idx = System_Get_Index( state.get() );
             if( threads_image[idx].joinable() )
@@ -477,22 +482,22 @@ try
             this->threads_image[System_Get_Index( state.get() )]
                 = std::thread( &Simulation_MC_Start, this->state.get(), -1, -1, false, -1, -1 );
         }
-        else if( selected_mode == GUI_Mode::GNEB )
+        else if( settings->selected_mode == GUI_Mode::GNEB )
         {
             if( thread_chain.joinable() )
                 thread_chain.join();
-            this->thread_chain
-                = std::thread( &Simulation_GNEB_Start, this->state.get(), selected_solver_min, -1, -1, false, -1 );
+            this->thread_chain = std::thread(
+                &Simulation_GNEB_Start, this->state.get(), settings->selected_solver_min, -1, -1, false, -1 );
         }
-        else if( selected_mode == GUI_Mode::MMF )
+        else if( settings->selected_mode == GUI_Mode::MMF )
         {
             int idx = System_Get_Index( state.get() );
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
-            this->threads_image[System_Get_Index( state.get() )]
-                = std::thread( &Simulation_MMF_Start, this->state.get(), selected_solver_min, -1, -1, false, -1, -1 );
+            this->threads_image[System_Get_Index( state.get() )] = std::thread(
+                &Simulation_MMF_Start, this->state.get(), settings->selected_solver_min, -1, -1, false, -1, -1 );
         }
-        else if( selected_mode == GUI_Mode::EMA )
+        else if( settings->selected_mode == GUI_Mode::EMA )
         {
             int idx = System_Get_Index( state.get() );
             if( threads_image[idx].joinable() )
@@ -692,7 +697,7 @@ void MainWindow::draw()
 #endif
 
     if( Simulation_Running_On_Image( this->state.get() ) || Simulation_Running_On_Chain( this->state.get() )
-        || this->m_dragging )
+        || settings->dragging_mode )
     {
         rendering_layer.needs_data();
     }
@@ -713,35 +718,25 @@ void MainWindow::draw_imgui( int display_w, int display_h )
 
     ImGui::PushFont( font_cousine_14 );
     widgets::show_overlay_system( show_overlays );
-    widgets::show_overlay_calculation( show_overlays, selected_mode, selected_solver_min, selected_solver_llg );
+    widgets::show_overlay_calculation(
+        show_overlays, settings->selected_mode, settings->selected_solver_min, settings->selected_solver_llg );
     ImGui::PopFont();
 
-    widgets::show_parameters( show_parameters_settings, selected_mode );
+    widgets::show_parameters( show_parameters_settings, settings->selected_mode );
 
     widgets::show_visualisation_settings( show_visualisation_settings, rendering_layer );
+
+    widgets::show_about( show_about );
 
     widgets::show_plots( show_plots );
 
     widgets::show_keybindings( show_keybindings );
 
-    widgets::show_about( show_about );
-
     if( show_demo_window )
     {
-        ImGui::SetNextWindowPos( ImVec2( 650, 20 ), ImGuiCond_FirstUseEver );
+        ImGui::SetNextWindowPos( ImVec2( 100, 20 ), ImGuiCond_FirstUseEver );
         ImGui::ShowDemoWindow( &show_demo_window );
     }
-
-    ImGui::Begin( "Test-window" );
-
-    ImGui::Text( "Windows" );
-    ImGui::Checkbox( "Demo Window", &show_demo_window );
-    ImGui::Checkbox( "Keybindings", &show_keybindings );
-
-    ImGui::Text(
-        "Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate );
-
-    ImGui::End();
 
     ImGui::PopFont();
 
@@ -891,24 +886,7 @@ void MainWindow::show_menu_bar()
             {
             }
             ImGui::Separator();
-            if( ImGui::MenuItem( "Choose output folder" ) )
-            {
-                nfdchar_t * outPath = NULL;
-                nfdresult_t result  = NFD_PickFolder( NULL, &outPath );
-                if( result == NFD_OKAY )
-                {
-                    fmt::print( "Folder path: \"{}\"\n", outPath );
-                    free( outPath );
-                }
-                else if( result == NFD_CANCEL )
-                {
-                    fmt::print( "User pressed cancel.\n" );
-                }
-                else
-                {
-                    fmt::print( "Error: {}\n", NFD_GetError() );
-                }
-            }
+            ImGui::MenuItem( "Settings", "", &show_settings );
             ImGui::Separator();
             if( ImGui::MenuItem( "Take Screenshot" ) )
             {
@@ -973,11 +951,12 @@ void MainWindow::show_menu_bar()
         }
         if( ImGui::BeginMenu( "View" ) )
         {
-            ImGui::MenuItem( "Show info-widgets", "i", &show_overlays );
-            ImGui::MenuItem( "Show settings" );
-            ImGui::MenuItem( "Show plots", "", &show_plots );
-            ImGui::MenuItem( "Show geometry", "", &show_geometry_settings );
-            ImGui::MenuItem( "Show debug" );
+            ImGui::MenuItem( "Info-widgets", "i", &show_overlays );
+            ImGui::MenuItem( "Parameters", "", &show_parameters_settings );
+            ImGui::MenuItem( "Plots", "", &show_plots );
+            ImGui::MenuItem( "Geometry", "", &show_geometry_settings );
+            ImGui::MenuItem( "Visualisation settings", "", &show_visualisation_settings );
+            ImGui::MenuItem( "Demo Window", "", &show_demo_window );
             ImGui::Separator();
             if( ImGui::MenuItem( "Regular mode" ) )
             {
@@ -1031,32 +1010,6 @@ void MainWindow::show_menu_bar()
 
         ImGui::PushStyleVar( ImGuiStyleVar_SelectableTextAlign, ImVec2( .5f, .5f ) );
 
-        width = 2.5f * font_size_px;
-        ImGui::SameLine( right_edge - width, 0 );
-        if( dark_mode )
-        {
-            if( ImGui::Button( ICON_FA_SUN, ImVec2( width, bar_height ) ) )
-            {
-                ImGui::StyleColorsLight();
-                dark_mode                         = false;
-                rendering_layer.background_colour = glm::vec4{ 0.9f, 0.9f, 0.9f, 1.f };
-                rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-                    rendering_layer.background_colour );
-            }
-        }
-        else
-        {
-            if( ImGui::Button( ICON_FA_MOON, ImVec2( width, bar_height ) ) )
-            {
-                styles::apply_charcoal();
-                dark_mode                         = true;
-                rendering_layer.background_colour = glm::vec4{ 0.4f, 0.4f, 0.4f, 1.f };
-                rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-                    rendering_layer.background_colour );
-            }
-        }
-        right_edge -= ( width + style.FramePadding.x );
-
         // TODO: deactivate method selection if a calculation is running
 
         for( int n = modes.size(); n > 0; n-- )
@@ -1068,8 +1021,8 @@ void MainWindow::show_menu_bar()
             height            = text_size.y + 2 * style.FramePadding.y;
 
             ImGui::SameLine( right_edge - width, 0 );
-            if( ImGui::Selectable( label.c_str(), selected_mode == mode, 0, ImVec2( width, height ) ) )
-                selected_mode = mode;
+            if( ImGui::Selectable( label.c_str(), settings->selected_mode == mode, 0, ImVec2( width, height ) ) )
+                settings->selected_mode = mode;
             right_edge -= ( width + 2 * style.FramePadding.x );
 
             if( ImGui::IsItemHovered() )
@@ -1079,7 +1032,7 @@ void MainWindow::show_menu_bar()
                 if( mode_button_hovered_duration[n - 1] > 1.5f )
                 {
                     ImGui::BeginTooltip();
-                    ImGui::Text( modes[mode].second.c_str() );
+                    ImGui::TextUnformatted( modes[mode].second.c_str() );
                     ImGui::EndTooltip();
                 }
             }
@@ -1122,7 +1075,7 @@ void MainWindow::show_menu_bar()
                 "##imagenumber", ImGuiDataType_U32, &image_number, NULL, NULL, "%u",
                 ImGuiInputTextFlags_EnterReturnsTrue ) )
             Chain_Jump_To_Image( state.get(), image_number - 1 );
-        ImGui::Text( "/" );
+        ImGui::TextUnformatted( "/" );
         ImGui::SetNextItemWidth( 40 );
         if( ImGui::InputScalar(
                 "##chainlength", ImGuiDataType_U32, &chain_length, NULL, NULL, "%u",
@@ -1207,7 +1160,8 @@ int MainWindow::run()
     return 0;
 }
 
-MainWindow::MainWindow( std::shared_ptr<State> state ) : rendering_layer( state )
+MainWindow::MainWindow( std::shared_ptr<State> state )
+        : settings( std::make_shared<ui::Settings>() ), rendering_layer( settings, state )
 {
     global_window_handle = this;
 
@@ -1335,3 +1289,5 @@ void MainWindow::notify( std::string notification, float timeout )
     this->notification_timer   = 0;
     this->notification_timeout = timeout > 1 ? timeout : 1;
 }
+
+} // namespace ui

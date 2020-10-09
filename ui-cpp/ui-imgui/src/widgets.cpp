@@ -13,6 +13,8 @@
 
 #include <fmt/format.h>
 
+#include <nfd.h>
+
 #include <map>
 
 namespace widgets
@@ -43,6 +45,8 @@ void show_plots( bool & show )
 
     if( !show )
         return;
+
+    ImGui::SetNextWindowSizeConstraints( { 500, 300 }, { 800, 999999 } );
 
     ImGui::Begin( "Plots", &show );
     {
@@ -99,6 +103,8 @@ void show_parameters( bool & show, GUI_Mode & selected_mode )
     if( !show )
         return;
 
+    ImGui::SetNextWindowSizeConstraints( { 300, 300 }, { 800, 999999 } );
+
     ImGui::Begin( "Parameters", &show );
 
     if( selected_mode == GUI_Mode::Minimizer )
@@ -138,18 +144,37 @@ void show_parameters( bool & show, GUI_Mode & selected_mode )
     ImGui::End();
 }
 
-void show_visualisation_settings( bool & show, RenderingLayer & rendering_layer )
+void show_visualisation_settings( bool & show, ui::RenderingLayer & rendering_layer )
 {
     if( !show )
         return;
 
+    ImGui::SetNextWindowSizeConstraints( { 300, 300 }, { 800, 999999 } );
+
     ImGui::Begin( "Visualisation settings", &show );
 
-    ImGui::Text( "Background color" );
-    if( ImGui::ColorEdit3( "##bgcolour", (float *)&( rendering_layer.background_colour ) ) )
+    ImGui::TextUnformatted( "Background color" );
+
+    glm::vec4 * colour = &rendering_layer.background_colour_light;
+    if( rendering_layer.settings->dark_mode )
+        colour = &rendering_layer.background_colour_dark;
+    if( ImGui::ColorEdit3( "##bgcolour", (float *)( colour ) ) )
     {
-        rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-            rendering_layer.background_colour );
+        rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>( *colour );
+    }
+    if( ImGui::Button( "default" ) )
+    {
+        if( rendering_layer.settings->dark_mode )
+            *colour = glm::vec4{ 0.4f, 0.4f, 0.4f, 1.f };
+        else
+            *colour = glm::vec4{ 0.9f, 0.9f, 0.9f, 1.f };
+
+        if( rendering_layer.settings->dark_mode )
+            rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
+                rendering_layer.background_colour_dark );
+        else
+            rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
+                rendering_layer.background_colour_light );
     }
 
     ImGui::Separator();
@@ -167,6 +192,7 @@ void show_visualisation_settings( bool & show, RenderingLayer & rendering_layer 
     ImGui::TextUnformatted( fmt::format( "{:>6.3f}", dir.y ).c_str() );
     ImGui::TextUnformatted( fmt::format( "{:>6.3f}", dir.z ).c_str() );
     ImGui::Columns( 1 );
+
     ImGui::End();
 }
 
@@ -200,7 +226,7 @@ void show_overlay_system( bool & show )
         ImVec2 window_pos_pivot = ImVec2( ( corner & 1 ) ? 1.0f : 0.0f, ( corner & 2 ) ? 1.0f : 0.0f );
         ImGui::SetNextWindowPos( window_pos, ImGuiCond_Always, window_pos_pivot );
     }
-    ImGui::SetNextWindowBgAlpha( 0.35f ); // Transparent background
+    ImGui::SetNextWindowBgAlpha( 0.45f ); // Transparent background
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize
                                     | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing
                                     | ImGuiWindowFlags_NoNav;
@@ -422,10 +448,65 @@ void show_overlay_calculation(
     ImGui::End();
 }
 
+void show_settings( bool & show, ui::RenderingLayer & rendering_layer )
+{
+    if( !show )
+        return;
+
+    ImGui::Begin( "Settings", &show );
+
+    if( rendering_layer.settings->dark_mode )
+    {
+        if( ImGui::Button( ICON_FA_SUN " light mode" ) )
+        {
+            ImGui::StyleColorsLight();
+            rendering_layer.settings->dark_mode = false;
+            rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
+                rendering_layer.background_colour_light );
+        }
+    }
+    else
+    {
+        if( ImGui::Button( ICON_FA_MOON " dark mode" ) )
+        {
+            styles::apply_charcoal();
+            rendering_layer.settings->dark_mode = true;
+            rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
+                rendering_layer.background_colour_dark );
+        }
+    }
+
+    if( ImGui::Button( "Choose the output folder" ) )
+    {
+        nfdchar_t * outPath = NULL;
+        nfdresult_t result  = NFD_PickFolder( NULL, &outPath );
+        if( result == NFD_OKAY )
+        {
+            fmt::print( "Folder path: \"{}\"\n", outPath );
+            free( outPath );
+        }
+        else if( result == NFD_CANCEL )
+        {
+            fmt::print( "User pressed cancel.\n" );
+        }
+        else
+        {
+            fmt::print( "Error: {}\n", NFD_GetError() );
+        }
+    }
+
+    if( ImGui::Button( "Close" ) )
+        show = false;
+
+    ImGui::End();
+}
+
 void show_keybindings( bool & show )
 {
     if( !show )
         return;
+
+    ImGui::SetNextWindowSizeConstraints( { 500, 300 }, { 800, 800 } );
 
     ImGui::Begin( "Keybindings", &show );
 
@@ -486,6 +567,7 @@ void show_keybindings( bool & show )
 
     if( ImGui::Button( "Close" ) )
         show = false;
+
     ImGui::End();
 }
 
@@ -514,7 +596,7 @@ void show_about( bool & show_about )
         }
     }
 
-    ImGui::Begin( fmt::format( "About Spirit {}", Spirit_Version() ).c_str() );
+    ImGui::Begin( fmt::format( "About Spirit {}", Spirit_Version() ).c_str(), &show_about );
 
     int scaled_width  = ImGui::GetContentRegionAvailWidth() * 0.8;
     int scaled_height = logo_height * scaled_width / logo_width;
