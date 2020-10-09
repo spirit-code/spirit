@@ -15,10 +15,6 @@
 
 #include <fmt/format.h>
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 #include <iostream>
 #include <memory>
 #include <string>
@@ -50,13 +46,6 @@ try
     Hamiltonian_Set_Exchange( state.get(), 1, jij );
     float dij[1] = { 0.3f };
     Hamiltonian_Set_DMI( state.get(), 1, dij );
-
-#ifdef _OPENMP
-    int nt = omp_get_max_threads() - 1;
-    Log_Send(
-        state.get(), Log_Level_Info, Log_Sender_UI,
-        ( "Using OpenMP with n=" + std::to_string( nt ) + " threads" ).c_str() );
-#endif
 
     MainWindow window( state );
 

@@ -1,3 +1,5 @@
+#include <glad/glad.h>
+
 #include <rendering_layer.hpp>
 
 #include <Spirit/Chain.h>
@@ -6,8 +8,6 @@
 #include <Spirit/Log.h>
 #include <Spirit/Simulation.h>
 #include <Spirit/System.h>
-
-#include <glad/glad.h>
 
 #include <fmt/format.h>
 

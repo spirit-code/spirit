@@ -384,12 +384,12 @@ if( SPIRIT_UI_USE_IMGUI )
         target_link_libraries( ${PROJECT_NAME} PRIVATE Threads::Threads )
 
     elseif( IMGUI_TARGET_WEB )
-        ### Set specific flags for emcc and to place the result under ui-web/js/
+        ### Set specific flags for emcc and to place the result under webapp/js/
         set_target_properties( ${PROJECT_NAME} PROPERTIES
             # -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4
             COMPILE_FLAGS "-O3 -g -s WASM=1 -s USE_WEBGL2=0 -s USE_GLFW=3 -s DEMANGLE_SUPPORT=1 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ASSERTIONS=1 -s DISABLE_EXCEPTION_CATCHING=0 -s FORCE_FILESYSTEM=1"
             LINK_FLAGS    "-O3 -g -s WASM=1 -s USE_WEBGL2=0 -s USE_GLFW=3 -s DEMANGLE_SUPPORT=1 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ASSERTIONS=1 -s DISABLE_EXCEPTION_CATCHING=0 -s FORCE_FILESYSTEM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap, FS']"
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/ui-web/js
+        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/webapp/js
             # SUFFIX ".html"
         )
         target_link_libraries( ${PROJECT_NAME} PRIVATE pthread )

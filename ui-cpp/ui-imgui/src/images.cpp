@@ -1,3 +1,4 @@
+#include <glad/glad.h>
 
 #include <images.hpp>
 
@@ -7,8 +8,6 @@
 #include <stb/stb_image.h>
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include <stb/stb_image_resize.h>
-
-#include <glad/glad.h>
 
 #include <fmt/format.h>
 
