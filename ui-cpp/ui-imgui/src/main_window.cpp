@@ -732,6 +732,8 @@ void MainWindow::draw_imgui( int display_w, int display_h )
 
     widgets::show_keybindings( show_keybindings );
 
+    widgets::show_settings( show_settings, rendering_layer );
+
     if( show_demo_window )
     {
         ImGui::SetNextWindowPos( ImVec2( 100, 20 ), ImGuiCond_FirstUseEver );

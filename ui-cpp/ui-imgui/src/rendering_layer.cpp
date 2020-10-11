@@ -32,6 +32,37 @@ void RenderingLayer::draw( int display_w, int display_h )
         update_vf_directions();
         needs_redraw_ = true;
     }
+
+    bool update_renderers = false;
+    for( auto & renderer_widget : renderer_widgets_shown )
+    {
+        if( !renderer_widget->show_ )
+            update_renderers = true;
+    }
+    for( auto & renderer_widget : renderer_widgets_not_shown )
+    {
+        if( renderer_widget->show_ )
+            update_renderers = true;
+    }
+    if( update_renderers )
+    {
+        system_renderers.resize( 0 );
+
+        for( auto & renderer_widget : renderer_widgets )
+        {
+            if( renderer_widget->show_ )
+            {
+                renderer_widgets_shown.push_back( renderer_widget );
+                system_renderers.push_back( renderer_widget->renderer );
+            }
+            else
+                renderer_widgets_not_shown.push_back( renderer_widget );
+        }
+
+        view.renderers(
+            { { std::make_shared<VFRendering::CombinedRenderer>( view, system_renderers ), { { 0, 0, 1, 1 } } } } );
+    }
+
     if( needs_redraw_ )
     {
         view.setFramebufferSize( float( display_w ), float( display_h ) );
@@ -71,10 +102,6 @@ void RenderingLayer::needs_data()
 
 void RenderingLayer::initialize_gl()
 {
-    view.setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( 0.125f );
-    view.setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( 0.3f );
-    view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( 0.0625f );
-    view.setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>( 0.35f );
     if( settings->dark_mode )
         view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
             { background_colour_dark.x, background_colour_dark.y, background_colour_dark.z } );
@@ -88,9 +115,20 @@ void RenderingLayer::initialize_gl()
     view.setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>(
         VFRendering::Utilities::getColormapImplementation( VFRendering::Utilities::Colormap::HSV ) );
 
-    arrow_renderer_ptr = std::make_shared<VFRendering::ArrowRenderer>( view, vectorfield );
-    system_renderers.push_back( arrow_renderer_ptr );
+    renderer_widgets.push_back( std::make_shared<BoundingBoxRendererWidget>( state, view, vectorfield ) );
+    renderer_widgets.push_back( std::make_shared<ArrowRendererWidget>( state, view, vectorfield ) );
+    renderer_widgets.push_back( std::make_shared<IsosurfaceRendererWidget>( state, view, vectorfield ) );
 
+    for( auto & renderer_widget : renderer_widgets )
+    {
+        if( renderer_widget->show_ )
+        {
+            renderer_widgets_shown.push_back( renderer_widget );
+            system_renderers.push_back( renderer_widget->renderer );
+        }
+        else
+            renderer_widgets_not_shown.push_back( renderer_widget );
+    }
     view.renderers(
         { { std::make_shared<VFRendering::CombinedRenderer>( view, system_renderers ), { { 0, 0, 1, 1 } } } } );
 

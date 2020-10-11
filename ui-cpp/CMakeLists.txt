@@ -335,6 +335,7 @@ if( SPIRIT_UI_USE_IMGUI )
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/images.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/widgets.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/rendering_layer.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/renderer_widget.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/imgui_impl/opengl3.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/imgui_impl/glfw.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/imgui-gizmo3d/imGuIZMOquat.cpp )

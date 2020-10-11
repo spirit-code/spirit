@@ -9,14 +9,6 @@
 
 #include <GLFW/glfw3.h>
 
-#include <VFRendering/ArrowRenderer.hxx>
-#include <VFRendering/BoundingBoxRenderer.hxx>
-#include <VFRendering/CombinedRenderer.hxx>
-#include <VFRendering/CoordinateSystemRenderer.hxx>
-#include <VFRendering/IsosurfaceRenderer.hxx>
-#include <VFRendering/SphereRenderer.hxx>
-#include <VFRendering/View.hxx>
-
 #include <memory>
 #include <thread>
 #include <vector>

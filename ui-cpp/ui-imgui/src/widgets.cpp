@@ -153,15 +153,12 @@ void show_visualisation_settings( bool & show, ui::RenderingLayer & rendering_la
 
     ImGui::Begin( "Visualisation settings", &show );
 
-    ImGui::TextUnformatted( "Background color" );
-
     glm::vec4 * colour = &rendering_layer.background_colour_light;
     if( rendering_layer.settings->dark_mode )
         colour = &rendering_layer.background_colour_dark;
-    if( ImGui::ColorEdit3( "##bgcolour", (float *)( colour ) ) )
-    {
-        rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>( *colour );
-    }
+
+    ImGui::TextUnformatted( "Background color" );
+    ImGui::SameLine();
     if( ImGui::Button( "default" ) )
     {
         if( rendering_layer.settings->dark_mode )
@@ -176,8 +173,80 @@ void show_visualisation_settings( bool & show, ui::RenderingLayer & rendering_la
             rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
                 rendering_layer.background_colour_light );
     }
+    if( ImGui::ColorEdit3( "##bgcolour", (float *)( colour ) ) )
+    {
+        rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>( *colour );
+    }
 
+    ImGui::Dummy( { 0, 10 } );
     ImGui::Separator();
+    ImGui::Dummy( { 0, 10 } );
+
+    ImGui::TextUnformatted( "Renderers" );
+    if( ImGui::Button( "Add Renderer" ) )
+    {
+        if( ImGui::IsPopupOpen( "##popup_add_renderer" ) )
+            ImGui::CloseCurrentPopup();
+        else
+        {
+            ImGui::OpenPopup( "##popup_add_renderer" );
+        }
+    }
+
+    if( ImGui::BeginPopup( "##popup_add_renderer" ) )
+    {
+        std::shared_ptr<ui::RendererWidget> renderer;
+        if( ImGui::Selectable( "Dots" ) )
+        {
+            renderer = std::make_shared<ui::DotRendererWidget>(
+                rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
+        }
+        if( ImGui::Selectable( "Arrows" ) )
+        {
+            renderer = std::make_shared<ui::ArrowRendererWidget>(
+                rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
+        }
+        if( ImGui::Selectable( "Boxes" ) )
+        {
+            renderer = std::make_shared<ui::ParallelepipedRendererWidget>(
+                rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
+        }
+        if( ImGui::Selectable( "Spheres" ) )
+        {
+            renderer = std::make_shared<ui::SphereRendererWidget>(
+                rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
+        }
+        if( ImGui::Selectable( "Surface" ) )
+        {
+            renderer = std::make_shared<ui::SurfaceRendererWidget>(
+                rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
+        }
+        if( ImGui::Selectable( "Isosurface" ) )
+        {
+            renderer = std::make_shared<ui::IsosurfaceRendererWidget>(
+                rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
+        }
+        if( renderer )
+        {
+            rendering_layer.renderer_widgets.push_back( renderer );
+            rendering_layer.renderer_widgets_not_shown.push_back( renderer );
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndPopup();
+    }
+
+    for( auto & renderer_widget : rendering_layer.renderer_widgets )
+    {
+        ImGui::Dummy( { 0, 10 } );
+        ImGui::Separator();
+        ImGui::Dummy( { 0, 10 } );
+
+        renderer_widget->show();
+    }
+
+    ImGui::Dummy( { 0, 10 } );
+    ImGui::Separator();
+    ImGui::Dummy( { 0, 10 } );
 
     static vgm::Vec3 dir( 0, 0, -1 );
     ImGui::Text( "Light direction" );

@@ -3,6 +3,7 @@
 #define SPIRIT_IMGUI_VFR_LAYER_HPP
 
 #include <enums.hpp>
+#include <renderer_widget.hpp>
 #include <settings.hpp>
 
 #include <imgui/imgui.h>
@@ -43,8 +44,13 @@ struct RenderingLayer
     void needs_data();
 
     // Visualisation Settings
+    std::shared_ptr<State> state;
     VFRendering::View view;
     std::shared_ptr<ui::Settings> settings;
+    VFRendering::VectorField vectorfield = VFRendering::VectorField( {}, {} );
+
+    std::vector<std::shared_ptr<RendererWidget>> renderer_widgets;
+    std::vector<std::shared_ptr<RendererWidget>> renderer_widgets_not_shown;
 
     glm::vec4 background_colour_dark  = glm::vec4{ 0.4f, 0.4f, 0.4f, 0.f };
     glm::vec4 background_colour_light = glm::vec4{ 0.7f, 0.7f, 0.7f, 0.f };
@@ -52,14 +58,13 @@ struct RenderingLayer
     int n_cell_step = 1;
 
 private:
-    std::shared_ptr<State> state;
+    std::vector<std::shared_ptr<RendererWidget>> renderer_widgets_shown;
 
     bool gl_initialized_ = false;
     bool needs_redraw_   = true;
     bool needs_data_     = true;
 
     VFRendering::Geometry geometry;
-    VFRendering::VectorField vectorfield        = VFRendering::VectorField( {}, {} );
     VFRendering::VectorField vectorfield_surf2D = VFRendering::VectorField( {}, {} );
 
     std::shared_ptr<VFRendering::ArrowRenderer> arrow_renderer_ptr;
