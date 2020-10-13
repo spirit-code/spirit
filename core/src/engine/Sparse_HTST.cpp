@@ -54,12 +54,76 @@ namespace Engine
             lowest_evec = evectors.col(0);
         }
 
+        void Sparse_Get_Lowest_Eigenvector_VP(const SpMatrixX & matrix, int nos, const VectorX & init, scalar & lowest_evalue, VectorX & lowest_evec)
+        {
+            auto & x = lowest_evec;
+            x = init;
+            x.normalize();
+
+            scalar tol = 1e-6;
+            scalar cur = 2 * tol;
+            scalar m = 0.01;
+            scalar step_size = 1e-4;
+            int n_iter = 0;
+
+            VectorX gradient = VectorX::Zero(2*nos);
+            VectorX gradient_prev = VectorX::Zero(2*nos);
+            VectorX velocity = VectorX::Zero(2*nos);
+
+            VectorX mx; // temporary for matrix * x
+            scalar proj; // temporary for gradient * x
+            scalar fnorm2=2*tol*tol, ratio;
+
+            while (std::sqrt(fnorm2) > tol)
+            {
+                // Compute gradient of Rayleigh quotient
+                mx = matrix * x;
+                gradient = 2 * mx;
+                proj = gradient.dot(x);
+                gradient -= proj * x;
+                // std::cout << "proj " << proj << "\n";
+                // std::cout << "x " << x.head(5).transpose() << "\n";
+                // std::cout << "gradient " << gradient.head(5).transpose() << "\n";
+
+
+                velocity = 0.5 * (gradient + gradient_prev) / m;
+                fnorm2 = gradient.squaredNorm();
+
+                proj = velocity.dot(gradient);
+                ratio = proj/fnorm2;
+
+                if (proj<=0)
+                    velocity.setZero();
+                else 
+                    velocity = gradient*ratio;
+
+                // Update x and renormalize
+                x -= step_size * velocity + 0.5/m * step_size * gradient;
+                x.normalize();
+
+                // Update prev gradient
+                gradient_prev = gradient;
+                // std::cout << "fnorm2 " << fnorm2 << "\n";
+                // std::cout << "proj " << proj << "\n";
+
+                // Increment n_iter
+                lowest_evalue = x.dot(matrix * x);
+                // std::cout << "lowest_evalue " << lowest_evalue << "\n";
+                n_iter++;
+            }
+
+            // Compute the eigenvalue
+            lowest_evalue = x.dot(matrix * x);
+            std::cout << "n_iter " << n_iter << "\n";
+            std::cout << "evalue " << lowest_evalue << "\n";
+        }
+
         // Note the two images should correspond to one minimum and one saddle point
         // Non-extremal images may yield incorrect Hessians and thus incorrect results
         void Calculate(Data::HTST_Info & htst_info)
         {
             Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, "Sparse Prefactor calculation");
-
+            bool lowest_mode_spectra=false;
             htst_info.sparse = true;
             htst_info.n_eigenmodes_keep = 0;
 
@@ -136,7 +200,18 @@ namespace Engine
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluate lowest eigenmode of the Hessian...");
                 VectorX lowest_evector(2*nos);
                 scalar lowest_evalue;
-                Sparse_Get_Lowest_Eigenvector(sparse_hessian_sp_geodesic_2N, nos, lowest_evalue, lowest_evector);
+
+                if(lowest_mode_spectra)
+                {
+                    Sparse_Get_Lowest_Eigenvector(sparse_hessian_sp_geodesic_2N, nos, lowest_evalue, lowest_evector);
+                } else {
+                    VectorX init = VectorX::Random(2*nos);
+                    init[0] = 1.0;
+                    Sparse_Get_Lowest_Eigenvector_VP(sparse_hessian_sp_geodesic_2N, nos, init, lowest_evalue, lowest_evector);
+                };
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format("        Lowest eigenvalue: {}", lowest_evalue));
+                if(2*nos>=4)
+                    Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format("        Lowest eigenvector: {}, {}, {}, ... {}", lowest_evector[0], lowest_evector[1], lowest_evector[2], lowest_evector[2*nos-1]));
 
                 // Check if lowest eigenvalue < 0 (else it's not a SP)
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Check if actually a saddle point...");
