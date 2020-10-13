@@ -190,11 +190,11 @@ namespace Engine
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluate the Hessian...");
                 SpMatrixX sparse_hessian_sp(3*nos, 3*nos);
                 htst_info.saddle_point->hamiltonian->Sparse_Hessian(image_sp, sparse_hessian_sp);
-                SpMatrixX sparse_hessian_sp_geodesic_3N(3*nos, 3*nos);
-                sparse_hessian_bordered_3N(image_sp, gradient_sp, sparse_hessian_sp, sparse_hessian_sp_geodesic_3N);
 
                 // Transform into geodesic Hessian
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Transform Hessian into geodesic Hessian...");
+                SpMatrixX sparse_hessian_sp_geodesic_3N(3*nos, 3*nos);
+                sparse_hessian_bordered_3N(image_sp, gradient_sp, sparse_hessian_sp, sparse_hessian_sp_geodesic_3N);
                 SpMatrixX sparse_hessian_sp_geodesic_2N = tangent_basis.transpose() * sparse_hessian_sp_geodesic_3N * tangent_basis;
 
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluate lowest eigenmode of the Hessian...");
@@ -259,16 +259,14 @@ namespace Engine
                 Manifoldmath::sparse_tangent_basis_spherical(image_minimum, tangent_basis);
 
                 // Evaluation of the Hessian...
-                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluation of the Hessian...");
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluate the Hessian...");
                 SpMatrixX sparse_hessian_minimum = SpMatrixX(3*nos,3*nos);
                 htst_info.minimum->hamiltonian->Sparse_Hessian(image_minimum, sparse_hessian_minimum);
 
-                // Eigendecomposition
-                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Eigendecomposition...");
+                // Transform into geodesic Hessian
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Transforming Hessian into geodesic Hessian...");
                 SpMatrixX sparse_hessian_geodesic_min_3N = SpMatrixX(3*nos, 3*nos);
                 sparse_hessian_bordered_3N(image_minimum, gradient_minimum, sparse_hessian_minimum, sparse_hessian_geodesic_min_3N);
-
-                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Transforming Hessian into geodesic Hessian...");
                 SpMatrixX sparse_hessian_geodesic_min_2N = tangent_basis.transpose() * sparse_hessian_geodesic_min_3N * tangent_basis;
 
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Sparse LU Decomposition of geodesic Hessian...");
