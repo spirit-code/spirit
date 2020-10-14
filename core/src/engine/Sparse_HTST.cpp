@@ -416,19 +416,27 @@ namespace Engine
             // making the result a 2Nx2N matrix. The bordered Hessian's Lagrange multipliers assume a local extremum.
 
             int nos = image.size();
-            hessian_out = hessian;
-
             VectorX lambda(nos);
             for (int i=0; i<nos; ++i)
                 lambda[i] = image[i].normalized().dot(gradient[i]);
 
-            for (int i=0; i<nos; ++i)
+            // Construct hessian_out
+            typedef Eigen::Triplet<scalar> T;
+            std::vector<T> tripletList;
+            tripletList.reserve( hessian.nonZeros() + 3*nos );
+
+            // Iterate over non zero entries of hesiian
+            for (int k=0; k<hessian.outerSize(); ++k)
             {
-                for (int j=0; j<3; ++j)
+                for (SpMatrixX::InnerIterator it(hessian,k); it; ++it)
                 {
-                    hessian_out.coeffRef(3*i+j,3*i+j) -= lambda[i];
+                    tripletList.push_back( T(it.row(), it.col(), it.value() ) );
                 }
+                int j = k % 3;
+                int i = (k - j) / 3;
+                tripletList.push_back( T(k,k, -lambda[i]) ); // Correction to the diagonal
             }
+            hessian_out.setFromTriplets(tripletList.begin(), tripletList.end());
         }
 
         // NOTE WE ASSUME A SELFADJOINT MATRIX
