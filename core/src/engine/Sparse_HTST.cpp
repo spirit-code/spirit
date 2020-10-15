@@ -322,92 +322,91 @@ namespace Engine
                 }, -1, -1);
         }
 
-         void Sparse_Calculate_Dynamical_Matrix(const vectorfield & spins, const scalarfield & mu_s, const SpMatrixX & hessian, SpMatrixX & velocity)
+        void Sparse_Calculate_Dynamical_Matrix(const vectorfield & spins, const scalarfield & mu_s, const SpMatrixX & hessian, SpMatrixX & velocity)
         {
             constexpr scalar epsilon = 1e-10;
             int nos = spins.size();
 
             typedef Eigen::Triplet<scalar> T;
             std::vector<T> tripletList;
-            tripletList.reserve(3 * nos);
+            tripletList.reserve(hessian.nonZeros());
 
-            // TODO not very efficient. Iterate directly over non-zero entries of Hessian, how to best figure them out?
-            scalar temp = 0;
-            for (int i=0; i < nos; ++i)
+            auto levi_civita = [](int i, int j, int k) 
             {
-                Vector3 beff{0, 0, 0};
-                for (int j=0; j < nos; ++j)
+                return -0.5 * (j-i) * (k-j) * (i-k);
+            };
+
+            // We first compute the effective field temporary
+            auto b_eff = vectorfield(nos, {0,0,0});
+            for (int k=0; k<hessian.outerSize(); ++k)
+            {
+                for (SpMatrixX::InnerIterator it(hessian,k); it; ++it)
                 {
-                    // TODO: Some of these if checks are superfluous 
-                    temp = ( spins[i][1]*hessian.coeff(3*i+2,3*j)   - spins[i][2]*hessian.coeff(3*i+1,3*j) ) / mu_s[i];
-                    if( std::abs(temp) > epsilon )
+                    int row = it.row(), col = it.col();
+                    scalar h = it.value();
+
+                    for(int nu=0; nu<3; nu++)
                     {
-                        tripletList.push_back(T(3*i, 3*j, temp));
+                        for(int gamma=0; gamma<3; gamma++)
+                        {
+                            if( (row-nu) % 3 != 0 || (col-gamma) % 3 != 0 || nu>row || gamma>col)
+                                continue;
+                            int i = (row-nu)/3.0;
+                            int j = (col-gamma)/3.0;
+                            b_eff[i][nu] += h * spins[j][gamma] / mu_s[i];
+                        }
                     }
-
-                    temp = ( spins[i][1]*hessian.coeff(3*i+2,3*j+1) - spins[i][2]*hessian.coeff(3*i+1,3*j+1) ) / mu_s[i];
-                    if(std::abs(temp) > epsilon)
-                    {
-                        tripletList.push_back(T(3*i, 3*j+1, temp));
-                    }
-
-                    temp = ( spins[i][1]*hessian.coeff(3*i+2,3*j+2) - spins[i][2]*hessian.coeff(3*i+1,3*j+2) ) / mu_s[i];
-                    if(std::abs(temp) > epsilon)
-                    {
-                        tripletList.push_back(T(3*i, 3*j+2, temp));
-                    }
-
-                    // ---
-
-                    temp = ( spins[i][2]*hessian.coeff(3*i,3*j) - spins[i][0]*hessian.coeff(3*i+2,3*j) ) / mu_s[i];
-                    if(std::abs(temp) > epsilon)
-                    {
-                        tripletList.push_back(T(3*i+1, 3*j, temp));
-                    }
-
-                    temp = ( spins[i][2]*hessian.coeff(3*i,3*j+1) - spins[i][0]*hessian.coeff(3*i+2,3*j+1) ) / mu_s[i];
-                    if (std::abs(temp) > epsilon)
-                    {
-                        tripletList.push_back(T(3*i+1, 3*j+1, temp));
-                    }
-
-                    temp = ( spins[i][2]*hessian.coeff(3*i,3*j+2) - spins[i][0]*hessian.coeff(3*i+2,3*j+2) ) / mu_s[i];
-                    if (std::abs(temp) > epsilon)
-                    {
-                        tripletList.push_back(T(3*i+1, 3*j+2, temp));
-                    }
-
-                    // ---
-
-                    temp = ( spins[i][0]*hessian.coeff(3*i+1,3*j) - spins[i][1]*hessian.coeff(3*i,3*j) ) / mu_s[i];
-                    if (std::abs(temp) > epsilon)
-                    {
-                        tripletList.push_back(T(3*i+2, 3*j, temp));
-                    }
-
-                    temp = ( spins[i][0]*hessian.coeff(3*i+1,3*j+1) - spins[i][1]*hessian.coeff(3*i,3*j+1) ) / mu_s[i];
-                    if (std::abs(temp) > epsilon)
-                    {
-                        tripletList.push_back(T(3*i+2, 3*j+1, temp));
-                    }
-
-                    temp = ( spins[i][0]*hessian.coeff(3*i+1,3*j+2) - spins[i][1]*hessian.coeff(3*i,3*j+2) ) / mu_s[i];
-                    if (std::abs(temp) > epsilon)
-                    {
-                        tripletList.push_back(T(3*i+2, 3*j+2, temp));
-                    }
-                    beff -= hessian.block(3*i, 3*j, 3, 3) * spins[j] / mu_s[i];
                 }
-
-                tripletList.push_back( T(3*i,   3*i+1, -beff[2]));
-                tripletList.push_back( T(3*i,   3*i+2,  beff[1]));
-                tripletList.push_back( T(3*i+1, 3*i,    beff[2]));
-                tripletList.push_back( T(3*i+1, 3*i+2, -beff[0]));
-                tripletList.push_back( T(3*i+2, 3*i,   -beff[1]));
-                tripletList.push_back( T(3*i+2, 3*i+1,  beff[0]));
-
-                velocity.setFromTriplets(tripletList.begin(), tripletList.end());
             }
+
+            // Add the contributions from the effective field
+            for(int i=0; i<nos; i++)
+            {
+                for(int alpha=0; alpha<3; alpha++)
+                {
+                    for(int beta=0; beta<3; beta++)
+                    {
+                        for(int nu=0; nu<3; nu++)
+                        {
+                            scalar res = levi_civita(alpha, beta, nu) * b_eff[i][nu];
+                            if(std::abs(res) > epsilon)
+                                tripletList.push_back( T(3*i+alpha, 3*i+beta, res) );
+                        }
+                    }
+                }
+            }
+
+            // Iterate over non zero entries of hessian
+            for (int k=0; k<hessian.outerSize(); ++k)
+            {
+                for (SpMatrixX::InnerIterator it(hessian,k); it; ++it)
+                {
+                    int row = it.row(), col = it.col();
+                    scalar h = it.value();
+
+                    for( int mu = 0; mu < 3; mu++ )
+                    {
+                        for( int nu = 0; nu < 3; nu++ )
+                        {
+                            for( int alpha = 0; alpha < 3; alpha++ )
+                            {
+                                for( int beta = 0; beta < 3; beta++ )
+                                {
+                                    if( (row-nu) % 3 != 0 || (col-beta) % 3 != 0 || nu>row || beta>col )
+                                        continue;
+
+                                    int i = (row-nu)/3.0;
+                                    int j = (col-beta)/3.0;
+                                    scalar res = levi_civita(alpha, mu, nu) * spins[i][mu] * h / mu_s[i];
+                                    tripletList.push_back( T(3*i+alpha, 3*j+beta, res) );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            velocity.setFromTriplets(tripletList.begin(), tripletList.end());
         }
 
         void sparse_hessian_bordered_3N(const vectorfield & image, const vectorfield & gradient, const SpMatrixX & hessian, SpMatrixX & hessian_out)
