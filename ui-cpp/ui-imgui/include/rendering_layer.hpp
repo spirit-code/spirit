@@ -4,7 +4,7 @@
 
 #include <enums.hpp>
 #include <renderer_widget.hpp>
-#include <settings.hpp>
+#include <ui_state.hpp>
 
 #include <imgui/imgui.h>
 
@@ -31,7 +31,7 @@ namespace ui
 
 struct RenderingLayer
 {
-    RenderingLayer( std::shared_ptr<ui::Settings> settings, std::shared_ptr<State> state );
+    RenderingLayer( UiState & ui_state, std::shared_ptr<State> state );
 
     void initialize_gl();
     void draw( int display_w, int display_h );
@@ -46,14 +46,11 @@ struct RenderingLayer
     // Visualisation Settings
     std::shared_ptr<State> state;
     VFRendering::View view;
-    std::shared_ptr<ui::Settings> settings;
+    UiState & ui_state;
     VFRendering::VectorField vectorfield = VFRendering::VectorField( {}, {} );
 
     std::vector<std::shared_ptr<RendererWidget>> renderer_widgets;
     std::vector<std::shared_ptr<RendererWidget>> renderer_widgets_not_shown;
-
-    glm::vec4 background_colour_dark  = glm::vec4{ 0.4f, 0.4f, 0.4f, 0.f };
-    glm::vec4 background_colour_light = glm::vec4{ 0.7f, 0.7f, 0.7f, 0.f };
 
     int n_cell_step = 1;
 

@@ -336,6 +336,7 @@ if( SPIRIT_UI_USE_IMGUI )
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/widgets.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/rendering_layer.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/renderer_widget.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/ui_state.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/imgui_impl/opengl3.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/imgui_impl/glfw.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/imgui-gizmo3d/imGuIZMOquat.cpp )
@@ -357,7 +358,9 @@ if( SPIRIT_UI_USE_IMGUI )
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/glad/include
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/nativefiledialog/src/include
-        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdpartyimgui-gizmo3d
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/imgui-gizmo3d
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/filesystem/include
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/json/single_include
         ${CMAKE_SOURCE_DIR}/core/thirdparty )
 
     target_compile_definitions( ${PROJECT_NAME} PRIVATE -DSPIRIT_UI_USE_IMGUI )

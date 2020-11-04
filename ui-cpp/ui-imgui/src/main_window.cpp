@@ -402,37 +402,37 @@ void MainWindow::handle_keyboard()
         // TODO: deactivate method selection if a calculation is running
         if( ImGui::IsKeyPressed( GLFW_KEY_1, false ) )
         {
-            settings->selected_mode = GUI_Mode::Minimizer;
+            ui_state.selected_mode = GUI_Mode::Minimizer;
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_2, false ) )
         {
-            settings->selected_mode = GUI_Mode::MC;
+            ui_state.selected_mode = GUI_Mode::MC;
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_3, false ) )
         {
-            settings->selected_mode = GUI_Mode::LLG;
+            ui_state.selected_mode = GUI_Mode::LLG;
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_4, false ) )
         {
-            settings->selected_mode = GUI_Mode::GNEB;
+            ui_state.selected_mode = GUI_Mode::GNEB;
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_5, false ) )
         {
-            settings->selected_mode = GUI_Mode::MMF;
+            ui_state.selected_mode = GUI_Mode::MMF;
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_6, false ) )
         {
-            settings->selected_mode = GUI_Mode::EMA;
+            ui_state.selected_mode = GUI_Mode::EMA;
         }
 
         //-----------------------------------------------------
 
         if( ImGui::IsKeyPressed( GLFW_KEY_HOME, false ) )
         {
-            ++n_screenshots;
-            std::string name = fmt::format( "{}_Screenshot_{}", State_DateTime( state.get() ), n_screenshots );
+            ++ui_state.n_screenshots;
+            std::string name = fmt::format( "{}_Screenshot_{}", State_DateTime( state.get() ), ui_state.n_screenshots );
             rendering_layer.screenshot_png( name );
-            notify( fmt::format( ICON_FA_DESKTOP "  Captured \"{}\"", name ), 4 );
+            ui_state.notify( fmt::format( ICON_FA_DESKTOP "  Captured \"{}\"", name ), 4 );
         }
     }
 }
@@ -453,28 +453,28 @@ try
             threads_image[System_Get_Index( state.get() )].join();
         else if( thread_chain.joinable() )
             thread_chain.join();
-        this->notify( "stopped calculation" );
+        this->ui_state.notify( "stopped calculation" );
     }
     else
     {
         // Not running, so we start it
-        if( settings->selected_mode == GUI_Mode::Minimizer )
+        if( ui_state.selected_mode == GUI_Mode::Minimizer )
         {
             int idx = System_Get_Index( state.get() );
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )] = std::thread(
-                &Simulation_LLG_Start, this->state.get(), settings->selected_solver_min, -1, -1, false, -1, -1 );
+                &Simulation_LLG_Start, this->state.get(), ui_state.selected_solver_min, -1, -1, false, -1, -1 );
         }
-        if( settings->selected_mode == GUI_Mode::LLG )
+        if( ui_state.selected_mode == GUI_Mode::LLG )
         {
             int idx = System_Get_Index( state.get() );
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )] = std::thread(
-                &Simulation_LLG_Start, this->state.get(), settings->selected_solver_llg, -1, -1, false, -1, -1 );
+                &Simulation_LLG_Start, this->state.get(), ui_state.selected_solver_llg, -1, -1, false, -1, -1 );
         }
-        else if( settings->selected_mode == GUI_Mode::MC )
+        else if( ui_state.selected_mode == GUI_Mode::MC )
         {
             int idx = System_Get_Index( state.get() );
             if( threads_image[idx].joinable() )
@@ -482,22 +482,22 @@ try
             this->threads_image[System_Get_Index( state.get() )]
                 = std::thread( &Simulation_MC_Start, this->state.get(), -1, -1, false, -1, -1 );
         }
-        else if( settings->selected_mode == GUI_Mode::GNEB )
+        else if( ui_state.selected_mode == GUI_Mode::GNEB )
         {
             if( thread_chain.joinable() )
                 thread_chain.join();
             this->thread_chain = std::thread(
-                &Simulation_GNEB_Start, this->state.get(), settings->selected_solver_min, -1, -1, false, -1 );
+                &Simulation_GNEB_Start, this->state.get(), ui_state.selected_solver_min, -1, -1, false, -1 );
         }
-        else if( settings->selected_mode == GUI_Mode::MMF )
+        else if( ui_state.selected_mode == GUI_Mode::MMF )
         {
             int idx = System_Get_Index( state.get() );
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )] = std::thread(
-                &Simulation_MMF_Start, this->state.get(), settings->selected_solver_min, -1, -1, false, -1, -1 );
+                &Simulation_MMF_Start, this->state.get(), ui_state.selected_solver_min, -1, -1, false, -1, -1 );
         }
-        else if( settings->selected_mode == GUI_Mode::EMA )
+        else if( ui_state.selected_mode == GUI_Mode::EMA )
         {
             int idx = System_Get_Index( state.get() );
             if( threads_image[idx].joinable() )
@@ -505,7 +505,7 @@ try
             this->threads_image[System_Get_Index( state.get() )]
                 = std::thread( &Simulation_EMA_Start, this->state.get(), -1, -1, false, -1, -1 );
         }
-        this->notify( "started calculation" );
+        this->ui_state.notify( "started calculation" );
     }
     rendering_layer.needs_data();
 }
@@ -530,7 +530,7 @@ try
     if( thread_chain.joinable() )
         thread_chain.join();
 
-    this->notify( "stopped all calculations" );
+    this->ui_state.notify( "stopped all calculations" );
 
     rendering_layer.needs_data();
 }
@@ -567,7 +567,7 @@ try
             thread_chain.join();
     }
 
-    this->notify( "stopped current calculation" );
+    this->ui_state.notify( "stopped current calculation" );
     rendering_layer.needs_data();
 }
 catch( const std::exception & e )
@@ -592,7 +592,7 @@ void MainWindow::cut_image()
                 this->threads_image[idx].join();
             this->threads_image.erase( threads_image.begin() + idx );
 
-            this->notify( fmt::format( "cut image {}", idx + 1 ) );
+            this->ui_state.notify( fmt::format( "cut image {}", idx + 1 ) );
         }
         rendering_layer.needs_data();
     }
@@ -605,7 +605,7 @@ void MainWindow::paste_image()
     Chain_Replace_Image( state.get() );
     rendering_layer.needs_data();
 
-    this->notify( "pasted image from clipboard" );
+    this->ui_state.notify( "pasted image from clipboard" );
 }
 
 void MainWindow::insert_image_left()
@@ -621,7 +621,7 @@ void MainWindow::insert_image_left()
     // Switch to the inserted image
     Chain_prev_Image( this->state.get() );
 
-    this->notify( "inserted image to the left" );
+    this->ui_state.notify( "inserted image to the left" );
 }
 
 void MainWindow::insert_image_right()
@@ -637,7 +637,7 @@ void MainWindow::insert_image_right()
     // Switch to the inserted image
     Chain_next_Image( this->state.get() );
 
-    this->notify( "inserted image to the right" );
+    this->ui_state.notify( "inserted image to the right" );
 }
 
 void MainWindow::delete_image()
@@ -654,7 +654,7 @@ void MainWindow::delete_image()
                 this->threads_image[idx].join();
             this->threads_image.erase( threads_image.begin() + idx );
 
-            this->notify( fmt::format( "deleted image {}", idx + 1 ) );
+            this->ui_state.notify( fmt::format( "deleted image {}", idx + 1 ) );
         }
 
         rendering_layer.needs_data();
@@ -697,7 +697,7 @@ void MainWindow::draw()
 #endif
 
     if( Simulation_Running_On_Image( this->state.get() ) || Simulation_Running_On_Chain( this->state.get() )
-        || settings->dragging_mode )
+        || ui_state.dragging_mode )
     {
         rendering_layer.needs_data();
     }
@@ -714,15 +714,15 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     ImGui::PushFont( font_karla_14 );
 
     this->show_menu_bar();
-    this->show_notification();
+    this->show_notifications();
 
     ImGui::PushFont( font_cousine_14 );
     widgets::show_overlay_system( show_overlays );
     widgets::show_overlay_calculation(
-        show_overlays, settings->selected_mode, settings->selected_solver_min, settings->selected_solver_llg );
+        show_overlays, ui_state.selected_mode, ui_state.selected_solver_min, ui_state.selected_solver_llg );
     ImGui::PopFont();
 
-    widgets::show_parameters( show_parameters_settings, settings->selected_mode );
+    widgets::show_parameters( show_parameters_settings, ui_state.selected_mode );
 
     widgets::show_visualisation_settings( show_visualisation_settings, rendering_layer );
 
@@ -892,10 +892,11 @@ void MainWindow::show_menu_bar()
             ImGui::Separator();
             if( ImGui::MenuItem( "Take Screenshot" ) )
             {
-                ++n_screenshots;
-                std::string name = fmt::format( "{}_Screenshot_{}", State_DateTime( state.get() ), n_screenshots );
+                ++ui_state.n_screenshots;
+                std::string name
+                    = fmt::format( "{}_Screenshot_{}", State_DateTime( state.get() ), ui_state.n_screenshots );
                 rendering_layer.screenshot_png( name );
-                notify( fmt::format( ICON_FA_DESKTOP "  Captured \"{}\"", name ), 4 );
+                ui_state.notify( fmt::format( ICON_FA_DESKTOP "  Captured \"{}\"", name ), 4 );
             }
             ImGui::EndMenu();
         }
@@ -1023,8 +1024,8 @@ void MainWindow::show_menu_bar()
             height            = text_size.y + 2 * style.FramePadding.y;
 
             ImGui::SameLine( right_edge - width, 0 );
-            if( ImGui::Selectable( label.c_str(), settings->selected_mode == mode, 0, ImVec2( width, height ) ) )
-                settings->selected_mode = mode;
+            if( ImGui::Selectable( label.c_str(), ui_state.selected_mode == mode, 0, ImVec2( width, height ) ) )
+                ui_state.selected_mode = mode;
             right_edge -= ( width + 2 * style.FramePadding.x );
 
             if( ImGui::IsItemHovered() )
@@ -1106,45 +1107,71 @@ void MainWindow::show_menu_bar()
     ImGui::PopFont();
 }
 
-void MainWindow::show_notification()
+void MainWindow::show_notifications()
 {
-    if( notification.empty() )
-        return;
+    const ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize
+                                          | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing
+                                          | ImGuiWindowFlags_NoNav;
 
-    bool show = true;
-    auto & io = ImGui::GetIO();
+    const float fade_time = 0.25f; // seconds
 
-    float fade  = 0.25f; // * this->notification_timeout
-    float alpha = 0.8f;
-    if( notification_timer < fade || notification_timer > this->notification_timeout - fade )
-        alpha *= std::abs( std::sinf( 1.5707963 * notification_timer / fade ) );
+    auto & io    = ImGui::GetIO();
+    auto & style = ImGui::GetStyle();
 
-    ImVec2 text_size  = ImGui::CalcTextSize( notification.c_str(), NULL, true );
-    ImVec2 window_pos = ImVec2( 0.5 * ( io.DisplaySize.x - text_size.x ), io.DisplaySize.y - 50 );
+    int i_notification = 0;
+    float pos_y        = io.DisplaySize.y - 20;
 
-    ImGui::SetNextWindowPos( window_pos, ImGuiCond_Always );
-    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize
-                                    | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing
-                                    | ImGuiWindowFlags_NoNav;
-
-    ImGui::PushStyleVar( ImGuiStyleVar_WindowBorderSize, 0 );
-    ImGui::PushStyleVar( ImGuiStyleVar_Alpha, alpha );
-
-    if( ImGui::Begin( "Notification", &show, window_flags ) )
+    for( auto notification_iterator = ui_state.notifications.begin();
+         notification_iterator != ui_state.notifications.end(); )
     {
-        ImGui::TextUnformatted( notification.c_str() );
-    }
-    ImGui::End();
+        auto & notification = *notification_iterator;
+        if( notification.timer > notification.timeout )
+        {
+            notification_iterator = ui_state.notifications.erase( notification_iterator );
+            continue;
+        }
 
-    ImGui::PopStyleVar();
-    ImGui::PopStyleVar();
+        float alpha = 0.8f;
 
-    if( notification_timer > this->notification_timeout )
-    {
-        notification_timer = 0;
-        notification       = "";
+        ImVec2 text_size = ImGui::CalcTextSize( notification.message.c_str() );
+        float distance   = text_size.y + 2 * style.FramePadding.y + 2 * style.WindowPadding.y;
+        pos_y -= distance;
+
+        if( notification.timer < fade_time )
+        {
+            auto rad = 1.5707963f * notification.timer / fade_time;
+            alpha *= std::sin( rad );
+            pos_y += distance * std::cos( rad );
+        }
+        else if( notification.timer > notification.timeout - fade_time )
+        {
+            auto rad = 1.5707963f * ( notification.timeout - notification.timer ) / fade_time;
+            alpha *= std::sin( rad );
+            pos_y += distance * std::cos( rad );
+        }
+
+        ImGui::SetNextWindowPos( { 0.5f * ( io.DisplaySize.x - text_size.x ), pos_y } );
+        // Also need to set size, because window may otherwise flicker for some reason...
+        ImGui::SetNextWindowSize(
+            { text_size.x + 2 * style.WindowPadding.x, text_size.y + 2 * style.WindowPadding.y } );
+
+        ImGui::PushStyleVar( ImGuiStyleVar_WindowBorderSize, 0 );
+        ImGui::PushStyleVar( ImGuiStyleVar_Alpha, alpha );
+
+        if( ImGui::Begin( fmt::format( "Notification{}", i_notification ).c_str(), nullptr, window_flags ) )
+        {
+            ImGui::TextUnformatted( notification.message.c_str() );
+            ImGui::End();
+        }
+
+        ImGui::PopStyleVar();
+        ImGui::PopStyleVar();
+
+        notification.timer += io.DeltaTime;
+
+        ++notification_iterator;
+        ++i_notification;
     }
-    notification_timer += io.DeltaTime;
 }
 
 int MainWindow::run()
@@ -1162,8 +1189,7 @@ int MainWindow::run()
     return 0;
 }
 
-MainWindow::MainWindow( std::shared_ptr<State> state )
-        : settings( std::make_shared<ui::Settings>() ), rendering_layer( settings, state )
+MainWindow::MainWindow( std::shared_ptr<State> state ) : rendering_layer( ui_state, state )
 {
     global_window_handle = this;
 
@@ -1246,7 +1272,10 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
     this->reset_camera();
 
     // Setup style
-    styles::apply_charcoal();
+    if( ui_state.dark_mode )
+        styles::apply_charcoal();
+    else
+        ImGui::StyleColorsLight();
 
     // Load Fonts
     font_cousine_14 = fonts::cousine( 14 );
@@ -1270,6 +1299,11 @@ MainWindow::~MainWindow()
     // Stop and wait for any running calculations
     this->stop_all();
 
+    glfwGetWindowPos( glfw_window, &ui_state.pos[0], &ui_state.pos[1] );
+    glfwGetWindowSize( glfw_window, &ui_state.size[0], &ui_state.size[1] );
+
+    ui_state.to_json();
+
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -1283,13 +1317,6 @@ void MainWindow::resize( int width, int height )
 {
     rendering_layer.needs_redraw();
     this->draw();
-}
-
-void MainWindow::notify( std::string notification, float timeout )
-{
-    this->notification         = notification;
-    this->notification_timer   = 0;
-    this->notification_timeout = timeout > 1 ? timeout : 1;
 }
 
 } // namespace ui

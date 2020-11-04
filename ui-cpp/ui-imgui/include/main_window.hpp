@@ -3,7 +3,7 @@
 #define SPIRIT_IMGUI_MAIN_WINDOW_HPP
 
 #include <rendering_layer.hpp>
-#include <settings.hpp>
+#include <ui_state.hpp>
 
 #include <imgui/imgui.h>
 
@@ -27,11 +27,10 @@ public:
     int run();
     void draw();
     void resize( int width, int height );
-    void notify( std::string notification, float time = 3 );
 
 private:
     void show_menu_bar();
-    void show_notification();
+    void show_notifications();
 
     void draw_imgui( int display_w, int display_h );
 
@@ -51,8 +50,7 @@ private:
 
     GLFWwindow * glfw_window;
 
-    std::shared_ptr<ui::Settings> settings = std::make_shared<ui::Settings>();
-
+    UiState ui_state;
     RenderingLayer rendering_layer;
 
     ImFont * font_cousine_14 = nullptr;
@@ -77,12 +75,6 @@ private:
 
     bool show_keybindings = false;
     bool show_about       = false;
-
-    // Other state
-    int n_screenshots          = 0;
-    std::string notification   = "";
-    float notification_timer   = 0;
-    float notification_timeout = 3;
 };
 
 } // namespace ui

@@ -14,11 +14,13 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
 
+// #include <algorithm>
+
 namespace ui
 {
 
-RenderingLayer::RenderingLayer( std::shared_ptr<ui::Settings> settings, std::shared_ptr<State> state )
-        : settings( settings ), state( state )
+RenderingLayer::RenderingLayer( ui::UiState & ui_state, std::shared_ptr<State> state )
+        : ui_state( ui_state ), state( state )
 {
 }
 
@@ -102,12 +104,16 @@ void RenderingLayer::needs_data()
 
 void RenderingLayer::initialize_gl()
 {
-    if( settings->dark_mode )
+    if( ui_state.dark_mode )
         view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-            { background_colour_dark.x, background_colour_dark.y, background_colour_dark.z } );
+            { ui_state.background_dark[0], ui_state.background_dark[1], ui_state.background_dark[2] } );
     else
         view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-            { background_colour_light.x, background_colour_light.y, background_colour_light.z } );
+            { ui_state.background_light[0], ui_state.background_light[1], ui_state.background_light[2] } );
+
+    view.setOption<VFRendering::View::Option::LIGHT_POSITION>( { -1000 * ui_state.light_direction[0],
+                                                                 -1000 * ui_state.light_direction[1],
+                                                                 -1000 * ui_state.light_direction[2] } );
 
     this->update_vf_geometry();
     this->update_vf_directions();

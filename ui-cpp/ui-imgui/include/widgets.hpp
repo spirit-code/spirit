@@ -3,9 +3,7 @@
 #define SPIRIT_IMGUI_WIDGETS_HPP
 
 #include <enums.hpp>
-
 #include <rendering_layer.hpp>
-#include <settings.hpp>
 
 #include <thread>
 #include <vector>

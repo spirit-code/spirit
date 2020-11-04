@@ -153,29 +153,27 @@ void show_visualisation_settings( bool & show, ui::RenderingLayer & rendering_la
 
     ImGui::Begin( "Visualisation settings", &show );
 
-    glm::vec4 * colour = &rendering_layer.background_colour_light;
-    if( rendering_layer.settings->dark_mode )
-        colour = &rendering_layer.background_colour_dark;
+    float * colour = rendering_layer.ui_state.background_light.data();
+    if( rendering_layer.ui_state.dark_mode )
+        colour = rendering_layer.ui_state.background_dark.data();
 
     ImGui::TextUnformatted( "Background color" );
     ImGui::SameLine();
     if( ImGui::Button( "default" ) )
     {
-        if( rendering_layer.settings->dark_mode )
-            *colour = glm::vec4{ 0.4f, 0.4f, 0.4f, 1.f };
+        if( rendering_layer.ui_state.dark_mode )
+            rendering_layer.ui_state.background_dark = { 0.4f, 0.4f, 0.4f };
         else
-            *colour = glm::vec4{ 0.9f, 0.9f, 0.9f, 1.f };
+            rendering_layer.ui_state.background_light = { 0.9f, 0.9f, 0.9f };
 
-        if( rendering_layer.settings->dark_mode )
-            rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-                rendering_layer.background_colour_dark );
-        else
-            rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-                rendering_layer.background_colour_light );
+        rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
+            { colour[0], colour[1], colour[2] } );
     }
-    if( ImGui::ColorEdit3( "##bgcolour", (float *)( colour ) ) )
+
+    if( ImGui::ColorEdit3( "##bgcolour", colour ) )
     {
-        rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>( *colour );
+        rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
+            { colour[0], colour[1], colour[2] } );
     }
 
     ImGui::Dummy( { 0, 10 } );
@@ -248,18 +246,35 @@ void show_visualisation_settings( bool & show, ui::RenderingLayer & rendering_la
     ImGui::Separator();
     ImGui::Dummy( { 0, 10 } );
 
-    static vgm::Vec3 dir( 0, 0, -1 );
+    vgm::Vec3 dir(
+        rendering_layer.ui_state.light_direction[0], rendering_layer.ui_state.light_direction[1],
+        rendering_layer.ui_state.light_direction[2] );
+    bool update = false;
     ImGui::Text( "Light direction" );
     ImGui::Columns( 2, "lightdircolumns", false ); // 3-ways, no border
     if( ImGui::gizmo3D( "##dir", dir ) )
+        update = true;
+    ImGui::NextColumn();
+    auto normalize_light_dir = [&]() {
+        auto norm = std::sqrt( dir.x * dir.x + dir.y * dir.y + dir.z * dir.z );
+        dir.x /= norm;
+        dir.y /= norm;
+        dir.z /= norm;
+    };
+    if( ImGui::InputFloat( "##lightdir_x", &dir.x, 0, 0, 3, ImGuiInputTextFlags_EnterReturnsTrue ) )
+        update = true;
+    if( ImGui::InputFloat( "##lightdir_y", &dir.y, 0, 0, 3, ImGuiInputTextFlags_EnterReturnsTrue ) )
+        update = true;
+    if( ImGui::InputFloat( "##lightdir_z", &dir.z, 0, 0, 3, ImGuiInputTextFlags_EnterReturnsTrue ) )
+        update = true;
+    if( update )
     {
+        normalize_light_dir();
+        rendering_layer.ui_state.light_direction = { dir.x, dir.y, dir.z };
         rendering_layer.view.setOption<VFRendering::View::Option::LIGHT_POSITION>(
             { -1000 * dir.x, -1000 * dir.y, -1000 * dir.z } );
     }
-    ImGui::NextColumn();
-    ImGui::TextUnformatted( fmt::format( "{:>6.3f}", dir.x ).c_str() );
-    ImGui::TextUnformatted( fmt::format( "{:>6.3f}", dir.y ).c_str() );
-    ImGui::TextUnformatted( fmt::format( "{:>6.3f}", dir.z ).c_str() );
+
     ImGui::Columns( 1 );
 
     ImGui::End();
@@ -524,14 +539,15 @@ void show_settings( bool & show, ui::RenderingLayer & rendering_layer )
 
     ImGui::Begin( "Settings", &show );
 
-    if( rendering_layer.settings->dark_mode )
+    if( rendering_layer.ui_state.dark_mode )
     {
         if( ImGui::Button( ICON_FA_SUN " light mode" ) )
         {
             ImGui::StyleColorsLight();
-            rendering_layer.settings->dark_mode = false;
+            rendering_layer.ui_state.dark_mode = false;
             rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-                rendering_layer.background_colour_light );
+                { rendering_layer.ui_state.background_light[0], rendering_layer.ui_state.background_light[1],
+                  rendering_layer.ui_state.background_light[2] } );
         }
     }
     else
@@ -539,9 +555,10 @@ void show_settings( bool & show, ui::RenderingLayer & rendering_layer )
         if( ImGui::Button( ICON_FA_MOON " dark mode" ) )
         {
             styles::apply_charcoal();
-            rendering_layer.settings->dark_mode = true;
+            rendering_layer.ui_state.dark_mode = true;
             rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-                rendering_layer.background_colour_dark );
+                { rendering_layer.ui_state.background_dark[0], rendering_layer.ui_state.background_dark[1],
+                  rendering_layer.ui_state.background_dark[2] } );
         }
     }
 
