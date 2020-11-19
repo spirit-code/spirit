@@ -638,6 +638,11 @@ namespace Engine
         {
             // Kind of a bandaid fix
             this->Gradient_Quadruplet(spins, gradient);
+            if(energy_contributions_per_spin[idx_quadruplet].second.size() != spins.size()) 
+            {
+                energy_contributions_per_spin[idx_quadruplet].second.resize(spins.size());
+            };
+            Vectormath::fill(energy_contributions_per_spin[idx_quadruplet].second, 0);
             E_Quadruplet(spins, energy_contributions_per_spin[idx_quadruplet].second);
             energy += Vectormath::sum(energy_contributions_per_spin[idx_quadruplet].second);
         }
