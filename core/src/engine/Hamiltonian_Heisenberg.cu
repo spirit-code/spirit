@@ -1089,7 +1089,6 @@ namespace Engine
         tripletList.reserve( geometry->n_cells_total * (anisotropy_indices.size() * 9 + exchange_pairs.size() * 2 + dmi_pairs.size() * 3) );
 
         // --- Single Spin elements
-        #pragma omp parallel for
         for( int icell = 0; icell < geometry->n_cells_total; ++icell )
         {
             for( int iani = 0; iani < anisotropy_indices.size(); ++iani )
@@ -1115,7 +1114,6 @@ namespace Engine
 
         // --- Spin Pair elements
         // Exchange
-        #pragma omp parallel for
         for( int icell = 0; icell < geometry->n_cells_total; ++icell )
         {
             for( unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair )
@@ -1139,7 +1137,6 @@ namespace Engine
         }
 
         // DMI
-        #pragma omp parallel for
         for( int icell = 0; icell < geometry->n_cells_total; ++icell )
         {
             for( unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair )
