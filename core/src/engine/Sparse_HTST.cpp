@@ -56,6 +56,98 @@ namespace Engine
             lowest_evec = evectors.col(0);
         }
 
+        // Project vector such that it is orthogonal to all vectors in orth
+        void _orth_project(VectorX & vector, const std::vector<VectorX> & orth)
+        {
+            for(const VectorX & cur : orth)
+            {
+                vector -= (vector.dot(cur)) * cur;
+            }
+        }
+
+        void Sparse_Get_Lowest_Eigenvectors_VP(const SpMatrixX & matrix, scalar max_evalue, scalarfield & evalues, std::vector<VectorX> & evecs)
+        {
+            Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, fmt::format("    Computing eigenvalues smaller than {}", max_evalue));
+
+            scalar tol = 1e-6;
+            scalar cur = 2 * tol;
+            scalar m = 0.01;
+            scalar step_size = 1e-4;
+            int n_iter = 0;
+            int nos = matrix.rows()/2;
+
+            scalar sigma_shift = std::max(5.0, 2*max_evalue);
+
+            VectorX gradient      = VectorX::Zero(2*nos);
+            VectorX gradient_prev = VectorX::Zero(2*nos);
+            VectorX velocity      = VectorX::Zero(2*nos);
+
+            scalar fnorm2, ratio, proj;
+            bool run = true;
+
+            // We try to find the lowest n_values eigenvalue/vector pairs
+            while(run)
+            {
+                VectorX x = VectorX::Random(2*nos); // Initialize solver with random normalized vector
+                x.normalize();
+
+                fnorm2 = 2*tol*tol;
+                n_iter = 0;
+                gradient_prev.setZero();
+                velocity.setZero();
+
+                while (std::sqrt(fnorm2) > tol)
+                {
+                    // Compute gradient of unnormalized Rayleigh quotient
+                    gradient = 2 * matrix * x;
+
+                    for (int i=0; i<evecs.size(); i++)
+                    {
+                        gradient += 2 * (sigma_shift - evalues[i]) * (evecs[i].dot(x)) * evecs[i]; // Add the shift so that we dont land on the same eigenvalues we had before. Effectively H -> H + (sigma - lambda) * v^T v, where (lambda, v) is an eigenvalue, eigenvector pair
+                    }
+
+                    // Project the gradient orthogonally wrt to x and the previous eigenvectors
+                    _orth_project(gradient, {x});
+
+                    velocity = 0.5 * (gradient + gradient_prev) / m;
+                    fnorm2 = gradient.squaredNorm();
+
+                    proj = velocity.dot(gradient);
+                    ratio = proj/fnorm2;
+
+                    if (proj<=0)
+                        velocity.setZero();
+                    else 
+                        velocity = gradient*ratio;
+
+                    // Update x and renormalize
+                    x -= step_size * velocity + 0.5/m * step_size * gradient;
+                    x.normalize();
+
+                    // Update prev gradient
+                    gradient_prev = gradient;
+
+                    // Increment n_iter
+                    n_iter++;
+                }
+
+                // Ideally we have found one eigenvalue/vector pair now
+                // We save the eigenvalue
+                evecs.push_back(x);
+                evalues.push_back(x.dot(matrix*x));
+
+                Log(Utility::Log_Level::All, Utility::Log_Sender::HTST,  fmt::format("        Found an eigenpair after {} iterations", n_iter));
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format("         > Eigenvalue: {}", evalues.back()));
+                if(2*nos>=4)
+                    Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format("         > Eigenvector: ({}, {}, {}, ..., {})", evecs.back()[0], evecs.back()[1], evecs.back()[2], evecs.back()[2*nos-1]));
+                if (evalues.back() > max_evalue)
+                {
+                    Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format("        No more eigenvalues < {} found. Stopping.", max_evalue));
+                    run = false;
+                }
+            }
+        }
+
         void Sparse_Get_Lowest_Eigenvector_VP(const SpMatrixX & matrix, int nos, const VectorX & init, scalar & lowest_evalue, VectorX & lowest_evec)
         {
             Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, "        Minimizing Rayleigh quotient to compute lowest eigenmode...");
@@ -193,21 +285,13 @@ namespace Engine
                 SpMatrixX sparse_hessian_sp_geodesic_2N = tangent_basis.transpose() * sparse_hessian_sp_geodesic_3N * tangent_basis;
 
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluate lowest eigenmode of the Hessian...");
-                VectorX lowest_evector(2*nos);
-                scalar lowest_evalue;
 
-                if(lowest_mode_spectra)
-                {
-                    Sparse_Get_Lowest_Eigenvector(sparse_hessian_sp_geodesic_2N, nos, lowest_evalue, lowest_evector);
-                } else {
-                    VectorX init = VectorX::Random(2*nos);
-                    init[0] = 1.0;
-                    Sparse_Get_Lowest_Eigenvector_VP(sparse_hessian_sp_geodesic_2N, nos, init, lowest_evalue, lowest_evector);
-                };
+                scalarfield evalues_sp = scalarfield(0);
+                std::vector<VectorX> evecs_sp = std::vector<VectorX>(0);
+                Sparse_Get_Lowest_Eigenvectors_VP(sparse_hessian_sp_geodesic_2N, epsilon, evalues_sp, evecs_sp);
+                scalar lowest_evalue = evalues_sp[0];
+                VectorX & lowest_evector = evecs_sp[0];
 
-                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format("        Lowest eigenvalue: {}", lowest_evalue));
-                if(2*nos>=4)
-                    Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format("        Lowest eigenvector: ({}, {}, {}, ..., {})", lowest_evector[0], lowest_evector[1], lowest_evector[2], lowest_evector[2*nos-1]));
 
                 // Check if lowest eigenvalue < 0 (else it's not a SP)
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Check if actually a saddle point...");
@@ -270,6 +354,10 @@ namespace Engine
                 solver.analyzePattern(sparse_hessian_geodesic_min_2N);
                 solver.factorize(sparse_hessian_geodesic_min_2N);
                 htst_info.det_min = solver.logAbsDeterminant();
+
+                scalarfield evalues_min = scalarfield(0);
+                std::vector<VectorX> evecs_min = std::vector<VectorX>(0);
+                Sparse_Get_Lowest_Eigenvectors_VP(sparse_hessian_geodesic_min_2N, epsilon, evalues_min, evecs_min);
             }
             // End initial state minimum
             ////////////////////////////////////////////////////////////////////////
