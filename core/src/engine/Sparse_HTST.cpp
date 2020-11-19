@@ -29,6 +29,8 @@ namespace Engine
 
         void Sparse_Get_Lowest_Eigenvector(const SpMatrixX & matrix, int nos, scalar & lowest_evalue, VectorX & lowest_evec)
         {
+            Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, "        Using Spectra to compute lowest eigenmode...");
+
             VectorX evalues;
             MatrixX evectors;
 
@@ -46,7 +48,7 @@ namespace Engine
                 evalues = matrix_spectrum.eigenvalues().real();
                 evectors = matrix_spectrum.eigenvectors().real();
             } else {
-                Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, "    Failed to calculate lowest eigenmode. Aborting!");
+                Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, "        Failed to calculate lowest eigenmode. Aborting!");
                 return;
             }
 
@@ -56,6 +58,7 @@ namespace Engine
 
         void Sparse_Get_Lowest_Eigenvector_VP(const SpMatrixX & matrix, int nos, const VectorX & init, scalar & lowest_evalue, VectorX & lowest_evec)
         {
+            Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, "        Minimizing Rayleigh quotient to compute lowest eigenmode...");
             auto & x = lowest_evec;
             x = init;
             x.normalize();
@@ -72,7 +75,7 @@ namespace Engine
 
             VectorX mx; // temporary for matrix * x
             scalar proj; // temporary for gradient * x
-            scalar fnorm2=2*tol*tol, ratio;
+            scalar fnorm2 = 2*tol*tol, ratio;
 
             while (std::sqrt(fnorm2) > tol)
             {
@@ -81,10 +84,6 @@ namespace Engine
                 gradient = 2 * mx;
                 proj = gradient.dot(x);
                 gradient -= proj * x;
-                // std::cout << "proj " << proj << "\n";
-                // std::cout << "x " << x.head(5).transpose() << "\n";
-                // std::cout << "gradient " << gradient.head(5).transpose() << "\n";
-
 
                 velocity = 0.5 * (gradient + gradient_prev) / m;
                 fnorm2 = gradient.squaredNorm();
@@ -103,19 +102,15 @@ namespace Engine
 
                 // Update prev gradient
                 gradient_prev = gradient;
-                // std::cout << "fnorm2 " << fnorm2 << "\n";
-                // std::cout << "proj " << proj << "\n";
 
                 // Increment n_iter
                 lowest_evalue = x.dot(matrix * x);
-                // std::cout << "lowest_evalue " << lowest_evalue << "\n";
                 n_iter++;
             }
 
             // Compute the eigenvalue
             lowest_evalue = x.dot(matrix * x);
-            std::cout << "n_iter " << n_iter << "\n";
-            std::cout << "evalue " << lowest_evalue << "\n";
+            Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, fmt::format("        Finished after {} iterations", n_iter));
         }
 
         // Note the two images should correspond to one minimum and one saddle point
@@ -123,7 +118,7 @@ namespace Engine
         void Calculate(Data::HTST_Info & htst_info)
         {
             Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, "Sparse Prefactor calculation");
-            bool lowest_mode_spectra=false;
+            bool lowest_mode_spectra = false;
             htst_info.sparse = true;
             htst_info.n_eigenmodes_keep = 0;
 
@@ -209,16 +204,17 @@ namespace Engine
                     init[0] = 1.0;
                     Sparse_Get_Lowest_Eigenvector_VP(sparse_hessian_sp_geodesic_2N, nos, init, lowest_evalue, lowest_evector);
                 };
+
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format("        Lowest eigenvalue: {}", lowest_evalue));
                 if(2*nos>=4)
-                    Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format("        Lowest eigenvector: {}, {}, {}, ... {}", lowest_evector[0], lowest_evector[1], lowest_evector[2], lowest_evector[2*nos-1]));
+                    Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format("        Lowest eigenvector: ({}, {}, {}, ..., {})", lowest_evector[0], lowest_evector[1], lowest_evector[2], lowest_evector[2*nos-1]));
 
                 // Check if lowest eigenvalue < 0 (else it's not a SP)
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Check if actually a saddle point...");
                 if( lowest_evalue > -epsilon )
                 {
                     Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format(
-                        "HTST: the transition configuration is not a saddle point, its lowest eigenvalue is above the threshold ({} > {})!", htst_info.eigenvalues_sp[0], -epsilon ));
+                        "HTST: the transition configuration is not a saddle point, its lowest eigenvalue is above the threshold ({} > {})!", lowest_evalue, -epsilon ));
                     return;
                 }
 
@@ -278,11 +274,9 @@ namespace Engine
             // End initial state minimum
             ////////////////////////////////////////////////////////////////////////
 
-            // Checking for zero modes at the minimum...
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Checking for zero modes at the minimum...");
-            int n_zero_modes_minimum = 0;
 
             //TODO
+            int n_zero_modes_minimum = 0;
             htst_info.volume_min = 1;
 
 
