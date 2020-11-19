@@ -1665,6 +1665,8 @@ void SpinWidget::setColormapRotationInverted(int phi, bool invert_z, bool invert
 std::string SpinWidget::getColormapRotationInverted(Colormap colormap, int phi, bool invert_z, bool invert_xy,
                                                     glm::vec3 cardinal_a, glm::vec3 cardinal_b, glm::vec3 cardinal_c)
 {
+    std::locale::global(std::locale::classic()); // Somewhere QT changes the locale even after initialization. As a bandaid fix we set it here directly before we do the string conversions. This way we can at least be sure that the decimal separator is a point and not a comma.
+
     int sign_z  = 1 - 2 * (int)invert_z;
     int sign_xy = 1 - 2 * (int)invert_xy;
 
