@@ -136,10 +136,10 @@ namespace Engine
                 evecs.push_back(x);
                 evalues.push_back(x.dot(matrix*x));
 
-                Log(Utility::Log_Level::All, Utility::Log_Sender::HTST,  fmt::format("        Found an eigenpair after {} iterations", n_iter));
-                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format("         > Eigenvalue: {}", evalues.back()));
+                Log(Utility::Log_Level::All, Utility::Log_Sender::HTST,      fmt::format("        Found an eigenpair after {} iterations", n_iter));
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST,     fmt::format("        ... Eigenvalue  = {}", evalues.back()));
                 if(2*nos>=4)
-                    Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format("         > Eigenvector: ({}, {}, {}, ..., {})", evecs.back()[0], evecs.back()[1], evecs.back()[2], evecs.back()[2*nos-1]));
+                    Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format("        ... Eigenvector = ({}, {}, {}, ..., {})", evecs.back()[0], evecs.back()[1], evecs.back()[2], evecs.back()[2*nos-1]));
                 if (evalues.back() > max_evalue)
                 {
                     Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format("        No more eigenvalues < {} found. Stopping.", max_evalue));
@@ -266,6 +266,8 @@ namespace Engine
 
             ////////////////////////////////////////////////////////////////////////
             // Saddle point
+            int n_zero_modes_sp = 0;
+            scalarfield evalues_sp = scalarfield(0);
             {
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Calculation for the Saddle Point");
 
@@ -286,12 +288,10 @@ namespace Engine
 
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluate lowest eigenmode of the Hessian...");
 
-                scalarfield evalues_sp = scalarfield(0);
                 std::vector<VectorX> evecs_sp = std::vector<VectorX>(0);
                 Sparse_Get_Lowest_Eigenvectors_VP(sparse_hessian_sp_geodesic_2N, epsilon, evalues_sp, evecs_sp);
                 scalar lowest_evalue = evalues_sp[0];
                 VectorX & lowest_evector = evecs_sp[0];
-
 
                 // Check if lowest eigenvalue < 0 (else it's not a SP)
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Check if actually a saddle point...");
@@ -320,17 +320,30 @@ namespace Engine
                 VectorX x(2*nos);
                 x = solver.solve(projected_velocity.transpose() * lowest_evector);
                 htst_info.s = std::sqrt(lowest_evector.transpose() * projected_velocity * x );
+            
+                // Checking for zero modes at the saddle point...
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking for zero modes at the saddle point...");
+                for( int i=0; i < evalues_sp.size(); ++i )
+                {
+                    if( std::abs( evalues_sp[i] ) <= epsilon)
+                        ++n_zero_modes_sp;
+                }
+                // Deal with zero modes if any (calculate volume)
+                htst_info.volume_sp = 1;
+                if( n_zero_modes_sp > 0 )
+                {
+                    Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, fmt::format("ZERO MODES AT SADDLE POINT (N={})", n_zero_modes_sp));
+                    htst_info.volume_sp = HTST::Calculate_Zero_Volume(htst_info.saddle_point);
+                }
             }
-            // End saddle point
+
+            // TODO  // End saddle point
             ////////////////////////////////////////////////////////////////////////
-
-            int n_zero_modes_sp = 0;
-
-            // TODO
-            htst_info.volume_sp = 1;
 
             ////////////////////////////////////////////////////////////////////////
             // Initial state minimum
+            int n_zero_modes_minimum = 0;
+            scalarfield evalues_min = scalarfield(0);
             {
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Calculation for the Minimum");
 
@@ -355,18 +368,27 @@ namespace Engine
                 solver.factorize(sparse_hessian_geodesic_min_2N);
                 htst_info.det_min = solver.logAbsDeterminant();
 
-                scalarfield evalues_min = scalarfield(0);
+                // Calculate modes at minimum (only needed for zero-mode volume)
                 std::vector<VectorX> evecs_min = std::vector<VectorX>(0);
                 Sparse_Get_Lowest_Eigenvectors_VP(sparse_hessian_geodesic_min_2N, epsilon, evalues_min, evecs_min);
+
+                // Checking for zero modes at the minimum..
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking for zero modes at the minimum ...");
+                for( int i=0; i < evalues_min.size(); ++i )
+                {
+                    if( std::abs( evalues_min[i] ) <= epsilon)
+                        ++n_zero_modes_minimum;
+                }
+                // Deal with zero modes if any (calculate volume)
+                htst_info.volume_min = 1;
+                if( n_zero_modes_minimum > 0 )
+                {
+                    Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, fmt::format("ZERO MODES AT MINIMUM (N={})", n_zero_modes_minimum));
+                    htst_info.volume_min = HTST::Calculate_Zero_Volume(htst_info.minimum);
+                }
             }
             // End initial state minimum
             ////////////////////////////////////////////////////////////////////////
-
-
-            //TODO
-            int n_zero_modes_minimum = 0;
-            htst_info.volume_min = 1;
-
 
             ////////////////////////////////////////////////////////////////////////
             // Calculation of the prefactor...
@@ -380,8 +402,16 @@ namespace Engine
             htst_info.me = std::pow(2*C::Pi * C::k_B, htst_info.temperature_exponent);
 
             // Calculate Omega_0, i.e. the entropy contribution
-            htst_info.Omega_0 = 1;
-            htst_info.Omega_0 = std::sqrt( std::exp(htst_info.det_min - htst_info.det_sp) );
+            htst_info.Omega_0 = std::sqrt(std::exp(htst_info.det_min - htst_info.det_sp));
+
+            scalar zero_mode_factor = 1;
+            for (int i=0; i<n_zero_modes_minimum; i++)
+                zero_mode_factor /= std::sqrt(evalues_min[i]);
+
+            for (int i=0; i<n_zero_modes_sp; i++)
+                zero_mode_factor *= std::sqrt(evalues_sp[i+1]);
+
+            htst_info.Omega_0 *= zero_mode_factor;
 
             // Calculate the prefactor
             htst_info.prefactor_dynamical = htst_info.me * htst_info.volume_sp / htst_info.volume_min * htst_info.s;
