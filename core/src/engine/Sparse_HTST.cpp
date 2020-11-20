@@ -301,6 +301,19 @@ namespace Engine
                         "HTST: the transition configuration is not a saddle point, its lowest eigenvalue is above the threshold ({} > {})!", lowest_evalue, -epsilon ));
                     return;
                 }
+                // Check if second-lowest eigenvalue < 0 (higher-order SP)
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Check if higher order saddle point...");
+                int n_negative = 0;
+                for( int i=0; i < evalues_sp.size(); ++i )
+                    if( evalues_sp[i] < -epsilon )
+                        ++n_negative;
+
+                if( n_negative > 1 )
+                {
+                    Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format(
+                        "HTST: the image you passed is a higher order saddle point (N={})!", n_negative ));
+                    return;
+                }
 
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Sparse LU Decomposition of geodesic Hessian...");
                 Eigen::SparseLU<SpMatrixX, Eigen::COLAMDOrdering<int> > solver;
@@ -322,7 +335,7 @@ namespace Engine
                 htst_info.s = std::sqrt(lowest_evector.transpose() * projected_velocity * x );
             
                 // Checking for zero modes at the saddle point...
-                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking for zero modes at the saddle point...");
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Checking for zero modes at the saddle point...");
                 for( int i=0; i < evalues_sp.size(); ++i )
                 {
                     if( std::abs( evalues_sp[i] ) <= epsilon)
@@ -368,16 +381,21 @@ namespace Engine
                 solver.factorize(sparse_hessian_geodesic_min_2N);
                 htst_info.det_min = solver.logAbsDeterminant();
 
-                // Calculate modes at minimum (only needed for zero-mode volume)
+                // Calculate modes at minimum (needed for zero-mode volume)
                 std::vector<VectorX> evecs_min = std::vector<VectorX>(0);
                 Sparse_Get_Lowest_Eigenvectors_VP(sparse_hessian_geodesic_min_2N, epsilon, evalues_min, evecs_min);
 
                 // Checking for zero modes at the minimum..
-                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking for zero modes at the minimum ...");
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Checking for zero modes at the minimum ...");
                 for( int i=0; i < evalues_min.size(); ++i )
                 {
                     if( std::abs( evalues_min[i] ) <= epsilon)
                         ++n_zero_modes_minimum;
+                    if( evalues_min[i] < 0 )
+                    {
+                        Log(Utility::Log_Level::Error, Utility::Log_Sender::HTST, "    Minimum has negative eigenmodes! (Maybe the initial configuration is too symmetric)"); // The Question is if we should terminate the calculation here or allow to continue since often the negatives cancel sqrt(-x) * sqrt(-x) = sqrt(x^2)
+                        return;
+                    }
                 }
                 // Deal with zero modes if any (calculate volume)
                 htst_info.volume_min = 1;
