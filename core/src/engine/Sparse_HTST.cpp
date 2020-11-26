@@ -70,6 +70,8 @@ namespace Engine
             Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, fmt::format("    Computing eigenvalues smaller than {}", max_evalue));
 
             scalar tol = 1e-6;
+            scalar evalue_epsilon = 1e-4;
+            int n_log_step = 2500;
             scalar cur = 2 * tol;
             scalar m = 0.01;
             scalar step_size = 1e-4;
@@ -81,7 +83,7 @@ namespace Engine
             VectorX gradient      = VectorX::Zero(2*nos);
             VectorX gradient_prev = VectorX::Zero(2*nos);
             VectorX velocity      = VectorX::Zero(2*nos);
-
+            scalar cur_evalue_estimate;
             scalar fnorm2, ratio, proj;
             bool run = true;
 
@@ -96,11 +98,15 @@ namespace Engine
                 gradient_prev.setZero();
                 velocity.setZero();
 
-                while (std::sqrt(fnorm2) > tol)
+                bool search = true;
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST,     fmt::format("        Search for eigenpair"));
+
+                while (search)
                 {
                     // Compute gradient of unnormalized Rayleigh quotient
                     gradient = 2 * matrix * x;
 
+                    cur_evalue_estimate = 0.5 * x.dot(gradient); // Update the current estimate of our evalue
                     for (int i=0; i<evecs.size(); i++)
                     {
                         gradient += 2 * (sigma_shift - evalues[i]) * (evecs[i].dot(x)) * evecs[i]; // Add the shift so that we dont land on the same eigenvalues we had before. Effectively H -> H + (sigma - lambda) * v^T v, where (lambda, v) is an eigenvalue, eigenvector pair
@@ -129,6 +135,11 @@ namespace Engine
 
                     // Increment n_iter
                     n_iter++;
+
+                    if(n_iter % n_log_step == 0)
+                        Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format("        ... Iteration {}: Evalue estimate = {}, Grad. norm = {} (> {})", n_iter, cur_evalue_estimate, std::sqrt(fnorm2), tol));
+
+                    search = (std::sqrt(fnorm2) > tol);
                 }
 
                 // Ideally we have found one eigenvalue/vector pair now
@@ -136,7 +147,7 @@ namespace Engine
                 evecs.push_back(x);
                 evalues.push_back(x.dot(matrix*x));
 
-                Log(Utility::Log_Level::All, Utility::Log_Sender::HTST,      fmt::format("        Found an eigenpair after {} iterations", n_iter));
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST,     fmt::format("        Found an eigenpair after {} iterations", n_iter));
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST,     fmt::format("        ... Eigenvalue  = {}", evalues.back()));
                 if(2*nos>=4)
                     Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format("        ... Eigenvector = ({}, {}, {}, ..., {})", evecs.back()[0], evecs.back()[1], evecs.back()[2], evecs.back()[2*nos-1]));
