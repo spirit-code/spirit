@@ -393,8 +393,7 @@ namespace Engine
                         ++n_zero_modes_minimum;
                     if( evalues_min[i] < 0 )
                     {
-                        Log(Utility::Log_Level::Error, Utility::Log_Sender::HTST, "    Minimum has negative eigenmodes! (Maybe the initial configuration is too symmetric)"); // The Question is if we should terminate the calculation here or allow to continue since often the negatives cancel sqrt(-x) * sqrt(-x) = sqrt(x^2)
-                        return;
+                        Log(Utility::Log_Level::Warning, Utility::Log_Sender::HTST, fmt::format("    Minimum has a negative mode with eigenvalue = {}!", evalues_min[i])); // The Question is if we should terminate the calculation here or allow to continue since often the negatives cancel sqrt(-x) * sqrt(-x) = sqrt(x^2)
                     }
                 }
                 // Deal with zero modes if any (calculate volume)
@@ -424,10 +423,12 @@ namespace Engine
 
             scalar zero_mode_factor = 1;
             for (int i=0; i<n_zero_modes_minimum; i++)
-                zero_mode_factor /= std::sqrt(evalues_min[i]);
+                zero_mode_factor /= evalues_min[i];
 
             for (int i=0; i<n_zero_modes_sp; i++)
-                zero_mode_factor *= std::sqrt(evalues_sp[i+1]);
+                zero_mode_factor *= evalues_sp[i+1];
+
+            zero_mode_factor = std::sqrt(zero_mode_factor);
 
             htst_info.Omega_0 *= zero_mode_factor;
 
@@ -446,6 +447,7 @@ namespace Engine
                     fmt::format("volume_min    = {:^20e}", htst_info.volume_min),
                     fmt::format("log |det_min| = {:^20e}", htst_info.det_min),
                     fmt::format("log |det_sp|  = {:^20e}", htst_info.det_sp),
+                    fmt::format("0-mode factor = {:^20e}", zero_mode_factor),
                     fmt::format("hbar[meV*s]   = {:^20e}", C::hbar*1e-12),
                     fmt::format("v = dynamical prefactor = {:^20e}", htst_info.prefactor_dynamical),
                     fmt::format("prefactor               = {:^20e}", htst_info.prefactor)
