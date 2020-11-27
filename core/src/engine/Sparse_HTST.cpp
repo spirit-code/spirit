@@ -78,7 +78,7 @@ namespace Engine
             int n_iter = 0;
             int nos = matrix.rows()/2;
 
-            scalar sigma_shift = std::max(5.0, 2*max_evalue);
+            scalar sigma_shift = std::max(scalar(5.0), 2*scalar(max_evalue));
 
             VectorX gradient      = VectorX::Zero(2*nos);
             VectorX gradient_prev = VectorX::Zero(2*nos);
