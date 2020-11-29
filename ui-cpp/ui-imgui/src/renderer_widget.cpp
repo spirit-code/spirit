@@ -514,30 +514,31 @@ void BoundingBoxRendererWidget::show()
     {
         renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LINE_WIDTH>( line_width );
     }
-    if( ImGui::SliderInt( "level of detail", &level_of_detail, 5, 100 ) )
+    if( line_width > 0 )
     {
-        renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LEVEL_OF_DETAIL>( level_of_detail );
-    }
+        if( ImGui::SliderInt( "level of detail", &level_of_detail, 5, 100 ) )
+            renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LEVEL_OF_DETAIL>( level_of_detail );
 
-    if( ImGui::Checkbox( "draw shadows", &draw_shadows ) )
-    {
-        // if( draw_shadows )
-        // {
-        //     renderer->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>(
-        //         "uniform vec3 uLightPosition;"
-        //         "float lighting(vec3 position, vec3 normal)"
-        //         "{"
-        //         "    vec3 lightDirection = -normalize(uLightPosition-position);"
-        //         "    float diffuse = 0.7*max(0.0, dot(normal, lightDirection));"
-        //         "    float ambient = 0.2;"
-        //         "    return diffuse+ambient;"
-        //         "}" );
-        // }
-        // else
-        // {
-        //     renderer->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>(
-        //         "float lighting(vec3 position, vec3 normal) { return 1.0; }" );
-        // }
+        if( ImGui::Checkbox( "draw shadows", &draw_shadows ) )
+        {
+            // if( draw_shadows )
+            // {
+            //     renderer->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>(
+            //         "uniform vec3 uLightPosition;"
+            //         "float lighting(vec3 position, vec3 normal)"
+            //         "{"
+            //         "    vec3 lightDirection = -normalize(uLightPosition-position);"
+            //         "    float diffuse = 0.7*max(0.0, dot(normal, lightDirection));"
+            //         "    float ambient = 0.2;"
+            //         "    return diffuse+ambient;"
+            //         "}" );
+            // }
+            // else
+            // {
+            //     renderer->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>(
+            //         "float lighting(vec3 position, vec3 normal) { return 1.0; }" );
+            // }
+        }
     }
 
     ImGui::Indent( -15 );
@@ -588,10 +589,10 @@ ArrowRendererWidget::ArrowRendererWidget(
 {
     renderer = std::make_shared<VFRendering::ArrowRenderer>( view, vectorfield );
 
-    renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( arrowsize * 0.125f );
-    renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( arrowsize * 0.3f );
-    renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( arrowsize * 0.0625f );
-    renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>( arrowsize * 0.35f );
+    renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( arrow_size * 0.125f );
+    renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( arrow_size * 0.3f );
+    renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( arrow_size * 0.0625f );
+    renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>( arrow_size * 0.35f );
 }
 
 void ArrowRendererWidget::show()
@@ -610,13 +611,16 @@ void ArrowRendererWidget::show()
     }
     ImGui::Indent( 15 );
 
-    if( ImGui::SliderFloat( "arrowsize", &arrowsize, 0.01f, 100, "%.3f", 10 ) )
+    if( ImGui::SliderFloat( "arrow_size", &arrow_size, 0.01f, 100, "%.3f", 10 ) )
     {
-        renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( arrowsize * 0.125f );
-        renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( arrowsize * 0.3f );
-        renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( arrowsize * 0.0625f );
-        renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>( arrowsize * 0.35f );
+        renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( arrow_size * 0.125f );
+        renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( arrow_size * 0.3f );
+        renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( arrow_size * 0.0625f );
+        renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>( arrow_size * 0.35f );
     }
+
+    if( ImGui::SliderInt( "level of detail", &arrow_lod, 5, 100 ) )
+        renderer->setOption<VFRendering::ArrowRenderer::Option::LEVEL_OF_DETAIL>( arrow_lod );
 
     showcolormap_input();
     if( colormap_changed )

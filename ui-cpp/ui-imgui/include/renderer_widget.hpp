@@ -96,7 +96,8 @@ struct ArrowRendererWidget : RendererWidget, ColormapWidget
 
     void show() override;
 
-    float arrowsize = 1;
+    float arrow_size = 1;
+    int arrow_lod    = 10;
 };
 
 struct ParallelepipedRendererWidget : RendererWidget, ColormapWidget

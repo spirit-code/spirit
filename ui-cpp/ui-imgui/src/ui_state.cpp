@@ -39,16 +39,16 @@ void UiState::from_json()
         ifs >> settings_json;
         ifs.close();
 
-        if( settings_json.contains( "settings" ) )
+        if( settings_json.contains( "dark_mode" ) )
+            settings_json.at( "dark_mode" ).get_to( this->dark_mode );
+        if( settings_json.contains( "visualisation" ) )
         {
-            if( settings_json.at( "settings" ).contains( "dark_mode" ) )
-                settings_json.at( "settings" ).at( "dark_mode" ).get_to( this->dark_mode );
-            if( settings_json.at( "settings" ).contains( "background_dark" ) )
-                settings_json.at( "settings" ).at( "background_dark" ).get_to( this->background_dark );
-            if( settings_json.at( "settings" ).contains( "background_light" ) )
-                settings_json.at( "settings" ).at( "background_light" ).get_to( this->background_light );
-            if( settings_json.at( "settings" ).contains( "light_direction" ) )
-                settings_json.at( "settings" ).at( "light_direction" ).get_to( this->light_direction );
+            if( settings_json.at( "visualisation" ).contains( "background_dark" ) )
+                settings_json.at( "visualisation" ).at( "background_dark" ).get_to( this->background_dark );
+            if( settings_json.at( "visualisation" ).contains( "background_light" ) )
+                settings_json.at( "visualisation" ).at( "background_light" ).get_to( this->background_light );
+            if( settings_json.at( "visualisation" ).contains( "light_direction" ) )
+                settings_json.at( "visualisation" ).at( "light_direction" ).get_to( this->light_direction );
         }
 
         if( settings_json.contains( "main_window" ) )
@@ -64,9 +64,9 @@ void UiState::from_json()
 void UiState::to_json() const
 {
     Json settings_json = {
-        { "settings",
-          { { "dark_mode", this->dark_mode },
-            { "background_dark", this->background_dark },
+        { "dark_mode", this->dark_mode },
+        { "visualisation",
+          { { "background_dark", this->background_dark },
             { "background_light", this->background_light },
             { "light_direction", this->light_direction } } },
         { "main_window",
