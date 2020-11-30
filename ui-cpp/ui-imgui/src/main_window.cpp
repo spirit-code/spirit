@@ -1191,7 +1191,8 @@ int MainWindow::run()
     return 0;
 }
 
-MainWindow::MainWindow( std::shared_ptr<State> state ) : rendering_layer( ui_shared_state, state )
+MainWindow::MainWindow( std::shared_ptr<State> state )
+        : ui_config_file( ui_shared_state ), rendering_layer( ui_shared_state, state )
 {
     global_window_handle = this;
 
@@ -1301,10 +1302,8 @@ MainWindow::~MainWindow()
     // Stop and wait for any running calculations
     this->stop_all();
 
-    glfwGetWindowPos( glfw_window, &ui_shared_state.pos[0], &ui_shared_state.pos[1] );
-    glfwGetWindowSize( glfw_window, &ui_shared_state.size[0], &ui_shared_state.size[1] );
-
-    ui_shared_state.to_json();
+    glfwGetWindowPos( glfw_window, &ui_config_file.window_position[0], &ui_config_file.window_position[1] );
+    glfwGetWindowSize( glfw_window, &ui_config_file.window_size[0], &ui_config_file.window_size[1] );
 
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();

@@ -3,6 +3,7 @@
 #define SPIRIT_IMGUI_MAIN_WINDOW_HPP
 
 #include <rendering_layer.hpp>
+#include <ui_config_file.hpp>
 #include <ui_shared_state.hpp>
 
 #include <imgui/imgui.h>
@@ -49,8 +50,9 @@ private:
     void delete_image();
 
     GLFWwindow * glfw_window;
-
     UiSharedState ui_shared_state;
+
+    UiConfigFile ui_config_file;
     RenderingLayer rendering_layer;
 
     ImFont * font_cousine_14 = nullptr;
