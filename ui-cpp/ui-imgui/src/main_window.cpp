@@ -402,37 +402,38 @@ void MainWindow::handle_keyboard()
         // TODO: deactivate method selection if a calculation is running
         if( ImGui::IsKeyPressed( GLFW_KEY_1, false ) )
         {
-            ui_state.selected_mode = GUI_Mode::Minimizer;
+            ui_shared_state.selected_mode = GUI_Mode::Minimizer;
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_2, false ) )
         {
-            ui_state.selected_mode = GUI_Mode::MC;
+            ui_shared_state.selected_mode = GUI_Mode::MC;
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_3, false ) )
         {
-            ui_state.selected_mode = GUI_Mode::LLG;
+            ui_shared_state.selected_mode = GUI_Mode::LLG;
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_4, false ) )
         {
-            ui_state.selected_mode = GUI_Mode::GNEB;
+            ui_shared_state.selected_mode = GUI_Mode::GNEB;
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_5, false ) )
         {
-            ui_state.selected_mode = GUI_Mode::MMF;
+            ui_shared_state.selected_mode = GUI_Mode::MMF;
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_6, false ) )
         {
-            ui_state.selected_mode = GUI_Mode::EMA;
+            ui_shared_state.selected_mode = GUI_Mode::EMA;
         }
 
         //-----------------------------------------------------
 
         if( ImGui::IsKeyPressed( GLFW_KEY_HOME, false ) )
         {
-            ++ui_state.n_screenshots;
-            std::string name = fmt::format( "{}_Screenshot_{}", State_DateTime( state.get() ), ui_state.n_screenshots );
+            ++ui_shared_state.n_screenshots;
+            std::string name
+                = fmt::format( "{}_Screenshot_{}", State_DateTime( state.get() ), ui_shared_state.n_screenshots );
             rendering_layer.screenshot_png( name );
-            ui_state.notify( fmt::format( ICON_FA_DESKTOP "  Captured \"{}\"", name ), 4 );
+            ui_shared_state.notify( fmt::format( ICON_FA_DESKTOP "  Captured \"{}\"", name ), 4 );
         }
     }
 }
@@ -453,28 +454,28 @@ try
             threads_image[System_Get_Index( state.get() )].join();
         else if( thread_chain.joinable() )
             thread_chain.join();
-        this->ui_state.notify( "stopped calculation" );
+        this->ui_shared_state.notify( "stopped calculation" );
     }
     else
     {
         // Not running, so we start it
-        if( ui_state.selected_mode == GUI_Mode::Minimizer )
+        if( ui_shared_state.selected_mode == GUI_Mode::Minimizer )
         {
             int idx = System_Get_Index( state.get() );
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )] = std::thread(
-                &Simulation_LLG_Start, this->state.get(), ui_state.selected_solver_min, -1, -1, false, -1, -1 );
+                &Simulation_LLG_Start, this->state.get(), ui_shared_state.selected_solver_min, -1, -1, false, -1, -1 );
         }
-        if( ui_state.selected_mode == GUI_Mode::LLG )
+        if( ui_shared_state.selected_mode == GUI_Mode::LLG )
         {
             int idx = System_Get_Index( state.get() );
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )] = std::thread(
-                &Simulation_LLG_Start, this->state.get(), ui_state.selected_solver_llg, -1, -1, false, -1, -1 );
+                &Simulation_LLG_Start, this->state.get(), ui_shared_state.selected_solver_llg, -1, -1, false, -1, -1 );
         }
-        else if( ui_state.selected_mode == GUI_Mode::MC )
+        else if( ui_shared_state.selected_mode == GUI_Mode::MC )
         {
             int idx = System_Get_Index( state.get() );
             if( threads_image[idx].joinable() )
@@ -482,22 +483,22 @@ try
             this->threads_image[System_Get_Index( state.get() )]
                 = std::thread( &Simulation_MC_Start, this->state.get(), -1, -1, false, -1, -1 );
         }
-        else if( ui_state.selected_mode == GUI_Mode::GNEB )
+        else if( ui_shared_state.selected_mode == GUI_Mode::GNEB )
         {
             if( thread_chain.joinable() )
                 thread_chain.join();
             this->thread_chain = std::thread(
-                &Simulation_GNEB_Start, this->state.get(), ui_state.selected_solver_min, -1, -1, false, -1 );
+                &Simulation_GNEB_Start, this->state.get(), ui_shared_state.selected_solver_min, -1, -1, false, -1 );
         }
-        else if( ui_state.selected_mode == GUI_Mode::MMF )
+        else if( ui_shared_state.selected_mode == GUI_Mode::MMF )
         {
             int idx = System_Get_Index( state.get() );
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )] = std::thread(
-                &Simulation_MMF_Start, this->state.get(), ui_state.selected_solver_min, -1, -1, false, -1, -1 );
+                &Simulation_MMF_Start, this->state.get(), ui_shared_state.selected_solver_min, -1, -1, false, -1, -1 );
         }
-        else if( ui_state.selected_mode == GUI_Mode::EMA )
+        else if( ui_shared_state.selected_mode == GUI_Mode::EMA )
         {
             int idx = System_Get_Index( state.get() );
             if( threads_image[idx].joinable() )
@@ -505,7 +506,7 @@ try
             this->threads_image[System_Get_Index( state.get() )]
                 = std::thread( &Simulation_EMA_Start, this->state.get(), -1, -1, false, -1, -1 );
         }
-        this->ui_state.notify( "started calculation" );
+        this->ui_shared_state.notify( "started calculation" );
     }
     rendering_layer.needs_data();
 }
@@ -530,7 +531,7 @@ try
     if( thread_chain.joinable() )
         thread_chain.join();
 
-    this->ui_state.notify( "stopped all calculations" );
+    this->ui_shared_state.notify( "stopped all calculations" );
 
     rendering_layer.needs_data();
 }
@@ -567,7 +568,7 @@ try
             thread_chain.join();
     }
 
-    this->ui_state.notify( "stopped current calculation" );
+    this->ui_shared_state.notify( "stopped current calculation" );
     rendering_layer.needs_data();
 }
 catch( const std::exception & e )
@@ -592,7 +593,7 @@ void MainWindow::cut_image()
                 this->threads_image[idx].join();
             this->threads_image.erase( threads_image.begin() + idx );
 
-            this->ui_state.notify( fmt::format( "cut image {}", idx + 1 ) );
+            this->ui_shared_state.notify( fmt::format( "cut image {}", idx + 1 ) );
         }
         rendering_layer.needs_data();
     }
@@ -605,7 +606,7 @@ void MainWindow::paste_image()
     Chain_Replace_Image( state.get() );
     rendering_layer.needs_data();
 
-    this->ui_state.notify( "pasted image from clipboard" );
+    this->ui_shared_state.notify( "pasted image from clipboard" );
 }
 
 void MainWindow::insert_image_left()
@@ -621,7 +622,7 @@ void MainWindow::insert_image_left()
     // Switch to the inserted image
     Chain_prev_Image( this->state.get() );
 
-    this->ui_state.notify( "inserted image to the left" );
+    this->ui_shared_state.notify( "inserted image to the left" );
 }
 
 void MainWindow::insert_image_right()
@@ -637,7 +638,7 @@ void MainWindow::insert_image_right()
     // Switch to the inserted image
     Chain_next_Image( this->state.get() );
 
-    this->ui_state.notify( "inserted image to the right" );
+    this->ui_shared_state.notify( "inserted image to the right" );
 }
 
 void MainWindow::delete_image()
@@ -654,7 +655,7 @@ void MainWindow::delete_image()
                 this->threads_image[idx].join();
             this->threads_image.erase( threads_image.begin() + idx );
 
-            this->ui_state.notify( fmt::format( "deleted image {}", idx + 1 ) );
+            this->ui_shared_state.notify( fmt::format( "deleted image {}", idx + 1 ) );
         }
 
         rendering_layer.needs_data();
@@ -697,7 +698,7 @@ void MainWindow::draw()
 #endif
 
     if( Simulation_Running_On_Image( this->state.get() ) || Simulation_Running_On_Chain( this->state.get() )
-        || ui_state.dragging_mode )
+        || ui_shared_state.dragging_mode )
     {
         rendering_layer.needs_data();
     }
@@ -719,10 +720,11 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     ImGui::PushFont( font_cousine_14 );
     widgets::show_overlay_system( show_overlays );
     widgets::show_overlay_calculation(
-        show_overlays, ui_state.selected_mode, ui_state.selected_solver_min, ui_state.selected_solver_llg );
+        show_overlays, ui_shared_state.selected_mode, ui_shared_state.selected_solver_min,
+        ui_shared_state.selected_solver_llg );
     ImGui::PopFont();
 
-    widgets::show_parameters( show_parameters_settings, ui_state.selected_mode );
+    widgets::show_parameters( show_parameters_settings, ui_shared_state.selected_mode );
 
     widgets::show_visualisation_settings( show_visualisation_settings, rendering_layer );
 
@@ -892,11 +894,11 @@ void MainWindow::show_menu_bar()
             ImGui::Separator();
             if( ImGui::MenuItem( "Take Screenshot" ) )
             {
-                ++ui_state.n_screenshots;
+                ++ui_shared_state.n_screenshots;
                 std::string name
-                    = fmt::format( "{}_Screenshot_{}", State_DateTime( state.get() ), ui_state.n_screenshots );
+                    = fmt::format( "{}_Screenshot_{}", State_DateTime( state.get() ), ui_shared_state.n_screenshots );
                 rendering_layer.screenshot_png( name );
-                ui_state.notify( fmt::format( ICON_FA_DESKTOP "  Captured \"{}\"", name ), 4 );
+                ui_shared_state.notify( fmt::format( ICON_FA_DESKTOP "  Captured \"{}\"", name ), 4 );
             }
             ImGui::EndMenu();
         }
@@ -1024,8 +1026,8 @@ void MainWindow::show_menu_bar()
             height            = text_size.y + 2 * style.FramePadding.y;
 
             ImGui::SameLine( right_edge - width, 0 );
-            if( ImGui::Selectable( label.c_str(), ui_state.selected_mode == mode, 0, ImVec2( width, height ) ) )
-                ui_state.selected_mode = mode;
+            if( ImGui::Selectable( label.c_str(), ui_shared_state.selected_mode == mode, 0, ImVec2( width, height ) ) )
+                ui_shared_state.selected_mode = mode;
             right_edge -= ( width + 2 * style.FramePadding.x );
 
             if( ImGui::IsItemHovered() )
@@ -1121,13 +1123,13 @@ void MainWindow::show_notifications()
     int i_notification = 0;
     float pos_y        = io.DisplaySize.y - 20;
 
-    for( auto notification_iterator = ui_state.notifications.begin();
-         notification_iterator != ui_state.notifications.end(); )
+    for( auto notification_iterator = ui_shared_state.notifications.begin();
+         notification_iterator != ui_shared_state.notifications.end(); )
     {
         auto & notification = *notification_iterator;
         if( notification.timer > notification.timeout )
         {
-            notification_iterator = ui_state.notifications.erase( notification_iterator );
+            notification_iterator = ui_shared_state.notifications.erase( notification_iterator );
             continue;
         }
 
@@ -1189,7 +1191,7 @@ int MainWindow::run()
     return 0;
 }
 
-MainWindow::MainWindow( std::shared_ptr<State> state ) : rendering_layer( ui_state, state )
+MainWindow::MainWindow( std::shared_ptr<State> state ) : rendering_layer( ui_shared_state, state )
 {
     global_window_handle = this;
 
@@ -1238,7 +1240,7 @@ MainWindow::MainWindow( std::shared_ptr<State> state ) : rendering_layer( ui_sta
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO & io   = ImGui::GetIO();
-    io.IniFilename = "imgui_state.ini";
+    io.IniFilename = "imgui_shared_state.ini";
 
     ImGui_ImplGlfw_InitForOpenGL( glfw_window, false );
     ImGui_ImplOpenGL3_Init();
@@ -1272,7 +1274,7 @@ MainWindow::MainWindow( std::shared_ptr<State> state ) : rendering_layer( ui_sta
     this->reset_camera();
 
     // Setup style
-    if( ui_state.dark_mode )
+    if( ui_shared_state.dark_mode )
         styles::apply_charcoal();
     else
         ImGui::StyleColorsLight();
@@ -1299,10 +1301,10 @@ MainWindow::~MainWindow()
     // Stop and wait for any running calculations
     this->stop_all();
 
-    glfwGetWindowPos( glfw_window, &ui_state.pos[0], &ui_state.pos[1] );
-    glfwGetWindowSize( glfw_window, &ui_state.size[0], &ui_state.size[1] );
+    glfwGetWindowPos( glfw_window, &ui_shared_state.pos[0], &ui_shared_state.pos[1] );
+    glfwGetWindowSize( glfw_window, &ui_shared_state.size[0], &ui_shared_state.size[1] );
 
-    ui_state.to_json();
+    ui_shared_state.to_json();
 
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();

@@ -3,7 +3,7 @@
 #define SPIRIT_IMGUI_MAIN_WINDOW_HPP
 
 #include <rendering_layer.hpp>
-#include <ui_state.hpp>
+#include <ui_shared_state.hpp>
 
 #include <imgui/imgui.h>
 
@@ -50,7 +50,7 @@ private:
 
     GLFWwindow * glfw_window;
 
-    UiState ui_state;
+    UiSharedState ui_shared_state;
     RenderingLayer rendering_layer;
 
     ImFont * font_cousine_14 = nullptr;

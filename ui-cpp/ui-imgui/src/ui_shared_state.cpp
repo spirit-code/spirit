@@ -1,4 +1,4 @@
-#include <ui_state.hpp>
+#include <ui_shared_state.hpp>
 
 #include <nlohmann/json.hpp>
 
@@ -24,12 +24,12 @@ using Json = nlohmann::json;
 namespace ui
 {
 
-UiState::UiState()
+UiSharedState::UiSharedState()
 {
     this->from_json();
 }
 
-void UiState::from_json()
+void UiSharedState::from_json()
 {
     auto file_path = fs::path( this->settings_filename );
     if( fs::is_regular_file( file_path ) )
@@ -61,7 +61,7 @@ void UiState::from_json()
     }
 }
 
-void UiState::to_json() const
+void UiSharedState::to_json() const
 {
     Json settings_json = {
         { "dark_mode", this->dark_mode },

@@ -153,18 +153,18 @@ void show_visualisation_settings( bool & show, ui::RenderingLayer & rendering_la
 
     ImGui::Begin( "Visualisation settings", &show );
 
-    float * colour = rendering_layer.ui_state.background_light.data();
-    if( rendering_layer.ui_state.dark_mode )
-        colour = rendering_layer.ui_state.background_dark.data();
+    float * colour = rendering_layer.ui_shared_state.background_light.data();
+    if( rendering_layer.ui_shared_state.dark_mode )
+        colour = rendering_layer.ui_shared_state.background_dark.data();
 
     ImGui::TextUnformatted( "Background color" );
     ImGui::SameLine();
     if( ImGui::Button( "default" ) )
     {
-        if( rendering_layer.ui_state.dark_mode )
-            rendering_layer.ui_state.background_dark = { 0.4f, 0.4f, 0.4f };
+        if( rendering_layer.ui_shared_state.dark_mode )
+            rendering_layer.ui_shared_state.background_dark = { 0.4f, 0.4f, 0.4f };
         else
-            rendering_layer.ui_state.background_light = { 0.9f, 0.9f, 0.9f };
+            rendering_layer.ui_shared_state.background_light = { 0.9f, 0.9f, 0.9f };
 
         rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
             { colour[0], colour[1], colour[2] } );
@@ -247,8 +247,8 @@ void show_visualisation_settings( bool & show, ui::RenderingLayer & rendering_la
     ImGui::Dummy( { 0, 10 } );
 
     vgm::Vec3 dir(
-        rendering_layer.ui_state.light_direction[0], rendering_layer.ui_state.light_direction[1],
-        rendering_layer.ui_state.light_direction[2] );
+        rendering_layer.ui_shared_state.light_direction[0], rendering_layer.ui_shared_state.light_direction[1],
+        rendering_layer.ui_shared_state.light_direction[2] );
     bool update = false;
     ImGui::Text( "Light direction" );
     ImGui::Columns( 2, "lightdircolumns", false ); // 3-ways, no border
@@ -270,7 +270,7 @@ void show_visualisation_settings( bool & show, ui::RenderingLayer & rendering_la
     if( update )
     {
         normalize_light_dir();
-        rendering_layer.ui_state.light_direction = { dir.x, dir.y, dir.z };
+        rendering_layer.ui_shared_state.light_direction = { dir.x, dir.y, dir.z };
         rendering_layer.view.setOption<VFRendering::View::Option::LIGHT_POSITION>(
             { -1000 * dir.x, -1000 * dir.y, -1000 * dir.z } );
     }
@@ -539,15 +539,16 @@ void show_settings( bool & show, ui::RenderingLayer & rendering_layer )
 
     ImGui::Begin( "Settings", &show );
 
-    if( rendering_layer.ui_state.dark_mode )
+    if( rendering_layer.ui_shared_state.dark_mode )
     {
         if( ImGui::Button( ICON_FA_SUN " light mode" ) )
         {
             ImGui::StyleColorsLight();
-            rendering_layer.ui_state.dark_mode = false;
+            rendering_layer.ui_shared_state.dark_mode = false;
             rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-                { rendering_layer.ui_state.background_light[0], rendering_layer.ui_state.background_light[1],
-                  rendering_layer.ui_state.background_light[2] } );
+                { rendering_layer.ui_shared_state.background_light[0],
+                  rendering_layer.ui_shared_state.background_light[1],
+                  rendering_layer.ui_shared_state.background_light[2] } );
         }
     }
     else
@@ -555,10 +556,11 @@ void show_settings( bool & show, ui::RenderingLayer & rendering_layer )
         if( ImGui::Button( ICON_FA_MOON " dark mode" ) )
         {
             styles::apply_charcoal();
-            rendering_layer.ui_state.dark_mode = true;
+            rendering_layer.ui_shared_state.dark_mode = true;
             rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-                { rendering_layer.ui_state.background_dark[0], rendering_layer.ui_state.background_dark[1],
-                  rendering_layer.ui_state.background_dark[2] } );
+                { rendering_layer.ui_shared_state.background_dark[0],
+                  rendering_layer.ui_shared_state.background_dark[1],
+                  rendering_layer.ui_shared_state.background_dark[2] } );
         }
     }
 

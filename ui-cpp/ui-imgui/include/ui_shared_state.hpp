@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SPIRIT_IMGUI_UI_STATE_HPP
-#define SPIRIT_IMGUI_UI_STATE_HPP
+#ifndef SPIRIT_IMGUI_UI_SHARED_STATE_HPP
+#define SPIRIT_IMGUI_UI_SHARED_STATE_HPP
 
 #include <enums.hpp>
 
@@ -13,7 +13,7 @@
 namespace ui
 {
 
-struct UiState
+struct UiSharedState
 {
     struct Notification
     {
@@ -27,12 +27,12 @@ struct UiState
         this->notifications.push_back( Notification{ notification, 0, timeout > 1 ? timeout : 1 } );
     }
 
-    UiState();
+    UiSharedState();
 
     void to_json() const;
     void from_json();
 
-    const std::string settings_filename = "settings.json";
+    const std::string settings_filename = "spirit_settings.json";
 
     // Simulation
     int selected_solver_min = Solver_VP_OSO;
