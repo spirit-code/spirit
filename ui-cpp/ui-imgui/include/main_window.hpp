@@ -65,14 +65,6 @@ private:
     std::vector<std::thread> threads_image;
     std::thread thread_chain;
 
-    bool show_overlays               = true;
-    bool show_parameters_settings    = true;
-    bool show_visualisation_settings = true;
-    bool show_hamiltonian_settings   = true;
-    bool show_geometry_settings      = true;
-    bool show_plots                  = true;
-    bool show_settings               = false;
-
     bool show_demo_window = false;
 
     bool show_keybindings = false;

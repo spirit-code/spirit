@@ -280,7 +280,7 @@ void show_visualisation_settings( bool & show, ui::RenderingLayer & rendering_la
     ImGui::End();
 }
 
-void show_overlay_system( bool & show )
+void show_overlay_system( bool & show, int & corner, std::array<float, 2> & position )
 {
     if( !show )
         return;
@@ -298,7 +298,8 @@ void show_overlay_system( bool & show )
     static int n_c           = 1;
 
     const float DISTANCE = 50.0f;
-    static int corner    = 0;
+
+    static bool need_to_position = true;
 
     ImGuiIO & io = ImGui::GetIO();
 
@@ -309,7 +310,14 @@ void show_overlay_system( bool & show )
             ( corner & 2 ) ? io.DisplaySize.y - DISTANCE : DISTANCE );
         ImVec2 window_pos_pivot = ImVec2( ( corner & 1 ) ? 1.0f : 0.0f, ( corner & 2 ) ? 1.0f : 0.0f );
         ImGui::SetNextWindowPos( window_pos, ImGuiCond_Always, window_pos_pivot );
+        need_to_position = false;
     }
+    else if( need_to_position )
+    {
+        ImGui::SetNextWindowPos( { position[0], position[1] } );
+        need_to_position = false;
+    }
+
     ImGui::SetNextWindowBgAlpha( 0.45f ); // Transparent background
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize
                                     | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing
@@ -318,6 +326,13 @@ void show_overlay_system( bool & show )
         window_flags |= ImGuiWindowFlags_NoMove;
     if( ImGui::Begin( "System information overlay", &show, window_flags ) )
     {
+        if( corner == -1 )
+        {
+            auto im_pos = ImGui::GetWindowPos();
+            position[0] = im_pos.x;
+            position[1] = im_pos.y;
+        }
+
         ImGui::TextUnformatted( fmt::format( "FPS: {:d}", int( io.Framerate ) ).c_str() );
 
         ImGui::Separator();
@@ -372,8 +387,11 @@ void show_overlay_system( bool & show )
 }
 
 void show_overlay_calculation(
-    bool & show, GUI_Mode & selected_mode, int & selected_solver_min, int & selected_solver_llg )
+    bool & show, GUI_Mode & selected_mode, int & selected_solver_min, int & selected_solver_llg, int & corner,
+    std::array<float, 2> & position )
 {
+    static bool need_to_position = true;
+
     if( !show )
         return;
 
@@ -414,7 +432,6 @@ void show_overlay_calculation(
     // ips = Simulation_Get_IterationsPerSecond( state.get() );
 
     const float DISTANCE = 50.0f;
-    static int corner    = 1;
 
     ImGuiIO & io = ImGui::GetIO();
     if( corner != -1 )
@@ -424,15 +441,30 @@ void show_overlay_calculation(
             ( corner & 2 ) ? io.DisplaySize.y - DISTANCE : DISTANCE );
         ImVec2 window_pos_pivot = ImVec2( ( corner & 1 ) ? 1.0f : 0.0f, ( corner & 2 ) ? 1.0f : 0.0f );
         ImGui::SetNextWindowPos( window_pos, ImGuiCond_Always, window_pos_pivot );
+        need_to_position = false;
     }
+    else if( need_to_position )
+    {
+        ImGui::SetNextWindowPos( { position[0], position[1] } );
+        need_to_position = false;
+    }
+
     ImGui::SetNextWindowBgAlpha( 0.35f ); // Transparent background
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize
                                     | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing
                                     | ImGuiWindowFlags_NoNav;
     if( corner != -1 )
         window_flags |= ImGuiWindowFlags_NoMove;
+
     if( ImGui::Begin( "Calculation information overlay", &show, window_flags ) )
     {
+        if( corner == -1 )
+        {
+            auto im_pos = ImGui::GetWindowPos();
+            position[0] = im_pos.x;
+            position[1] = im_pos.y;
+        }
+
         if( selected_mode == GUI_Mode::Minimizer || selected_mode == GUI_Mode::GNEB || selected_mode == GUI_Mode::MMF )
         {
             bool open_popup

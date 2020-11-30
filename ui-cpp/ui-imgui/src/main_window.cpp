@@ -395,7 +395,7 @@ void MainWindow::handle_keyboard()
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_I, false ) )
         {
-            show_overlays = !show_overlays;
+            ui_config_file.show_overlays = !ui_config_file.show_overlays;
         }
 
         //-----------------------------------------------------
@@ -718,23 +718,26 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     this->show_notifications();
 
     ImGui::PushFont( font_cousine_14 );
-    widgets::show_overlay_system( show_overlays );
+
+    widgets::show_overlay_system(
+        ui_config_file.show_overlays, ui_config_file.overlay_system_corner, ui_config_file.overlay_system_position );
     widgets::show_overlay_calculation(
-        show_overlays, ui_shared_state.selected_mode, ui_shared_state.selected_solver_min,
-        ui_shared_state.selected_solver_llg );
+        ui_config_file.show_overlays, ui_shared_state.selected_mode, ui_shared_state.selected_solver_min,
+        ui_shared_state.selected_solver_llg, ui_config_file.overlay_calculation_corner,
+        ui_config_file.overlay_calculation_position );
     ImGui::PopFont();
 
-    widgets::show_parameters( show_parameters_settings, ui_shared_state.selected_mode );
+    widgets::show_parameters( ui_config_file.show_parameters_settings, ui_shared_state.selected_mode );
 
-    widgets::show_visualisation_settings( show_visualisation_settings, rendering_layer );
+    widgets::show_visualisation_settings( ui_config_file.show_visualisation_settings, rendering_layer );
 
     widgets::show_about( show_about );
 
-    widgets::show_plots( show_plots );
+    widgets::show_plots( ui_config_file.show_plots );
 
     widgets::show_keybindings( show_keybindings );
 
-    widgets::show_settings( show_settings, rendering_layer );
+    widgets::show_settings( ui_config_file.show_settings, rendering_layer );
 
     if( show_demo_window )
     {
@@ -890,7 +893,7 @@ void MainWindow::show_menu_bar()
             {
             }
             ImGui::Separator();
-            ImGui::MenuItem( "Settings", "", &show_settings );
+            ImGui::MenuItem( "Settings", "", &ui_config_file.show_settings );
             ImGui::Separator();
             if( ImGui::MenuItem( "Take Screenshot" ) )
             {
@@ -956,11 +959,11 @@ void MainWindow::show_menu_bar()
         }
         if( ImGui::BeginMenu( "View" ) )
         {
-            ImGui::MenuItem( "Info-widgets", "i", &show_overlays );
-            ImGui::MenuItem( "Parameters", "", &show_parameters_settings );
-            ImGui::MenuItem( "Plots", "", &show_plots );
-            ImGui::MenuItem( "Geometry", "", &show_geometry_settings );
-            ImGui::MenuItem( "Visualisation settings", "", &show_visualisation_settings );
+            ImGui::MenuItem( "Info-widgets", "i", &ui_config_file.show_overlays );
+            ImGui::MenuItem( "Parameters", "", &ui_config_file.show_parameters_settings );
+            ImGui::MenuItem( "Plots", "", &ui_config_file.show_plots );
+            ImGui::MenuItem( "Geometry", "", &ui_config_file.show_geometry_settings );
+            ImGui::MenuItem( "Visualisation settings", "", &ui_config_file.show_visualisation_settings );
             ImGui::MenuItem( "Demo Window", "", &show_demo_window );
             ImGui::Separator();
             if( ImGui::MenuItem( "Regular mode" ) )
@@ -1241,7 +1244,7 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO & io   = ImGui::GetIO();
-    io.IniFilename = "imgui_shared_state.ini";
+    io.IniFilename = nullptr;
 
     ImGui_ImplGlfw_InitForOpenGL( glfw_window, false );
     ImGui_ImplOpenGL3_Init();
@@ -1261,13 +1264,19 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
     context_imgui = emscripten_webgl_create_context( "#imgui-canvas", &attrs_imgui );
     context_vfr   = emscripten_webgl_create_context( "#vfr-canvas", &attrs_vfr );
 
-    int width  = canvas_get_width();
-    int height = canvas_get_height();
+    ui_config_file.window_size[0]     = canvas_get_width();
+    ui_config_file.window_size[1]     = canvas_get_height();
+    ui_config_file.window_position[0] = 0;
+    ui_config_file.window_position[1] = 0;
 
     emscripten_webgl_make_context_current( context_imgui );
-    glfwSetWindowSize( glfw_window, width, height );
 #endif
     fmt::print( "OpenGL Version: {}\n", glGetString( GL_VERSION ) );
+
+    glfwSetWindowPos( glfw_window, ui_config_file.window_position[0], ui_config_file.window_position[1] );
+    glfwSetWindowSize( glfw_window, ui_config_file.window_size[0], ui_config_file.window_size[1] );
+    if( ui_config_file.window_maximized )
+        glfwMaximizeWindow( glfw_window );
 
     bool icon_set = images::glfw_set_app_icon( glfw_window );
 
@@ -1302,8 +1311,10 @@ MainWindow::~MainWindow()
     // Stop and wait for any running calculations
     this->stop_all();
 
+    // Update the config
     glfwGetWindowPos( glfw_window, &ui_config_file.window_position[0], &ui_config_file.window_position[1] );
     glfwGetWindowSize( glfw_window, &ui_config_file.window_size[0], &ui_config_file.window_size[1] );
+    ui_config_file.window_maximized = glfwGetWindowAttrib( glfw_window, GLFW_MAXIMIZED );
 
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();

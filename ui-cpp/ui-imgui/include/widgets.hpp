@@ -20,9 +20,10 @@ void show_plots( bool & show );
 void show_visualisation_settings( bool & show, ui::RenderingLayer & rendering_layer );
 void show_settings( bool & show, ui::RenderingLayer & rendering_layer );
 
-void show_overlay_system( bool & show );
+void show_overlay_system( bool & show, int & corner, std::array<float, 2> & position );
 void show_overlay_calculation(
-    bool & show, GUI_Mode & selected_mode, int & selected_solver_min, int & selected_solver_llg );
+    bool & show, GUI_Mode & selected_mode, int & selected_solver_min, int & selected_solver_llg, int & corner,
+    std::array<float, 2> & position );
 
 void show_keybindings( bool & show );
 void show_about( bool & show );
