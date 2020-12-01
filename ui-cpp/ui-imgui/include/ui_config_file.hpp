@@ -2,6 +2,7 @@
 #ifndef SPIRIT_IMGUI_UI_CONFIG_FILE_HPP
 #define SPIRIT_IMGUI_UI_CONFIG_FILE_HPP
 
+#include <rendering_layer.hpp>
 #include <ui_shared_state.hpp>
 
 #include <array>
@@ -12,7 +13,7 @@ namespace ui
 
 struct UiConfigFile
 {
-    UiConfigFile( UiSharedState & ui_shared_state );
+    UiConfigFile( UiSharedState & ui_shared_state, RenderingLayer & rendering_layer );
     ~UiConfigFile();
 
     void to_json() const;
@@ -21,6 +22,7 @@ struct UiConfigFile
     const std::string settings_filename = "spirit_settings.json";
 
     UiSharedState & ui_shared_state;
+    RenderingLayer & rendering_layer;
 
     // Which windows to show
     bool show_parameters_settings    = true;

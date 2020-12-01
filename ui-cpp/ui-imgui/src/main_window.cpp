@@ -1195,7 +1195,7 @@ int MainWindow::run()
 }
 
 MainWindow::MainWindow( std::shared_ptr<State> state )
-        : ui_config_file( ui_shared_state ), rendering_layer( ui_shared_state, state )
+        : rendering_layer( ui_shared_state, state ), ui_config_file( ui_shared_state, rendering_layer )
 {
     global_window_handle = this;
 

@@ -24,7 +24,90 @@ using Json = nlohmann::json;
 namespace ui
 {
 
-UiConfigFile::UiConfigFile( UiSharedState & ui_shared_state ) : ui_shared_state( ui_shared_state )
+void to_json( Json & j, const BoundingBoxRendererWidget & renderer_widget )
+{
+    j = Json{
+        { "line_width", renderer_widget.line_width },
+        { "level_of_detail", renderer_widget.level_of_detail },
+        { "draw_shadows", renderer_widget.draw_shadows },
+    };
+}
+
+void from_json( const Json & j, BoundingBoxRendererWidget & renderer_widget )
+{
+    if( j.contains( "line_width" ) )
+        j.at( "line_width" ).get_to( renderer_widget.line_width );
+    if( j.contains( "level_of_detail" ) )
+        j.at( "level_of_detail" ).get_to( renderer_widget.level_of_detail );
+    if( j.contains( "draw_shadows" ) )
+        j.at( "draw_shadows" ).get_to( renderer_widget.draw_shadows );
+}
+
+void to_json( Json & j, const std::shared_ptr<RendererWidget> & renderer_widget )
+{
+    if( dynamic_cast<BoundingBoxRendererWidget *>( renderer_widget.get() ) )
+    {
+        j = Json{ { "BoundingBoxRendererWidget",
+                    *dynamic_cast<BoundingBoxRendererWidget *>( renderer_widget.get() ) } };
+    }
+    else if( dynamic_cast<CoordinateSystemRendererWidget *>( renderer_widget.get() ) )
+    {
+    }
+    else if( dynamic_cast<DotRendererWidget *>( renderer_widget.get() ) )
+    {
+    }
+    else if( dynamic_cast<ArrowRendererWidget *>( renderer_widget.get() ) )
+    {
+    }
+    else if( dynamic_cast<ParallelepipedRendererWidget *>( renderer_widget.get() ) )
+    {
+    }
+    else if( dynamic_cast<SphereRendererWidget *>( renderer_widget.get() ) )
+    {
+    }
+    else if( dynamic_cast<SurfaceRendererWidget *>( renderer_widget.get() ) )
+    {
+    }
+    else if( dynamic_cast<IsosurfaceRendererWidget *>( renderer_widget.get() ) )
+    {
+    }
+}
+
+void from_json( const Json & j, std::shared_ptr<RendererWidget> & renderer_widget )
+{
+    if( dynamic_cast<BoundingBoxRendererWidget *>( renderer_widget.get() ) )
+    {
+        if( j.contains( "BoundingBoxRendererWidget" ) )
+            j.at( "BoundingBoxRendererWidget" )
+                .get_to( *dynamic_cast<BoundingBoxRendererWidget *>( renderer_widget.get() ) );
+    }
+    else if( dynamic_cast<CoordinateSystemRendererWidget *>( renderer_widget.get() ) )
+    {
+    }
+    else if( dynamic_cast<DotRendererWidget *>( renderer_widget.get() ) )
+    {
+    }
+    else if( dynamic_cast<ArrowRendererWidget *>( renderer_widget.get() ) )
+    {
+    }
+    else if( dynamic_cast<ParallelepipedRendererWidget *>( renderer_widget.get() ) )
+    {
+    }
+    else if( dynamic_cast<SphereRendererWidget *>( renderer_widget.get() ) )
+    {
+    }
+    else if( dynamic_cast<SurfaceRendererWidget *>( renderer_widget.get() ) )
+    {
+    }
+    else if( dynamic_cast<IsosurfaceRendererWidget *>( renderer_widget.get() ) )
+    {
+    }
+}
+
+// -----------------------------------------------------------------------------------
+
+UiConfigFile::UiConfigFile( UiSharedState & ui_shared_state, RenderingLayer & rendering_layer )
+        : ui_shared_state( ui_shared_state ), rendering_layer( rendering_layer )
 {
     this->from_json();
 }
@@ -78,9 +161,9 @@ void UiConfigFile::from_json()
 
         if( settings_json.contains( "shared_state" ) )
         {
-            auto & group = settings_json.at( "shared_state" );
-            if( settings_json.contains( "dark_mode" ) )
-                settings_json.at( "dark_mode" ).get_to( this->ui_shared_state.dark_mode );
+            auto group = settings_json.at( "shared_state" );
+            if( group.contains( "dark_mode" ) )
+                group.at( "dark_mode" ).get_to( this->ui_shared_state.dark_mode );
             if( group.contains( "background_dark" ) )
                 group.at( "background_dark" ).get_to( this->ui_shared_state.background_dark );
             if( group.contains( "background_light" ) )

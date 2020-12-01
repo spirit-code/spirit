@@ -50,8 +50,8 @@ private:
     void delete_image();
 
     GLFWwindow * glfw_window;
-    UiSharedState ui_shared_state;
 
+    UiSharedState ui_shared_state;
     UiConfigFile ui_config_file;
     RenderingLayer rendering_layer;
 
