@@ -13,6 +13,8 @@
 
 #include <fmt/format.h>
 
+#include <glm/gtc/type_ptr.hpp>
+
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include <stb/stb_image_write.h>
 
@@ -22,6 +24,7 @@ namespace ui
 RenderingLayer::RenderingLayer( ui::UiSharedState & ui_shared_state, std::shared_ptr<State> state )
         : ui_shared_state( ui_shared_state ), state( state )
 {
+    this->reset_camera();
 }
 
 void RenderingLayer::draw( int display_w, int display_h )
@@ -46,6 +49,18 @@ void RenderingLayer::draw( int display_w, int display_h )
         if( renderer_widget->show_ )
             update_renderers = true;
     }
+
+    for( auto renderer_widget_iterator = renderer_widgets.begin(); renderer_widget_iterator != renderer_widgets.end(); )
+    {
+        if( ( *renderer_widget_iterator )->remove_ )
+        {
+            renderer_widget_iterator = renderer_widgets.erase( renderer_widget_iterator );
+            update_renderers         = true;
+        }
+        else
+            ++renderer_widget_iterator;
+    }
+
     if( update_renderers )
     {
         system_renderers.resize( 0 );
@@ -123,9 +138,13 @@ void RenderingLayer::initialize_gl()
     view.setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>(
         VFRendering::Utilities::getColormapImplementation( VFRendering::Utilities::Colormap::HSV ) );
 
-    renderer_widgets.push_back( std::make_shared<BoundingBoxRendererWidget>( state, view, vectorfield ) );
-    renderer_widgets.push_back( std::make_shared<ArrowRendererWidget>( state, view, vectorfield ) );
-    renderer_widgets.push_back( std::make_shared<IsosurfaceRendererWidget>( state, view, vectorfield ) );
+    // Defaults
+    if( renderer_widgets.empty() )
+    {
+        renderer_widgets.push_back( std::make_shared<BoundingBoxRendererWidget>( state, view, vectorfield ) );
+        renderer_widgets.push_back( std::make_shared<ArrowRendererWidget>( state, view, vectorfield ) );
+        renderer_widgets.push_back( std::make_shared<IsosurfaceRendererWidget>( state, view, vectorfield ) );
+    }
 
     for( auto & renderer_widget : renderer_widgets )
     {
@@ -351,6 +370,28 @@ void RenderingLayer::update_vf_directions()
 
     if( Geometry_Get_Dimensionality( state.get() ) == 2 )
         vectorfield_surf2D.updateVectors( directions );
+}
+
+void RenderingLayer::reset_camera()
+{
+    float b_min[3], b_max[3];
+    Geometry_Get_Bounds( state.get(), b_min, b_max );
+    glm::vec3 bounds_min      = glm::make_vec3( b_min );
+    glm::vec3 bounds_max      = glm::make_vec3( b_max );
+    glm::vec3 center_position = ( bounds_min + bounds_max ) * 0.5f;
+    float camera_distance     = glm::distance( bounds_min, bounds_max );
+    auto camera_position      = center_position + camera_distance * glm::vec3( 0, 0, 1 );
+    auto up_vector            = glm::vec3( 0, 1, 0 );
+
+    VFRendering::Options options;
+    options.set<VFRendering::View::Option::SYSTEM_CENTER>( center_position );
+    options.set<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>( 45 );
+    options.set<VFRendering::View::Option::CAMERA_POSITION>( camera_position );
+    options.set<VFRendering::View::Option::CENTER_POSITION>( center_position );
+    options.set<VFRendering::View::Option::UP_VECTOR>( up_vector );
+    this->view.updateOptions( options );
+
+    this->needs_redraw();
 }
 
 } // namespace ui

@@ -18,8 +18,6 @@
 
 #include <imgui/imgui_internal.h>
 
-#include <glm/gtc/type_ptr.hpp>
-
 #include <Spirit/Chain.h>
 #include <Spirit/Configurations.h>
 #include <Spirit/Geometry.h>
@@ -73,30 +71,6 @@ static void framebufferSizeCallback( GLFWwindow * window, int width, int height 
 
 namespace ui
 {
-
-void MainWindow::reset_camera()
-{
-    float camera_distance = 30.0f;
-    // auto center_position  = ( vfr_geometry.min() + vfr_geometry.max() ) * 0.5f;
-    float b_min[3], b_max[3];
-    Geometry_Get_Bounds( state.get(), b_min, b_max );
-    glm::vec3 bounds_min      = glm::make_vec3( b_min );
-    glm::vec3 bounds_max      = glm::make_vec3( b_max );
-    glm::vec3 center_position = ( bounds_min + bounds_max ) * 0.5f;
-    auto camera_position      = center_position + camera_distance * glm::vec3( 0, 0, 1 );
-    auto up_vector            = glm::vec3( 0, 1, 0 );
-
-    VFRendering::Options options;
-    options.set<VFRendering::View::Option::SYSTEM_CENTER>( center_position );
-    // options.set<VFRendering::View::Option::SYSTEM_CENTER>( { 0, 0, 0 } );
-    options.set<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>( 45 );
-    options.set<VFRendering::View::Option::CAMERA_POSITION>( camera_position );
-    options.set<VFRendering::View::Option::CENTER_POSITION>( center_position );
-    options.set<VFRendering::View::Option::UP_VECTOR>( up_vector );
-    rendering_layer.view.updateOptions( options );
-
-    rendering_layer.needs_redraw();
-}
 
 void MainWindow::handle_mouse()
 {
@@ -153,8 +127,7 @@ void MainWindow::handle_keyboard()
     {
         if( ImGui::IsKeyPressed( GLFW_KEY_R ) )
         {
-            this->reset_camera();
-            rendering_layer.needs_redraw();
+            this->rendering_layer.reset_camera();
         }
     }
     else if( ctrl )
@@ -985,6 +958,10 @@ void MainWindow::show_menu_bar()
             if( ImGui::MenuItem( "Toggle camera projection", "c" ) )
             {
             }
+            if( ImGui::MenuItem( "Reset camera" ) )
+            {
+                this->rendering_layer.reset_camera();
+            }
             ImGui::Separator();
             if( ImGui::MenuItem( "Toggle visualisation", "ctrl+f" ) )
             {
@@ -1281,7 +1258,6 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
     bool icon_set = images::glfw_set_app_icon( glfw_window );
 
     rendering_layer.initialize_gl();
-    this->reset_camera();
 
     // Setup style
     if( ui_shared_state.dark_mode )

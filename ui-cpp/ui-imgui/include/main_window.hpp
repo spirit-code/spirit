@@ -35,7 +35,6 @@ private:
 
     void draw_imgui( int display_w, int display_h );
 
-    void reset_camera();
     void handle_mouse();
     void handle_keyboard();
 
@@ -52,8 +51,8 @@ private:
     GLFWwindow * glfw_window;
 
     UiSharedState ui_shared_state;
-    UiConfigFile ui_config_file;
     RenderingLayer rendering_layer;
+    UiConfigFile ui_config_file;
 
     ImFont * font_cousine_14 = nullptr;
     ImFont * font_karla_14   = nullptr;

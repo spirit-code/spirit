@@ -545,6 +545,32 @@ void BoundingBoxRendererWidget::show()
     ImGui::PopID();
 }
 
+CoordinateSystemRendererWidget::CoordinateSystemRendererWidget( std::shared_ptr<State> state ) : RendererWidget( state )
+{
+}
+
+void CoordinateSystemRendererWidget::show()
+{
+    ImGui::PushID( "Dots" );
+    ImGui::Checkbox( "Dots", &show_ );
+    ImGui::SameLine();
+    if( ImGui::Button( "Remove" ) )
+    {
+        show_   = false;
+        remove_ = true;
+    }
+
+    if( !show_ )
+    {
+        ImGui::PopID();
+        return;
+    }
+    ImGui::Indent( 15 );
+
+    ImGui::Indent( -15 );
+    ImGui::PopID();
+}
+
 DotRendererWidget::DotRendererWidget(
     std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield )
         : RendererWidget( state ), ColormapWidget()
@@ -561,6 +587,8 @@ void DotRendererWidget::show()
     ImGui::SameLine();
     if( ImGui::Button( "Remove" ) )
     {
+        show_   = false;
+        remove_ = true;
     }
 
     if( !show_ )
@@ -602,6 +630,8 @@ void ArrowRendererWidget::show()
     ImGui::SameLine();
     if( ImGui::Button( "Remove" ) )
     {
+        show_   = false;
+        remove_ = true;
     }
 
     if( !show_ )
@@ -646,6 +676,8 @@ void ParallelepipedRendererWidget::show()
     ImGui::SameLine();
     if( ImGui::Button( "Remove" ) )
     {
+        show_   = false;
+        remove_ = true;
     }
 
     if( !show_ )
@@ -677,6 +709,8 @@ void SphereRendererWidget::show()
     ImGui::SameLine();
     if( ImGui::Button( "Remove" ) )
     {
+        show_   = false;
+        remove_ = true;
     }
 
     if( !show_ )
@@ -708,6 +742,8 @@ void SurfaceRendererWidget::show()
     ImGui::SameLine();
     if( ImGui::Button( "Remove" ) )
     {
+        show_   = false;
+        remove_ = true;
     }
 
     if( !show_ )
@@ -759,6 +795,8 @@ void IsosurfaceRendererWidget::show()
     ImGui::SameLine();
     if( ImGui::Button( "Remove" ) )
     {
+        show_   = false;
+        remove_ = true;
     }
 
     if( !show_ )

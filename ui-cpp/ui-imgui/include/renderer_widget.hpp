@@ -53,7 +53,8 @@ protected:
 struct RendererWidget
 {
     std::shared_ptr<State> state;
-    bool show_ = true;
+    bool show_   = true;
+    bool remove_ = false;
     std::shared_ptr<VFRendering::RendererBase> renderer;
 
     virtual void show() = 0;
@@ -76,6 +77,10 @@ struct BoundingBoxRendererWidget : RendererWidget
 
 struct CoordinateSystemRendererWidget : RendererWidget
 {
+    CoordinateSystemRendererWidget( std::shared_ptr<State> state );
+
+    void show() override;
+
     std::shared_ptr<VFRendering::CoordinateSystemRenderer> renderer;
 };
 
