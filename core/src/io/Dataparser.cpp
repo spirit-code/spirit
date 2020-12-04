@@ -231,6 +231,136 @@ namespace IO
         }
     }
 
+    void Torques_from_File(const std::string torqueFile, int & n_indices,
+        intfield & torque_index, scalarfield & torque_magnitude,
+        vectorfield & torque_normal)
+    {
+        Log(Log_Level::Info, Log_Sender::IO, "Reading single atom torques from file " + torqueFile);
+        try
+        {
+            std::vector<std::string> columns(5);    // at least: 1 (index) + 3 (K)
+            // column indices of pair indices and interactions
+            int col_i = -1, col_T = -1, col_Tx = -1, col_Ty = -1, col_Tz = -1, col_Ta = -1, col_Tb = -1, col_Tc = -1;
+            bool T_magnitude = false, T_xyz = false, T_abc = false;
+            Vector3 T_temp = { 0, 0, 0 };
+            int n_torques;
+
+            Filter_File_Handle file(torqueFile);
+
+            if( file.Find("n_torques") )
+            {
+                // Read n interaction pairs
+                file.iss >> n_torques;
+                Log(Log_Level::Info, Log_Sender::IO, fmt::format("Torque file {} should have {} vectors", torqueFile, n_torques));
+            }
+            else
+            {
+                // Read the whole file
+                n_torques = (int)1e8;
+                // First line should contain the columns
+                file.ResetStream();
+                Log(Log_Level::Info, Log_Sender::IO, "Trying to parse torque columns from top of file " + torqueFile);
+            }
+
+            // Get column indices
+            file.GetLine(); // first line contains the columns
+            for( unsigned int i = 0; i < columns.size(); ++i )
+            {
+                file.iss >> columns[i];
+                std::transform( columns[i].begin(), columns[i].end(), columns[i].begin(), ::tolower );
+                if      (columns[i] == "i")  col_i = i;
+                else if (columns[i] == "t")  { col_T = i; T_magnitude = true; }
+                else if (columns[i] == "tx") col_Tx = i;
+                else if (columns[i] == "ty") col_Ty = i;
+                else if (columns[i] == "tz") col_Tz = i;
+                else if (columns[i] == "ta") col_Ta = i;
+                else if (columns[i] == "tb") col_Tb = i;
+                else if (columns[i] == "tc") col_Tc = i;
+
+                if (col_Tx >= 0 && col_Ty >= 0 && col_Tz >= 0) T_xyz = true;
+                if (col_Ta >= 0 && col_Tb >= 0 && col_Tc >= 0) T_abc = true;
+            }
+
+            if( !T_xyz && !T_abc )
+                Log(Log_Level::Warning, Log_Sender::IO, fmt::format(
+                    "No torque data could be found in header of file \"{}\"", torqueFile));
+
+            // Indices
+            int spin_i = 0;
+            scalar spin_T = 0, spin_T1 = 0, spin_T2 = 0, spin_T3 = 0;
+            // Arrays
+            torque_index = intfield(0);
+            torque_magnitude = scalarfield(0);
+            torque_normal = vectorfield(0);
+
+            // Get actual Data
+            int i_torque = 0;
+            std::string sdump;
+            while( file.GetLine() && i_torque < n_torques )
+            {
+                // Read a line from the File
+                for (unsigned int i = 0; i < columns.size(); ++i)
+                {
+                    if (i == col_i)
+                        file.iss >> spin_i;
+                    else if (i == col_T)
+                        file.iss >> spin_T;
+                    else if (i == col_Tx && T_xyz)
+                        file.iss >> spin_T1;
+                    else if (i == col_Ty && T_xyz)
+                        file.iss >> spin_T2;
+                    else if (i == col_Tz && T_xyz)
+                        file.iss >> spin_T3;
+                    else if (i == col_Ta && T_abc)
+                        file.iss >> spin_T1;
+                    else if (i == col_Tb && T_abc)
+                        file.iss >> spin_T2;
+                    else if (i == col_Tc && T_abc)
+                        file.iss >> spin_T3;
+                    else
+                        file.iss >> sdump;
+                }
+                T_temp = { spin_T1, spin_T2, spin_T3 };
+                // Torque vector orientation
+                if (T_abc)
+                {
+                    // spin_T1 = T_temp.dot(geometry->lattice_constant*geometry->bravais_vectors[0]);
+                    // spin_T2 = T_temp.dot(geometry->lattice_constant*geometry->bravais_vectors[1]);
+                    // spin_T3 = T_temp.dot(geometry->lattice_constant*geometry->bravais_vectors[2]);
+                    // T_temp = { spin_T1, spin_T2, spin_T3 };
+                }
+
+                // Anisotropy vector normalisation
+                if (T_magnitude)
+                {
+                    T_temp.normalize();
+                    if (T_temp.norm() == 0)
+                        T_temp = Vector3{0, 0, 1};
+                }
+                else
+                {
+                    spin_T = T_temp.norm();
+                    if (spin_T != 0)
+                        T_temp.normalize();
+                }
+
+                // Add the index and parameters to the corresponding lists
+                if (spin_T != 0)
+                {
+                    torque_index.push_back(spin_i);
+                    torque_magnitude.push_back(spin_T);
+                    torque_normal.push_back(T_temp);
+                }
+                ++i_torque;
+            }// end while getline
+            n_indices = i_torque;
+        }// end try
+        catch( ... )
+        {
+            spirit_rethrow(    fmt::format("Could not read torques from file  \"{}\"", torqueFile) );
+        }
+    }
+
     /*
     Read from Pairs file by Markus & Bernd
     */

@@ -7,6 +7,8 @@
 #include <io/OVF_File.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Version.hpp>
+#include <engine/Backend_par.hpp>
+#include <engine/Backend_seq.hpp>
 
 #include <iostream>
 #include <ctime>
@@ -199,6 +201,39 @@ namespace Engine
                         Vectormath::add_c_a    (-dtg * a_j * ( damping - beta ), s_c_vec, force_virtual);
                         Vectormath::add_c_cross(-dtg * a_j * ( 1 + beta * damping ), s_c_vec, image, force_virtual);
                     }
+                }
+
+                // Apply single atom torques
+                if( parameters.atom_torque_indices.size() > 0 )
+                {   
+                    int n_cells = geometry.n_cells_total;
+                    int n_cell_atoms = geometry.n_cell_atoms;
+
+                    auto spins   = image.data();
+                    
+                    auto normals    = parameters.atom_torque_normals.data();
+                    auto magnitudes = parameters.atom_torque_magnitudes.data();
+                    auto indices    = parameters.atom_torque_indices.data();
+                    int  n_torques  = parameters.atom_torque_indices.size();
+
+                    auto f       = force_virtual.data();
+
+                    Backend::par::apply(n_cells, 
+                            [&, spins, magnitudes, normals, indices, f] SPIRIT_LAMBDA (int idx)
+                            {
+                                for(int i=0; i<n_torques; i++)
+                                {
+                                    int idx_cur = idx * n_cell_atoms + indices[i];
+                                    f[idx_cur] += magnitudes[i] * normals[i];
+                                    // std::cout << "--\n";
+                                    // std::cout << "idx " << idx_cur << "\n";
+                                    // std::cout << "f   " << f[idx_cur].transpose() << "\n";
+                                    // std::cout << "s   " << spins[idx_cur].transpose() << "\n";
+                                    // std::cout << "n   " << normals[idx_cur].transpose() << "\n";
+                                    // std::cout << "sxn " << (spins[idx_cur].cross(normals[idx_cur])).transpose() << "\n";
+                                }
+                            }
+                    );
                 }
 
                 // Temperature

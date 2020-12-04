@@ -19,10 +19,16 @@ namespace IO
                                            const std::string file, int start_image_infile,
                                            int end_image_infile, const int insert_idx,
                                            int& noi_to_add, int& noi_to_read, const int idx_chain );
+
     void Anisotropy_from_File( const std::string anisotropyFile,
                                const std::shared_ptr<Data::Geometry> geometry, int& n_indices,
                                intfield& anisotropy_index, scalarfield& anisotropy_magnitude,
                                vectorfield& anisotropy_normal );
+
+    void Torques_from_File( const std::string torqueFile, int & n_indices,
+                            intfield & torque_index, scalarfield & torque_magnitude,
+                            vectorfield & torque_normal );
+
     void Pairs_from_File( const std::string pairsFile,
                           const std::shared_ptr<Data::Geometry> geometry, int& nop,
                           pairfield& exchange_pairs, scalarfield& exchange_magnitudes,

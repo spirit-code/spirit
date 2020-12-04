@@ -36,6 +36,10 @@ namespace Data
         // Spin current polarisation normal vector
         Vector3 stt_polarisation_normal = Vector3{1, 0, 0};
 
+        intfield    atom_torque_indices = intfield();
+        vectorfield atom_torque_normals = vectorfield();
+        scalarfield atom_torque_magnitudes = scalarfield();
+
         // Do direct minimization instead of dynamics
         bool direct_minimization = false;
 

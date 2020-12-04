@@ -703,6 +703,33 @@ namespace IO
                 myfile.Read_Vector3(parameters->stt_polarisation_normal, "llg_stt_polarisation_normal");
                 parameters->stt_polarisation_normal.normalize();
                 myfile.Read_Single(parameters->force_convergence, "llg_force_convergence");
+
+                // Torques
+                std::string torque_file = "";
+                int n_torques;
+                intfield    torque_index;
+                scalarfield torque_magnitude;
+                vectorfield torque_normal;
+
+                try
+                {
+                    if (myfile.Find("n_torques"))
+                        torque_file = configFile;
+                    else if (myfile.Find("torque_file"))
+                        myfile.iss >> torque_file;
+                    if (torque_file.length() > 0)
+                    {
+                        // The file name should be valid so we try to read it
+                        Torques_from_File(torque_file, n_torques, torque_index, torque_magnitude, torque_normal);
+                    }
+                    parameters->atom_torque_indices    = torque_index;
+                    parameters->atom_torque_magnitudes = torque_magnitude;
+                    parameters->atom_torque_normals    = torque_normal;
+                }// end try
+                catch( ... )
+                {
+                    spirit_handle_exception_core(fmt::format("Unable to read torques from config file \"{}\"", configFile));
+                }
             }
             catch( ... )
             {
