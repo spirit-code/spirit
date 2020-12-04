@@ -108,6 +108,11 @@ Set an additional temperature gradient.
 PREFIX void Parameters_LLG_Set_Temperature_Gradient(State *state, float inclination, const float direction[3], int idx_image=-1, int idx_chain=-1) SUFFIX;
 
 /*
+Set additional torques, which are applied to individual basis atoms.
+*/
+PREFIX void Parameters_LLG_Set_Torques(State *state, int n_torques, const int * indices, const float * magnitudes, const float * normals, int idx_image=-1, int idx_chain=-1) SUFFIX;
+
+/*
 Get Output
 --------------------------------------------------------------------
 */

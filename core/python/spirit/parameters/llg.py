@@ -167,6 +167,29 @@ def set_temperature(p_state, temperature, gradient_inclination=0, gradient_direc
     _LLG_Set_Temperature_Gradient(ctypes.c_void_p(p_state), ctypes.c_float(gradient_inclination), gradient_direction,
                                   ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
+
+_LLG_Set_Torques             = _spirit.Parameters_LLG_Set_Torques
+_LLG_Set_Torques.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_float), ctypes.c_int, ctypes.c_int]
+_LLG_Set_Torques.restype     = None
+
+def set_torques(p_state, indices, magnitudes, normals, idx_image=-1, idx_chain=-1):
+    """
+        Set the individual additional torques for the basis atoms.
+    """
+    n_torques = len(indices)
+    vec_in = n_torques * ctypes.c_int
+    indices = vec_in(*indices)
+
+    vec_fn = n_torques * ctypes.c_float
+    magnitudes = vec_fn(*magnitudes)
+
+    vec_3fn = 3 * n_torques * ctypes.c_float
+    temp = [i for n in normals for i in n]
+    normals = vec_3fn( *temp )
+
+    _LLG_Set_Torques( ctypes.c_void_p(p_state), n_torques, ctypes.POINTER(ctypes.c_int)(indices),
+                      ctypes.POINTER(ctypes.c_float)(magnitudes), ctypes.POINTER(ctypes.c_float)(normals), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
 ### ---------------------------------- Get ----------------------------------
 
 _LLG_Get_N_Iterations             = _spirit.Parameters_LLG_Get_N_Iterations

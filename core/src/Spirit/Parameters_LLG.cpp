@@ -307,6 +307,55 @@ void Parameters_LLG_Set_Temperature_Gradient(State *state, float inclination, co
     }
 }
 
+void Parameters_LLG_Set_Torques(State *state, int n_torques, const int * indices, const float * magnitudes, const float * normals, int idx_image, int idx_chain) noexcept
+{
+    try
+    {
+        std::shared_ptr<Data::Spin_System> image;
+        std::shared_ptr<Data::Spin_System_Chain> chain;
+
+        // Fetch correct indices and pointers
+        from_indices( state, idx_image, idx_chain, image, chain );
+        image->Lock();
+
+        intfield    v_indices    = intfield(indices, indices + n_torques);
+        scalarfield v_magnitudes = scalarfield(magnitudes, magnitudes + n_torques);
+        vectorfield v_normals    = vectorfield();
+
+        for(int i=0; i<n_torques; i++)
+        {
+            v_normals.push_back( { scalar(normals[3*i]), scalar(normals[3*i+1]), scalar(normals[3*i+2]) } );
+        }
+
+        Engine::Vectormath::normalize_vectors(v_normals);
+
+        for(auto ind : v_indices)
+        {
+            if( ind >= image->geometry->n_cell_atoms || ind < 0)
+            {
+                Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Could not set LLG atom torques because basis index was out of range", idx_image, idx_chain);
+                return;
+            }
+        }
+
+        image->llg_parameters->atom_torque_indices    = v_indices;
+        image->llg_parameters->atom_torque_magnitudes = v_magnitudes;
+        image->llg_parameters->atom_torque_normals    = v_normals;
+
+        Log(Utility::Log_Level::Info, Utility::Log_Sender::API, "Set LLG atom torques to ...", idx_image, idx_chain);
+        for (int i=0; i<v_indices.size(); i++)
+        {
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format("    i={}, T={}, Tx={}, Ty={}, Tz={}", v_indices[i], v_magnitudes[i], v_normals[i][0], v_normals[i][1], v_normals[i][2]), idx_image, idx_chain);
+        }
+        image->Unlock();
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api(idx_image, idx_chain);
+    }
+}
+
+
 void Parameters_LLG_Set_STT( State *state, bool use_gradient, float magnitude, const float normal[3],
                              int idx_image, int idx_chain ) noexcept
 {
