@@ -333,7 +333,7 @@ void Parameters_LLG_Set_Torques(State *state, int n_torques, const int * indices
         {
             if( ind >= image->geometry->n_cell_atoms || ind < 0)
             {
-                Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "Could not set LLG atom torques because basis index was out of range", idx_image, idx_chain);
+                Log(Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format("Could not set LLG atom torques because basis index {} was out of range", ind), idx_image, idx_chain);
                 return;
             }
         }

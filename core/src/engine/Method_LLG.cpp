@@ -156,7 +156,7 @@ namespace Engine
             scalar sqrtdtg = dtg / std::sqrt( parameters.dt );
             // STT
             // - monolayer
-            scalar a_j = parameters.stt_magnitude;
+            scalar a_j      = parameters.stt_magnitude;
             Vector3 s_c_vec = parameters.stt_polarisation_normal;
             // - gradient
             scalar b_j = a_j;    // pre-factor b_j = u*mu_s/gamma (see bachelorthesis Constantin)
@@ -224,7 +224,7 @@ namespace Engine
                                 for(int i=0; i<n_torques; i++)
                                 {
                                     int idx_cur = idx * n_cell_atoms + indices[i];
-                                    f[idx_cur] += magnitudes[i] * normals[i];
+                                    f[idx_cur] += dtg * magnitudes[i] * normals[i].cross(spins[idx_cur]);
                                     // std::cout << "--\n";
                                     // std::cout << "idx " << idx_cur << "\n";
                                     // std::cout << "f   " << f[idx_cur].transpose() << "\n";
