@@ -1019,36 +1019,41 @@ namespace Engine
             }
         }
 
-        // Tentative Dipole-Dipole (Note: this is very tentative and could be wrong)
-        field<int> tupel1 = field<int>(4);
-        field<int> tupel2 = field<int>(4);
-        field<int> maxVal = {geometry->n_cell_atoms, geometry->n_cells[0], geometry->n_cells[1], geometry->n_cells[2]};
-
-        if( save_dipole_matrices && ddi_method == DDI_Method::FFT && false )
+        // Tentative Dipole-Dipole (only works for open boundary conditions)
+        if( ddi_method != DDI_Method::None )
         {
+            scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
             for( int idx1 = 0; idx1 < geometry->nos; idx1++ )
             {
-                Engine::Vectormath::tupel_from_idx(idx1, tupel1, maxVal); // tupel1 now is {ib1, a1, b1, c1}
                 for( int idx2 = 0; idx2 < geometry->nos; idx2++ )
                 {
-                    Engine::Vectormath::tupel_from_idx(idx2, tupel2, maxVal); // tupel2 now is {ib2, a2, b2, c2}
-                    int& b_inter = inter_sublattice_lookup[tupel1[0] + geometry->n_cell_atoms * tupel2[0]];
-                    int da = tupel2[1] - tupel1[1];
-                    int db = tupel2[2] - tupel1[2];
-                    int dc = tupel2[3] - tupel1[3];
-                    Matrix3 & D = dipole_matrices[b_inter + n_inter_sublattice * (da + geometry->n_cells[0] * (db + geometry->n_cells[1] * dc))];
+                    auto diff = this->geometry->positions[idx2] - this->geometry->positions[idx1];
+                    scalar d = diff.norm(), d3, d5;
+                    scalar Dxx = 0, Dxy = 0, Dxz = 0, Dyy = 0, Dyz = 0, Dzz = 0;
+                    if( d > 1e-10 )
+                    {
+                        d3 = d * d * d;
+                        d5 = d * d * d * d * d;
+                        Dxx += mult * (3 * diff[0]*diff[0] / d5 - 1/d3);
+                        Dxy += mult *  3 * diff[0]*diff[1] / d5;          //same as Dyx
+                        Dxz += mult *  3 * diff[0]*diff[2] / d5;          //same as Dzx
+                        Dyy += mult * (3 * diff[1]*diff[1] / d5 - 1/d3);
+                        Dyz += mult *  3 * diff[1]*diff[2] / d5;          //same as Dzy
+                        Dzz += mult * (3 * diff[2]*diff[2] / d5 - 1/d3);
+                    }
 
                     int i = 3 * idx1;
                     int j = 3 * idx2;
 
-                    for( int alpha1 = 0; alpha1 < 3; alpha1++ )
-                    {
-                        for( int alpha2 = 0; alpha2 < 3; alpha2++ )
-                        {
-                            hessian(i + alpha1, j + alpha2) = D(alpha1, alpha2);
-                            hessian(j + alpha1, i + alpha2) = D(alpha1, alpha2);
-                        }
-                    }
+                    hessian(i + 0, j + 0) +=  -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dxx );
+                    hessian(i + 1, j + 0) +=  -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dxy );
+                    hessian(i + 2, j + 0) +=  -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dxz );
+                    hessian(i + 0, j + 1) +=  -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dxy );
+                    hessian(i + 1, j + 1) +=  -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dyy );
+                    hessian(i + 2, j + 1) +=  -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dyz );
+                    hessian(i + 0, j + 2) +=  -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dxz );
+                    hessian(i + 1, j + 2) +=  -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dyz );
+                    hessian(i + 2, j + 2) +=  -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dzz );
                 }
             }
         }
@@ -1371,6 +1376,10 @@ namespace Engine
 
         FFT_Dipole_Matrices(fft_plan_dipole, img_a, img_b, img_c);
         transformed_dipole_matrices = std::move(fft_plan_dipole.cpx_ptr);
+        if (save_dipole_matrices)
+        {
+            dipole_matrices = std::move(fft_plan_dipole.real_ptr);
+        }
     }// End prepare
 
     void Hamiltonian_Heisenberg::Clean_DDI()

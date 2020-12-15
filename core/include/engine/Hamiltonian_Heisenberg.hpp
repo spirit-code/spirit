@@ -173,8 +173,8 @@ namespace Engine
 
         field<FFT::FFT_cpx_type> transformed_dipole_matrices;
 
-        bool save_dipole_matrices = true;
-        field<Matrix3> dipole_matrices;
+        bool save_dipole_matrices = false;
+        field<FFT::FFT_real_type> dipole_matrices;
 
         // Number of inter-sublattice contributions
         int n_inter_sublattice;
