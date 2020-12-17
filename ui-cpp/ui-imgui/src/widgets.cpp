@@ -575,7 +575,7 @@ void show_settings( bool & show, ui::RenderingLayer & rendering_layer )
     {
         if( ImGui::Button( ICON_FA_SUN " light mode" ) )
         {
-            ImGui::StyleColorsLight();
+            styles::apply_light();
             rendering_layer.ui_shared_state.dark_mode = false;
             rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
                 { rendering_layer.ui_shared_state.background_light[0],

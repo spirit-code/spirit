@@ -120,7 +120,7 @@ void MainWindow::handle_keyboard()
 #ifdef __APPLE__
     bool ctrl = io.KeySuper;
 #else
-    bool ctrl    = io.KeyCtrl;
+    bool ctrl = io.KeyCtrl;
 #endif
 
     if( ctrl && io.KeyShift )
@@ -1263,7 +1263,7 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
     if( ui_shared_state.dark_mode )
         styles::apply_charcoal();
     else
-        ImGui::StyleColorsLight();
+        styles::apply_light();
 
     // Load Fonts
     font_cousine_14 = fonts::cousine( 14 );

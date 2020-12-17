@@ -7,6 +7,7 @@
 namespace styles
 {
 
+void apply_light( ImGuiStyle * dst = NULL );
 void apply_charcoal( ImGuiStyle * dst = NULL );
 
 } // namespace styles
