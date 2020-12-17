@@ -35,8 +35,12 @@ void RenderingLayer::draw( int display_w, int display_h )
     if( needs_data_ )
     {
         update_vf_directions();
+        needs_data_   = false;
         needs_redraw_ = true;
     }
+
+    if( Simulation_Running_On_Image( state.get() ) )
+        needs_redraw_ = true;
 
     bool update_renderers = false;
     for( auto & renderer_widget : renderer_widgets_shown )
@@ -63,6 +67,7 @@ void RenderingLayer::draw( int display_w, int display_h )
 
     if( update_renderers )
     {
+        needs_redraw_ = true;
         system_renderers.resize( 0 );
 
         for( auto & renderer_widget : renderer_widgets )
@@ -83,8 +88,10 @@ void RenderingLayer::draw( int display_w, int display_h )
     if( needs_redraw_ )
     {
         view.setFramebufferSize( float( display_w ), float( display_h ) );
-        view.draw();
+        needs_redraw_ = false;
     }
+
+    view.draw();
 }
 
 void RenderingLayer::screenshot_png( std::string filename )
@@ -296,6 +303,7 @@ void RenderingLayer::update_vf_geometry()
 
     // Update the vectorfield
     vectorfield.updateGeometry( geometry );
+    needs_data_ = true;
 }
 
 void RenderingLayer::update_vf_directions()
