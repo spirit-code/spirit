@@ -223,14 +223,16 @@ void UiConfigFile::from_json()
         if( settings_json.contains( "show" ) )
         {
             auto & group = settings_json.at( "show" );
-            if( group.contains( "parameters_settings" ) )
-                group.at( "parameters_settings" ).get_to( this->show_parameters_settings );
-            if( group.contains( "visualisation_settings" ) )
-                group.at( "visualisation_settings" ).get_to( this->show_visualisation_settings );
-            if( group.contains( "hamiltonian_settings" ) )
-                group.at( "hamiltonian_settings" ).get_to( this->show_hamiltonian_settings );
-            if( group.contains( "geometry_settings" ) )
-                group.at( "geometry_settings" ).get_to( this->show_geometry_settings );
+            if( group.contains( "parameters_widget" ) )
+                group.at( "parameters_widget" ).get_to( this->show_parameters_widget );
+            if( group.contains( "configurations_widget" ) )
+                group.at( "configurations_widget" ).get_to( this->show_configurations_widget );
+            if( group.contains( "visualisation_widget" ) )
+                group.at( "visualisation_widget" ).get_to( this->show_visualisation_widget );
+            if( group.contains( "hamiltonian_widget" ) )
+                group.at( "hamiltonian_widget" ).get_to( this->show_hamiltonian_widget );
+            if( group.contains( "geometry_widget" ) )
+                group.at( "geometry_widget" ).get_to( this->show_geometry_widget );
             if( group.contains( "plots" ) )
                 group.at( "plots" ).get_to( this->show_plots );
             if( group.contains( "settings" ) )
@@ -379,10 +381,11 @@ void UiConfigFile::to_json() const
         {
             "show",
             {
-                { "parameters_settings", this->show_parameters_settings },
-                { "visualisation_settings", this->show_visualisation_settings },
-                { "hamiltonian_settings", this->show_hamiltonian_settings },
-                { "geometry_settings", this->show_geometry_settings },
+                { "parameters_widget", this->show_parameters_widget },
+                { "configurations_widget", this->show_configurations_widget },
+                { "visualisation_widget", this->show_visualisation_widget },
+                { "hamiltonian_widget", this->show_hamiltonian_widget },
+                { "geometry_widget", this->show_geometry_widget },
                 { "plots", this->show_plots },
                 { "settings", this->show_settings },
             },

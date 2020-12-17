@@ -693,16 +693,21 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     ImGui::PushFont( font_cousine_14 );
 
     widgets::show_overlay_system(
-        ui_config_file.show_overlays, ui_config_file.overlay_system_corner, ui_config_file.overlay_system_position );
+        ui_config_file.show_overlays, ui_config_file.overlay_system_corner, ui_config_file.overlay_system_position,
+        state );
     widgets::show_overlay_calculation(
         ui_config_file.show_overlays, ui_shared_state.selected_mode, ui_shared_state.selected_solver_min,
         ui_shared_state.selected_solver_llg, ui_config_file.overlay_calculation_corner,
-        ui_config_file.overlay_calculation_position );
+        ui_config_file.overlay_calculation_position, state );
     ImGui::PopFont();
 
-    widgets::show_parameters( ui_config_file.show_parameters_settings, ui_shared_state.selected_mode );
+    widgets::show_configurations( ui_config_file.show_configurations_widget, state, rendering_layer );
 
-    widgets::show_visualisation_settings( ui_config_file.show_visualisation_settings, rendering_layer );
+    widgets::show_parameters( ui_config_file.show_parameters_widget, ui_shared_state.selected_mode );
+
+    widgets::show_visualisation_widget( ui_config_file.show_visualisation_widget, rendering_layer );
+
+    widgets::show_geometry( ui_config_file.show_geometry_widget, state, rendering_layer );
 
     widgets::show_about( show_about );
 
@@ -933,10 +938,11 @@ void MainWindow::show_menu_bar()
         if( ImGui::BeginMenu( "View" ) )
         {
             ImGui::MenuItem( "Info-widgets", "i", &ui_config_file.show_overlays );
-            ImGui::MenuItem( "Parameters", "", &ui_config_file.show_parameters_settings );
+            ImGui::MenuItem( "Spin Configurations", "", &ui_config_file.show_configurations_widget );
+            ImGui::MenuItem( "Parameters", "", &ui_config_file.show_parameters_widget );
             ImGui::MenuItem( "Plots", "", &ui_config_file.show_plots );
-            ImGui::MenuItem( "Geometry", "", &ui_config_file.show_geometry_settings );
-            ImGui::MenuItem( "Visualisation settings", "", &ui_config_file.show_visualisation_settings );
+            ImGui::MenuItem( "Geometry", "", &ui_config_file.show_geometry_widget );
+            ImGui::MenuItem( "Visualisation settings", "", &ui_config_file.show_visualisation_widget );
             ImGui::MenuItem( "Demo Window", "", &show_demo_window );
             ImGui::Separator();
             if( ImGui::MenuItem( "Regular mode" ) )

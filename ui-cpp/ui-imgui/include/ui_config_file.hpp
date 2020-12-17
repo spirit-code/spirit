@@ -25,12 +25,13 @@ struct UiConfigFile
     RenderingLayer & rendering_layer;
 
     // Which windows to show
-    bool show_parameters_settings    = true;
-    bool show_visualisation_settings = true;
-    bool show_hamiltonian_settings   = true;
-    bool show_geometry_settings      = true;
-    bool show_plots                  = true;
-    bool show_settings               = false;
+    bool show_configurations_widget = true;
+    bool show_parameters_widget     = false;
+    bool show_visualisation_widget  = false;
+    bool show_hamiltonian_widget    = false;
+    bool show_geometry_widget       = false;
+    bool show_plots                 = true;
+    bool show_settings              = false;
 
     // Overlays
     bool show_overlays        = true;

@@ -3,6 +3,9 @@
 #include <styles.hpp>
 #include <widgets.hpp>
 
+#include <Spirit/Chain.h>
+#include <Spirit/Configurations.h>
+#include <Spirit/Geometry.h>
 #include <Spirit/Simulation.h>
 #include <Spirit/System.h>
 #include <Spirit/Version.h>
@@ -19,6 +22,36 @@
 
 namespace widgets
 {
+
+bool toggle_button( const char * str_id, bool * v, bool coloured )
+{
+    ImVec2 p               = ImGui::GetCursorScreenPos();
+    ImDrawList * draw_list = ImGui::GetWindowDrawList();
+    bool clicked           = false;
+
+    float height = ImGui::GetFrameHeight() * 0.8f;
+    float radius = height * 0.50f;
+    float width  = 2 * radius * 1.55f;
+
+    if( ImGui::InvisibleButton( str_id, ImVec2( width, height ) ) )
+    {
+        *v      = !*v;
+        clicked = true;
+    }
+    ImU32 col_bg;
+    if( ImGui::IsItemHovered() )
+        col_bg
+            = *v && coloured ? IM_COL32( 145 + 20, 211, 68 + 20, 255 ) : IM_COL32( 218 - 20, 218 - 20, 218 - 20, 255 );
+    else
+        col_bg = *v && coloured ? IM_COL32( 145, 211, 68, 255 ) : IM_COL32( 218, 218, 218, 255 );
+
+    draw_list->AddRectFilled( p, ImVec2( p.x + width, p.y + height ), col_bg, height * 0.5f );
+    draw_list->AddCircleFilled(
+        ImVec2( *v ? ( p.x + width - radius ) : ( p.x + radius ), p.y + radius ), radius - 1.5f,
+        IM_COL32( 255, 255, 255, 255 ) );
+
+    return clicked;
+}
 
 void show_plots( bool & show )
 {
@@ -57,7 +90,7 @@ void show_plots( bool & show )
             {
                 std::string overlay = fmt::format( "{:.3e}", energies[energies.size() - 1] );
 
-                // ImGui::Text( "E" );
+                // ImGui::TextUnformatted( "E" );
                 // ImGui::SameLine();
                 ImGui::PlotLines(
                     "", energies.data(), energies.size(), values_offset, overlay.c_str(), -1.0f, 1.0f,
@@ -82,7 +115,7 @@ void show_plots( bool & show )
             {
                 std::string overlay = fmt::format( "{:.3e}", energies[energies.size() - 1] );
 
-                // ImGui::Text( "F" );
+                // ImGui::TextUnformatted( "F" );
                 // ImGui::SameLine();
                 ImGui::PlotLines(
                     "", energies.data(), energies.size(), values_offset, overlay.c_str(), -1.0f, 1.0f,
@@ -95,6 +128,260 @@ void show_plots( bool & show )
             ImGui::EndTabBar();
         }
     }
+    ImGui::End();
+}
+
+void show_configurations( bool & show, std::shared_ptr<State> state, ui::RenderingLayer & rendering_layer )
+{
+    static float pos[3]{ 0, 0, 0 };
+    static float border_rect[3]{ -1, -1, -1 };
+    static float border_cyl = -1;
+    static float border_sph = -1;
+    static bool inverted    = false;
+
+    static float temperature = 0;
+
+    static float sk_radius = 15;
+    static float sk_speed  = 1;
+    static float sk_phase  = 0;
+    static bool sk_up_down = false;
+    static bool sk_achiral = false;
+    static bool sk_rl      = false;
+
+    static float hopfion_radius = 10;
+    static int hopfion_order    = 1;
+
+    static float spiral_angle    = 0;
+    static float spiral_axis[3]  = { 0, 0, 1 };
+    static float spiral_qmag     = 1;
+    static float spiral_qvec[3]  = { 1, 0, 0 };
+    static bool spiral_q2        = false;
+    static float spiral_qmag2    = 1;
+    static float spiral_qvec2[3] = { 1, 0, 0 };
+
+    if( !show )
+        return;
+
+    ImGui::SetNextWindowSizeConstraints( { 300, 300 }, { 800, 999999 } );
+
+    ImGui::Begin( "Configurations", &show );
+
+    if( ImGui::CollapsingHeader( "Settings" ) )
+    {
+        ImGui::Indent( 15 );
+
+        ImGui::TextUnformatted( "pos" );
+        ImGui::SameLine();
+        ImGui::InputFloat3( "##configurations_pos", pos );
+
+        ImGui::TextUnformatted( "Rectangular border" );
+        ImGui::SameLine();
+        ImGui::InputFloat3( "##configurations_border_rect", border_rect );
+
+        ImGui::TextUnformatted( "Cylindrical border" );
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth( 50 );
+        ImGui::InputFloat( "##configurations_border_cyl", &border_cyl );
+
+        ImGui::TextUnformatted( "Spherical border" );
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth( 50 );
+        ImGui::InputFloat( "##configurations_border_sph", &border_sph );
+
+        ImGui::TextUnformatted( "invert" );
+        ImGui::SameLine();
+        ImGui::Checkbox( "##configurations_inverted", &inverted );
+
+        ImGui::Indent( -15 );
+    }
+
+    ImGui::Dummy( { 0, 10 } );
+    ImGui::Separator();
+    ImGui::Dummy( { 0, 10 } );
+
+    if( ImGui::Button( "Random" ) )
+    {
+        Configuration_Random( state.get() );
+        rendering_layer.needs_data();
+    }
+    ImGui::SameLine();
+    if( ImGui::Button( "+z" ) )
+    {
+        Configuration_PlusZ( state.get() );
+        rendering_layer.needs_data();
+    }
+    ImGui::SameLine();
+    if( ImGui::Button( "-z" ) )
+    {
+        Configuration_MinusZ( state.get() );
+        rendering_layer.needs_data();
+    }
+
+    ImGui::Dummy( { 0, 10 } );
+    ImGui::Separator();
+    ImGui::Dummy( { 0, 10 } );
+
+    ImGui::SetNextItemWidth( 50 );
+    ImGui::InputFloat( "##configurations_noise", &temperature );
+    ImGui::SameLine();
+    if( ImGui::Button( "Add noise" ) )
+    {
+        Configuration_Add_Noise_Temperature(
+            state.get(), temperature, pos, border_rect, border_cyl, border_sph, inverted );
+
+        Chain_Update_Data( state.get() );
+        rendering_layer.needs_data();
+    }
+
+    ImGui::Dummy( { 0, 10 } );
+    ImGui::Separator();
+    ImGui::Dummy( { 0, 10 } );
+
+    if( ImGui::Button( "Skyrmion" ) )
+    {
+
+        Configuration_Skyrmion(
+            state.get(), sk_radius, sk_speed, sk_phase, sk_up_down, sk_achiral, sk_rl, pos, border_rect, border_cyl,
+            border_sph, inverted );
+
+        rendering_layer.needs_data();
+    }
+
+    ImGui::Indent( 15 );
+
+    ImGui::TextUnformatted( "Radius" );
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth( 50 );
+    ImGui::InputFloat( "##configurations_sk_radius", &sk_radius );
+    ImGui::TextUnformatted( "Speed" );
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth( 50 );
+    ImGui::InputFloat( "##configurations_sk_speed", &sk_speed );
+    ImGui::TextUnformatted( "Phase" );
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth( 50 );
+    ImGui::InputFloat( "##configurations_sk_phase", &sk_phase );
+
+    ImGui::TextUnformatted( "Up" );
+    ImGui::SameLine();
+    toggle_button( "##configurations_sk_up_down", &sk_up_down, false );
+    ImGui::SameLine();
+    ImGui::TextUnformatted( "Down" );
+
+    ImGui::TextUnformatted( "Achiral" );
+    ImGui::SameLine();
+    ImGui::Checkbox( "##configurations_sk_achiral", &sk_achiral );
+
+    ImGui::TextUnformatted( "Invert vorticity" );
+    ImGui::SameLine();
+    ImGui::Checkbox( "##configurations_sk_rl", &sk_rl );
+
+    ImGui::Indent( -15 );
+
+    ImGui::Dummy( { 0, 10 } );
+    ImGui::Separator();
+    ImGui::Dummy( { 0, 10 } );
+
+    if( ImGui::Button( "Hopfion" ) )
+    {
+        Configuration_Hopfion(
+            state.get(), hopfion_radius, hopfion_order, pos, border_rect, border_cyl, border_sph, inverted );
+
+        rendering_layer.needs_data();
+    }
+
+    ImGui::Indent( 15 );
+
+    ImGui::TextUnformatted( "Radius" );
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth( 60 );
+    ImGui::InputFloat( "##configurations_hopfion_radius", &hopfion_radius );
+
+    ImGui::TextUnformatted( "Order" );
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth( 80 );
+    ImGui::InputInt( "##configurations_hopfion_order", &hopfion_order );
+
+    ImGui::Indent( -15 );
+
+    ImGui::Dummy( { 0, 10 } );
+    ImGui::Separator();
+    ImGui::Dummy( { 0, 10 } );
+
+    const char * direction_type = "Real Lattice";
+    // if( comboBox_SS->currentText() == "Real Lattice" )
+    //     direction_type = "Real Lattice";
+    // else if( comboBox_SS->currentText() == "Reciprocal Lattice" )
+    //     direction_type = "Reciprocal Lattice";
+    // else if( comboBox_SS->currentText() == "Real Space" )
+    //     direction_type = "Real Space";
+
+    if( ImGui::Button( "Spiral" ) )
+    {
+        // Normalize
+        float absq = std::sqrt(
+            spiral_qvec[0] * spiral_qvec[0] + spiral_qvec[1] * spiral_qvec[1] + spiral_qvec[2] * spiral_qvec[2] );
+        if( absq == 0 )
+        {
+            spiral_qvec[0] = 0;
+            spiral_qvec[1] = 0;
+            spiral_qvec[2] = 1;
+        }
+
+        // Scale
+        for( int dim = 0; dim < 3; ++dim )
+            spiral_qvec[dim] *= spiral_qmag;
+
+        // Create Spin Spiral
+        if( spiral_q2 )
+        {
+            // Normalize
+            float absq2 = std::sqrt(
+                spiral_qvec2[0] * spiral_qvec2[0] + spiral_qvec2[1] * spiral_qvec2[1]
+                + spiral_qvec2[2] * spiral_qvec2[2] );
+            if( absq == 0 )
+            {
+                spiral_qvec2[0] = 0;
+                spiral_qvec2[1] = 0;
+                spiral_qvec2[2] = 1;
+            }
+
+            // Scale
+            for( int dim = 0; dim < 3; ++dim )
+                spiral_qvec2[dim] *= spiral_qmag2;
+
+            Configuration_SpinSpiral_2q(
+                state.get(), direction_type, spiral_qvec, spiral_qvec2, spiral_axis, spiral_angle, pos, border_rect,
+                border_cyl, border_sph, inverted );
+        }
+        else
+            Configuration_SpinSpiral(
+                state.get(), direction_type, spiral_qvec, spiral_axis, spiral_angle, pos, border_rect, border_cyl,
+                border_sph, inverted );
+    }
+
+    ImGui::Indent( 15 );
+
+    ImGui::TextUnformatted( "q" );
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth( 50 );
+    ImGui::InputFloat( "##configurations_spiral_qmag", &spiral_qmag );
+
+    ImGui::TextUnformatted( "q dir" );
+    ImGui::SameLine();
+    ImGui::InputFloat3( "##configurations_spiral_qvec", spiral_qvec );
+
+    ImGui::TextUnformatted( "axis" );
+    ImGui::SameLine();
+    ImGui::InputFloat3( "##configurations_spiral_axis", spiral_axis );
+
+    ImGui::TextUnformatted( "angle" );
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth( 50 );
+    ImGui::InputFloat( "##configurations_spiral_angle", &spiral_angle );
+
+    ImGui::Indent( -15 );
+
     ImGui::End();
 }
 
@@ -144,7 +431,29 @@ void show_parameters( bool & show, GUI_Mode & selected_mode )
     ImGui::End();
 }
 
-void show_visualisation_settings( bool & show, ui::RenderingLayer & rendering_layer )
+void show_geometry( bool & show, std::shared_ptr<State> state, ui::RenderingLayer & rendering_layer )
+{
+    if( !show )
+        return;
+
+    ImGui::SetNextWindowSizeConstraints( { 300, 300 }, { 800, 999999 } );
+
+    ImGui::Begin( "Geometry", &show );
+
+    int n_cells[3];
+    Geometry_Get_N_Cells( state.get(), n_cells );
+    ImGui::TextUnformatted( "Number of cells" );
+    ImGui::SameLine();
+    if( ImGui::InputInt3( "##geometry_n_cells", n_cells, ImGuiInputTextFlags_EnterReturnsTrue ) )
+    {
+        Geometry_Set_N_Cells( state.get(), n_cells );
+        rendering_layer.update_vf_geometry();
+    }
+
+    ImGui::End();
+}
+
+void show_visualisation_widget( bool & show, ui::RenderingLayer & rendering_layer )
 {
     if( !show )
         return;
@@ -280,7 +589,7 @@ void show_visualisation_settings( bool & show, ui::RenderingLayer & rendering_la
     ImGui::End();
 }
 
-void show_overlay_system( bool & show, int & corner, std::array<float, 2> & position )
+void show_overlay_system( bool & show, int & corner, std::array<float, 2> & position, std::shared_ptr<State> state )
 {
     if( !show )
         return;
@@ -293,9 +602,7 @@ void show_overlay_system( bool & show, int & corner, std::array<float, 2> & posi
     static int noi           = 1;
     static int nos           = 1;
     static int n_basis_atoms = 1;
-    static int n_a           = 1;
-    static int n_b           = 1;
-    static int n_c           = 1;
+    static int n_cells[3]{ 1, 1, 1 };
 
     const float DISTANCE = 50.0f;
 
@@ -333,6 +640,13 @@ void show_overlay_system( bool & show, int & corner, std::array<float, 2> & posi
             position[1] = im_pos.y;
         }
 
+        noi = Chain_Get_NOI( state.get() );
+
+        nos    = Geometry_Get_NOS( state.get() );
+        energy = System_Get_Energy( state.get() );
+        Geometry_Get_N_Cells( state.get(), n_cells );
+        n_basis_atoms = Geometry_Get_N_Cell_Atoms( state.get() );
+
         ImGui::TextUnformatted( fmt::format( "FPS: {:d}", int( io.Framerate ) ).c_str() );
 
         ImGui::Separator();
@@ -351,7 +665,7 @@ void show_overlay_system( bool & show, int & corner, std::array<float, 2> & posi
         ImGui::TextUnformatted( fmt::format( "NOI: {}", noi ).c_str() );
         ImGui::TextUnformatted( fmt::format( "NOS: {}", nos ).c_str() );
         ImGui::TextUnformatted( fmt::format( "N basis atoms: {}", n_basis_atoms ).c_str() );
-        ImGui::TextUnformatted( fmt::format( "Cells: {}x{}x{}", n_a, n_b, n_c ).c_str() );
+        ImGui::TextUnformatted( fmt::format( "Cells: {}x{}x{}", n_cells[0], n_cells[1], n_cells[2] ).c_str() );
 
         ImGui::Separator();
 
@@ -388,7 +702,7 @@ void show_overlay_system( bool & show, int & corner, std::array<float, 2> & posi
 
 void show_overlay_calculation(
     bool & show, GUI_Mode & selected_mode, int & selected_solver_min, int & selected_solver_llg, int & corner,
-    std::array<float, 2> & position )
+    std::array<float, 2> & position, std::shared_ptr<State> state )
 {
     static bool need_to_position = true;
 
@@ -465,6 +779,16 @@ void show_overlay_calculation(
             position[1] = im_pos.y;
         }
 
+        if( Simulation_Running_Anywhere_On_Chain( state.get() ) )
+        {
+            simulated_time = Simulation_Get_Time( state.get() );
+            wall_time      = Simulation_Get_Wall_Time( state.get() );
+            iteration      = Simulation_Get_Iteration( state.get() );
+            ips            = Simulation_Get_IterationsPerSecond( state.get() );
+
+            force_max = Simulation_Get_MaxTorqueNorm( state.get() );
+        }
+
         if( selected_mode == GUI_Mode::Minimizer || selected_mode == GUI_Mode::GNEB || selected_mode == GUI_Mode::MMF )
         {
             bool open_popup
@@ -534,7 +858,10 @@ void show_overlay_calculation(
         ImGui::TextUnformatted(
             fmt::format( "{:0>2d}:{:0>2d}:{:0>2d}.{:0>3d}", hours, minutes, seconds, milliseconds ).c_str() );
         ImGui::TextUnformatted( fmt::format( "Iteration: {}", iteration ).c_str() );
-        ImGui::TextUnformatted( fmt::format( "IPS: {:.2f}", ips ).c_str() );
+        if( ips > 0.01 )
+            ImGui::TextUnformatted( fmt::format( "IPS: {:>6.2f}", ips ).c_str() );
+        else
+            ImGui::TextUnformatted( fmt::format( "IPS: {}", ips ).c_str() );
 
         ImGui::Separator();
 
