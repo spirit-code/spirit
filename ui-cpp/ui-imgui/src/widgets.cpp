@@ -250,7 +250,7 @@ void show_visualisation_settings( bool & show, ui::RenderingLayer & rendering_la
         rendering_layer.ui_shared_state.light_direction[0], rendering_layer.ui_shared_state.light_direction[1],
         rendering_layer.ui_shared_state.light_direction[2] );
     bool update = false;
-    ImGui::Text( "Light direction" );
+    ImGui::TextUnformatted( "Light direction" );
     ImGui::Columns( 2, "lightdircolumns", false ); // 3-ways, no border
     if( ImGui::gizmo3D( "##dir", dir ) )
         update = true;
@@ -355,16 +355,16 @@ void show_overlay_system( bool & show, int & corner, std::array<float, 2> & posi
 
         ImGui::Separator();
 
-        ImGui::Text( "Simple overlay\n"
-                     "in the corner of the screen.\n"
-                     "(right-click to change position)" );
+        ImGui::TextUnformatted( "Simple overlay\n"
+                                "in the corner of the screen.\n"
+                                "(right-click to change position)" );
 
         ImGui::Separator();
 
         if( ImGui::IsMousePosValid() )
             ImGui::Text( "Mouse Position: (%.1f,%.1f)", io.MousePos.x, io.MousePos.y );
         else
-            ImGui::Text( "Mouse Position: <invalid>" );
+            ImGui::TextUnformatted( "Mouse Position: <invalid>" );
 
         if( ImGui::BeginPopupContextWindow() )
         {
@@ -477,7 +477,7 @@ void show_overlay_calculation(
                 if( solver_button_hovered_duration > 1.5f )
                 {
                     ImGui::BeginTooltip();
-                    ImGui::Text( solvers_min[selected_solver_min].second.c_str() );
+                    ImGui::TextUnformatted( solvers_min[selected_solver_min].second.c_str() );
                     ImGui::EndTooltip();
                 }
             }
@@ -509,7 +509,7 @@ void show_overlay_calculation(
                 if( solver_button_hovered_duration > 1.5f )
                 {
                     ImGui::BeginTooltip();
-                    ImGui::Text( solvers_llg[selected_solver_llg].second.c_str() );
+                    ImGui::TextUnformatted( solvers_llg[selected_solver_llg].second.c_str() );
                     ImGui::EndTooltip();
                 }
             }
@@ -630,7 +630,7 @@ void show_keybindings( bool & show )
 
     ImGui::Begin( "Keybindings", &show );
 
-    ImGui::Text( "UI controls" );
+    ImGui::TextUnformatted( "UI controls" );
     ImGui::BulletText( "F1: Show this" );
     ImGui::BulletText( "F2: Toggle settings" );
     ImGui::BulletText( "F3: Toggle plots" );
@@ -638,52 +638,52 @@ void show_keybindings( bool & show )
     ImGui::BulletText( "F5: Toggle \"Dragging\" mode" );
     ImGui::BulletText( "F6: Toggle \"Defects\" mode" );
     ImGui::BulletText( "F7: Toggle \"Pinning\" mode" );
-    ImGui::Text( "" );
+    ImGui::TextUnformatted( "" );
     ImGui::BulletText( "F10  and Ctrl+F:      Toggle large visualisation" );
     ImGui::BulletText( "F11 and Ctrl+Shift+F: Toggle fullscreen window" );
     ImGui::BulletText( "F12 and Home:         Screenshot of visualisation region" );
     ImGui::BulletText( "Ctrl+Shift+V:         Toggle OpenGL visualisation" );
     ImGui::BulletText( "i:                    Toggle large visualisation" );
     ImGui::BulletText( "Escape:               Try to return focus to main UI (does not always work)" );
-    ImGui::Text( "" );
-    ImGui::Text( "Camera controls" );
+    ImGui::TextUnformatted( "" );
+    ImGui::TextUnformatted( "Camera controls" );
     ImGui::BulletText( "Left mouse:   Rotate the camera around (<b>shift</b> to go slow)" );
     ImGui::BulletText( "Right mouse:  Move the camera around (<b>shift</b> to go slow)" );
     ImGui::BulletText( "Scroll mouse: Zoom in on focus point (<b>shift</b> to go slow)" );
     ImGui::BulletText( "WASD:         Rotate the camera around (<b>shift</b> to go slow)" );
     ImGui::BulletText( "TFGH:         Move the camera around (<b>shift</b> to go slow)" );
     ImGui::BulletText( "X,Y,Z:        Set the camera in X, Y or Z direction (<b>shift</b> to invert)" );
-    ImGui::Text( "" );
-    ImGui::Text( "Control Simulations" );
+    ImGui::TextUnformatted( "" );
+    ImGui::TextUnformatted( "Control Simulations" );
     ImGui::BulletText( "Space:        Start/stop calculation" );
     ImGui::BulletText( "Ctrl+M:       Cycle method" );
     ImGui::BulletText( "Ctrl+S:       Cycle solver" );
-    ImGui::Text( "" );
-    ImGui::Text( "Manipulate the current images" );
+    ImGui::TextUnformatted( "" );
+    ImGui::TextUnformatted( "Manipulate the current images" );
     ImGui::BulletText( "Ctrl+R:       Random configuration" );
     ImGui::BulletText( "Ctrl+N:       Add tempered noise" );
     ImGui::BulletText( "Enter:        Insert last used configuration" );
-    ImGui::Text( "" );
-    ImGui::Text( "Visualisation" );
+    ImGui::TextUnformatted( "" );
+    ImGui::TextUnformatted( "Visualisation" );
     ImGui::BulletText( "+/-:          Use more/fewer data points of the vector field" );
     ImGui::BulletText( "1:            Regular Visualisation Mode" );
     ImGui::BulletText( "2:            Isosurface Visualisation Mode" );
     ImGui::BulletText( "3-5:          Slab (X,Y,Z) Visualisation Mode" );
     ImGui::BulletText( "/:            Cycle Visualisation Mode" );
     ImGui::BulletText( ", and .:      Move Slab (<b>shift</b> to go faster)" );
-    ImGui::Text( "" );
-    ImGui::Text( "Manipulate the chain of images" );
+    ImGui::TextUnformatted( "" );
+    ImGui::TextUnformatted( "Manipulate the chain of images" );
     ImGui::BulletText( "Arrows:          Switch between images and chains" );
     ImGui::BulletText( "Ctrl+X:          Cut   image" );
     ImGui::BulletText( "Ctrl+C:          Copy  image" );
     ImGui::BulletText( "Ctrl+V:          Paste image at current index" );
     ImGui::BulletText( "Ctrl+Left/Right: Insert left/right of current index<" );
     ImGui::BulletText( "Del:             Delete image" );
-    ImGui::Text( "" );
+    ImGui::TextUnformatted( "" );
     ImGui::TextWrapped( "Note that some of the keybindings may only work correctly on US keyboard layout.\n"
                         "\n"
                         "For more information see the documentation at spirit-docs.readthedocs.io" );
-    ImGui::Text( "" );
+    ImGui::TextUnformatted( "" );
 
     if( ImGui::Button( "Close" ) )
         show = false;
