@@ -1,0 +1,23 @@
+name: Ubuntu CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: configure
+      shell: bash
+      run: ./cmake.sh
+
+    - name: build
+      shell: bash
+      run: ./make.sh
+
+    - name: test
+      shell: bash
+      run: ./ctest.sh
