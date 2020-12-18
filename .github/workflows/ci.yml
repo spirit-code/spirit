@@ -1,4 +1,4 @@
-name: Ubuntu CI
+name: CI
 
 on: [push]
 
@@ -25,7 +25,7 @@ jobs:
     - name: configure
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DSPIRIT_UI_CXX_USE_QT=OFF
 
     - name: build
       shell: bash
