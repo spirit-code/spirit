@@ -81,10 +81,9 @@ namespace Engine
             this->t_iterations.push_back(system_clock::now());
 
             // Log Output every n_iterations_log steps
-            bool log = false;
-            if( this->n_iterations_log > 0 )
-                log = this->iteration > 0 && 0 == fmod(this->iteration, this->n_iterations_log);
-            if( log )
+            if( this->n_iterations_log > 0
+                && this->iteration > 0
+                && 0 == fmod(this->iteration, this->n_iterations_log) )
             {
                 ++this->step;
                 this->Message_Step();
@@ -95,14 +94,15 @@ namespace Engine
             this->Unlock();
         }
 
+        //---- Finalize (set iterations_allowed to false etc.)
+        this->Finalize();
+
         //---- Log messages
         this->step = this->iteration / this->n_iterations_log;
         this->Message_End();
 
         //---- Final save
         this->Save_Current(this->starttime, this->iteration, false, true);
-        //---- Finalize (set iterations_allowed to false etc.)
-        this->Finalize();
     }
 
 
@@ -124,11 +124,11 @@ namespace Engine
     }
 
 
-    scalar Method::getTime()
+    double Method::get_simulated_time()
     {
         // Not Implemented!
-        spirit_throw(Exception_Classifier::Not_Implemented, Log_Level::Error,
-            "Tried to use Method::getTime() of the Method base class!");
+        spirit_throw(Utility::Exception_Classifier::Not_Implemented, Utility::Log_Level::Error,
+            "Tried to use Method::get_simulated_time() of the Method base class!");
     }
 
 

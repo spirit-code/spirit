@@ -130,7 +130,7 @@ try
                 IO::OVF_File(filename).write_segment(segment, geometry.positions[0].data(), format);
 
                 Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format(
-                    "Wrote positions to file \"{}\" with format {}", filename, format ),
+                    "Wrote positions to file \"{}\" in {} format", filename, str(fileformat) ),
                     idx_image, idx_chain );
 
                 break;
@@ -138,7 +138,7 @@ try
             default:
             {
                 spirit_throw( Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
-                    fmt::format( "Invalid file format {}", format ) );
+                    fmt::format( "Invalid file format index {}", format ) );
             }
         }
     }
@@ -302,7 +302,8 @@ try
                 "It is recommend to use the appropriate \".ovf\" extension", filename ),
                 idx_image, idx_chain );
 
-        switch( (IO::VF_FileFormat)format )
+        auto fileformat = (IO::VF_FileFormat)format;
+        switch( fileformat )
         {
             case IO::VF_FileFormat::OVF_BIN:
             case IO::VF_FileFormat::OVF_BIN4:
@@ -324,7 +325,7 @@ try
                 IO::OVF_File(filename).write_segment(segment, spins[0].data(), format);
 
                 Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format(
-                    "Wrote spins to file \"{}\" with format {}", filename, format ),
+                    "Wrote spins to file \"{}\" in {} format", filename, str(fileformat) ),
                     idx_image, idx_chain );
 
                 break;
@@ -332,7 +333,7 @@ try
             default:
             {
                 spirit_throw( Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
-                    fmt::format( "Invalid file format {}", format ) );
+                    fmt::format( "Invalid file format index {}", format ) );
             }
         }
     }
@@ -402,11 +403,11 @@ try
             default:
             {
                 spirit_throw( Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
-                    fmt::format( "Invalid file format {}", format ) );
+                    fmt::format( "Invalid file format index {}", format ) );
             }
         }
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format(
-            "Appended spins to file \"{}\" with format {}", filename, format ), idx_image, idx_chain );
+            "Appended spins to file \"{}\" in {} format", filename, str(fileformat) ), idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -689,12 +690,12 @@ try
             default:
             {
                 spirit_throw( Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
-                    fmt::format( "Invalid file format {}", format ) );
+                    fmt::format( "Invalid file format index {}", format ) );
             }
         }
 
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format(
-            "Wrote chain to file \"{}\" with format {}", filename, format),
+            "Wrote chain to file \"{}\" in {} format", filename, str(fileformat)),
             idx_image, idx_chain );
     }
     catch( ... )
@@ -725,7 +726,6 @@ try
     try
     {
         auto fileformat = (IO::VF_FileFormat)format;
-
         switch( fileformat )
         {
             case IO::VF_FileFormat::OVF_BIN:
@@ -773,11 +773,11 @@ try
             default:
             {
                 spirit_throw( Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
-                    fmt::format( "Invalid file format {}", format ) );
+                    fmt::format( "Invalid file format index {}", format ) );
             }
         }
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format(
-            "Wrote chain to file \"{}\" with format {}", filename, format),
+            "Wrote chain to file \"{}\" in {} format", filename, str(fileformat)),
             idx_image, idx_chain );
     }
     catch( ... )
@@ -876,7 +876,8 @@ try
                 "It is recommend to use the appropriate \".ovf\" extension", filename ),
                 idx_image, idx_chain );
 
-        switch( (IO::VF_FileFormat)format )
+        auto fileformat = (IO::VF_FileFormat)format;
+        switch( fileformat )
         {
             case IO::VF_FileFormat::OVF_BIN:
             case IO::VF_FileFormat::OVF_BIN4:
@@ -909,7 +910,7 @@ try
                 file.write_segment(segment, data.data(), format);
 
                 Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format(
-                    "Wrote spins to file \"{}\" with format {}", filename, format ),
+                    "Wrote spins to file \"{}\" in {} format", filename, str(fileformat) ),
                     idx_image, idx_chain );
 
                 break;
@@ -917,7 +918,7 @@ try
             default:
             {
                 spirit_throw( Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
-                    fmt::format( "Invalid file format {}", format ) );
+                    fmt::format( "Invalid file format index {}", format ) );
             }
         }
     }
@@ -1140,7 +1141,8 @@ try
                 "It is recommend to use the appropriate \".ovf\" extension", filename ),
                 idx_image, idx_chain );
 
-        switch( (IO::VF_FileFormat)format )
+        auto fileformat = (IO::VF_FileFormat)format;
+        switch( fileformat )
         {
             case IO::VF_FileFormat::OVF_BIN:
             case IO::VF_FileFormat::OVF_BIN4:
@@ -1200,7 +1202,7 @@ try
                 }
 
                 Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format(
-                    "Wrote eigenmodes to file \"{}\" with format {}", filename, format ),
+                    "Wrote eigenmodes to file \"{}\" in {} format", filename, str(fileformat) ),
                     idx_image, idx_chain );
 
                 break;
@@ -1208,7 +1210,7 @@ try
             default:
             {
                 spirit_throw( Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
-                    fmt::format( "Invalid file format {}", format ) );
+                    fmt::format( "Invalid file format index {}", format ) );
             }
         }
     }
