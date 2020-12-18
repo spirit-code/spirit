@@ -113,18 +113,17 @@ jobs:
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: |
-        lcov -c -i --no-external --directory . --base-directory ../core -o baseline.info
+        lcov -c -i --no-external --directory . --base-directory $GITHUB_WORKSPACE/core -o baseline.info
         make test
-        lcov -c --no-external --directory . --base-directory ../core -o after_test.info
+        lcov -c --no-external --directory . --base-directory $GITHUB_WORKSPACE/core -o after_test.info
         lcov -a baseline.info -a after_test.info -o total_test.info
         lcov -r total_test.info \*thirdparty\* \*/test/\* \*Collection\* \*DLL_\* -o coverage.info
         bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
 
     - name: Python coverage
-      shell: bash
       working-directory: $GITHUB_WORKSPACE/core/python
       run: |
-        coverage run --source spirit --omit=spirit/spiritlib.py,spirit/collection.py setup.py test > cov.txt
+        coverage run --source spirit --omit=spirit/spiritlib.py setup.py test > cov.txt
         head cov.txt
         coverage report -m
         coverage xml
