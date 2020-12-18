@@ -2,22 +2,37 @@ name: Ubuntu CI
 
 on: [push]
 
+env:
+  BUILD_TYPE: Release
+
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      matrix:
+        config:
+          - os: ubuntu-latest
+          - os: macos-latest
+          - os: windows-latest
 
     steps:
     - uses: actions/checkout@v2
 
+    - name: Create build folder
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
     - name: configure
       shell: bash
-      run: ./cmake.sh
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE
 
     - name: build
       shell: bash
-      run: ./make.sh
+      working-directory: ${{runner.workspace}}/build
+      run: cmake --build . --config $BUILD_TYPE
 
     - name: test
       shell: bash
-      run: ./ctest.sh
+      working-directory: ${{runner.workspace}}/build
+      run: ctest --output-on-failure
