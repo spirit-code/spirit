@@ -14,12 +14,12 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         build-type: [Release, Debug]
         include:
-          - os: ubuntu-latest
+          - openmp: true
+            os: ubuntu-latest
             build-type: Release
-            openmp: true
-          - os: macos-latest
+          - openmp: true
+            os: macos-latest
             build-type: Release
-            openmp: true
 
     env:
       CMAKE_FLAGS: -DCMAKE_BUILD_TYPE=${{ matrix.build-type }} -DSPIRIT_UI_CXX_USE_QT=OFF
@@ -32,8 +32,9 @@ jobs:
       run: cmake -E make_directory ${{runner.workspace}}/build
 
     - name: Configure environment
-      if: ${{ matrix.openmp }}
-      run: export CMAKE_FLAGS=$CMAKE_FLAGS -DSPIRIT_USE_OPENMP=ON
+      shell: bash
+      if: matrix.openmp
+      run: echo "CMAKE_FLAGS=$CMAKE_FLAGS -DSPIRIT_USE_OPENMP=ON" >> $GITHUB_ENV
 
     - name: configure
       shell: bash
