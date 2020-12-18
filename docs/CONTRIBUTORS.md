@@ -1,11 +1,27 @@
 # Contributors
 
+
+### Moritz Sallermann
+* RWTH Aachen
+* PGI-1/IAS-1 at Forschungszentrum Jülich
+
+Implementation of
+- the dipole-dipole interaction using FFT convolutions
+- the NCG and LBFGS solvers
+
+email: m.sallermann@fz-juelich.de
+
+(May 2018 - ongoing)
+
+-----------------
+
+
 ### Gideon P. Müller
 * RWTH Aachen
 * University of Iceland
 * PGI-1/IAS-1 at Forschungszentrum Jülich
 
-General code design and project setup (including CMake).<br />
+General code design and project setup.<br />
 Implementation of the core library and user interfaces, most notably:
 - GNEB and MMF methods
 - Velocity projection solver
@@ -14,22 +30,9 @@ Implementation of the core library and user interfaces, most notably:
 - C++ QT GUI and initial OpenGL code
 - Unit tests and continuous integration
 
-email: g.mueller@fz-juelich.de
+email: gideon.mueller@outlook.de
 
-(Oct. 2014 - ongoing)
-
------------------
-
-
-### Moritz Sallermann
-* RWTH Aachen
-* PGI-1/IAS-1 at Forschungszentrum Jülich
-
-Implementation of the dipole-dipole interaction using FFT convolutions.
-
-email: m.sallermann@fz-juelich.de
-
-(May 2018 - ongoing)
+(Oct. 2014 - Sept. 2019)
 
 -----------------
 
@@ -125,16 +128,6 @@ Also some general code design and IO improvements.
 -----------------
 
 
-### Aleksei Ivanov
-* University of Iceland
-
-Initial implementation (Python/C) of the NCG and BFGS solvers.
-
-(Jan. 2019 - June 2019)
-
------------------
-
-
 ### Constantin Disselkamp
 * RWTH Aachen
 
@@ -175,6 +168,16 @@ Initial CUDA implementation and tests.<br />
 Code optimizations, suggestions and feedback.
 
 (Sept. 2016 - Dec. 2016)
+
+-----------------
+
+
+### Dmitrii Tolmachev
+* RWTH Aachen
+
+Support on the initial implementation of micromagnetics.
+
+(Sept. 2019 - Mar. 2020)
 
 -----------------
 

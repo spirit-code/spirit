@@ -37,6 +37,7 @@ private slots:
     void keyPressEvent( QKeyEvent * ev ) override;
     void keyReleaseEvent( QKeyEvent * ev ) override;
     void takeScreenshot();
+    void take_Screenshot_Chain();
     void edit_cut();
     void edit_copy();
     void edit_paste();
@@ -144,6 +145,7 @@ private:
 
     // Screenshot numbering
     int n_screenshots;
+    int n_screenshots_chain;
 };
 
 #endif

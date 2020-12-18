@@ -9,17 +9,12 @@ The **Spirit** framework is designed to run across different
 platforms and uses `CMake` for its build process, which will
 generate the appropriate build scripts for each platform.
 
-System-wide installation is not actively supported.
-While you can call `make install` after building,
-you may not achieve the desired results.
-
-
 Core library
 --------------------------------------
 
 **Requirements**
 
-- cmake >= 3.2
+- cmake >= 3.10
 - compiler with C++11 support, e.g. gcc >= 5.1
 
 **Build**
@@ -59,8 +54,8 @@ CMake option is `SPIRIT_UI_CXX_USE_QT`.
 - Qt >= 5.7 (including qt-charts)
 - OpenGL drivers >= 3.3
 
-Necessary OpenGL drivers *should* be available through the regular drivers for any
-remotely modern graphics card.
+Necessary OpenGL drivers *should* be available through the regular drivers
+for any remotely modern graphics card.
 
 
 Python package
@@ -179,3 +174,55 @@ cd build
 cmake -LH ..
 ```
 The build options of Spirit all start with `SPIRIT_`.
+
+
+Installation
+--------------------------------------
+
+*Please note that the following steps are not well-tested!*
+
+This step is not needed, unless you wish to have spirit in
+your system directories or to create a `.app` bundle on OSX.
+You can set the installation directory during the configuration
+stage, i.e.
+
+```
+cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr/local ..
+```
+
+or point it to a local folder, e.g. `-DCMAKE_INSTALL_PREFIX:PATH=./install`.
+
+**OSX .app bundle and installer**
+
+If you want to create a redistributable bundle on OSX, use
+
+```
+cd build
+cmake .. -DSPIRIT_BUNDLE_APP=ON
+make
+make install
+```
+
+This will gather dependencies, such as Qt dlls, in a `.app` folder and
+fix the link paths to make it redistributable. This app can be redistributed
+or "installed" by placing it in your "Applications" directory.
+
+You may need to update permissions,
+
+```
+chmod -R +x build/Spirit.app
+```
+
+Note that the bundle is already built with the regular `make` command.
+To make it redistributable, it is necessary to use `make install`.
+
+You can also create an installer as follows:
+
+```
+mkdir -p build && cd build
+cmake .. -DSPIRIT_BUNDLE_APP=ON
+make -j
+make package
+```
+
+Note that one can choose the generator as `cpack -G DragNDrop`.

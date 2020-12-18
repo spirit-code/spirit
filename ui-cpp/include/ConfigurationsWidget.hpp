@@ -50,6 +50,8 @@ private slots:
     // Transitions
     void homogeneousTransitionPressed();
     void homogeneousTransitionFirstLastPressed();
+    void homogeneousTransitionInterpolatePressed();
+    void DW_Width_CheckBox_State_Changed();
 
 private:
     void Setup_Input_Validators();

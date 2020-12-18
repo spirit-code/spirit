@@ -21,7 +21,7 @@ namespace Engine
         // Constructor
         Method_LLG(std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain);
 
-        scalar getTime() override;
+        double get_simulated_time() override;
 
         // Method name as string
         std::string Name() override;
@@ -58,7 +58,7 @@ namespace Engine
         scalar current_energy;
 
         // Measure of simulated time in picoseconds
-        scalar picoseconds_passed;
+        double picoseconds_passed;
     };
 }
 

@@ -1,7 +1,7 @@
 #pragma once
 #ifndef FFT_H
 #define FFT_H
-#include "Eigen/Core"
+#include <Eigen/Core>
 #include <data/Geometry.hpp>
 #include <engine/Vectormath_Defines.hpp>
 #include <iostream>
@@ -12,8 +12,8 @@
 #endif
 
 #ifdef SPIRIT_USE_KISSFFT
-#include "kiss_fft.h"
-#include "kiss_fftndr.h"
+#include <kiss_fft/kiss_fft.h>
+#include <kiss_fft/tools/kiss_fftndr.h>
 #endif
 
 #ifdef SPIRIT_USE_FFTW

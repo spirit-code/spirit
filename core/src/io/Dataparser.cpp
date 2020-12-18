@@ -105,7 +105,7 @@ namespace IO
         intfield & anisotropy_index, scalarfield & anisotropy_magnitude,
         vectorfield & anisotropy_normal)
     {
-        Log(Log_Level::Info, Log_Sender::IO, "Reading anisotropy from file " + anisotropyFile);
+        Log(Log_Level::Debug, Log_Sender::IO, "Reading anisotropy from file " + anisotropyFile);
         try
         {
             std::vector<std::string> columns(5);    // at least: 1 (index) + 3 (K)
@@ -121,7 +121,7 @@ namespace IO
             {
                 // Read n interaction pairs
                 file.iss >> n_anisotropy;
-                Log(Log_Level::Info, Log_Sender::IO, fmt::format("Anisotropy file {} should have {} vectors", anisotropyFile, n_anisotropy));
+                Log(Log_Level::Debug, Log_Sender::IO, fmt::format("Anisotropy file {} should have {} vectors", anisotropyFile, n_anisotropy));
             }
             else
             {
@@ -129,7 +129,7 @@ namespace IO
                 n_anisotropy = (int)1e8;
                 // First line should contain the columns
                 file.ResetStream();
-                Log(Log_Level::Info, Log_Sender::IO, "Trying to parse anisotropy columns from top of file " + anisotropyFile);
+                Log(Log_Level::Debug, Log_Sender::IO, "Trying to parse anisotropy columns from top of file " + anisotropyFile);
             }
 
             // Get column indices
@@ -227,7 +227,7 @@ namespace IO
         }// end try
         catch( ... )
         {
-            spirit_rethrow(    fmt::format("Could not read anisotropies from file  \"{}\"", anisotropyFile) );
+            spirit_rethrow(    fmt::format("Could not read anisotropies from file \"{}\"", anisotropyFile) );
         }
     }
 
@@ -238,7 +238,7 @@ namespace IO
         pairfield & exchange_pairs, scalarfield & exchange_magnitudes,
         pairfield & dmi_pairs, scalarfield & dmi_magnitudes, vectorfield & dmi_normals)
     {
-        Log(Log_Level::Info, Log_Sender::IO, fmt::format("Reading spin pairs from file \"{}\"", pairsFile));
+        Log(Log_Level::Debug, Log_Sender::IO, fmt::format("Reading spin pairs from file \"{}\"", pairsFile));
         try
         {
             std::vector<std::string> columns(20);    // at least: 2 (indices) + 3 (J) + 3 (DMI)
@@ -257,7 +257,7 @@ namespace IO
             {
                 // Read n interaction pairs
                 file.iss >> n_pairs;
-                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("File {} should have {} pairs", pairsFile, n_pairs));
+                Log(Log_Level::Debug, Log_Sender::IO, fmt::format("File {} should have {} pairs", pairsFile, n_pairs));
             }
             else
             {
@@ -265,7 +265,7 @@ namespace IO
                 n_pairs = (int)1e8;
                 // First line should contain the columns
                 file.ResetStream();
-                Log(Log_Level::Info, Log_Sender::IO, "Trying to parse spin pairs columns from top of file " + pairsFile);
+                Log(Log_Level::Debug, Log_Sender::IO, "Trying to parse spin pairs columns from top of file " + pairsFile);
             }
 
             file.GetLine();
@@ -433,7 +433,7 @@ namespace IO
 
                 ++i_pair;
             }// end while GetLine
-            Log(Log_Level::Info, Log_Sender::IO, fmt::format(
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format(
                 "Done reading {} spin pairs from file \"{}\", giving {} exchange and {} DM (symmetry-reduced) pairs.",
                 i_pair, pairsFile, exchange_pairs.size(), dmi_pairs.size()));
             nop = i_pair;
@@ -451,7 +451,7 @@ namespace IO
     void Quadruplets_from_File(const std::string quadrupletsFile, const std::shared_ptr<Data::Geometry>, int & noq,
         quadrupletfield & quadruplets, scalarfield & quadruplet_magnitudes)
     {
-        Log(Log_Level::Info, Log_Sender::IO, "Reading spin quadruplets from file " + quadrupletsFile);
+        Log(Log_Level::Debug, Log_Sender::IO, fmt::format("Reading spin quadruplets from file \"{}\"", quadrupletsFile));
         try
         {
             std::vector<std::string> columns(20);    // at least: 4 (indices) + 3*3 (positions) + 1 (magnitude)
@@ -481,7 +481,7 @@ namespace IO
                 n_quadruplets = (int)1e8;
                 // First line should contain the columns
                 file.ResetStream();
-                Log(Log_Level::Info, Log_Sender::IO, "Trying to parse quadruplet columns from top of file " + quadrupletsFile);
+                Log(Log_Level::Debug, Log_Sender::IO, "Trying to parse quadruplet columns from top of file " + quadrupletsFile);
             }
 
             file.GetLine();
@@ -576,7 +576,7 @@ namespace IO
 
                 ++i_quadruplet;
             }// end while GetLine
-            Log(Log_Level::Info, Log_Sender::IO, fmt::format("Done reading {} spin quadruplets from file {}", i_quadruplet, quadrupletsFile));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Done reading {} spin quadruplets from file \"{}\"", i_quadruplet, quadrupletsFile));
             noq = i_quadruplet;
         }// end try
         catch( ... )
@@ -595,7 +595,7 @@ namespace IO
 
         try
         {
-            Log(Log_Level::Info, Log_Sender::IO, "Reading Defects");
+            Log(Log_Level::Debug, Log_Sender::IO, fmt::format("Reading defects from file \"{}\"", defectsFile));
             Filter_File_Handle myfile(defectsFile);
             int nod = 0;
 
@@ -603,7 +603,7 @@ namespace IO
             {
                 // Read n interaction pairs
                 myfile.iss >> nod;
-                Log(Log_Level::Debug, Log_Sender::IO, fmt::format("File {} should have {} defects", defectsFile, nod));
+                Log(Log_Level::Debug, Log_Sender::IO, fmt::format("File \"{}\" should have {} defects", defectsFile, nod));
             }
             else
             {
@@ -611,7 +611,7 @@ namespace IO
                 nod = (int)1e8;
                 // First line should contain the columns
                 myfile.ResetStream();
-                Log(Log_Level::Debug, Log_Sender::IO, "Trying to parse defects from top of file " + defectsFile);
+                Log(Log_Level::Debug, Log_Sender::IO, fmt::format("Trying to parse defects from top of file \"{}\"", defectsFile));
             }
 
             while( myfile.GetLine() && n_defects < nod )
@@ -623,11 +623,11 @@ namespace IO
                 ++n_defects;
             }
 
-            Log(Log_Level::Info, Log_Sender::IO, fmt::format("Done reading {} defects", n_defects));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Done reading {} defects from file \"{}\"", n_defects, defectsFile));
         }
         catch( ... )
         {
-            spirit_rethrow(    fmt::format("Could not read defects file  \"{}\"", defectsFile) );
+            spirit_rethrow(    fmt::format("Could not read defects file \"{}\"", defectsFile) );
         }
     } // End Defects_from_File
 
@@ -640,14 +640,14 @@ namespace IO
         pinned_spins = vectorfield(0);
         try
         {
-            Log(Log_Level::Info, Log_Sender::IO, "Reading pinned sites");
+            Log(Log_Level::Debug, Log_Sender::IO, fmt::format("Reading pinned sites from file \"{}\"", pinnedFile));
             Filter_File_Handle myfile(pinnedFile);
 
             if( myfile.Find("n_pinned") )
             {
                 // Read n interaction pairs
                 myfile.iss >> nop;
-                Log(Log_Level::Debug, Log_Sender::IO, fmt::format("File {} should have {} pinned sites", pinnedFile, nop));
+                Log(Log_Level::Debug, Log_Sender::IO, fmt::format("File \"{}\" should have {} pinned sites", pinnedFile, nop));
             }
             else
             {
@@ -655,7 +655,7 @@ namespace IO
                 nop = (int)1e8;
                 // First line should contain the columns
                 myfile.ResetStream();
-                Log(Log_Level::Debug, Log_Sender::IO, "Trying to parse pinned sites from top of file " + pinnedFile);
+                Log(Log_Level::Debug, Log_Sender::IO, fmt::format("Trying to parse pinned sites from top of file \"{}\"", pinnedFile));
             }
 
             while( myfile.GetLine() && n_pinned < nop )
@@ -668,7 +668,7 @@ namespace IO
                 ++n_pinned;
             }
 
-            Log(Log_Level::Info, Log_Sender::IO, fmt::format("Done reading {} pinned sites", n_pinned));
+            Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("Done reading {} pinned sites from file \"{}\"", n_pinned, pinnedFile));
         }
         catch( ... )
         {

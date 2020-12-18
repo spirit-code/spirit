@@ -26,8 +26,8 @@ void Parameters_MMF_Set_Output_Tag(State *state, const char * tag, int idx_image
         p->output_file_tag = tag;
         chain->Unlock();
 
-        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-             fmt::format("Set GNEB output tag = \"{}\"", tag), idx_image, idx_chain );
+        Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
+             fmt::format("Set MMF output tag = \"{}\"", tag), idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -50,7 +50,7 @@ void Parameters_MMF_Set_Output_Folder(State *state, const char * folder, int idx
         p->output_folder = folder;
         image->Unlock();
 
-        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+        Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
              "Set MMF Output Folder = " + std::string(folder), idx_image, idx_chain );
     }
     catch( ... )
@@ -59,7 +59,7 @@ void Parameters_MMF_Set_Output_Folder(State *state, const char * folder, int idx
     }
 }
 
-void Parameters_MMF_Set_Output_General( State *state, bool any, bool initial, bool final, 
+void Parameters_MMF_Set_Output_General( State *state, bool any, bool initial, bool final,
                                         int idx_image, int idx_chain ) noexcept
 {
     try
@@ -110,7 +110,7 @@ void Parameters_MMF_Set_Output_Energy( State *state, bool energy_step, bool ener
     }
 }
 
-void Parameters_MMF_Set_Output_Configuration( State *state, bool configuration_step, 
+void Parameters_MMF_Set_Output_Configuration( State *state, bool configuration_step,
                                               bool configuration_archive, int configuration_filetype,
                                               int idx_image, int idx_chain ) noexcept
 {
@@ -135,7 +135,7 @@ void Parameters_MMF_Set_Output_Configuration( State *state, bool configuration_s
     }
 }
 
-void Parameters_MMF_Set_N_Iterations( State *state, int n_iterations, int n_iterations_log, 
+void Parameters_MMF_Set_N_Iterations( State *state, int n_iterations, int n_iterations_log,
                                       int idx_image, int idx_chain ) noexcept
 {
     try
@@ -185,7 +185,7 @@ void Parameters_MMF_Set_N_Modes(State *state, int n_modes, int idx_image, int id
             p->n_mode_follow = std::min(p->n_mode_follow, n_modes);
             image->Unlock();
 
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            Log(Utility::Log_Level::Parameter, Utility::Log_Sender::API,
                 fmt::format("Set MMF number of modes = {}", n_modes), idx_image, idx_chain);
         }
     }
@@ -218,7 +218,7 @@ void Parameters_MMF_Set_N_Mode_Follow(State *state, int n_mode_follow, int idx_i
             p->n_mode_follow = n_mode_follow;
             image->Unlock();
 
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+            Log(Utility::Log_Level::Parameter, Utility::Log_Sender::API,
                 fmt::format("Set MMF mode to follow = {}", n_mode_follow), idx_image, idx_chain);
         }
     }
@@ -275,7 +275,7 @@ const char * Parameters_MMF_Get_Output_Folder(State *state, int idx_image, int i
     }
 }
 
-void Parameters_MMF_Get_Output_General( State *state, bool * any, bool * initial, 
+void Parameters_MMF_Get_Output_General( State *state, bool * any, bool * initial,
                                         bool * final, int idx_image, int idx_chain ) noexcept
 {
     try
@@ -285,7 +285,7 @@ void Parameters_MMF_Get_Output_General( State *state, bool * any, bool * initial
 
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         auto p   = image->mmf_parameters;
         *any     = p->output_any;
         *initial = p->output_initial;
@@ -309,7 +309,7 @@ void Parameters_MMF_Get_Output_Energy( State *state, bool * energy_step, bool * 
 
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         auto p = image->mmf_parameters;
         *energy_step = p->output_energy_step;
         *energy_archive = p->output_energy_archive;
@@ -334,7 +334,7 @@ void Parameters_MMF_Get_Output_Configuration( State *state, bool * configuration
 
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         auto p = image->mmf_parameters;
         *configuration_step = p->output_configuration_step;
         *configuration_archive = p->output_configuration_archive;
@@ -346,7 +346,7 @@ void Parameters_MMF_Get_Output_Configuration( State *state, bool * configuration
     }
 }
 
-void Parameters_MMF_Get_N_Iterations( State *state, int * iterations, int * iterations_log, 
+void Parameters_MMF_Get_N_Iterations( State *state, int * iterations, int * iterations_log,
                                       int idx_image, int idx_chain ) noexcept
 {
     try
@@ -356,7 +356,7 @@ void Parameters_MMF_Get_N_Iterations( State *state, int * iterations, int * iter
 
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         auto p = image->mmf_parameters;
         *iterations = p->n_iterations;
         *iterations_log = p->n_iterations_log;
@@ -377,7 +377,7 @@ int Parameters_MMF_Get_N_Modes(State *state, int idx_image, int idx_chain) noexc
 
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         auto p = image->mmf_parameters;
         return p->n_modes;
     }
@@ -397,7 +397,7 @@ int Parameters_MMF_Get_N_Mode_Follow(State *state, int idx_image, int idx_chain)
 
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         auto p = image->mmf_parameters;
         return p->n_mode_follow;
     }

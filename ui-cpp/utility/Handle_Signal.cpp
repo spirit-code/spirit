@@ -3,9 +3,13 @@
 #include <Spirit/Log.h>
 #include <Spirit/Simulation.h>
 
+// TODO: Replace this
+#include <utility/Timing.hpp>
+
 #include <stdlib.h>
 #include <chrono>
 #include <memory>
+
 
 struct State;
 std::shared_ptr<State> extern state;

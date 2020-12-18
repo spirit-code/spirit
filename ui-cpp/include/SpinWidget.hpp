@@ -88,7 +88,7 @@ public:
 
     SpinWidget( std::shared_ptr<State> state, QWidget * parent = 0 );
     void setSuspended( bool suspended );
-    void updateData();
+    void updateData( bool update_directions = true, bool update_geometry = true, bool update_camera = true );
     void updateVectorFieldDirections();
     void updateVectorFieldGeometry();
     void initializeGL();
@@ -146,6 +146,22 @@ public:
     glm::vec2 xRangePosition() const;
     glm::vec2 yRangePosition() const;
     glm::vec2 zRangePosition() const;
+
+    void setCellFilter( int cell_a_min, int cell_a_max, int cell_b_min, int cell_b_max, int cell_c_min, int cell_c_max )
+    {
+        m_cell_a_min = cell_a_min;
+        m_cell_a_max = cell_a_max;
+        m_cell_b_min = cell_b_min;
+        m_cell_b_max = cell_b_max;
+        m_cell_c_min = cell_c_min;
+        m_cell_c_max = cell_c_max;
+    }
+
+    std::array<int, 6> getCellFilter()
+    {
+        return std::array<int, 6>{ m_cell_a_min, m_cell_a_max, m_cell_b_min, m_cell_b_max, m_cell_c_min, m_cell_c_max };
+    }
+
     void setOverallPositionRange( glm::vec2 x_range, glm::vec2 y_range, glm::vec2 z_range );
     void updateIsVisibleImplementation();
     //    Bounding Box
@@ -278,6 +294,7 @@ private:
     glm::vec2 m_x_range_position;
     glm::vec2 m_y_range_position;
     glm::vec2 m_z_range_position;
+    int m_cell_a_min, m_cell_a_max, m_cell_b_min, m_cell_b_max, m_cell_c_min, m_cell_c_max;
     glm::vec2 m_surface_x_range;
     glm::vec2 m_surface_y_range;
     glm::vec2 m_surface_z_range;

@@ -87,9 +87,9 @@ namespace Data
 
         // ---------- Convenience functions
         // Retrieve triangulation, if 2D
-        const std::vector<triangle_t>&    triangulation(int n_cell_step=1);
+        const std::vector<triangle_t>&  triangulation(int n_cell_step=1, std::array<int, 6> ranges = {0,-1,0,-1,0,-1});
         // Retrieve tetrahedra, if 3D
-        const std::vector<tetrahedron_t>& tetrahedra(int n_cell_step=1);
+        const std::vector<tetrahedron_t>& tetrahedra(int n_cell_step=1, std::array<int, 6> ranges = {0,-1,0,-1,0,-1});
         // Introduce disorder into the atom types
         // void disorder(scalar mixing);
         static std::vector<Vector3> BravaisVectorsSC();
@@ -138,6 +138,7 @@ namespace Data
         vectorfield mask_pinned_cells;
         // Dimensionality of the points
         int dimensionality;
+        int dimensionality_basis;
         // Center and Bounds
         Vector3 center, bounds_min, bounds_max;
         // Unit Cell Bounds
@@ -165,6 +166,7 @@ namespace Data
         // need to be updated when the corresponding function is called
         int last_update_n_cell_step;
         intfield last_update_n_cells;
+        std::array<int,6> last_update_cell_ranges;
     };
     
     //TODO: find better place (?)

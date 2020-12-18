@@ -91,6 +91,7 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
         this->actionSave_Spin_Configuration_Chain, SIGNAL( triggered() ), this,
         SLOT( save_Spin_Configuration_Chain() ) );
     connect( this->actionTake_Screenshot, SIGNAL( triggered() ), this, SLOT( takeScreenshot() ) );
+    connect( this->actionTake_Screenshot_Chain, SIGNAL( triggered() ), this, SLOT( take_Screenshot_Chain() ) );
 
     // Edit Menu
     connect( this->actionCut_Configuration, SIGNAL( triggered() ), this, SLOT( edit_cut() ) );
@@ -995,6 +996,24 @@ void MainWindow::takeScreenshot()
     std::string name = tag + "_Screenshot_" + std::to_string( n_screenshots );
     this->spinWidget->screenShot( name );
     Ui::MainWindow::statusBar->showMessage( tr( ( "Made Screenshot " + name ).c_str() ), 5000 );
+}
+
+void MainWindow::take_Screenshot_Chain()
+{
+    int active_image = System_Get_Index( this->state.get() );
+    State_DateTime( state.get() );
+    Chain_Jump_To_Image( this->state.get(), 0 );
+    std::string tag = State_DateTime( state.get() );
+    ++n_screenshots_chain;
+    for( int i = 0; i < Chain_Get_NOI( this->state.get() ); ++i )
+    {
+        std::string name
+            = tag + "_Screenshot_Chain_" + std::to_string( n_screenshots_chain ) + "_Image_" + std::to_string( i );
+        this->spinWidget->screenShot( name );
+        Ui::MainWindow::statusBar->showMessage( tr( ( "Made Screenshot " + name ).c_str() ), 5000 );
+        this->controlWidget->next_image();
+    }
+    Chain_Jump_To_Image( this->state.get(), active_image );
 }
 
 void MainWindow::edit_cut()

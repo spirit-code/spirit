@@ -1,9 +1,11 @@
 #ifndef SPIRIT_USE_CUDA
-#include "FFT.hpp"
+
+#include <engine/FFT.hpp>
+
 #include <iostream>
 #include <vector>
 
-namespace Engine 
+namespace Engine
 {
     namespace FFT
     {
@@ -17,7 +19,7 @@ namespace Engine
         }
         void iFour_3D(const FFT_cfg & cfg, FFT_cpx_type * in, FFT_real_type * out)
         {
-            std::cerr << "NOT IMPLEMENTED FOR FFTW!" << std::endl;   
+            std::cerr << "NOT IMPLEMENTED FOR FFTW!" << std::endl;
         }
 
         void batch_Four_3D(FFT_Plan & plan)
@@ -37,13 +39,13 @@ namespace Engine
             int n_transforms = this->n_transforms;
             int istride = n_transforms, ostride = n_transforms;
             int *inembed = n, *onembed = n;
-            
+
             int size = 1;
             for(auto k : dims)
                 size *= k;
 
             int idist = 1, odist = 1;
-         
+
             if(this->inverse == false)
                 this->cfg = FFTW_PLAN_MANY_DFT_R2C(rank, n, n_transforms, this->real_ptr.data(), inembed, istride, idist, reinterpret_cast<FFTW_COMPLEX*>(this->cpx_ptr.data()), onembed, ostride, odist, FFTW_MEASURE);
             else
@@ -73,7 +75,7 @@ namespace Engine
 
         void iFour_3D(const FFT_cfg & cfg, FFT_cpx_type * in, FFT_real_type * out)
         {
-            kiss_fftndri(cfg, in, out);     
+            kiss_fftndri(cfg, in, out);
         }
 
         void batch_Four_3D(FFT_Plan & plan)
@@ -91,7 +93,7 @@ namespace Engine
 
             for(int dir = 0; dir < number; ++dir)
                 Engine::FFT::Four_3D(plan.cfg, in + dir * size, out + dir * size);
-            
+
         }
 
         //same as above but iFFT

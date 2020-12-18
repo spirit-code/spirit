@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Eigen/Core>
-
+#include <Eigen/Sparse>
 #include <vector>
 #include <array>
 #include <complex>
@@ -12,6 +12,7 @@
 using VectorX    = Eigen::Matrix<scalar, -1,  1>;
 using RowVectorX = Eigen::Matrix<scalar,  1, -1>;
 using MatrixX    = Eigen::Matrix<scalar, -1, -1>;
+using SpMatrixX  = Eigen::SparseMatrix<scalar>;
 
 // 3D Eigen typedefs
 using Vector3    = Eigen::Matrix<scalar, 3, 1>;

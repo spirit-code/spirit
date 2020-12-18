@@ -64,6 +64,15 @@ SpinWidget::SpinWidget( std::shared_ptr<State> state, QWidget * parent )
     this->m_surface_y_range = y_range;
     this->m_surface_z_range = z_range;
 
+    int n_cell[3];
+    Geometry_Get_N_Cells( state.get(), n_cell );
+    this->m_cell_a_min = 0;
+    this->m_cell_a_max = n_cell[0] - 1;
+    this->m_cell_b_min = 0;
+    this->m_cell_b_max = n_cell[1] - 1;
+    this->m_cell_c_min = 0;
+    this->m_cell_c_max = n_cell[2] - 1;
+
     this->m_source                    = 0;
     this->visMode                     = VisualizationMode::SYSTEM;
     this->m_location_coordinatesystem = WidgetLocation::BOTTOM_RIGHT;
@@ -349,9 +358,11 @@ void SpinWidget::updateVectorFieldGeometry()
     Geometry_Get_N_Cells( this->state.get(), n_cells );
     int n_cell_atoms = Geometry_Get_N_Cell_Atoms( this->state.get() );
 
-    int n_cells_draw[3] = { std::max( 1, n_cells[0] / n_cell_step ), std::max( 1, n_cells[1] / n_cell_step ),
-                            std::max( 1, n_cells[2] / n_cell_step ) };
-    int nos_draw        = n_cell_atoms * n_cells_draw[0] * n_cells_draw[1] * n_cells_draw[2];
+    int n_cells_draw[3] = { std::max( 1, int( ceil( ( m_cell_a_max - m_cell_a_min + 1.0 ) / n_cell_step ) ) ),
+                            std::max( 1, int( ceil( ( m_cell_b_max - m_cell_b_min + 1.0 ) / n_cell_step ) ) ),
+                            std::max( 1, int( ceil( ( m_cell_c_max - m_cell_c_min + 1.0 ) / n_cell_step ) ) ) };
+
+    int nos_draw = n_cell_atoms * n_cells_draw[0] * n_cells_draw[1] * n_cells_draw[2];
 
     // Positions of the vectorfield
     std::vector<glm::vec3> positions = std::vector<glm::vec3>( nos_draw );
@@ -364,17 +375,15 @@ void SpinWidget::updateVectorFieldGeometry()
     spin_pos   = Geometry_Get_Positions( state.get() );
     atom_types = Geometry_Get_Atom_Types( state.get() );
     int icell  = 0;
-    for( int cell_c = 0; cell_c < n_cells_draw[2]; cell_c++ )
+    for( int cell_c = m_cell_c_min; cell_c < m_cell_c_max + 1; cell_c += n_cell_step )
     {
-        for( int cell_b = 0; cell_b < n_cells_draw[1]; cell_b++ )
+        for( int cell_b = m_cell_b_min; cell_b < m_cell_b_max + 1; cell_b += n_cell_step )
         {
-            for( int cell_a = 0; cell_a < n_cells_draw[0]; cell_a++ )
+            for( int cell_a = m_cell_a_min; cell_a < m_cell_a_max + 1; cell_a += n_cell_step )
             {
                 for( int ibasis = 0; ibasis < n_cell_atoms; ++ibasis )
                 {
-                    int idx = ibasis
-                              + n_cell_atoms * n_cell_step
-                                    * ( +cell_a + n_cells[0] * cell_b + n_cells[0] * n_cells[1] * cell_c );
+                    int idx = ibasis + n_cell_atoms * ( cell_a + n_cells[0] * ( cell_b + n_cells[1] * cell_c ) );
                     positions[icell] = glm::vec3( spin_pos[3 * idx], spin_pos[1 + 3 * idx], spin_pos[2 + 3 * idx] );
                     ++icell;
                 }
@@ -388,16 +397,17 @@ void SpinWidget::updateVectorFieldGeometry()
     //      get tetrahedra
     if( Geometry_Get_Dimensionality( state.get() ) == 3 )
     {
-        if( n_cell_step > 1
-            && ( n_cells[0] / n_cell_step < 2 || n_cells[1] / n_cell_step < 2 || n_cells[2] / n_cell_step < 2 ) )
+        if( ( n_cells_draw[0] <= 1 || n_cells_draw[1] <= 1 || n_cells_draw[2] <= 1 ) )
         {
             geometry = VFRendering::Geometry( positions, {}, {}, true );
         }
         else
         {
+            int temp_ranges[6]
+                = { m_cell_a_min, m_cell_a_max + 1, m_cell_b_min, m_cell_b_max + 1, m_cell_c_min, m_cell_c_max + 1 };
             const std::array<VFRendering::Geometry::index_type, 4> * tetrahedra_indices_ptr = nullptr;
-            int num_tetrahedra                                                              = Geometry_Get_Tetrahedra(
-                state.get(), reinterpret_cast<const int **>( &tetrahedra_indices_ptr ), n_cell_step );
+            int num_tetrahedra = Geometry_Get_Tetrahedra_Ranged(
+                state.get(), reinterpret_cast<const int **>( &tetrahedra_indices_ptr ), n_cell_step, temp_ranges );
             std::vector<std::array<VFRendering::Geometry::index_type, 4>> tetrahedra_indices(
                 tetrahedra_indices_ptr, tetrahedra_indices_ptr + num_tetrahedra );
             geometry = VFRendering::Geometry( positions, {}, tetrahedra_indices, false );
@@ -408,7 +418,7 @@ void SpinWidget::updateVectorFieldGeometry()
         // Determine two basis vectors
         std::array<glm::vec3, 2> basis;
         float eps = 1e-6;
-        for( int i = 1, j = 0; i < nos && j < 2; ++i )
+        for( int i = 1, j = 0; i < nos_draw && j < 2; ++i )
         {
             if( glm::length( positions[i] - positions[0] ) > eps )
             {
@@ -427,13 +437,29 @@ void SpinWidget::updateVectorFieldGeometry()
                 }
             }
         }
-        glm::vec3 normal = this->arrowSize() * glm::normalize( glm::cross( basis[0], basis[1] ) );
+
+        int n_cells[3];
+        Geometry_Get_N_Cells( this->state.get(), n_cells );
+        float bounds_min[3], bounds_max[3];
+        Geometry_Get_Bounds( state.get(), bounds_min, bounds_max );
+        float density = 0.01f;
+        if( n_cells[0] > 1 )
+            density = std::max( density, n_cells[0] / ( bounds_max[0] - bounds_min[0] ) );
+        if( n_cells[1] > 1 )
+            density = std::max( density, n_cells[1] / ( bounds_max[1] - bounds_min[1] ) );
+        if( n_cells[2] > 1 )
+            density = std::max( density, n_cells[2] / ( bounds_max[2] - bounds_min[2] ) );
+        density /= n_cell_step;
+        glm::vec3 normal = this->arrowSize() / density * glm::normalize( glm::cross( basis[0], basis[1] ) );
+
         // By default, +z is up, which is where we want the normal oriented towards
         if( glm::dot( normal, glm::vec3{ 0, 0, 1 } ) < 1e-6 )
             normal = -normal;
 
         // Rectilinear with one basis atom
-        if( n_cell_atoms == 1 && std::abs( glm::dot( basis[0], basis[1] ) ) < 1e-6 )
+        if( n_cell_atoms == 1 && std::abs( glm::dot( basis[0], basis[1] ) ) < 1e-6 && glm::length( basis[0] ) > 1e-6
+            && glm::length( basis[1] )
+                   > 1e-6 ) // Check for length of the basis so that we do not get 1D geometries here
         {
             std::vector<float> xs( n_cells_draw[0] ), ys( n_cells_draw[1] ), zs( n_cells_draw[2] );
             for( int i = 0; i < n_cells_draw[0]; ++i )
@@ -455,8 +481,22 @@ void SpinWidget::updateVectorFieldGeometry()
         else
         {
             const std::array<VFRendering::Geometry::index_type, 3> * triangle_indices_ptr = nullptr;
-            int num_triangles                                                             = Geometry_Get_Triangulation(
-                state.get(), reinterpret_cast<const int **>( &triangle_indices_ptr ), n_cell_step );
+            // int num_triangles = Geometry_Get_Triangulation(state.get(), reinterpret_cast<const int
+            // **>(&triangle_indices_ptr), n_cell_step);
+            int temp_ranges[6]
+                = { m_cell_a_min, m_cell_a_max + 1, m_cell_b_min, m_cell_b_max + 1, m_cell_c_min, m_cell_c_max + 1 };
+            int num_triangles = Geometry_Get_Triangulation_Ranged(
+                state.get(), reinterpret_cast<const int **>( &triangle_indices_ptr ), n_cell_step, temp_ranges, -1,
+                -1 );
+
+            // If the geometry cannot be triangulated, it may e.g be one dimensional due to filters etc. we push a dummy
+            // triangle, otherwise we get a lot of VFRendering error messages
+            if( num_triangles < 1 && this->show_surface )
+            {
+                num_triangles        = 1;
+                triangle_indices_ptr = new const std::array<VFRendering::Geometry::index_type, 3>();
+            }
+
             std::vector<std::array<VFRendering::Geometry::index_type, 3>> triangle_indices(
                 triangle_indices_ptr, triangle_indices_ptr + num_triangles );
             geometry = VFRendering::Geometry( positions, triangle_indices, {}, true );
@@ -484,9 +524,11 @@ void SpinWidget::updateVectorFieldDirections()
     Geometry_Get_N_Cells( this->state.get(), n_cells );
     int n_cell_atoms = Geometry_Get_N_Cell_Atoms( this->state.get() );
 
-    int n_cells_draw[3] = { std::max( 1, n_cells[0] / n_cell_step ), std::max( 1, n_cells[1] / n_cell_step ),
-                            std::max( 1, n_cells[2] / n_cell_step ) };
-    int nos_draw        = n_cell_atoms * n_cells_draw[0] * n_cells_draw[1] * n_cells_draw[2];
+    int n_cells_draw[3] = { std::max( 1, int( ceil( ( m_cell_a_max - m_cell_a_min + 1.0 ) / n_cell_step ) ) ),
+                            std::max( 1, int( ceil( ( m_cell_b_max - m_cell_b_min + 1.0 ) / n_cell_step ) ) ),
+                            std::max( 1, int( ceil( ( m_cell_c_max - m_cell_c_min + 1.0 ) / n_cell_step ) ) ) };
+
+    int nos_draw = n_cell_atoms * n_cells_draw[0] * n_cells_draw[1] * n_cells_draw[2];
 
     // Directions of the vectorfield
     std::vector<glm::vec3> directions = std::vector<glm::vec3>( nos_draw );
@@ -507,18 +549,15 @@ void SpinWidget::updateVectorFieldDirections()
     /*positions.assign(spin_pos, spin_pos + 3*nos);
     directions.assign(spins, spins + 3*nos);*/
     int icell = 0;
-    for( int cell_c = 0; cell_c < n_cells_draw[2]; cell_c++ )
+    for( int cell_c = m_cell_c_min; cell_c < m_cell_c_max + 1; cell_c += n_cell_step )
     {
-        for( int cell_b = 0; cell_b < n_cells_draw[1]; cell_b++ )
+        for( int cell_b = m_cell_b_min; cell_b < m_cell_b_max + 1; cell_b += n_cell_step )
         {
-            for( int cell_a = 0; cell_a < n_cells_draw[0]; cell_a++ )
+            for( int cell_a = m_cell_a_min; cell_a < m_cell_a_max + 1; cell_a += n_cell_step )
             {
                 for( int ibasis = 0; ibasis < n_cell_atoms; ++ibasis )
                 {
-                    int idx = ibasis + n_cell_atoms * cell_a * n_cell_step
-                              + n_cell_atoms * n_cells[0] * cell_b * n_cell_step
-                              + n_cell_atoms * n_cells[0] * n_cells[1] * cell_c * n_cell_step;
-                    // std::cerr << idx << " " << icell << std::endl;
+                    int idx = ibasis + n_cell_atoms * ( cell_a + n_cells[0] * ( cell_b + n_cells[1] * cell_c ) );
                     directions[icell] = glm::vec3( spins[3 * idx], spins[1 + 3 * idx], spins[2 + 3 * idx] );
                     if( atom_types[idx] < 0 )
                         directions[icell] *= 0;
@@ -551,23 +590,29 @@ void SpinWidget::updateVectorFieldDirections()
         this->m_vf_surf2D.updateVectors( directions );
 }
 
-void SpinWidget::updateData()
+void SpinWidget::updateData( bool update_directions, bool update_geometry, bool update_camera )
 {
     // Update the VectorField
-    this->updateVectorFieldDirections();
-    this->updateVectorFieldGeometry();
+    if( update_directions )
+        this->updateVectorFieldDirections();
+
+    if( update_geometry )
+        this->updateVectorFieldGeometry();
 
     // Update the View
-    float b_min[3], b_max[3];
-    Geometry_Get_Bounds( state.get(), b_min, b_max );
-    glm::vec3 bounds_min = glm::make_vec3( b_min );
-    glm::vec3 bounds_max = glm::make_vec3( b_max );
-    glm::vec3 center     = ( bounds_min + bounds_max ) * 0.5f;
-    this->m_view.setOption<VFRendering::View::Option::SYSTEM_CENTER>( center );
-    if( this->_reset_camera )
+    if( update_camera )
     {
-        setCameraToDefault();
-        this->_reset_camera = false;
+        float b_min[3], b_max[3];
+        Geometry_Get_Bounds( state.get(), b_min, b_max );
+        glm::vec3 bounds_min = glm::make_vec3( b_min );
+        glm::vec3 bounds_max = glm::make_vec3( b_max );
+        glm::vec3 center     = ( bounds_min + bounds_max ) * 0.5f;
+        this->m_view.setOption<VFRendering::View::Option::SYSTEM_CENTER>( center );
+        if( this->_reset_camera )
+        {
+            setCameraToDefault();
+            this->_reset_camera = false;
+        }
     }
 
     // Update Widget
@@ -582,7 +627,7 @@ void SpinWidget::paintGL()
     if( Simulation_Running_On_Image( this->state.get() ) || Simulation_Running_On_Chain( this->state.get() )
         || this->m_dragging )
     {
-        this->updateData();
+        this->updateData( true, false, true );
     }
 
     this->m_view.draw();
@@ -666,46 +711,44 @@ void SpinWidget::mouseMoveEvent( QMouseEvent * event )
     if( this->m_suspended )
         return;
 
-    float scale = 1;
-
-    if( event->modifiers() & Qt::ShiftModifier )
-    {
-        scale = 0.1f;
-    }
-
     if( m_interactionmode == InteractionMode::DRAG )
-        dragpaste();
-    else if( m_interactionmode == InteractionMode::DEFECT )
-        defectpaste();
-    else if( m_interactionmode == InteractionMode::PIN )
-        pinningpaste();
-    else
     {
+        dragpaste();
+        QTimer::singleShot( 1, this, SLOT( update() ) );
+    }
+    else if( m_interactionmode == InteractionMode::DEFECT )
+    {
+        defectpaste();
+        QTimer::singleShot( 1, this, SLOT( update() ) );
+    }
+    else if( m_interactionmode == InteractionMode::PIN )
+    {
+        pinningpaste();
+        QTimer::singleShot( 1, this, SLOT( update() ) );
+    }
+    else if( event->buttons() & Qt::LeftButton || event->buttons() & Qt::RightButton )
+    {
+        float scale = 1;
+        if( event->modifiers() & Qt::ShiftModifier )
+            scale = 0.1f;
+
         glm::vec2 current_mouse_position
             = glm::vec2( event->pos().x(), event->pos().y() ) * (float)devicePixelRatio() * scale;
         glm::vec2 previous_mouse_position = glm::vec2( m_previous_mouse_position.x(), m_previous_mouse_position.y() )
                                             * (float)devicePixelRatio() * scale;
         m_previous_mouse_position = event->pos();
 
-        if( event->buttons() & Qt::LeftButton || event->buttons() & Qt::RightButton )
+        VFRendering::CameraMovementModes movement_mode = VFRendering::CameraMovementModes::ROTATE_BOUNDED;
+        if( this->m_camera_rotate_free )
+            movement_mode = VFRendering::CameraMovementModes::ROTATE_FREE;
+        if( ( event->modifiers() & Qt::AltModifier ) == Qt::AltModifier || event->buttons() & Qt::RightButton )
         {
-            VFRendering::CameraMovementModes movement_mode = VFRendering::CameraMovementModes::ROTATE_BOUNDED;
-            if( this->m_camera_rotate_free )
-                movement_mode = VFRendering::CameraMovementModes::ROTATE_FREE;
-            if( ( event->modifiers() & Qt::AltModifier ) == Qt::AltModifier || event->buttons() & Qt::RightButton )
-            {
-                movement_mode = VFRendering::CameraMovementModes::TRANSLATE;
-            }
-            this->m_view.mouseMove( previous_mouse_position, current_mouse_position, movement_mode );
-
-            QTimer::singleShot( 1, this, SLOT( update() ) );
+            movement_mode = VFRendering::CameraMovementModes::TRANSLATE;
         }
-    }
-}
+        this->m_view.mouseMove( previous_mouse_position, current_mouse_position, movement_mode );
 
-float SpinWidget::getFramesPerSecond() const
-{
-    return this->m_view.getFramerate();
+        QTimer::singleShot( 1, this, SLOT( update() ) );
+    }
 }
 
 void SpinWidget::wheelEvent( QWheelEvent * event )
@@ -738,6 +781,11 @@ void SpinWidget::updateMouseDecoration()
 {
     auto pos = this->mapFromGlobal( QCursor::pos() - QPoint( drag_radius, drag_radius ) );
     this->mouse_decoration->move( (int)pos.x(), (int)pos.y() );
+}
+
+float SpinWidget::getFramesPerSecond() const
+{
+    return this->m_view.getFramerate();
 }
 
 const VFRendering::Options & SpinWidget::options() const
@@ -1334,6 +1382,7 @@ void SpinWidget::setOverallPositionRange( glm::vec2 x_range, glm::vec2 y_range, 
 
 void SpinWidget::updateIsVisibleImplementation()
 {
+    float epsilon = 1e-5;
     std::ostringstream sstream;
     std::string is_visible_implementation;
     sstream << "bool is_visible(vec3 position, vec3 direction) {";
@@ -1346,11 +1395,10 @@ void SpinWidget::updateIsVisibleImplementation()
     else
     {
         sstream << "float x_min_pos = ";
-        sstream << m_x_range_position.x;
+        sstream << m_x_range_position.x - epsilon;
         sstream << "; float x_max_pos = ";
-        sstream << m_x_range_position.y;
-        sstream << "; bool is_visible_x_pos = position.x <= x_max_pos && position.x >= "
-                   "x_min_pos;";
+        sstream << m_x_range_position.y + epsilon;
+        sstream << "; bool is_visible_x_pos = position.x <= x_max_pos && position.x >= x_min_pos;";
     }
     // Y
     if( m_y_range_position.x >= m_y_range_position.y )
@@ -1360,11 +1408,10 @@ void SpinWidget::updateIsVisibleImplementation()
     else
     {
         sstream << "float y_min_pos = ";
-        sstream << m_y_range_position.x;
+        sstream << m_y_range_position.x - epsilon;
         sstream << "; float y_max_pos = ";
-        sstream << m_y_range_position.y;
-        sstream << "; bool is_visible_y_pos = position.y <= y_max_pos && position.y >= "
-                   "y_min_pos;";
+        sstream << m_y_range_position.y + epsilon;
+        sstream << "; bool is_visible_y_pos = position.y <= y_max_pos && position.y >= y_min_pos;";
     }
     // Z
     if( m_z_range_position.x >= m_z_range_position.y )
@@ -1374,11 +1421,10 @@ void SpinWidget::updateIsVisibleImplementation()
     else
     {
         sstream << "float z_min_pos = ";
-        sstream << m_z_range_position.x;
+        sstream << m_z_range_position.x - epsilon;
         sstream << "; float z_max_pos = ";
-        sstream << m_z_range_position.y;
-        sstream << "; bool is_visible_z_pos = position.z <= z_max_pos && position.z >= "
-                   "z_min_pos;";
+        sstream << m_z_range_position.y + epsilon;
+        sstream << "; bool is_visible_z_pos = position.z <= z_max_pos && position.z >= z_min_pos;";
     }
     //        direction
     // X
@@ -1389,23 +1435,23 @@ void SpinWidget::updateIsVisibleImplementation()
     else if( m_x_range_direction.x <= -1 )
     {
         sstream << "float x_max_dir = ";
-        sstream << m_x_range_direction.y;
+        sstream << m_x_range_direction.y + epsilon;
         sstream << "; bool is_visible_x_dir = normalize(direction).x <= x_max_dir;";
     }
     else if( m_x_range_direction.y >= 1 )
     {
         sstream << "float x_min_dir = ";
-        sstream << m_x_range_direction.x;
+        sstream << m_x_range_direction.x - epsilon;
         sstream << "; bool is_visible_x_dir = normalize(direction).x >= x_min_dir;";
     }
     else
     {
         sstream << "float x_min_dir = ";
-        sstream << m_x_range_direction.x;
+        sstream << m_x_range_direction.x - epsilon;
         sstream << "; float x_max_dir = ";
-        sstream << m_x_range_direction.y;
-        sstream << "; float x_dir = normalize(direction).x; bool is_visible_x_dir = "
-                   "x_dir >= x_min_dir && x_dir <= x_max_dir;";
+        sstream << m_x_range_direction.y + epsilon;
+        sstream << "; float x_dir = normalize(direction).x; bool is_visible_x_dir = x_dir >= x_min_dir && x_dir <= "
+                   "x_max_dir;";
     }
     // Y
     if( m_y_range_direction.x <= -1 && m_y_range_direction.y >= 1 )
@@ -1415,23 +1461,23 @@ void SpinWidget::updateIsVisibleImplementation()
     else if( m_y_range_direction.x <= -1 )
     {
         sstream << "float y_max_dir = ";
-        sstream << m_y_range_direction.y;
+        sstream << m_y_range_direction.y + epsilon;
         sstream << "; bool is_visible_y_dir = normalize(direction).y <= y_max_dir;";
     }
     else if( m_y_range_direction.y >= 1 )
     {
         sstream << "float y_min_dir = ";
-        sstream << m_y_range_direction.x;
+        sstream << m_y_range_direction.x - epsilon;
         sstream << "; bool is_visible_y_dir = normalize(direction).y >= y_min_dir;";
     }
     else
     {
         sstream << "float y_min_dir = ";
-        sstream << m_y_range_direction.x;
+        sstream << m_y_range_direction.x - epsilon;
         sstream << "; float y_max_dir = ";
-        sstream << m_y_range_direction.y;
-        sstream << "; float y_dir = normalize(direction).y;  bool is_visible_y_dir = "
-                   "y_dir >= y_min_dir && y_dir <= y_max_dir;";
+        sstream << m_y_range_direction.y + epsilon;
+        sstream << "; float y_dir = normalize(direction).y;  bool is_visible_y_dir = y_dir >= y_min_dir && y_dir <= "
+                   "y_max_dir;";
     }
     // Z
     if( m_z_range_direction.x <= -1 && m_z_range_direction.y >= 1 )
@@ -1441,23 +1487,23 @@ void SpinWidget::updateIsVisibleImplementation()
     else if( m_z_range_direction.x <= -1 )
     {
         sstream << "float z_max_dir = ";
-        sstream << m_z_range_direction.y;
+        sstream << m_z_range_direction.y + epsilon;
         sstream << "; bool is_visible_z_dir = normalize(direction).z <= z_max_dir;";
     }
     else if( m_z_range_direction.y >= 1 )
     {
         sstream << "float z_min_dir = ";
-        sstream << m_z_range_direction.x;
+        sstream << m_z_range_direction.x - epsilon;
         sstream << "; bool is_visible_z_dir = normalize(direction).z >= z_min_dir;";
     }
     else
     {
         sstream << "float z_min_dir = ";
-        sstream << m_z_range_direction.x;
+        sstream << m_z_range_direction.x - epsilon;
         sstream << "; float z_max_dir = ";
-        sstream << m_z_range_direction.y;
-        sstream << "; float z_dir = normalize(direction).z;  bool is_visible_z_dir = "
-                   "z_dir >= z_min_dir && z_dir <= z_max_dir;";
+        sstream << m_z_range_direction.y + epsilon;
+        sstream << "; float z_dir = normalize(direction).z;  bool is_visible_z_dir = z_dir >= z_min_dir && z_dir <= "
+                   "z_max_dir;";
     }
     //
     sstream << " return is_visible_x_pos && is_visible_y_pos && is_visible_z_pos && "
@@ -1677,6 +1723,11 @@ std::string SpinWidget::getColormapRotationInverted(
     Colormap colormap, int phi, bool invert_z, bool invert_xy, glm::vec3 cardinal_a, glm::vec3 cardinal_b,
     glm::vec3 cardinal_c )
 {
+    std::locale::global(
+        std::locale::classic() ); // Somewhere QT changes the locale even after initialization. As a bandaid fix we set
+                                  // it here directly before we do the string conversions. This way we can at least be
+                                  // sure that the decimal separator is a point and not a comma.
+
     int sign_z  = 1 - 2 * (int)invert_z;
     int sign_xy = 1 - 2 * (int)invert_xy;
 

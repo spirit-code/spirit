@@ -52,6 +52,7 @@ private:
     QRegularExpressionValidator * number_validator_unsigned;
     QRegularExpressionValidator * number_validator_int;
     QRegularExpressionValidator * number_validator_int_unsigned;
+    QRegularExpressionValidator * number_validator_unsigned_scientific;
 };
 
 #endif

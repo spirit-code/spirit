@@ -45,6 +45,8 @@ ParametersWidget::ParametersWidget( std::shared_ptr<State> state )
     this->number_validator_int = new QRegularExpressionValidator( re3 );
     QRegularExpression re4( "[\\d]*" );
     this->number_validator_int_unsigned = new QRegularExpressionValidator( re4 );
+    QRegularExpression re5( "[\\d.]+(?:e-?\\d+)?" );
+    this->number_validator_unsigned_scientific = new QRegularExpressionValidator( re5 );
     // Setup the validators for the various input fields
     this->Setup_Input_Validators();
 
@@ -742,7 +744,7 @@ void ParametersWidget::Setup_Input_Validators()
 {
     //      LLG
     this->lineEdit_Damping->setValidator( this->number_validator_unsigned );
-    this->lineEdit_dt->setValidator( this->number_validator_unsigned );
+    this->lineEdit_dt->setValidator( this->number_validator_unsigned_scientific );
     this->lineEdit_llg_temperature_inclination->setValidator( this->number_validator );
     this->lineEdit_llg_temperature_dir_x->setValidator( this->number_validator );
     this->lineEdit_llg_temperature_dir_y->setValidator( this->number_validator );
