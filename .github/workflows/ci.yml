@@ -10,6 +10,7 @@ jobs:
 
     runs-on: ${{ matrix.config.os }}
     strategy:
+      fail-fast: false
       matrix:
         config:
           - os: ubuntu-latest
@@ -31,6 +32,9 @@ jobs:
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake --build . --config $BUILD_TYPE
+
+    - name: Install python packages
+      run: sudo pip install numpy
 
     - name: test
       shell: bash
