@@ -31,7 +31,7 @@ jobs:
     - name: build
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake --build . --config $BUILD_TYPE
+      run: cmake --build . --config $BUILD_TYPE -j 2
 
     - name: Install python packages
       run: pip install --user numpy
@@ -40,3 +40,26 @@ jobs:
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: ctest -C $BUILD_TYPE --output-on-failure
+
+  build-cuda:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install CUDA
+      run: sudo apt install nvidia-cuda-toolkit
+
+    - name: Create build folder
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: configure
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_USE_CUDA=ON -DSPIRIT_CUDA_ARCH=sm_70
+
+    - name: build
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake --build . --config $BUILD_TYPE -j 2
