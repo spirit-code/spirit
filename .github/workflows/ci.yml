@@ -104,8 +104,10 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       run: cmake --build . --config Release -j 2
 
-    - name: Install python packages
-      run: pip install --user numpy coveralls
+    - name: Install necessary packages
+      run: |
+        pip install --user numpy coveralls
+        sudo apt install lcov
 
     - name: C++ coverage
       shell: bash
