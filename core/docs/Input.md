@@ -92,8 +92,8 @@ bravais_lattice hex2d
 ### 2.x 2.y 2.z  cell in terms of bravais vectors
 basis
 2
-0   0                      0
-0.86602540378443864676 0.5 0
+0          0         0
+0.33333333 0.3333333 0
 
 ### µSpin
 mu_s 2.0 1.0
