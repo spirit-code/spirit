@@ -43,7 +43,13 @@ jobs:
 
   build-cuda:
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.config.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - os: ubuntu-20.04
+          - os: ubuntu-18.04
 
     steps:
     - uses: actions/checkout@v2
