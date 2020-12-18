@@ -81,3 +81,48 @@ jobs:
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake --build . --config $BUILD_TYPE -j 2
+
+  coverage:
+    runs-on: ubuntu-latest
+    env:
+      CMAKE_FLAGS: -DCMAKE_BUILD_TYPE=Release -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_UI_CXX_USE_QT=OFF
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Create build folder
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: configure
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_TEST_COVERAGE=ON
+
+    - name: build
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake --build . --config Release -j 2
+
+    - name: Install python packages
+      run: pip install --user numpy coveralls
+
+    - name: C++ coverage
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: |
+        lcov -c -i --no-external --directory . --base-directory ../core -o baseline.info
+        make test
+        lcov -c --no-external --directory . --base-directory ../core -o after_test.info
+        lcov -a baseline.info -a after_test.info -o total_test.info
+        lcov -r total_test.info \*thirdparty\* \*/test/\* \*Collection\* \*DLL_\* -o coverage.info
+        bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
+
+    - name: Python coverage
+      shell: bash
+      working-directory: $GITHUB_WORKSPACE/core/python
+      run: |
+        coverage run --source spirit --omit=spirit/spiritlib.py,spirit/collection.py setup.py test > cov.txt
+        head cov.txt
+        coverage report -m
+        coverage xml
+        coveralls
