@@ -34,7 +34,7 @@ jobs:
       run: cmake --build . --config $BUILD_TYPE
 
     - name: Install python packages
-      run: sudo pip install numpy
+      run: pip install --user numpy
 
     - name: test
       shell: bash
