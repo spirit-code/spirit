@@ -7,7 +7,7 @@ jobs:
 
   test:
     runs-on: ${{ matrix.os }}
-    name: test${{ matrix.name-suffix }}
+    name: test${{ matrix.name-suffix }} (${{ matrix.os }}, ${{ matrix.build-type }})
     strategy:
       fail-fast: false
       matrix:
