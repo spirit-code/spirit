@@ -16,6 +16,8 @@ jobs:
         openmp: [false]
         name-suffix: [""]
         include:
+          - build-type: Debug
+            excludetests: solver
           - openmp: true
             name-suffix: "-openmp"
             os: ubuntu-latest
@@ -28,6 +30,7 @@ jobs:
       BUILD_TYPE: ${{ matrix.build-type }}
       CMAKE_FLAGS: -DSPIRIT_UI_CXX_USE_QT=OFF
       OMP_NUM_THREADS: 4
+      EXCLUDETESTS: ${{ matrix.excludetests }}
 
     steps:
     - uses: actions/checkout@v2
@@ -58,7 +61,7 @@ jobs:
     - name: test
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: ctest -C $BUILD_TYPE --output-on-failure
+      run: ctest -C $BUILD_TYPE -E $EXCLUDETESTS --output-on-failure
 
   test-coverage:
     runs-on: ubuntu-latest
