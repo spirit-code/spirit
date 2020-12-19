@@ -1,15 +1,15 @@
 #pragma once
-#ifndef ISOSURFACEWIDGET_H
-#define ISOSURFACEWIDGET_H
+#ifndef SPIRIT_ISOSURFACEWIDGET_HPP
+#define SPIRIT_ISOSURFACEWIDGET_HPP
 
-#include <QtWidgets/QWidget>
+#include "ui_IsosurfaceWidget.h"
+
 #include <QRegularExpressionValidator>
-
-#include <memory>
+#include <QtWidgets/QWidget>
 
 #include <VFRendering/IsosurfaceRenderer.hxx>
 
-#include "ui_IsosurfaceWidget.h"
+#include <memory>
 
 struct State;
 class SpinWidget;
@@ -19,45 +19,45 @@ class IsosurfaceWidget : public QWidget, private Ui::IsosurfaceWidget
     Q_OBJECT
 
 public:
-	IsosurfaceWidget(std::shared_ptr<State> state, SpinWidget *spinWidget);
+    IsosurfaceWidget( std::shared_ptr<State> state, SpinWidget * spinWidget );
 
-	std::shared_ptr<State> state;
-	SpinWidget * spinWidget;
-    
-	bool showIsosurface();
-	void setShowIsosurface(bool show);
+    std::shared_ptr<State> state;
+    SpinWidget * spinWidget;
 
-	float isovalue();
-	void setIsovalue(float value);
+    bool showIsosurface();
+    void setShowIsosurface( bool show );
 
-	int isocomponent();
-	void setIsocomponent(int component);
+    float isovalue();
+    void setIsovalue( float value );
 
-	bool drawShadows();
-	void setDrawShadows(bool show);
+    int isocomponent();
+    void setIsocomponent( int component );
+
+    bool drawShadows();
+    void setDrawShadows( bool show );
 
 signals:
-	void closedSignal();
+    void closedSignal();
 
 private slots:
-	void slot_setIsovalue_slider();
-	void slot_setIsovalue_lineedit();
-	void slot_setIsocomponent();
-	void slot_setTriangleNormal();
+    void slot_setIsovalue_slider();
+    void slot_setIsovalue_lineedit();
+    void slot_setIsocomponent();
+    void slot_setTriangleNormal();
 
 private:
-	void setupSlots();
-	void setupInputValidators();
+    void setupSlots();
+    void setupInputValidators();
 
-	bool m_show_isosurface;
-	float m_isovalue;
-	int m_isocomponent;
-	bool m_draw_shadows;
-	std::shared_ptr<VFRendering::IsosurfaceRenderer> m_renderer;
-	QRegularExpressionValidator * number_validator;
+    bool m_show_isosurface;
+    float m_isovalue;
+    int m_isocomponent;
+    bool m_draw_shadows;
+    std::shared_ptr<VFRendering::IsosurfaceRenderer> m_renderer;
+    QRegularExpressionValidator * number_validator;
 
 protected:
-	void closeEvent(QCloseEvent *event);
+    void closeEvent( QCloseEvent * event );
 };
 
 #endif

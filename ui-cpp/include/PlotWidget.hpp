@@ -1,12 +1,12 @@
 #pragma once
-#ifndef PLOTWIDGET_H
-#define PLOTWIDGET_H
-
-#include <memory>
+#ifndef SPIRIT_PLOTWIDGET_HPP
+#define SPIRIT_PLOTWIDGET_HPP
 
 #include <QtCharts/QChartView>
-#include <QtCharts/QScatterSeries>
 #include <QtCharts/QLineSeries>
+#include <QtCharts/QScatterSeries>
+
+#include <memory>
 
 struct State;
 
@@ -14,12 +14,12 @@ class PlotWidget : public QtCharts::QChartView
 {
 
 public:
-    PlotWidget(std::shared_ptr<State> state, bool plot_image_energies=true, bool plot_interpolated=false);
+    PlotWidget( std::shared_ptr<State> state, bool plot_image_energies = true, bool plot_interpolated = false );
     void updateData();
 
     bool plot_image_energies;
     bool plot_interpolated;
-    int  plot_interpolated_n;
+    int plot_interpolated_n;
 
 private:
     std::shared_ptr<State> state;

@@ -1,0 +1,53 @@
+---
+### General default config, applies to all languages ###
+AccessModifierOffset:                 -4
+AlignAfterOpenBracket:                AlwaysBreak
+AlignConsecutiveAssignments:          true
+AlignOperands:                        true
+AlignTrailingComments:                true
+AllowShortCaseLabelsOnASingleLine:    true
+AllowShortFunctionsOnASingleLine:     Empty
+AllowShortIfStatementsOnASingleLine:  false
+BreakBeforeBinaryOperators:           All
+BreakBeforeBraces:                    Allman
+BreakBeforeTernaryOperators:          false
+ContinuationIndentWidth:  4
+ColumnLimit:              120
+IndentCaseLabels:         true
+IndentWidth:              4
+PenaltyBreakComment:      10000000
+SpaceBeforeParens:        Never
+SpacesInParentheses:      true
+TabWidth:                 4
+UseTab:                   Never
+---
+Language: Cpp
+Standard: C++11
+AlwaysBreakTemplateDeclarations:    Yes
+Cpp11BracedListStyle:               false
+CompactNamespaces:                  true
+ConstructorInitializerAllOnOneLineOrOnePerLine: true
+ConstructorInitializerIndentWidth:  8
+FixNamespaceComments:               true
+IncludeCategories:
+  - Regex:    '".*"'
+    Priority: 1
+  - Regex:    '^<.*\.h>'
+    Priority: 2
+  - Regex:    '^<.*'
+    Priority: 3
+NamespaceIndentation:       None
+PointerAlignment:           Middle
+SpaceAfterTemplateKeyword:  false
+SpacesInAngles:             false
+---
+Language: JavaScript
+AlignConsecutiveAssignments:  false
+BreakBeforeBraces:            Attach
+ContinuationIndentWidth:      2
+IndentWidth:                  2
+JavaScriptQuotes:             Single
+SpacesInContainerLiterals:    true
+SpaceBeforeParens:            ControlStatements
+SpacesInParentheses:          false
+TabWidth:                     2
