@@ -203,6 +203,41 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       run: cmake --build . --config $BUILD_TYPE -j 2
 
+  build-wasm:
+    runs-on: ubuntu-20.04
+    env:
+      BUILD_TYPE: Release
+      CMAKE_FLAGS: -DSPIRIT_BUILD_FOR_JS=ON
+      EMSCRIPTEN_VERSION: "1.39.20"
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install Emscripten
+      working-directory: ${{runner.workspace}}
+      run: |
+        git clone https://github.com/emscripten-core/emsdk.git
+        cd emsdk
+        ./emsdk install $EMSCRIPTEN_VERSION
+        ./emsdk activate $EMSCRIPTEN_VERSION
+
+    - name: Create build folder
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: configure
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: |
+        source ${{runner.workspace}}/emsdk/emsdk_env.sh
+        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS -DCMAKE_TOOLCHAIN_FILE=${{runner.workspace}}/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
+
+    - name: build
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: |
+        source ${{runner.workspace}}/emsdk/emsdk_env.sh
+        cmake --build . --config $BUILD_TYPE -j 2
+
   deploy-pypi:
     needs: test
     runs-on: ${{ matrix.os }}
