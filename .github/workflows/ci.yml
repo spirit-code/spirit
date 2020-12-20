@@ -2,7 +2,6 @@ name: CI
 
 on: [push]
 
-
 jobs:
 
   test:
@@ -106,11 +105,10 @@ jobs:
         bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
 
     - name: Python API coverage
-      working-directory: ${{runner.workspace}}
+      working-directory: ./core/python
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        cd $GITHUB_WORKSPACE/core/python
         coverage run --source spirit --omit=spirit/spiritlib.py setup.py test > cov.txt
         head cov.txt
         coverage report -m
@@ -219,6 +217,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
 
     - name: Configure environment
       shell: bash
@@ -244,8 +245,25 @@ jobs:
         python -m pip install numpy wheel twine
 
     - name: build Python package
+      shell: bash
+      working-directory: ./core/python
       run: |
         echo "Python package build"
         echo "Add suffix to spirit version tag for python package $SPIRIT_ADD_VERSION_SUFFIX"
-        cd $GITHUB_WORKSPACE/core/python
         python setup.py sdist bdist_wheel
+
+    - name: Deploy to TestPyPI
+      working-directory: ./core/python
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      if: github.ref != 'refs/heads/master'
+      run: twine upload --skip-existing --repository testpypi dist/*
+
+    - name: Deploy to PyPI
+      working-directory: ./core/python
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+      run: twine upload --skip-existing dist/*
