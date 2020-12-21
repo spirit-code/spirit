@@ -696,8 +696,8 @@ void show_overlay_system( bool & show, int & corner, std::array<float, 2> & posi
                 show = false;
             ImGui::EndPopup();
         }
+        ImGui::End();
     }
-    ImGui::End();
 }
 
 void show_overlay_calculation(
@@ -887,8 +887,8 @@ void show_overlay_calculation(
                 show = false;
             ImGui::EndPopup();
         }
+        ImGui::End();
     }
-    ImGui::End();
 }
 
 void show_settings( bool & show, ui::RenderingLayer & rendering_layer )
