@@ -3,6 +3,14 @@ Configuration
 ====================
 
 Set various spin configurations, such as homogeneous domains, spirals or skyrmions.
+
+All configuration setters support the following arguments with default values:
+
+- `pos=[0,0,0]`: the centre of the configuration, relative to the centre of the system
+- `border_rectangular=[-1,-1,-1]`: values > 0 mean a restriction in `+` and `-` direction relative to the position
+- `border_cylindrical=-1`: restricts the initialisation to a z-aligned cylinder around the position
+- `border_spherical=-1`: restricts the initialisation to a sphere around the position
+- `inverted=False`: exactly inverts the above restrictions
 """
 
 import spirit.spiritlib as spiritlib
@@ -31,7 +39,7 @@ _PlusZ.argtypes    = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float),
 _PlusZ.restype     = None
 def plus_z(p_state, pos=[0.0,0.0,0.0], border_rectangular=[-1.0,-1.0,-1.0], border_cylindrical=-1.0,
           border_spherical=-1.0, inverted=False, idx_image=-1, idx_chain=-1):
-    """Set a +z (homogeneous) configuration."""
+    """Set a `+z` (homogeneous) configuration."""
     vec3 = ctypes.c_float * 3
     _PlusZ(ctypes.c_void_p(p_state), vec3(*pos), vec3(*border_rectangular),
            ctypes.c_float(border_cylindrical), ctypes.c_float(border_spherical),
@@ -44,7 +52,7 @@ _MinusZ.argtypes    = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float),
 _MinusZ.restype     = None
 def minus_z(p_state, pos=[0,0,0], border_rectangular=[-1,-1,-1], border_cylindrical=-1,
           border_spherical=-1, inverted=False, idx_image=-1, idx_chain=-1):
-    """Set a -z (homogeneous) configuration."""
+    """Set a `-z` (homogeneous) configuration."""
     vec3 = ctypes.c_float * 3
     _MinusZ(ctypes.c_void_p(p_state), vec3(*pos), vec3(*border_rectangular),
             ctypes.c_float(border_cylindrical), ctypes.c_float(border_spherical),
@@ -89,19 +97,54 @@ def skyrmion(p_state, radius, order=1, phase=1, up_down=False, achiral=False, ri
              pos=[0,0,0], border_rectangular=[-1,-1,-1], border_cylindrical=-1, border_spherical=-1,
              inverted=False, idx_image=-1, idx_chain=-1):
     """Set a skyrmion configuration.
-    
-    - radius: the extent of the skyrmion, at which it points approximately upwards
-    - order: the number of twists along a circle cutting the skyrmion
-    - phase: 0 corresponds to a Neel skyrmion, -90 to a Bloch skyrmion
-    - up_down: if `True`, the z-orientation is inverted
-    - achiral: if `True`, the topological charge is inverted
-    - right_left: if `True`, the in-plane rotation is inverted
 
-    The skyrmion only extends up to `radius`, meaning that `border_cylindrical` is
-    not usually necessary.
+    Arguments:
+
+    - `radius`: the extent of the skyrmion, at which it points approximately upwards. The skyrmion only extends up to `radius`, meaning that `border_cylindrical` is not usually necessary.
+
+    Keyword arguments:
+
+    - `order`: the number of twists along a circle cutting the skyrmion
+    - `phase`: 0 corresponds to a Neel skyrmion, -90 to a Bloch skyrmion
+    - `up_down`: if `True`, the z-orientation is inverted
+    - `achiral`: if `True`, the topological charge is inverted
+    - `right_left`: if `True`, the in-plane rotation is inverted
+
     """
     vec3 = ctypes.c_float * 3
     _Skyrmion(ctypes.c_void_p(p_state), ctypes.c_float(radius), ctypes.c_float(order),
+              ctypes.c_float(phase), ctypes.c_bool(up_down), ctypes.c_bool(achiral),
+              ctypes.c_bool(right_left), vec3(*pos), vec3(*border_rectangular),
+              ctypes.c_float(border_cylindrical), ctypes.c_float(border_spherical),
+              ctypes.c_bool(inverted), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+_DW_Skyrmion             = _spirit.Configuration_DW_Skyrmion
+_DW_Skyrmion.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.c_float, ctypes.c_float, ctypes.c_float,
+                         ctypes.c_bool, ctypes.c_bool, ctypes.c_bool, ctypes.POINTER(ctypes.c_float),
+                         ctypes.POINTER(ctypes.c_float), ctypes.c_float, ctypes.c_float, ctypes.c_bool,
+                         ctypes.c_int, ctypes.c_int]
+_DW_Skyrmion.restype     = None
+def dw_skyrmion(p_state, dw_radius, dw_width, order=1, phase=1, up_down=False, achiral=False, right_left=False,
+             pos=[0,0,0], border_rectangular=[-1,-1,-1], border_cylindrical=-1, border_spherical=-1,
+             inverted=False, idx_image=-1, idx_chain=-1):
+    """Set a 360 degree domain wall skyrmion configuration.
+
+    Arguments:
+
+    - `dw_radius`: the radius of the circular domain wall skyrmion.
+    - `dw_width`: the width of the domain wall circumference of the skyrmion.
+
+    Keyword arguments:
+
+    - `order`: the number of twists along a circle cutting the skyrmion
+    - `phase`: 0 corresponds to a Neel skyrmion, -90 to a Bloch skyrmion
+    - `up_down`: if `True`, the z-orientation is inverted
+    - `achiral`: if `True`, the topological charge is inverted
+    - `right_left`: if `True`, the in-plane rotation is inverted
+
+    """
+    vec3 = ctypes.c_float * 3
+    _DW_Skyrmion(ctypes.c_void_p(p_state), ctypes.c_float(dw_radius), ctypes.c_float(dw_width), ctypes.c_float(order),
               ctypes.c_float(phase), ctypes.c_bool(up_down), ctypes.c_bool(achiral),
               ctypes.c_bool(right_left), vec3(*pos), vec3(*border_rectangular),
               ctypes.c_float(border_cylindrical), ctypes.c_float(border_spherical),
@@ -116,8 +159,13 @@ def hopfion(p_state, radius, order=1, pos=[0,0,0], border_rectangular=[-1,-1,-1]
             border_cylindrical=-1, border_spherical=-1, inverted=False, idx_image=-1, idx_chain=-1):
     """Set a Hopfion configuration.
 
-    - radius: the distance from the center to the center of the corresponding tubular isosurface
-    - order: TODO
+    Arguments:
+
+    - `radius`: the distance from the center to the center of the corresponding tubular isosurface
+
+    Keyword arguments:
+
+    - `order`: the number of windings of the toroidal hopfion
 
     In contrast to the skyrmion, it extends over the whole allowed space.
     """
@@ -140,10 +188,11 @@ def spin_spiral(p_state, direction_type, q_vector, axis, theta, pos=[0,0,0],
     """Set a spin spiral configuration.
 
     TODO: document parameters
-    - direction_type:
-    - q_vector:
-    - axis:
-    - theta:
+
+    - `direction_type`:
+    - `q_vector`:
+    - `axis`:
+    - `theta`:
     """
     vec3 = ctypes.c_float * 3
     _SpinSpiral(ctypes.c_void_p(p_state), ctypes.c_char_p(direction_type.encode('utf-8')),

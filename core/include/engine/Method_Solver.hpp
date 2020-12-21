@@ -10,6 +10,7 @@
 #include <engine/Method.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
+#include <engine/Solver_Kernels.hpp>
 #include <utility/Timing.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Constants.hpp>
@@ -19,6 +20,9 @@
 #include <map>
 #include <sstream>
 #include <iomanip>
+
+#include <Eigen/Core>
+#include <Eigen/Dense>
 
 #include <fmt/format.h>
 
@@ -31,9 +35,10 @@ namespace Engine
         Heun = Solver_Heun,
         Depondt = Solver_Depondt,
         RungeKutta4 = Solver_RungeKutta4,
-        NCG = -2,
-        BFGS = -3,
-        VP = Solver_VP
+        LBFGS_OSO = Solver_LBFGS_OSO,
+        LBFGS_Atlas = Solver_LBFGS_Atlas,
+        VP = Solver_VP,
+        VP_OSO = Solver_VP_OSO
     };
 
     /*
@@ -61,12 +66,13 @@ namespace Engine
         virtual std::string SolverName() override;
         virtual std::string SolverFullName() override;
 
+        // Iteration represents one iteration of a certain Solver
+        virtual void Iteration() override;
+
     protected:
 
         // Prepare random numbers for thermal fields, if needed
-        virtual void Prepare_Thermal_Field()
-        {
-        }
+        virtual void Prepare_Thermal_Field() {}
 
         // Calculate Forces onto Systems
         //      This is currently overridden by methods to specify how the forces on a set of configurations should be
@@ -95,6 +101,9 @@ namespace Engine
         // Calculate maximum of absolute values of force components for a spin configuration
         virtual scalar Force_on_Image_MaxAbsComponent(const vectorfield & image, vectorfield & force) final;
 
+        // Calculate maximum torque for a spin configuration
+        virtual scalar MaxTorque_on_Image(const vectorfield & image, vectorfield & force) final;
+
         // ...
         // virtual bool Iterations_Allowed() override;
         // Check if the forces are converged
@@ -105,9 +114,6 @@ namespace Engine
         {
             return  Method::ContinueIterating() && !this->Converged();
         }
-
-        // Iteration represents one iteration of a certain Solver
-        virtual void Iteration() override;
 
         // Initialise contains the initialisations of arrays etc. for a certain solver
         virtual void Initialize() override;
@@ -126,30 +132,35 @@ namespace Engine
         // Preccession angle
         scalarfield angle;
 
-        //////////// NCG ////////////////////////////////////////////////////////////
-        // Check if the Newton-Raphson has converged
-        bool NR_converged();
 
-        int jmax;     // max iterations for Newton-Raphson loop
-        int n;        // number of iteration after which the nCG will restart
+        //////////// LBFGS ////////////////////////////////////////////////////////////
 
-        scalar tolerance_nCG, tolerance_NR;   // tolerances for solver and Newton-Raphson
-        scalar epsilon_nCG, epsilon_NR;   // Newton-Raphson and solver tolerance squared
+        // General
+        int n_lbfgs_memory;
+        int local_iter;
+        scalar maxmove;
+        scalarfield rho;
+        scalarfield alpha;
 
-        bool restart_nCG, continue_NR;  // conditions for restarting nCG or continuing Newton-Raphson
+        // Atlas coords
+        std::vector<field<vector2field>> atlas_updates;
+        std::vector<field<vector2field>> grad_atlas_updates;
+        std::vector<scalarfield>  atlas_coords3;
+        std::vector<vector2field> atlas_directions;
+        std::vector<vector2field> atlas_residuals;
+        std::vector<vector2field> atlas_residuals_last;
+        std::vector<vector2field> atlas_q_vec;
 
-        // Step sizes
-        std::vector<scalarfield> alpha, beta;
-
-        // TODO: right type might be std::vector<scalar> and NOT std::vector<scalarfield>
-        // Delta scalarfields
-        std::vector<scalarfield> delta_0, delta_new, delta_old, delta_d;
-
-        // Residual and new configuration states
-        std::vector<vectorfield> residual, direction;
+        // OSO
+        std::vector<field<vectorfield>> delta_a;
+        std::vector<field<vectorfield>> delta_grad;
+        std::vector<vectorfield> searchdir;
+        std::vector<vectorfield> grad;
+        std::vector<vectorfield> grad_pr;
+        std::vector<vectorfield> q_vec;
 
         // buffer variables for checking convergence for solver and Newton-Raphson
-        std::vector<scalarfield> r_dot_d, dda2;
+        // std::vector<scalarfield> r_dot_d, dda2;
 
         //////////// VP ///////////////////////////////////////////////////////////////
         // "Mass of our particle" which we accelerate
@@ -203,11 +214,20 @@ namespace Engine
         return Vectormath::max_abs_component(force);
     }
 
+    // Return the maximum norm of the torque for an image
+    template<Solver solver>
+    scalar Method_Solver<solver>::MaxTorque_on_Image(const vectorfield & image, vectorfield & force)
+    {
+        // Take out component in direction of v2
+        Manifoldmath::project_tangential(force, image);
+        return Vectormath::max_norm(force);
+    }
+
     template<Solver solver>
     bool Method_Solver<solver>::Converged()
     {
         bool converged = false;
-        if( this->force_max_abs_component < this->parameters->force_convergence ) converged = true;
+        if( this->max_torque < this->parameters->force_convergence ) converged = true;
         return converged;
     }
 
@@ -230,23 +250,26 @@ namespace Engine
     };
 
 
-
     template<Solver solver>
     void Method_Solver<solver>::Message_Start()
     {
         using namespace Utility;
 
         //---- Log messages
-        Log.SendBlock(Log_Level::All, this->SenderName,
-            {
-                fmt::format("------------  Started  {} Calculation  ------------", this->Name()),
-                fmt::format("    Going to iterate {} step(s)", this->n_log),
-                fmt::format("                with {} iterations per step", this->n_iterations_log),
-                fmt::format("    Force convergence parameter: {:." + fmt::format("{}", this->print_precision) + "f}", this->parameters->force_convergence),
-                fmt::format("    Maximum force component:     {:." + fmt::format("{}", this->print_precision) + "f}", this->force_max_abs_component),
-                fmt::format("    Solver: {}", this->SolverFullName()),
-                "-----------------------------------------------------"
-            }, this->idx_image, this->idx_chain);
+        std::vector<std::string> block;
+        block.push_back( fmt::format("------------  Started  {} Calculation  ------------", this->Name()) );
+        block.push_back( fmt::format("    Going to iterate {} step(s)", this->n_log) );
+        block.push_back( fmt::format("                with {} iterations per step", this->n_iterations_log) );
+        block.push_back( fmt::format("    Force convergence parameter: {:." + fmt::format("{}", this->print_precision) + "f}", this->parameters->force_convergence) );
+        block.push_back( fmt::format("    Maximum torque:              {:." + fmt::format("{}", this->print_precision) + "f}", this->max_torque) );
+        block.push_back( fmt::format("    Solver: {}", this->SolverFullName()) );
+        if( this->Name() == "GNEB" )
+        {
+            scalar length = Manifoldmath::dist_geodesic(*this->configurations[0], *this->configurations[this->noi-1]);
+            block.push_back( fmt::format("    Total path length: {}", length) );
+        }
+        block.push_back( "-----------------------------------------------------" );
+        Log.SendBlock(Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain);
     }
 
     template<Solver solver>
@@ -254,29 +277,47 @@ namespace Engine
     {
         using namespace Utility;
 
+        std::string percentage = fmt::format("{:.2f}%:", 100*double(this->iteration)/double(this->n_iterations));
+        bool llg_dynamics = this->Name() == "LLG"
+            && !( this->systems[this->idx_image]->llg_parameters->direct_minimization
+                || solver == Solver::VP || solver == Solver::VP_OSO
+                || solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas );
+
         // Update time of current step
         auto t_current = system_clock::now();
 
         // Send log message
-        Log.SendBlock(Log_Level::All, this->SenderName,
-            {
-                fmt::format("----- {} Calculation ({} Solver): {}", this->Name(), this->SolverName(), Timing::DateTimePassed(t_current - this->t_start)),
-                fmt::format("    Completed                    {} / {} step(s) (step size {})", this->step, this->n_log, this->n_iterations_log),
-                fmt::format("    Iteration                    {} / {}", this->iteration, this->n_iterations),
-                fmt::format("    Time since last step:        {}", Timing::DateTimePassed(t_current - this->t_last)),
-                fmt::format("    Iterations / sec:            {}", this->n_iterations_log / Timing::SecondsPassed(t_current - this->t_last)),
-                fmt::format("    Force convergence parameter: {:." + fmt::format("{}", this->print_precision) + "f}", this->parameters->force_convergence),
-                fmt::format("    Maximum force component:     {:." + fmt::format("{}", this->print_precision) + "f}", this->force_max_abs_component)
-            }, this->idx_image, this->idx_chain);
+        std::vector<std::string> block;
+        block.push_back( fmt::format("----- {} Calculation ({} Solver): {}", this->Name(), this->SolverName(), Timing::DateTimePassed(t_current - this->t_start)) );
+        block.push_back( fmt::format("    Time since last step: {}", Timing::DateTimePassed(t_current - this->t_last)) );
+        block.push_back( fmt::format("    Completed {:>8}    {} / {} iterations", percentage, this->iteration, this->n_iterations) );
+        block.push_back( fmt::format("    Iterations / sec:     {:.2f}", this->n_iterations_log / Timing::SecondsPassed(t_current - this->t_last)) );
+        if( llg_dynamics )
+            block.push_back( fmt::format("    Simulated time:       {} ps", this->get_simulated_time()) );
+        if( this->Name() == "GNEB" )
+        {
+            scalar length = Manifoldmath::dist_geodesic(*this->configurations[0], *this->configurations[this->noi-1]);
+            block.push_back( fmt::format("    Total path length:    {}", length) );
+        }
+        block.push_back( fmt::format("    Force convergence parameter: {:." + fmt::format("{}", this->print_precision) + "f}", this->parameters->force_convergence) );
+        block.push_back( fmt::format("    Maximum torque:              {:." + fmt::format("{}", this->print_precision) + "f}", this->max_torque) );
+        Log.SendBlock(Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain);
 
         // Update time of last step
         this->t_last = t_current;
     }
 
+
     template<Solver solver>
     void Method_Solver<solver>::Message_End()
     {
         using namespace Utility;
+
+        std::string percentage = fmt::format("{:.2f}%:", 100*double(this->iteration)/double(this->n_iterations));
+        bool llg_dynamics = this->Name() == "LLG"
+            && !( this->systems[this->idx_image]->llg_parameters->direct_minimization
+                || solver == Solver::VP || solver == Solver::VP_OSO
+                || solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas );
 
         //---- End timings
         auto t_end = system_clock::now();
@@ -292,19 +333,23 @@ namespace Engine
 
         //---- Log messages
         std::vector<std::string> block;
-        block.push_back(fmt::format("------------ Terminated {} Calculation ------------", this->Name()));
+        block.push_back( fmt::format("------------ Terminated {} Calculation ------------", this->Name()) );
         if( reason.length() > 0 )
-            block.push_back(fmt::format("----- Reason:   {}", reason));
-        block.push_back(fmt::format("----- Duration:       {}", Timing::DateTimePassed(t_end - this->t_start)));
-        block.push_back(fmt::format("    Completed         {} / {} step(s)", this->step, this->n_log));
-        block.push_back(fmt::format("    Iteration         {} / {}", this->iteration, this->n_iterations));
-        if( this->Name() == "LLG" )
-            block.push_back(fmt::format("    Simulated time:   {} ps", this->getTime()));
-        block.push_back(fmt::format("    Iterations / sec: {}", this->iteration / Timing::SecondsPassed(t_end - this->t_start)));
-        block.push_back(fmt::format("    Force convergence parameter: {:."+fmt::format("{}",this->print_precision)+"f}", this->parameters->force_convergence));
-        block.push_back(fmt::format("    Maximum force component:     {:."+fmt::format("{}",this->print_precision)+"f}", this->force_max_abs_component));
-        block.push_back(fmt::format("    Solver: " + this->SolverFullName()));
-        block.push_back("-----------------------------------------------------");
+            block.push_back( fmt::format("------- Reason: {}", reason) );
+        block.push_back( fmt::format("    Total duration:    {}", Timing::DateTimePassed(t_end - this->t_start)) );
+        block.push_back( fmt::format("    Completed {:>8} {} / {} iterations", percentage, this->iteration, this->n_iterations) );
+        block.push_back( fmt::format("    Iterations / sec:  {:.2f}", this->iteration / Timing::SecondsPassed(t_end - this->t_start)) );
+        if( llg_dynamics )
+            block.push_back( fmt::format("    Simulated time:    {} ps", this->get_simulated_time()) );
+        if( this->Name() == "GNEB" )
+        {
+            scalar length = Manifoldmath::dist_geodesic(*this->configurations[0], *this->configurations[this->noi-1]);
+            block.push_back( fmt::format("    Total path length: {}", length) );
+        }
+        block.push_back( fmt::format("    Force convergence parameter: {:."+fmt::format("{}",this->print_precision)+"f}", this->parameters->force_convergence) );
+        block.push_back( fmt::format("    Maximum torque:              {:."+fmt::format("{}",this->print_precision)+"f}", this->max_torque) );
+        block.push_back( fmt::format("    Solver: {}", this->SolverFullName()) );
+        block.push_back( "-----------------------------------------------------" );
         Log.SendBlock(Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain);
     }
 
@@ -323,11 +368,13 @@ namespace Engine
 
     // Include headers which specialize the Solver functions
     #include <engine/Solver_SIB.hpp>
-    #include <engine/Solver_VP.hpp>
     #include <engine/Solver_Heun.hpp>
-    #include <engine/Solver_RK4.hpp>
     #include <engine/Solver_Depondt.hpp>
-    #include <engine/Solver_NCG.hpp>
+    #include <engine/Solver_RK4.hpp>
+    #include <engine/Solver_VP.hpp>
+    #include <engine/Solver_VP_OSO.hpp>
+    #include <engine/Solver_LBFGS_OSO.hpp>
+    #include <engine/Solver_LBFGS_Atlas.hpp>
 }
 
 #endif

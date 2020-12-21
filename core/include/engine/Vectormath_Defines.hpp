@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Eigen/Core>
-
+#include <Eigen/Sparse>
 #include <vector>
 #include <array>
 #include <complex>
@@ -12,6 +12,7 @@
 using VectorX    = Eigen::Matrix<scalar, -1,  1>;
 using RowVectorX = Eigen::Matrix<scalar,  1, -1>;
 using MatrixX    = Eigen::Matrix<scalar, -1, -1>;
+using SpMatrixX  = Eigen::SparseMatrix<scalar>;
 
 // 3D Eigen typedefs
 using Vector3    = Eigen::Matrix<scalar, 3, 1>;
@@ -20,6 +21,9 @@ using Matrix3    = Eigen::Matrix<scalar, 3, 3>;
 
 using Vector3c   = Eigen::Matrix<std::complex<scalar>, 3, 1>;
 using Matrix3c   = Eigen::Matrix<std::complex<scalar>, 3, 3>;
+
+// 2D Eigen typedefs
+using Vector2 = Eigen::Matrix<scalar, 2, 1>;
 
 // Different definitions for regular C++ and CUDA
 #ifdef SPIRIT_USE_CUDA
@@ -101,3 +105,4 @@ using pairfield       = field<Pair>;
 using tripletfield    = field<Triplet>;
 using quadrupletfield = field<Quadruplet>;
 using neighbourfield  = field<Neighbour>;
+using vector2field    = field<Vector2>;

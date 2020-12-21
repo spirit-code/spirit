@@ -28,7 +28,7 @@ catch( ... )
 
     Utility::LogEntry Error = { std::chrono::system_clock::now(),
                                 Utility::Log_Sender::API, Utility::Log_Level::Error,
-                                "GetEntries() failed", -1, -1 };
+                                {"GetEntries() failed"}, -1, -1 };
     std::vector<Utility::LogEntry> ret = { Error };
     return ret;
 }

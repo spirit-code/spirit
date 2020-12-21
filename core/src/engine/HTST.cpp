@@ -29,7 +29,7 @@ namespace Engine
         void Calculate(Data::HTST_Info & htst_info, int n_eigenmodes_keep)
         {
             Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, "---- Prefactor calculation");
-
+            htst_info.sparse = false;
             const scalar epsilon = 1e-4;
             const scalar epsilon_force = 1e-8;
 
@@ -41,6 +41,8 @@ namespace Engine
             if( n_eigenmodes_keep < 0 )
                 n_eigenmodes_keep = 2*nos;
             n_eigenmodes_keep = std::min(2*nos, n_eigenmodes_keep);
+            htst_info.n_eigenmodes_keep = n_eigenmodes_keep;
+            Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format( "    Saving the first {} eigenvectors.", n_eigenmodes_keep));
 
             vectorfield force_tmp(nos, {0,0,0});
             std::vector<std::string> block;
@@ -57,11 +59,11 @@ namespace Engine
             Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Checking if initial configuration is an extremum...");
             Vectormath::set_c_a(1, gradient_minimum, force_tmp);
             Manifoldmath::project_tangential(force_tmp, image_minimum);
-            scalar fmax_minimum = Vectormath::max_abs_component(force_tmp);
+            scalar fmax_minimum = Vectormath::max_norm(force_tmp);
             if( fmax_minimum > epsilon_force )
             {
                 Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format(
-                    "HTST: the initial configuration is not a converged minimum, its max. force component is above the threshold ({} > {})!", fmax_minimum, epsilon_force ));
+                    "HTST: the initial configuration is not a converged minimum, its max. torque is above the threshold ({} > {})!", fmax_minimum, epsilon_force ));
                 return;
             }
 
@@ -74,11 +76,11 @@ namespace Engine
             Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Checking if transition configuration is an extremum...");
             Vectormath::set_c_a(1, gradient_sp, force_tmp);
             Manifoldmath::project_tangential(force_tmp, image_sp);
-            scalar fmax_sp = Vectormath::max_abs_component(force_tmp);
+            scalar fmax_sp = Vectormath::max_norm(force_tmp);
             if( fmax_sp > epsilon_force )
             {
                 Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format(
-                    "HTST: the transition configuration is not a converged saddle point, its max. force component is above the threshold ({} > {})!", fmax_sp, epsilon_force ));
+                    "HTST: the transition configuration is not a converged saddle point, its max. torque is above the threshold ({} > {})!", fmax_sp, epsilon_force ));
                 return;
             }
 
@@ -142,7 +144,7 @@ namespace Engine
                 Calculate_Perpendicular_Velocity(image_sp, htst_info.saddle_point->geometry->mu_s, hessian_geodesic_sp_3N, basis_sp, htst_info.eigenvectors_sp, htst_info.perpendicular_velocity);
 
                 // Reduce the number of saved eigenmodes
-                htst_info.eigenvalues_sp.conservativeResize(n_eigenmodes_keep);
+                htst_info.eigenvalues_sp.conservativeResize(2*nos);
                 htst_info.eigenvectors_sp.conservativeResize(2*nos, n_eigenmodes_keep);
             }
             // End saddle point
@@ -210,7 +212,7 @@ namespace Engine
                 }
 
                 // Reduce the number of saved eigenmodes
-                htst_info.eigenvalues_min.conservativeResize(n_eigenmodes_keep);
+                htst_info.eigenvalues_min.conservativeResize(2*nos);
                 htst_info.eigenvectors_min.conservativeResize(2*nos, n_eigenmodes_keep);
             }
             // End initial state minimum
@@ -454,7 +456,6 @@ namespace Engine
         {
             // Create a Spectra solver
             Eigen::SelfAdjointEigenSolver<MatrixX> matrix_solver(matrix);
-
             evalues = matrix_solver.eigenvalues().real();
             evectors = matrix_solver.eigenvectors().real();
         }

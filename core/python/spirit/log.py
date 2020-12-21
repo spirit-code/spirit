@@ -11,22 +11,50 @@ _spirit = spiritlib.load_spirit_library()
 
 # Log levels
 LEVEL_ALL       = 0
+"""Only log highest-level messages, as well as `Severe` and `Error` messages."""
+
 LEVEL_SEVERE    = 1
+"""Only log highest-level messages, as well as `Severe` and `Error` messages."""
+
 LEVEL_ERROR     = 2
+"""Only log highest-level messages, as well as `Severe` and `Error` messages."""
+
 LEVEL_WARNING   = 3
+"""Accept log messages of `Warning` and higher levels."""
+
 LEVEL_PARAMETER = 4
+"""Accept log messages of `Parameter` and higher levels."""
+
 LEVEL_INFO      = 5
+"""Accept log messages of `Info` and higher levels."""
+
 LEVEL_DEBUG     = 6
+"""Accept log messages of `Debug` and higher levels."""
 
 # Log message senders
 SENDER_ALL  = 0
+"""General message sender."""
+
 SENDER_IO   = 1
+"""Everything related to I/O."""
+
 SENDER_GNEB = 2
+"""GNEB method message sender."""
+
 SENDER_LLG  = 3
+"""LLG method message sender."""
+
 SENDER_MC   = 4
+"""Monte Carlo method message sender."""
+
 SENDER_MMF  = 5
+"""MMF method message sender."""
+
 SENDER_API  = 6
+"""API message sender."""
+
 SENDER_UI   = 7
+"""User interface message sender."""
 
 _Send          = _spirit.Log_Send
 _Send.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_char_p,
@@ -35,11 +63,15 @@ _Send.restype  = None
 def send(p_state, level, sender, message, idx_image=-1, idx_chain=-1):
     """Add a message to the log.
 
-    - level: see integers defined above. The message may be printed to the console and/or written
-      to the log file, depending on the current log parameters
-    - sender: see integers defined above. Used to distinguish context
-    - message: a string which to log
-    - idx_image: can be used to specify to which image the message relates (default: active image)
+    Arguments:
+
+    - `level`: see integers defined above. The message may be printed to the console and/or written to the log file, depending on the current log parameters
+    - `sender`: see integers defined above. Used to distinguish context
+    - `message`: a string which to log
+
+    Keyword arguments:
+
+    - `idx_image`: can be used to specify to which image the message relates (default: active image)
     """
     _Send(ctypes.c_void_p(p_state), ctypes.c_int(level), ctypes.c_int(sender),
           ctypes.c_char_p(message.encode('utf-8')), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
@@ -78,7 +110,7 @@ _Set_Output_File_Tag.restype  = None
 def set_output_file_tag(p_state, tag):
     """Set the tagging string which is placed in front of the log file.
 
-    If "<time>" is used for the tag, it will be the time of creation of the state.
+    If `"<time>"` is used for the tag, it will be the time of creation of the state.
     """
     _Set_Output_File_Tag(ctypes.c_void_p(p_state), ctypes.c_char_p(tag.encode('utf-8')))
 

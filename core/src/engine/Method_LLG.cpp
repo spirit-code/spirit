@@ -38,13 +38,13 @@ namespace Engine
 
         // We assume it is not converged before the first iteration
         this->force_converged = std::vector<bool>(this->noi, false);
-        this->force_max_abs_component = system->llg_parameters->force_convergence + 1.0;
+        this->max_torque = system->llg_parameters->force_convergence + 1.0;
 
         // History
         this->history = std::map<std::string, std::vector<scalar>>{
-            {"max_torque_component", {this->force_max_abs_component}},
-            {"E", {this->force_max_abs_component}},
-            {"M_z", {this->force_max_abs_component}} };
+            {"max_torque", {this->max_torque}},
+            {"E", {this->max_torque}},
+            {"M_z", {this->max_torque}} };
 
         // Create shared pointers to the method's systems' spin configurations
         this->configurations = std::vector<std::shared_ptr<vectorfield>>(this->noi);
@@ -123,7 +123,8 @@ namespace Engine
         for (unsigned int img = 0; img < this->systems.size(); ++img)
         {
             // Minus the gradient is the total Force here
-            this->systems[img]->hamiltonian->Gradient(*configurations[img], Gradient[img]);
+            this->systems[img]->hamiltonian->Gradient_and_Energy(*configurations[img], Gradient[img], current_energy);
+
             #ifdef SPIRIT_ENABLE_PINNING
                 Vectormath::set_c_a(1, Gradient[img], Gradient[img], this->systems[img]->geometry->mask_unpinned);
             #endif // SPIRIT_ENABLE_PINNING
@@ -161,8 +162,12 @@ namespace Engine
             Vector3 je = s_c_vec;// direction of current
             //////////
 
-            // Direct minimisation
-            if (parameters.direct_minimization || solver == Solver::VP)
+            // This is the force calculation as it should be for direct minimization
+            // TODO: Also calculate force for VP solvers without additional scaling
+            if(solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas)
+            {
+                Vectormath::set_c_cross( 1.0, image, force, force_virtual);
+            } else if (parameters.direct_minimization || solver == Solver::VP || solver == Solver::VP_OSO)
             {
                 dtg = parameters.dt * Constants::gamma / Constants::mu_B;
                 Vectormath::set_c_cross( dtg, image, force, force_virtual);
@@ -211,7 +216,7 @@ namespace Engine
     }
 
     template <Solver solver>
-    scalar Method_LLG<solver>::getTime()
+    double Method_LLG<solver>::get_simulated_time()
     {
         return this->picoseconds_passed;
     }
@@ -238,20 +243,25 @@ namespace Engine
         this->picoseconds_passed += this->systems[0]->llg_parameters->dt;
 
         // --- Convergence Parameter Update
-        // Loop over images to calculate the maximum force components
+        // Loop over images to calculate the maximum torques
         for (unsigned int img = 0; img < this->systems.size(); ++img)
         {
             this->force_converged[img] = false;
-            auto fmax = this->Force_on_Image_MaxAbsComponent(*(this->systems[img]->spins), this->forces_virtual[img]);
-            if (fmax > 0) this->force_max_abs_component = fmax;
-            else this->force_max_abs_component = 0;
-            if (fmax < this->systems[img]->llg_parameters->force_convergence) this->force_converged[img] = true;
+            // auto fmax = this->Force_on_Image_MaxAbsComponent(*(this->systems[img]->spins), this->forces_virtual[img]);
+            auto fmax = this->MaxTorque_on_Image(*(this->systems[img]->spins), this->forces_virtual[img]);
+
+            if (fmax > 0)
+                this->max_torque = fmax;
+            else this->max_torque = 0;
+            if (fmax < this->systems[img]->llg_parameters->force_convergence)
+                this->force_converged[img] = true;
         }
 
         // --- Image Data Update
         // Update the system's Energy
         // ToDo: copy instead of recalculating
-        this->systems[0]->UpdateEnergy();
+
+        this->systems[0]->E = current_energy;
 
         // ToDo: How to update eff_field without numerical overhead?
         // systems[0]->effective_field = Gradient[0];
@@ -292,7 +302,7 @@ namespace Engine
     void Method_LLG<solver>::Save_Current(std::string starttime, int iteration, bool initial, bool final)
     {
         // History save
-        this->history["max_torque_component"].push_back(this->force_max_abs_component);
+        this->history["max_torque"].push_back(this->max_torque);
         this->systems[0]->UpdateEnergy();
         this->history["E"].push_back(this->systems[0]->E);
         auto mag = Engine::Vectormath::Magnetization(*this->systems[0]->spins);
@@ -328,8 +338,8 @@ namespace Engine
                 {
                     // File name and comment
                     std::string spinsFile = preSpinsFile + suffix + ".ovf";
-                    std::string output_comment = fmt::format( "{} simulation ({} solver)\n# Desc:      Iteration: {}\n# Desc:      Maximum force component: {}",
-                        this->Name(), this->SolverFullName(), iteration, this->force_max_abs_component );
+                    std::string output_comment = fmt::format( "{} simulation ({} solver)\n# Desc:      Iteration: {}\n# Desc:      Maximum torque: {}",
+                        this->Name(), this->SolverFullName(), iteration, this->max_torque );
 
                     // File format
                     IO::VF_FileFormat format = this->systems[0]->llg_parameters->output_vf_filetype;
@@ -478,6 +488,8 @@ namespace Engine
     template class Method_LLG<Solver::Heun>;
     template class Method_LLG<Solver::Depondt>;
     template class Method_LLG<Solver::RungeKutta4>;
-    template class Method_LLG<Solver::NCG>;
+    template class Method_LLG<Solver::LBFGS_OSO>;
+    template class Method_LLG<Solver::LBFGS_Atlas>;
     template class Method_LLG<Solver::VP>;
+    template class Method_LLG<Solver::VP_OSO>;
 }

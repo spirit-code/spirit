@@ -43,6 +43,7 @@ public:
     void mouseScroll(const float& wheel_delta);
     void setFramebufferSize(float width, float height);
     float getFramerate() const;
+    glm::vec2 getFramebufferSize() const;
 
     void updateOptions(const Options& options);
     template<int index>
@@ -50,7 +51,7 @@ public:
     void options(const Options& options);
     const Options& options() const;
     template<int index>
-    const typename Options::Type<index>::type& getOption() const;
+    typename Options::Type<index>::type getOption() const;
 
     void renderers(const std::vector<std::pair<std::shared_ptr<RendererBase>, std::array<float, 4>>>& renderers, bool update_renderer_options=true);
     
@@ -74,7 +75,7 @@ void View::setOption(const typename Options::Type<index>::type& value) {
 }
 
 template<int index>
-const typename Options::Type<index>::type& View::getOption() const {
+typename Options::Type<index>::type View::getOption() const {
     return m_options.get<index>();
 }
 

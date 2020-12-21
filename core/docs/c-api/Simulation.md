@@ -18,7 +18,7 @@ regular simulation, except that the iterations have to be triggered manually.
 Definition of solvers
 --------------------------------------------------------------------
 
-Note that the VP and NCG Solvers are only meant for direct minimization and not for dynamics.
+Note that the VP and LBFGS Solvers are only meant for direct minimization and not for dynamics.
 
 
 
@@ -70,6 +70,26 @@ Solver_RungeKutta4 4
 
 `RK4`: Verlet-like velocity projection
 
+
+```C
+Solver_LBFGS_OSO   5
+```
+
+`LBFGS_OSO`: Limited memory Broyden-Fletcher-Goldfarb-Shanno, exponential transform
+
+
+```C
+Solver_LBFGS_Atlas 6
+```
+
+`LBFGS_Atlas`: Limited memory Broyden-Fletcher-Goldfarb-Shannon, stereographic projection
+
+
+```C
+Solver_VP_OSO      7
+```
+
+`Solver_VP_OSO`: Verlet-like velocity projection, exponential transform
 
 
 Start or stop a simulation
@@ -136,6 +156,19 @@ void Simulation_SingleShot(State *state, int idx_image=-1, int idx_chain=-1)
 Single iteration of a Method
 
 If `singleshot=true` was passed to `Simulation_..._Start` before, this will perform one iteration.
+Otherwise, nothing will happen.
+
+
+
+### Simulation_N_Shot
+
+```C
+void Simulation_N_Shot(State *state, int N, int idx_image=-1, int idx_chain=-1);
+```
+
+N iterations of a Method
+
+If `singleshot=true` was passed to `Simulation_..._Start` before, this will perform N iterations.
 Otherwise, nothing will happen.
 
 

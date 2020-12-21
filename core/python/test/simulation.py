@@ -5,8 +5,8 @@ import sys
 spirit_py_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), ".."))
 sys.path.insert(0, spirit_py_dir)
 
-from spirit import state, simulation, configuration
-
+from spirit import state, simulation, configuration, version
+from spirit.parameters import llg
 import unittest
 
 ##########
@@ -25,6 +25,10 @@ class TestParameters(unittest.TestCase):
     def setUp(self):
         ''' Setup a p_state and copy it to Clipboard'''
         self.p_state = p_state
+        if version.scalartype == "float":
+            print("\nWARNING: Detected single precision calculation. Reducing precision requirements.\n")
+            llg.set_convergence(p_state, 1e-5)
+
 
 class Simulation_StartStop(TestParameters):
     

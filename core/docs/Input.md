@@ -1,5 +1,5 @@
-SPIRIT INPUT FILES
-====================
+Spirit inputfile
+====================================================
 
 The following sections will list and explain the input file keywords.
 
@@ -14,7 +14,7 @@ The following sections will list and explain the input file keywords.
 
 
 General Settings and Log <a name="General"></a>
---------------------------------------------------
+----------------------------------------------------
 
 ```Python
 ### Add a tag to output files (for timestamp use "<time>")
@@ -56,7 +56,7 @@ at all.
 
 
 Geometry <a name="Geometry"></a>
---------------------------------------------------
+----------------------------------------------------
 
 The Geometry of a spin system is specified in form of a bravais lattice
 and a basis cell of atoms. The number of basis cells along each principal
@@ -92,8 +92,8 @@ bravais_lattice hex2d
 ### 2.x 2.y 2.z  cell in terms of bravais vectors
 basis
 2
-0   0                      0
-0.86602540378443864676 0.5 0
+0          0         0
+0.33333333 0.3333333 0
 
 ### µSpin
 mu_s 2.0 1.0
@@ -154,12 +154,19 @@ The atomic moments `mu_s` are specified in units of the Bohr magneton `mu_B`.
 
 
 Heisenberg Hamiltonian <a name="Heisenberg"></a>
---------------------------------------------------
+----------------------------------------------------
 
 To use a Heisenberg Hamiltonian, use either `heisenberg_neighbours` or `heisenberg_pairs`
 as input parameter after the `hamiltonian` keyword.
 
-**General Parameters**:
+The Hamiltonian is defined as
+
+![](https://math.now.sh?from=%0A%09%5Cmathcal%7BH%7D%20%3D%0A%20%20%20%20%20%20-%20%5Csum_i%20%5Cmu_i%20%5Cvec%7BB%7D%5Ccdot%5Cvec%7Bn%7D_i%0A%20%20%20%20%20%20%20-%20%5Csum_i%20%5Csum_j%20K_j%20%28%5Chat%7BK%7D_j%5Ccdot%5Cvec%7Bn%7D_i%29%5E2%5C%5C%0A%20%20%20%20%20%20-%20%5Csum%5Climits_%7B%5Cbraket%7Bij%7D%7D%5C%2C%20J_%7Bij%7D%20%5Cvec%7Bn%7D_i%5Ccdot%5Cvec%7Bn%7D_j%0A%20%20%20%20%20%20%20-%20%5Csum%5Climits_%7B%5Cbraket%7Bij%7D%7D%5C%2C%20%5Cvec%7BD%7D_%7Bij%7D%20%5Ccdot%20(%5Cvec%7Bn%7D_i%5Ctimes%5Cvec%7Bn%7D_j)%5C%5C%0A%20%20%20%20%20%20%2B%20%5Cfrac%7B1%7D%7B2%7D%5Cfrac%7B%5Cmu_0%7D%7B4%5Cpi%7D%20%5Csum_%7B%5Csubstack%7Bi%2Cj%20%5C%5C%20i%20%5Cneq%20j%7D%7D%20%5Cmu_i%20%5Cmu_j%20%5Cfrac%7B(%5Cvec%7Bn%7D_i%20%5Ccdot%20%5Chat%7Br%7D_%7Bij%7D)%20(%5Cvec%7Bn%7D_j%5Ccdot%5Chat%7Br%7D_%7Bij%7D)%20-%20%5Cvec%7Bn%7D_i%20%5Cvec%7Bn%7D_j%7D%7B%7Br_%7Bij%7D%7D%5E3%7D)
+
+where `<ij>` denotes the unique pairs of interacting spins `i` and `j`.
+For more details, such as the notation used here, see [Phys. Rev. B **99** 224414 (2019)](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.99.224414).
+
+**General Parameters:**
 
 ```Python
 ### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, gaussian)
@@ -185,6 +192,8 @@ ddi_n_periodic_images    4 4 4
 
 ### DDI cutoff radius (if cutoff is used)
 ddi_radius               0.0
+
+ddi_pb_zero_padding      1.0
 ```
 
 *Anisotropy:*
@@ -197,7 +206,7 @@ a magnitude `K`.
 Via the keyword `ddi_method` the method employed to calculate the dipole-dipole interactions is specified.
 
       `none`   -  Dipole-Dipole interactions are neglected
-      `fft`    -  Uses a fast convolution method to accelerate the calculation
+      `fft`    -  Uses a fast convolution method to accelerate the calculation (RECOMMENDED)
       `cutoff` -  Lets only spins within a maximal distance of 'ddi_radius' interact
       `fmm`    -  Uses the Fast-Multipole-Method (NOT YET IMPLEMENTED!)
 
@@ -208,7 +217,11 @@ If the boundary conditions are periodic `ddi_n_periodic_images` specifies how ma
 *Note:* The images are appended on both sides (the edges get filled too)
 i.e. 1 0 0 -> one image in +a direction and one image in -a direction
 
-**Neighbour shells**:
+If the boundary conditions are open in a lattice direction and sufficiently many periodic images are chosen, zero-padding in that direction can be skipped.
+This improves the speed and memory footprint of the calculation, but comes at the cost of a very slight asymmetry in the interactions (decreasing with increasing periodic images).
+If `ddi_pb_zero_padding` is set to 1, zero-padding is performed - even if the boundary condition is periodic in a direction. If it is set to 0, zero-padding is skipped.
+
+**Neighbour shells:**
 
 Using `hamiltonian heisenberg_neighbours`, pair-wise interactions are handled in terms of
 (isotropic) neighbour shells:
@@ -228,13 +241,13 @@ n_shells_dmi      2
 dij	              6.0 0.5
 ```
 
-Note that pair-wise interaction parameters always mean energy per unique pair
-(not per neighbour).
+Note that pair-wise interaction parameters always mean energy per unique pair \<ij\>
+(i.e. not per neighbour).
 
-**Specify Pairs**:
+**Specify Pairs:**
 
 Using `hamiltonian heisenberg_pairs`, you may input interactions explicitly,
-in form of unique pairs, giving you more granular control over the system and
+in form of unique pairs \<ij\>, giving you more granular control over the system and
 the ability to specify non-isotropic interactions:
 
 ```Python
@@ -254,7 +267,7 @@ i    j  da_j  db_j  dc_j    k  da_k  db_k  dc_k    l  da_l  db_l  dc_l    Q
 0    0  1     0     0       0  0     1     0       0  0     0     1       3.0
 ```
 
-Note that pair-wise interaction parameters always mean energy per unique pair
+Note that pair-wise interaction parameters always mean energy per unique pair \<ij\>
 (not per neighbour).
 
 *Pairs:*
@@ -264,8 +277,7 @@ Note that instead of specifying the DM-vector as `Dijx Dijy Dijz`, you may speci
 `Dija Dijb Dijc` if you prefer. You may also specify the magnitude separately as a column
 `Dij`, but note that if you do, the vector (e.g. `Dijx Dijy Dijz`) will be normalized.
 
-*Quadruplets:*
-Columns for these may also be placed in arbitrary order.
+*Quadruplets:* Columns for these may also be placed in arbitrary order.
 
 *Separate files:*
 The anisotropy, pairs and quadruplets can be placed into separate files,
@@ -283,15 +295,19 @@ interaction_pairs_file       input/pairs.txt
 interaction_quadruplets_file input/quadruplets.txt
 ```
 
+Note that the quadruplet interaction is defined as
+
+![](https://math.now.sh?from=E_%5Cmathrm%7BQuad%7D%20%3D%20-%20%5Csum%5Climits_%7Bijkl%7D%5C%2C%20K_%7Bijkl%7D%20%5Cleft%28%5Cvec%7Bn%7D_i%5Ccdot%5Cvec%7Bn%7D_j%5Cright%29%5Cleft(%5Cvec%7Bn%7D_k%5Ccdot%5Cvec%7Bn%7D_l%5Cright))
+
 **Units:**
 
 The external field is specified in Tesla, while anisotropy is specified in meV.
-Pairwise interactions are specified in meV per unique pair,
-while quadruplets are specified in meV per unique quadruplet.
+Pairwise interactions are specified in meV per unique pair \<ij\>,
+while quadruplets are specified in meV per unique quadruplet \<ijkl\>.
 
 
 Gaussian Hamiltonian <a name="Gaussian"></a>
---------------------------------------------------
+----------------------------------------------------
 
 Note that you select the Hamiltonian you use with the `hamiltonian gaussian` input option.
 
@@ -316,7 +332,7 @@ gaussians
 
 
 Method Output <a name="MethodOutput"></a>
---------------------------------------------------
+----------------------------------------------------
 
 For `llg` and equivalently `mc` and `gneb`, you can specify which
 output you want your simulations to create. They share a few common
@@ -335,7 +351,7 @@ results are appended to an archive file at each step.
 The energy output files are in units of meV, and can be switched to
 meV per spin with `<method>_output_energy_divide_by_nspins`.
 
-**LLG**:
+**LLG:**
 ```Python
 llg_output_energy_step             0    # Save system energy at each step
 llg_output_energy_archive          1    # Archive system energy at each step
@@ -346,7 +362,7 @@ llg_output_configuration_step      1    # Save spin configuration at each step
 llg_output_configuration_archive   0    # Archive spin configuration at each step
 ```
 
-**MC**:
+**MC:**
 ```Python
 mc_output_energy_step             0
 mc_output_energy_archive          1
@@ -357,7 +373,7 @@ mc_output_configuration_step    1
 mc_output_configuration_archive 0
 ```
 
-**GNEB**:
+**GNEB:**
 ```Python
 gneb_output_energies_step             0 # Save energies of images in chain
 gneb_output_energies_interpolated     1 # Also save interpolated energies
@@ -368,7 +384,7 @@ gneb_output_chain_step 0    # Save the whole chain at each step
 
 
 Method Parameters <a name="MethodParameters"></a>
---------------------------------------------------
+----------------------------------------------------
 
 Again, the different Methods share a few common parameters.
 On the example of the LLG Method:
@@ -387,7 +403,7 @@ llg_n_iterations        2000000
 llg_n_iterations_log    2000
 ```
 
-**LLG**:
+**LLG:**
 
 ```Python
 ### Seed for Random Number Generator
@@ -413,7 +429,7 @@ llg_stt_polarisation_normal	1.0 0.0 0.0
 The time step `dt` is given in picoseconds.
 The temperature is given in Kelvin and the temperature gradient in Kelvin/Angstrom.
 
-**MC**:
+**MC:**
 
 ```Python
 ### Seed for Random Number Generator
@@ -426,7 +442,7 @@ mc_temperature      0
 mc_acceptance_ratio 0.5
 ```
 
-**GNEB**:
+**GNEB:**
 
 ```Python
 ### Constant for the spring force
@@ -438,7 +454,7 @@ gneb_n_energy_interpolations 10
 
 
 Pinning <a name="Pinning"></a>
---------------------------------------------------
+----------------------------------------------------
 
 Note that for this feature you need to build with `SPIRIT_ENABLE_PINNING`
 set to `ON` in cmake.
@@ -482,7 +498,7 @@ inside the file.
 
 
 Disorder and Defects <a name="Defects"></a>
---------------------------------------------------
+----------------------------------------------------
 
 Note that for this feature you need to build with `SPIRIT_ENABLE_DEFECTS`
 set to `ON` in cmake.

@@ -7,6 +7,7 @@
 #include <Spirit/Hamiltonian.h>
 #include <Spirit/Constants.h>
 #include <Spirit/Parameters_LLG.h>
+#include <Spirit/Version.h>
 #include <data/State.hpp>
 #include <Eigen/Dense>
 #include <Eigen/Core>
@@ -87,6 +88,15 @@ TEST_CASE( "Finite Differences", "[physics]" )
     std::vector<const char *>  hamiltonians{ "core/test/input/fd_pairs.cfg" };
                                              //"core/test/input/fd_neighbours",
                                              //"core/test/input/fd_gaussian.cfg"};
+
+    // Reduce precision if float accuracy
+    double epsilon_apprx = 1e-11;
+    if(strcmp(Spirit_Scalar_Type(), "float") == 0)
+    {
+        WARN("Detected single precision calculation. Reducing precision requirements.");
+        epsilon_apprx = 1e-4;
+    }
+
     for( auto ham: hamiltonians )
     {
         INFO( " Testing " << ham );
@@ -108,7 +118,7 @@ TEST_CASE( "Finite Differences", "[physics]" )
             INFO("i = " << i << "\n" );
             INFO("Gradient (FD) = " << grad_fd[i].transpose() << "\n" );
             INFO("Gradient      = " << grad[i].transpose() << "\n" );
-            REQUIRE( grad_fd[i].isApprox( grad[i] ) );
+            REQUIRE( grad_fd[i].isApprox( grad[i], epsilon_apprx ) );
         }
 
         auto hessian = MatrixX( 3*state->nos, 3*state->nos );
@@ -119,7 +129,7 @@ TEST_CASE( "Finite Differences", "[physics]" )
 
         INFO("Hessian (FD) = " << hessian_fd << "\n" );
         INFO("Hessian      = " << hessian << "\n" );
-        REQUIRE( hessian_fd.isApprox( hessian ) );
+        REQUIRE( hessian_fd.isApprox( hessian, epsilon_apprx ) );
     }
 }
 

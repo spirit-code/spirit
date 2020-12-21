@@ -49,11 +49,11 @@ _MMF_Set_Output_Energy.restype  = None
 def set_output_energy(p_state, step=False, archive=True, spin_resolved=False, divide_by_nos=True, add_readability_lines=True, idx_image=-1, idx_chain=-1):
     """Set whether to write energy output files.
 
-    - step: whether to write a new file after each set of iterations
-    - archive: whether to append to an archive file after each set of iterations
-    - spin_resolved: whether to write a file containing the energy of each spin
-    - divide_by_nos: whether to divide energies by the number of spins
-    - add_readability_lines: whether to separate columns by lines
+    - `step`: whether to write a new file after each set of iterations
+    - `archive`: whether to append to an archive file after each set of iterations
+    - `spin_resolved`: whether to write a file containing the energy of each spin
+    - `divide_by_nos`: whether to divide energies by the number of spins
+    - `add_readability_lines`: whether to separate columns by lines
     """
     _MMF_Set_Output_Energy(ctypes.c_void_p(p_state), ctypes.c_bool(step), ctypes.c_bool(archive),
                         ctypes.c_bool(spin_resolved), ctypes.c_bool(divide_by_nos), ctypes.c_bool(add_readability_lines),
@@ -66,9 +66,9 @@ _MMF_Set_Output_Configuration.restype  = None
 def set_output_configuration(p_state, step=False, archive=True, filetype=FILEFORMAT_OVF_TEXT, idx_image=-1, idx_chain=-1):
     """Set whether to write spin configuration output files.
 
-    - step: whether to write a new file after each set of iterations
-    - archive: whether to append to an archive file after each set of iterations
-    - filetype: the format in which the data is written
+    - `step`: whether to write a new file after each set of iterations
+    - `archive`: whether to append to an archive file after each set of iterations
+    - `filetype`: the format in which the data is written
     """
     _MMF_Set_Output_Configuration(ctypes.c_void_p(p_state), ctypes.c_bool(step), ctypes.c_bool(archive),
                         ctypes.c_int(filetype), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
@@ -80,8 +80,8 @@ _MMF_Set_N_Iterations.restype     = None
 def set_iterations(p_state, n_iterations, n_iterations_log, idx_image=-1, idx_chain=-1):
     """Set the number of iterations and how often to log and write output.
 
-    - n_iterations: the maximum number of iterations
-    - n_iterations_log: the number of iterations after which status is logged and output written
+    - `n_iterations`: the maximum number of iterations
+    - `n_iterations_log`: the number of iterations after which status is logged and output written
     """
     _MMF_Set_N_Iterations(ctypes.c_void_p(p_state), ctypes.c_int(n_iterations),
                           ctypes.c_int(n_iterations_log), ctypes.c_int(idx_image),

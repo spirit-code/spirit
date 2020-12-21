@@ -11,18 +11,12 @@ SPIRIT
 
 **Core Library:**
 
-| Service | System | Compiler | Status |
-| :------ | :----: | :------: | -----: |
-|  [Travis-CI](https://travis-ci.org/spirit-code/spirit) | Ubuntu 14.04 <br/> macOS | GCC 6 <br/> Clang | master: [![Build Status](https://travis-ci.org/spirit-code/spirit.svg?branch=master)](https://travis-ci.org/spirit-code/spirit)<br />develop: [![Build Status](https://travis-ci.org/spirit-code/spirit.svg?branch=develop)](https://travis-ci.org/spirit-code/spirit) |
-|  [AppVeyor](https://ci.appveyor.com/project/GPMueller/spirit) | Windows | MSVC14 <br/> MSVC14.1 | master: [![Build status](https://ci.appveyor.com/api/projects/status/m15hlxkgmuyx8aj5/branch/master?svg=true)](https://ci.appveyor.com/project/GPMueller/spirit)<br />develop: [![Build status](https://ci.appveyor.com/api/projects/status/m15hlxkgmuyx8aj5/branch/develop?svg=true)](https://ci.appveyor.com/project/GPMueller/spirit) |
-
+| Branch   | Build Status | Python Package Coverage | Core Library Coverage |
+| :------- | :----------: | :---------------------: | :-------------------: |
+| master:  | ![CI](https://github.com/spirit-code/spirit/workflows/CI/badge.svg?branch=master) | [![Coverage Status](https://coveralls.io/repos/github/spirit-code/spirit/badge.svg?branch=master)](https://coveralls.io/github/spirit-code/spirit?branch=master) | [![Coverage Status](https://codecov.io/gh/spirit-code/spirit/branch/master/graph/badge.svg)](https://codecov.io/gh/spirit-code/spirit/branch/master) |
+| develop: | ![CI](https://github.com/spirit-code/spirit/workflows/CI/badge.svg?branch=develop) | [![Coverage Status](https://coveralls.io/repos/github/spirit-code/spirit/badge.svg?branch=develop)](https://coveralls.io/github/spirit-code/spirit?branch=develop) | [![Coverage Status](https://codecov.io/gh/spirit-code/spirit/branch/develop/graph/badge.svg)](https://codecov.io/gh/spirit-code/spirit/branch/develop) |
 
 **[Python package](https://pypi.org/project/spirit/):** [![PyPI version](https://badge.fury.io/py/spirit.svg)](https://badge.fury.io/py/spirit)
-
-| Branch   | Python Package Coverage | Core Library Coverage |
-| :------- | :---------------------: | :-------------------: |
-| master:  | [![Coverage Status](https://coveralls.io/repos/github/spirit-code/spirit/badge.svg?branch=master)](https://coveralls.io/github/spirit-code/spirit?branch=master) | [![Coverage Status](https://codecov.io/gh/spirit-code/spirit/branch/master/graph/badge.svg)](https://codecov.io/gh/spirit-code/spirit/branch/master) |
-| develop: | [![Coverage Status](https://coveralls.io/repos/github/spirit-code/spirit/badge.svg?branch=develop)](https://coveralls.io/github/spirit-code/spirit?branch=develop) | [![Coverage Status](https://codecov.io/gh/spirit-code/spirit/branch/develop/graph/badge.svg)](https://codecov.io/gh/spirit-code/spirit/branch/develop) |
 
 
 &nbsp;
@@ -102,7 +96,7 @@ control of parameters.
 - Standalone core library with C API which can be used from almost any programming language
 - **Python package** making complex simulation workflows easy
 - Desktop UI with powerful, live **3D visualisations** and direct control of most system parameters
-- Modular backends including **parallelisation on GPU** (CUDA) and **CPU** (OpenMP) 
+- Modular backends including **parallelisation on GPU** (CUDA) and **CPU** (OpenMP)
 
 ### *Documentation*
 
@@ -154,7 +148,7 @@ to the restrictive license on QT-Charts.*
 
 &nbsp;
 
- 
+
 
 Getting started with the Python Package <a name="Python"></a>
 ---------------------------------------------

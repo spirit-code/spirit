@@ -1,6 +1,11 @@
 #include "VFRendering/VectorSphereRenderer.hxx"
 
+#ifndef __EMSCRIPTEN__
 #include <glad/glad.h>
+#else
+#include <GLES3/gl3.h>
+#endif
+
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -150,11 +155,15 @@ void VectorSphereRenderer::draw(float aspect_ratio) {
         glUniform1f(glGetUniformLocation(m_sphere_points_program, "uUseFakePerspective"), 0.0f);
     }
 
+#ifndef __EMSCRIPTEN__
     glEnable(GL_PROGRAM_POINT_SIZE);
+#endif
     glDisable(GL_CULL_FACE);
     glDrawArrays(GL_POINTS, 0, m_num_instances);
     glEnable(GL_CULL_FACE);
+#ifndef __EMSCRIPTEN__
     glDisable(GL_PROGRAM_POINT_SIZE);
+#endif
 }
 
 void VectorSphereRenderer::updateShaderProgram() {

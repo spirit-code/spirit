@@ -18,26 +18,6 @@ namespace Engine
 {
 namespace Vectormath
 {
-    // Utility function for the SIB Solver
-    void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out)
-    {
-        #pragma omp parallel for
-        for (unsigned int i = 0; i < spins.size(); ++i)
-        {
-            Vector3 A = 0.5 * force[i];
-
-            // 1/determinant(A)
-            scalar detAi = 1.0 / (1 + A.squaredNorm());
-
-            // calculate equation without the predictor?
-            Vector3 a2 = spins[i] - spins[i].cross(A);
-
-            out[i][0] = (a2[0] * (A[0] * A[0] + 1   ) + a2[1] * (A[0] * A[1] - A[2]) + a2[2] * (A[0] * A[2] + A[1])) * detAi;
-            out[i][1] = (a2[0] * (A[1] * A[0] + A[2]) + a2[1] * (A[1] * A[1] + 1   ) + a2[2] * (A[1] * A[2] - A[0])) * detAi;
-            out[i][2] = (a2[0] * (A[2] * A[0] - A[1]) + a2[1] * (A[2] * A[1] + A[0]) + a2[2] * (A[2] * A[2] + 1   )) * detAi;
-        }
-    }
-
     void get_random_vector(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
     {
         for (int dim = 0; dim < 3; ++dim)
@@ -157,24 +137,25 @@ namespace Vectormath
             norm[i] = vf[i].norm();
     }
 
-    std::pair<scalar, scalar> minmax_component(const vectorfield & vf)
+    std::pair<scalar, scalar> minmax_component(const vectorfield & v1)
     {
         scalar minval=1e6, maxval=-1e6;
         std::pair<scalar, scalar> minmax;
         #pragma omp parallel for reduction(min: minval) reduction(max : maxval)
-        for (unsigned int i = 0; i < vf.size(); ++i)
+        for (unsigned int i = 0; i < v1.size(); ++i)
         {
             for (int dim = 0; dim < 3; ++dim)
             {
-                if (vf[i][dim] < minval) minval = vf[i][dim];
-                if (vf[i][dim] > maxval) maxval = vf[i][dim];
+                if (v1[i][dim] < minval) minval = v1[i][dim];
+                if (v1[i][dim] > maxval) maxval = v1[i][dim];
             }
         }
         minmax.first = minval;
         minmax.second = maxval;
         return minmax;
     }
-    scalar max_abs_component(const vectorfield & vf)
+
+    scalar  max_abs_component(const vectorfield & vf)
     {
         // We want the Maximum of Absolute Values of all force components on all images
         scalar absmax = 0;
@@ -402,6 +383,17 @@ namespace Vectormath
         for(unsigned int idx = 0; idx < out.size(); ++idx)
             out[idx] = c*a[idx].cross(b[idx]);
     }
+
+    scalar max_norm(const vectorfield & vf)
+    {
+        scalar max_norm = 0;
+        #pragma omp parallel for reduction(max : max_norm)
+        for(int i=0; i<vf.size(); i++)
+        {
+            max_norm = std::max(max_norm, vf[i].squaredNorm());
+        }
+        return sqrt(max_norm);
+    }
 }
 }
 
@@ -420,36 +412,7 @@ namespace Vectormath
         return std::acos(r);
     }
 
-    void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out)
-    {
-        v_out = v * std::cos(angle) + axis.cross(v) * std::sin(angle) +
-                axis * axis.dot(v) * (1 - std::cos(angle));
-    }
-
-    // XXX: should we add test for that function since it's calling the already tested rotat()
-    void rotate( const vectorfield & v, const vectorfield & axis, const scalarfield & angle,
-                    vectorfield & v_out )
-    {
-        for( unsigned int i=0; i<v_out.size(); i++)
-            rotate( v[i], axis[i], angle[i], v_out[i] );
-    }
-
-    Vector3 decompose(const Vector3 & v, const std::vector<Vector3> & basis)
-    {
-        Eigen::Ref<const Matrix3> A = Eigen::Map<const Matrix3>(basis[0].data());
-        return A.colPivHouseholderQr().solve(v);
-    }
-
     /////////////////////////////////////////////////////////////////
-
-
-    std::array<scalar,3> Magnetization(const vectorfield & vf)
-    {
-        Vector3 vfmean = mean(vf);
-        std::array<scalar, 3> M{vfmean[0], vfmean[1], vfmean[2]};
-        return M;
-    }
-
     scalar solid_angle_1(const Vector3 & v1, const Vector3 & v2, const Vector3 & v3)
     {
         // Get sign
@@ -477,6 +440,36 @@ namespace Vectormath
         scalar solid_angle = 2 * std::atan2( x , y );
 
         return solid_angle;
+    }
+
+
+    void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out)
+    {
+        v_out = v * std::cos(angle) + axis.cross(v) * std::sin(angle) +
+                axis * axis.dot(v) * (1 - std::cos(angle));
+    }
+
+    // XXX: should we add test for that function since it's calling the already tested rotat()
+    void rotate( const vectorfield & v, const vectorfield & axis, const scalarfield & angle,
+                    vectorfield & v_out )
+    {
+        for( unsigned int i=0; i<v_out.size(); i++)
+            rotate( v[i], axis[i], angle[i], v_out[i] );
+    }
+
+    Vector3 decompose(const Vector3 & v, const std::vector<Vector3> & basis)
+    {
+        Eigen::Ref<const Matrix3> A = Eigen::Map<const Matrix3>(basis[0].data());
+        return A.colPivHouseholderQr().solve(v);
+    }
+
+    /////////////////////////////////////////////////////////////////
+
+    std::array<scalar,3> Magnetization(const vectorfield & vf)
+    {
+        Vector3 vfmean = mean(vf);
+        std::array<scalar, 3> M{vfmean[0], vfmean[1], vfmean[2]};
+        return M;
     }
 
     scalar TopologicalCharge(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions)

@@ -28,9 +28,10 @@ input_*
 
 ### Executables and Libraries ###
 /spirit
-spirit.js
-spirit.js.mem
-spirit.wasm
+libSpirit.js
+libSpirit.js.mem
+libSpirit.wasm
+libSpirit.wast
 
 ### Generated Files
 core/python/LICENSE.txt

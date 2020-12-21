@@ -19,7 +19,7 @@ _Get_Magnetization.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float),
 _Get_Magnetization.restype  = None
 def get_magnetization(p_state, idx_image=-1, idx_chain=-1):
     """Calculates and returns the average magnetization of the system as
-    an array of shape (3).
+    an array of `shape(3)`.
     """
     magnetization = (3*ctypes.c_float)()
     _Get_Magnetization(ctypes.c_void_p(p_state), magnetization,
@@ -35,10 +35,10 @@ _Get_MinimumMode.restype    = None
 def get_mmf_info(p_state, idx_image=-1, idx_chain=-1):
     """Returns a set of MMF information, meant mostly for testing or debugging.
 
-    - numpy.array_view of shape (NOS, 3) of the energy gradient
+    - `numpy.array_view` of `shape(NOS, 3)` of the energy gradient
     - the lowest eigenvalue
-    - numpy.array_view of shape (NOS, 3) of the eigenmode
-    - numpy.array_view of shape (NOS, 3) of the force
+    - `numpy.array_view` of `shape(NOS, 3)` of the eigenmode
+    - `numpy.array_view` of `shape(NOS, 3)` of the force
     """
     nos = system.get_nos(p_state, idx_image, idx_chain)
 

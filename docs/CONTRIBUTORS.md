@@ -1,11 +1,27 @@
 # Contributors
 
+
+### Moritz Sallermann
+* RWTH Aachen
+* PGI-1/IAS-1 at Forschungszentrum Jülich
+
+Implementation of
+- the dipole-dipole interaction using FFT convolutions
+- the NCG and LBFGS solvers
+
+email: m.sallermann@fz-juelich.de
+
+(May 2018 - ongoing)
+
+-----------------
+
+
 ### Gideon P. Müller
 * RWTH Aachen
 * University of Iceland
 * PGI-1/IAS-1 at Forschungszentrum Jülich
 
-General code design and project setup (including CMake).<br />
+General code design and project setup.<br />
 Implementation of the core library and user interfaces, most notably:
 - GNEB and MMF methods
 - Velocity projection solver
@@ -14,22 +30,9 @@ Implementation of the core library and user interfaces, most notably:
 - C++ QT GUI and initial OpenGL code
 - Unit tests and continuous integration
 
-email: g.mueller@fz-juelich.de
+email: gideon.mueller@outlook.de
 
-(Oct. 2014 - ongoing)
-
------------------
-
-
-### Moritz Sallermann
-* RWTH Aachen
-* PGI-1/IAS-1 at Forschungszentrum Jülich
-
-Implementation of the dipole-dipole interaction using FFT convolutions.
-
-email: m.sallermann@fz-juelich.de
-
-(Apr. 2015 - Sept. 2016)
+(Oct. 2014 - Sept. 2019)
 
 -----------------
 
@@ -69,7 +72,7 @@ email: n.kiselev@fz-juelich.de
 
 Implementation of C++ OpenGL code (VFRendering library),
 as well as JavaScript Web UI and WebGL code.<br />
-Code design improvements, including the C API and CMake. 
+Code design improvements, including the C API and CMake.
 
 (Jan. 2016 - ongoing)
 
@@ -85,6 +88,18 @@ Initial (Fortran90) implementation of the HTST method.
 email: bessarab@hi.is
 
 (Apr. 2015 - ongoing)
+
+-----------------
+
+
+### Aleksei V. Ivanov
+* University of Iceland
+* St. Petersburg State University
+
+Help with the initial implementation of conjugate gradient and L-BFGS solvers.
+Initial implementation of conjugate gradient and L-BFGS solvers, using the exponential transform.
+
+(Sep. 2019 - ongoing)
 
 -----------------
 
@@ -153,6 +168,16 @@ Initial CUDA implementation and tests.<br />
 Code optimizations, suggestions and feedback.
 
 (Sept. 2016 - Dec. 2016)
+
+-----------------
+
+
+### Dmitrii Tolmachev
+* RWTH Aachen
+
+Support on the initial implementation of micromagnetics.
+
+(Sept. 2019 - Mar. 2020)
 
 -----------------
 

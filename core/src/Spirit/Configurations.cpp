@@ -550,6 +550,52 @@ catch( ... )
     spirit_handle_exception_api(idx_image, idx_chain);
 }
 
+void Configuration_DW_Skyrmion( State *state, float dw_radius, float dw_width, float order, float phase, bool upDown,
+                                bool achiral, bool rl, const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical,
+                                float r_cut_spherical, bool inverted, int idx_image, int idx_chain) noexcept
+try
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    // Get relative position
+    Vector3 _pos{ position[0], position[1], position[2] };
+    Vector3 vpos = image->geometry->center + _pos;
+
+    // Set cutoff radius
+    if (r_cut_cylindrical < 0) r_cut_cylindrical = std::max(3*dw_radius, 3*dw_width);
+
+    // Create position filter
+    auto filter = get_filter(vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
+
+    // Apply configuration
+    image->Lock();
+    Utility::Configurations::DW_Skyrmion( *image, vpos, dw_radius, dw_width, order, phase, upDown, achiral, rl, filter );
+    image->geometry->Apply_Pinning(*image->spins);
+    image->Unlock();
+
+    auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical,
+                                            r_cut_spherical, inverted );
+    std::string parameterstring        = fmt::format("dw_radius={}", dw_radius);
+    parameterstring                   += fmt::format(", dw_width={}", dw_width);
+    if (order != 1) parameterstring   += fmt::format(", order={}", order);
+    if (phase != 0) parameterstring   += fmt::format(", phase={}", phase);
+    if (upDown != 0) parameterstring  += fmt::format(", upDown={}", upDown);
+    if (achiral != 0) parameterstring += ", achiral";
+    if (rl != 0) parameterstring      += fmt::format(", rl={}", rl);
+    Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+            "Set 360 deg domain wall skyrmion configuration, " + parameterstring + ". " + filterstring,
+            idx_image, idx_chain);
+}
+catch( ... )
+{
+    spirit_handle_exception_api(idx_image, idx_chain);
+}
+
+
 void Configuration_SpinSpiral( State *state, const char * direction_type, float q[3], float axis[3],
                                float theta, const float position[3], const float r_cut_rectangular[3],
                                float r_cut_cylindrical, float r_cut_spherical, bool inverted,

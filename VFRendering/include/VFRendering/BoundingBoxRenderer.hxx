@@ -7,7 +7,9 @@ namespace VFRendering {
 class BoundingBoxRenderer : public RendererBase {
 public:
     enum Option {
-        COLOR = 600
+        COLOR = 600,
+        LEVEL_OF_DETAIL,
+        LINE_WIDTH
     };
 
 
@@ -21,6 +23,7 @@ public:
 
 protected:
     virtual void update(bool keep_geometry) override;
+    void updateVertexData();
 
 private:
     void initialize();
@@ -30,6 +33,7 @@ private:
     unsigned int m_vao = 0;
     unsigned int m_vbo = 0;
     unsigned int m_dash_vbo = 0;
+    unsigned int num_vertices = 0;
     std::vector<glm::vec3> m_vertices;
     std::vector<float> m_dashing_values;
 };
@@ -38,6 +42,16 @@ namespace Utilities {
 template<>
 struct Options::Option<BoundingBoxRenderer::Option::COLOR>{
     glm::vec3 default_value = {1.0, 1.0, 1.0};
+};
+
+template<>
+struct Options::Option<BoundingBoxRenderer::Option::LEVEL_OF_DETAIL>{
+    int default_value = 10;
+};
+
+template<>
+struct Options::Option<BoundingBoxRenderer::Option::LINE_WIDTH>{
+    float default_value = 0.0;
 };
 }
 }

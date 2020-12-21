@@ -8,7 +8,7 @@ If many iterations are called individually, one should use the single shot simul
 It avoids the allocations etc. involved when a simulation is started and ended and behaves like a
 regular simulation, except that the iterations have to be triggered manually.
 
-Note that the VP and NCG Solvers are only meant for direct minimization and not for dynamics.
+Note that the VP and LBFGS Solvers are only meant for direct minimization and not for dynamics.
 """
 
 import spirit.spiritlib as spiritlib
@@ -39,6 +39,15 @@ SOLVER_HEUN = 3
 
 SOLVER_RK4 = 4
 """4th order Runge-Kutta method."""
+
+SOLVER_LBFGS_OSO = 5
+"""Limited memory Broyden-Fletcher-Goldfarb-Shannon, using exponential transforms."""
+
+SOLVER_LBFGS_Atlas = 6
+"""Limited memory Broyden-Fletcher-Goldfarb-Shannon, using stereographic transforms"""
+
+SOLVER_VP_OSO = 7
+"""Verlet-like velocity projection method, using exponential transforms."""
 
 
 METHOD_MC   = 0
@@ -111,12 +120,12 @@ def start(p_state, method_type, solver_type=None, n_iterations=-1, n_iterations_
             single_shot=False, idx_image=-1, idx_chain=-1):
     """Start any kind of iterative calculation method.
 
-    - method_type: one of the integers defined above
-    - solver_type: only used for LLG, GNEB and MMF methods (default: None)
-    - n_iterations: the maximum number of iterations that will be performed (default: take from parameters)
-    - n_iterations_log: the number of iterations after which to log the status and write output (default: take from parameters)
-    - single_shot: if set to `True`, iterations have to be triggered individually
-    - idx_image: the image on which to run the calculation (default: active image). Not used for GNEB
+    - `method_type`: one of the integers defined above
+    - `solver_type`: only used for LLG, GNEB and MMF methods (default: None)
+    - `n_iterations`: the maximum number of iterations that will be performed (default: take from parameters)
+    - `n_iterations_log`: the number of iterations after which to log the status and write output (default: take from parameters)
+    - `single_shot`: if set to `True`, iterations have to be triggered individually
+    - `idx_image`: the image on which to run the calculation (default: active image). Not used for GNEB
     """
 
     if method_type == METHOD_MC:
@@ -164,7 +173,18 @@ def single_shot(p_state, idx_image=-1, idx_chain=-1):
     """
     spiritlib.wrap_function(_SingleShot, [ctypes.c_void_p(p_state),
                                          ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
-    # _SingleShot(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+_N_Shot          = _spirit.Simulation_N_Shot
+_N_Shot.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int]
+_N_Shot.restype  = None
+def n_shot(p_state, N, idx_image=-1, idx_chain=-1):
+    """Perform a single iteration.
+
+    In order to use this, a single shot simulation must be running on the corresponding image or chain.
+    """
+    spiritlib.wrap_function(_N_Shot, [ctypes.c_void_p(p_state), ctypes.c_int(N),
+                                         ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
+
 
 _Stop           = _spirit.Simulation_Stop
 _Stop.argtypes  = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
@@ -208,3 +228,24 @@ _Get_IterationsPerSecond.restype = ctypes.c_float
 def get_iterations_per_second(p_state, idx_image=-1, idx_chain=-1):
     """Returns the current estimation of the number of iterations per second."""
     return float(_Get_IterationsPerSecond(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain)))
+
+_Get_MaxTorqueNorm = _spirit.Simulation_Get_MaxTorqueNorm
+_Get_MaxTorqueNorm.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Get_MaxTorqueNorm.restype  = ctypes.c_float
+def get_max_torque_norm(p_state, idx_image=-1, idx_chain=-1):
+    """Returns the current maximum norm of the torque acting on any spin."""
+    return float(_Get_MaxTorqueNorm(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain)))
+
+_Get_Time = _spirit.Simulation_Get_Time
+_Get_Time.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Get_Time.restype  = ctypes.c_float
+def get_time(p_state, idx_image=-1, idx_chain=-1):
+    """ If an LLG simulation is running returns the cumulatively summed time steps `dt`, otherwise returns 0"""
+    return _Get_Time(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+_Get_Wall_Time= _spirit.Simulation_Get_Wall_Time
+_Get_Wall_Time.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Get_Wall_Time.restype  = ctypes.c_int
+def get_wall_time(p_state, idx_image=-1, idx_chain=-1):
+    """Returns the current maximum norm of the torque acting on any spin."""
+    return int(_Get_Wall_Time(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain)))
