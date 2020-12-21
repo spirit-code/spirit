@@ -638,6 +638,11 @@ namespace Engine
         {
             // Kind of a bandaid fix
             this->Gradient_Quadruplet(spins, gradient);
+            if(energy_contributions_per_spin[idx_quadruplet].second.size() != spins.size()) 
+            {
+                energy_contributions_per_spin[idx_quadruplet].second.resize(spins.size());
+            };
+            Vectormath::fill(energy_contributions_per_spin[idx_quadruplet].second, 0);
             E_Quadruplet(spins, energy_contributions_per_spin[idx_quadruplet].second);
             energy += Vectormath::sum(energy_contributions_per_spin[idx_quadruplet].second);
         }
@@ -1028,36 +1033,41 @@ namespace Engine
             }
         }
 
-        // Tentative Dipole-Dipole (Note: this is very tentative and could be wrong)
-        field<int> tupel1 = field<int>(4);
-        field<int> tupel2 = field<int>(4);
-        field<int> maxVal = {geometry->n_cell_atoms, geometry->n_cells[0], geometry->n_cells[1], geometry->n_cells[2]};
-
-        if( save_dipole_matrices && ddi_method == DDI_Method::FFT && false )
+        // Tentative Dipole-Dipole (only works for open boundary conditions)
+        if( ddi_method != DDI_Method::None )
         {
+            scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
             for( int idx1 = 0; idx1 < geometry->nos; idx1++ )
             {
-                Engine::Vectormath::tupel_from_idx(idx1, tupel1, maxVal); // tupel1 now is {ib1, a1, b1, c1}
                 for( int idx2 = 0; idx2 < geometry->nos; idx2++ )
                 {
-                    Engine::Vectormath::tupel_from_idx(idx2, tupel2, maxVal); // tupel2 now is {ib2, a2, b2, c2}
-                    int& b_inter = inter_sublattice_lookup[tupel1[0] + geometry->n_cell_atoms * tupel2[0]];
-                    int da = tupel2[1] - tupel1[1];
-                    int db = tupel2[2] - tupel1[2];
-                    int dc = tupel2[3] - tupel1[3];
-                    Matrix3 & D = dipole_matrices[b_inter + n_inter_sublattice * (da + geometry->n_cells[0] * (db + geometry->n_cells[1] * dc))];
+                    auto diff = this->geometry->positions[idx2] - this->geometry->positions[idx1];
+                    scalar d = diff.norm(), d3, d5;
+                    scalar Dxx = 0, Dxy = 0, Dxz = 0, Dyy = 0, Dyz = 0, Dzz = 0;
+                    if( d > 1e-10 )
+                    {
+                        d3 = d * d * d;
+                        d5 = d * d * d * d * d;
+                        Dxx += mult * (3 * diff[0]*diff[0] / d5 - 1/d3);
+                        Dxy += mult *  3 * diff[0]*diff[1] / d5;          //same as Dyx
+                        Dxz += mult *  3 * diff[0]*diff[2] / d5;          //same as Dzx
+                        Dyy += mult * (3 * diff[1]*diff[1] / d5 - 1/d3);
+                        Dyz += mult *  3 * diff[1]*diff[2] / d5;          //same as Dzy
+                        Dzz += mult * (3 * diff[2]*diff[2] / d5 - 1/d3);
+                    }
 
                     int i = 3 * idx1;
                     int j = 3 * idx2;
 
-                    for( int alpha1 = 0; alpha1 < 3; alpha1++ )
-                    {
-                        for( int alpha2 = 0; alpha2 < 3; alpha2++ )
-                        {
-                            hessian(i + alpha1, j + alpha2) = D(alpha1, alpha2);
-                            hessian(j + alpha1, i + alpha2) = D(alpha1, alpha2);
-                        }
-                    }
+                    hessian(i + 0, j + 0) +=  -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dxx );
+                    hessian(i + 1, j + 0) +=  -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dxy );
+                    hessian(i + 2, j + 0) +=  -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dxz );
+                    hessian(i + 0, j + 1) +=  -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dxy );
+                    hessian(i + 1, j + 1) +=  -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dyy );
+                    hessian(i + 2, j + 1) +=  -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dyz );
+                    hessian(i + 0, j + 2) +=  -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dxz );
+                    hessian(i + 1, j + 2) +=  -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dyz );
+                    hessian(i + 2, j + 2) +=  -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dzz );
                 }
             }
         }
@@ -1087,6 +1097,98 @@ namespace Engine
 
         // Quadruplets
     }
+
+    void Hamiltonian_Heisenberg::Sparse_Hessian(const vectorfield & spins, SpMatrixX & hessian)
+    {
+        int nos = spins.size();
+        const int N = geometry->n_cell_atoms;
+
+        typedef Eigen::Triplet<scalar> T;
+        std::vector<T> tripletList;
+        tripletList.reserve( geometry->n_cells_total * (anisotropy_indices.size() * 9 + exchange_pairs.size() * 2 + dmi_pairs.size() * 3) );
+
+        // --- Single Spin elements
+        for( int icell = 0; icell < geometry->n_cells_total; ++icell )
+        {
+            for( int iani = 0; iani < anisotropy_indices.size(); ++iani )
+            {
+                int ispin = icell*N + anisotropy_indices[iani];
+                if( check_atom_type(this->geometry->atom_types[ispin]) )
+                {
+                    for( int alpha = 0; alpha < 3; ++alpha )
+                    {
+                        for ( int beta = 0; beta < 3; ++beta )
+                        {
+                            int i = 3 * ispin + alpha;
+                            int j = 3 * ispin + alpha;
+                            scalar res = -2.0 * this->anisotropy_magnitudes[iani] *
+                                                    this->anisotropy_normals[iani][alpha] *
+                                                    this->anisotropy_normals[iani][beta];
+                            tripletList.push_back( T(i, j, res ) );
+                        }
+                    }
+                }
+            }
+        }
+
+        // --- Spin Pair elements
+        // Exchange
+        for( int icell = 0; icell < geometry->n_cells_total; ++icell )
+        {
+            for( unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair )
+            {
+                int ispin = exchange_pairs[i_pair].i + icell*geometry->n_cell_atoms;
+                int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, exchange_pairs[i_pair]);
+                if( jspin >= 0 )
+                {
+                    for( int alpha = 0; alpha < 3; ++alpha )
+                    {
+                        int i = 3 * ispin + alpha;
+                        int j = 3 * jspin + alpha;
+
+                        tripletList.push_back( T(i, j, -exchange_magnitudes[i_pair] ) );
+                        #ifndef SPIRIT_USE_OPENMP
+                        tripletList.push_back( T(j, i, -exchange_magnitudes[i_pair] ) );
+                        #endif
+                    }
+                }
+            }
+        }
+
+        // DMI
+        for( int icell = 0; icell < geometry->n_cells_total; ++icell )
+        {
+            for( unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair )
+            {
+                int ispin = dmi_pairs[i_pair].i + icell*geometry->n_cell_atoms;
+                int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, dmi_pairs[i_pair]);
+                if( jspin >= 0 )
+                {
+                    int i = 3*ispin;
+                    int j = 3*jspin;
+
+                    tripletList.push_back( T(i+2, j+1,   dmi_magnitudes[i_pair] * dmi_normals[i_pair][0] ) );
+                    tripletList.push_back( T(i+1, j+2,  -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0] ) );
+                    tripletList.push_back( T(i, j+2,     dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] ) );
+                    tripletList.push_back( T(i+2, j,    -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] ) );
+                    tripletList.push_back( T(i+1, j,     dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] ) );
+                    tripletList.push_back( T(i, j+1,    -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] ) );
+
+                    #ifndef SPIRIT_USE_OPENMP
+                    tripletList.push_back( T(j+1, i+2,  dmi_magnitudes[i_pair] * dmi_normals[i_pair][0]) );
+                    tripletList.push_back( T(j+2, i+1, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0]) );
+                    tripletList.push_back( T(j+2, i  ,  dmi_magnitudes[i_pair] * dmi_normals[i_pair][1]) );
+                    tripletList.push_back( T(j, i+2  , -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1]) );
+                    tripletList.push_back( T(j, i+1  ,  dmi_magnitudes[i_pair] * dmi_normals[i_pair][2]) );
+                    tripletList.push_back( T(j+1, i  , -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2]) );
+                    #endif
+                }
+            }
+        }
+
+        hessian.setFromTriplets(tripletList.begin(), tripletList.end());
+    }
+
 
     void Hamiltonian_Heisenberg::FFT_Spins(const vectorfield & spins)
     {
@@ -1123,7 +1225,7 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::FFT_Dipole_Matrices(FFT::FFT_Plan & fft_plan_dipole, int img_a, int img_b, int img_c)
     {
-        // Prefactor of ddi interaction
+        // Prefactor of DDI
         scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4*C::Pi * 1e-30 );
 
         // Size of original geometry
@@ -1148,6 +1250,11 @@ namespace Engine
 
                 // Iterate over the padded system
                 const int * c_n_cells_padded = n_cells_padded.data();
+
+                std::array<scalar, 3> cell_sizes = {geometry->lattice_constant * geometry->bravais_vectors[0].norm(), 
+                                                    geometry->lattice_constant * geometry->bravais_vectors[1].norm(), 
+                                                    geometry->lattice_constant * geometry->bravais_vectors[2].norm()};
+
                 #pragma omp parallel for collapse(3)
                 for( int c = 0; c < c_n_cells_padded[2]; ++c )
                 {
@@ -1167,7 +1274,7 @@ namespace Engine
                                 {
                                     for( int c_pb = -img_c; c_pb <= img_c; c_pb++ )
                                     {
-                                        diff =  geometry->lattice_constant * (
+                                        diff = geometry->lattice_constant * (
                                               (a_idx + a_pb * Na + geometry->cell_atoms[i_b1][0] - geometry->cell_atoms[i_b2][0]) * geometry->bravais_vectors[0]
                                             + (b_idx + b_pb * Nb + geometry->cell_atoms[i_b1][1] - geometry->cell_atoms[i_b2][1]) * geometry->bravais_vectors[1]
                                             + (c_idx + c_pb * Nc + geometry->cell_atoms[i_b1][2] - geometry->cell_atoms[i_b2][2]) * geometry->bravais_vectors[2] );
@@ -1196,14 +1303,6 @@ namespace Engine
                             fft_dipole_inputs[idx + 3 * dipole_stride.comp] = Dyy;
                             fft_dipole_inputs[idx + 4 * dipole_stride.comp] = Dyz;
                             fft_dipole_inputs[idx + 5 * dipole_stride.comp] = Dzz;
-
-                            // We explicitly ignore the different strides etc. here
-                            if( save_dipole_matrices && a < Na && b < Nb && c < Nc )
-                            {
-                                dipole_matrices[b_inter + n_inter_sublattice * (a + Na * (b + Nb * c))] <<  Dxx, Dxy, Dxz,
-                                                                                                            Dxy, Dyy, Dyz,
-                                                                                                            Dxz, Dyz, Dzz;
-                            }
                         }
                     }
                 }
@@ -1297,11 +1396,13 @@ namespace Engine
         int img_b = boundary_conditions[1] == 0 ? 0 : ddi_n_periodic_images[1];
         int img_c = boundary_conditions[2] == 0 ? 0 : ddi_n_periodic_images[2];
 
-        if(save_dipole_matrices)
-            dipole_matrices = field<Matrix3>(n_inter_sublattice * geometry->n_cells_total);
-
         FFT_Dipole_Matrices(fft_plan_dipole, img_a, img_b, img_c);
         transformed_dipole_matrices = std::move(fft_plan_dipole.cpx_ptr);
+
+        if (save_dipole_matrices)
+        {
+            dipole_matrices = std::move(fft_plan_dipole.real_ptr);
+        }
     }
 
     void Hamiltonian_Heisenberg::Clean_DDI()

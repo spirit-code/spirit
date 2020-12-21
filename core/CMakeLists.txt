@@ -104,8 +104,8 @@ set(META_AUTHOR_DOMAIN        "https://spirit-code.github.io")
 set(META_AUTHOR_MAINTAINER    "Gideon Mueller")
 set(META_AUTHOR_EMAIL         "g.mueller@fz-juelich.de")
 set(META_VERSION_MAJOR        "2")
-set(META_VERSION_MINOR        "0")
-set(META_VERSION_PATCH        "1")
+set(META_VERSION_MINOR        "1")
+set(META_VERSION_PATCH        "0")
 set(META_VERSION              "${META_VERSION_MAJOR}.${META_VERSION_MINOR}.${META_VERSION_PATCH}")
 set(META_VERSION_REVISION     "${GIT_REV}")
 #----- Compiler
@@ -176,7 +176,6 @@ if( SPIRIT_USE_THREADS )
     set( THREAD_LIBS Threads::Threads )
 endif()
 configure_file( ${CMAKE_CURRENT_LIST_DIR}/CMake/Spirit_Defines.h.in   ${CMAKE_CURRENT_LIST_DIR}/include/Spirit_Defines.h )
-configure_file( ${CMAKE_CURRENT_LIST_DIR}/CMake/Spirit_Version.hpp.in ${CMAKE_CURRENT_LIST_DIR}/include/utility/Version.hpp )
 ####################################################################
 
 
@@ -194,6 +193,7 @@ if( SPIRIT_USE_OPENMP )
         message( STATUS ">> OpenMP EXE Linker Flags: ${OpenMP_EXE_LINKER_FLAGS}" )
     else( OPENMP_FOUND )
         message( WARNING ">> OpenMP could not be found." )
+        set(SPIRIT_USE_OPENMP OFF)
     endif( OPENMP_FOUND )
 endif()
 ####################################################################
@@ -247,11 +247,16 @@ if( NOT SPIRIT_USE_CUDA AND NOT FFT_LIB )
             message( STATUS ">> Using FFTW" )
             set( FFT_INCLUDE_DIRS ${FFTW_INCLUDES} )
             set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DSPIRIT_USE_FFTW )
+        else()
+            set(SPIRIT_USE_FFTW OFF)
         endif()
     endif()
 
     if( (NOT SPIRIT_USE_FFTW) OR (NOT FFTW_FOUND) )
         message( STATUS ">> Using kissFFT" )
+        if( SPIRIT_USE_OPENMP )
+            message( WARNING "Using kissFFT together with OpenMP. If you intend to perform calculations including dipole-dipole interactions with OpenMP it is *strongly* recommended to use FFTW instead!" )
+        endif()
         add_definitions( -Dkiss_fft_scalar=${SPIRIT_SCALAR_TYPE} )
         set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DSPIRIT_USE_KISSFFT )
         add_subdirectory( ${PROJECT_SOURCE_DIR}/thirdparty/kiss_fft )
@@ -265,6 +270,9 @@ message( STATUS ">> Using FFT lib:     ${FFT_LIB}" )
 message( STATUS ">> With include dirs: ${FFT_INCLUDE_DIRS}" )
 ####################################################################
 
+######### Generate Version.hpp #####################################
+configure_file( ${CMAKE_CURRENT_LIST_DIR}/CMake/Spirit_Version.hpp.in ${CMAKE_CURRENT_LIST_DIR}/include/utility/Version.hpp )
+####################################################################
 
 ######### Dependencies that need to be built #######################
 include( GetQHull )
@@ -347,6 +355,7 @@ if( SPIRIT_USE_CUDA )
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/Hamiltonian.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/Hamiltonian_Gaussian.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/HTST.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Sparse_HTST.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/Manifoldmath.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/Method.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/Method_MC.cpp

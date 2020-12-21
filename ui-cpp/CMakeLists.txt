@@ -322,6 +322,18 @@ if( SPIRIT_UI_CXX_USE_QT )
     set( THREADS_PREFER_PTHREAD_FLAG ON )
     find_package( Threads REQUIRED )
     target_link_libraries( ${PROJECT_NAME} PRIVATE Threads::Threads )
+
+    #--------------------------------------------------
+    if( WIN32 )
+        set( ICON_FILE ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon.ico )
+        configure_file(
+            ${CMAKE_CURRENT_LIST_DIR}/res/windows_metafile.rc.in
+            ${CMAKE_CURRENT_LIST_DIR}/res/windows_metafile.rc )
+        target_sources( ${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/res/windows_metafile.rc )
+        set( CMAKE_RC_COMPILER_INIT windres )
+        enable_language( RC )
+        set( CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>" )
+    endif()
 endif()
 
 ### Optionally add Imgui sources to the target and link

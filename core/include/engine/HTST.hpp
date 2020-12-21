@@ -28,6 +28,8 @@ namespace Engine
         // Generates the geodesic Hessian in 2N-representation and calculates it's eigenvalues and eigenvectors
         void Geodesic_Eigen_Decomposition(const vectorfield & image, const vectorfield & gradient, const MatrixX & hessian,
             MatrixX & hessian_geodesic_3N, MatrixX & hessian_geodesic_2N, VectorX & eigenvalues, MatrixX & eigenvectors);
+
+        scalar Calculate_Zero_Volume(const std::shared_ptr<Data::Spin_System> system);
     };
 }
 

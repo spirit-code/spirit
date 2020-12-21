@@ -7,7 +7,10 @@ if (SPIRIT_BUILD_FOR_JS)
     ### Set the path to emscripten
     # SET(EMSCRIPTEN_ROOT_PATH "/usr/local/emsdk/emscripten/1.38.29/")
     ### Use the Emscripten toolchain file
-    # SET(CMAKE_TOOLCHAIN_FILE Emscripten)
+    # SET(CMAKE_TOOLCHAIN_FILE /usr/local/emsdk/emscripten/1.38.13/cmake/Modules/Platform/Emscripten)
+    ###
+    MESSAGE( STATUS ">> EMSCRIPTEN_ROOT_PATH: \"${EMSCRIPTEN_ROOT_PATH}\"")
+    MESSAGE( STATUS ">> CMAKE_TOOLCHAIN_FILE: \"${CMAKE_TOOLCHAIN_FILE}\"")
 ######################################################################
 
 

@@ -762,7 +762,9 @@ float Simulation_Get_Time(State *state, int idx_image, int idx_chain) noexcept
             if (state->method_image[idx_image])
             {
                 if (state->method_image[idx_image]->Name() == "LLG")
-                    return (float)state->method_image[idx_image]->getTime();
+                {
+                    return float(state->method_image[idx_image]->get_simulated_time());
+                }
             }
             return 0;
         }

@@ -39,8 +39,8 @@ namespace Engine
         // Get the number of iterations passed
         virtual int getNIterations() final;
 
-        // If the method has a measure of counting time, return the value in picoseconds
-        virtual scalar getTime();
+        // The amount of simulated time passed by the simulation
+        virtual double get_simulated_time();
 
         // Get the number of milliseconds since the Method started iterating
         virtual int getWallTime() final;

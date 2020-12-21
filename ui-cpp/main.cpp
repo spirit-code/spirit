@@ -36,9 +36,10 @@ int main( int argc, char ** argv )
     signal( SIGINT, Utility::Handle_Signal::Handle_SigInt );
 
     // Default options
-    bool show_help        = false;
-    bool show_version     = false;
-    bool quiet            = false;
+    bool show_help    = false;
+    bool show_version = false;
+    bool quiet        = false;
+
     std::string cfgfile   = "input/input.cfg";
     std::string imagefile = "";
     std::string chainfile = "";
@@ -49,7 +50,8 @@ int main( int argc, char ** argv )
           | lyra::opt( cfgfile, "configuration file" )["-f"]["--cfg"]( "The configuration file to use." )
           | lyra::opt( imagefile, "initial image file" )["-i"]["--image"]( "The initial spin configuration to use." )
           | lyra::opt( chainfile, "initial chain file" )["-c"]["--chain"](
-              "The initial chain configuration to use. (Overwrites initial spin configuration)" )
+              "The initial chain configuration to use. (Overwrites initial spin "
+              "configuration)" )
           | lyra::opt( quiet )["-q"]["--quiet"]( "If spirit should run in quiet mode." )
           | lyra::opt( show_version )["--version"]( "Show version information." ) | lyra::help( show_help );
 
@@ -113,6 +115,7 @@ int main( int argc, char ** argv )
     // Initialise Application and MainWindow
     QApplication app( argc, argv );
     // app.setOrganizationName("--");
+    // app.setApplicationName("Spirit - Atomistic Spin Code - OpenGL with Qt");
 
     // Format for all GL Surfaces
     QSurfaceFormat format;

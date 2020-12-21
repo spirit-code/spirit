@@ -34,6 +34,8 @@ namespace Engine
         */
         virtual void Hessian(const vectorfield & spins, MatrixX & hessian);
 
+        virtual void Sparse_Hessian(const vectorfield & spins, SpMatrixX & hessian);
+
         /*
             Calculate the Hessian matrix of a spin configuration.
             This function uses finite differences and may thus be quite inefficient.
