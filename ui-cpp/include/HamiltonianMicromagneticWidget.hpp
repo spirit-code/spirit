@@ -17,11 +17,11 @@ class HamiltonianMicromagneticWidget : public QWidget, private Ui::HamiltonianMi
     Q_OBJECT
 
 public:
-    HamiltonianMicromagneticWidget(std::shared_ptr<State> state, SpinWidget * spinWidget);
+    HamiltonianMicromagneticWidget( std::shared_ptr<State> state, SpinWidget * spinWidget );
     void updateData();
 
 signals:
-    void hamiltonianChanged(Hamiltonian_Type newType);
+    void hamiltonianChanged( Hamiltonian_Type newType );
 
 private slots:
     void clicked_change_hamiltonian();

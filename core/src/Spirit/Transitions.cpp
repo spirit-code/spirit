@@ -1,5 +1,6 @@
 #include <Spirit/Transitions.h>
 #include <Spirit/State.h>
+#include <Spirit/Chain.h>
 #include <data/State.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <utility/Configuration_Chain.hpp>
@@ -49,6 +50,27 @@ try
 catch( ... )
 {
     spirit_handle_exception_api(-1, idx_chain);
+}
+
+void Transition_Homogeneous_Insert_Interpolated(State *state, int n_interpolate, int idx_chain) noexcept
+{
+    int noi = Chain_Get_NOI(state);
+    if(n_interpolate == 0 || noi < 2)
+    {
+        return;
+    }
+    Chain_Image_to_Clipboard(state);
+
+    for(int img=0; img<noi-1; img++)
+    {
+        int idx = img * (n_interpolate+1);
+        for(int i=0; i<n_interpolate; i++)
+        {
+            Chain_Insert_Image_After(state, idx);
+        }
+        Transition_Homogeneous(state, idx, idx + n_interpolate+1);
+    }
+    Chain_Update_Data(state);
 }
 
 void Transition_Add_Noise_Temperature( State *state, float temperature, int idx_1, int idx_2, int idx_chain ) noexcept

@@ -250,6 +250,66 @@ namespace Engine
             }
         }
 
+        void sparse_tangent_basis_spherical(const vectorfield & vf, SpMatrixX & basis)
+        {
+            typedef Eigen::Triplet<scalar> T;
+            std::vector<T> triplet_list;
+            triplet_list.reserve(vf.size() * 3);
+
+            Vector3 tmp, etheta, ephi, res;
+            for (unsigned int i=0; i < vf.size(); ++i)
+            {
+                if (vf[i][2] > 1-1e-8)
+                {
+                    tmp = Vector3{1, 0, 0};
+                    res = (tmp - tmp.dot(vf[i])*vf[i]).normalized();
+
+                    triplet_list.push_back(T(3*i,   2*i, res[0]));
+                    triplet_list.push_back(T(3*i+1, 2*i, res[1]));
+                    triplet_list.push_back(T(3*i+2, 2*i, res[2]));
+
+                    tmp = Vector3{0, 1, 0};
+                    res = (tmp - tmp.dot(vf[i])*vf[i]).normalized();
+                    triplet_list.push_back(T(3*i,   2*i+1, res[0]));
+                    triplet_list.push_back(T(3*i+1, 2*i+1, res[1]));
+                    triplet_list.push_back(T(3*i+2, 2*i+1, res[2]));
+                }
+                else if (vf[i][2] < -1+1e-8)
+                {
+                    tmp = Vector3{1, 0, 0};
+                    res = (tmp - tmp.dot(vf[i])*vf[i]).normalized();
+                    triplet_list.push_back(T(3*i,   2*i, res[0]));
+                    triplet_list.push_back(T(3*i+1, 2*i, res[1]));
+                    triplet_list.push_back(T(3*i+2, 2*i, res[2]));
+
+                    tmp = Vector3{0, -1, 0};
+                    res = (tmp - tmp.dot(vf[i])*vf[i]).normalized();
+                    triplet_list.push_back(T(3*i,   2*i+1, res[0]));
+                    triplet_list.push_back(T(3*i+1, 2*i+1, res[1]));
+                    triplet_list.push_back(T(3*i+2, 2*i+1, res[2]));
+                }
+                else
+                {
+                    scalar rxy = std::sqrt( 1 - vf[i][2]*vf[i][2] );
+                    scalar z_rxy = vf[i][2] / rxy;
+
+                    // Note: these are not unit vectors, but derivatives!
+                    etheta = Vector3{  vf[i][0]*z_rxy, vf[i][1]*z_rxy, -rxy };
+                    ephi   = Vector3{ -vf[i][1]/rxy,   vf[i][0]/rxy,    0   };
+
+                    res = (etheta - etheta.dot(vf[i])*vf[i]).normalized();
+                    triplet_list.push_back(T(3*i,   2*i, res[0]));
+                    triplet_list.push_back(T(3*i+1, 2*i, res[1]));
+                    triplet_list.push_back(T(3*i+2, 2*i, res[2]));
+                    res = (ephi   - ephi.dot(vf[i])*vf[i]).normalized();
+                    triplet_list.push_back(T(3*i,   2*i+1, res[0]));
+                    triplet_list.push_back(T(3*i+1, 2*i+1, res[1]));
+                    triplet_list.push_back(T(3*i+2, 2*i+1, res[2]));
+                }
+            }
+            basis.setFromTriplets(triplet_list.begin(), triplet_list.end());
+        }
+
         // This calculates the basis via calculation of cross products
         // This assumes that the vectors of vf are normalized and that basis is 3N x 2N
         void tangent_basis_cross(const vectorfield & vf, MatrixX & basis)

@@ -62,7 +62,7 @@ namespace Utility
         std::chrono::system_clock::time_point time;
         Log_Sender sender;
         Log_Level level;
-        std::string message;
+        std::vector<std::string> message_lines;
         int idx_image;
         int idx_chain;
     };
@@ -87,12 +87,12 @@ namespace Utility
 
         // Get the Log's entries
         std::vector<LogEntry> GetEntries();
-        
+
         // Dumps the log to File fileName
         void Append_to_File();
         void Dump_to_File();
 
-        // The file tag in from of the Log or Output files (if "<time>" is used then the tag is 
+        // The file tag in from of the Log or Output files (if "<time>" is used then the tag is
         // the timestamp)
         std::string file_tag;
         // Output folder where to save the Log file
@@ -140,7 +140,7 @@ namespace Utility
 
         // Get the Log's entries, filtered for level, sender and indices
         std::vector<LogEntry> Filter(Log_Level level=Log_Level::All, Log_Sender sender=Log_Sender::All, int idx_image=-1, int idx_chain=-1);
-        
+
         int no_dumped;
         std::vector<LogEntry> log_entries;
 

@@ -48,6 +48,8 @@ namespace Engine
         void Update_Energy_Contributions() override;
 
         void Hessian(const vectorfield & spins, MatrixX & hessian) override;
+        void Sparse_Hessian(const vectorfield & spins, SpMatrixX & hessian) override;
+
         void Gradient(const vectorfield & spins, vectorfield & gradient) override;
         void Gradient_and_Energy(const vectorfield & spins, vectorfield & gradient, scalar & energy) override;
 
@@ -162,8 +164,8 @@ namespace Engine
 
         field<FFT::FFT_cpx_type> transformed_dipole_matrices;
 
-        bool save_dipole_matrices = true;
-        field<Matrix3> dipole_matrices;
+        bool save_dipole_matrices = false;
+        field<FFT::FFT_real_type> dipole_matrices;
 
         // Number of inter-sublattice contributions
         int n_inter_sublattice;

@@ -1,11 +1,12 @@
 #include <Spirit/HTST.h>
 #include <data/State.hpp>
 #include <engine/HTST.hpp>
+#include <engine/Sparse_HTST.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
 
-float HTST_Calculate(State * state, int idx_image_minimum, int idx_image_sp, int n_eigenmodes_keep, int idx_chain)
+float HTST_Calculate(State * state, int idx_image_minimum, int idx_image_sp, int n_eigenmodes_keep, bool sparse, int idx_chain)
 try
 {
     std::shared_ptr<Data::Spin_System> image_minimum, image_sp;
@@ -18,7 +19,10 @@ try
     info.saddle_point = image_sp;
 
     #ifndef SPIRIT_SKIP_HTST
-    Engine::HTST::Calculate(chain->htst_info, n_eigenmodes_keep);
+    if (!sparse)
+        Engine::HTST::Calculate(chain->htst_info, n_eigenmodes_keep);
+    else
+        Engine::Sparse_HTST::Calculate(chain->htst_info);
     #endif
 
     return (float)info.prefactor;
@@ -78,12 +82,19 @@ catch( ... )
 void HTST_Get_Eigenvalues_Min( State * state, float * eigenvalues_min, int idx_chain ) noexcept
 try
 {
+
     int idx_image = -1;
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+
+    if(chain->htst_info.sparse)
+    {
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "HTST_Get_Eigenvalues_Min: You tried to call this function after perfroming a sparse calculation. This is not allowed.");
+        return;
+    }
 
     if( eigenvalues_min )
     {
@@ -110,6 +121,12 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
+    if(chain->htst_info.sparse)
+    {
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "HTST_Get_Eigenvectors_Min: You tried to call this function after perfroming a sparse calculation. This is not allowed.");
+        return;
+    }
+
     if( eigenvectors_min )
     {
         int nos = image->nos;
@@ -134,6 +151,12 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+
+    if(chain->htst_info.sparse)
+    {
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "HTST_Get_Eigenvalues_SP: You tried to call this function after perfroming a sparse calculation. This is not allowed.");
+        return;
+    }
 
     if( eigenvalues_sp )
     {
@@ -160,6 +183,12 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
+    if(chain->htst_info.sparse)
+    {
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "HTST_Get_Eigenvectors_SP: You tried to call this function after perfroming a sparse calculation. This is not allowed.");
+        return;
+    }
+
     if( eigenvectors_sp )
     {
         int nos = image->nos;
@@ -184,6 +213,12 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+
+    if(chain->htst_info.sparse)
+    {
+        Log(Utility::Log_Level::Error, Utility::Log_Sender::API, "HTST_Get_Velocities: You tried to call this function after perfroming a sparse calculation. This is not allowed.");
+        return;
+    }
 
     if( velocities )
     {

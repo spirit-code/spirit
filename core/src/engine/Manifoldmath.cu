@@ -1,7 +1,7 @@
 #ifdef SPIRIT_USE_CUDA
 
-#include <Vectormath.hpp>
-#include <Manifoldmath.hpp>
+#include <engine/Vectormath.hpp>
+#include <engine/Manifoldmath.hpp>
 #include <utility/Constants.hpp>
 
 #include <Eigen/Dense>
@@ -49,7 +49,7 @@ namespace Engine
             scalar proj=Vectormath::dot(vf1, vf2);
             Vectormath::add_c_a(-2*proj, vf2, vf1);
         }
-        
+
         void invert_orthogonal(vectorfield & vf1, const vectorfield & vf2)
         {
             vectorfield vf3 = vf1;
@@ -113,7 +113,7 @@ namespace Engine
 
             cu_dist_geodesic_2<<<(n+1023)/1024, 1024>>>(vf1.data(), vf2.data(), sf.data(), n);
             CU_CHECK_AND_SYNC();
-            
+
             scalar dist = Vectormath::sum(sf);
             return sqrt(dist);
         }

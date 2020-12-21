@@ -29,7 +29,7 @@ namespace Engine
         void Calculate(Data::HTST_Info & htst_info, int n_eigenmodes_keep)
         {
             Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, "---- Prefactor calculation");
-
+            htst_info.sparse = false;
             const scalar epsilon = 1e-4;
             const scalar epsilon_force = 1e-8;
 

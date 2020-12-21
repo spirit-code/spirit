@@ -27,6 +27,14 @@ two configurations.
 */
 PREFIX void Transition_Homogeneous(State *state, int idx_1, int idx_2, int idx_chain=-1) SUFFIX;
 
+
+/*
+A helper function that makes the chain denser by inserting interpolated images between all images.
+
+- `n_interpolate`: the number of images to be inserted between to adjaced images, n_interpolate=1 nearly doubles the length of the chain
+*/
+PREFIX void Transition_Homogeneous_Insert_Interpolated(State *state, int n_interpolate, int idx_chain=-1) SUFFIX;
+
 /*
 Adds some stochastic noise to the transition between two images.
 

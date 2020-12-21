@@ -1,17 +1,17 @@
 #pragma once
-#ifndef CONTROLWIDGET_H
-#define CONTROLWIDGET_H
+#ifndef SPIRIT_CONTROLWIDGET_HPP
+#define SPIRIT_CONTROLWIDGET_HPP
 
-#include <QWidget>
+#include "ui_ControlWidget.h"
+
+#include "SettingsWidget.hpp"
+#include "SpinWidget.hpp"
+
 #include <QFutureWatcher>
+#include <QWidget>
 
 #include <memory>
 #include <thread>
-
-#include "SpinWidget.hpp"
-#include "SettingsWidget.hpp"
-
-#include "ui_ControlWidget.h"
 
 struct State;
 
@@ -19,14 +19,14 @@ struct State;
     Converts a QString to an std::string.
     This function is needed sometimes due to weird behaviour of QString::toStdString().
 */
-std::string string_q2std(QString qs);
+std::string string_q2std( QString qs );
 
 class ControlWidget : public QWidget, private Ui::ControlWidget
 {
     Q_OBJECT
 
 public:
-    ControlWidget(std::shared_ptr<State> state, SpinWidget *spinWidget, SettingsWidget *settingsWidget);
+    ControlWidget( std::shared_ptr<State> state, SpinWidget * spinWidget, SettingsWidget * settingsWidget );
     void updateData();
     void cycleMethod();
     void cycleSolver();
@@ -41,13 +41,13 @@ public slots:
     void prev_image();
     void jump_to_image();
     void cut_image();
-    void paste_image(std::string where="current");
+    void paste_image( std::string where = "current" );
     void delete_image();
     void next_mode();
     void prev_mode();
     void jump_to_mode();
     void calculate();
-    void apply_mode(); 
+    void apply_mode();
     void calculate_disable_widget();
     void calculate_enable_widget();
     void ema_buttons_show();
@@ -68,9 +68,9 @@ private:
     // State
     std::shared_ptr<State> state;
     // Spin Widget
-    SpinWidget *spinWidget;
+    SpinWidget * spinWidget;
     // Settings Widget
-    SettingsWidget *settingsWidget;
+    SettingsWidget * settingsWidget;
 
     // Method vectors
     std::vector<std::thread> threads_image;
@@ -90,7 +90,7 @@ private:
     void save_Energies();
 
 protected:
-    void closeEvent(QCloseEvent *event);
+    void closeEvent( QCloseEvent * event );
 };
 
 #endif

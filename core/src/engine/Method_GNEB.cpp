@@ -97,10 +97,10 @@ namespace Engine
             //      while the gradient force is manipulated (e.g. projected)
             auto eff_field = this->chain->images[img]->effective_field.data();
             auto f_grad    = F_gradient[img].data();
-            Backend::par::apply( image.size(), 
+            Backend::par::apply( image.size(),
                 [eff_field, f_grad] SPIRIT_LAMBDA (int idx)
                 {
-                    eff_field[idx] *= -1; 
+                    eff_field[idx] *= -1;
                     f_grad[idx] = eff_field[idx];
                 }
             );
@@ -323,13 +323,6 @@ namespace Engine
             // 	dE_dRx[i] += this->chain->images[i]->effective_field[j].dot(this->tangents[i][j]);
             // }
         }
-        bool log=false;
-        if (this->n_iterations_log > 0)
-            log = this->iteration > 0 && 0 == fmod(this->iteration, this->n_iterations_log);
-        if ( log )
-        {
-            Log(Log_Level::All, Log_Sender::GNEB, fmt::format("Total path length = {}", this->Rx[chain->noi-1]), -1, this->idx_chain);
-        }
         // Interpolate data points
         auto interp = Utility::Cubic_Hermite_Spline::Interpolate(this->Rx, this->energies, dE_dRx, chain->gneb_parameters->n_E_interpolations);
         // Update the chain
@@ -349,7 +342,7 @@ namespace Engine
         // This whole method could be made faster by calculating the energies from the gradients and not allocating the temporaries eacht time the method is called,
         // but since this method should be called rather sparingly it should not matter very much.
 
-        Log(Utility::Log_Level::Info, Utility::Log_Sender::GNEB, std::string("Calculating interpolated energy contributions"), -1, -1);
+        Log(Utility::Log_Level::Debug, Utility::Log_Sender::GNEB, std::string("Calculating interpolated energy contributions"), -1, -1);
 
         int nos = this->configurations[0]->size();
         int noi = this->chain->noi;
@@ -464,7 +457,6 @@ namespace Engine
     template <Solver solver>
     void Method_GNEB<solver>::Finalize()
     {
-        Log(Log_Level::All, Log_Sender::GNEB, fmt::format("Total path length = {}", this->Rx[chain->noi-1]), -1, -1);
         this->chain->iteration_allowed=false;
     }
 

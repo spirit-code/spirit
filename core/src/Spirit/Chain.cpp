@@ -114,12 +114,14 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     if( n_images < 1 )
-        Log(Utility::Log_Level::Warning, Utility::Log_Sender::API,
-            "Tried to reduce length of chain below 1...", -1, idx_chain);
+    {
+        Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+            "Tried to reduce length of chain below 1...", -1, idx_chain );
+        return;
+    }
 
-    bool running = Simulation_Running_On_Chain(state, idx_chain);
-    std::string solver = Simulation_Get_Solver_Name(state, idx_image, idx_chain);
-    std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
+    if( n_images == chain->noi )
+        return;
 
     if( !state->clipboard_image.get() )
     {
@@ -128,15 +130,16 @@ try
         return;
     }
 
+    if( Simulation_Running_On_Chain( state, idx_chain ) )
+    {
+        chain->iteration_allowed = false;
+        Simulation_Stop( state, idx_image, idx_chain );
+    }
+
+    // Increase the chain length
     if( n_images > chain->noi )
     {
-        if( running )
-        {
-            chain->iteration_allowed = false;
-            Simulation_Stop( state, idx_image, idx_chain );
-        }
-
-        for( idx_image = chain->noi-1; idx_image < n_images-1; ++idx_image )
+        for( idx_image = chain->noi - 1; idx_image < n_images - 1; ++idx_image )
         {
             // Copy the clipboard image
             state->clipboard_image->Lock();
@@ -167,20 +170,18 @@ try
             fmt::format("Increased length of chain to {}", chain->noi),
             -1, idx_chain);
     }
+    // Reduce the chain length
     else if( n_images < chain->noi )
     {
-        if( running )
+        for( idx_image = chain->noi - 1; idx_image > n_images - 1; --idx_image )
         {
-            chain->iteration_allowed = false;
+            // Stop any simulations running on an image we want to remove
             Simulation_Stop( state, idx_image, idx_chain );
-        }
 
-        for( idx_image = chain->noi-1; idx_image > n_images-1; --idx_image )
-        {
             chain->Lock();
             try
             {
-                // Add to chain
+                // Remove from chain
                 chain->noi--;
                 if( chain->idx_active_image == chain->noi )
                     Chain_prev_Image(state, idx_chain);
@@ -296,13 +297,9 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
-    bool running = Simulation_Running_On_Chain(state, idx_chain);
-    std::string solver = Simulation_Get_Solver_Name(state, idx_image, idx_chain);
-    std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
-
     if( state->clipboard_image.get() )
     {
-        if( running )
+        if( Simulation_Running_On_Chain( state, idx_chain ) )
         {
             chain->iteration_allowed = false;
             Simulation_Stop( state, idx_image, idx_chain );
@@ -361,13 +358,9 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
-    bool running = Simulation_Running_On_Chain(state, idx_chain);
-    std::string solver = Simulation_Get_Solver_Name(state, idx_image, idx_chain);
-    std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
-
     if( state->clipboard_image.get() )
     {
-        if( running )
+        if( Simulation_Running_On_Chain( state, idx_chain ) )
         {
             chain->iteration_allowed = false;
             Simulation_Stop( state, idx_image, idx_chain );
@@ -383,18 +376,9 @@ try
 
         // Add to chain
         chain->noi++;
-        // if (idx_image < state->noi - 1)
-        // {
-            chain->images.insert(chain->images.begin() + idx_image + 1, copy);
-            chain->image_type.insert( chain->image_type.begin() + idx_image + 1,
-                                        Data::GNEB_Image_Type::Normal );
-        // }
-        // else
-        // {
-        //     chain->images.push_back(copy);
-        //     chain->climbing_image.push_back(false);
-        //     chain->falling_image.push_back(false);
-        // }
+        chain->images.insert(chain->images.begin() + idx_image + 1, copy);
+        chain->image_type.insert( chain->image_type.begin() + idx_image + 1,
+                                    Data::GNEB_Image_Type::Normal );
 
         // Add to state
         state->method_image.insert(
@@ -435,13 +419,9 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
-    bool running = Simulation_Running_On_Chain(state, idx_chain);
-    std::string solver = Simulation_Get_Solver_Name(state, idx_image, idx_chain);
-    std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
-
     if( state->clipboard_image.get() )
     {
-        if( running )
+        if( Simulation_Running_On_Chain( state, idx_chain ) )
         {
             chain->iteration_allowed = false;
             Simulation_Stop( state, idx_image, idx_chain );
@@ -474,9 +454,6 @@ try
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                 fmt::format("Pushed back image from clipboard to chain. NOI is now {}", chain->noi),
                 -1, idx_chain );
-
-        if (running)
-            Simulation_Stop( state, idx_image, idx_chain );
     }
     else
     {
@@ -498,22 +475,16 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
-    bool running = Simulation_Running_On_Chain(state, idx_chain);
-    std::string solver = Simulation_Get_Solver_Name(state, idx_image, idx_chain);
-    std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
-
     // Apply
     if( chain->noi > 1 )
     {
-        if( running )
-        {
-            chain->iteration_allowed = false;
-            Simulation_Stop( state, idx_image, idx_chain );
-        }
+        // Stop any simulations running on an image we want to remove
+        Simulation_Stop( state, idx_image, idx_chain );
 
         chain->Lock();
         try
         {
+            // Remove from chain
             chain->noi--;
             if( chain->idx_active_image == chain->noi )
                 Chain_prev_Image(state, idx_chain);
@@ -567,25 +538,17 @@ try
     std::shared_ptr<Data::Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
-
     from_indices( state, idx_image, idx_chain, image, chain );
-
-    bool running = Simulation_Running_On_Chain(state, idx_chain);
-    std::string solver = Simulation_Get_Solver_Name(state, idx_image, idx_chain);
-    std::string method = Simulation_Get_Method_Name(state, idx_image, idx_chain);
 
     if( chain->noi > 1 )
     {
-        if( running )
-        {
-            chain->iteration_allowed = false;
-            Simulation_Stop( state, idx_image, idx_chain );
-        }
+        // Stop any simulations running on an image we want to remove
+        Simulation_Stop( state, idx_image, idx_chain );
 
         chain->Lock();
         try
         {
-            // Add to chain
+            // Remove from chain
             chain->noi--;
             if( chain->idx_active_image == chain->noi )
                 Chain_prev_Image(state, idx_chain);
@@ -596,7 +559,7 @@ try
             chain->images.pop_back();
             chain->image_type.pop_back();
 
-            // Add to state
+            // Remove from state
             state->method_image.pop_back();
         }
         catch( ... )

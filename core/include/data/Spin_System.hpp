@@ -4,7 +4,6 @@
 
 #include <random>
 #include <memory>
-#include <mutex>
 
 #include "Spirit_Defines.h"
 #include <engine/Vectormath_Defines.hpp>
@@ -15,6 +14,7 @@
 #include <data/Parameters_Method_GNEB.hpp>
 #include <data/Parameters_Method_EMA.hpp>
 #include <data/Parameters_Method_MMF.hpp>
+#include <utility/Ordered_Lock.hpp>
 
 namespace Data
 {
@@ -43,8 +43,8 @@ namespace Data
         void UpdateEffectiveField();
 
         // For multithreading
-        void Lock() const;
-        void Unlock() const;
+        void Lock() noexcept;
+        void Unlock() noexcept;
 
         // Number of spins
         int nos;
@@ -79,8 +79,8 @@ namespace Data
         vectorfield effective_field;
 
     private:
-        // Mutex for thread-safety
-        mutable std::mutex mutex;
+        // FIFO mutex for thread-safety
+        Ordered_Lock m_lock;
     };
 }
 #endif

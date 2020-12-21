@@ -70,7 +70,7 @@ discretised by "images" on a "chain". The procedure follows these steps:
 #include <Spirit/Configuration.h>
 #include <Spirit/Simulation.h>
 #include <Spirit/State.h>
-#include <Spirit/Transition.h>
+#include <Spirit/Transitions.h>
 #include <memory>
 
 int NOI = 7;

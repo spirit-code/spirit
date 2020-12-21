@@ -26,6 +26,8 @@ class TestConfigurations(unittest.TestCase):
             configuration.domain(p_state, [1,1,1])
             # Skyrmion
             configuration.skyrmion(p_state, 5)
+            # DW_Skyrmion
+            configuration.dw_skyrmion(p_state, 5, 2)
             # Hopfion
             configuration.hopfion(p_state, 5)
             # Spin Spiral

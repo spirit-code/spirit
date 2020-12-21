@@ -91,36 +91,11 @@ namespace Utility
         result += " " + IndexToString(entry.idx_chain, braces_separators);
         // Image Index
         result += " " + IndexToString(entry.idx_image, braces_separators);
-        // Message string
-        result += "  " + entry.message;
-        // Return
-        return result;
-    }
-
-    std::string LogBlockToString(std::vector<LogEntry> entries, bool braces_separators)
-    {
-        std::string result = "";
-        auto& entry = entries[0];
-        // Time
-        result += Timing::TimePointToString_Pretty(entry.time);
-        // Message Level
-        result += "  " + LevelToString(entry.level, braces_separators);
-        // Sender
-        result += " " + SenderToString(entry.sender, braces_separators);
-        // Chain Index
-        result += " " + IndexToString(entry.idx_chain, braces_separators);
-        // Image Index
-        result += " " + IndexToString(entry.idx_image, braces_separators);
-        // Message string
-        result += "  " + entry.message;
-
+        // First message string
+        result += "  " + entry.message_lines[0];
         // Rest of the block
-        for (unsigned int i=1; i<entries.size(); ++i)
-        {
-            result += "\n" + Log.tags_space + entries[i].message;
-        }
-        result += "\n";
-
+        for (unsigned int i=1; i<entry.message_lines.size(); ++i)
+            result += "\n" + Log.tags_space + entry.message_lines[i];
         // Return
         return result;
     }
@@ -129,14 +104,14 @@ namespace Utility
     {
         // Set the default Log parameters
         output_folder = ".";
-        
+
         if ( file_tag == std::string("<time>") )
             fileName  = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
         else if ( file_tag == std::string("") )
             fileName = "Log.txt";
         else
             fileName = "Log_" + file_tag + ".txt";
-        
+
         messages_to_file        = false;
         level_file              = Log_Level::Debug;
         messages_to_console     = true;
@@ -158,7 +133,7 @@ namespace Utility
         std::lock_guard<std::mutex> guard(mutex);
 
         // All messages are saved in the Log
-        LogEntry entry = { std::chrono::system_clock::now(), sender, level, message, idx_image, idx_chain };
+        LogEntry entry = { std::chrono::system_clock::now(), sender, level, {message}, idx_image, idx_chain };
         log_entries.push_back(entry);
 
         // Increment message count
@@ -181,38 +156,33 @@ namespace Utility
 
         // If level <= verbosity, we print to console, but Error and Severe are always printed
         if ((messages_to_console && level <= level_console) || level == Log_Level::Error || level == Log_Level::Severe)
-            std::cout << color << LogEntryToString(log_entries.back()) << termcolor::reset << std::endl;
+            std::cout << color << LogEntryToString(log_entries.back()) << termcolor::reset << "\n";
     }
 
-    void LoggingHandler::SendBlock(Log_Level level, Log_Sender sender, std::vector<std::string> messages, int idx_image, int idx_chain)
+    void LoggingHandler::SendBlock(Log_Level level, Log_Sender sender, std::vector<std::string> message_lines, int idx_image, int idx_chain)
     {
         // Lock mutex because of reallocation (push_back)
         std::lock_guard<std::mutex> guard(mutex);
 
-        std::vector<LogEntry> entries;
-        for (auto& message : messages)
-        {
-            // All messages are saved in the Log
-            LogEntry entry = { std::chrono::system_clock::now(), sender, level, message, idx_image, idx_chain };
-            log_entries.push_back(entry);
-            entries.push_back(entry);
+        // All messages are saved in the Log
+        LogEntry entry = { std::chrono::system_clock::now(), sender, level, message_lines, idx_image, idx_chain };
+        log_entries.push_back(entry);
 
-            // Increment message count
-            n_entries++;
+        // Increment message count
+        n_entries++;
 
-            // Determine message color in console
-            auto color = termcolor::reset;
-            if (level <= Log_Level::Warning)
-                color = termcolor::yellow;
-            if (level <= Log_Level::Error)
-                color = termcolor::red;
-            if (level == Log_Level::All)
-                color = termcolor::reset;
+        // Determine message color in console
+        auto color = termcolor::reset;
+        if (level <= Log_Level::Warning)
+            color = termcolor::yellow;
+        if (level <= Log_Level::Error)
+            color = termcolor::red;
+        if (level == Log_Level::All)
+            color = termcolor::reset;
 
-            // If level <= verbosity, we print to console, but Error and Severe are always printed
-            if ((messages_to_console && level <= level_console) || level == Log_Level::Error || level == Log_Level::Severe)
-                std::cout << color << LogEntryToString(log_entries.back()) << termcolor::reset << std::endl;
-        }
+        // If level <= verbosity, we print to console, but Error and Severe are always printed
+        if ((messages_to_console && level <= level_console) || level == Log_Level::Error || level == Log_Level::Severe)
+            std::cout << color << LogEntryToString(log_entries.back()) << termcolor::reset << "\n";
     }
 
     void LoggingHandler::operator() (Log_Level level, Log_Sender sender, std::string message, int idx_image, int idx_chain)
@@ -255,8 +225,8 @@ namespace Utility
         if (this->messages_to_file)
         {
             // Log this event
-            Send(Log_Level::Info, Log_Sender::All, "Appending Log to file " + output_folder + "/" + fileName);
-            
+            Send(Log_Level::Debug, Log_Sender::All, fmt::format("Appending log to file \"{}/{}\"", output_folder, fileName));
+
             // Gather the string
             std::string logstring = "";
             int begin_append = no_dumped;
@@ -276,7 +246,7 @@ namespace Utility
         }
         else
         {
-            Send(Log_Level::Debug, Log_Sender::All, "Not appending Log to file " + output_folder + "/" + fileName);
+            Send(Log_Level::Debug, Log_Sender::All, fmt::format("Not appending log to file \"{}/{}\"", output_folder, fileName));
         }
     }
 
@@ -286,7 +256,7 @@ namespace Utility
         if (this->messages_to_file)
         {
             // Log this event
-            Send(Log_Level::Info, Log_Sender::All, "Dumping Log to file " + output_folder + "/" + fileName);
+            Send(Log_Level::Info, Log_Sender::All, fmt::format("Dumping log to file \"{}/{}\"", output_folder, fileName));
 
             // Gather the string
             std::string logstring = "";
@@ -305,7 +275,7 @@ namespace Utility
         }
         else
         {
-            Send(Log_Level::Debug, Log_Sender::All, "Not dumping Log to file " + output_folder + "/" + fileName);
+            Send(Log_Level::Debug, Log_Sender::All, fmt::format("Not dumping log to file \"{}/{}\"", output_folder, fileName));
         }
     }
 }// end namespace Utility

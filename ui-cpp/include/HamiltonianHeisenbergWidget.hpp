@@ -1,21 +1,19 @@
 #pragma once
-#ifndef HAMILTONIAN_HEISENBERG_WIDGET_H
-#define HAMILTONIAN_HEISENBERG_WIDGET_H
+#ifndef SPIRIT_HAMILTONIANHEISENBERGWIDGET_HPP
+#define SPIRIT_HAMILTONIANHEISENBERGWIDGET_HPP
 
-#include <QtWidgets/QWidget>
-#include <QRegularExpressionValidator>
-
-#include <vector>
-#include <memory>
-#include <thread>
+#include "ui_HamiltonianHeisenbergWidget.h"
 
 #include <Spirit/Hamiltonian.h>
 
-#include "SpinWidget.hpp"
 #include "IsosurfaceWidget.hpp"
-//#include "SettingsWidget.hpp"
+#include "SpinWidget.hpp"
 
-#include "ui_HamiltonianHeisenbergWidget.h"
+#include <QRegularExpressionValidator>
+#include <QtWidgets/QWidget>
+
+#include <memory>
+#include <vector>
 
 struct State;
 
@@ -23,18 +21,18 @@ struct State;
     Converts a QString to an std::string.
     This function is needed sometimes due to weird behaviour of QString::toStdString().
 */
-std::string string_q2std(QString qs);
+std::string string_q2std( QString qs );
 
 class HamiltonianHeisenbergWidget : public QWidget, private Ui::HamiltonianHeisenbergWidget
 {
     Q_OBJECT
 
 public:
-    HamiltonianHeisenbergWidget(std::shared_ptr<State> state, SpinWidget * spinWidget);
+    HamiltonianHeisenbergWidget( std::shared_ptr<State> state, SpinWidget * spinWidget );
     void updateData();
 
 signals:
-    void hamiltonianChanged(Hamiltonian_Type newType);
+    void hamiltonianChanged( Hamiltonian_Type newType );
 
 private slots:
     void clicked_change_hamiltonian();
