@@ -8,8 +8,8 @@ import subprocess
 import sys
 import datetime
 
-from distutils.util import get_platform
 from setuptools import setup, Command
+from pkg_resources import get_build_platform
 from wheel.bdist_wheel import bdist_wheel as bdist_wheel_
 
 
@@ -39,10 +39,10 @@ HERE = os.path.abspath(os.path.dirname(__file__))
 def read(*parts):
     """
     Build an absolute path from *parts* and and return the contents of the
-    resulting file.  Assume UTF-8 encoding.
+    resulting file. Assume UTF-8 encoding, but replace Windows CRLF with Unix LF.
     """
     with codecs.open(os.path.join(HERE, *parts), "rb", "utf-8") as f:
-        return f.read()
+        return f.read().replace('\r\n','\n')
 
 
 META_FILE = read(META_PATH)
@@ -83,11 +83,11 @@ def my_test_suite():
 class bdist_wheel(bdist_wheel_):
     def finalize_options(self):
         from sys import platform as _platform
-        platform_name = get_platform()
+        platform_name = get_build_platform()
         if _platform == "linux" or _platform == "linux2":
             # Linux
             platform_name = 'manylinux1_x86_64'
-        
+
         bdist_wheel_.finalize_options(self)
         self.universal = True
         self.plat_name_supplied = True
@@ -122,6 +122,7 @@ if __name__ == "__main__":
         name             = NAME,
         description      = find_meta("description"),
         long_description = read('README.md'),
+        long_description_content_type = "text/markdown",
         license          = find_meta("license"),
         url              = find_meta("uri"),
         version          = find_meta("version")+version_suffix,
