@@ -668,7 +668,7 @@ void show_overlay_system( bool & show, int & corner, std::array<float, 2> & posi
     static int n_basis_atoms = 1;
     static int n_cells[3]{ 1, 1, 1 };
 
-    const float DISTANCE = 50.0f;
+    const float DISTANCE = 15.0f;
 
     static bool need_to_position = true;
 
@@ -678,7 +678,7 @@ void show_overlay_system( bool & show, int & corner, std::array<float, 2> & posi
     {
         ImVec2 window_pos = ImVec2(
             ( corner & 1 ) ? io.DisplaySize.x - DISTANCE : DISTANCE,
-            ( corner & 2 ) ? io.DisplaySize.y - DISTANCE : DISTANCE );
+            ( corner & 2 ) ? io.DisplaySize.y - DISTANCE : DISTANCE + 25 );
         ImVec2 window_pos_pivot = ImVec2( ( corner & 1 ) ? 1.0f : 0.0f, ( corner & 2 ) ? 1.0f : 0.0f );
         ImGui::SetNextWindowPos( window_pos, ImGuiCond_Always, window_pos_pivot );
         need_to_position = false;
@@ -809,14 +809,14 @@ void show_overlay_calculation(
 
     // ips = Simulation_Get_IterationsPerSecond( state.get() );
 
-    const float DISTANCE = 50.0f;
+    const float DISTANCE = 15.0f;
 
     ImGuiIO & io = ImGui::GetIO();
     if( corner != -1 )
     {
         ImVec2 window_pos = ImVec2(
             ( corner & 1 ) ? io.DisplaySize.x - DISTANCE : DISTANCE,
-            ( corner & 2 ) ? io.DisplaySize.y - DISTANCE : DISTANCE );
+            ( corner & 2 ) ? io.DisplaySize.y - DISTANCE : DISTANCE + 25 );
         ImVec2 window_pos_pivot = ImVec2( ( corner & 1 ) ? 1.0f : 0.0f, ( corner & 2 ) ? 1.0f : 0.0f );
         ImGui::SetNextWindowPos( window_pos, ImGuiCond_Always, window_pos_pivot );
         need_to_position = false;

@@ -745,10 +745,10 @@ void MainWindow::show_menu_bar()
     static ImU32 image_number = (ImU32)1;
     static ImU32 chain_length = (ImU32)1;
 
-    ImGui::PushFont( font_karla_16 );
-    float font_size_px = font_karla_16->FontSize;
+    // ImGui::PushFont( font_karla_16 );
+    float font_size_px = font_karla_14->FontSize;
 
-    ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 7.f, 7.f ) );
+    ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 5.f, 5.f ) );
     if( ImGui::BeginMainMenuBar() )
     {
         ImGui::PopStyleVar();
@@ -1041,23 +1041,29 @@ void MainWindow::show_menu_bar()
         ImGui::SameLine( start, 0 );
         bool currently_running
             = Simulation_Running_On_Chain( state.get() ) || Simulation_Running_On_Image( state.get() );
-        if( calculation_running != currently_running )
+
+        if( calculation_running && !currently_running )
         {
-            calculation_running = currently_running;
+            calculation_running = false;
             this->ui_shared_state.notify( "calculation ended" );
         }
-        if( calculation_running )
+
+        if( currently_running )
         {
+            calculation_running = true;
             if( ImGui::Button( ICON_FA_STOP, ImVec2( width, button_height ) ) )
             {
                 this->start_stop();
+                calculation_running = false;
             }
         }
         else
         {
+            calculation_running = false;
             if( ImGui::Button( ICON_FA_PLAY, ImVec2( width, button_height ) ) )
             {
                 this->start_stop();
+                calculation_running = true;
             }
         }
 
@@ -1098,7 +1104,7 @@ void MainWindow::show_menu_bar()
 
         ImGui::EndMainMenuBar();
     }
-    ImGui::PopFont();
+    // ImGui::PopFont();
 }
 
 void MainWindow::show_notifications()
