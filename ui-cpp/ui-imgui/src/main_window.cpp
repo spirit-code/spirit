@@ -18,6 +18,8 @@
 
 #include <imgui/imgui_internal.h>
 
+#include <implot/implot.h>
+
 #include <Spirit/Chain.h>
 #include <Spirit/Configurations.h>
 #include <Spirit/Geometry.h>
@@ -691,7 +693,6 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     this->show_notifications();
 
     ImGui::PushFont( font_cousine_14 );
-
     widgets::show_overlay_system(
         ui_config_file.show_overlays, ui_config_file.overlay_system_corner, ui_config_file.overlay_system_position,
         state );
@@ -711,7 +712,7 @@ void MainWindow::draw_imgui( int display_w, int display_h )
 
     widgets::show_about( show_about );
 
-    widgets::show_plots( ui_config_file.show_plots );
+    widgets::show_plots( ui_config_file.show_plots, state );
 
     widgets::show_keybindings( show_keybindings );
 
@@ -1231,6 +1232,7 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
     // Setup Dear ImGui binding
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
+    ImPlot::CreateContext();
     ImGuiIO & io   = ImGui::GetIO();
     io.IniFilename = nullptr;
 
@@ -1306,6 +1308,7 @@ MainWindow::~MainWindow()
     // Cleanup
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
+    ImPlot::DestroyContext();
     ImGui::DestroyContext();
 
     glfwDestroyWindow( glfw_window );

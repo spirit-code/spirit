@@ -165,6 +165,13 @@ if( SPIRIT_UI_USE_IMGUI )
         ${CMAKE_CURRENT_LIST_DIR}/thirdparty
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/glad/include )
 
+    #----- ImPlot library
+    add_library( implot STATIC
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/implot/implot.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/implot/implot_items.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/implot/implot_demo.cpp )
+    target_include_directories( implot PUBLIC ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty )
+
     #----- Native file dialog
     set( NFD_SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/nativefiledialog/src )
 
@@ -395,6 +402,7 @@ if( SPIRIT_UI_USE_IMGUI )
     target_link_libraries( ${PROJECT_NAME} PRIVATE
         ${GL_LIBRARIES}
         imgui
+        implot
         VFRendering
         nativefiledialog
         spirit_imgui_rc )

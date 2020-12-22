@@ -6,6 +6,7 @@
 #include <Spirit/Chain.h>
 #include <Spirit/Configurations.h>
 #include <Spirit/Geometry.h>
+#include <Spirit/Parameters_GNEB.h>
 #include <Spirit/Simulation.h>
 #include <Spirit/System.h>
 #include <Spirit/Version.h>
@@ -13,6 +14,8 @@
 #include <imgui/imgui.h>
 
 #include <imgui-gizmo3d/imGuIZMOquat.h>
+
+#include <implot/implot.h>
 
 #include <fmt/format.h>
 
@@ -53,27 +56,43 @@ bool toggle_button( const char * str_id, bool * v, bool coloured )
     return clicked;
 }
 
-void show_plots( bool & show )
+void show_plots( bool & show, std::shared_ptr<State> state )
 {
     auto & style = ImGui::GetStyle();
 
     static bool plot_image_energies        = true;
     static bool plot_interpolated_energies = true;
 
+    static int history_size = 200;
+    static std::vector<float> force_history( history_size );
+    static std::vector<float> iteration_history( history_size );
+    static int force_index = 0;
+    static float force_min = 0;
+    static float force_max = 0;
+
     static bool animate = true;
+
     // static float values[90]    = {};
-    static std::vector<float> energies( 90, 0 );
-    static int values_offset   = 0;
-    static double refresh_time = 0.0;
-    if( !animate || refresh_time == 0.0 )
-        refresh_time = ImGui::GetTime();
-    while( refresh_time < ImGui::GetTime() ) // Create dummy data at fixed 60 Hz rate for the demo
+    static int n_interpolate = Parameters_GNEB_Get_N_Energy_Interpolations( state.get() );
+    static std::vector<float> rx( 1, 0 );
+    static std::vector<float> energies( 1, 0 );
+    static std::vector<float> rx_interpolated( 1, 0 );
+    static std::vector<float> energies_interpolated( 1, 0 );
+
+    if( Simulation_Running_Anywhere_On_Chain( state.get() ) )
     {
-        static float phase      = 0.0f;
-        energies[values_offset] = cosf( phase );
-        values_offset           = ( values_offset + 1 ) % energies.size();
-        phase += 0.10f * values_offset;
-        refresh_time += 1.0f / 60.0f;
+        float force = Simulation_Get_MaxTorqueNorm( state.get() );
+
+        iteration_history[force_index] = Simulation_Get_Iteration( state.get() );
+
+        force_history[force_index] = force;
+        ++force_index;
+        force_index = force_index % history_size;
+
+        if( force < force_min )
+            force_min = force;
+        if( force > force_max )
+            force_max = force;
     }
 
     if( !show )
@@ -88,40 +107,85 @@ void show_plots( bool & show )
         {
             if( ImGui::BeginTabItem( "Energy" ) )
             {
-                std::string overlay = fmt::format( "{:.3e}", energies[energies.size() - 1] );
+                int noi = Chain_Get_NOI( state.get() );
+                if( noi != energies.size() )
+                {
+                    rx.resize( noi );
+                    energies.resize( noi );
+                }
 
-                // ImGui::TextUnformatted( "E" );
-                // ImGui::SameLine();
-                ImGui::PlotLines(
-                    "", energies.data(), energies.size(), values_offset, overlay.c_str(), -1.0f, 1.0f,
-                    ImVec2(
-                        ImGui::GetWindowContentRegionMax().x - 2 * style.FramePadding.x,
-                        ImGui::GetWindowContentRegionMax().y - 110.f ) );
+                int size_interp = noi + ( noi - 1 ) * n_interpolate;
+                if( size_interp != energies_interpolated.size() )
+                {
+                    rx_interpolated.resize( size_interp );
+                    energies_interpolated.resize( size_interp );
+                }
+
+                Chain_Get_Rx( state.get(), rx.data() );
+                Chain_Get_Energy( state.get(), energies.data() );
+
+                if( noi > 1 )
+                {
+                    Chain_Get_Rx_Interpolated( state.get(), rx_interpolated.data() );
+                    Chain_Get_Energy_Interpolated( state.get(), energies_interpolated.data() );
+                }
+
+                std::string overlay = fmt::format( "{:.3e}", energies[System_Get_Index( state.get() )] );
+
+                // ImPlot::FitNextPlotAxes();
+                if( ImPlot::BeginPlot(
+                        "", "Rx", "E [meV]",
+                        ImVec2(
+                            ImGui::GetWindowContentRegionMax().x - 2 * style.FramePadding.x,
+                            ImGui::GetWindowContentRegionMax().y - 110.f ) ) )
+                {
+                    if( plot_image_energies )
+                    {
+                        ImPlot::PlotScatter( "", rx.data(), energies.data(), noi );
+                    }
+                    if( plot_interpolated_energies && noi > 1 )
+                    {
+                        ImPlot::PlotLine( "", rx_interpolated.data(), energies_interpolated.data(), size_interp );
+                    }
+
+                    ImPlot::EndPlot();
+                }
 
                 ImGui::Checkbox( "Image energies", &plot_image_energies );
                 ImGui::Checkbox( "Interpolated energies", &plot_interpolated_energies );
                 ImGui::SameLine();
-                static bool inputs_step = true;
-                const ImU32 u32_one     = (ImU32)1;
-                static ImU32 u32_v      = (ImU32)10;
                 ImGui::PushItemWidth( 100 );
-                ImGui::InputScalar(
-                    "##energies", ImGuiDataType_U32, &u32_v, inputs_step ? &u32_one : NULL, NULL, "%u" );
+                if( ImGui::InputInt( "##energies_n_interp", &n_interpolate ) )
+                {
+                    if( n_interpolate > 1 )
+                        Parameters_GNEB_Set_N_Energy_Interpolations( state.get(), n_interpolate );
+                    else
+                        n_interpolate = 1;
+                }
                 ImGui::PopItemWidth();
 
                 ImGui::EndTabItem();
             }
             if( ImGui::BeginTabItem( "Convergence" ) )
             {
-                std::string overlay = fmt::format( "{:.3e}", energies[energies.size() - 1] );
+                ImPlot::FitNextPlotAxes();
+                if( ImPlot::BeginPlot(
+                        "", "iteration", "max(F)",
+                        ImVec2(
+                            ImGui::GetWindowContentRegionMax().x - 2 * style.FramePadding.x,
+                            ImGui::GetWindowContentRegionMax().y - 90.f ) ) )
+                {
+                    ImPlot::PlotLine( "", iteration_history.data(), force_history.data(), history_size, force_index );
+                    ImPlot::EndPlot();
+                }
 
-                // ImGui::TextUnformatted( "F" );
-                // ImGui::SameLine();
-                ImGui::PlotLines(
-                    "", energies.data(), energies.size(), values_offset, overlay.c_str(), -1.0f, 1.0f,
-                    ImVec2(
-                        ImGui::GetWindowContentRegionMax().x - 2 * style.FramePadding.x,
-                        ImGui::GetWindowContentRegionMax().y - 90.f ) );
+                if( ImGui::InputInt( "history size", &history_size, 10, 100 ) )
+                {
+                    if( history_size < 3 )
+                        history_size = 3;
+                    iteration_history.resize( history_size );
+                    force_history.resize( history_size );
+                }
 
                 ImGui::EndTabItem();
             }
