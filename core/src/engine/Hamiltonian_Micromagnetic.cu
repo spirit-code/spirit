@@ -3,13 +3,14 @@
 #include <engine/Hamiltonian_Micromagnetic.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Neighbours.hpp>
+#include <engine/FFT.hpp>
 #include <data/Spin_System.hpp>
 #include <utility/Constants.hpp>
-#include <algorithm>
 
 #include <Eigen/Dense>
 #include <Eigen/Core>
-#include "FFT.hpp"
+
+#include <algorithm>
 
 using namespace Data;
 using namespace Utility;
@@ -64,7 +65,7 @@ namespace Engine
 		neigh_tmp.i = 0;
 		neigh_tmp.j = 0;
 		neigh_tmp.idx_shell = 0;
-		//order x -x y -y z -z xy (-x)(-y) x(-y) (-x)y xz (-x)(-z) x(-z) (-x)z yz (-y)(-z) y(-z) (-y)z results in 9 parts of Hessian 
+		//order x -x y -y z -z xy (-x)(-y) x(-y) (-x)y xz (-x)(-z) x(-z) (-x)z yz (-y)(-z) y(-z) (-y)z results in 9 parts of Hessian
 		neigh_tmp.translations[0] = 1;
 		neigh_tmp.translations[1] = 0;
 		neigh_tmp.translations[2] = 0;
@@ -155,10 +156,10 @@ namespace Engine
 		neigh_tmp.translations[2] = 1;
 		neigh.push_back(neigh_tmp);
 		this->spatial_gradient = field<Matrix3>(geometry->nos, Matrix3::Zero());
-		
+
 		// Dipole-dipole
 		this->Prepare_DDI();
-		
+
         // Update, which terms still contribute
         this->Update_Energy_Contributions();
     }
@@ -641,11 +642,12 @@ namespace Engine
 			// TODO: also parallelize over i_b1
 			// Loop over basis atoms (i.e sublattices) and add contribution of each sublattice
 			for (int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1)
-				CU_FFT_Pointwise_Mult1 << <(number_of_mults + 1023) / 1024, 1024 >> > (ft_D_matrices.data(), ft_spins.data(), res_mult.data(), it_bounds_pointwise_mult.data(), i_b1, inter_sublattice_lookup.data(), dipole_stride, spin_stride, Ms);
+				CU_FFT_Pointwise_Mult1<<<(number_of_mults+1023)/1024, 1024>>>(ft_D_matrices.data(), ft_spins.data(), res_mult.data(), it_bounds_pointwise_mult.data(), i_b1, inter_sublattice_lookup.data(), dipole_stride, spin_stride, Ms);
 				CU_CHECK_AND_SYNC();
 			FFT::batch_iFour_3D(fft_plan_reverse);
-			scalar * delta = geometry->cell_size.data();
-			CU_Write_FFT_Gradients1 << <(geometry->nos + 1023) / 1024, 1024 >> > (res_iFFT.data(), gradient.data(), spin_stride, it_bounds_write_gradients.data(), geometry->n_cell_atoms, geometry->mu_s.data(), delta, Ms);
+			// scalar * delta = geometry->cell_size.data();
+			int sublattice_size = it_bounds_write_dipole[0] * it_bounds_write_dipole[1] * it_bounds_write_dipole[2];
+			CU_Write_FFT_Gradients1<<<(geometry->nos+1023)/1024, 1024>>>(res_iFFT.data(), gradient.data(), spin_stride, it_bounds_write_gradients.data(), geometry->n_cell_atoms, geometry->mu_s.data(), sublattice_size, Ms);
 			CU_CHECK_AND_SYNC();
 		}//end Field_DipoleDipole
 
@@ -693,6 +695,10 @@ namespace Engine
 					//scalar delta[3] = { 3,3,0.3 };
 					//int idx = b_inter * dipole_stride.basis + a * dipole_stride.a + b * dipole_stride.b + c * dipole_stride.c;
 					scalar Dxx = 0, Dxy = 0, Dxz = 0, Dyy = 0, Dyz = 0, Dzz = 0;
+
+					Vector3 cell_sizes = {geometry->lattice_constant * geometry->bravais_vectors[0].norm(),
+											geometry->lattice_constant * geometry->bravais_vectors[1].norm(),
+											geometry->lattice_constant * geometry->bravais_vectors[2].norm()};
 					//asa
 					for (int i = 0; i < 2; i++) {
 						for (int j = 0; j < 2; j++) {
@@ -855,6 +861,10 @@ namespace Engine
 		for (int i = 0; i < geometry->n_cell_atoms; i++)
 			cell_atom_translations.push_back(geometry->positions[i]);
 
+		Vector3 cell_sizes = {geometry->lattice_constant * geometry->bravais_vectors[0].norm(),
+								geometry->lattice_constant * geometry->bravais_vectors[1].norm(),
+								geometry->lattice_constant * geometry->bravais_vectors[2].norm()};
+
 		CU_Write_FFT_Dipole_Input1 << <(sublattice_size + 1023) / 1024, 1024 >> >
 			(fft_dipole_inputs.data(), it_bounds_write_dipole.data(), translation_vectors.data(),
 				geometry->n_cell_atoms, cell_atom_translations.data(), geometry->n_cells.data(),
@@ -928,19 +938,19 @@ namespace Engine
 		int img_a = boundary_conditions[0] == 0 ? 0 : ddi_n_periodic_images[0];
 		int img_b = boundary_conditions[1] == 0 ? 0 : ddi_n_periodic_images[1];
 		int img_c = boundary_conditions[2] == 0 ? 0 : ddi_n_periodic_images[2];
-	
+
 		FFT_Dipole_Matrices(fft_plan_dipole, img_a, img_b, img_c); */
 		FFT_Dipole_Matrices(fft_plan_dipole, 0, 0, 0);
 
 		transformed_dipole_matrices = std::move(fft_plan_dipole.cpx_ptr);
 	}//end prepare
-	
+
 	void Hamiltonian_Micromagnetic::Clean_DDI()
 	{
 		fft_plan_spins = FFT::FFT_Plan();
 		fft_plan_reverse = FFT::FFT_Plan();
 	}
-	
+
     void Hamiltonian_Micromagnetic::Hessian(const vectorfield & spins, MatrixX & hessian)
     {
     }
