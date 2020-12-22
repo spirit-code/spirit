@@ -64,8 +64,8 @@ endif()
 set( CMAKE_DISABLE_IN_SOURCE_BUILD ON )
 ### Position independent code
 set( CMAKE_POSITION_INDEPENDENT_CODE ON )
-### We need at least C++11
-set( CMAKE_CXX_STANDARD 11 )
+### We need at least C++14
+set( CMAKE_CXX_STANDARD 14 )
 ### Set the cmake subdirectory
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" )
 ### Need to use pthread if emscripten is used

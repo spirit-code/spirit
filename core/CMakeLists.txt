@@ -138,7 +138,7 @@ if( SPIRIT_USE_CUDA )
     find_package( CUDA 8 REQUIRED )
 
     # set( CUDA_PROPAGATE_HOST_FLAGS ON )
-    # --std=c++11 flag may be necessary, but it is propagated from global flags...
+    # --std=c++14 flag may be necessary, but it is propagated from global flags...
     # if it appears twice, for some reason the compilation breaks
 
     set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -lineinfo -arch=${SPIRIT_CUDA_ARCH} --expt-relaxed-constexpr --expt-extended-lambda" )
@@ -155,7 +155,7 @@ if( SPIRIT_USE_CUDA )
     set( META_COMPILER_FULL    "${META_COMPILER_FULL} and nvcc (${CUDA_VERSION}) for cuda arch \\\"${SPIRIT_CUDA_ARCH}\\\"" )
 
     if( NOT DEFINED CMAKE_CUDA_STANDARD )
-        set( CMAKE_CUDA_STANDARD 11 )
+        set( CMAKE_CUDA_STANDARD 14 )
         set( CMAKE_CUDA_STANDARD_REQUIRED ON )
     endif()
 
@@ -317,7 +317,7 @@ add_library( ${META_PROJECT_NAME} OBJECT
     ${SOURCE_SPIRIT_UTILITY} )
 
 set_target_properties( ${META_PROJECT_NAME} PROPERTIES
-    CXX_STANDARD            11
+    CXX_STANDARD            14
     CXX_STANDARD_REQUIRED   ON
     CXX_EXTENSIONS          OFF )
 
@@ -461,7 +461,7 @@ if( SPIRIT_BUILD_FOR_CXX OR SPIRIT_BUILD_FOR_JS )
             target_link_libraries( ${testName} ${META_PROJECT_NAME}_static )
             # Properties
             set_target_properties( ${testName} PROPERTIES
-                CXX_STANDARD             11
+                CXX_STANDARD             14
                 CXX_STANDARD_REQUIRED    ON
                 CXX_EXTENSIONS           OFF
                 RUNTIME_OUTPUT_DIRECTORY ${TEST_RUNTIME_OUTPUT_DIRECTORY} )

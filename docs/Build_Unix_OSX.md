@@ -15,7 +15,7 @@ Core library
 **Requirements**
 
 - cmake >= 3.10
-- compiler with C++11 support, e.g. gcc >= 5.1
+- compiler with C++14 support, e.g. gcc >= 5.1
 
 **Build**
 
