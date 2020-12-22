@@ -66,8 +66,9 @@ private:
 
     bool show_demo_window = false;
 
-    bool show_keybindings = false;
-    bool show_about       = false;
+    bool show_keybindings    = false;
+    bool show_about          = false;
+    bool calculation_running = false;
 };
 
 } // namespace ui

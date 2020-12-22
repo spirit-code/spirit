@@ -1038,8 +1038,13 @@ void MainWindow::show_menu_bar()
         float start       = menu_end + 0.5f * ( right_edge - menu_end - total_width );
 
         ImGui::SameLine( start, 0 );
-        bool calculation_running
+        bool currently_running
             = Simulation_Running_On_Chain( state.get() ) || Simulation_Running_On_Image( state.get() );
+        if( calculation_running != currently_running )
+        {
+            calculation_running = currently_running;
+            this->ui_shared_state.notify( "calculation ended" );
+        }
         if( calculation_running )
         {
             if( ImGui::Button( ICON_FA_STOP, ImVec2( width, button_height ) ) )
