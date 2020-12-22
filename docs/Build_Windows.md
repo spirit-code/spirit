@@ -19,7 +19,7 @@ Core library
 **Requirements**
 
 - cmake >= 3.10
-- compiler with C++11 support, e.g. msvc 14 2015
+- compiler with C++14 support, e.g. msvc 19.10 (VS 2017, version 15.1)
 
 **Build**
 
