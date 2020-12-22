@@ -182,6 +182,21 @@ if( SPIRIT_UI_USE_IMGUI )
         target_sources( nativefiledialog PRIVATE ${NFD_SRC_DIR}/nfd_emscripten.cpp )
     elseif( UNIX )
         target_sources( nativefiledialog PRIVATE ${NFD_SRC_DIR}/nfd_gtk.c )
+
+        # Use the package PkgConfig to detect GTK+ headers/library files
+        FIND_PACKAGE( PkgConfig REQUIRED )
+        PKG_CHECK_MODULES( GTK REQUIRED gtk+-3.0 )
+
+        # Setup CMake to use GTK+, tell the compiler where to look for headers
+        # and the linker where to look for libraries
+        target_include_directories( nativefiledialog PUBLIC ${GTK_INCLUDE_DIRS} )
+        target_link_directories( nativefiledialog PUBLIC ${GTK_LIBRARY_DIRS} )
+
+        # Add other flags to the compiler
+        add_definitions( ${GTK_CFLAGS_OTHER} )
+
+        # Link the target to the GTK+ libraries
+        target_link_libraries( nativefiledialog ${GTK_LIBRARIES} )
     endif()
 endif()
 ####################################################################
