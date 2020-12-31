@@ -692,6 +692,8 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     this->show_menu_bar();
     this->show_notifications();
 
+    // ----------------
+
     ImGui::PushFont( font_cousine_14 );
     widgets::show_overlay_system(
         ui_config_file.show_overlays, ui_config_file.overlay_system_corner, ui_config_file.overlay_system_position,
@@ -702,27 +704,24 @@ void MainWindow::draw_imgui( int display_w, int display_h )
         ui_config_file.overlay_calculation_position, state );
     ImGui::PopFont();
 
-    widgets::show_configurations( ui_config_file.show_configurations_widget, state, rendering_layer );
+    // ----------------
 
-    widgets::show_parameters( ui_config_file.show_parameters_widget, ui_shared_state.selected_mode );
+    this->configurations_widget.show();
+    this->parameters_widget.show();
+    this->geometry_widget.show();
+    this->plots_widget.show();
+    this->visualisation_widget.show();
 
-    widgets::show_visualisation_widget( ui_config_file.show_visualisation_widget, rendering_layer );
-
-    widgets::show_geometry( ui_config_file.show_geometry_widget, state, rendering_layer );
-
-    widgets::show_about( show_about );
-
-    widgets::show_plots( ui_config_file.show_plots, state );
-
-    widgets::show_keybindings( show_keybindings );
+    // ----------------
 
     widgets::show_settings( ui_config_file.show_settings, rendering_layer );
+    widgets::show_keybindings( show_keybindings );
+    widgets::show_about( show_about );
 
-    if( show_demo_window )
-    {
-        ImGui::SetNextWindowPos( ImVec2( 100, 20 ), ImGuiCond_FirstUseEver );
-        ImGui::ShowDemoWindow( &show_demo_window );
-    }
+    if( show_imgui_demo_window )
+        ImGui::ShowDemoWindow( &show_imgui_demo_window );
+    if( show_implot_demo_window )
+        ImPlot::ShowDemoWindow( &show_implot_demo_window );
 
     ImGui::PopFont();
 
@@ -944,7 +943,8 @@ void MainWindow::show_menu_bar()
             ImGui::MenuItem( "Plots", "", &ui_config_file.show_plots );
             ImGui::MenuItem( "Geometry", "", &ui_config_file.show_geometry_widget );
             ImGui::MenuItem( "Visualisation settings", "", &ui_config_file.show_visualisation_widget );
-            ImGui::MenuItem( "Demo Window", "", &show_demo_window );
+            ImGui::MenuItem( "ImGui Demo Window", "", &show_imgui_demo_window );
+            ImGui::MenuItem( "ImPlot Demo Window", "", &show_implot_demo_window );
             ImGui::Separator();
             if( ImGui::MenuItem( "Regular mode" ) )
             {
@@ -1190,7 +1190,13 @@ int MainWindow::run()
 }
 
 MainWindow::MainWindow( std::shared_ptr<State> state )
-        : rendering_layer( ui_shared_state, state ), ui_config_file( ui_shared_state, rendering_layer )
+        : rendering_layer( ui_shared_state, state ),
+          ui_config_file( ui_shared_state, rendering_layer ),
+          configurations_widget( ui_config_file.show_configurations_widget, state, rendering_layer ),
+          parameters_widget( ui_config_file.show_parameters_widget, state, ui_shared_state.selected_mode ),
+          geometry_widget( ui_config_file.show_geometry_widget, state, rendering_layer ),
+          plots_widget( ui_config_file.show_plots, state ),
+          visualisation_widget( ui_config_file.show_visualisation_widget, state, rendering_layer )
 {
     global_window_handle = this;
 

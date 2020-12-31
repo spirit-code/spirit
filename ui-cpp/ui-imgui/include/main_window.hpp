@@ -2,9 +2,14 @@
 #ifndef SPIRIT_IMGUI_MAIN_WINDOW_HPP
 #define SPIRIT_IMGUI_MAIN_WINDOW_HPP
 
+#include <configurations_widget.hpp>
+#include <geometry_widget.hpp>
+#include <parameters_widget.hpp>
+#include <plots_widget.hpp>
 #include <rendering_layer.hpp>
 #include <ui_config_file.hpp>
 #include <ui_shared_state.hpp>
+#include <visualisation_widget.hpp>
 
 #include <imgui/imgui.h>
 
@@ -54,6 +59,12 @@ private:
     RenderingLayer rendering_layer;
     UiConfigFile ui_config_file;
 
+    ConfigurationsWidget configurations_widget;
+    ParametersWidget parameters_widget;
+    GeometryWidget geometry_widget;
+    PlotsWidget plots_widget;
+    VisualisationWidget visualisation_widget;
+
     ImFont * font_cousine_14 = nullptr;
     ImFont * font_karla_14   = nullptr;
     ImFont * font_karla_16   = nullptr;
@@ -64,7 +75,8 @@ private:
     std::vector<std::thread> threads_image;
     std::thread thread_chain;
 
-    bool show_demo_window = false;
+    bool show_imgui_demo_window  = false;
+    bool show_implot_demo_window = false;
 
     bool show_keybindings    = false;
     bool show_about          = false;
