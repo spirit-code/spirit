@@ -178,12 +178,12 @@ void MainWindow::handle_keyboard()
         if( io.KeyShift )
             scale = 0.1f;
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_W ) && !ImGui::IsKeyPressed( GLFW_KEY_S ) )
+        if( ImGui::IsKeyDown( GLFW_KEY_W ) && !ImGui::IsKeyDown( GLFW_KEY_S ) )
         {
             rendering_layer.view.mouseScroll( -scale );
             rendering_layer.needs_redraw();
         }
-        else if( ImGui::IsKeyPressed( GLFW_KEY_S ) && !ImGui::IsKeyPressed( GLFW_KEY_W ) )
+        else if( ImGui::IsKeyDown( GLFW_KEY_S ) && !ImGui::IsKeyDown( GLFW_KEY_W ) )
         {
             rendering_layer.view.mouseScroll( scale );
             rendering_layer.needs_redraw();
@@ -196,46 +196,46 @@ void MainWindow::handle_keyboard()
         float theta        = 0;
         float phi          = 0;
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_A ) && !ImGui::IsKeyPressed( GLFW_KEY_D ) )
+        if( ImGui::IsKeyDown( GLFW_KEY_A ) && !ImGui::IsKeyDown( GLFW_KEY_D ) )
         {
             rotate_camera = true;
             phi           = 5 * scale;
         }
-        else if( ImGui::IsKeyPressed( GLFW_KEY_D ) && !ImGui::IsKeyPressed( GLFW_KEY_A ) )
+        else if( ImGui::IsKeyDown( GLFW_KEY_D ) && !ImGui::IsKeyDown( GLFW_KEY_A ) )
         {
             rotate_camera = true;
             phi           = -5 * scale;
         }
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_Q ) && !ImGui::IsKeyPressed( GLFW_KEY_E ) )
+        if( ImGui::IsKeyDown( GLFW_KEY_Q ) && !ImGui::IsKeyDown( GLFW_KEY_E ) )
         {
             rotate_camera = true;
             theta         = 5 * scale;
         }
-        else if( ImGui::IsKeyPressed( GLFW_KEY_E ) && !ImGui::IsKeyPressed( GLFW_KEY_Q ) )
+        else if( ImGui::IsKeyDown( GLFW_KEY_E ) && !ImGui::IsKeyDown( GLFW_KEY_Q ) )
         {
             rotate_camera = true;
             theta         = -5 * scale;
         }
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_T ) && !ImGui::IsKeyPressed( GLFW_KEY_G ) )
+        if( ImGui::IsKeyDown( GLFW_KEY_T ) && !ImGui::IsKeyDown( GLFW_KEY_G ) )
         {
             move_camera = true;
             dy          = scale;
         }
-        else if( ImGui::IsKeyPressed( GLFW_KEY_G ) && !ImGui::IsKeyPressed( GLFW_KEY_T ) )
+        else if( ImGui::IsKeyDown( GLFW_KEY_G ) && !ImGui::IsKeyDown( GLFW_KEY_T ) )
         {
             move_camera = true;
             dy          = -scale;
         }
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_F ) && !ImGui::IsKeyPressed( GLFW_KEY_H ) )
+        if( ImGui::IsKeyDown( GLFW_KEY_F ) && !ImGui::IsKeyDown( GLFW_KEY_H ) )
         {
             move_camera    = true;
             float duration = io.KeysDownDuration[GLFW_KEY_T];
             dx             = scale;
         }
-        else if( ImGui::IsKeyPressed( GLFW_KEY_H ) && !ImGui::IsKeyPressed( GLFW_KEY_F ) )
+        else if( ImGui::IsKeyDown( GLFW_KEY_H ) && !ImGui::IsKeyDown( GLFW_KEY_F ) )
         {
             move_camera = true;
             dx          = -scale;
@@ -965,7 +965,7 @@ void MainWindow::show_menu_bar()
             if( ImGui::MenuItem( "Toggle camera projection", "c" ) )
             {
             }
-            if( ImGui::MenuItem( "Reset camera" ) )
+            if( ImGui::MenuItem( "Reset camera", "ctrl+shift+r" ) )
             {
                 this->rendering_layer.reset_camera();
             }
