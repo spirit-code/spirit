@@ -66,7 +66,6 @@ void VisualisationWidget::show()
     ImGui::Separator();
     ImGui::Dummy( { 0, 10 } );
 
-    ImGui::TextUnformatted( "Renderers" );
     if( ImGui::Button( "Add Renderer" ) )
     {
         if( ImGui::IsPopupOpen( "##popup_add_renderer" ) )
@@ -76,6 +75,8 @@ void VisualisationWidget::show()
             ImGui::OpenPopup( "##popup_add_renderer" );
         }
     }
+
+    ImGui::Dummy( { 0, 10 } );
 
     auto is_visible = [&]() -> std::string {
         const float epsilon = 1e-5;
@@ -130,7 +131,7 @@ void VisualisationWidget::show()
             filter_direction_max[1], filter_direction_min[2], filter_direction_max[2] );
     };
 
-    if( ImGui::CollapsingHeader( "Filters" ) )
+    if( ImGui::CollapsingHeader( "Overall filters" ) )
     {
         ImGui::Indent( 15 );
 

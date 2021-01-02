@@ -530,7 +530,7 @@ void RendererWidget::show_filters()
             filter_direction_max[1], filter_direction_min[2], filter_direction_max[2] );
     };
 
-    if( ImGui::CollapsingHeader( "Filters" ) )
+    if( ImGui::TreeNode( "Filters" ) )
     {
         ImGui::Indent( 15 );
 
@@ -583,6 +583,7 @@ void RendererWidget::show_filters()
         ImGui::Indent( -15 );
 
         ImGui::Indent( -15 );
+        ImGui::TreePop();
     }
 }
 
@@ -646,33 +647,37 @@ void BoundingBoxRendererWidget::reset()
 void BoundingBoxRendererWidget::show()
 {
     ImGui::PushID( "Boundingbox" );
-    ImGui::Checkbox( "Boundingbox", &show_ );
-    if( !show_ )
+    ImGui::Checkbox( "##Boundingbox", &show_ );
+    ImGui::SameLine();
+    if( ImGui::CollapsingHeader( "Boundingbox" ) )
     {
-        ImGui::PopID();
-        return;
-    }
-    ImGui::Indent( 15 );
-
-    ImGui::SetNextItemWidth( 100 );
-    if( ImGui::SliderFloat( "thickness", &line_width, 0, 10, "%.1f" ) )
-    {
-        renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LINE_WIDTH>( line_width );
-    }
-    if( line_width > 0 )
-    {
-        ImGui::SetNextItemWidth( 100 );
-        if( ImGui::SliderInt( "level of detail", &level_of_detail, 5, 100 ) )
-            renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LEVEL_OF_DETAIL>( level_of_detail );
-
-        if( ImGui::Checkbox( "draw shadows", &draw_shadows ) )
+        if( !show_ )
         {
-            // renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LIGHTING_IMPLEMENTATION>(
-            //     get_lighting_implementation( draw_shadows ) );
+            ImGui::PopID();
+            return;
         }
-    }
+        ImGui::Indent( 25 );
 
-    ImGui::Indent( -15 );
+        ImGui::SetNextItemWidth( 100 );
+        if( ImGui::SliderFloat( "thickness", &line_width, 0, 10, "%.1f" ) )
+        {
+            renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LINE_WIDTH>( line_width );
+        }
+        if( line_width > 0 )
+        {
+            ImGui::SetNextItemWidth( 100 );
+            if( ImGui::SliderInt( "level of detail", &level_of_detail, 5, 100 ) )
+                renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LEVEL_OF_DETAIL>( level_of_detail );
+
+            if( ImGui::Checkbox( "draw shadows", &draw_shadows ) )
+            {
+                // renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LIGHTING_IMPLEMENTATION>(
+                //     get_lighting_implementation( draw_shadows ) );
+            }
+        }
+
+        ImGui::Indent( -25 );
+    }
     ImGui::PopID();
 }
 
@@ -684,28 +689,20 @@ void CoordinateSystemRendererWidget::reset() {}
 
 void CoordinateSystemRendererWidget::show()
 {
-    ImGui::PushID( "Dots" );
-    ImGui::Checkbox( "Dots", &show_ );
+    ImGui::PushID( "CoordinateSystem" );
+    ImGui::Checkbox( "##CoordinateSystem", &show_ );
     ImGui::SameLine();
-    if( ImGui::Button( "Remove" ) )
+    if( ImGui::CollapsingHeader( "Coordinate system" ) )
     {
-        show_   = false;
-        remove_ = true;
+        if( !show_ )
+        {
+            ImGui::PopID();
+            return;
+        }
+        ImGui::Indent( 25 );
+
+        ImGui::Indent( -25 );
     }
-    ImGui::SameLine();
-    if( ImGui::Button( "Reset" ) )
-        this->reset();
-
-    if( !show_ )
-    {
-        ImGui::PopID();
-        return;
-    }
-    ImGui::Indent( 15 );
-
-    show_filters();
-
-    ImGui::Indent( -15 );
     ImGui::PopID();
 }
 
@@ -727,36 +724,41 @@ void DotRendererWidget::reset()
 void DotRendererWidget::show()
 {
     ImGui::PushID( "Dots" );
-    ImGui::Checkbox( "Dots", &show_ );
+    ImGui::Checkbox( "##Dots", &show_ );
     ImGui::SameLine();
-    if( ImGui::Button( "Remove" ) )
+    if( ImGui::CollapsingHeader( "Dots" ) )
     {
-        show_   = false;
-        remove_ = true;
+        if( ImGui::Button( "Remove" ) )
+        {
+            show_   = false;
+            remove_ = true;
+        }
+        ImGui::SameLine();
+        if( ImGui::Button( "Reset" ) )
+            this->reset();
+
+        if( !show_ )
+        {
+            ImGui::PopID();
+            return;
+        }
+        ImGui::Indent( 25 );
+
+        ImGui::Dummy( { 0, 5 } );
+        show_filters();
+        ImGui::Dummy( { 0, 5 } );
+
+        ImGui::SetNextItemWidth( 100 );
+        if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f", 10 ) )
+        {
+            renderer->setOption<VFRendering::DotRenderer::DOT_RADIUS>( size * 1000 );
+        }
+
+        if( colormap_input() )
+            renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+
+        ImGui::Indent( -25 );
     }
-    ImGui::SameLine();
-    if( ImGui::Button( "Reset" ) )
-        this->reset();
-
-    if( !show_ )
-    {
-        ImGui::PopID();
-        return;
-    }
-    ImGui::Indent( 15 );
-
-    show_filters();
-
-    ImGui::SetNextItemWidth( 100 );
-    if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f", 10 ) )
-    {
-        renderer->setOption<VFRendering::DotRenderer::DOT_RADIUS>( size * 1000 );
-    }
-
-    if( colormap_input() )
-        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
-
-    ImGui::Indent( -15 );
     ImGui::PopID();
 }
 
@@ -782,43 +784,48 @@ void ArrowRendererWidget::reset()
 void ArrowRendererWidget::show()
 {
     ImGui::PushID( "Arrows" );
-    ImGui::Checkbox( "Arrows", &show_ );
+    ImGui::Checkbox( "##Arrows", &show_ );
     ImGui::SameLine();
-    if( ImGui::Button( "Remove" ) )
+    if( ImGui::CollapsingHeader( "Arrows" ) )
     {
-        show_   = false;
-        remove_ = true;
+        if( !show_ )
+        {
+            ImGui::PopID();
+            return;
+        }
+        ImGui::Indent( 25 );
+
+        if( ImGui::Button( "Remove" ) )
+        {
+            show_   = false;
+            remove_ = true;
+        }
+        ImGui::SameLine();
+        if( ImGui::Button( "Reset" ) )
+            this->reset();
+
+        ImGui::Dummy( { 0, 5 } );
+        show_filters();
+        ImGui::Dummy( { 0, 5 } );
+
+        ImGui::SetNextItemWidth( 100 );
+        if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f", 10 ) )
+        {
+            renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( size * 0.125f );
+            renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( size * 0.3f );
+            renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( size * 0.0625f );
+            renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>( size * 0.35f );
+        }
+
+        ImGui::SetNextItemWidth( 100 );
+        if( ImGui::SliderInt( "level of detail", &lod, 5, 100 ) )
+            renderer->setOption<VFRendering::ArrowRenderer::Option::LEVEL_OF_DETAIL>( lod );
+
+        if( colormap_input() )
+            renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+
+        ImGui::Indent( -25 );
     }
-    ImGui::SameLine();
-    if( ImGui::Button( "Reset" ) )
-        this->reset();
-
-    if( !show_ )
-    {
-        ImGui::PopID();
-        return;
-    }
-    ImGui::Indent( 15 );
-
-    show_filters();
-
-    ImGui::SetNextItemWidth( 100 );
-    if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f", 10 ) )
-    {
-        renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( size * 0.125f );
-        renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( size * 0.3f );
-        renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( size * 0.0625f );
-        renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>( size * 0.35f );
-    }
-
-    ImGui::SetNextItemWidth( 100 );
-    if( ImGui::SliderInt( "level of detail", &lod, 5, 100 ) )
-        renderer->setOption<VFRendering::ArrowRenderer::Option::LEVEL_OF_DETAIL>( lod );
-
-    if( colormap_input() )
-        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
-
-    ImGui::Indent( -15 );
     ImGui::PopID();
 }
 
@@ -845,38 +852,43 @@ void ParallelepipedRendererWidget::reset()
 void ParallelepipedRendererWidget::show()
 {
     ImGui::PushID( "Parallelepiped" );
-    ImGui::Checkbox( "Parallelepiped", &show_ );
+    ImGui::Checkbox( "##Parallelepiped", &show_ );
     ImGui::SameLine();
-    if( ImGui::Button( "Remove" ) )
+    if( ImGui::CollapsingHeader( "Parallelepiped" ) )
     {
-        show_   = false;
-        remove_ = true;
+        if( !show_ )
+        {
+            ImGui::PopID();
+            return;
+        }
+        ImGui::Indent( 25 );
+
+        if( ImGui::Button( "Remove" ) )
+        {
+            show_   = false;
+            remove_ = true;
+        }
+        ImGui::SameLine();
+        if( ImGui::Button( "Reset" ) )
+            this->reset();
+
+        ImGui::Dummy( { 0, 5 } );
+        show_filters();
+        ImGui::Dummy( { 0, 5 } );
+
+        ImGui::SetNextItemWidth( 100 );
+        if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f", 10 ) )
+        {
+            renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_A>( size * 0.5f );
+            renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_B>( size * 0.5f );
+            renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_C>( size * 0.5f );
+        }
+
+        if( colormap_input() )
+            renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+
+        ImGui::Indent( -25 );
     }
-    ImGui::SameLine();
-    if( ImGui::Button( "Reset" ) )
-        this->reset();
-
-    if( !show_ )
-    {
-        ImGui::PopID();
-        return;
-    }
-    ImGui::Indent( 15 );
-
-    show_filters();
-
-    ImGui::SetNextItemWidth( 100 );
-    if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f", 10 ) )
-    {
-        renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_A>( size * 0.5f );
-        renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_B>( size * 0.5f );
-        renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_C>( size * 0.5f );
-    }
-
-    if( colormap_input() )
-        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
-
-    ImGui::Indent( -15 );
     ImGui::PopID();
 }
 
@@ -897,40 +909,45 @@ void SphereRendererWidget::reset()
 void SphereRendererWidget::show()
 {
     ImGui::PushID( "Sphere" );
-    ImGui::Checkbox( "Sphere", &show_ );
+    ImGui::Checkbox( "##Sphere", &show_ );
     ImGui::SameLine();
-    if( ImGui::Button( "Remove" ) )
+    if( ImGui::CollapsingHeader( "Sphere" ) )
     {
-        show_   = false;
-        remove_ = true;
+        if( !show_ )
+        {
+            ImGui::PopID();
+            return;
+        }
+        ImGui::Indent( 25 );
+
+        if( ImGui::Button( "Remove" ) )
+        {
+            show_   = false;
+            remove_ = true;
+        }
+        ImGui::SameLine();
+        if( ImGui::Button( "Reset" ) )
+            this->reset();
+
+        ImGui::Dummy( { 0, 5 } );
+        show_filters();
+        ImGui::Dummy( { 0, 5 } );
+
+        ImGui::SetNextItemWidth( 100 );
+        if( ImGui::SliderFloat( "size", &size, 0.01f, 10, "%.3f", 10 ) )
+        {
+            renderer->setOption<VFRendering::SphereRenderer::Option::SPHERE_RADIUS>( size );
+        }
+
+        ImGui::SetNextItemWidth( 100 );
+        if( ImGui::SliderInt( "level of detail", &lod, 10, 100 ) )
+            renderer->setOption<VFRendering::SphereRenderer::Option::LEVEL_OF_DETAIL>( lod );
+
+        if( colormap_input() )
+            renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+
+        ImGui::Indent( -25 );
     }
-    ImGui::SameLine();
-    if( ImGui::Button( "Reset" ) )
-        this->reset();
-
-    if( !show_ )
-    {
-        ImGui::PopID();
-        return;
-    }
-    ImGui::Indent( 15 );
-
-    show_filters();
-
-    ImGui::SetNextItemWidth( 100 );
-    if( ImGui::SliderFloat( "size", &size, 0.01f, 10, "%.3f", 10 ) )
-    {
-        renderer->setOption<VFRendering::SphereRenderer::Option::SPHERE_RADIUS>( size );
-    }
-
-    ImGui::SetNextItemWidth( 100 );
-    if( ImGui::SliderInt( "level of detail", &lod, 10, 100 ) )
-        renderer->setOption<VFRendering::SphereRenderer::Option::LEVEL_OF_DETAIL>( lod );
-
-    if( colormap_input() )
-        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
-
-    ImGui::Indent( -15 );
     ImGui::PopID();
 }
 
@@ -949,30 +966,35 @@ void SurfaceRendererWidget::reset()
 void SurfaceRendererWidget::show()
 {
     ImGui::PushID( "Surface" );
-    ImGui::Checkbox( "Surface", &show_ );
+    ImGui::Checkbox( "##Surface", &show_ );
     ImGui::SameLine();
-    if( ImGui::Button( "Remove" ) )
+    if( ImGui::CollapsingHeader( "Surface" ) )
     {
-        show_   = false;
-        remove_ = true;
+        if( !show_ )
+        {
+            ImGui::PopID();
+            return;
+        }
+        ImGui::Indent( 25 );
+
+        if( ImGui::Button( "Remove" ) )
+        {
+            show_   = false;
+            remove_ = true;
+        }
+        ImGui::SameLine();
+        if( ImGui::Button( "Reset" ) )
+            this->reset();
+
+        ImGui::Dummy( { 0, 5 } );
+        show_filters();
+        ImGui::Dummy( { 0, 5 } );
+
+        if( colormap_input() )
+            renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+
+        ImGui::Indent( -25 );
     }
-    ImGui::SameLine();
-    if( ImGui::Button( "Reset" ) )
-        this->reset();
-
-    if( !show_ )
-    {
-        ImGui::PopID();
-        return;
-    }
-    ImGui::Indent( 15 );
-
-    show_filters();
-
-    if( colormap_input() )
-        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
-
-    ImGui::Indent( -15 );
     ImGui::PopID();
 }
 
@@ -1002,55 +1024,60 @@ void IsosurfaceRendererWidget::reset()
 void IsosurfaceRendererWidget::show()
 {
     ImGui::PushID( "Isosurface" );
-    ImGui::Checkbox( "Isosurface", &show_ );
+    ImGui::Checkbox( "##Isosurface", &show_ );
     ImGui::SameLine();
-    if( ImGui::Button( "Remove" ) )
+    if( ImGui::CollapsingHeader( "Isosurface" ) )
     {
-        show_   = false;
-        remove_ = true;
+        if( !show_ )
+        {
+            ImGui::PopID();
+            return;
+        }
+        ImGui::Indent( 25 );
+
+        if( ImGui::Button( "Remove" ) )
+        {
+            show_   = false;
+            remove_ = true;
+        }
+        ImGui::SameLine();
+        if( ImGui::Button( "Reset" ) )
+            this->reset();
+
+        ImGui::Dummy( { 0, 5 } );
+        show_filters();
+        ImGui::Dummy( { 0, 5 } );
+
+        if( ImGui::SliderFloat( "isovalue", &isovalue, -1, 1 ) )
+            renderer->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>( isovalue );
+
+        if( ImGui::Checkbox( "draw shadows", &draw_shadows ) )
+        {
+            this->set_lighting_implementation( draw_shadows );
+        }
+
+        if( ImGui::Checkbox( "flip normals", &flip_normals ) )
+            renderer->setOption<VFRendering::IsosurfaceRenderer::Option::FLIP_NORMALS>( flip_normals );
+
+        bool iso_x = isocomponent == 0;
+        bool iso_y = isocomponent == 1;
+        bool iso_z = isocomponent == 2;
+        ImGui::TextUnformatted( "Component" );
+        ImGui::SameLine();
+        if( ImGui::Checkbox( "x", &iso_x ) )
+            set_isocomponent( 0 );
+        ImGui::SameLine();
+        if( ImGui::Checkbox( "y", &iso_y ) )
+            set_isocomponent( 1 );
+        ImGui::SameLine();
+        if( ImGui::Checkbox( "z", &iso_z ) )
+            set_isocomponent( 2 );
+
+        if( colormap_input() )
+            renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+
+        ImGui::Indent( -25 );
     }
-    ImGui::SameLine();
-    if( ImGui::Button( "Reset" ) )
-        this->reset();
-
-    if( !show_ )
-    {
-        ImGui::PopID();
-        return;
-    }
-    ImGui::Indent( 15 );
-
-    show_filters();
-
-    if( ImGui::SliderFloat( "isovalue", &isovalue, -1, 1 ) )
-        renderer->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>( isovalue );
-
-    if( ImGui::Checkbox( "draw shadows", &draw_shadows ) )
-    {
-        this->set_lighting_implementation( draw_shadows );
-    }
-
-    if( ImGui::Checkbox( "flip normals", &flip_normals ) )
-        renderer->setOption<VFRendering::IsosurfaceRenderer::Option::FLIP_NORMALS>( flip_normals );
-
-    bool iso_x = isocomponent == 0;
-    bool iso_y = isocomponent == 1;
-    bool iso_z = isocomponent == 2;
-    ImGui::TextUnformatted( "Component" );
-    ImGui::SameLine();
-    if( ImGui::Checkbox( "x", &iso_x ) )
-        set_isocomponent( 0 );
-    ImGui::SameLine();
-    if( ImGui::Checkbox( "y", &iso_y ) )
-        set_isocomponent( 1 );
-    ImGui::SameLine();
-    if( ImGui::Checkbox( "z", &iso_z ) )
-        set_isocomponent( 2 );
-
-    if( colormap_input() )
-        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
-
-    ImGui::Indent( -15 );
     ImGui::PopID();
 }
 
