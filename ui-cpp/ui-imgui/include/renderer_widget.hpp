@@ -197,11 +197,6 @@ protected:
     void reset() override;
     void set_isocomponent( int isocomponent );
     void set_lighting_implementation( bool draw_shadows );
-
-    float isovalue    = 0;
-    int isocomponent  = 2;
-    bool draw_shadows = true;
-    bool flip_normals = false;
 };
 
 } // namespace ui
