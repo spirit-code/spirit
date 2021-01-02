@@ -466,13 +466,17 @@ bool ColormapWidget::colormap_input()
     if( ImGui::Combo( "Colormap##arrows", &colormap_index, colormaps.data(), int( colormaps.size() ) ) )
     {
         set_colormap( Colormap( colormap_index ) );
+        return true;
     }
 
     if( colormap == Colormap::MONOCHROME
         && ImGui::ColorEdit3( "Colour", &colormap_monochrome_color.x, ImGuiColorEditFlags_NoInputs ) )
     {
         set_colormap( colormap );
+        return true;
     }
+
+    return false;
 }
 
 void RendererWidget::show_filters()
