@@ -25,6 +25,23 @@
 namespace ui
 {
 
+std::string get_lighting_implementation( bool draw_shadows )
+{
+    if( draw_shadows )
+    {
+        return "uniform vec3 uLightPosition;"
+               "float lighting(vec3 position, vec3 normal)"
+               "{"
+               "    vec3 lightDirection = -normalize(uLightPosition-position);"
+               "    float diffuse = 0.7*max(0.0, dot(normal, lightDirection));"
+               "    float ambient = 0.2;"
+               "    return diffuse+ambient;"
+               "}";
+    }
+
+    return "float lighting(vec3 position, vec3 normal) { return 1.0; }";
+}
+
 std::string get_colormap(
     Colormap colormap, int phi, bool invert_z, bool invert_xy, glm::vec3 cardinal_a, glm::vec3 cardinal_b,
     glm::vec3 cardinal_c, glm::vec3 monochrome_color )
