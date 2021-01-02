@@ -49,12 +49,15 @@ struct RendererWidget
     bool remove_ = false;
     std::shared_ptr<VFRendering::RendererBase> renderer;
 
-    virtual void show() = 0;
+    virtual void show();
 
 protected:
     RendererWidget( std::shared_ptr<State> state ) : state( state ) {}
-    virtual void reset() = 0;
+    virtual std::string id() const = 0;
+    virtual void show_settings()   = 0;
+    virtual void reset()           = 0;
     void show_filters();
+    void reset_filters();
 
     float filter_direction_min[3]{ -1, -1, -1 };
     float filter_direction_max[3]{ 1, 1, 1 };
@@ -66,20 +69,32 @@ struct BoundingBoxRendererWidget : RendererWidget
 {
     BoundingBoxRendererWidget(
         std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield );
-
     void show() override;
-    void reset() override;
 
     float line_width    = 0;
     int level_of_detail = 10;
     bool draw_shadows   = false;
+
+protected:
+    std::string id() const override
+    {
+        return "Boundingbox";
+    }
+    void show_settings() override;
+    void reset() override;
 };
 
 struct CoordinateSystemRendererWidget : RendererWidget
 {
     CoordinateSystemRendererWidget( std::shared_ptr<State> state );
-
     void show() override;
+
+protected:
+    std::string id() const override
+    {
+        return "Coordinate system";
+    }
+    void show_settings() override;
     void reset() override;
 };
 
@@ -88,10 +103,15 @@ struct DotRendererWidget : RendererWidget, ColormapWidget
     DotRendererWidget(
         std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield );
 
-    void show() override;
-    void reset() override;
-
     float size = 1;
+
+protected:
+    std::string id() const override
+    {
+        return "Dots";
+    }
+    void show_settings() override;
+    void reset() override;
 };
 
 struct ArrowRendererWidget : RendererWidget, ColormapWidget
@@ -99,11 +119,16 @@ struct ArrowRendererWidget : RendererWidget, ColormapWidget
     ArrowRendererWidget(
         std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield );
 
-    void show() override;
-    void reset() override;
-
     float size = 1;
     int lod    = 10;
+
+protected:
+    std::string id() const override
+    {
+        return "Arrows";
+    }
+    void show_settings() override;
+    void reset() override;
 };
 
 struct ParallelepipedRendererWidget : RendererWidget, ColormapWidget
@@ -111,10 +136,15 @@ struct ParallelepipedRendererWidget : RendererWidget, ColormapWidget
     ParallelepipedRendererWidget(
         std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield );
 
-    void show() override;
-    void reset() override;
-
     float size = 1;
+
+protected:
+    std::string id() const override
+    {
+        return "Boxes";
+    }
+    void show_settings() override;
+    void reset() override;
 };
 
 struct SphereRendererWidget : RendererWidget, ColormapWidget
@@ -122,11 +152,16 @@ struct SphereRendererWidget : RendererWidget, ColormapWidget
     SphereRendererWidget(
         std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield );
 
-    void show() override;
-    void reset() override;
-
     float size = 0.1f;
     int lod    = 10;
+
+protected:
+    std::string id() const override
+    {
+        return "Spheres";
+    }
+    void show_settings() override;
+    void reset() override;
 };
 
 struct SurfaceRendererWidget : RendererWidget, ColormapWidget
@@ -134,7 +169,12 @@ struct SurfaceRendererWidget : RendererWidget, ColormapWidget
     SurfaceRendererWidget(
         std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield );
 
-    void show() override;
+protected:
+    std::string id() const override
+    {
+        return "Surface";
+    }
+    void show_settings() override;
     void reset() override;
 };
 
@@ -143,7 +183,17 @@ struct IsosurfaceRendererWidget : RendererWidget, ColormapWidget
     IsosurfaceRendererWidget(
         std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield );
 
-    void show() override;
+    float isovalue    = 0;
+    int isocomponent  = 2;
+    bool draw_shadows = true;
+    bool flip_normals = false;
+
+protected:
+    std::string id() const override
+    {
+        return "Isosurface";
+    }
+    void show_settings() override;
     void reset() override;
     void set_isocomponent( int isocomponent );
     void set_lighting_implementation( bool draw_shadows );

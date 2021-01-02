@@ -1,3 +1,4 @@
+#include <fonts.hpp>
 #include <renderer_widget.hpp>
 
 #include <VFRendering/ArrowRenderer.hxx>
@@ -40,6 +41,62 @@ std::string get_lighting_implementation( bool draw_shadows )
     }
 
     return "float lighting(vec3 position, vec3 normal) { return 1.0; }";
+}
+
+std::string get_is_visible_implementation(
+    std::shared_ptr<State> state, float filter_position_min[3], float filter_position_max[3],
+    float filter_direction_min[3], float filter_direction_max[3] )
+{
+    const float epsilon = 1e-5;
+
+    float b_min[3], b_max[3], b_range[3];
+    Geometry_Get_Bounds( state.get(), b_min, b_max );
+
+    float filter_pos_min[3], filter_pos_max[3];
+    float filter_dir_min[3], filter_dir_max[3];
+    for( int dim = 0; dim < 3; ++dim )
+    {
+        b_range[dim]        = b_max[dim] - b_min[dim];
+        filter_pos_min[dim] = b_min[dim] + filter_position_min[dim] * b_range[dim] - epsilon;
+        filter_pos_max[dim] = b_max[dim] + ( filter_position_max[dim] - 1 ) * b_range[dim] + epsilon;
+
+        filter_dir_min[dim] = filter_direction_min[dim] - epsilon;
+        filter_dir_max[dim] = filter_direction_max[dim] + epsilon;
+    }
+    return fmt::format(
+        R"(
+            bool is_visible(vec3 position, vec3 direction)
+            {{
+                float x_min_pos = {};
+                float x_max_pos = {};
+                bool is_visible_x_pos = position.x <= x_max_pos && position.x >= x_min_pos;
+
+                float y_min_pos = {};
+                float y_max_pos = {};
+                bool is_visible_y_pos = position.y <= y_max_pos && position.y >= y_min_pos;
+
+                float z_min_pos = {};
+                float z_max_pos = {};
+                bool is_visible_z_pos = position.z <= z_max_pos && position.z >= z_min_pos;
+
+                float x_min_dir = {};
+                float x_max_dir = {};
+                bool is_visible_x_dir = direction.x <= x_max_dir && direction.x >= x_min_dir;
+
+                float y_min_dir = {};
+                float y_max_dir = {};
+                bool is_visible_y_dir = direction.y <= y_max_dir && direction.y >= y_min_dir;
+
+                float z_min_dir = {};
+                float z_max_dir = {};
+                bool is_visible_z_dir = direction.z <= z_max_dir && direction.z >= z_min_dir;
+
+                return is_visible_x_pos && is_visible_y_pos && is_visible_z_pos && is_visible_x_dir && is_visible_y_dir && is_visible_z_dir;
+            }}
+            )",
+        filter_pos_min[0], filter_pos_max[0], filter_pos_min[1], filter_pos_max[1], filter_pos_min[2],
+        filter_pos_max[2], filter_direction_min[0], filter_direction_max[0], filter_direction_min[1],
+        filter_direction_max[1], filter_direction_min[2], filter_direction_max[2] );
 }
 
 std::string get_colormap(
@@ -479,65 +536,37 @@ bool ColormapWidget::colormap_input()
     return false;
 }
 
+void RendererWidget::show()
+{
+    ImGui::PushID( this->id().c_str() );
+    ImGui::Checkbox( fmt::format( "##{}", this->id() ).c_str(), &show_ );
+    ImGui::SameLine();
+    if( ImGui::CollapsingHeader( this->id().c_str() ) )
+    {
+        ImGui::Indent( 25 );
+
+        if( ImGui::Button( ICON_FA_TRASH_ALT " Remove" ) )
+        {
+            show_   = false;
+            remove_ = true;
+        }
+        ImGui::SameLine();
+        if( ImGui::Button( ICON_FA_REDO " Reset" ) )
+            this->reset();
+        ImGui::Dummy( { 0, 5 } );
+        this->show_filters();
+        ImGui::Dummy( { 0, 5 } );
+        this->show_settings();
+
+        ImGui::Indent( -25 );
+    }
+    ImGui::PopID();
+}
+
 void RendererWidget::show_filters()
 {
-    auto is_visible = [&]() -> std::string {
-        const float epsilon = 1e-5;
-
-        float b_min[3], b_max[3], b_range[3];
-        Geometry_Get_Bounds( state.get(), b_min, b_max );
-
-        float filter_pos_min[3], filter_pos_max[3];
-        float filter_dir_min[3], filter_dir_max[3];
-        for( int dim = 0; dim < 3; ++dim )
-        {
-            b_range[dim]        = b_max[dim] - b_min[dim];
-            filter_pos_min[dim] = b_min[dim] + filter_position_min[dim] * b_range[dim] - epsilon;
-            filter_pos_max[dim] = b_max[dim] + ( filter_position_max[dim] - 1 ) * b_range[dim] + epsilon;
-
-            filter_dir_min[dim] = filter_direction_min[dim] - epsilon;
-            filter_dir_max[dim] = filter_direction_max[dim] + epsilon;
-        }
-        return fmt::format(
-            R"(
-            bool is_visible(vec3 position, vec3 direction)
-            {{
-                float x_min_pos = {};
-                float x_max_pos = {};
-                bool is_visible_x_pos = position.x <= x_max_pos && position.x >= x_min_pos;
-
-                float y_min_pos = {};
-                float y_max_pos = {};
-                bool is_visible_y_pos = position.y <= y_max_pos && position.y >= y_min_pos;
-
-                float z_min_pos = {};
-                float z_max_pos = {};
-                bool is_visible_z_pos = position.z <= z_max_pos && position.z >= z_min_pos;
-
-                float x_min_dir = {};
-                float x_max_dir = {};
-                bool is_visible_x_dir = direction.x <= x_max_dir && direction.x >= x_min_dir;
-
-                float y_min_dir = {};
-                float y_max_dir = {};
-                bool is_visible_y_dir = direction.y <= y_max_dir && direction.y >= y_min_dir;
-
-                float z_min_dir = {};
-                float z_max_dir = {};
-                bool is_visible_z_dir = direction.z <= z_max_dir && direction.z >= z_min_dir;
-
-                return is_visible_x_pos && is_visible_y_pos && is_visible_z_pos && is_visible_x_dir && is_visible_y_dir && is_visible_z_dir;
-            }}
-            )",
-            filter_pos_min[0], filter_pos_max[0], filter_pos_min[1], filter_pos_max[1], filter_pos_min[2],
-            filter_pos_max[2], filter_direction_min[0], filter_direction_max[0], filter_direction_min[1],
-            filter_direction_max[1], filter_direction_min[2], filter_direction_max[2] );
-    };
-
     if( ImGui::TreeNode( "Filters" ) )
     {
-        ImGui::Indent( 15 );
-
         ImGui::TextUnformatted( "Orientation" );
         ImGui::Indent( 15 );
         ImGui::TextUnformatted( "min" );
@@ -548,7 +577,8 @@ void RendererWidget::show_filters()
             filter_direction_max[1] = std::max( filter_direction_max[1], filter_direction_min[1] );
             filter_direction_max[2] = std::max( filter_direction_max[2], filter_direction_min[2] );
 
-            renderer->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( is_visible() );
+            renderer->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( get_is_visible_implementation(
+                state, filter_position_min, filter_position_max, filter_direction_min, filter_direction_max ) );
         }
         ImGui::TextUnformatted( "max" );
         ImGui::SameLine();
@@ -558,7 +588,8 @@ void RendererWidget::show_filters()
             filter_direction_min[1] = std::min( filter_direction_min[1], filter_direction_max[1] );
             filter_direction_min[2] = std::min( filter_direction_min[2], filter_direction_max[2] );
 
-            renderer->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( is_visible() );
+            renderer->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( get_is_visible_implementation(
+                state, filter_position_min, filter_position_max, filter_direction_min, filter_direction_max ) );
         }
         ImGui::Indent( -15 );
 
@@ -572,7 +603,8 @@ void RendererWidget::show_filters()
             filter_position_max[1] = std::max( filter_position_max[1], filter_position_min[1] );
             filter_position_max[2] = std::max( filter_position_max[2], filter_position_min[2] );
 
-            renderer->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( is_visible() );
+            renderer->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( get_is_visible_implementation(
+                state, filter_position_min, filter_position_max, filter_direction_min, filter_direction_max ) );
         }
         ImGui::TextUnformatted( "max" );
         ImGui::SameLine();
@@ -582,13 +614,27 @@ void RendererWidget::show_filters()
             filter_position_min[1] = std::min( filter_position_min[1], filter_position_max[1] );
             filter_position_min[2] = std::min( filter_position_min[2], filter_position_max[2] );
 
-            renderer->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( is_visible() );
+            renderer->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( get_is_visible_implementation(
+                state, filter_position_min, filter_position_max, filter_direction_min, filter_direction_max ) );
         }
         ImGui::Indent( -15 );
 
-        ImGui::Indent( -15 );
         ImGui::TreePop();
     }
+}
+
+void RendererWidget::reset_filters()
+{
+    for( int dim = 0; dim < 3; ++dim )
+    {
+        this->filter_direction_min[dim] = -1;
+        this->filter_direction_max[dim] = 1;
+        this->filter_position_min[dim]  = 0;
+        this->filter_position_max[dim]  = 1;
+    }
+
+    renderer->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( get_is_visible_implementation(
+        state, filter_position_min, filter_position_max, filter_direction_min, filter_direction_max ) );
 }
 
 BoundingBoxRendererWidget::BoundingBoxRendererWidget(
@@ -650,16 +696,11 @@ void BoundingBoxRendererWidget::reset()
 
 void BoundingBoxRendererWidget::show()
 {
-    ImGui::PushID( "Boundingbox" );
-    ImGui::Checkbox( "##Boundingbox", &show_ );
+    ImGui::PushID( this->id().c_str() );
+    ImGui::Checkbox( fmt::format( "##{}", this->id() ).c_str(), &show_ );
     ImGui::SameLine();
-    if( ImGui::CollapsingHeader( "Boundingbox" ) )
+    if( ImGui::CollapsingHeader( this->id().c_str() ) )
     {
-        if( !show_ )
-        {
-            ImGui::PopID();
-            return;
-        }
         ImGui::Indent( 25 );
 
         ImGui::SetNextItemWidth( 100 );
@@ -685,30 +726,17 @@ void BoundingBoxRendererWidget::show()
     ImGui::PopID();
 }
 
+void BoundingBoxRendererWidget::show_settings() {}
+
 CoordinateSystemRendererWidget::CoordinateSystemRendererWidget( std::shared_ptr<State> state ) : RendererWidget( state )
 {
 }
 
+void CoordinateSystemRendererWidget::show() {}
+
 void CoordinateSystemRendererWidget::reset() {}
 
-void CoordinateSystemRendererWidget::show()
-{
-    ImGui::PushID( "CoordinateSystem" );
-    ImGui::Checkbox( "##CoordinateSystem", &show_ );
-    ImGui::SameLine();
-    if( ImGui::CollapsingHeader( "Coordinate system" ) )
-    {
-        if( !show_ )
-        {
-            ImGui::PopID();
-            return;
-        }
-        ImGui::Indent( 25 );
-
-        ImGui::Indent( -25 );
-    }
-    ImGui::PopID();
-}
+void CoordinateSystemRendererWidget::show_settings() {}
 
 DotRendererWidget::DotRendererWidget(
     std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield )
@@ -721,49 +749,21 @@ DotRendererWidget::DotRendererWidget(
 
 void DotRendererWidget::reset()
 {
+    this->reset_filters();
     this->set_colormap( Colormap::HSV );
     this->size = 1;
 }
 
-void DotRendererWidget::show()
+void DotRendererWidget::show_settings()
 {
-    ImGui::PushID( "Dots" );
-    ImGui::Checkbox( "##Dots", &show_ );
-    ImGui::SameLine();
-    if( ImGui::CollapsingHeader( "Dots" ) )
+    ImGui::SetNextItemWidth( 100 );
+    if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f", 10 ) )
     {
-        if( ImGui::Button( "Remove" ) )
-        {
-            show_   = false;
-            remove_ = true;
-        }
-        ImGui::SameLine();
-        if( ImGui::Button( "Reset" ) )
-            this->reset();
-
-        if( !show_ )
-        {
-            ImGui::PopID();
-            return;
-        }
-        ImGui::Indent( 25 );
-
-        ImGui::Dummy( { 0, 5 } );
-        show_filters();
-        ImGui::Dummy( { 0, 5 } );
-
-        ImGui::SetNextItemWidth( 100 );
-        if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f", 10 ) )
-        {
-            renderer->setOption<VFRendering::DotRenderer::DOT_RADIUS>( size * 1000 );
-        }
-
-        if( colormap_input() )
-            renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
-
-        ImGui::Indent( -25 );
+        renderer->setOption<VFRendering::DotRenderer::DOT_RADIUS>( size * 1000 );
     }
-    ImGui::PopID();
+
+    if( colormap_input() )
+        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 }
 
 ArrowRendererWidget::ArrowRendererWidget(
@@ -783,54 +783,32 @@ void ArrowRendererWidget::reset()
     this->set_colormap( Colormap::HSV );
     this->size = 1;
     this->lod  = 10;
+
+    renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( size * 0.125f );
+    renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( size * 0.3f );
+    renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( size * 0.0625f );
+    renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>( size * 0.35f );
+
+    renderer->setOption<VFRendering::ArrowRenderer::Option::LEVEL_OF_DETAIL>( lod );
 }
 
-void ArrowRendererWidget::show()
+void ArrowRendererWidget::show_settings()
 {
-    ImGui::PushID( "Arrows" );
-    ImGui::Checkbox( "##Arrows", &show_ );
-    ImGui::SameLine();
-    if( ImGui::CollapsingHeader( "Arrows" ) )
+    ImGui::SetNextItemWidth( 100 );
+    if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f", 10 ) )
     {
-        if( !show_ )
-        {
-            ImGui::PopID();
-            return;
-        }
-        ImGui::Indent( 25 );
-
-        if( ImGui::Button( "Remove" ) )
-        {
-            show_   = false;
-            remove_ = true;
-        }
-        ImGui::SameLine();
-        if( ImGui::Button( "Reset" ) )
-            this->reset();
-
-        ImGui::Dummy( { 0, 5 } );
-        show_filters();
-        ImGui::Dummy( { 0, 5 } );
-
-        ImGui::SetNextItemWidth( 100 );
-        if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f", 10 ) )
-        {
-            renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( size * 0.125f );
-            renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( size * 0.3f );
-            renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( size * 0.0625f );
-            renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>( size * 0.35f );
-        }
-
-        ImGui::SetNextItemWidth( 100 );
-        if( ImGui::SliderInt( "level of detail", &lod, 5, 100 ) )
-            renderer->setOption<VFRendering::ArrowRenderer::Option::LEVEL_OF_DETAIL>( lod );
-
-        if( colormap_input() )
-            renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
-
-        ImGui::Indent( -25 );
+        renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( size * 0.125f );
+        renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( size * 0.3f );
+        renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( size * 0.0625f );
+        renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>( size * 0.35f );
     }
-    ImGui::PopID();
+
+    ImGui::SetNextItemWidth( 100 );
+    if( ImGui::SliderInt( "level of detail", &lod, 5, 100 ) )
+        renderer->setOption<VFRendering::ArrowRenderer::Option::LEVEL_OF_DETAIL>( lod );
+
+    if( colormap_input() )
+        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 }
 
 ParallelepipedRendererWidget::ParallelepipedRendererWidget(
@@ -846,6 +824,7 @@ ParallelepipedRendererWidget::ParallelepipedRendererWidget(
 
 void ParallelepipedRendererWidget::reset()
 {
+    this->reset_filters();
     this->set_colormap( Colormap::HSV );
     this->size = 1;
     renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_A>( size * 0.5f );
@@ -853,47 +832,18 @@ void ParallelepipedRendererWidget::reset()
     renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_C>( size * 0.5f );
 }
 
-void ParallelepipedRendererWidget::show()
+void ParallelepipedRendererWidget::show_settings()
 {
-    ImGui::PushID( "Parallelepiped" );
-    ImGui::Checkbox( "##Parallelepiped", &show_ );
-    ImGui::SameLine();
-    if( ImGui::CollapsingHeader( "Parallelepiped" ) )
+    ImGui::SetNextItemWidth( 100 );
+    if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f", 10 ) )
     {
-        if( !show_ )
-        {
-            ImGui::PopID();
-            return;
-        }
-        ImGui::Indent( 25 );
-
-        if( ImGui::Button( "Remove" ) )
-        {
-            show_   = false;
-            remove_ = true;
-        }
-        ImGui::SameLine();
-        if( ImGui::Button( "Reset" ) )
-            this->reset();
-
-        ImGui::Dummy( { 0, 5 } );
-        show_filters();
-        ImGui::Dummy( { 0, 5 } );
-
-        ImGui::SetNextItemWidth( 100 );
-        if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f", 10 ) )
-        {
-            renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_A>( size * 0.5f );
-            renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_B>( size * 0.5f );
-            renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_C>( size * 0.5f );
-        }
-
-        if( colormap_input() )
-            renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
-
-        ImGui::Indent( -25 );
+        renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_A>( size * 0.5f );
+        renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_B>( size * 0.5f );
+        renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_C>( size * 0.5f );
     }
-    ImGui::PopID();
+
+    if( colormap_input() )
+        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 }
 
 SphereRendererWidget::SphereRendererWidget(
@@ -905,54 +855,26 @@ SphereRendererWidget::SphereRendererWidget(
 
 void SphereRendererWidget::reset()
 {
+    this->reset_filters();
     this->set_colormap( Colormap::HSV );
     this->size = 0.1f;
     this->lod  = 10;
 }
 
-void SphereRendererWidget::show()
+void SphereRendererWidget::show_settings()
 {
-    ImGui::PushID( "Sphere" );
-    ImGui::Checkbox( "##Sphere", &show_ );
-    ImGui::SameLine();
-    if( ImGui::CollapsingHeader( "Sphere" ) )
+    ImGui::SetNextItemWidth( 100 );
+    if( ImGui::SliderFloat( "size", &size, 0.01f, 10, "%.3f", 10 ) )
     {
-        if( !show_ )
-        {
-            ImGui::PopID();
-            return;
-        }
-        ImGui::Indent( 25 );
-
-        if( ImGui::Button( "Remove" ) )
-        {
-            show_   = false;
-            remove_ = true;
-        }
-        ImGui::SameLine();
-        if( ImGui::Button( "Reset" ) )
-            this->reset();
-
-        ImGui::Dummy( { 0, 5 } );
-        show_filters();
-        ImGui::Dummy( { 0, 5 } );
-
-        ImGui::SetNextItemWidth( 100 );
-        if( ImGui::SliderFloat( "size", &size, 0.01f, 10, "%.3f", 10 ) )
-        {
-            renderer->setOption<VFRendering::SphereRenderer::Option::SPHERE_RADIUS>( size );
-        }
-
-        ImGui::SetNextItemWidth( 100 );
-        if( ImGui::SliderInt( "level of detail", &lod, 10, 100 ) )
-            renderer->setOption<VFRendering::SphereRenderer::Option::LEVEL_OF_DETAIL>( lod );
-
-        if( colormap_input() )
-            renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
-
-        ImGui::Indent( -25 );
+        renderer->setOption<VFRendering::SphereRenderer::Option::SPHERE_RADIUS>( size );
     }
-    ImGui::PopID();
+
+    ImGui::SetNextItemWidth( 100 );
+    if( ImGui::SliderInt( "level of detail", &lod, 10, 100 ) )
+        renderer->setOption<VFRendering::SphereRenderer::Option::LEVEL_OF_DETAIL>( lod );
+
+    if( colormap_input() )
+        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 }
 
 SurfaceRendererWidget::SurfaceRendererWidget(
@@ -964,42 +886,14 @@ SurfaceRendererWidget::SurfaceRendererWidget(
 
 void SurfaceRendererWidget::reset()
 {
+    this->reset_filters();
     this->set_colormap( Colormap::HSV );
 }
 
-void SurfaceRendererWidget::show()
+void SurfaceRendererWidget::show_settings()
 {
-    ImGui::PushID( "Surface" );
-    ImGui::Checkbox( "##Surface", &show_ );
-    ImGui::SameLine();
-    if( ImGui::CollapsingHeader( "Surface" ) )
-    {
-        if( !show_ )
-        {
-            ImGui::PopID();
-            return;
-        }
-        ImGui::Indent( 25 );
-
-        if( ImGui::Button( "Remove" ) )
-        {
-            show_   = false;
-            remove_ = true;
-        }
-        ImGui::SameLine();
-        if( ImGui::Button( "Reset" ) )
-            this->reset();
-
-        ImGui::Dummy( { 0, 5 } );
-        show_filters();
-        ImGui::Dummy( { 0, 5 } );
-
-        if( colormap_input() )
-            renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
-
-        ImGui::Indent( -25 );
-    }
-    ImGui::PopID();
+    if( colormap_input() )
+        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 }
 
 IsosurfaceRendererWidget::IsosurfaceRendererWidget(
@@ -1015,6 +909,7 @@ IsosurfaceRendererWidget::IsosurfaceRendererWidget(
 
 void IsosurfaceRendererWidget::reset()
 {
+    this->reset_filters();
     this->set_colormap( Colormap::HSV );
     this->isovalue     = 0;
     this->flip_normals = false;
@@ -1025,64 +920,35 @@ void IsosurfaceRendererWidget::reset()
     renderer->setOption<VFRendering::IsosurfaceRenderer::Option::FLIP_NORMALS>( flip_normals );
 }
 
-void IsosurfaceRendererWidget::show()
+void IsosurfaceRendererWidget::show_settings()
 {
-    ImGui::PushID( "Isosurface" );
-    ImGui::Checkbox( "##Isosurface", &show_ );
-    ImGui::SameLine();
-    if( ImGui::CollapsingHeader( "Isosurface" ) )
+    if( ImGui::SliderFloat( "isovalue", &isovalue, -1, 1 ) )
+        renderer->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>( isovalue );
+
+    if( ImGui::Checkbox( "draw shadows", &draw_shadows ) )
     {
-        if( !show_ )
-        {
-            ImGui::PopID();
-            return;
-        }
-        ImGui::Indent( 25 );
-
-        if( ImGui::Button( "Remove" ) )
-        {
-            show_   = false;
-            remove_ = true;
-        }
-        ImGui::SameLine();
-        if( ImGui::Button( "Reset" ) )
-            this->reset();
-
-        ImGui::Dummy( { 0, 5 } );
-        show_filters();
-        ImGui::Dummy( { 0, 5 } );
-
-        if( ImGui::SliderFloat( "isovalue", &isovalue, -1, 1 ) )
-            renderer->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>( isovalue );
-
-        if( ImGui::Checkbox( "draw shadows", &draw_shadows ) )
-        {
-            this->set_lighting_implementation( draw_shadows );
-        }
-
-        if( ImGui::Checkbox( "flip normals", &flip_normals ) )
-            renderer->setOption<VFRendering::IsosurfaceRenderer::Option::FLIP_NORMALS>( flip_normals );
-
-        bool iso_x = isocomponent == 0;
-        bool iso_y = isocomponent == 1;
-        bool iso_z = isocomponent == 2;
-        ImGui::TextUnformatted( "Component" );
-        ImGui::SameLine();
-        if( ImGui::Checkbox( "x", &iso_x ) )
-            set_isocomponent( 0 );
-        ImGui::SameLine();
-        if( ImGui::Checkbox( "y", &iso_y ) )
-            set_isocomponent( 1 );
-        ImGui::SameLine();
-        if( ImGui::Checkbox( "z", &iso_z ) )
-            set_isocomponent( 2 );
-
-        if( colormap_input() )
-            renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
-
-        ImGui::Indent( -25 );
+        this->set_lighting_implementation( draw_shadows );
     }
-    ImGui::PopID();
+
+    if( ImGui::Checkbox( "flip normals", &flip_normals ) )
+        renderer->setOption<VFRendering::IsosurfaceRenderer::Option::FLIP_NORMALS>( flip_normals );
+
+    bool iso_x = isocomponent == 0;
+    bool iso_y = isocomponent == 1;
+    bool iso_z = isocomponent == 2;
+    ImGui::TextUnformatted( "Component" );
+    ImGui::SameLine();
+    if( ImGui::Checkbox( "x", &iso_x ) )
+        set_isocomponent( 0 );
+    ImGui::SameLine();
+    if( ImGui::Checkbox( "y", &iso_y ) )
+        set_isocomponent( 1 );
+    ImGui::SameLine();
+    if( ImGui::Checkbox( "z", &iso_z ) )
+        set_isocomponent( 2 );
+
+    if( colormap_input() )
+        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 }
 
 void IsosurfaceRendererWidget::set_isocomponent( int isocomponent )
