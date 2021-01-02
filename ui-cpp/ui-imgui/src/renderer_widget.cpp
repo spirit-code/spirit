@@ -1,5 +1,16 @@
 #include <renderer_widget.hpp>
 
+#include <VFRendering/ArrowRenderer.hxx>
+#include <VFRendering/BoundingBoxRenderer.hxx>
+#include <VFRendering/CombinedRenderer.hxx>
+#include <VFRendering/CoordinateSystemRenderer.hxx>
+#include <VFRendering/DotRenderer.hxx>
+#include <VFRendering/GlyphRenderer.hxx>
+#include <VFRendering/IsosurfaceRenderer.hxx>
+#include <VFRendering/ParallelepipedRenderer.hxx>
+#include <VFRendering/SphereRenderer.hxx>
+#include <VFRendering/SurfaceRenderer.hxx>
+
 #include <imgui/imgui.h>
 
 #include <glm/gtc/type_ptr.hpp>
@@ -416,36 +427,145 @@ std::string get_colormap(
 
 ColormapWidget::ColormapWidget()
 {
-    colormap_implementation_str = get_colormap(
+    this->set_colormap( Colormap::HSV );
+}
+
+void ColormapWidget::set_colormap( Colormap colormap )
+{
+    this->colormap = colormap;
+
+    this->colormap_implementation_str = get_colormap(
         colormap, colormap_rotation, colormap_invert_z, colormap_invert_xy, colormap_cardinal_a, colormap_cardinal_b,
         colormap_cardinal_c, colormap_monochrome_color );
 }
 
-void ColormapWidget::showcolormap_input()
+bool ColormapWidget::colormap_input()
 {
     std::vector<const char *> colormaps{ "HSV",      "HSV (no z)", "Blue-White-Red", "Blue-Green-Red",
                                          "Blue-Red", "Monochrome" };
 
     int colormap_index = int( colormap );
+    ImGui::SetNextItemWidth( 120 );
     if( ImGui::Combo( "Colormap##arrows", &colormap_index, colormaps.data(), int( colormaps.size() ) ) )
     {
-        colormap = Colormap( colormap_index );
-
-        colormap_implementation_str = get_colormap(
-            colormap, colormap_rotation, colormap_invert_z, colormap_invert_xy, colormap_cardinal_a,
-            colormap_cardinal_b, colormap_cardinal_c, colormap_monochrome_color );
-
-        colormap_changed = true;
+        set_colormap( Colormap( colormap_index ) );
     }
 
     if( colormap == Colormap::MONOCHROME
         && ImGui::ColorEdit3( "Colour", &colormap_monochrome_color.x, ImGuiColorEditFlags_NoInputs ) )
     {
-        colormap_implementation_str = get_colormap(
-            colormap, colormap_rotation, colormap_invert_z, colormap_invert_xy, colormap_cardinal_a,
-            colormap_cardinal_b, colormap_cardinal_c, colormap_monochrome_color );
+        set_colormap( colormap );
+    }
+}
 
-        colormap_changed = true;
+void RendererWidget::show_filters()
+{
+    auto is_visible = [&]() -> std::string {
+        const float epsilon = 1e-5;
+
+        float b_min[3], b_max[3], b_range[3];
+        Geometry_Get_Bounds( state.get(), b_min, b_max );
+
+        float filter_pos_min[3], filter_pos_max[3];
+        float filter_dir_min[3], filter_dir_max[3];
+        for( int dim = 0; dim < 3; ++dim )
+        {
+            b_range[dim]        = b_max[dim] - b_min[dim];
+            filter_pos_min[dim] = b_min[dim] + filter_position_min[dim] * b_range[dim] - epsilon;
+            filter_pos_max[dim] = b_max[dim] + ( filter_position_max[dim] - 1 ) * b_range[dim] + epsilon;
+
+            filter_dir_min[dim] = filter_direction_min[dim] - epsilon;
+            filter_dir_max[dim] = filter_direction_max[dim] + epsilon;
+        }
+        return fmt::format(
+            R"(
+            bool is_visible(vec3 position, vec3 direction)
+            {{
+                float x_min_pos = {};
+                float x_max_pos = {};
+                bool is_visible_x_pos = position.x <= x_max_pos && position.x >= x_min_pos;
+
+                float y_min_pos = {};
+                float y_max_pos = {};
+                bool is_visible_y_pos = position.y <= y_max_pos && position.y >= y_min_pos;
+
+                float z_min_pos = {};
+                float z_max_pos = {};
+                bool is_visible_z_pos = position.z <= z_max_pos && position.z >= z_min_pos;
+
+                float x_min_dir = {};
+                float x_max_dir = {};
+                bool is_visible_x_dir = direction.x <= x_max_dir && direction.x >= x_min_dir;
+
+                float y_min_dir = {};
+                float y_max_dir = {};
+                bool is_visible_y_dir = direction.y <= y_max_dir && direction.y >= y_min_dir;
+
+                float z_min_dir = {};
+                float z_max_dir = {};
+                bool is_visible_z_dir = direction.z <= z_max_dir && direction.z >= z_min_dir;
+
+                return is_visible_x_pos && is_visible_y_pos && is_visible_z_pos && is_visible_x_dir && is_visible_y_dir && is_visible_z_dir;
+            }}
+            )",
+            filter_pos_min[0], filter_pos_max[0], filter_pos_min[1], filter_pos_max[1], filter_pos_min[2],
+            filter_pos_max[2], filter_direction_min[0], filter_direction_max[0], filter_direction_min[1],
+            filter_direction_max[1], filter_direction_min[2], filter_direction_max[2] );
+    };
+
+    if( ImGui::CollapsingHeader( "Filters" ) )
+    {
+        ImGui::Indent( 15 );
+
+        ImGui::TextUnformatted( "Orientation" );
+        ImGui::Indent( 15 );
+        ImGui::TextUnformatted( "min" );
+        ImGui::SameLine();
+        if( ImGui::SliderFloat3( "##filter_direction_min", filter_direction_min, -1, 1 ) )
+        {
+            filter_direction_max[0] = std::max( filter_direction_max[0], filter_direction_min[0] );
+            filter_direction_max[1] = std::max( filter_direction_max[1], filter_direction_min[1] );
+            filter_direction_max[2] = std::max( filter_direction_max[2], filter_direction_min[2] );
+
+            renderer->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( is_visible() );
+        }
+        ImGui::TextUnformatted( "max" );
+        ImGui::SameLine();
+        if( ImGui::SliderFloat3( "##filter_direction_max", filter_direction_max, -1, 1 ) )
+        {
+            filter_direction_min[0] = std::min( filter_direction_min[0], filter_direction_max[0] );
+            filter_direction_min[1] = std::min( filter_direction_min[1], filter_direction_max[1] );
+            filter_direction_min[2] = std::min( filter_direction_min[2], filter_direction_max[2] );
+
+            renderer->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( is_visible() );
+        }
+        ImGui::Indent( -15 );
+
+        ImGui::TextUnformatted( "Position" );
+        ImGui::Indent( 15 );
+        ImGui::TextUnformatted( "min" );
+        ImGui::SameLine();
+        if( ImGui::SliderFloat3( "##filter_position_min", filter_position_min, 0, 1 ) )
+        {
+            filter_position_max[0] = std::max( filter_position_max[0], filter_position_min[0] );
+            filter_position_max[1] = std::max( filter_position_max[1], filter_position_min[1] );
+            filter_position_max[2] = std::max( filter_position_max[2], filter_position_min[2] );
+
+            renderer->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( is_visible() );
+        }
+        ImGui::TextUnformatted( "max" );
+        ImGui::SameLine();
+        if( ImGui::SliderFloat3( "##filter_position_max", filter_position_max, 0, 1 ) )
+        {
+            filter_position_min[0] = std::min( filter_position_min[0], filter_position_max[0] );
+            filter_position_min[1] = std::min( filter_position_min[1], filter_position_max[1] );
+            filter_position_min[2] = std::min( filter_position_min[2], filter_position_max[2] );
+
+            renderer->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( is_visible() );
+        }
+        ImGui::Indent( -15 );
+
+        ImGui::Indent( -15 );
     }
 }
 
@@ -499,6 +619,13 @@ BoundingBoxRendererWidget::BoundingBoxRendererWidget(
     // }
 }
 
+void BoundingBoxRendererWidget::reset()
+{
+    this->line_width      = 0;
+    this->level_of_detail = 10;
+    this->draw_shadows    = false;
+}
+
 void BoundingBoxRendererWidget::show()
 {
     ImGui::PushID( "Boundingbox" );
@@ -510,34 +637,21 @@ void BoundingBoxRendererWidget::show()
     }
     ImGui::Indent( 15 );
 
+    ImGui::SetNextItemWidth( 100 );
     if( ImGui::SliderFloat( "thickness", &line_width, 0, 10, "%.1f" ) )
     {
         renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LINE_WIDTH>( line_width );
     }
     if( line_width > 0 )
     {
+        ImGui::SetNextItemWidth( 100 );
         if( ImGui::SliderInt( "level of detail", &level_of_detail, 5, 100 ) )
             renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LEVEL_OF_DETAIL>( level_of_detail );
 
         if( ImGui::Checkbox( "draw shadows", &draw_shadows ) )
         {
-            // if( draw_shadows )
-            // {
-            //     renderer->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>(
-            //         "uniform vec3 uLightPosition;"
-            //         "float lighting(vec3 position, vec3 normal)"
-            //         "{"
-            //         "    vec3 lightDirection = -normalize(uLightPosition-position);"
-            //         "    float diffuse = 0.7*max(0.0, dot(normal, lightDirection));"
-            //         "    float ambient = 0.2;"
-            //         "    return diffuse+ambient;"
-            //         "}" );
-            // }
-            // else
-            // {
-            //     renderer->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>(
-            //         "float lighting(vec3 position, vec3 normal) { return 1.0; }" );
-            // }
+            // renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LIGHTING_IMPLEMENTATION>(
+            //     get_lighting_implementation( draw_shadows ) );
         }
     }
 
@@ -549,6 +663,8 @@ CoordinateSystemRendererWidget::CoordinateSystemRendererWidget( std::shared_ptr<
 {
 }
 
+void CoordinateSystemRendererWidget::reset() {}
+
 void CoordinateSystemRendererWidget::show()
 {
     ImGui::PushID( "Dots" );
@@ -559,6 +675,9 @@ void CoordinateSystemRendererWidget::show()
         show_   = false;
         remove_ = true;
     }
+    ImGui::SameLine();
+    if( ImGui::Button( "Reset" ) )
+        this->reset();
 
     if( !show_ )
     {
@@ -566,6 +685,8 @@ void CoordinateSystemRendererWidget::show()
         return;
     }
     ImGui::Indent( 15 );
+
+    show_filters();
 
     ImGui::Indent( -15 );
     ImGui::PopID();
@@ -577,7 +698,13 @@ DotRendererWidget::DotRendererWidget(
 {
     renderer = std::make_shared<VFRendering::DotRenderer>( view, vectorfield );
 
-    renderer->setOption<VFRendering::DotRenderer::DOT_RADIUS>( dotsize * 1000 );
+    renderer->setOption<VFRendering::DotRenderer::DOT_RADIUS>( size * 1000 );
+}
+
+void DotRendererWidget::reset()
+{
+    this->set_colormap( Colormap::HSV );
+    this->size = 1;
 }
 
 void DotRendererWidget::show()
@@ -590,6 +717,9 @@ void DotRendererWidget::show()
         show_   = false;
         remove_ = true;
     }
+    ImGui::SameLine();
+    if( ImGui::Button( "Reset" ) )
+        this->reset();
 
     if( !show_ )
     {
@@ -598,14 +728,16 @@ void DotRendererWidget::show()
     }
     ImGui::Indent( 15 );
 
-    if( ImGui::SliderFloat( "dotsize", &dotsize, 0.01f, 100, "%.3f", 10 ) )
+    show_filters();
+
+    ImGui::SetNextItemWidth( 100 );
+    if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f", 10 ) )
     {
-        renderer->setOption<VFRendering::DotRenderer::DOT_RADIUS>( dotsize * 1000 );
+        renderer->setOption<VFRendering::DotRenderer::DOT_RADIUS>( size * 1000 );
     }
 
-    showcolormap_input();
-    if( colormap_changed )
-        renderer->setOption<VFRendering::View::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+    if( colormap_input() )
+        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 
     ImGui::Indent( -15 );
     ImGui::PopID();
@@ -617,10 +749,17 @@ ArrowRendererWidget::ArrowRendererWidget(
 {
     renderer = std::make_shared<VFRendering::ArrowRenderer>( view, vectorfield );
 
-    renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( arrow_size * 0.125f );
-    renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( arrow_size * 0.3f );
-    renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( arrow_size * 0.0625f );
-    renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>( arrow_size * 0.35f );
+    renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( size * 0.125f );
+    renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( size * 0.3f );
+    renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( size * 0.0625f );
+    renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>( size * 0.35f );
+}
+
+void ArrowRendererWidget::reset()
+{
+    this->set_colormap( Colormap::HSV );
+    this->size = 1;
+    this->lod  = 10;
 }
 
 void ArrowRendererWidget::show()
@@ -633,6 +772,9 @@ void ArrowRendererWidget::show()
         show_   = false;
         remove_ = true;
     }
+    ImGui::SameLine();
+    if( ImGui::Button( "Reset" ) )
+        this->reset();
 
     if( !show_ )
     {
@@ -641,20 +783,23 @@ void ArrowRendererWidget::show()
     }
     ImGui::Indent( 15 );
 
-    if( ImGui::SliderFloat( "arrow_size", &arrow_size, 0.01f, 100, "%.3f", 10 ) )
+    show_filters();
+
+    ImGui::SetNextItemWidth( 100 );
+    if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f", 10 ) )
     {
-        renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( arrow_size * 0.125f );
-        renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( arrow_size * 0.3f );
-        renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( arrow_size * 0.0625f );
-        renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>( arrow_size * 0.35f );
+        renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( size * 0.125f );
+        renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( size * 0.3f );
+        renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( size * 0.0625f );
+        renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>( size * 0.35f );
     }
 
-    if( ImGui::SliderInt( "level of detail", &arrow_lod, 5, 100 ) )
-        renderer->setOption<VFRendering::ArrowRenderer::Option::LEVEL_OF_DETAIL>( arrow_lod );
+    ImGui::SetNextItemWidth( 100 );
+    if( ImGui::SliderInt( "level of detail", &lod, 5, 100 ) )
+        renderer->setOption<VFRendering::ArrowRenderer::Option::LEVEL_OF_DETAIL>( lod );
 
-    showcolormap_input();
-    if( colormap_changed )
-        renderer->setOption<VFRendering::View::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+    if( colormap_input() )
+        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 
     ImGui::Indent( -15 );
     ImGui::PopID();
@@ -666,7 +811,18 @@ ParallelepipedRendererWidget::ParallelepipedRendererWidget(
 {
     renderer = std::make_shared<VFRendering::ParallelepipedRenderer>( view, vectorfield );
     renderer->setOption<VFRendering::GlyphRenderer::Option::ROTATE_GLYPHS>( false );
-    renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_A>( 0.25f );
+    renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_A>( size * 0.5f );
+    renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_B>( size * 0.5f );
+    renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_C>( size * 0.5f );
+}
+
+void ParallelepipedRendererWidget::reset()
+{
+    this->set_colormap( Colormap::HSV );
+    this->size = 1;
+    renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_A>( size * 0.5f );
+    renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_B>( size * 0.5f );
+    renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_C>( size * 0.5f );
 }
 
 void ParallelepipedRendererWidget::show()
@@ -679,6 +835,9 @@ void ParallelepipedRendererWidget::show()
         show_   = false;
         remove_ = true;
     }
+    ImGui::SameLine();
+    if( ImGui::Button( "Reset" ) )
+        this->reset();
 
     if( !show_ )
     {
@@ -687,9 +846,18 @@ void ParallelepipedRendererWidget::show()
     }
     ImGui::Indent( 15 );
 
-    showcolormap_input();
-    if( colormap_changed )
-        renderer->setOption<VFRendering::View::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+    show_filters();
+
+    ImGui::SetNextItemWidth( 100 );
+    if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f", 10 ) )
+    {
+        renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_A>( size * 0.5f );
+        renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_B>( size * 0.5f );
+        renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_C>( size * 0.5f );
+    }
+
+    if( colormap_input() )
+        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 
     ImGui::Indent( -15 );
     ImGui::PopID();
@@ -702,6 +870,13 @@ SphereRendererWidget::SphereRendererWidget(
     renderer = std::make_shared<VFRendering::SphereRenderer>( view, vectorfield );
 }
 
+void SphereRendererWidget::reset()
+{
+    this->set_colormap( Colormap::HSV );
+    this->size = 0.1f;
+    this->lod  = 10;
+}
+
 void SphereRendererWidget::show()
 {
     ImGui::PushID( "Sphere" );
@@ -712,6 +887,9 @@ void SphereRendererWidget::show()
         show_   = false;
         remove_ = true;
     }
+    ImGui::SameLine();
+    if( ImGui::Button( "Reset" ) )
+        this->reset();
 
     if( !show_ )
     {
@@ -720,9 +898,20 @@ void SphereRendererWidget::show()
     }
     ImGui::Indent( 15 );
 
-    showcolormap_input();
-    if( colormap_changed )
-        renderer->setOption<VFRendering::View::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+    show_filters();
+
+    ImGui::SetNextItemWidth( 100 );
+    if( ImGui::SliderFloat( "size", &size, 0.01f, 10, "%.3f", 10 ) )
+    {
+        renderer->setOption<VFRendering::SphereRenderer::Option::SPHERE_RADIUS>( size );
+    }
+
+    ImGui::SetNextItemWidth( 100 );
+    if( ImGui::SliderInt( "level of detail", &lod, 10, 100 ) )
+        renderer->setOption<VFRendering::SphereRenderer::Option::LEVEL_OF_DETAIL>( lod );
+
+    if( colormap_input() )
+        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 
     ImGui::Indent( -15 );
     ImGui::PopID();
@@ -735,6 +924,11 @@ SurfaceRendererWidget::SurfaceRendererWidget(
     renderer = std::make_shared<VFRendering::SurfaceRenderer>( view, vectorfield );
 }
 
+void SurfaceRendererWidget::reset()
+{
+    this->set_colormap( Colormap::HSV );
+}
+
 void SurfaceRendererWidget::show()
 {
     ImGui::PushID( "Surface" );
@@ -745,6 +939,9 @@ void SurfaceRendererWidget::show()
         show_   = false;
         remove_ = true;
     }
+    ImGui::SameLine();
+    if( ImGui::Button( "Reset" ) )
+        this->reset();
 
     if( !show_ )
     {
@@ -753,9 +950,10 @@ void SurfaceRendererWidget::show()
     }
     ImGui::Indent( 15 );
 
-    showcolormap_input();
-    if( colormap_changed )
-        renderer->setOption<VFRendering::View::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+    show_filters();
+
+    if( colormap_input() )
+        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 
     ImGui::Indent( -15 );
     ImGui::PopID();
@@ -769,23 +967,19 @@ IsosurfaceRendererWidget::IsosurfaceRendererWidget(
 
     renderer->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>( isovalue );
 
-    if( draw_shadows )
-    {
-        renderer->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>(
-            "uniform vec3 uLightPosition;"
-            "float lighting(vec3 position, vec3 normal)"
-            "{"
-            "    vec3 lightDirection = -normalize(uLightPosition-position);"
-            "    float diffuse = 0.7*max(0.0, dot(normal, lightDirection));"
-            "    float ambient = 0.2;"
-            "    return diffuse+ambient;"
-            "}" );
-    }
-    else
-    {
-        renderer->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>(
-            "float lighting(vec3 position, vec3 normal) { return 1.0; }" );
-    }
+    set_lighting_implementation( draw_shadows );
+}
+
+void IsosurfaceRendererWidget::reset()
+{
+    this->set_colormap( Colormap::HSV );
+    this->isovalue     = 0;
+    this->flip_normals = false;
+    set_lighting_implementation( true );
+    set_isocomponent( 2 );
+
+    renderer->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>( isovalue );
+    renderer->setOption<VFRendering::IsosurfaceRenderer::Option::FLIP_NORMALS>( flip_normals );
 }
 
 void IsosurfaceRendererWidget::show()
@@ -798,6 +992,9 @@ void IsosurfaceRendererWidget::show()
         show_   = false;
         remove_ = true;
     }
+    ImGui::SameLine();
+    if( ImGui::Button( "Reset" ) )
+        this->reset();
 
     if( !show_ )
     {
@@ -806,91 +1003,78 @@ void IsosurfaceRendererWidget::show()
     }
     ImGui::Indent( 15 );
 
+    show_filters();
+
     if( ImGui::SliderFloat( "isovalue", &isovalue, -1, 1 ) )
         renderer->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>( isovalue );
 
     if( ImGui::Checkbox( "draw shadows", &draw_shadows ) )
     {
-        if( draw_shadows )
-        {
-            renderer->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>(
-                "uniform vec3 uLightPosition;"
-                "float lighting(vec3 position, vec3 normal)"
-                "{"
-                "    vec3 lightDirection = -normalize(uLightPosition-position);"
-                "    float diffuse = 0.7*max(0.0, dot(normal, lightDirection));"
-                "    float ambient = 0.2;"
-                "    return diffuse+ambient;"
-                "}" );
-        }
-        else
-        {
-            renderer->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>(
-                "float lighting(vec3 position, vec3 normal) { return 1.0; }" );
-        }
+        this->set_lighting_implementation( draw_shadows );
     }
 
     if( ImGui::Checkbox( "flip normals", &flip_normals ) )
         renderer->setOption<VFRendering::IsosurfaceRenderer::Option::FLIP_NORMALS>( flip_normals );
 
-    auto set_isocomponent = [&]() {
-        if( this->isocomponent == 0 )
-        {
-            renderer->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>(
-                []( const glm::vec3 & position,
-                    const glm::vec3 & direction ) -> VFRendering::IsosurfaceRenderer::isovalue_type {
-                    (void)position;
-                    return direction.x;
-                } );
-        }
-        else if( this->isocomponent == 1 )
-        {
-            renderer->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>(
-                []( const glm::vec3 & position,
-                    const glm::vec3 & direction ) -> VFRendering::IsosurfaceRenderer::isovalue_type {
-                    (void)position;
-                    return direction.y;
-                } );
-        }
-        else if( this->isocomponent == 2 )
-        {
-            renderer->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>(
-                []( const glm::vec3 & position,
-                    const glm::vec3 & direction ) -> VFRendering::IsosurfaceRenderer::isovalue_type {
-                    (void)position;
-                    return direction.z;
-                } );
-        }
-    };
     bool iso_x = isocomponent == 0;
     bool iso_y = isocomponent == 1;
     bool iso_z = isocomponent == 2;
     ImGui::TextUnformatted( "Component" );
     ImGui::SameLine();
     if( ImGui::Checkbox( "x", &iso_x ) )
-    {
-        isocomponent = 0;
-        set_isocomponent();
-    }
+        set_isocomponent( 0 );
     ImGui::SameLine();
     if( ImGui::Checkbox( "y", &iso_y ) )
-    {
-        isocomponent = 1;
-        set_isocomponent();
-    }
+        set_isocomponent( 1 );
     ImGui::SameLine();
     if( ImGui::Checkbox( "z", &iso_z ) )
-    {
-        isocomponent = 2;
-        set_isocomponent();
-    }
+        set_isocomponent( 2 );
 
-    showcolormap_input();
-    if( colormap_changed )
-        renderer->setOption<VFRendering::View::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+    if( colormap_input() )
+        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 
     ImGui::Indent( -15 );
     ImGui::PopID();
+}
+
+void IsosurfaceRendererWidget::set_isocomponent( int isocomponent )
+{
+    this->isocomponent = isocomponent;
+    if( this->isocomponent == 0 )
+    {
+        renderer->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>(
+            []( const glm::vec3 & position,
+                const glm::vec3 & direction ) -> VFRendering::IsosurfaceRenderer::isovalue_type {
+                (void)position;
+                return direction.x;
+            } );
+    }
+    else if( this->isocomponent == 1 )
+    {
+        renderer->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>(
+            []( const glm::vec3 & position,
+                const glm::vec3 & direction ) -> VFRendering::IsosurfaceRenderer::isovalue_type {
+                (void)position;
+                return direction.y;
+            } );
+    }
+    else if( this->isocomponent == 2 )
+    {
+        renderer->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>(
+            []( const glm::vec3 & position,
+                const glm::vec3 & direction ) -> VFRendering::IsosurfaceRenderer::isovalue_type {
+                (void)position;
+                return direction.z;
+            } );
+    }
+}
+
+void IsosurfaceRendererWidget::set_lighting_implementation( bool draw_shadows )
+{
+    this->draw_shadows = draw_shadows;
+
+    renderer->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>(
+        get_lighting_implementation( draw_shadows ) );
 }
 
 } // namespace ui

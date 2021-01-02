@@ -63,7 +63,7 @@ void to_json( Json & j, const DotRendererWidget & renderer_widget )
 {
     j = Json{
         { "show", renderer_widget.show_ },
-        { "dotsize", renderer_widget.dotsize },
+        { "size", renderer_widget.size },
     };
 }
 
@@ -71,16 +71,16 @@ void from_json( const Json & j, DotRendererWidget & renderer_widget )
 {
     if( j.contains( "show" ) )
         j.at( "show" ).get_to( renderer_widget.show_ );
-    if( j.contains( "dotsize" ) )
-        j.at( "dotsize" ).get_to( renderer_widget.dotsize );
+    if( j.contains( "size" ) )
+        j.at( "size" ).get_to( renderer_widget.size );
 }
 
 void to_json( Json & j, const ArrowRendererWidget & renderer_widget )
 {
     j = Json{
         { "show", renderer_widget.show_ },
-        { "arrow_size", renderer_widget.arrow_size },
-        { "arrow_lod", renderer_widget.arrow_lod },
+        { "size", renderer_widget.size },
+        { "lod", renderer_widget.lod },
     };
 }
 
@@ -88,10 +88,10 @@ void from_json( const Json & j, ArrowRendererWidget & renderer_widget )
 {
     if( j.contains( "show" ) )
         j.at( "show" ).get_to( renderer_widget.show_ );
-    if( j.contains( "arrow_size" ) )
-        j.at( "arrow_size" ).get_to( renderer_widget.arrow_size );
-    if( j.contains( "arrow_lod" ) )
-        j.at( "arrow_lod" ).get_to( renderer_widget.arrow_lod );
+    if( j.contains( "size" ) )
+        j.at( "size" ).get_to( renderer_widget.size );
+    if( j.contains( "lod" ) )
+        j.at( "lod" ).get_to( renderer_widget.lod );
 }
 
 void to_json( Json & j, const ParallelepipedRendererWidget & renderer_widget )

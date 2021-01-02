@@ -88,7 +88,7 @@ void show_overlay_system( bool & show, int & corner, std::array<float, 2> & posi
         need_to_position = false;
     }
 
-    ImGui::SetNextWindowBgAlpha( 0.45f ); // Transparent background
+    ImGui::SetNextWindowBgAlpha( 0.6f ); // Transparent background
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize
                                     | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing
                                     | ImGuiWindowFlags_NoNav;
@@ -213,7 +213,7 @@ void show_overlay_calculation(
         need_to_position = false;
     }
 
-    ImGui::SetNextWindowBgAlpha( 0.35f ); // Transparent background
+    ImGui::SetNextWindowBgAlpha( 0.6f ); // Transparent background
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize
                                     | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing
                                     | ImGuiWindowFlags_NoNav;
