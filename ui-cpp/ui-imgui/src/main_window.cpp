@@ -38,6 +38,7 @@
 #include <string>
 
 static ui::MainWindow * global_window_handle;
+static bool fullscreen_toggled = false;
 
 /////////////////////////////////////////////////////////////////////
 
@@ -131,6 +132,10 @@ void MainWindow::handle_keyboard()
         {
             this->rendering_layer.reset_camera();
         }
+        if( ImGui::IsKeyPressed( GLFW_KEY_F, false ) )
+        {
+            fullscreen_toggled = true;
+        }
     }
     else if( ctrl )
     {
@@ -138,6 +143,7 @@ void MainWindow::handle_keyboard()
         {
             Configuration_Random( state.get() );
             rendering_layer.needs_data();
+            this->ui_shared_state.notify( "Randomized spins" );
         }
 
         //-----------------------------------------------------
@@ -430,6 +436,7 @@ try
         else if( thread_chain.joinable() )
             thread_chain.join();
         this->ui_shared_state.notify( "stopped calculation" );
+        calculation_running = false;
     }
     else
     {
@@ -639,6 +646,29 @@ void MainWindow::delete_image()
 
 void MainWindow::draw()
 {
+#ifndef __EMSCRIPTEN__
+    if( fullscreen_toggled )
+    {
+        if( ui_config_file.window_fullscreen )
+        {
+            auto pos  = ui_config_file.window_position.data();
+            auto size = ui_config_file.window_size.data();
+            glfwSetWindowMonitor( glfw_window, nullptr, pos[0], pos[1], size[0], size[1], 0 );
+            ui_config_file.window_fullscreen = false;
+            this->ui_shared_state.notify( "Exited fullscreen" );
+        }
+        else
+        {
+            GLFWmonitor * monitor    = glfwGetPrimaryMonitor();
+            const GLFWvidmode * mode = glfwGetVideoMode( monitor );
+            glfwSetWindowMonitor( glfw_window, monitor, 0, 0, mode->width, mode->height, mode->refreshRate );
+            ui_config_file.window_fullscreen = true;
+            this->ui_shared_state.notify( "Entered fullscreen. ctrl+shift+f to exit", 5 );
+        }
+        fullscreen_toggled = false;
+    }
+#endif
+
     int display_w, display_h;
 #ifdef __EMSCRIPTEN__
     display_w = canvas_get_width();
@@ -821,13 +851,13 @@ void MainWindow::show_menu_bar()
                     fmt::print( "Error: {}\n", NFD_GetError() );
                 }
             }
-            if( ImGui::MenuItem( "Load system eigenmodes" ) )
+            if( ImGui::MenuItem( "Load system eigenmodes", "", false, false ) )
             {
             }
-            if( ImGui::MenuItem( "Save system eigenmodes" ) )
+            if( ImGui::MenuItem( "Save system eigenmodes", "", false, false ) )
             {
             }
-            if( ImGui::MenuItem( "Save energy per spin" ) )
+            if( ImGui::MenuItem( "Save energy per spin", "", false, false ) )
             {
             }
             ImGui::Separator();
@@ -864,10 +894,10 @@ void MainWindow::show_menu_bar()
                     fmt::print( "Error: {}\n", NFD_GetError() );
                 }
             }
-            if( ImGui::MenuItem( "Save energies" ) )
+            if( ImGui::MenuItem( "Save energies", "", false, false ) )
             {
             }
-            if( ImGui::MenuItem( "Save interpolated energies" ) )
+            if( ImGui::MenuItem( "Save interpolated energies", "", false, false ) )
             {
             }
             ImGui::Separator();
@@ -899,9 +929,11 @@ void MainWindow::show_menu_bar()
             }
             if( ImGui::MenuItem( "Insert left", "ctrl+leftarrow" ) )
             {
+                this->insert_image_left();
             }
             if( ImGui::MenuItem( "Insert right", "ctrl+rightarrow" ) )
             {
+                this->insert_image_right();
             }
             if( ImGui::MenuItem( "Delete system", "del" ) )
             {
@@ -913,24 +945,28 @@ void MainWindow::show_menu_bar()
         {
             if( ImGui::MenuItem( "Start/stop calculation", "space" ) )
             {
+                this->start_stop();
             }
             if( ImGui::MenuItem( "Randomize spins", "ctrl+r" ) )
             {
+                Configuration_Random( state.get() );
+                rendering_layer.needs_data();
+                this->ui_shared_state.notify( "Randomized spins" );
             }
-            if( ImGui::MenuItem( "Cycle method", "ctrl+m" ) )
+            if( ImGui::MenuItem( "Cycle method", "ctrl+m", false, false ) )
             {
             }
-            if( ImGui::MenuItem( "Cycle solver", "ctrl+s" ) )
+            if( ImGui::MenuItem( "Cycle solver", "ctrl+s", false, false ) )
             {
             }
             ImGui::Separator();
-            if( ImGui::MenuItem( "Toggle dragging mode", "F5" ) )
+            if( ImGui::MenuItem( "Toggle dragging mode", "F5", false, false ) )
             {
             }
-            if( ImGui::MenuItem( "Toggle defect mode", "F6" ) )
+            if( ImGui::MenuItem( "Toggle defect mode", "F6", false, false ) )
             {
             }
-            if( ImGui::MenuItem( "Toggle pinning mode", "F7" ) )
+            if( ImGui::MenuItem( "Toggle pinning mode", "F7", false, false ) )
             {
             }
             ImGui::EndMenu();
@@ -946,23 +982,23 @@ void MainWindow::show_menu_bar()
             ImGui::MenuItem( "ImGui Demo Window", "", &show_imgui_demo_window );
             ImGui::MenuItem( "ImPlot Demo Window", "", &show_implot_demo_window );
             ImGui::Separator();
-            if( ImGui::MenuItem( "Regular mode" ) )
+            if( ImGui::MenuItem( "Regular mode", "", false, false ) )
             {
             }
-            if( ImGui::MenuItem( "Isosurface mode" ) )
+            if( ImGui::MenuItem( "Isosurface mode", "", false, false ) )
             {
             }
-            if( ImGui::MenuItem( "Slab mode X" ) )
+            if( ImGui::MenuItem( "Slab mode X", "", false, false ) )
             {
             }
-            if( ImGui::MenuItem( "Slab mode Y" ) )
+            if( ImGui::MenuItem( "Slab mode Y", "", false, false ) )
             {
             }
-            if( ImGui::MenuItem( "Slab mode Z" ) )
+            if( ImGui::MenuItem( "Slab mode Z", "", false, false ) )
             {
             }
             ImGui::Separator();
-            if( ImGui::MenuItem( "Toggle camera projection", "c" ) )
+            if( ImGui::MenuItem( "Toggle camera projection", "c", false, false ) )
             {
             }
             if( ImGui::MenuItem( "Reset camera", "ctrl+shift+r" ) )
@@ -970,11 +1006,12 @@ void MainWindow::show_menu_bar()
                 this->rendering_layer.reset_camera();
             }
             ImGui::Separator();
-            if( ImGui::MenuItem( "Toggle visualisation", "ctrl+f" ) )
+            if( ImGui::MenuItem( "Toggle visualisation", "ctrl+f", false, false ) )
             {
             }
-            if( ImGui::MenuItem( "Fullscreen", "ctrl+shift+f" ) )
+            if( ImGui::MenuItem( "Fullscreen", "ctrl+shift+f", ui_config_file.window_fullscreen ) )
             {
+                fullscreen_toggled = true;
             }
             ImGui::EndMenu();
         }
@@ -1150,13 +1187,13 @@ void MainWindow::show_notifications()
             pos_y += distance * std::cos( rad );
         }
 
+        ImGui::PushStyleVar( ImGuiStyleVar_WindowBorderSize, 0 );
+        ImGui::PushStyleVar( ImGuiStyleVar_Alpha, alpha );
+
         ImGui::SetNextWindowPos( { 0.5f * ( io.DisplaySize.x - text_size.x ), pos_y } );
         // Also need to set size, because window may otherwise flicker for some reason...
         ImGui::SetNextWindowSize(
             { text_size.x + 2 * style.WindowPadding.x, text_size.y + 2 * style.WindowPadding.y } );
-
-        ImGui::PushStyleVar( ImGuiStyleVar_WindowBorderSize, 0 );
-        ImGui::PushStyleVar( ImGuiStyleVar_Alpha, alpha );
 
         if( ImGui::Begin( fmt::format( "Notification{}", i_notification ).c_str(), nullptr, window_flags ) )
         {
