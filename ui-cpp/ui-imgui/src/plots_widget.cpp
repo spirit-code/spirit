@@ -30,10 +30,8 @@ void PlotsWidget::show()
     static std::vector<float> force_history( history_size );
     static std::vector<float> iteration_history( history_size );
     static int force_index = 0;
-    static float force_min = 0;
-    static float force_max = 0;
 
-    static bool animate = true;
+    static bool fit_axes = false;
 
     static int n_interpolate = Parameters_GNEB_Get_N_Energy_Interpolations( state.get() );
     static std::vector<float> rx( 1, 0 );
@@ -43,18 +41,11 @@ void PlotsWidget::show()
 
     if( Simulation_Running_Anywhere_On_Chain( state.get() ) )
     {
-        float force = Simulation_Get_MaxTorqueNorm( state.get() );
-
         iteration_history[force_index] = Simulation_Get_Iteration( state.get() );
 
-        force_history[force_index] = force;
+        force_history[force_index] = Simulation_Get_MaxTorqueNorm( state.get() );
         ++force_index;
         force_index = force_index % history_size;
-
-        if( force < force_min )
-            force_min = force;
-        if( force > force_max )
-            force_max = force;
     }
 
     if( !show_ )
@@ -92,8 +83,12 @@ void PlotsWidget::show()
                     Chain_Get_Energy_Interpolated( state.get(), energies_interpolated.data() );
                 }
 
-                std::string overlay = fmt::format( "{:.3e}", energies[System_Get_Index( state.get() )] );
+                int image_idx = System_Get_Index( state.get() );
+                ImGui::TextUnformatted(
+                    fmt::format( "E[{}] = {:.5e} meV", image_idx + 1, energies[image_idx] ).c_str() );
 
+                if( fit_axes )
+                    ImPlot::FitNextPlotAxes();
                 if( ImPlot::BeginPlot(
                         "", "Rx", "E [meV]",
                         ImVec2(
@@ -113,6 +108,8 @@ void PlotsWidget::show()
                 }
 
                 ImGui::Checkbox( "Image energies", &plot_image_energies );
+                ImGui::SameLine();
+                ImGui::Checkbox( "Autofit axes", &fit_axes );
                 ImGui::Checkbox( "Interpolated energies", &plot_interpolated_energies );
                 ImGui::SameLine();
                 ImGui::PushItemWidth( 100 );
@@ -127,9 +124,9 @@ void PlotsWidget::show()
 
                 ImGui::EndTabItem();
             }
-
             if( ImGui::BeginTabItem( "Convergence" ) )
             {
+                ImGui::TextUnformatted( fmt::format( "Latest: {:.5e}", force_history[force_index] ).c_str() );
                 ImPlot::FitNextPlotAxes();
                 if( ImPlot::BeginPlot(
                         "", "iteration", "max(F)",
