@@ -15,34 +15,46 @@ ConfigurationsWidget::ConfigurationsWidget(
 {
 }
 
+void ConfigurationsWidget::reset_settings()
+{
+    for( int dim = 0; dim < 3; ++dim )
+    {
+        this->pos[dim]         = 0;
+        this->border_rect[dim] = -1, -1, -1;
+    }
+    this->border_cyl = -1;
+    this->border_sph = -1;
+    this->inverted   = false;
+
+    this->temperature = 0;
+
+    this->sk_radius  = 15;
+    this->sk_speed   = 1;
+    this->sk_phase   = 0;
+    this->sk_up_down = false;
+    this->sk_achiral = false;
+    this->sk_rl      = false;
+
+    this->hopfion_radius = 10;
+    this->hopfion_order  = 1;
+
+    this->spiral_angle    = 0;
+    this->spiral_axis[0]  = 0;
+    this->spiral_axis[1]  = 0;
+    this->spiral_axis[2]  = 1;
+    this->spiral_qmag     = 1;
+    this->spiral_qvec[0]  = 1;
+    this->spiral_qvec[1]  = 0;
+    this->spiral_qvec[2]  = 0;
+    this->spiral_q2       = false;
+    this->spiral_qmag2    = 1;
+    this->spiral_qvec2[0] = 1;
+    this->spiral_qvec2[1] = 0;
+    this->spiral_qvec2[2] = 0;
+}
+
 void ConfigurationsWidget::show()
 {
-    static float pos[3]{ 0, 0, 0 };
-    static float border_rect[3]{ -1, -1, -1 };
-    static float border_cyl = -1;
-    static float border_sph = -1;
-    static bool inverted    = false;
-
-    static float temperature = 0;
-
-    static float sk_radius = 15;
-    static float sk_speed  = 1;
-    static float sk_phase  = 0;
-    static bool sk_up_down = false;
-    static bool sk_achiral = false;
-    static bool sk_rl      = false;
-
-    static float hopfion_radius = 10;
-    static int hopfion_order    = 1;
-
-    static float spiral_angle    = 0;
-    static float spiral_axis[3]  = { 0, 0, 1 };
-    static float spiral_qmag     = 1;
-    static float spiral_qvec[3]  = { 1, 0, 0 };
-    static bool spiral_q2        = false;
-    static float spiral_qmag2    = 1;
-    static float spiral_qvec2[3] = { 1, 0, 0 };
-
     if( !show_ )
         return;
 
@@ -53,6 +65,11 @@ void ConfigurationsWidget::show()
     if( ImGui::CollapsingHeader( "Settings" ) )
     {
         ImGui::Indent( 15 );
+
+        if( ImGui::Button( "Reset" ) )
+            this->reset_settings();
+
+        ImGui::Dummy( { 0, 5 } );
 
         ImGui::TextUnformatted( "pos" );
         ImGui::SameLine();
@@ -85,24 +102,22 @@ void ConfigurationsWidget::show()
 
     if( ImGui::Button( "Random" ) )
     {
-        Configuration_Random( state.get() );
+        Configuration_Random( state.get(), pos, border_rect, border_cyl, border_sph, inverted );
         rendering_layer.needs_data();
     }
     ImGui::SameLine();
     if( ImGui::Button( "+z" ) )
     {
-        Configuration_PlusZ( state.get() );
+        Configuration_PlusZ( state.get(), pos, border_rect, border_cyl, border_sph, inverted );
         rendering_layer.needs_data();
     }
     ImGui::SameLine();
     if( ImGui::Button( "-z" ) )
     {
-        Configuration_MinusZ( state.get() );
+        Configuration_MinusZ( state.get(), pos, border_rect, border_cyl, border_sph, inverted );
         rendering_layer.needs_data();
     }
 
-    ImGui::Dummy( { 0, 10 } );
-    ImGui::Separator();
     ImGui::Dummy( { 0, 10 } );
 
     ImGui::SetNextItemWidth( 50 );
@@ -123,7 +138,6 @@ void ConfigurationsWidget::show()
 
     if( ImGui::Button( "Skyrmion" ) )
     {
-
         Configuration_Skyrmion(
             state.get(), sk_radius, sk_speed, sk_phase, sk_up_down, sk_achiral, sk_rl, pos, border_rect, border_cyl,
             border_sph, inverted );
