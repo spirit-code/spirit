@@ -24,11 +24,41 @@ void GeometryWidget::show()
 
     ImGui::TextUnformatted( "Number of cells" );
     ImGui::SameLine();
+    ImGui::SetNextItemWidth( 160 );
     if( ImGui::InputInt3( "##geometry_n_cells", n_cells, ImGuiInputTextFlags_EnterReturnsTrue ) )
     {
         Geometry_Set_N_Cells( state.get(), n_cells );
         rendering_layer.update_vf_geometry();
     }
+
+    ImGui::TextUnformatted( "Number of basis cell atoms" );
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth( 80 );
+    if( ImGui::InputInt( "##geometry_n_basis_atoms", &n_basis_atoms, ImGuiInputTextFlags_EnterReturnsTrue ) )
+    {
+    }
+
+    ImGui::TextUnformatted( "Bravais vectors" );
+    ImGui::Indent( 15 );
+    ImGui::TextUnformatted( "a" );
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth( 160 );
+    if( ImGui::InputFloat3( "##geometry_bravais_vector_a", bravais_vector_a, ImGuiInputTextFlags_EnterReturnsTrue ) )
+    {
+    }
+    ImGui::TextUnformatted( "b" );
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth( 160 );
+    if( ImGui::InputFloat3( "##geometry_bravais_vector_b", bravais_vector_b, ImGuiInputTextFlags_EnterReturnsTrue ) )
+    {
+    }
+    ImGui::TextUnformatted( "c" );
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth( 160 );
+    if( ImGui::InputFloat3( "##geometry_bravais_vector_c", bravais_vector_c, ImGuiInputTextFlags_EnterReturnsTrue ) )
+    {
+    }
+    ImGui::Indent( -15 );
 
     ImGui::End();
 }
