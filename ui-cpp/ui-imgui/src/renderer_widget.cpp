@@ -1,5 +1,6 @@
 #include <fonts.hpp>
 #include <renderer_widget.hpp>
+#include <widgets.hpp>
 
 #include <VFRendering/ArrowRenderer.hxx>
 #include <VFRendering/BoundingBoxRenderer.hxx>
@@ -569,55 +570,36 @@ void RendererWidget::show_filters()
     {
         ImGui::TextUnformatted( "Orientation" );
         ImGui::Indent( 15 );
-        ImGui::TextUnformatted( "min" );
-        ImGui::SameLine();
-        if( ImGui::SliderFloat3( "##filter_direction_min", filter_direction_min, -1, 1 ) )
-        {
-            filter_direction_max[0] = std::max( filter_direction_max[0], filter_direction_min[0] );
-            filter_direction_max[1] = std::max( filter_direction_max[1], filter_direction_min[1] );
-            filter_direction_max[2] = std::max( filter_direction_max[2], filter_direction_min[2] );
-
-            renderer->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( get_is_visible_implementation(
-                state, filter_position_min, filter_position_max, filter_direction_min, filter_direction_max ) );
-        }
-        ImGui::TextUnformatted( "max" );
-        ImGui::SameLine();
-        if( ImGui::SliderFloat3( "##filter_direction_max", filter_direction_max, -1, 1 ) )
-        {
-            filter_direction_min[0] = std::min( filter_direction_min[0], filter_direction_max[0] );
-            filter_direction_min[1] = std::min( filter_direction_min[1], filter_direction_max[1] );
-            filter_direction_min[2] = std::min( filter_direction_min[2], filter_direction_max[2] );
-
-            renderer->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( get_is_visible_implementation(
-                state, filter_position_min, filter_position_max, filter_direction_min, filter_direction_max ) );
-        }
+        bool update = false;
+        if( widgets::RangeSliderFloat(
+                "##filter_direction_x", &filter_direction_min[0], &filter_direction_max[0], -1, 1, "x: [%.3f, %.3f]" ) )
+            update = true;
+        if( widgets::RangeSliderFloat(
+                "##filter_direction_y", &filter_direction_min[1], &filter_direction_max[1], -1, 1, "y: [%.3f, %.3f]" ) )
+            update = true;
+        if( widgets::RangeSliderFloat(
+                "##filter_direction_z", &filter_direction_min[2], &filter_direction_max[2], -1, 1, "z: [%.3f, %.3f]" ) )
+            update = true;
         ImGui::Indent( -15 );
 
         ImGui::TextUnformatted( "Position" );
         ImGui::Indent( 15 );
-        ImGui::TextUnformatted( "min" );
-        ImGui::SameLine();
-        if( ImGui::SliderFloat3( "##filter_position_min", filter_position_min, 0, 1 ) )
-        {
-            filter_position_max[0] = std::max( filter_position_max[0], filter_position_min[0] );
-            filter_position_max[1] = std::max( filter_position_max[1], filter_position_min[1] );
-            filter_position_max[2] = std::max( filter_position_max[2], filter_position_min[2] );
-
-            renderer->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( get_is_visible_implementation(
-                state, filter_position_min, filter_position_max, filter_direction_min, filter_direction_max ) );
-        }
-        ImGui::TextUnformatted( "max" );
-        ImGui::SameLine();
-        if( ImGui::SliderFloat3( "##filter_position_max", filter_position_max, 0, 1 ) )
-        {
-            filter_position_min[0] = std::min( filter_position_min[0], filter_position_max[0] );
-            filter_position_min[1] = std::min( filter_position_min[1], filter_position_max[1] );
-            filter_position_min[2] = std::min( filter_position_min[2], filter_position_max[2] );
-
-            renderer->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( get_is_visible_implementation(
-                state, filter_position_min, filter_position_max, filter_direction_min, filter_direction_max ) );
-        }
+        if( widgets::RangeSliderFloat(
+                "##filter_position_x", &filter_position_min[0], &filter_position_max[0], 0, 1, "x: [%.3f, %.3f]" ) )
+            update = true;
+        if( widgets::RangeSliderFloat(
+                "##filter_position_y", &filter_position_min[1], &filter_position_max[1], 0, 1, "y: [%.3f, %.3f]" ) )
+            update = true;
+        if( widgets::RangeSliderFloat(
+                "##filter_position_z", &filter_position_min[2], &filter_position_max[2], 0, 1, "z: [%.3f, %.3f]" ) )
+            update = true;
         ImGui::Indent( -15 );
+
+        if( update )
+        {
+            renderer->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( get_is_visible_implementation(
+                state, filter_position_min, filter_position_max, filter_direction_min, filter_direction_max ) );
+        }
 
         ImGui::TreePop();
     }

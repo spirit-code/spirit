@@ -26,6 +26,10 @@ void show_settings( bool & show, ui::RenderingLayer & rendering_layer );
 void show_keybindings( bool & show );
 void show_about( bool & show );
 
+bool RangeSliderFloat(
+    const char * label, float * v1, float * v2, float v_min, float v_max, const char * display_format = "(%.3f, %.3f)",
+    float power = 1.0f );
+
 } // namespace widgets
 
 #endif
