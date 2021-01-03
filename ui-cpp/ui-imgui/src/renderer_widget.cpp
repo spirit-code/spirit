@@ -502,7 +502,24 @@ std::string get_colormap(
 
 ColormapWidget::ColormapWidget()
 {
-    this->set_colormap( Colormap::HSV );
+    this->set_colormap( colormap );
+}
+
+void ColormapWidget::reset_colormap()
+{
+    this->colormap = Colormap::HSV;
+
+    this->colormap_rotation         = 0;
+    this->colormap_invert_z         = false;
+    this->colormap_invert_xy        = false;
+    this->colormap_cardinal_a       = glm::vec3{ 1, 0, 0 };
+    this->colormap_cardinal_b       = glm::vec3{ 0, 1, 0 };
+    this->colormap_cardinal_c       = glm::vec3{ 0, 0, 1 };
+    this->colormap_monochrome_color = glm::vec3{ 0.5f, 0.5f, 0.5f };
+
+    this->colormap_implementation_str = get_colormap(
+        colormap, colormap_rotation, colormap_invert_z, colormap_invert_xy, colormap_cardinal_a, colormap_cardinal_b,
+        colormap_cardinal_c, colormap_monochrome_color );
 }
 
 void ColormapWidget::set_colormap( Colormap colormap )
@@ -564,6 +581,12 @@ void RendererWidget::show()
     ImGui::PopID();
 }
 
+void RendererWidget::apply_settings()
+{
+    renderer->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( get_is_visible_implementation(
+        state, filter_position_min, filter_position_max, filter_direction_min, filter_direction_max ) );
+}
+
 void RendererWidget::show_filters()
 {
     if( ImGui::TreeNode( "Filters" ) )
@@ -596,10 +619,7 @@ void RendererWidget::show_filters()
         ImGui::Indent( -15 );
 
         if( update )
-        {
-            renderer->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( get_is_visible_implementation(
-                state, filter_position_min, filter_position_max, filter_direction_min, filter_direction_max ) );
-        }
+            RendererWidget::apply_settings();
 
         ImGui::TreePop();
     }
@@ -614,9 +634,7 @@ void RendererWidget::reset_filters()
         this->filter_position_min[dim]  = 0;
         this->filter_position_max[dim]  = 1;
     }
-
-    renderer->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( get_is_visible_implementation(
-        state, filter_position_min, filter_position_max, filter_direction_min, filter_direction_max ) );
+    RendererWidget::apply_settings();
 }
 
 BoundingBoxRendererWidget::BoundingBoxRendererWidget(
@@ -708,6 +726,12 @@ void BoundingBoxRendererWidget::show()
     ImGui::PopID();
 }
 
+void BoundingBoxRendererWidget::apply_settings()
+{
+    RendererWidget::apply_settings();
+    renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LINE_WIDTH>( line_width );
+}
+
 void BoundingBoxRendererWidget::show_settings() {}
 
 CoordinateSystemRendererWidget::CoordinateSystemRendererWidget( std::shared_ptr<State> state ) : RendererWidget( state )
@@ -725,6 +749,14 @@ DotRendererWidget::DotRendererWidget(
         : RendererWidget( state ), ColormapWidget()
 {
     renderer = std::make_shared<VFRendering::DotRenderer>( view, vectorfield );
+    this->apply_settings();
+}
+
+void DotRendererWidget::apply_settings()
+{
+    RendererWidget::apply_settings();
+    set_colormap( colormap );
+    renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 
     renderer->setOption<VFRendering::DotRenderer::DOT_RADIUS>( size * 1000 );
 }
@@ -732,8 +764,11 @@ DotRendererWidget::DotRendererWidget(
 void DotRendererWidget::reset()
 {
     this->reset_filters();
-    this->set_colormap( Colormap::HSV );
+    this->reset_colormap();
+
     this->size = 1;
+
+    this->apply_settings();
 }
 
 void DotRendererWidget::show_settings()
@@ -753,18 +788,17 @@ ArrowRendererWidget::ArrowRendererWidget(
         : RendererWidget( state ), ColormapWidget()
 {
     renderer = std::make_shared<VFRendering::ArrowRenderer>( view, vectorfield );
-
-    renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( size * 0.125f );
-    renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( size * 0.3f );
-    renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( size * 0.0625f );
-    renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>( size * 0.35f );
+    this->apply_settings();
 }
 
-void ArrowRendererWidget::reset()
+void ArrowRendererWidget::apply_settings()
 {
-    this->set_colormap( Colormap::HSV );
-    this->size = 1;
-    this->lod  = 10;
+    RendererWidget::apply_settings();
+    set_colormap( Colormap::MONOCHROME );
+    renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+    this->colormap_implementation_str = get_colormap(
+        Colormap::MONOCHROME, colormap_rotation, colormap_invert_z, colormap_invert_xy, colormap_cardinal_a,
+        colormap_cardinal_b, colormap_cardinal_c, colormap_monochrome_color );
 
     renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( size * 0.125f );
     renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( size * 0.3f );
@@ -772,6 +806,17 @@ void ArrowRendererWidget::reset()
     renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>( size * 0.35f );
 
     renderer->setOption<VFRendering::ArrowRenderer::Option::LEVEL_OF_DETAIL>( lod );
+}
+
+void ArrowRendererWidget::reset()
+{
+    this->reset_filters();
+    this->reset_colormap();
+
+    this->size = 1;
+    this->lod  = 10;
+
+    this->apply_settings();
 }
 
 void ArrowRendererWidget::show_settings()
@@ -799,6 +844,15 @@ ParallelepipedRendererWidget::ParallelepipedRendererWidget(
 {
     renderer = std::make_shared<VFRendering::ParallelepipedRenderer>( view, vectorfield );
     renderer->setOption<VFRendering::GlyphRenderer::Option::ROTATE_GLYPHS>( false );
+    this->apply_settings();
+}
+
+void ParallelepipedRendererWidget::apply_settings()
+{
+    RendererWidget::apply_settings();
+    set_colormap( colormap );
+    renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+
     renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_A>( size * 0.5f );
     renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_B>( size * 0.5f );
     renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_C>( size * 0.5f );
@@ -807,11 +861,11 @@ ParallelepipedRendererWidget::ParallelepipedRendererWidget(
 void ParallelepipedRendererWidget::reset()
 {
     this->reset_filters();
-    this->set_colormap( Colormap::HSV );
+    this->reset_colormap();
+
     this->size = 1;
-    renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_A>( size * 0.5f );
-    renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_B>( size * 0.5f );
-    renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_C>( size * 0.5f );
+
+    this->apply_settings();
 }
 
 void ParallelepipedRendererWidget::show_settings()
@@ -833,14 +887,28 @@ SphereRendererWidget::SphereRendererWidget(
         : RendererWidget( state ), ColormapWidget()
 {
     renderer = std::make_shared<VFRendering::SphereRenderer>( view, vectorfield );
+    this->apply_settings();
+}
+
+void SphereRendererWidget::apply_settings()
+{
+    RendererWidget::apply_settings();
+    set_colormap( colormap );
+    renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+
+    renderer->setOption<VFRendering::SphereRenderer::Option::SPHERE_RADIUS>( size );
+    renderer->setOption<VFRendering::SphereRenderer::Option::LEVEL_OF_DETAIL>( lod );
 }
 
 void SphereRendererWidget::reset()
 {
     this->reset_filters();
-    this->set_colormap( Colormap::HSV );
+    this->reset_colormap();
+
     this->size = 0.1f;
     this->lod  = 10;
+
+    this->apply_settings();
 }
 
 void SphereRendererWidget::show_settings()
@@ -864,12 +932,22 @@ SurfaceRendererWidget::SurfaceRendererWidget(
         : RendererWidget( state ), ColormapWidget()
 {
     renderer = std::make_shared<VFRendering::SurfaceRenderer>( view, vectorfield );
+    this->apply_settings();
+}
+
+void SurfaceRendererWidget::apply_settings()
+{
+    RendererWidget::apply_settings();
+    set_colormap( colormap );
+    renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 }
 
 void SurfaceRendererWidget::reset()
 {
     this->reset_filters();
-    this->set_colormap( Colormap::HSV );
+    this->reset_colormap();
+
+    this->apply_settings();
 }
 
 void SurfaceRendererWidget::show_settings()
@@ -883,23 +961,32 @@ IsosurfaceRendererWidget::IsosurfaceRendererWidget(
         : RendererWidget( state ), ColormapWidget()
 {
     renderer = std::make_shared<VFRendering::IsosurfaceRenderer>( view, vectorfield );
+    this->apply_settings();
+}
 
-    renderer->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>( isovalue );
+void IsosurfaceRendererWidget::apply_settings()
+{
+    RendererWidget::apply_settings();
+    set_colormap( colormap );
+    renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 
     set_lighting_implementation( draw_shadows );
+    set_isocomponent( isocomponent );
+    renderer->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>( isovalue );
+    renderer->setOption<VFRendering::IsosurfaceRenderer::Option::FLIP_NORMALS>( flip_normals );
 }
 
 void IsosurfaceRendererWidget::reset()
 {
     this->reset_filters();
-    this->set_colormap( Colormap::HSV );
+    this->reset_colormap();
+
     this->isovalue     = 0;
     this->flip_normals = false;
-    set_lighting_implementation( true );
-    set_isocomponent( 2 );
+    this->draw_shadows = true;
+    this->isocomponent = 2;
 
-    renderer->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>( isovalue );
-    renderer->setOption<VFRendering::IsosurfaceRenderer::Option::FLIP_NORMALS>( flip_normals );
+    this->apply_settings();
 }
 
 void IsosurfaceRendererWidget::show_settings()

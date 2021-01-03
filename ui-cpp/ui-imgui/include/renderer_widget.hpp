@@ -23,13 +23,8 @@ enum class Colormap
     MONOCHROME
 };
 
-class ColormapWidget
+struct ColormapWidget
 {
-protected:
-    ColormapWidget();
-    void set_colormap( Colormap colormap );
-    bool colormap_input();
-
     Colormap colormap = Colormap::HSV;
     std::string colormap_implementation_str;
 
@@ -40,6 +35,12 @@ protected:
     glm::vec3 colormap_cardinal_b{ 0, 1, 0 };
     glm::vec3 colormap_cardinal_c{ 0, 0, 1 };
     glm::vec3 colormap_monochrome_color{ 0.5f, 0.5f, 0.5f };
+
+protected:
+    ColormapWidget();
+    void reset_colormap();
+    void set_colormap( Colormap colormap );
+    bool colormap_input();
 };
 
 struct RendererWidget
@@ -49,7 +50,13 @@ struct RendererWidget
     bool remove_ = false;
     std::shared_ptr<VFRendering::RendererBase> renderer;
 
+    float filter_direction_min[3]{ -1, -1, -1 };
+    float filter_direction_max[3]{ 1, 1, 1 };
+    float filter_position_min[3]{ 0, 0, 0 };
+    float filter_position_max[3]{ 1, 1, 1 };
+
     virtual void show();
+    virtual void apply_settings();
 
 protected:
     RendererWidget( std::shared_ptr<State> state ) : state( state ) {}
@@ -58,11 +65,6 @@ protected:
     virtual void reset()           = 0;
     void show_filters();
     void reset_filters();
-
-    float filter_direction_min[3]{ -1, -1, -1 };
-    float filter_direction_max[3]{ 1, 1, 1 };
-    float filter_position_min[3]{ 0, 0, 0 };
-    float filter_position_max[3]{ 1, 1, 1 };
 };
 
 struct BoundingBoxRendererWidget : RendererWidget
@@ -70,6 +72,7 @@ struct BoundingBoxRendererWidget : RendererWidget
     BoundingBoxRendererWidget(
         std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield );
     void show() override;
+    void apply_settings() override;
 
     float line_width    = 0;
     int level_of_detail = 10;
@@ -102,6 +105,7 @@ struct DotRendererWidget : RendererWidget, ColormapWidget
 {
     DotRendererWidget(
         std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield );
+    void apply_settings() override;
 
     float size = 1;
 
@@ -118,6 +122,7 @@ struct ArrowRendererWidget : RendererWidget, ColormapWidget
 {
     ArrowRendererWidget(
         std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield );
+    void apply_settings() override;
 
     float size = 1;
     int lod    = 10;
@@ -135,6 +140,7 @@ struct ParallelepipedRendererWidget : RendererWidget, ColormapWidget
 {
     ParallelepipedRendererWidget(
         std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield );
+    void apply_settings() override;
 
     float size = 1;
 
@@ -151,6 +157,7 @@ struct SphereRendererWidget : RendererWidget, ColormapWidget
 {
     SphereRendererWidget(
         std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield );
+    void apply_settings() override;
 
     float size = 0.1f;
     int lod    = 10;
@@ -168,6 +175,7 @@ struct SurfaceRendererWidget : RendererWidget, ColormapWidget
 {
     SurfaceRendererWidget(
         std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield );
+    void apply_settings() override;
 
 protected:
     std::string id() const override
@@ -182,6 +190,7 @@ struct IsosurfaceRendererWidget : RendererWidget, ColormapWidget
 {
     IsosurfaceRendererWidget(
         std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield );
+    void apply_settings() override;
 
     float isovalue    = 0;
     int isocomponent  = 2;

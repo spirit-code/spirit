@@ -24,6 +24,31 @@ using Json = nlohmann::json;
 namespace ui
 {
 
+void to_json( Json & j, const RendererWidget & renderer_widget )
+{
+    j = Json{
+        { "show", renderer_widget.show_ },
+        { "filter_direction_min", renderer_widget.filter_direction_min },
+        { "filter_direction_max", renderer_widget.filter_direction_max },
+        { "filter_position_min", renderer_widget.filter_position_min },
+        { "filter_position_max", renderer_widget.filter_position_max },
+    };
+}
+
+void from_json( const Json & j, RendererWidget & renderer_widget )
+{
+    if( j.contains( "show" ) )
+        j.at( "show" ).get_to( renderer_widget.show_ );
+    if( j.contains( "filter_direction_min" ) )
+        j.at( "filter_direction_min" ).get_to( renderer_widget.filter_direction_min );
+    if( j.contains( "filter_direction_max" ) )
+        j.at( "filter_direction_max" ).get_to( renderer_widget.filter_direction_max );
+    if( j.contains( "filter_position_min" ) )
+        j.at( "filter_position_min" ).get_to( renderer_widget.filter_position_min );
+    if( j.contains( "filter_position_max" ) )
+        j.at( "filter_position_max" ).get_to( renderer_widget.filter_position_max );
+}
+
 void to_json( Json & j, const BoundingBoxRendererWidget & renderer_widget )
 {
     j = Json{
@@ -59,18 +84,79 @@ void from_json( const Json & j, CoordinateSystemRendererWidget & renderer_widget
         j.at( "show" ).get_to( renderer_widget.show_ );
 }
 
+void to_json( Json & j, const ColormapWidget & renderer_widget )
+{
+    j = Json{
+        { "colormap", renderer_widget.colormap },
+        { "colormap_monochrome_color",
+          { renderer_widget.colormap_monochrome_color.x, renderer_widget.colormap_monochrome_color.y,
+            renderer_widget.colormap_monochrome_color.z } },
+        { "colormap_cardinal_a",
+          { renderer_widget.colormap_cardinal_a.x, renderer_widget.colormap_cardinal_a.y,
+            renderer_widget.colormap_cardinal_a.z } },
+        { "colormap_cardinal_b",
+          { renderer_widget.colormap_cardinal_b.x, renderer_widget.colormap_cardinal_b.y,
+            renderer_widget.colormap_cardinal_b.z } },
+        { "colormap_cardinal_c",
+          { renderer_widget.colormap_cardinal_c.x, renderer_widget.colormap_cardinal_c.y,
+            renderer_widget.colormap_cardinal_c.z } },
+        { "colormap_rotation", renderer_widget.colormap_rotation },
+        { "colormap_invert_z", renderer_widget.colormap_invert_z },
+        { "colormap_invert_xy", renderer_widget.colormap_invert_xy },
+    };
+}
+
+void from_json( const Json & j, ColormapWidget & renderer_widget )
+{
+    if( j.contains( "colormap" ) )
+        j.at( "colormap" ).get_to( renderer_widget.colormap );
+    if( j.contains( "colormap_monochrome_color" ) )
+    {
+        renderer_widget.colormap_monochrome_color.x = j.at( "colormap_monochrome_color" )[0];
+        renderer_widget.colormap_monochrome_color.y = j.at( "colormap_monochrome_color" )[1];
+        renderer_widget.colormap_monochrome_color.z = j.at( "colormap_monochrome_color" )[2];
+    }
+    if( j.contains( "colormap_cardinal_a" ) )
+    {
+        renderer_widget.colormap_cardinal_a.x = j.at( "colormap_cardinal_a" )[0];
+        renderer_widget.colormap_cardinal_a.y = j.at( "colormap_cardinal_a" )[1];
+        renderer_widget.colormap_cardinal_a.z = j.at( "colormap_cardinal_a" )[2];
+    }
+    if( j.contains( "colormap_cardinal_b" ) )
+    {
+        renderer_widget.colormap_cardinal_b.x = j.at( "colormap_cardinal_b" )[0];
+        renderer_widget.colormap_cardinal_b.y = j.at( "colormap_cardinal_b" )[1];
+        renderer_widget.colormap_cardinal_b.z = j.at( "colormap_cardinal_b" )[2];
+    }
+    if( j.contains( "colormap_cardinal_c" ) )
+    {
+        renderer_widget.colormap_cardinal_c.x = j.at( "colormap_cardinal_c" )[0];
+        renderer_widget.colormap_cardinal_c.y = j.at( "colormap_cardinal_c" )[1];
+        renderer_widget.colormap_cardinal_c.z = j.at( "colormap_cardinal_c" )[2];
+    }
+    if( j.contains( "colormap_rotation" ) )
+        j.at( "colormap_rotation" ).get_to( renderer_widget.colormap_rotation );
+    if( j.contains( "colormap_invert_z" ) )
+        j.at( "colormap_invert_z" ).get_to( renderer_widget.colormap_invert_z );
+    if( j.contains( "colormap_invert_xy" ) )
+        j.at( "colormap_invert_xy" ).get_to( renderer_widget.colormap_invert_xy );
+}
+
 void to_json( Json & j, const DotRendererWidget & renderer_widget )
 {
     j = Json{
-        { "show", renderer_widget.show_ },
+        { "renderer", static_cast<const RendererWidget &>( renderer_widget ) },
+        { "colormap", static_cast<const ColormapWidget &>( renderer_widget ) },
         { "size", renderer_widget.size },
     };
 }
 
 void from_json( const Json & j, DotRendererWidget & renderer_widget )
 {
-    if( j.contains( "show" ) )
-        j.at( "show" ).get_to( renderer_widget.show_ );
+    if( j.contains( "renderer" ) )
+        j.at( "renderer" ).get_to( static_cast<RendererWidget &>( renderer_widget ) );
+    if( j.contains( "colormap" ) )
+        j.at( "colormap" ).get_to( static_cast<ColormapWidget &>( renderer_widget ) );
     if( j.contains( "size" ) )
         j.at( "size" ).get_to( renderer_widget.size );
 }
@@ -78,7 +164,8 @@ void from_json( const Json & j, DotRendererWidget & renderer_widget )
 void to_json( Json & j, const ArrowRendererWidget & renderer_widget )
 {
     j = Json{
-        { "show", renderer_widget.show_ },
+        { "renderer", static_cast<const RendererWidget &>( renderer_widget ) },
+        { "colormap", static_cast<const ColormapWidget &>( renderer_widget ) },
         { "size", renderer_widget.size },
         { "lod", renderer_widget.lod },
     };
@@ -86,8 +173,10 @@ void to_json( Json & j, const ArrowRendererWidget & renderer_widget )
 
 void from_json( const Json & j, ArrowRendererWidget & renderer_widget )
 {
-    if( j.contains( "show" ) )
-        j.at( "show" ).get_to( renderer_widget.show_ );
+    if( j.contains( "renderer" ) )
+        j.at( "renderer" ).get_to( static_cast<RendererWidget &>( renderer_widget ) );
+    if( j.contains( "colormap" ) )
+        j.at( "colormap" ).get_to( static_cast<ColormapWidget &>( renderer_widget ) );
     if( j.contains( "size" ) )
         j.at( "size" ).get_to( renderer_widget.size );
     if( j.contains( "lod" ) )
@@ -97,46 +186,65 @@ void from_json( const Json & j, ArrowRendererWidget & renderer_widget )
 void to_json( Json & j, const ParallelepipedRendererWidget & renderer_widget )
 {
     j = Json{
-        { "show", renderer_widget.show_ },
+        { "renderer", static_cast<const RendererWidget &>( renderer_widget ) },
+        { "colormap", static_cast<const ColormapWidget &>( renderer_widget ) },
+        { "size", renderer_widget.size },
     };
 }
 
 void from_json( const Json & j, ParallelepipedRendererWidget & renderer_widget )
 {
-    if( j.contains( "show" ) )
-        j.at( "show" ).get_to( renderer_widget.show_ );
+    if( j.contains( "renderer" ) )
+        j.at( "renderer" ).get_to( static_cast<RendererWidget &>( renderer_widget ) );
+    if( j.contains( "colormap" ) )
+        j.at( "colormap" ).get_to( static_cast<ColormapWidget &>( renderer_widget ) );
+    if( j.contains( "size" ) )
+        j.at( "size" ).get_to( renderer_widget.size );
 }
 
 void to_json( Json & j, const SphereRendererWidget & renderer_widget )
 {
     j = Json{
-        { "show", renderer_widget.show_ },
+        { "renderer", static_cast<const RendererWidget &>( renderer_widget ) },
+        { "colormap", static_cast<const ColormapWidget &>( renderer_widget ) },
+        { "size", renderer_widget.size },
+        { "lod", renderer_widget.lod },
     };
 }
 
 void from_json( const Json & j, SphereRendererWidget & renderer_widget )
 {
-    if( j.contains( "show" ) )
-        j.at( "show" ).get_to( renderer_widget.show_ );
+    if( j.contains( "renderer" ) )
+        j.at( "renderer" ).get_to( static_cast<RendererWidget &>( renderer_widget ) );
+    if( j.contains( "colormap" ) )
+        j.at( "colormap" ).get_to( static_cast<ColormapWidget &>( renderer_widget ) );
+    if( j.contains( "size" ) )
+        j.at( "size" ).get_to( renderer_widget.size );
+    if( j.contains( "lod" ) )
+        j.at( "lod" ).get_to( renderer_widget.lod );
 }
 
 void to_json( Json & j, const SurfaceRendererWidget & renderer_widget )
 {
     j = Json{
-        { "show", renderer_widget.show_ },
+        { "renderer", static_cast<const RendererWidget &>( renderer_widget ) },
+        { "colormap", static_cast<const ColormapWidget &>( renderer_widget ) },
     };
 }
 
 void from_json( const Json & j, SurfaceRendererWidget & renderer_widget )
 {
-    if( j.contains( "show" ) )
-        j.at( "show" ).get_to( renderer_widget.show_ );
+    if( j.contains( "renderer" ) )
+        j.at( "renderer" ).get_to( static_cast<RendererWidget &>( renderer_widget ) );
+    if( j.contains( "colormap" ) )
+        j.at( "colormap" ).get_to( static_cast<ColormapWidget &>( renderer_widget ) );
 }
 
 void to_json( Json & j, const IsosurfaceRendererWidget & renderer_widget )
 {
     j = Json{
-        { "show", renderer_widget.show_ },
+        { "renderer", static_cast<const RendererWidget &>( renderer_widget ) },
+        { "colormap", static_cast<const ColormapWidget &>( renderer_widget ) },
         { "isovalue", renderer_widget.isovalue },
         { "isocomponent", renderer_widget.isocomponent },
         { "draw_shadows", renderer_widget.draw_shadows },
@@ -146,8 +254,10 @@ void to_json( Json & j, const IsosurfaceRendererWidget & renderer_widget )
 
 void from_json( const Json & j, IsosurfaceRendererWidget & renderer_widget )
 {
-    if( j.contains( "show" ) )
-        j.at( "show" ).get_to( renderer_widget.show_ );
+    if( j.contains( "renderer" ) )
+        j.at( "renderer" ).get_to( static_cast<RendererWidget &>( renderer_widget ) );
+    if( j.contains( "colormap" ) )
+        j.at( "colormap" ).get_to( static_cast<ColormapWidget &>( renderer_widget ) );
     if( j.contains( "isovalue" ) )
         j.at( "isovalue" ).get_to( renderer_widget.isovalue );
     if( j.contains( "isocomponent" ) )
@@ -292,12 +402,14 @@ void UiConfigFile::from_json()
                             rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
                         rendering_layer.renderer_widgets.push_back( ptr );
                         j.at( "BoundingBoxRendererWidget" ).get_to( *ptr );
+                        ptr->apply_settings();
                     }
                     if( j.contains( "CoordinateSystemRendererWidget" ) )
                     {
                         auto ptr = std::make_shared<CoordinateSystemRendererWidget>( rendering_layer.state );
                         rendering_layer.renderer_widgets.push_back( ptr );
                         j.at( "CoordinateSystemRendererWidget" ).get_to( *ptr );
+                        ptr->apply_settings();
                     }
                     if( j.contains( "DotRendererWidget" ) )
                     {
@@ -305,6 +417,7 @@ void UiConfigFile::from_json()
                             rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
                         rendering_layer.renderer_widgets.push_back( ptr );
                         j.at( "DotRendererWidget" ).get_to( *ptr );
+                        ptr->apply_settings();
                     }
                     if( j.contains( "ArrowRendererWidget" ) )
                     {
@@ -312,6 +425,7 @@ void UiConfigFile::from_json()
                             rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
                         rendering_layer.renderer_widgets.push_back( ptr );
                         j.at( "ArrowRendererWidget" ).get_to( *ptr );
+                        ptr->apply_settings();
                     }
                     if( j.contains( "ParallelepipedRendererWidget" ) )
                     {
@@ -319,6 +433,7 @@ void UiConfigFile::from_json()
                             rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
                         rendering_layer.renderer_widgets.push_back( ptr );
                         j.at( "ParallelepipedRendererWidget" ).get_to( *ptr );
+                        ptr->apply_settings();
                     }
                     if( j.contains( "SphereRendererWidget" ) )
                     {
@@ -326,6 +441,7 @@ void UiConfigFile::from_json()
                             rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
                         rendering_layer.renderer_widgets.push_back( ptr );
                         j.at( "SphereRendererWidget" ).get_to( *ptr );
+                        ptr->apply_settings();
                     }
                     if( j.contains( "SurfaceRendererWidget" ) )
                     {
@@ -333,6 +449,7 @@ void UiConfigFile::from_json()
                             rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
                         rendering_layer.renderer_widgets.push_back( ptr );
                         j.at( "SurfaceRendererWidget" ).get_to( *ptr );
+                        ptr->apply_settings();
                     }
                     if( j.contains( "IsosurfaceRendererWidget" ) )
                     {
@@ -340,6 +457,7 @@ void UiConfigFile::from_json()
                             rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
                         rendering_layer.renderer_widgets.push_back( ptr );
                         j.at( "IsosurfaceRendererWidget" ).get_to( *ptr );
+                        ptr->apply_settings();
                     }
                 }
             }
