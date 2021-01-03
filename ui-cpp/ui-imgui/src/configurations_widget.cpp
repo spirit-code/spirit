@@ -20,7 +20,7 @@ void ConfigurationsWidget::reset_settings()
     for( int dim = 0; dim < 3; ++dim )
     {
         this->pos[dim]         = 0;
-        this->border_rect[dim] = -1, -1, -1;
+        this->border_rect[dim] = -1;
     }
     this->border_cyl = -1;
     this->border_sph = -1;

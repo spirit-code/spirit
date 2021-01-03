@@ -822,3 +822,69 @@ bool RangeSliderFloat(
 }
 
 } // namespace widgets
+
+template<typename TYPE>
+static const char * ImAtoi( const char * src, TYPE * output )
+{
+    int negative = 0;
+    if( *src == '-' )
+    {
+        negative = 1;
+        src++;
+    }
+    if( *src == '+' )
+    {
+        src++;
+    }
+    TYPE v = 0;
+    while( *src >= '0' && *src <= '9' )
+        v = ( v * 10 ) + ( *src++ - '0' );
+    *output = negative ? -v : v;
+    return src;
+}
+
+template<typename TYPE, typename SIGNEDTYPE>
+TYPE ImGui::RoundScalarWithFormatT( const char * format, ImGuiDataType data_type, TYPE v )
+{
+    const char * fmt_start = ImParseFormatFindStart( format );
+    if( fmt_start[0] != '%' || fmt_start[1] == '%' ) // Don't apply if the value is not visible in the format string
+        return v;
+    char v_str[64];
+    ImFormatString( v_str, IM_ARRAYSIZE( v_str ), fmt_start, v );
+    const char * p = v_str;
+    while( *p == ' ' )
+        p++;
+    if( data_type == ImGuiDataType_Float || data_type == ImGuiDataType_Double )
+        v = (TYPE)ImAtof( p );
+    else
+        ImAtoi( p, (SIGNEDTYPE *)&v );
+    return v;
+}
+
+template<typename TYPE, typename FLOATTYPE>
+float ImGui::SliderCalcRatioFromValueT(
+    ImGuiDataType data_type, TYPE v, TYPE v_min, TYPE v_max, float power, float linear_zero_pos )
+{
+    if( v_min == v_max )
+        return 0.0f;
+
+    const bool is_power
+        = ( power != 1.0f ) && ( data_type == ImGuiDataType_Float || data_type == ImGuiDataType_Double );
+    const TYPE v_clamped = ( v_min < v_max ) ? ImClamp( v, v_min, v_max ) : ImClamp( v, v_max, v_min );
+    if( is_power )
+    {
+        if( v_clamped < 0.0f )
+        {
+            const float f = 1.0f - (float)( ( v_clamped - v_min ) / ( ImMin( (TYPE)0, v_max ) - v_min ) );
+            return ( 1.0f - ImPow( f, 1.0f / power ) ) * linear_zero_pos;
+        }
+        else
+        {
+            const float f = (float)( ( v_clamped - ImMax( (TYPE)0, v_min ) ) / ( v_max - ImMax( (TYPE)0, v_min ) ) );
+            return linear_zero_pos + ImPow( f, 1.0f / power ) * ( 1.0f - linear_zero_pos );
+        }
+    }
+
+    // Linear slider
+    return (float)( ( FLOATTYPE )( v_clamped - v_min ) / ( FLOATTYPE )( v_max - v_min ) );
+}
