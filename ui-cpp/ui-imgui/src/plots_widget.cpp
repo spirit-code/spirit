@@ -106,22 +106,7 @@ void PlotsWidget::show()
                     // Scatter plots
                     if( plot_image_energies )
                     {
-                        // Current image marker (red)
-                        float rx_current          = rx[idx_current];
-                        float energy_current      = energies[idx_current];
-                        int current_image_type    = Parameters_GNEB_Get_Climbing_Falling( state.get(), idx_current );
-                        ImPlotMarker marker_style = IMPLOT_AUTO;
-                        if( current_image_type == GNEB_IMAGE_CLIMBING )
-                            marker_style = ImPlotMarker_Up;
-                        if( current_image_type == GNEB_IMAGE_FALLING )
-                            marker_style = ImPlotMarker_Down;
-                        if( current_image_type == GNEB_IMAGE_STATIONARY )
-                            marker_style = ImPlotMarker_Square;
-                        ImPlot::SetNextMarkerStyle(
-                            marker_style, IMPLOT_AUTO, ImVec4( ImColor( 255, 0, 0 ) ), IMPLOT_AUTO,
-                            ImVec4( ImColor( 255, 0, 0 ) ) );
-                        ImPlot::PlotScatter( "", &rx_current, &energy_current, 1 );
-
+                        // Image energies except current image
                         if( noi > 1 )
                         {
                             std::vector<float> rx_regular( 0 );
@@ -237,6 +222,22 @@ void PlotsWidget::show()
                                 ImPlot::PlotScatter( "", &rx[idx_max_force], &energies[idx_max_force], 1 );
                             }
                         }
+
+                        // Current image marker (red)
+                        float rx_current          = rx[idx_current];
+                        float energy_current      = energies[idx_current];
+                        int current_image_type    = Parameters_GNEB_Get_Climbing_Falling( state.get(), idx_current );
+                        ImPlotMarker marker_style = IMPLOT_AUTO;
+                        if( current_image_type == GNEB_IMAGE_CLIMBING )
+                            marker_style = ImPlotMarker_Up;
+                        if( current_image_type == GNEB_IMAGE_FALLING )
+                            marker_style = ImPlotMarker_Down;
+                        if( current_image_type == GNEB_IMAGE_STATIONARY )
+                            marker_style = ImPlotMarker_Square;
+                        ImPlot::SetNextMarkerStyle(
+                            marker_style, IMPLOT_AUTO, ImVec4( ImColor( 255, 0, 0 ) ), IMPLOT_AUTO,
+                            ImVec4( ImColor( 255, 0, 0 ) ) );
+                        ImPlot::PlotScatter( "", &rx_current, &energy_current, 1 );
                     }
 
                     ImPlot::EndPlot();
@@ -248,7 +249,8 @@ void PlotsWidget::show()
                 ImGui::Checkbox( "Interpolated energies", &plot_interpolated_energies );
                 ImGui::SameLine();
                 ImGui::PushItemWidth( 100 );
-                if( ImGui::InputInt( "##energies_n_interp", &n_interpolate ) )
+                if( ImGui::InputInt(
+                        "##energies_n_interp", &n_interpolate, 0, 0, ImGuiInputTextFlags_EnterReturnsTrue ) )
                 {
                     if( n_interpolate > 1 )
                         Parameters_GNEB_Set_N_Energy_Interpolations( state.get(), n_interpolate );
@@ -273,7 +275,7 @@ void PlotsWidget::show()
                     ImPlot::EndPlot();
                 }
 
-                if( ImGui::InputInt( "history size", &history_size, 10, 100 ) )
+                if( ImGui::InputInt( "history size", &history_size, 10, 100, ImGuiInputTextFlags_EnterReturnsTrue ) )
                 {
                     if( history_size < 3 )
                         history_size = 3;
