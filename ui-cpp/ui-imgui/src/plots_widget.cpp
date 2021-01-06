@@ -11,11 +11,42 @@
 
 #include <fmt/format.h>
 
+#include <cmath>
 #include <string>
 #include <vector>
 
 namespace ui
 {
+
+void plot_tooltip( const char * label_id, const float * xs, const float * ys, int count )
+{
+    if( ImPlot::IsPlotHovered() )
+    {
+        ImPlotPoint mouse = ImPlot::GetPlotMousePos();
+        auto mouse_pixels = ImPlot::PlotToPixels( mouse.x, mouse.y, IMPLOT_AUTO );
+
+        int idx_best        = 0;
+        float distance_best = 1e30f;
+        for( int idx = 0; idx < count; ++idx )
+        {
+            auto data_pixels = ImPlot::PlotToPixels( xs[idx], ys[idx], IMPLOT_AUTO );
+
+            float dx       = mouse_pixels.x - data_pixels.x;
+            float dy       = mouse_pixels.y - data_pixels.y;
+            float distance = std::sqrt( dx * dx + dy * dy );
+            if( distance < distance_best )
+            {
+                idx_best      = idx;
+                distance_best = distance;
+            }
+        }
+
+        ImGui::SetNextWindowPos( ImPlot::PlotToPixels( xs[idx_best], ys[idx_best], IMPLOT_AUTO ) );
+        ImGui::BeginTooltip();
+        ImGui::Text( "(%.2f, %.2f)", xs[idx_best], ys[idx_best] );
+        ImGui::EndTooltip();
+    }
+}
 
 PlotsWidget::PlotsWidget( bool & show, std::shared_ptr<State> state ) : show_( show ), state( state ) {}
 
@@ -32,6 +63,7 @@ void PlotsWidget::show()
     static int force_index = 0;
 
     static bool fit_axes = false;
+    static bool tooltip  = false;
 
     static int n_interpolate = Parameters_GNEB_Get_N_Energy_Interpolations( state.get() );
     static std::vector<float> rx( 1, 0 );
@@ -52,7 +84,7 @@ void PlotsWidget::show()
     if( !show_ )
         return;
 
-    ImGui::SetNextWindowSizeConstraints( { 350, 300 }, { 800, 999999 } );
+    ImGui::SetNextWindowSizeConstraints( { 350, 300 }, { 999999, 999999 } );
 
     ImGui::Begin( "Plots", &show_ );
     {
@@ -81,7 +113,8 @@ void PlotsWidget::show()
                         "", "Rx", "E [meV]",
                         ImVec2(
                             ImGui::GetWindowContentRegionMax().x - 2 * style.FramePadding.x,
-                            ImGui::GetWindowContentRegionMax().y - 130.f ) ) )
+                            ImGui::GetWindowContentRegionMax().y - 130.f ),
+                        ImPlotFlags_NoMousePos ) )
                 {
                     // Line plots
                     if( noi > 1 )
@@ -240,12 +273,18 @@ void PlotsWidget::show()
                         ImPlot::PlotScatter( "", &rx_current, &energy_current, 1 );
                     }
 
+                    if( tooltip )
+                        plot_tooltip( "tooltip", rx.data(), energies.data(), rx.size() );
+
                     ImPlot::EndPlot();
                 }
 
                 ImGui::Checkbox( "Image energies", &plot_image_energies );
                 ImGui::SameLine();
                 ImGui::Checkbox( "Autofit axes", &fit_axes );
+                ImGui::SameLine();
+                ImGui::Checkbox( "Tooltip", &tooltip );
+
                 ImGui::Checkbox( "Interpolated energies", &plot_interpolated_energies );
                 ImGui::SameLine();
                 ImGui::PushItemWidth( 100 );
