@@ -1405,8 +1405,12 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImPlot::CreateContext();
+
     ImGuiIO & io   = ImGui::GetIO();
     io.IniFilename = nullptr;
+
+    auto & plot_style     = ImPlot::GetStyle();
+    plot_style.FitPadding = { 0.08, 0.08 };
 
     ImGui_ImplGlfw_InitForOpenGL( glfw_window, false );
     ImGui_ImplOpenGL3_Init();

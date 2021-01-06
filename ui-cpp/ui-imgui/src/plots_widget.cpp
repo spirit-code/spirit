@@ -38,6 +38,7 @@ void PlotsWidget::show()
     static std::vector<float> energies( 1, 0 );
     static std::vector<float> rx_interpolated( 1, 0 );
     static std::vector<float> energies_interpolated( 1, 0 );
+    static std::vector<float> max_force( 1, 0 );
 
     if( Simulation_Running_Anywhere_On_Chain( state.get() ) )
     {
@@ -51,7 +52,7 @@ void PlotsWidget::show()
     if( !show_ )
         return;
 
-    ImGui::SetNextWindowSizeConstraints( { 500, 300 }, { 800, 999999 } );
+    ImGui::SetNextWindowSizeConstraints( { 350, 300 }, { 800, 999999 } );
 
     ImGui::Begin( "Plots", &show_ );
     {
@@ -67,25 +68,12 @@ void PlotsWidget::show()
                     energies.resize( noi );
                 }
 
-                int size_interp = noi + ( noi - 1 ) * n_interpolate;
-                if( size_interp != energies_interpolated.size() )
-                {
-                    rx_interpolated.resize( size_interp );
-                    energies_interpolated.resize( size_interp );
-                }
-
                 Chain_Get_Rx( state.get(), rx.data() );
                 Chain_Get_Energy( state.get(), energies.data() );
 
-                if( noi > 1 )
-                {
-                    Chain_Get_Rx_Interpolated( state.get(), rx_interpolated.data() );
-                    Chain_Get_Energy_Interpolated( state.get(), energies_interpolated.data() );
-                }
-
-                int image_idx = System_Get_Index( state.get() );
+                int idx_current = System_Get_Index( state.get() );
                 ImGui::TextUnformatted(
-                    fmt::format( "E[{}] = {:.5e} meV", image_idx + 1, energies[image_idx] ).c_str() );
+                    fmt::format( "E[{}] = {:.5e} meV", idx_current + 1, energies[idx_current] ).c_str() );
 
                 if( fit_axes )
                     ImPlot::FitNextPlotAxes();
@@ -93,15 +81,162 @@ void PlotsWidget::show()
                         "", "Rx", "E [meV]",
                         ImVec2(
                             ImGui::GetWindowContentRegionMax().x - 2 * style.FramePadding.x,
-                            ImGui::GetWindowContentRegionMax().y - 110.f ) ) )
+                            ImGui::GetWindowContentRegionMax().y - 130.f ) ) )
                 {
+                    // Line plots
+                    if( noi > 1 )
+                    {
+                        if( plot_interpolated_energies )
+                        {
+                            int size_interp = noi + ( noi - 1 ) * n_interpolate;
+                            if( size_interp != energies_interpolated.size() )
+                            {
+                                rx_interpolated.resize( size_interp );
+                                energies_interpolated.resize( size_interp );
+                            }
+
+                            Chain_Get_Rx_Interpolated( state.get(), rx_interpolated.data() );
+                            Chain_Get_Energy_Interpolated( state.get(), energies_interpolated.data() );
+
+                            ImPlot::SetNextLineStyle( ImVec4( ImColor( 65, 105, 225 ) ) );
+                            ImPlot::PlotLine( "", rx_interpolated.data(), energies_interpolated.data(), size_interp );
+                        }
+                    }
+
+                    // Scatter plots
                     if( plot_image_energies )
                     {
-                        ImPlot::PlotScatter( "", rx.data(), energies.data(), noi );
-                    }
-                    if( plot_interpolated_energies && noi > 1 )
-                    {
-                        ImPlot::PlotLine( "", rx_interpolated.data(), energies_interpolated.data(), size_interp );
+                        // Current image marker (red)
+                        float rx_current          = rx[idx_current];
+                        float energy_current      = energies[idx_current];
+                        int current_image_type    = Parameters_GNEB_Get_Climbing_Falling( state.get(), idx_current );
+                        ImPlotMarker marker_style = IMPLOT_AUTO;
+                        if( current_image_type == GNEB_IMAGE_CLIMBING )
+                            marker_style = ImPlotMarker_Up;
+                        if( current_image_type == GNEB_IMAGE_FALLING )
+                            marker_style = ImPlotMarker_Down;
+                        if( current_image_type == GNEB_IMAGE_STATIONARY )
+                            marker_style = ImPlotMarker_Square;
+                        ImPlot::SetNextMarkerStyle(
+                            marker_style, IMPLOT_AUTO, ImVec4( ImColor( 255, 0, 0 ) ), IMPLOT_AUTO,
+                            ImVec4( ImColor( 255, 0, 0 ) ) );
+                        ImPlot::PlotScatter( "", &rx_current, &energy_current, 1 );
+
+                        if( noi > 1 )
+                        {
+                            std::vector<float> rx_regular( 0 );
+                            std::vector<float> e_regular( 0 );
+                            std::vector<float> rx_climbing( 0 );
+                            std::vector<float> e_climbing( 0 );
+                            std::vector<float> rx_falling( 0 );
+                            std::vector<float> e_falling( 0 );
+                            std::vector<float> rx_stationary( 0 );
+                            std::vector<float> e_stationary( 0 );
+
+                            if( noi != max_force.size() )
+                                max_force.resize( noi );
+
+                            Simulation_Get_Chain_MaxTorqueNorms( state.get(), max_force.data() );
+                            int idx_max_force = idx_current;
+                            float max_f       = max_force[idx_current];
+
+                            // Get max. force image
+                            for( int idx = 0; idx < noi; ++idx )
+                            {
+                                if( max_force[idx] > max_f )
+                                {
+                                    idx_max_force = idx;
+                                    max_f         = max_force[idx];
+                                }
+                            }
+                            // Distinguish image types
+                            for( int idx = 0; idx < noi; ++idx )
+                            {
+                                if( idx != idx_current && idx != idx_max_force )
+                                {
+                                    if( Parameters_GNEB_Get_Climbing_Falling( state.get(), idx ) == GNEB_IMAGE_NORMAL )
+                                    {
+                                        rx_regular.push_back( rx[idx] );
+                                        e_regular.push_back( energies[idx] );
+                                    }
+                                    else if(
+                                        Parameters_GNEB_Get_Climbing_Falling( state.get(), idx )
+                                        == GNEB_IMAGE_CLIMBING )
+                                    {
+                                        rx_climbing.push_back( rx[idx] );
+                                        e_climbing.push_back( energies[idx] );
+                                    }
+                                    else if(
+                                        Parameters_GNEB_Get_Climbing_Falling( state.get(), idx ) == GNEB_IMAGE_FALLING )
+                                    {
+                                        rx_falling.push_back( rx[idx] );
+                                        e_falling.push_back( energies[idx] );
+                                    }
+                                    else if(
+                                        Parameters_GNEB_Get_Climbing_Falling( state.get(), idx )
+                                        == GNEB_IMAGE_STATIONARY )
+                                    {
+                                        rx_stationary.push_back( rx[idx] );
+                                        e_stationary.push_back( energies[idx] );
+                                    }
+                                }
+                            }
+
+                            int idx_max_energy = 0;
+                            float max_energy   = energies[0];
+                            int max_image_type = Parameters_GNEB_Get_Climbing_Falling( state.get(), 0 );
+                            for( int idx = 1; idx < noi; ++idx )
+                            {
+                                if( energies[idx] > max_energy )
+                                {
+                                    idx_max_energy = idx;
+                                    max_image_type = Parameters_GNEB_Get_Climbing_Falling( state.get(), idx );
+                                }
+                            }
+
+                            // Regular image dots (blue)
+                            ImPlot::SetNextMarkerStyle(
+                                IMPLOT_AUTO, IMPLOT_AUTO, ImVec4( ImColor( 65, 105, 225 ) ), IMPLOT_AUTO,
+                                ImVec4( ImColor( 65, 105, 225 ) ) );
+                            ImPlot::PlotScatter( "", rx_regular.data(), e_regular.data(), rx_regular.size() );
+
+                            // Climbing image triangles
+                            ImPlot::SetNextMarkerStyle(
+                                ImPlotMarker_Up, IMPLOT_AUTO, ImVec4( ImColor( 65, 105, 225 ) ), IMPLOT_AUTO,
+                                ImVec4( ImColor( 65, 105, 225 ) ) );
+                            ImPlot::PlotScatter( "", rx_climbing.data(), e_climbing.data(), rx_climbing.size() );
+
+                            // Falling image triangles
+                            ImPlot::SetNextMarkerStyle(
+                                ImPlotMarker_Down, IMPLOT_AUTO, ImVec4( ImColor( 65, 105, 225 ) ), IMPLOT_AUTO,
+                                ImVec4( ImColor( 65, 105, 225 ) ) );
+                            ImPlot::PlotScatter( "", rx_falling.data(), e_falling.data(), rx_falling.size() );
+
+                            // Stationary image squares
+                            ImPlot::SetNextMarkerStyle(
+                                ImPlotMarker_Square, IMPLOT_AUTO, ImVec4( ImColor( 65, 105, 225 ) ), IMPLOT_AUTO,
+                                ImVec4( ImColor( 65, 105, 225 ) ) );
+                            ImPlot::PlotScatter( "", rx_stationary.data(), e_stationary.data(), rx_stationary.size() );
+
+                            // Max force image marker (orange)
+                            if( idx_max_force != idx_current )
+                            {
+                                int max_force_image_type
+                                    = Parameters_GNEB_Get_Climbing_Falling( state.get(), idx_max_force );
+                                ImPlotMarker marker_style = IMPLOT_AUTO;
+                                if( max_force_image_type == GNEB_IMAGE_CLIMBING )
+                                    marker_style = ImPlotMarker_Up;
+                                if( max_force_image_type == GNEB_IMAGE_FALLING )
+                                    marker_style = ImPlotMarker_Down;
+                                if( max_force_image_type == GNEB_IMAGE_STATIONARY )
+                                    marker_style = ImPlotMarker_Square;
+
+                                ImPlot::SetNextMarkerStyle(
+                                    marker_style, IMPLOT_AUTO, ImVec4( ImColor( 255, 165, 0 ) ), IMPLOT_AUTO,
+                                    ImVec4( ImColor( 255, 165, 0 ) ) );
+                                ImPlot::PlotScatter( "", &rx[idx_max_force], &energies[idx_max_force], 1 );
+                            }
+                        }
                     }
 
                     ImPlot::EndPlot();
