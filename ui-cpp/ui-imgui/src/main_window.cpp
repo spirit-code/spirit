@@ -100,13 +100,31 @@ void MainWindow::handle_mouse()
     if( io.KeyShift )
         scale = 0.1f;
 
-    if( ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_LEFT ) && !ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_RIGHT ) )
+    // Left-click dragging
+    if( ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_LEFT ) && !ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_RIGHT )
+        && this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::REGULAR )
     {
         rendering_layer.view.mouseMove(
             glm::vec2( 0, 0 ), glm::vec2( scale * io.MouseDelta.x, scale * io.MouseDelta.y ),
             VFRendering::CameraMovementModes::ROTATE_BOUNDED );
         rendering_layer.needs_redraw();
     }
+    else if(
+        ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_LEFT ) && !ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_RIGHT )
+        && this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
+    {
+    }
+    else if(
+        ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_LEFT ) && !ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_RIGHT )
+        && this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DEFECT )
+    {
+    }
+    else if(
+        ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_LEFT ) && !ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_RIGHT )
+        && this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::PINNING )
+    {
+    }
+    // Right-click dragging
     else if( ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_RIGHT ) && !ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_LEFT ) )
     {
         rendering_layer.view.mouseMove(
@@ -202,26 +220,29 @@ void MainWindow::handle_keyboard()
         float theta        = 0;
         float phi          = 0;
 
-        if( ImGui::IsKeyDown( GLFW_KEY_A ) && !ImGui::IsKeyDown( GLFW_KEY_D ) )
+        if( this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::REGULAR )
         {
-            rotate_camera = true;
-            phi           = 5 * scale;
-        }
-        else if( ImGui::IsKeyDown( GLFW_KEY_D ) && !ImGui::IsKeyDown( GLFW_KEY_A ) )
-        {
-            rotate_camera = true;
-            phi           = -5 * scale;
-        }
+            if( ImGui::IsKeyDown( GLFW_KEY_A ) && !ImGui::IsKeyDown( GLFW_KEY_D ) )
+            {
+                rotate_camera = true;
+                phi           = 5 * scale;
+            }
+            else if( ImGui::IsKeyDown( GLFW_KEY_D ) && !ImGui::IsKeyDown( GLFW_KEY_A ) )
+            {
+                rotate_camera = true;
+                phi           = -5 * scale;
+            }
 
-        if( ImGui::IsKeyDown( GLFW_KEY_Q ) && !ImGui::IsKeyDown( GLFW_KEY_E ) )
-        {
-            rotate_camera = true;
-            theta         = 5 * scale;
-        }
-        else if( ImGui::IsKeyDown( GLFW_KEY_E ) && !ImGui::IsKeyDown( GLFW_KEY_Q ) )
-        {
-            rotate_camera = true;
-            theta         = -5 * scale;
+            if( ImGui::IsKeyDown( GLFW_KEY_Q ) && !ImGui::IsKeyDown( GLFW_KEY_E ) )
+            {
+                rotate_camera = true;
+                theta         = 5 * scale;
+            }
+            else if( ImGui::IsKeyDown( GLFW_KEY_E ) && !ImGui::IsKeyDown( GLFW_KEY_Q ) )
+            {
+                rotate_camera = true;
+                theta         = -5 * scale;
+            }
         }
 
         if( ImGui::IsKeyDown( GLFW_KEY_T ) && !ImGui::IsKeyDown( GLFW_KEY_G ) )
@@ -259,163 +280,191 @@ void MainWindow::handle_keyboard()
             rendering_layer.needs_redraw();
         }
 
-        // Reset the key repeat parameters
-        io.KeyRepeatRate  = backup_repeat_rate;
-        io.KeyRepeatDelay = backup_repeat_delay;
-
-        //-----------------------------------------------------
-
-        if( ImGui::IsKeyPressed( GLFW_KEY_X, false ) )
+        if( this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::REGULAR )
         {
-            float camera_distance = glm::length(
-                rendering_layer.view.options().get<VFRendering::View::Option::CENTER_POSITION>()
-                - rendering_layer.view.options().get<VFRendering::View::Option::CAMERA_POSITION>() );
-            auto center_position = rendering_layer.view.options().get<VFRendering::View::Option::SYSTEM_CENTER>();
-            auto camera_position = center_position;
-            auto up_vector       = glm::vec3( 0, 0, 1 );
+            // Reset the key repeat parameters
+            io.KeyRepeatRate  = backup_repeat_rate;
+            io.KeyRepeatDelay = backup_repeat_delay;
 
-            if( !io.KeyShift )
+            if( ImGui::IsKeyPressed( GLFW_KEY_X, false ) )
             {
-                camera_position += camera_distance * glm::vec3( 1, 0, 0 );
+                float camera_distance = glm::length(
+                    rendering_layer.view.options().get<VFRendering::View::Option::CENTER_POSITION>()
+                    - rendering_layer.view.options().get<VFRendering::View::Option::CAMERA_POSITION>() );
+                auto center_position = rendering_layer.view.options().get<VFRendering::View::Option::SYSTEM_CENTER>();
+                auto camera_position = center_position;
+                auto up_vector       = glm::vec3( 0, 0, 1 );
+
+                if( !io.KeyShift )
+                {
+                    camera_position += camera_distance * glm::vec3( 1, 0, 0 );
+                }
+                else
+                {
+                    camera_position -= camera_distance * glm::vec3( 1, 0, 0 );
+                }
+
+                VFRendering::Options options;
+                options.set<VFRendering::View::Option::CAMERA_POSITION>( camera_position );
+                options.set<VFRendering::View::Option::CENTER_POSITION>( center_position );
+                options.set<VFRendering::View::Option::UP_VECTOR>( up_vector );
+                rendering_layer.view.updateOptions( options );
+                rendering_layer.needs_redraw();
             }
-            else
+            if( ImGui::IsKeyPressed( GLFW_KEY_Y, false ) )
             {
-                camera_position -= camera_distance * glm::vec3( 1, 0, 0 );
+                float camera_distance = glm::length(
+                    rendering_layer.view.options().get<VFRendering::View::Option::CENTER_POSITION>()
+                    - rendering_layer.view.options().get<VFRendering::View::Option::CAMERA_POSITION>() );
+                auto center_position = rendering_layer.view.options().get<VFRendering::View::Option::SYSTEM_CENTER>();
+                auto camera_position = center_position;
+                auto up_vector       = glm::vec3( 0, 0, 1 );
+
+                if( !io.KeyShift )
+                    camera_position += camera_distance * glm::vec3( 0, -1, 0 );
+                else
+                    camera_position -= camera_distance * glm::vec3( 0, -1, 0 );
+
+                VFRendering::Options options;
+                options.set<VFRendering::View::Option::CAMERA_POSITION>( camera_position );
+                options.set<VFRendering::View::Option::CENTER_POSITION>( center_position );
+                options.set<VFRendering::View::Option::UP_VECTOR>( up_vector );
+                rendering_layer.view.updateOptions( options );
+                rendering_layer.needs_redraw();
+            }
+            if( ImGui::IsKeyPressed( GLFW_KEY_Z, false ) )
+            {
+                float camera_distance = glm::length(
+                    rendering_layer.view.options().get<VFRendering::View::Option::CENTER_POSITION>()
+                    - rendering_layer.view.options().get<VFRendering::View::Option::CAMERA_POSITION>() );
+                auto center_position = rendering_layer.view.options().get<VFRendering::View::Option::SYSTEM_CENTER>();
+                auto camera_position = center_position;
+                auto up_vector       = glm::vec3( 0, 1, 0 );
+
+                if( !io.KeyShift )
+                    camera_position += camera_distance * glm::vec3( 0, 0, 1 );
+                else
+                    camera_position -= camera_distance * glm::vec3( 0, 0, 1 );
+
+                VFRendering::Options options;
+                options.set<VFRendering::View::Option::CAMERA_POSITION>( camera_position );
+                options.set<VFRendering::View::Option::CENTER_POSITION>( center_position );
+                options.set<VFRendering::View::Option::UP_VECTOR>( up_vector );
+                rendering_layer.view.updateOptions( options );
+                rendering_layer.needs_redraw();
             }
 
-            VFRendering::Options options;
-            options.set<VFRendering::View::Option::CAMERA_POSITION>( camera_position );
-            options.set<VFRendering::View::Option::CENTER_POSITION>( center_position );
-            options.set<VFRendering::View::Option::UP_VECTOR>( up_vector );
-            rendering_layer.view.updateOptions( options );
-            rendering_layer.needs_redraw();
-        }
-        if( ImGui::IsKeyPressed( GLFW_KEY_Y, false ) )
-        {
-            float camera_distance = glm::length(
-                rendering_layer.view.options().get<VFRendering::View::Option::CENTER_POSITION>()
-                - rendering_layer.view.options().get<VFRendering::View::Option::CAMERA_POSITION>() );
-            auto center_position = rendering_layer.view.options().get<VFRendering::View::Option::SYSTEM_CENTER>();
-            auto camera_position = center_position;
-            auto up_vector       = glm::vec3( 0, 0, 1 );
-
-            if( !io.KeyShift )
-                camera_position += camera_distance * glm::vec3( 0, -1, 0 );
-            else
-                camera_position -= camera_distance * glm::vec3( 0, -1, 0 );
-
-            VFRendering::Options options;
-            options.set<VFRendering::View::Option::CAMERA_POSITION>( camera_position );
-            options.set<VFRendering::View::Option::CENTER_POSITION>( center_position );
-            options.set<VFRendering::View::Option::UP_VECTOR>( up_vector );
-            rendering_layer.view.updateOptions( options );
-            rendering_layer.needs_redraw();
-        }
-        if( ImGui::IsKeyPressed( GLFW_KEY_Z, false ) )
-        {
-            float camera_distance = glm::length(
-                rendering_layer.view.options().get<VFRendering::View::Option::CENTER_POSITION>()
-                - rendering_layer.view.options().get<VFRendering::View::Option::CAMERA_POSITION>() );
-            auto center_position = rendering_layer.view.options().get<VFRendering::View::Option::SYSTEM_CENTER>();
-            auto camera_position = center_position;
-            auto up_vector       = glm::vec3( 0, 1, 0 );
-
-            if( !io.KeyShift )
-                camera_position += camera_distance * glm::vec3( 0, 0, 1 );
-            else
-                camera_position -= camera_distance * glm::vec3( 0, 0, 1 );
-
-            VFRendering::Options options;
-            options.set<VFRendering::View::Option::CAMERA_POSITION>( camera_position );
-            options.set<VFRendering::View::Option::CENTER_POSITION>( center_position );
-            options.set<VFRendering::View::Option::UP_VECTOR>( up_vector );
-            rendering_layer.view.updateOptions( options );
-            rendering_layer.needs_redraw();
-        }
-
-        //-----------------------------------------------------
-
-        if( ImGui::IsKeyPressed( GLFW_KEY_SPACE, false ) )
-        {
-            start_stop();
-        }
-
-        if( ImGui::IsKeyPressed( GLFW_KEY_RIGHT ) )
-        {
-            if( System_Get_Index( state.get() ) < Chain_Get_NOI( this->state.get() ) - 1 )
+            if( ImGui::IsKeyPressed( GLFW_KEY_C, false ) )
             {
-                // Change active image
-                Chain_next_Image( this->state.get() );
-
-                rendering_layer.needs_data();
+                rendering_layer.set_camera_orthographic( !ui_shared_state.camera_is_orthographic );
             }
         }
+    }
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_LEFT ) )
-        {
-            // this->return_focus();
-            if( System_Get_Index( state.get() ) > 0 )
-            {
-                // Change active image!
-                Chain_prev_Image( this->state.get() );
+    //-----------------------------------------------------
 
-                rendering_layer.needs_data();
-            }
-        }
+    if( ImGui::IsKeyPressed( GLFW_KEY_SPACE, false ) )
+    {
+        start_stop();
+    }
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_DELETE ) )
+    if( ImGui::IsKeyPressed( GLFW_KEY_RIGHT ) )
+    {
+        if( System_Get_Index( state.get() ) < Chain_Get_NOI( this->state.get() ) - 1 )
         {
-            this->delete_image();
-        }
+            // Change active image
+            Chain_next_Image( this->state.get() );
 
-        //-----------------------------------------------------
+            rendering_layer.needs_data();
+        }
+    }
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_F1, false ) )
+    if( ImGui::IsKeyPressed( GLFW_KEY_LEFT ) )
+    {
+        // this->return_focus();
+        if( System_Get_Index( state.get() ) > 0 )
         {
-            show_keybindings = !show_keybindings;
-        }
-        if( ImGui::IsKeyPressed( GLFW_KEY_I, false ) )
-        {
-            ui_config_file.show_overlays = !ui_config_file.show_overlays;
-        }
+            // Change active image!
+            Chain_prev_Image( this->state.get() );
 
-        //-----------------------------------------------------
-        // TODO: deactivate method selection if a calculation is running
-        if( ImGui::IsKeyPressed( GLFW_KEY_1, false ) )
-        {
-            ui_shared_state.selected_mode = GUI_Mode::Minimizer;
+            rendering_layer.needs_data();
         }
-        if( ImGui::IsKeyPressed( GLFW_KEY_2, false ) )
-        {
-            ui_shared_state.selected_mode = GUI_Mode::MC;
-        }
-        if( ImGui::IsKeyPressed( GLFW_KEY_3, false ) )
-        {
-            ui_shared_state.selected_mode = GUI_Mode::LLG;
-        }
-        if( ImGui::IsKeyPressed( GLFW_KEY_4, false ) )
-        {
-            ui_shared_state.selected_mode = GUI_Mode::GNEB;
-        }
-        if( ImGui::IsKeyPressed( GLFW_KEY_5, false ) )
-        {
-            ui_shared_state.selected_mode = GUI_Mode::MMF;
-        }
-        if( ImGui::IsKeyPressed( GLFW_KEY_6, false ) )
-        {
-            ui_shared_state.selected_mode = GUI_Mode::EMA;
-        }
+    }
 
-        //-----------------------------------------------------
+    if( ImGui::IsKeyPressed( GLFW_KEY_DELETE ) )
+    {
+        this->delete_image();
+    }
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_HOME, false ) )
-        {
-            ++ui_shared_state.n_screenshots;
-            std::string name
-                = fmt::format( "{}_Screenshot_{}", State_DateTime( state.get() ), ui_shared_state.n_screenshots );
-            rendering_layer.screenshot_png( name );
-            ui_shared_state.notify( fmt::format( ICON_FA_DESKTOP "  Captured \"{}\"", name ), 4 );
-        }
+    //-----------------------------------------------------
+
+    if( ImGui::IsKeyPressed( GLFW_KEY_F1, false ) )
+    {
+        show_keybindings = !show_keybindings;
+    }
+    if( ImGui::IsKeyPressed( GLFW_KEY_I, false ) )
+    {
+        ui_config_file.show_overlays = !ui_config_file.show_overlays;
+    }
+
+    if( ImGui::IsKeyPressed( GLFW_KEY_F5, false ) )
+    {
+        if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
+            this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::REGULAR );
+        else
+            this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::DRAG );
+    }
+    if( ImGui::IsKeyPressed( GLFW_KEY_F6, false ) )
+    {
+        if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DEFECT )
+            this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::REGULAR );
+        else
+            this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::DEFECT );
+    }
+    if( ImGui::IsKeyPressed( GLFW_KEY_F7, false ) )
+    {
+        if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::PINNING )
+            this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::REGULAR );
+        else
+            this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::PINNING );
+    }
+
+    //-----------------------------------------------------
+    // TODO: deactivate method selection if a calculation is running
+    if( ImGui::IsKeyPressed( GLFW_KEY_1, false ) )
+    {
+        ui_shared_state.selected_mode = GUI_Mode::Minimizer;
+    }
+    if( ImGui::IsKeyPressed( GLFW_KEY_2, false ) )
+    {
+        ui_shared_state.selected_mode = GUI_Mode::MC;
+    }
+    if( ImGui::IsKeyPressed( GLFW_KEY_3, false ) )
+    {
+        ui_shared_state.selected_mode = GUI_Mode::LLG;
+    }
+    if( ImGui::IsKeyPressed( GLFW_KEY_4, false ) )
+    {
+        ui_shared_state.selected_mode = GUI_Mode::GNEB;
+    }
+    if( ImGui::IsKeyPressed( GLFW_KEY_5, false ) )
+    {
+        ui_shared_state.selected_mode = GUI_Mode::MMF;
+    }
+    if( ImGui::IsKeyPressed( GLFW_KEY_6, false ) )
+    {
+        ui_shared_state.selected_mode = GUI_Mode::EMA;
+    }
+
+    //-----------------------------------------------------
+
+    if( ImGui::IsKeyPressed( GLFW_KEY_HOME, false ) )
+    {
+        ++ui_shared_state.n_screenshots;
+        std::string name
+            = fmt::format( "{}_Screenshot_{}", State_DateTime( state.get() ), ui_shared_state.n_screenshots );
+        rendering_layer.screenshot_png( name );
+        ui_shared_state.notify( fmt::format( ICON_FA_DESKTOP "  Captured \"{}\"", name ), 4 );
     }
 }
 
@@ -703,7 +752,7 @@ void MainWindow::draw()
 #endif
 
     if( Simulation_Running_On_Image( this->state.get() ) || Simulation_Running_On_Chain( this->state.get() )
-        || ui_shared_state.dragging_mode )
+        || ui_shared_state.interaction_mode != UiSharedState::InteractionMode::REGULAR )
     {
         rendering_layer.needs_data();
     }
@@ -716,6 +765,34 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+
+    // ----------------
+
+    auto & io = ImGui::GetIO();
+    if( ui_shared_state.interaction_mode != UiSharedState::InteractionMode::REGULAR )
+    {
+        if( ImGui::IsAnyWindowHovered() )
+            io.MouseDrawCursor = true;
+        else
+        {
+            io.MouseDrawCursor = false;
+
+            ImU32 color = IM_COL32( 0, 0, 0, 255 );
+            if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
+                color = IM_COL32( 255, 0, 0, 100 );
+            else if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DEFECT )
+                color = IM_COL32( 0, 255, 0, 100 );
+            else if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::PINNING )
+                color = IM_COL32( 0, 0, 255, 100 );
+
+            ImVec2 mpos = ImGui::GetMousePos();
+            ImGui::GetBackgroundDrawList()->AddCircle( mpos, 200 * 0.6f, color, 0, 4 );
+        }
+    }
+    else
+        io.MouseDrawCursor = true;
+
+    // ----------------
 
     ImGui::PushFont( font_karla_14 );
 
@@ -962,13 +1039,47 @@ void MainWindow::show_menu_bar()
             {
             }
             ImGui::Separator();
-            if( ImGui::MenuItem( "Toggle dragging mode", "F5", false, false ) )
+            if( ImGui::MenuItem(
+                    "Toggle dragging mode", "F5",
+                    ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG ) )
+            {
+                if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
+                    this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::REGULAR );
+                else
+                    this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::DRAG );
+            }
+            if( ImGui::MenuItem(
+                    "Toggle defect mode", "F6",
+                    ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DEFECT ) )
+            {
+                if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DEFECT )
+                    this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::REGULAR );
+                else
+                    this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::DEFECT );
+            }
+            if( ImGui::MenuItem(
+                    "Toggle pinning mode", "F7",
+                    ui_shared_state.interaction_mode == UiSharedState::InteractionMode::PINNING ) )
+            {
+                if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::PINNING )
+                    this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::REGULAR );
+                else
+                    this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::PINNING );
+            }
+            ImGui::EndMenu();
+        }
+        if( ImGui::BeginMenu( "Log" ) )
+        {
+            if( ImGui::MenuItem( "System energy contributions", "", false, false ) )
             {
             }
-            if( ImGui::MenuItem( "Toggle defect mode", "F6", false, false ) )
+            if( ImGui::MenuItem( "System magnetization", "", false, false ) )
             {
             }
-            if( ImGui::MenuItem( "Toggle pinning mode", "F7", false, false ) )
+            if( ImGui::MenuItem( "System topological charge", "", false, false ) )
+            {
+            }
+            if( ImGui::MenuItem( "Chain reaction coordinates", "", false, false ) )
             {
             }
             ImGui::EndMenu();
@@ -1000,10 +1111,15 @@ void MainWindow::show_menu_bar()
             {
             }
             ImGui::Separator();
-            if( ImGui::MenuItem( "Toggle camera projection", "c", false, false ) )
+            if( ImGui::MenuItem(
+                    "Orthographic camera", "c", ui_shared_state.camera_is_orthographic,
+                    ui_shared_state.interaction_mode == UiSharedState::InteractionMode::REGULAR ) )
             {
+                this->rendering_layer.set_camera_orthographic( !ui_shared_state.camera_is_orthographic );
             }
-            if( ImGui::MenuItem( "Reset camera", "ctrl+shift+r" ) )
+            if( ImGui::MenuItem(
+                    "Reset camera", "ctrl+shift+r", false,
+                    ui_shared_state.interaction_mode == UiSharedState::InteractionMode::REGULAR ) )
             {
                 this->rendering_layer.reset_camera();
             }
@@ -1350,6 +1466,9 @@ MainWindow::~MainWindow()
 {
     // Stop and wait for any running calculations
     this->stop_all();
+
+    // Return to the regular mode
+    this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::REGULAR );
 
     // Update the config
     glfwGetWindowPos( glfw_window, &ui_config_file.window_position[0], &ui_config_file.window_position[1] );

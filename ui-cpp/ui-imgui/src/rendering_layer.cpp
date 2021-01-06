@@ -402,4 +402,118 @@ void RenderingLayer::reset_camera()
     this->needs_redraw();
 }
 
+// Uses the camera's current FOV and distance from the system center to update the camera position for
+// a new FOV without changing the perceived distance from the system center.
+void change_camera_position_from_fov(
+    float previous_fov, float new_fov, glm::vec3 system_center, glm::vec3 & camera_position )
+{
+    float scale = 1;
+    if( previous_fov > 0 && new_fov > 0 )
+        scale = std::tan( glm::radians( previous_fov ) / 2.0 ) / std::tan( glm::radians( new_fov ) / 2.0 );
+    else if( previous_fov > 0 )
+        scale = std::tan( glm::radians( previous_fov ) / 2.0 );
+    else if( new_fov > 0 )
+        scale = 1.0 / std::tan( glm::radians( new_fov ) / 2.0 );
+    auto new_camera_position = system_center + ( camera_position - system_center ) * scale;
+    camera_position          = new_camera_position;
+}
+
+void RenderingLayer::set_camera_fov( float new_fov )
+{
+    if( ui_shared_state.interaction_mode != UiSharedState::InteractionMode::REGULAR )
+        return;
+
+    float previous_fov   = view.options().get<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>();
+    auto system_center   = view.options().get<VFRendering::View::Option::SYSTEM_CENTER>();
+    auto camera_position = view.options().get<VFRendering::View::Option::CAMERA_POSITION>();
+    change_camera_position_from_fov( previous_fov, new_fov, system_center, camera_position );
+
+    // Update
+    view.setOption<VFRendering::View::Option::CAMERA_POSITION>( camera_position );
+    view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>( new_fov );
+}
+
+void RenderingLayer::set_camera_orthographic( bool orthographic )
+{
+    if( ui_shared_state.interaction_mode != UiSharedState::InteractionMode::REGULAR )
+        return;
+
+    if( ui_shared_state.camera_is_orthographic && !orthographic )
+    {
+        this->set_camera_fov( ui_shared_state.camera_perspective_fov );
+    }
+    else if( !ui_shared_state.camera_is_orthographic && orthographic )
+    {
+        ui_shared_state.camera_perspective_fov
+            = view.options().get<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>();
+        this->set_camera_fov( 0 );
+    }
+
+    ui_shared_state.camera_is_orthographic = orthographic;
+}
+
+void RenderingLayer::set_interaction_mode( UiSharedState::InteractionMode interaction_mode )
+{
+    if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::REGULAR
+        && interaction_mode != UiSharedState::InteractionMode::REGULAR )
+    {
+        // Save "regular camera" data
+        auto cam_pos = view.options().get<VFRendering::View::Option::CAMERA_POSITION>();
+        auto cen_pos = view.options().get<VFRendering::View::Option::CENTER_POSITION>();
+        auto sys_cen = view.options().get<VFRendering::View::Option::SYSTEM_CENTER>();
+        auto up_vec  = view.options().get<VFRendering::View::Option::UP_VECTOR>();
+        for( int dim = 0; dim < 3; ++dim )
+        {
+            ui_shared_state.regular_interaction_camera_pos[dim] = cam_pos[dim];
+            ui_shared_state.regular_interaction_center_pos[dim] = cen_pos[dim];
+            ui_shared_state.regular_interaction_sys_center[dim] = sys_cen[dim];
+            ui_shared_state.regular_interaction_camera_up[dim]  = up_vec[dim];
+        }
+        if( !ui_shared_state.camera_is_orthographic )
+            ui_shared_state.camera_perspective_fov
+                = view.options().get<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>();
+
+        // The "interaction mode camera" is orthographic, so we calculate the new distance
+        float prev_fov = view.options().get<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>();
+        change_camera_position_from_fov( prev_fov, 0, sys_cen, cam_pos );
+
+        float camera_distance = glm::length( cen_pos - cam_pos );
+        auto camera_position  = sys_cen + camera_distance * glm::vec3( 0, 0, 1 );
+
+        // Update
+        VFRendering::Options options;
+        options.set<VFRendering::View::Option::CAMERA_POSITION>( camera_position );
+        options.set<VFRendering::View::Option::CENTER_POSITION>( sys_cen );
+        options.set<VFRendering::View::Option::UP_VECTOR>( { 0, 1, 0 } );
+        options.set<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>( 0 );
+        view.updateOptions( options );
+        needs_redraw();
+    }
+    else if(
+        ui_shared_state.interaction_mode != UiSharedState::InteractionMode::REGULAR
+        && interaction_mode == UiSharedState::InteractionMode::REGULAR )
+    {
+        // Restore "regular camera" data
+        VFRendering::Options options;
+        options.set<VFRendering::View::Option::CENTER_POSITION>(
+            { ui_shared_state.regular_interaction_center_pos[0], ui_shared_state.regular_interaction_center_pos[1],
+              ui_shared_state.regular_interaction_center_pos[2] } );
+        options.set<VFRendering::View::Option::SYSTEM_CENTER>( { ui_shared_state.regular_interaction_sys_center[0],
+                                                                 ui_shared_state.regular_interaction_sys_center[1],
+                                                                 ui_shared_state.regular_interaction_sys_center[2] } );
+        options.set<VFRendering::View::Option::UP_VECTOR>( { ui_shared_state.regular_interaction_camera_up[0],
+                                                             ui_shared_state.regular_interaction_camera_up[1],
+                                                             ui_shared_state.regular_interaction_camera_up[2] } );
+        options.set<VFRendering::View::Option::CAMERA_POSITION>(
+            { ui_shared_state.regular_interaction_camera_pos[0], ui_shared_state.regular_interaction_camera_pos[1],
+              ui_shared_state.regular_interaction_camera_pos[2] } );
+
+        if( !ui_shared_state.camera_is_orthographic )
+            options.set<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>( ui_shared_state.camera_perspective_fov );
+        view.updateOptions( options );
+        needs_redraw();
+    }
+    ui_shared_state.interaction_mode = interaction_mode;
+}
+
 } // namespace ui

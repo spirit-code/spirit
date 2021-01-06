@@ -35,7 +35,14 @@ struct RenderingLayer
 
     void initialize_gl();
     void draw( int display_w, int display_h );
+
     void reset_camera();
+    // Change the field of view without changing the perceived camera distance
+    void set_camera_fov( float new_fov );
+    void set_camera_orthographic( bool orthographic );
+
+    void set_interaction_mode( UiSharedState::InteractionMode interaction_mode );
+
     void screenshot_png( std::string filename = "screenshot" );
 
     void update_vf_geometry();
