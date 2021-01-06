@@ -280,12 +280,12 @@ void MainWindow::handle_keyboard()
             rendering_layer.needs_redraw();
         }
 
+        // Reset the key repeat parameters
+        io.KeyRepeatRate  = backup_repeat_rate;
+        io.KeyRepeatDelay = backup_repeat_delay;
+
         if( this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::REGULAR )
         {
-            // Reset the key repeat parameters
-            io.KeyRepeatRate  = backup_repeat_rate;
-            io.KeyRepeatDelay = backup_repeat_delay;
-
             if( ImGui::IsKeyPressed( GLFW_KEY_X, false ) )
             {
                 float camera_distance = glm::length(
@@ -359,112 +359,107 @@ void MainWindow::handle_keyboard()
                 rendering_layer.set_camera_orthographic( !ui_shared_state.camera_is_orthographic );
             }
         }
-    }
 
-    //-----------------------------------------------------
+        //-----------------------------------------------------
 
-    if( ImGui::IsKeyPressed( GLFW_KEY_SPACE, false ) )
-    {
-        start_stop();
-    }
-
-    if( ImGui::IsKeyPressed( GLFW_KEY_RIGHT ) )
-    {
-        if( System_Get_Index( state.get() ) < Chain_Get_NOI( this->state.get() ) - 1 )
+        if( ImGui::IsKeyPressed( GLFW_KEY_SPACE, false ) )
         {
-            // Change active image
-            Chain_next_Image( this->state.get() );
-
-            rendering_layer.needs_data();
+            start_stop();
         }
-    }
 
-    if( ImGui::IsKeyPressed( GLFW_KEY_LEFT ) )
-    {
-        // this->return_focus();
-        if( System_Get_Index( state.get() ) > 0 )
+        if( ImGui::IsKeyPressed( GLFW_KEY_RIGHT ) )
         {
-            // Change active image!
-            Chain_prev_Image( this->state.get() );
-
-            rendering_layer.needs_data();
+            if( System_Get_Index( state.get() ) < Chain_Get_NOI( this->state.get() ) - 1 )
+            {
+                Chain_next_Image( this->state.get() );
+                rendering_layer.needs_data();
+            }
         }
-    }
 
-    if( ImGui::IsKeyPressed( GLFW_KEY_DELETE ) )
-    {
-        this->delete_image();
-    }
+        if( ImGui::IsKeyPressed( GLFW_KEY_LEFT ) )
+        {
+            if( System_Get_Index( state.get() ) > 0 )
+            {
+                Chain_prev_Image( this->state.get() );
+                rendering_layer.needs_data();
+            }
+        }
 
-    //-----------------------------------------------------
+        if( ImGui::IsKeyPressed( GLFW_KEY_DELETE ) )
+        {
+            this->delete_image();
+        }
 
-    if( ImGui::IsKeyPressed( GLFW_KEY_F1, false ) )
-    {
-        show_keybindings = !show_keybindings;
-    }
-    if( ImGui::IsKeyPressed( GLFW_KEY_I, false ) )
-    {
-        ui_config_file.show_overlays = !ui_config_file.show_overlays;
-    }
+        //-----------------------------------------------------
 
-    if( ImGui::IsKeyPressed( GLFW_KEY_F5, false ) )
-    {
-        if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
-            this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::REGULAR );
-        else
-            this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::DRAG );
-    }
-    if( ImGui::IsKeyPressed( GLFW_KEY_F6, false ) )
-    {
-        if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DEFECT )
-            this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::REGULAR );
-        else
-            this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::DEFECT );
-    }
-    if( ImGui::IsKeyPressed( GLFW_KEY_F7, false ) )
-    {
-        if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::PINNING )
-            this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::REGULAR );
-        else
-            this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::PINNING );
-    }
+        if( ImGui::IsKeyPressed( GLFW_KEY_F1, false ) )
+        {
+            show_keybindings = !show_keybindings;
+        }
+        if( ImGui::IsKeyPressed( GLFW_KEY_I, false ) )
+        {
+            ui_config_file.show_overlays = !ui_config_file.show_overlays;
+        }
 
-    //-----------------------------------------------------
-    // TODO: deactivate method selection if a calculation is running
-    if( ImGui::IsKeyPressed( GLFW_KEY_1, false ) )
-    {
-        ui_shared_state.selected_mode = GUI_Mode::Minimizer;
-    }
-    if( ImGui::IsKeyPressed( GLFW_KEY_2, false ) )
-    {
-        ui_shared_state.selected_mode = GUI_Mode::MC;
-    }
-    if( ImGui::IsKeyPressed( GLFW_KEY_3, false ) )
-    {
-        ui_shared_state.selected_mode = GUI_Mode::LLG;
-    }
-    if( ImGui::IsKeyPressed( GLFW_KEY_4, false ) )
-    {
-        ui_shared_state.selected_mode = GUI_Mode::GNEB;
-    }
-    if( ImGui::IsKeyPressed( GLFW_KEY_5, false ) )
-    {
-        ui_shared_state.selected_mode = GUI_Mode::MMF;
-    }
-    if( ImGui::IsKeyPressed( GLFW_KEY_6, false ) )
-    {
-        ui_shared_state.selected_mode = GUI_Mode::EMA;
-    }
+        if( ImGui::IsKeyPressed( GLFW_KEY_F5, false ) )
+        {
+            if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
+                this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::REGULAR );
+            else
+                this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::DRAG );
+        }
+        if( ImGui::IsKeyPressed( GLFW_KEY_F6, false ) )
+        {
+            if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DEFECT )
+                this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::REGULAR );
+            else
+                this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::DEFECT );
+        }
+        if( ImGui::IsKeyPressed( GLFW_KEY_F7, false ) )
+        {
+            if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::PINNING )
+                this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::REGULAR );
+            else
+                this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::PINNING );
+        }
 
-    //-----------------------------------------------------
+        //-----------------------------------------------------
+        // TODO: deactivate method selection if a calculation is running
+        if( ImGui::IsKeyPressed( GLFW_KEY_1, false ) )
+        {
+            ui_shared_state.selected_mode = GUI_Mode::Minimizer;
+        }
+        if( ImGui::IsKeyPressed( GLFW_KEY_2, false ) )
+        {
+            ui_shared_state.selected_mode = GUI_Mode::MC;
+        }
+        if( ImGui::IsKeyPressed( GLFW_KEY_3, false ) )
+        {
+            ui_shared_state.selected_mode = GUI_Mode::LLG;
+        }
+        if( ImGui::IsKeyPressed( GLFW_KEY_4, false ) )
+        {
+            ui_shared_state.selected_mode = GUI_Mode::GNEB;
+        }
+        if( ImGui::IsKeyPressed( GLFW_KEY_5, false ) )
+        {
+            ui_shared_state.selected_mode = GUI_Mode::MMF;
+        }
+        if( ImGui::IsKeyPressed( GLFW_KEY_6, false ) )
+        {
+            ui_shared_state.selected_mode = GUI_Mode::EMA;
+        }
 
-    if( ImGui::IsKeyPressed( GLFW_KEY_HOME, false ) )
-    {
-        ++ui_shared_state.n_screenshots;
-        std::string name
-            = fmt::format( "{}_Screenshot_{}", State_DateTime( state.get() ), ui_shared_state.n_screenshots );
-        rendering_layer.screenshot_png( name );
-        ui_shared_state.notify( fmt::format( ICON_FA_DESKTOP "  Captured \"{}\"", name ), 4 );
+        //-----------------------------------------------------
+
+        if( ImGui::IsKeyPressed( GLFW_KEY_HOME, false ) )
+        {
+            ++ui_shared_state.n_screenshots;
+            std::string name
+                = fmt::format( "{}_Screenshot_{}", State_DateTime( state.get() ), ui_shared_state.n_screenshots );
+            rendering_layer.screenshot_png( name );
+            ui_shared_state.notify( fmt::format( ICON_FA_DESKTOP "  Captured \"{}\"", name ), 4 );
+        }
     }
 }
 
@@ -1224,6 +1219,11 @@ void MainWindow::show_menu_bar()
 
         if( ImGui::Button( ICON_FA_ARROW_LEFT, ImVec2( width, button_height ) ) )
         {
+            if( System_Get_Index( state.get() ) > 0 )
+            {
+                Chain_prev_Image( this->state.get() );
+                rendering_layer.needs_data();
+            }
         }
 
         image_number = ( ImU32 )( System_Get_Index( state.get() ) + 1 );
@@ -1253,6 +1253,11 @@ void MainWindow::show_menu_bar()
 
         if( ImGui::Button( ICON_FA_ARROW_RIGHT, ImVec2( width, button_height ) ) )
         {
+            if( System_Get_Index( state.get() ) < Chain_Get_NOI( this->state.get() ) - 1 )
+            {
+                Chain_next_Image( this->state.get() );
+                rendering_layer.needs_data();
+            }
         }
 
         ImGui::PopStyleVar(); // ImGuiStyleVar_SelectableTextAlign
