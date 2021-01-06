@@ -48,6 +48,9 @@ struct ConfigurationsWidget
     bool spiral_q2        = false;
     float spiral_qmag2    = 1;
     float spiral_qvec2[3] = { 1, 0, 0 };
+
+    int transition_idx_1 = 1;
+    int transition_idx_2 = 1;
 };
 
 } // namespace ui

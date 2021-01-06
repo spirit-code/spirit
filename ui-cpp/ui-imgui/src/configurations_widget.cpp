@@ -3,6 +3,7 @@
 
 #include <Spirit/Chain.h>
 #include <Spirit/Configurations.h>
+#include <Spirit/Transitions.h>
 
 #include <imgui/imgui.h>
 
@@ -279,6 +280,40 @@ void ConfigurationsWidget::show()
     ImGui::InputFloat( "##configurations_spiral_angle", &spiral_angle );
 
     ImGui::Indent( -15 );
+
+    ImGui::Dummy( { 0, 10 } );
+    ImGui::Separator();
+    ImGui::Dummy( { 0, 10 } );
+
+    ImGui::TextUnformatted( "Transitions" );
+
+    if( ImGui::Button( "Homogeneous from" ) )
+    {
+        Transition_Homogeneous( state.get(), transition_idx_1 - 1, transition_idx_2 - 1 );
+        rendering_layer.needs_data();
+    }
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth( 80 );
+    if( ImGui::InputInt( "##transition_idx_1", &transition_idx_1 ) )
+    {
+        if( transition_idx_1 < 1 )
+            transition_idx_1 = 1;
+    }
+    ImGui::SameLine();
+    ImGui::TextUnformatted( "to" );
+    ImGui::SameLine();
+    ImGui::SetNextItemWidth( 80 );
+    if( ImGui::InputInt( "##transition_idx_2", &transition_idx_2 ) )
+    {
+        if( transition_idx_2 < 1 )
+            transition_idx_2 = 1;
+    }
+
+    if( ImGui::Button( "Homogeneous (entire chain)" ) )
+    {
+        Transition_Homogeneous( state.get(), 0, Chain_Get_NOI( state.get() ) - 1 );
+        rendering_layer.needs_data();
+    }
 
     ImGui::End();
 }
