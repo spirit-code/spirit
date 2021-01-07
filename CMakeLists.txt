@@ -55,9 +55,11 @@ else()
     message( STATUS ">> Did not need to set build type. Configuration types: ${CMAKE_CONFIGURATION_TYPES}" )
 endif()
 ### Set a default install directory in case none is passed
-if( CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT )
+if( CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT OR NOT CMAKE_INSTALL_PREFIX )
     set( CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "default install path" FORCE )
-    message( STATUS ">> No installation directory given. Using: ${CMAKE_INSTALL_PREFIX}" )
+    message( STATUS ">> No installation directory given. Using: '${CMAKE_INSTALL_PREFIX}'" )
+else()
+    message( STATUS ">> Installation directory given: '${CMAKE_INSTALL_PREFIX}'" )
 endif()
 ### Prevent in-source builds
 # set(CMAKE_DISABLE_SOURCE_CHANGES ON) # we need source changes for the generated VERSION.txt
@@ -284,10 +286,11 @@ endif()
 
 
 ################ Install ###########################################
-install( DIRECTORY docs DESTINATION docs/Spirit )
-install( FILES  LICENSE.txt
-                README.md
-                VERSION.txt DESTINATION docs/Spirit )
+install( DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/docs DESTINATION docs )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/LICENSE.txt
+               ${CMAKE_CURRENT_LIST_DIR}/README.md
+               ${CMAKE_CURRENT_LIST_DIR}/VERSION.txt
+         DESTINATION ./ )
 if( SPIRIT_BUILD_FOR_CXX )
     install( DIRECTORY input DESTINATION bin )
 endif()

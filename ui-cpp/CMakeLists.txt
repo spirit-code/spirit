@@ -653,6 +653,11 @@ elseif( WIN32 )
     set( CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE )
     set( CPACK_COMPONENTS_ALL
         bundle icons spirit_core_documentation spirit_core_headers spirit_core_archives )
+else()
+    set( CPACK_GENERATOR "TGZ" )
+    set( CPACK_COMPONENTS_GROUPING ALL_COMPONENTS_IN_ONE )
+    set( CPACK_COMPONENTS_ALL
+        bundle icons spirit_core_documentation spirit_core_headers spirit_core_archives )
 endif()
 set( CPACK_ARCHIVE_COMPONENT_INSTALL ON )
 set( CPACK_PACKAGE_VERSION_MAJOR ${SPIRIT_META_VERSION_MAJOR} )
