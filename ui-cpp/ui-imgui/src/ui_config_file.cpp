@@ -388,6 +388,13 @@ void UiConfigFile::from_json()
                 group.at( "maximized" ).get_to( this->window_maximized );
         }
 
+        auto update = [&]( std::shared_ptr<RendererWidget> ptr ) {
+            ptr->apply_settings();
+            rendering_layer.renderer_widgets.push_back( ptr );
+            ptr->id = rendering_layer.renderer_id_counter;
+            ++rendering_layer.renderer_id_counter;
+        };
+
         if( settings_json.contains( "visualisation" ) )
         {
             auto & group = settings_json.at( "visualisation" );
@@ -400,64 +407,56 @@ void UiConfigFile::from_json()
                     {
                         auto ptr = std::make_shared<BoundingBoxRendererWidget>(
                             rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
-                        rendering_layer.renderer_widgets.push_back( ptr );
                         j.at( "BoundingBoxRendererWidget" ).get_to( *ptr );
-                        ptr->apply_settings();
+                        update( ptr );
                     }
                     if( j.contains( "CoordinateSystemRendererWidget" ) )
                     {
                         auto ptr = std::make_shared<CoordinateSystemRendererWidget>( rendering_layer.state );
-                        rendering_layer.renderer_widgets.push_back( ptr );
                         j.at( "CoordinateSystemRendererWidget" ).get_to( *ptr );
-                        ptr->apply_settings();
+                        update( ptr );
                     }
                     if( j.contains( "DotRendererWidget" ) )
                     {
                         auto ptr = std::make_shared<DotRendererWidget>(
                             rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
-                        rendering_layer.renderer_widgets.push_back( ptr );
                         j.at( "DotRendererWidget" ).get_to( *ptr );
-                        ptr->apply_settings();
+                        update( ptr );
                     }
                     if( j.contains( "ArrowRendererWidget" ) )
                     {
                         auto ptr = std::make_shared<ArrowRendererWidget>(
                             rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
-                        rendering_layer.renderer_widgets.push_back( ptr );
                         j.at( "ArrowRendererWidget" ).get_to( *ptr );
-                        ptr->apply_settings();
+                        update( ptr );
                     }
                     if( j.contains( "ParallelepipedRendererWidget" ) )
                     {
                         auto ptr = std::make_shared<ParallelepipedRendererWidget>(
                             rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
-                        rendering_layer.renderer_widgets.push_back( ptr );
                         j.at( "ParallelepipedRendererWidget" ).get_to( *ptr );
-                        ptr->apply_settings();
+                        update( ptr );
                     }
                     if( j.contains( "SphereRendererWidget" ) )
                     {
                         auto ptr = std::make_shared<SphereRendererWidget>(
                             rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
-                        rendering_layer.renderer_widgets.push_back( ptr );
                         j.at( "SphereRendererWidget" ).get_to( *ptr );
-                        ptr->apply_settings();
+                        update( ptr );
                     }
                     if( j.contains( "SurfaceRendererWidget" ) )
                     {
                         auto ptr = std::make_shared<SurfaceRendererWidget>(
                             rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
-                        rendering_layer.renderer_widgets.push_back( ptr );
                         j.at( "SurfaceRendererWidget" ).get_to( *ptr );
-                        ptr->apply_settings();
+                        update( ptr );
                     }
                     if( j.contains( "IsosurfaceRendererWidget" ) )
                     {
                         auto ptr = std::make_shared<IsosurfaceRendererWidget>(
                             rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
-                        rendering_layer.renderer_widgets.push_back( ptr );
                         j.at( "IsosurfaceRendererWidget" ).get_to( *ptr );
-                        ptr->apply_settings();
+                        update( ptr );
                     }
                 }
             }

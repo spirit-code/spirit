@@ -556,10 +556,10 @@ bool ColormapWidget::colormap_input()
 
 void RendererWidget::show()
 {
-    ImGui::PushID( this->id().c_str() );
-    ImGui::Checkbox( fmt::format( "##{}", this->id() ).c_str(), &show_ );
+    ImGui::PushID( this->id );
+    ImGui::Checkbox( "##checkbox_show", &show_ );
     ImGui::SameLine();
-    if( ImGui::CollapsingHeader( this->id().c_str() ) )
+    if( ImGui::CollapsingHeader( this->name().c_str() ) )
     {
         ImGui::Indent( 25 );
 
@@ -696,10 +696,10 @@ void BoundingBoxRendererWidget::reset()
 
 void BoundingBoxRendererWidget::show()
 {
-    ImGui::PushID( this->id().c_str() );
-    ImGui::Checkbox( fmt::format( "##{}", this->id() ).c_str(), &show_ );
+    ImGui::PushID( this->id );
+    ImGui::Checkbox( "##checkbox_show", &show_ );
     ImGui::SameLine();
-    if( ImGui::CollapsingHeader( this->id().c_str() ) )
+    if( ImGui::CollapsingHeader( this->name().c_str() ) )
     {
         ImGui::Indent( 25 );
 

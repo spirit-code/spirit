@@ -49,6 +49,7 @@ struct RendererWidget
     bool show_   = true;
     bool remove_ = false;
     std::shared_ptr<VFRendering::RendererBase> renderer;
+    int id = 0;
 
     float filter_direction_min[3]{ -1, -1, -1 };
     float filter_direction_max[3]{ 1, 1, 1 };
@@ -59,10 +60,10 @@ struct RendererWidget
     virtual void apply_settings();
 
 protected:
-    RendererWidget( std::shared_ptr<State> state ) : state( state ) {}
-    virtual std::string id() const = 0;
-    virtual void show_settings()   = 0;
-    virtual void reset()           = 0;
+    RendererWidget( std::shared_ptr<State> state ) : state( state ), id( id ) {}
+    virtual std::string name() const = 0;
+    virtual void show_settings()     = 0;
+    virtual void reset()             = 0;
     void show_filters();
     void reset_filters();
 };
@@ -79,7 +80,7 @@ struct BoundingBoxRendererWidget : RendererWidget
     bool draw_shadows   = false;
 
 protected:
-    std::string id() const override
+    std::string name() const override
     {
         return "Boundingbox";
     }
@@ -93,7 +94,7 @@ struct CoordinateSystemRendererWidget : RendererWidget
     void show() override;
 
 protected:
-    std::string id() const override
+    std::string name() const override
     {
         return "Coordinate system";
     }
@@ -110,7 +111,7 @@ struct DotRendererWidget : RendererWidget, ColormapWidget
     float size = 1;
 
 protected:
-    std::string id() const override
+    std::string name() const override
     {
         return "Dots";
     }
@@ -128,7 +129,7 @@ struct ArrowRendererWidget : RendererWidget, ColormapWidget
     int lod    = 10;
 
 protected:
-    std::string id() const override
+    std::string name() const override
     {
         return "Arrows";
     }
@@ -145,7 +146,7 @@ struct ParallelepipedRendererWidget : RendererWidget, ColormapWidget
     float size = 1;
 
 protected:
-    std::string id() const override
+    std::string name() const override
     {
         return "Boxes";
     }
@@ -163,7 +164,7 @@ struct SphereRendererWidget : RendererWidget, ColormapWidget
     int lod    = 10;
 
 protected:
-    std::string id() const override
+    std::string name() const override
     {
         return "Spheres";
     }
@@ -178,7 +179,7 @@ struct SurfaceRendererWidget : RendererWidget, ColormapWidget
     void apply_settings() override;
 
 protected:
-    std::string id() const override
+    std::string name() const override
     {
         return "Surface";
     }
@@ -198,7 +199,7 @@ struct IsosurfaceRendererWidget : RendererWidget, ColormapWidget
     bool flip_normals = false;
 
 protected:
-    std::string id() const override
+    std::string name() const override
     {
         return "Isosurface";
     }

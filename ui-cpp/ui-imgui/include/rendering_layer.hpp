@@ -60,7 +60,8 @@ struct RenderingLayer
     std::vector<std::shared_ptr<RendererWidget>> renderer_widgets;
     std::vector<std::shared_ptr<RendererWidget>> renderer_widgets_not_shown;
 
-    int n_cell_step = 1;
+    int n_cell_step         = 1;
+    int renderer_id_counter = 0;
 
 private:
     std::vector<std::shared_ptr<RendererWidget>> renderer_widgets_shown;
@@ -71,8 +72,6 @@ private:
 
     VFRendering::Geometry geometry;
     VFRendering::VectorField vectorfield_surf2D = VFRendering::VectorField( {}, {} );
-
-    std::shared_ptr<VFRendering::ArrowRenderer> arrow_renderer_ptr;
     std::vector<std::shared_ptr<VFRendering::RendererBase>> system_renderers{};
 };
 

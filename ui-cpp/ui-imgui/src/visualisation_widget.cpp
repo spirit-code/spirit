@@ -212,6 +212,8 @@ void VisualisationWidget::show()
         }
         if( renderer )
         {
+            renderer->id = rendering_layer.renderer_id_counter;
+            ++rendering_layer.renderer_id_counter;
             rendering_layer.renderer_widgets.push_back( renderer );
             rendering_layer.renderer_widgets_not_shown.push_back( renderer );
             ImGui::CloseCurrentPopup();
