@@ -12,7 +12,7 @@ static void glfw_error_callback( int error, const char * description )
 namespace ui
 {
 
-GlfwWindow::GlfwWindow()
+GlfwWindow::GlfwWindow( const std::string & title )
 {
     glfwSetErrorCallback( glfw_error_callback );
 
@@ -38,7 +38,7 @@ GlfwWindow::GlfwWindow()
     // Open a window and create its OpenGL context
     int canvasWidth  = 1280;
     int canvasHeight = 720;
-    glfw_window      = glfwCreateWindow( canvasWidth, canvasHeight, "Spirit - Magnetism Simulation Tool", NULL, NULL );
+    glfw_window      = glfwCreateWindow( canvasWidth, canvasHeight, title.c_str(), NULL, NULL );
     glfwMakeContextCurrent( glfw_window );
 #ifndef __EMSCRIPTEN__
     glfwSwapInterval( 1 ); // Enable vsync

@@ -30,6 +30,8 @@ if( SPIRIT_BUNDLE_APP )
         message( STATUS "creating macOS .app bundle" )
     elseif( WIN32 )
         set( OS_BUNDLE_NAME WIN32 )
+        #----- Avoiding terminal window on Windows
+        set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS /ENTRY:mainCRTStartup" )
     endif()
 endif()
 

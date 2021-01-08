@@ -4,13 +4,15 @@
 
 #include <GLFW/glfw3.h>
 
+#include <string>
+
 namespace ui
 {
 
 class GlfwWindow
 {
 public:
-    GlfwWindow();
+    GlfwWindow( const std::string & title );
 
 protected:
     ~GlfwWindow();
