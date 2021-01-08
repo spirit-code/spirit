@@ -286,14 +286,40 @@ endif()
 
 
 ################ Install ###########################################
-install( DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/docs DESTINATION docs )
-install( FILES ${CMAKE_CURRENT_LIST_DIR}/LICENSE.txt
-               ${CMAKE_CURRENT_LIST_DIR}/README.md
+install( DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/docs/
+         DESTINATION docs/Spirit/
+         COMPONENT spirit_root_files )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/README.md
                ${CMAKE_CURRENT_LIST_DIR}/VERSION.txt
-         DESTINATION ./ )
+         DESTINATION ./
+         COMPONENT spirit_root_files )
+
 if( SPIRIT_BUILD_FOR_CXX )
-    install( DIRECTORY input DESTINATION bin )
+    install( DIRECTORY input DESTINATION bin COMPONENT spirit_root_files )
 endif()
+
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/LICENSE.txt DESTINATION ./ COMPONENT spirit_licenses )
+
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/thirdparty/qhull/COPYING.txt DESTINATION licenses RENAME qhull.txt COMPONENT spirit_licenses )
+
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/cub/LICENSE.TXT   DESTINATION licenses RENAME cub.txt       COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/Eigen/COPYING.BSD DESTINATION licenses RENAME eigen.txt     COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/fmt/LICENSE.rst   DESTINATION licenses RENAME fmt.rst       COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/kiss_fft/COPYING  DESTINATION licenses RENAME kiss_fft.txt  COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/ovf/README.md     DESTINATION licenses RENAME ovf.md        COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/spectra/LICENSE   DESTINATION licenses RENAME spectra.txt   COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/termcolor/LICENSE DESTINATION licenses RENAME termcolor.txt COMPONENT spirit_licenses )
+
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/thirdparty/Lyra/LICENSE.txt DESTINATION licenses RENAME lyra.txt COMPONENT spirit_licenses )
+
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/filesystem/LICENSE       DESTINATION licenses RENAME filesystem.txt       COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/glad/LICENSE             DESTINATION licenses RENAME glad.md              COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/glfw/LICENSE.md          DESTINATION licenses RENAME glfw.md              COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/imgui/LICENSE.txt        DESTINATION licenses RENAME imgui.txt            COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/implot/LICENSE           DESTINATION licenses RENAME implot.txt           COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/json/LICENSE.MIT         DESTINATION licenses RENAME json.txt             COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/nativefiledialog/LICENSE DESTINATION licenses RENAME nativefiledialog.txt COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/stb/LICENSE              DESTINATION licenses RENAME stb.txt              COMPONENT spirit_licenses )
 ####################################################################
 
 
