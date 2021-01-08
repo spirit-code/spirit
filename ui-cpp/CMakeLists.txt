@@ -577,10 +577,14 @@ endif()
 if( WIN32 )
     install( FILES ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon.ico DESTINATION bin COMPONENT icons )
     install( TARGETS ${PROJECT_NAME} DESTINATION bin COMPONENT bundle )
-else()
+elseif( APPLE )
     install( TARGETS ${PROJECT_NAME}
         BUNDLE DESTINATION . COMPONENT bundle
         RUNTIME DESTINATION bin COMPONENT runtime )
+else()
+    install( TARGETS ${PROJECT_NAME}
+        BUNDLE DESTINATION . COMPONENT bundle
+        RUNTIME DESTINATION bin COMPONENT bundle )
 endif()
 
 #--------------------------------------------------
