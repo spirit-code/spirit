@@ -59,11 +59,6 @@ void emscripten_loop()
 }
 #endif
 
-static void glfw_error_callback( int error, const char * description )
-{
-    fmt::print( "Glfw Error {}: {}\n", error, description );
-}
-
 static void framebufferSizeCallback( GLFWwindow * window, int width, int height )
 {
     (void)window;
@@ -1350,7 +1345,9 @@ int MainWindow::run()
 }
 
 MainWindow::MainWindow( std::shared_ptr<State> state )
-        : rendering_layer( ui_shared_state, state ),
+        : GlfwWindow(),
+          state( state ),
+          rendering_layer( ui_shared_state, state ),
           ui_config_file( ui_shared_state, rendering_layer ),
           configurations_widget( ui_config_file.show_configurations_widget, state, rendering_layer ),
           parameters_widget( ui_config_file.show_parameters_widget, state, ui_shared_state.selected_mode ),
@@ -1360,44 +1357,7 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
 {
     global_window_handle = this;
 
-    this->state         = state;
     this->threads_image = std::vector<std::thread>( Chain_Get_NOI( this->state.get() ) );
-
-    glfwSetErrorCallback( glfw_error_callback );
-
-    if( !glfwInit() )
-    {
-        fmt::print( "Failed to initialize GLFW\n" );
-        // return 1;
-        throw std::runtime_error( "Failed to initialize GLFW" );
-    }
-
-    glfwWindowHint( GLFW_SAMPLES, 16 ); // 16x antialiasing
-    glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );
-    glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 2 );
-    glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE ); // We don't want the old OpenGL
-    // glfwWindowHint( GLFW_DECORATED, false );
-    // glfwWindowHint( GLFW_RESIZABLE, true );
-#if __APPLE__
-    glfwWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE );
-#endif
-
-    // Open a window and create its OpenGL context
-    int canvasWidth  = 1280;
-    int canvasHeight = 720;
-    glfw_window      = glfwCreateWindow( canvasWidth, canvasHeight, "Spirit - Magnetism Simulation Tool", NULL, NULL );
-    glfwMakeContextCurrent( glfw_window );
-#ifndef __EMSCRIPTEN__
-    glfwSwapInterval( 1 ); // Enable vsync
-#endif
-
-    if( glfw_window == NULL )
-    {
-        fmt::print( "Failed to open GLFW window.\n" );
-        glfwTerminate();
-        // return -1;
-        throw std::runtime_error( "Failed to open GLFW window." );
-    }
 
     gladLoadGL( (GLADloadfunc)glfwGetProcAddress ); // Initialize GLAD
 
@@ -1489,9 +1449,6 @@ MainWindow::~MainWindow()
     ImGui_ImplGlfw_Shutdown();
     ImPlot::DestroyContext();
     ImGui::DestroyContext();
-
-    glfwDestroyWindow( glfw_window );
-    glfwTerminate();
 }
 
 void MainWindow::resize( int width, int height )

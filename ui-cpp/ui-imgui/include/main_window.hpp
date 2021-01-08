@@ -4,6 +4,7 @@
 
 #include <configurations_widget.hpp>
 #include <geometry_widget.hpp>
+#include <glfw_window.hpp>
 #include <parameters_widget.hpp>
 #include <plots_widget.hpp>
 #include <rendering_layer.hpp>
@@ -12,8 +13,6 @@
 #include <visualisation_widget.hpp>
 
 #include <imgui/imgui.h>
-
-#include <GLFW/glfw3.h>
 
 #include <memory>
 #include <thread>
@@ -24,7 +23,7 @@ struct State;
 namespace ui
 {
 
-class MainWindow
+class MainWindow : GlfwWindow
 {
 public:
     MainWindow( std::shared_ptr<State> state );
@@ -52,8 +51,6 @@ private:
     void insert_image_left();
     void insert_image_right();
     void delete_image();
-
-    GLFWwindow * glfw_window;
 
     UiSharedState ui_shared_state;
     RenderingLayer rendering_layer;

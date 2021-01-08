@@ -60,7 +60,7 @@ struct RendererWidget
     virtual void apply_settings();
 
 protected:
-    RendererWidget( std::shared_ptr<State> state ) : state( state ), id( id ) {}
+    RendererWidget( std::shared_ptr<State> state ) : state( state ) {}
     virtual std::string name() const = 0;
     virtual void show_settings()     = 0;
     virtual void reset()             = 0;

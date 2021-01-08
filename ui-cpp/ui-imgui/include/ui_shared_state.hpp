@@ -45,8 +45,8 @@ struct UiSharedState
 
     // Window and visualisation state
     bool dark_mode = true;
-    std::array<float, 3> background_dark{ 0.9f, 0.0f, 0.2f };
-    std::array<float, 3> background_light{ 0.9f, 0.0f, 0.2f };
+    std::array<float, 3> background_dark{ 0.4f, 0.4f, 0.4f };
+    std::array<float, 3> background_light{ 0.9f, 0.9f, 0.9f };
     std::array<float, 3> light_direction{ 0, 0, -1 };
 
     // Camera in regular interaction mode

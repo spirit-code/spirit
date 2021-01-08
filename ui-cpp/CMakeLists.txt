@@ -14,10 +14,9 @@ project( Spirit_UI_CPP )
 
 ######### Options ##################################################
 #--------------------------------------------------
-#----- Ensure only one of the two GUIs is used
+#----- Ensure only one of the two GUIs is used (and prefer ImGui)
 if( SPIRIT_UI_USE_IMGUI )
     set( SPIRIT_UI_CXX_USE_QT OFF )
-    set( SPIRIT_BUNDLE_APP    OFF )
 endif()
 
 #--------------------------------------------------
@@ -28,6 +27,7 @@ if( SPIRIT_BUNDLE_APP )
     if( APPLE  )
         set( SPIRIT_EXE_NAME "Spirit" )
         set( OS_BUNDLE_NAME MACOSX_BUNDLE )
+        message( STATUS "creating macOS .app bundle" )
     elseif( WIN32 )
         set( OS_BUNDLE_NAME WIN32 )
     endif()
@@ -363,6 +363,7 @@ if( SPIRIT_UI_USE_IMGUI )
     set( HEADER_SPIRIT_UI )
 
     set( SOURCE_SPIRIT_UI
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/glfw_window.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/main_window.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/fonts.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/styles.cpp
@@ -488,7 +489,7 @@ endif()
 #--------------------------------------------------
 #----- Paths
 set( plugin_dest_dir bin/plugins )
-set( qtconf_dest_dir bin )
+set( resource_dest_dir bin )
 set( APPS "\${CMAKE_INSTALL_PREFIX}/bin/${SPIRIT_EXE_NAME}" )
 
 if( WIN32 )
@@ -497,7 +498,7 @@ endif( WIN32 )
 
 if( APPLE AND SPIRIT_BUNDLE_APP )
     set( plugin_dest_dir ${SPIRIT_EXE_NAME}.app/Contents/PlugIns )
-    set( qtconf_dest_dir ${SPIRIT_EXE_NAME}.app/Contents/Resources )
+    set( resource_dest_dir ${SPIRIT_EXE_NAME}.app/Contents/Resources )
     set( APPS "\${CMAKE_INSTALL_PREFIX}/${SPIRIT_EXE_NAME}.app" )
 endif( APPLE AND SPIRIT_BUNDLE_APP )
 
@@ -605,7 +606,7 @@ if( SPIRIT_UI_CXX_USE_QT )
 
     ### Install a qt.conf file
     # INSTALL( CODE "
-    #     file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${qtconf_dest_dir}/qt.conf\" \"\")
+    #     file(WRITE \"\${CMAKE_INSTALL_PREFIX}/${resource_dest_dir}/qt.conf\" \"\")
     #     " COMPONENT Runtime )
 endif()
 
@@ -628,6 +629,11 @@ if( SPIRIT_BUNDLE_APP )
 
     ### Need to make the app and binary executable
     if( APPLE )
+        install( CODE "
+            include(BundleUtilities)
+            fixup_bundle(\"${APPS}\" \"\" \"${DIRS}\")
+            " COMPONENT bundle )
+
         install( CODE "
             execute_process( COMMAND chmod +x \"\${CMAKE_INSTALL_PREFIX}/${SPIRIT_EXE_NAME}.app\" )
             execute_process( COMMAND chmod +x \"\${CMAKE_INSTALL_PREFIX}/${SPIRIT_EXE_NAME}.app/Contents/MacOS/${SPIRIT_EXE_NAME}\" )
