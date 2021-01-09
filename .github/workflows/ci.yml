@@ -100,7 +100,7 @@ jobs:
         sudo apt update
         sudo apt install lcov
 
-    - name: C++ coverage
+    - name: generate C++ coverage
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: |
@@ -109,7 +109,10 @@ jobs:
         lcov -c --no-external --directory . --base-directory $GITHUB_WORKSPACE/core -o after_test.info
         lcov -a baseline.info -a after_test.info -o total_test.info
         lcov -r total_test.info \*thirdparty\* \*/test/\* \*Collection\* \*DLL_\* -o coverage.info
-        bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
+    - name: upload C++ coverage
+      uses: codecov/codecov-action@v1
+      with:
+        files: ${{runner.workspace}}/build/coverage.info
 
     - name: Python API coverage
       working-directory: ./core/python
