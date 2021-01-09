@@ -1,6 +1,6 @@
 name: CI
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
 
@@ -251,6 +251,7 @@ jobs:
         cmake --build . --config $BUILD_TYPE -j 2
 
   deploy-pypi:
+    if: github.event_name != 'pull_request'
     needs: test
     runs-on: ${{ matrix.os }}
     strategy:
@@ -312,10 +313,11 @@ jobs:
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+      if: github.ref == 'refs/heads/master'
       run: twine upload --skip-existing dist/*
 
   deploy-package:
+    if: github.event_name != 'pull_request'
     needs: test
     runs-on: ${{ matrix.os }}
     strategy:
