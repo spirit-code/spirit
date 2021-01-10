@@ -362,6 +362,8 @@ void UiConfigFile::from_json()
                 group.at( "calculation_corner" ).get_to( this->overlay_calculation_corner );
             if( group.contains( "calculation_position" ) )
                 group.at( "calculation_position" ).get_to( this->overlay_calculation_position );
+            if( group.contains( "interaction_radius" ) )
+                group.at( "interaction_radius" ).get_to( this->interaction_radius );
         }
 
         if( settings_json.contains( "shared_state" ) )
@@ -516,7 +518,7 @@ void UiConfigFile::to_json() const
                 { "system_position", this->overlay_system_position },
                 { "calculation_corner", this->overlay_calculation_corner },
                 { "calculation_position", this->overlay_calculation_position },
-
+                { "interaction_radius", this->interaction_radius },
             },
         },
 

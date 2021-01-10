@@ -40,6 +40,9 @@ struct UiConfigFile
     int overlay_calculation_corner = 1;
     std::array<float, 2> overlay_calculation_position;
 
+    // Interaction
+    float interaction_radius = 80;
+
     // Main window
     bool window_maximized  = false;
     bool window_fullscreen = false;

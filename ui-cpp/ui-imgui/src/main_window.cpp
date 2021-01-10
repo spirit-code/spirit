@@ -61,8 +61,9 @@ void emscripten_loop()
 
 static void framebufferSizeCallback( GLFWwindow * window, int width, int height )
 {
-    (void)window;
-    global_window_handle->resize( width, height );
+    float xscale, yscale;
+    glfwGetWindowContentScale( window, &xscale, &yscale );
+    global_window_handle->resize( width * xscale, height * yscale );
 }
 
 /////////////////////////////////////////////////////////////////////
@@ -70,9 +71,60 @@ static void framebufferSizeCallback( GLFWwindow * window, int width, int height 
 namespace ui
 {
 
+static glm::vec2 interaction_click_pos;
+
+// Apply a callable to each of a variadic number of arguments
+template<class F, class... Args>
+void for_each_argument( F f, Args &&... args )
+{
+    []( ... ) {}( ( f( std::forward<Args>( args ) ), 0 )... );
+}
+
+/*
+  Calculate coordinates relative to the system center from window device pixel coordinates.
+    This assumes that `screen_pos` is relative to the top left corner of the window.
+    `window_size` should be the device pixel size of the widget.
+    This function also assumes the camera to be in an orthogonal z-projection.
+*/
+template<class... Args>
+void transform_to_system_frame( RenderingLayer & rendering_layer, Args &&... position )
+{
+    auto & io = ImGui::GetIO();
+
+    glm::vec2 window_size{ io.DisplaySize.x, io.DisplaySize.y };
+
+    auto matrices
+        = VFRendering::Utilities::getMatrices( rendering_layer.view.options(), window_size.x / window_size.y );
+    auto camera_position = rendering_layer.view.options().get<VFRendering::View::Option::CAMERA_POSITION>();
+    auto model_view      = glm::inverse( matrices.first );
+    auto projection      = glm::inverse( matrices.second );
+
+    for_each_argument(
+        [&window_size, &camera_position, &projection, &model_view]( glm::vec2 & pos ) {
+            // Position relative to the center of the window [-1, 1]
+            glm::vec2 relative_pos = 2.0f * ( pos - 0.5f * window_size );
+            relative_pos.x /= window_size.x;
+            relative_pos.y /= window_size.y;
+
+            // Position projected into the system coordinate space
+            glm::vec4 proj_back{ relative_pos.x, relative_pos.y, 0, 0 };
+            proj_back = proj_back * projection;
+            proj_back = proj_back * model_view;
+
+            pos = glm::vec2{ proj_back.x + camera_position.x, -proj_back.y + camera_position.y };
+        },
+        position... );
+}
+
 void MainWindow::handle_mouse()
 {
     auto & io = ImGui::GetIO();
+
+#ifdef __APPLE__
+    bool ctrl = io.KeySuper;
+#else
+    bool ctrl = io.KeyCtrl;
+#endif
 
 #if defined( __APPLE__ )
     float scroll = -0.1 * io.MouseWheel;
@@ -85,15 +137,47 @@ void MainWindow::handle_mouse()
     if( !io.KeyShift )
         scroll *= 10;
 
-    if( io.MouseWheel )
+    // Regular zoom
+    if( io.MouseWheel && !ctrl )
     {
         rendering_layer.view.mouseScroll( scroll );
         rendering_layer.needs_redraw();
+    }
+    // Change interaction radius
+    else if( io.MouseWheel && ctrl )
+    {
+        ui_config_file.interaction_radius += scroll;
     }
 
     float scale = 1;
     if( io.KeyShift )
         scale = 0.1f;
+
+    // Left-click in interaction mode
+    if( ImGui::IsMouseClicked( GLFW_MOUSE_BUTTON_LEFT, false )
+        && this->ui_shared_state.interaction_mode != UiSharedState::InteractionMode::REGULAR )
+    {
+        interaction_click_pos = glm::vec2{ io.MousePos.x, io.MousePos.y };
+        transform_to_system_frame( rendering_layer, interaction_click_pos );
+
+        if( this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
+            Configuration_To_Clipboard( state.get() );
+    }
+    // Right-click in interaction mode
+    if( ImGui::IsMouseClicked( GLFW_MOUSE_BUTTON_RIGHT, false )
+        && this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
+    {
+        glm::vec2 mouse_pos{ io.MousePos.x, io.MousePos.y };
+        glm::vec2 radial_pos{ io.MousePos.x + ui_config_file.interaction_radius, io.MousePos.y };
+        transform_to_system_frame( rendering_layer, mouse_pos, radial_pos );
+
+        float shift[3]{ interaction_click_pos.x - mouse_pos.x, interaction_click_pos.y - mouse_pos.y, 0.0f };
+        float current_position[3]{ mouse_pos.x, mouse_pos.y, 0.0f };
+        float rect[3]{ -1, -1, -1 };
+        float radius = radial_pos.x - mouse_pos.x;
+
+        Configuration_From_Clipboard_Shift( state.get(), shift, current_position, rect, radius );
+    }
 
     // Left-click dragging
     if( ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_LEFT ) && !ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_RIGHT )
@@ -108,6 +192,16 @@ void MainWindow::handle_mouse()
         ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_LEFT ) && !ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_RIGHT )
         && this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
     {
+        glm::vec2 mouse_pos{ io.MousePos.x, io.MousePos.y };
+        glm::vec2 radial_pos{ io.MousePos.x + ui_config_file.interaction_radius, io.MousePos.y };
+        transform_to_system_frame( rendering_layer, mouse_pos, radial_pos );
+
+        float shift[3]{ interaction_click_pos.x - mouse_pos.x, interaction_click_pos.y - mouse_pos.y, 0.0f };
+        float current_position[3]{ mouse_pos.x, mouse_pos.y, 0.0f };
+        float rect[3]{ -1, -1, -1 };
+        float radius = radial_pos.x - mouse_pos.x;
+
+        Configuration_From_Clipboard_Shift( state.get(), shift, current_position, rect, radius );
     }
     else if(
         ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_LEFT ) && !ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_RIGHT )
@@ -727,6 +821,12 @@ void MainWindow::draw()
 
     auto & io = ImGui::GetIO();
 
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    // ----------------
+
     if( !io.WantCaptureMouse )
         this->handle_mouse();
 
@@ -752,12 +852,6 @@ void MainWindow::draw()
 
 void MainWindow::draw_imgui( int display_w, int display_h )
 {
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-
-    // ----------------
-
     auto & io = ImGui::GetIO();
     if( ui_shared_state.interaction_mode != UiSharedState::InteractionMode::REGULAR )
     {
@@ -775,8 +869,9 @@ void MainWindow::draw_imgui( int display_w, int display_h )
             else if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::PINNING )
                 color = IM_COL32( 0, 0, 255, 100 );
 
-            ImVec2 mpos = ImGui::GetMousePos();
-            ImGui::GetBackgroundDrawList()->AddCircle( mpos, 200 * 0.6f, color, 0, 4 );
+            ImGui::GetBackgroundDrawList()->AddCircle(
+                ImGui::GetMousePos(), ui_config_file.interaction_radius, color, 0, 4 );
+            ImGui::GetBackgroundDrawList()->AddCircleFilled( ImGui::GetMousePos(), 8, color );
         }
     }
     else
@@ -1453,6 +1548,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::resize( int width, int height )
 {
+    rendering_layer.view.setFramebufferSize( width, height );
     rendering_layer.needs_redraw();
     this->draw();
 }
