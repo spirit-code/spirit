@@ -61,8 +61,11 @@ void emscripten_loop()
 
 static void framebufferSizeCallback( GLFWwindow * window, int width, int height )
 {
-    float xscale, yscale;
+    float xscale = 1;
+    float yscale = 1;
+#ifndef __EMSCRIPTEN__
     glfwGetWindowContentScale( window, &xscale, &yscale );
+#endif
     global_window_handle->resize( width * xscale, height * yscale );
 }
 
