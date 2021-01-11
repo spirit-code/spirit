@@ -277,8 +277,8 @@ void Method_Solver<solver>::Message_Step()
     bool llg_dynamics
         = this->Name() == "LLG"
           && !(
-              this->systems[this->idx_image]->llg_parameters->direct_minimization || solver == Solver::VP
-              || solver == Solver::VP_OSO || solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas );
+              this->systems[0]->llg_parameters->direct_minimization || solver == Solver::VP || solver == Solver::VP_OSO
+              || solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas );
 
     // Update time of current step
     auto t_current = system_clock::now();
@@ -323,8 +323,8 @@ void Method_Solver<solver>::Message_End()
     bool llg_dynamics
         = this->Name() == "LLG"
           && !(
-              this->systems[this->idx_image]->llg_parameters->direct_minimization || solver == Solver::VP
-              || solver == Solver::VP_OSO || solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas );
+              this->systems[0]->llg_parameters->direct_minimization || solver == Solver::VP || solver == Solver::VP_OSO
+              || solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas );
 
     //---- End timings
     auto t_end = system_clock::now();
