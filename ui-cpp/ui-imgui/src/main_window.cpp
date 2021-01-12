@@ -735,7 +735,7 @@ void MainWindow::insert_image_left()
     int idx = System_Get_Index( state.get() );
     // Insert Image
     Chain_Insert_Image_Before( state.get() );
-    // Make the llg_threads vector larger
+    // Make the threads_image vector larger
     this->threads_image.insert( threads_image.begin() + idx, std::thread() );
     // Switch to the inserted image
     Chain_prev_Image( this->state.get() );
@@ -751,7 +751,7 @@ void MainWindow::insert_image_right()
     int idx = System_Get_Index( state.get() );
     // Insert Image
     Chain_Insert_Image_After( state.get() );
-    // Make the llg_threads vector larger
+    // Make the threads_image vector larger
     this->threads_image.insert( threads_image.begin() + idx + 1, std::thread() );
     // Switch to the inserted image
     Chain_next_Image( this->state.get() );
@@ -768,7 +768,7 @@ void MainWindow::delete_image()
         int idx = System_Get_Index( state.get() );
         if( Chain_Delete_Image( state.get() ) )
         {
-            // Make the llg_threads vector smaller
+            // Make the threads_image vector smaller
             if( this->threads_image[idx].joinable() )
                 this->threads_image[idx].join();
             this->threads_image.erase( threads_image.begin() + idx );
@@ -904,6 +904,7 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     this->configurations_widget.show();
     this->parameters_widget.show();
     this->geometry_widget.show();
+    this->hamiltonian_widget.show();
     ImGui::PushFont( font_cousine_14 );
     this->plots_widget.show();
     ImGui::PopFont();
@@ -1179,6 +1180,7 @@ void MainWindow::show_menu_bar()
             ImGui::MenuItem( "Parameters", "", &ui_config_file.show_parameters_widget );
             ImGui::MenuItem( "Plots", "", &ui_config_file.show_plots );
             ImGui::MenuItem( "Geometry", "", &ui_config_file.show_geometry_widget );
+            ImGui::MenuItem( "Hamiltonian", "", &ui_config_file.show_hamiltonian_widget );
             ImGui::MenuItem( "Visualisation settings", "", &ui_config_file.show_visualisation_widget );
             ImGui::MenuItem( "ImGui Demo Window", "", &show_imgui_demo_window );
             ImGui::MenuItem( "ImPlot Demo Window", "", &show_implot_demo_window );
@@ -1450,6 +1452,7 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
           configurations_widget( ui_config_file.show_configurations_widget, state, rendering_layer ),
           parameters_widget( ui_config_file.show_parameters_widget, state, ui_shared_state.selected_mode ),
           geometry_widget( ui_config_file.show_geometry_widget, state, rendering_layer ),
+          hamiltonian_widget( ui_config_file.show_hamiltonian_widget, state ),
           plots_widget( ui_config_file.show_plots, state ),
           visualisation_widget( ui_config_file.show_visualisation_widget, state, rendering_layer )
 {
@@ -1468,7 +1471,7 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
     io.IniFilename = nullptr;
 
     auto & plot_style     = ImPlot::GetStyle();
-    plot_style.FitPadding = { 0.08, 0.08 };
+    plot_style.FitPadding = { 0.08f, 0.08f };
 
     ImGui_ImplGlfw_InitForOpenGL( glfw_window, false );
     ImGui_ImplOpenGL3_Init();

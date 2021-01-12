@@ -5,6 +5,7 @@
 #include <configurations_widget.hpp>
 #include <geometry_widget.hpp>
 #include <glfw_window.hpp>
+#include <hamiltonian_widget.hpp>
 #include <parameters_widget.hpp>
 #include <plots_widget.hpp>
 #include <rendering_layer.hpp>
@@ -58,6 +59,7 @@ private:
 
     ConfigurationsWidget configurations_widget;
     ParametersWidget parameters_widget;
+    HamiltonianWidget hamiltonian_widget;
     GeometryWidget geometry_widget;
     PlotsWidget plots_widget;
     VisualisationWidget visualisation_widget;
