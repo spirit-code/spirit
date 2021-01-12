@@ -36,6 +36,9 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang")
         MESSAGE( STATUS ">> Chose compiler:                Clang" )
         ### Compiler Flags
         # set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" )
+        if( WIN32 )
+            set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations" )
+        endif()
     endif ()
 ######################################################################
 

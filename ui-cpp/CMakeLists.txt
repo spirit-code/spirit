@@ -235,7 +235,7 @@ if( SPIRIT_UI_CXX_USE_QT )
     target_link_libraries( ${PROJECT_NAME} PRIVATE Threads::Threads )
 
     #--------------------------------------------------
-    if( WIN32 )
+    if( MSVC )
         set( ICON_FILE ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon.ico )
         configure_file(
             ${CMAKE_CURRENT_LIST_DIR}/res/windows_metafile.rc.in
