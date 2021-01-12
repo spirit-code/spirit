@@ -96,7 +96,7 @@ jobs:
     - name: Install necessary packages
       run: |
         python -m pip install --upgrade pip
-        python -m pip install numpy coverage coveralls wheel
+        python -m pip install numpy coverage 'coveralls<3' wheel
         sudo apt update
         sudo apt install lcov
 
