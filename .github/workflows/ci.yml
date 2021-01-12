@@ -1,6 +1,6 @@
 name: CI
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
 
@@ -90,10 +90,11 @@ jobs:
     - name: Install necessary packages
       run: |
         python -m pip install --upgrade pip
-        python -m pip install numpy coverage coveralls wheel
+        python -m pip install numpy coverage 'coveralls<3' wheel
+        sudo apt update
         sudo apt install lcov
 
-    - name: C++ coverage
+    - name: generate C++ coverage
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: |
@@ -102,7 +103,10 @@ jobs:
         lcov -c --no-external --directory . --base-directory $GITHUB_WORKSPACE/core -o after_test.info
         lcov -a baseline.info -a after_test.info -o total_test.info
         lcov -r total_test.info \*thirdparty\* \*/test/\* \*Collection\* \*DLL_\* -o coverage.info
-        bash <(curl -s https://codecov.io/bash) -f coverage.info || echo "Codecov did not collect coverage reports"
+    - name: upload C++ coverage
+      uses: codecov/codecov-action@v1
+      with:
+        files: ${{runner.workspace}}/build/coverage.info
 
     - name: Python API coverage
       working-directory: ./core/python
@@ -162,8 +166,8 @@ jobs:
 
     - name: Install CUDA
       run: |
-          sudo apt update
-          sudo apt install nvidia-cuda-toolkit
+        sudo apt update
+        sudo apt install nvidia-cuda-toolkit
 
     - name: Create build folder
       run: cmake -E make_directory ${{runner.workspace}}/build
@@ -241,6 +245,7 @@ jobs:
         cmake --build . --config $BUILD_TYPE -j 2
 
   deploy-pypi:
+    if: github.event_name != 'pull_request'
     needs: test
     runs-on: ${{ matrix.os }}
     strategy:
@@ -302,5 +307,5 @@ jobs:
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
+      if: github.ref == 'refs/heads/master'
       run: twine upload --skip-existing dist/*
