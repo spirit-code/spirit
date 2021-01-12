@@ -244,12 +244,12 @@ namespace Data
 
                 int icell = 0, idx;
 
-                int a_min = ranges[0] >= 0 & ranges[0] <= n_cells[0] ? ranges[0] : 0;
-                int a_max = ranges[1] >= 0 & ranges[1] <= n_cells[0] ? ranges[1] : n_cells[0];
-                int b_min = ranges[2] >= 0 & ranges[2] <= n_cells[1] ? ranges[2] : 0;
-                int b_max = ranges[3] >= 0 & ranges[3] <= n_cells[1] ? ranges[3] : n_cells[1];
-                int c_min = ranges[4] >= 0 & ranges[4] <= n_cells[2] ? ranges[4] : 0;
-                int c_max = ranges[5] >= 0 & ranges[5] <= n_cells[2] ? ranges[5] : n_cells[2];
+                int a_min = ranges[0] >= 0 && ranges[0] <= n_cells[0] ? ranges[0] : 0;
+                int a_max = ranges[1] >= 0 && ranges[1] <= n_cells[0] ? ranges[1] : n_cells[0];
+                int b_min = ranges[2] >= 0 && ranges[2] <= n_cells[1] ? ranges[2] : 0;
+                int b_max = ranges[3] >= 0 && ranges[3] <= n_cells[1] ? ranges[3] : n_cells[1];
+                int c_min = ranges[4] >= 0 && ranges[4] <= n_cells[2] ? ranges[4] : 0;
+                int c_max = ranges[5] >= 0 && ranges[5] <= n_cells[2] ? ranges[5] : n_cells[2];
 
                 int n_a = std::max(1, int(ceil( double((a_max - a_min)) / double(n_cell_step) )));
                 int n_b = std::max(1, int(ceil( double((b_max - b_min)) / double(n_cell_step) )));
@@ -319,12 +319,12 @@ namespace Data
                 this->last_update_n_cells[2]  = n_cells[2];
                 this->last_update_cell_ranges = ranges;
 
-                int a_min = ranges[0] >= 0 & ranges[0] <= n_cells[0] ? ranges[0] : 0;
-                int a_max = ranges[1] >= 0 & ranges[1] <= n_cells[0] ? ranges[1] : n_cells[0];
-                int b_min = ranges[2] >= 0 & ranges[2] <= n_cells[1] ? ranges[2] : 0;
-                int b_max = ranges[3] >= 0 & ranges[3] <= n_cells[1] ? ranges[3] : n_cells[1];
-                int c_min = ranges[4] >= 0 & ranges[4] <= n_cells[2] ? ranges[4] : 0;
-                int c_max = ranges[5] >= 0 & ranges[5] <= n_cells[2] ? ranges[5] : n_cells[2];
+                int a_min = ranges[0] >= 0 && ranges[0] <= n_cells[0] ? ranges[0] : 0;
+                int a_max = ranges[1] >= 0 && ranges[1] <= n_cells[0] ? ranges[1] : n_cells[0];
+                int b_min = ranges[2] >= 0 && ranges[2] <= n_cells[1] ? ranges[2] : 0;
+                int b_max = ranges[3] >= 0 && ranges[3] <= n_cells[1] ? ranges[3] : n_cells[1];
+                int c_min = ranges[4] >= 0 && ranges[4] <= n_cells[2] ? ranges[4] : 0;
+                int c_max = ranges[5] >= 0 && ranges[5] <= n_cells[2] ? ranges[5] : n_cells[2];
 
                 int n_a = std::max(1, int(ceil( double((a_max - a_min)) / double(n_cell_step) )));
                 int n_b = std::max(1, int(ceil( double((b_max - b_min)) / double(n_cell_step) )));
