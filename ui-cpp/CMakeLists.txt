@@ -454,7 +454,9 @@ if( WIN32 AND SPIRIT_BUILD_FOR_CXX AND (SPIRIT_UI_USE_IMGUI OR SPIRIT_UI_CXX_USE
     target_sources( ${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_LIST_DIR}/res/windows_metafile.rc )
     set( CMAKE_RC_COMPILER_INIT windres )
     enable_language( RC )
-    set( CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>" )
+    if( MSVC )
+        set( CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -i <SOURCE> -o <OBJECT>" )
+    endif()
 endif()
 
 ### OSX and Unix need libdl
