@@ -270,6 +270,8 @@ void HamiltonianWidget::show()
             ImGui::InputInt3(
                 "##ddi_n_periodic_images", ddi_n_periodic_images.data(), ImGuiInputTextFlags_EnterReturnsTrue );
             ImGui::Indent( -15 );
+            ImGui::TextUnformatted( "Cutoff radius" );
+            ImGui::SameLine();
             ImGui::SetNextItemWidth( 80 );
             ImGui::InputFloat(
                 "##ddi_cutoff_radius", &ddi_cutoff_radius, 0, 0, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue );

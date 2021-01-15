@@ -39,7 +39,7 @@ struct ColormapWidget
 protected:
     ColormapWidget();
     void reset_colormap();
-    void set_colormap( Colormap colormap );
+    void set_colormap_implementation( Colormap colormap );
     bool colormap_input();
 };
 

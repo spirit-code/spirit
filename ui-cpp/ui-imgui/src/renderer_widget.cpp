@@ -502,7 +502,7 @@ std::string get_colormap(
 
 ColormapWidget::ColormapWidget()
 {
-    this->set_colormap( colormap );
+    this->set_colormap_implementation( colormap );
 }
 
 void ColormapWidget::reset_colormap()
@@ -522,7 +522,7 @@ void ColormapWidget::reset_colormap()
         colormap_cardinal_c, colormap_monochrome_color );
 }
 
-void ColormapWidget::set_colormap( Colormap colormap )
+void ColormapWidget::set_colormap_implementation( Colormap colormap )
 {
     this->colormap = colormap;
 
@@ -540,14 +540,14 @@ bool ColormapWidget::colormap_input()
     ImGui::SetNextItemWidth( 120 );
     if( ImGui::Combo( "Colormap##arrows", &colormap_index, colormaps.data(), int( colormaps.size() ) ) )
     {
-        set_colormap( Colormap( colormap_index ) );
+        set_colormap_implementation( Colormap( colormap_index ) );
         return true;
     }
 
     if( colormap == Colormap::MONOCHROME
         && ImGui::ColorEdit3( "Colour", &colormap_monochrome_color.x, ImGuiColorEditFlags_NoInputs ) )
     {
-        set_colormap( colormap );
+        set_colormap_implementation( colormap );
         return true;
     }
 
@@ -755,7 +755,7 @@ DotRendererWidget::DotRendererWidget(
 void DotRendererWidget::apply_settings()
 {
     RendererWidget::apply_settings();
-    set_colormap( colormap );
+    set_colormap_implementation( colormap );
     renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 
     renderer->setOption<VFRendering::DotRenderer::DOT_RADIUS>( size * 1000 );
@@ -794,11 +794,11 @@ ArrowRendererWidget::ArrowRendererWidget(
 void ArrowRendererWidget::apply_settings()
 {
     RendererWidget::apply_settings();
-    set_colormap( Colormap::MONOCHROME );
+    set_colormap_implementation( colormap );
     renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
     this->colormap_implementation_str = get_colormap(
-        Colormap::MONOCHROME, colormap_rotation, colormap_invert_z, colormap_invert_xy, colormap_cardinal_a,
-        colormap_cardinal_b, colormap_cardinal_c, colormap_monochrome_color );
+        colormap, colormap_rotation, colormap_invert_z, colormap_invert_xy, colormap_cardinal_a, colormap_cardinal_b,
+        colormap_cardinal_c, colormap_monochrome_color );
 
     renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( size * 0.125f );
     renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( size * 0.3f );
@@ -850,7 +850,7 @@ ParallelepipedRendererWidget::ParallelepipedRendererWidget(
 void ParallelepipedRendererWidget::apply_settings()
 {
     RendererWidget::apply_settings();
-    set_colormap( colormap );
+    set_colormap_implementation( colormap );
     renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 
     renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_A>( size * 0.5f );
@@ -893,7 +893,7 @@ SphereRendererWidget::SphereRendererWidget(
 void SphereRendererWidget::apply_settings()
 {
     RendererWidget::apply_settings();
-    set_colormap( colormap );
+    set_colormap_implementation( colormap );
     renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 
     renderer->setOption<VFRendering::SphereRenderer::Option::SPHERE_RADIUS>( size );
@@ -938,7 +938,7 @@ SurfaceRendererWidget::SurfaceRendererWidget(
 void SurfaceRendererWidget::apply_settings()
 {
     RendererWidget::apply_settings();
-    set_colormap( colormap );
+    set_colormap_implementation( colormap );
     renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 }
 
@@ -967,7 +967,7 @@ IsosurfaceRendererWidget::IsosurfaceRendererWidget(
 void IsosurfaceRendererWidget::apply_settings()
 {
     RendererWidget::apply_settings();
-    set_colormap( colormap );
+    set_colormap_implementation( colormap );
     renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 
     set_lighting_implementation( draw_shadows );

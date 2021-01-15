@@ -1405,6 +1405,8 @@ void MainWindow::show_notifications()
             pos_y += distance * std::cos( rad );
         }
 
+        alpha = std::max( 0.000001f, alpha );
+
         ImGui::PushStyleVar( ImGuiStyleVar_WindowBorderSize, 0 );
         ImGui::PushStyleVar( ImGuiStyleVar_Alpha, alpha );
 

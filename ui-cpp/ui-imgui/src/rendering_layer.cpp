@@ -69,6 +69,8 @@ void RenderingLayer::draw( int display_w, int display_h )
     {
         needs_redraw_ = true;
         system_renderers.resize( 0 );
+        renderer_widgets_shown.resize( 0 );
+        renderer_widgets_not_shown.resize( 0 );
 
         for( auto & renderer_widget : renderer_widgets )
         {
@@ -169,6 +171,9 @@ void RenderingLayer::initialize_gl()
     }
     view.renderers(
         { { std::make_shared<VFRendering::CombinedRenderer>( view, system_renderers ), { { 0, 0, 1, 1 } } } } );
+
+    for( auto & renderer_widget : renderer_widgets )
+        renderer_widget->apply_settings();
 
     gl_initialized_ = true;
 }
