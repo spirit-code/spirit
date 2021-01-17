@@ -234,6 +234,14 @@ void VisualisationWidget::show()
     ImGui::Separator();
     ImGui::Dummy( { 0, 10 } );
 
+    ImGui::TextUnformatted( "Field of view" );
+    int fov = rendering_layer.view.options().get<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>();
+    ImGui::SliderInt( "##slider_fov", &fov, 0, 160 );
+
+    ImGui::Dummy( { 0, 10 } );
+    ImGui::Separator();
+    ImGui::Dummy( { 0, 10 } );
+
     vgm::Vec3 dir(
         rendering_layer.ui_shared_state.light_direction[0], rendering_layer.ui_shared_state.light_direction[1],
         rendering_layer.ui_shared_state.light_direction[2] );
