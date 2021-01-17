@@ -59,7 +59,7 @@ void emscripten_loop()
 }
 #endif
 
-static void framebufferSizeCallback( GLFWwindow * window, int width, int height )
+static void framebuffer_size_callback( GLFWwindow * window, int width, int height )
 {
     float xscale = 1;
     float yscale = 1;
@@ -1007,17 +1007,17 @@ void MainWindow::show_menu_bar()
         {
             if( ImGui::MenuItem( "Load config-file" ) )
             {
-                nfdpathset_t pathSet;
-                nfdresult_t result = NFD_OpenDialogMultiple( "cfg", NULL, &pathSet );
+                nfdpathset_t path_set;
+                nfdresult_t result = NFD_OpenDialogMultiple( "cfg", NULL, &path_set );
                 if( result == NFD_OKAY )
                 {
                     size_t i;
-                    for( i = 0; i < NFD_PathSet_GetCount( &pathSet ); ++i )
+                    for( i = 0; i < NFD_PathSet_GetCount( &path_set ); ++i )
                     {
-                        nfdchar_t * path = NFD_PathSet_GetPath( &pathSet, i );
+                        nfdchar_t * path = NFD_PathSet_GetPath( &path_set, i );
                         fmt::print( "File open path {}: \"{}\"\n", (int)i, path );
                     }
-                    NFD_PathSet_Free( &pathSet );
+                    NFD_PathSet_Free( &path_set );
                 }
                 else if( result != NFD_CANCEL )
                 {
@@ -1026,12 +1026,12 @@ void MainWindow::show_menu_bar()
             }
             if( ImGui::MenuItem( "Save current cfg" ) )
             {
-                nfdchar_t * savePath = NULL;
-                nfdresult_t result   = NFD_SaveDialog( "cfg", NULL, &savePath );
+                nfdchar_t * save_path = NULL;
+                nfdresult_t result    = NFD_SaveDialog( "cfg", NULL, &save_path );
                 if( result == NFD_OKAY )
                 {
-                    fmt::print( "File save path: \"{}\"\n", savePath );
-                    free( savePath );
+                    fmt::print( "File save path: \"{}\"\n", save_path );
+                    free( save_path );
                 }
                 else if( result != NFD_CANCEL )
                 {
@@ -1041,17 +1041,17 @@ void MainWindow::show_menu_bar()
             ImGui::Separator();
             if( ImGui::MenuItem( "Load spin configuration" ) )
             {
-                nfdpathset_t pathSet;
-                nfdresult_t result = NFD_OpenDialogMultiple( "ovf;txt;csv", NULL, &pathSet );
+                nfdpathset_t path_set;
+                nfdresult_t result = NFD_OpenDialogMultiple( "ovf;txt;csv", NULL, &path_set );
                 if( result == NFD_OKAY )
                 {
                     size_t i;
-                    for( i = 0; i < NFD_PathSet_GetCount( &pathSet ); ++i )
+                    for( i = 0; i < NFD_PathSet_GetCount( &path_set ); ++i )
                     {
-                        nfdchar_t * path = NFD_PathSet_GetPath( &pathSet, i );
+                        nfdchar_t * path = NFD_PathSet_GetPath( &path_set, i );
                         fmt::print( "File open path {}: \"{}\"\n", (int)i, path );
                     }
-                    NFD_PathSet_Free( &pathSet );
+                    NFD_PathSet_Free( &path_set );
                 }
                 else if( result != NFD_CANCEL )
                 {
@@ -1060,12 +1060,12 @@ void MainWindow::show_menu_bar()
             }
             if( ImGui::MenuItem( "Save spin configuration" ) )
             {
-                nfdchar_t * savePath = NULL;
-                nfdresult_t result   = NFD_SaveDialog( "ovf;txt;csv", NULL, &savePath );
+                nfdchar_t * save_path = NULL;
+                nfdresult_t result    = NFD_SaveDialog( "ovf;txt;csv", NULL, &save_path );
                 if( result == NFD_OKAY )
                 {
-                    fmt::print( "File save path: \"{}\"\n", savePath );
-                    free( savePath );
+                    fmt::print( "File save path: \"{}\"\n", save_path );
+                    free( save_path );
                 }
                 else if( result != NFD_CANCEL )
                 {
@@ -1084,17 +1084,17 @@ void MainWindow::show_menu_bar()
             ImGui::Separator();
             if( ImGui::MenuItem( "Load chain" ) )
             {
-                nfdpathset_t pathSet;
-                nfdresult_t result = NFD_OpenDialogMultiple( "ovf;txt;csv", NULL, &pathSet );
+                nfdpathset_t path_set;
+                nfdresult_t result = NFD_OpenDialogMultiple( "ovf;txt;csv", NULL, &path_set );
                 if( result == NFD_OKAY )
                 {
                     size_t i;
-                    for( i = 0; i < NFD_PathSet_GetCount( &pathSet ); ++i )
+                    for( i = 0; i < NFD_PathSet_GetCount( &path_set ); ++i )
                     {
-                        nfdchar_t * path = NFD_PathSet_GetPath( &pathSet, i );
+                        nfdchar_t * path = NFD_PathSet_GetPath( &path_set, i );
                         fmt::print( "File open path {}: \"{}\"\n", (int)i, path );
                     }
-                    NFD_PathSet_Free( &pathSet );
+                    NFD_PathSet_Free( &path_set );
                 }
                 else if( result != NFD_CANCEL )
                 {
@@ -1103,12 +1103,12 @@ void MainWindow::show_menu_bar()
             }
             if( ImGui::MenuItem( "Save chain" ) )
             {
-                nfdchar_t * savePath = NULL;
-                nfdresult_t result   = NFD_SaveDialog( "ovf;txt;csv", NULL, &savePath );
+                nfdchar_t * save_path = NULL;
+                nfdresult_t result    = NFD_SaveDialog( "ovf;txt;csv", NULL, &save_path );
                 if( result == NFD_OKAY )
                 {
-                    fmt::print( "File save path: \"{}\"\n", savePath );
-                    free( savePath );
+                    fmt::print( "File save path: \"{}\"\n", save_path );
+                    free( save_path );
                 }
                 else if( result != NFD_CANCEL )
                 {
@@ -1580,7 +1580,7 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
     glfwSetKeyCallback( glfw_window, ImGui_ImplGlfw_KeyCallback );
     glfwSetCharCallback( glfw_window, ImGui_ImplGlfw_CharCallback );
 
-    glfwSetFramebufferSizeCallback( glfw_window, framebufferSizeCallback );
+    glfwSetFramebufferSizeCallback( glfw_window, framebuffer_size_callback );
 
 #ifdef __EMSCRIPTEN__
     resizeCanvas();
