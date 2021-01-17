@@ -46,8 +46,11 @@ protected:
 struct RendererWidget
 {
     std::shared_ptr<State> state;
+    const VFRendering::View & view;
+
     bool show_   = true;
     bool remove_ = false;
+
     std::shared_ptr<VFRendering::RendererBase> renderer;
     int id = 0;
 
@@ -58,9 +61,10 @@ struct RendererWidget
 
     virtual void show();
     virtual void apply_settings();
+    virtual void update_geometry() {}
 
 protected:
-    RendererWidget( std::shared_ptr<State> state ) : state( state ) {}
+    RendererWidget( std::shared_ptr<State> state, const VFRendering::View & view ) : state( state ), view( view ) {}
     virtual std::string name() const = 0;
     virtual void show_settings()     = 0;
     virtual void reset()             = 0;
@@ -74,6 +78,7 @@ struct BoundingBoxRendererWidget : RendererWidget
         std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield );
     void show() override;
     void apply_settings() override;
+    void update_geometry() override;
 
     float line_width    = 0;
     int level_of_detail = 10;
@@ -90,13 +95,13 @@ protected:
 
 struct CoordinateSystemRendererWidget : RendererWidget
 {
-    CoordinateSystemRendererWidget( std::shared_ptr<State> state );
+    CoordinateSystemRendererWidget( std::shared_ptr<State> state, const VFRendering::View & view );
     void show() override;
 
 protected:
     std::string name() const override
     {
-        return "Coordinate system";
+        return "Coordinate axes";
     }
     void show_settings() override;
     void reset() override;

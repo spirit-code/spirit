@@ -400,24 +400,27 @@ void UiConfigFile::from_json()
         if( settings_json.contains( "visualisation" ) )
         {
             auto & group = settings_json.at( "visualisation" );
+            if( group.contains( "BoundingBoxRendererWidget" ) )
+            {
+                auto ptr = std::make_shared<BoundingBoxRendererWidget>(
+                    rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
+                rendering_layer.boundingbox_renderer_widget = ptr;
+                group.at( "BoundingBoxRendererWidget" ).get_to( *ptr );
+                ptr->apply_settings();
+            }
+            if( group.contains( "CoordinateSystemRendererWidget" ) )
+            {
+                auto ptr
+                    = std::make_shared<CoordinateSystemRendererWidget>( rendering_layer.state, rendering_layer.view );
+                rendering_layer.coordinatesystem_renderer_widget = ptr;
+                group.at( "CoordinateSystemRendererWidget" ).get_to( *ptr );
+                ptr->apply_settings();
+            }
             if( group.contains( "renderers" ) )
             {
                 auto & renderers = group.at( "renderers" );
                 for( auto & j : renderers )
                 {
-                    if( j.contains( "BoundingBoxRendererWidget" ) )
-                    {
-                        auto ptr = std::make_shared<BoundingBoxRendererWidget>(
-                            rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
-                        j.at( "BoundingBoxRendererWidget" ).get_to( *ptr );
-                        update( ptr );
-                    }
-                    if( j.contains( "CoordinateSystemRendererWidget" ) )
-                    {
-                        auto ptr = std::make_shared<CoordinateSystemRendererWidget>( rendering_layer.state );
-                        j.at( "CoordinateSystemRendererWidget" ).get_to( *ptr );
-                        update( ptr );
-                    }
                     if( j.contains( "DotRendererWidget" ) )
                     {
                         auto ptr = std::make_shared<DotRendererWidget>(
@@ -548,6 +551,8 @@ void UiConfigFile::to_json() const
                 { "center_position", { center_pos.x, center_pos.y, center_pos.z } },
                 { "up_vector", { up_vector.x, up_vector.y, up_vector.z } },
                 { "renderers", this->rendering_layer.renderer_widgets },
+                { "boundingbox_renderer", *this->rendering_layer.boundingbox_renderer_widget },
+                { "coordinatesystem_renderer", *this->rendering_layer.coordinatesystem_renderer_widget },
             },
         },
     };

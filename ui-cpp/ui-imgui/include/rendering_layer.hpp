@@ -10,12 +10,6 @@
 
 #include <GLFW/glfw3.h>
 
-#include <VFRendering/ArrowRenderer.hxx>
-#include <VFRendering/BoundingBoxRenderer.hxx>
-#include <VFRendering/CombinedRenderer.hxx>
-#include <VFRendering/CoordinateSystemRenderer.hxx>
-#include <VFRendering/IsosurfaceRenderer.hxx>
-#include <VFRendering/SphereRenderer.hxx>
 #include <VFRendering/View.hxx>
 
 #include <Spirit/Simulation.h>
@@ -45,6 +39,7 @@ struct RenderingLayer
 
     void screenshot_png( std::string filename = "screenshot" );
 
+    void update_renderers();
     void update_vf_geometry();
     void update_vf_directions();
 
@@ -59,6 +54,8 @@ struct RenderingLayer
 
     std::vector<std::shared_ptr<RendererWidget>> renderer_widgets;
     std::vector<std::shared_ptr<RendererWidget>> renderer_widgets_not_shown;
+    std::shared_ptr<BoundingBoxRendererWidget> boundingbox_renderer_widget;
+    std::shared_ptr<CoordinateSystemRendererWidget> coordinatesystem_renderer_widget;
 
     int n_cell_step         = 1;
     int renderer_id_counter = 0;
@@ -70,9 +67,11 @@ private:
     bool needs_redraw_   = true;
     bool needs_data_     = true;
 
+    bool show_coordinatesystem_ = true;
+    bool show_boundingbox_      = true;
+
     VFRendering::Geometry geometry;
     VFRendering::VectorField vectorfield_surf2D = VFRendering::VectorField( {}, {} );
-    std::vector<std::shared_ptr<VFRendering::RendererBase>> system_renderers{};
 };
 
 } // namespace ui

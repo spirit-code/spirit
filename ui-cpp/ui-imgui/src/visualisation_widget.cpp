@@ -221,6 +221,16 @@ void VisualisationWidget::show()
         ImGui::EndPopup();
     }
 
+    ImGui::Dummy( { 0, 10 } );
+    ImGui::Separator();
+    ImGui::Dummy( { 0, 10 } );
+
+    rendering_layer.coordinatesystem_renderer_widget->show();
+
+    ImGui::Dummy( { 0, 10 } );
+
+    rendering_layer.boundingbox_renderer_widget->show();
+
     for( auto & renderer_widget : rendering_layer.renderer_widgets )
     {
         ImGui::Dummy( { 0, 10 } );

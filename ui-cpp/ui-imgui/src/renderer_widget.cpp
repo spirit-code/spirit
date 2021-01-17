@@ -637,33 +637,33 @@ void RendererWidget::reset_filters()
     RendererWidget::apply_settings();
 }
 
+CoordinateSystemRendererWidget::CoordinateSystemRendererWidget(
+    std::shared_ptr<State> state, const VFRendering::View & view )
+        : RendererWidget( state, view )
+{
+    renderer = std::make_shared<VFRendering::CoordinateSystemRenderer>( view );
+    renderer->setOption<VFRendering::CoordinateSystemRenderer::Option::AXIS_LENGTH>( { 1, 1, 1 } );
+    renderer->setOption<VFRendering::CoordinateSystemRenderer::Option::NORMALIZE>( true );
+
+    // set_colormap_implementation( Colormap::BLUE_GREEN_RED );
+}
+
+void CoordinateSystemRendererWidget::show()
+{
+    ImGui::PushID( this->id );
+    ImGui::Checkbox( this->name().c_str(), &show_ );
+    ImGui::PopID();
+}
+
+void CoordinateSystemRendererWidget::reset() {}
+
+void CoordinateSystemRendererWidget::show_settings() {}
+
 BoundingBoxRendererWidget::BoundingBoxRendererWidget(
     std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield )
-        : RendererWidget( state )
+        : RendererWidget( state, view )
 {
-    bool periodical[3];
-    float b_min[3], b_max[3];
-    Geometry_Get_Bounds( state.get(), b_min, b_max );
-    glm::vec3 bounds_min = glm::make_vec3( b_min );
-    glm::vec3 bounds_max = glm::make_vec3( b_max );
-    glm::vec2 x_range{ bounds_min[0], bounds_max[0] };
-    glm::vec2 y_range{ bounds_min[1], bounds_max[1] };
-    glm::vec2 z_range{ bounds_min[2], bounds_max[2] };
-    glm::vec3 bounding_box_center = { ( bounds_min[0] + bounds_max[0] ) / 2, ( bounds_min[1] + bounds_max[1] ) / 2,
-                                      ( bounds_min[2] + bounds_max[2] ) / 2 };
-    glm::vec3 bounding_box_side_lengths
-        = { bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1], bounds_max[2] - bounds_min[2] };
-
-    float indi_length            = glm::length( bounds_max - bounds_min ) * 0.05;
-    int indi_dashes              = 5;
-    float indi_dashes_per_length = (float)indi_dashes / indi_length;
-
-    Hamiltonian_Get_Boundary_Conditions( this->state.get(), periodical );
-    glm::vec3 indis{ indi_length * periodical[0], indi_length * periodical[1], indi_length * periodical[2] };
-
-    // TODO: use proper parallelepipeds for non-cuboid geometries
-    renderer = std::make_shared<VFRendering::BoundingBoxRenderer>( VFRendering::BoundingBoxRenderer::forCuboid(
-        view, bounding_box_center, bounding_box_side_lengths, indis, indi_dashes_per_length ) );
+    update_geometry();
 
     renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LINE_WIDTH>( line_width );
     renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LEVEL_OF_DETAIL>( level_of_detail );
@@ -697,7 +697,7 @@ void BoundingBoxRendererWidget::reset()
 void BoundingBoxRendererWidget::show()
 {
     ImGui::PushID( this->id );
-    ImGui::Checkbox( "##checkbox_show", &show_ );
+    ImGui::Checkbox( "##checkbox_show_boundingbox", &show_ );
     ImGui::SameLine();
     if( ImGui::CollapsingHeader( this->name().c_str() ) )
     {
@@ -731,22 +731,37 @@ void BoundingBoxRendererWidget::apply_settings()
     RendererWidget::apply_settings();
     renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LINE_WIDTH>( line_width );
 }
-
-void BoundingBoxRendererWidget::show_settings() {}
-
-CoordinateSystemRendererWidget::CoordinateSystemRendererWidget( std::shared_ptr<State> state ) : RendererWidget( state )
+void BoundingBoxRendererWidget::update_geometry()
 {
+    bool periodical[3];
+    float b_min[3], b_max[3];
+    Geometry_Get_Bounds( state.get(), b_min, b_max );
+    glm::vec3 bounds_min = glm::make_vec3( b_min );
+    glm::vec3 bounds_max = glm::make_vec3( b_max );
+    glm::vec2 x_range{ bounds_min[0], bounds_max[0] };
+    glm::vec2 y_range{ bounds_min[1], bounds_max[1] };
+    glm::vec2 z_range{ bounds_min[2], bounds_max[2] };
+    glm::vec3 bounding_box_center = { ( bounds_min[0] + bounds_max[0] ) / 2, ( bounds_min[1] + bounds_max[1] ) / 2,
+                                      ( bounds_min[2] + bounds_max[2] ) / 2 };
+    glm::vec3 bounding_box_side_lengths
+        = { bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1], bounds_max[2] - bounds_min[2] };
+
+    float indi_length            = glm::length( bounds_max - bounds_min ) * 0.05;
+    int indi_dashes              = 5;
+    float indi_dashes_per_length = (float)indi_dashes / indi_length;
+
+    Hamiltonian_Get_Boundary_Conditions( this->state.get(), periodical );
+    glm::vec3 indis{ indi_length * periodical[0], indi_length * periodical[1], indi_length * periodical[2] };
+
+    // TODO: use proper parallelepiped for non-cuboid geometries
+    renderer = std::make_shared<VFRendering::BoundingBoxRenderer>( VFRendering::BoundingBoxRenderer::forCuboid(
+        view, bounding_box_center, bounding_box_side_lengths, indis, indi_dashes_per_length ) );
 }
 
-void CoordinateSystemRendererWidget::show() {}
-
-void CoordinateSystemRendererWidget::reset() {}
-
-void CoordinateSystemRendererWidget::show_settings() {}
-
+void BoundingBoxRendererWidget::show_settings() {}
 DotRendererWidget::DotRendererWidget(
     std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield )
-        : RendererWidget( state ), ColormapWidget()
+        : RendererWidget( state, view ), ColormapWidget()
 {
     renderer = std::make_shared<VFRendering::DotRenderer>( view, vectorfield );
     this->apply_settings();
@@ -785,7 +800,7 @@ void DotRendererWidget::show_settings()
 
 ArrowRendererWidget::ArrowRendererWidget(
     std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield )
-        : RendererWidget( state ), ColormapWidget()
+        : RendererWidget( state, view ), ColormapWidget()
 {
     renderer = std::make_shared<VFRendering::ArrowRenderer>( view, vectorfield );
     this->apply_settings();
@@ -840,7 +855,7 @@ void ArrowRendererWidget::show_settings()
 
 ParallelepipedRendererWidget::ParallelepipedRendererWidget(
     std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield )
-        : RendererWidget( state ), ColormapWidget()
+        : RendererWidget( state, view ), ColormapWidget()
 {
     renderer = std::make_shared<VFRendering::ParallelepipedRenderer>( view, vectorfield );
     renderer->setOption<VFRendering::GlyphRenderer::Option::ROTATE_GLYPHS>( false );
@@ -884,7 +899,7 @@ void ParallelepipedRendererWidget::show_settings()
 
 SphereRendererWidget::SphereRendererWidget(
     std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield )
-        : RendererWidget( state ), ColormapWidget()
+        : RendererWidget( state, view ), ColormapWidget()
 {
     renderer = std::make_shared<VFRendering::SphereRenderer>( view, vectorfield );
     this->apply_settings();
@@ -929,7 +944,7 @@ void SphereRendererWidget::show_settings()
 
 SurfaceRendererWidget::SurfaceRendererWidget(
     std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield )
-        : RendererWidget( state ), ColormapWidget()
+        : RendererWidget( state, view ), ColormapWidget()
 {
     renderer = std::make_shared<VFRendering::SurfaceRenderer>( view, vectorfield );
     this->apply_settings();
@@ -958,7 +973,7 @@ void SurfaceRendererWidget::show_settings()
 
 IsosurfaceRendererWidget::IsosurfaceRendererWidget(
     std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield )
-        : RendererWidget( state ), ColormapWidget()
+        : RendererWidget( state, view ), ColormapWidget()
 {
     renderer = std::make_shared<VFRendering::IsosurfaceRenderer>( view, vectorfield );
     this->apply_settings();

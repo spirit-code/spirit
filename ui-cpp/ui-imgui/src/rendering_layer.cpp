@@ -9,6 +9,13 @@
 #include <Spirit/Simulation.h>
 #include <Spirit/System.h>
 
+#include <VFRendering/ArrowRenderer.hxx>
+#include <VFRendering/BoundingBoxRenderer.hxx>
+#include <VFRendering/CombinedRenderer.hxx>
+#include <VFRendering/CoordinateSystemRenderer.hxx>
+#include <VFRendering/IsosurfaceRenderer.hxx>
+#include <VFRendering/SphereRenderer.hxx>
+
 #include <nlohmann/json.hpp>
 
 #include <fmt/format.h>
@@ -42,16 +49,28 @@ void RenderingLayer::draw( int display_w, int display_h )
     if( Simulation_Running_On_Image( state.get() ) )
         needs_redraw_ = true;
 
-    bool update_renderers = false;
+    bool update_widgets = false;
+
+    if( coordinatesystem_renderer_widget->show_ != show_coordinatesystem_ )
+    {
+        show_coordinatesystem_ = coordinatesystem_renderer_widget->show_;
+        update_widgets         = true;
+    }
+    if( boundingbox_renderer_widget->show_ != show_boundingbox_ )
+    {
+        show_boundingbox_ = boundingbox_renderer_widget->show_;
+        update_widgets    = true;
+    }
+
     for( auto & renderer_widget : renderer_widgets_shown )
     {
         if( !renderer_widget->show_ )
-            update_renderers = true;
+            update_widgets = true;
     }
     for( auto & renderer_widget : renderer_widgets_not_shown )
     {
         if( renderer_widget->show_ )
-            update_renderers = true;
+            update_widgets = true;
     }
 
     for( auto renderer_widget_iterator = renderer_widgets.begin(); renderer_widget_iterator != renderer_widgets.end(); )
@@ -59,32 +78,27 @@ void RenderingLayer::draw( int display_w, int display_h )
         if( ( *renderer_widget_iterator )->remove_ )
         {
             renderer_widget_iterator = renderer_widgets.erase( renderer_widget_iterator );
-            update_renderers         = true;
+            update_widgets           = true;
         }
         else
             ++renderer_widget_iterator;
     }
 
-    if( update_renderers )
+    if( update_widgets )
     {
         needs_redraw_ = true;
-        system_renderers.resize( 0 );
         renderer_widgets_shown.resize( 0 );
         renderer_widgets_not_shown.resize( 0 );
 
         for( auto & renderer_widget : renderer_widgets )
         {
             if( renderer_widget->show_ )
-            {
                 renderer_widgets_shown.push_back( renderer_widget );
-                system_renderers.push_back( renderer_widget->renderer );
-            }
             else
                 renderer_widgets_not_shown.push_back( renderer_widget );
         }
 
-        view.renderers(
-            { { std::make_shared<VFRendering::CombinedRenderer>( view, system_renderers ), { { 0, 0, 1, 1 } } } } );
+        update_renderers();
     }
 
     if( needs_redraw_ )
@@ -141,6 +155,9 @@ void RenderingLayer::initialize_gl()
                                                                  -1000 * ui_shared_state.light_direction[1],
                                                                  -1000 * ui_shared_state.light_direction[2] } );
 
+    boundingbox_renderer_widget      = std::make_shared<BoundingBoxRendererWidget>( state, view, vectorfield );
+    coordinatesystem_renderer_widget = std::make_shared<CoordinateSystemRendererWidget>( state, view );
+
     this->update_vf_geometry();
     this->update_vf_directions();
 
@@ -150,7 +167,6 @@ void RenderingLayer::initialize_gl()
     // Defaults
     if( renderer_widgets.empty() )
     {
-        renderer_widgets.push_back( std::make_shared<BoundingBoxRendererWidget>( state, view, vectorfield ) );
         renderer_widgets.push_back( std::make_shared<ArrowRendererWidget>( state, view, vectorfield ) );
         renderer_widgets.push_back( std::make_shared<IsosurfaceRendererWidget>( state, view, vectorfield ) );
         renderer_widgets[0]->id   = 0;
@@ -162,20 +178,37 @@ void RenderingLayer::initialize_gl()
     for( auto & renderer_widget : renderer_widgets )
     {
         if( renderer_widget->show_ )
-        {
             renderer_widgets_shown.push_back( renderer_widget );
-            system_renderers.push_back( renderer_widget->renderer );
-        }
         else
             renderer_widgets_not_shown.push_back( renderer_widget );
     }
-    view.renderers(
-        { { std::make_shared<VFRendering::CombinedRenderer>( view, system_renderers ), { { 0, 0, 1, 1 } } } } );
+
+    this->update_renderers();
 
     for( auto & renderer_widget : renderer_widgets )
         renderer_widget->apply_settings();
 
     gl_initialized_ = true;
+}
+
+void RenderingLayer::update_renderers()
+{
+    std::vector<std::pair<std::shared_ptr<VFRendering::RendererBase>, std::array<float, 4>>> total_renderers;
+    if( coordinatesystem_renderer_widget->show_ )
+        total_renderers.push_back( { coordinatesystem_renderer_widget->renderer, { 0.8f, 0, 0.2f, 0.2f } } );
+
+    std::vector<std::shared_ptr<VFRendering::RendererBase>> system_renderers;
+    if( boundingbox_renderer_widget->show_ )
+        system_renderers.push_back( boundingbox_renderer_widget->renderer );
+    for( auto & renderer_widget : renderer_widgets )
+    {
+        if( renderer_widget->show_ )
+            system_renderers.push_back( renderer_widget->renderer );
+    }
+    total_renderers.push_back(
+        { std::make_shared<VFRendering::CombinedRenderer>( view, system_renderers ), { { 0, 0, 1, 1 } } } );
+
+    view.renderers( total_renderers );
 }
 
 void RenderingLayer::update_vf_geometry()
@@ -313,6 +346,9 @@ void RenderingLayer::update_vf_geometry()
     // Update the vectorfield
     vectorfield.updateGeometry( geometry );
     needs_data_ = true;
+
+    boundingbox_renderer_widget->update_geometry();
+    update_renderers();
 }
 
 void RenderingLayer::update_vf_directions()
