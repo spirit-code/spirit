@@ -75,6 +75,8 @@ namespace ui
 {
 
 static glm::vec2 interaction_click_pos;
+static glm::vec2 mouse_pos_in_system;
+static float radius_in_system;
 
 // Apply a callable to each of a variadic number of arguments
 template<class F, class... Args>
@@ -150,18 +152,27 @@ void MainWindow::handle_mouse()
     else if( io.MouseWheel && ctrl )
     {
         ui_config_file.interaction_radius += scroll;
+        if( ui_config_file.interaction_radius < 0 )
+            ui_config_file.interaction_radius = 0;
     }
 
     float scale = 1;
     if( io.KeyShift )
         scale = 0.1f;
 
+    if( this->ui_shared_state.interaction_mode != UiSharedState::InteractionMode::REGULAR )
+    {
+        mouse_pos_in_system = glm::vec2{ io.MousePos.x, io.MousePos.y };
+        glm::vec2 radial_pos{ io.MousePos.x + ui_config_file.interaction_radius, io.MousePos.y };
+        transform_to_system_frame( rendering_layer, mouse_pos_in_system, radial_pos );
+        radius_in_system = radial_pos.x - mouse_pos_in_system.x;
+    }
+
     // Left-click in interaction mode
     if( ImGui::IsMouseClicked( GLFW_MOUSE_BUTTON_LEFT, false )
         && this->ui_shared_state.interaction_mode != UiSharedState::InteractionMode::REGULAR )
     {
-        interaction_click_pos = glm::vec2{ io.MousePos.x, io.MousePos.y };
-        transform_to_system_frame( rendering_layer, interaction_click_pos );
+        interaction_click_pos = mouse_pos_in_system;
 
         if( this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
             Configuration_To_Clipboard( state.get() );
@@ -170,16 +181,12 @@ void MainWindow::handle_mouse()
     if( ImGui::IsMouseClicked( GLFW_MOUSE_BUTTON_RIGHT, false )
         && this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
     {
-        glm::vec2 mouse_pos{ io.MousePos.x, io.MousePos.y };
-        glm::vec2 radial_pos{ io.MousePos.x + ui_config_file.interaction_radius, io.MousePos.y };
-        transform_to_system_frame( rendering_layer, mouse_pos, radial_pos );
-
-        float shift[3]{ interaction_click_pos.x - mouse_pos.x, interaction_click_pos.y - mouse_pos.y, 0.0f };
-        float current_position[3]{ mouse_pos.x, mouse_pos.y, 0.0f };
+        float shift[3]{ interaction_click_pos.x - mouse_pos_in_system.x,
+                        interaction_click_pos.y - mouse_pos_in_system.y, 0.0f };
+        float current_position[3]{ mouse_pos_in_system.x, mouse_pos_in_system.y, 0.0f };
         float rect[3]{ -1, -1, -1 };
-        float radius = radial_pos.x - mouse_pos.x;
 
-        Configuration_From_Clipboard_Shift( state.get(), shift, current_position, rect, radius );
+        Configuration_From_Clipboard_Shift( state.get(), shift, current_position, rect, radius_in_system );
     }
 
     // Left-click dragging
@@ -195,16 +202,12 @@ void MainWindow::handle_mouse()
         ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_LEFT ) && !ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_RIGHT )
         && this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
     {
-        glm::vec2 mouse_pos{ io.MousePos.x, io.MousePos.y };
-        glm::vec2 radial_pos{ io.MousePos.x + ui_config_file.interaction_radius, io.MousePos.y };
-        transform_to_system_frame( rendering_layer, mouse_pos, radial_pos );
-
-        float shift[3]{ interaction_click_pos.x - mouse_pos.x, interaction_click_pos.y - mouse_pos.y, 0.0f };
-        float current_position[3]{ mouse_pos.x, mouse_pos.y, 0.0f };
+        float shift[3]{ interaction_click_pos.x - mouse_pos_in_system.x,
+                        interaction_click_pos.y - mouse_pos_in_system.y, 0.0f };
+        float current_position[3]{ mouse_pos_in_system.x, mouse_pos_in_system.y, 0.0f };
         float rect[3]{ -1, -1, -1 };
-        float radius = radial_pos.x - mouse_pos.x;
 
-        Configuration_From_Clipboard_Shift( state.get(), shift, current_position, rect, radius );
+        Configuration_From_Clipboard_Shift( state.get(), shift, current_position, rect, radius_in_system );
     }
     else if(
         ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_LEFT ) && !ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_RIGHT )
@@ -855,7 +858,8 @@ void MainWindow::draw()
 
 void MainWindow::draw_imgui( int display_w, int display_h )
 {
-    auto & io = ImGui::GetIO();
+    auto & io    = ImGui::GetIO();
+    auto & style = ImGui::GetStyle();
     if( ui_shared_state.interaction_mode != UiSharedState::InteractionMode::REGULAR )
     {
         if( ImGui::IsAnyWindowHovered() )
@@ -876,6 +880,55 @@ void MainWindow::draw_imgui( int display_w, int display_h )
                 ImGui::GetMousePos(), ui_config_file.interaction_radius, color, 0, 4 );
             ImGui::GetBackgroundDrawList()->AddCircleFilled( ImGui::GetMousePos(), 8, color );
         }
+
+        std::string title_text;
+        if( this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
+            title_text = "Interaction mode: dragging";
+        else if( this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DEFECT )
+            title_text = "Interaction mode: defects";
+        else if( this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::PINNING )
+            title_text = "Interaction mode: pinning";
+        ImVec2 title_text_size = ImGui::CalcTextSize( title_text.c_str() );
+
+        std::string mouse_text = fmt::format(
+            "Mouse is at system position ({:.3f}, {:.3f})", mouse_pos_in_system.x - geometry_widget.system_center[0],
+            mouse_pos_in_system.y - geometry_widget.system_center[1] );
+        ImVec2 mouse_text_size = ImGui::CalcTextSize( mouse_text.c_str() );
+
+        std::string radius_text = fmt::format( "radius = {:.3f}", radius_in_system );
+        ImVec2 radius_text_size = ImGui::CalcTextSize( radius_text.c_str() );
+
+        float distance = mouse_text_size.y + 2 * style.FramePadding.y + 2 * style.WindowPadding.y;
+        // pos_y -= distance;
+        float pos_y = 45;
+
+        const ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize
+                                              | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing
+                                              | ImGuiWindowFlags_NoNav;
+
+        ImGui::PushStyleVar( ImGuiStyleVar_WindowBorderSize, 0 );
+        ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.6f );
+
+        ImGui::SetNextWindowPos( { 0.5f * ( io.DisplaySize.x - mouse_text_size.x ), pos_y } );
+        // Also need to set size, because window may otherwise flicker for some reason...
+        ImGui::SetNextWindowSize( { mouse_text_size.x + 2 * style.WindowPadding.x,
+                                    title_text_size.y + mouse_text_size.y + radius_text_size.y
+                                        + 2 * style.FramePadding.y + 2 * style.WindowPadding.y } );
+
+        if( ImGui::Begin( "##mouse_system_pos", nullptr, window_flags ) )
+        {
+            ImGui::Dummy( { 0.5f * ( mouse_text_size.x - title_text_size.x ), 0 } );
+            ImGui::SameLine();
+            ImGui::TextUnformatted( title_text.c_str() );
+            ImGui::TextUnformatted( mouse_text.c_str() );
+            ImGui::Dummy( { 0.5f * ( mouse_text_size.x - radius_text_size.x ), 0 } );
+            ImGui::SameLine();
+            ImGui::TextUnformatted( radius_text.c_str() );
+            ImGui::End();
+        }
+
+        ImGui::PopStyleVar();
+        ImGui::PopStyleVar();
     }
     else
         io.MouseDrawCursor = true;

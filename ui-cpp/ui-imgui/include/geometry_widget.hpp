@@ -26,6 +26,10 @@ struct GeometryWidget
     float bravais_vector_a[3]{ 0, 0, 0 };
     float bravais_vector_b[3]{ 0, 0, 0 };
     float bravais_vector_c[3]{ 0, 0, 0 };
+
+    float bounds_min[3];
+    float bounds_max[3];
+    float system_center[3];
 };
 
 } // namespace ui

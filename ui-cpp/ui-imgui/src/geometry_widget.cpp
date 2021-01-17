@@ -11,6 +11,9 @@ GeometryWidget::GeometryWidget( bool & show, std::shared_ptr<State> state, Rende
         : show_( show ), state( state ), rendering_layer( rendering_layer )
 {
     Geometry_Get_N_Cells( state.get(), n_cells );
+    Geometry_Get_Bounds( state.get(), bounds_min, bounds_max );
+    for( int dim = 0; dim < 3; ++dim )
+        system_center[dim] = ( bounds_min[dim] + bounds_max[dim] ) / 2;
 }
 
 void GeometryWidget::show()
@@ -29,6 +32,9 @@ void GeometryWidget::show()
     {
         Geometry_Set_N_Cells( state.get(), n_cells );
         rendering_layer.update_vf_geometry();
+        Geometry_Get_Bounds( state.get(), bounds_min, bounds_max );
+        for( int dim = 0; dim < 3; ++dim )
+            system_center[dim] = ( bounds_min[dim] + bounds_max[dim] ) / 2;
     }
 
     ImGui::TextUnformatted( "Number of basis cell atoms" );
