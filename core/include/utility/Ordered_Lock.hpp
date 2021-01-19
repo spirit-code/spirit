@@ -6,14 +6,21 @@
 #include <mutex>
 #include <queue>
 
-class Ordered_Lock
+namespace Utility
+{
+
+/*
+A lockable class that ensures the order of lock acquisition corresponds to the
+order of the locking attempts, i.e. it is "fair" or "fifo" (first in first out).
+*/
+class OrderedLock
 {
     std::queue<std::condition_variable> condition_;
     std::mutex condition_mutex_;
     bool locked_;
 
 public:
-    Ordered_Lock() : locked_( false ){};
+    OrderedLock() : locked_( false ){};
 
     void lock()
     {
@@ -36,5 +43,7 @@ public:
             condition_.front().notify_one();
     }
 };
+
+} // namespace Utility
 
 #endif
