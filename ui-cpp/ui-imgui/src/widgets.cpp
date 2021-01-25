@@ -348,32 +348,33 @@ void show_settings( bool & show, ui::RenderingLayer & rendering_layer )
     if( !show )
         return;
 
+    auto & ui_state = rendering_layer.ui_shared_state;
+
     ImGui::Begin( "Settings", &show );
 
-    if( rendering_layer.ui_shared_state.dark_mode )
+    ImGui::TextUnformatted( ICON_FA_SUN " light mode" );
+    ImGui::SameLine();
+    if( toggle_button( "##toggle_update_geometry_file_read", &ui_state.dark_mode, false ) )
     {
-        if( ImGui::Button( ICON_FA_SUN " light mode" ) )
-        {
-            styles::apply_light();
-            rendering_layer.ui_shared_state.dark_mode = false;
-            rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-                { rendering_layer.ui_shared_state.background_light[0],
-                  rendering_layer.ui_shared_state.background_light[1],
-                  rendering_layer.ui_shared_state.background_light[2] } );
-        }
-    }
-    else
-    {
-        if( ImGui::Button( ICON_FA_MOON " dark mode" ) )
+        if( ui_state.dark_mode )
         {
             styles::apply_charcoal();
-            rendering_layer.ui_shared_state.dark_mode = true;
+            ui_state.dark_mode = true;
             rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-                { rendering_layer.ui_shared_state.background_dark[0],
-                  rendering_layer.ui_shared_state.background_dark[1],
-                  rendering_layer.ui_shared_state.background_dark[2] } );
+                { ui_state.background_dark[0], ui_state.background_dark[1], ui_state.background_dark[2] } );
+        }
+        else
+        {
+            styles::apply_light();
+            ui_state.dark_mode = false;
+            rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
+                { ui_state.background_light[0], ui_state.background_light[1], ui_state.background_light[2] } );
         }
     }
+    ImGui::SameLine();
+    ImGui::TextUnformatted( ICON_FA_MOON " dark mode" );
+
+    ImGui::Dummy( { 0, 10 } );
 
     if( ImGui::Button( "Choose the output folder" ) )
     {
@@ -393,6 +394,8 @@ void show_settings( bool & show, ui::RenderingLayer & rendering_layer )
             fmt::print( "Error: {}\n", NFD_GetError() );
         }
     }
+
+    ImGui::Dummy( { 0, 10 } );
 
     if( ImGui::Button( "Close" ) )
         show = false;
