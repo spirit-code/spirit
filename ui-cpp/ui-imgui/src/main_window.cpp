@@ -27,6 +27,7 @@
 #include <Spirit/Simulation.h>
 #include <Spirit/State.h>
 #include <Spirit/System.h>
+#include <Spirit/Version.h>
 
 #include <fmt/format.h>
 
@@ -38,7 +39,8 @@
 #include <string>
 
 static ui::MainWindow * global_window_handle;
-static bool fullscreen_toggled = false;
+static bool fullscreen_toggled           = false;
+static const bool SPIRIT_PINNING_ENABLED = std::string( Spirit_Pinning() ) == "ON";
 
 /////////////////////////////////////////////////////////////////////
 
@@ -139,6 +141,37 @@ void MainWindow::handle_mouse()
     float scroll = -io.MouseWheel;
 #endif
 
+    auto set_configuration = [&]() {
+        float shift[3]{ interaction_click_pos.x - mouse_pos_in_system.x,
+                        interaction_click_pos.y - mouse_pos_in_system.y, 0.0f };
+        float current_position[3]{ mouse_pos_in_system.x, mouse_pos_in_system.y, 0.0f };
+        float rect[3]{ -1, -1, -1 };
+
+        Configuration_From_Clipboard_Shift( state.get(), shift, current_position, rect, radius_in_system );
+    };
+
+    auto set_atom_type = [&]( int atom_type ) {
+        float center[3];
+        Geometry_Get_Center( this->state.get(), center );
+        float current_position[3]{ mouse_pos_in_system.x, mouse_pos_in_system.y, 0.0f };
+        current_position[0] -= center[0];
+        current_position[1] -= center[1];
+        float rect[3]{ -1, -1, -1 };
+
+        Configuration_Set_Atom_Type( state.get(), atom_type, current_position, rect, radius_in_system );
+    };
+
+    auto set_pinning = [&]( bool pinned ) {
+        float center[3];
+        Geometry_Get_Center( this->state.get(), center );
+        float current_position[3]{ mouse_pos_in_system.x, mouse_pos_in_system.y, 0.0f };
+        current_position[0] -= center[0];
+        current_position[1] -= center[1];
+        float rect[3]{ -1, -1, -1 };
+
+        Configuration_Set_Pinned( state.get(), pinned, current_position, rect, radius_in_system );
+    };
+
     if( !io.KeyShift )
         scroll *= 10;
 
@@ -176,17 +209,20 @@ void MainWindow::handle_mouse()
 
         if( this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
             Configuration_To_Clipboard( state.get() );
+        else if( this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DEFECT )
+            set_atom_type( -1 );
+        else if( this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::PINNING )
+            set_pinning( true );
     }
     // Right-click in interaction mode
-    if( ImGui::IsMouseClicked( GLFW_MOUSE_BUTTON_RIGHT, false )
-        && this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
+    if( ImGui::IsMouseClicked( GLFW_MOUSE_BUTTON_RIGHT, false ) )
     {
-        float shift[3]{ interaction_click_pos.x - mouse_pos_in_system.x,
-                        interaction_click_pos.y - mouse_pos_in_system.y, 0.0f };
-        float current_position[3]{ mouse_pos_in_system.x, mouse_pos_in_system.y, 0.0f };
-        float rect[3]{ -1, -1, -1 };
-
-        Configuration_From_Clipboard_Shift( state.get(), shift, current_position, rect, radius_in_system );
+        if( this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
+            set_configuration();
+        else if( this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DEFECT )
+            set_atom_type( 0 );
+        else if( this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::PINNING )
+            set_pinning( false );
     }
 
     // Left-click dragging
@@ -202,30 +238,39 @@ void MainWindow::handle_mouse()
         ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_LEFT ) && !ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_RIGHT )
         && this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
     {
-        float shift[3]{ interaction_click_pos.x - mouse_pos_in_system.x,
-                        interaction_click_pos.y - mouse_pos_in_system.y, 0.0f };
-        float current_position[3]{ mouse_pos_in_system.x, mouse_pos_in_system.y, 0.0f };
-        float rect[3]{ -1, -1, -1 };
-
-        Configuration_From_Clipboard_Shift( state.get(), shift, current_position, rect, radius_in_system );
+        set_configuration();
     }
     else if(
         ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_LEFT ) && !ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_RIGHT )
         && this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DEFECT )
     {
+        set_atom_type( -1 );
     }
     else if(
         ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_LEFT ) && !ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_RIGHT )
         && this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::PINNING )
     {
+        set_pinning( true );
     }
     // Right-click dragging
     else if( ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_RIGHT ) && !ImGui::IsMouseDragging( GLFW_MOUSE_BUTTON_LEFT ) )
     {
-        rendering_layer.view.mouseMove(
-            glm::vec2( 0, 0 ), glm::vec2( scale * io.MouseDelta.x, scale * io.MouseDelta.y ),
-            VFRendering::CameraMovementModes::TRANSLATE );
-        rendering_layer.needs_redraw();
+        if( this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::REGULAR
+            || this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
+        {
+            rendering_layer.view.mouseMove(
+                glm::vec2( 0, 0 ), glm::vec2( scale * io.MouseDelta.x, scale * io.MouseDelta.y ),
+                VFRendering::CameraMovementModes::TRANSLATE );
+            rendering_layer.needs_redraw();
+        }
+        else if( this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DEFECT )
+        {
+            set_atom_type( 0 );
+        }
+        else if( this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::PINNING )
+        {
+            set_pinning( false );
+        }
     }
 }
 
@@ -512,10 +557,17 @@ void MainWindow::handle_keyboard()
         }
         if( ImGui::IsKeyPressed( GLFW_KEY_F7, false ) )
         {
-            if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::PINNING )
-                this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::REGULAR );
+            if( SPIRIT_PINNING_ENABLED )
+            {
+                if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::PINNING )
+                    this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::REGULAR );
+                else
+                    this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::PINNING );
+            }
             else
-                this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::PINNING );
+            {
+                ui_shared_state.notify( ICON_FA_EXCLAMATION_TRIANGLE " pinning is not enabled" );
+            }
         }
 
         //-----------------------------------------------------
@@ -1201,7 +1253,8 @@ void MainWindow::show_menu_bar()
             }
             if( ImGui::MenuItem(
                     "Toggle pinning mode", "F7",
-                    ui_shared_state.interaction_mode == UiSharedState::InteractionMode::PINNING ) )
+                    ui_shared_state.interaction_mode == UiSharedState::InteractionMode::PINNING,
+                    SPIRIT_PINNING_ENABLED ) )
             {
                 if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::PINNING )
                     this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::REGULAR );
