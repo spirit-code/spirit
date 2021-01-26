@@ -194,8 +194,6 @@ void RenderingLayer::initialize_gl()
 void RenderingLayer::update_renderers()
 {
     std::vector<std::pair<std::shared_ptr<VFRendering::RendererBase>, std::array<float, 4>>> total_renderers;
-    if( coordinatesystem_renderer_widget->show_ )
-        total_renderers.push_back( { coordinatesystem_renderer_widget->renderer, { 0.8f, 0, 0.2f, 0.2f } } );
 
     std::vector<std::shared_ptr<VFRendering::RendererBase>> system_renderers;
     if( boundingbox_renderer_widget->show_ )
@@ -205,8 +203,11 @@ void RenderingLayer::update_renderers()
         if( renderer_widget->show_ )
             system_renderers.push_back( renderer_widget->renderer );
     }
+
     total_renderers.push_back(
         { std::make_shared<VFRendering::CombinedRenderer>( view, system_renderers ), { { 0, 0, 1, 1 } } } );
+    if( coordinatesystem_renderer_widget->show_ )
+        total_renderers.push_back( { coordinatesystem_renderer_widget->renderer, { 0.8f, 0, 0.2f, 0.2f } } );
 
     view.renderers( total_renderers );
 }
