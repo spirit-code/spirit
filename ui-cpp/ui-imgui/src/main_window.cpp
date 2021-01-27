@@ -1008,9 +1008,9 @@ void MainWindow::draw_imgui( int display_w, int display_h )
 
     this->configurations_widget.show();
     this->parameters_widget.show();
-    this->geometry_widget.show();
     this->hamiltonian_widget.show();
     ImGui::PushFont( font_cousine_14 );
+    this->geometry_widget.show();
     this->plots_widget.show();
     ImGui::PopFont();
     this->visualisation_widget.show();
