@@ -171,7 +171,6 @@ void RenderingLayer::initialize_gl()
         renderer_widgets.push_back( std::make_shared<IsosurfaceRendererWidget>( state, view, vectorfield ) );
         renderer_widgets[0]->id   = 0;
         renderer_widgets[1]->id   = 1;
-        renderer_widgets[2]->id   = 2;
         this->renderer_id_counter = 3;
     }
 
