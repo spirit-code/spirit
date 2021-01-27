@@ -349,7 +349,66 @@ void RenderingLayer::update_vf_geometry()
     needs_data_ = true;
 
     boundingbox_renderer_widget->update_geometry();
+    update_visibility();
     update_renderers();
+}
+
+void RenderingLayer::update_visibility()
+{
+    auto is_visible = [&]() -> std::string {
+        const float epsilon = 1e-5;
+
+        float b_min[3], b_max[3], b_range[3];
+        Geometry_Get_Bounds( state.get(), b_min, b_max );
+
+        float filter_pos_min[3], filter_pos_max[3];
+        float filter_dir_min[3], filter_dir_max[3];
+        for( int dim = 0; dim < 3; ++dim )
+        {
+            b_range[dim]        = b_max[dim] - b_min[dim];
+            filter_pos_min[dim] = b_min[dim] + this->filter_position_min[dim] * b_range[dim] - epsilon;
+            filter_pos_max[dim] = b_max[dim] + ( this->filter_position_max[dim] - 1 ) * b_range[dim] + epsilon;
+
+            filter_dir_min[dim] = this->filter_direction_min[dim] - epsilon;
+            filter_dir_max[dim] = this->filter_direction_max[dim] + epsilon;
+        }
+        return fmt::format(
+            R"(
+            bool is_visible(vec3 position, vec3 direction)
+            {{
+                float x_min_pos = {};
+                float x_max_pos = {};
+                bool is_visible_x_pos = position.x <= x_max_pos && position.x >= x_min_pos;
+
+                float y_min_pos = {};
+                float y_max_pos = {};
+                bool is_visible_y_pos = position.y <= y_max_pos && position.y >= y_min_pos;
+
+                float z_min_pos = {};
+                float z_max_pos = {};
+                bool is_visible_z_pos = position.z <= z_max_pos && position.z >= z_min_pos;
+
+                float x_min_dir = {};
+                float x_max_dir = {};
+                bool is_visible_x_dir = direction.x <= x_max_dir && direction.x >= x_min_dir;
+
+                float y_min_dir = {};
+                float y_max_dir = {};
+                bool is_visible_y_dir = direction.y <= y_max_dir && direction.y >= y_min_dir;
+
+                float z_min_dir = {};
+                float z_max_dir = {};
+                bool is_visible_z_dir = direction.z <= z_max_dir && direction.z >= z_min_dir;
+
+                return is_visible_x_pos && is_visible_y_pos && is_visible_z_pos && is_visible_x_dir && is_visible_y_dir && is_visible_z_dir;
+            }}
+            )",
+            filter_pos_min[0], filter_pos_max[0], filter_pos_min[1], filter_pos_max[1], filter_pos_min[2],
+            filter_pos_max[2], this->filter_direction_min[0], this->filter_direction_max[0],
+            this->filter_direction_min[1], this->filter_direction_max[1], this->filter_direction_min[2],
+            this->filter_direction_max[2] );
+    };
+    this->view.setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( is_visible() );
 }
 
 void RenderingLayer::update_vf_directions()

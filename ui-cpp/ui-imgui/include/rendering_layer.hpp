@@ -39,6 +39,7 @@ struct RenderingLayer
 
     void screenshot_png( std::string filename = "screenshot" );
 
+    void update_visibility();
     void update_renderers();
     void update_vf_geometry();
     void update_vf_directions();
@@ -59,6 +60,11 @@ struct RenderingLayer
 
     int n_cell_step         = 1;
     int renderer_id_counter = 0;
+
+    float filter_direction_min[3]{ -1, -1, -1 };
+    float filter_direction_max[3]{ 1, 1, 1 };
+    float filter_position_min[3]{ 0, 0, 0 };
+    float filter_position_max[3]{ 1, 1, 1 };
 
 private:
     std::vector<std::shared_ptr<RendererWidget>> renderer_widgets_shown;

@@ -79,59 +79,6 @@ void VisualisationWidget::show()
 
     ImGui::Dummy( { 0, 10 } );
 
-    auto is_visible = [&]() -> std::string {
-        const float epsilon = 1e-5;
-
-        float b_min[3], b_max[3], b_range[3];
-        Geometry_Get_Bounds( state.get(), b_min, b_max );
-
-        float filter_pos_min[3], filter_pos_max[3];
-        float filter_dir_min[3], filter_dir_max[3];
-        for( int dim = 0; dim < 3; ++dim )
-        {
-            b_range[dim]        = b_max[dim] - b_min[dim];
-            filter_pos_min[dim] = b_min[dim] + filter_position_min[dim] * b_range[dim] - epsilon;
-            filter_pos_max[dim] = b_max[dim] + ( filter_position_max[dim] - 1 ) * b_range[dim] + epsilon;
-
-            filter_dir_min[dim] = filter_direction_min[dim] - epsilon;
-            filter_dir_max[dim] = filter_direction_max[dim] + epsilon;
-        }
-        return fmt::format(
-            R"(
-            bool is_visible(vec3 position, vec3 direction)
-            {{
-                float x_min_pos = {};
-                float x_max_pos = {};
-                bool is_visible_x_pos = position.x <= x_max_pos && position.x >= x_min_pos;
-
-                float y_min_pos = {};
-                float y_max_pos = {};
-                bool is_visible_y_pos = position.y <= y_max_pos && position.y >= y_min_pos;
-
-                float z_min_pos = {};
-                float z_max_pos = {};
-                bool is_visible_z_pos = position.z <= z_max_pos && position.z >= z_min_pos;
-
-                float x_min_dir = {};
-                float x_max_dir = {};
-                bool is_visible_x_dir = direction.x <= x_max_dir && direction.x >= x_min_dir;
-
-                float y_min_dir = {};
-                float y_max_dir = {};
-                bool is_visible_y_dir = direction.y <= y_max_dir && direction.y >= y_min_dir;
-
-                float z_min_dir = {};
-                float z_max_dir = {};
-                bool is_visible_z_dir = direction.z <= z_max_dir && direction.z >= z_min_dir;
-
-                return is_visible_x_pos && is_visible_y_pos && is_visible_z_pos && is_visible_x_dir && is_visible_y_dir && is_visible_z_dir;
-            }}
-            )",
-            filter_pos_min[0], filter_pos_max[0], filter_pos_min[1], filter_pos_max[1], filter_pos_min[2],
-            filter_pos_max[2], filter_direction_min[0], filter_direction_max[0], filter_direction_min[1],
-            filter_direction_max[1], filter_direction_min[2], filter_direction_max[2] );
-    };
-
     if( ImGui::CollapsingHeader( "Overall filters" ) )
     {
         ImGui::Indent( 15 );
@@ -139,38 +86,44 @@ void VisualisationWidget::show()
         ImGui::TextUnformatted( "Orientation" );
         ImGui::Indent( 15 );
         if( widgets::RangeSliderFloat(
-                "##filter_direction_x", &filter_direction_min[0], &filter_direction_max[0], -1, 1, "x: [%.3f, %.3f]" ) )
+                "##filter_direction_x", &rendering_layer.filter_direction_min[0],
+                &rendering_layer.filter_direction_max[0], -1, 1, "x: [%.3f, %.3f]" ) )
         {
-            rendering_layer.view.setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( is_visible() );
+            rendering_layer.update_visibility();
         }
         if( widgets::RangeSliderFloat(
-                "##filter_direction_y", &filter_direction_min[1], &filter_direction_max[1], -1, 1, "y: [%.3f, %.3f]" ) )
+                "##filter_direction_y", &rendering_layer.filter_direction_min[1],
+                &rendering_layer.filter_direction_max[1], -1, 1, "y: [%.3f, %.3f]" ) )
         {
-            rendering_layer.view.setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( is_visible() );
+            rendering_layer.update_visibility();
         }
         if( widgets::RangeSliderFloat(
-                "##filter_direction_z", &filter_direction_min[2], &filter_direction_max[2], -1, 1, "z: [%.3f, %.3f]" ) )
+                "##filter_direction_z", &rendering_layer.filter_direction_min[2],
+                &rendering_layer.filter_direction_max[2], -1, 1, "z: [%.3f, %.3f]" ) )
         {
-            rendering_layer.view.setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( is_visible() );
+            rendering_layer.update_visibility();
         }
         ImGui::Indent( -15 );
 
         ImGui::TextUnformatted( "Position" );
         ImGui::Indent( 15 );
         if( widgets::RangeSliderFloat(
-                "##filter_position_x", &filter_position_min[0], &filter_position_max[0], 0, 1, "x: [%.3f, %.3f]" ) )
+                "##filter_position_x", &rendering_layer.filter_position_min[0], &rendering_layer.filter_position_max[0],
+                0, 1, "x: [%.3f, %.3f]" ) )
         {
-            rendering_layer.view.setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( is_visible() );
+            rendering_layer.update_visibility();
         }
         if( widgets::RangeSliderFloat(
-                "##filter_position_y", &filter_position_min[1], &filter_position_max[1], 0, 1, "y: [%.3f, %.3f]" ) )
+                "##filter_position_y", &rendering_layer.filter_position_min[1], &rendering_layer.filter_position_max[1],
+                0, 1, "y: [%.3f, %.3f]" ) )
         {
-            rendering_layer.view.setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( is_visible() );
+            rendering_layer.update_visibility();
         }
         if( widgets::RangeSliderFloat(
-                "##filter_position_z", &filter_position_min[2], &filter_position_max[2], 0, 1, "z: [%.3f, %.3f]" ) )
+                "##filter_position_z", &rendering_layer.filter_position_min[2], &rendering_layer.filter_position_max[2],
+                0, 1, "z: [%.3f, %.3f]" ) )
         {
-            rendering_layer.view.setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( is_visible() );
+            rendering_layer.update_visibility();
         }
         ImGui::Indent( -15 );
 

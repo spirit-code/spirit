@@ -10,6 +10,11 @@ namespace ui
 GeometryWidget::GeometryWidget( bool & show, std::shared_ptr<State> state, RenderingLayer & rendering_layer )
         : show_( show ), state( state ), rendering_layer( rendering_layer )
 {
+    update_data();
+}
+
+void GeometryWidget::update_data()
+{
     Geometry_Get_N_Cells( state.get(), n_cells );
     Geometry_Get_Bounds( state.get(), bounds_min, bounds_max );
     for( int dim = 0; dim < 3; ++dim )
@@ -32,15 +37,13 @@ void GeometryWidget::show()
     {
         Geometry_Set_N_Cells( state.get(), n_cells );
         rendering_layer.update_vf_geometry();
-        Geometry_Get_Bounds( state.get(), bounds_min, bounds_max );
-        for( int dim = 0; dim < 3; ++dim )
-            system_center[dim] = ( bounds_min[dim] + bounds_max[dim] ) / 2;
+        this->update_data();
     }
 
     ImGui::TextUnformatted( "Number of basis cell atoms" );
     ImGui::SameLine();
     ImGui::SetNextItemWidth( 80 );
-    if( ImGui::InputInt( "##geometry_n_basis_atoms", &n_basis_atoms, ImGuiInputTextFlags_EnterReturnsTrue ) )
+    if( ImGui::InputInt( "##geometry_n_basis_atoms", &n_basis_atoms, 1, 10, ImGuiInputTextFlags_EnterReturnsTrue ) )
     {
     }
 
@@ -68,7 +71,5 @@ void GeometryWidget::show()
 
     ImGui::End();
 }
-
-void GeometryWidget::update_data() {}
 
 } // namespace ui
