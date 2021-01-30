@@ -1560,7 +1560,7 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
           configurations_widget( ui_config_file.show_configurations_widget, state, rendering_layer ),
           parameters_widget( ui_config_file.show_parameters_widget, state, ui_shared_state.selected_mode ),
           geometry_widget( ui_config_file.show_geometry_widget, state, rendering_layer ),
-          hamiltonian_widget( ui_config_file.show_hamiltonian_widget, state ),
+          hamiltonian_widget( ui_config_file.show_hamiltonian_widget, state, rendering_layer ),
           plots_widget( ui_config_file.show_plots, state ),
           visualisation_widget( ui_config_file.show_visualisation_widget, state, rendering_layer )
 {

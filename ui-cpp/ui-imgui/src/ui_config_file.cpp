@@ -400,20 +400,20 @@ void UiConfigFile::from_json()
         if( settings_json.contains( "visualisation" ) )
         {
             auto & group = settings_json.at( "visualisation" );
-            if( group.contains( "BoundingBoxRendererWidget" ) )
+            if( group.contains( "boundingbox_renderer" ) )
             {
                 auto ptr = std::make_shared<BoundingBoxRendererWidget>(
                     rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
                 rendering_layer.boundingbox_renderer_widget = ptr;
-                group.at( "BoundingBoxRendererWidget" ).get_to( *ptr );
+                group.at( "boundingbox_renderer" ).get_to( *ptr );
                 ptr->apply_settings();
             }
-            if( group.contains( "CoordinateSystemRendererWidget" ) )
+            if( group.contains( "coordinatesystem_renderer" ) )
             {
                 auto ptr
                     = std::make_shared<CoordinateSystemRendererWidget>( rendering_layer.state, rendering_layer.view );
                 rendering_layer.coordinatesystem_renderer_widget = ptr;
-                group.at( "CoordinateSystemRendererWidget" ).get_to( *ptr );
+                group.at( "coordinatesystem_renderer" ).get_to( *ptr );
                 ptr->apply_settings();
             }
             if( group.contains( "renderers" ) )

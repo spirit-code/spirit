@@ -155,8 +155,10 @@ void RenderingLayer::initialize_gl()
                                                                  -1000 * ui_shared_state.light_direction[1],
                                                                  -1000 * ui_shared_state.light_direction[2] } );
 
-    boundingbox_renderer_widget      = std::make_shared<BoundingBoxRendererWidget>( state, view, vectorfield );
-    coordinatesystem_renderer_widget = std::make_shared<CoordinateSystemRendererWidget>( state, view );
+    if( !boundingbox_renderer_widget )
+        boundingbox_renderer_widget = std::make_shared<BoundingBoxRendererWidget>( state, view, vectorfield );
+    if( !coordinatesystem_renderer_widget )
+        coordinatesystem_renderer_widget = std::make_shared<CoordinateSystemRendererWidget>( state, view );
 
     this->update_vf_geometry();
     this->update_vf_directions();
@@ -171,7 +173,7 @@ void RenderingLayer::initialize_gl()
         renderer_widgets.push_back( std::make_shared<IsosurfaceRendererWidget>( state, view, vectorfield ) );
         renderer_widgets[0]->id   = 0;
         renderer_widgets[1]->id   = 1;
-        this->renderer_id_counter = 3;
+        this->renderer_id_counter = 2;
     }
 
     for( auto & renderer_widget : renderer_widgets )
@@ -347,8 +349,8 @@ void RenderingLayer::update_vf_geometry()
     vectorfield.updateGeometry( geometry );
     needs_data_ = true;
 
-    boundingbox_renderer_widget->update_geometry();
     update_visibility();
+    update_boundingbox();
     update_renderers();
 }
 
@@ -408,6 +410,12 @@ void RenderingLayer::update_visibility()
             this->filter_direction_max[2] );
     };
     this->view.setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( is_visible() );
+}
+
+void RenderingLayer::update_boundingbox()
+{
+    boundingbox_renderer_widget->update_geometry();
+    update_renderers();
 }
 
 void RenderingLayer::update_vf_directions()

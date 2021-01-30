@@ -41,6 +41,7 @@ struct RenderingLayer
 
     void update_visibility();
     void update_renderers();
+    void update_boundingbox();
     void update_vf_geometry();
     void update_vf_directions();
 

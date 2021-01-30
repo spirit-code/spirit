@@ -27,7 +27,8 @@ void normalize( std::array<float, 3> vec )
     }
 }
 
-HamiltonianWidget::HamiltonianWidget( bool & show, std::shared_ptr<State> state ) : show_( show ), state( state )
+HamiltonianWidget::HamiltonianWidget( bool & show, std::shared_ptr<State> state, RenderingLayer & rendering_layer )
+        : show_( show ), state( state ), rendering_layer( rendering_layer )
 {
     this->update_data();
 }
@@ -86,6 +87,7 @@ void HamiltonianWidget::show()
             if( update_bc )
             {
                 Hamiltonian_Set_Boundary_Conditions( state.get(), boundary_conditions.data() );
+                rendering_layer.update_boundingbox();
             }
 
             ImGui::Dummy( { 0, 10 } );

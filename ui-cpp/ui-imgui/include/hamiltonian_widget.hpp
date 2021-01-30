@@ -2,6 +2,8 @@
 #ifndef SPIRIT_IMGUI_HAMILTONIAN_WIDGET_HPP
 #define SPIRIT_IMGUI_HAMILTONIAN_WIDGET_HPP
 
+#include <rendering_layer.hpp>
+
 #include <array>
 #include <memory>
 #include <vector>
@@ -13,13 +15,14 @@ namespace ui
 
 struct HamiltonianWidget
 {
-    HamiltonianWidget( bool & show, std::shared_ptr<State> state );
+    HamiltonianWidget( bool & show, std::shared_ptr<State> state, RenderingLayer & rendering_layer );
     void show();
     void update_data();
     void update_data_heisenberg();
 
     bool & show_;
     std::shared_ptr<State> state;
+    RenderingLayer & rendering_layer;
 
     std::array<bool, 3> boundary_conditions;
 
