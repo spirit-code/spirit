@@ -156,7 +156,8 @@ void RenderingLayer::initialize_gl()
                                                                  -1000 * ui_shared_state.light_direction[2] } );
 
     if( !boundingbox_renderer_widget )
-        boundingbox_renderer_widget = std::make_shared<BoundingBoxRendererWidget>( state, view, vectorfield );
+        boundingbox_renderer_widget
+            = std::make_shared<BoundingBoxRendererWidget>( state, view, vectorfield, ui_shared_state );
     if( !coordinatesystem_renderer_widget )
         coordinatesystem_renderer_widget = std::make_shared<CoordinateSystemRendererWidget>( state, view );
 
@@ -186,10 +187,33 @@ void RenderingLayer::initialize_gl()
 
     this->update_renderers();
 
+    boundingbox_renderer_widget->apply_settings();
+    coordinatesystem_renderer_widget->apply_settings();
     for( auto & renderer_widget : renderer_widgets )
         renderer_widget->apply_settings();
 
     gl_initialized_ = true;
+}
+
+void RenderingLayer::update_theme()
+{
+    if( ui_shared_state.dark_mode )
+    {
+        view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>( {
+            ui_shared_state.background_dark[0],
+            ui_shared_state.background_dark[1],
+            ui_shared_state.background_dark[2],
+        } );
+    }
+    else
+    {
+        view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>( {
+            ui_shared_state.background_light[0],
+            ui_shared_state.background_light[1],
+            ui_shared_state.background_light[2],
+        } );
+    }
+    boundingbox_renderer_widget->apply_settings();
 }
 
 void RenderingLayer::update_renderers()

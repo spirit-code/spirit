@@ -53,6 +53,8 @@ void to_json( Json & j, const BoundingBoxRendererWidget & renderer_widget )
 {
     j = Json{
         { "show", renderer_widget.show_ },
+        { "colour_dark", renderer_widget.colour_dark },
+        { "colour_light", renderer_widget.colour_light },
         { "line_width", renderer_widget.line_width },
         { "level_of_detail", renderer_widget.level_of_detail },
         { "draw_shadows", renderer_widget.draw_shadows },
@@ -63,6 +65,10 @@ void from_json( const Json & j, BoundingBoxRendererWidget & renderer_widget )
 {
     if( j.contains( "show" ) )
         j.at( "show" ).get_to( renderer_widget.show_ );
+    if( j.contains( "colour_dark" ) )
+        j.at( "colour_dark" ).get_to( renderer_widget.colour_dark );
+    if( j.contains( "colour_light" ) )
+        j.at( "colour_light" ).get_to( renderer_widget.colour_light );
     if( j.contains( "line_width" ) )
         j.at( "line_width" ).get_to( renderer_widget.line_width );
     if( j.contains( "level_of_detail" ) )
@@ -403,7 +409,8 @@ void UiConfigFile::from_json()
             if( group.contains( "boundingbox_renderer" ) )
             {
                 auto ptr = std::make_shared<BoundingBoxRendererWidget>(
-                    rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
+                    rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield,
+                    rendering_layer.ui_shared_state );
                 rendering_layer.boundingbox_renderer_widget = ptr;
                 group.at( "boundingbox_renderer" ).get_to( *ptr );
                 ptr->apply_settings();

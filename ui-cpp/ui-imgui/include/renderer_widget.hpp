@@ -2,6 +2,8 @@
 #ifndef SPIRIT_IMGUI_RENDERER_WIDGET_HPP
 #define SPIRIT_IMGUI_RENDERER_WIDGET_HPP
 
+#include <ui_shared_state.hpp>
+
 #include <VFRendering/RendererBase.hxx>
 #include <VFRendering/VectorField.hxx>
 #include <VFRendering/View.hxx>
@@ -75,11 +77,16 @@ protected:
 struct BoundingBoxRendererWidget : RendererWidget
 {
     BoundingBoxRendererWidget(
-        std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield );
+        std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield,
+        UiSharedState & ui_shared_state );
     void show() override;
     void apply_settings() override;
     void update_geometry() override;
 
+    UiSharedState & ui_shared_state;
+
+    std::array<float, 3> colour_dark{ 0.4f, 0.4f, 0.4f };
+    std::array<float, 3> colour_light{ 0.9f, 0.9f, 0.9f };
     float line_width    = 0;
     int level_of_detail = 10;
     bool draw_shadows   = false;

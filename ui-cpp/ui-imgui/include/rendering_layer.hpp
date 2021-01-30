@@ -39,6 +39,7 @@ struct RenderingLayer
 
     void screenshot_png( std::string filename = "screenshot" );
 
+    void update_theme();
     void update_visibility();
     void update_renderers();
     void update_boundingbox();

@@ -660,13 +660,12 @@ void CoordinateSystemRendererWidget::reset() {}
 void CoordinateSystemRendererWidget::show_settings() {}
 
 BoundingBoxRendererWidget::BoundingBoxRendererWidget(
-    std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield )
-        : RendererWidget( state, view )
+    std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield,
+    UiSharedState & ui_shared_state )
+        : RendererWidget( state, view ), ui_shared_state( ui_shared_state )
 {
     update_geometry();
-
-    renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LINE_WIDTH>( line_width );
-    renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LEVEL_OF_DETAIL>( level_of_detail );
+    apply_settings();
 
     // if( draw_shadows )
     // {
@@ -703,6 +702,29 @@ void BoundingBoxRendererWidget::show()
     {
         ImGui::Indent( 25 );
 
+        float * colour;
+        if( ui_shared_state.dark_mode )
+            colour = colour_dark.data();
+        else
+            colour = colour_light.data();
+
+        ImGui::TextUnformatted( "Color" );
+        ImGui::SameLine();
+        if( ImGui::Button( "default" ) )
+        {
+            if( ui_shared_state.dark_mode )
+                colour_dark = { 0.9f, 0.9f, 0.9f };
+            else
+                colour_light = { 0.2f, 0.2f, 0.2f };
+
+            renderer->setOption<VFRendering::BoundingBoxRenderer::Option::COLOR>( { colour[0], colour[1], colour[2] } );
+        }
+
+        if( ImGui::ColorEdit3( "##bgcolour", colour ) )
+        {
+            renderer->setOption<VFRendering::BoundingBoxRenderer::Option::COLOR>( { colour[0], colour[1], colour[2] } );
+        }
+
         ImGui::SetNextItemWidth( 100 );
         if( ImGui::SliderFloat( "thickness", &line_width, 0, 10, "%.1f" ) )
         {
@@ -729,8 +751,16 @@ void BoundingBoxRendererWidget::show()
 void BoundingBoxRendererWidget::apply_settings()
 {
     RendererWidget::apply_settings();
+    if( ui_shared_state.dark_mode )
+        renderer->setOption<VFRendering::BoundingBoxRenderer::Option::COLOR>(
+            { colour_dark[0], colour_dark[1], colour_dark[2] } );
+    else
+        renderer->setOption<VFRendering::BoundingBoxRenderer::Option::COLOR>(
+            { colour_light[0], colour_light[1], colour_light[2] } );
     renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LINE_WIDTH>( line_width );
+    renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LEVEL_OF_DETAIL>( level_of_detail );
 }
+
 void BoundingBoxRendererWidget::update_geometry()
 {
     bool periodical[3];

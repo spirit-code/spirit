@@ -370,6 +370,7 @@ void show_settings( bool & show, ui::RenderingLayer & rendering_layer )
             rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
                 { ui_state.background_light[0], ui_state.background_light[1], ui_state.background_light[2] } );
         }
+        rendering_layer.update_theme();
     }
     ImGui::SameLine();
     ImGui::TextUnformatted( ICON_FA_MOON " dark mode" );
