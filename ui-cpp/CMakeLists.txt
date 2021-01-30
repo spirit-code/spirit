@@ -159,6 +159,7 @@ if( SPIRIT_UI_USE_IMGUI )
         ${IMGUI_SRC_DIR}/imgui_draw.cpp
         ${IMGUI_SRC_DIR}/imgui_demo.cpp
         ${IMGUI_SRC_DIR}/imgui_widgets.cpp
+        ${IMGUI_SRC_DIR}/misc/cpp/imgui_stdlib.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/glad/src/glad.c )
 
     add_library( imgui STATIC ${IMGUI_SOURCES} )

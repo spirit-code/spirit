@@ -513,6 +513,7 @@ void MainWindow::handle_keyboard()
             {
                 Chain_next_Image( this->state.get() );
                 rendering_layer.needs_data();
+                parameters_widget.update_data();
             }
         }
 
@@ -522,6 +523,7 @@ void MainWindow::handle_keyboard()
             {
                 Chain_prev_Image( this->state.get() );
                 rendering_layer.needs_data();
+                parameters_widget.update_data();
             }
         }
 
@@ -794,6 +796,8 @@ void MainWindow::insert_image_left()
     this->threads_image.insert( threads_image.begin() + idx, std::thread() );
     // Switch to the inserted image
     Chain_prev_Image( this->state.get() );
+    rendering_layer.needs_data();
+    parameters_widget.update_data();
 
     this->ui_shared_state.notify( "inserted image to the left" );
 }
@@ -810,6 +814,8 @@ void MainWindow::insert_image_right()
     this->threads_image.insert( threads_image.begin() + idx + 1, std::thread() );
     // Switch to the inserted image
     Chain_next_Image( this->state.get() );
+    rendering_layer.needs_data();
+    parameters_widget.update_data();
 
     this->ui_shared_state.notify( "inserted image to the right" );
 }
@@ -1424,6 +1430,7 @@ void MainWindow::show_menu_bar()
             {
                 Chain_prev_Image( this->state.get() );
                 rendering_layer.needs_data();
+                parameters_widget.update_data();
             }
         }
 
@@ -1433,7 +1440,11 @@ void MainWindow::show_menu_bar()
         if( ImGui::InputScalar(
                 "##imagenumber", ImGuiDataType_U32, &image_number, NULL, NULL, "%u",
                 ImGuiInputTextFlags_EnterReturnsTrue ) )
+        {
             Chain_Jump_To_Image( state.get(), image_number - 1 );
+            rendering_layer.needs_data();
+            parameters_widget.update_data();
+        }
         ImGui::TextUnformatted( "/" );
         ImGui::SetNextItemWidth( 40 );
         if( ImGui::InputScalar(
@@ -1458,6 +1469,7 @@ void MainWindow::show_menu_bar()
             {
                 Chain_next_Image( this->state.get() );
                 rendering_layer.needs_data();
+                parameters_widget.update_data();
             }
         }
 
@@ -1558,7 +1570,7 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
           rendering_layer( ui_shared_state, state ),
           ui_config_file( ui_shared_state, rendering_layer ),
           configurations_widget( ui_config_file.show_configurations_widget, state, rendering_layer ),
-          parameters_widget( ui_config_file.show_parameters_widget, state, ui_shared_state.selected_mode ),
+          parameters_widget( ui_config_file.show_parameters_widget, state, ui_shared_state ),
           geometry_widget( ui_config_file.show_geometry_widget, state, rendering_layer ),
           hamiltonian_widget( ui_config_file.show_hamiltonian_widget, state, rendering_layer ),
           plots_widget( ui_config_file.show_plots, state ),

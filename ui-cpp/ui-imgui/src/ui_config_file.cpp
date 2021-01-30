@@ -383,6 +383,16 @@ void UiConfigFile::from_json()
                 group.at( "background_light" ).get_to( this->ui_shared_state.background_light );
             if( group.contains( "light_direction" ) )
                 group.at( "light_direction" ).get_to( this->ui_shared_state.light_direction );
+            if( group.contains( "min_apply_to_all" ) )
+                group.at( "min_apply_to_all" ).get_to( this->ui_shared_state.min_apply_to_all );
+            if( group.contains( "mc_apply_to_all" ) )
+                group.at( "mc_apply_to_all" ).get_to( this->ui_shared_state.mc_apply_to_all );
+            if( group.contains( "llg_apply_to_all" ) )
+                group.at( "llg_apply_to_all" ).get_to( this->ui_shared_state.llg_apply_to_all );
+            if( group.contains( "mmf_apply_to_all" ) )
+                group.at( "mmf_apply_to_all" ).get_to( this->ui_shared_state.mmf_apply_to_all );
+            if( group.contains( "ema_apply_to_all" ) )
+                group.at( "ema_apply_to_all" ).get_to( this->ui_shared_state.ema_apply_to_all );
         }
 
         if( settings_json.contains( "main_window" ) )
@@ -539,6 +549,11 @@ void UiConfigFile::to_json() const
                 { "background_dark", this->ui_shared_state.background_dark },
                 { "background_light", this->ui_shared_state.background_light },
                 { "light_direction", this->ui_shared_state.light_direction },
+                { "min_apply_to_all", this->ui_shared_state.min_apply_to_all },
+                { "mc_apply_to_all", this->ui_shared_state.mc_apply_to_all },
+                { "llg_apply_to_all", this->ui_shared_state.llg_apply_to_all },
+                { "mmf_apply_to_all", this->ui_shared_state.mmf_apply_to_all },
+                { "ema_apply_to_all", this->ui_shared_state.ema_apply_to_all },
             },
         },
 

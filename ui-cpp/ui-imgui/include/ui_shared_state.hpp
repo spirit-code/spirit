@@ -57,6 +57,13 @@ struct UiSharedState
     std::array<float, 3> regular_interaction_sys_center;
     std::array<float, 3> regular_interaction_camera_up;
 
+    // Parameters widget
+    bool min_apply_to_all = true;
+    bool mc_apply_to_all  = true;
+    bool llg_apply_to_all = true;
+    bool mmf_apply_to_all = true;
+    bool ema_apply_to_all = true;
+
     // Other
     int n_screenshots = 0;
     std::list<Notification> notifications;
