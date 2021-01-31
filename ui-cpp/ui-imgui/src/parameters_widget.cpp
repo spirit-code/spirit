@@ -402,6 +402,106 @@ void ParametersWidget::show()
     }
     else if( ui_shared_state.selected_mode == GUI_Mode::GNEB )
     {
+        ImGui::TextUnformatted( "n_iterations" );
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth( 80 );
+        if( ImGui::InputInt(
+                "##gneb_n_iterations", &parameters_gneb.n_iterations, 0, 0, ImGuiInputTextFlags_EnterReturnsTrue ) )
+            Parameters_GNEB_Set_N_Iterations(
+                state.get(), parameters_gneb.n_iterations, parameters_gneb.n_iterations_log );
+
+        ImGui::TextUnformatted( "log every" );
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth( 80 );
+        if( ImGui::InputInt(
+                "iterations##gneb_n_iterations_log", &parameters_gneb.n_iterations_log, 0, 0,
+                ImGuiInputTextFlags_EnterReturnsTrue ) )
+            Parameters_GNEB_Set_N_Iterations(
+                state.get(), parameters_gneb.n_iterations, parameters_gneb.n_iterations_log );
+
+        ImGui::Dummy( { 0, 10 } );
+
+        if( ImGui::Checkbox( "##gneb_output_any", &parameters_gneb.output_any ) )
+            Parameters_GNEB_Set_Output_General(
+                state.get(), parameters_gneb.output_any, parameters_gneb.output_initial, parameters_gneb.output_final );
+        ImGui::SameLine();
+        if( ImGui::CollapsingHeader( "Output" ) )
+        {
+            ImGui::Indent( 25 );
+
+            ImGui::TextUnformatted( "folder" );
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth( 80 );
+            if( ImGui::InputText(
+                    "##gneb_output_folder", &parameters_gneb.output_folder, ImGuiInputTextFlags_EnterReturnsTrue ) )
+                Parameters_GNEB_Set_Output_Folder( state.get(), parameters_gneb.output_folder.c_str() );
+
+            ImGui::TextUnformatted( "file tag" );
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth( 80 );
+            if( ImGui::InputText(
+                    "##gneb_output_file_tag", &parameters_gneb.output_file_tag, ImGuiInputTextFlags_EnterReturnsTrue ) )
+                Parameters_GNEB_Set_Output_Tag( state.get(), parameters_gneb.output_file_tag.c_str() );
+
+            if( ImGui::Checkbox( "initial##gneb_output_initial", &parameters_gneb.output_initial ) )
+                Parameters_GNEB_Set_Output_General(
+                    state.get(), parameters_gneb.output_any, parameters_gneb.output_initial,
+                    parameters_gneb.output_final );
+            if( ImGui::Checkbox( "final##gneb_output_final", &parameters_gneb.output_final ) )
+                Parameters_GNEB_Set_Output_General(
+                    state.get(), parameters_gneb.output_any, parameters_gneb.output_initial,
+                    parameters_gneb.output_final );
+
+            ImGui::Dummy( { 0, 10 } );
+
+            // TODO
+            int output_vf_filetype = IO_Fileformat_OVF_text;
+
+            ImGui::TextUnformatted( "Chain output" );
+            ImGui::Indent( 15 );
+            if( ImGui::Checkbox( "write at every step##gneb_output_chain_step", &parameters_gneb.output_chain_step ) )
+                Parameters_GNEB_Set_Output_Chain(
+                    state.get(), parameters_gneb.output_chain_step, parameters_gneb.output_vf_filetype );
+            ImGui::Indent( -15 );
+
+            ImGui::Dummy( { 0, 10 } );
+
+            ImGui::TextUnformatted( "Energy output" );
+            ImGui::Indent( 15 );
+            if( ImGui::Checkbox(
+                    "write at every step##gneb_output_energies_step", &parameters_gneb.output_energies_step ) )
+                Parameters_GNEB_Set_Output_Energies(
+                    state.get(), parameters_gneb.output_energies_step, parameters_gneb.output_energies_interpolated,
+                    parameters_gneb.output_energies_divide_by_nspins,
+                    parameters_gneb.output_energies_add_readability_lines );
+            if( ImGui::Checkbox(
+                    "normalize energies by number of spins##gneb_output_energies_interpolated",
+                    &parameters_gneb.output_energies_interpolated ) )
+                Parameters_GNEB_Set_Output_Energies(
+                    state.get(), parameters_gneb.output_energies_step, parameters_gneb.output_energies_interpolated,
+                    parameters_gneb.output_energies_divide_by_nspins,
+                    parameters_gneb.output_energies_add_readability_lines );
+            if( ImGui::Checkbox(
+                    "normalize energies by number of spins##gneb_output_energies_divide_by_nspins",
+                    &parameters_gneb.output_energies_divide_by_nspins ) )
+                Parameters_GNEB_Set_Output_Energies(
+                    state.get(), parameters_gneb.output_energies_step, parameters_gneb.output_energies_interpolated,
+                    parameters_gneb.output_energies_divide_by_nspins,
+                    parameters_gneb.output_energies_add_readability_lines );
+            if( ImGui::Checkbox(
+                    "add readability lines in energy files##gneb_output_energies_add_readability_lines",
+                    &parameters_gneb.output_energies_add_readability_lines ) )
+                Parameters_GNEB_Set_Output_Energies(
+                    state.get(), parameters_gneb.output_energies_step, parameters_gneb.output_energies_interpolated,
+                    parameters_gneb.output_energies_divide_by_nspins,
+                    parameters_gneb.output_energies_add_readability_lines );
+            ImGui::Indent( -15 );
+
+            ImGui::Indent( -25 );
+        }
+
+        ImGui::Dummy( { 0, 10 } );
+
         ImGui::TextUnformatted( "Convergence limit" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 80 );
