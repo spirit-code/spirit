@@ -678,6 +678,38 @@ void ParametersWidget::show()
     else if( ui_shared_state.selected_mode == GUI_Mode::EMA )
     {
         ImGui::Checkbox( "Apply to all images", &ui_shared_state.ema_apply_to_all );
+
+        ImGui::Dummy( { 0, 10 } );
+
+        ImGui::TextUnformatted( "Number of modes" );
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth( 100 );
+        if( ImGui::InputInt( "##ema_n_modes", &parameters_ema.n_modes, 1, 10, ImGuiInputTextFlags_EnterReturnsTrue ) )
+            Parameters_EMA_Set_N_Modes( state.get(), parameters_ema.n_modes );
+
+        ImGui::TextUnformatted( "Follow mode" );
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth( 100 );
+        if( ImGui::InputInt(
+                "##ema_n_mode_follow", &parameters_ema.n_mode_follow, 1, 10, ImGuiInputTextFlags_EnterReturnsTrue ) )
+            Parameters_EMA_Set_N_Mode_Follow( state.get(), parameters_ema.n_mode_follow );
+
+        ImGui::TextUnformatted( "Frequency" );
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth( 80 );
+        if( ImGui::InputFloat(
+                "##ema_frequency", &parameters_ema.frequency, 0, 0, "%.3e", ImGuiInputTextFlags_EnterReturnsTrue ) )
+            Parameters_EMA_Set_Frequency( state.get(), parameters_ema.frequency );
+
+        ImGui::TextUnformatted( "Amplitude" );
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth( 80 );
+        if( ImGui::InputFloat(
+                "##ema_amplitude", &parameters_ema.amplitude, 0, 0, "%.3e", ImGuiInputTextFlags_EnterReturnsTrue ) )
+            Parameters_EMA_Set_Amplitude( state.get(), parameters_ema.amplitude );
+
+        if( ImGui::Checkbox( "snapshot mode", &parameters_ema.snapshot ) )
+            Parameters_EMA_Set_Snapshot( state.get(), parameters_ema.snapshot );
     }
 
     ImGui::End();
