@@ -560,6 +560,120 @@ void ParametersWidget::show()
     else if( ui_shared_state.selected_mode == GUI_Mode::MMF )
     {
         ImGui::Checkbox( "Apply to all images", &ui_shared_state.mmf_apply_to_all );
+
+        ImGui::Dummy( { 0, 10 } );
+
+        ImGui::TextUnformatted( "n_iterations" );
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth( 80 );
+        if( ImGui::InputInt(
+                "##mmf_n_iterations", &parameters_mmf.n_iterations, 0, 0, ImGuiInputTextFlags_EnterReturnsTrue ) )
+            Parameters_MMF_Set_N_Iterations(
+                state.get(), parameters_mmf.n_iterations, parameters_mmf.n_iterations_log );
+
+        ImGui::TextUnformatted( "log every" );
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth( 80 );
+        if( ImGui::InputInt(
+                "iterations##mmf_n_iterations_log", &parameters_mmf.n_iterations_log, 0, 0,
+                ImGuiInputTextFlags_EnterReturnsTrue ) )
+            Parameters_MMF_Set_N_Iterations(
+                state.get(), parameters_mmf.n_iterations, parameters_mmf.n_iterations_log );
+
+        ImGui::Dummy( { 0, 10 } );
+
+        if( ImGui::Checkbox( "##mmf_output_any", &parameters_mmf.output_any ) )
+            Parameters_MMF_Set_Output_General(
+                state.get(), parameters_mmf.output_any, parameters_mmf.output_initial, parameters_mmf.output_final );
+        ImGui::SameLine();
+        if( ImGui::CollapsingHeader( "Output" ) )
+        {
+            ImGui::Indent( 25 );
+
+            ImGui::TextUnformatted( "folder" );
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth( 80 );
+            if( ImGui::InputText(
+                    "##mmf_output_folder", &parameters_mmf.output_folder, ImGuiInputTextFlags_EnterReturnsTrue ) )
+                Parameters_MMF_Set_Output_Folder( state.get(), parameters_mmf.output_folder.c_str() );
+
+            ImGui::TextUnformatted( "file tag" );
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth( 80 );
+            if( ImGui::InputText(
+                    "##mmf_output_file_tag", &parameters_mmf.output_file_tag, ImGuiInputTextFlags_EnterReturnsTrue ) )
+                Parameters_MMF_Set_Output_Tag( state.get(), parameters_mmf.output_file_tag.c_str() );
+
+            if( ImGui::Checkbox( "initial##mmf_output_initial", &parameters_mmf.output_initial ) )
+                Parameters_MMF_Set_Output_General(
+                    state.get(), parameters_mmf.output_any, parameters_mmf.output_initial,
+                    parameters_mmf.output_final );
+            if( ImGui::Checkbox( "final##mmf_output_final", &parameters_mmf.output_final ) )
+                Parameters_MMF_Set_Output_General(
+                    state.get(), parameters_mmf.output_any, parameters_mmf.output_initial,
+                    parameters_mmf.output_final );
+
+            ImGui::Dummy( { 0, 10 } );
+
+            // TODO
+            int output_vf_filetype = IO_Fileformat_OVF_text;
+
+            ImGui::TextUnformatted( "Configuration output" );
+            ImGui::Indent( 15 );
+            if( ImGui::Checkbox(
+                    "write at every step##mmf_output_configuration_step", &parameters_mmf.output_configuration_step ) )
+                Parameters_MMF_Set_Output_Configuration(
+                    state.get(), parameters_mmf.output_configuration_step, parameters_mmf.output_configuration_archive,
+                    parameters_mmf.output_vf_filetype );
+            if( ImGui::Checkbox(
+                    "append to archive at every step##mmf_output_configuration_archive",
+                    &parameters_mmf.output_configuration_archive ) )
+                Parameters_MMF_Set_Output_Configuration(
+                    state.get(), parameters_mmf.output_configuration_step, parameters_mmf.output_configuration_archive,
+                    parameters_mmf.output_vf_filetype );
+            ImGui::Indent( -15 );
+
+            ImGui::Dummy( { 0, 10 } );
+
+            ImGui::TextUnformatted( "Energy output" );
+            ImGui::Indent( 15 );
+            if( ImGui::Checkbox( "write at every step##mmf_output_energy_step", &parameters_mmf.output_energy_step ) )
+                Parameters_MMF_Set_Output_Energy(
+                    state.get(), parameters_mmf.output_energy_step, parameters_mmf.output_energy_archive,
+                    parameters_mmf.output_energy_spin_resolved, parameters_mmf.output_energy_divide_by_nspins,
+                    parameters_mmf.output_energy_add_readability_lines );
+            if( ImGui::Checkbox(
+                    "append to archive at every step##mmf_output_energy_archive",
+                    &parameters_mmf.output_energy_archive ) )
+                Parameters_MMF_Set_Output_Energy(
+                    state.get(), parameters_mmf.output_energy_step, parameters_mmf.output_energy_archive,
+                    parameters_mmf.output_energy_spin_resolved, parameters_mmf.output_energy_divide_by_nspins,
+                    parameters_mmf.output_energy_add_readability_lines );
+            if( ImGui::Checkbox(
+                    "spin-resolved energy files##mmf_output_energy_spin_resolved",
+                    &parameters_mmf.output_energy_spin_resolved ) )
+                Parameters_MMF_Set_Output_Energy(
+                    state.get(), parameters_mmf.output_energy_step, parameters_mmf.output_energy_archive,
+                    parameters_mmf.output_energy_spin_resolved, parameters_mmf.output_energy_divide_by_nspins,
+                    parameters_mmf.output_energy_add_readability_lines );
+            if( ImGui::Checkbox(
+                    "normalize energies by number of spins##mmf_output_energy_divide_by_nspins",
+                    &parameters_mmf.output_energy_divide_by_nspins ) )
+                Parameters_MMF_Set_Output_Energy(
+                    state.get(), parameters_mmf.output_energy_step, parameters_mmf.output_energy_archive,
+                    parameters_mmf.output_energy_spin_resolved, parameters_mmf.output_energy_divide_by_nspins,
+                    parameters_mmf.output_energy_add_readability_lines );
+            if( ImGui::Checkbox(
+                    "add readability lines in energy files##mmf_output_energy_add_readability_lines",
+                    &parameters_mmf.output_energy_add_readability_lines ) )
+                Parameters_MMF_Set_Output_Energy(
+                    state.get(), parameters_mmf.output_energy_step, parameters_mmf.output_energy_archive,
+                    parameters_mmf.output_energy_spin_resolved, parameters_mmf.output_energy_divide_by_nspins,
+                    parameters_mmf.output_energy_add_readability_lines );
+            ImGui::Indent( -15 );
+
+            ImGui::Indent( -25 );
+        }
     }
     else if( ui_shared_state.selected_mode == GUI_Mode::EMA )
     {
