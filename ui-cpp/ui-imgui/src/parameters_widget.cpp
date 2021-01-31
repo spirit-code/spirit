@@ -1,8 +1,11 @@
 #include <parameters_widget.hpp>
 
 #include <Spirit/Chain.h>
+#include <Spirit/Parameters_EMA.h>
 #include <Spirit/Parameters_GNEB.h>
 #include <Spirit/Parameters_LLG.h>
+#include <Spirit/Parameters_MC.h>
+#include <Spirit/Parameters_MMF.h>
 
 #include <imgui/imgui.h>
 #include <imgui/misc/cpp/imgui_stdlib.h>
@@ -239,6 +242,163 @@ void ParametersWidget::show()
     else if( ui_shared_state.selected_mode == GUI_Mode::MC )
     {
         ImGui::Checkbox( "Apply to all images", &ui_shared_state.mc_apply_to_all );
+
+        ImGui::Dummy( { 0, 10 } );
+
+        ImGui::TextUnformatted( "n_iterations" );
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth( 80 );
+        if( ImGui::InputInt(
+                "##mc_n_iterations", &parameters_mc.n_iterations, 0, 0, ImGuiInputTextFlags_EnterReturnsTrue ) )
+            Parameters_MC_Set_N_Iterations( state.get(), parameters_mc.n_iterations, parameters_mc.n_iterations_log );
+
+        ImGui::TextUnformatted( "log every" );
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth( 80 );
+        if( ImGui::InputInt(
+                "iterations##mc_n_iterations_log", &parameters_mc.n_iterations_log, 0, 0,
+                ImGuiInputTextFlags_EnterReturnsTrue ) )
+            Parameters_MC_Set_N_Iterations( state.get(), parameters_mc.n_iterations, parameters_mc.n_iterations_log );
+
+        ImGui::Dummy( { 0, 10 } );
+
+        if( ImGui::Checkbox( "##mc_output_any", &parameters_mc.output_any ) )
+            Parameters_MC_Set_Output_General(
+                state.get(), parameters_mc.output_any, parameters_mc.output_initial, parameters_mc.output_final );
+        ImGui::SameLine();
+        if( ImGui::CollapsingHeader( "Output" ) )
+        {
+            ImGui::Indent( 25 );
+
+            ImGui::TextUnformatted( "folder" );
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth( 80 );
+            if( ImGui::InputText(
+                    "##mc_output_folder", &parameters_mc.output_folder, ImGuiInputTextFlags_EnterReturnsTrue ) )
+                Parameters_MC_Set_Output_Folder( state.get(), parameters_mc.output_folder.c_str() );
+
+            ImGui::TextUnformatted( "file tag" );
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth( 80 );
+            if( ImGui::InputText(
+                    "##mc_output_file_tag", &parameters_mc.output_file_tag, ImGuiInputTextFlags_EnterReturnsTrue ) )
+                Parameters_MC_Set_Output_Tag( state.get(), parameters_mc.output_file_tag.c_str() );
+
+            if( ImGui::Checkbox( "initial##mc_output_initial", &parameters_mc.output_initial ) )
+                Parameters_MC_Set_Output_General(
+                    state.get(), parameters_mc.output_any, parameters_mc.output_initial, parameters_mc.output_final );
+            if( ImGui::Checkbox( "final##mc_output_final", &parameters_mc.output_final ) )
+                Parameters_MC_Set_Output_General(
+                    state.get(), parameters_mc.output_any, parameters_mc.output_initial, parameters_mc.output_final );
+
+            ImGui::Dummy( { 0, 10 } );
+
+            // TODO
+            int output_vf_filetype = IO_Fileformat_OVF_text;
+
+            ImGui::TextUnformatted( "Configuration output" );
+            ImGui::Indent( 15 );
+            if( ImGui::Checkbox(
+                    "write at every step##mc_output_configuration_step", &parameters_mc.output_configuration_step ) )
+                Parameters_MC_Set_Output_Configuration(
+                    state.get(), parameters_mc.output_configuration_step, parameters_mc.output_configuration_archive,
+                    parameters_mc.output_vf_filetype );
+            if( ImGui::Checkbox(
+                    "append to archive at every step##mc_output_configuration_archive",
+                    &parameters_mc.output_configuration_archive ) )
+                Parameters_MC_Set_Output_Configuration(
+                    state.get(), parameters_mc.output_configuration_step, parameters_mc.output_configuration_archive,
+                    parameters_mc.output_vf_filetype );
+            ImGui::Indent( -15 );
+
+            ImGui::Dummy( { 0, 10 } );
+
+            ImGui::TextUnformatted( "Energy output" );
+            ImGui::Indent( 15 );
+            if( ImGui::Checkbox( "write at every step##mc_output_energy_step", &parameters_mc.output_energy_step ) )
+                Parameters_MC_Set_Output_Energy(
+                    state.get(), parameters_mc.output_energy_step, parameters_mc.output_energy_archive,
+                    parameters_mc.output_energy_spin_resolved, parameters_mc.output_energy_divide_by_nspins,
+                    parameters_mc.output_energy_add_readability_lines );
+            if( ImGui::Checkbox(
+                    "append to archive at every step##mc_output_energy_archive",
+                    &parameters_mc.output_energy_archive ) )
+                Parameters_MC_Set_Output_Energy(
+                    state.get(), parameters_mc.output_energy_step, parameters_mc.output_energy_archive,
+                    parameters_mc.output_energy_spin_resolved, parameters_mc.output_energy_divide_by_nspins,
+                    parameters_mc.output_energy_add_readability_lines );
+            if( ImGui::Checkbox(
+                    "spin-resolved energy files##mc_output_energy_spin_resolved",
+                    &parameters_mc.output_energy_spin_resolved ) )
+                Parameters_MC_Set_Output_Energy(
+                    state.get(), parameters_mc.output_energy_step, parameters_mc.output_energy_archive,
+                    parameters_mc.output_energy_spin_resolved, parameters_mc.output_energy_divide_by_nspins,
+                    parameters_mc.output_energy_add_readability_lines );
+            if( ImGui::Checkbox(
+                    "normalize energies by number of spins##mc_output_energy_divide_by_nspins",
+                    &parameters_mc.output_energy_divide_by_nspins ) )
+                Parameters_MC_Set_Output_Energy(
+                    state.get(), parameters_mc.output_energy_step, parameters_mc.output_energy_archive,
+                    parameters_mc.output_energy_spin_resolved, parameters_mc.output_energy_divide_by_nspins,
+                    parameters_mc.output_energy_add_readability_lines );
+            if( ImGui::Checkbox(
+                    "add readability lines in energy files##mc_output_energy_add_readability_lines",
+                    &parameters_mc.output_energy_add_readability_lines ) )
+                Parameters_MC_Set_Output_Energy(
+                    state.get(), parameters_mc.output_energy_step, parameters_mc.output_energy_archive,
+                    parameters_mc.output_energy_spin_resolved, parameters_mc.output_energy_divide_by_nspins,
+                    parameters_mc.output_energy_add_readability_lines );
+            ImGui::Indent( -15 );
+
+            ImGui::Indent( -25 );
+        }
+
+        ImGui::Dummy( { 0, 10 } );
+
+        ImGui::TextUnformatted( "Temperature" );
+        ImGui::Indent( 15 );
+        ImGui::TextUnformatted( "Base" );
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth( 80 );
+        if( ImGui::InputFloat(
+                "[K]##mc_temperature", &parameters_mc.temperature, 0, 0, "%.5f",
+                ImGuiInputTextFlags_EnterReturnsTrue ) )
+            Parameters_MC_Set_Temperature( state.get(), parameters_mc.temperature );
+        ImGui::Indent( -15 );
+
+        ImGui::Dummy( { 0, 10 } );
+
+        ImGui::TextUnformatted( "Metropolis algorithm" );
+        ImGui::Indent( 15 );
+        if( ImGui::Checkbox( "randomly sample spin", &parameters_mc.metropolis_random_sample ) )
+            Parameters_MC_Set_Random_Sample( state.get(), parameters_mc.metropolis_random_sample );
+        if( ImGui::Checkbox( "restrict sampling to a cone", &parameters_mc.metropolis_step_cone ) )
+            Parameters_MC_Set_Metropolis_Cone(
+                state.get(), parameters_mc.metropolis_step_cone, parameters_mc.metropolis_cone_angle,
+                parameters_mc.metropolis_cone_adaptive, parameters_mc.acceptance_ratio_target );
+        if( ImGui::Checkbox( "dynamically adapt the cone radius", &parameters_mc.metropolis_cone_adaptive ) )
+            Parameters_MC_Set_Metropolis_Cone(
+                state.get(), parameters_mc.metropolis_step_cone, parameters_mc.metropolis_cone_angle,
+                parameters_mc.metropolis_cone_adaptive, parameters_mc.acceptance_ratio_target );
+        ImGui::TextUnformatted( "cone angle" );
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth( 100 );
+        if( ImGui::InputFloat(
+                "[deg]##mc_cone_angle", &parameters_mc.metropolis_cone_angle, 0, 0, "%.5f",
+                ImGuiInputTextFlags_EnterReturnsTrue ) )
+            Parameters_MC_Set_Metropolis_Cone(
+                state.get(), parameters_mc.metropolis_step_cone, parameters_mc.metropolis_cone_angle,
+                parameters_mc.metropolis_cone_adaptive, parameters_mc.acceptance_ratio_target );
+        ImGui::TextUnformatted( "target acceptance ratio" );
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth( 100 );
+        if( ImGui::InputFloat(
+                "##mc_acceptance_ratio_target", &parameters_mc.acceptance_ratio_target, 0, 0, "%.5f",
+                ImGuiInputTextFlags_EnterReturnsTrue ) )
+            Parameters_MC_Set_Metropolis_Cone(
+                state.get(), parameters_mc.metropolis_step_cone, parameters_mc.metropolis_cone_angle,
+                parameters_mc.metropolis_cone_adaptive, parameters_mc.acceptance_ratio_target );
+        ImGui::Indent( -15 );
     }
     else if( ui_shared_state.selected_mode == GUI_Mode::GNEB )
     {
