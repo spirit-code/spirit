@@ -717,14 +717,86 @@ void ParametersWidget::show()
 
 void ParametersWidget::update_data()
 {
+    // ----------------- MC
+    Parameters_MC_Get_N_Iterations( state.get(), &parameters_mc.n_iterations, &parameters_mc.n_iterations_log );
+    parameters_mc.temperature = Parameters_LLG_Get_Temperature( state.get() );
+    // Output
+    parameters_mc.output_folder   = Parameters_MC_Get_Output_Folder( state.get() );
+    parameters_mc.output_file_tag = Parameters_MC_Get_Output_Tag( state.get() );
+    Parameters_MC_Get_Output_General(
+        state.get(), &parameters_mc.output_any, &parameters_mc.output_initial, &parameters_mc.output_final );
+    Parameters_MC_Get_Output_Configuration(
+        state.get(), &parameters_mc.output_configuration_step, &parameters_mc.output_configuration_archive,
+        &parameters_mc.output_vf_filetype );
+    Parameters_MC_Get_Output_Energy(
+        state.get(), &parameters_mc.output_energy_step, &parameters_mc.output_energy_archive,
+        &parameters_mc.output_energy_spin_resolved, &parameters_mc.output_energy_divide_by_nspins,
+        &parameters_mc.output_energy_add_readability_lines );
+
+    // ----------------- LLG
+    Parameters_LLG_Get_N_Iterations( state.get(), &parameters_llg.n_iterations, &parameters_llg.n_iterations_log );
     parameters_llg.force_convergence = Parameters_LLG_Get_Convergence( state.get() );
     parameters_llg.dt                = Parameters_LLG_Get_Time_Step( state.get() );
+    parameters_llg.damping           = Parameters_LLG_Get_Damping( state.get() );
+    parameters_llg.temperature       = Parameters_LLG_Get_Temperature( state.get() );
+    Parameters_LLG_Get_Temperature_Gradient(
+        state.get(), parameters_llg.temperature_gradient_direction, &parameters_llg.temperature_gradient_inclination );
+    Parameters_LLG_Get_STT(
+        state.get(), &parameters_llg.stt_use_gradient, &parameters_llg.stt_magnitude,
+        parameters_llg.stt_polarisation_normal );
+    parameters_llg.direct_minimization = Parameters_LLG_Get_Direct_Minimization( state.get() );
+    // Output
+    parameters_llg.output_folder   = Parameters_LLG_Get_Output_Folder( state.get() );
+    parameters_llg.output_file_tag = Parameters_LLG_Get_Output_Tag( state.get() );
+    Parameters_LLG_Get_Output_General(
+        state.get(), &parameters_llg.output_any, &parameters_llg.output_initial, &parameters_llg.output_final );
+    Parameters_LLG_Get_Output_Configuration(
+        state.get(), &parameters_llg.output_configuration_step, &parameters_llg.output_configuration_archive,
+        &parameters_llg.output_vf_filetype );
+    Parameters_LLG_Get_Output_Energy(
+        state.get(), &parameters_llg.output_energy_step, &parameters_llg.output_energy_archive,
+        &parameters_llg.output_energy_spin_resolved, &parameters_llg.output_energy_divide_by_nspins,
+        &parameters_llg.output_energy_add_readability_lines );
 
+    // ----------------- GNEB
+    Parameters_GNEB_Get_N_Iterations( state.get(), &parameters_gneb.n_iterations, &parameters_gneb.n_iterations_log );
     parameters_gneb.force_convergence        = Parameters_GNEB_Get_Convergence( state.get() );
     gneb_image_type                          = Parameters_GNEB_Get_Climbing_Falling( state.get() );
     parameters_gneb.spring_constant          = Parameters_GNEB_Get_Spring_Constant( state.get() );
     parameters_gneb.spring_force_ratio       = Parameters_GNEB_Get_Spring_Force_Ratio( state.get() );
     parameters_gneb.path_shortening_constant = Parameters_GNEB_Get_Path_Shortening_Constant( state.get() );
+    // Output
+    parameters_gneb.output_folder   = Parameters_GNEB_Get_Output_Folder( state.get() );
+    parameters_gneb.output_file_tag = Parameters_GNEB_Get_Output_Tag( state.get() );
+    Parameters_GNEB_Get_Output_General(
+        state.get(), &parameters_gneb.output_any, &parameters_gneb.output_initial, &parameters_gneb.output_final );
+    Parameters_GNEB_Get_Output_Chain(
+        state.get(), &parameters_gneb.output_chain_step, &parameters_gneb.output_vf_filetype );
+    Parameters_GNEB_Get_Output_Energies(
+        state.get(), &parameters_gneb.output_energies_step, &parameters_gneb.output_energies_interpolated,
+        &parameters_gneb.output_energies_divide_by_nspins, &parameters_gneb.output_energies_add_readability_lines );
+
+    // ----------------- MMF
+    Parameters_MMF_Get_N_Iterations( state.get(), &parameters_mmf.n_iterations, &parameters_mmf.n_iterations_log );
+    // Output
+    parameters_mmf.output_folder   = Parameters_MMF_Get_Output_Folder( state.get() );
+    parameters_mmf.output_file_tag = Parameters_MMF_Get_Output_Tag( state.get() );
+    Parameters_MMF_Get_Output_General(
+        state.get(), &parameters_mmf.output_any, &parameters_mmf.output_initial, &parameters_mmf.output_final );
+    Parameters_MMF_Get_Output_Configuration(
+        state.get(), &parameters_mmf.output_configuration_step, &parameters_mmf.output_configuration_archive,
+        &parameters_mmf.output_vf_filetype );
+    Parameters_MMF_Get_Output_Energy(
+        state.get(), &parameters_mmf.output_energy_step, &parameters_mmf.output_energy_archive,
+        &parameters_mmf.output_energy_spin_resolved, &parameters_mmf.output_energy_divide_by_nspins,
+        &parameters_mmf.output_energy_add_readability_lines );
+
+    // ----------------- EMA
+    parameters_ema.amplitude     = Parameters_EMA_Get_Amplitude( state.get() );
+    parameters_ema.frequency     = Parameters_EMA_Get_Frequency( state.get() );
+    parameters_ema.snapshot      = Parameters_EMA_Get_Snapshot( state.get() );
+    parameters_ema.n_modes       = Parameters_EMA_Get_N_Modes( state.get() );
+    parameters_ema.n_mode_follow = Parameters_EMA_Get_N_Mode_Follow( state.get() );
 }
 
 } // namespace ui
