@@ -387,15 +387,15 @@ void show_settings( bool & show, ui::RenderingLayer & rendering_layer )
         {
             styles::apply_charcoal();
             ui_state.dark_mode = true;
-            rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-                { ui_state.background_dark[0], ui_state.background_dark[1], ui_state.background_dark[2] } );
+            rendering_layer.set_view_option<VFRendering::View::Option::BACKGROUND_COLOR>(
+                glm::vec3{ ui_state.background_dark[0], ui_state.background_dark[1], ui_state.background_dark[2] } );
         }
         else
         {
             styles::apply_light();
             ui_state.dark_mode = false;
-            rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-                { ui_state.background_light[0], ui_state.background_light[1], ui_state.background_light[2] } );
+            rendering_layer.set_view_option<VFRendering::View::Option::BACKGROUND_COLOR>(
+                glm::vec3{ ui_state.background_light[0], ui_state.background_light[1], ui_state.background_light[2] } );
         }
         rendering_layer.update_theme();
     }

@@ -35,13 +35,13 @@ std::string get_lighting_implementation( bool draw_shadows )
                "float lighting(vec3 position, vec3 normal)"
                "{"
                "    vec3 lightDirection = -normalize(uLightPosition-position);"
-               "    float diffuse = 0.7*max(0.0, dot(normal, lightDirection));"
-               "    float ambient = 0.2;"
+               "    float diffuse = 0.7f*max(0.0f, dot(normal, lightDirection));"
+               "    float ambient = 0.2f;"
                "    return diffuse+ambient;"
                "}";
     }
 
-    return "float lighting(vec3 position, vec3 normal) { return 1.0; }";
+    return "float lighting(vec3 position, vec3 normal) { return 1.0f; }";
 }
 
 std::string get_is_visible_implementation(
@@ -68,28 +68,28 @@ std::string get_is_visible_implementation(
         R"(
             bool is_visible(vec3 position, vec3 direction)
             {{
-                float x_min_pos = {};
-                float x_max_pos = {};
+                float x_min_pos = {:.6f};
+                float x_max_pos = {:.6f};
                 bool is_visible_x_pos = position.x <= x_max_pos && position.x >= x_min_pos;
 
-                float y_min_pos = {};
-                float y_max_pos = {};
+                float y_min_pos = {:.6f};
+                float y_max_pos = {:.6f};
                 bool is_visible_y_pos = position.y <= y_max_pos && position.y >= y_min_pos;
 
-                float z_min_pos = {};
-                float z_max_pos = {};
+                float z_min_pos = {:.6f};
+                float z_max_pos = {:.6f};
                 bool is_visible_z_pos = position.z <= z_max_pos && position.z >= z_min_pos;
 
-                float x_min_dir = {};
-                float x_max_dir = {};
+                float x_min_dir = {:.6f};
+                float x_max_dir = {:.6f};
                 bool is_visible_x_dir = direction.x <= x_max_dir && direction.x >= x_min_dir;
 
-                float y_min_dir = {};
-                float y_max_dir = {};
+                float y_min_dir = {:.6f};
+                float y_max_dir = {:.6f};
                 bool is_visible_y_dir = direction.y <= y_max_dir && direction.y >= y_min_dir;
 
-                float z_min_dir = {};
-                float z_max_dir = {};
+                float z_min_dir = {:.6f};
+                float z_max_dir = {:.6f};
                 bool is_visible_z_dir = direction.z <= z_max_dir && direction.z >= z_min_dir;
 
                 return is_visible_x_pos && is_visible_y_pos && is_visible_z_pos && is_visible_x_dir && is_visible_y_dir && is_visible_z_dir;
@@ -322,7 +322,7 @@ std::string get_colormap(
                 R"(
                     vec3 colormap(vec3 direction)
                     {{
-                        return vec3({}, {}, {});
+                        return vec3({:.6f}, {:.6f}, {:.6f});
                     }}
                     )",
                 monochrome_color.x, monochrome_color.y, monochrome_color.z );
@@ -342,13 +342,13 @@ std::string get_colormap(
                     }}
                     vec3 colormap(vec3 direction)
                     {{
-                        vec3 cardinal_a = vec3({}, {}, {});
-                        vec3 cardinal_b = vec3({}, {}, {});
-                        vec3 cardinal_c = vec3({}, {}, {});
+                        vec3 cardinal_a = vec3({:.6f}, {:.6f}, {:.6f});
+                        vec3 cardinal_b = vec3({:.6f}, {:.6f}, {:.6f});
+                        vec3 cardinal_c = vec3({:.6f}, {:.6f}, {:.6f});
                         vec3 projection = vec3( dot(direction, cardinal_a), dot(direction, cardinal_b),
                             dot(direction, cardinal_c) );
-                        float hue = atan2({}*projection.x, projection.y) / 3.14159 / 2.0 + {}/2.0;
-                        float saturation = projection.z * {}; if (saturation > 0.0)
+                        float hue = atan2({}.0*projection.x, projection.y) / 3.14159 / 2.0 + {:.6f}/2.0;
+                        float saturation = projection.z * {}.0; if (saturation > 0.0)
                         {{
                             return hsv2rgb(vec3(hue, 1.0-saturation, 1.0));
                         }}
@@ -376,12 +376,12 @@ std::string get_colormap(
                     }}
                     vec3 colormap(vec3 direction)
                     {{
-                        vec3 cardinal_a = vec3({}, {}, {});
-                        vec3 cardinal_b = vec3({}, {}, {});
-                        vec3 cardinal_c = vec3({}, {}, {});
+                        vec3 cardinal_a = vec3({:.6f}, {:.6f}, {:.6f});
+                        vec3 cardinal_b = vec3({:.6f}, {:.6f}, {:.6f});
+                        vec3 cardinal_c = vec3({:.6f}, {:.6f}, {:.6f});
                         vec3 projection = vec3( dot(direction, cardinal_a), dot(direction, cardinal_b),
                             dot(direction, cardinal_c) );
-                        float hue = atan2({}*projection.x, projection.y) / 3.14159 / 2.0 + {};
+                        float hue = atan2({}.0*projection.x, projection.y) / 3.14159 / 2.0 + {:.6f};
                         return hsv2rgb(vec3(hue, 1.0, 1.0));
                     }}
                     )",
@@ -393,12 +393,12 @@ std::string get_colormap(
                 R"(
                     vec3 colormap(vec3 direction)
                     {{
-                        vec3 cardinal_a = vec3({}, {}, {});
-                        vec3 cardinal_b = vec3({}, {}, {});
-                        vec3 cardinal_c = vec3({}, {}, {});
+                        vec3 cardinal_a = vec3({:.6f}, {:.6f}, {:.6f});
+                        vec3 cardinal_b = vec3({:.6f}, {:.6f}, {:.6f});
+                        vec3 cardinal_c = vec3({:.6f}, {:.6f}, {:.6f});
                         vec3 projection = vec3( dot(direction, cardinal_a), dot(direction, cardinal_b),
                             dot(direction, cardinal_c) );
-                        float z_sign = projection.z * {};
+                        float z_sign = projection.z * {}.0;
                         vec3 color_down = vec3(0.0, 0.0, 1.0);
                         vec3 color_up = vec3(1.0, 0.0, 0.0);
                         return mix(color_down, color_up, z_sign*0.5+0.5);
@@ -422,12 +422,12 @@ std::string get_colormap(
                     }}
                     vec3 colormap(vec3 direction)
                     {{
-                        vec3 cardinal_a = vec3({}, {}, {});
-                        vec3 cardinal_b = vec3({}, {}, {});
-                        vec3 cardinal_c = vec3({}, {}, {});
+                        vec3 cardinal_a = vec3({:.6f}, {:.6f}, {:.6f});
+                        vec3 cardinal_b = vec3({:.6f}, {:.6f}, {:.6f});
+                        vec3 cardinal_c = vec3({:.6f}, {:.6f}, {:.6f});
                         vec3 projection = vec3( dot(direction, cardinal_a), dot(direction, cardinal_b),
                             dot(direction, cardinal_c) );
-                        float hue = 1.0/3.0-normalize(projection).z/3.0* {};
+                        float hue = 1.0/3.0-normalize(projection).z/3.0* {}.0;
                         return hsv2rgb(vec3(hue, 1.0, 1.0));
                     }}
                     )",
@@ -439,13 +439,13 @@ std::string get_colormap(
                 R"(
                     vec3 colormap(vec3 direction)
                     {{
-                        vec3 cardinal_a = vec3({}, {}, {});
-                        vec3 cardinal_b = vec3({}, {}, {});
-                        vec3 cardinal_c = vec3({}, {}, {});
+                        vec3 cardinal_a = vec3({:.6f}, {:.6f}, {:.6f});
+                        vec3 cardinal_b = vec3({:.6f}, {:.6f}, {:.6f});
+                        vec3 cardinal_c = vec3({:.6f}, {:.6f}, {:.6f});
                         vec3 projection = vec3( dot(direction, cardinal_a), dot(direction, cardinal_b),
                             dot(direction, cardinal_c) );
-                        float z_sign = projection.z * {};
-                        if (z_sign < 0)
+                        float z_sign = projection.z * {}.0;
+                        if (z_sign < 0.0)
                         {{
                             vec3 color_down = vec3(0.0, 0.0, 1.0);
                             vec3 color_up = vec3(1.0, 1.0, 1.0);
@@ -478,12 +478,13 @@ std::string get_colormap(
                     }}
                     vec3 colormap(vec3 direction)
                     {{
-                        vec3 cardinal_a = vec3({}, {}, {});
-                        vec3 cardinal_b = vec3({}, {}, {});
-                        vec3 cardinal_c = vec3({}, {}, {});
-                        vec3 projection = vec3( dot(direction, cardinal_a), dot(direction, cardinal_b),
-                        dot(direction, cardinal_c) ); float hue = atan2({}*projection.x, projection.y) / 3.14159
-                        / 2.0 + {}/2.0; float saturation = projection.z * {}; if (saturation > 0.0)
+                        vec3 cardinal_a = vec3({:.6f}, {:.6f}, {:.6f});
+                        vec3 cardinal_b = vec3({:.6f}, {:.6f}, {:.6f});
+                        vec3 cardinal_c = vec3({:.6f}, {:.6f}, {:.6f});
+                        vec3 projection = vec3( dot(direction, cardinal_a), dot(direction, cardinal_b), dot(direction, cardinal_c) );
+                        float hue = atan2({}.0*projection.x, projection.y) / 3.14159 / 2.0 + {:.6f}/2.0;
+                        float saturation = projection.z * {}.0;
+                        if (saturation > 0.0)
                         {{
                             return hsv2rgb(vec3(hue, 1.0-saturation, 1.0));
                         }}
@@ -583,7 +584,7 @@ void RendererWidget::show()
 
 void RendererWidget::apply_settings()
 {
-    renderer->setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( get_is_visible_implementation(
+    this->set_renderer_option<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( get_is_visible_implementation(
         state, filter_position_min, filter_position_max, filter_direction_min, filter_direction_max ) );
 }
 
@@ -638,12 +639,12 @@ void RendererWidget::reset_filters()
 }
 
 CoordinateSystemRendererWidget::CoordinateSystemRendererWidget(
-    std::shared_ptr<State> state, const VFRendering::View & view )
-        : RendererWidget( state, view )
+    std::shared_ptr<State> state, const VFRendering::View & view, std::deque<std::function<void()>> & vfr_update_deque )
+        : RendererWidget( state, view, vfr_update_deque )
 {
     renderer = std::make_shared<VFRendering::CoordinateSystemRenderer>( view );
-    renderer->setOption<VFRendering::CoordinateSystemRenderer::Option::AXIS_LENGTH>( { 1, 1, 1 } );
-    renderer->setOption<VFRendering::CoordinateSystemRenderer::Option::NORMALIZE>( true );
+    this->set_renderer_option<VFRendering::CoordinateSystemRenderer::Option::AXIS_LENGTH>( glm::vec3{ 1, 1, 1 } );
+    this->set_renderer_option<VFRendering::CoordinateSystemRenderer::Option::NORMALIZE>( true );
 
     // set_colormap_implementation( Colormap::BLUE_GREEN_RED );
 }
@@ -661,15 +662,15 @@ void CoordinateSystemRendererWidget::show_settings() {}
 
 BoundingBoxRendererWidget::BoundingBoxRendererWidget(
     std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield,
-    UiSharedState & ui_shared_state )
-        : RendererWidget( state, view ), ui_shared_state( ui_shared_state )
+    UiSharedState & ui_shared_state, std::deque<std::function<void()>> & vfr_update_deque )
+        : RendererWidget( state, view, vfr_update_deque ), ui_shared_state( ui_shared_state )
 {
     update_geometry();
-    apply_settings();
+    this->apply_settings();
 
     // if( draw_shadows )
     // {
-    //     renderer->setOption<VFRendering::View::Option::LIGHTING_IMPLEMENTATION>(
+    //     this->set_renderer_option<VFRendering::View::Option::LIGHTING_IMPLEMENTATION>(
     //         "uniform vec3 uLightPosition;"
     //         "float lighting(vec3 position, vec3 normal)"
     //         "{"
@@ -681,7 +682,7 @@ BoundingBoxRendererWidget::BoundingBoxRendererWidget(
     // }
     // else
     // {
-    //     renderer->setOption<VFRendering::View::Option::LIGHTING_IMPLEMENTATION>(
+    //     this->set_renderer_option<VFRendering::View::Option::LIGHTING_IMPLEMENTATION>(
     //         "float lighting(vec3 position, vec3 normal) { return 1.0; }" );
     // }
 }
@@ -717,28 +718,30 @@ void BoundingBoxRendererWidget::show()
             else
                 colour_light = { 0.2f, 0.2f, 0.2f };
 
-            renderer->setOption<VFRendering::BoundingBoxRenderer::Option::COLOR>( { colour[0], colour[1], colour[2] } );
+            this->set_renderer_option<VFRendering::BoundingBoxRenderer::Option::COLOR>(
+                glm::vec3{ colour[0], colour[1], colour[2] } );
         }
 
         if( ImGui::ColorEdit3( "##bgcolour", colour ) )
         {
-            renderer->setOption<VFRendering::BoundingBoxRenderer::Option::COLOR>( { colour[0], colour[1], colour[2] } );
+            this->set_renderer_option<VFRendering::BoundingBoxRenderer::Option::COLOR>(
+                glm::vec3{ colour[0], colour[1], colour[2] } );
         }
 
         ImGui::SetNextItemWidth( 100 );
         if( ImGui::SliderFloat( "thickness", &line_width, 0, 10, "%.1f" ) )
         {
-            renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LINE_WIDTH>( line_width );
+            this->set_renderer_option<VFRendering::BoundingBoxRenderer::Option::LINE_WIDTH>( line_width );
         }
         if( line_width > 0 )
         {
             ImGui::SetNextItemWidth( 100 );
             if( ImGui::SliderInt( "level of detail", &level_of_detail, 5, 100 ) )
-                renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LEVEL_OF_DETAIL>( level_of_detail );
+                this->set_renderer_option<VFRendering::BoundingBoxRenderer::Option::LEVEL_OF_DETAIL>( level_of_detail );
 
             if( ImGui::Checkbox( "draw shadows", &draw_shadows ) )
             {
-                // renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LIGHTING_IMPLEMENTATION>(
+                // this->set_renderer_option<VFRendering::BoundingBoxRenderer::Option::LIGHTING_IMPLEMENTATION>(
                 //     get_lighting_implementation( draw_shadows ) );
             }
         }
@@ -752,13 +755,13 @@ void BoundingBoxRendererWidget::apply_settings()
 {
     RendererWidget::apply_settings();
     if( ui_shared_state.dark_mode )
-        renderer->setOption<VFRendering::BoundingBoxRenderer::Option::COLOR>(
-            { colour_dark[0], colour_dark[1], colour_dark[2] } );
+        this->set_renderer_option<VFRendering::BoundingBoxRenderer::Option::COLOR>(
+            glm::vec3{ colour_dark[0], colour_dark[1], colour_dark[2] } );
     else
-        renderer->setOption<VFRendering::BoundingBoxRenderer::Option::COLOR>(
-            { colour_light[0], colour_light[1], colour_light[2] } );
-    renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LINE_WIDTH>( line_width );
-    renderer->setOption<VFRendering::BoundingBoxRenderer::Option::LEVEL_OF_DETAIL>( level_of_detail );
+        this->set_renderer_option<VFRendering::BoundingBoxRenderer::Option::COLOR>(
+            glm::vec3{ colour_light[0], colour_light[1], colour_light[2] } );
+    this->set_renderer_option<VFRendering::BoundingBoxRenderer::Option::LINE_WIDTH>( line_width );
+    this->set_renderer_option<VFRendering::BoundingBoxRenderer::Option::LEVEL_OF_DETAIL>( level_of_detail );
 }
 
 void BoundingBoxRendererWidget::update_geometry()
@@ -789,9 +792,11 @@ void BoundingBoxRendererWidget::update_geometry()
 }
 
 void BoundingBoxRendererWidget::show_settings() {}
+
 DotRendererWidget::DotRendererWidget(
-    std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield )
-        : RendererWidget( state, view ), ColormapWidget()
+    std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield,
+    std::deque<std::function<void()>> & vfr_update_deque )
+        : RendererWidget( state, view, vfr_update_deque ), ColormapWidget()
 {
     renderer = std::make_shared<VFRendering::DotRenderer>( view, vectorfield );
     this->apply_settings();
@@ -801,9 +806,9 @@ void DotRendererWidget::apply_settings()
 {
     RendererWidget::apply_settings();
     set_colormap_implementation( colormap );
-    renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+    this->set_renderer_option<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 
-    renderer->setOption<VFRendering::DotRenderer::DOT_RADIUS>( size * 1000 );
+    this->set_renderer_option<VFRendering::DotRenderer::DOT_RADIUS>( size * 1000 );
 }
 
 void DotRendererWidget::reset()
@@ -819,18 +824,19 @@ void DotRendererWidget::reset()
 void DotRendererWidget::show_settings()
 {
     ImGui::SetNextItemWidth( 100 );
-    if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f", 10 ) )
+    if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f" ) )
     {
-        renderer->setOption<VFRendering::DotRenderer::DOT_RADIUS>( size * 1000 );
+        this->set_renderer_option<VFRendering::DotRenderer::DOT_RADIUS>( size * 1000 );
     }
 
     if( colormap_input() )
-        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+        this->set_renderer_option<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 }
 
 ArrowRendererWidget::ArrowRendererWidget(
-    std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield )
-        : RendererWidget( state, view ), ColormapWidget()
+    std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield,
+    std::deque<std::function<void()>> & vfr_update_deque )
+        : RendererWidget( state, view, vfr_update_deque ), ColormapWidget()
 {
     renderer = std::make_shared<VFRendering::ArrowRenderer>( view, vectorfield );
     this->apply_settings();
@@ -840,17 +846,17 @@ void ArrowRendererWidget::apply_settings()
 {
     RendererWidget::apply_settings();
     set_colormap_implementation( colormap );
-    renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+    this->set_renderer_option<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
     this->colormap_implementation_str = get_colormap(
         colormap, colormap_rotation, colormap_invert_z, colormap_invert_xy, colormap_cardinal_a, colormap_cardinal_b,
         colormap_cardinal_c, colormap_monochrome_color );
 
-    renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( size * 0.125f );
-    renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( size * 0.3f );
-    renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( size * 0.0625f );
-    renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>( size * 0.35f );
+    this->set_renderer_option<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( size * 0.125f );
+    this->set_renderer_option<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( size * 0.3f );
+    this->set_renderer_option<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( size * 0.0625f );
+    this->set_renderer_option<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>( size * 0.35f );
 
-    renderer->setOption<VFRendering::ArrowRenderer::Option::LEVEL_OF_DETAIL>( lod );
+    this->set_renderer_option<VFRendering::ArrowRenderer::Option::LEVEL_OF_DETAIL>( lod );
 }
 
 void ArrowRendererWidget::reset()
@@ -867,28 +873,29 @@ void ArrowRendererWidget::reset()
 void ArrowRendererWidget::show_settings()
 {
     ImGui::SetNextItemWidth( 100 );
-    if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f", 10 ) )
+    if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f" ) )
     {
-        renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( size * 0.125f );
-        renderer->setOption<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( size * 0.3f );
-        renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( size * 0.0625f );
-        renderer->setOption<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>( size * 0.35f );
+        this->set_renderer_option<VFRendering::ArrowRenderer::Option::CONE_RADIUS>( size * 0.125f );
+        this->set_renderer_option<VFRendering::ArrowRenderer::Option::CONE_HEIGHT>( size * 0.3f );
+        this->set_renderer_option<VFRendering::ArrowRenderer::Option::CYLINDER_RADIUS>( size * 0.0625f );
+        this->set_renderer_option<VFRendering::ArrowRenderer::Option::CYLINDER_HEIGHT>( size * 0.35f );
     }
 
     ImGui::SetNextItemWidth( 100 );
     if( ImGui::SliderInt( "level of detail", &lod, 5, 100 ) )
-        renderer->setOption<VFRendering::ArrowRenderer::Option::LEVEL_OF_DETAIL>( lod );
+        this->set_renderer_option<VFRendering::ArrowRenderer::Option::LEVEL_OF_DETAIL>( lod );
 
     if( colormap_input() )
-        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+        this->set_renderer_option<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 }
 
 ParallelepipedRendererWidget::ParallelepipedRendererWidget(
-    std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield )
-        : RendererWidget( state, view ), ColormapWidget()
+    std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield,
+    std::deque<std::function<void()>> & vfr_update_deque )
+        : RendererWidget( state, view, vfr_update_deque ), ColormapWidget()
 {
     renderer = std::make_shared<VFRendering::ParallelepipedRenderer>( view, vectorfield );
-    renderer->setOption<VFRendering::GlyphRenderer::Option::ROTATE_GLYPHS>( false );
+    this->set_renderer_option<VFRendering::GlyphRenderer::Option::ROTATE_GLYPHS>( false );
     this->apply_settings();
 }
 
@@ -896,11 +903,11 @@ void ParallelepipedRendererWidget::apply_settings()
 {
     RendererWidget::apply_settings();
     set_colormap_implementation( colormap );
-    renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+    this->set_renderer_option<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 
-    renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_A>( size * 0.5f );
-    renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_B>( size * 0.5f );
-    renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_C>( size * 0.5f );
+    this->set_renderer_option<VFRendering::ParallelepipedRenderer::Option::LENGTH_A>( size * 0.5f );
+    this->set_renderer_option<VFRendering::ParallelepipedRenderer::Option::LENGTH_B>( size * 0.5f );
+    this->set_renderer_option<VFRendering::ParallelepipedRenderer::Option::LENGTH_C>( size * 0.5f );
 }
 
 void ParallelepipedRendererWidget::reset()
@@ -916,20 +923,21 @@ void ParallelepipedRendererWidget::reset()
 void ParallelepipedRendererWidget::show_settings()
 {
     ImGui::SetNextItemWidth( 100 );
-    if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f", 10 ) )
+    if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f" ) )
     {
-        renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_A>( size * 0.5f );
-        renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_B>( size * 0.5f );
-        renderer->setOption<VFRendering::ParallelepipedRenderer::Option::LENGTH_C>( size * 0.5f );
+        this->set_renderer_option<VFRendering::ParallelepipedRenderer::Option::LENGTH_A>( size * 0.5f );
+        this->set_renderer_option<VFRendering::ParallelepipedRenderer::Option::LENGTH_B>( size * 0.5f );
+        this->set_renderer_option<VFRendering::ParallelepipedRenderer::Option::LENGTH_C>( size * 0.5f );
     }
 
     if( colormap_input() )
-        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+        this->set_renderer_option<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 }
 
 SphereRendererWidget::SphereRendererWidget(
-    std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield )
-        : RendererWidget( state, view ), ColormapWidget()
+    std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield,
+    std::deque<std::function<void()>> & vfr_update_deque )
+        : RendererWidget( state, view, vfr_update_deque ), ColormapWidget()
 {
     renderer = std::make_shared<VFRendering::SphereRenderer>( view, vectorfield );
     this->apply_settings();
@@ -939,10 +947,10 @@ void SphereRendererWidget::apply_settings()
 {
     RendererWidget::apply_settings();
     set_colormap_implementation( colormap );
-    renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+    this->set_renderer_option<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 
-    renderer->setOption<VFRendering::SphereRenderer::Option::SPHERE_RADIUS>( size );
-    renderer->setOption<VFRendering::SphereRenderer::Option::LEVEL_OF_DETAIL>( lod );
+    this->set_renderer_option<VFRendering::SphereRenderer::Option::SPHERE_RADIUS>( size );
+    this->set_renderer_option<VFRendering::SphereRenderer::Option::LEVEL_OF_DETAIL>( lod );
 }
 
 void SphereRendererWidget::reset()
@@ -959,22 +967,23 @@ void SphereRendererWidget::reset()
 void SphereRendererWidget::show_settings()
 {
     ImGui::SetNextItemWidth( 100 );
-    if( ImGui::SliderFloat( "size", &size, 0.01f, 10, "%.3f", 10 ) )
+    if( ImGui::SliderFloat( "size", &size, 0.01f, 10, "%.3f" ) )
     {
-        renderer->setOption<VFRendering::SphereRenderer::Option::SPHERE_RADIUS>( size );
+        this->set_renderer_option<VFRendering::SphereRenderer::Option::SPHERE_RADIUS>( size );
     }
 
     ImGui::SetNextItemWidth( 100 );
     if( ImGui::SliderInt( "level of detail", &lod, 10, 100 ) )
-        renderer->setOption<VFRendering::SphereRenderer::Option::LEVEL_OF_DETAIL>( lod );
+        this->set_renderer_option<VFRendering::SphereRenderer::Option::LEVEL_OF_DETAIL>( lod );
 
     if( colormap_input() )
-        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+        this->set_renderer_option<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 }
 
 SurfaceRendererWidget::SurfaceRendererWidget(
-    std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield )
-        : RendererWidget( state, view ), ColormapWidget()
+    std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield,
+    std::deque<std::function<void()>> & vfr_update_deque )
+        : RendererWidget( state, view, vfr_update_deque ), ColormapWidget()
 {
     renderer = std::make_shared<VFRendering::SurfaceRenderer>( view, vectorfield );
     this->apply_settings();
@@ -984,7 +993,7 @@ void SurfaceRendererWidget::apply_settings()
 {
     RendererWidget::apply_settings();
     set_colormap_implementation( colormap );
-    renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+    this->set_renderer_option<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 }
 
 void SurfaceRendererWidget::reset()
@@ -998,12 +1007,13 @@ void SurfaceRendererWidget::reset()
 void SurfaceRendererWidget::show_settings()
 {
     if( colormap_input() )
-        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+        this->set_renderer_option<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 }
 
 IsosurfaceRendererWidget::IsosurfaceRendererWidget(
-    std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield )
-        : RendererWidget( state, view ), ColormapWidget()
+    std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield,
+    std::deque<std::function<void()>> & vfr_update_deque )
+        : RendererWidget( state, view, vfr_update_deque ), ColormapWidget()
 {
     renderer = std::make_shared<VFRendering::IsosurfaceRenderer>( view, vectorfield );
     this->apply_settings();
@@ -1013,12 +1023,12 @@ void IsosurfaceRendererWidget::apply_settings()
 {
     RendererWidget::apply_settings();
     set_colormap_implementation( colormap );
-    renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+    this->set_renderer_option<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 
     set_lighting_implementation( draw_shadows );
     set_isocomponent( isocomponent );
-    renderer->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>( isovalue );
-    renderer->setOption<VFRendering::IsosurfaceRenderer::Option::FLIP_NORMALS>( flip_normals );
+    this->set_renderer_option<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>( isovalue );
+    this->set_renderer_option<VFRendering::IsosurfaceRenderer::Option::FLIP_NORMALS>( flip_normals );
 }
 
 void IsosurfaceRendererWidget::reset()
@@ -1037,7 +1047,7 @@ void IsosurfaceRendererWidget::reset()
 void IsosurfaceRendererWidget::show_settings()
 {
     if( ImGui::SliderFloat( "isovalue", &isovalue, -1, 1 ) )
-        renderer->setOption<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>( isovalue );
+        this->set_renderer_option<VFRendering::IsosurfaceRenderer::Option::ISOVALUE>( isovalue );
 
     if( ImGui::Checkbox( "draw shadows", &draw_shadows ) )
     {
@@ -1045,7 +1055,7 @@ void IsosurfaceRendererWidget::show_settings()
     }
 
     if( ImGui::Checkbox( "flip normals", &flip_normals ) )
-        renderer->setOption<VFRendering::IsosurfaceRenderer::Option::FLIP_NORMALS>( flip_normals );
+        this->set_renderer_option<VFRendering::IsosurfaceRenderer::Option::FLIP_NORMALS>( flip_normals );
 
     bool iso_x = isocomponent == 0;
     bool iso_y = isocomponent == 1;
@@ -1062,7 +1072,7 @@ void IsosurfaceRendererWidget::show_settings()
         set_isocomponent( 2 );
 
     if( colormap_input() )
-        renderer->setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
+        this->set_renderer_option<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 }
 
 void IsosurfaceRendererWidget::set_isocomponent( int isocomponent )
@@ -1070,7 +1080,7 @@ void IsosurfaceRendererWidget::set_isocomponent( int isocomponent )
     this->isocomponent = isocomponent;
     if( this->isocomponent == 0 )
     {
-        renderer->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>(
+        this->set_renderer_option<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>(
             []( const glm::vec3 & position,
                 const glm::vec3 & direction ) -> VFRendering::IsosurfaceRenderer::isovalue_type {
                 (void)position;
@@ -1079,7 +1089,7 @@ void IsosurfaceRendererWidget::set_isocomponent( int isocomponent )
     }
     else if( this->isocomponent == 1 )
     {
-        renderer->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>(
+        this->set_renderer_option<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>(
             []( const glm::vec3 & position,
                 const glm::vec3 & direction ) -> VFRendering::IsosurfaceRenderer::isovalue_type {
                 (void)position;
@@ -1088,7 +1098,7 @@ void IsosurfaceRendererWidget::set_isocomponent( int isocomponent )
     }
     else if( this->isocomponent == 2 )
     {
-        renderer->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>(
+        this->set_renderer_option<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>(
             []( const glm::vec3 & position,
                 const glm::vec3 & direction ) -> VFRendering::IsosurfaceRenderer::isovalue_type {
                 (void)position;
@@ -1101,7 +1111,7 @@ void IsosurfaceRendererWidget::set_lighting_implementation( bool draw_shadows )
 {
     this->draw_shadows = draw_shadows;
 
-    renderer->setOption<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>(
+    this->set_renderer_option<VFRendering::IsosurfaceRenderer::Option::LIGHTING_IMPLEMENTATION>(
         get_lighting_implementation( draw_shadows ) );
 }
 

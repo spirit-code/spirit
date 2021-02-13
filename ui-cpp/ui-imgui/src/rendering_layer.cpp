@@ -107,6 +107,10 @@ void RenderingLayer::draw( int display_w, int display_h )
         needs_redraw_ = false;
     }
 
+    for( auto & vfr_update_call : this->vfr_update_deque )
+        vfr_update_call();
+    this->vfr_update_deque.resize( 0 );
+
     view.draw();
 }
 
@@ -143,35 +147,44 @@ void RenderingLayer::needs_data()
 void RenderingLayer::initialize_gl()
 {
     if( ui_shared_state.dark_mode )
-        view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>( { ui_shared_state.background_dark[0],
-                                                                       ui_shared_state.background_dark[1],
-                                                                       ui_shared_state.background_dark[2] } );
+        set_view_option<VFRendering::View::Option::BACKGROUND_COLOR>( glm::vec3{
+            ui_shared_state.background_dark[0],
+            ui_shared_state.background_dark[1],
+            ui_shared_state.background_dark[2],
+        } );
     else
-        view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>( { ui_shared_state.background_light[0],
-                                                                       ui_shared_state.background_light[1],
-                                                                       ui_shared_state.background_light[2] } );
+        set_view_option<VFRendering::View::Option::BACKGROUND_COLOR>( glm::vec3{
+            ui_shared_state.background_light[0],
+            ui_shared_state.background_light[1],
+            ui_shared_state.background_light[2],
+        } );
 
-    view.setOption<VFRendering::View::Option::LIGHT_POSITION>( { -1000 * ui_shared_state.light_direction[0],
-                                                                 -1000 * ui_shared_state.light_direction[1],
-                                                                 -1000 * ui_shared_state.light_direction[2] } );
+    set_view_option<VFRendering::View::Option::LIGHT_POSITION>( glm::vec3{
+        -1000 * ui_shared_state.light_direction[0],
+        -1000 * ui_shared_state.light_direction[1],
+        -1000 * ui_shared_state.light_direction[2],
+    } );
 
     if( !boundingbox_renderer_widget )
-        boundingbox_renderer_widget
-            = std::make_shared<BoundingBoxRendererWidget>( state, view, vectorfield, ui_shared_state );
+        boundingbox_renderer_widget = std::make_shared<BoundingBoxRendererWidget>(
+            state, view, vectorfield, ui_shared_state, vfr_update_deque );
     if( !coordinatesystem_renderer_widget )
-        coordinatesystem_renderer_widget = std::make_shared<CoordinateSystemRendererWidget>( state, view );
+        coordinatesystem_renderer_widget
+            = std::make_shared<CoordinateSystemRendererWidget>( state, view, vfr_update_deque );
 
     this->update_vf_geometry();
     this->update_vf_directions();
 
-    view.setOption<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>(
+    set_view_option<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>(
         VFRendering::Utilities::getColormapImplementation( VFRendering::Utilities::Colormap::HSV ) );
 
     // Defaults
     if( renderer_widgets.empty() )
     {
-        renderer_widgets.push_back( std::make_shared<ArrowRendererWidget>( state, view, vectorfield ) );
-        renderer_widgets.push_back( std::make_shared<IsosurfaceRendererWidget>( state, view, vectorfield ) );
+        renderer_widgets.push_back(
+            std::make_shared<ArrowRendererWidget>( state, view, vectorfield, vfr_update_deque ) );
+        renderer_widgets.push_back(
+            std::make_shared<IsosurfaceRendererWidget>( state, view, vectorfield, vfr_update_deque ) );
         renderer_widgets[0]->id   = 0;
         renderer_widgets[1]->id   = 1;
         this->renderer_id_counter = 2;
@@ -199,7 +212,7 @@ void RenderingLayer::update_theme()
 {
     if( ui_shared_state.dark_mode )
     {
-        view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>( {
+        set_view_option<VFRendering::View::Option::BACKGROUND_COLOR>( glm::vec3{
             ui_shared_state.background_dark[0],
             ui_shared_state.background_dark[1],
             ui_shared_state.background_dark[2],
@@ -207,7 +220,7 @@ void RenderingLayer::update_theme()
     }
     else
     {
-        view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>( {
+        set_view_option<VFRendering::View::Option::BACKGROUND_COLOR>( glm::vec3{
             ui_shared_state.background_light[0],
             ui_shared_state.background_light[1],
             ui_shared_state.background_light[2],
@@ -380,60 +393,58 @@ void RenderingLayer::update_vf_geometry()
 
 void RenderingLayer::update_visibility()
 {
-    auto is_visible = [&]() -> std::string {
-        const float epsilon = 1e-5;
+    const float epsilon = 1e-5;
 
-        float b_min[3], b_max[3], b_range[3];
-        Geometry_Get_Bounds( state.get(), b_min, b_max );
+    float b_min[3], b_max[3], b_range[3];
+    Geometry_Get_Bounds( state.get(), b_min, b_max );
 
-        float filter_pos_min[3], filter_pos_max[3];
-        float filter_dir_min[3], filter_dir_max[3];
-        for( int dim = 0; dim < 3; ++dim )
-        {
-            b_range[dim]        = b_max[dim] - b_min[dim];
-            filter_pos_min[dim] = b_min[dim] + this->filter_position_min[dim] * b_range[dim] - epsilon;
-            filter_pos_max[dim] = b_max[dim] + ( this->filter_position_max[dim] - 1 ) * b_range[dim] + epsilon;
+    float filter_pos_min[3], filter_pos_max[3];
+    float filter_dir_min[3], filter_dir_max[3];
+    for( int dim = 0; dim < 3; ++dim )
+    {
+        b_range[dim]        = b_max[dim] - b_min[dim];
+        filter_pos_min[dim] = b_min[dim] + this->filter_position_min[dim] * b_range[dim] - epsilon;
+        filter_pos_max[dim] = b_max[dim] + ( this->filter_position_max[dim] - 1 ) * b_range[dim] + epsilon;
 
-            filter_dir_min[dim] = this->filter_direction_min[dim] - epsilon;
-            filter_dir_max[dim] = this->filter_direction_max[dim] + epsilon;
-        }
-        return fmt::format(
-            R"(
+        filter_dir_min[dim] = this->filter_direction_min[dim] - epsilon;
+        filter_dir_max[dim] = this->filter_direction_max[dim] + epsilon;
+    }
+    std::string is_visible = fmt::format(
+        R"(
             bool is_visible(vec3 position, vec3 direction)
             {{
-                float x_min_pos = {};
-                float x_max_pos = {};
+                float x_min_pos = {:.6f};
+                float x_max_pos = {:.6f};
                 bool is_visible_x_pos = position.x <= x_max_pos && position.x >= x_min_pos;
 
-                float y_min_pos = {};
-                float y_max_pos = {};
+                float y_min_pos = {:.6f};
+                float y_max_pos = {:.6f};
                 bool is_visible_y_pos = position.y <= y_max_pos && position.y >= y_min_pos;
 
-                float z_min_pos = {};
-                float z_max_pos = {};
+                float z_min_pos = {:.6f};
+                float z_max_pos = {:.6f};
                 bool is_visible_z_pos = position.z <= z_max_pos && position.z >= z_min_pos;
 
-                float x_min_dir = {};
-                float x_max_dir = {};
+                float x_min_dir = {:.6f};
+                float x_max_dir = {:.6f};
                 bool is_visible_x_dir = direction.x <= x_max_dir && direction.x >= x_min_dir;
 
-                float y_min_dir = {};
-                float y_max_dir = {};
+                float y_min_dir = {:.6f};
+                float y_max_dir = {:.6f};
                 bool is_visible_y_dir = direction.y <= y_max_dir && direction.y >= y_min_dir;
 
-                float z_min_dir = {};
-                float z_max_dir = {};
+                float z_min_dir = {:.6f};
+                float z_max_dir = {:.6f};
                 bool is_visible_z_dir = direction.z <= z_max_dir && direction.z >= z_min_dir;
 
                 return is_visible_x_pos && is_visible_y_pos && is_visible_z_pos && is_visible_x_dir && is_visible_y_dir && is_visible_z_dir;
             }}
             )",
-            filter_pos_min[0], filter_pos_max[0], filter_pos_min[1], filter_pos_max[1], filter_pos_min[2],
-            filter_pos_max[2], this->filter_direction_min[0], this->filter_direction_max[0],
-            this->filter_direction_min[1], this->filter_direction_max[1], this->filter_direction_min[2],
-            this->filter_direction_max[2] );
-    };
-    this->view.setOption<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( is_visible() );
+        filter_pos_min[0], filter_pos_max[0], filter_pos_min[1], filter_pos_max[1], filter_pos_min[2],
+        filter_pos_max[2], this->filter_direction_min[0], this->filter_direction_max[0], this->filter_direction_min[1],
+        this->filter_direction_max[1], this->filter_direction_min[2], this->filter_direction_max[2] );
+
+    this->set_view_option<VFRendering::View::Option::IS_VISIBLE_IMPLEMENTATION>( is_visible );
 }
 
 void RenderingLayer::update_boundingbox()
@@ -565,8 +576,8 @@ void RenderingLayer::set_camera_fov( float new_fov )
     change_camera_position_from_fov( previous_fov, new_fov, system_center, camera_position );
 
     // Update
-    view.setOption<VFRendering::View::Option::CAMERA_POSITION>( camera_position );
-    view.setOption<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>( new_fov );
+    set_view_option<VFRendering::View::Option::CAMERA_POSITION>( camera_position );
+    set_view_option<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>( new_fov );
 }
 
 void RenderingLayer::set_camera_orthographic( bool orthographic )

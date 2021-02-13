@@ -8,6 +8,7 @@
 #include <VFRendering/VectorField.hxx>
 #include <VFRendering/View.hxx>
 
+#include <functional>
 #include <memory>
 
 struct State;
@@ -49,6 +50,7 @@ struct RendererWidget
 {
     std::shared_ptr<State> state;
     const VFRendering::View & view;
+    std::deque<std::function<void()>> & vfr_update_deque;
 
     bool show_   = true;
     bool remove_ = false;
@@ -66,19 +68,30 @@ struct RendererWidget
     virtual void update_geometry() {}
 
 protected:
-    RendererWidget( std::shared_ptr<State> state, const VFRendering::View & view ) : state( state ), view( view ) {}
+    RendererWidget(
+        std::shared_ptr<State> state, const VFRendering::View & view,
+        std::deque<std::function<void()>> & vfr_update_deque )
+            : state( state ), view( view ), vfr_update_deque( vfr_update_deque )
+    {
+    }
     virtual std::string name() const = 0;
     virtual void show_settings()     = 0;
     virtual void reset()             = 0;
     void show_filters();
     void reset_filters();
+
+    template<int OptionIndex, typename T2>
+    void set_renderer_option( const T2 & arg )
+    {
+        this->vfr_update_deque.push_back( [&, arg]() { this->renderer->setOption<OptionIndex>( arg ); } );
+    }
 };
 
 struct BoundingBoxRendererWidget : RendererWidget
 {
     BoundingBoxRendererWidget(
         std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield,
-        UiSharedState & ui_shared_state );
+        UiSharedState & ui_shared_state, std::deque<std::function<void()>> & vfr_update_deque );
     void show() override;
     void apply_settings() override;
     void update_geometry() override;
@@ -102,7 +115,9 @@ protected:
 
 struct CoordinateSystemRendererWidget : RendererWidget
 {
-    CoordinateSystemRendererWidget( std::shared_ptr<State> state, const VFRendering::View & view );
+    CoordinateSystemRendererWidget(
+        std::shared_ptr<State> state, const VFRendering::View & view,
+        std::deque<std::function<void()>> & vfr_update_deque );
     void show() override;
 
 protected:
@@ -117,7 +132,8 @@ protected:
 struct DotRendererWidget : RendererWidget, ColormapWidget
 {
     DotRendererWidget(
-        std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield );
+        std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield,
+        std::deque<std::function<void()>> & vfr_update_deque );
     void apply_settings() override;
 
     float size = 1;
@@ -134,7 +150,8 @@ protected:
 struct ArrowRendererWidget : RendererWidget, ColormapWidget
 {
     ArrowRendererWidget(
-        std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield );
+        std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield,
+        std::deque<std::function<void()>> & vfr_update_deque );
     void apply_settings() override;
 
     float size = 1;
@@ -152,7 +169,8 @@ protected:
 struct ParallelepipedRendererWidget : RendererWidget, ColormapWidget
 {
     ParallelepipedRendererWidget(
-        std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield );
+        std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield,
+        std::deque<std::function<void()>> & vfr_update_deque );
     void apply_settings() override;
 
     float size = 1;
@@ -169,7 +187,8 @@ protected:
 struct SphereRendererWidget : RendererWidget, ColormapWidget
 {
     SphereRendererWidget(
-        std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield );
+        std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield,
+        std::deque<std::function<void()>> & vfr_update_deque );
     void apply_settings() override;
 
     float size = 0.1f;
@@ -187,7 +206,8 @@ protected:
 struct SurfaceRendererWidget : RendererWidget, ColormapWidget
 {
     SurfaceRendererWidget(
-        std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield );
+        std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield,
+        std::deque<std::function<void()>> & vfr_update_deque );
     void apply_settings() override;
 
 protected:
@@ -202,7 +222,8 @@ protected:
 struct IsosurfaceRendererWidget : RendererWidget, ColormapWidget
 {
     IsosurfaceRendererWidget(
-        std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield );
+        std::shared_ptr<State> state, const VFRendering::View & view, const VFRendering::VectorField & vectorfield,
+        std::deque<std::function<void()>> & vfr_update_deque );
     void apply_settings() override;
 
     float isovalue    = 0;

@@ -420,15 +420,15 @@ void UiConfigFile::from_json()
             {
                 auto ptr = std::make_shared<BoundingBoxRendererWidget>(
                     rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield,
-                    rendering_layer.ui_shared_state );
+                    rendering_layer.ui_shared_state, rendering_layer.vfr_update_deque );
                 rendering_layer.boundingbox_renderer_widget = ptr;
                 group.at( "boundingbox_renderer" ).get_to( *ptr );
                 ptr->apply_settings();
             }
             if( group.contains( "coordinatesystem_renderer" ) )
             {
-                auto ptr
-                    = std::make_shared<CoordinateSystemRendererWidget>( rendering_layer.state, rendering_layer.view );
+                auto ptr = std::make_shared<CoordinateSystemRendererWidget>(
+                    rendering_layer.state, rendering_layer.view, rendering_layer.vfr_update_deque );
                 rendering_layer.coordinatesystem_renderer_widget = ptr;
                 group.at( "coordinatesystem_renderer" ).get_to( *ptr );
                 ptr->apply_settings();
@@ -441,42 +441,48 @@ void UiConfigFile::from_json()
                     if( j.contains( "DotRendererWidget" ) )
                     {
                         auto ptr = std::make_shared<DotRendererWidget>(
-                            rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
+                            rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield,
+                            rendering_layer.vfr_update_deque );
                         j.at( "DotRendererWidget" ).get_to( *ptr );
                         update( ptr );
                     }
                     if( j.contains( "ArrowRendererWidget" ) )
                     {
                         auto ptr = std::make_shared<ArrowRendererWidget>(
-                            rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
+                            rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield,
+                            rendering_layer.vfr_update_deque );
                         j.at( "ArrowRendererWidget" ).get_to( *ptr );
                         update( ptr );
                     }
                     if( j.contains( "ParallelepipedRendererWidget" ) )
                     {
                         auto ptr = std::make_shared<ParallelepipedRendererWidget>(
-                            rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
+                            rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield,
+                            rendering_layer.vfr_update_deque );
                         j.at( "ParallelepipedRendererWidget" ).get_to( *ptr );
                         update( ptr );
                     }
                     if( j.contains( "SphereRendererWidget" ) )
                     {
                         auto ptr = std::make_shared<SphereRendererWidget>(
-                            rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
+                            rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield,
+                            rendering_layer.vfr_update_deque );
                         j.at( "SphereRendererWidget" ).get_to( *ptr );
                         update( ptr );
                     }
                     if( j.contains( "SurfaceRendererWidget" ) )
                     {
                         auto ptr = std::make_shared<SurfaceRendererWidget>(
-                            rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
+                            rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield,
+                            rendering_layer.vfr_update_deque );
                         j.at( "SurfaceRendererWidget" ).get_to( *ptr );
                         update( ptr );
                     }
                     if( j.contains( "IsosurfaceRendererWidget" ) )
                     {
                         auto ptr = std::make_shared<IsosurfaceRendererWidget>(
-                            rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
+                            rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield,
+                            rendering_layer.vfr_update_deque );
                         j.at( "IsosurfaceRendererWidget" ).get_to( *ptr );
                         update( ptr );
                     }
@@ -488,7 +494,7 @@ void UiConfigFile::from_json()
                 camera_position.x    = float( group.at( "camera_position" )[0] );
                 camera_position.y    = float( group.at( "camera_position" )[1] );
                 camera_position.z    = float( group.at( "camera_position" )[2] );
-                rendering_layer.view.setOption<VFRendering::View::Option::CAMERA_POSITION>( camera_position );
+                rendering_layer.set_view_option<VFRendering::View::Option::CAMERA_POSITION>( camera_position );
             }
             if( group.contains( "center_position" ) )
             {
@@ -496,7 +502,7 @@ void UiConfigFile::from_json()
                 center_position.x    = group.at( "center_position" )[0];
                 center_position.y    = group.at( "center_position" )[1];
                 center_position.z    = group.at( "center_position" )[2];
-                rendering_layer.view.setOption<VFRendering::View::Option::CENTER_POSITION>( center_position );
+                rendering_layer.set_view_option<VFRendering::View::Option::CENTER_POSITION>( center_position );
             }
             if( group.contains( "up_vector" ) )
             {
@@ -504,7 +510,7 @@ void UiConfigFile::from_json()
                 up_vector.x    = group.at( "up_vector" )[0];
                 up_vector.y    = group.at( "up_vector" )[1];
                 up_vector.z    = group.at( "up_vector" )[2];
-                rendering_layer.view.setOption<VFRendering::View::Option::UP_VECTOR>( up_vector );
+                rendering_layer.set_view_option<VFRendering::View::Option::UP_VECTOR>( up_vector );
             }
         }
     }

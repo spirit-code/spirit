@@ -26,6 +26,20 @@ std::shared_ptr<State> state;
 int main( int argc, char ** argv )
 try
 {
+    std::cout << "--------------------------------------\n";
+    std::cout << "Spirit Version: " << Spirit_Version_Full() << "\n";
+    std::cout << Spirit_Compiler_Full() << "\n";
+    std::cout << "--------------------------------------\n";
+    std::cout << "scalar_type = " << Spirit_Scalar_Type() << "\n";
+    std::cout << "Parallelisation:\n";
+    std::cout << "   - OpenMP  = " << Spirit_OpenMP() << "\n";
+    std::cout << "   - Cuda    = " << Spirit_Cuda() << "\n";
+    std::cout << "   - Threads = " << Spirit_Threads() << "\n";
+    std::cout << "Other:\n";
+    std::cout << "   - Defects = " << Spirit_Defects() << "\n";
+    std::cout << "   - Pinning = " << Spirit_Pinning() << "\n";
+    std::cout << "   - FFTW    = " << Spirit_FFTW() << "\n";
+
     // Default options
     bool quiet          = false;
     std::string cfgfile = "";
@@ -34,7 +48,7 @@ try
     state = std::shared_ptr<State>( State_Setup( cfgfile.c_str(), quiet ), State_Delete );
     Log_Set_Output_File_Tag( state.get(), "" );
 
-    int n_cells[3] = { 100, 100, 50 };
+    int n_cells[3] = { 30, 30, 10 };
     Geometry_Set_N_Cells( state.get(), n_cells );
 
     // Standard Initial spin configuration

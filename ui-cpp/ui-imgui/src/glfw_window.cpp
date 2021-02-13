@@ -36,9 +36,9 @@ GlfwWindow::GlfwWindow( const std::string & title )
 #endif
 
     // Open a window and create its OpenGL context
-    int canvasWidth  = 1280;
-    int canvasHeight = 720;
-    glfw_window      = glfwCreateWindow( canvasWidth, canvasHeight, title.c_str(), NULL, NULL );
+    int canvas_width  = 1280;
+    int canvas_height = 720;
+    glfw_window      = glfwCreateWindow( canvas_width, canvas_height, title.c_str(), NULL, NULL );
     glfwMakeContextCurrent( glfw_window );
 #ifndef __EMSCRIPTEN__
     glfwSwapInterval( 1 ); // Enable vsync

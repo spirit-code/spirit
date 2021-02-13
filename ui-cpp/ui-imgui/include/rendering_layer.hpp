@@ -14,6 +14,8 @@
 
 #include <Spirit/Simulation.h>
 
+#include <deque>
+#include <functional>
 #include <memory>
 #include <thread>
 #include <vector>
@@ -49,11 +51,18 @@ struct RenderingLayer
     void needs_redraw();
     void needs_data();
 
+    template<int OptionIndex, typename T2>
+    void set_view_option( const T2 & arg )
+    {
+        this->vfr_update_deque.push_back( [&, arg]() { this->view.setOption<OptionIndex>( arg ); } );
+    }
+
     // Visualisation Settings
     std::shared_ptr<State> state;
     VFRendering::View view;
     UiSharedState & ui_shared_state;
     VFRendering::VectorField vectorfield = VFRendering::VectorField( {}, {} );
+    std::deque<std::function<void()>> vfr_update_deque;
 
     std::vector<std::shared_ptr<RendererWidget>> renderer_widgets;
     std::vector<std::shared_ptr<RendererWidget>> renderer_widgets_not_shown;

@@ -53,14 +53,14 @@ void VisualisationWidget::show()
         else
             rendering_layer.ui_shared_state.background_light = { 0.9f, 0.9f, 0.9f };
 
-        rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-            { colour[0], colour[1], colour[2] } );
+        rendering_layer.set_view_option<VFRendering::View::Option::BACKGROUND_COLOR>(
+            glm::vec3{ colour[0], colour[1], colour[2] } );
     }
 
     if( ImGui::ColorEdit3( "##bgcolour", colour ) )
     {
-        rendering_layer.view.setOption<VFRendering::View::Option::BACKGROUND_COLOR>(
-            { colour[0], colour[1], colour[2] } );
+        rendering_layer.set_view_option<VFRendering::View::Option::BACKGROUND_COLOR>(
+            glm::vec3{ colour[0], colour[1], colour[2] } );
     }
 
     ImGui::Dummy( { 0, 10 } );
@@ -136,32 +136,38 @@ void VisualisationWidget::show()
         if( ImGui::Selectable( "Dots" ) )
         {
             renderer = std::make_shared<ui::DotRendererWidget>(
-                rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
+                rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield,
+                rendering_layer.vfr_update_deque );
         }
         if( ImGui::Selectable( "Arrows" ) )
         {
             renderer = std::make_shared<ui::ArrowRendererWidget>(
-                rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
+                rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield,
+                rendering_layer.vfr_update_deque );
         }
         if( ImGui::Selectable( "Boxes" ) )
         {
             renderer = std::make_shared<ui::ParallelepipedRendererWidget>(
-                rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
+                rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield,
+                rendering_layer.vfr_update_deque );
         }
         if( ImGui::Selectable( "Spheres" ) )
         {
             renderer = std::make_shared<ui::SphereRendererWidget>(
-                rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
+                rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield,
+                rendering_layer.vfr_update_deque );
         }
         if( ImGui::Selectable( "Surface" ) )
         {
             renderer = std::make_shared<ui::SurfaceRendererWidget>(
-                rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
+                rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield,
+                rendering_layer.vfr_update_deque );
         }
         if( ImGui::Selectable( "Isosurface" ) )
         {
             renderer = std::make_shared<ui::IsosurfaceRendererWidget>(
-                rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield );
+                rendering_layer.state, rendering_layer.view, rendering_layer.vectorfield,
+                rendering_layer.vfr_update_deque );
         }
         if( renderer )
         {
@@ -230,8 +236,8 @@ void VisualisationWidget::show()
     {
         normalize_light_dir();
         rendering_layer.ui_shared_state.light_direction = { dir.x, dir.y, dir.z };
-        rendering_layer.view.setOption<VFRendering::View::Option::LIGHT_POSITION>(
-            { -1000 * dir.x, -1000 * dir.y, -1000 * dir.z } );
+        rendering_layer.set_view_option<VFRendering::View::Option::LIGHT_POSITION>(
+            glm::vec3{ -1000 * dir.x, -1000 * dir.y, -1000 * dir.z } );
     }
 
     ImGui::Columns( 1 );

@@ -55,9 +55,18 @@ EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context_imgui;
 EMSCRIPTEN_WEBGL_CONTEXT_HANDLE context_vfr;
 
 void emscripten_loop()
+try
 {
     glfwPollEvents();
     global_window_handle->draw();
+}
+catch( const std::exception & e )
+{
+    fmt::print( "Caught std::exception in emscripten_loop! Message: {}\n", e.what() );
+}
+catch( ... )
+{
+    fmt::print( "Caught unknown exception in emscripten_loop!\n" );
 }
 #endif
 
@@ -901,15 +910,15 @@ void MainWindow::draw()
 
     glfwSwapBuffers( glfw_window );
 
-#ifdef __EMSCRIPTEN__
-    emscripten_webgl_make_context_current( context_vfr );
-#endif
-
     if( Simulation_Running_On_Image( this->state.get() ) || Simulation_Running_On_Chain( this->state.get() )
         || ui_shared_state.interaction_mode != UiSharedState::InteractionMode::REGULAR )
     {
         rendering_layer.needs_data();
     }
+
+#ifdef __EMSCRIPTEN__
+    emscripten_webgl_make_context_current( context_vfr );
+#endif
 
     rendering_layer.draw( display_w, display_h );
 }
@@ -920,7 +929,7 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     auto & style = ImGui::GetStyle();
     if( ui_shared_state.interaction_mode != UiSharedState::InteractionMode::REGULAR )
     {
-        if( ImGui::IsAnyWindowHovered() )
+        if( ImGui::IsWindowHovered( ImGuiHoveredFlags_AnyWindow ) )
             io.MouseDrawCursor = true;
         else
         {
