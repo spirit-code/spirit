@@ -99,7 +99,7 @@ void GeometryWidget::show()
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 160 );
         if( ImGui::InputFloat3(
-                "##geometry_bravais_vector_a", bravais_vector_a, ImGuiInputTextFlags_EnterReturnsTrue ) )
+                "##geometry_bravais_vector_a", bravais_vector_a, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue ) )
         {
             // Geometry_Set_Bravais_Vectors
         }
@@ -107,7 +107,7 @@ void GeometryWidget::show()
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 160 );
         if( ImGui::InputFloat3(
-                "##geometry_bravais_vector_b", bravais_vector_b, ImGuiInputTextFlags_EnterReturnsTrue ) )
+                "##geometry_bravais_vector_b", bravais_vector_b, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue ) )
         {
             // Geometry_Set_Bravais_Vectors
         }
@@ -115,7 +115,7 @@ void GeometryWidget::show()
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 160 );
         if( ImGui::InputFloat3(
-                "##geometry_bravais_vector_c", bravais_vector_c, ImGuiInputTextFlags_EnterReturnsTrue ) )
+                "##geometry_bravais_vector_c", bravais_vector_c, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue ) )
         {
             // Geometry_Set_Bravais_Vectors
         }

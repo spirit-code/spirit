@@ -220,11 +220,11 @@ void VisualisationWidget::show()
         dir.y /= norm;
         dir.z /= norm;
     };
-    if( ImGui::InputFloat( "##lightdir_x", &dir.x, 0, 0, 3, ImGuiInputTextFlags_EnterReturnsTrue ) )
+    if( ImGui::InputFloat( "##lightdir_x", &dir.x, 0, 0, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue ) )
         update = true;
-    if( ImGui::InputFloat( "##lightdir_y", &dir.y, 0, 0, 3, ImGuiInputTextFlags_EnterReturnsTrue ) )
+    if( ImGui::InputFloat( "##lightdir_y", &dir.y, 0, 0, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue ) )
         update = true;
-    if( ImGui::InputFloat( "##lightdir_z", &dir.z, 0, 0, 3, ImGuiInputTextFlags_EnterReturnsTrue ) )
+    if( ImGui::InputFloat( "##lightdir_z", &dir.z, 0, 0, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue ) )
         update = true;
     if( update )
     {

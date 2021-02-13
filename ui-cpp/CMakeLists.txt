@@ -156,9 +156,12 @@ if( SPIRIT_UI_USE_IMGUI )
 
     set( IMGUI_SOURCES
         ${IMGUI_SRC_DIR}/imgui.cpp
-        ${IMGUI_SRC_DIR}/imgui_draw.cpp
         ${IMGUI_SRC_DIR}/imgui_demo.cpp
+        ${IMGUI_SRC_DIR}/imgui_draw.cpp
+        ${IMGUI_SRC_DIR}/imgui_tables.cpp
         ${IMGUI_SRC_DIR}/imgui_widgets.cpp
+        ${IMGUI_SRC_DIR}/backends/imgui_impl_glfw.cpp
+        ${IMGUI_SRC_DIR}/backends/imgui_impl_opengl3.cpp
         ${IMGUI_SRC_DIR}/misc/cpp/imgui_stdlib.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/glad/src/glad.c )
 
@@ -166,6 +169,7 @@ if( SPIRIT_UI_USE_IMGUI )
     target_include_directories( imgui PRIVATE
         ${IMGUI_SRC_DIR}
         ${CMAKE_CURRENT_LIST_DIR}/thirdparty
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/glad/include )
 
     #----- ImPlot library
@@ -381,8 +385,6 @@ if( SPIRIT_UI_USE_IMGUI )
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/rendering_layer.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/renderer_widget.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/ui_config_file.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/imgui_impl/opengl3.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/imgui_impl/glfw.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/imgui-gizmo3d/imGuIZMOquat.cpp )
 
     target_sources( ${PROJECT_NAME} PRIVATE
@@ -425,6 +427,7 @@ if( SPIRIT_UI_USE_IMGUI )
     ### Note: emscripten brings its own glfw, so we don't need to build it in that case
     if( IMGUI_COMPILE_GLFW )
         target_link_libraries( ${PROJECT_NAME} PRIVATE glfw )
+        target_link_libraries( imgui PRIVATE glfw )
         # target_compile_definitions( ${PROJECT_NAME} PRIVATE -D )
         target_compile_definitions( ${PROJECT_NAME} PUBLIC "-DGLFW_INCLUDE_NONE" )
 
@@ -436,8 +439,8 @@ if( SPIRIT_UI_USE_IMGUI )
         ### Set specific flags for emcc and to place the result under webapp/js/
         set_target_properties( ${PROJECT_NAME} PROPERTIES
             # -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4
-            COMPILE_FLAGS "-O3 -g -s WASM=1 -s USE_WEBGL2=0 -s USE_GLFW=3 -s DEMANGLE_SUPPORT=1 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ASSERTIONS=1 -s DISABLE_EXCEPTION_CATCHING=0 -s FORCE_FILESYSTEM=1"
-            LINK_FLAGS    "-O3 -g -s WASM=1 -s USE_WEBGL2=0 -s USE_GLFW=3 -s DEMANGLE_SUPPORT=1 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ASSERTIONS=1 -s DISABLE_EXCEPTION_CATCHING=0 -s FORCE_FILESYSTEM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap, FS']"
+            COMPILE_FLAGS "-O3 -g -fexceptions -s WASM=1 -s USE_WEBGL2=0 -s USE_GLFW=3 -s DEMANGLE_SUPPORT=1 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ASSERTIONS=1 -s DISABLE_EXCEPTION_CATCHING=0 -s FORCE_FILESYSTEM=1"
+            LINK_FLAGS    "-O3 -g -fexceptions -s WASM=1 -s USE_WEBGL2=0 -s USE_GLFW=3 -s DEMANGLE_SUPPORT=1 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ASSERTIONS=1 -s DISABLE_EXCEPTION_CATCHING=0 -s FORCE_FILESYSTEM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap, FS']"
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/webapp/js
             # SUFFIX ".html"
         )

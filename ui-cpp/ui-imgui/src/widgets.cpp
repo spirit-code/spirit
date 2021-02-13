@@ -24,6 +24,33 @@
 namespace widgets
 {
 
+template<typename TYPE, typename FLOATTYPE>
+float SliderCalcRatioFromValueT(
+    ImGuiDataType data_type, TYPE v, TYPE v_min, TYPE v_max, float power, float linear_zero_pos )
+{
+    if( v_min == v_max )
+        return 0.0f;
+
+    const bool is_power
+        = ( power != 1.0f ) && ( data_type == ImGuiDataType_Float || data_type == ImGuiDataType_Double );
+    const TYPE v_clamped = ( v_min < v_max ) ? ImClamp( v, v_min, v_max ) : ImClamp( v, v_max, v_min );
+    if( is_power )
+    {
+        if( v_clamped < 0.0f )
+        {
+            const float f = 1.0f - (float)( ( v_clamped - v_min ) / ( ImMin( (TYPE)0, v_max ) - v_min ) );
+            return ( 1.0f - ImPow( f, 1.0f / power ) ) * linear_zero_pos;
+        }
+        else
+        {
+            const float f = (float)( ( v_clamped - ImMax( (TYPE)0, v_min ) ) / ( v_max - ImMax( (TYPE)0, v_min ) ) );
+            return linear_zero_pos + ImPow( f, 1.0f / power ) * ( 1.0f - linear_zero_pos );
+        }
+    }
+
+    // Linear slider
+    return (float)( ( FLOATTYPE )( v_clamped - v_min ) / ( FLOATTYPE )( v_max - v_min ) );
+}
 bool toggle_button( const char * str_id, bool * v, bool coloured )
 {
     ImVec2 p               = ImGui::GetCursorScreenPos();
@@ -582,7 +609,7 @@ float RoundScalarWithFormatFloat( const char * format, ImGuiDataType data_type, 
 float SliderCalcRatioFromValueFloat(
     ImGuiDataType data_type, float v, float v_min, float v_max, float power, float linear_zero_pos )
 {
-    return ImGui::SliderCalcRatioFromValueT<float, float>( data_type, v, v_min, v_max, power, linear_zero_pos );
+    return SliderCalcRatioFromValueT<float, float>( data_type, v, v_min, v_max, power, linear_zero_pos );
 }
 
 bool RangeSliderBehavior(
@@ -863,32 +890,4 @@ TYPE ImGui::RoundScalarWithFormatT( const char * format, ImGuiDataType data_type
     else
         ImAtoi( p, (SIGNEDTYPE *)&v );
     return v;
-}
-
-template<typename TYPE, typename FLOATTYPE>
-float ImGui::SliderCalcRatioFromValueT(
-    ImGuiDataType data_type, TYPE v, TYPE v_min, TYPE v_max, float power, float linear_zero_pos )
-{
-    if( v_min == v_max )
-        return 0.0f;
-
-    const bool is_power
-        = ( power != 1.0f ) && ( data_type == ImGuiDataType_Float || data_type == ImGuiDataType_Double );
-    const TYPE v_clamped = ( v_min < v_max ) ? ImClamp( v, v_min, v_max ) : ImClamp( v, v_max, v_min );
-    if( is_power )
-    {
-        if( v_clamped < 0.0f )
-        {
-            const float f = 1.0f - (float)( ( v_clamped - v_min ) / ( ImMin( (TYPE)0, v_max ) - v_min ) );
-            return ( 1.0f - ImPow( f, 1.0f / power ) ) * linear_zero_pos;
-        }
-        else
-        {
-            const float f = (float)( ( v_clamped - ImMax( (TYPE)0, v_min ) ) / ( v_max - ImMax( (TYPE)0, v_min ) ) );
-            return linear_zero_pos + ImPow( f, 1.0f / power ) * ( 1.0f - linear_zero_pos );
-        }
-    }
-
-    // Linear slider
-    return (float)( ( FLOATTYPE )( v_clamped - v_min ) / ( FLOATTYPE )( v_max - v_min ) );
 }
