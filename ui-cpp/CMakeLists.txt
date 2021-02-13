@@ -17,6 +17,9 @@ project( Spirit_UI_CPP )
 #----- Ensure only one of the two GUIs is used (and prefer ImGui)
 if( SPIRIT_UI_USE_IMGUI )
     set( SPIRIT_UI_CXX_USE_QT OFF )
+    if( WIN32 )
+        set( CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>" )
+    endif()
 endif()
 
 #--------------------------------------------------
