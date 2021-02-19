@@ -683,6 +683,7 @@ std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config( 
     // PRNG Seed
     std::srand( (unsigned int)std::time( 0 ) );
     parameters->rng_seed = std::rand();
+    parameters->prng     = std::mt19937( parameters->rng_seed );
 
     // Maximum wall time
     std::string str_max_walltime = "0";
@@ -718,6 +719,7 @@ std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config( 
             myfile.Read_Single( str_max_walltime, "llg_max_walltime" );
             parameters->max_walltime_sec = (long int)Utility::Timing::DurationFromString( str_max_walltime ).count();
             myfile.Read_Single( parameters->rng_seed, "llg_seed" );
+            parameters->prng = std::mt19937( parameters->rng_seed );
             myfile.Read_Single( parameters->n_iterations, "llg_n_iterations" );
             myfile.Read_Single( parameters->n_iterations_log, "llg_n_iterations_log" );
             myfile.Read_Single( parameters->dt, "llg_dt" );
@@ -874,6 +876,7 @@ std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config( co
     // PRNG Seed
     std::srand( (unsigned int)std::time( 0 ) );
     parameters->rng_seed = std::rand();
+    parameters->prng     = std::mt19937( parameters->rng_seed );
 
     // Maximum wall time
     std::string str_max_walltime = "0";
@@ -909,6 +912,7 @@ std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config( co
             myfile.Read_Single( str_max_walltime, "mc_max_walltime" );
             parameters->max_walltime_sec = (long int)Utility::Timing::DurationFromString( str_max_walltime ).count();
             myfile.Read_Single( parameters->rng_seed, "mc_seed" );
+            parameters->prng = std::mt19937( parameters->rng_seed );
             myfile.Read_Single( parameters->n_iterations, "mc_n_iterations" );
             myfile.Read_Single( parameters->n_iterations_log, "mc_n_iterations_log" );
             myfile.Read_Single( parameters->temperature, "mc_temperature" );
