@@ -429,6 +429,8 @@ llg_stt_polarisation_normal	1.0 0.0 0.0
 The time step `dt` is given in picoseconds.
 The temperature is given in Kelvin and the temperature gradient in Kelvin/Angstrom.
 
+If you don't specify a seed for the RNG, it will be chosen randomly.
+
 **MC:**
 
 ```Python
@@ -441,6 +443,10 @@ mc_temperature      0
 ### Acceptance ratio
 mc_acceptance_ratio 0.5
 ```
+
+The temperature is given in Kelvin.
+
+If you don't specify a seed for the RNG, it will be chosen randomly.
 
 **GNEB:**
 
