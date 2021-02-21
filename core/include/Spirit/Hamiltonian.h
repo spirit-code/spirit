@@ -117,7 +117,7 @@ PREFIX void Hamiltonian_Get_Exchange_Shells(State *state, int * n_shells, float 
 // Returns the number of exchange interaction pairs
 PREFIX int  Hamiltonian_Get_Exchange_N_Pairs(State *state, int idx_image=-1, int idx_chain=-1) SUFFIX;
 
-PREFIX void Hamiltonian_Get_Exchange_Pairs(State *state, float * idx[2], float * translations[3], float * Jij, int idx_image=-1, int idx_chain=-1) SUFFIX;
+PREFIX void Hamiltonian_Get_Exchange_Pairs(State *state, int idx[][2], int translations[][3], float * Jij, int idx_image=-1, int idx_chain=-1) SUFFIX;
 
 /*
 Retrieves the Dzyaloshinskii-Moriya interaction in terms of neighbour shells.
