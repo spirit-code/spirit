@@ -509,11 +509,12 @@ void HamiltonianWidget::update_data_heisenberg()
 
     // Exchange interaction (pairs)
     exchange_n_pairs      = Hamiltonian_Get_Exchange_N_Pairs( state.get() );
-    exchange_indices      = std::vector<int[2]>( exchange_n_pairs );
-    exchange_translations = std::vector<int[3]>( exchange_n_pairs );
+    exchange_indices      = std::vector<std::array<int, 2>>( exchange_n_pairs );
+    exchange_translations = std::vector<std::array<int, 3>>( exchange_n_pairs );
     exchange_magnitudes   = std::vector<float>( exchange_n_pairs, 0 );
     Hamiltonian_Get_Exchange_Pairs(
-        state.get(), exchange_indices.data(), exchange_translations.data(), exchange_magnitudes.data() );
+        state.get(), (int( * )[2])exchange_indices[0].data(), (int( * )[3])exchange_translations.data(),
+        exchange_magnitudes.data() );
 
     // DMI (shells)
     dmi.resize( 100 );
@@ -523,12 +524,13 @@ void HamiltonianWidget::update_data_heisenberg()
 
     // DMI (pairs)
     dmi_n_pairs      = Hamiltonian_Get_DMI_N_Pairs( state.get() );
-    dmi_indices      = std::vector<int[2]>( dmi_n_pairs );
-    dmi_translations = std::vector<int[3]>( dmi_n_pairs );
+    dmi_indices      = std::vector<std::array<int, 2>>( dmi_n_pairs );
+    dmi_translations = std::vector<std::array<int, 3>>( dmi_n_pairs );
     dmi_magnitudes   = std::vector<float>( dmi_n_pairs, 0 );
-    dmi_normals      = std::vector<float[3]>( dmi_n_pairs );
+    dmi_normals      = std::vector<std::array<float, 3>>( dmi_n_pairs );
     // Hamiltonian_Get_DMI_Pairs(
-    //     state.get(), dmi_indices.data(), dmi_translations.data(), dmi_magnitudes.data() );
+    //     state.get(), (int( * )[2])dmi_indices.data(), (int( * )[3])dmi_translations.data(), dmi_magnitudes.data(),
+    //     (float( * )[3])dmi_normals );
 
     // DDI
     Hamiltonian_Get_DDI(
