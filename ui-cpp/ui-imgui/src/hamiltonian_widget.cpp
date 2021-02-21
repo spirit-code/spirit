@@ -1,3 +1,4 @@
+#include <fonts.hpp>
 #include <hamiltonian_widget.hpp>
 
 #include <Spirit/Geometry.h>
@@ -211,9 +212,92 @@ void HamiltonianWidget::show()
                         ImGuiInputTextFlags_EnterReturnsTrue ) )
                     update_exchange = true;
             }
-            ImGui::Indent( -15 );
+
             if( exchange_active && update_exchange )
+            {
                 Hamiltonian_Set_Exchange( state.get(), n_exchange_shells, exchange.data() );
+                update_exchange = false;
+                this->update_data();
+            }
+
+            if( ImGui::CollapsingHeader( "Exchange pairs" ) )
+            {
+                if( exchange_n_pairs > 0
+                    && ImGui::BeginTable(
+                        "table_exchange", 6, ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_SizingFixedFit ) )
+                {
+                    ImGui::TableSetupColumn( "i", ImGuiTableColumnFlags_WidthFixed );
+                    ImGui::TableSetupColumn( "j", ImGuiTableColumnFlags_WidthFixed );
+                    ImGui::TableSetupColumn( "da", ImGuiTableColumnFlags_WidthFixed );
+                    ImGui::TableSetupColumn( "db", ImGuiTableColumnFlags_WidthFixed );
+                    ImGui::TableSetupColumn( "dc", ImGuiTableColumnFlags_WidthFixed );
+                    ImGui::TableSetupColumn( "Jij", ImGuiTableColumnFlags_WidthFixed );
+                    ImGui::TableHeadersRow();
+
+                    for( int row = 0; row < exchange_n_pairs; row++ )
+                    {
+                        ImGui::TableNextRow();
+
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth( 40 );
+                        if( ImGui::InputInt(
+                                fmt::format( "##exchange_i_{}", row ).c_str(), &exchange_indices[row][0], 0, 0,
+                                ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly ) )
+                        {
+                            update_exchange = true;
+                        }
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth( 40 );
+                        if( ImGui::InputInt(
+                                fmt::format( "##exchange_j_{}", row ).c_str(), &exchange_indices[row][1], 0, 0,
+                                ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly ) )
+                        {
+                            update_exchange = true;
+                        }
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth( 40 );
+                        if( ImGui::InputInt(
+                                fmt::format( "##exchange_da_{}", row ).c_str(), &exchange_translations[row][0], 0, 0,
+                                ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly ) )
+                        {
+                            update_exchange = true;
+                        }
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth( 40 );
+                        if( ImGui::InputInt(
+                                fmt::format( "##exchange_db_{}", row ).c_str(), &exchange_translations[row][1], 0, 0,
+                                ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly ) )
+                        {
+                            update_exchange = true;
+                        }
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth( 40 );
+                        if( ImGui::InputInt(
+                                fmt::format( "##exchange_dc_{}", row ).c_str(), &exchange_translations[row][2], 0, 0,
+                                ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly ) )
+                        {
+                            update_exchange = true;
+                        }
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth( 80 );
+                        if( ImGui::InputFloat(
+                                fmt::format( "##exchange_jij_{}", row ).c_str(), &exchange_magnitudes[row], 0, 0,
+                                "%.5f", ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly ) )
+                        {
+                            update_exchange = true;
+                        }
+                    }
+                    ImGui::EndTable();
+                }
+                ImGui::Button( ICON_FA_PLUS "  add pair##add_exchange_pair" );
+            }
+
+            if( exchange_active && update_exchange )
+            {
+                // TODO: add API to set Exchange pairs
+            }
+
+            ImGui::Indent( -15 );
 
             ImGui::Dummy( { 0, 10 } );
 
@@ -244,9 +328,105 @@ void HamiltonianWidget::show()
                         ImGuiInputTextFlags_EnterReturnsTrue ) )
                     update_dmi = true;
             }
-            ImGui::Indent( -15 );
+
             if( dmi_active && update_dmi )
+            {
                 Hamiltonian_Set_DMI( state.get(), n_dmi_shells, dmi.data(), dmi_chirality );
+                update_dmi = false;
+            }
+
+            if( ImGui::CollapsingHeader( "DMI pairs" ) )
+            {
+                // TODO: add API to get DMI pairs
+
+                ImGui::TextUnformatted( "DMI pairs are not yet available" );
+
+                if( dmi_n_pairs > 0
+                    && ImGui::BeginTable(
+                        "table_dmi", 7, ImGuiTableFlags_NoPadInnerX | ImGuiTableFlags_SizingFixedFit ) )
+                {
+                    ImGui::TableSetupColumn( "i", ImGuiTableColumnFlags_WidthFixed );
+                    ImGui::TableSetupColumn( "j", ImGuiTableColumnFlags_WidthFixed );
+                    ImGui::TableSetupColumn( "da", ImGuiTableColumnFlags_WidthFixed );
+                    ImGui::TableSetupColumn( "db", ImGuiTableColumnFlags_WidthFixed );
+                    ImGui::TableSetupColumn( "dc", ImGuiTableColumnFlags_WidthFixed );
+                    ImGui::TableSetupColumn( "Dij", ImGuiTableColumnFlags_WidthFixed );
+                    ImGui::TableSetupColumn( "DM normal", ImGuiTableColumnFlags_WidthFixed );
+                    ImGui::TableHeadersRow();
+
+                    for( int row = 0; row < dmi_n_pairs; row++ )
+                    {
+                        ImGui::TableNextRow();
+
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth( 40 );
+                        if( ImGui::InputInt(
+                                fmt::format( "##dmi_i_{}", row ).c_str(), &dmi_indices[row][0], 0, 0,
+                                ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly ) )
+                        {
+                            update_dmi = true;
+                        }
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth( 40 );
+                        if( ImGui::InputInt(
+                                fmt::format( "##dmi_j_{}", row ).c_str(), &dmi_indices[row][1], 0, 0,
+                                ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly ) )
+                        {
+                            update_dmi = true;
+                        }
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth( 40 );
+                        if( ImGui::InputInt(
+                                fmt::format( "##dmi_da_{}", row ).c_str(), &dmi_translations[row][0], 0, 0,
+                                ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly ) )
+                        {
+                            update_dmi = true;
+                        }
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth( 40 );
+                        if( ImGui::InputInt(
+                                fmt::format( "##dmi_db_{}", row ).c_str(), &dmi_translations[row][1], 0, 0,
+                                ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly ) )
+                        {
+                            update_dmi = true;
+                        }
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth( 40 );
+                        if( ImGui::InputInt(
+                                fmt::format( "##dmi_dc_{}", row ).c_str(), &dmi_translations[row][2], 0, 0,
+                                ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly ) )
+                        {
+                            update_dmi = true;
+                        }
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth( 80 );
+                        if( ImGui::InputFloat(
+                                fmt::format( "##dmi_dij_{}", row ).c_str(), &dmi_magnitudes[row], 0, 0, "%.5f",
+                                ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly ) )
+                        {
+                            update_dmi = true;
+                        }
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth( 140 );
+                        if( ImGui::InputFloat3(
+                                fmt::format( "##dmi_normal_{}", row ).c_str(), &dmi_normals[row][0], "%.3f",
+                                ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly ) )
+                        {
+                            update_dmi = true;
+                        }
+                    }
+                    ImGui::EndTable();
+                }
+
+                ImGui::Button( ICON_FA_PLUS "  add pair##add_dmi_pair" );
+            }
+
+            if( dmi_active && update_dmi )
+            {
+                // TODO: add API to set DMI pairs
+            }
+
+            ImGui::Indent( -15 );
 
             ImGui::Dummy( { 0, 10 } );
 
@@ -318,29 +498,48 @@ void HamiltonianWidget::update_data_heisenberg()
 
     // External magnetic field
     Hamiltonian_Get_Field( state.get(), &external_field, external_field_dir.data() );
-    external_field_active = std::abs( external_field ) > 0;
 
     // Anisotropy
     Hamiltonian_Get_Anisotropy( state.get(), &anisotropy, anisotropy_dir.data() );
-    anisotropy_active = std::abs( anisotropy ) > 0;
 
     // Exchange interaction (shells)
-    exchange.reserve( 100 );
+    exchange.resize( 100 );
     Hamiltonian_Get_Exchange_Shells( state.get(), &n_exchange_shells, exchange.data() );
     exchange.resize( n_exchange_shells );
-    exchange_active = n_exchange_shells > 0;
 
-    // DMI
-    // n_dmi_shells = Hamiltonian_Get_DMI_N_Pairs( state.get() );
-    dmi.reserve( 100 );
+    // Exchange interaction (pairs)
+    exchange_n_pairs      = Hamiltonian_Get_Exchange_N_Pairs( state.get() );
+    exchange_indices      = std::vector<int[2]>( exchange_n_pairs );
+    exchange_translations = std::vector<int[3]>( exchange_n_pairs );
+    exchange_magnitudes   = std::vector<float>( exchange_n_pairs, 0 );
+    Hamiltonian_Get_Exchange_Pairs(
+        state.get(), exchange_indices.data(), exchange_translations.data(), exchange_magnitudes.data() );
+
+    // DMI (shells)
+    dmi.resize( 100 );
     Hamiltonian_Get_DMI_Shells( state.get(), &n_dmi_shells, dmi.data(), &dmi_chirality );
     dmi.resize( n_dmi_shells );
     dmi_active = n_dmi_shells > 0;
 
+    // DMI (pairs)
+    dmi_n_pairs      = Hamiltonian_Get_DMI_N_Pairs( state.get() );
+    dmi_indices      = std::vector<int[2]>( dmi_n_pairs );
+    dmi_translations = std::vector<int[3]>( dmi_n_pairs );
+    dmi_magnitudes   = std::vector<float>( dmi_n_pairs, 0 );
+    dmi_normals      = std::vector<float[3]>( dmi_n_pairs );
+    // Hamiltonian_Get_DMI_Pairs(
+    //     state.get(), dmi_indices.data(), dmi_translations.data(), dmi_magnitudes.data() );
+
     // DDI
     Hamiltonian_Get_DDI(
         state.get(), &ddi_method, ddi_n_periodic_images.data(), &ddi_cutoff_radius, &ddi_zero_padding );
-    ddi_active = ddi_method != SPIRIT_DDI_METHOD_NONE;
+
+    // Which are active
+    external_field_active = std::abs( external_field ) > 0;
+    anisotropy_active     = std::abs( anisotropy ) > 0;
+    exchange_active       = exchange_n_pairs > 0;
+    dmi_active            = dmi_n_pairs > 0;
+    ddi_active            = ddi_method != SPIRIT_DDI_METHOD_NONE;
 }
 
 } // namespace ui

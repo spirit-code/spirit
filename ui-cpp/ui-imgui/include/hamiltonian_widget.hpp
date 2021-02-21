@@ -40,10 +40,21 @@ struct HamiltonianWidget
     int n_exchange_shells;
     std::vector<float> exchange;
 
+    int exchange_n_pairs;
+    std::vector<int[2]> exchange_indices;
+    std::vector<int[3]> exchange_translations;
+    std::vector<float> exchange_magnitudes;
+
     bool dmi_active;
     int n_dmi_shells;
     int dmi_chirality;
     std::vector<float> dmi;
+
+    int dmi_n_pairs;
+    std::vector<int[2]> dmi_indices;
+    std::vector<int[3]> dmi_translations;
+    std::vector<float> dmi_magnitudes;
+    std::vector<float[3]> dmi_normals;
 
     bool ddi_active;
     int ddi_method;
