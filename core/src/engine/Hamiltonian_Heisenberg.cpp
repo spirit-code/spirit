@@ -425,20 +425,22 @@ namespace Engine
     {
         for( unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad )
         {
+            int i = quadruplets[iquad].i;
+            int j = quadruplets[iquad].j;
+            int k = quadruplets[iquad].k;
+            int l = quadruplets[iquad].l;
             for( int da = 0; da < geometry->n_cells[0]; ++da )
             {
                 for( int db = 0; db < geometry->n_cells[1]; ++db )
                 {
                     for( int dc = 0; dc < geometry->n_cells[2]; ++dc )
                     {
-                        std::array<int, 3 > translations = { da, db, dc };
-                        int ispin = quadruplets[iquad].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
-                        int jspin = quadruplets[iquad].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_j);
-                        int kspin = quadruplets[iquad].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k);
-                        int lspin = quadruplets[iquad].l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l);
+                        int ispin = i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, { da, db, dc });
+                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, j, quadruplets[iquad].d_j});
+                        int kspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, k, quadruplets[iquad].d_k});
+                        int lspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, l, quadruplets[iquad].d_l});
 
-                        if( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
-                            check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
+                        if( ispin >= 0 && jspin >= 0 && kspin >= 0 && lspin >= 0 )
                         {
                             Energy[ispin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
                             Energy[jspin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
@@ -534,29 +536,34 @@ namespace Engine
             {
                 for( unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad )
                 {
-                    auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_cell_atoms, icell);
-                    int ispin = quadruplets[iquad].i + icell*geometry->n_cell_atoms;
-                    int jspin = quadruplets[iquad].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_j);
-                    int kspin = quadruplets[iquad].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k);
-                    int lspin = quadruplets[iquad].l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l);
+                    int i = quadruplets[iquad].i;
+                    int j = quadruplets[iquad].j;
+                    int k = quadruplets[iquad].k;
+                    int l = quadruplets[iquad].l;
 
-                    if( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
-                        check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
+                    const auto& d_j = quadruplets[iquad].d_j;
+                    const auto& d_k = quadruplets[iquad].d_k;
+                    const auto& d_l = quadruplets[iquad].d_l;
+
+                    int ispin = i + icell*geometry->n_cell_atoms;
+                    int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, j, d_j});
+                    int kspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, k, d_k});
+                    int lspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, l, d_l});
+
+                    if( ispin >= 0 && jspin >= 0 && kspin >= 0 && lspin >= 0 )
                     {
                         Energy -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
                     }
 
                     #ifndef SPIRIT_USE_OPENMP
-                    // TODO: mirrored quadruplet when unique quadruplets are used
-                    // jspin = quadruplets[iquad].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_j, true);
-                    // kspin = quadruplets[iquad].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k, true);
-                    // lspin = quadruplets[iquad].l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l, true);
+                    jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, j, {-d_j[0], -d_j[1], -d_j[2]}});
+                    kspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, k, {-d_k[0], -d_k[1], -d_k[2]}});
+                    lspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, l, {-d_l[0], -d_l[1], -d_l[2]}});
 
-                    // if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
-                    //      check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
-                    // {
-                    //     Energy -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
-                    // }
+                    if( ispin >= 0 && jspin >= 0 && kspin >= 0 && lspin >= 0 )
+                    {
+                        Energy -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
+                    }
                     #endif
                 }
             }
@@ -638,7 +645,7 @@ namespace Engine
         {
             // Kind of a bandaid fix
             this->Gradient_Quadruplet(spins, gradient);
-            if(energy_contributions_per_spin[idx_quadruplet].second.size() != spins.size()) 
+            if(energy_contributions_per_spin[idx_quadruplet].second.size() != spins.size())
             {
                 energy_contributions_per_spin[idx_quadruplet].second.resize(spins.size());
             };
@@ -923,14 +930,12 @@ namespace Engine
                 {
                     for( int dc = 0; dc < geometry->n_cells[2]; ++dc )
                     {
-                        std::array<int, 3 > translations = { da, db, dc };
-                        int ispin = i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
-                        int jspin = j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_j);
-                        int kspin = k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k);
-                        int lspin = l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l);
+                        int ispin = i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, { da, db, dc });
+                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, j, quadruplets[iquad].d_j});
+                        int kspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, k, quadruplets[iquad].d_k});
+                        int lspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, l, quadruplets[iquad].d_l});
 
-                        if( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
-                            check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
+                        if( ispin >= 0 && jspin >= 0 && kspin >= 0 && lspin >= 0 )
                         {
                             gradient[ispin] -= quadruplet_magnitudes[iquad] * spins[jspin] * (spins[kspin].dot(spins[lspin]));
                             gradient[jspin] -= quadruplet_magnitudes[iquad] * spins[ispin] * (spins[kspin].dot(spins[lspin]));
@@ -1251,8 +1256,8 @@ namespace Engine
                 // Iterate over the padded system
                 const int * c_n_cells_padded = n_cells_padded.data();
 
-                std::array<scalar, 3> cell_sizes = {geometry->lattice_constant * geometry->bravais_vectors[0].norm(), 
-                                                    geometry->lattice_constant * geometry->bravais_vectors[1].norm(), 
+                std::array<scalar, 3> cell_sizes = {geometry->lattice_constant * geometry->bravais_vectors[0].norm(),
+                                                    geometry->lattice_constant * geometry->bravais_vectors[1].norm(),
                                                     geometry->lattice_constant * geometry->bravais_vectors[2].norm()};
 
                 #pragma omp parallel for collapse(3)
