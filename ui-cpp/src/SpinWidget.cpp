@@ -3,6 +3,7 @@
 #include <QMouseEvent>
 #include <QTimer>
 #include <QtWidgets>
+#include <QMessageBox>
 
 #include <VFRendering/ArrowRenderer.hxx>
 #include <VFRendering/BoundingBoxRenderer.hxx>
@@ -23,12 +24,15 @@
 #include <sstream>
 
 SpinWidget::SpinWidget( std::shared_ptr<State> state, QWidget * parent )
-        : QOpenGLWidget( parent ), m_vf( {}, {} ), m_vf_surf2D( {}, {} )
+        : QOpenGLWidget( parent ), m_vf( {}, {} ), m_vf_surf2D( {}, {} ), spirit_chai(std::make_shared<Utility::Spirit_Chai>())
 {
     this->state            = state;
     this->m_gl_initialized = false;
     this->m_suspended      = false;
     this->paste_atom_type  = 0;
+
+    this->m_render_mode = RenderMode::DIRECT;
+    this->chai_draw = [](int a, int b, int c, int i) {return true;};
 
     // QT Widget Settings
     setFocusPolicy( Qt::StrongFocus );
@@ -351,8 +355,224 @@ void SpinWidget::screenShot( std::string filename )
     pixmap.save( ( filename + ".png" ).c_str() );
 }
 
+glm::vec3 SpinWidget::get_surface_normal( const std::vector<glm::vec3> & positions)
+{
+    // Determine two basis vectors
+    std::array<glm::vec3, 2> basis;
+    float eps = 1e-6;
+    for( int i = 1, j = 0; i < positions.size() && j < 2; ++i )
+    {
+        if( glm::length( positions[i] - positions[0] ) > eps )
+        {
+            if( j < 1 )
+            {
+                basis[j] = glm::normalize( positions[i] - positions[0] );
+                ++j;
+            }
+            else
+            {
+                if( 1 - std::abs( glm::dot( basis[0], glm::normalize( positions[i] - positions[0] ) ) ) > eps )
+                {
+                    basis[j] = glm::normalize( positions[i] - positions[0] );
+                    ++j;
+                }
+            }
+        }
+    }
+
+    int n_cells[3];
+    Geometry_Get_N_Cells( state.get(), n_cells );
+    float bounds_min[3], bounds_max[3];
+    Geometry_Get_Bounds( state.get(), bounds_min, bounds_max );
+    float density = 0.01f;
+    if( n_cells[0] > 1 )
+        density = std::max( density, n_cells[0] / ( bounds_max[0] - bounds_min[0] ) );
+    if( n_cells[1] > 1 )
+        density = std::max( density, n_cells[1] / ( bounds_max[1] - bounds_min[1] ) );
+    if( n_cells[2] > 1 )
+        density = std::max( density, n_cells[2] / ( bounds_max[2] - bounds_min[2] ) );
+    density /= n_cell_step;
+
+    glm::vec3 normal = this->arrowSize() / density * glm::normalize( glm::cross( basis[0], basis[1] ) );
+
+    // By default, +z is up, which is where we want the normal oriented towards
+    if( glm::dot( normal, glm::vec3{ 0, 0, 1 } ) < eps )
+        normal = -normal;
+
+    if(basis[0] == basis[1] || std::isnan( glm::length(basis[0]) ) ||  std::isnan(glm::length(basis[1]) ))
+    {
+        throw std::runtime_error("Can not find two basis vectors! Geometry probably not two-dimensional!");
+    }
+
+    return normal;
+}
+
+void SpinWidget::parseChaiString(const std::string & chai_string)
+{
+    // We only parse the script if the scrip render mode is selected
+    if(this->m_render_mode != RenderMode::SCRIPT)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Select script render mode to apply script.");
+        msgBox.setIcon(QMessageBox::Icon::Warning);
+        msgBox.setStandardButtons(QMessageBox::Cancel);
+        msgBox.setDefaultButton(QMessageBox::Cancel);
+        int ret = msgBox.exec();
+        return;
+    }
+
+    // Reset the state of the chaiscript object, so we dont get errors due potentiall to redefining variables, namespaces etc.
+    spirit_chai->reset_state();
+
+    // Update the chaiscript data with the current state data (note: this will also change the spin pointer so that it points to the spins of the currently active image)
+    spirit_chai->update(this->state.get());
+
+    int nos = Geometry_Get_NOS(this->state.get());
+    int n_cells[3];
+    Geometry_Get_N_Cells( this->state.get(), n_cells );
+    int n_cell_atoms = Geometry_Get_N_Cell_Atoms( this->state.get() );
+
+    auto save_chai = chai_draw; // Save the current draw function in case we get an error
+    try
+    {
+        this->chai_draw = spirit_chai->get().eval<std::function<bool(int,int,int,int)>>(chai_string);
+        // The std::function object can also throw on evaluation (e.g. if the chaiscript depends on some undefined variables, this will not be detected by the Chai::eval() function)
+        // so we test it here ...
+        this->chai_draw(0,0,0,0);
+        this->chai_draw(n_cells[0]-1,n_cells[1]-1,n_cells[2]-1,n_cell_atoms-1);
+    }
+    catch( const std::exception & e)
+    {
+        chai_draw = save_chai; // restore to previous draw function
+        // Inform about the error in parsing
+        std::cout << "chaiscript exception:\n" << e.what() << "\n";
+        QMessageBox msgBox;
+        msgBox.setText("Error in Script");
+        msgBox.setIcon(QMessageBox::Icon::Warning);
+        msgBox.setInformativeText(e.what());
+        msgBox.setStandardButtons(QMessageBox::Cancel);
+        msgBox.setDefaultButton(QMessageBox::Cancel);
+        int ret = msgBox.exec();
+    }
+
+    // Convert the script to a mask of booleans
+    chai_draw_mask = std::vector<bool>(nos);
+    for( int cell_c = 0; cell_c < n_cells[2]; cell_c++)
+        for( int cell_b = 0; cell_b < n_cells[1]; cell_b++ )
+            for( int cell_a = 0; cell_a < n_cells[0]; cell_a++ )
+                for( int ibasis = 0; ibasis < n_cell_atoms; ++ibasis )
+                {
+                    int idx = ibasis + n_cell_atoms * ( cell_a + n_cells[0] * (cell_b + n_cells[1] * cell_c ) );
+                    chai_draw_mask[idx] = chai_draw(cell_a, cell_b, cell_c, ibasis);
+                }
+
+    // Update the widget data to apply the mask
+    updateData();
+}
+
+void SpinWidget::updateVectorFieldGeometryScript()
+{
+    int nos = System_Get_NOS( state.get() );
+
+    if(chai_draw_mask.size() != nos)
+    {
+        chai_draw_mask.resize(nos, true);
+    }
+
+    int n_cells[3];
+    Geometry_Get_N_Cells( this->state.get(), n_cells );
+    int n_cell_atoms = Geometry_Get_N_Cell_Atoms( this->state.get() );
+
+    int n_cells_draw[3] = { std::max( 1, int( ceil( ( m_cell_a_max - m_cell_a_min + 1.0 ) / n_cell_step ) ) ),
+                            std::max( 1, int( ceil( ( m_cell_b_max - m_cell_b_min + 1.0 ) / n_cell_step ) ) ),
+                            std::max( 1, int( ceil( ( m_cell_c_max - m_cell_c_min + 1.0 ) / n_cell_step ) ) ) };
+
+    int nos_draw = n_cell_atoms * n_cells_draw[0] * n_cells_draw[1] * n_cells_draw[2];
+    scalar * spin_pos;
+    int * atom_types;
+    spin_pos = Geometry_Get_Positions( state.get() );
+
+    std::vector<glm::vec3> positions = std::vector<glm::vec3>( );
+    positions.reserve(nos_draw);
+
+    for( int cell_c = m_cell_c_min; cell_c < m_cell_c_max + 1; cell_c += n_cell_step )
+    {
+        for( int cell_b = m_cell_b_min; cell_b < m_cell_b_max + 1; cell_b += n_cell_step )
+        {
+            for( int cell_a = m_cell_a_min; cell_a < m_cell_a_max + 1; cell_a += n_cell_step )
+            {
+                for( int ibasis = 0; ibasis < n_cell_atoms; ++ibasis )
+                {
+                    int idx = ibasis + n_cell_atoms * ( cell_a + n_cells[0] * ( cell_b + n_cells[1] * cell_c ) );
+                    bool draw = chai_draw_mask[idx];
+                    if(draw)
+                    {
+                        positions.push_back( glm::vec3( spin_pos[3 * idx], spin_pos[1 + 3 * idx], spin_pos[2 + 3 * idx] ) );
+                    }
+                }
+            }
+        }
+    }
+
+    VFRendering::Geometry geometry;
+    if( Geometry_Get_Dimensionality( state.get() ) == 3 )
+    {
+        std::array<VFRendering::Geometry::index_type, 4> * tetrahedra_ptr = NULL;
+        std::vector<std::array<float, 3>> points(positions.size());
+
+        for(int i=0; i<positions.size(); i++)
+            points[i] = {positions[i][0], positions[i][1], positions[i][2]};
+
+        int num_tetrahedra = Geometry_Delaunay_Triangulation_3D( (unsigned int**) &tetrahedra_ptr, (float*) points.data(), points.size());
+
+        std::vector<std::array<VFRendering::Geometry::index_type, 4> > tetrahedra_indices( tetrahedra_ptr, tetrahedra_ptr + num_tetrahedra );
+        free(tetrahedra_ptr);
+        geometry = VFRendering::Geometry( positions, {}, tetrahedra_indices, false );
+
+    } else if( Geometry_Get_Dimensionality( state.get() ) == 2) {
+
+        std::array<VFRendering::Geometry::index_type, 3> * triangles_ptr = NULL;
+        std::vector<std::array<float, 2>> points(positions.size());
+
+        for(int i=0; i<positions.size(); i++)
+            points[i] = {positions[i][0], positions[i][1]};
+
+        geometry = VFRendering::Geometry( positions, {}, {}, true );
+
+        int num_triangles = Geometry_Delaunay_Triangulation_2D( (unsigned int**) &triangles_ptr, (float*) points.data(), points.size());
+        if( num_triangles < 1 && this->show_surface )
+        {
+            num_triangles = 1;
+            triangles_ptr = new std::array<VFRendering::Geometry::index_type, 3>();
+        }
+
+        std::vector<std::array<VFRendering::Geometry::index_type, 3>> triangle_indices( triangles_ptr, triangles_ptr + num_triangles );
+        free(triangles_ptr);
+        try
+        {
+            auto normal = get_surface_normal(positions);
+            for(auto & pos : positions)
+                pos -= normal;
+            VFRendering::Geometry geometry_surf2D = VFRendering::Geometry( positions, triangle_indices, {}, true );;
+            this->m_vf_surf2D.updateGeometry( geometry_surf2D );
+        } catch(...) {
+            VFRendering::Geometry geometry_surf2D = VFRendering::Geometry( positions, {}, {}, true );;
+            this->m_vf_surf2D.updateGeometry( geometry_surf2D );
+        }
+    }
+
+    this->m_vf.updateGeometry( geometry );
+
+}
+
 void SpinWidget::updateVectorFieldGeometry()
 {
+    if(m_render_mode != RenderMode::DIRECT)
+    {
+        updateVectorFieldGeometryScript();
+        return;
+    }
+
     int nos = System_Get_NOS( state.get() );
     int n_cells[3];
     Geometry_Get_N_Cells( this->state.get(), n_cells );
@@ -517,8 +737,67 @@ void SpinWidget::updateVectorFieldGeometry()
     this->m_vf.updateGeometry( geometry );
 }
 
+void SpinWidget::updateVectorFieldDirectionsScript()
+{
+    int nos = System_Get_NOS( state.get() );
+    int n_cells[3];
+    Geometry_Get_N_Cells( this->state.get(), n_cells );
+
+    if(chai_draw_mask.size() != nos)
+    {
+        chai_draw_mask.resize(nos, true);
+    }
+
+    int n_cell_atoms = Geometry_Get_N_Cell_Atoms( this->state.get() );
+
+    int n_cells_draw[3] = { std::max( 1, int( ceil( ( m_cell_a_max - m_cell_a_min + 1.0 ) / n_cell_step ) ) ),
+                            std::max( 1, int( ceil( ( m_cell_b_max - m_cell_b_min + 1.0 ) / n_cell_step ) ) ),
+                            std::max( 1, int( ceil( ( m_cell_c_max - m_cell_c_min + 1.0 ) / n_cell_step ) ) ) };
+
+    int nos_draw = n_cell_atoms * n_cells_draw[0] * n_cells_draw[1] * n_cells_draw[2];
+
+    // Directions of the vectorfield
+    std::vector<glm::vec3> directions = std::vector<glm::vec3>();
+    directions.reserve(nos_draw);
+    auto spins = System_Get_Spin_Directions( state.get() );
+
+    int * atom_types;
+    atom_types = Geometry_Get_Atom_Types( state.get() );
+
+    for( int cell_c = m_cell_c_min; cell_c < m_cell_c_max + 1; cell_c += n_cell_step )
+    {
+        for( int cell_b = m_cell_b_min; cell_b < m_cell_b_max + 1; cell_b += n_cell_step )
+        {
+            for( int cell_a = m_cell_a_min; cell_a < m_cell_a_max + 1; cell_a += n_cell_step )
+            {
+                for( int ibasis = 0; ibasis < n_cell_atoms; ++ibasis )
+                {
+                    int idx = ibasis + n_cell_atoms * ( cell_a + n_cells[0] * ( cell_b + n_cells[1] * cell_c ) );
+                    bool draw = chai_draw_mask[idx];
+                    if(draw)
+                    {
+                        directions.push_back(glm::vec3( spins[3 * idx], spins[1 + 3 * idx], spins[2 + 3 * idx] ));
+                        if( atom_types[idx] < 0)
+                            directions.back() *= 0;
+                    }
+                }
+            }
+        }
+    }
+    this->m_vf.updateVectors( directions );
+    if( Geometry_Get_Dimensionality( state.get() ) == 2 )
+        this->m_vf_surf2D.updateVectors( directions );
+
+}
+
 void SpinWidget::updateVectorFieldDirections()
 {
+    if(m_render_mode != RenderMode::DIRECT)
+    {
+        updateVectorFieldDirectionsScript();
+        return;
+    }
+
     int nos = System_Get_NOS( state.get() );
     int n_cells[3];
     Geometry_Get_N_Cells( this->state.get(), n_cells );

@@ -17,6 +17,7 @@
 #include <VFRendering/View.hxx>
 
 #include "glm/glm.hpp"
+#include "Chai_Bootstrap.hpp"
 
 #include <memory>
 #include <set>
@@ -86,9 +87,19 @@ public:
         SLAB_Z
     };
 
+    enum class RenderMode
+    {
+        DIRECT,
+        SCRIPT
+    };
+
     SpinWidget( std::shared_ptr<State> state, QWidget * parent = 0 );
     void setSuspended( bool suspended );
     void updateData( bool update_directions = true, bool update_geometry = true, bool update_camera = true );
+
+    void updateVectorFieldGeometryScript();
+    void updateVectorFieldDirectionsScript();
+
     void updateVectorFieldDirections();
     void updateVectorFieldGeometry();
     void initializeGL();
@@ -135,6 +146,7 @@ public:
     SystemMode systemCycle();
     void moveSlab( int amount );
     bool show_arrows, show_boundingbox, show_surface, show_isosurface;
+
     //    Arrows
     void setArrows( float size = 1, int lod = 20 );
     float arrowSize() const;
@@ -146,6 +158,14 @@ public:
     glm::vec2 xRangePosition() const;
     glm::vec2 yRangePosition() const;
     glm::vec2 zRangePosition() const;
+
+    RenderMode m_render_mode;
+    RenderMode render_mode();
+    std::shared_ptr<Utility::Spirit_Chai> spirit_chai;
+
+    void parseChaiString(const std::string & chai_string);
+    std::function<bool(int,int,int,int)> chai_draw;
+    std::vector<bool> chai_draw_mask;
 
     void setCellFilter( int cell_a_min, int cell_a_max, int cell_b_min, int cell_b_max, int cell_c_min, int cell_c_max )
     {
@@ -303,6 +323,7 @@ private:
     VFRendering::View m_view;
     VFRendering::VectorField m_vf;
     VFRendering::VectorField m_vf_surf2D;
+    glm::vec3 get_surface_normal(const std::vector<glm::vec3> & positions);
 
     // Interaction mode
     InteractionMode m_interactionmode;

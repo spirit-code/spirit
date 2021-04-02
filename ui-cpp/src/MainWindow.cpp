@@ -398,7 +398,6 @@ void MainWindow::keyPressEvent( QKeyEvent * k )
             case Qt::Key_S: this->control_cycle_solver(); break;
         }
     }
-
     // Single Keys
     else
     {
@@ -593,7 +592,8 @@ void MainWindow::keyPressEvent( QKeyEvent * k )
             case Qt::Key_F12: this->takeScreenshot(); break;
         }
     }
-    this->return_focus();
+
+    // this->return_focus();
 
     if( std::any_of(
             this->camera_keys_pressed.begin(), this->camera_keys_pressed.end(),

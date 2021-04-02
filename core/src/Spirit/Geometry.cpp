@@ -722,3 +722,56 @@ catch( ... )
     spirit_handle_exception_api(idx_image, idx_chain);
     return 0;
 }
+
+int Geometry_Delaunay_Triangulation_2D(unsigned int ** triangles, float * points, int N) noexcept
+try
+{
+    std::vector<Data::vector2_t> temp_pos = std::vector<Data::vector2_t>(N);
+    for(int i=0; i<N; i++)
+    {
+        temp_pos[i] = {points[2*i], points[2*i+1]};
+    }
+
+    auto tri = Data::compute_delaunay_triangulation_2D(temp_pos);
+
+    *triangles = (unsigned int*) malloc(3*tri.size()*sizeof(unsigned int));
+    for(int i=0; i<tri.size(); i++)
+    {
+        (*triangles)[3*i]   = (unsigned int) tri[i][0];
+        (*triangles)[3*i+1] = (unsigned int) tri[i][1];
+        (*triangles)[3*i+2] = (unsigned int) tri[i][2];
+    }
+    return tri.size();
+}
+catch( ... )
+{
+    // spirit_handle_exception_api(idx_image, idx_chain);
+    return 0;
+}
+
+int Geometry_Delaunay_Triangulation_3D(unsigned int ** tetrahedra, float * points, int N) noexcept
+try
+{
+    std::vector<Data::vector3_t> temp_pos = std::vector<Data::vector3_t>(N);
+    for(int i=0; i<N; i++)
+    {
+        temp_pos[i] = {points[3*i], points[3*i+1], points[3*i+2]};
+    }
+
+    auto tet = Data::compute_delaunay_triangulation_3D(temp_pos);
+    *tetrahedra = (unsigned int*) malloc(4*tet.size()*sizeof(unsigned int));
+
+    for(int i=0; i<tet.size(); i++)
+    {
+        (*tetrahedra)[4*i]   = (unsigned int) tet[i][0];
+        (*tetrahedra)[4*i+1] = (unsigned int) tet[i][1];
+        (*tetrahedra)[4*i+2] = (unsigned int) tet[i][2];
+        (*tetrahedra)[4*i+3] = (unsigned int) tet[i][3];
+    }
+    return tet.size();
+}
+catch( ... )
+{
+    // spirit_handle_exception_api(idx_image, idx_chain);
+    return 0;
+}

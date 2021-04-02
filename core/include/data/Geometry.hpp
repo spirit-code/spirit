@@ -171,6 +171,7 @@ private:
 };
 
 // TODO: find better place (?)
+std::vector<tetrahedron_t> compute_delaunay_triangulation_3D(const std::vector<vector3_t> & points);
 std::vector<triangle_t> compute_delaunay_triangulation_2D( const std::vector<vector2_t> & points );
 
 } // namespace Data

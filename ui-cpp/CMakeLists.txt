@@ -113,7 +113,10 @@ endif()
 set( SOURCE_SPIRIT_UI_CXX
     ${CMAKE_CURRENT_LIST_DIR}/main.cpp
     ${CMAKE_CURRENT_LIST_DIR}/utility/Handle_Signal.hpp
-    ${CMAKE_CURRENT_LIST_DIR}/utility/Handle_Signal.cpp )
+    ${CMAKE_CURRENT_LIST_DIR}/utility/Handle_Signal.cpp 
+    ${CMAKE_CURRENT_LIST_DIR}/utility/Chai_Bootstrap.hpp
+    ${CMAKE_CURRENT_LIST_DIR}/utility/Chai_Bootstrap.cpp 
+    )
 
 ### Note: OS_BUNDLE_NAME will be empty if bundle should not be created
 add_executable( ${PROJECT_NAME} ${OS_BUNDLE_NAME} ${SOURCE_SPIRIT_UI_CXX} )
@@ -136,6 +139,9 @@ target_include_directories( ${PROJECT_NAME} PRIVATE
     ${PROJECT_SOURCE_DIR}/include
     ${SPIRIT_INCLUDE_DIRS}
     ${PROJECT_SOURCE_DIR}/thirdparty/Lyra/include
+    ${PROJECT_SOURCE_DIR}/thirdparty/ChaiScript/include
+    ${PROJECT_SOURCE_DIR}/thirdparty/ChaiScript_Extras/include
+    ${PROJECT_SOURCE_DIR}/utility
     ${PROJECT_BINARY_DIR}/thirdparty-install/include )
 
 target_link_libraries( ${PROJECT_NAME} PRIVATE ${SPIRIT_LIBRARIES_STATIC} )

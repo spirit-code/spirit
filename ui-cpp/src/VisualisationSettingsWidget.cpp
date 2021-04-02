@@ -1,7 +1,9 @@
 #include "VisualisationSettingsWidget.hpp"
 
 #include <QtWidgets>
-
+#include <fstream>
+#include <iostream>
+#include <sstream>
 #include <Spirit/Geometry.h>
 #include <Spirit/Log.h>
 #include <Spirit/System.h>
@@ -1205,6 +1207,57 @@ void VisualisationSettingsWidget::set_light_position()
     this->spinWidget->setLightPosition( theta, phi );
 }
 
+// -----------------------------------------------------------------------------------
+// --------------------- ChaiScript -------------------------------------------------------
+// -----------------------------------------------------------------------------------
+
+void VisualisationSettingsWidget::Load_Chaiscript()
+{
+    std::cout << "load\n";
+    auto filename = QFileDialog::getOpenFileName( this, tr( "Load Script" ), ".", tr( "Chaiscript (*.chai)" ) );
+    if( !filename.isEmpty() )
+    {
+        std::ifstream inFile;
+        inFile.open(filename.toStdString()); //open the input file
+        std::stringstream strStream;
+        strStream << inFile.rdbuf(); //read the file
+        std::string str = strStream.str(); //str holds the content of the file
+        this->textEdit_chaiscript->document()->setPlainText( QString::fromStdString(str) );
+    }
+}
+
+void VisualisationSettingsWidget::Save_Chaiscript()
+{
+    std::cout << "save\n";
+    auto filename  = QFileDialog::getSaveFileName( this, tr( "Save Script" ), ".", tr( "Chaiscript (*.chai)" ) );
+    if( !filename.isEmpty() )
+    {
+        std::ofstream outFile;
+        outFile.open(filename.toStdString());
+        outFile << (this->textEdit_chaiscript->toPlainText()).toStdString();
+        outFile.close();
+    }
+}
+
+void VisualisationSettingsWidget::Apply_Chaiscript()
+{
+    auto str = (this->textEdit_chaiscript->toPlainText()).toStdString();
+    this->spinWidget->parseChaiString(str);
+}
+
+void VisualisationSettingsWidget::Set_Script_Render()
+{
+    auto script_render = this->checkBox_script_render->isChecked();
+    if(script_render)
+    {
+        spinWidget->m_render_mode = SpinWidget::RenderMode::SCRIPT;
+    } else 
+    {
+        spinWidget->m_render_mode = SpinWidget::RenderMode::DIRECT;
+    }
+    spinWidget->updateData();
+}
+
 void VisualisationSettingsWidget::Setup_Visualization_Slots()
 {
     connect(
@@ -1431,6 +1484,13 @@ void VisualisationSettingsWidget::Setup_Visualization_Slots()
     // Light
     connect( horizontalSlider_light_theta, SIGNAL( valueChanged( int ) ), this, SLOT( set_light_position() ) );
     connect( horizontalSlider_light_phi, SIGNAL( valueChanged( int ) ), this, SLOT( set_light_position() ) );
+
+    // Chaiscript
+    connect( pushButton_apply_chaiscript, SIGNAL( clicked() ), this, SLOT( Apply_Chaiscript() ));
+    connect( pushButton_load_chaiscript_from_file, SIGNAL( clicked() ), this, SLOT( Load_Chaiscript() ));
+    connect( pushButton_save_chaiscript_to_file, SIGNAL( clicked() ), this, SLOT( Save_Chaiscript() ));
+    connect( checkBox_script_render, SIGNAL( stateChanged( int ) ), this, SLOT( Set_Script_Render() ) );
+
 }
 
 void VisualisationSettingsWidget::incrementNCellStep( int increment )

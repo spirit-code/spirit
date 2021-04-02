@@ -175,9 +175,12 @@ sets *indices_ptr to point to a list of index 4-tuples.
 
 **Returns:** the number of tetrahedra
 */
-PREFIX int Geometry_Get_Tetrahedra(State * state, const int **indices_ptr, int n_cell_step=1, int idx_image=-1, int idx_chain=-1) SUFFIX;
+PREFIX int Geometry_Get_Tetrahedra(State * state, const int **indices_ptr, int n_cell_step=1, int idx_image=-1, int 
+idx_chain=-1) SUFFIX;
 PREFIX int Geometry_Get_Tetrahedra_Ranged(State * state, const int **indices_ptr, int n_cell_step, int ranges[6], int idx_image=-1, int idx_chain=-1) SUFFIX;
 
+PREFIX int Geometry_Delaunay_Triangulation_2D(unsigned int ** triangles,  float * points, int N) SUFFIX;
+PREFIX int Geometry_Delaunay_Triangulation_3D(unsigned int ** tetrahedra, float * points, int N) SUFFIX;
 
 #include "DLL_Undefine_Export.h"
 #endif
