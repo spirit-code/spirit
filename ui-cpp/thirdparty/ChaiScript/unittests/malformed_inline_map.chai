@@ -1,0 +1,8 @@
+
+try {
+ eval("[\"hello\":5,\"j\",\"k\"]");
+ assert_true(false);
+} catch (eval_error ee) {
+}
+
+
