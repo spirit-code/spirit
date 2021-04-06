@@ -930,10 +930,10 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     if( ui_shared_state.interaction_mode != UiSharedState::InteractionMode::REGULAR )
     {
         if( ImGui::IsWindowHovered( ImGuiHoveredFlags_AnyWindow ) )
-            io.MouseDrawCursor = true;
+            glfwSetInputMode( glfw_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL );
         else
         {
-            io.MouseDrawCursor = false;
+            glfwSetInputMode( glfw_window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN );
 
             ImU32 color = IM_COL32( 0, 0, 0, 255 );
             if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
@@ -998,7 +998,7 @@ void MainWindow::draw_imgui( int display_w, int display_h )
         ImGui::PopStyleVar();
     }
     else
-        io.MouseDrawCursor = true;
+        glfwSetInputMode( glfw_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL );
 
     // ----------------
 
