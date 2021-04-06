@@ -48,19 +48,33 @@ void plot_tooltip( const char * label_id, const float * xs, const float * ys, in
     }
 }
 
-PlotsWidget::PlotsWidget( bool & show, std::shared_ptr<State> state ) : show_( show ), state( state ) {}
+PlotsWidget::PlotsWidget( bool & show, std::shared_ptr<State> state ) : WidgetBase( show ), state( state ) 
+{
+    title = "Plots";
+    size_min = { 350, 300 };
+    size_max = { 999999, 999999 };
+    history_size = 200;
+    iteration_history = std::vector<float>(history_size);
+    force_history     = std::vector<float>(history_size);
+}
 
-void PlotsWidget::show()
+void PlotsWidget::hook_pre_show()
+{
+    if( Simulation_Running_Anywhere_On_Chain( state.get() ) )
+    {
+        iteration_history[force_index] = Simulation_Get_Iteration( state.get() );
+        force_history[force_index]     = Simulation_Get_MaxTorqueNorm( state.get() );
+        ++force_index;
+        force_index = force_index % history_size;
+    }
+}
+
+void PlotsWidget::show_content()
 {
     auto & style = ImGui::GetStyle();
 
     static bool plot_image_energies        = true;
     static bool plot_interpolated_energies = true;
-
-    static int history_size = 200;
-    static std::vector<float> force_history( history_size );
-    static std::vector<float> iteration_history( history_size );
-    static int force_index = 0;
 
     static bool fit_axes = false;
     static bool tooltip  = false;
@@ -72,22 +86,7 @@ void PlotsWidget::show()
     static std::vector<float> energies_interpolated( 1, 0 );
     static std::vector<float> max_force( 1, 0 );
 
-    if( Simulation_Running_Anywhere_On_Chain( state.get() ) )
-    {
-        iteration_history[force_index] = Simulation_Get_Iteration( state.get() );
 
-        force_history[force_index] = Simulation_Get_MaxTorqueNorm( state.get() );
-        ++force_index;
-        force_index = force_index % history_size;
-    }
-
-    if( !show_ )
-        return;
-
-    ImGui::SetNextWindowSizeConstraints( { 350, 300 }, { 999999, 999999 } );
-
-    ImGui::Begin( "Plots", &show_ );
-    {
         ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
         if( ImGui::BeginTabBar( "plots_tab_bar", tab_bar_flags ) )
         {
@@ -327,8 +326,6 @@ void PlotsWidget::show()
             ImGui::EndTabBar();
         }
     }
-    ImGui::End();
-}
 
 void PlotsWidget::update_data() {}
 

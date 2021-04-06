@@ -13,19 +13,15 @@ namespace ui
 {
 
 VisualisationWidget::VisualisationWidget( bool & show, std::shared_ptr<State> state, RenderingLayer & rendering_layer )
-        : show_( show ), state( state ), rendering_layer( rendering_layer )
+        : WidgetBase( show ), state( state ), rendering_layer( rendering_layer )
 {
+    title = "Visualisation settings";
+    size_min = { 300, 300 };
+    size_max = { 800, 999999 };
 }
 
-void VisualisationWidget::show()
+void VisualisationWidget::show_content()
 {
-    if( !show_ )
-        return;
-
-    ImGui::SetNextWindowSizeConstraints( { 300, 300 }, { 800, 999999 } );
-
-    ImGui::Begin( "Visualisation settings", &show_ );
-
     float * colour = rendering_layer.ui_shared_state.background_light.data();
     if( rendering_layer.ui_shared_state.dark_mode )
         colour = rendering_layer.ui_shared_state.background_dark.data();
@@ -241,8 +237,6 @@ void VisualisationWidget::show()
     }
 
     ImGui::Columns( 1 );
-
-    ImGui::End();
 }
 
 void VisualisationWidget::update_data() {}

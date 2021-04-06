@@ -3,7 +3,7 @@
 #define SPIRIT_IMGUI_CONFIGURATIONS_WIDGET_HPP
 
 #include <rendering_layer.hpp>
-
+#include <widget_base.hpp>
 #include <memory>
 
 struct State;
@@ -11,14 +11,12 @@ struct State;
 namespace ui
 {
 
-struct ConfigurationsWidget
+struct ConfigurationsWidget : public WidgetBase
 {
     ConfigurationsWidget( bool & show, std::shared_ptr<State> state, RenderingLayer & rendering_layer );
     void reset_settings();
-    void show();
+    void show_content() override;
     void update_data();
-
-    bool & show_;
 
     std::shared_ptr<State> state;
     RenderingLayer & rendering_layer;

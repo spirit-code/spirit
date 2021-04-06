@@ -10,8 +10,11 @@ namespace ui
 {
 
 GeometryWidget::GeometryWidget( bool & show, std::shared_ptr<State> state, RenderingLayer & rendering_layer )
-        : show_( show ), state( state ), rendering_layer( rendering_layer )
+        : WidgetBase(show), state( state ), rendering_layer( rendering_layer )
 {
+    title = "Geometry";
+    size_min = {300, 300};
+    size_max = {800, 999999 };
     update_data();
 }
 
@@ -27,20 +30,13 @@ void GeometryWidget::update_data()
     Geometry_Get_Cell_Bounds( state.get(), cell_bounds_min, cell_bounds_max );
 }
 
-void GeometryWidget::show()
+void GeometryWidget::show_content()
 {
     static std::vector<std::string> bravais_lattice_types{
         "Irregular", "Rectilinear", "Simple cubic", "Hexagonal (2D)", "Hexagonal (2D, 60deg)", "Hexagonal (2D, 120deg)",
         "HCP",       "BCC",         "FCC",
     };
     static int bravais_lattice_type_idx = Bravais_Lattice_SC;
-
-    if( !show_ )
-        return;
-
-    ImGui::SetNextWindowSizeConstraints( { 300, 300 }, { 800, 999999 } );
-
-    ImGui::Begin( "Geometry", &show_ );
 
     ImGui::TextUnformatted( "Number of cells" );
     ImGui::SameLine();
@@ -174,7 +170,6 @@ void GeometryWidget::show()
         fmt::format( "(x,y,z): {} x {} x {} [Å]", system_center[0], system_center[1], system_center[2] ).c_str() );
     ImGui::Indent( -15 );
 
-    ImGui::End();
 }
 
 } // namespace ui
