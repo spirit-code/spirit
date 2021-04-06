@@ -1211,9 +1211,58 @@ void VisualisationSettingsWidget::set_light_position()
 // --------------------- ChaiScript -------------------------------------------------------
 // -----------------------------------------------------------------------------------
 
+void VisualisationSettingsWidget::Info_Chaiscript()
+{
+    QMessageBox msgBox;
+    msgBox.setText("Chaiscript visualisation mask");
+    msgBox.setIcon(QMessageBox::Icon::Information);
+    msgBox.setStandardButtons(QMessageBox::Cancel);
+    msgBox.setDefaultButton(QMessageBox::Cancel);
+
+    msgBox.setInformativeText( QString::fromStdString(
+                             "Syntax:\n"
+                             "  fun(a,b,c,i)\n"
+                             "  { \n"
+                             "      return result \n"
+                             "  } \n"
+                             " where\n"
+                             " - a (int): lattice index in direction of bravais vector 1\n"
+                             " - b (int): lattice index in direction of bravais vector 2\n"
+                             " - c (int): lattice index in direction of bravais vector 3\n"
+                             " - i (int): index of the basis atom\n"
+                             " - result: (bool) if fun evaluates to 'true' the corresponding spin is drawn, if not it is hidden\n"
+                             "\n---\n"
+                             "Variables accessible from within the script:\n"
+                             " - n_cells: ([int,int,int]) the number of basis cells in direction 1,2,3\n"
+                             " - n_cell_atoms: (int) the number of basis atoms\n"
+                             " - positions: ([Vector3, ..., Vector3]) the realspace positions of the spins\n"
+                             " - a_vec: (Vector3) the first bravais vector\n"
+                             " - b_vec: (Vector3) the second bravais vector\n"
+                             " - c_vec: (Vector3) the third bravais vector\n"
+                             " - center: (Vector3) the center of the geometry\n"
+                             "- If the namespace 'dynamic' is imported, via import(\"dynamic\"), the spins can be accessed as dynamic.spins[index]\n"
+                             "\n---\n"
+                             "To conveniently access the positions/spins via their one-dimensional index, use the 'idx(int,int,int,int)' function:\n"
+                             "'positions[idx(a,b,c,i)]' will give the position of the spin at a,b,c,i\n"
+                             "\n---\n"
+                             "The Vector3 class supports some common operations\n"
+                             " - vec.norm(): returns the length of the vector\n"
+                             " - The operators '+' and '-': 'var vec3 = vec1 + vec2' \n"
+                             " - The dot product: 'vec1.dot(vec2)' or 'dot(vec1, vec2)'\n"
+                             "\n---\n"
+                             "Example: Display every second atom in direction 'a_vec' within a circle of radius 10 angstroem around the center\n"
+                             "  fun(a,b,c,i)\n "
+                             "  {\n "
+                             "      var id = idx(a,b,c,i) \n"
+                             "      var pos = positions[id] \n"
+                             "      return (pos-center).norm() < 10 && a%2==0\n"
+                             "  }\n "
+                             ) );
+    int ret = msgBox.exec();
+}
+
 void VisualisationSettingsWidget::Load_Chaiscript()
 {
-    std::cout << "load\n";
     auto filename = QFileDialog::getOpenFileName( this, tr( "Load Script" ), ".", tr( "Chaiscript (*.chai)" ) );
     if( !filename.isEmpty() )
     {
@@ -1228,7 +1277,6 @@ void VisualisationSettingsWidget::Load_Chaiscript()
 
 void VisualisationSettingsWidget::Save_Chaiscript()
 {
-    std::cout << "save\n";
     auto filename  = QFileDialog::getSaveFileName( this, tr( "Save Script" ), ".", tr( "Chaiscript (*.chai)" ) );
     if( !filename.isEmpty() )
     {
@@ -1489,6 +1537,8 @@ void VisualisationSettingsWidget::Setup_Visualization_Slots()
     connect( pushButton_apply_chaiscript, SIGNAL( clicked() ), this, SLOT( Apply_Chaiscript() ));
     connect( pushButton_load_chaiscript_from_file, SIGNAL( clicked() ), this, SLOT( Load_Chaiscript() ));
     connect( pushButton_save_chaiscript_to_file, SIGNAL( clicked() ), this, SLOT( Save_Chaiscript() ));
+    connect( toolButton_chaiscript_help, SIGNAL( clicked() ), this, SLOT( Info_Chaiscript() ));
+
     connect( checkBox_script_render, SIGNAL( stateChanged( int ) ), this, SLOT( Set_Script_Render() ) );
 
 }

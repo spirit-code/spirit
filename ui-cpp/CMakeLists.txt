@@ -144,6 +144,9 @@ target_include_directories( ${PROJECT_NAME} PRIVATE
     ${PROJECT_SOURCE_DIR}/utility
     ${PROJECT_BINARY_DIR}/thirdparty-install/include )
 
+### Compile definitions
+target_compile_definitions( ${PROJECT_NAME} PRIVATE -DCHAISCRIPT_NO_THREADS)
+
 target_link_libraries( ${PROJECT_NAME} PRIVATE ${SPIRIT_LIBRARIES_STATIC} )
 
 ### Optionally add Qt to the target

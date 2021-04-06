@@ -81,6 +81,8 @@ private slots:
     // Light
     void set_light_position();
 
+    // Chaiscript
+    void Info_Chaiscript();
     void Load_Chaiscript();
     void Save_Chaiscript();
     void Apply_Chaiscript();
