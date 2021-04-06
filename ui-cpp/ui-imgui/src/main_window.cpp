@@ -919,21 +919,31 @@ void MainWindow::draw()
 #ifdef __EMSCRIPTEN__
     emscripten_webgl_make_context_current( context_vfr );
 #endif
-
-    rendering_layer.draw( display_w, display_h );
+    auto render_w = stacked_layout ? (1-sidebar_x_frac) * display_w : display_w;
+    rendering_layer.draw( render_w, display_h );
 }
 
 void MainWindow::draw_imgui( int display_w, int display_h )
 {
     auto & io    = ImGui::GetIO();
     auto & style = ImGui::GetStyle();
+
+    // Save references to the widgets in a vector so we can iterate over them
+    static std::array<WidgetBase*, 6> spirit_widgets = { &configurations_widget, &parameters_widget, &hamiltonian_widget, &geometry_widget, &plots_widget, &visualisation_widget};
+
+    // Determine if we need stacked layout
+    stacked_layout = false;
+    for(auto & w : spirit_widgets)
+        if (w->m_layout == WidgetBase::LayoutMode::STACKED && w->show_)
+            stacked_layout = true;
+
     if( ui_shared_state.interaction_mode != UiSharedState::InteractionMode::REGULAR )
     {
         if( ImGui::IsWindowHovered( ImGuiHoveredFlags_AnyWindow ) )
             io.MouseDrawCursor = true;
         else
         {
-            io.MouseDrawCursor = false;
+            io.MouseDrawCursor = true;
 
             ImU32 color = IM_COL32( 0, 0, 0, 255 );
             if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
@@ -998,7 +1008,7 @@ void MainWindow::draw_imgui( int display_w, int display_h )
         ImGui::PopStyleVar();
     }
     else
-        io.MouseDrawCursor = true;
+        io.MouseDrawCursor = false;
 
     // ----------------
 
@@ -1008,18 +1018,32 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     this->show_notifications();
 
     // ----------------
-
+    ImVec2 viewport_size = { stacked_layout ? (1-sidebar_x_frac) * io.DisplaySize.x : -1, -1 };
     ImGui::PushFont( font_cousine_14 );
     widgets::show_overlay_system(
         ui_config_file.show_overlays, ui_config_file.overlay_system_corner, ui_config_file.overlay_system_position,
-        state );
+        state, viewport_size );
     widgets::show_overlay_calculation(
         ui_config_file.show_overlays, ui_shared_state.selected_mode, ui_shared_state.selected_solver_min,
         ui_shared_state.selected_solver_llg, ui_config_file.overlay_calculation_corner,
-        ui_config_file.overlay_calculation_position, state );
+        ui_config_file.overlay_calculation_position, state, viewport_size );
     ImGui::PopFont();
 
     // ----------------
+
+    if(stacked_layout) // In the stacked layout we draw a window to the right of the spin visualisation
+    {
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove;
+
+        ImGui::SetNextWindowPos( { (1-sidebar_x_frac) * io.DisplaySize.x, menu_bar_size[1]}, ImGuiCond_Once);
+        ImGui::SetNextWindowSize( {sidebar_x_frac * io.DisplaySize.x, io.DisplaySize.y - menu_bar_size[1]}, ImGuiCond_Once );
+
+        ImGui::Begin("", nullptr, window_flags);
+        this->sidebar_x_frac = ImGui::GetWindowSize()[0] / io.DisplaySize.x;
+    } else { 
+        for(auto & w : spirit_widgets) // In the free layout we enforce all widgets to have the free layout
+            w->m_layout = WidgetBase::LayoutMode::FREE;
+    }
 
     this->configurations_widget.show();
     this->parameters_widget.show();
@@ -1030,7 +1054,8 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     ImGui::PopFont();
     this->visualisation_widget.show();
 
-    // ----------------
+    if(stacked_layout)
+        ImGui::End();
 
     widgets::show_settings( ui_config_file.show_settings, rendering_layer );
     widgets::show_keybindings( show_keybindings );
@@ -1484,6 +1509,7 @@ void MainWindow::show_menu_bar()
 
         ImGui::PopStyleVar(); // ImGuiStyleVar_SelectableTextAlign
 
+        menu_bar_size = ImGui::GetWindowSize();
         ImGui::EndMainMenuBar();
     }
     // ImGui::PopFont();

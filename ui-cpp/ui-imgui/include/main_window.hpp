@@ -74,6 +74,10 @@ private:
     std::vector<std::thread> threads_image;
     std::thread thread_chain;
 
+    bool stacked_layout = false;
+    ImVec2 menu_bar_size = {-1,-1};
+    float sidebar_x_frac = 0.33;
+
     bool show_imgui_demo_window  = false;
     bool show_implot_demo_window = false;
 

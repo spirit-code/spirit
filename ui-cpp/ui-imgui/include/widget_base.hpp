@@ -4,6 +4,8 @@
 #include <string>
 #include <array>
 #include <imgui/imgui.h>
+#include <iostream>
+#include <functional>
 
 namespace ui
 {
@@ -26,7 +28,6 @@ class WidgetBase
     };
 
     bool & show_;
-
     LayoutMode m_layout;
     std::string title;
     ImVec2 size_min;
@@ -44,21 +45,26 @@ class WidgetBase
             ImGui::SetNextWindowSizeConstraints( size_min, size_max );
             ImGui::Begin( title.c_str(), &show_ );
             show_content();
+            if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(1))
+            {
+                m_layout = LayoutMode::STACKED;
+            }
             ImGui::End();
         } else if (m_layout == LayoutMode::STACKED)
         {
-            if (ImGui::CollapsingHeader(title.c_str()))
+            if (ImGui::CollapsingHeader(title.c_str(), &show_))
             {
                 show_content();
+            }
+            if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(1))
+            {
+                std::cout << "\n\n callback \n\n";
+                m_layout = LayoutMode::FREE;
             }
         }
         hook_post_show();
     }
-    void show(LayoutMode layout)
-    {
-        m_layout = layout;
-        show();
-    }
+
     virtual void show_content() = 0;
     virtual void hook_pre_show() {};
     virtual void hook_post_show() {};

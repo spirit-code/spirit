@@ -81,7 +81,7 @@ bool toggle_button( const char * str_id, bool * v, bool coloured )
     return clicked;
 }
 
-void show_overlay_system( bool & show, int & corner, std::array<float, 2> & position, std::shared_ptr<State> state )
+void show_overlay_system( bool & show, int & corner, std::array<float, 2> & position, std::shared_ptr<State> state, ImVec2 viewport_size)
 {
     if( !show )
         return;
@@ -101,12 +101,16 @@ void show_overlay_system( bool & show, int & corner, std::array<float, 2> & posi
     static bool need_to_position = true;
 
     ImGuiIO & io = ImGui::GetIO();
+    if(viewport_size[0] < 0)
+        viewport_size[0] = io.DisplaySize.x;
+    if(viewport_size[1] < 0)
+        viewport_size[1] = io.DisplaySize.y;
 
     if( corner != -1 )
     {
         ImVec2 window_pos = ImVec2(
-            ( corner & 1 ) ? io.DisplaySize.x - DISTANCE : DISTANCE,
-            ( corner & 2 ) ? io.DisplaySize.y - DISTANCE : DISTANCE + 25 );
+            ( corner & 1 ) ? viewport_size[0] - DISTANCE : DISTANCE,
+            ( corner & 2 ) ? viewport_size[1] - DISTANCE : DISTANCE + 25 );
         ImVec2 window_pos_pivot = ImVec2( ( corner & 1 ) ? 1.0f : 0.0f, ( corner & 2 ) ? 1.0f : 0.0f );
         ImGui::SetNextWindowPos( window_pos, ImGuiCond_Always, window_pos_pivot );
         need_to_position = false;
@@ -181,7 +185,7 @@ void show_overlay_system( bool & show, int & corner, std::array<float, 2> & posi
 
 void show_overlay_calculation(
     bool & show, GUI_Mode & selected_mode, int & selected_solver_min, int & selected_solver_llg, int & corner,
-    std::array<float, 2> & position, std::shared_ptr<State> state )
+    std::array<float, 2> & position, std::shared_ptr<State> state, ImVec2 viewport_size )
 {
     static bool need_to_position = true;
 
@@ -227,11 +231,16 @@ void show_overlay_calculation(
     const float DISTANCE = 15.0f;
 
     ImGuiIO & io = ImGui::GetIO();
+    if(viewport_size[0] < 0)
+        viewport_size[0] = io.DisplaySize.x;
+    if(viewport_size[1] < 0)
+        viewport_size[1] = io.DisplaySize.y;
+
     if( corner != -1 )
     {
         ImVec2 window_pos = ImVec2(
-            ( corner & 1 ) ? io.DisplaySize.x - DISTANCE : DISTANCE,
-            ( corner & 2 ) ? io.DisplaySize.y - DISTANCE : DISTANCE + 25 );
+            ( corner & 1 ) ? viewport_size[0] - DISTANCE : DISTANCE,
+            ( corner & 2 ) ? viewport_size[1] - DISTANCE : DISTANCE + 25 );
         ImVec2 window_pos_pivot = ImVec2( ( corner & 1 ) ? 1.0f : 0.0f, ( corner & 2 ) ? 1.0f : 0.0f );
         ImGui::SetNextWindowPos( window_pos, ImGuiCond_Always, window_pos_pivot );
         need_to_position = false;
