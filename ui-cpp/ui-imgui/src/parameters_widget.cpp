@@ -707,8 +707,6 @@ void ParametersWidget::show_content()
         if( ImGui::Checkbox( "snapshot mode", &parameters_ema.snapshot ) )
             Parameters_EMA_Set_Snapshot( state.get(), parameters_ema.snapshot );
     }
-
-    ImGui::End();
 }
 
 void ParametersWidget::update_data()

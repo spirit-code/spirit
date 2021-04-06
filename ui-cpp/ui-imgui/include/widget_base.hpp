@@ -44,9 +44,11 @@ class WidgetBase
         {
             ImGui::SetNextWindowSizeConstraints( size_min, size_max );
             ImGui::Begin( title.c_str(), &show_ );
-            if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(1))
+            if( ImGui::BeginPopupContextWindow() )
             {
-                m_layout = LayoutMode::STACKED;
+                if( ImGui::MenuItem( "Attach", NULL, false ) )
+                    m_layout = LayoutMode::STACKED;
+                ImGui::EndPopup();
             }
             show_content();
             ImGui::End();
@@ -55,10 +57,12 @@ class WidgetBase
             if (ImGui::CollapsingHeader(title.c_str(), &show_))
             {
                 show_content();
-            }
-            if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(1))
+            } 
+            if( ImGui::BeginPopupContextWindow() )
             {
-                m_layout = LayoutMode::FREE;
+                if( ImGui::MenuItem( "Detach", NULL, false ) )
+                    m_layout = LayoutMode::FREE;
+                ImGui::EndPopup();
             }
         }
         hook_post_show();

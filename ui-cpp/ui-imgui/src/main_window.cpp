@@ -103,12 +103,8 @@ void for_each_argument( F f, Args &&... args )
     This function also assumes the camera to be in an orthogonal z-projection.
 */
 template<class... Args>
-void transform_to_system_frame( RenderingLayer & rendering_layer, Args &&... position )
+void transform_to_system_frame( RenderingLayer & rendering_layer, glm::vec2 window_size, Args &&... position )
 {
-    auto & io = ImGui::GetIO();
-
-    glm::vec2 window_size{ io.DisplaySize.x, io.DisplaySize.y };
-
     auto matrices
         = VFRendering::Utilities::getMatrices( rendering_layer.view.options(), window_size.x / window_size.y );
     auto camera_position = rendering_layer.view.options().get<VFRendering::View::Option::CAMERA_POSITION>();
@@ -206,7 +202,9 @@ void MainWindow::handle_mouse()
     {
         mouse_pos_in_system = glm::vec2{ io.MousePos.x, io.MousePos.y };
         glm::vec2 radial_pos{ io.MousePos.x + ui_config_file.interaction_radius, io.MousePos.y };
-        transform_to_system_frame( rendering_layer, mouse_pos_in_system, radial_pos );
+        auto & io = ImGui::GetIO();
+        glm::vec2 window_size = {stacked_layout ? (1-sidebar_x_frac) * io.DisplaySize.x : io.DisplaySize.x, io.DisplaySize.y};
+        transform_to_system_frame( rendering_layer, mouse_pos_in_system, window_size, radial_pos );
         radius_in_system = radial_pos.x - mouse_pos_in_system.x;
     }
 
@@ -1038,7 +1036,7 @@ void MainWindow::draw_imgui( int display_w, int display_h )
         ImGui::SetNextWindowPos( { (1-sidebar_x_frac) * io.DisplaySize.x, menu_bar_size[1]}, ImGuiCond_Once);
         ImGui::SetNextWindowSize( {sidebar_x_frac * io.DisplaySize.x, io.DisplaySize.y - menu_bar_size[1]}, ImGuiCond_Once );
 
-        ImGui::Begin("", nullptr, window_flags);
+        ImGui::Begin("##Sidebar", nullptr, window_flags);
         this->sidebar_x_frac = ImGui::GetWindowSize()[0] / io.DisplaySize.x;
     } else { 
         for(auto & w : spirit_widgets) // In the free layout we enforce all widgets to have the free layout
