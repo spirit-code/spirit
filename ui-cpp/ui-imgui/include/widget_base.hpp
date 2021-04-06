@@ -44,11 +44,11 @@ class WidgetBase
         {
             ImGui::SetNextWindowSizeConstraints( size_min, size_max );
             ImGui::Begin( title.c_str(), &show_ );
-            show_content();
             if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(1))
             {
                 m_layout = LayoutMode::STACKED;
             }
+            show_content();
             ImGui::End();
         } else if (m_layout == LayoutMode::STACKED)
         {
@@ -58,7 +58,6 @@ class WidgetBase
             }
             if (ImGui::IsItemHovered() && ImGui::IsMouseClicked(1))
             {
-                std::cout << "\n\n callback \n\n";
                 m_layout = LayoutMode::FREE;
             }
         }
