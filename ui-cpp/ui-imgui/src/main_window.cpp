@@ -930,10 +930,14 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     static std::array<WidgetBase*, 6> spirit_widgets = { &configurations_widget, &parameters_widget, &hamiltonian_widget, &geometry_widget, &plots_widget, &visualisation_widget};
 
     // Determine if we need stacked layout
-    stacked_layout = false;
+    bool tmp_stacked_layout = false;
     for(auto & w : spirit_widgets)
         if (w->m_layout == WidgetBase::LayoutMode::STACKED && w->show_)
-            stacked_layout = true;
+            tmp_stacked_layout = true;
+
+    if(tmp_stacked_layout != stacked_layout)
+        rendering_layer.needs_redraw();
+    stacked_layout = tmp_stacked_layout;
 
     if( ui_shared_state.interaction_mode != UiSharedState::InteractionMode::REGULAR )
     {
@@ -1030,6 +1034,7 @@ void MainWindow::draw_imgui( int display_w, int display_h )
 
     // ----------------
 
+    float tmp_sidebar_x_frac = 0.33;
     if(stacked_layout) // In the stacked layout we draw a window to the right of the spin visualisation
     {
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove;
@@ -1038,11 +1043,17 @@ void MainWindow::draw_imgui( int display_w, int display_h )
         ImGui::SetNextWindowSize( {sidebar_x_frac * io.DisplaySize.x, io.DisplaySize.y - menu_bar_size[1]}, ImGuiCond_Once );
 
         ImGui::Begin("##Sidebar", nullptr, window_flags);
-        this->sidebar_x_frac = ImGui::GetWindowSize()[0] / io.DisplaySize.x;
+        tmp_sidebar_x_frac = ImGui::GetWindowSize()[0] / io.DisplaySize.x;
     } else { 
         for(auto & w : spirit_widgets) // In the free layout we enforce all widgets to have the free layout
             w->m_layout = WidgetBase::LayoutMode::FREE;
     }
+
+    if(tmp_sidebar_x_frac != this->sidebar_x_frac)
+    {
+        rendering_layer.needs_redraw();
+    }
+    sidebar_x_frac = tmp_sidebar_x_frac;
 
     this->configurations_widget.show();
     this->parameters_widget.show();
