@@ -8,8 +8,8 @@
 #include <array>
 #include <vector>
 
-namespace Utility
-{
+namespace Utility{
+
     template<typename T>
     class Vector_View
     {
@@ -48,6 +48,8 @@ namespace Utility
 
         chaiscript::ChaiScript & get();
         void reset_state();
+        chaiscript::ChaiScript::State state();
+        void set_state(const chaiscript::ChaiScript::State & state);
 
         private:
         chaiscript::ChaiScript chai;
@@ -58,6 +60,7 @@ namespace Utility
         Vector3 b_vec    = {0,0,0};
         Vector3 c_vec    = {0,0,0};
         Vector3 center   = {0,0,0};
+
         Vector_View<Vector3> spins;
         Vector_View<Vector3> positions;
     };

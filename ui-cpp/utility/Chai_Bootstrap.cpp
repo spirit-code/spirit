@@ -9,23 +9,33 @@ namespace Utility
         chai.add(mathlib);
 
         // Usage of Vector3
-        auto get       = [](const Vector3 & vec, int i) {return vec[i];};
+        auto get       = [](const Vector3 & vec, int i) { return vec[i]; };
         auto add       = [](const Vector3 & vec1, const Vector3 & vec2) { return Vector3{vec1[0] + vec2[0], vec1[1] + vec2[1], vec1[2] + vec2[2]}; };
         auto subtract  = [](const Vector3 & vec1, const Vector3 & vec2) { return Vector3{vec1[0] - vec2[0], vec1[1] - vec2[1], vec1[2] - vec2[2]}; };
-        auto norm      = [](const Vector3 & vec) {return std::sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]);};
-        auto to_string = [](const Vector3 & vec) {return "[" + std::to_string(vec[0]) + "," + std::to_string(vec[1])+ "," + std::to_string(vec[2]) + "]";};
+        auto norm      = [](const Vector3 & vec) { return std::sqrt(vec[0]*vec[0] + vec[1]*vec[1] + vec[2]*vec[2]); };
+        auto to_string = [](const Vector3 & vec) { return "[" + std::to_string(vec[0]) + "," + std::to_string(vec[1])+ "," + std::to_string(vec[2]) + "]"; };
         auto dot       = [](const Vector3 & vec1, const Vector3 & vec2) { return vec1[0]*vec2[0] + vec1[1]*vec2[1] + vec1[2]*vec2[2]; };
         auto mult      = [](const Vector3 & vec, float scalar) { return Vector3{scalar * vec[0], scalar * vec[1], scalar * vec[2]}; };
         auto mult2     = [](float scalar, const Vector3 & vec) { return Vector3{scalar * vec[0], scalar * vec[1], scalar * vec[2]}; };
+        auto div       = [](const Vector3 & vec, float scalar) { return Vector3{vec[0]/scalar, vec[1]/scalar, vec[2]/scalar}; };
+        auto normalize = [div, norm](const Vector3 & vec) { return div(vec, norm(vec)); };
+        auto cross     = [](const Vector3 & vec1, const Vector3 & vec2) { return Vector3{ vec1[1]*vec2[2] - vec1[2]*vec2[1], vec1[2]*vec2[0] - vec1[0]*vec2[2], vec1[0]*vec2[1] - vec1[1]*vec2[0] }; };
 
         chai.add( chaiscript::fun( get ), "[]");
         chai.add( chaiscript::fun( mult ), "*");
         chai.add( chaiscript::fun( mult2 ), "*");
         chai.add( chaiscript::fun( add ), "+");
         chai.add( chaiscript::fun( subtract ), "-");
+        chai.add( chaiscript::fun( div ), "/");
+
         chai.add( chaiscript::fun( norm ), "norm");
+        chai.add( chaiscript::fun( normalize ), "normalize");
         chai.add( chaiscript::fun( dot ), "dot");
+        chai.add( chaiscript::fun( cross ), "cross");
+
         chai.add( chaiscript::fun( to_string ), "to_string");
+        chai.add( chaiscript::fun( [](){Vector3 tmp; return std::move(tmp);} ), "Vector3");
+        chai.add( chaiscript::fun( [](double a, double b, double c){Vector3 tmp = {a,b,c}; return std::move(tmp);} ), "Vector3");
 
         // Add geometry information
         chai.add(chaiscript::fun( [](std::array<int, 3> arr, int i){return arr[i];}), "[]");
@@ -85,6 +95,16 @@ namespace Utility
     void Spirit_Chai::reset_state()
     {
         chai.set_state(this->chai_state);
+    }
+
+    chaiscript::ChaiScript::State Spirit_Chai::state()
+    {
+        return chai.get_state();
+    }
+
+    void Spirit_Chai::set_state(const chaiscript::ChaiScript::State & state)
+    {
+        chai.set_state(state);
     }
 
     chaiscript::ChaiScript & Spirit_Chai::get()
