@@ -518,9 +518,9 @@ try
     auto g = image->geometry;
     for (int dim=0; dim<3; ++dim)
     {
-        a[dim] = (float)g->bravais_vectors[dim][0];
-        b[dim] = (float)g->bravais_vectors[dim][1];
-        c[dim] = (float)g->bravais_vectors[dim][2];
+        a[dim] = (float)g->bravais_vectors[0][dim];
+        b[dim] = (float)g->bravais_vectors[1][dim];
+        c[dim] = (float)g->bravais_vectors[2][dim];
     }
 }
 catch( ... )
