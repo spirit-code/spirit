@@ -421,9 +421,12 @@ void SpinWidget::parseChaiString(const std::string & chai_string)
         return;
     }
 
-    // Reset the state of the chaiscript object, so we dont get errors due potentiall to redefining variables, namespaces etc.
-    spirit_chai->reset_state();
+    // Note: the state must be saved before reset_state is called (obviously ...)
+    auto save_chai_state = spirit_chai->state(); // Save the current chaiscript state, this is important in case the draw scritp defined some global functions
+    auto save_chai = chai_draw; // Save the current draw function in case we get an error
 
+    // Reset the state of the chaiscript object, so we dont get errors due to potentially redefining variables, namespaces etc.
+    spirit_chai->reset_state();
     // Update the chaiscript data with the current state data (note: this will also change the spin pointer so that it points to the spins of the currently active image)
     spirit_chai->update(this->state.get());
 
@@ -432,7 +435,6 @@ void SpinWidget::parseChaiString(const std::string & chai_string)
     Geometry_Get_N_Cells( this->state.get(), n_cells );
     int n_cell_atoms = Geometry_Get_N_Cell_Atoms( this->state.get() );
 
-    auto save_chai = chai_draw; // Save the current draw function in case we get an error
     try
     {
         this->chai_draw = spirit_chai->get().eval<std::function<bool(int,int,int,int)>>(chai_string);
@@ -443,7 +445,10 @@ void SpinWidget::parseChaiString(const std::string & chai_string)
     }
     catch( const std::exception & e)
     {
-        chai_draw = save_chai; // restore to previous draw function
+        // restore to previous chai state and draw function
+        spirit_chai->set_state(save_chai_state);
+        spirit_chai->update(this->state.get());
+        chai_draw = save_chai;
         // Inform about the error in parsing
         std::cout << "chaiscript exception:\n" << e.what() << "\n";
         QMessageBox msgBox;
