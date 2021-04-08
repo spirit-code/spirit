@@ -15,8 +15,6 @@ ConfigurationsWidget::ConfigurationsWidget(
         : WidgetBase(show), state( state ), rendering_layer( rendering_layer )
 {
     title    = "Configurations";
-    size_min = { 300, 300 };
-    size_max = { 800, 999999 };
 }
 
 void ConfigurationsWidget::reset_settings()

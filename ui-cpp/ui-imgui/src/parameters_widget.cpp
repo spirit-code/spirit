@@ -17,8 +17,6 @@ ParametersWidget::ParametersWidget( bool & show, std::shared_ptr<State> state, U
         : WidgetBase(show), state( state ), ui_shared_state( ui_shared_state )
 {
     title = "Parameters";
-    size_min = { 300, 300 };
-    size_max = { 800, 999999 };
     update_data();
 }
 

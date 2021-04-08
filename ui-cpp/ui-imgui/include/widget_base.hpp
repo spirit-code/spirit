@@ -13,25 +13,17 @@ namespace ui
 class WidgetBase
 {
     public:
-    enum class LayoutMode
-    {
-        FREE,
-        STACKED
-    };
-
     WidgetBase(bool & show_) : show_(show_) 
     {
-        title = "Visualisation settings";
-        size_min = { 300, 300 };
+        title = "Base Widget";
+        size_min = { 50, 50 };
         size_max = { 800, 999999 };
-        m_layout = LayoutMode::FREE;
     };
 
     bool & show_;
-    bool dragging = false;
-    bool docked = false;
-    bool wants_to_dock = false;
-    LayoutMode m_layout;
+    bool dragging = false; // Is the window being dragged?
+    bool docked = false; // Is the window docked to another window?
+    bool wants_to_dock = false; // Should the window dock to the sidebar in the next frame? (Triggered via context menu 'attach')
     std::string title;
     ImVec2 size_min;
     ImVec2 size_max;

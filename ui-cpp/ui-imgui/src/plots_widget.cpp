@@ -51,8 +51,6 @@ void plot_tooltip( const char * label_id, const float * xs, const float * ys, in
 PlotsWidget::PlotsWidget( bool & show, std::shared_ptr<State> state ) : WidgetBase( show ), state( state ) 
 {
     title = "Plots";
-    size_min = { 350, 300 };
-    size_max = { 999999, 999999 };
     history_size = 200;
     iteration_history = std::vector<float>(history_size);
     force_history     = std::vector<float>(history_size);
