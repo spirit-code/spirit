@@ -124,7 +124,7 @@ void show_overlay_system( bool & show, int & corner, std::array<float, 2> & posi
     ImGui::SetNextWindowBgAlpha( 0.6f ); // Transparent background
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize
                                     | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing
-                                    | ImGuiWindowFlags_NoNav;
+                                    | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDocking;
     if( corner != -1 )
         window_flags |= ImGuiWindowFlags_NoMove;
     if( ImGui::Begin( "System information overlay", &show, window_flags ) )
@@ -254,7 +254,7 @@ void show_overlay_calculation(
     ImGui::SetNextWindowBgAlpha( 0.6f ); // Transparent background
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize
                                     | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing
-                                    | ImGuiWindowFlags_NoNav;
+                                    | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDocking;
     if( corner != -1 )
         window_flags |= ImGuiWindowFlags_NoMove;
 
