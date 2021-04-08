@@ -1084,12 +1084,13 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     auto _sidebar_x_frac = sidebar_x_frac; // Save current sidebar x frac
 
     ImGui::Begin("##Sidebar", nullptr, window_flags);
+
     auto dock_id   = ImGui::GetID("dockspace");
-    ImGui::DockSpace(dock_id, ImGui::GetWindowSize(), dock_flags);
+    ImGui::DockSpace(dock_id, {-1,-1}, dock_flags);
 
     if(sidebar == SideBarMode::Show)
     {
-        sidebar_x_frac = ImGui::GetWindowSize()[0] / io.DisplaySize.x;
+        sidebar_x_frac = std::min(0.7f, ImGui::GetWindowSize()[0] / io.DisplaySize.x);
         sidebar_x_frac_pref = sidebar_x_frac;
     }
 
@@ -1107,7 +1108,7 @@ void MainWindow::draw_imgui( int display_w, int display_h )
             ImGui::SetNextWindowDockID(dock_id);
             w->show();
             w->wants_to_dock=false;
-        } else 
+        } else
         {
             w->show();
         }
@@ -1693,7 +1694,6 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
     // Enable docking
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     // Disable split docking
-    io.ConfigDockingNoSplit = true;
 
     io.IniFilename = nullptr;
 
