@@ -120,20 +120,12 @@ if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
                                 COMPILE_FLAGS -Wdeclaration-after-statement)
 endif()
 
-# Enable a reasonable set of warnings
-if (CMAKE_C_COMPILER_ID STREQUAL "GNU" OR
-    CMAKE_C_COMPILER_ID STREQUAL "Clang" OR
-    CMAKE_C_COMPILER_ID STREQUAL "AppleClang")
 
-    if (CMAKE_C_SIMULATE_ID STREQUAL "MSVC")
-        # Tell Clang-CL that this is a Clang flag
-        target_compile_options(glfw PRIVATE "/clang:-Wall")
-    else()
-        target_compile_options(glfw PRIVATE "-Wall")
-    endif()
-elseif (MSVC)
-    target_compile_options(glfw PRIVATE "/W3")
-endif()
+
+# Enable a reasonable set of warnings (no, -Wextra is not reasonable)
+target_compile_options(glfw PRIVATE
+                       "$<$<C_COMPILER_ID:Clang>:-Wall>"
+                       "$<$<C_COMPILER_ID:GNU>:-Wall>")
 
 if (WIN32)
     target_compile_definitions(glfw PRIVATE _UNICODE)
