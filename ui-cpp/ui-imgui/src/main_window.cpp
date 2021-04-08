@@ -203,7 +203,7 @@ void MainWindow::handle_mouse()
         mouse_pos_in_system = glm::vec2{ io.MousePos.x, io.MousePos.y };
         glm::vec2 radial_pos{ io.MousePos.x + ui_config_file.interaction_radius, io.MousePos.y };
         auto & io = ImGui::GetIO();
-        glm::vec2 window_size = {stacked_layout ? (1-sidebar_x_frac) * io.DisplaySize.x : io.DisplaySize.x, io.DisplaySize.y};
+        glm::vec2 window_size = {(1-sidebar_x_frac) * io.DisplaySize.x, io.DisplaySize.y};
         transform_to_system_frame( rendering_layer, mouse_pos_in_system, window_size, radial_pos );
         radius_in_system = radial_pos.x - mouse_pos_in_system.x;
     }
@@ -917,7 +917,7 @@ void MainWindow::draw()
 #ifdef __EMSCRIPTEN__
     emscripten_webgl_make_context_current( context_vfr );
 #endif
-    auto render_w = stacked_layout ? (1-sidebar_x_frac) * display_w : display_w;
+    auto render_w = (1-sidebar_x_frac) * display_w;
     rendering_layer.draw( render_w, display_h );
 }
 
@@ -929,15 +929,48 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     // Save references to the widgets in a vector so we can iterate over them
     static std::array<WidgetBase*, 6> spirit_widgets = { &configurations_widget, &parameters_widget, &hamiltonian_widget, &geometry_widget, &plots_widget, &visualisation_widget};
 
-    // Determine if we need stacked layout
-    bool tmp_stacked_layout = false;
-    for(auto & w : spirit_widgets)
-        if (w->m_layout == WidgetBase::LayoutMode::STACKED && w->show_)
-            tmp_stacked_layout = true;
+    // Detect the SideBar Mode
+    auto _sidebar = sidebar; // snapshot current sidebar mode
+    sidebar = SideBarMode::Hide; // default to Hide
 
-    if(tmp_stacked_layout != stacked_layout)
+    // Check if any widgets are docked to the sidebar
+    for(auto & w : spirit_widgets)
+    {
+        if(w->show_ && (w->docked || w->wants_to_dock))
+        {
+            sidebar = SideBarMode::Show;
+        }
+    }
+
+    // If the sidebar is still hidden, but a widget is dragged, we display a small stripe for the widgets to dock to
+    if(sidebar == SideBarMode::Hide)
+    {
+        for(auto & w : spirit_widgets)
+        {
+            if ( w->dragging )
+            {
+                sidebar = SideBarMode::Dragging;
+            }
+        }
+    }
+
+    // Set the x fraction accordingly
+    if(sidebar == SideBarMode::Hide)
+    {
+        sidebar_x_frac = 0;
+    } else if (sidebar == SideBarMode::Show)
+    {
+        sidebar_x_frac = sidebar_x_frac_pref;
+    } else // Dragging
+    {
+        sidebar_x_frac = sidebar_x_frac_min;
+    }
+
+    // If sidebar changed we need to issue a redraw
+    if(sidebar != _sidebar)
+    {
         rendering_layer.needs_redraw();
-    stacked_layout = tmp_stacked_layout;
+    }
 
     if( ui_shared_state.interaction_mode != UiSharedState::InteractionMode::REGULAR )
     {
@@ -1021,7 +1054,7 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     this->show_notifications();
 
     // ----------------
-    ImVec2 viewport_size = { stacked_layout ? (1-sidebar_x_frac) * io.DisplaySize.x : -1, -1 };
+    ImVec2 viewport_size = {(1-sidebar_x_frac) * io.DisplaySize.x, -1 };
     ImGui::PushFont( font_cousine_14 );
     widgets::show_overlay_system(
         ui_config_file.show_overlays, ui_config_file.overlay_system_corner, ui_config_file.overlay_system_position,
@@ -1034,38 +1067,61 @@ void MainWindow::draw_imgui( int display_w, int display_h )
 
     // ----------------
 
-    float tmp_sidebar_x_frac = 0.33;
-    if(stacked_layout) // In the stacked layout we draw a window to the right of the spin visualisation
+    // Begin the sidebar window
+    ImGuiWindowFlags   window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoScrollbar;
+    ImGuiDockNodeFlags dock_flags = ImGuiDockNodeFlags_None;
+    if(sidebar == SideBarMode::Hide)
     {
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove;
-
-        ImGui::SetNextWindowPos( { (1-sidebar_x_frac) * io.DisplaySize.x, menu_bar_size[1]}, ImGuiCond_Once);
-        ImGui::SetNextWindowSize( {sidebar_x_frac * io.DisplaySize.x, io.DisplaySize.y - menu_bar_size[1]}, ImGuiCond_Once );
-
-        ImGui::Begin("##Sidebar", nullptr, window_flags);
-        tmp_sidebar_x_frac = ImGui::GetWindowSize()[0] / io.DisplaySize.x;
-    } else { 
-        for(auto & w : spirit_widgets) // In the free layout we enforce all widgets to have the free layout
-            w->m_layout = WidgetBase::LayoutMode::FREE;
+        dock_flags |= ImGuiDockNodeFlags_KeepAliveOnly;
+        ImGui::SetNextWindowPos( {io.DisplaySize.x, menu_bar_size[1]});
+        ImGui::SetNextWindowSize( {0, 0} );
+        window_flags |= ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoInputs;
     }
 
-    if(tmp_sidebar_x_frac != this->sidebar_x_frac)
+    ImGui::SetNextWindowPos( { (1-sidebar_x_frac) * io.DisplaySize.x, menu_bar_size[1]});
+    ImGui::SetNextWindowSize( {sidebar_x_frac * io.DisplaySize.x, io.DisplaySize.y - menu_bar_size[1]});
+
+    auto _sidebar_x_frac = sidebar_x_frac; // Save current sidebar x frac
+
+    ImGui::Begin("##Sidebar", nullptr, window_flags);
+    auto dock_id   = ImGui::GetID("dockspace");
+    ImGui::DockSpace(dock_id, ImGui::GetWindowSize(), dock_flags);
+
+    if(sidebar == SideBarMode::Show)
+    {
+        sidebar_x_frac = ImGui::GetWindowSize()[0] / io.DisplaySize.x;
+        sidebar_x_frac_pref = sidebar_x_frac;
+    }
+
+    ImGui::End();
+
+    if(_sidebar_x_frac != this->sidebar_x_frac)
     {
         rendering_layer.needs_redraw();
     }
-    sidebar_x_frac = tmp_sidebar_x_frac;
 
-    this->configurations_widget.show();
-    this->parameters_widget.show();
-    this->hamiltonian_widget.show();
-    ImGui::PushFont( font_cousine_14 );
-    this->geometry_widget.show();
-    this->plots_widget.show();
-    ImGui::PopFont();
-    this->visualisation_widget.show();
+    for(auto & w : spirit_widgets)
+    {
+        if(w->wants_to_dock)
+        {
+            ImGui::SetNextWindowDockID(dock_id);
+            w->show();
+            w->wants_to_dock=false;
+        } else 
+        {
+            w->show();
+        }
+    }
 
-    if(stacked_layout)
-        ImGui::End();
+    // this->configurations_widget.show();
+    // this->parameters_widget.show();
+    // this->hamiltonian_widget.show();
+    // ImGui::PushFont( font_cousine_14 );
+    // this->geometry_widget.show();
+    // this->plots_widget.show();
+    // ImGui::PopFont();
+    // this->visualisation_widget.show();
+
 
     widgets::show_settings( ui_config_file.show_settings, rendering_layer );
     widgets::show_keybindings( show_keybindings );
@@ -1633,6 +1689,12 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
     ImPlot::CreateContext();
 
     ImGuiIO & io   = ImGui::GetIO();
+
+    // Enable docking
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    // Disable split docking
+    io.ConfigDockingNoSplit = true;
+
     io.IniFilename = nullptr;
 
     auto & plot_style     = ImPlot::GetStyle();

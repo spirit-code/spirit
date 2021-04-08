@@ -28,6 +28,9 @@ class WidgetBase
     };
 
     bool & show_;
+    bool dragging = false;
+    bool docked = false;
+    bool wants_to_dock = false;
     LayoutMode m_layout;
     std::string title;
     ImVec2 size_min;
@@ -40,31 +43,24 @@ class WidgetBase
         {
             return;
         }
-        if(m_layout == LayoutMode::FREE)
+
+        ImGui::SetNextWindowSizeConstraints( size_min, size_max );
+        ImGui::Begin( title.c_str(), &show_ );
+        docked = ImGui::IsWindowDocked();
+        if(ImGui::IsItemHovered() && ImGui::IsMouseDragging(0))
         {
-            ImGui::SetNextWindowSizeConstraints( size_min, size_max );
-            ImGui::Begin( title.c_str(), &show_ );
-            if( ImGui::BeginPopupContextWindow() )
-            {
-                if( ImGui::MenuItem( "Attach", NULL, false ) )
-                    m_layout = LayoutMode::STACKED;
-                ImGui::EndPopup();
-            }
-            show_content();
-            ImGui::End();
-        } else if (m_layout == LayoutMode::STACKED)
-        {
-            if (ImGui::CollapsingHeader(title.c_str(), &show_))
-            {
-                show_content();
-            } 
-            if( ImGui::BeginPopupContextWindow() )
-            {
-                if( ImGui::MenuItem( "Detach", NULL, false ) )
-                    m_layout = LayoutMode::FREE;
-                ImGui::EndPopup();
-            }
+            dragging = true;
+        } else {
+            dragging = false;
         }
+        if( ImGui::BeginPopupContextWindow() )
+        {
+            if( ImGui::MenuItem( "Attach", NULL, false ) )
+                wants_to_dock=true;
+            ImGui::EndPopup();
+        }
+        show_content();
+        ImGui::End();
         hook_post_show();
     }
 
