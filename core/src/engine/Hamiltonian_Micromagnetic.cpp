@@ -1,9 +1,11 @@
 #ifndef SPIRIT_USE_CUDA
 
 #include <data/Spin_System.hpp>
+#include <engine/Demagnetization_Tensor.hpp>
 #include <engine/Hamiltonian_Micromagnetic.hpp>
 #include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
+
 #include <utility/Constants.hpp>
 
 #include <Eigen/Core>
@@ -164,6 +166,7 @@ void Hamiltonian_Micromagnetic::Update_Interactions()
     neigh.push_back( neigh_tmp );
 
     this->spatial_gradient = field<Matrix3>( geometry->nos, Matrix3::Zero() );
+    this->Prepare_DDI();
     this->Update_Energy_Contributions();
 }
 
@@ -179,38 +182,38 @@ void Hamiltonian_Micromagnetic::Update_Energy_Contributions()
     }
     else
         this->idx_zeeman = -1;
-    // TODO: Anisotropy
-    // if( ... )
-    // {
-    //     this->energy_contributions_per_spin.push_back({"Anisotropy", scalarfield(0) });
-    //     this->idx_anisotropy = this->energy_contributions_per_spin.size()-1;
-    // }
-    // else
-    this->idx_anisotropy = -1;
-    // TODO: Exchange
-    // if( ... )
-    // {
-    //     this->energy_contributions_per_spin.push_back({"Exchange", scalarfield(0) });
-    //     this->idx_exchange = this->energy_contributions_per_spin.size()-1;
-    // }
-    // else
-    this->idx_exchange = -1;
-    // TODO: DMI
-    // if( ... )
-    // {
-    //     this->energy_contributions_per_spin.push_back({"DMI", scalarfield(0) });
-    //     this->idx_dmi = this->energy_contributions_per_spin.size()-1;
-    // }
-    // else
-    this->idx_dmi = -1;
-    // TODO: DDI
-    // if( ... )
-    // {
-    //     this->energy_contributions_per_spin.push_back({"DDI", scalarfield(0) });
-    //     this->idx_ddi = this->energy_contributions_per_spin.size()-1;
-    // }
-    // else
-    this->idx_ddi = -1;
+
+    if( anisotropy_tensor.norm() == 0.0 )
+    {
+        this->energy_contributions_per_spin.push_back( { "Anisotropy", scalarfield( 0 ) } );
+        this->idx_anisotropy = this->energy_contributions_per_spin.size() - 1;
+    }
+    else
+        this->idx_anisotropy = -1;
+
+    if( exchange_tensor.norm() == 0.0 )
+    {
+        this->energy_contributions_per_spin.push_back( { "Exchange", scalarfield( 0 ) } );
+        this->idx_exchange = this->energy_contributions_per_spin.size() - 1;
+    }
+    else
+        this->idx_exchange = -1;
+
+    if( dmi_tensor.norm() == 0.0 )
+    {
+        this->energy_contributions_per_spin.push_back( { "DMI", scalarfield( 0 ) } );
+        this->idx_dmi = this->energy_contributions_per_spin.size() - 1;
+    }
+    else
+        this->idx_dmi = -1;
+
+    if( this->ddi_method != DDI_Method::None )
+    {
+        this->energy_contributions_per_spin.push_back( { "DDI", scalarfield( 0 ) } );
+        this->idx_ddi = this->energy_contributions_per_spin.size() - 1;
+    }
+    else
+        this->idx_ddi = -1;
 }
 
 void Hamiltonian_Micromagnetic::Energy_Contributions_per_Spin(
@@ -247,6 +250,10 @@ void Hamiltonian_Micromagnetic::Energy_Contributions_per_Spin(
     // DMI
     if( this->idx_dmi >= 0 )
         E_DMI( spins, contributions[idx_dmi].second );
+
+    // DDI
+    if( this->idx_ddi >= 0 )
+        E_DDI( spins, contributions[idx_ddi].second );
 }
 
 void Hamiltonian_Micromagnetic::E_Zeeman( const vectorfield & spins, scalarfield & Energy )
@@ -277,7 +284,11 @@ void Hamiltonian_Micromagnetic::E_Exchange( const vectorfield & spins, scalarfie
 
 void Hamiltonian_Micromagnetic::E_DMI( const vectorfield & spins, scalarfield & Energy ) {}
 
-void Hamiltonian_Micromagnetic::E_DDI( const vectorfield & spins, scalarfield & Energy ) {}
+void Hamiltonian_Micromagnetic::E_DDI( const vectorfield & spins, scalarfield & Energy )
+{
+    if( this->ddi_method == DDI_Method::FFT )
+        this->E_DDI_FFT( spins, Energy );
+}
 
 scalar Hamiltonian_Micromagnetic::Energy_Single_Spin( int ispin, const vectorfield & spins )
 {
@@ -287,6 +298,7 @@ scalar Hamiltonian_Micromagnetic::Energy_Single_Spin( int ispin, const vectorfie
 
 void Hamiltonian_Micromagnetic::Gradient( const vectorfield & spins, vectorfield & gradient )
 {
+
     // Set to zero
     Vectormath::fill( gradient, { 0, 0, 0 } );
     this->Spatial_Gradient( spins );
@@ -302,6 +314,9 @@ void Hamiltonian_Micromagnetic::Gradient( const vectorfield & spins, vectorfield
 
     // DMI
     this->Gradient_DMI( spins, gradient );
+
+    // DDI
+    this->Gradient_DDI( spins, gradient );
 
     // double energy=0;
     // #pragma omp parallel for reduction(-:energy)
@@ -648,6 +663,322 @@ void Hamiltonian_Micromagnetic::Gradient_DMI( const vectorfield & spins, vectorf
                                   / Ms;
         }
     }
+}
+
+void Hamiltonian_Micromagnetic::Gradient_DDI( const vectorfield & spins, vectorfield & gradient )
+{
+    if( this->ddi_method == DDI_Method::FFT )
+        this->Gradient_DDI_FFT( spins, gradient );
+}
+
+void Hamiltonian_Micromagnetic::Gradient_DDI_FFT( const vectorfield & spins, vectorfield & gradient )
+{
+    // Size of original geometry
+    int Na = geometry->n_cells[0];
+    int Nb = geometry->n_cells[1];
+    int Nc = geometry->n_cells[2];
+
+    auto cell_volume = geometry->cell_size[0] * geometry->cell_size[1] * geometry->cell_size[2];
+
+    FFT_Spins( spins );
+
+    auto & ft_D_matrices = transformed_dipole_matrices;
+    auto & ft_spins      = fft_plan_spins.cpx_ptr;
+
+    auto & res_iFFT = fft_plan_reverse.real_ptr;
+    auto & res_mult = fft_plan_reverse.cpx_ptr;
+
+    int idx_s, idx_d;
+
+    // Workaround for compability with intel compiler
+    const int c_n_cell_atoms               = geometry->n_cell_atoms;
+    const int * c_it_bounds_pointwise_mult = it_bounds_pointwise_mult.data();
+
+// Loop over basis atoms (i.e sublattices)
+#pragma omp parallel for collapse( 3 )
+
+    for( int c = 0; c < c_it_bounds_pointwise_mult[2]; ++c )
+    {
+        for( int b = 0; b < c_it_bounds_pointwise_mult[1]; ++b )
+        {
+            for( int a = 0; a < c_it_bounds_pointwise_mult[0]; ++a )
+            {
+                idx_s = a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
+                idx_d = a * dipole_stride.a + b * dipole_stride.b + c * dipole_stride.c;
+
+                auto & fs_x = ft_spins[idx_s];
+                auto & fs_y = ft_spins[idx_s + 1 * spin_stride.comp];
+                auto & fs_z = ft_spins[idx_s + 2 * spin_stride.comp];
+
+                auto & fD_xx = ft_D_matrices[idx_d];
+                auto & fD_xy = ft_D_matrices[idx_d + 1 * dipole_stride.comp];
+                auto & fD_xz = ft_D_matrices[idx_d + 2 * dipole_stride.comp];
+                auto & fD_yy = ft_D_matrices[idx_d + 3 * dipole_stride.comp];
+                auto & fD_yz = ft_D_matrices[idx_d + 4 * dipole_stride.comp];
+                auto & fD_zz = ft_D_matrices[idx_d + 5 * dipole_stride.comp];
+
+                FFT::addTo(
+                    res_mult[idx_s + 0 * spin_stride.comp], FFT::mult3D( fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z ),
+                    true );
+                FFT::addTo(
+                    res_mult[idx_s + 1 * spin_stride.comp], FFT::mult3D( fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z ),
+                    true );
+                FFT::addTo(
+                    res_mult[idx_s + 2 * spin_stride.comp], FFT::mult3D( fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z ),
+                    true );
+            }
+        }
+    } // end iteration over padded lattice cells
+
+    // Inverse Fourier Transform
+    FFT::batch_iFour_3D( fft_plan_reverse );
+
+    // Workaround for compability with intel compiler
+    const int * c_n_cells = geometry->n_cells.data();
+
+    // Place the gradients at the correct positions and mult with correct mu
+    for( int c = 0; c < c_n_cells[2]; ++c )
+    {
+        for( int b = 0; b < c_n_cells[1]; ++b )
+        {
+            for( int a = 0; a < c_n_cells[0]; ++a )
+            {
+                int idx_orig = a + Na * ( b + Nb * c );
+                int idx      = a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
+                gradient[idx_orig][0] -= res_iFFT[idx] / sublattice_size;
+                gradient[idx_orig][1] -= res_iFFT[idx + 1 * spin_stride.comp] / sublattice_size;
+                gradient[idx_orig][2] -= res_iFFT[idx + 2 * spin_stride.comp] / sublattice_size;
+            }
+        }
+    } // end iteration sublattice 1
+}
+
+void Hamiltonian_Micromagnetic::E_DDI_FFT( const vectorfield & spins, scalarfield & Energy )
+{
+    scalar Energy_DDI = 0;
+    vectorfield gradients_temp;
+    gradients_temp.resize( geometry->nos );
+    Vectormath::fill( gradients_temp, { 0, 0, 0 } );
+    this->Gradient_DDI_FFT( spins, gradients_temp );
+
+    // === DEBUG: begin gradient comparison ===
+    // vectorfield gradients_temp_dir;
+    // gradients_temp_dir.resize(this->geometry->nos);
+    // Vectormath::fill(gradients_temp_dir, {0,0,0});
+    // Gradient_DDI_Direct(spins, gradients_temp_dir);
+
+    // //get deviation
+    // std::array<scalar, 3> deviation = {0,0,0};
+    // std::array<scalar, 3> avg = {0,0,0};
+    // for(int i = 0; i < this->geometry->nos; i++)
+    // {
+    //     for(int d = 0; d < 3; d++)
+    //     {
+    //         deviation[d] += std::pow(gradients_temp[i][d] - gradients_temp_dir[i][d], 2);
+    //         avg[d] += gradients_temp_dir[i][d];
+    //     }
+    // }
+    // std::cerr << "Avg. Gradient = " << avg[0]/this->geometry->nos << " " << avg[1]/this->geometry->nos << " " <<
+    // avg[2]/this->geometry->nos << std::endl; std::cerr << "Avg. Deviation = " << deviation[0]/this->geometry->nos <<
+    // " " << deviation[1]/this->geometry->nos << " " << deviation[2]/this->geometry->nos << std::endl;
+//==== DEBUG: end gradient comparison ====
+
+// TODO: add dot_scaled to Vectormath and use that
+#pragma omp parallel for
+    for( int ispin = 0; ispin < geometry->nos; ispin++ )
+    {
+        Energy[ispin] += 0.5 * spins[ispin].dot( gradients_temp[ispin] );
+        // Energy_DDI    += 0.5 * spins[ispin].dot(gradients_temp[ispin]);
+    }
+}
+
+void Hamiltonian_Micromagnetic::FFT_Demag_Tensors( FFT::FFT_Plan & fft_plan_dipole, int img_a, int img_b, int img_c )
+{
+
+    auto delta       = geometry->cell_size;
+    auto cell_volume = geometry->cell_size[0] * geometry->cell_size[1] * geometry->cell_size[2];
+
+    // Prefactor of DDI
+    // The energy is proportional to  spin_direction * Demag_tensor * spin_direction
+    // The 'mult' factor is chosen such that the cell resolved energy has
+    // the dimension of total energy per cell in meV
+
+    scalar mult = C::mu_0 / cell_volume * ( cell_volume * Ms * C::Joule ) * ( cell_volume * Ms * C::Joule );
+
+    // Size of original geometry
+    int Na = geometry->n_cells[0];
+    int Nb = geometry->n_cells[1];
+    int Nc = geometry->n_cells[2];
+
+    auto & fft_dipole_inputs = fft_plan_dipole.real_ptr;
+
+    // Iterate over the padded system
+    const int * c_n_cells_padded = n_cells_padded.data();
+
+#pragma omp parallel for collapse( 3 )
+    for( int c = 0; c < c_n_cells_padded[2]; ++c )
+    {
+        for( int b = 0; b < c_n_cells_padded[1]; ++b )
+        {
+            for( int a = 0; a < c_n_cells_padded[0]; ++a )
+            {
+                int a_idx = a < Na ? a : a - n_cells_padded[0];
+                int b_idx = b < Nb ? b : b - n_cells_padded[1];
+                int c_idx = c < Nc ? c : c - n_cells_padded[2];
+
+                scalar Dxx = 0, Dxy = 0, Dxz = 0, Dyy = 0, Dyz = 0, Dzz = 0;
+
+                // Iterate over periodic images
+                for( int a_pb = -img_a; a_pb <= img_a; a_pb++ )
+                {
+                    for( int b_pb = -img_b; b_pb <= img_b; b_pb++ )
+                    {
+                        for( int c_pb = -img_c; c_pb <= img_c; c_pb++ )
+                        {
+                            scalar X  = ( a_idx + a_pb * Na ) * delta[0];
+                            scalar Y  = ( b_idx + b_pb * Nb ) * delta[1];
+                            scalar Z  = ( c_idx + c_pb * Nc ) * delta[2];
+                            scalar dx = delta[0];
+                            scalar dy = delta[1];
+                            scalar dz = delta[2];
+
+                            Dxx += mult * Demagnetization_Tensor::Automatic::Nxx( X, Y, Z, dx, dy, dz );
+                            Dxy += mult * Demagnetization_Tensor::Automatic::Nxy( X, Y, Z, dx, dy, dz );
+                            Dxz += mult * Demagnetization_Tensor::Automatic::Nxy( X, Z, Y, dx, dz, dy );
+                            Dyy += mult * Demagnetization_Tensor::Automatic::Nxx( Y, X, Z, dy, dx, dz );
+                            Dyz += mult * Demagnetization_Tensor::Automatic::Nxy( Z, Y, X, dz, dy, dx );
+                            Dzz += mult * Demagnetization_Tensor::Automatic::Nxx( Z, Y, X, dz, dy, dx );
+                        }
+                    }
+                }
+
+                int idx = a * dipole_stride.a + b * dipole_stride.b + c * dipole_stride.c;
+
+                fft_dipole_inputs[idx]                          = Dxx;
+                fft_dipole_inputs[idx + 1 * dipole_stride.comp] = Dxy;
+                fft_dipole_inputs[idx + 2 * dipole_stride.comp] = Dxz;
+                fft_dipole_inputs[idx + 3 * dipole_stride.comp] = Dyy;
+                fft_dipole_inputs[idx + 4 * dipole_stride.comp] = Dyz;
+                fft_dipole_inputs[idx + 5 * dipole_stride.comp] = Dzz;
+            }
+        }
+    }
+    FFT::batch_Four_3D( fft_plan_dipole );
+}
+
+void Hamiltonian_Micromagnetic::FFT_Spins( const vectorfield & spins )
+{
+    // size of original geometry
+    int Na = geometry->n_cells[0];
+    int Nb = geometry->n_cells[1];
+    int Nc = geometry->n_cells[2];
+
+    auto cell_volume = geometry->cell_size[0] * geometry->cell_size[1] * geometry->cell_size[2];
+
+    auto & fft_spin_inputs = fft_plan_spins.real_ptr;
+
+// iterate over the **original** system
+#pragma omp parallel for collapse( 4 )
+    for( int c = 0; c < Nc; ++c )
+    {
+        for( int b = 0; b < Nb; ++b )
+        {
+            for( int a = 0; a < Na; ++a )
+            {
+                int idx_orig = a + Na * ( b + Nb * c );
+                int idx      = a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
+
+                fft_spin_inputs[idx]                        = spins[idx_orig][0];
+                fft_spin_inputs[idx + 1 * spin_stride.comp] = spins[idx_orig][1];
+                fft_spin_inputs[idx + 2 * spin_stride.comp] = spins[idx_orig][2];
+            }
+        }
+    }
+
+    FFT::batch_Four_3D( fft_plan_spins );
+}
+
+void Hamiltonian_Micromagnetic::Prepare_DDI()
+{
+    Clean_DDI();
+
+    if( ddi_method != DDI_Method::FFT )
+        return;
+
+    // We perform zero-padding in a lattice direction if the dimension of the system is greater than 1 *and*
+    //  - the boundary conditions are open, or
+    //  - the boundary conditions are periodic and zero-padding is explicitly requested
+    n_cells_padded.resize( 3 );
+    for( int i = 0; i < 3; i++ )
+    {
+        n_cells_padded[i]         = geometry->n_cells[i];
+        bool perform_zero_padding = geometry->n_cells[i] > 1 && ( boundary_conditions[i] == 0 || ddi_pb_zero_padding );
+        if( perform_zero_padding )
+            n_cells_padded[i] *= 2;
+    }
+    sublattice_size = n_cells_padded[0] * n_cells_padded[1] * n_cells_padded[2];
+
+    FFT::FFT_Init();
+
+// Workaround for bug in kissfft
+// kissfft_ndr does not perform one-dimensional FFTs properly
+#ifndef SPIRIT_USE_FFTW
+    int number_of_one_dims = 0;
+    for( int i = 0; i < 3; i++ )
+        if( n_cells_padded[i] == 1 && ++number_of_one_dims > 1 )
+            n_cells_padded[i] = 2;
+#endif
+
+    sublattice_size = n_cells_padded[0] * n_cells_padded[1] * n_cells_padded[2];
+
+    // We dont need to transform over length 1 dims
+    std::vector<int> fft_dims;
+    for( int i = 2; i >= 0; i-- ) // notice that reverse order is important!
+    {
+        if( n_cells_padded[i] > 1 )
+            fft_dims.push_back( n_cells_padded[i] );
+    }
+
+    // Create FFT plans
+    FFT::FFT_Plan fft_plan_dipole = FFT::FFT_Plan( fft_dims, false, 6, sublattice_size );
+    fft_plan_spins                = FFT::FFT_Plan( fft_dims, false, 3, sublattice_size );
+    fft_plan_reverse              = FFT::FFT_Plan( fft_dims, true, 3, sublattice_size );
+
+#ifdef SPIRIT_USE_FFTW
+    field<int *> temp_s = { &spin_stride.comp, &spin_stride.basis, &spin_stride.a, &spin_stride.b, &spin_stride.c };
+    field<int *> temp_d
+        = { &dipole_stride.comp, &dipole_stride.basis, &dipole_stride.a, &dipole_stride.b, &dipole_stride.c };
+
+    FFT::get_strides(
+        temp_s, { 3, this->geometry->n_cell_atoms, n_cells_padded[0], n_cells_padded[1], n_cells_padded[2] } );
+    FFT::get_strides( temp_d, { 6, 1, n_cells_padded[0], n_cells_padded[1], n_cells_padded[2] } );
+    it_bounds_pointwise_mult = { ( n_cells_padded[0] / 2 + 1 ), // due to redundancy in real fft
+                                 n_cells_padded[1], n_cells_padded[2] };
+#else
+    field<int *> temp_s = { &spin_stride.a, &spin_stride.b, &spin_stride.c, &spin_stride.comp, &spin_stride.basis };
+    field<int *> temp_d
+        = { &dipole_stride.a, &dipole_stride.b, &dipole_stride.c, &dipole_stride.comp, &dipole_stride.basis };
+
+    FFT::get_strides(
+        temp_s, { n_cells_padded[0], n_cells_padded[1], n_cells_padded[2], 3, this->geometry->n_cell_atoms } );
+    FFT::get_strides( temp_d, { n_cells_padded[0], n_cells_padded[1], n_cells_padded[2], 6, 1 } );
+    it_bounds_pointwise_mult = { n_cells_padded[0], n_cells_padded[1], n_cells_padded[2] };
+    ( it_bounds_pointwise_mult[fft_dims.size() - 1] /= 2 )++;
+#endif
+
+    // Perform FFT of dipole matrices
+    int img_a = boundary_conditions[0] == 0 ? 0 : ddi_n_periodic_images[0];
+    int img_b = boundary_conditions[1] == 0 ? 0 : ddi_n_periodic_images[1];
+    int img_c = boundary_conditions[2] == 0 ? 0 : ddi_n_periodic_images[2];
+
+    FFT_Demag_Tensors( fft_plan_dipole, img_a, img_b, img_c );
+    transformed_dipole_matrices = std::move( fft_plan_dipole.cpx_ptr );
+}
+
+void Hamiltonian_Micromagnetic::Clean_DDI()
+{
+    fft_plan_spins   = FFT::FFT_Plan();
+    fft_plan_reverse = FFT::FFT_Plan();
 }
 
 void Hamiltonian_Micromagnetic::Hessian( const vectorfield & spins, MatrixX & hessian ) {}

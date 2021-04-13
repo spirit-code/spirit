@@ -64,11 +64,12 @@ public:
     pairfield neigh;
     field<Matrix3> spatial_gradient;
     bool A_is_nondiagonal = true;
+
     // Dipole-dipole interaction
-    DDI_Method ddi_method;
-    intfield ddi_n_periodic_images;
-    scalar ddi_cutoff_radius;
-    pairfield ddi_pairs;
+    DDI_Method  ddi_method;
+    intfield    ddi_n_periodic_images;
+    scalar      ddi_cutoff_radius;
+    pairfield   ddi_pairs;
     scalarfield ddi_magnitudes;
     vectorfield ddi_normals;
 
@@ -129,11 +130,12 @@ private:
     // Total number of padded spins per sublattice
     int sublattice_size;
 
+    bool ddi_pb_zero_padding = true;
     FFT::StrideContainer spin_stride;
     FFT::StrideContainer dipole_stride;
 
     // Calculate the FT of the padded D matriess
-    void FFT_Dipole_Matrices( FFT::FFT_Plan & fft_plan_dipole, int img_a, int img_b, int img_c );
+    void FFT_Demag_Tensors( FFT::FFT_Plan & fft_plan_dipole, int img_a, int img_b, int img_c );
     // Calculate the FT of the padded spins
     void FFT_Spins( const vectorfield & spins );
 
