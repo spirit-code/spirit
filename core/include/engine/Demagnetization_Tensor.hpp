@@ -247,7 +247,7 @@ namespace Demagnetization_Tensor
             auto nxx_asym             = Asymptote::Nxx_asym<scalar>(X,Y,Z,dx,dy,dz);
 
             // If the asymptote is within the error due to loss of significance we use it instead of the exact formula
-            if(std::abs(nxx_analytical - nxx_asym) < 10*abs_error)
+            if(std::abs(nxx_analytical - nxx_asym) < 20.0*abs_error)
                 return nxx_asym;
 
             return nxx_analytical;
@@ -265,7 +265,7 @@ namespace Demagnetization_Tensor
             // std::cout << "abs_error " << abs_error << "\n";
 
             // If the asymptote is within the error due to loss of significance we use it instead of the exact formula
-            if(std::abs(nxy_analytical - nxy_asym) < 10*abs_error)
+            if(std::abs(nxy_analytical - nxy_asym) < 20.0*abs_error)
                 return nxy_asym;
 
             return nxy_analytical;
