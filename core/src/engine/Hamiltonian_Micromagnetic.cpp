@@ -671,6 +671,54 @@ void Hamiltonian_Micromagnetic::Gradient_DDI( const vectorfield & spins, vectorf
         this->Gradient_DDI_FFT( spins, gradient );
 }
 
+void Hamiltonian_Micromagnetic::Gradient_DDI_Direct( const vectorfield & spins, vectorfield & gradient )
+{
+    auto delta       = geometry->cell_size;
+    auto cell_volume = geometry->cell_size[0] * geometry->cell_size[1] * geometry->cell_size[2];
+    scalar mult      = C::mu_0 / cell_volume * ( cell_volume * Ms * C::Joule ) * ( cell_volume * Ms * C::Joule );
+
+    int img_a = boundary_conditions[0] == 0 ? 0 : ddi_n_periodic_images[0];
+    int img_b = boundary_conditions[1] == 0 ? 0 : ddi_n_periodic_images[1];
+    int img_c = boundary_conditions[2] == 0 ? 0 : ddi_n_periodic_images[2];
+
+    for( int idx1 = 0; idx1 < geometry->nos; idx1++ )
+    {
+        for( int idx2 = 0; idx2 < geometry->nos; idx2++ )
+        {
+            scalar Dxx = 0, Dxy = 0, Dxz = 0, Dyy = 0, Dyz = 0, Dzz = 0;
+            auto diff = this->geometry->positions[idx2] - this->geometry->positions[idx1];
+
+            for( int a_pb = -img_a; a_pb <= img_a; a_pb++ )
+            {
+                for( int b_pb = -img_b; b_pb <= img_b; b_pb++ )
+                {
+                    for( int c_pb = -img_c; c_pb <= img_c; c_pb++ )
+                    {
+                        auto X = 1e-10 * diff[0] + a_pb * delta[0];
+                        auto Y = 1e-10 * diff[1] + b_pb * delta[1];
+                        auto Z = 1e-10 * diff[2] + c_pb * delta[2];
+
+                        auto dx = delta[0];
+                        auto dy = delta[1];
+                        auto dz = delta[2];
+
+                        Dxx += mult * Demagnetization_Tensor::Automatic::Nxx( X, Y, Z, dx, dy, dz );
+                        Dxy += mult * Demagnetization_Tensor::Automatic::Nxy( X, Y, Z, dx, dy, dz );
+                        Dxz += mult * Demagnetization_Tensor::Automatic::Nxy( X, Z, Y, dx, dz, dy );
+                        Dyy += mult * Demagnetization_Tensor::Automatic::Nxx( Y, X, Z, dy, dx, dz );
+                        Dyz += mult * Demagnetization_Tensor::Automatic::Nxy( Z, Y, X, dz, dy, dx );
+                        Dzz += mult * Demagnetization_Tensor::Automatic::Nxx( Z, Y, X, dz, dy, dx );
+                    }
+                }
+            }
+
+            gradient[idx1][0] -= ( Dxx * spins[idx2][0] + Dxy * spins[idx2][1] + Dxz * spins[idx2][2] );
+            gradient[idx1][1] -= ( Dxy * spins[idx2][0] + Dyy * spins[idx2][1] + Dyz * spins[idx2][2] );
+            gradient[idx1][2] -= ( Dxz * spins[idx2][0] + Dyz * spins[idx2][1] + Dzz * spins[idx2][2] );
+        }
+    }
+}
+
 void Hamiltonian_Micromagnetic::Gradient_DDI_FFT( const vectorfield & spins, vectorfield & gradient )
 {
     // Size of original geometry
