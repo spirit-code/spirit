@@ -17,20 +17,33 @@ namespace Demagnetization_Tensor
         template<typename scalar>
         scalar kappa(const scalar & x, const scalar & y, const scalar & z, const scalar & R)
         {
-            // If the argument of the log gets large, it is zerod out by the prefactor in f/g. Therefore we just set it to zero here, to avoid division by zero.
-            if(R < std::numeric_limits<scalar>::epsilon() || y*y + z*z < std::numeric_limits<scalar>::epsilon() )
-                return 0.0;
-
-            return std::log((x + R) / (std::sqrt(y*y + z*z)));
+            // If the argument of the log gets large, it is zeroed out by the prefactor in f or g. Therefore we just set it to zero here, to avoid division by zero.
+            auto res = std::log((x + R) / (std::sqrt(y*y + z*z)));
+            if(std::isnan(res) || std::isinf(res))
+                res = 0;
+            return res;
         }
 
         template<typename scalar>
         scalar delta(const scalar & x, const scalar & y, const scalar & z, const scalar & R)
         {
-            if(std::abs(z*R) < std::numeric_limits<scalar>::epsilon())
-                return Constants::Pi / 2.0;
+            auto arg = x*y / (z*R);
+            auto res = std::atan(arg);
 
-            return std::atan(x*y / (z*R));
+            // If the arg is infinite atan(arg) will give +- Pi/2 depending on sign
+            // The std::atan function should know about this, but we do not rely on it here
+            if(std::isinf(arg))
+                if(arg<0)
+                    return -Constants::Pi/2;
+                else
+                    return Constants::Pi/2;
+
+            // If arg is nan it most likely means a division 0/0 ocurred, 
+            // we just return 0 because the delta function is cancelled by prefactors in that case
+            if(std::isnan(arg))
+                return 0;
+
+            return res;
         }
 
         // Helper function for Nxx. Symmetric in z and y.
