@@ -426,7 +426,7 @@ std::shared_ptr<Data::Geometry> Geometry_from_Config( const std::string configFi
                         scalar V = std::pow( lattice_constant * 1e-10, 3 )
                                    * ( bravais_vectors[0].cross( bravais_vectors[1] ) ).dot( bravais_vectors[2] );
                         // * n_cells[0] * n_cells[1] * n_cells[2] * n_cell_atoms;
-                        scalar mu_s = Ms * 1.0782822e23 * V; // per cell
+                        scalar mu_s = Ms * 1.0782822e23 * V / n_cell_atoms; // per cell
 
                         for( iatom = 0; iatom < n_cell_atoms; ++iatom )
                             cell_composition.mu_s[iatom] = mu_s;
@@ -526,7 +526,10 @@ std::shared_ptr<Data::Geometry> Geometry_from_Config( const std::string configFi
 
         parameter_log.push_back( fmt::format( "    {} spins", geometry->nos ) );
         parameter_log.push_back( fmt::format( "    the geometry is {}-dimensional", geometry->dimensionality ) );
-        parameter_log.push_back( fmt::format( "    unit cell size: {}", geometry->cell_size.transpose() ) );
+        parameter_log.push_back( fmt::format( "    unit cell size [m]:     {}", geometry->cell_size.transpose() ) );
+        parameter_log.push_back( fmt::format( "    unit cell volume [m^3]: {}", geometry->cell_volume ) );
+        parameter_log.push_back( fmt::format( "    Ms[A/m]:                {}", geometry->Ms ) );
+
 
         Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
@@ -1567,9 +1570,6 @@ Hamiltonian_Micromagnetic_from_Config( const std::string configFile, const std::
     // The order of the finite difference approximation of the spatial gradient
     int spatial_gradient_order = 1;
 
-    // Total magnetisation
-    scalar Ms = 1e6;
-
     // External Magnetic Field
     scalar field         = 0;
     Vector3 field_normal = { 0.0, 0.0, 1.0 };
@@ -1725,14 +1725,13 @@ Hamiltonian_Micromagnetic_from_Config( const std::string configFile, const std::
             fmt::format( "Unable to parse all parameters of the Micromagnetic Hamiltonian from \"{}\"", configFile ) );
     }
     // Return
-    Log( Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg:" );
+    Log( Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Micromagnetic:" );
     Log( Log_Level::Parameter, Log_Sender::IO,
          fmt::format( "        {:<24} = {}", "discretisation order", spatial_gradient_order ) );
     Log( Log_Level::Parameter, Log_Sender::IO,
          fmt::format(
              "        {:<24} = {} {} {}", "boundary conditions", boundary_conditions[0], boundary_conditions[1],
              boundary_conditions[2] ) );
-    Log( Log_Level::Parameter, Log_Sender::IO, fmt::format( "        {:<24} = {}", "saturation magnetisation", Ms ) );
     Log( Log_Level::Parameter, Log_Sender::IO, fmt::format( "        {:<24} = {}", "external field", field ) );
     Log( Log_Level::Parameter, Log_Sender::IO,
          fmt::format( "        {:<24} = {}", "field normal", field_normal.transpose() ) );
@@ -1756,7 +1755,7 @@ Hamiltonian_Micromagnetic_from_Config( const std::string configFile, const std::
     Log( Log_Level::Parameter, Log_Sender::IO, fmt::format( "        {:<21} = {}", "ddi_radius", ddi_radius ) );
 
     auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Micromagnetic>( new Engine::Hamiltonian_Micromagnetic(
-        Ms, field, field_normal, anisotropy_tensor, exchange_tensor, dmi_tensor, ddi_method, ddi_n_periodic_images,
+        field, field_normal, anisotropy_tensor, exchange_tensor, dmi_tensor, ddi_method, ddi_n_periodic_images,
         ddi_radius, geometry, spatial_gradient_order, boundary_conditions ) );
 
     Log( Log_Level::Info, Log_Sender::IO, "Hamiltonian_Micromagnetic: built" );

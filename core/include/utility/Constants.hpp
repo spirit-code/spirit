@@ -100,7 +100,7 @@ namespace Utility
     namespace Constants_Micromagnetic
     {
         // The Bohr Magneton [Joule/T]
-        double const mu_B = Constants::mu_B * Constants::Joule;
+        double const mu_B = Constants::mu_B / Constants::Joule;
 
         // The vacuum permeability [T^2 m^3 / Joule]
         double const mu_0 = Constants::mu_0 / Constants::Joule;

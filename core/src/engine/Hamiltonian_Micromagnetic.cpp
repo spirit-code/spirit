@@ -25,12 +25,11 @@ namespace Engine
 {
 
 Hamiltonian_Micromagnetic::Hamiltonian_Micromagnetic(
-    scalar Ms, scalar external_field_magnitude, Vector3 external_field_normal, Matrix3 anisotropy_tensor,
+    scalar external_field_magnitude, Vector3 external_field_normal, Matrix3 anisotropy_tensor,
     Matrix3 exchange_tensor, Matrix3 dmi_tensor, DDI_Method ddi_method, intfield ddi_n_periodic_images,
     scalar ddi_radius, std::shared_ptr<Data::Geometry> geometry, int spatial_gradient_order,
     intfield boundary_conditions )
         : Hamiltonian( boundary_conditions ),
-          Ms( Ms ),
           spatial_gradient_order( spatial_gradient_order ),
           geometry( geometry ),
           external_field_magnitude( external_field_magnitude ),
@@ -274,7 +273,7 @@ void Hamiltonian_Micromagnetic::E_Update( const vectorfield & spins, scalarfield
 #pragma omp parallel for
     for( int icell = 0; icell < geometry->n_cells_total; ++icell )
     {
-        Energy[icell] -= 0.5 * Ms * gradient[icell].dot( spins[icell] );
+        Energy[icell] -= 0.5 * geometry->Ms * gradient[icell].dot( spins[icell] );
     }
 }
 
@@ -351,7 +350,7 @@ void Hamiltonian_Micromagnetic::Gradient_Anisotropy( const vectorfield & spins, 
         // for( int iani = 0; iani < 1; ++iani )
         // {
         // gradient[icell] -= 2.0 * 8.44e6 / Ms * temp3 * temp3.dot(spins[icell]);
-        gradient[icell] -= 2.0 * C::mu_B * anisotropy_tensor * spins[icell] / Ms;
+        gradient[icell] -= 2.0 * C::mu_B * anisotropy_tensor * spins[icell] / geometry->Ms;
         // gradient[icell] -= 2.0 * this->anisotropy_magnitudes[iani] / Ms * ((pow(temp2.dot(spins[icell]),2)+
         // pow(temp3.dot(spins[icell]), 2))*(temp1.dot(spins[icell])*temp1)+ (pow(temp1.dot(spins[icell]), 2) +
         // pow(temp3.dot(spins[icell]), 2))*(temp2.dot(spins[icell])*temp2)+(pow(temp1.dot(spins[icell]),2)+
@@ -483,7 +482,7 @@ spins[ispin_minus_minus][1]) / (delta[1]) / (delta[2]) / 4;
 
                 gradient[icell] -= 2 * C::mu_B * exchange_tensor
                                    * ( spins[icell_plus] - 2 * spins[icell] + spins[icell_minus] )
-                                   / ( Ms * delta[i] * delta[i] );
+                                   / ( geometry->Ms * delta[i] * delta[i] );
             }
 
             // gradient[icell][0] -= 2*exchange_tensor(i, i) / Ms * (spins[icell_plus][0] - 2*spins[icell][0] +
@@ -644,6 +643,7 @@ dn3/dr1 dn3/dr2 dn3/dr3
 
 void Hamiltonian_Micromagnetic::Gradient_DMI( const vectorfield & spins, vectorfield & gradient )
 {
+    auto Ms = geometry->Ms;
 #pragma omp parallel for
     for( unsigned int icell = 0; icell < geometry->n_cells_total; ++icell )
     {
@@ -673,6 +673,7 @@ void Hamiltonian_Micromagnetic::Gradient_DDI( const vectorfield & spins, vectorf
 
 void Hamiltonian_Micromagnetic::Gradient_DDI_Direct( const vectorfield & spins, vectorfield & gradient )
 {
+    auto Ms = geometry->Ms;
     auto delta       = geometry->cell_size;
     auto cell_volume = geometry->cell_size[0] * geometry->cell_size[1] * geometry->cell_size[2];
     scalar mult      = C::mu_0 / cell_volume * ( cell_volume * Ms * C::Joule ) * ( cell_volume * Ms * C::Joule );
@@ -845,7 +846,7 @@ void Hamiltonian_Micromagnetic::FFT_Demag_Tensors( FFT::FFT_Plan & fft_plan_dipo
 
     auto delta       = geometry->cell_size;
     auto cell_volume = geometry->cell_size[0] * geometry->cell_size[1] * geometry->cell_size[2];
-
+    auto Ms =  geometry->Ms;
     // Prefactor of DDI
     // The energy is proportional to  spin_direction * Demag_tensor * spin_direction
     // The 'mult' factor is chosen such that the cell resolved energy has

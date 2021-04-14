@@ -146,6 +146,10 @@ public:
     Vector3 cell_bounds_min, cell_bounds_max;
     // Unit cell size [m]
     Vector3 cell_size;
+    // Unit cell volume [m^3]
+    scalar cell_volume;
+    // Saturation Magnetisation [A/m]
+    scalar Ms;
 
 private:
     // Generate the full set of spin positions

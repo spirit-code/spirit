@@ -2,6 +2,7 @@
 #include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Exception.hpp>
+#include <utility/Constants.hpp>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
@@ -69,6 +70,21 @@ namespace Data
             this->atom_types[ispin] = defects.types[i];
             this->mu_s[ispin] = 0.0;
         }
+
+        // Cell size in m
+        this->cell_size = 1e-10 * this->lattice_constant * Vector3{ bravais_vectors[0].norm(), bravais_vectors[1].norm(), bravais_vectors[2].norm() };
+
+        // Cell volume in m^3
+        this->cell_volume = std::pow(1e-10 * this->lattice_constant, 3.0) * bravais_vectors[0].dot( bravais_vectors[1].cross( bravais_vectors[2] ) );
+
+        for(auto bv : bravais_vectors)
+            std::cout << bv.transpose() << "\n--\n";
+        std::cout << "cell_volume " << cell_volume << "\n";
+
+        // Saturation Magnetisation Density in A/m
+        this->Ms = 0;
+        for(auto & mu_s : cell_composition.mu_s)
+            this->Ms += mu_s * Utility::Constants_Micromagnetic::mu_B / cell_volume;
 
         // Calculate the type of geometry
         this->calculateGeometryType();
@@ -722,9 +738,6 @@ namespace Data
         }
         this->cell_bounds_min *= 0.5;
         this->cell_bounds_max *= 0.5;
-
-        // Cell size in m
-        this->cell_size = 1e-10 * (this->cell_bounds_max - this->cell_bounds_min);
     }
 
     void Geometry::calculateGeometryType()

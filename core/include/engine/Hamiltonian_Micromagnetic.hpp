@@ -21,7 +21,7 @@ class Hamiltonian_Micromagnetic : public Hamiltonian
 {
 public:
     Hamiltonian_Micromagnetic(
-        scalar Ms, scalar external_field_magnitude, Vector3 external_field_normal, Matrix3 anisotropy_tensor,
+        scalar external_field_magnitude, Vector3 external_field_normal, Matrix3 anisotropy_tensor,
         Matrix3 exchange_tensor, Matrix3 dmi_tensor, DDI_Method ddi_method, intfield ddi_n_periodic_images,
         scalar ddi_radius, std::shared_ptr<Data::Geometry> geometry, int spatial_gradient_order,
         intfield boundary_conditions );
@@ -54,7 +54,6 @@ public:
     scalar external_field_magnitude;
     Vector3 external_field_normal;
     Matrix3 anisotropy_tensor;
-    scalar Ms;
 
     // ------------ Pair Interactions ------------
     // Exchange interaction
