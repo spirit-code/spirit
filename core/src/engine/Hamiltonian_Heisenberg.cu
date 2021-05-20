@@ -256,7 +256,7 @@ namespace Engine
         {
             for (int ibasis=0; ibasis<n_cell_atoms; ++ibasis)
             {
-                int ispin = icell + ibasis;
+                int ispin = n_cell_atoms * icell + ibasis;
                 if ( cu_check_atom_type(atom_types[ispin]) )
                     Energy[ispin] -= mu_s[ispin] * external_field_magnitude * external_field_normal.dot(spins[ispin]);
             }
@@ -305,7 +305,7 @@ namespace Engine
             for(auto ipair = 0; ipair < n_pairs; ++ipair)
             {
                 int ispin = pairs[ipair].i + icell*n_cell_atoms;
-                int jspin = cu_idx_from_pair(icell, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
+                int jspin = cu_idx_from_pair(ispin, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
                 if (jspin >= 0)
                 {
                     Energy[ispin] -= 0.5 * magnitudes[ipair] * spins[ispin].dot(spins[jspin]);
@@ -335,7 +335,7 @@ namespace Engine
             for(auto ipair = 0; ipair < n_pairs; ++ipair)
             {
                 int ispin = pairs[ipair].i + icell*n_cell_atoms;
-                int jspin = cu_idx_from_pair(icell, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
+                int jspin = cu_idx_from_pair(ispin, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
                 if (jspin >= 0)
                 {
                     Energy[ispin] -= 0.5 * magnitudes[ipair] * normals[ipair].dot(spins[ispin].cross(spins[jspin]));
@@ -708,7 +708,7 @@ namespace Engine
         {
             for (int ibasis=0; ibasis<n_cell_atoms; ++ibasis)
             {
-                int ispin = icell + ibasis;
+                int ispin = n_cell_atoms * icell + ibasis;
                 if ( cu_check_atom_type(atom_types[ispin]) )
                     gradient[ispin] -= mu_s[ispin] * external_field_magnitude*external_field_normal;
             }
@@ -760,7 +760,7 @@ namespace Engine
             for(auto ipair = 0; ipair < n_pairs; ++ipair)
             {
                 int ispin = pairs[ipair].i + icell*n_cell_atoms;
-                int jspin = cu_idx_from_pair(icell, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
+                int jspin = cu_idx_from_pair(ispin, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
                 if (jspin >= 0)
                 {
                     gradient[ispin] -= magnitudes[ipair]*spins[jspin];
@@ -790,7 +790,7 @@ namespace Engine
             for(auto ipair = 0; ipair < n_pairs; ++ipair)
             {
                 int ispin = pairs[ipair].i + icell*n_cell_atoms;
-                int jspin = cu_idx_from_pair(icell, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
+                int jspin = cu_idx_from_pair(ispin, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
                 if (jspin >= 0)
                 {
                     gradient[ispin] -= magnitudes[ipair]*spins[jspin].cross(normals[ipair]);

@@ -272,7 +272,7 @@ namespace Engine
             // Translations (cell) of spin i
             int nic = ispin / (N*Na*Nb);
             int nib = (ispin - nic*N*Na*Nb) / (N*Na);
-            int nia = ispin - nic*N*Na*Nb - nib*N*Na;
+            int nia = (ispin - nic*N*Na*Nb - nib*N*Na) / N;
 
             // Translations (cell) of spin j (possibly outside of non-periodical domain)
             int pm = 1;
@@ -336,8 +336,7 @@ namespace Engine
             // Calculate the index of spin j according to it's translations
             int jspin = pair.j + (nja)*N + (njb)*N*Na + (njc)*N*Na*Nb;
 
-            // Invalid index if atom type of spin j is not correct
-            if ( pair.j != jspin%N || !cu_check_atom_type(atom_types[jspin]) )
+            if ( !cu_check_atom_type(atom_types[jspin]) )
                 return -1;
 
             // Return a valid index
