@@ -133,7 +133,7 @@ catch( ... )
     return 0;
 }
 
-void System_Get_Energy_Array(State * state, float * energies, int idx_image, int idx_chain) noexcept
+int System_Get_Energy_Array_Names(State * state, char* names, int idx_image, int idx_chain) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -142,14 +142,63 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
+    int n_char_array = -1; // Start of with offset -1, because the last contributions gets no "|" delimiter
     for (unsigned int i=0; i<image->E_array.size(); ++i)
     {
-        energies[i] = (float)image->E_array[i].second;
+        n_char_array += image->E_array[i].first.size() + 1; // Add +1 because we separate the contribution names with the character "|"
+    }
+
+    // If 'names' is a nullptr, we return the required length of the names array
+    if(names==nullptr)
+    {
+        return n_char_array;
+    } else { // Else we try to fill the provided char array
+        int idx=0;
+        for (unsigned int i=0; i<image->E_array.size(); ++i)
+        {
+            for(const char & cur_char : (image->E_array[i]).first)
+            {
+                names[idx++] = cur_char;
+            }
+            if(i != image->E_array.size()-1)
+                names[idx++] = '|';
+        }
+        return -1;
     }
 }
 catch( ... )
 {
     spirit_handle_exception_api(idx_image, idx_chain);
+    return -1;
+}
+
+
+int System_Get_Energy_Array(State * state, float * energies, bool divide_by_nspins, int idx_image, int idx_chain) noexcept
+try
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    scalar nd = divide_by_nspins ? 1/(scalar)image->nos : 1;
+
+    if(energies == nullptr)
+    {
+        return image->E_array.size();
+    } else {
+        for (unsigned int i=0; i<image->E_array.size(); ++i)
+        {
+            energies[i] = nd * (float)image->E_array[i].second;
+        }
+        return -1;
+    }
+}
+catch( ... )
+{
+    spirit_handle_exception_api(idx_image, idx_chain);
+    return -1;
 }
 
 void System_Get_Eigenvalues(State * state, float * eigenvalues, int idx_image, int idx_chain) noexcept

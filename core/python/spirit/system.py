@@ -98,16 +98,37 @@ def get_eigenvalues(p_state, idx_image=-1, idx_chain=-1):
     _Get_Eigenvalues(ctypes.c_void_p(p_state), eigenvalues, ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
     return eigenvalues
 
-# NOTE: excluded since there is no clean way to get the C++ pairs
-### Get Energy array
-# _Get_Energy_Array          = _spirit.System_Get_Energy_Array
-# _Get_Energy_Array.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float),
-#                               ctypes.c_int, ctypes.c_int]
-# _Get_Energy_Array.restype  = None
-# def Get_Energy_Array(p_state, idx_image=-1, idx_chain=-1):
-#     Energies
-#     _Get_Energy_Array(ctypes.c_void_p(p_state), energies,
-#                       ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+### Get Energy Contributions
+### The result is a dictionary with strings as keys and floats as values
+### The keys are the names of the energy contributions, the values the energy_contribution in meV
+_Get_Energy_Array       = _spirit.System_Get_Energy_Array
+_Get_Energy_Array.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_bool,
+                              ctypes.c_int, ctypes.c_int]
+_Get_Energy_Array.restype  = None
+
+_Get_Energy_Array_Names = _spirit.System_Get_Energy_Array_Names
+_Get_Energy_Array_Names.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_char),
+                                    ctypes.c_int, ctypes.c_int]
+_Get_Energy_Array_Names.restype  = ctypes.c_int
+def get_energy_contributions(p_state, divide_by_nspins = True, idx_image=-1, idx_chain=-1):
+    NULL = ctypes.POINTER(ctypes.c_char)()
+
+    n_char_array = _Get_Energy_Array_Names(ctypes.c_void_p(p_state), NULL,
+                    ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+    energy_array_names = (n_char_array*ctypes.c_char)()
+
+    _Get_Energy_Array_Names(ctypes.c_void_p(p_state), energy_array_names,
+                    ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+    contrib_names = str(energy_array_names[:].decode("utf-8")).split("|")
+    n_contribs = len(contrib_names)
+    energies = (n_contribs*ctypes.c_float)()
+
+    _Get_Energy_Array(ctypes.c_void_p(p_state), energies, divide_by_nspins,
+                      ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+    return dict(zip(contrib_names, energies))
 
 ### Get Chain number of images
 _Update_Data            = _spirit.System_Update_Data
