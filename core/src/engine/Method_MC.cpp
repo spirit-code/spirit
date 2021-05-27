@@ -45,6 +45,7 @@ namespace Engine
         this->cone_angle = Constants::Pi * this->parameters_mc->metropolis_cone_angle / 180.0;
         this->n_rejected = 0;
         this->acceptance_ratio_current = this->parameters_mc->acceptance_ratio_target;
+        Block_Decomposition();
     }
 
     // This implementation is mostly serial as parallelization is nontrivial
@@ -63,6 +64,66 @@ namespace Engine
         Parallel_Metropolis(spins_old, spins_new);
         // Metropolis(spins_old, spins_new);
         Vectormath::set_c_a(1, spins_new, spins_old);
+    }
+
+    bool Method_MC::Metropolis_Spin_Trial(int ispin, const vectorfield & spins_old, vectorfield & spins_new, const scalar & rng1, const scalar & rng2, const scalar & rng3, const scalar & cos_cone_angle)
+    {
+        Matrix3 local_basis;
+        const Vector3 e_z{0,0,1};
+        const scalar kB_T = Constants::k_B * this->parameters_mc->temperature;
+
+        // Calculate local basis for the spin
+        if( spins_old[ispin].z() < 1-1e-10 )
+        {
+            local_basis.col(2) = spins_old[ispin];
+            local_basis.col(0) = (local_basis.col(2).cross(e_z)).normalized();
+            local_basis.col(1) = local_basis.col(2).cross(local_basis.col(0));
+        }
+
+        // Rotation angle between 0 and cone_angle degrees
+        scalar costheta = 1 - (1 - cos_cone_angle) * rng1;
+
+        scalar sintheta = std::sqrt(1 - costheta*costheta);
+
+        // Random distribution of phi between 0 and 360 degrees
+        scalar phi = 2*Constants::Pi * rng2;
+
+        Vector3 local_spin_new{ sintheta * std::cos(phi),
+                                sintheta * std::sin(phi),
+                                costheta };
+
+        // New spin orientation in regular basis
+        spins_new[ispin] = local_basis * local_spin_new;
+
+        // Energy difference of configurations with and without displacement
+        scalar Eold  = this->systems[0]->hamiltonian->Energy_Single_Spin(ispin, spins_old);
+        scalar Enew  = this->systems[0]->hamiltonian->Energy_Single_Spin(ispin, spins_new);
+        scalar Ediff = Enew-Eold;
+
+        // Metropolis criterion: reject the step if energy rose
+        if( Ediff > 1e-14 )
+        {
+            if( this->parameters_mc->temperature < 1e-12 )
+            {
+                // Restore the spin
+                spins_new[ispin] = spins_old[ispin];
+                return false;
+            }
+            else
+            {
+                // Exponential factor
+                scalar exp_ediff    = std::exp( -Ediff/kB_T );
+                // Only reject if random number is larger than exponential
+                if( exp_ediff < rng3 )
+                {
+                    // Restore the spin
+                    spins_new[ispin] = spins_old[ispin];
+                    // Counter for the number of rejections
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     // Simple metropolis step
@@ -192,9 +253,12 @@ namespace Engine
         }
     }
 
-    // Simple metropolis step
-    void Method_MC::Parallel_Metropolis(const vectorfield & spins_old, vectorfield & spins_new)
+    void Method_MC::Block_Decomposition()
     {
+        n_blocks = {0,0,0};
+        block_size_min = {1,1,1}; // Require at least one as block size
+        rest = {0,0,0};
+
         if (this->systems[0]->hamiltonian->Name() != "Heisenberg")
         {
             return;
@@ -203,41 +267,89 @@ namespace Engine
         Log.Send(Utility::Log_Level::Info, Utility::Log_Sender::MC, fmt::format("Performing block decomposition for parallel Metropolis algorithm"));
         const auto & geom = this->systems[0]->geometry;
         const auto & ham  = (const Hamiltonian_Heisenberg *) this->systems[0]->hamiltonian.get();
-
-        std::array<int,3> block_size_min{0,0,0};
+  
         for(auto & p : ham->dmi_pairs)
         {
             for(int i=0; i<3; i++)
-                block_size_min[i] = std::max(block_size_min[i], p.translations[i] + 1);
+                block_size_min[i] = std::max(block_size_min[i], std::abs(p.translations[i]));
         }
         for(auto & p : ham->exchange_pairs)
         {
             for(int i=0; i<3; i++)
-                block_size_min[i] = std::max(block_size_min[i], p.translations[i] + 1);
+                block_size_min[i] = std::max(block_size_min[i], std::abs(p.translations[i]));
         }
         for(auto & q : ham->quadruplets)
         {
             for(int i=0; i<3; i++)
             {
-                block_size_min[i] = std::max(block_size_min[i], q.d_j[i] + 1);
-                block_size_min[i] = std::max(block_size_min[i], q.d_k[i] + 1);
-                block_size_min[i] = std::max(block_size_min[i], q.d_l[i] + 1);
+                block_size_min[i] = std::max(block_size_min[i], std::abs(q.d_j[i]));
+                block_size_min[i] = std::max(block_size_min[i], std::abs(q.d_k[i]));
+                block_size_min[i] = std::max(block_size_min[i], std::abs(q.d_l[i]));
             }
         }
         Log.Send(Utility::Log_Level::Info, Utility::Log_Sender::MC, fmt::format("    Min block size = ({}, {}, {})", block_size_min[0], block_size_min[1], block_size_min[2]));
 
-        std::array<int, 3> n_blocks;
-        std::array<int, 3> rest;
-
         for(int i=0; i<3; i++)
         {
-            n_blocks[i] = geom->n_cells[i] / block_size_min[i];
-            rest[i]     = geom->n_cells[i] % block_size_min[i];
+            if(block_size_min[i] <= geom->n_cells[i])
+            {
+                n_blocks[i] = geom->n_cells[i] / block_size_min[i];
+                rest[i] = geom->n_cells[i] % block_size_min[i];
+            } else { // If the block size is larger than n_cells, we use n_blocks=1 with a negative rest
+                n_blocks[i] = 1;
+                rest[i] = geom->n_cells[i] - block_size_min[i];
+            }
         }
+
         Log.Send(Utility::Log_Level::Info, Utility::Log_Sender::MC, fmt::format("    N_blocks       = ({}, {}, {})", n_blocks[0], n_blocks[1], n_blocks[2]));
         Log.Send(Utility::Log_Level::Info, Utility::Log_Sender::MC, fmt::format("    Rest           = ({}, {}, {})", rest[0], rest[1], rest[2]));
+        int Nthreads = std::max(1,n_blocks[0]/2) * std::max(1,n_blocks[1]/2) * std::max(1,n_blocks[2]/2);
+        Log.Send(Utility::Log_Level::Info, Utility::Log_Sender::MC, fmt::format("    Should scale up to {} threads.", Nthreads));
+    }
 
-        // There are up to 8 (2^dim) phases to the algorithm, which have to be executed serially
+    // Simple metropolis step
+    void Method_MC::Parallel_Metropolis(const vectorfield & spins_old, vectorfield & spins_new)
+    {
+        const auto & geom = this->systems[0]->geometry;
+
+        scalar diff = 0.01;
+        // Cone angle feedback algorithm
+        if( this->parameters_mc->metropolis_step_cone && this->parameters_mc->metropolis_cone_adaptive )
+        {
+            this->acceptance_ratio_current = 1 - (scalar)this->n_rejected / (scalar)this->nos_nonvacant;
+
+            if( (this->acceptance_ratio_current < this->parameters_mc->acceptance_ratio_target) && (this->cone_angle > diff) )
+                this->cone_angle -= diff;
+
+            if( (this->acceptance_ratio_current > this->parameters_mc->acceptance_ratio_target) && (this->cone_angle < Constants::Pi-diff) )
+                this->cone_angle += diff;
+
+            this->parameters_mc->metropolis_cone_angle = this->cone_angle * 180.0 / Constants::Pi;
+        }
+
+        this->n_rejected = 0;
+        int n_rejected = 0;
+        scalar cos_cone_angle = std::cos(this->cone_angle);
+
+        auto distribution = std::uniform_real_distribution<scalar>(0, 1);
+
+        // Number of threads
+        int nt = 1;
+        #ifdef SPIRIT_USE_OPENMP
+            nt = omp_get_max_threads() + 1;
+        #endif
+
+        // We make nt copies of our number generator, so that each thread has its own
+        if(nt != prng_vec.size())
+        {
+            prng_vec.resize(nt);
+            for(int i=0; i<prng_vec.size(); i++)
+            {
+                prng_vec[i] = std::mt19937(this->parameters_mc->rng_seed * (i+1));
+            }
+        }
+
+        // There are up to (2^dim) phases in the algorithm, which have to be executed serially
         for(int phase_c = 0; phase_c<2; phase_c++)
         {
             for(int phase_b = 0; phase_b<2; phase_b++)
@@ -246,7 +358,7 @@ namespace Engine
                 {
                     // In each phase we iterate over blocks of spins, which are **next-nearest** neighbour blocks
                     // Thus there is no dependence of the spin moves and we can parallelize over the blocks in a phase
-                    #pragma omp parallel for collapse(3)
+                    #pragma omp parallel for collapse(3) private(distribution) reduction(+:n_rejected) 
                     for(int block_c = phase_c; block_c < n_blocks[2]; block_c+=2)
                     {
                         for(int block_b = phase_b; block_b < n_blocks[1]; block_b+=2)
@@ -271,7 +383,22 @@ namespace Engine
                                                 int c = block_c * block_size_min[2] + cc;
 
                                                 // Compute the current spin idx
-                                                int idx = ibasis + geom->n_cell_atoms * ( a + geom->n_cells[0] * (b + geom->n_cells[1] * c);
+                                                int ispin = ibasis + geom->n_cell_atoms * ( a + geom->n_cells[0] * (b + geom->n_cells[1] * c));
+                                                if( Vectormath::check_atom_type(this->systems[0]->geometry->atom_types[ispin]) )
+                                                {
+                                                    int tid = 0;
+                                                    #ifdef SPIRIT_USE_OPENMP
+                                                    tid = omp_get_thread_num();
+                                                    #endif
+
+                                                    scalar rng1 = distribution(prng_vec[tid]);
+                                                    scalar rng2 = distribution(prng_vec[tid]);
+                                                    scalar rng3 = distribution(prng_vec[tid]);
+                                                    if(!Metropolis_Spin_Trial(ispin, spins_old, spins_new, rng1, rng2, rng3, cos_cone_angle))
+                                                    {
+                                                        n_rejected++;
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -282,155 +409,9 @@ namespace Engine
                 }
             }
         }
-
-        // auto distribution = std::uniform_real_distribution<scalar>(0, 1);
-        // auto distribution_idx = std::uniform_int_distribution<>(0, this->nos-1);
-        // scalar kB_T = Constants::k_B * this->parameters_mc->temperature;
-
-        // scalar diff = 0.01;
-
-        // // Cone angle feedback algorithm
-        // if( this->parameters_mc->metro
-        // void Metropolis(const vectorfield & spins_old, vectorfield & spins_new);polis_step_cone && this->parameters_mc->metropolis_cone_adaptive )
-        // {
-        //     this->acceptance_ratio_current = 1 - (scalar)this->n_rejected / (scalar)this->nos_nonvacant;
-
-        //     if( (this->acceptance_ratio_current < this->parameters_mc->acceptance_ratio_target) && (this->cone_angle > diff) )
-        //         this->cone_angle -= diff;
-
-        //     if( (this->acceptance_ratio_current > this->parameters_mc->acceptance_ratio_target) && (this->cone_angle < Constants::Pi-diff) )
-        //         this->cone_angle += diff;
-
-        //     this->parameters_mc->metropolis_cone_angle = this->cone_angle * 180.0 / Constants::Pi;
-        // }
-        // this->n_rejected = 0;
-
-        // // One Metropolis step for each spin
-        // Vector3 e_z{0, 0, 1};
-        // scalar costheta, sintheta, phi;
-        // Matrix3 local_basis;
-        // scalar cos_cone_angle = std::cos(cone_angle);
-
-        // // Loop over NOS samples (on average every spin should be hit once per Metropolis step)
-        // for (int idx=0; idx
-        // auto distribution = std::uniform_real_distribution<scalar>(0, 1);
-        // auto distribution_idx = std::uniform_int_distribution<>(0, this->nos-1);
-        // scalar kB_T = Constants::k_B * this->parameters_mc->temperature;
-
-        // scalar diff = 0.01;
-
-        // // Cone angle feedback algorithm
-        // if( this->parameters_mc->metro
-        // void Metropolis(const vectorfield & spins_old, vectorfield & spins_new);polis_step_cone && this->parameters_mc->metropolis_cone_adaptive )
-        // {
-        //     this->acceptance_ratio_current = 1 - (scalar)this->n_rejected / (scalar)this->nos_nonvacant;
-
-        //     if( (this->acceptance_ratio_current < this->parameters_mc->acceptance_ratio_target) && (this->cone_angle > diff) )
-        //         this->cone_angle -= diff;
-
-        //     if( (this->acce
-        // auto distribution = std::uniform_real_distribution<scalar>(0, 1);
-        // auto distribution_idx = std::uniform_int_distribution<>(0, this->nos-1);
-        // scalar kB_T = Constants::k_B * this->parameters_mc->temperature;
-
-        // scalar diff = 0.01;
-
-        // // Cone angle feedback algorithm
-        // if( this->parameters_mc->metro
-        // void Metropolis(const vectorfield & spins_old, vectorfield & spins_new);polis_step_cone && this->parameters_mc->metropolis_cone_adaptive )
-        // {
-        //     this->acceptance_ratio_current = 1 - (scalar)this->n_rejected / (scalar)this->nos_nonvacant;
-
-        //     if( (this->acceptance_ratio_current < this->parameters_mc->acceptance_ratio_target) && (this->cone_angle > diff) )
-        //         this->cone_angle -= diff;
-
-        //     if( (this->acceptance_ratio_current > this->parameters_mc->acceptance_ratio_target) && (this->cone_angle < Constants::Pi-diff) )
-        //         this->cone_angle += diff;
-
-        //     this->parameter:check_atom_type(this->systems[0]->geometry->atom_types[ispin]) )
-        //     {
-        //         // Sample a cone
-        //         if( this->parameters_mc->metropolis_step_cone )
-        //         {
-        //             // Calculate local basis for the spin
-        //             if( spins_old[ispin].z() < 1-1e-10 )
-        //             {
-        //                 local_basis.col(2) = spins_old[ispin];
-        //                 local_basis.col(0) = (local_basis.col(2).cross(e_z)).normalized();
-        //                 local_basis.col(1) = local_basis.col(2).cross(local_basis.col(0));
-        //             }
-        //             else
-        //             {
-        //                 local_basis = Matrix3::Identity();
-        //             }
-
-        //             // Rotation angle between 0 and cone_angle degrees
-        //             costheta = 1 - (1 - cos_cone_angle) * distribution(this->parameters_mc->prng);
-
-        //             sintheta = std::sqrt(1 - costheta*costheta);
-
-        //             // Random distribution of phi between 0 and 360 degrees
-        //             phi = 2*Constants::Pi * distribution(this->parameters_mc->prng);
-
-        //             // New spin orientation in local basis
-        //             Vector3 local_spin_new{ sintheta * std::cos(phi),
-        //                                     sintheta * std::sin(phi),
-        //                                     costheta };
-
-        //             // New spin orientation in regular basis
-        //             spins_new[ispin] = local_basis * local_spin_new;
-        //         }
-        //         // Sample the entire unit sphere
-        //         else
-        //         {
-        //             // Rotation angle between 0 and 180 degrees
-        //             costheta = distribution(this->parameters_mc->prng);
-
-        //             sintheta = std::sqrt(1 - costheta*costheta);
-
-        //             // Random distribution of phi between 0 and 360 degrees
-        //             phi = 2*Constants::Pi * distribution(this->parameters_mc->prng);
-
-        //             // New spin orientation in local basis
-        //             spins_new[ispin] = Vector3{ sintheta * std::cos(phi),
-        //                                         sintheta * std::sin(phi),
-        //                                         costheta };
-        //         }
-
-        //         // Energy difference of configurations with and without displacement
-        //         scalar Eold  = this->systems[0]->hamiltonian->Energy_Single_Spin(ispin, spins_old);
-        //         scalar Enew  = this->systems[0]->hamiltonian->Energy_Single_Spin(ispin, spins_new);
-        //         scalar Ediff = Enew-Eold;
-
-        //         // Metropolis criterion: reject the step if energy rose
-        //         if( Ediff > 1e-14 )
-        //         {
-        //             if( this->parameters_mc->temperature < 1e-12 )
-        //             {
-        //                 // Restore the spin
-        //                 spins_new[ispin] = spins_old[ispin];
-        //                 // Counter for the number of rejections
-        //                 ++this->n_rejected;
-        //             }
-        //             else
-        //             {
-        //                 // Exponential factor
-        //                 scalar exp_ediff    = std::exp( -Ediff/kB_T );
-        //                 // Metropolis random number
-        //                 scalar x_metropolis = distribution(this->parameters_mc->prng);
-
-        //                 // Only reject if random number is larger than exponential
-        //                 if( exp_ediff < x_metropolis )
-        //                 {
-        //                     // Restore the spin
-        //                     spins_new[ispin] = spins_old[ispin];
-        //                     // Counter for the number of rejections
-        //                     ++this->n_rejected;
-        //                 }
-        //             }
-        //         }
-        //     }
-        // }
+        this->n_rejected = n_rejected;
+        // std::cout << n_rejected << "\n";
+        // Log.Send(Utility::Log_Level::Error, Utility::Log_Sender::MC, fmt::format( "n_rejected = {}",n_rejected ));
     }
 
     // TODO:

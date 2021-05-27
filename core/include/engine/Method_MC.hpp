@@ -28,6 +28,11 @@ namespace Engine
         // Solver_Iteration represents one iteration of a certain Solver
         void Iteration() override;
 
+        // Performs a trial move of a single spin
+        bool Metropolis_Spin_Trial(int ispin, const vectorfield & spins_old, vectorfield & spins_new, const scalar & rng1, const scalar & rng2, const scalar & rng3, const scalar & cos_cone_angle);
+
+        void Block_Decomposition();
+        
         // Metropolis iteration with adaptive cone radius
         void Metropolis(const vectorfield & spins_old, vectorfield & spins_new);
         // Parallel MC
@@ -61,6 +66,12 @@ namespace Engine
 
         // Random vector array
         vectorfield xi;
+
+        // Values for block decompositon
+        std::array<int, 3> block_size_min;
+        std::array<int, 3> n_blocks;
+        std::array<int, 3> rest;
+        std::vector<std::mt19937> prng_vec = {};
     };
 }
 
