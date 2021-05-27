@@ -73,11 +73,14 @@ namespace Engine
         const scalar kB_T = Constants::k_B * this->parameters_mc->temperature;
 
         // Calculate local basis for the spin
-        if( spins_old[ispin].z() < 1-1e-10 )
+        if( std::abs(spins_old[ispin].z()) < 1-1e-10 )
         {
             local_basis.col(2) = spins_old[ispin];
             local_basis.col(0) = (local_basis.col(2).cross(e_z)).normalized();
             local_basis.col(1) = local_basis.col(2).cross(local_basis.col(0));
+        } else
+        {
+            local_basis = Matrix3::Identity();
         }
 
         // Rotation angle between 0 and cone_angle degrees
@@ -173,7 +176,7 @@ namespace Engine
                 if( this->parameters_mc->metropolis_step_cone )
                 {
                     // Calculate local basis for the spin
-                    if( spins_old[ispin].z() < 1-1e-10 )
+                    if( std::abs(spins_old[ispin].z()) < 1-1e-10 )
                     {
                         local_basis.col(2) = spins_old[ispin];
                         local_basis.col(0) = (local_basis.col(2).cross(e_z)).normalized();
@@ -336,7 +339,7 @@ namespace Engine
         // Number of threads
         int nt = 1;
         #ifdef SPIRIT_USE_OPENMP
-            nt = omp_get_max_threads() + 1;
+            nt = omp_get_max_threads();
         #endif
 
         // We make nt copies of our number generator, so that each thread has its own
@@ -384,6 +387,8 @@ namespace Engine
 
                                                 // Compute the current spin idx
                                                 int ispin = ibasis + geom->n_cell_atoms * ( a + geom->n_cells[0] * (b + geom->n_cells[1] * c));
+
+                                                // Perform the Metropolis trial step
                                                 if( Vectormath::check_atom_type(this->systems[0]->geometry->atom_types[ispin]) )
                                                 {
                                                     int tid = 0;
