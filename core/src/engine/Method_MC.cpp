@@ -258,6 +258,30 @@ namespace Engine
 
     void Method_MC::Block_Decomposition()
     {
+        /* 
+        Decompose the system into blocks of spins
+        Each Block may only interact with it's nearest neighbour.
+        Therefore this decomposition only works for short-ranged interactions (all except DDI)
+        It is further important that the number of blocks in each dimension is either 1 or an even number.
+        If this is not fulfilled the block can interact with its nearest periodic neighbour, for open boundary conditions it does not matter.
+        For example, a valid decomposition of a 9x4x1 system, with up to *next-nearest* neighbour interactions, could look like this:
+            ┌───┬───┬───┬─────┐
+            │1 1│2 2│1 1│2 2 2│
+            │   │   │   │     │
+            │1 1│2 2│1 1│2 2 2│
+            ├───┼───┼───┼─────┤
+            │3 3│4 4│3 3│4 4 4│
+            │   │   │   │     │
+            │3 3│4 4│3 3│4 4 4│
+            └───┴───┴───┴─────┘
+        The decomposition enables us to run the MC algorithm in four serial phases (1 to 4), while each phase is parallelized.
+        All boxes belonging to one specific phase, do not interact directly between each other, therefore we can perform their MC trial moves in parallel.
+        The number of phases is 2^dim and the number of usable threads is the number of boxes per phase.
+        In this example the usable number of threads would be 2.
+        If the size of the boxes does not perfectly divide n_cells, the rest is added or substracted at the edges.
+        */
+
+        // Initialize
         n_blocks = {0,0,0};
         block_size_min = {1,1,1}; // Require at least one as block size
         rest = {0,0,0};
@@ -290,24 +314,34 @@ namespace Engine
                 block_size_min[i] = std::max(block_size_min[i], std::abs(q.d_l[i]));
             }
         }
-        Log.Send(Utility::Log_Level::Info, Utility::Log_Sender::MC, fmt::format("    Min block size = ({}, {}, {})", block_size_min[0], block_size_min[1], block_size_min[2]));
+        Log.Send(Utility::Log_Level::Info, Utility::Log_Sender::MC, fmt::format("    Block size from interactions = ({}, {}, {})", block_size_min[0], block_size_min[1], block_size_min[2]));
+        
+        // If the number of blocks is uneven for a certain direction, we increase the block size until it is even
+        for(int i=0; i<3; i++)
+        {
+            n_blocks[i] = geom->n_cells[i] / block_size_min[i];
+            while(n_blocks[i] % 2 != 0 )
+            {
+                n_blocks[i] = geom->n_cells[i] / ++block_size_min[i];
+            }
+        }
 
         for(int i=0; i<3; i++)
         {
             if(block_size_min[i] <= geom->n_cells[i])
             {
-                n_blocks[i] = geom->n_cells[i] / block_size_min[i];
                 rest[i] = geom->n_cells[i] % block_size_min[i];
-            } else { // If the block size is larger than n_cells, we use n_blocks=1 with a negative rest
+            } else { // If the block size is larger than n_cells, we use n_blocks=1
                 n_blocks[i] = 1;
-                rest[i] = geom->n_cells[i] - block_size_min[i];
+                block_size_min[i] = geom->n_cells[i];
             }
         }
 
-        Log.Send(Utility::Log_Level::Info, Utility::Log_Sender::MC, fmt::format("    N_blocks       = ({}, {}, {})", n_blocks[0], n_blocks[1], n_blocks[2]));
-        Log.Send(Utility::Log_Level::Info, Utility::Log_Sender::MC, fmt::format("    Rest           = ({}, {}, {})", rest[0], rest[1], rest[2]));
+        Log.Send(Utility::Log_Level::Info, Utility::Log_Sender::MC, fmt::format("    Actual block size = ({}, {}, {})", block_size_min[0], block_size_min[1], block_size_min[2]));
+        Log.Send(Utility::Log_Level::Info, Utility::Log_Sender::MC, fmt::format("    N_blocks          = ({}, {}, {})", n_blocks[0], n_blocks[1], n_blocks[2]));
+        Log.Send(Utility::Log_Level::Info, Utility::Log_Sender::MC, fmt::format("    Rest              = ({}, {}, {})", rest[0], rest[1], rest[2]));
         int Nthreads = std::max(1,n_blocks[0]/2) * std::max(1,n_blocks[1]/2) * std::max(1,n_blocks[2]/2);
-        Log.Send(Utility::Log_Level::Info, Utility::Log_Sender::MC, fmt::format("    Should scale up to {} threads.", Nthreads));
+        Log.Send(Utility::Log_Level::Info, Utility::Log_Sender::MC, fmt::format("    Supports up to max. {} threads.", Nthreads));
     }
 
     // Simple metropolis step
