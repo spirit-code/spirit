@@ -148,8 +148,9 @@ public:
     Vector3 cell_size;
     // Unit cell volume [m^3]
     scalar cell_volume;
-    // Saturation Magnetisation [A/m]
-    scalar Ms;
+    // Computes the saturation magnetisation density [A/m] 
+    // from the atomistic basis cell composition
+    scalar getMs();
 
 private:
     // Generate the full set of spin positions

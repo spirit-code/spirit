@@ -99,7 +99,7 @@ try
             {
                 // TODO: are these the desired defaults?
                 image->hamiltonian = std::shared_ptr<Engine::Hamiltonian>(new Engine::Hamiltonian_Micromagnetic(
-                    0, Vector3{0, 0, 1},
+                    0, 0, Vector3{0, 0, 1},
                     Matrix3::Zero(),
                     Matrix3::Zero(),
                     Matrix3::Zero(),

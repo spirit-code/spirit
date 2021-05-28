@@ -150,7 +150,7 @@ namespace Demagnetization_Tensor
         //     1/(4 * pi) * dx dy dz (del_x^2 del_y^2 del_z^2 f(x,y,z)),
         // which turns out to be just the dipole approximation.
         // The following asymptotes also include the next higher terms.
-        // See Donahue "Accurate computation of thedemagnetization tensor".
+        // See Donahue "Accurate computation of the demagnetization tensor".
 
         // Implements del_x^2 del_y^2 del_z^2 f(x,y,z)
         template<typename scalar>

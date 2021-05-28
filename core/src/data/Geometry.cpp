@@ -81,11 +81,6 @@ namespace Data
             std::cout << bv.transpose() << "\n--\n";
         std::cout << "cell_volume " << cell_volume << "\n";
 
-        // Saturation Magnetisation Density in A/m
-        this->Ms = 0;
-        for(auto & mu_s : cell_composition.mu_s)
-            this->Ms += mu_s * Utility::Constants_Micromagnetic::mu_B / cell_volume;
-
         // Calculate the type of geometry
         this->calculateGeometryType();
 
@@ -162,7 +157,14 @@ namespace Data
         }
     }
 
-
+    scalar Geometry::getMs()
+    {
+        // Saturation Magnetisation Density in A/m
+        scalar Ms = 0;
+        for(auto & mu_s : cell_composition.mu_s)
+            Ms += mu_s * Utility::Constants_Micromagnetic::mu_B / cell_volume;
+        return Ms;
+    }
 
     std::vector<tetrahedron_t> compute_delaunay_triangulation_3D(const std::vector<vector3_t> & points)
     try
