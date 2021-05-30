@@ -116,5 +116,6 @@ setup(
     description='VFRendering python bindings',
     long_description='',
     ext_modules=[CMakeExtension('pyVFRendering')],
-    cmdclass = {'build_ext': CMakeBuild, 'bdist_wheel': bdist_wheel},
+    cmdclass={'build_ext': CMakeBuild, 'bdist_wheel': bdist_wheel},
+    install_requires=['numpy']
 )

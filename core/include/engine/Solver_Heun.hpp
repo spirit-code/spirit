@@ -30,6 +30,9 @@ void Method_Solver<Solver::Heun>::Initialize ()
 template <> inline
 void Method_Solver<Solver::Heun>::Iteration ()
 {
+    // Generate random vectors for this iteration
+    this->Prepare_Thermal_Field();
+
     // Get the actual forces on the configurations
     this->Calculate_Force(this->configurations, this->forces);
     this->Calculate_Force_Virtual(this->configurations, this->forces, this->forces_virtual);

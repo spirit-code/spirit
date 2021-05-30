@@ -41,9 +41,10 @@ Ta = Tc - 2
 Tb = Tc + 2
 
 T_step = (T_end-T_start) / n_temperatures
-sample_temperatures = np.linspace(T_start, Ta-0.5*T_step, num=n_temperatures/4)
-sample_temperatures = np.append(sample_temperatures, np.linspace( Ta+0.5*T_step, Tb-0.5*T_step, num=n_temperatures - (n_temperatures/4)*2))
-sample_temperatures = np.append(sample_temperatures, np.linspace(Tb+0.5*T_step,        T_end,  num=n_temperatures/4))
+
+sample_temperatures = np.linspace(T_start, Ta-0.5*T_step, num=int(n_temperatures/4))
+sample_temperatures = np.append(sample_temperatures, np.linspace( Ta+0.5*T_step, Tb-0.5*T_step, num=int(n_temperatures - (n_temperatures/4)*2)))
+sample_temperatures = np.append(sample_temperatures, np.linspace(Tb+0.5*T_step,        T_end,   num=int(n_temperatures/4)))
 
 energy_samples          = []
 magnetization_samples   = []

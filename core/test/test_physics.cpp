@@ -7,6 +7,7 @@
 #include <Spirit/Hamiltonian.h>
 #include <Spirit/Constants.h>
 #include <Spirit/Parameters_LLG.h>
+#include <Spirit/Version.h>
 #include <data/State.hpp>
 #include <Eigen/Dense>
 #include <Eigen/Core>
@@ -68,9 +69,8 @@ TEST_CASE( "Larmor Precession","[physics]" )
             Simulation_SingleShot( state.get() );
 
             // Expected spin orientation
-            // TODO: the step size should not be scaled by mu_s
-            scalar phi_expected = mu_s * dtg * (i+1) * B_mag;
-            scalar sz_expected  = std::tanh( mu_s * damping * dtg * (i+1) * B_mag );
+            scalar phi_expected = dtg * (i+1) * B_mag;
+            scalar sz_expected  = std::tanh( damping * dtg * (i+1) * B_mag );
             scalar rxy_expected = std::sqrt( 1-sz_expected*sz_expected );
             scalar sx_expected  = std::cos(phi_expected) * rxy_expected;
 
@@ -88,6 +88,15 @@ TEST_CASE( "Finite Differences", "[physics]" )
     std::vector<const char *>  hamiltonians{ "core/test/input/fd_pairs.cfg" };
                                              //"core/test/input/fd_neighbours",
                                              //"core/test/input/fd_gaussian.cfg"};
+
+    // Reduce precision if float accuracy
+    double epsilon_apprx = 1e-11;
+    if(strcmp(Spirit_Scalar_Type(), "float") == 0)
+    {
+        WARN("Detected single precision calculation. Reducing precision requirements.");
+        epsilon_apprx = 1e-4;
+    }
+
     for( auto ham: hamiltonians )
     {
         INFO( " Testing " << ham );
@@ -105,7 +114,12 @@ TEST_CASE( "Finite Differences", "[physics]" )
         state->active_image->hamiltonian->Gradient( vf, grad );
 
         for( int i=0; i<state->nos; i++)
-            REQUIRE( grad_fd[i].isApprox( grad[i] ) );
+        {
+            INFO("i = " << i << "\n" );
+            INFO("Gradient (FD) = " << grad_fd[i].transpose() << "\n" );
+            INFO("Gradient      = " << grad[i].transpose() << "\n" );
+            REQUIRE( grad_fd[i].isApprox( grad[i], epsilon_apprx ) );
+        }
 
         auto hessian = MatrixX( 3*state->nos, 3*state->nos );
         auto hessian_fd = MatrixX( 3*state->nos, 3*state->nos );
@@ -113,7 +127,9 @@ TEST_CASE( "Finite Differences", "[physics]" )
         state->active_image->hamiltonian->Hessian_FD( vf, hessian_fd );
         state->active_image->hamiltonian->Hessian( vf, hessian );
 
-        REQUIRE( hessian_fd.isApprox( hessian ) );
+        INFO("Hessian (FD) = " << hessian_fd << "\n" );
+        INFO("Hessian      = " << hessian << "\n" );
+        REQUIRE( hessian_fd.isApprox( hessian, epsilon_apprx ) );
     }
 }
 

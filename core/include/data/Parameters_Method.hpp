@@ -1,47 +1,45 @@
 #pragma once
-#ifndef DATA_PARAMETERS_METHOD_H
-#define DATA_PARAMETERS_METHOD_H
+#ifndef SPIRIT_DATA_PARAMETERS_METHOD_HPP
+#define SPIRIT_DATA_PARAMETERS_METHOD_HPP
 
 #include "Spirit_Defines.h"
+#include <io/Fileformat.hpp>
 
 #include <string>
-#include <array>
-#include <random>
 
 namespace Data
 {
-    // Solver Parameters Base Class
-    class Parameters_Method
-    {
-    public:
-        // Constructor
-        Parameters_Method(std::string output_folder, std::string output_file_tag,
-            std::array<bool,3> output, long int n_iterations, long int n_iterations_log, 
-            long int max_walltime_sec, scalar force_convergence );
 
-        // --------------- Iterations ------------
-        // Number of iterations carried out when pressing "play" or calling "iterate"
-        long int n_iterations;
-        // Number of iterations after which the Method should save data
-        long int n_iterations_log;
+// Solver Parameters Base Class
+struct Parameters_Method
+{
+    // --------------- Iterations ------------
+    // Number of iterations carried out when pressing "play" or calling "iterate"
+    long int n_iterations = 1e6;
+    // Number of iterations after which the Method should save data
+    long int n_iterations_log = 1e3;
 
-        // Maximum walltime for Iterate in seconds
-        long int max_walltime_sec;
+    // Maximum walltime for Iterate in seconds
+    long int max_walltime_sec = 0;
 
-        // Force convergence criterium
-        scalar force_convergence;
+    // Force convergence criterium
+    double force_convergence = 1e-10;
 
-        // ----------------- Output --------------
-        // Data output folder
-        std::string output_folder;
-        // Put a tag in front of output files (if "<time>" is used then the tag is the timestamp)
-        std::string output_file_tag;
-        // Save any output when logging
-        bool output_any;
-        // Save output at initial state
-        bool output_initial;
-        // Save output at final state
-        bool output_final;
-    };
-}
+    // ----------------- Output --------------
+    // Data output folder
+    std::string output_folder = "output";
+    // Put a tag in front of output files (if "<time>" is used then the tag is the timestamp)
+    std::string output_file_tag = "<time>";
+    // Save any output when logging
+    bool output_any = false;
+    // Save output at initial state
+    bool output_initial = false;
+    // Save output at final state
+    bool output_final = false;
+    // Vectorfield output file format
+    IO::VF_FileFormat output_vf_filetype = IO::VF_FileFormat::OVF_TEXT;
+};
+
+} // namespace Data
+
 #endif

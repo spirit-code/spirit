@@ -29,7 +29,7 @@ void Parameters_MC_Set_Output_Tag(State *state, const char * tag, int idx_image,
         image->mc_parameters->output_file_tag = tag;
         image->Unlock();
 
-        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+        Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
              fmt::format("Set MC output tag = \"{}\"", tag), idx_image, idx_chain );
     }
     catch( ... )
@@ -52,7 +52,7 @@ void Parameters_MC_Set_Output_Folder(State *state, const char * folder, int idx_
         image->mc_parameters->output_folder = folder;
         image->Unlock();
 
-        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+        Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
              "Set MC Output Folder = " + std::string(folder), idx_image, idx_chain );
     }
     catch( ... )
@@ -61,7 +61,7 @@ void Parameters_MC_Set_Output_Folder(State *state, const char * folder, int idx_
     }
 }
 
-void Parameters_MC_Set_Output_General( State *state, bool any, bool initial, bool final, 
+void Parameters_MC_Set_Output_General( State *state, bool any, bool initial, bool final,
                                        int idx_image, int idx_chain ) noexcept
 {
     try
@@ -85,7 +85,7 @@ void Parameters_MC_Set_Output_General( State *state, bool any, bool initial, boo
 }
 
 void Parameters_MC_Set_Output_Energy( State *state, bool energy_step, bool energy_archive, bool energy_spin_resolved,
-                                      bool energy_add_readability_lines, bool energy_divide_by_nos, 
+                                      bool energy_add_readability_lines, bool energy_divide_by_nos,
                                       int idx_image, int idx_chain ) noexcept
 {
     try
@@ -124,7 +124,7 @@ void Parameters_MC_Set_Output_Configuration( State *state, bool configuration_st
         image->Lock();
         image->mc_parameters->output_configuration_step = configuration_step;
         image->mc_parameters->output_configuration_archive = configuration_archive;
-        image->mc_parameters->output_configuration_filetype = configuration_filetype;
+        image->mc_parameters->output_vf_filetype = IO::VF_FileFormat(configuration_filetype);
         image->Unlock();
     }
     catch( ... )
@@ -133,7 +133,7 @@ void Parameters_MC_Set_Output_Configuration( State *state, bool configuration_st
     }
 }
 
-void Parameters_MC_Set_N_Iterations( State *state, int n_iterations, int n_iterations_log, 
+void Parameters_MC_Set_N_Iterations( State *state, int n_iterations, int n_iterations_log,
                                      int idx_image, int idx_chain ) noexcept
 {
     try
@@ -171,7 +171,7 @@ void Parameters_MC_Set_Temperature( State *state, float T, int idx_image, int id
 
         image->mc_parameters->temperature = T;
 
-        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+        Log(Utility::Log_Level::Parameter, Utility::Log_Sender::API,
             fmt::format("Set MC temperature to {}", T), idx_image, idx_chain);
 
         image->Unlock();
@@ -190,7 +190,7 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
-    
+
     image->Lock();
 
     image->mc_parameters->metropolis_step_cone     = cone;
@@ -202,19 +202,19 @@ try
         if( adaptive_cone )
         {
             image->mc_parameters->acceptance_ratio_target  = target_acceptance_ratio;
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format(
+            Log(Utility::Log_Level::Parameter, Utility::Log_Sender::API, fmt::format(
                 "Set MC adaptive cone with a target acceptance ratio of {} (initial angle of {})",
                 target_acceptance_ratio, cone_angle), idx_image, idx_chain);
         }
         else
         {
-            Log(Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format(
+            Log(Utility::Log_Level::Parameter, Utility::Log_Sender::API, fmt::format(
                 "Set MC conical random number generation with a cone angle of {}",
                 cone_angle), idx_image, idx_chain);
         }
     }
     else
-        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+        Log(Utility::Log_Level::Parameter, Utility::Log_Sender::API,
             "Deactivated MC conical random number generation.", idx_image, idx_chain);
 
     image->Unlock();
@@ -284,14 +284,14 @@ const char * Parameters_MC_Get_Output_Folder(State *state, int idx_image, int id
     }
 }
 
-void Parameters_MC_Get_Output_General( State *state, bool * any, bool * initial, bool * final, 
+void Parameters_MC_Get_Output_General( State *state, bool * any, bool * initial, bool * final,
                                        int idx_image, int idx_chain ) noexcept
 {
     try
     {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-        
+
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
 
@@ -343,7 +343,7 @@ void Parameters_MC_Get_Output_Configuration( State *state, bool * configuration_
 
         *configuration_step = image->mc_parameters->output_configuration_step;
         *configuration_archive = image->mc_parameters->output_configuration_archive;
-        *configuration_filetype = image->mc_parameters->output_configuration_filetype;
+        *configuration_filetype = (int)image->mc_parameters->output_vf_filetype;
     }
     catch( ... )
     {
@@ -351,7 +351,7 @@ void Parameters_MC_Get_Output_Configuration( State *state, bool * configuration_
     }
 }
 
-void Parameters_MC_Get_N_Iterations( State *state, int * iterations, int * iterations_log, 
+void Parameters_MC_Get_N_Iterations( State *state, int * iterations, int * iterations_log,
                                      int idx_image, int idx_chain ) noexcept
 {
     try

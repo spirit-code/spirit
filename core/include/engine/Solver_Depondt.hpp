@@ -29,6 +29,9 @@ void Method_Solver<Solver::Depondt>::Initialize ()
 template <> inline
 void Method_Solver<Solver::Depondt>::Iteration ()
 {
+    // Generate random vectors for this iteration
+    this->Prepare_Thermal_Field();
+
     // Get the actual forces on the configurations
     this->Calculate_Force(this->configurations, this->forces);
     this->Calculate_Force_Virtual(this->configurations, this->forces, this->forces_virtual);

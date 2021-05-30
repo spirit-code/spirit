@@ -1,7 +1,7 @@
 UI - CPP
 ------------
 
-By setting the CMake switch `UI_CXX_USE_QT`, you can choose wether to use a regular
+By setting the CMake switch `SPIRIT_UI_CXX_USE_QT`, you can choose wether to use a regular
 command line interface or a powerful QT user interface.
 
 Both interfaces can be stopped with `Ctrl+C`.
@@ -13,7 +13,7 @@ Pressing `Ctrl+C` twice within 2 seconds will cause immediate termination.
 ### Command Line
 This is a very simplistic command line user interface implementing the **core** library.
 It has no non-standard library dependencies and should thus run almost anywhere,
-where a compiler with C++11 support is available.
+where a compiler with C++14 support is available.
 
 #### Controlling the code
 The actions need to be hard-coded into `main.cpp`, there is currently no way to
@@ -33,8 +33,8 @@ menu, one can import and export e.g. spin configurations.
 The `Spin Widget` wraps the **VFRendering** library's visualisation capabilities
 and provides user interaction.
 The remaining widgets are used to control parameters and view output. They are packed
-into a `QDockWidget`, meaning they are repositionable and can be toggled. 
+into a `QDockWidget`, meaning they are repositionable and can be toggled.
 
 #### ui files
 The *ui* folder contains QT-specific xml files, which can be edited using
-*QT Creator* or *QT Designer*. 
+*QT Creator* or *QT Designer*.

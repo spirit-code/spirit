@@ -1,8 +1,9 @@
 #pragma once
 #ifndef FFT_H
 #define FFT_H
-#include "Eigen/Core"
+#include <Eigen/Core>
 #include <data/Geometry.hpp>
+#include <utility/Logging.hpp>
 #include <engine/Vectormath_Defines.hpp>
 #include <iostream>
 #include <complex>
@@ -12,8 +13,8 @@
 #endif
 
 #ifdef SPIRIT_USE_KISSFFT
-#include "kiss_fft.h"
-#include "kiss_fftndr.h"
+#include <kiss_fft/kiss_fft.h>
+#include <kiss_fft/tools/kiss_fftndr.h>
 #endif
 
 #ifdef SPIRIT_USE_FFTW
@@ -25,7 +26,7 @@
 #include <cufft.h>
 #endif
 
-namespace Engine 
+namespace Engine
 {
     namespace FFT
     {
@@ -84,7 +85,7 @@ namespace Engine
             FFT_cpx_type res;
             res[0] = d1[0] * s1[0] + d2[0] * s2[0] + d3[0] * s3[0] - d1[1] * s1[1] - d2[1] * s2[1] - d3[1] * s3[1];
             res[1] = d1[0] * s1[1] + d2[0] * s2[1] + d3[0] * s3[1] + d1[1] * s1[0] + d2[1] * s2[0] + d3[1] * s3[0];
-            return res;     
+            return res;
         }
 
         inline void addTo(FFT_cpx_type & a, const FFT_cpx_type & b, bool overwrite)
@@ -112,7 +113,7 @@ namespace Engine
             FFT_cpx_type res;
             res.x = d1.x * s1.x + d2.x * s2.x + d3.x * s3.x - d1.y * s1.y - d2.y * s2.y - d3.y * s3.y;
             res.y = d1.x * s1.y + d2.x * s2.y + d3.x * s3.y + d1.y * s1.x + d2.y * s2.x + d3.y * s3.x;
-            return res;   
+            return res;
         }
 
         inline __device__ void addTo(FFT_cpx_type & a, const FFT_cpx_type & b, bool overwrite = false)
@@ -127,6 +128,14 @@ namespace Engine
             }
         }
         #endif
+
+        inline void FFT_Init()
+        {
+            #if defined SPIRIT_USE_FFTW && defined SPIRIT_USE_OPENMP
+                fftw_init_threads();
+                fftw_plan_with_nthreads(omp_get_max_threads());
+            #endif
+        }
 
         inline void get_strides(field<int*> & strides, const field<int> & maxVal)
         {
@@ -151,8 +160,7 @@ namespace Engine
         {
             std::vector<int> dims;
             bool inverse;
-            bool freeable = false;
-            int howmany;
+            int n_transforms;
 
             field<FFT_cpx_type> cpx_ptr;
             field<FFT_real_type> real_ptr;
@@ -164,16 +172,81 @@ namespace Engine
             void Clean();
             FFT_cfg cfg;
 
-            ~FFT_Plan();
-        };
+            //Constructor delegation
+            FFT_Plan() : FFT_Plan({2,2,2}, true, 1, 8)
+            {}
 
-        inline void FFT_Init()
-        {
-            #if defined SPIRIT_USE_FFTW && defined SPIRIT_USE_OPENMP
-                fftw_init_threads();
-                fftw_plan_with_nthreads(omp_get_max_threads());
-            #endif
-        }
+            FFT_Plan(std::vector<int> dims, bool inverse, int n_transforms, int len) :
+                dims(dims),
+                inverse(inverse),
+                n_transforms(n_transforms),
+                real_ptr(field<FFT::FFT_real_type>(n_transforms * len )),
+                cpx_ptr(field<FFT::FFT_cpx_type> (n_transforms * len))
+
+            {
+                this->Create_Configuration();
+            }
+
+            //copy constructor
+            FFT_Plan(FFT_Plan const & other)
+            {
+                this->dims     = other.dims;
+                this->inverse  = other.inverse;
+                this->n_transforms  = other.n_transforms;
+                this->name     = other.name;
+                this->cpx_ptr  = other.cpx_ptr;
+                this->real_ptr = other.real_ptr;
+
+                this->Create_Configuration();
+            }
+
+            // copy assignment operator
+            FFT_Plan& operator=(FFT_Plan const & other)
+            {
+                if(this != &other)
+                {
+                    this->dims     = other.dims;
+                    this->inverse  = other.inverse;
+                    this->n_transforms  = other.n_transforms;
+                    this->name     = other.name;
+                    this->cpx_ptr  = other.cpx_ptr;
+                    this->real_ptr = other.real_ptr;
+
+                    this->cpx_ptr.shrink_to_fit();
+                    this->real_ptr.shrink_to_fit();
+
+                    this->Free_Configuration();
+                    this->Create_Configuration();
+                }
+                return *this;
+            }
+
+            //move assignment operator
+            FFT_Plan& operator=(FFT_Plan const && other)
+            {
+                if(this != &other)
+                {
+                    this->dims     = std::move(other.dims);
+                    this->inverse  = std::move(other.inverse);
+                    this->n_transforms  = std::move(other.n_transforms);
+                    this->name     = std::move(other.name);
+                    this->cpx_ptr  = std::move(other.cpx_ptr);
+                    this->real_ptr = std::move(other.real_ptr);
+
+                    this->cpx_ptr.shrink_to_fit();
+                    this->real_ptr.shrink_to_fit();
+
+                    this->Free_Configuration();
+                    this->Create_Configuration();
+                }
+                return *this;
+            }
+
+            ~FFT_Plan()
+            {
+                Free_Configuration();
+            }
+        };//end FFT_Plan
 
         void Four_3D(const FFT_Plan & plan, field<FFT_real_type> & in, field<FFT_cpx_type> & out);
         void iFour_3D(const FFT_Plan & plan, field<FFT_cpx_type> & in, field<FFT_real_type> & out);

@@ -3,38 +3,95 @@
 #define INTERFACE_STATE_H
 #include "DLL_Define_Export.h"
 
+/*
+State
+====================================================================
+
+```C
+#include "Spirit/State.h"
+```
+
+To create a new state with one chain containing a single image,
+initialized by an [input file](Input.md), and run the most simple example
+of a **spin dynamics simulation**:
+
+```C
+#import "Spirit/State.h"
+#import "Spirit/Simulation.h"
+
+const char * cfgfile = "input/input.cfg";  // Input file
+State * p_state = State_Setup(cfgfile);    // State setup
+Simulation_LLG_Start(p_state, Solver_SIB); // Start a LLG simulation using the SIB solver
+State_Delete(p_state)                      // State cleanup
+```
+*/
+
+/*
+The opaque state struct, containing all calculation data.
+
+```
++-----------------------------+
+| State                       |
+| +-------------------------+ |
+| | Chain                   | |
+| | +--------------------+  | |
+| | | 0th System ≡ Image |  | |
+| | +--------------------+  | |
+| | +--------------------+  | |
+| | | 1st System ≡ Image |  | |
+| | +--------------------+  | |
+| |   .                     | |
+| |   .                     | |
+| |   .                     | |
+| | +--------------------+  | |
+| | | Nth System ≡ Image |  | |
+| | +--------------------+  | |
+| +-------------------------+ |
++-----------------------------+
+```
+
+This is passed to and is operated on by the API functions.
+
+A new state can be created with `State_Setup()`, where you can pass
+a [config file](Input.md) specifying your initial system parameters.
+If you do not pass a config file, the implemented defaults are used.
+**Note that you currently cannot change the geometry of the systems
+in your state once they are initialized.**
+*/
 struct State;
 
 /*
-	State_Setup
-	  Create the State and fill it with initial data
+Create the State and fill it with initial data.
+
+- `config_file`: if a config file is given, it will be parsed for
+  keywords specifying the initial values. Otherwise, defaults are used
+- `quiet`: if `true`, the defaults are changed such that only very few
+  messages will be printed to the console and no output files are written
 */
-DLLEXPORT State * State_Setup(const char * config_file = "", bool quiet = false) noexcept;
+PREFIX State * State_Setup(const char * config_file = "", bool quiet = false) SUFFIX;
 
 /*
-	State_Delete
-	  Correctly deletes a State
+Correctly deletes a State and frees the corresponding memory.
 */
-DLLEXPORT void State_Delete(State * state) noexcept;
+PREFIX void State_Delete(State * state) SUFFIX;
 
 /*
-	State_Update
-      Update the state to hold current values
+Update the state to hold current values.
 */
-DLLEXPORT void State_Update(State * state) noexcept;
+PREFIX void State_Update(State * state) SUFFIX;
 
 /*
-	State_To_Config
-	  Write a config file which should give the same state again when
-	  used in State_Setup (modulo the number of chains and images)
+Write a config file which should give the same state again when
+used in State_Setup (modulo the number of chains and images)
 */
-DLLEXPORT void State_To_Config(State * state, const char * config_file, const char * original_config_file="") noexcept;
+PREFIX void State_To_Config(State * state, const char * config_file, const char * original_config_file="") SUFFIX;
 
 /*
-	State_DateTime
-	  Get the datetime tag (timepoint of creation) of this state
+Returns a string containing the datetime tag (timepoint of creation) of this state.
+
+Format: `yyyy-mm-dd_hh-mm-ss`
 */
-DLLEXPORT const char * State_DateTime(State * state) noexcept;
+PREFIX const char * State_DateTime(State * state) SUFFIX;
 
 #include "DLL_Undefine_Export.h"
 #endif

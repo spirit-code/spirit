@@ -94,8 +94,8 @@ class GNEB_set_get(TestParameters):
     
     def test_GNEB_Spring_Constant(self):
         k_set = 0.15
-        parameters.gneb.set_spring_constant(self.p_state, k_set)        # try set
-        k_get = parameters.gneb.get_spring_constant(self.p_state)       # try get
+        parameters.gneb.set_spring_force(self.p_state, k_set)         # try set
+        k_get, ratio = parameters.gneb.get_spring_force(self.p_state) # try get
         self.assertAlmostEqual(k_set, k_get)
     
     def test_GNEB_Climbing_Falling(self):

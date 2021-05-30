@@ -33,7 +33,7 @@ namespace Engine
         // Attributes needed for applying a mode the spins
         this->angle = scalarfield(this->nos);
         this->angle_initial = scalarfield(this->nos);
-        this->axis = vectorfield(this->nos);        
+        this->axis = vectorfield(this->nos);
         this->spins_initial = *this->systems[0]->spins;
 
         Eigenmodes::Check_Eigenmode_Parameters(system);
@@ -64,7 +64,7 @@ namespace Engine
 
             // Set the new mode
             this->mode = *this->systems[0]->modes[following_mode];
-            
+
             // Find the axes of rotation for the mode to visualize
             for (int idx=0; idx<this->nos; idx++)
             {
@@ -77,8 +77,8 @@ namespace Engine
 
         // Calculate n for that iteration based on the initial n displacement vector
         scalar t_angle;
-        if ( !this->parameters_ema->snapshot ) 
-            t_angle = this->parameters_ema->amplitude * 
+        if ( !this->parameters_ema->snapshot )
+            t_angle = this->parameters_ema->amplitude *
                       std::sin( 2*C::Pi * this->counter * this->parameters_ema->frequency );
         else
             t_angle = this->parameters_ema->amplitude;

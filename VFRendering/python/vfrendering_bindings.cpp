@@ -9,7 +9,9 @@
 #include <VFRendering/RendererBase.hxx>
 #include <VFRendering/CombinedRenderer.hxx>
 #include <VFRendering/ArrowRenderer.hxx>
+#include <VFRendering/DotRenderer.hxx>
 #include <VFRendering/SphereRenderer.hxx>
+#include <VFRendering/ParallelepipedRenderer.hxx>
 #include <VFRendering/BoundingBoxRenderer.hxx>
 #include <VFRendering/CoordinateSystemRenderer.hxx>
 #include <VFRendering/SurfaceRenderer.hxx>
@@ -188,6 +190,13 @@ PYBIND11_MODULE(pyVFRendering, m)
         .value("translate",      CameraMovementModes::TRANSLATE)
         .export_values();
 
+    
+    // Styles of the dot drawn by the DotRenderer
+    py::enum_<DotRenderer::DotStyle>(m, "DotRendererStyle")
+        .value("circle", DotRenderer::DotStyle::CIRCLE)
+        .value("square", DotRenderer::DotStyle::SQUARE)
+        .export_values();
+
 
     // Renderer base class
     py::class_<RendererBase, std::shared_ptr<RendererBase>>(m, "RendererBase", "Renderer base class");
@@ -222,6 +231,17 @@ PYBIND11_MODULE(pyVFRendering, m)
             "Set the resolution of a sphere")
         .def("setSphereRadius",  &SphereRenderer::setOption<SphereRenderer::Option::SPHERE_RADIUS>,
             "Set the radius of a sphere");
+
+    // ParallelepipedRenderer
+    py::class_<ParallelepipedRenderer, RendererBase, std::shared_ptr<ParallelepipedRenderer>>(m, "ParallelepipedRenderer",
+        "This class is used to draw parallelepiped at the positions of vectorfield, with colors corresponding to direction.")
+        .def(py::init<View&, VectorField&>())
+        .def("setParallelepipedLengthA",  &ParallelepipedRenderer::setOption<ParallelepipedRenderer::Option::LENGTH_A>,
+            "Set the length a of the parallelepiped")
+        .def("setParallelepipedLengthB",  &ParallelepipedRenderer::setOption<ParallelepipedRenderer::Option::LENGTH_B>,
+            "Set the length b of the parallelepiped")
+        .def("setParallelepipedLengthC",  &ParallelepipedRenderer::setOption<ParallelepipedRenderer::Option::LENGTH_C>,
+            "Set the length c of the parallelepiped");
 
     // BoundingBoxRenderer
     py::class_<BoundingBoxRenderer, RendererBase, std::shared_ptr<BoundingBoxRenderer>>(m, "BoundingBoxRenderer",
@@ -264,4 +284,13 @@ PYBIND11_MODULE(pyVFRendering, m)
         .def("setPointSizeRange",           &VectorSphereRenderer::setOption<VectorSphereRenderer::Option::POINT_SIZE_RANGE>)
         .def("setInnerSphereRadius",        &VectorSphereRenderer::setOption<VectorSphereRenderer::Option::INNER_SPHERE_RADIUS>)
         .def("setUseSphereFakePerspective", &VectorSphereRenderer::setOption<VectorSphereRenderer::Option::USE_SPHERE_FAKE_PERSPECTIVE>);
+
+    // DotRenderer
+    py::class_<DotRenderer, RendererBase, std::shared_ptr<DotRenderer>>(m, "DotRenderer",
+        "This class is used to draw dots at the positions of vectorfield, with colors corresponding to direction.")
+        .def(py::init<View&, VectorField&>())
+        .def("setDotRadius",  &DotRenderer::setOption<DotRenderer::Option::DOT_RADIUS>,
+             "Set the radius of a dot")
+        .def("setDotStyle",  &DotRenderer::setOption<DotRenderer::Option::DOT_STYLE>,
+             "Set the style of a dot");
 }

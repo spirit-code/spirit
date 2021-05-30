@@ -5,6 +5,7 @@
 #include <data/Spin_System_Chain.hpp>
 #include <io/IO.hpp>
 #include <utility/Logging.hpp>
+#include <utility/Constants.hpp>
 
 #include <Eigen/Dense>
 
@@ -30,13 +31,13 @@ namespace Engine
         this->xi = vectorfield(this->nos, {0,0,0});
 
         // We assume it is not converged before the first iteration
-        // this->force_max_abs_component = system->mc_parameters->force_convergence + 1.0;
+        // this->max_torque = system->mc_parameters->force_convergence + 1.0;
 
         // History
         this->history = std::map<std::string, std::vector<scalar>>{
-            {"max_torque_component", {this->force_max_abs_component}},
-            {"E", {this->force_max_abs_component}},
-            {"M_z", {this->force_max_abs_component}} };
+            {"max_torque", {this->max_torque}},
+            {"E", {this->max_torque}},
+            {"M_z", {this->max_torque}} };
 
         this->parameters_mc = system->mc_parameters;
 
@@ -73,7 +74,7 @@ namespace Engine
         scalar diff = 0.01;
 
         // Cone angle feedback algorithm
-        if (this->parameters_mc->metropolis_step_cone && this->parameters_mc->metropolis_cone_adaptive)
+        if( this->parameters_mc->metropolis_step_cone && this->parameters_mc->metropolis_cone_adaptive )
         {
             this->acceptance_ratio_current = 1 - (scalar)this->n_rejected / (scalar)this->nos_nonvacant;
 
@@ -97,7 +98,7 @@ namespace Engine
         for (int idx=0; idx < this->nos; ++idx)
         {
             int ispin;
-            if (this->parameters_mc->metropolis_random_sample)
+            if( this->parameters_mc->metropolis_random_sample )
                 // Better statistics, but additional calculation of random number
                 ispin = distribution_idx(this->parameters_mc->prng);
             else
@@ -107,10 +108,10 @@ namespace Engine
             if( Vectormath::check_atom_type(this->systems[0]->geometry->atom_types[ispin]) )
             {
                 // Sample a cone
-                if (this->parameters_mc->metropolis_step_cone)
+                if( this->parameters_mc->metropolis_step_cone )
                 {
                     // Calculate local basis for the spin
-                    if (spins_old[ispin].z() < 1-1e-10)
+                    if( spins_old[ispin].z() < 1-1e-10 )
                     {
                         local_basis.col(2) = spins_old[ispin];
                         local_basis.col(0) = (local_basis.col(2).cross(e_z)).normalized();
@@ -160,9 +161,9 @@ namespace Engine
                 scalar Ediff = Enew-Eold;
 
                 // Metropolis criterion: reject the step if energy rose
-                if (Ediff > 1e-14)
+                if( Ediff > 1e-14 )
                 {
-                    if (this->parameters_mc->temperature < 1e-12)
+                    if( this->parameters_mc->temperature < 1e-12 )
                     {
                         // Restore the spin
                         spins_new[ispin] = spins_old[ispin];
@@ -177,7 +178,7 @@ namespace Engine
                         scalar x_metropolis = distribution(this->parameters_mc->prng);
 
                         // Only reject if random number is larger than exponential
-                        if (exp_ediff < x_metropolis)
+                        if( exp_ediff < x_metropolis )
                         {
                             // Restore the spin
                             spins_new[ispin] = spins_old[ispin];
@@ -218,11 +219,11 @@ namespace Engine
         //---- Log messages
         std::vector<std::string> block(0);
         block.push_back(fmt::format("------------  Started  {} Calculation  ------------", this->Name()));
-        block.push_back(fmt::format("    Going to iterate {} steps", this->n_log));
+        block.push_back(fmt::format("    Going to iterate {} step(s)", this->n_log));
         block.push_back(fmt::format("                with {} iterations per step", this->n_iterations_log));
-        if (this->parameters_mc->metropolis_step_cone)
+        if( this->parameters_mc->metropolis_step_cone )
         {
-            if (this->parameters_mc->metropolis_cone_adaptive)
+            if( this->parameters_mc->metropolis_cone_adaptive )
             {
                 block.push_back(fmt::format("   Target acceptance {:>6.3f}", this->parameters_mc->acceptance_ratio_target));
                 block.push_back(fmt::format("   Cone angle (deg): {:>6.3f} (adaptive)", this->cone_angle*180/Constants::Pi));
@@ -248,13 +249,13 @@ namespace Engine
         // Send log message
         std::vector<std::string> block(0);
         block.push_back(fmt::format("----- {} Calculation: {}", this->Name(), Timing::DateTimePassed(t_current - this->t_start)));
-        block.push_back(fmt::format("    Step                      {} / {} (step size {})", this->step, this->n_log, this->n_iterations_log));
+        block.push_back(fmt::format("    Completed                 {} / {} step(s) (step size {})", this->step, this->n_log, this->n_iterations_log));
         block.push_back(fmt::format("    Iteration                 {} / {}", this->iteration, this->n_iterations));
         block.push_back(fmt::format("    Time since last step:     {}", Timing::DateTimePassed(t_current - this->t_last)));
         block.push_back(fmt::format("    Iterations / sec:         {}", this->n_iterations_log / Timing::SecondsPassed(t_current - this->t_last)));
-        if (this->parameters_mc->metropolis_step_cone)
+        if( this->parameters_mc->metropolis_step_cone )
         {
-            if (this->parameters_mc->metropolis_cone_adaptive)
+            if( this->parameters_mc->metropolis_cone_adaptive )
             {
                 block.push_back(fmt::format("    Current acceptance ratio: {:>6.3f} (target {})", this->acceptance_ratio_current, this->parameters_mc->acceptance_ratio_target));
                 block.push_back(fmt::format("    Current cone angle (deg): {:>6.3f} (adaptive)", this->cone_angle*180/Constants::Pi));
@@ -279,9 +280,9 @@ namespace Engine
 
         //---- Termination reason
         std::string reason = "";
-        if (this->StopFile_Present())
+        if( this->StopFile_Present() )
             reason = "A STOP file has been found";
-        else if (this->Walltime_Expired(t_end - this->t_start))
+        else if( this->Walltime_Expired(t_end - this->t_start) )
             reason = "The maximum walltime has been reached";
 
         // Update the system's energy
@@ -290,15 +291,15 @@ namespace Engine
         //---- Log messages
         std::vector<std::string> block;
         block.push_back(fmt::format("------------ Terminated {} Calculation ------------", this->Name()));
-        if (reason.length() > 0)
+        if( reason.length() > 0 )
             block.push_back(fmt::format("----- Reason:   {}", reason));
         block.push_back(fmt::format("----- Duration:       {}", Timing::DateTimePassed(t_end - this->t_start)));
-        block.push_back(fmt::format("    Step              {} / {}", step, n_log));
-        block.push_back(fmt::format("    Iteration         {} / {}", this->iteration, n_iterations));
+        block.push_back(fmt::format("    Completed         {} / {} step(s)", this->step, this->n_log));
+        block.push_back(fmt::format("    Iteration         {} / {}", this->iteration, this->n_iterations));
         block.push_back(fmt::format("    Iterations / sec: {}", this->iteration / Timing::SecondsPassed(t_end - this->t_start)));
-        if (this->parameters_mc->metropolis_step_cone)
+        if( this->parameters_mc->metropolis_step_cone )
         {
-            if (this->parameters_mc->metropolis_cone_adaptive)
+            if( this->parameters_mc->metropolis_cone_adaptive )
             {
                 block.push_back(fmt::format("    Acceptance ratio: {:>6.3f} (target {})", this->acceptance_ratio_current, this->parameters_mc->acceptance_ratio_target));
                 block.push_back(fmt::format("    Cone angle (deg): {:>6.3f} (adaptive)", this->cone_angle*180/Constants::Pi));

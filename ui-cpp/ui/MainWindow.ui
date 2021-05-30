@@ -19,6 +19,9 @@
   <property name="windowTitle">
    <string>Spirit - Atomistic Spin Code (QT UI)</string>
   </property>
+  <property name="locale">
+   <locale language="C" country="AnyCountry"/>
+  </property>
   <property name="unifiedTitleAndToolBarOnMac">
    <bool>true</bool>
   </property>
@@ -107,6 +110,7 @@
     <addaction name="actionSave_Energies_Interpolated"/>
     <addaction name="separator"/>
     <addaction name="actionTake_Screenshot"/>
+    <addaction name="actionTake_Screenshot_Chain"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -454,6 +458,11 @@
   <action name="actionTake_Screenshot">
    <property name="text">
     <string>&amp;Take Screenshot</string>
+   </property>
+  </action>
+  <action name="actionTake_Screenshot_Chain">
+   <property name="text">
+    <string>&amp;Take Screenshots of Chain</string>
    </property>
   </action>
   <action name="actionToggle_camera_projection">

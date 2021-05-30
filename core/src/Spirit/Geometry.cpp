@@ -19,7 +19,7 @@ void Helper_System_Set_Geometry(std::shared_ptr<Data::Spin_System> system, const
     int nos_old = system->nos;
     int nos = new_geometry.nos;
     system->nos = nos;
-    
+
     // Move the vector-fields to the new geometry
     *system->spins = Engine::Vectormath::change_dimensions(
         *system->spins,
@@ -151,7 +151,7 @@ try
             "Geometry_Set_Bravais_Lattice_Type: cannot set type to '{}'", lattice_name), -1, -1);
         return;
     }
-    
+
     // The new geometry
     auto& old_geometry = *state->active_image->geometry;
     auto  new_geometry = Data::Geometry(bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms,
@@ -203,11 +203,16 @@ try
     std::vector<scalar>  mu_s(0);
     std::vector<scalar>  concentration(0);
 
+    // Basis cell atoms
+    for (int i=0; i<n_atoms; ++i)
+        cell_atoms.push_back(Vector3{ atoms[i][0], atoms[i][1], atoms[i][2] });
+
+    // In the regular case, we re-generate information to make sure every atom
+    // has its set of information
     if( !old_geometry.cell_composition.disordered )
     {
         for (int i=0; i<n_atoms; ++i)
         {
-            cell_atoms.push_back({atoms[i][0], atoms[i][1], atoms[i][2]});
             iatom.push_back(i);
             if( i < old_geometry.n_cell_atoms )
             {
@@ -221,12 +226,20 @@ try
             }
         }
     }
+    // In the disordered case, we take all previous information, which is
+    // still valid. This may lead to new atoms not having any mu_s information.
     else
     {
-        iatom         = old_geometry.cell_composition.iatom;
-        atom_type     = old_geometry.cell_composition.atom_type;
-        mu_s          = old_geometry.cell_composition.mu_s;
-        concentration = old_geometry.cell_composition.concentration;
+        for( int i=0; i<old_geometry.cell_composition.iatom.size(); ++i )
+        {
+            // If the atom index is within range, we keep the information
+            if( old_geometry.cell_composition.iatom[i] < n_atoms )
+            {
+                atom_type.push_back(old_geometry.cell_composition.atom_type[i]);
+                mu_s.push_back(old_geometry.cell_composition.mu_s[i]);
+                concentration.push_back(old_geometry.cell_composition.concentration[i]);
+            }
+        }
     }
 
     Data::Basis_Cell_Composition new_composition{ old_geometry.cell_composition.disordered, iatom, atom_type, mu_s, concentration };
@@ -369,12 +382,12 @@ try
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    
+
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
-    
+
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
-    
+
     return (scalar *)image->geometry->positions[0].data();
 }
 catch( ... )
@@ -388,12 +401,12 @@ try
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    
-    // Fetch correct indices and pointers 
+
+    // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
-    
+
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
-        
+
     return (int *)image->geometry->atom_types.data();
 }
 catch( ... )
@@ -410,7 +423,7 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
-    
+
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
 
     auto g = image->geometry;
@@ -431,12 +444,12 @@ try
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    
+
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
-    
+
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
-        
+
     auto g = image->geometry;
     for (int dim=0; dim<3; ++dim)
     {
@@ -453,12 +466,12 @@ try
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    
+
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
-        
+
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
-    
+
     auto g = image->geometry;
     for (int dim=0; dim<3; ++dim)
     {
@@ -477,10 +490,10 @@ try
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    
+
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
-    
+
     return Bravais_Lattice_Type(image->geometry->classifier);
 }
 catch( ... )
@@ -490,18 +503,18 @@ catch( ... )
 }
 
 // Get bravais vectors ta, tb, tc
-void Geometry_Get_Bravais_Vectors( State *state, float a[3], float b[3], float c[3], 
+void Geometry_Get_Bravais_Vectors( State *state, float a[3], float b[3], float c[3],
                                  int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    
+
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
-    
+
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
-    
+
     auto g = image->geometry;
     for (int dim=0; dim<3; ++dim)
     {
@@ -521,12 +534,12 @@ try
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    
+
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
-    
+
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
-    
+
     return image->geometry->n_cell_atoms;
 }
 catch( ... )
@@ -580,12 +593,12 @@ try
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    
+
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
-    
+
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
-    
+
     auto g = image->geometry;
     n_cells[0] = g->n_cells[0];
     n_cells[1] = g->n_cells[1];
@@ -596,43 +609,18 @@ catch( ... )
     spirit_handle_exception_api(idx_image, idx_chain);
 }
 
-// Get translation vectors ta, tb, tc
-void Geometry_Get_Translation_Vectors( State *state, float ta[3], float tb[3], float tc[3], 
-                                       int idx_image, int idx_chain ) noexcept
-try
-{
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
-    
-    // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
-    
-    // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
-    
-    auto g = image->geometry;
-    for (int dim=0; dim<3; ++dim)
-    {
-        ta[dim] = (float)g->bravais_vectors[0][dim];
-        tb[dim] = (float)g->bravais_vectors[1][dim];
-        tc[dim] = (float)g->bravais_vectors[2][dim];
-    }
-}
-catch( ... )
-{
-    spirit_handle_exception_api(idx_image, idx_chain);
-}
 
 int Geometry_Get_Dimensionality(State * state, int idx_image, int idx_chain) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    
+
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
-    
+
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
-    
+
     auto g = image->geometry;
     return g->dimensionality;
 }
@@ -643,18 +631,18 @@ catch( ... )
 }
 
 
-int Geometry_Get_Triangulation( State * state, const int ** indices_ptr, int n_cell_step, 
+int Geometry_Get_Triangulation( State * state, const int ** indices_ptr, int n_cell_step,
                                 int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
-    
+
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
-    
+
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
-    
+
     auto g = image->geometry;
     auto& triangles = g->triangulation(n_cell_step);
     if (indices_ptr != nullptr) {
@@ -668,7 +656,31 @@ catch( ... )
     return 0;
 }
 
-int Geometry_Get_Tetrahedra( State * state, const int ** indices_ptr, int n_cell_step, 
+int Geometry_Get_Triangulation_Ranged( State * state, const int ** indices_ptr, int n_cell_step, int ranges[6], int idx_image, int idx_chain ) noexcept
+try
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
+    std::array<int, 6> range = {ranges[0], ranges[1], ranges[2], ranges[3], ranges[4], ranges[5]};
+    auto g = image->geometry;
+    auto& triangles = g->triangulation(n_cell_step, range);
+    if (indices_ptr != nullptr) {
+        *indices_ptr = reinterpret_cast<const int *>(triangles.data());
+    }
+    return triangles.size();
+}
+catch( ... )
+{
+    spirit_handle_exception_api(idx_image, idx_chain);
+    return 0;
+}
+
+int Geometry_Get_Tetrahedra( State * state, const int ** indices_ptr, int n_cell_step,
                              int idx_image, int idx_chain ) noexcept
 try
 {
@@ -678,6 +690,28 @@ try
 
     auto g = image->geometry;
     auto& tetrahedra = g->tetrahedra(n_cell_step);
+    if (indices_ptr != nullptr) {
+        *indices_ptr = reinterpret_cast<const int *>(tetrahedra.data());
+    }
+    return tetrahedra.size();
+}
+catch( ... )
+{
+    spirit_handle_exception_api(idx_image, idx_chain);
+    return 0;
+}
+
+int Geometry_Get_Tetrahedra_Ranged(State * state, const int **indices_ptr, int n_cell_step, int ranges[6], int idx_image, int idx_chain) noexcept
+try
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+    from_indices(state, idx_image, idx_chain, image, chain);
+
+    auto g = image->geometry;
+    std::array<int, 6> range = {ranges[0], ranges[1], ranges[2], ranges[3], ranges[4], ranges[5]};
+
+    auto& tetrahedra = g->tetrahedra(n_cell_step, range);
     if (indices_ptr != nullptr) {
         *indices_ptr = reinterpret_cast<const int *>(tetrahedra.data());
     }

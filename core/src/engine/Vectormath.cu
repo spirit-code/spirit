@@ -1,7 +1,6 @@
 #ifdef SPIRIT_USE_CUDA
 
-#define EIGEN_USE_GPU
-
+#include <engine/Backend_par.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
@@ -16,394 +15,17 @@
 #include <curand.h>
 #include <curand_kernel.h>
 
+#include <cub/cub.cuh>
+
 using namespace Utility;
 using Utility::Constants::Pi;
+
 
 // CUDA Version
 namespace Engine
 {
     namespace Vectormath
     {
-        /////////////////////////////////////////////////////////////////
-        // BOILERPLATE CUDA Reductions
-
-        __inline__ __device__
-        scalar warpReduceSum(scalar val)
-        {
-            for (int offset = warpSize/2; offset > 0; offset /= 2) 
-                val += __shfl_down(val, offset);
-            return val;
-        }
-
-        __inline__ __device__
-        scalar blockReduceSum(scalar val)
-        {
-            static __shared__ scalar shared[32]; // Shared mem for 32 partial sums
-            int lane = threadIdx.x % warpSize;
-            int wid = threadIdx.x / warpSize;
-
-            val = warpReduceSum(val);     // Each warp performs partial reduction
-
-            if (lane==0) shared[wid]=val; // Write reduced value to shared memory
-
-            __syncthreads();              // Wait for all partial reductions
-
-            //read from shared memory only if that warp existed
-            val = (threadIdx.x < blockDim.x / warpSize) ? shared[lane] : 0;
-
-            if (wid==0) val = warpReduceSum(val); //Final reduce within first warp
-
-            return val;
-        }
-
-        __global__ void cu_sum(const scalar *in, scalar* out, int N)
-        {
-            scalar sum = int(0);
-            for(int i = blockIdx.x * blockDim.x + threadIdx.x; 
-                i < N; 
-                i += blockDim.x * gridDim.x)
-            {
-                sum += in[i];
-            }
-            sum = blockReduceSum(sum);
-            if (threadIdx.x == 0)
-                atomicAdd(out, sum);
-        }
-
-
-
-        __inline__ __device__
-        Vector3 warpReduceSum(Vector3 val)
-        {
-            for (int offset = warpSize/2; offset > 0; offset /= 2)
-            {
-                val[0] += __shfl_down(val[0], offset);
-                val[1] += __shfl_down(val[1], offset);
-                val[2] += __shfl_down(val[2], offset);
-            }
-            return val;
-        }
-
-        __inline__ __device__
-        Vector3 blockReduceSum(Vector3 val)
-        {
-            static __shared__ Vector3 shared[32]; // Shared mem for 32 partial sums
-            int lane = threadIdx.x % warpSize;
-            int wid = threadIdx.x / warpSize;
-
-            val = warpReduceSum(val);     // Each warp performs partial reduction
-
-            if (lane==0) shared[wid]=val; // Write reduced value to shared memory
-
-            __syncthreads();              // Wait for all partial reductions
-
-            // Read from shared memory only if that warp existed
-            val = (threadIdx.x < blockDim.x / warpSize) ? shared[lane] : Vector3{0,0,0};
-
-            if (wid==0) val = warpReduceSum(val); //Final reduce within first warp
-
-            return val;
-        }
-
-        __global__ void cu_sum(const Vector3 *in, Vector3* out, int N)
-        {
-            Vector3 sum{0,0,0};
-            for(int i = blockIdx.x * blockDim.x + threadIdx.x; 
-                i < N; 
-                i += blockDim.x * gridDim.x)
-            {
-                sum += in[i];
-            }
-            sum = blockReduceSum(sum);
-            if (threadIdx.x == 0)
-            {
-                atomicAdd(&out[0][0], sum[0]);
-                atomicAdd(&out[0][1], sum[1]);
-                atomicAdd(&out[0][2], sum[2]);
-            }
-        }
-
-
-        __inline__ __device__
-        scalar warpReduceMin(scalar val)
-        {
-            for (int offset = warpSize/2; offset > 0; offset /= 2)
-            {
-                val  = min(val, __shfl_down(val, offset));
-            }
-            return val;
-        }
-        __inline__ __device__
-        scalar warpReduceMax(scalar val)
-        {
-            for (int offset = warpSize/2; offset > 0; offset /= 2)
-            {
-                val = max(val, __shfl_down(val, offset));
-            }
-            return val;
-        }
-
-        __inline__ __device__
-        void blockReduceMinMax(scalar val, scalar *out_min, scalar *out_max)
-        {
-            static __shared__ scalar shared_min[32]; // Shared mem for 32 partial minmax comparisons
-            static __shared__ scalar shared_max[32]; // Shared mem for 32 partial minmax comparisons
-
-            int lane = threadIdx.x % warpSize;
-            int wid = threadIdx.x / warpSize;
-
-            scalar _min = warpReduceMin(val);  // Each warp performs partial reduction
-            scalar _max = warpReduceMax(val);  // Each warp performs partial reduction
-
-            if (lane==0) shared_min[wid]=_min;  // Write reduced minmax to shared memory
-            if (lane==0) shared_max[wid]=_max;  // Write reduced minmax to shared memory
-            __syncthreads();                      // Wait for all partial reductions
-
-            // Read from shared memory only if that warp existed
-            _min  = (threadIdx.x < blockDim.x / warpSize) ? shared_min[lane] : 0;
-            _max  = (threadIdx.x < blockDim.x / warpSize) ? shared_max[lane] : 0;
-
-            if (wid==0) _min  = warpReduceMin(_min);  // Final minmax reduce within first warp
-            if (wid==0) _max  = warpReduceMax(_max);  // Final minmax reduce within first warp
-
-            out_min[0] = _min;
-            out_max[0] = _max;
-        }
-
-        __global__ void cu_MinMax(const scalar *in, scalar* out_min, scalar* out_max, int N)
-        {
-            scalar tmp, tmp_min{0}, tmp_max{0};
-            scalar _min{0}, _max{0};
-            for(int i = blockIdx.x * blockDim.x + threadIdx.x; 
-                i < N; 
-                i += blockDim.x * gridDim.x)
-            {
-                _min = min(_min, in[i]);
-                _max = max(_max, in[i]);
-            }
-            
-            tmp_min = _min;
-            tmp_max = _max;
-
-            blockReduceMinMax(tmp_min, &_min, &tmp);
-            blockReduceMinMax(tmp_max, &tmp, &_max);
-
-            if (threadIdx.x==0)
-            {
-                out_min[blockIdx.x] = _min;
-                out_max[blockIdx.x] = _max;
-            }
-        }
-
-        std::pair<scalar, scalar> minmax_component(const vectorfield & vf)
-        {
-            int N = 3*vf.size();
-            int threads = 512;
-            int blocks = min((N + threads - 1) / threads, 1024);
-
-            static scalarfield out_min(blocks, 0);
-            Vectormath::fill(out_min, 0);
-            static scalarfield out_max(blocks, 0);
-            Vectormath::fill(out_max, 0);
-            static scalarfield temp(1, 0);
-            Vectormath::fill(temp, 0);
-            
-            cu_MinMax<<<blocks, threads>>>(&vf[0][0], out_min.data(), out_max.data(), N);
-            cu_MinMax<<<1, 1024>>>(out_min.data(), out_min.data(), temp.data(), blocks);
-            cu_MinMax<<<1, 1024>>>(out_max.data(), temp.data(), out_max.data(), blocks);
-            CU_CHECK_AND_SYNC();
-
-            return std::pair<scalar, scalar>{out_min[0], out_max[0]};
-        }
-
-
-        /////////////////////////////////////////////////////////////////
-
-        scalar angle(const Vector3 & v1, const Vector3 & v2)
-        {
-            scalar cosa = v1.dot(v2);
-            return std::acos(cosa);
-        }
-
-        void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out)
-        {
-            v_out = v * std::cos(angle) + axis.cross(v) * std::sin(angle) + 
-                    axis * axis.dot(v) * (1 - std::cos(angle));
-        } 
-        
-        // XXX: should we add test for that function since it's calling the already tested rotat()
-        void rotate( const vectorfield & v, const vectorfield & axis, const scalarfield & angle, 
-                        vectorfield & v_out )
-        {
-            for( unsigned int i=0; i<v_out.size(); i++)
-            rotate( v[i], axis[i], angle[i], v_out[i] );
-        }
-
-        Vector3 decompose(const Vector3 & v, const std::vector<Vector3> & basis)
-        {
-            Eigen::Ref<const Matrix3> A = Eigen::Map<const Matrix3>(basis[0].data());
-            return A.colPivHouseholderQr().solve(v);
-        }
-
-
-        /////////////////////////////////////////////////////////////////
-
-
-        void Build_Spins(vectorfield & positions, const std::vector<Vector3> & cell_atoms,
-            const std::vector<Vector3> & translation_vectors, const intfield & n_cells)
-        {
-        // Check for erronous input placing two spins on the same location
-        int max_a = std::min(10, n_cells[0]);
-        int max_b = std::min(10, n_cells[1]);
-        int max_c = std::min(10, n_cells[2]);
-        Vector3 sp;
-        for (unsigned int i = 0; i < cell_atoms.size(); ++i)
-        {
-        for (unsigned int j = 0; j < cell_atoms.size(); ++j)
-        {
-            for (int ka = -max_a; ka <= max_a; ++ka)
-            {
-                for (int k2 = -max_b; k2 <= max_b; ++k2)
-                {
-                    for (int k3 = -max_c; k3 <= max_c; ++k3)
-                    {
-                        // Norm is zero if translated basis atom is at position of another basis atom
-                        sp = cell_atoms[i] - (cell_atoms[j]
-                            + ka * translation_vectors[0]
-                            + k2 * translation_vectors[1]
-                            + k3 * translation_vectors[2]);
-                        if ( (i != j || ka != 0 || k2 != 0 || k3 != 0) && 
-                            std::abs(sp[0]) < 1e-9 && std::abs(sp[1]) < 1e-9 && std::abs(sp[2]) < 1e-9 )
-                        {
-                            spirit_throw(Exception_Classifier::System_not_Initialized, Log_Level::Severe,
-                                "Unable to initialize Spin-System, since 2 spins occupy the same space.\nPlease check the config file!");
-                        }
-                    }
-                }
-            }
-        }
-        }
-
-        // Build up the spins array
-        int i, j, k, s, ispin;
-        int nos_basic = cell_atoms.size();
-        //int nos = nos_basic * n_cells[0] * n_cells[1] * n_cells[2];
-        Vector3 build_array;
-        for (k = 0; k < n_cells[2]; ++k) {
-        for (j = 0; j < n_cells[1]; ++j) {
-            for (i = 0; i < n_cells[0]; ++i) {
-                for (s = 0; s < nos_basic; ++s) {
-                    ispin = k * n_cells[1] * n_cells[0] * nos_basic + 
-                            j * n_cells[0] * nos_basic + i * nos_basic + s;
-                    build_array = i * translation_vectors[0] + j * translation_vectors[1] + 
-                                    k * translation_vectors[2];
-                    // paste initial spin orientations across the lattice translations
-                    //spins[dim*nos + ispin] = spins[dim*nos + s];
-                    // calculate the spin positions
-                    positions[ispin] = cell_atoms[s] + build_array;
-                }// endfor s
-            }// endfor k
-        }// endfor j
-        }// endfor dim
-
-        };// end Build_Spins
-
-
-        std::array<scalar, 3> Magnetization(const vectorfield & vf)
-        {
-            auto M = mean(vf);
-            return std::array<scalar,3>{M[0], M[1], M[2]};
-        }
-
-        scalar solid_angle_1(const Vector3 & v1, const Vector3 & v2, const Vector3 & v3)
-        {
-            // Get sign
-            scalar pm = v1.dot(v2.cross(v3));
-            if (pm != 0) pm /= std::abs(pm);
-
-            // angle
-            scalar solid_angle = ( 1 + v1.dot(v2) + v2.dot(v3) + v3.dot(v1) ) /
-                                std::sqrt( 2 * (1+v1.dot(v2)) * (1+v2.dot(v3)) * (1+v3.dot(v1)) );
-            if (solid_angle == 1)
-                solid_angle = 0;
-            else
-                solid_angle = pm * 2 * std::acos(solid_angle);
-
-            return solid_angle;
-        }
-
-        scalar solid_angle_2(const Vector3 & v1, const Vector3 & v2, const Vector3 & v3)
-        {
-            // Using the solid angle formula by Oosterom and Strackee (note we assume vectors to be normalized to 1)
-            // https://en.wikipedia.org/wiki/Solid_angle#Tetrahedron
-
-            scalar x = v1.dot(v2.cross(v3));
-            scalar y = 1 + v1.dot(v2) + v1.dot(v3) + v2.dot(v3);
-            scalar solid_angle = 2 * std::atan2( x , y );
-
-            return solid_angle;
-        }
-
-        scalar TopologicalCharge(const vectorfield & vf, const vectorfield & vf_pos, const std::vector<std::array<int, 3>> & triangulation)
-        {
-            // TODO: this still ignores periodical boundaries, as they are not part of the delaunay triangulation!
-
-            scalar charge = 0, sign;
-            Vector3 triangle_normal;
-            for (int i = 0; i < triangulation.size(); ++i)
-            {
-                int i1 = triangulation[i][0];
-                int i2 = triangulation[i][1];
-                int i3 = triangulation[i][2];
-
-                auto& vp1 = vf_pos[i1];
-                auto& vp2 = vf_pos[i2];
-                auto& vp3 = vf_pos[i3];
-
-                // TODO: this will only work if the vf_pos are in the xy-plane!
-                triangle_normal = (vp1-vp2).cross(vp1-vp3);
-                triangle_normal.normalize();
-                sign = triangle_normal[2]/std::abs(triangle_normal[2]);
-
-                auto& v1 = vf[i1];
-                auto& v2 = vf[i2];
-                auto& v3 = vf[i3];
-
-                // charge += sign * solid_angle_1(v1, v2, v3);
-                charge += sign * solid_angle_2(v1, v2, v3);
-            }
-            return charge / (4*Pi);
-        }
-
-        // Utility function for the SIB Solver
-        __global__ void cu_transform(const Vector3 * spins, const Vector3 * force, Vector3 * out, size_t N)
-        {
-            int idx = blockIdx.x * blockDim.x + threadIdx.x;
-            Vector3 e1, a2, A;
-            scalar detAi;
-            if(idx < N)
-            {
-                e1 = spins[idx];
-                A = 0.5 * force[idx];
-
-                // 1/determinant(A)
-                detAi = 1.0 / (1 + pow(A.norm(), 2.0));
-
-                // calculate equation without the predictor?
-                a2 = e1 - e1.cross(A);
-
-                out[idx][0] = (a2[0] * (A[0] * A[0] + 1   ) + a2[1] * (A[0] * A[1] - A[2]) + a2[2] * (A[0] * A[2] + A[1])) * detAi;
-                out[idx][1] = (a2[0] * (A[1] * A[0] + A[2]) + a2[1] * (A[1] * A[1] + 1   ) + a2[2] * (A[1] * A[2] - A[0])) * detAi;
-                out[idx][2] = (a2[0] * (A[2] * A[0] - A[1]) + a2[1] * (A[2] * A[1] + A[0]) + a2[2] * (A[2] * A[2] + 1   )) * detAi;
-            }
-        }
-        void transform(const vectorfield & spins, const vectorfield & force, vectorfield & out)
-        {
-            int n = spins.size();
-            cu_transform<<<(n+1023)/1024, 1024>>>(spins.data(), force.data(), out.data(), n);
-            CU_CHECK_AND_SYNC();
-        }
-
         void get_random_vector(std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec)
         {
             for (int dim = 0; dim < 3; ++dim)
@@ -411,8 +33,10 @@ namespace Engine
                 vec[dim] = distribution(prng);
             }
         }
-        
-        __global__ void cu_get_random_vectorfield(Vector3 * xi, size_t N)
+
+        // TODO: improve random number generation - this one might give undefined behaviour!
+        __global__
+        void cu_get_random_vectorfield(Vector3 * xi, size_t N)
         {
             unsigned long long subsequence = 0;
             unsigned long long offset= 0;
@@ -458,7 +82,7 @@ namespace Engine
         //         idx +=  blockDim.x * gridDim.x)
         //     {
         //         curand_init(idx,subsequence,offset,&state);
-            
+
         //         scalar v_z = llroundf(curand_uniform(&state))*2-1;
         //         scalar phi = llroundf(curand_uniform(&state))*2-1;
 
@@ -488,174 +112,6 @@ namespace Engine
             }
         }
 
-        void get_gradient_distribution(const Data::Geometry & geometry, Vector3 gradient_direction, scalar gradient_start, scalar gradient_inclination, scalarfield & distribution, scalar range_min, scalar range_max)
-        {
-            // Starting value
-            fill(distribution, gradient_start);
-
-            // Basic linear gradient distribution
-            add_c_dot(gradient_inclination, gradient_direction, geometry.positions, distribution);
-
-            // Get the minimum (i.e. starting point) of the distribution
-            scalar bmin = geometry.bounds_min.dot(gradient_direction);
-            scalar bmax = geometry.bounds_max.dot(gradient_direction);
-            scalar dist_min = std::min(bmin, bmax);
-            // Set the starting point
-            add(distribution, -dist_min);
-
-            // Cut off negative values
-            set_range(distribution, range_min, range_max);
-        }
-
-
-        void directional_gradient(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions, const Vector3 & direction, vectorfield & gradient)
-        {
-            // std::cout << "start gradient" << std::endl;
-            vectorfield translations = { { 0,0,0 }, { 0,0,0 }, { 0,0,0 } };
-            auto& n_cells = geometry.n_cells;
-
-            Vector3 a = geometry.bravais_vectors[0]; // translation vectors of the system
-            Vector3 b = geometry.bravais_vectors[1];
-            Vector3 c = geometry.bravais_vectors[2];
-
-            neighbourfield neigh;
-
-            // TODO: calculate Neighbours outside iterations
-            // Neighbours::get_Neighbours(geometry, neigh);
-
-            // TODO: proper usage of neighbours
-            // Hardcoded neighbours - for spin current in a rectangular lattice
-            neigh = neighbourfield(0);
-            Neighbour neigh_tmp;
-            neigh_tmp.i = 0;
-            neigh_tmp.j = 0;
-            neigh_tmp.idx_shell = 0;
-
-            neigh_tmp.translations[0] = 1;
-            neigh_tmp.translations[1] = 0;
-            neigh_tmp.translations[2] = 0;
-            neigh.push_back(neigh_tmp);
-
-            neigh_tmp.translations[0] = -1;
-            neigh_tmp.translations[1] = 0;
-            neigh_tmp.translations[2] = 0;
-            neigh.push_back(neigh_tmp);
-
-            neigh_tmp.translations[0] = 0;
-            neigh_tmp.translations[1] = 1;
-            neigh_tmp.translations[2] = 0;
-            neigh.push_back(neigh_tmp);
-
-            neigh_tmp.translations[0] = 0;
-            neigh_tmp.translations[1] = -1;
-            neigh_tmp.translations[2] = 0;
-            neigh.push_back(neigh_tmp);
-
-            neigh_tmp.translations[0] = 0;
-            neigh_tmp.translations[1] = 0;
-            neigh_tmp.translations[2] = 1;
-            neigh.push_back(neigh_tmp);
-
-            neigh_tmp.translations[0] = 0;
-            neigh_tmp.translations[1] = 0;
-            neigh_tmp.translations[2] = -1;
-            neigh.push_back(neigh_tmp);
-
-            // Loop over vectorfield
-            for(unsigned int ispin = 0; ispin < vf.size(); ++ispin)
-            {
-                auto translations_i = translations_from_idx(n_cells, geometry.n_cell_atoms, ispin); // transVec of spin i
-                // int k = i%geometry.n_cell_atoms; // index within unit cell - k=0 for all cases used in the thesis
-
-                gradient[ispin].setZero();
-
-                std::vector<Vector3> euclidean { {1,0,0}, {0,1,0}, {0,0,1} };
-                std::vector<Vector3> contrib = { {0, 0, 0}, {0, 0, 0}, {0, 0, 0} };
-                Vector3 proj = {0, 0, 0};
-                Vector3 projection_inv = {0, 0, 0};
-
-                // TODO: both loops together.
-
-                // Loop over neighbours of this vector to calculate contributions of finite differences to current direction
-                for(unsigned int j = 0; j < neigh.size(); ++j)
-                {
-                    if ( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
-                    {
-                        // Index of neighbour
-                        int ineigh = idx_from_translations(n_cells, geometry.n_cell_atoms, translations_i, neigh[j].translations);
-                        if (ineigh >= 0)
-                        {
-                            auto d = geometry.positions[ineigh] - geometry.positions[ispin];
-                            for (int dim=0; dim<3; ++dim)
-                            {
-                                proj[dim] += std::abs(euclidean[dim].dot(d.normalized()));
-                            }
-                        }
-                    }
-                }
-                for (int dim=0; dim<3; ++dim)
-                {
-                    if (std::abs(proj[dim]) > 1e-10)
-                        projection_inv[dim] = 1.0/proj[dim];
-                }
-                // Loop over neighbours of this vector to calculate finite differences
-                for(unsigned int j = 0; j < neigh.size(); ++j)
-                {
-                    if ( boundary_conditions_fulfilled(geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations) )
-                    {
-                        // Index of neighbour
-                        int ineigh = idx_from_translations(n_cells, geometry.n_cell_atoms, translations_i, neigh[j].translations);
-                        if (ineigh >= 0)
-                        {
-                            auto d = geometry.positions[ineigh] - geometry.positions[ispin];
-                            for (int dim=0; dim<3; ++dim)
-                            {
-                                contrib[dim] += euclidean[dim].dot(d) / d.dot(d) * ( vf[ineigh] - vf[ispin] );
-                            }
-                        }
-                    }
-                }
-
-                for (int dim=0; dim<3; ++dim)
-                {
-                    gradient[ispin] += direction[dim]*projection_inv[dim] * contrib[dim];
-                }
-            }
-        }
-
-
-
-        /////////////////////////////////////////////////////////////////
-
-        vectorfield change_dimensions(vectorfield & sf, int n_cell_atoms, intfield n_cells,
-            intfield dimensions_new, std::array<int,3> shift)
-        {
-            int N_old = n_cell_atoms*n_cells[0]*n_cells[1]*dimensions_new[2];
-            int N_new = n_cell_atoms*dimensions_new[0]*dimensions_new[1]*dimensions_new[2];
-            vectorfield newfield(N_new);
-
-            for (int i=0; i<dimensions_new[0]; ++i)
-            {
-                for (int j=0; j<dimensions_new[1]; ++j)
-                {
-                    for (int k=0; k<dimensions_new[2]; ++k)
-                    {
-                        for (int iatom=0; iatom<n_cell_atoms; ++iatom)
-                        {
-                            int idx_old = iatom + idx_from_translations(n_cells, n_cell_atoms, {i,j,k});
-
-                            int idx_new = iatom + idx_from_translations(dimensions_new, n_cell_atoms, {i,j,k}, shift.data());
-
-                            if ( (i>=n_cells[0]) || (j>=n_cells[1]) || (k>=n_cells[2]))
-                                newfield[idx_new] = {0,0,1};
-                            else
-                                newfield[idx_new] = sf[idx_old];
-                        }
-                    }
-                }
-            }
-            return newfield;
-        }
 
         /////////////////////////////////////////////////////////////////
 
@@ -721,31 +177,23 @@ namespace Engine
 
         scalar sum(const scalarfield & sf)
         {
-            int N = sf.size();
-            int threads = 512;
-            int blocks = min((N + threads - 1) / threads, 1024);
-
             static scalarfield ret(1, 0);
             Vectormath::fill(ret, 0);
-            cu_sum<<<blocks, threads>>>(sf.data(), ret.data(), N);
+            // Determine temporary storage size and allocate
+            void * d_temp_storage = NULL;
+            size_t temp_storage_bytes = 0;
+            cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, sf.data(), ret.data(), sf.size());
+            cudaMalloc(&d_temp_storage, temp_storage_bytes);
+            // Reduction
+            cub::DeviceReduce::Sum(d_temp_storage, temp_storage_bytes, sf.data(), ret.data(), sf.size());
             CU_CHECK_AND_SYNC();
+            cudaFree(d_temp_storage);
             return ret[0];
         }
 
         scalar mean(const scalarfield & sf)
         {
-            int N = sf.size();
-            int threads = 512;
-            int blocks = min((N + threads - 1) / threads, 1024);
-
-            static scalarfield ret(1, 0);
-            Vectormath::fill(ret, 0);
-
-            cu_sum<<<blocks, threads>>>(sf.data(), ret.data(), N);
-            CU_CHECK_AND_SYNC();
-
-            ret[0] = ret[0]/N;
-            return ret[0];
+            return sum(sf)/sf.size();
         }
 
         __global__ void cu_divide(const scalar * numerator, const scalar * denominator, scalar * out, size_t N)
@@ -829,15 +277,68 @@ namespace Engine
             CU_CHECK_AND_SYNC();
         }
 
+        // Functor for finding the maximum absolute value
+        // struct CustomMaxAbs
+        // {
+        //     template <typename T>
+        //     __device__ __forceinline__
+        //     T operator()(const T &a, const T &b) const {
+        //         return (a > b) ? a : b;
+        //     }
+        // };
         scalar max_abs_component(const vectorfield & vf)
         {
-            // We want the Maximum of Absolute Values of all force components on all images
-            // Find minimum and maximum values
-            std::pair<scalar,scalar> minmax = minmax_component(vf);
-            scalar absmin = std::abs(minmax.first);
-            scalar absmax = std::abs(minmax.second);
-            // Maximum of absolute values
-            return std::max(absmin, absmax);
+            // Declare, allocate, and initialize device-accessible pointers for input and output
+            // CustomMaxAbs    max_op;
+            size_t N = 3*vf.size();
+            scalarfield out(1, 0);
+            scalar init = 0;
+            // Determine temporary device storage requirements
+            void     *d_temp_storage = NULL;
+            size_t   temp_storage_bytes = 0;
+            auto lam = [] __device__ (const scalar & a, const scalar & b)
+            {
+                return (a > b) ? a : b;
+            };
+            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf[0].data(), out.data(), N, lam, init);
+            // Allocate temporary storage
+            cudaMalloc(&d_temp_storage, temp_storage_bytes);
+            // Run reduction
+            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf[0].data(), out.data(), N, lam, init);
+            CU_CHECK_AND_SYNC();
+            cudaFree(d_temp_storage);
+            return std::abs(out[0]);
+        }
+
+        scalar max_norm(const vectorfield & vf)
+        {
+            static scalarfield ret(1, 0);
+
+            // Declare, allocate, and initialize device-accessible pointers for input and output
+            size_t N = vf.size();
+            scalarfield temp(N, 0);
+            auto o = temp.data();
+            auto v = vf.data();
+            Backend::par::apply(N, [o,v] SPIRIT_LAMBDA (int idx) {
+                o[idx] = v[idx][0]*v[idx][0] + v[idx][1]*v[idx][1] + v[idx][2]*v[idx][2];
+            });
+
+            void     *d_temp_storage = NULL;
+            size_t   temp_storage_bytes = 0;
+            auto lam = [] __device__ (const scalar & a, const scalar & b)
+            {
+                return (a > b) ? a : b;
+            };
+
+            scalar init = 0;
+            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, temp.data(), ret.data(), N, lam, init);
+            // Allocate temporary storage
+            cudaMalloc(&d_temp_storage, temp_storage_bytes);
+            // Run reduction
+            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, temp.data(), ret.data(), N, lam, init);
+            CU_CHECK_AND_SYNC();
+            cudaFree(d_temp_storage);
+            return std::sqrt(ret[0]);
         }
 
         __global__ void cu_scale(Vector3 *vf1, scalar sc, size_t N)
@@ -855,36 +356,57 @@ namespace Engine
             CU_CHECK_AND_SYNC();
         }
 
+        __global__ void cu_scale(Vector3 *vf1, const scalar * sf, bool inverse, size_t N)
+        {
+            int idx = blockIdx.x * blockDim.x + threadIdx.x;
+            if(idx < N)
+            {
+                if( inverse )
+                    vf1[idx] /= sf[idx];
+                else
+                    vf1[idx] *= sf[idx];
+            }
+        }
+        void scale(vectorfield & vf, const scalarfield & sf, bool inverse)
+        {
+            int n = vf.size();
+            cu_scale<<<(n+1023)/1024, 1024>>>(vf.data(), sf.data(), inverse, n);
+            CU_CHECK_AND_SYNC();
+        }
+
+        // Functor for adding Vector3's
+        struct CustomAdd
+        {
+            template <typename T>
+            __device__ __forceinline__
+            T operator()(const T &a, const T &b) const {
+                return a + b;
+            }
+        };
         Vector3 sum(const vectorfield & vf)
         {
-            int N = vf.size();
-            int threads = 512;
-            int blocks = min((N + threads - 1) / threads, 1024);
-
             static vectorfield ret(1, {0,0,0});
             Vectormath::fill(ret, {0,0,0});
-            cu_sum<<<blocks, threads>>>(vf.data(), ret.data(), N);
+            // Declare, allocate, and initialize device-accessible pointers for input and output
+            CustomAdd    add_op;
+            static const Vector3 init{0,0,0};
+            // Determine temporary device storage requirements
+            void     *d_temp_storage = NULL;
+            size_t   temp_storage_bytes = 0;
+            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf.data(), ret.data(), vf.size(), add_op, init);
+            // Allocate temporary storage
+            cudaMalloc(&d_temp_storage, temp_storage_bytes);
+            // Run reduction
+            cub::DeviceReduce::Reduce(d_temp_storage, temp_storage_bytes, vf.data(), ret.data(), vf.size(), add_op, init);
             CU_CHECK_AND_SYNC();
+            cudaFree(d_temp_storage);
             return ret[0];
         }
 
         Vector3 mean(const vectorfield & vf)
         {
-            int N = vf.size();
-            int threads = 512;
-            int blocks = min((N + threads - 1) / threads, 1024);
-
-            static vectorfield ret(1, {0,0,0});
-            Vectormath::fill(ret, {0,0,0});
-
-            cu_sum<<<blocks, threads>>>(vf.data(), ret.data(), N);
-            CU_CHECK_AND_SYNC();
-
-            ret[0] = ret[0]/N;
-            return ret[0];
+            return sum(vf)/vf.size();
         }
-
-
 
 
         __global__ void cu_dot(const Vector3 *vf1, const Vector3 *vf2, scalar *out, size_t N)
@@ -900,6 +422,10 @@ namespace Engine
         {
             int n = vf1.size();
             static scalarfield sf(n, 0);
+
+            if(sf.size() != vf1.size())
+                sf.resize(vf1.size());
+
             Vectormath::fill(sf, 0);
             scalar ret;
 
@@ -957,8 +483,6 @@ namespace Engine
             cu_cross<<<(n+1023)/1024, 1024>>>(vf1.data(), vf2.data(), s.data(), n);
             CU_CHECK_AND_SYNC();
         }
-
-
 
 
         __global__ void cu_add_c_a(scalar c, Vector3 a, Vector3 * out, size_t N)
@@ -1105,7 +629,6 @@ namespace Engine
         }
 
 
-
         __global__ void cu_add_c_dot(scalar c, Vector3 a, const Vector3 * b, scalar * out, size_t N)
         {
             int idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -1172,7 +695,6 @@ namespace Engine
         }
 
 
-
         // out[i] += c * a x b[i]
         __global__ void cu_add_c_cross(scalar c, const Vector3 a, const Vector3 * b, Vector3 * out, size_t N)
         {
@@ -1204,7 +726,7 @@ namespace Engine
             cu_add_c_cross<<<(n+1023)/1024, 1024>>>(c, a.data(), b.data(), out.data(), n);
             CU_CHECK_AND_SYNC();
         }
-        
+
         // out[i] += c * a[i] x b[i]
         __global__ void cu_add_c_cross(const scalar * c, const Vector3 * a, const Vector3 * b, Vector3 * out, size_t N)
         {

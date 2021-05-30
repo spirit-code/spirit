@@ -22,15 +22,14 @@ public:
     void setOption(const typename Options::Type<index>::type& value);
     const Options& options() const;
     template<int index>
-    const typename Options::Type<index>::type& getOption() const;
+    typename Options::Type<index>::type getOption() const;
     virtual void optionsHaveChanged(const std::vector<int>& changed_options);
     virtual void updateIfNecessary();
 
 protected:
     virtual void options(const Options& options);
-
-private:
     const View& m_view;
+private:
     Options m_options;
 };
 
@@ -40,8 +39,8 @@ void RendererBase::setOption(const typename Options::Type<index>::type& value) {
 }
 
 template<int index>
-const typename Options::Type<index>::type& RendererBase::getOption() const {
-    return m_options.get<index>();;
+typename Options::Type<index>::type RendererBase::getOption() const {
+    return m_options.get<index>();
 }
 
 }

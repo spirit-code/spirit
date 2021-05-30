@@ -1,17 +1,16 @@
 #pragma once
-#ifndef HAMILTONIANGAUSSIANWIDGET_H
-#define HAMILTONIANGAUSSIANWIDGET_H
+#ifndef SPIRIT_HAMILTONIANGAUSSIANWIDGET_HPP
+#define SPIRIT_HAMILTONIANGAUSSIANWIDGET_HPP
+
+#include "ui_HamiltonianGaussianWidget.h"
+
+#include "IsosurfaceWidget.hpp"
+#include "SpinWidget.hpp"
 
 #include <QtWidgets/QWidget>
 
 #include <memory>
 #include <thread>
-
-#include "SpinWidget.hpp"
-#include "IsosurfaceWidget.hpp"
-//#include "SettingsWidget.hpp"
-
-#include "ui_HamiltonianGaussianWidget.h"
 
 struct State;
 
@@ -20,10 +19,10 @@ class HamiltonianGaussianWidget : public QWidget, private Ui::HamiltonianGaussia
     Q_OBJECT
 
 public:
-	HamiltonianGaussianWidget(std::shared_ptr<State> state);
-	void updateData();
+    HamiltonianGaussianWidget( std::shared_ptr<State> state );
+    void updateData();
 
-	std::shared_ptr<State> state;
+    std::shared_ptr<State> state;
 };
 
 #endif

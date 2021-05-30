@@ -1,7 +1,6 @@
 #include <Spirit/Quantities.h>
 #include <Spirit/Geometry.h>
 #include <data/State.hpp>
-#include <engine/HTST.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <engine/Eigenmodes.hpp>
@@ -20,18 +19,18 @@ void Quantity_Get_Magnetization(State * state,  float m[3], int idx_image, int i
     {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-        
+
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
-        
+
         auto mag = Engine::Vectormath::Magnetization(*image->spins);
         image->M = Vector3{ mag[0], mag[1], mag[2] };
 
         // image->Unlock();
-        
-        for (int i=0; i<3; ++i) 
+
+        for (int i=0; i<3; ++i)
             m[i] = (float)mag[i];
     }
     catch( ... )
@@ -46,20 +45,20 @@ float Quantity_Get_Topological_Charge(State * state, int idx_image, int idx_chai
     {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-        
+
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
-        
+
         // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
 
         scalar charge = 0;
         int dimensionality = Geometry_Get_Dimensionality(state, idx_image, idx_chain);
         if (dimensionality == 2)
-            charge = Engine::Vectormath::TopologicalCharge(*image->spins, 
-                        image->geometry->positions, image->geometry->triangulation());
+            charge = Engine::Vectormath::TopologicalCharge(*image->spins,
+                *image->geometry, image->hamiltonian->boundary_conditions);
 
         // image->Unlock();
-        
+
         return (float)charge;
     }
     catch( ... )
@@ -69,49 +68,25 @@ float Quantity_Get_Topological_Charge(State * state, int idx_image, int idx_chai
     }
 }
 
-
-float Quantity_Get_HTST_Prefactor(State * state, int idx_image_minimum, int idx_image_sp, int idx_chain)
-try
-{
-    std::shared_ptr<Data::Spin_System> image_minimum, image_sp;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
-    from_indices(state, idx_image_minimum, idx_chain, image_minimum, chain);
-    from_indices(state, idx_image_sp, idx_chain, image_sp, chain);
-
-    auto& info = chain->htst_info;
-    info.minimum = image_minimum;
-    info.saddle_point = image_sp;
-
-    Engine::HTST::Calculate_Prefactor(chain->htst_info);
-
-    return (float)info.prefactor;
-}
-catch( ... )
-{
-    spirit_handle_exception_api(-1, idx_chain);
-    return 0;
-}
-
-
 void check_modes(const vectorfield & image, const vectorfield & grad, const MatrixX & tangent_basis, const VectorX & eigenvalues, const MatrixX & eigenvectors_2N, const vectorfield & minimum_mode)
 {
     using namespace Engine;
     using namespace Utility;
-    
+
     int nos = image.size();
 
     // ////////////////////////////////////////////////////////////////
     // // Check for complex numbers in the eigenvalues
     // if (std::abs(hessian_spectrum.eigenvalues().imag()[0]) > 1e-8)
-    //     std::cerr << "     >>>>>>>> WARNING  nonzero complex EW    WARNING" << std::endl; 
+    //     std::cerr << "     >>>>>>>> WARNING  nonzero complex EW    WARNING" << std::endl;
     // for (int ispin=0; ispin<nos; ++ispin)
     // {
     //     if (std::abs(hessian_spectrum.eigenvectors().col(0).imag()[0]) > 1e-8)
-    //         std::cerr << "     >>>>>>>> WARNING  nonzero complex EV x  WARNING" << std::endl; 
+    //         std::cerr << "     >>>>>>>> WARNING  nonzero complex EV x  WARNING" << std::endl;
     //     if (std::abs(hessian_spectrum.eigenvectors().col(0).imag()[1]) > 1e-8)
-    //         std::cerr << "     >>>>>>>> WARNING  nonzero complex EV y  WARNING" << std::endl; 
+    //         std::cerr << "     >>>>>>>> WARNING  nonzero complex EV y  WARNING" << std::endl;
     //     if (std::abs(hessian_spectrum.eigenvectors().col(0).imag()[2]) > 1e-8)
-    //         std::cerr << "     >>>>>>>> WARNING  nonzero complex EV z  WARNING" << std::endl; 
+    //         std::cerr << "     >>>>>>>> WARNING  nonzero complex EV z  WARNING" << std::endl;
     // }
     // ////////////////////////////////////////////////////////////////
 

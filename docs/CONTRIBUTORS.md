@@ -1,11 +1,27 @@
 # Contributors
 
-### Gideon Müller
+
+### Moritz Sallermann
+* RWTH Aachen
+* PGI-1/IAS-1 at Forschungszentrum Jülich
+
+Implementation of
+- the dipole-dipole interaction using FFT convolutions
+- the NCG and LBFGS solvers
+
+email: m.sallermann@fz-juelich.de
+
+(May 2018 - ongoing)
+
+-----------------
+
+
+### Gideon P. Müller
 * RWTH Aachen
 * University of Iceland
 * PGI-1/IAS-1 at Forschungszentrum Jülich
 
-General code design and project setup (including CMake).<br />
+General code design and project setup.<br />
 Implementation of the core library and user interfaces, most notably:
 - GNEB and MMF methods
 - Velocity projection solver
@@ -14,7 +30,76 @@ Implementation of the core library and user interfaces, most notably:
 - C++ QT GUI and initial OpenGL code
 - Unit tests and continuous integration
 
-(Oct. 2014 - ongoing)
+email: gideon.mueller@outlook.de
+
+(Oct. 2014 - Sept. 2019)
+
+-----------------
+
+
+### Markus Hoffmann
+* RWTH Aachen
+* PGI-1/IAS-1 at Forschungszentrum Jülich
+
+Bug-reports, feedback on code features and general help designing some of the
+functionality, user interface and input file format.
+
+email: m.hoffmann@fz-juelich.de
+
+(Jun. 2016 - ongoing)
+
+-----------------
+
+
+### Nikolai S. Kiselev
+* PGI-1/IAS-1 at Forschungszentrum Jülich
+
+Scientific advice, general help and feedback, initial (Fortran90) implementations of:
+- isotropic Heisenberg Hamiltonian
+- Neighbour calculations
+- SIB solver
+- Monte Carlo methods
+
+email: n.kiselev@fz-juelich.de
+
+(2007 - ongoing)
+
+-----------------
+
+
+### Florian Rhiem
+* Scientific IT-Systems, PGI/JCNS at Forschungszentrum Jülich
+
+Implementation of C++ OpenGL code (VFRendering library),
+as well as JavaScript Web UI and WebGL code.<br />
+Code design improvements, including the C API and CMake.
+
+(Jan. 2016 - ongoing)
+
+-----------------
+
+
+### Pavel F. Bessarab
+* University of Iceland
+
+Help with the initial GNEB implementation.
+Initial (Fortran90) implementation of the HTST method.
+
+email: bessarab@hi.is
+
+(Apr. 2015 - ongoing)
+
+-----------------
+
+
+### Aleksei V. Ivanov
+* University of Iceland
+* St. Petersburg State University
+
+Help with the initial implementation of conjugate gradient and L-BFGS solvers.
+Initial implementation of conjugate gradient and L-BFGS solvers, using the exponential transform.
+
+(Sep. 2019 - ongoing)
 
 -----------------
 
@@ -32,39 +117,13 @@ Work on QT GUI and Python bindings.
 -----------------
 
 
-### Nikolai Kiselev
-* PGI-1/IAS-1 at Forschungszentrum Jülich
-
-Scientific advice, general help and feedback, initial (Fortran90) implementations of:
-- isotropic Heisenberg Hamiltonian
-- Neighbour calculations
-- SIB solver
-- Monte Carlo methods
-
-(2007 - ongoing)
-
------------------
-
-
-### Florian Rhiem
-* Scientific IT-Systems, PGI/JCNS at Forschungszentrum Jülich
-
-Implementation of C++ OpenGL code (VFRendering library),
-as well as JavaScript Web UI and WebGL code.<br />
-Code design improvements, including the C API and CMake. 
-
-(Jan. 2016 - ongoing)
-
------------------
-
-
 ### Stefanos Mavros
 * RWTH Aachen
 
 Work on unit testing and documentation, implementation of the Depondt solver.<br />
 Also some general code design and IO improvements.
 
-(April 2017 - ongoing)
+(Apr. 2017 - Oct. 2018)
 
 -----------------
 
@@ -74,34 +133,12 @@ Also some general code design and IO improvements.
 
 Implementation and testing of gradient approximation of spin transfer torque.
 
-(April 2017 - Juli 2017)
+(Apr. 2017 - Jul. 2017)
 
 -----------------
 
 
-### Markus Hoffmann
-* RWTH Aachen
-* PGI-1/IAS-1 at Forschungszentrum Jülich
-
-Bug-reports, feedback on code features and general help designing some of the
-functionality, user interface and input file format.
-
-(June 2016 - ongoing)
-
------------------
-
-
-### Pavel Bessarab
-* Various Universities
-
-Help with the initial GNEB implementation. Initial implementation of the HTST method.
-
-(April 2015 - ongoing)
-
------------------
-
-
-### Filipp Rybakov
+### Filipp N. R. Rybakov
 * Various Universities
 
 Designs and ideas for the user interface and other code features,
@@ -135,6 +172,16 @@ Code optimizations, suggestions and feedback.
 -----------------
 
 
+### Dmitrii Tolmachev
+* RWTH Aachen
+
+Support on the initial implementation of micromagnetics.
+
+(Sept. 2019 - Mar. 2020)
+
+-----------------
+
+
 ### David Bauer
 * RWTH Aachen
 * PGI-1/IAS-1 at Forschungszentrum Jülich
@@ -152,9 +199,3 @@ You may also take a look at the [contributors graph][1].
 
 
 [1]: https://github.com/spirit-code/spirit/graphs/contributors
-
-
-
----
-
-[Home](Readme.md)

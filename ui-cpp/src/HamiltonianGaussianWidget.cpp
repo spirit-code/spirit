@@ -1,21 +1,19 @@
-#include <QtWidgets>
-
 #include "HamiltonianGaussianWidget.hpp"
 
-#include <Spirit/Log.h>
+#include <QtWidgets>
+
 #include <Spirit/Hamiltonian.h>
+#include <Spirit/Log.h>
 
-HamiltonianGaussianWidget::HamiltonianGaussianWidget(std::shared_ptr<State> state)
+HamiltonianGaussianWidget::HamiltonianGaussianWidget( std::shared_ptr<State> state )
 {
-	this->state = state;
+    this->state = state;
 
-	// Setup User Interface
-    this->setupUi(this);
+    // Setup User Interface
+    this->setupUi( this );
 
-	// Load variables from State
-	this->updateData();
+    // Load variables from State
+    this->updateData();
 }
 
-void HamiltonianGaussianWidget::updateData()
-{
-}
+void HamiltonianGaussianWidget::updateData() {}

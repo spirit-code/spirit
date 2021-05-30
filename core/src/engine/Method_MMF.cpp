@@ -6,6 +6,9 @@
 #include <io/IO.hpp>
 #include <io/OVF_File.hpp>
 #include <utility/Logging.hpp>
+#include <utility/Version.hpp>
+
+#include <string.h>
 
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
@@ -33,10 +36,10 @@ namespace Engine
 
         // History
         this->history = std::map<std::string, std::vector<scalar>>{
-            {"max_torque_component", {this->force_max_abs_component}} };
+            {"max_torque", {this->max_torque}} };
 
         // We assume that the systems are not converged before the first iteration
-        this->force_max_abs_component = system->mmf_parameters->force_convergence + 1.0;
+        this->max_torque = system->mmf_parameters->force_convergence + 1.0;
 
         this->hessian = MatrixX(3*this->nos, 3*this->nos);
         // Forces
@@ -87,15 +90,15 @@ namespace Engine
         // ////////////////////////////////////////////////////////////////
         // // Check for complex numbers in the eigenvalues
         // if (std::abs(hessian_spectrum.eigenvalues().imag()[0]) > 1e-8)
-        //     std::cerr << "     >>>>>>>> WARNING  nonzero complex EW    WARNING" << std::endl; 
+        //     std::cerr << "     >>>>>>>> WARNING  nonzero complex EW    WARNING" << std::endl;
         // for (int ispin=0; ispin<nos; ++ispin)
         // {
         //     if (std::abs(hessian_spectrum.eigenvectors().col(0).imag()[0]) > 1e-8)
-        //         std::cerr << "     >>>>>>>> WARNING  nonzero complex EV x  WARNING" << std::endl; 
+        //         std::cerr << "     >>>>>>>> WARNING  nonzero complex EV x  WARNING" << std::endl;
         //     if (std::abs(hessian_spectrum.eigenvectors().col(0).imag()[1]) > 1e-8)
-        //         std::cerr << "     >>>>>>>> WARNING  nonzero complex EV y  WARNING" << std::endl; 
+        //         std::cerr << "     >>>>>>>> WARNING  nonzero complex EV y  WARNING" << std::endl;
         //     if (std::abs(hessian_spectrum.eigenvectors().col(0).imag()[2]) > 1e-8)
-        //         std::cerr << "     >>>>>>>> WARNING  nonzero complex EV z  WARNING" << std::endl; 
+        //         std::cerr << "     >>>>>>>> WARNING  nonzero complex EV z  WARNING" << std::endl;
         // }
         // ////////////////////////////////////////////////////////////////
 
@@ -375,12 +378,12 @@ namespace Engine
         std::cerr << m << std::endl;
     }
 
-        
+
     // Check if the Forces are converged
     template <Solver solver>
     bool Method_MMF<solver>::Converged()
     {
-        if (this->force_max_abs_component < this->systems[0]->mmf_parameters->force_convergence) return true;
+        if (this->max_torque < this->systems[0]->mmf_parameters->force_convergence) return true;
         return false;
     }
 
@@ -394,13 +397,13 @@ namespace Engine
     void Method_MMF<solver>::Hook_Post_Iteration()
     {
         // --- Convergence Parameter Update
-        this->force_max_abs_component = 0;
-        // Loop over images to calculate the maximum force components
+        this->max_torque = 0;
+        // Loop over images to calculate the maximum torques
         for (unsigned int img = 0; img < this->systems.size(); ++img)
         {
-            auto fmax = this->Force_on_Image_MaxAbsComponent(*(this->systems[img]->spins), this->forces_virtual[img]);
-            if (fmax > 0) this->force_max_abs_component = fmax;
-            else this->force_max_abs_component = 0;
+            auto fmax = this->MaxTorque_on_Image(*(this->systems[img]->spins), this->forces_virtual[img]);
+            if (fmax > 0) this->max_torque = fmax;
+            else this->max_torque = 0;
         }
     }
 
@@ -408,7 +411,7 @@ namespace Engine
     void Method_MMF<solver>::Save_Current(std::string starttime, int iteration, bool initial, bool final)
     {
         // History save
-        this->history["max_torque_component"].push_back(this->force_max_abs_component);
+        this->history["max_torque"].push_back(this->max_torque);
 
         // File save
         if (this->parameters->output_any)
@@ -421,14 +424,14 @@ namespace Engine
             std::string preSpinsFile;
             std::string preEnergyFile;
             std::string fileTag;
-            
+
             if (this->parameters->output_file_tag == "<time>")
                 fileTag = starttime + "_";
             else if (this->parameters->output_file_tag != "")
                 fileTag = this->parameters->output_file_tag + "_";
             else
                 fileTag = "";
-                
+
             preSpinsFile = this->parameters->output_folder + "/" + fileTag + "Image-" + s_img + "_Spins";
             preEnergyFile = this->parameters->output_folder + "/"+ fileTag + "Image-" + s_img + "_Energy";
 
@@ -439,27 +442,29 @@ namespace Engine
                 {
                     // File name and comment
                     std::string spinsFile = preSpinsFile + suffix + ".ovf";
-                    std::string output_comment = fmt::format( "{} simulation ({} solver)\n#       Iteration: {}\n#       Maximum force component: {}",
-                        this->Name(), this->SolverFullName(), iteration, this->force_max_abs_component );
-                    
+                    std::string output_comment = fmt::format( "{} simulation ({} solver)\n# Desc:      Iteration: {}\n# Desc:      Maximum torque: {}",
+                        this->Name(), this->SolverFullName(), iteration, this->max_torque );
+
                     // File format
-                    IO::VF_FileFormat format = IO::VF_FileFormat::OVF_BIN8;
-                    if (this->systems[0]->mmf_parameters->output_configuration_filetype == IO_Fileformat_OVF_bin4)
-                        format = IO::VF_FileFormat::OVF_BIN4;
-                    else if (this->systems[0]->mmf_parameters->output_configuration_filetype == IO_Fileformat_OVF_text)
-                        format = IO::VF_FileFormat::OVF_TEXT;
-                    else if (this->systems[0]->mmf_parameters->output_configuration_filetype == IO_Fileformat_OVF_csv)
-                        format = IO::VF_FileFormat::OVF_CSV;
+                    IO::VF_FileFormat format = this->systems[0]->mmf_parameters->output_vf_filetype;
 
                     // Spin Configuration
-                    IO::File_OVF file_ovf( spinsFile, format );
-                    file_ovf.write_segment( *( this->systems[0] )->spins, 
-                                            *( this->systems[0] )->geometry,
-                                            output_comment, append );
+                    auto& spins = *this->systems[0]->spins;
+                    auto segment = IO::OVF_Segment(*this->systems[0]);
+                    std::string title = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                    segment.title = strdup(title.c_str());
+                    segment.comment = strdup(output_comment.c_str());
+                    segment.valuedim = 3;
+                    segment.valuelabels = strdup("spin_x spin_y spin_z");
+                    segment.valueunits  = strdup("none none none");
+                    if( append )
+                        IO::OVF_File(spinsFile).append_segment(segment, spins[0].data(), int(format));
+                    else
+                        IO::OVF_File(spinsFile).write_segment(segment, spins[0].data(), int(format));
                 }
                 catch( ... )
                 {
-                   spirit_handle_exception_core( "LLG output failed" ); 
+                   spirit_handle_exception_core( "LLG output failed" );
                 }
             };
 
@@ -487,11 +492,58 @@ namespace Engine
                     IO::Append_Image_Energy(*this->systems[0], iteration, energyFile, normalize, readability);
                     if (this->systems[0]->mmf_parameters->output_energy_spin_resolved)
                     {
-                        IO::Write_Image_Energy_per_Spin(*this->systems[0], energyFilePerSpin, normalize, readability);
+                        // Gather the data
+                        std::vector<std::pair<std::string, scalarfield>> contributions_spins(0);
+                        this->systems[0]->UpdateEnergy();
+                        this->systems[0]->hamiltonian->Energy_Contributions_per_Spin(*this->systems[0]->spins, contributions_spins);
+                        int datasize = (1+contributions_spins.size())*this->systems[0]->nos;
+                        scalarfield data(datasize, 0);
+                        for( int ispin=0; ispin<this->systems[0]->nos; ++ispin )
+                        {
+                            scalar E_spin=0;
+                            int j = 1;
+                            for( auto& contribution : contributions_spins )
+                            {
+                                E_spin += contribution.second[ispin];
+                                data[ispin+j] = contribution.second[ispin];
+                                ++j;
+                            }
+                            data[ispin] = E_spin;
+                        }
+
+                        // Segment
+                        auto segment = IO::OVF_Segment(*this->systems[0]);
+
+                        std::string title = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                        segment.title = strdup(title.c_str());
+                        std::string comment = fmt::format("Energy per spin. Total={}meV", this->systems[0]->E);
+                        for( auto& contribution : this->systems[0]->E_array )
+                            comment += fmt::format(", {}={}meV", contribution.first, contribution.second);
+                        segment.comment = strdup(comment.c_str());
+                        segment.valuedim = 1 + this->systems[0]->E_array.size();
+
+                        std::string valuelabels = "Total";
+                        std::string valueunits  = "meV";
+                        for( auto& pair : this->systems[0]->E_array )
+                        {
+                            valuelabels += fmt::format(" {}", pair.first);
+                            valueunits  += " meV";
+                        }
+                        segment.valuelabels = strdup(valuelabels.c_str());
+
+                        // File format
+                        IO::VF_FileFormat format = this->systems[0]->llg_parameters->output_vf_filetype;
+
+                        // open and write
+                        IO::OVF_File(energyFilePerSpin).write_segment(segment, data.data(), int(format));
+
+                        Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format(
+                            "Wrote spins to file \"{}\" with format {}", energyFilePerSpin, int(format) ),
+                            -1, -1 );
                     }
                 }
             };
-            
+
             // Initial image before simulation
             if (initial && this->parameters->output_initial)
             {
@@ -504,7 +556,7 @@ namespace Engine
                 writeOutputConfiguration("-final", false);
                 writeOutputEnergy("-final", false);
             }
-            
+
             // Single file output
             if (this->systems[0]->mmf_parameters->output_configuration_step)
             {
@@ -545,6 +597,8 @@ namespace Engine
     template class Method_MMF<Solver::Heun>;
     template class Method_MMF<Solver::Depondt>;
     template class Method_MMF<Solver::RungeKutta4>;
-    template class Method_MMF<Solver::NCG>;
+    template class Method_MMF<Solver::LBFGS_OSO>;
+    template class Method_MMF<Solver::LBFGS_Atlas>;
     template class Method_MMF<Solver::VP>;
+    template class Method_MMF<Solver::VP_OSO>;
 }

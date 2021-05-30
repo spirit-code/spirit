@@ -1,27 +1,20 @@
 #pragma once
-#ifndef DATA_PARAMETERS_METHOD_SOLVER_H
-#define DATA_PARAMETERS_METHOD_SOLVER_H
+#ifndef SPIRIT_DATA_PARAMETERS_METHOD_SOLVER_HPP
+#define SPIRIT_DATA_PARAMETERS_METHOD_SOLVER_HPP
 
 #include "Spirit_Defines.h"
 #include <data/Parameters_Method.hpp>
 
-#include <string>
-#include <array>
-#include <random>
-
 namespace Data
 {
-    // Solver Parameters Base Class
-    class Parameters_Method_Solver : public Parameters_Method
-    {
-    public:
-        // Constructor
-        Parameters_Method_Solver(std::string output_folder, std::string output_file_tag, 
-            std::array<bool,3> output, long int n_iterations, long int n_iterations_log,
-            long int max_walltime_sec, scalar force_convergence, scalar dt);
 
-        // Time step per iteration [ps]
-        scalar dt;
-    };
-}
+// Solver Parameters Base Class
+struct Parameters_Method_Solver : Parameters_Method
+{
+    // Time step per iteration [ps]
+    double dt = 1e-3;
+};
+
+} // namespace Data
+
 #endif

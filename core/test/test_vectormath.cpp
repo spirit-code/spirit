@@ -10,42 +10,42 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
     scalarfield sf(N, 1);
     vectorfield vf1(N, Vector3{ 1.0, 1.0, 1.0 });
     vectorfield vf2(N, Vector3{ -1.0, 1.0, 1.0 });
-    
+
     SECTION("Magnetization")
     {
         Engine::Vectormath::fill( vf1, { 0, 0, 1 } );
         auto m = Engine::Vectormath::Magnetization( vf1 );
         REQUIRE( m[0] == Approx( 0 ) );
         REQUIRE( m[1] == Approx( 0 ) );
-        REQUIRE( m[2] == Approx( 1 ) ); 
+        REQUIRE( m[2] == Approx( 1 ) );
     }
-    
+
     SECTION("Rotate")
     {
         scalar pi = std::acos( -1 );
-        
+
         Vector3 v1_out { 0, 0, 0 };
         Vector3 v1_in  { 1, 0, 1 };
         Vector3 v1_axis{ 0, 0, 1 };
         Vector3 v1_exp { 0, 1, 1 };   // expected result
         scalar angle = pi/2;
-        
+
         Engine::Vectormath::rotate( v1_in, v1_axis, angle, v1_out );
         for (unsigned int i=0; i<3; i++)
           REQUIRE( v1_out[i] == Approx( v1_exp[i] ) );
-    
+
         // zero rotation test
         Vector3 v2_out { 0, 0, 0 };
         Vector3 v2_in  { 1, 1, 1 };
         Vector3 v2_axis{ 1, 0, 0 };
         Vector3 v2_exp { 1, 1, 1 };
         scalar angle2 = 0;
-        
+
         Engine::Vectormath::rotate( v2_in, v2_axis, angle2, v2_out );
         for (unsigned int i=0; i<3; i++)
-          REQUIRE( v2_out[i] == Approx( v2_exp[i] ) );        
+          REQUIRE( v2_out[i] == Approx( v2_exp[i] ) );
     }
-    
+
     SECTION("Fill")
     {
         scalar stest = 333;
@@ -123,16 +123,6 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
         }
     }
 
-    SECTION( "MIN and MAX components" )
-    {
-        vectorfield vftest( N, Vector3{ 1., 1., 1. } );
-        vftest[0][1] = 10000;
-        vftest[N/2][2] = -10000;
-        std::pair< scalar, scalar > mm = Engine::Vectormath::minmax_component( vftest );
-        REQUIRE( mm.first == -10000 );    // check min
-        REQUIRE( mm.second == 10000 );    // check max
-    }
-
     SECTION( "MAX Abs component" )
     {
         Vector3 vtest1 = vf1[0].normalized();
@@ -147,6 +137,15 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
 
         REQUIRE( vfmc1 == vmc1 );
         REQUIRE( vfmc2 == vmc2 );
+    }
+
+
+    SECTION( "MAX norm" )
+    {
+        scalar norm_test = vf1[0].norm();
+        scalar max_norm = Engine::Vectormath::max_norm( vf1 );
+
+        REQUIRE( norm_test == max_norm );
     }
 
     SECTION("Dot and Cross Product")
@@ -180,36 +179,36 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
         Engine::Vectormath::add_c_a(2, vtest1, vf2);
         for (int i = 0; i < N_check; ++i)
             REQUIRE(vf2[i] == vtest2);
-        
+
         // out[i] += c*a[i]
         Vector3 vtest3{ 0.0, -2.0, -2.0 };
         Engine::Vectormath::add_c_a(-1, vf2, vf1);
         for (int i = 0; i < N_check; ++i)
             REQUIRE(vf1[i] == vtest3);
-        
+
         // out[i] = c*a
         Engine::Vectormath::set_c_a(3, vtest1, vf1);    // vf1 is now { 3, 3, 3 }
         for (int i = 0; i < N_check; ++i)
             REQUIRE(vf1[i] == 3*vtest1);
-        
+
         // out[i] = c*a[i]
         Engine::Vectormath::set_c_a(3, vf1, vf2);   // vf2 is now { 9, 9, 9 }
         for (int i = 0; i < N_check; ++i)
-            REQUIRE(vf2[i] == 3*vf1[i]); 
-        
+            REQUIRE(vf2[i] == 3*vf1[i]);
+
         // out[i] += c[i]*a[i]
         Vector3 vtest4{ -6, -6, -6 };
         scalarfield sf( N, -1 );
         Engine::Vectormath::add_c_a( sf, vf2, vf1 );    // vf1 is now { -6, -6, -6 }
         for (int i=0; i < N_check; i++)
-            REQUIRE( vf1[i] == vtest4 ); 
-        
+            REQUIRE( vf1[i] == vtest4 );
+
         // out[i] = c[i]*a[i]
         Vector3 vtest5{ 6, 6, 6 };
         Engine::Vectormath::set_c_a( sf, vf1, vf2 );    // vf2 is now { 6, 6, 6 }
         for (int i=0; i < N_check; i++)
             REQUIRE( vf2[i] == vtest5 );
-    } 
+    }
 
     SECTION("c*v1.dot(v2)")
     {
@@ -218,17 +217,17 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
         Engine::Vectormath::add_c_dot(-3, vtest1, vf1, sf);
         for (int i = 0; i < N_check; ++i)
             REQUIRE(sf[i] == 13);
-        
+
         // out[i] += c * a[i]*b[i]
         Engine::Vectormath::add_c_dot(-2, vf1, vf2, sf);
         for (int i = 0; i < N_check; ++i)
             REQUIRE(sf[i] == 11);
-        
+
         // out[i] = c * a*b[i]
         Engine::Vectormath::set_c_dot(3, vtest1, vf1, sf);
         for (int i = 0; i < N_check; ++i)
             REQUIRE(sf[i] == -12);
-        
+
         // out[i] = c * a[i]*b[i]
         Engine::Vectormath::set_c_dot(2, vf1, vf2, sf);
         for (int i = 0; i < N_check; ++i)
@@ -244,7 +243,7 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
         Engine::Vectormath::add_c_cross(4, vf2[0], vf1, vftest);
         for (int i = 0; i < N_check; ++i)
             REQUIRE(vftest[i] == vtest1);
-        
+
         // out[i] += c * a[i] x b[i]
         Vector3 vtest2{ 1.0, 1.0, 1.0 };
         Engine::Vectormath::add_c_cross(4, vf1, vf2, vftest);
@@ -256,7 +255,7 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
         Engine::Vectormath::set_c_cross(3, vf1[0], vf2, vftest);
         for (int i = 0; i < N_check; ++i)
             REQUIRE(vftest[i] == vtest3);
-        
+
         // out[i] = c * a[i] x b[i]
         Engine::Vectormath::set_c_cross(3, vf1, vf2, vftest);
         for (int i = 0; i < N_check; ++i)

@@ -1,3 +1,8 @@
+"""
+Spirit
+==================================================
+"""
+
 __version__ = "${META_VERSION}"
 __revision__ = "${META_VERSION_REVISION}"
 __title__ = "${META_PROJECT_NAME}"

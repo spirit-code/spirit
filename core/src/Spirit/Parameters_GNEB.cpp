@@ -31,7 +31,7 @@ try
     chain->gneb_parameters->output_file_tag = tag;
     chain->Unlock();
 
-    Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+    Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
             fmt::format("Set GNEB output tag = \"{}\"", tag), idx_image, idx_chain );
 }
 catch( ... )
@@ -114,7 +114,7 @@ try
 
     chain->Lock();
     chain->gneb_parameters->output_chain_step = chain_step;
-    chain->gneb_parameters->output_chain_filetype = chain_filetype;
+    chain->gneb_parameters->output_vf_filetype = IO::VF_FileFormat(chain_filetype);
     chain->Unlock();
 }
 catch( ... )
@@ -122,7 +122,7 @@ catch( ... )
     spirit_handle_exception_api(-1, idx_chain);
 }
 
-void Parameters_GNEB_Set_N_Iterations( State *state, int n_iterations, int n_iterations_log, 
+void Parameters_GNEB_Set_N_Iterations( State *state, int n_iterations, int n_iterations_log,
                                        int idx_chain ) noexcept
 try
 {
@@ -158,7 +158,7 @@ try
     p->force_convergence = convergence;
     image->Unlock();
 
-    Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+    Log(Utility::Log_Level::Parameter, Utility::Log_Sender::API,
         fmt::format("Set GNEB force convergence = {}", convergence), idx_image, idx_chain);
 }
 catch( ... )
@@ -166,7 +166,7 @@ catch( ... )
     spirit_handle_exception_api(idx_image, idx_chain);
 }
 
-void Parameters_GNEB_Set_Spring_Constant( State *state, float spring_constant, 
+void Parameters_GNEB_Set_Spring_Constant( State *state, float spring_constant,
                                           int idx_image, int idx_chain ) noexcept
 try
 {
@@ -181,7 +181,7 @@ try
     p->spring_constant = spring_constant;
     chain->Unlock();
 
-    Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+    Log(Utility::Log_Level::Parameter, Utility::Log_Sender::API,
         fmt::format("Set GNEB spring constant = {}", spring_constant), idx_image, idx_chain);
 }
 catch( ... )
@@ -205,7 +205,7 @@ try
     p->spring_force_ratio = ratio;
     chain->Unlock();
 
-    Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+    Log(Utility::Log_Level::Parameter, Utility::Log_Sender::API,
         fmt::format("Set GNEB spring force ratio (E vs Rx) = {}", ratio), idx_image, idx_chain);
 }
 catch( ... )
@@ -228,7 +228,7 @@ try
     p->path_shortening_constant = path_shortening_constant;
     chain->Unlock();
 
-    Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+    Log(Utility::Log_Level::Parameter, Utility::Log_Sender::API,
         fmt::format("Set GNEB path shortening constant = {}", path_shortening_constant), idx_image, idx_chain);
 }
 catch( ... )
@@ -249,7 +249,7 @@ try
     chain->image_type[idx_image] = static_cast<Data::GNEB_Image_Type>(image_type);
     chain->Unlock();
 
-    Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
+    Log(Utility::Log_Level::Parameter, Utility::Log_Sender::API,
         fmt::format("Set GNEB image type = {}", image_type), idx_image, idx_chain);
 }
 catch( ... )
@@ -274,9 +274,13 @@ try
         scalar E2 = chain->images[img+1]->E;
 
         // Maximum
-        if (E0 < E1 && E1 > E2) Parameters_GNEB_Set_Climbing_Falling(state, 1, img);
+        if( E0 < E1 && E1 > E2 )
+            chain->image_type[img] = Data::GNEB_Image_Type::Climbing;
         // Minimum
-        if (E0 > E1 && E1 < E2) Parameters_GNEB_Set_Climbing_Falling(state, 2, img);
+        else if( E0 > E1 && E1 < E2 )
+            chain->image_type[img] = Data::GNEB_Image_Type::Falling;
+        else if( chain->image_type[img] != Data::GNEB_Image_Type::Stationary )
+            chain->image_type[img] = Data::GNEB_Image_Type::Normal;
     }
 }
 catch( ... )
@@ -348,7 +352,7 @@ catch( ... )
     return nullptr;
 }
 
-void Parameters_GNEB_Get_Output_General( State *state, bool * any, bool * initial, bool * final, 
+void Parameters_GNEB_Get_Output_General( State *state, bool * any, bool * initial, bool * final,
                                          int idx_chain ) noexcept
 try
 {
@@ -402,7 +406,7 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     *chain_step = chain->gneb_parameters->output_chain_step;
-    *chain_filetype = chain->gneb_parameters->output_chain_filetype;
+    *chain_filetype = (int)chain->gneb_parameters->output_vf_filetype;
 }
 catch( ... )
 {

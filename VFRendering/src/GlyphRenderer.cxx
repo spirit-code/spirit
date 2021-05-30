@@ -1,6 +1,11 @@
 #include "VFRendering/GlyphRenderer.hxx"
 
+#ifndef __EMSCRIPTEN__
 #include <glad/glad.h>
+#else
+#include <GLES3/gl3.h>
+#endif
+
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -78,6 +83,7 @@ void GlyphRenderer::optionsHaveChanged(const std::vector<int>& changed_options) 
         switch (option_index) {
         case View::Option::COLORMAP_IMPLEMENTATION:
         case View::Option::IS_VISIBLE_IMPLEMENTATION:
+        case GlyphRenderer::Option::ROTATE_GLYPHS:
             update_shader = true;
             break;
         }
@@ -132,10 +138,15 @@ void GlyphRenderer::updateShaderProgram() {
     if (m_program) {
         glDeleteProgram(m_program);
     }
-    std::string vertex_shader_source = ARROWS_VERT_GLSL;
+    std::string vertex_shader_source;
+    if (options().get<GlyphRenderer::Option::ROTATE_GLYPHS>()) {
+        vertex_shader_source = GLYPHS_ROTATED_VERT_GLSL;
+    } else {
+        vertex_shader_source = GLYPHS_UNROTATED_VERT_GLSL;
+    }
     vertex_shader_source += options().get<View::Option::COLORMAP_IMPLEMENTATION>();
     vertex_shader_source += options().get<View::Option::IS_VISIBLE_IMPLEMENTATION>();
-    std::string fragment_shader_source = ARROWS_FRAG_GLSL;
+    std::string fragment_shader_source = GLYPHS_FRAG_GLSL;
     m_program = Utilities::createProgram(vertex_shader_source, fragment_shader_source, {"ivPosition", "ivNormal", "ivInstanceOffset", "ivInstanceDirection"});
 }
 
@@ -146,6 +157,7 @@ void GlyphRenderer::setGlyph(const std::vector<glm::vec3>& positions, const std:
         m_indices = indices;
         return;
     }
+    glBindVertexArray(m_vao);
     glBindBuffer(GL_ARRAY_BUFFER, m_position_vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * positions.size(), positions.data(), GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, m_normal_vbo);

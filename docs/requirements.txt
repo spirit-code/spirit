@@ -1,2 +1,5 @@
 pandoc
 sphinx-markdown-tables
+numpy
+cmake
+gcc7

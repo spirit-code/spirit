@@ -7,10 +7,18 @@ visualisations that used Spirit, you should add a reference.
 
 ### The Framework
 
-If you used any components of this framework please add a
-reference to our GitHub page.
+If you used Spirit to produce scientific results or when referring to it as a
+scientific project, please cite [the paper](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.99.224414).
+
+    \bibitem{mueller_spirit_2019}{
+        G. P. Müller, M. Hoffmann, C. Disselkamp, D. Schürhoff, S. Mavros, M. Sallermann, N. S. Kiselev, H. Jónsson, S. Blügel.
+        "Spirit: Multifunctional framework for atomistic spin simulations."
+        Phys. Rev. B \textbf{99}, 224414 (2019)
+    }
+
+When referring to code of this framework please add a reference to our GitHub page.
 You may use e.g. the following TeX code:
-    
+
     \bibitem{spirit}
     {Spirit spin simulation framework} (see spirit-code.github.io)
 
@@ -22,7 +30,7 @@ The following need only be cited if used.
 **Depondt Solver**
 
 This Heun-like method for solving the LLG equation including the
-stochastic term has been published by Depondt et al.: 
+stochastic term has been published by Depondt et al.:
 http://iopscience.iop.org/0953-8984/21/33/336005
 You may use e.g. the following TeX code:
 
@@ -32,7 +40,7 @@ You may use e.g. the following TeX code:
 **SIB Solver**
 
 This stable method for solving the LLG equation efficiently and
-including the stochastic term has been published by Mentink et al.: 
+including the stochastic term has been published by Mentink et al.:
 http://iopscience.iop.org/0953-8984/22/17/176001
 You may use e.g. the following TeX code:
 
@@ -42,7 +50,7 @@ You may use e.g. the following TeX code:
 **VP Solver**
 
 This intuitive direct minimization routine has been published as
-supplementary material by Bessarab et al.: 
+supplementary material by Bessarab et al.:
 http://www.sciencedirect.com/science/article/pii/S0010465515002696
 You may use e.g. the following TeX code:
 
@@ -59,12 +67,25 @@ You may use e.g. the following TeX code:
     \bibitem{GNEB}
     P. F. Bessarab et al. \textit{Comp. Phys. Comm.} \textbf{196}, 335 (2015).
 
+**HTST**
 
-### Papers
+The harmonic transition state theory for calculating transition
+rates of spin systems has been published by Bessarab et al.:
+https://link.aps.org/doi/10.1103/PhysRevB.85.184409
+You may use e.g. the following TeX code:
 
-Here we will list select papers for which the Spirit framework was
-used, which may be of interest to you.
+    \bibitem{GNEB}
+    P. F. Bessarab et al. \textit{Comp. Phys. Comm.} \textbf{196}, 335 (2015).
 
+**MMF Method**
+
+The mode following method, intended for saddle point searches,
+has been published by Müller et al.:
+https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.121.197202
+You may use e.g. the following TeX code:
+
+    \bibitem{MMF}
+    G. P. Müller et al. Phys. Rev. Lett. 121, 197202 (2018).
 
 
 ---

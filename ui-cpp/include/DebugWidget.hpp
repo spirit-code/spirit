@@ -1,12 +1,12 @@
 #pragma once
-#ifndef DEBUGWIDGET_H
-#define DEBUGWIDGET_H
+#ifndef SPIRIT_DEBUGWIDGET_HPP
+#define SPIRIT_DEBUGWIDGET_HPP
+
+#include "ui_DebugWidget.h"
 
 #include <QWidget>
 
 #include <memory>
-
-#include "ui_DebugWidget.h"
 
 struct State;
 
@@ -15,19 +15,19 @@ class DebugWidget : public QWidget, private Ui::DebugWidget
     Q_OBJECT
 
 public:
-	DebugWidget(std::shared_ptr<State> state);
-	void updateData();
+    DebugWidget( std::shared_ptr<State> state );
+    void updateData();
 
-	void LoadFromLog();
-	void UpdateFromLog();
+    void LoadFromLog();
+    void UpdateFromLog();
 
-	std::shared_ptr<State> state;
+    std::shared_ptr<State> state;
 
 private slots:
-	void AllPressed();
+    void AllPressed();
 
 private:
-	int n_log_entries;
+    int n_log_entries;
 };
 
 #endif

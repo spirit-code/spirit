@@ -1,55 +1,50 @@
 #pragma once
-#ifndef DATA_PARAMETERS_METHOD_MC_H
-#define DATA_PARAMETERS_METHOD_MC_H
+#ifndef SPIRIT_DATA_PARAMETERS_METHOD_MC_HPP
+#define SPIRIT_DATA_PARAMETERS_METHOD_MC_HPP
+
+#include <data/Parameters_Method.hpp>
 
 #include <random>
 #include <vector>
 
-#include "Spirit_Defines.h"
-#include <data/Parameters_Method.hpp>
-
 namespace Data
 {
-    // LLG_Parameters contains all LLG information about the spin system
-    class Parameters_Method_MC : public Parameters_Method
-    {
-    public:
-        Parameters_Method_MC( std::string output_folder, std::string output_file_tag, 
-            std::array<bool,10> output, int output_configuration_filetype,
-            long int n_iterations, long int n_iterations_log, long int max_walltime_sec,
-            int rng_seed, scalar temperature, scalar acceptance_ratio_target);
 
-        // Temperature [K]
-        scalar temperature;
-        // Seed for RNG
-        int rng_seed;
+// LLG_Parameters contains all LLG information about the spin system
+struct Parameters_Method_MC : public Parameters_Method
+{
+    // Temperature [K]
+    scalar temperature = 0;
+    // Seed for RNG
+    int rng_seed = 2006;
 
-        // Mersenne twister PRNG
-        std::mt19937 prng;
+    // Mersenne twister PRNG
+    std::mt19937 prng = std::mt19937( rng_seed );
 
-        // Whether to sample spins randomly or in sequence in Metropolis algorithm
-        bool metropolis_random_sample;
-        // Whether to use the adaptive cone radius (otherwise just uses full sphere sampling)
-        bool metropolis_step_cone;
-        // Whether to adapt the metropolis cone angle throughout a MC run to try to hit a target acceptance ratio
-        bool metropolis_cone_adaptive;
-        // The metropolis cone angle
-        scalar metropolis_cone_angle;
+    // Whether to sample spins randomly or in sequence in Metropolis algorithm
+    bool metropolis_random_sample = true;
+    // Whether to use the adaptive cone radius (otherwise just uses full sphere sampling)
+    bool metropolis_step_cone = true;
+    // Whether to adapt the metropolis cone angle throughout a MC run to try to hit a target acceptance ratio
+    bool metropolis_cone_adaptive = true;
+    // The metropolis cone angle
+    scalar metropolis_cone_angle = 30;
 
-        // Target acceptance ratio of mc steps for adaptive cone angle
-        scalar acceptance_ratio_target;
+    // Target acceptance ratio of mc steps for adaptive cone angle
+    scalar acceptance_ratio_target = 0.5;
 
-        // ----------------- Output --------------
-        // Energy output settings
-        bool output_energy_step;
-        bool output_energy_archive;
-        bool output_energy_spin_resolved;
-        bool output_energy_divide_by_nspins;
-        bool output_energy_add_readability_lines;
-        // Spin configurations output settings
-        bool output_configuration_step;
-        bool output_configuration_archive;
-        int  output_configuration_filetype;
-    };
-}
+    // ----------------- Output --------------
+    // Energy output settings
+    bool output_energy_step                  = false;
+    bool output_energy_archive               = false;
+    bool output_energy_spin_resolved         = false;
+    bool output_energy_divide_by_nspins      = true;
+    bool output_energy_add_readability_lines = false;
+    // Spin configurations output settings
+    bool output_configuration_step    = false;
+    bool output_configuration_archive = false;
+};
+
+} // namespace Data
+
 #endif
