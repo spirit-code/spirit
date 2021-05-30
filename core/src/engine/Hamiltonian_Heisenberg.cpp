@@ -210,7 +210,7 @@ namespace Engine
             this->idx_ddi = this->energy_contributions_per_spin.size()-1;
         }
         else this->idx_ddi = -1;
-       // Triplets
+        // Triplets
         if (this->triplets.size() > 0)
         {
             this->energy_contributions_per_spin.push_back({"triplets", scalarfield(0) });
@@ -433,7 +433,7 @@ namespace Engine
         }
     }
 
-void Hamiltonian_Heisenberg::E_Triplet(const vectorfield & spins, scalarfield & Energy)
+    void Hamiltonian_Heisenberg::E_Triplet(const vectorfield & spins, scalarfield & Energy)
     {
         for (unsigned int itrip = 0; itrip < triplets.size(); ++itrip)
         {
@@ -968,7 +968,7 @@ void Hamiltonian_Heisenberg::E_Triplet(const vectorfield & spins, scalarfield & 
         }
     }
 
-void Hamiltonian_Heisenberg::Gradient_Triplet(const vectorfield & spins, vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient_Triplet(const vectorfield & spins, vectorfield & gradient)
     {
        for (unsigned int itrip = 0; itrip < triplets.size(); ++itrip)
         {

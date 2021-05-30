@@ -1552,15 +1552,17 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
     {
         hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg>( new Engine::Hamiltonian_Heisenberg(
             B, B_normal, anisotropy_index, anisotropy_magnitude, anisotropy_normal, exchange_magnitudes, dmi_magnitudes,
-            dm_chirality, ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius, quadruplets,
-            quadruplet_magnitudes, geometry, boundary_conditions ) );
+            dm_chirality, ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius, triplets,
+            triplet_magnitudes1, triplet_magnitudes2, quadruplets, quadruplet_magnitudes, geometry,
+            boundary_conditions ) );
     }
     else
     {
         hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg>( new Engine::Hamiltonian_Heisenberg(
             B, B_normal, anisotropy_index, anisotropy_magnitude, anisotropy_normal, exchange_pairs, exchange_magnitudes,
             dmi_pairs, dmi_magnitudes, dmi_normals, ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius,
-            quadruplets, quadruplet_magnitudes, geometry, boundary_conditions ) );
+            triplets, triplet_magnitudes1, triplet_magnitudes2, quadruplets, quadruplet_magnitudes, geometry,
+            boundary_conditions ) );
     }
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Heisenberg: built" );
     return hamiltonian;
