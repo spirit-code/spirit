@@ -1,19 +1,25 @@
-Spirit Qt desktop UI
-====================
+Spirit immediate mode desktop UI
+================================
 
 
 ![Logo](https://imgur.com/lGZNdop.png "Spirit Logo")
 
-The cross-platform QT desktop user interface provides a productive tool for Spin simulations,
-providing powerful real-time visualisations and access to simulation parameters,
-as well as other very useful features.
+The cross-platform imgui desktop user interface provides an alternative to the
+QT GUI and will eventually replace it.
 
-See the build instructions for [Unix/OSX](Build_Unix_OSX.md) and [Windows](Build_Windows.md)
+It can be built by setting the CMake option `SPIRIT_UI_USE_IMGUI=ON`, see also
+the build instructions for [Unix/OSX](Build_Unix_OSX.md) and [Windows](Build_Windows.md)
 for information on how to build the graphical user interface on your machine.
+
+_Note: This GUI is not yet fully fledged and should be regarded as a "preview"_
+
+*Known Issues:*
+- Energies in energy plot are not updating correctly
 
 
 Physics features
 ----------------
+The pysics features are on par with the QT GUI.
 
 Insert Configurations:
 - White noise
@@ -36,10 +42,7 @@ your calculation.
 
 Real-time visualisation
 -----------------------
-
-This feature is most powerful for 3D systems but shows great use for the analysis
-of dynamical processes and understanding what is happening in your system during
-a simulation instead of post-processing your data.
+The imgui provides the same visualisation capabilities as the QT GUI:
 
 - Arrows, Surface (2D/3D), Isosurfaces
 - Spins or eff. field
@@ -48,10 +51,11 @@ a simulation instead of post-processing your data.
 - Directional & position filters
 - Various colourmaps
 
-You can also create quite complicate visualisations by combining these different features
-in order to visualise complex states in 3D systems:
+Additionally, it provides
+- Sphere and dot renderers
+- Individual control over each renderer via a separate widget
 
-![Visualisation of a complicated state](http://i.imgur.com/IznxguU.png "Complicated visualisation combinating isosurface, arrows and filters")
+![Visualisation Settings](https://i.imgur.com/JWuqhKk.png "Visualisation Settings")
 
 
 Additional features
@@ -63,43 +67,51 @@ Additional features
 - Take a screenshot
 
 
+How to perform an LLG dynamics calculation
+--------------------------------------------
+
+To perform a dynamics simulation, use the "LLG" method and one of the following solvers:
+
+- Depondt
+- SIB
+- Heun
+- RK4
+
+In this case, parameters such as temperature or spin
+current will have an effect and the passed time has physical
+meaning:
+
+![LLG](https://i.imgur.com/j9bHhXb.png "LLG")
+
 How to perform an energy minimisation
 --------------------------------------------
 
 The most straightforward way of minimising the energy of a
-spin configuration is to use the LLG method and the velocity
-projection (VP) solver:
+spin configuration is to use the "Minimizer" method and one of the following solvers:
 
-![GUI controls](https://imgur.com/smLr1DS.png "GUI controls")
+- VP
+- VP_OSO
+- LBFGS_Atlas
+- LBFGS_OSO
 
-By pressing "start" or the space bar, the calculation is started.
+![Minimizer](https://i.imgur.com/GN4jc5E.png "Minimizer")
 
-
-How to perform an LLG dynamics calculation
---------------------------------------------
-
-To perform a dynamics simulation, use for example the Depondt
-solver. In this case, parameters such as temperature or spin
-current will have an effect and the passed time has physical
-meaning:
-
-![GUI info panel](https://imgur.com/glOmCeO.png "GUI info panel")
-
+By pressing the "play" button or the space bar, the calculation is started.
 
 How to perform a GNEB calculation
 --------------------------------------------
 
-Select the GNEB method and the VP solver.
+Select the GNEB method and one of the minimisation solvers.
 
 In order to perform a geodesic nudged elastic band (GNEB)
 calculation, you need to first create a chain of spin systems,
 in this context called "images".
-You can do this by pressing `ctrl+c` to "copy" the current image
+You can do this by pressing `ctrl+c` (on mac replace `ctrl` with `cmd`) to "copy" the current image
 and then `ctrl+rightarrow` multiple times to insert the copy
 into the chain until the desired number of images is reached.
 The GUI will show the length of the chain:
 
-![GUI controls](https://imgur.com/y3VhqBj.png "GUI controls")
+![GUI controls](https://i.imgur.com/LDTSkwC.png "GUI controls")
 
 You can use the buttons or the right and left arrow keys to
 switch between images.
@@ -107,9 +119,6 @@ switch between images.
 A data plot is available to visualise your chain of spin systems.
 The interpolated energies become available when you run a GNEB
 calculation.
-
-![GNEB Transition Plot](http://i.imgur.com/TQpOcuh.png "Minimum energy path")
-
 
 Key bindings
 ------------

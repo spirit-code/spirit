@@ -53,13 +53,14 @@ for debugging.
 Desktop GUI
 --------------------------------------
 
-By default, the desktop GUI will try to build. The corresponding
-CMake option is `SPIRIT_UI_CXX_USE_QT`.
+By default, the Qt desktop GUI will try to build. The corresponding
+CMake option is `SPIRIT_UI_CXX_USE_QT`. To build the immediate mode
+(IM GUI) instead, use `SPIRIT_UI_USE_IMGUI=ON`.
 
 **Additional requirements**
 
-- Qt >= 5.7 (including qt-charts)
 - OpenGL drivers >= 3.3
+- The Qt GUI requires Qt >= 5.7 (including qt-charts)
 
 Necessary OpenGL drivers *should* be available through the regular drivers for any
 remotely modern graphics card.
