@@ -11,18 +11,19 @@
 
 namespace Data
 {
+
 // TODO: replace that type with Eigen!
-typedef struct
+struct vector3_t
 {
     double x, y, z;
-} vector3_t;
-typedef struct
+};
+struct vector2_t
 {
     double x, y;
-} vector2_t;
+};
 
-typedef std::array<int, 4> tetrahedron_t;
-typedef std::array<int, 3> triangle_t;
+using tetrahedron_t = std::array<int, 4>;
+using triangle_t    = std::array<int, 3>;
 
 enum class BravaisLatticeType
 {
@@ -179,5 +180,7 @@ private:
 
 // TODO: find better place (?)
 std::vector<triangle_t> compute_delaunay_triangulation_2D( const std::vector<vector2_t> & points );
+
 } // namespace Data
+
 #endif

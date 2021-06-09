@@ -9,11 +9,12 @@ namespace Data
 {
 
 // Solver Parameters Base Class
-struct Parameters_Method_Solver : public Parameters_Method
+struct Parameters_Method_Solver : Parameters_Method
 {
     // Time step per iteration [ps]
     double dt = 1e-3;
 };
 
-}
+} // namespace Data
+
 #endif
