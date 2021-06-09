@@ -6,7 +6,8 @@
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 
-
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 #include <Eigen/Dense>
 
 #include <algorithm>
@@ -16,14 +17,15 @@
 #include <sstream>
 #include <string>
 
-
-#include <fmt/format.h>
-#include <fmt/ostream.h>
+// using namespace Utility;
+using Utility::Log_Level;
+using Utility::Log_Sender;
 
 using namespace Utility;
 
 namespace IO
 {
+
 void Log_from_Config( const std::string configFile, bool force_quiet )
 {
     // Verbosity and Reject Level are read as integers
@@ -673,7 +675,7 @@ Data::Pinning Pinning_from_Config( const std::string configFile, int n_cell_atom
     }
     Log( Log_Level::Parameter, Log_Sender::IO, "Pinning: read" );
     return pinning;
-#else  // SPIRIT_ENABLE_PINNING
+#else // SPIRIT_ENABLE_PINNING
     Log( Log_Level::Parameter, Log_Sender::IO, "Pinning is disabled" );
     if( configFile != "" )
     {
@@ -703,6 +705,7 @@ std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config( 
     // PRNG Seed
     std::srand( (unsigned int)std::time( 0 ) );
     parameters->rng_seed = std::rand();
+    parameters->prng     = std::mt19937( parameters->rng_seed );
 
     // Maximum wall time
     std::string str_max_walltime = "0";
@@ -738,6 +741,7 @@ std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config( 
             myfile.Read_Single( str_max_walltime, "llg_max_walltime" );
             parameters->max_walltime_sec = (long int)Utility::Timing::DurationFromString( str_max_walltime ).count();
             myfile.Read_Single( parameters->rng_seed, "llg_seed" );
+            parameters->prng = std::mt19937( parameters->rng_seed );
             myfile.Read_Single( parameters->n_iterations, "llg_n_iterations" );
             myfile.Read_Single( parameters->n_iterations_log, "llg_n_iterations_log" );
             myfile.Read_Single( parameters->dt, "llg_dt" );
@@ -894,6 +898,7 @@ std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config( co
     // PRNG Seed
     std::srand( (unsigned int)std::time( 0 ) );
     parameters->rng_seed = std::rand();
+    parameters->prng     = std::mt19937( parameters->rng_seed );
 
     // Maximum wall time
     std::string str_max_walltime = "0";
@@ -929,6 +934,7 @@ std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config( co
             myfile.Read_Single( str_max_walltime, "mc_max_walltime" );
             parameters->max_walltime_sec = (long int)Utility::Timing::DurationFromString( str_max_walltime ).count();
             myfile.Read_Single( parameters->rng_seed, "mc_seed" );
+            parameters->prng = std::mt19937( parameters->rng_seed );
             myfile.Read_Single( parameters->n_iterations, "mc_n_iterations" );
             myfile.Read_Single( parameters->n_iterations_log, "mc_n_iterations_log" );
             myfile.Read_Single( parameters->temperature, "mc_temperature" );
@@ -1174,15 +1180,23 @@ Hamiltonian_from_Config( const std::string configFile, std::shared_ptr<Data::Geo
     try
     {
         if( hamiltonian_type == "heisenberg_neighbours" || hamiltonian_type == "heisenberg_pairs" )
+        {
             hamiltonian = Hamiltonian_Heisenberg_from_Config( configFile, geometry, hamiltonian_type );
+        }
         else if( hamiltonian_type == "micromagnetic" )
+        {
             hamiltonian = std::move( Hamiltonian_Micromagnetic_from_Config( configFile, geometry ) );
+        }
         else if( hamiltonian_type == "gaussian" )
+        {
             hamiltonian = std::move( Hamiltonian_Gaussian_from_Config( configFile, geometry ) );
+        }
         else
+        {
             spirit_throw(
                 Exception_Classifier::System_not_Initialized, Log_Level::Severe,
                 fmt::format( "Hamiltonian: Invalid type \"{}\"", hamiltonian_type ) );
+        }
     }
     catch( ... )
     {
@@ -1368,7 +1382,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                 // else
                 //{
                 //	Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg: Default Interaction pairs have not
-                //been implemented yet."); 	throw Exception::System_not_Initialized;
+                // been implemented yet."); 	throw Exception::System_not_Initialized;
                 //	// Not implemented!
                 //}
             } // end try
@@ -1846,4 +1860,5 @@ Hamiltonian_Gaussian_from_Config( const std::string configFile, std::shared_ptr<
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Gaussian: built" );
     return hamiltonian;
 }
-} // end namespace IO
+
+} // namespace IO
