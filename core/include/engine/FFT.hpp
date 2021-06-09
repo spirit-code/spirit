@@ -3,6 +3,7 @@
 #define FFT_H
 #include <Eigen/Core>
 #include <data/Geometry.hpp>
+#include <utility/Logging.hpp>
 #include <engine/Vectormath_Defines.hpp>
 #include <iostream>
 #include <complex>
@@ -25,7 +26,7 @@
 #include <cufft.h>
 #endif
 
-namespace Engine 
+namespace Engine
 {
     namespace FFT
     {
@@ -84,7 +85,7 @@ namespace Engine
             FFT_cpx_type res;
             res[0] = d1[0] * s1[0] + d2[0] * s2[0] + d3[0] * s3[0] - d1[1] * s1[1] - d2[1] * s2[1] - d3[1] * s3[1];
             res[1] = d1[0] * s1[1] + d2[0] * s2[1] + d3[0] * s3[1] + d1[1] * s1[0] + d2[1] * s2[0] + d3[1] * s3[0];
-            return res;     
+            return res;
         }
 
         inline void addTo(FFT_cpx_type & a, const FFT_cpx_type & b, bool overwrite)
@@ -112,7 +113,7 @@ namespace Engine
             FFT_cpx_type res;
             res.x = d1.x * s1.x + d2.x * s2.x + d3.x * s3.x - d1.y * s1.y - d2.y * s2.y - d3.y * s3.y;
             res.y = d1.x * s1.y + d2.x * s2.y + d3.x * s3.y + d1.y * s1.x + d2.y * s2.x + d3.y * s3.x;
-            return res;   
+            return res;
         }
 
         inline __device__ void addTo(FFT_cpx_type & a, const FFT_cpx_type & b, bool overwrite = false)
@@ -135,7 +136,7 @@ namespace Engine
                 fftw_plan_with_nthreads(omp_get_max_threads());
             #endif
         }
-        
+
         inline void get_strides(field<int*> & strides, const field<int> & maxVal)
         {
             strides.resize(maxVal.size());
@@ -173,7 +174,7 @@ namespace Engine
 
             //Constructor delegation
             FFT_Plan() : FFT_Plan({2,2,2}, true, 1, 8)
-            {} 
+            {}
 
             FFT_Plan(std::vector<int> dims, bool inverse, int n_transforms, int len) :
                 dims(dims),
@@ -187,7 +188,7 @@ namespace Engine
             }
 
             //copy constructor
-            FFT_Plan(FFT_Plan const & other) 
+            FFT_Plan(FFT_Plan const & other)
             {
                 this->dims     = other.dims;
                 this->inverse  = other.inverse;
@@ -219,7 +220,7 @@ namespace Engine
                 }
                 return *this;
             }
-            
+
             //move assignment operator
             FFT_Plan& operator=(FFT_Plan const && other)
             {

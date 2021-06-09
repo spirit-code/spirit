@@ -256,7 +256,7 @@ namespace Engine
         {
             for (int ibasis=0; ibasis<n_cell_atoms; ++ibasis)
             {
-                int ispin = icell + ibasis;
+                int ispin = n_cell_atoms * icell + ibasis;
                 if ( cu_check_atom_type(atom_types[ispin]) )
                     Energy[ispin] -= mu_s[ispin] * external_field_magnitude * external_field_normal.dot(spins[ispin]);
             }
@@ -305,7 +305,7 @@ namespace Engine
             for(auto ipair = 0; ipair < n_pairs; ++ipair)
             {
                 int ispin = pairs[ipair].i + icell*n_cell_atoms;
-                int jspin = cu_idx_from_pair(icell, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
+                int jspin = cu_idx_from_pair(ispin, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
                 if (jspin >= 0)
                 {
                     Energy[ispin] -= 0.5 * magnitudes[ipair] * spins[ispin].dot(spins[jspin]);
@@ -335,7 +335,7 @@ namespace Engine
             for(auto ipair = 0; ipair < n_pairs; ++ipair)
             {
                 int ispin = pairs[ipair].i + icell*n_cell_atoms;
-                int jspin = cu_idx_from_pair(icell, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
+                int jspin = cu_idx_from_pair(ispin, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
                 if (jspin >= 0)
                 {
                     Energy[ispin] -= 0.5 * magnitudes[ipair] * normals[ipair].dot(spins[ispin].cross(spins[jspin]));
@@ -513,31 +513,41 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::E_Quadruplet(const vectorfield & spins, scalarfield & Energy)
     {
-        // for (unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad)
-        // {
-        //     for (int da = 0; da < geometry->n_cells[0]; ++da)
-        //     {
-        //         for (int db = 0; db < geometry->n_cells[1]; ++db)
-        //         {
-        //             for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
-        //             {
-        //                 std::array<int, 3 > translations = { da, db, dc };
-        //                 // int i = quadruplets[iquad].i;
-        //                 // int j = quadruplets[iquad].j;
-        //                 // int k = quadruplets[iquad].k;
-        //                 // int l = quadruplets[iquad].l;
-        //                 int i = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
-        //                 int j = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_j);
-        //                 int k = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k);
-        //                 int l = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l);
-        //                 Energy[i] -= 0.25*quadruplet_magnitudes[iquad] * (spins[i].dot(spins[j])) * (spins[k].dot(spins[l]));
-        //                 Energy[j] -= 0.25*quadruplet_magnitudes[iquad] * (spins[i].dot(spins[j])) * (spins[k].dot(spins[l]));
-        //                 Energy[k] -= 0.25*quadruplet_magnitudes[iquad] * (spins[i].dot(spins[j])) * (spins[k].dot(spins[l]));
-        //                 Energy[l] -= 0.25*quadruplet_magnitudes[iquad] * (spins[i].dot(spins[j])) * (spins[k].dot(spins[l]));
-        //             }
-        //         }
-        //     }
-        // }
+        for( unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad )
+        {
+            const auto& quad = quadruplets[iquad];
+
+            int i = quad.i;
+            int j = quad.j;
+            int k = quad.k;
+            int l = quad.l;
+
+            const auto& d_j = quad.d_j;
+            const auto& d_k = quad.d_k;
+            const auto& d_l = quad.d_l;
+
+            for( int da = 0; da < geometry->n_cells[0]; ++da )
+            {
+                for( int db = 0; db < geometry->n_cells[1]; ++db )
+                {
+                    for( int dc = 0; dc < geometry->n_cells[2]; ++dc )
+                    {
+                        int ispin = i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, { da, db, dc });
+                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, j, {d_j[0], d_j[1], d_j[2]}});
+                        int kspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, k, {d_k[0], d_k[1], d_k[2]}});
+                        int lspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, l, {d_l[0], d_l[1], d_l[2]}});
+
+                        if( ispin >= 0 && jspin >= 0 && kspin >= 0 && lspin >= 0 )
+                        {
+                            Energy[ispin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
+                            Energy[jspin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
+                            Energy[kspin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
+                            Energy[lspin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -598,23 +608,9 @@ namespace Engine
                 }
             }
 
-            // Quadruplets
+            // TODO: Quadruplets
             if (this->idx_quadruplet >= 0)
             {
-                for (unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad)
-                {
-                    auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_cell_atoms, icell);
-                    int ispin = quadruplets[iquad].i + icell*geometry->n_cell_atoms;
-                    int jspin = quadruplets[iquad].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_j);
-                    int kspin = quadruplets[iquad].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k);
-                    int lspin = quadruplets[iquad].l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l);
-
-                    if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
-                        check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
-                    {
-                        Energy -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
-                    }
-                }
             }
         }
         return Energy;
@@ -693,7 +689,7 @@ namespace Engine
         {
             // Kind of a bandaid fix
             this->Gradient_Quadruplet(spins, gradient);
-            if(energy_contributions_per_spin[idx_quadruplet].second.size() != spins.size()) 
+            if(energy_contributions_per_spin[idx_quadruplet].second.size() != spins.size())
             {
                 energy_contributions_per_spin[idx_quadruplet].second.resize(spins.size());
             };
@@ -712,7 +708,7 @@ namespace Engine
         {
             for (int ibasis=0; ibasis<n_cell_atoms; ++ibasis)
             {
-                int ispin = icell + ibasis;
+                int ispin = n_cell_atoms * icell + ibasis;
                 if ( cu_check_atom_type(atom_types[ispin]) )
                     gradient[ispin] -= mu_s[ispin] * external_field_magnitude*external_field_normal;
             }
@@ -764,7 +760,7 @@ namespace Engine
             for(auto ipair = 0; ipair < n_pairs; ++ipair)
             {
                 int ispin = pairs[ipair].i + icell*n_cell_atoms;
-                int jspin = cu_idx_from_pair(icell, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
+                int jspin = cu_idx_from_pair(ispin, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
                 if (jspin >= 0)
                 {
                     gradient[ispin] -= magnitudes[ipair]*spins[jspin];
@@ -794,7 +790,7 @@ namespace Engine
             for(auto ipair = 0; ipair < n_pairs; ++ipair)
             {
                 int ispin = pairs[ipair].i + icell*n_cell_atoms;
-                int jspin = cu_idx_from_pair(icell, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
+                int jspin = cu_idx_from_pair(ispin, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
                 if (jspin >= 0)
                 {
                     gradient[ispin] -= magnitudes[ipair]*spins[jspin].cross(normals[ipair]);
@@ -829,119 +825,146 @@ namespace Engine
         // TODO
     }
 
-    __global__ void CU_FFT_Pointwise_Mult(FFT::FFT_cpx_type * ft_D_matrices, FFT::FFT_cpx_type * ft_spins, FFT::FFT_cpx_type * res_mult, int* iteration_bounds, int i_b1, int* inter_sublattice_lookup, FFT::StrideContainer dipole_stride, FFT::StrideContainer spin_stride)
+    __global__ void CU_FFT_Pointwise_Mult(
+        FFT::FFT_cpx_type * ft_D_matrices, FFT::FFT_cpx_type * ft_spins, FFT::FFT_cpx_type * res_mult,
+        int * iteration_bounds, int * inter_sublattice_lookup, FFT::StrideContainer dipole_stride,
+        FFT::StrideContainer spin_stride )
     {
-        int n = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2] * iteration_bounds[3];
+        int nos = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2] * iteration_bounds[3];
         int tupel[4];
-        int idx_b1, idx_b2, idx_d;
 
-        for(int ispin = blockIdx.x * blockDim.x + threadIdx.x; ispin < n; ispin += blockDim.x * gridDim.x)
+        for( int ispin = blockIdx.x * blockDim.x + threadIdx.x; ispin < nos; ispin += blockDim.x * gridDim.x )
         {
-            cu_tupel_from_idx(ispin, tupel, iteration_bounds, 4); // tupel now is {i_b2, a, b, c}
+            cu_tupel_from_idx( ispin, tupel, iteration_bounds, 4 ); // tupel now is {i_b1, a, b, c}
+            int i_b1 = tupel[0], a = tupel[1], b = tupel[2], c = tupel[3];
 
-            int& b_inter = inter_sublattice_lookup[i_b1 + tupel[0] * iteration_bounds[0]];
+            // Index to the first component of the spin (Remember: not the same as ispin, because we also have the spin
+            // component stride!)
+            int idx_b1 = i_b1 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
 
-            idx_b1 = i_b1 * spin_stride.basis      + tupel[1] * spin_stride.a   + tupel[2] * spin_stride.b   + tupel[3] * spin_stride.c;
-            idx_b2 = tupel[0] * spin_stride.basis  + tupel[1] * spin_stride.a   + tupel[2] * spin_stride.b   + tupel[3] * spin_stride.c;
-            idx_d  = b_inter * dipole_stride.basis + tupel[1] * dipole_stride.a + tupel[2] * dipole_stride.b + tupel[3] * dipole_stride.c;
-
-            auto& fs_x = ft_spins[idx_b2                       ];
-            auto& fs_y = ft_spins[idx_b2 + 1 * spin_stride.comp];
-            auto& fs_z = ft_spins[idx_b2 + 2 * spin_stride.comp];
-
-            auto& fD_xx = ft_D_matrices[idx_d                    ];
-            auto& fD_xy = ft_D_matrices[idx_d + 1 * dipole_stride.comp];
-            auto& fD_xz = ft_D_matrices[idx_d + 2 * dipole_stride.comp];
-            auto& fD_yy = ft_D_matrices[idx_d + 3 * dipole_stride.comp];
-            auto& fD_yz = ft_D_matrices[idx_d + 4 * dipole_stride.comp];
-            auto& fD_zz = ft_D_matrices[idx_d + 5 * dipole_stride.comp];
-
-            if(tupel[0] == 0)
+            // Collect the intersublattice contributions
+            FFT::FFT_cpx_type res_temp_x{ 0, 0 }, res_temp_y{ 0, 0 }, res_temp_z{ 0, 0 };
+            for( int i_b2 = 0; i_b2 < iteration_bounds[0]; i_b2++ )
             {
-                res_mult[idx_b1                       ].x = FFT::mult3D(fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z).x;
-                res_mult[idx_b1                       ].y = FFT::mult3D(fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z).y;
-                res_mult[idx_b1 + 1 * spin_stride.comp].x = FFT::mult3D(fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z).x;
-                res_mult[idx_b1 + 1 * spin_stride.comp].y = FFT::mult3D(fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z).y;
-                res_mult[idx_b1 + 2 * spin_stride.comp].x = FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z).x;
-                res_mult[idx_b1 + 2 * spin_stride.comp].y = FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z).y;
-            } else {
-                atomicAdd(&res_mult[idx_b1                       ].x, FFT::mult3D(fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z).x);
-                atomicAdd(&res_mult[idx_b1                       ].y, FFT::mult3D(fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z).y);
-                atomicAdd(&res_mult[idx_b1 + 1 * spin_stride.comp].x, FFT::mult3D(fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z).x);
-                atomicAdd(&res_mult[idx_b1 + 1 * spin_stride.comp].y, FFT::mult3D(fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z).y);
-                atomicAdd(&res_mult[idx_b1 + 2 * spin_stride.comp].x, FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z).x);
-                atomicAdd(&res_mult[idx_b1 + 2 * spin_stride.comp].y, FFT::mult3D(fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z).y);
+                // Index to the first component of the second spin
+                int idx_b2 = i_b2 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
+
+                int & b_inter = inter_sublattice_lookup[i_b1 + i_b2 * iteration_bounds[0]];
+                // Index of the dipole matrix "connecting" the two spins
+                int idx_d = b_inter * dipole_stride.basis + a * dipole_stride.a + b * dipole_stride.b + c * dipole_stride.c;
+
+                // Fourier transformed components of the second spin
+                auto & fs_x = ft_spins[idx_b2];
+                auto & fs_y = ft_spins[idx_b2 + 1 * spin_stride.comp];
+                auto & fs_z = ft_spins[idx_b2 + 2 * spin_stride.comp];
+
+                // Fourier transformed components of the dipole matrix
+                auto & fD_xx = ft_D_matrices[idx_d];
+                auto & fD_xy = ft_D_matrices[idx_d + 1 * dipole_stride.comp];
+                auto & fD_xz = ft_D_matrices[idx_d + 2 * dipole_stride.comp];
+                auto & fD_yy = ft_D_matrices[idx_d + 3 * dipole_stride.comp];
+                auto & fD_yz = ft_D_matrices[idx_d + 4 * dipole_stride.comp];
+                auto & fD_zz = ft_D_matrices[idx_d + 5 * dipole_stride.comp];
+
+                FFT::addTo( res_temp_x, FFT::mult3D( fD_xx, fD_xy, fD_xz, fs_x, fs_y, fs_z ) );
+                FFT::addTo( res_temp_y, FFT::mult3D( fD_xy, fD_yy, fD_yz, fs_x, fs_y, fs_z ) );
+                FFT::addTo( res_temp_z, FFT::mult3D( fD_xz, fD_yz, fD_zz, fs_x, fs_y, fs_z ) );
             }
+            // Add the temporary result
+            FFT::addTo( res_mult[idx_b1 + 0 * spin_stride.comp], res_temp_x, true );
+            FFT::addTo( res_mult[idx_b1 + 1 * spin_stride.comp], res_temp_y, true );
+            FFT::addTo( res_mult[idx_b1 + 2 * spin_stride.comp], res_temp_z, true );
         }
     }
 
-    __global__ void CU_Write_FFT_Gradients(FFT::FFT_real_type * resiFFT, Vector3 * gradient, FFT::StrideContainer spin_stride , int * iteration_bounds, int n_cell_atoms, scalar * mu_s, int sublattice_size)
+    __global__ void CU_Write_FFT_Gradients(
+        FFT::FFT_real_type * resiFFT, Vector3 * gradient, FFT::StrideContainer spin_stride, int * iteration_bounds,
+        int n_cell_atoms, scalar * mu_s, int sublattice_size )
     {
         int nos = iteration_bounds[0] * iteration_bounds[1] * iteration_bounds[2] * iteration_bounds[3];
         int tupel[4];
         int idx_pad;
 
-        for(int idx_orig = blockIdx.x * blockDim.x + threadIdx.x; idx_orig < nos; idx_orig += blockDim.x * gridDim.x)
+        for( int idx_orig = blockIdx.x * blockDim.x + threadIdx.x; idx_orig < nos; idx_orig += blockDim.x * gridDim.x )
         {
-            cu_tupel_from_idx(idx_orig, tupel, iteration_bounds, 4); //tupel now is {ib, a, b, c}
-            idx_pad = tupel[0] * spin_stride.basis + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b + tupel[3] * spin_stride.c;
-            gradient[idx_orig][0] -= mu_s[idx_orig] * resiFFT[idx_pad                       ] / sublattice_size;
+            cu_tupel_from_idx( idx_orig, tupel, iteration_bounds, 4 ); // tupel now is {ib, a, b, c}
+            idx_pad = tupel[0] * spin_stride.basis + tupel[1] * spin_stride.a + tupel[2] * spin_stride.b
+                    + tupel[3] * spin_stride.c;
+            gradient[idx_orig][0] -= mu_s[idx_orig] * resiFFT[idx_pad] / sublattice_size;
             gradient[idx_orig][1] -= mu_s[idx_orig] * resiFFT[idx_pad + 1 * spin_stride.comp] / sublattice_size;
             gradient[idx_orig][2] -= mu_s[idx_orig] * resiFFT[idx_pad + 2 * spin_stride.comp] / sublattice_size;
         }
     }
 
-    void Hamiltonian_Heisenberg::Gradient_DDI_FFT(const vectorfield & spins, vectorfield & gradient)
+    void Hamiltonian_Heisenberg::Gradient_DDI_FFT( const vectorfield & spins, vectorfield & gradient )
     {
-        auto& ft_D_matrices = transformed_dipole_matrices;
+        auto & ft_D_matrices = transformed_dipole_matrices;
 
-        auto& ft_spins = fft_plan_spins.cpx_ptr;
+        auto & ft_spins = fft_plan_spins.cpx_ptr;
 
-        auto& res_iFFT = fft_plan_reverse.real_ptr;
-        auto& res_mult = fft_plan_reverse.cpx_ptr;
+        auto & res_iFFT = fft_plan_reverse.real_ptr;
+        auto & res_mult = fft_plan_reverse.cpx_ptr;
 
-        int number_of_mults = it_bounds_pointwise_mult[0] * it_bounds_pointwise_mult[1] * it_bounds_pointwise_mult[2] * it_bounds_pointwise_mult[3];
+        int number_of_mults = it_bounds_pointwise_mult[0] * it_bounds_pointwise_mult[1] * it_bounds_pointwise_mult[2]
+                            * it_bounds_pointwise_mult[3];
 
-        FFT_Spins(spins);
+        FFT_Spins( spins );
 
         // TODO: also parallelize over i_b1
         // Loop over basis atoms (i.e sublattices) and add contribution of each sublattice
-        for(int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1)
-            CU_FFT_Pointwise_Mult<<<(number_of_mults + 1023) / 1024, 1024>>>(ft_D_matrices.data(), ft_spins.data(), res_mult.data(), it_bounds_pointwise_mult.data(), i_b1, inter_sublattice_lookup.data(), dipole_stride, spin_stride);
+        CU_FFT_Pointwise_Mult<<<( spins.size() + 1023 ) / 1024, 1024>>>(
+            ft_D_matrices.data(), ft_spins.data(), res_mult.data(), it_bounds_pointwise_mult.data(),
+            inter_sublattice_lookup.data(), dipole_stride, spin_stride );
+        // cudaDeviceSynchronize();
+        // std::cerr << "\n\n>>>>>>>>>>>  Pointwise_Mult       <<<<<<<<<\n";
+        // for( int i = 0; i < 10; i++ )
+        //     std::cout << ( res_mult[i].x ) << " " << ( res_mult[i].y ) << " ";
+        // std::cerr << "\n>=====================================<\n\n";
 
-        FFT::batch_iFour_3D(fft_plan_reverse);
+        FFT::batch_iFour_3D( fft_plan_reverse );
 
-        CU_Write_FFT_Gradients<<<(geometry->nos + 1023) / 1024, 1024>>>(res_iFFT.data(), gradient.data(), spin_stride, it_bounds_write_gradients.data(), geometry->n_cell_atoms, geometry->mu_s.data(), sublattice_size);
-    }//end Field_DipoleDipole
-
+        CU_Write_FFT_Gradients<<<( geometry->nos + 1023 ) / 1024, 1024>>>(
+            res_iFFT.data(), gradient.data(), spin_stride, it_bounds_write_gradients.data(), geometry->n_cell_atoms,
+            geometry->mu_s.data(), sublattice_size );
+    } // end Field_DipoleDipole
 
     void Hamiltonian_Heisenberg::Gradient_Quadruplet(const vectorfield & spins, vectorfield & gradient)
     {
-        // for (unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad)
-        // {
-        // 	int i = quadruplets[iquad].i;
-        // 	int j = quadruplets[iquad].j;
-        // 	int k = quadruplets[iquad].k;
-        // 	int l = quadruplets[iquad].l;
-        // 	for (int da = 0; da < geometry->n_cells[0]; ++da)
-        // 	{
-        // 		for (int db = 0; db < geometry->n_cells[1]; ++db)
-        // 		{
-        // 			for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
-        // 			{
-        // 				std::array<int, 3 > translations = { da, db, dc };
-        // 				int ispin = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
-        // 				int jspin = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_j);
-        // 				int kspin = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k);
-        // 				int lspin = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l);
-        // 				gradient[ispin] -= quadruplet_magnitudes[iquad] * spins[jspin] * (spins[kspin].dot(spins[lspin]));
-        // 				gradient[jspin] -= quadruplet_magnitudes[iquad] * spins[ispin] * (spins[kspin].dot(spins[lspin]));
-        // 				gradient[kspin] -= quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * spins[lspin];
-        // 				gradient[lspin] -= quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * spins[kspin];
-        // 			}
-        // 		}
-        // 	}
-        // }
+        for( unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad )
+        {
+            const auto& quad = quadruplets[iquad];
+
+            int i = quad.i;
+            int j = quad.j;
+            int k = quad.k;
+            int l = quad.l;
+
+            const auto& d_j = quad.d_j;
+            const auto& d_k = quad.d_k;
+            const auto& d_l = quad.d_l;
+
+            for( int da = 0; da < geometry->n_cells[0]; ++da )
+            {
+                for( int db = 0; db < geometry->n_cells[1]; ++db )
+                {
+                    for( int dc = 0; dc < geometry->n_cells[2]; ++dc )
+                    {
+                        int ispin = i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, { da, db, dc });
+                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, j, {d_j[0], d_j[1], d_j[2]}});
+                        int kspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, k, {d_k[0], d_k[1], d_k[2]}});
+                        int lspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, l, {d_l[0], d_l[1], d_l[2]}});
+
+                        if( ispin >= 0 && jspin >= 0 && kspin >= 0 && lspin >= 0 )
+                        {
+                            gradient[ispin] -= quadruplet_magnitudes[iquad] * spins[jspin] * (spins[kspin].dot(spins[lspin]));
+                            gradient[jspin] -= quadruplet_magnitudes[iquad] * spins[ispin] * (spins[kspin].dot(spins[lspin]));
+                            gradient[kspin] -= quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * spins[lspin];
+                            gradient[lspin] -= quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * spins[kspin];
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -1058,8 +1081,8 @@ namespace Engine
             }
         }
 
-        //// Dipole-Dipole
-        //for (unsigned int i_pair = 0; i_pair < this->DD_indices.size(); ++i_pair)
+        // // TODO: Dipole-Dipole
+        // for (unsigned int i_pair = 0; i_pair < this->DD_indices.size(); ++i_pair)
         // {
         //     // indices
         //     int idx_1 = DD_indices[i_pair][0];
@@ -1081,7 +1104,7 @@ namespace Engine
         //     }
         // }
 
-        // Quadruplets
+        // TODO: Quadruplets
     }
 
      void Hamiltonian_Heisenberg::Sparse_Hessian(const vectorfield & spins, SpMatrixX & hessian)

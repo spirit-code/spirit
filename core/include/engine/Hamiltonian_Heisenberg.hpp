@@ -9,7 +9,8 @@
 #include <engine/Vectormath_Defines.hpp>
 #include <engine/Hamiltonian.hpp>
 #include <data/Geometry.hpp>
-#include <engine/FFT.hpp>
+#include <Spirit/Hamiltonian.h>
+#include "FFT.hpp"
 
 namespace Engine
 {
@@ -61,9 +62,7 @@ namespace Engine
 
         // Hamiltonian name as string
         const std::string& Name() override;
-
-        std::shared_ptr<Data::Geometry> geometry;
-
+        
         // ------------ Single Spin Interactions ------------
         // External magnetic field across the sample
         scalar external_field_magnitude;
@@ -94,7 +93,7 @@ namespace Engine
         pairfield   dmi_pairs;
         scalarfield dmi_magnitudes;
         vectorfield dmi_normals;
-        // Dipole-dipole interaction
+        // Dipole Dipole interaction
         DDI_Method  ddi_method;
         intfield    ddi_n_periodic_images;
         bool        ddi_pb_zero_padding;
@@ -107,6 +106,8 @@ namespace Engine
         // ------------ Quadruplet Interactions ------------
         quadrupletfield quadruplets;
         scalarfield     quadruplet_magnitudes;
+
+        std::shared_ptr<Data::Geometry> geometry;
 
         // ------------ Effective Field Functions ------------
         // Calculate the Zeeman effective field of a single Spin
@@ -191,6 +192,7 @@ namespace Engine
         field<int> it_bounds_write_spins;
         field<int> it_bounds_write_dipole;
     };
+
 
 }
 #endif

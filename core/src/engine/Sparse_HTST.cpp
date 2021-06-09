@@ -65,18 +65,39 @@ namespace Engine
             }
         }
 
+        void Inverse_Shift_PowerMethod(int n_iter, const SpMatrixX & matrix, scalar & evalue_estimate, VectorX & evec_estimate)
+        {
+            SpMatrixX tmp = SpMatrixX(matrix.rows(), matrix.cols());
+            tmp.setIdentity();
+            tmp *= evalue_estimate;
+
+            Eigen::SparseLU<SpMatrixX, Eigen::COLAMDOrdering<int> > solver;
+            solver.analyzePattern(matrix - tmp);
+            solver.factorize(matrix - tmp);
+
+            Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, fmt::format("        ... Improve eigenpair estimate with power method for eigenvalue = {}", evalue_estimate));
+            for(int i=0; i<n_iter; i++)
+            {
+                // evec_estimate.noalias() = solver.solveWithGuess( evec_estimate, evec_estimate );
+                evec_estimate = solver.solve( evec_estimate );
+                evec_estimate.normalize();
+            }
+            evalue_estimate = evec_estimate.dot(matrix * evec_estimate);
+            Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, fmt::format("        ... Improved eigenvalue = {}", evalue_estimate));
+        }
+
         void Sparse_Get_Lowest_Eigenvectors_VP(const SpMatrixX & matrix, scalar max_evalue, scalarfield & evalues, std::vector<VectorX> & evecs)
         {
             Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, fmt::format("    Computing eigenvalues smaller than {}", max_evalue));
-
-            scalar tol = 1e-6;
-            scalar evalue_epsilon = 1e-4;
-            int n_log_step = 2500;
+            scalar tol = 1e-8;
+            int n_log_step = 20000;
             scalar cur = 2 * tol;
             scalar m = 0.01;
             scalar step_size = 1e-4;
             int n_iter = 0;
             int nos = matrix.rows()/2;
+            int max_iter = 10*n_log_step;
+            int n_iter_power = 500;
 
             scalar sigma_shift = std::max(scalar(5.0), 2*scalar(max_evalue));
 
@@ -85,6 +106,8 @@ namespace Engine
             VectorX velocity      = VectorX::Zero(2*nos);
             scalar cur_evalue_estimate;
             scalar fnorm2, ratio, proj;
+
+            scalar max_grad_comp = 0;
             bool run = true;
 
             // We try to find the lowest n_values eigenvalue/vector pairs
@@ -123,11 +146,18 @@ namespace Engine
 
                     if (proj<=0)
                         velocity.setZero();
-                    else 
+                    else
                         velocity = gradient*ratio;
 
-                    // Update x and renormalize
+                    // Update x
                     x -= step_size * velocity + 0.5/m * step_size * gradient;
+
+                    // Re-orthogonalize
+                    for (int i=0; i<evecs.size(); i++)
+                    {
+                        x -= ( x.dot(evecs[i]) ) * x;
+                    }
+                    // Re-normalize
                     x.normalize();
 
                     // Update prev gradient
@@ -136,11 +166,18 @@ namespace Engine
                     // Increment n_iter
                     n_iter++;
 
-                    if(n_iter % n_log_step == 0)
-                        Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format("        ... Iteration {}: Evalue estimate = {}, Grad. norm = {} (> {})", n_iter, cur_evalue_estimate, std::sqrt(fnorm2), tol));
+                    max_grad_comp = 0;
+                    for(const auto & g : gradient)
+                        max_grad_comp = std::max(std::abs(g), max_grad_comp);
 
-                    search = (std::sqrt(fnorm2) > tol);
+                    if(n_iter % n_log_step == 0)
+                        Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format("        ... Iteration {}: Evalue estimate = {}, Grad. norm = {} (> {})", n_iter, cur_evalue_estimate, max_grad_comp, tol));
+
+                    search = max_grad_comp > tol && n_iter < max_iter;
                 }
+
+                // We improve the eigenpair estimate with the inverse shift power method (This may be necessary for accurate cancellation of zero-modes)
+                Inverse_Shift_PowerMethod(n_iter_power, matrix, cur_evalue_estimate, x);
 
                 // Ideally we have found one eigenvalue/vector pair now
                 // We save the eigenvalue
@@ -157,63 +194,6 @@ namespace Engine
                     run = false;
                 }
             }
-        }
-
-        void Sparse_Get_Lowest_Eigenvector_VP(const SpMatrixX & matrix, int nos, const VectorX & init, scalar & lowest_evalue, VectorX & lowest_evec)
-        {
-            Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, "        Minimizing Rayleigh quotient to compute lowest eigenmode...");
-            auto & x = lowest_evec;
-            x = init;
-            x.normalize();
-
-            scalar tol = 1e-6;
-            scalar cur = 2 * tol;
-            scalar m = 0.01;
-            scalar step_size = 1e-4;
-            int n_iter = 0;
-
-            VectorX gradient = VectorX::Zero(2*nos);
-            VectorX gradient_prev = VectorX::Zero(2*nos);
-            VectorX velocity = VectorX::Zero(2*nos);
-
-            VectorX mx; // temporary for matrix * x
-            scalar proj; // temporary for gradient * x
-            scalar fnorm2 = 2*tol*tol, ratio;
-
-            while (std::sqrt(fnorm2) > tol)
-            {
-                // Compute gradient of Rayleigh quotient
-                mx = matrix * x;
-                gradient = 2 * mx;
-                proj = gradient.dot(x);
-                gradient -= proj * x;
-
-                velocity = 0.5 * (gradient + gradient_prev) / m;
-                fnorm2 = gradient.squaredNorm();
-
-                proj = velocity.dot(gradient);
-                ratio = proj/fnorm2;
-
-                if (proj<=0)
-                    velocity.setZero();
-                else 
-                    velocity = gradient*ratio;
-
-                // Update x and renormalize
-                x -= step_size * velocity + 0.5/m * step_size * gradient;
-                x.normalize();
-
-                // Update prev gradient
-                gradient_prev = gradient;
-
-                // Increment n_iter
-                lowest_evalue = x.dot(matrix * x);
-                n_iter++;
-            }
-
-            // Compute the eigenvalue
-            lowest_evalue = x.dot(matrix * x);
-            Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, fmt::format("        Finished after {} iterations", n_iter));
         }
 
         // Note the two images should correspond to one minimum and one saddle point
@@ -297,12 +277,19 @@ namespace Engine
                 sparse_hessian_bordered_3N(image_sp, gradient_sp, sparse_hessian_sp, sparse_hessian_sp_geodesic_3N);
                 SpMatrixX sparse_hessian_sp_geodesic_2N = tangent_basis.transpose() * sparse_hessian_sp_geodesic_3N * tangent_basis;
 
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Sparse LU Decomposition of geodesic Hessian...");
+                Eigen::SparseLU<SpMatrixX, Eigen::COLAMDOrdering<int> > solver;
+                solver.analyzePattern(sparse_hessian_sp_geodesic_2N);
+                solver.factorize(sparse_hessian_sp_geodesic_2N);
+
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluate lowest eigenmode of the Hessian...");
 
                 std::vector<VectorX> evecs_sp = std::vector<VectorX>(0);
                 Sparse_Get_Lowest_Eigenvectors_VP(sparse_hessian_sp_geodesic_2N, epsilon, evalues_sp, evecs_sp);
                 scalar lowest_evalue = evalues_sp[0];
                 VectorX & lowest_evector = evecs_sp[0];
+
+                htst_info.det_sp = solver.logAbsDeterminant() - std::log(-lowest_evalue);
 
                 // Check if lowest eigenvalue < 0 (else it's not a SP)
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Check if actually a saddle point...");
@@ -326,12 +313,6 @@ namespace Engine
                     return;
                 }
 
-                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Sparse LU Decomposition of geodesic Hessian...");
-                Eigen::SparseLU<SpMatrixX, Eigen::COLAMDOrdering<int> > solver;
-                solver.analyzePattern(sparse_hessian_sp_geodesic_2N);
-                solver.factorize(sparse_hessian_sp_geodesic_2N);
-                htst_info.det_sp = solver.logAbsDeterminant() - std::log(-lowest_evalue);
-
                 // Perpendicular velocity
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Calculate dynamical contribution");
 
@@ -344,7 +325,6 @@ namespace Engine
                 VectorX x(2*nos);
                 x = solver.solve(projected_velocity.transpose() * lowest_evector);
                 htst_info.s = std::sqrt(lowest_evector.transpose() * projected_velocity * x );
-            
                 // Checking for zero modes at the saddle point...
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Checking for zero modes at the saddle point...");
                 for( int i=0; i < evalues_sp.size(); ++i )
@@ -434,10 +414,10 @@ namespace Engine
 
             scalar zero_mode_factor = 1;
             for (int i=0; i<n_zero_modes_minimum; i++)
-                zero_mode_factor /= evalues_min[i];
+                zero_mode_factor /= std::abs(evalues_min[i]); // We can take the abs here and in the determinants, because in the end we know the result must be positive
 
             for (int i=0; i<n_zero_modes_sp; i++)
-                zero_mode_factor *= evalues_sp[i+1];
+                zero_mode_factor *= std::abs(evalues_sp[i+1]); // We can take the abs here and in the determinants, because in the end we know the result must be positive
 
             zero_mode_factor = std::sqrt(zero_mode_factor);
 
@@ -474,7 +454,7 @@ namespace Engine
             std::vector<T> tripletList;
             tripletList.reserve(hessian.nonZeros());
 
-            auto levi_civita = [](int i, int j, int k) 
+            auto levi_civita = [](int i, int j, int k)
             {
                 return -0.5 * (j-i) * (k-j) * (i-k);
             };
