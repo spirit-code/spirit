@@ -6,7 +6,6 @@
 #include <Spirit/Geometry.h>
 #include <engine/Vectormath_Defines.hpp>
 
-
 #include <vector>
 
 namespace Data

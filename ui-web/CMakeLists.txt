@@ -3,7 +3,7 @@ MESSAGE( STATUS ">> --------------------- UI - Web -----------------------------
 
 
 ######### CMake Version #####################
-cmake_minimum_required(VERSION 2.8.11)
+cmake_minimum_required(VERSION 3.1)
 #############################################
 
 
@@ -356,7 +356,7 @@ set_target_properties( webui PROPERTIES OUTPUT_NAME "libSpirit" )
 ### We want it to be placed under ui-web/js/ s.t. it is directly part of the python core module/package
 set_target_properties( webui PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/ui-web/js/ )
 
-set_property( TARGET webui PROPERTY CXX_STANDARD 11 )
+set_property( TARGET webui PROPERTY CXX_STANDARD 14 )
 set_property( TARGET webui PROPERTY CXX_STANDARD_REQUIRED ON )
 set_property( TARGET webui PROPERTY CXX_EXTENSIONS OFF )
 

@@ -28,7 +28,7 @@ std::shared_ptr<State> state;
 // Main
 int main( int argc, char ** argv )
 {
-    // Register SigInt
+    // Register interrupt signal
     signal( SIGINT, Utility::Handle_Signal::Handle_SigInt );
 
     // Default options
@@ -46,8 +46,7 @@ int main( int argc, char ** argv )
           | lyra::opt( cfgfile, "configuration file" )["-f"]["--cfg"]( "The configuration file to use." )
           | lyra::opt( imagefile, "initial image file" )["-i"]["--image"]( "The initial spin configuration to use." )
           | lyra::opt( chainfile, "initial chain file" )["-c"]["--chain"](
-                "The initial chain configuration to use. (Overwrites initial spin "
-                "configuration)" )
+              "The initial chain configuration to use. (Overwrites initial spin configuration)" )
           | lyra::opt( quiet )["-q"]["--quiet"]( "If spirit should run in quiet mode." )
           | lyra::opt( show_version )["--version"]( "Show version information." ) | lyra::help( show_help );
 
@@ -85,17 +84,17 @@ int main( int argc, char ** argv )
         exit( 0 );
     }
 
-    // Initialise State
+    // Initialise state
     state = std::shared_ptr<State>( State_Setup( cfgfile.c_str(), quiet ), State_Delete );
 
-    // Standard Initial spin configuration
+    // Standard initial spin configuration
     Configuration_PlusZ( state.get() );
 
-    // Read Image from file
+    // Read image from file
     if( imagefile != "" )
         IO_Image_Read( state.get(), imagefile.c_str(), 0 );
 
-    // Read Chain from file
+    // Read chain from file
     if( chainfile != "" )
         IO_Chain_Read( state.get(), chainfile.c_str() );
 
@@ -107,13 +106,13 @@ int main( int argc, char ** argv )
 #endif
 
 #ifdef SPIRIT_UI_CXX_USE_QT
-    //------------------------ User Interface ---------------------------------------
-    // Initialise Application and MainWindow
+    //------------------------ User interface ---------------------------------------
+    // Initialise application and main window
     QApplication app( argc, argv );
     // app.setOrganizationName("--");
     // app.setApplicationName("Spirit - Atomistic Spin Code - OpenGL with Qt");
 
-    // Format for all GL Surfaces
+    // Format for all GL surfaces
     QSurfaceFormat format;
     format.setSamples( 16 );
     format.setVersion( 3, 3 );
@@ -134,9 +133,9 @@ int main( int argc, char ** argv )
     MainWindow window( state );
     window.setWindowTitle( app.applicationName() );
     window.show();
-    // Open the Application
+    // Open the application
     int exec = app.exec();
-    // If Application is closed normally
+    // If application is closed normally
     if( exec != 0 )
         throw exec;
     // Finish
@@ -144,7 +143,7 @@ int main( int argc, char ** argv )
     return exec;
     //-------------------------------------------------------------------------------
 #else
-    //----------------------- LLG Iterations ----------------------------------------
+    //----------------------- LLG iterations ----------------------------------------
     Simulation_LLG_Start( state.get(), Solver_SIB );
     //-------------------------------------------------------------------------------
 #endif

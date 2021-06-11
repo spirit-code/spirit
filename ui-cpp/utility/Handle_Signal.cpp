@@ -10,7 +10,6 @@
 #include <chrono>
 #include <memory>
 
-
 struct State;
 std::shared_ptr<State> extern state;
 
@@ -36,7 +35,8 @@ void Handle_Signal::Handle_SigInt( int sig )
         system_clock::time_point t_now = system_clock::now();
 
         // If time difference is less than 2 seconds
-        if( ( t_now - t_last_sigint ).count() < 2.0 )
+        if( std::chrono::duration_cast<std::chrono::seconds>( t_now - t_last_sigint )
+            < std::chrono::duration<double>( 2.0 ) )
         {
             Log_Send(
                 state.get(), Log_Level_All, Log_Sender_All, "SIGINT received! Received second time in less than 2s." );

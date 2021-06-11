@@ -121,7 +121,7 @@ add_executable( ${PROJECT_NAME} ${OS_BUNDLE_NAME} ${SOURCE_SPIRIT_UI_CXX} )
 set_target_properties( ${PROJECT_NAME} PROPERTIES
     OUTPUT_NAME              ${SPIRIT_EXE_NAME}
     RUNTIME_OUTPUT_DIRECTORY ${SPIRIT_OUTPUT_DIRECTORY}
-    CXX_STANDARD             11
+    CXX_STANDARD             14
     CXX_STANDARD_REQUIRED    ON
     CXX_EXTENSIONS           OFF )
 
@@ -238,7 +238,7 @@ if( SPIRIT_UI_CXX_USE_QT )
     target_link_libraries( ${PROJECT_NAME} PRIVATE Threads::Threads )
 
     #--------------------------------------------------
-    if( WIN32 )
+    if( MSVC )
         set( ICON_FILE ${CMAKE_CURRENT_LIST_DIR}/res/AppIcon.ico )
         configure_file(
             ${CMAKE_CURRENT_LIST_DIR}/res/windows_metafile.rc.in

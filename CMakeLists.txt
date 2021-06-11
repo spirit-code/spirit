@@ -63,8 +63,8 @@ endif()
 set( CMAKE_DISABLE_IN_SOURCE_BUILD ON )
 ### Position independent code
 set( CMAKE_POSITION_INDEPENDENT_CODE ON )
-### We need at least C++11
-set( CMAKE_CXX_STANDARD 11 )
+### We need at least C++14
+set( CMAKE_CXX_STANDARD 14 )
 ### Set the cmake subdirectory
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" )
 ####################################################################
@@ -80,10 +80,10 @@ if( SPIRIT_USE_CUDA )
     set( SPIRIT_USE_OPENMP OFF )
     ### Set cuda toolkit path
     if( NOT CUDA_TOOLKIT_ROOT_DIR )
-        if ( APPLE OR UNIX )
+        if( APPLE OR UNIX )
             set( CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda )
             # set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
-        elseif (WIN32)
+        elseif( WIN32 )
             set( CUDA_TOOLKIT_ROOT_DIR "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v8.0/" )
             message( WARNING ">> We are on Windows... CUDA_TOOLKIT_ROOT_DIR may need to be passed to cmake..." )
         endif()
@@ -155,13 +155,14 @@ elseif( UNIX )
     set( PLATFORM_NAME "UNIX" )
 elseif( WIN32 )
     set( PLATFORM_NAME "Win32" )
+    add_compile_definitions( NOMINMAX _CRT_SECURE_NO_WARNINGS )
 endif()
 ### Compiler-specific flags
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.1)
-        message(FATAL_ERROR "GCC version must be at least 5.1!")
+if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" )
+    if( CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.1 )
+        message( FATAL_ERROR "GCC version must be at least 5.1!" )
     endif()
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+elseif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" )
     ### Disable unnecessary warnings on Windows, such as C4996 and C4267, C4244
     set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNOMINMAX /wd4018 /wd4244 /wd4267 /wd4661 /wd4996" )
 endif()
@@ -200,53 +201,16 @@ endif()
 
 
 
-######### External project: QHull ##################################
-set(         CMAKE_QHULL_ARGS "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/thirdparty-install" )
-list( APPEND CMAKE_QHULL_ARGS "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}" )
-list( APPEND CMAKE_QHULL_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}" )
-list( APPEND CMAKE_QHULL_ARGS "-DCMAKE_AR=${CMAKE_AR}" )
-list( APPEND CMAKE_QHULL_ARGS "-DCMAKE_RANLIB=${CMAKE_RANLIB}" )
-include( ExternalProject )
-ExternalProject_add( qhull
-    SOURCE_DIR "${CMAKE_SOURCE_DIR}/thirdparty/qhull"
-    # GIT_REPOSITORY https://github.com/qhull/qhull.git
-    BINARY_DIR ${CMAKE_BINARY_DIR}/thirdparty-build/qhull
-    # INSTALL_DIR ${CMAKE_BINARY_DIR}/thirdparty-install
-    CMAKE_ARGS ${CMAKE_QHULL_ARGS}
-    CMAKE_CACHE_ARGS "-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true"
-)
-### qhullstatic reentrant library
-add_library( libqhullstatic_r STATIC IMPORTED )
-# set_property( TARGET libqhullstatic_r PROPERTY MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE )
-set_property( TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX} )
-if( WIN32 )
-    set_property( TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION_DEBUG ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/Debug/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX} )
-    set_property( TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION_MINSIZEREL ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/MinSizeRel/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX} )
-    set_property( TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION_RELEASE ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/Release/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX} )
-    set_property( TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/RelWithDebInfo/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX} )
-endif()
-add_dependencies( libqhullstatic_r qhull )
-### qhullcpp library
-add_library( libqhullcpp STATIC IMPORTED )
-set_property( TARGET libqhullcpp PROPERTY INTERFACE_LINK_LIBRARIES libqhullstatic_r )
-# set_property( TARGET libqhullcpp PROPERTY MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE )
-set_property( TARGET libqhullcpp PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX} )
-if( WIN32 )
-    set_property( TARGET libqhullcpp PROPERTY IMPORTED_LOCATION_DEBUG ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/Debug/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX} )
-    set_property( TARGET libqhullcpp PROPERTY IMPORTED_LOCATION_MINSIZEREL ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/MinSizeRel/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX} )
-    set_property( TARGET libqhullcpp PROPERTY IMPORTED_LOCATION_RELEASE ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/Release/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX} )
-    set_property( TARGET libqhullcpp PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/RelWithDebInfo/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX} )
-endif()
-add_dependencies( libqhullcpp qhull )
-set( qhull_LIBS libqhullcpp )
-### Add corresponding include directories
-set( qhull_INCLUDE_DIRS "${CMAKE_BINARY_DIR}/thirdparty-install/include;${CMAKE_BINARY_DIR}/thirdparty-install/include/libqhullcpp" )
-include_directories( ${qhull_INCLUDE_DIRS} )
-####################################################################
-
-
-
 ######### Add subdirectory projects ################################
+add_subdirectory( thirdparty/qhull )
+set( qhull_INCLUDE_DIRS
+    ${CMAKE_CURRENT_LIST_DIR}/thirdparty/qhull/src
+    ${CMAKE_CURRENT_LIST_DIR}/thirdparty/qhull/src/libqhullcpp )
+if( CMAKE_BUILD_TYPE MATCHES "[dD]ebug" )
+    set( qhull_LIBS qhullcpp_d qhullstatic_rd)
+else()
+    set( qhull_LIBS qhullcpp qhullstatic_r )
+endif()
 ### Spirit library is built in any case
 add_subdirectory( core )
 ### Web UI
