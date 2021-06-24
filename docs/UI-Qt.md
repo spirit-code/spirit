@@ -21,10 +21,10 @@ Insert Configurations:
 - Domains
 - Spin Spirals
 
-You may manipulate the Hamiltonian as well as simulation parameters and your
+You can manipulate the Hamiltonian as well as simulation parameters and your
 output file configuration.
 
-You may start and stop simulation and directly interact with a running simulation.
+You can start and stop simulation and directly interact with a running simulation.
 - LLG Simulation: Dynamics and Minimization
 - GNEB: create transitions and calculate minimum energy paths
 
@@ -94,9 +94,13 @@ Select the GNEB method and the VP solver.
 In order to perform a geodesic nudged elastic band (GNEB)
 calculation, you need to first create a chain of spin systems,
 in this context called "images".
-You can do this by pressing `ctrl+c` to "copy" the current image
-and then `ctrl+rightarrow` multiple times to insert the copy
-into the chain until the desired number of images is reached.
+You can set the chain length directly in the field nex to the start/stop button.
+
+You can also manipulate the chain by copying the current image using `ctrl+c`
+(on mac replace `ctrl` with `cmd`) and then `ctrl+rightarrow`/`ctrl+leftarrow`
+to insert the copy into the chain and `ctrl+v` to overwrite the current image.
+See the help menu for all keybindings.
+
 The GUI will show the length of the chain:
 
 ![GUI controls](https://imgur.com/y3VhqBj.png "GUI controls")
@@ -148,24 +152,13 @@ Key bindings
 | Cycle Method                           | <kbd>Ctrl</kbd>+<kbd>M</kbd>        |
 | Cycle Solver                           | <kbd>Ctrl</kbd>+<kbd>S</kbd>        |
 
-### Manipulate the current images
+### Manipulate the current image
 
 | Effect                                 | Keystroke                           |
 | -------------------------------------- | :---------------------------------: |
 | Random configuration                   | <kbd>Ctrl</kbd>+<kbd>R</kbd>        |
 | Add tempered noise                     | <kbd>Ctrl</kbd>+<kbd>N</kbd>        |
 | Insert last used configuration         | <kbd>Enter</kbd>                    |
-
-### Visualisation
-
-| Effect                                           | Keystroke                                   |
-| ------------------------------------------------ | :-----------------------------------------: |
-| Use more/less data points of the vector field    | <kbd>+/-</kbd>                              |
-| Regular Visualisation Mode                       | <kbd>1</kbd>                                |
-| Isosurface Visualisation Mode                    | <kbd>2</kbd>                                |
-| Slab (X,Y,Z) Visualisation Mode                  | <kbd>3</kbd> <kbd>4</kbd> <kbd>5</kbd>      |
-| Cycle Visualisation Mode                         | <kbd>/</kbd>                                |
-| Move Slab                                        | <kbd>,</kbd> / <kbd>.</kbd> ( <kbd>Shift</kbd> to go faster) |
 
 ### Manipulate the chain of images
 

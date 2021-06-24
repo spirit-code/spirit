@@ -27,10 +27,10 @@ Insert Configurations:
 - Domains
 - Spin Spirals
 
-You may manipulate the Hamiltonian as well as simulation parameters and your
+You can manipulate the Hamiltonian as well as simulation parameters and your
 output file configuration.
 
-You may start and stop simulation and directly interact with a running simulation.
+You can start and stop simulation and directly interact with a running simulation.
 - LLG Simulation: Dynamics and Minimization
 - GNEB: create transitions and calculate minimum energy paths
 
@@ -106,9 +106,13 @@ Select the GNEB method and one of the minimisation solvers.
 In order to perform a geodesic nudged elastic band (GNEB)
 calculation, you need to first create a chain of spin systems,
 in this context called "images".
-You can do this by pressing `ctrl+c` (on mac replace `ctrl` with `cmd`) to "copy" the current image
-and then `ctrl+rightarrow` multiple times to insert the copy
-into the chain until the desired number of images is reached.
+You can set the chain length directly in the field nex to the start/stop button.
+
+You can also manipulate the chain by copying the current image using `ctrl+c`
+(on mac replace `ctrl` with `cmd`) and then `ctrl+rightarrow`/`ctrl+leftarrow`
+to insert the copy into the chain and `ctrl+v` to overwrite the current image.
+See the help menu for all keybindings.
+
 The GUI will show the length of the chain:
 
 ![GUI controls](https://i.imgur.com/LDTSkwC.png "GUI controls")
@@ -157,7 +161,7 @@ Key bindings
 | Cycle Method                           | <kbd>Ctrl</kbd>+<kbd>M</kbd>        |
 | Cycle Solver                           | <kbd>Ctrl</kbd>+<kbd>S</kbd>        |
 
-### Manipulate the current images
+### Manipulate the current image
 
 | Effect                                 | Keystroke                           |
 | -------------------------------------- | :---------------------------------: |
