@@ -31,6 +31,7 @@ namespace Engine
         pairfield exchange_pairs, scalarfield exchange_magnitudes,
         pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals,
         DDI_Method ddi_method, intfield ddi_n_periodic_images, bool ddi_pb_zero_padding, scalar ddi_radius,
+        tripletfield triplets, scalarfield triplet_magnitudes1, scalarfield triplet_magnitudes2,
         quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
         std::shared_ptr<Data::Geometry> geometry,
         intfield boundary_conditions
@@ -41,6 +42,7 @@ namespace Engine
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
         exchange_pairs_in(exchange_pairs), exchange_magnitudes_in(exchange_magnitudes), exchange_shell_magnitudes(0),
         dmi_pairs_in(dmi_pairs), dmi_magnitudes_in(dmi_magnitudes), dmi_normals_in(dmi_normals), dmi_shell_magnitudes(0), dmi_shell_chirality(0),
+        triplets(triplets), triplet_magnitudes1(triplet_magnitudes1), triplet_magnitudes2(triplet_magnitudes2),
         quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes),
         ddi_method(ddi_method), ddi_n_periodic_images(ddi_n_periodic_images), ddi_pb_zero_padding(ddi_pb_zero_padding), ddi_cutoff_radius(ddi_radius),
         fft_plan_reverse(FFT::FFT_Plan()), fft_plan_spins(FFT::FFT_Plan())
@@ -56,6 +58,7 @@ namespace Engine
         scalarfield exchange_shell_magnitudes,
         scalarfield dmi_shell_magnitudes, int dmi_shell_chirality,
         DDI_Method ddi_method, intfield ddi_n_periodic_images, bool ddi_pb_zero_padding, scalar ddi_radius,
+        tripletfield triplets, scalarfield triplet_magnitudes1, scalarfield triplet_magnitudes2,
         quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
         std::shared_ptr<Data::Geometry> geometry,
         intfield boundary_conditions
@@ -66,6 +69,7 @@ namespace Engine
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
         exchange_pairs_in(0), exchange_magnitudes_in(0), exchange_shell_magnitudes(exchange_shell_magnitudes),
         dmi_pairs_in(0), dmi_magnitudes_in(0), dmi_normals_in(0), dmi_shell_magnitudes(dmi_shell_magnitudes), dmi_shell_chirality(dmi_shell_chirality),
+        triplets(triplets), triplet_magnitudes1(triplet_magnitudes1), triplet_magnitudes2(triplet_magnitudes2),
         quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes),
         ddi_method(ddi_method), ddi_n_periodic_images(ddi_n_periodic_images), ddi_pb_zero_padding(ddi_pb_zero_padding), ddi_cutoff_radius(ddi_radius),
         fft_plan_reverse(FFT::FFT_Plan()), fft_plan_spins(FFT::FFT_Plan())
@@ -205,6 +209,13 @@ namespace Engine
             this->idx_ddi = this->energy_contributions_per_spin.size()-1;
         }
         else this->idx_ddi = -1;
+        // Triplets
+        if (this->triplets.size() > 0)
+        {
+            this->energy_contributions_per_spin.push_back({"triplets", scalarfield(0) });
+            this->idx_triplet = this->energy_contributions_per_spin.size()-1;
+        }
+        else this->idx_triplet = -1;
         // Quadruplets
         if( this->quadruplets.size() > 0 )
         {
@@ -242,7 +253,8 @@ namespace Engine
         if( this->idx_dmi >=0 )        E_DMI(spins,contributions[idx_dmi].second);
         // DDI
         if( this->idx_ddi >=0 )        E_DDI(spins, contributions[idx_ddi].second);
-
+        // Triplets
+        if (this->idx_triplet >=0 ) E_Triplet(spins, contributions[idx_triplet].second);
         // Quadruplets
         if (this->idx_quadruplet >=0 ) E_Quadruplet(spins, contributions[idx_quadruplet].second);
     }
@@ -511,6 +523,40 @@ namespace Engine
         }
     }
 
+    void Hamiltonian_Heisenberg::E_Triplet(const vectorfield & spins, scalarfield & Energy)
+    {
+        for (unsigned int itrip = 0; itrip < triplets.size(); ++itrip)
+        {
+            for (int da = 0; da < geometry->n_cells[0]; ++da)
+            {
+                for (int db = 0; db < geometry->n_cells[1]; ++db)
+                {
+                    for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
+                    {
+                        std::array<int, 3 > translations = { da, db, dc };
+                        int ispin = triplets[itrip].i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
+                        int jspin = triplets[itrip].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, triplets[itrip].d_j);
+                        int kspin = triplets[itrip].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, triplets[itrip].d_k);
+                        Vector3 n = {triplets[itrip].n[0], triplets[itrip].n[1], triplets[itrip].n[2]};
+                        if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
+                                check_atom_type(this->geometry->atom_types[kspin]))
+                        {
+                            Energy[ispin] -= 1.0/3.0 * triplet_magnitudes1[itrip] * pow(spins[ispin].dot(spins[jspin].cross(spins[kspin])),2);
+                            Energy[jspin] -= 1.0/3.0 * triplet_magnitudes1[itrip] * pow(spins[ispin].dot(spins[jspin].cross(spins[kspin])),2);
+                            Energy[kspin] -= 1.0/3.0 * triplet_magnitudes1[itrip] * pow(spins[ispin].dot(spins[jspin].cross(spins[kspin])),2);
+                            Energy[ispin] -= 1.0/3.0 * triplet_magnitudes2[itrip] * spins[ispin].dot(spins[jspin].cross(spins[kspin]))
+                                                * (n.dot(spins[ispin]+spins[jspin]+spins[kspin]));
+                            Energy[jspin] -= 1.0/3.0 * triplet_magnitudes2[itrip] * spins[ispin].dot(spins[jspin].cross(spins[kspin]))
+                                                * (n.dot(spins[ispin]+spins[jspin]+spins[kspin]));
+                            Energy[kspin] -= 1.0/3.0 * triplet_magnitudes2[itrip] * spins[ispin].dot(spins[jspin].cross(spins[kspin]))
+                                                * (n.dot(spins[ispin]+spins[jspin]+spins[kspin]));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     void Hamiltonian_Heisenberg::E_Quadruplet(const vectorfield & spins, scalarfield & Energy)
     {
         for( unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad )
@@ -608,6 +654,40 @@ namespace Engine
                 }
             }
 
+            // Triplets
+            if (this->idx_triplet >= 0)
+            {
+                for (unsigned int itrip = 0; itrip < quadruplets.size(); ++itrip)
+                {
+                    auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_cell_atoms, icell);
+                    int ispin = quadruplets[itrip].i + icell*geometry->n_cell_atoms;
+                    int jspin = quadruplets[itrip].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[itrip].d_j);
+                    int kspin = quadruplets[itrip].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[itrip].d_k);
+                    Vector3 n = {triplets[itrip].n[0], triplets[itrip].n[1], triplets[itrip].n[2]};
+
+                    if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
+                        check_atom_type(this->geometry->atom_types[kspin]))
+                    {
+                            Energy -= 1.0/3.0 * triplet_magnitudes1[itrip] * pow(spins[ispin].dot(spins[jspin].cross(spins[kspin])),2);
+                            Energy -= 1.0/3.0 * triplet_magnitudes2[itrip] * spins[ispin].dot(spins[jspin].cross(spins[kspin]))
+                                                * (n.dot(spins[ispin]+spins[jspin]+spins[kspin]));
+                    }
+
+                    #ifndef _OPENMP
+                    // TODO: mirrored quadruplet when unique quadruplets are used
+                    // jspin = quadruplets[iquad].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_j, true);
+                    // kspin = quadruplets[iquad].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k, true);
+                    // lspin = quadruplets[iquad].l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l, true);
+
+                    // if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
+                    //      check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
+                    // {
+                    //     Energy -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
+                    // }
+                    #endif
+                }
+            }
+
             // TODO: Quadruplets
             if (this->idx_quadruplet >= 0)
             {
@@ -641,6 +721,9 @@ namespace Engine
         //    DDI
         if(idx_ddi >= 0)
             this->Gradient_DDI(spins, gradient);
+
+        // Triplets
+        this->Gradient_Triplet(spins, gradient);
 
         //    Quadruplet
         if(idx_quadruplet)
@@ -927,6 +1010,52 @@ namespace Engine
             res_iFFT.data(), gradient.data(), spin_stride, it_bounds_write_gradients.data(), geometry->n_cell_atoms,
             geometry->mu_s.data(), sublattice_size );
     } // end Field_DipoleDipole
+
+    void Hamiltonian_Heisenberg::Gradient_Triplet(const vectorfield & spins, vectorfield & gradient)
+    {
+       for (unsigned int itrip = 0; itrip < triplets.size(); ++itrip)
+        {
+            int i = triplets[itrip].i;
+            int j = triplets[itrip].j;
+            int k = triplets[itrip].k;
+            Vector3 n = {triplets[itrip].n[0], triplets[itrip].n[1], triplets[itrip].n[2]};
+            for (int da = 0; da < geometry->n_cells[0]; ++da)
+            {
+                for (int db = 0; db < geometry->n_cells[1]; ++db)
+                {
+                    for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
+                    {
+                        std::array<int, 3 > translations = { da, db, dc };
+                        int ispin = i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
+                        int jspin = j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, triplets[itrip].d_j);
+                        int kspin = k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, triplets[itrip].d_k);
+
+                        if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
+                                check_atom_type(this->geometry->atom_types[kspin]))
+                        {
+                            gradient[ispin] -= 2.0 * triplet_magnitudes1[itrip] * spins[ispin].dot(spins[jspin].cross(spins[kspin]))
+                                                * spins[jspin].cross(spins[kspin]);
+                            gradient[jspin] -= 2.0 * triplet_magnitudes1[itrip] * spins[ispin].dot(spins[jspin].cross(spins[kspin]))
+                                                * spins[kspin].cross(spins[ispin]);
+                            gradient[kspin] -= 2.0 * triplet_magnitudes1[itrip] * spins[ispin].dot(spins[jspin].cross(spins[kspin]))
+                                                * spins[ispin].cross(spins[jspin]);
+
+                            gradient[ispin] -= triplet_magnitudes2[itrip] * (n.dot(spins[ispin]+spins[jspin]+spins[kspin])
+                                                * spins[jspin].cross(spins[kspin])
+                                               + spins[ispin].dot(spins[jspin].cross(spins[kspin])) * n);
+                            gradient[jspin] -= triplet_magnitudes2[itrip] * (n.dot(spins[ispin]+spins[jspin]+spins[kspin])
+                                                * spins[kspin].cross(spins[ispin])
+                                               + spins[ispin].dot(spins[jspin].cross(spins[kspin])) * n);
+                            gradient[kspin] -= triplet_magnitudes2[itrip] * (n.dot(spins[ispin]+spins[jspin]+spins[kspin])
+                                                * spins[ispin].cross(spins[jspin])
+                                               + spins[ispin].dot(spins[jspin].cross(spins[kspin])) * n);
+                            std::cout << gradient[ispin] << "  \n" << gradient[jspin] << "  \n" << gradient[kspin] << "\n" << std::endl;
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     void Hamiltonian_Heisenberg::Gradient_Quadruplet(const vectorfield & spins, vectorfield & gradient)
     {
