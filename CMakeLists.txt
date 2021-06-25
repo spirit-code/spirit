@@ -32,8 +32,8 @@ set( SPIRIT_CUDA_ARCH   "sm_60"  CACHE STRING "The CUDA compute architecture to 
 ### CMake Verbosity
 option( SPIRIT_PRINT_SOURCES    "Print Headers and Sources from Cmake."                          OFF )
 ### Decide UI
-option( SPIRIT_UI_USE_IMGUI     "Build the ImGUI user interface instead of the console version." ON  )
-option( SPIRIT_UI_CXX_USE_QT    "Build the QT user interface instead of the console version."    OFF )
+option( SPIRIT_UI_USE_IMGUI     "Build the ImGUI user interface instead of the console version." OFF )
+option( SPIRIT_UI_CXX_USE_QT    "Build the QT user interface instead of the console version."    ON  )
 ### Bundle option
 option( SPIRIT_BUNDLE_APP       "On installation, bundle the executable with its dependencies."  OFF )
 ### Option for building on the IFF cluster
