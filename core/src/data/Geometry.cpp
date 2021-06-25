@@ -86,6 +86,11 @@ Geometry::Geometry(
     // For updates of triangulation and tetrahedra
     this->last_update_n_cell_step = -1;
     this->last_update_n_cells     = intfield( 3, -1 );
+
+    for(int i=0; i<3; i++)
+        this->cell_size[i] = 1e-10 * lattice_constant * bravais_vectors[i].norm();
+
+    this->cell_volume = 1e-30 * pow(lattice_constant, 3) * bravais_vectors[0].dot(bravais_vectors[1].cross(bravais_vectors[2]));
 }
 
 void Geometry::generatePositions()

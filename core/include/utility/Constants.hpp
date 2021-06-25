@@ -92,13 +92,13 @@ namespace Constants_Micromagnetic
 double const mu_B = Constants::mu_B / Constants::Joule;
 
 // The vacuum permeability [T^2 m^3 / Joule]
-double const mu_0 = Constants::mu_0 / Constants::Joule;
+double const mu_0 = Constants::mu_0 * Constants::Joule;
 
 // The Boltzmann constant [J/K]
-double const k_B = Constants::k_B * Constants::Joule;
+double const k_B = Constants::k_B / Constants::Joule;
 
 // Planck constant [J*s/rad]
-double const hbar = Constants::hbar * Constants::Joule * 1e-12;
+double const hbar = Constants::hbar / Constants::Joule * 1e-12;
 
 // Gyromagnetic ratio of electron [rad/(s*T)]
 double const gamma = Constants::gamma * 1e+12;

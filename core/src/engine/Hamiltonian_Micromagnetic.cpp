@@ -14,6 +14,8 @@
 #include <algorithm>
 #include <iostream>
 
+#include <fmt/format.h>
+
 using namespace Data;
 using namespace Utility;
 namespace C = Utility::Constants;
@@ -284,7 +286,7 @@ void Hamiltonian_Micromagnetic::E_Update( const vectorfield & spins, scalarfield
     }
 }
 
-void Hamiltonian_Micromagnetic::E_Anisotropy( const vectorfield & spins, scalarfield & Energy ) 
+void Hamiltonian_Micromagnetic::E_Anisotropy( const vectorfield & spins, scalarfield & Energy )
 {
     #pragma omp parallel for
     for( int icell = 0; icell < geometry->n_cells_total; ++icell)
@@ -296,11 +298,42 @@ void Hamiltonian_Micromagnetic::E_Anisotropy( const vectorfield & spins, scalarf
 void Hamiltonian_Micromagnetic::E_Exchange( const vectorfield & spins, scalarfield & Energy )
 {
     auto delta = geometry->cell_size;
-#pragma omp parallel for
     for( unsigned int icell = 0; icell < geometry->n_cells_total; ++icell )
     {
         Vector3 grad_n;
-        for( unsigned int alpha = 0; alpha < 3; ++alpha ) // alpha
+        for( unsigned int alpha = 0; alpha < 3; ++alpha )
+        {
+            int icell_plus = idx_from_pair(
+                icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                neigh[2 * alpha] );
+
+            int icell_minus = idx_from_pair(
+                icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                neigh[2 * alpha + 1] );
+
+            if( icell_plus >= 0 || icell_minus >= 0 )
+            {
+                if( icell_plus == -1 )
+                    icell_plus = icell;
+                if( icell_minus == -1 )
+                    icell_minus = icell;
+
+                grad_n = ( spins[icell_plus] - spins[icell_minus] ) / (2*delta[alpha]);
+                // meV/J * J/m * 1/m * 1/m * m^3
+                Energy[icell] += C::Joule * geometry->cell_volume * ( grad_n.dot( exchange_tensor * grad_n) );
+            }
+        }
+    }
+}
+
+void Hamiltonian_Micromagnetic::E_DMI( const vectorfield & spins, scalarfield & Energy )
+{
+    auto delta = geometry->cell_size;
+
+    for( unsigned int icell = 0; icell < geometry->n_cells_total; ++icell )
+    {
+        Vector3 grad_n;
+        for( unsigned int alpha = 0; alpha < 3; ++alpha )
         {
             int icell_plus = idx_from_pair(
                 icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
@@ -317,15 +350,13 @@ void Hamiltonian_Micromagnetic::E_Exchange( const vectorfield & spins, scalarfie
                 if( icell_minus == -1 )
                     icell_minus = icell;
             }
-            grad_n[alpha] = ( spins[icell_plus][alpha] - spins[icell][alpha] ) / delta[alpha];
+            grad_n = ( spins[icell_plus] - spins[icell_minus] ) / (2*delta[alpha]);
+
+            // meV/J * J/m * 1/m * 1/m * m^3
+            Energy[icell] += C::Joule * geometry->cell_volume * ( grad_n.dot( exchange_tensor * grad_n) );
         }
-        // Evaluate gradient s[alpha]
-        // J/m * 1/m * 1/m * m^3
-        Energy[icell] -= C::Joule * geometry->cell_volume * ( grad_n.dot( exchange_tensor * grad_n) );
     }
 }
-
-void Hamiltonian_Micromagnetic::E_DMI( const vectorfield & spins, scalarfield & Energy ) {}
 
 void Hamiltonian_Micromagnetic::E_DDI( const vectorfield & spins, scalarfield & Energy )
 {
@@ -401,7 +432,7 @@ void Hamiltonian_Micromagnetic::Gradient_Exchange( const vectorfield & spins, ve
 #pragma omp parallel for
     for( unsigned int icell = 0; icell < geometry->n_cells_total; ++icell )
     {
-        for( unsigned int i = 0; i < 3; ++i )
+        for( unsigned int alpha = 0; alpha < 3; ++alpha )
         {
             int icell_plus = idx_from_pair(
                 icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
@@ -417,9 +448,8 @@ void Hamiltonian_Micromagnetic::Gradient_Exchange( const vectorfield & spins, ve
                 if( icell_minus == -1 )
                     icell_minus = icell;
 
-                gradient[icell] -= 2 * C::Joule * exchange_tensor * geometry->cell_volume
-                                   * ( spins[icell_plus] - 2 * spins[icell] + spins[icell_minus] )
-                                   / ( delta[i] * delta[i] );
+                Vector3 grad_n = ( spins[icell_plus] - spins[icell_minus] ) / (2*delta[alpha]);
+                gradient[icell] += 2 * C::Joule * geometry->cell_volume * exchange_tensor * grad_n;
             }
         }
     }
@@ -652,7 +682,7 @@ void Hamiltonian_Micromagnetic::E_DDI_FFT( const vectorfield & spins, scalarfiel
 
 // TODO: add dot_scaled to Vectormath and use that
 #pragma omp parallel for
-    for( int ispin = 0; ispin < geometry->nos; ispin++ ) 
+    for( int ispin = 0; ispin < geometry->nos; ispin++ )
     {
         Energy[ispin] += 0.5 * spins[ispin].dot( gradients_temp[ispin] );
         // Energy_DDI    += 0.5 * spins[ispin].dot(gradients_temp[ispin]);
@@ -668,7 +698,8 @@ void Hamiltonian_Micromagnetic::FFT_Demag_Tensors( FFT::FFT_Plan & fft_plan_dipo
     // The 'mult' factor is chosen such that the cell resolved energy has
     // the dimension of total energy per cell in meV
 
-    scalar mult = C::mu_0 * geometry->cell_volume * (Ms) * (Ms) * C::Joule*C::Joule;
+    // mult has the units of [N / A^2] [m^3] [(A/m)^2] [mev/J] = [J] [meV/J] = [meV]
+    scalar mult = Constants_Micromagnetic::mu_0 * geometry->cell_volume * (Ms) * (Ms) * C::Joule;
 
     std::cout << "cell_size " << geometry->cell_size.transpose() << "\n";
     std::cout << "cell_volume " << geometry->cell_volume << "\n";

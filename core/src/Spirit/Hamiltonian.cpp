@@ -488,7 +488,7 @@ void Hamiltonian_Set_DDI(State *state, int ddi_method, int n_periodic_images[3],
 
         try
         {
-            if( image->hamiltonian->Name() == "Heisenberg" )
+            if( image->hamiltonian->Name() == "Heisenberg" || image->hamiltonian->Name() == "Micromagnetic")
             {
                 auto ham = (Engine::Hamiltonian_Heisenberg*)image->hamiltonian.get();
 
@@ -503,13 +503,6 @@ void Hamiltonian_Set_DDI(State *state, int ddi_method, int n_periodic_images[3],
                 Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format(
                     "Set ddi to method {}, periodic images {} {} {}, cutoff radius {} and pb_zero_padding {}",
                     ddi_method, n_periodic_images[0], n_periodic_images[1], n_periodic_images[2], cutoff_radius, pb_zero_padding), idx_image, idx_chain );
-            }
-            else if( image->hamiltonian->Name() == "Micromagnetic" )
-            {
-                Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                    "Dipolar interactions have not yet been implemented on the micromagnetic Hamiltonian", idx_image, idx_chain );
-                image->Unlock();
-                return;
             }
         }
         catch( ... )
