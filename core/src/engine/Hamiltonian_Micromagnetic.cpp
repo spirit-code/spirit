@@ -432,11 +432,13 @@ void Hamiltonian_Micromagnetic::Gradient_Exchange( const vectorfield & spins, ve
 #pragma omp parallel for
     for( unsigned int icell = 0; icell < geometry->n_cells_total; ++icell )
     {
-        for( unsigned int alpha = 0; alpha < 3; ++alpha )
+        for( unsigned int i = 0; i < 3; ++i )
         {
+
             int icell_plus = idx_from_pair(
                 icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
                 neigh[2 * i] );
+
             int icell_minus = idx_from_pair(
                 icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
                 neigh[2 * i + 1] );
@@ -448,9 +450,10 @@ void Hamiltonian_Micromagnetic::Gradient_Exchange( const vectorfield & spins, ve
                 if( icell_minus == -1 )
                     icell_minus = icell;
 
-                Vector3 grad_n = ( spins[icell_plus] - spins[icell_minus] ) / (2*delta[alpha]);
+                Vector3 grad_n = ( spins[icell_plus] - spins[icell_minus] ) / (2*delta[i]);
                 gradient[icell] += 2 * C::Joule * geometry->cell_volume * exchange_tensor * grad_n;
             }
+
         }
     }
 }
