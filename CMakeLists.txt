@@ -30,13 +30,14 @@ set( SPIRIT_SCALAR_TYPE "double" CACHE STRING "The scalar type to be used in the
 set( SPIRIT_CUDA_ARCH   "sm_60"  CACHE STRING "The CUDA compute architecture to use in case of a CUDA build." )
 ####################################################################
 ### CMake Verbosity
-option( SPIRIT_PRINT_SOURCES  "Print Headers and Sources from Cmake."                         OFF )
-### Decide CXX UI
-option( SPIRIT_UI_CXX_USE_QT  "Build the QT User Interface instead of console version."       ON  )
+option( SPIRIT_PRINT_SOURCES    "Print Headers and Sources from Cmake."                          OFF )
+### Decide UI
+option( SPIRIT_UI_USE_IMGUI     "Build the ImGUI user interface instead of the console version." OFF )
+option( SPIRIT_UI_CXX_USE_QT    "Build the QT user interface instead of the console version."    ON  )
 ### Bundle option
-option( SPIRIT_BUNDLE_APP     "On installation, bundle the executable with its dependencies." OFF )
+option( SPIRIT_BUNDLE_APP       "On installation, bundle the executable with its dependencies."  OFF )
 ### Option for building on the IFF cluster
-option( SPIRIT_USER_PATHS_IFF "Use the compiler and library paths etc. for the IFF Cluster."  OFF )
+option( SPIRIT_USER_PATHS_IFF   "Use the compiler and library paths etc. for the IFF Cluster."   OFF )
 ####################################################################
 
 
@@ -54,9 +55,11 @@ else()
     message( STATUS ">> Did not need to set build type. Configuration types: ${CMAKE_CONFIGURATION_TYPES}" )
 endif()
 ### Set a default install directory in case none is passed
-if( CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT )
+if( CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT OR NOT CMAKE_INSTALL_PREFIX )
     set( CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "default install path" FORCE )
-    message( STATUS ">> No installation directory given. Using: ${CMAKE_INSTALL_PREFIX}" )
+    message( STATUS ">> No installation directory given. Using: '${CMAKE_INSTALL_PREFIX}'" )
+else()
+    message( STATUS ">> Installation directory given: '${CMAKE_INSTALL_PREFIX}'" )
 endif()
 ### Prevent in-source builds
 # set(CMAKE_DISABLE_SOURCE_CHANGES ON) # we need source changes for the generated VERSION.txt
@@ -67,6 +70,10 @@ set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 set( CMAKE_CXX_STANDARD 14 )
 ### Set the cmake subdirectory
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" )
+### Need to use pthread if emscripten is used
+if( SPIRIT_BUILD_FOR_JS AND SPIRIT_UI_USE_IMGUI )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=2")
+endif()
 ####################################################################
 
 
@@ -197,6 +204,10 @@ if( SPIRIT_SKIP_HTST )
     add_definitions( "-DSPIRIT_SKIP_HTST" )
     message( STATUS ">> Skipping compilation of HTST!" )
 endif()
+###
+if( SPIRIT_BUILD_FOR_JS )
+    set( SPIRIT_BUILD_FOR_CXX OFF )
+endif()
 ####################################################################
 
 
@@ -216,12 +227,21 @@ add_subdirectory( core )
 ### Web UI
 if( SPIRIT_BUILD_FOR_JS )
     add_subdirectory( VFRendering )
-    add_subdirectory( ui-web )
+    if( SPIRIT_UI_USE_IMGUI )
+        add_definitions( -DSPIRIT_UI_USE_IMGUI )
+        add_subdirectory( ui-cpp )
+    else()
+        add_subdirectory( ui-web )
+    endif()
 ### CXX UI
 elseif( SPIRIT_BUILD_FOR_CXX )
-    if ( SPIRIT_UI_CXX_USE_QT )
-        add_subdirectory( VFRendering )
+    if( SPIRIT_UI_CXX_USE_QT )
         add_definitions( -DSPIRIT_UI_CXX_USE_QT )
+        add_subdirectory( VFRendering )
+    endif()
+    if( SPIRIT_UI_USE_IMGUI )
+        add_definitions( -DSPIRIT_UI_USE_IMGUI )
+        add_subdirectory( VFRendering )
     endif()
     add_subdirectory( ui-cpp )
 endif()
@@ -230,13 +250,40 @@ endif()
 
 
 ################ Install ###########################################
-install( DIRECTORY docs DESTINATION docs/Spirit )
-install( FILES  LICENSE.txt
-                README.md
-                VERSION.txt DESTINATION docs/Spirit )
+install( DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/docs/
+         DESTINATION docs/Spirit/
+         COMPONENT spirit_root_files )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/README.md
+               ${CMAKE_CURRENT_LIST_DIR}/VERSION.txt
+         DESTINATION ./
+         COMPONENT spirit_root_files )
+
 if( SPIRIT_BUILD_FOR_CXX )
-    install( DIRECTORY input DESTINATION bin )
+    install( DIRECTORY input DESTINATION bin COMPONENT spirit_root_files )
 endif()
+
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/LICENSE.txt DESTINATION ./ COMPONENT spirit_licenses )
+
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/thirdparty/qhull/COPYING.txt DESTINATION licenses RENAME qhull.txt COMPONENT spirit_licenses )
+
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/cub/LICENSE.TXT   DESTINATION licenses RENAME cub.txt       COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/Eigen/COPYING.BSD DESTINATION licenses RENAME eigen.txt     COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/fmt/LICENSE.rst   DESTINATION licenses RENAME fmt.rst       COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/kiss_fft/COPYING  DESTINATION licenses RENAME kiss_fft.txt  COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/ovf/README.md     DESTINATION licenses RENAME ovf.md        COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/spectra/LICENSE   DESTINATION licenses RENAME spectra.txt   COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/termcolor/LICENSE DESTINATION licenses RENAME termcolor.txt COMPONENT spirit_licenses )
+
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/thirdparty/Lyra/LICENSE.txt DESTINATION licenses RENAME lyra.txt COMPONENT spirit_licenses )
+
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/filesystem/LICENSE       DESTINATION licenses RENAME filesystem.txt       COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/glad/LICENSE             DESTINATION licenses RENAME glad.md              COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/glfw/LICENSE.md          DESTINATION licenses RENAME glfw.md              COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/imgui/LICENSE.txt        DESTINATION licenses RENAME imgui.txt            COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/implot/LICENSE           DESTINATION licenses RENAME implot.txt           COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/json/LICENSE.MIT         DESTINATION licenses RENAME json.txt             COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/nativefiledialog/LICENSE DESTINATION licenses RENAME nativefiledialog.txt COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/stb/LICENSE              DESTINATION licenses RENAME stb.txt              COMPONENT spirit_licenses )
 ####################################################################
 
 
