@@ -40,7 +40,11 @@
 
 static ui::MainWindow * global_window_handle;
 static bool fullscreen_toggled           = false;
-static const bool SPIRIT_PINNING_ENABLED = std::string( Spirit_Pinning() ) == "ON";
+#ifdef SPIRIT_ENABLE_PINNING
+static const bool SPIRIT_PINNING_ENABLED = true;
+#else
+static const bool SPIRIT_PINNING_ENABLED = false;
+#endif
 
 /////////////////////////////////////////////////////////////////////
 
