@@ -52,7 +52,7 @@ namespace Engine
             SpMatrixX & hessian_geodesic_3N, SpMatrixX & hessian_geodesic_2N, SpMatrixX & tangent_basis, VectorX & eigenvalues, MatrixX & eigenvectors);
 
         void sparse_hessian_bordered_3N(const vectorfield & image, const vectorfield & gradient, const SpMatrixX & hessian, SpMatrixX & hessian_out);
-        
+
     };
 }
 

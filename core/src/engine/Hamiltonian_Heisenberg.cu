@@ -256,7 +256,7 @@ namespace Engine
         {
             for (int ibasis=0; ibasis<n_cell_atoms; ++ibasis)
             {
-                int ispin = icell + ibasis;
+                int ispin = n_cell_atoms * icell + ibasis;
                 if ( cu_check_atom_type(atom_types[ispin]) )
                     Energy[ispin] -= mu_s[ispin] * external_field_magnitude * external_field_normal.dot(spins[ispin]);
             }
@@ -305,7 +305,7 @@ namespace Engine
             for(auto ipair = 0; ipair < n_pairs; ++ipair)
             {
                 int ispin = pairs[ipair].i + icell*n_cell_atoms;
-                int jspin = cu_idx_from_pair(icell, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
+                int jspin = cu_idx_from_pair(ispin, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
                 if (jspin >= 0)
                 {
                     Energy[ispin] -= 0.5 * magnitudes[ipair] * spins[ispin].dot(spins[jspin]);
@@ -335,7 +335,7 @@ namespace Engine
             for(auto ipair = 0; ipair < n_pairs; ++ipair)
             {
                 int ispin = pairs[ipair].i + icell*n_cell_atoms;
-                int jspin = cu_idx_from_pair(icell, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
+                int jspin = cu_idx_from_pair(ispin, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
                 if (jspin >= 0)
                 {
                     Energy[ispin] -= 0.5 * magnitudes[ipair] * normals[ipair].dot(spins[ispin].cross(spins[jspin]));
@@ -513,31 +513,41 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::E_Quadruplet(const vectorfield & spins, scalarfield & Energy)
     {
-        // for (unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad)
-        // {
-        //     for (int da = 0; da < geometry->n_cells[0]; ++da)
-        //     {
-        //         for (int db = 0; db < geometry->n_cells[1]; ++db)
-        //         {
-        //             for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
-        //             {
-        //                 std::array<int, 3 > translations = { da, db, dc };
-        //                 // int i = quadruplets[iquad].i;
-        //                 // int j = quadruplets[iquad].j;
-        //                 // int k = quadruplets[iquad].k;
-        //                 // int l = quadruplets[iquad].l;
-        //                 int i = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
-        //                 int j = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_j);
-        //                 int k = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k);
-        //                 int l = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l);
-        //                 Energy[i] -= 0.25*quadruplet_magnitudes[iquad] * (spins[i].dot(spins[j])) * (spins[k].dot(spins[l]));
-        //                 Energy[j] -= 0.25*quadruplet_magnitudes[iquad] * (spins[i].dot(spins[j])) * (spins[k].dot(spins[l]));
-        //                 Energy[k] -= 0.25*quadruplet_magnitudes[iquad] * (spins[i].dot(spins[j])) * (spins[k].dot(spins[l]));
-        //                 Energy[l] -= 0.25*quadruplet_magnitudes[iquad] * (spins[i].dot(spins[j])) * (spins[k].dot(spins[l]));
-        //             }
-        //         }
-        //     }
-        // }
+        for( unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad )
+        {
+            const auto& quad = quadruplets[iquad];
+
+            int i = quad.i;
+            int j = quad.j;
+            int k = quad.k;
+            int l = quad.l;
+
+            const auto& d_j = quad.d_j;
+            const auto& d_k = quad.d_k;
+            const auto& d_l = quad.d_l;
+
+            for( int da = 0; da < geometry->n_cells[0]; ++da )
+            {
+                for( int db = 0; db < geometry->n_cells[1]; ++db )
+                {
+                    for( int dc = 0; dc < geometry->n_cells[2]; ++dc )
+                    {
+                        int ispin = i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, { da, db, dc });
+                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, j, {d_j[0], d_j[1], d_j[2]}});
+                        int kspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, k, {d_k[0], d_k[1], d_k[2]}});
+                        int lspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, l, {d_l[0], d_l[1], d_l[2]}});
+
+                        if( ispin >= 0 && jspin >= 0 && kspin >= 0 && lspin >= 0 )
+                        {
+                            Energy[ispin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
+                            Energy[jspin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
+                            Energy[kspin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
+                            Energy[lspin] -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -598,23 +608,9 @@ namespace Engine
                 }
             }
 
-            // Quadruplets
+            // TODO: Quadruplets
             if (this->idx_quadruplet >= 0)
             {
-                for (unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad)
-                {
-                    auto translations = Vectormath::translations_from_idx(geometry->n_cells, geometry->n_cell_atoms, icell);
-                    int ispin = quadruplets[iquad].i + icell*geometry->n_cell_atoms;
-                    int jspin = quadruplets[iquad].j + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_j);
-                    int kspin = quadruplets[iquad].k + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k);
-                    int lspin = quadruplets[iquad].l + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l);
-
-                    if ( check_atom_type(this->geometry->atom_types[ispin]) && check_atom_type(this->geometry->atom_types[jspin]) &&
-                        check_atom_type(this->geometry->atom_types[kspin]) && check_atom_type(this->geometry->atom_types[lspin]) )
-                    {
-                        Energy -= 0.25*quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * (spins[kspin].dot(spins[lspin]));
-                    }
-                }
             }
         }
         return Energy;
@@ -693,7 +689,7 @@ namespace Engine
         {
             // Kind of a bandaid fix
             this->Gradient_Quadruplet(spins, gradient);
-            if(energy_contributions_per_spin[idx_quadruplet].second.size() != spins.size()) 
+            if(energy_contributions_per_spin[idx_quadruplet].second.size() != spins.size())
             {
                 energy_contributions_per_spin[idx_quadruplet].second.resize(spins.size());
             };
@@ -712,7 +708,7 @@ namespace Engine
         {
             for (int ibasis=0; ibasis<n_cell_atoms; ++ibasis)
             {
-                int ispin = icell + ibasis;
+                int ispin = n_cell_atoms * icell + ibasis;
                 if ( cu_check_atom_type(atom_types[ispin]) )
                     gradient[ispin] -= mu_s[ispin] * external_field_magnitude*external_field_normal;
             }
@@ -764,7 +760,7 @@ namespace Engine
             for(auto ipair = 0; ipair < n_pairs; ++ipair)
             {
                 int ispin = pairs[ipair].i + icell*n_cell_atoms;
-                int jspin = cu_idx_from_pair(icell, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
+                int jspin = cu_idx_from_pair(ispin, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
                 if (jspin >= 0)
                 {
                     gradient[ispin] -= magnitudes[ipair]*spins[jspin];
@@ -794,7 +790,7 @@ namespace Engine
             for(auto ipair = 0; ipair < n_pairs; ++ipair)
             {
                 int ispin = pairs[ipair].i + icell*n_cell_atoms;
-                int jspin = cu_idx_from_pair(icell, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
+                int jspin = cu_idx_from_pair(ispin, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
                 if (jspin >= 0)
                 {
                     gradient[ispin] -= magnitudes[ipair]*spins[jspin].cross(normals[ipair]);
@@ -934,31 +930,41 @@ namespace Engine
 
     void Hamiltonian_Heisenberg::Gradient_Quadruplet(const vectorfield & spins, vectorfield & gradient)
     {
-        // for (unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad)
-        // {
-        // 	int i = quadruplets[iquad].i;
-        // 	int j = quadruplets[iquad].j;
-        // 	int k = quadruplets[iquad].k;
-        // 	int l = quadruplets[iquad].l;
-        // 	for (int da = 0; da < geometry->n_cells[0]; ++da)
-        // 	{
-        // 		for (int db = 0; db < geometry->n_cells[1]; ++db)
-        // 		{
-        // 			for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
-        // 			{
-        // 				std::array<int, 3 > translations = { da, db, dc };
-        // 				int ispin = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
-        // 				int jspin = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_j);
-        // 				int kspin = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_k);
-        // 				int lspin = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations, quadruplets[iquad].d_l);
-        // 				gradient[ispin] -= quadruplet_magnitudes[iquad] * spins[jspin] * (spins[kspin].dot(spins[lspin]));
-        // 				gradient[jspin] -= quadruplet_magnitudes[iquad] * spins[ispin] * (spins[kspin].dot(spins[lspin]));
-        // 				gradient[kspin] -= quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * spins[lspin];
-        // 				gradient[lspin] -= quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * spins[kspin];
-        // 			}
-        // 		}
-        // 	}
-        // }
+        for( unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad )
+        {
+            const auto& quad = quadruplets[iquad];
+
+            int i = quad.i;
+            int j = quad.j;
+            int k = quad.k;
+            int l = quad.l;
+
+            const auto& d_j = quad.d_j;
+            const auto& d_k = quad.d_k;
+            const auto& d_l = quad.d_l;
+
+            for( int da = 0; da < geometry->n_cells[0]; ++da )
+            {
+                for( int db = 0; db < geometry->n_cells[1]; ++db )
+                {
+                    for( int dc = 0; dc < geometry->n_cells[2]; ++dc )
+                    {
+                        int ispin = i + Vectormath::idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, { da, db, dc });
+                        int jspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, j, {d_j[0], d_j[1], d_j[2]}});
+                        int kspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, k, {d_k[0], d_k[1], d_k[2]}});
+                        int lspin = idx_from_pair(ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, {i, l, {d_l[0], d_l[1], d_l[2]}});
+
+                        if( ispin >= 0 && jspin >= 0 && kspin >= 0 && lspin >= 0 )
+                        {
+                            gradient[ispin] -= quadruplet_magnitudes[iquad] * spins[jspin] * (spins[kspin].dot(spins[lspin]));
+                            gradient[jspin] -= quadruplet_magnitudes[iquad] * spins[ispin] * (spins[kspin].dot(spins[lspin]));
+                            gradient[kspin] -= quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * spins[lspin];
+                            gradient[lspin] -= quadruplet_magnitudes[iquad] * (spins[ispin].dot(spins[jspin])) * spins[kspin];
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
@@ -1075,8 +1081,8 @@ namespace Engine
             }
         }
 
-        //// Dipole-Dipole
-        //for (unsigned int i_pair = 0; i_pair < this->DD_indices.size(); ++i_pair)
+        // // TODO: Dipole-Dipole
+        // for (unsigned int i_pair = 0; i_pair < this->DD_indices.size(); ++i_pair)
         // {
         //     // indices
         //     int idx_1 = DD_indices[i_pair][0];
@@ -1098,7 +1104,7 @@ namespace Engine
         //     }
         // }
 
-        // Quadruplets
+        // TODO: Quadruplets
     }
 
      void Hamiltonian_Heisenberg::Sparse_Hessian(const vectorfield & spins, SpMatrixX & hessian)

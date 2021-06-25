@@ -147,15 +147,7 @@ public:
     glm::vec2 yRangePosition() const;
     glm::vec2 zRangePosition() const;
 
-    void setCellFilter( int cell_a_min, int cell_a_max, int cell_b_min, int cell_b_max, int cell_c_min, int cell_c_max )
-    {
-        m_cell_a_min = cell_a_min;
-        m_cell_a_max = cell_a_max;
-        m_cell_b_min = cell_b_min;
-        m_cell_b_max = cell_b_max;
-        m_cell_c_min = cell_c_min;
-        m_cell_c_max = cell_c_max;
-    }
+    void setCellFilter( int cell_a_min, int cell_a_max, int cell_b_min, int cell_b_max, int cell_c_min, int cell_c_max );
 
     std::array<int, 6> getCellFilter()
     {

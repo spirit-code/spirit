@@ -13,6 +13,7 @@ namespace Engine
         {
             std::cerr << "NOT IMPLEMENTED FOR cuFFT" << std::endl;
         }
+
         void iFour_3D(FFT_cfg cfg, FFT_cpx_type * in, FFT_real_type * out)
         {
             std::cerr << "NOT IMPLEMENTED FOR cuFFT" << std::endl;
@@ -20,13 +21,21 @@ namespace Engine
 
         void batch_Four_3D(FFT_Plan & plan)
         {
-            cufftExecR2C(plan.cfg, plan.real_ptr.data(), plan.cpx_ptr.data());
+            auto res = cufftExecR2C(plan.cfg, plan.real_ptr.data(), plan.cpx_ptr.data());
+            if(res != CUFFT_SUCCESS)
+            {
+                Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format("cufftExecR2C failed with error: {}", res));
+            }
             cudaDeviceSynchronize();
         }
 
         void batch_iFour_3D(FFT_Plan & plan)
         {
-            cufftExecC2R(plan.cfg, plan.cpx_ptr.data(), plan.real_ptr.data());
+            auto res = cufftExecC2R(plan.cfg, plan.cpx_ptr.data(), plan.real_ptr.data());
+            if(res != CUFFT_SUCCESS)
+            {
+                Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format("cufftExecC2R failed with error: {}", res));
+            }
             cudaDeviceSynchronize();
         }
 
@@ -47,16 +56,28 @@ namespace Engine
 
             if(this->inverse == false)
             {
-                cufftPlanMany(&this->cfg, rank, n, inembed, istride, idist, onembed, ostride, odist, CUFFT_R2C, n_transforms);
+                auto res = cufftPlanMany(&this->cfg, rank, n, inembed, istride, idist, onembed, ostride, odist, CUFFT_R2C, n_transforms);
+                if(res != CUFFT_SUCCESS)
+                {
+                    Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format("cufftPlanMany failed with error: {}", res));
+                }
             } else
             {
-                cufftPlanMany(&this->cfg, rank, n, inembed, istride, idist, onembed, ostride, odist, CUFFT_C2R, n_transforms);
+                auto res = cufftPlanMany(&this->cfg, rank, n, inembed, istride, idist, onembed, ostride, odist, CUFFT_C2R, n_transforms);
+                if(res != CUFFT_SUCCESS)
+                {
+                    Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format("cufftPlanMany failed with error: {}", res));
+                }
             }
         }
 
         void FFT_Plan::Free_Configuration()
         {
-            cufftDestroy(this->cfg);
+            auto res = cufftDestroy(this->cfg);
+            if(res != CUFFT_SUCCESS)
+            {
+                Log(Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format("cufftDestroy failed with error: {}", res));
+            }
         }
     }
 }

@@ -1646,6 +1646,18 @@ SpinWidget::Colormap SpinWidget::colormap_arrows() const
     return m_colormap_arrows;
 }
 
+void SpinWidget::setCellFilter(int cell_a_min, int cell_a_max, int cell_b_min, int cell_b_max, int cell_c_min, int cell_c_max)
+{
+    int n_cells[3];
+    Geometry_Get_N_Cells( this->state.get(), n_cells );
+    m_cell_a_min = std::max(0, std::min( n_cells[0]-1,  cell_a_min) );
+    m_cell_a_max = std::max(0, std::min( n_cells[0]-1,  cell_a_max) );
+    m_cell_b_min = std::max(0, std::min( n_cells[1]-1,  cell_b_min) );
+    m_cell_b_max = std::max(0, std::min( n_cells[1]-1,  cell_b_max) );
+    m_cell_c_min = std::max(0, std::min( n_cells[2]-1,  cell_c_min) );
+    m_cell_c_max = std::max(0, std::min( n_cells[2]-1,  cell_c_max) );
+}
+
 void SpinWidget::setColormapGeneral( Colormap colormap )
 {
     m_colormap_general           = colormap;
