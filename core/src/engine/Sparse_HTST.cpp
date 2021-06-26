@@ -65,7 +65,7 @@ namespace Engine
             }
         }
 
-        void Inverse_Shift_PowerMethod(int n_iter, const SpMatrixX & matrix, scalar & evalue_estimate, VectorX & evec_estimate)
+        void Inverse_Shift_PowerMethod(int n_iter, int n_refactor, const SpMatrixX & matrix, scalar & evalue_estimate, VectorX & evec_estimate, std::vector<VectorX> & evecs)
         {
             SpMatrixX tmp = SpMatrixX(matrix.rows(), matrix.cols());
             tmp.setIdentity();
@@ -78,9 +78,18 @@ namespace Engine
             Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, fmt::format("        ... Improve eigenpair estimate with power method for eigenvalue = {}", evalue_estimate));
             for(int i=0; i<n_iter; i++)
             {
-                // evec_estimate.noalias() = solver.solveWithGuess( evec_estimate, evec_estimate );
                 evec_estimate = solver.solve( evec_estimate );
+                _orth_project(evec_estimate, evecs); // Project evec_estimate orthogonally to the previous evectors
                 evec_estimate.normalize();
+
+                if(i%n_refactor == 0)
+                {
+                    evalue_estimate = evec_estimate.dot(matrix * evec_estimate);
+                    tmp.setIdentity();
+                    tmp *= evalue_estimate;
+                    solver.factorize(matrix - tmp);
+                    Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, fmt::format("            Iteration {}/{}, e_value = {}", i, n_iter, evalue_estimate));
+                }
             }
             evalue_estimate = evec_estimate.dot(matrix * evec_estimate);
             Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, fmt::format("        ... Improved eigenvalue = {}", evalue_estimate));
@@ -91,13 +100,14 @@ namespace Engine
             Log(Utility::Log_Level::All, Utility::Log_Sender::HTST, fmt::format("    Computing eigenvalues smaller than {}", max_evalue));
             scalar tol = 1e-8;
             int n_log_step = 20000;
+            int max_iter = 10*n_log_step;
+            int n_iter_power = 250;
+            int n_power_refactor = 50;
             scalar cur = 2 * tol;
             scalar m = 0.01;
             scalar step_size = 1e-4;
             int n_iter = 0;
             int nos = matrix.rows()/2;
-            int max_iter = 10*n_log_step;
-            int n_iter_power = 500;
 
             scalar sigma_shift = std::max(scalar(5.0), 2*scalar(max_evalue));
 
@@ -171,20 +181,20 @@ namespace Engine
                         max_grad_comp = std::max(std::abs(g), max_grad_comp);
 
                     if(n_iter % n_log_step == 0)
-                        Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format("        ... Iteration {}: Evalue estimate = {}, Grad. norm = {} (> {})", n_iter, cur_evalue_estimate, max_grad_comp, tol));
+                        Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format("        ... Iteration {} (max. {} [{}%]): Evalue estimate = {}, Grad. norm = {} (> {})", n_iter, max_iter, n_iter/max_iter*100, cur_evalue_estimate, max_grad_comp, tol));
 
                     search = max_grad_comp > tol && n_iter < max_iter;
                 }
 
                 // We improve the eigenpair estimate with the inverse shift power method (This may be necessary for accurate cancellation of zero-modes)
-                Inverse_Shift_PowerMethod(n_iter_power, matrix, cur_evalue_estimate, x);
+                Inverse_Shift_PowerMethod(n_iter_power, n_power_refactor, matrix, cur_evalue_estimate, x, evecs);
 
                 // Ideally we have found one eigenvalue/vector pair now
                 // We save the eigenvalue
                 evecs.push_back(x);
                 evalues.push_back(x.dot(matrix*x));
 
-                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST,     fmt::format("        Found an eigenpair after {} iterations", n_iter));
+                Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST,     fmt::format("        ... Found an eigenpair after {} iterations", n_iter));
                 Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST,     fmt::format("        ... Eigenvalue  = {}", evalues.back()));
                 if(2*nos>=4)
                     Log(Utility::Log_Level::Info, Utility::Log_Sender::HTST, fmt::format("        ... Eigenvector = ({}, {}, {}, ..., {})", evecs.back()[0], evecs.back()[1], evecs.back()[2], evecs.back()[2*nos-1]));

@@ -123,13 +123,6 @@ try
     if( n_images == chain->noi )
         return;
 
-    if( !state->clipboard_image.get() )
-    {
-        Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
-            "Tried to increase length of chain, but clipboard was empty.", -1, idx_chain);
-        return;
-    }
-
     if( Simulation_Running_On_Chain( state, idx_chain ) )
     {
         chain->iteration_allowed = false;
@@ -139,6 +132,17 @@ try
     // Increase the chain length
     if( n_images > chain->noi )
     {
+        if( !state->clipboard_image.get() )
+        {
+            if( chain->noi > 1 )
+            {
+                // This message is only relevant if there is more than 1 image
+                Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+                     fmt::format( "Clipboard was empty, so the {}. image will be used.", idx_image ), -1, idx_chain );
+            }
+            Chain_Image_to_Clipboard( state );
+        }
+
         for( idx_image = chain->noi - 1; idx_image < n_images - 1; ++idx_image )
         {
             // Copy the clipboard image

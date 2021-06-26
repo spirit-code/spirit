@@ -659,7 +659,7 @@ source_group( "src\\spirit"  FILES ${SOURCE_SPIRIT} )
 
 ######### Install ##################################################
 #----- Documentation
-install( DIRECTORY docs DESTINATION docs/Spirit/core COMPONENT spirit_core_documentation )
+install( DIRECTORY docs/ DESTINATION docs/Spirit/core/ COMPONENT spirit_core_documentation )
 #--------------------------------------------------
 
 #----- Include folder

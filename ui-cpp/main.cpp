@@ -1,21 +1,25 @@
+#ifndef __EMSCRIPTEN__
+
 #include "utility/Handle_Signal.hpp"
 #include <lyra/lyra.hpp>
 
-#include "Spirit/Chain.h"
-#include "Spirit/Configurations.h"
-#include "Spirit/IO.h"
-#include "Spirit/Log.h"
-#include "Spirit/Simulation.h"
-#include "Spirit/State.h"
-#include "Spirit/Transitions.h"
-#include "Spirit/Version.h"
+#ifdef SPIRIT_UI_CXX_USE_QT
+#include "MainWindow.hpp"
+#elif SPIRIT_UI_USE_IMGUI
+#include "main_window.hpp"
+#endif
+
+#include <Spirit/Chain.h>
+#include <Spirit/Configurations.h>
+#include <Spirit/IO.h>
+#include <Spirit/Log.h>
+#include <Spirit/Simulation.h>
+#include <Spirit/State.h>
+#include <Spirit/Transitions.h>
+#include <Spirit/Version.h>
 
 #ifdef _OPENMP
 #include <omp.h>
-#endif
-
-#ifdef SPIRIT_UI_CXX_USE_QT
-#include "MainWindow.hpp"
 #endif
 
 #include <iostream>
@@ -105,9 +109,9 @@ int main( int argc, char ** argv )
         ( "Using OpenMP with n=" + std::to_string( nt ) + " threads" ).c_str() );
 #endif
 
-#ifdef SPIRIT_UI_CXX_USE_QT
-    //------------------------ User interface ---------------------------------------
-    // Initialise application and main window
+#if defined( SPIRIT_UI_CXX_USE_QT )
+    //------------------------ User Interface ---------------------------------------
+    // Initialise Application and MainWindow
     QApplication app( argc, argv );
     // app.setOrganizationName("--");
     // app.setApplicationName("Spirit - Atomistic Spin Code - OpenGL with Qt");
@@ -142,6 +146,17 @@ int main( int argc, char ** argv )
     state.reset();
     return exec;
     //-------------------------------------------------------------------------------
+#elif defined( SPIRIT_UI_USE_IMGUI )
+    ui::MainWindow window( state );
+
+    // Open the Application
+    int exec = window.run();
+    // If Application is closed normally
+    if( exec != 0 )
+        throw exec;
+    // Finish
+    state.reset();
+    return exec;
 #else
     //----------------------- LLG iterations ----------------------------------------
     Simulation_LLG_Start( state.get(), Solver_SIB );
@@ -151,3 +166,5 @@ int main( int argc, char ** argv )
     state.reset();
     return 0;
 }
+
+#endif
