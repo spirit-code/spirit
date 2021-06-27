@@ -138,7 +138,7 @@ if( SPIRIT_USE_CUDA )
     find_package( CUDA 8 REQUIRED )
 
     # set( CUDA_PROPAGATE_HOST_FLAGS ON )
-    # --std=c++14 flag may be necessary, but it is propagated from global flags...
+    # --std=c++17 flag may be necessary, but it is propagated from global flags...
     # if it appears twice, for some reason the compilation breaks
 
     set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -lineinfo -arch=${SPIRIT_CUDA_ARCH} --expt-relaxed-constexpr --expt-extended-lambda" )
@@ -155,7 +155,7 @@ if( SPIRIT_USE_CUDA )
     set( META_COMPILER_FULL    "${META_COMPILER_FULL} and nvcc (${CUDA_VERSION}) for cuda arch \\\"${SPIRIT_CUDA_ARCH}\\\"" )
 
     if( NOT DEFINED CMAKE_CUDA_STANDARD )
-        set( CMAKE_CUDA_STANDARD 14 )
+        set( CMAKE_CUDA_STANDARD 17 )
         set( CMAKE_CUDA_STANDARD_REQUIRED ON )
     endif()
 
@@ -286,6 +286,7 @@ set( HEADER_SPIRIT_ROOT )
 set( HEADER_SPIRIT_API )
 set( HEADER_SPIRIT_DATA )
 set( HEADER_SPIRIT_ENGINE )
+set( HEADER_SPIRIT_FMM )
 set( HEADER_SPIRIT_IO )
 set( HEADER_SPIRIT_UTILITY )
 ### Source Groups
@@ -293,6 +294,7 @@ set( SOURCE_SPIRIT_ROOT )
 set( SOURCE_SPIRIT_API )
 set( SOURCE_SPIRIT_DATA )
 set( SOURCE_SPIRIT_ENGINE )
+set( SOURCE_SPIRIT_FMM )
 set( SOURCE_SPIRIT_IO )
 set( SOURCE_SPIRIT_UTILITY )
 ### Add Subdirectories
@@ -306,18 +308,20 @@ add_library( ${META_PROJECT_NAME} OBJECT
     ${HEADER_SPIRIT_ROOT}
     ${HEADER_SPIRIT_DATA}
     ${HEADER_SPIRIT_ENGINE}
+    ${HEADER_SPIRIT_FMM}
     ${HEADER_SPIRIT}
     ${HEADER_SPIRIT_IO}
     ${HEADER_SPIRIT_UTILITY}
     ${SOURCE_SPIRIT_ROOT}
     ${SOURCE_SPIRIT_DATA}
     ${SOURCE_SPIRIT_ENGINE}
+    ${SOURCE_SPIRIT_FMM}
     ${SOURCE_SPIRIT}
     ${SOURCE_SPIRIT_IO}
     ${SOURCE_SPIRIT_UTILITY} )
 
 set_target_properties( ${META_PROJECT_NAME} PROPERTIES
-    CXX_STANDARD            14
+    CXX_STANDARD            17
     CXX_STANDARD_REQUIRED   ON
     CXX_EXTENSIONS          OFF )
 
@@ -461,7 +465,7 @@ if( SPIRIT_BUILD_FOR_CXX OR SPIRIT_BUILD_FOR_JS )
             target_link_libraries( ${testName} ${META_PROJECT_NAME}_static )
             # Properties
             set_target_properties( ${testName} PROPERTIES
-                CXX_STANDARD             14
+                CXX_STANDARD             17
                 CXX_STANDARD_REQUIRED    ON
                 CXX_EXTENSIONS           OFF
                 RUNTIME_OUTPUT_DIRECTORY ${TEST_RUNTIME_OUTPUT_DIRECTORY} )
@@ -491,13 +495,25 @@ if( SPIRIT_BUILD_FOR_CXX OR SPIRIT_BUILD_FOR_JS )
         #----- Create test executables
         set( TEST_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR} )
         set( TEST_EXECUTABLES )
-        add_framework_test( test_vmath    test/test_vectormath.cpp )
-        add_framework_test( test_mmath    test/test_manifoldmath.cpp )
-        add_framework_test( test_api      test/test_api.cpp )
-        add_framework_test( test_solvers  test/test_solvers.cpp )
-        add_framework_test( test_physics  test/test_physics.cpp )
-        add_framework_test( test_ema      test/test_ema.cpp)
-        add_framework_test( test_io       test/test_io.cpp )
+
+        add_framework_test( test_vmath   test/test_vectormath.cpp )
+        add_framework_test( test_mmath   test/test_manifoldmath.cpp )
+        add_framework_test( test_api     test/test_api.cpp )
+        add_framework_test( test_solvers test/test_solvers.cpp )
+        add_framework_test( test_physics test/test_physics.cpp )
+        add_framework_test( test_ema     test/test_ema.cpp)
+        add_framework_test( test_io      test/test_io.cpp )
+
+        add_framework_test( test_fmm_downwardpass test/fmm/test_downwardpass.cpp )
+        add_framework_test( test_fmm_evaluation   test/fmm/test_evaluation.cpp )
+        add_framework_test( test_fmm_l2l          test/fmm/test_L2L.cpp )
+        add_framework_test( test_fmm_m2l          test/fmm/test_M2L.cpp )
+        add_framework_test( test_fmm_m2m          test/fmm/test_M2M.cpp )
+        add_framework_test( test_fmm_octree       test/fmm/test_octree_building.cpp )
+        add_framework_test( test_fmm_p2m          test/fmm/test_P2M.cpp )
+        add_framework_test( test_fmm_sh           test/fmm/test_sh.cpp )
+        add_framework_test( test_fmm_upwardpass   test/fmm/test_upwardpass.cpp )
+        add_framework_test( test_fmm_utility      test/fmm/test_Utility.cpp )
     endif()
     #--------------------------------------------------
 endif()

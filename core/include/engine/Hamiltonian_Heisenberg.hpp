@@ -10,7 +10,7 @@
 #include <engine/Hamiltonian.hpp>
 #include <data/Geometry.hpp>
 #include <Spirit/Hamiltonian.h>
-#include "FFT.hpp"
+#include <engine/FFT.hpp>
 
 namespace Engine
 {
@@ -38,7 +38,8 @@ namespace Engine
             DDI_Method ddi_method, intfield ddi_n_periodic_images, bool ddi_pb_zero_padding, scalar ddi_radius,
             quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
             std::shared_ptr<Data::Geometry> geometry,
-            intfield boundary_conditions
+            intfield boundary_conditions,
+            int fmm_n_level, int fmm_l_max, int fmm_l_max_local
         );
 
         Hamiltonian_Heisenberg(
@@ -49,7 +50,8 @@ namespace Engine
             DDI_Method ddi_method, intfield ddi_n_periodic_images, bool ddi_pb_zero_padding, scalar ddi_radius,
             quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
             std::shared_ptr<Data::Geometry> geometry,
-            intfield boundary_conditions
+            intfield boundary_conditions,
+            int fmm_n_level, int fmm_l_max, int fmm_l_max_local
         );
 
         void Update_Interactions();
@@ -70,7 +72,7 @@ namespace Engine
 
         // Hamiltonian name as string
         const std::string& Name() override;
-        
+
         // ------------ Single Spin Interactions ------------
         // External magnetic field across the sample
         scalar external_field_magnitude;
@@ -110,6 +112,10 @@ namespace Engine
         pairfield   ddi_pairs;
         scalarfield ddi_magnitudes;
         vectorfield ddi_normals;
+        // FMM parameters
+        int fmm_n_level     = 3;
+        int fmm_l_max       = 4;
+        int fmm_l_max_local = 2;
 
         // ------------ Quadruplet Interactions ------------
         quadrupletfield quadruplets;
@@ -154,14 +160,17 @@ namespace Engine
         // Calculate the Quadruplet energy
         void E_Quadruplet(const vectorfield & spins, scalarfield & Energy);
 
-        private:
+    private:
         int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet;
         void Gradient_DDI_Cutoff(const vectorfield& spins, vectorfield & gradient);
         void Gradient_DDI_Direct(const vectorfield& spins, vectorfield & gradient);
         void Gradient_DDI_FFT(const vectorfield& spins, vectorfield & gradient);
+        void Gradient_DDI_FMM(const vectorfield& spins, vectorfield & gradient);
         void E_DDI_Direct(const vectorfield& spins, scalarfield & Energy);
         void E_DDI_Cutoff(const vectorfield& spins, scalarfield & Energy);
         void E_DDI_FFT(const vectorfield& spins, scalarfield & Energy);
+        void E_DDI_FMM(const vectorfield& spins, scalarfield & Energy);
+
 
         // Preparations for DDI-Convolution Algorithm
         void Prepare_DDI();

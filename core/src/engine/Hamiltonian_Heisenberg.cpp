@@ -5,10 +5,12 @@
 #include <engine/Neighbours.hpp>
 #include <data/Spin_System.hpp>
 #include <utility/Constants.hpp>
-#include <algorithm>
 #include <engine/Backend_par.hpp>
+
 #include <Eigen/Dense>
 #include <Eigen/Core>
+
+#include <algorithm>
 
 
 using namespace Data;
@@ -30,7 +32,7 @@ namespace Engine
         DDI_Method ddi_method, intfield ddi_n_periodic_images, bool ddi_pb_zero_padding, scalar ddi_radius,
         quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
         std::shared_ptr<Data::Geometry> geometry,
-        intfield boundary_conditions
+        intfield boundary_conditions, int fmm_n_level, int fmm_l_max, int fmm_l_max_local
     ) :
         Hamiltonian(boundary_conditions),
         geometry(geometry),
@@ -55,7 +57,7 @@ namespace Engine
         DDI_Method ddi_method, intfield ddi_n_periodic_images, bool ddi_pb_zero_padding, scalar ddi_radius,
         quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
         std::shared_ptr<Data::Geometry> geometry,
-        intfield boundary_conditions
+        intfield boundary_conditions, int fmm_n_level, int fmm_l_max, int fmm_l_max_local
     ) :
         Hamiltonian(boundary_conditions),
         geometry(geometry),
@@ -324,6 +326,8 @@ namespace Engine
     {
         if( this->ddi_method == DDI_Method::FFT )
             this->E_DDI_FFT(spins, Energy);
+        else if( this->ddi_method == DDI_Method::FMM )
+            this->E_DDI_FMM(spins, Energy);
         else if( this->ddi_method == DDI_Method::Cutoff )
         {
             // TODO: Merge these implementations in the future
@@ -418,6 +422,10 @@ namespace Engine
             Energy[ispin] += 0.5 * spins[ispin].dot(gradients_temp[ispin]);
             // Energy_DDI    += 0.5 * spins[ispin].dot(gradients_temp[ispin]);
         }
+    }
+
+    void Hamiltonian_Heisenberg::E_DDI_FMM(const vectorfield & spins, scalarfield & Energy)
+    {
     }
 
     void Hamiltonian_Heisenberg::E_Quadruplet(const vectorfield & spins, scalarfield & Energy)
@@ -702,6 +710,8 @@ namespace Engine
     {
         if( this->ddi_method == DDI_Method::FFT )
             this->Gradient_DDI_FFT(spins, gradient);
+        else if( this->ddi_method == DDI_Method::FMM )
+            this->Gradient_DDI_FMM(spins, gradient);
         else if( this->ddi_method == DDI_Method::Cutoff )
         {
             // TODO: Merge these implementations in the future
@@ -882,6 +892,11 @@ namespace Engine
                 gradient[idx1][2] -= (Dxz * m2[0] + Dyz * m2[1] + Dzz * m2[2]) * geometry->mu_s[idx1] * geometry->mu_s[idx2];
             }
         }
+    }
+
+
+    void Hamiltonian_Heisenberg::Gradient_DDI_FMM(const vectorfield & spins, vectorfield & gradient)
+    {
     }
 
 

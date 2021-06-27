@@ -1225,6 +1225,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
     intfield ddi_n_periodic_images = { 4, 4, 4 };
     scalar ddi_radius              = 0.0;
     bool ddi_pb_zero_padding       = true;
+    int fmm_n_level, fmm_l_max, fmm_l_max_local;
 
     // ------------ Quadruplet Interactions ------------
     int n_quadruplets            = 0;
@@ -1449,6 +1450,13 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                 ddi_method_str = "none";
             }
 
+            if (ddi_method == Engine::DDI_Method::FMM)
+            {
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "fmm_n_level", fmm_n_level));
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "fmm_l_max", fmm_l_max));
+                Log(Log_Level::Parameter, Log_Sender::IO, fmt::format("        {:<21} = {}", "fmm_l_max_local", fmm_l_max_local));
+            }
+
             // Number of periodical images
             myfile.Read_3Vector( ddi_n_periodic_images, "ddi_n_periodic_images" );
             myfile.Read_Single( ddi_pb_zero_padding, "ddi_pb_zero_padding" );
@@ -1525,14 +1533,14 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
         hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg>( new Engine::Hamiltonian_Heisenberg(
             B, B_normal, anisotropy_index, anisotropy_magnitude, anisotropy_normal, exchange_magnitudes, dmi_magnitudes,
             dm_chirality, ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius, quadruplets,
-            quadruplet_magnitudes, geometry, boundary_conditions ) );
+            quadruplet_magnitudes, geometry, boundary_conditions, fmm_n_level, fmm_l_max, fmm_l_max_local ) );
     }
     else
     {
         hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg>( new Engine::Hamiltonian_Heisenberg(
             B, B_normal, anisotropy_index, anisotropy_magnitude, anisotropy_normal, exchange_pairs, exchange_magnitudes,
             dmi_pairs, dmi_magnitudes, dmi_normals, ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius,
-            quadruplets, quadruplet_magnitudes, geometry, boundary_conditions ) );
+            quadruplets, quadruplet_magnitudes, geometry, boundary_conditions, fmm_n_level, fmm_l_max, fmm_l_max_local ) );
     }
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Heisenberg: built" );
     return hamiltonian;

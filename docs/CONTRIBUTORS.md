@@ -6,7 +6,7 @@
 * PGI-1/IAS-1 at Forschungszentrum Jülich
 
 Implementation of
-- the dipole-dipole interaction using FFT convolutions
+- the dipole-dipole interactions using FFT convolutions and fast multipole method
 - the NCG and LBFGS solvers
 
 email: m.sallermann@fz-juelich.de

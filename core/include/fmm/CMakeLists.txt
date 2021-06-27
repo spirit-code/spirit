@@ -1,0 +1,9 @@
+set(HEADER_SPIRIT_FMM
+    ${HEADER_SPIRIT_FMM}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Tree.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Box.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/SimpleFMM_Defines.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Spherical_Harmonics.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Utiltiy.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Formulas.hpp
+)
