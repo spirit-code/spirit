@@ -40,7 +40,7 @@ class TestConstants(unittest.TestCase):
         self.assertEqual( scalar(constants.g_e).value, scalar(2.00231930436182).value )
 
     def test_milliRydberg(self):
-        self.assertEqual( scalar(constants.mRy).value, scalar(13.605693009).value )
+        self.assertEqual( scalar(constants.mRy).value, scalar(1.0/13.605693122994).value )
 
     def test_erg(self):
         self.assertEqual( scalar(constants.erg).value, scalar(6.2415091*1e+14).value )

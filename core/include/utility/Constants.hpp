@@ -34,7 +34,7 @@ double const gamma = 0.1760859644;
 double const g_e = 2.00231930436182;
 
 // Millirydberg [mRy/meV]
-double const mRy = 1.0 / 13.605693009;
+double const mRy = 1.0 / 13.605693122994;
 
 // erg [erg/meV]
 double const erg = 6.2415091 * 1e14;
