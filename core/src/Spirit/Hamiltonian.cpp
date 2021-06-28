@@ -13,6 +13,7 @@
 #include <utility/Logging.hpp>
 
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 
 using namespace Utility;
 
@@ -355,6 +356,15 @@ try
             auto Jij = jij[0];
             ham->exchange_tensor << Jij, 0, 0, 0, Jij, 0, 0, 0, Jij;
             ham->Update_Interactions();
+
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Set tensor_exchange to:" ),
+                 idx_image, idx_chain );
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "{}", ham->exchange_tensor.row( 0 ) ),
+                 idx_image, idx_chain );
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "{}", ham->exchange_tensor.row( 1 ) ),
+                 idx_image, idx_chain );
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "{}", ham->exchange_tensor.row( 2 ) ),
+                 idx_image, idx_chain );
         }
     }
     catch( ... )
@@ -427,9 +437,34 @@ try
 
             auto ham = (Engine::Hamiltonian_Micromagnetic *)image->hamiltonian.get();
             auto Dij = dij[0];
-            // TODO: handle chirality
-            ham->exchange_tensor << Dij, 0, 0, 0, Dij, 0, 0, 0, Dij;
+
+            if( chirality == SPIRIT_CHIRALITY_BLOCH )
+            {
+                ham->dmi_tensor << Dij, 0, 0, 0, Dij, 0, 0, 0, Dij;
+            }
+            else if( chirality == SPIRIT_CHIRALITY_BLOCH_INVERSE )
+            {
+                ham->dmi_tensor << -Dij, 0, 0, 0, -Dij, 0, 0, 0, -Dij;
+            }
+            else if( chirality == SPIRIT_CHIRALITY_NEEL )
+            {
+                ham->dmi_tensor << 0, Dij, 0, -Dij, 0, 0, 0, 0, 0;
+            }
+            else
+            {
+                ham->dmi_tensor << 0, -Dij, 0, Dij, 0, 0, 0, 0, 0;
+            }
+
             ham->Update_Interactions();
+
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Set tensor_dmi to:" ), idx_image,
+                 idx_chain );
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "{}", ham->dmi_tensor.row( 0 ) ),
+                 idx_image, idx_chain );
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "{}", ham->dmi_tensor.row( 1 ) ),
+                 idx_image, idx_chain );
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "{}", ham->dmi_tensor.row( 2 ) ),
+                 idx_image, idx_chain );
         }
     }
     catch( ... )

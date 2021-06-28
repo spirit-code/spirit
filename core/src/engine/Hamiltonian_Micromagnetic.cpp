@@ -330,18 +330,24 @@ void Hamiltonian_Micromagnetic::E_DMI( const vectorfield & spins, scalarfield & 
 {
     auto delta = geometry->cell_size;
 
-    for( unsigned int icell = 0; icell < geometry->n_cells_total; ++icell )
+    auto epsilon = [](int i, int j, int k)
+    {
+        return -0.5 * (j-i) * (k-j) * (i-k);
+    };
+
+    // Implements: epsilon_{mu,alpha,beta} * D_{mu, nu} * [ n_{alpha} dn_{beta}/dr_{nu} - n_{beta} dn_{alpha}/dr_{nu} ]
+    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
     {
         Vector3 grad_n;
-        for( unsigned int alpha = 0; alpha < 3; ++alpha )
+        for( int nu = 0; nu < 3; ++nu )
         {
             int icell_plus = idx_from_pair(
                 icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                neigh[2 * alpha] );
+                neigh[2 * nu] );
 
             int icell_minus = idx_from_pair(
                 icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                neigh[2 * alpha + 1] );
+                neigh[2 * nu + 1] );
 
             if( icell_plus >= 0 || icell_minus >= 0 )
             {
@@ -350,10 +356,21 @@ void Hamiltonian_Micromagnetic::E_DMI( const vectorfield & spins, scalarfield & 
                 if( icell_minus == -1 )
                     icell_minus = icell;
             }
-            grad_n = ( spins[icell_plus] - spins[icell_minus] ) / (2*delta[alpha]);
 
-            // meV/J * J/m * 1/m * 1/m * m^3
-            Energy[icell] += C::Joule * geometry->cell_volume * ( grad_n.dot( exchange_tensor * grad_n) );
+            // Todo: Why is there a factor of 2 difference to OOMMF?
+            grad_n = ( spins[icell_plus] - spins[icell_minus] ) / (2*delta[nu]);
+
+            for(int alpha=0; alpha<3; alpha++)
+            {
+                for(int beta=0; beta<3; beta++)
+                {
+                    for(int mu=0; mu<3; mu++)
+                    {
+                        // meV/J * J/m^2 * 1/m
+                        Energy[icell] +=  C::Joule * geometry->cell_volume * epsilon(mu, alpha, beta) * dmi_tensor(mu, nu) * ( spins[icell][alpha] * grad_n[beta] - spins[icell][beta] * grad_n[alpha] );
+                    }
+                }
+            }
         }
     }
 }
