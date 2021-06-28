@@ -799,7 +799,7 @@ void Hamiltonian_Micromagnetic::FFT_Spins( const vectorfield & spins )
     auto & fft_spin_inputs = fft_plan_spins.real_ptr;
 
 // iterate over the **original** system
-#pragma omp parallel for collapse( 4 )
+#pragma omp parallel for collapse( 3 )
     for( int c = 0; c < Nc; ++c )
     {
         for( int b = 0; b < Nb; ++b )
