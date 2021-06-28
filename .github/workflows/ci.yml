@@ -16,7 +16,7 @@ jobs:
         name-suffix: [""]
         include:
           - build-type: Debug
-            excludetests: solver
+            excludetests: "-E solver"
           - openmp: true
             name-suffix: "-openmp"
             os: ubuntu-latest
@@ -66,7 +66,7 @@ jobs:
     - name: 🧪 Test
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: ctest -C $BUILD_TYPE -E $EXCLUDETESTS --output-on-failure
+      run: ctest --output-on-failure -C $BUILD_TYPE $EXCLUDETESTS
 
   test-coverage:
     runs-on: ubuntu-latest
@@ -153,7 +153,7 @@ jobs:
     - name: 🧪 Test
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: ctest -C $BUILD_TYPE --output-on-failure
+      run: ctest --output-on-failure -C $BUILD_TYPE
 
   build-cuda:
     runs-on: ${{ matrix.config.os }}
