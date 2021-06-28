@@ -542,9 +542,9 @@ void Hamiltonian_Micromagnetic::Gradient_DDI( const vectorfield & spins, vectorf
 
 void Hamiltonian_Micromagnetic::Gradient_DDI_Direct( const vectorfield & spins, vectorfield & gradient )
 {
-    auto delta       = geometry->cell_size;
-    auto cell_volume = geometry->cell_size[0] * geometry->cell_size[1] * geometry->cell_size[2];
-    scalar mult      = C::mu_0 / cell_volume * ( cell_volume * Ms * C::Joule ) * ( cell_volume * Ms * C::Joule );
+    Vector3 delta      = geometry->cell_size;
+    scalar cell_volume = geometry->cell_size[0] * geometry->cell_size[1] * geometry->cell_size[2];
+    scalar mult        = C::mu_0 / cell_volume * ( cell_volume * Ms * C::Joule ) * ( cell_volume * Ms * C::Joule );
 
     int img_a = boundary_conditions[0] == 0 ? 0 : ddi_n_periodic_images[0];
     int img_b = boundary_conditions[1] == 0 ? 0 : ddi_n_periodic_images[1];
@@ -563,13 +563,13 @@ void Hamiltonian_Micromagnetic::Gradient_DDI_Direct( const vectorfield & spins, 
                 {
                     for( int c_pb = -img_c; c_pb <= img_c; c_pb++ )
                     {
-                        auto X = 1e-10 * diff[0] + a_pb * delta[0];
-                        auto Y = 1e-10 * diff[1] + b_pb * delta[1];
-                        auto Z = 1e-10 * diff[2] + c_pb * delta[2];
+                        scalar X = 1e-10 * diff[0] + a_pb * delta[0];
+                        scalar Y = 1e-10 * diff[1] + b_pb * delta[1];
+                        scalar Z = 1e-10 * diff[2] + c_pb * delta[2];
 
-                        auto dx = delta[0];
-                        auto dy = delta[1];
-                        auto dz = delta[2];
+                        scalar dx = delta[0];
+                        scalar dy = delta[1];
+                        scalar dz = delta[2];
 
                         Dxx += mult * Demagnetization_Tensor::Automatic::Nxx( X, Y, Z, dx, dy, dz );
                         Dxy += mult * Demagnetization_Tensor::Automatic::Nxy( X, Y, Z, dx, dy, dz );
