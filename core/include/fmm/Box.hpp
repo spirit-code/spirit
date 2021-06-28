@@ -5,6 +5,7 @@
 #include <fmm/SimpleFMM_Defines.hpp>
 
 #include <map>
+#include <string>
 #include <vector>
 
 // TODO add iterator over contained positions
@@ -110,7 +111,7 @@ struct Box
     Vector3 Evaluate_Directly_At( Vector3 r, vectorfield & spins );
     Vector3c Evaluate_Multipole_Expansion_At( Vector3 r );
     Vector3 Evaluate_Far_Field_At( Vector3 r );
-    void Print_Info( bool print_multipole_moments = false, bool print_local_moments = false );
+    std::string Info_String( bool print_multipole_moments = false, bool print_local_moments = false );
 };
 
 } // namespace SimpleFMM

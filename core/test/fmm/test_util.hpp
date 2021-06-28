@@ -87,52 +87,9 @@ void generate_spins(
     }
 }
 
-// void get_indices( intfield & out, int from, int to )
-// {
-//     out.resize( to - from + 1 );
-//     for( int i = from; i <= to; i++ )
-//     {
-//         out[i] = i;
-//     }
-// }
-
-// void print_field( vectorfield field, int from = 0, int to = -1 )
-// {
-//     int end = ( to >= 0 ) ? to : field.size() - 1;
-
-//     std::cout << "     -------------" << std::endl;
-//     for( int i = from; i <= end; i++ )
-//     {
-//         fmt::print("  [{}]:   {}, {}, {}\n", i, field[i][0], field[i][1], field[i][2]);
-//     }
-//     std::cout << "     -------------" << std::endl;
-// }
-
-// void print_field( intfield field, int from = 0, int to = -1 )
-// {
-//     int end = ( to >= 0 ) ? to : field.size() - 1;
-//     std::cout << "     -------------" << std::endl;
-//     for( int i = from; i <= end; i++ )
-//     {
-//         fmt::print("  [{}]:   {}\n", i, field[i]);
-//     }
-//     std::cout << "     -------------" << std::endl;
-// }
-
-// void print_field( scalarfield field, int from = 0, int to = -1 )
-// {
-//     int end = ( to >= 0 ) ? to : field.size() - 1;
-//     std::cout << "     -------------" << std::endl;
-//     for( int i = from; i <= end; i++ )
-//     {
-//         fmt::print("  [{}]:   {}\n", i, field[i]);
-//     }
-//     std::cout << "     -------------" << std::endl;
-// }
-
-void print_vector( Vector3 vec, int precision = 10 )
+std::string vector3_to_string( Vector3 vec, int precision = 10 )
 {
-    fmt::print( "({:.{0}}f}, {:.{0}}f}, {:.{0}}f})\n", precision, vec[0], vec[1], vec[2] );
+    return fmt::format( "({1:.{0}f}, {2:.{0}f}, {3:.{0}f})", precision, vec[0], vec[1], vec[2] );
 }
 
 // Caluclates the gradient at 'r' directly

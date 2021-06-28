@@ -5,10 +5,7 @@
 
 #include <catch.hpp>
 
-#include <iomanip>
-#include <iostream>
-
-TEST_CASE( "FMM", "[Downwardpass]" )
+TEST_CASE( "FMM: downward pass", "[fmm]" )
 {
     SimpleFMM::vectorfield pos;
     SimpleFMM::vectorfield spins;
@@ -43,6 +40,6 @@ TEST_CASE( "FMM", "[Downwardpass]" )
 
     for( auto it = tree.begin_level( 0 ); it != tree.end_level( 3 ); it++ )
     {
-        it->Print_Info( false, false );
+        INFO( it->Info_String( false, false ) );
     }
 }

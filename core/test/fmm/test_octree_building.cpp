@@ -4,10 +4,7 @@
 
 #include <catch.hpp>
 
-#include <iomanip>
-#include <iostream>
-
-TEST_CASE( "FMM", "[Octree building]" )
+TEST_CASE( "FMM: building an octree", "[fmm]" )
 {
     SimpleFMM::vectorfield pos;
     SimpleFMM::vectorfield spins;
@@ -39,7 +36,7 @@ TEST_CASE( "FMM", "[Octree building]" )
 
     for( auto it = tree.begin_level( 0 ); it != tree.end_level( 2 ); it++ )
     {
-        it->Print_Info( false, false );
+        INFO( it->Info_String( false, false ) );
     }
 
     tree.Upward_Pass( spins, mu_s );
@@ -47,23 +44,20 @@ TEST_CASE( "FMM", "[Octree building]" )
 
     for( auto it = tree.begin_level( 0 ); it != tree.end_level( 2 ); it++ )
     {
-        it->Print_Info();
+        INFO( it->Info_String() );
     }
 
     tree.Evaluation( spins, mu_s, gradient );
     tree.Direct_Evaluation( spins, mu_s, gradient_direct );
 
-    std::cout << std::fixed;
-    std::cout << std::setprecision( 10 );
-
     for( auto i = 0; i < gradient.size(); i++ )
     {
-        std::cout << "=================" << std::endl;
-        std::cout << " multipole " << std::endl;
-        std::cout << gradient[i] << std::endl;
-        std::cout << "       --        " << std::endl;
-        std::cout << " direct " << std::endl;
-        std::cout << gradient_direct[i] << std::endl;
-        std::cout << "=================" << std::endl;
+        INFO(
+            "=================\n"
+            << " multipole\n"
+            << gradient[i].transpose() << "\n"
+            << " direct\n"
+            << gradient_direct[i].transpose() << "\n"
+            << "\n=================\n" );
     }
 }

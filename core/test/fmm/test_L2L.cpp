@@ -8,11 +8,9 @@
 
 #include <catch.hpp>
 
-#include <iostream>
-
 using namespace SimpleFMM;
 
-TEST_CASE( "FMM", "[L2L]" )
+TEST_CASE( "FMM: L2L", "[fmm]" )
 {
     SimpleFMM::vectorfield pos1;
     SimpleFMM::vectorfield spins1;
@@ -72,11 +70,10 @@ TEST_CASE( "FMM", "[L2L]" )
         {
             Vector3 & grad_1 = gradient_farfield_child[child.pos_indices[i]];
             Vector3 & grad_2 = gradient_farfield_parent[child.pos_indices[i]];
-            std::cout << "---" << std::endl;
-            Testing::print_vector( grad_1 );
-            Testing::print_vector( grad_2 );
-            // print_vector(grad_1.array() / grad_2.array());
-            std::cout << "---" << std::endl;
+
+            INFO(
+                "grad_1 = " << Testing::vector3_to_string( grad_1 )
+                            << ", grad_2 = " << Testing::vector3_to_string( grad_2 ) );
             REQUIRE( grad_1.isApprox( grad_2, 1e-1 ) );
         }
     }

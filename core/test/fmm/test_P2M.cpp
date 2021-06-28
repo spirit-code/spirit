@@ -8,16 +8,14 @@
 
 #include <catch.hpp>
 
-#include <iomanip>
-#include <iostream>
-
 using namespace Testing;
 
-TEST_CASE( "FMM", "[P2M]" )
+TEST_CASE( "FMM: P2M", "[fmm]" )
 {
     SimpleFMM::vectorfield pos;
     SimpleFMM::vectorfield spins;
     SimpleFMM::scalarfield mu_s;
+
     int Na = 4, Nb = 4, Nc = 4;
     int l_max = 5;
 
@@ -37,12 +35,9 @@ TEST_CASE( "FMM", "[P2M]" )
     SimpleFMM::Calculate_Multipole_Moments( my_box, spins, mu_s, 2, l_max );
     Vector3 gradient_multipole = SimpleFMM::Evaluate_Multipole_Expansion_At( test_position, my_box, 2, l_max );
 
-    // my_box.Print_Info(true);
-
-    std::cout << "gradient_direct\n  ";
-    print_vector( gradient_direct );
-    std::cout << "gradient_direct_multipole\n  ";
-    print_vector( gradient_multipole );
+    INFO( my_box.Info_String( true ) );
+    INFO( "gradient_direct    = " << Testing::vector3_to_string( gradient_direct ) );
+    INFO( "gradient_multipole = " << Testing::vector3_to_string( gradient_multipole ) );
 
     REQUIRE( gradient_direct.isApprox( gradient_multipole, 1e-1 ) );
 }

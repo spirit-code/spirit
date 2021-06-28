@@ -5,14 +5,12 @@
 #include <catch.hpp>
 
 #include <cmath>
-#include <iomanip>
-#include <iostream>
 
 using namespace SimpleFMM;
 using namespace SimpleFMM::Spherical_Harmonics;
 using SimpleFMM::Utility::get_spherical;
 
-TEST_CASE( "FMM", "[Spherical harmonics]" )
+TEST_CASE( "FMM: spherical harmonics", "[fmm]" )
 {
     scalar r     = 7.2;
     scalar theta = 1.2;
@@ -45,26 +43,23 @@ TEST_CASE( "FMM", "[Spherical harmonics]" )
     // l=4, m=-1 at phi = 1.6 and theta = 0.78
     auto expected = std::complex<double>( -0.00371426, -0.127148 );
     auto result   = Spherical_Harmonics::Spherical_Harm( 4, -1, 1.6, 0.78 );
-    std::cout << "expected: " << expected << std::endl;
-    std::cout << "result:   " << result << std::endl;
+    INFO( "expected: " << expected << "\nresult:   " << result );
     REQUIRE( std::abs( result - expected ) < 1e-4 );
 
     // l=8, m=8 at phi = 0.02 and theta = 0.5
     expected = std::complex<double>( 0.00142022, 0.000229194 );
     result   = Spherical_Harmonics::Spherical_Harm( 8, 8, 0.02, 0.5 );
-    std::cout << "expected: " << expected << std::endl;
-    std::cout << "result:   " << result << std::endl;
+    INFO( "expected: " << expected << "\nresult:   " << result );
     REQUIRE( std::abs( result - expected ) < 1e-4 );
 
     // l=10, m=0 phi=xxx and theta=0.25
     expected = std::complex<double>( -0.141577, 0.0 );
     result   = Spherical_Harmonics::Spherical_Harm( 10, 0, 0.01212, 0.25 );
-    std::cout << "expected: " << expected << std::endl;
-    std::cout << "result:   " << result << std::endl;
+    INFO( "expected: " << expected << "\nresult:   " << result );
     REQUIRE( std::abs( result - expected ) < 1e-4 );
 }
 
-TEST_CASE( "FMM", "[Translation R2R]" )
+TEST_CASE( "FMM: translation R2R", "[fmm]" )
 {
     scalar r     = 7.2;
     scalar theta = 1.2;
@@ -89,7 +84,6 @@ TEST_CASE( "FMM", "[Translation R2R]" )
     get_spherical( r2, sph2 );
 
     // R2R
-    std::cout << "=== Testing R2R ===" << std::endl;
     for( int l = 0; l <= l_max; l++ )
     {
         for( int m = -l; m <= l; m++ )
@@ -106,15 +100,13 @@ TEST_CASE( "FMM", "[Translation R2R]" )
                                   * Spherical_Harmonics::R( l - lp, m - mp, sph2[0], sph2[1], sph2[2] );
                 }
             }
-            printf( "l %i m %i\n", l, m );
-            std::cout << "expected: " << expected << std::endl;
-            std::cout << "result:   " << result << std::endl;
+            INFO( "l=" << l << " m=" << m << "\nexpected: " << expected << "\nresult:   " << result );
             REQUIRE( std::abs( result - expected ) < 1e-4 );
         }
     }
 }
 
-TEST_CASE( "FMM", "[Translation S2S]" )
+TEST_CASE( "FMM: translation S2S", "[fmm]" )
 {
     int l_max = 12;
     int l_min = 0;
@@ -136,7 +128,6 @@ TEST_CASE( "FMM", "[Translation S2S]" )
     get_spherical( r2, sph2 );
 
     // S2S
-    std::cout << "=== Testing S2S ===" << std::endl;
     for( int l = 0; l <= l_max; l++ )
     {
         for( int m = -l; m <= l; m++ )
@@ -153,10 +144,9 @@ TEST_CASE( "FMM", "[Translation S2S]" )
                               * Spherical_Harmonics::S( l + lp, m - mp, sph1[0], sph1[1], sph1[2] );
                 }
             }
-            printf( "l=%i, m = %i\n", l, m );
-            std::cout << "expected: " << expected << std::endl;
-            std::cout << "result:   " << result << std::endl;
-            std::cout << result / expected << std::endl;
+            INFO(
+                "l=" << l << " m=" << m << "\nexpected: " << expected << "\nresult:   " << result << "\n"
+                     << result / expected );
             REQUIRE( std::abs( result - expected ) < 1e-4 );
         }
     }

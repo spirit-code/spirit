@@ -1,3 +1,4 @@
+#include "fmm/test_util.hpp"
 #include <fmm/SimpleFMM_Defines.hpp>
 #include <fmm/Spherical_Harmonics.hpp>
 #include <fmm/Utility.hpp>
@@ -6,13 +7,11 @@
 
 #include <cmath>
 #include <complex>
-#include <iomanip>
-#include <iostream>
 
 using namespace SimpleFMM;
 using SimpleFMM::Spherical_Harmonics::PI;
 
-TEST_CASE( "FMM", "[Utility]" )
+TEST_CASE( "FMM: utility functions", "[fmm]" )
 {
     int l_min = 4;
     int l_max = 10;
@@ -75,12 +74,13 @@ TEST_CASE( "FMM", "[Utility]" )
                 Utility::get_cartesian( pos_spherical, pos_cartesian2 );
                 Utility::get_spherical( pos_cartesian2, pos_spherical2 );
 
-                // std::cout << "--" << std::endl;
-                // Testing::print_vector(pos_cartesian);
-                // Testing::print_vector(pos_spherical);
-                // Testing::print_vector(pos_cartesian2);
-                // Testing::print_vector(pos_spherical2);
-                // std::cout << "--" << std::endl;
+                INFO(
+                    "--\n"
+                    << Testing::vector3_to_string( pos_cartesian ) << "\n"
+                    << Testing::vector3_to_string( pos_spherical ) << "\n"
+                    << Testing::vector3_to_string( pos_cartesian2 ) << "\n"
+                    << Testing::vector3_to_string( pos_spherical2 ) << "\n"
+                    << "--" );
 
                 REQUIRE( pos_cartesian.isApprox( pos_cartesian2, 1e-4 ) );
                 REQUIRE( pos_spherical.isApprox( pos_spherical2, 1e-4 ) );

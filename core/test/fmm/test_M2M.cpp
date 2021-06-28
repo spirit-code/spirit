@@ -7,12 +7,9 @@
 
 #include <catch.hpp>
 
-#include <iomanip>
-#include <iostream>
-
 using namespace SimpleFMM;
 
-TEST_CASE( "FMM", "[M2M]" )
+TEST_CASE( "FMM: M2M", "[fmm]" )
 {
     // Build a system
     SimpleFMM::vectorfield pos;
@@ -26,9 +23,6 @@ TEST_CASE( "FMM", "[M2M]" )
     int l_min        = 2;
     int l_max        = 6;
     int degree_local = 2;
-
-    std::cout << std::fixed;
-    std::cout << std::setprecision( 8 );
 
     Testing::generate_geometry( pos, { 4, 4, 4 }, { 3, 3, 3 } );
     Testing::generate_spins( spins, mu_s, pos.size(), 1.7902 );
@@ -46,21 +40,31 @@ TEST_CASE( "FMM", "[M2M]" )
     // Save for later
     std::vector<Vector3c> exact_moments( my_box.multipole_moments );
 
-    // my_box.Print_Info(true);
+    INFO( "Before upward pass\n" << my_box.Info_String( true ) );
+
     // Now my_box calculates the moments via M2M
     tree.Upward_Pass( spins, mu_s );
-    // my_box.Print_Info(true);
+
+    INFO( "After upward pass\n" << my_box.Info_String( true ) );
 
     for( int l = l_min; l <= l_max; l++ )
     {
         for( int m = -l; m <= l; m++ )
         {
             int i = SimpleFMM::Utility::multipole_idx( l, m, l_min );
-            std::cout << "----- " << l << " " << m << " -----\n";
-            std::cout << "----- exact moment -----\n";
-            std::cout << exact_moments[i] << std::endl;
-            std::cout << "----- M2M moment -----\n";
-            std::cout << my_box.multipole_moments[i] << std::endl;
+
+            std::stringstream ss1;
+            ss1 << exact_moments[i];
+            std::stringstream ss2;
+            ss2 << my_box.multipole_moments[i];
+
+            INFO( fmt::format(
+                "----- {} {} -----\n"
+                "----- exact moment -----\n"
+                "{}\n"
+                "----- M2M moment -----\n"
+                "{}",
+                l, m, ss1.str(), ss2.str() ) );
 
             REQUIRE( exact_moments[i].isApprox( my_box.multipole_moments[i], 1e-3 ) );
         }

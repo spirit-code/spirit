@@ -40,8 +40,6 @@ int main()
 
     SimpleFMM::vectorfield gradient( spins.size(), { 0, 0, 0 } );
     SimpleFMM::vectorfield gradient_direct( spins.size(), { 0, 0, 0 } );
-    // for(auto it = tree.begin_level(0); it != tree.end_level(tree.n_level-1); it++)
-    //     it->Print_Info(false, false);
 
     typedef std::chrono::high_resolution_clock Time;
     typedef std::chrono::milliseconds ms;

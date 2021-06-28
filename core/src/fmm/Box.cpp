@@ -2,9 +2,11 @@
 #include <fmm/Spherical_Harmonics.hpp>
 #include <fmm/Utility.hpp>
 
+#include <fmt/format.h>
+
 #include <cmath>
-#include <iostream>
 #include <stdexcept>
+#include <string>
 
 namespace SimpleFMM
 {
@@ -233,47 +235,56 @@ void Box::Clear_Moments()
 }
 
 // Mainly for debugging
-void Box::Print_Info( bool print_multipole_moments, bool print_local_moments )
+std::string Box::Info_String( bool print_multipole_moments, bool print_local_moments )
 {
-    std::cout << "-------------- Box Info --------------" << std::endl
-              << " ID          = " << id << std::endl
-              << " Level       = " << level << std::endl
-              << " n_children  = " << this->n_children << std::endl
-              << " n_particles = " << pos_indices.size() << std::endl
-              << " center      = " << center[0] << " " << center[1] << " " << center[2] << " " << std::endl
-              << " Min / Max " << std::endl
-              << "   x: " << min[0] << " / " << max[0] << std::endl
-              << "   y: " << min[1] << " / " << max[1] << std::endl
-              << "   z: " << min[2] << " / " << max[2] << std::endl
-              << " n_interaction = " << interaction_list.size() << std::endl;
+    std::string info_string = fmt::format(
+        "-------------- Box Info --------------\n"
+        " ID          = {}\n"
+        " Level       = {}\n"
+        " n_children  = {}\n"
+        " n_particles = {}\n"
+        " center      = {} {} {}\n"
+        " Min / Max\n"
+        "   x: {}/{}\n"
+        "   y: {}/{}\n"
+        "   z: {}/{}\n"
+        " n_interaction = {}",
+        id, level, this->n_children, pos_indices.size(), center[0], center[1], center[2], min[0], max[0], min[1],
+        max[1], min[2], max[2], interaction_list.size() );
+
     if( print_multipole_moments )
     {
-        std::cout << "== Multipole Moments == " << std::endl;
+        info_string += "\n== Multipole Moments ==";
         for( auto l = l_min; l <= l_max; l++ )
         {
             for( auto m = -l; m <= l; m++ )
             {
-                std::cout << ">> --- l = " << l << ", m = " << m << " -- <<" << std::endl;
-                std::cout << multipole_moments[multipole_idx( l, m, l_min )] << std::endl;
+                std::stringstream ss;
+                ss << multipole_moments[multipole_idx( l, m, l_min )];
+                info_string += fmt::format( "\n>> --- l = {}, m = {} --- <<\n{}", l, m, ss.str() );
             }
         }
     }
+
     if( print_local_moments )
     {
-        std::cout << "== Local Moments == " << std::endl;
+        info_string += "\n== Local Moments ==";
         for( auto l = 0; l <= l_max; l++ )
         {
             for( auto m = 0; m <= l; m++ )
             {
-                std::cout << ">> --- l = " << l << ", m = " << m << " -- <<" << std::endl;
-                std::cout << local_moments[multipole_idx_p( l, m )] << std::endl;
+                std::stringstream ss;
+                ss << local_moments[multipole_idx_p( l, m )].transpose();
+                info_string += fmt::format( "\n>> --- l = {}, m = {} --- {}", l, m, ss.str() );
             }
         }
     }
-    std::cout << "Interaction List: " << std::endl;
+
+    info_string += "\nInteraction List:\n";
     for( auto i : interaction_list )
-        std::cout << i << " ";
-    std::cout << std::endl;
+        info_string += fmt::format( "{} ", i );
+
+    return info_string;
 }
 
 } // namespace SimpleFMM

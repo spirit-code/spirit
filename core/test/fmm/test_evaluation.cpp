@@ -6,12 +6,9 @@
 
 #include <catch.hpp>
 
-#include <iomanip>
-#include <iostream>
-
 using SimpleFMM::Utility::multipole_idx;
 
-TEST_CASE( "FMM", "[Evaluation]" )
+TEST_CASE( "FMM: evaluation", "[fmm]" )
 {
     // Build a system
     SimpleFMM::vectorfield pos;
@@ -27,9 +24,6 @@ TEST_CASE( "FMM", "[Evaluation]" )
     int l_min        = 2;
     int l_max        = 10;
     int degree_local = l_max;
-
-    std::cout << std::fixed;
-    std::cout << std::setprecision( 5 );
 
     for( int a = 0; a < Na; a++ )
     {
@@ -63,15 +57,14 @@ TEST_CASE( "FMM", "[Evaluation]" )
 
     // This box contains all positions
     SimpleFMM::Box box( pos, pos_indices, 0, l_max, degree_local );
-    box.Print_Info();
 
     // This box contains the left positons
     SimpleFMM::Box box1( pos, pos_indices1, 0, l_max, degree_local );
-    box1.Print_Info();
 
     // This box contains the reight positions
     SimpleFMM::Box box2( pos, pos_indices2, 0, l_max, degree_local );
-    box2.Print_Info();
+
+    INFO( box.Info_String() << "\n" << box1.Info_String() << "\n" << box2.Info_String() );
 
     // Ideal gradient
     SimpleFMM::vectorfield gradient( pos.size() );
@@ -86,14 +79,13 @@ TEST_CASE( "FMM", "[Evaluation]" )
     M2L( box1, box2, l_min, l_max, degree_local );
     M2L( box2, box1, l_min, l_max, degree_local );
 
-    box1.Print_Info( true, true );
-    box2.Print_Info( true, true );
     SimpleFMM::Vector3 r = { 1, 1, 1 };
-    std::cout << box2.Evaluate_Far_Field_At( box2.center + r ) << std::endl;
-    std::cout << "   ---  " << std::endl;
-    std::cout << box1.Evaluate_Directly_At( box2.center + r, spins ) << std::endl;
-    std::cout << "   ---  " << std::endl;
-    std::cout << box1.Evaluate_Multipole_Expansion_At( box2.center + r ) << std::endl;
+    INFO( box1.Info_String() << "\n" << box2.Info_String() );
+    INFO(
+        box2.Evaluate_Far_Field_At( box2.center + r )
+        << "\n   ---\n"
+        << box1.Evaluate_Directly_At( box2.center + r, spins ) << "\n   ---\n"
+        << box1.Evaluate_Multipole_Expansion_At( box2.center + r ) );
 
     // box1.Evaluate_Near_Field(spins, gradient_approx);
     // box2.Evaluate_Near_Field(spins, gradient_approx);
@@ -101,12 +93,8 @@ TEST_CASE( "FMM", "[Evaluation]" )
     // box1.Evaluate_Far_Field(gradient_approx);
     // box2.Evaluate_Far_Field(gradient_approx);
 
-    // for(int i=0; i<pos.size(); i++)
-    // {
-    //     std::cout << "================" << std::endl;
-    //     std::cout << gradient[i] << std::endl;
-    //     std::cout << "   ---  " << std::endl;
-    //     std::cout << gradient_approx[i] << std::endl;
-    //     std::cout << "================" << std::endl;
-    // }
+    for( int i = 0; i < pos.size(); i++ )
+    {
+        INFO( "================\n" << gradient[i] << "\n   ---\n" << gradient_approx[i] << "\n================" );
+    }
 }
