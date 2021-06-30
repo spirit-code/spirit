@@ -445,32 +445,38 @@ void Hamiltonian_Micromagnetic::Gradient_Anisotropy( const vectorfield & spins, 
 void Hamiltonian_Micromagnetic::Gradient_Exchange( const vectorfield & spins, vectorfield & gradient )
 {
     auto & delta = geometry->cell_size;
-    // Gradient implementation
-#pragma omp parallel for
-    for( unsigned int icell = 0; icell < geometry->n_cells_total; ++icell )
+    // TODO: Figure out better way to deal with conflicts in parallel implementation
+    for( bool pm : {true, false}) // If we use OpenMP we cannot update the plus and minus direction in one pass.
     {
-        for( unsigned int i = 0; i < 3; ++i )
+        for( unsigned int alpha = 0; alpha < 3; ++alpha )
         {
-
-            int icell_plus = idx_from_pair(
-                icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                neigh[2 * i] );
-
-            int icell_minus = idx_from_pair(
-                icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                neigh[2 * i + 1] );
-
-            if( icell_plus >= 0 || icell_minus >= 0 )
+            // #pragma omp parallel for
+            for( unsigned int icell = 0; icell < geometry->n_cells_total; ++icell )
             {
-                if( icell_plus == -1 )
-                    icell_plus = icell;
-                if( icell_minus == -1 )
-                    icell_minus = icell;
+                int icell_plus = idx_from_pair(
+                    icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                    neigh[2 * alpha] );
 
-                Vector3 grad_n = ( spins[icell_plus] - spins[icell_minus] ) / (2*delta[i]);
-                gradient[icell] += 2 * C::Joule * geometry->cell_volume * exchange_tensor * grad_n;
+                int icell_minus = idx_from_pair(
+                    icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                    neigh[2 * alpha + 1] );
+
+                if( icell_plus >= 0 || icell_minus >= 0 )
+                {
+                    if( icell_plus == -1 )
+                        icell_plus = icell;
+                    if( icell_minus == -1 )
+                        icell_minus = icell;
+
+                    Vector3 grad_n = ( spins[icell_plus] - spins[icell_minus] ) / (2*delta[alpha]);
+                    if(pm)
+                    {
+                        gradient[icell_minus] -= C::Joule * geometry->cell_volume * 2 * (exchange_tensor * grad_n) / (2*delta[alpha]);
+                    } else {
+                        gradient[icell_plus]  += C::Joule * geometry->cell_volume * 2 * (exchange_tensor * grad_n) / (2*delta[alpha]);
+                    }
+                }
             }
-
         }
     }
 }
