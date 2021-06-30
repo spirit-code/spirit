@@ -501,10 +501,9 @@ try
 
     try
     {
-        if( image->hamiltonian->Name() == "Heisenberg" || image->hamiltonian->Name() == "Micromagnetic" )
+        if( image->hamiltonian->Name() == "Heisenberg" )
         {
             auto ham = (Engine::Hamiltonian_Heisenberg *)image->hamiltonian.get();
-
             ham->ddi_method               = Engine::DDI_Method( ddi_method );
             ham->ddi_n_periodic_images[0] = n_periodic_images[0];
             ham->ddi_n_periodic_images[1] = n_periodic_images[1];
@@ -519,6 +518,23 @@ try
                      ddi_method, n_periodic_images[0], n_periodic_images[1], n_periodic_images[2], cutoff_radius,
                      pb_zero_padding ),
                  idx_image, idx_chain );
+        } else if ( image->hamiltonian->Name() == "Micromagnetic" )
+        {
+            auto ham = (Engine::Hamiltonian_Micromagnetic *)image->hamiltonian.get();
+            ham->ddi_method               = Engine::DDI_Method( ddi_method );
+            ham->ddi_n_periodic_images[0] = n_periodic_images[0];
+            ham->ddi_n_periodic_images[1] = n_periodic_images[1];
+            ham->ddi_n_periodic_images[2] = n_periodic_images[2];
+            ham->ddi_cutoff_radius        = cutoff_radius;
+            ham->ddi_pb_zero_padding      = pb_zero_padding;
+            ham->Update_Interactions();
+
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+                fmt::format(
+                    "Set ddi to method {}, periodic images {} {} {}, cutoff radius {} and pb_zero_padding {}",
+                    ddi_method, n_periodic_images[0], n_periodic_images[1], n_periodic_images[2], cutoff_radius,
+                    pb_zero_padding ),
+                idx_image, idx_chain );
         }
     }
     catch( ... )

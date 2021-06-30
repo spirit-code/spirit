@@ -73,6 +73,7 @@ public:
     pairfield   ddi_pairs;
     scalarfield ddi_magnitudes;
     vectorfield ddi_normals;
+    bool ddi_pb_zero_padding = true;
 
 private:
     // ------------ Effective Field Functions ------------
@@ -131,7 +132,6 @@ private:
     // Total number of padded spins per sublattice
     int sublattice_size;
 
-    bool ddi_pb_zero_padding = true;
     FFT::StrideContainer spin_stride;
     FFT::StrideContainer dipole_stride;
 

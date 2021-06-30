@@ -71,101 +71,13 @@ void Hamiltonian_Micromagnetic::Update_Interactions()
 
     // Update, which terms still contribute
 
-    neigh = pairfield( 0 );
-    Neighbour neigh_tmp;
-    neigh_tmp.i         = 0;
-    neigh_tmp.j         = 0;
-    neigh_tmp.idx_shell = 0;
-    // order x -x y -y z -z xy (-x)(-y) x(-y) (-x)y xz (-x)(-z) x(-z) (-x)z yz (-y)(-z) y(-z) (-y)z results in 9 parts of Hessian
-    neigh_tmp.translations[0] = 1;
-    neigh_tmp.translations[1] = 0;
-    neigh_tmp.translations[2] = 0;
-    neigh.push_back( neigh_tmp );
-
-    neigh_tmp.translations[0] = -1;
-    neigh_tmp.translations[1] = 0;
-    neigh_tmp.translations[2] = 0;
-    neigh.push_back( neigh_tmp );
-
-    neigh_tmp.translations[0] = 0;
-    neigh_tmp.translations[1] = 1;
-    neigh_tmp.translations[2] = 0;
-    neigh.push_back( neigh_tmp );
-
-    neigh_tmp.translations[0] = 0;
-    neigh_tmp.translations[1] = -1;
-    neigh_tmp.translations[2] = 0;
-    neigh.push_back( neigh_tmp );
-
-    neigh_tmp.translations[0] = 0;
-    neigh_tmp.translations[1] = 0;
-    neigh_tmp.translations[2] = 1;
-    neigh.push_back( neigh_tmp );
-
-    neigh_tmp.translations[0] = 0;
-    neigh_tmp.translations[1] = 0;
-    neigh_tmp.translations[2] = -1;
-    neigh.push_back( neigh_tmp );
-
-    neigh_tmp.translations[0] = 1;
-    neigh_tmp.translations[1] = 1;
-    neigh_tmp.translations[2] = 0;
-    neigh.push_back( neigh_tmp );
-
-    neigh_tmp.translations[0] = -1;
-    neigh_tmp.translations[1] = -1;
-    neigh_tmp.translations[2] = 0;
-    neigh.push_back( neigh_tmp );
-
-    neigh_tmp.translations[0] = 1;
-    neigh_tmp.translations[1] = -1;
-    neigh_tmp.translations[2] = 0;
-    neigh.push_back( neigh_tmp );
-
-    neigh_tmp.translations[0] = -1;
-    neigh_tmp.translations[1] = +1;
-    neigh_tmp.translations[2] = 0;
-    neigh.push_back( neigh_tmp );
-
-    neigh_tmp.translations[0] = 1;
-    neigh_tmp.translations[1] = 0;
-    neigh_tmp.translations[2] = 1;
-    neigh.push_back( neigh_tmp );
-
-    neigh_tmp.translations[0] = -1;
-    neigh_tmp.translations[1] = 0;
-    neigh_tmp.translations[2] = -1;
-    neigh.push_back( neigh_tmp );
-
-    neigh_tmp.translations[0] = 1;
-    neigh_tmp.translations[1] = 0;
-    neigh_tmp.translations[2] = -1;
-    neigh.push_back( neigh_tmp );
-
-    neigh_tmp.translations[0] = -1;
-    neigh_tmp.translations[1] = 0;
-    neigh_tmp.translations[2] = 1;
-    neigh.push_back( neigh_tmp );
-
-    neigh_tmp.translations[0] = 0;
-    neigh_tmp.translations[1] = 1;
-    neigh_tmp.translations[2] = 1;
-    neigh.push_back( neigh_tmp );
-
-    neigh_tmp.translations[0] = 0;
-    neigh_tmp.translations[1] = -1;
-    neigh_tmp.translations[2] = -1;
-    neigh.push_back( neigh_tmp );
-
-    neigh_tmp.translations[0] = 0;
-    neigh_tmp.translations[1] = 1;
-    neigh_tmp.translations[2] = -1;
-    neigh.push_back( neigh_tmp );
-
-    neigh_tmp.translations[0] = 0;
-    neigh_tmp.translations[1] = -1;
-    neigh_tmp.translations[2] = 1;
-    neigh.push_back( neigh_tmp );
+    neigh = pairfield(0);
+    neigh.push_back( {0,0,{1,0,0}}  );
+    neigh.push_back( {0,0,{-1,0,0}} );
+    neigh.push_back( {0,0,{0,1,0}}  );
+    neigh.push_back( {0,0,{0,-1,0}} );
+    neigh.push_back( {0,0,{0,0,1}}  );
+    neigh.push_back( {0,0,{0,0,-1}} );
 
     this->spatial_gradient = field<Matrix3>( geometry->nos, Matrix3::Zero() );
     this->Prepare_DDI();
@@ -379,6 +291,25 @@ void Hamiltonian_Micromagnetic::E_DDI( const vectorfield & spins, scalarfield & 
 {
     if( this->ddi_method == DDI_Method::FFT )
         this->E_DDI_FFT( spins, Energy );
+    else if( this->ddi_method == DDI_Method::Cutoff )
+    {
+        if( ddi_cutoff_radius < 0 )
+            this->E_DDI_Direct(spins, Energy);
+    }
+}
+
+void Hamiltonian_Micromagnetic::E_DDI_Direct( const vectorfield & spins, scalarfield & Energy )
+{
+    vectorfield gradients_temp;
+    gradients_temp.resize(geometry->nos);
+    Vectormath::fill(gradients_temp, {0,0,0});
+    this->Gradient_DDI_Direct(spins, gradients_temp);
+
+    #pragma omp parallel for
+    for( int ispin = 0; ispin < geometry->nos; ispin++ )
+    {
+        Energy[ispin] += 0.5 * spins[ispin].dot(gradients_temp[ispin]);
+    }
 }
 
 scalar Hamiltonian_Micromagnetic::Energy_Single_Spin( int ispin, const vectorfield & spins )
@@ -484,13 +415,13 @@ void Hamiltonian_Micromagnetic::Gradient_Exchange( const vectorfield & spins, ve
 void Hamiltonian_Micromagnetic::Spatial_Gradient( const vectorfield & spins )
 {
     auto & delta = geometry->cell_size;
-// scalar delta[3] = { 3e-10,3e-10,3e-9 };
-// scalar delta[3] = { 277e-12, 277e-12, 277e-12 };
-/*
-dn1/dr1 dn1/dr2 dn1/dr3
-dn2/dr1 dn2/dr2 dn2/dr3
-dn3/dr1 dn3/dr2 dn3/dr3
-*/
+
+    /*
+    dn1/dr1 dn1/dr2 dn1/dr3
+    dn2/dr1 dn2/dr2 dn2/dr3
+    dn3/dr1 dn3/dr2 dn3/dr3
+    */
+
 #pragma omp parallel for
     for( unsigned int icell = 0; icell < geometry->n_cells_total; ++icell )
     {
@@ -544,13 +475,18 @@ void Hamiltonian_Micromagnetic::Gradient_DDI( const vectorfield & spins, vectorf
 {
     if( this->ddi_method == DDI_Method::FFT )
         this->Gradient_DDI_FFT( spins, gradient );
+
+    else if( this->ddi_method == DDI_Method::Cutoff )
+    {
+        if( ddi_cutoff_radius < 0 )
+            this->Gradient_DDI_Direct(spins, gradient);
+    }
 }
 
 void Hamiltonian_Micromagnetic::Gradient_DDI_Direct( const vectorfield & spins, vectorfield & gradient )
 {
-    Vector3 delta      = geometry->cell_size;
-    scalar cell_volume = geometry->cell_size[0] * geometry->cell_size[1] * geometry->cell_size[2];
-    scalar mult        = C::mu_0 / cell_volume * ( cell_volume * Ms * C::Joule ) * ( cell_volume * Ms * C::Joule );
+    Vector3 delta = geometry->cell_size;
+    scalar mult = Constants_Micromagnetic::mu_0 * geometry->cell_volume * (Ms) * (Ms) * C::Joule;
 
     int img_a = boundary_conditions[0] == 0 ? 0 : ddi_n_periodic_images[0];
     int img_b = boundary_conditions[1] == 0 ? 0 : ddi_n_periodic_images[1];
@@ -569,9 +505,9 @@ void Hamiltonian_Micromagnetic::Gradient_DDI_Direct( const vectorfield & spins, 
                 {
                     for( int c_pb = -img_c; c_pb <= img_c; c_pb++ )
                     {
-                        scalar X = 1e-10 * diff[0] + a_pb * delta[0];
-                        scalar Y = 1e-10 * diff[1] + b_pb * delta[1];
-                        scalar Z = 1e-10 * diff[2] + c_pb * delta[2];
+                        scalar X = 1e-10 * diff[0] + geometry->n_cells[0] * a_pb * delta[0];
+                        scalar Y = 1e-10 * diff[1] + geometry->n_cells[1] * b_pb * delta[1];
+                        scalar Z = 1e-10 * diff[2] + geometry->n_cells[2] * c_pb * delta[2];
 
                         scalar dx = delta[0];
                         scalar dy = delta[1];
@@ -691,23 +627,26 @@ void Hamiltonian_Micromagnetic::E_DDI_FFT( const vectorfield & spins, scalarfiel
     // Gradient_DDI_Direct(spins, gradients_temp_dir);
 
     // //get deviation
-    // std::array<scalar, 3> deviation = {0,0,0};
+    // Vector3 deviation = {0,0,0};
+    // scalar max_deviation = 0;
+
     // std::array<scalar, 3> avg = {0,0,0};
     // for(int i = 0; i < this->geometry->nos; i++)
     // {
     //     for(int d = 0; d < 3; d++)
     //     {
     //         deviation[d] += std::pow(gradients_temp[i][d] - gradients_temp_dir[i][d], 2);
-    //         avg[d] += gradients_temp_dir[i][d];
+    //         avg[d]       += gradients_temp_dir[i][d];
     //     }
+    //     max_deviation = std::max( (gradients_temp_dir[i] - gradients_temp[i]).norm(), max_deviation );
     // }
     // std::cerr << "Avg. Gradient = " << avg[0]/this->geometry->nos << " " << avg[1]/this->geometry->nos << " " <<
     // avg[2]/this->geometry->nos << std::endl; std::cerr << "Avg. Deviation = " << deviation[0]/this->geometry->nos
     // << " " << deviation[1]/this->geometry->nos << " " << deviation[2]/this->geometry->nos << std::endl;
-//==== DEBUG: end gradient comparison ====
+    // std::cerr <<  "Max. Deviation = " << max_deviation << "\n";
+    //==== DEBUG: end gradient comparison ====
 
 // TODO: add dot_scaled to Vectormath and use that
-#pragma omp parallel for
     for( int ispin = 0; ispin < geometry->nos; ispin++ )
     {
         Energy[ispin] += 0.5 * spins[ispin].dot( gradients_temp[ispin] );
@@ -765,6 +704,7 @@ void Hamiltonian_Micromagnetic::FFT_Demag_Tensors( FFT::FFT_Plan & fft_plan_dipo
                             scalar X  = ( a_idx + a_pb * Na ) * delta[0];
                             scalar Y  = ( b_idx + b_pb * Nb ) * delta[1];
                             scalar Z  = ( c_idx + c_pb * Nc ) * delta[2];
+
                             scalar dx = delta[0];
                             scalar dy = delta[1];
                             scalar dz = delta[2];
