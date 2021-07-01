@@ -57,9 +57,31 @@ Dipole-Dipole method
 
 
 /*
+Definition of Hamiltonian types
+--------------------------------------------------------------------
+*/
+
+typedef enum
+{
+    Hamiltonian_Heisenberg    = 0,
+    Hamiltonian_Micromagnetic = 1,
+    Hamiltonian_Gaussian      = 2
+} Hamiltonian_Type;
+
+/*
 Setters
 --------------------------------------------------------------------
 */
+
+/*
+Set the kind of Hamiltonian to be used by all systems.
+Can be (case is ignored):
+
+- Heisenberg
+- Micromagnetic
+- Gaussian
+*/
+PREFIX void Hamiltonian_Set_Kind(State *state, Hamiltonian_Type type, int idx_chain=-1) SUFFIX;
 
 // Set the boundary conditions along the translation directions [a, b, c]
 PREFIX void Hamiltonian_Set_Boundary_Conditions(State *state, const bool* periodical, int idx_image=-1, int idx_chain=-1) SUFFIX;

@@ -458,19 +458,6 @@
                 </property>
                </widget>
               </item>
-              <item row="1" column="4">
-               <spacer name="horizontalSpacer_21">
-                <property name="orientation">
-                 <enum>Qt::Horizontal</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>40</width>
-                  <height>20</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
               <item row="3" column="2">
                <layout class="QGridLayout" name="gridLayout_76">
                 <item row="0" column="2">
@@ -509,6 +496,19 @@
                  </widget>
                 </item>
                </layout>
+              </item>
+              <item row="1" column="3">
+               <spacer name="horizontalSpacer_21">
+                <property name="orientation">
+                 <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
               </item>
              </layout>
             </widget>

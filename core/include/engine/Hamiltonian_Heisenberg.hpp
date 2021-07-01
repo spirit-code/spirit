@@ -14,14 +14,6 @@
 
 namespace Engine
 {
-    enum class DDI_Method
-    {
-        FFT    = SPIRIT_DDI_METHOD_FFT,
-        FMM    = SPIRIT_DDI_METHOD_FMM,
-        Cutoff = SPIRIT_DDI_METHOD_CUTOFF,
-        None   = SPIRIT_DDI_METHOD_NONE
-    };
-
     /*
         The Heisenberg Hamiltonian using Pairs contains all information on the interactions between spins.
         The information is presented in pair lists and parameter lists in order to easily e.g. calculate the energy of the system via summation.

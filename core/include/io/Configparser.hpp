@@ -10,6 +10,7 @@
 #include <data/Spin_System_Chain.hpp>
 #include <engine/Hamiltonian_Gaussian.hpp>
 #include <engine/Hamiltonian_Heisenberg.hpp>
+#include <engine/Hamiltonian_Micromagnetic.hpp>
 
 namespace IO
 {
@@ -42,6 +43,8 @@ Hamiltonian_from_Config( const std::string configFile, const std::shared_ptr<Dat
 
 std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Config(
     const std::string configFile, const std::shared_ptr<Data::Geometry> geometry, std::string hamiltonian_type );
+
+std::unique_ptr<Engine::Hamiltonian_Micromagnetic> Hamiltonian_Micromagnetic_from_Config(const std::string configFile, const std::shared_ptr<Data::Geometry> geometry);
 
 std::unique_ptr<Engine::Hamiltonian_Gaussian>
 Hamiltonian_Gaussian_from_Config( const std::string configFile, const std::shared_ptr<Data::Geometry> geometry );

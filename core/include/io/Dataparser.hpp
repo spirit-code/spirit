@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef SPIRIT_IO_DATAPARSER_HPP
 #define SPIRIT_IO_DATAPARSER_HPP

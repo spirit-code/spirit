@@ -3,6 +3,7 @@
 #include <data/State.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Hamiltonian_Heisenberg.hpp>
+#include <engine/Hamiltonian_Micromagnetic.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
 
@@ -38,6 +39,11 @@ void Helper_System_Set_Geometry(std::shared_ptr<Data::Spin_System> system, const
     // Heisenberg Hamiltonian
     if (system->hamiltonian->Name() == "Heisenberg")
         std::static_pointer_cast<Engine::Hamiltonian_Heisenberg>(system->hamiltonian)->Update_Interactions();
+
+    // Micromagnetic Hamiltonian
+    if (system->hamiltonian->Name() == "Micromagnetic")
+        std::static_pointer_cast<Engine::Hamiltonian_Micromagnetic>(system->hamiltonian)->Update_Interactions();
+
 }
 
 void Helper_State_Set_Geometry(State * state, const Data::Geometry & old_geometry, const Data::Geometry & new_geometry)

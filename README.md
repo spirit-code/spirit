@@ -83,7 +83,8 @@ control of parameters.
 
 ### *Physics Features*
 
-- Atomistic Spin Lattice Heisenberg Model including also DMI and dipole-dipole
+- Atomistic spin lattice Heisenberg model including DMI and dipole-dipole interaction
+- Micromagnetic model including DM and dipolar interactions
 - **Spin Dynamics simulations** obeying the
   [Landau-Lifschitz-Gilbert equation](https://en.wikipedia.org/wiki/Landau%E2%80%93Lifshitz%E2%80%93Gilbert_equation)
 - Direct **Energy minimisation** with different solvers
