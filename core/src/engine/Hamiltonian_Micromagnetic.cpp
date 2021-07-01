@@ -71,13 +71,13 @@ void Hamiltonian_Micromagnetic::Update_Interactions()
 
     // Update, which terms still contribute
 
-    neigh = pairfield(0);
-    neigh.push_back( {0,0,{1,0,0}}  );
-    neigh.push_back( {0,0,{-1,0,0}} );
-    neigh.push_back( {0,0,{0,1,0}}  );
-    neigh.push_back( {0,0,{0,-1,0}} );
-    neigh.push_back( {0,0,{0,0,1}}  );
-    neigh.push_back( {0,0,{0,0,-1}} );
+    neigh = pairfield( 0 );
+    neigh.push_back( { 0, 0, { 1, 0, 0 } } );
+    neigh.push_back( { 0, 0, { -1, 0, 0 } } );
+    neigh.push_back( { 0, 0, { 0, 1, 0 } } );
+    neigh.push_back( { 0, 0, { 0, -1, 0 } } );
+    neigh.push_back( { 0, 0, { 0, 0, 1 } } );
+    neigh.push_back( { 0, 0, { 0, 0, -1 } } );
 
     this->spatial_gradient = field<Matrix3>( geometry->nos, Matrix3::Zero() );
     this->Prepare_DDI();
@@ -200,10 +200,10 @@ void Hamiltonian_Micromagnetic::E_Update( const vectorfield & spins, scalarfield
 
 void Hamiltonian_Micromagnetic::E_Anisotropy( const vectorfield & spins, scalarfield & Energy )
 {
-    #pragma omp parallel for
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell)
+#pragma omp parallel for
+    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
     {
-        Energy[icell] -= geometry->cell_volume * C::Joule * spins[icell].dot(anisotropy_tensor * spins[icell]);
+        Energy[icell] -= geometry->cell_volume * C::Joule * spins[icell].dot( anisotropy_tensor * spins[icell] );
     }
 }
 
@@ -230,9 +230,9 @@ void Hamiltonian_Micromagnetic::E_Exchange( const vectorfield & spins, scalarfie
                 if( icell_minus == -1 )
                     icell_minus = icell;
 
-                grad_n = ( spins[icell_plus] - spins[icell_minus] ) / (2*delta[alpha]);
+                grad_n = ( spins[icell_plus] - spins[icell_minus] ) / ( 2 * delta[alpha] );
                 // meV/J * J/m * 1/m * 1/m * m^3
-                Energy[icell] += C::Joule * geometry->cell_volume * ( grad_n.dot( exchange_tensor * grad_n) );
+                Energy[icell] += C::Joule * geometry->cell_volume * ( grad_n.dot( exchange_tensor * grad_n ) );
             }
         }
     }
@@ -240,17 +240,17 @@ void Hamiltonian_Micromagnetic::E_Exchange( const vectorfield & spins, scalarfie
 
 void Hamiltonian_Micromagnetic::E_DMI( const vectorfield & spins, scalarfield & Energy )
 {
-    auto delta = geometry->cell_size;
+    // TODO: This implementation is very likely far from optimal (performance wise)
+    const auto & delta = geometry->cell_size;
 
-    auto epsilon = [](int i, int j, int k)
-    {
-        return -0.5 * (j-i) * (k-j) * (i-k);
-    };
+    auto epsilon = []( int i, int j, int k ) { return -0.5 * ( j - i ) * ( k - j ) * ( i - k ); };
 
-    // Implements: epsilon_{mu,alpha,beta} * D_{mu, nu} * [ n_{alpha} dn_{beta}/dr_{nu} - n_{beta} dn_{alpha}/dr_{nu} ]
+    scalar mult = C::Joule * geometry->cell_volume;
+
+// Implements: epsilon_{mu,alpha,beta} * D_{mu, nu} * [ n_{alpha} dn_{beta}/dr_{nu} - n_{beta} dn_{alpha}/dr_{nu} ]
+#pragma omp parallel for
     for( int icell = 0; icell < geometry->n_cells_total; ++icell )
     {
-        Vector3 grad_n;
         for( int nu = 0; nu < 3; ++nu )
         {
             int icell_plus = idx_from_pair(
@@ -267,19 +267,21 @@ void Hamiltonian_Micromagnetic::E_DMI( const vectorfield & spins, scalarfield & 
                     icell_plus = icell;
                 if( icell_minus == -1 )
                     icell_minus = icell;
-            }
 
-            // Todo: Why is there a factor of 2 difference to OOMMF?
-            grad_n = ( spins[icell_plus] - spins[icell_minus] ) / (2*delta[nu]);
+                // Todo: Why is there a factor of 2 difference to OOMMF?
+                Vector3 grad_n = ( spins[icell_plus] - spins[icell_minus] ) / ( 2 * delta[nu] );
 
-            for(int alpha=0; alpha<3; alpha++)
-            {
-                for(int beta=0; beta<3; beta++)
+                for( int alpha = 0; alpha < 3; alpha++ )
                 {
-                    for(int mu=0; mu<3; mu++)
+                    for( int beta = 0; beta < 3; beta++ )
                     {
-                        // meV/J * J/m^2 * 1/m
-                        Energy[icell] +=  C::Joule * geometry->cell_volume * epsilon(mu, alpha, beta) * dmi_tensor(mu, nu) * ( spins[icell][alpha] * grad_n[beta] - spins[icell][beta] * grad_n[alpha] );
+                        for( int mu = 0; mu < 3; mu++ )
+                        {
+                            // meV/J * J/m^2 * 1/m
+                            Energy[icell]
+                                += mult * epsilon( mu, alpha, beta ) * dmi_tensor( mu, nu )
+                                   * ( spins[icell][alpha] * grad_n[beta] - spins[icell][beta] * grad_n[alpha] );
+                        }
                     }
                 }
             }
@@ -294,21 +296,21 @@ void Hamiltonian_Micromagnetic::E_DDI( const vectorfield & spins, scalarfield & 
     else if( this->ddi_method == DDI_Method::Cutoff )
     {
         if( ddi_cutoff_radius < 0 )
-            this->E_DDI_Direct(spins, Energy);
+            this->E_DDI_Direct( spins, Energy );
     }
 }
 
 void Hamiltonian_Micromagnetic::E_DDI_Direct( const vectorfield & spins, scalarfield & Energy )
 {
     vectorfield gradients_temp;
-    gradients_temp.resize(geometry->nos);
-    Vectormath::fill(gradients_temp, {0,0,0});
-    this->Gradient_DDI_Direct(spins, gradients_temp);
+    gradients_temp.resize( geometry->nos );
+    Vectormath::fill( gradients_temp, { 0, 0, 0 } );
+    this->Gradient_DDI_Direct( spins, gradients_temp );
 
-    #pragma omp parallel for
+#pragma omp parallel for
     for( int ispin = 0; ispin < geometry->nos; ispin++ )
     {
-        Energy[ispin] += 0.5 * spins[ispin].dot(gradients_temp[ispin]);
+        Energy[ispin] += 0.5 * spins[ispin].dot( gradients_temp[ispin] );
     }
 }
 
@@ -376,37 +378,44 @@ void Hamiltonian_Micromagnetic::Gradient_Anisotropy( const vectorfield & spins, 
 void Hamiltonian_Micromagnetic::Gradient_Exchange( const vectorfield & spins, vectorfield & gradient )
 {
     auto & delta = geometry->cell_size;
-    // TODO: Figure out better way to deal with conflicts in parallel implementation
-    for( bool pm : {true, false}) // If we use OpenMP we cannot update the plus and minus direction in one pass.
+
+#pragma omp parallel for
+    for( unsigned int icell = 0; icell < geometry->n_cells_total; ++icell )
     {
-        for( unsigned int alpha = 0; alpha < 3; ++alpha )
+        for( int alpha = 0; alpha < 3; ++alpha )
         {
-            // #pragma omp parallel for
-            for( unsigned int icell = 0; icell < geometry->n_cells_total; ++icell )
+            int icell_plus = idx_from_pair(
+                icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                neigh[2 * alpha] );
+
+            int icell_minus = idx_from_pair(
+                icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                neigh[2 * alpha + 1] );
+
+            if( icell_plus >= 0 )
             {
-                int icell_plus = idx_from_pair(
-                    icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                    neigh[2 * alpha] );
+                Vector3 grad_n = spatial_gradient[icell_plus].col( alpha );
+                gradient[icell]
+                    -= C::Joule * geometry->cell_volume * 2 * ( exchange_tensor * grad_n ) / ( 2 * delta[alpha] );
+            }
+            else
+            {
+                Vector3 grad_n = spatial_gradient[icell].col( alpha );
+                gradient[icell]
+                    += C::Joule * geometry->cell_volume * 2 * ( exchange_tensor * grad_n ) / ( 2 * delta[alpha] );
+            }
 
-                int icell_minus = idx_from_pair(
-                    icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                    neigh[2 * alpha + 1] );
-
-                if( icell_plus >= 0 || icell_minus >= 0 )
-                {
-                    if( icell_plus == -1 )
-                        icell_plus = icell;
-                    if( icell_minus == -1 )
-                        icell_minus = icell;
-
-                    Vector3 grad_n = ( spins[icell_plus] - spins[icell_minus] ) / (2*delta[alpha]);
-                    if(pm)
-                    {
-                        gradient[icell_minus] -= C::Joule * geometry->cell_volume * 2 * (exchange_tensor * grad_n) / (2*delta[alpha]);
-                    } else {
-                        gradient[icell_plus]  += C::Joule * geometry->cell_volume * 2 * (exchange_tensor * grad_n) / (2*delta[alpha]);
-                    }
-                }
+            if( icell_minus >= 0 )
+            {
+                Vector3 grad_n = spatial_gradient[icell_minus].col( alpha );
+                gradient[icell]
+                    += C::Joule * geometry->cell_volume * 2 * ( exchange_tensor * grad_n ) / ( 2 * delta[alpha] );
+            }
+            else
+            {
+                Vector3 grad_n = spatial_gradient[icell].col( alpha );
+                gradient[icell]
+                    -= C::Joule * geometry->cell_volume * 2 * ( exchange_tensor * grad_n ) / ( 2 * delta[alpha] );
             }
         }
     }
@@ -450,23 +459,74 @@ void Hamiltonian_Micromagnetic::Spatial_Gradient( const vectorfield & spins )
 
 void Hamiltonian_Micromagnetic::Gradient_DMI( const vectorfield & spins, vectorfield & gradient )
 {
+    const auto & delta = geometry->cell_size;
+
+    auto epsilon = []( int i, int j, int k ) { return -0.5 * ( j - i ) * ( k - j ) * ( i - k ); };
+
+    scalar mult = C::Joule * geometry->cell_volume;
+
 #pragma omp parallel for
     for( unsigned int icell = 0; icell < geometry->n_cells_total; ++icell )
     {
-        for( unsigned int i = 0; i < 3; ++i )
+        for( unsigned int nu = 0; nu < 3; ++nu )
         {
-            gradient[icell][0] -= 4 * C::mu_B
-                                  * ( dmi_tensor( 1, i ) * spatial_gradient[icell]( 2, i )
-                                      - dmi_tensor( 2, i ) * spatial_gradient[icell]( 1, i ) )
-                                  / Ms;
-            gradient[icell][1] -= 4 * C::mu_B
-                                  * ( dmi_tensor( 2, i ) * spatial_gradient[icell]( 0, i )
-                                      - dmi_tensor( 0, i ) * spatial_gradient[icell]( 2, i ) )
-                                  / Ms;
-            gradient[icell][2] -= 4 * C::mu_B
-                                  * ( dmi_tensor( 0, i ) * spatial_gradient[icell]( 1, i )
-                                      - dmi_tensor( 1, i ) * spatial_gradient[icell]( 0, i ) )
-                                  / Ms;
+            int icell_plus = idx_from_pair(
+                icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                neigh[2 * nu] );
+
+            int icell_minus = idx_from_pair(
+                icell, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                neigh[2 * nu + 1] );
+
+            // Energy[icell] += mult * epsilon(mu, alpha, beta) * dmi_tensor(mu, nu) * ( spins[icell][alpha] *
+            // grad_n[beta] - spins[icell][beta] * grad_n[alpha] );
+
+            Vector3 grad_n = spatial_gradient[icell].col( nu );
+
+            for( int alpha = 0; alpha < 3; alpha++ )
+            {
+                for( int beta = 0; beta < 3; beta++ )
+                {
+                    for( int mu = 0; mu < 3; mu++ )
+                    {
+                        if( icell_plus >= 0 )
+                        {
+                            gradient[icell][beta] -= mult * epsilon( mu, alpha, beta ) * dmi_tensor( mu, nu )
+                                                     * spins[icell_plus][alpha] / ( 2 * delta[nu] );
+                            gradient[icell][alpha] += mult * epsilon( mu, alpha, beta ) * dmi_tensor( mu, nu )
+                                                      * spins[icell_plus][beta] / ( 2 * delta[nu] );
+                        }
+
+                        if( icell_minus >= 0 )
+                        {
+                            gradient[icell][beta] += mult * epsilon( mu, alpha, beta ) * dmi_tensor( mu, nu )
+                                                     * spins[icell_minus][alpha] / ( 2 * delta[nu] );
+                            gradient[icell][alpha] -= mult * epsilon( mu, alpha, beta ) * dmi_tensor( mu, nu )
+                                                      * spins[icell_minus][beta] / ( 2 * delta[nu] );
+                        }
+
+                        gradient[icell][alpha]
+                            += mult * epsilon( mu, alpha, beta ) * dmi_tensor( mu, nu ) * ( grad_n[beta] );
+                        if( icell_plus < 0 )
+                        {
+                            gradient[icell][beta] += mult * epsilon( mu, alpha, beta ) * dmi_tensor( mu, nu )
+                                                     * spins[icell][alpha] / ( 2 * delta[nu] );
+                            gradient[icell][alpha] -= mult * epsilon( mu, alpha, beta ) * dmi_tensor( mu, nu )
+                                                      * spins[icell][beta] / ( 2 * delta[nu] );
+                        }
+
+                        gradient[icell][beta]
+                            -= mult * epsilon( mu, alpha, beta ) * dmi_tensor( mu, nu ) * ( grad_n[alpha] );
+                        if( icell_minus < 0 )
+                        {
+                            gradient[icell][beta] -= mult * epsilon( mu, alpha, beta ) * dmi_tensor( mu, nu )
+                                                     * spins[icell][alpha] / ( 2 * delta[nu] );
+                            gradient[icell][alpha] += mult * epsilon( mu, alpha, beta ) * dmi_tensor( mu, nu )
+                                                      * spins[icell][beta] / ( 2 * delta[nu] );
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -479,14 +539,14 @@ void Hamiltonian_Micromagnetic::Gradient_DDI( const vectorfield & spins, vectorf
     else if( this->ddi_method == DDI_Method::Cutoff )
     {
         if( ddi_cutoff_radius < 0 )
-            this->Gradient_DDI_Direct(spins, gradient);
+            this->Gradient_DDI_Direct( spins, gradient );
     }
 }
 
 void Hamiltonian_Micromagnetic::Gradient_DDI_Direct( const vectorfield & spins, vectorfield & gradient )
 {
     Vector3 delta = geometry->cell_size;
-    scalar mult = Constants_Micromagnetic::mu_0 * geometry->cell_volume * (Ms) * (Ms) * C::Joule;
+    scalar mult   = Constants_Micromagnetic::mu_0 * geometry->cell_volume * ( Ms ) * (Ms)*C::Joule;
 
     int img_a = boundary_conditions[0] == 0 ? 0 : ddi_n_periodic_images[0];
     int img_b = boundary_conditions[1] == 0 ? 0 : ddi_n_periodic_images[1];
@@ -646,7 +706,7 @@ void Hamiltonian_Micromagnetic::E_DDI_FFT( const vectorfield & spins, scalarfiel
     // std::cerr <<  "Max. Deviation = " << max_deviation << "\n";
     //==== DEBUG: end gradient comparison ====
 
-// TODO: add dot_scaled to Vectormath and use that
+    // TODO: add dot_scaled to Vectormath and use that
     for( int ispin = 0; ispin < geometry->nos; ispin++ )
     {
         Energy[ispin] += 0.5 * spins[ispin].dot( gradients_temp[ispin] );
@@ -664,7 +724,7 @@ void Hamiltonian_Micromagnetic::FFT_Demag_Tensors( FFT::FFT_Plan & fft_plan_dipo
     // the dimension of total energy per cell in meV
 
     // mult has the units of [N / A^2] [m^3] [(A/m)^2] [mev/J] = [J] [meV/J] = [meV]
-    scalar mult = Constants_Micromagnetic::mu_0 * geometry->cell_volume * (Ms) * (Ms) * C::Joule;
+    scalar mult = Constants_Micromagnetic::mu_0 * geometry->cell_volume * ( Ms ) * (Ms)*C::Joule;
 
     std::cout << "cell_size " << geometry->cell_size.transpose() << "\n";
     std::cout << "cell_volume " << geometry->cell_volume << "\n";
@@ -701,9 +761,9 @@ void Hamiltonian_Micromagnetic::FFT_Demag_Tensors( FFT::FFT_Plan & fft_plan_dipo
                     {
                         for( int c_pb = -img_c; c_pb <= img_c; c_pb++ )
                         {
-                            scalar X  = ( a_idx + a_pb * Na ) * delta[0];
-                            scalar Y  = ( b_idx + b_pb * Nb ) * delta[1];
-                            scalar Z  = ( c_idx + c_pb * Nc ) * delta[2];
+                            scalar X = ( a_idx + a_pb * Na ) * delta[0];
+                            scalar Y = ( b_idx + b_pb * Nb ) * delta[1];
+                            scalar Z = ( c_idx + c_pb * Nc ) * delta[2];
 
                             scalar dx = delta[0];
                             scalar dy = delta[1];

@@ -88,7 +88,7 @@ TEST_CASE( "Finite Differences", "[physics]" )
     std::vector<const char *>  hamiltonians{ "core/test/input/fd_pairs.cfg", "core/test/input/fd_micromagnetic.cfg"};
 
     // Reduce precision if float accuracy
-    double epsilon_apprx = 1e-11;
+    double epsilon_apprx = 1e-10;
     if(strcmp(Spirit_Scalar_Type(), "float") == 0)
     {
         WARN("Detected single precision calculation. Reducing precision requirements.");
@@ -119,7 +119,7 @@ TEST_CASE( "Finite Differences", "[physics]" )
             REQUIRE( grad_fd[i].isApprox( grad[i], epsilon_apprx ) );
         }
 
-        // Hessian for Micromagnetic Hamiltonian not implemented
+        // Only test Hessian for Heisenberg Hamiltonian
         if( std::string(Hamiltonian_Get_Name(state.get())) != "Micromagnetic\0")
         {
             auto hessian = MatrixX( 3*state->nos, 3*state->nos );
