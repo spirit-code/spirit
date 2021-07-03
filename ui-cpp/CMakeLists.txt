@@ -379,6 +379,7 @@ if( SPIRIT_UI_USE_IMGUI )
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/styles.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/images.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/widgets.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/widget_base.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/configurations_widget.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/parameters_widget.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/geometry_widget.cpp

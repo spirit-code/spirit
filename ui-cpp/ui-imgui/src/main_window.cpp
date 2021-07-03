@@ -39,8 +39,12 @@
 #include <string>
 
 static ui::MainWindow * global_window_handle;
-static bool fullscreen_toggled           = false;
-static const bool SPIRIT_PINNING_ENABLED = std::string( Spirit_Pinning() ) == "ON";
+static bool fullscreen_toggled = false;
+#ifdef SPIRIT_ENABLE_PINNING
+static const bool SPIRIT_PINNING_ENABLED = true;
+#else
+static const bool SPIRIT_PINNING_ENABLED = false;
+#endif
 
 /////////////////////////////////////////////////////////////////////
 
@@ -88,6 +92,7 @@ namespace ui
 static glm::vec2 interaction_click_pos;
 static glm::vec2 mouse_pos_in_system;
 static float radius_in_system;
+static ImGuiID id_dockspace_right = 0;
 
 // Apply a callable to each of a variadic number of arguments
 template<class F, class... Args>
@@ -202,8 +207,8 @@ void MainWindow::handle_mouse()
     {
         mouse_pos_in_system = glm::vec2{ io.MousePos.x, io.MousePos.y };
         glm::vec2 radial_pos{ io.MousePos.x + ui_config_file.interaction_radius, io.MousePos.y };
-        auto & io = ImGui::GetIO();
-        glm::vec2 window_size = {(1-sidebar_x_frac) * io.DisplaySize.x, io.DisplaySize.y};
+        auto & io             = ImGui::GetIO();
+        glm::vec2 window_size = { ( 1 - sidebar_x_frac ) * io.DisplaySize.x, io.DisplaySize.y };
         transform_to_system_frame( rendering_layer, mouse_pos_in_system, window_size, radial_pos );
         radius_in_system = radial_pos.x - mouse_pos_in_system.x;
     }
@@ -917,7 +922,7 @@ void MainWindow::draw()
 #ifdef __EMSCRIPTEN__
     emscripten_webgl_make_context_current( context_vfr );
 #endif
-    auto render_w = (1-sidebar_x_frac) * display_w;
+    auto render_w = ( 1 - sidebar_x_frac ) * display_w;
     rendering_layer.draw( render_w, display_h );
 }
 
@@ -927,27 +932,29 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     auto & style = ImGui::GetStyle();
 
     // Save references to the widgets in a vector so we can iterate over them
-    static std::array<WidgetBase*, 6> spirit_widgets = { &configurations_widget, &parameters_widget, &hamiltonian_widget, &geometry_widget, &plots_widget, &visualisation_widget};
+    static std::array<WidgetBase *, 6> spirit_widgets
+        = { &configurations_widget, &parameters_widget, &hamiltonian_widget,
+            &geometry_widget,       &plots_widget,      &visualisation_widget };
 
     // Detect the SideBar Mode
-    auto _sidebar = sidebar; // snapshot current sidebar mode
-    sidebar = SideBarMode::Hide; // default to Hide
+    auto _sidebar = sidebar;           // snapshot current sidebar mode
+    sidebar       = SideBarMode::Hide; // default to Hide
 
     // Check if any widgets are docked to the sidebar
-    for(auto & w : spirit_widgets)
+    for( const auto * w : spirit_widgets )
     {
-        if(w->show_ && (w->docked || w->wants_to_dock))
+        if( w->show_ && ( w->root_dock_node_id == id_dockspace_right || w->wants_to_dock ) )
         {
             sidebar = SideBarMode::Show;
         }
     }
 
     // If the sidebar is still hidden, but a widget is dragged, we display a small stripe for the widgets to dock to
-    if(sidebar == SideBarMode::Hide)
+    if( sidebar == SideBarMode::Hide )
     {
-        for(auto & w : spirit_widgets)
+        for( const auto * w : spirit_widgets )
         {
-            if ( w->dragging )
+            if( w->dragging )
             {
                 sidebar = SideBarMode::Dragging;
             }
@@ -955,19 +962,21 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     }
 
     // Set the x fraction accordingly
-    if(sidebar == SideBarMode::Hide)
+    if( sidebar == SideBarMode::Hide )
     {
         sidebar_x_frac = 0;
-    } else if (sidebar == SideBarMode::Show)
+    }
+    else if( sidebar == SideBarMode::Show )
     {
         sidebar_x_frac = sidebar_x_frac_pref;
-    } else // Dragging
+    }
+    else // Dragging
     {
         sidebar_x_frac = sidebar_x_frac_min;
     }
 
     // If sidebar changed we need to issue a redraw
-    if(sidebar != _sidebar)
+    if( sidebar != _sidebar )
     {
         rendering_layer.needs_redraw();
     }
@@ -978,7 +987,6 @@ void MainWindow::draw_imgui( int display_w, int display_h )
             glfwSetInputMode( glfw_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL );
         else
         {
-
             glfwSetInputMode( glfw_window, GLFW_CURSOR, GLFW_CURSOR_HIDDEN );
 
             ImU32 color = IM_COL32( 0, 0, 0, 255 );
@@ -1054,7 +1062,7 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     this->show_notifications();
 
     // ----------------
-    ImVec2 viewport_size = {(1-sidebar_x_frac) * io.DisplaySize.x, -1 };
+    ImVec2 viewport_size = { ( 1 - sidebar_x_frac ) * io.DisplaySize.x, -1 };
     ImGui::PushFont( font_cousine_14 );
     widgets::show_overlay_system(
         ui_config_file.show_overlays, ui_config_file.overlay_system_corner, ui_config_file.overlay_system_position,
@@ -1068,47 +1076,50 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     // ----------------
 
     // Begin the sidebar window
-    ImGuiWindowFlags   window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoScrollbar;
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove
+                                    | ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoScrollbar;
     ImGuiDockNodeFlags dock_flags = ImGuiDockNodeFlags_None;
-    if(sidebar == SideBarMode::Hide)
+    if( sidebar == SideBarMode::Hide )
     {
         dock_flags |= ImGuiDockNodeFlags_KeepAliveOnly;
-        ImGui::SetNextWindowPos( {io.DisplaySize.x, menu_bar_size[1]});
-        ImGui::SetNextWindowSize( {0, 0} );
-        window_flags |= ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoNavFocus | ImGuiWindowFlags_NoInputs;
+        ImGui::SetNextWindowPos( { io.DisplaySize.x, menu_bar_size[1] } );
+        ImGui::SetNextWindowSize( { 0, 0 } );
+        window_flags |= ImGuiWindowFlags_NoBackground | ImGuiWindowFlags_NoNavInputs | ImGuiWindowFlags_NoNavFocus
+                        | ImGuiWindowFlags_NoInputs;
     }
 
-    ImGui::SetNextWindowPos( { (1-sidebar_x_frac) * io.DisplaySize.x, menu_bar_size[1]});
-    ImGui::SetNextWindowSize( {sidebar_x_frac * io.DisplaySize.x, io.DisplaySize.y - menu_bar_size[1]});
+    ImGui::SetNextWindowPos( { ( 1 - sidebar_x_frac ) * io.DisplaySize.x, menu_bar_size[1] } );
+    ImGui::SetNextWindowSize( { sidebar_x_frac * io.DisplaySize.x, io.DisplaySize.y - menu_bar_size[1] } );
 
     auto _sidebar_x_frac = sidebar_x_frac; // Save current sidebar x frac
 
-    ImGui::Begin("##Sidebar", nullptr, window_flags);
+    ImGui::Begin( "##Sidebar", nullptr, window_flags );
 
-    auto dock_id   = ImGui::GetID("dockspace");
-    ImGui::DockSpace(dock_id, {-1,-1}, dock_flags);
+    id_dockspace_right = ImGui::GetID( "dockspace_right" );
+    ImGui::DockSpace( id_dockspace_right, { -1, -1 }, dock_flags );
 
-    if(sidebar == SideBarMode::Show)
+    if( sidebar == SideBarMode::Show )
     {
-        sidebar_x_frac = std::min(0.7f, ImGui::GetWindowSize()[0] / io.DisplaySize.x);
+        sidebar_x_frac      = std::min( 0.7f, ImGui::GetWindowSize()[0] / io.DisplaySize.x );
         sidebar_x_frac_pref = sidebar_x_frac;
     }
 
     ImGui::End();
 
-    if(_sidebar_x_frac != this->sidebar_x_frac)
+    if( _sidebar_x_frac != this->sidebar_x_frac )
     {
         rendering_layer.needs_redraw();
     }
 
-    for(auto & w : spirit_widgets)
+    for( auto * w : spirit_widgets )
     {
-        if(w->wants_to_dock)
+        if( w->wants_to_dock )
         {
-            ImGui::SetNextWindowDockID(dock_id);
+            ImGui::SetNextWindowDockID( id_dockspace_right );
             w->show();
-            w->wants_to_dock=false;
-        } else
+            w->wants_to_dock = false;
+        }
+        else
         {
             w->show();
         }
@@ -1122,7 +1133,6 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     // this->plots_widget.show();
     // ImGui::PopFont();
     // this->visualisation_widget.show();
-
 
     widgets::show_settings( ui_config_file.show_settings, rendering_layer );
     widgets::show_keybindings( show_keybindings );
@@ -1689,7 +1699,7 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
     ImGui::CreateContext();
     ImPlot::CreateContext();
 
-    ImGuiIO & io   = ImGui::GetIO();
+    ImGuiIO & io = ImGui::GetIO();
 
     // Enable docking
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
