@@ -39,7 +39,7 @@
 #include <string>
 
 static ui::MainWindow * global_window_handle;
-static bool fullscreen_toggled = false;
+static bool fullscreen_toggled           = false;
 #ifdef SPIRIT_ENABLE_PINNING
 static const bool SPIRIT_PINNING_ENABLED = true;
 #else
@@ -1562,15 +1562,20 @@ void MainWindow::show_menu_bar()
                 "##chainlength", ImGuiDataType_U32, &chain_length, NULL, NULL, "%u",
                 ImGuiInputTextFlags_EnterReturnsTrue ) )
         {
-            int length = Chain_Get_NOI( state.get() );
+            const int length = Chain_Get_NOI( state.get() );
             Chain_Set_Length( state.get(), chain_length );
-            int new_length = Chain_Get_NOI( state.get() );
+            const int new_length = Chain_Get_NOI( state.get() );
+            // Resize the threads_image vector
             if( new_length < length )
             {
                 for( int i = length - 1; i >= new_length; --i )
                     if( threads_image[i].joinable() )
                         threads_image[i].join();
                 threads_image.pop_back();
+            }
+            else
+            {
+                this->threads_image.resize( new_length ); //( threads_image.begin() + idx + 1, std::thread() );
             }
         }
 
