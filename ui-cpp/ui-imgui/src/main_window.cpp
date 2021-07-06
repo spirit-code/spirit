@@ -209,7 +209,7 @@ void MainWindow::handle_mouse()
         glm::vec2 radial_pos{ io.MousePos.x + ui_config_file.interaction_radius, io.MousePos.y };
         auto & io             = ImGui::GetIO();
         glm::vec2 window_size = { ( 1 - sidebar_x_frac ) * io.DisplaySize.x, io.DisplaySize.y };
-        transform_to_system_frame( rendering_layer, mouse_pos_in_system, window_size, radial_pos );
+        transform_to_system_frame( rendering_layer, window_size, mouse_pos_in_system, radial_pos );
         radius_in_system = radial_pos.x - mouse_pos_in_system.x;
     }
 
