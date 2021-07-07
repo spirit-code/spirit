@@ -2,7 +2,7 @@
 // GLFW 3.3 X11 - www.glfw.org
 //------------------------------------------------------------------------
 // Copyright (c) 2002-2006 Marcus Geelnard
-// Copyright (c) 2006-2016 Camilla Löwy <elmindreda@glfw.org>
+// Copyright (c) 2006-2019 Camilla Löwy <elmindreda@glfw.org>
 //
 // This software is provided 'as-is', without any express or implied
 // warranty. In no event will the authors be held liable for any damages
@@ -180,6 +180,7 @@ typedef struct _GLFWwindowX11
 {
     Colormap        colormap;
     Window          handle;
+    Window          parent;
     XIC             ic;
 
     GLFWbool        overrideRedirect;
@@ -198,8 +199,9 @@ typedef struct _GLFWwindowX11
     // The last position the cursor was warped to by GLFW
     int             warpCursorPosX, warpCursorPosY;
 
-    // The time of the last KeyPress event
-    Time            lastKeyTime;
+    // The time of the last KeyPress event per keycode, for discarding
+    // duplicate key events generated for some keys by ibus
+    Time            keyPressTimes[256];
 
 } _GLFWwindowX11;
 
@@ -228,7 +230,7 @@ typedef struct _GLFWlibraryX11
     // Clipboard string (while the selection is owned)
     char*           clipboardString;
     // Key name string
-    char            keyName[5];
+    char            keynames[GLFW_KEY_LAST + 1][5];
     // X11 keycode to GLFW key LUT
     short int       keycodes[256];
     // GLFW key to X11 keycode LUT
@@ -239,6 +241,8 @@ typedef struct _GLFWlibraryX11
     _GLFWwindow*    disabledCursorWindow;
 
     // Window manager atoms
+    Atom            NET_SUPPORTED;
+    Atom            NET_SUPPORTING_WM_CHECK;
     Atom            WM_PROTOCOLS;
     Atom            WM_STATE;
     Atom            WM_DELETE_WINDOW;
@@ -259,6 +263,8 @@ typedef struct _GLFWlibraryX11
     Atom            NET_WM_FULLSCREEN_MONITORS;
     Atom            NET_WM_WINDOW_OPACITY;
     Atom            NET_WM_CM_Sx;
+    Atom            NET_WORKAREA;
+    Atom            NET_CURRENT_DESKTOP;
     Atom            NET_ACTIVE_WINDOW;
     Atom            NET_FRAME_EXTENTS;
     Atom            NET_REQUEST_FRAME_EXTENTS;
@@ -319,13 +325,14 @@ typedef struct _GLFWlibraryX11
     } randr;
 
     struct {
-        GLFWbool    available;
-        GLFWbool    detectable;
-        int         majorOpcode;
-        int         eventBase;
-        int         errorBase;
-        int         major;
-        int         minor;
+        GLFWbool     available;
+        GLFWbool     detectable;
+        int          majorOpcode;
+        int          eventBase;
+        int          errorBase;
+        int          major;
+        int          minor;
+        unsigned int group;
     } xkb;
 
     struct {

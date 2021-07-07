@@ -12,8 +12,9 @@ namespace ui
 
 ConfigurationsWidget::ConfigurationsWidget(
     bool & show, std::shared_ptr<State> state, RenderingLayer & rendering_layer )
-        : show_( show ), state( state ), rendering_layer( rendering_layer )
+        : WidgetBase(show), state( state ), rendering_layer( rendering_layer )
 {
+    title    = "Configurations";
 }
 
 void ConfigurationsWidget::reset_settings()
@@ -54,14 +55,8 @@ void ConfigurationsWidget::reset_settings()
     this->spiral_qvec2[2] = 0;
 }
 
-void ConfigurationsWidget::show()
+void ConfigurationsWidget::show_content()
 {
-    if( !show_ )
-        return;
-
-    ImGui::SetNextWindowSizeConstraints( { 300, 300 }, { 800, 999999 } );
-
-    ImGui::Begin( "Configurations", &show_ );
 
     if( ImGui::CollapsingHeader( "Settings" ) )
     {
@@ -315,7 +310,6 @@ void ConfigurationsWidget::show()
         rendering_layer.needs_data();
     }
 
-    ImGui::End();
 }
 
 void ConfigurationsWidget::update_data() {}

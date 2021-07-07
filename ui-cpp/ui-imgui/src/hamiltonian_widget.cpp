@@ -29,22 +29,20 @@ void normalize( std::array<float, 3> vec )
 }
 
 HamiltonianWidget::HamiltonianWidget( bool & show, std::shared_ptr<State> state, RenderingLayer & rendering_layer )
-        : show_( show ), state( state ), rendering_layer( rendering_layer )
+        : WidgetBase( show ), state( state ), rendering_layer( rendering_layer )
 {
+    title = "Hamiltonian";
     this->update_data();
 }
 
-void HamiltonianWidget::show()
+void HamiltonianWidget::show_content()
 {
-    if( !show_ )
-        return;
 
     static std::vector<std::string> hamiltonian_types{ "Heisenberg", "Micromagnetic", "Gaussian" };
     static std::vector<std::string> ddi_methods{ "None", "FFT", "FMM", "Cutoff" };
     static int hamiltonian_type_idx = 0;
     auto & hamiltonian_type         = hamiltonian_types[hamiltonian_type_idx];
 
-    ImGui::Begin( "Hamiltonian", &show_ );
     {
         ImGui::SetNextItemWidth( 220 );
         if( ImGui::BeginCombo(
@@ -220,7 +218,7 @@ void HamiltonianWidget::show()
                 this->update_data();
             }
 
-            if( ImGui::CollapsingHeader( "Exchange pairs" ) )
+            if( ImGui::TreeNode( "Exchange pairs" ) )
             {
                 if( exchange_n_pairs > 0
                     && ImGui::BeginTable(
@@ -335,7 +333,7 @@ void HamiltonianWidget::show()
                 update_dmi = false;
             }
 
-            if( ImGui::CollapsingHeader( "DMI pairs" ) )
+            if( ImGui::TreeNode( "DMI pairs" ) )
             {
                 // TODO: add API to get DMI pairs
 
@@ -467,7 +465,6 @@ void HamiltonianWidget::show()
         {
         }
     }
-    ImGui::End();
 }
 
 void HamiltonianWidget::update_data()
