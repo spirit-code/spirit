@@ -38,7 +38,7 @@ OVF_Segment::OVF_Segment( const Data::Spin_System & system )
     this->step_size[2]  = geometry.lattice_constant * geometry.bravais_vectors[2][2] * 0.1;
 
     // Atomistic extension
-    for(int i=0; i<2; i++)
+    for(int i=0; i<3; i++)
     {
         this->bravaisa[i] = geometry.lattice_constant * geometry.bravais_vectors[0][i];
         this->bravaisb[i] = geometry.lattice_constant * geometry.bravais_vectors[1][i];

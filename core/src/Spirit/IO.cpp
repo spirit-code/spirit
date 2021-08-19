@@ -261,7 +261,7 @@ try
             {
                 Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, fmt::format(
                 "OVF file \"{}\": segment {}/{}. `n_cells` from ovf file ({},{},{}) is different from previous value ({},{},{}).",
-                filename, idx_image_infile+1, file.n_segments, segment.N, image->nos, segment.n_cells[0], segment.n_cells[1], segment.n_cells[2], geometry.n_cells[0], geometry.n_cells[1], geometry.n_cells[2]),
+                filename, idx_image_infile+1, file.n_segments, segment.n_cells[0], segment.n_cells[1], segment.n_cells[2], geometry.n_cells[0], geometry.n_cells[1], geometry.n_cells[2]),
                 idx_image_inchain, idx_chain );
             }
 
@@ -269,14 +269,13 @@ try
             if(segment.ncellpoints != geometry.n_cell_atoms)
             {
                 different_n_cell_atoms = true;
-                // geometry.n_cell_atoms = segment.ncellpoints;
             }
 
             if(different_n_cell_atoms)
             {
                 Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, fmt::format(
                 "OVF file \"{}\": segment {}/{}. `n_cell_atoms` from ovf file ({}) is different from previous value ({}).",
-                filename, idx_image_infile+1, file.n_segments, segment.N, image->nos, segment.ncellpoints, geometry.n_cell_atoms),
+                filename, idx_image_infile+1, file.n_segments, segment.ncellpoints, geometry.n_cell_atoms),
                 idx_image_inchain, idx_chain );
             }
 
@@ -338,7 +337,9 @@ try
                                     old_geometry.cell_composition, old_geometry.lattice_constant,
                                     old_geometry.pinning, old_geometry.defects);
 
+                image->Unlock(); // We have to unlock the image to avoid a deadlock in Helper_State_Set_Geometry
                 Utility::Helper_State_Set_Geometry(state, old_geometry, new_geometry);
+                image->Lock();
             }
         }
 
