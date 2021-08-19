@@ -18,9 +18,9 @@ OVF_Segment::OVF_Segment( const Data::Spin_System & system )
     this->valuedim      = 0;
     this->valuelabels   = const_cast<char *>( "" );
     this->valueunits    = const_cast<char *>( "" );
-    this->meshtype      = const_cast<char *>( "rectangular" );
+    this->meshtype      = const_cast<char *>( "lattice" );
     this->meshunit      = const_cast<char *>( "nm" );
-    this->n_cells[0]    = geometry.n_cells[0] * geometry.n_cell_atoms;
+    this->n_cells[0]    = geometry.n_cells[0]; //* geometry.n_cell_atoms;
     this->n_cells[1]    = geometry.n_cells[1];
     this->n_cells[2]    = geometry.n_cells[2];
     this->N             = geometry.nos;
@@ -36,6 +36,25 @@ OVF_Segment::OVF_Segment( const Data::Spin_System & system )
     this->step_size[0]  = geometry.lattice_constant * geometry.bravais_vectors[0][0] * 0.1;
     this->step_size[1]  = geometry.lattice_constant * geometry.bravais_vectors[1][1] * 0.1;
     this->step_size[2]  = geometry.lattice_constant * geometry.bravais_vectors[2][2] * 0.1;
+
+    // Atomistic extension
+    for(int i=0; i<2; i++)
+    {
+        this->bravaisa[i] = geometry.lattice_constant * geometry.bravais_vectors[0][i];
+        this->bravaisb[i] = geometry.lattice_constant * geometry.bravais_vectors[1][i];
+        this->bravaisc[i] = geometry.lattice_constant * geometry.bravais_vectors[2][i];
+    }
+
+    this->ncellpoints = geometry.n_cell_atoms;
+    this->basis = (float *) malloc( this->ncellpoints * 3 * sizeof(float) );
+    for( int ib=0; ib < this->ncellpoints; ib++)
+    {
+        for(int i=0; i<3; i++)
+        {
+            this->basis[ib*3 + i] = geometry.cell_atoms[ib][i];
+        }
+    }
+
 }
 
 OVF_Segment::~OVF_Segment()
@@ -58,6 +77,7 @@ OVF_Segment::~OVF_Segment()
 OVF_File::OVF_File( const std::string & filename, bool should_exist )
 {
     ovf_file_initialize( this, filename.c_str() );
+    this->ovf_extension_format = OVF_EXTENSION_FORMAT_AOVF_COMP;
 
     if( !this->found && should_exist )
     {

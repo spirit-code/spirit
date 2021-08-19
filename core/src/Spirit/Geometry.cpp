@@ -5,109 +5,11 @@
 #include <engine/Hamiltonian_Heisenberg.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
+#include <utility/Set_Geometry_Helpers.hpp>
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
-
-void Helper_System_Set_Geometry(std::shared_ptr<Data::Spin_System> system, const Data::Geometry & new_geometry)
-{
-    // *system->geometry = new_geometry;
-    auto old_geometry = *system->geometry;
-
-    // Spins
-    int nos_old = system->nos;
-    int nos = new_geometry.nos;
-    system->nos = nos;
-
-    // Move the vector-fields to the new geometry
-    *system->spins = Engine::Vectormath::change_dimensions(
-        *system->spins,
-        old_geometry.n_cell_atoms, old_geometry.n_cells,
-        new_geometry.n_cell_atoms, new_geometry.n_cells,
-        {0,0,1});
-    system->effective_field = Engine::Vectormath::change_dimensions(
-        system->effective_field,
-        old_geometry.n_cell_atoms, old_geometry.n_cells,
-        new_geometry.n_cell_atoms, new_geometry.n_cells,
-        {0,0,0});
-
-    // Update the system geometry
-    *system->geometry = new_geometry;
-
-    // Heisenberg Hamiltonian
-    if (system->hamiltonian->Name() == "Heisenberg")
-        std::static_pointer_cast<Engine::Hamiltonian_Heisenberg>(system->hamiltonian)->Update_Interactions();
-}
-
-void Helper_State_Set_Geometry(State * state, const Data::Geometry & old_geometry, const Data::Geometry & new_geometry)
-{
-    // This requires simulations to be stopped, as Methods' temporary arrays may have the wrong size afterwards
-    Simulation_Stop_All(state);
-
-    // Lock to avoid memory errors
-    state->chain->Lock();
-    try
-    {
-        // Modify all systems in the chain
-        for (auto& system : state->chain->images)
-        {
-            Helper_System_Set_Geometry(system, new_geometry);
-        }
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api(-1, -1);
-    }
-    // Unlock again
-    state->chain->Unlock();
-
-    // Retrieve total number of spins
-    int nos = state->active_image->nos;
-
-    // Update convenience integerin State
-    state->nos = nos;
-
-    // Deal with clipboard image of State
-    auto& system = state->clipboard_image;
-    if (system)
-    {
-        // Lock to avoid memory errors
-        system->Lock();
-        try
-        {
-            // Modify
-            Helper_System_Set_Geometry(system, new_geometry);
-        }
-        catch( ... )
-        {
-            spirit_handle_exception_api(-1, -1);
-        }
-        // Unlock
-        system->Unlock();
-    }
-
-    // Deal with clipboard configuration of State
-    if (state->clipboard_spins)
-        *state->clipboard_spins = Engine::Vectormath::change_dimensions(
-            *state->clipboard_spins,
-            old_geometry.n_cell_atoms, old_geometry.n_cells,
-            new_geometry.n_cell_atoms, new_geometry.n_cells,
-            {0,0,1});
-
-    // TODO: Deal with Methods
-    // for (auto& chain_method_image : state->method_image)
-    // {
-    //     for (auto& method_image : chain_method_image)
-    //     {
-    //         method_image->Update_Geometry(new_geometry.n_cell_atoms, new_geometry.n_cells, new_geometry.n_cells);
-    //     }
-    // }
-    // for (auto& method_chain : state->method_chain)
-    // {
-    //     method_chain->Update_Geometry(new_geometry.n_cell_atoms, new_geometry.n_cells, new_geometry.n_cells);
-    // }
-}
 
 void Geometry_Set_Bravais_Lattice_Type(State *state, Bravais_Lattice_Type lattice_type) noexcept
 try
@@ -159,7 +61,7 @@ try
                         old_geometry.pinning, old_geometry.defects);
 
     // Update the State
-    Helper_State_Set_Geometry(state, old_geometry, new_geometry);
+    Utility::Helper_State_Set_Geometry(state, old_geometry, new_geometry);
 
     Log(Utility::Log_Level::Warning, Utility::Log_Sender::API,
         fmt::format("Set Bravais lattice type to {} for all Systems", lattice_name), -1, -1);
@@ -182,7 +84,7 @@ try
                         old_geometry.pinning, old_geometry.defects);
 
     // Update the State
-    Helper_State_Set_Geometry(state, old_geometry, new_geometry);
+    Utility::Helper_State_Set_Geometry(state, old_geometry, new_geometry);
 
     Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, fmt::format("Set number of cells for all Systems: ({}, {}, {})", n_cells[0], n_cells[1], n_cells[2]), -1, -1);
 }
@@ -249,7 +151,7 @@ try
                         new_composition, old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects);
 
     // Update the State
-    Helper_State_Set_Geometry(state, old_geometry, new_geometry);
+    Utility::Helper_State_Set_Geometry(state, old_geometry, new_geometry);
 
     Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, fmt::format("Set {} cell atoms for all Systems. cell_atom[0]={}", n_atoms, cell_atoms[0]), -1, -1);
     if( new_geometry.n_cell_atoms > old_geometry.n_cell_atoms )
@@ -284,7 +186,7 @@ try
                             new_composition, old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects);
 
         // Update the State
-        Helper_State_Set_Geometry(state, old_geometry, new_geometry);
+        Utility::Helper_State_Set_Geometry(state, old_geometry, new_geometry);
 
         Log(Utility::Log_Level::Info, Utility::Log_Sender::API,
             fmt::format("Set mu_s to {}", mu_s), idx_image, idx_chain);
@@ -316,7 +218,7 @@ try
                         new_composition, old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects);
 
     // Update the State
-    Helper_State_Set_Geometry(state, old_geometry, new_geometry);
+    Utility::Helper_State_Set_Geometry(state, old_geometry, new_geometry);
 
     Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, fmt::format("Set {} types of basis cell atoms for all Systems. type[0]={}", n_atoms, atom_types[0]), -1, -1);
 }
@@ -341,7 +243,7 @@ try
                         old_geometry.pinning, old_geometry.defects);
 
     // Update the State
-    Helper_State_Set_Geometry(state, old_geometry, new_geometry);
+    Utility::Helper_State_Set_Geometry(state, old_geometry, new_geometry);
 
     Log(Utility::Log_Level::Warning, Utility::Log_Sender::API,
         fmt::format("Set Bravais vectors for all Systems: ({}), ({}), ({})", bravais_vectors[0], bravais_vectors[1], bravais_vectors[2]), -1, -1);
@@ -361,7 +263,7 @@ try
                         old_geometry.pinning, old_geometry.defects);
 
     // Update the State
-    Helper_State_Set_Geometry(state, old_geometry, new_geometry);
+    Utility::Helper_State_Set_Geometry(state, old_geometry, new_geometry);
 
     Log(Utility::Log_Level::Warning, Utility::Log_Sender::API, fmt::format("Set lattice constant for all Systems to {}", lattice_constant), -1, -1);
 }

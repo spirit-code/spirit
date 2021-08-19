@@ -8,6 +8,7 @@ set(HEADER_SPIRIT_UTILITY
     ${CMAKE_CURRENT_SOURCE_DIR}/Logging.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Ordered_Lock.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Timing.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Set_Geometry_Helpers.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     PARENT_SCOPE
 )
