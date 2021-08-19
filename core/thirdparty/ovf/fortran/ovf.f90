@@ -101,8 +101,9 @@ contains
         type(c_ptr), intent(in)         :: c_pointer
         character(len=:), allocatable   :: f_string
 
-        integer(c_size_t)               :: l_str
-        character(len=:), pointer       :: f_ptr
+        integer                                 :: idx
+        integer(c_size_t)                       :: l_str
+        character(len=1), dimension(:), pointer :: f_ptr
 
         interface
             function c_strlen(str_ptr) bind ( C, name = "strlen" ) result(len)
@@ -113,9 +114,12 @@ contains
         end interface
 
         l_str = c_strlen(c_pointer)
-        call c_f_pointer(c_pointer, f_ptr)
+        call c_f_pointer(c_pointer, f_ptr, [l_str])
 
-        f_string = f_ptr(1:l_str)
+        allocate(character(l_str) :: f_string)
+        do idx=1,l_str
+            f_string(idx:idx)=f_ptr(idx)
+        end do
     end function get_string
 
     ! Assign from C string wrapper to Fortran string
@@ -170,7 +174,7 @@ contains
         c_segment%valuedim    = segment%ValueDim
         c_segment%valueunits  = segment%ValueUnits
         c_segment%valuelabels = segment%ValueLabels
-        
+
         c_segment%meshtype    = segment%MeshType
         c_segment%meshunits   = segment%MeshUnits
         c_segment%pointcount  = segment%PointCount

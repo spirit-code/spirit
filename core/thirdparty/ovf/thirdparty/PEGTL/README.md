@@ -2,17 +2,17 @@
 
 [![Release](https://img.shields.io/github/release/taocpp/PEGTL.svg)](https://github.com/taocpp/PEGTL/releases/latest)
 [![Download](https://api.bintray.com/packages/taocpp/public-conan/pegtl%3Ataocpp/images/download.svg)](https://bintray.com/taocpp/public-conan/pegtl%3Ataocpp/_latestVersion)
-[![TravisCI](https://travis-ci.org/taocpp/PEGTL.svg?branch=master)](https://travis-ci.org/taocpp/PEGTL)
-[![AppVeyor](https://ci.appveyor.com/api/projects/status/pa5sbnw68tu650aq/branch/master?svg=true)](https://ci.appveyor.com/project/taocpp/PEGTL)
-[![Doozer.io](https://doozer.io/badge/taocpp/PEGTL/buildstatus/master)](https://doozer.io/user/taocpp/PEGTL)
-[![Coverage](https://coveralls.io/repos/github/taocpp/PEGTL/badge.svg?branch=master)](https://coveralls.io/github/taocpp/PEGTL)
+[![TravisCI](https://travis-ci.org/taocpp/PEGTL.svg?branch=2.x)](https://travis-ci.org/taocpp/PEGTL)
+[![AppVeyor](https://ci.appveyor.com/api/projects/status/pa5sbnw68tu650aq/branch/2.x?svg=true)](https://ci.appveyor.com/project/taocpp/PEGTL)
+[![Coverage](https://coveralls.io/repos/github/taocpp/PEGTL/badge.svg?branch=2.x)](https://coveralls.io/github/taocpp/PEGTL)
+[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/taocpp/PEGTL.svg)](https://lgtm.com/projects/g/taocpp/PEGTL/context:cpp)
 
-The Parsing Expression Grammar Template Library (PEGTL) is a zero-dependency C++11 header-only parser combinator library for creating parsers according to a [Parsing Expression Grammar](http://en.wikipedia.org/wiki/Parsing_expression_grammar) (PEG).
+The Parsing Expression Grammar Template Library (PEGTL) is a zero-dependency C++ header-only parser combinator library for creating parsers according to a [Parsing Expression Grammar](http://en.wikipedia.org/wiki/Parsing_expression_grammar) (PEG).
 
 ## Documentation
 
 * [Version 2.x Documentation](doc/README.md)
-* [Version 1.3 Documentation](https://github.com/taocpp/PEGTL/blob/1.3.x/doc/README.md)
+* [Version 1.x Documentation](https://github.com/taocpp/PEGTL/blob/1.x/doc/README.md)
 
 ## Introduction
 
@@ -25,13 +25,15 @@ Here is an example of how a PEG grammar rule is implemented as C++ class with th
 // PEG rule for integers consisting of a non-empty
 // sequence of digits with an optional sign:
 
-// integer ::= ( '+' / '-' )? digit+
+// sign ::= '+' / '-'
+// integer ::= sign? digit+
 
 // The same parsing rule implemented with the PEGTL:
 
 using namespace tao::pegtl;
 
-struct integer : seq< opt< one< '+', '-' > >, plus< digit > > {};
+struct sign : one< '+', '-' > {};
+struct integer : seq< opt< sign >, plus< digit > > {};
 ```
 
 PEGs are superficially similar to Context-Free Grammars (CFGs), however the more deterministic nature of PEGs gives rise to some very important differences.
@@ -59,6 +61,7 @@ Each commit is automatically tested with multiple architectures, operating syste
 
   * Visual Studio 2015 (x86, x64)
   * Visual Studio 2017 (x86, x64)
+  * Visual Studio 2019 (x86, x64)
   * MinGW (i686), GCC 5.x
   * MinGW-w64 (i686), GCC 5.x, 6.x
   * MinGW-w64 (x86_64), GCC 6.x
@@ -69,28 +72,19 @@ Each commit is automatically tested with multiple architectures, operating syste
   * Mac OS X 10.11, Xcode 7.3
   * macOS 10.12, Xcode 8.3
   * macOS 10.13, Xcode 9.4
+  * macOS 10.14, Xcode 10.2
 
-* Linux (using libstdc++)
+* Ubuntu 12.04 LTS (using libstdc++)
 
-  * Debian 8 (i386), GCC 4.9
-  * Ubuntu 12.04 LTS (amd64), Clang 3.4, 3.7
-  * Ubuntu 14.04 LTS (amd64), GCC 4.8, 4.9, 5.x, 6.x, 7.x, 8.x
-  * Ubuntu 14.04 LTS (amd64), Clang 3.5, 3.6, 3.8, 3.9, 4.x, 5.x, 6.x
-  * Ubuntu 14.04 LTS (i386, amd64), GCC 4.8
-  * Ubuntu 16.04 LTS (i386, amd64, armhf, arm64), GCC 5.x
-  * Fedora 24 (x86_64), GCC 6.x
-  * Fedora 24 (x86_64), Clang 3.8
+  * Clang 3.4
 
-* Android
+* Ubuntu 16.04 LTS (using libstdc++)
 
-  * Android 4.4 "KitKat" (API level 19)
-  * Android 5.1 "Lollipop" (API level 22)
-  * Android 6.0 "Marshmellow" (API level 23)
-  * Android 7.0 "Nougat" (API level 24)
+  * GCC 4.8, 4.9, 5.x, 6.x, 7.x, 8.x, 9.x
+  * Clang 3.5, 3.6, 3.8, 3.9, 4.x, 5.x, 6.x, 7.x, 8.x
 
-Additionally, each commit is checked with GCC's and Clang's sanitizers, as well as [`valgrind`](http://valgrind.org/)
-and [`clang-tidy`](http://clang.llvm.org/extra/clang-tidy/). Code coverage is automatically measured and the unit tests
-cover 100% of the core library code (for releases).
+Additionally, each commit is checked with Clang's [Static Analyzer](https://clang-analyzer.llvm.org/), GCC's and Clang's [sanitizers](https://github.com/google/sanitizers), [`clang-tidy`](http://clang.llvm.org/extra/clang-tidy/), and [`valgrind`](http://valgrind.org/).
+Code coverage is automatically measured and the unit tests cover 100% of the core library code (for releases).
 
 [Releases](https://github.com/taocpp/PEGTL/releases) are done in accordance with [Semantic Versioning](http://semver.org/).
 Incompatible API changes are *only* allowed to occur between major versions.
@@ -98,33 +92,58 @@ For details see the [changelog](doc/Changelog.md).
 
 ## Thank You
 
-* Christopher Diggins and the YARD parser for the general idea.
-* George Makrydakis for the [inspiration](https://github.com/irrequietus/typestring) to `TAO_PEGTL_STRING`.
-* Johannes Overmann for his invaluable [`streplace`](https://code.google.com/p/streplace/) command-line tool.
-* Jörg-Christian Böhme for improving the Android CI build.
-* Kai Wolf for help with CMake.
-* Kenneth Geisshirt for Android compatibility and Android CI.
-* Kuzma Shapran for EOL testing and fixes.
-* Michael Becker for help with CMake.
-* Paul Le Roux for CMake improvements and Conan support.
-* Paulo Custodio for Windows-related fixes.
-* Sam Hocevar for contributing Visual Studio 2015 compatibility.
-* Stephan Beal for the bug reports, suggestions and discussions.
-* Stuart Dootson for `mmap_input<>` support on Windows.
-* Sven Johannsen for help with CMake.
-* Zhihao Yuan for fixing several warnings when compiling with Visual Studio 2015.
+In appreciation of all contributions here are the people that have [directly contributed](https://github.com/taocpp/PEGTL/graphs/contributors) to the PEGTL and/or its development.
 
-## Contact
+[<img alt="andoma" src="https://avatars2.githubusercontent.com/u/216384?v=4&s=117" width="117">](https://github.com/andoma)
+[<img alt="Bjoe" src="https://avatars3.githubusercontent.com/u/727911?v=4&s=117" width="117">](https://github.com/Bjoe)
+[<img alt="bwagner" src="https://avatars3.githubusercontent.com/u/447049?v=4&s=117" width="117">](https://github.com/bwagner)
+[<img alt="cdiggins" src="https://avatars2.githubusercontent.com/u/1759994?s=460&v=4?v=4&s=117" width="117">](https://github.com/cdiggins)
+[<img alt="delpinux" src="https://avatars0.githubusercontent.com/u/35096584?v=4&s=117" width="117">](https://github.com/delpinux)
+[<img alt="dkopecek" src="https://avatars2.githubusercontent.com/u/1353140?v=4&s=117" width="117">](https://github.com/dkopecek)
+[<img alt="irrequietus" src="https://avatars0.githubusercontent.com/u/231192?v=4&s=117" width="117">](https://github.com/irrequietus)
+[<img alt="jedelbo" src="https://avatars2.githubusercontent.com/u/572755?v=4&s=117" width="117">](https://github.com/jedelbo)
+[<img alt="joelfrederico" src="https://avatars0.githubusercontent.com/u/458871?v=4&s=117" width="117">](https://github.com/joelfrederico)
+[<img alt="johelegp" src="https://avatars3.githubusercontent.com/u/21071787?v=4&s=117" width="117">](https://github.com/johelegp)
+[<img alt="jovermann" src="https://avatars3.githubusercontent.com/u/6087443?v=4&s=117" width="117">](https://github.com/jovermann)
+[<img alt="kneth" src="https://avatars0.githubusercontent.com/u/1225363?v=4&s=117" width="117">](https://github.com/kneth)
+[<img alt="kuzmas" src="https://avatars1.githubusercontent.com/u/1858553?v=4&s=117" width="117">](https://github.com/kuzmas)
+[<img alt="lambdafu" src="https://avatars1.githubusercontent.com/u/1138455?v=4&s=117" width="117">](https://github.com/lambdafu)
+[<img alt="lichray" src="https://avatars2.githubusercontent.com/u/433009?v=4&s=117" width="117">](https://github.com/lichray)
+[<img alt="michael-brade" src="https://avatars0.githubusercontent.com/u/8768950?v=4&s=117" width="117">](https://github.com/michael-brade)
+[<img alt="mkrupcale" src="https://avatars1.githubusercontent.com/u/13936020?v=4&s=117" width="117">](https://github.com/mkrupcale)
+[<img alt="NewProggie" src="https://avatars3.githubusercontent.com/u/162319?s=460&v=4?v=4&s=117" width="117">](https://github.com/NewProggie)
+[<img alt="ohanar" src="https://avatars0.githubusercontent.com/u/1442822?v=4&s=117" width="117">](https://github.com/ohanar)
+[<img alt="pauloscustodio" src="https://avatars1.githubusercontent.com/u/70773?v=4&s=117" width="117">](https://github.com/pauloscustodio)
+[<img alt="pleroux0" src="https://avatars2.githubusercontent.com/u/39619854?v=4&s=117" width="117">](https://github.com/pleroux0)
+[<img alt="quadfault" src="https://avatars3.githubusercontent.com/u/30195320?v=4&s=117" width="117">](https://github.com/quadfault)
+[<img alt="robertcampion" src="https://avatars2.githubusercontent.com/u/4220569?v=4&s=117" width="117">](https://github.com/robertcampion)
+[<img alt="samhocevar" src="https://avatars2.githubusercontent.com/u/245089?v=4&s=117" width="117">](https://github.com/samhocevar)
+[<img alt="sanssecours" src="https://avatars2.githubusercontent.com/u/691989?v=4&s=117" width="117">](https://github.com/sanssecours)
+[<img alt="sgbeal" src="https://avatars1.githubusercontent.com/u/235303?v=4&s=117" width="117">](https://github.com/sgbeal)
+[<img alt="skyrich62" src="https://avatars3.githubusercontent.com/u/23705081?v=4&s=117" width="117">](https://github.com/skyrich62)
+[<img alt="studoot" src="https://avatars1.githubusercontent.com/u/799344?v=4&s=117" width="117">](https://github.com/studoot)
+[<img alt="SvenJo" src="https://avatars1.githubusercontent.com/u/1538181?s=460&v=4?v=4&s=117" width="117">](https://github.com/SvenJo)
+[<img alt="wickedmic" src="https://avatars1.githubusercontent.com/u/12001183?v=4&s=117" width="117">](https://github.com/wickedmic)
+[<img alt="wravery" src="https://avatars0.githubusercontent.com/u/6502881?v=4&s=117" width="117">](https://github.com/wravery)
+[<img alt="zhihaoy" src="https://avatars2.githubusercontent.com/u/43971430?v=4&s=117" width="117">](https://github.com/zhihaoy)
+
+## The Art of C++
 
 The PEGTL is part of [The Art of C++](https://taocpp.github.io/).
 
-For questions and suggestions regarding the PEGTL, success or failure stories, and any other kind of feedback, please feel free to contact the authors at `taocpp(at)icemx.net`.
+[<img alt="ColinH" src="https://avatars0.githubusercontent.com/u/113184?v=4&s=117" width="117">](https://github.com/ColinH)
+[<img alt="d-frey" src="https://avatars2.githubusercontent.com/u/3956325?v=4&s=117" width="117">](https://github.com/d-frey)
+[<img alt="uilianries" src="https://avatars0.githubusercontent.com/u/4870173?v=4&s=117" width="117">](https://github.com/uilianries)
+
+## Contact
+
+For questions and suggestions regarding the PEGTL, success or failure stories, and any other kind of feedback, please feel free to open an issue or a PR on GitHub or contact the authors at `taocpp(at)icemx.net`.
 
 ## License
 
 The PEGTL is certified [Open Source](http://www.opensource.org/docs/definition.html) software. It may be used for any purpose, including commercial purposes, at absolutely no cost. It is distributed under the terms of the [MIT license](http://www.opensource.org/licenses/mit-license.html) reproduced here.
 
-> Copyright (c) 2007-2018 Dr. Colin Hirsch and Daniel Frey
+> Copyright (c) 2007-2019 Dr. Colin Hirsch and Daniel Frey
 >
 > Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 >

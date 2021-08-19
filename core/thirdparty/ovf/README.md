@@ -4,11 +4,13 @@ OVF Parser Library
 
 [OVF format specification](#specification)
 
-[![Build Status](https://travis-ci.org/spirit-code/ovf.svg?branch=master)](https://travis-ci.org/spirit-code/ovf)
-[![Build status](https://ci.appveyor.com/api/projects/status/ur0cq1tykfndlj06/branch/master?svg=true)](https://ci.appveyor.com/project/GPMueller/ovf)
+![Build Status](https://github.com/spirit-code/ovf/workflows/CI/badge.svg?branch=master)
 
 **[Python package](https://pypi.org/project/ovf/):** [![PyPI version](https://badge.fury.io/py/ovf.svg)](https://badge.fury.io/py/ovf)
 
+| Library Coverage | Python Bindings Coverage |
+| :--------------: | :----------------------: |
+| [![Library Coverage Status](https://codecov.io/gh/spirit-code/ovf/branch/master/graph/badge.svg)](https://codecov.io/gh/spirit-code/ovf/branch/master) | [![Python Bindings Coverage Status](https://coveralls.io/repos/github/spirit-code/ovf/badge.svg?branch=master)](https://coveralls.io/github/spirit-code/ovf?branch=master)|
 
 How to use
 ---------------------------------
@@ -117,10 +119,21 @@ endif
 For more information on how to generate modern Fortran bindings,
 see also https://github.com/MRedies/Interfacing-Fortran
 
+
 How to embed it into your project
 ---------------------------------
 
-TODO...
+If you are using CMake, it is as simple as cloning this into a subdirectory,
+e.g. `thirdparty/ovf` and using it with `add_subdirectory`:
+
+```
+add_subdirectory( ${PROJECT_SOURCE_DIR}/thirdparty/ovf )
+set( OVF_INCLUDE_DIRS ${PROJECT_SOURCE_DIR}/thirdparty/ovf/include )
+target_include_directories( myproject PRIVATE ${OVF_INCLUDE_DIRS} )
+target_link_libraries( myproject PUBLIC ${OVF_LIBRARIES_STATIC} )
+```
+
+If you're not using CMake, you may need to put in some manual work.
 
 
 Build
@@ -216,8 +229,7 @@ When linking statically, you can also link the object file `ovf.cpp.o` instead o
 
 
 File format v2.0 specification <a name="specification"></a>
----------------------------------
-
+=================================
 
 This specification is written according to the
 [NIST user guide for OOMMF](https://math.nist.gov/oommf/doc/userguide20a0/userguide/OVF_2.0_format.html)
@@ -226,7 +238,8 @@ and has been implemented, but not tested or verified against OOMMF.
 *Note: The OVF 2.0 format is a modification to the OVF 1.0 format that also supports fields across three spatial dimensions but having values of arbitrary (but fixed) dimension. The following is a full specification of the 2.0 format.*
 
 
-### General
+General
+---------------------------------
 
 - An OVF file has an ASCII header and trailer, and data blocks that may be either ASCII or binary.
 - All non-data lines begin with a `#` character
@@ -241,14 +254,16 @@ After an overall header, the file consists of segment blocks, each composed of a
 - The field can be of any arbitrary dimension `N > 0` (This dimension, however, is fixed within each segment).
 
 
-### Header
+Header
+---------------------------------
 
 - The first line of an OVF 2.0 file must be `# OOMMF OVF 2.0`
 - The header should also contain the number of segments, specified as e.g. `# Segment count: 000001`
 - Zero-padding of the segment count is not specified
 
 
-### Segments
+Segments
+---------------------------------
 
 **Segment Header**
 
@@ -295,7 +310,8 @@ For binary data:
 - The first character after the last data value should be a newline
 
 
-### Extensions made by this library
+Extensions made by this library
+---------------------------------
 
 These extensions are mainly to help with data for atomistic systems.
 
@@ -306,7 +322,8 @@ These extensions are mainly to help with data for atomistic systems.
 - `csv` is also a valid ASCII data representation and corresponds to comma-separated columns of `text` type
 
 
-### Current limitations of this library
+Current limitations of this library
+---------------------------------
 
 - naming of variables in structs/classes is inconsistent with the file format specifications
 - not all defaults in the segment are guaranteed to be sensible
@@ -315,7 +332,8 @@ These extensions are mainly to help with data for atomistic systems.
 - `irregular` mesh type is not supported properly, as positions are not accounted for in read or write
 
 
-### Example
+Example
+---------------------------------
 
 An example OVF 2.0 file for an irregular mesh with N = 2:
 
@@ -371,9 +389,10 @@ An example OVF 2.0 file for an irregular mesh with N = 2:
 # End: segment
 ```
 
-### Comparison to OVF 1.0
+Comparison to OVF 1.0
+---------------------------------
 
-- The first line reads `# OOMMF OVF 2.0` for both regular and irregular meshes. 
+- The first line reads `# OOMMF OVF 2.0` for both regular and irregular meshes.
 - In the segment header block
     - the keywords `valuemultiplier`, `boundary`, `ValueRangeMaxMag` and `ValueRangeMinMag` of the OVF 1.0 format are not supported.
     - the new keyword `valuedim` is required. This must specify an integer value, `N`, bigger or equal to one.

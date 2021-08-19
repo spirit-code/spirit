@@ -8,7 +8,7 @@ set( META_AUTHOR_MAINTAINER    "Gideon Mueller" )
 set( META_AUTHOR_EMAIL         "g.mueller@fz-juelich.de" )
 set( META_VERSION_MAJOR        "0" )
 set( META_VERSION_MINOR        "4" )
-set( META_VERSION_PATCH        "1" )
+set( META_VERSION_PATCH        "3" )
 set( META_VERSION              "${META_VERSION_MAJOR}.${META_VERSION_MINOR}.${META_VERSION_PATCH}" )
 #############################################
 
@@ -19,7 +19,8 @@ set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 #############################################
 option( OVF_BUILD_PYTHON_BINDINGS  "Build the shared library for Python."  OFF )
 option( OVF_BUILD_FORTRAN_BINDINGS "Build the module file for Fortran."    OFF )
-option( OVF_BUILD_TEST             "Build unit tests for the ovf library." OFF )
+option( OVF_BUILD_TEST             "Build unit tests for the ovf library." OFF  )
+option( OVF_TEST_COVERAGE          "Have unit tests output coverage info." OFF )
 #############################################
 
 set( SOURCE_FILES src/ovf.cpp )
@@ -72,12 +73,28 @@ endif()
 ######################################################################
 
 
+######### Coverage ##########################
+if( OVF_BUILD_TEST AND OVF_TEST_COVERAGE )
+    set( OVF_CXX_FLAGS_COVERAGE
+        ${CMAKE_CXX_FLAGS_DEBUG}
+        --coverage
+        -fno-inline
+        -fno-inline-small-functions
+        -fno-default-inline )
+    string( REPLACE ";" " " OVF_CXX_FLAGS_COVERAGE "${OVF_CXX_FLAGS_COVERAGE}" )
+    set( OVF_LINK_FLAGS_COVERAGE "-lgcov --coverage" )
+endif( )
+#############################################
+
+
 ### Object library
 add_library( ${PROJECT_NAME} OBJECT ${SOURCE_FILES} )
 
 set_property( TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD 11 )
 set_property( TARGET ${PROJECT_NAME} PROPERTY CXX_STANDARD_REQUIRED ON )
 set_property( TARGET ${PROJECT_NAME} PROPERTY CXX_EXTENSIONS OFF )
+set_property( TARGET ${PROJECT_NAME} PROPERTY COMPILE_FLAGS ${OVF_CXX_FLAGS_COVERAGE} )
+set_property( TARGET ${PROJECT_NAME} PROPERTY LINK_FLAGS    ${OVF_LINK_FLAGS_COVERAGE} )
 
 target_include_directories( ${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include )
 target_include_directories( ${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/thirdparty/PEGTL/include )
@@ -86,7 +103,7 @@ target_include_directories( ${PROJECT_NAME} PRIVATE ${PROJECT_SOURCE_DIR}/thirdp
 add_library( ${PROJECT_NAME}_static $<TARGET_OBJECTS:${PROJECT_NAME}> )
 
 install( TARGETS ${PROJECT_NAME}_static DESTINATION lib )
-install( FILES include/ovf.h DESTINATION include )
+install( DIRECTORY include/ovf DESTINATION include )
 
 
 ### Build Python bindings
@@ -94,7 +111,16 @@ if( OVF_BUILD_PYTHON_BINDINGS )
     add_library( ${PROJECT_NAME}_python SHARED $<TARGET_OBJECTS:${PROJECT_NAME}> )
 
     set_property( TARGET ${PROJECT_NAME}_python PROPERTY OUTPUT_NAME "${PROJECT_NAME}" )
-    set_property( TARGET ${PROJECT_NAME}_python PROPERTY LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/python/ovf )
+
+    if(WIN32)
+        # On Windows the runtime_output_directory is used https://cmake.org/cmake/help/v3.9/manual/cmake-buildsystem.7.html#output-artifacts
+        set_property( TARGET ${PROJECT_NAME}_python PROPERTY RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}/python/ovf ) # Use runtime_output_directory_debug to avoid an additional debug directory being created
+        set_property( TARGET ${PROJECT_NAME}_python PROPERTY RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}/python/ovf )
+    else()
+        set_property( TARGET ${PROJECT_NAME}_python PROPERTY LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/python/ovf )
+    endif()
+
+    set_property( TARGET ${PROJECT_NAME}_python PROPERTY LINK_FLAGS    ${OVF_LINK_FLAGS_COVERAGE} )
 
     ### Utility python files
     configure_file( ${PROJECT_SOURCE_DIR}/LICENSE.txt ${PROJECT_SOURCE_DIR}/python/LICENSE.txt COPYONLY )
@@ -141,6 +167,8 @@ macro( add_cxx_test testName testSrc )
     set_property( TARGET ${testName} PROPERTY CXX_STANDARD 11 )
     set_property( TARGET ${testName} PROPERTY CXX_STANDARD_REQUIRED ON )
     set_property( TARGET ${testName} PROPERTY CXX_EXTENSIONS OFF )
+    set_property( TARGET ${testName} PROPERTY COMPILE_FLAGS ${OVF_CXX_FLAGS_COVERAGE} )
+    set_property( TARGET ${testName} PROPERTY LINK_FLAGS    ${OVF_CXX_FLAGS_COVERAGE} )
     # Include Directories
     target_include_directories( ${testName} PRIVATE ${PROJECT_SOURCE_DIR}/test )
     target_include_directories( ${testName} PRIVATE ${PROJECT_SOURCE_DIR}/include )
@@ -159,6 +187,7 @@ if ( OVF_BUILD_TEST )
     ### Tests
     add_cxx_test( test_cpp_simple simple.cpp )
     add_cxx_test( test_cpp_binary binary.cpp )
+    add_cxx_test( test_cpp_atomistic atomistic.cpp )
 endif()
 
 

@@ -72,9 +72,18 @@ namespace write
     }
 
 
-    inline std::string top_header_string()
+    inline std::string top_header_string(int ovf_extension_format)
     {
         std::string ret = "# OOMMF OVF 2.0\n";
+
+        if(ovf_extension_format == OVF_EXTENSION_FORMAT_AOVF_COMP)
+        {
+            ret += "##% AOVF_COMP 1.0\n";
+        }
+        if(ovf_extension_format == OVF_EXTENSION_FORMAT_AOVF)
+        {
+            ret = "# AOVF 1.0\n";
+        }
         ret += empty_line;
 
         // create padding string
@@ -260,12 +269,14 @@ namespace write
 
         // Type of mesh and further keywords depending on it
         std::string meshtype = segment->meshtype;
-        if( meshtype == "" )
+
+        if( meshtype == "" || (meshtype == "lattice" && file->ovf_extension_format == OVF_EXTENSION_FORMAT_AOVF_COMP) ) // In compatibility mode we cannot use meshtype 'lattice'
             meshtype = "rectangular";
+
         output_to_file += fmt::format( "# meshtype: {}\n", meshtype );
 
         int n_rows = 0;
-        if( meshtype == "rectangular" )
+        if( meshtype == "rectangular" && std::string(segment->meshtype) != "lattice")
         {
             // Latice origin in space
             output_to_file += fmt::format( "# xbase: {}\n", segment->origin[0] );
@@ -284,10 +295,60 @@ namespace write
 
             n_rows = segment->n_cells[0]*segment->n_cells[1]*segment->n_cells[2];
         }
-        else if( std::string(segment->meshtype) == "irregular" )
+        else if( meshtype == "irregular" )
         {
             output_to_file += fmt::format( "# pointcount: {}\n", segment->pointcount );
             n_rows = segment->pointcount;
+        } else if( std::string(segment->meshtype) == "lattice" )
+        {
+            std::string prefix = "#";
+            if(file->ovf_extension_format == OVF_EXTENSION_FORMAT_AOVF_COMP)
+            {
+                prefix = "##%";
+
+                // In compatibility mode we have to add the required fields for the rectangular mesh
+                // Latice origin in space
+                output_to_file += fmt::format( "# xbase: {}\n", segment->origin[0] );
+                output_to_file += fmt::format( "# ybase: {}\n", segment->origin[1] );
+                output_to_file += fmt::format( "# zbase: {}\n", segment->origin[2] );
+
+                // Mesh spacing
+                output_to_file += fmt::format( "# xstepsize: {}\n", segment->step_size[0] );
+                output_to_file += fmt::format( "# ystepsize: {}\n", segment->step_size[1] );
+                output_to_file += fmt::format( "# zstepsize: {}\n", segment->step_size[2] );
+
+                // Number of nodes along each direction
+                output_to_file += fmt::format( "# xnodes: {}\n", segment->n_cells[0] * segment->ncellpoints ); // We fold the basis atoms into xnodes
+                output_to_file += fmt::format( "# ynodes: {}\n", segment->n_cells[1] );
+                output_to_file += fmt::format( "# znodes: {}\n", segment->n_cells[2] );
+
+                // We also add the lattice meshtype as a magic comment
+                output_to_file += fmt::format( "#\n" );
+                output_to_file += fmt::format( "##% meshtype: {}\n", "lattice" );
+
+            } if(file->ovf_extension_format == OVF_EXTENSION_FORMAT_OVF)
+            {
+                 file->_state->message_latest = fmt::format(
+                "Not writing out any data to file \"{}\", because meshtype is invalid: \"{}\". "
+                "To enable the `lattice` meshtype, set ovf_extension_format to OVF_EXTENSION_FORMAT_AOVF_COMP or OVF_EXTENSION_FORMAT_OVf.",
+                file->file_name, segment->meshtype);
+                return OVF_ERROR;
+            }
+
+            output_to_file += fmt::format( "{} anodes: {}\n", prefix, segment->n_cells[0] );
+            output_to_file += fmt::format( "{} bnodes: {}\n", prefix, segment->n_cells[1] );
+            output_to_file += fmt::format( "{} cnodes: {}\n", prefix, segment->n_cells[2] );
+            output_to_file += fmt::format( "{} bravaisa: {:22.12f} {:22.12f} {:22.12f}\n", prefix, segment->bravaisa[0], segment->bravaisa[1], segment->bravaisa[2] );
+            output_to_file += fmt::format( "{} bravaisb: {:22.12f} {:22.12f} {:22.12f}\n", prefix, segment->bravaisb[0], segment->bravaisb[1], segment->bravaisb[2] );
+            output_to_file += fmt::format( "{} bravaisc: {:22.12f} {:22.12f} {:22.12f}\n", prefix, segment->bravaisc[0], segment->bravaisc[1], segment->bravaisc[2] );
+            output_to_file += fmt::format( "{} ncellpoints: {}\n", prefix, segment->ncellpoints );
+            output_to_file += fmt::format( "{} basis:\n", prefix);
+            for(int i=0; i<segment->ncellpoints; i++)
+            {
+                output_to_file += fmt::format( "{} {:22.12f} {:22.12f} {:22.12f}\n", prefix, segment->basis[3*i], segment->basis[3*i+1], segment->basis[3*i+2] );
+            }
+
+            n_rows = segment->n_cells[0] * segment->n_cells[1] * segment->n_cells[2] * segment->ncellpoints;
         }
         else
         {
@@ -359,7 +420,7 @@ namespace write
             file_handle handle(file->file_name, false);
             file->n_segments = 0;
             file->version = 2;
-            handle.write( {top_header_string(), output_to_file} );
+            handle.write( {top_header_string(file->ovf_extension_format), output_to_file} );
         }
         file->found  = true;
         file->is_ovf = true;

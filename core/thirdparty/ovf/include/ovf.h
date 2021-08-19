@@ -24,6 +24,11 @@
 #define OVF_ERROR       -2
 #define OVF_INVALID     -3
 
+/* OVF file formats */
+#define OVF_EXTENSION_FORMAT_OVF        0 // Standard OVF 2 format
+#define OVF_EXTENSION_FORMAT_AOVF       1 // Atomistic extension, with new keywords
+#define OVF_EXTENSION_FORMAT_AOVF_COMP  2 // Atomistic extension in compatibility format, (##% prefix for new keywords)
+
 /* OVF data formats */
 #define OVF_FORMAT_BIN   0
 #define OVF_FORMAT_BIN4  1
@@ -55,6 +60,13 @@ struct ovf_segment {
     float lattice_constant;
     float origin[3];
 
+    /* fields for the atomistic extension */
+    float bravaisa[3];
+    float bravaisb[3];
+    float bravaisc[3];
+    int ncellpoints;
+    float * basis;
+
     /* then some "private" internal fields */
 };
 
@@ -64,6 +76,7 @@ struct parser_state;
 /* the main struct which keeps the info on the main header of a file */
 struct ovf_file {
     const char * file_name;
+    char * version_string;
 
     int version;
 
@@ -73,6 +86,9 @@ struct ovf_file {
     bool is_ovf;
     /* number of segments the file should contain */
     int n_segments;
+
+    /* The extension format to be used (prefixes new keywords with ##%) */
+    int ovf_extension_format;
 
     /* then some "private" internal fields */
     struct parser_state * _state;

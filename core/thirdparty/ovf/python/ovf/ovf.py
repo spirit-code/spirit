@@ -17,6 +17,10 @@ FILEFORMAT_BIN8 = 2
 FILEFORMAT_TEXT = 3
 FILEFORMAT_CSV  = 4
 
+EXTENSION_FORMAT_OVF = 0
+EXTENSION_FORMAT_AOVF = 1
+EXTENSION_FORMAT_AOVF_COMP = 2
+
 class ovf_segment(ctypes.Structure):
     ### Some properties
     _fields_ = [
@@ -34,12 +38,38 @@ class ovf_segment(ctypes.Structure):
         ("bounds_min",       ctypes.c_float*3),
         ("bounds_max",       ctypes.c_float*3),
         ("lattice_constant", ctypes.c_float),
-        ("origin",           ctypes.c_float*3)
+        ("origin",           ctypes.c_float*3),
+        ("_bravaisa",         ctypes.c_float*3),
+        ("_bravaisb",         ctypes.c_float*3),
+        ("_bravaisc",         ctypes.c_float*3),
+        ("ncellpoints",      ctypes.c_int),
+        ("_basis",            ctypes.POINTER(ctypes.c_float))
     ]
+
+    @property
+    def bravaisa(self):
+        print("Getting value...")
+        return [i for i in self._bravaisa]
+
+    @property
+    def bravaisb(self):
+        print("Getting value...")
+        return [i for i in self._bravaisb]
+
+    @property
+    def bravaisc(self):
+        print("Getting value...")
+        return [i for i in self._bravaisc]
+
+    @property
+    def basis(self):
+        print("Getting value...")
+        return [ [self._basis[3*i], self._basis[3*i+1], self._basis[3*i+2]] for i in range(self.ncellpoints)]
 
     def __init__(self, title="", comment="", valuedim=1, valueunits="", valuelabels="", meshtype="", meshunits="",
                 step_size=[0.0, 0.0, 0.0], bounds_min=[0.0, 0.0, 0.0], bounds_max=[0.0, 0.0, 0.0], lattice_constant=0.0,
-                origin=[0.0, 0.0, 0.0], pointcount=0, n_cells=[1,1,1]):
+                origin=[0.0, 0.0, 0.0], pointcount=0, n_cells=[1,1,1], 
+                bravaisa = [0.0, 0.0, 0.0], bravaisb = [0.0, 0.0, 0.0], bravaisc = [0.0, 0.0, 0.0], basis = [[0,0,0]]):
 
         self.title       = title.encode('utf-8')
         self.comment     = comment.encode('utf-8')
@@ -49,8 +79,21 @@ class ovf_segment(ctypes.Structure):
         self.meshtype    = meshtype.encode('utf-8')
         self.meshunits   = meshunits.encode('utf-8')
         self.pointcount  = pointcount
+
+        self.ncellpoints = len(basis)
+        self._basis = ctypes.cast(  (ctypes.c_float * self.ncellpoints * 3)(), ctypes.POINTER(ctypes.c_float) )
+
+        for i in range(self.ncellpoints):
+            self._basis[3*i]     = basis[i][0]
+            self._basis[3*i + 1] = basis[i][1]
+            self._basis[3*i + 2] = basis[i][2]
+
         for i in range(3):
             self.n_cells[i] = n_cells[i]
+            self._bravaisa[i] = bravaisa[i]
+            self._bravaisb[i] = bravaisb[i]
+            self._bravaisc[i] = bravaisc[i]
+
         self.N = n_cells[0]*n_cells[1]*n_cells[2]
         for i in range(3):
             self.step_size[i]  = step_size[i]
@@ -108,10 +151,12 @@ class _ovf_file(ctypes.Structure):
     ### Some properties
     _fields_ = [
         ("file_name",  ctypes.c_char_p),
+        ("version_string",  ctypes.c_char_p),
         ("version",    ctypes.c_int),
         ("found",      ctypes.c_bool),
         ("is_ovf",     ctypes.c_bool),
         ("n_segments", ctypes.c_int),
+        ("ovf_extension_format",  ctypes.c_int),
         ("_state",     ctypes.c_void_p)
     ]
 

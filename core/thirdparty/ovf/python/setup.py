@@ -43,7 +43,7 @@ def read(*parts):
     resulting file.  Assume UTF-8 encoding.
     """
     with codecs.open(os.path.join(HERE, *parts), "rb", "utf-8") as f:
-        return f.read()
+        return f.read().replace('\r\n', '\n')
 
 
 META_FILE = read(META_PATH)
@@ -73,11 +73,11 @@ def get_git_commit_datetime():
         print(cpe.output)
         return "00000000000000"
 
-# import unittest
-# def my_test_suite():
-#     test_loader = unittest.TestLoader()
-#     test_suite = test_loader.discover('test', pattern='*.py')
-#     return test_suite
+import unittest
+def my_test_suite():
+    test_loader = unittest.TestLoader()
+    test_suite = test_loader.discover('test', pattern='*.py')
+    return test_suite
 
 class bdist_wheel(bdist_wheel_):
     def finalize_options(self):
@@ -121,6 +121,7 @@ if __name__ == "__main__":
         name             = NAME,
         description      = find_meta("description"),
         long_description = read(README),
+        long_description_content_type = "text/markdown",
         license          = find_meta("license"),
         url              = find_meta("uri"),
         version          = find_meta("version")+version_suffix,
@@ -136,5 +137,5 @@ if __name__ == "__main__":
             'ovf': ['libovf.dylib', 'libovf.so', 'libovf.dll'],
         },
         cmdclass         = {'bdist_wheel': bdist_wheel, 'clean': CleanCommand},
-        # test_suite       = 'setup.my_test_suite',
+        test_suite       = 'setup.my_test_suite',
     )
