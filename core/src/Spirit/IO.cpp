@@ -19,6 +19,8 @@
 #include <memory>
 #include <string>
 
+#include <Eigen/LU>
+
 // helper function
 std::string Get_Extension( const char *file )
 {
@@ -26,6 +28,200 @@ std::string Get_Extension( const char *file )
     std::string::size_type n = filename.rfind('.');
     if ( n != std::string::npos ) return filename.substr(n);
     else return std::string("");
+}
+
+void Geometry_from_Segment_Header(State *state, const char *filename, const ovf_file & file, ovf_segment & segment, int idx_image_infile, int idx_image_inchain, int idx_chain)
+{
+    double epsilon = 1e-5;
+
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices(state, idx_image_inchain, idx_chain, image, chain);
+
+    // helper variables
+    auto& spins = *image->spins;
+    auto& geometry = *image->geometry;
+
+    // If we read in a file that has no "lattice" meshtype, we revert back to the old behaviour 
+    if( std::string(segment.meshtype) != "lattice" )
+    {
+        // Old behaviour: Dont change geometry, just use the lesser of the two values
+        if( segment.N < image->nos )
+        {
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, fmt::format(
+                "OVF file \"{}\": segment {}/{} contains only {} spins while the system contains {}.",
+                filename, idx_image_infile+1, file.n_segments, segment.N, image->nos),
+                idx_image_inchain, idx_chain );
+            segment.N = std::min(segment.N, image->nos);
+        }
+        else if( segment.N > image->nos )
+        {
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, fmt::format(
+                "OVF file \"{}\": segment {}/{} contains {} spins while the system contains only {}. "
+                "Reading only part of the segment data.",
+                filename, idx_image_infile+1, file.n_segments, segment.N, image->nos),
+                idx_image_inchain, idx_chain );
+            segment.N = std::min(segment.N, image->nos);
+        }
+    } else {
+        // meshtype is lattice
+
+        // New behaviour:
+        // Change n_cells and n_cell_atoms so that it matches the ovf file
+
+        // Check n_cells
+        intfield segment_n_cells(3);
+        bool different_n_cells = false;
+        for(int i=0; i<3; i++)
+        {
+
+            if (segment.n_cells[i] != geometry.n_cells[i])
+            {
+                different_n_cells = true;
+            }
+        }
+
+        intfield new_geometry_n_cells(0);
+        if(different_n_cells)
+        {
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, fmt::format(
+            "OVF file \"{}\": segment {}/{}. `n_cells` from ovf file ({},{},{}) is different from previous value ({},{},{}).",
+            filename, idx_image_infile+1, file.n_segments, segment.n_cells[0], segment.n_cells[1], segment.n_cells[2], geometry.n_cells[0], geometry.n_cells[1], geometry.n_cells[2]),
+            idx_image_inchain, idx_chain );
+        }
+
+        // Check n_cell_atoms
+        bool different_n_cell_atoms = false;
+        if(segment.ncellpoints != geometry.n_cell_atoms)
+        {
+            different_n_cell_atoms = true;
+        }
+
+        if(different_n_cell_atoms)
+        {
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, fmt::format(
+            "OVF file \"{}\": segment {}/{}. `n_cell_atoms` from ovf file ({}) is different from previous value ({}).",
+            filename, idx_image_infile+1, file.n_segments, segment.ncellpoints, geometry.n_cell_atoms),
+            idx_image_inchain, idx_chain );
+        }
+
+        // Check bravais vectors
+        bool different_bravais_vector = false;
+
+        std::array<Vector3, 3> segment_bravais_vectors = {
+            Vector3{ segment.bravaisa[0], segment.bravaisa[1], segment.bravaisa[2]},
+            Vector3{ segment.bravaisb[0], segment.bravaisb[1], segment.bravaisb[2]},
+            Vector3{ segment.bravaisc[0], segment.bravaisc[1], segment.bravaisc[2]}
+        };
+
+        for(int i=0; i<3; i++)
+        {
+            (geometry.lattice_constant*geometry.bravais_vectors[i] - segment_bravais_vectors[i]).norm() > epsilon;
+            different_bravais_vector = true;
+        }
+
+        if(different_bravais_vector)
+        {
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, fmt::format(
+            "OVF file \"{}\": segment {}/{}. bravais vectors from ovf file are different from previous values."
+            ,filename, idx_image_infile+1, file.n_segments),
+            idx_image_inchain, idx_chain );
+        }
+
+        // Check basis
+        bool different_basis_vectors = false;
+        std::vector<Vector3> segment_basis_vectors(segment.ncellpoints, {0,0,0});
+        std::vector<Vector3> segment_cell_atoms(segment.ncellpoints, {0,0,0});
+
+        Eigen::Matrix3d segment_bravais_matrix;
+        segment_bravais_matrix <<
+            segment.bravaisa[0], segment.bravaisb[0], segment.bravaisc[0],
+            segment.bravaisa[1], segment.bravaisb[1], segment.bravaisc[1],
+            segment.bravaisa[2], segment.bravaisb[2], segment.bravaisc[2];
+
+        // Matrix3 inverse_bravais_matrix = segment_bravais_matrix.inverse();
+
+        // Fill in the data from the segment header into the structures we need to construct a geometry
+        for(int i=0; i<segment.ncellpoints; i++)
+        {
+            segment_basis_vectors[i] = Vector3{segment.basis[3*i], segment.basis[3*i+1], segment.basis[3*i+2]};
+            // segment_cell_atoms[i]    = inverse_bravais_matrix * segment_basis_vectors[i]; // We need to do this since cell_atoms is given in units of the bravais vectors
+        }
+
+        // Check if one of the basis vectors has changed
+        for(int i=0; i<std::min(segment.ncellpoints, geometry.n_cell_atoms); i++)
+        {
+            (geometry.positions[i] - segment_basis_vectors[i]).norm() > epsilon;
+            different_basis_vectors = true;
+        }
+
+        if(different_basis_vectors)
+        {
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, fmt::format(
+            "OVF file \"{}\": segment {}/{}. basis vectors from ovf file are different from previous values."
+            ,filename, idx_image_infile+1, file.n_segments),
+            idx_image_inchain, idx_chain );
+        }
+
+        // Create new geometry if necessary
+        if(different_n_cell_atoms || different_n_cells || different_basis_vectors || different_bravais_vector || different_basis_vectors) 
+        {
+
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, "Creating new geometry");
+
+            auto& old_geometry = *state->active_image->geometry;
+
+            ///// Deal with cell composition
+            std::vector<Vector3> cell_atoms(0);
+            std::vector<int>     iatom(0);
+            std::vector<int>     atom_type(0);
+            std::vector<scalar>  mu_s(0);
+            std::vector<scalar>  concentration(0);
+
+            if( !old_geometry.cell_composition.disordered )
+            {
+                for (int i=0; i<segment.ncellpoints; ++i)
+                {
+                    iatom.push_back(i);
+                    if( i < old_geometry.n_cell_atoms )
+                    {
+                        atom_type.push_back(old_geometry.cell_composition.atom_type[i]);
+                        mu_s.push_back(old_geometry.cell_composition.mu_s[i]);
+                    }
+                    else
+                    {
+                        atom_type.push_back(old_geometry.cell_composition.atom_type[0]);
+                        mu_s.push_back(old_geometry.cell_composition.mu_s[0]);
+                    }
+                }
+            }
+            else
+            {
+                for( int i=0; i<old_geometry.cell_composition.iatom.size(); ++i )
+                {
+                    // If the atom index is within range, we keep the information
+                    if( old_geometry.cell_composition.iatom[i] < segment.ncellpoints )
+                    {
+                        atom_type.push_back(old_geometry.cell_composition.atom_type[i]);
+                        mu_s.push_back(old_geometry.cell_composition.mu_s[i]);
+                        concentration.push_back(old_geometry.cell_composition.concentration[i]);
+                    }
+                }
+            }
+
+            Data::Basis_Cell_Composition new_composition{ old_geometry.cell_composition.disordered, iatom, atom_type, mu_s, concentration };
+
+            auto  new_geometry = Data::Geometry(old_geometry.bravais_vectors, {segment.n_cells[0], segment.n_cells[1], segment.n_cells[2]}, segment_cell_atoms,
+                                old_geometry.cell_composition, old_geometry.lattice_constant,
+                                old_geometry.pinning, old_geometry.defects);
+
+            image->Unlock(); // We have to unlock the image to avoid a deadlock, since Helper_State_Set_Geometry also tries to lock it
+            Utility::Helper_State_Set_Geometry(state, old_geometry, new_geometry);
+            image->Lock();
+        }
+    }
 }
 
 /*----------------------------------------------------------------------------------------------- */
@@ -220,128 +416,10 @@ try
 
         // read header
         file.read_segment_header(idx_image_infile, segment);
-
+        Geometry_from_Segment_Header( state, filename, file, segment, idx_image_infile, idx_image_inchain, idx_chain );
         ////////////////////////////////////////////////////////
         // TODO: CHECK GEOMETRY AND WARN IF IT DOES NOT MATCH //
         ////////////////////////////////////////////////////////
-
-        // We revert back to the old behaviour if, we read in a file that has no "lattice" meshtype
-        if( std::string(segment.meshtype) != "lattice" )
-        {
-            if( segment.N < image->nos )
-            {
-                Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, fmt::format(
-                    "OVF file \"{}\": segment {}/{} contains only {} spins while the system contains {}.",
-                    filename, idx_image_infile+1, file.n_segments, segment.N, image->nos),
-                    idx_image_inchain, idx_chain );
-                segment.N = std::min(segment.N, image->nos);
-            }
-            else if( segment.N > image->nos )
-            {
-                Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, fmt::format(
-                    "OVF file \"{}\": segment {}/{} contains {} spins while the system contains only {}. "
-                    "Reading only part of the segment data.",
-                    filename, idx_image_infile+1, file.n_segments, segment.N, image->nos),
-                    idx_image_inchain, idx_chain );
-                segment.N = std::min(segment.N, image->nos);
-            }
-        } else {// meshtype is lattice
-
-            bool different_n_cells = false;
-            for(int i=0; i<3; i++)
-            {
-                if (segment.n_cells[i] != geometry.n_cells[i])
-                {
-                    different_n_cells = true;
-                    // geometry.n_cells[i] = segment.n_cells[i];
-                }
-            }
-
-            if(different_n_cells)
-            {
-                Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, fmt::format(
-                "OVF file \"{}\": segment {}/{}. `n_cells` from ovf file ({},{},{}) is different from previous value ({},{},{}).",
-                filename, idx_image_infile+1, file.n_segments, segment.n_cells[0], segment.n_cells[1], segment.n_cells[2], geometry.n_cells[0], geometry.n_cells[1], geometry.n_cells[2]),
-                idx_image_inchain, idx_chain );
-            }
-
-            bool different_n_cell_atoms = false;
-            if(segment.ncellpoints != geometry.n_cell_atoms)
-            {
-                different_n_cell_atoms = true;
-            }
-
-            if(different_n_cell_atoms)
-            {
-                Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, fmt::format(
-                "OVF file \"{}\": segment {}/{}. `n_cell_atoms` from ovf file ({}) is different from previous value ({}).",
-                filename, idx_image_infile+1, file.n_segments, segment.ncellpoints, geometry.n_cell_atoms),
-                idx_image_inchain, idx_chain );
-            }
-
-            if(different_n_cell_atoms || different_n_cells) // Create new geometry
-            {
-
-                auto& old_geometry = *state->active_image->geometry;
-
-                //// Deal with cell_atoms
-                std::vector<Vector3> new_cell_atoms(segment.ncellpoints);
-                for(int i=0; i<segment.ncellpoints; i++)
-                {
-                    if(old_geometry.n_cell_atoms > i)
-                        new_cell_atoms[i] = old_geometry.cell_atoms[i];
-                    else
-                        new_cell_atoms[i] = {segment.basis[3*i], segment.basis[3*i+1], segment.basis[3*i+2]};
-                }
-
-                ///// Deal with cell composition
-                std::vector<Vector3> cell_atoms(0);
-                std::vector<int>     iatom(0);
-                std::vector<int>     atom_type(0);
-                std::vector<scalar>  mu_s(0);
-                std::vector<scalar>  concentration(0);
-
-                if( !old_geometry.cell_composition.disordered )
-                {
-                    for (int i=0; i<segment.ncellpoints; ++i)
-                    {
-                        iatom.push_back(i);
-                        if( i < old_geometry.n_cell_atoms )
-                        {
-                            atom_type.push_back(old_geometry.cell_composition.atom_type[i]);
-                            mu_s.push_back(old_geometry.cell_composition.mu_s[i]);
-                        }
-                        else
-                        {
-                            atom_type.push_back(old_geometry.cell_composition.atom_type[0]);
-                            mu_s.push_back(old_geometry.cell_composition.mu_s[0]);
-                        }
-                    }
-                } else
-                {
-                    for( int i=0; i<old_geometry.cell_composition.iatom.size(); ++i )
-                    {
-                        // If the atom index is within range, we keep the information
-                        if( old_geometry.cell_composition.iatom[i] < segment.ncellpoints )
-                        {
-                            atom_type.push_back(old_geometry.cell_composition.atom_type[i]);
-                            mu_s.push_back(old_geometry.cell_composition.mu_s[i]);
-                            concentration.push_back(old_geometry.cell_composition.concentration[i]);
-                        }
-                    }
-                }
-
-                Data::Basis_Cell_Composition new_composition{ old_geometry.cell_composition.disordered, iatom, atom_type, mu_s, concentration };
-
-                auto  new_geometry = Data::Geometry(old_geometry.bravais_vectors, {segment.n_cells[0], segment.n_cells[1], segment.n_cells[2]}, new_cell_atoms,
-                                    old_geometry.cell_composition, old_geometry.lattice_constant,
-                                    old_geometry.pinning, old_geometry.defects);
-
-                image->Unlock(); // We have to unlock the image to avoid a deadlock in Helper_State_Set_Geometry
-                Utility::Helper_State_Set_Geometry(state, old_geometry, new_geometry);
-                image->Lock();
-            }
-        }
 
         if( segment.valuedim != 3 )
         {
