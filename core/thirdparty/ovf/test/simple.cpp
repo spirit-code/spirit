@@ -1,6 +1,7 @@
 #include <catch.hpp>
 
 #include <ovf.h>
+#include <cstring>
 
 #include <iostream>
 
@@ -24,8 +25,8 @@ TEST_CASE( "Write", "[write]" )
     {
         // segment header
         auto segment = ovf_segment_create();
-        segment->title = const_cast<char *>("ovf test title - write");
-        segment->comment = const_cast<char *>("test write");
+        segment->title   = strdup("ovf test title - write");
+        segment->comment = strdup("test write");
         segment->valuedim = 3;
         segment->n_cells[0] = 2;
         segment->n_cells[1] = 2;
@@ -56,8 +57,8 @@ TEST_CASE( "Write", "[write]" )
     {
         // segment header
         auto segment = ovf_segment_create();
-        segment->title = const_cast<char *>("ovf test title - append");
-        segment->comment = const_cast<char *>("test append");
+        segment->title   = strdup("ovf test title - append");
+        segment->comment = strdup("test append");
         segment->valuedim = 3;
         segment->n_cells[0] = 2;
         segment->n_cells[1] = 2;
@@ -88,10 +89,10 @@ TEST_CASE( "Write", "[write]" )
     {
         // segment header
         auto segment = ovf_segment_create();
-        segment->title = const_cast<char *>("ovf test title - append irregular mesh");
-        segment->comment = const_cast<char *>("an irregular mesh has different keywords than a rectangular one");
+        segment->title    = strdup("ovf test title - append irregular mesh");
+        segment->comment  = strdup("an irregular mesh has different keywords than a rectangular one");
         segment->valuedim = 3;
-        segment->meshtype = const_cast<char *>("irregular");
+        segment->meshtype = strdup("irregular");
         segment->pointcount = 4;
 
         // data

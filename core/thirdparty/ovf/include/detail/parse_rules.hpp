@@ -60,9 +60,9 @@ namespace parse
             >
     {};
 
-    // " Segment count: "
+        // " Segment count: "
     struct segment_count_number
-        : pegtl::plus<pegtl::digit>
+        : pegtl::pad<pegtl::plus<pegtl::digit>, pegtl::blank>
     {};
 
     // " Segment count: "
@@ -131,21 +131,37 @@ namespace parse
     };
 
     //////////////////////////
-
     namespace v2
     {
+        enum Version
+        {
+            OVF2 = OVF_EXTENSION_FORMAT_OVF,
+            AOVF = OVF_EXTENSION_FORMAT_AOVF,
+            CAOVF = OVF_EXTENSION_FORMAT_AOVF_COMP
+        };
+
         // "# "
         struct prefix
             : pegtl::string< '#' >
         {};
+        template<Version ver>
+        struct comment_prefix
+         : pegtl::string< '#', '#'> 
+        {};
+
+        template<>
+        struct comment_prefix<Version::CAOVF>
+            : pegtl::seq<pegtl::string< '#', '#'>, pegtl::not_at<magic_char>>
+        {};
 
         // Line without contents, up to EOL or comment
+        template<Version ver>
         struct empty_line
             : pegtl::seq<
-                pegtl::string<'#'>,
+                prefix,
                 pegtl::until<
                     pegtl::at<
-                        pegtl::sor<pegtl::eol, pegtl::seq<pegtl::string<'#','#'>, pegtl::not_at<magic_char>>>
+                        pegtl::sor<pegtl::eol, comment_prefix<ver>>
                     >,
                     pegtl::blank
                 >
@@ -153,10 +169,11 @@ namespace parse
         {};
 
         // Comment line up to EOL. "##" initiates comment line
+        // We have to template here so we can specialize for the ##% prefix later
+        template<Version ver>
         struct comment
             : pegtl::seq<
-                pegtl::string< '#', '#' >,
-                pegtl::not_at<magic_char>,
+                comment_prefix<ver>,
                 pegtl::until<
                     pegtl::at<pegtl::eol>,
                     pegtl::any
@@ -165,16 +182,12 @@ namespace parse
         {};
 
         // Number of lines without content (empty and comment lines)
+        template<Version ver>
         struct skippable_lines
             : pegtl::star< pegtl::sor<
-                pegtl::seq< empty_line, pegtl::opt<comment>, pegtl::eol >,
-                pegtl::seq< comment, pegtl::eol >
+                pegtl::seq< empty_line<ver>, pegtl::opt<comment<ver>>, pegtl::eol >,
+                pegtl::seq< comment<ver>, pegtl::eol >
             > >
-        {};
-
-        // " OOMMF OVF "
-        struct version
-            : pegtl::seq< prefix, pegtl::pad< TAO_PEGTL_ISTRING("OOMMF OVF"), pegtl::blank >, pegtl::range< '1', '2' >, pegtl::until<pegtl::eol> >
         {};
 
         // " Segment count: "
@@ -184,7 +197,7 @@ namespace parse
 
         // " Segment count: "
         struct segment_count
-            : pegtl::seq< prefix, pegtl::pad< TAO_PEGTL_ISTRING("Segment count:"), pegtl::blank >, segment_count_number, pegtl::eol >
+            : pegtl::seq< prefix, pegtl::pad< TAO_PEGTL_ISTRING("Segment count:"), pegtl::blank >, pegtl::pad<segment_count_number, pegtl::blank>, pegtl::eol >
         {};
 
         // " Begin: "
@@ -259,7 +272,7 @@ namespace parse
 
         // This is how a line ends: either eol or the begin of a comment
         struct line_end
-            : pegtl::sor<pegtl::eol, pegtl::seq<pegtl::string<'#','#'>,pegtl::not_at<magic_char>>>
+            : pegtl::sor<pegtl::eol, pegtl::seq<pegtl::string<'#','#'>>>
         {};
 
         // This checks that the line end is met and moves up until eol
@@ -291,8 +304,13 @@ namespace parse
                 finish_line >
         {};
 
-        struct ovf_keyword_value_line
-            : pegtl::sor< 
+        template<Version ver>
+        struct keyword_value_line : pegtl::not_at<pegtl::any>
+        {};
+
+        template<>
+        struct keyword_value_line<Version::OVF2>
+            : pegtl::sor<
                 keyword_value_pair< keywords::title, keywords::title_value >,
                 keyword_value_pair< keywords::desc, keywords::desc_value >,
                 keyword_value_pair< keywords::valuedim, keywords::valuedim_value >,
@@ -319,9 +337,10 @@ namespace parse
                 >
             {};
 
-        struct aovf_keyword_value_line
-            : pegtl::sor< 
-                ovf_keyword_value_line,
+        template<>
+        struct keyword_value_line<Version::AOVF>
+            : pegtl::sor<
+                keyword_value_line<Version::OVF2>,
                 // Atomistic extension
                 keyword_value_pair< keywords::meshtype, keywords::meshtype_value_lattice >,
                 keyword_value_pair< keywords::anodes, keywords::anodes_value >,
@@ -335,9 +354,10 @@ namespace parse
              >
         {};
 
-        struct caovf_keyword_value_line
-            : pegtl::sor< 
-                ovf_keyword_value_line,
+        template<>
+        struct keyword_value_line<Version::CAOVF>
+            : pegtl::sor<
+                keyword_value_line<Version::OVF2>,
                 // Atomistic extension
                 magic_keyword_value_pair< keywords::meshtype, keywords::meshtype_value_lattice >,
                 magic_keyword_value_pair< keywords::anodes, keywords::anodes_value >,
@@ -351,16 +371,16 @@ namespace parse
              >
         {};
 
-        template<typename keyword_value_line_t>
+        template<Version ver>
         struct header
             : pegtl::seq<
-                begin, TAO_PEGTL_ISTRING("Header"), finish_line,
+                begin, pegtl::pad<TAO_PEGTL_ISTRING("Header"),pegtl::blank>, finish_line,
                 pegtl::until<
-                    pegtl::seq<end, TAO_PEGTL_ISTRING("Header")>,
+                    pegtl::seq<end, pegtl::pad<TAO_PEGTL_ISTRING("Header"),pegtl::blank>>,
                     pegtl::must<
-                        skippable_lines,
-                        keyword_value_line_t,
-                        skippable_lines
+                        skippable_lines<ver>,
+                        keyword_value_line<ver>,
+                        skippable_lines<ver>
                     >
                 >,
                 finish_line
@@ -368,21 +388,22 @@ namespace parse
         {};
 
         //
+        template<Version ver>
         struct segment
             : pegtl::seq<
-                pegtl::star<pegtl::seq<empty_line, pegtl::eol>>,
-                pegtl::seq< begin, TAO_PEGTL_ISTRING("Segment"), pegtl::eol>,
-                pegtl::until<pegtl::seq<end, TAO_PEGTL_ISTRING("Segment")>>, pegtl::eol >
+                pegtl::star<pegtl::seq<empty_line<ver>, pegtl::eol>>,
+                pegtl::seq< begin, pegtl::pad<TAO_PEGTL_ISTRING("Segment"), pegtl::blank>, finish_line>,
+                pegtl::until<pegtl::seq<end, pegtl::pad<TAO_PEGTL_ISTRING("Segment"), pegtl::blank>>>, finish_line >
         {};
 
         // Class template for user-defined actions that does nothing by default.
-        template< typename Rule >
+        template< typename Rule>
         struct ovf_segment_action
             : pegtl::nothing< Rule >
         {};
 
-        template<>
-        struct ovf_segment_action< segment >
+        template<Version ver>
+        struct ovf_segment_action< segment<ver> >
         {
             template< typename Input >
             static void apply( const Input& in, ovf_file & file )
@@ -394,15 +415,15 @@ namespace parse
         //////////////////////////////////////////////
 
         //
-        template<typename keyword_value_line_t>
+        template<Version ver>
         struct segment_header
             : pegtl::seq<
-                pegtl::star<pegtl::seq<empty_line, pegtl::eol>>,
-                pegtl::seq< begin, TAO_PEGTL_ISTRING("Segment"), pegtl::eol>,
-                pegtl::star<pegtl::seq<empty_line, pegtl::eol>>,
-                header<keyword_value_line_t>,
-                pegtl::star<pegtl::seq<empty_line, pegtl::eol>>,
-                pegtl::until<pegtl::seq<end, TAO_PEGTL_ISTRING("Segment")>>, pegtl::eol >
+                skippable_lines<ver>,
+                pegtl::seq< begin, pegtl::pad<TAO_PEGTL_ISTRING("Segment"), pegtl::blank>, pegtl::eol>,
+                skippable_lines<ver>,
+                header<ver>,
+                skippable_lines<ver>,
+                pegtl::until<pegtl::seq<end, pegtl::pad<TAO_PEGTL_ISTRING("Segment"), pegtl::blank>>>, pegtl::eol >
         {};
 
         // Class template for user-defined actions that does nothing by default.
@@ -410,8 +431,8 @@ namespace parse
         struct ovf_segment_header_action : keywords::kw_action<Rule>
         {};
 
-        template<typename keyword_value_line_t>
-        struct ovf_segment_header_action< segment_header<keyword_value_line_t> >
+        template<Version ver>
+        struct ovf_segment_header_action< segment_header<ver> >
         {
             template< typename Input >
             static void apply( const Input& in, ovf_file & file, ovf_segment & segment )
@@ -444,7 +465,7 @@ namespace parse
                 if( !file._state->found_meshtype )
                     missing_keywords.push_back("meshtype");
 
-                if( std::string(segment.meshtype) == "rectangular" || (file.ovf_extension_format == OVF_EXTENSION_FORMAT_AOVF_COMP && file._state->found_meshtype_atomistic) )
+                if( std::string(segment.meshtype) == "rectangular" || (file.ovf_extension_format == OVF_EXTENSION_FORMAT_AOVF_COMP && file._state->found_meshtype_lattice) )
                 {
                     segment.N = segment.n_cells[0] * segment.n_cells[1] * segment.n_cells[2];
                     if( !file._state->found_xbase )
@@ -496,7 +517,7 @@ namespace parse
                         wrong_keywords.push_back("pointcount");
                 }
 
-                if( std::string(segment.meshtype) == "lattice" || file._state->found_meshtype_atomistic )
+                if( std::string(segment.meshtype) == "lattice" || file._state->found_meshtype_lattice )
                 {
                     segment.N = segment.n_cells[0] * segment.n_cells[1] * segment.n_cells[2] * segment.ncellpoints;
                     if( !file._state->found_anodes )
@@ -515,6 +536,10 @@ namespace parse
                         missing_keywords.push_back("bravaisb");
                     if( !file._state->found_bravaisc )
                         missing_keywords.push_back("bravaisc");
+
+                    if( segment.ncellpoints != file._state->_basis.size() )
+                        throw tao::pegtl::parse_error( fmt::format("ncellpoints ({}) and number of specified basis atoms ({}) does not match!", segment.ncellpoints, file._state->_basis.size() ), in);
+
                 } else {
                     if( file._state->found_anodes )
                         wrong_keywords.push_back("anodes");
@@ -599,17 +624,17 @@ namespace parse
                 >
         {};
 
-        template<typename keyword_value_line_t>
+        template<Version ver>
         struct segment_data
             : pegtl::seq<
-                pegtl::star<pegtl::seq<empty_line, pegtl::eol>>,
-                begin, TAO_PEGTL_ISTRING("Segment"), pegtl::eol,
-                pegtl::star<pegtl::seq<empty_line, pegtl::eol>>,
-                header<keyword_value_line_t>,
-                pegtl::star<pegtl::seq<empty_line, pegtl::eol>>,
+                pegtl::star<pegtl::seq<empty_line<ver>, pegtl::eol>>,
+                begin, pegtl::pad<TAO_PEGTL_ISTRING("Segment"), pegtl::blank>, pegtl::eol,
+                pegtl::star<pegtl::seq<empty_line<ver>, pegtl::eol>>,
+                header<ver>,
+                pegtl::star<pegtl::seq<empty_line<ver>, pegtl::eol>>,
                 pegtl::sor< data_text, data_csv, data_binary_4, data_binary_8 >,
-                pegtl::star<pegtl::seq<empty_line, pegtl::eol>>,
-                pegtl::until<pegtl::seq<end, TAO_PEGTL_ISTRING("Segment")>>, pegtl::eol >
+                pegtl::star<pegtl::seq<empty_line<ver>, pegtl::eol>>,
+                pegtl::until<pegtl::seq<end, pegtl::pad<TAO_PEGTL_ISTRING("Segment"), pegtl::blank>>>, pegtl::eol >
         {};
 
         ////////////////////////////////////
@@ -811,19 +836,19 @@ namespace parse
         };
 
         template<> template< typename Input, typename... States >
-        void ovf_segment_header_control< ovf_keyword_value_line >::raise( const Input& in, States&&... )
+        void ovf_segment_header_control<keyword_value_line<Version::OVF2>>::raise( const Input& in, States&&... )
         {
             throw keyword_value_line_error( in );
         }
 
         template<> template< typename Input, typename... States >
-        void ovf_segment_header_control< aovf_keyword_value_line >::raise( const Input& in, States&&... )
+        void ovf_segment_header_control<keyword_value_line<Version::AOVF>>::raise( const Input& in, States&&... )
         {
             throw keyword_value_line_error( in );
         }
 
         template<> template< typename Input, typename... States >
-        void ovf_segment_header_control< caovf_keyword_value_line >::raise( const Input& in, States&&... )
+        void ovf_segment_header_control<keyword_value_line<Version::CAOVF>>::raise( const Input& in, States&&... )
         {
             throw keyword_value_line_error( in );
         }

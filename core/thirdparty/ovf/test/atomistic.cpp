@@ -3,7 +3,6 @@
 #include <ovf.h>
 #include <fmt/format.h>
 
-
 #include <iostream>
 #include <cstring>
 
@@ -15,8 +14,8 @@ void ovf_test_write(std::string filename, std::string meshtype, int ovf_extensio
     {
         // segment header
         auto segment = ovf_segment_create();
-        segment->title = const_cast<char *>("ovf test title - write");
-        segment->comment = const_cast<char *>("test write");
+        segment->title   = strdup("ovf test title - write");
+        segment->comment = strdup("test write");
         segment->valuedim   = 3;
 
         segment->n_cells[0] = 2;
@@ -65,8 +64,8 @@ void ovf_test_write(std::string filename, std::string meshtype, int ovf_extensio
     {
         // Append second
         auto segment = ovf_segment_create();
-        segment->title = const_cast<char *>("ovf test title - append");
-        segment->comment = const_cast<char *>("test append");
+        segment->title   = strdup("ovf test title - append");
+        segment->comment = strdup("test append");
         segment->valuedim = 3;
         segment->n_cells[0] = 2;
         segment->n_cells[1] = 2;

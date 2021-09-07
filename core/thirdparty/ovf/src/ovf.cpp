@@ -48,13 +48,13 @@ catch( ... )
 void ovf_segment_initialize(struct ovf_segment * ovf_segment_ptr)
 try
 {
-    ovf_segment_ptr->title              = const_cast<char *>("");
-    ovf_segment_ptr->comment            = const_cast<char *>("");
+    ovf_segment_ptr->title              = strdup("");
+    ovf_segment_ptr->comment            = strdup("");
     ovf_segment_ptr->valuedim           = 0;
-    ovf_segment_ptr->valueunits         = const_cast<char *>("");
-    ovf_segment_ptr->valuelabels        = const_cast<char *>("");
-    ovf_segment_ptr->meshtype           = const_cast<char *>("");
-    ovf_segment_ptr->meshunit           = const_cast<char *>("");
+    ovf_segment_ptr->valueunits         = strdup("");
+    ovf_segment_ptr->valuelabels        = strdup("");
+    ovf_segment_ptr->meshtype           = strdup("");
+    ovf_segment_ptr->meshunit           = strdup("");
     ovf_segment_ptr->pointcount         = 0;
     ovf_segment_ptr->n_cells[0]         = 0;
     ovf_segment_ptr->n_cells[1]         = 0;

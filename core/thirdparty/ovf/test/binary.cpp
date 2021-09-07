@@ -1,6 +1,7 @@
 #include <catch.hpp>
 
 #include <ovf.h>
+#include <cstring>
 
 #include <iostream>
 
@@ -152,8 +153,8 @@ TEST_CASE( "Mixed binary and CSV", "[mixed]" )
     {
         // segment header
         auto segment = ovf_segment_create();
-        segment->title = const_cast<char *>("ovf test title - write");
-        segment->comment = const_cast<char *>("test write csv");
+        segment->title   = strdup("ovf test title - write");
+        segment->comment = strdup("test write csv");
         segment->valuedim = 3;
         segment->n_cells[0] = 2;
         segment->n_cells[1] = 2;
