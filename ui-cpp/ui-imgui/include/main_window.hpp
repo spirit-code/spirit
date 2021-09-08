@@ -26,13 +26,6 @@ namespace ui
 
 class MainWindow : GlfwWindow
 {
-    enum class SideBarMode // The current state of the sidebar
-    {
-        Show,
-        Hide,
-        Dragging
-    };
-
 public:
     MainWindow( std::shared_ptr<State> state );
     ~MainWindow();
@@ -44,6 +37,7 @@ public:
 private:
     void show_menu_bar();
     void show_notifications();
+    void show_dock_widgets();
 
     void draw_imgui( int display_w, int display_h );
 
@@ -81,13 +75,14 @@ private:
     std::vector<std::thread> threads_image;
     std::thread thread_chain;
 
-    ImVec2 menu_bar_size = {-1,-1};
+    ImVec2 menu_bar_size = { -1, -1 };
 
-    SideBarMode sidebar; 
-    const float sidebar_x_frac_min = 0.1; // The fractional width of the sidebar when a widget is dragged
-    float sidebar_x_frac = 0.1;           // The current fractional widht of the sidebar
-    float sidebar_x_frac_pref = 0.1;      // The user preference fractional widht of the sidebar
+    const float sidebar_fraction_default = 0.2f; // The fractional width of a sidebar when a widget is dragged
+    const float sidebar_fraction_min     = 0.1f; // The minimum fractional width of a sidebar
+    const float sidebar_fraction_max     = 0.8f; // The maximum fractional width of a sidebar
 
+    float left_sidebar_fraction  = 0; // The current fractional widht of the sidebar
+    float right_sidebar_fraction = 0; // The current fractional widht of the sidebar
 
     bool show_imgui_demo_window  = false;
     bool show_implot_demo_window = false;

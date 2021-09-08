@@ -242,10 +242,19 @@ void RenderingLayer::update_renderers()
             system_renderers.push_back( renderer_widget->renderer );
     }
 
-    total_renderers.push_back(
-        { std::make_shared<VFRendering::CombinedRenderer>( view, system_renderers ), { { 0, 0, 1, 1 } } } );
+    combined_renderer = std::make_shared<VFRendering::CombinedRenderer>( view, system_renderers );
+
+    update_renderers_from_layout();
+}
+
+void RenderingLayer::update_renderers_from_layout()
+{
+    std::vector<std::pair<std::shared_ptr<VFRendering::RendererBase>, std::array<float, 4>>> total_renderers;
+
+    total_renderers.push_back( { combined_renderer, rendering_layout } );
     if( coordinatesystem_renderer_widget->show_ )
-        total_renderers.push_back( { coordinatesystem_renderer_widget->renderer, { 0.8f, 0, 0.2f, 0.2f } } );
+        total_renderers.push_back(
+            { coordinatesystem_renderer_widget->renderer, { rendering_layout[2] - 0.2f, 0, 0.2f, 0.2f } } );
 
     view.renderers( total_renderers );
 }
