@@ -963,6 +963,7 @@ __global__ void CU_Write_FFT_Dipole_Input1(
     }
 }
 
+/*
 void Hamiltonian_Micromagnetic::FFT_Dipole_Matrices( FFT::FFT_Plan & fft_plan_dipole, int img_a, int img_b, int img_c )
 {
     auto & fft_dipole_inputs = fft_plan_dipole.real_ptr;
@@ -991,6 +992,8 @@ void Hamiltonian_Micromagnetic::FFT_Dipole_Matrices( FFT::FFT_Plan & fft_plan_di
     CU_CHECK_AND_SYNC();
     FFT::batch_Four_3D( fft_plan_dipole );
 }
+*/
+
 void Hamiltonian_Micromagnetic::Prepare_DDI()
 {
     Clean_DDI();
@@ -1055,7 +1058,9 @@ void Hamiltonian_Micromagnetic::Prepare_DDI()
     int img_c = boundary_conditions[2] == 0 ? 0 : ddi_n_periodic_images[2];
 
     FFT_Dipole_Matrices(fft_plan_dipole, img_a, img_b, img_c); */
+    /*
     FFT_Dipole_Matrices( fft_plan_dipole, 0, 0, 0 );
+    */
 
     transformed_dipole_matrices = std::move( fft_plan_dipole.cpx_ptr );
 } // end prepare
