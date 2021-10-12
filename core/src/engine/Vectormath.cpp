@@ -1,3 +1,4 @@
+#include "engine/Vectormath_Defines.hpp"
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <utility/Constants.hpp>
@@ -594,6 +595,70 @@ namespace Vectormath
         set_range(distribution, range_min, range_max);
     }
 
+    void directional_gradient2(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions, const Vector3 & direction, vectorfield & gradient)
+    {
+        // 1.) Choose three linearly independent base vectors, which result from lattice translations
+        // TODO: depending on the basis, the bravais vectors might not be the best choice
+        std::array<std::array<int, 3>, 3> translations  = { 1,0,0, 0,1,0, 0,0,1 };
+
+        Vector3 base_1 = geometry.lattice_constant * geometry.bravais_vectors[0],
+                base_2 = geometry.lattice_constant * geometry.bravais_vectors[1], 
+                base_3 = geometry.lattice_constant * geometry.bravais_vectors[2];
+
+        // 2.) Construct the matrix of base vectors
+        Matrix3 base_matrix;
+        base_matrix.row(0) = base_1;
+        base_matrix.row(1) = base_2;
+        base_matrix.row(2) = base_3;
+
+        // 3.) Invert the matrix
+        auto inverse_base_matrix = base_matrix.inverse();
+
+        // 4.) Lopp over spins
+        Matrix3 m_matrix;
+        for(int c=0; c<geometry.n_cells[2]; c++)
+        {
+            for(int b=0; b<geometry.n_cells[1]; b++)
+            {
+                for(int a=0; a<geometry.n_cells[0]; a++)
+                {
+                    for(int ib=0; ib<geometry.n_cell_atoms; ib++)
+                    {
+                        auto idx_cur = geometry.idx(ib, a, b, c, true);
+
+                        for(int trans_idx=0; trans_idx<3; trans_idx++)
+                        {
+                            auto & trans = translations[trans_idx];
+                            // apply translations in positive direction
+                            auto idx0 = geometry.idx(ib, a+trans[0], b+trans[1], c+trans[2], false, boundary_conditions);
+
+                            // apply translations in negative direction
+                            auto idx1 = geometry.idx(ib, a-trans[0], b-trans[1], c-trans[2], false, boundary_conditions);
+
+                            Vector3 m0 = {0,0,0};
+                            Vector3 m1 = {0,0,0};
+
+                            scalar factor = 0.5; // Factor 0.5 for central finite differences
+                            if(idx0>0)
+                            {
+                                m0 = vf[idx0];
+                                factor *= 2; // Increae factor because now only forward difference
+                            }
+                            if(idx1>0)
+                            {
+                                m1 = vf[idx1];
+                                factor *= 2; // Increase factor because now only backward difference
+                            }
+
+                            m_matrix.row(trans_idx) = factor * (m0 - m1);
+                        }
+                        gradient[idx_cur] = inverse_base_matrix * m_matrix * direction;
+                    }
+                }
+            }
+        }
+
+    }
 
     void directional_gradient(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions, const Vector3 & direction, vectorfield & gradient)
     {

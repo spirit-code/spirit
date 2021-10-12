@@ -499,6 +499,7 @@ namespace Engine
         // Calculate the spatial gradient of a vectorfield in a certain direction.
         //      This requires to know the underlying geometry, as well as the boundary conditions.
         void directional_gradient(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions, const Vector3 & direction, vectorfield & gradient);
+        void directional_gradient2(const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions, const Vector3 & direction, vectorfield & gradient);
 
         /////////////////////////////////////////////////////////////////
 
