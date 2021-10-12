@@ -40,6 +40,14 @@ The array is contiguous and of shape (NOS, 3).
 */
 PREFIX scalar * System_Get_Effective_Field(State * state, int idx_image=-1, int idx_chain=-1) SUFFIX;
 
+
+/*
+Returns a pointer to the spatial gradient of the spin directions data.
+
+The array is contiguous and of shape (NOS, 3).
+*/
+PREFIX scalar * System_Get_Spatial_Gradient(State * state, const float direction[3], int idx_image=-1, int idx_chain=-1) SUFFIX;
+
 /*
 Returns a pointer to the data of the N'th eigenmode of a spin system.
 

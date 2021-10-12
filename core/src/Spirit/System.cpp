@@ -4,6 +4,7 @@
 #include <engine/Eigenmodes.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
+#include <engine/Vectormath.hpp>
 
 int System_Get_Index(State * state) noexcept
 try
@@ -59,6 +60,29 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
     return image->effective_field[0].data();
+}
+catch( ... )
+{
+    spirit_handle_exception_api(idx_image, idx_chain);
+    return nullptr;
+}
+
+scalar * System_Get_Spatial_Gradient(State * state,  const float direction [3], int idx_image, int idx_chain) noexcept
+try
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    // Resize, if necessary
+    if(image->spatial_gradient.size() != image->nos)
+        image->spatial_gradient.resize(image->nos);
+
+    Engine::Vectormath::directional_gradient2(*(image->spins), *(image->geometry), image->hamiltonian->boundary_conditions, {direction[0], direction[1], direction[2]}, image->spatial_gradient);
+
+    return image->spatial_gradient[0].data();
 }
 catch( ... )
 {

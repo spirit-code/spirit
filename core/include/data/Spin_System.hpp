@@ -74,6 +74,9 @@ public:
     std::vector<std::pair<std::string, scalar>> E_array;
     // Mean of magnetization
     Vector3 M;
+
+    vectorfield spatial_gradient = vectorfield(0);
+
     // Total effective field of the spins [3][nos]
     vectorfield effective_field;
 
