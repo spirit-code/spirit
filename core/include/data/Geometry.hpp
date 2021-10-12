@@ -145,6 +145,50 @@ public:
     // Unit Cell Bounds
     Vector3 cell_bounds_min, cell_bounds_max;
 
+    // Compute the linear index from the lattice position, does NOT check boundary conditions and expects ib,a,b,c to lie within bounds
+    inline int idx(int ib, int a, int b, int c, bool disable_checks=false, const intfield & bc = {false, false, false}) const
+    {
+
+        if(!disable_checks)
+        {
+            bool valid_basis = ib>=0 && ib<n_cell_atoms;
+            bool valid_a     = a>=0 && a<n_cells[0];
+            bool valid_b     = b>=0 && b<n_cells[1];
+            bool valid_c     = c>=0 && c<n_cells[2];
+
+            if(!valid_basis)
+            {
+                return -1;
+            }
+
+            if(!valid_a)
+            {
+                if(bc[0])
+                    a = a%n_cells[0];
+                else
+                    return -1;
+            }
+
+            if(!valid_b)
+            {
+                if(bc[1])
+                    b = b%n_cells[1];
+                else
+                    return -1;
+            }
+
+            if(!valid_c)
+            {
+                if(bc[2])
+                    c = c%n_cells[2];
+                else
+                    return -1;
+            }
+        }
+
+        return ib + n_cell_atoms * (a + n_cells[0] * (b + n_cells[1] * c));
+    }
+
 private:
     // Generate the full set of spin positions
     void generatePositions();
