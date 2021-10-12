@@ -42,6 +42,10 @@ private slots:
     void set_visualization_system_arrows();
     void set_visualization_system_boundingbox();
     void set_visualization_system_surface();
+
+    void set_grad_surface();
+    void set_grad_surface_direction();
+
     void set_visualization_system_overall_direction_line_edits();
     void set_visualization_system_overall_direction_sliders();
     void set_visualization_system_overall_direction(

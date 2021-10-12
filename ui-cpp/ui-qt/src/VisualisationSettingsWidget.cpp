@@ -448,6 +448,21 @@ void VisualisationSettingsWidget::set_visualization_system_arrows()
     int arrowlod    = lineEdit_arrows_lod->text().toInt();
     this->spinWidget->setArrows( arrowsize, arrowlod );
 }
+
+void VisualisationSettingsWidget::set_grad_surface()
+{
+    spinWidget->grad_surface = checkBox_grad_surface->isChecked();
+    spinWidget->updateData();
+}
+
+void VisualisationSettingsWidget::set_grad_surface_direction()
+{
+    spinWidget->grad_direction[0] = doubleSpinBox_n1->value();
+    spinWidget->grad_direction[1] = doubleSpinBox_n2->value();
+    spinWidget->grad_direction[2] = doubleSpinBox_n3->value();
+    spinWidget->updateData();
+}
+
 void VisualisationSettingsWidget::set_visualization_system_boundingbox() {}
 void VisualisationSettingsWidget::set_visualization_system_surface()
 {
@@ -1238,6 +1253,15 @@ void VisualisationSettingsWidget::Setup_Visualization_Slots()
     connect( lineEdit_arrows_lod, SIGNAL( returnPressed() ), this, SLOT( set_visualization_system_arrows() ) );
     //      bounding box
     //      surface
+
+    connect(
+        checkBox_grad_surface, SIGNAL( stateChanged( int ) ), this,
+        SLOT( set_grad_surface() ) );
+
+    connect( doubleSpinBox_n1, SIGNAL( valueChanged( double ) ), this, SLOT( set_grad_surface_direction() ) );
+    connect( doubleSpinBox_n2, SIGNAL( valueChanged( double ) ), this, SLOT( set_grad_surface_direction() ) );
+    connect( doubleSpinBox_n3, SIGNAL( valueChanged( double ) ), this, SLOT( set_grad_surface_direction() ) );
+
     connect(
         horizontalSlider_surface_xmin, SIGNAL( valueChanged( int ) ), this,
         SLOT( set_visualization_system_surface() ) );

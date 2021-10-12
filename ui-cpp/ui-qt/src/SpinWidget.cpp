@@ -1,4 +1,5 @@
 #include "SpinWidget.hpp"
+#include "glm/detail/type_vec.hpp"
 
 #include <QMouseEvent>
 #include <QTimer>
@@ -545,6 +546,37 @@ void SpinWidget::updateVectorFieldDirections()
         spins = System_Get_Effective_Field( state.get() );
     else
         spins = System_Get_Spin_Directions( state.get() );
+
+    static std::vector<glm::vec3> directions_gradient;
+    static std::vector<float> z_values;
+    if(grad_surface)
+    {
+        scalar * spatial_gradient = System_Get_Spatial_Gradient(this->state.get(), grad_direction);
+        if(nos_draw != directions_gradient.size())
+        {
+            directions_gradient.resize(nos_draw);
+            z_values.resize(nos_draw);
+        }
+        scalar max = 1e-3;
+        for(int i=0; i<nos_draw; i++)
+        {
+            // auto cur_spin = glm::vec3{spins[3*i], spins[3*i+1], spins[3*i+2]};
+            auto cur_spin = glm::vec3{spins[3*i], spins[3*i+1], 0};
+
+            auto cur_grad = glm::vec3{spatial_gradient[3*i], spatial_gradient[3*i+1], spatial_gradient[3*i+2]};
+
+            float z = glm::dot(cur_spin, cur_grad);
+            z_values[i] = z;
+            if(std::abs(z) > max)
+                max = std::abs(z);
+        }
+        for(int i=0; i<nos_draw; i++)
+        {
+            float z = z_values[i] / max;
+            directions_gradient[i] = glm::vec3{0,std::sqrt(1-z*z),z}; // We need to also specify the y component because VFRendering expects normalized vectors
+        }
+    }
+
     //        copy
     /*positions.assign(spin_pos, spin_pos + 3*nos);
     directions.assign(spins, spins + 3*nos);*/
@@ -587,7 +619,12 @@ void SpinWidget::updateVectorFieldDirections()
     this->m_vf.updateVectors( directions );
 
     if( Geometry_Get_Dimensionality( state.get() ) == 2 )
-        this->m_vf_surf2D.updateVectors( directions );
+        if(grad_surface)
+        {
+            this->m_vf_surf2D.updateVectors( directions_gradient );
+        } else {
+            this->m_vf_surf2D.updateVectors( directions );
+        }
 }
 
 void SpinWidget::updateData( bool update_directions, bool update_geometry, bool update_camera )

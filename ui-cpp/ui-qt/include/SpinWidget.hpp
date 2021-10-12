@@ -100,6 +100,9 @@ public:
     void setVisualisationSource( int source );
     int m_source;
 
+    bool grad_surface = false;
+    float grad_direction[3] = {0,0,1};
+
     const VFRendering::View * view();
     const VFRendering::VectorField * vectorfield();
 
