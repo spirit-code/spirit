@@ -1557,7 +1557,7 @@
               <item>
                <widget class="QCheckBox" name="checkBox_grad_surface">
                 <property name="text">
-                 <string>Use (∇s * n) * s as data source </string>
+                 <string>Use (∇ŝ  · n) · ŝ  as data source </string>
                 </property>
                </widget>
               </item>
@@ -2670,7 +2670,7 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_2"/>
  </buttongroups>
 </ui>
