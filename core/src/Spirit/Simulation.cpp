@@ -13,7 +13,7 @@
 
 
 // Helper function to start a simulation once a Method has been created
-void run_method(std::shared_ptr<Engine::Method> method, bool singleshot)
+void run_method(std::shared_ptr<Engine::Method> method, bool singleshot, Simulation_Run_Info * info = nullptr)
 {
     if( singleshot )
     {
@@ -33,12 +33,18 @@ void run_method(std::shared_ptr<Engine::Method> method, bool singleshot)
     else
     {
         method->Iterate();
+        if(info)
+        {
+            info->max_torque       = method->getTorqueMaxNorm();
+            info->total_iterations = method->getNIterations();
+            info->total_walltime   = method->getWallTime();
+            info->total_ips        = float(info->total_iterations) / info->total_walltime * 1000.0;
+        }
     }
 }
 
-
 void Simulation_MC_Start(State *state,
-    int n_iterations, int n_iterations_log, bool singleshot, int idx_image, int idx_chain) noexcept
+    int n_iterations, int n_iterations_log, bool singleshot, Simulation_Run_Info * info, int idx_image, int idx_chain) noexcept
 try
 {
     // Fetch correct indices and pointers for image and chain
@@ -82,7 +88,7 @@ try
         image->Unlock();
 
         state->method_image[idx_image] = method;
-        run_method(method, singleshot);
+        run_method(method, singleshot, info);
     }
 }
 catch( ... )
@@ -91,7 +97,7 @@ catch( ... )
 }
 
 void Simulation_LLG_Start(State *state, int solver_type,
-    int n_iterations, int n_iterations_log, bool singleshot, int idx_image, int idx_chain) noexcept
+    int n_iterations, int n_iterations_log, bool singleshot, Simulation_Run_Info * info, int idx_image, int idx_chain) noexcept
 try
 {
     // Fetch correct indices and pointers for image and chain
@@ -161,7 +167,7 @@ try
         image->Unlock();
 
         state->method_image[idx_image] = method;
-        run_method(method, singleshot);
+        run_method(method, singleshot, info);
     }
 }
 catch( ... )
@@ -170,7 +176,7 @@ catch( ... )
 }
 
 void Simulation_GNEB_Start(State *state, int solver_type,
-    int n_iterations, int n_iterations_log, bool singleshot, int idx_chain) noexcept
+    int n_iterations, int n_iterations_log, bool singleshot, Simulation_Run_Info * info, int idx_chain) noexcept
 try
 {
     int idx_image = -1;
@@ -253,7 +259,7 @@ try
             chain->Unlock();
 
             state->method_chain = method;
-            run_method(method, singleshot);
+            run_method(method, singleshot, info);
         }
     }
 }
@@ -263,7 +269,7 @@ catch( ... )
 }
 
 void Simulation_MMF_Start(State *state, int solver_type,
-    int n_iterations, int n_iterations_log, bool singleshot, int idx_image, int idx_chain) noexcept
+    int n_iterations, int n_iterations_log, bool singleshot, Simulation_Run_Info * info, int idx_image, int idx_chain) noexcept
 try
 {
     // Fetch correct indices and pointers for image and chain
@@ -324,7 +330,7 @@ try
         image->Unlock();
 
         state->method_image[idx_image] = method;
-        run_method(method, singleshot);
+        run_method(method, singleshot, info);
     }
 }
 catch( ... )
@@ -333,7 +339,7 @@ catch( ... )
 }
 
 void Simulation_EMA_Start(State *state,
-    int n_iterations, int n_iterations_log, bool singleshot, int idx_image, int idx_chain) noexcept
+    int n_iterations, int n_iterations_log, bool singleshot, Simulation_Run_Info * info, int idx_image, int idx_chain) noexcept
 try
 {
     // Fetch correct indices and pointers for image and chain
@@ -377,7 +383,8 @@ try
         image->Unlock();
 
         state->method_image[idx_image] = method;
-        run_method(method, singleshot);
+
+        run_method(method, singleshot, info);
     }
 }
 catch( ... )

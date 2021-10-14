@@ -88,32 +88,39 @@ spin configuration through such a mode or to get a "dynamical" chain
 of images corresponding to the movement of the system under the mode.
 """
 
+class simulation_run_info(ctypes.Structure):
+    _fields_ = [
+                    ("total_iterations", ctypes.c_int),
+                    ("total_walltime", ctypes.c_int),
+                    ("total_ips", ctypes.c_float),
+                    ("max_torque", ctypes.c_float)
+                ]
 
 ### ----- Start methods
 ### MC
 _MC_Start          = _spirit.Simulation_MC_Start
 _MC_Start.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int,
-                        ctypes.c_bool, ctypes.c_int, ctypes.c_int]
+                        ctypes.c_bool, ctypes.POINTER(simulation_run_info), ctypes.c_int, ctypes.c_int]
 _MC_Start.restype  = None
 ### LLG
 _LLG_Start          = _spirit.Simulation_LLG_Start
 _LLG_Start.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int,
-                        ctypes.c_bool, ctypes.c_int, ctypes.c_int]
+                        ctypes.c_bool, ctypes.POINTER(simulation_run_info), ctypes.c_int, ctypes.c_int]
 _LLG_Start.restype  = None
 ### GNEB
 _GNEB_Start          = _spirit.Simulation_GNEB_Start
 _GNEB_Start.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int,
-                        ctypes.c_int, ctypes.c_bool, ctypes.c_int]
+                        ctypes.c_int, ctypes.c_bool, ctypes.POINTER(simulation_run_info), ctypes.c_int]
 _GNEB_Start.restype  = None
 ### MMF
 _MMF_Start          = _spirit.Simulation_MMF_Start
 _MMF_Start.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int,
-                        ctypes.c_bool, ctypes.c_int, ctypes.c_int]
+                        ctypes.c_bool, ctypes.POINTER(simulation_run_info), ctypes.c_int, ctypes.c_int]
 _MMF_Start.restype  = None
 ### EMA
 _EMA_Start          = _spirit.Simulation_EMA_Start
 _EMA_Start.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int,
-                        ctypes.c_bool, ctypes.c_int, ctypes.c_int]
+                        ctypes.c_bool, ctypes.POINTER(simulation_run_info), ctypes.c_int, ctypes.c_int]
 _EMA_Start.restype  = None
 ### ----- Wrapper
 def start(p_state, method_type, solver_type=None, n_iterations=-1, n_iterations_log=-1,
@@ -128,37 +135,45 @@ def start(p_state, method_type, solver_type=None, n_iterations=-1, n_iterations_
     - `idx_image`: the image on which to run the calculation (default: active image). Not used for GNEB
     """
 
+    info = simulation_run_info()
+
     if method_type == METHOD_MC:
         spiritlib.wrap_function(_MC_Start, [ctypes.c_void_p(p_state),
                                             ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log),
                                             ctypes.c_bool(single_shot),
+                                            ctypes.pointer(info),
                                             ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
     elif method_type == METHOD_LLG:
         spiritlib.wrap_function(_LLG_Start, [ctypes.c_void_p(p_state),
                                             ctypes.c_int(solver_type),
                                             ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log),
                                             ctypes.c_bool(single_shot),
+                                            ctypes.pointer(info),
                                             ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
     elif method_type == METHOD_GNEB:
         spiritlib.wrap_function(_GNEB_Start, [ctypes.c_void_p(p_state),
                                             ctypes.c_int(solver_type),
                                             ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log),
                                             ctypes.c_bool(single_shot),
-                                            ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
+                                            ctypes.pointer(info),
+                                            ctypes.c_int(idx_chain)])
     elif method_type == METHOD_MMF:
         spiritlib.wrap_function(_MMF_Start, [ctypes.c_void_p(p_state),
                                             ctypes.c_int(solver_type),
                                             ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log),
                                             ctypes.c_bool(single_shot),
+                                            ctypes.pointer(info),
                                             ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
     elif method_type == METHOD_EMA:
         spiritlib.wrap_function(_EMA_Start, [ctypes.c_void_p(p_state),
                                             ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log),
                                             ctypes.c_bool(single_shot),
+                                            ctypes.pointer(info),
                                             ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
     else:
         print("Invalid method_type passed to simulation.start...")
 
+    return info
     # _Start(ctypes.c_void_p(p_state), ctypes.c_char_p(method_type),
     #            ctypes.c_char_p(solver_type), ctypes.c_int(n_iterations),
     #            ctypes.c_int(n_iterations_log), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
