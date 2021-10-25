@@ -442,6 +442,28 @@ namespace Vectormath
         return solid_angle;
     }
 
+    // Constructs a rotation matrix that rotates to a frame with "normal" as the z-axis
+    Matrix3 dreibein(const Vector3 & normal)
+    {
+        const Vector3 ex = {1,0,0};
+        const Vector3 ey = {0,1,0};
+
+        Vector3 x_hat;
+        if( std::abs(normal.dot(ex)-1) > 1e-1) // Make sure not to take the cross product with a parallel vector
+        {
+            x_hat = normal.cross(ex);
+        } else {
+            x_hat = normal.cross(ey);
+        }
+
+        Vector3 y_hat = normal.cross(x_hat);
+
+        Matrix3 dreibein;
+        dreibein.row(0) = x_hat.normalized();
+        dreibein.row(1) = y_hat.normalized();
+        dreibein.row(2) = normal.normalized();
+        return dreibein;
+    }
 
     void rotate(const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out)
     {

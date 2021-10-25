@@ -466,7 +466,7 @@ catch( ... )
 
 void Configuration_Hopfion( State *state, float r, int order, const float position[3],
                             const float r_cut_rectangular[3], float r_cut_cylindrical,
-                            float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
+                            float r_cut_spherical, bool inverted, const float normal[3], int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -487,7 +487,7 @@ try
 
     // Apply configuration
     image->Lock();
-    Utility::Configurations::Hopfion(*image, vpos, r, order, filter);
+    Utility::Configurations::Hopfion(*image, vpos, r, order, {normal[0],normal[1],normal[2]}, filter);
     image->geometry->Apply_Pinning(*image->spins);
     image->Unlock();
 
