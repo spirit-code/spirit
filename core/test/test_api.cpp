@@ -105,7 +105,8 @@ TEST_CASE( "Configurations", "[configurations]" )
 	{
 		float r=5;
 		int order=1;
-		Configuration_Hopfion(state.get(), r, order, position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted);
+		float normal[3] = {0,0,1};
+		Configuration_Hopfion(state.get(), r, order, position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted, normal);
 	}
 	SECTION("Spin Spiral")
 	{
