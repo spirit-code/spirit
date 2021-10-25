@@ -53,6 +53,7 @@ Note that the VP and LBFGS Solvers are only meant for direct minimization and no
 // `Solver_VP_OSO`: Verlet-like velocity projection, exponential transform
 #define Solver_VP_OSO 7
 
+// A struct that can be passed as an additional argument to the `Simulation_XXX_Start` methods to gather some basic information about the simulation run
 struct Simulation_Run_Info
 {
     int total_iterations = 0;

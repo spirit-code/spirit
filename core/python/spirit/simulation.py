@@ -88,6 +88,7 @@ of images corresponding to the movement of the system under the mode.
 """
 
 class simulation_run_info(ctypes.Structure):
+    """Contains basic information about a simulation run."""
     _fields_ = [
                     ("total_iterations", ctypes.c_int),
                     ("total_walltime", ctypes.c_int),
@@ -132,6 +133,8 @@ def start(p_state, method_type, solver_type=None, n_iterations=-1, n_iterations_
     - `n_iterations_log`: the number of iterations after which to log the status and write output (default: take from parameters)
     - `single_shot`: if set to `True`, iterations have to be triggered individually
     - `idx_image`: the image on which to run the calculation (default: active image). Not used for GNEB
+
+    returns a `simulation_run_info` object.
     """
 
     info = simulation_run_info()
