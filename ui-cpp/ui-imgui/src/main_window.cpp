@@ -951,6 +951,7 @@ void MainWindow::show_dock_widgets()
     float pre_left_sidebar_fraction  = left_sidebar_fraction;
 
     auto window_height = io.DisplaySize.y;
+    auto sidebar_height = window_height - menu_bar_size[1];
 
     for( const auto * w : spirit_widgets )
     {
@@ -987,8 +988,8 @@ void MainWindow::show_dock_widgets()
         if( a_window_is_docked_left )
         {
             ImGui::SetNextWindowSizeConstraints(
-                { sidebar_fraction_min * io.DisplaySize.x, window_height },
-                { sidebar_fraction_max * io.DisplaySize.x, window_height } );
+                { sidebar_fraction_min * io.DisplaySize.x, sidebar_height },
+                { sidebar_fraction_max * io.DisplaySize.x, sidebar_height } );
         }
         else
         {
@@ -1026,8 +1027,8 @@ void MainWindow::show_dock_widgets()
         {
             ImGui::SetNextWindowPos( { ( 1 - right_sidebar_fraction ) * io.DisplaySize.x, menu_bar_size[1] } );
             ImGui::SetNextWindowSizeConstraints(
-                { sidebar_fraction_min * io.DisplaySize.x, window_height },
-                { sidebar_fraction_max * io.DisplaySize.x, window_height } );
+                { sidebar_fraction_min * io.DisplaySize.x, sidebar_height },
+                { sidebar_fraction_max * io.DisplaySize.x, sidebar_height } );
         }
         else
         {
@@ -1086,7 +1087,8 @@ void MainWindow::show_dock_widgets()
         previous_frame_showed_right_dock = false;
 
     // If the sidebar changed we need to issue a redraw and resize
-    if( left_sidebar_fraction != pre_left_sidebar_fraction || right_sidebar_fraction != pre_right_sidebar_fraction )
+    if( ( left_sidebar_fraction != pre_left_sidebar_fraction )
+        || ( right_sidebar_fraction != pre_right_sidebar_fraction ) )
     {
         rendering_layer.needs_redraw();
 
@@ -1098,7 +1100,7 @@ void MainWindow::show_dock_widgets()
         if( a_window_is_docked_right )
             layout_right = 1 - right_sidebar_fraction;
 
-        rendering_layer.rendering_layout = { layout_left, 0, layout_right, 1 };
+        rendering_layer.rendering_layout = { layout_left, 0, layout_right - layout_left, 1 };
 
         // Set new rendering position/size
         rendering_layer.update_renderers_from_layout();
