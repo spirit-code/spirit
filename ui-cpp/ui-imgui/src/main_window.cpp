@@ -340,6 +340,20 @@ void MainWindow::handle_keyboard()
         {
             this->insert_image_right();
         }
+
+        //-----------------------------------------------------
+
+        if( ImGui::IsKeyPressed( GLFW_KEY_N ) )
+        {
+            auto & conf = ui_shared_state.configurations;
+
+            Configuration_Add_Noise_Temperature(
+                state.get(), conf.noise_temperature, conf.pos, conf.border_rect, conf.border_cyl, conf.border_sph,
+                conf.inverted );
+
+            Chain_Update_Data( state.get() );
+            rendering_layer.needs_data();
+        }
     }
     else
     {
@@ -1798,7 +1812,7 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
           state( state ),
           rendering_layer( ui_shared_state, state ),
           ui_config_file( ui_shared_state, rendering_layer ),
-          configurations_widget( ui_config_file.show_configurations_widget, state, rendering_layer ),
+          configurations_widget( ui_config_file.show_configurations_widget, state, ui_shared_state, rendering_layer ),
           parameters_widget( ui_config_file.show_parameters_widget, state, ui_shared_state ),
           geometry_widget( ui_config_file.show_geometry_widget, state, rendering_layer ),
           hamiltonian_widget( ui_config_file.show_hamiltonian_widget, state, rendering_layer ),

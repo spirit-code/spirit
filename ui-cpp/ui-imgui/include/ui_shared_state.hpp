@@ -64,8 +64,21 @@ struct UiSharedState
     bool mmf_apply_to_all = true;
     bool ema_apply_to_all = true;
 
+    // Configurations widget
+    struct Configurations
+    {
+        float pos[3]{ 0, 0, 0 };
+        float border_rect[3]{ -1, -1, -1 };
+        float border_cyl = -1;
+        float border_sph = -1;
+        bool inverted    = false;
+
+        float noise_temperature = 0;
+    };
+    Configurations configurations{};
+
     // Other
-    int n_screenshots = 0;
+    int n_screenshots       = 0;
     int n_screenshots_chain = 0;
     std::list<Notification> notifications;
 };

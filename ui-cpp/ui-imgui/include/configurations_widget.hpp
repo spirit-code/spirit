@@ -4,6 +4,7 @@
 
 #include <rendering_layer.hpp>
 #include <widget_base.hpp>
+
 #include <memory>
 
 struct State;
@@ -13,21 +14,15 @@ namespace ui
 
 struct ConfigurationsWidget : public WidgetBase
 {
-    ConfigurationsWidget( bool & show, std::shared_ptr<State> state, RenderingLayer & rendering_layer );
+    ConfigurationsWidget(
+        bool & show, std::shared_ptr<State> state, UiSharedState & ui_shared_state, RenderingLayer & rendering_layer );
     void reset_settings();
     void show_content() override;
     void update_data();
 
     std::shared_ptr<State> state;
     RenderingLayer & rendering_layer;
-
-    float pos[3]{ 0, 0, 0 };
-    float border_rect[3]{ -1, -1, -1 };
-    float border_cyl = -1;
-    float border_sph = -1;
-    bool inverted    = false;
-
-    float temperature = 0;
+    UiSharedState & ui_shared_state;
 
     float sk_radius = 15;
     float sk_speed  = 1;
