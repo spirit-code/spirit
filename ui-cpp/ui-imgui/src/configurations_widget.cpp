@@ -99,22 +99,16 @@ void ConfigurationsWidget::show_content()
 
     if( ImGui::Button( "Random" ) )
     {
-        Configuration_Random(
-            state.get(), conf.pos, conf.border_rect, conf.border_cyl, conf.border_sph, conf.inverted );
-        rendering_layer.needs_data();
     }
     ImGui::SameLine();
     if( ImGui::Button( "+z" ) )
     {
-        Configuration_PlusZ( state.get(), conf.pos, conf.border_rect, conf.border_cyl, conf.border_sph, conf.inverted );
-        rendering_layer.needs_data();
+        this->set_plus_z();
     }
     ImGui::SameLine();
     if( ImGui::Button( "-z" ) )
     {
-        Configuration_MinusZ(
-            state.get(), conf.pos, conf.border_rect, conf.border_cyl, conf.border_sph, conf.inverted );
-        rendering_layer.needs_data();
+        this->set_minus_z();
     }
 
     ImGui::Dummy( { 0, 10 } );
@@ -138,11 +132,7 @@ void ConfigurationsWidget::show_content()
 
     if( ImGui::Button( "Skyrmion" ) )
     {
-        Configuration_Skyrmion(
-            state.get(), sk_radius, sk_speed, sk_phase, sk_up_down, sk_achiral, sk_rl, conf.pos, conf.border_rect,
-            conf.border_cyl, conf.border_sph, conf.inverted );
-
-        rendering_layer.needs_data();
+        this->set_skyrmion();
     }
 
     ImGui::Indent( 15 );
@@ -182,11 +172,7 @@ void ConfigurationsWidget::show_content()
 
     if( ImGui::Button( "Hopfion" ) )
     {
-        Configuration_Hopfion(
-            state.get(), hopfion_radius, hopfion_order, conf.pos, conf.border_rect, conf.border_cyl, conf.border_sph,
-            conf.inverted );
-
-        rendering_layer.needs_data();
+        this->set_hopfion();
     }
 
     ImGui::Indent( 15 );
@@ -207,56 +193,9 @@ void ConfigurationsWidget::show_content()
     ImGui::Separator();
     ImGui::Dummy( { 0, 10 } );
 
-    const char * direction_type = "Real Lattice";
-    // if( comboBox_SS->currentText() == "Real Lattice" )
-    //     direction_type = "Real Lattice";
-    // else if( comboBox_SS->currentText() == "Reciprocal Lattice" )
-    //     direction_type = "Reciprocal Lattice";
-    // else if( comboBox_SS->currentText() == "Real Space" )
-    //     direction_type = "Real Space";
-
     if( ImGui::Button( "Spiral" ) )
     {
-        // Normalize
-        float absq = std::sqrt(
-            spiral_qvec[0] * spiral_qvec[0] + spiral_qvec[1] * spiral_qvec[1] + spiral_qvec[2] * spiral_qvec[2] );
-        if( absq == 0 )
-        {
-            spiral_qvec[0] = 0;
-            spiral_qvec[1] = 0;
-            spiral_qvec[2] = 1;
-        }
-
-        // Scale
-        for( int dim = 0; dim < 3; ++dim )
-            spiral_qvec[dim] *= spiral_qmag;
-
-        // Create Spin Spiral
-        if( spiral_q2 )
-        {
-            // Normalize
-            float absq2 = std::sqrt(
-                spiral_qvec2[0] * spiral_qvec2[0] + spiral_qvec2[1] * spiral_qvec2[1]
-                + spiral_qvec2[2] * spiral_qvec2[2] );
-            if( absq == 0 )
-            {
-                spiral_qvec2[0] = 0;
-                spiral_qvec2[1] = 0;
-                spiral_qvec2[2] = 1;
-            }
-
-            // Scale
-            for( int dim = 0; dim < 3; ++dim )
-                spiral_qvec2[dim] *= spiral_qmag2;
-
-            Configuration_SpinSpiral_2q(
-                state.get(), direction_type, spiral_qvec, spiral_qvec2, spiral_axis, spiral_angle, conf.pos,
-                conf.border_rect, conf.border_cyl, conf.border_sph, conf.inverted );
-        }
-        else
-            Configuration_SpinSpiral(
-                state.get(), direction_type, spiral_qvec, spiral_axis, spiral_angle, conf.pos, conf.border_rect,
-                conf.border_cyl, conf.border_sph, conf.inverted );
+        this->set_spiral();
     }
 
     ImGui::Indent( 15 );
@@ -317,5 +256,105 @@ void ConfigurationsWidget::show_content()
 }
 
 void ConfigurationsWidget::update_data() {}
+
+void ConfigurationsWidget::set_plus_z()
+{
+    auto & conf = ui_shared_state.configurations;
+    Configuration_PlusZ( state.get(), conf.pos, conf.border_rect, conf.border_cyl, conf.border_sph, conf.inverted );
+    rendering_layer.needs_data();
+    conf.last_used = "plus_z";
+}
+
+void ConfigurationsWidget::set_minus_z()
+{
+    auto & conf = ui_shared_state.configurations;
+    Configuration_MinusZ( state.get(), conf.pos, conf.border_rect, conf.border_cyl, conf.border_sph, conf.inverted );
+    rendering_layer.needs_data();
+    conf.last_used = "minus_z";
+}
+
+void ConfigurationsWidget::set_random()
+{
+    auto & conf = ui_shared_state.configurations;
+    Configuration_Random( state.get(), conf.pos, conf.border_rect, conf.border_cyl, conf.border_sph, conf.inverted );
+    rendering_layer.needs_data();
+    conf.last_used = "random";
+}
+
+void ConfigurationsWidget::set_spiral()
+{
+    auto & conf = ui_shared_state.configurations;
+
+    const char * direction_type = "Real Lattice";
+    // if( comboBox_SS->currentText() == "Real Lattice" )
+    //     direction_type = "Real Lattice";
+    // else if( comboBox_SS->currentText() == "Reciprocal Lattice" )
+    //     direction_type = "Reciprocal Lattice";
+    // else if( comboBox_SS->currentText() == "Real Space" )
+    //     direction_type = "Real Space";
+
+    // Normalize
+    float absq = std::sqrt(
+        spiral_qvec[0] * spiral_qvec[0] + spiral_qvec[1] * spiral_qvec[1] + spiral_qvec[2] * spiral_qvec[2] );
+    if( absq == 0 )
+    {
+        spiral_qvec[0] = 0;
+        spiral_qvec[1] = 0;
+        spiral_qvec[2] = 1;
+    }
+
+    // Scale
+    for( int dim = 0; dim < 3; ++dim )
+        spiral_qvec[dim] *= spiral_qmag;
+
+    // Create Spin Spiral
+    if( spiral_q2 )
+    {
+        // Normalize
+        float absq2 = std::sqrt(
+            spiral_qvec2[0] * spiral_qvec2[0] + spiral_qvec2[1] * spiral_qvec2[1] + spiral_qvec2[2] * spiral_qvec2[2] );
+        if( absq2 == 0 )
+        {
+            spiral_qvec2[0] = 0;
+            spiral_qvec2[1] = 0;
+            spiral_qvec2[2] = 1;
+        }
+
+        // Scale
+        for( int dim = 0; dim < 3; ++dim )
+            spiral_qvec2[dim] *= spiral_qmag2;
+
+        Configuration_SpinSpiral_2q(
+            state.get(), direction_type, spiral_qvec, spiral_qvec2, spiral_axis, spiral_angle, conf.pos,
+            conf.border_rect, conf.border_cyl, conf.border_sph, conf.inverted );
+    }
+    else
+        Configuration_SpinSpiral(
+            state.get(), direction_type, spiral_qvec, spiral_axis, spiral_angle, conf.pos, conf.border_rect,
+            conf.border_cyl, conf.border_sph, conf.inverted );
+
+    rendering_layer.needs_data();
+    conf.last_used = "spiral";
+}
+
+void ConfigurationsWidget::set_skyrmion()
+{
+    auto & conf = ui_shared_state.configurations;
+    Configuration_Skyrmion(
+        state.get(), sk_radius, sk_speed, sk_phase, sk_up_down, sk_achiral, sk_rl, conf.pos, conf.border_rect,
+        conf.border_cyl, conf.border_sph, conf.inverted );
+    rendering_layer.needs_data();
+    conf.last_used = "skyrmion";
+}
+
+void ConfigurationsWidget::set_hopfion()
+{
+    auto & conf = ui_shared_state.configurations;
+    Configuration_Hopfion(
+        state.get(), hopfion_radius, hopfion_order, conf.pos, conf.border_rect, conf.border_cyl, conf.border_sph,
+        conf.inverted );
+    rendering_layer.needs_data();
+    conf.last_used = "hopfion";
+}
 
 } // namespace ui

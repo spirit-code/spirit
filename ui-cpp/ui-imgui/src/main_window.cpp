@@ -637,6 +637,31 @@ void MainWindow::handle_keyboard()
             rendering_layer.screenshot_png( name );
             ui_shared_state.notify( fmt::format( ICON_FA_DESKTOP "  Captured \"{}\"", name ), 4 );
         }
+
+        //-----------------------------------------------------
+
+        if( ImGui::IsKeyPressed( GLFW_KEY_ENTER, false ) )
+        {
+            if( ui_shared_state.configurations.last_used != "" )
+            {
+                Log_Send(
+                    state.get(), Log_Level_Debug, Log_Sender_UI,
+                    ( "Inserting last used configuration: " + ui_shared_state.configurations.last_used ).c_str() );
+
+                if( ui_shared_state.configurations.last_used == "plus_z" )
+                    this->configurations_widget.set_plus_z();
+                else if( ui_shared_state.configurations.last_used == "minus_z" )
+                    this->configurations_widget.set_minus_z();
+                else if( ui_shared_state.configurations.last_used == "random" )
+                    this->configurations_widget.set_random();
+                else if( ui_shared_state.configurations.last_used == "spiral" )
+                    this->configurations_widget.set_spiral();
+                else if( ui_shared_state.configurations.last_used == "skyrmion" )
+                    this->configurations_widget.set_skyrmion();
+                else if( ui_shared_state.configurations.last_used == "hopfion" )
+                    this->configurations_widget.set_hopfion();
+            }
+        }
     }
 }
 

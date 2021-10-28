@@ -67,6 +67,8 @@ struct UiSharedState
     // Configurations widget
     struct Configurations
     {
+        std::string last_used = "";
+
         float pos[3]{ 0, 0, 0 };
         float border_rect[3]{ -1, -1, -1 };
         float border_cyl = -1;

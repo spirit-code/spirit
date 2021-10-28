@@ -16,9 +16,17 @@ struct ConfigurationsWidget : public WidgetBase
 {
     ConfigurationsWidget(
         bool & show, std::shared_ptr<State> state, UiSharedState & ui_shared_state, RenderingLayer & rendering_layer );
+
     void reset_settings();
     void show_content() override;
     void update_data();
+
+    void set_plus_z();
+    void set_minus_z();
+    void set_random();
+    void set_spiral();
+    void set_skyrmion();
+    void set_hopfion();
 
     std::shared_ptr<State> state;
     RenderingLayer & rendering_layer;
