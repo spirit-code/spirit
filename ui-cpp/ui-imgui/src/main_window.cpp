@@ -615,7 +615,7 @@ void MainWindow::handle_keyboard()
 
         //-----------------------------------------------------
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_HOME, false ) )
+        if( ImGui::IsKeyPressed( GLFW_KEY_HOME, false ) || ImGui::IsKeyPressed( GLFW_KEY_F12, false ) )
         {
             ++ui_shared_state.n_screenshots;
             std::string name
@@ -950,7 +950,7 @@ void MainWindow::show_dock_widgets()
     float pre_right_sidebar_fraction = right_sidebar_fraction;
     float pre_left_sidebar_fraction  = left_sidebar_fraction;
 
-    auto window_height = io.DisplaySize.y;
+    auto window_height  = io.DisplaySize.y;
     auto sidebar_height = window_height - menu_bar_size[1];
 
     for( const auto * w : spirit_widgets )
@@ -1373,9 +1373,9 @@ void MainWindow::show_menu_bar()
             {
             }
             ImGui::Separator();
-            ImGui::MenuItem( "Settings", "", &ui_config_file.show_settings );
+            ImGui::MenuItem( ICON_FA_COG "  Settings", "", &ui_config_file.show_settings );
             ImGui::Separator();
-            if( ImGui::MenuItem( "Take Screenshot" ) )
+            if( ImGui::MenuItem( ICON_FA_DESKTOP "  Take screenshot", "F12, " ICON_FA_HOME ) )
             {
                 ++ui_shared_state.n_screenshots;
                 std::string name
@@ -1383,31 +1383,61 @@ void MainWindow::show_menu_bar()
                 rendering_layer.screenshot_png( name );
                 ui_shared_state.notify( fmt::format( ICON_FA_DESKTOP "  Captured \"{}\"", name ), 4 );
             }
+            if( ImGui::MenuItem( ICON_FA_DESKTOP "  Take screenshots of the chain" ) )
+            {
+                int display_w, display_h;
+                glfwGetFramebufferSize( glfw_window, &display_w, &display_h );
+                int active_image = System_Get_Index( this->state.get() );
+                State_DateTime( state.get() );
+                Chain_Jump_To_Image( this->state.get(), 0 );
+                std::string tag = State_DateTime( state.get() );
+                ++ui_shared_state.n_screenshots_chain;
+                for( int i = 0; i < Chain_Get_NOI( this->state.get() ); ++i )
+                {
+                    std::string name
+                        = fmt::format( "{}_Screenshot_Chain_{}_Image_{}", tag, ui_shared_state.n_screenshots, i );
+
+                    rendering_layer.needs_data();
+                    rendering_layer.draw( display_w, display_h );
+
+                    rendering_layer.screenshot_png( name );
+                    Chain_next_Image( this->state.get() );
+                }
+                ui_shared_state.notify(
+                    fmt::format(
+                        ICON_FA_DESKTOP "  Captured series \"{}_Screenshot_Chain_{}_Image_...\"", tag,
+                        ui_shared_state.n_screenshots ),
+                    4 );
+                Chain_Jump_To_Image( this->state.get(), active_image );
+                rendering_layer.needs_data();
+                rendering_layer.draw( display_w, display_h );
+            }
+
             ImGui::EndMenu();
         }
         if( ImGui::BeginMenu( "Edit" ) )
         {
-            if( ImGui::MenuItem( "Cut system", "ctrl+x" ) )
+            if( ImGui::MenuItem( ICON_FA_CUT "  Cut system", "ctrl+x" ) )
             {
                 this->cut_image();
             }
-            if( ImGui::MenuItem( "Copy system", "ctrl+c" ) )
+            if( ImGui::MenuItem( ICON_FA_COPY "  Copy system", "ctrl+c" ) )
             {
                 Chain_Image_to_Clipboard( this->state.get() );
             }
-            if( ImGui::MenuItem( "Paste system", "ctrl+v" ) )
+            if( ImGui::MenuItem( ICON_FA_PASTE "  Paste system", "ctrl+v" ) )
             {
                 this->paste_image();
             }
-            if( ImGui::MenuItem( "Insert left", "ctrl+leftarrow" ) )
+            if( ImGui::MenuItem( ICON_FA_PLUS "  Insert left", "ctrl " ICON_FA_LONG_ARROW_ALT_LEFT ) )
             {
                 this->insert_image_left();
             }
-            if( ImGui::MenuItem( "Insert right", "ctrl+rightarrow" ) )
+            if( ImGui::MenuItem( ICON_FA_PLUS "  Insert right", "ctrl " ICON_FA_LONG_ARROW_ALT_RIGHT ) )
             {
                 this->insert_image_right();
             }
-            if( ImGui::MenuItem( "Delete system", "del" ) )
+            if( ImGui::MenuItem( ICON_FA_MINUS "  Delete system", "del" ) )
             {
                 this->delete_image();
             }

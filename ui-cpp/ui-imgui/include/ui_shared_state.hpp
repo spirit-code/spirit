@@ -66,6 +66,7 @@ struct UiSharedState
 
     // Other
     int n_screenshots = 0;
+    int n_screenshots_chain = 0;
     std::list<Notification> notifications;
 };
 
