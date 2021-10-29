@@ -15,6 +15,8 @@
 
 #include <imgui/imgui.h>
 
+#include <imgui-gizmo3d/imGuIZMOquat.h>
+
 #include <glm/gtc/type_ptr.hpp>
 
 #include <Spirit/Geometry.h>
@@ -347,8 +349,9 @@ std::string get_colormap(
                         vec3 cardinal_c = vec3({:.6f}, {:.6f}, {:.6f});
                         vec3 projection = vec3( dot(direction, cardinal_a), dot(direction, cardinal_b),
                             dot(direction, cardinal_c) );
-                        float hue = atan2({}.0*projection.x, projection.y) / 3.14159 / 2.0 + {:.6f}/2.0;
-                        float saturation = projection.z * {}.0; if (saturation > 0.0)
+                        float hue = atan2({}.0*projection.x, projection.y) / 3.14159 / 2.0 + {:.6f} / 2.0;
+                        float saturation = projection.z * {}.0;
+                        if (saturation > 0.0)
                         {{
                             return hsv2rgb(vec3(hue, 1.0-saturation, 1.0));
                         }}
@@ -539,9 +542,14 @@ bool ColormapWidget::colormap_input()
 
     int colormap_index = int( colormap );
     ImGui::SetNextItemWidth( 120 );
-    if( ImGui::Combo( "Colormap##arrows", &colormap_index, colormaps.data(), int( colormaps.size() ) ) )
+    ImGui::TextUnformatted( "Colormap" );
+
+    ImGui::Indent( 15 );
+
+    if( ImGui::Combo( "##colormap-arrows", &colormap_index, colormaps.data(), int( colormaps.size() ) ) )
     {
         set_colormap_implementation( Colormap( colormap_index ) );
+        ImGui::Indent( -15 );
         return true;
     }
 
@@ -549,9 +557,58 @@ bool ColormapWidget::colormap_input()
         && ImGui::ColorEdit3( "Colour", &colormap_monochrome_color.x, ImGuiColorEditFlags_NoInputs ) )
     {
         set_colormap_implementation( colormap );
+        ImGui::Indent( -15 );
         return true;
     }
 
+    if( colormap == Colormap::HSV || colormap == Colormap::HSV_NO_Z )
+    {
+        bool update = false;
+        ImGui::TextUnformatted( "rotation" );
+        ImGui::SameLine();
+        if( ImGui::SliderFloat( "##rotation", &colormap_rotation, -180, 180, "%.0f deg" ) )
+            update = true;
+
+        if( ImGui::Checkbox( "invert z ", &colormap_invert_z ) )
+            update = true;
+        if( ImGui::Checkbox( "invert xy", &colormap_invert_xy ) )
+            update = true;
+
+        ImGui::TextUnformatted( "Cardinal direction" );
+        ImGui::Columns( 2, "cardinaldircolumns", false ); // 3-ways, no border
+        vgm::Vec3 dir( colormap_cardinal_c[0], colormap_cardinal_c[1], colormap_cardinal_c[2] );
+        if( ImGui::gizmo3D( "##cardinaldir", dir ) )
+            update = true;
+        ImGui::NextColumn();
+        auto normalize_dir = [&]()
+        {
+            colormap_cardinal_c = glm::vec3( dir[0], dir[1], dir[2] );
+            glm::normalize( colormap_cardinal_c );
+
+            colormap_cardinal_b -= glm::dot( colormap_cardinal_b, colormap_cardinal_c ) * colormap_cardinal_c;
+            glm::normalize( colormap_cardinal_b );
+
+            colormap_cardinal_a -= glm::dot( colormap_cardinal_a, colormap_cardinal_b ) * colormap_cardinal_b;
+            colormap_cardinal_a -= glm::dot( colormap_cardinal_a, colormap_cardinal_c ) * colormap_cardinal_c;
+            glm::normalize( colormap_cardinal_a );
+        };
+        if( ImGui::InputFloat( "##cardinaldir_x", &dir.x, 0, 0, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue ) )
+            update = true;
+        if( ImGui::InputFloat( "##cardinaldir_y", &dir.y, 0, 0, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue ) )
+            update = true;
+        if( ImGui::InputFloat( "##cardinaldir_z", &dir.z, 0, 0, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue ) )
+            update = true;
+        ImGui::Columns( 1 );
+
+        ImGui::Indent( -15 );
+
+        if( update )
+        {
+            normalize_dir();
+            set_colormap_implementation( colormap );
+            return true;
+        }
+    }
     return false;
 }
 
@@ -829,6 +886,8 @@ void DotRendererWidget::show_settings()
         this->set_renderer_option<VFRendering::DotRenderer::DOT_RADIUS>( size * 1000 );
     }
 
+    ImGui::Dummy( { 0, 10 } );
+
     if( colormap_input() )
         this->set_renderer_option<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 }
@@ -885,6 +944,8 @@ void ArrowRendererWidget::show_settings()
     if( ImGui::SliderInt( "level of detail", &lod, 5, 100 ) )
         this->set_renderer_option<VFRendering::ArrowRenderer::Option::LEVEL_OF_DETAIL>( lod );
 
+    ImGui::Dummy( { 0, 10 } );
+
     if( colormap_input() )
         this->set_renderer_option<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
 }
@@ -929,6 +990,8 @@ void ParallelepipedRendererWidget::show_settings()
         this->set_renderer_option<VFRendering::ParallelepipedRenderer::Option::LENGTH_B>( size * 0.5f );
         this->set_renderer_option<VFRendering::ParallelepipedRenderer::Option::LENGTH_C>( size * 0.5f );
     }
+
+    ImGui::Dummy( { 0, 10 } );
 
     if( colormap_input() )
         this->set_renderer_option<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
@@ -975,6 +1038,8 @@ void SphereRendererWidget::show_settings()
     ImGui::SetNextItemWidth( 100 );
     if( ImGui::SliderInt( "level of detail", &lod, 10, 100 ) )
         this->set_renderer_option<VFRendering::SphereRenderer::Option::LEVEL_OF_DETAIL>( lod );
+
+    ImGui::Dummy( { 0, 10 } );
 
     if( colormap_input() )
         this->set_renderer_option<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
@@ -1070,6 +1135,8 @@ void IsosurfaceRendererWidget::show_settings()
     ImGui::SameLine();
     if( ImGui::Checkbox( "z", &iso_z ) )
         set_isocomponent( 2 );
+
+    ImGui::Dummy( { 0, 10 } );
 
     if( colormap_input() )
         this->set_renderer_option<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>( colormap_implementation_str );
