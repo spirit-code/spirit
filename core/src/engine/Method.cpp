@@ -29,7 +29,7 @@ Method::Method( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img
     this->history_energy     = std::vector<scalar>();
 
     // TODO: is this a good idea?
-    this->n_iterations     = std::max( long( 1 ), this->parameters->n_iterations );
+    this->n_iterations     = std::max( std::uint64_t( 1 ), this->parameters->n_iterations );
     this->n_iterations_log = std::min( this->parameters->n_iterations_log, this->n_iterations );
     if( this->n_iterations_log <= long( 0 ) )
         this->n_iterations_log = this->n_iterations;

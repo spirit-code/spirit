@@ -19,7 +19,7 @@ struct Parameters_Method_LLG : Parameters_Method_Solver
     scalar beta    = 0;
 
     // Seed for RNG
-    int rng_seed = 2006;
+    std::size_t rng_seed = 2006;
     // Mersenne twister PRNG
     std::mt19937 prng = std::mt19937( rng_seed );
 

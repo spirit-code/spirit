@@ -160,7 +160,7 @@ void Write_Energy_Header(
 }
 
 void Append_Image_Energy(
-    const Data::Spin_System & system, const int iteration, const std::string & filename, bool normalize_by_nos,
+    const Data::Spin_System & system, const std::size_t iteration, const std::string & filename, bool normalize_by_nos,
     bool readability_toggle )
 {
     scalar normalization = 1;
@@ -206,8 +206,8 @@ void Write_Image_Energy(
 }
 
 void Write_Chain_Energies(
-    const Data::Spin_System_Chain & chain, const int iteration, const std::string & filename, bool normalize_by_nos,
-    bool readability_toggle )
+    const Data::Spin_System_Chain & chain, const std::size_t iteration, const std::string & filename,
+    bool normalize_by_nos, bool readability_toggle )
 {
     scalar normalization = 1;
     if( normalize_by_nos )
@@ -249,7 +249,7 @@ void Write_Chain_Energies_Interpolated(
 
         for( int iinterp = 0; iinterp < chain.gneb_parameters->n_E_interpolations + 1; ++iinterp )
         {
-            int idx          = isystem * ( chain.gneb_parameters->n_E_interpolations + 1 ) + iinterp;
+            std::size_t idx  = isystem * ( chain.gneb_parameters->n_E_interpolations + 1 ) + iinterp;
             std::string line = fmt::format(
                 " {:^20} || {:^20} || {:^20.10f} || {:^20.10f} ||", isystem, iinterp, chain.Rx_interpolated[idx],
                 chain.E_interpolated[idx] * normalization );

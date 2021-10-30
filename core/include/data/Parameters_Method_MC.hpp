@@ -16,7 +16,7 @@ struct Parameters_Method_MC : public Parameters_Method
     // Temperature [K]
     scalar temperature = 0;
     // Seed for RNG
-    int rng_seed = 2006;
+    std::size_t rng_seed = 2006;
 
     // Mersenne twister PRNG
     std::mt19937 prng = std::mt19937( rng_seed );
