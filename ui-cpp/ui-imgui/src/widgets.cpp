@@ -587,6 +587,8 @@ void show_about( bool & show_about )
     ImGui::Columns( 2, "aboutinfocolumns", false );
     ImGui::TextUnformatted( "Parallelisation:" );
     ImGui::TextUnformatted( fmt::format( "   - OpenMP  = {}", Spirit_OpenMP() ).c_str() );
+    ImGui::TextUnformatted( fmt::format( "     # of threads: {}", Spirit_OpenMP_Get_Num_Threads() ).c_str() );
+
     ImGui::TextUnformatted( fmt::format( "   - Cuda    = {}", Spirit_Cuda() ).c_str() );
     ImGui::TextUnformatted( fmt::format( "   - Threads = {}", Spirit_Threads() ).c_str() );
     ImGui::NextColumn();

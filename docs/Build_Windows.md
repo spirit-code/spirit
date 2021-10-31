@@ -88,8 +88,8 @@ OpenMP backend
 --------------------------------------
 
 Using OpenMP on Windows is not officially supported.
-While it is possible to use it, the build process is
-nontrivial.
+While you can use other compiler/implementation combinations, the
+build process tends to be nontrivial. We recommend using LLVM/clang.
 
 
 CUDA backend
