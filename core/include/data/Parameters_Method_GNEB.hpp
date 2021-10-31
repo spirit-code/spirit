@@ -24,12 +24,12 @@ struct Parameters_Method_GNEB : Parameters_Method_Solver
     scalar path_shortening_constant = 0;
 
     // Number of Energy interpolations between Images
-    int n_E_interpolations = 10;
+    std::size_t n_E_interpolations = 10;
 
     // Temperature [K]
     scalar temperature = 0;
     // Seed for RNG
-    int rng_seed = 2006;
+    std::size_t rng_seed = 2006;
     // Mersenne twister PRNG
     std::mt19937 prng = std::mt19937( rng_seed );
 

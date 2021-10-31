@@ -14,9 +14,9 @@ namespace Data
 struct Parameters_Method_MMF : public Parameters_Method_Solver
 {
     // Which mode to follow (based on some conditions)
-    int n_mode_follow = 0;
+    std::size_t n_mode_follow = 0;
     // Number of lowest modes to calculate
-    int n_modes = 10;
+    std::size_t n_modes = 10;
 
     // ----------------- Output --------------
     // Energy output settings

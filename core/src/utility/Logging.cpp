@@ -17,12 +17,18 @@ namespace Utility
 {
 
 std::string IndexToString( int idx )
+try
 {
     std::string idx_str;
     if( idx >= 0 )
         return fmt::format( "{:0>2}", idx + 1 );
     else
         return "--";
+}
+catch( ... )
+{
+    spirit_rethrow( "Could not convert index integer to string" );
+    return "";
 }
 
 LoggingHandler::LoggingHandler()
@@ -37,12 +43,13 @@ LoggingHandler::LoggingHandler()
 
 void LoggingHandler::Send(
     Log_Level level, Log_Sender sender, const std::vector<std::string> & messages, int idx_image, int idx_chain )
+try
 {
     // Lock mutex because of reallocation (push_back)
     std::lock_guard<std::mutex> guard( mutex );
 
     // All messages are saved in the Log
-    LogEntry entry = { std::chrono::system_clock::now(), sender, level, messages, idx_image, idx_chain };
+    LogEntry entry{ std::chrono::system_clock::now(), sender, level, messages, idx_image, idx_chain };
     log_entries.push_back( entry );
 
     // Increment message count
@@ -65,28 +72,49 @@ void LoggingHandler::Send(
             fmt::print( "{}\n", log_entries.back() );
     }
 }
+catch( ... )
+{
+    spirit_rethrow( "LoggingHandler::SendBlock failed" );
+}
 
 void LoggingHandler::operator()(
     Log_Level level, Log_Sender sender, const std::string & message, int idx_image, int idx_chain )
+try
 {
     Send( level, sender, { message }, idx_image, idx_chain );
+}
+catch( ... )
+{
+    spirit_rethrow( "Log(...) call failed" );
 }
 
 void LoggingHandler::operator()(
     Log_Level level, Log_Sender sender, const std::vector<std::string> & messages, int idx_image, int idx_chain )
+try
 {
     Send( level, sender, messages, idx_image, idx_chain );
 }
+catch( ... )
+{
+    spirit_rethrow( "Log(...) call failed" );
+}
 
 std::vector<LogEntry> LoggingHandler::GetEntries()
+try
 {
     return log_entries;
 }
+catch( ... )
+{
+    spirit_rethrow( "Unable to retrieve log entries" );
+    return {};
+}
 
 std::vector<LogEntry> LoggingHandler::Filter( Log_Level level, Log_Sender sender, int idx_image, int idx_chain )
+try
 {
     // Get vector of Log entries
-    auto result = std::vector<LogEntry>();
+    std::vector<LogEntry> result( 0 );
     for( const auto & entry : log_entries )
     {
         if( ( level == Log_Level::All || level == entry.level )
@@ -94,24 +122,21 @@ std::vector<LogEntry> LoggingHandler::Filter( Log_Level level, Log_Sender sender
             && ( idx_image == -1 || idx_image == entry.idx_image )
             && ( idx_chain == -1 || idx_chain == entry.idx_chain ) )
         {
-            if( sender == Log_Sender::All || sender == entry.sender )
-            {
-                if( idx_image == -1 || idx_image == entry.idx_image )
-                {
-                    if( idx_chain == -1 || idx_chain == entry.idx_chain )
-                    {
-                        result.push_back( entry );
-                    }
-                }
-            }
+            result.push_back( entry );
         }
     }
 
     // Return
     return result;
 }
+catch( ... )
+{
+    spirit_rethrow( "Error filtering the log" );
+    return {};
+}
 
 void LoggingHandler::Append_to_File()
+try
 {
     if( this->messages_to_file )
     {
@@ -122,8 +147,8 @@ void LoggingHandler::Append_to_File()
 
         // Gather the string
         std::string logstring = "";
-        int begin_append      = no_dumped;
-        no_dumped             = n_entries;
+        int begin_append      = n_dumped;
+        n_dumped              = n_entries;
         for( int i = begin_append; i < n_entries; ++i )
         {
             const auto & level = log_entries[i].level;
@@ -143,9 +168,14 @@ void LoggingHandler::Append_to_File()
             { fmt::format( "Not appending log to file \"{}/{}\"", output_folder, file_name ) } );
     }
 }
+catch( ... )
+{
+    spirit_rethrow( "Could not append log to file" );
+}
 
 // Write the entire Log to file
 void LoggingHandler::Dump_to_File()
+try
 {
     if( this->messages_to_file )
     {
@@ -174,6 +204,10 @@ void LoggingHandler::Dump_to_File()
             Log_Level::Debug, Log_Sender::All,
             { fmt::format( "Not dumping log to file \"{}/{}\"", output_folder, file_name ) } );
     }
+}
+catch( ... )
+{
+    spirit_rethrow( "Could not dump log to file" );
 }
 
 } // end namespace Utility

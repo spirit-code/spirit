@@ -505,7 +505,7 @@ void Hamiltonian_Heisenberg::E_DDI_FFT( const vectorfield & spins, scalarfield &
 
 // TODO: add dot_scaled to Vectormath and use that
 #pragma omp parallel for
-    for( int ispin = 0; ispin < geometry->nos; ispin++ )
+    for( std::size_t ispin = 0; ispin < geometry->nos; ispin++ )
     {
         Energy[ispin] += 0.5 * spins[ispin].dot( gradients_temp[ispin] );
         // Energy_DDI    += 0.5 * spins[ispin].dot(gradients_temp[ispin]);
@@ -556,7 +556,7 @@ void Hamiltonian_Heisenberg::E_Quadruplet( const vectorfield & spins, scalarfiel
     }
 }
 
-scalar Hamiltonian_Heisenberg::Energy_Single_Spin( int ispin, const vectorfield & spins )
+scalar Hamiltonian_Heisenberg::Energy_Single_Spin( std::size_t ispin, const vectorfield & spins )
 {
     scalar Energy = 0;
     if( check_atom_type( this->geometry->atom_types[ispin] ) )
@@ -1571,7 +1571,7 @@ void Hamiltonian_Heisenberg::Prepare_DDI()
         = { &dipole_stride.a, &dipole_stride.b, &dipole_stride.c, &dipole_stride.comp, &dipole_stride.basis };
     ;
     FFT::get_strides(
-        temp_s, { n_cells_padded[0], n_cells_padded[1], n_cells_padded[2], 3, this->geometry->n_cell_atoms } );
+        temp_s, { n_cells_padded[0], n_cells_padded[1], n_cells_padded[2], 3, int(this->geometry->n_cell_atoms) } );
     FFT::get_strides( temp_d, { n_cells_padded[0], n_cells_padded[1], n_cells_padded[2], 6, n_inter_sublattice } );
     it_bounds_pointwise_mult = { n_cells_padded[0], n_cells_padded[1], n_cells_padded[2] };
     ( it_bounds_pointwise_mult[fft_dims.size() - 1] /= 2 )++;

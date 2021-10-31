@@ -62,7 +62,7 @@ public:
 
     // Calculate the total energy for a single spin to be used in Monte Carlo.
     //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
-    scalar Energy_Single_Spin( int ispin, const vectorfield & spins ) override;
+    scalar Energy_Single_Spin( std::size_t ispin, const vectorfield & spins ) override;
 
     // Hamiltonian name as string
     const std::string & Name() const override;

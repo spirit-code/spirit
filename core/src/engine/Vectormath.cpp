@@ -485,7 +485,7 @@ void rotate( const vectorfield & v, const vectorfield & axis, const scalarfield 
         rotate( v[i], axis[i], angle[i], v_out[i] );
 }
 
-Vector3 decompose( const Vector3 & v, const std::vector<Vector3> & basis )
+Vector3 decompose( const Vector3 & v, const std::array<Vector3, 3> & basis )
 {
     Eigen::Ref<const Matrix3> A = Eigen::Map<const Matrix3>( basis[0].data() );
     return A.colPivHouseholderQr().solve( v );

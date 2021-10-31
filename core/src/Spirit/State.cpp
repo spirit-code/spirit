@@ -1,6 +1,5 @@
 #include <Spirit/Spirit_Defines.h>
 #include <Spirit/State.h>
-
 #include <data/State.hpp>
 #include <io/IO.hpp>
 #include <utility/Configuration_Chain.hpp>
@@ -10,10 +9,13 @@
 
 #include <fmt/format.h>
 
-using namespace Utility;
+#include <memory>
 
 // Forward declaration of helper function
 void Save_Initial_Final( State * state, bool initial ) noexcept;
+
+using Utility::Log_Level;
+using Utility::Log_Sender;
 
 State * State_Setup( const char * config_file, bool quiet ) noexcept
 try
@@ -26,6 +28,21 @@ try
     state->datetime_creation_string = fmt::format( "{:%Y-%m-%d_%H-%M-%S}", state->datetime_creation );
     state->config_file              = config_file;
     state->quiet                    = quiet;
+
+    std::vector<std::string> block;
+    block.emplace_back( "=====================================================" );
+    block.emplace_back( "========== Spirit State: Initialising... ============" );
+    // Log version info
+    block.emplace_back( "==========     Version:  " + Utility::version );
+    // Log revision hash
+    block.emplace_back( "==========     Revision: " + Utility::version_revision );
+    Log( Log_Level::All, Log_Sender::All, block );
+    // Log compiler
+    Log( Log_Level::Info, Log_Sender::All, "==========     Compiled with: " + Utility::compiler_full );
+
+    // Log if quiet mode
+    if( state->quiet )
+        Log( Log_Level::All, Log_Sender::All, "Going to run in QUIET mode (only Error messages, no output files)" );
 
     // Check if config file exists
     if( !state->config_file.empty() )
@@ -41,24 +58,6 @@ try
             state->config_file = "";
         }
     }
-    //------------------------------------------------------------------------------------------
-
-    //---------------------- Initial block of log messages -------------------------------------
-    std::vector<std::string> block;
-    block.emplace_back( "=====================================================" );
-    block.emplace_back( "========== Spirit State: Initialising... ============" );
-
-    // Log version info
-    block.emplace_back( "==========     Version:  " + version );
-    // Log revision hash
-    block.emplace_back( "==========     Revision: " + version_revision );
-    Log( Log_Level::All, Log_Sender::All, block );
-    // Log compiler
-    Log( Log_Level::Info, Log_Sender::All, "==========     Compiled with: " + compiler_full );
-
-    // Log whether running in "quiet" mode
-    if( state->quiet )
-        Log( Log_Level::All, Log_Sender::All, "Going to run in QUIET mode (only Error messages, no output files)" );
 
     // Log config file info
     if( !state->config_file.empty() )
@@ -120,13 +119,20 @@ try
 #ifdef SPIRIT_SCALAR_TYPE_FLOAT
     block.emplace_back( "    Using float as scalar type" );
 #endif
-    Log( Log_Level::Info, Log_Sender::All, block );
-    Log( Log_Level::All, Log_Sender::All, "=====================================================" );
+    try
+    {
+        Log( Log_Level::Info, Log_Sender::All, block );
+        Log( Log_Level::All, Log_Sender::All, "=====================================================" );
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api( -1, -1 );
+    }
     //------------------------------------------------------------------------------------------
 
     //---------------------- Initialize spin_system --------------------------------------------
     state->active_image = IO::Spin_System_from_Config( state->config_file );
-    Configurations::Random( *state->active_image );
+    Utility::Configurations::Random( *state->active_image );
     //------------------------------------------------------------------------------------------
 
     //----------------------- Initialize spin system chain -------------------------------------
@@ -168,7 +174,7 @@ try
     //----------------------- Final log --------------------------------------------------------
     block.clear();
     auto now  = std::chrono::system_clock::now();
-    auto diff = Timing::DateTimePassed( now - state->datetime_creation );
+    auto diff = Utility::Timing::DateTimePassed( now - state->datetime_creation );
     block.emplace_back( "=====================================================" );
     block.emplace_back( "============ Spirit State: Initialised ==============" );
     block.emplace_back( "============     " + fmt::format( "NOS={} NOI={}", state->nos, state->noi ) );
@@ -176,10 +182,10 @@ try
     block.emplace_back( "    Number of  Errors:  " + fmt::format( "{}", Log_Get_N_Errors( state ) ) );
     block.emplace_back( "    Number of Warnings: " + fmt::format( "{}", Log_Get_N_Warnings( state ) ) );
     block.emplace_back( "=====================================================" );
-    Log( Log_Level::All, Log_Sender::All, block );
     // Try to write the log file
     try
     {
+        Log( Log_Level::All, Log_Sender::All, block );
         Log.Append_to_File();
     }
     catch( ... )
@@ -210,7 +216,7 @@ try
 
     // Timing
     auto now  = std::chrono::system_clock::now();
-    auto diff = Timing::DateTimePassed( now - state->datetime_creation );
+    auto diff = Utility::Timing::DateTimePassed( now - state->datetime_creation );
     block.emplace_back( fmt::format( "    State existed for {}", diff ) );
     block.emplace_back( fmt::format( "    Number of  Errors:  {}", Log_Get_N_Errors( state ) ) );
     block.emplace_back( fmt::format( "    Number of Warnings: {}", Log_Get_N_Warnings( state ) ) );
@@ -328,7 +334,7 @@ try
     std::string tag = "";
     if( Log.file_tag == std::string( "<time>" ) )
         tag += state->datetime_creation_string + "_";
-    else if( Log.file_tag != std::string( "" ) )
+    else if( !Log.file_tag.empty() )
         tag += Log.file_tag + "_";
 
     // Suffix

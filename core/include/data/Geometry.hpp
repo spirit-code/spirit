@@ -38,9 +38,9 @@ enum class BravaisLatticeType
 struct Pinning
 {
     // Boundary pinning
-    int na_left, na_right;
-    int nb_left, nb_right;
-    int nc_left, nc_right;
+    std::int32_t na_left, na_right;
+    std::int32_t nb_left, nb_right;
+    std::int32_t nc_left, nc_right;
     vectorfield pinned_cell;
 
     // Individual pinned atoms
@@ -61,11 +61,11 @@ struct Basis_Cell_Composition
     bool disordered;
 
     // Indexing for the following information
-    std::vector<int> iatom;
+    std::vector<std::size_t> iatom;
 
     // Atom types of the atoms in a unit cell:
     // type index 0..n or or vacancy (type < 0)
-    std::vector<int> atom_type;
+    std::vector<std::int64_t> atom_type;
 
     // Magnetic moment of an atom in mu_B
     std::vector<scalar> mu_s;
@@ -81,7 +81,7 @@ public:
     // ---------- Constructor
     //  Build a regular lattice from a defined basis cell and translations
     Geometry(
-        const std::vector<Vector3> & bravais_vectors, intfield n_cells, const std::vector<Vector3> & cell_atoms,
+        const std::array<Vector3, 3> & bravais_vectors, intfield n_cells, const std::vector<Vector3> & cell_atoms,
         const Basis_Cell_Composition & cell_composition, scalar lattice_constant, const Pinning & pinning,
         const Defects & defects );
 
@@ -94,23 +94,23 @@ public:
     tetrahedra( int n_cell_step = 1, std::array<int, 6> ranges = { 0, -1, 0, -1, 0, -1 } );
     // Introduce disorder into the atom types
     // void disorder(scalar mixing);
-    static std::vector<Vector3> BravaisVectorsSC();
-    static std::vector<Vector3> BravaisVectorsFCC();
-    static std::vector<Vector3> BravaisVectorsBCC();
-    static std::vector<Vector3> BravaisVectorsHex2D60();
-    static std::vector<Vector3> BravaisVectorsHex2D120();
+    static std::array<Vector3, 3> BravaisVectorsSC();
+    static std::array<Vector3, 3> BravaisVectorsFCC();
+    static std::array<Vector3, 3> BravaisVectorsBCC();
+    static std::array<Vector3, 3> BravaisVectorsHex2D60();
+    static std::array<Vector3, 3> BravaisVectorsHex2D120();
     // Pinning
     void Apply_Pinning( vectorfield & vf );
 
     // ---------- Basic information set, which (in theory) defines everything
     // Basis vectors {a, b, c} of the unit cell
-    std::vector<Vector3> bravais_vectors;
+    std::array<Vector3, 3> bravais_vectors;
     // Lattice Constant [Angstrom] (scales the translations)
     scalar lattice_constant;
     // Number of cells {na, nb, nc}
     intfield n_cells;
     // Number of spins per basic domain
-    int n_cell_atoms;
+    std::size_t n_cell_atoms;
     // Array of basis atom positions
     std::vector<Vector3> cell_atoms;
     // Composition of the basis cell (atom types, mu_s, disorder)
@@ -124,11 +124,11 @@ public:
     // The kind of geometry
     BravaisLatticeType classifier;
     // Number of sites (total)
-    int nos;
+    std::size_t nos;
     // Number of non-vacancy sites (if defects are activated)
-    int nos_nonvacant;
+    std::size_t nos_nonvacant;
     // Number of basis cells total
-    int n_cells_total;
+    std::size_t n_cells_total;
     // Positions of all the atoms
     vectorfield positions;
     // Spin magnetic moments of the atoms
@@ -139,8 +139,8 @@ public:
     intfield mask_unpinned;
     vectorfield mask_pinned_cells;
     // Dimensionality of the points
-    int dimensionality;
-    int dimensionality_basis;
+    std::uint8_t dimensionality;
+    std::uint8_t dimensionality_basis;
     // Center and Bounds
     Vector3 center, bounds_min, bounds_max;
     // Unit Cell Bounds

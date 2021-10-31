@@ -283,8 +283,8 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
     SECTION( "jacobian" )
     {
         // Arbitrary bravais vectors and lattice constant
-        std::vector<Vector3> bravais_vectors = { { 1, 0.5, 0 }, { -0.2, 1, 0 }, { 0, 0, 1 } };
-        scalar lattice_constant              = 1.2;
+        std::array<Vector3, 3> bravais_vectors = { { { 1, 0.5, 0 }, { -0.2, 1, 0 }, { 0, 0, 1 } } };
+        scalar lattice_constant                = 1.2;
 
         intfield n_cells                = { 20, 20, 1 };
         std::vector<Vector3> cell_atoms = { { 0, 0, 0 } };

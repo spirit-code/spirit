@@ -81,7 +81,7 @@ public:
     virtual scalar Energy( const vectorfield & spins );
 
     // Calculate the total energy for a single spin
-    virtual scalar Energy_Single_Spin( int ispin, const vectorfield & spins );
+    virtual scalar Energy_Single_Spin( std::size_t ispin, const vectorfield & spins );
 
     virtual std::size_t Number_of_Interactions();
 

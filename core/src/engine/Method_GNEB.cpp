@@ -313,7 +313,7 @@ void Method_GNEB<solver>::Calculate_Force(
             }
         }
 
-        for( int img : { 0, chain->noi - 1 } )
+        for( auto img : { std::int64_t(0), std::int64_t(chain->noi) - 1 } )
         {
             scalar delta_Rx0 = ( img == 0 ) ? chain->gneb_parameters->equilibrium_delta_Rx_left :
                                               chain->gneb_parameters->equilibrium_delta_Rx_right;

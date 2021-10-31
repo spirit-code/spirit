@@ -22,7 +22,7 @@ namespace Data
 {
 
 Geometry::Geometry(
-    const std::vector<Vector3> & bravais_vectors, intfield n_cells, const std::vector<Vector3> & cell_atoms,
+    const std::array<Vector3, 3> & bravais_vectors, intfield n_cells, const std::vector<Vector3> & cell_atoms,
     const Basis_Cell_Composition & cell_composition, scalar lattice_constant, const Pinning & pinning,
     const Defects & defects )
         : bravais_vectors( bravais_vectors ),
@@ -66,7 +66,6 @@ Geometry::Geometry(
                             + Engine::Indexing::idx_from_translations(
                                 this->n_cells, this->n_cell_atoms,
                                 { site.translations[0], site.translations[1], site.translations[2] } );
-
         this->mask_unpinned[ispin]     = 0;
         this->mask_pinned_cells[ispin] = pinning.spins[isite];
     }
@@ -100,9 +99,9 @@ void Geometry::generatePositions()
     std::int64_t max_b = std::min( 10, n_cells[1] );
     std::int64_t max_c = std::min( 10, n_cells[2] );
     Vector3 diff;
-    for( std::int64_t i = 0; i < n_cell_atoms; ++i )
+    for( std::size_t i = 0; i < n_cell_atoms; ++i )
     {
-        for( std::int64_t j = 0; j < n_cell_atoms; ++j )
+        for( std::size_t j = 0; j < n_cell_atoms; ++j )
         {
             for( std::int64_t da = -max_a; da <= max_a; ++da )
             {
@@ -141,16 +140,16 @@ void Geometry::generatePositions()
     }
 
     // Generate positions
-    for( std::int64_t dc = 0; dc < n_cells[2]; ++dc )
+    for( std::size_t dc = 0; dc < n_cells[2]; ++dc )
     {
-        for( std::int64_t db = 0; db < n_cells[1]; ++db )
+        for( std::size_t db = 0; db < n_cells[1]; ++db )
         {
-            for( std::int64_t da = 0; da < n_cells[0]; ++da )
+            for( std::size_t da = 0; da < n_cells[0]; ++da )
             {
-                for( std::int64_t iatom = 0; iatom < n_cell_atoms; ++iatom )
+                for( std::size_t iatom = 0; iatom < n_cell_atoms; ++iatom )
                 {
-                    std::int64_t ispin = iatom + dc * n_cell_atoms * n_cells[1] * n_cells[0]
-                                         + db * n_cell_atoms * n_cells[0] + da * n_cell_atoms;
+                    std::size_t ispin = iatom + dc * n_cell_atoms * n_cells[1] * n_cells[0]
+                                        + db * n_cell_atoms * n_cells[0] + da * n_cell_atoms;
 
                     positions[ispin]
                         = lattice_constant
@@ -445,49 +444,49 @@ const std::vector<tetrahedron_t> & Geometry::tetrahedra( int n_cell_step, std::a
     return _tetrahedra;
 }
 
-std::vector<Vector3> Geometry::BravaisVectorsSC()
+std::array<Vector3, 3> Geometry::BravaisVectorsSC()
 {
-    return {
+    return { {
         { scalar( 1 ), scalar( 0 ), scalar( 0 ) },
         { scalar( 0 ), scalar( 1 ), scalar( 0 ) },
         { scalar( 0 ), scalar( 0 ), scalar( 1 ) },
-    };
+    } };
 }
 
-std::vector<Vector3> Geometry::BravaisVectorsFCC()
+std::array<Vector3, 3> Geometry::BravaisVectorsFCC()
 {
-    return {
+    return { {
         { scalar( 0.5 ), scalar( 0.0 ), scalar( 0.5 ) },
         { scalar( 0.5 ), scalar( 0.5 ), scalar( 0.0 ) },
         { scalar( 0.0 ), scalar( 0.5 ), scalar( 0.5 ) },
-    };
+    } };
 }
 
-std::vector<Vector3> Geometry::BravaisVectorsBCC()
+std::array<Vector3, 3> Geometry::BravaisVectorsBCC()
 {
-    return {
+    return { {
         { scalar( 0.5 ), scalar( 0.5 ), scalar( -0.5 ) },
         { scalar( -0.5 ), scalar( 0.5 ), scalar( -0.5 ) },
         { scalar( 0.5 ), scalar( -0.5 ), scalar( -0.5 ) },
-    };
+    } };
 }
 
-std::vector<Vector3> Geometry::BravaisVectorsHex2D60()
+std::array<Vector3, 3> Geometry::BravaisVectorsHex2D60()
 {
-    return {
+    return { {
         { scalar( 0.5 * std::sqrt( 3 ) ), scalar( -0.5 ), scalar( 0 ) },
         { scalar( 0.5 * std::sqrt( 3 ) ), scalar( 0.5 ), scalar( 0 ) },
         { scalar( 0 ), scalar( 0 ), scalar( 1 ) },
-    };
+    } };
 }
 
-std::vector<Vector3> Geometry::BravaisVectorsHex2D120()
+std::array<Vector3, 3> Geometry::BravaisVectorsHex2D120()
 {
-    return {
+    return { {
         { scalar( 0.5 ), scalar( -0.5 * std::sqrt( 3 ) ), scalar( 0 ) },
         { scalar( 0.5 ), scalar( 0.5 * std::sqrt( 3 ) ), scalar( 0 ) },
         { scalar( 0 ), scalar( 0 ), scalar( 1 ) },
-    };
+    } };
 }
 
 void Geometry::applyCellComposition()
@@ -654,9 +653,11 @@ void Geometry::calculateDimensionality()
     {
         dims_translations = 1;
         // Test if vec is along the line
-        for( std::uint8_t i = 0; i < 3; ++i )
-            if( n_cells[i] > 1 )
-                test_vec_translations = bravais_vectors[i];
+        for( std::uint8_t dim = 0; dim < 3; ++dim )
+        {
+            if( n_cells[dim] > 1 )
+                test_vec_translations = bravais_vectors[dim];
+        }
     }
     else if( n_independent_pairs < 3 )
     {
@@ -664,11 +665,11 @@ void Geometry::calculateDimensionality()
         // Test if vec is normal to plane
         std::uint8_t n = 0;
         std::vector<Vector3> plane( 2 );
-        for( std::uint8_t i = 0; i < 3; ++i )
+        for( std::uint8_t dim = 0; dim < 3; ++dim )
         {
-            if( n_cells[i] > 1 )
+            if( n_cells[dim] > 1 )
             {
-                plane[n] = bravais_vectors[i];
+                plane[n] = bravais_vectors[dim];
                 ++n;
             }
         }
@@ -732,7 +733,7 @@ void Geometry::calculateBounds()
 {
     this->bounds_max.setZero();
     this->bounds_min.setZero();
-    for( std::size_t iatom = 0; iatom < static_cast<std::size_t>( nos ); ++iatom )
+    for( std::size_t iatom = 0; iatom < nos; ++iatom )
     {
         for( std::uint8_t dim = 0; dim < 3; ++dim )
         {
@@ -750,7 +751,7 @@ void Geometry::calculateUnitCellBounds()
     this->cell_bounds_min.setZero();
     for( const auto & bravais_vector : this->bravais_vectors )
     {
-        for( std::int64_t iatom = 0; iatom < this->n_cell_atoms; ++iatom )
+        for( std::size_t iatom = 0; iatom < this->n_cell_atoms; ++iatom )
         {
             Vector3 neighbour1 = this->positions[iatom] + this->lattice_constant * bravais_vector;
             Vector3 neighbour2 = this->positions[iatom] - this->lattice_constant * bravais_vector;

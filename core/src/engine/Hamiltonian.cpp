@@ -169,7 +169,7 @@ std::size_t Hamiltonian::Number_of_Interactions()
     return energy_contributions_per_spin.size();
 }
 
-scalar Hamiltonian::Energy_Single_Spin( int ispin, const vectorfield & spins )
+scalar Hamiltonian::Energy_Single_Spin( std::size_t ispin, const vectorfield & spins )
 {
     // Not Implemented!
     spirit_throw(

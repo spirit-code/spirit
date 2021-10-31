@@ -27,7 +27,7 @@ struct HTST_Info
     std::shared_ptr<Spin_System> saddle_point;
 
     // Eigenmodes
-    int n_eigenmodes_keep          = 0;
+    std::size_t n_eigenmodes_keep  = 0;
     VectorX eigenvalues_min        = VectorX( 0 );
     MatrixX eigenvectors_min       = MatrixX( 0, 0 );
     VectorX eigenvalues_sp         = VectorX( 0 );
@@ -52,16 +52,16 @@ class Spin_System_Chain
 public:
     // Constructor
     Spin_System_Chain(
-        std::vector<std::shared_ptr<Spin_System>> images, std::shared_ptr<Data::Parameters_Method_GNEB> gneb_parameters,
-        bool iteration_allowed = false );
+        const std::vector<std::shared_ptr<Spin_System>> & images,
+        std::shared_ptr<Data::Parameters_Method_GNEB> gneb_parameters, bool iteration_allowed = false );
 
     // For multithreading
     void Lock() noexcept;
     void Unlock() noexcept;
 
-    int noi; // Number of Images
+    std::size_t noi; // Number of Images
     std::vector<std::shared_ptr<Spin_System>> images;
-    int idx_active_image;
+    std::size_t idx_active_image;
 
     // Parameters for GNEB Iterations
     std::shared_ptr<Data::Parameters_Method_GNEB> gneb_parameters;

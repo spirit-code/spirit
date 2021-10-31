@@ -1,4 +1,4 @@
-﻿#include <engine/Neighbours.hpp>
+#include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
 #include <io/Filter_File_Handle.hpp>
 #include <io/IO.hpp>
@@ -185,7 +185,7 @@ catch( ... )
 } // End Spin_System_from_Config
 
 void Bravais_Vectors_from_Config(
-    const std::string & config_file_name, std::vector<Vector3> & bravais_vectors,
+    const std::string & config_file_name, std::array<Vector3, 3> & bravais_vectors,
     Data::BravaisLatticeType & bravais_lattice_type, std::string & bravais_lattice_type_str )
 try
 {
@@ -279,7 +279,7 @@ try
     // Bravais vectors {a, b, c}
     Data::BravaisLatticeType bravais_lattice_type = Data::BravaisLatticeType::SC;
     std::string bravais_lattice_type_str;
-    std::vector<Vector3> bravais_vectors = { Vector3{ 1, 0, 0 }, Vector3{ 0, 1, 0 }, Vector3{ 0, 0, 1 } };
+    std::array<Vector3, 3> bravais_vectors = { Vector3{ 1, 0, 0 }, Vector3{ 0, 1, 0 }, Vector3{ 0, 0, 1 } };
     // Atoms in the basis
     std::vector<Vector3> cell_atoms = { Vector3{ 0, 0, 0 } };
     std::size_t n_cell_atoms        = cell_atoms.size();

@@ -13,6 +13,9 @@
 #include <string>
 #include <vector>
 
+#include <cstddef>
+#include <cstdint>
+
 /*
  * The State struct is passed around in an application to make the
  * simulation's state available.
@@ -31,12 +34,12 @@ struct State
     // Spin configuration in clipboard
     std::shared_ptr<vectorfield> clipboard_spins;
 
-    // Number of Spins
-    int nos{ 0 };
-    // Number of Images
-    int noi{ 0 };
-    // Index of the urrently "active" image
-    int idx_active_image{ 0 };
+    // Number of spins
+    std::size_t nos;
+    // Number of images
+    std::size_t noi;
+    // Index of the currently active image
+    std::size_t idx_active_image;
 
     // The Methods
     //    max. noi*noc methods on images [noc][noi]
@@ -104,8 +107,8 @@ inline void from_indices(
     idx_chain = 0;
     chain     = state->chain;
 
-    // In case of positive non-existing chain_idx throw exception
-    if( idx_image >= state->chain->noi )
+    // In case of positive non-existing idx_image throw exception
+    if( idx_image >= static_cast<std::int64_t>( state->chain->noi ) )
     {
         spirit_throw(
             Utility::Exception_Classifier::Non_existing_Image, Utility::Log_Level::Warning,
@@ -117,7 +120,7 @@ inline void from_indices(
     if( idx_image < 0 )
     {
         image     = state->active_image;
-        idx_image = state->idx_active_image;
+        idx_image = static_cast<int>( state->idx_active_image );
     }
     else
     {

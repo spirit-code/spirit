@@ -20,9 +20,9 @@ namespace Data
 {
 
 /*
-Spin_System contains all setup information on one system (one set of spins, one image).
-This includes: Spin positions and orientations, Neighbours, Interaction constants, System parameters
-*/
+ * Spin_System contains all setup information on one system (one set of spins, one image).
+ * This includes: Spin positions and orientations, Neighbours, Interaction constants, System parameters
+ */
 class Spin_System
 {
 public:
@@ -34,7 +34,7 @@ public:
         bool iteration_allowed );
     // Copy constructor
     Spin_System( Spin_System const & other );
-    // Assignment operator
+    // Copy-assignment operator
     Spin_System & operator=( Spin_System const & other );
 
     // Update
@@ -46,12 +46,12 @@ public:
     void Unlock() noexcept;
 
     // Number of spins
-    int nos;
-    // Eigenmodes of the system: modes[nem][dim][nos]
+    std::size_t nos;
+    // Eigenmodes of the system: modes[nem][nos][3]
     std::vector<std::shared_ptr<vectorfield>> modes;
     // Eigenvalues of the system
     std::vector<scalar> eigenvalues;
-    // Orientations of the spins: spins[dim][nos]
+    // Orientations of the spins: spins[nos][3]
     std::shared_ptr<vectorfield> spins;
     // Spin Hamiltonian
     std::shared_ptr<Engine::Hamiltonian> hamiltonian;
@@ -74,7 +74,7 @@ public:
     std::vector<std::pair<std::string, scalar>> E_array;
     // Mean of magnetization
     Vector3 M;
-    // Total effective field of the spins [3][nos]
+    // Total effective field of the spins [nos][3]
     vectorfield effective_field;
 
 private:

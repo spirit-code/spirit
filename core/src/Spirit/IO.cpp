@@ -237,7 +237,7 @@ try
                      "OVF file \"{}\": segment {}/{} contains only {} spins while the system contains {}.", filename,
                      idx_image_infile + 1, file.n_segments, segment.N, image->nos ),
                  idx_image_inchain, idx_chain );
-            segment.N = std::min( segment.N, image->nos );
+            segment.N = std::min( static_cast<std::size_t>( segment.N ), image->nos );
         }
         else if( segment.N > image->nos )
         {
@@ -247,7 +247,7 @@ try
                      "Reading only part of the segment data.",
                      filename, idx_image_infile + 1, file.n_segments, segment.N, image->nos ),
                  idx_image_inchain, idx_chain );
-            segment.N = std::min( segment.N, image->nos );
+            segment.N = std::min( static_cast<std::size_t>( segment.N ), image->nos );
         }
 
         if( segment.valuedim != 3 )
@@ -542,7 +542,7 @@ try
                              "OVF file \"{}\": segment {}/{} contains only {} spins while the system contains {}.",
                              filename, start_image_infile + 1, file.n_segments, segment.N, image->nos ),
                          i, idx_chain );
-                    segment.N = std::min( segment.N, image->nos );
+                    segment.N = std::min( static_cast<std::size_t>( segment.N ), image->nos );
                 }
                 else if( segment.N > image->nos )
                 {
@@ -552,7 +552,7 @@ try
                              "Reading only part of the segment data.",
                              filename, start_image_infile + 1, file.n_segments, segment.N, image->nos ),
                          i, idx_chain );
-                    segment.N = std::min( segment.N, image->nos );
+                    segment.N = std::min( static_cast<std::size_t>( segment.N ), image->nos );
                 }
 
                 if( segment.valuedim != 3 )
@@ -1099,7 +1099,7 @@ try
                          "OVF file \"{}\": segment {}/{} contains only {} vectors while the system contains {}.",
                          filename, idx + 1, file.n_segments, segment.N, image->nos ),
                      idx_image_inchain, idx_chain );
-                segment.N = std::min( segment.N, image->nos );
+                segment.N = std::min( static_cast<std::size_t>( segment.N ), image->nos );
             }
             else if( segment.N > image->nos )
             {
@@ -1109,7 +1109,7 @@ try
                          "Reading only part of the segment data.",
                          filename, idx + 1, file.n_segments, segment.N, image->nos ),
                      idx_image_inchain, idx_chain );
-                segment.N = std::min( segment.N, image->nos );
+                segment.N = std::min( static_cast<std::size_t>( segment.N ), image->nos );
             }
 
             if( segment.valuedim != 3 )

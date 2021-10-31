@@ -5,8 +5,10 @@
 
 #include <algorithm>
 #include <iostream>
+#include <memory>
 #include <numeric>
 #include <random>
+#include <utility>
 
 namespace Data
 {
@@ -16,18 +18,19 @@ Spin_System::Spin_System(
     std::unique_ptr<Parameters_Method_LLG> llg_params, std::unique_ptr<Parameters_Method_MC> mc_params,
     std::unique_ptr<Parameters_Method_EMA> ema_params, std::unique_ptr<Parameters_Method_MMF> mmf_params,
     bool iteration_allowed )
-try : iteration_allowed( iteration_allowed ), singleshot_allowed( false ), hamiltonian( std::move( hamiltonian ) ),
-    geometry( geometry ), llg_parameters( std::move( llg_params ) ), mc_parameters( std::move( mc_params ) ),
-    ema_parameters( std::move( ema_params ) ), mmf_parameters( std::move( mmf_params ) )
+try : hamiltonian( std::move( hamiltonian ) ), geometry( std::move( geometry ) ),
+    llg_parameters( std::move( llg_params ) ), mc_parameters( std::move( mc_params ) ),
+    ema_parameters( std::move( ema_params ) ), mmf_parameters( std::move( mmf_params ) ),
+    iteration_allowed( iteration_allowed ), singleshot_allowed( false )
 {
     // Get Number of Spins
     this->nos = this->geometry->nos;
 
     // Initialize Spins Array
-    this->spins = std::shared_ptr<vectorfield>( new vectorfield( nos ) );
+    this->spins = std::make_shared<vectorfield>( nos );
 
     // Initialize Modes container
-    this->modes = std::vector<std::shared_ptr<vectorfield>>( this->ema_parameters->n_modes, NULL );
+    this->modes = std::vector<std::shared_ptr<vectorfield>>( this->ema_parameters->n_modes, nullptr );
 
     // Initialize Eigenvalues vector
     this->eigenvalues = std::vector<scalar>( this->modes.size(), 0 );
@@ -48,14 +51,16 @@ Spin_System::Spin_System( Spin_System const & other )
 try
 {
     this->nos         = other.nos;
-    this->spins       = std::shared_ptr<vectorfield>( new vectorfield( *other.spins ) );
-    this->modes       = std::vector<std::shared_ptr<vectorfield>>( other.modes.size(), NULL );
+    this->spins       = std::make_shared<vectorfield>( *other.spins );
+    this->modes       = std::vector<std::shared_ptr<vectorfield>>( other.modes.size(), nullptr );
     this->eigenvalues = other.eigenvalues;
 
-    // copy the modes
-    for( int i = 0; i < other.modes.size(); i++ )
+    // Copy the modes
+    for( std::size_t i = 0; i < other.modes.size(); i++ )
+    {
         if( other.modes[i] != NULL )
-            this->modes[i] = std::shared_ptr<vectorfield>( new vectorfield( *other.modes[i] ) );
+            this->modes[i] = std::make_shared<vectorfield>( *other.modes[i] );
+    }
 
     this->E               = other.E;
     this->E_array         = other.E_array;
@@ -66,12 +71,12 @@ try
     if( other.hamiltonian->Name() == "Heisenberg" )
     {
         this->hamiltonian = std::make_shared<Engine::Hamiltonian_Heisenberg>(
-            static_cast<Engine::Hamiltonian_Heisenberg &>( *other.hamiltonian ) );
+            dynamic_cast<Engine::Hamiltonian_Heisenberg &>( *other.hamiltonian ) );
     }
     else if( other.hamiltonian->Name() == "Gaussian" )
     {
         this->hamiltonian = std::make_shared<Engine::Hamiltonian_Gaussian>(
-            static_cast<Engine::Hamiltonian_Gaussian &>( *other.hamiltonian ) );
+            dynamic_cast<Engine::Hamiltonian_Gaussian &>( *other.hamiltonian ) );
     }
 
     this->llg_parameters = std::make_shared<Data::Parameters_Method_LLG>( *other.llg_parameters );
@@ -79,7 +84,8 @@ try
     this->ema_parameters = std::make_shared<Data::Parameters_Method_EMA>( *other.ema_parameters );
     this->mmf_parameters = std::make_shared<Data::Parameters_Method_MMF>( *other.mmf_parameters );
 
-    this->iteration_allowed = false;
+    this->iteration_allowed  = false;
+    this->singleshot_allowed = false;
 }
 catch( ... )
 {
@@ -90,42 +96,45 @@ catch( ... )
 Spin_System & Spin_System::operator=( Spin_System const & other )
 try
 {
-    if( this != &other )
+    if( this == &other )
+        return *this;
+
+    this->nos         = other.nos;
+    this->spins       = std::make_shared<vectorfield>( *other.spins );
+    this->modes       = std::vector<std::shared_ptr<vectorfield>>( other.modes.size(), NULL );
+    this->eigenvalues = other.eigenvalues;
+
+    // copy the modes
+    for( std::size_t i = 0; i < other.modes.size(); i++ )
     {
-        this->nos         = other.nos;
-        this->spins       = std::shared_ptr<vectorfield>( new vectorfield( *other.spins ) );
-        this->modes       = std::vector<std::shared_ptr<vectorfield>>( other.modes.size(), NULL );
-        this->eigenvalues = other.eigenvalues;
-
-        // copy the modes
-        for( int i = 0; i < other.modes.size(); i++ )
-            if( other.modes[i] != NULL )
-                this->modes[i] = std::shared_ptr<vectorfield>( new vectorfield( *other.modes[i] ) );
-
-        this->E               = other.E;
-        this->E_array         = other.E_array;
-        this->effective_field = other.effective_field;
-
-        this->geometry = std::make_shared<Data::Geometry>( *other.geometry );
-
-        if( other.hamiltonian->Name() == "Heisenberg" )
-        {
-            this->hamiltonian = std::make_shared<Engine::Hamiltonian_Heisenberg>(
-                *(Engine::Hamiltonian_Heisenberg *)( other.hamiltonian.get() ) );
-        }
-        else if( other.hamiltonian->Name() == "Gaussian" )
-        {
-            this->hamiltonian = std::make_shared<Engine::Hamiltonian_Gaussian>(
-                *(Engine::Hamiltonian_Gaussian *)( other.hamiltonian.get() ) );
-        }
-
-        this->llg_parameters = std::make_shared<Data::Parameters_Method_LLG>( *other.llg_parameters );
-        this->mc_parameters  = std::make_shared<Data::Parameters_Method_MC>( *other.mc_parameters );
-        this->ema_parameters = std::make_shared<Data::Parameters_Method_EMA>( *other.ema_parameters );
-        this->mmf_parameters = std::make_shared<Data::Parameters_Method_MMF>( *other.mmf_parameters );
-
-        this->iteration_allowed = false;
+        if( other.modes[i] != NULL )
+            this->modes[i] = std::make_shared<vectorfield>( *other.modes[i] );
     }
+
+    this->E               = other.E;
+    this->E_array         = other.E_array;
+    this->effective_field = other.effective_field;
+
+    this->geometry = std::make_shared<Data::Geometry>( *other.geometry );
+
+    if( other.hamiltonian->Name() == "Heisenberg" )
+    {
+        this->hamiltonian = std::make_shared<Engine::Hamiltonian_Heisenberg>(
+            *dynamic_cast<Engine::Hamiltonian_Heisenberg *>( other.hamiltonian.get() ) );
+    }
+    else if( other.hamiltonian->Name() == "Gaussian" )
+    {
+        this->hamiltonian = std::make_shared<Engine::Hamiltonian_Gaussian>(
+            *dynamic_cast<Engine::Hamiltonian_Gaussian *>( other.hamiltonian.get() ) );
+    }
+
+    this->llg_parameters = std::make_shared<Data::Parameters_Method_LLG>( *other.llg_parameters );
+    this->mc_parameters  = std::make_shared<Data::Parameters_Method_MC>( *other.mc_parameters );
+    this->ema_parameters = std::make_shared<Data::Parameters_Method_EMA>( *other.ema_parameters );
+    this->mmf_parameters = std::make_shared<Data::Parameters_Method_MMF>( *other.mmf_parameters );
+
+    this->iteration_allowed  = false;
+    this->singleshot_allowed = false;
 
     return *this;
 }

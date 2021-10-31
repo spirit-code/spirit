@@ -106,7 +106,7 @@ void Hamiltonian_Gaussian::Energy_Contributions_per_Spin(
     }
 }
 
-scalar Hamiltonian_Gaussian::Energy_Single_Spin( int ispin, const vectorfield & spins )
+scalar Hamiltonian_Gaussian::Energy_Single_Spin( std::size_t ispin, const vectorfield & spins )
 {
     scalar Energy = 0;
     for( int i = 0; i < this->n_gaussians; ++i )

@@ -53,7 +53,7 @@ void rotate( const Vector3 & v, const Vector3 & axis, const scalar & angle, Vect
 void rotate( const vectorfield & v, const vectorfield & axis, const scalarfield & angle, vectorfield & v_out );
 
 // Decompose a vector into numbers of translations in a basis
-Vector3 decompose( const Vector3 & v, const std::vector<Vector3> & basis );
+Vector3 decompose( const Vector3 & v, const std::array<Vector3, 3> & basis );
 
 /////////////////////////////////////////////////////////////////
 //////// Vectorfield Math - special stuff

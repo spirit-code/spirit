@@ -135,7 +135,7 @@ void Calculate_Eigenmodes( std::shared_ptr<Data::Spin_System> system, int idx_im
         Log( Log_Level::Info, Log_Sender::All, fmt::format( "Finished calculation of {} Eigenmodes ", n_modes ),
              idx_img, idx_chain );
 
-        int ev_print = std::min( n_modes, 100 );
+        auto ev_print = std::min( n_modes, std::size_t( 100 ) );
         Log( Log_Level::Info, Log_Sender::EMA,
              fmt::format( "Eigenvalues: {}", eigenvalues.head( ev_print ).transpose() ), idx_img, idx_chain );
     }

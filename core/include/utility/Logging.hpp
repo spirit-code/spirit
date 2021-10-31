@@ -125,6 +125,7 @@ public:
 private:
     // Constructor
     LoggingHandler();
+    ~LoggingHandler() = default;
 
     // Send log messages
     void Send(
@@ -135,23 +136,26 @@ private:
     std::vector<LogEntry> Filter(
         Log_Level level = Log_Level::All, Log_Sender sender = Log_Sender::All, int idx_image = -1, int idx_chain = -1 );
 
-    int no_dumped{ 0 };
+    int n_dumped{ 0 };
     std::vector<LogEntry> log_entries{};
 
     // Mutex for thread-safety
     std::mutex mutex;
 
 public:
-    LoggingHandler( LoggingHandler const & ) = delete;
-    void operator=( LoggingHandler const & ) = delete;
-
     /*
-     * Note: Scott Meyers mentions in his Effective Modern
-     *   C++ book, that deleted functions should generally
-     *   be public as it results in better error messages
-     *   due to the compilers behavior to check accessibility
-     *   before deleted status
+     * Note: Scott Meyers mentions in his Effective Modern C++ book, that deleted functions should generally be public
+     * as it results in better error messages due to the compilers behavior to check accessibility before deleted status
      */
+
+    // Copy-constructor
+    LoggingHandler( LoggingHandler const & ) = delete;
+    // Copy-assignment operator
+    void operator=( LoggingHandler const & ) = delete;
+    // Move-constructor
+    LoggingHandler( LoggingHandler const && ) = delete;
+    // Move-assignment operator
+    void operator=( LoggingHandler const && ) = delete;
 };
 
 } // namespace Utility
