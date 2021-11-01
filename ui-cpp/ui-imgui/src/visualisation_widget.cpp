@@ -235,7 +235,6 @@ void VisualisationWidget::show_content()
         rendering_layer.set_view_option<VFRendering::View::Option::LIGHT_POSITION>(
             glm::vec3{ -1000 * dir.x, -1000 * dir.y, -1000 * dir.z } );
     }
-
     ImGui::Columns( 1 );
 }
 

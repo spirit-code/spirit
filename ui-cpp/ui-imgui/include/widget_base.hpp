@@ -15,7 +15,7 @@ namespace ui
 class WidgetBase
 {
 public:
-    WidgetBase( bool & show_ ) : show_( show_ )
+    WidgetBase( bool & show ) : show_( show )
     {
         title    = "Base Widget";
         size_min = { 50, 50 };

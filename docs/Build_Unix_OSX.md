@@ -138,17 +138,14 @@ You may additionally need to
   `SPIRIT_CUDA_ARCH` CMake variable
 
 
-Web assembly library
+Web apps
 --------------------------------------
 
-Using emscripten, Spirit can be built as a Web assembly
-library, meaning that it can be used e.g. from within
-JavaScript.
+Using emscripten, the Spirit core library and ImGUI app can be built to
+web assembly (wasm), meaning they can be run in the browser.
 
-**Build**
-
-The CMake option you need to set to `ON` is called
-`SPIRIT_BUILD_FOR_JS`.
+The CMake options you need to set to `ON` is called `SPIRIT_BUILD_FOR_JS`
+and `SPIRIT_UI_USE_IMGUI`.
 
 You need to have emscripten available, meaning you might
 need to source, e.g. `source /usr/local/bin/emsdkvars.sh`.
@@ -161,6 +158,9 @@ cmake .. -DCMAKE_TOOLCHAIN_FILE=/usr/local/emsdk/emscripten/1.38.29/cmake/Module
 make
 cd ..
 ```
+
+You will then have the mobile-capable app in the ui-web folder and the
+desktop app in ui-cpp/ui-imgui/webapp.
 
 
 Further build configuration options

@@ -1556,6 +1556,7 @@ void MainWindow::show_menu_bar()
             ImGui::MenuItem( "Geometry", "", &ui_config_file.show_geometry_widget );
             ImGui::MenuItem( "Hamiltonian", "", &ui_config_file.show_hamiltonian_widget );
             ImGui::MenuItem( "Visualisation settings", "", &ui_config_file.show_visualisation_widget );
+            ImGui::Separator();
             ImGui::MenuItem( "ImGui Demo Window", "", &show_imgui_demo_window );
             ImGui::MenuItem( "ImPlot Demo Window", "", &show_implot_demo_window );
             ImGui::Separator();
