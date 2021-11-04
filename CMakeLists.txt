@@ -70,10 +70,6 @@ set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 set( CMAKE_CXX_STANDARD 14 )
 ### Set the cmake subdirectory
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" )
-### Need to use pthread if emscripten is used
-if( SPIRIT_BUILD_FOR_JS AND SPIRIT_UI_USE_IMGUI )
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=2")
-endif()
 ####################################################################
 
 
@@ -238,21 +234,20 @@ endif()
 add_subdirectory( core )
 ### Web UI
 if( SPIRIT_BUILD_FOR_JS )
-    add_subdirectory( VFRendering )
     if( SPIRIT_UI_USE_IMGUI )
         add_definitions( -DSPIRIT_UI_USE_IMGUI )
-        add_subdirectory( ui-cpp )
-    else()
-        add_subdirectory( ui-web )
     endif()
+    add_subdirectory( VFRendering )
+    add_subdirectory( ui-cpp )
+    add_subdirectory( ui-web )
 ### CXX UI
 elseif( SPIRIT_BUILD_FOR_CXX )
-    add_subdirectory( VFRendering )
     if( SPIRIT_UI_CXX_USE_QT )
         add_definitions( -DSPIRIT_UI_CXX_USE_QT )
     elseif( SPIRIT_UI_USE_IMGUI )
         add_definitions( -DSPIRIT_UI_USE_IMGUI )
     endif()
+    add_subdirectory( VFRendering )
     add_subdirectory( ui-cpp )
 endif()
 ####################################################################
