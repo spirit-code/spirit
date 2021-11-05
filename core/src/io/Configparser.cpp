@@ -653,7 +653,7 @@ Data::Pinning Pinning_from_Config( const std::string configFile, int n_cell_atom
     }
     Log( Log_Level::Parameter, Log_Sender::IO, "Pinning: read" );
     return pinning;
-#else // SPIRIT_ENABLE_PINNING
+#else  // SPIRIT_ENABLE_PINNING
     Log( Log_Level::Parameter, Log_Sender::IO, "Pinning is disabled" );
     if( configFile != "" )
     {
@@ -1226,6 +1226,14 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
     scalar ddi_radius              = 0.0;
     bool ddi_pb_zero_padding       = true;
 
+    // ------------ Triplet Interactions ------------
+    int n_triplets            = 0;
+    std::string triplets_file = "";
+    bool triplets_from_file   = false;
+    tripletfield triplets( 0 );
+    scalarfield triplet_magnitudes1( 0 );
+    scalarfield triplet_magnitudes2( 0 );
+
     // ------------ Quadruplet Interactions ------------
     int n_quadruplets            = 0;
     std::string quadruplets_file = "";
@@ -1248,7 +1256,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
             boundary_conditions[0] = ( boundary_conditions_i[0] != 0 );
             boundary_conditions[1] = ( boundary_conditions_i[1] != 0 );
             boundary_conditions[2] = ( boundary_conditions_i[2] != 0 );
-        } // end try
+        }
         catch( ... )
         {
             spirit_handle_exception_core(
@@ -1269,7 +1277,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                 Log( Log_Level::Warning, Log_Sender::IO,
                      "Input for 'external_field_normal' had norm zero and has been set to (0,0,1)" );
             }
-        } // end try
+        }
         catch( ... )
         {
             spirit_handle_exception_core(
@@ -1327,7 +1335,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                     anisotropy_normal    = vectorfield( 0 );
                 }
             }
-        } // end try
+        }
         catch( ... )
         {
             spirit_handle_exception_core(
@@ -1359,7 +1367,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                 // been implemented yet."); 	throw Exception::System_not_Initialized;
                 //	// Not implemented!
                 //}
-            } // end try
+            }
             catch( ... )
             {
                 spirit_handle_exception_core(
@@ -1388,7 +1396,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                                  "Hamiltonian_Heisenberg: Keyword 'jij' not found. Using Default: {}",
                                  exchange_magnitudes[0] ) );
                 }
-            } // end try
+            }
             catch( ... )
             {
                 spirit_handle_exception_core(
@@ -1416,8 +1424,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                                  dmi_magnitudes[0] ) );
                 }
                 myfile.Read_Single( dm_chirality, "dm_chirality" );
-
-            } // end try
+            }
             catch( ... )
             {
                 spirit_handle_exception_core(
@@ -1455,11 +1462,33 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
 
             // Dipole-dipole cutoff radius
             myfile.Read_Single( ddi_radius, "ddi_radius" );
-        } // end try
+        }
         catch( ... )
         {
             spirit_handle_exception_core(
                 fmt::format( "Unable to read DDI radius from config file \"{}\"", configFile ) );
+        }
+
+        try
+        {
+            IO::Filter_File_Handle myfile( configFile );
+
+            // Interaction Triplets
+            if( myfile.Find( "n_interaction_triplets" ) )
+                triplets_file = configFile;
+            else if( myfile.Find( "interaction_triplets_file" ) )
+                myfile.iss >> triplets_file;
+            if( triplets_file.length() > 0 )
+            {
+                // The file name should be valid so we try to read it
+                Triplets_from_File(
+                    triplets_file, geometry, n_triplets, triplets, triplet_magnitudes1, triplet_magnitudes2 );
+            }
+        }
+        catch( ... )
+        {
+            spirit_handle_exception_core(
+                fmt::format( "Unable to read interaction triplets from config file  \"{}\"", configFile ) );
         }
 
         try
@@ -1477,8 +1506,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                 // The file name should be valid so we try to read it
                 Quadruplets_from_File( quadruplets_file, geometry, n_quadruplets, quadruplets, quadruplet_magnitudes );
             }
-
-        } // end try
+        }
         catch( ... )
         {
             spirit_handle_exception_core(
@@ -1524,15 +1552,17 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
     {
         hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg>( new Engine::Hamiltonian_Heisenberg(
             B, B_normal, anisotropy_index, anisotropy_magnitude, anisotropy_normal, exchange_magnitudes, dmi_magnitudes,
-            dm_chirality, ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius, quadruplets,
-            quadruplet_magnitudes, geometry, boundary_conditions ) );
+            dm_chirality, ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius, triplets,
+            triplet_magnitudes1, triplet_magnitudes2, quadruplets, quadruplet_magnitudes, geometry,
+            boundary_conditions ) );
     }
     else
     {
         hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg>( new Engine::Hamiltonian_Heisenberg(
             B, B_normal, anisotropy_index, anisotropy_magnitude, anisotropy_normal, exchange_pairs, exchange_magnitudes,
             dmi_pairs, dmi_magnitudes, dmi_normals, ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius,
-            quadruplets, quadruplet_magnitudes, geometry, boundary_conditions ) );
+            triplets, triplet_magnitudes1, triplet_magnitudes2, quadruplets, quadruplet_magnitudes, geometry,
+            boundary_conditions ) );
     }
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Heisenberg: built" );
     return hamiltonian;

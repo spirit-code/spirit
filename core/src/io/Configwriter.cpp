@@ -314,6 +314,27 @@ void Hamiltonian_Heisenberg_to_Config(
     config += "### DDI cutoff radius (if cutoff is used)";
     config += fmt::format( "ddi_radius                 {}\n", ham->ddi_cutoff_radius );
 
+    // Triplets
+    config += "###    Triplets:\n";
+    config += fmt::format( "n_interaction_triplets {}\n", ham->quadruplets.size() );
+    if( ham->quadruplets.size() > 0 )
+    {
+        config += fmt::format(
+            "{:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15} {:^15} {:^15}    {:^15} {:^15}\n",
+            "i", "j", "k", "da_j", "db_j", "dc_j", "da_k", "db_k", "dc_k", "na", "nb", "nc", "q1", "q2" );
+        for( unsigned int i = 0; i < ham->triplets.size(); ++i )
+        {
+            config += fmt::format(
+                "{:^3} {:^3} {:^3}     {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15} {:^15} {:^15}    {:^15.8f} "
+                "{:^15.8f}\n",
+                ham->triplets[i].i, ham->triplets[i].j, ham->triplets[i].k, ham->triplets[i].d_j[0],
+                ham->triplets[i].d_j[1], ham->triplets[i].d_j[2], ham->triplets[i].d_k[0], ham->triplets[i].d_k[1],
+                ham->triplets[i].d_k[2], ham->triplets[i].n[0], ham->triplets[i].n[1], ham->triplets[i].n[2],
+                ham->triplet_magnitudes1[i] ),
+                ham->triplet_magnitudes2[i];
+        }
+    }
+
     // Quadruplets
     config += "###    Quadruplets:\n";
     config += fmt::format( "n_interaction_quadruplets {}\n", ham->quadruplets.size() );
@@ -351,8 +372,8 @@ void Hamiltonian_Gaussian_to_Config(
             config += fmt::format(
                 "{} {} {}\n", ham_gaussian->amplitude[i], ham_gaussian->width[i], ham_gaussian->center[i].transpose() );
         }
-    }
-    Append_String_to_File( config, configFile );
+}
+Append_String_to_File( config, configFile );
 }
 
 } // namespace IO

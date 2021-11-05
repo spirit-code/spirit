@@ -36,6 +36,7 @@ namespace Engine
             pairfield exchange_pairs, scalarfield exchange_magnitudes,
             pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals,
             DDI_Method ddi_method, intfield ddi_n_periodic_images, bool ddi_pb_zero_padding, scalar ddi_radius,
+            tripletfield triplets, scalarfield triplet_magnitudes1, scalarfield triplet_magnitudes2,
             quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
             std::shared_ptr<Data::Geometry> geometry,
             intfield boundary_conditions
@@ -47,6 +48,7 @@ namespace Engine
             scalarfield exchange_shell_magnitudes,
             scalarfield dmi_shell_magnitudes, int dm_chirality,
             DDI_Method ddi_method, intfield ddi_n_periodic_images, bool ddi_pb_zero_padding, scalar ddi_radius,
+            tripletfield triplets, scalarfield triplet_magnitudes1, scalarfield triplet_magnitudes2,
             quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
             std::shared_ptr<Data::Geometry> geometry,
             intfield boundary_conditions
@@ -70,7 +72,7 @@ namespace Engine
 
         // Hamiltonian name as string
         const std::string& Name() override;
-        
+
         // ------------ Single Spin Interactions ------------
         // External magnetic field across the sample
         scalar external_field_magnitude;
@@ -111,6 +113,10 @@ namespace Engine
         scalarfield ddi_magnitudes;
         vectorfield ddi_normals;
 
+        // ------------ Triplet Interactions ------------
+        tripletfield triplets;
+        scalarfield  triplet_magnitudes1, triplet_magnitudes2;
+
         // ------------ Quadruplet Interactions ------------
         quadrupletfield quadruplets;
         scalarfield     quadruplet_magnitudes;
@@ -129,6 +135,8 @@ namespace Engine
         // Calculates the Dipole-Dipole contribution to the effective field of spin ispin within system s
         void Gradient_DDI(const vectorfield& spins, vectorfield & gradient);
 
+        // Triplet
+        void Gradient_Triplet(const vectorfield & spins, vectorfield & gradient);
         // Quadruplet
         void Gradient_Quadruplet(const vectorfield & spins, vectorfield & gradient);
 
@@ -139,6 +147,7 @@ namespace Engine
         inline int Idx_Exchange()  {return idx_exchange;};
         inline int Idx_DMI() {return idx_dmi;};
         inline int Idx_DDI() {return idx_ddi;};
+        inline int Idx_Triplet() {return idx_triplet;};
         inline int Idx_Quadruplet() {return idx_quadruplet;};
 
         // Calculate the Zeeman energy of a Spin System
@@ -151,11 +160,13 @@ namespace Engine
         void E_DMI(const vectorfield & spins, scalarfield & Energy);
         // Calculate the Dipole-Dipole energy
         void E_DDI(const vectorfield& spins, scalarfield & Energy);
+        // Calculate the Triplet energy
+        void E_Triplet(const vectorfield & spins, scalarfield & Energy);
         // Calculate the Quadruplet energy
         void E_Quadruplet(const vectorfield & spins, scalarfield & Energy);
 
         private:
-        int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet;
+        int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_triplet, idx_quadruplet;
         void Gradient_DDI_Cutoff(const vectorfield& spins, vectorfield & gradient);
         void Gradient_DDI_Direct(const vectorfield& spins, vectorfield & gradient);
         void Gradient_DDI_FFT(const vectorfield& spins, vectorfield & gradient);

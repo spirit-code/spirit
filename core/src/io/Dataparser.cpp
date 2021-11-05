@@ -468,6 +468,164 @@ catch( ... )
     spirit_rethrow( fmt::format( "Could not read pairs file \"{}\"", pairsFile ) );
 }
 
+/*
+Read from Triplet file
+*/
+void Triplets_from_File(
+    const std::string tripletsFile, const std::shared_ptr<Data::Geometry>, int & noq, tripletfield & triplets,
+    scalarfield & triplet_magnitudes1, scalarfield & triplet_magnitudes2 )
+{
+    Log( Log_Level::Info, Log_Sender::IO, "Reading spin triplets from file " + tripletsFile );
+    try
+    {
+        std::vector<std::string> columns( 20 ); // at least: 4 (indices) + 3*3 (positions) + 1 (magnitude)
+        // column indices of pair indices and interactions
+        int col_i = -1;
+        int col_j = -1, col_da_j = -1, col_db_j = -1, col_dc_j = -1, periodicity_j = 0;
+        int col_k = -1, col_da_k = -1, col_db_k = -1, col_dc_k = -1, periodicity_k = 0;
+        int col_l = -1, col_da_l = -1, col_db_l = -1, col_dc_l = -1, periodicity_l = 0;
+        int col_Q1 = -1, col_Q2;
+        int col_na = -1, col_nb = -1, col_nc = -1;
+        bool Q1           = false;
+        bool Q2           = false;
+        int max_periods_a = 0, max_periods_b = 0, max_periods_c = 0;
+        int triplet_periodicity = 0;
+        int n_triplets          = 0;
+        // Get column indices
+        Filter_File_Handle file( tripletsFile );
+        if( file.Find( "n_interaction_triplets" ) )
+        {
+            // Read n interaction triplets
+            file.iss >> n_triplets;
+            Log( Log_Level::Debug, Log_Sender::IO,
+                 fmt::format( "File {} should have {} triplets", tripletsFile, n_triplets ) );
+        }
+        else
+        {
+            // Read the whole file
+            n_triplets = (int)1e8;
+            // First line should contain the columns
+            file.ResetStream();
+            Log( Log_Level::Info, Log_Sender::IO, "Trying to parse triplet columns from top of file " + tripletsFile );
+        }
+        file.GetLine();
+        for( unsigned int i = 0; i < columns.size(); ++i )
+        {
+            file.iss >> columns[i];
+            if( columns[i] == "i" )
+                col_i = i;
+            else if( columns[i] == "j" )
+                col_j = i;
+            else if( columns[i] == "da_j" )
+                col_da_j = i;
+            else if( columns[i] == "db_j" )
+                col_db_j = i;
+            else if( columns[i] == "dc_j" )
+                col_dc_j = i;
+            else if( columns[i] == "k" )
+                col_k = i;
+            else if( columns[i] == "da_k" )
+                col_da_k = i;
+            else if( columns[i] == "db_k" )
+                col_db_k = i;
+            else if( columns[i] == "dc_k" )
+                col_dc_k = i;
+            else if( columns[i] == "q1" )
+            {
+                col_Q1 = i;
+                Q1     = true;
+            }
+            else if( columns[i] == "na" )
+                col_na = i;
+            else if( columns[i] == "nb" )
+                col_nb = i;
+            else if( columns[i] == "nc" )
+                col_nc = i;
+            else if( columns[i] == "q2" )
+            {
+                col_Q2 = i;
+                Q2     = true;
+            }
+        }
+        // Check if interactions have been found in header
+        if( !Q1 )
+            Log( Log_Level::Warning, Log_Sender::IO,
+                 "No interactions could be found in header of triplets file " + tripletsFile );
+        if( !Q2 )
+            Log( Log_Level::Warning, Log_Sender::IO,
+                 "No interactions could be found in header of triplets file " + tripletsFile );
+        // triplet Indices
+        int q_i = 0;
+        int q_j = 0, q_da_j = 0, q_db_j = 0, q_dc_j = 0;
+        int q_k = 0, q_da_k = 0, q_db_k = 0, q_dc_k = 0;
+        scalar q_na = 0, q_nb = 0, q_nc = 0;
+        scalar q_Q1, q_Q2;
+        // Get actual triplets Data
+        int i_triplet = 0;
+        std::string sdump;
+        while( file.GetLine() && i_triplet < n_triplets )
+        {
+            // Read a triplet from the File
+            for( unsigned int i = 0; i < columns.size(); ++i )
+            {
+                // i
+                if( i == col_i )
+                    file.iss >> q_i;
+                // j
+                else if( i == col_j )
+                    file.iss >> q_j;
+                else if( i == col_da_j )
+                    file.iss >> q_da_j;
+                else if( i == col_db_j )
+                    file.iss >> q_db_j;
+                else if( i == col_dc_j )
+                    file.iss >> q_dc_j;
+                // k
+                else if( i == col_k )
+                    file.iss >> q_k;
+                else if( i == col_da_k )
+                    file.iss >> q_da_k;
+                else if( i == col_db_k )
+                    file.iss >> q_db_k;
+                else if( i == col_dc_k )
+                    file.iss >> q_dc_k;
+                // n
+                else if( i == col_na )
+                    file.iss >> q_na;
+                else if( i == col_nb )
+                    file.iss >> q_nb;
+                else if( i == col_nc )
+                    file.iss >> q_nc;
+                // triplet magnitude
+                else if( i == col_Q1 && Q1 )
+                    file.iss >> q_Q1;
+                else if( i == col_Q2 && Q2 )
+                    file.iss >> q_Q2;
+                // Otherwise dump the line
+                else
+                    file.iss >> sdump;
+            } // end for columns
+
+            // Add the indices and parameter to the corresponding list
+            if( q_Q1 != 0 || q_Q2 != 0 )
+            {
+                triplets.push_back(
+                    { q_i, q_j, q_k, { q_da_j, q_db_j, q_db_j }, { q_da_k, q_db_k, q_db_k }, { q_na, q_nb, q_nc } } );
+                triplet_magnitudes1.push_back( q_Q1 );
+                triplet_magnitudes2.push_back( q_Q2 );
+            }
+            ++i_triplet;
+        } // end while GetLine
+        Log( Log_Level::Info, Log_Sender::IO,
+             fmt::format( "Done reading {} spin triplets from file {}", i_triplet, tripletsFile ) );
+        noq = i_triplet;
+    } // end try
+    catch( ... )
+    {
+        spirit_rethrow( fmt::format( "Could not read triplets from file  \"{}\"", tripletsFile ) );
+    }
+} // End Triplets_from_File
+
 // Read from Quadruplet file
 void Quadruplets_from_File(
     const std::string quadrupletsFile, const std::shared_ptr<Data::Geometry>, int & noq, quadrupletfield & quadruplets,
