@@ -10,7 +10,7 @@ namespace ui
 {
 
 GeometryWidget::GeometryWidget( bool & show, std::shared_ptr<State> state, RenderingLayer & rendering_layer )
-        : WidgetBase(show), state( state ), rendering_layer( rendering_layer )
+        : WidgetBase( show ), state( state ), rendering_layer( rendering_layer )
 {
     title = "Geometry";
     update_data();
@@ -167,7 +167,6 @@ void GeometryWidget::show_content()
     ImGui::TextUnformatted(
         fmt::format( "(x,y,z): {} x {} x {} [Å]", system_center[0], system_center[1], system_center[2] ).c_str() );
     ImGui::Indent( -15 );
-
 }
 
 } // namespace ui

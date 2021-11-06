@@ -175,9 +175,6 @@ void RenderingLayer::initialize_gl()
     this->update_vf_geometry();
     this->update_vf_directions();
 
-    set_view_option<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>(
-        VFRendering::Utilities::getColormapImplementation( VFRendering::Utilities::Colormap::HSV ) );
-
     // Defaults
     if( renderer_widgets.empty() )
     {

@@ -577,7 +577,9 @@ bool ColormapWidget::colormap_input()
         ImGui::TextUnformatted( "Cardinal direction" );
         ImGui::Columns( 2, "cardinaldircolumns", false ); // 3-ways, no border
         vgm::Vec3 dir( colormap_cardinal_c[0], colormap_cardinal_c[1], colormap_cardinal_c[2] );
-        if( ImGui::gizmo3D( "##cardinaldir", dir ) )
+        if( ImGui::gizmo3D(
+                "##cardinaldir", dir,
+                ImGui::GetFrameHeightWithSpacing() * 3 - ( ImGui::GetStyle().ItemSpacing.y * 2 ) ) )
             update = true;
         ImGui::NextColumn();
         auto normalize_dir = [&]()
@@ -702,8 +704,8 @@ CoordinateSystemRendererWidget::CoordinateSystemRendererWidget(
     renderer = std::make_shared<VFRendering::CoordinateSystemRenderer>( view );
     this->set_renderer_option<VFRendering::CoordinateSystemRenderer::Option::AXIS_LENGTH>( glm::vec3{ 1, 1, 1 } );
     this->set_renderer_option<VFRendering::CoordinateSystemRenderer::Option::NORMALIZE>( true );
-
-    // set_colormap_implementation( Colormap::BLUE_GREEN_RED );
+    this->set_renderer_option<VFRendering::View::Option::COLORMAP_IMPLEMENTATION>(
+        VFRendering::Utilities::getColormapImplementation( VFRendering::Utilities::Colormap::HSV ) );
 }
 
 void CoordinateSystemRendererWidget::show()
