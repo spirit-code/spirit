@@ -16,10 +16,13 @@ namespace widgets
 bool toggle_button( const char * str_id, bool * v, bool coloured = true );
 void help_marker( const char * description );
 
-void show_overlay_system( bool & show, int & corner, std::array<float, 2> & position, std::shared_ptr<State> state );
+void show_overlay_system(
+    bool & show, int & corner, std::array<float, 2> & position, std::shared_ptr<State> state,
+    ImVec2 viewport_pos = { 0, 0 }, ImVec2 viewport_size = { -1, -1 } );
 void show_overlay_calculation(
     bool & show, GUI_Mode & selected_mode, int & selected_solver_min, int & selected_solver_llg, int & corner,
-    std::array<float, 2> & position, std::shared_ptr<State> state );
+    std::array<float, 2> & position, std::shared_ptr<State> state, ImVec2 viewport_pos = { 0, 0 },
+    ImVec2 viewport_size = { -1, -1 } );
 
 void show_settings( bool & show, ui::RenderingLayer & rendering_layer );
 

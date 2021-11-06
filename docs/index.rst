@@ -13,11 +13,12 @@ Spirit - Spin Simulation Framework
 .. toctree::
     :maxdepth: 1
 
-    Introduction                <../README>
-    Desktop user interface      <UI-Qt>
-    Input file specification    <../core/docs/Input>
-    Definitions                 <../core/docs/Definitions>
-    Additional features         <../core/docs/Features>
+    Introduction                 <../README>
+    Qt desktop user interface    <UI-Qt>
+    ImGui desktop user interface <UI-ImGui>
+    Input file specification     <../core/docs/Input>
+    Definitions                  <../core/docs/Definitions>
+    Additional features          <../core/docs/Features>
 
 .. toctree::
     :maxdepth: 2

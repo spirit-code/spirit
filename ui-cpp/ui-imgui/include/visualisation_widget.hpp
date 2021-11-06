@@ -3,7 +3,7 @@
 #define SPIRIT_IMGUI_VISUALISATION_WIDGET_HPP
 
 #include <rendering_layer.hpp>
-
+#include <widget_base.hpp>
 #include <memory>
 
 struct State;
@@ -11,13 +11,12 @@ struct State;
 namespace ui
 {
 
-struct VisualisationWidget
+struct VisualisationWidget : public WidgetBase
 {
     VisualisationWidget( bool & show, std::shared_ptr<State> state, RenderingLayer & rendering_layer );
-    void show();
+    void show_content() override;
     void update_data();
 
-    bool & show_;
     std::shared_ptr<State> state;
     RenderingLayer & rendering_layer;
 };

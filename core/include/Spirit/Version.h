@@ -22,6 +22,7 @@ PREFIX const char * Spirit_Pinning() SUFFIX;
 
 PREFIX const char * Spirit_Cuda() SUFFIX;
 PREFIX const char * Spirit_OpenMP() SUFFIX;
+PREFIX int Spirit_OpenMP_Get_Num_Threads() SUFFIX;
 PREFIX const char * Spirit_Threads() SUFFIX;
 PREFIX const char * Spirit_FFTW() SUFFIX;
 

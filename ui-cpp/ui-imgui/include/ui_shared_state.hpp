@@ -51,7 +51,7 @@ struct UiSharedState
 
     // Camera in regular interaction mode
     bool camera_is_orthographic  = false;
-    float camera_perspective_fov = 60;
+    int camera_perspective_fov = 45;
     std::array<float, 3> regular_interaction_camera_pos;
     std::array<float, 3> regular_interaction_center_pos;
     std::array<float, 3> regular_interaction_sys_center;
@@ -64,8 +64,24 @@ struct UiSharedState
     bool mmf_apply_to_all = true;
     bool ema_apply_to_all = true;
 
+    // Configurations widget
+    struct Configurations
+    {
+        std::string last_used = "";
+
+        float pos[3]{ 0, 0, 0 };
+        float border_rect[3]{ -1, -1, -1 };
+        float border_cyl = -1;
+        float border_sph = -1;
+        bool inverted    = false;
+
+        float noise_temperature = 0;
+    };
+    Configurations configurations{};
+
     // Other
-    int n_screenshots = 0;
+    int n_screenshots       = 0;
+    int n_screenshots_chain = 0;
     std::list<Notification> notifications;
 };
 
