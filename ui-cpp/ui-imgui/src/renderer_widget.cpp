@@ -1024,7 +1024,7 @@ void SphereRendererWidget::reset()
     this->reset_colormap();
 
     this->size = 0.1f;
-    this->lod  = 10;
+    this->lod  = 3;
 
     this->apply_settings();
 }
@@ -1038,7 +1038,7 @@ void SphereRendererWidget::show_settings()
     }
 
     ImGui::SetNextItemWidth( 100 );
-    if( ImGui::SliderInt( "level of detail", &lod, 10, 100 ) )
+    if( ImGui::SliderInt( "level of detail", &lod, 1, 5 ) )
         this->set_renderer_option<VFRendering::SphereRenderer::Option::LEVEL_OF_DETAIL>( lod );
 
     ImGui::Dummy( { 0, 10 } );

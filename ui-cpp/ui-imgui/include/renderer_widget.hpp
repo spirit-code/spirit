@@ -192,7 +192,7 @@ struct SphereRendererWidget : RendererWidget, ColormapWidget
     void apply_settings() override;
 
     float size = 0.1f;
-    int lod    = 10;
+    int lod    = 3;
 
 protected:
     std::string name() const override
