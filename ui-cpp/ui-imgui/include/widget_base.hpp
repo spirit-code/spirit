@@ -51,12 +51,12 @@ public:
 
         root_dock_node_id = get_root_dock_node_id();
 
-        if( ImGui::BeginPopupContextWindow() )
-        {
-            if( ImGui::MenuItem( "Attach", NULL, false ) )
-                wants_to_dock = true;
-            ImGui::EndPopup();
-        }
+        // if( ImGui::BeginPopupContextWindow() )
+        // {
+        //     if( ImGui::MenuItem( "Attach", NULL, false ) )
+        //         wants_to_dock = true;
+        //     ImGui::EndPopup();
+        // }
 
         show_content();
 
