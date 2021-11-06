@@ -883,7 +883,7 @@ void DotRendererWidget::reset()
 void DotRendererWidget::show_settings()
 {
     ImGui::SetNextItemWidth( 100 );
-    if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f" ) )
+    if( ImGui::SliderFloat( "size", &size, 0.01f, 10, "%.3f" ) )
     {
         this->set_renderer_option<VFRendering::DotRenderer::DOT_RADIUS>( size * 1000 );
     }
@@ -986,7 +986,7 @@ void ParallelepipedRendererWidget::reset()
 void ParallelepipedRendererWidget::show_settings()
 {
     ImGui::SetNextItemWidth( 100 );
-    if( ImGui::SliderFloat( "size", &size, 0.01f, 100, "%.3f" ) )
+    if( ImGui::SliderFloat( "size", &size, 0.01f, 10, "%.3f" ) )
     {
         this->set_renderer_option<VFRendering::ParallelepipedRenderer::Option::LENGTH_A>( size * 0.5f );
         this->set_renderer_option<VFRendering::ParallelepipedRenderer::Option::LENGTH_B>( size * 0.5f );
