@@ -51,7 +51,7 @@ struct UiSharedState
 
     // Camera in regular interaction mode
     bool camera_is_orthographic  = false;
-    float camera_perspective_fov = 60;
+    int camera_perspective_fov = 45;
     std::array<float, 3> regular_interaction_camera_pos;
     std::array<float, 3> regular_interaction_center_pos;
     std::array<float, 3> regular_interaction_sys_center;

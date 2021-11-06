@@ -1,3 +1,4 @@
+#include <imgui_impl/fontawesome5_icons.h>
 #include <visualisation_widget.hpp>
 #include <widgets.hpp>
 
@@ -15,7 +16,7 @@ namespace ui
 VisualisationWidget::VisualisationWidget( bool & show, std::shared_ptr<State> state, RenderingLayer & rendering_layer )
         : WidgetBase( show ), state( state ), rendering_layer( rendering_layer )
 {
-    title = "Visualisation settings";
+    title    = "Visualisation settings";
     size_min = { 300, 300 };
     size_max = { 800, 999999 };
 }
@@ -200,8 +201,14 @@ void VisualisationWidget::show_content()
     ImGui::Dummy( { 0, 10 } );
 
     ImGui::TextUnformatted( "Field of view" );
-    int fov = rendering_layer.view.options().get<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>();
-    ImGui::SliderInt( "##slider_fov", &fov, 0, 160 );
+    if( ImGui::Button( ICON_FA_REDO ) )
+    {
+        rendering_layer.ui_shared_state.camera_perspective_fov = 45;
+        rendering_layer.set_camera_fov( 45 );
+    }
+    ImGui::SameLine();
+    if( ImGui::SliderInt( "##slider_fov", &rendering_layer.ui_shared_state.camera_perspective_fov, 0, 160 ) )
+        rendering_layer.set_camera_fov( rendering_layer.ui_shared_state.camera_perspective_fov );
 
     ImGui::Dummy( { 0, 10 } );
     ImGui::Separator();
