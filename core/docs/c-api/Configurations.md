@@ -151,6 +151,10 @@ void Configuration_Skyrmion(State *state, float r, float order, float phase, boo
 
 Create a skyrmion configuration
 
+
+
+### Configuration_DW_Skyrmion
+
 ```C
 void Configuration_DW_Skyrmion(State *state, float dw_radius, float dw_width, float order, float phase, bool upDown, bool achiral, bool rl, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, int idx_image=-1, int idx_chain=-1)
 ```

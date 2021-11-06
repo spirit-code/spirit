@@ -16,7 +16,7 @@ Note that `HTST_Calculate` needs to be called before using any of the getter fun
 ### HTST_Calculate
 
 ```C
-float HTST_Calculate(State * state, int idx_image_minimum, int idx_image_sp, int n_eigenmodes_keep=0, int idx_chain=-1)
+float HTST_Calculate(State * state, int idx_image_minimum, int idx_image_sp, int n_eigenmodes_keep=0, bool sparse=false, int idx_chain=-1)
 ```
 
 Calculates the HTST transition rate prefactor for the transition from a minimum over saddle point.
@@ -26,7 +26,7 @@ Calculates the HTST transition rate prefactor for the transition from a minimum 
 - `n_eigenmodes_keep`: the number of energy eigenmodes to keep in memory (0 = none, negative value = all)
 - `sparse`: when set to `true` the sparse version is used, which greatly improves speed and memory footprint, 
             but does not evaluate the eigenvectors and all single eigenvalues. 
-            The sparse version should only be used in the abscence of DDI.
+            The sparse version should only be used in the abscence of DDI
 
 Note: The Get_Eigenvalues/vectors functions only work after HTST_Calculate with sparse=false has been called.
 Note: In the sparse version zero mode checking has not been implemented yet.
@@ -39,7 +39,7 @@ respectively.
 ### HTST_Get_Info
 
 ```C
-void HTST_Get_Info( State * state, float * temperature_exponent, float * me, float * Omega_0, float * s, float * volume_min, float * volume_sp, float * prefactor_dynamical, float * prefactor, int idx_chain=-1 )
+void HTST_Get_Info( State * state, float * temperature_exponent, float * me, float * Omega_0, float * s, float * volume_min, float * volume_sp, float * prefactor_dynamical, float * prefactor, int * n_eigenmodes_keep, int idx_chain=-1 )
 ```
 
 Retrieves a set of information from HTST:

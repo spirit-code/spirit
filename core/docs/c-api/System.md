@@ -90,13 +90,23 @@ Returns the energy of a spin system.
 
 
 
+### System_Get_Energy_Array_Names
+
+```C
+int System_Get_Energy_Array_Names(State * state, char* names, int idx_image=-1, int idx_chain=-1)
+```
+
+If 'names' is a nullptr, the required length of the char array is returned.
+
+
+
 ### System_Get_Energy_Array
 
 ```C
-void System_Get_Energy_Array(State * state, float * energies, int idx_image=-1, int idx_chain=-1)
+int System_Get_Energy_Array(State * state, float * energies, bool divide_by_nspins=true, int idx_image=-1, int idx_chain=-1)
 ```
 
-Retrieves the energy contributions of a spin system.
+If 'energies' is a nullptr, the required length of the energies array is returned.
 
 
 
