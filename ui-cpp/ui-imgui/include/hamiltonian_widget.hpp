@@ -4,6 +4,7 @@
 
 #include <rendering_layer.hpp>
 #include <widget_base.hpp>
+
 #include <array>
 #include <memory>
 #include <vector>
@@ -16,7 +17,7 @@ namespace ui
 struct HamiltonianWidget : public WidgetBase
 {
     HamiltonianWidget( bool & show, std::shared_ptr<State> state, RenderingLayer & rendering_layer );
-    void show_content();
+    void show_content() override;
     void update_data();
     void update_data_heisenberg();
 

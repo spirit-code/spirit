@@ -338,7 +338,7 @@ void Parameters_MMF_Get_Output_Configuration( State *state, bool * configuration
         auto p = image->mmf_parameters;
         *configuration_step = p->output_configuration_step;
         *configuration_archive = p->output_configuration_archive;
-        *configuration_filetype = (int)p->output_vf_filetype;
+        *configuration_filetype = static_cast<int>(p->output_vf_filetype);
     }
     catch( ... )
     {

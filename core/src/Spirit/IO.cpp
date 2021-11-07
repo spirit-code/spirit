@@ -117,7 +117,6 @@ try
             case IO::VF_FileFormat::OVF_CSV:
             {
                 auto segment = IO::OVF_Segment(*image);
-                auto& spins = *image->spins;
 
                 std::string title = fmt::format( "SPIRIT Version {}", Utility::version_full );
                 segment.title = strdup(title.c_str());
@@ -252,7 +251,7 @@ try
         // read data
         file.read_segment_data(idx_image_infile, segment, spins[0].data());
 
-        for( int ispin=0; ispin<spins.size(); ++ispin )
+        for( std::size_t ispin=0; ispin<spins.size(); ++ispin )
         {
             if( spins[ispin].norm() < 1e-5 )
             {
@@ -363,10 +362,7 @@ try
 
     try
     {
-        // helper variables
-        auto& spins = *image->spins;
-        auto fileformat = (IO::VF_FileFormat)format;
-
+        auto fileformat = static_cast<IO::VF_FileFormat>(format);
         switch( fileformat )
         {
             case IO::VF_FileFormat::OVF_BIN:
@@ -375,10 +371,10 @@ try
             case IO::VF_FileFormat::OVF_TEXT:
             case IO::VF_FileFormat::OVF_CSV:
             {
-                // open
+                // Open
                 auto file = IO::OVF_File(filename);
 
-                // check if the file was OVF
+                // Check if the file was OVF
                 if( file.found && !file.is_ovf )
                 {
                     spirit_throw( Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
@@ -395,7 +391,7 @@ try
                 segment.valuelabels = strdup("spin_x spin_y spin_z");
                 segment.valueunits  = strdup("none none none");
 
-                // write
+                // Write
                 file.append_segment(segment, spins[0].data(), int(fileformat));
 
                 break;
@@ -443,11 +439,10 @@ try
     {
         const std::string extension = Get_Extension( filename );
 
-        // helper variables
         auto& images = chain->images;
-        int noi = chain->noi;
+        int noi      = chain->noi;
 
-        if (insert_idx < 0)
+        if( insert_idx < 0 )
             insert_idx = 0;
 
         if( insert_idx > noi )
@@ -458,7 +453,7 @@ try
                     insert_idx, idx_chain );
         }
 
-        // open
+        // Open
         IO::OVF_File file( filename, true );
 
         if( file.is_ovf )
@@ -507,12 +502,11 @@ try
             for( int i=insert_idx; i<noi_to_read; i++ )
             {
                 auto& spins    = *images[i]->spins;
-                auto& geometry = *images[i]->geometry;
 
-                // segment header
+                // Segment header
                 auto segment = IO::OVF_Segment();
 
-                // read header
+                // Read header
                 file.read_segment_header(start_image_infile, segment);
 
                 ////////////////////////////////////////////////////////
@@ -544,7 +538,7 @@ try
                         start_image_infile+1, file.n_segments, filename, segment.valuedim ) );
                 }
 
-                // read data
+                // Read data
                 file.read_segment_data(start_image_infile, segment, spins[0].data());
 
                 for( int ispin=0; ispin<spins.size(); ++ispin )
@@ -658,7 +652,7 @@ try
             {
                 auto& images = chain->images;
 
-                // open
+                // Open
                 auto file = IO::OVF_File(filename);
 
                 auto segment = IO::OVF_Segment(*image);
@@ -674,7 +668,7 @@ try
                 comment_str = fmt::format( "Image {} of {}. {}", 1, chain->noi, comment );
                 segment.comment = strdup(comment_str.c_str());
 
-                // write
+                // Write
                 file.write_segment(segment, spins[0].data(), int(fileformat));
 
                 for ( int i=1; i<chain->noi; i++ )
@@ -734,12 +728,10 @@ try
             case IO::VF_FileFormat::OVF_TEXT:
             case IO::VF_FileFormat::OVF_CSV:
             {
-                auto& images = chain->images;
-
-                // open
+                // Open
                 auto file = IO::OVF_File(filename);
 
-                // check if the file was OVF
+                // Check if the file was OVF
                 if( file.found && !file.is_ovf )
                 {
                     spirit_throw( Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
@@ -759,13 +751,13 @@ try
                 comment_str = fmt::format( "Image {} of {}. {}", 0, chain->noi, comment );
                 segment.comment = strdup(comment_str.c_str());
 
-                // write
-                for ( int i=0; i<chain->noi; i++ )
+                // Write
+                for( int i=0; i<chain->noi; i++ )
                 {
                     comment_str = fmt::format( "Image {} of {}. {}", i, chain->noi, comment );
                     segment.comment = strdup(comment_str.c_str());
 
-                    file.write_segment(segment, (*images[i]->spins)[0].data(), int(fileformat));
+                    file.write_segment(segment, spins[0].data(), int(fileformat));
                 }
 
                 break;
@@ -832,7 +824,7 @@ catch( ... )
     spirit_handle_exception_api(idx_image, idx_chain);
 }
 
-//IO_Energies_Spins_Save
+// IO_Energies_Spins_Save
 void IO_Image_Write_Energy_per_Spin(State * state, const char * filename, int format, int idx_image, int idx_chain) noexcept
 try
 {
@@ -904,9 +896,9 @@ try
                 }
                 segment.valuelabels = strdup(valuelabels.c_str());
 
-                // open
+                // Open
                 auto file = IO::OVF_File(filename);
-                // write
+                // Write
                 file.write_segment(segment, data.data(), format);
 
                 Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format(
@@ -934,7 +926,7 @@ catch( ... )
     spirit_handle_exception_api(idx_image, idx_chain);
 }
 
-//IO_Energy_Spins_Save
+// IO_Energy_Spins_Save
 void IO_Image_Write_Energy(State * state, const char * file, int idx_image, int idx_chain) noexcept
 try
 {
@@ -952,7 +944,7 @@ catch( ... )
     spirit_handle_exception_api(idx_image, idx_chain);
 }
 
-//IO_Energies_Save
+// IO_Energies_Save
 void IO_Chain_Write_Energies(State * state, const char * file, int idx_chain) noexcept
 try
 {
@@ -972,7 +964,7 @@ catch( ... )
     spirit_handle_exception_api(-1, idx_chain);
 }
 
-//IO_Energies_Interpolated_Save
+// IO_Energies_Interpolated_Save
 void IO_Chain_Write_Energies_Interpolated(State * state, const char * file, int idx_chain) noexcept
 try
 {
@@ -1011,11 +1003,9 @@ try
     {
         const std::string extension = Get_Extension( filename );
 
-        // helper variables
         auto& spins = *image->spins;
-        auto& geometry = *image->geometry;
 
-        // open
+        // Open
         auto file = IO::OVF_File(filename, true);
 
         if( !file.is_ovf )
@@ -1040,22 +1030,22 @@ try
         Log( Utility::Log_Level::Debug, Utility::Log_Sender::IO, fmt::format(
             "Reading {} eigenmodes from file \"{}\"", n_eigenmodes, filename ) );
 
-        ////////// read in the eigenvalues
-        // segment header
+        ////////// Read in the eigenvalues
+        // Segment header
         auto segment = IO::OVF_Segment();
-        // read header
+        // Read header
         file.read_segment_header(0, segment);
-        // check
+        // Check
         if( segment.valuedim != 1 )
         {
             spirit_throw( Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
                 fmt::format( "Eigenvalue segment of OVF file \"{}\" should have 1 column, but has {}. Will not read.",
                 filename, segment.valuedim ) );
         }
-        // read data
+        // Read data
         file.read_segment_data(0, segment, image->eigenvalues.data());
 
-        ////////// read in the eigenmodes
+        ////////// Read in the eigenmodes
         for( int idx=0; idx<n_eigenmodes; idx++ )
         {
             // if the mode buffer is created by resizing then it needs to be allocated
@@ -1063,7 +1053,7 @@ try
                 image->modes[idx] = std::shared_ptr<vectorfield>(
                     new vectorfield( spins.size(), Vector3{1,0,0} ));
 
-            // read header
+            // Read header
             file.read_segment_header(idx+1, segment);
 
             ////////////////////////////////////////////////////////
@@ -1150,8 +1140,6 @@ try
             case IO::VF_FileFormat::OVF_TEXT:
             case IO::VF_FileFormat::OVF_CSV:
             {
-                auto& spins = *image->spins;
-
                 auto segment = IO::OVF_Segment(*image);
                 std::string title = fmt::format( "SPIRIT Version {}", Utility::version_full );
                 segment.title = strdup(title.c_str());
@@ -1159,10 +1147,10 @@ try
                 // Determine number of modes
                 int n_modes=0;
                 for( int i=0; i<image->modes.size(); i++ )
-                    if( image->modes[i] != NULL )
+                    if( image->modes[i] != nullptr )
                         ++n_modes;
 
-                // open
+                // Open
                 auto file = IO::OVF_File(filename);
 
                 /////// Eigenspectrum
@@ -1183,7 +1171,7 @@ try
                 segment.bounds_max[1] = 0;
                 segment.bounds_max[2] = 0;
 
-                // write
+                // Write
                 file.write_segment(segment, image->eigenvalues.data(), format);
 
                 /////// Eigenmodes
@@ -1193,7 +1181,7 @@ try
                 segment.valueunits  = strdup("none none none");
                 for( int i=0; i<n_modes; i++ )
                 {
-                    std::string comment_str = fmt::format( "{}\n# Desc: eigenmode {}/{}, eigenvalue = {}",
+                    comment_str = fmt::format( "{}\n# Desc: eigenmode {}/{}, eigenvalue = {}",
                         comment, i+1, n_modes, image->eigenvalues[i]);
                     segment.comment = strdup(comment_str.c_str());
 

@@ -12,7 +12,7 @@
 #include <Eigen/Dense>
 
 std::function<bool(const Vector3&, const Vector3&)>
-get_filter( Vector3 position, const float r_cut_rectangular[3], float r_cut_cylindrical,
+get_filter( const Vector3& position, const float r_cut_rectangular[3], float r_cut_cylindrical,
             float r_cut_spherical, bool inverted )
 {
     bool no_cut_rectangular_x = r_cut_rectangular[0] < 0;
@@ -27,19 +27,17 @@ get_filter( Vector3 position, const float r_cut_rectangular[3], float r_cut_cyli
         filter =
             [ position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, no_cut_rectangular_x,
                 no_cut_rectangular_y, no_cut_rectangular_z, no_cut_cylindrical, no_cut_spherical ]
-            (const Vector3& spin, const Vector3& positions)
+            (const Vector3&, const Vector3& positions)
         {
             Vector3 r_rectangular = positions - position;
             scalar r_cylindrical = std::sqrt(std::pow(positions[0] - position[0], 2) +
                                     std::pow(positions[1] - position[1], 2));
             scalar r_spherical   = (positions-position).norm();
-            if (   ( no_cut_rectangular_x || std::abs(r_rectangular[0]) < r_cut_rectangular[0] )
+            return ( no_cut_rectangular_x || std::abs(r_rectangular[0]) < r_cut_rectangular[0] )
                 && ( no_cut_rectangular_y || std::abs(r_rectangular[1]) < r_cut_rectangular[1] )
                 && ( no_cut_rectangular_z || std::abs(r_rectangular[2]) < r_cut_rectangular[2] )
-                && ( no_cut_cylindrical   || r_cylindrical    < r_cut_cylindrical )
-                && ( no_cut_spherical     || r_spherical      < r_cut_spherical )
-                ) return true;
-            return false;
+                && ( no_cut_cylindrical   || r_cylindrical              < r_cut_cylindrical    )
+                && ( no_cut_spherical     || r_spherical                < r_cut_spherical      );
         };
     }
     else
@@ -53,13 +51,12 @@ get_filter( Vector3 position, const float r_cut_rectangular[3], float r_cut_cyli
             scalar r_cylindrical = std::sqrt(std::pow(positions[0] - position[0], 2) +
                                     std::pow(positions[1] - position[1], 2));
             scalar r_spherical   = (positions-position).norm();
-            if (!( ( no_cut_rectangular_x || std::abs(r_rectangular[0]) < r_cut_rectangular[0] )
-                && ( no_cut_rectangular_y || std::abs(r_rectangular[1]) < r_cut_rectangular[1] )
-                && ( no_cut_rectangular_z || std::abs(r_rectangular[2]) < r_cut_rectangular[2] )
-                && ( no_cut_cylindrical   || r_cylindrical    < r_cut_cylindrical )
-                && ( no_cut_spherical     || r_spherical      < r_cut_spherical )
-                )) return true;
-            return false;
+            return !( ( no_cut_rectangular_x || std::abs(r_rectangular[0]) < r_cut_rectangular[0] )
+                && ( no_cut_rectangular_y    || std::abs(r_rectangular[1]) < r_cut_rectangular[1] )
+                && ( no_cut_rectangular_z    || std::abs(r_rectangular[2]) < r_cut_rectangular[2] )
+                && ( no_cut_cylindrical      || r_cylindrical              < r_cut_cylindrical    )
+                && ( no_cut_spherical        || r_spherical                < r_cut_spherical      )
+                );
         };
     }
 
@@ -77,29 +74,29 @@ std::string filter_to_string( const float position[3], const float r_cut_rectang
     if ( r_cut_rectangular[0] <= 0 && r_cut_rectangular[1] <= 0 && r_cut_rectangular[2] <= 0 &&
         r_cut_cylindrical <= 0 && r_cut_spherical <= 0 && !inverted )
     {
-        if (ret != "") ret += " ";
+        if (!ret.empty()) ret += " ";
         ret += "Entire space.";
     }
     else
     {
         if ( r_cut_rectangular[0] > 0 || r_cut_rectangular[1] > 0 || r_cut_rectangular[2] > 0 )
         {
-            if (ret != "") ret += " ";
+            if (!ret.empty()) ret += " ";
             ret += fmt::format("Rectangular region: ({}, {}, {}).", r_cut_rectangular[0], r_cut_rectangular[1], r_cut_rectangular[2]);
         }
         if ( r_cut_cylindrical > 0 )
         {
-            if (ret != "") ret += " ";
+            if (!ret.empty()) ret += " ";
             ret += fmt::format("Cylindrical region, r={}.", r_cut_cylindrical);
         }
         if ( r_cut_spherical > 0 )
         {
-            if (ret != "") ret += " ";
+            if (!ret.empty()) ret += " ";
             ret += fmt::format("Spherical region, r={}.", r_cut_spherical);
         }
         if ( inverted )
         {
-            if (ret != "") ret += " ";
+            if (!ret.empty()) ret += " ";
             ret += "Inverted.";
         }
 
@@ -165,7 +162,7 @@ bool Configuration_From_Clipboard_Shift( State *state, const float shift[3], con
 try
 {
     // Apply configuration
-    if (state->clipboard_spins.get())
+    if (state->clipboard_spins)
     {
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
@@ -429,7 +426,7 @@ try
             "but you only calculated {} modes", idx_mode, image->ema_parameters->n_modes), idx_image, idx_chain);
 
     // The eigenmode was potentially not calculated, yet
-    if ( image->modes[idx_mode] == NULL )
+    if ( image->modes[idx_mode] == nullptr )
         Log(Utility::Log_Level::Warning, Utility::Log_Sender::EMA, fmt::format("Eigenmode number {} has not "
             "yet been calculated.", idx_mode ), idx_image, idx_chain);
     else
@@ -535,12 +532,12 @@ try
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical,
                                             r_cut_spherical, inverted );
-    std::string parameterstring        = fmt::format("r={}", r);
-    if (order != 1) parameterstring   += fmt::format(", order={}", order);
-    if (phase != 0) parameterstring   += fmt::format(", phase={}", phase);
-    if (upDown != 0) parameterstring  += fmt::format(", upDown={}", upDown);
-    if (achiral != 0) parameterstring += ", achiral";
-    if (rl != 0) parameterstring      += fmt::format(", rl={}", rl);
+    std::string parameterstring      = fmt::format("r={}", r);
+    if (order != 1) parameterstring += fmt::format(", order={}", order);
+    if (phase != 0) parameterstring += fmt::format(", phase={}", phase);
+    if (upDown)     parameterstring += fmt::format(", upDown={}", upDown);
+    if (achiral)    parameterstring += ", achiral";
+    if (rl)         parameterstring += fmt::format(", rl={}", rl);
     Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
             "Set skyrmion configuration, " + parameterstring + ". " + filterstring,
             idx_image, idx_chain);
@@ -579,13 +576,13 @@ try
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical,
                                             r_cut_spherical, inverted );
-    std::string parameterstring        = fmt::format("dw_radius={}", dw_radius);
-    parameterstring                   += fmt::format(", dw_width={}", dw_width);
-    if (order != 1) parameterstring   += fmt::format(", order={}", order);
-    if (phase != 0) parameterstring   += fmt::format(", phase={}", phase);
-    if (upDown != 0) parameterstring  += fmt::format(", upDown={}", upDown);
-    if (achiral != 0) parameterstring += ", achiral";
-    if (rl != 0) parameterstring      += fmt::format(", rl={}", rl);
+    std::string parameterstring      = fmt::format("dw_radius={}", dw_radius);
+    parameterstring                 += fmt::format(", dw_width={}", dw_width);
+    if (order != 1) parameterstring += fmt::format(", order={}", order);
+    if (phase != 0) parameterstring += fmt::format(", phase={}", phase);
+    if (upDown)     parameterstring += fmt::format(", upDown={}", upDown);
+    if (achiral)    parameterstring += ", achiral";
+    if (rl)         parameterstring += fmt::format(", rl={}", rl);
     Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
             "Set 360 deg domain wall skyrmion configuration, " + parameterstring + ". " + filterstring,
             idx_image, idx_chain);

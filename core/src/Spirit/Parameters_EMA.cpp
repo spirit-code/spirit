@@ -55,7 +55,7 @@ void Parameters_EMA_Set_N_Mode_Follow(State *state, int n_mode_follow, int idx_i
         from_indices( state, idx_image, idx_chain, image, chain );
 
         if ( n_mode_follow < 0 || n_mode_follow > image->ema_parameters->n_modes-1 ||
-            n_mode_follow >= image->modes.size() || image->modes[n_mode_follow] == NULL )
+            n_mode_follow >= image->modes.size() || image->modes[n_mode_follow] == nullptr )
         {
             Log( Utility::Log_Level::Debug, Utility::Log_Sender::API,
                 fmt::format("Illegal value of mode to follow"), idx_image, idx_chain );
@@ -231,6 +231,6 @@ bool Parameters_EMA_Get_Snapshot(State *state, int idx_image, int idx_chain) noe
     catch( ... )
     {
         spirit_handle_exception_api(idx_image, idx_chain);
-        return 0;
+        return false;
     }
 }

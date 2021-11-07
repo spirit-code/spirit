@@ -85,7 +85,7 @@ void Parameters_MC_Set_Output_General( State *state, bool any, bool initial, boo
 }
 
 void Parameters_MC_Set_Output_Energy( State *state, bool energy_step, bool energy_archive, bool energy_spin_resolved,
-                                      bool energy_add_readability_lines, bool energy_divide_by_nos,
+                                      bool energy_divide_by_nos, bool energy_add_readability_lines,
                                       int idx_image, int idx_chain ) noexcept
 {
     try
@@ -343,7 +343,7 @@ void Parameters_MC_Get_Output_Configuration( State *state, bool * configuration_
 
         *configuration_step = image->mc_parameters->output_configuration_step;
         *configuration_archive = image->mc_parameters->output_configuration_archive;
-        *configuration_filetype = (int)image->mc_parameters->output_vf_filetype;
+        *configuration_filetype = static_cast<int>(image->mc_parameters->output_vf_filetype);
     }
     catch( ... )
     {
@@ -383,7 +383,7 @@ float Parameters_MC_Get_Temperature(State *state, int idx_image, int idx_chain) 
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
 
-        return (float)image->mc_parameters->temperature;
+        return static_cast<float>(image->mc_parameters->temperature);
     }
     catch( ... )
     {
@@ -402,9 +402,9 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     *cone = image->mc_parameters->metropolis_step_cone;
-    *cone_angle = (float)image->mc_parameters->metropolis_cone_angle;
-    *adaptive_cone = (float)image->mc_parameters->metropolis_cone_adaptive;
-    *target_acceptance_ratio = (float)image->mc_parameters->acceptance_ratio_target;
+    *cone_angle = static_cast<float>(image->mc_parameters->metropolis_cone_angle);
+    *adaptive_cone = static_cast<float>(image->mc_parameters->metropolis_cone_adaptive);
+    *target_acceptance_ratio = static_cast<float>(image->mc_parameters->acceptance_ratio_target);
 }
 catch( ... )
 {

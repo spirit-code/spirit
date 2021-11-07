@@ -86,7 +86,6 @@ catch( ... )
     return 0;
 }
 
-//      Set Log parameters
 void Log_Set_Output_File_Tag(State *state, const char * tag) noexcept
 try
 {
@@ -137,7 +136,6 @@ catch( ... )
     spirit_handle_exception_api(-1, -1);
 }
 
-//      Get Log parameters
 const char * Log_Get_Output_File_Tag(State *state) noexcept
 try
 {

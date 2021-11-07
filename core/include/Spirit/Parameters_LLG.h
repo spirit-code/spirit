@@ -156,7 +156,7 @@ Retrieves the temperature gradient.
 - inclination of the temperature gradient [K/a]
 - direction of the temperature gradient, array of shape (3)
 */
-PREFIX void Parameters_LLG_Get_Temperature_Gradient(State *state, float * direction, float normal[3], int idx_image=-1, int idx_chain=-1) SUFFIX;
+PREFIX void Parameters_LLG_Get_Temperature_Gradient(State *state, float * inclination, float direction[3], int idx_image=-1, int idx_chain=-1) SUFFIX;
 
 /*
 Returns the spin current configuration.

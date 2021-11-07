@@ -132,7 +132,7 @@ try
     // Increase the chain length
     if( n_images > chain->noi )
     {
-        if( !state->clipboard_image.get() )
+        if( !state->clipboard_image )
         {
             if( chain->noi > 1 )
             {
@@ -301,7 +301,7 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
-    if( state->clipboard_image.get() )
+    if( state->clipboard_image )
     {
         if( Simulation_Running_On_Chain( state, idx_chain ) )
         {
@@ -362,7 +362,7 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
-    if( state->clipboard_image.get() )
+    if( state->clipboard_image )
     {
         if( Simulation_Running_On_Chain( state, idx_chain ) )
         {
@@ -423,7 +423,7 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
-    if( state->clipboard_image.get() )
+    if( state->clipboard_image )
     {
         if( Simulation_Running_On_Chain( state, idx_chain ) )
         {

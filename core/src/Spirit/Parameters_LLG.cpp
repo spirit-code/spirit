@@ -455,7 +455,7 @@ void Parameters_LLG_Get_Output_Configuration( State *state, bool * configuration
 
         *configuration_step = image->llg_parameters->output_configuration_step;
         *configuration_archive = image->llg_parameters->output_configuration_archive;
-        *configuration_filetype = (int)image->llg_parameters->output_vf_filetype;
+        *configuration_filetype = static_cast<int>(image->llg_parameters->output_vf_filetype);
     }
     catch( ... )
     {
@@ -514,7 +514,7 @@ float Parameters_LLG_Get_Convergence( State *state, int idx_image, int idx_chain
         from_indices( state, idx_image, idx_chain, image, chain );
 
         auto p = image->llg_parameters;
-        return (float)p->force_convergence;
+        return static_cast<float>(p->force_convergence);
     }
     catch( ... )
     {
@@ -534,7 +534,7 @@ float Parameters_LLG_Get_Time_Step( State *state, int idx_image, int idx_chain )
         from_indices( state, idx_image, idx_chain, image, chain );
 
         auto p = image->llg_parameters;
-        return (float)p->dt;
+        return static_cast<float>(p->dt);
     }
     catch( ... )
     {
@@ -554,7 +554,7 @@ float Parameters_LLG_Get_Damping(State *state, int idx_image, int idx_chain) noe
         from_indices( state, idx_image, idx_chain, image, chain );
 
         auto p = image->llg_parameters;
-        return (float)p->damping;
+        return static_cast<float>(p->damping);
     }
     catch( ... )
     {
@@ -573,7 +573,7 @@ float Parameters_LLG_Get_Temperature(State *state, int idx_image, int idx_chain)
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
 
-        return (float)image->llg_parameters->temperature;
+        return static_cast<float>(image->llg_parameters->temperature);
     }
     catch( ... )
     {
@@ -593,11 +593,11 @@ void Parameters_LLG_Get_Temperature_Gradient(State *state, float * inclination, 
         from_indices( state, idx_image, idx_chain, image, chain );
 
         // Inclination
-        *inclination = (float)image->llg_parameters->temperature_gradient_inclination;
+        *inclination = static_cast<float>(image->llg_parameters->temperature_gradient_inclination);
         // Direction
-        direction[0] = (float)image->llg_parameters->temperature_gradient_direction[0];
-        direction[1] = (float)image->llg_parameters->temperature_gradient_direction[1];
-        direction[2] = (float)image->llg_parameters->temperature_gradient_direction[2];
+        direction[0] = static_cast<float>(image->llg_parameters->temperature_gradient_direction[0]);
+        direction[1] = static_cast<float>(image->llg_parameters->temperature_gradient_direction[1]);
+        direction[2] = static_cast<float>(image->llg_parameters->temperature_gradient_direction[2]);
     }
     catch( ... )
     {
@@ -620,11 +620,11 @@ void Parameters_LLG_Get_STT( State *state, bool * use_gradient, float * magnitud
         *use_gradient = image->llg_parameters->stt_use_gradient;
 
         // Magnitude
-        *magnitude = (float)image->llg_parameters->stt_magnitude;
+        *magnitude = static_cast<float>(image->llg_parameters->stt_magnitude);
         // Normal
-        normal[0] = (float)image->llg_parameters->stt_polarisation_normal[0];
-        normal[1] = (float)image->llg_parameters->stt_polarisation_normal[1];
-        normal[2] = (float)image->llg_parameters->stt_polarisation_normal[2];
+        normal[0] = static_cast<float>(image->llg_parameters->stt_polarisation_normal[0]);
+        normal[1] = static_cast<float>(image->llg_parameters->stt_polarisation_normal[1]);
+        normal[2] = static_cast<float>(image->llg_parameters->stt_polarisation_normal[2]);
     }
     catch( ... )
     {

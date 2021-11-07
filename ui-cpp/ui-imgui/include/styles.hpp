@@ -7,8 +7,8 @@
 namespace styles
 {
 
-void apply_light( ImGuiStyle * dst = NULL );
-void apply_charcoal( ImGuiStyle * dst = NULL );
+void apply_light( ImGuiStyle * dst = nullptr );
+void apply_charcoal( ImGuiStyle * dst = nullptr );
 
 } // namespace styles
 

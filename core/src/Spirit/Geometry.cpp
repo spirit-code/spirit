@@ -141,7 +141,7 @@ try
         bravais_vectors = Data::Geometry::BravaisVectorsFCC();
     else if (lattice_type == Bravais_Lattice_BCC)
         bravais_vectors = Data::Geometry::BravaisVectorsBCC();
-    else if (lattice_type == Bravais_Lattice_Hex2D || Bravais_Lattice_Hex2D_60)
+    else if ((lattice_type == Bravais_Lattice_Hex2D) || (lattice_type == Bravais_Lattice_Hex2D_60))
         bravais_vectors = Data::Geometry::BravaisVectorsHex2D60();
     else if (lattice_type == Bravais_Lattice_Hex2D_120)
         bravais_vectors = Data::Geometry::BravaisVectorsHex2D120();
@@ -205,7 +205,7 @@ try
 
     // Basis cell atoms
     for (int i=0; i<n_atoms; ++i)
-        cell_atoms.push_back(Vector3{ atoms[i][0], atoms[i][1], atoms[i][2] });
+        cell_atoms.emplace_back( atoms[i][0], atoms[i][1], atoms[i][2] );
 
     // In the regular case, we re-generate information to make sure every atom
     // has its set of information
@@ -230,7 +230,7 @@ try
     // still valid. This may lead to new atoms not having any mu_s information.
     else
     {
-        for( int i=0; i<old_geometry.cell_composition.iatom.size(); ++i )
+        for( std::size_t i=0; i<old_geometry.cell_composition.iatom.size(); ++i )
         {
             // If the atom index is within range, we keep the information
             if( old_geometry.cell_composition.iatom[i] < n_atoms )
@@ -545,7 +545,7 @@ try
 catch( ... )
 {
     spirit_handle_exception_api(idx_image, idx_chain);
-    return false;
+    return 0;
 }
 
 // Get basis cell atoms
@@ -644,7 +644,7 @@ try
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
 
     auto g = image->geometry;
-    auto& triangles = g->triangulation(n_cell_step);
+    const auto& triangles = g->triangulation(n_cell_step);
     if (indices_ptr != nullptr) {
         *indices_ptr = reinterpret_cast<const int *>(triangles.data());
     }
@@ -668,7 +668,7 @@ try
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
     std::array<int, 6> range = {ranges[0], ranges[1], ranges[2], ranges[3], ranges[4], ranges[5]};
     auto g = image->geometry;
-    auto& triangles = g->triangulation(n_cell_step, range);
+    const auto& triangles = g->triangulation(n_cell_step, range);
     if (indices_ptr != nullptr) {
         *indices_ptr = reinterpret_cast<const int *>(triangles.data());
     }
@@ -689,7 +689,7 @@ try
     from_indices(state, idx_image, idx_chain, image, chain);
 
     auto g = image->geometry;
-    auto& tetrahedra = g->tetrahedra(n_cell_step);
+    const auto& tetrahedra = g->tetrahedra(n_cell_step);
     if (indices_ptr != nullptr) {
         *indices_ptr = reinterpret_cast<const int *>(tetrahedra.data());
     }
@@ -711,7 +711,7 @@ try
     auto g = image->geometry;
     std::array<int, 6> range = {ranges[0], ranges[1], ranges[2], ranges[3], ranges[4], ranges[5]};
 
-    auto& tetrahedra = g->tetrahedra(n_cell_step, range);
+    const auto& tetrahedra = g->tetrahedra(n_cell_step, range);
     if (indices_ptr != nullptr) {
         *indices_ptr = reinterpret_cast<const int *>(tetrahedra.data());
     }

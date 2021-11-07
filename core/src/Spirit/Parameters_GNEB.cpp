@@ -406,7 +406,7 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     *chain_step = chain->gneb_parameters->output_chain_step;
-    *chain_filetype = (int)chain->gneb_parameters->output_vf_filetype;
+    *chain_filetype = static_cast<int>(chain->gneb_parameters->output_vf_filetype);
 }
 catch( ... )
 {
@@ -444,7 +444,7 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     auto p = chain->gneb_parameters;
-    return (float)p->force_convergence;
+    return static_cast<float>(p->force_convergence);
 }
 catch( ... )
 {
@@ -462,7 +462,7 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     auto p = chain->gneb_parameters;
-    return (float)p->spring_constant;
+    return static_cast<float>(p->spring_constant);
 }
 catch( ... )
 {
@@ -481,7 +481,7 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     auto p = chain->gneb_parameters;
-    return (float)p->spring_force_ratio;
+    return static_cast<float>(p->spring_force_ratio);
 }
 catch( ... )
 {
@@ -500,7 +500,7 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     auto p = chain->gneb_parameters;
-    return (float)p->path_shortening_constant;
+    return static_cast<float>(p->path_shortening_constant);
 }
 catch( ... )
 {
@@ -517,7 +517,7 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
-    return (int)chain->image_type[idx_image];
+    return static_cast<int>(chain->image_type[idx_image]);
 }
 catch( ... )
 {

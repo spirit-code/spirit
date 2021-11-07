@@ -325,7 +325,7 @@ try
 
     // Header
     std::string header = "";
-    if( std::string(comment) != "" )
+    if( !std::string(comment).empty() )
         header = std::string(comment)+"\n";
     IO::String_to_File(header, cfg);
     // Folders
