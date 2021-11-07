@@ -522,7 +522,8 @@ try
             // Read the images
             for( int i = insert_idx; i < noi_to_read; i++ )
             {
-                auto & spins = *images[i]->spins;
+                auto & spins    = *images[i]->spins;
+                auto & geometry = *images[i]->geometry;
 
                 // Segment header
                 auto segment = IO::OVF_Segment();
