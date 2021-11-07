@@ -1,8 +1,8 @@
 #include <Spirit/Parameters_EMA.h>
 
-#include <data/State.hpp>
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
+#include <data/State.hpp>
 #include <utility/Exception.hpp>
 
 #include <memory>
@@ -12,7 +12,7 @@
 /*------------------------------------------------------------------------------------------------------ */
 
 // Set EMA Calculation Parameters
-void Parameters_EMA_Set_N_Modes(State *state, int n_modes, int idx_image, int idx_chain) noexcept
+void Parameters_EMA_Set_N_Modes( State * state, int n_modes, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -22,29 +22,29 @@ void Parameters_EMA_Set_N_Modes(State *state, int n_modes, int idx_image, int id
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
 
-        if ( n_modes < 1 || n_modes > 2*image->nos )
+        if( n_modes < 1 || n_modes > 2 * image->nos )
         {
             Log( Utility::Log_Level::Debug, Utility::Log_Sender::API,
-                fmt::format("Illegal value of number of modes (max value is {})", 2*image->nos),
-                idx_image, idx_chain );
+                 fmt::format( "Illegal value of number of modes (max value is {})", 2 * image->nos ), idx_image,
+                 idx_chain );
         }
         else
         {
             image->Lock();
             image->ema_parameters->n_modes = n_modes;
-            image->modes.resize(n_modes);
-            image->eigenvalues.resize(n_modes);
-            image->ema_parameters->n_mode_follow = std::min(image->ema_parameters->n_mode_follow, n_modes);
+            image->modes.resize( n_modes );
+            image->eigenvalues.resize( n_modes );
+            image->ema_parameters->n_mode_follow = std::min( image->ema_parameters->n_mode_follow, n_modes );
             image->Unlock();
         }
     }
     catch( ... )
     {
-        spirit_handle_exception_api(idx_image, idx_chain);
+        spirit_handle_exception_api( idx_image, idx_chain );
     }
 }
 
-void Parameters_EMA_Set_N_Mode_Follow(State *state, int n_mode_follow, int idx_image, int idx_chain) noexcept
+void Parameters_EMA_Set_N_Mode_Follow( State * state, int n_mode_follow, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -54,11 +54,11 @@ void Parameters_EMA_Set_N_Mode_Follow(State *state, int n_mode_follow, int idx_i
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
 
-        if ( n_mode_follow < 0 || n_mode_follow > image->ema_parameters->n_modes-1 ||
-            n_mode_follow >= image->modes.size() || image->modes[n_mode_follow] == nullptr )
+        if( n_mode_follow < 0 || n_mode_follow > image->ema_parameters->n_modes - 1
+            || n_mode_follow >= image->modes.size() || image->modes[n_mode_follow] == nullptr )
         {
-            Log( Utility::Log_Level::Debug, Utility::Log_Sender::API,
-                fmt::format("Illegal value of mode to follow"), idx_image, idx_chain );
+            Log( Utility::Log_Level::Debug, Utility::Log_Sender::API, fmt::format( "Illegal value of mode to follow" ),
+                 idx_image, idx_chain );
         }
         else
         {
@@ -69,11 +69,11 @@ void Parameters_EMA_Set_N_Mode_Follow(State *state, int n_mode_follow, int idx_i
     }
     catch( ... )
     {
-        spirit_handle_exception_api(idx_image, idx_chain);
+        spirit_handle_exception_api( idx_image, idx_chain );
     }
 }
 
-void Parameters_EMA_Set_Frequency(State *state, float frequency, int idx_image, int idx_chain) noexcept
+void Parameters_EMA_Set_Frequency( State * state, float frequency, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -89,11 +89,11 @@ void Parameters_EMA_Set_Frequency(State *state, float frequency, int idx_image, 
     }
     catch( ... )
     {
-        spirit_handle_exception_api(idx_image, idx_chain);
+        spirit_handle_exception_api( idx_image, idx_chain );
     }
 }
 
-void Parameters_EMA_Set_Amplitude(State *state, float amplitude, int idx_image, int idx_chain) noexcept
+void Parameters_EMA_Set_Amplitude( State * state, float amplitude, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -109,11 +109,11 @@ void Parameters_EMA_Set_Amplitude(State *state, float amplitude, int idx_image, 
     }
     catch( ... )
     {
-        spirit_handle_exception_api(idx_image, idx_chain);
+        spirit_handle_exception_api( idx_image, idx_chain );
     }
 }
 
-void Parameters_EMA_Set_Snapshot(State *state, bool snapshot, int idx_image, int idx_chain) noexcept
+void Parameters_EMA_Set_Snapshot( State * state, bool snapshot, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -129,17 +129,16 @@ void Parameters_EMA_Set_Snapshot(State *state, bool snapshot, int idx_image, int
     }
     catch( ... )
     {
-        spirit_handle_exception_api(idx_image, idx_chain);
+        spirit_handle_exception_api( idx_image, idx_chain );
     }
 }
-
 
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Get EMA ----------------------------------------------------------- */
 /*------------------------------------------------------------------------------------------------------ */
 
 // Get EMA Calculation Parameters
-int Parameters_EMA_Get_N_Modes(State *state, int idx_image, int idx_chain) noexcept
+int Parameters_EMA_Get_N_Modes( State * state, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -153,13 +152,12 @@ int Parameters_EMA_Get_N_Modes(State *state, int idx_image, int idx_chain) noexc
     }
     catch( ... )
     {
-        spirit_handle_exception_api(idx_image, idx_chain);
+        spirit_handle_exception_api( idx_image, idx_chain );
         return 0;
     }
 }
 
-
-int Parameters_EMA_Get_N_Mode_Follow(State *state, int idx_image, int idx_chain) noexcept
+int Parameters_EMA_Get_N_Mode_Follow( State * state, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -173,12 +171,12 @@ int Parameters_EMA_Get_N_Mode_Follow(State *state, int idx_image, int idx_chain)
     }
     catch( ... )
     {
-        spirit_handle_exception_api(idx_image, idx_chain);
+        spirit_handle_exception_api( idx_image, idx_chain );
         return 0;
     }
 }
 
-float Parameters_EMA_Get_Frequency(State *state, int idx_image, int idx_chain) noexcept
+float Parameters_EMA_Get_Frequency( State * state, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -192,12 +190,12 @@ float Parameters_EMA_Get_Frequency(State *state, int idx_image, int idx_chain) n
     }
     catch( ... )
     {
-        spirit_handle_exception_api(idx_image, idx_chain);
+        spirit_handle_exception_api( idx_image, idx_chain );
         return 0;
     }
 }
 
-float Parameters_EMA_Get_Amplitude(State *state, int idx_image, int idx_chain) noexcept
+float Parameters_EMA_Get_Amplitude( State * state, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -211,12 +209,12 @@ float Parameters_EMA_Get_Amplitude(State *state, int idx_image, int idx_chain) n
     }
     catch( ... )
     {
-        spirit_handle_exception_api(idx_image, idx_chain);
+        spirit_handle_exception_api( idx_image, idx_chain );
         return 0;
     }
 }
 
-bool Parameters_EMA_Get_Snapshot(State *state, int idx_image, int idx_chain) noexcept
+bool Parameters_EMA_Get_Snapshot( State * state, int idx_image, int idx_chain ) noexcept
 {
     try
     {
@@ -230,7 +228,7 @@ bool Parameters_EMA_Get_Snapshot(State *state, int idx_image, int idx_chain) noe
     }
     catch( ... )
     {
-        spirit_handle_exception_api(idx_image, idx_chain);
+        spirit_handle_exception_api( idx_image, idx_chain );
         return false;
     }
 }

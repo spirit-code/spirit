@@ -1,6 +1,6 @@
 #pragma once
-#ifndef VERSION_H
-#define VERSION_H
+#ifndef SPIRIT_CORE_VERSION_H
+#define SPIRIT_CORE_VERSION_H
 #include "DLL_Define_Export.h"
 
 PREFIX const int Spirit_Version_Major() SUFFIX;
