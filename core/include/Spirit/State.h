@@ -84,7 +84,7 @@ PREFIX void State_Update( State * state ) SUFFIX;
 Write a config file which should give the same state again when
 used in State_Setup (modulo the number of chains and images)
 */
-PREFIX void State_To_Config( State * state, const char * config_file, const char * original_config_file = "" ) SUFFIX;
+PREFIX void State_To_Config( State * state, const char * config_file, const char * comment = "" ) SUFFIX;
 
 /*
 Returns a string containing the datetime tag (timepoint of creation) of this state.
