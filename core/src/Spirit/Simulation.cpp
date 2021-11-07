@@ -180,13 +180,12 @@ void Simulation_GNEB_Start(
     State * state, int solver_type, int n_iterations, int n_iterations_log, bool singleshot, int idx_chain ) noexcept
 try
 {
-    int idx_image = -1;
-
     // Fetch correct indices and pointers for image and chain
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
+    int idx_image = -1;
     from_indices( state, idx_image, idx_chain, image, chain );
 
     // Determine wether to stop or start a simulation
@@ -601,12 +600,11 @@ catch( ... )
 void Simulation_Get_Chain_MaxTorqueComponents( State * state, float * torques, int idx_chain ) noexcept
 try
 {
-    int idx_image = -1;
-
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
+    int idx_image = -1;
     from_indices( state, idx_image, idx_chain, image, chain );
 
     if( Simulation_Running_On_Chain( state, idx_chain ) )
@@ -658,12 +656,11 @@ catch( ... )
 void Simulation_Get_Chain_MaxTorqueNorms( State * state, float * torques, int idx_chain ) noexcept
 try
 {
-    int idx_image = -1;
-
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
+    int idx_image = -1;
     from_indices( state, idx_image, idx_chain, image, chain );
 
     if( Simulation_Running_On_Chain( state, idx_chain ) )
@@ -879,7 +876,7 @@ catch( ... )
     return false;
 }
 
-bool Simulation_Running_On_Chain( State * state, int idx_chain ) noexcept int idx_image = -1;
+bool Simulation_Running_On_Chain( State * state, int idx_chain ) noexcept
 try
 {
     // Fetch correct indices and pointers for image and chain
@@ -887,29 +884,26 @@ try
     std::shared_ptr<Data::Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
+    int idx_image = -1;
     from_indices( state, idx_image, idx_chain, image, chain );
 
-    if( state->chain->iteration_allowed )
-        return true;
-    else
-        return false;
+    return state->chain->iteration_allowed;
 }
 catch( ... )
 {
-    spirit_handle_exception_api( idx_image, idx_chain );
+    spirit_handle_exception_api( -1, idx_chain );
     return false;
 }
 
 bool Simulation_Running_Anywhere_On_Chain( State * state, int idx_chain ) noexcept
 try
 {
-    int idx_image = -1;
-
     // Fetch correct indices and pointers for image and chain
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
+    int idx_image = -1;
     from_indices( state, idx_image, idx_chain, image, chain );
 
     if( Simulation_Running_On_Chain( state, idx_chain ) )
