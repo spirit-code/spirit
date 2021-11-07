@@ -6,7 +6,7 @@
 
 #include <termcolor/termcolor.hpp>
 
-#include <signal.h>
+#include <csignal>
 #include <ctime>
 #include <iostream>
 #include <string>
@@ -134,32 +134,16 @@ std::string LogEntryToString( LogEntry entry, bool braces_separators )
 
 LoggingHandler::LoggingHandler()
 {
-    // Set the default Log parameters
-    output_folder = ".";
-
-    if( file_tag == std::string( "<time>" ) )
-        fileName = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
-    else if( file_tag == std::string( "" ) )
-        fileName = "Log.txt";
+    if( file_tag == "<time>" )
+        file_name = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
+    else if( file_tag.empty() )
+        file_name = "Log.txt";
     else
-        fileName = "Log_" + file_tag + ".txt";
-
-    messages_to_file        = false;
-    level_file              = Log_Level::Debug;
-    messages_to_console     = true;
-    level_console           = Log_Level::Parameter;
-    save_input_initial      = true;
-    save_input_final        = false;
-    save_positions_initial  = false;
-    save_positions_final    = false;
-    save_neighbours_initial = false;
-    save_neighbours_final   = false;
-    n_entries               = 0;
-    n_errors                = 0;
-    n_warnings              = 0;
+        file_name = "Log_" + file_tag + ".txt";
 }
 
-void LoggingHandler::Send( Log_Level level, Log_Sender sender, std::string message, int idx_image, int idx_chain )
+void LoggingHandler::Send(
+    Log_Level level, Log_Sender sender, const std::string & message, int idx_image, int idx_chain )
 {
     // Lock mutex because of reallocation (push_back)
     std::lock_guard<std::mutex> guard( mutex );
@@ -192,13 +176,13 @@ void LoggingHandler::Send( Log_Level level, Log_Sender sender, std::string messa
 }
 
 void LoggingHandler::SendBlock(
-    Log_Level level, Log_Sender sender, std::vector<std::string> message_lines, int idx_image, int idx_chain )
+    Log_Level level, Log_Sender sender, const std::vector<std::string> & messages, int idx_image, int idx_chain )
 {
     // Lock mutex because of reallocation (push_back)
     std::lock_guard<std::mutex> guard( mutex );
 
     // All messages are saved in the Log
-    LogEntry entry = { std::chrono::system_clock::now(), sender, level, message_lines, idx_image, idx_chain };
+    LogEntry entry = { std::chrono::system_clock::now(), sender, level, messages, idx_image, idx_chain };
     log_entries.push_back( entry );
 
     // Increment message count
@@ -218,13 +202,14 @@ void LoggingHandler::SendBlock(
         std::cout << color << LogEntryToString( log_entries.back() ) << termcolor::reset << "\n";
 }
 
-void LoggingHandler::operator()( Log_Level level, Log_Sender sender, std::string message, int idx_image, int idx_chain )
+void LoggingHandler::operator()(
+    Log_Level level, Log_Sender sender, const std::string & message, int idx_image, int idx_chain )
 {
     Send( level, sender, message, idx_image, idx_chain );
 }
 
 void LoggingHandler::operator()(
-    Log_Level level, Log_Sender sender, std::vector<std::string> messages, int idx_image, int idx_chain )
+    Log_Level level, Log_Sender sender, const std::vector<std::string> & messages, int idx_image, int idx_chain )
 {
     SendBlock( level, sender, messages, idx_image, idx_chain );
 }
@@ -238,7 +223,7 @@ std::vector<LogEntry> LoggingHandler::Filter( Log_Level level, Log_Sender sender
 {
     // Get vector of Log entries
     auto result = std::vector<LogEntry>();
-    for( auto entry : log_entries )
+    for( const auto & entry : log_entries )
     {
         if( level == Log_Level::All || level == entry.level )
         {
@@ -250,10 +235,10 @@ std::vector<LogEntry> LoggingHandler::Filter( Log_Level level, Log_Sender sender
                     {
                         result.push_back( entry );
                     }
-                } // endif image no
-            }     // endif sender
-        }         // endif level
-    }             // endfor i -> log_entries.size()
+                }
+            }
+        }
+    }
 
     // Return
     return std::vector<LogEntry>();
@@ -266,7 +251,7 @@ void LoggingHandler::Append_to_File()
         // Log this event
         Send(
             Log_Level::Debug, Log_Sender::All,
-            fmt::format( "Appending log to file \"{}/{}\"", output_folder, fileName ) );
+            fmt::format( "Appending log to file \"{}/{}\"", output_folder, file_name ) );
 
         // Gather the string
         std::string logstring = "";
@@ -283,13 +268,13 @@ void LoggingHandler::Append_to_File()
         }
 
         // Append to file
-        IO::Append_String_to_File( logstring, output_folder + "/" + fileName );
+        IO::Append_String_to_File( logstring, output_folder + "/" + file_name );
     }
     else
     {
         Send(
             Log_Level::Debug, Log_Sender::All,
-            fmt::format( "Not appending log to file \"{}/{}\"", output_folder, fileName ) );
+            fmt::format( "Not appending log to file \"{}/{}\"", output_folder, file_name ) );
     }
 }
 
@@ -300,7 +285,8 @@ void LoggingHandler::Dump_to_File()
     {
         // Log this event
         Send(
-            Log_Level::Info, Log_Sender::All, fmt::format( "Dumping log to file \"{}/{}\"", output_folder, fileName ) );
+            Log_Level::Info, Log_Sender::All,
+            fmt::format( "Dumping log to file \"{}/{}\"", output_folder, file_name ) );
 
         // Gather the string
         std::string logstring = "";
@@ -315,13 +301,13 @@ void LoggingHandler::Dump_to_File()
         }
 
         // Write the string to file
-        IO::String_to_File( logstring, output_folder + "/" + fileName );
+        IO::String_to_File( logstring, output_folder + "/" + file_name );
     }
     else
     {
         Send(
             Log_Level::Debug, Log_Sender::All,
-            fmt::format( "Not dumping log to file \"{}/{}\"", output_folder, fileName ) );
+            fmt::format( "Not dumping log to file \"{}/{}\"", output_folder, file_name ) );
     }
 }
 

@@ -29,12 +29,14 @@ catch( ... )
 {
     spirit_handle_exception_api( -1, -1 );
 
-    Utility::LogEntry Error            = { std::chrono::system_clock::now(),
-                                Utility::Log_Sender::API,
-                                Utility::Log_Level::Error,
-                                { "GetEntries() failed" },
-                                -1,
-                                -1 };
+    Utility::LogEntry Error = {
+        std::chrono::system_clock::now(),
+        Utility::Log_Sender::API,
+        Utility::Log_Level::Error,
+        { "GetEntries() failed" },
+        -1,
+        -1,
+    };
     std::vector<Utility::LogEntry> ret = { Error };
     return ret;
 }
@@ -99,11 +101,11 @@ try
     Log.file_tag         = file_tag;
 
     if( file_tag == std::string( "<time>" ) )
-        Log.fileName = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
+        Log.file_name = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
     else if( file_tag == std::string( "" ) )
-        Log.fileName = "Log.txt";
+        Log.file_name = "Log.txt";
     else
-        Log.fileName = "Log_" + file_tag + ".txt";
+        Log.file_name = "Log_" + file_tag + ".txt";
 }
 catch( ... )
 {

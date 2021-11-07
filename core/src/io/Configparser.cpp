@@ -138,11 +138,11 @@ void Log_from_Config( const std::string configFile, bool force_quiet )
     Log.output_folder = output_folder;
 
     if( file_tag == "<time>" )
-        Log.fileName = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
+        Log.file_name = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
     else if( file_tag != "" )
-        Log.fileName = "Log_" + file_tag + ".txt";
+        Log.file_name = "Log_" + file_tag + ".txt";
     else
-        Log.fileName = "Log.txt";
+        Log.file_name = "Log.txt";
 
 } // End Log_Levels_from_Config
 
