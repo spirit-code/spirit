@@ -297,17 +297,17 @@ namespace Engine
   
         for(auto & p : ham->dmi_pairs)
         {
-            for(int i=0; i<3; i++)
+            for(int i = 0; i < 3; i++)
                 block_size_min[i] = std::max(block_size_min[i], std::abs(p.translations[i]));
         }
         for(auto & p : ham->exchange_pairs)
         {
-            for(int i=0; i<3; i++)
+            for(int i = 0; i < 3; i++)
                 block_size_min[i] = std::max(block_size_min[i], std::abs(p.translations[i]));
         }
         for(auto & q : ham->quadruplets)
         {
-            for(int i=0; i<3; i++)
+            for(int i = 0; i < 3; i++)
             {
                 block_size_min[i] = std::max(block_size_min[i], std::abs(q.d_j[i]));
                 block_size_min[i] = std::max(block_size_min[i], std::abs(q.d_k[i]));
@@ -317,7 +317,7 @@ namespace Engine
         Log.Send(Utility::Log_Level::Info, Utility::Log_Sender::MC, fmt::format("    Block size from interactions = ({}, {}, {})", block_size_min[0], block_size_min[1], block_size_min[2]));
         
         // If the number of blocks is uneven for a certain direction, we increase the block size until it is even
-        for(int i=0; i<3; i++)
+        for(int i = 0; i < 3; i++)
         {
             n_blocks[i] = geom->n_cells[i] / block_size_min[i];
             while(n_blocks[i] % 2 != 0 )
@@ -326,7 +326,7 @@ namespace Engine
             }
         }
 
-        for(int i=0; i<3; i++)
+        for(int i = 0; i < 3; i++)
         {
             if(block_size_min[i] <= geom->n_cells[i])
             {
@@ -387,31 +387,31 @@ namespace Engine
         }
 
         // There are up to (2^dim) phases in the algorithm, which have to be executed serially
-        for(int phase_c = 0; phase_c<2; phase_c++)
+        for(int phase_c = 0; phase_c < 2; phase_c++)
         {
-            for(int phase_b = 0; phase_b<2; phase_b++)
+            for(int phase_b = 0; phase_b < 2; phase_b++)
             {
-                for(int phase_a = 0; phase_a<2; phase_a++)
+                for(int phase_a = 0; phase_a < 2; phase_a++)
                 {
                     // In each phase we iterate over blocks of spins, which are **next-nearest** neighbour blocks
                     // Thus there is no dependence of the spin moves and we can parallelize over the blocks in a phase
                     #pragma omp parallel for collapse(3) private(distribution) reduction(+:n_rejected) 
-                    for(int block_c = phase_c; block_c < n_blocks[2]; block_c+=2)
+                    for(int block_c = phase_c; block_c < n_blocks[2]; block_c += 2) // Note the += 2 increment!
                     {
-                        for(int block_b = phase_b; block_b < n_blocks[1]; block_b+=2)
+                        for(int block_b = phase_b; block_b < n_blocks[1]; block_b += 2)
                         {
-                            for(int block_a = phase_a; block_a < n_blocks[0]; block_a+=2)
+                            for(int block_a = phase_a; block_a < n_blocks[0]; block_a += 2)
                             {
                                 int block_size_c = (block_c == n_blocks[2] - 1) ? block_size_min[2] + rest[2] : block_size_min[2]; // Account for the remainder of division (n_cells[i] / block_size_min[i]) by increasing the block size at the edges
                                 int block_size_b = (block_b == n_blocks[1] - 1) ? block_size_min[1] + rest[1] : block_size_min[1];
                                 int block_size_a = (block_a == n_blocks[0] - 1) ? block_size_min[0] + rest[0] : block_size_min[0];
 
-                                // Iterate over the current block
-                                for(int cc=0; cc < block_size_c; cc++)
+                                // Iterate over the current block (this has to be done serially again)
+                                for(int cc = 0; cc < block_size_c; cc++)
                                 {
-                                    for(int bb=0; bb < block_size_b; bb++)
+                                    for(int bb = 0; bb < block_size_b; bb++)
                                     {
-                                        for(int aa=0; aa < block_size_a; aa++)
+                                        for(int aa = 0; aa < block_size_a; aa++)
                                         {
                                             for(int ibasis=0; ibasis < geom->n_cell_atoms; ibasis++)
                                             {
@@ -420,7 +420,7 @@ namespace Engine
                                                 int c = block_c * block_size_min[2] + cc;
 
                                                 // Compute the current spin idx
-                                                int ispin = ibasis + geom->n_cell_atoms * ( a + geom->n_cells[0] * (b + geom->n_cells[1] * c));
+                                                int ispin = ibasis + geom->n_cell_atoms * (a + geom->n_cells[0] * (b + geom->n_cells[1] * c));
 
                                                 // Perform the Metropolis trial step
                                                 if( Vectormath::check_atom_type(this->systems[0]->geometry->atom_types[ispin]) )
@@ -433,7 +433,7 @@ namespace Engine
                                                     scalar rng1 = distribution(prng_vec[tid]);
                                                     scalar rng2 = distribution(prng_vec[tid]);
                                                     scalar rng3 = distribution(prng_vec[tid]);
-                                                    if(!Metropolis_Spin_Trial(ispin, spins_old, spins_new, rng1, rng2, rng3, cos_cone_angle))
+                                                    if( !Metropolis_Spin_Trial(ispin, spins_old, spins_new, rng1, rng2, rng3, cos_cone_angle) )
                                                     {
                                                         n_rejected++;
                                                     }
