@@ -53,35 +53,38 @@ Note that the VP and LBFGS Solvers are only meant for direct minimization and no
 // `Solver_VP_OSO`: Verlet-like velocity projection, exponential transform
 #define Solver_VP_OSO 7
 
+struct Simulation_Run_Info
+{
+    int total_iterations = 0;
+    int total_walltime = 0;
+    float total_ips = 0;
+    float max_torque = 0;
+};
+
 /*
 Start or stop a simulation
 --------------------------------------------------------------------
 */
 
 // Monte Carlo
-PREFIX void Simulation_MC_Start(
-    State * state, int n_iterations = -1, int n_iterations_log = -1, bool singleshot = false, int idx_image = -1,
-    int idx_chain = -1 ) SUFFIX;
+PREFIX void Simulation_MC_Start(State *state, int n_iterations=-1, int n_iterations_log=-1,
+    bool singleshot=false, Simulation_Run_Info * info = NULL, int idx_image=-1, int idx_chain=-1) SUFFIX;
 
 // Landau-Lifshitz-Gilbert dynamics and energy minimisation
-PREFIX void Simulation_LLG_Start(
-    State * state, int solver_type, int n_iterations = -1, int n_iterations_log = -1, bool singleshot = false,
-    int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+PREFIX void Simulation_LLG_Start(State *state, int solver_type, int n_iterations=-1, int n_iterations_log=-1,
+    bool singleshot=false, Simulation_Run_Info * info = NULL, int idx_image=-1, int idx_chain=-1) SUFFIX;
 
 // Geodesic nudged elastic band method
-PREFIX void Simulation_GNEB_Start(
-    State * state, int solver_type, int n_iterations = -1, int n_iterations_log = -1, bool singleshot = false,
-    int idx_chain = -1 ) SUFFIX;
+PREFIX void Simulation_GNEB_Start(State *state, int solver_type, int n_iterations=-1, int n_iterations_log=-1,
+    bool singleshot=false, Simulation_Run_Info * info = NULL, int idx_chain=-1) SUFFIX;
 
 // Minimum mode following method
-PREFIX void Simulation_MMF_Start(
-    State * state, int solver_type, int n_iterations = -1, int n_iterations_log = -1, bool singleshot = false,
-    int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+PREFIX void Simulation_MMF_Start(State *state, int solver_type, int n_iterations=-1, int n_iterations_log=-1,
+    bool singleshot=false, Simulation_Run_Info * info = NULL, int idx_image=-1, int idx_chain=-1) SUFFIX;
 
 // Eigenmode analysis
-PREFIX void Simulation_EMA_Start(
-    State * state, int n_iterations = -1, int n_iterations_log = -1, bool singleshot = false, int idx_image = -1,
-    int idx_chain = -1 ) SUFFIX;
+PREFIX void Simulation_EMA_Start(State *state, int n_iterations=-1, int n_iterations_log=-1,
+    bool singleshot=false, Simulation_Run_Info * info = NULL, int idx_image=-1, int idx_chain=-1) SUFFIX;
 
 /*
 Single iteration of a Method

@@ -1,3 +1,4 @@
+#include "engine/Vectormath_Defines.hpp"
 #include <data/Spin_System.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Configurations.hpp>
@@ -152,8 +153,13 @@ void Add_Noise_Temperature( Data::Spin_System & s, scalar temperature, int delta
     Engine::Vectormath::normalize_vectors( *s.spins );
 }
 
-void Hopfion( Data::Spin_System & s, Vector3 pos, scalar r, int order, filterfunction filter )
+void Hopfion( Data::Spin_System & s, Vector3 pos, scalar r, int order, Vector3 normal, filterfunction filter )
 {
+
+    auto dreibein  = Engine::Vectormath::dreibein(normal);
+    auto & spins   = *s.spins;
+    auto positions = Engine::Vectormath::Rotated_View<vectorfield, Vector3>(s.geometry->positions, dreibein, pos, pos);
+
     using std::acos;
     using std::atan;
     using std::atan2;
@@ -161,9 +167,6 @@ void Hopfion( Data::Spin_System & s, Vector3 pos, scalar r, int order, filterfun
     using std::pow;
     using std::sin;
     using std::sqrt;
-
-    auto & spins     = *s.spins;
-    auto & positions = s.geometry->positions;
 
     if( r != 0.0 )
     {

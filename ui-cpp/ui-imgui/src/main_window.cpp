@@ -693,7 +693,7 @@ try
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )] = std::thread(
-                &Simulation_LLG_Start, this->state.get(), ui_shared_state.selected_solver_min, -1, -1, false, -1, -1 );
+                &Simulation_LLG_Start, this->state.get(), ui_shared_state.selected_solver_min, -1, -1, false, nullptr, -1, -1 );
         }
         if( ui_shared_state.selected_mode == GUI_Mode::LLG )
         {
@@ -701,7 +701,7 @@ try
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )] = std::thread(
-                &Simulation_LLG_Start, this->state.get(), ui_shared_state.selected_solver_llg, -1, -1, false, -1, -1 );
+                &Simulation_LLG_Start, this->state.get(), ui_shared_state.selected_solver_llg, -1, -1, false, nullptr, -1, -1 );
         }
         else if( ui_shared_state.selected_mode == GUI_Mode::MC )
         {
@@ -709,22 +709,22 @@ try
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )]
-                = std::thread( &Simulation_MC_Start, this->state.get(), -1, -1, false, -1, -1 );
+                = std::thread( &Simulation_MC_Start, this->state.get(), -1, -1, false, nullptr, -1, -1 );
         }
         else if( ui_shared_state.selected_mode == GUI_Mode::GNEB )
         {
             if( thread_chain.joinable() )
                 thread_chain.join();
             this->thread_chain = std::thread(
-                &Simulation_GNEB_Start, this->state.get(), ui_shared_state.selected_solver_min, -1, -1, false, -1 );
+                &Simulation_GNEB_Start, this->state.get(), ui_shared_state.selected_solver_min, -1, -1, false, nullptr, -1 );
         }
         else if( ui_shared_state.selected_mode == GUI_Mode::MMF )
-        {
+        { 
             int idx = System_Get_Index( state.get() );
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )] = std::thread(
-                &Simulation_MMF_Start, this->state.get(), ui_shared_state.selected_solver_min, -1, -1, false, -1, -1 );
+                &Simulation_MMF_Start, this->state.get(), ui_shared_state.selected_solver_min, -1, -1, false, nullptr, -1, -1 );
         }
         else if( ui_shared_state.selected_mode == GUI_Mode::EMA )
         {
@@ -732,7 +732,7 @@ try
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )]
-                = std::thread( &Simulation_EMA_Start, this->state.get(), -1, -1, false, -1, -1 );
+                = std::thread( &Simulation_EMA_Start, this->state.get(), -1, -1, false, nullptr, -1, -1 );
         }
         this->ui_shared_state.notify( "started calculation" );
     }
