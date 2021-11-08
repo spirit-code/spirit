@@ -1,8 +1,9 @@
 /*
-    This header, included at the start of API headers,
-    defines the necessary export keyword
-*/
+ * This header, included at the start of API headers,
+ * defines the necessary export keyword
+ */
 
+// clang-format off
 #ifdef _WIN32
 
     #ifdef __cplusplus
@@ -24,3 +25,4 @@
     #endif
 
 #endif
+// clang-format on

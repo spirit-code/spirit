@@ -27,37 +27,43 @@ jobs:
             build-type: Release
     env:
       BUILD_TYPE: ${{ matrix.build-type }}
-      CMAKE_FLAGS: -DSPIRIT_UI_CXX_USE_QT=OFF
+      CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF
       OMP_NUM_THREADS: 4
       EXCLUDETESTS: ${{ matrix.excludetests }}
 
     steps:
     - uses: actions/checkout@v2
 
-    - name: Create build folder
+    - name: 📚 Install required system packages
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt update
+        sudo apt install xorg-dev libglu1-mesa-dev libgtk-3-dev
+
+    - name: 📁 Create build folder
       run: cmake -E make_directory ${{runner.workspace}}/build
 
-    - name: configure with OpenMP
+    - name: ⚙ Configure with OpenMP
       if: matrix.openmp == true
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS -DSPIRIT_USE_OPENMP=ON
 
-    - name: configure
+    - name: ⚙ Configure
       if: matrix.openmp == false
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
 
-    - name: build
+    - name: 🛠 Build
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake --build . --config $BUILD_TYPE -j 2
 
-    - name: Install python packages
+    - name: 📚 Install python packages
       run: pip install --user numpy
 
-    - name: test
+    - name: 🧪 Test
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: ctest -C $BUILD_TYPE -E $EXCLUDETESTS --output-on-failure
@@ -66,7 +72,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: Release
-      CMAKE_FLAGS: -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_TEST_COVERAGE=ON
+      CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_TEST_COVERAGE=ON
 
     steps:
     - uses: actions/checkout@v2
@@ -74,27 +80,27 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Create build folder
+    - name: 📁 Create build folder
       run: cmake -E make_directory ${{runner.workspace}}/build
 
-    - name: configure
+    - name: ⚙ Configure
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
 
-    - name: build
+    - name: 🛠 Build
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake --build . --config Release -j 2
 
-    - name: Install necessary packages
+    - name: 📚 Install necessary packages
       run: |
         python -m pip install --upgrade pip
         python -m pip install numpy coverage 'coveralls<3' wheel
         sudo apt update
         sudo apt install lcov
 
-    - name: generate C++ coverage
+    - name: 🧪 Generate C++ coverage
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: |
@@ -103,12 +109,12 @@ jobs:
         lcov -c --no-external --directory . --base-directory $GITHUB_WORKSPACE/core -o after_test.info
         lcov -a baseline.info -a after_test.info -o total_test.info
         lcov -r total_test.info \*thirdparty\* \*/test/\* \*Collection\* \*DLL_\* -o coverage.info
-    - name: upload C++ coverage
+    - name: ⬆ Upload C++ coverage
       uses: codecov/codecov-action@v1
       with:
         files: ${{runner.workspace}}/build/coverage.info
 
-    - name: Python API coverage
+    - name: 🧪 Python API coverage
       working-directory: ./core/python
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -123,28 +129,28 @@ jobs:
     runs-on: ubuntu-latest
     env:
       BUILD_TYPE: Release
-      CMAKE_FLAGS: -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_ENABLE_PINNING=ON -DSPIRIT_ENABLE_DEFECTS=ON
+      CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_ENABLE_PINNING=ON -DSPIRIT_ENABLE_DEFECTS=ON
 
     steps:
     - uses: actions/checkout@v2
 
-    - name: Create build folder
+    - name: 📁 Create build folder
       run: cmake -E make_directory ${{runner.workspace}}/build
 
-    - name: configure
+    - name: ⚙ Configure
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
 
-    - name: build
+    - name: 🛠 Build
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake --build . --config $BUILD_TYPE -j 2
 
-    - name: Install python packages
+    - name: 📚 Install python packages
       run: pip install --user numpy
 
-    - name: test
+    - name: 🧪 Test
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: ctest -C $BUILD_TYPE --output-on-failure
@@ -159,25 +165,25 @@ jobs:
           - os: ubuntu-18.04
     env:
       BUILD_TYPE: Release
-      CMAKE_FLAGS: -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_USE_CUDA=ON -DSPIRIT_CUDA_ARCH=sm_70
+      CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_USE_CUDA=ON -DSPIRIT_CUDA_ARCH=sm_70
 
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install CUDA
+    - name: 📚 Install CUDA
       run: |
         sudo apt update
         sudo apt install nvidia-cuda-toolkit
 
-    - name: Create build folder
+    - name: 📁 Create build folder
       run: cmake -E make_directory ${{runner.workspace}}/build
 
-    - name: configure
+    - name: ⚙ Configure
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
 
-    - name: build
+    - name: 🛠 Build
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake --build . --config $BUILD_TYPE -j 2
@@ -186,40 +192,40 @@ jobs:
     runs-on: ubuntu-18.04
     env:
       BUILD_TYPE: Release
-      CMAKE_FLAGS: -DSPIRIT_UI_CXX_USE_QT=ON
+      CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=ON
 
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install Qt5
+    - name: 📚 Install Qt5
       run: |
         sudo apt update
         sudo apt install qt5-default libqt5charts5-dev
 
-    - name: Create build folder
+    - name: 📁 Create build folder
       run: cmake -E make_directory ${{runner.workspace}}/build
 
-    - name: configure
+    - name: ⚙ Configure
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
 
-    - name: build
+    - name: 🛠 Build
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake --build . --config $BUILD_TYPE -j 2
 
-  build-wasm:
+  webapp-mobile:
     runs-on: ubuntu-20.04
     env:
       BUILD_TYPE: Release
-      CMAKE_FLAGS: -DSPIRIT_BUILD_FOR_JS=ON
+      CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_BUILD_FOR_JS=ON
       EMSCRIPTEN_VERSION: "1.39.20"
 
     steps:
     - uses: actions/checkout@v2
 
-    - name: Install Emscripten
+    - name: 📚 Install Emscripten
       working-directory: ${{runner.workspace}}
       run: |
         git clone https://github.com/emscripten-core/emsdk.git
@@ -227,22 +233,69 @@ jobs:
         ./emsdk install $EMSCRIPTEN_VERSION
         ./emsdk activate $EMSCRIPTEN_VERSION
 
-    - name: Create build folder
+    - name: 📁 Create build folder
       run: cmake -E make_directory ${{runner.workspace}}/build
 
-    - name: configure
+    - name: ⚙ Configure
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: |
         source ${{runner.workspace}}/emsdk/emsdk_env.sh
         cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS -DCMAKE_TOOLCHAIN_FILE=${{runner.workspace}}/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
 
-    - name: build
+    - name: 🛠 Build
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: |
         source ${{runner.workspace}}/emsdk/emsdk_env.sh
         cmake --build . --config $BUILD_TYPE -j 2
+
+    - name: 📦 Archive mobile web app
+      uses: actions/upload-artifact@v2
+      with:
+        name: webapp-mobile
+        path: ui-web/
+
+  webapp-desktop:
+    runs-on: ubuntu-20.04
+    env:
+      BUILD_TYPE: Release
+      CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_BUILD_FOR_JS=ON
+      EMSCRIPTEN_VERSION: "1.39.20"
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: 📚 Install Emscripten
+      working-directory: ${{runner.workspace}}
+      run: |
+        git clone https://github.com/emscripten-core/emsdk.git
+        cd emsdk
+        ./emsdk install $EMSCRIPTEN_VERSION
+        ./emsdk activate $EMSCRIPTEN_VERSION
+
+    - name: 📁 Create build folder
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: ⚙ Configure
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: |
+        source ${{runner.workspace}}/emsdk/emsdk_env.sh
+        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS -DCMAKE_TOOLCHAIN_FILE=${{runner.workspace}}/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
+
+    - name: 🛠 Build
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: |
+        source ${{runner.workspace}}/emsdk/emsdk_env.sh
+        cmake --build . --config $BUILD_TYPE -j 2
+
+    - name: 📦 Archive desktop web app
+      uses: actions/upload-artifact@v2
+      with:
+        name: webapp-desktop
+        path: ui-cpp/ui-imgui/webapp/
 
   deploy-pypi:
     if: github.event_name != 'pull_request'
@@ -254,7 +307,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     env:
       BUILD_TYPE: Release
-      CMAKE_FLAGS: -DSPIRIT_UI_CXX_USE_QT=OFF
+      CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=OFF
       SPIRIT_ADD_VERSION_SUFFIX: true
 
     steps:
@@ -263,30 +316,30 @@ jobs:
       with:
         python-version: '3.x'
 
-    - name: Configure environment
+    - name: ⚙ Configure environment
       shell: bash
       if: github.ref == 'refs/heads/master'
       run: echo "SPIRIT_ADD_VERSION_SUFFIX=false" >> $GITHUB_ENV
 
-    - name: Create build folder
+    - name: 📁 Create build folder
       run: cmake -E make_directory ${{runner.workspace}}/build
 
-    - name: configure
+    - name: ⚙ Configure
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
 
-    - name: build
+    - name: 🛠 Build
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake --build . --config $BUILD_TYPE -j 2
 
-    - name: Install necessary packages
+    - name: 📚 Install necessary packages
       run: |
         python -m pip install --upgrade pip
         python -m pip install numpy setuptools wheel twine
 
-    - name: build Python package
+    - name: 🛠 Build Python package
       shell: bash
       working-directory: ./core/python
       run: |
@@ -294,7 +347,7 @@ jobs:
         echo "Add suffix to spirit version tag for python package $SPIRIT_ADD_VERSION_SUFFIX"
         python setup.py sdist bdist_wheel
 
-    - name: Deploy to TestPyPI
+    - name: 🚀 Deploy to TestPyPI
       working-directory: ./core/python
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
@@ -302,10 +355,103 @@ jobs:
       if: github.ref != 'refs/heads/master'
       run: twine upload --skip-existing --repository testpypi dist/*
 
-    - name: Deploy to PyPI
+    - name: 🚀 Deploy to PyPI
       working-directory: ./core/python
       env:
         TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
         TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
       if: github.ref == 'refs/heads/master'
       run: twine upload --skip-existing dist/*
+
+  deploy-package:
+    if: github.event_name != 'pull_request'
+    needs: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    env:
+      BUILD_TYPE: Release
+      CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_BUNDLE_APP=ON
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: 📚 Install required system packages
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt update
+        sudo apt install xorg-dev libglu1-mesa-dev libgtk-3-dev
+
+    - name: 📁 Create build folder
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: ⚙ Configure
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
+
+    - name: 🛠 Build
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: |
+        cmake --build . --config $BUILD_TYPE -j 2
+        cmake --install .
+        cmake --build . --config $BUILD_TYPE -j 2 --target package
+
+    - name: 📦 Archive ubuntu package
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v2
+      with:
+        name: spirit-ubuntu
+        path: |
+          ${{runner.workspace}}/build/*.tar.gz
+
+    - name: 📦 Archive macos package
+      if: matrix.os == 'macos-latest'
+      uses: actions/upload-artifact@v2
+      with:
+        name: spirit-macos
+        path: |
+          ${{runner.workspace}}/build/*.dmg
+          ${{runner.workspace}}/build/install/README.md
+          ${{runner.workspace}}/build/install/LICENSE.txt
+          ${{runner.workspace}}/build/install/VERSION.txt
+          ${{runner.workspace}}/build/install/licenses/
+
+    - name: 📦 Archive windows package
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-artifact@v2
+      with:
+        name: spirit-windows
+        path: |
+          ${{runner.workspace}}/build/*.zip
+
+  draft-release:
+    if: github.event_name == 'push' && startsWith( github.ref, 'refs/tags/' )
+    needs: [test, webapp-mobile, webapp-desktop, deploy-package]
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: 📄 Generate a changelog
+      id: changelog
+      uses: metcalfc/changelog-generator@v1.0.0
+      with:
+        myToken: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: 📄 Print the changelog
+      run: echo "${{ steps.changelog.outputs.changelog }}"
+
+    - name: 🎉 Create draft release
+      id: draft_release
+      uses: actions/create-release@v1
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body: ${{ steps.changelog.outputs.changelog }}
+        draft: true

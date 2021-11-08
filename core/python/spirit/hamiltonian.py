@@ -139,11 +139,11 @@ def get_field(p_state, idx_image=-1, idx_chain=-1):
     """Returns the magnitude and an array of `shape(3)` containing the direction of
     the external magnetic field.
     """
-    magnitude = (1*ctypes.c_float)()
+    magnitude = ctypes.c_float()
     normal = (3*ctypes.c_float)()
-    _Get_Field(ctypes.c_void_p(p_state), magnitude, normal,
+    _Get_Field(ctypes.c_void_p(p_state), ctypes.byref(magnitude), normal,
                ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
-    return float(magnitude), [n for n in normal]
+    return float(magnitude.value), [n for n in normal]
 
 _Get_DDI          = _spirit.Hamiltonian_Get_DDI
 _Get_DDI.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_bool), ctypes.c_int, ctypes.c_int]

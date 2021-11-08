@@ -1,6 +1,10 @@
 #include <Spirit/Version.h>
 #include <utility/Version.hpp>
 
+#ifdef SPIRIT_USE_OPENMP
+#include <omp.h>
+#endif
+
 const int Spirit_Version_Major() noexcept
 {
     return Utility::version_major;
@@ -74,6 +78,21 @@ const char * Spirit_Cuda() noexcept
 const char * Spirit_OpenMP() noexcept
 {
     return Utility::openmp.c_str();
+}
+
+int Spirit_OpenMP_Get_Num_Threads() noexcept
+{
+#ifdef SPIRIT_USE_OPENMP
+    int n_threads{ 1 };
+#pragma omp parallel
+    {
+#pragma omp single
+        n_threads = omp_get_num_threads();
+    }
+    return n_threads;
+#else
+    return 1;
+#endif
 }
 
 const char * Spirit_Threads() noexcept

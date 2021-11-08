@@ -28,10 +28,12 @@ void View::initialize() {
     m_is_initialized = true;
 
 #ifndef EMSCRIPTEN
+#ifndef SPIRIT_UI_USE_IMGUI
     if (!gladLoadGL()) {
         std::cerr << "Failed to initialize glad" << std::endl;
         return;
     }
+#endif
 #endif
     // Reset any errors potentially caused by the extension loader
     glGetError();

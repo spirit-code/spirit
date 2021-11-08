@@ -29,7 +29,17 @@ class Hamiltonian_set_get(TestParameters):
         dir_set = [1., 1., 0.]
         hamiltonian.set_field(self.p_state, mag_set, dir_set)
         # TODO: test the functionality of that function when the corresponding get will be available
-    
+
+    def test_get_field(self):
+        import math
+        self.test_set_field() # set to ensure the right values are actually set
+        magnitude, normal = hamiltonian.get_field(self.p_state)
+        self.assertAlmostEqual( magnitude, 10 )
+        expected_normal = [1/math.sqrt(2), 1/math.sqrt(2), 0] # 1/sqrt(2) because of normalization
+        self.assertAlmostEqual( normal[0], expected_normal[0])
+        self.assertAlmostEqual( normal[1], expected_normal[1])
+        self.assertAlmostEqual( normal[2], expected_normal[2])
+
     def test_set_anisotropy(self):
         mag_set = 0.5
         dir_set = [1., 1., 0.]
