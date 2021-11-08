@@ -2,9 +2,9 @@
 #ifndef SPIRIT_IMGUI_VISUALISATION_WIDGET_HPP
 #define SPIRIT_IMGUI_VISUALISATION_WIDGET_HPP
 
+#include <memory>
 #include <rendering_layer.hpp>
 #include <widget_base.hpp>
-#include <memory>
 
 struct State;
 

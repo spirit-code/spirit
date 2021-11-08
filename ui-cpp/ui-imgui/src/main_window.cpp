@@ -39,7 +39,7 @@
 #include <string>
 
 static ui::MainWindow * global_window_handle;
-static bool fullscreen_toggled           = false;
+static bool fullscreen_toggled = false;
 #ifdef SPIRIT_ENABLE_PINNING
 static const bool SPIRIT_PINNING_ENABLED = true;
 #else
@@ -118,7 +118,8 @@ void transform_to_system_frame( RenderingLayer & rendering_layer, glm::vec2 wind
     auto projection      = glm::inverse( matrices.second );
 
     for_each_argument(
-        [&window_size, &camera_position, &projection, &model_view]( glm::vec2 & pos ) {
+        [&window_size, &camera_position, &projection, &model_view]( glm::vec2 & pos )
+        {
             // Position relative to the center of the window [-1, 1]
             glm::vec2 relative_pos = 2.0f * ( pos - 0.5f * window_size );
             relative_pos.x /= window_size.x;
@@ -141,7 +142,7 @@ void MainWindow::handle_mouse()
 #ifdef __APPLE__
     bool ctrl = io.KeySuper;
 #else
-    bool ctrl = io.KeyCtrl;
+    bool ctrl    = io.KeyCtrl;
 #endif
 
 #if defined( __APPLE__ )
@@ -152,7 +153,8 @@ void MainWindow::handle_mouse()
     float scroll = -io.MouseWheel;
 #endif
 
-    auto set_configuration = [&]() {
+    auto set_configuration = [&]()
+    {
         float shift[3]{ interaction_click_pos.x - mouse_pos_in_system.x,
                         interaction_click_pos.y - mouse_pos_in_system.y, 0.0f };
         float current_position[3]{ mouse_pos_in_system.x, mouse_pos_in_system.y, 0.0f };
@@ -161,7 +163,8 @@ void MainWindow::handle_mouse()
         Configuration_From_Clipboard_Shift( state.get(), shift, current_position, rect, radius_in_system );
     };
 
-    auto set_atom_type = [&]( int atom_type ) {
+    auto set_atom_type = [&]( int atom_type )
+    {
         float center[3];
         Geometry_Get_Center( this->state.get(), center );
         float current_position[3]{ mouse_pos_in_system.x, mouse_pos_in_system.y, 0.0f };
@@ -172,7 +175,8 @@ void MainWindow::handle_mouse()
         Configuration_Set_Atom_Type( state.get(), atom_type, current_position, rect, radius_in_system );
     };
 
-    auto set_pinning = [&]( bool pinned ) {
+    auto set_pinning = [&]( bool pinned )
+    {
         float center[3];
         Geometry_Get_Center( this->state.get(), center );
         float current_position[3]{ mouse_pos_in_system.x, mouse_pos_in_system.y, 0.0f };
@@ -295,7 +299,7 @@ void MainWindow::handle_keyboard()
 #ifdef __APPLE__
     bool ctrl = io.KeySuper;
 #else
-    bool ctrl = io.KeyCtrl;
+    bool ctrl    = io.KeyCtrl;
 #endif
 
     if( ctrl && io.KeyShift )

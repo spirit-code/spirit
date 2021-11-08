@@ -48,12 +48,12 @@ void plot_tooltip( const char * label_id, const float * xs, const float * ys, in
     }
 }
 
-PlotsWidget::PlotsWidget( bool & show, std::shared_ptr<State> state ) : WidgetBase( show ), state( state ) 
+PlotsWidget::PlotsWidget( bool & show, std::shared_ptr<State> state ) : WidgetBase( show ), state( state )
 {
-    title = "Plots";
-    history_size = 200;
-    iteration_history = std::vector<float>(history_size);
-    force_history     = std::vector<float>(history_size);
+    title             = "Plots";
+    history_size      = 200;
+    iteration_history = std::vector<float>( history_size );
+    force_history     = std::vector<float>( history_size );
 }
 
 void PlotsWidget::hook_pre_show()
@@ -83,7 +83,6 @@ void PlotsWidget::show_content()
     static std::vector<float> rx_interpolated( 1, 0 );
     static std::vector<float> energies_interpolated( 1, 0 );
     static std::vector<float> max_force( 1, 0 );
-
 
     ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
     if( ImGui::BeginTabBar( "plots_tab_bar", tab_bar_flags ) )
@@ -175,8 +174,7 @@ void PlotsWidget::show_content()
                                     e_regular.push_back( energies[idx] );
                                 }
                                 else if(
-                                    Parameters_GNEB_Get_Climbing_Falling( state.get(), idx )
-                                    == GNEB_IMAGE_CLIMBING )
+                                    Parameters_GNEB_Get_Climbing_Falling( state.get(), idx ) == GNEB_IMAGE_CLIMBING )
                                 {
                                     rx_climbing.push_back( rx[idx] );
                                     e_climbing.push_back( energies[idx] );
@@ -188,8 +186,7 @@ void PlotsWidget::show_content()
                                     e_falling.push_back( energies[idx] );
                                 }
                                 else if(
-                                    Parameters_GNEB_Get_Climbing_Falling( state.get(), idx )
-                                    == GNEB_IMAGE_STATIONARY )
+                                    Parameters_GNEB_Get_Climbing_Falling( state.get(), idx ) == GNEB_IMAGE_STATIONARY )
                                 {
                                     rx_stationary.push_back( rx[idx] );
                                     e_stationary.push_back( energies[idx] );
@@ -285,8 +282,7 @@ void PlotsWidget::show_content()
             ImGui::Checkbox( "Interpolated energies", &plot_interpolated_energies );
             ImGui::SameLine();
             ImGui::PushItemWidth( 100 );
-            if( ImGui::InputInt(
-                    "##energies_n_interp", &n_interpolate, 0, 0, ImGuiInputTextFlags_EnterReturnsTrue ) )
+            if( ImGui::InputInt( "##energies_n_interp", &n_interpolate, 0, 0, ImGuiInputTextFlags_EnterReturnsTrue ) )
             {
                 if( n_interpolate > 1 )
                     Parameters_GNEB_Set_N_Energy_Interpolations( state.get(), n_interpolate );

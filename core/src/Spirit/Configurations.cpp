@@ -27,7 +27,8 @@ std::function<bool( const Vector3 &, const Vector3 & )> get_filter(
     {
         filter = [position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, no_cut_rectangular_x,
                   no_cut_rectangular_y, no_cut_rectangular_z, no_cut_cylindrical,
-                  no_cut_spherical]( const Vector3 &, const Vector3 & positions ) {
+                  no_cut_spherical]( const Vector3 &, const Vector3 & positions )
+        {
             Vector3 r_rectangular = positions - position;
             scalar r_cylindrical
                 = std::sqrt( std::pow( positions[0] - position[0], 2 ) + std::pow( positions[1] - position[1], 2 ) );
@@ -43,7 +44,8 @@ std::function<bool( const Vector3 &, const Vector3 & )> get_filter(
     {
         filter = [position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, no_cut_rectangular_x,
                   no_cut_rectangular_y, no_cut_rectangular_z, no_cut_cylindrical,
-                  no_cut_spherical]( const Vector3 & spin, const Vector3 & positions ) {
+                  no_cut_spherical]( const Vector3 & spin, const Vector3 & positions )
+        {
             Vector3 r_rectangular = positions - position;
             scalar r_cylindrical
                 = std::sqrt( std::pow( positions[0] - position[0], 2 ) + std::pow( positions[1] - position[1], 2 ) );

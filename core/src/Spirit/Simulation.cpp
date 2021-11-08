@@ -581,12 +581,12 @@ try
     if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
     {
         if( state->method_image[idx_image] )
-            return static_cast<float>(state->method_image[idx_image]->getForceMaxAbsComponent());
+            return static_cast<float>( state->method_image[idx_image]->getForceMaxAbsComponent() );
     }
     else if( Simulation_Running_On_Chain( state, idx_chain ) )
     {
         if( state->method_chain )
-            return static_cast<float>(state->method_chain->getForceMaxAbsComponent());
+            return static_cast<float>( state->method_chain->getForceMaxAbsComponent() );
     }
 
     return 0;
@@ -637,12 +637,12 @@ try
     if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
     {
         if( state->method_image[idx_image] )
-            return static_cast<float>(state->method_image[idx_image]->getTorqueMaxNorm());
+            return static_cast<float>( state->method_image[idx_image]->getTorqueMaxNorm() );
     }
     else if( Simulation_Running_On_Chain( state, idx_chain ) )
     {
         if( state->method_chain )
-            return static_cast<float>(state->method_chain->getTorqueMaxNorm());
+            return static_cast<float>( state->method_chain->getTorqueMaxNorm() );
     }
 
     return 0;
@@ -694,12 +694,12 @@ try
     if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
     {
         if( state->method_image[idx_image] )
-            return static_cast<float>(state->method_image[idx_image]->getIterationsPerSecond());
+            return static_cast<float>( state->method_image[idx_image]->getIterationsPerSecond() );
     }
     else if( Simulation_Running_On_Chain( state, idx_chain ) )
     {
         if( state->method_chain )
-            return static_cast<float>(state->method_chain->getIterationsPerSecond());
+            return static_cast<float>( state->method_chain->getIterationsPerSecond() );
     }
 
     return 0;
@@ -723,12 +723,12 @@ try
     if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
     {
         if( state->method_image[idx_image] )
-            return static_cast<float>(state->method_image[idx_image]->getNIterations());
+            return static_cast<float>( state->method_image[idx_image]->getNIterations() );
     }
     else if( Simulation_Running_On_Chain( state, idx_chain ) )
     {
         if( state->method_chain )
-            return static_cast<float>(state->method_chain->getNIterations());
+            return static_cast<float>( state->method_chain->getNIterations() );
     }
 
     return 0;
@@ -784,12 +784,12 @@ try
     if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
     {
         if( state->method_image[idx_image] )
-            return static_cast<float>(state->method_image[idx_image]->getWallTime());
+            return static_cast<float>( state->method_image[idx_image]->getWallTime() );
     }
     else if( Simulation_Running_On_Chain( state, idx_chain ) )
     {
         if( state->method_chain )
-            return static_cast<float>(state->method_chain->getWallTime());
+            return static_cast<float>( state->method_chain->getWallTime() );
     }
 
     return 0;

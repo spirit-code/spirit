@@ -406,7 +406,8 @@ void UiConfigFile::from_json()
                 group.at( "maximized" ).get_to( this->window_maximized );
         }
 
-        auto update = [&]( std::shared_ptr<RendererWidget> ptr ) {
+        auto update = [&]( std::shared_ptr<RendererWidget> ptr )
+        {
             ptr->apply_settings();
             rendering_layer.renderer_widgets.push_back( ptr );
             ptr->id = rendering_layer.renderer_id_counter;

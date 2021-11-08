@@ -14,7 +14,7 @@ namespace ui
 {
 
 ParametersWidget::ParametersWidget( bool & show, std::shared_ptr<State> state, UiSharedState & ui_shared_state )
-        : WidgetBase(show), state( state ), ui_shared_state( ui_shared_state )
+        : WidgetBase( show ), state( state ), ui_shared_state( ui_shared_state )
 {
     title = "Parameters";
     update_data();

@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SPIRIT_UTILITY_TIMING_HPP
-#define SPIRIT_UTILITY_TIMING_HPP
+#ifndef SPIRIT_CORE_UTILITY_TIMING_HPP
+#define SPIRIT_CORE_UTILITY_TIMING_HPP
 
 #include "Spirit_Defines.h"
 
@@ -8,9 +8,9 @@
 #include <string>
 
 // Use the System Clock (Wall Time) to handle Timing
+using std::chrono::duration;
 using std::chrono::system_clock;
 using std::chrono::time_point;
-using std::chrono::duration;
 
 namespace Utility
 {

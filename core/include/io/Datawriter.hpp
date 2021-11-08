@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SPIRIT_IO_DATAWRITER_HPP
-#define SPIRIT_IO_DATAWRITER_HPP
+#ifndef SPIRIT_CORE_IO_DATAWRITER_HPP
+#define SPIRIT_CORE_IO_DATAWRITER_HPP
 
 #include <data/Geometry.hpp>
 #include <data/Spin_System.hpp>

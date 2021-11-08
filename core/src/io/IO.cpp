@@ -40,7 +40,6 @@ Writing a vector of strings to file
 */
 void Strings_to_File( const std::vector<std::string> text, const std::string name, const int no )
 {
-
     std::ofstream myfile;
     myfile.open( name );
     if( myfile.is_open() )

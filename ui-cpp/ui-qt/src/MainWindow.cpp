@@ -106,15 +106,15 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
     connect( this->actionRandomize_Spins, SIGNAL( triggered() ), this, SLOT( control_random() ) );
     connect( this->actionCycle_Method, SIGNAL( triggered() ), this, SLOT( control_cycle_method() ) );
     connect( this->actionCycle_Solver, SIGNAL( triggered() ), this, SLOT( control_cycle_solver() ) );
-    connect( this->actionToggle_Dragging_mode, &QAction::triggered, this, [this] {
-        view_togglePasteMode( SpinWidget::InteractionMode::DRAG );
-    } );
-    connect( this->actionToggle_Defect_mode, &QAction::triggered, this, [this] {
-        view_togglePasteMode( SpinWidget::InteractionMode::DEFECT );
-    } );
-    connect( this->actionToggle_Pinning_mode, &QAction::triggered, this, [this] {
-        view_togglePasteMode( SpinWidget::InteractionMode::PIN );
-    } );
+    connect(
+        this->actionToggle_Dragging_mode, &QAction::triggered, this,
+        [this] { view_togglePasteMode( SpinWidget::InteractionMode::DRAG ); } );
+    connect(
+        this->actionToggle_Defect_mode, &QAction::triggered, this,
+        [this] { view_togglePasteMode( SpinWidget::InteractionMode::DEFECT ); } );
+    connect(
+        this->actionToggle_Pinning_mode, &QAction::triggered, this,
+        [this] { view_togglePasteMode( SpinWidget::InteractionMode::PIN ); } );
 
     // View Menu
     connect( this->actionShow_Settings, SIGNAL( triggered() ), this, SLOT( view_toggleSettings() ) );
@@ -332,9 +332,8 @@ void MainWindow::toggleInfoWidget()
 void MainWindow::keyPressEvent( QKeyEvent * k )
 {
     // Image index
-    auto str_image = []( int idx_img, int noi ) {
-        return std::string( "Image " + std::to_string( idx_img + 1 ) + "/" + std::to_string( noi ) );
-    };
+    auto str_image = []( int idx_img, int noi )
+    { return std::string( "Image " + std::to_string( idx_img + 1 ) + "/" + std::to_string( noi ) ); };
 
     // Key Sequences
     if( k->matches( QKeySequence::Copy ) )
@@ -1018,9 +1017,8 @@ void MainWindow::take_Screenshot_Chain()
 
 void MainWindow::edit_cut()
 {
-    auto str_image = []( int idx_img, int noi ) {
-        return std::string( "Image " + std::to_string( idx_img + 1 ) + "/" + std::to_string( noi ) );
-    };
+    auto str_image = []( int idx_img, int noi )
+    { return std::string( "Image " + std::to_string( idx_img + 1 ) + "/" + std::to_string( noi ) ); };
 
     this->controlWidget->cut_image();
     Ui::MainWindow::statusBar->showMessage(
@@ -1041,9 +1039,8 @@ void MainWindow::edit_paste()
 
 void MainWindow::edit_insert_right()
 {
-    auto str_image = []( int idx_img, int noi ) {
-        return std::string( "Image " + std::to_string( idx_img + 1 ) + "/" + std::to_string( noi ) );
-    };
+    auto str_image = []( int idx_img, int noi )
+    { return std::string( "Image " + std::to_string( idx_img + 1 ) + "/" + std::to_string( noi ) ); };
 
     this->controlWidget->paste_image( "right" );
     Ui::MainWindow::statusBar->showMessage(
@@ -1053,9 +1050,8 @@ void MainWindow::edit_insert_right()
 
 void MainWindow::edit_insert_left()
 {
-    auto str_image = []( int idx_img, int noi ) {
-        return std::string( "Image " + std::to_string( idx_img + 1 ) + "/" + std::to_string( noi ) );
-    };
+    auto str_image = []( int idx_img, int noi )
+    { return std::string( "Image " + std::to_string( idx_img + 1 ) + "/" + std::to_string( noi ) ); };
 
     this->controlWidget->paste_image( "left" );
     Ui::MainWindow::statusBar->showMessage(
@@ -1065,9 +1061,8 @@ void MainWindow::edit_insert_left()
 
 void MainWindow::edit_delete()
 {
-    auto str_image = []( int idx_img, int noi ) {
-        return std::string( "Image " + std::to_string( idx_img + 1 ) + "/" + std::to_string( noi ) );
-    };
+    auto str_image = []( int idx_img, int noi )
+    { return std::string( "Image " + std::to_string( idx_img + 1 ) + "/" + std::to_string( noi ) ); };
 
     this->controlWidget->delete_image();
     Ui::MainWindow::statusBar->showMessage(

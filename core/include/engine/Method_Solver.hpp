@@ -1,6 +1,6 @@
 #pragma once
-#ifndef Method_Solver_H
-#define Method_Solver_H
+#ifndef Method_CORE_ENGINE_Solver_HPP
+#define Method_CORE_ENGINE_Solver_HPP
 
 #include "Spirit_Defines.h"
 #include <Spirit/Simulation.h>

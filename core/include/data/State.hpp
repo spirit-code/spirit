@@ -1,3 +1,7 @@
+#pragma once
+#ifndef SPIRIT_CORE_DATA_STATE_HPP
+#define SPIRIT_CORE_DATA_STATE_HPP
+
 #include <engine/Method.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Timing.hpp>
@@ -102,3 +106,5 @@ inline void from_indices(
         image = chain->images[idx_image];
     }
 }
+
+#endif

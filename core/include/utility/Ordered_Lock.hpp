@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SPIRIT_ORDERED_LOCK_HPP
-#define SPIRIT_ORDERED_LOCK_HPP
+#ifndef SPIRIT_CORE_ORDERED_LOCK_HPP
+#define SPIRIT_CORE_ORDERED_LOCK_HPP
 
 #include <condition_variable>
 #include <mutex>

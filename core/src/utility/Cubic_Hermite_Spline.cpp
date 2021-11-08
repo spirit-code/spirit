@@ -28,7 +28,7 @@ std::vector<std::vector<scalar>> Interpolate(
 
         for( int j = 0; j < n_interpolations + 1; ++j )
         {
-            t   = j / ( scalar )( n_interpolations + 1 );
+            t   = j / (scalar)( n_interpolations + 1 );
             h00 = 2 * std::pow( t, 3 ) - 3 * std::pow( t, 2 ) + 1;
             h10 = -2 * std::pow( t, 3 ) + 3 * std::pow( t, 2 );
             h01 = std::pow( t, 3 ) - 2 * std::pow( t, 2 ) + t;

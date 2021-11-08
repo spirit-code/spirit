@@ -10,8 +10,8 @@
 
 #include <GLFW/glfw3.h>
 
-#include <VFRendering/View.hxx>
 #include <VFRendering/CombinedRenderer.hxx>
+#include <VFRendering/View.hxx>
 
 #include <Spirit/Simulation.h>
 

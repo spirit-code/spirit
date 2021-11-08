@@ -1,7 +1,7 @@
 
 #pragma once
-#ifndef SPIRIT_IO_DATAPARSER_HPP
-#define SPIRIT_IO_DATAPARSER_HPP
+#ifndef SPIRIT_CORE_IO_DATAPARSER_HPP
+#define SPIRIT_CORE_IO_DATAPARSER_HPP
 
 #include <data/Geometry.hpp>
 #include <data/Spin_System.hpp>

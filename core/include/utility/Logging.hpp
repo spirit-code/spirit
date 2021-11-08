@@ -1,8 +1,9 @@
 #pragma once
-#ifndef SPIRIT_UTILITY_LOGGING_HPP
-#define SPIRIT_UTILITY_LOGGING_HPP
+#ifndef SPIRIT_CORE_UTILITY_LOGGING_HPP
+#define SPIRIT_CORE_UTILITY_LOGGING_HPP
 
 #include <Spirit/Log.h>
+
 #include <utility/Timing.hpp>
 
 #include <chrono>

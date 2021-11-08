@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SPIRIT_IO_CONFIGWRITER_HPP
-#define SPIRIT_IO_CONFIGWRITER_HPP
+#ifndef SPIRIT_CORE_IO_CONFIGWRITER_HPP
+#define SPIRIT_CORE_IO_CONFIGWRITER_HPP
 
 #include <data/Geometry.hpp>
 #include <data/Parameters_Method_GNEB.hpp>
