@@ -55,7 +55,7 @@ Geometry::Geometry(
     this->applyCellComposition();
 
     // Apply additional pinned sites
-    for( int isite = 0; isite < pinning.sites.size(); ++isite )
+    for( std::size_t isite = 0; isite < pinning.sites.size(); ++isite )
     {
         auto & site = pinning.sites[isite];
         int ispin   = site.i
