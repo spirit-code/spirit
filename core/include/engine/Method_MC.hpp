@@ -71,6 +71,7 @@ namespace Engine
         std::array<int, 3> block_size_min;
         std::array<int, 3> n_blocks;
         std::array<int, 3> rest;
+        int max_supported_threads;
         std::vector<std::mt19937> prng_vec = {};
     };
 }

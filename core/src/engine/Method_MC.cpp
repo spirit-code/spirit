@@ -340,11 +340,12 @@ namespace Engine
         Log.Send(Utility::Log_Level::Info, Utility::Log_Sender::MC, fmt::format("    Actual block size = ({}, {}, {})", block_size_min[0], block_size_min[1], block_size_min[2]));
         Log.Send(Utility::Log_Level::Info, Utility::Log_Sender::MC, fmt::format("    N_blocks          = ({}, {}, {})", n_blocks[0], n_blocks[1], n_blocks[2]));
         Log.Send(Utility::Log_Level::Info, Utility::Log_Sender::MC, fmt::format("    Rest              = ({}, {}, {})", rest[0], rest[1], rest[2]));
-        int Nthreads = std::max(1,n_blocks[0]/2) * std::max(1,n_blocks[1]/2) * std::max(1,n_blocks[2]/2);
-        Log.Send(Utility::Log_Level::Info, Utility::Log_Sender::MC, fmt::format("    Supports up to max. {} threads.", Nthreads));
+        max_supported_threads = std::max(1,n_blocks[0]/2) * std::max(1,n_blocks[1]/2) * std::max(1,n_blocks[2]/2);
+        Log.Send(Utility::Log_Level::Info, Utility::Log_Sender::MC, fmt::format("    Supports up to max. {} threads.", max_supported_threads));
     }
 
     // Simple metropolis step
+    #ifndef SPIRIT_USE_CUDA
     void Method_MC::Parallel_Metropolis(const vectorfield & spins_old, vectorfield & spins_new)
     {
         const auto & geom = this->systems[0]->geometry;
@@ -452,6 +453,7 @@ namespace Engine
         // std::cout << n_rejected << "\n";
         // Log.Send(Utility::Log_Level::Error, Utility::Log_Sender::MC, fmt::format( "n_rejected = {}",n_rejected ));
     }
+    #endif
 
     // TODO:
     // Implement heat bath algorithm, see Y. Miyatake et al, J Phys C: Solid State Phys 19, 2539 (1986)
