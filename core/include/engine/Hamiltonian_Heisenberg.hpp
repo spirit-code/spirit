@@ -134,12 +134,12 @@ namespace Engine
 
         // ------------ Energy Functions ------------
         // Getters for Indices of the energy vector
-        inline int Idx_Zeeman() {return idx_zeeman;};
-        inline int Idx_Anisotropy() {return idx_anisotropy;};
-        inline int Idx_Exchange()  {return idx_exchange;};
-        inline int Idx_DMI() {return idx_dmi;};
-        inline int Idx_DDI() {return idx_ddi;};
-        inline int Idx_Quadruplet() {return idx_quadruplet;};
+        inline int Idx_Zeeman() const {return idx_zeeman;};
+        inline int Idx_Anisotropy() const {return idx_anisotropy;};
+        inline int Idx_Exchange() const {return idx_exchange;};
+        inline int Idx_DMI() const {return idx_dmi;};
+        inline int Idx_DDI() const {return idx_ddi;};
+        inline int Idx_Quadruplet() const {return idx_quadruplet;};
 
         // Calculate the Zeeman energy of a Spin System
         void E_Zeeman(const vectorfield & spins, scalarfield & Energy);
