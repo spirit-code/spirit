@@ -499,6 +499,35 @@ void hessian_bordered(
     hessian_out = tangent_basis.transpose() * tmp_3N * tangent_basis;
 }
 
+void sparse_hessian_bordered_3N(
+    const vectorfield & image, const vectorfield & gradient, const SpMatrixX & hessian, SpMatrixX & hessian_out )
+{
+    // Calculates a 3Nx3N matrix in the bordered Hessian approach
+
+    int nos = image.size();
+    VectorX lambda( nos );
+    for( int i = 0; i < nos; ++i )
+        lambda[i] = image[i].normalized().dot( gradient[i] );
+
+    // Construct hessian_out
+    typedef Eigen::Triplet<scalar> T;
+    std::vector<T> tripletList;
+    tripletList.reserve( hessian.nonZeros() + 3 * nos );
+
+    // Iterate over non zero entries of hesiian
+    for( int k = 0; k < hessian.outerSize(); ++k )
+    {
+        for( SpMatrixX::InnerIterator it( hessian, k ); it; ++it )
+        {
+            tripletList.push_back( T( it.row(), it.col(), it.value() ) );
+        }
+        int j = k % 3;
+        int i = ( k - j ) / 3;
+        tripletList.push_back( T( k, k, -lambda[i] ) ); // Correction to the diagonal
+    }
+    hessian_out.setFromTriplets( tripletList.begin(), tripletList.end() );
+}
+
 void hessian_projected(
     const vectorfield & image, const vectorfield & gradient, const MatrixX & hessian, MatrixX & tangent_basis,
     MatrixX & hessian_out )

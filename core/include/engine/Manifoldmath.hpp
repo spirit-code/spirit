@@ -91,6 +91,10 @@ void spherical_coordinate_christoffel_symbols( const vectorfield & vf, MatrixX &
 void hessian_bordered(
     const vectorfield & image, const vectorfield & gradient, const MatrixX & hessian, MatrixX & tangent_basis,
     MatrixX & hessian_out );
+
+void sparse_hessian_bordered_3N(
+    const vectorfield & image, const vectorfield & gradient, const SpMatrixX & hessian, SpMatrixX & hessian_out );
+
 // Calculate tangential derivatives and correction terms according to the projector approach
 void hessian_projected(
     const vectorfield & image, const vectorfield & gradient, const MatrixX & hessian, MatrixX & tangent_basis,

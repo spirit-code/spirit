@@ -37,7 +37,8 @@ enum class Solver
     LBFGS_OSO   = Solver_LBFGS_OSO,
     LBFGS_Atlas = Solver_LBFGS_Atlas,
     VP          = Solver_VP,
-    VP_OSO      = Solver_VP_OSO
+    VP_OSO      = Solver_VP_OSO,
+    Newton      = Solver_Newton 
 };
 
 /*
@@ -131,6 +132,13 @@ protected:
     std::vector<scalarfield> forces_virtual_norm;
     // Preccession angle
     scalarfield angle;
+
+    //////////// LBFGS ////////////////////////////////////////////////////////////
+    std::vector<SpMatrixX> hessian_3N_embedding;
+    std::vector<SpMatrixX> hessian_3N_bordered;
+    std::vector<SpMatrixX> hessian_2N;
+    std::vector<SpMatrixX> tangent_basis;
+    std::vector<bool> is_square;
 
     //////////// LBFGS ////////////////////////////////////////////////////////////
 
@@ -387,6 +395,7 @@ inline std::string Method_Solver<Solver::None>::SolverFullName()
 #include <engine/Solver_SIB.hpp>
 #include <engine/Solver_VP.hpp>
 #include <engine/Solver_VP_OSO.hpp>
+#include <engine/Solver_Newton.hpp>
 } // namespace Engine
 
 #endif

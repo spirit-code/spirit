@@ -49,6 +49,9 @@ SOLVER_LBFGS_Atlas = 6
 SOLVER_VP_OSO = 7
 """Verlet-like velocity projection method, using exponential transforms."""
 
+SOLVER_NEWTON = 8
+"""Newton's method."""
+
 
 METHOD_MC   = 0
 """Monte Carlo.

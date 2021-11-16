@@ -171,8 +171,10 @@ void ControlWidget::play_pause()
         solver = Solver_LBFGS_OSO;
     else if( s_solver == "LBFGS_Atlas" )
         solver = Solver_LBFGS_Atlas;
-    if( s_solver == "VP_OSO" )
+    else if( s_solver == "VP_OSO" )
         solver = Solver_VP_OSO;
+    else if( s_solver == "Newton")
+        solver = Solver_Newton;
 
     if( Simulation_Running_On_Image( this->state.get() ) || Simulation_Running_On_Chain( this->state.get() ) )
     {

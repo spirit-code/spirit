@@ -216,7 +216,9 @@ void show_overlay_calculation(
         { Solver_Depondt, { "Depondt", "Depondt (Heun using rotations)" } },
         { Solver_Heun,
           { "Heun", "Heun's midpoint method, corresponding to RK2 (using cartesian finite differences)" } },
-        { Solver_RungeKutta4, { "RK4", "4th order Runge-Kutta (using cartesian finite differences)" } }
+        { Solver_RungeKutta4, { "RK4", "4th order Runge-Kutta (using cartesian finite differences)" } },
+        { Solver_Newton, { "Newton", "The Newton method (only for sparse systems)" } }
+
     };
 
     static float solver_button_hovered_duration = 0;
