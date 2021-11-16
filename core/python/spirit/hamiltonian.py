@@ -214,4 +214,4 @@ def get_DMI_shells(p_state, idx_image=-1, idx_chain=-1):
     dij = (n_shells.value*ctypes.c_float)()
     _Get_DMI_Shells(ctypes.c_void_p(p_state),ctypes.byref(n_shells),dij
              ,ctypes.byref(chirality),ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
-    return int(n_shells.value), int(chirality.value),[float(d) for d in dij]
+    return int(n_shells.value),[float(d) for d in dij], int(chirality.value)
