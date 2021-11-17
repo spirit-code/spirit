@@ -33,7 +33,14 @@ bool Hessian_Full_Spectrum(
 bool Hessian_Partial_Spectrum(
     const std::shared_ptr<Data::Parameters_Method> parameters, const vectorfield & spins, const vectorfield & gradient,
     const MatrixX & hessian, int n_modes, MatrixX & tangent_basis, MatrixX & hessian_constrained, VectorX & eigenvalues,
-    MatrixX & eigenvectors );
+    MatrixX & eigenvcetors );
+
+bool Sparse_Hessian_Partial_Spectrum(
+    const std::shared_ptr<Data::Parameters_Method> parameters, const vectorfield & spins, const vectorfield & gradient,
+    const SpMatrixX & hessian, int n_modes, SpMatrixX & tangent_basis, SpMatrixX & hessian_constrained, VectorX & eigenvalues,
+    MatrixX & eigenvectors
+);
+
 }; // end namespace Eigenmodes
 } // end namespace Engine
 #endif

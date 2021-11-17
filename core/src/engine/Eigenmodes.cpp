@@ -4,6 +4,8 @@
 // #include <engine/Backend_par.hpp>
 
 #include <SymEigsSolver.h> // Also includes <MatOp/DenseSymMatProd.h>
+#include <MatOp/SparseSymMatProd.h> // Also includes <MatOp/DenseSymMatProd.h>
+
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
 
@@ -65,7 +67,6 @@ void Calculate_Eigenmodes( std::shared_ptr<Data::Spin_System> system, int idx_im
 
     // Calculate the Eigenmodes
     vectorfield gradient( nos );
-    MatrixX hessian( 3 * nos, 3 * nos );
 
     // The gradient (unprojected)
     system->hamiltonian->Gradient( spins_initial, gradient );
@@ -75,18 +76,41 @@ void Calculate_Eigenmodes( std::shared_ptr<Data::Spin_System> system, int idx_im
     //     g[idx] = mask[idx]*g[idx];
     // });
     Vectormath::set_c_a( 1, gradient, gradient, system->geometry->mask_unpinned );
+    
 
-    // The Hessian (unprojected)
-    system->hamiltonian->Hessian( spins_initial, hessian );
-
-    // Get the eigenspectrum
-    MatrixX hessian_constrained = MatrixX::Zero( 2 * nos, 2 * nos );
-    MatrixX tangent_basis       = MatrixX::Zero( 3 * nos, 2 * nos );
     VectorX eigenvalues;
     MatrixX eigenvectors;
-    bool successful = Eigenmodes::Hessian_Partial_Spectrum(
-        system->ema_parameters, spins_initial, gradient, hessian, n_modes, tangent_basis, hessian_constrained,
-        eigenvalues, eigenvectors );
+    SpMatrixX tangent_basis = SpMatrixX(3*nos, 2*nos);
+
+    // TODO: do this properly
+    bool sparse = true;
+    bool successful;
+    if(sparse)
+    {
+        // The Hessian (unprojected)
+        SpMatrixX hessian( 3 * nos, 3 * nos );
+        system->hamiltonian->Sparse_Hessian( spins_initial, hessian );
+        // Get the eigenspectrum
+        SpMatrixX hessian_constrained = SpMatrixX( 2 * nos, 2 * nos );
+
+        successful = Eigenmodes::Sparse_Hessian_Partial_Spectrum(
+            system->ema_parameters, spins_initial, gradient, hessian, n_modes, tangent_basis, hessian_constrained,
+            eigenvalues, eigenvectors );
+
+    } else {
+        // The Hessian (unprojected)
+        MatrixX hessian( 3 * nos, 3 * nos );
+        system->hamiltonian->Hessian( spins_initial, hessian );
+        // Get the eigenspectrum
+        MatrixX hessian_constrained = MatrixX::Zero( 2 * nos, 2 * nos );
+        MatrixX _tangent_basis      = MatrixX(tangent_basis);
+
+        successful = Eigenmodes::Hessian_Partial_Spectrum(
+            system->ema_parameters, spins_initial, gradient, hessian, n_modes, _tangent_basis, hessian_constrained,
+            eigenvalues, eigenvectors );
+
+        tangent_basis = _tangent_basis.sparseView();
+    }
 
     if( successful )
     {
@@ -215,6 +239,47 @@ bool Hessian_Partial_Spectrum(
     // Return whether the calculation was successful
     return ( hessian_spectrum.info() == Spectra::SUCCESSFUL ) && ( nconv > 0 );
 }
+
+bool Sparse_Hessian_Partial_Spectrum(
+    const std::shared_ptr<Data::Parameters_Method> parameters, const vectorfield & spins, const vectorfield & gradient,
+    const SpMatrixX & hessian, int n_modes, SpMatrixX & tangent_basis, SpMatrixX & hessian_constrained, VectorX & eigenvalues,
+    MatrixX & eigenvectors )
+{
+    int nos = spins.size();
+
+    // Restrict number of calculated modes to [1,2N)
+    n_modes = std::max( 1, std::min( 2 * nos - 2, n_modes ) );
+
+    // Calculate the final Hessian to use for the minimum mode
+    Manifoldmath::sparse_tangent_basis_spherical(spins, tangent_basis);
+
+    SpMatrixX hessian_constrained_3N = SpMatrixX(3*nos, 3*nos);
+    Manifoldmath::sparse_hessian_bordered_3N( spins, gradient, hessian, hessian_constrained_3N );
+
+    hessian_constrained = tangent_basis.transpose() * hessian_constrained_3N * tangent_basis;
+
+    // TODO: Pinning (see non-sparse function for)
+
+    // Create the Spectra Matrix product operation
+    Spectra::SparseSymMatProd<scalar> op( hessian_constrained );
+    // Create and initialize a Spectra solver
+    Spectra::SymEigsSolver<scalar, Spectra::SMALLEST_ALGE, Spectra::SparseSymMatProd<scalar>> hessian_spectrum(
+        &op, n_modes, 2 * nos );
+    hessian_spectrum.init();
+
+    // Compute the specified spectrum, sorted by smallest real eigenvalue
+    int nconv = hessian_spectrum.compute( 1000, 1e-10, int( Spectra::SMALLEST_ALGE ) );
+
+    // Extract real eigenvalues
+    eigenvalues = hessian_spectrum.eigenvalues().real();
+
+    // Retrieve the real eigenvectors
+    eigenvectors = hessian_spectrum.eigenvectors().real();
+
+    // Return whether the calculation was successful
+    return ( hessian_spectrum.info() == Spectra::SUCCESSFUL ) && ( nconv > 0 );
+}
+
 
 } // namespace Eigenmodes
 } // namespace Engine
