@@ -442,7 +442,11 @@ try
         *n_shells = ham->exchange_shell_magnitudes.size();
 
         // Note the array needs to be correctly allocated beforehand!
+<<<<<<< HEAD
+        if(jij != nullptr)
+=======
         for( std::size_t i = 0; i < ham->exchange_shell_magnitudes.size(); ++i )
+>>>>>>> develop
         {
             for( int i = 0; i < ham->exchange_shell_magnitudes.size(); ++i )
             {
