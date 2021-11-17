@@ -21,11 +21,12 @@ namespace IO
 
 // Reads a non-OVF spins file with plain text and discarding any headers starting with '#'
 void Read_NonOVF_Spin_Configuration(
-    vectorfield & spins, Data::Geometry & geometry, const int nos, const int idx_image_infile, const std::string file )
+    vectorfield & spins, Data::Geometry & geometry, const int nos, const int idx_image_infile,
+    const std::string & file )
 {
     IO::Filter_File_Handle file_handle( file, "#" );
 
-    // jump to the specified image in the file
+    // Jump to the specified image in the file
     for( int i = 0; i < ( nos * idx_image_infile ); i++ )
         file_handle.GetLine();
 
@@ -38,7 +39,7 @@ void Read_NonOVF_Spin_Configuration(
         if( spins[i].norm() < 1e-5 )
         {
             spins[i] = { 0, 0, 1 };
-            // in case of spin vector close to zero we have a vacancy
+            // In case of spin vector close to zero we have a vacancy
 #ifdef SPIRIT_ENABLE_DEFECTS
             geometry.atom_types[i] = -1;
 #endif
@@ -50,7 +51,7 @@ void Read_NonOVF_Spin_Configuration(
 }
 
 void Check_NonOVF_Chain_Configuration(
-    std::shared_ptr<Data::Spin_System_Chain> chain, const std::string file, int start_image_infile,
+    std::shared_ptr<Data::Spin_System_Chain> chain, const std::string & file, int start_image_infile,
     int end_image_infile, const int insert_idx, int & noi_to_add, int & noi_to_read, const int idx_chain )
 {
     IO::Filter_File_Handle file_handle( file, "#" );
@@ -94,7 +95,7 @@ void Check_NonOVF_Chain_Configuration(
 
 // Read from Anisotropy file
 void Anisotropy_from_File(
-    const std::string anisotropyFile, const std::shared_ptr<Data::Geometry> geometry, int & n_indices,
+    const std::string & anisotropyFile, const std::shared_ptr<Data::Geometry> geometry, int & n_indices,
     intfield & anisotropy_index, scalarfield & anisotropy_magnitude, vectorfield & anisotropy_normal ) noexcept
 try
 {
@@ -239,12 +240,12 @@ catch( ... )
 
 // Read from Pairs file by Markus & Bernd
 void Pairs_from_File(
-    const std::string pairsFile, const std::shared_ptr<Data::Geometry> geometry, int & nop, pairfield & exchange_pairs,
-    scalarfield & exchange_magnitudes, pairfield & dmi_pairs, scalarfield & dmi_magnitudes,
+    const std::string & pairs_file, const std::shared_ptr<Data::Geometry> geometry, int & nop,
+    pairfield & exchange_pairs, scalarfield & exchange_magnitudes, pairfield & dmi_pairs, scalarfield & dmi_magnitudes,
     vectorfield & dmi_normals ) noexcept
 try
 {
-    Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Reading spin pairs from file \"{}\"", pairsFile ) );
+    Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Reading spin pairs from file \"{}\"", pairs_file ) );
 
     std::vector<std::string> columns( 20 ); // at least: 2 (indices) + 3 (J) + 3 (DMI)
     // column indices of pair indices and interactions
@@ -255,13 +256,13 @@ try
     int pair_periodicity = 0;
     Vector3 pair_D_temp  = { 0, 0, 0 };
     // Get column indices
-    Filter_File_Handle file( pairsFile );
+    Filter_File_Handle file( pairs_file );
 
     if( file.Find( "n_interaction_pairs" ) )
     {
         // Read n interaction pairs
         file.iss >> n_pairs;
-        Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "File {} should have {} pairs", pairsFile, n_pairs ) );
+        Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "File {} should have {} pairs", pairs_file, n_pairs ) );
     }
     else
     {
@@ -269,7 +270,7 @@ try
         n_pairs = (int)1e8;
         // First line should contain the columns
         file.ResetStream();
-        Log( Log_Level::Debug, Log_Sender::IO, "Trying to parse spin pairs columns from top of file " + pairsFile );
+        Log( Log_Level::Debug, Log_Sender::IO, "Trying to parse spin pairs columns from top of file " + pairs_file );
     }
 
     file.GetLine();
@@ -319,7 +320,7 @@ try
     // Check if interactions have been found in header
     if( !J && !DMI_xyz && !DMI_abc )
         Log( Log_Level::Warning, Log_Sender::IO,
-             fmt::format( "No interactions could be found in pairs file \"{}\"", pairsFile ) );
+             fmt::format( "No interactions could be found in pairs file \"{}\"", pairs_file ) );
 
     // Get actual Pairs Data
     int i_pair = 0;
@@ -388,8 +389,7 @@ try
         // Add the indices and parameters to the corresponding lists
         if( pair_Jij != 0 )
         {
-            bool already_in;
-            already_in     = false;
+            bool already_in{ false };
             int atposition = -1;
             for( unsigned int icheck = 0; icheck < exchange_pairs.size(); ++icheck )
             {
@@ -416,9 +416,8 @@ try
         }
         if( pair_Dij != 0 )
         {
-            bool already_in;
+            bool already_in{ false };
             int dfact      = 1;
-            already_in     = false;
             int atposition = -1;
             for( unsigned int icheck = 0; icheck < dmi_pairs.size(); ++icheck )
             {
@@ -432,7 +431,8 @@ try
                     break;
                 }
                 else if( pair_i == p.j && pair_j == p.i && tnew == std::array<int, 3>{ -t[0], -t[1], -t[2] } )
-                { // if the inverted pair is present, the DMI vector has to be mirrored due to its pseudo-vector behaviour
+                {
+                    // If the inverted pair is present, the DMI vector has to be mirrored due to its pseudo-vector behaviour
                     dfact      = -1;
                     already_in = true;
                     atposition = icheck;
@@ -440,7 +440,8 @@ try
                 }
             }
             if( already_in )
-            { // calculate new D vector by adding the two redundant ones and normalize again
+            {
+                // Calculate new D vector by adding the two redundant ones and normalize again
                 Vector3 newD = dmi_magnitudes[atposition] * dmi_normals[atposition]
                                + dfact * pair_Dij * Vector3{ pair_D1, pair_D2, pair_D3 };
                 scalar newdnorm = std::sqrt( std::pow( newD[0], 2 ) + std::pow( newD[1], 2 ) + std::pow( newD[2], 2 ) );
@@ -460,22 +461,22 @@ try
     Log( Log_Level::Parameter, Log_Sender::IO,
          fmt::format(
              "Done reading {} spin pairs from file \"{}\", giving {} exchange and {} DM (symmetry-reduced) pairs.",
-             i_pair, pairsFile, exchange_pairs.size(), dmi_pairs.size() ) );
+             i_pair, pairs_file, exchange_pairs.size(), dmi_pairs.size() ) );
     nop = i_pair;
 }
 catch( ... )
 {
-    spirit_rethrow( fmt::format( "Could not read pairs file \"{}\"", pairsFile ) );
+    spirit_rethrow( fmt::format( "Could not read pairs file \"{}\"", pairs_file ) );
 }
 
 // Read from Quadruplet file
 void Quadruplets_from_File(
-    const std::string quadrupletsFile, const std::shared_ptr<Data::Geometry>, int & noq, quadrupletfield & quadruplets,
-    scalarfield & quadruplet_magnitudes ) noexcept
+    const std::string & quadruplets_file, const std::shared_ptr<Data::Geometry>, int & noq,
+    quadrupletfield & quadruplets, scalarfield & quadruplet_magnitudes ) noexcept
 try
 {
     Log( Log_Level::Debug, Log_Sender::IO,
-         fmt::format( "Reading spin quadruplets from file \"{}\"", quadrupletsFile ) );
+         fmt::format( "Reading spin quadruplets from file \"{}\"", quadruplets_file ) );
 
     std::vector<std::string> columns( 20 ); // at least: 4 (indices) + 3*3 (positions) + 1 (magnitude)
     // column indices of pair indices and interactions
@@ -490,14 +491,14 @@ try
     int n_quadruplets          = 0;
 
     // Get column indices
-    Filter_File_Handle file( quadrupletsFile );
+    Filter_File_Handle file( quadruplets_file );
 
     if( file.Find( "n_interaction_quadruplets" ) )
     {
         // Read n interaction quadruplets
         file.iss >> n_quadruplets;
         Log( Log_Level::Debug, Log_Sender::IO,
-             fmt::format( "File {} should have {} quadruplets", quadrupletsFile, n_quadruplets ) );
+             fmt::format( "File {} should have {} quadruplets", quadruplets_file, n_quadruplets ) );
     }
     else
     {
@@ -506,7 +507,7 @@ try
         // First line should contain the columns
         file.ResetStream();
         Log( Log_Level::Debug, Log_Sender::IO,
-             "Trying to parse quadruplet columns from top of file " + quadrupletsFile );
+             "Trying to parse quadruplet columns from top of file " + quadruplets_file );
     }
 
     file.GetLine();
@@ -550,7 +551,7 @@ try
     // Check if interactions have been found in header
     if( !Q )
         Log( Log_Level::Warning, Log_Sender::IO,
-             fmt::format( "No interactions could be found in header of quadruplets file ", quadrupletsFile ) );
+             fmt::format( "No interactions could be found in header of quadruplets file ", quadruplets_file ) );
 
     // Quadruplet Indices
     int q_i = 0;
@@ -621,31 +622,31 @@ try
         ++i_quadruplet;
     } // end while GetLine
     Log( Log_Level::Parameter, Log_Sender::IO,
-         fmt::format( "Done reading {} spin quadruplets from file \"{}\"", i_quadruplet, quadrupletsFile ) );
+         fmt::format( "Done reading {} spin quadruplets from file \"{}\"", i_quadruplet, quadruplets_file ) );
     noq = i_quadruplet;
 }
 catch( ... )
 {
-    spirit_rethrow( fmt::format( "Could not read quadruplets from file  \"{}\"", quadrupletsFile ) );
+    spirit_rethrow( fmt::format( "Could not read quadruplets from file  \"{}\"", quadruplets_file ) );
 }
 
 void Defects_from_File(
-    const std::string defectsFile, int & n_defects, field<Site> & defect_sites, intfield & defect_types ) noexcept
+    const std::string & defects_file, int & n_defects, field<Site> & defect_sites, intfield & defect_types ) noexcept
 try
 {
     n_defects    = 0;
     defect_sites = field<Site>( 0 );
     defect_types = intfield( 0 );
 
-    Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Reading defects from file \"{}\"", defectsFile ) );
-    Filter_File_Handle myfile( defectsFile );
+    Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Reading defects from file \"{}\"", defects_file ) );
+    Filter_File_Handle myfile( defects_file );
     int nod = 0;
 
     if( myfile.Find( "n_defects" ) )
     {
         // Read n interaction pairs
         myfile.iss >> nod;
-        Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "File \"{}\" should have {} defects", defectsFile, nod ) );
+        Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "File \"{}\" should have {} defects", defects_file, nod ) );
     }
     else
     {
@@ -654,7 +655,7 @@ try
         // First line should contain the columns
         myfile.ResetStream();
         Log( Log_Level::Debug, Log_Sender::IO,
-             fmt::format( "Trying to parse defects from top of file \"{}\"", defectsFile ) );
+             fmt::format( "Trying to parse defects from top of file \"{}\"", defects_file ) );
     }
 
     while( myfile.GetLine() && n_defects < nod )
@@ -667,15 +668,15 @@ try
     }
 
     Log( Log_Level::Parameter, Log_Sender::IO,
-         fmt::format( "Done reading {} defects from file \"{}\"", n_defects, defectsFile ) );
+         fmt::format( "Done reading {} defects from file \"{}\"", n_defects, defects_file ) );
 }
 catch( ... )
 {
-    spirit_rethrow( fmt::format( "Could not read defects file \"{}\"", defectsFile ) );
+    spirit_rethrow( fmt::format( "Could not read defects file \"{}\"", defects_file ) );
 }
 
 void Pinned_from_File(
-    const std::string pinnedFile, int & n_pinned, field<Site> & pinned_sites, vectorfield & pinned_spins ) noexcept
+    const std::string & pinned_file, int & n_pinned, field<Site> & pinned_sites, vectorfield & pinned_spins ) noexcept
 try
 {
     int nop      = 0;
@@ -683,15 +684,15 @@ try
     pinned_sites = field<Site>( 0 );
     pinned_spins = vectorfield( 0 );
 
-    Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Reading pinned sites from file \"{}\"", pinnedFile ) );
-    Filter_File_Handle myfile( pinnedFile );
+    Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Reading pinned sites from file \"{}\"", pinned_file ) );
+    Filter_File_Handle myfile( pinned_file );
 
     if( myfile.Find( "n_pinned" ) )
     {
         // Read n interaction pairs
         myfile.iss >> nop;
         Log( Log_Level::Debug, Log_Sender::IO,
-             fmt::format( "File \"{}\" should have {} pinned sites", pinnedFile, nop ) );
+             fmt::format( "File \"{}\" should have {} pinned sites", pinned_file, nop ) );
     }
     else
     {
@@ -700,7 +701,7 @@ try
         // First line should contain the columns
         myfile.ResetStream();
         Log( Log_Level::Debug, Log_Sender::IO,
-             fmt::format( "Trying to parse pinned sites from top of file \"{}\"", pinnedFile ) );
+             fmt::format( "Trying to parse pinned sites from top of file \"{}\"", pinned_file ) );
     }
 
     while( myfile.GetLine() && n_pinned < nop )
@@ -714,11 +715,11 @@ try
     }
 
     Log( Log_Level::Parameter, Log_Sender::IO,
-         fmt::format( "Done reading {} pinned sites from file \"{}\"", n_pinned, pinnedFile ) );
+         fmt::format( "Done reading {} pinned sites from file \"{}\"", n_pinned, pinned_file ) );
 }
 catch( ... )
 {
-    spirit_rethrow( fmt::format( "Could not read pinned sites file  \"{}\"", pinnedFile ) );
+    spirit_rethrow( fmt::format( "Could not read pinned sites file  \"{}\"", pinned_file ) );
 }
 
 int ReadHeaderLine( FILE * fp, char * line )

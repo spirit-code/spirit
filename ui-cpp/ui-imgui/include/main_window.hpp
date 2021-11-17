@@ -37,6 +37,7 @@ public:
 private:
     void show_menu_bar();
     void show_notifications();
+    void show_dock_widgets();
 
     void draw_imgui( int display_w, int display_h );
 
@@ -73,6 +74,15 @@ private:
     std::shared_ptr<State> state;
     std::vector<std::thread> threads_image;
     std::thread thread_chain;
+
+    ImVec2 menu_bar_size = { -1, -1 };
+
+    const float sidebar_fraction_default = 0.2f; // The fractional width of a sidebar when a widget is dragged
+    const float sidebar_fraction_min     = 0.1f; // The minimum fractional width of a sidebar
+    const float sidebar_fraction_max     = 0.8f; // The maximum fractional width of a sidebar
+
+    float left_sidebar_fraction  = 0; // The current fractional widht of the sidebar
+    float right_sidebar_fraction = 0; // The current fractional widht of the sidebar
 
     bool show_imgui_demo_window  = false;
     bool show_implot_demo_window = false;

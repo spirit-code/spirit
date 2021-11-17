@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SPIRIT_DATA_PARAMETERS_METHOD_LLG_HPP
-#define SPIRIT_DATA_PARAMETERS_METHOD_LLG_HPP
+#ifndef SPIRIT_CORE_DATA_PARAMETERS_METHOD_LLG_HPP
+#define SPIRIT_CORE_DATA_PARAMETERS_METHOD_LLG_HPP
 
 #include <data/Parameters_Method_Solver.hpp>
 #include <engine/Vectormath_Defines.hpp>

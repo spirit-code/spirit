@@ -70,10 +70,6 @@ set( CMAKE_POSITION_INDEPENDENT_CODE ON )
 set( CMAKE_CXX_STANDARD 14 )
 ### Set the cmake subdirectory
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" )
-### Need to use pthread if emscripten is used
-if( SPIRIT_BUILD_FOR_JS AND SPIRIT_UI_USE_IMGUI )
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=2")
-endif()
 ####################################################################
 
 
@@ -207,6 +203,18 @@ endif()
 ###
 if( SPIRIT_BUILD_FOR_JS )
     set( SPIRIT_BUILD_FOR_CXX OFF )
+    set( SPIRIT_USE_CUDA      OFF )
+    set( SPIRIT_USE_OPENMP    OFF )
+    set( SPIRIT_UI_CXX_USE_QT OFF )
+    set( SPIRIT_UI_USE_IMGUI  ON  )
+
+    if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten" )
+        message( WARNING "You set SPIRIT_BUILD_FOR_JS to ON but your are not using emscripten. That might not work" )
+    endif()
+endif()
+### Need to use pthread if emscripten is used
+if( SPIRIT_BUILD_FOR_JS AND SPIRIT_UI_USE_IMGUI )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -s USE_PTHREADS=1 -s USE_PTHREADS=1 -s WASM=1" )
 endif()
 ####################################################################
 
@@ -226,23 +234,20 @@ endif()
 add_subdirectory( core )
 ### Web UI
 if( SPIRIT_BUILD_FOR_JS )
-    add_subdirectory( VFRendering )
     if( SPIRIT_UI_USE_IMGUI )
         add_definitions( -DSPIRIT_UI_USE_IMGUI )
-        add_subdirectory( ui-cpp )
-    else()
-        add_subdirectory( ui-web )
     endif()
+    add_subdirectory( VFRendering )
+    add_subdirectory( ui-cpp )
+    add_subdirectory( ui-web )
 ### CXX UI
 elseif( SPIRIT_BUILD_FOR_CXX )
     if( SPIRIT_UI_CXX_USE_QT )
         add_definitions( -DSPIRIT_UI_CXX_USE_QT )
-        add_subdirectory( VFRendering )
-    endif()
-    if( SPIRIT_UI_USE_IMGUI )
+    elseif( SPIRIT_UI_USE_IMGUI )
         add_definitions( -DSPIRIT_UI_USE_IMGUI )
-        add_subdirectory( VFRendering )
     endif()
+    add_subdirectory( VFRendering )
     add_subdirectory( ui-cpp )
 endif()
 ####################################################################

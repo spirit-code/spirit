@@ -18,7 +18,7 @@ namespace IO
 {
 
 void Folders_to_Config(
-    const std::string configFile, const std::shared_ptr<Data::Parameters_Method_LLG> parameters_llg,
+    const std::string & config_file, const std::shared_ptr<Data::Parameters_Method_LLG> parameters_llg,
     const std::shared_ptr<Data::Parameters_Method_MC> parameters_mc,
     const std::shared_ptr<Data::Parameters_Method_GNEB> parameters_gneb,
     const std::shared_ptr<Data::Parameters_Method_MMF> parameters_mmf )
@@ -32,10 +32,10 @@ void Folders_to_Config(
     config += "gneb_output_folder " + parameters_gneb->output_folder + "\n";
     config += "mmf_output_folder  " + parameters_mmf->output_folder + "\n";
     config += "############### End Output Folders ###############";
-    Append_String_to_File( config, configFile );
+    Append_String_to_File( config, config_file );
 }
 
-void Log_Levels_to_Config( const std::string configFile )
+void Log_Levels_to_Config( const std::string & config_file )
 {
     std::string config = "";
     config += "############### Logging Parameters ###############\n";
@@ -46,10 +46,10 @@ void Log_Levels_to_Config( const std::string configFile )
     config += fmt::format( "{:<22} {}\n", "log_input_save_initial", (int)Log.save_input_initial );
     config += fmt::format( "{:<22} {}\n", "log_input_save_final", (int)Log.save_input_final );
     config += "############# End Logging Parameters #############";
-    Append_String_to_File( config, configFile );
+    Append_String_to_File( config, config_file );
 }
 
-void Geometry_to_Config( const std::string configFile, const std::shared_ptr<Data::Geometry> geometry )
+void Geometry_to_Config( const std::string & config_file, const std::shared_ptr<Data::Geometry> geometry )
 {
     // TODO: this needs to be updated!
     std::string config = "";
@@ -102,7 +102,7 @@ void Geometry_to_Config( const std::string configFile, const std::shared_ptr<Dat
         auto & mu_s          = geometry->cell_composition.mu_s;
         auto & concentration = geometry->cell_composition.concentration;
         config += fmt::format( "atom_types    {}\n", iatom.size() );
-        for( int i = 0; i < iatom.size(); ++i )
+        for( std::size_t i = 0; i < iatom.size(); ++i )
             config += fmt::format( "{}   {}   {}   {}\n", iatom[i], atom_type[i], mu_s[i], concentration[i] );
     }
 
@@ -111,11 +111,11 @@ void Geometry_to_Config( const std::string configFile, const std::shared_ptr<Dat
         config += fmt::format( "lattice_constant {}\n", geometry->lattice_constant );
 
     config += "################## End Geometry ##################";
-    Append_String_to_File( config, configFile );
+    Append_String_to_File( config, config_file );
 }
 
 void Parameters_Method_LLG_to_Config(
-    const std::string configFile, const std::shared_ptr<Data::Parameters_Method_LLG> parameters )
+    const std::string & config_file, const std::shared_ptr<Data::Parameters_Method_LLG> parameters )
 {
     std::string config = "";
     config += "################# LLG Parameters #################\n";
@@ -143,11 +143,11 @@ void Parameters_Method_LLG_to_Config(
     config
         += fmt::format( "{:<35} {}\n", "llg_stt_polarisation_normal", parameters->stt_polarisation_normal.transpose() );
     config += "############### End LLG Parameters ###############";
-    Append_String_to_File( config, configFile );
+    Append_String_to_File( config, config_file );
 }
 
 void Parameters_Method_MC_to_Config(
-    const std::string configFile, const std::shared_ptr<Data::Parameters_Method_MC> parameters )
+    const std::string & config_file, const std::shared_ptr<Data::Parameters_Method_MC> parameters )
 {
     std::string config = "";
     config += "################# MC Parameters ##################\n";
@@ -168,11 +168,11 @@ void Parameters_Method_MC_to_Config(
     config += fmt::format( "{:<35} {}\n", "mc_temperature", parameters->temperature );
     config += fmt::format( "{:<35} {}\n", "mc_acceptance_ratio", parameters->acceptance_ratio_target );
     config += "############### End MC Parameters ################";
-    Append_String_to_File( config, configFile );
+    Append_String_to_File( config, config_file );
 }
 
 void Parameters_Method_GNEB_to_Config(
-    const std::string configFile, const std::shared_ptr<Data::Parameters_Method_GNEB> parameters )
+    const std::string & config_file, const std::shared_ptr<Data::Parameters_Method_GNEB> parameters )
 {
     std::string config = "";
     config += "################# GNEB Parameters ################\n";
@@ -191,11 +191,11 @@ void Parameters_Method_GNEB_to_Config(
     config += fmt::format( "{:<38} {}\n", "gneb_spring_constant", parameters->spring_constant );
     config += fmt::format( "{:<38} {}\n", "gneb_n_energy_interpolations", parameters->n_E_interpolations );
     config += "############### End GNEB Parameters ##############";
-    Append_String_to_File( config, configFile );
+    Append_String_to_File( config, config_file );
 }
 
 void Parameters_Method_MMF_to_Config(
-    const std::string configFile, const std::shared_ptr<Data::Parameters_Method_MMF> parameters )
+    const std::string & config_file, const std::shared_ptr<Data::Parameters_Method_MMF> parameters )
 {
     std::string config = "";
     config += "################# MMF Parameters #################\n";
@@ -213,11 +213,11 @@ void Parameters_Method_MMF_to_Config(
     config += fmt::format( "{:<38} {}\n", "mmf_n_iterations", parameters->n_iterations );
     config += fmt::format( "{:<38} {}\n", "mmf_n_iterations_log", parameters->n_iterations_log );
     config += "############### End MMF Parameters ###############";
-    Append_String_to_File( config, configFile );
+    Append_String_to_File( config, config_file );
 }
 
 void Hamiltonian_to_Config(
-    const std::string configFile, const std::shared_ptr<Engine::Hamiltonian> hamiltonian,
+    const std::string & config_file, const std::shared_ptr<Engine::Hamiltonian> hamiltonian,
     const std::shared_ptr<Data::Geometry> geometry )
 {
     std::string config = "";
@@ -231,24 +231,25 @@ void Hamiltonian_to_Config(
     config += fmt::format(
         "{:<25} {} {} {}\n", "boundary_conditions", hamiltonian->boundary_conditions[0],
         hamiltonian->boundary_conditions[1], hamiltonian->boundary_conditions[2] );
-    Append_String_to_File( config, configFile );
+    Append_String_to_File( config, config_file );
 
     if( hamiltonian->Name() == "Heisenberg" )
-        Hamiltonian_Heisenberg_to_Config( configFile, hamiltonian, geometry );
+        Hamiltonian_Heisenberg_to_Config( config_file, hamiltonian, geometry );
     else if( hamiltonian->Name() == "Gaussian" )
-        Hamiltonian_Gaussian_to_Config( configFile, hamiltonian );
+        Hamiltonian_Gaussian_to_Config( config_file, hamiltonian );
 
     config = "################# End Hamiltonian ################";
-    Append_String_to_File( config, configFile );
+    Append_String_to_File( config, config_file );
 }
 
 void Hamiltonian_Heisenberg_to_Config(
-    const std::string configFile, const std::shared_ptr<Engine::Hamiltonian> hamiltonian,
+    const std::string & config_file, const std::shared_ptr<Engine::Hamiltonian> hamiltonian,
     const std::shared_ptr<Data::Geometry> geometry )
 {
-    int n_cells_tot                      = geometry->n_cells[0] * geometry->n_cells[1] * geometry->n_cells[2];
-    std::string config                   = "";
-    Engine::Hamiltonian_Heisenberg * ham = (Engine::Hamiltonian_Heisenberg *)hamiltonian.get();
+    int n_cells_tot    = geometry->n_cells[0] * geometry->n_cells[1] * geometry->n_cells[2];
+    std::string config = "";
+
+    auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( hamiltonian.get() );
 
     // External Field
     config += "###    External Field:\n";
@@ -260,7 +261,7 @@ void Hamiltonian_Heisenberg_to_Config(
     config += "###    Anisotropy:\n";
     scalar K = 0;
     Vector3 K_normal{ 0, 0, 0 };
-    if( ham->anisotropy_indices.size() > 0 )
+    if( !ham->anisotropy_indices.empty() )
     {
         K        = ham->anisotropy_magnitudes[0];
         K_normal = ham->anisotropy_normals[0];
@@ -317,7 +318,7 @@ void Hamiltonian_Heisenberg_to_Config(
     // Quadruplets
     config += "###    Quadruplets:\n";
     config += fmt::format( "n_interaction_quadruplets {}\n", ham->quadruplets.size() );
-    if( ham->quadruplets.size() > 0 )
+    if( !ham->quadruplets.empty() )
     {
         config += fmt::format(
             "{:^3} {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15}\n", "i",
@@ -334,14 +335,15 @@ void Hamiltonian_Heisenberg_to_Config(
         }
     }
 
-    Append_String_to_File( config, configFile );
+    Append_String_to_File( config, config_file );
 }
 
 void Hamiltonian_Gaussian_to_Config(
-    const std::string configFile, const std::shared_ptr<Engine::Hamiltonian> hamiltonian )
+    const std::string & config_file, const std::shared_ptr<Engine::Hamiltonian> hamiltonian )
 {
-    std::string config                          = "";
-    Engine::Hamiltonian_Gaussian * ham_gaussian = (Engine::Hamiltonian_Gaussian *)hamiltonian.get();
+    std::string config = "";
+
+    auto * ham_gaussian = dynamic_cast<Engine::Hamiltonian_Gaussian *>( hamiltonian.get() );
     config += fmt::format( "n_gaussians {}\n", ham_gaussian->n_gaussians );
     if( ham_gaussian->n_gaussians > 0 )
     {
@@ -352,7 +354,7 @@ void Hamiltonian_Gaussian_to_Config(
                 "{} {} {}\n", ham_gaussian->amplitude[i], ham_gaussian->width[i], ham_gaussian->center[i].transpose() );
         }
     }
-    Append_String_to_File( config, configFile );
+    Append_String_to_File( config, config_file );
 }
 
 } // namespace IO

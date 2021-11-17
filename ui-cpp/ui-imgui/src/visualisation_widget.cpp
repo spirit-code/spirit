@@ -1,3 +1,4 @@
+#include <imgui_impl/fontawesome5_icons.h>
 #include <visualisation_widget.hpp>
 #include <widgets.hpp>
 
@@ -13,19 +14,15 @@ namespace ui
 {
 
 VisualisationWidget::VisualisationWidget( bool & show, std::shared_ptr<State> state, RenderingLayer & rendering_layer )
-        : show_( show ), state( state ), rendering_layer( rendering_layer )
+        : WidgetBase( show ), state( state ), rendering_layer( rendering_layer )
 {
+    title    = "Visualisation settings";
+    size_min = { 300, 300 };
+    size_max = { 800, 999999 };
 }
 
-void VisualisationWidget::show()
+void VisualisationWidget::show_content()
 {
-    if( !show_ )
-        return;
-
-    ImGui::SetNextWindowSizeConstraints( { 300, 300 }, { 800, 999999 } );
-
-    ImGui::Begin( "Visualisation settings", &show_ );
-
     float * colour = rendering_layer.ui_shared_state.background_light.data();
     if( rendering_layer.ui_shared_state.dark_mode )
         colour = rendering_layer.ui_shared_state.background_dark.data();
@@ -204,8 +201,14 @@ void VisualisationWidget::show()
     ImGui::Dummy( { 0, 10 } );
 
     ImGui::TextUnformatted( "Field of view" );
-    int fov = rendering_layer.view.options().get<VFRendering::View::Option::VERTICAL_FIELD_OF_VIEW>();
-    ImGui::SliderInt( "##slider_fov", &fov, 0, 160 );
+    if( ImGui::Button( ICON_FA_REDO ) )
+    {
+        rendering_layer.ui_shared_state.camera_perspective_fov = 45;
+        rendering_layer.set_camera_fov( 45 );
+    }
+    ImGui::SameLine();
+    if( ImGui::SliderInt( "##slider_fov", &rendering_layer.ui_shared_state.camera_perspective_fov, 0, 160 ) )
+        rendering_layer.set_camera_fov( rendering_layer.ui_shared_state.camera_perspective_fov );
 
     ImGui::Dummy( { 0, 10 } );
     ImGui::Separator();
@@ -220,7 +223,8 @@ void VisualisationWidget::show()
     if( ImGui::gizmo3D( "##dir", dir ) )
         update = true;
     ImGui::NextColumn();
-    auto normalize_light_dir = [&]() {
+    auto normalize_light_dir = [&]()
+    {
         auto norm = std::sqrt( dir.x * dir.x + dir.y * dir.y + dir.z * dir.z );
         dir.x /= norm;
         dir.y /= norm;
@@ -239,10 +243,7 @@ void VisualisationWidget::show()
         rendering_layer.set_view_option<VFRendering::View::Option::LIGHT_POSITION>(
             glm::vec3{ -1000 * dir.x, -1000 * dir.y, -1000 * dir.z } );
     }
-
     ImGui::Columns( 1 );
-
-    ImGui::End();
 }
 
 void VisualisationWidget::update_data() {}

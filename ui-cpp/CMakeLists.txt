@@ -379,6 +379,7 @@ if( SPIRIT_UI_USE_IMGUI )
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/styles.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/images.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/widgets.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/widget_base.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/configurations_widget.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/parameters_widget.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/src/geometry_widget.cpp
@@ -441,10 +442,9 @@ if( SPIRIT_UI_USE_IMGUI )
     elseif( IMGUI_TARGET_WEB )
         ### Set specific flags for emcc and to place the result under webapp/js/
         set_target_properties( ${PROJECT_NAME} PROPERTIES
-            # -s USE_PTHREADS=1 -s PTHREAD_POOL_SIZE=4
-            COMPILE_FLAGS "-O3 -g -fexceptions -s WASM=1 -s USE_WEBGL2=0 -s USE_GLFW=3 -s DEMANGLE_SUPPORT=1 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ASSERTIONS=1 -s DISABLE_EXCEPTION_CATCHING=0 -s FORCE_FILESYSTEM=1"
-            LINK_FLAGS    "-O3 -g -fexceptions -s WASM=1 -s USE_WEBGL2=0 -s USE_GLFW=3 -s DEMANGLE_SUPPORT=1 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ASSERTIONS=1 -s DISABLE_EXCEPTION_CATCHING=0 -s FORCE_FILESYSTEM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap, FS']"
-        RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/webapp/js
+            COMPILE_FLAGS "-O3 -g -pthread -s USE_PTHREADS=1 -fexceptions -s WASM=1 -s USE_WEBGL2=0 -s USE_GLFW=3 -s DEMANGLE_SUPPORT=1 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ASSERTIONS=1 -s DISABLE_EXCEPTION_CATCHING=0 -s FORCE_FILESYSTEM=1"
+            LINK_FLAGS    "-O3 -g -pthread -s USE_PTHREADS=1 -fexceptions -s WASM=1 -s USE_WEBGL2=0 -s USE_GLFW=3 -s DEMANGLE_SUPPORT=1 -s DISABLE_DEPRECATED_FIND_EVENT_TARGET_BEHAVIOR=1 -s ASSERTIONS=1 -s DISABLE_EXCEPTION_CATCHING=0 -s FORCE_FILESYSTEM=1 -s ALLOW_MEMORY_GROWTH=1 -s EXTRA_EXPORTED_RUNTIME_METHODS=['cwrap, FS']"
+            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/webapp/js
             # SUFFIX ".html"
         )
         target_link_libraries( ${PROJECT_NAME} PRIVATE pthread )

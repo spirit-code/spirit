@@ -1,6 +1,6 @@
 #pragma once
-#ifndef VERSION_H
-#define VERSION_H
+#ifndef SPIRIT_CORE_VERSION_H
+#define SPIRIT_CORE_VERSION_H
 #include "DLL_Define_Export.h"
 
 PREFIX const int Spirit_Version_Major() SUFFIX;
@@ -22,6 +22,7 @@ PREFIX const char * Spirit_Pinning() SUFFIX;
 
 PREFIX const char * Spirit_Cuda() SUFFIX;
 PREFIX const char * Spirit_OpenMP() SUFFIX;
+PREFIX int Spirit_OpenMP_Get_Num_Threads() SUFFIX;
 PREFIX const char * Spirit_Threads() SUFFIX;
 PREFIX const char * Spirit_FFTW() SUFFIX;
 

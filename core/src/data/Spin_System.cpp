@@ -16,14 +16,9 @@ Spin_System::Spin_System(
     std::unique_ptr<Parameters_Method_LLG> llg_params, std::unique_ptr<Parameters_Method_MC> mc_params,
     std::unique_ptr<Parameters_Method_EMA> ema_params, std::unique_ptr<Parameters_Method_MMF> mmf_params,
     bool iteration_allowed )
-try : iteration_allowed( iteration_allowed ),
-      singleshot_allowed( false ),
-      hamiltonian( std::move( hamiltonian ) ),
-      geometry( geometry ),
-      llg_parameters( std::move( llg_params ) ),
-      mc_parameters( std::move( mc_params ) ),
-      ema_parameters( std::move( ema_params ) ),
-      mmf_parameters( std::move( mmf_params ) )
+try : iteration_allowed( iteration_allowed ), singleshot_allowed( false ), hamiltonian( std::move( hamiltonian ) ),
+    geometry( geometry ), llg_parameters( std::move( llg_params ) ), mc_parameters( std::move( mc_params ) ),
+    ema_parameters( std::move( ema_params ) ), mmf_parameters( std::move( mmf_params ) )
 {
     // Get Number of Spins
     this->nos = this->geometry->nos;

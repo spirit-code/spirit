@@ -233,7 +233,8 @@ void ParametersWidget::Load_Parameters_Contents()
 void ParametersWidget::set_parameters_llg()
 {
     // Closure to set the parameters of a specific spin system
-    auto apply = [this]( int idx_image ) -> void {
+    auto apply = [this]( int idx_image ) -> void
+    {
         float d, d2, vd[3];
         int i1, i2;
         bool b1, b2, b3, b4;
@@ -351,7 +352,8 @@ void ParametersWidget::set_parameters_llg()
 void ParametersWidget::set_parameters_mc()
 {
     // Closure to set the parameters of a specific spin system
-    auto apply = [this]( int idx_image ) -> void {
+    auto apply = [this]( int idx_image ) -> void
+    {
         float d;
         int i1, i2;
         bool b1, b2, b3, b4;
@@ -454,7 +456,8 @@ void ParametersWidget::set_gneb_auto_image_type()
 void ParametersWidget::set_parameters_mmf()
 {
     // Closure to set the parameters of a specific spin system
-    auto apply = [this]( int idx_image ) -> void {
+    auto apply = [this]( int idx_image ) -> void
+    {
         int i1, i2;
         bool b1, b2, b3, b4;
 

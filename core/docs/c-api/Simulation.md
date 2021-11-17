@@ -38,7 +38,7 @@ Solver_VP          0
 Solver_SIB         1
 ```
 
-`SIB`: Verlet-like velocity projection
+`SIB`: Semi-implicit midpoint method B
 
 
 
@@ -48,7 +48,7 @@ Solver_SIB         1
 Solver_Depondt     2
 ```
 
-`Depondt`: Verlet-like velocity projection
+`Depondt`: Heun method using rotations
 
 
 
@@ -58,7 +58,7 @@ Solver_Depondt     2
 Solver_Heun        3
 ```
 
-`Heun`: Verlet-like velocity projection
+`Heun`: second-order midpoint
 
 
 
@@ -68,8 +68,11 @@ Solver_Heun        3
 Solver_RungeKutta4 4
 ```
 
-`RK4`: Verlet-like velocity projection
+`RK4`: 4th order Runge-Kutta
 
+
+
+### Solver_LBFGS_OSO
 
 ```C
 Solver_LBFGS_OSO   5
@@ -78,6 +81,9 @@ Solver_LBFGS_OSO   5
 `LBFGS_OSO`: Limited memory Broyden-Fletcher-Goldfarb-Shanno, exponential transform
 
 
+
+### Solver_LBFGS_Atlas
+
 ```C
 Solver_LBFGS_Atlas 6
 ```
@@ -85,11 +91,15 @@ Solver_LBFGS_Atlas 6
 `LBFGS_Atlas`: Limited memory Broyden-Fletcher-Goldfarb-Shannon, stereographic projection
 
 
+
+### Solver_VP_OSO
+
 ```C
 Solver_VP_OSO      7
 ```
 
 `Solver_VP_OSO`: Verlet-like velocity projection, exponential transform
+
 
 
 Start or stop a simulation
@@ -163,7 +173,7 @@ Otherwise, nothing will happen.
 ### Simulation_N_Shot
 
 ```C
-void Simulation_N_Shot(State *state, int N, int idx_image=-1, int idx_chain=-1);
+void Simulation_N_Shot(State *state, int N, int idx_image=-1, int idx_chain=-1)
 ```
 
 N iterations of a Method
@@ -219,6 +229,32 @@ void Simulation_Get_Chain_MaxTorqueComponents(State * state, float * torques, in
 ```
 
 Get maximum torque components on the images of a chain.
+
+Will only work if a GNEB simulation is running.
+
+
+
+### Simulation_Get_MaxTorqueNorm
+
+```C
+float Simulation_Get_MaxTorqueNorm(State * state, int idx_image=-1, int idx_chain=-1)
+```
+
+Get maximum torque norm.
+
+If a MC, LLG, MMF or EMA simulation is running this returns the max. torque on the current image.
+
+If a GNEB simulation is running this returns the max. torque on the current chain.
+
+
+
+### Simulation_Get_Chain_MaxTorqueNorms
+
+```C
+void Simulation_Get_Chain_MaxTorqueNorms(State * state, float * torques, int idx_chain=-1)
+```
+
+Get maximum torque norms on the images of a chain.
 
 Will only work if a GNEB simulation is running.
 

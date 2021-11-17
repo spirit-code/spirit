@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SPIRIT_IO_FILTERFILEHANDLE_HPP
-#define SPIRIT_IO_FILTERFILEHANDLE_HPP
+#ifndef SPIRIT_CORE_IO_FILTERFILEHANDLE_HPP
+#define SPIRIT_CORE_IO_FILTERFILEHANDLE_HPP
 
 #include <engine/Vectormath_Defines.hpp>
 #include <io/Fileformat.hpp>

@@ -97,27 +97,27 @@ include( GetGitRevisionDescription )
 get_git_head_revision( GIT_REFSPEC GIT_SHA1 )
 string( SUBSTRING "${GIT_SHA1}" 0 13 GIT_REV )
 #----- Meta information about the project
-set(META_PROJECT_NAME         "Spirit")
-set(META_PROJECT_DESCRIPTION  "Optimizations and Dynamics Framework for atomistic Spin systems")
-set(META_AUTHOR_ORGANIZATION  "")
-set(META_AUTHOR_DOMAIN        "https://spirit-code.github.io")
-set(META_AUTHOR_MAINTAINER    "Gideon Mueller")
-set(META_AUTHOR_EMAIL         "g.mueller@fz-juelich.de")
-set(META_VERSION_MAJOR        "2")
-set(META_VERSION_MINOR        "1")
-set(META_VERSION_PATCH        "1")
-set(META_VERSION              "${META_VERSION_MAJOR}.${META_VERSION_MINOR}.${META_VERSION_PATCH}")
-set(META_VERSION_REVISION     "${GIT_REV}")
+set( META_PROJECT_NAME         "Spirit" )
+set( META_PROJECT_DESCRIPTION  "Optimizations and Dynamics Framework for atomistic Spin systems" )
+set( META_AUTHOR_ORGANIZATION  "" )
+set( META_AUTHOR_DOMAIN        "https://spirit-code.github.io" )
+set( META_AUTHOR_MAINTAINER    "Gideon Mueller" )
+set( META_AUTHOR_EMAIL         "g.mueller@fz-juelich.de" )
+set( META_VERSION_MAJOR        "2" )
+set( META_VERSION_MINOR        "1" )
+set( META_VERSION_PATCH        "1" )
+set( META_VERSION              "${META_VERSION_MAJOR}.${META_VERSION_MINOR}.${META_VERSION_PATCH}" )
+set( META_VERSION_REVISION     "${GIT_REV}" )
 #----- Compiler
-set(META_COMPILER             "${CMAKE_CXX_COMPILER_ID}")
-set(META_COMPILER_VERSION     "${CMAKE_CXX_COMPILER_VERSION}")
-set(META_COMPILER_FULL        "${CMAKE_CXX_COMPILER_ID} (${CMAKE_CXX_COMPILER_VERSION})")
+set( META_COMPILER             "${CMAKE_CXX_COMPILER_ID}" )
+set( META_COMPILER_VERSION     "${CMAKE_CXX_COMPILER_VERSION}" )
+set( META_COMPILER_FULL        "${CMAKE_CXX_COMPILER_ID} (${CMAKE_CXX_COMPILER_VERSION})" )
 #----- Propagate version and name_version upwards
-set(SPIRIT_META_VERSION_MAJOR ${META_VERSION_MAJOR} PARENT_SCOPE)
-set(SPIRIT_META_VERSION_MINOR ${META_VERSION_MINOR} PARENT_SCOPE)
-set(SPIRIT_META_VERSION_PATCH ${META_VERSION_PATCH} PARENT_SCOPE)
-set(SPIRIT_META_VERSION       "${META_VERSION}" PARENT_SCOPE)
-set(SPIRIT_META_NAME_VERSION  "${META_PROJECT_NAME} v${META_VERSION} (${META_VERSION_REVISION})" PARENT_SCOPE)
+set( SPIRIT_META_VERSION_MAJOR ${META_VERSION_MAJOR} PARENT_SCOPE )
+set( SPIRIT_META_VERSION_MINOR ${META_VERSION_MINOR} PARENT_SCOPE )
+set( SPIRIT_META_VERSION_PATCH ${META_VERSION_PATCH} PARENT_SCOPE )
+set( SPIRIT_META_VERSION       "${META_VERSION}" PARENT_SCOPE )
+set( SPIRIT_META_NAME_VERSION  "${META_PROJECT_NAME} v${META_VERSION} (${META_VERSION_REVISION})" PARENT_SCOPE )
 ####################################################################
 
 
@@ -439,11 +439,11 @@ if( SPIRIT_BUILD_FOR_CXX OR SPIRIT_BUILD_FOR_JS )
     message( STATUS ">> Building static C/C++ library ${META_PROJECT_NAME}_static" )
     add_library( ${META_PROJECT_NAME}_static STATIC $<TARGET_OBJECTS:${META_PROJECT_NAME}> )
     ### Forward public includes from the object library
-    target_include_directories(${META_PROJECT_NAME}_static PUBLIC
-        $<TARGET_PROPERTY:${META_PROJECT_NAME},INTERFACE_INCLUDE_DIRECTORIES>)
+    target_include_directories( ${META_PROJECT_NAME}_static PUBLIC
+        $<TARGET_PROPERTY:${META_PROJECT_NAME},INTERFACE_INCLUDE_DIRECTORIES> )
     ### Apply interface link dependencies from the object library
-    target_link_libraries(${META_PROJECT_NAME}_static PRIVATE
-        $<TARGET_PROPERTY:${META_PROJECT_NAME},INTERFACE_LINK_LIBRARIES>)
+    target_link_libraries( ${META_PROJECT_NAME}_static PRIVATE
+        $<TARGET_PROPERTY:${META_PROJECT_NAME},INTERFACE_LINK_LIBRARIES> )
     #--------------------------------------------------
 
     #--------------------------------------------------

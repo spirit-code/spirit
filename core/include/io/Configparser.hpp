@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SPIRIT_IO_CONFIGPARSER_HPP
-#define SPIRIT_IO_CONFIGPARSER_HPP
+#ifndef SPIRIT_CORE_IO_CONFIGPARSER_HPP
+#define SPIRIT_CORE_IO_CONFIGPARSER_HPP
 
 #include <data/Geometry.hpp>
 #include <data/Parameters_Method_GNEB.hpp>
@@ -19,32 +19,33 @@ Note that due to the modular structure of the input parsers, input may be given 
 Input may be given incomplete. In this case a log entry is created and default values are used.
 */
 
-void Log_from_Config( const std::string configFile, bool force_quiet = false );
+void Log_from_Config( const std::string & config_file, bool force_quiet = false );
 
-std::unique_ptr<Data::Spin_System> Spin_System_from_Config( const std::string configFile );
+std::unique_ptr<Data::Spin_System> Spin_System_from_Config( const std::string & config_file );
 
-Data::Pinning Pinning_from_Config( const std::string configFile, int n_cell_atoms );
+Data::Pinning Pinning_from_Config( const std::string & config_file, std::size_t n_cell_atoms );
 
-std::shared_ptr<Data::Geometry> Geometry_from_Config( const std::string configFile );
+std::shared_ptr<Data::Geometry> Geometry_from_Config( const std::string & config_file );
 
-std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config( const std::string configFile );
+std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config( const std::string & config_file );
 
-std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config( const std::string configFile );
+std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config( const std::string & config_file );
 
-std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config( const std::string configFile );
+std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config( const std::string & config_file );
 
-std::unique_ptr<Data::Parameters_Method_EMA> Parameters_Method_EMA_from_Config( const std::string configFile );
+std::unique_ptr<Data::Parameters_Method_EMA> Parameters_Method_EMA_from_Config( const std::string & config_file );
 
-std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config( const std::string configFile );
+std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config( const std::string & config_file );
 
 std::unique_ptr<Engine::Hamiltonian>
-Hamiltonian_from_Config( const std::string configFile, const std::shared_ptr<Data::Geometry> geometry );
+Hamiltonian_from_Config( const std::string & config_file, const std::shared_ptr<Data::Geometry> geometry );
 
 std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Config(
-    const std::string configFile, const std::shared_ptr<Data::Geometry> geometry, std::string hamiltonian_type );
+    const std::string & config_file, const std::shared_ptr<Data::Geometry> geometry,
+    const std::string & hamiltonian_type );
 
 std::unique_ptr<Engine::Hamiltonian_Gaussian>
-Hamiltonian_Gaussian_from_Config( const std::string configFile, const std::shared_ptr<Data::Geometry> geometry );
+Hamiltonian_Gaussian_from_Config( const std::string & config_file, const std::shared_ptr<Data::Geometry> geometry );
 
 } // namespace IO
 

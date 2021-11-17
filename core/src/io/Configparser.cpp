@@ -13,6 +13,7 @@
 #include <ctime>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <string>
 
@@ -23,7 +24,8 @@ using Utility::Log_Sender;
 namespace IO
 {
 
-void Log_from_Config( const std::string configFile, bool force_quiet )
+void Log_from_Config( const std::string & config_file, bool force_quiet )
+try
 {
     // Verbosity and Reject Level are read as integers
     int i_level_file = 5, i_level_console = 5;
@@ -55,12 +57,12 @@ void Log_from_Config( const std::string configFile, bool force_quiet )
     }
 
     //------------------------------- Parser --------------------------------
-    if( configFile != "" )
+    if( !config_file.empty() )
     {
         try
         {
             Log( Log_Level::Debug, Log_Sender::IO, "Building Log" );
-            IO::Filter_File_Handle myfile( configFile );
+            IO::Filter_File_Handle myfile( config_file );
 
             // Time tag
             myfile.Read_Single( file_tag, "output_file_tag" );
@@ -92,12 +94,11 @@ void Log_from_Config( const std::string configFile, bool force_quiet )
             myfile.Read_Single( save_neighbours_initial, "save_neighbours_initial" );
             // Save Input (parameters from config file and defaults) on State Delete
             myfile.Read_Single( save_neighbours_final, "save_neighbours_final" );
-
-        } // end try
+        }
         catch( ... )
         {
             spirit_rethrow(
-                fmt::format( "Failed to read Log Levels from file \"{}\". Leaving values at default.", configFile ) );
+                fmt::format( "Failed to read log levels from file \"{}\". Leaving values at default.", config_file ) );
         }
     }
 
@@ -138,53 +139,53 @@ void Log_from_Config( const std::string configFile, bool force_quiet )
     Log.output_folder = output_folder;
 
     if( file_tag == "<time>" )
-        Log.fileName = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
-    else if( file_tag != "" )
-        Log.fileName = "Log_" + file_tag + ".txt";
+        Log.file_name = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
+    else if( !file_tag.empty() )
+        Log.file_name = "Log_" + file_tag + ".txt";
     else
-        Log.fileName = "Log.txt";
-
-} // End Log_Levels_from_Config
-
-std::unique_ptr<Data::Spin_System> Spin_System_from_Config( std::string configFile )
+        Log.file_name = "Log.txt";
+}
+catch( ... )
 {
-    // Parse
-    try
-    {
-        Log( Log_Level::Info, Log_Sender::IO, "-------------- Initialising Spin System ------------" );
+    spirit_handle_exception_core(
+        fmt::format( "Unable to read logging parameters from config file \"{}\"", config_file ) );
+} // End Log_from_Config
 
-        // Geometry
-        auto geometry = Geometry_from_Config( configFile );
-        // LLG Parameters
-        auto llg_params = Parameters_Method_LLG_from_Config( configFile );
-        // MC Parameters
-        auto mc_params = Parameters_Method_MC_from_Config( configFile );
-        // EMA Parameters
-        auto ema_params = Parameters_Method_EMA_from_Config( configFile );
-        // MMF Parameters
-        auto mmf_params = Parameters_Method_MMF_from_Config( configFile );
-        // Hamiltonian
-        auto hamiltonian = std::move( Hamiltonian_from_Config( configFile, geometry ) );
-        // Spin System
-        auto system = std::unique_ptr<Data::Spin_System>( new Data::Spin_System(
-            std::move( hamiltonian ), std::move( geometry ), std::move( llg_params ), std::move( mc_params ),
-            std::move( ema_params ), std::move( mmf_params ), false ) );
+std::unique_ptr<Data::Spin_System> Spin_System_from_Config( const std::string & config_file )
+try
+{
+    Log( Log_Level::Info, Log_Sender::IO, "-------------- Initialising Spin System ------------" );
 
-        Log( Log_Level::Info, Log_Sender::IO, "-------------- Spin System Initialised -------------" );
+    // Geometry
+    auto geometry = Geometry_from_Config( config_file );
+    // LLG Parameters
+    auto llg_params = Parameters_Method_LLG_from_Config( config_file );
+    // MC Parameters
+    auto mc_params = Parameters_Method_MC_from_Config( config_file );
+    // EMA Parameters
+    auto ema_params = Parameters_Method_EMA_from_Config( config_file );
+    // MMF Parameters
+    auto mmf_params = Parameters_Method_MMF_from_Config( config_file );
+    // Hamiltonian
+    auto hamiltonian = Hamiltonian_from_Config( config_file, geometry );
+    // Spin System
+    auto system = std::make_unique<Data::Spin_System>(
+        std::move( hamiltonian ), std::move( geometry ), std::move( llg_params ), std::move( mc_params ),
+        std::move( ema_params ), std::move( mmf_params ), false );
 
-        return system;
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_core(
-            fmt::format( "Unable to initialize spin system from config file \"{}\"", configFile ) );
-    }
+    Log( Log_Level::Info, Log_Sender::IO, "-------------- Spin System Initialised -------------" );
 
+    return system;
+}
+catch( ... )
+{
+    spirit_handle_exception_core(
+        fmt::format( "Unable to initialize spin system from config file \"{}\"", config_file ) );
     return nullptr;
 } // End Spin_System_from_Config
 
 void Bravais_Vectors_from_Config(
-    const std::string configFile, std::vector<Vector3> & bravais_vectors,
+    const std::string & config_file, std::vector<Vector3> & bravais_vectors,
     Data::BravaisLatticeType & bravais_lattice_type, std::string & bravais_lattice_type_str )
 try
 {
@@ -192,7 +193,7 @@ try
     // Manually specified bravais vectors/matrix?
     bool irregular = true;
 
-    IO::Filter_File_Handle myfile( configFile );
+    IO::Filter_File_Handle myfile( config_file );
     // Bravais lattice type or manually specified vectors/matrix
     if( myfile.Find( "bravais_lattice" ) )
     {
@@ -266,265 +267,256 @@ try
 }
 catch( ... )
 {
-    spirit_rethrow( fmt::format( "Unable to parse bravais vectors from config file \"{}\"", configFile ) );
+    spirit_rethrow( fmt::format( "Unable to parse bravais vectors from config file \"{}\"", config_file ) );
 } // End Basis_from_Config
 
-std::shared_ptr<Data::Geometry> Geometry_from_Config( const std::string configFile )
+std::shared_ptr<Data::Geometry> Geometry_from_Config( const std::string & config_file )
+try
 {
-    try
+    //-------------- Insert default values here -----------------------------
+    // Basis from separate file?
+    std::string basis_file = "";
+    // Bravais lattice type
+    std::string bravais_lattice = "sc";
+    // Bravais vectors {a, b, c}
+    Data::BravaisLatticeType bravais_lattice_type = Data::BravaisLatticeType::SC;
+    std::string bravais_lattice_type_str;
+    std::vector<Vector3> bravais_vectors = { Vector3{ 1, 0, 0 }, Vector3{ 0, 1, 0 }, Vector3{ 0, 0, 1 } };
+    // Atoms in the basis
+    std::vector<Vector3> cell_atoms = { Vector3{ 0, 0, 0 } };
+    int n_cell_atoms                = cell_atoms.size();
+    // Basis cell composition information (atom types, magnetic moments, ...)
+    Data::Basis_Cell_Composition cell_composition{ false, { 0 }, { 0 }, { 1 }, {} };
+    // Lattice Constant [Angstrom]
+    scalar lattice_constant = 1;
+    // Number of translations nT for each basis direction
+    intfield n_cells = { 100, 100, 1 };
+    // Atom types
+    field<Site> defect_sites( 0 );
+    intfield defect_types( 0 );
+    int n_atom_types = 0;
+
+    // Utility 1D array to build vectors and use Vectormath
+    Vector3 build_array = { 0, 0, 0 };
+
+    //------------------------------- Parser --------------------------------
+    Log( Log_Level::Debug, Log_Sender::IO, "Geometry: building" );
+    if( !config_file.empty() )
     {
-        //-------------- Insert default values here -----------------------------
-        // Basis from separate file?
-        std::string basis_file = "";
-        // Bravais lattice type
-        std::string bravais_lattice = "sc";
-        // Bravais vectors {a, b, c}
-        Data::BravaisLatticeType bravais_lattice_type = Data::BravaisLatticeType::SC;
-        std::string bravais_lattice_type_str;
-        std::vector<Vector3> bravais_vectors = { Vector3{ 1, 0, 0 }, Vector3{ 0, 1, 0 }, Vector3{ 0, 0, 1 } };
-        // Atoms in the basis
-        std::vector<Vector3> cell_atoms = { Vector3{ 0, 0, 0 } };
-        int n_cell_atoms                = cell_atoms.size();
-        // Basis cell composition information (atom types, magnetic moments, ...)
-        Data::Basis_Cell_Composition cell_composition{ false, { 0 }, { 0 }, { 1 }, {} };
-        // Lattice Constant [Angstrom]
-        scalar lattice_constant = 1;
-        // Number of translations nT for each basis direction
-        intfield n_cells = { 100, 100, 1 };
-        // Atom types
-        field<Site> defect_sites( 0 );
-        intfield defect_types( 0 );
-        int n_atom_types = 0;
-
-        // Utility 1D array to build vectors and use Vectormath
-        Vector3 build_array = { 0, 0, 0 };
-
-        Log( Log_Level::Debug, Log_Sender::IO, "Geometry: building" );
-        //------------------------------- Parser --------------------------------
-        // iteration variables
-        int iatom = 0, dim = 0;
-        if( configFile != "" )
+        try
         {
-            try
+            IO::Filter_File_Handle myfile( config_file );
+
+            // Lattice constant
+            myfile.Read_Single( lattice_constant, "lattice_constant" );
+
+            // Get the bravais lattice type and vectors
+            Bravais_Vectors_from_Config( config_file, bravais_vectors, bravais_lattice_type, bravais_lattice_type_str );
+
+            // Read basis cell
+            if( myfile.Find( "basis" ) )
             {
-                IO::Filter_File_Handle myfile( configFile );
+                // Read number of atoms in the basis cell
+                myfile.GetLine();
+                myfile.iss >> n_cell_atoms;
+                cell_atoms = std::vector<Vector3>( n_cell_atoms );
+                cell_composition.iatom.resize( n_cell_atoms );
+                cell_composition.atom_type = std::vector<int>( n_cell_atoms, 0 );
+                cell_composition.mu_s      = std::vector<scalar>( n_cell_atoms, 1 );
 
-                // Lattice constant
-                myfile.Read_Single( lattice_constant, "lattice_constant" );
-
-                // Get the bravais lattice type and vectors
-                Bravais_Vectors_from_Config(
-                    configFile, bravais_vectors, bravais_lattice_type, bravais_lattice_type_str );
-
-                // Read basis cell
-                if( myfile.Find( "basis" ) )
+                // Read atom positions
+                for( int iatom = 0; iatom < n_cell_atoms; ++iatom )
                 {
-                    // Read number of atoms in the basis cell
                     myfile.GetLine();
-                    myfile.iss >> n_cell_atoms;
-                    cell_atoms = std::vector<Vector3>( n_cell_atoms );
-                    cell_composition.iatom.resize( n_cell_atoms );
-                    cell_composition.atom_type = std::vector<int>( n_cell_atoms, 0 );
-                    cell_composition.mu_s      = std::vector<scalar>( n_cell_atoms, 1 );
-
-                    // Read atom positions
-                    for( iatom = 0; iatom < n_cell_atoms; ++iatom )
-                    {
-                        myfile.GetLine();
-                        myfile.iss >> cell_atoms[iatom][0] >> cell_atoms[iatom][1] >> cell_atoms[iatom][2];
-                        cell_composition.iatom[iatom] = iatom;
-                    } // endfor iatom
+                    myfile.iss >> cell_atoms[iatom][0] >> cell_atoms[iatom][1] >> cell_atoms[iatom][2];
+                    cell_composition.iatom[iatom] = iatom;
                 }
+            }
 
-                // Read number of basis cells
-                myfile.Read_3Vector( n_cells, "n_basis_cells" );
+            // Read number of basis cells
+            myfile.Read_3Vector( n_cells, "n_basis_cells" );
 
 // Defects
 #ifdef SPIRIT_ENABLE_DEFECTS
-                int n_defects = 0;
+            int n_defects = 0;
 
-                std::string defectsFile = "";
-                if( myfile.Find( "n_defects" ) )
-                    defectsFile = configFile;
-                else if( myfile.Find( "defects_from_file" ) )
-                    myfile.iss >> defectsFile;
+            std::string defects_file = "";
+            if( myfile.Find( "n_defects" ) )
+                defects_file = config_file;
+            else if( myfile.Find( "defects_from_file" ) )
+                myfile.iss >> defects_file;
 
-                if( defectsFile.length() > 0 )
+            if( defects_file.length() > 0 )
+            {
+                // The file name should be valid so we try to read it
+                Defects_from_File( defects_file, n_defects, defect_sites, defect_types );
+            }
+
+            // Disorder
+            if( myfile.Find( "atom_types" ) )
+            {
+                myfile.iss >> n_atom_types;
+                cell_composition.disordered = true;
+                cell_composition.iatom.resize( n_atom_types );
+                cell_composition.atom_type.resize( n_atom_types );
+                cell_composition.mu_s.resize( n_atom_types );
+                cell_composition.concentration.resize( n_atom_types );
+                for( int itype = 0; itype < n_atom_types; ++itype )
                 {
-                    // The file name should be valid so we try to read it
-                    Defects_from_File( defectsFile, n_defects, defect_sites, defect_types );
+                    myfile.GetLine();
+                    myfile.iss >> cell_composition.iatom[itype];
+                    myfile.iss >> cell_composition.atom_type[itype];
+                    myfile.iss >> cell_composition.mu_s[itype];
+                    myfile.iss >> cell_composition.concentration[itype];
+                    // if ( !(myfile.iss >> mu_s[itype]) )
+                    // {
+                    //     Log(Log_Level::Warning, Log_Sender::IO,
+                    //         fmt::format("Not enough values specified after 'mu_s'. Expected {}. Using
+                    //         mu_s[{}]=mu_s[0]={}", n_cell_atoms, iatom, mu_s[0]));
+                    //     mu_s[iatom] = mu_s[0];
+                    // }
                 }
-
-                // Disorder
-                if( myfile.Find( "atom_types" ) )
-                {
-                    myfile.iss >> n_atom_types;
-                    cell_composition.disordered = true;
-                    cell_composition.iatom.resize( n_atom_types );
-                    cell_composition.atom_type.resize( n_atom_types );
-                    cell_composition.mu_s.resize( n_atom_types );
-                    cell_composition.concentration.resize( n_atom_types );
-                    for( int itype = 0; itype < n_atom_types; ++itype )
-                    {
-                        myfile.GetLine();
-                        myfile.iss >> cell_composition.iatom[itype];
-                        myfile.iss >> cell_composition.atom_type[itype];
-                        myfile.iss >> cell_composition.mu_s[itype];
-                        myfile.iss >> cell_composition.concentration[itype];
-                        // if ( !(myfile.iss >> mu_s[itype]) )
-                        // {
-                        //     Log(Log_Level::Warning, Log_Sender::IO,
-                        //         fmt::format("Not enough values specified after 'mu_s'. Expected {}. Using
-                        //         mu_s[{}]=mu_s[0]={}", n_cell_atoms, iatom, mu_s[0]));
-                        //     mu_s[iatom] = mu_s[0];
-                        // }
-                    }
-                    Log( Log_Level::Warning, Log_Sender::IO,
-                         fmt::format(
-                             "{} atom types, iatom={} atom type={} concentration={}", n_atom_types,
-                             cell_composition.iatom[0], cell_composition.atom_type[0],
-                             cell_composition.concentration[0] ) );
-                }
+                Log( Log_Level::Warning, Log_Sender::IO,
+                     fmt::format(
+                         "{} atom types, iatom={} atom type={} concentration={}", n_atom_types,
+                         cell_composition.iatom[0], cell_composition.atom_type[0],
+                         cell_composition.concentration[0] ) );
+            }
 #else
-                Log( Log_Level::Parameter, Log_Sender::IO, "Disorder is disabled" );
+            Log( Log_Level::Parameter, Log_Sender::IO, "Disorder is disabled" );
 #endif
-            } // end try
-            catch( ... )
-            {
-                spirit_handle_exception_core( fmt::format(
-                    "Failed to read Geometry parameters from file \"{}\". Leaving values at default.", configFile ) );
-            }
-
-            try
-            {
-                IO::Filter_File_Handle myfile( configFile );
-
-                // Spin moment
-                if( !myfile.Find( "atom_types" ) )
-                {
-                    if( myfile.Find( "mu_s" ) )
-                    {
-                        for( iatom = 0; iatom < n_cell_atoms; ++iatom )
-                        {
-                            if( !( myfile.iss >> cell_composition.mu_s[iatom] ) )
-                            {
-                                Log( Log_Level::Warning, Log_Sender::IO,
-                                     fmt::format(
-                                         "Not enough values specified after 'mu_s'. Expected {}. Using "
-                                         "mu_s[{}]=mu_s[0]={}",
-                                         n_cell_atoms, iatom, cell_composition.mu_s[0] ) );
-                                cell_composition.mu_s[iatom] = cell_composition.mu_s[0];
-                            }
-                        }
-                    }
-                    else
-                        Log( Log_Level::Error, Log_Sender::IO,
-                             fmt::format( "Keyword 'mu_s' not found. Using Default: {}", cell_composition.mu_s[0] ) );
-                }
-                // else
-                // {
-                //     cell_composition.mu_s = std::vector<scalar>(n_atom_types, 1);
-                //     if( myfile.Find("mu_s") )
-                //     {
-                //         for (int itype = 0; itype < n_atom_types; ++itype)
-                //         {
-                //             myfile.iss >> cell_composition.mu_s[itype];
-                //             // myfile.GetLine();
-                //             // myfile.iss >> cell_composition.iatom[itype];
-                //             // myfile.iss >> cell_composition.atom_type[itype];
-                //             // myfile.iss >> cell_composition.concentration[itype];
-                //         }
-                //     }
-                //     else Log(Log_Level::Error, Log_Sender::IO, fmt::format("Keyword 'mu_s' not found. Using Default:
-                //     {}", cell_composition.mu_s[0]));
-                // }
-            } // end try
-            catch( ... )
-            {
-                spirit_handle_exception_core(
-                    fmt::format( "Unable to read mu_s from config file \"{}\"", configFile ) );
-            }
-        } // end if file=""
-        else
-            Log( Log_Level::Parameter, Log_Sender::IO, "Geometry: Using default configuration!" );
-
-        // Log the parameters
-        std::vector<std::string> parameter_log;
-        parameter_log.push_back( "Geometry:" );
-        parameter_log.push_back( fmt::format( "    lattice constant = {} Angstrom", lattice_constant ) );
-        parameter_log.push_back( fmt::format( "    Bravais lattice type: {}", bravais_lattice_type_str ) );
-        Log( Log_Level::Debug, Log_Sender::IO, "    Bravais vectors in units of lattice constant" );
-        Log( Log_Level::Debug, Log_Sender::IO,
-             fmt::format( "        a = {}", bravais_vectors[0].transpose() / lattice_constant ) );
-        Log( Log_Level::Debug, Log_Sender::IO,
-             fmt::format( "        b = {}", bravais_vectors[1].transpose() / lattice_constant ) );
-        Log( Log_Level::Debug, Log_Sender::IO,
-             fmt::format( "        c = {}", bravais_vectors[2].transpose() / lattice_constant ) );
-        parameter_log.push_back( "    Bravais vectors" );
-        parameter_log.push_back( fmt::format( "        a = {}", bravais_vectors[0].transpose() ) );
-        parameter_log.push_back( fmt::format( "        b = {}", bravais_vectors[1].transpose() ) );
-        parameter_log.push_back( fmt::format( "        c = {}", bravais_vectors[2].transpose() ) );
-        parameter_log.push_back( fmt::format( "    basis cell: {} atom(s)", n_cell_atoms ) );
-        parameter_log.push_back( "    relative positions (first 10):" );
-        for( int iatom = 0; iatom < n_cell_atoms && iatom < 10; ++iatom )
-            parameter_log.push_back( fmt::format(
-                "        atom {} at ({}), mu_s={}", iatom, cell_atoms[iatom].transpose(),
-                cell_composition.mu_s[iatom] ) );
-
-        parameter_log.push_back( "    absolute atom positions (first 10):" );
-        for( int iatom = 0; iatom < n_cell_atoms && iatom < 10; ++iatom )
+        }
+        catch( ... )
         {
-            Vector3 cell_atom
-                = lattice_constant
-                  * ( bravais_vectors[0] * cell_atoms[iatom][0] + bravais_vectors[1] * cell_atoms[iatom][1]
-                      + bravais_vectors[2] * cell_atoms[iatom][2] );
-            parameter_log.push_back( fmt::format( "        atom {} at ({})", iatom, cell_atom.transpose() ) );
+            spirit_handle_exception_core( fmt::format(
+                "Failed to read Geometry parameters from file \"{}\". Leaving values at default.", config_file ) );
         }
 
-        if( cell_composition.disordered )
-            parameter_log.push_back( "    note: the lattice has some disorder!" );
+        try
+        {
+            IO::Filter_File_Handle myfile( config_file );
+
+            // Spin moment
+            if( !myfile.Find( "atom_types" ) )
+            {
+                if( myfile.Find( "mu_s" ) )
+                {
+                    for( int iatom = 0; iatom < n_cell_atoms; ++iatom )
+                    {
+                        if( !( myfile.iss >> cell_composition.mu_s[iatom] ) )
+                        {
+                            Log( Log_Level::Warning, Log_Sender::IO,
+                                 fmt::format(
+                                     "Not enough values specified after 'mu_s'. Expected {}. Using "
+                                     "mu_s[{}]=mu_s[0]={}",
+                                     n_cell_atoms, iatom, cell_composition.mu_s[0] ) );
+                            cell_composition.mu_s[iatom] = cell_composition.mu_s[0];
+                        }
+                    }
+                }
+                else
+                    Log( Log_Level::Error, Log_Sender::IO,
+                         fmt::format( "Keyword 'mu_s' not found. Using Default: {}", cell_composition.mu_s[0] ) );
+            }
+            // else
+            // {
+            //     cell_composition.mu_s = std::vector<scalar>(n_atom_types, 1);
+            //     if( myfile.Find("mu_s") )
+            //     {
+            //         for (int itype = 0; itype < n_atom_types; ++itype)
+            //         {
+            //             myfile.iss >> cell_composition.mu_s[itype];
+            //             // myfile.GetLine();
+            //             // myfile.iss >> cell_composition.iatom[itype];
+            //             // myfile.iss >> cell_composition.atom_type[itype];
+            //             // myfile.iss >> cell_composition.concentration[itype];
+            //         }
+            //     }
+            //     else Log(Log_Level::Error, Log_Sender::IO, fmt::format("Keyword 'mu_s' not found. Using Default:
+            //     {}", cell_composition.mu_s[0]));
+            // }
+        }
+        catch( ... )
+        {
+            spirit_handle_exception_core( fmt::format( "Unable to read mu_s from config file \"{}\"", config_file ) );
+        }
+    } // end if file=""
+    else
+        Log( Log_Level::Parameter, Log_Sender::IO, "Geometry: Using default configuration!" );
+
+    // Log the parameters
+    std::vector<std::string> parameter_log;
+    parameter_log.push_back( "Geometry:" );
+    parameter_log.push_back( fmt::format( "    lattice constant = {} Angstrom", lattice_constant ) );
+    parameter_log.push_back( fmt::format( "    Bravais lattice type: {}", bravais_lattice_type_str ) );
+    Log( Log_Level::Debug, Log_Sender::IO, "    Bravais vectors in units of lattice constant" );
+    Log( Log_Level::Debug, Log_Sender::IO,
+         fmt::format( "        a = {}", bravais_vectors[0].transpose() / lattice_constant ) );
+    Log( Log_Level::Debug, Log_Sender::IO,
+         fmt::format( "        b = {}", bravais_vectors[1].transpose() / lattice_constant ) );
+    Log( Log_Level::Debug, Log_Sender::IO,
+         fmt::format( "        c = {}", bravais_vectors[2].transpose() / lattice_constant ) );
+    parameter_log.push_back( "    Bravais vectors" );
+    parameter_log.push_back( fmt::format( "        a = {}", bravais_vectors[0].transpose() ) );
+    parameter_log.push_back( fmt::format( "        b = {}", bravais_vectors[1].transpose() ) );
+    parameter_log.push_back( fmt::format( "        c = {}", bravais_vectors[2].transpose() ) );
+    parameter_log.push_back( fmt::format( "    basis cell: {} atom(s)", n_cell_atoms ) );
+    parameter_log.push_back( "    relative positions (first 10):" );
+    for( int iatom = 0; iatom < n_cell_atoms && iatom < 10; ++iatom )
+        parameter_log.push_back( fmt::format(
+            "        atom {} at ({}), mu_s={}", iatom, cell_atoms[iatom].transpose(), cell_composition.mu_s[iatom] ) );
+
+    parameter_log.push_back( "    absolute atom positions (first 10):" );
+    for( int iatom = 0; iatom < n_cell_atoms && iatom < 10; ++iatom )
+    {
+        Vector3 cell_atom = lattice_constant
+                            * ( bravais_vectors[0] * cell_atoms[iatom][0] + bravais_vectors[1] * cell_atoms[iatom][1]
+                                + bravais_vectors[2] * cell_atoms[iatom][2] );
+        parameter_log.push_back( fmt::format( "        atom {} at ({})", iatom, cell_atom.transpose() ) );
+    }
+
+    if( cell_composition.disordered )
+        parameter_log.push_back( "    note: the lattice has some disorder!" );
 
 // Defects
 #ifdef SPIRIT_ENABLE_DEFECTS
-        parameter_log.push_back( fmt::format( "    {} defects. Printing the first 10:", defect_sites.size() ) );
-        for( int i = 0; i < defect_sites.size(); ++i )
-            if( i < 10 )
-                parameter_log.push_back( fmt::format(
-                    "  defect[{}]: translations=({} {} {}), type=", i, defect_sites[i].translations[0],
-                    defect_sites[i].translations[1], defect_sites[i].translations[2], defect_types[i] ) );
+    parameter_log.push_back( fmt::format( "    {} defects. Printing the first 10:", defect_sites.size() ) );
+    for( int i = 0; i < defect_sites.size(); ++i )
+        if( i < 10 )
+            parameter_log.push_back( fmt::format(
+                "  defect[{}]: translations=({} {} {}), type=", i, defect_sites[i].translations[0],
+                defect_sites[i].translations[1], defect_sites[i].translations[2], defect_types[i] ) );
 #endif
 
-        // Log parameters
-        parameter_log.push_back( "    lattice: n_basis_cells" );
-        parameter_log.push_back( fmt::format( "        na = {}", n_cells[0] ) );
-        parameter_log.push_back( fmt::format( "        nb = {}", n_cells[1] ) );
-        parameter_log.push_back( fmt::format( "        nc = {}", n_cells[2] ) );
+    // Log parameters
+    parameter_log.push_back( "    lattice: n_basis_cells" );
+    parameter_log.push_back( fmt::format( "        na = {}", n_cells[0] ) );
+    parameter_log.push_back( fmt::format( "        nb = {}", n_cells[1] ) );
+    parameter_log.push_back( fmt::format( "        nc = {}", n_cells[2] ) );
 
-        // Pinning configuration
-        auto pinning = Pinning_from_Config( configFile, cell_atoms.size() );
+    // Pinning configuration
+    auto pinning = Pinning_from_Config( config_file, cell_atoms.size() );
 
-        // Return geometry
-        auto geometry = std::shared_ptr<Data::Geometry>( new Data::Geometry(
-            bravais_vectors, n_cells, cell_atoms, cell_composition, lattice_constant, pinning,
-            { defect_sites, defect_types } ) );
+    // Return geometry
+    auto geometry = std::make_shared<Data::Geometry>(
+        bravais_vectors, n_cells, cell_atoms, cell_composition, lattice_constant, pinning,
+        Data::Defects{ defect_sites, defect_types } );
 
-        parameter_log.push_back( fmt::format( "    {} spins", geometry->nos ) );
-        parameter_log.push_back( fmt::format( "    the geometry is {}-dimensional", geometry->dimensionality ) );
+    parameter_log.push_back( fmt::format( "    {} spins", geometry->nos ) );
+    parameter_log.push_back( fmt::format( "    the geometry is {}-dimensional", geometry->dimensionality ) );
 
-        Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
+    Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
-        Log( Log_Level::Debug, Log_Sender::IO, "Geometry: built" );
-        return geometry;
-    }
-    catch( ... )
-    {
-        spirit_rethrow( fmt::format( "Unable to parse geometry from config file \"{}\"", configFile ) );
-    }
-
+    Log( Log_Level::Debug, Log_Sender::IO, "Geometry: built" );
+    return geometry;
+}
+catch( ... )
+{
+    spirit_rethrow( fmt::format( "Unable to parse geometry from config file \"{}\"", config_file ) );
     return nullptr;
-} // end Geometry from Config
+} // End Geometry from Config
 
-Data::Pinning Pinning_from_Config( const std::string configFile, int n_cell_atoms )
+Data::Pinning Pinning_from_Config( const std::string & config_file, std::size_t n_cell_atoms )
 {
     //-------------- Insert default values here -----------------------------
     int na = 0, na_left = 0, na_right = 0;
@@ -542,11 +534,11 @@ Data::Pinning Pinning_from_Config( const std::string configFile, int n_cell_atom
 #ifdef SPIRIT_ENABLE_PINNING
     Log( Log_Level::Parameter, Log_Sender::IO, "Reading Pinning Configuration" );
     //------------------------------- Parser --------------------------------
-    if( configFile != "" )
+    if( !config_file.empty() )
     {
         try
         {
-            IO::Filter_File_Handle myfile( configFile );
+            IO::Filter_File_Handle myfile( config_file );
 
             // N_a
             myfile.Read_Single( na_left, "pin_na_left", false );
@@ -603,25 +595,24 @@ Data::Pinning Pinning_from_Config( const std::string configFile, int n_cell_atom
             }
 
             // Additional pinned sites
-            std::string pinnedFile = "";
+            std::string pinned_file = "";
             if( myfile.Find( "n_pinned" ) )
-                pinnedFile = configFile;
+                pinned_file = config_file;
             else if( myfile.Find( "pinned_from_file" ) )
-                myfile.iss >> pinnedFile;
+                myfile.iss >> pinned_file;
 
-            if( pinnedFile != "" )
+            if( !pinned_file.empty() )
             {
                 // The file name should be valid so we try to read it
-                Pinned_from_File( pinnedFile, n_pinned, pinned_sites, pinned_spins );
+                Pinned_from_File( pinned_file, n_pinned, pinned_sites, pinned_spins );
             }
             else
                 Log( Log_Level::Parameter, Log_Sender::IO, "wtf no pinnedFile" );
-
-        } // end try
+        }
         catch( ... )
         {
             spirit_handle_exception_core(
-                fmt::format( "Failed to read Pinning from file \"{}\". Leaving values at default.", configFile ) );
+                fmt::format( "Failed to read Pinning from file \"{}\". Leaving values at default.", config_file ) );
         }
 
     } // end if file=""
@@ -653,13 +644,13 @@ Data::Pinning Pinning_from_Config( const std::string configFile, int n_cell_atom
     }
     Log( Log_Level::Parameter, Log_Sender::IO, "Pinning: read" );
     return pinning;
-#else // SPIRIT_ENABLE_PINNING
+#else  // SPIRIT_ENABLE_PINNING
     Log( Log_Level::Parameter, Log_Sender::IO, "Pinning is disabled" );
-    if( configFile != "" )
+    if( !config_file.empty() )
     {
         try
         {
-            IO::Filter_File_Handle myfile( configFile );
+            IO::Filter_File_Handle myfile( config_file );
             if( myfile.Find( "pinning_cell" ) )
                 Log( Log_Level::Warning, Log_Sender::IO,
                      "You specified a pinning cell even though pinning is disabled!" );
@@ -667,7 +658,7 @@ Data::Pinning Pinning_from_Config( const std::string configFile, int n_cell_atom
         catch( ... )
         {
             spirit_handle_exception_core( fmt::format(
-                "Failed to read pinning parameters from file \"{}\". Leaving values at default.", configFile ) );
+                "Failed to read pinning parameters from file \"{}\". Leaving values at default.", config_file ) );
         }
     }
 
@@ -675,14 +666,14 @@ Data::Pinning Pinning_from_Config( const std::string configFile, int n_cell_atom
 #endif // SPIRIT_ENABLE_PINNING
 }
 
-std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config( const std::string configFile )
+std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config( const std::string & config_file )
 {
     // Default parameters
-    auto parameters = std::unique_ptr<Data::Parameters_Method_LLG>( new Data::Parameters_Method_LLG() );
+    auto parameters = std::make_unique<Data::Parameters_Method_LLG>();
 
     // PRNG Seed
-    std::srand( (unsigned int)std::time( 0 ) );
-    parameters->rng_seed = std::rand();
+    std::random_device random;
+    parameters->rng_seed = random();
     parameters->prng     = std::mt19937( parameters->rng_seed );
 
     // Maximum wall time
@@ -693,11 +684,11 @@ std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config( 
 
     // Parse
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters LLG: building" );
-    if( configFile != "" )
+    if( !config_file.empty() )
     {
         try
         {
-            IO::Filter_File_Handle myfile( configFile );
+            IO::Filter_File_Handle myfile( config_file );
 
             // Output parameters
             myfile.Read_Single( parameters->output_file_tag, "output_file_tag" );
@@ -739,7 +730,7 @@ std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config( 
         catch( ... )
         {
             spirit_handle_exception_core(
-                fmt::format( "Unable to parse LLG parameters from config file \"{}\"", configFile ) );
+                fmt::format( "Unable to parse LLG parameters from config file \"{}\"", config_file ) );
         }
     }
     else
@@ -790,21 +781,21 @@ std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config( 
     return parameters;
 } // end Parameters_Method_LLG_from_Config
 
-std::unique_ptr<Data::Parameters_Method_EMA> Parameters_Method_EMA_from_Config( const std::string configFile )
+std::unique_ptr<Data::Parameters_Method_EMA> Parameters_Method_EMA_from_Config( const std::string & config_file )
 {
     // Default parameters
-    auto parameters = std::unique_ptr<Data::Parameters_Method_EMA>( new Data::Parameters_Method_EMA() );
+    auto parameters = std::make_unique<Data::Parameters_Method_EMA>();
 
     // Maximum wall time
     std::string str_max_walltime = "0";
 
     // Parse
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters EMA: building" );
-    if( configFile != "" )
+    if( !config_file.empty() )
     {
         try
         {
-            IO::Filter_File_Handle myfile( configFile );
+            IO::Filter_File_Handle myfile( config_file );
 
             // Output parameters
             myfile.Read_Single( parameters->output_folder, "ema_output_folder" );
@@ -831,7 +822,7 @@ std::unique_ptr<Data::Parameters_Method_EMA> Parameters_Method_EMA_from_Config( 
         catch( ... )
         {
             spirit_handle_exception_core(
-                fmt::format( "Unable to parse EMA parameters from config file \"{}\"", configFile ) );
+                fmt::format( "Unable to parse EMA parameters from config file \"{}\"", config_file ) );
         }
     }
     else
@@ -868,14 +859,14 @@ std::unique_ptr<Data::Parameters_Method_EMA> Parameters_Method_EMA_from_Config( 
     return parameters;
 }
 
-std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config( const std::string configFile )
+std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config( const std::string & config_file )
 {
     // Default parameters
-    auto parameters = std::unique_ptr<Data::Parameters_Method_MC>( new Data::Parameters_Method_MC() );
+    auto parameters = std::make_unique<Data::Parameters_Method_MC>();
 
     // PRNG Seed
-    std::srand( (unsigned int)std::time( 0 ) );
-    parameters->rng_seed = std::rand();
+    std::random_device random;
+    parameters->rng_seed = random();
     parameters->prng     = std::mt19937( parameters->rng_seed );
 
     // Maximum wall time
@@ -886,11 +877,11 @@ std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config( co
 
     // Parse
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters MC: building" );
-    if( configFile != "" )
+    if( !config_file.empty() )
     {
         try
         {
-            IO::Filter_File_Handle myfile( configFile );
+            IO::Filter_File_Handle myfile( config_file );
 
             // Output parameters
             myfile.Read_Single( parameters->output_file_tag, "output_file_tag" );
@@ -921,7 +912,7 @@ std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config( co
         catch( ... )
         {
             spirit_handle_exception_core(
-                fmt::format( "Unable to parse MC parameters from config file \"{}\"", configFile ) );
+                fmt::format( "Unable to parse MC parameters from config file \"{}\"", config_file ) );
         }
     }
     else
@@ -962,10 +953,10 @@ std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config( co
     return parameters;
 }
 
-std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config( const std::string configFile )
+std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config( const std::string & config_file )
 {
     // Default parameters
-    auto parameters = std::unique_ptr<Data::Parameters_Method_GNEB>( new Data::Parameters_Method_GNEB() );
+    auto parameters = std::make_unique<Data::Parameters_Method_GNEB>();
 
     // Maximum wall time
     std::string str_max_walltime = "0";
@@ -975,11 +966,11 @@ std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config
 
     // Parse
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters GNEB: building" );
-    if( configFile != "" )
+    if( !config_file.empty() )
     {
         try
         {
-            IO::Filter_File_Handle myfile( configFile );
+            IO::Filter_File_Handle myfile( config_file );
 
             // Output parameters
             myfile.Read_Single( parameters->output_file_tag, "output_file_tag" );
@@ -1007,7 +998,7 @@ std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config
         catch( ... )
         {
             spirit_handle_exception_core(
-                fmt::format( "Unable to parse GNEB parameters from config file \"{}\"", configFile ) );
+                fmt::format( "Unable to parse GNEB parameters from config file \"{}\"", config_file ) );
         }
     }
     else
@@ -1040,10 +1031,10 @@ std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config
     return parameters;
 } // end Parameters_Method_LLG_from_Config
 
-std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config( const std::string configFile )
+std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config( const std::string & config_file )
 {
     // Default parameters
-    auto parameters = std::unique_ptr<Data::Parameters_Method_MMF>( new Data::Parameters_Method_MMF() );
+    auto parameters = std::make_unique<Data::Parameters_Method_MMF>();
 
     // Maximum wall time
     std::string str_max_walltime = "0";
@@ -1053,11 +1044,11 @@ std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config( 
 
     // Parse
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters MMF: building" );
-    if( configFile != "" )
+    if( !config_file.empty() )
     {
         try
         {
-            IO::Filter_File_Handle myfile( configFile );
+            IO::Filter_File_Handle myfile( config_file );
 
             // Output parameters
             myfile.Read_Single( parameters->output_file_tag, "output_file_tag" );
@@ -1086,7 +1077,7 @@ std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config( 
         catch( ... )
         {
             spirit_handle_exception_core(
-                fmt::format( "Unable to parse MMF parameters from config file \"{}\"", configFile ) );
+                fmt::format( "Unable to parse MMF parameters from config file \"{}\"", config_file ) );
         }
     }
     else
@@ -1123,7 +1114,7 @@ std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config( 
 }
 
 std::unique_ptr<Engine::Hamiltonian>
-Hamiltonian_from_Config( const std::string configFile, std::shared_ptr<Data::Geometry> geometry )
+Hamiltonian_from_Config( const std::string & config_file, std::shared_ptr<Data::Geometry> geometry )
 {
     //-------------- Insert default values here -----------------------------
     // The type of hamiltonian we will use
@@ -1133,20 +1124,20 @@ Hamiltonian_from_Config( const std::string configFile, std::shared_ptr<Data::Geo
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian: building" );
 
     // Hamiltonian type
-    if( configFile != "" )
+    if( !config_file.empty() )
     {
         try
         {
             Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian: deciding type" );
-            IO::Filter_File_Handle myfile( configFile );
+            IO::Filter_File_Handle myfile( config_file );
 
             // What hamiltonian do we use?
             myfile.Read_Single( hamiltonian_type, "hamiltonian" );
-        } // end try
+        }
         catch( ... )
         {
-            spirit_handle_exception_core(
-                fmt::format( "Unable to read Hamiltonian type from config file  \"{}\". Using default.", configFile ) );
+            spirit_handle_exception_core( fmt::format(
+                "Unable to read Hamiltonian type from config file  \"{}\". Using default.", config_file ) );
             hamiltonian_type = "heisenberg_neighbours";
         }
     }
@@ -1159,11 +1150,11 @@ Hamiltonian_from_Config( const std::string configFile, std::shared_ptr<Data::Geo
     {
         if( hamiltonian_type == "heisenberg_neighbours" || hamiltonian_type == "heisenberg_pairs" )
         {
-            hamiltonian = Hamiltonian_Heisenberg_from_Config( configFile, geometry, hamiltonian_type );
+            hamiltonian = Hamiltonian_Heisenberg_from_Config( config_file, geometry, hamiltonian_type );
         }
         else if( hamiltonian_type == "gaussian" )
         {
-            hamiltonian = std::move( Hamiltonian_Gaussian_from_Config( configFile, geometry ) );
+            hamiltonian = std::move( Hamiltonian_Gaussian_from_Config( config_file, geometry ) );
         }
         else
         {
@@ -1175,7 +1166,7 @@ Hamiltonian_from_Config( const std::string configFile, std::shared_ptr<Data::Geo
     catch( ... )
     {
         spirit_handle_exception_core(
-            fmt::format( "Unable to initialize Hamiltonian from config file \"{}\"", configFile ) );
+            fmt::format( "Unable to initialize Hamiltonian from config file \"{}\"", config_file ) );
     }
 
     // Return
@@ -1184,7 +1175,7 @@ Hamiltonian_from_Config( const std::string configFile, std::shared_ptr<Data::Geo
 }
 
 std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Config(
-    const std::string configFile, std::shared_ptr<Data::Geometry> geometry, std::string hamiltonian_type )
+    const std::string & config_file, std::shared_ptr<Data::Geometry> geometry, const std::string & hamiltonian_type )
 {
     //-------------- Insert default values here -----------------------------
     // Boundary conditions (a, b, c)
@@ -1235,29 +1226,29 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
 
     //------------------------------- Parser --------------------------------
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Heisenberg: building" );
-    // iteration variables
+    // Iteration variables
     int iatom = 0;
-    if( configFile != "" )
+    if( !config_file.empty() )
     {
         try
         {
-            IO::Filter_File_Handle myfile( configFile );
+            IO::Filter_File_Handle myfile( config_file );
 
             // Boundary conditions
             myfile.Read_3Vector( boundary_conditions_i, "boundary_conditions" );
             boundary_conditions[0] = ( boundary_conditions_i[0] != 0 );
             boundary_conditions[1] = ( boundary_conditions_i[1] != 0 );
             boundary_conditions[2] = ( boundary_conditions_i[2] != 0 );
-        } // end try
+        }
         catch( ... )
         {
             spirit_handle_exception_core(
-                fmt::format( "Unable to read boundary conditions from config file \"{}\"", configFile ) );
+                fmt::format( "Unable to read boundary conditions from config file \"{}\"", config_file ) );
         }
 
         try
         {
-            IO::Filter_File_Handle myfile( configFile );
+            IO::Filter_File_Handle myfile( config_file );
 
             // Read parameters from config if available
             myfile.Read_Single( B, "external_field_magnitude" );
@@ -1269,20 +1260,20 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                 Log( Log_Level::Warning, Log_Sender::IO,
                      "Input for 'external_field_normal' had norm zero and has been set to (0,0,1)" );
             }
-        } // end try
+        }
         catch( ... )
         {
             spirit_handle_exception_core(
-                fmt::format( "Unable to read external field from config file \"{}\"", configFile ) );
+                fmt::format( "Unable to read external field from config file \"{}\"", config_file ) );
         }
 
         try
         {
-            IO::Filter_File_Handle myfile( configFile );
+            IO::Filter_File_Handle myfile( config_file );
 
             // Anisotropy
             if( myfile.Find( "n_anisotropy" ) )
-                anisotropy_file = configFile;
+                anisotropy_file = config_file;
             else if( myfile.Find( "anisotropy_file" ) )
                 myfile.iss >> anisotropy_file;
             if( anisotropy_file.length() > 0 )
@@ -1292,7 +1283,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                     anisotropy_file, geometry, n_pairs, anisotropy_index, anisotropy_magnitude, anisotropy_normal );
 
                 anisotropy_from_file = true;
-                if( anisotropy_index.size() != 0 )
+                if( !anisotropy_index.empty() )
                 {
                     K        = anisotropy_magnitude[0];
                     K_normal = anisotropy_normal[0];
@@ -1327,22 +1318,22 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                     anisotropy_normal    = vectorfield( 0 );
                 }
             }
-        } // end try
+        }
         catch( ... )
         {
             spirit_handle_exception_core(
-                fmt::format( "Unable to read anisotropy from config file \"{}\"", configFile ) );
+                fmt::format( "Unable to read anisotropy from config file \"{}\"", config_file ) );
         }
 
         if( hamiltonian_type == "heisenberg_pairs" )
         {
             try
             {
-                IO::Filter_File_Handle myfile( configFile );
+                IO::Filter_File_Handle myfile( config_file );
 
                 // Interaction Pairs
                 if( myfile.Find( "n_interaction_pairs" ) )
-                    interaction_pairs_file = configFile;
+                    interaction_pairs_file = config_file;
                 else if( myfile.Find( "interaction_pairs_file" ) )
                     myfile.iss >> interaction_pairs_file;
 
@@ -1359,18 +1350,18 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                 // been implemented yet."); 	throw Exception::System_not_Initialized;
                 //	// Not implemented!
                 //}
-            } // end try
+            }
             catch( ... )
             {
                 spirit_handle_exception_core(
-                    fmt::format( "Unable to read interaction pairs from config file \"{}\"", configFile ) );
+                    fmt::format( "Unable to read interaction pairs from config file \"{}\"", config_file ) );
             }
         }
         else
         {
             try
             {
-                IO::Filter_File_Handle myfile( configFile );
+                IO::Filter_File_Handle myfile( config_file );
 
                 myfile.Read_Single( n_shells_exchange, "n_shells_exchange" );
                 if( exchange_magnitudes.size() != n_shells_exchange )
@@ -1388,16 +1379,16 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                                  "Hamiltonian_Heisenberg: Keyword 'jij' not found. Using Default: {}",
                                  exchange_magnitudes[0] ) );
                 }
-            } // end try
+            }
             catch( ... )
             {
                 spirit_handle_exception_core(
-                    fmt::format( "Failed to read exchange parameters from config file \"{}\"", configFile ) );
+                    fmt::format( "Failed to read exchange parameters from config file \"{}\"", config_file ) );
             }
 
             try
             {
-                IO::Filter_File_Handle myfile( configFile );
+                IO::Filter_File_Handle myfile( config_file );
 
                 myfile.Read_Single( n_shells_dmi, "n_shells_dmi" );
                 if( dmi_magnitudes.size() != n_shells_dmi )
@@ -1416,18 +1407,17 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                                  dmi_magnitudes[0] ) );
                 }
                 myfile.Read_Single( dm_chirality, "dm_chirality" );
-
-            } // end try
+            }
             catch( ... )
             {
                 spirit_handle_exception_core(
-                    fmt::format( "Failed to read DMI parameters from config file \"{}\"", configFile ) );
+                    fmt::format( "Failed to read DMI parameters from config file \"{}\"", config_file ) );
             }
         }
 
         try
         {
-            IO::Filter_File_Handle myfile( configFile );
+            IO::Filter_File_Handle myfile( config_file );
 
             // DDI method
             myfile.Read_String( ddi_method_str, "ddi_method" );
@@ -1455,20 +1445,20 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
 
             // Dipole-dipole cutoff radius
             myfile.Read_Single( ddi_radius, "ddi_radius" );
-        } // end try
+        }
         catch( ... )
         {
             spirit_handle_exception_core(
-                fmt::format( "Unable to read DDI radius from config file \"{}\"", configFile ) );
+                fmt::format( "Unable to read DDI radius from config file \"{}\"", config_file ) );
         }
 
         try
         {
-            IO::Filter_File_Handle myfile( configFile );
+            IO::Filter_File_Handle myfile( config_file );
 
             // Interaction Quadruplets
             if( myfile.Find( "n_interaction_quadruplets" ) )
-                quadruplets_file = configFile;
+                quadruplets_file = config_file;
             else if( myfile.Find( "interaction_quadruplets_file" ) )
                 myfile.iss >> quadruplets_file;
 
@@ -1477,12 +1467,11 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                 // The file name should be valid so we try to read it
                 Quadruplets_from_File( quadruplets_file, geometry, n_quadruplets, quadruplets, quadruplet_magnitudes );
             }
-
-        } // end try
+        }
         catch( ... )
         {
             spirit_handle_exception_core(
-                fmt::format( "Unable to read interaction quadruplets from config file \"{}\"", configFile ) );
+                fmt::format( "Unable to read interaction quadruplets from config file \"{}\"", config_file ) );
         }
     }
     else
@@ -1522,24 +1511,24 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
 
     if( hamiltonian_type == "heisenberg_neighbours" )
     {
-        hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg>( new Engine::Hamiltonian_Heisenberg(
+        hamiltonian = std::make_unique<Engine::Hamiltonian_Heisenberg>(
             B, B_normal, anisotropy_index, anisotropy_magnitude, anisotropy_normal, exchange_magnitudes, dmi_magnitudes,
             dm_chirality, ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius, quadruplets,
-            quadruplet_magnitudes, geometry, boundary_conditions ) );
+            quadruplet_magnitudes, geometry, boundary_conditions );
     }
     else
     {
-        hamiltonian = std::unique_ptr<Engine::Hamiltonian_Heisenberg>( new Engine::Hamiltonian_Heisenberg(
+        hamiltonian = std::make_unique<Engine::Hamiltonian_Heisenberg>(
             B, B_normal, anisotropy_index, anisotropy_magnitude, anisotropy_normal, exchange_pairs, exchange_magnitudes,
             dmi_pairs, dmi_magnitudes, dmi_normals, ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius,
-            quadruplets, quadruplet_magnitudes, geometry, boundary_conditions ) );
+            quadruplets, quadruplet_magnitudes, geometry, boundary_conditions );
     }
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Heisenberg: built" );
     return hamiltonian;
 } // end Hamiltonian_Heisenberg_From_Config
 
 std::unique_ptr<Engine::Hamiltonian_Gaussian>
-Hamiltonian_Gaussian_from_Config( const std::string configFile, std::shared_ptr<Data::Geometry> geometry )
+Hamiltonian_Gaussian_from_Config( const std::string & config_file, std::shared_ptr<Data::Geometry> geometry )
 {
     //-------------- Insert default values here -----------------------------
     // Number of Gaussians
@@ -1554,11 +1543,11 @@ Hamiltonian_Gaussian_from_Config( const std::string configFile, std::shared_ptr<
     //------------------------------- Parser --------------------------------
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Gaussian: building" );
 
-    if( configFile != "" )
+    if( !config_file.empty() )
     {
         try
         {
-            IO::Filter_File_Handle myfile( configFile );
+            IO::Filter_File_Handle myfile( config_file );
 
             // N
             myfile.Read_Single( n_gaussians, "n_gaussians" );
@@ -1585,11 +1574,11 @@ Hamiltonian_Gaussian_from_Config( const std::string configFile, std::shared_ptr<
             else
                 Log( Log_Level::Error, Log_Sender::IO,
                      "Hamiltonian_Gaussian: Keyword 'gaussians' not found. Using Default: {0, 0, 1}" );
-        } // end try
+        }
         catch( ... )
         {
             spirit_handle_exception_core(
-                fmt::format( "Unable to read Hamiltonian_Gaussian parameters from config file  \"{}\"", configFile ) );
+                fmt::format( "Unable to read Hamiltonian_Gaussian parameters from config file  \"{}\"", config_file ) );
         }
     }
     else
@@ -1603,8 +1592,7 @@ Hamiltonian_Gaussian_from_Config( const std::string configFile, std::shared_ptr<
     parameter_log.push_back( fmt::format( "    {0:<12} = {1}", "width[0]", width[0] ) );
     parameter_log.push_back( fmt::format( "    {0:<12} = {1}", "center[0]", center[0].transpose() ) );
     Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
-    auto hamiltonian
-        = std::unique_ptr<Engine::Hamiltonian_Gaussian>( new Engine::Hamiltonian_Gaussian( amplitude, width, center ) );
+    auto hamiltonian = std::make_unique<Engine::Hamiltonian_Gaussian>( amplitude, width, center );
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Gaussian: built" );
     return hamiltonian;
 }

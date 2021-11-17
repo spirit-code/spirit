@@ -63,7 +63,7 @@ void GeometryWidget::setNCells()
                     this->lineEdit_n_cells_c->text().toInt() };
     Geometry_Set_N_Cells( this->state.get(), n_cells );
 
-    this->spinWidget->setCellFilter(0, n_cells[0]-1, 0, n_cells[1]-1, 0, n_cells[2]-1);
+    this->spinWidget->setCellFilter( 0, n_cells[0] - 1, 0, n_cells[1] - 1, 0, n_cells[2] - 1 );
 
     // Update geometry and arrays in SpinWidget
     this->spinWidget->initializeGL();

@@ -38,18 +38,22 @@ float SliderCalcRatioFromValueT(
     {
         if( v_clamped < 0.0f )
         {
-            const float f = 1.0f - (float)( ( v_clamped - v_min ) / ( ImMin( (TYPE)0, v_max ) - v_min ) );
+            const float f
+                = 1.0f
+                  - static_cast<float>( ( v_clamped - v_min ) / ( ImMin( static_cast<TYPE>( 0 ), v_max ) - v_min ) );
             return ( 1.0f - ImPow( f, 1.0f / power ) ) * linear_zero_pos;
         }
         else
         {
-            const float f = (float)( ( v_clamped - ImMax( (TYPE)0, v_min ) ) / ( v_max - ImMax( (TYPE)0, v_min ) ) );
+            const float f = static_cast<float>(
+                ( v_clamped - ImMax( static_cast<TYPE>( 0 ), v_min ) )
+                / ( v_max - ImMax( static_cast<TYPE>( 0 ), v_min ) ) );
             return linear_zero_pos + ImPow( f, 1.0f / power ) * ( 1.0f - linear_zero_pos );
         }
     }
 
     // Linear slider
-    return (float)( ( FLOATTYPE )( v_clamped - v_min ) / ( FLOATTYPE )( v_max - v_min ) );
+    return static_cast<float>( static_cast<FLOATTYPE>( v_clamped - v_min ) / static_cast<FLOATTYPE>( v_max - v_min ) );
 }
 bool toggle_button( const char * str_id, bool * v, bool coloured )
 {
@@ -81,7 +85,9 @@ bool toggle_button( const char * str_id, bool * v, bool coloured )
     return clicked;
 }
 
-void show_overlay_system( bool & show, int & corner, std::array<float, 2> & position, std::shared_ptr<State> state )
+void show_overlay_system(
+    bool & show, int & corner, std::array<float, 2> & position, std::shared_ptr<State> state, ImVec2 viewport_pos,
+    ImVec2 viewport_size )
 {
     if( !show )
         return;
@@ -101,26 +107,31 @@ void show_overlay_system( bool & show, int & corner, std::array<float, 2> & posi
     static bool need_to_position = true;
 
     ImGuiIO & io = ImGui::GetIO();
+    if( viewport_size[0] < 0 )
+        viewport_size[0] = io.DisplaySize.x;
+    if( viewport_size[1] < 0 )
+        viewport_size[1] = io.DisplaySize.y;
 
     if( corner != -1 )
     {
-        ImVec2 window_pos = ImVec2(
-            ( corner & 1 ) ? io.DisplaySize.x - DISTANCE : DISTANCE,
-            ( corner & 2 ) ? io.DisplaySize.y - DISTANCE : DISTANCE + 25 );
+        ImVec2 window_pos = viewport_pos
+                            + ImVec2(
+                                ( corner & 1 ) ? viewport_size[0] - DISTANCE : DISTANCE,
+                                ( corner & 2 ) ? viewport_size[1] - DISTANCE : DISTANCE );
         ImVec2 window_pos_pivot = ImVec2( ( corner & 1 ) ? 1.0f : 0.0f, ( corner & 2 ) ? 1.0f : 0.0f );
         ImGui::SetNextWindowPos( window_pos, ImGuiCond_Always, window_pos_pivot );
         need_to_position = false;
     }
     else if( need_to_position )
     {
-        ImGui::SetNextWindowPos( { position[0], position[1] } );
+        ImGui::SetNextWindowPos( viewport_pos + ImVec2{ position[0], position[1] } );
         need_to_position = false;
     }
 
     ImGui::SetNextWindowBgAlpha( 0.6f ); // Transparent background
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize
                                     | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing
-                                    | ImGuiWindowFlags_NoNav;
+                                    | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDocking;
     if( corner != -1 )
         window_flags |= ImGuiWindowFlags_NoMove;
     if( ImGui::Begin( "System information overlay", &show, window_flags ) )
@@ -181,7 +192,7 @@ void show_overlay_system( bool & show, int & corner, std::array<float, 2> & posi
 
 void show_overlay_calculation(
     bool & show, GUI_Mode & selected_mode, int & selected_solver_min, int & selected_solver_llg, int & corner,
-    std::array<float, 2> & position, std::shared_ptr<State> state )
+    std::array<float, 2> & position, std::shared_ptr<State> state, ImVec2 viewport_pos, ImVec2 viewport_size )
 {
     static bool need_to_position = true;
 
@@ -227,25 +238,31 @@ void show_overlay_calculation(
     const float DISTANCE = 15.0f;
 
     ImGuiIO & io = ImGui::GetIO();
+    if( viewport_size[0] < 0 )
+        viewport_size[0] = io.DisplaySize.x;
+    if( viewport_size[1] < 0 )
+        viewport_size[1] = io.DisplaySize.y;
+
     if( corner != -1 )
     {
-        ImVec2 window_pos = ImVec2(
-            ( corner & 1 ) ? io.DisplaySize.x - DISTANCE : DISTANCE,
-            ( corner & 2 ) ? io.DisplaySize.y - DISTANCE : DISTANCE + 25 );
+        ImVec2 window_pos = viewport_pos
+                            + ImVec2(
+                                ( corner & 1 ) ? viewport_size[0] - DISTANCE : DISTANCE,
+                                ( corner & 2 ) ? viewport_size[1] - DISTANCE : DISTANCE );
         ImVec2 window_pos_pivot = ImVec2( ( corner & 1 ) ? 1.0f : 0.0f, ( corner & 2 ) ? 1.0f : 0.0f );
         ImGui::SetNextWindowPos( window_pos, ImGuiCond_Always, window_pos_pivot );
         need_to_position = false;
     }
     else if( need_to_position )
     {
-        ImGui::SetNextWindowPos( { position[0], position[1] } );
+        ImGui::SetNextWindowPos( viewport_pos + ImVec2{ position[0], position[1] } );
         need_to_position = false;
     }
 
     ImGui::SetNextWindowBgAlpha( 0.6f ); // Transparent background
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize
                                     | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing
-                                    | ImGuiWindowFlags_NoNav;
+                                    | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoDocking;
     if( corner != -1 )
         window_flags |= ImGuiWindowFlags_NoMove;
 
@@ -570,6 +587,8 @@ void show_about( bool & show_about )
     ImGui::Columns( 2, "aboutinfocolumns", false );
     ImGui::TextUnformatted( "Parallelisation:" );
     ImGui::TextUnformatted( fmt::format( "   - OpenMP  = {}", Spirit_OpenMP() ).c_str() );
+    ImGui::TextUnformatted( fmt::format( "     # of threads: {}", Spirit_OpenMP_Get_Num_Threads() ).c_str() );
+
     ImGui::TextUnformatted( fmt::format( "   - Cuda    = {}", Spirit_Cuda() ).c_str() );
     ImGui::TextUnformatted( fmt::format( "   - Threads = {}", Spirit_Threads() ).c_str() );
     ImGui::NextColumn();
@@ -628,7 +647,7 @@ bool RangeSliderBehavior(
 
     const float grab_padding = 2.0f;
     const float slider_sz    = is_horizontal ? ( frame_bb.GetWidth() - grab_padding * 2.0f ) :
-                                            ( frame_bb.GetHeight() - grab_padding * 2.0f );
+                                               ( frame_bb.GetHeight() - grab_padding * 2.0f );
     float grab_sz;
     if( decimal_precision > 0 )
         grab_sz = ImMin( style.GrabMinSize, slider_sz );
@@ -667,8 +686,8 @@ bool RangeSliderBehavior(
         {
             const float mouse_abs_pos = is_horizontal ? g.IO.MousePos.x : g.IO.MousePos.y;
             float clicked_t           = ( slider_usable_sz > 0.0f ) ?
-                                  ImClamp( ( mouse_abs_pos - slider_usable_pos_min ) / slider_usable_sz, 0.0f, 1.0f ) :
-                                  0.0f;
+                                            ImClamp( ( mouse_abs_pos - slider_usable_pos_min ) / slider_usable_sz, 0.0f, 1.0f ) :
+                                            0.0f;
             if( !is_horizontal )
                 clicked_t = 1.0f - clicked_t;
 

@@ -95,18 +95,19 @@ int main( int argc, char ** argv )
     Configuration_PlusZ( state.get() );
 
     // Read image from file
-    if( imagefile != "" )
+    if( !imagefile.empty() )
         IO_Image_Read( state.get(), imagefile.c_str(), 0 );
 
     // Read chain from file
-    if( chainfile != "" )
+    if( !chainfile.empty() )
         IO_Chain_Read( state.get(), chainfile.c_str() );
 
 #ifdef _OPENMP
-    int nt = omp_get_max_threads() - 1;
     Log_Send(
         state.get(), Log_Level_Info, Log_Sender_UI,
-        ( "Using OpenMP with n=" + std::to_string( nt ) + " threads" ).c_str() );
+        ( "Using OpenMP with " + std::to_string( Spirit_OpenMP_Get_Num_Threads() ) + "/"
+          + std::to_string( omp_get_max_threads() ) + " threads" )
+            .c_str() );
 #endif
 
 #if defined( SPIRIT_UI_CXX_USE_QT )

@@ -6,7 +6,7 @@
 // TODO: Replace this
 #include <utility/Timing.hpp>
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <chrono>
 #include <memory>
 

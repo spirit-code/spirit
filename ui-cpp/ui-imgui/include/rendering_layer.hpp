@@ -10,6 +10,7 @@
 
 #include <GLFW/glfw3.h>
 
+#include <VFRendering/CombinedRenderer.hxx>
 #include <VFRendering/View.hxx>
 
 #include <Spirit/Simulation.h>
@@ -44,6 +45,7 @@ struct RenderingLayer
     void update_theme();
     void update_visibility();
     void update_renderers();
+    void update_renderers_from_layout();
     void update_boundingbox();
     void update_vf_geometry();
     void update_vf_directions();
@@ -77,6 +79,8 @@ struct RenderingLayer
     float filter_position_min[3]{ 0, 0, 0 };
     float filter_position_max[3]{ 1, 1, 1 };
 
+    std::array<float, 4> rendering_layout = { 0, 0, 1, 1 };
+
 private:
     std::vector<std::shared_ptr<RendererWidget>> renderer_widgets_shown;
 
@@ -89,6 +93,7 @@ private:
 
     VFRendering::Geometry geometry;
     VFRendering::VectorField vectorfield_surf2D = VFRendering::VectorField( {}, {} );
+    std::shared_ptr<VFRendering::CombinedRenderer> combined_renderer;
 };
 
 } // namespace ui

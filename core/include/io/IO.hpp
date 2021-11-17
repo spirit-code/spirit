@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SPIRIT_IO_IO_HPP
-#define SPIRIT_IO_IO_HPP
+#ifndef SPIRIT_CORE_IO_IO_HPP
+#define SPIRIT_CORE_IO_IO_HPP
 
 #include "Spirit_Defines.h"
 #include <io/Fileformat.hpp>
