@@ -106,6 +106,9 @@ void hessian_spherical(
 void hessian_covariant(
     const vectorfield & image, const vectorfield & gradient, const MatrixX & hessian, MatrixX & hessian_out );
 
+void sparse_hessian_bordered_3N(
+    const vectorfield & image, const vectorfield & gradient, const SpMatrixX & hessian, SpMatrixX & hessian_out );
+
 // Geodesic distance between two vectorfields
 scalar dist_geodesic( const vectorfield & v1, const vectorfield & v2 );
 

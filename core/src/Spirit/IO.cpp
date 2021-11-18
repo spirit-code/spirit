@@ -6,6 +6,7 @@
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <data/State.hpp>
+#include <engine/Manifoldmath.hpp>
 #include <io/Filter_File_Handle.hpp>
 #include <io/IO.hpp>
 #include <io/OVF_File.hpp>
@@ -15,6 +16,7 @@
 
 #include <fmt/format.h>
 
+#include <iomanip>
 #include <memory>
 #include <string>
 
@@ -1252,4 +1254,122 @@ try
 catch( ... )
 {
     spirit_handle_exception_api( idx_image, idx_chain );
+}
+
+void saveMatrix( std::string fname, const SpMatrixX & matrix )
+{
+    std::cout << "Saving matrix to file: " << fname << "\n";
+    std::ofstream file( fname );
+    file << std::setprecision( 16 );
+    file << "# n_rows " << matrix.rows() << "\n";
+    file << "# n_cols " << matrix.cols() << "\n";
+    if( file && file.is_open() )
+    {
+        file << matrix;
+    }
+    else
+    {
+        std::cerr << "Could not save matrix!";
+    }
+}
+
+void saveTriplets( std::string fname, const SpMatrixX & matrix )
+{
+
+    std::cout << "Saving triplets to file: " << fname << "\n";
+    std::ofstream file( fname );
+    file << std::setprecision( 16 );
+    file << "# n_rows " << matrix.rows() << "\n";
+    file << "# n_cols " << matrix.cols() << "\n";
+    if( file && file.is_open() )
+    {
+        for( int k = 0; k < matrix.outerSize(); ++k )
+        {
+            for( SpMatrixX::InnerIterator it( matrix, k ); it; ++it )
+            {
+                file << it.row() << "\t"; // row index
+                file << it.col() << "\t"; // col index (here it is equal to k)
+                file << it.value() << "\n";
+            }
+        }
+    }
+    else
+    {
+        std::cerr << "Could not save matrix!";
+    }
+}
+
+void IO_Hamiltonian_Write_Hessian(
+    State * state, const char * filename, bool triplet_format, int idx_image, int idx_chain ) noexcept
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    // Compute hessian
+    auto nos = image->geometry->nos;
+    SpMatrixX hessian( 3 * nos, 3 * nos );
+    image->hamiltonian->Sparse_Hessian( *image->spins, hessian );
+
+    if( triplet_format )
+        saveTriplets( std::string( filename ), hessian );
+    else
+        saveMatrix( std::string( filename ), hessian );
+}
+
+void IO_System_Write_Spherical_Tangent_Basis(
+    State * state, const char * filename, bool triplet_format, int idx_image, int idx_chain ) noexcept
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    // Compute hessian
+    auto nos = image->geometry->nos;
+
+    SpMatrixX tangent_basis( 3 * nos, 2 * nos );
+    Engine::Manifoldmath::sparse_tangent_basis_spherical( *image->spins, tangent_basis );
+
+    if( triplet_format )
+        saveTriplets( std::string( filename ), tangent_basis );
+    else
+        saveMatrix( std::string( filename ), tangent_basis );
+}
+
+void IO_Hamiltonian_Write_Constrained_Hessian(
+    State * state, const char * filename, bool triplet_format, int idx_image, int idx_chain ) noexcept
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    // Compute hessian
+    auto nos = image->geometry->nos;
+
+    // declare matrices we need
+    SpMatrixX hessian( 3 * nos, 3 * nos );
+    SpMatrixX hessian_bordered_3N( 3 * nos, 3 * nos );
+    SpMatrixX tangent_basis( 3 * nos, 2 * nos );
+    SpMatrixX hessian_constrained_2N( 2 * nos, 2 * nos );
+    vectorfield gradient( nos, { 0, 0, 0 } );
+
+    image->hamiltonian->Sparse_Hessian( *image->spins, hessian );
+    image->hamiltonian->Gradient( *image->spins, gradient );
+
+    Engine::Manifoldmath::sparse_hessian_bordered_3N( *image->spins, gradient, hessian, hessian_bordered_3N );
+
+    Engine::Manifoldmath::sparse_tangent_basis_spherical( *image->spins, tangent_basis );
+
+    hessian_constrained_2N = tangent_basis.transpose() * hessian_bordered_3N * tangent_basis;
+
+    if( triplet_format )
+        saveTriplets( std::string( filename ), hessian_constrained_2N );
+    else
+        saveMatrix( std::string( filename ), hessian_constrained_2N );
 }

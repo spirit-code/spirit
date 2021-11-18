@@ -223,3 +223,24 @@ def image_write_energy_per_spin(p_state, filename, fileformat=FILEFORMAT_OVF_TEX
     """
     _Image_Write_Energy_per_Spin(ctypes.c_void_p(p_state), ctypes.c_char_p(filename.encode('utf-8')),
                                  ctypes.c_int(fileformat), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+_Write_Hessian          = _spirit.IO_Hamiltonian_Write_Hessian
+_Write_Hessian.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_bool, ctypes.c_int, ctypes.c_int]
+_Write_Hessian.restype  = None
+def write_hessian(p_state, filename, triplet_format=True, idx_image=-1, idx_chain=-1):
+    """RWrites the embedding Hessian to a file"""
+    _Write_Hessian(ctypes.c_void_p(p_state), ctypes.c_char_p(filename.encode('utf-8')), ctypes.c_bool(triplet_format), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+_Write_Constrained_Hessian          = _spirit.IO_Hamiltonian_Write_Constrained_Hessian
+_Write_Constrained_Hessian.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_bool, ctypes.c_int, ctypes.c_int]
+_Write_Constrained_Hessian.restype  = None
+def write_constrained_hessian(p_state, filename, triplet_format=True, idx_image=-1, idx_chain=-1):
+    """RWrites the constrained Hessian to a file"""
+    _Write_Constrained_Hessian(ctypes.c_void_p(p_state), ctypes.c_char_p(filename.encode('utf-8')), ctypes.c_bool(triplet_format), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+_Write_Spherical_Tangent_Basis          = _spirit.IO_System_Write_Spherical_Tangent_Basis
+_Write_Spherical_Tangent_Basis.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_bool, ctypes.c_int, ctypes.c_int]
+_Write_Spherical_Tangent_Basis.restype  = None
+def write_spherical_tangent_basis(p_state, filename, triplet_format=True, idx_image=-1, idx_chain=-1):
+    """RWrites the spherical tangent basis to a file"""
+    _Write_Spherical_Tangent_Basis(ctypes.c_void_p(p_state), ctypes.c_char_p(filename.encode('utf-8')), ctypes.c_bool(triplet_format), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))

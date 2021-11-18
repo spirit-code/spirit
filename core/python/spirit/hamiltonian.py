@@ -159,10 +159,3 @@ def get_ddi(p_state, idx_image=-1, idx_chain=-1):
             "n_periodic_images" : [ i for i in n_periodic_images ],
             "cutoff_radius" : cutoff_radius.value,
             "pb_zero_padding" : pb_zero_padding.value }
-
-_Write_Hessian          = _spirit.Hamiltonian_Write_Hessian
-_Write_Hessian.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_bool, ctypes.c_int, ctypes.c_int]
-_Write_Hessian.restype  = None
-def write_hessian(p_state, filename, triplet_format=True, idx_image=-1, idx_chain=-1):
-    """RWrites the embedding Hessian to a file"""
-    _Write_Hessian(ctypes.c_void_p(p_state), ctypes.c_char_p(filename.encode('utf-8')), ctypes.c_bool(triplet_format), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
