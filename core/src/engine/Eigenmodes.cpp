@@ -259,15 +259,19 @@ bool Sparse_Hessian_Partial_Spectrum(
 
     // TODO: Pinning (see non-sparse function for)
 
+    hessian_constrained.makeCompressed();
+    int ncv = std::min(2*nos, std::max(2*n_modes + 1, 20)); // This is the default value used by scipy.sparse
+    int max_iter = 20*nos;
+
     // Create the Spectra Matrix product operation
     Spectra::SparseSymMatProd<scalar> op( hessian_constrained );
     // Create and initialize a Spectra solver
     Spectra::SymEigsSolver<scalar, Spectra::SMALLEST_ALGE, Spectra::SparseSymMatProd<scalar>> hessian_spectrum(
-        &op, n_modes, 2 * nos );
+        &op, n_modes, ncv);
     hessian_spectrum.init();
 
     // Compute the specified spectrum, sorted by smallest real eigenvalue
-    int nconv = hessian_spectrum.compute( 1000, 1e-10, int( Spectra::SMALLEST_ALGE ) );
+    int nconv = hessian_spectrum.compute( max_iter, 1e-10, int( Spectra::SMALLEST_ALGE ) );
 
     // Extract real eigenvalues
     eigenvalues = hessian_spectrum.eigenvalues().real();
