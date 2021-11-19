@@ -113,7 +113,7 @@ inline void Method_Solver<Solver::Newton>::Iteration()
             searchdir[img],
             linear_coeff_delta_e,
             quadratic_coeff_delta_e,
-            0.15,
+            0.01,
             0.5,
             image,
             temp1,
@@ -125,12 +125,15 @@ inline void Method_Solver<Solver::Newton>::Iteration()
 
         auto conf = image.data();
         auto sd = searchdir[img].data();
+
         Backend::par::apply(
             nos,
             [conf, sd, alpha] SPIRIT_LAMBDA( int idx )
             {
-                conf[idx] += alpha * sd[idx];
-                conf[idx].normalize();
+                scalar angle = alpha * sd[idx].norm();
+                Vector3 axis = (conf[idx].cross(sd[idx]));
+                axis.normalize();
+                Vectormath::rotate(conf[idx], axis, angle, conf[idx]);
             }
         );
     }

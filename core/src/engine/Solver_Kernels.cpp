@@ -44,8 +44,11 @@ scalar backtracking_linesearch(
 
         // Propagate spins
         Backend::par::apply( nos, [_spins, _spins_buffer, _searchdir, alpha] SPIRIT_LAMBDA( int idx ) {
-            _spins_buffer[idx] = _spins[idx] + alpha * _searchdir[idx];
-            _spins_buffer[idx].normalize();
+
+            scalar angle = alpha * _searchdir[idx].norm();
+            Vector3 axis = (_spins[idx].cross(_searchdir[idx]));
+            axis.normalize();
+            Vectormath::rotate(_spins[idx], axis, angle, _spins_buffer[idx]);
         } );
 
         // Compute energy difff
