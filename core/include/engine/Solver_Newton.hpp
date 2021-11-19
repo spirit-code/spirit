@@ -6,6 +6,8 @@
 
 #include "engine/Vectormath_Defines.hpp"
 #include "engine/Manifoldmath.hpp"
+#include "engine/Solver_Kernels.hpp"
+
 #include <utility/Constants.hpp>
 
 #include <SymEigsSolver.h> // Also includes <MatOp/DenseSymMatProd.h>
@@ -22,11 +24,14 @@ inline void Method_Solver<Solver::Newton>::Initialize()
     this->forces_virtual = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
     this->grad           = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
     this->searchdir      = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
+    this->searchdir_2N   = std::vector<VectorX>( this->noi, VectorX::Zero(2*nos) );
 
     this->hessian_2N           = std::vector<SpMatrixX>( this->noi, SpMatrixX(2*nos, 2*nos) ); 
     this->hessian_3N_embedding = std::vector<SpMatrixX>( this->noi, SpMatrixX(3*nos, 3*nos) ); 
     this->hessian_3N_bordered  = std::vector<SpMatrixX>(this->noi, SpMatrixX(3*nos, 3*nos) );
     this->tangent_basis        = std::vector<SpMatrixX>(this->noi, SpMatrixX(3*nos, 2*nos) );
+
+    this->temp1 = vectorfield(this->nos, {0,0,0}); // temporary field for linesearch
 
     // TODO: determine if the Hamiltonian is "square", which so far it always is, except if quadruplet interactions are present
     // This should be checked here
@@ -50,7 +55,6 @@ inline void Method_Solver<Solver::Newton>::Iteration()
     this->Calculate_Force( this->configurations, this->forces );
     this->Calculate_Force_Virtual( this->configurations, this->forces, this->forces_virtual );
 
-    // calculate gradients for OSO
     for( int img = 0; img < this->noi; img++ )
     {
 
@@ -75,46 +79,57 @@ inline void Method_Solver<Solver::Newton>::Iteration()
         Eigen::Map<VectorX> force_vector(&(forces[img][0][0]), 3*nos, 1);
         Eigen::Map<VectorX> searchdir_vector(&(this->searchdir[img][0][0]), 3*nos, 1);
 
-        hessian_2N[img] = (tangent_basis[img].transpose() * hessian_3N_bordered[img] * tangent_basis[img]);
+        hessian_2N[img] = (tangent_basis[img].transpose() * hessian_3N_bordered[img] * tangent_basis[img]).eval();
+
+        // /* LU instead of CG (way to slow)
+        // hessian_2N[img].makeCompressed();
+        // Eigen::SparseLU<SpMatrixX, Eigen::COLAMDOrdering<int>> solver;
+        // solver.analyzePattern( hessian_2N[img] );
+        // solver.factorize( hessian_2N[img] );
+        // this->searchdir_2N[img] = solver.solve(force_2N);
+
+        hessian_2N[img].makeCompressed();
+
+        fmt::print("Solving inverse Hessian\n");
 
         Eigen::ConjugateGradient<SpMatrixX, Eigen::Lower|Eigen::Upper> solver;
-        solver.setMaxIterations(10000);
-        solver.setTolerance(1e-10);
+
         solver.compute(hessian_2N[img]);
+        solver.setTolerance(1e-4);
 
-        // Spectrum
-        /*
-            Spectra::SparseGenMatProd<scalar> op( hessian_2N[img] );
-            // Create and initialize a Spectra solver
-            int n_modes = 2;
-            Spectra::SymEigsSolver<scalar, Spectra::SMALLEST_ALGE, Spectra::SparseGenMatProd<scalar>> hessian_spectrum(&op, n_modes, 100 );
-            hessian_spectrum.init();
-            // Compute the specified spectrum, sorted by smallest real eigenvalue
-            int nconv = hessian_spectrum.compute( 2000, 1e-10, int( Spectra::SMALLEST_ALGE ) );
-            // Extract real eigenvalues
-            auto eigenvalues = hessian_spectrum.eigenvalues().real();
-            std::cout << "Eigenvalues " << eigenvalues.transpose() << "\n";
+        VectorX force_2N = (tangent_basis[img].transpose() * force_vector).eval();
+        this->searchdir_2N[img] = solver.solveWithGuess(force_2N, this->searchdir_2N[img]);
+        std::cout << "#iterations:     " << solver.iterations() << std::endl;
+        std::cout << "estimated error: " << solver.error()      << std::endl;
 
-            MatrixX hessian2N_dense = MatrixX(hessian_2N[img]);
-            std::cout << hessian2N_dense.eigenvalues() << "\n";
-        */
+        searchdir_vector = tangent_basis[img] * searchdir_2N[img];
+        scalar linear_coeff_delta_e = searchdir_2N[img].dot(-force_2N);
+        scalar quadratic_coeff_delta_e = -linear_coeff_delta_e/2; // for newtons method this is true
 
-        /* LU instead of CG
-            // Eigen::SparseLU<SpMatrixX, Eigen::COLAMDOrdering<int>> solver;
-            // solver.analyzePattern( hessian_2N );
-            // solver.factorize( hessian_2N );
-        */
+        fmt::print("Finished solving inverse Hessian\n");
 
-        searchdir_vector = tangent_basis[img] * solver.solve(tangent_basis[img].transpose() * force_vector );
+        scalar alpha = Solver_Kernels::backtracking_linesearch(
+            *hamiltonian,
+            searchdir[img],
+            linear_coeff_delta_e,
+            quadratic_coeff_delta_e,
+            0.15,
+            0.5,
+            image,
+            temp1,
+            energy_buffer_current,
+            energy_buffer_step
+        );
+
+        fmt::print("alpha = {:.6f}\n", alpha);
 
         auto conf = image.data();
         auto sd = searchdir[img].data();
-
         Backend::par::apply(
             nos,
-            [conf, sd] SPIRIT_LAMBDA( int idx )
+            [conf, sd, alpha] SPIRIT_LAMBDA( int idx )
             {
-                conf[idx] += sd[idx];
+                conf[idx] += alpha * sd[idx];
                 conf[idx].normalize();
             }
         );

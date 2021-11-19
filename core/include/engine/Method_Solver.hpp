@@ -38,7 +38,7 @@ enum class Solver
     LBFGS_Atlas = Solver_LBFGS_Atlas,
     VP          = Solver_VP,
     VP_OSO      = Solver_VP_OSO,
-    Newton      = Solver_Newton 
+    Newton      = Solver_Newton
 };
 
 /*
@@ -133,12 +133,16 @@ protected:
     // Preccession angle
     scalarfield angle;
 
-    //////////// LBFGS ////////////////////////////////////////////////////////////
+    //////////// Newton /////////////////////////////////////////////////////////
     std::vector<SpMatrixX> hessian_3N_embedding;
     std::vector<SpMatrixX> hessian_3N_bordered;
     std::vector<SpMatrixX> hessian_2N;
     std::vector<SpMatrixX> tangent_basis;
+    std::vector<VectorX> searchdir_2N;
+
     std::vector<bool> is_square;
+    std::vector<std::pair<std::string, scalarfield>> energy_buffer_current;
+    std::vector<std::pair<std::string, scalarfield>> energy_buffer_step;
 
     //////////// LBFGS ////////////////////////////////////////////////////////////
 
@@ -391,11 +395,11 @@ inline std::string Method_Solver<Solver::None>::SolverFullName()
 #include <engine/Solver_Heun.hpp>
 #include <engine/Solver_LBFGS_Atlas.hpp>
 #include <engine/Solver_LBFGS_OSO.hpp>
+#include <engine/Solver_Newton.hpp>
 #include <engine/Solver_RK4.hpp>
 #include <engine/Solver_SIB.hpp>
 #include <engine/Solver_VP.hpp>
 #include <engine/Solver_VP_OSO.hpp>
-#include <engine/Solver_Newton.hpp>
 } // namespace Engine
 
 #endif
