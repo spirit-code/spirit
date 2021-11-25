@@ -43,7 +43,7 @@ public:
     virtual double get_simulated_time();
 
     // Get the number of milliseconds since the Method started iterating
-    virtual int getWallTime() final;
+    virtual std::int64_t getWallTime() final;
 
     // NOTE: This is a bad convergence criterion and is therefore currently being phased out
     // Maximum of the absolutes of all components of the force - needs to be updated at each calculation

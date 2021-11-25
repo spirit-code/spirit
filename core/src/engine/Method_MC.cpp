@@ -210,27 +210,27 @@ void Method_MC::Message_Start()
 {
     //---- Log messages
     std::vector<std::string> block( 0 );
-    block.push_back( fmt::format( "------------  Started  {} Calculation  ------------", this->Name() ) );
-    block.push_back( fmt::format( "    Going to iterate {} step(s)", this->n_log ) );
-    block.push_back( fmt::format( "                with {} iterations per step", this->n_iterations_log ) );
+    block.emplace_back( fmt::format( "------------  Started  {} Calculation  ------------", this->Name() ) );
+    block.emplace_back( fmt::format( "    Going to iterate {} step(s)", this->n_log ) );
+    block.emplace_back( fmt::format( "                with {} iterations per step", this->n_iterations_log ) );
     if( this->parameters_mc->metropolis_step_cone )
     {
         if( this->parameters_mc->metropolis_cone_adaptive )
         {
-            block.push_back(
+            block.emplace_back(
                 fmt::format( "   Target acceptance {:>6.3f}", this->parameters_mc->acceptance_ratio_target ) );
-            block.push_back(
+            block.emplace_back(
                 fmt::format( "   Cone angle (deg): {:>6.3f} (adaptive)", this->cone_angle * 180 / Constants::Pi ) );
         }
         else
         {
-            block.push_back(
+            block.emplace_back(
                 fmt::format( "   Target acceptance {:>6.3f}", this->parameters_mc->acceptance_ratio_target ) );
-            block.push_back(
+            block.emplace_back(
                 fmt::format( "   Cone angle (deg): {:>6.3f} (non-adaptive)", this->cone_angle * 180 / Constants::Pi ) );
         }
     }
-    block.push_back( "-----------------------------------------------------" );
+    block.emplace_back( "-----------------------------------------------------" );
     Log.SendBlock( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 }
 
@@ -244,35 +244,36 @@ void Method_MC::Message_Step()
 
     // Send log message
     std::vector<std::string> block( 0 );
-    block.push_back(
+    block.emplace_back(
         fmt::format( "----- {} Calculation: {}", this->Name(), Timing::DateTimePassed( t_current - this->t_start ) ) );
-    block.push_back( fmt::format(
+    block.emplace_back( fmt::format(
         "    Completed                 {} / {} step(s) (step size {})", this->step, this->n_log,
         this->n_iterations_log ) );
-    block.push_back( fmt::format( "    Iteration                 {} / {}", this->iteration, this->n_iterations ) );
-    block.push_back(
+    block.emplace_back( fmt::format( "    Iteration                 {} / {}", this->iteration, this->n_iterations ) );
+    block.emplace_back(
         fmt::format( "    Time since last step:     {}", Timing::DateTimePassed( t_current - this->t_last ) ) );
-    block.push_back( fmt::format(
+    block.emplace_back( fmt::format(
         "    Iterations / sec:         {}",
         this->n_iterations_log / Timing::SecondsPassed( t_current - this->t_last ) ) );
     if( this->parameters_mc->metropolis_step_cone )
     {
         if( this->parameters_mc->metropolis_cone_adaptive )
         {
-            block.push_back( fmt::format(
+            block.emplace_back( fmt::format(
                 "    Current acceptance ratio: {:>6.3f} (target {})", this->acceptance_ratio_current,
                 this->parameters_mc->acceptance_ratio_target ) );
-            block.push_back( fmt::format(
+            block.emplace_back( fmt::format(
                 "    Current cone angle (deg): {:>6.3f} (adaptive)", this->cone_angle * 180 / Constants::Pi ) );
         }
         else
         {
-            block.push_back( fmt::format( "    Current acceptance ratio: {:>6.3f}", this->acceptance_ratio_current ) );
-            block.push_back( fmt::format(
+            block.emplace_back(
+                fmt::format( "    Current acceptance ratio: {:>6.3f}", this->acceptance_ratio_current ) );
+            block.emplace_back( fmt::format(
                 "    Current cone angle (deg): {:>6.3f} (non-adaptive)", this->cone_angle * 180 / Constants::Pi ) );
         }
     }
-    block.push_back( fmt::format( "    Total energy:             {:20.10f}", this->systems[0]->E ) );
+    block.emplace_back( fmt::format( "    Total energy:             {:20.10f}", this->systems[0]->E ) );
     Log.SendBlock( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 
     // Update time of last step
@@ -296,33 +297,33 @@ void Method_MC::Message_End()
 
     //---- Log messages
     std::vector<std::string> block;
-    block.push_back( fmt::format( "------------ Terminated {} Calculation ------------", this->Name() ) );
+    block.emplace_back( fmt::format( "------------ Terminated {} Calculation ------------", this->Name() ) );
     if( reason.length() > 0 )
-        block.push_back( fmt::format( "----- Reason:   {}", reason ) );
-    block.push_back( fmt::format( "----- Duration:       {}", Timing::DateTimePassed( t_end - this->t_start ) ) );
-    block.push_back( fmt::format( "    Completed         {} / {} step(s)", this->step, this->n_log ) );
-    block.push_back( fmt::format( "    Iteration         {} / {}", this->iteration, this->n_iterations ) );
-    block.push_back(
+        block.emplace_back( fmt::format( "----- Reason:   {}", reason ) );
+    block.emplace_back( fmt::format( "----- Duration:       {}", Timing::DateTimePassed( t_end - this->t_start ) ) );
+    block.emplace_back( fmt::format( "    Completed         {} / {} step(s)", this->step, this->n_log ) );
+    block.emplace_back( fmt::format( "    Iteration         {} / {}", this->iteration, this->n_iterations ) );
+    block.emplace_back(
         fmt::format( "    Iterations / sec: {}", this->iteration / Timing::SecondsPassed( t_end - this->t_start ) ) );
     if( this->parameters_mc->metropolis_step_cone )
     {
         if( this->parameters_mc->metropolis_cone_adaptive )
         {
-            block.push_back( fmt::format(
+            block.emplace_back( fmt::format(
                 "    Acceptance ratio: {:>6.3f} (target {})", this->acceptance_ratio_current,
                 this->parameters_mc->acceptance_ratio_target ) );
-            block.push_back(
+            block.emplace_back(
                 fmt::format( "    Cone angle (deg): {:>6.3f} (adaptive)", this->cone_angle * 180 / Constants::Pi ) );
         }
         else
         {
-            block.push_back( fmt::format( "    Acceptance ratio: {:>6.3f}", this->acceptance_ratio_current ) );
-            block.push_back( fmt::format(
+            block.emplace_back( fmt::format( "    Acceptance ratio: {:>6.3f}", this->acceptance_ratio_current ) );
+            block.emplace_back( fmt::format(
                 "    Cone angle (deg): {:>6.3f} (non-adaptive)", this->cone_angle * 180 / Constants::Pi ) );
         }
     }
-    block.push_back( fmt::format( "    Total energy:     {:20.10f}", this->systems[0]->E ) );
-    block.push_back( "-----------------------------------------------------" );
+    block.emplace_back( fmt::format( "    Total energy:     {:20.10f}", this->systems[0]->E ) );
+    block.emplace_back( "-----------------------------------------------------" );
     Log.SendBlock( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 }
 

@@ -90,7 +90,7 @@ void Method_LLG<solver>::Prepare_Thermal_Field()
 
             // TODO: parallelization of this is actually not quite so trivial
             // #pragma omp parallel for
-            for( unsigned int i = 0; i < this->xi.size(); ++i )
+            for( std::size_t i = 0; i < this->xi.size(); ++i )
             {
                 for( int dim = 0; dim < 3; ++dim )
                     this->xi[i][dim] = epsilon * std::sqrt( this->temperature_distribution[i] / geometry.mu_s[i] )
@@ -102,7 +102,7 @@ void Method_LLG<solver>::Prepare_Thermal_Field()
         {
             // TODO: parallelization of this is actually not quite so trivial
             // #pragma omp parallel for
-            for( unsigned int i = 0; i < this->xi.size(); ++i )
+            for( std::size_t i = 0; i < this->xi.size(); ++i )
             {
                 for( int dim = 0; dim < 3; ++dim )
                     this->xi[i][dim] = epsilon * std::sqrt( parameters.temperature / geometry.mu_s[i] )
@@ -117,7 +117,7 @@ void Method_LLG<solver>::Calculate_Force(
     const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces )
 {
     // Loop over images to calculate the total force on each Image
-    for( unsigned int img = 0; img < this->systems.size(); ++img )
+    for( std::size_t img = 0; img < this->systems.size(); ++img )
     {
         // Minus the gradient is the total Force here
         this->systems[img]->hamiltonian->Gradient_and_Energy( *configurations[img], Gradient[img], current_energy );
@@ -138,7 +138,7 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
 {
     using namespace Utility;
 
-    for( unsigned int i = 0; i < configurations.size(); ++i )
+    for( std::size_t i = 0; i < configurations.size(); ++i )
     {
         auto & image         = *configurations[i];
         auto & force         = forces[i];
@@ -245,7 +245,7 @@ void Method_LLG<solver>::Hook_Post_Iteration()
 
     // --- Convergence Parameter Update
     // Loop over images to calculate the maximum torques
-    for( unsigned int img = 0; img < this->systems.size(); ++img )
+    for( std::size_t img = 0; img < this->systems.size(); ++img )
     {
         this->force_converged[img] = false;
         // auto fmax = this->Force_on_Image_MaxAbsComponent(*(this->systems[img]->spins), this->forces_virtual[img]);
@@ -315,7 +315,7 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
     {
         // Convert indices to formatted strings
         auto s_img         = fmt::format( "{:0>2}", this->idx_image );
-        int base           = (int)log10( this->parameters->n_iterations );
+        auto base          = static_cast<std::int32_t>( log10( this->parameters->n_iterations ) );
         std::string s_iter = fmt::format( "{:0>" + fmt::format( "{}", base ) + "}", iteration );
 
         std::string preSpinsFile;
@@ -334,7 +334,7 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
 
         // Function to write or append image and energy files
         auto writeOutputConfiguration
-            = [this, preSpinsFile, preEnergyFile, iteration]( std::string suffix, bool append )
+            = [this, preSpinsFile, preEnergyFile, iteration]( const std::string & suffix, bool append )
         {
             try
             {
@@ -359,7 +359,7 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
                 if( append )
                     IO::OVF_File( spinsFile ).append_segment( segment, spins[0].data(), int( format ) );
                 else
-                    IO::OVF_File( spinsFile ).append_segment( segment, spins[0].data(), int( format ) );
+                    IO::OVF_File( spinsFile ).write_segment( segment, spins[0].data(), int( format ) );
             }
             catch( ... )
             {
@@ -367,7 +367,8 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
             }
         };
 
-        auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration]( std::string suffix, bool append )
+        auto writeOutputEnergy
+            = [this, preSpinsFile, preEnergyFile, iteration]( const std::string & suffix, bool append )
         {
             bool normalize   = this->systems[0]->llg_parameters->output_energy_divide_by_nspins;
             bool readability = this->systems[0]->llg_parameters->output_energy_add_readability_lines;
@@ -420,14 +421,14 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
                     std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
                     segment.title       = strdup( title.c_str() );
                     std::string comment = fmt::format( "Energy per spin. Total={}meV", this->systems[0]->E );
-                    for( auto & contribution : this->systems[0]->E_array )
+                    for( const auto & contribution : this->systems[0]->E_array )
                         comment += fmt::format( ", {}={}meV", contribution.first, contribution.second );
                     segment.comment  = strdup( comment.c_str() );
                     segment.valuedim = 1 + this->systems[0]->E_array.size();
 
                     std::string valuelabels = "Total";
                     std::string valueunits  = "meV";
-                    for( auto & pair : this->systems[0]->E_array )
+                    for( const auto & pair : this->systems[0]->E_array )
                     {
                         valuelabels += fmt::format( " {}", pair.first );
                         valueunits += " meV";
@@ -438,10 +439,12 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
                     IO::VF_FileFormat format = this->systems[0]->llg_parameters->output_vf_filetype;
 
                     // open and write
-                    IO::OVF_File( energyFilePerSpin ).write_segment( segment, data.data(), int( format ) );
+                    IO::OVF_File( energyFilePerSpin ).write_segment( segment, data.data(), static_cast<int>( format ) );
 
                     Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-                         fmt::format( "Wrote spins to file \"{}\" with format {}", energyFilePerSpin, int( format ) ),
+                         fmt::format(
+                             "Wrote spins to file \"{}\" with format {}", energyFilePerSpin,
+                             static_cast<int>( format ) ),
                          -1, -1 );
                 }
             }

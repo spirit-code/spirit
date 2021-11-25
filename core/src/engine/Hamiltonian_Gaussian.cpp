@@ -22,8 +22,8 @@ void Hamiltonian_Gaussian::Update_Energy_Contributions()
 
 void Hamiltonian_Gaussian::Hessian( const vectorfield & spins, MatrixX & hessian )
 {
-    int nos = spins.size();
-    for( int ispin = 0; ispin < nos; ++ispin )
+    std::size_t nos = spins.size();
+    for( std::size_t ispin = 0; ispin < nos; ++ispin )
     {
         // Set Hessian to zero
         hessian.setZero();
@@ -37,12 +37,12 @@ void Hamiltonian_Gaussian::Hessian( const vectorfield & spins, MatrixX & hessian
                 = this->amplitude[igauss] * std::exp( -std::pow( l, 2 ) / ( 2.0 * std::pow( this->width[igauss], 2 ) ) )
                   / std::pow( this->width[igauss], 2 ) * ( std::pow( l, 2 ) / std::pow( this->width[igauss], 2 ) - 1 );
             // Effective Field contribution
-            for( int alpha = 0; alpha < 3; ++alpha )
+            for( std::uint8_t alpha = 0; alpha < 3; ++alpha )
             {
-                for( int beta = 0; beta < 3; ++beta )
+                for( std::uint8_t beta = 0; beta < 3; ++beta )
                 {
-                    int i = 3 * ispin + alpha;
-                    int j = 3 * ispin + beta;
+                    std::size_t i = 3 * ispin + alpha;
+                    std::size_t j = 3 * ispin + beta;
                     hessian( i, j ) += prefactor * this->center[igauss][alpha] * this->center[igauss][beta];
                 }
             }
@@ -52,9 +52,9 @@ void Hamiltonian_Gaussian::Hessian( const vectorfield & spins, MatrixX & hessian
 
 void Hamiltonian_Gaussian::Gradient( const vectorfield & spins, vectorfield & gradient )
 {
-    int nos = spins.size();
+    std::size_t nos = spins.size();
 
-    for( int ispin = 0; ispin < nos; ++ispin )
+    for( std::size_t ispin = 0; ispin < nos; ++ispin )
     {
         // Set gradient to zero
         gradient[ispin] = { 0, 0, 0 };
@@ -81,7 +81,7 @@ void Hamiltonian_Gaussian::Gradient( const vectorfield & spins, vectorfield & gr
 void Hamiltonian_Gaussian::Energy_Contributions_per_Spin(
     const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions )
 {
-    int nos = spins.size();
+    std::size_t nos = spins.size();
 
     // Allocate if not already allocated
     if( this->energy_contributions_per_spin[0].second.size() != nos )
@@ -93,7 +93,7 @@ void Hamiltonian_Gaussian::Energy_Contributions_per_Spin(
 
     for( int i = 0; i < this->n_gaussians; ++i )
     {
-        for( int ispin = 0; ispin < nos; ++ispin )
+        for( std::size_t ispin = 0; ispin < nos; ++ispin )
         {
             // Distance between spin and gaussian center
             scalar l

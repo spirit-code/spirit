@@ -83,8 +83,6 @@ template<Solver solver>
 void Method_GNEB<solver>::Calculate_Force(
     const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces )
 {
-    int nos = configurations[0]->size();
-
     // We assume here that we receive a vector of configurations that corresponds to the vector of systems we gave the
     // Solver.
     //      The Solver shuld respect this, but there is no way to enforce it.
@@ -168,6 +166,7 @@ void Method_GNEB<solver>::Calculate_Force(
 
     // Get the total force on the image chain
     // Loop over images to calculate the total force on each Image
+    std::size_t nos = configurations[0]->size();
     for( int img = 1; img < chain->noi - 1; ++img )
     {
         auto & image = *configurations[img];
@@ -262,7 +261,7 @@ void Method_GNEB<solver>::Calculate_Force_Virtual(
     using namespace Utility;
 
     // Calculate the cross product with the spin configuration to get direct minimization
-    for( unsigned int i = 1; i < configurations.size() - 1; ++i )
+    for( std::size_t i = 1; i < configurations.size() - 1; ++i )
     {
         auto & image         = *configurations[i];
         auto & force         = forces[i];
@@ -285,10 +284,7 @@ void Method_GNEB<solver>::Calculate_Force_Virtual(
 template<Solver solver>
 bool Method_GNEB<solver>::Converged()
 {
-    // return this->isConverged;
-    if( this->max_torque < this->chain->gneb_parameters->force_convergence )
-        return true;
-    return false;
+    return this->max_torque < this->chain->gneb_parameters->force_convergence;
 }
 
 template<Solver solver>
@@ -360,8 +356,8 @@ void Method_GNEB<solver>::Calculate_Interpolated_Energy_Contributions()
     Log( Utility::Log_Level::Debug, Utility::Log_Sender::GNEB,
          std::string( "Calculating interpolated energy contributions" ), -1, -1 );
 
-    int nos = this->configurations[0]->size();
-    int noi = this->chain->noi;
+    std::size_t nos = this->configurations[0]->size();
+    int noi         = this->chain->noi;
 
     if( chain->images[0]->hamiltonian->Name() != "Heisenberg" )
     {
@@ -370,8 +366,8 @@ void Method_GNEB<solver>::Calculate_Interpolated_Energy_Contributions()
              -1 );
         return;
     }
-    Engine::Hamiltonian_Heisenberg & ham = (Engine::Hamiltonian_Heisenberg &)*( chain->images[0]->hamiltonian );
-    int n_interactions                   = ham.Number_of_Interactions();
+    auto & ham                 = (Engine::Hamiltonian_Heisenberg &)*( chain->images[0]->hamiltonian );
+    std::size_t n_interactions = ham.Number_of_Interactions();
 
     // Allocate temporaries
     field<Vector3> temp_field( nos, { 0, 0, 0 } );
@@ -518,7 +514,7 @@ void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bo
         preEnergiesFile = this->parameters->output_folder + "/" + fileTag + "Chain_Energies";
 
         // Function to write or append image and energy files
-        auto writeOutputChain = [this, preChainFile, preEnergiesFile, iteration]( std::string suffix, bool append )
+        auto writeOutputChain = [this, preChainFile, preEnergiesFile, iteration]( const std::string& suffix, bool append )
         {
             try
             {
@@ -546,14 +542,14 @@ void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bo
                 segment.valuelabels = strdup( "spin_x spin_y spin_z" );
                 segment.valueunits  = strdup( "none none none" );
                 auto & spins        = *this->chain->images[0]->spins;
-                IO::OVF_File( chainFile ).write_segment( segment, spins[0].data(), int( format ) );
-                // append all the others
+                IO::OVF_File( chainFile ).write_segment( segment, spins[0].data(), static_cast<int>( format ) );
+                // Append all the others
                 for( int i = 1; i < this->chain->noi; i++ )
                 {
                     auto & spins    = *this->chain->images[i]->spins;
                     output_comment  = fmt::format( "{}\n# Desc: Image {} of {}", output_comment_base, i, chain->noi );
                     segment.comment = strdup( output_comment.c_str() );
-                    IO::OVF_File( chainFile ).append_segment( segment, spins[0].data(), int( format ) );
+                    IO::OVF_File( chainFile ).append_segment( segment, spins[0].data(), static_cast<int>( format ) );
                 }
             }
             catch( ... )
@@ -563,7 +559,7 @@ void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bo
         };
 
         Calculate_Interpolated_Energy_Contributions();
-        auto writeOutputEnergies = [this, preChainFile, preEnergiesFile, iteration]( std::string suffix )
+        auto writeOutputEnergies = [this, preChainFile, preEnergiesFile, iteration]( const std::string & suffix )
         {
             bool normalize   = this->chain->gneb_parameters->output_energies_divide_by_nspins;
             bool readability = this->chain->gneb_parameters->output_energies_add_readability_lines;

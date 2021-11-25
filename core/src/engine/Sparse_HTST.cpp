@@ -109,16 +109,16 @@ void Sparse_Get_Lowest_Eigenvectors_VP(
 {
     Log( Utility::Log_Level::All, Utility::Log_Sender::HTST,
          fmt::format( "    Computing eigenvalues smaller than {}", max_evalue ) );
-    scalar tol           = 1e-8;
-    int n_log_step       = 20000;
-    int max_iter         = 10 * n_log_step;
-    int n_iter_power     = 250;
-    int n_power_refactor = 50;
-    scalar cur           = 2 * tol;
-    scalar m             = 0.01;
-    scalar step_size     = 1e-4;
-    int n_iter           = 0;
-    int nos              = matrix.rows() / 2;
+    scalar tol              = 1e-8;
+    std::int64_t n_log_step = 20000;
+    std::int64_t max_iter   = 10 * n_log_step;
+    int n_iter_power        = 250;
+    int n_power_refactor    = 50;
+    scalar cur              = 2 * tol;
+    scalar m                = 0.01;
+    scalar step_size        = 1e-4;
+    std::int64_t n_iter     = 0;
+    std::int64_t nos        = matrix.rows() / 2;
 
     scalar sigma_shift = std::max( scalar( 5.0 ), 2 * scalar( max_evalue ) );
 
@@ -151,7 +151,7 @@ void Sparse_Get_Lowest_Eigenvectors_VP(
             gradient = 2 * matrix * x;
 
             cur_evalue_estimate = 0.5 * x.dot( gradient ); // Update the current estimate of our evalue
-            for( int i = 0; i < evecs.size(); i++ )
+            for( std::size_t i = 0; i < evecs.size(); i++ )
             {
                 gradient
                     += 2 * ( sigma_shift - evalues[i] ) * ( evecs[i].dot( x ) )
@@ -178,9 +178,9 @@ void Sparse_Get_Lowest_Eigenvectors_VP(
             x -= step_size * velocity + 0.5 / m * step_size * gradient;
 
             // Re-orthogonalize
-            for( int i = 0; i < evecs.size(); i++ )
+            for( const auto & evec : evecs )
             {
-                x -= ( x.dot( evecs[i] ) ) * x;
+                x -= ( x.dot( evec ) ) * x;
             }
             // Re-normalize
             x.normalize();
@@ -246,7 +246,7 @@ void Calculate( Data::HTST_Info & htst_info )
     auto & image_minimum = *htst_info.minimum->spins;
     auto & image_sp      = *htst_info.saddle_point->spins;
 
-    int nos = image_minimum.size();
+    std::size_t nos = image_minimum.size();
 
     Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Saving NO eigenvectors." );
 
@@ -302,8 +302,8 @@ void Calculate( Data::HTST_Info & htst_info )
 
     ////////////////////////////////////////////////////////////////////////
     // Saddle point
-    int n_zero_modes_sp    = 0;
-    scalarfield evalues_sp = scalarfield( 0 );
+    std::size_t n_zero_modes_sp = 0;
+    scalarfield evalues_sp      = scalarfield( 0 );
     {
         Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Calculation for the Saddle Point" );
 
@@ -352,9 +352,11 @@ void Calculate( Data::HTST_Info & htst_info )
         // Check if second-lowest eigenvalue < 0 (higher-order SP)
         Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Check if higher order saddle point..." );
         int n_negative = 0;
-        for( int i = 0; i < evalues_sp.size(); ++i )
-            if( evalues_sp[i] < -epsilon )
+        for( double i : evalues_sp )
+        {
+            if( i < -epsilon )
                 ++n_negative;
+        }
 
         if( n_negative > 1 )
         {
@@ -379,9 +381,9 @@ void Calculate( Data::HTST_Info & htst_info )
         // Checking for zero modes at the saddle point...
         Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST,
              "    Checking for zero modes at the saddle point..." );
-        for( int i = 0; i < evalues_sp.size(); ++i )
+        for( double i : evalues_sp )
         {
-            if( std::abs( evalues_sp[i] ) <= epsilon )
+            if( std::abs( i ) <= epsilon )
                 ++n_zero_modes_sp;
         }
         // Deal with zero modes if any (calculate volume)
@@ -399,7 +401,7 @@ void Calculate( Data::HTST_Info & htst_info )
 
     ////////////////////////////////////////////////////////////////////////
     // Initial state minimum
-    int n_zero_modes_minimum = 0;
+    std::size_t n_zero_modes_minimum = 0;
     scalarfield evalues_min  = scalarfield( 0 );
     {
         Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Calculation for the Minimum" );
@@ -434,18 +436,16 @@ void Calculate( Data::HTST_Info & htst_info )
 
         // Checking for zero modes at the minimum..
         Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Checking for zero modes at the minimum ..." );
-        for( int i = 0; i < evalues_min.size(); ++i )
+        for( double & i : evalues_min )
         {
-            if( std::abs( evalues_min[i] ) <= epsilon )
+            if( std::abs( i ) <= epsilon )
                 ++n_zero_modes_minimum;
-            if( evalues_min[i] < 0 )
+            if( i < 0 )
             {
-                Log(
-                    Utility::Log_Level::Warning, Utility::Log_Sender::HTST,
-                    fmt::format(
-                        "    Minimum has a negative mode with eigenvalue = {}!",
-                        evalues_min[i] ) ); // The Question is if we should terminate the calculation here or allow to
-                                            // continue since often the negatives cancel sqrt(-x) * sqrt(-x) = sqrt(x^2)
+                // The Question is if we should terminate the calculation here or allow to
+                // continue since often the negatives cancel sqrt(-x) * sqrt(-x) = sqrt(x^2)
+                Log( Utility::Log_Level::Warning, Utility::Log_Sender::HTST,
+                     fmt::format( "    Minimum has a negative mode with eigenvalue = {}!", i ) );
             }
         }
         // Deal with zero modes if any (calculate volume)
@@ -475,11 +475,11 @@ void Calculate( Data::HTST_Info & htst_info )
     htst_info.Omega_0 = std::sqrt( std::exp( htst_info.det_min - htst_info.det_sp ) );
 
     scalar zero_mode_factor = 1;
-    for( int i = 0; i < n_zero_modes_minimum; i++ )
+    for( std::size_t i = 0; i < n_zero_modes_minimum; i++ )
         zero_mode_factor /= std::abs( evalues_min[i] ); // We can take the abs here and in the determinants, because in
                                                         // the end we know the result must be positive
 
-    for( int i = 0; i < n_zero_modes_sp; i++ )
+    for( std::size_t i = 0; i < n_zero_modes_sp; i++ )
         zero_mode_factor *= std::abs( evalues_sp[i + 1] ); // We can take the abs here and in the determinants, because
                                                            // in the end we know the result must be positive
 
@@ -514,9 +514,9 @@ void Sparse_Calculate_Dynamical_Matrix(
     const vectorfield & spins, const scalarfield & mu_s, const SpMatrixX & hessian, SpMatrixX & velocity )
 {
     constexpr scalar epsilon = 1e-10;
-    int nos                  = spins.size();
+    std::size_t nos          = spins.size();
 
-    typedef Eigen::Triplet<scalar> T;
+    using T = Eigen::Triplet<scalar>;
     std::vector<T> tripletList;
     tripletList.reserve( hessian.nonZeros() );
 
@@ -524,21 +524,21 @@ void Sparse_Calculate_Dynamical_Matrix(
 
     // We first compute the effective field temporary
     auto b_eff = vectorfield( nos, { 0, 0, 0 } );
-    for( int k = 0; k < hessian.outerSize(); ++k )
+    for( std::int64_t k = 0; k < hessian.outerSize(); ++k )
     {
         for( SpMatrixX::InnerIterator it( hessian, k ); it; ++it )
         {
-            int row = it.row(), col = it.col();
+            std::int64_t row = it.row(), col = it.col();
             scalar h = it.value();
 
-            for( int nu = 0; nu < 3; nu++ )
+            for( std::uint8_t nu = 0; nu < 3; nu++ )
             {
-                for( int gamma = 0; gamma < 3; gamma++ )
+                for( std::uint8_t gamma = 0; gamma < 3; gamma++ )
                 {
                     if( ( row - nu ) % 3 != 0 || ( col - gamma ) % 3 != 0 || nu > row || gamma > col )
                         continue;
-                    int i = ( row - nu ) / 3.0;
-                    int j = ( col - gamma ) / 3.0;
+                    auto i = static_cast<std::int64_t>( static_cast<double>( row - nu ) / 3.0 );
+                    auto j = static_cast<std::int64_t>( static_cast<double>( col - gamma ) / 3.0 );
                     b_eff[i][nu] += h * spins[j][gamma] / mu_s[i];
                 }
             }
@@ -546,45 +546,45 @@ void Sparse_Calculate_Dynamical_Matrix(
     }
 
     // Add the contributions from the effective field
-    for( int i = 0; i < nos; i++ )
+    for( std::size_t i = 0; i < nos; i++ )
     {
-        for( int alpha = 0; alpha < 3; alpha++ )
+        for( std::uint8_t alpha = 0; alpha < 3; alpha++ )
         {
-            for( int beta = 0; beta < 3; beta++ )
+            for( std::uint8_t beta = 0; beta < 3; beta++ )
             {
-                for( int nu = 0; nu < 3; nu++ )
+                for( std::uint8_t nu = 0; nu < 3; nu++ )
                 {
                     scalar res = levi_civita( alpha, beta, nu ) * b_eff[i][nu];
                     if( std::abs( res ) > epsilon )
-                        tripletList.push_back( T( 3 * i + alpha, 3 * i + beta, res ) );
+                        tripletList.emplace_back( 3 * i + alpha, 3 * i + beta, res );
                 }
             }
         }
     }
 
     // Iterate over non zero entries of hessian
-    for( int k = 0; k < hessian.outerSize(); ++k )
+    for( std::int64_t k = 0; k < hessian.outerSize(); ++k )
     {
         for( SpMatrixX::InnerIterator it( hessian, k ); it; ++it )
         {
-            int row = it.row(), col = it.col();
+            std::int64_t row = it.row(), col = it.col();
             scalar h = it.value();
 
-            for( int mu = 0; mu < 3; mu++ )
+            for( std::uint8_t mu = 0; mu < 3; mu++ )
             {
-                for( int nu = 0; nu < 3; nu++ )
+                for( std::uint8_t nu = 0; nu < 3; nu++ )
                 {
-                    for( int alpha = 0; alpha < 3; alpha++ )
+                    for( std::uint8_t alpha = 0; alpha < 3; alpha++ )
                     {
-                        for( int beta = 0; beta < 3; beta++ )
+                        for( std::uint8_t beta = 0; beta < 3; beta++ )
                         {
                             if( ( row - nu ) % 3 != 0 || ( col - beta ) % 3 != 0 || nu > row || beta > col )
                                 continue;
 
-                            int i      = ( row - nu ) / 3.0;
-                            int j      = ( col - beta ) / 3.0;
+                            auto i     = static_cast<std::int64_t>( static_cast<double>( row - nu ) / 3.0 );
+                            auto j     = static_cast<std::int64_t>( static_cast<double>( col - beta ) / 3.0 );
                             scalar res = levi_civita( alpha, mu, nu ) * spins[i][mu] * h / mu_s[i];
-                            tripletList.push_back( T( 3 * i + alpha, 3 * j + beta, res ) );
+                            tripletList.emplace_back( 3 * i + alpha, 3 * j + beta, res );
                         }
                     }
                 }
@@ -601,26 +601,26 @@ void sparse_hessian_bordered_3N(
     // Calculates a 3Nx3N matrix in the bordered Hessian approach and transforms it into the tangent basis,
     // making the result a 2Nx2N matrix. The bordered Hessian's Lagrange multipliers assume a local extremum.
 
-    int nos = image.size();
+    std::size_t nos = image.size();
     VectorX lambda( nos );
-    for( int i = 0; i < nos; ++i )
+    for( std::size_t i = 0; i < nos; ++i )
         lambda[i] = image[i].normalized().dot( gradient[i] );
 
     // Construct hessian_out
-    typedef Eigen::Triplet<scalar> T;
+    using T = Eigen::Triplet<scalar>;
     std::vector<T> tripletList;
     tripletList.reserve( hessian.nonZeros() + 3 * nos );
 
     // Iterate over non zero entries of hesiian
-    for( int k = 0; k < hessian.outerSize(); ++k )
+    for( std::int64_t k = 0; k < hessian.outerSize(); ++k )
     {
         for( SpMatrixX::InnerIterator it( hessian, k ); it; ++it )
         {
-            tripletList.push_back( T( it.row(), it.col(), it.value() ) );
+            tripletList.emplace_back( it.row(), it.col(), it.value() );
         }
-        int j = k % 3;
-        int i = ( k - j ) / 3;
-        tripletList.push_back( T( k, k, -lambda[i] ) ); // Correction to the diagonal
+        std::int64_t j = k % 3;
+        std::int64_t i = ( k - j ) / 3;
+        tripletList.emplace_back( k, k, -lambda[i] ); // Correction to the diagonal
     }
     hessian_out.setFromTriplets( tripletList.begin(), tripletList.end() );
 }
@@ -640,7 +640,7 @@ void Sparse_Geodesic_Eigen_Decomposition(
 {
     Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST, "---------- Sparse Geodesic Eigen Decomposition" );
 
-    int nos = image.size();
+    std::size_t nos = image.size();
 
     // Calculate geodesic Hessian in 3N-representation
     hessian_geodesic_3N = SpMatrixX( 3 * nos, 3 * nos );

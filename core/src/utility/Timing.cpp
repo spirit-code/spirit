@@ -19,7 +19,7 @@ std::string TimePointToString( system_clock::time_point t )
 {
     // Convert to C-Time
     std::time_t t_c = system_clock::to_time_t( t );
-    // Convert to TM Struct
+    // Convert to TM struct
     std::tm time_s = *localtime( &t_c );
     // Return formatted time
     return fmt::format( "{:%Y-%m-%d_%H-%M-%S}", time_s );
@@ -29,7 +29,7 @@ std::string TimePointToString_Pretty( system_clock::time_point t )
 {
     // Convert to C-Time
     std::time_t t_c = system_clock::to_time_t( t );
-    // Convert to TM Struct
+    // Convert to TM struct
     std::tm time_s = *localtime( &t_c );
     // Return formatted time
     return fmt::format( "{:%Y-%m-%d %H:%M:%S}", time_s );
@@ -37,20 +37,20 @@ std::string TimePointToString_Pretty( system_clock::time_point t )
 
 std::string CurrentDateTime()
 {
-    // Get Time Point
+    // Get timepoint
     system_clock::time_point now = system_clock::now();
-    // Return String from Time Point
+    // Return string from timepoint
     return TimePointToString( now );
 }
 
-std::string DateTimePassed( duration<scalar> _dt )
+std::string DateTimePassed( duration<scalar> dt )
 {
-    // Time Differences
-    scalar dt = _dt.count();
-    int dt_h  = (int)( dt / 3600.0 );
-    int dt_m  = (int)( ( dt - 3600 * dt_h ) / 60.0 );
-    int dt_s  = (int)( dt - 3600 * dt_h - 60 * dt_m );
-    int dt_ms = (int)( ( dt - 3600 * dt_h - 60 * dt_m - dt_s ) * 1e3 );
+    scalar seconds = dt.count();
+    // Time differences
+    auto dt_h  = static_cast<int>( seconds / 3600.0 );
+    auto dt_m  = static_cast<int>( ( seconds - 3600 * dt_h ) / 60.0 );
+    auto dt_s  = static_cast<int>( seconds - 3600 * dt_h - 60 * dt_m );
+    auto dt_ms = static_cast<int>( ( seconds - 3600 * dt_h - 60 * dt_m - dt_s ) * 1e3 );
     // Return string
     return fmt::format( "{}:{}:{}.{}", dt_h, dt_m, dt_s, dt_ms );
 }
@@ -75,10 +75,10 @@ scalar HoursPassed( duration<scalar> dt )
     return dt.count() / 3600.0;
 }
 
-duration<scalar> DurationFromString( std::string dt )
+duration<scalar> DurationFromString( const std::string & dt )
 {
-    int hours = 0, minutes = 0;
-    long int seconds = 0;
+    std::uint8_t hours = 0, minutes = 0;
+    std::uint64_t seconds = 0;
 
     std::istringstream iss( dt );
     std::string token = "";

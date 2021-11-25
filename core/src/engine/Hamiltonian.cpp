@@ -32,7 +32,6 @@ void Hamiltonian::Hessian( const vectorfield & spins, MatrixX & hessian )
 void Hamiltonian::Sparse_Hessian( const vectorfield & spins, SpMatrixX & hessian )
 {
     // Not implemented
-    return;
 }
 
 void Hamiltonian::Hessian_FD( const vectorfield & spins, MatrixX & hessian )
@@ -41,7 +40,7 @@ void Hamiltonian::Hessian_FD( const vectorfield & spins, MatrixX & hessian )
     // using the differences between gradient values (not function)
     // see https://v8doc.sas.com/sashtml/ormp/chap5/sect28.htm
 
-    int nos = spins.size();
+    std::size_t nos = spins.size();
 
     vectorfield spins_pi( nos );
     vectorfield spins_mi( nos );
@@ -58,13 +57,13 @@ void Hamiltonian::Hessian_FD( const vectorfield & spins, MatrixX & hessian )
     vectorfield grad_pj( nos );
     vectorfield grad_mj( nos );
 
-    for( int i = 0; i < nos; ++i )
+    for( std::size_t i = 0; i < nos; ++i )
     {
-        for( int j = 0; j < nos; ++j )
+        for( std::size_t j = 0; j < nos; ++j )
         {
-            for( int alpha = 0; alpha < 3; ++alpha )
+            for( std::uint8_t alpha = 0; alpha < 3; ++alpha )
             {
-                for( int beta = 0; beta < 3; ++beta )
+                for( std::uint8_t beta = 0; beta < 3; ++beta )
                 {
                     // Displace
                     spins_pi[i][alpha] += delta;
@@ -106,7 +105,7 @@ void Hamiltonian::Gradient_and_Energy( const vectorfield & spins, vectorfield & 
 
 void Hamiltonian::Gradient_FD( const vectorfield & spins, vectorfield & gradient )
 {
-    int nos = spins.size();
+    std::size_t nos = spins.size();
 
     // Calculate finite difference
     vectorfield spins_plus( nos );
@@ -115,9 +114,9 @@ void Hamiltonian::Gradient_FD( const vectorfield & spins, vectorfield & gradient
     spins_plus  = spins;
     spins_minus = spins;
 
-    for( int i = 0; i < nos; ++i )
+    for( std::size_t i = 0; i < nos; ++i )
     {
-        for( int dim = 0; dim < 3; ++dim )
+        for( std::uint8_t dim = 0; dim < 3; ++dim )
         {
             // Displace
             spins_plus[i][dim] += delta;
@@ -139,7 +138,7 @@ scalar Hamiltonian::Energy( const vectorfield & spins )
 {
     scalar sum  = 0;
     auto energy = Energy_Contributions( spins );
-    for( auto E : energy )
+    for( const auto & E : energy )
         sum += E.second;
     return sum;
 }
@@ -148,7 +147,7 @@ std::vector<std::pair<std::string, scalar>> Hamiltonian::Energy_Contributions( c
 {
     Energy_Contributions_per_Spin( spins, this->energy_contributions_per_spin );
     std::vector<std::pair<std::string, scalar>> energy( this->energy_contributions_per_spin.size() );
-    for( unsigned int i = 0; i < energy.size(); ++i )
+    for( std::size_t i = 0; i < energy.size(); ++i )
     {
         energy[i] = { this->energy_contributions_per_spin[i].first,
                       Vectormath::sum( this->energy_contributions_per_spin[i].second ) };
@@ -165,7 +164,7 @@ void Hamiltonian::Energy_Contributions_per_Spin(
         "Tried to use  Hamiltonian::Energy_Contributions_per_Spin() of the Hamiltonian base class!" );
 }
 
-int Hamiltonian::Number_of_Interactions()
+std::size_t Hamiltonian::Number_of_Interactions()
 {
     return energy_contributions_per_spin.size();
 }

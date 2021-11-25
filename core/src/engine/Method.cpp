@@ -12,8 +12,9 @@ using namespace Utility;
 
 namespace Engine
 {
+
 Method::Method( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain )
-        : parameters( parameters ), idx_image( idx_img ), idx_chain( idx_chain ), iteration( 0 ), step( 0 )
+        : iteration( 0 ), step( 0 ), idx_image( idx_img ), idx_chain( idx_chain ), parameters( parameters )
 {
     // Sender name for log messages
     this->SenderName = Log_Sender::All;
@@ -29,7 +30,7 @@ Method::Method( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img
     this->n_log = this->n_iterations / this->n_iterations_log;
 
     // Setup timings
-    for( int i = 0; i < 7; ++i )
+    for( std::uint8_t i = 0; i < 7; ++i )
         this->t_iterations.push_back( system_clock::now() );
     this->ips       = 0;
     this->starttime = Timing::CurrentDateTime();
@@ -102,7 +103,7 @@ void Method::Iterate()
 scalar Method::getIterationsPerSecond()
 {
     scalar l_ips = 0.0;
-    for( unsigned int i = 0; i < t_iterations.size() - 1; ++i )
+    for( std::size_t i = 0; i < t_iterations.size() - 1; ++i )
     {
         l_ips += Timing::SecondsPassed( t_iterations[i + 1] - t_iterations[i] );
     }
@@ -123,7 +124,7 @@ double Method::get_simulated_time()
         "Tried to use Method::get_simulated_time() of the Method base class!" );
 }
 
-int Method::getWallTime()
+std::int64_t Method::getWallTime()
 {
     auto t_current              = system_clock::now();
     duration<scalar> dt_seconds = t_current - this->t_start;
@@ -213,7 +214,6 @@ void Method::Hook_Post_Iteration()
 void Method::Finalize()
 {
     // Not Implemented!
-
     spirit_throw(
         Exception_Classifier::Not_Implemented, Log_Level::Error,
         "Tried to use Method::Save_Current() of the Method base class!" );
@@ -256,4 +256,5 @@ std::string Method::SolverFullName()
          this->idx_chain );
     return "--";
 }
+
 } // namespace Engine

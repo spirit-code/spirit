@@ -36,7 +36,7 @@ scalar MinutesPassed( std::chrono::duration<scalar> dt );
 scalar HoursPassed( std::chrono::duration<scalar> dt );
 
 // Returns the duration when passed a string "hh:mm:ss"
-std::chrono::duration<scalar> DurationFromString( std::string dt );
+std::chrono::duration<scalar> DurationFromString( const std::string & dt );
 
 } // namespace Timing
 } // namespace Utility
