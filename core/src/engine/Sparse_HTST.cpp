@@ -352,7 +352,7 @@ void Calculate( Data::HTST_Info & htst_info )
         // Check if second-lowest eigenvalue < 0 (higher-order SP)
         Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Check if higher order saddle point..." );
         int n_negative = 0;
-        for( double i : evalues_sp )
+        for( const auto & i : evalues_sp )
         {
             if( i < -epsilon )
                 ++n_negative;
@@ -381,7 +381,7 @@ void Calculate( Data::HTST_Info & htst_info )
         // Checking for zero modes at the saddle point...
         Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST,
              "    Checking for zero modes at the saddle point..." );
-        for( double i : evalues_sp )
+        for( const auto & i : evalues_sp )
         {
             if( std::abs( i ) <= epsilon )
                 ++n_zero_modes_sp;
@@ -402,7 +402,7 @@ void Calculate( Data::HTST_Info & htst_info )
     ////////////////////////////////////////////////////////////////////////
     // Initial state minimum
     std::size_t n_zero_modes_minimum = 0;
-    scalarfield evalues_min  = scalarfield( 0 );
+    scalarfield evalues_min          = scalarfield( 0 );
     {
         Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Calculation for the Minimum" );
 
@@ -436,7 +436,7 @@ void Calculate( Data::HTST_Info & htst_info )
 
         // Checking for zero modes at the minimum..
         Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Checking for zero modes at the minimum ..." );
-        for( double & i : evalues_min )
+        for( const auto & i : evalues_min )
         {
             if( std::abs( i ) <= epsilon )
                 ++n_zero_modes_minimum;
