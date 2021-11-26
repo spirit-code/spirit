@@ -33,6 +33,8 @@ struct Parameters_Method_GNEB : Parameters_Method_Solver
     // Mersenne twister PRNG
     std::mt19937 prng = std::mt19937( rng_seed );
 
+    bool moving_endpoints = false;
+
     // ----------------- Output --------------
     bool output_energies_step                  = false;
     bool output_energies_divide_by_nspins      = true;

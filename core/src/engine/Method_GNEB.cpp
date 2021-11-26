@@ -252,6 +252,44 @@ void Method_GNEB<solver>::Calculate_Force(
         // Copy out
         Vectormath::set_c_a( 1, F_total[img], forces[img] );
     } // end for img=1..noi-1
+
+    // Moving endpoints
+    // if( chain->gneb_parameters->moving_endpoints )
+    if( true )
+    {
+        for(int img : {0,chain->noi-1})
+        {
+            int nos = chain->images[img]->nos;
+            scalar _Rx0 = 1e-3 * nos;
+
+            auto _F_total = F_total[img].data();
+            auto _forces = forces[img].data();
+            auto _F_gradient = F_gradient[img].data();
+            auto _tangents = tangents[img].data();
+
+            scalar _Rx = (img==0 ? Rx[1]-Rx[0] : Rx[chain->noi-1] - Rx[chain->noi-2]);
+            // scalar _Rx = (img==0 ? lengths[1] : lengths[chain->noi-1]);
+
+            auto dE_dRx = (img==0 ? energies[1] - energies[0] : energies[chain->noi-1] - energies[chain->noi - 2]) / _Rx;
+
+            auto spring_constant = dE_dRx * this->chain->gneb_parameters->spring_constant;
+
+            std::cout << "image" << img << "\n";
+            std::cout << _tangents[0].transpose() << "\n";
+            std::cout << _Rx << "\n";
+            std::cout << _F_gradient[0].transpose() << "\n--\n";
+
+
+            Backend::par::apply(
+                nos,
+                [_forces, _F_gradient, _Rx, _Rx0, _tangents, spring_constant ] SPIRIT_LAMBDA( int idx )
+                {
+                    _forces[idx] = _F_gradient[idx] - _F_gradient[idx].dot(_tangents[idx]) * _tangents[idx] + 1 * spring_constant * ( _Rx - _Rx0  ) * _tangents[idx];
+                }
+            );
+        }
+    }
+
 } // end Calculate
 
 template<Solver solver>
@@ -262,7 +300,7 @@ void Method_GNEB<solver>::Calculate_Force_Virtual(
     using namespace Utility;
 
     // Calculate the cross product with the spin configuration to get direct minimization
-    for( unsigned int i = 1; i < configurations.size() - 1; ++i )
+    for( unsigned int i = 0; i < configurations.size(); ++i )
     {
         auto & image         = *configurations[i];
         auto & force         = forces[i];
