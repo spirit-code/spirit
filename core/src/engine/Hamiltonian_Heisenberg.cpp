@@ -21,6 +21,7 @@ using Engine::Vectormath::idx_from_tupel;
 
 namespace Engine
 {
+
 // Construct a Heisenberg Hamiltonian with pairs
 Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
     scalar external_field_magnitude, Vector3 external_field_normal, intfield anisotropy_indices,
@@ -105,13 +106,13 @@ void Hamiltonian_Heisenberg::Update_Interactions()
     // Exchange
     this->exchange_pairs      = pairfield( 0 );
     this->exchange_magnitudes = scalarfield( 0 );
-    if( exchange_shell_magnitudes.size() > 0 )
+    if( !exchange_shell_magnitudes.empty() )
     {
         // Generate Exchange neighbours
         intfield exchange_shells( 0 );
         Neighbours::Get_Neighbours_in_Shells(
             *geometry, exchange_shell_magnitudes.size(), exchange_pairs, exchange_shells, use_redundant_neighbours );
-        for( unsigned int ipair = 0; ipair < exchange_pairs.size(); ++ipair )
+        for( std::size_t ipair = 0; ipair < exchange_pairs.size(); ++ipair )
         {
             this->exchange_magnitudes.push_back( exchange_shell_magnitudes[exchange_shells[ipair]] );
         }
@@ -123,7 +124,7 @@ void Hamiltonian_Heisenberg::Update_Interactions()
         this->exchange_magnitudes = this->exchange_magnitudes_in;
         if( use_redundant_neighbours )
         {
-            for( int i = 0; i < exchange_pairs_in.size(); ++i )
+            for( std::size_t i = 0; i < exchange_pairs_in.size(); ++i )
             {
                 auto & p = exchange_pairs_in[i];
                 auto & t = p.translations;
@@ -137,13 +138,13 @@ void Hamiltonian_Heisenberg::Update_Interactions()
     this->dmi_pairs      = pairfield( 0 );
     this->dmi_magnitudes = scalarfield( 0 );
     this->dmi_normals    = vectorfield( 0 );
-    if( dmi_shell_magnitudes.size() > 0 )
+    if( !dmi_shell_magnitudes.empty() )
     {
         // Generate DMI neighbours and normals
         intfield dmi_shells( 0 );
         Neighbours::Get_Neighbours_in_Shells(
             *geometry, dmi_shell_magnitudes.size(), dmi_pairs, dmi_shells, use_redundant_neighbours );
-        for( unsigned int ineigh = 0; ineigh < dmi_pairs.size(); ++ineigh )
+        for( std::size_t ineigh = 0; ineigh < dmi_pairs.size(); ++ineigh )
         {
             this->dmi_normals.push_back(
                 Neighbours::DMI_Normal_from_Pair( *geometry, dmi_pairs[ineigh], this->dmi_shell_chirality ) );
@@ -158,7 +159,7 @@ void Hamiltonian_Heisenberg::Update_Interactions()
         this->dmi_normals    = this->dmi_normals_in;
         if( use_redundant_neighbours )
         {
-            for( int i = 0; i < dmi_pairs_in.size(); ++i )
+            for( std::size_t i = 0; i < dmi_pairs_in.size(); ++i )
             {
                 auto & p = dmi_pairs_in[i];
                 auto & t = p.translations;
@@ -170,14 +171,15 @@ void Hamiltonian_Heisenberg::Update_Interactions()
     }
 
     // Dipole-dipole (cutoff)
-    scalar radius = this->ddi_cutoff_radius;
-    if( this->ddi_method != DDI_Method::Cutoff )
-        radius = 0;
-    this->ddi_pairs      = Engine::Neighbours::Get_Pairs_in_Radius( *this->geometry, radius );
+    if( this->ddi_method == DDI_Method::Cutoff )
+        this->ddi_pairs = Engine::Neighbours::Get_Pairs_in_Radius( *this->geometry, this->ddi_cutoff_radius );
+    else
+        this->ddi_pairs = field<Pair>{};
+
     this->ddi_magnitudes = scalarfield( this->ddi_pairs.size() );
     this->ddi_normals    = vectorfield( this->ddi_pairs.size() );
 
-    for( unsigned int i = 0; i < this->ddi_pairs.size(); ++i )
+    for( std::size_t i = 0; i < this->ddi_pairs.size(); ++i )
     {
         Engine::Neighbours::DDI_from_Pair(
             *this->geometry, { this->ddi_pairs[i].i, this->ddi_pairs[i].j, this->ddi_pairs[i].translations },
