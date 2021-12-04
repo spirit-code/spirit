@@ -15,9 +15,9 @@ namespace IO
 {
 
 /*
-Note that due to the modular structure of the input parsers, input may be given in one or in separate files.
-Input may be given incomplete. In this case a log entry is created and default values are used.
-*/
+ * Note that due to the modular structure of the input parsers, input may be given in one or in separate files.
+ * Input may be given incomplete. In this case a log entry is created and default values are used.
+ */
 
 void Log_from_Config( const std::string & config_file, bool force_quiet = false );
 
