@@ -1,4 +1,4 @@
-#include <engine/Neighbours.hpp>
+﻿#include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
 #include <io/Filter_File_Handle.hpp>
 #include <io/IO.hpp>
@@ -104,19 +104,19 @@ try
 
     // Log the parameters
     std::vector<std::string> block;
-    block.push_back( "Logging parameters" );
-    block.push_back( fmt::format( "    file tag on output = \"{}\"", file_tag ) );
-    block.push_back( fmt::format( "    output folder      = \"{}\"", output_folder ) );
-    block.push_back( fmt::format( "    to file            = {}", messages_to_file ) );
-    block.push_back( fmt::format( "    file accept level  = {}", i_level_file ) );
-    block.push_back( fmt::format( "    to console         = {}", messages_to_console ) );
-    block.push_back( fmt::format( "    print accept level = {}", i_level_console ) );
-    block.push_back( fmt::format( "    input save initial = {}", save_input_initial ) );
-    block.push_back( fmt::format( "    input save final   = {}", save_input_final ) );
-    block.push_back( fmt::format( "    positions save initial  = {}", save_positions_initial ) );
-    block.push_back( fmt::format( "    positions save final    = {}", save_positions_final ) );
-    block.push_back( fmt::format( "    neighbours save initial = {}", save_neighbours_initial ) );
-    block.push_back( fmt::format( "    neighbours save final   = {}", save_neighbours_final ) );
+    block.emplace_back( "Logging parameters" );
+    block.emplace_back( fmt::format( "    file tag on output = \"{}\"", file_tag ) );
+    block.emplace_back( fmt::format( "    output folder      = \"{}\"", output_folder ) );
+    block.emplace_back( fmt::format( "    to file            = {}", messages_to_file ) );
+    block.emplace_back( fmt::format( "    file accept level  = {}", i_level_file ) );
+    block.emplace_back( fmt::format( "    to console         = {}", messages_to_console ) );
+    block.emplace_back( fmt::format( "    print accept level = {}", i_level_console ) );
+    block.emplace_back( fmt::format( "    input save initial = {}", save_input_initial ) );
+    block.emplace_back( fmt::format( "    input save final   = {}", save_input_final ) );
+    block.emplace_back( fmt::format( "    positions save initial  = {}", save_positions_initial ) );
+    block.emplace_back( fmt::format( "    positions save final    = {}", save_positions_final ) );
+    block.emplace_back( fmt::format( "    neighbours save initial = {}", save_neighbours_initial ) );
+    block.emplace_back( fmt::format( "    neighbours save final   = {}", save_neighbours_final ) );
     Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, block );
 
     // Update the Log
@@ -190,8 +190,6 @@ void Bravais_Vectors_from_Config(
 try
 {
     std::string bravais_lattice = "sc";
-    // Manually specified bravais vectors/matrix?
-    bool irregular = true;
 
     IO::Filter_File_Handle config_file_handle( config_file_name );
     // Bravais lattice type or manually specified vectors/matrix
@@ -284,7 +282,7 @@ try
     std::vector<Vector3> bravais_vectors = { Vector3{ 1, 0, 0 }, Vector3{ 0, 1, 0 }, Vector3{ 0, 0, 1 } };
     // Atoms in the basis
     std::vector<Vector3> cell_atoms = { Vector3{ 0, 0, 0 } };
-    int n_cell_atoms                = cell_atoms.size();
+    std::size_t n_cell_atoms        = cell_atoms.size();
     // Basis cell composition information (atom types, magnetic moments, ...)
     Data::Basis_Cell_Composition cell_composition{ false, { 0 }, { 0 }, { 1 }, {} };
     // Lattice Constant [Angstrom]
@@ -326,66 +324,16 @@ try
                 cell_composition.mu_s      = std::vector<scalar>( n_cell_atoms, 1 );
 
                 // Read atom positions
-                for( int iatom = 0; iatom < n_cell_atoms; ++iatom )
+                for( std::size_t iatom = 0; iatom < n_cell_atoms; ++iatom )
                 {
                     config_file_handle.GetLine();
                     config_file_handle >> cell_atoms[iatom][0] >> cell_atoms[iatom][1] >> cell_atoms[iatom][2];
-                    cell_composition.iatom[iatom] = iatom;
+                    cell_composition.iatom[iatom] = static_cast<int>( iatom );
                 }
             }
 
             // Read number of basis cells
             config_file_handle.Read_3Vector( n_cells, "n_basis_cells" );
-
-// Defects
-#ifdef SPIRIT_ENABLE_DEFECTS
-            int n_defects = 0;
-
-            std::string defects_file = "";
-            if( config_file_handle.Find( "n_defects" ) )
-                defects_file = config_file_name;
-            else if( config_file_handle.Find( "defects_from_file" ) )
-                config_file_handle >> defects_file;
-
-            if( defects_file.length() > 0 )
-            {
-                // The file name should be valid so we try to read it
-                Defects_from_File( defects_file, n_defects, defect_sites, defect_types );
-            }
-
-            // Disorder
-            if( config_file_handle.Find( "atom_types" ) )
-            {
-                config_file_handle >> n_atom_types;
-                cell_composition.disordered = true;
-                cell_composition.iatom.resize( n_atom_types );
-                cell_composition.atom_type.resize( n_atom_types );
-                cell_composition.mu_s.resize( n_atom_types );
-                cell_composition.concentration.resize( n_atom_types );
-                for( int itype = 0; itype < n_atom_types; ++itype )
-                {
-                    config_file_handle.GetLine();
-                    config_file_handle >> cell_composition.iatom[itype];
-                    config_file_handle >> cell_composition.atom_type[itype];
-                    config_file_handle >> cell_composition.mu_s[itype];
-                    config_file_handle >> cell_composition.concentration[itype];
-                    // if ( !(config_file_handle >> mu_s[itype]) )
-                    // {
-                    //     Log(Log_Level::Warning, Log_Sender::IO,
-                    //         fmt::format("Not enough values specified after 'mu_s'. Expected {}. Using
-                    //         mu_s[{}]=mu_s[0]={}", n_cell_atoms, iatom, mu_s[0]));
-                    //     mu_s[iatom] = mu_s[0];
-                    // }
-                }
-                Log( Log_Level::Warning, Log_Sender::IO,
-                     fmt::format(
-                         "{} atom types, iatom={} atom type={} concentration={}", n_atom_types,
-                         cell_composition.iatom[0], cell_composition.atom_type[0],
-                         cell_composition.concentration[0] ) );
-            }
-#else
-            Log( Log_Level::Parameter, Log_Sender::IO, "Disorder is disabled" );
-#endif
         }
         catch( ... )
         {
@@ -402,7 +350,7 @@ try
             {
                 if( config_file_handle.Find( "mu_s" ) )
                 {
-                    for( int iatom = 0; iatom < n_cell_atoms; ++iatom )
+                    for( std::size_t iatom = 0; iatom < n_cell_atoms; ++iatom )
                     {
                         if( !( config_file_handle >> cell_composition.mu_s[iatom] ) )
                         {
@@ -442,70 +390,179 @@ try
             spirit_handle_exception_core(
                 fmt::format( "Unable to read mu_s from config file \"{}\"", config_file_name ) );
         }
+
+// Defects
+#ifdef SPIRIT_ENABLE_DEFECTS
+        try
+        {
+            IO::Filter_File_Handle config_file_handle( config_file_name );
+
+            int n_defects = 0;
+
+            std::string defects_file = "";
+            if( config_file_handle.Find( "n_defects" ) )
+                defects_file = config_file_name;
+            else if( config_file_handle.Find( "defects_from_file" ) )
+                config_file_handle >> defects_file;
+
+            if( !defects_file.empty() )
+            {
+                // The file name should be valid so we try to read it
+                Defects_from_File( defects_file, n_defects, defect_sites, defect_types );
+            }
+
+            // Disorder
+            if( config_file_handle.Find( "atom_types" ) )
+            {
+                config_file_handle >> n_atom_types;
+                cell_composition.disordered = true;
+                cell_composition.iatom.resize( n_atom_types );
+                cell_composition.atom_type.resize( n_atom_types );
+                cell_composition.mu_s.resize( n_atom_types );
+                cell_composition.concentration.resize( n_atom_types );
+                for( int itype = 0; itype < n_atom_types; ++itype )
+                {
+                    config_file_handle.GetLine();
+                    config_file_handle >> cell_composition.iatom[itype];
+                    config_file_handle >> cell_composition.atom_type[itype];
+                    config_file_handle >> cell_composition.mu_s[itype];
+                    config_file_handle >> cell_composition.concentration[itype];
+                    // if ( !(config_file_handle >> mu_s[itype]) )
+                    // {
+                    //     Log(Log_Level::Warning, Log_Sender::IO,
+                    //         fmt::format("Not enough values specified after 'mu_s'. Expected {}. Using
+                    //         mu_s[{}]=mu_s[0]={}", n_cell_atoms, iatom, mu_s[0]));
+                    //     mu_s[iatom] = mu_s[0];
+                    // }
+                }
+                Log( Log_Level::Warning, Log_Sender::IO,
+                     fmt::format(
+                         "{} atom types, iatom={} atom type={} concentration={}", n_atom_types,
+                         cell_composition.iatom[0], cell_composition.atom_type[0],
+                         cell_composition.concentration[0] ) );
+            }
+#else
+        Log( Log_Level::Parameter, Log_Sender::IO, "Disorder is disabled" );
+#endif
+        }
+        catch( ... )
+        {
+            spirit_handle_exception_core( fmt::format(
+                "Failed to read defect parameters from file \"{}\". Leaving values at default.", config_file_name ) );
+        }
+
     } // end if file=""
     else
         Log( Log_Level::Parameter, Log_Sender::IO, "Geometry: Using default configuration!" );
 
+    // Pinning configuration
+    auto pinning = Pinning_from_Config( config_file_name, cell_atoms.size() );
+
     // Log the parameters
     std::vector<std::string> parameter_log;
-    parameter_log.push_back( "Geometry:" );
-    parameter_log.push_back( fmt::format( "    lattice constant = {} Angstrom", lattice_constant ) );
-    parameter_log.push_back( fmt::format( "    Bravais lattice type: {}", bravais_lattice_type_str ) );
-    Log( Log_Level::Debug, Log_Sender::IO, "    Bravais vectors in units of lattice constant" );
-    Log( Log_Level::Debug, Log_Sender::IO,
-         fmt::format( "        a = {}", bravais_vectors[0].transpose() / lattice_constant ) );
-    Log( Log_Level::Debug, Log_Sender::IO,
-         fmt::format( "        b = {}", bravais_vectors[1].transpose() / lattice_constant ) );
-    Log( Log_Level::Debug, Log_Sender::IO,
-         fmt::format( "        c = {}", bravais_vectors[2].transpose() / lattice_constant ) );
-    parameter_log.push_back( "    Bravais vectors" );
-    parameter_log.push_back( fmt::format( "        a = {}", bravais_vectors[0].transpose() ) );
-    parameter_log.push_back( fmt::format( "        b = {}", bravais_vectors[1].transpose() ) );
-    parameter_log.push_back( fmt::format( "        c = {}", bravais_vectors[2].transpose() ) );
-    parameter_log.push_back( fmt::format( "    basis cell: {} atom(s)", n_cell_atoms ) );
-    parameter_log.push_back( "    relative positions (first 10):" );
-    for( int iatom = 0; iatom < n_cell_atoms && iatom < 10; ++iatom )
-        parameter_log.push_back( fmt::format(
+    parameter_log.emplace_back( "Geometry:" );
+    parameter_log.emplace_back( fmt::format( "    lattice constant = {} Angstrom", lattice_constant ) );
+    parameter_log.emplace_back( fmt::format( "    Bravais lattice type: {}", bravais_lattice_type_str ) );
+    Log.SendBlock(
+        Log_Level::Debug, Log_Sender::IO,
+        {
+            "    Bravais vectors in units of lattice constant",
+            fmt::format( "        a = {}", bravais_vectors[0].transpose() / lattice_constant ),
+            fmt::format( "        b = {}", bravais_vectors[1].transpose() / lattice_constant ),
+            fmt::format( "        c = {}", bravais_vectors[2].transpose() / lattice_constant ),
+        } );
+    parameter_log.emplace_back( "    Bravais vectors" );
+    parameter_log.emplace_back( fmt::format( "        a = {}", bravais_vectors[0].transpose() ) );
+    parameter_log.emplace_back( fmt::format( "        b = {}", bravais_vectors[1].transpose() ) );
+    parameter_log.emplace_back( fmt::format( "        c = {}", bravais_vectors[2].transpose() ) );
+    parameter_log.emplace_back( fmt::format( "    basis cell: {} atom(s)", n_cell_atoms ) );
+    parameter_log.emplace_back( "    relative positions (first 10):" );
+    for( std::size_t iatom = 0; iatom < n_cell_atoms && iatom < 10; ++iatom )
+        parameter_log.emplace_back( fmt::format(
             "        atom {} at ({}), mu_s={}", iatom, cell_atoms[iatom].transpose(), cell_composition.mu_s[iatom] ) );
 
-    parameter_log.push_back( "    absolute atom positions (first 10):" );
-    for( int iatom = 0; iatom < n_cell_atoms && iatom < 10; ++iatom )
+    parameter_log.emplace_back( "    absolute atom positions (first 10):" );
+    for( std::size_t iatom = 0; iatom < n_cell_atoms && iatom < 10; ++iatom )
     {
         Vector3 cell_atom = lattice_constant
                             * ( bravais_vectors[0] * cell_atoms[iatom][0] + bravais_vectors[1] * cell_atoms[iatom][1]
                                 + bravais_vectors[2] * cell_atoms[iatom][2] );
-        parameter_log.push_back( fmt::format( "        atom {} at ({})", iatom, cell_atom.transpose() ) );
+        parameter_log.emplace_back( fmt::format( "        atom {} at ({})", iatom, cell_atom.transpose() ) );
     }
 
     if( cell_composition.disordered )
-        parameter_log.push_back( "    note: the lattice has some disorder!" );
+        parameter_log.emplace_back( "    note: the lattice has some disorder!" );
+
+#ifdef SPIRIT_ENABLE_PINNING
+    // Log pinning
+    auto n_pinned_cell_sites = pinning.sites.size();
+    if( n_pinned_cell_sites == 0 && pinning.na_left == 0 && pinning.na_right == 0 && pinning.nb_left == 0
+        && pinning.nb_right == 0 && pinning.nc_left == 0 && pinning.nc_right == 0 )
+    {
+        parameter_log.emplace_back( "    no pinned spins" );
+    }
+    else
+    {
+        parameter_log.emplace_back( "    pinning of boundary cells:" );
+        parameter_log.emplace_back(
+            fmt::format( "        n_a: left={}, right={}", pinning.na_left, pinning.na_right ) );
+        parameter_log.emplace_back(
+            fmt::format( "        n_b: left={}, right={}", pinning.nb_left, pinning.nb_right ) );
+        parameter_log.emplace_back(
+            fmt::format( "        n_c: left={}, right={}", pinning.nc_left, pinning.nc_right ) );
+
+        parameter_log.emplace_back( "        pinned to (showing first 10 sites):" );
+        for( std::size_t i = 0; i < std::min( pinning.pinned_cell.size(), static_cast<std::size_t>( 10 ) ); ++i )
+        {
+            parameter_log.emplace_back(
+                fmt::format( "          cell atom[{}] = ({})", i, pinning.pinned_cell[i].transpose() ) );
+        }
+        if( n_pinned_cell_sites == 0 )
+            parameter_log.emplace_back( "    no individually pinned sites" );
+        else
+        {
+            parameter_log.emplace_back(
+                fmt::format( "    {} individually pinned sites. Showing the first 10:", n_pinned_cell_sites ) );
+            for( std::size_t i = 0; i < std::min( pinning.sites.size(), static_cast<std::size_t>( 10 ) ); ++i )
+            {
+                parameter_log.emplace_back( fmt::format(
+                    "        pinned site[{}]: {} at ({} {} {}) = ({})", i, pinning.sites[i].i,
+                    pinning.sites[i].translations[0], pinning.sites[i].translations[1],
+                    pinning.sites[i].translations[2], pinning.spins[0].transpose() ) );
+            }
+        }
+    }
+#endif
 
 // Defects
 #ifdef SPIRIT_ENABLE_DEFECTS
-    parameter_log.push_back( fmt::format( "    {} defects. Printing the first 10:", defect_sites.size() ) );
-    for( int i = 0; i < defect_sites.size(); ++i )
-        if( i < 10 )
-            parameter_log.push_back( fmt::format(
-                "  defect[{}]: translations=({} {} {}), type=", i, defect_sites[i].translations[0],
+    if( defect_sites.empty() )
+        parameter_log.emplace_back( "    no defects" );
+    else
+    {
+        parameter_log.emplace_back( fmt::format( "    {} defects (showing first 10 sites):", defect_sites.size() ) );
+        for( std::size_t i = 0; i < std::min( defect_sites.size(), static_cast<std::size_t>( 10 ) ); ++i )
+        {
+            parameter_log.emplace_back( fmt::format(
+                "        defect[{}]: translations=({} {} {}), type=", i, defect_sites[i].translations[0],
                 defect_sites[i].translations[1], defect_sites[i].translations[2], defect_types[i] ) );
+        }
+    }
 #endif
 
     // Log parameters
-    parameter_log.push_back( "    lattice: n_basis_cells" );
-    parameter_log.push_back( fmt::format( "        na = {}", n_cells[0] ) );
-    parameter_log.push_back( fmt::format( "        nb = {}", n_cells[1] ) );
-    parameter_log.push_back( fmt::format( "        nc = {}", n_cells[2] ) );
-
-    // Pinning configuration
-    auto pinning = Pinning_from_Config( config_file_name, cell_atoms.size() );
+    parameter_log.emplace_back( "    lattice: n_basis_cells" );
+    parameter_log.emplace_back( fmt::format( "        na = {}", n_cells[0] ) );
+    parameter_log.emplace_back( fmt::format( "        nb = {}", n_cells[1] ) );
+    parameter_log.emplace_back( fmt::format( "        nc = {}", n_cells[2] ) );
 
     // Return geometry
     auto geometry = std::make_shared<Data::Geometry>(
         bravais_vectors, n_cells, cell_atoms, cell_composition, lattice_constant, pinning,
         Data::Defects{ defect_sites, defect_types } );
 
-    parameter_log.push_back( fmt::format( "    {} spins", geometry->nos ) );
-    parameter_log.push_back( fmt::format( "    the geometry is {}-dimensional", geometry->dimensionality ) );
+    parameter_log.emplace_back( fmt::format( "    {} spins", geometry->nos ) );
+    parameter_log.emplace_back( fmt::format( "    the geometry is {}-dimensional", geometry->dimensionality ) );
 
     Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
@@ -534,8 +591,8 @@ Data::Pinning Pinning_from_Config( const std::string & config_file_name, std::si
     Vector3 build_array = { 0, 0, 0 };
 
 #ifdef SPIRIT_ENABLE_PINNING
-    Log( Log_Level::Parameter, Log_Sender::IO, "Reading Pinning Configuration" );
     //------------------------------- Parser --------------------------------
+    Log( Log_Level::Debug, Log_Sender::IO, "going to read pinning" );
     if( !config_file_name.empty() )
     {
         try
@@ -577,7 +634,7 @@ Data::Pinning Pinning_from_Config( const std::string & config_file_name, std::si
             {
                 if( config_file_handle.Find( "pinning_cell" ) )
                 {
-                    for( int i = 0; i < n_cell_atoms; ++i )
+                    for( std::size_t i = 0; i < n_cell_atoms; ++i )
                     {
                         config_file_handle.GetLine();
                         config_file_handle >> pinned_cell[i][0] >> pinned_cell[i][1] >> pinned_cell[i][2];
@@ -608,44 +665,21 @@ Data::Pinning Pinning_from_Config( const std::string & config_file_name, std::si
                 // The file name should be valid so we try to read it
                 Pinned_from_File( pinned_file, n_pinned, pinned_sites, pinned_spins );
             }
-            else
-                Log( Log_Level::Parameter, Log_Sender::IO, "wtf no pinnedFile" );
         }
         catch( ... )
         {
             spirit_handle_exception_core( fmt::format(
                 "Failed to read Pinning from file \"{}\". Leaving values at default.", config_file_name ) );
         }
-
-    } // end if file=""
-    else
-        Log( Log_Level::Parameter, Log_Sender::IO, "No pinning" );
+    }
 
     // Create Pinning
-    auto pinning = Data::Pinning{ na_left,  na_right,    nb_left,      nb_right,    nc_left,
-                                  nc_right, pinned_cell, pinned_sites, pinned_spins };
+    auto pinning = Data::Pinning{
+        na_left, na_right, nb_left, nb_right, nc_left, nc_right, pinned_cell, pinned_sites, pinned_spins,
+    };
 
     // Return Pinning
-    Log( Log_Level::Parameter, Log_Sender::IO, "Pinning:" );
-    Log( Log_Level::Parameter, Log_Sender::IO, fmt::format( "    n_a: left={}, right={}", na_left, na_right ) );
-    Log( Log_Level::Parameter, Log_Sender::IO, fmt::format( "    n_b: left={}, right={}", nb_left, nb_right ) );
-    Log( Log_Level::Parameter, Log_Sender::IO, fmt::format( "    n_c: left={}, right={}", nc_left, nc_right ) );
-    for( std::size_t i = 0; i < std::min( n_cell_atoms, static_cast<std::size_t>( 10 ) ); ++i )
-    {
-        Log( Log_Level::Parameter, Log_Sender::IO,
-             fmt::format( "    cell atom[{}] = ({})", i, pinned_cell[i].transpose() ) );
-    }
-    Log( Log_Level::Parameter, Log_Sender::IO,
-         fmt::format( "    {} additional pinned sites. Showing the first 10:", n_pinned ) );
-    for( int i = 0; i < std::min( n_pinned, 10 ); ++i )
-    {
-        Log( Log_Level::Parameter, Log_Sender::IO,
-             fmt::format(
-                 "         pinned site[{}]: {} at ({} {} {}) = ({})", i, pinned_sites[i].i,
-                 pinned_sites[i].translations[0], pinned_sites[i].translations[1], pinned_sites[i].translations[2],
-                 pinned_spins[0].transpose() ) );
-    }
-    Log( Log_Level::Parameter, Log_Sender::IO, "Pinning: read" );
+    Log( Log_Level::Debug, Log_Sender::IO, "pinning has been read" );
     return pinning;
 #else  // SPIRIT_ENABLE_PINNING
     Log( Log_Level::Parameter, Log_Sender::IO, "Pinning is disabled" );
@@ -746,42 +780,44 @@ std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config( 
 
     // Return
     std::vector<std::string> parameter_log;
-    parameter_log.push_back( "Parameters LLG:" );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "seed", parameters->rng_seed ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "time step [ps]", parameters->dt ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "temperature [K]", parameters->temperature ) );
-    parameter_log.push_back( fmt::format(
+    parameter_log.emplace_back( "Parameters LLG:" );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "seed", parameters->rng_seed ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "time step [ps]", parameters->dt ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "temperature [K]", parameters->temperature ) );
+    parameter_log.emplace_back( fmt::format(
         "    {:<17} = {}", "temperature gradient direction", parameters->temperature_gradient_direction.transpose() ) );
-    parameter_log.push_back( fmt::format(
+    parameter_log.emplace_back( fmt::format(
         "    {:<17} = {}", "temperature gradient inclination", parameters->temperature_gradient_inclination ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "damping", parameters->damping ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "beta", parameters->beta ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "stt use gradient", parameters->stt_use_gradient ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "stt magnitude", parameters->stt_magnitude ) );
-    parameter_log.push_back(
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "damping", parameters->damping ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "beta", parameters->beta ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "stt use gradient", parameters->stt_use_gradient ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "stt magnitude", parameters->stt_magnitude ) );
+    parameter_log.emplace_back(
         fmt::format( "    {:<17} = {}", "stt normal", parameters->stt_polarisation_normal.transpose() ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {:e}", "force convergence", parameters->force_convergence ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "maximum walltime", str_max_walltime ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "n_iterations", parameters->n_iterations ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "n_iterations_log", parameters->n_iterations_log ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = \"{}\"", "output_folder", parameters->output_folder ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "output_any", parameters->output_any ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "output_initial", parameters->output_initial ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "output_final", parameters->output_final ) );
-    parameter_log.push_back( fmt::format( "    {:<30} = {}", "output_energy_step", parameters->output_energy_step ) );
-    parameter_log.push_back(
+    parameter_log.emplace_back(
+        fmt::format( "    {:<17} = {:e}", "force convergence", parameters->force_convergence ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "maximum walltime", str_max_walltime ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations", parameters->n_iterations ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations_log", parameters->n_iterations_log ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = \"{}\"", "output_folder", parameters->output_folder ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_any", parameters->output_any ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_initial", parameters->output_initial ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_final", parameters->output_final ) );
+    parameter_log.emplace_back(
+        fmt::format( "    {:<30} = {}", "output_energy_step", parameters->output_energy_step ) );
+    parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output_energy_archive", parameters->output_energy_archive ) );
-    parameter_log.push_back(
+    parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output_energy_spin_resolved", parameters->output_energy_spin_resolved ) );
-    parameter_log.push_back( fmt::format(
+    parameter_log.emplace_back( fmt::format(
         "    {:<30} = {}", "output_energy_divide_by_nspins", parameters->output_energy_divide_by_nspins ) );
-    parameter_log.push_back( fmt::format(
+    parameter_log.emplace_back( fmt::format(
         "    {:<30} = {}", "output_energy_add_readability_lines", parameters->output_energy_add_readability_lines ) );
-    parameter_log.push_back(
+    parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output_configuration_step", parameters->output_configuration_step ) );
-    parameter_log.push_back(
+    parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output_configuration_archive", parameters->output_configuration_archive ) );
-    parameter_log.push_back(
+    parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output_configuration_filetype", (int)parameters->output_vf_filetype ) );
     Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
@@ -841,29 +877,30 @@ std::unique_ptr<Data::Parameters_Method_EMA> Parameters_Method_EMA_from_Config( 
 
     // Return
     std::vector<std::string> parameter_log;
-    parameter_log.push_back( "Parameters EMA:" );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "n_modes", parameters->n_modes ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "n_mode_follow", parameters->n_mode_follow ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "frequency", parameters->frequency ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "amplitude", parameters->amplitude ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "n_iterations_log", parameters->n_iterations_log ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "n_iterations", parameters->n_iterations ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "maximum walltime", str_max_walltime ) );
-    parameter_log.push_back(
+    parameter_log.emplace_back( "Parameters EMA:" );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_modes", parameters->n_modes ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_mode_follow", parameters->n_mode_follow ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "frequency", parameters->frequency ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "amplitude", parameters->amplitude ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations_log", parameters->n_iterations_log ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations", parameters->n_iterations ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "maximum walltime", str_max_walltime ) );
+    parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output_configuration_archive", parameters->output_configuration_archive ) );
-    parameter_log.push_back(
+    parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output_configuration_step", parameters->output_configuration_step ) );
-    parameter_log.push_back(
+    parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output_energy_archive", parameters->output_energy_archive ) );
-    parameter_log.push_back( fmt::format( "    {:<30} = {}", "output_energy_step", parameters->output_energy_step ) );
-    parameter_log.push_back(
+    parameter_log.emplace_back(
+        fmt::format( "    {:<30} = {}", "output_energy_step", parameters->output_energy_step ) );
+    parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output_energy_spin_resolved", parameters->output_energy_spin_resolved ) );
-    parameter_log.push_back( fmt::format(
+    parameter_log.emplace_back( fmt::format(
         "    {:<30} = {}", "output_energy_divide_by_nspins", parameters->output_energy_divide_by_nspins ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "output_final", parameters->output_final ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "output_initial", parameters->output_initial ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "output_any", parameters->output_any ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = \"{}\"", "output_folder", parameters->output_folder ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_final", parameters->output_final ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_initial", parameters->output_initial ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_any", parameters->output_any ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = \"{}\"", "output_folder", parameters->output_folder ) );
     Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters EMA: built" );
@@ -933,32 +970,33 @@ std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config( co
 
     // Return
     std::vector<std::string> parameter_log;
-    parameter_log.push_back( "Parameters MC:" );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "seed", parameters->rng_seed ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "temperature", parameters->temperature ) );
-    parameter_log.push_back(
+    parameter_log.emplace_back( "Parameters MC:" );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "seed", parameters->rng_seed ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "temperature", parameters->temperature ) );
+    parameter_log.emplace_back(
         fmt::format( "    {:<17} = {}", "acceptance_ratio", parameters->acceptance_ratio_target ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "maximum walltime", str_max_walltime ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "n_iterations", parameters->n_iterations ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "n_iterations_log", parameters->n_iterations_log ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = \"{}\"", "output_folder", parameters->output_folder ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "output_any", parameters->output_any ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "output_initial", parameters->output_initial ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "output_final", parameters->output_final ) );
-    parameter_log.push_back( fmt::format( "    {:<30} = {}", "output_energy_step", parameters->output_energy_step ) );
-    parameter_log.push_back(
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "maximum walltime", str_max_walltime ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations", parameters->n_iterations ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations_log", parameters->n_iterations_log ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = \"{}\"", "output_folder", parameters->output_folder ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_any", parameters->output_any ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_initial", parameters->output_initial ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_final", parameters->output_final ) );
+    parameter_log.emplace_back(
+        fmt::format( "    {:<30} = {}", "output_energy_step", parameters->output_energy_step ) );
+    parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output_energy_archive", parameters->output_energy_archive ) );
-    parameter_log.push_back(
+    parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output_energy_spin_resolved", parameters->output_energy_spin_resolved ) );
-    parameter_log.push_back( fmt::format(
+    parameter_log.emplace_back( fmt::format(
         "    {:<30} = {}", "output_energy_divide_by_nspins", parameters->output_energy_divide_by_nspins ) );
-    parameter_log.push_back( fmt::format(
+    parameter_log.emplace_back( fmt::format(
         "    {:<30} = {}", "output_energy_add_readability_lines", parameters->output_energy_add_readability_lines ) );
-    parameter_log.push_back(
+    parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output_configuration_step", parameters->output_configuration_step ) );
-    parameter_log.push_back(
+    parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output_configuration_archive", parameters->output_configuration_archive ) );
-    parameter_log.push_back(
+    parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output_configuration_filetype", (int)parameters->output_vf_filetype ) );
     Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
@@ -1021,24 +1059,26 @@ std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config
 
     // Return
     std::vector<std::string> parameter_log;
-    parameter_log.push_back( "Parameters GNEB:" );
-    parameter_log.push_back( fmt::format( "    {:<18} = {}", "spring_constant", parameters->spring_constant ) );
-    parameter_log.push_back( fmt::format( "    {:<18} = {}", "n_E_interpolations", parameters->n_E_interpolations ) );
-    parameter_log.push_back( fmt::format( "    {:<18} = {:e}", "force convergence", parameters->force_convergence ) );
-    parameter_log.push_back( fmt::format( "    {:<18} = {}", "maximum walltime", str_max_walltime ) );
-    parameter_log.push_back( fmt::format( "    {:<18} = {}", "n_iterations", parameters->n_iterations ) );
-    parameter_log.push_back( fmt::format( "    {:<18} = {}", "n_iterations_log", parameters->n_iterations_log ) );
-    parameter_log.push_back( fmt::format( "    {:<18} = \"{}\"", "output_folder", parameters->output_folder ) );
-    parameter_log.push_back( fmt::format( "    {:<18} = {}", "output_any", parameters->output_any ) );
-    parameter_log.push_back( fmt::format( "    {:<18} = {}", "output_initial", parameters->output_initial ) );
-    parameter_log.push_back( fmt::format( "    {:<18} = {}", "output_final", parameters->output_final ) );
-    parameter_log.push_back(
+    parameter_log.emplace_back( "Parameters GNEB:" );
+    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "spring_constant", parameters->spring_constant ) );
+    parameter_log.emplace_back(
+        fmt::format( "    {:<18} = {}", "n_E_interpolations", parameters->n_E_interpolations ) );
+    parameter_log.emplace_back(
+        fmt::format( "    {:<18} = {:e}", "force convergence", parameters->force_convergence ) );
+    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "maximum walltime", str_max_walltime ) );
+    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "n_iterations", parameters->n_iterations ) );
+    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "n_iterations_log", parameters->n_iterations_log ) );
+    parameter_log.emplace_back( fmt::format( "    {:<18} = \"{}\"", "output_folder", parameters->output_folder ) );
+    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "output_any", parameters->output_any ) );
+    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "output_initial", parameters->output_initial ) );
+    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "output_final", parameters->output_final ) );
+    parameter_log.emplace_back(
         fmt::format( "    {:<18} = {}", "output_energies_step", parameters->output_energies_step ) );
-    parameter_log.push_back( fmt::format(
+    parameter_log.emplace_back( fmt::format(
         "    {:<18} = {}", "output_energies_add_readability_lines",
         parameters->output_energies_add_readability_lines ) );
-    parameter_log.push_back( fmt::format( "    {:<18} = {}", "output_chain_step", parameters->output_chain_step ) );
-    parameter_log.push_back(
+    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "output_chain_step", parameters->output_chain_step ) );
+    parameter_log.emplace_back(
         fmt::format( "    {:<18} = {}", "output_chain_filetype", (int)parameters->output_vf_filetype ) );
     Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
@@ -1102,27 +1142,29 @@ std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config( 
 
     // Return
     std::vector<std::string> parameter_log;
-    parameter_log.push_back( "Parameters MMF:" );
-    parameter_log.push_back( fmt::format( "    {:<17} = {:e}", "force convergence", parameters->force_convergence ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "maximum walltime", str_max_walltime ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "n_iterations", parameters->n_iterations ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "n_iterations_log", parameters->n_iterations_log ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = \"{}\"", "output_folder", parameters->output_folder ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "output_any", parameters->output_any ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "output_initial", parameters->output_initial ) );
-    parameter_log.push_back( fmt::format( "    {:<17} = {}", "output_final", parameters->output_final ) );
-    parameter_log.push_back( fmt::format( "    {:<30} = {}", "output_energy_step", parameters->output_energy_step ) );
-    parameter_log.push_back(
+    parameter_log.emplace_back( "Parameters MMF:" );
+    parameter_log.emplace_back(
+        fmt::format( "    {:<17} = {:e}", "force convergence", parameters->force_convergence ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "maximum walltime", str_max_walltime ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations", parameters->n_iterations ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations_log", parameters->n_iterations_log ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = \"{}\"", "output_folder", parameters->output_folder ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_any", parameters->output_any ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_initial", parameters->output_initial ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_final", parameters->output_final ) );
+    parameter_log.emplace_back(
+        fmt::format( "    {:<30} = {}", "output_energy_step", parameters->output_energy_step ) );
+    parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output_energy_archive", parameters->output_energy_archive ) );
-    parameter_log.push_back( fmt::format(
+    parameter_log.emplace_back( fmt::format(
         "    {:<30} = {}", "output_energy_divide_by_nspins", parameters->output_energy_divide_by_nspins ) );
-    parameter_log.push_back( fmt::format(
+    parameter_log.emplace_back( fmt::format(
         "    {:<30} = {}", "output_energy_add_readability_lines", parameters->output_energy_add_readability_lines ) );
-    parameter_log.push_back(
+    parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output_configuration_step", parameters->output_configuration_step ) );
-    parameter_log.push_back(
+    parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output_configuration_archive", parameters->output_configuration_archive ) );
-    parameter_log.push_back(
+    parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output_configuration_filetype", (int)parameters->output_vf_filetype ) );
     Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
@@ -1216,7 +1258,6 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
     // ------------ Pair Interactions ------------
     int n_pairs                        = 0;
     std::string interaction_pairs_file = "";
-    bool interaction_pairs_from_file   = false;
     pairfield exchange_pairs( 0 );
     scalarfield exchange_magnitudes( 0 );
     pairfield dmi_pairs( 0 );
@@ -1224,10 +1265,10 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
     vectorfield dmi_normals( 0 );
 
     // Number of shells in which we calculate neighbours
-    int n_shells_exchange = exchange_magnitudes.size();
+    std::size_t n_shells_exchange = exchange_magnitudes.size();
     // DM constant
-    int n_shells_dmi = dmi_magnitudes.size();
-    int dm_chirality = 1;
+    std::size_t n_shells_dmi = dmi_magnitudes.size();
+    int dm_chirality         = 1;
 
     std::string ddi_method_str     = "none";
     auto ddi_method                = Engine::DDI_Method::None;
@@ -1238,14 +1279,12 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
     // ------------ Quadruplet Interactions ------------
     int n_quadruplets            = 0;
     std::string quadruplets_file = "";
-    bool quadruplets_from_file   = false;
     quadrupletfield quadruplets( 0 );
     scalarfield quadruplet_magnitudes( 0 );
 
     //------------------------------- Parser --------------------------------
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Heisenberg: building" );
     // Iteration variables
-    int iatom = 0;
     if( !config_file_name.empty() )
     {
         try
@@ -1254,9 +1293,9 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
 
             // Boundary conditions
             config_file_handle.Read_3Vector( boundary_conditions_i, "boundary_conditions" );
-            boundary_conditions[0] = ( boundary_conditions_i[0] != 0 );
-            boundary_conditions[1] = ( boundary_conditions_i[1] != 0 );
-            boundary_conditions[2] = ( boundary_conditions_i[2] != 0 );
+            boundary_conditions[0] = static_cast<int>( boundary_conditions_i[0] != 0 );
+            boundary_conditions[1] = static_cast<int>( boundary_conditions_i[1] != 0 );
+            boundary_conditions[2] = static_cast<int>( boundary_conditions_i[2] != 0 );
         }
         catch( ... )
         {
@@ -1294,7 +1333,8 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                 anisotropy_file = config_file_name;
             else if( config_file_handle.Find( "anisotropy_file" ) )
                 config_file_handle >> anisotropy_file;
-            if( anisotropy_file.length() > 0 )
+
+            if( !anisotropy_file.empty() )
             {
                 // The file name should be valid so we try to read it
                 Anisotropy_from_File(
@@ -1322,9 +1362,9 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                 if( K != 0 )
                 {
                     // Fill the arrays
-                    for( int i = 0; i < anisotropy_index.size(); ++i )
+                    for( std::size_t i = 0; i < anisotropy_index.size(); ++i )
                     {
-                        anisotropy_index[i]     = i;
+                        anisotropy_index[i]     = static_cast<int>( i );
                         anisotropy_magnitude[i] = K;
                         anisotropy_normal[i]    = K_normal;
                     }
@@ -1355,7 +1395,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                 else if( config_file_handle.Find( "interaction_pairs_file" ) )
                     config_file_handle >> interaction_pairs_file;
 
-                if( interaction_pairs_file.length() > 0 )
+                if( !interaction_pairs_file.empty() )
                 {
                     // The file name should be valid so we try to read it
                     Pairs_from_File(
@@ -1388,7 +1428,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                 {
                     if( config_file_handle.Find( "jij" ) )
                     {
-                        for( int ishell = 0; ishell < n_shells_exchange; ++ishell )
+                        for( std::size_t ishell = 0; ishell < n_shells_exchange; ++ishell )
                             config_file_handle >> exchange_magnitudes[ishell];
                     }
                     else
@@ -1497,32 +1537,32 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
 
     // Return
     std::vector<std::string> parameter_log;
-    parameter_log.push_back( "Hamiltonian Heisenberg:" );
-    parameter_log.push_back( fmt::format(
+    parameter_log.emplace_back( "Hamiltonian Heisenberg:" );
+    parameter_log.emplace_back( fmt::format(
         "    {:<21} = {} {} {}", "boundary conditions", boundary_conditions[0], boundary_conditions[1],
         boundary_conditions[2] ) );
-    parameter_log.push_back( fmt::format( "    {:<21} = {}", "external field", B ) );
-    parameter_log.push_back( fmt::format( "    {:<21} = {}", "field_normal", B_normal.transpose() ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "external field", B ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "field_normal", B_normal.transpose() ) );
     if( anisotropy_from_file )
-        parameter_log.push_back( fmt::format( "    K from file \"{}\"", anisotropy_file ) );
-    parameter_log.push_back( fmt::format( "    {:<21} = {}", "anisotropy[0]", K ) );
-    parameter_log.push_back( fmt::format( "    {:<21} = {}", "anisotropy_normal[0]", K_normal.transpose() ) );
+        parameter_log.emplace_back( fmt::format( "    K from file \"{}\"", anisotropy_file ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy[0]", K ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy_normal[0]", K_normal.transpose() ) );
     if( hamiltonian_type == "heisenberg_neighbours" )
     {
-        parameter_log.push_back( fmt::format( "    {:<21} = {}", "n_shells_exchange", n_shells_exchange ) );
+        parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "n_shells_exchange", n_shells_exchange ) );
         if( n_shells_exchange > 0 )
-            parameter_log.push_back( fmt::format( "    {:<21} = {}", "J_ij[0]", exchange_magnitudes[0] ) );
-        parameter_log.push_back( fmt::format( "    {:<21} = {}", "n_shells_dmi", n_shells_dmi ) );
+            parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "J_ij[0]", exchange_magnitudes[0] ) );
+        parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "n_shells_dmi", n_shells_dmi ) );
         if( n_shells_dmi > 0 )
-            parameter_log.push_back( fmt::format( "    {:<21} = {}", "D_ij[0]", dmi_magnitudes[0] ) );
-        parameter_log.push_back( fmt::format( "    {:<21} = {}", "DM chirality", dm_chirality ) );
+            parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "D_ij[0]", dmi_magnitudes[0] ) );
+        parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "DM chirality", dm_chirality ) );
     }
-    parameter_log.push_back( fmt::format( "    {:<21} = {}", "ddi_method", ddi_method_str ) );
-    parameter_log.push_back( fmt::format(
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_method", ddi_method_str ) );
+    parameter_log.emplace_back( fmt::format(
         "    {:<21} = ({} {} {})", "ddi_n_periodic_images", ddi_n_periodic_images[0], ddi_n_periodic_images[1],
         ddi_n_periodic_images[2] ) );
-    parameter_log.push_back( fmt::format( "    {:<21} = {}", "ddi_radius", ddi_radius ) );
-    parameter_log.push_back( fmt::format( "    {:<21} = {}", "ddi_pb_zero_padding", ddi_pb_zero_padding ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_radius", ddi_radius ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_pb_zero_padding", ddi_pb_zero_padding ) );
     Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
     std::unique_ptr<Engine::Hamiltonian_Heisenberg> hamiltonian;
@@ -1550,7 +1590,7 @@ Hamiltonian_Gaussian_from_Config( const std::string & config_file_name, std::sha
 {
     //-------------- Insert default values here -----------------------------
     // Number of Gaussians
-    int n_gaussians = 1;
+    std::size_t n_gaussians = 1;
     // Amplitudes
     std::vector<scalar> amplitude = { 1 };
     // Widths
@@ -1577,12 +1617,12 @@ Hamiltonian_Gaussian_from_Config( const std::string & config_file_name, std::sha
             // Read arrays
             if( config_file_handle.Find( "gaussians" ) )
             {
-                for( int i = 0; i < n_gaussians; ++i )
+                for( std::size_t i = 0; i < n_gaussians; ++i )
                 {
                     config_file_handle.GetLine();
                     config_file_handle >> amplitude[i];
                     config_file_handle >> width[i];
-                    for( int j = 0; j < 3; ++j )
+                    for( std::uint8_t j = 0; j < 3; ++j )
                     {
                         config_file_handle >> center[i][j];
                     }
@@ -1604,11 +1644,11 @@ Hamiltonian_Gaussian_from_Config( const std::string & config_file_name, std::sha
 
     // Return
     std::vector<std::string> parameter_log;
-    parameter_log.push_back( "Hamiltonian Gaussian:" );
-    parameter_log.push_back( fmt::format( "    {0:<12} = {1}", "n_gaussians", n_gaussians ) );
-    parameter_log.push_back( fmt::format( "    {0:<12} = {1}", "amplitude[0]", amplitude[0] ) );
-    parameter_log.push_back( fmt::format( "    {0:<12} = {1}", "width[0]", width[0] ) );
-    parameter_log.push_back( fmt::format( "    {0:<12} = {1}", "center[0]", center[0].transpose() ) );
+    parameter_log.emplace_back( "Hamiltonian Gaussian:" );
+    parameter_log.emplace_back( fmt::format( "    {0:<12} = {1}", "n_gaussians", n_gaussians ) );
+    parameter_log.emplace_back( fmt::format( "    {0:<12} = {1}", "amplitude[0]", amplitude[0] ) );
+    parameter_log.emplace_back( fmt::format( "    {0:<12} = {1}", "width[0]", width[0] ) );
+    parameter_log.emplace_back( fmt::format( "    {0:<12} = {1}", "center[0]", center[0].transpose() ) );
     Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
     auto hamiltonian = std::make_unique<Engine::Hamiltonian_Gaussian>( amplitude, width, center );
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Gaussian: built" );
