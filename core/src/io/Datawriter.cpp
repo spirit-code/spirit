@@ -23,9 +23,9 @@
 namespace IO
 {
 
-void Write_Neighbours_Exchange( const Data::Spin_System & system, const std::string filename )
+void Write_Neighbours_Exchange( const Data::Spin_System & system, const std::string & filename )
 {
-    Engine::Hamiltonian_Heisenberg * ham = (Engine::Hamiltonian_Heisenberg *)system.hamiltonian.get();
+    auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( system.hamiltonian.get() );
 
     int n_neighbours = ham->exchange_pairs.size();
 
@@ -44,7 +44,7 @@ void Write_Neighbours_Exchange( const Data::Spin_System & system, const std::str
     output += "###    Interaction neighbours:\n";
     output += fmt::format( "n_neighbours_exchange {}\n", n_neighbours );
 
-    if( ham->exchange_pairs.size() > 0 )
+    if( !ham->exchange_pairs.empty() )
     {
         output += fmt::format( "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15}\n", "i", "j", "da", "db", "dc", "Jij" );
         for( unsigned int i = 0; i < ham->exchange_pairs.size(); ++i )
@@ -68,9 +68,9 @@ void Write_Neighbours_Exchange( const Data::Spin_System & system, const std::str
     Dump_to_File( output, filename );
 }
 
-void Write_Neighbours_DMI( const Data::Spin_System & system, const std::string filename )
+void Write_Neighbours_DMI( const Data::Spin_System & system, const std::string & filename )
 {
-    Engine::Hamiltonian_Heisenberg * ham = (Engine::Hamiltonian_Heisenberg *)system.hamiltonian.get();
+    auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( system.hamiltonian.get() );
 
     int n_neighbours = ham->dmi_pairs.size();
 
@@ -89,7 +89,7 @@ void Write_Neighbours_DMI( const Data::Spin_System & system, const std::string f
     output += "###    Interaction neighbours:\n";
     output += fmt::format( "n_neighbours_dmi {}\n", n_neighbours );
 
-    if( ham->dmi_pairs.size() > 0 )
+    if( !ham->dmi_pairs.empty() )
     {
         output += fmt::format(
             "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15} {:^15} {:^15} {:^15}\n", "i", "j", "da", "db", "dc", "Dij",
@@ -118,8 +118,8 @@ void Write_Neighbours_DMI( const Data::Spin_System & system, const std::string f
 }
 
 void Write_Energy_Header(
-    const Data::Spin_System & s, const std::string filename, std::vector<std::string> firstcolumns, bool contributions,
-    bool normalize_by_nos, bool readability_toggle )
+    const Data::Spin_System & s, const std::string & filename, std::vector<std::string> firstcolumns,
+    bool contributions, bool normalize_by_nos, bool readability_toggle )
 {
     std::string separator = "";
     std::string line      = "";
@@ -133,7 +133,7 @@ void Write_Energy_Header(
     if( contributions )
     {
         bool first = true;
-        for( auto pair : s.E_array )
+        for( const auto & pair : s.E_array )
         {
             if( first )
                 first = false;
@@ -164,7 +164,7 @@ void Write_Energy_Header(
 }
 
 void Append_Image_Energy(
-    const Data::Spin_System & s, const int iteration, const std::string filename, bool normalize_by_nos,
+    const Data::Spin_System & s, const int iteration, const std::string & filename, bool normalize_by_nos,
     bool readability_toggle )
 {
     scalar nd = 1.0; // nos divide
@@ -177,7 +177,7 @@ void Append_Image_Energy(
 
     // Centered column entries
     std::string line = fmt::format( " {:^20} || {:^20.10f} |", iteration, s.E * nd );
-    for( auto pair : s.E_array )
+    for( const auto & pair : s.E_array )
     {
         line += fmt::format( "| {:^20.10f} ", pair.second * nd );
     }
@@ -189,7 +189,7 @@ void Append_Image_Energy(
 }
 
 void Write_Image_Energy(
-    const Data::Spin_System & system, const std::string filename, bool normalize_by_nos, bool readability_toggle )
+    const Data::Spin_System & system, const std::string & filename, bool normalize_by_nos, bool readability_toggle )
 {
     scalar nd = 1.0; // nos divide
     if( normalize_by_nos )
@@ -212,10 +212,9 @@ void Write_Image_Energy(
 }
 
 void Write_Chain_Energies(
-    const Data::Spin_System_Chain & c, const int iteration, const std::string filename, bool normalize_by_nos,
+    const Data::Spin_System_Chain & c, const int iteration, const std::string & filename, bool normalize_by_nos,
     bool readability_toggle )
 {
-    int isystem;
     scalar nd = 1.0; // nos divide
     if( normalize_by_nos )
         nd = 1.0 / c.images[0]->nos;
@@ -224,12 +223,12 @@ void Write_Chain_Energies(
 
     Write_Energy_Header( *c.images[0], filename, { "image", "Rx", "E_tot" } );
 
-    for( isystem = 0; isystem < (int)c.noi; ++isystem )
+    for( int isystem = 0; isystem < c.noi; ++isystem )
     {
         auto & system = *c.images[isystem];
         std::string line
             = fmt::format( " {:^20} || {:^20.10f} || {:^20.10f} |", isystem, c.Rx[isystem], system.E * nd );
-        for( auto pair : system.E_array )
+        for( const auto & pair : system.E_array )
         {
             line += fmt::format( "| {:^20.10f} ", pair.second * nd );
         }
@@ -242,9 +241,9 @@ void Write_Chain_Energies(
 }
 
 void Write_Chain_Energies_Interpolated(
-    const Data::Spin_System_Chain & chain, const std::string filename, bool normalize_by_nos, bool readability_toggle )
+    const Data::Spin_System_Chain & chain, const std::string & filename, bool normalize_by_nos,
+    bool readability_toggle )
 {
-    int isystem, iinterp, idx;
     scalar nd = 1.0; // nos divide
     if( normalize_by_nos )
         nd = 1.0 / chain.images[0]->nos;
@@ -253,20 +252,20 @@ void Write_Chain_Energies_Interpolated(
 
     Write_Energy_Header( *chain.images[0], filename, { "image", "iinterp", "Rx", "E_tot" } );
 
-    for( isystem = 0; isystem < (int)chain.noi; ++isystem )
+    for( int isystem = 0; isystem < chain.noi; ++isystem )
     {
         auto & system = *chain.images[isystem];
 
-        for( iinterp = 0; iinterp < chain.gneb_parameters->n_E_interpolations + 1; ++iinterp )
+        for( int iinterp = 0; iinterp < chain.gneb_parameters->n_E_interpolations + 1; ++iinterp )
         {
-            idx              = isystem * ( chain.gneb_parameters->n_E_interpolations + 1 ) + iinterp;
+            int idx          = isystem * ( chain.gneb_parameters->n_E_interpolations + 1 ) + iinterp;
             std::string line = fmt::format(
                 " {:^20} || {:^20} || {:^20.10f} || {:^20.10f} ||", isystem, iinterp, chain.Rx_interpolated[idx],
                 chain.E_interpolated[idx] * nd );
 
             // TODO: interpolated Energy contributions
             bool first = true;
-            for( int p = 0; p < system.E_array.size(); p++ )
+            for( std::size_t p = 0; p < system.E_array.size(); p++ )
             {
                 if( first )
                     first = false;
