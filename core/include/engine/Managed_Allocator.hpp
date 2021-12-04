@@ -8,11 +8,11 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-static void CudaHandleError( cudaError_t err, const char * file, int line, const std::string & function )
+static void CudaHandleError( cudaError_t err, const char * file, int line, const char * function )
 {
     if( err != cudaSuccess )
     {
-        throw Utility::S_Exception(
+        throw Utility::Exception(
             Utility::Exception_Classifier::CUDA_Error, Utility::Log_Level::Severe,
             std::string( cudaGetErrorString( err ) ), file, line, function );
     }
@@ -35,7 +35,7 @@ public:
     template<typename _Tp1>
     struct rebind
     {
-        typedef managed_allocator<_Tp1> other;
+        using other = managed_allocator<_Tp1>;
     };
 
     value_type * allocate( size_t n )
@@ -58,7 +58,7 @@ public:
     managed_allocator( const managed_allocator<U> & a ) throw() : std::allocator<T>( a )
     {
     }
-    ~managed_allocator() throw() {}
+    ~managed_allocator() throw() = default;
 };
 
 #endif
