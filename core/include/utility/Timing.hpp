@@ -7,11 +7,6 @@
 #include <chrono>
 #include <string>
 
-// Use the System Clock (Wall Time) to handle Timing
-using std::chrono::duration;
-using std::chrono::system_clock;
-using std::chrono::time_point;
-
 namespace Utility
 {
 namespace Timing
@@ -40,5 +35,8 @@ std::chrono::duration<scalar> DurationFromString( const std::string & dt );
 
 } // namespace Timing
 } // namespace Utility
+
+// Conversion of time_point to string, usable by fmt
+std::ostream & operator<<( std::ostream & os, std::chrono::system_clock::time_point time_point );
 
 #endif

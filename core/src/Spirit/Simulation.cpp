@@ -18,9 +18,9 @@ void run_method( std::shared_ptr<Engine::Method> method, bool singleshot )
     {
         //---- Start timings
         method->starttime = Utility::Timing::CurrentDateTime();
-        method->t_start   = system_clock::now();
-        auto t_current    = system_clock::now();
-        method->t_last    = system_clock::now();
+        method->t_start   = std::chrono::system_clock::now();
+        auto t_current    = std::chrono::system_clock::now();
+        method->t_last    = std::chrono::system_clock::now();
         method->iteration = 0;
 
         //---- Log messages
@@ -436,7 +436,7 @@ try
     }
 
     // One Iteration
-    auto t_current = system_clock::now();
+    auto t_current = std::chrono::system_clock::now();
     if( method->ContinueIterating() && !method->Walltime_Expired( t_current - method->t_start ) )
     {
         // Lock Systems
@@ -452,7 +452,7 @@ try
 
             // Recalculate FPS
             method->t_iterations.pop_front();
-            method->t_iterations.push_back( system_clock::now() );
+            method->t_iterations.push_back( std::chrono::system_clock::now() );
 
             // Log Output every n_iterations_log steps
             bool log = false;
@@ -473,7 +473,7 @@ try
     // Check the conditions again after the iteration was performed,
     // as this condition may not be checked automatically (e.g. SingleShot
     // is not called anymore).
-    t_current = system_clock::now();
+    t_current = std::chrono::system_clock::now();
     if( !method->ContinueIterating() || method->Walltime_Expired( t_current - method->t_start ) )
     {
         //---- Log messages

@@ -289,7 +289,7 @@ void Method_Solver<solver>::Message_Step()
               || solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas );
 
     // Update time of current step
-    auto t_current = system_clock::now();
+    auto t_current = std::chrono::system_clock::now();
 
     // Send log message
     std::vector<std::string> block;
@@ -335,7 +335,7 @@ void Method_Solver<solver>::Message_End()
               || solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas );
 
     //---- End timings
-    auto t_end = system_clock::now();
+    auto t_end = std::chrono::system_clock::now();
 
     //---- Termination reason
     std::string reason = "";

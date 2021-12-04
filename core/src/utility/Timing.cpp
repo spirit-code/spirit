@@ -106,3 +106,8 @@ duration<scalar> DurationFromString( const std::string & dt )
 
 } // namespace Timing
 } // namespace Utility
+
+std::ostream & operator<<( std::ostream & os, std::chrono::system_clock::time_point time_point )
+{
+    return os << Utility::Timing::TimePointToString_Pretty( time_point );
+}

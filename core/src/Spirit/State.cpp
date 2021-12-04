@@ -22,7 +22,7 @@ try
     auto * state = new State();
 
     // Initialize the state
-    state->datetime_creation        = system_clock::now();
+    state->datetime_creation        = std::chrono::system_clock::now();
     state->datetime_creation_string = Utility::Timing::TimePointToString( state->datetime_creation );
     state->config_file              = config_file;
     state->quiet                    = quiet;
@@ -167,7 +167,7 @@ try
 
     //----------------------- Final log --------------------------------------------------------
     block.clear();
-    auto now  = system_clock::now();
+    auto now  = std::chrono::system_clock::now();
     auto diff = Timing::DateTimePassed( now - state->datetime_creation );
     block.emplace_back( "=====================================================" );
     block.emplace_back( "============ Spirit State: Initialised ==============" );
@@ -209,11 +209,11 @@ try
     Save_Initial_Final( state, false );
 
     // Timing
-    auto now  = system_clock::now();
+    auto now  = std::chrono::system_clock::now();
     auto diff = Timing::DateTimePassed( now - state->datetime_creation );
-    block.emplace_back( "    State existed for " + diff );
-    block.emplace_back( "    Number of  Errors:  " + fmt::format( "{}", Log_Get_N_Errors( state ) ) );
-    block.emplace_back( "    Number of Warnings: " + fmt::format( "{}", Log_Get_N_Warnings( state ) ) );
+    block.emplace_back( fmt::format( "    State existed for {}", diff ) );
+    block.emplace_back( fmt::format( "    Number of  Errors:  {}", Log_Get_N_Errors( state ) ) );
+    block.emplace_back( fmt::format( "    Number of Warnings: {}", Log_Get_N_Warnings( state ) ) );
 
     // Delete
     delete( state );

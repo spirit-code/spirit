@@ -1,4 +1,4 @@
-﻿#include <engine/Neighbours.hpp>
+#include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
 #include <io/Filter_File_Handle.hpp>
 #include <io/IO.hpp>
@@ -441,15 +441,15 @@ try
                          cell_composition.iatom[0], cell_composition.atom_type[0],
                          cell_composition.concentration[0] ) );
             }
-#else
-        Log( Log_Level::Parameter, Log_Sender::IO, "Disorder is disabled" );
-#endif
         }
         catch( ... )
         {
             spirit_handle_exception_core( fmt::format(
                 "Failed to read defect parameters from file \"{}\". Leaving values at default.", config_file_name ) );
         }
+#else
+        Log( Log_Level::Parameter, Log_Sender::IO, "Disorder is disabled" );
+#endif
 
     } // end if file=""
     else

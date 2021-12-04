@@ -237,7 +237,7 @@ void Method_MC::Message_Start()
 void Method_MC::Message_Step()
 {
     // Update time of current step
-    auto t_current = system_clock::now();
+    auto t_current = std::chrono::system_clock::now();
 
     // Update the system's energy
     this->systems[0]->UpdateEnergy();
@@ -283,7 +283,7 @@ void Method_MC::Message_Step()
 void Method_MC::Message_End()
 {
     //---- End timings
-    auto t_end = system_clock::now();
+    auto t_end = std::chrono::system_clock::now();
 
     //---- Termination reason
     std::string reason = "";

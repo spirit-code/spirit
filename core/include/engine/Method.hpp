@@ -133,7 +133,7 @@ public:
 
     //////////// Final implementations
     // Check if walltime ran out
-    virtual bool Walltime_Expired( duration<scalar> dt_seconds ) final;
+    virtual bool Walltime_Expired( std::chrono::duration<scalar> dt_seconds ) final;
     // Check if a stop file is present -> Stop the iterations
     virtual bool StopFile_Present() final;
 

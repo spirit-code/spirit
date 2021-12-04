@@ -85,8 +85,8 @@ try
             str_exception = "SEVERE exception";
         Log( ex.level, Log_Sender::API,
              fmt::format(
-                 "Caught {} in API function \'{}\' (at {}:{})\n{:>49}Exception backtrace:", str_exception, api_function,
-                 file, line, " " ),
+                 "Caught {} in API function \'{}\' (at {}:{})\n{}Exception backtrace:", str_exception, api_function,
+                 file, line, Log.tags_space ),
              idx_image, idx_chain );
 
         // Create backtrace

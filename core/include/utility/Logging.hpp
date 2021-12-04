@@ -159,4 +159,9 @@ public:
 
 } // namespace Utility
 
+// Conversion of Log_Sender to string, usable by fmt
+std::ostream & operator<<( std::ostream & os, Utility::Log_Sender sender );
+// Conversion of Log_Level to string, usable by fmt
+std::ostream & operator<<( std::ostream & os, Utility::Log_Level level );
+
 #endif
