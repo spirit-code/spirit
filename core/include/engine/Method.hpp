@@ -16,17 +16,20 @@ namespace Engine
 {
 
 /*
-    Abstract Base Class for Simulation/Calculation Methods.
-    This class provides the possibility to have pointers to different template instantiations
-    of the Method class at runtime. This is needed e.g. to extract information to the State.
-*/
+ * Abstract Base Class for Simulation/Calculation Methods.
+ * This class provides the possibility to have pointers to different template instantiations
+ * of the Method class at runtime. This is needed e.g. to extract information to the State.
+ */
 class Method
 {
 public:
-    // Constructor to be used in derived classes
-    //      The constructor does not allocate any large arrays. The solvers should allocate
-    //      what they need in Solver_Initialise.
+    /* Constructor to be used in derived classes
+     *   The constructor does not allocate any large arrays. The solvers should allocate
+     *   what they need in Solver_Initialise.
+     */
     Method( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain );
+
+    virtual ~Method() = default;
 
     // `Iterate` is supposed to iteratively solve a problem
     virtual void Iterate();
@@ -45,12 +48,16 @@ public:
     // Get the number of milliseconds since the Method started iterating
     virtual std::int64_t getWallTime() final;
 
-    // NOTE: This is a bad convergence criterion and is therefore currently being phased out
-    // Maximum of the absolutes of all components of the force - needs to be updated at each calculation
+    /*
+     * NOTE: This is a bad convergence criterion and is therefore currently being phased out
+     * Maximum of the absolutes of all components of the force - needs to be updated at each calculation
+     */
     virtual scalar getForceMaxAbsComponent() final;
 
-    // Maximum of the absolutes of all components of the force for all images the method uses
-    // The default is that this returns simply {getForceMaxAbsComponent()}
+    /*
+     * Maximum of the absolutes of all components of the force for all images the method uses
+     * The default is that this returns simply {getForceMaxAbsComponent()}
+     */
     virtual std::vector<scalar> getForceMaxAbsComponent_All();
 
     // Maximum norm of the torque - needs to be updated at each calculation
@@ -83,26 +90,37 @@ public:
     virtual void Message_Step();
     virtual void Message_End();
 
-    // A hook into `Iterate` before an Iteration.
-    //      Override this function if special actions are needed
-    //      before each `Solver_Iteration`
+    /*
+     * A hook into `Iterate` before an Iteration.
+     *   Override this function if special actions are needed
+     *   before each `Solver_Iteration`
+     */
     virtual void Hook_Pre_Iteration();
-    // A hook into `Iterate` after an Iteration.
-    //      Override this function if special actions are needed
-    //      after each `Solver_Iteration`
+
+    /*
+     * A hook into `Iterate` after an Iteration.
+     *   Override this function if special actions are needed
+     *   after each `Solver_Iteration`
+     */
     virtual void Hook_Post_Iteration();
 
-    // Save current data
-    //      Override to specialize what a Method should save
+    /*
+     * Save current data
+     *   Override to specialize what a Method should save
+     */
     virtual void Save_Current( std::string starttime, int iteration, bool initial = false, bool final = false );
 
-    // Lock systems in order to prevent otherwise access
-    //      This function should be overridden by specialized methods to ensure systems are
-    //      safely locked during iterations.
+    /*
+     * Lock systems in order to prevent otherwise access
+     *   This function should be overridden by specialized methods to ensure systems are
+     *   safely locked during iterations.
+     */
     virtual void Lock();
-    // Unlock systems to re-enable access
-    //      This function should be overridden by specialized methods to ensure systems are
-    //      correctly unlocked after iterations.
+    /*
+     * Unlock systems to re-enable access
+     *   This function should be overridden by specialized methods to ensure systems are
+     *   correctly unlocked after iterations.
+     */
     virtual void Unlock();
 
     //////////// Check for stopping criteria //////////////////////////////////////////
