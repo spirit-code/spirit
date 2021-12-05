@@ -1,4 +1,4 @@
-﻿#include <io/IO.hpp>
+#include <io/IO.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Timing.hpp>
@@ -181,7 +181,7 @@ void LoggingHandler::Append_to_File()
         }
 
         // Append to file
-        IO::Append_String_to_File( logstring, output_folder + "/" + file_name );
+        IO::append_to_file( logstring, output_folder + "/" + file_name );
     }
     else
     {
@@ -213,7 +213,7 @@ void LoggingHandler::Dump_to_File()
         }
 
         // Write the string to file
-        IO::String_to_File( logstring, output_folder + "/" + file_name );
+        IO::write_to_file( logstring, output_folder + "/" + file_name );
     }
     else
     {

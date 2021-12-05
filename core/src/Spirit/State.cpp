@@ -264,7 +264,7 @@ try
     std::string header{ comment };
     if( !header.empty() )
         header += "\n";
-    IO::String_to_File( header, cfg );
+    IO::write_to_file( header, cfg );
 
     // Folders
     IO::Folders_to_Config(
@@ -272,31 +272,31 @@ try
         state->active_image->mmf_parameters );
 
     // Log Parameters
-    IO::Append_String_to_File( "\n\n\n", cfg );
+    IO::append_to_file( "\n\n\n", cfg );
     IO::Log_Levels_to_Config( cfg );
 
     // Geometry
-    IO::Append_String_to_File( "\n\n\n", cfg );
+    IO::append_to_file( "\n\n\n", cfg );
     IO::Geometry_to_Config( cfg, state->active_image->geometry );
 
     // LLG
-    IO::Append_String_to_File( "\n\n\n", cfg );
+    IO::append_to_file( "\n\n\n", cfg );
     IO::Parameters_Method_LLG_to_Config( cfg, state->active_image->llg_parameters );
 
     // MC
-    IO::Append_String_to_File( "\n\n\n", cfg );
+    IO::append_to_file( "\n\n\n", cfg );
     IO::Parameters_Method_MC_to_Config( cfg, state->active_image->mc_parameters );
 
     // GNEB
-    IO::Append_String_to_File( "\n\n\n", cfg );
+    IO::append_to_file( "\n\n\n", cfg );
     IO::Parameters_Method_GNEB_to_Config( cfg, state->chain->gneb_parameters );
 
     // MMF
-    IO::Append_String_to_File( "\n\n\n", cfg );
+    IO::append_to_file( "\n\n\n", cfg );
     IO::Parameters_Method_MMF_to_Config( cfg, state->active_image->mmf_parameters );
 
     // Hamiltonian
-    IO::Append_String_to_File( "\n\n\n", cfg );
+    IO::append_to_file( "\n\n\n", cfg );
     IO::Hamiltonian_to_Config( cfg, state->active_image->hamiltonian, state->active_image->geometry );
 }
 catch( ... )
