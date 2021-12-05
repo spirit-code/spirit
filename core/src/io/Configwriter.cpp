@@ -32,7 +32,7 @@ void Folders_to_Config(
     config += "gneb_output_folder " + parameters_gneb->output_folder + "\n";
     config += "mmf_output_folder  " + parameters_mmf->output_folder + "\n";
     config += "############### End Output Folders ###############";
-    Append_String_to_File( config, config_file );
+    append_to_file( config, config_file );
 }
 
 void Log_Levels_to_Config( const std::string & config_file )
@@ -46,7 +46,7 @@ void Log_Levels_to_Config( const std::string & config_file )
     config += fmt::format( "{:<22} {}\n", "log_input_save_initial", (int)Log.save_input_initial );
     config += fmt::format( "{:<22} {}\n", "log_input_save_final", (int)Log.save_input_final );
     config += "############# End Logging Parameters #############";
-    Append_String_to_File( config, config_file );
+    append_to_file( config, config_file );
 }
 
 void Geometry_to_Config( const std::string & config_file, const std::shared_ptr<Data::Geometry> geometry )
@@ -111,7 +111,7 @@ void Geometry_to_Config( const std::string & config_file, const std::shared_ptr<
         config += fmt::format( "lattice_constant {}\n", geometry->lattice_constant );
 
     config += "################## End Geometry ##################";
-    Append_String_to_File( config, config_file );
+    append_to_file( config, config_file );
 }
 
 void Parameters_Method_LLG_to_Config(
@@ -143,7 +143,7 @@ void Parameters_Method_LLG_to_Config(
     config
         += fmt::format( "{:<35} {}\n", "llg_stt_polarisation_normal", parameters->stt_polarisation_normal.transpose() );
     config += "############### End LLG Parameters ###############";
-    Append_String_to_File( config, config_file );
+    append_to_file( config, config_file );
 }
 
 void Parameters_Method_MC_to_Config(
@@ -168,7 +168,7 @@ void Parameters_Method_MC_to_Config(
     config += fmt::format( "{:<35} {}\n", "mc_temperature", parameters->temperature );
     config += fmt::format( "{:<35} {}\n", "mc_acceptance_ratio", parameters->acceptance_ratio_target );
     config += "############### End MC Parameters ################";
-    Append_String_to_File( config, config_file );
+    append_to_file( config, config_file );
 }
 
 void Parameters_Method_GNEB_to_Config(
@@ -191,7 +191,7 @@ void Parameters_Method_GNEB_to_Config(
     config += fmt::format( "{:<38} {}\n", "gneb_spring_constant", parameters->spring_constant );
     config += fmt::format( "{:<38} {}\n", "gneb_n_energy_interpolations", parameters->n_E_interpolations );
     config += "############### End GNEB Parameters ##############";
-    Append_String_to_File( config, config_file );
+    append_to_file( config, config_file );
 }
 
 void Parameters_Method_MMF_to_Config(
@@ -213,7 +213,7 @@ void Parameters_Method_MMF_to_Config(
     config += fmt::format( "{:<38} {}\n", "mmf_n_iterations", parameters->n_iterations );
     config += fmt::format( "{:<38} {}\n", "mmf_n_iterations_log", parameters->n_iterations_log );
     config += "############### End MMF Parameters ###############";
-    Append_String_to_File( config, config_file );
+    append_to_file( config, config_file );
 }
 
 void Hamiltonian_to_Config(
@@ -231,7 +231,7 @@ void Hamiltonian_to_Config(
     config += fmt::format(
         "{:<25} {} {} {}\n", "boundary_conditions", hamiltonian->boundary_conditions[0],
         hamiltonian->boundary_conditions[1], hamiltonian->boundary_conditions[2] );
-    Append_String_to_File( config, config_file );
+    append_to_file( config, config_file );
 
     if( hamiltonian->Name() == "Heisenberg" )
         Hamiltonian_Heisenberg_to_Config( config_file, hamiltonian, geometry );
@@ -239,7 +239,7 @@ void Hamiltonian_to_Config(
         Hamiltonian_Gaussian_to_Config( config_file, hamiltonian );
 
     config = "################# End Hamiltonian ################";
-    Append_String_to_File( config, config_file );
+    append_to_file( config, config_file );
 }
 
 void Hamiltonian_Heisenberg_to_Config(
@@ -335,7 +335,7 @@ void Hamiltonian_Heisenberg_to_Config(
         }
     }
 
-    Append_String_to_File( config, config_file );
+    append_to_file( config, config_file );
 }
 
 void Hamiltonian_Gaussian_to_Config(
@@ -354,7 +354,7 @@ void Hamiltonian_Gaussian_to_Config(
                 "{} {} {}\n", ham_gaussian->amplitude[i], ham_gaussian->width[i], ham_gaussian->center[i].transpose() );
         }
     }
-    Append_String_to_File( config, config_file );
+    append_to_file( config, config_file );
 }
 
 } // namespace IO
