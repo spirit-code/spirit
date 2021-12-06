@@ -168,6 +168,8 @@ protected:
     // Number of spins in an image
     int nos;
 
+    int n_iterations_amortize;
+
     // Method name as enum
     Utility::Log_Sender SenderName;
     // Maximum torque of all images

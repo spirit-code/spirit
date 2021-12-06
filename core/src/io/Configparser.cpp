@@ -753,6 +753,7 @@ std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config( 
             parameters->prng = std::mt19937( parameters->rng_seed );
             config_file_handle.Read_Single( parameters->n_iterations, "llg_n_iterations" );
             config_file_handle.Read_Single( parameters->n_iterations_log, "llg_n_iterations_log" );
+            config_file_handle.Read_Single( parameters->n_iterations_amortize, "llg_n_iterations_amortize" );
             config_file_handle.Read_Single( parameters->dt, "llg_dt" );
             config_file_handle.Read_Single( parameters->temperature, "llg_temperature" );
             config_file_handle.Read_Vector3(
@@ -799,6 +800,7 @@ std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config( 
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "maximum walltime", str_max_walltime ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations", parameters->n_iterations ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations_log", parameters->n_iterations_log ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations_amortize", parameters->n_iterations_amortize ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = \"{}\"", "output_folder", parameters->output_folder ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_any", parameters->output_any ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_initial", parameters->output_initial ) );
@@ -956,6 +958,7 @@ std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config( co
             parameters->prng = std::mt19937( parameters->rng_seed );
             config_file_handle.Read_Single( parameters->n_iterations, "mc_n_iterations" );
             config_file_handle.Read_Single( parameters->n_iterations_log, "mc_n_iterations_log" );
+            config_file_handle.Read_Single( parameters->n_iterations_amortize, "mc_n_iterations_amortize" );
             config_file_handle.Read_Single( parameters->temperature, "mc_temperature" );
             config_file_handle.Read_Single( parameters->acceptance_ratio_target, "mc_acceptance_ratio" );
         }
@@ -978,6 +981,7 @@ std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config( co
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "maximum walltime", str_max_walltime ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations", parameters->n_iterations ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations_log", parameters->n_iterations_log ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations_amortize", parameters->n_iterations_amortize ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = \"{}\"", "output_folder", parameters->output_folder ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_any", parameters->output_any ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_initial", parameters->output_initial ) );
@@ -1046,6 +1050,7 @@ std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config
             config_file_handle.Read_Single( parameters->force_convergence, "gneb_force_convergence" );
             config_file_handle.Read_Single( parameters->n_iterations, "gneb_n_iterations" );
             config_file_handle.Read_Single( parameters->n_iterations_log, "gneb_n_iterations_log" );
+            config_file_handle.Read_Single( parameters->n_iterations_amortize, "gneb_n_iterations_amortize" );
             config_file_handle.Read_Single( parameters->n_E_interpolations, "gneb_n_energy_interpolations" );
         }
         catch( ... )
@@ -1068,6 +1073,7 @@ std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "maximum walltime", str_max_walltime ) );
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "n_iterations", parameters->n_iterations ) );
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "n_iterations_log", parameters->n_iterations_log ) );
+    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "n_iterations_amortize", parameters->n_iterations_amortize ) );
     parameter_log.emplace_back( fmt::format( "    {:<18} = \"{}\"", "output_folder", parameters->output_folder ) );
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "output_any", parameters->output_any ) );
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "output_initial", parameters->output_initial ) );
@@ -1128,6 +1134,7 @@ std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config( 
             config_file_handle.Read_Single( parameters->force_convergence, "mmf_force_convergence" );
             config_file_handle.Read_Single( parameters->n_iterations, "mmf_n_iterations" );
             config_file_handle.Read_Single( parameters->n_iterations_log, "mmf_n_iterations_log" );
+            config_file_handle.Read_Single( parameters->n_iterations_amortize, "mmf_n_iterations_amortize" );
             config_file_handle.Read_Single( parameters->n_modes, "mmf_n_modes" );
             config_file_handle.Read_Single( parameters->n_mode_follow, "mmf_n_mode_follow" );
         }
@@ -1148,6 +1155,7 @@ std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config( 
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "maximum walltime", str_max_walltime ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations", parameters->n_iterations ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations_log", parameters->n_iterations_log ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations_amortize", parameters->n_iterations_amortize ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = \"{}\"", "output_folder", parameters->output_folder ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_any", parameters->output_any ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_initial", parameters->output_initial ) );

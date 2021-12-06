@@ -401,6 +401,9 @@ llg_force_convergence   10e-9
 llg_n_iterations        2000000
 ### Number of iterations after which to save
 llg_n_iterations_log    2000
+### Number of iterations that gets run with no checks or outputs (Increasing this boosts performance, especially in CUDA builds)
+llg_n_iterations_amortize 1
+
 ```
 
 **LLG:**

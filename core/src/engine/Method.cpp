@@ -14,7 +14,12 @@ namespace Engine
 {
 
 Method::Method( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain )
-        : iteration( 0 ), step( 0 ), idx_image( idx_img ), idx_chain( idx_chain ), parameters( parameters )
+        : iteration( 0 ),
+          step( 0 ),
+          idx_image( idx_img ),
+          idx_chain( idx_chain ),
+          parameters( parameters ),
+          n_iterations_amortize( parameters->n_iterations_amortize )
 {
     // Sender name for log messages
     this->SenderName = Log_Sender::All;
@@ -28,6 +33,11 @@ Method::Method( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img
     if( this->n_iterations_log <= long( 0 ) )
         this->n_iterations_log = this->n_iterations;
     this->n_log = this->n_iterations / this->n_iterations_log;
+
+    if( n_iterations_amortize > n_iterations_log )
+    {
+        n_iterations_amortize = n_iterations_log;
+    }
 
     // Setup timings
     for( std::uint8_t i = 0; i < 7; ++i )
@@ -59,7 +69,7 @@ void Method::Iterate()
 
     //---- Iteration loop
     for( this->iteration = 0; this->ContinueIterating() && !this->Walltime_Expired( t_current - t_start );
-         ++this->iteration )
+         this->iteration += n_iterations_amortize )
     {
         t_current = std::chrono::system_clock::now();
 
@@ -68,8 +78,9 @@ void Method::Iterate()
 
         // Pre-iteration hook
         this->Hook_Pre_Iteration();
-        // Do one single Iteration
-        this->Iteration();
+        // Do n_iterations_amortize iterations
+        for( int i = 0; i < n_iterations_amortize; i++ )
+            this->Iteration();
         // Post-iteration hook
         this->Hook_Post_Iteration();
 
@@ -107,7 +118,7 @@ scalar Method::getIterationsPerSecond()
     {
         l_ips += Timing::SecondsPassed( t_iterations[i + 1] - t_iterations[i] );
     }
-    this->ips = 1.0 / ( l_ips / ( t_iterations.size() - 1 ) );
+    this->ips = 1.0 / ( l_ips / ( t_iterations.size() - 1 ) ) * n_iterations_amortize;
     return this->ips;
 }
 
