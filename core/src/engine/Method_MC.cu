@@ -1,9 +1,13 @@
+#ifdef SPIRIT_USE_CUDA
+
 #include "data/Geometry.hpp"
 #include "engine/Vectormath_Defines.hpp"
 #include <Spirit_Defines.h>
 #include <engine/Hamiltonian_Heisenberg.hpp>
 #include <engine/Method_MC.hpp>
 #include <engine/Vectormath.hpp>
+#include <iostream>
+#include <fstream>
 #include <utility/Constants.hpp>
 
 using namespace Utility;
@@ -182,7 +186,7 @@ __device__ void cu_metropolis_spin_trial(
     //     some functions when porting code from the cpu to the gpu.
 }
 
-__global__ void cu_parallel_metropolis( Vector3 * spins_old, Vector3 * spins_new, Hamiltonian_Device_Ptrs)
+__global__ void cu_parallel_metropolis( Vector3 * spins_old, Vector3 * spins_new, Hamiltonian_Device_Ptrs ham)
 {
     // TODO: Implement
     // This function should perform one Iteration, meaning one spin trial for every spin in the system
@@ -191,21 +195,59 @@ __global__ void cu_parallel_metropolis( Vector3 * spins_old, Vector3 * spins_new
     // Also read my comment under the `Block_Decomposition` function in `core/src/engine/Method_MC.cpp`
 }
 
+
+__global__ void cu_metropolis_order( const Vector3 * spins_old, Vector3 * spins_new, int * order, unsigned int * counter, Hamiltonian_Device_Ptrs ham)
+{
+    // TODO: Implement such that the spins are addressed in the right order according to the block decomposition
+    // The version below just accesses all spins without paying attention to the blocks
+
+    int nos = ham.geometry.n_cells[0] * ham.geometry.n_cells[1] * ham.geometry.n_cells[2] * ham.geometry.n_cell_atoms;
+
+    for(auto index = blockIdx.x * blockDim.x + threadIdx.x;
+        index < nos;
+        index +=  blockDim.x * gridDim.x)
+    {
+        unsigned int current_count = atomicInc(counter, nos);
+        order[current_count] = index;
+    }
+}
+
 void Method_MC::Parallel_Metropolis( const vectorfield & spins_old, vectorfield & spins_new )
 {
-    // This function will be called on the host side and perform the kernel invocation
-    int BLOCK_SIZE    = 1024;
-    int BLOCKS_NUMBER = ( max_supported_threads + BLOCK_SIZE - 1 ) / BLOCK_SIZE;
-
-    // This is a bit of a hacky workaround, that we will refactor once we get the code to work
-    if( this->systems[0]->hamiltonian->Name() != "Heisenberg" )
-    {
-        return;
-    }
     auto hamiltonian = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( this->systems[0]->hamiltonian.get() );
     auto ham_ptrs = Hamiltonian_Device_Ptrs(*hamiltonian); // Collect the device pointers in a struct
 
-    cu_parallel_metropolis<<<BLOCKS_NUMBER, BLOCK_SIZE>>>( NULL, NULL, ham_ptrs );
+    // We allocate these two fields to record tha spin-trial order of the threads
+    auto order   = field<int>(spins_old.size());
+    auto counter = field<unsigned int>(1, 0);
+
+    int blockSize = 1024;
+    int numBlocks = ( spins_old.size() + blockSize - 1 ) / blockSize;
+    cu_metropolis_order<<<numBlocks, blockSize>>>( spins_old.data(), spins_new.data(), order.data(), counter.data(), ham_ptrs);
+    cudaDeviceSynchronize();
+
+    // dump the results in some file
+    std::ofstream myfile;
+    myfile.open ("mc_access_order.txt");
+
+    myfile << "# a b c idx_spin idx_trial\n";
+    // Write out the order
+    auto n_cells = this->systems[0]->geometry->n_cells;
+
+    for(int c=0; c<n_cells[2]; c++)
+    {
+        for(int b=0; b<n_cells[1]; b++)
+        {
+            for(int a=0; a<n_cells[0]; a++)
+            {
+                int idx = a + n_cells[0] * (b + n_cells[1] * c);
+                myfile << a << " " << b << " " << c << " " << idx << " " << order[idx] << "\n";
+            }
+        }
+    }
+    myfile.close();
 }
 
 } // namespace Engine
+
+#endif
