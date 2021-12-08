@@ -1,6 +1,6 @@
 #pragma once
-#ifndef INTERFACE_CONSTANTS_H
-#define INTERFACE_CONSTANTS_H
+#ifndef SPIRIT_CORE_CONSTANTS_H
+#define SPIRIT_CORE_CONSTANTS_H
 #include "DLL_Define_Export.h"
 
 #include "Spirit_Defines.h"

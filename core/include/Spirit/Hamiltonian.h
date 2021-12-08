@@ -1,7 +1,8 @@
 #pragma once
-#ifndef INTERFACE_HAMILTONIAN_H
-#define INTERFACE_HAMILTONIAN_H
+#ifndef SPIRIT_CORE_HAMILTONIAN_H
+#define SPIRIT_CORE_HAMILTONIAN_H
 #include "DLL_Define_Export.h"
+
 struct State;
 
 /*
@@ -177,6 +178,13 @@ Retrieves the dipole-dipole interaction configuration.
 PREFIX void Hamiltonian_Get_DDI(
     State * state, int * ddi_method, int n_periodic_images[3], float * cutoff_radius, bool * pb_zero_padding,
     int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+
+/*
+Writes the 3Nx3N embedding Hessian to a file.
+If triplet_format is set to true the hessian is written as a list of triplets, recommended for large and sparse Hessians.
+*/
+PREFIX void Hamiltonian_Write_Hessian(
+    State * state, const char * filename, bool triplet_format = true, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 #include "DLL_Undefine_Export.h"
 #endif

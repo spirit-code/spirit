@@ -139,11 +139,11 @@ def get_field(p_state, idx_image=-1, idx_chain=-1):
     """Returns the magnitude and an array of `shape(3)` containing the direction of
     the external magnetic field.
     """
-    magnitude = (1*ctypes.c_float)()
+    magnitude = ctypes.c_float()
     normal = (3*ctypes.c_float)()
-    _Get_Field(ctypes.c_void_p(p_state), magnitude, normal,
+    _Get_Field(ctypes.c_void_p(p_state), ctypes.byref(magnitude), normal,
                ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
-    return float(magnitude), [n for n in normal]
+    return float(magnitude.value), [n for n in normal]
 
 _Get_DDI          = _spirit.Hamiltonian_Get_DDI
 _Get_DDI.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_int), ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_bool), ctypes.c_int, ctypes.c_int]
@@ -159,3 +159,10 @@ def get_ddi(p_state, idx_image=-1, idx_chain=-1):
             "n_periodic_images" : [ i for i in n_periodic_images ],
             "cutoff_radius" : cutoff_radius.value,
             "pb_zero_padding" : pb_zero_padding.value }
+
+_Write_Hessian          = _spirit.Hamiltonian_Write_Hessian
+_Write_Hessian.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_bool, ctypes.c_int, ctypes.c_int]
+_Write_Hessian.restype  = None
+def write_hessian(p_state, filename, triplet_format=True, idx_image=-1, idx_chain=-1):
+    """RWrites the embedding Hessian to a file"""
+    _Write_Hessian(ctypes.c_void_p(p_state), ctypes.c_char_p(filename.encode('utf-8')), ctypes.c_bool(triplet_format), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))

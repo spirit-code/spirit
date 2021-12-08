@@ -88,8 +88,8 @@ OpenMP backend
 --------------------------------------
 
 Using OpenMP on Windows is not officially supported.
-While it is possible to use it, the build process is
-nontrivial.
+While you can use other compiler/implementation combinations, the
+build process tends to be nontrivial. We recommend using LLVM/clang.
 
 
 CUDA backend
@@ -136,15 +136,14 @@ You may additionally need to
   the libraries will be found when the code is executed
 
 
-Web assembly library
+Web apps
 --------------------------------------
 
-Using emscripten, Spirit can be built as a Web assembly
-library, meaning that it can be used e.g. from within
-JavaScript.
+Using emscripten, the Spirit core library and ImGUI app can be built to
+web assembly (wasm), meaning they can be run in the browser.
 
-The CMake option you need to set to `ON` is called
-`SPIRIT_BUILD_FOR_JS`.
+The CMake options you need to set to `ON` is called `SPIRIT_BUILD_FOR_JS`
+and `SPIRIT_UI_USE_IMGUI`.
 
 The build process on Windows has not been tested by us
 and we do not officially support it.

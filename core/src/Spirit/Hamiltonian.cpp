@@ -175,7 +175,7 @@ try
         // Set
         if( image->hamiltonian->Name() == "Heisenberg" )
         {
-            auto ham = (Engine::Hamiltonian_Heisenberg *)image->hamiltonian.get();
+            auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
 
             // Normals
             Vector3 new_normal{ normal[0], normal[1], normal[2] };
@@ -248,7 +248,7 @@ try
         if( image->hamiltonian->Name() == "Heisenberg" )
         {
             units            = "meV";
-            auto ham         = (Engine::Hamiltonian_Heisenberg *)image->hamiltonian.get();
+            auto * ham       = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
             int nos          = image->nos;
             int n_cell_atoms = image->geometry->n_cell_atoms;
 
@@ -330,7 +330,7 @@ try
         if( image->hamiltonian->Name() == "Heisenberg" )
         {
             // Update the Hamiltonian
-            auto ham                       = (Engine::Hamiltonian_Heisenberg *)image->hamiltonian.get();
+            auto * ham                     = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
             ham->exchange_shell_magnitudes = scalarfield( jij, jij + n_shells );
             ham->exchange_pairs_in         = pairfield( 0 );
             ham->exchange_magnitudes_in    = scalarfield( 0 );
@@ -411,7 +411,7 @@ try
         if( image->hamiltonian->Name() == "Heisenberg" )
         {
             // Update the Hamiltonian
-            auto ham                  = (Engine::Hamiltonian_Heisenberg *)image->hamiltonian.get();
+            auto * ham                = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
             ham->dmi_shell_magnitudes = scalarfield( dij, dij + n_shells );
             ham->dmi_shell_chirality  = chirality;
             ham->dmi_pairs_in         = pairfield( 0 );
@@ -503,7 +503,8 @@ try
     {
         if( image->hamiltonian->Name() == "Heisenberg" )
         {
-            auto ham                      = (Engine::Hamiltonian_Heisenberg *)image->hamiltonian.get();
+            auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
+
             ham->ddi_method               = Engine::DDI_Method( ddi_method );
             ham->ddi_n_periodic_images[0] = n_periodic_images[0];
             ham->ddi_n_periodic_images[1] = n_periodic_images[1];
@@ -600,7 +601,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto ham = (Engine::Hamiltonian_Heisenberg *)image->hamiltonian.get();
+        auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
 
         *magnitude = (float)( ham->external_field_magnitude / Constants::mu_B );
         normal[0]  = (float)ham->external_field_normal[0];
@@ -641,9 +642,9 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto ham = (Engine::Hamiltonian_Heisenberg *)image->hamiltonian.get();
+        auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
 
-        if( ham->anisotropy_indices.size() > 0 )
+        if( !ham->anisotropy_indices.empty() )
         {
             *magnitude = (float)ham->anisotropy_magnitudes[0];
             normal[0]  = (float)ham->anisotropy_normals[0][0];
@@ -687,12 +688,12 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto ham = (Engine::Hamiltonian_Heisenberg *)image->hamiltonian.get();
+        auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
 
         *n_shells = ham->exchange_shell_magnitudes.size();
 
         // Note the array needs to be correctly allocated beforehand!
-        for( int i = 0; i < ham->exchange_shell_magnitudes.size(); ++i )
+        for( std::size_t i = 0; i < ham->exchange_shell_magnitudes.size(); ++i )
         {
             jij[i] = (float)ham->exchange_shell_magnitudes[i];
         }
@@ -725,7 +726,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto ham = (Engine::Hamiltonian_Heisenberg *)image->hamiltonian.get();
+        auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
         return ham->exchange_pairs.size();
     }
 
@@ -749,9 +750,9 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto ham = (Engine::Hamiltonian_Heisenberg *)image->hamiltonian.get();
+        auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
 
-        for( int i = 0; i < ham->exchange_pairs.size() && i < ham->exchange_magnitudes.size(); ++i )
+        for( std::size_t i = 0; i < ham->exchange_pairs.size() && i < ham->exchange_magnitudes.size(); ++i )
         {
             auto & pair        = ham->exchange_pairs[i];
             idx[i][0]          = pair.i;
@@ -780,7 +781,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto ham = (Engine::Hamiltonian_Heisenberg *)image->hamiltonian.get();
+        auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
 
         *n_shells  = ham->dmi_shell_magnitudes.size();
         *chirality = ham->dmi_shell_chirality;
@@ -818,7 +819,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto ham = (Engine::Hamiltonian_Heisenberg *)image->hamiltonian.get();
+        auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
         return ham->dmi_pairs.size();
     }
 
@@ -843,7 +844,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto ham = (Engine::Hamiltonian_Heisenberg *)image->hamiltonian.get();
+        auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
 
         *ddi_method          = (int)ham->ddi_method;
         n_periodic_images[0] = (int)ham->ddi_n_periodic_images[0];
@@ -873,4 +874,61 @@ try
 catch( ... )
 {
     spirit_handle_exception_api( idx_image, idx_chain );
+}
+
+void saveMatrix( std::string fname, const SpMatrixX & matrix )
+{
+    std::cout << "Saving matrix to file: " << fname << "\n";
+    std::ofstream file( fname );
+    if( file && file.is_open() )
+    {
+        file << matrix;
+    }
+    else
+    {
+        std::cerr << "Could not save matrix!";
+    }
+}
+
+void saveTriplets( std::string fname, const SpMatrixX & matrix )
+{
+
+    std::cout << "Saving triplets to file: " << fname << "\n";
+    std::ofstream file( fname );
+    if( file && file.is_open() )
+    {
+        for( int k = 0; k < matrix.outerSize(); ++k )
+        {
+            for( SpMatrixX::InnerIterator it( matrix, k ); it; ++it )
+            {
+                file << it.row() << "\t"; // row index
+                file << it.col() << "\t"; // col index (here it is equal to k)
+                file << it.value() << "\n";
+            }
+        }
+    }
+    else
+    {
+        std::cerr << "Could not save matrix!";
+    }
+}
+
+void Hamiltonian_Write_Hessian(
+    State * state, const char * filename, bool triplet_format, int idx_image, int idx_chain ) noexcept
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    // Compute hessian
+    auto nos = image->geometry->nos;
+    SpMatrixX hessian( 3 * nos, 3 * nos );
+    image->hamiltonian->Sparse_Hessian( *image->spins, hessian );
+
+    if( triplet_format )
+        saveTriplets( std::string( filename ), hessian );
+    else
+        saveMatrix( std::string( filename ), hessian );
 }

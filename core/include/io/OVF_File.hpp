@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SPIRIT_IO_OVFFILE_HPP
-#define SPIRIT_IO_OVFFILE_HPP
+#ifndef SPIRIT_CORE_IO_OVFFILE_HPP
+#define SPIRIT_CORE_IO_OVFFILE_HPP
 
 #include <data/Spin_System.hpp>
 

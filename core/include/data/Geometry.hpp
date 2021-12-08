@@ -1,6 +1,6 @@
 #pragma once
-#ifndef DATA_GEOMETRY_H
-#define DATA_GEOMETRY_H
+#ifndef SPIRIT_CORE_DATA_GEOMETRY_HPP
+#define SPIRIT_CORE_DATA_GEOMETRY_HPP
 
 #include "Spirit_Defines.h"
 #include <Spirit/Geometry.h>

@@ -39,7 +39,7 @@
 #include <string>
 
 static ui::MainWindow * global_window_handle;
-static bool fullscreen_toggled           = false;
+static bool fullscreen_toggled = false;
 #ifdef SPIRIT_ENABLE_PINNING
 static const bool SPIRIT_PINNING_ENABLED = true;
 #else
@@ -92,6 +92,8 @@ namespace ui
 static glm::vec2 interaction_click_pos;
 static glm::vec2 mouse_pos_in_system;
 static float radius_in_system;
+static ImGuiID id_dockspace_left  = 0;
+static ImGuiID id_dockspace_right = 0;
 
 // Apply a callable to each of a variadic number of arguments
 template<class F, class... Args>
@@ -107,12 +109,8 @@ void for_each_argument( F f, Args &&... args )
     This function also assumes the camera to be in an orthogonal z-projection.
 */
 template<class... Args>
-void transform_to_system_frame( RenderingLayer & rendering_layer, Args &&... position )
+void transform_to_system_frame( RenderingLayer & rendering_layer, glm::vec2 window_size, Args &&... position )
 {
-    auto & io = ImGui::GetIO();
-
-    glm::vec2 window_size{ io.DisplaySize.x, io.DisplaySize.y };
-
     auto matrices
         = VFRendering::Utilities::getMatrices( rendering_layer.view.options(), window_size.x / window_size.y );
     auto camera_position = rendering_layer.view.options().get<VFRendering::View::Option::CAMERA_POSITION>();
@@ -120,7 +118,8 @@ void transform_to_system_frame( RenderingLayer & rendering_layer, Args &&... pos
     auto projection      = glm::inverse( matrices.second );
 
     for_each_argument(
-        [&window_size, &camera_position, &projection, &model_view]( glm::vec2 & pos ) {
+        [&window_size, &camera_position, &projection, &model_view]( glm::vec2 & pos )
+        {
             // Position relative to the center of the window [-1, 1]
             glm::vec2 relative_pos = 2.0f * ( pos - 0.5f * window_size );
             relative_pos.x /= window_size.x;
@@ -143,7 +142,7 @@ void MainWindow::handle_mouse()
 #ifdef __APPLE__
     bool ctrl = io.KeySuper;
 #else
-    bool ctrl = io.KeyCtrl;
+    bool ctrl    = io.KeyCtrl;
 #endif
 
 #if defined( __APPLE__ )
@@ -154,7 +153,8 @@ void MainWindow::handle_mouse()
     float scroll = -io.MouseWheel;
 #endif
 
-    auto set_configuration = [&]() {
+    auto set_configuration = [&]()
+    {
         float shift[3]{ interaction_click_pos.x - mouse_pos_in_system.x,
                         interaction_click_pos.y - mouse_pos_in_system.y, 0.0f };
         float current_position[3]{ mouse_pos_in_system.x, mouse_pos_in_system.y, 0.0f };
@@ -163,7 +163,8 @@ void MainWindow::handle_mouse()
         Configuration_From_Clipboard_Shift( state.get(), shift, current_position, rect, radius_in_system );
     };
 
-    auto set_atom_type = [&]( int atom_type ) {
+    auto set_atom_type = [&]( int atom_type )
+    {
         float center[3];
         Geometry_Get_Center( this->state.get(), center );
         float current_position[3]{ mouse_pos_in_system.x, mouse_pos_in_system.y, 0.0f };
@@ -174,7 +175,8 @@ void MainWindow::handle_mouse()
         Configuration_Set_Atom_Type( state.get(), atom_type, current_position, rect, radius_in_system );
     };
 
-    auto set_pinning = [&]( bool pinned ) {
+    auto set_pinning = [&]( bool pinned )
+    {
         float center[3];
         Geometry_Get_Center( this->state.get(), center );
         float current_position[3]{ mouse_pos_in_system.x, mouse_pos_in_system.y, 0.0f };
@@ -210,7 +212,10 @@ void MainWindow::handle_mouse()
     {
         mouse_pos_in_system = glm::vec2{ io.MousePos.x, io.MousePos.y };
         glm::vec2 radial_pos{ io.MousePos.x + ui_config_file.interaction_radius, io.MousePos.y };
-        transform_to_system_frame( rendering_layer, mouse_pos_in_system, radial_pos );
+        auto & io = ImGui::GetIO();
+        glm::vec2 window_size
+            = { ( 1 - left_sidebar_fraction - right_sidebar_fraction ) * io.DisplaySize.x, io.DisplaySize.y };
+        transform_to_system_frame( rendering_layer, window_size, mouse_pos_in_system, radial_pos );
         radius_in_system = radial_pos.x - mouse_pos_in_system.x;
     }
 
@@ -294,7 +299,7 @@ void MainWindow::handle_keyboard()
 #ifdef __APPLE__
     bool ctrl = io.KeySuper;
 #else
-    bool ctrl = io.KeyCtrl;
+    bool ctrl    = io.KeyCtrl;
 #endif
 
     if( ctrl && io.KeyShift )
@@ -315,6 +320,10 @@ void MainWindow::handle_keyboard()
             Configuration_Random( state.get() );
             rendering_layer.needs_data();
             this->ui_shared_state.notify( "Randomized spins" );
+        }
+        if( ImGui::IsKeyPressed( GLFW_KEY_F, false ) )
+        {
+            ui_config_file.window_hide_menubar = !ui_config_file.window_hide_menubar;
         }
 
         //-----------------------------------------------------
@@ -338,6 +347,20 @@ void MainWindow::handle_keyboard()
         if( ImGui::IsKeyPressed( GLFW_KEY_RIGHT ) )
         {
             this->insert_image_right();
+        }
+
+        //-----------------------------------------------------
+
+        if( ImGui::IsKeyPressed( GLFW_KEY_N ) )
+        {
+            auto & conf = ui_shared_state.configurations;
+
+            Configuration_Add_Noise_Temperature(
+                state.get(), conf.noise_temperature, conf.pos, conf.border_rect, conf.border_cyl, conf.border_sph,
+                conf.inverted );
+
+            Chain_Update_Data( state.get() );
+            rendering_layer.needs_data();
         }
     }
     else
@@ -545,17 +568,29 @@ void MainWindow::handle_keyboard()
             this->delete_image();
         }
 
+        if( ImGui::IsKeyPressed( GLFW_KEY_I, false ) )
+        {
+            ui_config_file.show_overlays = !ui_config_file.show_overlays;
+        }
+
         //-----------------------------------------------------
 
         if( ImGui::IsKeyPressed( GLFW_KEY_F1, false ) )
         {
             show_keybindings = !show_keybindings;
         }
-        if( ImGui::IsKeyPressed( GLFW_KEY_I, false ) )
+        if( ImGui::IsKeyPressed( GLFW_KEY_F2, false ) )
         {
-            ui_config_file.show_overlays = !ui_config_file.show_overlays;
+            ui_config_file.show_settings = !ui_config_file.show_settings;
         }
-
+        if( ImGui::IsKeyPressed( GLFW_KEY_F3, false ) )
+        {
+            ui_config_file.show_plots = !ui_config_file.show_plots;
+        }
+        if( ImGui::IsKeyPressed( GLFW_KEY_F4, false ) )
+        {
+            ui_config_file.show_visualisation_widget = !ui_config_file.show_visualisation_widget;
+        }
         if( ImGui::IsKeyPressed( GLFW_KEY_F5, false ) )
         {
             if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
@@ -614,13 +649,48 @@ void MainWindow::handle_keyboard()
 
         //-----------------------------------------------------
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_HOME, false ) )
+        if( ImGui::IsKeyPressed( GLFW_KEY_F10, false ) )
+        {
+            ui_config_file.window_hide_menubar = !ui_config_file.window_hide_menubar;
+        }
+
+        if( ImGui::IsKeyPressed( GLFW_KEY_F11, false ) )
+        {
+            ui_config_file.window_fullscreen = !ui_config_file.window_fullscreen;
+        }
+
+        if( ImGui::IsKeyPressed( GLFW_KEY_HOME, false ) || ImGui::IsKeyPressed( GLFW_KEY_F12, false ) )
         {
             ++ui_shared_state.n_screenshots;
             std::string name
                 = fmt::format( "{}_Screenshot_{}", State_DateTime( state.get() ), ui_shared_state.n_screenshots );
             rendering_layer.screenshot_png( name );
             ui_shared_state.notify( fmt::format( ICON_FA_DESKTOP "  Captured \"{}\"", name ), 4 );
+        }
+
+        //-----------------------------------------------------
+
+        if( ImGui::IsKeyPressed( GLFW_KEY_ENTER, false ) )
+        {
+            if( ui_shared_state.configurations.last_used != "" )
+            {
+                Log_Send(
+                    state.get(), Log_Level_Debug, Log_Sender_UI,
+                    ( "Inserting last used configuration: " + ui_shared_state.configurations.last_used ).c_str() );
+
+                if( ui_shared_state.configurations.last_used == "plus_z" )
+                    this->configurations_widget.set_plus_z();
+                else if( ui_shared_state.configurations.last_used == "minus_z" )
+                    this->configurations_widget.set_minus_z();
+                else if( ui_shared_state.configurations.last_used == "random" )
+                    this->configurations_widget.set_random();
+                else if( ui_shared_state.configurations.last_used == "spiral" )
+                    this->configurations_widget.set_spiral();
+                else if( ui_shared_state.configurations.last_used == "skyrmion" )
+                    this->configurations_widget.set_skyrmion();
+                else if( ui_shared_state.configurations.last_used == "hopfion" )
+                    this->configurations_widget.set_hopfion();
+            }
         }
     }
 }
@@ -653,7 +723,7 @@ try
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )] = std::thread(
-                &Simulation_LLG_Start, this->state.get(), ui_shared_state.selected_solver_min, -1, -1, false, -1, -1 );
+                &Simulation_LLG_Start, this->state.get(), ui_shared_state.selected_solver_min, -1, -1, false, nullptr, -1, -1 );
         }
         if( ui_shared_state.selected_mode == GUI_Mode::LLG )
         {
@@ -661,7 +731,7 @@ try
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )] = std::thread(
-                &Simulation_LLG_Start, this->state.get(), ui_shared_state.selected_solver_llg, -1, -1, false, -1, -1 );
+                &Simulation_LLG_Start, this->state.get(), ui_shared_state.selected_solver_llg, -1, -1, false, nullptr, -1, -1 );
         }
         else if( ui_shared_state.selected_mode == GUI_Mode::MC )
         {
@@ -669,22 +739,22 @@ try
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )]
-                = std::thread( &Simulation_MC_Start, this->state.get(), -1, -1, false, -1, -1 );
+                = std::thread( &Simulation_MC_Start, this->state.get(), -1, -1, false, nullptr, -1, -1 );
         }
         else if( ui_shared_state.selected_mode == GUI_Mode::GNEB )
         {
             if( thread_chain.joinable() )
                 thread_chain.join();
             this->thread_chain = std::thread(
-                &Simulation_GNEB_Start, this->state.get(), ui_shared_state.selected_solver_min, -1, -1, false, -1 );
+                &Simulation_GNEB_Start, this->state.get(), ui_shared_state.selected_solver_min, -1, -1, false, nullptr, -1 );
         }
         else if( ui_shared_state.selected_mode == GUI_Mode::MMF )
-        {
+        { 
             int idx = System_Get_Index( state.get() );
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )] = std::thread(
-                &Simulation_MMF_Start, this->state.get(), ui_shared_state.selected_solver_min, -1, -1, false, -1, -1 );
+                &Simulation_MMF_Start, this->state.get(), ui_shared_state.selected_solver_min, -1, -1, false, nullptr, -1, -1 );
         }
         else if( ui_shared_state.selected_mode == GUI_Mode::EMA )
         {
@@ -692,7 +762,7 @@ try
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )]
-                = std::thread( &Simulation_EMA_Start, this->state.get(), -1, -1, false, -1, -1 );
+                = std::thread( &Simulation_EMA_Start, this->state.get(), -1, -1, false, nullptr, -1, -1 );
         }
         this->ui_shared_state.notify( "started calculation" );
     }
@@ -923,14 +993,194 @@ void MainWindow::draw()
 #ifdef __EMSCRIPTEN__
     emscripten_webgl_make_context_current( context_vfr );
 #endif
-
     rendering_layer.draw( display_w, display_h );
+}
+
+void MainWindow::show_dock_widgets()
+{
+    auto & io = ImGui::GetIO();
+
+    // Save references to the widgets in a vector so we can iterate over them
+    static std::array<WidgetBase *, 6> spirit_widgets
+        = { &configurations_widget, &parameters_widget, &hamiltonian_widget,
+            &geometry_widget,       &plots_widget,      &visualisation_widget };
+
+    static bool previous_frame_showed_left_dock  = false;
+    static bool previous_frame_showed_right_dock = false;
+    static bool show_left_dock_agein             = true;
+    static bool show_right_dock_agein            = true;
+
+    bool dragging_a_window        = false;
+    bool a_window_wants_to_dock   = false;
+    bool a_window_is_docked_left  = false;
+    bool a_window_is_docked_right = false;
+
+    // Temporaries to compare against later
+    float pre_right_sidebar_fraction = right_sidebar_fraction;
+    float pre_left_sidebar_fraction  = left_sidebar_fraction;
+
+    auto window_height  = io.DisplaySize.y;
+    auto sidebar_height = window_height - menu_bar_size[1];
+
+    for( const auto * w : spirit_widgets )
+    {
+        if( !w->show_ )
+            continue;
+
+        if( w->dragging )
+            dragging_a_window = true;
+
+        if( w->wants_to_dock )
+            a_window_wants_to_dock = true;
+
+        if( previous_frame_showed_left_dock )
+        {
+            if( w->root_dock_node_id == id_dockspace_left )
+                a_window_is_docked_left = true;
+        }
+
+        if( previous_frame_showed_right_dock )
+        {
+            if( w->root_dock_node_id == id_dockspace_right )
+                a_window_is_docked_right = true;
+        }
+    }
+
+    auto show_left_dock = [&]()
+    {
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse
+                                        | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDocking
+                                        | ImGuiWindowFlags_NoScrollbar;
+        ImGuiDockNodeFlags dock_flags = ImGuiDockNodeFlags_None;
+
+        ImGui::SetNextWindowPos( { 0, menu_bar_size[1] } );
+        if( a_window_is_docked_left )
+        {
+            ImGui::SetNextWindowSizeConstraints(
+                { sidebar_fraction_min * io.DisplaySize.x, sidebar_height },
+                { sidebar_fraction_max * io.DisplaySize.x, sidebar_height } );
+        }
+        else
+        {
+            ImGui::SetNextWindowSize(
+                { sidebar_fraction_default * io.DisplaySize.x, io.DisplaySize.y - menu_bar_size[1] } );
+            ImGui::SetNextWindowBgAlpha( 0.5f );
+            window_flags |= ImGuiWindowFlags_NoResize;
+        }
+
+        ImGui::Begin( "##sidebar_left", nullptr, window_flags );
+
+        if( a_window_is_docked_left )
+        {
+            left_sidebar_fraction = ImGui::GetWindowSize()[0] / io.DisplaySize.x;
+        }
+        else
+        {
+            left_sidebar_fraction = 0;
+        }
+
+        id_dockspace_left = ImGui::GetID( "dockspace_left" );
+        ImGui::DockSpace( id_dockspace_left, { -1, -1 }, dock_flags );
+
+        ImGui::End();
+    };
+
+    auto show_right_dock = [&]()
+    {
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse
+                                        | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoDocking
+                                        | ImGuiWindowFlags_NoScrollbar;
+        ImGuiDockNodeFlags dock_flags = ImGuiDockNodeFlags_None;
+
+        if( a_window_is_docked_right )
+        {
+            ImGui::SetNextWindowPos( { ( 1 - right_sidebar_fraction ) * io.DisplaySize.x, menu_bar_size[1] } );
+            ImGui::SetNextWindowSizeConstraints(
+                { sidebar_fraction_min * io.DisplaySize.x, sidebar_height },
+                { sidebar_fraction_max * io.DisplaySize.x, sidebar_height } );
+        }
+        else
+        {
+            ImGui::SetNextWindowPos( { ( 1 - sidebar_fraction_default ) * io.DisplaySize.x, menu_bar_size[1] } );
+            ImGui::SetNextWindowSize(
+                { sidebar_fraction_default * io.DisplaySize.x, io.DisplaySize.y - menu_bar_size[1] } );
+            ImGui::SetNextWindowBgAlpha( 0.5f );
+            window_flags |= ImGuiWindowFlags_NoResize;
+        }
+
+        ImGui::Begin( "##sidebar_right", nullptr, window_flags );
+
+        if( a_window_is_docked_right )
+        {
+            right_sidebar_fraction = ImGui::GetWindowSize()[0] / io.DisplaySize.x;
+        }
+        else
+        {
+            right_sidebar_fraction = 0;
+        }
+
+        id_dockspace_right = ImGui::GetID( "dockspace_right" );
+        ImGui::DockSpace( id_dockspace_right, { -1, -1 }, dock_flags );
+
+        ImGui::End();
+    };
+
+    if( a_window_is_docked_left || dragging_a_window || a_window_wants_to_dock )
+    {
+        show_left_dock();
+        previous_frame_showed_left_dock = true;
+        show_left_dock_agein            = true;
+    }
+    else if( show_left_dock_agein )
+    {
+        show_left_dock();
+        previous_frame_showed_left_dock = true;
+        show_left_dock_agein            = false;
+    }
+    else
+        previous_frame_showed_left_dock = false;
+
+    if( a_window_is_docked_right || dragging_a_window || a_window_wants_to_dock )
+    {
+        show_right_dock();
+        previous_frame_showed_right_dock = true;
+        show_right_dock_agein            = true;
+    }
+    else if( show_right_dock_agein )
+    {
+        show_right_dock();
+        previous_frame_showed_right_dock = true;
+        show_right_dock_agein            = false;
+    }
+    else
+        previous_frame_showed_right_dock = false;
+
+    // If the sidebar changed we need to issue a redraw and resize
+    if( ( left_sidebar_fraction != pre_left_sidebar_fraction )
+        || ( right_sidebar_fraction != pre_right_sidebar_fraction ) )
+    {
+        rendering_layer.needs_redraw();
+
+        float layout_left  = 0;
+        float layout_right = 1;
+
+        if( a_window_is_docked_left )
+            layout_left = left_sidebar_fraction;
+        if( a_window_is_docked_right )
+            layout_right = 1 - right_sidebar_fraction;
+
+        rendering_layer.rendering_layout = { layout_left, 0, layout_right - layout_left, 1 };
+
+        // Set new rendering position/size
+        rendering_layer.update_renderers_from_layout();
+    }
 }
 
 void MainWindow::draw_imgui( int display_w, int display_h )
 {
     auto & io    = ImGui::GetIO();
     auto & style = ImGui::GetStyle();
+
     if( ui_shared_state.interaction_mode != UiSharedState::InteractionMode::REGULAR )
     {
         if( ImGui::IsWindowHovered( ImGuiHoveredFlags_AnyWindow ) )
@@ -969,10 +1219,6 @@ void MainWindow::draw_imgui( int display_w, int display_h )
         std::string radius_text = fmt::format( "radius = {:.3f}", radius_in_system );
         ImVec2 radius_text_size = ImGui::CalcTextSize( radius_text.c_str() );
 
-        float distance = mouse_text_size.y + 2 * style.FramePadding.y + 2 * style.WindowPadding.y;
-        // pos_y -= distance;
-        float pos_y = 45;
-
         const ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize
                                               | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing
                                               | ImGuiWindowFlags_NoNav;
@@ -980,7 +1226,7 @@ void MainWindow::draw_imgui( int display_w, int display_h )
         ImGui::PushStyleVar( ImGuiStyleVar_WindowBorderSize, 0 );
         ImGui::PushStyleVar( ImGuiStyleVar_Alpha, 0.6f );
 
-        ImGui::SetNextWindowPos( { 0.5f * ( io.DisplaySize.x - mouse_text_size.x ), pos_y } );
+        ImGui::SetNextWindowPos( { 0.5f * ( io.DisplaySize.x - mouse_text_size.x ), 45 } );
         // Also need to set size, because window may otherwise flicker for some reason...
         ImGui::SetNextWindowSize( { mouse_text_size.x + 2 * style.WindowPadding.x,
                                     title_text_size.y + mouse_text_size.y + radius_text_size.y
@@ -1010,17 +1256,22 @@ void MainWindow::draw_imgui( int display_w, int display_h )
 
     this->show_menu_bar();
     this->show_notifications();
+    this->show_dock_widgets();
 
     // ----------------
 
+    ImVec2 viewport_pos  = { left_sidebar_fraction * io.DisplaySize.x, menu_bar_size[1] };
+    ImVec2 viewport_size = { ( 1 - left_sidebar_fraction - right_sidebar_fraction ) * io.DisplaySize.x, -1 };
+    auto overlay_pos     = ui_config_file.overlay_system_position;
+
     ImGui::PushFont( font_cousine_14 );
     widgets::show_overlay_system(
-        ui_config_file.show_overlays, ui_config_file.overlay_system_corner, ui_config_file.overlay_system_position,
-        state );
+        ui_config_file.show_overlays, ui_config_file.overlay_system_corner, overlay_pos, state, viewport_pos,
+        viewport_size );
     widgets::show_overlay_calculation(
         ui_config_file.show_overlays, ui_shared_state.selected_mode, ui_shared_state.selected_solver_min,
         ui_shared_state.selected_solver_llg, ui_config_file.overlay_calculation_corner,
-        ui_config_file.overlay_calculation_position, state );
+        ui_config_file.overlay_calculation_position, state, viewport_pos, viewport_size );
     ImGui::PopFont();
 
     // ----------------
@@ -1033,8 +1284,6 @@ void MainWindow::draw_imgui( int display_w, int display_h )
     this->plots_widget.show();
     ImGui::PopFont();
     this->visualisation_widget.show();
-
-    // ----------------
 
     widgets::show_settings( ui_config_file.show_settings, rendering_layer );
     widgets::show_keybindings( show_keybindings );
@@ -1063,11 +1312,19 @@ void MainWindow::show_menu_bar()
         { GUI_Mode::EMA, { "Eigenmodes", "(6) eigenmode calculation and visualisation" } }
     };
     static std::vector<float> mode_button_hovered_duration( modes.size(), 0 );
-    static ImU32 image_number = (ImU32)1;
-    static ImU32 chain_length = (ImU32)1;
+    static auto image_number = static_cast<ImU32>( 1 );
+    static auto chain_length = static_cast<ImU32>( 1 );
+
+    static bool previous_frame_menu_was_active = false;
+
+    // Always show the menu bar if the mouse is near the top or a menu item is active
+    if( ui_config_file.window_hide_menubar
+        && !( ImGui::GetMousePos().y < menu_bar_size[1] || previous_frame_menu_was_active ) )
+        return;
 
     // ImGui::PushFont( font_karla_16 );
-    float font_size_px = font_karla_14->FontSize;
+    float font_size_px             = font_karla_14->FontSize;
+    previous_frame_menu_was_active = false;
 
     ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 5.f, 5.f ) );
     if( ImGui::BeginMainMenuBar() )
@@ -1076,6 +1333,7 @@ void MainWindow::show_menu_bar()
 
         if( ImGui::BeginMenu( "File" ) )
         {
+            previous_frame_menu_was_active = true;
             if( ImGui::MenuItem( "Load config-file" ) )
             {
                 nfdpathset_t path_set;
@@ -1193,9 +1451,9 @@ void MainWindow::show_menu_bar()
             {
             }
             ImGui::Separator();
-            ImGui::MenuItem( "Settings", "", &ui_config_file.show_settings );
+            ImGui::MenuItem( ICON_FA_COG "  Settings", "F2", &ui_config_file.show_settings );
             ImGui::Separator();
-            if( ImGui::MenuItem( "Take Screenshot" ) )
+            if( ImGui::MenuItem( ICON_FA_DESKTOP "  Take screenshot", "F12, " ICON_FA_HOME ) )
             {
                 ++ui_shared_state.n_screenshots;
                 std::string name
@@ -1203,31 +1461,62 @@ void MainWindow::show_menu_bar()
                 rendering_layer.screenshot_png( name );
                 ui_shared_state.notify( fmt::format( ICON_FA_DESKTOP "  Captured \"{}\"", name ), 4 );
             }
+            if( ImGui::MenuItem( ICON_FA_DESKTOP "  Take screenshots of the chain" ) )
+            {
+                int display_w, display_h;
+                glfwGetFramebufferSize( glfw_window, &display_w, &display_h );
+                int active_image = System_Get_Index( this->state.get() );
+                State_DateTime( state.get() );
+                Chain_Jump_To_Image( this->state.get(), 0 );
+                std::string tag = State_DateTime( state.get() );
+                ++ui_shared_state.n_screenshots_chain;
+                for( int i = 0; i < Chain_Get_NOI( this->state.get() ); ++i )
+                {
+                    std::string name
+                        = fmt::format( "{}_Screenshot_Chain_{}_Image_{}", tag, ui_shared_state.n_screenshots, i );
+
+                    rendering_layer.needs_data();
+                    rendering_layer.draw( display_w, display_h );
+
+                    rendering_layer.screenshot_png( name );
+                    Chain_next_Image( this->state.get() );
+                }
+                ui_shared_state.notify(
+                    fmt::format(
+                        ICON_FA_DESKTOP "  Captured series \"{}_Screenshot_Chain_{}_Image_...\"", tag,
+                        ui_shared_state.n_screenshots ),
+                    4 );
+                Chain_Jump_To_Image( this->state.get(), active_image );
+                rendering_layer.needs_data();
+                rendering_layer.draw( display_w, display_h );
+            }
+
             ImGui::EndMenu();
         }
         if( ImGui::BeginMenu( "Edit" ) )
         {
-            if( ImGui::MenuItem( "Cut system", "ctrl+x" ) )
+            previous_frame_menu_was_active = true;
+            if( ImGui::MenuItem( ICON_FA_CUT "  Cut system", "ctrl+x" ) )
             {
                 this->cut_image();
             }
-            if( ImGui::MenuItem( "Copy system", "ctrl+c" ) )
+            if( ImGui::MenuItem( ICON_FA_COPY "  Copy system", "ctrl+c" ) )
             {
                 Chain_Image_to_Clipboard( this->state.get() );
             }
-            if( ImGui::MenuItem( "Paste system", "ctrl+v" ) )
+            if( ImGui::MenuItem( ICON_FA_PASTE "  Paste system", "ctrl+v" ) )
             {
                 this->paste_image();
             }
-            if( ImGui::MenuItem( "Insert left", "ctrl+leftarrow" ) )
+            if( ImGui::MenuItem( ICON_FA_PLUS "  Insert left", "ctrl " ICON_FA_LONG_ARROW_ALT_LEFT ) )
             {
                 this->insert_image_left();
             }
-            if( ImGui::MenuItem( "Insert right", "ctrl+rightarrow" ) )
+            if( ImGui::MenuItem( ICON_FA_PLUS "  Insert right", "ctrl " ICON_FA_LONG_ARROW_ALT_RIGHT ) )
             {
                 this->insert_image_right();
             }
-            if( ImGui::MenuItem( "Delete system", "del" ) )
+            if( ImGui::MenuItem( ICON_FA_MINUS "  Delete system", "del" ) )
             {
                 this->delete_image();
             }
@@ -1235,6 +1524,7 @@ void MainWindow::show_menu_bar()
         }
         if( ImGui::BeginMenu( "Controls" ) )
         {
+            previous_frame_menu_was_active = true;
             if( ImGui::MenuItem( "Start/stop calculation", "space" ) )
             {
                 this->start_stop();
@@ -1284,6 +1574,7 @@ void MainWindow::show_menu_bar()
         }
         if( ImGui::BeginMenu( "Log" ) )
         {
+            previous_frame_menu_was_active = true;
             if( ImGui::MenuItem( "System energy contributions", "", false, false ) )
             {
             }
@@ -1300,13 +1591,15 @@ void MainWindow::show_menu_bar()
         }
         if( ImGui::BeginMenu( "View" ) )
         {
+            previous_frame_menu_was_active = true;
             ImGui::MenuItem( "Info-widgets", "i", &ui_config_file.show_overlays );
             ImGui::MenuItem( "Spin Configurations", "", &ui_config_file.show_configurations_widget );
             ImGui::MenuItem( "Parameters", "", &ui_config_file.show_parameters_widget );
-            ImGui::MenuItem( "Plots", "", &ui_config_file.show_plots );
+            ImGui::MenuItem( "Plots", "F3", &ui_config_file.show_plots );
             ImGui::MenuItem( "Geometry", "", &ui_config_file.show_geometry_widget );
             ImGui::MenuItem( "Hamiltonian", "", &ui_config_file.show_hamiltonian_widget );
-            ImGui::MenuItem( "Visualisation settings", "", &ui_config_file.show_visualisation_widget );
+            ImGui::MenuItem( "Visualisation settings", "F4", &ui_config_file.show_visualisation_widget );
+            ImGui::Separator();
             ImGui::MenuItem( "ImGui Demo Window", "", &show_imgui_demo_window );
             ImGui::MenuItem( "ImPlot Demo Window", "", &show_implot_demo_window );
             ImGui::Separator();
@@ -1339,10 +1632,13 @@ void MainWindow::show_menu_bar()
                 this->rendering_layer.reset_camera();
             }
             ImGui::Separator();
-            if( ImGui::MenuItem( "Toggle visualisation", "ctrl+f", false, false ) )
+            // if( ImGui::MenuItem( "Toggle visualisation", "ctrl+shift+v", false, false ) )
+            // {
+            // }
+            if( ImGui::MenuItem( "Hide menu bar", "ctrl+f", ui_config_file.window_hide_menubar ) )
             {
             }
-            if( ImGui::MenuItem( "Fullscreen", "ctrl+shift+f", ui_config_file.window_fullscreen ) )
+            if( ImGui::MenuItem( "Fullscreen", "F11, ctrl+shift+f", ui_config_file.window_fullscreen ) )
             {
                 fullscreen_toggled = true;
             }
@@ -1350,6 +1646,7 @@ void MainWindow::show_menu_bar()
         }
         if( ImGui::BeginMenu( "Help" ) )
         {
+            previous_frame_menu_was_active = true;
             if( ImGui::MenuItem( "Keybindings", "F1" ) )
             {
                 show_keybindings = true;
@@ -1447,8 +1744,8 @@ void MainWindow::show_menu_bar()
             }
         }
 
-        image_number = ( ImU32 )( System_Get_Index( state.get() ) + 1 );
-        chain_length = ( ImU32 )( Chain_Get_NOI( state.get() ) );
+        image_number = static_cast<ImU32>( System_Get_Index( state.get() ) + 1 );
+        chain_length = static_cast<ImU32>( Chain_Get_NOI( state.get() ) );
         ImGui::SetNextItemWidth( 40 );
         if( ImGui::InputScalar(
                 "##imagenumber", ImGuiDataType_U32, &image_number, NULL, NULL, "%u",
@@ -1458,6 +1755,8 @@ void MainWindow::show_menu_bar()
             rendering_layer.needs_data();
             parameters_widget.update_data();
         }
+        if( ImGui::IsItemActive() )
+            previous_frame_menu_was_active = true;
         ImGui::TextUnformatted( "/" );
         ImGui::SetNextItemWidth( 40 );
         if( ImGui::InputScalar(
@@ -1480,6 +1779,8 @@ void MainWindow::show_menu_bar()
                 this->threads_image.resize( new_length ); //( threads_image.begin() + idx + 1, std::thread() );
             }
         }
+        if( ImGui::IsItemActive() )
+            previous_frame_menu_was_active = true;
 
         if( ImGui::Button( ICON_FA_ARROW_RIGHT, ImVec2( width, button_height ) ) )
         {
@@ -1493,6 +1794,7 @@ void MainWindow::show_menu_bar()
 
         ImGui::PopStyleVar(); // ImGuiStyleVar_SelectableTextAlign
 
+        menu_bar_size = ImGui::GetWindowSize();
         ImGui::EndMainMenuBar();
     }
     // ImGui::PopFont();
@@ -1587,7 +1889,7 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
           state( state ),
           rendering_layer( ui_shared_state, state ),
           ui_config_file( ui_shared_state, rendering_layer ),
-          configurations_widget( ui_config_file.show_configurations_widget, state, rendering_layer ),
+          configurations_widget( ui_config_file.show_configurations_widget, state, ui_shared_state, rendering_layer ),
           parameters_widget( ui_config_file.show_parameters_widget, state, ui_shared_state ),
           geometry_widget( ui_config_file.show_geometry_widget, state, rendering_layer ),
           hamiltonian_widget( ui_config_file.show_hamiltonian_widget, state, rendering_layer ),
@@ -1605,7 +1907,12 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
     ImGui::CreateContext();
     ImPlot::CreateContext();
 
-    ImGuiIO & io   = ImGui::GetIO();
+    ImGuiIO & io = ImGui::GetIO();
+
+    // Enable docking
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    // Disable split docking
+
     io.IniFilename = nullptr;
 
     auto & plot_style     = ImPlot::GetStyle();

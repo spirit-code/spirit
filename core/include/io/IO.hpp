@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SPIRIT_IO_IO_HPP
-#define SPIRIT_IO_IO_HPP
+#ifndef SPIRIT_CORE_IO_IO_HPP
+#define SPIRIT_CORE_IO_IO_HPP
 
 #include "Spirit_Defines.h"
 #include <io/Fileformat.hpp>
@@ -11,20 +11,17 @@
 namespace IO
 {
 
-// Creates a new thread with String_to_File, which is immediately detached
-void Dump_to_File( const std::string text, const std::string name );
+// Overwrites the file with the given string
+void write_to_file( const std::string & str, const std::string & filename );
 
-// Takes a vector of strings of size "no" and dumps those into a file asynchronously
-void Dump_to_File( const std::vector<std::string> text, const std::string name, const int no );
+// Appends the string to a file
+void append_to_file( const std::string & str, const std::string & filename );
 
-// Dumps the contents of the strings in text vector into file "name"
-void Strings_to_File( const std::vector<std::string> text, const std::string name, const int no );
-
-// Dumps the contents of the string 'text' into a file
-void String_to_File( const std::string text, const std::string name );
-
-// Appends the contents of the string 'text' onto a file
-void Append_String_to_File( const std::string text, const std::string name );
+/*
+ * Writes the given string to a file, but may create and detach a thread, if
+ * CORE_USE_THREADS is defined to do it asynchronously (i.e. fire & forget)
+ */
+void dump_to_file( const std::string & str, const std::string & filename );
 
 } // namespace IO
 

@@ -81,7 +81,8 @@ void IsosurfaceWidget::setIsocomponent( int component )
     {
         m_renderer->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>(
             []( const glm::vec3 & position,
-                const glm::vec3 & direction ) -> VFRendering::IsosurfaceRenderer::isovalue_type {
+                const glm::vec3 & direction ) -> VFRendering::IsosurfaceRenderer::isovalue_type
+            {
                 (void)position;
                 return direction.x;
             } );
@@ -90,7 +91,8 @@ void IsosurfaceWidget::setIsocomponent( int component )
     {
         m_renderer->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>(
             []( const glm::vec3 & position,
-                const glm::vec3 & direction ) -> VFRendering::IsosurfaceRenderer::isovalue_type {
+                const glm::vec3 & direction ) -> VFRendering::IsosurfaceRenderer::isovalue_type
+            {
                 (void)position;
                 return direction.y;
             } );
@@ -99,7 +101,8 @@ void IsosurfaceWidget::setIsocomponent( int component )
     {
         m_renderer->setOption<VFRendering::IsosurfaceRenderer::Option::VALUE_FUNCTION>(
             []( const glm::vec3 & position,
-                const glm::vec3 & direction ) -> VFRendering::IsosurfaceRenderer::isovalue_type {
+                const glm::vec3 & direction ) -> VFRendering::IsosurfaceRenderer::isovalue_type
+            {
                 (void)position;
                 return direction.z;
             } );

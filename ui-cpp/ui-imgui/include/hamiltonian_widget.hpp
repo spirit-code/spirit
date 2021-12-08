@@ -3,6 +3,7 @@
 #define SPIRIT_IMGUI_HAMILTONIAN_WIDGET_HPP
 
 #include <rendering_layer.hpp>
+#include <widget_base.hpp>
 
 #include <array>
 #include <memory>
@@ -13,14 +14,13 @@ struct State;
 namespace ui
 {
 
-struct HamiltonianWidget
+struct HamiltonianWidget : public WidgetBase
 {
     HamiltonianWidget( bool & show, std::shared_ptr<State> state, RenderingLayer & rendering_layer );
-    void show();
+    void show_content() override;
     void update_data();
     void update_data_heisenberg();
 
-    bool & show_;
     std::shared_ptr<State> state;
     RenderingLayer & rendering_layer;
 

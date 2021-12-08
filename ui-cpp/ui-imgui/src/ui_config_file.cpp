@@ -404,9 +404,12 @@ void UiConfigFile::from_json()
                 group.at( "pos" ).get_to( this->window_position );
             if( group.contains( "maximized" ) )
                 group.at( "maximized" ).get_to( this->window_maximized );
+            if( group.contains( "hide_menubar" ) )
+                group.at( "hide_menubar" ).get_to( this->window_hide_menubar );
         }
 
-        auto update = [&]( std::shared_ptr<RendererWidget> ptr ) {
+        auto update = [&]( std::shared_ptr<RendererWidget> ptr )
+        {
             ptr->apply_settings();
             rendering_layer.renderer_widgets.push_back( ptr );
             ptr->id = rendering_layer.renderer_id_counter;
@@ -569,6 +572,7 @@ void UiConfigFile::to_json() const
                 { "position", { this->window_position[0], this->window_position[1] } },
                 { "size", { this->window_size[0], this->window_size[1] } },
                 { "maximized", this->window_maximized },
+                { "hide_menubar", this->window_hide_menubar },
             },
         },
 

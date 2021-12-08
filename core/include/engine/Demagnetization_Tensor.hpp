@@ -36,10 +36,12 @@ scalar delta( const scalar & x, const scalar & y, const scalar & z, const scalar
     // If the arg is infinite atan(arg) will give +- Pi/2 depending on sign
     // The std::atan function should know about this, but we do not rely on it here
     if( std::isinf( arg ) )
+    {
         if( arg < 0 )
             return -Constants::Pi / 2;
         else
             return Constants::Pi / 2;
+    }
 
     // If arg is nan it most likely means a division 0/0 ocurred,
     // we just return 0 because the delta function is cancelled by prefactors in that case

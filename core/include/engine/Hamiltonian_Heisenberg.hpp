@@ -1,6 +1,6 @@
 #pragma once
-#ifndef HAMILTONIAN_HEISENBERG_H
-#define HAMILTONIAN_HEISENBERG_H
+#ifndef SPIRIT_CORE_ENGINE_HAMILTONIAN_HEISENBERG_HPP
+#define SPIRIT_CORE_ENGINE_HAMILTONIAN_HEISENBERG_HPP
 
 #include "FFT.hpp"
 #include "Spirit_Defines.h"
@@ -14,6 +14,7 @@
 
 namespace Engine
 {
+
 /*
     The Heisenberg Hamiltonian using Pairs contains all information on the interactions between spins.
     The information is presented in pair lists and parameter lists in order to easily e.g. calculate the energy of the
@@ -206,4 +207,5 @@ private:
 };
 
 } // namespace Engine
+
 #endif

@@ -195,7 +195,7 @@ void ControlWidget::play_pause()
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )]
-                = std::thread( &Simulation_LLG_Start, this->state.get(), solver, -1, -1, false, -1, -1 );
+                = std::thread( &Simulation_LLG_Start, this->state.get(), solver, -1, -1, false, nullptr, -1, -1 );
         }
         else if( this->s_method == "MC" )
         {
@@ -203,13 +203,13 @@ void ControlWidget::play_pause()
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )]
-                = std::thread( &Simulation_MC_Start, this->state.get(), -1, -1, false, -1, -1 );
+                = std::thread( &Simulation_MC_Start, this->state.get(), -1, -1, false, nullptr, -1, -1 );
         }
         else if( this->s_method == "GNEB" )
         {
             if( thread_chain.joinable() )
                 thread_chain.join();
-            this->thread_chain = std::thread( &Simulation_GNEB_Start, this->state.get(), solver, -1, -1, false, -1 );
+            this->thread_chain = std::thread( &Simulation_GNEB_Start, this->state.get(), solver, -1, -1, false, nullptr, -1 );
         }
         else if( this->s_method == "MMF" )
         {
@@ -217,7 +217,7 @@ void ControlWidget::play_pause()
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )]
-                = std::thread( &Simulation_MMF_Start, this->state.get(), solver, -1, -1, false, -1, -1 );
+                = std::thread( &Simulation_MMF_Start, this->state.get(), solver, -1, -1, false, nullptr, -1, -1 );
         }
         else if( this->s_method == "EMA" )
         {
@@ -225,7 +225,7 @@ void ControlWidget::play_pause()
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )]
-                = std::thread( &Simulation_EMA_Start, this->state.get(), -1, -1, false, -1, -1 );
+                = std::thread( &Simulation_EMA_Start, this->state.get(), -1, -1, false, nullptr, -1, -1 );
         }
         // New button text
         this->pushButton_PlayPause->setText( "Stop" );

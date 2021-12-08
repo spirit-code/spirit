@@ -6,8 +6,8 @@
 #include <rendering_layer.hpp>
 
 #include <Spirit/IO.h>
-
 #include <memory>
+#include <widget_base.hpp>
 
 struct State;
 
@@ -191,13 +191,12 @@ struct Parameters
     };
 };
 
-struct ParametersWidget
+struct ParametersWidget : public WidgetBase
 {
     ParametersWidget( bool & show, std::shared_ptr<State> state, UiSharedState & ui_shared_state );
-    void show();
+    void show_content() override;
     void update_data();
 
-    bool & show_;
     std::shared_ptr<State> state;
     UiSharedState & ui_shared_state;
 

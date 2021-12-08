@@ -8,6 +8,7 @@
 
 #include <fmt/format.h>
 
+#include <array>
 #include <string>
 #include <vector>
 
@@ -29,22 +30,19 @@ void normalize( std::array<float, 3> vec )
 }
 
 HamiltonianWidget::HamiltonianWidget( bool & show, std::shared_ptr<State> state, RenderingLayer & rendering_layer )
-        : show_( show ), state( state ), rendering_layer( rendering_layer )
+        : WidgetBase( show ), state( state ), rendering_layer( rendering_layer )
 {
+    title = "Hamiltonian";
     this->update_data();
 }
 
-void HamiltonianWidget::show()
+void HamiltonianWidget::show_content()
 {
-    if( !show_ )
-        return;
-
     static std::vector<std::string> hamiltonian_types{ "Heisenberg", "Micromagnetic", "Gaussian" };
     static std::vector<std::string> ddi_methods{ "None", "FFT", "FMM", "Cutoff" };
     static int hamiltonian_type_idx = 0;
     auto & hamiltonian_type         = hamiltonian_types[hamiltonian_type_idx];
 
-    ImGui::Begin( "Hamiltonian", &show_ );
     {
         ImGui::SetNextItemWidth( 220 );
         if( ImGui::BeginCombo(
@@ -98,7 +96,7 @@ void HamiltonianWidget::show()
             ImGui::SetNextItemWidth( 80 );
             bool update_mu_s
                 = ImGui::InputFloat( "##mu_s_0", &mu_s[0], 0, 0, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue );
-            for( int i = 1; i < mu_s.size() && i < 100; ++i )
+            for( std::size_t i = 1; i < mu_s.size() && i < 100; ++i )
             {
                 // Up to 3 in a row
                 if( i % 3 != 0 )
@@ -201,7 +199,7 @@ void HamiltonianWidget::show()
             }
             ImGui::SetNextItemWidth( 140 );
             // ImGui::InputScalarN( "##exchange_magnitudes", ImGuiDataType_Float, exchange.data(), exchange.size() );
-            for( int i = 0; i < exchange.size() && i < 100; ++i )
+            for( std::size_t i = 0; i < exchange.size() && i < 100; ++i )
             {
                 // Up to 3 in a row
                 if( i % 3 != 0 )
@@ -220,7 +218,7 @@ void HamiltonianWidget::show()
                 this->update_data();
             }
 
-            if( ImGui::CollapsingHeader( "Exchange pairs" ) )
+            if( ImGui::TreeNode( "Exchange pairs" ) )
             {
                 if( exchange_n_pairs > 0
                     && ImGui::BeginTable(
@@ -335,7 +333,7 @@ void HamiltonianWidget::show()
                 update_dmi = false;
             }
 
-            if( ImGui::CollapsingHeader( "DMI pairs" ) )
+            if( ImGui::TreeNode( "DMI pairs" ) )
             {
                 // TODO: add API to get DMI pairs
 
@@ -435,7 +433,7 @@ void HamiltonianWidget::show()
             ImGui::SetNextItemWidth( 220 );
             if( ImGui::BeginCombo( "##ddi_method", fmt::format( "Method: {}", ddi_methods[ddi_method] ).c_str() ) )
             {
-                for( int idx = 0; idx < ddi_methods.size(); idx++ )
+                for( std::size_t idx = 0; idx < ddi_methods.size(); idx++ )
                 {
                     const bool is_selected = ddi_method == idx;
                     if( ImGui::Selectable( ddi_methods[idx].c_str(), is_selected ) )
@@ -467,7 +465,6 @@ void HamiltonianWidget::show()
         {
         }
     }
-    ImGui::End();
 }
 
 void HamiltonianWidget::update_data()
@@ -479,9 +476,11 @@ void HamiltonianWidget::update_data()
     }
     else if( hamiltonian_type == "Micromagnetic" )
     {
+        // TODO
     }
     else if( hamiltonian_type == "Gaussian" )
     {
+        // TODO
     }
 }
 
@@ -513,8 +512,8 @@ void HamiltonianWidget::update_data_heisenberg()
     exchange_translations = std::vector<std::array<int, 3>>( exchange_n_pairs );
     exchange_magnitudes   = std::vector<float>( exchange_n_pairs, 0 );
     Hamiltonian_Get_Exchange_Pairs(
-        state.get(), (int( * )[2])exchange_indices[0].data(), (int( * )[3])exchange_translations.data(),
-        exchange_magnitudes.data() );
+        state.get(), reinterpret_cast<int( * )[2]>( exchange_indices[0].data() ),
+        reinterpret_cast<int( * )[3]>( exchange_translations.data() ), exchange_magnitudes.data() );
 
     // DMI (shells)
     dmi.resize( 100 );

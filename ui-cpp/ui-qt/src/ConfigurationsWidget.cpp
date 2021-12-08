@@ -31,7 +31,7 @@ ConfigurationsWidget::ConfigurationsWidget( std::shared_ptr<State> state, SpinWi
     // Setup User Interface
     this->setupUi( this );
     this->groupBox_globule->setVisible( false );
-    this->groupBox_hopfion->setVisible( false );
+    this->groupBox_hopfion->setVisible( true );
 
     // We use a regular expression (regex) to filter the input into the lineEdits
     QRegularExpression re( "[+|-]?[\\d]*[\\.]?[\\d]*" );
@@ -172,8 +172,14 @@ void ConfigurationsWidget::create_Hopfion()
     // Create configuration
     float r   = lineEdit_hopfion_radius->text().toFloat();
     int order = lineEdit_hopfion_order->text().toInt();
+
+    float normal[3];
+    normal[0] = lineEdit_hopfion_normal_x->text().toFloat();
+    normal[1] = lineEdit_hopfion_normal_y->text().toFloat();
+    normal[2] = lineEdit_hopfion_normal_z->text().toFloat();
+
     Configuration_Hopfion(
-        this->state.get(), r, order, pos.data(), border_rect.data(), border_cyl, border_sph, inverted );
+        this->state.get(), r, order, pos.data(), border_rect.data(), border_cyl, border_sph, inverted, normal );
 
     // Optionally add noise
     this->configurationAddNoise();
@@ -627,9 +633,9 @@ void ConfigurationsWidget::Setup_Configurations_Slots()
     // Pinning and atom types
     connect( this->pushButton_set_atom_type, SIGNAL( clicked() ), this, SLOT( set_atom_type_pressed() ) );
     connect( this->pushButton_set_pinned, SIGNAL( clicked() ), this, SLOT( set_pinned_pressed() ) );
-    connect( this->lineEdit_atom_type, &QLineEdit::returnPressed, this, [this] {
-        this->spinWidget->setPasteAtomType( this->lineEdit_atom_type->text().toInt() );
-    } );
+    connect(
+        this->lineEdit_atom_type, &QLineEdit::returnPressed, this,
+        [this] { this->spinWidget->setPasteAtomType( this->lineEdit_atom_type->text().toInt() ); } );
 }
 
 void ConfigurationsWidget::Setup_Transitions_Slots()

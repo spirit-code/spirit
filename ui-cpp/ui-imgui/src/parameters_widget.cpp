@@ -14,20 +14,14 @@ namespace ui
 {
 
 ParametersWidget::ParametersWidget( bool & show, std::shared_ptr<State> state, UiSharedState & ui_shared_state )
-        : show_( show ), state( state ), ui_shared_state( ui_shared_state )
+        : WidgetBase( show ), state( state ), ui_shared_state( ui_shared_state )
 {
+    title = "Parameters";
     update_data();
 }
 
-void ParametersWidget::show()
+void ParametersWidget::show_content()
 {
-    if( !show_ )
-        return;
-
-    ImGui::SetNextWindowSizeConstraints( { 300, 300 }, { 800, 999999 } );
-
-    ImGui::Begin( "Parameters", &show_ );
-
     if( ui_shared_state.selected_mode == GUI_Mode::Minimizer )
         ImGui::Checkbox( "Apply to all images", &ui_shared_state.min_apply_to_all );
     else if( ui_shared_state.selected_mode == GUI_Mode::LLG )
@@ -711,8 +705,6 @@ void ParametersWidget::show()
         if( ImGui::Checkbox( "snapshot mode", &parameters_ema.snapshot ) )
             Parameters_EMA_Set_Snapshot( state.get(), parameters_ema.snapshot );
     }
-
-    ImGui::End();
 }
 
 void ParametersWidget::update_data()

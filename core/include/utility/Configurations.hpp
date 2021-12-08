@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SPIRIT_UTILITY_CONFIGURATIONS_HPP
-#define SPIRIT_UTILITY_CONFIGURATIONS_HPP
+#ifndef SPIRIT_CORE_UTILITY_CONFIGURATIONS_HPP
+#define SPIRIT_CORE_UTILITY_CONFIGURATIONS_HPP
 
 #include "Spirit_Defines.h"
 #include <data/Spin_System.hpp>
@@ -38,7 +38,7 @@ void Add_Noise_Temperature(
     Data::Spin_System & s, scalar temperature, int delta_seed = 0, filterfunction filter = defaultfilter );
 
 // Creates a toroid
-void Hopfion( Data::Spin_System & s, Vector3 pos, scalar r, int order = 1, filterfunction filter = defaultfilter );
+void Hopfion( Data::Spin_System & s, Vector3 pos, scalar r, int order = 1, Vector3 normal = {0,0,1}, filterfunction filter = defaultfilter );
 
 // Creates a Skyrmion
 void Skyrmion(

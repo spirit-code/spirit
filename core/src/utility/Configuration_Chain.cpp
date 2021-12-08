@@ -41,8 +41,8 @@ void Homogeneous_Rotation( std::shared_ptr<Data::Spin_System_Chain> c, int idx_1
         rot_angle = Engine::Vectormath::angle( spins_1[i], spins_2[i] );
         rot_axis  = spins_1[i].cross( spins_2[i] ).normalized();
 
-        if( std::abs( rot_angle - Constants::Pi )
-            < 1e-4 ) // If spins are antiparallel, we choose an arbitrary rotation axis
+        // If spins are antiparallel, we choose an arbitrary rotation axis
+        if( std::abs( rot_angle - Constants::Pi ) < 1e-4 )
         {
             antiparallel = true;
             if( std::abs( spins_1[i].dot( ex ) ) - 1 > 1e-4 )

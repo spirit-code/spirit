@@ -7,7 +7,6 @@
 #include <Spirit/State.h>
 #include <Spirit/System.h>
 #include <Spirit/Version.h>
-
 #include <data/State.hpp>
 
 #include <Eigen/Core>
@@ -88,9 +87,11 @@ TEST_CASE( "Finite Differences", "[physics]" )
 {
     // Hamiltonians to be tested
     std::vector<const char *> hamiltonians{ "core/test/input/fd_pairs.cfg", "core/test/input/fd_micromagnetic.cfg" };
+    //"core/test/input/fd_neighbours",
+    //"core/test/input/fd_gaussian.cfg"};
 
     // Reduce precision if float accuracy
-    double epsilon_apprx = 1e-10;
+    double epsilon_apprx = 1e-11;
     if( strcmp( Spirit_Scalar_Type(), "float" ) == 0 )
     {
         WARN( "Detected single precision calculation. Reducing precision requirements." );
