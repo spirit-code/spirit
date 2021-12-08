@@ -1,7 +1,6 @@
 #include <QDialog>
 #include <QtWidgets>
 
-
 #include "HamiltonianMicromagneticWidget.hpp"
 
 #include <Spirit/Chain.h>
@@ -9,7 +8,6 @@
 #include <Spirit/Hamiltonian.h>
 #include <Spirit/Log.h>
 #include <Spirit/System.h>
-
 
 // Small function for normalization of vectors
 #define Exception_Division_by_zero 6666
@@ -143,7 +141,8 @@ void HamiltonianMicromagneticWidget::clicked_change_hamiltonian()
 void HamiltonianMicromagneticWidget::set_boundary_conditions()
 {
     // Closure to set the parameters of a specific spin system
-    auto apply = [this]( int idx_image ) -> void {
+    auto apply = [this]( int idx_image ) -> void
+    {
         // Boundary conditions
         bool boundary_conditions[3];
         boundary_conditions[0] = this->checkBox_aniso_periodical_a->isChecked();
@@ -176,7 +175,8 @@ void HamiltonianMicromagneticWidget::set_boundary_conditions()
 void HamiltonianMicromagneticWidget::set_Ms()
 {
     // Closure to set the parameters of a specific spin system
-    auto apply = [this]( int idx_image ) -> void {
+    auto apply = [this]( int idx_image ) -> void
+    {
         // Ms
         float Ms = this->lineEdit_mm_Ms->text().toFloat();
         Geometry_Set_mu_s( state.get(), Ms, idx_image );
@@ -205,7 +205,8 @@ void HamiltonianMicromagneticWidget::set_Ms()
 void HamiltonianMicromagneticWidget::set_external_field()
 {
     // Closure to set the parameters of a specific spin system
-    auto apply = [this]( int idx_image ) -> void {
+    auto apply = [this]( int idx_image ) -> void
+    {
         float d, vd[3];
 
         // External magnetic field

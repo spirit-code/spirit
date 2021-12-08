@@ -532,7 +532,6 @@ std::shared_ptr<Data::Geometry> Geometry_from_Config( const std::string configFi
         parameter_log.push_back( fmt::format( "    unit cell volume [m^3]: {}", geometry->cell_volume ) );
         // parameter_log.push_back( fmt::format( "    Ms[A/m]:                {}", geometry->Ms ) );
 
-
         Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
         Log( Log_Level::Debug, Log_Sender::IO, "Geometry: built" );
@@ -675,7 +674,7 @@ Data::Pinning Pinning_from_Config( const std::string configFile, int n_cell_atom
     }
     Log( Log_Level::Parameter, Log_Sender::IO, "Pinning: read" );
     return pinning;
-#else // SPIRIT_ENABLE_PINNING
+#else  // SPIRIT_ENABLE_PINNING
     Log( Log_Level::Parameter, Log_Sender::IO, "Pinning is disabled" );
     if( configFile != "" )
     {
@@ -1628,10 +1627,12 @@ Hamiltonian_Micromagnetic_from_Config( const std::string configFile, const std::
         // Precision of the spatial gradient calculation
         myfile.Read_Single( spatial_gradient_order, "spatial_gradient_order" );
 
-        if( myfile.Find("Ms") )
+        if( myfile.Find( "Ms" ) )
         {
-            myfile.Read_Single(Ms, "Ms");
-        } else {
+            myfile.Read_Single( Ms, "Ms" );
+        }
+        else
+        {
             Log( Log_Level::Warning, Log_Sender::IO,
                  "Input for 'Ms' has not been found. Inferring from atomistic cell instead." );
             Ms = geometry->getMs();
@@ -1753,8 +1754,7 @@ Hamiltonian_Micromagnetic_from_Config( const std::string configFile, const std::
     Log( Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Micromagnetic:" );
     Log( Log_Level::Parameter, Log_Sender::IO,
          fmt::format( "        {:<24} = {}", "discretisation order", spatial_gradient_order ) );
-    Log( Log_Level::Parameter, Log_Sender::IO,
-         fmt::format( "        {:<24} = {}", "Ms [A/m]", Ms ) );
+    Log( Log_Level::Parameter, Log_Sender::IO, fmt::format( "        {:<24} = {}", "Ms [A/m]", Ms ) );
     Log( Log_Level::Parameter, Log_Sender::IO,
          fmt::format(
              "        {:<24} = {} {} {}", "boundary conditions", boundary_conditions[0], boundary_conditions[1],
@@ -1781,7 +1781,7 @@ Hamiltonian_Micromagnetic_from_Config( const std::string configFile, const std::
              ddi_n_periodic_images[2] ) );
     Log( Log_Level::Parameter, Log_Sender::IO, fmt::format( "        {:<21} = {}", "ddi_radius", ddi_radius ) );
 
-    auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Micromagnetic>( new Engine::Hamiltonian_Micromagnetic( 
+    auto hamiltonian = std::unique_ptr<Engine::Hamiltonian_Micromagnetic>( new Engine::Hamiltonian_Micromagnetic(
         Ms, field, field_normal, anisotropy_tensor, exchange_tensor, dmi_tensor, ddi_method, ddi_n_periodic_images,
         ddi_radius, geometry, spatial_gradient_order, boundary_conditions ) );
 

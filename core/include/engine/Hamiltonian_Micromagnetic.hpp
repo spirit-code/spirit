@@ -67,10 +67,10 @@ public:
     bool A_is_nondiagonal = true;
 
     // Dipole-dipole interaction
-    DDI_Method  ddi_method;
-    intfield    ddi_n_periodic_images;
-    scalar      ddi_cutoff_radius;
-    pairfield   ddi_pairs;
+    DDI_Method ddi_method;
+    intfield ddi_n_periodic_images;
+    scalar ddi_cutoff_radius;
+    pairfield ddi_pairs;
     scalarfield ddi_magnitudes;
     vectorfield ddi_normals;
     bool ddi_pb_zero_padding = true;
