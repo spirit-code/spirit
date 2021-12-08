@@ -15,6 +15,32 @@ namespace Engine
 {
 namespace Vectormath
 {
+// A "rotated view" into a vectorfield, with optional shifts applied before and after rotation.
+template<class vectorfield_t, class vector_t>
+class Rotated_View
+{
+private:
+    const vectorfield_t & field;
+    const Matrix3 & rotation_matrix;
+    const vector_t & shift_pre;
+    const vector_t & shift_post;
+
+public:
+    Rotated_View(
+        const vectorfield_t & field, const Matrix3 & rotation_matrix, const vector_t & shift_pre = vector_t{ 0, 0, 0 },
+        const vector_t & shift_post = vector_t{ 0, 0, 0 } )
+            : field( field ), rotation_matrix( rotation_matrix ), shift_pre( shift_pre ), shift_post( shift_post )
+    {
+    }
+
+    const vector_t operator[]( int idx )
+    {
+        return rotation_matrix * ( field[idx] - shift_pre ) + shift_post;
+    }
+};
+
+// Constructs a rotation matrix that rotates to a frame with "normal" as the z-axis
+Matrix3 dreibein( const Vector3 & normal );
 
 /////////////////////////////////////////////////////////////////
 //////// Single Vector Math

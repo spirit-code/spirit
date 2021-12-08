@@ -27,8 +27,8 @@ std::function<bool( const Vector3 &, const Vector3 & )> get_filter(
     {
         filter = [position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, no_cut_rectangular_x,
                   no_cut_rectangular_y, no_cut_rectangular_z, no_cut_cylindrical,
-                  no_cut_spherical]( const Vector3 &, const Vector3 & positions )
-        {
+                  no_cut_spherical]( const Vector3 &, const Vector3 & positions ) 
+                  {
             Vector3 r_rectangular = positions - position;
             scalar r_cylindrical
                 = std::sqrt( std::pow( positions[0] - position[0], 2 ) + std::pow( positions[1] - position[1], 2 ) );
@@ -45,7 +45,7 @@ std::function<bool( const Vector3 &, const Vector3 & )> get_filter(
         filter = [position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, no_cut_rectangular_x,
                   no_cut_rectangular_y, no_cut_rectangular_z, no_cut_cylindrical,
                   no_cut_spherical]( const Vector3 & spin, const Vector3 & positions )
-        {
+                  {
             Vector3 r_rectangular = positions - position;
             scalar r_cylindrical
                 = std::sqrt( std::pow( positions[0] - position[0], 2 ) + std::pow( positions[1] - position[1], 2 ) );
@@ -469,7 +469,8 @@ catch( ... )
 
 void Configuration_Hopfion(
     State * state, float r, int order, const float position[3], const float r_cut_rectangular[3],
-    float r_cut_cylindrical, float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
+    float r_cut_cylindrical, float r_cut_spherical, bool inverted, const float normal[3], int idx_image,
+    int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -491,7 +492,7 @@ try
 
     // Apply configuration
     image->Lock();
-    Utility::Configurations::Hopfion( *image, vpos, r, order, filter );
+    Utility::Configurations::Hopfion( *image, vpos, r, order, { normal[0], normal[1], normal[2] }, filter );
     image->geometry->Apply_Pinning( *image->spins );
     image->Unlock();
 

@@ -31,7 +31,7 @@ ConfigurationsWidget::ConfigurationsWidget( std::shared_ptr<State> state, SpinWi
     // Setup User Interface
     this->setupUi( this );
     this->groupBox_globule->setVisible( false );
-    this->groupBox_hopfion->setVisible( false );
+    this->groupBox_hopfion->setVisible( true );
 
     // We use a regular expression (regex) to filter the input into the lineEdits
     QRegularExpression re( "[+|-]?[\\d]*[\\.]?[\\d]*" );
@@ -172,8 +172,14 @@ void ConfigurationsWidget::create_Hopfion()
     // Create configuration
     float r   = lineEdit_hopfion_radius->text().toFloat();
     int order = lineEdit_hopfion_order->text().toInt();
+
+    float normal[3];
+    normal[0] = lineEdit_hopfion_normal_x->text().toFloat();
+    normal[1] = lineEdit_hopfion_normal_y->text().toFloat();
+    normal[2] = lineEdit_hopfion_normal_z->text().toFloat();
+
     Configuration_Hopfion(
-        this->state.get(), r, order, pos.data(), border_rect.data(), border_cyl, border_sph, inverted );
+        this->state.get(), r, order, pos.data(), border_rect.data(), border_cyl, border_sph, inverted, normal );
 
     // Optionally add noise
     this->configurationAddNoise();
