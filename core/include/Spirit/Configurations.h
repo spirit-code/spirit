@@ -31,7 +31,7 @@ float const defaultRect[3] = { -1, -1, -1 };
 /*
 The default normal for planar configurations. For now only used in the toroidal Hopfion.
 */
-float const defaultNormal[3] = {0,0,1};
+float const defaultNormal[3] = { 0, 0, 1 };
 
 /*
 Clipboard
@@ -127,7 +127,10 @@ PREFIX void Configuration_DW_Skyrmion(
     float r_cut_spherical = -1, bool inverted = false, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Create a toroidal Hopfion
-PREFIX void Configuration_Hopfion(State *state, float r, int order=1, const float position[3]=defaultPos, const float r_cut_rectangular[3]=defaultRect, float r_cut_cylindrical=-1, float r_cut_spherical=-1, bool inverted=false, const float normal[3] = defaultNormal, int idx_image=-1, int idx_chain=-1) SUFFIX;
+PREFIX void Configuration_Hopfion(
+    State * state, float r, int order = 1, const float position[3] = defaultPos,
+    const float r_cut_rectangular[3] = defaultRect, float r_cut_cylindrical = -1, float r_cut_spherical = -1,
+    bool inverted = false, const float normal[3] = defaultNormal, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
 Pinning and atom types

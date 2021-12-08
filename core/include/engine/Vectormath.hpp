@@ -15,9 +15,6 @@ namespace Engine
 {
 namespace Vectormath
 {
-/////////////////////////////////////////////////////////////////
-//////// Single Vector Math
-
 // A "rotated view" into a vectorfield, with optional shifts applied before and after rotation.
 template<class vectorfield_t, class vector_t>
 class Rotated_View
