@@ -492,9 +492,11 @@ Vector3 decompose( const Vector3 & v, const std::vector<Vector3> & basis )
 
 /////////////////////////////////////////////////////////////////
 
-std::array<scalar, 3> Magnetization( const vectorfield & vf )
+std::array<scalar, 3> Magnetization( const vectorfield & vf, const scalarfield & mu_s )
 {
-    Vector3 vfmean = mean( vf );
+    vectorfield temp_vf = vf;
+    scale( temp_vf, mu_s );
+    Vector3 vfmean = mean( temp_vf );
     std::array<scalar, 3> M{ vfmean[0], vfmean[1], vfmean[2] };
     return M;
 }

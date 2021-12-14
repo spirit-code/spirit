@@ -14,6 +14,27 @@
 
 namespace C = Utility::Constants;
 
+void Quantity_Get_Average_Spin( State * state, float s[3], int idx_image, int idx_chain )
+try
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
+
+    auto mean = Engine::Vectormath::mean( *image->spins );
+
+    for( int i = 0; i < 3; ++i )
+        s[i] = (float)mean[i];
+}
+catch( ... )
+{
+    spirit_handle_exception_api( idx_image, idx_chain );
+}
+
 void Quantity_Get_Magnetization( State * state, float m[3], int idx_image, int idx_chain )
 try
 {
@@ -25,7 +46,7 @@ try
 
     // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
 
-    auto mag = Engine::Vectormath::Magnetization( *image->spins );
+    auto mag = Engine::Vectormath::Magnetization( *image->spins, image->geometry->mu_s );
     image->M = Vector3{ mag[0], mag[1], mag[2] };
 
     // image->Unlock();

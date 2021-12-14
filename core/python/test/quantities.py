@@ -5,7 +5,7 @@ import sys
 spirit_py_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), ".."))
 sys.path.insert(0, spirit_py_dir)
 
-from spirit import state, quantities, configuration
+from spirit import state, quantities, configuration, geometry
 
 import unittest
 
@@ -25,10 +25,12 @@ class Quantities_Get(TestParameters):
     
     def test_magnetization(self):
         configuration.plus_z(self.p_state)
+        mu_s = 1.34
+        geometry.set_mu_s(self.p_state, mu_s)
         M = quantities.get_magnetization(self.p_state)
         self.assertAlmostEqual(M[0], 0)
         self.assertAlmostEqual(M[1], 0)
-        self.assertAlmostEqual(M[2], 1)
+        self.assertAlmostEqual(M[2], mu_s)
     
 #########
 

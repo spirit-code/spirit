@@ -870,8 +870,8 @@ void MainWindow::updateStatusBar()
         QString::fromLatin1( "E: " ) + QString::number( E, 'f', 6 ) + QString::fromLatin1( "  " ) );
 
     float M[3];
-    Quantity_Get_Magnetization( state.get(), M );
-    this->m_Label_Mz->setText( QString::fromLatin1( "M_z: " ) + QString::number( M[2], 'f', 6 ) );
+    Quantity_Get_Average_Spin( state.get(), M );
+    this->m_Label_Mz->setText( QString::fromLatin1( "S_z: " ) + QString::number( M[2], 'f', 6 ) );
 
     float ips;
     int precision;

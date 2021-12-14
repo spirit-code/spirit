@@ -307,8 +307,9 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
     this->history["max_torque"].push_back( this->max_torque );
     this->systems[0]->UpdateEnergy();
     this->history["E"].push_back( this->systems[0]->E );
-    auto mag = Engine::Vectormath::Magnetization( *this->systems[0]->spins );
-    this->history["M_z"].push_back( mag[2] );
+    // Removed magnetization, since at the moment it required a temporary allocation to compute
+    // auto mag = Engine::Vectormath::Magnetization( *this->systems[0]->spins );
+    // this->history["M_z"].push_back( mag[2] );
 
     // File save
     if( this->parameters->output_any )

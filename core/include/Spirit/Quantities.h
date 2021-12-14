@@ -14,6 +14,9 @@ Quantities
 ```
 */
 
+// Average spin direction
+PREFIX void Quantity_Get_Average_Spin( State * state, float s[3], int idx_image = -1, int idx_chain = -1 );
+
 // Total Magnetization
 PREFIX void Quantity_Get_Magnetization( State * state, float m[3], int idx_image = -1, int idx_chain = -1 );
 
