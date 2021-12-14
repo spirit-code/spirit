@@ -501,9 +501,12 @@ std::array<scalar, 3> Magnetization( const vectorfield & vf, const scalarfield &
     return M;
 }
 
-scalar
-TopologicalCharge( const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions )
+void TopologicalChargeDensity(
+    const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions,
+    scalarfield & charge_density, std::vector<int> & triangle_indices )
 {
+    charge_density.resize( 0 );
+
     // This implementations assumes
     // 1. No basis atom lies outside the cell spanned by the basis vectors of the lattice
     // 2. The geometry is a plane in x and y and spanned by the first 2 basis_vectors of the lattice
@@ -569,6 +572,7 @@ TopologicalCharge( const vectorfield & vf, const Data::Geometry & geometry, cons
             for( int a = 0; a < geometry.n_cells[0]; ++a )
             {
                 std::array<Vector3, 3> tri_spins;
+                std::array<int, 3> tri_indices;
                 // bools to check wether it is allowed to take the next lattice site in direction a, b or a+b
                 bool a_next_allowed = ( a + 1 < geometry.n_cells[0] || boundary_conditions[0] );
                 bool b_next_allowed = ( b + 1 < geometry.n_cells[1] || boundary_conditions[1] );
@@ -602,13 +606,28 @@ TopologicalCharge( const vectorfield & vf, const Data::Geometry & geometry, cons
                         break;
                     }
                     tri_spins[i] = vf[idx];
+                    tri_indices[i] = idx;
                 }
                 if( valid_triangle )
-                    charge += sign * solid_angle_2( tri_spins[0], tri_spins[1], tri_spins[2] );
+                {
+                    triangle_indices.push_back( tri_indices[0] );
+                    triangle_indices.push_back( tri_indices[1] );
+                    triangle_indices.push_back( tri_indices[2] );
+                    charge_density.push_back(
+                        sign / ( 4.0 * Pi ) * solid_angle_2( tri_spins[0], tri_spins[1], tri_spins[2] ) );
+                }
             }
         }
     }
-    return charge / ( 4 * Pi );
+}
+
+// Calculate the topological charge inside a vectorfield
+scalar TopologicalCharge( const vectorfield & vf, const Data::Geometry & geom, const intfield & boundary_conditions )
+{
+    scalarfield charge_density( 0 );
+    std::vector<int> triangle_indices( 0 );
+    TopologicalChargeDensity( vf, geom, boundary_conditions, charge_density, triangle_indices );
+    return sum( charge_density );
 }
 
 void get_gradient_distribution(

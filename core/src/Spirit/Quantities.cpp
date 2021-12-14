@@ -86,6 +86,51 @@ catch( ... )
     return 0;
 }
 
+int Quantity_Get_Topological_Charge_Density(
+    State * state, float * charge_density_ptr, int * triangle_indices_ptr, int idx_image, int idx_chain )
+try
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
+
+    scalar charge      = 0;
+    int dimensionality = Geometry_Get_Dimensionality( state, idx_image, idx_chain );
+    scalarfield charge_density( 0 );
+    std::vector<int> triangle_indices( 0 );
+
+    if( dimensionality == 2 )
+    {
+        Engine::Vectormath::TopologicalChargeDensity(
+            *image->spins, *image->geometry, image->hamiltonian->boundary_conditions, charge_density,
+            triangle_indices );
+    }
+
+    if( charge_density_ptr != nullptr && triangle_indices_ptr != nullptr )
+    {
+        for( int i = 0; i < charge_density.size(); i++ )
+        {
+            charge_density_ptr[i]           = charge_density[i];
+            triangle_indices_ptr[3 * i]     = triangle_indices[3 * i];
+            triangle_indices_ptr[3 * i + 1] = triangle_indices[3 * i + 1];
+            triangle_indices_ptr[3 * i + 2] = triangle_indices[3 * i + 2];
+        }
+    }
+
+    // image->Unlock();
+
+    return charge_density.size(); // return the number of triangles
+}
+catch( ... )
+{
+    spirit_handle_exception_api( idx_image, idx_chain );
+    return 0;
+}
+
 void check_modes(
     const vectorfield & image, const vectorfield & grad, const MatrixX & tangent_basis, const VectorX & eigenvalues,
     const MatrixX & eigenvectors_2N, const vectorfield & minimum_mode )

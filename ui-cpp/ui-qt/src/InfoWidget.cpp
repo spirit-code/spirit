@@ -50,10 +50,10 @@ void InfoWidget::updateData()
 
     // Magnetization
     float M[3];
-    Quantity_Get_Magnetization( state.get(), M );
-    this->m_Label_Mx->setText( QString::fromLatin1( "Mx: " ) + QString::number( M[0], 'f', 8 ) );
-    this->m_Label_My->setText( QString::fromLatin1( "My: " ) + QString::number( M[1], 'f', 8 ) );
-    this->m_Label_Mz->setText( QString::fromLatin1( "Mz: " ) + QString::number( M[2], 'f', 8 ) );
+    Quantity_Get_Average_Spin( state.get(), M );
+    this->m_Label_Mx->setText( QString::fromLatin1( "Sx: " ) + QString::number( M[0], 'f', 8 ) );
+    this->m_Label_My->setText( QString::fromLatin1( "Sy: " ) + QString::number( M[1], 'f', 8 ) );
+    this->m_Label_Mz->setText( QString::fromLatin1( "Sz: " ) + QString::number( M[2], 'f', 8 ) );
 
     // Force
     double f_max = Simulation_Get_MaxTorqueNorm( state.get() );
