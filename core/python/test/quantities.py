@@ -11,7 +11,7 @@ import unittest
 
 ##########
 
-cfgfile = spirit_py_dir + "/../test/input/fd_neighbours.cfg"   # Input File
+cfgfile = spirit_py_dir + "/../test/input/api.cfg"   # Input File
 
 p_state = state.setup(cfgfile)                  # State setup
 
@@ -31,7 +31,15 @@ class Quantities_Get(TestParameters):
         self.assertAlmostEqual(M[0], 0)
         self.assertAlmostEqual(M[1], 0)
         self.assertAlmostEqual(M[2], mu_s)
-    
+
+    def test_topological_charge(self):
+        configuration.plus_z(self.p_state)
+        configuration.skyrmion(self.p_state, radius=5, pos=[1.5, 0, 0])
+        Q = quantities.get_topological_charge(self.p_state)
+        [Q_density, triangles] = quantities.get_topological_charge_density(self.p_state)
+        self.assertAlmostEqual(Q, -1.0)
+        self.assertAlmostEqual(Q, sum(Q_density))
+
 #########
 
 def suite():
