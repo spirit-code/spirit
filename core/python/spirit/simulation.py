@@ -94,8 +94,26 @@ class simulation_run_info(ctypes.Structure):
                     ("total_iterations", ctypes.c_int),
                     ("total_walltime", ctypes.c_int),
                     ("total_ips", ctypes.c_float),
-                    ("max_torque", ctypes.c_float)
+                    ("max_torque", ctypes.c_float),
+                    ("_n_history_iteration", ctypes.c_int),
+                    ("_history_iteration", ctypes.POINTER(ctypes.c_int)),
+                    ("_n_history_max_torque", ctypes.c_int),
+                    ("_history_max_torque", ctypes.POINTER(ctypes.c_float)),
+                    ("_n_history_energy", ctypes.c_int),
+                    ("_history_energy", ctypes.POINTER(ctypes.c_float))
                 ]
+
+    def history_iteration(self):
+        return [ self._history_iteration[i] for i in range(self._n_history_iteration) ]
+
+    def history_max_torque(self):
+        return [ self._history_max_torque[i] for i in range(self._n_history_max_torque) ]
+
+    def history_energy(self):
+        return [ self._history_energy[i] for i in range(self._n_history_energy) ]
+
+    def __del__(self):
+        _spirit.free_run_info(self)
 
 ### ----- Start methods
 ### MC

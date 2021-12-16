@@ -55,7 +55,7 @@ Method_GNEB<solver>::Method_GNEB( std::shared_ptr<Data::Spin_System_Chain> chain
         this->configurations[i] = this->systems[i]->spins;
 
     // History
-    this->history = std::map<std::string, std::vector<scalar>>{ { "max_torque", { this->max_torque } } };
+    // this->history = std::map<std::string, std::vector<scalar>>{ { "max_torque", { this->max_torque } } };
 
     //---- Initialise Solver-specific variables
     this->Initialize();
@@ -491,7 +491,9 @@ template<Solver solver>
 void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bool initial, bool final )
 {
     // History save
-    this->history["max_torque"].push_back( this->max_torque );
+    this->history_iteration.push_back( this->iteration );
+    this->history_max_torque.push_back( this->max_torque );
+    this->history_energy.push_back( this->systems[0]->E );
 
     // File save
     if( this->parameters->output_any )

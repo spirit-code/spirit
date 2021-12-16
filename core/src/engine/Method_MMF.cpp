@@ -36,7 +36,7 @@ Method_MMF<solver>::Method_MMF( std::shared_ptr<Data::Spin_System> system, int i
     this->SenderName = Utility::Log_Sender::MMF;
 
     // History
-    this->history = std::map<std::string, std::vector<scalar>>{ { "max_torque", { this->max_torque } } };
+    // this->history = std::map<std::string, std::vector<scalar>>{ { "max_torque", { this->max_torque } } };
 
     // We assume that the systems are not converged before the first iteration
     this->max_torque = system->mmf_parameters->force_convergence + 1.0;
@@ -427,7 +427,8 @@ template<Solver solver>
 void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, bool initial, bool final )
 {
     // History save
-    this->history["max_torque"].push_back( this->max_torque );
+    this->history_iteration.push_back( this->iteration );
+    this->history_max_torque.push_back( this->max_torque );
 
     // File save
     if( this->parameters->output_any )

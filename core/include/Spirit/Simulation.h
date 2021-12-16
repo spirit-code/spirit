@@ -61,7 +61,16 @@ struct Simulation_Run_Info
     int total_walltime   = 0;
     float total_ips      = 0;
     float max_torque     = 0;
+
+    int n_history_iteration = 0;
+    int * history_iteration = NULL;
+    int n_history_max_torque = 0;
+    float * history_max_torque = NULL;
+    int n_history_energy = 0;
+    float * history_energy = NULL;
 };
+
+PREFIX void free_run_info(Simulation_Run_Info info) SUFFIX;
 
 /*
 Start or stop a simulation

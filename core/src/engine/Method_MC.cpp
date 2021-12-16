@@ -35,9 +35,9 @@ Method_MC::Method_MC( std::shared_ptr<Data::Spin_System> system, int idx_img, in
     // this->max_torque = system->mc_parameters->force_convergence + 1.0;
 
     // History
-    this->history = std::map<std::string, std::vector<scalar>>{ { "max_torque", { this->max_torque } },
-                                                                { "E", { this->max_torque } },
-                                                                { "M_z", { this->max_torque } } };
+    // this->history = std::map<std::string, std::vector<scalar>>{ { "max_torque", { this->max_torque } },
+    //                                                             { "E", { this->max_torque } },
+    //                                                             { "M_z", { this->max_torque } } };
 
     this->parameters_mc = system->mc_parameters;
 

@@ -41,11 +41,6 @@ Method_LLG<solver>::Method_LLG( std::shared_ptr<Data::Spin_System> system, int i
     this->force_converged = std::vector<bool>( this->noi, false );
     this->max_torque      = system->llg_parameters->force_convergence + 1.0;
 
-    // History
-    this->history = std::map<std::string, std::vector<scalar>>{ { "max_torque", { this->max_torque } },
-                                                                { "E", { this->max_torque } },
-                                                                { "M_z", { this->max_torque } } };
-
     // Create shared pointers to the method's systems' spin configurations
     this->configurations = std::vector<std::shared_ptr<vectorfield>>( this->noi );
     for( int i = 0; i < this->noi; ++i )
@@ -304,9 +299,13 @@ template<Solver solver>
 void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, bool initial, bool final )
 {
     // History save
-    this->history["max_torque"].push_back( this->max_torque );
-    this->systems[0]->UpdateEnergy();
-    this->history["E"].push_back( this->systems[0]->E );
+    this->history_iteration.push_back( this->iteration );
+    this->history_max_torque.push_back( this->max_torque );
+    this->history_energy.push_back( this->systems[0]->E );
+
+    // this->history["max_torque"].push_back( this->max_torque );
+    // this->systems[0]->UpdateEnergy();
+    // this->history["E"].push_back( this->systems[0]->E );
     // Removed magnetization, since at the moment it required a temporary allocation to compute
     // auto mag = Engine::Vectormath::Magnetization( *this->systems[0]->spins );
     // this->history["M_z"].push_back( mag[2] );
@@ -335,42 +334,40 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
 
         // Function to write or append image and energy files
         auto writeOutputConfiguration
-            = [this, preSpinsFile, preEnergyFile, iteration]( const std::string & suffix, bool append )
-        {
-            try
-            {
-                // File name and comment
-                std::string spinsFile      = preSpinsFile + suffix + ".ovf";
-                std::string output_comment = fmt::format(
-                    "{} simulation ({} solver)\n# Desc:      Iteration: {}\n# Desc:      Maximum torque: {}",
-                    this->Name(), this->SolverFullName(), iteration, this->max_torque );
+            = [this, preSpinsFile, preEnergyFile, iteration]( const std::string & suffix, bool append ) {
+                  try
+                  {
+                      // File name and comment
+                      std::string spinsFile      = preSpinsFile + suffix + ".ovf";
+                      std::string output_comment = fmt::format(
+                          "{} simulation ({} solver)\n# Desc:      Iteration: {}\n# Desc:      Maximum torque: {}",
+                          this->Name(), this->SolverFullName(), iteration, this->max_torque );
 
-                // File format
-                IO::VF_FileFormat format = this->systems[0]->llg_parameters->output_vf_filetype;
+                      // File format
+                      IO::VF_FileFormat format = this->systems[0]->llg_parameters->output_vf_filetype;
 
-                // Spin Configuration
-                auto & spins        = *this->systems[0]->spins;
-                auto segment        = IO::OVF_Segment( *this->systems[0] );
-                std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
-                segment.title       = strdup( title.c_str() );
-                segment.comment     = strdup( output_comment.c_str() );
-                segment.valuedim    = 3;
-                segment.valuelabels = strdup( "spin_x spin_y spin_z" );
-                segment.valueunits  = strdup( "none none none" );
-                if( append )
-                    IO::OVF_File( spinsFile ).append_segment( segment, spins[0].data(), int( format ) );
-                else
-                    IO::OVF_File( spinsFile ).write_segment( segment, spins[0].data(), int( format ) );
-            }
-            catch( ... )
-            {
-                spirit_handle_exception_core( "LLG output failed" );
-            }
-        };
+                      // Spin Configuration
+                      auto & spins        = *this->systems[0]->spins;
+                      auto segment        = IO::OVF_Segment( *this->systems[0] );
+                      std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                      segment.title       = strdup( title.c_str() );
+                      segment.comment     = strdup( output_comment.c_str() );
+                      segment.valuedim    = 3;
+                      segment.valuelabels = strdup( "spin_x spin_y spin_z" );
+                      segment.valueunits  = strdup( "none none none" );
+                      if( append )
+                          IO::OVF_File( spinsFile ).append_segment( segment, spins[0].data(), int( format ) );
+                      else
+                          IO::OVF_File( spinsFile ).write_segment( segment, spins[0].data(), int( format ) );
+                  }
+                  catch( ... )
+                  {
+                      spirit_handle_exception_core( "LLG output failed" );
+                  }
+              };
 
-        auto writeOutputEnergy
-            = [this, preSpinsFile, preEnergyFile, iteration]( const std::string & suffix, bool append )
-        {
+        auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile,
+                                  iteration]( const std::string & suffix, bool append ) {
             bool normalize   = this->systems[0]->llg_parameters->output_energy_divide_by_nspins;
             bool readability = this->systems[0]->llg_parameters->output_energy_add_readability_lines;
 

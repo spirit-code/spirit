@@ -11,6 +11,15 @@
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 
+#include <algorithm>
+
+void free_run_info(Simulation_Run_Info info) noexcept
+{
+    delete[] info.history_energy;
+    delete[] info.history_iteration;
+    delete[] info.history_max_torque;
+};
+
 // Helper function to start a simulation once a Method has been created
 void run_method( std::shared_ptr<Engine::Method> method, bool singleshot, Simulation_Run_Info * info = nullptr )
 {
@@ -38,6 +47,27 @@ void run_method( std::shared_ptr<Engine::Method> method, bool singleshot, Simula
             info->total_iterations = method->getNIterations();
             info->total_walltime   = method->getWallTime();
             info->total_ips        = float( info->total_iterations ) / info->total_walltime * 1000.0;
+
+            if( method->history_iteration.size() > 0 )
+            {
+                info->n_history_iteration = method->history_iteration.size();
+                info->history_iteration = new int[method->history_iteration.size()];
+                std::copy(method->history_iteration.begin(), method->history_iteration.end(), info->history_iteration);
+            }
+
+            if( method->history_max_torque.size() > 0 )
+            {
+                info->n_history_max_torque = method->history_max_torque.size();
+                info->history_max_torque = new float[method->history_max_torque.size()];
+                std::copy(method->history_max_torque.begin(), method->history_max_torque.end(), info->history_max_torque);
+            }
+
+            if( method->history_energy.size() > 0 )
+            {
+                info->n_history_energy = method->history_energy.size();
+                info->history_energy = new float[method->history_energy.size()];
+                std::copy(method->history_energy.begin(), method->history_energy.end(), info->history_energy);
+            }
         }
     }
 }
