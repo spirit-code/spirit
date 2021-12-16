@@ -528,7 +528,7 @@ try
                 parameter_log.emplace_back( fmt::format(
                     "        pinned site[{}]: {} at ({} {} {}) = ({})", i, pinning.sites[i].i,
                     pinning.sites[i].translations[0], pinning.sites[i].translations[1],
-                    pinning.sites[i].translations[2], pinning.spins[0].transpose() ) );
+                    pinning.sites[i].translations[2], pinning.spins[i].transpose() ) );
             }
         }
     }
