@@ -855,7 +855,7 @@ void Hamiltonian_Heisenberg::Gradient_DDI_FFT( const vectorfield & spins, vector
     const int * c_it_bounds_pointwise_mult = it_bounds_pointwise_mult.data();
 
 // Loop over basis atoms (i.e sublattices)
-#pragma omp parallel for collapse( 5 )
+#pragma omp parallel for collapse( 4 )
     for( int i_b1 = 0; i_b1 < c_n_cell_atoms; ++i_b1 )
     {
         for( int c = 0; c < c_it_bounds_pointwise_mult[2]; ++c )
