@@ -699,19 +699,27 @@ namespace Engine
         }
     }
 
+    __device__ Vector3 _orth(const Vector3 & grad, const Vector3 & spin)
+    {
+        return grad - grad.dot(spin) * spin;
+    }
 
+    __device__ void CU_Gradient_Zeeman_Cell(int icell, const int * atom_types, const int n_cell_atoms, const scalar * mu_s, const scalar external_field_magnitude, const Vector3 external_field_normal, Vector3 * gradient, size_t n_cells_total)
+    {
+        for (int ibasis=0; ibasis<n_cell_atoms; ++ibasis)
+        {
+            int ispin = n_cell_atoms * icell + ibasis;
+            if ( cu_check_atom_type(atom_types[ispin]) )
+                gradient[ispin] -= mu_s[ispin] * external_field_magnitude*external_field_normal;
+        }
+    }
     __global__ void CU_Gradient_Zeeman( const int * atom_types, const int n_cell_atoms, const scalar * mu_s, const scalar external_field_magnitude, const Vector3 external_field_normal, Vector3 * gradient, size_t n_cells_total)
     {
         for(auto icell = blockIdx.x * blockDim.x + threadIdx.x;
             icell < n_cells_total;
             icell +=  blockDim.x * gridDim.x)
         {
-            for (int ibasis=0; ibasis<n_cell_atoms; ++ibasis)
-            {
-                int ispin = n_cell_atoms * icell + ibasis;
-                if ( cu_check_atom_type(atom_types[ispin]) )
-                    gradient[ispin] -= mu_s[ispin] * external_field_magnitude*external_field_normal;
-            }
+            CU_Gradient_Zeeman_Cell(icell, atom_types, n_cell_atoms, mu_s, external_field_magnitude, external_field_normal, gradient, n_cells_total);
         }
     }
     void Hamiltonian_Heisenberg::Gradient_Zeeman(vectorfield & gradient)
@@ -721,22 +729,25 @@ namespace Engine
         CU_CHECK_AND_SYNC();
     }
 
-
+    __device__ void CU_Gradient_Anisotropy_Cell(int icell, const Vector3 * spins, const int * atom_types, const int n_cell_atoms, const int n_anisotropies, const int * anisotropy_indices, const scalar * anisotropy_magnitude, const Vector3 * anisotropy_normal, Vector3 * gradient, size_t n_cells_total)
+    {
+        for (int iani=0; iani<n_anisotropies; ++iani)
+        {
+            int ispin = icell*n_cell_atoms + anisotropy_indices[iani];
+            if ( cu_check_atom_type(atom_types[ispin]) )
+            {
+                scalar sc = -2 * anisotropy_magnitude[iani] * anisotropy_normal[iani].dot(spins[ispin]);
+                gradient[ispin] += sc*anisotropy_normal[iani];
+            }
+        }
+    }
     __global__ void CU_Gradient_Anisotropy(const Vector3 * spins, const int * atom_types, const int n_cell_atoms, const int n_anisotropies, const int * anisotropy_indices, const scalar * anisotropy_magnitude, const Vector3 * anisotropy_normal, Vector3 * gradient, size_t n_cells_total)
     {
         for(auto icell = blockIdx.x * blockDim.x + threadIdx.x;
             icell < n_cells_total;
             icell +=  blockDim.x * gridDim.x)
         {
-            for (int iani=0; iani<n_anisotropies; ++iani)
-            {
-                int ispin = icell*n_cell_atoms + anisotropy_indices[iani];
-                if ( cu_check_atom_type(atom_types[ispin]) )
-                {
-                    scalar sc = -2 * anisotropy_magnitude[iani] * anisotropy_normal[iani].dot(spins[ispin]);
-                    gradient[ispin] += sc*anisotropy_normal[iani];
-                }
-            }
+            CU_Gradient_Anisotropy_Cell(icell, spins, atom_types, n_cell_atoms, n_anisotropies, anisotropy_indices, anisotropy_magnitude, anisotropy_normal, gradient, n_cells_total);
         }
     }
     void Hamiltonian_Heisenberg::Gradient_Anisotropy(const vectorfield & spins, vectorfield & gradient)
@@ -746,26 +757,31 @@ namespace Engine
         CU_CHECK_AND_SYNC();
     }
 
+    __device__ void CU_Gradient_Exchange_Cell(int icell, const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells, int n_cell_atoms,
+        int n_pairs, const Pair * pairs, const scalar * magnitudes, Vector3 * gradient, size_t size)
+    {
+        const int bc[3]={boundary_conditions[0],boundary_conditions[1],boundary_conditions[2]};
+        const int nc[3]={n_cells[0],n_cells[1],n_cells[2]};
+
+        for(auto ipair = 0; ipair < n_pairs; ++ipair)
+        {
+            int ispin = pairs[ipair].i + icell*n_cell_atoms;
+            int jspin = cu_idx_from_pair(ispin, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
+            if (jspin >= 0)
+            {
+                gradient[ispin] -= magnitudes[ipair]*spins[jspin];
+            }
+        }
+    }
 
     __global__ void CU_Gradient_Exchange(const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells, int n_cell_atoms,
             int n_pairs, const Pair * pairs, const scalar * magnitudes, Vector3 * gradient, size_t size)
     {
-        int bc[3]={boundary_conditions[0],boundary_conditions[1],boundary_conditions[2]};
-        int nc[3]={n_cells[0],n_cells[1],n_cells[2]};
-
         for(auto icell = blockIdx.x * blockDim.x + threadIdx.x;
             icell < size;
             icell +=  blockDim.x * gridDim.x)
         {
-            for(auto ipair = 0; ipair < n_pairs; ++ipair)
-            {
-                int ispin = pairs[ipair].i + icell*n_cell_atoms;
-                int jspin = cu_idx_from_pair(ispin, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
-                if (jspin >= 0)
-                {
-                    gradient[ispin] -= magnitudes[ipair]*spins[jspin];
-                }
-            }
+            CU_Gradient_Exchange_Cell(icell, spins, atom_types, boundary_conditions, n_cells, n_cell_atoms, n_pairs, pairs, magnitudes, gradient, size);
         }
     }
     void Hamiltonian_Heisenberg::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
@@ -776,26 +792,32 @@ namespace Engine
         CU_CHECK_AND_SYNC();
     }
 
+    __device__ void CU_Gradient_DMI_Cell(int icell, const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells, int n_cell_atoms,
+        int n_pairs, const Pair * pairs, const scalar * magnitudes, const Vector3 * normals, Vector3 * gradient, size_t size)
+    {
+        const int bc[3]={boundary_conditions[0],boundary_conditions[1],boundary_conditions[2]};
+        const int nc[3]={n_cells[0],n_cells[1],n_cells[2]};
 
+        for(auto ipair = 0; ipair < n_pairs; ++ipair)
+        {
+            int ispin = pairs[ipair].i + icell*n_cell_atoms;
+            int jspin = cu_idx_from_pair(ispin, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
+            if (jspin >= 0)
+            {
+                gradient[ispin] -= magnitudes[ipair]*spins[jspin].cross(normals[ipair]);
+            }
+        }
+    }
+ 
     __global__ void CU_Gradient_DMI(const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells, int n_cell_atoms,
             int n_pairs, const Pair * pairs, const scalar * magnitudes, const Vector3 * normals, Vector3 * gradient, size_t size)
     {
-        int bc[3]={boundary_conditions[0],boundary_conditions[1],boundary_conditions[2]};
-        int nc[3]={n_cells[0],n_cells[1],n_cells[2]};
 
         for(auto icell = blockIdx.x * blockDim.x + threadIdx.x;
             icell < size;
             icell +=  blockDim.x * gridDim.x)
         {
-            for(auto ipair = 0; ipair < n_pairs; ++ipair)
-            {
-                int ispin = pairs[ipair].i + icell*n_cell_atoms;
-                int jspin = cu_idx_from_pair(ispin, bc, nc, n_cell_atoms, atom_types, pairs[ipair]);
-                if (jspin >= 0)
-                {
-                    gradient[ispin] -= magnitudes[ipair]*spins[jspin].cross(normals[ipair]);
-                }
-            }
+            CU_Gradient_DMI_Cell(icell, spins, atom_types, boundary_conditions, n_cells, n_cell_atoms, n_pairs, pairs, magnitudes, normals, gradient, size);
         }
     }
     void Hamiltonian_Heisenberg::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
