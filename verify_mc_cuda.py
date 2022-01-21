@@ -17,20 +17,20 @@ from spirit import geometry
 
 print(version.cuda)
 
-N_CELLS  = [16, 16, 1]
-N_SHELLS = 1
+N_CELLS  = [6, 6, 1]
+N_SHELLS = 2
 NOS      = N_CELLS[0] * N_CELLS[1] * N_CELLS[2]
 
 with state.State("", False) as p_state:
     n_cells = geometry.set_n_cells(p_state, N_CELLS)
-    hamiltonian.set_exchange(p_state, N_SHELLS, [1]) # Nearest neighbours 
+    hamiltonian.set_exchange(p_state, N_SHELLS, [1, 1]) # Nearest neighbours 
     simulation.start(p_state, simulation.METHOD_MC, 0, n_iterations=1)
 
 import numpy as np
-import matplotlib.pyplot as plt
-data = np.loadtxt("mc_access_order.txt")
-data = data[ data[:,-1].argsort() ] # sort by order of access
 
+data = np.loadtxt("mc_access_order.txt")
+data = data[ data[:,-1].argsort() ][:64] # sort by order of access
+import matplotlib.pyplot as plt
 # Visualise the order of access
 plt.plot( data[:,0], data[:,1] )
 plt.xlabel("a")

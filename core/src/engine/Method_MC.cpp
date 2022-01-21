@@ -12,7 +12,8 @@
 #include <iostream>
 #include <ctime>
 #include <math.h>
-
+#include <curand_kernel.h>
+#include <curand.h>
 using namespace Utility;
 
 namespace Engine
