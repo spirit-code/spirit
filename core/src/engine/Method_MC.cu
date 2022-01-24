@@ -12,6 +12,9 @@
 #include <curand_kernel.h>
 #include <curand.h>
 #include <math.h>
+#include <Eigen/Dense>
+#include <Eigen/Core>
+
 using namespace Utility;
 
 namespace Engine
@@ -156,9 +159,9 @@ __device__ scalar Energy_Single_Spin( int ispin, const Vector3 * spins, Hamilton
                     int jspin = cu_idx_from_pair(
                         ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
                         pair );
-                    // if( jspin >= 0 )
-                    //     Energy -= ham.dmi_magnitudes[ipair]
-                    //               * ham.dmi_normals[ipair].dot( spins[ispin].cross( spins[jspin] ).eval() );
+                    if( jspin >= 0 )
+                        Energy -= ham.dmi_magnitudes[ipair]
+                                  * ham.dmi_normals[ipair].dot( spins[ispin].cross( spins[jspin] ).eval() );
                     
                 }
             }
@@ -172,7 +175,7 @@ __device__ scalar Energy_Single_Spin( int ispin, const Vector3 * spins, Hamilton
 
 __device__ void cu_metropolis_spin_trial(
     int ispin, const Vector3 * spins_old, Vector3 * spins_new, Hamiltonian_Device_Ptrs ham, const scalar rng1,
-    const scalar rng2, const scalar rng3, const scalar cos_cone_angle, scalar temperature, const scalar kB_T ) // aditional parameter kB_T needs to be input
+    const scalar rng2, const scalar rng3, const scalar cos_cone_angle, scalar temperature, bool * kernelresult) // aditional parameter kB_T needs to be input
 {
 
     // TODO: Implement
@@ -191,29 +194,27 @@ __device__ void cu_metropolis_spin_trial(
 
     // IMP: usman: In meeting, need to ask about the data type ----
     
-    
+    const double k_B = 0.08617330350;
     Matrix3 local_basis; // usman: Ask in the meeting..., classes with functions in CUDA
-    const Vector3 e_z{ 0, 0, 1 };
-    //const scalar kB_T = Constants::k_B * this->parameters_mc->temperature; //usman: kB_T Need to be explicitly inputed to the function
+    const Vector3 e_z{0,0,1};
+    const scalar kB_T = k_B * temperature; //usman: kB_T Need to be explicitly inputed to the function
     // local_basis = Matrix3::Identity();
     // Calculate local basis for the spin
-    //if( std::abs( spins_old[ispin].z() ) < 1 - 1e-10 )
     
-    // if(fabs( spins_old[ispin].z() ) < 1 - 1e-10 ) //usman: fabs function from CUDA Math
-    // //if(fabs(-0.9) < 1  )
-    // {
-    //     local_basis.col( 2 ) = spins_old[ispin];
-    //     local_basis.col( 0 ) = ( local_basis.col( 2 ).cross( e_z ).eval() ).normalized();
-    //     local_basis.col( 1 ) = local_basis.col( 2 ).cross( local_basis.col( 0 ) ).eval();
-        
-    // }
+    if(fabs( spins_old[ispin].z() ) < 1 - 1e-10 ) //usman: fabs function from CUDA Math
+    {
+        local_basis.col( 2 ) = spins_old[ispin];
+        local_basis.col( 0 ) = ( local_basis.col( 2 ).cross( e_z ).eval() ).normalized();
+        local_basis.col( 1 ) = local_basis.col( 2 ).cross( local_basis.col( 0 ) ).eval();
+    }
     
-    // else
-    // {
-    //     local_basis = Matrix3::Identity();
-    // }
+    else
+    {
+        local_basis = Matrix3::Identity();
+    }
     
     // checkpoint
+    //const Vector3 e_z{ 0, 0, 1 };
     // Rotation angle between 0 and cone_angle degrees
     scalar costheta = 1 - ( 1 - cos_cone_angle ) * rng1;
 
@@ -232,13 +233,11 @@ __device__ void cu_metropolis_spin_trial(
     // Energy difference of configurations with and without displacement
 
     // usman: !! ASK during meeting... Function "Energy_Single_Spin" not defined
-    //scalar Eold  = this->systems[0]->hamiltonian->Energy_Single_Spin( ispin, spins_old );
-    //scalar Enew  = this->systems[0]->hamiltonian->Energy_Single_Spin( ispin, spins_new );
-    scalar Eold = Energy_Single_Spin(ispin, spins_old, ham );
-    scalar Enew = Energy_Single_Spin(ispin, spins_new, ham );
+    scalar Eold = Energy_Single_Spin(ispin, spins_old, ham);
+    scalar Enew = Energy_Single_Spin(ispin, spins_new, ham);
 
     scalar Ediff = Enew - Eold;
-
+    
     // Metropolis criterion: reject the step if energy rose
     if( Ediff > 1e-14 )
     {
@@ -247,7 +246,8 @@ __device__ void cu_metropolis_spin_trial(
         {
             // Restore the spin
             spins_new[ispin] = spins_old[ispin];
-            // return false;
+            *kernelresult = false;
+            return;
         }
         else
         {
@@ -262,98 +262,29 @@ __device__ void cu_metropolis_spin_trial(
                 // Restore the spin
                 spins_new[ispin] = spins_old[ispin];
                 // Counter for the number of rejections
-                // return false;
+                *kernelresult = false;
+                return;
             }
         }
     }
     
-    //return true;
+    *kernelresult = true;
+    return;
     
     
 }
-__global__ void cu_parallel_metropolis( Vector3 * spins_old, Vector3 * spins_new, Hamiltonian_Device_Ptrs ham)
+__global__ void cu_parallel_metropolis(const Vector3 * spins_old, Vector3 * spins_new, int * order, unsigned int * counter, Hamiltonian_Device_Ptrs ham,
+ int phase_a, int phase_b, int phase_c, int rest1, int rest2, int rest3, int block_size_min1, int block_size_min2, int block_size_min3, curandState *states, scalar cos_cone_angle, scalar temperature)
 {
     // TODO: Implement
     // This function should perform one Iteration, meaning one spin trial for every spin in the system
     // For now I would suggest to start out with the logic of the `Parallel_Metropolis` function in `core/src/engine/Method_MC.cpp`
     // If we get that to work, we can think about further GPU specific optimization.
     // Also read my comment under the `Block_Decomposition` function in `core/src/engine/Method_MC.cpp`
-    
-    // std::ofstream myfile;
-    // myfile.open ("mc_access_order.txt");
-    
-    // for(int block_c = idx_c; block_c < n_block[2]; block_c += stride_c)
-    // {
-    //     for (int block_b = idx_b; block_b < n_block[1]; block_b += stride_b)
-    //     {
-    //         for (int block_a = idx_a; block_a < n_block[0]; block_c += stride_a)
-    //         {
-    //             int block_size_c = (block_c == n_blocks[2] - 1) ? block_size_min[2] + rest[2] : block_size_min[2]; // Account for the remainder of division (n_cells[i] / block_size_min[i]) by increasing the block size at the edges
-    //             int block_size_b = (block_b == n_blocks[1] - 1) ? block_size_min[1] + rest[1] : block_size_min[1];                        
-    //             int block_size_a = (block_a == n_blocks[0] - 1) ? block_size_min[0] + rest[0] : block_size_min[0];
-    //             // Iterate over the current block (this has to be done serially again)
-    //             for(int cc = 0; cc < block_size_c; cc++)
-    //             {
-    //                 for(int bb = 0; bb < block_size_b; bb++)
-    //                 {
-    //                     for(int aa = 0; aa < block_size_a; aa++)
-    //                     {
-    //                         for(int ibasis=0; ibasis < geom->n_cell_atoms; ibasis++)
-    //                         {
-    //                             int a = block_a * block_size_min[0] + aa; // We do not have to worry about the remainder of the division here, it is contained in the 'aa'/'bb'/'cc' offset
-    //                             int b = block_b * block_size_min[1] + bb;
-    //                             int c = block_c * block_size_min[2] + cc;
-    //                             int idx = a + n_cells[0] * (b + n_cells[1] * c);
-    //                             cu_metropolis_order<<<grid, block>>>( spins_old.data(), spins_new.data(), order.data(), counter.data());
-    //                             myfile << a << " " << b << " " << c << " " << idx << " " << order[idx] << "\n";
-
-    //                             // Compute the current spin idx
-    //                             // int ispin = ibasis + geom->n_cell_atoms * (a + geom->n_cells[0] * (b + geom->n_cells[1] * c));
-
-    //                             // // Perform the Metropolis trial step
-    //                             // if( Vectormath::check_atom_type(this->systems[0]->geometry->atom_types[ispin]) )
-    //                             // {
-    //                             //     int tid = 0;
-    //                             //     #ifdef SPIRIT_USE_OPENMP
-    //                             //     tid = omp_get_thread_num();
-    //                             //     #endif
-
-    //                             //     scalar rng1 = distribution(prng_vec[tid]);
-    //                             //     scalar rng2 = distribution(prng_vec[tid]);
-    //                             //     scalar rng3 = distribution(prng_vec[tid]);
-    //                             //     if( !Metropolis_Spin_Trial(ispin, spins_old, spins_new, rng1, rng2, rng3, cos_cone_angle) )
-    //                             //     {
-    //                             //         n_rejected++;
-    //                             //     }
-    //                             // }
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //         }
-
-    //     }
-    // }
-}
-
-
-__global__ void cu_metropolis_order( const Vector3 * spins_old, Vector3 * spins_new, int * order, unsigned int * counter, Hamiltonian_Device_Ptrs ham, int phase_a, int phase_b, int phase_c, int rest1, int rest2, int rest3, int block_size_min1, int block_size_min2, int block_size_min3, curandState *states)
-{
-    // TODO: Implement such that the spins are addressed in the right order according to the block decomposition
-    // The version below just accesses all spins without paying attention to the blocks
     int block_size_min[3] = {block_size_min1, block_size_min2,  block_size_min3};
     int rest[3] = {rest1, rest2, rest3};
     int nos = ham.geometry.n_cells[0] * ham.geometry.n_cells[1] * ham.geometry.n_cells[2] * ham.geometry.n_cell_atoms;
-    int n_blocks[3] = {gridDim.x, gridDim.y, gridDim.z};
-    // for(auto index = blockIdx.x * blockDim.x + threadIdx.x;
-    //     index < nos;
-    //     index +=  blockDim.x * gridDim.x)
-    // {
-    //     unsigned int current_count = atomicInc(counter, nos);
-    //     order[current_count] = index;
-    // }
-
-    // parallelized
+    unsigned int n_blocks[3] = {gridDim.x, gridDim.y, gridDim.z};
     int idx_a = 2 * (threadIdx.x + blockIdx.x * blockDim.x) + phase_a;
     int idx_b = 2 * (threadIdx.y + blockIdx.y * blockDim.y) + phase_b;
     int idx_c = 2 * (threadIdx.z + blockIdx.z * blockDim.z) + phase_c;
@@ -362,6 +293,7 @@ __global__ void cu_metropolis_order( const Vector3 * spins_old, Vector3 * spins_
     int stride_c = 2 * gridDim.z * blockDim.z;
     int seed = idx_a;
     curand_init(seed, idx_a, 0, &states[idx_a]);
+    bool * kernelresult;
 
     int i = 0;
     for(int block_c = idx_c; block_c < n_blocks[2]; block_c += stride_c)
@@ -394,16 +326,89 @@ __global__ void cu_metropolis_order( const Vector3 * spins_old, Vector3 * spins_
                                 scalar rng1 = curand_uniform(&states[idx_a]);
                                 scalar rng2 = curand_uniform(&states[idx_a]);
                                 scalar rng3 = curand_uniform(&states[idx_a]);
-                                bool tmp;
-                                cu_metropolis_spin_trial(ispin, spins_old, spins_new, ham, rng1, rng2, rng3, 0.5, 100, 100);
+                                cu_metropolis_spin_trial(ispin, spins_old, spins_new, ham, rng1, rng2, rng3, cos_cone_angle, temperature, kernelresult);
+                                // if (! *kernelresult) {
+                                //     n_rejected ++;
+                                // }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+__global__ void cu_metropolis_order( const Vector3 * spins_old, Vector3 * spins_new, int * order, unsigned int * counter, Hamiltonian_Device_Ptrs ham,
+ int phase_a, int phase_b, int phase_c, int rest1, int rest2, int rest3, int block_size_min1, int block_size_min2, int block_size_min3, curandState *states, scalar cos_cone_angle, scalar temperature)
+{
+   // TODO: Implement such that the spins are addressed in the right order according to the block decomposition
+
+   
+    // The version below just accesses all spins without paying attention to the blocks
+    int block_size_min[3] = {block_size_min1, block_size_min2,  block_size_min3};
+    int rest[3] = {rest1, rest2, rest3};
+    int nos = ham.geometry.n_cells[0] * ham.geometry.n_cells[1] * ham.geometry.n_cells[2] * ham.geometry.n_cell_atoms;
+    unsigned int n_blocks[3] = {gridDim.x, gridDim.y, gridDim.z};
+    // for(auto index = blockIdx.x * blockDim.x + threadIdx.x;
+    //     index < nos;
+    //     index +=  blockDim.x * gridDim.x)
+    // {
+    //     unsigned int current_count = atomicInc(counter, nos);
+    //     order[current_count] = index;
+    // }
+
+    // parallelized
+    int idx_a = 2 * (threadIdx.x + blockIdx.x * blockDim.x) + phase_a;
+    int idx_b = 2 * (threadIdx.y + blockIdx.y * blockDim.y) + phase_b;
+    int idx_c = 2 * (threadIdx.z + blockIdx.z * blockDim.z) + phase_c;
+    int stride_a = 2 * gridDim.x * blockDim.x;
+    int stride_b = 2 * gridDim.y * blockDim.y;
+    int stride_c = 2 * gridDim.z * blockDim.z;
+    int seed = idx_a;
+    curand_init(seed, idx_a, 0, &states[idx_a]);
+    bool * kernelresult;
+
+    int i = 0;
+    for(int block_c = idx_c; block_c < n_blocks[2]; block_c += stride_c)
+    {
+        for (int block_b = idx_b; block_b < n_blocks[1]; block_b += stride_b)
+        {
+            for (int block_a = idx_a; block_a < n_blocks[0]; block_a += stride_a)
+            {
+
+                int block_size_c = (block_c == n_blocks[2] - 1) ? block_size_min[2] + rest[2] : block_size_min[2]; // Account for the remainder of division (n_cells[i] / block_size_min[i]) by increasing the block size at the edges
+                int block_size_b = (block_b == n_blocks[1] - 1) ? block_size_min[1] + rest[1] : block_size_min[1];
+                int block_size_a = (block_a == n_blocks[0] - 1) ? block_size_min[0] + rest[0] : block_size_min[0];
+                //printf("Bl_Size_a %i, Bl_Size_b %i, Bl_Size_c %i \n", block_size_a, block_size_b, block_size_c);
+                // Iterate over the current block (this has to be done serially again)
+                for(int cc = 0; cc < block_size_c; cc++)
+                {
+                    for(int bb = 0; bb < block_size_b; bb++)
+                    {
+                        for(int aa = 0; aa < block_size_a; aa++)
+                        {
+                            for(int ibasis=0; ibasis < ham.geometry.n_cell_atoms; ibasis++)
+                            {
+                                int a = block_a * block_size_min[0] + aa; // We do not have to worry about the remainder of the division here, it is contained in the 'aa'/'bb'/'cc' offset
+                                int b = block_b * block_size_min[1] + bb;
+                                int c = block_c * block_size_min[2] + cc;
+
+                                // Compute the current spin idx
+                                int ispin = ibasis + ham.geometry.n_cell_atoms * (a + ham.geometry.n_cells[0] * (b + ham.geometry.n_cells[1] * c));
                                 
+                                scalar rng1 = curand_uniform(&states[idx_a]);
+                                scalar rng2 = curand_uniform(&states[idx_a]);
+                                scalar rng3 = curand_uniform(&states[idx_a]);
+                                cu_metropolis_spin_trial(ispin, spins_old, spins_new, ham, rng1, rng2, rng3, cos_cone_angle, temperature, kernelresult);
                                 // cu_metropolis_spin_trial(
                                 // int ispin, Vector3 * spins_old, Vector3 * spins_new, Hamiltonian_Device_Ptrs ham, const scalar rng1,
                                 // const scalar rng2, const scalar rng3, const scalar cos_cone_angle, scalar temperature, const scalar kB_T )
                                 //unsigned int current_count = atomicInc(counter, nos);
                                 //order[current_count] = ispin;
                                 //printf("a %i, b %i, c %i, ispin %d\n", a, b, c, ispin);
-                                //printf("a_blocksize %i, b_blocksize %i, c_blocksize %i \n", block_size_a, block_size_b, block_size_c);
+                                 //printf("a_blocksize %i, b_blocksize %i, c_blocksize %i \n", block_size_a, block_size_b, block_size_c);
                                 //
                                 //printf("ham.geometry.n_cells[0] %i \n", ham.geometry.n_cells[0]);
                                 //printf("ham.geometry.n_cells[1] %i \n", ham.geometry.n_cells[1]);
@@ -439,14 +444,15 @@ void Method_MC::Parallel_Metropolis( const vectorfield & spins_old, vectorfield 
     dim3 block(blockSize, blockSize, blockSize);
     dim3 grid(n_blocks[0], n_blocks[1], n_blocks[2]);
     auto distribution = std::uniform_real_distribution<scalar>(0, 1);
-
+    auto temperature = this->parameters_mc->temperature;
+    auto cos_cone_angle = std::cos(this->cone_angle);
     for(int phase_c = 0; phase_c < 2; phase_c++)
     {
         for(int phase_b = 0; phase_b < 2; phase_b++)
         {
             for(int phase_a = 0; phase_a < 2; phase_a++)
             {
-                cu_metropolis_order<<<grid, block>>>( spins_old.data(), spins_new.data(), order.data(), counter.data(), ham_ptrs, 1, 0, 0, rest[0],rest[1], rest[2], 2, 2, 1, dev_random);
+                cu_parallel_metropolis<<<grid, block>>>( spins_old.data(), spins_new.data(), order.data(), counter.data(), ham_ptrs, 1, 0, 0, rest[0],rest[1], rest[2], 2, 2, 1, dev_random, cos_cone_angle, temperature);
             }
         }
     }
