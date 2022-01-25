@@ -173,9 +173,9 @@ __device__ scalar Energy_Single_Spin( int ispin, const Vector3 * spins, Hamilton
 }
 
 
-__device__ void cu_metropolis_spin_trial(
+__device__ bool cu_metropolis_spin_trial(
     int ispin, const Vector3 * spins_old, Vector3 * spins_new, Hamiltonian_Device_Ptrs ham, const scalar rng1,
-    const scalar rng2, const scalar rng3, const scalar cos_cone_angle, scalar temperature, bool * kernelresult) // aditional parameter kB_T needs to be input
+    const scalar rng2, const scalar rng3, const scalar cos_cone_angle, scalar temperature) // aditional parameter kB_T needs to be input
 {
 
     // TODO: Implement
@@ -237,7 +237,7 @@ __device__ void cu_metropolis_spin_trial(
     scalar Enew = Energy_Single_Spin(ispin, spins_new, ham);
 
     scalar Ediff = Enew - Eold;
-    
+    printf("Eold: %f, Enew: %f, Ediff: %f \n", Eold, Enew, Ediff);
     // Metropolis criterion: reject the step if energy rose
     if( Ediff > 1e-14 )
     {
@@ -246,8 +246,7 @@ __device__ void cu_metropolis_spin_trial(
         {
             // Restore the spin
             spins_new[ispin] = spins_old[ispin];
-            *kernelresult = false;
-            return;
+            return false;
         }
         else
         {
@@ -262,14 +261,13 @@ __device__ void cu_metropolis_spin_trial(
                 // Restore the spin
                 spins_new[ispin] = spins_old[ispin];
                 // Counter for the number of rejections
-                *kernelresult = false;
-                return;
+                return false;
             }
         }
     }
     
-    *kernelresult = true;
-    return;
+    return true;
+    
     
     
 }
@@ -296,7 +294,6 @@ __global__ void cu_parallel_metropolis(const Vector3 * spins_old, Vector3 * spin
     int stride_c = gridDim.z * blockDim.z;
     int seed = id_x + stride_a * id_y + stride_a * stride_b * id_z;
     curand_init(0, seed, 0, &states[seed]); //https://kth.instructure.com/courses/20917/pages/tutorial-random-numbers-in-cuda-with-curand
-    bool * kernelresult;
 
     int i = 0;
     for(int block_c = idx_c; block_c < n_blocks[2]; block_c += stride_c * 2)
@@ -332,7 +329,10 @@ __global__ void cu_parallel_metropolis(const Vector3 * spins_old, Vector3 * spin
                                 printf("seed: %i \n", seed);
                                 printf("rng1: %f, rng2: %f, rng3: %f, threadx: %i, thready: %i, blockx: %i, blocky: %i \n", rng1, rng2, rng3, threadIdx.x, threadIdx.y, blockIdx.x, blockIdx.y);
                                 //printf("cone: %f, temp: %f \n", cos_cone_angle, temperature);
-                                cu_metropolis_spin_trial(ispin, spins_old, spins_new, ham, rng1, rng2, rng3, cos_cone_angle, temperature, kernelresult);
+                                bool test = cu_metropolis_spin_trial(ispin, spins_old, spins_new, ham, rng1, rng2, rng3, cos_cone_angle, temperature);
+                                printf("n_block[0]=%i, n_block[1]=%i, n_block[2]=%i \n", n_blocks[0], n_blocks[1], n_blocks[2]);
+                                printf("a_blocksize %i, b_blocksize %i, c_blocksize %i \n", block_size_a, block_size_b, block_size_c);
+                                printf("result: %i \n", test);
                                 // if (! *kernelresult) {
                                 //     n_rejected ++;
                                 // }
@@ -407,7 +407,6 @@ __global__ void cu_metropolis_order( const Vector3 * spins_old, Vector3 * spins_
                                 scalar rng1 = curand_uniform(&states[idx_a]);
                                 scalar rng2 = curand_uniform(&states[idx_a]);
                                 scalar rng3 = curand_uniform(&states[idx_a]);
-                                cu_metropolis_spin_trial(ispin, spins_old, spins_new, ham, rng1, rng2, rng3, cos_cone_angle, temperature, kernelresult);
                                 // cu_metropolis_spin_trial(
                                 // int ispin, Vector3 * spins_old, Vector3 * spins_new, Hamiltonian_Device_Ptrs ham, const scalar rng1,
                                 // const scalar rng2, const scalar rng3, const scalar cos_cone_angle, scalar temperature, const scalar kB_T )
@@ -462,6 +461,7 @@ void Method_MC::Parallel_Metropolis( const vectorfield & spins_old, vectorfield 
             }
         }
     }
+    cudaDeviceSynchronize();
     /*
     cu_metropolis_order<<<grid, block>>>( spins_old.data(), spins_new.data(), order.data(), counter.data(), ham_ptrs, 1, 0, 0, rest[0],rest[1], rest[2], 2, 2, 1);  // cu_metropolis_order<<<grid, block>>>( spins_old.data(), spins_new.data(), order.data(), counter.data(), ham_ptrs, phase_a, phase_b, phase_c, rest[0],rest[1], rest[2], block_size_min[0], block_size_min[1], block_size_min[2]);
     cudaDeviceSynchronize();
