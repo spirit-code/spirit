@@ -194,10 +194,10 @@ __device__ void cu_metropolis_spin_trial(
 
     // IMP: usman: In meeting, need to ask about the data type ----
     
-    const double k_B = 0.08617330350;
+
     Matrix3 local_basis; // usman: Ask in the meeting..., classes with functions in CUDA
     const Vector3 e_z{0,0,1};
-    const scalar kB_T = k_B * temperature; //usman: kB_T Need to be explicitly inputed to the function
+    const scalar kB_T = Constants::k_B * temperature; //usman: kB_T Need to be explicitly inputed to the function
     // local_basis = Matrix3::Identity();
     // Calculate local basis for the spin
     
@@ -285,22 +285,25 @@ __global__ void cu_parallel_metropolis(const Vector3 * spins_old, Vector3 * spin
     int rest[3] = {rest1, rest2, rest3};
     int nos = ham.geometry.n_cells[0] * ham.geometry.n_cells[1] * ham.geometry.n_cells[2] * ham.geometry.n_cell_atoms;
     unsigned int n_blocks[3] = {gridDim.x, gridDim.y, gridDim.z};
-    int idx_a = 2 * (threadIdx.x + blockIdx.x * blockDim.x) + phase_a;
-    int idx_b = 2 * (threadIdx.y + blockIdx.y * blockDim.y) + phase_b;
-    int idx_c = 2 * (threadIdx.z + blockIdx.z * blockDim.z) + phase_c;
-    int stride_a = 2 * gridDim.x * blockDim.x;
-    int stride_b = 2 * gridDim.y * blockDim.y;
-    int stride_c = 2 * gridDim.z * blockDim.z;
-    int seed = idx_a;
-    curand_init(seed, idx_a, 0, &states[idx_a]);
+    int id_x = threadIdx.x + blockIdx.x * blockDim.x;
+    int id_y = threadIdx.y + blockIdx.y * blockDim.y;
+    int id_z = threadIdx.z + blockIdx.z * blockDim.z;
+    int idx_a = 2 * id_x + phase_a;
+    int idx_b = 2 * id_y + phase_b;
+    int idx_c = 2 * id_z + phase_c;
+    int stride_a = gridDim.x * blockDim.x;
+    int stride_b = gridDim.y * blockDim.y;
+    int stride_c = gridDim.z * blockDim.z;
+    int seed = id_x + stride_a * id_y + stride_a * stride_b * id_z;
+    curand_init(0, seed, 0, &states[seed]); //https://kth.instructure.com/courses/20917/pages/tutorial-random-numbers-in-cuda-with-curand
     bool * kernelresult;
 
     int i = 0;
-    for(int block_c = idx_c; block_c < n_blocks[2]; block_c += stride_c)
+    for(int block_c = idx_c; block_c < n_blocks[2]; block_c += stride_c * 2)
     {
-        for (int block_b = idx_b; block_b < n_blocks[1]; block_b += stride_b)
+        for (int block_b = idx_b; block_b < n_blocks[1]; block_b += stride_b * 2)
         {
-            for (int block_a = idx_a; block_a < n_blocks[0]; block_a += stride_a)
+            for (int block_a = idx_a; block_a < n_blocks[0]; block_a += stride_a * 2)
             {
 
                 int block_size_c = (block_c == n_blocks[2] - 1) ? block_size_min[2] + rest[2] : block_size_min[2]; // Account for the remainder of division (n_cells[i] / block_size_min[i]) by increasing the block size at the edges
@@ -323,9 +326,12 @@ __global__ void cu_parallel_metropolis(const Vector3 * spins_old, Vector3 * spin
                                 // Compute the current spin idx
                                 int ispin = ibasis + ham.geometry.n_cell_atoms * (a + ham.geometry.n_cells[0] * (b + ham.geometry.n_cells[1] * c));
                                 
-                                scalar rng1 = curand_uniform(&states[idx_a]);
-                                scalar rng2 = curand_uniform(&states[idx_a]);
-                                scalar rng3 = curand_uniform(&states[idx_a]);
+                                scalar rng1 = curand_uniform(&states[seed]);
+                                scalar rng2 = curand_uniform(&states[seed]);
+                                scalar rng3 = curand_uniform(&states[seed]);
+                                printf("seed: %i \n", seed);
+                                printf("rng1: %f, rng2: %f, rng3: %f, threadx: %i, thready: %i, blockx: %i, blocky: %i \n", rng1, rng2, rng3, threadIdx.x, threadIdx.y, blockIdx.x, blockIdx.y);
+                                //printf("cone: %f, temp: %f \n", cos_cone_angle, temperature);
                                 cu_metropolis_spin_trial(ispin, spins_old, spins_new, ham, rng1, rng2, rng3, cos_cone_angle, temperature, kernelresult);
                                 // if (! *kernelresult) {
                                 //     n_rejected ++;
@@ -438,7 +444,7 @@ void Method_MC::Parallel_Metropolis( const vectorfield & spins_old, vectorfield 
     // We allocate these two fields to record tha spin-trial order of the threads
     auto order   = field<int>(spins_old.size() / 4) ;
     auto counter = field<unsigned int>(1, 0);
-    //n_blocks = {3, 3, 1};
+    //n_blocks = {4, 4, 1};
     int blockSize = 4;
     int numBlocks = 2; //( spins_old.size() + blockSize - 1 ) / blockSize;
     dim3 block(blockSize, blockSize, blockSize);
