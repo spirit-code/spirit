@@ -12,6 +12,8 @@
 #include <curand_kernel.h>
 #include <curand.h>
 #include <math.h>
+#include <Eigen/Dense>
+#include <Eigen/Core>
 using namespace Utility;
 
 namespace Engine
@@ -156,9 +158,9 @@ __device__ scalar Energy_Single_Spin( int ispin, const Vector3 * spins, Hamilton
                     int jspin = cu_idx_from_pair(
                         ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
                         pair );
-                    // if( jspin >= 0 )
-                    //     Energy -= ham.dmi_magnitudes[ipair]
-                    //               * ham.dmi_normals[ipair].dot( spins[ispin].cross( spins[jspin] ).eval() );
+                    if( jspin >= 0 )
+                        Energy -= ham.dmi_magnitudes[ipair]
+                                  * ham.dmi_normals[ipair].dot( spins[ispin].cross( spins[jspin] ) );
                     
                 }
             }
@@ -199,19 +201,19 @@ __device__ void cu_metropolis_spin_trial(
     // Calculate local basis for the spin
     //if( std::abs( spins_old[ispin].z() ) < 1 - 1e-10 )
     
-    // if(fabs( spins_old[ispin].z() ) < 1 - 1e-10 ) //usman: fabs function from CUDA Math
-    // //if(fabs(-0.9) < 1  )
-    // {
-    //     local_basis.col( 2 ) = spins_old[ispin];
-    //     local_basis.col( 0 ) = ( local_basis.col( 2 ).cross( e_z ).eval() ).normalized();
-    //     local_basis.col( 1 ) = local_basis.col( 2 ).cross( local_basis.col( 0 ) ).eval();
+    if(fabs( spins_old[ispin].z() ) < 1 - 1e-10 ) //usman: fabs function from CUDA Math
+    //if(fabs(-0.9) < 1  )
+    {
+        local_basis.col( 2 ) = spins_old[ispin];
+        local_basis.col( 0 ) = ( local_basis.col( 2 ).cross( e_z ).eval() ).normalized();
+        local_basis.col( 1 ) = local_basis.col( 2 ).cross( local_basis.col( 0 ) ).eval();
         
-    // }
+    }
     
-    // else
-    // {
-    //     local_basis = Matrix3::Identity();
-    // }
+    else
+    {
+        local_basis = Matrix3::Identity();
+    }
     
     // checkpoint
     // Rotation angle between 0 and cone_angle degrees
@@ -337,121 +339,100 @@ __global__ void cu_parallel_metropolis( Vector3 * spins_old, Vector3 * spins_new
 }
 
 
-__global__ void cu_metropolis_order( const Vector3 * spins_old, Vector3 * spins_new, int * order, unsigned int * counter, Hamiltonian_Device_Ptrs ham, int phase_a, int phase_b, int phase_c, int rest1, int rest2, int rest3, int block_size_min1, int block_size_min2, int block_size_min3, curandState *states)
+__global__ void cu_metropolis_order( const Vector3 * spins_old, Vector3 * spins_new, int * order, unsigned int * counter, Hamiltonian_Device_Ptrs ham, const int * phase, const int * n_blocks, const int * block_size_min, int * rest, curandState *states)
 {
     // TODO: Implement such that the spins are addressed in the right order according to the block decomposition
     // The version below just accesses all spins without paying attention to the blocks
-    int block_size_min[3] = {block_size_min1, block_size_min2,  block_size_min3};
-    int rest[3] = {rest1, rest2, rest3};
-    int nos = ham.geometry.n_cells[0] * ham.geometry.n_cells[1] * ham.geometry.n_cells[2] * ham.geometry.n_cell_atoms;
-    int n_blocks[3] = {gridDim.x, gridDim.y, gridDim.z};
-    // for(auto index = blockIdx.x * blockDim.x + threadIdx.x;
-    //     index < nos;
-    //     index +=  blockDim.x * gridDim.x)
-    // {
-    //     unsigned int current_count = atomicInc(counter, nos);
-    //     order[current_count] = index;
-    // }
+    int nos  = ham.geometry.n_cells[0] * ham.geometry.n_cells[1] * ham.geometry.n_cells[2] * ham.geometry.n_cell_atoms;
 
     // parallelized
-    int idx_a = 2 * (threadIdx.x + blockIdx.x * blockDim.x) + phase_a;
-    int idx_b = 2 * (threadIdx.y + blockIdx.y * blockDim.y) + phase_b;
-    int idx_c = 2 * (threadIdx.z + blockIdx.z * blockDim.z) + phase_c;
-    int stride_a = 2 * gridDim.x * blockDim.x;
-    int stride_b = 2 * gridDim.y * blockDim.y;
-    int stride_c = 2 * gridDim.z * blockDim.z;
-    int seed = idx_a;
-    curand_init(seed, idx_a, 0, &states[idx_a]);
+    int block_a    = 2 * blockIdx.x + phase[0];
+    int block_b    = 2 * blockIdx.y + phase[1];
+    int block_c    = 2 * blockIdx.z + phase[2];
+
+    int seed     = block_a;
+    curand_init(seed, block_a, 0, &states[block_a]);
 
     int i = 0;
-    for(int block_c = idx_c; block_c < n_blocks[2]; block_c += stride_c)
+
+    int block_size_c = (block_c == n_blocks[2] - 1) ? block_size_min[2] + rest[2] : block_size_min[2]; // Account for the remainder of division (n_cells[i] / block_size_min[i]) by increasing the block size at the edges
+    int block_size_b = (block_b == n_blocks[1] - 1) ? block_size_min[1] + rest[1] : block_size_min[1];
+    int block_size_a = (block_a == n_blocks[0] - 1) ? block_size_min[0] + rest[0] : block_size_min[0];
+
+    // Iterate over the current block (this has to be done serially again)
+    for(int cc = 0; cc < block_size_c; cc++)
     {
-        for (int block_b = idx_b; block_b < n_blocks[1]; block_b += stride_b)
+        for(int bb = 0; bb < block_size_b; bb++)
         {
-            for (int block_a = idx_a; block_a < n_blocks[0]; block_a += stride_a)
+            for(int aa = 0; aa < block_size_a; aa++)
             {
-
-                int block_size_c = (block_c == n_blocks[2] - 1) ? block_size_min[2] + rest[2] : block_size_min[2]; // Account for the remainder of division (n_cells[i] / block_size_min[i]) by increasing the block size at the edges
-                int block_size_b = (block_b == n_blocks[1] - 1) ? block_size_min[1] + rest[1] : block_size_min[1];
-                int block_size_a = (block_a == n_blocks[0] - 1) ? block_size_min[0] + rest[0] : block_size_min[0];
-                //printf("Bl_Size_a %i, Bl_Size_b %i, Bl_Size_c %i \n", block_size_a, block_size_b, block_size_c);
-                // Iterate over the current block (this has to be done serially again)
-                for(int cc = 0; cc < block_size_c; cc++)
+                for(int ibasis = 0; ibasis < ham.geometry.n_cell_atoms; ibasis++)
                 {
-                    for(int bb = 0; bb < block_size_b; bb++)
-                    {
-                        for(int aa = 0; aa < block_size_a; aa++)
-                        {
-                            for(int ibasis=0; ibasis < ham.geometry.n_cell_atoms; ibasis++)
-                            {
-                                int a = block_a * block_size_min[0] + aa; // We do not have to worry about the remainder of the division here, it is contained in the 'aa'/'bb'/'cc' offset
-                                int b = block_b * block_size_min[1] + bb;
-                                int c = block_c * block_size_min[2] + cc;
+                    int a = block_a * block_size_min[0] + aa; // We do not have to worry about the remainder of the division here, it is contained in the 'aa'/'bb'/'cc' offset
+                    int b = block_b * block_size_min[1] + bb;
+                    int c = block_c * block_size_min[2] + cc;
 
-                                // Compute the current spin idx
-                                int ispin = ibasis + ham.geometry.n_cell_atoms * (a + ham.geometry.n_cells[0] * (b + ham.geometry.n_cells[1] * c));
-                                
-                                scalar rng1 = curand_uniform(&states[idx_a]);
-                                scalar rng2 = curand_uniform(&states[idx_a]);
-                                scalar rng3 = curand_uniform(&states[idx_a]);
-                                bool tmp;
-                                cu_metropolis_spin_trial(ispin, spins_old, spins_new, ham, rng1, rng2, rng3, 0.5, 100, 100);
-                                
-                                // cu_metropolis_spin_trial(
-                                // int ispin, Vector3 * spins_old, Vector3 * spins_new, Hamiltonian_Device_Ptrs ham, const scalar rng1,
-                                // const scalar rng2, const scalar rng3, const scalar cos_cone_angle, scalar temperature, const scalar kB_T )
-                                //unsigned int current_count = atomicInc(counter, nos);
-                                //order[current_count] = ispin;
-                                //printf("a %i, b %i, c %i, ispin %d\n", a, b, c, ispin);
-                                //printf("a_blocksize %i, b_blocksize %i, c_blocksize %i \n", block_size_a, block_size_b, block_size_c);
-                                //
-                                //printf("ham.geometry.n_cells[0] %i \n", ham.geometry.n_cells[0]);
-                                //printf("ham.geometry.n_cells[1] %i \n", ham.geometry.n_cells[1]);
-                                //printf("n_block[0]=%i, n_block[1]=%i, n_block[2]=%i \n", n_blocks[0], n_blocks[1], n_blocks[2]);
-                                //printf("block_a=%i, block_b=%i, block_c=%i \n" , block_a, block_b, block_c);
-                                //printf("%d \n", i);
+                    // Compute the current spin idx
+                    int ispin = ibasis + ham.geometry.n_cell_atoms * (a + ham.geometry.n_cells[0] * (b + ham.geometry.n_cells[1] * c));
+                    
+                    scalar rng1 = curand_uniform(&states[block_a]);
+                    scalar rng2 = curand_uniform(&states[block_a]);
+                    scalar rng3 = curand_uniform(&states[block_a]);
+                    bool tmp;
+                    cu_metropolis_spin_trial(ispin, spins_old, spins_new, ham, rng1, rng2, rng3, 0.5, 100, 100);
+                    
+                    // cu_metropolis_spin_trial(
+                    // int ispin, Vector3 * spins_old, Vector3 * spins_new, Hamiltonian_Device_Ptrs ham, const scalar rng1,
+                    // const scalar rng2, const scalar rng3, const scalar cos_cone_angle, scalar temperature, const scalar kB_T )
+                    unsigned int current_count = atomicInc(counter, nos);
+                    order[current_count] = ispin;
+                    printf("a %i, b %i, c %i, ispin %d\nblock_a %i, block_b %i, block_c %i \n aa %i, bb %i, cc %i\n--\n", a, b, c, ispin, block_a, block_b, block_c, aa, bb, cc);
+                    //printf("a_blocksize %i, b_blocksize %i, c_blocksize %i \n", block_size_a, block_size_b, block_size_c);
+                    //
+                    //printf("ham.geometry.n_cells[0] %i \n", ham.geometry.n_cells[0]);
+                    //printf("ham.geometry.n_cells[1] %i \n", ham.geometry.n_cells[1]);
+                    //printf("n_block[0]=%i, n_block[1]=%i, n_block[2]=%i \n", n_blocks[0], n_blocks[1], n_blocks[2]);
+                    //printf("block_a=%i, block_b=%i, block_c=%i \n" , block_a, block_b, block_c);
+                    //printf("%d \n", i);
 
-                            }
-                        }
-                    }
                 }
-                
             }
         }
     }
 }
 
-
 void Method_MC::Parallel_Metropolis( const vectorfield & spins_old, vectorfield & spins_new )
 {
-    
     curandState *dev_random;
     cudaMalloc((void**)&dev_random, 30*30*sizeof(curandState));
 
     auto hamiltonian = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( this->systems[0]->hamiltonian.get() );
-    auto ham_ptrs = Hamiltonian_Device_Ptrs(*hamiltonian); // Collect the device pointers in a struct
-    // We allocate these two fields to record tha spin-trial order of the threads
-    auto order   = field<int>(spins_old.size() / 4) ;
-    auto counter = field<unsigned int>(1, 0);
-    //n_blocks = {3, 3, 1};
-    int blockSize = 4;
-    int numBlocks = 2; //( spins_old.size() + blockSize - 1 ) / blockSize;
-    dim3 block(blockSize, blockSize, blockSize);
-    dim3 grid(n_blocks[0], n_blocks[1], n_blocks[2]);
-    auto distribution = std::uniform_real_distribution<scalar>(0, 1);
+    auto ham_ptrs    = Hamiltonian_Device_Ptrs(*hamiltonian); // Collect the device pointers in a struct
 
-    for(int phase_c = 0; phase_c < 2; phase_c++)
+    // We allocate these two fields to record the order of spin-trials
+    auto order       = field<int>(spins_old.size(), -1);
+    auto counter     = field<unsigned int>(1, 0);
+
+    dim3 block(1, 1, 1);
+    dim3 grid( max(n_blocks[0]/2,1), max(n_blocks[1]/2,1), max(n_blocks[2]/2,1) );
+
+    int phase_c_lim = n_blocks[2] > 1 ? 2 : 1;
+    int phase_b_lim = n_blocks[1] > 1 ? 2 : 1;
+    int phase_a_lim = n_blocks[0] > 1 ? 2 : 1;
+
+    for(int phase_c = 0; phase_c < phase_c_lim; phase_c++)
     {
-        for(int phase_b = 0; phase_b < 2; phase_b++)
+        for(int phase_b = 0; phase_b < phase_b_lim; phase_b++)
         {
-            for(int phase_a = 0; phase_a < 2; phase_a++)
+            for(int phase_a = 0; phase_a < phase_a_lim; phase_a++)
             {
-                cu_metropolis_order<<<grid, block>>>( spins_old.data(), spins_new.data(), order.data(), counter.data(), ham_ptrs, 1, 0, 0, rest[0],rest[1], rest[2], 2, 2, 1, dev_random);
+                const field<int> phase = {phase_a, phase_b, phase_c};
+                cu_metropolis_order<<<grid, block>>>( spins_old.data(), spins_new.data(), order.data(), counter.data(), ham_ptrs, phase.data(), n_blocks.data(), block_size_min.data(), rest.data(), dev_random);
             }
         }
     }
-    /*
-    cu_metropolis_order<<<grid, block>>>( spins_old.data(), spins_new.data(), order.data(), counter.data(), ham_ptrs, 1, 0, 0, rest[0],rest[1], rest[2], 2, 2, 1);  // cu_metropolis_order<<<grid, block>>>( spins_old.data(), spins_new.data(), order.data(), counter.data(), ham_ptrs, phase_a, phase_b, phase_c, rest[0],rest[1], rest[2], block_size_min[0], block_size_min[1], block_size_min[2]);
+
+    // cu_metropolis_order<<<grid, block>>>( spins_old.data(), spins_new.data(), order.data(), counter.data(), ham_ptrs, 1, 0, 0, rest[0],rest[1], rest[2], 2, 2, 1);  // cu_metropolis_order<<<grid, block>>>( spins_old.data(), spins_new.data(), order.data(), counter.data(), ham_ptrs, phase_a, phase_b, phase_c, rest[0],rest[1], rest[2], block_size_min[0], block_size_min[1], block_size_min[2]);
     cudaDeviceSynchronize();
 
     // dump the results in some file
@@ -461,24 +442,31 @@ void Method_MC::Parallel_Metropolis( const vectorfield & spins_old, vectorfield 
     myfile << "# a b c idx_spin idx_trial\n";
     // Write out the order
     auto n_cells = this->systems[0]->geometry->n_cells;
+    auto n_cell_atoms = this->systems[0]->geometry->n_cell_atoms;
 
-    for(int c=0; c<n_cells[2]; c++)
+    field<int> tupel = {0,0,0,0};
+    for(int i=0; i<order.size(); i++)
     {
-        for(int b=0; b<n_cells[1]; b++)
+        if(order[i] >= 0)
         {
-            for(int a=0; a<n_cells[0]; a++)
-            {
-                int idx = a + n_cells[0] * (b + n_cells[1] * c);
-                myfile << a << " " << b << " " << c << " " << idx << " " << order[idx] << "\n";
-            }
+            Vectormath::tupel_from_idx(order[i], tupel, {n_cell_atoms, n_cells[0], n_cells[1], n_cells[2]});
+            myfile << tupel[1] << " " << tupel[2] << " " << tupel[3] << " " << order[i] << " " << i << "\n";
         }
     }
+
+    // for(int c=0; c<n_cells[2]; c++)
+    // {
+    //     for(int b=0; b<n_cells[1]; b++)
+    //     {
+    //         for(int a=0; a<n_cells[0]; a++)
+    //         {
+    //             int idx = a + n_cells[0] * (b + n_cells[1] * c);
+    //             myfile << a << " " << b << " " << c << " " << idx << " " << order[idx] << "\n";
+    //         }
+    //     }
+    // }
     myfile.close();
-    */
 }
-
-    
-
 
 } // namespace Engine
 

@@ -17,8 +17,8 @@ from spirit import geometry
 
 print(version.cuda)
 
-N_CELLS  = [6, 6, 1]
-N_SHELLS = 2
+N_CELLS  = [16, 16, 1]
+N_SHELLS = 6
 NOS      = N_CELLS[0] * N_CELLS[1] * N_CELLS[2]
 
 with state.State("", False) as p_state:
@@ -29,10 +29,15 @@ with state.State("", False) as p_state:
 import numpy as np
 
 data = np.loadtxt("mc_access_order.txt")
-data = data[ data[:,-1].argsort() ][:64] # sort by order of access
+data = data[ data[:,-1].argsort() ] # sort by order of access
 import matplotlib.pyplot as plt
 # Visualise the order of access
-plt.plot( data[:,0], data[:,1] )
+
+plt.scatter( data[:,0], data[:,1], fc = "None", ec = "C0" )
+
+plt.scatter( data[:64,0], data[:64,1] )
+plt.plot( data[:64,0], data[:64,1] )
+
 plt.xlabel("a")
-plt.xlabel("b")
+plt.ylabel("b")
 plt.savefig("mc_access_order.png", dpi=300)

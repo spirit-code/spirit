@@ -68,9 +68,9 @@ namespace Engine
         vectorfield xi;
 
         // Values for block decompositon
-        std::array<int, 3> block_size_min;
-        std::array<int, 3> n_blocks;
-        std::array<int, 3> rest;
+        field<int> block_size_min = {0,0,0};
+        field<int> n_blocks = {0,0,0};
+        field<int> rest = {0,0,0};
         int max_supported_threads;
         std::vector<std::mt19937> prng_vec = {};
     };
