@@ -450,7 +450,24 @@ void Method_MC::Parallel_Metropolis( const vectorfield & spins_old, vectorfield 
     dim3 grid(n_blocks[0], n_blocks[1], n_blocks[2]);
     auto distribution = std::uniform_real_distribution<scalar>(0, 1);
     auto temperature = this->parameters_mc->temperature;
-    auto cos_cone_angle = std::cos(this->cone_angle);
+    const auto & geom = this->systems[0]->geometry;
+
+    scalar diff = 0.01;
+    // Cone angle feedback algorithm
+    if( this->parameters_mc->metropolis_step_cone && this->parameters_mc->metropolis_cone_adaptive )
+    {
+        this->acceptance_ratio_current = 1 - (scalar)this->n_rejected / (scalar)this->nos_nonvacant;
+
+        if( (this->acceptance_ratio_current < this->parameters_mc->acceptance_ratio_target) && (this->cone_angle > diff) )
+            this->cone_angle -= diff;
+
+        if( (this->acceptance_ratio_current > this->parameters_mc->acceptance_ratio_target) && (this->cone_angle < Constants::Pi-diff) )
+            this->cone_angle += diff;
+
+        this->parameters_mc->metropolis_cone_angle = this->cone_angle * 180.0 / Constants::Pi;
+    }
+    scalar cos_cone_angle = std::cos(this->cone_angle);
+
     for(int phase_c = 0; phase_c < 2; phase_c++)
     {
         for(int phase_b = 0; phase_b < 2; phase_b++)
@@ -489,91 +506,6 @@ void Method_MC::Parallel_Metropolis( const vectorfield & spins_old, vectorfield 
     */
 }
 
-    
-
-
 } // namespace Engine
 
 #endif
-
-/*
-__device__ void cu_metropolis_spin_trial(
-    int ispin, Vector3 * spins_old, Vector3 * spins_new, Hamiltonian_Device_Ptrs ham, const scalar rng1,
-    const scalar rng2, const scalar rng3, const scalar cos_cone_angle, scalar temperature )
-{
-
-    // TODO: Implement
-    // This function should perform a metropolis spin trial, using the same logic as in core/src/engine/Method_MC.cpp
-
-    // A few things I would like to point out:
-    //     1. Remember that pointers that live on the host side have *no* meaning when used on the device. This also
-    //     applies to the `this` pointer of any object that was constructed on the host side. Therefore you will have to
-    //     explicitly copy some parameters of the method to the device. An easy way to do this is in the argument list
-    //     of the kernel invocation.
-    //     2. Any type that is derived from `field` (defined in `core/include/engine/Vectormath_Defines.hpp`), uses a
-    //     special allocator so that the pointers you get with the `data()` member method can be used either on the host
-    //     or the device. E.g spins.data() is a Vector3 * that can be dereferenced on the host and the device.
-    //     3. Only functions that are marked as __device__ can be used within kernels. That means you have to replace
-    //     some functions when porting code from the cpu to the gpu.
-
-    Matrix3 local_basis;
-    const Vector3 e_z{0,0,1};
-    const scalar kB_T = Constants::k_B * temperature;
-
-    // Calculate local basis for the spin
-    if( std::abs(spins_old[ispin].z()) < 1-1e-10 )
-    {
-        local_basis.col(2) = spins_old[ispin];
-        local_basis.col(0) = (local_basis.col(2).cross(e_z)).normalized();
-        local_basis.col(1) = local_basis.col(2).cross(local_basis.col(0));
-    } else
-    {
-        local_basis = Matrix3::Identity();
-    }
-
-    // Rotation angle between 0 and cone_angle degrees
-    scalar costheta = 1 - (1 - cos_cone_angle) * rng1;
-
-    scalar sintheta = std::sqrt(1 - costheta*costheta);
-
-    // Random distribution of phi between 0 and 360 degrees
-    scalar phi = 2*Constants::Pi * rng2;
-
-    Vector3 local_spin_new{ sintheta * std::cos(phi),
-                            sintheta * std::sin(phi),
-                            costheta };
-
-    // New spin orientation in regular basis
-    spins_new[ispin] = local_basis * local_spin_new;
-
-    // Energy difference of configurations with and without displacement
-    scalar Eold  = this->systems[0]->hamiltonian->Energy_Single_Spin(ispin, spins_old);
-    scalar Enew  = this->systems[0]->hamiltonian->Energy_Single_Spin(ispin, spins_new);
-    scalar Ediff = Enew-Eold;
-
-    // Metropolis criterion: reject the step if energy rose
-    if( Ediff > 1e-14 )
-    {
-        if( this->parameters_mc->temperature < 1e-12 )
-        {
-            // Restore the spin
-            spins_new[ispin] = spins_old[ispin];
-            return false;
-        }
-        else
-        {
-            // Exponential factor
-            scalar exp_ediff    = std::exp( -Ediff/kB_T );
-            // Only reject if random number is larger than exponential
-            if( exp_ediff < rng3 )
-            {
-                // Restore the spin
-                spins_new[ispin] = spins_old[ispin];
-                // Counter for the number of rejections
-                return false;
-            }
-        }
-    }
-    return true;
-}
-*/
