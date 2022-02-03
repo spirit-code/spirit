@@ -263,6 +263,16 @@ __device__ bool cu_metropolis_spin_trial(
     return true;
 }
 
+void get_cuda_grid(dim3 & block, dim3 & grid, const field<int> & n_blocks)
+{
+    block = dim3( 16, 8, 8 );
+    grid = dim3( max( ((n_blocks[0] / 2) + block.x - 1 ) / block.x, 1 ), max( ((n_blocks[1] / 2) + block.y - 1 ) / block.y, 1 ), max( ((n_blocks[2] / 2) + block.z - 1 ) / block.z, 1 ) );
+
+    // std::cout << "grid " << grid.x << " " << grid.y << " " << grid.z << "\n";
+    // std::cout << "block " << block.x << " " << block.y << " " << block.z << "\n";
+    // std::cout << "n_blocks " << n_blocks[0] << " " << n_blocks[1] << " " << n_blocks[2] << "\n";
+}
+
 __global__ void cu_setup_curand( curandState * states )
 {
     int seed     = 1234;
@@ -274,16 +284,18 @@ __global__ void cu_setup_curand( curandState * states )
 
 void Method_MC::Setup_Curand()
 {
-    dim3 block( 1, 1, 1 );
-    dim3 grid( max( n_blocks[0] / 2, 1 ), max( n_blocks[1] / 2, 1 ), max( n_blocks[2] / 2, 1 ) );
+    dim3 block;
+    dim3 grid;
+
+    get_cuda_grid(block, grid, n_blocks);
 
     Log.Send(
         Utility::Log_Level::Info, Utility::Log_Sender::MC,
-        fmt::format( "Performing block decomposition for parallel Metropolis algorithm" ) );
+        fmt::format( "Setting up curand state." ) );
 
     dev_random = new curandStateWrapper();
 
-    cudaMalloc( (void **)&( dev_random->state ), grid.x * grid.y * grid.z * sizeof( curandState ) );
+    cudaMalloc( (void **)&( dev_random->state ), block.x * block.y * block.z * grid.x * grid.y * grid.z * sizeof( curandState ) );
     cu_setup_curand<<<grid, block>>>( dev_random->state );
 }
 
@@ -295,20 +307,23 @@ __global__ void cu_parallel_metropolis(
     // Number of spins
     int nos = ham.geometry.n_cells[0] * ham.geometry.n_cells[1] * ham.geometry.n_cells[2] * ham.geometry.n_cell_atoms;
 
-    int block_a = 2 * blockIdx.x + phase[0];
-    int block_b = 2 * blockIdx.y + phase[1];
-    int block_c = 2 * blockIdx.z + phase[2];
+    int block_a = 2 * (threadIdx.x + blockDim.x * blockIdx.x) + phase[0];
+    int block_b = 2 * (threadIdx.y + blockDim.y * blockIdx.y) + phase[1];
+    int block_c = 2 * (threadIdx.z + blockDim.z * blockIdx.z) + phase[2];
 
-    int seed = 1234;
+    // If the cuda grid and the grid for the algorithm do not match, we might have some overhang
+    if(block_a >= n_blocks[0] || block_b >= n_blocks[1] || block_c >= n_blocks[2])
+    {
+        return;
+    }
 
     int blockId  = blockIdx.x + blockIdx.y * gridDim.x + gridDim.x * gridDim.y * blockIdx.z;
     int threadId = blockId * ( blockDim.x * blockDim.y * blockDim.z ) + ( threadIdx.z * ( blockDim.x * blockDim.y ) )
                    + ( threadIdx.y * blockDim.x ) + threadIdx.x;
 
-    int block_size_c = ( block_c == n_blocks[2] - 1 ) ?
-                           block_size_min[2] + rest[2] :
-                           block_size_min[2]; // Account for the remainder of division (n_cells[i] / block_size_min[i])
-                                              // by increasing the block size at the edges
+    // Account for the remainder of division (n_cells[i] / block_size_min[i])
+    // by increasing the block size at the edges
+    int block_size_c = ( block_c == n_blocks[2] - 1 ) ? block_size_min[2] + rest[2] : block_size_min[2]; 
     int block_size_b = ( block_b == n_blocks[1] - 1 ) ? block_size_min[1] + rest[1] : block_size_min[1];
     int block_size_a = ( block_a == n_blocks[0] - 1 ) ? block_size_min[0] + rest[0] : block_size_min[0];
 
@@ -321,9 +336,9 @@ __global__ void cu_parallel_metropolis(
             {
                 for( int ibasis = 0; ibasis < ham.geometry.n_cell_atoms; ibasis++ )
                 {
-                    int a = block_a * block_size_min[0]
-                            + aa; // We do not have to worry about the remainder of the division here, it is contained
-                                  // in the 'aa'/'bb'/'cc' offset
+                    // We do not have to worry about the remainder of the division here, it is contained
+                    // in the 'aa'/'bb'/'cc' offset
+                    int a = block_a * block_size_min[0] + aa;
                     int b = block_b * block_size_min[1] + bb;
                     int c = block_c * block_size_min[2] + cc;
 
@@ -331,12 +346,13 @@ __global__ void cu_parallel_metropolis(
                     scalar rng2 = curand_uniform( &states[threadId] );
                     scalar rng3 = curand_uniform( &states[threadId] );
 
-                    // printf("%f %f %f\n", rng1, rng2, rng3);
-
                     // Compute the current spin idx
                     int ispin = ibasis
                                 + ham.geometry.n_cell_atoms
                                       * ( a + ham.geometry.n_cells[0] * ( b + ham.geometry.n_cells[1] * c ) );
+                    if (ispin >= nos || ispin < 0)
+                        return;
+
                     bool test = cu_metropolis_spin_trial(
                         ispin, spins_old, spins_new, ham, rng1, rng2, rng3, cos_cone_angle, temperature );
                 }
@@ -378,9 +394,8 @@ __global__ void cu_metropolis_order(
             {
                 for( int ibasis = 0; ibasis < ham.geometry.n_cell_atoms; ibasis++ )
                 {
-                    int a = block_a * block_size_min[0]
-                            + aa; // We do not have to worry about the remainder of the division here, it is contained
-                                  // in the 'aa'/'bb'/'cc' offset
+                    // We do not have to worry about the remainder of the division here, it is containe in the 'aa'/'bb'/'cc' offset
+                    int a = block_a * block_size_min[0] + aa; 
                     int b = block_b * block_size_min[1] + bb;
                     int c = block_c * block_size_min[2] + cc;
 
@@ -426,8 +441,10 @@ void Method_MC::Parallel_Metropolis( const vectorfield & spins_old, vectorfield 
     auto order   = field<int>( spins_old.size(), -1 );
     auto counter = field<unsigned int>( 1, 0 );
 
-    dim3 block( 1, 1, 1 );
-    dim3 grid( max( n_blocks[0] / 2, 1 ), max( n_blocks[1] / 2, 1 ), max( n_blocks[2] / 2, 1 ) );
+    dim3 block;
+    dim3 grid;
+
+    get_cuda_grid(block, grid, n_blocks);
 
     scalar temperature    = this->parameters_mc->temperature;
     scalar cos_cone_angle = std::cos( this->cone_angle );
