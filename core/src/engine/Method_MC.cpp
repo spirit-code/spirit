@@ -47,6 +47,7 @@ namespace Engine
         this->n_rejected = 0;
         this->acceptance_ratio_current = this->parameters_mc->acceptance_ratio_target;
         Block_Decomposition();
+        Setup_Curand();
     }
 
     // This implementation is mostly serial as parallelization is nontrivial
@@ -470,6 +471,7 @@ namespace Engine
     {
     }
 
+    #
     void Method_MC::Initialize()
     {
     }
