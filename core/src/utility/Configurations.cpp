@@ -155,10 +155,10 @@ void Add_Noise_Temperature( Data::Spin_System & s, scalar temperature, int delta
 
 void Hopfion( Data::Spin_System & s, Vector3 pos, scalar r, int order, Vector3 normal, filterfunction filter )
 {
-
-    auto dreibein  = Engine::Vectormath::dreibein(normal);
-    auto & spins   = *s.spins;
-    auto positions = Engine::Vectormath::Rotated_View<vectorfield, Vector3>(s.geometry->positions, dreibein, pos, pos);
+    auto dreibein = Engine::Vectormath::dreibein( normal );
+    auto & spins  = *s.spins;
+    auto positions
+        = Engine::Vectormath::Rotated_View<vectorfield, Vector3>( s.geometry->positions, dreibein, pos, pos );
 
     using std::acos;
     using std::atan;

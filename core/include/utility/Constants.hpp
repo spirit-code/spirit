@@ -1,16 +1,16 @@
 #pragma once
-#ifndef SPIRIT_UTILITY_CONSTANTS_HPP
-#define SPIRIT_UTILITY_CONSTANTS_HPP
+#ifndef SPIRIT_CORE_UTILITY_CONSTANTS_HPP
+#define SPIRIT_CORE_UTILITY_CONSTANTS_HPP
 
 namespace Utility
 {
 
 /*
-Constants by convention:
-- Energy scale: Millielctronvolts
-- Time scale: Picoseconds
-- Magnetic fields scale: Tesla
-*/
+ * Constants by convention:
+ * - Energy scale: Millielctronvolts
+ * - Time scale: Picoseconds
+ * - Magnetic fields scale: Tesla
+ */
 namespace Constants
 {
 
@@ -48,11 +48,11 @@ double const Pi_2 = 1.570796326794896619231321691639751442098584699687552910487;
 } // namespace Constants
 
 /*
-Constants_mRy by convention:
-- Energy scale: Millirydberg
-- Time scale: Picoseconds
-- Magnetic fields scale: Tesla
-*/
+ * Constants_mRy by convention:
+ * - Energy scale: Millirydberg
+ * - Time scale: Picoseconds
+ * - Magnetic fields scale: Tesla
+ */
 namespace Constants_mRy
 {
 

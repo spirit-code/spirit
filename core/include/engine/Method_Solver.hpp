@@ -1,6 +1,6 @@
 #pragma once
-#ifndef Method_Solver_H
-#define Method_Solver_H
+#ifndef Method_CORE_ENGINE_Solver_HPP
+#define Method_CORE_ENGINE_Solver_HPP
 
 #include "Spirit_Defines.h"
 #include <Spirit/Simulation.h>
@@ -27,6 +27,7 @@
 
 namespace Engine
 {
+
 enum class Solver
 {
     None        = -1,
@@ -41,9 +42,9 @@ enum class Solver
 };
 
 /*
-    Base Class for Solver-based Simulation/Calculation Methods.
-    It is templated to allow a flexible choice of Solver to iterate the systems.
-*/
+ * Base Class for Solver-based Simulation/Calculation Methods.
+ * It is templated to allow a flexible choice of Solver to iterate the systems.
+ */
 template<Solver solver>
 class Method_Solver : public Method
 {
@@ -53,6 +54,8 @@ public:
             : Method( parameters, idx_img, idx_chain )
     {
     }
+
+    virtual ~Method_Solver() = default;
 
     // // `Iterate` uses the `Solver_Iteration` function to evolve given systems according to the
     // // `Calculate_Force` implementation of the Method-Subclass.
@@ -72,10 +75,12 @@ protected:
     // Prepare random numbers for thermal fields, if needed
     virtual void Prepare_Thermal_Field() {}
 
-    // Calculate Forces onto Systems
-    //      This is currently overridden by methods to specify how the forces on a set of configurations should be
-    //      calculated. This function is used in `the Solver_...` functions.
-    // TODO: maybe rename to separate from deterministic and stochastic force functions
+    /*
+     * Calculate Forces onto Systems
+     *   This is currently overridden by methods to specify how the forces on a set of configurations should be
+     *   calculated. This function is used in `the Solver_...` functions.
+     * TODO: maybe rename to separate from deterministic and stochastic force functions
+     */
     virtual void Calculate_Force(
         const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces )
     {
@@ -84,11 +89,13 @@ protected:
              this->idx_chain );
     }
 
-    // Calculate virtual Forces onto Systems (can be precession and damping forces, correctly scaled)
-    // Calculate the effective force on a configuration. It is a combination of
-    //      precession and damping terms for the Hamiltonian, spin currents and
-    //      temperature. This function is used in `the Solver_...` functions.
-    // Default implementation: direct minimization
+    /*
+     * Calculate virtual Forces onto Systems (can be precession and damping forces, correctly scaled)
+     * Calculate the effective force on a configuration. It is a combination of
+     *   precession and damping terms for the Hamiltonian, spin currents and
+     *   temperature. This function is used in `the Solver_...` functions.
+     * Default implementation: direct minimization
+     */
     virtual void Calculate_Force_Virtual(
         const std::vector<std::shared_ptr<vectorfield>> & configurations, const std::vector<vectorfield> & forces,
         std::vector<vectorfield> & forces_virtual )
@@ -107,6 +114,7 @@ protected:
 
     // ...
     // virtual bool Iterations_Allowed() override;
+
     // Check if the forces are converged
     virtual bool Converged();
 
@@ -281,7 +289,7 @@ void Method_Solver<solver>::Message_Step()
               || solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas );
 
     // Update time of current step
-    auto t_current = system_clock::now();
+    auto t_current = std::chrono::system_clock::now();
 
     // Send log message
     std::vector<std::string> block;
@@ -327,7 +335,7 @@ void Method_Solver<solver>::Message_End()
               || solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas );
 
     //---- End timings
-    auto t_end = system_clock::now();
+    auto t_end = std::chrono::system_clock::now();
 
     //---- Termination reason
     std::string reason = "";
@@ -387,6 +395,7 @@ inline std::string Method_Solver<Solver::None>::SolverFullName()
 #include <engine/Solver_SIB.hpp>
 #include <engine/Solver_VP.hpp>
 #include <engine/Solver_VP_OSO.hpp>
+
 } // namespace Engine
 
 #endif

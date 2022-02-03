@@ -11,16 +11,25 @@
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 
+#include <algorithm>
+
+void free_run_info(Simulation_Run_Info info) noexcept
+{
+    delete[] info.history_energy;
+    delete[] info.history_iteration;
+    delete[] info.history_max_torque;
+};
+
 // Helper function to start a simulation once a Method has been created
-void run_method(std::shared_ptr<Engine::Method> method, bool singleshot, Simulation_Run_Info * info = nullptr)
+void run_method( std::shared_ptr<Engine::Method> method, bool singleshot, Simulation_Run_Info * info = nullptr )
 {
     if( singleshot )
     {
         //---- Start timings
         method->starttime = Utility::Timing::CurrentDateTime();
-        method->t_start   = system_clock::now();
-        auto t_current    = system_clock::now();
-        method->t_last    = system_clock::now();
+        method->t_start   = std::chrono::system_clock::now();
+        auto t_current    = std::chrono::system_clock::now();
+        method->t_last    = std::chrono::system_clock::now();
         method->iteration = 0;
 
         //---- Log messages
@@ -32,18 +41,40 @@ void run_method(std::shared_ptr<Engine::Method> method, bool singleshot, Simulat
     else
     {
         method->Iterate();
-        if(info)
+        if( info )
         {
             info->max_torque       = method->getTorqueMaxNorm();
             info->total_iterations = method->getNIterations();
             info->total_walltime   = method->getWallTime();
-            info->total_ips        = float(info->total_iterations) / info->total_walltime * 1000.0;
+            info->total_ips        = float( info->total_iterations ) / info->total_walltime * 1000.0;
+
+            if( method->history_iteration.size() > 0 )
+            {
+                info->n_history_iteration = method->history_iteration.size();
+                info->history_iteration = new int[method->history_iteration.size()];
+                std::copy(method->history_iteration.begin(), method->history_iteration.end(), info->history_iteration);
+            }
+
+            if( method->history_max_torque.size() > 0 )
+            {
+                info->n_history_max_torque = method->history_max_torque.size();
+                info->history_max_torque = new float[method->history_max_torque.size()];
+                std::copy(method->history_max_torque.begin(), method->history_max_torque.end(), info->history_max_torque);
+            }
+
+            if( method->history_energy.size() > 0 )
+            {
+                info->n_history_energy = method->history_energy.size();
+                info->history_energy = new float[method->history_energy.size()];
+                std::copy(method->history_energy.begin(), method->history_energy.end(), info->history_energy);
+            }
         }
     }
 }
 
-void Simulation_MC_Start(State *state,
-    int n_iterations, int n_iterations_log, bool singleshot, Simulation_Run_Info * info, int idx_image, int idx_chain) noexcept
+void Simulation_MC_Start(
+    State * state, int n_iterations, int n_iterations_log, bool singleshot, Simulation_Run_Info * info, int idx_image,
+    int idx_chain ) noexcept
 try
 {
     // Fetch correct indices and pointers for image and chain
@@ -90,7 +121,7 @@ try
         image->Unlock();
 
         state->method_image[idx_image] = method;
-        run_method(method, singleshot, info);
+        run_method( method, singleshot, info );
     }
 }
 catch( ... )
@@ -98,8 +129,9 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void Simulation_LLG_Start(State *state, int solver_type,
-    int n_iterations, int n_iterations_log, bool singleshot, Simulation_Run_Info * info, int idx_image, int idx_chain) noexcept
+void Simulation_LLG_Start(
+    State * state, int solver_type, int n_iterations, int n_iterations_log, bool singleshot, Simulation_Run_Info * info,
+    int idx_image, int idx_chain ) noexcept
 try
 {
     // Fetch correct indices and pointers for image and chain
@@ -174,7 +206,7 @@ try
         image->Unlock();
 
         state->method_image[idx_image] = method;
-        run_method(method, singleshot, info);
+        run_method( method, singleshot, info );
     }
 }
 catch( ... )
@@ -182,8 +214,9 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void Simulation_GNEB_Start(State *state, int solver_type,
-    int n_iterations, int n_iterations_log, bool singleshot, Simulation_Run_Info * info, int idx_chain) noexcept
+void Simulation_GNEB_Start(
+    State * state, int solver_type, int n_iterations, int n_iterations_log, bool singleshot, Simulation_Run_Info * info,
+    int idx_chain ) noexcept
 try
 {
     // Fetch correct indices and pointers for image and chain
@@ -270,7 +303,7 @@ try
             chain->Unlock();
 
             state->method_chain = method;
-            run_method(method, singleshot, info);
+            run_method( method, singleshot, info );
         }
     }
 }
@@ -279,8 +312,9 @@ catch( ... )
     spirit_handle_exception_api( -1, idx_chain );
 }
 
-void Simulation_MMF_Start(State *state, int solver_type,
-    int n_iterations, int n_iterations_log, bool singleshot, Simulation_Run_Info * info, int idx_image, int idx_chain) noexcept
+void Simulation_MMF_Start(
+    State * state, int solver_type, int n_iterations, int n_iterations_log, bool singleshot, Simulation_Run_Info * info,
+    int idx_image, int idx_chain ) noexcept
 try
 {
     // Fetch correct indices and pointers for image and chain
@@ -344,7 +378,7 @@ try
         image->Unlock();
 
         state->method_image[idx_image] = method;
-        run_method(method, singleshot, info);
+        run_method( method, singleshot, info );
     }
 }
 catch( ... )
@@ -352,8 +386,9 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void Simulation_EMA_Start(State *state,
-    int n_iterations, int n_iterations_log, bool singleshot, Simulation_Run_Info * info, int idx_image, int idx_chain) noexcept
+void Simulation_EMA_Start(
+    State * state, int n_iterations, int n_iterations_log, bool singleshot, Simulation_Run_Info * info, int idx_image,
+    int idx_chain ) noexcept
 try
 {
     // Fetch correct indices and pointers for image and chain
@@ -401,7 +436,7 @@ try
 
         state->method_image[idx_image] = method;
 
-        run_method(method, singleshot, info);
+        run_method( method, singleshot, info );
     }
 }
 catch( ... )
@@ -442,7 +477,7 @@ try
     }
 
     // One Iteration
-    auto t_current = system_clock::now();
+    auto t_current = std::chrono::system_clock::now();
     if( method->ContinueIterating() && !method->Walltime_Expired( t_current - method->t_start ) )
     {
         // Lock Systems
@@ -458,7 +493,7 @@ try
 
             // Recalculate FPS
             method->t_iterations.pop_front();
-            method->t_iterations.push_back( system_clock::now() );
+            method->t_iterations.push_back( std::chrono::system_clock::now() );
 
             // Log Output every n_iterations_log steps
             bool log = false;
@@ -479,7 +514,7 @@ try
     // Check the conditions again after the iteration was performed,
     // as this condition may not be checked automatically (e.g. SingleShot
     // is not called anymore).
-    t_current = system_clock::now();
+    t_current = std::chrono::system_clock::now();
     if( !method->ContinueIterating() || method->Walltime_Expired( t_current - method->t_start ) )
     {
         //---- Log messages
@@ -587,12 +622,12 @@ try
     if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
     {
         if( state->method_image[idx_image] )
-            return static_cast<float>(state->method_image[idx_image]->getForceMaxAbsComponent());
+            return static_cast<float>( state->method_image[idx_image]->getForceMaxAbsComponent() );
     }
     else if( Simulation_Running_On_Chain( state, idx_chain ) )
     {
         if( state->method_chain )
-            return static_cast<float>(state->method_chain->getForceMaxAbsComponent());
+            return static_cast<float>( state->method_chain->getForceMaxAbsComponent() );
     }
 
     return 0;
@@ -643,12 +678,12 @@ try
     if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
     {
         if( state->method_image[idx_image] )
-            return static_cast<float>(state->method_image[idx_image]->getTorqueMaxNorm());
+            return static_cast<float>( state->method_image[idx_image]->getTorqueMaxNorm() );
     }
     else if( Simulation_Running_On_Chain( state, idx_chain ) )
     {
         if( state->method_chain )
-            return static_cast<float>(state->method_chain->getTorqueMaxNorm());
+            return static_cast<float>( state->method_chain->getTorqueMaxNorm() );
     }
 
     return 0;
@@ -700,12 +735,12 @@ try
     if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
     {
         if( state->method_image[idx_image] )
-            return static_cast<float>(state->method_image[idx_image]->getIterationsPerSecond());
+            return static_cast<float>( state->method_image[idx_image]->getIterationsPerSecond() );
     }
     else if( Simulation_Running_On_Chain( state, idx_chain ) )
     {
         if( state->method_chain )
-            return static_cast<float>(state->method_chain->getIterationsPerSecond());
+            return static_cast<float>( state->method_chain->getIterationsPerSecond() );
     }
 
     return 0;
@@ -729,12 +764,12 @@ try
     if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
     {
         if( state->method_image[idx_image] )
-            return static_cast<float>(state->method_image[idx_image]->getNIterations());
+            return static_cast<float>( state->method_image[idx_image]->getNIterations() );
     }
     else if( Simulation_Running_On_Chain( state, idx_chain ) )
     {
         if( state->method_chain )
-            return static_cast<float>(state->method_chain->getNIterations());
+            return static_cast<float>( state->method_chain->getNIterations() );
     }
 
     return 0;
@@ -790,12 +825,12 @@ try
     if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
     {
         if( state->method_image[idx_image] )
-            return static_cast<float>(state->method_image[idx_image]->getWallTime());
+            return static_cast<float>( state->method_image[idx_image]->getWallTime() );
     }
     else if( Simulation_Running_On_Chain( state, idx_chain ) )
     {
         if( state->method_chain )
-            return static_cast<float>(state->method_chain->getWallTime());
+            return static_cast<float>( state->method_chain->getWallTime() );
     }
 
     return 0;

@@ -6,8 +6,8 @@
 #include <rendering_layer.hpp>
 
 #include <Spirit/IO.h>
-#include <widget_base.hpp>
 #include <memory>
+#include <widget_base.hpp>
 
 struct State;
 

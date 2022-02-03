@@ -223,7 +223,8 @@ void VisualisationWidget::show_content()
     if( ImGui::gizmo3D( "##dir", dir ) )
         update = true;
     ImGui::NextColumn();
-    auto normalize_light_dir = [&]() {
+    auto normalize_light_dir = [&]()
+    {
         auto norm = std::sqrt( dir.x * dir.x + dir.y * dir.y + dir.z * dir.z );
         dir.x /= norm;
         dir.y /= norm;

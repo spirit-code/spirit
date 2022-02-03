@@ -35,9 +35,9 @@ Method_MC::Method_MC( std::shared_ptr<Data::Spin_System> system, int idx_img, in
     // this->max_torque = system->mc_parameters->force_convergence + 1.0;
 
     // History
-    this->history = std::map<std::string, std::vector<scalar>>{ { "max_torque", { this->max_torque } },
-                                                                { "E", { this->max_torque } },
-                                                                { "M_z", { this->max_torque } } };
+    // this->history = std::map<std::string, std::vector<scalar>>{ { "max_torque", { this->max_torque } },
+    //                                                             { "E", { this->max_torque } },
+    //                                                             { "M_z", { this->max_torque } } };
 
     this->parameters_mc = system->mc_parameters;
 
@@ -258,6 +258,7 @@ void Method_MC::Metropolis( const vectorfield & spins_old, vectorfield & spins_n
 
 void Method_MC::Block_Decomposition()
 {
+    // clang-format off
     /*
     Decompose the system into blocks of spins
     Each Block may only interact with it's nearest neighbour.
@@ -265,7 +266,11 @@ void Method_MC::Block_Decomposition()
     It is further important that the number of blocks in each dimension is either 1 or an even number.
     If this is not fulfilled the block can interact with its nearest periodic neighbour, for open boundary conditions it
     does not matter. For example, a valid decomposition of a 9x4x1 system, with up to *next-nearest* neighbour
-    interactions, could look like this: ┌───┬───┬───┬─────┐ │1 1│2 2│1 1│2 2 2│ │   │   │   │     │ │1 1│2 2│1 1│2 2 2│
+    interactions, could look like this: 
+        ┌───┬───┬───┬─────┐ 
+        │1 1│2 2│1 1│2 2 2│ 
+        │   │   │   │     │ 
+        │1 1│2 2│1 1│2 2 2│
         ├───┼───┼───┼─────┤
         │3 3│4 4│3 3│4 4 4│
         │   │   │   │     │
@@ -277,6 +282,7 @@ void Method_MC::Block_Decomposition()
     number of boxes per phase. In this example the usable number of threads would be 2. If the size of the boxes does
     not perfectly divide n_cells, the rest is added or substracted at the edges.
     */
+    // clang-format on
 
     // Initialize
     n_blocks       = { 0, 0, 0 };
@@ -403,6 +409,8 @@ void Method_MC::Parallel_Metropolis( const vectorfield & spins_old, vectorfield 
             prng_vec[i] = std::mt19937( this->parameters_mc->rng_seed * ( i + 1 ) );
         }
     }
+    block.emplace_back( "-----------------------------------------------------" );
+    Log.SendBlock( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 
     // There are up to (2^dim) phases in the algorithm, which have to be executed serially
     for( int phase_c = 0; phase_c < 2; phase_c++ )
@@ -534,42 +542,43 @@ void Method_MC::Message_Start()
 void Method_MC::Message_Step()
 {
     // Update time of current step
-    auto t_current = system_clock::now();
+    auto t_current = std::chrono::system_clock::now();
 
     // Update the system's energy
     this->systems[0]->UpdateEnergy();
 
     // Send log message
     std::vector<std::string> block( 0 );
-    block.push_back(
+    block.emplace_back(
         fmt::format( "----- {} Calculation: {}", this->Name(), Timing::DateTimePassed( t_current - this->t_start ) ) );
-    block.push_back( fmt::format(
+    block.emplace_back( fmt::format(
         "    Completed                 {} / {} step(s) (step size {})", this->step, this->n_log,
         this->n_iterations_log ) );
-    block.push_back( fmt::format( "    Iteration                 {} / {}", this->iteration, this->n_iterations ) );
-    block.push_back(
+    block.emplace_back( fmt::format( "    Iteration                 {} / {}", this->iteration, this->n_iterations ) );
+    block.emplace_back(
         fmt::format( "    Time since last step:     {}", Timing::DateTimePassed( t_current - this->t_last ) ) );
-    block.push_back( fmt::format(
+    block.emplace_back( fmt::format(
         "    Iterations / sec:         {}",
         this->n_iterations_log / Timing::SecondsPassed( t_current - this->t_last ) ) );
     if( this->parameters_mc->metropolis_step_cone )
     {
         if( this->parameters_mc->metropolis_cone_adaptive )
         {
-            block.push_back( fmt::format(
+            block.emplace_back( fmt::format(
                 "    Current acceptance ratio: {:>6.3f} (target {})", this->acceptance_ratio_current,
                 this->parameters_mc->acceptance_ratio_target ) );
-            block.push_back( fmt::format(
+            block.emplace_back( fmt::format(
                 "    Current cone angle (deg): {:>6.3f} (adaptive)", this->cone_angle * 180 / Constants::Pi ) );
         }
         else
         {
-            block.push_back( fmt::format( "    Current acceptance ratio: {:>6.3f}", this->acceptance_ratio_current ) );
-            block.push_back( fmt::format(
+            block.emplace_back(
+                fmt::format( "    Current acceptance ratio: {:>6.3f}", this->acceptance_ratio_current ) );
+            block.emplace_back( fmt::format(
                 "    Current cone angle (deg): {:>6.3f} (non-adaptive)", this->cone_angle * 180 / Constants::Pi ) );
         }
     }
-    block.push_back( fmt::format( "    Total energy:             {:20.10f}", this->systems[0]->E ) );
+    block.emplace_back( fmt::format( "    Total energy:             {:20.10f}", this->systems[0]->E ) );
     Log.SendBlock( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 
     // Update time of last step
@@ -579,7 +588,7 @@ void Method_MC::Message_Step()
 void Method_MC::Message_End()
 {
     //---- End timings
-    auto t_end = system_clock::now();
+    auto t_end = std::chrono::system_clock::now();
 
     //---- Termination reason
     std::string reason = "";
@@ -593,33 +602,33 @@ void Method_MC::Message_End()
 
     //---- Log messages
     std::vector<std::string> block;
-    block.push_back( fmt::format( "------------ Terminated {} Calculation ------------", this->Name() ) );
+    block.emplace_back( fmt::format( "------------ Terminated {} Calculation ------------", this->Name() ) );
     if( reason.length() > 0 )
-        block.push_back( fmt::format( "----- Reason:   {}", reason ) );
-    block.push_back( fmt::format( "----- Duration:       {}", Timing::DateTimePassed( t_end - this->t_start ) ) );
-    block.push_back( fmt::format( "    Completed         {} / {} step(s)", this->step, this->n_log ) );
-    block.push_back( fmt::format( "    Iteration         {} / {}", this->iteration, this->n_iterations ) );
-    block.push_back(
+        block.emplace_back( fmt::format( "----- Reason:   {}", reason ) );
+    block.emplace_back( fmt::format( "----- Duration:       {}", Timing::DateTimePassed( t_end - this->t_start ) ) );
+    block.emplace_back( fmt::format( "    Completed         {} / {} step(s)", this->step, this->n_log ) );
+    block.emplace_back( fmt::format( "    Iteration         {} / {}", this->iteration, this->n_iterations ) );
+    block.emplace_back(
         fmt::format( "    Iterations / sec: {}", this->iteration / Timing::SecondsPassed( t_end - this->t_start ) ) );
     if( this->parameters_mc->metropolis_step_cone )
     {
         if( this->parameters_mc->metropolis_cone_adaptive )
         {
-            block.push_back( fmt::format(
+            block.emplace_back( fmt::format(
                 "    Acceptance ratio: {:>6.3f} (target {})", this->acceptance_ratio_current,
                 this->parameters_mc->acceptance_ratio_target ) );
-            block.push_back(
+            block.emplace_back(
                 fmt::format( "    Cone angle (deg): {:>6.3f} (adaptive)", this->cone_angle * 180 / Constants::Pi ) );
         }
         else
         {
-            block.push_back( fmt::format( "    Acceptance ratio: {:>6.3f}", this->acceptance_ratio_current ) );
-            block.push_back( fmt::format(
+            block.emplace_back( fmt::format( "    Acceptance ratio: {:>6.3f}", this->acceptance_ratio_current ) );
+            block.emplace_back( fmt::format(
                 "    Cone angle (deg): {:>6.3f} (non-adaptive)", this->cone_angle * 180 / Constants::Pi ) );
         }
     }
-    block.push_back( fmt::format( "    Total energy:     {:20.10f}", this->systems[0]->E ) );
-    block.push_back( "-----------------------------------------------------" );
+    block.emplace_back( fmt::format( "    Total energy:     {:20.10f}", this->systems[0]->E ) );
+    block.emplace_back( "-----------------------------------------------------" );
     Log.SendBlock( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 }
 
@@ -630,4 +639,5 @@ std::string Method_MC::Name()
 {
     return "MC";
 }
+
 } // namespace Engine

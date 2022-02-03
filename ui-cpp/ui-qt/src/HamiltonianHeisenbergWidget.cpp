@@ -145,7 +145,8 @@ void HamiltonianHeisenbergWidget::Load_Contents()
 void HamiltonianHeisenbergWidget::set_boundary_conditions()
 {
     // Closure to set the parameters of a specific spin system
-    auto apply = [this]( int idx_image ) -> void {
+    auto apply = [this]( int idx_image ) -> void
+    {
         // Boundary conditions
         bool boundary_conditions[3];
         boundary_conditions[0] = this->checkBox_aniso_periodical_a->isChecked();
@@ -178,7 +179,8 @@ void HamiltonianHeisenbergWidget::set_boundary_conditions()
 void HamiltonianHeisenbergWidget::set_mu_s()
 {
     // Closure to set the parameters of a specific spin system
-    auto apply = [this]( int idx_image ) -> void {
+    auto apply = [this]( int idx_image ) -> void
+    {
         // mu_s
         float mu_s = this->lineEdit_muSpin_aniso->text().toFloat();
         Geometry_Set_mu_s( state.get(), mu_s, idx_image );
@@ -207,7 +209,8 @@ void HamiltonianHeisenbergWidget::set_mu_s()
 void HamiltonianHeisenbergWidget::set_external_field()
 {
     // Closure to set the parameters of a specific spin system
-    auto apply = [this]( int idx_image ) -> void {
+    auto apply = [this]( int idx_image ) -> void
+    {
         float d, vd[3];
 
         // External magnetic field
@@ -267,7 +270,8 @@ void HamiltonianHeisenbergWidget::set_external_field()
 void HamiltonianHeisenbergWidget::set_anisotropy()
 {
     // Closure to set the parameters of a specific spin system
-    auto apply = [this]( int idx_image ) -> void {
+    auto apply = [this]( int idx_image ) -> void
+    {
         float d, vd[3];
 
         // Anisotropy
@@ -357,7 +361,8 @@ void HamiltonianHeisenbergWidget::set_nshells_exchange()
 void HamiltonianHeisenbergWidget::set_exchange()
 {
     // Closure to set the parameters of a specific spin system
-    auto apply = [this]( int idx_image ) -> void {
+    auto apply = [this]( int idx_image ) -> void
+    {
         if( this->checkBox_exchange->isChecked() )
         {
             int n_shells = this->exchange_shells.size();
@@ -423,7 +428,8 @@ void HamiltonianHeisenbergWidget::set_nshells_dmi()
 void HamiltonianHeisenbergWidget::set_dmi()
 {
     // Closure to set the parameters of a specific spin system
-    auto apply = [this]( int idx_image ) -> void {
+    auto apply = [this]( int idx_image ) -> void
+    {
         if( this->checkBox_dmi->isChecked() )
         {
             int n_shells = this->dmi_shells.size();
@@ -468,7 +474,8 @@ void HamiltonianHeisenbergWidget::set_dmi()
 void HamiltonianHeisenbergWidget::set_ddi()
 {
     // Closure to set the parameters of a specific spin system
-    auto apply = [this]( int idx_image ) -> void {
+    auto apply = [this]( int idx_image ) -> void
+    {
         int method = SPIRIT_DDI_METHOD_NONE;
         if( this->checkBox_ddi->isChecked() )
         {

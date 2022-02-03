@@ -633,9 +633,9 @@ void ConfigurationsWidget::Setup_Configurations_Slots()
     // Pinning and atom types
     connect( this->pushButton_set_atom_type, SIGNAL( clicked() ), this, SLOT( set_atom_type_pressed() ) );
     connect( this->pushButton_set_pinned, SIGNAL( clicked() ), this, SLOT( set_pinned_pressed() ) );
-    connect( this->lineEdit_atom_type, &QLineEdit::returnPressed, this, [this] {
-        this->spinWidget->setPasteAtomType( this->lineEdit_atom_type->text().toInt() );
-    } );
+    connect(
+        this->lineEdit_atom_type, &QLineEdit::returnPressed, this,
+        [this] { this->spinWidget->setPasteAtomType( this->lineEdit_atom_type->text().toInt() ); } );
 }
 
 void ConfigurationsWidget::Setup_Transitions_Slots()

@@ -22,7 +22,7 @@ try
     auto * state = new State();
 
     // Initialize the state
-    state->datetime_creation        = system_clock::now();
+    state->datetime_creation        = std::chrono::system_clock::now();
     state->datetime_creation_string = Utility::Timing::TimePointToString( state->datetime_creation );
     state->config_file              = config_file;
     state->quiet                    = quiet;
@@ -167,7 +167,7 @@ try
 
     //----------------------- Final log --------------------------------------------------------
     block.clear();
-    auto now  = system_clock::now();
+    auto now  = std::chrono::system_clock::now();
     auto diff = Timing::DateTimePassed( now - state->datetime_creation );
     block.emplace_back( "=====================================================" );
     block.emplace_back( "============ Spirit State: Initialised ==============" );
@@ -209,11 +209,11 @@ try
     Save_Initial_Final( state, false );
 
     // Timing
-    auto now  = system_clock::now();
+    auto now  = std::chrono::system_clock::now();
     auto diff = Timing::DateTimePassed( now - state->datetime_creation );
-    block.emplace_back( "    State existed for " + diff );
-    block.emplace_back( "    Number of  Errors:  " + fmt::format( "{}", Log_Get_N_Errors( state ) ) );
-    block.emplace_back( "    Number of Warnings: " + fmt::format( "{}", Log_Get_N_Warnings( state ) ) );
+    block.emplace_back( fmt::format( "    State existed for {}", diff ) );
+    block.emplace_back( fmt::format( "    Number of  Errors:  {}", Log_Get_N_Errors( state ) ) );
+    block.emplace_back( fmt::format( "    Number of Warnings: {}", Log_Get_N_Warnings( state ) ) );
 
     // Delete
     delete( state );
@@ -264,7 +264,7 @@ try
     std::string header{ comment };
     if( !header.empty() )
         header += "\n";
-    IO::String_to_File( header, cfg );
+    IO::write_to_file( header, cfg );
 
     // Folders
     IO::Folders_to_Config(
@@ -272,31 +272,31 @@ try
         state->active_image->mmf_parameters );
 
     // Log Parameters
-    IO::Append_String_to_File( "\n\n\n", cfg );
+    IO::append_to_file( "\n\n\n", cfg );
     IO::Log_Levels_to_Config( cfg );
 
     // Geometry
-    IO::Append_String_to_File( "\n\n\n", cfg );
+    IO::append_to_file( "\n\n\n", cfg );
     IO::Geometry_to_Config( cfg, state->active_image->geometry );
 
     // LLG
-    IO::Append_String_to_File( "\n\n\n", cfg );
+    IO::append_to_file( "\n\n\n", cfg );
     IO::Parameters_Method_LLG_to_Config( cfg, state->active_image->llg_parameters );
 
     // MC
-    IO::Append_String_to_File( "\n\n\n", cfg );
+    IO::append_to_file( "\n\n\n", cfg );
     IO::Parameters_Method_MC_to_Config( cfg, state->active_image->mc_parameters );
 
     // GNEB
-    IO::Append_String_to_File( "\n\n\n", cfg );
+    IO::append_to_file( "\n\n\n", cfg );
     IO::Parameters_Method_GNEB_to_Config( cfg, state->chain->gneb_parameters );
 
     // MMF
-    IO::Append_String_to_File( "\n\n\n", cfg );
+    IO::append_to_file( "\n\n\n", cfg );
     IO::Parameters_Method_MMF_to_Config( cfg, state->active_image->mmf_parameters );
 
     // Hamiltonian
-    IO::Append_String_to_File( "\n\n\n", cfg );
+    IO::append_to_file( "\n\n\n", cfg );
     IO::Hamiltonian_to_Config( cfg, state->active_image->hamiltonian, state->active_image->geometry );
 }
 catch( ... )

@@ -1,6 +1,6 @@
 #pragma once
-#ifndef METHOD_MC_H
-#define METHOD_MC_H
+#ifndef SPIRIT_CORE_ENGINE_METHOD_MC_HPP
+#define SPIRIT_CORE_ENGINE_METHOD_MC_HPP
 
 #include "Spirit_Defines.h"
 #include <engine/Method.hpp>
@@ -15,6 +15,7 @@ class curandStateWrapper;
 
 namespace Engine
 {
+
 /*
     The Monte Carlo method
 */
@@ -73,7 +74,6 @@ private:
 
     // Random vector array
     vectorfield xi;
-
     // Values for block decompositon
     field<int> block_size_min = { 0, 0, 0 };
     field<int> n_blocks       = { 0, 0, 0 };
@@ -81,6 +81,7 @@ private:
     int max_supported_threads;
     std::vector<std::mt19937> prng_vec = {};
 };
+
 } // namespace Engine
 
 #endif

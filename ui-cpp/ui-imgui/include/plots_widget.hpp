@@ -20,7 +20,7 @@ struct PlotsWidget : public WidgetBase
 
     std::shared_ptr<State> state;
 
-    int force_index = 0;
+    int force_index  = 0;
     int history_size = 200;
     std::vector<float> force_history;
     std::vector<float> iteration_history;

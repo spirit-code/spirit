@@ -44,8 +44,9 @@ struct UiConfigFile
     float interaction_radius = 80;
 
     // Main window
-    bool window_maximized  = false;
-    bool window_fullscreen = false;
+    bool window_maximized    = false;
+    bool window_fullscreen   = false;
+    bool window_hide_menubar = false;
     std::array<int, 2> window_position{ 100, 100 };
     std::array<int, 2> window_size{ 1280, 720 };
 };

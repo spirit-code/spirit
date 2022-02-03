@@ -1,6 +1,6 @@
 #pragma once
-#ifndef HAMILTONIAN_HEISENBERG_H
-#define HAMILTONIAN_HEISENBERG_H
+#ifndef SPIRIT_CORE_ENGINE_HAMILTONIAN_HEISENBERG_HPP
+#define SPIRIT_CORE_ENGINE_HAMILTONIAN_HEISENBERG_HPP
 
 #include <memory>
 #include <vector>
@@ -14,6 +14,7 @@
 
 namespace Engine
 {
+
 enum class DDI_Method
 {
     FFT    = SPIRIT_DDI_METHOD_FFT,
@@ -128,6 +129,7 @@ public:
 
     // ------------ Energy Functions ------------
     // Getters for Indices of the energy vector
+
     inline int Idx_Zeeman() const
     {
         return idx_zeeman;

@@ -1,3 +1,7 @@
+#pragma once
+#ifndef SPIRIT_CORE_DATA_STATE_HPP
+#define SPIRIT_CORE_DATA_STATE_HPP
+
 #include <engine/Method.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Timing.hpp>
@@ -34,7 +38,7 @@ struct State
     std::shared_ptr<Engine::Method> method_chain{};
 
     // Timepoint of creation
-    system_clock::time_point datetime_creation{ system_clock::now() };
+    std::chrono::system_clock::time_point datetime_creation{ std::chrono::system_clock::now() };
     std::string datetime_creation_string{ Utility::Timing::TimePointToString( datetime_creation ) };
 
     // Config file at creation
@@ -102,3 +106,5 @@ inline void from_indices(
         image = chain->images[idx_image];
     }
 }
+
+#endif

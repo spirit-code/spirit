@@ -84,3 +84,29 @@ def get_topological_charge(p_state, idx_image=-1, idx_chain=-1):
     """
     return float(_Get_Topological_Charge(ctypes.c_void_p(p_state),
                        ctypes.c_int(idx_image), ctypes.c_int(idx_chain)))
+
+
+_Get_Topological_Charge_Density          = _spirit.Quantity_Get_Topological_Charge_Density
+_Get_Topological_Charge_Density.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_int), ctypes.c_int, ctypes.c_int]
+_Get_Topological_Charge_Density.restype  = ctypes.c_int
+def get_topological_charge_density(p_state, idx_image=-1, idx_chain=-1):
+    """Calculates and returns the total topological charge of 2D systems.
+
+    Note that the charge can take unphysical non-integer values for open boundaries,
+    because it is not well-defined in this case.
+
+    Returns 0 for systems of other dimensionality.
+    """
+
+    # Figure out the number of triangles
+    num_triangles = _Get_Topological_Charge_Density(ctypes.c_void_p(p_state), None, None,
+                       ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+    # Allocate the required memory for indices_ptr and charge_density
+    charge_density_ptr   = (ctypes.c_float * num_triangles)()
+    triangle_indices_ptr = (ctypes.c_int * (3 * num_triangles))()
+
+    _Get_Topological_Charge_Density(ctypes.c_void_p(p_state), charge_density_ptr, triangle_indices_ptr,
+                       ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+    return [float(c) for c in charge_density_ptr], [ [int(triangle_indices_ptr[3*i]), int(triangle_indices_ptr[3*i + 1]), int(triangle_indices_ptr[3*i + 2])] for i in range(num_triangles)]
