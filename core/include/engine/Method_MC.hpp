@@ -45,6 +45,8 @@ private:
     void Parallel_Metropolis( const vectorfield & spins_old, vectorfield & spins_new );
 
     void Setup_Curand();
+    void Free_Curand();
+
     curandStateWrapper * dev_random;
 
     // Save the current Step's Data: spins and energy

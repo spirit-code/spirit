@@ -503,12 +503,12 @@ void Method_MC::Hook_Pre_Iteration() {}
 
 void Method_MC::Hook_Post_Iteration() {}
 
-#
 void Method_MC::Initialize() {}
 
 void Method_MC::Finalize()
 {
     this->systems[0]->iteration_allowed = false;
+    Free_Curand();
 }
 
 void Method_MC::Message_Start()

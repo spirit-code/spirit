@@ -299,6 +299,13 @@ void Method_MC::Setup_Curand()
     cu_setup_curand<<<grid, block>>>( dev_random->state );
 }
 
+void Method_MC::Free_Curand()
+{
+    cudaFree( dev_random->state );
+    delete this->dev_random;
+}
+
+
 __global__ void cu_parallel_metropolis(
     const Vector3 * spins_old, Vector3 * spins_new, Hamiltonian_Device_Ptrs ham, const int * phase,
     const int * n_blocks, const int * block_size_min, const int * rest, curandState * states, scalar cos_cone_angle,
