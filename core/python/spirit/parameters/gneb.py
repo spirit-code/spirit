@@ -135,6 +135,13 @@ def set_path_shortening_constant(p_state, shortening_constant, idx_image=-1, idx
     _GNEB_Set_Path_Shortening_Constant(ctypes.c_void_p(p_state), ctypes.c_float(shortening_constant),
                           ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
+_GNEB_Set_Moving_Endpoints           = _spirit.Parameters_GNEB_Set_Moving_Endpoints
+_GNEB_Set_Moving_Endpoints.argtypes  = [ctypes.c_void_p, ctypes.c_bool, ctypes.c_int]
+_GNEB_Set_Moving_Endpoints.restype   = None
+def set_moving_endpoints(p_state, moving_endpoints,  idx_chain=-1):
+    """Set if moving endpoints should be used."""
+    _GNEB_Set_Moving_Endpoints(ctypes.c_void_p(p_state), ctypes.c_bool(moving_endpoints), ctypes.c_int(idx_chain))
+
 _GNEB_Set_Climbing_Falling             = _spirit.Parameters_GNEB_Set_Climbing_Falling
 _GNEB_Set_Climbing_Falling.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int]
 _GNEB_Set_Climbing_Falling.restype     = None
@@ -197,6 +204,14 @@ def get_path_shortening_constant(p_state, idx_image=-1, idx_chain=-1):
     """Return the path shortening constant."""
     return float( _GNEB_Get_Path_Shortening_Constant(ctypes.c_void_p(p_state),
                                         ctypes.c_int(idx_image), ctypes.c_int(idx_chain)))
+
+_GNEB_Get_Moving_Endpoints           = _spirit.Parameters_GNEB_Get_Moving_Endpoints
+_GNEB_Get_Moving_Endpoints.argtypes  = [ctypes.c_void_p, ctypes.c_int]
+_GNEB_Get_Moving_Endpoints.restype   = ctypes.c_bool
+def get_moving_endpoints(p_state, idx_chain=-1):
+    """Return if moving endpoints are used."""
+    return bool( _GNEB_Get_Moving_Endpoints(ctypes.c_void_p(p_state),
+                                         ctypes.c_int(idx_chain)))
 
 _GNEB_Get_Climbing_Falling             = _spirit.Parameters_GNEB_Get_Climbing_Falling
 _GNEB_Get_Climbing_Falling.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]

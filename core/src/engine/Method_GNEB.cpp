@@ -100,13 +100,10 @@ void Method_GNEB<solver>::Calculate_Force(
         //      while the gradient force is manipulated (e.g. projected)
         auto eff_field = this->chain->images[img]->effective_field.data();
         auto f_grad    = F_gradient[img].data();
-        Backend::par::apply(
-            image.size(),
-            [eff_field, f_grad] SPIRIT_LAMBDA( int idx )
-            {
-                eff_field[idx] *= -1;
-                f_grad[idx] = eff_field[idx];
-            } );
+        Backend::par::apply( image.size(), [eff_field, f_grad] SPIRIT_LAMBDA( int idx ) {
+            eff_field[idx] *= -1;
+            f_grad[idx] = eff_field[idx];
+        } );
 
         if( img > 0 )
         {
@@ -253,23 +250,23 @@ void Method_GNEB<solver>::Calculate_Force(
     } // end for img=1..noi-1
 
     // Moving endpoints
-    // if( chain->gneb_parameters->moving_endpoints )
-    if( true )
+    if( chain->gneb_parameters->moving_endpoints )
     {
-        for(int img : {0,chain->noi-1})
+        for( int img : { 0, chain->noi - 1 } )
         {
-            int nos = chain->images[img]->nos;
+            int nos     = chain->images[img]->nos;
             scalar _Rx0 = 1e-3 * nos;
 
-            auto _F_total = F_total[img].data();
-            auto _forces = forces[img].data();
+            auto _F_total    = F_total[img].data();
+            auto _forces     = forces[img].data();
             auto _F_gradient = F_gradient[img].data();
-            auto _tangents = tangents[img].data();
+            auto _tangents   = tangents[img].data();
 
-            scalar _Rx = (img==0 ? Rx[1]-Rx[0] : Rx[chain->noi-1] - Rx[chain->noi-2]);
+            scalar _Rx = ( img == 0 ? Rx[1] - Rx[0] : Rx[chain->noi - 1] - Rx[chain->noi - 2] );
             // scalar _Rx = (img==0 ? lengths[1] : lengths[chain->noi-1]);
 
-            auto dE_dRx = (img==0 ? energies[1] - energies[0] : energies[chain->noi-1] - energies[chain->noi - 2]) / _Rx;
+            auto dE_dRx
+                = ( img == 0 ? energies[1] - energies[0] : energies[chain->noi - 1] - energies[chain->noi - 2] ) / _Rx;
 
             auto spring_constant = dE_dRx * this->chain->gneb_parameters->spring_constant;
 
@@ -278,14 +275,11 @@ void Method_GNEB<solver>::Calculate_Force(
             std::cout << _Rx << "\n";
             std::cout << _F_gradient[0].transpose() << "\n--\n";
 
-
             Backend::par::apply(
-                nos,
-                [_forces, _F_gradient, _Rx, _Rx0, _tangents, spring_constant ] SPIRIT_LAMBDA( int idx )
-                {
-                    _forces[idx] = _F_gradient[idx] - _F_gradient[idx].dot(_tangents[idx]) * _tangents[idx] + 1 * spring_constant * ( _Rx - _Rx0  ) * _tangents[idx];
-                }
-            );
+                nos, [_forces, _F_gradient, _Rx, _Rx0, _tangents, spring_constant] SPIRIT_LAMBDA( int idx ) {
+                    _forces[idx] = _F_gradient[idx] - _F_gradient[idx].dot( _tangents[idx] ) * _tangents[idx]
+                                   + 1 * spring_constant * ( _Rx - _Rx0 ) * _tangents[idx];
+                } );
         }
     }
 
@@ -554,8 +548,8 @@ void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bo
         preEnergiesFile = this->parameters->output_folder + "/" + fileTag + "Chain_Energies";
 
         // Function to write or append image and energy files
-        auto writeOutputChain = [this, preChainFile, preEnergiesFile, iteration]( const std::string& suffix, bool append )
-        {
+        auto writeOutputChain = [this, preChainFile, preEnergiesFile,
+                                 iteration]( const std::string & suffix, bool append ) {
             try
             {
                 // File name
@@ -599,8 +593,7 @@ void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bo
         };
 
         Calculate_Interpolated_Energy_Contributions();
-        auto writeOutputEnergies = [this, preChainFile, preEnergiesFile, iteration]( const std::string & suffix )
-        {
+        auto writeOutputEnergies = [this, preChainFile, preEnergiesFile, iteration]( const std::string & suffix ) {
             bool normalize   = this->chain->gneb_parameters->output_energies_divide_by_nspins;
             bool readability = this->chain->gneb_parameters->output_energies_add_readability_lines;
 
