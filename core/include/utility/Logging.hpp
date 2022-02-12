@@ -64,9 +64,9 @@ std::string LogEntryToString( LogEntry entry, bool braces_separators = true );
 std::string LogBlockToString( std::vector<LogEntry> entries, bool braces_separators = true );
 
 /*
-The Logging Handler keeps all Log Entries and provides methods to dump or append the entire Log to a file.
-Note: the Handler is a singleton.
-*/
+ * The Logging Handler keeps all Log Entries and provides methods to dump or append the entire Log to a file.
+ * Note: the Handler is a singleton.
+ */
 class LoggingHandler
 {
 public:
@@ -148,7 +148,8 @@ public:
     LoggingHandler( LoggingHandler const & ) = delete;
     void operator=( LoggingHandler const & ) = delete;
 
-    /* Note: Scott Meyers mentions in his Effective Modern
+    /*
+     * Note: Scott Meyers mentions in his Effective Modern
      *   C++ book, that deleted functions should generally
      *   be public as it results in better error messages
      *   due to the compilers behavior to check accessibility
@@ -157,5 +158,10 @@ public:
 };
 
 } // namespace Utility
+
+// Conversion of Log_Sender to string, usable by fmt
+std::ostream & operator<<( std::ostream & os, Utility::Log_Sender sender );
+// Conversion of Log_Level to string, usable by fmt
+std::ostream & operator<<( std::ostream & os, Utility::Log_Level level );
 
 #endif

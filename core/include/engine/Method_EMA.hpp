@@ -53,7 +53,6 @@ private:
     int counter;
     int following_mode;
 
-    bool snapshot;
     vectorfield mode;
     scalarfield angle;
     scalarfield angle_initial;

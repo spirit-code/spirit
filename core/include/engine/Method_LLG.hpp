@@ -59,7 +59,7 @@ private:
     // Field for stt gradient method
     vectorfield s_c_grad;
     // Current energy
-    scalar current_energy;
+    scalar current_energy = 0;
 
     // Measure of simulated time in picoseconds
     double picoseconds_passed;

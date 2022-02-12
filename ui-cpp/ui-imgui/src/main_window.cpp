@@ -321,6 +321,10 @@ void MainWindow::handle_keyboard()
             rendering_layer.needs_data();
             this->ui_shared_state.notify( "Randomized spins" );
         }
+        if( ImGui::IsKeyPressed( GLFW_KEY_F, false ) )
+        {
+            ui_config_file.window_hide_menubar = !ui_config_file.window_hide_menubar;
+        }
 
         //-----------------------------------------------------
 
@@ -564,17 +568,29 @@ void MainWindow::handle_keyboard()
             this->delete_image();
         }
 
+        if( ImGui::IsKeyPressed( GLFW_KEY_I, false ) )
+        {
+            ui_config_file.show_overlays = !ui_config_file.show_overlays;
+        }
+
         //-----------------------------------------------------
 
         if( ImGui::IsKeyPressed( GLFW_KEY_F1, false ) )
         {
             show_keybindings = !show_keybindings;
         }
-        if( ImGui::IsKeyPressed( GLFW_KEY_I, false ) )
+        if( ImGui::IsKeyPressed( GLFW_KEY_F2, false ) )
         {
-            ui_config_file.show_overlays = !ui_config_file.show_overlays;
+            ui_config_file.show_settings = !ui_config_file.show_settings;
         }
-
+        if( ImGui::IsKeyPressed( GLFW_KEY_F3, false ) )
+        {
+            ui_config_file.show_plots = !ui_config_file.show_plots;
+        }
+        if( ImGui::IsKeyPressed( GLFW_KEY_F4, false ) )
+        {
+            ui_config_file.show_visualisation_widget = !ui_config_file.show_visualisation_widget;
+        }
         if( ImGui::IsKeyPressed( GLFW_KEY_F5, false ) )
         {
             if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
@@ -632,6 +648,16 @@ void MainWindow::handle_keyboard()
         }
 
         //-----------------------------------------------------
+
+        if( ImGui::IsKeyPressed( GLFW_KEY_F10, false ) )
+        {
+            ui_config_file.window_hide_menubar = !ui_config_file.window_hide_menubar;
+        }
+
+        if( ImGui::IsKeyPressed( GLFW_KEY_F11, false ) )
+        {
+            ui_config_file.window_fullscreen = !ui_config_file.window_fullscreen;
+        }
 
         if( ImGui::IsKeyPressed( GLFW_KEY_HOME, false ) || ImGui::IsKeyPressed( GLFW_KEY_F12, false ) )
         {
@@ -697,7 +723,7 @@ try
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )] = std::thread(
-                &Simulation_LLG_Start, this->state.get(), ui_shared_state.selected_solver_min, -1, -1, false, -1, -1 );
+                &Simulation_LLG_Start, this->state.get(), ui_shared_state.selected_solver_min, -1, -1, false, nullptr, -1, -1 );
         }
         if( ui_shared_state.selected_mode == GUI_Mode::LLG )
         {
@@ -705,7 +731,7 @@ try
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )] = std::thread(
-                &Simulation_LLG_Start, this->state.get(), ui_shared_state.selected_solver_llg, -1, -1, false, -1, -1 );
+                &Simulation_LLG_Start, this->state.get(), ui_shared_state.selected_solver_llg, -1, -1, false, nullptr, -1, -1 );
         }
         else if( ui_shared_state.selected_mode == GUI_Mode::MC )
         {
@@ -713,22 +739,22 @@ try
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )]
-                = std::thread( &Simulation_MC_Start, this->state.get(), -1, -1, false, -1, -1 );
+                = std::thread( &Simulation_MC_Start, this->state.get(), -1, -1, false, nullptr, -1, -1 );
         }
         else if( ui_shared_state.selected_mode == GUI_Mode::GNEB )
         {
             if( thread_chain.joinable() )
                 thread_chain.join();
             this->thread_chain = std::thread(
-                &Simulation_GNEB_Start, this->state.get(), ui_shared_state.selected_solver_min, -1, -1, false, -1 );
+                &Simulation_GNEB_Start, this->state.get(), ui_shared_state.selected_solver_min, -1, -1, false, nullptr, -1 );
         }
         else if( ui_shared_state.selected_mode == GUI_Mode::MMF )
-        {
+        { 
             int idx = System_Get_Index( state.get() );
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )] = std::thread(
-                &Simulation_MMF_Start, this->state.get(), ui_shared_state.selected_solver_min, -1, -1, false, -1, -1 );
+                &Simulation_MMF_Start, this->state.get(), ui_shared_state.selected_solver_min, -1, -1, false, nullptr, -1, -1 );
         }
         else if( ui_shared_state.selected_mode == GUI_Mode::EMA )
         {
@@ -736,7 +762,7 @@ try
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )]
-                = std::thread( &Simulation_EMA_Start, this->state.get(), -1, -1, false, -1, -1 );
+                = std::thread( &Simulation_EMA_Start, this->state.get(), -1, -1, false, nullptr, -1, -1 );
         }
         this->ui_shared_state.notify( "started calculation" );
     }
@@ -1286,11 +1312,19 @@ void MainWindow::show_menu_bar()
         { GUI_Mode::EMA, { "Eigenmodes", "(6) eigenmode calculation and visualisation" } }
     };
     static std::vector<float> mode_button_hovered_duration( modes.size(), 0 );
-    static ImU32 image_number = (ImU32)1;
-    static ImU32 chain_length = (ImU32)1;
+    static auto image_number = static_cast<ImU32>( 1 );
+    static auto chain_length = static_cast<ImU32>( 1 );
+
+    static bool previous_frame_menu_was_active = false;
+
+    // Always show the menu bar if the mouse is near the top or a menu item is active
+    if( ui_config_file.window_hide_menubar
+        && !( ImGui::GetMousePos().y < menu_bar_size[1] || previous_frame_menu_was_active ) )
+        return;
 
     // ImGui::PushFont( font_karla_16 );
-    float font_size_px = font_karla_14->FontSize;
+    float font_size_px             = font_karla_14->FontSize;
+    previous_frame_menu_was_active = false;
 
     ImGui::PushStyleVar( ImGuiStyleVar_FramePadding, ImVec2( 5.f, 5.f ) );
     if( ImGui::BeginMainMenuBar() )
@@ -1299,6 +1333,7 @@ void MainWindow::show_menu_bar()
 
         if( ImGui::BeginMenu( "File" ) )
         {
+            previous_frame_menu_was_active = true;
             if( ImGui::MenuItem( "Load config-file" ) )
             {
                 nfdpathset_t path_set;
@@ -1416,7 +1451,7 @@ void MainWindow::show_menu_bar()
             {
             }
             ImGui::Separator();
-            ImGui::MenuItem( ICON_FA_COG "  Settings", "", &ui_config_file.show_settings );
+            ImGui::MenuItem( ICON_FA_COG "  Settings", "F2", &ui_config_file.show_settings );
             ImGui::Separator();
             if( ImGui::MenuItem( ICON_FA_DESKTOP "  Take screenshot", "F12, " ICON_FA_HOME ) )
             {
@@ -1460,6 +1495,7 @@ void MainWindow::show_menu_bar()
         }
         if( ImGui::BeginMenu( "Edit" ) )
         {
+            previous_frame_menu_was_active = true;
             if( ImGui::MenuItem( ICON_FA_CUT "  Cut system", "ctrl+x" ) )
             {
                 this->cut_image();
@@ -1488,6 +1524,7 @@ void MainWindow::show_menu_bar()
         }
         if( ImGui::BeginMenu( "Controls" ) )
         {
+            previous_frame_menu_was_active = true;
             if( ImGui::MenuItem( "Start/stop calculation", "space" ) )
             {
                 this->start_stop();
@@ -1537,6 +1574,7 @@ void MainWindow::show_menu_bar()
         }
         if( ImGui::BeginMenu( "Log" ) )
         {
+            previous_frame_menu_was_active = true;
             if( ImGui::MenuItem( "System energy contributions", "", false, false ) )
             {
             }
@@ -1553,13 +1591,14 @@ void MainWindow::show_menu_bar()
         }
         if( ImGui::BeginMenu( "View" ) )
         {
+            previous_frame_menu_was_active = true;
             ImGui::MenuItem( "Info-widgets", "i", &ui_config_file.show_overlays );
             ImGui::MenuItem( "Spin Configurations", "", &ui_config_file.show_configurations_widget );
             ImGui::MenuItem( "Parameters", "", &ui_config_file.show_parameters_widget );
-            ImGui::MenuItem( "Plots", "", &ui_config_file.show_plots );
+            ImGui::MenuItem( "Plots", "F3", &ui_config_file.show_plots );
             ImGui::MenuItem( "Geometry", "", &ui_config_file.show_geometry_widget );
             ImGui::MenuItem( "Hamiltonian", "", &ui_config_file.show_hamiltonian_widget );
-            ImGui::MenuItem( "Visualisation settings", "", &ui_config_file.show_visualisation_widget );
+            ImGui::MenuItem( "Visualisation settings", "F4", &ui_config_file.show_visualisation_widget );
             ImGui::Separator();
             ImGui::MenuItem( "ImGui Demo Window", "", &show_imgui_demo_window );
             ImGui::MenuItem( "ImPlot Demo Window", "", &show_implot_demo_window );
@@ -1593,10 +1632,13 @@ void MainWindow::show_menu_bar()
                 this->rendering_layer.reset_camera();
             }
             ImGui::Separator();
-            if( ImGui::MenuItem( "Toggle visualisation", "ctrl+f", false, false ) )
+            // if( ImGui::MenuItem( "Toggle visualisation", "ctrl+shift+v", false, false ) )
+            // {
+            // }
+            if( ImGui::MenuItem( "Hide menu bar", "ctrl+f", ui_config_file.window_hide_menubar ) )
             {
             }
-            if( ImGui::MenuItem( "Fullscreen", "ctrl+shift+f", ui_config_file.window_fullscreen ) )
+            if( ImGui::MenuItem( "Fullscreen", "F11, ctrl+shift+f", ui_config_file.window_fullscreen ) )
             {
                 fullscreen_toggled = true;
             }
@@ -1604,6 +1646,7 @@ void MainWindow::show_menu_bar()
         }
         if( ImGui::BeginMenu( "Help" ) )
         {
+            previous_frame_menu_was_active = true;
             if( ImGui::MenuItem( "Keybindings", "F1" ) )
             {
                 show_keybindings = true;
@@ -1712,6 +1755,8 @@ void MainWindow::show_menu_bar()
             rendering_layer.needs_data();
             parameters_widget.update_data();
         }
+        if( ImGui::IsItemActive() )
+            previous_frame_menu_was_active = true;
         ImGui::TextUnformatted( "/" );
         ImGui::SetNextItemWidth( 40 );
         if( ImGui::InputScalar(
@@ -1734,6 +1779,8 @@ void MainWindow::show_menu_bar()
                 this->threads_image.resize( new_length ); //( threads_image.begin() + idx + 1, std::thread() );
             }
         }
+        if( ImGui::IsItemActive() )
+            previous_frame_menu_was_active = true;
 
         if( ImGui::Button( ICON_FA_ARROW_RIGHT, ImVec2( width, button_height ) ) )
         {

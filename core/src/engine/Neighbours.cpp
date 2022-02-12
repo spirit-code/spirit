@@ -1,231 +1,252 @@
 #include <engine/Neighbours.hpp>
+#include <utility/Logging.hpp>
 
 #include <Eigen/Dense>
+
+#include <fmt/format.h>
+
+#include <limits>
 
 namespace Engine
 {
 namespace Neighbours
 {
 
-std::vector<scalar> Get_Shell_Radius( const Data::Geometry & geometry, const int n_shells )
+std::vector<scalar> Get_Shell_Radii( const Data::Geometry & geometry, const std::size_t n_shells )
 {
-    const scalar shell_width = 1e-3;
-    auto shell_radius        = std::vector<scalar>( n_shells );
+    const scalar min_shell_width = 1e-3;
+
+    auto shell_radii = std::vector<scalar>( n_shells );
 
     Vector3 ta = geometry.lattice_constant * geometry.bravais_vectors[0];
     Vector3 tb = geometry.lattice_constant * geometry.bravais_vectors[1];
     Vector3 tc = geometry.lattice_constant * geometry.bravais_vectors[2];
 
-    // The n_shells + 2 is a value that is big enough by experience to
-    // produce enough needed shells, but is small enough to run sufficiently fast
-    int tMax = n_shells + 2;
-    int imax = std::min( tMax, geometry.n_cells[0] - 1 ), jmax = std::min( tMax, geometry.n_cells[1] - 1 ),
-        kmax = std::min( tMax, geometry.n_cells[2] - 1 );
+    // The n_shells + 2 is a value that is big enough by experience to produce enough needed shells, but is small enough
+    // to run sufficiently fast
+    int max_n_translations = n_shells + 2;
+
+    int i_max = std::min( max_n_translations, geometry.n_cells[0] - 1 );
+    int j_max = std::min( max_n_translations, geometry.n_cells[1] - 1 );
+    int k_max = std::min( max_n_translations, geometry.n_cells[2] - 1 );
 
     // Abort condidions for all 3 vectors
     if( ta.norm() == 0.0 )
-        imax = 0;
+        i_max = 0;
     if( tb.norm() == 0.0 )
-        jmax = 0;
+        j_max = 0;
     if( tc.norm() == 0.0 )
-        kmax = 0;
+        k_max = 0;
 
-    int i, j, k, iatom, jatom, ishell;
-    scalar current_radius = 0, dx, min_distance = 0;
-    Vector3 x0 = { 0, 0, 0 }, x1 = { 0, 0, 0 };
-    for( ishell = 0; ishell < n_shells; ++ishell )
+    int atom_one{ 0 }, atom_two{ 0 };
+    int i{ 0 }, j{ 0 }, k{ 0 };
+    scalar outermost_radius = 0, pos_delta = 0, previous_radius = 0;
+    Vector3 pos_one = { 0, 0, 0 }, pos_two = { 0, 0, 0 };
+    for( auto & shell_radius : shell_radii )
     {
-        min_distance   = current_radius;
-        current_radius = 1e10;
-        for( iatom = 0; iatom < geometry.n_cell_atoms; ++iatom )
+        previous_radius = outermost_radius;
+        // Starting from the maximum representable value, determine the smallest shell that is more than min_shell_width
+        // wider than the previous
+        outermost_radius = std::numeric_limits<scalar>::max();
+        for( atom_one = 0; atom_one < geometry.n_cell_atoms; ++atom_one )
         {
-            x0 = geometry.positions[iatom];
+            pos_one = geometry.cell_atoms[atom_one];
             // Note: due to symmetry we only need to check half the space
-            for( i = imax; i >= 0; --i )
+            for( i = i_max; i >= 0; --i )
             {
-                for( j = jmax; j >= -jmax; --j )
+                for( j = j_max; j >= -j_max; --j )
                 {
-                    for( k = kmax; k >= -kmax; --k )
+                    for( k = k_max; k >= -k_max; --k )
                     {
-                        for( jatom = 0; jatom < geometry.n_cell_atoms; ++jatom )
+                        for( atom_two = 0; atom_two < geometry.n_cell_atoms; ++atom_two )
                         {
-                            if( !( iatom == jatom && i == 0 && j == 0 && k == 0 ) )
+                            if( !( atom_one == atom_two && i == 0 && j == 0 && k == 0 ) )
                             {
-                                x1 = geometry.positions[jatom] + i * ta + j * tb + k * tc;
-                                dx = ( x0 - x1 ).norm();
-                                if( dx - min_distance > shell_width && dx < current_radius )
+                                pos_two   = geometry.cell_atoms[atom_two] + i * ta + j * tb + k * tc;
+                                pos_delta = ( pos_one - pos_two ).norm();
+                                if( pos_delta - previous_radius > min_shell_width && pos_delta < outermost_radius )
                                 {
-                                    current_radius       = dx;
-                                    shell_radius[ishell] = dx;
+                                    outermost_radius = pos_delta;
+                                    shell_radius     = pos_delta;
                                 }
                             }
-                        } // endfor jatom
-                    }     // endfor k
-                }         // endfor j
-            }             // endfor i
-        }                 // endfor iatom
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    return shell_radius;
+    return shell_radii;
 }
 
 void Get_Neighbours_in_Shells(
-    const Data::Geometry & geometry, int n_shells, pairfield & neighbours, intfield & shells,
+    const Data::Geometry & geometry, std::size_t n_shells, pairfield & neighbours, intfield & shells,
     bool use_redundant_neighbours )
 {
-    const scalar shell_width = 1e-3;
-    auto shell_radius        = Get_Shell_Radius( geometry, n_shells );
+    const scalar min_shell_width = 1e-3;
+
+    auto shell_radii = Get_Shell_Radii( geometry, n_shells );
 
     Vector3 ta = geometry.lattice_constant * geometry.bravais_vectors[0];
     Vector3 tb = geometry.lattice_constant * geometry.bravais_vectors[1];
     Vector3 tc = geometry.lattice_constant * geometry.bravais_vectors[2];
 
-    // The n_shells + 2 is a value that is big enough by experience to
-    // produce enough needed shells, but is small enough to run sufficiently fast
-    int tMax = n_shells + 2;
-    int imax = std::min( tMax, geometry.n_cells[0] - 1 ), jmax = std::min( tMax, geometry.n_cells[1] - 1 ),
-        kmax = std::min( tMax, geometry.n_cells[2] - 1 );
-    int imin, jmin, kmin, jatommin;
+    // The n_shells + 2 is a value that is big enough by experience to produce enough needed shells, but is small enough
+    // to run sufficiently fast
+    int max_n_translations = n_shells + 2;
+
+    int i_max = std::min( max_n_translations, geometry.n_cells[0] - 1 );
+    int j_max = std::min( max_n_translations, geometry.n_cells[1] - 1 );
+    int k_max = std::min( max_n_translations, geometry.n_cells[2] - 1 );
+
     // If redundant neighbours should not be used, we restrict the search to half of the space
-    imin = -imax;
-    jmin = -jmax;
-    kmin = -kmax;
+    int i_min = -i_max;
+    int j_min = -j_max;
+    int k_min = -k_max;
 
     // Abort condidions for all 3 vectors
     if( ta.norm() == 0.0 )
-        imax = 0;
+        i_max = 0;
     if( tb.norm() == 0.0 )
-        jmax = 0;
+        j_max = 0;
     if( tc.norm() == 0.0 )
-        kmax = 0;
+        k_max = 0;
 
-    int i, j, k, iatom, jatom, ishell;
-    scalar dx, radius;
-    Vector3 x0 = { 0, 0, 0 }, x1 = { 0, 0, 0 };
-    for( iatom = 0; iatom < geometry.n_cell_atoms; ++iatom )
+    int second_atom_min = 0;
+    int atom_one{ 0 }, atom_two{ 0 }, i{ 0 }, j{ 0 }, k{ 0 };
+    std::size_t ishell = 0;
+    scalar pos_delta = 0, radius = 0;
+    Vector3 pos_one = { 0, 0, 0 }, pos_two = { 0, 0, 0 };
+    for( atom_one = 0; atom_one < geometry.n_cell_atoms; ++atom_one )
     {
-        if( use_redundant_neighbours )
-            jatommin = 0;
-        else
-            jatommin = iatom;
+        if( !use_redundant_neighbours )
+            second_atom_min = atom_one;
 
-        x0 = geometry.positions[iatom];
+        pos_one = geometry.cell_atoms[atom_one];
         for( ishell = 0; ishell < n_shells; ++ishell )
         {
-            radius = shell_radius[ishell];
-            for( i = imax; i >= imin; --i )
+            radius = shell_radii[ishell];
+            for( i = i_max; i >= i_min; --i )
             {
-                for( j = jmax; j >= jmin; --j )
+                for( j = j_max; j >= j_min; --j )
                 {
-                    for( k = kmax; k >= kmin; --k )
+                    for( k = k_max; k >= k_min; --k )
                     {
-                        for( jatom = jatommin; jatom < geometry.n_cell_atoms; ++jatom )
+                        for( atom_two = second_atom_min; atom_two < geometry.n_cell_atoms; ++atom_two )
                         {
-                            if( ( jatom > iatom ) || ( i > 0 || ( i == 0 && j > 0 ) || ( i == 0 && j == 0 && k > 0 ) )
+                            if( ( atom_two > atom_one )
+                                || ( i > 0 || ( i == 0 && j > 0 ) || ( i == 0 && j == 0 && k > 0 ) )
                                 || use_redundant_neighbours )
                             {
-                                x1 = geometry.positions[jatom] + i * ta + j * tb + k * tc;
-                                dx = ( x0 - x1 ).norm();
-                                if( std::abs( dx - radius ) < shell_width )
+                                pos_two   = geometry.cell_atoms[atom_two] + i * ta + j * tb + k * tc;
+                                pos_delta = ( pos_one - pos_two ).norm();
+                                if( std::abs( pos_delta - radius ) < min_shell_width )
                                 {
-                                    Pair neigh;
-                                    neigh.i               = iatom;
-                                    neigh.j               = jatom;
-                                    neigh.translations[0] = i;
-                                    neigh.translations[1] = j;
-                                    neigh.translations[2] = k;
-                                    neighbours.push_back( neigh );
-                                    shells.push_back( ishell );
+                                    neighbours.push_back( { atom_one, atom_two, { i, j, k } } );
+                                    shells.push_back( static_cast<int>( ishell ) );
                                 }
                             }
-                        } // endfor jatom
-                    }     // endfor k
-                }         // endfor j
-            }             // endfor i
-        }                 // endfor ishell
-    }                     // endfor iatom
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 pairfield Get_Pairs_in_Radius( const Data::Geometry & geometry, scalar radius )
 {
+    // Check for a meaningful radius
+    const scalar epsilon = 1e-6;
+    if( std::abs( radius ) < epsilon )
+    {
+        Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
+             fmt::format(
+                 "Generating pairs within a radius of less than {} is not supported, but you passed {}", epsilon,
+                 radius ),
+             -1, -1 );
+        return {};
+    }
+
+    Vector3 ta = geometry.lattice_constant * geometry.bravais_vectors[0];
+    Vector3 tb = geometry.lattice_constant * geometry.bravais_vectors[1];
+    Vector3 tc = geometry.lattice_constant * geometry.bravais_vectors[2];
+
+    Vector3 bounds_diff = geometry.bounds_max - geometry.bounds_min;
+    Vector3 ratio       = {
+        bounds_diff[0] / std::max( 1, geometry.n_cells[0] ),
+        bounds_diff[1] / std::max( 1, geometry.n_cells[1] ),
+        bounds_diff[2] / std::max( 1, geometry.n_cells[2] ),
+    };
+
+    // This should give enough translations to contain all DDI pairs
+    int imax = 0, jmax = 0, kmax = 0;
+
+    // If radius < 0 we take all pairs
+    if( radius > 0 )
+    {
+        if( bounds_diff[0] > 0 )
+            imax = std::min(
+                geometry.n_cells[0] - 1, static_cast<int>( 1.1 * radius * geometry.n_cells[0] / bounds_diff[0] ) );
+        if( bounds_diff[1] > 0 )
+            jmax = std::min(
+                geometry.n_cells[1] - 1, static_cast<int>( 1.1 * radius * geometry.n_cells[1] / bounds_diff[1] ) );
+        if( bounds_diff[2] > 0 )
+            kmax = std::min(
+                geometry.n_cells[2] - 1, static_cast<int>( 1.1 * radius * geometry.n_cells[2] / bounds_diff[2] ) );
+    }
+    else
+    {
+        imax = geometry.n_cells[0] - 1;
+        jmax = geometry.n_cells[1] - 1;
+        kmax = geometry.n_cells[2] - 1;
+    }
+
+    // Abort conditions for all 3 vectors
+    if( ta.norm() == 0.0 )
+        imax = 0;
+    if( tb.norm() == 0.0 )
+        jmax = 0;
+    if( tc.norm() == 0.0 )
+        kmax = 0;
+
     auto pairs = pairfield( 0 );
 
-    // Check for a meaningful radius
-    if( std::abs( radius ) > 1e-6 )
+    int i = 0, j = 0, k = 0;
+    scalar pos_delta   = 0;
+    Vector3 position_i = { 0, 0, 0 };
+    Vector3 position_j = { 0, 0, 0 };
+
+    for( int iatom = 0; iatom < geometry.n_cell_atoms; ++iatom )
     {
-        Vector3 ta = geometry.lattice_constant * geometry.bravais_vectors[0];
-        Vector3 tb = geometry.lattice_constant * geometry.bravais_vectors[1];
-        Vector3 tc = geometry.lattice_constant * geometry.bravais_vectors[2];
+        position_i = geometry.positions[iatom];
 
-        Vector3 bounds_diff = geometry.bounds_max - geometry.bounds_min;
-        Vector3 ratio       = { bounds_diff[0] / std::max( 1, geometry.n_cells[0] ),
-                          bounds_diff[1] / std::max( 1, geometry.n_cells[1] ),
-                          bounds_diff[2] / std::max( 1, geometry.n_cells[2] ) };
-
-        // This should give enough translations to contain all DDI pairs
-        int imax = 0, jmax = 0, kmax = 0;
-
-        // If radius < 0 we take all pairs
-        if( radius > 0 )
+        for( i = -imax; i <= imax; ++i )
         {
-            if( bounds_diff[0] > 0 )
-                imax
-                    = std::min( geometry.n_cells[0] - 1, (int)( 1.1 * radius * geometry.n_cells[0] / bounds_diff[0] ) );
-            if( bounds_diff[1] > 0 )
-                jmax
-                    = std::min( geometry.n_cells[1] - 1, (int)( 1.1 * radius * geometry.n_cells[1] / bounds_diff[1] ) );
-            if( bounds_diff[2] > 0 )
-                kmax
-                    = std::min( geometry.n_cells[2] - 1, (int)( 1.1 * radius * geometry.n_cells[2] / bounds_diff[2] ) );
-        }
-        else
-        {
-            imax = geometry.n_cells[0] - 1;
-            jmax = geometry.n_cells[1] - 1;
-            kmax = geometry.n_cells[2] - 1;
-        }
-
-        int i, j, k;
-        scalar dx;
-        Vector3 x0 = { 0, 0, 0 }, x1 = { 0, 0, 0 };
-
-        // Abort conditions for all 3 vectors
-        if( ta.norm() == 0.0 )
-            imax = 0;
-        if( tb.norm() == 0.0 )
-            jmax = 0;
-        if( tc.norm() == 0.0 )
-            kmax = 0;
-
-        for( int iatom = 0; iatom < geometry.n_cell_atoms; ++iatom )
-        {
-            x0 = geometry.positions[iatom];
-
-            for( i = -imax; i <= imax; ++i )
+            for( j = -jmax; j <= jmax; ++j )
             {
-                for( j = -jmax; j <= jmax; ++j )
+                for( k = -kmax; k <= kmax; ++k )
                 {
-                    for( k = -kmax; k <= kmax; ++k )
+                    for( int jatom = 0; jatom < geometry.n_cell_atoms; ++jatom )
                     {
-                        for( int jatom = 0; jatom < geometry.n_cell_atoms; ++jatom )
+                        position_j = geometry.positions[jatom] + i * ta + j * tb + k * tc;
+                        pos_delta  = ( position_i - position_j ).norm();
+                        if( pos_delta < radius
+                            && pos_delta > std::numeric_limits<scalar>::epsilon() ) // Exclude self-interactions
                         {
-                            x1 = geometry.positions[jatom] + i * ta + j * tb + k * tc;
-                            dx = ( x0 - x1 ).norm();
-                            if( dx < radius && dx > 1e-8 ) // Exclude self-interactions
-                            {
-                                pairs.push_back( { iatom, jatom, { i, j, k } } );
-                            }
-                        } // endfor jatom
-                    }     // endfor k
-                }         // endfor j
-            }             // endfor i
-        }                 // endfor iatom
+                            pairs.push_back( { iatom, jatom, { i, j, k } } );
+                        }
+                    }
+                }
+            }
+        }
     }
 
     return pairs;
 }
 
-Vector3 DMI_Normal_from_Pair( const Data::Geometry & geometry, const Pair & pair, int chirality )
+Vector3 DMI_Normal_from_Pair( const Data::Geometry & geometry, const Pair & pair, std::int8_t chirality )
 {
     Vector3 ta = geometry.lattice_constant * geometry.bravais_vectors[0];
     Vector3 tb = geometry.lattice_constant * geometry.bravais_vectors[1];

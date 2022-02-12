@@ -18,6 +18,8 @@ struct Parameters_Method
     long int n_iterations = 1e6;
     // Number of iterations after which the Method should save data
     long int n_iterations_log = 1e3;
+    // Number of iterations that are executed without any checks (values greater than 1 can be beneficial for CUDA in order to minimize host<->device transfers)
+    long int n_iterations_amortize = 1;
 
     // Maximum walltime for Iterate in seconds
     long int max_walltime_sec = 0;

@@ -6,6 +6,8 @@
 #include <data/Geometry.hpp>
 #include <engine/Vectormath_Defines.hpp>
 
+#include <cstddef>
+#include <cstdint>
 #include <memory>
 #include <vector>
 
@@ -14,17 +16,19 @@ namespace Engine
 namespace Neighbours
 {
 
-std::vector<scalar> Get_Shell_Radius( const Data::Geometry & geometry, const int n_shells );
+std::vector<scalar> Get_Shell_Radii( const Data::Geometry & geometry, std::size_t n_shells );
 
 pairfield Get_Pairs_in_Radius( const Data::Geometry & geometry, scalar radius );
 
 void Get_Neighbours_in_Shells(
-    const Data::Geometry & geometry, int nShells, pairfield & neighbours, intfield & shells, bool remove_redundant );
+    const Data::Geometry & geometry, std::size_t n_shells, pairfield & neighbours, intfield & shells,
+    bool use_redundant_neighbours );
 
-Vector3 DMI_Normal_from_Pair( const Data::Geometry & geometry, const Pair & pair, int chirality = 1 );
+Vector3 DMI_Normal_from_Pair( const Data::Geometry & geometry, const Pair & pair, std::int8_t chirality = 1 );
+
 void DDI_from_Pair( const Data::Geometry & geometry, const Pair & pair, scalar & magnitude, Vector3 & normal );
 
-} // end namespace Neighbours
-} // end namespace Engine
+} // namespace Neighbours
+} // namespace Engine
 
 #endif

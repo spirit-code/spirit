@@ -12,14 +12,21 @@ using namespace Utility;
 
 namespace Engine
 {
+
 Method::Method( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain )
-        : parameters( parameters ), idx_image( idx_img ), idx_chain( idx_chain ), iteration( 0 ), step( 0 )
+        : iteration( 0 ),
+          step( 0 ),
+          idx_image( idx_img ),
+          idx_chain( idx_chain ),
+          parameters( parameters ),
+          n_iterations_amortize( parameters->n_iterations_amortize )
 {
     // Sender name for log messages
     this->SenderName = Log_Sender::All;
 
-    // Default history contains max_torque
-    this->history = std::map<std::string, std::vector<scalar>>{ { "max_torque", { this->max_torque } } };
+    this->history_iteration  = std::vector<int>();
+    this->history_max_torque = std::vector<scalar>();
+    this->history_energy  = std::vector<scalar>();
 
     // TODO: is this a good idea?
     this->n_iterations     = std::max( long( 1 ), this->parameters->n_iterations );
@@ -28,9 +35,14 @@ Method::Method( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img
         this->n_iterations_log = this->n_iterations;
     this->n_log = this->n_iterations / this->n_iterations_log;
 
+    if( n_iterations_amortize > n_iterations_log )
+    {
+        n_iterations_amortize = n_iterations_log;
+    }
+
     // Setup timings
-    for( int i = 0; i < 7; ++i )
-        this->t_iterations.push_back( system_clock::now() );
+    for( std::uint8_t i = 0; i < 7; ++i )
+        this->t_iterations.push_back( std::chrono::system_clock::now() );
     this->ips       = 0;
     this->starttime = Timing::CurrentDateTime();
 
@@ -46,9 +58,9 @@ void Method::Iterate()
 {
     //---- Start timings
     this->starttime = Timing::CurrentDateTime();
-    this->t_start   = system_clock::now();
-    auto t_current  = system_clock::now();
-    this->t_last    = system_clock::now();
+    this->t_start   = std::chrono::system_clock::now();
+    auto t_current  = std::chrono::system_clock::now();
+    this->t_last    = std::chrono::system_clock::now();
 
     //---- Log messages
     this->Message_Start();
@@ -58,23 +70,24 @@ void Method::Iterate()
 
     //---- Iteration loop
     for( this->iteration = 0; this->ContinueIterating() && !this->Walltime_Expired( t_current - t_start );
-         ++this->iteration )
+         this->iteration += n_iterations_amortize )
     {
-        t_current = system_clock::now();
+        t_current = std::chrono::system_clock::now();
 
         // Lock Systems
         this->Lock();
 
         // Pre-iteration hook
         this->Hook_Pre_Iteration();
-        // Do one single Iteration
-        this->Iteration();
+        // Do n_iterations_amortize iterations
+        for( int i = 0; i < n_iterations_amortize; i++ )
+            this->Iteration();
         // Post-iteration hook
         this->Hook_Post_Iteration();
 
         // Recalculate FPS
         this->t_iterations.pop_front();
-        this->t_iterations.push_back( system_clock::now() );
+        this->t_iterations.push_back( std::chrono::system_clock::now() );
 
         // Log Output every n_iterations_log steps
         if( this->n_iterations_log > 0 && this->iteration > 0 && 0 == fmod( this->iteration, this->n_iterations_log ) )
@@ -102,11 +115,11 @@ void Method::Iterate()
 scalar Method::getIterationsPerSecond()
 {
     scalar l_ips = 0.0;
-    for( unsigned int i = 0; i < t_iterations.size() - 1; ++i )
+    for( std::size_t i = 0; i < t_iterations.size() - 1; ++i )
     {
         l_ips += Timing::SecondsPassed( t_iterations[i + 1] - t_iterations[i] );
     }
-    this->ips = 1.0 / ( l_ips / ( t_iterations.size() - 1 ) );
+    this->ips = 1.0 / ( l_ips / ( t_iterations.size() - 1 ) ) * n_iterations_amortize;
     return this->ips;
 }
 
@@ -123,11 +136,11 @@ double Method::get_simulated_time()
         "Tried to use Method::get_simulated_time() of the Method base class!" );
 }
 
-int Method::getWallTime()
+std::int64_t Method::getWallTime()
 {
-    auto t_current              = system_clock::now();
-    duration<scalar> dt_seconds = t_current - this->t_start;
-    auto dt_ms                  = std::chrono::duration_cast<std::chrono::milliseconds>( dt_seconds );
+    auto t_current                           = std::chrono::system_clock::now();
+    std::chrono::duration<scalar> dt_seconds = t_current - this->t_start;
+    auto dt_ms                               = std::chrono::duration_cast<std::chrono::milliseconds>( dt_seconds );
     return dt_ms.count();
 }
 
@@ -172,7 +185,7 @@ bool Method::Iterations_Allowed()
     return this->systems[0]->iteration_allowed;
 }
 
-bool Method::Walltime_Expired( duration<scalar> dt_seconds )
+bool Method::Walltime_Expired( std::chrono::duration<scalar> dt_seconds )
 {
     if( this->parameters->max_walltime_sec <= 0 )
         return false;
@@ -213,7 +226,6 @@ void Method::Hook_Post_Iteration()
 void Method::Finalize()
 {
     // Not Implemented!
-
     spirit_throw(
         Exception_Classifier::Not_Implemented, Log_Level::Error,
         "Tried to use Method::Save_Current() of the Method base class!" );
@@ -256,4 +268,5 @@ std::string Method::SolverFullName()
          this->idx_chain );
     return "--";
 }
+
 } // namespace Engine

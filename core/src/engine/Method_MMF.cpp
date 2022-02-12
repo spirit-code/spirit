@@ -36,7 +36,7 @@ Method_MMF<solver>::Method_MMF( std::shared_ptr<Data::Spin_System> system, int i
     this->SenderName = Utility::Log_Sender::MMF;
 
     // History
-    this->history = std::map<std::string, std::vector<scalar>>{ { "max_torque", { this->max_torque } } };
+    // this->history = std::map<std::string, std::vector<scalar>>{ { "max_torque", { this->max_torque } } };
 
     // We assume that the systems are not converged before the first iteration
     this->max_torque = system->mmf_parameters->force_convergence + 1.0;
@@ -86,7 +86,7 @@ void check_modes(
     const vectorfield & image, const vectorfield & gradient, const MatrixX & tangent_basis, const VectorX & eigenvalues,
     const MatrixX & eigenvectors_2N, const vectorfield & minimum_mode )
 {
-    int nos = image.size();
+    std::size_t nos = image.size();
 
     // ////////////////////////////////////////////////////////////////
     // // Check for complex numbers in the eigenvalues
@@ -246,7 +246,7 @@ void Method_MMF<solver>::Calculate_Force_Spectra_Matrix(
                     // Need to look for our mode
                     std::cerr << fmt::format(
                         "Looking for previous mode, which used to be {}...", mode_follow_previous );
-                    int ntest = 6;
+                    // int ntest = 6;
                     // int start = std::max(0, mode_follow_previous-ntest);
                     // int stop  = std::min(n_modes, mode_follow_previous+ntest);
                     for( int itest = 0; itest < n_modes; ++itest )
@@ -353,7 +353,8 @@ void Method_MMF<solver>::Calculate_Force_Spectra_Matrix(
                 {
                     // Calculate the force
                     // Vectormath::set_c_a(mode_grad, this->minimum_mode, force, this->systems[0]->geometry->mask_unpinned);
-                    int sign = ( scalar( 0 ) < mode_grad ) - ( mode_grad < scalar( 0 ) );
+                    int sign
+                        = static_cast<int>( scalar( 0 ) < mode_grad ) - static_cast<int>( mode_grad < scalar( 0 ) );
                     Vectormath::set_c_a( sign, this->minimum_mode, force, this->systems[0]->geometry->mask_unpinned );
                 }
                 else
@@ -398,9 +399,7 @@ void printmatrix( MatrixX & m )
 template<Solver solver>
 bool Method_MMF<solver>::Converged()
 {
-    if( this->max_torque < this->systems[0]->mmf_parameters->force_convergence )
-        return true;
-    return false;
+    return this->max_torque < this->systems[0]->mmf_parameters->force_convergence;
 }
 
 template<Solver solver>
@@ -428,14 +427,15 @@ template<Solver solver>
 void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, bool initial, bool final )
 {
     // History save
-    this->history["max_torque"].push_back( this->max_torque );
+    this->history_iteration.push_back( this->iteration );
+    this->history_max_torque.push_back( this->max_torque );
 
     // File save
     if( this->parameters->output_any )
     {
         // Convert indices to formatted strings
         auto s_img         = fmt::format( "{:0>2}", this->idx_image );
-        int base           = (int)log10( this->parameters->n_iterations );
+        auto base          = static_cast<std::int32_t>( log10( this->parameters->n_iterations ) );
         std::string s_iter = fmt::format( "{:0>" + fmt::format( "{}", base ) + "}", iteration );
 
         std::string preSpinsFile;
@@ -454,7 +454,7 @@ void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, boo
 
         // Function to write or append image and energy files
         auto writeOutputConfiguration
-            = [this, preSpinsFile, preEnergyFile, iteration]( std::string suffix, bool append )
+            = [this, preSpinsFile, preEnergyFile, iteration]( const std::string & suffix, bool append )
         {
             try
             {
@@ -487,7 +487,8 @@ void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, boo
             }
         };
 
-        auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile, iteration]( std::string suffix, bool append )
+        auto writeOutputEnergy
+            = [this, preSpinsFile, preEnergyFile, iteration]( const std::string & suffix, bool append )
         {
             bool normalize   = this->systems[0]->llg_parameters->output_energy_divide_by_nspins;
             bool readability = this->systems[0]->llg_parameters->output_energy_add_readability_lines;
@@ -525,7 +526,7 @@ void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, boo
                     {
                         scalar E_spin = 0;
                         int j         = 1;
-                        for( auto & contribution : contributions_spins )
+                        for( const auto & contribution : contributions_spins )
                         {
                             E_spin += contribution.second[ispin];
                             data[ispin + j] = contribution.second[ispin];
@@ -540,14 +541,14 @@ void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, boo
                     std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
                     segment.title       = strdup( title.c_str() );
                     std::string comment = fmt::format( "Energy per spin. Total={}meV", this->systems[0]->E );
-                    for( auto & contribution : this->systems[0]->E_array )
+                    for( const auto & contribution : this->systems[0]->E_array )
                         comment += fmt::format( ", {}={}meV", contribution.first, contribution.second );
                     segment.comment  = strdup( comment.c_str() );
                     segment.valuedim = 1 + this->systems[0]->E_array.size();
 
                     std::string valuelabels = "Total";
                     std::string valueunits  = "meV";
-                    for( auto & pair : this->systems[0]->E_array )
+                    for( const auto & pair : this->systems[0]->E_array )
                     {
                         valuelabels += fmt::format( " {}", pair.first );
                         valueunits += " meV";
@@ -558,10 +559,12 @@ void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, boo
                     IO::VF_FileFormat format = this->systems[0]->llg_parameters->output_vf_filetype;
 
                     // open and write
-                    IO::OVF_File( energyFilePerSpin ).write_segment( segment, data.data(), int( format ) );
+                    IO::OVF_File( energyFilePerSpin ).write_segment( segment, data.data(), static_cast<int>( format ) );
 
                     Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-                         fmt::format( "Wrote spins to file \"{}\" with format {}", energyFilePerSpin, int( format ) ),
+                         fmt::format(
+                             "Wrote spins to file \"{}\" with format {}", energyFilePerSpin,
+                             static_cast<int>( format ) ),
                          -1, -1 );
                 }
             }

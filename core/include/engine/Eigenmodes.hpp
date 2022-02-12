@@ -15,6 +15,7 @@ namespace Engine
 {
 namespace Eigenmodes
 {
+
 // Check whether system members and EMA parameters are consistent with eachother
 void Check_Eigenmode_Parameters( std::shared_ptr<Data::Spin_System> system );
 
@@ -32,8 +33,10 @@ bool Hessian_Full_Spectrum(
 // gradient and hessian should be the 3N-dimensional representations without constraints
 bool Hessian_Partial_Spectrum(
     const std::shared_ptr<Data::Parameters_Method> parameters, const vectorfield & spins, const vectorfield & gradient,
-    const MatrixX & hessian, int n_modes, MatrixX & tangent_basis, MatrixX & hessian_constrained, VectorX & eigenvalues,
-    MatrixX & eigenvectors );
-}; // end namespace Eigenmodes
+    const MatrixX & hessian, std::size_t n_modes, MatrixX & tangent_basis, MatrixX & hessian_constrained,
+    VectorX & eigenvalues, MatrixX & eigenvectors );
+
+} // end namespace Eigenmodes
 } // end namespace Engine
+
 #endif

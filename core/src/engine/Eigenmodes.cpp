@@ -10,12 +10,13 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
+using Utility::Log_Level;
+using Utility::Log_Sender;
+
 namespace Engine
 {
 namespace Eigenmodes
 {
-using Utility::Log_Level;
-using Utility::Log_Sender;
 
 void Check_Eigenmode_Parameters( std::shared_ptr<Data::Spin_System> system )
 {
@@ -127,7 +128,7 @@ bool Hessian_Full_Spectrum(
     const MatrixX & hessian, MatrixX & tangent_basis, MatrixX & hessian_constrained, VectorX & eigenvalues,
     MatrixX & eigenvectors )
 {
-    int nos = spins.size();
+    std::size_t nos = spins.size();
 
     // Calculate the final Hessian to use for the minimum mode
     // TODO: add option to choose different Hessian calculation
@@ -153,13 +154,13 @@ bool Hessian_Full_Spectrum(
 
 bool Hessian_Partial_Spectrum(
     const std::shared_ptr<Data::Parameters_Method> parameters, const vectorfield & spins, const vectorfield & gradient,
-    const MatrixX & hessian, int n_modes, MatrixX & tangent_basis, MatrixX & hessian_constrained, VectorX & eigenvalues,
-    MatrixX & eigenvectors )
+    const MatrixX & hessian, std::size_t n_modes, MatrixX & tangent_basis, MatrixX & hessian_constrained,
+    VectorX & eigenvalues, MatrixX & eigenvectors )
 {
-    int nos = spins.size();
+    std::size_t nos = spins.size();
 
     // Restrict number of calculated modes to [1,2N)
-    n_modes = std::max( 1, std::min( 2 * nos - 2, n_modes ) );
+    n_modes = std::max( static_cast<std::size_t>( 1 ), std::min( 2 * nos - 2, n_modes ) );
 
     // If we have only one spin, we can only calculate the full spectrum
     if( n_modes == nos )
@@ -178,7 +179,7 @@ bool Hessian_Partial_Spectrum(
 
 // Remove degrees of freedom of pinned spins
 #ifdef SPIRIT_ENABLE_PINNING
-    for( int i = 0; i < nos; ++i )
+    for( std::size_t i = 0; i < nos; ++i )
     {
         // TODO: pinning is now in Data::Geometry
         // if (!parameters->pinning->mask_unpinned[i])
