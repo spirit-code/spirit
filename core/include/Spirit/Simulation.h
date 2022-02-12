@@ -63,11 +63,11 @@ struct Simulation_Run_Info
     float max_torque     = 0;
 
     int n_history_iteration = 0;
-    int * history_iteration = NULL;
+    int * history_iteration = nullptr;
     int n_history_max_torque = 0;
-    float * history_max_torque = NULL;
+    float * history_max_torque = nullptr;
     int n_history_energy = 0;
-    float * history_energy = NULL;
+    float * history_energy = nullptr;
 };
 
 PREFIX void free_run_info(Simulation_Run_Info info) SUFFIX;
@@ -80,27 +80,27 @@ Start or stop a simulation
 // Monte Carlo
 PREFIX void Simulation_MC_Start(
     State * state, int n_iterations = -1, int n_iterations_log = -1, bool singleshot = false,
-    Simulation_Run_Info * info = NULL, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+    Simulation_Run_Info * info = nullptr, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Landau-Lifshitz-Gilbert dynamics and energy minimisation
 PREFIX void Simulation_LLG_Start(
     State * state, int solver_type, int n_iterations = -1, int n_iterations_log = -1, bool singleshot = false,
-    Simulation_Run_Info * info = NULL, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+    Simulation_Run_Info * info = nullptr, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Geodesic nudged elastic band method
 PREFIX void Simulation_GNEB_Start(
     State * state, int solver_type, int n_iterations = -1, int n_iterations_log = -1, bool singleshot = false,
-    Simulation_Run_Info * info = NULL, int idx_chain = -1 ) SUFFIX;
+    Simulation_Run_Info * info = nullptr, int idx_chain = -1 ) SUFFIX;
 
 // Minimum mode following method
 PREFIX void Simulation_MMF_Start(
     State * state, int solver_type, int n_iterations = -1, int n_iterations_log = -1, bool singleshot = false,
-    Simulation_Run_Info * info = NULL, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+    Simulation_Run_Info * info = nullptr, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Eigenmode analysis
 PREFIX void Simulation_EMA_Start(
     State * state, int n_iterations = -1, int n_iterations_log = -1, bool singleshot = false,
-    Simulation_Run_Info * info = NULL, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+    Simulation_Run_Info * info = nullptr, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
 Single iteration of a Method
