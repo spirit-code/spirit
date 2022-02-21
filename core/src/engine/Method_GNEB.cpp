@@ -256,18 +256,28 @@ void Method_GNEB<solver>::Calculate_Force(
         {
             scalar delta_Rx0 = 0.1;
 
+            auto & image = *configurations[img];
+            Manifoldmath::project_tangential( F_gradient[img], image );
+
             auto _F_total    = F_total[img].data();
             auto _forces     = forces[img].data();
             auto _F_gradient = F_gradient[img].data();
             auto _tangents   = tangents[img].data();
 
-            scalar delta_Rx = ( img == 0 ? Rx[1] - Rx[0] : Rx[chain->noi - 1] - Rx[chain->noi - 2] );
-            auto spring_constant = (( img == 0) ? 1.0 : -1.0 ) * this->chain->gneb_parameters->spring_constant;
-            auto projection = Vectormath::dot( F_gradient[img], tangents[img] );
+            scalar delta_Rx      = ( img == 0 ? Rx[1] - Rx[0] : Rx[chain->noi - 1] - Rx[chain->noi - 2] );
+            auto spring_constant = ( ( img == 0 ) ? 1.0 : -1.0 ) * this->chain->gneb_parameters->spring_constant;
+            auto projection      = Vectormath::dot( F_gradient[img], tangents[img] );
+
+            // std::cout << " === " << img << " ===\n";
+            // fmt::print( "{}\n", _F_total[0].transpose() );
+            // fmt::print( "{}\n", _F_gradient[0].transpose() );
+            // fmt::print( "{}\n", delta_Rx );
 
             Backend::par::apply(
-                nos, [_forces, _F_total, _F_gradient, delta_Rx, delta_Rx0, _tangents, spring_constant, projection] SPIRIT_LAMBDA( int idx ) {
-                    _forces[idx] = _F_gradient[idx] - projection * _tangents[idx] + spring_constant * ( delta_Rx - delta_Rx0 ) * _tangents[idx];
+                nos, [_forces, _F_total, _F_gradient, delta_Rx, delta_Rx0, _tangents, spring_constant,
+                      projection] SPIRIT_LAMBDA( int idx ) {
+                    _forces[idx] = _F_gradient[idx] - projection * _tangents[idx]
+                                   + spring_constant * ( delta_Rx - delta_Rx0 ) * _tangents[idx];
                     _F_total[idx] = _forces[idx];
                 } );
         }
@@ -283,8 +293,14 @@ void Method_GNEB<solver>::Calculate_Force_Virtual(
     using namespace Utility;
 
     // Calculate the cross product with the spin configuration to get direct minimization
-    for( std::size_t i = 1; i < configurations.size() - 1; ++i )
+    for( std::size_t i = 0; i < configurations.size(); ++i )
     {
+
+        if( !chain->gneb_parameters->moving_endpoints && ( i == 0 || i == configurations.size() - 1 ) )
+        {
+            continue;
+        }
+
         auto & image         = *configurations[i];
         auto & force         = forces[i];
         auto & force_virtual = forces_virtual[i];
@@ -327,7 +343,7 @@ void Method_GNEB<solver>::Hook_Post_Iteration()
     this->max_torque = 0;
     std::fill( this->max_torque_all.begin(), this->max_torque_all.end(), 0 );
 
-    for( int img = 1; img < chain->noi - 1; ++img )
+    for( int img = 0; img < chain->noi; ++img )
     {
         scalar fmax = this->MaxTorque_on_Image( *( this->systems[img]->spins ), F_total[img] );
         // Set maximum per image
