@@ -254,31 +254,21 @@ void Method_GNEB<solver>::Calculate_Force(
     {
         for( int img : { 0, chain->noi - 1 } )
         {
-            int nos     = chain->images[img]->nos;
-            scalar _Rx0 = 1e-3 * nos;
+            scalar delta_Rx0 = 0.1;
 
             auto _F_total    = F_total[img].data();
             auto _forces     = forces[img].data();
             auto _F_gradient = F_gradient[img].data();
             auto _tangents   = tangents[img].data();
 
-            scalar _Rx = ( img == 0 ? Rx[1] - Rx[0] : Rx[chain->noi - 1] - Rx[chain->noi - 2] );
-            // scalar _Rx = (img==0 ? lengths[1] : lengths[chain->noi-1]);
-
-            auto dE_dRx
-                = ( img == 0 ? energies[1] - energies[0] : energies[chain->noi - 1] - energies[chain->noi - 2] ) / _Rx;
-
-            auto spring_constant = dE_dRx * this->chain->gneb_parameters->spring_constant;
-
-            std::cout << "image" << img << "\n";
-            std::cout << _tangents[0].transpose() << "\n";
-            std::cout << _Rx << "\n";
-            std::cout << _F_gradient[0].transpose() << "\n--\n";
+            scalar delta_Rx = ( img == 0 ? Rx[1] - Rx[0] : Rx[chain->noi - 1] - Rx[chain->noi - 2] );
+            auto spring_constant = (( img == 0) ? 1.0 : -1.0 ) * this->chain->gneb_parameters->spring_constant;
+            auto projection = Vectormath::dot( F_gradient[img], tangents[img] );
 
             Backend::par::apply(
-                nos, [_forces, _F_gradient, _Rx, _Rx0, _tangents, spring_constant] SPIRIT_LAMBDA( int idx ) {
-                    _forces[idx] = _F_gradient[idx] - _F_gradient[idx].dot( _tangents[idx] ) * _tangents[idx]
-                                   + 1 * spring_constant * ( _Rx - _Rx0 ) * _tangents[idx];
+                nos, [_forces, _F_total, _F_gradient, delta_Rx, delta_Rx0, _tangents, spring_constant, projection] SPIRIT_LAMBDA( int idx ) {
+                    _forces[idx] = _F_gradient[idx] - projection * _tangents[idx] + spring_constant * ( delta_Rx - delta_Rx0 ) * _tangents[idx];
+                    _F_total[idx] = _forces[idx];
                 } );
         }
     }
