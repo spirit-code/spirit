@@ -261,6 +261,32 @@ catch( ... )
     spirit_handle_exception_api( -1, idx_chain );
 }
 
+void Parameters_GNEB_Set_Equilibrium_Delta_Rx( State * state, float delta_Rx_left, float delta_Rx_right, int idx_chain ) noexcept
+try
+{
+    int idx_image = -1;
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    chain->Lock();
+    auto p                        = chain->gneb_parameters;
+    p->equilibrium_delta_Rx_left  = delta_Rx_left;
+    p->equilibrium_delta_Rx_right = delta_Rx_right;
+
+    chain->Unlock();
+
+    Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
+         fmt::format( "Set equilibrium delta Rx for GNEB with moving endpoints. delta_Rx_left = {}, delta_Rx_right = {}", delta_Rx_left, delta_Rx_right ), idx_image, idx_chain );
+}
+catch( ... )
+{
+    spirit_handle_exception_api( -1, idx_chain );
+}
+
+
 void Parameters_GNEB_Set_Climbing_Falling( State * state, int image_type, int idx_image, int idx_chain ) noexcept
 try
 {

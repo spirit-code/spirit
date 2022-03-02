@@ -254,8 +254,6 @@ void Method_GNEB<solver>::Calculate_Force(
     {
         for( int img : { 0, chain->noi - 1 } )
         {
-            scalar delta_Rx0 = 0.1;
-
             auto & image = *configurations[img];
             Manifoldmath::project_tangential( F_gradient[img], image );
 
@@ -264,7 +262,9 @@ void Method_GNEB<solver>::Calculate_Force(
             auto _F_gradient = F_gradient[img].data();
             auto _tangents   = tangents[img].data();
 
+            scalar delta_Rx0 =  ( img == 0 ) ? chain->gneb_parameters->equilibrium_delta_Rx_left : chain->gneb_parameters->equilibrium_delta_Rx_right;
             scalar delta_Rx      = ( img == 0 ? Rx[1] - Rx[0] : Rx[chain->noi - 1] - Rx[chain->noi - 2] );
+
             auto spring_constant = ( ( img == 0 ) ? 1.0 : -1.0 ) * this->chain->gneb_parameters->spring_constant;
             auto projection      = Vectormath::dot( F_gradient[img], tangents[img] );
 
