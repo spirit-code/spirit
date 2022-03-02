@@ -376,7 +376,7 @@ void Method_GNEB<solver>::Hook_Post_Iteration()
     //      Rx
     chain->Rx = this->Rx;
     //      E
-    for( int img = 1; img < chain->noi; ++img )
+    for( int img = 0; img < chain->noi; ++img )
         chain->images[img]->E = this->energies[img];
     //      Rx interpolated
     chain->Rx_interpolated = interp[0];
