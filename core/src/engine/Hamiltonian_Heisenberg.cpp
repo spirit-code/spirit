@@ -102,7 +102,6 @@ void Hamiltonian_Heisenberg::Update_Interactions()
     // When running on a single thread, we can ignore redundant neighbours
     const bool use_redundant_neighbours = false;
 #endif
-
     // Exchange
     this->exchange_pairs      = pairfield( 0 );
     this->exchange_magnitudes = scalarfield( 0 );
@@ -190,6 +189,13 @@ void Hamiltonian_Heisenberg::Update_Interactions()
 
     // Update, which terms still contribute
     this->Update_Energy_Contributions();
+
+    this->energy_density           = scalarfield(this->geometry->nos, 0);
+    this->reference_energy_density = scalarfield(this->geometry->nos, 0);
+
+    vectorfield temp_spins = vectorfield(this->geometry->nos, {0,0,1});
+    Snapshot_Reference_Energy_Density(temp_spins);
+    std::cout << "fin\n";
 }
 
 void Hamiltonian_Heisenberg::Update_Energy_Contributions()
@@ -649,15 +655,17 @@ void Hamiltonian_Heisenberg::Gradient( const vectorfield & spins, vectorfield & 
 
 void Hamiltonian_Heisenberg::Gradient_and_Energy( const vectorfield & spins, vectorfield & gradient, scalar & energy )
 {
-
     // Set to zero
     Vectormath::fill( gradient, { 0, 0, 0 } );
+
     energy = 0;
 
-    auto N    = spins.size();
-    auto s    = spins.data();
-    auto mu_s = geometry->mu_s.data();
-    auto g    = gradient.data();
+    auto N      = spins.size();
+    auto s      = spins.data();
+    auto mu_s   = geometry->mu_s.data();
+    auto g      = gradient.data();
+    auto ed     = energy_density.data();
+    auto ref_ed = reference_energy_density.data();
 
     // Anisotropy
     if( idx_anisotropy >= 0 )
@@ -675,7 +683,8 @@ void Hamiltonian_Heisenberg::Gradient_and_Energy( const vectorfield & spins, vec
     if( idx_ddi >= 0 )
         this->Gradient_DDI( spins, gradient );
 
-    energy += Backend::par::reduce( N, [s, g] SPIRIT_LAMBDA( int idx ) { return 0.5 * g[idx].dot( s[idx] ); } );
+    // eBackend::par::apply( N, [s, g, ed, ref_ed ] SPIRIT_LAMBDA( int idx ) { ed[idx] = 0.5 * g[idx].dot( s[idx] ) - ref_ed[idx]; } );
+    energy += Backend::par::reduce( N, [s, g, ref_ed ] SPIRIT_LAMBDA( int idx ) { return 0.5 * g[idx].dot( s[idx] ) - ref_ed[idx]; } );
 
     // External field
     if( idx_zeeman >= 0 )

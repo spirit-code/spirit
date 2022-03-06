@@ -83,6 +83,8 @@ public:
     // Calculate the total energy for a single spin
     virtual scalar Energy_Single_Spin( int ispin, const vectorfield & spins );
 
+    void Snapshot_Reference_Energy_Density(const vectorfield & spins);
+
     virtual std::size_t Number_of_Interactions();
 
     // Hamiltonian name as string
@@ -94,6 +96,7 @@ public:
 protected:
     // Energy contributions per spin
     std::vector<std::pair<std::string, scalarfield>> energy_contributions_per_spin;
+    scalarfield reference_energy_density;
 
     std::mt19937 prng;
     std::uniform_int_distribution<int> distribution_int;

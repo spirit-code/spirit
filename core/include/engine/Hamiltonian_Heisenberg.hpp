@@ -110,6 +110,9 @@ public:
     quadrupletfield quadruplets;
     scalarfield quadruplet_magnitudes;
 
+    scalarfield energy_density;
+
+
     std::shared_ptr<Data::Geometry> geometry;
 
     // ------------ Effective Field Functions ------------
