@@ -142,6 +142,13 @@ def set_moving_endpoints(p_state, moving_endpoints,  idx_chain=-1):
     """Set if moving endpoints should be used."""
     _GNEB_Set_Moving_Endpoints(ctypes.c_void_p(p_state), ctypes.c_bool(moving_endpoints), ctypes.c_int(idx_chain))
 
+_GNEB_Set_Attracting_Endpoints           = _spirit.Parameters_GNEB_Set_Attracting_Endpoints
+_GNEB_Set_Attracting_Endpoints.argtypes  = [ctypes.c_void_p, ctypes.c_bool, ctypes.c_int]
+_GNEB_Set_Attracting_Endpoints.restype   = None
+def set_attracting_endpoints(p_state, attracting_endpoints, idx_chain=-1):
+    """Set if attracting endpoints should be used."""
+    _GNEB_Set_Attracting_Endpoints(ctypes.c_void_p(p_state), ctypes.c_bool(attracting_endpoints), ctypes.c_int(idx_chain))
+
 _GNEB_Set_Equilibrium_Delta_Rx           = _spirit.Parameters_GNEB_Set_Equilibrium_Delta_Rx
 _GNEB_Set_Equilibrium_Delta_Rx.argtypes  = [ctypes.c_void_p, ctypes.c_float, ctypes.c_float, ctypes.c_int]
 _GNEB_Set_Equilibrium_Delta_Rx.restype   = None

@@ -40,10 +40,12 @@ Method_GNEB<solver>::Method_GNEB( std::shared_ptr<Data::Spin_System_Chain> chain
     this->F_gradient = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) ); // [noi][nos]
     this->F_spring   = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) ); // [noi][nos]
     this->f_shrink   = vectorfield( this->nos, { 0, 0, 0 } );                                        // [nos]
-    this->xi         = vectorfield( this->nos, { 0, 0, 0 } );                                        // [nos]
+    this->xi         = vectorfield( this->nos, { 0, 0, 0 } );
 
     // Tangents
     this->tangents = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) ); // [noi][nos]
+    this->tangent_endpoints_left  = vectorfield( this->nos, { 0, 0, 0 } );                                        // [nos]
+    this->tangent_endpoints_right = vectorfield( this->nos, { 0, 0, 0 } );                                        // [nos]
 
     // We assume that the chain is not converged before the first iteration
     this->max_torque     = this->chain->gneb_parameters->force_convergence + 1.0;
@@ -252,6 +254,33 @@ void Method_GNEB<solver>::Calculate_Force(
     // Moving endpoints
     if( chain->gneb_parameters->moving_endpoints )
     {
+    
+        scalar delta_Rx_endpoints  = Manifoldmath::dist_geodesic( *this->chain->images[0]->spins, *this->chain->images[chain->noi - 1]->spins);
+        scalar delta_Rx_endpoints0 = chain->gneb_parameters->equilibrium_delta_Rx_left + chain->gneb_parameters->equilibrium_delta_Rx_right;
+
+        auto _tangent_endpoints_left  = tangent_endpoints_left.data();
+        auto _tangent_endpoints_right = tangent_endpoints_right.data();
+        auto _spins_left  = this->chain->images[0]->spins->data();
+        auto _spins_right = this->chain->images[chain->noi - 1]->spins->data();
+
+        if(chain->gneb_parameters->attracting_endpoints)
+        {
+            Backend::par::apply(nos, 
+                [
+                    _tangent_endpoints_left,
+                    _tangent_endpoints_right,
+                    _spins_left,
+                    _spins_right
+                ] 
+                SPIRIT_LAMBDA( int idx )
+                {
+                    const Vector3 ds = _spins_right[idx] - _spins_left[idx];
+                    _tangent_endpoints_left[idx]  = ds - ds.dot( _spins_left[idx] ) * ds;
+                    _tangent_endpoints_right[idx] = ds - ds.dot( _spins_right[idx] ) * ds;
+                }
+            );
+        }
+
         for( int img : { 0, chain->noi - 1 } )
         {
             auto & image = *configurations[img];
@@ -262,8 +291,11 @@ void Method_GNEB<solver>::Calculate_Force(
             auto _F_gradient = F_gradient[img].data();
             auto _tangents   = tangents[img].data();
 
-            scalar delta_Rx0 =  ( img == 0 ) ? chain->gneb_parameters->equilibrium_delta_Rx_left : chain->gneb_parameters->equilibrium_delta_Rx_right;
-            scalar delta_Rx      = ( img == 0 ? Rx[1] - Rx[0] : Rx[chain->noi - 1] - Rx[chain->noi - 2] );
+            scalar delta_Rx0 = ( img == 0 ) ? chain->gneb_parameters->equilibrium_delta_Rx_left : chain->gneb_parameters->equilibrium_delta_Rx_right;
+            scalar delta_Rx  = ( img == 0 ? Rx[1] - Rx[0] : Rx[chain->noi - 1] - Rx[chain->noi - 2] );
+
+
+            auto _tangent_endpoints = ( img==0 ) ? _tangent_endpoints_left : _tangent_endpoints_right;
 
             auto spring_constant = ( ( img == 0 ) ? 1.0 : -1.0 ) * this->chain->gneb_parameters->spring_constant;
             auto projection      = Vectormath::dot( F_gradient[img], tangents[img] );
@@ -274,10 +306,11 @@ void Method_GNEB<solver>::Calculate_Force(
             // fmt::print( "{}\n", delta_Rx );
 
             Backend::par::apply(
-                nos, [_forces, _F_total, _F_gradient, delta_Rx, delta_Rx0, _tangents, spring_constant,
+                nos, [_forces, _F_total, _F_gradient, delta_Rx, delta_Rx0, delta_Rx_endpoints, delta_Rx_endpoints0, _tangent_endpoints, _tangents, spring_constant,
                       projection] SPIRIT_LAMBDA( int idx ) {
                     _forces[idx] = _F_gradient[idx] - projection * _tangents[idx]
-                                   + spring_constant * ( delta_Rx - delta_Rx0 ) * _tangents[idx];
+                                   + spring_constant * ( delta_Rx - delta_Rx0 ) * _tangents[idx] 
+                                   + spring_constant * ( delta_Rx_endpoints - delta_Rx_endpoints0 ) * _tangent_endpoints[idx];
                     _F_total[idx] = _forces[idx];
                 } );
         }

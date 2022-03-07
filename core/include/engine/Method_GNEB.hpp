@@ -77,6 +77,8 @@ private:
     vectorfield f_shrink;
     // Last calculated tangents
     std::vector<vectorfield> tangents;
+    vectorfield tangent_endpoints_left;
+    vectorfield tangent_endpoints_right;
 };
 
 } // namespace Engine

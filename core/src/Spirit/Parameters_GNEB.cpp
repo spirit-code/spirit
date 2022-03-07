@@ -261,6 +261,30 @@ catch( ... )
     spirit_handle_exception_api( -1, idx_chain );
 }
 
+// Set if moving endpoints should be used
+void Parameters_GNEB_Set_Attracting_Endpoints( State * state, bool attracting_endpoints, int idx_chain ) noexcept
+try
+{
+    int idx_image = -1;
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    chain->Lock();
+    auto p              = chain->gneb_parameters;
+    p->attracting_endpoints = attracting_endpoints;
+    chain->Unlock();
+
+    Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
+         fmt::format( "Set GNEB attracting endpoints = {}", attracting_endpoints ), idx_image, idx_chain );
+}
+catch( ... )
+{
+    spirit_handle_exception_api( -1, idx_chain );
+}
+
 void Parameters_GNEB_Set_Equilibrium_Delta_Rx( State * state, float delta_Rx_left, float delta_Rx_right, int idx_chain ) noexcept
 try
 {
