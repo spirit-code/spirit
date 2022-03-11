@@ -27,6 +27,8 @@ public:
     // Method name as string
     std::string Name() override;
 
+    vectorfield spin_current_density;
+
 private:
     // Prepare random numbers for thermal fields, if needed
     void Prepare_Thermal_Field() override;
@@ -61,8 +63,23 @@ private:
     // Current energy
     scalar current_energy = 0;
 
+    bool use_non_uniform_spin_currents;
+
     // Measure of simulated time in picoseconds
     double picoseconds_passed;
+
+    // Method name as string
+    int MethodType()
+    {
+        return 0;
+    }
+
+    // Method name as string
+    int SolverType()
+    {
+        return int(solver);
+    }
+
 };
 
 } // namespace Engine

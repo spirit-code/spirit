@@ -74,6 +74,8 @@ public:
     // Solver name as string
     virtual std::string SolverName();
     virtual std::string SolverFullName();
+    virtual int MethodType() {return -1;};
+    virtual int SolverType() {return -1;};
 
     // ------------------------------------------------------
 

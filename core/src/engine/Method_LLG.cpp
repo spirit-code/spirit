@@ -46,6 +46,8 @@ Method_LLG<solver>::Method_LLG( std::shared_ptr<Data::Spin_System> system, int i
     for( int i = 0; i < this->noi; ++i )
         this->configurations[i] = this->systems[i]->spins;
 
+    this->spin_current_density = vectorfield(this->nos, Vector3::Zero());
+
     // Allocate force array
     // this->force = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));	// [noi][3*nos]
 

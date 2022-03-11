@@ -5,10 +5,30 @@ Landau-Lifshitz-Gilbert (LLG)
 
 import spirit.spiritlib as spiritlib
 from spirit.io import FILEFORMAT_OVF_TEXT
+from spirit.scalar import scalar
+import spirit.system
 import ctypes
+from numpy import frombuffer, ndarray as np
 
 ### Load Library
 _spirit = spiritlib.load_spirit_library()
+
+### Get Pointer to Spin Directions
+# NOTE: Changing the values of the array_view one can alter the value of the data of the state
+_Get_Spin_Current_View            = _spirit.Parameters_LLG_Get_Spin_Current_View
+_Get_Spin_Current_View.argtypes   = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_Get_Spin_Current_View.restype    = ctypes.POINTER(scalar)
+def get_spin_current_view(p_state, idx_image=-1, idx_chain=-1):
+    """Returns an `numpy.array_view` of shape (NOS, 3) with the components of"""
+
+    nos = spirit.system.get_nos(p_state, idx_image, idx_chain)
+    ArrayType = scalar*3*nos
+    Data = _Get_Spin_Current_View(ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+    array_pointer = ctypes.cast(Data, ctypes.POINTER(ArrayType))
+    array = frombuffer(array_pointer.contents, dtype=scalar)
+    array_view = array.view()
+    array_view.shape = (nos, 3)
+    return array_view
 
 ### ---------------------------------- Set ----------------------------------
 

@@ -2,6 +2,8 @@
 
 #include <data/State.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/Method_LLG.hpp>
+
 #include <utility/Constants.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
@@ -14,6 +16,41 @@ using namespace Utility;
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Set LLG ----------------------------------------------------------- */
 /*------------------------------------------------------------------------------------------------------ */
+
+scalar * Parameters_LLG_Get_Spin_Current_View( State * state, int idx_image, int idx_chain) noexcept
+try
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    // Get Method pointer
+    std::shared_ptr<Engine::Method> method = nullptr;
+    if( image->iteration_allowed && image->singleshot_allowed )
+        method = state->method_image[idx_image];
+    else
+    {
+        Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "No method running", idx_image, idx_chain ) );
+        return nullptr;
+    }
+
+    if(method->Name() != "LLG")
+    {
+        Log( Utility::Log_Level::Error, Utility::Log_Sender::API, fmt::format( "Method is not LLG", idx_image, idx_chain ) );
+        return nullptr;
+    }
+
+    return (scalar *) ( (Engine::Method_LLG<Engine::Solver::Depondt> *) method.get())->spin_current_density[0].data();
+}
+catch( ... )
+{
+    spirit_handle_exception_api( idx_image, idx_chain );
+}
+
+
+
 
 // Set LLG output
 void Parameters_LLG_Set_Output_Tag( State * state, const char * tag, int idx_image, int idx_chain ) noexcept
