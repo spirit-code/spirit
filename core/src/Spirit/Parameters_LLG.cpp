@@ -49,7 +49,26 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
+void Parameters_LLG_Set_Non_Uniform_Currents( State * state, bool non_uniform_currents, int idx_image, int idx_chain) noexcept
+try
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
 
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    image->Lock();
+    image->llg_parameters->use_non_uniform_currents = non_uniform_currents;
+    image->Unlock();
+
+    Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, fmt::format( "Set non-uniform spin currents = \"{}\"", non_uniform_currents ),
+         idx_image, idx_chain );
+}
+catch( ... )
+{
+    spirit_handle_exception_api( idx_image, idx_chain );
+}
 
 
 // Set LLG output

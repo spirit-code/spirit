@@ -148,14 +148,17 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
         // dt = time_step [ps] * gyromagnetic ratio / mu_B / (1+damping^2) <- not implemented
         scalar dtg     = parameters.dt * Constants::gamma / Constants::mu_B / ( 1 + damping * damping );
         scalar sqrtdtg = dtg / std::sqrt( parameters.dt );
+
         // STT
         // - monolayer
-        scalar a_j      = parameters.stt_magnitude;
-        Vector3 s_c_vec = parameters.stt_polarisation_normal;
+        scalar  a_j      = parameters.stt_magnitude;
+        Vector3 s_c_vec  = parameters.stt_polarisation_normal;
+
         // - gradient
         scalar b_j  = a_j;             // pre-factor b_j = u*mu_s/gamma (see bachelorthesis Constantin)
         scalar beta = parameters.beta; // non-adiabatic parameter of correction term
-        Vector3 je  = s_c_vec;         // direction of current
+        Vector3 je  = s_c_vec;         // direction of current\
+
         //////////
 
         // This is the force calculation as it should be for direct minimization
@@ -179,14 +182,13 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
             Vectormath::scale( force_virtual, geometry.mu_s, true );
 
             // STT
-            if( a_j > 0 )
+            if( !parameters.use_non_uniform_currents && a_j>0 )
             {
                 if( parameters.stt_use_gradient )
                 {
                     auto & boundary_conditions = this->systems[0]->hamiltonian->boundary_conditions;
                     // Gradient approximation for in-plane currents
-                    Vectormath::directional_gradient(
-                        image, geometry, boundary_conditions, je, s_c_grad ); // s_c_grad = (j_e*grad)*S
+                    Vectormath::directional_gradient(image, geometry, boundary_conditions, je, s_c_grad ); // s_c_grad = (j_e*grad)*S
                     Vectormath::add_c_a(
                         dtg * a_j * ( damping - beta ), s_c_grad, force_virtual ); // TODO: a_j durch b_j ersetzen
                     Vectormath::add_c_cross(
@@ -200,6 +202,25 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
                     Vectormath::add_c_a( -dtg * a_j * ( damping - beta ), s_c_vec, force_virtual );
                     Vectormath::add_c_cross( -dtg * a_j * ( 1 + beta * damping ), s_c_vec, image, force_virtual );
                 }
+            }
+            else if( parameters.use_non_uniform_currents)
+            {
+                auto & boundary_conditions = this->systems[0]->hamiltonian->boundary_conditions;
+                Vectormath::directional_gradient(image, geometry, boundary_conditions, spin_current_density, s_c_grad ); // s_c_grad = (j_e*grad)*S
+
+                Backend::par::apply( this->nos,
+                    [   =,
+                        spin_current_density = spin_current_density.data(),
+                        force_virtual = force_virtual.data(),
+                        s_c_grad = s_c_grad.data(),
+                        image = image.data()
+                    ] SPIRIT_LAMBDA (int idx)
+                    {
+                        const scalar a_j    = spin_current_density[idx].norm();
+                        force_virtual[idx] += dtg * a_j * ( damping - beta ) * s_c_grad[idx];
+                        force_virtual[idx] += dtg * a_j * ( 1 + beta * damping ) * s_c_grad[idx].cross(image[idx]);
+                    }
+                );
             }
 
             // Temperature
@@ -494,6 +515,7 @@ std::string Method_LLG<solver>::Name()
 {
     return "LLG";
 }
+
 
 // Template instantiations
 template class Method_LLG<Solver::SIB>;

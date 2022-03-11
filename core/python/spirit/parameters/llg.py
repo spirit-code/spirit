@@ -13,7 +13,14 @@ from numpy import frombuffer, ndarray as np
 ### Load Library
 _spirit = spiritlib.load_spirit_library()
 
-### Get Pointer to Spin Directions
+_LLG_Set_Non_Uniform_Currents          = _spirit.Parameters_LLG_Set_Non_Uniform_Currents
+_LLG_Set_Non_Uniform_Currents.argtypes = [ctypes.c_void_p, ctypes.c_bool, ctypes.c_int, ctypes.c_int]
+_LLG_Set_Non_Uniform_Currents.restype  = None
+def set_non_uniform_currents(p_state, non_uniform_currents, idx_image=-1, idx_chain=-1):
+    """Set whether to write any output files at all."""
+    _LLG_Set_Non_Uniform_Currents(ctypes.c_void_p(p_state), ctypes.c_bool(non_uniform_currents), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+### Get Pointer to Spin Currents
 # NOTE: Changing the values of the array_view one can alter the value of the data of the state
 _Get_Spin_Current_View            = _spirit.Parameters_LLG_Get_Spin_Current_View
 _Get_Spin_Current_View.argtypes   = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]

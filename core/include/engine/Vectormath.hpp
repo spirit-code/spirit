@@ -558,6 +558,10 @@ void directional_gradient(
     const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions,
     const Vector3 & direction, vectorfield & gradient );
 
+void directional_gradient(
+    const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions,
+    const vectorfield & direction, vectorfield & gradient );
+
 /////////////////////////////////////////////////////////////////
 
 // Re-distribute a given field according to a new set of dimensions.

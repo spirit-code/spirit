@@ -20,6 +20,9 @@ LLG Parameters
 PREFIX scalar *
 Parameters_LLG_Get_Spin_Current_View( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
+PREFIX void
+Parameters_LLG_Set_Non_Uniform_Currents( State * state, bool non_uniform_currents, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+
 /*
 Set Output
 --------------------------------------------------------------------

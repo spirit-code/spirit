@@ -62,9 +62,6 @@ private:
     vectorfield s_c_grad;
     // Current energy
     scalar current_energy = 0;
-
-    bool use_non_uniform_spin_currents;
-
     // Measure of simulated time in picoseconds
     double picoseconds_passed;
 

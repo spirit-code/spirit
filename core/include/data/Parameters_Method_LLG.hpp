@@ -38,7 +38,8 @@ struct Parameters_Method_LLG : Parameters_Method_Solver
     Vector3 stt_polarisation_normal = Vector3{ 1, 0, 0 };
 
     // Do direct minimization instead of dynamics
-    bool direct_minimization = false;
+    bool direct_minimization      = false;
+    bool use_non_uniform_currents = false;
 
     // ----------------- Output --------------
     // Energy output settings

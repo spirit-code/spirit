@@ -769,5 +769,126 @@ void directional_gradient(
     }
 }
 
+void directional_gradient(
+    const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions,
+    const vectorfield & directions, vectorfield & gradient )
+{
+    // std::cout << "start gradient" << std::endl;
+    vectorfield translations = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
+    auto & n_cells           = geometry.n_cells;
+
+    neighbourfield neigh;
+
+    // TODO: calculate Neighbours outside iterations
+    // Neighbours::get_Neighbours(geometry, neigh);
+
+    // TODO: proper usage of neighbours
+    // Hardcoded neighbours - for spin current in a rectangular lattice
+    neigh = neighbourfield( 0 );
+    Neighbour neigh_tmp;
+    neigh_tmp.i         = 0;
+    neigh_tmp.j         = 0;
+    neigh_tmp.idx_shell = 0;
+
+    neigh_tmp.translations[0] = 1;
+    neigh_tmp.translations[1] = 0;
+    neigh_tmp.translations[2] = 0;
+    neigh.push_back( neigh_tmp );
+
+    neigh_tmp.translations[0] = -1;
+    neigh_tmp.translations[1] = 0;
+    neigh_tmp.translations[2] = 0;
+    neigh.push_back( neigh_tmp );
+
+    neigh_tmp.translations[0] = 0;
+    neigh_tmp.translations[1] = 1;
+    neigh_tmp.translations[2] = 0;
+    neigh.push_back( neigh_tmp );
+
+    neigh_tmp.translations[0] = 0;
+    neigh_tmp.translations[1] = -1;
+    neigh_tmp.translations[2] = 0;
+    neigh.push_back( neigh_tmp );
+
+    neigh_tmp.translations[0] = 0;
+    neigh_tmp.translations[1] = 0;
+    neigh_tmp.translations[2] = 1;
+    neigh.push_back( neigh_tmp );
+
+    neigh_tmp.translations[0] = 0;
+    neigh_tmp.translations[1] = 0;
+    neigh_tmp.translations[2] = -1;
+    neigh.push_back( neigh_tmp );
+
+    // Loop over vectorfield
+    for( unsigned int ispin = 0; ispin < vf.size(); ++ispin )
+    {
+        Vector3 direction = directions[ispin].normalized();
+
+        auto translations_i = translations_from_idx( n_cells, geometry.n_cell_atoms, ispin ); // transVec of spin i
+        // int k = i%geometry.n_cell_atoms; // index within unit cell - k=0 for all cases used in the thesis
+        scalar n = 0;
+
+        gradient[ispin].setZero();
+
+        std::vector<Vector3> euclidean{ { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
+        std::vector<Vector3> contrib = { { 0, 0, 0 }, { 0, 0, 0 }, { 0, 0, 0 } };
+        Vector3 proj                 = { 0, 0, 0 };
+        Vector3 projection_inv       = { 0, 0, 0 };
+
+        // TODO: both loops together.
+
+        // Loop over neighbours of this vector to calculate contributions of finite differences to current direction
+        for( unsigned int j = 0; j < neigh.size(); ++j )
+        {
+            if( boundary_conditions_fulfilled(
+                    geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations ) )
+            {
+                // Index of neighbour
+                int ineigh
+                    = idx_from_translations( n_cells, geometry.n_cell_atoms, translations_i, neigh[j].translations );
+                if( ineigh >= 0 )
+                {
+                    auto d = geometry.positions[ineigh] - geometry.positions[ispin];
+                    for( int dim = 0; dim < 3; ++dim )
+                    {
+                        proj[dim] += std::abs( euclidean[dim].dot( d.normalized() ) );
+                    }
+                }
+            }
+        }
+        for( int dim = 0; dim < 3; ++dim )
+        {
+            if( std::abs( proj[dim] ) > 1e-10 )
+                projection_inv[dim] = 1.0 / proj[dim];
+        }
+        // Loop over neighbours of this vector to calculate finite differences
+        for( unsigned int j = 0; j < neigh.size(); ++j )
+        {
+            if( boundary_conditions_fulfilled(
+                    geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations ) )
+            {
+                // Index of neighbour
+                int ineigh
+                    = idx_from_translations( n_cells, geometry.n_cell_atoms, translations_i, neigh[j].translations );
+                if( ineigh >= 0 )
+                {
+                    auto d = geometry.positions[ineigh] - geometry.positions[ispin];
+                    for( int dim = 0; dim < 3; ++dim )
+                    {
+                        contrib[dim] += euclidean[dim].dot( d ) / d.dot( d ) * ( vf[ineigh] - vf[ispin] );
+                    }
+                }
+            }
+        }
+
+        for( int dim = 0; dim < 3; ++dim )
+        {
+            gradient[ispin] += direction[dim] * projection_inv[dim] * contrib[dim];
+        }
+    }
+}
+
+
 } // namespace Vectormath
 } // namespace Engine
