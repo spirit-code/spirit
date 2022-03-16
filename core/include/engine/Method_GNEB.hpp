@@ -75,8 +75,13 @@ private:
     std::vector<vectorfield> F_gradient;
     std::vector<vectorfield> F_spring;
     vectorfield f_shrink;
+
+    vectorfield F_translation_left;
+    vectorfield F_translation_right;
+
     // Last calculated tangents
     std::vector<vectorfield> tangents;
+
     vectorfield tangent_endpoints_left;
     vectorfield tangent_endpoints_right;
 };

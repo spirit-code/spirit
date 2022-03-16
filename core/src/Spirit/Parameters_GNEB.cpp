@@ -261,8 +261,8 @@ catch( ... )
     spirit_handle_exception_api( -1, idx_chain );
 }
 
-// Set if moving endpoints should be used
-void Parameters_GNEB_Set_Attracting_Endpoints( State * state, bool attracting_endpoints, int idx_chain ) noexcept
+// Set if translating endpoints should be used
+void Parameters_GNEB_Set_Translating_Endpoints( State * state, bool translating_endpoints, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -274,11 +274,11 @@ try
 
     chain->Lock();
     auto p              = chain->gneb_parameters;
-    p->attracting_endpoints = attracting_endpoints;
+    p->moving_endpoints = translating_endpoints;
     chain->Unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
-         fmt::format( "Set GNEB attracting endpoints = {}", attracting_endpoints ), idx_image, idx_chain );
+         fmt::format( "Set GNEB translating endpoints = {}", translating_endpoints ), idx_image, idx_chain );
 }
 catch( ... )
 {

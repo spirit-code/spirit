@@ -1055,7 +1055,7 @@ std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config
             config_file_handle.Read_Single( parameters->moving_endpoints, "gneb_moving_endpoints" );
             config_file_handle.Read_Single( parameters->equilibrium_delta_Rx_left, "gneb_equilibrium_delta_Rx_left" );
             config_file_handle.Read_Single( parameters->equilibrium_delta_Rx_right, "gneb_equilibrium_delta_Rx_right" );
-            config_file_handle.Read_Single( parameters->attracting_endpoints, "gneb_attracting_endpoints" );
+            config_file_handle.Read_Single( parameters->translating_endpoints, "gneb_translating_endpoints" );
         }
         catch( ... )
         {
@@ -1081,7 +1081,7 @@ std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "moving_endpoints", parameters->moving_endpoints ) );
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "equilibrium_delta_Rx_left", parameters->equilibrium_delta_Rx_left ) );
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "equilibrium_delta_Rx_right", parameters->equilibrium_delta_Rx_right ) );
-    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "attracting_endpoints", parameters->attracting_endpoints ) );
+    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "translating_endpoints", parameters->translating_endpoints ) );
     parameter_log.emplace_back( fmt::format( "    {:<18} = \"{}\"", "output_folder", parameters->output_folder ) );
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "output_any", parameters->output_any ) );
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "output_initial", parameters->output_initial ) );

@@ -9,7 +9,7 @@
 #include <utility/Cubic_Hermite_Spline.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Version.hpp>
-
+#include <Eigen/Geometry>
 #include <cmath>
 #include <iostream>
 
@@ -41,6 +41,10 @@ Method_GNEB<solver>::Method_GNEB( std::shared_ptr<Data::Spin_System_Chain> chain
     this->F_spring   = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) ); // [noi][nos]
     this->f_shrink   = vectorfield( this->nos, { 0, 0, 0 } );                                        // [nos]
     this->xi         = vectorfield( this->nos, { 0, 0, 0 } );
+
+    this->F_translation_left  = vectorfield( this->nos, { 0, 0, 0 } );
+    this->F_translation_right = vectorfield( this->nos, { 0, 0, 0 } );
+
 
     // Tangents
     this->tangents = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) ); // [noi][nos]
@@ -254,65 +258,81 @@ void Method_GNEB<solver>::Calculate_Force(
     // Moving endpoints
     if( chain->gneb_parameters->moving_endpoints )
     {
-    
-        scalar delta_Rx_endpoints  = Manifoldmath::dist_geodesic( *this->chain->images[0]->spins, *this->chain->images[chain->noi - 1]->spins);
-        scalar delta_Rx_endpoints0 = chain->gneb_parameters->equilibrium_delta_Rx_left + chain->gneb_parameters->equilibrium_delta_Rx_right;
+        // Overall translational force
+        int noi = chain->noi;
+        Manifoldmath::project_tangential( F_gradient[0], *configurations[0] );
+        Manifoldmath::project_tangential( F_gradient[noi-1], *configurations[noi-1] );
 
-        auto _tangent_endpoints_left  = tangent_endpoints_left.data();
-        auto _tangent_endpoints_right = tangent_endpoints_right.data();
-        auto _spins_left  = this->chain->images[0]->spins->data();
-        auto _spins_right = this->chain->images[chain->noi - 1]->spins->data();
-
-        if(chain->gneb_parameters->attracting_endpoints)
+        if(chain->gneb_parameters->translating_endpoints)
         {
-            Backend::par::apply(nos, 
+            Backend::par::apply(nos,
                 [
-                    _tangent_endpoints_left,
-                    _tangent_endpoints_right,
-                    _spins_left,
-                    _spins_right
-                ] 
-                SPIRIT_LAMBDA( int idx )
+                    F_translation_left  = F_translation_left.data(),
+                    F_translation_right = F_translation_right.data(),
+                    F_gradient_left     = F_gradient[0].data(),
+                    F_gradient_right    = F_gradient[noi-1].data(),
+                    spins_left  = this->chain->images[0]->spins->data(),
+                    spins_right = this->chain->images[noi-1]->spins->data()
+                ] SPIRIT_LAMBDA ( int idx)
                 {
-                    const Vector3 ds = _spins_right[idx] - _spins_left[idx];
-                    _tangent_endpoints_left[idx]  = ds - ds.dot( _spins_left[idx] ) * ds;
-                    _tangent_endpoints_right[idx] = ds - ds.dot( _spins_right[idx] ) * ds;
+                    Vector3 axis = spins_left[idx].cross(spins_right[idx]);
+                    scalar angle = acos(spins_left[idx].dot(spins_right[idx]));
+                    
+                    // Rotation matrix that rotates spin_left to spin_right
+                    Matrix3 rotation_matrix = Eigen::AngleAxis<scalar>(angle, axis.normalized()).toRotationMatrix();
+
+                    if (std::abs(angle) < 1e-6 || std::isnan(angle)) // Angle can become nan for collinear spins
+                        rotation_matrix = Matrix3::Identity();
+
+                    Vector3 F_gradient_right_rotated = rotation_matrix * F_gradient_right[idx];
+                    F_translation_left[idx] = -0.5 * (F_gradient_left[idx] + F_gradient_right_rotated);
+
+                    Vector3 F_gradient_left_rotated = rotation_matrix.transpose() * F_gradient_left[idx];
+                    F_translation_right[idx] = -0.5 * (F_gradient_left_rotated + F_gradient_right[idx]);
                 }
             );
+            Manifoldmath::project_parallel( F_translation_left,  tangents[0] );
+            Manifoldmath::project_parallel( F_translation_right, tangents[noi-1]);
         }
 
         for( int img : { 0, chain->noi - 1 } )
         {
-            auto & image = *configurations[img];
-            Manifoldmath::project_tangential( F_gradient[img], image );
-
-            auto _F_total    = F_total[img].data();
-            auto _forces     = forces[img].data();
-            auto _F_gradient = F_gradient[img].data();
-            auto _tangents   = tangents[img].data();
-
             scalar delta_Rx0 = ( img == 0 ) ? chain->gneb_parameters->equilibrium_delta_Rx_left : chain->gneb_parameters->equilibrium_delta_Rx_right;
-            scalar delta_Rx  = ( img == 0 ? Rx[1] - Rx[0] : Rx[chain->noi - 1] - Rx[chain->noi - 2] );
-
-
-            auto _tangent_endpoints = ( img==0 ) ? _tangent_endpoints_left : _tangent_endpoints_right;
+            scalar delta_Rx  = ( img == 0 ) ? Rx[1] - Rx[0] : Rx[chain->noi - 1] - Rx[chain->noi - 2];
 
             auto spring_constant = ( ( img == 0 ) ? 1.0 : -1.0 ) * this->chain->gneb_parameters->spring_constant;
             auto projection      = Vectormath::dot( F_gradient[img], tangents[img] );
 
+            auto F_translation = ( img == 0 ) ? F_translation_left.data() : F_translation_right.data();
+
             // std::cout << " === " << img << " ===\n";
-            // fmt::print( "{}\n", _F_total[0].transpose() );
-            // fmt::print( "{}\n", _F_gradient[0].transpose() );
-            // fmt::print( "{}\n", delta_Rx );
+            // fmt::print( "tangent_coeff = {}\n",  spring_constant * (delta_Rx - delta_Rx0) );
+            // fmt::print( "delta_Rx {}\n", delta_Rx );
+            // fmt::print( "delta_Rx0 {}\n", delta_Rx0 );
 
             Backend::par::apply(
-                nos, [_forces, _F_total, _F_gradient, delta_Rx, delta_Rx0, delta_Rx_endpoints, delta_Rx_endpoints0, _tangent_endpoints, _tangents, spring_constant,
-                      projection] SPIRIT_LAMBDA( int idx ) {
-                    _forces[idx] = _F_gradient[idx] - projection * _tangents[idx]
-                                   + spring_constant * ( delta_Rx - delta_Rx0 ) * _tangents[idx] 
-                                   + spring_constant * ( delta_Rx_endpoints - delta_Rx_endpoints0 ) * _tangent_endpoints[idx];
-                    _F_total[idx] = _forces[idx];
-                } );
+                nos, 
+                [
+                    F_total       = F_total[img].data(),
+                    F_gradient    = F_gradient[img].data(),
+                    forces        = forces[img].data(),
+                    tangents      = tangents[img].data(),
+                    tangent_coeff = spring_constant * std::tanh(delta_Rx - delta_Rx0),
+                    F_translation,
+                    projection
+                ] SPIRIT_LAMBDA ( int idx )
+                {
+                    forces[idx] = F_gradient[idx] - projection * tangents[idx] 
+                                    + tangent_coeff * tangents[idx]
+                                    + F_translation[idx];
+
+                    // std::cout << F_translation[idx].transpose() << "\n";
+                    F_total[idx] = forces[idx];
+                }
+            );
+
+            Manifoldmath::project_tangential( F_gradient[0], *configurations[0] );
+            Manifoldmath::project_tangential( F_gradient[noi-1], *configurations[noi-1] );
         }
     }
 
