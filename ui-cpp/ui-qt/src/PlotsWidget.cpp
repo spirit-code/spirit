@@ -24,6 +24,8 @@ PlotsWidget::PlotsWidget( std::shared_ptr<State> state )
     connect( this->checkBox_ImageEnergies, SIGNAL( stateChanged( int ) ), this, SLOT( updatePlotSettings() ) );
     connect( this->checkBox_InterpolateEnergies, SIGNAL( stateChanged( int ) ), this, SLOT( updatePlotSettings() ) );
     connect( this->spinBox_InterpolateEnergies_N, SIGNAL( editingFinished() ), this, SLOT( updatePlotSettings() ) );
+    connect( this->checkBox_divide_by_NOS, SIGNAL( stateChanged( int ) ), this, SLOT( updatePlotSettings() ) );
+    connect( this->checkBox_normalize_Rx, SIGNAL( stateChanged( int ) ), this, SLOT( updatePlotSettings() ) );
 
     // Update Timer
     auto timer = new QTimer( this );
@@ -46,5 +48,9 @@ void PlotsWidget::updatePlotSettings()
 {
     this->energyPlot->plot_image_energies = this->checkBox_ImageEnergies->isChecked();
     this->energyPlot->plot_interpolated   = this->checkBox_InterpolateEnergies->isChecked();
+
+    this->energyPlot->divide_by_nos  = this->checkBox_divide_by_NOS->isChecked();
+    this->energyPlot->renormalize_Rx = this->checkBox_normalize_Rx->isChecked();
+
     this->energyPlot->plot_interpolated_n = this->spinBox_InterpolateEnergies_N->value();
 }

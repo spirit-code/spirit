@@ -20,6 +20,8 @@ public:
     bool plot_image_energies;
     bool plot_interpolated;
     int plot_interpolated_n;
+    bool divide_by_nos;
+    bool renormalize_Rx;
 
 private:
     std::shared_ptr<State> state;

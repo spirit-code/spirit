@@ -110,6 +110,51 @@
            </item>
           </layout>
          </item>
+         <item row="0" column="1">
+          <layout class="QGridLayout" name="gridLayout_8">
+           <item row="1" column="1">
+            <widget class="QSpinBox" name="spinBox_InterpolateEnergies_N">
+             <property name="minimum">
+              <number>1</number>
+             </property>
+             <property name="maximum">
+              <number>10000</number>
+             </property>
+            </widget>
+           </item>
+           <item row="1" column="0">
+            <widget class="QCheckBox" name="checkBox_InterpolateEnergies">
+             <property name="text">
+              <string>Interpolated Energies</string>
+             </property>
+             <property name="checked">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item row="2" column="0">
+            <widget class="QCheckBox" name="checkBox_normalize_Rx">
+             <property name="text">
+              <string>Normalize Rx</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="0">
+            <widget class="QCheckBox" name="checkBox_ImageEnergies">
+             <property name="text">
+              <string>Image Energies</string>
+             </property>
+            </widget>
+           </item>
+           <item row="3" column="0">
+            <widget class="QCheckBox" name="checkBox_divide_by_NOS">
+             <property name="text">
+              <string>Divide by NOS</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
          <item row="0" column="6">
           <spacer name="horizontalSpacer">
            <property name="orientation">
@@ -129,37 +174,6 @@
             <string>Refresh</string>
            </property>
           </widget>
-         </item>
-         <item row="0" column="1">
-          <layout class="QGridLayout" name="gridLayout_8">
-           <item row="1" column="0">
-            <widget class="QCheckBox" name="checkBox_InterpolateEnergies">
-             <property name="text">
-              <string>Interpolated Energies</string>
-             </property>
-             <property name="checked">
-              <bool>false</bool>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QCheckBox" name="checkBox_ImageEnergies">
-             <property name="text">
-              <string>Image Energies</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="1">
-            <widget class="QSpinBox" name="spinBox_InterpolateEnergies_N">
-             <property name="minimum">
-              <number>1</number>
-             </property>
-             <property name="maximum">
-              <number>10000</number>
-             </property>
-            </widget>
-           </item>
-          </layout>
          </item>
         </layout>
        </item>
