@@ -225,7 +225,15 @@ _GNEB_Get_Moving_Endpoints.restype   = ctypes.c_bool
 def get_moving_endpoints(p_state, idx_chain=-1):
     """Return if moving endpoints are used."""
     return bool( _GNEB_Get_Moving_Endpoints(ctypes.c_void_p(p_state),
-                                         ctypes.c_int(idx_chain)))
+                                         ctypes.c_int(idx_chain)) )
+
+_GNEB_Get_Translating_Endpoints           = _spirit.Parameters_GNEB_Get_Translating_Endpoints
+_GNEB_Get_Translating_Endpoints.argtypes  = [ctypes.c_void_p, ctypes.c_int]
+_GNEB_Get_Translating_Endpoints.restype   = ctypes.c_bool
+def get_translating_endpoints(p_state, idx_chain=-1):
+    """Return if translating endpoints are used."""
+    return bool( _GNEB_Get_Translating_Endpoints(ctypes.c_void_p(p_state),
+                                         ctypes.c_int(idx_chain)) )
 
 _GNEB_Get_Climbing_Falling             = _spirit.Parameters_GNEB_Get_Climbing_Falling
 _GNEB_Get_Climbing_Falling.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]

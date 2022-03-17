@@ -600,6 +600,25 @@ catch( ... )
     return 0;
 }
 
+bool Parameters_GNEB_Get_Translating_Endpoints( State * state, int idx_chain ) noexcept
+try
+{
+    int idx_image = -1;
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    auto p = chain->gneb_parameters;
+    return static_cast<bool>( p->translating_endpoints );
+}
+catch( ... )
+{
+    spirit_handle_exception_api( -1, idx_chain );
+    return 0;
+}
+
 int Parameters_GNEB_Get_Climbing_Falling( State * state, int idx_image, int idx_chain ) noexcept
 try
 {

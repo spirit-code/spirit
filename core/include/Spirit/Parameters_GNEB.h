@@ -181,6 +181,9 @@ PREFIX float Parameters_GNEB_Get_Path_Shortening_Constant( State * state, int id
 // Return if moving endpoints are used
 PREFIX bool Parameters_GNEB_Get_Moving_Endpoints( State * state, int idx_chain = -1 ) SUFFIX;
 
+// Set if translating endpoints are used
+PREFIX bool Parameters_GNEB_Get_Translating_Endpoints( State * state, int idx_chain = -1 ) SUFFIX;
+
 /*
 Returns the integer of whether an image is regular, climbing, falling, or stationary.
 
