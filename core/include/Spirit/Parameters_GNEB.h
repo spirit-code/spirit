@@ -184,6 +184,9 @@ PREFIX bool Parameters_GNEB_Get_Moving_Endpoints( State * state, int idx_chain =
 // Set if translating endpoints are used
 PREFIX bool Parameters_GNEB_Get_Translating_Endpoints( State * state, int idx_chain = -1 ) SUFFIX;
 
+// Get the equilibrium Rx, used for the moving endpoints method
+PREFIX void Parameters_GNEB_Get_Equilibrium_Delta_Rx( State * state, float * delta_Rx_left, float * delta_Rx_right, int idx_chain = -1 ) SUFFIX;
+
 /*
 Returns the integer of whether an image is regular, climbing, falling, or stationary.
 

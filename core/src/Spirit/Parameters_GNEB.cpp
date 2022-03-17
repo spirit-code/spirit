@@ -619,6 +619,25 @@ catch( ... )
     return 0;
 }
 
+void Parameters_GNEB_Get_Equilibrium_Delta_Rx( State * state, float * delta_Rx_left, float * delta_Rx_right, int idx_chain) noexcept
+try
+{
+    int idx_image = -1;
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    auto p = chain->gneb_parameters;
+    *delta_Rx_left = float(p->equilibrium_delta_Rx_left);
+    *delta_Rx_right = float(p->equilibrium_delta_Rx_right);
+}
+catch( ... )
+{
+    spirit_handle_exception_api( -1, idx_chain );
+}
+
 int Parameters_GNEB_Get_Climbing_Falling( State * state, int idx_image, int idx_chain ) noexcept
 try
 {

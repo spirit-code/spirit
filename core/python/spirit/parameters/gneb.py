@@ -235,6 +235,18 @@ def get_translating_endpoints(p_state, idx_chain=-1):
     return bool( _GNEB_Get_Translating_Endpoints(ctypes.c_void_p(p_state),
                                          ctypes.c_int(idx_chain)) )
 
+_GNEB_Get_Equilibrium_Delta_Rx           = _spirit.Parameters_GNEB_Get_Equilibrium_Delta_Rx
+_GNEB_Get_Equilibrium_Delta_Rx.argtypes  = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_float), ctypes.c_int]
+_GNEB_Get_Equilibrium_Delta_Rx.restype   = None
+def get_equilibrium_delta_Rx(p_state, idx_chain=-1):
+    """Return the equilibrium delta_Rx for the moving endpoints."""
+    delta_Rx_left  = ctypes.c_float()
+    delta_Rx_right = ctypes.c_float()
+
+    _GNEB_Get_Equilibrium_Delta_Rx(ctypes.c_void_p(p_state), ctypes.byref(delta_Rx_left), ctypes.byref(delta_Rx_right), ctypes.c_int(idx_chain))
+
+    return [float(delta_Rx_left.value), float(delta_Rx_right.value)]
+
 _GNEB_Get_Climbing_Falling             = _spirit.Parameters_GNEB_Get_Climbing_Falling
 _GNEB_Get_Climbing_Falling.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
 _GNEB_Get_Climbing_Falling.restype     = ctypes.c_int
