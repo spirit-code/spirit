@@ -273,8 +273,8 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     chain->Lock();
-    auto p              = chain->gneb_parameters;
-    p->moving_endpoints = translating_endpoints;
+    auto p                   = chain->gneb_parameters;
+    p->translating_endpoints = translating_endpoints;
     chain->Unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,

@@ -257,11 +257,11 @@ void Method_GNEB<solver>::Calculate_Force(
     // Moving endpoints
     if( chain->gneb_parameters->moving_endpoints )
     {
-        // Overall translational force
         int noi = chain->noi;
         Manifoldmath::project_tangential( F_gradient[0], *configurations[0] );
         Manifoldmath::project_tangential( F_gradient[noi - 1], *configurations[noi - 1] );
 
+        // Overall translational force
         if( chain->gneb_parameters->translating_endpoints )
         {
             // clang-format off

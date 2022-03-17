@@ -115,7 +115,7 @@ PREFIX void Parameters_GNEB_Set_Path_Shortening_Constant(
 PREFIX void Parameters_GNEB_Set_Moving_Endpoints( State * state, bool moving_endpoints, int idx_chain = -1 ) SUFFIX;
 
 // Set if attracting endpoints should be used
-PREFIX void Parameters_GNEB_Set_Attracting_Endpoints( State * state, bool attracting, int idx_chain = -1 ) SUFFIX;
+PREFIX void Parameters_GNEB_Set_Translating_Endpoints( State * state, bool translating_endpoints, int idx_chain = -1 ) SUFFIX;
 
 // Set equilibrium Rx, used for the  moving endpoints method
 PREFIX void Parameters_GNEB_Set_Equilibrium_Delta_Rx( State * state, float delta_Rx_left, float delta_Rx_right, int idx_chain = -1 ) SUFFIX;
