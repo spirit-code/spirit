@@ -1,4 +1,6 @@
 #include <Spirit_Defines.h>
+#include <Eigen/Geometry>
+#include <cmath>
 #include <data/Spin_System_Chain.hpp>
 #include <engine/Backend_par.hpp>
 #include <engine/Manifoldmath.hpp>
@@ -6,12 +8,10 @@
 #include <engine/Vectormath.hpp>
 #include <io/IO.hpp>
 #include <io/OVF_File.hpp>
+#include <iostream>
 #include <utility/Cubic_Hermite_Spline.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Version.hpp>
-#include <Eigen/Geometry>
-#include <cmath>
-#include <iostream>
 
 #include <fmt/format.h>
 
@@ -45,11 +45,10 @@ Method_GNEB<solver>::Method_GNEB( std::shared_ptr<Data::Spin_System_Chain> chain
     this->F_translation_left  = vectorfield( this->nos, { 0, 0, 0 } );
     this->F_translation_right = vectorfield( this->nos, { 0, 0, 0 } );
 
-
     // Tangents
     this->tangents = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) ); // [noi][nos]
-    this->tangent_endpoints_left  = vectorfield( this->nos, { 0, 0, 0 } );                                        // [nos]
-    this->tangent_endpoints_right = vectorfield( this->nos, { 0, 0, 0 } );                                        // [nos]
+    this->tangent_endpoints_left  = vectorfield( this->nos, { 0, 0, 0 } );                         // [nos]
+    this->tangent_endpoints_right = vectorfield( this->nos, { 0, 0, 0 } );                         // [nos]
 
     // We assume that the chain is not converged before the first iteration
     this->max_torque     = this->chain->gneb_parameters->force_convergence + 1.0;
@@ -148,11 +147,11 @@ void Method_GNEB<solver>::Calculate_Force(
         scalar range_Rx
             = interp[0].at( std::distance( interp[0].begin(), std::max_element( interp[0].begin(), interp[0].end() ) ) )
               - interp[0].at(
-                  std::distance( interp[0].begin(), std::min_element( interp[0].begin(), interp[0].end() ) ) );
+                    std::distance( interp[0].begin(), std::min_element( interp[0].begin(), interp[0].end() ) ) );
         scalar range_E
             = interp[1].at( std::distance( interp[1].begin(), std::max_element( interp[1].begin(), interp[1].end() ) ) )
               - interp[1].at(
-                  std::distance( interp[1].begin(), std::min_element( interp[1].begin(), interp[1].end() ) ) );
+                    std::distance( interp[1].begin(), std::min_element( interp[1].begin(), interp[1].end() ) ) );
 
         for( int idx_image = 1; idx_image < this->chain->noi; ++idx_image )
         {
@@ -261,10 +260,11 @@ void Method_GNEB<solver>::Calculate_Force(
         // Overall translational force
         int noi = chain->noi;
         Manifoldmath::project_tangential( F_gradient[0], *configurations[0] );
-        Manifoldmath::project_tangential( F_gradient[noi-1], *configurations[noi-1] );
+        Manifoldmath::project_tangential( F_gradient[noi - 1], *configurations[noi - 1] );
 
-        if(chain->gneb_parameters->translating_endpoints)
+        if( chain->gneb_parameters->translating_endpoints )
         {
+            // clang-format off
             Backend::par::apply(nos,
                 [
                     F_translation_left  = F_translation_left.data(),
@@ -277,7 +277,7 @@ void Method_GNEB<solver>::Calculate_Force(
                 {
                     Vector3 axis = spins_left[idx].cross(spins_right[idx]);
                     scalar angle = acos(spins_left[idx].dot(spins_right[idx]));
-                    
+
                     // Rotation matrix that rotates spin_left to spin_right
                     Matrix3 rotation_matrix = Eigen::AngleAxis<scalar>(angle, axis.normalized()).toRotationMatrix();
 
@@ -291,14 +291,17 @@ void Method_GNEB<solver>::Calculate_Force(
                     F_translation_right[idx] = -0.5 * (F_gradient_left_rotated + F_gradient_right[idx]);
                 }
             );
-            Manifoldmath::project_parallel( F_translation_left,  tangents[0] );
-            Manifoldmath::project_parallel( F_translation_right, tangents[noi-1]);
+            // clang-format on
+
+            Manifoldmath::project_parallel( F_translation_left, tangents[0] );
+            Manifoldmath::project_parallel( F_translation_right, tangents[noi - 1] );
         }
 
         for( int img : { 0, chain->noi - 1 } )
         {
-            scalar delta_Rx0 = ( img == 0 ) ? chain->gneb_parameters->equilibrium_delta_Rx_left : chain->gneb_parameters->equilibrium_delta_Rx_right;
-            scalar delta_Rx  = ( img == 0 ) ? Rx[1] - Rx[0] : Rx[chain->noi - 1] - Rx[chain->noi - 2];
+            scalar delta_Rx0 = ( img == 0 ) ? chain->gneb_parameters->equilibrium_delta_Rx_left :
+                                              chain->gneb_parameters->equilibrium_delta_Rx_right;
+            scalar delta_Rx = ( img == 0 ) ? Rx[1] - Rx[0] : Rx[chain->noi - 1] - Rx[chain->noi - 2];
 
             auto spring_constant = ( ( img == 0 ) ? 1.0 : -1.0 ) * this->chain->gneb_parameters->spring_constant;
             auto projection      = Vectormath::dot( F_gradient[img], tangents[img] );
@@ -310,8 +313,9 @@ void Method_GNEB<solver>::Calculate_Force(
             // fmt::print( "delta_Rx {}\n", delta_Rx );
             // fmt::print( "delta_Rx0 {}\n", delta_Rx0 );
 
+            // clang-format off
             Backend::par::apply(
-                nos, 
+                nos,
                 [
                     F_total       = F_total[img].data(),
                     F_gradient    = F_gradient[img].data(),
@@ -322,7 +326,7 @@ void Method_GNEB<solver>::Calculate_Force(
                     projection
                 ] SPIRIT_LAMBDA ( int idx )
                 {
-                    forces[idx] = F_gradient[idx] - projection * tangents[idx] 
+                    forces[idx] = F_gradient[idx] - projection * tangents[idx]
                                     + tangent_coeff * tangents[idx]
                                     + F_translation[idx];
 
@@ -330,9 +334,10 @@ void Method_GNEB<solver>::Calculate_Force(
                     F_total[idx] = forces[idx];
                 }
             );
+            // clang-format on
 
             Manifoldmath::project_tangential( F_gradient[0], *configurations[0] );
-            Manifoldmath::project_tangential( F_gradient[noi-1], *configurations[noi-1] );
+            Manifoldmath::project_tangential( F_gradient[noi - 1], *configurations[noi - 1] );
         }
     }
 
