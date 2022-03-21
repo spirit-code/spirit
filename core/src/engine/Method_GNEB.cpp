@@ -294,7 +294,19 @@ void Method_GNEB<solver>::Calculate_Force(
             // clang-format on
 
             Manifoldmath::project_parallel( F_translation_left, tangents[0] );
-            Manifoldmath::project_parallel( F_translation_right, tangents[noi - 1] );
+            Manifoldmath::project_parallel( F_translation_right, tangents[chain->noi - 1] );
+        }
+
+        scalar rotational_coeff = 1.0;
+        if(chain->gneb_parameters->escape_first)
+        {
+            // Estimate the curvature along the tangent and only activate the rotational force, if it is negative
+            scalar proj_left = Vectormath::dot( F_gradient[0], tangents[0] );
+            scalar proj_right = Vectormath::dot( F_gradient[chain->noi-1], tangents[chain->noi-1] );
+            if (proj_left > proj_right)
+            {
+                rotational_coeff = 0.0;
+            }
         }
 
         for( int img : { 0, chain->noi - 1 } )
@@ -326,7 +338,7 @@ void Method_GNEB<solver>::Calculate_Force(
                     projection
                 ] SPIRIT_LAMBDA ( int idx )
                 {
-                    forces[idx] = F_gradient[idx] - projection * tangents[idx]
+                    forces[idx] =   rotational_coeff * (F_gradient[idx] - projection * tangents[idx])
                                     + tangent_coeff * tangents[idx]
                                     + F_translation[idx];
 
@@ -336,8 +348,10 @@ void Method_GNEB<solver>::Calculate_Force(
             );
             // clang-format on
 
-            Manifoldmath::project_tangential( F_gradient[0], *configurations[0] );
-            Manifoldmath::project_tangential( F_gradient[noi - 1], *configurations[noi - 1] );
+
+            // Manifoldmath::project_tangential( F_gradient[0], *configurations[0] );
+            // Manifoldmath::project_tangential( F_gradient[noi - 1], *configurations[noi - 1] );
+
         }
     }
 
