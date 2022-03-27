@@ -550,6 +550,51 @@ void ParametersWidget::show_content()
         {
             Parameters_GNEB_Set_Path_Shortening_Constant( state.get(), parameters_gneb.path_shortening_constant );
         }
+
+        ImGui::BeginTable("MovingEndpointsTable", 2);
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted( "Moving endpoints" );
+        ImGui::TableNextColumn();
+        if( ImGui::Checkbox(
+                    "##gneb_moving_endpoints",
+                    &parameters_gneb.moving_endpoints ) )
+        {
+                Parameters_GNEB_Set_Moving_Endpoints(
+                    state.get(), parameters_gneb.moving_endpoints );
+        }
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex( 0 );
+        ImGui::TextUnformatted( "Translating endpoints" );
+        ImGui::TableNextColumn();
+        if( ImGui::Checkbox(
+                    "##gneb_translating_endpoints",
+                    &parameters_gneb.translating_endpoints ) )
+        {
+                Parameters_GNEB_Set_Translating_Endpoints(
+                    state.get(), parameters_gneb.translating_endpoints );
+        }
+        ImGui::TableNextRow();
+        ImGui::TableSetColumnIndex( 0 );
+        ImGui::TextUnformatted( "Delta Rx left" );
+        ImGui::TableNextColumn();
+        if( ImGui::InputFloat(
+                    "##gneb_delta_Rx_left",
+                    &parameters_gneb.delta_Rx_left ) )
+        {
+                Parameters_GNEB_Set_Equilibrium_Delta_Rx(
+                    state.get(), parameters_gneb.delta_Rx_left, parameters_gneb.delta_Rx_right );
+        }
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted( "Delta Rx right" );
+        ImGui::TableNextColumn();
+        if( ImGui::InputFloat(
+                    "##gneb_delta_Rx_right",
+                    &parameters_gneb.delta_Rx_right ) )
+        {
+                Parameters_GNEB_Set_Equilibrium_Delta_Rx(
+                    state.get(), parameters_gneb.delta_Rx_left, parameters_gneb.delta_Rx_right );
+        }
+        ImGui::EndTable();
     }
     else if( ui_shared_state.selected_mode == GUI_Mode::MMF )
     {

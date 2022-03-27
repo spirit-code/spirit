@@ -140,6 +140,12 @@ struct Parameters
         // Seed for RNG
         int rng_seed = 2006;
 
+        bool moving_endpoints                      = false;
+        bool translating_endpoints                 = false;
+
+        float delta_Rx_left                        = 1.0;
+        float delta_Rx_right                       = 1.0;
+
         // ----------------- Output --------------
         bool output_energies_step                  = false;
         bool output_energies_divide_by_nspins      = true;
