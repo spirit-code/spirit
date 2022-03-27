@@ -335,7 +335,8 @@ void Method_GNEB<solver>::Calculate_Force(
                     tangents      = tangents[img].data(),
                     tangent_coeff = spring_constant * std::tanh(delta_Rx - delta_Rx0),
                     F_translation,
-                    projection
+                    projection,
+                    rotational_coeff
                 ] SPIRIT_LAMBDA ( int idx )
                 {
                     forces[idx] =   rotational_coeff * (F_gradient[idx] - projection * tangents[idx])
@@ -347,11 +348,6 @@ void Method_GNEB<solver>::Calculate_Force(
                 }
             );
             // clang-format on
-
-
-            // Manifoldmath::project_tangential( F_gradient[0], *configurations[0] );
-            // Manifoldmath::project_tangential( F_gradient[noi - 1], *configurations[noi - 1] );
-
         }
     }
 
