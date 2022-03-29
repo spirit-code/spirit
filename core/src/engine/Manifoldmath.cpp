@@ -3,6 +3,7 @@
 #include <utility/Constants.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
+#include <engine/Backend_par.hpp>
 
 #include <Eigen/Dense>
 
@@ -74,6 +75,42 @@ scalar dist_geodesic( const vectorfield & v1, const vectorfield & v2 )
 }
 
 /*
+    Helper function for a more accurate tangent
+*/
+void Geodesic_Tangent( vectorfield & tangent, const vectorfield & image_1, const vectorfield & image_2, const vectorfield & image_mid )
+{
+    // clang-format off
+    Backend::par::apply(
+        image_1.size(),
+        [
+            image_minus = image_1.data(),
+            image_plus  = image_2.data(),
+            image_mid   = image_mid.data(),
+            tangent     = tangent.data()
+        ] SPIRIT_LAMBDA (int idx)
+        {
+            const Vector3 ex = { 1, 0, 0 };
+            const Vector3 ey = { 0, 1, 0 };
+            scalar epsilon   = 1e-15;
+
+            Vector3 axis = image_plus[idx].cross( image_minus[idx] );
+
+            // If the spins are anti-parallel, we choose an arbitrary axis
+            if( std::abs(image_minus[idx].dot(image_plus[idx]) + 1) < epsilon ) // Check if anti-parallel
+            {
+                if( std::abs( image_mid[idx].dot( ex ) - 1 ) > epsilon ) // Check if parallel to ex
+                    axis = ex;
+                else
+                    axis = ey;
+            }
+            tangent[idx] = image_mid[idx].cross( axis );
+        }
+    );
+    Manifoldmath::normalize(tangent);
+    // clang-format on
+};
+
+/*
 Calculates the 'tangent' vectors, i.e.in crudest approximation the difference between an image and the neighbouring
 */
 void Tangents(
@@ -91,15 +128,13 @@ void Tangents(
         if( idx_img == 0 )
         {
             auto & image_plus = *configurations[idx_img + 1];
-            Vectormath::set_c_a( 1, image_plus, tangents[idx_img] );
-            Vectormath::add_c_a( -1, image, tangents[idx_img] );
+            Geodesic_Tangent( tangents[idx_img], image, image_plus, image ); // Use the accurate tangent at the endpoints, useful for the dimer method
         }
         // Last Image
         else if( idx_img == noi - 1 )
         {
             auto & image_minus = *configurations[idx_img - 1];
-            Vectormath::set_c_a( 1, image, tangents[idx_img] );
-            Vectormath::add_c_a( -1, image_minus, tangents[idx_img] );
+            Geodesic_Tangent( tangents[idx_img], image_minus, image, image ); // Use the accurate tangent at the endpoints, useful for the dimer method
         }
         // Images Inbetween
         else
@@ -161,14 +196,12 @@ void Tangents(
                 Vectormath::set_c_a( 1, t_plus, tangents[idx_img] );
                 Vectormath::add_c_a( 1, t_minus, tangents[idx_img] );
             }
+
+            // Project tangents into tangent planes of spin vectors to make them actual tangents
+            project_tangential( tangents[idx_img], image );
+            // Normalise in 3N - dimensional space
+            Manifoldmath::normalize( tangents[idx_img] );
         }
-
-        // Project tangents into tangent planes of spin vectors to make them actual tangents
-        project_tangential( tangents[idx_img], image );
-
-        // Normalise in 3N - dimensional space
-        Manifoldmath::normalize( tangents[idx_img] );
-
     } // end for idx_img
 } // end Tangents
 } // namespace Manifoldmath
