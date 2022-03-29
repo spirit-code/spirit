@@ -333,7 +333,7 @@ void Method_GNEB<solver>::Calculate_Force(
                     F_gradient    = F_gradient[img].data(),
                     forces        = forces[img].data(),
                     tangents      = tangents[img].data(),
-                    tangent_coeff = spring_constant * std::tanh(delta_Rx - delta_Rx0),
+                    tangent_coeff = spring_constant * (delta_Rx - delta_Rx0),
                     F_translation,
                     projection,
                     rotational_coeff
