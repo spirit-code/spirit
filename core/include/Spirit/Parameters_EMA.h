@@ -19,6 +19,9 @@ This method, if needed, calculates modes (they can also be read in from a file)
 and perturbs the spin system periodically in the direction of the eigenmode.
 */
 
+// Clears all the previously calculated modes from memory
+PREFIX void Parameters_EMA_Clear_Modes( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+
 /*
 Set
 --------------------------------------------------------------------
@@ -42,6 +45,9 @@ Parameters_EMA_Set_Amplitude( State * state, float amplitude, int idx_image = -1
 // Set whether to displace the system statically instead of periodically.
 PREFIX void Parameters_EMA_Set_Snapshot( State * state, bool snapshot, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
+// Set whether to use sparse matrices.
+PREFIX void Parameters_EMA_Set_Sparse( State * state, bool sparse, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+
 /*
 Get
 --------------------------------------------------------------------
@@ -61,6 +67,9 @@ PREFIX float Parameters_EMA_Get_Amplitude( State * state, int idx_image = -1, in
 
 // Returns whether to displace the system statically instead of periodically.
 PREFIX bool Parameters_EMA_Get_Snapshot( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+
+// Returns whether to use sparse matrices.
+PREFIX bool Parameters_EMA_Get_Sparse( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 #include "DLL_Undefine_Export.h"
 #endif

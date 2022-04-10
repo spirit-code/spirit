@@ -580,7 +580,7 @@ void ParametersWidget::load_Spin_Configuration_Eigenmodes()
                     .c_str() );
 
         auto file = string_q2std( fileName );
-        IO_Eigenmodes_Read( this->state.get(), file.c_str(), type );
+        IO_Eigenmodes_Read( this->state.get(), file.c_str() );
 
         // n_modes parameter might be change by IO_Eigenmodes_Read so update that first
         this->spinBox_ema_n_modes->setValue( Parameters_EMA_Get_N_Modes( state.get() ) );
