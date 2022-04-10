@@ -442,9 +442,12 @@ try
         *n_shells = ham->exchange_shell_magnitudes.size();
 
         // Note the array needs to be correctly allocated beforehand!
-        for( std::size_t i = 0; i < ham->exchange_shell_magnitudes.size(); ++i )
+        if(jij != nullptr)
         {
-            jij[i] = (float)ham->exchange_shell_magnitudes[i];
+            for( int i = 0; i < ham->exchange_shell_magnitudes.size(); ++i )
+            {
+                jij[i] = (float)ham->exchange_shell_magnitudes[i];
+            }
         }
     }
 }
@@ -523,10 +526,12 @@ try
 
         *n_shells  = ham->dmi_shell_magnitudes.size();
         *chirality = ham->dmi_shell_chirality;
-
-        for( int i = 0; i < *n_shells; ++i )
+        if(dij != nullptr)
         {
-            dij[i] = (float)ham->dmi_shell_magnitudes[i];
+            for( int i = 0; i < *n_shells; ++i )
+            {
+                dij[i] = (float)ham->dmi_shell_magnitudes[i];
+            }
         }
     }
 }
