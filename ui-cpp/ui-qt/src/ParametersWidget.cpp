@@ -189,6 +189,16 @@ void ParametersWidget::Load_Parameters_Contents()
     else if( image_type == 3 )
         this->radioButton_Stationary->setChecked( true );
 
+    // Moving endpoints
+    bool moving_endpoints = Parameters_GNEB_Get_Moving_Endpoints( state.get() );
+    this->checkBox_moving_endpoints->setChecked( moving_endpoints );
+    bool translating_endpoints = Parameters_GNEB_Get_Translating_Endpoints( state.get() );
+    this->checkBox_translating_endpoints->setChecked( translating_endpoints );
+    float delta_Rx_left, delta_Rx_right;
+    Parameters_GNEB_Get_Equilibrium_Delta_Rx( state.get(), &delta_Rx_left, &delta_Rx_right);
+    this->doubleSpinBox_delta_Rx_left->setValue( delta_Rx_left );
+    this->doubleSpinBox_delta_Rx_right->setValue( delta_Rx_right );
+
     //      EMA
     // modes to calculate and visualize
     i1 = Parameters_EMA_Get_N_Modes( state.get() );
@@ -445,6 +455,16 @@ void ParametersWidget::set_parameters_gneb()
     Parameters_GNEB_Set_N_Iterations( state.get(), i1, i2 );
     std::string folder = this->lineEdit_gneb_output_folder->text().toStdString();
     Parameters_GNEB_Set_Output_Folder( state.get(), folder.c_str() );
+
+    // Moving endpoints
+    bool moving_endpoints = this->checkBox_moving_endpoints->isChecked();
+    bool translating_endpoints = this->checkBox_translating_endpoints->isChecked();
+    float delta_Rx_left = this->doubleSpinBox_delta_Rx_left->value();
+    float delta_Rx_right = this->doubleSpinBox_delta_Rx_right->value();
+
+    Parameters_GNEB_Set_Moving_Endpoints(state.get(), moving_endpoints);
+    Parameters_GNEB_Set_Translating_Endpoints(state.get(), translating_endpoints);
+    Parameters_GNEB_Set_Equilibrium_Delta_Rx(state.get(), delta_Rx_left, delta_Rx_right);
 }
 
 void ParametersWidget::set_gneb_auto_image_type()
@@ -691,6 +711,7 @@ void ParametersWidget::Setup_Parameters_Slots()
     connect( this->checkBox_gneb_output_any, SIGNAL( stateChanged( int ) ), this, SLOT( set_parameters_gneb() ) );
     connect( this->checkBox_gneb_output_initial, SIGNAL( stateChanged( int ) ), this, SLOT( set_parameters_gneb() ) );
     connect( this->checkBox_gneb_output_final, SIGNAL( stateChanged( int ) ), this, SLOT( set_parameters_gneb() ) );
+
     connect(
         this->checkBox_gneb_output_energies_step, SIGNAL( stateChanged( int ) ), this, SLOT( set_parameters_gneb() ) );
     connect(
@@ -698,6 +719,12 @@ void ParametersWidget::Setup_Parameters_Slots()
         SLOT( set_parameters_gneb() ) );
     connect(
         this->checkBox_gneb_output_chain_step, SIGNAL( stateChanged( int ) ), this, SLOT( set_parameters_gneb() ) );
+
+    // Endpoints
+    connect( this->checkBox_moving_endpoints, SIGNAL( stateChanged( int ) ), this, SLOT( set_parameters_gneb() ) );
+    connect( this->checkBox_translating_endpoints, SIGNAL( stateChanged( int ) ), this, SLOT( set_parameters_gneb() ) );
+    connect( this->doubleSpinBox_delta_Rx_left, SIGNAL( editingFinished() ), this, SLOT( set_parameters_gneb() ) );
+    connect( this->doubleSpinBox_delta_Rx_right, SIGNAL( editingFinished() ), this, SLOT( set_parameters_gneb() ) );
 
     //      EMA
     connect( this->spinBox_ema_n_modes, SIGNAL( editingFinished() ), this, SLOT( set_parameters_ema() ) );

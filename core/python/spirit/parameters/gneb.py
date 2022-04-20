@@ -135,6 +135,27 @@ def set_path_shortening_constant(p_state, shortening_constant, idx_image=-1, idx
     _GNEB_Set_Path_Shortening_Constant(ctypes.c_void_p(p_state), ctypes.c_float(shortening_constant),
                           ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
+_GNEB_Set_Moving_Endpoints           = _spirit.Parameters_GNEB_Set_Moving_Endpoints
+_GNEB_Set_Moving_Endpoints.argtypes  = [ctypes.c_void_p, ctypes.c_bool, ctypes.c_int]
+_GNEB_Set_Moving_Endpoints.restype   = None
+def set_moving_endpoints(p_state, moving_endpoints,  idx_chain=-1):
+    """Set if moving endpoints should be used."""
+    _GNEB_Set_Moving_Endpoints(ctypes.c_void_p(p_state), ctypes.c_bool(moving_endpoints), ctypes.c_int(idx_chain))
+
+_GNEB_Set_Translating_Endpoints           = _spirit.Parameters_GNEB_Set_Translating_Endpoints
+_GNEB_Set_Translating_Endpoints.argtypes  = [ctypes.c_void_p, ctypes.c_bool, ctypes.c_int]
+_GNEB_Set_Translating_Endpoints.restype   = None
+def set_translating_endpoints(p_state, translating_endpoints, idx_chain=-1):
+    """Set if attracting endpoints should be used."""
+    _GNEB_Set_Translating_Endpoints(ctypes.c_void_p(p_state), ctypes.c_bool(translating_endpoints), ctypes.c_int(idx_chain))
+
+_GNEB_Set_Equilibrium_Delta_Rx           = _spirit.Parameters_GNEB_Set_Equilibrium_Delta_Rx
+_GNEB_Set_Equilibrium_Delta_Rx.argtypes  = [ctypes.c_void_p, ctypes.c_float, ctypes.c_float, ctypes.c_int]
+_GNEB_Set_Equilibrium_Delta_Rx.restype   = None
+def set_equilibrium_delta_Rx(p_state, delta_Rx_left, delta_Rx_right, idx_chain=-1):
+    """Set if moving endpoints should be used."""
+    _GNEB_Set_Equilibrium_Delta_Rx(ctypes.c_void_p(p_state), ctypes.c_float(delta_Rx_left), ctypes.c_float(delta_Rx_right), ctypes.c_int(idx_chain))
+
 _GNEB_Set_Climbing_Falling             = _spirit.Parameters_GNEB_Set_Climbing_Falling
 _GNEB_Set_Climbing_Falling.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int]
 _GNEB_Set_Climbing_Falling.restype     = None
@@ -197,6 +218,34 @@ def get_path_shortening_constant(p_state, idx_image=-1, idx_chain=-1):
     """Return the path shortening constant."""
     return float( _GNEB_Get_Path_Shortening_Constant(ctypes.c_void_p(p_state),
                                         ctypes.c_int(idx_image), ctypes.c_int(idx_chain)))
+
+_GNEB_Get_Moving_Endpoints           = _spirit.Parameters_GNEB_Get_Moving_Endpoints
+_GNEB_Get_Moving_Endpoints.argtypes  = [ctypes.c_void_p, ctypes.c_int]
+_GNEB_Get_Moving_Endpoints.restype   = ctypes.c_bool
+def get_moving_endpoints(p_state, idx_chain=-1):
+    """Return if moving endpoints are used."""
+    return bool( _GNEB_Get_Moving_Endpoints(ctypes.c_void_p(p_state),
+                                         ctypes.c_int(idx_chain)) )
+
+_GNEB_Get_Translating_Endpoints           = _spirit.Parameters_GNEB_Get_Translating_Endpoints
+_GNEB_Get_Translating_Endpoints.argtypes  = [ctypes.c_void_p, ctypes.c_int]
+_GNEB_Get_Translating_Endpoints.restype   = ctypes.c_bool
+def get_translating_endpoints(p_state, idx_chain=-1):
+    """Return if translating endpoints are used."""
+    return bool( _GNEB_Get_Translating_Endpoints(ctypes.c_void_p(p_state),
+                                         ctypes.c_int(idx_chain)) )
+
+_GNEB_Get_Equilibrium_Delta_Rx           = _spirit.Parameters_GNEB_Get_Equilibrium_Delta_Rx
+_GNEB_Get_Equilibrium_Delta_Rx.argtypes  = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.POINTER(ctypes.c_float), ctypes.c_int]
+_GNEB_Get_Equilibrium_Delta_Rx.restype   = None
+def get_equilibrium_delta_Rx(p_state, idx_chain=-1):
+    """Return the equilibrium delta_Rx for the moving endpoints."""
+    delta_Rx_left  = ctypes.c_float()
+    delta_Rx_right = ctypes.c_float()
+
+    _GNEB_Get_Equilibrium_Delta_Rx(ctypes.c_void_p(p_state), ctypes.byref(delta_Rx_left), ctypes.byref(delta_Rx_right), ctypes.c_int(idx_chain))
+
+    return [float(delta_Rx_left.value), float(delta_Rx_right.value)]
 
 _GNEB_Get_Climbing_Falling             = _spirit.Parameters_GNEB_Get_Climbing_Falling
 _GNEB_Get_Climbing_Falling.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]

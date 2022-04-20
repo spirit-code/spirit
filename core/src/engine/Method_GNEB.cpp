@@ -1,4 +1,6 @@
 #include <Spirit_Defines.h>
+#include <Eigen/Geometry>
+#include <cmath>
 #include <data/Spin_System_Chain.hpp>
 #include <engine/Backend_par.hpp>
 #include <engine/Manifoldmath.hpp>
@@ -6,12 +8,10 @@
 #include <engine/Vectormath.hpp>
 #include <io/IO.hpp>
 #include <io/OVF_File.hpp>
+#include <iostream>
 #include <utility/Cubic_Hermite_Spline.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Version.hpp>
-
-#include <cmath>
-#include <iostream>
 
 #include <fmt/format.h>
 
@@ -40,10 +40,15 @@ Method_GNEB<solver>::Method_GNEB( std::shared_ptr<Data::Spin_System_Chain> chain
     this->F_gradient = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) ); // [noi][nos]
     this->F_spring   = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) ); // [noi][nos]
     this->f_shrink   = vectorfield( this->nos, { 0, 0, 0 } );                                        // [nos]
-    this->xi         = vectorfield( this->nos, { 0, 0, 0 } );                                        // [nos]
+    this->xi         = vectorfield( this->nos, { 0, 0, 0 } );
+
+    this->F_translation_left  = vectorfield( this->nos, { 0, 0, 0 } );
+    this->F_translation_right = vectorfield( this->nos, { 0, 0, 0 } );
 
     // Tangents
     this->tangents = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) ); // [noi][nos]
+    this->tangent_endpoints_left  = vectorfield( this->nos, { 0, 0, 0 } );                         // [nos]
+    this->tangent_endpoints_right = vectorfield( this->nos, { 0, 0, 0 } );                         // [nos]
 
     // We assume that the chain is not converged before the first iteration
     this->max_torque     = this->chain->gneb_parameters->force_convergence + 1.0;
@@ -100,13 +105,10 @@ void Method_GNEB<solver>::Calculate_Force(
         //      while the gradient force is manipulated (e.g. projected)
         auto eff_field = this->chain->images[img]->effective_field.data();
         auto f_grad    = F_gradient[img].data();
-        Backend::par::apply(
-            image.size(),
-            [eff_field, f_grad] SPIRIT_LAMBDA( int idx )
-            {
-                eff_field[idx] *= -1;
-                f_grad[idx] = eff_field[idx];
-            } );
+        Backend::par::apply( image.size(), [eff_field, f_grad] SPIRIT_LAMBDA( int idx ) {
+            eff_field[idx] *= -1;
+            f_grad[idx] = eff_field[idx];
+        } );
 
         if( img > 0 )
         {
@@ -145,11 +147,11 @@ void Method_GNEB<solver>::Calculate_Force(
         scalar range_Rx
             = interp[0].at( std::distance( interp[0].begin(), std::max_element( interp[0].begin(), interp[0].end() ) ) )
               - interp[0].at(
-                  std::distance( interp[0].begin(), std::min_element( interp[0].begin(), interp[0].end() ) ) );
+                    std::distance( interp[0].begin(), std::min_element( interp[0].begin(), interp[0].end() ) ) );
         scalar range_E
             = interp[1].at( std::distance( interp[1].begin(), std::max_element( interp[1].begin(), interp[1].end() ) ) )
               - interp[1].at(
-                  std::distance( interp[1].begin(), std::min_element( interp[1].begin(), interp[1].end() ) ) );
+                    std::distance( interp[1].begin(), std::min_element( interp[1].begin(), interp[1].end() ) ) );
 
         for( int idx_image = 1; idx_image < this->chain->noi; ++idx_image )
         {
@@ -251,6 +253,104 @@ void Method_GNEB<solver>::Calculate_Force(
         // Copy out
         Vectormath::set_c_a( 1, F_total[img], forces[img] );
     } // end for img=1..noi-1
+
+    // Moving endpoints
+    if( chain->gneb_parameters->moving_endpoints )
+    {
+        int noi = chain->noi;
+        Manifoldmath::project_tangential( F_gradient[0], *configurations[0] );
+        Manifoldmath::project_tangential( F_gradient[noi - 1], *configurations[noi - 1] );
+
+        // Overall translational force
+        if( chain->gneb_parameters->translating_endpoints )
+        {
+            // clang-format off
+            Backend::par::apply(nos,
+                [
+                    F_translation_left  = F_translation_left.data(),
+                    F_translation_right = F_translation_right.data(),
+                    F_gradient_left     = F_gradient[0].data(),
+                    F_gradient_right    = F_gradient[noi-1].data(),
+                    spins_left  = this->chain->images[0]->spins->data(),
+                    spins_right = this->chain->images[noi-1]->spins->data()
+                ] SPIRIT_LAMBDA ( int idx)
+                {
+                    const Vector3 axis = spins_left[idx].cross(spins_right[idx]);
+                    const scalar angle = acos(spins_left[idx].dot(spins_right[idx]));
+
+                    // Rotation matrix that rotates spin_left to spin_right
+                    Matrix3 rotation_matrix = Eigen::AngleAxis<scalar>(angle, axis.normalized()).toRotationMatrix();
+
+                    if ( abs(spins_left[idx].dot(spins_right[idx])) >= 1.0 ) // Angle can become nan for collinear spins
+                        rotation_matrix = Matrix3::Identity();
+
+                    const Vector3 F_gradient_right_rotated = rotation_matrix * F_gradient_right[idx];
+                    F_translation_left[idx] = -0.5 * (F_gradient_left[idx] + F_gradient_right_rotated);
+
+                    const Vector3 F_gradient_left_rotated = rotation_matrix.transpose() * F_gradient_left[idx];
+                    F_translation_right[idx] = -0.5 * (F_gradient_left_rotated + F_gradient_right[idx]);
+                }
+            );
+            // clang-format on
+
+            Manifoldmath::project_parallel( F_translation_left, tangents[0] );
+            Manifoldmath::project_parallel( F_translation_right, tangents[chain->noi - 1] );
+        }
+
+        scalar rotational_coeff = 1.0;
+        if(chain->gneb_parameters->escape_first)
+        {
+            // Estimate the curvature along the tangent and only activate the rotational force, if it is negative
+            scalar proj_left = Vectormath::dot( F_gradient[0], tangents[0] );
+            scalar proj_right = Vectormath::dot( F_gradient[chain->noi-1], tangents[chain->noi-1] );
+            if (proj_left > proj_right)
+            {
+                rotational_coeff = 0.0;
+            }
+        }
+
+        for( int img : { 0, chain->noi - 1 } )
+        {
+            scalar delta_Rx0 = ( img == 0 ) ? chain->gneb_parameters->equilibrium_delta_Rx_left :
+                                              chain->gneb_parameters->equilibrium_delta_Rx_right;
+            scalar delta_Rx = ( img == 0 ) ? Rx[1] - Rx[0] : Rx[chain->noi - 1] - Rx[chain->noi - 2];
+
+            auto spring_constant = ( ( img == 0 ) ? 1.0 : -1.0 ) * this->chain->gneb_parameters->spring_constant;
+            auto projection      = Vectormath::dot( F_gradient[img], tangents[img] );
+
+            auto F_translation = ( img == 0 ) ? F_translation_left.data() : F_translation_right.data();
+
+            // std::cout << " === " << img << " ===\n";
+            // fmt::print( "tangent_coeff = {}\n",  spring_constant * (delta_Rx - delta_Rx0) );
+            // fmt::print( "delta_Rx {}\n", delta_Rx );
+            // fmt::print( "delta_Rx0 {}\n", delta_Rx0 );
+
+            // clang-format off
+            Backend::par::apply(
+                nos,
+                [
+                    F_total       = F_total[img].data(),
+                    F_gradient    = F_gradient[img].data(),
+                    forces        = forces[img].data(),
+                    tangents      = tangents[img].data(),
+                    tangent_coeff = spring_constant * (delta_Rx - delta_Rx0),
+                    F_translation,
+                    projection,
+                    rotational_coeff
+                ] SPIRIT_LAMBDA ( int idx )
+                {
+                    forces[idx] =   rotational_coeff * (F_gradient[idx] - projection * tangents[idx])
+                                    + tangent_coeff * tangents[idx]
+                                    + F_translation[idx];
+
+                    // std::cout << F_translation[idx].transpose() << "\n";
+                    F_total[idx] = forces[idx];
+                }
+            );
+            // clang-format on
+        }
+    }
+
 } // end Calculate
 
 template<Solver solver>
@@ -261,8 +361,14 @@ void Method_GNEB<solver>::Calculate_Force_Virtual(
     using namespace Utility;
 
     // Calculate the cross product with the spin configuration to get direct minimization
-    for( std::size_t i = 1; i < configurations.size() - 1; ++i )
+    for( std::size_t i = 0; i < configurations.size(); ++i )
     {
+
+        if( !chain->gneb_parameters->moving_endpoints && ( i == 0 || i == configurations.size() - 1 ) )
+        {
+            continue;
+        }
+
         auto & image         = *configurations[i];
         auto & force         = forces[i];
         auto & force_virtual = forces_virtual[i];
@@ -305,7 +411,7 @@ void Method_GNEB<solver>::Hook_Post_Iteration()
     this->max_torque = 0;
     std::fill( this->max_torque_all.begin(), this->max_torque_all.end(), 0 );
 
-    for( int img = 1; img < chain->noi - 1; ++img )
+    for( int img = 0; img < chain->noi; ++img )
     {
         scalar fmax = this->MaxTorque_on_Image( *( this->systems[img]->spins ), F_total[img] );
         // Set maximum per image
@@ -338,7 +444,7 @@ void Method_GNEB<solver>::Hook_Post_Iteration()
     //      Rx
     chain->Rx = this->Rx;
     //      E
-    for( int img = 1; img < chain->noi; ++img )
+    for( int img = 0; img < chain->noi; ++img )
         chain->images[img]->E = this->energies[img];
     //      Rx interpolated
     chain->Rx_interpolated = interp[0];
@@ -516,8 +622,8 @@ void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bo
         preEnergiesFile = this->parameters->output_folder + "/" + fileTag + "Chain_Energies";
 
         // Function to write or append image and energy files
-        auto writeOutputChain = [this, preChainFile, preEnergiesFile, iteration]( const std::string& suffix, bool append )
-        {
+        auto writeOutputChain = [this, preChainFile, preEnergiesFile,
+                                 iteration]( const std::string & suffix, bool append ) {
             try
             {
                 // File name
@@ -561,8 +667,7 @@ void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bo
         };
 
         Calculate_Interpolated_Energy_Contributions();
-        auto writeOutputEnergies = [this, preChainFile, preEnergiesFile, iteration]( const std::string & suffix )
-        {
+        auto writeOutputEnergies = [this, preChainFile, preEnergiesFile, iteration]( const std::string & suffix ) {
             bool normalize   = this->chain->gneb_parameters->output_energies_divide_by_nspins;
             bool readability = this->chain->gneb_parameters->output_energies_add_readability_lines;
 

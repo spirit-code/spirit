@@ -111,6 +111,15 @@ PREFIX void Parameters_GNEB_Set_Spring_Force_Ratio( State * state, float ratio, 
 PREFIX void Parameters_GNEB_Set_Path_Shortening_Constant(
     State * state, float path_shortening_constant, int idx_chain = -1 ) SUFFIX;
 
+// Set if moving endpoints should be used
+PREFIX void Parameters_GNEB_Set_Moving_Endpoints( State * state, bool moving_endpoints, int idx_chain = -1 ) SUFFIX;
+
+// Set if attracting endpoints should be used
+PREFIX void Parameters_GNEB_Set_Translating_Endpoints( State * state, bool translating_endpoints, int idx_chain = -1 ) SUFFIX;
+
+// Set equilibrium Rx, used for the  moving endpoints method
+PREFIX void Parameters_GNEB_Set_Equilibrium_Delta_Rx( State * state, float delta_Rx_left, float delta_Rx_right, int idx_chain = -1 ) SUFFIX;
+
 // Set the GNEB image type (see the integers defined above).
 PREFIX void
 Parameters_GNEB_Set_Climbing_Falling( State * state, int image_type, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
@@ -168,6 +177,15 @@ PREFIX float Parameters_GNEB_Get_Spring_Force_Ratio( State * state, int idx_chai
 
 // Return the path shortening constant.
 PREFIX float Parameters_GNEB_Get_Path_Shortening_Constant( State * state, int idx_chain = -1 ) SUFFIX;
+
+// Return if moving endpoints are used
+PREFIX bool Parameters_GNEB_Get_Moving_Endpoints( State * state, int idx_chain = -1 ) SUFFIX;
+
+// Set if translating endpoints are used
+PREFIX bool Parameters_GNEB_Get_Translating_Endpoints( State * state, int idx_chain = -1 ) SUFFIX;
+
+// Get the equilibrium Rx, used for the moving endpoints method
+PREFIX void Parameters_GNEB_Get_Equilibrium_Delta_Rx( State * state, float * delta_Rx_left, float * delta_Rx_right, int idx_chain = -1 ) SUFFIX;
 
 /*
 Returns the integer of whether an image is regular, climbing, falling, or stationary.
