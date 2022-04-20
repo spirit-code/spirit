@@ -22,12 +22,12 @@ namespace Manifoldmath
 {
 void project_parallel( vectorfield & vf1, const vectorfield & vf2 )
 {
-    vectorfield vf3 = vf1;
-    project_orthogonal( vf3, vf2 );
-// TODO: replace the loop with Vectormath Kernel
-#pragma omp parallel for
-    for( unsigned int i = 0; i < vf1.size(); ++i )
-        vf1[i] -= vf3[i];
+    scalar proj = Vectormath::dot(vf1, vf2);
+    Backend::par::apply( vf1.size(), [vf1 = vf1.data(), vf2 = vf2.data(), proj] SPIRIT_LAMBDA (int idx)
+        {
+            vf1[idx] = proj * vf2[idx];
+        } 
+    );
 }
 
 void project_orthogonal( vectorfield & vf1, const vectorfield & vf2 )
