@@ -275,19 +275,19 @@ void Method_GNEB<solver>::Calculate_Force(
                     spins_right = this->chain->images[noi-1]->spins->data()
                 ] SPIRIT_LAMBDA ( int idx)
                 {
-                    Vector3 axis = spins_left[idx].cross(spins_right[idx]);
-                    scalar angle = acos(spins_left[idx].dot(spins_right[idx]));
+                    const Vector3 axis = spins_left[idx].cross(spins_right[idx]);
+                    const scalar angle = acos(spins_left[idx].dot(spins_right[idx]));
 
                     // Rotation matrix that rotates spin_left to spin_right
                     Matrix3 rotation_matrix = Eigen::AngleAxis<scalar>(angle, axis.normalized()).toRotationMatrix();
 
-                    if (std::abs(angle) < 1e-6 || std::isnan(angle)) // Angle can become nan for collinear spins
+                    if ( abs(spins_left[idx].dot(spins_right[idx])) >= 1.0 ) // Angle can become nan for collinear spins
                         rotation_matrix = Matrix3::Identity();
 
-                    Vector3 F_gradient_right_rotated = rotation_matrix * F_gradient_right[idx];
+                    const Vector3 F_gradient_right_rotated = rotation_matrix * F_gradient_right[idx];
                     F_translation_left[idx] = -0.5 * (F_gradient_left[idx] + F_gradient_right_rotated);
 
-                    Vector3 F_gradient_left_rotated = rotation_matrix.transpose() * F_gradient_left[idx];
+                    const Vector3 F_gradient_left_rotated = rotation_matrix.transpose() * F_gradient_left[idx];
                     F_translation_right[idx] = -0.5 * (F_gradient_left_rotated + F_gradient_right[idx]);
                 }
             );
