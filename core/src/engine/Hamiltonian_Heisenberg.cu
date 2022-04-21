@@ -28,6 +28,7 @@ namespace Engine
     Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
         scalar external_field_magnitude, Vector3 external_field_normal,
         intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
+        scalarfield cubic_anisotropy_magnitude,
         pairfield exchange_pairs, scalarfield exchange_magnitudes,
         pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals,
         DDI_Method ddi_method, intfield ddi_n_periodic_images, bool ddi_pb_zero_padding, scalar ddi_radius,
@@ -39,6 +40,7 @@ namespace Engine
         geometry(geometry),
         external_field_magnitude(external_field_magnitude * C::mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
+        cubic_anisotropy_magnitude(cubic_anisotropy_magnitude),
         exchange_pairs_in(exchange_pairs), exchange_magnitudes_in(exchange_magnitudes), exchange_shell_magnitudes(0),
         dmi_pairs_in(dmi_pairs), dmi_magnitudes_in(dmi_magnitudes), dmi_normals_in(dmi_normals), dmi_shell_magnitudes(0), dmi_shell_chirality(0),
         quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes),
@@ -53,6 +55,7 @@ namespace Engine
     Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
         scalar external_field_magnitude, Vector3 external_field_normal,
         intfield anisotropy_indices, scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals,
+        scalarfield cubic_anisotropy_magnitude,
         scalarfield exchange_shell_magnitudes,
         scalarfield dmi_shell_magnitudes, int dmi_shell_chirality,
         DDI_Method ddi_method, intfield ddi_n_periodic_images, bool ddi_pb_zero_padding, scalar ddi_radius,
@@ -64,6 +67,7 @@ namespace Engine
         geometry(geometry),
         external_field_magnitude(external_field_magnitude * C::mu_B), external_field_normal(external_field_normal),
         anisotropy_indices(anisotropy_indices), anisotropy_magnitudes(anisotropy_magnitudes), anisotropy_normals(anisotropy_normals),
+        cubic_anisotropy_magnitude(cubic_anisotropy_magnitude),
         exchange_pairs_in(0), exchange_magnitudes_in(0), exchange_shell_magnitudes(exchange_shell_magnitudes),
         dmi_pairs_in(0), dmi_magnitudes_in(0), dmi_normals_in(0), dmi_shell_magnitudes(dmi_shell_magnitudes), dmi_shell_chirality(dmi_shell_chirality),
         quadruplets(quadruplets), quadruplet_magnitudes(quadruplet_magnitudes),

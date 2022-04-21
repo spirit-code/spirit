@@ -33,7 +33,8 @@ class Hamiltonian_Heisenberg : public Hamiltonian
 public:
     Hamiltonian_Heisenberg(
         scalar external_field_magnitude, Vector3 external_field_normal, intfield anisotropy_indices,
-        scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals, pairfield exchange_pairs,
+        scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals, scalarfield cubic_anisotropy_magnitude,
+        pairfield exchange_pairs,
         scalarfield exchange_magnitudes, pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals,
         DDI_Method ddi_method, intfield ddi_n_periodic_images, bool ddi_pb_zero_padding, scalar ddi_radius,
         quadrupletfield quadruplets, scalarfield quadruplet_magnitudes, std::shared_ptr<Data::Geometry> geometry,
@@ -41,7 +42,8 @@ public:
 
     Hamiltonian_Heisenberg(
         scalar external_field_magnitude, Vector3 external_field_normal, intfield anisotropy_indices,
-        scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals, scalarfield exchange_shell_magnitudes,
+        scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals, scalarfield cubic_anisotropy_magnitude,
+        scalarfield exchange_shell_magnitudes,
         scalarfield dmi_shell_magnitudes, int dm_chirality, DDI_Method ddi_method, intfield ddi_n_periodic_images,
         bool ddi_pb_zero_padding, scalar ddi_radius, quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
         std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions );
@@ -79,6 +81,7 @@ public:
     intfield anisotropy_indices;
     scalarfield anisotropy_magnitudes;
     vectorfield anisotropy_normals;
+    scalarfield cubic_anisotropy_magnitude;
 
     // ------------ Pair Interactions ------------
     // Exchange interaction

@@ -1,4 +1,4 @@
-#include <engine/Neighbours.hpp>
+﻿#include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
 #include <io/Filter_File_Handle.hpp>
 #include <io/IO.hpp>
@@ -1265,11 +1265,13 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
     // Anisotropy
     std::string anisotropy_file = "";
     scalar K                    = 0;
+    scalar K4			= 0;
     Vector3 K_normal            = { 0.0, 0.0, 1.0 };
     bool anisotropy_from_file   = false;
     intfield anisotropy_index( geometry->n_cell_atoms );
     scalarfield anisotropy_magnitude( geometry->n_cell_atoms, 0.0 );
     vectorfield anisotropy_normal( geometry->n_cell_atoms, K_normal );
+    scalarfield cubic_anisotropy_magnitude(geometry->n_cell_atoms, 0.0);
 
     // ------------ Pair Interactions ------------
     int n_pairs                        = 0;
@@ -1375,7 +1377,9 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                 config_file_handle.Read_Vector3( K_normal, "anisotropy_normal" );
                 K_normal.normalize();
 
-                if( K != 0 )
+                config_file_handle.Read_Single(K4, "cubic_anisotropy_magnitude");
+
+                if( K !=0 || K4 != 0 )
                 {
                     // Fill the arrays
                     for( std::size_t i = 0; i < anisotropy_index.size(); ++i )
@@ -1383,6 +1387,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                         anisotropy_index[i]     = static_cast<int>( i );
                         anisotropy_magnitude[i] = K;
                         anisotropy_normal[i]    = K_normal;
+                        cubic_anisotropy_magnitude[i] = K4;
                     }
                 }
                 else
@@ -1390,6 +1395,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                     anisotropy_index     = intfield( 0 );
                     anisotropy_magnitude = scalarfield( 0 );
                     anisotropy_normal    = vectorfield( 0 );
+                    cubic_anisotropy_magnitude = scalarfield(0);
                 }
             }
         }
@@ -1563,6 +1569,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
         parameter_log.emplace_back( fmt::format( "    K from file \"{}\"", anisotropy_file ) );
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy[0]", K ) );
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy_normal[0]", K_normal.transpose() ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "Cubic anisotropy", K4 ) );
     if( hamiltonian_type == "heisenberg_neighbours" )
     {
         parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "n_shells_exchange", n_shells_exchange ) );
@@ -1586,14 +1593,14 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
     if( hamiltonian_type == "heisenberg_neighbours" )
     {
         hamiltonian = std::make_unique<Engine::Hamiltonian_Heisenberg>(
-            B, B_normal, anisotropy_index, anisotropy_magnitude, anisotropy_normal, exchange_magnitudes, dmi_magnitudes,
+            B, B_normal, anisotropy_index, anisotropy_magnitude, anisotropy_normal, cubic_anisotropy_magnitude, exchange_magnitudes, dmi_magnitudes,
             dm_chirality, ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius, quadruplets,
             quadruplet_magnitudes, geometry, boundary_conditions );
     }
     else
     {
         hamiltonian = std::make_unique<Engine::Hamiltonian_Heisenberg>(
-            B, B_normal, anisotropy_index, anisotropy_magnitude, anisotropy_normal, exchange_pairs, exchange_magnitudes,
+            B, B_normal, anisotropy_index, anisotropy_magnitude, anisotropy_normal, cubic_anisotropy_magnitude, exchange_pairs, exchange_magnitudes,
             dmi_pairs, dmi_magnitudes, dmi_normals, ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius,
             quadruplets, quadruplet_magnitudes, geometry, boundary_conditions );
     }
