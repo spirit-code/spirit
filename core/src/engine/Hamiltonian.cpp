@@ -177,12 +177,4 @@ scalar Hamiltonian::Energy_Single_Spin( int ispin, const vectorfield & spins )
         "Tried to use  Hamiltonian::Energy_Single_Spin() of the Hamiltonian base class!" );
 }
 
-static const std::string name = "--";
-const std::string & Hamiltonian::Name()
-{
-    spirit_throw(
-        Exception_Classifier::Not_Implemented, Log_Level::Error,
-        "Tried to use  Hamiltonian::Name() of the Hamiltonian base class!" );
-}
-
 } // namespace Engine

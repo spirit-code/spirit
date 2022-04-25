@@ -16,7 +16,7 @@ inline void Method_Solver<Solver::Heun>::Initialize()
         configurations_predictor[i] = std::shared_ptr<vectorfield>( new vectorfield( this->nos ) );
 
     this->temp1 = vectorfield( this->nos, { 0, 0, 0 } );
-};
+}
 
 /*
     Template instantiation of the Simulation class for use with the Heun Solver.
@@ -77,16 +77,16 @@ inline void Method_Solver<Solver::Heun>::Iteration()
         // Copy out
         conf = conf_temp;
     }
-};
+}
 
 template<>
 inline std::string Method_Solver<Solver::Heun>::SolverName()
 {
     return "Heun";
-};
+}
 
 template<>
 inline std::string Method_Solver<Solver::Heun>::SolverFullName()
 {
     return "Heun";
-};
+}

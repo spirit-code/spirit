@@ -16,7 +16,7 @@ inline void Method_Solver<Solver::Depondt>::Initialize()
         configurations_predictor[i] = std::shared_ptr<vectorfield>( new vectorfield( this->nos, { 0, 0, 0 } ) );
 
     this->temp1 = vectorfield( this->nos, { 0, 0, 0 } );
-};
+}
 
 /*
     Template instantiation of the Simulation class for use with the Depondt Solver.
@@ -74,16 +74,16 @@ inline void Method_Solver<Solver::Depondt>::Iteration()
         // Get new spin conf n_new = R( (H+H')/2 ) * n
         Vectormath::rotate( conf, temp1, angle, conf );
     }
-};
+}
 
 template<>
 inline std::string Method_Solver<Solver::Depondt>::SolverName()
 {
     return "Depondt";
-};
+}
 
 template<>
 inline std::string Method_Solver<Solver::Depondt>::SolverFullName()
 {
     return "Depondt";
-};
+}

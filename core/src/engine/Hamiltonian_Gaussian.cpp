@@ -123,7 +123,7 @@ scalar Hamiltonian_Gaussian::Energy_Single_Spin( int ispin, const vectorfield & 
 
 // Hamiltonian name as string
 static const std::string name = "Gaussian";
-const std::string & Hamiltonian_Gaussian::Name()
+const std::string & Hamiltonian_Gaussian::Name() const
 {
     return name;
 }
