@@ -177,14 +177,30 @@ void PlotWidget::plotEnergies()
 
     // Add data to series
     int idx_current = System_Get_Index( state.get() );
-    current.push_back( QPointF( Rx[idx_current] / Rx_tot, energies[idx_current] / nos ) );
+
+    scalar Rx_cur = Rx[idx_current];
+    if (renormalize_Rx && Rx_tot > 0)
+        Rx_cur /= Rx_tot;
+    
+    scalar E_cur = energies[idx_current];
+    if (divide_by_nos)
+        E_cur /= nos;
+
+    current.push_back( QPointF( Rx_cur, E_cur) );
+
     if( this->plot_image_energies )
     {
         for( int i = 0; i < noi; ++i )
         {
             if( i > 0 && Rx_tot > 0 )
-                Rx[i] = Rx[i] / Rx_tot;
-            energies[i] = energies[i] / nos;
+                Rx[i] = Rx[i];
+            energies[i] = energies[i];
+
+            if (renormalize_Rx && Rx_tot > 0)
+                Rx[i] /= Rx_tot;
+
+            if (divide_by_nos)
+                energies[i] /= nos;
 
             if( Parameters_GNEB_Get_Climbing_Falling( state.get(), i ) == 0 )
                 normal.push_back( QPointF( Rx[i], energies[i] ) );
@@ -206,8 +222,14 @@ void PlotWidget::plotEnergies()
         for( int i = 0; i < size_interp; ++i )
         {
             if( i > 0 && Rx_tot > 0 )
-                Rx_interp[i] = Rx_interp[i] / Rx_tot;
-            energies_interp[i] = energies_interp[i] / nos;
+                Rx_interp[i] = Rx_interp[i];
+            energies_interp[i] = energies_interp[i];
+
+            if (renormalize_Rx && Rx_tot > 0)
+                Rx_interp[i] /= Rx_tot;
+
+            if (divide_by_nos)
+                energies_interp[i] /= nos;
 
             interp.push_back( QPointF( Rx_interp[i], energies_interp[i] ) );
 
@@ -268,6 +290,21 @@ void PlotWidget::plotEnergies()
     float delta = 0.1 * ( ymax - ymin );
     if( delta < 1e-6 )
         delta = 0.1;
+
     this->chart->axisY()->setMin( ymin - delta );
     this->chart->axisY()->setMax( ymax + delta );
+
+    // Rescale x axis
+    if (!renormalize_Rx && Rx_tot > 0)
+    {
+        delta = 0.04 * Rx_tot;
+        this->chart->axisX()->setMin( Rx[0] - delta );
+        this->chart->axisX()->setMax( Rx[noi-1] + delta );
+    } else if(Rx_tot > 0) {
+        this->chart->axisX()->setMin( -0.04 );
+        this->chart->axisX()->setMax( 1.04 );
+    } else {
+        this->chart->axisX()->setMin( -0.04 );
+        this->chart->axisX()->setMax( 0.04 );
+    }
 }

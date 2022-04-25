@@ -7,6 +7,25 @@
 
 #include <memory>
 
+// Clears all the previously calculated modes from memory
+void Parameters_EMA_Clear_Modes( State * state, int idx_image, int idx_chain ) noexcept
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    Log( Utility::Log_Level::Info, Utility::Log_Sender::API, "Clearing modes", idx_image, idx_chain );
+
+    image->Lock();
+    for( auto & el : image->modes )
+    {
+        el.reset();
+    }
+    image->Unlock();
+}
+
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Set EMA  ---------------------------------------------------------- */
 /*------------------------------------------------------------------------------------------------------ */
@@ -123,6 +142,26 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
+void Parameters_EMA_Set_Sparse( State * state, bool sparse, int idx_image, int idx_chain ) noexcept
+try
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Setting parameter 'sparse' to {}", sparse ),
+         idx_image, idx_chain );
+    image->Lock();
+    image->ema_parameters->sparse = sparse;
+    image->Unlock();
+}
+catch( ... )
+{
+    spirit_handle_exception_api( idx_image, idx_chain );
+}
+
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Get EMA ----------------------------------------------------------- */
 /*------------------------------------------------------------------------------------------------------ */
@@ -206,6 +245,23 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     return image->ema_parameters->snapshot;
+}
+catch( ... )
+{
+    spirit_handle_exception_api( idx_image, idx_chain );
+    return false;
+}
+
+bool Parameters_EMA_Get_Sparse( State * state, int idx_image, int idx_chain ) noexcept
+try
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    return image->ema_parameters->sparse;
 }
 catch( ... )
 {

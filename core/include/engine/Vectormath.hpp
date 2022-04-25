@@ -531,7 +531,13 @@ inline int idx_from_pair(
 //////// Vectorfield Math - special stuff
 
 // Calculate the mean of a vectorfield
-std::array<scalar, 3> Magnetization( const vectorfield & vf );
+std::array<scalar, 3> Magnetization( const vectorfield & vf, const scalarfield & mu_s );
+
+// Calculate the topological charge density inside a vectorfield
+void TopologicalChargeDensity(
+    const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions,
+    scalarfield & charge_density, std::vector<int> & triangle_indices );
+
 // Calculate the topological charge inside a vectorfield
 scalar TopologicalCharge( const vectorfield & vf, const Data::Geometry & geom, const intfield & boundary_conditions );
 

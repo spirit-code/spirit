@@ -158,6 +158,11 @@ public:
     // Number of times to save
     long n_log;
 
+    // History of relevant quantities
+    std::vector<int>    history_iteration;
+    std::vector<scalar> history_max_torque;
+    std::vector<scalar> history_energy;
+
 protected:
     //////////// Information for Logging and Save_Current ////////////////////////
     int idx_image;
@@ -181,9 +186,6 @@ protected:
     scalar force_max_abs_component;
     // Maximum force component per image
     std::vector<scalar> force_max_abs_component_all;
-
-    // History of relevant quantities
-    std::map<std::string, std::vector<scalar>> history;
 
     //////////// General /////////////////////////////////////////////////////////
 

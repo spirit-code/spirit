@@ -530,7 +530,7 @@ try
                 parameter_log.emplace_back( fmt::format(
                     "        pinned site[{}]: {} at ({} {} {}) = ({})", i, pinning.sites[i].i,
                     pinning.sites[i].translations[0], pinning.sites[i].translations[1],
-                    pinning.sites[i].translations[2], pinning.spins[0].transpose() ) );
+                    pinning.sites[i].translations[2], pinning.spins[i].transpose() ) );
             }
         }
     }
@@ -1056,6 +1056,10 @@ std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config
             config_file_handle.Read_Single( parameters->n_iterations_log, "gneb_n_iterations_log" );
             config_file_handle.Read_Single( parameters->n_iterations_amortize, "gneb_n_iterations_amortize" );
             config_file_handle.Read_Single( parameters->n_E_interpolations, "gneb_n_energy_interpolations" );
+            config_file_handle.Read_Single( parameters->moving_endpoints, "gneb_moving_endpoints" );
+            config_file_handle.Read_Single( parameters->equilibrium_delta_Rx_left, "gneb_equilibrium_delta_Rx_left" );
+            config_file_handle.Read_Single( parameters->equilibrium_delta_Rx_right, "gneb_equilibrium_delta_Rx_right" );
+            config_file_handle.Read_Single( parameters->translating_endpoints, "gneb_translating_endpoints" );
         }
         catch( ... )
         {
@@ -1077,8 +1081,11 @@ std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "maximum walltime", str_max_walltime ) );
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "n_iterations", parameters->n_iterations ) );
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "n_iterations_log", parameters->n_iterations_log ) );
-    parameter_log.emplace_back(
-        fmt::format( "    {:<18} = {}", "n_iterations_amortize", parameters->n_iterations_amortize ) );
+    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "n_iterations_amortize", parameters->n_iterations_amortize ) );
+    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "moving_endpoints", parameters->moving_endpoints ) );
+    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "equilibrium_delta_Rx_left", parameters->equilibrium_delta_Rx_left ) );
+    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "equilibrium_delta_Rx_right", parameters->equilibrium_delta_Rx_right ) );
+    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "translating_endpoints", parameters->translating_endpoints ) );
     parameter_log.emplace_back( fmt::format( "    {:<18} = \"{}\"", "output_folder", parameters->output_folder ) );
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "output_any", parameters->output_any ) );
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "output_initial", parameters->output_initial ) );

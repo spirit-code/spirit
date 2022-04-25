@@ -87,6 +87,9 @@ void spherical_to_cartesian_coordinate_basis( const vectorfield & vf, MatrixX & 
 //
 void spherical_coordinate_christoffel_symbols( const vectorfield & vf, MatrixX & gamma_theta, MatrixX & gamma_phi );
 
+void sparse_hessian_bordered_3N(
+    const vectorfield & image, const vectorfield & gradient, const SpMatrixX & hessian, SpMatrixX & hessian_out );
+
 // Calculate Hessian for a vectorfield constrained to unit length, at any extremum (i.e. where vectors || gradient)
 void hessian_bordered(
     const vectorfield & image, const vectorfield & gradient, const MatrixX & hessian, MatrixX & tangent_basis,

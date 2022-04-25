@@ -2,6 +2,7 @@
 
 #include <engine/Vectormath.hpp>
 #include <engine/Manifoldmath.hpp>
+#include <engine/Backend_par.hpp>
 #include <utility/Constants.hpp>
 
 #include <Eigen/Dense>
@@ -18,9 +19,12 @@ namespace Engine
     {
         void project_parallel(vectorfield & vf1, const vectorfield & vf2)
         {
-            vectorfield vf3 = vf1;
-            project_orthogonal(vf3, vf2);
-            Vectormath::add_c_a(-1, vf3, vf1);
+            scalar proj = Vectormath::dot(vf1, vf2);
+            Backend::par::apply( vf1.size(), [vf1 = vf1.data(), vf2 = vf2.data(), proj] SPIRIT_LAMBDA (int idx)
+                {
+                    vf1[idx] = proj * vf2[idx];
+                } 
+            );
         }
 
         __global__ void cu_project_orthogonal(Vector3 *vf1, const Vector3 *vf2, scalar proj, size_t N)

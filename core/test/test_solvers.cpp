@@ -37,7 +37,7 @@ TEST_CASE( "Solvers testing", "[solvers]" )
 
     // Expected values
     float energy_expected = -5849.69140625f;
-    std::vector<float> magnetization_expected{ 0, 0, 0.79977f };
+    std::vector<float> magnetization_expected{ 0, 0, 2.0 * 0.79977f };
 
     // Result values
     scalar energy;
@@ -78,7 +78,7 @@ TEST_CASE( "Solvers testing", "[solvers]" )
 
     // Expected values
     float energy_sp_expected = -5811.5244140625f;
-    std::vector<float> magnetization_sp_expected{ 0, 0, 0.96657f };
+    std::vector<float> magnetization_sp_expected{ 0, 0, 2.0 * 0.96657f };
 
     // Result values
     scalar energy_sp;

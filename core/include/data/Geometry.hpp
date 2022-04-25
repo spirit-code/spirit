@@ -81,8 +81,9 @@ public:
     // ---------- Constructor
     //  Build a regular lattice from a defined basis cell and translations
     Geometry(
-        std::vector<Vector3> bravais_vectors, intfield n_cells, std::vector<Vector3> cell_atoms,
-        Basis_Cell_Composition cell_composition, scalar lattice_constant, Pinning pinning, Defects defects );
+        const std::vector<Vector3> & bravais_vectors, intfield n_cells, const std::vector<Vector3> & cell_atoms,
+        const Basis_Cell_Composition & cell_composition, scalar lattice_constant, const Pinning & pinning,
+        const Defects & defects );
 
     // ---------- Convenience functions
     // Retrieve triangulation, if 2D

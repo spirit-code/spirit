@@ -15,7 +15,7 @@ inline void Method_Solver<Solver::VP>::Initialize()
     this->forces_previous     = velocities;                                                              // [noi][nos]
     this->projection          = std::vector<scalar>( this->noi, 0 );                                     // [noi]
     this->force_norm2         = std::vector<scalar>( this->noi, 0 );                                     // [noi]
-};
+}
 
 /*
     Template instantiation of the Simulation class for use with the VP Solver.
@@ -111,16 +111,16 @@ inline void Method_Solver<Solver::VP>::Iteration()
                 conf[idx]      = conf_temp[idx].normalized();
             } );
     }
-};
+}
 
 template<>
 inline std::string Method_Solver<Solver::VP>::SolverName()
 {
     return "VP";
-};
+}
 
 template<>
 inline std::string Method_Solver<Solver::VP>::SolverFullName()
 {
     return "Velocity Projection";
-};
+}

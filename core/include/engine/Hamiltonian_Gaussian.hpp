@@ -36,7 +36,7 @@ public:
     scalar Energy_Single_Spin( int ispin, const vectorfield & spins ) override;
 
     // Hamiltonian name as string
-    const std::string & Name() override;
+    const std::string & Name() const override;
 
     // Parameters of the energy landscape
     int n_gaussians;

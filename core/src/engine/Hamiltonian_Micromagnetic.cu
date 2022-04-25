@@ -1075,7 +1075,7 @@ void Hamiltonian_Micromagnetic::Hessian( const vectorfield & spins, MatrixX & he
 
 // Hamiltonian name as string
 static const std::string name = "Micromagnetic";
-const std::string & Hamiltonian_Micromagnetic::Name()
+const std::string & Hamiltonian_Micromagnetic::Name() const
 {
     return name;
 }

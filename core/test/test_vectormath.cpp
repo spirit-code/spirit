@@ -7,16 +7,18 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
     int N       = 10000;
     int N_check = std::min( 100, N );
     scalarfield sf( N, 1 );
+    scalar mu_s = 1.34;
+    scalarfield mu_s_field( N, mu_s );
     vectorfield vf1( N, Vector3{ 1.0, 1.0, 1.0 } );
     vectorfield vf2( N, Vector3{ -1.0, 1.0, 1.0 } );
 
     SECTION( "Magnetization" )
     {
         Engine::Vectormath::fill( vf1, { 0, 0, 1 } );
-        auto m = Engine::Vectormath::Magnetization( vf1 );
+        auto m = Engine::Vectormath::Magnetization( vf1, mu_s_field );
         REQUIRE( m[0] == Approx( 0 ) );
         REQUIRE( m[1] == Approx( 0 ) );
-        REQUIRE( m[2] == Approx( 1 ) );
+        REQUIRE( m[2] == Approx( mu_s ) );
     }
 
     SECTION( "Rotate" )

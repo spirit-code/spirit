@@ -24,8 +24,9 @@ Method::Method( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img
     // Sender name for log messages
     this->SenderName = Log_Sender::All;
 
-    // Default history contains max_torque
-    this->history = std::map<std::string, std::vector<scalar>>{ { "max_torque", { this->max_torque } } };
+    this->history_iteration  = std::vector<int>();
+    this->history_max_torque = std::vector<scalar>();
+    this->history_energy  = std::vector<scalar>();
 
     // TODO: is this a good idea?
     this->n_iterations     = std::max( long( 1 ), this->parameters->n_iterations );

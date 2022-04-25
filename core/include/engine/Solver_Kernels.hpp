@@ -17,6 +17,7 @@ namespace Engine
 {
 namespace Solver_Kernels
 {
+
 // SIB
 void sib_transform( const vectorfield & spins, const vectorfield & force, vectorfield & out );
 
