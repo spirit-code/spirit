@@ -1356,18 +1356,21 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
             {
                 // The file name should be valid so we try to read it
                 Anisotropy_from_File(
-                    anisotropy_file, geometry, n_pairs, anisotropy_index, anisotropy_magnitude, anisotropy_normal );
+                    anisotropy_file, geometry, n_pairs, anisotropy_index, anisotropy_magnitude, anisotropy_normal,
+                    cubic_anisotropy_magnitude);
 
                 anisotropy_from_file = true;
                 if( !anisotropy_index.empty() )
                 {
                     K        = anisotropy_magnitude[0];
                     K_normal = anisotropy_normal[0];
+                    K4       = cubic_anisotropy_magnitude[0];
                 }
                 else
                 {
                     K        = 0;
                     K_normal = { 0, 0, 0 };
+                    K4       = 0;
                 }
             }
             else
@@ -1569,7 +1572,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
         parameter_log.emplace_back( fmt::format( "    K from file \"{}\"", anisotropy_file ) );
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy[0]", K ) );
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy_normal[0]", K_normal.transpose() ) );
-    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "Cubic anisotropy", K4 ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "cubic_anisotropy_magnitude[0]", K4 ) );
     if( hamiltonian_type == "heisenberg_neighbours" )
     {
         parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "n_shells_exchange", n_shells_exchange ) );
