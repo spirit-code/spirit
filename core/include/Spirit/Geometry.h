@@ -62,7 +62,7 @@ Positions are in units of the bravais vectors (scaled by the lattice constant).
 PREFIX void Geometry_Set_Cell_Atoms( State * state, int n_atoms, float ** atoms ) SUFFIX;
 
 /*
-Set the magnetic moments of basis cell atoms.
+Set the magnetic moments of basis cell atoms in units of [mu_B].
 */
 PREFIX void Geometry_Set_mu_s( State * state, float mu_s, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
@@ -130,7 +130,7 @@ Retrieve dimensionality of the system (0, 1, 2, 3).
 PREFIX int Geometry_Get_Dimensionality( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
-Get the magnetic moments of basis cell atoms.
+Get the magnetic moments of basis cell atoms in units of [mu_B].
 */
 PREFIX void Geometry_Get_mu_s( State * state, float * mu_s, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 

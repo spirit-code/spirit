@@ -11,7 +11,7 @@ namespace Engine
 {
 namespace Demagnetization_Tensor
 {
-using namespace Utility;
+
 namespace Exact
 {
 
@@ -30,6 +30,8 @@ scalar kappa( const scalar & x, const scalar & y, const scalar & z, const scalar
 template<typename scalar>
 scalar delta( const scalar & x, const scalar & y, const scalar & z, const scalar & R )
 {
+    const auto & Pi = Utility::Constants::Pi;
+
     auto arg = x * y / ( z * R );
     auto res = std::atan( arg );
 
@@ -38,9 +40,9 @@ scalar delta( const scalar & x, const scalar & y, const scalar & z, const scalar
     if( std::isinf( arg ) )
     {
         if( arg < 0 )
-            return -Constants::Pi / 2;
+            return -Pi / 2;
         else
-            return Constants::Pi / 2;
+            return Pi / 2;
     }
 
     // If arg is nan it most likely means a division 0/0 ocurred,
@@ -97,12 +99,12 @@ Nxx( const scalar & X, const scalar & Y, const scalar & Z, const scalar & dx, co
         {
             for( int e3 = -1; e3 <= 1; e3++ )
             {
-                auto tmp = gamma( e1, e2, e3 ) / ( 4 * Constants::Pi * dx * dy * dz )
+                auto tmp = gamma( e1, e2, e3 ) / ( 4 * Utility::Constants::Pi * dx * dy * dz )
                            * f( X + e1 * dx, Y + e2 * dy, Z + e3 * dz );
                 res += tmp;
                 if( std::abs( tmp ) > cur_max )
                     cur_max = std::abs( tmp );
-                if( std::abs( tmp ) > cur_max )
+                if( std::abs( res ) > cur_max )
                     cur_max = std::abs( res );
             }
         }
@@ -127,7 +129,7 @@ Nxy( const scalar & X, const scalar & Y, const scalar & Z, const scalar & dx, co
         {
             for( int e3 = -1; e3 <= 1; e3++ )
             {
-                auto tmp = gamma( e1, e2, e3 ) / ( 4 * Constants::Pi * dx * dy * dz )
+                auto tmp = gamma( e1, e2, e3 ) / ( 4 * Utility::Constants::Pi * dx * dy * dz )
                            * g( X + e1 * dx, Y + e2 * dy, Z + e3 * dz );
                 res += tmp;
                 if( std::abs( tmp ) > cur_max )
@@ -140,10 +142,12 @@ Nxy( const scalar & X, const scalar & Y, const scalar & Z, const scalar & dx, co
     abs_error = std::abs( cur_max ) / std::pow( 10, std::numeric_limits<scalar>::digits10 );
     return res;
 }
+
 } // namespace Exact
 
 namespace Asymptote
 {
+
 // The exact formula can be rewritten as
 // Nxx = 1/(4*pi*dx*dy*dz) * 2(cosh(dx * del_x)-1) * 2(cosh(dy * del_y)-1) * 2(cosh(dz * del_z)-1) * f(x,y,z)
 // where del_x is to be understood as the partial derivative wrt x etc. For Nxy replace f with g.
@@ -229,7 +233,7 @@ scalar Nxx_asym(
     const scalar & X, const scalar & Y, const scalar & Z, const scalar & dx, const scalar & dy, const scalar & dz )
 {
     scalar R = std::sqrt( X * X + Y * Y + Z * Z );
-    return -1.0 / ( 4.0 * Constants::Pi ) * dx * dy * dz
+    return -1.0 / ( 4.0 * Utility::Constants::Pi ) * dx * dy * dz
            * ( f2( X, Y, Z, R )
                + 1.0 / 12.0
                      * ( dx * dx * f2xx( X, Y, Z, R ) + dy * dy * f2yy( X, Y, Z, R ) + dz * dz * f2zz( X, Y, Z, R ) ) );
@@ -240,15 +244,17 @@ scalar Nxy_asym(
     const scalar & X, const scalar & Y, const scalar & Z, const scalar & dx, const scalar & dy, const scalar & dz )
 {
     scalar R = std::sqrt( X * X + Y * Y + Z * Z );
-    return -1.0 / ( 4.0 * Constants::Pi ) * dx * dy * dz
+    return -1.0 / ( 4.0 * Utility::Constants::Pi ) * dx * dy * dz
            * ( g2( X, Y, Z, R )
                + 1.0 / 12.0
                      * ( dx * dx * g2xx( X, Y, Z, R ) + dy * dy * g2yy( X, Y, Z, R ) + dz * dz * g2zz( X, Y, Z, R ) ) );
 }
+
 } // namespace Asymptote
 
 namespace Automatic
 {
+
 // These functions implement an automatic switching between the asymptotic expression and the exact one.
 // Based on the floating point precision and the reported estimated error
 template<typename scalar>
@@ -286,6 +292,7 @@ Nxy( const scalar & X, const scalar & Y, const scalar & Z, const scalar & dx, co
 }
 
 } // namespace Automatic
+
 } // namespace Demagnetization_Tensor
 } // namespace Engine
 

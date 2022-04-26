@@ -1800,44 +1800,32 @@ std::unique_ptr<Engine::Hamiltonian_Micromagnetic> Hamiltonian_Micromagnetic_fro
     // Return
     std::vector<std::string> parameter_log;
     parameter_log.emplace_back( "Hamiltonian_Micromagnetic:" );
-    parameter_log.emplace_back(
-
-        fmt::format( "        {:<24} = {}", "discretisation order", spatial_gradient_order ) );
+    parameter_log.emplace_back( fmt::format( "        {:<24} = {}", "discretisation order", spatial_gradient_order ) );
     parameter_log.emplace_back( fmt::format( "        {:<24} = {}", "Ms [A/m]", Ms ) );
-    parameter_log.emplace_back(
-
-        fmt::format(
-            "        {:<24} = {} {} {}", "boundary conditions", boundary_conditions[0], boundary_conditions[1],
-            boundary_conditions[2] ) );
+    parameter_log.emplace_back( fmt::format(
+        "        {:<24} = {} {} {}", "boundary conditions", boundary_conditions[0], boundary_conditions[1],
+        boundary_conditions[2] ) );
     parameter_log.emplace_back( fmt::format( "        {:<24} = {}", "external field", field ) );
-    parameter_log.emplace_back(
-
-        fmt::format( "        {:<24} = {}", "field normal", field_normal.transpose() ) );
-    parameter_log.emplace_back(
-
-        fmt::format( "        {:<24} = {}", "anisotropy tensor", anisotropy_tensor.row( 0 ) ) );
+    parameter_log.emplace_back( fmt::format( "        {:<24} = {}", "field normal", field_normal.transpose() ) );
+    parameter_log.emplace_back( fmt::format( "        {:<24} = {}", "anisotropy tensor", anisotropy_tensor.row( 0 ) ) );
     parameter_log.emplace_back( fmt::format( "        {:<24}   {}", " ", anisotropy_tensor.row( 1 ) ) );
     parameter_log.emplace_back( fmt::format( "        {:<24}   {}", " ", anisotropy_tensor.row( 2 ) ) );
-    parameter_log.emplace_back(
-
-        fmt::format( "        {:<24} = {}", "exchange tensor", exchange_tensor.row( 0 ) ) );
+    parameter_log.emplace_back( fmt::format( "        {:<24} = {}", "exchange tensor", exchange_tensor.row( 0 ) ) );
     parameter_log.emplace_back( fmt::format( "        {:<24}   {}", " ", exchange_tensor.row( 1 ) ) );
     parameter_log.emplace_back( fmt::format( "        {:<24}   {}", " ", exchange_tensor.row( 2 ) ) );
     parameter_log.emplace_back( fmt::format( "        {:<24} = {}", "dmi tensor", dmi_tensor.row( 0 ) ) );
     parameter_log.emplace_back( fmt::format( "        {:<24}   {}", " ", dmi_tensor.row( 1 ) ) );
     parameter_log.emplace_back( fmt::format( "        {:<24}   {}", " ", dmi_tensor.row( 2 ) ) );
     parameter_log.emplace_back( fmt::format( "        {:<21} = {}", "ddi_method", ddi_method_str ) );
-    parameter_log.emplace_back(
-
-        fmt::format(
-            "        {:<21} = ({} {} {})", "ddi_n_periodic_images", ddi_n_periodic_images[0], ddi_n_periodic_images[1],
-            ddi_n_periodic_images[2] ) );
+    parameter_log.emplace_back( fmt::format(
+        "        {:<21} = ({} {} {})", "ddi_n_periodic_images", ddi_n_periodic_images[0], ddi_n_periodic_images[1],
+        ddi_n_periodic_images[2] ) );
     parameter_log.emplace_back( fmt::format( "        {:<21} = {}", "ddi_radius", ddi_radius ) );
     Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
     auto hamiltonian = std::make_unique<Engine::Hamiltonian_Micromagnetic>(
         Ms, field, field_normal, anisotropy_tensor, exchange_tensor, dmi_tensor, ddi_method, ddi_n_periodic_images,
-        ddi_radius, geometry, spatial_gradient_order, boundary_conditions  );
+        ddi_radius, geometry, spatial_gradient_order, boundary_conditions );
 
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Micromagnetic: built" );
     return hamiltonian;
