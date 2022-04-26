@@ -1534,7 +1534,7 @@ void Hamiltonian_Heisenberg::Clean_DDI()
 
 // Hamiltonian name as string
 static const std::string name = "Heisenberg";
-const std::string & Hamiltonian_Heisenberg::Name()
+const std::string & Hamiltonian_Heisenberg::Name() const
 {
     return name;
 }

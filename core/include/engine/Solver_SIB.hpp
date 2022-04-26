@@ -10,7 +10,7 @@ inline void Method_Solver<Solver::SIB>::Initialize()
     this->configurations_predictor = std::vector<std::shared_ptr<vectorfield>>( this->noi );
     for( int i = 0; i < this->noi; i++ )
         configurations_predictor[i] = std::shared_ptr<vectorfield>( new vectorfield( this->nos ) );
-};
+}
 
 /*
     Template instantiation of the Simulation class for use with the SIB Solver.
@@ -47,16 +47,16 @@ inline void Method_Solver<Solver::SIB>::Iteration()
 
         Solver_Kernels::sib_transform( image, forces_virtual_predictor[i], image );
     }
-};
+}
 
 template<>
 inline std::string Method_Solver<Solver::SIB>::SolverName()
 {
     return "SIB";
-};
+}
 
 template<>
 inline std::string Method_Solver<Solver::SIB>::SolverFullName()
 {
     return "Semi-implicit B";
-};
+}

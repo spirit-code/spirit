@@ -16,7 +16,7 @@ inline void Method_Solver<Solver::VP_OSO>::Initialize()
     this->projection          = std::vector<scalar>( this->noi, 0 ); // [noi]
     this->force_norm2         = std::vector<scalar>( this->noi, 0 ); // [noi]
     this->searchdir           = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
-};
+}
 
 /*
     Template instantiation of the Simulation class for use with the VP Solver.
@@ -117,10 +117,10 @@ template<>
 inline std::string Method_Solver<Solver::VP_OSO>::SolverName()
 {
     return "VP_OSO";
-};
+}
 
 template<>
 inline std::string Method_Solver<Solver::VP_OSO>::SolverFullName()
 {
     return "Velocity Projection using exponential transforms";
-};
+}

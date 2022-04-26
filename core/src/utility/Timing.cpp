@@ -77,29 +77,37 @@ scalar HoursPassed( duration<scalar> dt )
 
 duration<scalar> DurationFromString( const std::string & dt )
 {
-    std::uint8_t hours = 0, minutes = 0;
-    std::uint64_t seconds = 0;
+    std::int32_t hours = 0, minutes = 0;
+    std::int64_t seconds = 0;
 
     std::istringstream iss( dt );
     std::string token = "";
 
     // Hours
     if( std::getline( iss, token, ':' ) )
+    {
         if( !token.empty() )
-            iss >> hours;
+            hours = std::stoi( token );
+    }
+
     // Minutes
     if( std::getline( iss, token, ':' ) )
+    {
         if( !token.empty() )
-            iss >> minutes;
+            minutes = std::stoi( token );
+    }
+
     // Seconds
     if( std::getline( iss, token, ':' ) )
+    {
         if( !token.empty() )
-            iss >> seconds;
+            seconds = std::stol( token );
+    }
 
     // Convert to std::chrono::seconds
     seconds += 60 * minutes + 60 * 60 * hours;
-    std::chrono::seconds chrono_seconds( seconds );
 
+    std::chrono::seconds chrono_seconds( seconds );
     // Return duration
     return duration<scalar>( chrono_seconds );
 }

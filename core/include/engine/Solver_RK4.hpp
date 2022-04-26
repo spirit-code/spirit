@@ -32,7 +32,7 @@ inline void Method_Solver<Solver::RungeKutta4>::Initialize()
         this->configurations_k4[i] = std::shared_ptr<vectorfield>( new vectorfield( this->nos ) );
 
     this->temp1 = vectorfield( this->nos, { 0, 0, 0 } );
-};
+}
 
 /*
     Template instantiation of the Simulation class for use with the 4th order Runge Kutta Solver.
@@ -144,16 +144,16 @@ inline void Method_Solver<Solver::RungeKutta4>::Iteration()
         // Copy out
         conf = conf_temp;
     }
-};
+}
 
 template<>
 inline std::string Method_Solver<Solver::RungeKutta4>::SolverName()
 {
     return "RK4";
-};
+}
 
 template<>
 inline std::string Method_Solver<Solver::RungeKutta4>::SolverFullName()
 {
     return "Runge Kutta (4th order)";
-};
+}
