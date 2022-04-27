@@ -29,6 +29,8 @@ private:
     // Solver_Iteration represents one iteration of a certain Solver
     void Iteration() override;
 
+    void Displace_Spin(int ispin, vectorfield & spins_new, const vectorfield & spins_old, std::uniform_real_distribution<scalar> & distribution);
+
     // Metropolis iteration with adaptive cone radius
     void Metropolis( const vectorfield & spins_old, vectorfield & spins_new );
 
@@ -59,6 +61,9 @@ private:
 
     // Random vector array
     vectorfield xi;
+
+    // Vector to save the previous spin directions
+    vectorfield spins_new;
 };
 
 } // namespace Engine

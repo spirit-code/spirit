@@ -39,6 +39,8 @@ Method_MC::Method_MC( std::shared_ptr<Data::Spin_System> system, int idx_img, in
     //                                                             { "E", { this->max_torque } },
     //                                                             { "M_z", { this->max_torque } } };
 
+    this->spins_new = vectorfield(this->nos);
+
     this->parameters_mc = system->mc_parameters;
 
     // Starting cone angle
@@ -53,16 +55,69 @@ void Method_MC::Iteration()
 {
     // Temporaries
     auto & spins_old = *this->systems[0]->spins;
-    auto spins_new   = spins_old;
+    Vectormath::set_c_a(1, spins_old, this->spins_new);
 
     // Generate randomly displaced spin configuration according to cone radius
     // Vectormath::get_random_vectorfield_unitsphere(this->parameters_mc->prng, random_unit_vectors);
 
     // TODO: add switch between Metropolis and heat bath
     // One Metropolis step
-    Metropolis( spins_old, spins_new );
-    Vectormath::set_c_a( 1, spins_new, spins_old );
+    Metropolis( spins_old, this->spins_new );
+    Vectormath::set_c_a( 1, this->spins_new, spins_old );
 }
+
+void Method_MC::Displace_Spin(int ispin, vectorfield & spins_new, const vectorfield & spins_old, std::uniform_real_distribution<scalar> & distribution)
+{
+    // One Metropolis step for each spin
+    const Vector3 e_z{ 0, 0, 1 };
+    scalar costheta, sintheta, phi;
+    Matrix3 local_basis;
+    scalar cos_cone_angle = std::cos( cone_angle );
+
+    // Sample a cone
+    if( this->parameters_mc->metropolis_step_cone )
+    {
+        // Calculate local basis for the spin
+        if( spins_old[ispin].z() < 1 - 1e-10 )
+        {
+            local_basis.col( 2 ) = spins_old[ispin];
+            local_basis.col( 0 ) = ( local_basis.col( 2 ).cross( e_z ) ).normalized();
+            local_basis.col( 1 ) = local_basis.col( 2 ).cross( local_basis.col( 0 ) );
+        }
+        else
+        {
+            local_basis = Matrix3::Identity();
+        }
+
+        // Rotation angle between 0 and cone_angle degrees
+        costheta = 1 - ( 1 - cos_cone_angle ) * distribution( this->parameters_mc->prng );
+
+        sintheta = std::sqrt( 1 - costheta * costheta );
+
+        // Random distribution of phi between 0 and 360 degrees
+        phi = 2 * Constants::Pi * distribution( this->parameters_mc->prng );
+
+        // New spin orientation in local basis
+        Vector3 local_spin_new{ sintheta * std::cos( phi ), sintheta * std::sin( phi ), costheta };
+
+        // New spin orientation in regular basis
+        spins_new[ispin] = local_basis * local_spin_new;
+    }
+    // Sample the entire unit sphere
+    else
+    {
+        // Rotation angle between 0 and 180 degrees
+        costheta = distribution( this->parameters_mc->prng );
+
+        sintheta = std::sqrt( 1 - costheta * costheta );
+
+        // Random distribution of phi between 0 and 360 degrees
+        phi = 2 * Constants::Pi * distribution( this->parameters_mc->prng );
+
+        // New spin orientation in local basis
+        spins_new[ispin] = Vector3{ sintheta * std::cos( phi ), sintheta * std::sin( phi ), costheta };
+    }
+};
 
 // Simple metropolis step
 void Method_MC::Metropolis( const vectorfield & spins_old, vectorfield & spins_new )
@@ -90,12 +145,6 @@ void Method_MC::Metropolis( const vectorfield & spins_old, vectorfield & spins_n
     }
     this->n_rejected = 0;
 
-    // One Metropolis step for each spin
-    Vector3 e_z{ 0, 0, 1 };
-    scalar costheta, sintheta, phi;
-    Matrix3 local_basis;
-    scalar cos_cone_angle = std::cos( cone_angle );
-
     // Loop over NOS samples (on average every spin should be hit once per Metropolis step)
     for( int idx = 0; idx < this->nos; ++idx )
     {
@@ -109,49 +158,8 @@ void Method_MC::Metropolis( const vectorfield & spins_old, vectorfield & spins_n
 
         if( Vectormath::check_atom_type( this->systems[0]->geometry->atom_types[ispin] ) )
         {
-            // Sample a cone
-            if( this->parameters_mc->metropolis_step_cone )
-            {
-                // Calculate local basis for the spin
-                if( spins_old[ispin].z() < 1 - 1e-10 )
-                {
-                    local_basis.col( 2 ) = spins_old[ispin];
-                    local_basis.col( 0 ) = ( local_basis.col( 2 ).cross( e_z ) ).normalized();
-                    local_basis.col( 1 ) = local_basis.col( 2 ).cross( local_basis.col( 0 ) );
-                }
-                else
-                {
-                    local_basis = Matrix3::Identity();
-                }
 
-                // Rotation angle between 0 and cone_angle degrees
-                costheta = 1 - ( 1 - cos_cone_angle ) * distribution( this->parameters_mc->prng );
-
-                sintheta = std::sqrt( 1 - costheta * costheta );
-
-                // Random distribution of phi between 0 and 360 degrees
-                phi = 2 * Constants::Pi * distribution( this->parameters_mc->prng );
-
-                // New spin orientation in local basis
-                Vector3 local_spin_new{ sintheta * std::cos( phi ), sintheta * std::sin( phi ), costheta };
-
-                // New spin orientation in regular basis
-                spins_new[ispin] = local_basis * local_spin_new;
-            }
-            // Sample the entire unit sphere
-            else
-            {
-                // Rotation angle between 0 and 180 degrees
-                costheta = distribution( this->parameters_mc->prng );
-
-                sintheta = std::sqrt( 1 - costheta * costheta );
-
-                // Random distribution of phi between 0 and 360 degrees
-                phi = 2 * Constants::Pi * distribution( this->parameters_mc->prng );
-
-                // New spin orientation in local basis
-                spins_new[ispin] = Vector3{ sintheta * std::cos( phi ), sintheta * std::sin( phi ), costheta };
-            }
+            Displace_Spin( ispin, spins_new, spins_old, distribution );
 
             // Energy difference of configurations with and without displacement
             scalar Eold  = this->systems[0]->hamiltonian->Energy_Single_Spin( ispin, spins_old );
