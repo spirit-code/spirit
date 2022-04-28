@@ -66,7 +66,7 @@ void Method_MC::Iteration()
     Vectormath::set_c_a( 1, this->spins_new, spins_old );
 }
 
-void Method_MC::Displace_Spin(int ispin, vectorfield & spins_new, const vectorfield & spins_old, std::uniform_real_distribution<scalar> & distribution)
+void Method_MC::Displace_Spin(int ispin, vectorfield & spins_new, std::uniform_real_distribution<scalar> & distribution, std::vector<int> & changed_indices, vectorfield & old_spins)
 {
     // One Metropolis step for each spin
     const Vector3 e_z{ 0, 0, 1 };
@@ -78,9 +78,9 @@ void Method_MC::Displace_Spin(int ispin, vectorfield & spins_new, const vectorfi
     if( this->parameters_mc->metropolis_step_cone )
     {
         // Calculate local basis for the spin
-        if( spins_old[ispin].z() < 1 - 1e-10 )
+        if( spins_new[ispin].z() < 1 - 1e-10 )
         {
-            local_basis.col( 2 ) = spins_old[ispin];
+            local_basis.col( 2 ) = spins_new[ispin];
             local_basis.col( 0 ) = ( local_basis.col( 2 ).cross( e_z ) ).normalized();
             local_basis.col( 1 ) = local_basis.col( 2 ).cross( local_basis.col( 0 ) );
         }
@@ -119,12 +119,76 @@ void Method_MC::Displace_Spin(int ispin, vectorfield & spins_new, const vectorfi
     }
 };
 
+scalar Method_MC::Compute_Energy_Diff(const std::vector<int> & changed_indices, vectorfield & spins_new, const vectorfield & spins_old)
+{
+    // Energy difference of configurations with and without displacement
+    scalar Eold = 0;
+    for(auto ispin : changed_indices)
+        Eold += this->systems[0]->hamiltonian->Energy_Single_Spin( ispin, spins_old );
+
+    scalar Enew = 0;
+    for(auto ispin : changed_indices)
+        Enew  += this->systems[0]->hamiltonian->Energy_Single_Spin( ispin, spins_new );
+
+    scalar Ediff = Enew - Eold;
+    return Ediff;
+}
+
+void Method_MC::Reject(const std::vector<int> & rejected_indices, const vectorfield & spins_old)
+{
+    // Restore the spin
+    for(int i=0; i<rejected_indices.size(); i++)
+    {
+        spins_new[rejected_indices[i]] = spins_old[i];
+    }
+    // Counter for the number of rejections
+    ++this->n_rejected;
+}
+
+void Method_MC::Spin_Trial(int ispin, vectorfield & spins_new, const vectorfield & spins_old, std::uniform_real_distribution<scalar> & distribution )
+{
+    const scalar kB_T = Constants::k_B * this->parameters_mc->temperature;
+
+    auto indices   = std::vector<int>{ispin};
+    auto old_spins = std::vector<Vector3>{spins_new[ispin]};
+
+    Displace_Spin( ispin, spins_new, distribution, indices, old_spins);
+
+    // Energy difference of configurations with and without displacement
+    scalar Ediff = Compute_Energy_Diff(indices, spins_new, spins_old);
+
+    bool reject = false;
+
+    // Metropolis criterion: reject the step if energy rose
+    if( Ediff > 1e-14 )
+    {
+        if( this->parameters_mc->temperature < 1e-12 )
+        {
+            reject = true;
+        }
+        else
+        {
+            // Exponential factor
+            scalar exp_ediff = std::exp( -Ediff / kB_T );
+            // Metropolis random number
+            scalar x_metropolis = distribution( this->parameters_mc->prng );
+            // Only reject if random number is larger than exponential
+            if( exp_ediff < x_metropolis )
+            {
+                reject = true;
+            }
+        }
+    }
+
+    if (reject)
+        Reject(indices, old_spins);
+}
+
 // Simple metropolis step
 void Method_MC::Metropolis( const vectorfield & spins_old, vectorfield & spins_new )
 {
     auto distribution     = std::uniform_real_distribution<scalar>( 0, 1 );
     auto distribution_idx = std::uniform_int_distribution<>( 0, this->nos - 1 );
-    scalar kB_T           = Constants::k_B * this->parameters_mc->temperature;
 
     scalar diff = 0.01;
 
@@ -158,41 +222,7 @@ void Method_MC::Metropolis( const vectorfield & spins_old, vectorfield & spins_n
 
         if( Vectormath::check_atom_type( this->systems[0]->geometry->atom_types[ispin] ) )
         {
-
-            Displace_Spin( ispin, spins_new, spins_old, distribution );
-
-            // Energy difference of configurations with and without displacement
-            scalar Eold  = this->systems[0]->hamiltonian->Energy_Single_Spin( ispin, spins_old );
-            scalar Enew  = this->systems[0]->hamiltonian->Energy_Single_Spin( ispin, spins_new );
-            scalar Ediff = Enew - Eold;
-
-            // Metropolis criterion: reject the step if energy rose
-            if( Ediff > 1e-14 )
-            {
-                if( this->parameters_mc->temperature < 1e-12 )
-                {
-                    // Restore the spin
-                    spins_new[ispin] = spins_old[ispin];
-                    // Counter for the number of rejections
-                    ++this->n_rejected;
-                }
-                else
-                {
-                    // Exponential factor
-                    scalar exp_ediff = std::exp( -Ediff / kB_T );
-                    // Metropolis random number
-                    scalar x_metropolis = distribution( this->parameters_mc->prng );
-
-                    // Only reject if random number is larger than exponential
-                    if( exp_ediff < x_metropolis )
-                    {
-                        // Restore the spin
-                        spins_new[ispin] = spins_old[ispin];
-                        // Counter for the number of rejections
-                        ++this->n_rejected;
-                    }
-                }
-            }
+            Spin_Trial(ispin, spins_new, spins_old, distribution);
         }
     }
 }

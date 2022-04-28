@@ -25,11 +25,18 @@ public:
     // Method name as string
     std::string Name() override;
 
-private:
-    // Solver_Iteration represents one iteration of a certain Solver
-    void Iteration() override;
+protected:
+    virtual void Displace_Spin(int ispin, vectorfield & spins_new, std::uniform_real_distribution<scalar> & distribution, std::vector<int> & changed_indices, vectorfield & old_spins);
+    virtual void Spin_Trial(int spin, vectorfield & spins_new, const vectorfield & spins_old, std::uniform_real_distribution<scalar> & distribution );
+    virtual scalar Compute_Energy_Diff(const std::vector<int> & changed_indices, vectorfield & spins_new, const vectorfield & spins_old);
+    virtual void Reject(const std::vector<int> & rejected_indices, const vectorfield & spins_old);
 
-    void Displace_Spin(int ispin, vectorfield & spins_new, const vectorfield & spins_old, std::uniform_real_distribution<scalar> & distribution);
+    std::shared_ptr<Data::Parameters_Method_MC> parameters_mc;
+    // Vector to save the previous spin directions
+    vectorfield spins_new;
+
+    // Solver_Iteration represents one iteration of a certain Solver
+    virtual void Iteration() override;
 
     // Metropolis iteration with adaptive cone radius
     void Metropolis( const vectorfield & spins_old, vectorfield & spins_new );
@@ -51,7 +58,6 @@ private:
     void Message_Step() override;
     void Message_End() override;
 
-    std::shared_ptr<Data::Parameters_Method_MC> parameters_mc;
 
     // Cosine of current cone angle
     scalar cone_angle;
@@ -61,9 +67,6 @@ private:
 
     // Random vector array
     vectorfield xi;
-
-    // Vector to save the previous spin directions
-    vectorfield spins_new;
 };
 
 } // namespace Engine

@@ -7,6 +7,7 @@
 #include <engine/Method_GNEB.hpp>
 #include <engine/Method_LLG.hpp>
 #include <engine/Method_MC.hpp>
+#include <engine/Method_TS_Sampling.hpp>
 #include <engine/Method_MMF.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
@@ -117,6 +118,7 @@ try
             image->mc_parameters->n_iterations_log = n_iterations_log;
 
         auto method = std::shared_ptr<Engine::Method>( new Engine::Method_MC( image, idx_image, idx_chain ) );
+        // auto method = std::shared_ptr<Engine::Method>( new Engine::Method_TS_Sampling( image, idx_image, idx_chain ) );
 
         image->Unlock();
 

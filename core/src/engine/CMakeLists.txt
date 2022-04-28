@@ -14,6 +14,7 @@ set(SOURCE_SPIRIT_ENGINE
     ${CMAKE_CURRENT_SOURCE_DIR}/Method_MC.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Method_MMF.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Method_EMA.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Method_TS_Sampling.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.cu
     ${CMAKE_CURRENT_SOURCE_DIR}/Manifoldmath.cpp

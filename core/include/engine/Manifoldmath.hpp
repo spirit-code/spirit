@@ -32,6 +32,11 @@ void project_parallel( vectorfield & vf1, const vectorfield & vf2 );
 // Project v1 to be orthogonal to v2
 //      Note: this assumes normalized vectorfields
 void project_orthogonal( vectorfield & vf1, const vectorfield & vf2 );
+
+// Project v1 to be orthogonal to v2
+//      Note: this assumes normalized vectorfields
+void project_orthogonal( vectorfield & vf1, const vectorfield & vf2, scalar dot_product );
+
 // Invert v1's component parallel to v2
 //      Note: this assumes normalized vectorfields
 void invert_parallel( vectorfield & vf1, const vectorfield & vf2 );

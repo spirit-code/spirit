@@ -26,17 +26,22 @@ void project_parallel( vectorfield & vf1, const vectorfield & vf2 )
     Backend::par::apply( vf1.size(), [vf1 = vf1.data(), vf2 = vf2.data(), proj] SPIRIT_LAMBDA (int idx)
         {
             vf1[idx] = proj * vf2[idx];
-        } 
+        }
     );
+}
+
+void project_orthogonal( vectorfield & vf1, const vectorfield & vf2, scalar proj )
+{
+// TODO: replace the loop with Vectormath Kernel
+#pragma omp parallel for
+    for( unsigned int i = 0; i < vf1.size(); ++i )
+        vf1[i] -= proj * vf2[i];
 }
 
 void project_orthogonal( vectorfield & vf1, const vectorfield & vf2 )
 {
     scalar x = Vectormath::dot( vf1, vf2 );
-// TODO: replace the loop with Vectormath Kernel
-#pragma omp parallel for
-    for( unsigned int i = 0; i < vf1.size(); ++i )
-        vf1[i] -= x * vf2[i];
+    project_orthogonal(vf1, vf2, x);
 }
 
 void invert_parallel( vectorfield & vf1, const vectorfield & vf2 )

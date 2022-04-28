@@ -21,6 +21,7 @@ set(HEADER_SPIRIT_ENGINE
     ${CMAKE_CURRENT_SOURCE_DIR}/Method_MC.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Method_MMF.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Method_EMA.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Method_TS_Sampling.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Vectormath_Defines.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Manifoldmath.hpp
