@@ -88,6 +88,12 @@ spin configuration through such a mode or to get a "dynamical" chain
 of images corresponding to the movement of the system under the mode.
 """
 
+METHOD_TS_SAMPLING  = 5
+"""Transition state sampling.
+
+Samples the transition state.
+"""
+
 class simulation_run_info(ctypes.Structure):
     """Contains basic information about a simulation run."""
     _fields_ = [
@@ -141,6 +147,12 @@ _EMA_Start          = _spirit.Simulation_EMA_Start
 _EMA_Start.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int,
                         ctypes.c_bool, ctypes.POINTER(simulation_run_info), ctypes.c_int, ctypes.c_int]
 _EMA_Start.restype  = None
+### TS_SAMPLING
+_TS_Sampling_Start          = _spirit.Simulation_TS_Sampling_Start
+_TS_Sampling_Start.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int,
+                        ctypes.c_bool, ctypes.POINTER(simulation_run_info), ctypes.c_int, ctypes.c_int]
+_TS_Sampling_Start.restype  = None
+
 ### ----- Wrapper
 def start(p_state, method_type, solver_type=None, n_iterations=-1, n_iterations_log=-1,
             single_shot=False, idx_image=-1, idx_chain=-1):
@@ -187,6 +199,12 @@ def start(p_state, method_type, solver_type=None, n_iterations=-1, n_iterations_
                                             ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
     elif method_type == METHOD_EMA:
         spiritlib.wrap_function(_EMA_Start, [ctypes.c_void_p(p_state),
+                                            ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log),
+                                            ctypes.c_bool(single_shot),
+                                            ctypes.pointer(info),
+                                            ctypes.c_int(idx_image), ctypes.c_int(idx_chain)])
+    elif method_type == METHOD_TS_SAMPLING:
+        spiritlib.wrap_function(_TS_Sampling_Start, [ctypes.c_void_p(p_state),
                                             ctypes.c_int(n_iterations), ctypes.c_int(n_iterations_log),
                                             ctypes.c_bool(single_shot),
                                             ctypes.pointer(info),

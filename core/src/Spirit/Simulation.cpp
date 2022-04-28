@@ -131,6 +131,64 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
+void Simulation_TS_Sampling_Start(
+    State * state, int n_iterations, int n_iterations_log, bool singleshot, Simulation_Run_Info * info, int idx_image,
+    int idx_chain ) noexcept
+try
+{
+    // Fetch correct indices and pointers for image and chain
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    // Determine wether to stop or start a simulation
+    if( image->iteration_allowed )
+    {
+        // Currently iterating image
+        spirit_throw(
+            Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Warning,
+            fmt::format(
+                "Tried to use Simulation_Start on image {} of chain {}, but there is already a simulation running.",
+                idx_image, idx_chain ) );
+    }
+    else if( chain->iteration_allowed )
+    {
+        // Currently iterating chain
+        spirit_throw(
+            Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Warning,
+            fmt::format(
+                "Tried to use Simulation_Start on image {} of chain {}, but there is already a simulation running.",
+                idx_image, idx_chain ) );
+    }
+    else
+    {
+        // We are not iterating, so we create the Method and call Iterate
+        image->Lock();
+
+        image->iteration_allowed  = true;
+        image->singleshot_allowed = singleshot;
+
+        if( n_iterations > 0 )
+            image->mc_parameters->n_iterations = n_iterations;
+        if( n_iterations_log > 0 )
+            image->mc_parameters->n_iterations_log = n_iterations_log;
+
+        // auto method = std::shared_ptr<Engine::Method>( new Engine::Method_MC( image, idx_image, idx_chain ) );
+        auto method = std::shared_ptr<Engine::Method>( new Engine::Method_TS_Sampling( image, idx_image, idx_chain ) );
+
+        image->Unlock();
+
+        state->method_image[idx_image] = method;
+        run_method( method, singleshot, info );
+    }
+}
+catch( ... )
+{
+    spirit_handle_exception_api( idx_image, idx_chain );
+}
+
 void Simulation_LLG_Start(
     State * state, int solver_type, int n_iterations, int n_iterations_log, bool singleshot, Simulation_Run_Info * info,
     int idx_image, int idx_chain ) noexcept

@@ -82,6 +82,11 @@ PREFIX void Simulation_MC_Start(
     State * state, int n_iterations = -1, int n_iterations_log = -1, bool singleshot = false,
     Simulation_Run_Info * info = nullptr, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
+// Transition State Sampling
+PREFIX void Simulation_TS_Sampling_Start(
+    State * state, int n_iterations = -1, int n_iterations_log = -1, bool singleshot = false,
+    Simulation_Run_Info * info = nullptr, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+
 // Landau-Lifshitz-Gilbert dynamics and energy minimisation
 PREFIX void Simulation_LLG_Start(
     State * state, int solver_type, int n_iterations = -1, int n_iterations_log = -1, bool singleshot = false,
