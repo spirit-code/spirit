@@ -47,6 +47,7 @@ try
 catch( ... )
 {
     spirit_handle_exception_api( idx_image, idx_chain );
+    return nullptr;
 }
 
 void Parameters_LLG_Set_Non_Uniform_Currents( State * state, bool non_uniform_currents, int idx_image, int idx_chain) noexcept
