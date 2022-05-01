@@ -198,7 +198,23 @@ jobs:
       shell: bash
       run: |
         clang-tidy-14 --version
-        $SOURCES | xargs clang-tidy-14 -p ${{runner.workspace}}/build || true
+
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.8'
+
+    - name: 📚 Install python packages
+      run: pip install --user numpy pylint black
+
+    - name: 🧪 Python code formatting check
+      shell: bash
+      run: |
+        black core/python --check
+        black ui-python --check
+
+    - name: 🧪 Python code quality checks, linting
+      shell: bash
+      run: pylint core/python/spirit --fail-under=8
 
   build-cuda:
     runs-on: ${{ matrix.config.os }}
