@@ -1,12 +1,12 @@
 template<>
-inline void Method_Solver<Solver::VP_OSO>::Initialize()
+inline void Method_Solver<Solver::VP_OSO>::Initialize_Solver()
 {
     this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
     this->forces_virtual = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
 
     this->configurations_temp = std::vector<std::shared_ptr<vectorfield>>( this->noi );
     for( int i = 0; i < this->noi; i++ )
-        configurations_temp[i] = std::shared_ptr<vectorfield>( new vectorfield( this->nos ) );
+        configurations_temp[i] = std::make_shared<vectorfield>( this->nos );
 
     this->velocities = std::vector<vectorfield>( this->noi, vectorfield( this->nos, Vector3::Zero() ) ); // [noi][nos]
     this->velocities_previous = velocities;                                                              // [noi][nos]

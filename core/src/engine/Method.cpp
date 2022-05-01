@@ -13,17 +13,20 @@ using namespace Utility;
 namespace Engine
 {
 
-Method::Method( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain )
+Method::Method(
+    const std::shared_ptr<Data::Parameters_Method> & parameters, int noi, int nos, int idx_img, int idx_chain )
         : iteration( 0 ),
           step( 0 ),
           idx_image( idx_img ),
           idx_chain( idx_chain ),
-          parameters( parameters ),
-          n_iterations_amortize( parameters->n_iterations_amortize )
+          noi( noi ),
+          nos( nos ),
+          n_iterations_amortize( parameters->n_iterations_amortize ),
+          SenderName( Log_Sender::All ),
+          max_torque( 0 ),
+          force_max_abs_component( 0 ),
+          parameters( parameters )
 {
-    // Sender name for log messages
-    this->SenderName = Log_Sender::All;
-
     this->history_iteration  = std::vector<int>();
     this->history_max_torque = std::vector<scalar>();
     this->history_energy     = std::vector<scalar>();
@@ -35,10 +38,7 @@ Method::Method( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img
         this->n_iterations_log = this->n_iterations;
     this->n_log = this->n_iterations / this->n_iterations_log;
 
-    if( n_iterations_amortize > n_iterations_log )
-    {
-        n_iterations_amortize = n_iterations_log;
-    }
+    this->n_iterations_amortize = std::min( n_iterations_log, long( n_iterations_amortize ) );
 
     // Setup timings
     for( std::uint8_t i = 0; i < 7; ++i )
@@ -77,13 +77,11 @@ void Method::Iterate()
         // Lock Systems
         this->Lock();
 
-        // Pre-iteration hook
-        this->Hook_Pre_Iteration();
         // Do n_iterations_amortize iterations
         for( int i = 0; i < n_iterations_amortize; i++ )
             this->Iteration();
         // Post-iteration hook
-        this->Hook_Post_Iteration();
+        this->Post_Iteration_Hook();
 
         // Recalculate FPS
         this->t_iterations.pop_front();
@@ -133,7 +131,8 @@ double Method::get_simulated_time()
     // Not Implemented!
     spirit_throw(
         Utility::Exception_Classifier::Not_Implemented, Utility::Log_Level::Error,
-        "Tried to use Method::get_simulated_time() of the Method base class!" );
+        "Tried to use Method::get_simulated_time() of the Method base class, meaning it was called on a method that "
+        "does not have a time-scale!" );
 }
 
 std::int64_t Method::getWallTime()
@@ -167,14 +166,6 @@ std::vector<scalar> Method::getTorqueMaxNorm_All()
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////// Protected functions
 
-void Method::Initialize() {}
-
-void Method::Message_Start() {}
-void Method::Message_Step() {}
-void Method::Message_End() {}
-
-void Method::Iteration() {}
-
 bool Method::ContinueIterating()
 {
     return this->iteration < this->n_iterations && this->Iterations_Allowed() && !this->StopFile_Present();
@@ -199,38 +190,6 @@ bool Method::StopFile_Present()
     return f.good();
 }
 
-void Method::Save_Current( std::string starttime, int iteration, bool initial, bool final )
-{
-    // Not Implemented!
-    spirit_throw(
-        Exception_Classifier::Not_Implemented, Log_Level::Error,
-        "Tried to use Method::Save_Current() of the Method base class!" );
-}
-
-void Method::Hook_Pre_Iteration()
-{
-    // Not Implemented!
-    spirit_throw(
-        Exception_Classifier::Not_Implemented, Log_Level::Error,
-        "Tried to use Method::Save_Current() of the Method base class!" );
-}
-
-void Method::Hook_Post_Iteration()
-{
-    // Not Implemented!
-    spirit_throw(
-        Exception_Classifier::Not_Implemented, Log_Level::Error,
-        "Tried to use Method::Save_Current() of the Method base class!" );
-}
-
-void Method::Finalize()
-{
-    // Not Implemented!
-    spirit_throw(
-        Exception_Classifier::Not_Implemented, Log_Level::Error,
-        "Tried to use Method::Save_Current() of the Method base class!" );
-}
-
 void Method::Lock()
 {
     for( auto & system : this->systems )
@@ -243,29 +202,24 @@ void Method::Unlock()
         system->Unlock();
 }
 
-std::string Method::Name()
-{
-    // Not Implemented!
-    Log( Log_Level::Error, Log_Sender::All, std::string( "Tried to use Method::Name() of the Method base class!" ) );
-    return "--";
-}
-
 // Solver name as string
 std::string Method::SolverName()
 {
     // Not Implemented!
-    Log( Log_Level::Error, Log_Sender::All,
-         std::string( "Tried to use Method::SolverName() of the Method base class!" ), this->idx_image,
-         this->idx_chain );
+    spirit_throw(
+        Utility::Exception_Classifier::Not_Implemented, Utility::Log_Level::Error,
+        "Tried to use Method::SolverName() of the Method base class, meaning it was called on a method that does not "
+        "use any solver!" );
     return "--";
 }
 
 std::string Method::SolverFullName()
 {
     // Not Implemented!
-    Log( Log_Level::Error, Log_Sender::All,
-         std::string( "Tried to use Method::SolverFullname() of the Method base class!" ), this->idx_image,
-         this->idx_chain );
+    spirit_throw(
+        Utility::Exception_Classifier::Not_Implemented, Utility::Log_Level::Error,
+        "Tried to use Method::SolverFullname() of the Method base class, meaning it was called on a method that does "
+        "not use any solver!" );
     return "--";
 }
 

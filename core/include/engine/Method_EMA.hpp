@@ -23,9 +23,6 @@ public:
     // Method name as string
     std::string Name() override;
 
-    // Solver name as string
-    std::string SolverName() override;
-
 private:
     // Iteration does one time step of the oscillation
     // S(t) = S(0) + cos(omega * t) * direction
@@ -33,13 +30,9 @@ private:
 
     // Save the current Step's Data: spins and energy
     void Save_Current( std::string starttime, int iteration, bool initial = false, bool final = false ) override;
-    // A hook into the Method before an Iteration of the Solver
-    void Hook_Pre_Iteration() override;
     // A hook into the Method after an Iteration of the Solver
-    void Hook_Post_Iteration() override;
+    void Post_Iteration_Hook() override;
 
-    // Sets iteration_allowed to false for the corresponding method
-    void Initialize() override;
     // Sets iteration_allowed to false for the corresponding method
     void Finalize() override;
 

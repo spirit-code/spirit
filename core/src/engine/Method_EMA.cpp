@@ -22,14 +22,11 @@ namespace Engine
 {
 
 Method_EMA::Method_EMA( std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain )
-        : Method( system->ema_parameters, idx_img, idx_chain )
+        : Method( system->ema_parameters, 1, system->nos, idx_img, idx_chain )
 {
     this->systems        = std::vector<std::shared_ptr<Data::Spin_System>>( 1, system );
     this->SenderName     = Log_Sender::EMA;
     this->parameters_ema = system->ema_parameters;
-
-    this->noi = this->systems.size();
-    this->nos = this->systems[0]->nos;
 
     // Attributes needed for applying a mode the spins
     this->angle         = scalarfield( this->nos );
@@ -96,11 +93,7 @@ void Method_EMA::Iteration()
 
 void Method_EMA::Save_Current( std::string starttime, int iteration, bool initial, bool final ) {}
 
-void Method_EMA::Hook_Pre_Iteration() {}
-
-void Method_EMA::Hook_Post_Iteration() {}
-
-void Method_EMA::Initialize() {}
+void Method_EMA::Post_Iteration_Hook() {}
 
 void Method_EMA::Finalize()
 {
@@ -132,12 +125,6 @@ void Method_EMA::Message_End() {}
 std::string Method_EMA::Name()
 {
     return "EMA";
-}
-
-// Solver name as string
-std::string Method_EMA::SolverName()
-{
-    return "None";
 }
 
 } // namespace Engine

@@ -484,12 +484,10 @@ try
         method->Lock();
         for( int i = 0; i < N; i++ )
         {
-            // Pre-iteration hook
-            method->Hook_Pre_Iteration();
             // Do one single Iteration
             method->Iteration();
             // Post-iteration hook
-            method->Hook_Post_Iteration();
+            method->Post_Iteration_Hook();
 
             // Recalculate FPS
             method->t_iterations.pop_front();

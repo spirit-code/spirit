@@ -20,14 +20,12 @@ namespace Engine
 {
 
 Method_MC::Method_MC( std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain )
-        : Method( system->mc_parameters, idx_img, idx_chain )
+        : Method( system->mc_parameters, 1, system->nos, idx_img, idx_chain )
 {
     // Currently we only support a single image being iterated at once:
     this->systems    = std::vector<std::shared_ptr<Data::Spin_System>>( 1, system );
     this->SenderName = Log_Sender::MC;
 
-    this->noi           = this->systems.size();
-    this->nos           = this->systems[0]->geometry->nos;
     this->nos_nonvacant = this->systems[0]->geometry->nos_nonvacant;
 
     this->xi = vectorfield( this->nos, { 0, 0, 0 } );
@@ -196,11 +194,7 @@ void Method_MC::Metropolis( const vectorfield & spins_old, vectorfield & spins_n
 // {
 // }
 
-void Method_MC::Hook_Pre_Iteration() {}
-
-void Method_MC::Hook_Post_Iteration() {}
-
-void Method_MC::Initialize() {}
+void Method_MC::Post_Iteration_Hook() {}
 
 void Method_MC::Finalize()
 {

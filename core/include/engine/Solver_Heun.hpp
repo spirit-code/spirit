@@ -1,5 +1,5 @@
 template<>
-inline void Method_Solver<Solver::Heun>::Initialize()
+inline void Method_Solver<Solver::Heun>::Initialize_Solver()
 {
     this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
     this->forces_virtual = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
@@ -7,13 +7,13 @@ inline void Method_Solver<Solver::Heun>::Initialize()
     this->forces_predictor         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
     this->forces_virtual_predictor = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
 
-    this->configurations_temp = std::vector<std::shared_ptr<vectorfield>>( this->noi );
+    this->configurations_temp.resize( this->noi );
     for( int i = 0; i < this->noi; i++ )
-        configurations_temp[i] = std::shared_ptr<vectorfield>( new vectorfield( this->nos ) );
+        configurations_temp[i] = std::make_shared<vectorfield>( this->nos );
 
-    this->configurations_predictor = std::vector<std::shared_ptr<vectorfield>>( this->noi );
+    this->configurations_predictor.resize( this->noi );
     for( int i = 0; i < this->noi; i++ )
-        configurations_predictor[i] = std::shared_ptr<vectorfield>( new vectorfield( this->nos ) );
+        configurations_predictor[i] = std::make_shared<vectorfield>( this->nos );
 
     this->temp1 = vectorfield( this->nos, { 0, 0, 0 } );
 }

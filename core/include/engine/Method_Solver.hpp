@@ -50,12 +50,13 @@ class Method_Solver : public Method
 {
 public:
     // Constructor to be used in derived classes
-    Method_Solver( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain )
-            : Method( parameters, idx_img, idx_chain )
+    Method_Solver( std::shared_ptr<Data::Parameters_Method> parameters, int noi, int nos, int idx_img, int idx_chain )
+            : Method( parameters, noi, nos, idx_img, idx_chain )
     {
+        this->Initialize_Solver();
     }
 
-    virtual ~Method_Solver() = default;
+    ~Method_Solver() override = default;
 
     // // `Iterate` uses the `Solver_Iteration` function to evolve given systems according to the
     // // `Calculate_Force` implementation of the Method-Subclass.
@@ -65,11 +66,11 @@ public:
     // virtual void Iterate() override;
 
     // Solver name as string
-    virtual std::string SolverName() override;
-    virtual std::string SolverFullName() override;
+    std::string SolverName() override;
+    std::string SolverFullName() override;
 
     // Iteration represents one iteration of a certain Solver
-    virtual void Iteration() override;
+    void Iteration() override;
 
 protected:
     // Prepare random numbers for thermal fields, if needed
@@ -124,14 +125,14 @@ protected:
         return Method::ContinueIterating() && !this->Converged();
     }
 
-    // Initialise contains the initialisations of arrays etc. for a certain solver
-    virtual void Initialize() override;
-    virtual void Finalize() override;
+    // Initialize arrays etc. before `Iterate` starts
+    void Initialize_Solver();
+    void Finalize() override;
 
     // Log message blocks
-    virtual void Message_Start() override;
-    virtual void Message_Step() override;
-    virtual void Message_End() override;
+    void Message_Start() override;
+    void Message_Step() override;
+    void Message_End() override;
 
     //////////// DEPONDT ////////////////////////////////////////////////////////////
     // Temporaries for virtual forces
@@ -237,10 +238,6 @@ bool Method_Solver<solver>::Converged()
         converged = true;
     return converged;
 }
-
-// Default implementation: do nothing
-template<Solver solver>
-void Method_Solver<solver>::Initialize(){};
 
 // Default implementation: do nothing
 template<Solver solver>

@@ -27,7 +27,7 @@ public:
      *   The constructor does not allocate any large arrays. The solvers should allocate
      *   what they need in Solver_Initialise.
      */
-    Method( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain );
+    Method( const std::shared_ptr<Data::Parameters_Method> & parameters, int noi, int nos, int idx_img, int idx_chain );
 
     virtual ~Method() = default;
 
@@ -54,14 +54,14 @@ public:
      */
     virtual scalar getForceMaxAbsComponent() final;
 
+    // Maximum norm of the torque - needs to be updated at each calculation
+    virtual scalar getTorqueMaxNorm() final;
+
     /*
      * Maximum of the absolutes of all components of the force for all images the method uses
      * The default is that this returns simply {getForceMaxAbsComponent()}
      */
     virtual std::vector<scalar> getForceMaxAbsComponent_All();
-
-    // Maximum norm of the torque - needs to be updated at each calculation
-    virtual scalar getTorqueMaxNorm() final;
 
     // Maximum of the norm of the torque for all images the method uses
     virtual std::vector<scalar> getTorqueMaxNorm_All();
@@ -69,7 +69,7 @@ public:
     // ------------------------------------------------------
 
     // Method name as string
-    virtual std::string Name();
+    virtual std::string Name() = 0;
 
     // Solver name as string
     virtual std::string SolverName();
@@ -78,37 +78,28 @@ public:
     // ------------------------------------------------------
 
     // One iteration of the Method
-    virtual void Iteration();
+    virtual void Iteration() = 0;
 
-    // Initialize arrays etc. before `Iterate` starts
-    virtual void Initialize();
     // Finalize (e.g. output informaiton) after `Iterate` has finished
-    virtual void Finalize();
+    virtual void Finalize() = 0;
 
     // Log messages at Start, after Steps and at End of Iterate
-    virtual void Message_Start();
-    virtual void Message_Step();
-    virtual void Message_End();
-
-    /*
-     * A hook into `Iterate` before an Iteration.
-     *   Override this function if special actions are needed
-     *   before each `Solver_Iteration`
-     */
-    virtual void Hook_Pre_Iteration();
+    virtual void Message_Start() = 0;
+    virtual void Message_Step()  = 0;
+    virtual void Message_End()   = 0;
 
     /*
      * A hook into `Iterate` after an Iteration.
      *   Override this function if special actions are needed
      *   after each `Solver_Iteration`
      */
-    virtual void Hook_Post_Iteration();
+    virtual void Post_Iteration_Hook() = 0;
 
     /*
      * Save current data
      *   Override to specialize what a Method should save
      */
-    virtual void Save_Current( std::string starttime, int iteration, bool initial = false, bool final = false );
+    virtual void Save_Current( std::string starttime, int iteration, bool initial = false, bool final = false ) = 0;
 
     /*
      * Lock systems in order to prevent otherwise access

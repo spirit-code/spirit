@@ -46,10 +46,8 @@ private:
 
     // Save the current Step's Data: images and images' energies and reaction coordinates
     void Save_Current( std::string starttime, int iteration, bool initial = false, bool final = false ) override;
-    // A hook into the Method before an Iteration of the Solver
-    void Hook_Pre_Iteration() override;
     // A hook into the Method after an Iteration of the Solver
-    void Hook_Post_Iteration() override;
+    void Post_Iteration_Hook() override;
 
     // A helper method that calculates the interpolated energies, split up into the different energy contributions
     void Calculate_Interpolated_Energy_Contributions();

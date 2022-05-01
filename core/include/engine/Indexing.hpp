@@ -13,14 +13,14 @@ namespace Indexing
 inline int
 idx_from_translations( const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations )
 {
-    auto & Na = n_cells[0];
-    auto & Nb = n_cells[1];
-    auto & Nc = n_cells[2];
-    auto & N  = n_cell_atoms;
+    const auto & Na = n_cells[0];
+    const auto & Nb = n_cells[1];
+    const auto & Nc = n_cells[2];
+    const auto & N  = n_cell_atoms;
 
-    auto & da = translations[0];
-    auto & db = translations[1];
-    auto & dc = translations[2];
+    const auto & da = translations[0];
+    const auto & db = translations[1];
+    const auto & dc = translations[2];
 
     return da * N + db * N * Na + dc * N * Na * Nb;
 }
@@ -61,10 +61,10 @@ inline int idx_from_translations(
     const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations_i,
     const std::array<int, 3> & translations )
 {
-    auto & Na = n_cells[0];
-    auto & Nb = n_cells[1];
-    auto & Nc = n_cells[2];
-    auto & N  = n_cell_atoms;
+    const auto & Na = n_cells[0];
+    const auto & Nb = n_cells[1];
+    const auto & Nc = n_cells[2];
+    const auto & N  = n_cell_atoms;
 
     int da = translations_i[0] + translations[0];
     int db = translations_i[1] + translations[1];
@@ -220,9 +220,9 @@ __inline__ __device__ int cu_idx_from_pair(
         return -1;
 
     // Number of cells
-    auto & Na = n_cells[0];
-    auto & Nb = n_cells[1];
-    auto & Nc = n_cells[2];
+    const auto & Na = n_cells[0];
+    const auto & Nb = n_cells[1];
+    const auto & Nc = n_cells[2];
 
     // Invalid index if translations reach out over the lattice bounds
     if( std::abs( pair.translations[0] ) > Na || std::abs( pair.translations[1] ) > Nb
@@ -360,9 +360,9 @@ inline int idx_from_pair(
         return -1;
 
     // Number of cells
-    auto & Na = n_cells[0];
-    auto & Nb = n_cells[1];
-    auto & Nc = n_cells[2];
+    const auto & Na = n_cells[0];
+    const auto & Nb = n_cells[1];
+    const auto & Nc = n_cells[2];
 
     // Invalid index if translations reach out over the lattice bounds
     if( std::abs( pair.translations[0] ) > Na || std::abs( pair.translations[1] ) > Nb
