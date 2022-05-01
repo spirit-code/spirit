@@ -19,7 +19,7 @@ void Calculate( Data::HTST_Info & htst_info, int n_eigenmodes_keep = 0 );
 // Calculate the 'a' component of the prefactor
 void Calculate_Perpendicular_Velocity(
     const vectorfield & spins, const scalarfield & mu_s, const MatrixX & hessian, const MatrixX & basis,
-    const MatrixX & eigenbasis, VectorX & a );
+    const MatrixX & eigenbasis, VectorX & perpendicular_velocity );
 
 // Calculate the Velocity matrix
 void Calculate_Dynamical_Matrix(
