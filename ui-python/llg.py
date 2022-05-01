@@ -3,7 +3,9 @@ import sys
 
 ### Make sure to find the Spirit modules
 ### This is only needed if you did not install the package
-spirit_py_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "../core/python"))
+spirit_py_dir = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../core/python")
+)
 sys.path.insert(0, spirit_py_dir)
 
 ### Import Spirit modules
@@ -26,5 +28,5 @@ with state.State(cfgfile, quiet) as p_state:
 
     ### LLG dynamics simulation
     LLG = simulation.METHOD_LLG
-    DEPONDT = simulation.SOLVER_DEPONDT # Velocity projection minimiser
+    DEPONDT = simulation.SOLVER_DEPONDT  # Velocity projection minimiser
     simulation.start(p_state, LLG, DEPONDT)
