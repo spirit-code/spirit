@@ -35,7 +35,7 @@ You can pass an input file specifying your initial system parameters.
 If you do not pass an input file, the implemented defaults are used.
 """
 
-import spirit.spiritlib as spiritlib
+from spirit import spiritlib
 import ctypes
 
 ### Load Library

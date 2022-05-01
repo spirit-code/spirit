@@ -6,7 +6,7 @@ This method, if needed, calculates modes (they can also be read in from a file)
 and perturbs the spin system periodically in the direction of the eigenmode.
 """
 
-import spirit.spiritlib as spiritlib
+from spirit import spiritlib
 import ctypes
 
 # Load Library

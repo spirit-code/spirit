@@ -3,10 +3,10 @@ Constants
 ====================
 """
 
+from spirit import spiritlib
+from spirit.scalar import scalar
 import spirit.spiritlib as spiritlib
 import ctypes
-
-from spirit.scalar import scalar
 
 # Load Library
 _spirit = spiritlib.load_spirit_library()

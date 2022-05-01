@@ -3,9 +3,9 @@ Quantities
 ====================
 """
 
-import spirit.spiritlib as spiritlib
-import spirit.system as system
-from spirit.scalar import scalar
+from spirit import spiritlib
+from spirit import system
+from spirit import scalar
 import ctypes
 
 import numpy as np

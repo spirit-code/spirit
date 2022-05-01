@@ -13,7 +13,7 @@ All configuration setters support the following arguments with default values:
 - `inverted=False`: exactly inverts the above restrictions
 """
 
-import spirit.spiritlib as spiritlib
+from spirit import spiritlib
 import ctypes
 
 ### Load Library

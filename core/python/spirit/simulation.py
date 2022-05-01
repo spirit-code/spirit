@@ -11,7 +11,7 @@ regular simulation, except that the iterations have to be triggered manually.
 Note that the VP and LBFGS Solvers are only meant for direct minimization and not for dynamics.
 """
 
-import spirit.spiritlib as spiritlib
+from spirit import spiritlib
 import ctypes
 
 ### Load Library

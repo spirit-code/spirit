@@ -3,7 +3,7 @@ System
 ====================
 """
 
-import spirit.spiritlib as spiritlib
+from spirit import spiritlib
 import ctypes
 
 ### Load Library

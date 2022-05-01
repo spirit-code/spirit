@@ -6,9 +6,9 @@ Manipulate the chain of spin systems (also called images), e.g. add, remove or c
 Get information, such as number of images or energies and reaction coordinates.
 """
 
-import spirit.spiritlib as spiritlib
-import spirit.parameters as parameters
-import spirit.system as system
+from spirit import spiritlib
+from spirit import system
+from spirit import parameters
 import ctypes
 
 ### Load Library

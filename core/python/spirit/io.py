@@ -11,7 +11,7 @@ If it cannot be identified as OVF, it will be tried to be read as three plain te
 Note also, IO is still being re-written and only OVF will be supported as output format.
 """
 
-import spirit.spiritlib as spiritlib
+from spirit import spiritlib
 import ctypes
 
 ### Load Library

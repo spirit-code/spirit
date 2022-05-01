@@ -6,7 +6,7 @@ Change or get info on the current geometrical configuration, e.g.
 number of cells in the three crystal translation directions.
 """
 
-import spirit.spiritlib as spiritlib
+from spirit import spiritlib
 import ctypes
 
 ### Load Library
