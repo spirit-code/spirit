@@ -605,7 +605,7 @@ void TopologicalChargeDensity(
                         valid_triangle = false;
                         break;
                     }
-                    tri_spins[i] = vf[idx];
+                    tri_spins[i]   = vf[idx];
                     tri_indices[i] = idx;
                 }
                 if( valid_triangle )

@@ -62,15 +62,15 @@ struct Simulation_Run_Info
     float total_ips      = 0;
     float max_torque     = 0;
 
-    int n_history_iteration = 0;
-    int * history_iteration = nullptr;
-    int n_history_max_torque = 0;
+    int n_history_iteration    = 0;
+    int * history_iteration    = nullptr;
+    int n_history_max_torque   = 0;
     float * history_max_torque = nullptr;
-    int n_history_energy = 0;
-    float * history_energy = nullptr;
+    int n_history_energy       = 0;
+    float * history_energy     = nullptr;
 };
 
-PREFIX void free_run_info(Simulation_Run_Info info) SUFFIX;
+PREFIX void free_run_info( Simulation_Run_Info info ) SUFFIX;
 
 /*
 Start or stop a simulation

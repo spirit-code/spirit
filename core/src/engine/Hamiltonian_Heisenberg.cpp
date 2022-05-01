@@ -569,8 +569,8 @@ scalar Hamiltonian_Heisenberg::Energy_Single_Spin( int ispin, const vectorfield 
                     const auto & t = pair.translations;
                     pair_inv       = Pair{ pair.j, pair.i, { -t[0], -t[1], -t[2] } };
                     int jspin      = idx_from_pair(
-                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                        pair_inv );
+                             ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                             pair_inv );
                     if( jspin >= 0 )
                         Energy -= this->exchange_magnitudes[ipair] * spins[ispin].dot( spins[jspin] );
                 }
@@ -599,8 +599,8 @@ scalar Hamiltonian_Heisenberg::Energy_Single_Spin( int ispin, const vectorfield 
                     const auto & t = pair.translations;
                     pair_inv       = Pair{ pair.j, pair.i, { -t[0], -t[1], -t[2] } };
                     int jspin      = idx_from_pair(
-                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                        pair_inv );
+                             ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                             pair_inv );
                     if( jspin >= 0 )
                         Energy += this->dmi_magnitudes[ipair]
                                   * this->dmi_normals[ipair].dot( spins[ispin].cross( spins[jspin] ) );

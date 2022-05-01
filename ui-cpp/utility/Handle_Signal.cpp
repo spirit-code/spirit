@@ -6,8 +6,8 @@
 // TODO: Replace this
 #include <utility/Timing.hpp>
 
-#include <cstdlib>
 #include <chrono>
+#include <cstdlib>
 #include <memory>
 
 struct State;
