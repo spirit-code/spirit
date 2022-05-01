@@ -193,6 +193,13 @@ jobs:
           exit 1
         fi
 
+    - name: 🧪 clang-tidy linting
+      if: always()
+      shell: bash
+      run: |
+        clang-tidy-14 --version
+        $SOURCES | xargs clang-tidy-14 -p ${{runner.workspace}}/build || true
+
   build-cuda:
     runs-on: ${{ matrix.config.os }}
     strategy:
