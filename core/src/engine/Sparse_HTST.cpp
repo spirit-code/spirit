@@ -26,37 +26,46 @@ namespace Engine
 namespace Sparse_HTST
 {
 
-void Sparse_Get_Lowest_Eigenvector( const SpMatrixX & matrix, int nos, scalar & lowest_evalue, VectorX & lowest_evec )
+// TODO: fix the mess of the partial spectrum solvers, should in general be refactored and merged with ema method somehow
+enum Partial_Spectrum_Solver
 {
-    Log( Utility::Log_Level::All, Utility::Log_Sender::HTST, "        Using Spectra to compute lowest eigenmode..." );
+    RAYLEIGH, // The "old" way
+    LANCZOS   // Lanczos with sensible parameters
+};
+const Partial_Spectrum_Solver spectrum_solver = Partial_Spectrum_Solver::LANCZOS;
 
-    VectorX evalues;
-    MatrixX evectors;
+void Sparse_Get_Lowest_Eigenvectors( const SpMatrixX & matrix, scalar max_evalue, scalarfield & evalues, std::vector<VectorX> & evecs )
+{
+    Log( Utility::Log_Level::All, Utility::Log_Sender::HTST, "    Using Spectra to compute lowest eigenmodes..." );
 
-    int n_steps = std::max( 2, nos );
+    int nos     = matrix.rows() / 2;
+    int n_modes = 6; // Number of lowest modes to be computed (should always be enough)
 
-    //  Create a Spectra solver
+    int ncv      = std::min(2*nos, std::max(2*n_modes + 1, 20)); // This is the default value used by scipy.sparse
+    int max_iter = 20*nos;
+
     Spectra::SparseSymMatProd<scalar> op( matrix );
+    // Create and initialize a Spectra solver
     Spectra::SymEigsSolver<scalar, Spectra::SMALLEST_ALGE, Spectra::SparseSymMatProd<scalar>> matrix_spectrum(
-        &op, 1, n_steps );
-
+        &op, n_modes, ncv);
     matrix_spectrum.init();
-    int nconv = matrix_spectrum.compute();
 
-    if( matrix_spectrum.info() == Spectra::SUCCESSFUL )
-    {
-        evalues  = matrix_spectrum.eigenvalues().real();
-        evectors = matrix_spectrum.eigenvectors().real();
-    }
-    else
+    int nconv = matrix_spectrum.compute( max_iter, 1e-10, int( Spectra::SMALLEST_ALGE ) );
+
+    if( matrix_spectrum.info() != Spectra::SUCCESSFUL )
     {
         Log( Utility::Log_Level::All, Utility::Log_Sender::HTST,
-             "        Failed to calculate lowest eigenmode. Aborting!" );
+            "        Failed to calculate lowest eigenmode. Aborting!" );
         return;
     }
 
-    lowest_evalue = evalues[0];
-    lowest_evec   = evectors.col( 0 );
+    for( int i=0; i<n_modes; i++)
+    {
+        Log( Utility::Log_Level::All, Utility::Log_Sender::HTST, fmt::format( "        eigenvalue[{}] = {}", i,  matrix_spectrum.eigenvalues().real()[i] ) );
+
+        evalues.push_back( matrix_spectrum.eigenvalues().real()[i] );
+        evecs.push_back( matrix_spectrum.eigenvectors().col(i).real() );
+    }
 }
 
 // Project vector such that it is orthogonal to all vectors in orth
@@ -332,7 +341,12 @@ void Calculate( Data::HTST_Info & htst_info )
         Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluate lowest eigenmode of the Hessian..." );
 
         std::vector<VectorX> evecs_sp = std::vector<VectorX>( 0 );
-        Sparse_Get_Lowest_Eigenvectors_VP( sparse_hessian_sp_geodesic_2N, epsilon, evalues_sp, evecs_sp );
+
+        if ( spectrum_solver == Partial_Spectrum_Solver::RAYLEIGH )
+            Sparse_Get_Lowest_Eigenvectors_VP( sparse_hessian_sp_geodesic_2N, epsilon, evalues_sp, evecs_sp );
+        else if ( spectrum_solver == Partial_Spectrum_Solver::LANCZOS )
+            Sparse_Get_Lowest_Eigenvectors( sparse_hessian_sp_geodesic_2N, epsilon, evalues_sp, evecs_sp );
+
         scalar lowest_evalue     = evalues_sp[0];
         VectorX & lowest_evector = evecs_sp[0];
 
@@ -432,7 +446,11 @@ void Calculate( Data::HTST_Info & htst_info )
 
         // Calculate modes at minimum (needed for zero-mode volume)
         std::vector<VectorX> evecs_min = std::vector<VectorX>( 0 );
-        Sparse_Get_Lowest_Eigenvectors_VP( sparse_hessian_geodesic_min_2N, epsilon, evalues_min, evecs_min );
+
+        if ( spectrum_solver == Partial_Spectrum_Solver::RAYLEIGH )
+            Sparse_Get_Lowest_Eigenvectors_VP( sparse_hessian_geodesic_min_2N, epsilon, evalues_min, evecs_min );
+        else if ( spectrum_solver == Partial_Spectrum_Solver::LANCZOS )
+            Sparse_Get_Lowest_Eigenvectors( sparse_hessian_geodesic_min_2N, epsilon, evalues_min, evecs_min );
 
         // Checking for zero modes at the minimum..
         Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Checking for zero modes at the minimum ..." );

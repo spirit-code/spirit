@@ -17,6 +17,7 @@ namespace Engine
 {
 namespace Solver_Kernels
 {
+
 // SIB
 void sib_transform( const vectorfield & spins, const vectorfield & force, vectorfield & out );
 
@@ -128,9 +129,9 @@ void lbfgs_get_searchdir(
             {
                 auto q = q_vec[img].data();
                 auto a = alpha.data();
-                auto d = delta_grad[img].data();
+                auto d = delta_grad[img][c_ind].data();
                 Backend::par::apply(
-                    nos, [c_ind, q, a, d] SPIRIT_LAMBDA( int idx ) { q[idx] += -a[c_ind] * d[c_ind][idx]; } );
+                    nos, [c_ind, q, a, d] SPIRIT_LAMBDA( int idx ) { q[idx] += -a[c_ind] * d[idx]; } );
             }
         }
 

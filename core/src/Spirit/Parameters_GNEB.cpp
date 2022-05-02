@@ -237,6 +237,80 @@ catch( ... )
     spirit_handle_exception_api( -1, idx_chain );
 }
 
+// Set if moving endpoints should be used
+void Parameters_GNEB_Set_Moving_Endpoints( State * state, bool moving_endpoints, int idx_chain ) noexcept
+try
+{
+    int idx_image = -1;
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    chain->Lock();
+    auto p              = chain->gneb_parameters;
+    p->moving_endpoints = moving_endpoints;
+    chain->Unlock();
+
+    Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
+         fmt::format( "Set GNEB moving endpoints = {}", moving_endpoints ), idx_image, idx_chain );
+}
+catch( ... )
+{
+    spirit_handle_exception_api( -1, idx_chain );
+}
+
+// Set if translating endpoints should be used
+void Parameters_GNEB_Set_Translating_Endpoints( State * state, bool translating_endpoints, int idx_chain ) noexcept
+try
+{
+    int idx_image = -1;
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    chain->Lock();
+    auto p                   = chain->gneb_parameters;
+    p->translating_endpoints = translating_endpoints;
+    chain->Unlock();
+
+    Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
+         fmt::format( "Set GNEB translating endpoints = {}", translating_endpoints ), idx_image, idx_chain );
+}
+catch( ... )
+{
+    spirit_handle_exception_api( -1, idx_chain );
+}
+
+void Parameters_GNEB_Set_Equilibrium_Delta_Rx( State * state, float delta_Rx_left, float delta_Rx_right, int idx_chain ) noexcept
+try
+{
+    int idx_image = -1;
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    chain->Lock();
+    auto p                        = chain->gneb_parameters;
+    p->equilibrium_delta_Rx_left  = delta_Rx_left;
+    p->equilibrium_delta_Rx_right = delta_Rx_right;
+
+    chain->Unlock();
+
+    Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
+         fmt::format( "Set equilibrium delta Rx for GNEB with moving endpoints. delta_Rx_left = {}, delta_Rx_right = {}", delta_Rx_left, delta_Rx_right ), idx_image, idx_chain );
+}
+catch( ... )
+{
+    spirit_handle_exception_api( -1, idx_chain );
+}
+
+
 void Parameters_GNEB_Set_Climbing_Falling( State * state, int image_type, int idx_image, int idx_chain ) noexcept
 try
 {
@@ -505,6 +579,63 @@ catch( ... )
 {
     spirit_handle_exception_api( -1, idx_chain );
     return 0;
+}
+
+bool Parameters_GNEB_Get_Moving_Endpoints( State * state, int idx_chain ) noexcept
+try
+{
+    int idx_image = -1;
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    auto p = chain->gneb_parameters;
+    return static_cast<bool>( p->moving_endpoints );
+}
+catch( ... )
+{
+    spirit_handle_exception_api( -1, idx_chain );
+    return 0;
+}
+
+bool Parameters_GNEB_Get_Translating_Endpoints( State * state, int idx_chain ) noexcept
+try
+{
+    int idx_image = -1;
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    auto p = chain->gneb_parameters;
+    return static_cast<bool>( p->translating_endpoints );
+}
+catch( ... )
+{
+    spirit_handle_exception_api( -1, idx_chain );
+    return 0;
+}
+
+void Parameters_GNEB_Get_Equilibrium_Delta_Rx( State * state, float * delta_Rx_left, float * delta_Rx_right, int idx_chain) noexcept
+try
+{
+    int idx_image = -1;
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    auto p = chain->gneb_parameters;
+    *delta_Rx_left = float(p->equilibrium_delta_Rx_left);
+    *delta_Rx_right = float(p->equilibrium_delta_Rx_right);
+}
+catch( ... )
+{
+    spirit_handle_exception_api( -1, idx_chain );
 }
 
 int Parameters_GNEB_Get_Climbing_Falling( State * state, int idx_image, int idx_chain ) noexcept

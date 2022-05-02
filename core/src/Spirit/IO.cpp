@@ -1052,7 +1052,7 @@ try
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::IO,
                  fmt::format(
                      "Resizing eigenmode buffer because the number of modes in the OVF file ({}) "
-                     "is greater than the buffer size ({})",
+                     "is different from the buffer size ({})",
                      n_eigenmodes, image->modes.size() ) );
             image->modes.resize( n_eigenmodes );
             image->eigenvalues.resize( n_eigenmodes );

@@ -6,6 +6,9 @@
 
 #include <fmt/format.h>
 
+#include <exception>
+#include <type_traits>
+
 namespace Utility
 {
 
@@ -29,18 +32,17 @@ enum class Exception_Classifier
 };
 
 /*
- * Spirit library exception class:
- *   Derived from std::runtime_error.
- *   Adds file, line and function information to the exception message.
- *   Contains an exception classifier and a level so that the handler
- *   can decide if execution should be stopped or can continue.
+ * Spirit library exception class, derived from std::runtime_error.
+ *
+ * Adds file, line and function information to the exception message. Contains an exception classifier and a level so
+ * that the handler can decide if execution should be stopped or can continue.
  */
 class Exception : public std::runtime_error
 {
 public:
     Exception(
         Exception_Classifier classifier, Log_Level level, const std::string & message, const char * file,
-        unsigned int line, const char * function )
+        unsigned int line, const char * function ) noexcept( false )
             : std::runtime_error(
                 fmt::format( "{}:{} in function \'{}\':\n{:>49}{}", file, line, function, " ", message ) ),
               classifier( classifier ),
@@ -51,7 +53,17 @@ public:
     {
     }
 
-    ~Exception() throw() override = default;
+    // Copy-constructor
+    Exception( const Exception & ) noexcept = default;
+    // Copy-assignment operator
+    Exception & operator=( const Exception & ) = delete;
+
+    // Move-constructor
+    Exception( Exception && ) noexcept = default;
+    // Move-assignment constructor
+    Exception & operator=( Exception && ) = delete;
+
+    ~Exception() noexcept override = default;
 
     const Exception_Classifier classifier;
     const Log_Level level;
@@ -60,25 +72,38 @@ public:
     const char * function;
 };
 
+// To make sure that the noexcept-specifications are correct
+static_assert(
+    std::is_nothrow_copy_constructible<Exception>::value,
+    "Utility::Exception is expected to be nothrow copy-constructible" );
+static_assert(
+    std::is_nothrow_move_constructible<Exception>::value,
+    "Utility::Exception is expected to be nothrow move-constructible" );
+static_assert(
+    std::is_nothrow_destructible<Exception>::value, "Utility::Exception is expected to be nothrow destructible" );
+
 /*
  * Rethrow (creating a std::nested_exception) an exception using the Exception class
  * to add file and line info
  */
-void rethrow( const std::string & message, const char * file, unsigned int line, const char * function );
+void rethrow( const std::string & message, const char * file, const unsigned int line, const char * function ) noexcept(
+    false );
 
 /*
  * Handle_Exception_API finalizes what should be done when an exception is encountered at the API layer.
- * This function should only be used inside API functions, since that is the top level at which an
- * exception is caught.
+ * This function catches any exceptions and should only be used in the catch-statements of API functions, since that is
+ * the top level at which an exception is caught.
  */
 void Handle_Exception_API(
-    const char * file, unsigned int line, const char * function = "", int idx_image = -1, int idx_chain = -1 );
+    const char * file, const unsigned int line, const char * function = "", const int idx_image = -1,
+    const int idx_chain = -1 ) noexcept;
 
 /*
- * Handle_Exception_Core finalizes what should be done when an exception is encountered inside the core.
+ * Handle_Exception_Core finalizes what should be done when an exception is encountered inside the core library.
  * This function should only be used inside the core, below the API layer.
  */
-void Handle_Exception_Core( const std::string & message, const char * file, unsigned int line, const char * function );
+void Handle_Exception_Core(
+    const std::string & message, const char * file, unsigned int line, const char * function ) noexcept( false );
 
 // Shorthand for throwing a Spirit library exception with file and line info
 #define spirit_throw( classifier, level, message )                                                                     \

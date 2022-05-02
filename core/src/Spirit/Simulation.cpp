@@ -255,10 +255,10 @@ try
                  std::string( "There are still one or more simulations running on the specified chain!" )
                      + std::string( " Please stop them before starting a GNEB calculation." ) );
         }
-        else if( Chain_Get_NOI( state, idx_chain ) < 3 )
+        else if( Chain_Get_NOI( state, idx_chain ) < 2 )
         {
             Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
-                 std::string( "There are less than 3 images in the specified chain!" )
+                 std::string( "There are less than 2 images in the specified chain!" )
                      + std::string( " Please insert more before starting a GNEB calculation." ) );
         }
         else

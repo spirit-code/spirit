@@ -86,7 +86,7 @@ public:
     virtual std::size_t Number_of_Interactions();
 
     // Hamiltonian name as string
-    virtual const std::string & Name();
+    virtual const std::string & Name() const = 0;
 
     // Boundary conditions
     intfield boundary_conditions; // [3] (a, b, c)

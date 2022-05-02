@@ -15,6 +15,7 @@ struct Parameters_Method_EMA : Parameters_Method
     scalar frequency  = 0.02;
     scalar amplitude  = 1;
     bool snapshot     = false;
+    bool sparse       = false;
 
     // ----------------- Output --------------
     // Energy output settings
