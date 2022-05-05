@@ -72,6 +72,15 @@ def set_anisotropy(p_state, magnitude, direction, idx_image=-1, idx_chain=-1):
     _Set_Anisotropy(ctypes.c_void_p(p_state), ctypes.c_float(magnitude), vec3(*direction),
                     ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
+_Set_Cubic_Anisotropy             = _spirit.Hamiltonian_Set_Cubic_Anisotropy
+_Set_Cubic_Anisotropy.argtypes    = [ctypes.c_void_p, ctypes.c_float,
+                               ctypes.c_int, ctypes.c_int]
+_Set_Cubic_Anisotropy.restype     = None
+def set_cubic_anisotropy(p_state, magnitude, idx_image=-1, idx_chain=-1):
+    """Set the (homogeneous) magnetocrystalline anisotropy."""
+    _Set_Cubic_Anisotropy(ctypes.c_void_p(p_state), ctypes.c_float(magnitude),
+                    ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
 _Set_Exchange             = _spirit.Hamiltonian_Set_Exchange
 _Set_Exchange.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.POINTER(ctypes.c_float),
                                ctypes.c_int, ctypes.c_int]
@@ -166,3 +175,26 @@ _Write_Hessian.restype  = None
 def write_hessian(p_state, filename, triplet_format=True, idx_image=-1, idx_chain=-1):
     """RWrites the embedding Hessian to a file"""
     _Write_Hessian(ctypes.c_void_p(p_state), ctypes.c_char_p(filename.encode('utf-8')), ctypes.c_bool(triplet_format), ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+_Get_Anisotropy             = _spirit.Hamiltonian_Get_Anisotropy
+_Get_Anisotropy.argtypes    = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float),
+                               ctypes.POINTER(ctypes.c_float), ctypes.c_int, ctypes.c_int]
+_Get_Anisotropy.restype     = None
+def get_anisotropy(p_state, idx_image=-1, idx_chain=-1):
+    """Set the (homogeneous) magnetocrystalline anisotropy."""
+    magnitude = ctypes.c_float()
+    normal = (3*ctypes.c_float)()
+    _Get_Anisotropy(ctypes.c_void_p(p_state), ctypes.byref(magnitude), normal,
+                    ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+    return float(magnitude.value), [n for n in normal]
+
+_Get_Cubic_Anisotropy             = _spirit.Hamiltonian_Get_Cubic_Anisotropy
+_Get_Cubic_Anisotropy.argtypes    = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float),
+                               ctypes.c_int, ctypes.c_int]
+_Get_Cubic_Anisotropy.restype     = None
+def get_cubic_anisotropy(p_state, idx_image=-1, idx_chain=-1):
+    """Set the (homogeneous) magnetocrystalline anisotropy."""
+    magnitude = ctypes.c_float()
+    _Get_Cubic_Anisotropy(ctypes.c_void_p(p_state), ctypes.byref(magnitude),
+                    ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+    return float(magnitude.value)
