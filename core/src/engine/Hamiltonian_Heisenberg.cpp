@@ -737,11 +737,13 @@ void Hamiltonian_Heisenberg::Gradient_and_Energy( const vectorfield & spins, vec
 
     // Cubic Anisotropy
     if( idx_cubic_anisotropy >= 0 )
+    {
         this->Gradient_Cubic_Anisotropy( spins, gradient );
 
         scalarfield energy_cubic( N );
         this->E_Cubic_Anisotropy( spins, energy_cubic);
         energy += Vectormath::sum( energy_cubic);
+    }
 
     // External field
     if( idx_zeeman >= 0 )
