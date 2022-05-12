@@ -1358,7 +1358,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                 // The file name should be valid so we try to read it
                 Anisotropy_from_File(
                     anisotropy_file, geometry, n_pairs, anisotropy_index, anisotropy_magnitude, anisotropy_normal,
-                    cubic_anisotropy_index, cubic_anisotropy_magnitude);
+                    cubic_anisotropy_index, cubic_anisotropy_magnitude );
 
                 anisotropy_from_file = true;
                 if( !anisotropy_index.empty() )
@@ -1372,9 +1372,9 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                     K_normal = { 0, 0, 0 };
                 }
                 if( !cubic_anisotropy_index.empty() )
-                    K4       = cubic_anisotropy_magnitude[0];
+                    K4 = cubic_anisotropy_magnitude[0];
                 else
-                    K4       = 0;
+                    K4 = 0;
             }
             else
             {
@@ -1385,7 +1385,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
 
                 config_file_handle.Read_Single(K4, "cubic_anisotropy_magnitude");
 
-                if( K !=0)
+                if( K != 0 )
                 {
                     // Fill the arrays
                     for( std::size_t i = 0; i < anisotropy_index.size(); ++i )
@@ -1401,7 +1401,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                     anisotropy_magnitude = scalarfield( 0 );
                     anisotropy_normal    = vectorfield( 0 );
                 }
-                if(K4 != 0 )
+                if( K4 != 0 )
                 {
                     // Fill the arrays
                     for( std::size_t i = 0; i < cubic_anisotropy_index.size(); ++i )
@@ -1612,17 +1612,17 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
     {
         hamiltonian = std::make_unique<Engine::Hamiltonian_Heisenberg>(
             B, B_normal, anisotropy_index, anisotropy_magnitude, anisotropy_normal, cubic_anisotropy_index,
-            cubic_anisotropy_magnitude, exchange_magnitudes, dmi_magnitudes,
-            dm_chirality, ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius, quadruplets,
-            quadruplet_magnitudes, geometry, boundary_conditions );
+            cubic_anisotropy_magnitude, exchange_magnitudes, dmi_magnitudes, dm_chirality, ddi_method,
+            ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius, quadruplets, quadruplet_magnitudes, geometry,
+            boundary_conditions );
     }
     else
     {
         hamiltonian = std::make_unique<Engine::Hamiltonian_Heisenberg>(
             B, B_normal, anisotropy_index, anisotropy_magnitude, anisotropy_normal, cubic_anisotropy_index,
-            cubic_anisotropy_magnitude, exchange_pairs, exchange_magnitudes,
-            dmi_pairs, dmi_magnitudes, dmi_normals, ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius,
-            quadruplets, quadruplet_magnitudes, geometry, boundary_conditions );
+            cubic_anisotropy_magnitude, exchange_pairs, exchange_magnitudes, dmi_pairs, dmi_magnitudes, dmi_normals,
+            ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius, quadruplets, quadruplet_magnitudes,
+            geometry, boundary_conditions );
     }
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Heisenberg: built" );
     return hamiltonian;

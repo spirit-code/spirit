@@ -33,17 +33,16 @@ class Hamiltonian_Heisenberg : public Hamiltonian
 public:
     Hamiltonian_Heisenberg(
         scalar external_field_magnitude, Vector3 external_field_normal, intfield anisotropy_indices,
-        scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals, intfield cubic_anisotropy_indices, scalarfield cubic_anisotropy_magnitudes,
-        pairfield exchange_pairs,
-        scalarfield exchange_magnitudes, pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals,
-        DDI_Method ddi_method, intfield ddi_n_periodic_images, bool ddi_pb_zero_padding, scalar ddi_radius,
-        quadrupletfield quadruplets, scalarfield quadruplet_magnitudes, std::shared_ptr<Data::Geometry> geometry,
-        intfield boundary_conditions );
+        scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals, intfield cubic_anisotropy_indices,
+        scalarfield cubic_anisotropy_magnitudes, pairfield exchange_pairs, scalarfield exchange_magnitudes,
+        pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals, DDI_Method ddi_method,
+        intfield ddi_n_periodic_images, bool ddi_pb_zero_padding, scalar ddi_radius, quadrupletfield quadruplets,
+        scalarfield quadruplet_magnitudes, std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions );
 
     Hamiltonian_Heisenberg(
         scalar external_field_magnitude, Vector3 external_field_normal, intfield anisotropy_indices,
-        scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals, intfield cubic_anisotropy_indices, scalarfield cubic_anisotropy_magnitudes,
-        scalarfield exchange_shell_magnitudes,
+        scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals, intfield cubic_anisotropy_indices,
+        scalarfield cubic_anisotropy_magnitudes, scalarfield exchange_shell_magnitudes,
         scalarfield dmi_shell_magnitudes, int dm_chirality, DDI_Method ddi_method, intfield ddi_n_periodic_images,
         bool ddi_pb_zero_padding, scalar ddi_radius, quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
         std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions );

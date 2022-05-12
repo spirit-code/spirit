@@ -26,12 +26,10 @@ namespace Engine
 Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
     scalar external_field_magnitude, Vector3 external_field_normal, intfield anisotropy_indices,
     scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals, intfield cubic_anisotropy_indices,
-    scalarfield cubic_anisotropy_magnitudes,
-    pairfield exchange_pairs,
-    scalarfield exchange_magnitudes, pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals,
-    DDI_Method ddi_method, intfield ddi_n_periodic_images, bool ddi_pb_zero_padding, scalar ddi_radius,
-    quadrupletfield quadruplets, scalarfield quadruplet_magnitudes, std::shared_ptr<Data::Geometry> geometry,
-    intfield boundary_conditions )
+    scalarfield cubic_anisotropy_magnitudes, pairfield exchange_pairs, scalarfield exchange_magnitudes,
+    pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals, DDI_Method ddi_method,
+    intfield ddi_n_periodic_images, bool ddi_pb_zero_padding, scalar ddi_radius, quadrupletfield quadruplets,
+    scalarfield quadruplet_magnitudes, std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions )
         : Hamiltonian( boundary_conditions ),
           geometry( geometry ),
           external_field_magnitude( external_field_magnitude * C::mu_B ),
@@ -39,7 +37,7 @@ Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
           anisotropy_indices( anisotropy_indices ),
           anisotropy_magnitudes( anisotropy_magnitudes ),
           anisotropy_normals( anisotropy_normals ),
-          cubic_anisotropy_indices( cubic_anisotropy_indices),
+          cubic_anisotropy_indices( cubic_anisotropy_indices ),
           cubic_anisotropy_magnitudes( cubic_anisotropy_magnitudes ),
           exchange_pairs_in( exchange_pairs ),
           exchange_magnitudes_in( exchange_magnitudes ),
@@ -65,10 +63,10 @@ Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
 // Construct a Heisenberg Hamiltonian from shells
 Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
     scalar external_field_magnitude, Vector3 external_field_normal, intfield anisotropy_indices,
-    scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals, intfield cubic_anisotropy_indices, scalarfield cubic_anisotropy_magnitudes,
-    scalarfield exchange_shell_magnitudes,
-    scalarfield dmi_shell_magnitudes, int dm_chirality, DDI_Method ddi_method, intfield ddi_n_periodic_images,
-    bool ddi_pb_zero_padding, scalar ddi_radius, quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
+    scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals, intfield cubic_anisotropy_indices,
+    scalarfield cubic_anisotropy_magnitudes, scalarfield exchange_shell_magnitudes, scalarfield dmi_shell_magnitudes,
+    int dm_chirality, DDI_Method ddi_method, intfield ddi_n_periodic_images, bool ddi_pb_zero_padding,
+    scalar ddi_radius, quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
     std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions )
         : Hamiltonian( boundary_conditions ),
           geometry( geometry ),
@@ -77,7 +75,7 @@ Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
           anisotropy_indices( anisotropy_indices ),
           anisotropy_magnitudes( anisotropy_magnitudes ),
           anisotropy_normals( anisotropy_normals ),
-          cubic_anisotropy_indices( cubic_anisotropy_indices),
+          cubic_anisotropy_indices( cubic_anisotropy_indices ),
           cubic_anisotropy_magnitudes( cubic_anisotropy_magnitudes ),
           exchange_pairs_in( 0 ),
           exchange_magnitudes_in( 0 ),
@@ -352,10 +350,9 @@ void Hamiltonian_Heisenberg::E_Cubic_Anisotropy( const vectorfield & spins, scal
         {
             int ispin = icell * N + cubic_anisotropy_indices[iani];
             if( check_atom_type( this->geometry->atom_types[ispin] ) )
-                Energy[ispin] -= this->cubic_anisotropy_magnitudes[iani]/2 
-                                 * ( std::pow(spins[ispin][0],4.0) +
-                                     std::pow(spins[ispin][1],4.0) +
-                                     std::pow(spins[ispin][2],4.0));
+                Energy[ispin] -= this->cubic_anisotropy_magnitudes[iani] / 2
+                                 * ( std::pow( spins[ispin][0], 4.0 ) + std::pow( spins[ispin][1], 4.0 )
+                                     + std::pow( spins[ispin][2], 4.0 ) );
         }
     }
 }
@@ -595,10 +592,9 @@ scalar Hamiltonian_Heisenberg::Energy_Single_Spin( int ispin, const vectorfield 
                 if( cubic_anisotropy_indices[iani] == ibasis )
                 {
                     if( check_atom_type( this->geometry->atom_types[ispin] ) )
-                        Energy -= this->cubic_anisotropy_magnitudes[iani]/2 
-                                  * ( std::pow(spins[ispin][0],4.0) +
-                                      std::pow(spins[ispin][1],4.0) +
-                                      std::pow(spins[ispin][2],4.0));
+                        Energy -= this->cubic_anisotropy_magnitudes[iani] / 2
+                                  * ( std::pow( spins[ispin][0], 4.0 ) + std::pow( spins[ispin][1], 4.0 )
+                                      + std::pow( spins[ispin][2], 4.0 ) );
                 }
             }
         }
@@ -741,8 +737,8 @@ void Hamiltonian_Heisenberg::Gradient_and_Energy( const vectorfield & spins, vec
         this->Gradient_Cubic_Anisotropy( spins, gradient );
 
         scalarfield energy_cubic( N );
-        this->E_Cubic_Anisotropy( spins, energy_cubic);
-        energy += Vectormath::sum( energy_cubic);
+        this->E_Cubic_Anisotropy( spins, energy_cubic );
+        energy += Vectormath::sum( energy_cubic );
     }
 
     // External field
@@ -816,8 +812,8 @@ void Hamiltonian_Heisenberg::Gradient_Cubic_Anisotropy( const vectorfield & spin
             if( check_atom_type( this->geometry->atom_types[ispin] ) )
                 for ( int icomp = 0; icomp < 3; ++icomp)
                 {
-                    gradient[ispin][icomp] -= 2.0 * this->cubic_anisotropy_magnitudes[iani] 
-                    * std::pow(spins[ispin][icomp],3.0);
+                    gradient[ispin][icomp]
+                        -= 2.0 * this->cubic_anisotropy_magnitudes[iani] * std::pow( spins[ispin][icomp], 3.0 );
                 }
         }
     }

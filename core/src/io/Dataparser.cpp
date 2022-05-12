@@ -204,8 +204,7 @@ try
             else if( i == col_K4)
             {
                 file_handle >> spin_K4;
-                Log( Log_Level::Debug, Log_Sender::IO,
-                     fmt::format( "loaded spin K4\"{}\"", spin_K4 ) );
+                Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "loaded spin K4\"{}\"", spin_K4 ) );
             }
             else
                 file_handle >> sdump;
@@ -235,7 +234,7 @@ try
         }
 
         // Add the index and parameters to the corresponding lists
-        if( spin_K != 0)
+        if( spin_K != 0 )
         {
             anisotropy_index.push_back( spin_i );
             anisotropy_magnitude.push_back( spin_K );
@@ -243,8 +242,7 @@ try
         }
         if( spin_K4 != 0 )
         {
-            Log( Log_Level::Debug, Log_Sender::IO,
-                 fmt::format( "appending spin K4\"{}\"", spin_K4 ) );
+            Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "appending spin K4\"{}\"", spin_K4 ) );
             cubic_anisotropy_index.push_back( spin_i );
             cubic_anisotropy_magnitude.push_back( spin_K4 );
         }

@@ -166,8 +166,7 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void Hamiltonian_Set_Cubic_Anisotropy(
-    State * state, float magnitude, int idx_image, int idx_chain ) noexcept
+void Hamiltonian_Set_Cubic_Anisotropy( State * state, float magnitude, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -203,9 +202,7 @@ try
             ham->Update_Energy_Contributions();
 
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-                 fmt::format(
-                     "Set cubic anisotropy to {}", magnitude ),
-                 idx_image, idx_chain );
+                 fmt::format( "Set cubic anisotropy to {}", magnitude ), idx_image, idx_chain );
         }
         else
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
@@ -482,8 +479,7 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void Hamiltonian_Get_Cubic_Anisotropy(
-    State * state, float * magnitude, int idx_image, int idx_chain ) noexcept
+void Hamiltonian_Get_Cubic_Anisotropy( State * state, float * magnitude, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
