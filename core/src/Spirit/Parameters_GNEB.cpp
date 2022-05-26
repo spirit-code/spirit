@@ -238,7 +238,7 @@ catch( ... )
 }
 
 // Set if moving endpoints should be used
-void Parameters_GNEB_Set_Moving_Endpoints( State * state, bool moving_endpoints, int idx_chain ) noexcept
+void Parameters_GNEB_Set_Moving_Endpoints( State * state, bool moving_endpoints, bool fix_left, bool fix_right, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -251,10 +251,13 @@ try
     chain->Lock();
     auto p              = chain->gneb_parameters;
     p->moving_endpoints = moving_endpoints;
+    p->fix_left  = fix_left;
+    p->fix_right = fix_right;
+
     chain->Unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
-         fmt::format( "Set GNEB moving endpoints = {}", moving_endpoints ), idx_image, idx_chain );
+         fmt::format( "Set GNEB moving endpoints = {}, fix_left = {}, fix_right = {}", moving_endpoints, fix_left, fix_right ), idx_image, idx_chain );
 }
 catch( ... )
 {

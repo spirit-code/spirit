@@ -112,7 +112,7 @@ PREFIX void Parameters_GNEB_Set_Path_Shortening_Constant(
     State * state, float path_shortening_constant, int idx_chain = -1 ) SUFFIX;
 
 // Set if moving endpoints should be used
-PREFIX void Parameters_GNEB_Set_Moving_Endpoints( State * state, bool moving_endpoints, int idx_chain = -1 ) SUFFIX;
+PREFIX void Parameters_GNEB_Set_Moving_Endpoints( State * state, bool moving_endpoints, bool fix_left = false, bool fix_right = false, int idx_chain = -1 ) SUFFIX;
 
 // Set if attracting endpoints should be used
 PREFIX void Parameters_GNEB_Set_Translating_Endpoints( State * state, bool translating_endpoints, int idx_chain = -1 ) SUFFIX;

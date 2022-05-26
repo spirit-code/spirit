@@ -311,6 +311,11 @@ void Method_GNEB<solver>::Calculate_Force(
 
         for( int img : { 0, chain->noi - 1 } )
         {
+            if ( img == 0 && chain->gneb_parameters->fix_left )
+                continue;
+            else if ( img == chain->noi-1 && chain->gneb_parameters->fix_right )
+                continue;
+
             scalar delta_Rx0 = ( img == 0 ) ? chain->gneb_parameters->equilibrium_delta_Rx_left :
                                               chain->gneb_parameters->equilibrium_delta_Rx_right;
             scalar delta_Rx = ( img == 0 ) ? Rx[1] - Rx[0] : Rx[chain->noi - 1] - Rx[chain->noi - 2];
