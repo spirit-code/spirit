@@ -120,3 +120,32 @@ catch( ... )
 {
     spirit_handle_exception_api( -1, idx_chain );
 }
+
+void Dimer_Shift( State * state, bool invert, int idx_chain ) noexcept
+try
+{
+    int idx_image = -1;
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    chain->Lock();
+    try
+    {
+        Utility::Configuration_Chain::Dimer_Shift( chain, invert );
+
+        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+             fmt::format( "Shifted dimer, with invert = {}", invert), -1, idx_chain);
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api( idx_image, idx_chain );
+    }
+    chain->Unlock();
+}
+catch( ... )
+{
+    spirit_handle_exception_api( -1, idx_chain );
+}

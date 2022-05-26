@@ -109,6 +109,9 @@ void hessian_covariant(
 // Geodesic distance between two vectorfields
 scalar dist_geodesic( const vectorfield & v1, const vectorfield & v2 );
 
+// Helper function for a more accurate tangent
+void Geodesic_Tangent( vectorfield & tangent, const vectorfield & image_1, const vectorfield & image_2, const vectorfield & image_mid );
+
 // Calculate the "tangent" vectorfields pointing between a set of configurations
 void Tangents(
     std::vector<std::shared_ptr<vectorfield>> configurations, const std::vector<scalar> & energies,

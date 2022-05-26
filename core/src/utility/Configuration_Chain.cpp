@@ -1,5 +1,8 @@
 #include <data/Spin_System.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/Backend_par.hpp>
+#include <Eigen/Geometry>
+
 #include <utility/Configuration_Chain.hpp>
 #include <utility/Configurations.hpp>
 #include <utility/Constants.hpp>
@@ -11,6 +14,7 @@
 #include <random>
 #include <string>
 #include <vector>
+
 
 namespace Utility
 {
@@ -72,6 +76,48 @@ void Homogeneous_Rotation( std::shared_ptr<Data::Spin_System_Chain> c, int idx_1
     if( antiparallel )
         Log( Log_Level::Warning, Log_Sender::All,
              "For the interpolation of antiparallel spins an arbitrary rotation axis has been chosen." );
+}
+
+// Shift dimer
+void Dimer_Shift( std::shared_ptr<Data::Spin_System_Chain> c, bool invert )
+{
+    if(c->noi != 2)
+    {
+        Log( Log_Level::Error, Log_Sender::All, "Not a Dimer." );
+    }
+
+    // auto & spins_left  = *c->images[0]->spins;
+    // auto & spins_right = *c->images[1]->spins;
+
+    int nos = c->images[0]->nos;
+
+    // clang-format off
+    Engine::Backend::par::apply(nos,
+        [
+            spins_left  = c->images[0]->spins->data(),
+            spins_right = c->images[c->noi-1]->spins->data(),
+            invert
+        ] SPIRIT_LAMBDA ( int idx)
+        {
+            Vector3 axis = spins_left[idx].cross(spins_right[idx]);
+            scalar angle = acos(spins_left[idx].dot(spins_right[idx]));
+
+            // Rotation matrix that rotates spin_left to spin_right
+            Matrix3 rotation_matrix = Eigen::AngleAxis<scalar>(angle, axis.normalized()).toRotationMatrix();
+
+            if (std::abs(angle) < 1e-6 || std::isnan(angle)) // Angle can become nan for collinear spins
+                rotation_matrix = Matrix3::Identity();
+
+            if(!invert)
+            {
+                spins_left[idx] = spins_right[idx];
+                spins_right[idx] = rotation_matrix * spins_right[idx];
+            } else {
+                spins_right[idx] = spins_left[idx];
+                spins_left[idx] = rotation_matrix.transpose() * spins_left[idx];
+            }
+        }
+    );
 }
 
 } // namespace Configuration_Chain

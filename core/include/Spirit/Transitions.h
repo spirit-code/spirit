@@ -46,5 +46,8 @@ Adds some stochastic noise to the transition between two images.
 PREFIX void
 Transition_Add_Noise_Temperature( State * state, float temperature, int idx_1, int idx_2, int idx_chain = -1 ) SUFFIX;
 
+PREFIX void
+Dimer_Shift( State * state, bool invert, int idx_chain = -1 ) SUFFIX;
+
 #include "DLL_Undefine_Export.h"
 #endif

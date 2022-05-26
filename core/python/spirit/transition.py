@@ -32,3 +32,10 @@ def add_noise(p_state, temperature, idx_1, idx_2, idx_chain=-1):
     """Add some temperature-scaled noise to a transition between two images of a chain."""
     _Add_Noise_Temperature(ctypes.c_void_p(p_state), ctypes.c_float(temperature),
                            ctypes.c_int(idx_1), ctypes.c_int(idx_2), ctypes.c_int(idx_chain))
+
+_Dimer_Shift             = _spirit.Dimer_Shift
+_Dimer_Shift.argtypes    = [ctypes.c_void_p, ctypes.c_bool, ctypes.c_int]
+_Dimer_Shift.restype     = None
+def dimer_shift(p_state, invert=False, idx_chain=-1):
+    """Shift dimer."""
+    _Dimer_Shift(ctypes.c_void_p(p_state), ctypes.c_bool(invert), ctypes.c_int(idx_chain))
