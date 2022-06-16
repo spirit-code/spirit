@@ -401,6 +401,7 @@ if( SPIRIT_USE_CUDA )
         ${CMAKE_CURRENT_LIST_DIR}/test/test_vectormath.cpp
         ${CMAKE_CURRENT_LIST_DIR}/test/test_manifoldmath.cpp
         ${CMAKE_CURRENT_LIST_DIR}/test/test_ema.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/test/test_anisotropy.cpp
         PROPERTIES LANGUAGE CUDA )
 endif()
 

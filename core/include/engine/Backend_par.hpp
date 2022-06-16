@@ -6,6 +6,7 @@
 
 // clang-format off
 #ifdef SPIRIT_USE_CUDA
+    #define THRUST_IGNORE_CUB_VERSION_CHECK
     #include <cub/cub.cuh>
     #define SPIRIT_LAMBDA __device__
 #else
