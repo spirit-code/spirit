@@ -1,6 +1,9 @@
 #include <catch.hpp>
+#include <data/Geometry.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Vectormath_Defines.hpp>
+#include <iostream>
+#include <vector>
 
 TEST_CASE( "Vectormath operations", "[vectormath]" )
 {
@@ -260,5 +263,52 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
         Engine::Vectormath::set_c_cross( 3, vf1, vf2, vftest );
         for( int i = 0; i < N_check; ++i )
             REQUIRE( vftest[i] == vtest3 );
+    }
+
+    SECTION( "jacobian" )
+    {
+        // Arbitrary bravais vectors and lattice constant
+        std::vector<Vector3> bravais_vectors = { { 1, 0.5, 0 }, { -0.2, 1, 0 }, { 0, 0, 1 } };
+        scalar lattice_constant              = 1.2;
+
+        intfield n_cells                = { 20, 20, 1 };
+        std::vector<Vector3> cell_atoms = { { 0, 0, 0 } };
+        Data::Basis_Cell_Composition cell_composition;
+        Data::Pinning pinning;
+        Data::Defects defects;
+
+        auto test_geometry = Data::Geometry(
+            bravais_vectors, n_cells, cell_atoms, cell_composition, lattice_constant, pinning, defects );
+
+        auto spin_func = []( Vector3 pos ) { return pos; };
+
+        auto spin_func_jacobian = []( Vector3 pos ) { return Matrix3::Identity(); };
+
+        vectorfield vftest( test_geometry.nos );
+        field<Matrix3> expected_jacobians( test_geometry.nos );
+
+        for( int i = 0; i < test_geometry.nos; i++ )
+        {
+            vftest[i]             = spin_func( test_geometry.positions[i] );
+            expected_jacobians[i] = spin_func_jacobian( test_geometry.positions[i] );
+        }
+
+        field<Matrix3> jacobians( test_geometry.nos );
+        intfield boundary_conditions = { 0, 0, 0 }; // Our test only works with open boundary conditions
+        Engine::Vectormath::jacobian( vftest, test_geometry, boundary_conditions, jacobians );
+
+        double epsilon_apprx = 1e-11;
+
+        for( int i = 0; i < test_geometry.nos; i++ )
+        {
+            auto j   = jacobians[i];
+            auto j_e = expected_jacobians[i];
+
+            INFO( i )
+            INFO( j.block( 0, 0, 3, 2 ) );
+            INFO( j_e.block( 0, 0, 3, 2 ) );
+
+            REQUIRE( j_e.block( 0, 0, 3, 2 ).isApprox( j.block( 0, 0, 3, 2 ), epsilon_apprx ) );
+        }
     }
 }

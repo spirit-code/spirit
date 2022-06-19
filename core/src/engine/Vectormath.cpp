@@ -605,7 +605,7 @@ void TopologicalChargeDensity(
                         valid_triangle = false;
                         break;
                     }
-                    tri_spins[i] = vf[idx];
+                    tri_spins[i]   = vf[idx];
                     tri_indices[i] = idx;
                 }
                 if( valid_triangle )
@@ -765,6 +765,137 @@ void directional_gradient(
         for( int dim = 0; dim < 3; ++dim )
         {
             gradient[ispin] += direction[dim] * projection_inv[dim] * contrib[dim];
+        }
+    }
+}
+
+// Compute the linear index from the lattice position
+inline int linear_idx(
+    const int ib, int a, int b, int c, const int n_cell_atoms, const int n_cells[3], const int bc[3],
+    const bool disable_checks = false )
+{
+    if( !disable_checks )
+    {
+        const bool valid_basis = ib >= 0 && ib < n_cell_atoms;
+        const bool valid_a     = a >= 0 && a < n_cells[0];
+        const bool valid_b     = b >= 0 && b < n_cells[1];
+        const bool valid_c     = c >= 0 && c < n_cells[2];
+
+        if( !valid_basis )
+        {
+            return -1;
+        }
+
+        if( !valid_a )
+        {
+            if( bc[0] )
+                a = ( n_cells[0] + ( a % n_cells[0] ) ) % n_cells[0];
+            else
+                return -1;
+        }
+
+        if( !valid_b )
+        {
+            if( bc[1] )
+                b = ( n_cells[1] + ( b % n_cells[1] ) ) % n_cells[1];
+            else
+                return -1;
+        }
+
+        if( !valid_c )
+        {
+            if( bc[2] )
+                c = ( n_cells[2] + ( c % n_cells[2] ) ) % n_cells[2];
+            else
+                return -1;
+        }
+    }
+    return ib + n_cell_atoms * ( a + n_cells[0] * ( b + n_cells[1] * c ) );
+}
+
+void jacobian(
+    const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions,
+    field<Matrix3> & jacobian )
+{
+    const int _n_cells[3]             = { geometry.n_cells[0], geometry.n_cells[1], geometry.n_cells[2] };
+    const int _boundary_conditions[3] = { boundary_conditions[0], boundary_conditions[1], boundary_conditions[2] };
+
+    // 1.) Choose three linearly independent base vectors, which result from lattice translations
+    // TODO: depending on the basis, the bravais vectors might not be the best choice
+    std::array<std::array<int, 3>, 3> translations = { 1, 0, 0, 0, 1, 0, 0, 0, 1 };
+
+    Vector3 base_1 = geometry.lattice_constant * geometry.bravais_vectors[0],
+            base_2 = geometry.lattice_constant * geometry.bravais_vectors[1],
+            base_3 = geometry.lattice_constant * geometry.bravais_vectors[2];
+
+    // 2.) Construct the matrix of base vectors
+    Matrix3 base_matrix;
+    base_matrix.col( 0 ) = base_1;
+    base_matrix.col( 1 ) = base_2;
+    base_matrix.col( 2 ) = base_3;
+
+    // 3.) Invert the matrix
+    const auto inverse_base_matrix = base_matrix.inverse();
+
+    // 4.) Loop over spins
+    Matrix3 m_matrix;
+#pragma omp parallel for collapse( 4 ) private( m_matrix )
+    for( int c = 0; c < geometry.n_cells[2]; c++ )
+    {
+        for( int b = 0; b < geometry.n_cells[1]; b++ )
+        {
+            for( int a = 0; a < geometry.n_cells[0]; a++ )
+            {
+                for( int ib = 0; ib < geometry.n_cell_atoms; ib++ )
+                {
+                    const auto idx_cur
+                        = linear_idx( ib, a, b, c, geometry.n_cell_atoms, _n_cells, _boundary_conditions, true );
+
+                    for( int trans_idx = 0; trans_idx < 3; trans_idx++ )
+                    {
+                        const auto & trans = translations[trans_idx];
+
+                        // apply translations in positive direction
+                        const auto idx0 = linear_idx(
+                            ib, a + trans[0], b + trans[1], c + trans[2], geometry.n_cell_atoms, _n_cells,
+                            _boundary_conditions );
+
+                        // apply translations in negative direction
+                        const auto idx1 = linear_idx(
+                            ib, a - trans[0], b - trans[1], c - trans[2], geometry.n_cell_atoms, _n_cells,
+                            _boundary_conditions );
+
+                        Vector3 m0 = { 0, 0, 0 };
+                        Vector3 m1 = { 0, 0, 0 };
+
+                        scalar factor = 0.5; // Factor 0.5 for central finite differences
+                        if( idx0 >= 0 )
+                        {
+                            m0 = vf[idx0];
+                        }
+                        else
+                        {
+                            m0 = vf[idx_cur];
+                            factor *= 2; // Increase factor because now only backward difference
+                        }
+
+                        if( idx1 >= 0 )
+                        {
+                            m1 = vf[idx1];
+                        }
+                        else
+                        {
+                            m1 = vf[idx_cur];
+                            factor *= 2; // Increase factor because now only forward difference
+                        }
+
+                        const Vector3 tmp         = factor * ( m0 - m1 );
+                        m_matrix.col( trans_idx ) = tmp;
+                    }
+
+                    jacobian[idx_cur] = m_matrix * inverse_base_matrix;
+                }
+            }
         }
     }
 }
