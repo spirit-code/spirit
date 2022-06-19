@@ -58,6 +58,10 @@ private:
     scalarfield temperature_distribution;
     // Field for stt gradient method
     vectorfield s_c_grad;
+
+    // Jacobians of spin configurations
+    field<Matrix3> jacobians;
+
     // Current energy
     scalar current_energy = 0;
 

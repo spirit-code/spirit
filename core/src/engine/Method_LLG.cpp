@@ -30,11 +30,13 @@ Method_LLG<solver>::Method_LLG( std::shared_ptr<Data::Spin_System> system, int i
     this->nos = this->systems[0]->nos;
 
     // Forces
-    this->forces                   = std::vector<vectorfield>( this->noi, vectorfield( this->nos ) );
-    this->forces_virtual           = std::vector<vectorfield>( this->noi, vectorfield( this->nos ) );
-    this->Gradient                 = std::vector<vectorfield>( this->noi, vectorfield( this->nos ) );
-    this->xi                       = vectorfield( this->nos, { 0, 0, 0 } );
-    this->s_c_grad                 = vectorfield( this->nos, { 0, 0, 0 } );
+    this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos ) );
+    this->forces_virtual = std::vector<vectorfield>( this->noi, vectorfield( this->nos ) );
+    this->Gradient       = std::vector<vectorfield>( this->noi, vectorfield( this->nos ) );
+    this->xi             = vectorfield( this->nos, { 0, 0, 0 } );
+    this->s_c_grad       = vectorfield( this->nos, { 0, 0, 0 } );
+    this->jacobians      = field<Matrix3>( this->nos, Matrix3::Zero() );
+
     this->temperature_distribution = scalarfield( this->nos, 0 );
 
     // We assume it is not converged before the first iteration
@@ -182,9 +184,18 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
                 if( parameters.stt_use_gradient )
                 {
                     auto & boundary_conditions = this->systems[0]->hamiltonian->boundary_conditions;
+
                     // Gradient approximation for in-plane currents
-                    Vectormath::directional_gradient(
-                        image, geometry, boundary_conditions, je, s_c_grad ); // s_c_grad = (j_e*grad)*S
+                    Vectormath::jacobian( image, geometry, boundary_conditions, jacobians );
+
+                    // clang-format off
+                    Backend::par::apply(image.size(), [s_c_grad = s_c_grad.data(), jacobians=jacobians.data(), direction=je] SPIRIT_LAMBDA (int idx) 
+                            {
+                                s_c_grad[idx] = jacobians[idx] * direction;
+                            }
+                        );
+                    // clang-format on
+
                     Vectormath::add_c_a(
                         dtg * a_j * ( damping - beta ), s_c_grad, force_virtual ); // TODO: a_j durch b_j ersetzen
                     Vectormath::add_c_cross(
