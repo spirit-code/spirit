@@ -401,6 +401,7 @@ if( SPIRIT_USE_CUDA )
         ${CMAKE_CURRENT_LIST_DIR}/test/test_vectormath.cpp
         ${CMAKE_CURRENT_LIST_DIR}/test/test_manifoldmath.cpp
         ${CMAKE_CURRENT_LIST_DIR}/test/test_ema.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/test/test_anisotropy.cpp
         PROPERTIES LANGUAGE CUDA )
 endif()
 
@@ -498,6 +499,7 @@ if( SPIRIT_BUILD_FOR_CXX OR SPIRIT_BUILD_FOR_JS )
         add_framework_test( test_physics  test/test_physics.cpp )
         add_framework_test( test_ema      test/test_ema.cpp)
         add_framework_test( test_io       test/test_io.cpp )
+        add_framework_test( test_anisotropy       test/test_anisotropy.cpp )
     endif()
     #--------------------------------------------------
 endif()

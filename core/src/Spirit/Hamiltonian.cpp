@@ -166,6 +166,60 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
+void Hamiltonian_Set_Cubic_Anisotropy( State * state, float magnitude, int idx_image, int idx_chain ) noexcept
+try
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    image->Lock();
+
+    try
+    {
+        if( image->hamiltonian->Name() == "Heisenberg" )
+        {
+            auto * ham       = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
+            int nos          = image->nos;
+            int n_cell_atoms = image->geometry->n_cell_atoms;
+
+            // Indices and Magnitudes
+            intfield new_indices( n_cell_atoms );
+            scalarfield new_magnitudes( n_cell_atoms );
+            for( int i = 0; i < n_cell_atoms; ++i )
+            {
+                new_indices[i]    = i;
+                new_magnitudes[i] = magnitude;
+            }
+            //
+            // Into the Hamiltonian
+            ham->cubic_anisotropy_indices    = new_indices;
+            ham->cubic_anisotropy_magnitudes = new_magnitudes;
+
+            // Update Energies
+            ham->Update_Energy_Contributions();
+
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+                 fmt::format( "Set cubic anisotropy to {}", magnitude ), idx_image, idx_chain );
+        }
+        else
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                 "Cubic anisotropy cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain );
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_api( idx_image, idx_chain );
+    }
+
+    image->Unlock();
+}
+catch( ... )
+{
+    spirit_handle_exception_api( idx_image, idx_chain );
+}
+
 void Hamiltonian_Set_Exchange( State * state, int n_shells, const float * jij, int idx_image, int idx_chain ) noexcept
 try
 {
@@ -417,6 +471,35 @@ try
             normal[0]  = 0;
             normal[1]  = 0;
             normal[2]  = 1;
+        }
+    }
+}
+catch( ... )
+{
+    spirit_handle_exception_api( idx_image, idx_chain );
+}
+
+void Hamiltonian_Get_Cubic_Anisotropy( State * state, float * magnitude, int idx_image, int idx_chain ) noexcept
+try
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    if( image->hamiltonian->Name() == "Heisenberg" )
+    {
+        auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
+
+        if( !ham->cubic_anisotropy_indices.empty() )
+        {
+            // Magnitude
+            *magnitude = (float)ham->cubic_anisotropy_magnitudes[0];
+        }
+        else
+        {
+            *magnitude = 0;
         }
     }
 }

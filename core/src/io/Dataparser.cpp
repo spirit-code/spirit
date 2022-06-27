@@ -96,14 +96,16 @@ void Check_NonOVF_Chain_Configuration(
 // Read from Anisotropy file
 void Anisotropy_from_File(
     const std::string & anisotropyFile, const std::shared_ptr<Data::Geometry> geometry, int & n_indices,
-    intfield & anisotropy_index, scalarfield & anisotropy_magnitude, vectorfield & anisotropy_normal ) noexcept
+    intfield & anisotropy_index, scalarfield & anisotropy_magnitude, vectorfield & anisotropy_normal,
+    intfield & cubic_anisotropy_index, scalarfield & cubic_anisotropy_magnitude ) noexcept
 try
 {
     Log( Log_Level::Debug, Log_Sender::IO, "Reading anisotropy from file " + anisotropyFile );
 
-    std::vector<std::string> columns( 5 ); // At least: 1 (index) + 3 (K)
+    std::vector<std::string> columns( 6 ); // At least: 1 (index) + 3 (K)
     // Column indices of pair indices and interactions
     int col_i = -1, col_K = -1, col_Kx = -1, col_Ky = -1, col_Kz = -1, col_Ka = -1, col_Kb = -1, col_Kc = -1;
+    int col_K4 = -1;
     bool K_magnitude = false, K_xyz = false, K_abc = false;
     Vector3 K_temp = { 0, 0, 0 };
     int n_anisotropy{ 0 };
@@ -152,6 +154,8 @@ try
             col_Kb = i;
         else if( columns[i] == "kc" )
             col_Kc = i;
+        else if( columns[i] == "k4" )
+            col_K4 = i;
 
         if( col_Kx >= 0 && col_Ky >= 0 && col_Kz >= 0 )
             K_xyz = true;
@@ -165,11 +169,13 @@ try
 
     // Indices
     int spin_i    = 0;
-    scalar spin_K = 0, spin_K1 = 0, spin_K2 = 0, spin_K3 = 0;
+    scalar spin_K = 0, spin_K1 = 0, spin_K2 = 0, spin_K3 = 0, spin_K4 = 0;
     // Arrays
     anisotropy_index     = intfield( 0 );
     anisotropy_magnitude = scalarfield( 0 );
     anisotropy_normal    = vectorfield( 0 );
+    cubic_anisotropy_index     = intfield( 0 );
+    cubic_anisotropy_magnitude = scalarfield( 0 );
 
     // Get actual Data
     int i_anisotropy = 0;
@@ -195,6 +201,11 @@ try
                 file_handle >> spin_K2;
             else if( i == col_Kc && K_abc )
                 file_handle >> spin_K3;
+            else if( i == col_K4)
+            {
+                file_handle >> spin_K4;
+                Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "loaded spin K4\"{}\"", spin_K4 ) );
+            }
             else
                 file_handle >> sdump;
         }
@@ -228,6 +239,12 @@ try
             anisotropy_index.push_back( spin_i );
             anisotropy_magnitude.push_back( spin_K );
             anisotropy_normal.push_back( K_temp );
+        }
+        if( spin_K4 != 0 )
+        {
+            Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "appending spin K4\"{}\"", spin_K4 ) );
+            cubic_anisotropy_index.push_back( spin_i );
+            cubic_anisotropy_magnitude.push_back( spin_K4 );
         }
         ++i_anisotropy;
     } // end while getline
