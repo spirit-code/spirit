@@ -312,28 +312,23 @@ try
             Bravais_Vectors_from_Config(
                 config_file_name, bravais_vectors, bravais_lattice_type, bravais_lattice_type_str );
 
-            // Read basis cell
-            if( config_file_handle.Find( "basis" ) )
-            {
-                // Read number of atoms in the basis cell
-                config_file_handle.GetLine();
-                config_file_handle >> n_cell_atoms;
-                cell_atoms = std::vector<Vector3>( n_cell_atoms );
-                cell_composition.iatom.resize( n_cell_atoms );
-                cell_composition.atom_type = std::vector<int>( n_cell_atoms, 0 );
-                cell_composition.mu_s      = std::vector<scalar>( n_cell_atoms, 1 );
-
-                // Read atom positions
-                for( std::size_t iatom = 0; iatom < n_cell_atoms; ++iatom )
-                {
-                    config_file_handle.GetLine();
-                    config_file_handle >> cell_atoms[iatom][0] >> cell_atoms[iatom][1] >> cell_atoms[iatom][2];
-                    cell_composition.iatom[iatom] = static_cast<int>( iatom );
-                }
-            }
-
             // Read number of basis cells
             config_file_handle.Read_3Vector( n_cells, "n_basis_cells" );
+
+            // Basis
+            if( config_file_handle.Find( "basis_file" ) )
+            {
+                config_file_handle >> basis_file;
+            }
+            else if( config_file_handle.Find( "basis" ) )
+            {
+                basis_file = config_file_name;
+            }
+
+            if( !basis_file.empty() )
+            {
+                Basis_from_File( basis_file, cell_composition, cell_atoms, n_cell_atoms );
+            }
         }
         catch( ... )
         {
@@ -800,7 +795,8 @@ std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config( 
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "maximum walltime", str_max_walltime ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations", parameters->n_iterations ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations_log", parameters->n_iterations_log ) );
-    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations_amortize", parameters->n_iterations_amortize ) );
+    parameter_log.emplace_back(
+        fmt::format( "    {:<17} = {}", "n_iterations_amortize", parameters->n_iterations_amortize ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = \"{}\"", "output_folder", parameters->output_folder ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_any", parameters->output_any ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_initial", parameters->output_initial ) );
@@ -981,7 +977,8 @@ std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config( co
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "maximum walltime", str_max_walltime ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations", parameters->n_iterations ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations_log", parameters->n_iterations_log ) );
-    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations_amortize", parameters->n_iterations_amortize ) );
+    parameter_log.emplace_back(
+        fmt::format( "    {:<17} = {}", "n_iterations_amortize", parameters->n_iterations_amortize ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = \"{}\"", "output_folder", parameters->output_folder ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_any", parameters->output_any ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_initial", parameters->output_initial ) );
@@ -1077,11 +1074,15 @@ std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "maximum walltime", str_max_walltime ) );
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "n_iterations", parameters->n_iterations ) );
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "n_iterations_log", parameters->n_iterations_log ) );
-    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "n_iterations_amortize", parameters->n_iterations_amortize ) );
+    parameter_log.emplace_back(
+        fmt::format( "    {:<18} = {}", "n_iterations_amortize", parameters->n_iterations_amortize ) );
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "moving_endpoints", parameters->moving_endpoints ) );
-    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "equilibrium_delta_Rx_left", parameters->equilibrium_delta_Rx_left ) );
-    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "equilibrium_delta_Rx_right", parameters->equilibrium_delta_Rx_right ) );
-    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "translating_endpoints", parameters->translating_endpoints ) );
+    parameter_log.emplace_back(
+        fmt::format( "    {:<18} = {}", "equilibrium_delta_Rx_left", parameters->equilibrium_delta_Rx_left ) );
+    parameter_log.emplace_back(
+        fmt::format( "    {:<18} = {}", "equilibrium_delta_Rx_right", parameters->equilibrium_delta_Rx_right ) );
+    parameter_log.emplace_back(
+        fmt::format( "    {:<18} = {}", "translating_endpoints", parameters->translating_endpoints ) );
     parameter_log.emplace_back( fmt::format( "    {:<18} = \"{}\"", "output_folder", parameters->output_folder ) );
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "output_any", parameters->output_any ) );
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "output_initial", parameters->output_initial ) );
@@ -1163,7 +1164,8 @@ std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config( 
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "maximum walltime", str_max_walltime ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations", parameters->n_iterations ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations_log", parameters->n_iterations_log ) );
-    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations_amortize", parameters->n_iterations_amortize ) );
+    parameter_log.emplace_back(
+        fmt::format( "    {:<17} = {}", "n_iterations_amortize", parameters->n_iterations_amortize ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = \"{}\"", "output_folder", parameters->output_folder ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_any", parameters->output_any ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_initial", parameters->output_initial ) );
@@ -1265,14 +1267,14 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
     // Anisotropy
     std::string anisotropy_file = "";
     scalar K                    = 0;
-    scalar K4			= 0;
+    scalar K4                   = 0;
     Vector3 K_normal            = { 0.0, 0.0, 1.0 };
     bool anisotropy_from_file   = false;
     intfield anisotropy_index( geometry->n_cell_atoms );
     scalarfield anisotropy_magnitude( geometry->n_cell_atoms, 0.0 );
     vectorfield anisotropy_normal( geometry->n_cell_atoms, K_normal );
     intfield cubic_anisotropy_index( geometry->n_cell_atoms );
-    scalarfield cubic_anisotropy_magnitude(geometry->n_cell_atoms, 0.0);
+    scalarfield cubic_anisotropy_magnitude( geometry->n_cell_atoms, 0.0 );
 
     // ------------ Pair Interactions ------------
     int n_pairs                        = 0;
@@ -1383,7 +1385,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                 config_file_handle.Read_Vector3( K_normal, "anisotropy_normal" );
                 K_normal.normalize();
 
-                config_file_handle.Read_Single(K4, "cubic_anisotropy_magnitude");
+                config_file_handle.Read_Single( K4, "cubic_anisotropy_magnitude" );
 
                 if( K != 0 )
                 {
@@ -1413,7 +1415,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                 else
                 {
                     cubic_anisotropy_index     = intfield( 0 );
-                    cubic_anisotropy_magnitude = scalarfield(0);
+                    cubic_anisotropy_magnitude = scalarfield( 0 );
                 }
             }
         }
