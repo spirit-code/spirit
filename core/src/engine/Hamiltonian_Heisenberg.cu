@@ -30,12 +30,13 @@ namespace Engine
         const int * n_cells;
         const int n_cell_atoms;
         const int n_cells_total;
+        const int nos;
         const int * atom_types;
         const scalar * mu_s;
         const int * boundary_conditions;
 
         Hamiltonian_Kernel_Data(const Hamiltonian_Heisenberg & ham)
-        : n_cells(ham.geometry->n_cells.data()), n_cell_atoms(ham.geometry->n_cell_atoms), n_cells_total(ham.geometry->n_cells_total), atom_types( ham.geometry->atom_types.data()), mu_s(ham.geometry->mu_s.data()), boundary_conditions(ham.boundary_conditions.data())
+        : n_cells(ham.geometry->n_cells.data()), n_cell_atoms(ham.geometry->n_cell_atoms), n_cells_total(ham.geometry->n_cells_total), atom_types( ham.geometry->atom_types.data()), mu_s(ham.geometry->mu_s.data()), boundary_conditions(ham.boundary_conditions.data()), nos(ham.geometry->nos)
         { }
     };
 
@@ -69,7 +70,16 @@ namespace Engine
         const Pair * pairs;
         const int n_pairs;
 
-        Exchange_Data(const Hamiltonian_Heisenberg & ham) : magnitudes(ham.exchange_magnitudes.data()), pairs(ham.exchange_pairs.data()), n_pairs(ham.exchange_pairs.size()) {}
+        const int * n_pairs_per_cell_atom;
+        const int * offset_per_cell_atom;
+
+        Exchange_Data(const Hamiltonian_Heisenberg & ham) : 
+            magnitudes(ham.exchange_magnitudes.data()), 
+            pairs(ham.exchange_pairs.data()), 
+            n_pairs(ham.exchange_pairs.size()), 
+            n_pairs_per_cell_atom(ham.exchange_pair_order.n_pairs_per_cell_atom.data()),
+            offset_per_cell_atom(ham.exchange_pair_order.offset_per_cell_atom.data())
+            {}
     };
 
     struct DMI_Data
@@ -196,6 +206,10 @@ Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
             }
         }
 
+        exchange_pair_order = Pair_Order(this->exchange_pairs, this->geometry->n_cell_atoms);
+        exchange_pair_order.Sort(exchange_pairs);
+        exchange_pair_order.Sort(exchange_magnitudes);
+
         // DMI
         this->dmi_pairs      = pairfield(0);
         this->dmi_magnitudes = scalarfield(0);
@@ -226,6 +240,11 @@ Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
                 this->dmi_normals.push_back(-dmi_normals_in[i]);
             }
         }
+
+        dmi_pair_order = Pair_Order(this->dmi_pairs, this->geometry->n_cell_atoms);
+        dmi_pair_order.Sort(dmi_pairs);
+        dmi_pair_order.Sort(dmi_magnitudes);
+        dmi_pair_order.Sort(dmi_normals);
 
         // Dipole-dipole (cutoff)
         scalar radius = this->ddi_cutoff_radius;
@@ -409,19 +428,24 @@ Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
         CU_CHECK_AND_SYNC();
     }
 
-
     __global__ void CU_E_Exchange(const Vector3 * spins, scalar * Energy, Exchange_Data exchange, Hamiltonian_Kernel_Data data)
     {
         int bc[3] = {data.boundary_conditions[0], data.boundary_conditions[1], data.boundary_conditions[2]};
         int nc[3] = {data.n_cells[0], data.n_cells[1], data.n_cells[2]};
 
-        for(auto icell = blockIdx.x * blockDim.x + threadIdx.x;
-            icell < data.n_cells_total;
-            icell +=  blockDim.x * gridDim.x)
+        for(auto ispin = blockIdx.x * blockDim.x + threadIdx.x;
+            ispin < data.nos;
+            ispin +=  blockDim.x * gridDim.x)
         {
-            for(auto ipair = 0; ipair < exchange.n_pairs; ++ipair)
+            // Figure out the cell idx
+            const int cell_idx = ispin % data.n_cell_atoms;
+
+            // Figure out the pairs we need to apply to this spin
+            int n_pairs      = exchange.n_pairs_per_cell_atom[cell_idx];
+            int offset_pairs = exchange.offset_per_cell_atom[cell_idx];
+    
+            for(auto ipair = offset_pairs; ipair < offset_pairs + n_pairs; ++ipair)
             {
-                int ispin = exchange.pairs[ipair].i + icell* data.n_cell_atoms;
                 int jspin = cu_idx_from_pair(ispin, bc, nc, data.n_cell_atoms, data.atom_types, exchange.pairs[ipair]);
                 if (jspin >= 0)
                 {
@@ -432,7 +456,7 @@ Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
     }
     void Hamiltonian_Heisenberg::E_Exchange(const vectorfield & spins, scalarfield & Energy)
     {
-        int size = geometry->n_cells_total;
+        int size = geometry->nos;
         CU_E_Exchange<<<(size+1023)/1024, 1024>>>(spins.data(), Energy.data(), Exchange_Data(*this), Hamiltonian_Kernel_Data(*this));
         CU_CHECK_AND_SYNC();
     }
@@ -924,14 +948,20 @@ Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
         CU_CHECK_AND_SYNC();
     }
 
-    inline __device__ void CU_Gradient_Exchange_Cell(int icell, const Vector3 * spins, Vector3 * gradient, const Exchange_Data & exchange, const Hamiltonian_Kernel_Data & data)
+    inline __device__ void CU_Gradient_Exchange_Spin(int ispin, const Vector3 * spins, Vector3 * gradient, const Exchange_Data & exchange, const Hamiltonian_Kernel_Data & data)
     {
         const int bc[3] = {data.boundary_conditions[0], data.boundary_conditions[1], data.boundary_conditions[2]};
         const int nc[3] = {data.n_cells[0], data.n_cells[1], data.n_cells[2]};
 
-        for(auto ipair = 0; ipair < exchange.n_pairs; ++ipair)
+        // Figure out the cell idx
+        const int cell_idx = ispin % data.n_cell_atoms;
+
+        // Figure out the pairs we need to apply to this spin
+        int n_pairs      = exchange.n_pairs_per_cell_atom[cell_idx];
+        int offset_pairs = exchange.offset_per_cell_atom[cell_idx];
+
+        for(auto ipair = offset_pairs; ipair < offset_pairs + n_pairs; ++ipair)
         {
-            int ispin = exchange.pairs[ipair].i + icell*data.n_cell_atoms;
             int jspin = cu_idx_from_pair(ispin, bc, nc, data.n_cell_atoms, data.atom_types, exchange.pairs[ipair]);
             if (jspin >= 0)
             {
@@ -941,16 +971,16 @@ Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
     }
     __global__ void CU_Gradient_Exchange(const Vector3 * spins, Vector3 * gradient, Exchange_Data exchange, Hamiltonian_Kernel_Data data)
     {
-        for(auto icell = blockIdx.x * blockDim.x + threadIdx.x;
-            icell < data.n_cells_total;
-            icell +=  blockDim.x * gridDim.x)
+        for(auto ispin = blockIdx.x * blockDim.x + threadIdx.x;
+            ispin < data.nos;
+            ispin +=  blockDim.x * gridDim.x)
         {
-            CU_Gradient_Exchange_Cell(icell, spins, gradient, exchange, data);
+            CU_Gradient_Exchange_Spin(ispin, spins, gradient, exchange, data);
         }
     }
     void Hamiltonian_Heisenberg::Gradient_Exchange(const vectorfield & spins, vectorfield & gradient)
     {
-        int size = geometry->n_cells_total;
+        int size = geometry->nos;
         CU_Gradient_Exchange<<<(size+1023)/1024, 1024>>>( spins.data(), gradient.data(), Exchange_Data(*this), Hamiltonian_Kernel_Data(*this));
         CU_CHECK_AND_SYNC();
     }
