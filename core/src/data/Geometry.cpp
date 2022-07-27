@@ -98,39 +98,47 @@ void Geometry::generatePositions()
     std::int64_t max_b = std::min( 10, n_cells[1] );
     std::int64_t max_c = std::min( 10, n_cells[2] );
     Vector3 diff;
-    for( std::int64_t i = 0; i < n_cell_atoms; ++i )
+
+    // This scales quadratically in n_cell_atoms, so we check for co-incident positions only if n_cell_atoms is somewhat small!
+    if( n_cell_atoms < 100 )
     {
-        for( std::int64_t j = 0; j < n_cell_atoms; ++j )
+        for( std::int64_t i = 0; i < n_cell_atoms; ++i )
         {
-            for( std::int64_t da = -max_a; da <= max_a; ++da )
+            for( std::int64_t j = 0; j < n_cell_atoms; ++j )
             {
-                for( std::int64_t db = -max_b; db <= max_b; ++db )
+                for( std::int64_t da = -max_a; da <= max_a; ++da )
                 {
-                    for( std::int64_t dc = -max_c; dc <= max_c; ++dc )
+                    for( std::int64_t db = -max_b; db <= max_b; ++db )
                     {
-                        // Check if translated basis atom is at position of another basis atom
-                        diff = cell_atoms[i] - ( cell_atoms[j] + Vector3{ scalar( da ), scalar( db ), scalar( dc ) } );
-
-                        bool same_position = std::abs( diff[0] ) < epsilon && std::abs( diff[1] ) < epsilon
-                                             && std::abs( diff[2] ) < epsilon;
-
-                        if( same_position && ( i != j || da != 0 || db != 0 || dc != 0 ) )
+                        for( std::int64_t dc = -max_c; dc <= max_c; ++dc )
                         {
-                            Vector3 position
-                                = lattice_constant
-                                  * ( ( static_cast<scalar>( da ) + cell_atoms[i][0] ) * bravais_vectors[0]
-                                      + ( static_cast<scalar>( db ) + cell_atoms[i][1] ) * bravais_vectors[1]
-                                      + ( static_cast<scalar>( dc ) + cell_atoms[i][2] ) * bravais_vectors[2] );
+                            // Check if translated basis atom is at position of another basis atom
+                            diff = cell_atoms[i]
+                                   - ( cell_atoms[j] + Vector3{ scalar( da ), scalar( db ), scalar( dc ) } );
 
-                            std::string message = fmt::format(
-                                "Unable to initialize spin-system, because for a translation vector ({} {} {}), spins "
-                                "{} and {} of the basis-cell occupy the same absolute position ({}) within a margin of "
-                                "{} Angstrom. Please check the config file!",
-                                da, db, dc, i, j, position.transpose(), epsilon );
+                            bool same_position = std::abs( diff[0] ) < epsilon && std::abs( diff[1] ) < epsilon
+                                                 && std::abs( diff[2] ) < epsilon;
 
-                            spirit_throw(
-                                Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Severe,
-                                message );
+                            if( same_position && ( i != j || da != 0 || db != 0 || dc != 0 ) )
+                            {
+                                Vector3 position
+                                    = lattice_constant
+                                      * ( ( static_cast<scalar>( da ) + cell_atoms[i][0] ) * bravais_vectors[0]
+                                          + ( static_cast<scalar>( db ) + cell_atoms[i][1] ) * bravais_vectors[1]
+                                          + ( static_cast<scalar>( dc ) + cell_atoms[i][2] ) * bravais_vectors[2] );
+
+                                std::string message = fmt::format(
+                                    "Unable to initialize spin-system, because for a translation vector ({} {} {}), "
+                                    "spins "
+                                    "{} and {} of the basis-cell occupy the same absolute position ({}) within a "
+                                    "margin of "
+                                    "{} Angstrom. Please check the config file!",
+                                    da, db, dc, i, j, position.transpose(), epsilon );
+
+                                spirit_throw(
+                                    Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Severe,
+                                    message );
+                            }
                         }
                     }
                 }
