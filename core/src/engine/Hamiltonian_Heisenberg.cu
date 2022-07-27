@@ -89,7 +89,17 @@ namespace Engine
         const Vector3 * normals;
         const int n_pairs;
 
-        DMI_Data(const Hamiltonian_Heisenberg & ham) : magnitudes(ham.dmi_magnitudes.data()), pairs(ham.dmi_pairs.data()), normals(ham.dmi_normals.data()), n_pairs(ham.exchange_pairs.size()) {}
+        const int * n_pairs_per_cell_atom;
+        const int * offset_per_cell_atom;
+
+        DMI_Data(const Hamiltonian_Heisenberg & ham) : 
+            magnitudes(ham.dmi_magnitudes.data()), 
+            pairs(ham.dmi_pairs.data()),
+            normals(ham.dmi_normals.data()),
+            n_pairs(ham.exchange_pairs.size()),
+            n_pairs_per_cell_atom(ham.dmi_pair_order.n_pairs_per_cell_atom.data()),
+            offset_per_cell_atom(ham.dmi_pair_order.offset_per_cell_atom.data())
+            {}
     };
 
     // Construct a Heisenberg Hamiltonian with pairs
@@ -206,7 +216,7 @@ Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
             }
         }
 
-        exchange_pair_order = Pair_Order(this->exchange_pairs, this->geometry->n_cell_atoms);
+        exchange_pair_order = Pair_Order(this->exchange_pairs, this->geometry->n_cells, this->geometry->n_cell_atoms);
         exchange_pair_order.Sort(exchange_pairs);
         exchange_pair_order.Sort(exchange_magnitudes);
 
@@ -241,7 +251,7 @@ Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
             }
         }
 
-        dmi_pair_order = Pair_Order(this->dmi_pairs, this->geometry->n_cell_atoms);
+        dmi_pair_order = Pair_Order(this->dmi_pairs, this->geometry->n_cells, this->geometry->n_cell_atoms);
         dmi_pair_order.Sort(dmi_pairs);
         dmi_pair_order.Sort(dmi_magnitudes);
         dmi_pair_order.Sort(dmi_normals);
@@ -461,19 +471,24 @@ Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
         CU_CHECK_AND_SYNC();
     }
 
-
     __global__ void CU_E_DMI(const Vector3 * spins, scalar * Energy, DMI_Data dmi, Hamiltonian_Kernel_Data data)
     {
         int bc[3] = {data.boundary_conditions[0], data.boundary_conditions[1], data.boundary_conditions[2]};
         int nc[3] = {data.n_cells[0], data.n_cells[1], data.n_cells[2]};
 
-        for(auto icell = blockIdx.x * blockDim.x + threadIdx.x;
-            icell < data.n_cells_total;
-            icell +=  blockDim.x * gridDim.x)
+        for(auto ispin = blockIdx.x * blockDim.x + threadIdx.x;
+            ispin < data.nos;
+            ispin +=  blockDim.x * gridDim.x)
         {
-            for(auto ipair = 0; ipair < dmi.n_pairs; ++ipair)
+            // Figure out the index of the curretn spin within its cell
+            const int cell_idx = ispin % data.n_cell_atoms;
+
+            // Figure out the pairs we need to apply to this spin
+            int n_pairs      = dmi.n_pairs_per_cell_atom[cell_idx];
+            int offset_pairs = dmi.offset_per_cell_atom[cell_idx];
+
+            for(auto ipair = offset_pairs; ipair < offset_pairs + n_pairs; ++ipair)
             {
-                int ispin = dmi.pairs[ipair].i + icell*data.n_cell_atoms;
                 int jspin = cu_idx_from_pair(ispin, bc, nc, data.n_cell_atoms, data.atom_types, dmi.pairs[ipair]);
                 if (jspin >= 0)
                 {
@@ -484,7 +499,7 @@ Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
     }
     void Hamiltonian_Heisenberg::E_DMI(const vectorfield & spins, scalarfield & Energy)
     {
-        int size = geometry->n_cells_total;
+        int size = geometry->nos;
         CU_E_DMI<<<(size+1023)/1024, 1024>>>(spins.data(), Energy.data(),
                 DMI_Data(*this), Hamiltonian_Kernel_Data(*this));
         CU_CHECK_AND_SYNC();
@@ -953,7 +968,7 @@ Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
         const int bc[3] = {data.boundary_conditions[0], data.boundary_conditions[1], data.boundary_conditions[2]};
         const int nc[3] = {data.n_cells[0], data.n_cells[1], data.n_cells[2]};
 
-        // Figure out the cell idx
+        // Figure out the index of the current spin within its cell
         const int cell_idx = ispin % data.n_cell_atoms;
 
         // Figure out the pairs we need to apply to this spin
@@ -985,14 +1000,20 @@ Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
         CU_CHECK_AND_SYNC();
     }
 
-    inline __device__ void CU_Gradient_DMI_Cell(int icell, const Vector3 * spins, Vector3 * gradient, const DMI_Data & dmi, const Hamiltonian_Kernel_Data & data)
+    inline __device__ void CU_Gradient_DMI_Spin(int ispin, const Vector3 * spins, Vector3 * gradient, const DMI_Data & dmi, const Hamiltonian_Kernel_Data & data)
     {
         const int bc[3] = {data.boundary_conditions[0], data.boundary_conditions[1], data.boundary_conditions[2]};
         const int nc[3] = {data.n_cells[0], data.n_cells[1], data.n_cells[2]};
 
-        for(auto ipair = 0; ipair < dmi.n_pairs; ++ipair)
+        // Figure out the index of the current spin within its cell
+        const int cell_idx = ispin % data.n_cell_atoms;
+
+        // Figure out the pairs we need to apply to this spin
+        int n_pairs      = dmi.n_pairs_per_cell_atom[cell_idx];
+        int offset_pairs = dmi.offset_per_cell_atom[cell_idx];
+
+        for(auto ipair = offset_pairs; ipair < offset_pairs + n_pairs; ++ipair)
         {
-            int ispin = dmi.pairs[ipair].i + icell*data.n_cell_atoms;
             int jspin = cu_idx_from_pair(ispin, bc, nc, data.n_cell_atoms, data.atom_types, dmi.pairs[ipair]);
             if (jspin >= 0)
             {
@@ -1002,16 +1023,16 @@ Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
     }
     __global__ void CU_Gradient_DMI(const Vector3 * spins, Vector3 * gradient, DMI_Data dmi, Hamiltonian_Kernel_Data data)
     {
-        for(auto icell = blockIdx.x * blockDim.x + threadIdx.x;
-            icell < data.n_cells_total;
-            icell +=  blockDim.x * gridDim.x)
+        for(auto ispin = blockIdx.x * blockDim.x + threadIdx.x;
+            ispin < data.nos;
+            ispin +=  blockDim.x * gridDim.x)
         {
-            CU_Gradient_DMI_Cell(icell, spins, gradient, dmi, data);
+            CU_Gradient_DMI_Spin(ispin, spins, gradient, dmi, data);
         }
     }
     void Hamiltonian_Heisenberg::Gradient_DMI(const vectorfield & spins, vectorfield & gradient)
     {
-        int size = geometry->n_cells_total;
+        int size = geometry->nos;
         CU_Gradient_DMI<<<(size+1023)/1024, 1024>>>( spins.data(), gradient.data(), DMI_Data(*this), Hamiltonian_Kernel_Data(*this));
         CU_CHECK_AND_SYNC();
     }
