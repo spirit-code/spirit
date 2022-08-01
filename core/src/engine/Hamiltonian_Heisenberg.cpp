@@ -932,8 +932,6 @@ void Hamiltonian_Heisenberg::Gradient_DDI_FFT( const vectorfield & spins, vector
     auto & res_iFFT = fft_plan_reverse.real_ptr;
     auto & res_mult = fft_plan_reverse.cpx_ptr;
 
-    int idx_b1, idx_b2, idx_d;
-
     // Workaround for compability with intel compiler
     const int c_n_cell_atoms               = geometry->n_cell_atoms;
     const int * c_it_bounds_pointwise_mult = it_bounds_pointwise_mult.data();
@@ -948,14 +946,15 @@ void Hamiltonian_Heisenberg::Gradient_DDI_FFT( const vectorfield & spins, vector
             {
                 for( int a = 0; a < c_it_bounds_pointwise_mult[0]; ++a )
                 {
+                    // Collect the intersublattice contributions
                     for( int i_b2 = 0; i_b2 < c_n_cell_atoms; ++i_b2 )
                     {
                         // Look up at which position the correct D-matrices are saved
                         int & b_inter = inter_sublattice_lookup[i_b1 + i_b2 * geometry->n_cell_atoms];
 
-                        idx_b2 = i_b2 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
-                        idx_b1 = i_b1 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
-                        idx_d  = b_inter * dipole_stride.basis + a * dipole_stride.a + b * dipole_stride.b
+                        int idx_b2 = i_b2 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
+                        int idx_b1 = i_b1 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
+                        int idx_d  = b_inter * dipole_stride.basis + a * dipole_stride.a + b * dipole_stride.b
                                 + c * dipole_stride.c;
 
                         auto & fs_x = ft_spins[idx_b2];
