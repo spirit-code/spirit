@@ -42,8 +42,10 @@ Method_GNEB<solver>::Method_GNEB( std::shared_ptr<Data::Spin_System_Chain> chain
     this->f_shrink   = vectorfield( this->nos, { 0, 0, 0 } );                                        // [nos]
     this->xi         = vectorfield( this->nos, { 0, 0, 0 } );
 
-    this->F_translation_left  = vectorfield( this->nos, { 0, 0, 0 } );
-    this->F_translation_right = vectorfield( this->nos, { 0, 0, 0 } );
+    this->F_symmetric_left       = vectorfield( this->nos, { 0, 0, 0 } );
+    this->F_anti_symmetric_left  = vectorfield( this->nos, { 0, 0, 0 } );
+    this->F_symmetric_right      = vectorfield( this->nos, { 0, 0, 0 } );
+    this->F_anti_symmetric_right = vectorfield( this->nos, { 0, 0, 0 } );
 
     // Tangents
     this->tangents = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) ); // [noi][nos]
@@ -258,6 +260,7 @@ void Method_GNEB<solver>::Calculate_Force(
     if( chain->gneb_parameters->moving_endpoints )
     {
         int noi = chain->noi;
+
         Manifoldmath::project_tangential( F_gradient[0], *configurations[0] );
         Manifoldmath::project_tangential( F_gradient[noi - 1], *configurations[noi - 1] );
 
@@ -267,8 +270,10 @@ void Method_GNEB<solver>::Calculate_Force(
             // clang-format off
             Backend::par::apply(nos,
                 [
-                    F_translation_left  = F_translation_left.data(),
-                    F_translation_right = F_translation_right.data(),
+                    F_symmetric_left       = F_symmetric_left.data(),
+                    F_anti_symmetric_left  = F_anti_symmetric_left.data(),
+                    F_symmetric_right      = F_symmetric_right.data(),
+                    F_anti_symmetric_right = F_anti_symmetric_right.data(),
                     F_gradient_left     = F_gradient[0].data(),
                     F_gradient_right    = F_gradient[noi-1].data(),
                     spins_left  = this->chain->images[0]->spins->data(),
@@ -285,40 +290,51 @@ void Method_GNEB<solver>::Calculate_Force(
                         rotation_matrix = Matrix3::Identity();
 
                     const Vector3 F_gradient_right_rotated = rotation_matrix * F_gradient_right[idx];
-                    F_translation_left[idx] = -0.5 * (F_gradient_left[idx] + F_gradient_right_rotated);
+                    F_symmetric_left[idx]      = 0.5 * (F_gradient_left[idx] + F_gradient_right_rotated);
+                    F_anti_symmetric_left[idx] = 0.5 * (F_gradient_left[idx] - F_gradient_right_rotated);
 
                     const Vector3 F_gradient_left_rotated = rotation_matrix.transpose() * F_gradient_left[idx];
-                    F_translation_right[idx] = -0.5 * (F_gradient_left_rotated + F_gradient_right[idx]);
+                    F_symmetric_right[idx]      = 0.5 * (F_gradient_left_rotated + F_gradient_right[idx]);
+                    F_anti_symmetric_right[idx] = 0.5 * (F_gradient_left_rotated - F_gradient_right[idx]);
                 }
             );
             // clang-format on
 
-            Manifoldmath::project_parallel( F_translation_left, tangents[0] );
-            Manifoldmath::project_parallel( F_translation_right, tangents[chain->noi - 1] );
+            // Manifoldmath::project_parallel( F_symmetric_left, tangents[0] );
+            // Manifoldmath::project_parallel( F_anti_symmetric_left, tangents[0] );
+            // Manifoldmath::project_parallel( F_symmetric_right, tangents[chain->noi - 1] );
+            // Manifoldmath::project_parallel( F_anti_symmetric_right, tangents[chain->noi - 1] );
         }
 
         scalar rotational_coeff = 1.0;
-        if(chain->gneb_parameters->escape_first)
-        {
-            // Estimate the curvature along the tangent and only activate the rotational force, if it is negative
-            scalar proj_left = Vectormath::dot( F_gradient[0], tangents[0] );
-            scalar proj_right = Vectormath::dot( F_gradient[chain->noi-1], tangents[chain->noi-1] );
-            if (proj_left > proj_right)
-            {
-                rotational_coeff = 0.0;
-            }
-        }
+        scalar orthogonal_coeff = 1.0;
+        scalar parallel_coeff   = 1.0;
+
+        // if(chain->gneb_parameters->escape_first)
+        // {
+        //     // Estimate the curvature along the tangent and only activate the rotational force, if it is negative
+        //     scalar proj_left = Vectormath::dot( F_gradient[0], tangents[0] );
+        //     scalar proj_right = Vectormath::dot( F_gradient[chain->noi-1], tangents[chain->noi-1] );
+        //     if (proj_left > proj_right)
+        //     {
+        //         rotational_coeff = 0.0;
+        //     }
+        // }
 
         for( int img : { 0, chain->noi - 1 } )
         {
+            scalar sign = (img == 0) ? 1.0 : -1.0;
             scalar delta_Rx0 = ( img == 0 ) ? chain->gneb_parameters->equilibrium_delta_Rx_left :
                                               chain->gneb_parameters->equilibrium_delta_Rx_right;
             scalar delta_Rx = ( img == 0 ) ? Rx[1] - Rx[0] : Rx[chain->noi - 1] - Rx[chain->noi - 2];
 
-            auto spring_constant = ( ( img == 0 ) ? 1.0 : -1.0 ) * this->chain->gneb_parameters->spring_constant;
-            auto projection      = Vectormath::dot( F_gradient[img], tangents[img] );
+            auto spring_constant  = this->chain->gneb_parameters->spring_constant;
 
-            auto F_translation = ( img == 0 ) ? F_translation_left.data() : F_translation_right.data();
+            auto F_symmetric      = ( img == 0 ) ? F_symmetric_left : F_symmetric_right;
+            auto F_anti_symmetric = ( img == 0 ) ? F_anti_symmetric_left : F_anti_symmetric_right;
+
+            auto projection_symmetric      = Vectormath::dot( F_symmetric, tangents[img] );
+            auto projection_anti_symmetric = Vectormath::dot( F_anti_symmetric, tangents[img] );
 
             // std::cout << " === " << img << " ===\n";
             // fmt::print( "tangent_coeff = {}\n",  spring_constant * (delta_Rx - delta_Rx0) );
@@ -330,18 +346,24 @@ void Method_GNEB<solver>::Calculate_Force(
                 nos,
                 [
                     F_total       = F_total[img].data(),
-                    F_gradient    = F_gradient[img].data(),
                     forces        = forces[img].data(),
                     tangents      = tangents[img].data(),
                     tangent_coeff = spring_constant * (delta_Rx - delta_Rx0),
-                    F_translation,
-                    projection,
-                    rotational_coeff
+                    F_symmetric      = F_symmetric.data(),
+                    F_anti_symmetric = F_anti_symmetric.data(),
+                    projection_symmetric,
+                    projection_anti_symmetric,
+                    rotational_coeff,
+                    orthogonal_coeff,
+                    parallel_coeff,
+                    sign
                 ] SPIRIT_LAMBDA ( int idx )
                 {
-                    forces[idx] =   rotational_coeff * (F_gradient[idx] - projection * tangents[idx])
-                                    + tangent_coeff * tangents[idx]
-                                    + F_translation[idx];
+
+                    forces[idx] =    sign * rotational_coeff * (F_anti_symmetric[idx] - projection_anti_symmetric * tangents[idx])
+                                   + orthogonal_coeff        * (F_symmetric[idx] - projection_symmetric * tangents[idx])
+                                   - parallel_coeff          * (projection_symmetric * tangents[idx])
+                                   + sign * tangent_coeff    * tangents[idx];
 
                     // std::cout << F_translation[idx].transpose() << "\n";
                     F_total[idx] = forces[idx];
