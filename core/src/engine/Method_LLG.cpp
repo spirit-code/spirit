@@ -26,6 +26,9 @@ Method_LLG<solver>::Method_LLG( std::shared_ptr<Data::Spin_System> system, int i
     this->systems    = std::vector<std::shared_ptr<Data::Spin_System>>( 1, system );
     this->SenderName = Utility::Log_Sender::LLG;
 
+    // this->linesearch = std::make_unique<Quadratic_Backtracking_Linesearch>( 1, system->nos, system->hamiltonian );
+    this->linesearch = std::make_unique<Trivial_Linesearch>( system->nos );
+
     this->noi = this->systems.size();
     this->nos = this->systems[0]->nos;
 
@@ -513,5 +516,7 @@ template class Method_LLG<Solver::LBFGS_OSO>;
 template class Method_LLG<Solver::LBFGS_Atlas>;
 template class Method_LLG<Solver::VP>;
 template class Method_LLG<Solver::VP_OSO>;
+template class Method_LLG<Solver::Trivial_Euler>;
+
 
 } // namespace Engine

@@ -11,10 +11,10 @@ inline void Method_Solver<Solver::VP>::Initialize()
         configurations_temp[i] = std::shared_ptr<vectorfield>( new vectorfield( this->nos ) );
 
     this->velocities = std::vector<vectorfield>( this->noi, vectorfield( this->nos, Vector3::Zero() ) ); // [noi][nos]
-    this->velocities_previous = velocities;                                                              // [noi][nos]
     this->forces_previous     = velocities;                                                              // [noi][nos]
     this->projection          = std::vector<scalar>( this->noi, 0 );                                     // [noi]
-    this->force_norm2         = std::vector<scalar>( this->noi, 0 );                                     // [noi]
+    this->force_norm2         = std::vector<scalar>( this->noi, 0 );
+    this->searchdir = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) ); // [noi]
 }
 
 /*
@@ -37,19 +37,20 @@ inline void Method_Solver<Solver::VP>::Iteration()
         auto f    = forces[i].data();
         auto f_pr = forces_previous[i].data();
         auto v    = velocities[i].data();
-        auto v_pr = velocities_previous[i].data();
 
         Backend::par::apply(
             forces[i].size(),
-            [f, f_pr, v, v_pr] SPIRIT_LAMBDA( int idx )
+            [f, f_pr, v] SPIRIT_LAMBDA( int idx )
             {
                 f_pr[idx] = f[idx];
-                v_pr[idx] = v[idx];
             } );
     }
-
     // Get the forces on the configurations
     this->Calculate_Force( configurations, forces );
+
+    for( int i = 0; i < noi; ++i )
+        Manifoldmath::project_tangential( forces[i], *configurations[i] );
+
     this->Calculate_Force_Virtual( configurations, forces, forces_virtual );
 
     for( int i = 0; i < noi; ++i )
@@ -105,12 +106,14 @@ inline void Method_Solver<Solver::VP>::Iteration()
 
         Backend::par::apply(
             force.size(),
-            [conf, conf_temp, dt, m_temp, v, f] SPIRIT_LAMBDA( int idx )
+            [sd = this->searchdir[i].data(), v, f, dt, m = this->m] SPIRIT_LAMBDA( int idx )
             {
-                conf_temp[idx] = conf[idx] + dt * v[idx] + 0.5 / m_temp * dt * f[idx];
-                conf[idx]      = conf_temp[idx].normalized();
-            } );
+                sd[idx] = dt * (v[idx] + 0.5 / m * f[idx]);
+            } 
+        );
     }
+
+    linesearch->run(configurations, searchdir);
 }
 
 template<>

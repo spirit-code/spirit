@@ -9,6 +9,7 @@
 #include <engine/Manifoldmath.hpp>
 #include <engine/Method.hpp>
 #include <engine/Solver_Kernels.hpp>
+#include <engine/Linesearch.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
@@ -38,7 +39,8 @@ enum class Solver
     LBFGS_OSO   = Solver_LBFGS_OSO,
     LBFGS_Atlas = Solver_LBFGS_Atlas,
     VP          = Solver_VP,
-    VP_OSO      = Solver_VP_OSO
+    VP_OSO      = Solver_VP_OSO,
+    Trivial_Euler = -2 // Only use this for debugging and tests
 };
 
 /*
@@ -53,6 +55,7 @@ public:
     Method_Solver( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain )
             : Method( parameters, idx_img, idx_chain )
     {
+        this->linesearch = std::make_unique<Trivial_Linesearch>(nos);
     }
 
     virtual ~Method_Solver() = default;
@@ -70,10 +73,6 @@ public:
 
     // Iteration represents one iteration of a certain Solver
     virtual void Iteration() override;
-
-protected:
-    // Prepare random numbers for thermal fields, if needed
-    virtual void Prepare_Thermal_Field() {}
 
     /*
      * Calculate Forces onto Systems
@@ -106,6 +105,10 @@ protected:
              this->idx_chain );
     }
 
+protected:
+    // Prepare random numbers for thermal fields, if needed
+    virtual void Prepare_Thermal_Field() {}
+
     // Calculate maximum of absolute values of force components for a spin configuration
     virtual scalar Force_on_Image_MaxAbsComponent( const vectorfield & image, vectorfield & force ) final;
 
@@ -132,6 +135,9 @@ protected:
     virtual void Message_Start() override;
     virtual void Message_Step() override;
     virtual void Message_End() override;
+
+    // Linesearch
+    std::unique_ptr<Linesearch> linesearch;
 
     //////////// DEPONDT ////////////////////////////////////////////////////////////
     // Temporaries for virtual forces
@@ -395,6 +401,7 @@ inline std::string Method_Solver<Solver::None>::SolverFullName()
 #include <engine/Solver_SIB.hpp>
 #include <engine/Solver_VP.hpp>
 #include <engine/Solver_VP_OSO.hpp>
+#include <engine/Solver_Trivial_Euler.hpp>
 
 } // namespace Engine
 
