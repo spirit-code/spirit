@@ -38,7 +38,8 @@ enum class Solver
     LBFGS_OSO   = Solver_LBFGS_OSO,
     LBFGS_Atlas = Solver_LBFGS_Atlas,
     VP          = Solver_VP,
-    VP_OSO      = Solver_VP_OSO
+    VP_OSO      = Solver_VP_OSO,
+    ST          = Solver_ST
 };
 
 /*
@@ -395,6 +396,8 @@ inline std::string Method_Solver<Solver::None>::SolverFullName()
 #include <engine/Solver_SIB.hpp>
 #include <engine/Solver_VP.hpp>
 #include <engine/Solver_VP_OSO.hpp>
+#include <engine/Solver_ST.hpp>
+
 
 } // namespace Engine
 

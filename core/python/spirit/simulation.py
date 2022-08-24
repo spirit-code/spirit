@@ -49,6 +49,8 @@ SOLVER_LBFGS_Atlas = 6
 SOLVER_VP_OSO = 7
 """Verlet-like velocity projection method, using exponential transforms."""
 
+SOLVER_ST = 8
+"""Suzuki Trotter decomposition dynamics solver."""
 
 METHOD_MC   = 0
 """Monte Carlo.
