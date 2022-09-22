@@ -137,6 +137,11 @@ public:
     // Check if a stop file is present -> Stop the iterations
     virtual bool StopFile_Present() final;
 
+    const Data::Spin_System * System(int img) const
+    {
+        return this->systems[img].get();
+    }
+
     std::chrono::time_point<std::chrono::system_clock> t_start, t_last;
 
     // Number of iterations that have been executed
@@ -151,6 +156,11 @@ public:
     std::string starttime;
 
     //////////// Parameters //////////////////////////////////////////////////////
+    const Data::Parameters_Method * Parameters() const
+    {
+        return this->parameters.get();
+    }
+
     // Number of iterations
     long n_iterations;
     // Number of iterations until log
