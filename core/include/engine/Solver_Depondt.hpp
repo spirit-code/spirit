@@ -1,3 +1,7 @@
+#include "engine/Vectormath_Defines.hpp"
+#include <Eigen/Geometry>
+#include <engine/Backend_par.hpp>
+
 template<>
 inline void Method_Solver<Solver::Depondt>::Initialize()
 {
@@ -38,17 +42,24 @@ inline void Method_Solver<Solver::Depondt>::Iteration()
     // Predictor for each image
     for( int i = 0; i < this->noi; ++i )
     {
-        auto & conf           = *this->configurations[i];
-        auto & conf_predictor = *this->configurations_predictor[i];
+        // clang-format off
+        Backend::par::apply( nos, 
+            [
+                c = this->configurations[i]->data(),
+                c_p = this->configurations_predictor[i]->data(),
+                f = forces_virtual[i].data()
+            ] SPIRIT_LAMBDA (int idx)
+            {
+                const Vector3 delta_s         = -c[idx].cross(f[idx]);
+                const scalar angle            = delta_s.norm();
+                const Vector3 axis            = c[idx].cross( delta_s );
+                const Matrix3 rotation_matrix = Eigen::AngleAxis<scalar>(angle, axis.normalized()).toRotationMatrix();
 
-        // For Rotation matrix R := R( H_normed, angle )
-        Vectormath::norm( forces_virtual[i], angle ); // angle = |forces_virtual|
-
-        Vectormath::set_c_a( 1, forces_virtual[i], rotationaxis[i] ); // rotationaxis = |forces_virtual|
-        Vectormath::normalize_vectors( rotationaxis[i] );             // normalize rotation axis
-
-        // Get spin predictor n' = R(H) * n
-        Vectormath::rotate( conf, rotationaxis[i], angle, conf_predictor );
+                c_p[idx] = rotation_matrix*c[idx];
+                c_p[idx].normalize();
+            } 
+        );
+        // clang-format on
     }
 
     // Calculate_Force for the Corrector
@@ -56,23 +67,35 @@ inline void Method_Solver<Solver::Depondt>::Iteration()
     this->Calculate_Force_Virtual(
         this->configurations_predictor, this->forces_predictor, this->forces_virtual_predictor );
 
-    // Corrector step for each image
-    for( int i = 0; i < this->noi; i++ )
+    // Predictor for each image
+    for( int i = 0; i < this->noi; ++i )
     {
-        auto & conf = *this->configurations[i];
+        // clang-format off
+        Backend::par::apply( nos,
+            [
+                c = this->configurations[i]->data(),
+                c_p = this->configurations_predictor[i]->data(),
+                f = forces_virtual[i].data(),
+                f_p = forces_virtual_predictor[i].data()
+            ] SPIRIT_LAMBDA (int idx)
+            {
+                // Rotate predictor forces back into tangent frame of current spin
+                f_p[idx] = f_p[idx] - f_p[idx].dot(c_p[idx]) * c_p[idx]; // Remove normal component of predictor
 
-        // Calculate the linear combination of the two forces_virtuals
-        Vectormath::set_c_a( 0.5, forces_virtual[i], temp1 );           // H = H/2
-        Vectormath::add_c_a( 0.5, forces_virtual_predictor[i], temp1 ); // H = (H + H')/2
+                // Average axis of rotation
+                Vector3 avg_force = 0.5 * ( f[idx] + f_p[idx] );
+                avg_force = avg_force - avg_force.dot( c[idx] ) * c[idx];
 
-        // Get the rotation angle as norm of temp1 ...For Rotation matrix R' := R( H'_normed, angle' )
-        Vectormath::norm( temp1, angle ); // angle' = |forces_virtual lin combination|
+                const scalar angle      = avg_force.norm();
+                const Vector3 axis      = avg_force.normalized();
 
-        // Normalize temp1 to get rotation axes
-        Vectormath::normalize_vectors( temp1 );
+                const Matrix3 rotation_matrix = Eigen::AngleAxis<scalar>(angle, axis.normalized()).toRotationMatrix();
 
-        // Get new spin conf n_new = R( (H+H')/2 ) * n
-        Vectormath::rotate( conf, temp1, angle, conf );
+                c[idx] = rotation_matrix*c[idx];
+                c[idx].normalize();
+            } 
+        );
+        // clang-format on
     }
 }
 
