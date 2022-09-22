@@ -1,3 +1,6 @@
+#include "engine/Manifoldmath.hpp"
+#include <engine/Backend_par.hpp>
+
 template<>
 inline void Method_Solver<Solver::SIB>::Initialize()
 {
@@ -27,25 +30,41 @@ inline void Method_Solver<Solver::SIB>::Iteration()
     // First part of the step
     this->Calculate_Force( this->configurations, this->forces );
     this->Calculate_Force_Virtual( this->configurations, this->forces, this->forces_virtual );
+
     for( int i = 0; i < this->noi; ++i )
     {
         auto & image     = *this->systems[i]->spins;
         auto & predictor = *this->configurations_predictor[i];
 
         Solver_Kernels::sib_transform( image, forces_virtual[i], predictor );
-        Vectormath::add_c_a( 1, image, predictor );
-        Vectormath::scale( predictor, 0.5 );
     }
 
     // Second part of the step
     this->Calculate_Force( this->configurations_predictor, this->forces_predictor );
     this->Calculate_Force_Virtual(
         this->configurations_predictor, this->forces_predictor, this->forces_virtual_predictor );
+
     for( int i = 0; i < this->noi; ++i )
     {
-        auto & image = *this->systems[i]->spins;
+        auto & predictor = *this->configurations_predictor[i];
+        auto & image     = *this->systems[i]->spins;
 
-        Solver_Kernels::sib_transform( image, forces_virtual_predictor[i], image );
+        // Engine::Manifoldmath::project_tangential( forces_virtual_predictor[i], predictor );
+        Vectormath::add_c_a( 1, image, predictor );
+        Vectormath::scale( predictor, 0.5 );
+
+        Vectormath::add_c_a( 1, forces_virtual[i], forces_virtual_predictor[i] );
+        Vectormath::scale( forces_virtual_predictor[i], 0.5 );
+    }
+
+    for( int i = 0; i < this->noi; ++i )
+    {
+        auto & image     = *this->systems[i]->spins;
+        auto & predictor = *this->configurations_predictor[i];
+
+        // Engine::Manifoldmath::project_tangential( forces_virtual_predictor[i], predictor );
+        Solver_Kernels::sib_transform( image, forces_virtual_predictor[i], predictor );
+        Vectormath::set_c_a( 1, predictor, image );
     }
 }
 
