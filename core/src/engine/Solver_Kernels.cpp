@@ -1,8 +1,12 @@
+#include "engine/Vectormath_Defines.hpp"
 #include <Eigen/Dense>
 
 #include <engine/Backend_par.hpp>
 #include <engine/Solver_Kernels.hpp>
 #include <utility/Constants.hpp>
+
+
+#include <iostream>
 
 using namespace Utility;
 using Utility::Constants::Pi;
@@ -12,8 +16,33 @@ namespace Engine
 namespace Solver_Kernels
 {
 
+inline Matrix3 SPIRIT_LAMBDA cayley_transform(const Vector3 & A)
+{
+    // computes
+    // (1 - skew(A))^{-1} * (1 + skew(A))
+
+    Matrix3 m; 
+    m <<  1, -A[2], A[1],
+         A[2], 1, -A[0],
+        -A[1], A[0], 1;
+
+    const scalar det = (A[0]*A[0] + A[1]*A[1] + A[2]*A[2] + 1.0);
+
+    Matrix3 m_inv;
+
+    // the inverse of m (without the 1/det prefactor)
+    m_inv << (A[0]*A[0] + 1), (A[0]*A[1] + A[2]), (A[0]*A[2] - A[1]),
+             (A[0]*A[1] - A[2]), (A[1]*A[1] + 1), (A[0] + A[1]*A[2]),
+             (A[0]*A[2] + A[1]), (-A[0] + A[1]*A[2]), (A[2]*A[2] + 1);
+
+    return 1.0/det * m_inv.transpose() * m;
+}
+
 void sib_transform( const vectorfield & spins, const vectorfield & force, vectorfield & out )
 {
+    // The point of this transform is to solve the equation
+    // s_p = s + (s_p + s)/2 x A
+
     int n = spins.size();
 
     auto s = spins.data();
@@ -24,26 +53,8 @@ void sib_transform( const vectorfield & spins, const vectorfield & force, vector
         n,
         [s, f, o] SPIRIT_LAMBDA( int idx )
         {
-            Vector3 e1, a2, A;
-            scalar detAi;
-            e1 = s[idx];
-            A  = 0.5 * f[idx];
-
-            // 1/determinant(A)
-            detAi = 1.0 / ( 1 + pow( A.norm(), 2.0 ) );
-
-            // calculate equation witho the predictor?
-            a2 = e1 - e1.cross( A );
-
-            o[idx][0]
-                = ( a2[0] * ( A[0] * A[0] + 1 ) + a2[1] * ( A[0] * A[1] - A[2] ) + a2[2] * ( A[0] * A[2] + A[1] ) )
-                  * detAi;
-            o[idx][1]
-                = ( a2[0] * ( A[1] * A[0] + A[2] ) + a2[1] * ( A[1] * A[1] + 1 ) + a2[2] * ( A[1] * A[2] - A[0] ) )
-                  * detAi;
-            o[idx][2]
-                = ( a2[0] * ( A[2] * A[0] - A[1] ) + a2[1] * ( A[2] * A[1] + A[0] ) + a2[2] * ( A[2] * A[2] + 1 ) )
-                  * detAi;
+            const Matrix3 transform_matrix = cayley_transform(0.5*f[idx]);
+            o[idx] = transform_matrix * s[idx];
         } );
 }
 
