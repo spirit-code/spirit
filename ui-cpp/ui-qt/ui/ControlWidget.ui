@@ -144,7 +144,7 @@
    <item row="0" column="8">
     <layout class="QGridLayout" name="gridLayout_11">
      <property name="horizontalSpacing">
-      <number>-1</number>
+      <number>6</number>
      </property>
      <property name="verticalSpacing">
       <number>0</number>
@@ -340,6 +340,11 @@
        <item>
         <property name="text">
          <string>VP_OSO</string>
+        </property>
+       </item>
+       <item>
+        <property name="text">
+         <string>ST</string>
         </property>
        </item>
       </widget>

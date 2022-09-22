@@ -171,8 +171,10 @@ void ControlWidget::play_pause()
         solver = Solver_LBFGS_OSO;
     else if( s_solver == "LBFGS_Atlas" )
         solver = Solver_LBFGS_Atlas;
-    if( s_solver == "VP_OSO" )
+    else if( s_solver == "VP_OSO" )
         solver = Solver_VP_OSO;
+    else if( s_solver == "ST" )
+        solver = Solver_ST;
 
     if( Simulation_Running_On_Image( this->state.get() ) || Simulation_Running_On_Chain( this->state.get() ) )
     {
@@ -209,7 +211,8 @@ void ControlWidget::play_pause()
         {
             if( thread_chain.joinable() )
                 thread_chain.join();
-            this->thread_chain = std::thread( &Simulation_GNEB_Start, this->state.get(), solver, -1, -1, false, nullptr, -1 );
+            this->thread_chain
+                = std::thread( &Simulation_GNEB_Start, this->state.get(), solver, -1, -1, false, nullptr, -1 );
         }
         else if( this->s_method == "MMF" )
         {
