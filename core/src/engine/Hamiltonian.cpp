@@ -177,4 +177,12 @@ scalar Hamiltonian::Energy_Single_Spin( int ispin, const vectorfield & spins )
         "Tried to use  Hamiltonian::Energy_Single_Spin() of the Hamiltonian base class!" );
 }
 
+Vector3 Hamiltonian::Gradient_Single_Spin( int ispin, const vectorfield & spins )
+{
+    // Not Implemented!
+    spirit_throw(
+        Exception_Classifier::Not_Implemented, Log_Level::Error,
+        "Tried to use  Hamiltonian::Gradient_Single_Spin() of the Hamiltonian base class!" );
+}
+
 } // namespace Engine

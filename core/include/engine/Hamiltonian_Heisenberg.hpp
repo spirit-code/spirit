@@ -64,6 +64,8 @@ public:
     //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
     scalar Energy_Single_Spin( int ispin, const vectorfield & spins ) override;
 
+    Vector3 Gradient_Single_Spin( int ispin, const vectorfield & spins ) override;
+
     // Hamiltonian name as string
     const std::string & Name() const override;
 

@@ -667,6 +667,107 @@ scalar Hamiltonian_Heisenberg::Energy_Single_Spin( int ispin, const vectorfield 
     return Energy;
 }
 
+Vector3 Hamiltonian_Heisenberg::Gradient_Single_Spin( int ispin, const vectorfield & spins )
+{
+    Vector3 Gradient = Vector3::Zero();
+
+    if( check_atom_type( this->geometry->atom_types[ispin] ) )
+    {
+        int icell   = ispin / this->geometry->n_cell_atoms;
+        int ibasis  = ispin - icell * this->geometry->n_cell_atoms;
+        auto & mu_s = this->geometry->mu_s;
+        Pair pair_inv;
+
+        // External field
+        if( this->idx_zeeman >= 0 )
+            Gradient -= mu_s[ispin] * this->external_field_magnitude * this->external_field_normal;
+
+        // Anisotropy
+        if( this->idx_anisotropy >= 0 )
+        {
+            for( int iani = 0; iani < anisotropy_indices.size(); ++iani )
+            {
+                if( anisotropy_indices[iani] == ibasis )
+                {
+                    if( check_atom_type( this->geometry->atom_types[ispin] ) )
+                        Gradient -= 2 * this->anisotropy_magnitudes[iani] * anisotropy_normals[iani].dot( spins[ispin] )
+                                    * anisotropy_normals[iani];
+                }
+            }
+        }
+
+        // Cubic Anisotropy
+        if( this->idx_cubic_anisotropy >= 0 )
+        {
+            // TODO
+        }
+
+        // Exchange
+        if( this->idx_exchange >= 0 )
+        {
+            for( unsigned int ipair = 0; ipair < exchange_pairs.size(); ++ipair )
+            {
+                const auto & pair = exchange_pairs[ipair];
+                if( pair.i == ibasis )
+                {
+                    int jspin = idx_from_pair(
+                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                        pair );
+                    if( jspin >= 0 )
+                        Gradient -= this->exchange_magnitudes[ipair] * spins[jspin];
+                }
+#ifndef SPIRIT_USE_OPENMP
+                if( pair.j == ibasis )
+                {
+                    const auto & t = pair.translations;
+                    pair_inv       = Pair{ pair.j, pair.i, { -t[0], -t[1], -t[2] } };
+                    int jspin      = idx_from_pair(
+                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                        pair_inv );
+                    if( jspin >= 0 )
+                        Gradient -= this->exchange_magnitudes[ipair] * spins[jspin];
+                }
+#endif
+            }
+        }
+
+        // DMI
+        if( this->idx_dmi >= 0 )
+        {
+            for( unsigned int ipair = 0; ipair < dmi_pairs.size(); ++ipair )
+            {
+                const auto & pair = dmi_pairs[ipair];
+                if( pair.i == ibasis )
+                {
+                    int jspin = idx_from_pair(
+                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                        pair );
+                    if( jspin >= 0 )
+                        Gradient += this->dmi_magnitudes[ipair] * this->dmi_normals[ipair].cross( spins[jspin] );
+                }
+#ifndef SPIRIT_USE_OPENMP
+                if( pair.j == ibasis )
+                {
+                    const auto & t = pair.translations;
+                    pair_inv       = Pair{ pair.j, pair.i, { -t[0], -t[1], -t[2] } };
+                    int jspin      = idx_from_pair(
+                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                        pair_inv );
+                    if( jspin >= 0 )
+                        Gradient -= this->dmi_magnitudes[ipair] * this->dmi_normals[ipair].cross( spins[jspin] );
+                }
+#endif
+            }
+        }
+
+        // TODO: Quadruplets
+        if( this->idx_quadruplet >= 0 )
+        {
+        }
+    }
+    return Gradient;
+}
+
 void Hamiltonian_Heisenberg::Gradient( const vectorfield & spins, vectorfield & gradient )
 {
     // Set to zero
@@ -810,7 +911,7 @@ void Hamiltonian_Heisenberg::Gradient_Cubic_Anisotropy( const vectorfield & spin
         {
             int ispin = icell * N + cubic_anisotropy_indices[iani];
             if( check_atom_type( this->geometry->atom_types[ispin] ) )
-                for ( int icomp = 0; icomp < 3; ++icomp)
+                for( int icomp = 0; icomp < 3; ++icomp )
                 {
                     gradient[ispin][icomp]
                         -= 2.0 * this->cubic_anisotropy_magnitudes[iani] * std::pow( spins[ispin][icomp], 3.0 );
@@ -952,10 +1053,12 @@ void Hamiltonian_Heisenberg::Gradient_DDI_FFT( const vectorfield & spins, vector
                         // Look up at which position the correct D-matrices are saved
                         int & b_inter = inter_sublattice_lookup[i_b1 + i_b2 * geometry->n_cell_atoms];
 
-                        int idx_b2 = i_b2 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
-                        int idx_b1 = i_b1 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
-                        int idx_d  = b_inter * dipole_stride.basis + a * dipole_stride.a + b * dipole_stride.b
-                                + c * dipole_stride.c;
+                        int idx_b2
+                            = i_b2 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
+                        int idx_b1
+                            = i_b1 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
+                        int idx_d = b_inter * dipole_stride.basis + a * dipole_stride.a + b * dipole_stride.b
+                                    + c * dipole_stride.c;
 
                         auto & fs_x = ft_spins[idx_b2];
                         auto & fs_y = ft_spins[idx_b2 + 1 * spin_stride.comp];

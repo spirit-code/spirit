@@ -83,6 +83,9 @@ public:
     // Calculate the total energy for a single spin
     virtual scalar Energy_Single_Spin( int ispin, const vectorfield & spins );
 
+    // Calculate the total energy for a single spin
+    virtual Vector3 Gradient_Single_Spin( int ispin, const vectorfield & spins );
+
     virtual std::size_t Number_of_Interactions();
 
     // Hamiltonian name as string
