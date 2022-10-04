@@ -135,7 +135,7 @@ if __name__ == "__main__":
         classifiers      = CLASSIFIERS,
         install_requires = INSTALL_REQUIRES,
         package_data     = {
-            'spirit': ['libSpirit.dylib', 'libSpirit.so', 'libSpirit.dll'],
+            'spirit': ['libSpirit.dylib', 'libSpirit.so', 'Spirit.dll'],
         },
         cmdclass         = {'bdist_wheel': bdist_wheel, 'clean': CleanCommand},
         test_suite       = 'setup.my_test_suite',

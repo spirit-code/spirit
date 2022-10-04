@@ -1,16 +1,11 @@
 #pragma once
-#ifndef SPIRIT_UTILITY_TIMING_HPP
-#define SPIRIT_UTILITY_TIMING_HPP
+#ifndef SPIRIT_CORE_UTILITY_TIMING_HPP
+#define SPIRIT_CORE_UTILITY_TIMING_HPP
 
 #include "Spirit_Defines.h"
 
 #include <chrono>
 #include <string>
-
-// Use the System Clock (Wall Time) to handle Timing
-using std::chrono::system_clock;
-using std::chrono::time_point;
-using std::chrono::duration;
 
 namespace Utility
 {
@@ -36,9 +31,12 @@ scalar MinutesPassed( std::chrono::duration<scalar> dt );
 scalar HoursPassed( std::chrono::duration<scalar> dt );
 
 // Returns the duration when passed a string "hh:mm:ss"
-std::chrono::duration<scalar> DurationFromString( std::string dt );
+std::chrono::duration<scalar> DurationFromString( const std::string & dt );
 
 } // namespace Timing
 } // namespace Utility
+
+// Conversion of time_point to string, usable by fmt
+std::ostream & operator<<( std::ostream & os, std::chrono::system_clock::time_point time_point );
 
 #endif

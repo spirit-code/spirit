@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SPIRIT_DATA_PARAMETERS_METHOD_GNEB_HPP
-#define SPIRIT_DATA_PARAMETERS_METHOD_GNEB_HPP
+#ifndef SPIRIT_CORE_DATA_PARAMETERS_METHOD_GNEB_HPP
+#define SPIRIT_CORE_DATA_PARAMETERS_METHOD_GNEB_HPP
 
 #include <data/Parameters_Method_Solver.hpp>
 
@@ -32,6 +32,14 @@ struct Parameters_Method_GNEB : Parameters_Method_Solver
     int rng_seed = 2006;
     // Mersenne twister PRNG
     std::mt19937 prng = std::mt19937( rng_seed );
+
+    bool moving_endpoints = false;
+    bool translating_endpoints = false;
+
+    scalar equilibrium_delta_Rx_left  = 1.0;
+    scalar equilibrium_delta_Rx_right = 1.0;
+
+    bool escape_first = false;
 
     // ----------------- Output --------------
     bool output_energies_step                  = false;

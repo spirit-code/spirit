@@ -127,6 +127,14 @@ def set_damping(p_state, damping, idx_image=-1, idx_chain=-1):
     _LLG_Set_Damping(ctypes.c_void_p(p_state), ctypes.c_float(damping),
                      ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
+_LLG_Set_Non_Adiabatic_Damping             = _spirit.Parameters_LLG_Set_Non_Adiabatic_Damping
+_LLG_Set_Non_Adiabatic_Damping.argtypes    = [ctypes.c_void_p, ctypes.c_float, ctypes.c_int, ctypes.c_int]
+_LLG_Set_Non_Adiabatic_Damping.restype     = None
+def set_non_adiabatic_damping(p_state, beta, idx_image=-1, idx_chain=-1):
+    """Set the Gilbert damping parameter [unitless]."""
+    _LLG_Set_Non_Adiabatic_Damping(ctypes.c_void_p(p_state), ctypes.c_float(beta),
+                     ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
 _LLG_Set_STT             = _spirit.Parameters_LLG_Set_STT
 _LLG_Set_STT.argtypes    = [ctypes.c_void_p, ctypes.c_bool, ctypes.c_float,
                             ctypes.POINTER(3*ctypes.c_float), ctypes.c_int, ctypes.c_int]
@@ -211,6 +219,14 @@ _LLG_Get_Damping.restype     = ctypes.c_float
 def get_damping(p_state, idx_image=-1, idx_chain=-1):
     """Returns the Gilbert damping parameter."""
     return float(_LLG_Get_Damping(ctypes.c_void_p(p_state), ctypes.c_int(idx_image),
+                            ctypes.c_int(idx_chain)))
+
+_LLG_Get_Non_Adiabatic_Damping             = _spirit.Parameters_LLG_Get_Non_Adiabatic_Damping
+_LLG_Get_Non_Adiabatic_Damping.argtypes    = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
+_LLG_Get_Non_Adiabatic_Damping.restype     = ctypes.c_float
+def get_non_adiabatic_damping(p_state, idx_image=-1, idx_chain=-1):
+    """Returns the non-adiabatic damping parameter."""
+    return float(_LLG_Get_Non_Adiabatic_Damping(ctypes.c_void_p(p_state), ctypes.c_int(idx_image),
                             ctypes.c_int(idx_chain)))
 
 _LLG_Get_STT             = _spirit.Parameters_LLG_Get_STT

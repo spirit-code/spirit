@@ -1,4 +1,5 @@
-﻿#include <io/IO.hpp>
+#include <io/IO.hpp>
+#include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Timing.hpp>
 
@@ -6,7 +7,7 @@
 
 #include <termcolor/termcolor.hpp>
 
-#include <signal.h>
+#include <csignal>
 #include <ctime>
 #include <iostream>
 #include <string>
@@ -14,152 +15,46 @@
 namespace Utility
 {
 
-std::string SenderToString( Log_Sender sender, bool braces_separators = true )
+std::string IndexToString( int idx )
 {
-    std::string result = "";
-
-    // Braces
-    if( braces_separators )
-        result.append( "[" );
-    else
-        result.append( " " );
-    // Sender
-    if( sender == Log_Sender::All )
-        result.append( "ALL " );
-    else if( sender == Log_Sender::IO )
-        result.append( "IO  " );
-    else if( sender == Log_Sender::API )
-        result.append( "API " );
-    else if( sender == Log_Sender::GNEB )
-        result.append( "GNEB" );
-    else if( sender == Log_Sender::HTST )
-        result.append( "HTST" );
-    else if( sender == Log_Sender::LLG )
-        result.append( "LLG " );
-    else if( sender == Log_Sender::MC )
-        result.append( "MC  " );
-    else if( sender == Log_Sender::MMF )
-        result.append( "MMF " );
-    else if( sender == Log_Sender::UI )
-        result.append( "UI  " );
-    else if( sender == Log_Sender::EMA )
-        result.append( "EMA " );
-    // Braces
-    if( braces_separators )
-        result.append( "]" );
-    else
-        result.append( " " );
-
-    return result;
-}
-
-std::string LevelToString( Log_Level level, bool braces_separators = true )
-{
-    std::string result = "";
-
-    // Braces
-    if( braces_separators )
-        result.append( "[" );
-    else
-        result.append( " " );
-    // Level
-    if( level == Log_Level::All )
-        result.append( "  ALL  " );
-    else if( level == Log_Level::Severe )
-        result.append( "SEVERE " );
-    else if( level == Log_Level::Error )
-        result.append( " ERROR " );
-    else if( level == Log_Level::Warning )
-        result.append( "WARNING" );
-    else if( level == Log_Level::Parameter )
-        result.append( " PARAM " );
-    else if( level == Log_Level::Info )
-        result.append( " INFO  " );
-    else if( level == Log_Level::Debug )
-        result.append( " DEBUG " );
-    // Braces
-    if( braces_separators )
-        result.append( "]" );
-    else
-        result.append( " " );
-
-    return result;
-}
-
-std::string IndexToString( int idx, bool braces_separators = true )
-{
-    std::string result = "";
-
-    // Braces
-    if( braces_separators )
-        result.append( "[" );
-    else
-        result.append( " " );
-    // Index
-    std::string s_idx = fmt::format( "{:0>2}", idx + 1 );
+    std::string idx_str;
     if( idx >= 0 )
-        result.append( s_idx );
+        return fmt::format( "{:0>2}", idx + 1 );
     else
-        result.append( "--" );
-    // Braces
-    if( braces_separators )
-        result.append( "]" );
-    else
-        result.append( " " );
-
-    return result;
+        return "--";
 }
 
 std::string LogEntryToString( LogEntry entry, bool braces_separators )
 {
-    std::string result = "";
-    // Time
-    result += Timing::TimePointToString_Pretty( entry.time );
-    // Message Level
-    result += "  " + LevelToString( entry.level, braces_separators );
-    // Sender
-    result += " " + SenderToString( entry.sender, braces_separators );
-    // Chain Index
-    result += " " + IndexToString( entry.idx_chain, braces_separators );
-    // Image Index
-    result += " " + IndexToString( entry.idx_image, braces_separators );
-    // First message string
-    result += "  " + entry.message_lines[0];
+    std::string format_str;
+    if( braces_separators )
+        format_str = "{}  [{:^7}] [{:^4}] [{}] [{}]  {}";
+    else
+        format_str = "{}   {:^7}   {:^4}   {}   {}   {}";
+
+    std::string result = fmt::format(
+        format_str, entry.time, entry.level, entry.sender, IndexToString( entry.idx_chain ),
+        IndexToString( entry.idx_image ), entry.message_lines[0] );
+
     // Rest of the block
-    for( unsigned int i = 1; i < entry.message_lines.size(); ++i )
-        result += "\n" + Log.tags_space + entry.message_lines[i];
-    // Return
+    for( std::size_t i = 1; i < entry.message_lines.size(); ++i )
+        result += fmt::format( "\n{}{}", Log.tags_space, entry.message_lines[i] );
+
     return result;
 }
 
 LoggingHandler::LoggingHandler()
 {
-    // Set the default Log parameters
-    output_folder = ".";
-
-    if( file_tag == std::string( "<time>" ) )
-        fileName = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
-    else if( file_tag == std::string( "" ) )
-        fileName = "Log.txt";
+    if( file_tag == "<time>" )
+        file_name = fmt::format( "Log_{}.txt", Utility::Timing::CurrentDateTime() );
+    else if( file_tag.empty() )
+        file_name = "Log.txt";
     else
-        fileName = "Log_" + file_tag + ".txt";
-
-    messages_to_file        = false;
-    level_file              = Log_Level::Debug;
-    messages_to_console     = true;
-    level_console           = Log_Level::Parameter;
-    save_input_initial      = true;
-    save_input_final        = false;
-    save_positions_initial  = false;
-    save_positions_final    = false;
-    save_neighbours_initial = false;
-    save_neighbours_final   = false;
-    n_entries               = 0;
-    n_errors                = 0;
-    n_warnings              = 0;
+        file_name = fmt::format( "Log_{}.txt", file_tag );
 }
 
-void LoggingHandler::Send( Log_Level level, Log_Sender sender, std::string message, int idx_image, int idx_chain )
+void LoggingHandler::Send(
+    Log_Level level, Log_Sender sender, const std::string & message, int idx_image, int idx_chain )
 {
     // Lock mutex because of reallocation (push_back)
     std::lock_guard<std::mutex> guard( mutex );
@@ -192,13 +87,13 @@ void LoggingHandler::Send( Log_Level level, Log_Sender sender, std::string messa
 }
 
 void LoggingHandler::SendBlock(
-    Log_Level level, Log_Sender sender, std::vector<std::string> message_lines, int idx_image, int idx_chain )
+    Log_Level level, Log_Sender sender, const std::vector<std::string> & messages, int idx_image, int idx_chain )
 {
     // Lock mutex because of reallocation (push_back)
     std::lock_guard<std::mutex> guard( mutex );
 
     // All messages are saved in the Log
-    LogEntry entry = { std::chrono::system_clock::now(), sender, level, message_lines, idx_image, idx_chain };
+    LogEntry entry = { std::chrono::system_clock::now(), sender, level, messages, idx_image, idx_chain };
     log_entries.push_back( entry );
 
     // Increment message count
@@ -218,13 +113,14 @@ void LoggingHandler::SendBlock(
         std::cout << color << LogEntryToString( log_entries.back() ) << termcolor::reset << "\n";
 }
 
-void LoggingHandler::operator()( Log_Level level, Log_Sender sender, std::string message, int idx_image, int idx_chain )
+void LoggingHandler::operator()(
+    Log_Level level, Log_Sender sender, const std::string & message, int idx_image, int idx_chain )
 {
     Send( level, sender, message, idx_image, idx_chain );
 }
 
 void LoggingHandler::operator()(
-    Log_Level level, Log_Sender sender, std::vector<std::string> messages, int idx_image, int idx_chain )
+    Log_Level level, Log_Sender sender, const std::vector<std::string> & messages, int idx_image, int idx_chain )
 {
     SendBlock( level, sender, messages, idx_image, idx_chain );
 }
@@ -238,9 +134,12 @@ std::vector<LogEntry> LoggingHandler::Filter( Log_Level level, Log_Sender sender
 {
     // Get vector of Log entries
     auto result = std::vector<LogEntry>();
-    for( auto entry : log_entries )
+    for( const auto & entry : log_entries )
     {
-        if( level == Log_Level::All || level == entry.level )
+        if( ( level == Log_Level::All || level == entry.level )
+            && ( sender == Log_Sender::All || sender == entry.sender )
+            && ( idx_image == -1 || idx_image == entry.idx_image )
+            && ( idx_chain == -1 || idx_chain == entry.idx_chain ) )
         {
             if( sender == Log_Sender::All || sender == entry.sender )
             {
@@ -250,13 +149,13 @@ std::vector<LogEntry> LoggingHandler::Filter( Log_Level level, Log_Sender sender
                     {
                         result.push_back( entry );
                     }
-                } // endif image no
-            }     // endif sender
-        }         // endif level
-    }             // endfor i -> log_entries.size()
+                }
+            }
+        }
+    }
 
     // Return
-    return std::vector<LogEntry>();
+    return result;
 }
 
 void LoggingHandler::Append_to_File()
@@ -266,7 +165,7 @@ void LoggingHandler::Append_to_File()
         // Log this event
         Send(
             Log_Level::Debug, Log_Sender::All,
-            fmt::format( "Appending log to file \"{}/{}\"", output_folder, fileName ) );
+            fmt::format( "Appending log to file \"{}/{}\"", output_folder, file_name ) );
 
         // Gather the string
         std::string logstring = "";
@@ -274,22 +173,21 @@ void LoggingHandler::Append_to_File()
         no_dumped             = n_entries;
         for( int i = begin_append; i < n_entries; ++i )
         {
-            auto level = log_entries[i].level;
+            const auto & level = log_entries[i].level;
             if( level <= level_file || level == Log_Level::Error || level == Log_Level::Severe )
             {
-                logstring.append( LogEntryToString( log_entries[i] ) );
-                logstring.append( "\n" );
+                logstring += fmt::format( "{}\n", LogEntryToString( log_entries[i] ) );
             }
         }
 
         // Append to file
-        IO::Append_String_to_File( logstring, output_folder + "/" + fileName );
+        IO::append_to_file( logstring, output_folder + "/" + file_name );
     }
     else
     {
         Send(
             Log_Level::Debug, Log_Sender::All,
-            fmt::format( "Not appending log to file \"{}/{}\"", output_folder, fileName ) );
+            fmt::format( "Not appending log to file \"{}/{}\"", output_folder, file_name ) );
     }
 }
 
@@ -300,7 +198,8 @@ void LoggingHandler::Dump_to_File()
     {
         // Log this event
         Send(
-            Log_Level::Info, Log_Sender::All, fmt::format( "Dumping log to file \"{}/{}\"", output_folder, fileName ) );
+            Log_Level::Info, Log_Sender::All,
+            fmt::format( "Dumping log to file \"{}/{}\"", output_folder, file_name ) );
 
         // Gather the string
         std::string logstring = "";
@@ -309,20 +208,76 @@ void LoggingHandler::Dump_to_File()
             auto level = log_entries[i].level;
             if( level <= level_file || level == Log_Level::Error || level == Log_Level::Severe )
             {
-                logstring.append( LogEntryToString( log_entries[i] ) );
-                logstring.append( "\n" );
+                logstring += fmt::format( "{}\n", LogEntryToString( log_entries[i] ) );
             }
         }
 
         // Write the string to file
-        IO::String_to_File( logstring, output_folder + "/" + fileName );
+        IO::write_to_file( logstring, output_folder + "/" + file_name );
     }
     else
     {
         Send(
             Log_Level::Debug, Log_Sender::All,
-            fmt::format( "Not dumping log to file \"{}/{}\"", output_folder, fileName ) );
+            fmt::format( "Not dumping log to file \"{}/{}\"", output_folder, file_name ) );
     }
 }
 
 } // end namespace Utility
+
+std::ostream & operator<<( std::ostream & os, Utility::Log_Sender sender )
+{
+    using namespace Utility;
+
+    if( sender == Log_Sender::All )
+        return os << "ALL";
+    else if( sender == Log_Sender::IO )
+        return os << "IO";
+    else if( sender == Log_Sender::API )
+        return os << "API";
+    else if( sender == Log_Sender::GNEB )
+        return os << "GNEB";
+    else if( sender == Log_Sender::HTST )
+        return os << "HTST";
+    else if( sender == Log_Sender::LLG )
+        return os << "LLG";
+    else if( sender == Log_Sender::MC )
+        return os << "MC";
+    else if( sender == Log_Sender::MMF )
+        return os << "MMF";
+    else if( sender == Log_Sender::UI )
+        return os << "UI";
+    else if( sender == Log_Sender::EMA )
+        return os << "EMA";
+    else
+    {
+        spirit_throw(
+            Exception_Classifier::Not_Implemented, Log_Level::Severe, "Tried converting unknown Log_Sender to string" );
+    }
+}
+
+// Conversion of Log_Level to string, usable by fmt
+std::ostream & operator<<( std::ostream & os, Utility::Log_Level level )
+{
+    using namespace Utility;
+
+    if( level == Log_Level::All )
+        return os << "ALL";
+    else if( level == Log_Level::Severe )
+        return os << "SEVERE";
+    else if( level == Log_Level::Error )
+        return os << "ERROR";
+    else if( level == Log_Level::Warning )
+        return os << "WARNING";
+    else if( level == Log_Level::Parameter )
+        return os << "PARAM";
+    else if( level == Log_Level::Info )
+        return os << "INFO";
+    else if( level == Log_Level::Debug )
+        return os << "DEBUG";
+    else
+    {
+        spirit_throw(
+            Exception_Classifier::Not_Implemented, Log_Level::Severe, "Tried converting unknown Log_Level to string" );
+    }
+}

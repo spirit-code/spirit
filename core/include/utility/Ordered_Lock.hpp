@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SPIRIT_ORDERED_LOCK_HPP
-#define SPIRIT_ORDERED_LOCK_HPP
+#ifndef SPIRIT_CORE_ORDERED_LOCK_HPP
+#define SPIRIT_CORE_ORDERED_LOCK_HPP
 
 #include <condition_variable>
 #include <mutex>
@@ -10,9 +10,9 @@ namespace Utility
 {
 
 /*
-A lockable class that ensures the order of lock acquisition corresponds to the
-order of the locking attempts, i.e. it is "fair" or "fifo" (first in first out).
-*/
+ * A lockable class that ensures the order of lock acquisition corresponds to the
+ * order of the locking attempts, i.e. it is "fair" or "fifo" (first in first out).
+ */
 class OrderedLock
 {
     std::queue<std::condition_variable> condition_;

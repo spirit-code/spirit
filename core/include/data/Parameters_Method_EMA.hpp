@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SPIRIT_DATA_PARAMETERS_METHOD_EMA_HPP
-#define SPIRIT_DATA_PARAMETERS_METHOD_EMA_HPP
+#ifndef SPIRIT_CORE_DATA_PARAMETERS_METHOD_EMA_HPP
+#define SPIRIT_CORE_DATA_PARAMETERS_METHOD_EMA_HPP
 
 #include <data/Parameters_Method.hpp>
 
@@ -15,6 +15,7 @@ struct Parameters_Method_EMA : Parameters_Method
     scalar frequency  = 0.02;
     scalar amplitude  = 1;
     bool snapshot     = false;
+    bool sparse       = false;
 
     // ----------------- Output --------------
     // Energy output settings

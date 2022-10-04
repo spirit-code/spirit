@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SPIRIT_DATA_SPIN_SYSTEM_CHAIN_HPP
-#define SPIRIT_DATA_SPIN_SYSTEM_CHAIN_HPP
+#ifndef SPIRIT_CORE_DATA_SPIN_SYSTEM_CHAIN_HPP
+#define SPIRIT_CORE_DATA_SPIN_SYSTEM_CHAIN_HPP
 
 #include "Spirit_Defines.h"
 #include <Spirit/Parameters_GNEB.h>
