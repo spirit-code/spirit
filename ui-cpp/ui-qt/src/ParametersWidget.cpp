@@ -249,6 +249,10 @@ void ParametersWidget::set_parameters_llg()
         int i1, i2;
         bool b1, b2, b3, b4;
 
+        // Time reversal
+        b1 = this->checkBox_time_reversal->isChecked();
+        Parameters_LLG_Set_Time_Reversal( this->state.get(), b1, idx_image );
+
         // Direct minimization
         b1 = this->checkBox_llg_direct->isChecked();
         Parameters_LLG_Set_Direct_Minimization( this->state.get(), b1, idx_image );
@@ -664,6 +668,9 @@ void ParametersWidget::Setup_Parameters_Slots()
         this->checkBox_llg_output_configuration_archive, SIGNAL( stateChanged( int ) ), this,
         SLOT( set_parameters_llg() ) );
 
+    // Time reversal
+    connect( this->checkBox_time_reversal, SIGNAL( stateChanged( int ) ), this, SLOT( set_parameters_llg() ) );
+
     //      MC
     // Paramters
     connect( this->checkBox_mc_temperature, SIGNAL( stateChanged( int ) ), this, SLOT( set_parameters_mc() ) );
@@ -719,6 +726,7 @@ void ParametersWidget::Setup_Parameters_Slots()
         SLOT( set_parameters_gneb() ) );
     connect(
         this->checkBox_gneb_output_chain_step, SIGNAL( stateChanged( int ) ), this, SLOT( set_parameters_gneb() ) );
+
 
     // Endpoints
     connect( this->checkBox_moving_endpoints, SIGNAL( stateChanged( int ) ), this, SLOT( set_parameters_gneb() ) );

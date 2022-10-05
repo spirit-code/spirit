@@ -1,6 +1,7 @@
 #include "data/Parameters_Method_LLG.hpp"
 #include "data/Spin_System.hpp"
 #include "engine/Vectormath_Defines.hpp"
+#include "engine/Solver_Kernels.hpp"
 #include <fmt/format.h>
 #include <limits>
 
@@ -22,6 +23,9 @@ inline Vector3 Force_Single_Spin(
 
     const Vector3 force         = gradient; // actually it should be -gradient
     const Vector3 force_virtual = ( dtg * force + dtg * damping * spins[ispin].cross( force ) );
+
+    if(parameters->time_reversal)
+        return -force_virtual;
 
     return force_virtual;
 }
@@ -105,34 +109,71 @@ Heun_Propagator( scalar time_scale, int ispin, vectorfield & spins, const Method
     spins[ispin].normalize();
 }
 
-inline void
-Implicit_Propagator( scalar time_scale, int ispin, vectorfield & spins, const Method_Solver<Solver::ST> & solver )
+
+template<typename Force_Callback>
+inline void Implicit_Propagator( scalar time_scale, int ispin, vectorfield & spins, Force_Callback & force_callback, const Method_Solver<Solver::ST> & solver )
 {
-    // // Solve the equation s_{i+1} = s_{i} + 0.5 * (s_{i} + s_{i+1}) x ( B + 0.5 (A s_{i} + A s_{i+1}) )
-    // bool run = true;
+    // Solve the equation s_{i+1} = s_{i} + 0.5 * (s_{i} + s_{i+1}) x 0.5 * ( f(s_{i+1}) + f(s_i)) )
+    // For a single spin
 
-    // scalar convergence = 10 * std::numeric_limits<scalar>::epsilon();
-    // int max_iter       = 100;
+    scalar convergence = 0;
+    // convergence  = ;
+    int max_iter = 200;
 
-    // Vector3 spins_previous;
-    // Matrix3 A;
-    // Vectr3 B;
+    Vector3 spin_initial     = spins[ispin];
+    Vector3 spin_previous    = spins[ispin];
+    Vector3 spin_propagated  = spins[ispin];
+    Vector3 spin_avg         = spins[ispin];
 
-    // int iter = 0;
+    Vector3 force          = force_callback(ispin, spins);
+    Vector3 force_previous = force; //Initialize to current force, so that first iteration performs one SiB update
+    Vector3 force_avg      = force;
 
-    // while( run )
-    // {
-    //     spin_previous = spins[ispin];
-    //     spins[ispin] =
+    int iter = 0;
+    bool run = true;
 
-    //         sp = implicit_equation2( s, sp, B, Ak )
+    while( run )
+    {
+        // Save the current spin
+        spin_previous = spin_propagated;
 
-    //             change
-    //         = np.linalg.norm( sp - s_prev ) converged = change < 1e-16
+        // Compute the propagated spin
 
-    //                                                     iter
-    //         += 1 change_list.append( change )
-    // }
+        // Possibility1: naive
+        // spin_propagated = spin_initial - spin_avg.cross( force_avg );
+
+        // Possibility2: cayley
+        spin_propagated = Engine::Solver_Kernels::cayley_transform2(0.5*force_avg, spin_initial);
+
+        // spin_propagated.normalize();
+
+        // Compute the average spin
+        spin_avg = 0.5 * (spin_propagated + spin_initial);
+
+        // Compute the average force
+        //  Possibility1: f( spin_avg )
+
+        spins[ispin] = spin_avg;
+        force_avg = time_scale * force_callback(ispin, spins);
+
+        //  Possibility2: 0.5 * (f( s1 ) + f( s2 ) )
+        // spins[ispin] = spin_propagated;
+        // force_avg    = time_scale * 0.5 * ( force_callback(ispin, spins)  + force_previous );
+
+        // force_avg = 0.5 * (force + force_previous);
+        // force_avg = force_avg - force_avg.dot(spin_avg.normalized()) * spin_avg.normalized();
+
+        iter++;
+        scalar change = (spin_propagated - spin_previous).cwiseAbs().maxCoeff();
+
+        run = change > convergence && iter < max_iter;
+        // std::cout << iter << " " << change << "\n";
+    }
+
+    // Assign the propagated spin to the spins array
+    spins[ispin] = spin_propagated;
+
+    // std::cout << iter << "\n";
 }
 
 template<>

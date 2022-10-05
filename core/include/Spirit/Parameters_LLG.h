@@ -29,6 +29,9 @@ If the tag is "<time>", it will be the date-time of the creation of the state.
 PREFIX void
 Parameters_LLG_Set_Output_Tag( State * state, const char * tag, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
+PREFIX void 
+Parameters_LLG_Set_Time_Reversal( State * state, bool time_reversal, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+
 // Set the folder, where output files are placed.
 PREFIX void
 Parameters_LLG_Set_Output_Folder( State * state, const char * folder, int idx_image = -1, int idx_chain = -1 ) SUFFIX;

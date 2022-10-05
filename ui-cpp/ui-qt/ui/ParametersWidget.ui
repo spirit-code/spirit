@@ -83,15 +83,15 @@
           </size>
          </property>
          <property name="currentIndex">
-          <number>2</number>
+          <number>0</number>
          </property>
          <widget class="QWidget" name="page_3">
           <property name="geometry">
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>533</width>
-            <height>684</height>
+            <width>529</width>
+            <height>713</height>
            </rect>
           </property>
           <property name="sizePolicy">
@@ -122,30 +122,113 @@
               <string>Parameters</string>
              </property>
              <layout class="QGridLayout" name="gridLayout_5">
-              <item row="6" column="0">
-               <layout class="QGridLayout" name="gridLayout_91">
-                <item row="0" column="1">
-                 <widget class="QLabel" name="label_71">
-                  <property name="text">
-                   <string>Polarisation (x y z)</string>
+              <item row="9" column="1">
+               <layout class="QGridLayout" name="gridLayout_92">
+                <item row="0" column="0">
+                 <widget class="QLineEdit" name="lineEdit_dt">
+                  <property name="minimumSize">
+                   <size>
+                    <width>40</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>50</width>
+                    <height>16777215</height>
+                   </size>
                   </property>
                  </widget>
                 </item>
-                <item row="0" column="0">
-                 <spacer name="horizontalSpacer_47">
+                <item row="0" column="1">
+                 <widget class="QLabel" name="label_41">
+                  <property name="text">
+                   <string>[ps]</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <spacer name="horizontalSpacer_48">
                   <property name="orientation">
                    <enum>Qt::Horizontal</enum>
                   </property>
-                  <property name="sizeType">
-                   <enum>QSizePolicy::Minimum</enum>
-                  </property>
                   <property name="sizeHint" stdset="0">
                    <size>
-                    <width>15</width>
+                    <width>40</width>
                     <height>20</height>
                    </size>
                   </property>
                  </spacer>
+                </item>
+               </layout>
+              </item>
+              <item row="7" column="1">
+               <widget class="QLineEdit" name="lineEdit_Damping">
+                <property name="minimumSize">
+                 <size>
+                  <width>40</width>
+                  <height>0</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>50</width>
+                  <height>16777215</height>
+                 </size>
+                </property>
+               </widget>
+              </item>
+              <item row="5" column="1">
+               <layout class="QGridLayout" name="gridLayout_65">
+                <item row="0" column="1">
+                 <widget class="QDoubleSpinBox" name="doubleSpinBox_llg_stt_magnitude">
+                  <property name="decimals">
+                   <number>4</number>
+                  </property>
+                  <property name="maximum">
+                   <double>1000.000000000000000</double>
+                  </property>
+                  <property name="singleStep">
+                   <double>0.100000000000000</double>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="3">
+                 <spacer name="horizontalSpacer_46">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item row="0" column="2">
+                 <layout class="QGridLayout" name="gridLayout_16">
+                  <item row="0" column="0">
+                   <widget class="QRadioButton" name="radioButton_stt_gradient">
+                    <property name="text">
+                     <string>Gradient method</string>
+                    </property>
+                    <property name="checked">
+                     <bool>false</bool>
+                    </property>
+                   </widget>
+                  </item>
+                  <item row="1" column="0">
+                   <widget class="QRadioButton" name="radioButton_stt_monolayer">
+                    <property name="text">
+                     <string>Monolayer approximation</string>
+                    </property>
+                    <property name="checked">
+                     <bool>true</bool>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
                 </item>
                </layout>
               </item>
@@ -155,6 +238,27 @@
                  <string>Temperature</string>
                 </property>
                </widget>
+              </item>
+              <item row="2" column="1">
+               <layout class="QGridLayout" name="gridLayout_89">
+                <item row="0" column="2">
+                 <widget class="QDoubleSpinBox" name="doubleSpinBox_llg_temperature">
+                  <property name="decimals">
+                   <number>4</number>
+                  </property>
+                  <property name="maximum">
+                   <double>1000.000000000000000</double>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="3">
+                 <widget class="QLabel" name="label_72">
+                  <property name="text">
+                   <string>K</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
               <item row="4" column="1">
                <layout class="QGridLayout" name="gridLayout_17">
@@ -225,13 +329,6 @@
                 </item>
                </layout>
               </item>
-              <item row="10" column="0">
-               <widget class="QLabel" name="label_4">
-                <property name="text">
-                 <string>Convergence at</string>
-                </property>
-               </widget>
-              </item>
               <item row="2" column="2">
                <spacer name="horizontalSpacer_49">
                 <property name="orientation">
@@ -249,6 +346,139 @@
                <widget class="QLabel" name="label_31">
                 <property name="text">
                  <string>Time Step</string>
+                </property>
+               </widget>
+              </item>
+              <item row="6" column="0">
+               <layout class="QGridLayout" name="gridLayout_91">
+                <item row="0" column="1">
+                 <widget class="QLabel" name="label_71">
+                  <property name="text">
+                   <string>Polarisation (x y z)</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="0">
+                 <spacer name="horizontalSpacer_47">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeType">
+                   <enum>QSizePolicy::Minimum</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>15</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+              <item row="10" column="0">
+               <widget class="QLabel" name="label_4">
+                <property name="text">
+                 <string>Convergence at</string>
+                </property>
+               </widget>
+              </item>
+              <item row="10" column="1">
+               <layout class="QGridLayout" name="gridLayout_9">
+                <item row="0" column="0">
+                 <widget class="QLabel" name="label_5">
+                  <property name="maximumSize">
+                   <size>
+                    <width>15</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>1E</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="1">
+                 <widget class="QSpinBox" name="spinBox_llg_convergence">
+                  <property name="minimumSize">
+                   <size>
+                    <width>60</width>
+                    <height>0</height>
+                   </size>
+                  </property>
+                  <property name="minimum">
+                   <number>-20</number>
+                  </property>
+                  <property name="maximum">
+                   <number>20</number>
+                  </property>
+                  <property name="value">
+                   <number>-8</number>
+                  </property>
+                 </widget>
+                </item>
+                <item row="0" column="2">
+                 <spacer name="horizontalSpacer_5">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+              <item row="3" column="1">
+               <layout class="QGridLayout" name="gridLayout_20">
+                <item row="1" column="0">
+                 <widget class="QLabel" name="label_9">
+                  <property name="maximumSize">
+                   <size>
+                    <width>60</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>Inclination</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="1">
+                 <widget class="QLineEdit" name="lineEdit_llg_temperature_inclination">
+                  <property name="maximumSize">
+                   <size>
+                    <width>60</width>
+                    <height>16777215</height>
+                   </size>
+                  </property>
+                  <property name="text">
+                   <string>0</string>
+                  </property>
+                 </widget>
+                </item>
+                <item row="1" column="2">
+                 <spacer name="horizontalSpacer_10">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+              <item row="7" column="0">
+               <widget class="QLabel" name="label_3">
+                <property name="text">
+                 <string>Damping</string>
                 </property>
                </widget>
               </item>
@@ -326,97 +556,6 @@
                 </item>
                </layout>
               </item>
-              <item row="1" column="0">
-               <widget class="QCheckBox" name="checkBox_llg_direct">
-                <property name="text">
-                 <string>Direct Minimization</string>
-                </property>
-               </widget>
-              </item>
-              <item row="2" column="1">
-               <layout class="QGridLayout" name="gridLayout_89">
-                <item row="0" column="2">
-                 <widget class="QDoubleSpinBox" name="doubleSpinBox_llg_temperature">
-                  <property name="decimals">
-                   <number>4</number>
-                  </property>
-                  <property name="maximum">
-                   <double>1000.000000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="3">
-                 <widget class="QLabel" name="label_72">
-                  <property name="text">
-                   <string>K</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-              <item row="7" column="0">
-               <widget class="QLabel" name="label_3">
-                <property name="text">
-                 <string>Damping</string>
-                </property>
-               </widget>
-              </item>
-              <item row="7" column="1">
-               <widget class="QLineEdit" name="lineEdit_Damping">
-                <property name="minimumSize">
-                 <size>
-                  <width>40</width>
-                  <height>0</height>
-                 </size>
-                </property>
-                <property name="maximumSize">
-                 <size>
-                  <width>50</width>
-                  <height>16777215</height>
-                 </size>
-                </property>
-               </widget>
-              </item>
-              <item row="9" column="1">
-               <layout class="QGridLayout" name="gridLayout_92">
-                <item row="0" column="0">
-                 <widget class="QLineEdit" name="lineEdit_dt">
-                  <property name="minimumSize">
-                   <size>
-                    <width>40</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="maximumSize">
-                   <size>
-                    <width>50</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QLabel" name="label_41">
-                  <property name="text">
-                   <string>[ps]</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="2">
-                 <spacer name="horizontalSpacer_48">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
-              </item>
               <item row="5" column="0">
                <widget class="QCheckBox" name="checkBox_llg_stt">
                 <property name="text">
@@ -424,151 +563,19 @@
                 </property>
                </widget>
               </item>
-              <item row="5" column="1">
-               <layout class="QGridLayout" name="gridLayout_65">
-                <item row="0" column="1">
-                 <widget class="QDoubleSpinBox" name="doubleSpinBox_llg_stt_magnitude">
-                  <property name="decimals">
-                   <number>4</number>
-                  </property>
-                  <property name="maximum">
-                   <double>1000.000000000000000</double>
-                  </property>
-                  <property name="singleStep">
-                   <double>0.100000000000000</double>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="3">
-                 <spacer name="horizontalSpacer_46">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item row="0" column="2">
-                 <layout class="QGridLayout" name="gridLayout_16">
-                  <item row="0" column="0">
-                   <widget class="QRadioButton" name="radioButton_stt_gradient">
-                    <property name="text">
-                     <string>Gradient method</string>
-                    </property>
-                    <property name="checked">
-                     <bool>false</bool>
-                    </property>
-                   </widget>
-                  </item>
-                  <item row="1" column="0">
-                   <widget class="QRadioButton" name="radioButton_stt_monolayer">
-                    <property name="text">
-                     <string>Monolayer approximation</string>
-                    </property>
-                    <property name="checked">
-                     <bool>true</bool>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-               </layout>
+              <item row="1" column="0">
+               <widget class="QCheckBox" name="checkBox_llg_direct">
+                <property name="text">
+                 <string>Direct Minimization</string>
+                </property>
+               </widget>
               </item>
-              <item row="3" column="1">
-               <layout class="QGridLayout" name="gridLayout_20">
-                <item row="1" column="0">
-                 <widget class="QLabel" name="label_9">
-                  <property name="maximumSize">
-                   <size>
-                    <width>60</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>Inclination</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="1">
-                 <widget class="QLineEdit" name="lineEdit_llg_temperature_inclination">
-                  <property name="maximumSize">
-                   <size>
-                    <width>60</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>0</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="1" column="2">
-                 <spacer name="horizontalSpacer_10">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
-              </item>
-              <item row="10" column="1">
-               <layout class="QGridLayout" name="gridLayout_9">
-                <item row="0" column="0">
-                 <widget class="QLabel" name="label_5">
-                  <property name="maximumSize">
-                   <size>
-                    <width>15</width>
-                    <height>16777215</height>
-                   </size>
-                  </property>
-                  <property name="text">
-                   <string>1E</string>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="1">
-                 <widget class="QSpinBox" name="spinBox_llg_convergence">
-                  <property name="minimumSize">
-                   <size>
-                    <width>60</width>
-                    <height>0</height>
-                   </size>
-                  </property>
-                  <property name="minimum">
-                   <number>-20</number>
-                  </property>
-                  <property name="maximum">
-                   <number>20</number>
-                  </property>
-                  <property name="value">
-                   <number>-8</number>
-                  </property>
-                 </widget>
-                </item>
-                <item row="0" column="2">
-                 <spacer name="horizontalSpacer_5">
-                  <property name="orientation">
-                   <enum>Qt::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-               </layout>
+              <item row="11" column="0">
+               <widget class="QCheckBox" name="checkBox_time_reversal">
+                <property name="text">
+                 <string>Time reversal</string>
+                </property>
+               </widget>
               </item>
              </layout>
             </widget>

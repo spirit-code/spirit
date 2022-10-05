@@ -12,6 +12,15 @@ _spirit = spiritlib.load_spirit_library()
 
 ### ---------------------------------- Set ----------------------------------
 
+_LLG_Set_Time_Reversal          = _spirit.Parameters_LLG_Set_Time_Reversal
+_LLG_Set_Time_Reversal.argtypes = [ctypes.c_void_p, ctypes.c_bool,
+                                ctypes.c_int, ctypes.c_int]
+_LLG_Set_Time_Reversal.restype  = None
+def set_time_reversal(p_state, time_reversal, idx_image=-1, idx_chain=-1):
+    """Set if the direction of time should be reversed"""
+    _LLG_Set_Time_Reversal(ctypes.c_void_p(p_state), ctypes.c_bool(time_reversal),
+                        ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
 _LLG_Set_Output_Tag          = _spirit.Parameters_LLG_Set_Output_Tag
 _LLG_Set_Output_Tag.argtypes = [ctypes.c_void_p, ctypes.c_char_p,
                                 ctypes.c_int, ctypes.c_int]

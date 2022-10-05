@@ -751,6 +751,9 @@ std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config( 
             config_file_handle.Read_Single( parameters->n_iterations_amortize, "llg_n_iterations_amortize" );
             config_file_handle.Read_Single( parameters->dt, "llg_dt" );
             config_file_handle.Read_Single( parameters->temperature, "llg_temperature" );
+
+            config_file_handle.Read_Single( parameters->time_reversal, "llg_time_reversal" );
+
             config_file_handle.Read_Vector3(
                 parameters->temperature_gradient_direction, "llg_temperature_gradient_direction" );
             parameters->temperature_gradient_direction.normalize();

@@ -40,6 +40,9 @@ struct Parameters_Method_LLG : Parameters_Method_Solver
     // Do direct minimization instead of dynamics
     bool direct_minimization = false;
 
+    // Should the direction of time be reversed for this calculation?
+    bool time_reversal = false;
+
     // ----------------- Output --------------
     // Energy output settings
     bool output_energy_step                  = false;

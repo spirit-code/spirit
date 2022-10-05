@@ -58,6 +58,7 @@ Method_LLG<solver>::Method_LLG( std::shared_ptr<Data::Spin_System> system, int i
     this->Prepare_Thermal_Field();
     this->Calculate_Force( this->configurations, this->forces );
     this->Calculate_Force_Virtual( this->configurations, this->forces, this->forces_virtual );
+
     // Post iteration hook to get forceMaxAbsComponent etc
     this->Hook_Post_Iteration();
 }
@@ -217,7 +218,11 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
                 Vectormath::add_c_a( 1, this->xi, force_virtual );
                 Vectormath::add_c_cross( damping, image, this->xi, force_virtual );
             }
+
+            if( parameters.time_reversal )
+                Vectormath::scale( force_virtual, -1 );
         }
+
 // Apply Pinning
 #ifdef SPIRIT_ENABLE_PINNING
         Vectormath::set_c_a( 1, force_virtual, force_virtual, this->systems[0]->geometry->mask_unpinned );
@@ -514,6 +519,5 @@ template class Method_LLG<Solver::LBFGS_Atlas>;
 template class Method_LLG<Solver::VP>;
 template class Method_LLG<Solver::VP_OSO>;
 template class Method_LLG<Solver::ST>;
-
 
 } // namespace Engine
