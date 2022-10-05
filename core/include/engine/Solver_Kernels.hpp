@@ -18,6 +18,8 @@ namespace Engine
 namespace Solver_Kernels
 {
 
+Vector3 SPIRIT_LAMBDA cayley_transform(const Vector3 & A, const Vector3 & s);
+
 // SIB
 void sib_transform( const vectorfield & spins, const vectorfield & force, vectorfield & out );
 

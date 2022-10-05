@@ -16,33 +16,22 @@ namespace Engine
 namespace Solver_Kernels
 {
 
-inline Matrix3 SPIRIT_LAMBDA cayley_transform(const Vector3 & A)
+Vector3 SPIRIT_LAMBDA cayley_transform(const Vector3 & A, const Vector3 & s)
 {
-    // computes
-    // (1 - skew(A))^{-1} * (1 + skew(A))
-
-    Matrix3 m; 
-    m <<  1, -A[2], A[1],
-         A[2], 1, -A[0],
-        -A[1], A[0], 1;
-
     const scalar det = (A[0]*A[0] + A[1]*A[1] + A[2]*A[2] + 1.0);
+    Vector3 res{
+         A[0]*A[0]*s[0] + 2*A[0]*A[1]*s[1] + 2*A[0]*A[2]*s[2] - A[1]*A[1]*s[0] + 2*A[1]*s[2] - A[2]*A[2]*s[0] - 2*A[2]*s[1] + s[0],
+        -A[0]*A[0]*s[1] + 2*A[0]*A[1]*s[0] - 2*A[0]*s[2] + A[1]*A[1]*s[1] + 2*A[1]*A[2]*s[2] - A[2]*A[2]*s[1] + 2*A[2]*s[0] + s[1],
+        -A[0]*A[0]*s[2] + 2*A[0]*A[2]*s[0] + 2*A[0]*s[1] - A[1]*A[1]*s[2] + 2*A[1]*A[2]*s[1] - 2*A[1]*s[0] + A[2]*A[2]*s[2] + s[2]
+    };
 
-    Matrix3 m_inv;
-
-    // the inverse of m (without the 1/det prefactor)
-    m_inv << (A[0]*A[0] + 1), (A[0]*A[1] + A[2]), (A[0]*A[2] - A[1]),
-             (A[0]*A[1] - A[2]), (A[1]*A[1] + 1), (A[0] + A[1]*A[2]),
-             (A[0]*A[2] + A[1]), (-A[0] + A[1]*A[2]), (A[2]*A[2] + 1);
-
-    return 1.0/det * m_inv.transpose() * m;
+    return res/det;
 }
 
 void sib_transform( const vectorfield & spins, const vectorfield & force, vectorfield & out )
 {
     // The point of this transform is to solve the equation
     // s_p = s + (s_p + s)/2 x A
-
     int n = spins.size();
 
     auto s = spins.data();
@@ -53,8 +42,7 @@ void sib_transform( const vectorfield & spins, const vectorfield & force, vector
         n,
         [s, f, o] SPIRIT_LAMBDA( int idx )
         {
-            const Matrix3 transform_matrix = cayley_transform(0.5*f[idx]);
-            o[idx] = transform_matrix * s[idx];
+            o[idx] = cayley_transform(0.5*f[idx], s[idx]);
         } );
 }
 
