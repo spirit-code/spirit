@@ -145,21 +145,17 @@ inline void Implicit_Propagator( scalar time_scale, int ispin, vectorfield & spi
         // Possibility2: cayley
         spin_propagated = Engine::Solver_Kernels::cayley_transform2(0.5*force_avg, spin_initial);
 
-        // spin_propagated.normalize();
-
         // Compute the average spin
         spin_avg = 0.5 * (spin_propagated + spin_initial);
 
         // Compute the average force
         //  Possibility1: f( spin_avg )
-
         spins[ispin] = spin_avg;
         force_avg = time_scale * force_callback(ispin, spins);
 
         //  Possibility2: 0.5 * (f( s1 ) + f( s2 ) )
         // spins[ispin] = spin_propagated;
         // force_avg    = time_scale * 0.5 * ( force_callback(ispin, spins)  + force_previous );
-
         // force_avg = 0.5 * (force + force_previous);
         // force_avg = force_avg - force_avg.dot(spin_avg.normalized()) * spin_avg.normalized();
 
@@ -183,22 +179,53 @@ inline void Method_Solver<Solver::ST>::Iteration()
     {
         auto & spins = *this->systems[img]->spins;
 
-        // Half time step in order
-        for( int ispin = 0; ispin < this->nos; ispin++ )
+        for( int ispin = 0; ispin < nos; ispin++ )
         {
-            Vector3 gradient           = -this->systems[img]->hamiltonian->Gradient_Single_Spin( ispin, spins );
-            forces_virtual[img][ispin] = Force_Single_Spin( ispin, gradient, spins, *this ).cross( spins[ispin] );
-            SA_Propagator( 0.5, gradient, ispin, spins, *this );
+            // Compute this information so that we do not have to re-compute the entire gradient in every iteration
+            Vector3 gradient_current         = this->System( 0 )->hamiltonian->Gradient_Single_Spin( ispin, spins );
+            Matrix3 gradient_linear_current  = this->System( 0 )->hamiltonian->Linear_Gradient_Contribution_Single_Spin( ispin, spins );
+            Vector3 spin_current             = spins[ispin];
+
+            auto force_callback = [&solver = *this, gradient_current, gradient_linear_current, spin_current]( int ispin, const vectorfield & spins )
+            {
+                // Vector3 gradient  = -solver.System( 0 )->hamiltonian->Gradient_Single_Spin( ispin, spins );
+                Vector3 gradient  = -(gradient_current + gradient_linear_current * (spins[ispin] - spin_current));
+                Vector3 f         = Force_Single_Spin( ispin, gradient, spins, solver );
+                return f;
+            };
+
+            // Vector3 gradient           = -this->systems[img]->hamiltonian->Gradient_Single_Spin( ispin, spins );
+            // forces_virtual[img][ispin] = Force_Single_Spin( ispin, gradient, spins, *this ).cross( spins[ispin] );
+            // SA_Propagator( 0.5, gradient, ispin, spins, *this );
             // Heun_Propagator( 0.5, ispin, spins, *this );
+            // std::cout << "update \n";
+
+            Implicit_Propagator( 0.5, ispin, spins, force_callback, *this );
         }
 
-        // Half time step in reverse order
-        for( int ispin = this->nos - 1; ispin >= 0; ispin-- )
+        for( int ispin = nos-1; ispin > -1; ispin--)
         {
-            Vector3 gradient           = -this->systems[img]->hamiltonian->Gradient_Single_Spin( ispin, spins );
-            forces_virtual[img][ispin] = Force_Single_Spin( ispin, gradient, spins, *this ).cross( spins[ispin] );
-            SA_Propagator( 0.5, gradient, ispin, spins, *this );
+            // Compute this information so that we do not have to re-compute the entire gradient in every iteration
+            Vector3 gradient_current  = this->System( 0 )->hamiltonian->Gradient_Single_Spin( ispin, spins );
+            Matrix3 gradient_linear_current  = this->System( 0 )->hamiltonian->Linear_Gradient_Contribution_Single_Spin( ispin, spins );
+            Vector3 spin_current = spins[ispin];
+
+            auto force_callback = [&solver = *this, gradient_current, gradient_linear_current, spin_current]( int ispin, const vectorfield & spins )
+            {
+                // Vector3 gradient  = -solver.System( 0 )->hamiltonian->Gradient_Single_Spin( ispin, spins );
+                Vector3 gradient  = -(gradient_current + gradient_linear_current * (spins[ispin] - spin_current));
+                Vector3 f         = Force_Single_Spin( ispin, gradient, spins, solver );
+                return f;
+            };
+
+
+            // SA_Propagator( 0.5, gradient, ispin, spins, *this );
             // Heun_Propagator( 0.5, ispin, spins, *this );
+            Implicit_Propagator( 0.5, ispin, spins, force_callback, *this );
+
+            // Update convergence information
+            Vector3 gradient = force_callback(ispin, spins); 
+            forces_virtual[img][ispin] = Force_Single_Spin( ispin, gradient, spins, *this ).cross( spins[ispin] );
         }
     }
 }
