@@ -768,6 +768,39 @@ Vector3 Hamiltonian_Heisenberg::Gradient_Single_Spin( int ispin, const vectorfie
     return Gradient;
 }
 
+Matrix3 Hamiltonian_Heisenberg::Linear_Gradient_Contribution_Single_Spin( int ispin, const vectorfield & spins )
+{
+    int icell   = ispin / this->geometry->n_cell_atoms;
+    int ibasis  = ispin - icell * this->geometry->n_cell_atoms;
+
+    Matrix3 result = Matrix3::Zero();
+    Matrix3 temp;
+
+    // Anisotropy
+    if( this->idx_anisotropy >= 0 )
+    {
+        for( int iani = 0; iani < anisotropy_indices.size(); ++iani )
+        {
+            if( anisotropy_indices[iani] == ibasis )
+            {
+                 if( check_atom_type( this->geometry->atom_types[ispin] ) )
+                {
+                    auto K = this->anisotropy_magnitudes[iani];
+                    auto n = anisotropy_normals[iani];
+
+                    temp << n[0]*n[0], n[0]*n[1], n[0]*n[2],
+                            n[1]*n[0], n[1]*n[1], n[1]*n[2],
+                            n[2]*n[0], n[2]*n[1], n[2]*n[2];
+
+                    temp = -2*K * temp;
+                    result += temp;
+                }
+            }
+        }
+    }
+    return result;
+}
+
 void Hamiltonian_Heisenberg::Gradient( const vectorfield & spins, vectorfield & gradient )
 {
     // Set to zero
