@@ -4,7 +4,7 @@ Spirit
 This is the core library of the **Spirit** framework.
 
 It is meant to provide useful and easy API functions to enable productive work
-with Atomistic Dynamics Simulations and Optimizations.
+with Atomistic and Micromagnetic Dynamics Simulations and Optimizations.
 The current implementation is specific to atomistic spin models, but it may
 easily be generalised.
 

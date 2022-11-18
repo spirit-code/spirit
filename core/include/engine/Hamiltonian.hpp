@@ -5,11 +5,21 @@
 #include <random>
 #include <vector>
 
+#include <Spirit/Hamiltonian.h>
+
 #include "Spirit_Defines.h"
 #include <engine/Vectormath_Defines.hpp>
 
 namespace Engine
 {
+
+enum class DDI_Method
+{
+    FFT    = SPIRIT_DDI_METHOD_FFT,
+    FMM    = SPIRIT_DDI_METHOD_FMM,
+    Cutoff = SPIRIT_DDI_METHOD_CUTOFF,
+    None   = SPIRIT_DDI_METHOD_NONE
+};
 
 /*
  * The Hamiltonian contains the interaction parameters of a System.

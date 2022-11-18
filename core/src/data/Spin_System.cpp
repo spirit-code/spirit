@@ -68,6 +68,11 @@ try
         this->hamiltonian = std::make_shared<Engine::Hamiltonian_Heisenberg>(
             static_cast<Engine::Hamiltonian_Heisenberg &>( *other.hamiltonian ) );
     }
+    else if( other.hamiltonian->Name() == "Micromagnetic" )
+    {
+        this->hamiltonian = std::make_shared<Engine::Hamiltonian_Micromagnetic>(
+            static_cast<Engine::Hamiltonian_Micromagnetic &>( *other.hamiltonian ) );
+    }
     else if( other.hamiltonian->Name() == "Gaussian" )
     {
         this->hamiltonian = std::make_shared<Engine::Hamiltonian_Gaussian>(
@@ -112,6 +117,11 @@ try
         {
             this->hamiltonian = std::make_shared<Engine::Hamiltonian_Heisenberg>(
                 *(Engine::Hamiltonian_Heisenberg *)( other.hamiltonian.get() ) );
+        }
+        else if( other.hamiltonian->Name() == "Micromagnetic" )
+        {
+            this->hamiltonian = std::make_shared<Engine::Hamiltonian_Micromagnetic>(
+                *(Engine::Hamiltonian_Micromagnetic *)( other.hamiltonian.get() ) );
         }
         else if( other.hamiltonian->Name() == "Gaussian" )
         {

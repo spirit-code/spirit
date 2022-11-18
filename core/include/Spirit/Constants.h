@@ -28,17 +28,26 @@ PREFIX scalar Constants_k_B() SUFFIX;
 // Planck constant [meV*ps / rad]
 PREFIX scalar Constants_hbar() SUFFIX;
 
-// Millirydberg [mRy / meV]
-PREFIX scalar Constants_mRy() SUFFIX;
-
 // Gyromagnetic ratio of electron [rad / (s*T)]
 PREFIX scalar Constants_gamma() SUFFIX;
 
 // Electron g-factor [unitless]
 PREFIX scalar Constants_g_e() SUFFIX;
 
+// Millirydberg [mRy / meV]
+PREFIX scalar Constants_mRy() SUFFIX;
+
+// Erg [erg / meV]
+PREFIX scalar Constants_erg() SUFFIX;
+
+// Joule [J / meV]
+PREFIX scalar Constants_Joule() SUFFIX;
+
 // Pi [rad]
 PREFIX scalar Constants_Pi() SUFFIX;
+
+// Pi/2 [rad]
+PREFIX scalar Constants_Pi_2() SUFFIX;
 
 #include "DLL_Undefine_Export.h"
 #endif

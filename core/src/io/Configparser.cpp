@@ -2,12 +2,14 @@
 #include <engine/Vectormath.hpp>
 #include <io/Filter_File_Handle.hpp>
 #include <io/IO.hpp>
+#include <memory>
 #include <utility/Constants.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
+#include <Eigen/Dense>
 
 #include <algorithm>
 #include <ctime>
@@ -1231,9 +1233,13 @@ Hamiltonian_from_Config( const std::string & config_file_name, std::shared_ptr<D
         {
             hamiltonian = Hamiltonian_Heisenberg_from_Config( config_file_name, geometry, hamiltonian_type );
         }
+        else if( hamiltonian_type == "micromagnetic" )
+        {
+            hamiltonian = Hamiltonian_Micromagnetic_from_Config( config_file_name, geometry );
+        }
         else if( hamiltonian_type == "gaussian" )
         {
-            hamiltonian = std::move( Hamiltonian_Gaussian_from_Config( config_file_name, geometry ) );
+            hamiltonian = Hamiltonian_Gaussian_from_Config( config_file_name, geometry );
         }
         else
         {
@@ -1631,6 +1637,228 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Heisenberg: built" );
     return hamiltonian;
 } // end Hamiltonian_Heisenberg_From_Config
+
+std::unique_ptr<Engine::Hamiltonian_Micromagnetic> Hamiltonian_Micromagnetic_from_Config(
+    const std::string & config_file_name, const std::shared_ptr<Data::Geometry> geometry )
+{
+    if( geometry->classifier != Data::BravaisLatticeType::Rectilinear
+        && geometry->classifier != Data::BravaisLatticeType::SC )
+    {
+        spirit_throw(
+            Utility::Exception_Classifier::System_not_Initialized, Log_Level::Severe,
+            fmt::format(
+                "Hamiltonian: Cannot use micromagnetic Hamiltonian on non-rectilinear geometry (type {})",
+                int( geometry->classifier ) ) );
+    }
+    //-------------- Insert default values here -----------------------------
+    // Boundary conditions (a, b, c)
+    std::vector<int> boundary_conditions_i = { 0, 0, 0 };
+    intfield boundary_conditions           = { false, false, false };
+
+    scalar Ms;
+
+    // The order of the finite difference approximation of the spatial gradient
+    int spatial_gradient_order = 1;
+
+    // External Magnetic Field
+    scalar field         = 0;
+    Vector3 field_normal = { 0.0, 0.0, 1.0 };
+
+    scalar anisotropy_magnitude;
+    Vector3 anisotropy_normal;
+    Matrix3 anisotropy_tensor;
+    scalar exchange_magnitude = 0;
+    Matrix3 exchange_tensor;
+    scalar dmi_magnitude = 0;
+    Matrix3 dmi_tensor;
+
+    // Dipolar
+    std::string ddi_method_str     = "none";
+    auto ddi_method                = Engine::DDI_Method::None;
+    intfield ddi_n_periodic_images = { 4, 4, 4 };
+    scalar ddi_radius              = 0.0;
+
+    //------------------------------- Parser --------------------------------
+    Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Micromagnetic: building" );
+    try
+    {
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+        try
+        {
+            // Boundary conditions
+            config_file_handle.Read_3Vector( boundary_conditions_i, "boundary_conditions" );
+            boundary_conditions[0] = static_cast<int>( boundary_conditions_i[0] != 0 );
+            boundary_conditions[1] = static_cast<int>( boundary_conditions_i[1] != 0 );
+            boundary_conditions[2] = static_cast<int>( boundary_conditions_i[2] != 0 );
+        }
+        catch( ... )
+        {
+            spirit_handle_exception_core(
+                fmt::format( "Unable to read boundary conditions from config file \"{}\"", config_file_name ) );
+        }
+
+        // Precision of the spatial gradient calculation
+        config_file_handle.Read_Single( spatial_gradient_order, "spatial_gradient_order" );
+
+        if( config_file_handle.Find( "Ms" ) )
+        {
+            config_file_handle.Read_Single( Ms, "Ms" );
+        }
+        else
+        {
+            Log( Log_Level::Warning, Log_Sender::IO,
+                 "Input for 'Ms' has not been found. Inferring from atomistic cell instead." );
+            Ms = geometry->getMs();
+        }
+
+        // Field
+        config_file_handle.Read_Single( field, "external_field_magnitude" );
+        config_file_handle.Read_Vector3( field_normal, "external_field_normal" );
+        field_normal.normalize();
+        if( field_normal.norm() < 1e-8 )
+        {
+            field_normal = { 0, 0, 1 };
+            Log( Log_Level::Warning, Log_Sender::IO,
+                 "Input for 'external_field_normal' had norm zero and has been set to (0,0,1)" );
+        }
+
+        // TODO: anisotropy
+        if( config_file_handle.Find( "tensor_anisotropy" ) )
+        {
+            for( int dim = 0; dim < 3; ++dim )
+            {
+                config_file_handle.GetLine();
+                config_file_handle >> anisotropy_tensor( dim, 0 ) >> anisotropy_tensor( dim, 1 )
+                    >> anisotropy_tensor( dim, 2 );
+            }
+        }
+        else
+        {
+            // Read parameters from config
+            config_file_handle.Read_Single( anisotropy_magnitude, "anisotropy_magnitude" );
+            config_file_handle.Read_Vector3( anisotropy_normal, "anisotropy_normal" );
+            anisotropy_normal.normalize();
+            auto & Kn = anisotropy_normal;
+            anisotropy_tensor << Kn[0] * Kn[0], Kn[0] * Kn[1], Kn[0] * Kn[2], Kn[1] * Kn[0], Kn[1] * Kn[1],
+                Kn[1] * Kn[2], Kn[2] * Kn[0], Kn[2] * Kn[1], Kn[2] * Kn[2];
+            anisotropy_tensor *= anisotropy_magnitude;
+        }
+
+        // TODO: exchange
+        if( config_file_handle.Find( "tensor_exchange" ) )
+        {
+            for( int dim = 0; dim < 3; ++dim )
+            {
+                config_file_handle.GetLine();
+                config_file_handle >> exchange_tensor( dim, 0 ) >> exchange_tensor( dim, 1 )
+                    >> exchange_tensor( dim, 2 );
+            }
+        }
+        else
+        {
+            config_file_handle.Read_Single( exchange_magnitude, "exchange" );
+            exchange_tensor << exchange_magnitude, 0, 0, 0, exchange_magnitude, 0, 0, 0, exchange_magnitude;
+        }
+
+        // TODO: dmi
+        if( config_file_handle.Find( "tensor_dmi" ) )
+        {
+            for( int dim = 0; dim < 3; ++dim )
+            {
+                config_file_handle.GetLine();
+                config_file_handle >> dmi_tensor( dim, 0 ) >> dmi_tensor( dim, 1 ) >> dmi_tensor( dim, 2 );
+            }
+        }
+        else
+        {
+            config_file_handle.Read_Single( dmi_magnitude, "dmi" );
+            // dmi_tensor << 0, dmi_magnitude/std::sqrt(3), 0,
+            //               -dmi_magnitude/std::sqrt(3), 0,0,
+            //               0, 0, 0;
+            dmi_tensor << dmi_magnitude / std::sqrt( 3 ), 0, 0, 0, dmi_magnitude / std::sqrt( 3 ), 0, 0, 0,
+                dmi_magnitude / std::sqrt( 3 );
+            // dmi_tensor << 0, dmi_magnitude, -dmi_magnitude,
+            //               -dmi_magnitude, 0, dmi_magnitude,
+            //               dmi_magnitude, -dmi_magnitude, 0;
+        }
+
+        try
+        {
+            IO::Filter_File_Handle myfile( config_file_name );
+
+            // DDI method
+            myfile.Read_String( ddi_method_str, "ddi_method" );
+            if( ddi_method_str == "none" )
+                ddi_method = Engine::DDI_Method::None;
+            else if( ddi_method_str == "fft" )
+                ddi_method = Engine::DDI_Method::FFT;
+            else if( ddi_method_str == "fmm" )
+                ddi_method = Engine::DDI_Method::FMM;
+            else if( ddi_method_str == "cutoff" )
+                ddi_method = Engine::DDI_Method::Cutoff;
+            else
+            {
+                Log( Log_Level::Warning, Log_Sender::IO,
+                     fmt::format(
+                         "Hamiltonian_Heisenberg: Keyword 'ddi_method' got passed invalid method \"{}\". Setting to "
+                         "\"none\".",
+                         ddi_method_str ) );
+                ddi_method_str = "none";
+            }
+
+            // Number of periodical images
+            myfile.Read_3Vector( ddi_n_periodic_images, "ddi_n_periodic_images" );
+            // myfile.Read_Single(ddi_n_periodic_images, "ddi_n_periodic_images");
+
+            // Dipole-dipole cutoff radius
+            myfile.Read_Single( ddi_radius, "ddi_radius" );
+        } // end try
+        catch( ... )
+        {
+            spirit_handle_exception_core(
+                fmt::format( "Unable to read DDI radius from config file \"{}\"", config_file_name ) );
+        }
+
+    } // end try
+    catch( ... )
+    {
+        spirit_handle_exception_core( fmt::format(
+            "Unable to parse all parameters of the Micromagnetic Hamiltonian from \"{}\"", config_file_name ) );
+    }
+    // Return
+    std::vector<std::string> parameter_log;
+    parameter_log.emplace_back( "Hamiltonian_Micromagnetic:" );
+    parameter_log.emplace_back( fmt::format( "        {:<24} = {}", "discretisation order", spatial_gradient_order ) );
+    parameter_log.emplace_back( fmt::format( "        {:<24} = {}", "Ms [A/m]", Ms ) );
+    parameter_log.emplace_back( fmt::format(
+        "        {:<24} = {} {} {}", "boundary conditions", boundary_conditions[0], boundary_conditions[1],
+        boundary_conditions[2] ) );
+    parameter_log.emplace_back( fmt::format( "        {:<24} = {}", "external field", field ) );
+    parameter_log.emplace_back( fmt::format( "        {:<24} = {}", "field normal", field_normal.transpose() ) );
+    parameter_log.emplace_back( fmt::format( "        {:<24} = {}", "anisotropy tensor", anisotropy_tensor.row( 0 ) ) );
+    parameter_log.emplace_back( fmt::format( "        {:<24}   {}", " ", anisotropy_tensor.row( 1 ) ) );
+    parameter_log.emplace_back( fmt::format( "        {:<24}   {}", " ", anisotropy_tensor.row( 2 ) ) );
+    parameter_log.emplace_back( fmt::format( "        {:<24} = {}", "exchange tensor", exchange_tensor.row( 0 ) ) );
+    parameter_log.emplace_back( fmt::format( "        {:<24}   {}", " ", exchange_tensor.row( 1 ) ) );
+    parameter_log.emplace_back( fmt::format( "        {:<24}   {}", " ", exchange_tensor.row( 2 ) ) );
+    parameter_log.emplace_back( fmt::format( "        {:<24} = {}", "dmi tensor", dmi_tensor.row( 0 ) ) );
+    parameter_log.emplace_back( fmt::format( "        {:<24}   {}", " ", dmi_tensor.row( 1 ) ) );
+    parameter_log.emplace_back( fmt::format( "        {:<24}   {}", " ", dmi_tensor.row( 2 ) ) );
+    parameter_log.emplace_back( fmt::format( "        {:<21} = {}", "ddi_method", ddi_method_str ) );
+    parameter_log.emplace_back( fmt::format(
+        "        {:<21} = ({} {} {})", "ddi_n_periodic_images", ddi_n_periodic_images[0], ddi_n_periodic_images[1],
+        ddi_n_periodic_images[2] ) );
+    parameter_log.emplace_back( fmt::format( "        {:<21} = {}", "ddi_radius", ddi_radius ) );
+    Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
+
+    auto hamiltonian = std::make_unique<Engine::Hamiltonian_Micromagnetic>(
+        Ms, field, field_normal, anisotropy_tensor, exchange_tensor, dmi_tensor, ddi_method, ddi_n_periodic_images,
+        ddi_radius, geometry, spatial_gradient_order, boundary_conditions );
+
+    Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Micromagnetic: built" );
+    return hamiltonian;
+
+} // end Hamiltonian_Micromagnetic_from_Config
 
 std::unique_ptr<Engine::Hamiltonian_Gaussian>
 Hamiltonian_Gaussian_from_Config( const std::string & config_file_name, std::shared_ptr<Data::Geometry> geometry )

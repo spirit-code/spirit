@@ -138,6 +138,24 @@ void HamiltonianHeisenbergWidget::Load_Contents()
     this->checkBox_ddi_pb_zero_padding->setChecked( pb_zero_padding );
 }
 
+void HamiltonianHeisenbergWidget::clicked_change_hamiltonian()
+{
+    bool ok;
+    std::string type_str
+        = QInputDialog::getItem(
+              this, "Select the Hamiltonian to use", "", { "Heisenberg", "Micromagnetic", "Gaussian" }, 0, false, &ok )
+              .toStdString();
+    if( ok )
+    {
+        if( type_str == "Heisenberg" )
+            emit hamiltonianChanged( Hamiltonian_Heisenberg );
+        else if( type_str == "Micromagnetic" )
+            emit hamiltonianChanged( Hamiltonian_Micromagnetic );
+        else if( type_str == "Gaussian" )
+            emit hamiltonianChanged( Hamiltonian_Gaussian );
+    }
+}
+
 // -----------------------------------------------------------------------------------
 // -------------------------- Setters ------------------------------------------------
 // -----------------------------------------------------------------------------------
@@ -549,6 +567,7 @@ void HamiltonianHeisenbergWidget::Setup_Input_Validators()
 
 void HamiltonianHeisenbergWidget::Setup_Slots()
 {
+    connect( this->pushButton_changeHamiltonian, SIGNAL( clicked() ), this, SLOT( clicked_change_hamiltonian() ) );
     // Boundary Conditions
     connect(
         this->checkBox_aniso_periodical_a, SIGNAL( stateChanged( int ) ), this, SLOT( set_boundary_conditions() ) );

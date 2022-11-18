@@ -8,6 +8,7 @@
 #include "GeometryWidget.hpp"
 #include "HamiltonianGaussianWidget.hpp"
 #include "HamiltonianHeisenbergWidget.hpp"
+#include "HamiltonianMicromagneticWidget.hpp"
 #include "ParametersWidget.hpp"
 #include "VisualisationSettingsWidget.hpp"
 
@@ -37,11 +38,14 @@ public slots:
     void randomPressed();
     void lastConfiguration();
 
+    void updateHamiltonian( Hamiltonian_Type );
+
 private:
     SpinWidget * _spinWidget;
     ConfigurationsWidget * configurationsWidget;
     ParametersWidget * parametersWidget;
     HamiltonianHeisenbergWidget * hamiltonianHeisenbergWidget;
+    HamiltonianMicromagneticWidget * hamiltonianMicromagneticWidget;
     HamiltonianGaussianWidget * hamiltonianGaussianWidget;
     GeometryWidget * geometryWidget;
     VisualisationSettingsWidget * visualisationSettingsWidget;

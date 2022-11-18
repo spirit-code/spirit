@@ -136,7 +136,7 @@
          <item row="10" column="0">
           <widget class="QCheckBox" name="checkBox_ani_aniso">
            <property name="text">
-            <string>Anisotropy</string>
+            <string>Anisotropy [meV]</string>
            </property>
           </widget>
          </item>
@@ -226,7 +226,7 @@
          <item row="7" column="0">
           <widget class="QCheckBox" name="checkBox_extH_aniso">
            <property name="text">
-            <string>External Field</string>
+            <string>External Field [T]</string>
            </property>
            <property name="checked">
             <bool>false</bool>
@@ -252,7 +252,7 @@
          <item row="15" column="0">
           <widget class="QCheckBox" name="checkBox_dmi">
            <property name="text">
-            <string>DMI</string>
+            <string>DMI [meV]</string>
            </property>
           </widget>
          </item>
@@ -313,7 +313,7 @@
          <item row="13" column="0">
           <widget class="QCheckBox" name="checkBox_exchange">
            <property name="text">
-            <string>Exchange</string>
+            <string>Exchange [meV]</string>
            </property>
           </widget>
          </item>
@@ -386,7 +386,7 @@
          <item row="19" column="0">
           <widget class="QCheckBox" name="checkBox_ddi">
            <property name="text">
-            <string>Dipole-dipole</string>
+            <string>Dipolar</string>
            </property>
           </widget>
          </item>
@@ -919,6 +919,56 @@ i  j  k  l   da_j  db_j  dc_j   da_k  db_k  dc_k   da_l  db_l  dc_l   Q</string>
       </layout>
      </widget>
     </widget>
+   </item>
+   <item row="2" column="2">
+    <widget class="Line" name="line">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="2">
+    <layout class="QGridLayout" name="gridLayout_10">
+     <item row="0" column="2">
+      <spacer name="horizontalSpacer_11">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_9">
+       <property name="font">
+        <font>
+         <pointsize>14</pointsize>
+         <italic>true</italic>
+        </font>
+       </property>
+       <property name="text">
+        <string>Heisenberg</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QPushButton" name="pushButton_changeHamiltonian">
+       <property name="maximumSize">
+        <size>
+         <width>16777215</width>
+         <height>25</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Change</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
    </item>
   </layout>
  </widget>

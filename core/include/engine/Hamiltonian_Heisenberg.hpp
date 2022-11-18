@@ -2,9 +2,6 @@
 #ifndef SPIRIT_CORE_ENGINE_HAMILTONIAN_HEISENBERG_HPP
 #define SPIRIT_CORE_ENGINE_HAMILTONIAN_HEISENBERG_HPP
 
-#include <memory>
-#include <vector>
-
 #include "FFT.hpp"
 #include "Spirit_Defines.h"
 #include <Spirit/Hamiltonian.h>
@@ -12,16 +9,11 @@
 #include <engine/Hamiltonian.hpp>
 #include <engine/Vectormath_Defines.hpp>
 
+#include <memory>
+#include <vector>
+
 namespace Engine
 {
-
-enum class DDI_Method
-{
-    FFT    = SPIRIT_DDI_METHOD_FFT,
-    FMM    = SPIRIT_DDI_METHOD_FMM,
-    Cutoff = SPIRIT_DDI_METHOD_CUTOFF,
-    None   = SPIRIT_DDI_METHOD_NONE
-};
 
 /*
     The Heisenberg Hamiltonian using Pairs contains all information on the interactions between spins.

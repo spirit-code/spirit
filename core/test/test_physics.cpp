@@ -7,10 +7,12 @@
 #include <Spirit/State.h>
 #include <Spirit/System.h>
 #include <Spirit/Version.h>
+#include <data/State.hpp>
+
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <catch.hpp>
-#include <data/State.hpp>
+
 #include <iomanip>
 #include <iostream>
 #include <sstream>
@@ -84,7 +86,7 @@ TEST_CASE( "Larmor Precession", "[physics]" )
 TEST_CASE( "Finite Differences", "[physics]" )
 {
     // Hamiltonians to be tested
-    std::vector<const char *> hamiltonians{ "core/test/input/fd_pairs.cfg" };
+    std::vector<const char *> hamiltonians{ "core/test/input/fd_pairs.cfg", "core/test/input/fd_micromagnetic.cfg" };
     //"core/test/input/fd_neighbours",
     //"core/test/input/fd_gaussian.cfg"};
 
@@ -120,50 +122,66 @@ TEST_CASE( "Finite Differences", "[physics]" )
             REQUIRE( grad_fd[i].isApprox( grad[i], epsilon_apprx ) );
         }
 
-        auto hessian    = MatrixX( 3 * state->nos, 3 * state->nos );
-        auto hessian_fd = MatrixX( 3 * state->nos, 3 * state->nos );
+        // Only test Hessian for Heisenberg Hamiltonian
+        if( std::string( Hamiltonian_Get_Name( state.get() ) ) != "Micromagnetic\0" )
+        {
+            auto hessian    = MatrixX( 3 * state->nos, 3 * state->nos );
+            auto hessian_fd = MatrixX( 3 * state->nos, 3 * state->nos );
 
-        state->active_image->hamiltonian->Hessian_FD( vf, hessian_fd );
-        state->active_image->hamiltonian->Hessian( vf, hessian );
+            state->active_image->hamiltonian->Hessian_FD( vf, hessian_fd );
+            state->active_image->hamiltonian->Hessian( vf, hessian );
 
-        INFO( "Hessian (FD) = " << hessian_fd << "\n" );
-        INFO( "Hessian      = " << hessian << "\n" );
-        REQUIRE( hessian_fd.isApprox( hessian, epsilon_apprx ) );
+            INFO( "Hessian (FD) = " << hessian_fd << "\n" );
+            INFO( "Hessian      = " << hessian << "\n" );
+            REQUIRE( hessian_fd.isApprox( hessian, epsilon_apprx ) );
+        }
     }
 }
 
 TEST_CASE( "Dipole-Dipole Interaction", "[physics]" )
 {
-    // cfg where only ddi is enabled
-    auto state = std::shared_ptr<State>( State_Setup( "core/test/input/physics_ddi.cfg" ), State_Delete );
+    std::vector<const char *> hamiltonians{ "core/test/input/physics_ddi.cfg",
+                                            "core/test/input/physics_ddi_micromagnetic.cfg" };
 
-    Configuration_Random( state.get() );
-
-    auto & spins = *state->active_image->spins;
-
-    auto grad_fft    = vectorfield( state->nos );
-    auto grad_direct = vectorfield( state->nos );
-
-    state->active_image->hamiltonian->Gradient( spins, grad_fft );
-    auto energy_fft = state->active_image->hamiltonian->Energy( spins );
-
-    auto n_periodic_images = std::vector<int>{ 4, 4, 4 };
-    Hamiltonian_Set_DDI( state.get(), SPIRIT_DDI_METHOD_CUTOFF, n_periodic_images.data(), -1 );
-
-    state->active_image->hamiltonian->Gradient( spins, grad_direct );
-    auto energy_direct = state->active_image->hamiltonian->Energy( spins );
-
-    for( int i = 0; i < state->nos; i++ )
+    for( auto ham : hamiltonians )
     {
-        INFO( "Failed DDI-Gradient comparison at i = " << i );
-        INFO( "Gradient (FFT):" )
-        INFO( grad_fft[i] )
-        INFO( "Gradient (Direct):" )
-        INFO( grad_direct[i] )
-        REQUIRE( grad_fft[i].isApprox( grad_direct[i] ) );
+        double epsilon_apprx = 1e-10;
+        if( strcmp( Spirit_Scalar_Type(), "float" ) == 0 )
+        {
+            WARN( "Detected single precision calculation. Reducing precision requirements." );
+            epsilon_apprx = 1e-4;
+        }
+
+        // cfg where only ddi is enabled
+        auto state = std::shared_ptr<State>( State_Setup( ham ), State_Delete );
+
+        Configuration_PlusZ( state.get() );
+        Configuration_Skyrmion( state.get(), 2, 1, 0, true, false, true );
+
+        auto & spins = *state->active_image->spins;
+
+        auto grad_fft    = vectorfield( state->nos );
+        auto grad_direct = vectorfield( state->nos );
+
+        state->active_image->hamiltonian->Gradient( spins, grad_fft );
+        auto energy_fft = state->active_image->hamiltonian->Energy( spins );
+
+        auto n_periodic_images = std::vector<int>{ 4, 4, 4 };
+        Hamiltonian_Set_DDI( state.get(), SPIRIT_DDI_METHOD_CUTOFF, n_periodic_images.data(), -1 );
+
+        state->active_image->hamiltonian->Gradient( spins, grad_direct );
+        auto energy_direct = state->active_image->hamiltonian->Energy( spins );
+
+        INFO( "Energy (Direct) = " << energy_direct << "\n" )
+        INFO( "Energy (FFT)    = " << energy_fft << "\n" )
+        REQUIRE( Approx( energy_fft ) == energy_direct );
+
+        for( int i = 0; i < state->nos; i++ )
+        {
+            INFO( "i = " << i );
+            INFO( "Gradient (FFT)    = " << grad_fft[i].transpose() );
+            INFO( "Gradient (Direct) = " << grad_direct[i].transpose() << "\n" );
+            REQUIRE( grad_fft[i].isApprox( grad_direct[i], epsilon_apprx ) );
+        }
     }
-    INFO( "Failed energy comparison test!" )
-    INFO( "Energy (Direct) = " << energy_direct << "\n" );
-    INFO( "Energy (FFT)    = " << energy_fft << "\n" );
-    REQUIRE( Approx( energy_fft ) == energy_direct );
 }

@@ -1,6 +1,7 @@
 #include <data/Geometry.hpp>
 #include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
+#include <utility/Constants.hpp>
 #include <utility/Exception.hpp>
 
 #include <Eigen/Core>
@@ -87,6 +88,12 @@ Geometry::Geometry(
     // For updates of triangulation and tetrahedra
     this->last_update_n_cell_step = -1;
     this->last_update_n_cells     = intfield( 3, -1 );
+
+    for( int i = 0; i < 3; i++ )
+        this->cell_size[i] = 1e-10 * lattice_constant * bravais_vectors[i].norm();
+
+    this->cell_volume
+        = 1e-30 * pow( lattice_constant, 3 ) * bravais_vectors[0].dot( bravais_vectors[1].cross( bravais_vectors[2] ) );
 }
 
 void Geometry::generatePositions()
@@ -159,6 +166,15 @@ void Geometry::generatePositions()
             }
         }
     }
+}
+
+scalar Geometry::getMs()
+{
+    // Saturation Magnetisation Density in A/m
+    scalar Ms = 0;
+    for( auto & mu_s : cell_composition.mu_s )
+        Ms += mu_s * Utility::Constants_Micromagnetic::mu_B / cell_volume;
+    return Ms;
 }
 
 std::vector<tetrahedron_t> compute_delaunay_triangulation_3D( const std::vector<vector3_t> & points )

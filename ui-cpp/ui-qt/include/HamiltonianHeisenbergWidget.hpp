@@ -4,6 +4,8 @@
 
 #include "ui_HamiltonianHeisenbergWidget.h"
 
+#include <Spirit/Hamiltonian.h>
+
 #include "IsosurfaceWidget.hpp"
 #include "SpinWidget.hpp"
 
@@ -29,7 +31,11 @@ public:
     HamiltonianHeisenbergWidget( std::shared_ptr<State> state, SpinWidget * spinWidget );
     void updateData();
 
+signals:
+    void hamiltonianChanged( Hamiltonian_Type newType );
+
 private slots:
+    void clicked_change_hamiltonian();
     void set_boundary_conditions();
     void set_mu_s();
     void set_external_field();

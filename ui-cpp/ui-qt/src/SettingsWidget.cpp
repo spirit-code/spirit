@@ -24,21 +24,33 @@ SettingsWidget::SettingsWidget( std::shared_ptr<State> state, SpinWidget * spinW
     this->tab_Settings_Parameters->layout()->addWidget( this->parametersWidget );
 
     // Hamiltonian
-    std::string H_name = Hamiltonian_Get_Name( state.get() );
+    std::string H_name                   = Hamiltonian_Get_Name( state.get() );
+    this->hamiltonianHeisenbergWidget    = new HamiltonianHeisenbergWidget( state, spinWidget );
+    this->hamiltonianMicromagneticWidget = new HamiltonianMicromagneticWidget( state, spinWidget );
+    this->hamiltonianGaussianWidget      = new HamiltonianGaussianWidget( state );
+    this->tab_Settings_Hamiltonian->layout()->addWidget( this->hamiltonianHeisenbergWidget );
+    this->tab_Settings_Hamiltonian->layout()->addWidget( this->hamiltonianMicromagneticWidget );
+    this->tab_Settings_Hamiltonian->layout()->addWidget( this->hamiltonianGaussianWidget );
+    this->hamiltonianHeisenbergWidget->hide();
+    this->hamiltonianMicromagneticWidget->hide();
+    this->hamiltonianGaussianWidget->hide();
     if( H_name == "Heisenberg" )
-    {
-        this->hamiltonianHeisenbergWidget = new HamiltonianHeisenbergWidget( state, spinWidget );
-        this->tab_Settings_Hamiltonian->layout()->addWidget( this->hamiltonianHeisenbergWidget );
-    }
+        this->hamiltonianHeisenbergWidget->show();
+    else if( H_name == "Micromagnetic" )
+        this->hamiltonianMicromagneticWidget->show();
     else if( H_name == "Gaussian" )
-    {
-        this->hamiltonianGaussianWidget = new HamiltonianGaussianWidget( state );
-        this->tab_Settings_Hamiltonian->layout()->addWidget( this->hamiltonianGaussianWidget );
-    }
-    else
-    {
+        this->hamiltonianGaussianWidget->show();
+    if( H_name != "Heisenberg" && H_name != "Micromagnetic" && H_name != "Gaussian" )
         this->tabWidget_Settings->removeTab( 2 );
-    }
+    connect(
+        this->hamiltonianHeisenbergWidget, SIGNAL( hamiltonianChanged( Hamiltonian_Type ) ), this,
+        SLOT( updateHamiltonian( Hamiltonian_Type ) ) );
+    connect(
+        this->hamiltonianMicromagneticWidget, SIGNAL( hamiltonianChanged( Hamiltonian_Type ) ), this,
+        SLOT( updateHamiltonian( Hamiltonian_Type ) ) );
+    connect(
+        this->hamiltonianGaussianWidget, SIGNAL( hamiltonianChanged( Hamiltonian_Type ) ), this,
+        SLOT( updateHamiltonian( Hamiltonian_Type ) ) );
 
     // Geometry
     this->geometryWidget = new GeometryWidget( state, spinWidget );
@@ -51,6 +63,36 @@ SettingsWidget::SettingsWidget( std::shared_ptr<State> state, SpinWidget * spinW
     this->tab_Settings_Visualisation->layout()->addWidget( this->visualisationSettingsWidget );
 }
 
+void SettingsWidget::updateHamiltonian( Hamiltonian_Type type )
+{
+    // Update the state
+    Hamiltonian_Set_Kind( this->state.get(), type );
+    // Determine type (result of Hamiltonian_Set_Kind is unclear)
+    std::string type_str = Hamiltonian_Get_Name( this->state.get() );
+
+    // Update the GUI
+    this->hamiltonianHeisenbergWidget->hide();
+    this->hamiltonianMicromagneticWidget->hide();
+    this->hamiltonianGaussianWidget->hide();
+    if( type_str == "Heisenberg" )
+    {
+        this->hamiltonianHeisenbergWidget->show();
+        this->hamiltonianHeisenbergWidget->updateData();
+    }
+    else if( type_str == "Micromagnetic" )
+    {
+        this->hamiltonianMicromagneticWidget->show();
+        this->hamiltonianMicromagneticWidget->updateData();
+    }
+    else if( type_str == "Gaussian" )
+    {
+        this->hamiltonianGaussianWidget->show();
+        this->hamiltonianGaussianWidget->updateData();
+    }
+    else
+        this->tabWidget_Settings->removeTab( 2 );
+}
+
 void SettingsWidget::updateData()
 {
     // Parameters
@@ -59,6 +101,8 @@ void SettingsWidget::updateData()
     std::string H_name = Hamiltonian_Get_Name( state.get() );
     if( H_name == "Heisenberg" )
         this->hamiltonianHeisenbergWidget->updateData();
+    else if( H_name == "Micromagnetic" )
+        this->hamiltonianMicromagneticWidget->updateData();
     else if( H_name == "Gaussian" )
         this->hamiltonianGaussianWidget->updateData();
     // Geometry

@@ -141,10 +141,17 @@ public:
     // Dimensionality of the points
     int dimensionality;
     int dimensionality_basis;
-    // Center and Bounds
+    // Center and bounds [Å]
     Vector3 center, bounds_min, bounds_max;
-    // Unit Cell Bounds
+    // Unit cell bounds [Å]
     Vector3 cell_bounds_min, cell_bounds_max;
+    // Unit cell size [m]
+    Vector3 cell_size;
+    // Unit cell volume [m^3]
+    scalar cell_volume;
+    // Computes the saturation magnetisation density [A/m]
+    // from the atomistic basis cell composition
+    scalar getMs();
 
 private:
     // Generate the full set of spin positions

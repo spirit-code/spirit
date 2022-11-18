@@ -18,27 +18,35 @@ class TestConstants(unittest.TestCase):
         Energy: milli-eV
         Time: pico-sec
         Magnetic field: Tesla """
-    
+
     # TODO: Find a way to easily switch between units system (eg milli-eV to milli-Ry) and test it
 
     def test_Bohr_magneton(self):
         self.assertEqual( scalar(constants.mu_B).value, scalar(0.057883817555).value )
-    
+
+    def test_vacuum_permeability(self):
+        self.assertEqual( scalar(constants.mu_0).value, scalar(2.0133545*1e-28).value )
+
     def test_Boltzmann_Constant(self):
         self.assertEqual( scalar(constants.k_B).value, scalar(0.08617330350).value )
-        
+
     def test_Planck_constant(self):
         self.assertEqual( scalar(constants.hbar).value, scalar(0.6582119514).value )
-        
-    def test_millirydberg(self):
-        self.assertEqual( scalar(constants.mRy).value, scalar(1.0/13.605693009).value )
-        
+
     def test_gyromagnetic_ratio_of_electron(self):
         self.assertEqual( scalar(constants.gamma).value, scalar(0.1760859644).value )
-    
+
     def test_electron_g_factor(self):
         self.assertEqual( scalar(constants.g_e).value, scalar(2.00231930436182).value )
-        
+
+    def test_milliRydberg(self):
+        self.assertEqual( scalar(constants.mRy).value, scalar(1.0/13.605693122994).value )
+
+    def test_erg(self):
+        self.assertEqual( scalar(constants.erg).value, scalar(6.2415091*1e+14).value )
+
+    def test_Joule(self):
+        self.assertEqual( scalar(constants.Joule).value, scalar(6.2415091*1e+21).value )
 
 #########
 

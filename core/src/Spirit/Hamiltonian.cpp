@@ -5,6 +5,7 @@
 #include <data/State.hpp>
 #include <engine/Hamiltonian_Gaussian.hpp>
 #include <engine/Hamiltonian_Heisenberg.hpp>
+#include <engine/Hamiltonian_Micromagnetic.hpp>
 #include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Constants.hpp>
@@ -12,12 +13,110 @@
 #include <utility/Logging.hpp>
 
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 
 using namespace Utility;
 
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Set Parameters ---------------------------------------------------- */
 /*------------------------------------------------------------------------------------------------------ */
+
+void Hamiltonian_Set_Kind( State * state, Hamiltonian_Type type, int idx_chain ) noexcept
+try
+{
+    // TODO
+    if( type != Hamiltonian_Heisenberg && type != Hamiltonian_Micromagnetic && type != Hamiltonian_Gaussian )
+    {
+        Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
+             fmt::format( "Hamiltonian_Set_Kind: unknown type index {}", int( type ) ), -1, idx_chain );
+        return;
+    }
+
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    int idx_image = -1;
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    idx_image            = 0;
+    std::string kind_str = "";
+    if( type == Hamiltonian_Heisenberg )
+    {
+        kind_str = "Heisenberg";
+
+        if( kind_str == image->hamiltonian->Name() )
+        {
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                 fmt::format( "Hamiltonian is already of {} kind. Not doing anything.", kind_str ), -1, idx_chain );
+            return;
+        }
+    }
+    else if( type == Hamiltonian_Micromagnetic )
+    {
+        kind_str = "Micromagnetic";
+
+        if( kind_str == image->hamiltonian->Name() )
+        {
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                 fmt::format( "Hamiltonian is already of {} kind. Not doing anything.", kind_str ), -1, idx_chain );
+            return;
+        }
+    }
+    else if( type == Hamiltonian_Gaussian )
+    {
+        kind_str = "Gaussian";
+
+        if( kind_str == image->hamiltonian->Name() )
+        {
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                 fmt::format( "Hamiltonian is already of {} kind. Not doing anything.", kind_str ), -1, idx_chain );
+            return;
+        }
+    }
+
+    for( auto & image : chain->images )
+    {
+        image->Lock();
+        try
+        {
+            if( type == Hamiltonian_Heisenberg )
+            {
+                // TODO: are these the desired defaults?
+                image->hamiltonian = std::shared_ptr<Engine::Hamiltonian>( new Engine::Hamiltonian_Heisenberg(
+                    0, Vector3{ 0, 0, 1 }, {}, {}, {}, {}, {}, SPIRIT_CHIRALITY_NEEL, Engine::DDI_Method::None,
+                    { 0, 0, 0 }, false, 0, {}, {}, image->geometry, image->hamiltonian->boundary_conditions ) );
+            }
+            else if( type == Hamiltonian_Micromagnetic )
+            {
+                // TODO: are these the desired defaults?
+                image->hamiltonian = std::shared_ptr<Engine::Hamiltonian>( new Engine::Hamiltonian_Micromagnetic(
+                    0, 0, Vector3{ 0, 0, 1 }, Matrix3::Zero(), Matrix3::Zero(), Matrix3::Zero(),
+                    Engine::DDI_Method::None, { 0, 0, 0 }, 0, image->geometry, 2,
+                    image->hamiltonian->boundary_conditions ) );
+            }
+            else if( type == Hamiltonian_Gaussian )
+            {
+                // TODO: are these the desired defaults?
+                image->hamiltonian
+                    = std::shared_ptr<Engine::Hamiltonian>( new Engine::Hamiltonian_Gaussian( {}, {}, {} ) );
+            }
+        }
+        catch( ... )
+        {
+            spirit_handle_exception_api( idx_image, idx_chain );
+        }
+        image->Unlock();
+        ++idx_image;
+    }
+
+    Log( Utility::Log_Level::All, Utility::Log_Sender::API, fmt::format( "Set Hamiltonian kind to {}", kind_str ), -1,
+         idx_chain );
+}
+catch( ... )
+{
+    spirit_handle_exception_api( -1, idx_chain );
+}
 
 void Hamiltonian_Set_Boundary_Conditions(
     State * state, const bool * periodical, int idx_image, int idx_chain ) noexcept
@@ -61,6 +160,13 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
+    if( image->hamiltonian->Name() != "Heisenberg" && image->hamiltonian->Name() != "Micromagnetic" )
+    {
+        Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+             "External field cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain );
+        return;
+    }
+
     // Lock mutex because simulations may be running
     image->Lock();
 
@@ -81,15 +187,22 @@ try
 
             // Update Energies
             ham->Update_Energy_Contributions();
-
-            Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-                 fmt::format(
-                     "Set external field to {}, direction ({}, {}, {})", magnitude, normal[0], normal[1], normal[2] ),
-                 idx_image, idx_chain );
         }
-        else
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 "External field cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain );
+        else if( image->hamiltonian->Name() == "Micromagnetic" )
+        {
+            auto ham = (Engine::Hamiltonian_Micromagnetic *)image->hamiltonian.get();
+
+            // Normals
+            Vector3 new_normal{ normal[0], normal[1], normal[2] };
+            new_normal.normalize();
+
+            // Into the Hamiltonian
+            ham->external_field_magnitude = magnitude;
+            ham->external_field_normal    = new_normal;
+
+            // Update Energies
+            ham->Update_Energy_Contributions();
+        }
     }
     catch( ... )
     {
@@ -98,6 +211,11 @@ try
 
     // Unlock mutex
     image->Unlock();
+
+    Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+         fmt::format(
+             "Set external field to {} [T], direction ({}, {}, {})", magnitude, normal[0], normal[1], normal[2] ),
+         idx_image, idx_chain );
 }
 catch( ... )
 {
@@ -114,12 +232,22 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
+    if( image->hamiltonian->Name() != "Heisenberg" && image->hamiltonian->Name() != "Micromagnetic" )
+    {
+        Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+             "Anisotropy cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain );
+        return;
+    }
+
     image->Lock();
 
     try
     {
+        std::string units = "N/A";
+
         if( image->hamiltonian->Name() == "Heisenberg" )
         {
+            units            = "meV";
             auto * ham       = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
             int nos          = image->nos;
             int n_cell_atoms = image->geometry->n_cell_atoms;
@@ -144,15 +272,28 @@ try
 
             // Update Energies
             ham->Update_Energy_Contributions();
-
-            Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-                 fmt::format(
-                     "Set anisotropy to {}, direction ({}, {}, {})", magnitude, normal[0], normal[1], normal[2] ),
-                 idx_image, idx_chain );
         }
-        else
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 "Anisotropy cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain );
+        else if( image->hamiltonian->Name() == "Micromagnetic" )
+        {
+            units    = "J/m^3";
+            auto ham = (Engine::Hamiltonian_Micromagnetic *)image->hamiltonian.get();
+
+            Vector3 Kn{ normal[0], normal[1], normal[2] };
+            Kn.normalize();
+
+            ham->anisotropy_tensor << Kn[0] * Kn[0], Kn[0] * Kn[1], Kn[0] * Kn[2], Kn[1] * Kn[0], Kn[1] * Kn[1],
+                Kn[1] * Kn[2], Kn[2] * Kn[0], Kn[2] * Kn[1], Kn[2] * Kn[2];
+            ham->anisotropy_tensor *= magnitude;
+
+            // Update Energies
+            ham->Update_Energy_Contributions();
+        }
+
+        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+             fmt::format(
+                 "Set anisotropy to {} [{}], direction ({}, {}, {})", magnitude, units, normal[0], normal[1],
+                 normal[2] ),
+             idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -229,6 +370,13 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
+    if( image->hamiltonian->Name() != "Heisenberg" && image->hamiltonian->Name() != "Micromagnetic" )
+    {
+        Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+             "Exchange interaction cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain );
+        return;
+    }
+
     image->Lock();
 
     try
@@ -244,12 +392,34 @@ try
 
             std::string message = fmt::format( "Set exchange to {} shells", n_shells );
             if( n_shells > 0 )
-                message += fmt::format( " Jij[0] = {}", jij[0] );
+                message += fmt::format( " Jij[0] = {} [meV/bond]", jij[0] );
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API, message, idx_image, idx_chain );
         }
-        else
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 "Exchange cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain );
+        else if( image->hamiltonian->Name() == "Micromagnetic" )
+        {
+            if( n_shells > 1 )
+            {
+                Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                     "Cannot set more than one shell of Exchange interaction on micromagnetic Hamiltonian.", idx_image,
+                     idx_chain );
+                image->Unlock();
+                return;
+            }
+
+            auto ham = (Engine::Hamiltonian_Micromagnetic *)image->hamiltonian.get();
+            auto Jij = jij[0];
+            ham->exchange_tensor << Jij, 0, 0, 0, Jij, 0, 0, 0, Jij;
+            ham->Update_Interactions();
+
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Set tensor_exchange to:" ),
+                 idx_image, idx_chain );
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "{}", ham->exchange_tensor.row( 0 ) ),
+                 idx_image, idx_chain );
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "{}", ham->exchange_tensor.row( 1 ) ),
+                 idx_image, idx_chain );
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "{}", ham->exchange_tensor.row( 2 ) ),
+                 idx_image, idx_chain );
+        }
     }
     catch( ... )
     {
@@ -272,7 +442,13 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
-    image->Lock();
+
+    if( image->hamiltonian->Name() != "Heisenberg" && image->hamiltonian->Name() != "Micromagnetic" )
+    {
+        Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+             "Dzyaloshinskii-Moriya interaction cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain );
+        return;
+    }
 
     if( chirality != SPIRIT_CHIRALITY_BLOCH && chirality != SPIRIT_CHIRALITY_NEEL
         && chirality != SPIRIT_CHIRALITY_BLOCH_INVERSE && chirality != SPIRIT_CHIRALITY_NEEL_INVERSE )
@@ -281,6 +457,8 @@ try
              fmt::format( "Hamiltonian_Set_DMI: Invalid DM chirality {}", chirality ), idx_image, idx_chain );
         return;
     }
+
+    image->Lock();
 
     try
     {
@@ -297,12 +475,51 @@ try
 
             std::string message = fmt::format( "Set dmi to {} shells", n_shells );
             if( n_shells > 0 )
-                message += fmt::format( " Dij[0] = {}", dij[0] );
+                message += fmt::format( " Dij[0] = {} [meV/bond]", dij[0] );
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API, message, idx_image, idx_chain );
         }
-        else
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 "DMI cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain );
+        else if( image->hamiltonian->Name() == "Micromagnetic" )
+        {
+            if( n_shells > 1 )
+            {
+                Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                     "Cannot set more than one shell of DM interaction on micromagnetic Hamiltonian.", idx_image,
+                     idx_chain );
+                image->Unlock();
+                return;
+            }
+
+            auto ham = (Engine::Hamiltonian_Micromagnetic *)image->hamiltonian.get();
+            auto Dij = dij[0];
+
+            if( chirality == SPIRIT_CHIRALITY_BLOCH )
+            {
+                ham->dmi_tensor << Dij, 0, 0, 0, Dij, 0, 0, 0, Dij;
+            }
+            else if( chirality == SPIRIT_CHIRALITY_BLOCH_INVERSE )
+            {
+                ham->dmi_tensor << -Dij, 0, 0, 0, -Dij, 0, 0, 0, -Dij;
+            }
+            else if( chirality == SPIRIT_CHIRALITY_NEEL )
+            {
+                ham->dmi_tensor << 0, Dij, 0, -Dij, 0, 0, 0, 0, 0;
+            }
+            else
+            {
+                ham->dmi_tensor << 0, -Dij, 0, Dij, 0, 0, 0, 0, 0;
+            }
+
+            ham->Update_Interactions();
+
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Set tensor_dmi to:" ), idx_image,
+                 idx_chain );
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "{}", ham->dmi_tensor.row( 0 ) ),
+                 idx_image, idx_chain );
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "{}", ham->dmi_tensor.row( 1 ) ),
+                 idx_image, idx_chain );
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "{}", ham->dmi_tensor.row( 2 ) ),
+                 idx_image, idx_chain );
+        }
     }
     catch( ... )
     {
@@ -326,6 +543,14 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+
+    if( image->hamiltonian->Name() != "Heisenberg" && image->hamiltonian->Name() != "Micromagnetic" )
+    {
+        Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+             "Dipolar interactions cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain );
+        return;
+    }
+
     image->Lock();
 
     try
@@ -349,9 +574,24 @@ try
                      pb_zero_padding ),
                  idx_image, idx_chain );
         }
-        else
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 "DDI cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain );
+        else if( image->hamiltonian->Name() == "Micromagnetic" )
+        {
+            auto ham                      = (Engine::Hamiltonian_Micromagnetic *)image->hamiltonian.get();
+            ham->ddi_method               = Engine::DDI_Method( ddi_method );
+            ham->ddi_n_periodic_images[0] = n_periodic_images[0];
+            ham->ddi_n_periodic_images[1] = n_periodic_images[1];
+            ham->ddi_n_periodic_images[2] = n_periodic_images[2];
+            ham->ddi_cutoff_radius        = cutoff_radius;
+            ham->ddi_pb_zero_padding      = pb_zero_padding;
+            ham->Update_Interactions();
+
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+                 fmt::format(
+                     "Set ddi to method {}, periodic images {} {} {}, cutoff radius {} and pb_zero_padding {}",
+                     ddi_method, n_periodic_images[0], n_periodic_images[1], n_periodic_images[2], cutoff_radius,
+                     pb_zero_padding ),
+                 idx_image, idx_chain );
+        }
     }
     catch( ... )
     {
@@ -417,23 +657,26 @@ try
     {
         auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
 
-        if( ham->external_field_magnitude > 0 )
-        {
-            // Magnitude
-            *magnitude = (float)( ham->external_field_magnitude / Constants::mu_B );
+        *magnitude = (float)( ham->external_field_magnitude / Constants::mu_B );
+        normal[0]  = (float)ham->external_field_normal[0];
+        normal[1]  = (float)ham->external_field_normal[1];
+        normal[2]  = (float)ham->external_field_normal[2];
+    }
+    else if( image->hamiltonian->Name() == "Micromagnetic" )
+    {
+        auto ham = (Engine::Hamiltonian_Micromagnetic *)image->hamiltonian.get();
 
-            // Normal
-            normal[0] = (float)ham->external_field_normal[0];
-            normal[1] = (float)ham->external_field_normal[1];
-            normal[2] = (float)ham->external_field_normal[2];
-        }
-        else
-        {
-            *magnitude = 0;
-            normal[0]  = 0;
-            normal[1]  = 0;
-            normal[2]  = 1;
-        }
+        *magnitude = (float)ham->external_field_magnitude;
+        normal[0]  = (float)ham->external_field_normal[0];
+        normal[1]  = (float)ham->external_field_normal[1];
+        normal[2]  = (float)ham->external_field_normal[2];
+    }
+    else
+    {
+        *magnitude = 0;
+        normal[0]  = 0;
+        normal[1]  = 0;
+        normal[2]  = 1;
     }
 }
 catch( ... )
@@ -457,13 +700,10 @@ try
 
         if( !ham->anisotropy_indices.empty() )
         {
-            // Magnitude
             *magnitude = (float)ham->anisotropy_magnitudes[0];
-
-            // Normal
-            normal[0] = (float)ham->anisotropy_normals[0][0];
-            normal[1] = (float)ham->anisotropy_normals[0][1];
-            normal[2] = (float)ham->anisotropy_normals[0][2];
+            normal[0]  = (float)ham->anisotropy_normals[0][0];
+            normal[1]  = (float)ham->anisotropy_normals[0][1];
+            normal[2]  = (float)ham->anisotropy_normals[0][2];
         }
         else
         {
@@ -472,6 +712,17 @@ try
             normal[1]  = 0;
             normal[2]  = 1;
         }
+    }
+    else if( image->hamiltonian->Name() == "Micromagnetic" )
+    {
+        auto ham = (Engine::Hamiltonian_Micromagnetic *)image->hamiltonian.get();
+    }
+    else
+    {
+        *magnitude = 0;
+        normal[0]  = 0;
+        normal[1]  = 0;
+        normal[2]  = 1;
     }
 }
 catch( ... )
@@ -529,6 +780,17 @@ try
         {
             jij[i] = (float)ham->exchange_shell_magnitudes[i];
         }
+    }
+    else if( image->hamiltonian->Name() == "Micromagnetic" )
+    {
+        auto ham = (Engine::Hamiltonian_Micromagnetic *)image->hamiltonian.get();
+
+        *n_shells = 1;
+        jij[0]    = (float)ham->exchange_tensor( 0, 0 );
+    }
+    else
+    {
+        *n_shells = 0;
     }
 }
 catch( ... )
@@ -612,6 +874,17 @@ try
             dij[i] = (float)ham->dmi_shell_magnitudes[i];
         }
     }
+    else if( image->hamiltonian->Name() == "Micromagnetic" )
+    {
+        auto ham = (Engine::Hamiltonian_Micromagnetic *)image->hamiltonian.get();
+
+        *n_shells = 1;
+        dij[0]    = (float)ham->dmi_tensor( 0, 0 );
+    }
+    else
+    {
+        *n_shells = 0;
+    }
 }
 catch( ... )
 {
@@ -663,6 +936,23 @@ try
         *cutoff_radius       = (float)ham->ddi_cutoff_radius;
         *pb_zero_padding     = ham->ddi_pb_zero_padding;
     }
+    else if( image->hamiltonian->Name() == "Micromagnetic" )
+    {
+        auto ham = (Engine::Hamiltonian_Micromagnetic *)image->hamiltonian.get();
+
+        *ddi_method          = (int)ham->ddi_method;
+        n_periodic_images[0] = (int)ham->ddi_n_periodic_images[0];
+        n_periodic_images[1] = (int)ham->ddi_n_periodic_images[1];
+        n_periodic_images[2] = (int)ham->ddi_n_periodic_images[2];
+        *cutoff_radius       = (float)ham->ddi_cutoff_radius;
+    }
+    else
+    {
+        Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+             image->hamiltonian->Name()
+                 + " Hamiltonian: fetching dipole-dipole interaction parameters is not available...",
+             idx_image, idx_chain );
+    }
 }
 catch( ... )
 {
@@ -690,9 +980,9 @@ void saveTriplets( std::string fname, const SpMatrixX & matrix )
     std::ofstream file( fname );
     if( file && file.is_open() )
     {
-        for (int k=0; k < matrix.outerSize(); ++k)
+        for( int k = 0; k < matrix.outerSize(); ++k )
         {
-            for (SpMatrixX::InnerIterator it(matrix,k); it; ++it)
+            for( SpMatrixX::InnerIterator it( matrix, k ); it; ++it )
             {
                 file << it.row() << "\t"; // row index
                 file << it.col() << "\t"; // col index (here it is equal to k)
@@ -706,9 +996,8 @@ void saveTriplets( std::string fname, const SpMatrixX & matrix )
     }
 }
 
-
 void Hamiltonian_Write_Hessian(
-    State * state, const char * filename, bool triplet_format, int idx_image, int idx_chain) noexcept
+    State * state, const char * filename, bool triplet_format, int idx_image, int idx_chain ) noexcept
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
@@ -718,11 +1007,11 @@ void Hamiltonian_Write_Hessian(
 
     // Compute hessian
     auto nos = image->geometry->nos;
-    SpMatrixX hessian(3*nos, 3*nos);
-    image->hamiltonian->Sparse_Hessian(*image->spins, hessian);
+    SpMatrixX hessian( 3 * nos, 3 * nos );
+    image->hamiltonian->Sparse_Hessian( *image->spins, hessian );
 
-    if (triplet_format)
-        saveTriplets(std::string(filename), hessian);
+    if( triplet_format )
+        saveTriplets( std::string( filename ), hessian );
     else
-        saveMatrix(std::string(filename), hessian);
+        saveMatrix( std::string( filename ), hessian );
 }

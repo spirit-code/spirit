@@ -35,12 +35,6 @@ _hbar.restype   = scalar
 hbar = _hbar()
 """Planck's constant [meV*ps / rad]"""
 
-_mRy            = _spirit.Constants_mRy
-_mRy.argtypes   = None
-_mRy.restype    = scalar
-mRy = _mRy()
-"""Millirydberg [mRy / meV]"""
-
 _gamma          = _spirit.Constants_gamma
 _gamma.argtypes = None
 _gamma.restype  = scalar
@@ -58,3 +52,21 @@ _Pi.argtypes   = None
 _Pi.restype    = scalar
 pi = _Pi()
 """Pi [rad]"""
+
+_mRy            = _spirit.Constants_mRy
+_mRy.argtypes   = None
+_mRy.restype    = scalar
+mRy = _mRy()
+"""MilliRydberg [mRy / meV]"""
+
+_erg            = _spirit.Constants_erg
+_erg.argtypes   = None
+_erg.restype    = scalar
+erg = _erg()
+"""Erg [erg / meV]"""
+
+_Joule            = _spirit.Constants_Joule
+_Joule.argtypes   = None
+_Joule.restype    = scalar
+Joule = _Joule()
+"""Joule [J / meV]"""

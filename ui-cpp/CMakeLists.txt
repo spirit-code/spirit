@@ -269,6 +269,7 @@ if( SPIRIT_UI_CXX_USE_QT )
         ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/MainWindow.hpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/ControlWidget.hpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/HamiltonianHeisenbergWidget.hpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/HamiltonianMicromagneticWidget.hpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/HamiltonianGaussianWidget.hpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/ConfigurationsWidget.hpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-qt/include/GeometryWidget.hpp
@@ -288,6 +289,7 @@ if( SPIRIT_UI_CXX_USE_QT )
         ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/MainWindow.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/ControlWidget.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/HamiltonianHeisenbergWidget.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/HamiltonianMicromagneticWidget.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/HamiltonianGaussianWidget.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/ConfigurationsWidget.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-qt/src/GeometryWidget.cpp
@@ -314,6 +316,7 @@ if( SPIRIT_UI_CXX_USE_QT )
         ${CMAKE_CURRENT_LIST_DIR}/ui-qt/ui/SettingsWidget.ui
         ${CMAKE_CURRENT_LIST_DIR}/ui-qt/ui/ParametersWidget.ui
         ${CMAKE_CURRENT_LIST_DIR}/ui-qt/ui/HamiltonianHeisenbergWidget.ui
+        ${CMAKE_CURRENT_LIST_DIR}/ui-qt/ui/HamiltonianMicromagneticWidget.ui
         ${CMAKE_CURRENT_LIST_DIR}/ui-qt/ui/HamiltonianGaussianWidget.ui
         ${CMAKE_CURRENT_LIST_DIR}/ui-qt/ui/VisualisationSettingsWidget.ui
     )

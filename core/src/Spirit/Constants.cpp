@@ -37,7 +37,22 @@ scalar Constants_g_e() noexcept
     return static_cast<scalar>( Utility::Constants::g_e );
 }
 
+scalar Constants_erg() noexcept
+{
+    return static_cast<scalar>( Utility::Constants::erg );
+}
+
+scalar Constants_Joule() noexcept
+{
+    return static_cast<scalar>( Utility::Constants::Joule );
+}
+
 scalar Constants_Pi() noexcept
 {
     return static_cast<scalar>( Utility::Constants::Pi );
+}
+
+scalar Constants_Pi_2() noexcept
+{
+    return static_cast<scalar>( Utility::Constants::Pi_2 );
 }

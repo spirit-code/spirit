@@ -34,10 +34,13 @@ double const gamma = 0.1760859644;
 double const g_e = 2.00231930436182;
 
 // Millirydberg [mRy/meV]
-double const mRy = 1.0 / 13.605693009;
+double const mRy = 1.0 / 13.605693122994;
 
 // erg [erg/meV]
 double const erg = 6.2415091 * 1e14;
+
+// Joule [Joule/meV]
+double const Joule = 6.2415091 * 1e+21;
 
 // Pi [rad]
 double const Pi = 3.141592653589793238462643383279502884197169399375105820974;
@@ -74,13 +77,50 @@ double const gamma = 0.1760859644;
 // Electron g-factor [unitless]
 double const g_e = 2.00231930436182;
 
+} // namespace Constants_mRy
+
+/*
+Constants by micromagnetic convention (SI units):
+ - Spatial scale: meters
+ - Energy scale: Joule
+ - Time scale: seconds
+ - Magnetic fields scale: Tesla
+*/
+namespace Constants_Micromagnetic
+{
+// The Bohr Magneton [Joule/T]
+double const mu_B = Constants::mu_B / Constants::Joule;
+
+// The vacuum permeability [T^2 m^3 / Joule]
+double const mu_0 = Constants::mu_0 * Constants::Joule;
+
+// The Boltzmann constant [J/K]
+double const k_B = Constants::k_B / Constants::Joule;
+
+// Planck constant [J*s/rad]
+double const hbar = Constants::hbar / Constants::Joule * 1e-12;
+
+// Gyromagnetic ratio of electron [rad/(s*T)]
+double const gamma = Constants::gamma * 1e+12;
+
+// Electron (Landé) g-factor = gamma * hbar / mu_B [unitless]
+double const g_e = Constants::g_e;
+
+// meV [meV/Joule]
+double const meV = 1.0 / Constants::Joule;
+
+// Millirydberg [mRy/Joule]
+double const mRy = Constants::mRy / Constants::Joule;
+
+// erg [erg/Joule]
+double const erg = Constants::erg / Constants::Joule;
+
 // Pi [rad]
-double const Pi = 3.141592653589793238462643383279502884197169399375105820974;
+double const Pi = Constants::Pi;
 
 // Pi/2 [rad]
-double const Pi_2 = 1.570796326794896619231321691639751442098584699687552910487;
-
-} // namespace Constants_mRy
+double const Pi_2 = Constants::Pi_2;
+} // namespace Constants_Micromagnetic
 
 } // namespace Utility
 
