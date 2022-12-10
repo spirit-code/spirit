@@ -1,8 +1,9 @@
 #include "data/Parameters_Method_LLG.hpp"
 #include "data/Spin_System.hpp"
-#include "engine/Vectormath_Defines.hpp"
 #include "engine/Solver_Kernels.hpp"
+#include "engine/Vectormath_Defines.hpp"
 #include <fmt/format.h>
+
 #include <limits>
 
 template<>
@@ -24,7 +25,7 @@ inline Vector3 Force_Single_Spin(
     const Vector3 force         = gradient; // actually it should be -gradient
     const Vector3 force_virtual = ( dtg * force + dtg * damping * spins[ispin].cross( force ) );
 
-    if(parameters->time_reversal)
+    if( parameters->time_reversal )
         return -force_virtual;
 
     return force_virtual;
@@ -67,8 +68,12 @@ inline scalar Angle( const Vector3 & a, const Vector3 & b )
 }
 
 inline void SA_Propagator(
-    scalar time_scale, Vector3 & gradient, int ispin, vectorfield & spins, const Method_Solver<Solver::ST> & solver )
+    scalar time_scale, const Vector3 & gradient, int ispin, vectorfield & spins,
+    const Method_Solver<Solver::ST> & solver )
 {
+
+    const Data::Parameters_Method_LLG * parameters = (const Data::Parameters_Method_LLG *)solver.Parameters();
+
     const Vector3 ez = Vector3{ 0, 0, 1 };
 
     // Rotate into a frame where the gradient (not the force!) points into z direction
@@ -78,7 +83,11 @@ inline void SA_Propagator(
     const Matrix3 rotation_matrix = Eigen::AngleAxis<scalar>( angle, axis.normalized() ).toRotationMatrix();
 
     Vector3 spin_temp = rotation_matrix * spins[ispin];
-    spin_temp         = rotation_matrix.transpose() * analytical( time_scale, spin_temp, gradient.norm(), solver );
+
+    if( parameters->time_reversal )
+        time_scale *= -1;
+
+    spin_temp = rotation_matrix.transpose() * analytical( time_scale, spin_temp, gradient.norm(), solver );
 
     spins[ispin] = spin_temp;
     spins[ispin].normalize();
@@ -109,28 +118,31 @@ Heun_Propagator( scalar time_scale, int ispin, vectorfield & spins, const Method
     spins[ispin].normalize();
 }
 
-
 template<typename Force_Callback>
-inline void Implicit_Propagator( scalar time_scale, int ispin, vectorfield & spins, Force_Callback & force_callback, const Method_Solver<Solver::ST> & solver )
+inline void Implicit_Propagator(
+    scalar time_scale, int ispin, vectorfield & spins, Force_Callback & force_callback,
+    const Method_Solver<Solver::ST> & solver )
 {
     // Solve the equation s_{i+1} = s_{i} + 0.5 * (s_{i} + s_{i+1}) x 0.5 * ( f(s_{i+1}) + f(s_i)) )
     // For a single spin
 
-    scalar convergence = 0;
+    scalar convergence = 1e-16;
     // convergence  = ;
     int max_iter = 200;
 
-    Vector3 spin_initial     = spins[ispin];
-    Vector3 spin_previous    = spins[ispin];
-    Vector3 spin_propagated  = spins[ispin];
-    Vector3 spin_avg         = spins[ispin];
+    Vector3 spin_initial    = spins[ispin];
+    Vector3 spin_previous   = spins[ispin];
+    Vector3 spin_propagated = spins[ispin];
+    Vector3 spin_avg        = spins[ispin];
 
-    Vector3 force          = force_callback(ispin, spins);
-    Vector3 force_previous = force; //Initialize to current force, so that first iteration performs one SiB update
-    Vector3 force_avg      = force;
+    Vector3 force         = force_callback( ispin, spins );
+    Vector3 force_initial = force; // Initialize to current force, so that first iteration performs one SiB update
+    Vector3 force_avg     = force;
 
     int iter = 0;
     bool run = true;
+
+    // std::cout << "force_avg_initial" << force_avg.transpose() << "\n";
 
     while( run )
     {
@@ -143,24 +155,84 @@ inline void Implicit_Propagator( scalar time_scale, int ispin, vectorfield & spi
         // spin_propagated = spin_initial - spin_avg.cross( force_avg );
 
         // Possibility2: cayley
-        spin_propagated = Engine::Solver_Kernels::cayley_transform2(0.5*force_avg, spin_initial);
+        spin_propagated = Engine::Solver_Kernels::cayley_transform( 0.5 * force_avg, spin_initial );
 
         // Compute the average spin
-        spin_avg = 0.5 * (spin_propagated + spin_initial);
+        spin_avg = 0.5 * ( spin_propagated + spin_initial );
 
         // Compute the average force
         //  Possibility1: f( spin_avg )
         spins[ispin] = spin_avg;
-        force_avg = time_scale * force_callback(ispin, spins);
+        force_avg    = time_scale * force_callback( ispin, spins );
 
         //  Possibility2: 0.5 * (f( s1 ) + f( s2 ) )
         // spins[ispin] = spin_propagated;
-        // force_avg    = time_scale * 0.5 * ( force_callback(ispin, spins)  + force_previous );
-        // force_avg = 0.5 * (force + force_previous);
+        // force_avg    = time_scale * 0.5 * ( force_callback(ispin, spins)  + force_initial );
         // force_avg = force_avg - force_avg.dot(spin_avg.normalized()) * spin_avg.normalized();
 
         iter++;
-        scalar change = (spin_propagated - spin_previous).cwiseAbs().maxCoeff();
+        scalar change = ( spin_propagated - spin_previous ).cwiseAbs().maxCoeff();
+
+        run = change > convergence && iter < max_iter;
+        // std::cout << iter << " " << change << "\n";
+    }
+
+    // std::cout << "force_avg_final" << force_avg.transpose() << "\n";
+    // std::cout << "spin_avg_final"  << spin_avg.transpose() << "\n";
+    // std::cout << "spin_prob_final" << spin_propagated.transpose() << "\n";
+    // std::cout << "spin_initial"    << spin_initial.transpose() << "\n";
+
+    // Assign the propagated spin to the spins array
+    spins[ispin] = spin_propagated;
+
+    // std::cout << "iter "<< iter << "\n";
+}
+
+template<typename Gradient_Callback>
+inline void SA_Implicit_Propagator(
+    scalar time_scale, int ispin, vectorfield & spins, Gradient_Callback & gradient_callback,
+    const Method_Solver<Solver::ST> & solver )
+{
+    scalar convergence = 1e-16;
+    int max_iter       = 200;
+
+    Vector3 spin_initial    = spins[ispin];
+    Vector3 spin_previous   = spins[ispin];
+    Vector3 spin_propagated = spins[ispin];
+    Vector3 spin_avg        = spins[ispin];
+
+    Vector3 gradient         = gradient_callback( ispin, spins );
+    Vector3 gradient_initial = gradient; // Initialize to current force, so that first iteration performs one SiB update
+    Vector3 gradient_avg     = gradient;
+
+    int iter = 0;
+    bool run = true;
+
+    while( run )
+    {
+        // Save the current spin
+        spin_previous = spin_propagated;
+
+        // Compute the propagated spin
+        spins[ispin] = spin_initial;
+        SA_Propagator( time_scale, gradient_avg, ispin, spins, solver );
+        spin_propagated = spins[ispin];
+
+        // Compute the average spin
+        spin_avg = 0.5 * ( spin_propagated + spin_initial );
+
+        // Compute the average force
+        //  Possibility1: f( spin_avg )
+        spins[ispin] = spin_avg;
+        gradient_avg = time_scale * gradient_callback( ispin, spins );
+
+        //  Possibility2: 0.5 * (f( s1 ) + f( s2 ) )
+        // spins[ispin] = spin_propagated;
+        // force_avg    = time_scale * 0.5 * ( force_callback(ispin, spins)  + force_initial );
+        // force_avg = force_avg - force_avg.dot(spin_avg.normalized()) * spin_avg.normalized();
+
+        iter++;
+        scalar change = ( spin_propagated - spin_previous ).cwiseAbs().maxCoeff();
 
         run = change > convergence && iter < max_iter;
         // std::cout << iter << " " << change << "\n";
@@ -182,49 +254,109 @@ inline void Method_Solver<Solver::ST>::Iteration()
         for( int ispin = 0; ispin < nos; ispin++ )
         {
             // Compute this information so that we do not have to re-compute the entire gradient in every iteration
-            Vector3 gradient_current         = this->System( 0 )->hamiltonian->Gradient_Single_Spin( ispin, spins );
-            Matrix3 gradient_linear_current  = this->System( 0 )->hamiltonian->Linear_Gradient_Contribution_Single_Spin( ispin, spins );
-            Vector3 spin_current             = spins[ispin];
+            Vector3 gradient_current = this->System( 0 )->hamiltonian->Gradient_Single_Spin( ispin, spins );
+            Matrix3 gradient_linear_current
+                = this->System( 0 )->hamiltonian->Linear_Gradient_Contribution_Single_Spin( ispin, spins );
+            Vector3 spin_current = spins[ispin];
 
-            auto force_callback = [&solver = *this, gradient_current, gradient_linear_current, spin_current]( int ispin, const vectorfield & spins )
-            {
+            // std::cout << "===== FIRST ====\nspin_current " << spin_current.transpose() << "\n";
+            // std::cout << "gradient" << gradient_current.transpose() << "\n";
+
+            auto force_callback = [&solver = *this, gradient_current, gradient_linear_current,
+                                   spin_current]( int ispin, const vectorfield & spins ) {
                 // Vector3 gradient  = -solver.System( 0 )->hamiltonian->Gradient_Single_Spin( ispin, spins );
-                Vector3 gradient  = -(gradient_current + gradient_linear_current * (spins[ispin] - spin_current));
-                Vector3 f         = Force_Single_Spin( ispin, gradient, spins, solver );
+                Vector3 gradient = -( gradient_current + gradient_linear_current * ( spins[ispin] - spin_current ) );
+                Vector3 f        = Force_Single_Spin( ispin, gradient, spins, solver );
                 return f;
             };
+
+            auto gradient_callback = [&solver = *this, gradient_current, gradient_linear_current,
+                                      spin_current]( int ispin, const vectorfield & spins ) {
+                // Vector3 gradient  = -solver.System( 0 )->hamiltonian->Gradient_Single_Spin( ispin, spins );
+                Vector3 gradient = -( gradient_current + gradient_linear_current * ( spins[ispin] - spin_current ) );
+                return gradient;
+            };
+
+            Implicit_Propagator( 0.5, ispin, spins, force_callback, *this );
+            // SA_Implicit_Propagator( 0.5, ispin, spins, gradient_callback, *this );
 
             // Vector3 gradient           = -this->systems[img]->hamiltonian->Gradient_Single_Spin( ispin, spins );
             // forces_virtual[img][ispin] = Force_Single_Spin( ispin, gradient, spins, *this ).cross( spins[ispin] );
-            // SA_Propagator( 0.5, gradient, ispin, spins, *this );
+
             // Heun_Propagator( 0.5, ispin, spins, *this );
             // std::cout << "update \n";
 
-            Implicit_Propagator( 0.5, ispin, spins, force_callback, *this );
+            // SA_Propagator( 0.5, -gradient_current, ispin, spins, *this );
+
+
+            // std::cout << "===== SECOND ====\n";
+            // std::cout << "spins[ispin]" << spins[ispin].transpose() << "\n";
+
+            // gradient_current         = this->System( 0 )->hamiltonian->Gradient_Single_Spin( ispin, spins );
+            // gradient_linear_current  = this->System( 0 )->hamiltonian->Linear_Gradient_Contribution_Single_Spin(
+            // ispin, spins ); spin_current             = spins[ispin];
+
+            // auto rev_force_callback = [&solver = *this, gradient_current, gradient_linear_current, spin_current]( int
+            // ispin, const vectorfield & spins )
+            // {
+            //     // Vector3 gradient  = -solver.System( 0 )->hamiltonian->Gradient_Single_Spin( ispin, spins );
+            //     Vector3 gradient  = -(gradient_current + gradient_linear_current * (spins[ispin] - spin_current));
+            //     Vector3 f         = Force_Single_Spin( ispin, gradient, spins, solver );
+            //     // std::cout << "f " << f.transpose() << "\n";
+            //     return -f;
+            // };
+            // Implicit_Propagator( 0.5, ispin, spins, rev_force_callback, *this );
+
+            // std::cout << "spins[ispin]" << spins[ispin].transpose() << "\n";
+            // std::cout << "gradient" << gradient_current.transpose() << "\n";
+
+            // std::cout << "=====\n";
+
         }
 
-        for( int ispin = nos-1; ispin > -1; ispin--)
+        for( int ispin = nos - 1; ispin > -1; ispin-- )
         {
             // Compute this information so that we do not have to re-compute the entire gradient in every iteration
-            Vector3 gradient_current  = this->System( 0 )->hamiltonian->Gradient_Single_Spin( ispin, spins );
-            Matrix3 gradient_linear_current  = this->System( 0 )->hamiltonian->Linear_Gradient_Contribution_Single_Spin( ispin, spins );
+            Vector3 gradient_current = this->System( 0 )->hamiltonian->Gradient_Single_Spin( ispin, spins );
+            Matrix3 gradient_linear_current
+                = this->System( 0 )->hamiltonian->Linear_Gradient_Contribution_Single_Spin( ispin, spins );
             Vector3 spin_current = spins[ispin];
 
-            auto force_callback = [&solver = *this, gradient_current, gradient_linear_current, spin_current]( int ispin, const vectorfield & spins )
-            {
+            auto force_callback = [&solver = *this, gradient_current, gradient_linear_current,
+                                   spin_current]( int ispin, const vectorfield & spins ) {
                 // Vector3 gradient  = -solver.System( 0 )->hamiltonian->Gradient_Single_Spin( ispin, spins );
-                Vector3 gradient  = -(gradient_current + gradient_linear_current * (spins[ispin] - spin_current));
-                Vector3 f         = Force_Single_Spin( ispin, gradient, spins, solver );
+                Vector3 gradient = -( gradient_current + gradient_linear_current * ( spins[ispin] - spin_current ) );
+                Vector3 f        = Force_Single_Spin( ispin, gradient, spins, solver );
                 return f;
             };
 
+            auto gradient_callback = [&solver = *this, gradient_current, gradient_linear_current,
+                                      spin_current]( int ispin, const vectorfield & spins ) {
+                // Vector3 gradient  = -solver.System( 0 )->hamiltonian->Gradient_Single_Spin( ispin, spins );
+                Vector3 gradient = -( gradient_current + gradient_linear_current * ( spins[ispin] - spin_current ) );
+                return gradient;
+            };
 
-            // SA_Propagator( 0.5, gradient, ispin, spins, *this );
-            // Heun_Propagator( 0.5, ispin, spins, *this );
             Implicit_Propagator( 0.5, ispin, spins, force_callback, *this );
+            // SA_Implicit_Propagator( 0.5, ispin, spins, gradient_callback, *this );
+
+            // SA_Propagator( 0.5, -gradient_current, ispin, spins, *this );
+            // Heun_Propagator( 0.5, ispin, spins, *this );
+
+            // spin_current = spins[ispin];
+            // auto rev_force_callback = [&solver = *this, gradient_current, gradient_linear_current, spin_current]( int
+            // ispin, const vectorfield & spins )
+            // {
+            //     // Vector3 gradient  = -solver.System( 0 )->hamiltonian->Gradient_Single_Spin( ispin, spins );
+            //     Vector3 gradient  = -(gradient_current + gradient_linear_current * (spins[ispin] - spin_current));
+            //     Vector3 f         = Force_Single_Spin( ispin, gradient, spins, solver );
+            //     return -f;
+            // };
+            // Implicit_Propagator( -0.5, ispin, spins, rev_force_callback, *this );
+
 
             // Update convergence information
-            Vector3 gradient = force_callback(ispin, spins); 
+            Vector3 gradient           = force_callback( ispin, spins );
             forces_virtual[img][ispin] = Force_Single_Spin( ispin, gradient, spins, *this ).cross( spins[ispin] );
         }
     }
