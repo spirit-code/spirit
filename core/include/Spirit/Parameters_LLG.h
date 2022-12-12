@@ -7,6 +7,9 @@
 
 struct State;
 
+#define ST_PROPAGATOR_SA 0;
+#define ST_PROPAGATOR_IMP 1;
+
 /*
 LLG Parameters
 ====================================================================
@@ -29,8 +32,11 @@ If the tag is "<time>", it will be the date-time of the creation of the state.
 PREFIX void
 Parameters_LLG_Set_Output_Tag( State * state, const char * tag, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-PREFIX void 
+PREFIX void
 Parameters_LLG_Set_Time_Reversal( State * state, bool time_reversal, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+
+PREFIX void
+Parameters_LLG_Set_ST_Propagator( State * state, int st_propagator, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Set the folder, where output files are placed.
 PREFIX void

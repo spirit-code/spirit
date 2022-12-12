@@ -86,6 +86,8 @@ public:
     // Calculate the total energy for a single spin
     virtual Vector3 Gradient_Single_Spin( int ispin, const vectorfield & spins );
 
+    virtual bool Has_Linear_Self_Contributions();
+
     virtual Matrix3 Linear_Gradient_Contribution_Single_Spin( int ispin, const vectorfield & spins );
 
     virtual std::size_t Number_of_Interactions();

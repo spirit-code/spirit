@@ -65,6 +65,7 @@ public:
     scalar Energy_Single_Spin( int ispin, const vectorfield & spins ) override;
 
     Vector3 Gradient_Single_Spin( int ispin, const vectorfield & spins ) override;
+    bool Has_Linear_Self_Contributions() override;
     Matrix3 Linear_Gradient_Contribution_Single_Spin( int ispin, const vectorfield & spins ) override;
 
     // Hamiltonian name as string

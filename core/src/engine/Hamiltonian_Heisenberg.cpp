@@ -768,10 +768,15 @@ Vector3 Hamiltonian_Heisenberg::Gradient_Single_Spin( int ispin, const vectorfie
     return Gradient;
 }
 
+bool Hamiltonian_Heisenberg::Has_Linear_Self_Contributions()
+{
+    return this->idx_anisotropy >= 0;
+}
+
 Matrix3 Hamiltonian_Heisenberg::Linear_Gradient_Contribution_Single_Spin( int ispin, const vectorfield & spins )
 {
-    int icell   = ispin / this->geometry->n_cell_atoms;
-    int ibasis  = ispin - icell * this->geometry->n_cell_atoms;
+    int icell  = ispin / this->geometry->n_cell_atoms;
+    int ibasis = ispin - icell * this->geometry->n_cell_atoms;
 
     Matrix3 result = Matrix3::Zero();
     Matrix3 temp;
@@ -783,16 +788,15 @@ Matrix3 Hamiltonian_Heisenberg::Linear_Gradient_Contribution_Single_Spin( int is
         {
             if( anisotropy_indices[iani] == ibasis )
             {
-                 if( check_atom_type( this->geometry->atom_types[ispin] ) )
+                if( check_atom_type( this->geometry->atom_types[ispin] ) )
                 {
                     auto K = this->anisotropy_magnitudes[iani];
                     auto n = anisotropy_normals[iani];
 
-                    temp << n[0]*n[0], n[0]*n[1], n[0]*n[2],
-                            n[1]*n[0], n[1]*n[1], n[1]*n[2],
-                            n[2]*n[0], n[2]*n[1], n[2]*n[2];
+                    temp << n[0] * n[0], n[0] * n[1], n[0] * n[2], n[1] * n[0], n[1] * n[1], n[1] * n[2], n[2] * n[0],
+                        n[2] * n[1], n[2] * n[2];
 
-                    temp = -2*K * temp;
+                    temp = -2 * K * temp;
                     result += temp;
                 }
             }

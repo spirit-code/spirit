@@ -21,6 +21,18 @@ def set_time_reversal(p_state, time_reversal, idx_image=-1, idx_chain=-1):
     _LLG_Set_Time_Reversal(ctypes.c_void_p(p_state), ctypes.c_bool(time_reversal),
                         ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
 
+ST_PROPAGATOR_SA = 0
+ST_PROPAGATOR_IMP = 1
+_LLG_Set_ST_Propagator          = _spirit.Parameters_LLG_Set_ST_Propagator
+_LLG_Set_ST_Propagator.argtypes = [ctypes.c_void_p, ctypes.c_int,
+                                ctypes.c_int, ctypes.c_int]
+_LLG_Set_ST_Propagator.restype  = None
+def set_st_propagator(p_state, st_propagator, idx_image=-1, idx_chain=-1):
+    """Set the type of propagotr to be used for the suzuki-trotter solver"""
+    _LLG_Set_ST_Propagator(ctypes.c_void_p(p_state), ctypes.c_int(st_propagator),
+                        ctypes.c_int(idx_image), ctypes.c_int(idx_chain))
+
+
 _LLG_Set_Output_Tag          = _spirit.Parameters_LLG_Set_Output_Tag
 _LLG_Set_Output_Tag.argtypes = [ctypes.c_void_p, ctypes.c_char_p,
                                 ctypes.c_int, ctypes.c_int]

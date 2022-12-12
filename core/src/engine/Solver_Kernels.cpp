@@ -19,7 +19,7 @@ namespace Solver_Kernels
 Vector3 SPIRIT_LAMBDA cayley_transform(const Vector3 & A, const Vector3 & s)
 {
     const scalar det = (A[0]*A[0] + A[1]*A[1] + A[2]*A[2] + 1.0);
-    Vector3 res{
+    const Vector3 res{
          A[0]*A[0]*s[0] + 2*A[0]*A[1]*s[1] + 2*A[0]*A[2]*s[2] - A[1]*A[1]*s[0] + 2*A[1]*s[2] - A[2]*A[2]*s[0] - 2*A[2]*s[1] + s[0],
         -A[0]*A[0]*s[1] + 2*A[0]*A[1]*s[0] - 2*A[0]*s[2] + A[1]*A[1]*s[1] + 2*A[1]*A[2]*s[2] - A[2]*A[2]*s[1] + 2*A[2]*s[0] + s[1],
         -A[0]*A[0]*s[2] + 2*A[0]*A[2]*s[0] + 2*A[0]*s[1] - A[1]*A[1]*s[2] + 2*A[1]*A[2]*s[1] - 2*A[1]*s[0] + A[2]*A[2]*s[2] + s[2]

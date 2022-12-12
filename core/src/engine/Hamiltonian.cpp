@@ -185,12 +185,20 @@ Vector3 Hamiltonian::Gradient_Single_Spin( int ispin, const vectorfield & spins 
         "Tried to use  Hamiltonian::Gradient_Single_Spin() of the Hamiltonian base class!" );
 }
 
+bool Hamiltonian::Has_Linear_Self_Contributions()
+{
+    // Not Implemented!
+    spirit_throw(
+        Exception_Classifier::Not_Implemented, Log_Level::Error,
+        "Tried to use Hamiltonian::Has_Linear_Self_Contributions() of the Hamiltonian base class!" );
+}
+
 Matrix3 Hamiltonian::Linear_Gradient_Contribution_Single_Spin( int ispin, const vectorfield & spins )
 {
     // Not Implemented!
     spirit_throw(
         Exception_Classifier::Not_Implemented, Log_Level::Error,
-        "Tried to use  Hamiltonian::Gradient_Single_Spin() of the Hamiltonian base class!" );
+        "Tried to use Hamiltonian::Linear_Gradient_Contribution_Single_Spin() of the Hamiltonian base class!" );
 }
 
 } // namespace Engine

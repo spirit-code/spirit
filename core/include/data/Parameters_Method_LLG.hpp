@@ -2,6 +2,7 @@
 #ifndef SPIRIT_CORE_DATA_PARAMETERS_METHOD_LLG_HPP
 #define SPIRIT_CORE_DATA_PARAMETERS_METHOD_LLG_HPP
 
+#include <data/Parameters_Defines.hpp>
 #include <data/Parameters_Method_Solver.hpp>
 #include <engine/Vectormath_Defines.hpp>
 
@@ -42,6 +43,9 @@ struct Parameters_Method_LLG : Parameters_Method_Solver
 
     // Should the direction of time be reversed for this calculation?
     bool time_reversal = false;
+
+    // ST propagator
+    Definitions::ST_Propagator st_propagator = Definitions::ST_Propagator::IMP;
 
     // ----------------- Output --------------
     // Energy output settings

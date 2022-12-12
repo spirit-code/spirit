@@ -4,6 +4,7 @@
 
 #include "Spirit_Defines.h"
 #include <Spirit/Simulation.h>
+#include <data/Parameters_Defines.hpp>
 #include <data/Parameters_Method.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <engine/Manifoldmath.hpp>
@@ -201,6 +202,10 @@ protected:
     std::vector<std::shared_ptr<vectorfield>> configurations_k3;
     std::vector<std::shared_ptr<vectorfield>> configurations_k4;
 
+    // Suzuki Trotter
+    Data::Definitions::ST_Propagator st_propagator;
+    bool has_linear_self_contributions = true;
+
     // Random vector array
     vectorfield xi;
 
@@ -394,10 +399,9 @@ inline std::string Method_Solver<Solver::None>::SolverFullName()
 #include <engine/Solver_LBFGS_OSO.hpp>
 #include <engine/Solver_RK4.hpp>
 #include <engine/Solver_SIB.hpp>
+#include <engine/Solver_ST.hpp>
 #include <engine/Solver_VP.hpp>
 #include <engine/Solver_VP_OSO.hpp>
-#include <engine/Solver_ST.hpp>
-
 
 } // namespace Engine
 

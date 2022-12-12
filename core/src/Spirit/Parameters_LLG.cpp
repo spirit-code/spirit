@@ -1,4 +1,5 @@
 #include <Spirit/Parameters_LLG.h>
+#include <data/Parameters_Defines.hpp>
 
 #include <data/State.hpp>
 #include <engine/Vectormath.hpp>
@@ -15,7 +16,7 @@ using namespace Utility;
 /*---------------------------------- Set LLG ----------------------------------------------------------- */
 /*------------------------------------------------------------------------------------------------------ */
 
-void Parameters_LLG_Set_Time_Reversal( State * state, bool time_reversal, int idx_image, int idx_chain) noexcept
+void Parameters_LLG_Set_Time_Reversal( State * state, bool time_reversal, int idx_image, int idx_chain ) noexcept
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
@@ -27,10 +28,25 @@ void Parameters_LLG_Set_Time_Reversal( State * state, bool time_reversal, int id
     image->llg_parameters->time_reversal = time_reversal;
     image->Unlock();
 
-    Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, fmt::format( "Set LLG time reversal = \"{}\"", time_reversal ),
-         idx_image, idx_chain );
+    Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
+         fmt::format( "Set LLG time reversal = \"{}\"", time_reversal ), idx_image, idx_chain );
 }
 
+void Parameters_LLG_Set_ST_Propagator( State * state, int st_propagator, int idx_image, int idx_chain ) noexcept
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    image->Lock();
+    image->llg_parameters->st_propagator = Data::Definitions::ST_Propagator( st_propagator );
+    image->Unlock();
+
+    Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
+         fmt::format( "Set LLG suzuki-trotter propagator = \"{}\"", st_propagator ), idx_image, idx_chain );
+}
 
 // Set LLG output
 void Parameters_LLG_Set_Output_Tag( State * state, const char * tag, int idx_image, int idx_chain ) noexcept
