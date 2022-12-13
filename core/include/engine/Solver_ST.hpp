@@ -169,7 +169,7 @@ inline void Implicit_Propagator(
         force_avg    = time_scale * force_callback( ispin, spins );
 
         iter++;
-        scalar change = ( spin_propagated - spin_previous ).cwiseAbs().maxCoeff();
+        const scalar change = ( spin_propagated - spin_previous ).cwiseAbs().maxCoeff();
 
         run = change > convergence && iter < max_iter;
     }
@@ -214,24 +214,16 @@ inline void SA_Implicit_Propagator(
         // Compute the average force
         //  Possibility1: f( spin_avg )
         spins[ispin] = spin_avg;
-        gradient_avg = time_scale * gradient_callback( ispin, spins );
-
-        //  Possibility2: 0.5 * (f( s1 ) + f( s2 ) )
-        // spins[ispin] = spin_propagated;
-        // force_avg    = time_scale * 0.5 * ( force_callback(ispin, spins)  + force_initial );
-        // force_avg = force_avg - force_avg.dot(spin_avg.normalized()) * spin_avg.normalized();
+        gradient_avg = gradient_callback( ispin, spins );
 
         iter++;
-        scalar change = ( spin_propagated - spin_previous ).cwiseAbs().maxCoeff();
+        const scalar change = ( spin_propagated - spin_previous ).cwiseAbs().maxCoeff();
 
         run = change > convergence && iter < max_iter;
-        // std::cout << iter << " " << change << "\n";
     }
 
     // Assign the propagated spin to the spins array
     spins[ispin] = spin_propagated;
-
-    // std::cout << iter << "\n";
 }
 
 template<>
