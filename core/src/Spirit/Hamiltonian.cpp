@@ -11,6 +11,8 @@
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 
+#include <limits>
+
 #include <fmt/format.h>
 
 using namespace Utility;
@@ -120,28 +122,36 @@ try
     {
         if( image->hamiltonian->Name() == "Heisenberg" )
         {
-            auto * ham       = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
-            int nos          = image->nos;
-            int n_cell_atoms = image->geometry->n_cell_atoms;
-
-            // Indices and Magnitudes
-            intfield new_indices( n_cell_atoms );
-            scalarfield new_magnitudes( n_cell_atoms );
-            for( int i = 0; i < n_cell_atoms; ++i )
+            auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
+            if( magnitude < std::numeric_limits<float>::epsilon() )
             {
-                new_indices[i]    = i;
-                new_magnitudes[i] = magnitude;
+                ham->anisotropy_indices    = intfield();
+                ham->anisotropy_magnitudes = scalarfield();
+                ham->anisotropy_normals    = vectorfield();
             }
-            // Normals
-            Vector3 new_normal{ normal[0], normal[1], normal[2] };
-            new_normal.normalize();
-            vectorfield new_normals( nos, new_normal );
+            else
+            {
+                int nos          = image->nos;
+                int n_cell_atoms = image->geometry->n_cell_atoms;
 
-            // Into the Hamiltonian
-            ham->anisotropy_indices    = new_indices;
-            ham->anisotropy_magnitudes = new_magnitudes;
-            ham->anisotropy_normals    = new_normals;
+                // Indices and Magnitudes
+                intfield new_indices( n_cell_atoms );
+                scalarfield new_magnitudes( n_cell_atoms );
+                for( int i = 0; i < n_cell_atoms; ++i )
+                {
+                    new_indices[i]    = i;
+                    new_magnitudes[i] = magnitude;
+                }
+                // Normals
+                Vector3 new_normal{ normal[0], normal[1], normal[2] };
+                new_normal.normalize();
+                vectorfield new_normals( nos, new_normal );
 
+                // Into the Hamiltonian
+                ham->anisotropy_indices    = new_indices;
+                ham->anisotropy_magnitudes = new_magnitudes;
+                ham->anisotropy_normals    = new_normals;
+            }
             // Update Energies
             ham->Update_Energy_Contributions();
 
@@ -690,9 +700,9 @@ void saveTriplets( std::string fname, const SpMatrixX & matrix )
     std::ofstream file( fname );
     if( file && file.is_open() )
     {
-        for (int k=0; k < matrix.outerSize(); ++k)
+        for( int k = 0; k < matrix.outerSize(); ++k )
         {
-            for (SpMatrixX::InnerIterator it(matrix,k); it; ++it)
+            for( SpMatrixX::InnerIterator it( matrix, k ); it; ++it )
             {
                 file << it.row() << "\t"; // row index
                 file << it.col() << "\t"; // col index (here it is equal to k)
@@ -706,9 +716,8 @@ void saveTriplets( std::string fname, const SpMatrixX & matrix )
     }
 }
 
-
 void Hamiltonian_Write_Hessian(
-    State * state, const char * filename, bool triplet_format, int idx_image, int idx_chain) noexcept
+    State * state, const char * filename, bool triplet_format, int idx_image, int idx_chain ) noexcept
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
@@ -718,11 +727,11 @@ void Hamiltonian_Write_Hessian(
 
     // Compute hessian
     auto nos = image->geometry->nos;
-    SpMatrixX hessian(3*nos, 3*nos);
-    image->hamiltonian->Sparse_Hessian(*image->spins, hessian);
+    SpMatrixX hessian( 3 * nos, 3 * nos );
+    image->hamiltonian->Sparse_Hessian( *image->spins, hessian );
 
-    if (triplet_format)
-        saveTriplets(std::string(filename), hessian);
+    if( triplet_format )
+        saveTriplets( std::string( filename ), hessian );
     else
-        saveMatrix(std::string(filename), hessian);
+        saveMatrix( std::string( filename ), hessian );
 }
