@@ -276,34 +276,6 @@ inline void Method_Solver<Solver::ST>::Iteration()
                     SA_Propagator( 0.5, -gradient_current, ispin, spins, *this );
                 }
             }
-            // Vector3 gradient           = -this->systems[img]->hamiltonian->Gradient_Single_Spin( ispin, spins );
-            // forces_virtual[img][ispin] = Force_Single_Spin( ispin, gradient, spins, *this ).cross( spins[ispin] );
-
-            // Heun_Propagator( 0.5, ispin, spins, *this );
-            // std::cout << "update \n";
-
-            // std::cout << "===== SECOND ====\n";
-            // std::cout << "spins[ispin]" << spins[ispin].transpose() << "\n";
-
-            // gradient_current         = this->System( 0 )->hamiltonian->Gradient_Single_Spin( ispin, spins );
-            // gradient_linear_current  = this->System( 0 )->hamiltonian->Linear_Gradient_Contribution_Single_Spin(
-            // ispin, spins ); spin_current             = spins[ispin];
-
-            // auto rev_force_callback = [&solver = *this, gradient_current, gradient_linear_current, spin_current](
-            // int ispin, const vectorfield & spins )
-            // {
-            //     // Vector3 gradient  = -solver.System( 0 )->hamiltonian->Gradient_Single_Spin( ispin, spins );
-            //     Vector3 gradient  = -(gradient_current + gradient_linear_current * (spins[ispin] -
-            //     spin_current)); Vector3 f         = Force_Single_Spin( ispin, gradient, spins, solver );
-            //     // std::cout << "f " << f.transpose() << "\n";
-            //     return -f;
-            // };
-            // Implicit_Propagator( 0.5, ispin, spins, rev_force_callback, *this );
-
-            // std::cout << "spins[ispin]" << spins[ispin].transpose() << "\n";
-            // std::cout << "gradient" << gradient_current.transpose() << "\n";
-
-            // std::cout << "=====\n";
         }
 
         for( int ispin = nos - 1; ispin > -1; ispin-- )
@@ -313,18 +285,6 @@ inline void Method_Solver<Solver::ST>::Iteration()
             gradient_linear_current
                 = this->System( 0 )->hamiltonian->Linear_Gradient_Contribution_Single_Spin( ispin, spins );
             spin_current = spins[ispin];
-
-            // auto force_callback = [&solver = *this, gradient_current, gradient_linear_current,
-            //                        spin_current]( int ispin, const vectorfield & spins ) {
-            //     Vector3 gradient = -( gradient_current + gradient_linear_current * ( spins[ispin] - spin_current
-            //     ) ); Vector3 f        = Force_Single_Spin( ispin, gradient, spins, solver ); return f;
-            // };
-
-            // auto gradient_callback = [&solver = *this, gradient_current, gradient_linear_current,
-            //                           spin_current]( int ispin, const vectorfield & spins ) {
-            //     Vector3 gradient = -( gradient_current + gradient_linear_current * ( spins[ispin] - spin_current
-            //     ) ); return gradient;
-            // };
 
             if( this->st_propagator == ST_Propagator::IMP )
             {
