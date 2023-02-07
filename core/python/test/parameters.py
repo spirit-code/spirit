@@ -24,7 +24,6 @@ class TestParameters(unittest.TestCase):
 
 
 class LLG_set_get(TestParameters):
-
     # XXX: what about output functions?
 
     def test_LLG_N_iterations(self):

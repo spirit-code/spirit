@@ -72,6 +72,10 @@ PREFIX void Hamiltonian_Set_Field(
 // Set a global uniaxial anisotropy [meV]
 PREFIX void Hamiltonian_Set_Anisotropy(
     State * state, float magnitude, const float * normal, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+//
+// Set a global cubic anisotropy [meV]
+PREFIX void
+Hamiltonian_Set_Cubic_Anisotropy( State * state, float magnitude, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Set the exchange interaction in terms of neighbour shells [meV]
 PREFIX void Hamiltonian_Set_Exchange(
@@ -116,6 +120,10 @@ PREFIX void Hamiltonian_Get_Field(
 // Retrieves the uniaxial anisotropy [meV]
 PREFIX void Hamiltonian_Get_Anisotropy(
     State * state, float * magnitude, float * normal, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+
+// Retrieves the cubic anisotropy [meV]
+PREFIX void
+Hamiltonian_Get_Cubic_Anisotropy( State * state, float * magnitude, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
 Retrieves the exchange interaction in terms of neighbour shells.

@@ -99,6 +99,10 @@ PREFIX void Parameters_LLG_Set_Time_Step( State * state, float dt, int idx_image
 // Set the Gilbert damping parameter [unitless].
 PREFIX void Parameters_LLG_Set_Damping( State * state, float damping, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
+// Set the non-adiabatic damping parameter beta [unitless].
+PREFIX void
+Parameters_LLG_Set_Non_Adiabatic_Damping( State * state, float beta, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+
 /*
 Set the spin current configuration.
 
@@ -167,6 +171,9 @@ PREFIX float Parameters_LLG_Get_Time_Step( State * state, int idx_image = -1, in
 
 // Returns the Gilbert damping parameter.
 PREFIX float Parameters_LLG_Get_Damping( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+
+// Returns the non-adiabatic damping parameter.
+PREFIX float Parameters_LLG_Get_Non_Adiabatic_Damping( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Returns the global base temperature [K].
 PREFIX float Parameters_LLG_Get_Temperature( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;

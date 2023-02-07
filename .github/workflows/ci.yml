@@ -43,6 +43,21 @@ jobs:
     - name: 📁 Create build folder
       run: cmake -E make_directory ${{runner.workspace}}/build
 
+    - name: ⚙ Install OpenMP on macos
+      if: matrix.openmp == true && matrix.os == 'macos-latest'
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: |
+        brew install llvm
+        llvm_path="$(brew --prefix llvm)"
+
+        USER_PATH_COMPILER="${llvm_path}/bin/"
+        USER_COMPILER_C="clang"
+        USER_COMPILER_CXX="clang++"
+
+        echo llvm_path $llvm_path
+        echo CMAKE_FLAGS="$CMAKE_FLAGS -DUSER_COMPILER_C=${USER_COMPILER_C} -DUSER_COMPILER_CXX=${USER_COMPILER_CXX} -DUSER_PATH_COMPILER=${USER_PATH_COMPILER}" >> $GITHUB_ENV
+
     - name: ⚙ Configure with OpenMP
       if: matrix.openmp == true
       shell: bash
@@ -66,7 +81,7 @@ jobs:
     - name: 🧪 Test
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: ctest -C $BUILD_TYPE -E $EXCLUDETESTS --output-on-failure
+      run: ctest -C $BUILD_TYPE -E $EXCLUDETESTS --rerun-failed --output-on-failure
 
   test-coverage:
     runs-on: ubuntu-latest

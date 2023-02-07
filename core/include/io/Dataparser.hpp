@@ -23,7 +23,12 @@ void Check_NonOVF_Chain_Configuration(
 
 void Anisotropy_from_File(
     const std::string & anisotropy_file, const std::shared_ptr<Data::Geometry> geometry, int & n_indices,
-    intfield & anisotropy_index, scalarfield & anisotropy_magnitude, vectorfield & anisotropy_normal ) noexcept;
+    intfield & anisotropy_index, scalarfield & anisotropy_magnitude, vectorfield & anisotropy_normal,
+    intfield & cubic_anisotropy_index, scalarfield & cubic_anisotropy_magnitude ) noexcept;
+
+void Basis_from_File(
+    const std::string & basis_file, Data::Basis_Cell_Composition & cell_composition, std::vector<Vector3> & cell_atoms,
+    std::size_t & n_cell_atoms ) noexcept;
 
 void Pairs_from_File(
     const std::string & pairs_file, const std::shared_ptr<Data::Geometry> geometry, int & nop,

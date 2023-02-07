@@ -41,6 +41,7 @@ import ctypes
 ### Load Library
 _spirit = spiritlib.load_spirit_library()
 
+
 ### State wrapper class to be used in 'with' statement
 class State:
     """Wrapper Class for a Spirit State.

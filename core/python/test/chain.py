@@ -169,7 +169,6 @@ class remove_TestChain(TestChain):
         self.assertEqual(system.get_index(self.p_state), 0)  # active is 0th
 
     def test_delete_outoflimits(self):
-
         chain.insert_image_before(self.p_state)  # active is 1st
         chain.insert_image_before(self.p_state)  # active is 2nd
         self.assertEqual(system.get_index(self.p_state), 2)  # active is 2nd

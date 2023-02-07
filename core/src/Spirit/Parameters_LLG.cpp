@@ -236,6 +236,28 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
+void Parameters_LLG_Set_Non_Adiabatic_Damping( State * state, float beta, int idx_image, int idx_chain ) noexcept
+try
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    image->Lock();
+    auto p  = image->llg_parameters;
+    p->beta = beta;
+    image->Unlock();
+
+    Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, fmt::format( "Set LLG beta = {}", beta ), idx_image,
+         idx_chain );
+}
+catch( ... )
+{
+    spirit_handle_exception_api( idx_image, idx_chain );
+}
+
 void Parameters_LLG_Set_Temperature( State * state, float T, int idx_image, int idx_chain ) noexcept
 try
 {
@@ -517,6 +539,24 @@ try
 
     auto p = image->llg_parameters;
     return static_cast<float>( p->damping );
+}
+catch( ... )
+{
+    spirit_handle_exception_api( idx_image, idx_chain );
+    return 0;
+}
+
+float Parameters_LLG_Get_Non_Adiabatic_Damping( State * state, int idx_image, int idx_chain ) noexcept
+try
+{
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    // Fetch correct indices and pointers
+    from_indices( state, idx_image, idx_chain, image, chain );
+
+    auto p = image->llg_parameters;
+    return static_cast<float>( p->beta );
 }
 catch( ... )
 {

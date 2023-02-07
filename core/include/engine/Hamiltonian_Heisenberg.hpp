@@ -33,15 +33,16 @@ class Hamiltonian_Heisenberg : public Hamiltonian
 public:
     Hamiltonian_Heisenberg(
         scalar external_field_magnitude, Vector3 external_field_normal, intfield anisotropy_indices,
-        scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals, pairfield exchange_pairs,
-        scalarfield exchange_magnitudes, pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals,
-        DDI_Method ddi_method, intfield ddi_n_periodic_images, bool ddi_pb_zero_padding, scalar ddi_radius,
-        quadrupletfield quadruplets, scalarfield quadruplet_magnitudes, std::shared_ptr<Data::Geometry> geometry,
-        intfield boundary_conditions );
+        scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals, intfield cubic_anisotropy_indices,
+        scalarfield cubic_anisotropy_magnitudes, pairfield exchange_pairs, scalarfield exchange_magnitudes,
+        pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals, DDI_Method ddi_method,
+        intfield ddi_n_periodic_images, bool ddi_pb_zero_padding, scalar ddi_radius, quadrupletfield quadruplets,
+        scalarfield quadruplet_magnitudes, std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions );
 
     Hamiltonian_Heisenberg(
         scalar external_field_magnitude, Vector3 external_field_normal, intfield anisotropy_indices,
-        scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals, scalarfield exchange_shell_magnitudes,
+        scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals, intfield cubic_anisotropy_indices,
+        scalarfield cubic_anisotropy_magnitudes, scalarfield exchange_shell_magnitudes,
         scalarfield dmi_shell_magnitudes, int dm_chirality, DDI_Method ddi_method, intfield ddi_n_periodic_images,
         bool ddi_pb_zero_padding, scalar ddi_radius, quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
         std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions );
@@ -79,6 +80,8 @@ public:
     intfield anisotropy_indices;
     scalarfield anisotropy_magnitudes;
     vectorfield anisotropy_normals;
+    intfield cubic_anisotropy_indices;
+    scalarfield cubic_anisotropy_magnitudes;
 
     // ------------ Pair Interactions ------------
     // Exchange interaction
@@ -117,6 +120,8 @@ public:
     void Gradient_Zeeman( vectorfield & gradient );
     // Calculate the Anisotropy effective field of a single Spin
     void Gradient_Anisotropy( const vectorfield & spins, vectorfield & gradient );
+    // Calculate the Cubic Anisotropy effective field of a single Spin
+    void Gradient_Cubic_Anisotropy( const vectorfield & spins, vectorfield & gradient );
     // Calculate the exchange interaction effective field of a Spin Pair
     void Gradient_Exchange( const vectorfield & spins, vectorfield & gradient );
     // Calculate the DMI effective field of a Spin Pair
@@ -136,6 +141,10 @@ public:
     inline int Idx_Anisotropy()
     {
         return idx_anisotropy;
+    };
+    inline int Idx_Cubic_Anisotropy()
+    {
+        return idx_cubic_anisotropy;
     };
     inline int Idx_Exchange()
     {
@@ -159,6 +168,8 @@ public:
     // Calculate the Anisotropy energy of a Spin System
     void E_Anisotropy( const vectorfield & spins, scalarfield & Energy );
     // Calculate the exchange interaction energy of a Spin System
+    void E_Cubic_Anisotropy( const vectorfield & spins, scalarfield & Energy );
+    // Calculate the exchange interaction energy of a Spin System
     void E_Exchange( const vectorfield & spins, scalarfield & Energy );
     // Calculate the DMI energy of a Spin System
     void E_DMI( const vectorfield & spins, scalarfield & Energy );
@@ -168,7 +179,7 @@ public:
     void E_Quadruplet( const vectorfield & spins, scalarfield & Energy );
 
 private:
-    int idx_zeeman, idx_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet;
+    int idx_zeeman, idx_anisotropy, idx_cubic_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet;
     void Gradient_DDI_Cutoff( const vectorfield & spins, vectorfield & gradient );
     void Gradient_DDI_Direct( const vectorfield & spins, vectorfield & gradient );
     void Gradient_DDI_FFT( const vectorfield & spins, vectorfield & gradient );

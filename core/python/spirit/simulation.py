@@ -181,6 +181,8 @@ _EMA_Start.argtypes = [
     ctypes.c_int,
 ]
 _EMA_Start.restype = None
+
+
 ### ----- Wrapper
 def start(
     p_state,
