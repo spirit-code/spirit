@@ -11,6 +11,7 @@
 #include <data/Geometry.hpp>
 #include <engine/Hamiltonian.hpp>
 #include <engine/Vectormath_Defines.hpp>
+#include <engine/Pair_Sorting.hpp>
 
 namespace Engine
 {
@@ -90,6 +91,8 @@ public:
     scalarfield exchange_magnitudes_in;
     pairfield exchange_pairs;
     scalarfield exchange_magnitudes;
+    Pair_Order exchange_pair_order;
+
     // DMI
     scalarfield dmi_shell_magnitudes;
     int dmi_shell_chirality;
@@ -99,6 +102,8 @@ public:
     pairfield dmi_pairs;
     scalarfield dmi_magnitudes;
     vectorfield dmi_normals;
+    Pair_Order dmi_pair_order;
+
     // Dipole Dipole interaction
     DDI_Method ddi_method;
     intfield ddi_n_periodic_images;
