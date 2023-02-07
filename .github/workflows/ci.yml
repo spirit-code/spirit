@@ -185,9 +185,9 @@ jobs:
     - name: 📚 Install required system packages
       run: |
         wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
-        sudo add-apt-repository "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-14 main"
+        sudo add-apt-repository "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-15 main"
         sudo apt update
-        sudo apt install xorg-dev libglu1-mesa-dev libgtk-3-dev clang-format-14 clang-tidy-14
+        sudo apt install xorg-dev libglu1-mesa-dev libgtk-3-dev clang-format-15 clang-tidy-15
 
     - name: 📁 Create build folder
       run: cmake -E make_directory ${{runner.workspace}}/build
@@ -201,8 +201,8 @@ jobs:
       if: always()
       shell: bash
       run: |
-        clang-format-14 --version
-        OUTPUT=$($SOURCES | xargs clang-format-14 -n 2>&1)
+        clang-format-15 --version
+        OUTPUT=$($SOURCES | xargs clang-format-15 -n 2>&1)
         if [[ $OUTPUT ]]; then
           echo "$OUTPUT"
           exit 1
@@ -212,7 +212,7 @@ jobs:
       if: always()
       shell: bash
       run: |
-        clang-tidy-14 --version
+        clang-tidy-15 --version
 
     - uses: actions/setup-python@v2
       with:
