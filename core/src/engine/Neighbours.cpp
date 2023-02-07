@@ -175,9 +175,9 @@ pairfield Get_Pairs_in_Radius( const Data::Geometry & geometry, scalar radius )
 
     Vector3 bounds_diff = geometry.bounds_max - geometry.bounds_min;
     Vector3 ratio       = {
-              bounds_diff[0] / std::max( 1, geometry.n_cells[0] ),
-              bounds_diff[1] / std::max( 1, geometry.n_cells[1] ),
-              bounds_diff[2] / std::max( 1, geometry.n_cells[2] ),
+        bounds_diff[0] / std::max( 1, geometry.n_cells[0] ),
+        bounds_diff[1] / std::max( 1, geometry.n_cells[1] ),
+        bounds_diff[2] / std::max( 1, geometry.n_cells[2] ),
     };
 
     // This should give enough translations to contain all DDI pairs

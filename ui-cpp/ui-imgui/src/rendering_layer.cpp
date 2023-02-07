@@ -377,7 +377,7 @@ void RenderingLayer::update_vf_geometry()
         {
             const std::array<VFRendering::Geometry::index_type, 3> * triangle_indices_ptr = nullptr;
             int num_triangles                                                             = Geometry_Get_Triangulation(
-                                                                            state.get(), reinterpret_cast<const int **>( &triangle_indices_ptr ), n_cell_step );
+                state.get(), reinterpret_cast<const int **>( &triangle_indices_ptr ), n_cell_step );
             std::vector<std::array<VFRendering::Geometry::index_type, 3>> triangle_indices(
                 triangle_indices_ptr, triangle_indices_ptr + num_triangles );
             geometry = VFRendering::Geometry( positions, triangle_indices, {}, true );

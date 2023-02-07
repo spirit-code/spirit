@@ -97,7 +97,7 @@ scalar maximum_rotation( const vectorfield & searchdir, scalar maxmove )
     int nos          = searchdir.size();
     scalar theta_rms = 0;
     theta_rms        = sqrt(
-               Backend::par::reduce( searchdir, [] SPIRIT_LAMBDA( const Vector3 & v ) { return v.squaredNorm(); } ) / nos );
+        Backend::par::reduce( searchdir, [] SPIRIT_LAMBDA( const Vector3 & v ) { return v.squaredNorm(); } ) / nos );
     scalar scaling = ( theta_rms > maxmove ) ? maxmove / theta_rms : 1.0;
     return scaling;
 }

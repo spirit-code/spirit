@@ -37,8 +37,8 @@ ImFont * cousine( float size_px )
 
     ImGuiIO & io = ImGui::GetIO();
     auto font    = io.Fonts->AddFontFromMemoryCompressedTTF(
-           cousine_regular_compressed_data, cousine_regular_compressed_size, size_px + 1, &config_letters,
-           cousine_ranges );
+        cousine_regular_compressed_data, cousine_regular_compressed_size, size_px + 1, &config_letters,
+        cousine_ranges );
     font = io.Fonts->AddFontFromMemoryCompressedTTF(
         font_awesome_compressed_data, font_awesome_compressed_size, size_px, &config_glyphs, icons_ranges );
 
@@ -71,7 +71,7 @@ ImFont * karla( float size_px )
 
     ImGuiIO & io = ImGui::GetIO();
     auto font    = io.Fonts->AddFontFromMemoryCompressedTTF(
-           karla_regular_compressed_data, karla_regular_compressed_size, size_karla, &config_letters );
+        karla_regular_compressed_data, karla_regular_compressed_size, size_karla, &config_letters );
     font = io.Fonts->AddFontFromMemoryCompressedTTF(
         font_awesome_compressed_data, font_awesome_compressed_size, size_icons, &config_glyphs, icons_ranges );
 
