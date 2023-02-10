@@ -25,6 +25,10 @@ jobs:
             name-suffix: "-openmp"
             os: macos-latest
             build-type: Release
+          - openmp: true
+            name-suffix: "-openmp"
+            os: windows-latest
+            build-type: Release
     env:
       BUILD_TYPE: ${{ matrix.build-type }}
       CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF
@@ -32,7 +36,7 @@ jobs:
       EXCLUDETESTS: ${{ matrix.excludetests }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: 📚 Install required system packages
       if: matrix.os == 'ubuntu-latest'
@@ -43,26 +47,27 @@ jobs:
     - name: 📁 Create build folder
       run: cmake -E make_directory ${{runner.workspace}}/build
 
-    - name: ⚙ Install OpenMP on macos
+    - name: ⚙ Install LLVM (for OpenMP) on macOS
       if: matrix.openmp == true && matrix.os == 'macos-latest'
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: |
         brew install llvm
-        llvm_path="$(brew --prefix llvm)"
+        echo "$(brew --prefix llvm)/bin/" >> $GITHUB_PATH
 
-        USER_PATH_COMPILER="${llvm_path}/bin/"
-        USER_COMPILER_C="clang"
-        USER_COMPILER_CXX="clang++"
-
-        echo llvm_path $llvm_path
-        echo CMAKE_FLAGS="$CMAKE_FLAGS -DUSER_COMPILER_C=${USER_COMPILER_C} -DUSER_COMPILER_CXX=${USER_COMPILER_CXX} -DUSER_PATH_COMPILER=${USER_PATH_COMPILER}" >> $GITHUB_ENV
+    - name: ⚙ Install LLVM and Ninja (for OpenMP) on Windows
+      if: matrix.openmp == true && matrix.os == 'windows-latest'
+      shell: pwsh
+      working-directory: ${{runner.workspace}}/build
+      run: |
+        choco install llvm ninja -y
+        "CMAKE_FLAGS=$env:CMAKE_FLAGS -G Ninja" >> $env:GITHUB_ENV
 
     - name: ⚙ Configure with OpenMP
       if: matrix.openmp == true
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS -DSPIRIT_USE_OPENMP=ON
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DSPIRIT_USE_OPENMP=ON $CMAKE_FLAGS
 
     - name: ⚙ Configure
       if: matrix.openmp == false
@@ -90,8 +95,8 @@ jobs:
       CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_TEST_COVERAGE=ON
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
       with:
         python-version: '3.x'
 
@@ -147,7 +152,7 @@ jobs:
       CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_ENABLE_PINNING=ON -DSPIRIT_ENABLE_DEFECTS=ON
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: 📁 Create build folder
       run: cmake -E make_directory ${{runner.workspace}}/build
@@ -180,11 +185,11 @@ jobs:
       SOURCES: "find core/include/ core/src/ ui-cpp/utility/ ui-cpp/ui-imgui/include/ ui-cpp/ui-imgui/src/ -iname *.hpp -o -iname *.cpp"
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: 📚 Install required system packages
       run: |
-        wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+        wget --no-verbose -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
         sudo add-apt-repository "deb http://apt.llvm.org/focal/ llvm-toolchain-focal-15 main"
         sudo apt update
         sudo apt install xorg-dev libglu1-mesa-dev libgtk-3-dev clang-format-15 clang-tidy-15
@@ -214,9 +219,9 @@ jobs:
       run: |
         clang-tidy-15 --version
 
-    - uses: actions/setup-python@v2
+    - uses: actions/setup-python@v4
       with:
-        python-version: '3.8'
+        python-version: '3.10'
 
     - name: 📚 Install python packages
       run: pip install --user numpy pylint black
@@ -237,6 +242,7 @@ jobs:
       fail-fast: false
       matrix:
         config:
+          - os: ubuntu-22.04
           - os: ubuntu-20.04
           - os: ubuntu-18.04
     env:
@@ -244,9 +250,19 @@ jobs:
       CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_USE_CUDA=ON -DSPIRIT_CUDA_ARCH=sm_70
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
+
+    - name: Force downgrade to gcc-10 on Ubuntu 22.04 to avoid a bug in gcc-11.3 header
+      if: matrix.config.os == 'ubuntu-22.04'
+      shell: bash
+      run: |
+        sudo apt-get --purge remove "g++*"
+        sudo apt install g++-10
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 10
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 10
 
     - name: 📚 Install CUDA
+      shell: bash
       run: |
         sudo apt update
         sudo apt install nvidia-cuda-toolkit
@@ -271,7 +287,7 @@ jobs:
       CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=ON
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: 📚 Install Qt5
       run: |
@@ -299,7 +315,7 @@ jobs:
       EMSCRIPTEN_VERSION: "1.39.20"
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: 📚 Install Emscripten
       working-directory: ${{runner.workspace}}
@@ -340,7 +356,7 @@ jobs:
       EMSCRIPTEN_VERSION: "1.39.20"
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: 📚 Install Emscripten
       working-directory: ${{runner.workspace}}
@@ -387,8 +403,8 @@ jobs:
       SPIRIT_ADD_VERSION_SUFFIX: true
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
       with:
         python-version: '3.x'
 
@@ -452,7 +468,7 @@ jobs:
       CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_BUNDLE_APP=ON
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: 📚 Install required system packages
       if: matrix.os == 'ubuntu-latest'
@@ -484,7 +500,7 @@ jobs:
         path: |
           ${{runner.workspace}}/build/*.tar.gz
 
-    - name: 📦 Archive macos package
+    - name: 📦 Archive macOS package
       if: matrix.os == 'macos-latest'
       uses: actions/upload-artifact@v2
       with:
@@ -512,7 +528,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: 📄 Generate a changelog
       id: changelog
