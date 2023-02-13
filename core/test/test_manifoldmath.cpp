@@ -1,15 +1,13 @@
-#include <catch.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Vectormath_Defines.hpp>
+
+#include "catch.hpp"
 
 using Catch::Matchers::WithinAbs;
 
 TEST_CASE( "Manifold operations", "[manifold]" )
 {
-    Catch::StringMaker<float>::precision  = 12;
-    Catch::StringMaker<double>::precision = 12;
-
     int N       = 10000;
     int N_check = std::min( 100, N );
     vectorfield v1( N, Vector3{ 0.0, 0.0, 1.0 } );

@@ -7,29 +7,38 @@
 #include <Spirit/State.h>
 #include <Spirit/System.h>
 #include <Spirit/Version.h>
+#include <data/State.hpp>
+
+#include "catch.hpp"
+
 #include <Eigen/Core>
 #include <Eigen/Dense>
-#include <catch.hpp>
-#include <data/State.hpp>
+
 #include <iomanip>
 #include <iostream>
 #include <sstream>
 
 using Catch::Matchers::WithinAbs;
 
-TEST_CASE( "Larmor Precession", "[physics]" )
-{
-    Catch::StringMaker<float>::precision  = 12;
-    Catch::StringMaker<double>::precision = 12;
+// Reduce required precision if float accuracy
+#ifdef SPIRIT_SCALAR_TYPE_DOUBLE
+constexpr double epsilon_apprx = 1e-11;
+#else
+constexpr float epsilon_apprx = 1e-4;
+#endif
 
-    // Input file
-    auto inputfile = "core/test/input/physics_larmor.cfg";
+TEST_CASE( "Dynamics solvers should follow Larmor precession", "[physics]" )
+{
+    constexpr auto input_file = "core/test/input/physics_larmor.cfg";
+    std::vector<int> solvers{
+        Solver_Heun,
+        Solver_Depondt,
+        Solver_SIB,
+        Solver_RungeKutta4,
+    };
 
     // Create State
-    auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
-
-    // Solvers to be tested
-    std::vector<int> solvers{ Solver_Heun, Solver_Depondt, Solver_SIB, Solver_RungeKutta4 };
+    auto state = std::shared_ptr<State>( State_Setup( input_file ), State_Delete );
 
     // Set up one the initial direction of the spin
     float init_direction[3] = { 1., 0., 0. };            // vec parallel to x-axis
@@ -37,19 +46,19 @@ TEST_CASE( "Larmor Precession", "[physics]" )
 
     // Assure that the initial direction is set
     // (note: this pointer will stay valid throughout this test)
-    auto direction = System_Get_Spin_Directions( state.get() );
+    const auto * direction = System_Get_Spin_Directions( state.get() );
     REQUIRE( direction[0] == 1 );
     REQUIRE( direction[1] == 0 );
     REQUIRE( direction[2] == 0 );
 
     // Make sure that mu_s is the same as the one define in input file
-    float mu_s;
+    float mu_s{};
     Geometry_Get_mu_s( state.get(), &mu_s );
     REQUIRE( mu_s == 2 );
 
-    // Get the magnitude of the magnetic field ( it has only z-axis component )
-    float B_mag;
-    float normal[3];
+    // Get the magnitude of the magnetic field (it has only z-axis component)
+    float B_mag{};
+    float normal[3]{0, 0, 1};
     Hamiltonian_Get_Field( state.get(), &B_mag, normal );
 
     // Get time step of method
@@ -59,15 +68,15 @@ TEST_CASE( "Larmor Precession", "[physics]" )
 
     scalar dtg = tstep * Constants_gamma() / ( 1.0 + damping * damping );
 
-    for( auto opt : solvers )
+    for( auto solver : solvers )
     {
         // Set spin parallel to x-axis
         Configuration_Domain( state.get(), init_direction );
-        Simulation_LLG_Start( state.get(), opt, -1, -1, true );
+        Simulation_LLG_Start( state.get(), solver, -1, -1, true );
 
         for( int i = 0; i < 100; i++ )
         {
-            INFO( "solver " << opt << " failed spin trajectory test at iteration " << i );
+            INFO( "Solver " << solver << " failed spin trajectory test at iteration " << i );
 
             // A single iteration
             Simulation_SingleShot( state.get() );
@@ -87,40 +96,28 @@ TEST_CASE( "Larmor Precession", "[physics]" )
     }
 }
 
-TEST_CASE( "Finite Differences", "[physics]" )
+TEST_CASE( "Finite difference and regular Hamiltonian should match", "[physics]" )
 {
-    Catch::StringMaker<float>::precision  = 12;
-    Catch::StringMaker<double>::precision = 12;
-
     // Hamiltonians to be tested
-    std::vector<const char *> hamiltonians{ "core/test/input/fd_pairs.cfg" };
-    //"core/test/input/fd_neighbours",
-    //"core/test/input/fd_gaussian.cfg"};
+    std::vector<const char *> hamiltonian_input_files{
+        "core/test/input/fd_pairs.cfg",
+        // "core/test/input/fd_neighbours",
+        // "core/test/input/fd_gaussian.cfg",
+    };
 
-    // Reduce precision if float accuracy
-    double epsilon_apprx = 1e-11;
-    if( strcmp( Spirit_Scalar_Type(), "float" ) == 0 )
+    for( const auto * input_file : hamiltonian_input_files )
     {
-        WARN( "Detected single precision calculation. Reducing precision requirements." );
-        epsilon_apprx = 1e-4;
-    }
+        INFO( " Testing " << input_file );
 
-    for( auto ham : hamiltonians )
-    {
-        INFO( " Testing " << ham );
-
-        // create state
-        auto state = std::shared_ptr<State>( State_Setup( ham ), State_Delete );
-
+        auto state = std::shared_ptr<State>( State_Setup( input_file ), State_Delete );
         Configuration_Random( state.get() );
+        const auto & spins = *state->active_image->spins;
 
-        auto & vf    = *state->active_image->spins;
+        // Compare gradients
         auto grad    = vectorfield( state->nos );
         auto grad_fd = vectorfield( state->nos );
-
-        state->active_image->hamiltonian->Gradient_FD( vf, grad_fd );
-        state->active_image->hamiltonian->Gradient( vf, grad );
-
+        state->active_image->hamiltonian->Gradient_FD( spins, grad_fd );
+        state->active_image->hamiltonian->Gradient( spins, grad );
         for( int i = 0; i < state->nos; i++ )
         {
             INFO( "i = " << i << "\n" );
@@ -129,12 +126,11 @@ TEST_CASE( "Finite Differences", "[physics]" )
             REQUIRE( grad_fd[i].isApprox( grad[i], epsilon_apprx ) );
         }
 
+        // Compare Hessians
         auto hessian    = MatrixX( 3 * state->nos, 3 * state->nos );
         auto hessian_fd = MatrixX( 3 * state->nos, 3 * state->nos );
-
-        state->active_image->hamiltonian->Hessian_FD( vf, hessian_fd );
-        state->active_image->hamiltonian->Hessian( vf, hessian );
-
+        state->active_image->hamiltonian->Hessian_FD( spins, hessian_fd );
+        state->active_image->hamiltonian->Hessian( spins, hessian );
         INFO( "Hessian (FD) = " << hessian_fd << "\n" );
         INFO( "Hessian      = " << hessian << "\n" );
         REQUIRE( hessian_fd.isApprox( hessian, epsilon_apprx ) );
@@ -143,37 +139,35 @@ TEST_CASE( "Finite Differences", "[physics]" )
 
 TEST_CASE( "Dipole-Dipole Interaction", "[physics]" )
 {
-    Catch::StringMaker<float>::precision  = 12;
-    Catch::StringMaker<double>::precision = 12;
-
-    // cfg where only ddi is enabled
-    auto state = std::shared_ptr<State>( State_Setup( "core/test/input/physics_ddi.cfg" ), State_Delete );
+    // Config file where only DDI is enabled
+    constexpr auto input_file = "core/test/input/physics_ddi.cfg";
+    auto state                = std::shared_ptr<State>( State_Setup( input_file ), State_Delete );
 
     Configuration_Random( state.get() );
-
     auto & spins = *state->active_image->spins;
 
-    auto grad_fft    = vectorfield( state->nos );
-    auto grad_direct = vectorfield( state->nos );
-
+    // FFT gradient and energy
+    auto grad_fft = vectorfield( state->nos );
     state->active_image->hamiltonian->Gradient( spins, grad_fft );
     auto energy_fft = state->active_image->hamiltonian->Energy( spins );
 
+    // Direct (cutoff) gradient and energy
     auto n_periodic_images = std::vector<int>{ 4, 4, 4 };
     Hamiltonian_Set_DDI( state.get(), SPIRIT_DDI_METHOD_CUTOFF, n_periodic_images.data(), -1 );
-
+    auto grad_direct = vectorfield( state->nos );
     state->active_image->hamiltonian->Gradient( spins, grad_direct );
     auto energy_direct = state->active_image->hamiltonian->Energy( spins );
 
+    // Compare gradients
     for( int i = 0; i < state->nos; i++ )
     {
         INFO( "Failed DDI-Gradient comparison at i = " << i );
-        INFO( "Gradient (FFT):" );
-        INFO( grad_fft[i] );
-        INFO( "Gradient (Direct):" );
-        INFO( grad_direct[i] );
+        INFO( "Gradient (FFT):\n" << grad_fft[i] );
+        INFO( "Gradient (Direct):\n" << grad_direct[i] );
         REQUIRE( grad_fft[i].isApprox( grad_direct[i] ) );
     }
+
+    // Compare energies
     INFO( "Failed energy comparison test!" );
     INFO( "Energy (Direct) = " << energy_direct << "\n" );
     INFO( "Energy (FFT)    = " << energy_fft << "\n" );

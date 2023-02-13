@@ -17,12 +17,12 @@
 
 #include <catch.hpp>
 
-auto inputfile = "core/test/input/fd_pairs.cfg";
-// auto testfile = "method_EMA_test.txt";
+constexpr auto inputfile = "core/test/input/fd_pairs.cfg";
+// constexpr auto testfile = "method_EMA_test.txt";
 
 TEST_CASE( "Trivial", "[EMA]" )
 {
-    // create State
+    // Create State
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
 
     Configuration_PlusZ( state.get() );

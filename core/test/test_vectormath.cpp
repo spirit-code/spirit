@@ -1,7 +1,9 @@
-#include <catch.hpp>
 #include <data/Geometry.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Vectormath_Defines.hpp>
+
+#include "catch.hpp"
+
 #include <iostream>
 #include <vector>
 
@@ -9,9 +11,6 @@ using Catch::Matchers::WithinAbs;
 
 TEST_CASE( "Vectormath operations", "[vectormath]" )
 {
-    Catch::StringMaker<float>::precision  = 12;
-    Catch::StringMaker<double>::precision = 12;
-
     int N       = 10000;
     int N_check = std::min( 100, N );
     scalarfield sf( N, 1 );
@@ -84,7 +83,7 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
     SECTION( "Sum, Mean and Divide" )
     {
         // Sum
-        scalar sN = (scalar)N;
+        auto sN = scalar( N );
         Vector3 vref1{ sN, sN, sN };
         Vector3 vref2{ -sN, sN, sN };
         scalar stest1  = Engine::Vectormath::sum( sf );
@@ -309,9 +308,9 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
             auto j   = jacobians[i];
             auto j_e = expected_jacobians[i];
 
-            INFO( i );
-            INFO( j.block( 0, 0, 3, 2 ) );
-            INFO( j_e.block( 0, 0, 3, 2 ) );
+            INFO( "index " << i << "\n" );
+            INFO( "j.block( 0, 0, 3, 2 )   " << j.block( 0, 0, 3, 2 ) << "\n" );
+            INFO( "j_e.block( 0, 0, 3, 2 ) " << j_e.block( 0, 0, 3, 2 ) << "\n" );
 
             REQUIRE( j_e.block( 0, 0, 3, 2 ).isApprox( j.block( 0, 0, 3, 2 ), epsilon_apprx ) );
         }

@@ -16,7 +16,7 @@ using Catch::Matchers::WithinAbs;
 
 TEST_CASE( "State", "[state]" )
 {
-    SECTION( "State setup" )
+    SECTION( "State setup, minimal simulation, and state deletion should not throw" )
     {
         std::shared_ptr<State> state;
 
@@ -27,43 +27,48 @@ TEST_CASE( "State", "[state]" )
 
         // Test the default config with a nonexistent file
         CHECK_NOTHROW(
-            state = std::shared_ptr<State>( State_Setup( "__surely__nonexistent__file__.cfg" ), State_Delete ) );
+            state
+            = std::shared_ptr<State>( State_Setup( "__surely__this__file__does__not__exist__.cfg" ), State_Delete ) );
         CHECK_NOTHROW( Configuration_PlusZ( state.get() ) );
         CHECK_NOTHROW( Simulation_LLG_Start( state.get(), Solver_VP, 1 ) );
 
         // Test the default input file
         CHECK_NOTHROW( state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete ) );
+
+        // TODO: actual test
     }
 
     SECTION( "from_indices()" )
     {
-        // create a state with two images. Let the second one to be the active
+        // Create a state with two images. Let the second one to be the active
         auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
-        Chain_Image_to_Clipboard( state.get(), 0, 0 );   // copy to Clipboard
-        Chain_Insert_Image_Before( state.get(), 0, 0 );  // add before active
-        REQUIRE( Chain_Get_NOI( state.get() ) == 2 );    // number of images are 2
-        REQUIRE( System_Get_Index( state.get() ) == 1 ); // active is 2nd image
+        Chain_Image_to_Clipboard( state.get(), 0, 0 );   // Copy to "clipboard"
+        Chain_Insert_Image_Before( state.get(), 0, 0 );  // Add before active
+        REQUIRE( Chain_Get_NOI( state.get() ) == 2 );    // Number of images is 2
+        REQUIRE( System_Get_Index( state.get() ) == 1 ); // Active is 2nd image
 
-        // arguments for from_indices()
+        // Arguments for from_indices()
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-        int idx_image, idx_chain;
+        int idx_image{}, idx_chain{};
 
-        // Test for non-existing images
+        // A positive, index beyond the size of the chain should throw an exception
         idx_chain = 0;
         idx_image = 5;
         CHECK_THROWS_AS( from_indices( state.get(), idx_image, idx_chain, image, chain ), Utility::Exception );
         // TODO: find a way to see if the exception thrown was the right one
 
+        // A negative image index should translate to the active image
         idx_chain = 0;
         idx_image = -5;
         CHECK_NOTHROW( from_indices( state.get(), idx_image, idx_chain, image, chain ) );
-        REQUIRE( idx_image == 1 ); // the negative index image must be promoted to the active image
+        REQUIRE( idx_image == 1 );
 
+        // A negative chain index should translate to the active chain
         idx_chain = -5;
         idx_image = 0;
         CHECK_NOTHROW( from_indices( state.get(), idx_image, idx_chain, image, chain ) );
-        REQUIRE( idx_chain == 0 ); // the negative index chain must be promoted to the active chain
+        REQUIRE( idx_chain == 0 );
     }
 }
 
@@ -71,7 +76,7 @@ TEST_CASE( "Configurations", "[configurations]" )
 {
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
 
-    // filters
+    // Filters
     float position[3]{ 0, 0, 0 };
     float r_cut_rectangular[3]{ -1, -1, -1 };
     float r_cut_cylindrical = -1;
@@ -82,16 +87,24 @@ TEST_CASE( "Configurations", "[configurations]" )
     {
         float dir[3] = { 0, 0, 1 };
         Configuration_PlusZ( state.get(), position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
+        // TODO: actual test
+
         Configuration_MinusZ( state.get(), position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
+        // TODO: actual test
+
         Configuration_Domain(
             state.get(), dir, position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
+        // TODO: actual test
     }
     SECTION( "Random" )
     {
         float temperature = 5;
         Configuration_Add_Noise_Temperature(
             state.get(), temperature, position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
+        // TODO: actual test
+
         Configuration_Random( state.get(), position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
+        // TODO: actual test
     }
     SECTION( "Skyrmion" )
     {
@@ -102,6 +115,7 @@ TEST_CASE( "Configurations", "[configurations]" )
         Configuration_Skyrmion(
             state.get(), r, order, phase, updown, achiral, rl, position, r_cut_rectangular, r_cut_cylindrical,
             r_cut_spherical, inverted );
+        // TODO: actual test
 
         r     = 7;
         order = 1;
@@ -111,6 +125,7 @@ TEST_CASE( "Configurations", "[configurations]" )
         Configuration_Skyrmion(
             state.get(), r, order, phase, updown, achiral, rl, position, r_cut_rectangular, r_cut_cylindrical,
             r_cut_spherical, inverted );
+        // TODO: actual test
     }
     SECTION( "Hopfion" )
     {
@@ -119,22 +134,21 @@ TEST_CASE( "Configurations", "[configurations]" )
         float normal[3] = { 0, 0, 1 };
         Configuration_Hopfion(
             state.get(), r, order, position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted, normal );
+        // TODO: actual test
     }
     SECTION( "Spin Spiral" )
     {
         auto dir_type = "real lattice";
         float q[3]{ 0, 0, 0.1 }, axis[3]{ 0, 0, 1 }, theta{ 30 };
-        CHECK_NOTHROW( Configuration_SpinSpiral(
+        Configuration_SpinSpiral(
             state.get(), dir_type, q, axis, theta, position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical,
-            inverted ) );
+            inverted );
+        // TODO: actual test
     }
 }
 
 TEST_CASE( "Quantities", "[quantities]" )
 {
-    Catch::StringMaker<float>::precision  = 12;
-    Catch::StringMaker<double>::precision = 12;
-
     SECTION( "Magnetization" )
     {
         auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
