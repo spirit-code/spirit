@@ -28,6 +28,7 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( periodical, "periodical" );
 
     image->Lock();
     try
@@ -60,10 +61,10 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( normal, "normal" );
 
     // Lock mutex because simulations may be running
     image->Lock();
-
     try
     {
         // Set
@@ -113,9 +114,9 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( normal, "normal" );
 
     image->Lock();
-
     try
     {
         if( image->hamiltonian->Name() == "Heisenberg" )
@@ -176,7 +177,6 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     image->Lock();
-
     try
     {
         if( image->hamiltonian->Name() == "Heisenberg" )
@@ -228,9 +228,9 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( jij, "jij" );
 
     image->Lock();
-
     try
     {
         if( image->hamiltonian->Name() == "Heisenberg" )
@@ -272,7 +272,7 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
-    image->Lock();
+    throw_if_nullptr( dij, "dij" );
 
     if( chirality != SPIRIT_CHIRALITY_BLOCH && chirality != SPIRIT_CHIRALITY_NEEL
         && chirality != SPIRIT_CHIRALITY_BLOCH_INVERSE && chirality != SPIRIT_CHIRALITY_NEEL_INVERSE )
@@ -282,6 +282,7 @@ try
         return;
     }
 
+    image->Lock();
     try
     {
         if( image->hamiltonian->Name() == "Heisenberg" )
@@ -326,8 +327,9 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
-    image->Lock();
+    throw_if_nullptr( n_periodic_images, "n_periodic_images" );
 
+    image->Lock();
     try
     {
         if( image->hamiltonian->Name() == "Heisenberg" )
@@ -394,6 +396,7 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( periodical, "periodical" );
 
     periodical[0] = image->hamiltonian->boundary_conditions[0];
     periodical[1] = image->hamiltonian->boundary_conditions[1];
@@ -412,6 +415,8 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( magnitude, "magnitude" );
+    throw_if_nullptr( normal, "normal" );
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
@@ -450,6 +455,8 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( magnitude, "magnitude" );
+    throw_if_nullptr( normal, "normal" );
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
@@ -487,6 +494,7 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( magnitude, "magnitude" );
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
@@ -517,6 +525,8 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( n_shells, "n_shells" );
+    throw_if_nullptr( jij, "jij" );
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
@@ -568,6 +578,7 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( Jij, "Jij" );
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
@@ -599,6 +610,9 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( n_shells, "n_shells" );
+    throw_if_nullptr( dij, "dij" );
+    throw_if_nullptr( chirality, "chirality" );
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
@@ -651,6 +665,9 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( ddi_method, "ddi_method" );
+    throw_if_nullptr( cutoff_radius, "cutoff_radius" );
+    throw_if_nullptr( pb_zero_padding, "pb_zero_padding" );
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
@@ -708,12 +725,14 @@ void saveTriplets( std::string fname, const SpMatrixX & matrix )
 
 void Hamiltonian_Write_Hessian(
     State * state, const char * filename, bool triplet_format, int idx_image, int idx_chain ) noexcept
+try
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( filename, "filename" );
 
     // Compute hessian
     auto nos = image->geometry->nos;
@@ -724,4 +743,8 @@ void Hamiltonian_Write_Hessian(
         saveTriplets( std::string( filename ), hessian );
     else
         saveMatrix( std::string( filename ), hessian );
+}
+catch( ... )
+{
+    spirit_handle_exception_api( idx_image, idx_chain );
 }

@@ -649,6 +649,7 @@ try
     // Fetch correct indices and pointers
     int idx_image = -1;
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( torques, "torques" );
 
     if( Simulation_Running_On_Chain( state, idx_chain ) )
     {
@@ -705,6 +706,7 @@ try
     // Fetch correct indices and pointers
     int idx_image = -1;
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( torques, "torques" );
 
     if( Simulation_Running_On_Chain( state, idx_chain ) )
     {

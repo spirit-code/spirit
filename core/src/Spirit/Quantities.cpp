@@ -22,6 +22,7 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( s, "s" );
 
     // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
 
@@ -43,6 +44,7 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( m, "m" );
 
     // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
 
@@ -228,6 +230,7 @@ void check_modes(
 
 void Quantity_Get_Grad_Force_MinimumMode(
     State * state, float * f_grad, float * eval, float * mode, float * forces, int idx_image, int idx_chain )
+try
 {
     using namespace Engine;
     using namespace Utility;
@@ -235,6 +238,10 @@ void Quantity_Get_Grad_Force_MinimumMode(
     std::shared_ptr<Data::Spin_System> system;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices( state, idx_image, idx_chain, system, chain );
+    throw_if_nullptr( f_grad, "f_grad" );
+    throw_if_nullptr( eval, "eval" );
+    throw_if_nullptr( mode, "mode" );
+    throw_if_nullptr( forces, "forces" );
 
     // Copy std::vector<Eigen::Vector3> into one single Eigen::VectorX
     const int nos = system->nos;
@@ -397,4 +404,8 @@ void Quantity_Get_Grad_Force_MinimumMode(
             mode[3 * _i + dim]   = (float)minimum_mode[_i][dim];
         }
     }
+}
+catch( ... )
+{
+    spirit_handle_exception_api( idx_image, idx_chain );
 }

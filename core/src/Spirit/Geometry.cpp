@@ -184,13 +184,7 @@ void Geometry_Set_N_Cells( State * state, int n_cells_i[3] ) noexcept
 try
 {
     check_state( state );
-
-    if( n_cells_i == nullptr )
-    {
-        spirit_throw(
-            Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Error,
-            "Got passed a null pointer for 'atoms'" );
-    }
+    throw_if_nullptr( n_cells_i, "n_cells_i" );
 
     // The new number of basis cells
     auto n_cells = intfield{ n_cells_i[0], n_cells_i[1], n_cells_i[2] };
@@ -225,12 +219,7 @@ try
             fmt::format( "Cannot set number of atoms to less than one (you passed {})", n_atoms ) );
     }
 
-    if( atoms == nullptr )
-    {
-        spirit_throw(
-            Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Error,
-            "Got passed a null pointer for 'atoms'" );
-    }
+    throw_if_nullptr( atoms, "atoms" );
 
     auto & old_geometry = *state->active_image->geometry;
 
@@ -357,19 +346,13 @@ void Geometry_Set_Cell_Atom_Types( State * state, int n_atoms, int * atom_types 
 try
 {
     check_state( state );
+    throw_if_nullptr( atom_types, "atom_types" );
 
     if( n_atoms < 1 )
     {
         spirit_throw(
             Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Error,
             fmt::format( "Cannot set atom types for less than one site (you passed {})", n_atoms ) );
-    }
-
-    if( atom_types == nullptr )
-    {
-        spirit_throw(
-            Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Error,
-            "Got passed a null pointer for 'atom_types'" );
     }
 
     auto & old_geometry = *state->active_image->geometry;
@@ -402,6 +385,9 @@ void Geometry_Set_Bravais_Vectors( State * state, float ta[3], float tb[3], floa
 try
 {
     check_state( state );
+    throw_if_nullptr( ta, "ta" );
+    throw_if_nullptr( tb, "tb" );
+    throw_if_nullptr( tc, "tc" );
 
     // The new Bravais vectors
     std::vector<Vector3> bravais_vectors{
@@ -504,6 +490,8 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( min, "min" );
+    throw_if_nullptr( max, "max" );
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
 
@@ -528,6 +516,7 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( center, "center" );
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
 
@@ -550,6 +539,8 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( min, "min" );
+    throw_if_nullptr( max, "max" );
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
 
@@ -593,6 +584,9 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( a, "a" );
+    throw_if_nullptr( b, "b" );
+    throw_if_nullptr( c, "c" );
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
 
@@ -659,13 +653,7 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
-
-    if( mu_s == nullptr )
-    {
-        spirit_throw(
-            Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Error,
-            "Got passed a null pointer for 'mu_s'" );
-    }
+    throw_if_nullptr( mu_s, "mu_s" );
 
     for( int i = 0; i < image->geometry->n_cell_atoms; ++i )
         mu_s[i] = static_cast<float>( image->geometry->mu_s[i] );
@@ -684,6 +672,7 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( n_cells, "n_cells" );
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
 
@@ -752,6 +741,7 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( ranges, "ranges" );
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
     std::array<int, 6> range = { ranges[0], ranges[1], ranges[2], ranges[3], ranges[4], ranges[5] };
@@ -798,6 +788,7 @@ try
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( ranges, "ranges" );
 
     auto g                   = image->geometry;
     std::array<int, 6> range = { ranges[0], ranges[1], ranges[2], ranges[3], ranges[4], ranges[5] };

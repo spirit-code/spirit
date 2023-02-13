@@ -96,14 +96,9 @@ try
         return;
     }
 
-    if( eigenvalues_min != nullptr )
-    {
-        for( int i = 0; i < chain->htst_info.eigenvalues_min.size(); ++i )
-            eigenvalues_min[i] = chain->htst_info.eigenvalues_min[i];
-    }
-    else
-        Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
-             "HTST_Get_Eigenvalues_Min: you passed a null pointer" );
+    throw_if_nullptr( eigenvalues_min, "eigenvalues_min" );
+    for( int i = 0; i < chain->htst_info.eigenvalues_min.size(); ++i )
+        eigenvalues_min[i] = chain->htst_info.eigenvalues_min[i];
 }
 catch( ... )
 {
@@ -128,14 +123,9 @@ try
         return;
     }
 
-    if( eigenvectors_min != nullptr )
-    {
-        for( int i = 0; i < chain->htst_info.eigenvectors_min.size(); ++i )
-            eigenvectors_min[i] = chain->htst_info.eigenvectors_min( i );
-    }
-    else
-        Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
-             "HTST_Get_Eigenvectors_Min: you passed a null pointer" );
+    throw_if_nullptr( eigenvectors_min, "eigenvectors_min" );
+    for( int i = 0; i < chain->htst_info.eigenvectors_min.size(); ++i )
+        eigenvectors_min[i] = chain->htst_info.eigenvectors_min( i );
 }
 catch( ... )
 {
@@ -160,15 +150,10 @@ try
         return;
     }
 
-    if( eigenvalues_sp != nullptr )
-    {
-        int nos = image->nos;
-        for( int i = 0; i < 2 * nos && i < chain->htst_info.eigenvalues_sp.size(); ++i )
-            eigenvalues_sp[i] = chain->htst_info.eigenvalues_sp[i];
-    }
-    else
-        Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
-             "HTST_Get_Eigenvalues_SP: you passed a null pointer" );
+    throw_if_nullptr( eigenvalues_sp, "eigenvalues_sp" );
+    int nos = image->nos;
+    for( int i = 0; i < 2 * nos && i < chain->htst_info.eigenvalues_sp.size(); ++i )
+        eigenvalues_sp[i] = chain->htst_info.eigenvalues_sp[i];
 }
 catch( ... )
 {
@@ -193,14 +178,9 @@ try
         return;
     }
 
-    if( eigenvectors_sp != nullptr )
-    {
-        for( int i = 0; i < chain->htst_info.eigenvectors_sp.size(); ++i )
-            eigenvectors_sp[i] = chain->htst_info.eigenvectors_sp( i );
-    }
-    else
-        Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
-             "HTST_Get_Eigenvectors_SP: you passed a null pointer" );
+    throw_if_nullptr( eigenvectors_sp, "eigenvectors_sp" );
+    for( int i = 0; i < chain->htst_info.eigenvectors_sp.size(); ++i )
+        eigenvectors_sp[i] = chain->htst_info.eigenvectors_sp( i );
 }
 catch( ... )
 {
@@ -225,14 +205,10 @@ try
         return;
     }
 
-    if( velocities != nullptr )
-    {
-        int nos = image->nos;
-        for( int i = 0; i < 2 * nos * nos && i < chain->htst_info.perpendicular_velocity.size(); ++i )
-            velocities[i] = chain->htst_info.perpendicular_velocity[i];
-    }
-    else
-        Log( Utility::Log_Level::Error, Utility::Log_Sender::API, "HTST_Get_Velocities: you passed a null pointer" );
+    throw_if_nullptr( velocities, "velocities" );
+    int nos = image->nos;
+    for( int i = 0; i < 2 * nos * nos && i < chain->htst_info.perpendicular_velocity.size(); ++i )
+        velocities[i] = chain->htst_info.perpendicular_velocity[i];
 }
 catch( ... )
 {

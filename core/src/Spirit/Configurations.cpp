@@ -137,6 +137,8 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( position, "position" );
+    throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
@@ -173,6 +175,8 @@ try
 
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
+        throw_if_nullptr( position, "position" );
+        throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
         // Get relative position
         Vector3 vpos{ position[0], position[1], position[2] };
@@ -228,6 +232,9 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( direction, "direction" );
+    throw_if_nullptr( position, "position" );
+    throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
@@ -284,6 +291,8 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( position, "position" );
+    throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
@@ -318,6 +327,8 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( position, "position" );
+    throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
@@ -352,6 +363,8 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( position, "position" );
+    throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
@@ -384,8 +397,9 @@ try
     std::shared_ptr<Data::Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
-
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( position, "position" );
+    throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
@@ -478,6 +492,9 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( position, "position" );
+    throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
+    throw_if_nullptr( normal, "normal" );
 
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
@@ -519,6 +536,8 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( position, "position" );
+    throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
@@ -568,6 +587,8 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( position, "position" );
+    throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
@@ -620,6 +641,10 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( q, "q" );
+    throw_if_nullptr( axis, "axis" );
+    throw_if_nullptr( position, "position" );
+    throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
@@ -661,6 +686,11 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( q1, "q1" );
+    throw_if_nullptr( q2, "q2" );
+    throw_if_nullptr( axis, "axis" );
+    throw_if_nullptr( position, "position" );
+    throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
@@ -703,6 +733,8 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( position, "position" );
+    throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
@@ -736,6 +768,8 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( position, "position" );
+    throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };

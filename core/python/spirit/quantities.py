@@ -122,12 +122,14 @@ _Get_Topological_Charge_Density.restype = ctypes.c_int
 
 
 def get_topological_charge_density(p_state, idx_image=-1, idx_chain=-1):
-    """Calculates and returns the total topological charge of 2D systems.
+    """Calculates the topological charge density of a 2D system and returns it
+    as an array, together with an array of three indices that define the
+    triangle for which the respective charge density was calculated.
 
-    Note that the charge can take unphysical non-integer values for open boundaries,
-    because it is not well-defined in this case.
+    Note that the charge can take unphysical non-integer values for open
+    boundaries, because it is not well-defined in this case.
 
-    Returns 0 for systems of other dimensionality.
+    Returns [], [] for systems of other dimensionality.
     """
 
     # Figure out the number of triangles
@@ -138,6 +140,9 @@ def get_topological_charge_density(p_state, idx_image=-1, idx_chain=-1):
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
     )
+
+    if num_triangles == 0:
+        return [], []
 
     # Allocate the required memory for indices_ptr and charge_density
     charge_density_ptr = (ctypes.c_float * num_triangles)()

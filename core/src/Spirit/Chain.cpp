@@ -588,6 +588,7 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( Rx, "Rx" );
 
     for( unsigned int i = 0; i < chain->Rx.size(); ++i )
     {
@@ -608,6 +609,7 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( Rx_interpolated, "Rx_interpolated" );
 
     for( unsigned int i = 0; i < chain->Rx_interpolated.size(); ++i )
     {
@@ -628,6 +630,7 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( Energy, "Energy" );
 
     for( int i = 0; i < chain->noi; ++i )
     {
@@ -648,6 +651,7 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( E_interpolated, "E_interpolated" );
 
     for( unsigned int i = 0; i < chain->E_interpolated.size(); ++i )
     {
