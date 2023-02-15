@@ -1,4 +1,5 @@
 #include "engine/Manifoldmath.hpp"
+#include "engine/Solver_Kernels.hpp"
 #include <engine/Backend_par.hpp>
 
 template<>
@@ -28,43 +29,48 @@ inline void Method_Solver<Solver::SIB>::Iteration()
     this->Prepare_Thermal_Field();
 
     // First part of the step
+    // Calculate forces for current configuration
     this->Calculate_Force( this->configurations, this->forces );
     this->Calculate_Force_Virtual( this->configurations, this->forces, this->forces_virtual );
 
+    // Predictor for each image
     for( int i = 0; i < this->noi; ++i )
     {
-        auto & image     = *this->systems[i]->spins;
-        auto & predictor = *this->configurations_predictor[i];
-
-        Solver_Kernels::sib_transform( image, forces_virtual[i], predictor );
+        // clang-format off
+        Backend::par::apply( nos, 
+            [
+                c = this->configurations[i]->data(),
+                c_p = this->configurations_predictor[i]->data(),
+                f = forces_virtual[i].data()
+            ] SPIRIT_LAMBDA (int idx)
+            {
+                c_p[idx] = Engine::Solver_Kernels::cayley_transform(0.5 * f[idx], c[idx]);
+                c_p[idx] = 0.5 * (c_p[idx] + c[idx]);
+            } 
+        );
+        // clang-format on
     }
 
-    // Second part of the step
     this->Calculate_Force( this->configurations_predictor, this->forces_predictor );
     this->Calculate_Force_Virtual(
         this->configurations_predictor, this->forces_predictor, this->forces_virtual_predictor );
 
     for( int i = 0; i < this->noi; ++i )
     {
-        auto & predictor = *this->configurations_predictor[i];
-        auto & image     = *this->systems[i]->spins;
-
-        // Engine::Manifoldmath::project_tangential( forces_virtual_predictor[i], predictor );
-        Vectormath::add_c_a( 1, image, predictor );
-        Vectormath::scale( predictor, 0.5 );
-
-        Vectormath::add_c_a( 1, forces_virtual[i], forces_virtual_predictor[i] );
-        Vectormath::scale( forces_virtual_predictor[i], 0.5 );
-    }
-
-    for( int i = 0; i < this->noi; ++i )
-    {
-        auto & image     = *this->systems[i]->spins;
-        auto & predictor = *this->configurations_predictor[i];
-
-        // Engine::Manifoldmath::project_tangential( forces_virtual_predictor[i], predictor );
-        Solver_Kernels::sib_transform( image, forces_virtual_predictor[i], predictor );
-        Vectormath::set_c_a( 1, predictor, image );
+        // clang-format off
+        Backend::par::apply( nos, 
+            [
+                c = this->configurations[i]->data(),
+                c_p = this->configurations_predictor[i]->data(),
+                f_p = forces_virtual_predictor[i].data()
+            ] SPIRIT_LAMBDA (int idx)
+            {
+                f_p[idx] = f_p[idx] - f_p[idx].dot(c_p[idx]) * c_p[idx]; // Remove normal component of predictor
+                c_p[idx] = Engine::Solver_Kernels::cayley_transform(0.5 * f_p[idx], c[idx]);
+                c[idx] = c_p[idx];
+            } 
+        );
+        // clang-format on
     }
 }
 
