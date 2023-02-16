@@ -26,7 +26,7 @@ Method::Method( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img
 
     this->history_iteration  = std::vector<int>();
     this->history_max_torque = std::vector<scalar>();
-    this->history_energy  = std::vector<scalar>();
+    this->history_energy     = std::vector<scalar>();
 
     // TODO: is this a good idea?
     this->n_iterations     = std::max( long( 1 ), this->parameters->n_iterations );

@@ -16,8 +16,13 @@
 
 const char inputfile[] = "core/test/input/fd_pairs.cfg";
 
+using Catch::Matchers::WithinAbs;
+
 TEST_CASE( "IO", "[io]" )
 {
+    Catch::StringMaker<float>::precision  = 12;
+    Catch::StringMaker<double>::precision = 12;
+
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
 
     // files to be written
@@ -57,9 +62,9 @@ TEST_CASE( "IO", "[io]" )
 
         for( int i = 0; i < nos; i++ )
         {
-            REQUIRE( data[i * 3] == Approx( 0 ) );
-            REQUIRE( data[i * 3 + 1] == Approx( 0 ) );
-            REQUIRE( data[i * 3 + 2] == Approx( -1 ) );
+            REQUIRE_THAT( data[i * 3 + 0], WithinAbs( 0, 1e-12 ) );
+            REQUIRE_THAT( data[i * 3 + 1], WithinAbs( 0, 1e-12 ) );
+            REQUIRE_THAT( data[i * 3 + 2], WithinAbs( -1, 1e-12 ) );
         }
     }
 
@@ -181,9 +186,9 @@ TEST_CASE( "IO-CHAIN-READ", "[io-chain]" )
         data = System_Get_Spin_Directions( state.get() );
         for( int i = 0; i < nos; i++ )
         {
-            REQUIRE( data[i * 3] == Approx( 0 ) );
-            REQUIRE( data[i * 3 + 1] == Approx( 0 ) );
-            REQUIRE( data[i * 3 + 2] == Approx( -1 ) );
+            REQUIRE_THAT( data[i * 3 + 0], WithinAbs( 0, 1e-12 ) );
+            REQUIRE_THAT( data[i * 3 + 1], WithinAbs( 0, 1e-12 ) );
+            REQUIRE_THAT( data[i * 3 + 2], WithinAbs( -1, 1e-12 ) );
         }
 
         // Image 1 must have all the configurations at random orientation - we cannot test
@@ -193,9 +198,9 @@ TEST_CASE( "IO-CHAIN-READ", "[io-chain]" )
         data = System_Get_Spin_Directions( state.get() );
         for( int i = 0; i < nos; i++ )
         {
-            REQUIRE( data[i * 3] == Approx( 0 ) );
-            REQUIRE( data[i * 3 + 1] == Approx( 0 ) );
-            REQUIRE( data[i * 3 + 2] == Approx( 1 ) );
+            REQUIRE_THAT( data[i * 3 + 0], WithinAbs( 0, 1e-12 ) );
+            REQUIRE_THAT( data[i * 3 + 1], WithinAbs( 0, 1e-12 ) );
+            REQUIRE_THAT( data[i * 3 + 2], WithinAbs( 1, 1e-12 ) );
         }
 
         // Before testing the next filetype remove noi-1 images from the system
@@ -241,9 +246,9 @@ TEST_CASE( "IO-OVF-CAPITALIZATION", "[io-ovf]" )
 
     for( int i = 0; i < nos; i++ )
     {
-        REQUIRE( data[i * 3] == Approx( 0 ) );
-        REQUIRE( data[i * 3 + 1] == Approx( 0 ) );
-        REQUIRE( data[i * 3 + 2] == Approx( -1 ) );
+        REQUIRE_THAT( data[i * 3 + 0], WithinAbs( 0, 1e-12 ) );
+        REQUIRE_THAT( data[i * 3 + 1], WithinAbs( 0, 1e-12 ) );
+        REQUIRE_THAT( data[i * 3 + 2], WithinAbs( -1, 1e-12 ) );
     }
 }
 
@@ -304,9 +309,9 @@ TEST_CASE( "IO-READ-TXT-AND-CSV", "[io-txt-csv]" )
 
         for( int j = 0; j < nos; j++ )
         {
-            REQUIRE( data[j * 3] == Approx( 0 ) );
-            REQUIRE( data[j * 3 + 1] == Approx( 0 ) );
-            REQUIRE( data[j * 3 + 2] == Approx( -1 ) );
+            REQUIRE_THAT( data[i * 3 + 0], WithinAbs( 0, 1e-12 ) );
+            REQUIRE_THAT( data[i * 3 + 1], WithinAbs( 0, 1e-12 ) );
+            REQUIRE_THAT( data[i * 3 + 2], WithinAbs( -1, 1e-12 ) );
         }
     }
 
@@ -352,7 +357,7 @@ TEST_CASE( "IO-OVF-N_SEGMENTS", "[io-OVF-n_segments]" )
         file      = pair.first;
         noi_known = pair.second;
 
-        INFO( file )
+        INFO( file );
 
         noi_read = IO_N_Images_In_File( state.get(), file.c_str() );
 

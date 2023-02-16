@@ -15,8 +15,13 @@
 #include <iostream>
 #include <sstream>
 
+using Catch::Matchers::WithinAbs;
+
 TEST_CASE( "Larmor Precession", "[physics]" )
 {
+    Catch::StringMaker<float>::precision  = 12;
+    Catch::StringMaker<double>::precision = 12;
+
     // Input file
     auto inputfile = "core/test/input/physics_larmor.cfg";
 
@@ -73,8 +78,9 @@ TEST_CASE( "Larmor Precession", "[physics]" )
             scalar rxy_expected = std::sqrt( 1 - sz_expected * sz_expected );
             scalar sx_expected  = std::cos( phi_expected ) * rxy_expected;
 
-            REQUIRE( Approx( direction[0] ) == sx_expected );
-            REQUIRE( Approx( direction[2] ) == sz_expected );
+            // TODO: why is precision so low for Heun and SIB solvers? Other solvers manage ~1e-10
+            REQUIRE_THAT( direction[0], WithinAbs( sx_expected, 1e-6 ) );
+            REQUIRE_THAT( direction[2], WithinAbs( sz_expected, 1e-6 ) );
         }
 
         Simulation_Stop( state.get() );
@@ -83,6 +89,9 @@ TEST_CASE( "Larmor Precession", "[physics]" )
 
 TEST_CASE( "Finite Differences", "[physics]" )
 {
+    Catch::StringMaker<float>::precision  = 12;
+    Catch::StringMaker<double>::precision = 12;
+
     // Hamiltonians to be tested
     std::vector<const char *> hamiltonians{ "core/test/input/fd_pairs.cfg" };
     //"core/test/input/fd_neighbours",
@@ -134,6 +143,9 @@ TEST_CASE( "Finite Differences", "[physics]" )
 
 TEST_CASE( "Dipole-Dipole Interaction", "[physics]" )
 {
+    Catch::StringMaker<float>::precision  = 12;
+    Catch::StringMaker<double>::precision = 12;
+
     // cfg where only ddi is enabled
     auto state = std::shared_ptr<State>( State_Setup( "core/test/input/physics_ddi.cfg" ), State_Delete );
 
@@ -156,14 +168,14 @@ TEST_CASE( "Dipole-Dipole Interaction", "[physics]" )
     for( int i = 0; i < state->nos; i++ )
     {
         INFO( "Failed DDI-Gradient comparison at i = " << i );
-        INFO( "Gradient (FFT):" )
-        INFO( grad_fft[i] )
-        INFO( "Gradient (Direct):" )
-        INFO( grad_direct[i] )
+        INFO( "Gradient (FFT):" );
+        INFO( grad_fft[i] );
+        INFO( "Gradient (Direct):" );
+        INFO( grad_direct[i] );
         REQUIRE( grad_fft[i].isApprox( grad_direct[i] ) );
     }
-    INFO( "Failed energy comparison test!" )
+    INFO( "Failed energy comparison test!" );
     INFO( "Energy (Direct) = " << energy_direct << "\n" );
     INFO( "Energy (FFT)    = " << energy_fft << "\n" );
-    REQUIRE( Approx( energy_fft ) == energy_direct );
+    REQUIRE_THAT( energy_fft, WithinAbs( energy_direct, 1e-7 ) );
 }

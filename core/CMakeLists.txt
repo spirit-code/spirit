@@ -484,7 +484,7 @@ if( SPIRIT_BUILD_FOR_CXX OR SPIRIT_BUILD_FOR_JS )
             # Add the test
             add_test( NAME        ${testName}
                 WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
-                COMMAND           ${testName} --use-colour=yes )
+                COMMAND           ${testName} )
             # Add to list
             set( TEST_EXECUTABLES ${TEST_EXECUTABLES} ${testName} )
         endmacro( add_framework_test testName testSrc )

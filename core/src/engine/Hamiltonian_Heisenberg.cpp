@@ -810,7 +810,7 @@ void Hamiltonian_Heisenberg::Gradient_Cubic_Anisotropy( const vectorfield & spin
         {
             int ispin = icell * N + cubic_anisotropy_indices[iani];
             if( check_atom_type( this->geometry->atom_types[ispin] ) )
-                for ( int icomp = 0; icomp < 3; ++icomp)
+                for( int icomp = 0; icomp < 3; ++icomp )
                 {
                     gradient[ispin][icomp]
                         -= 2.0 * this->cubic_anisotropy_magnitudes[iani] * std::pow( spins[ispin][icomp], 3.0 );
@@ -952,10 +952,12 @@ void Hamiltonian_Heisenberg::Gradient_DDI_FFT( const vectorfield & spins, vector
                         // Look up at which position the correct D-matrices are saved
                         int & b_inter = inter_sublattice_lookup[i_b1 + i_b2 * geometry->n_cell_atoms];
 
-                        int idx_b2 = i_b2 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
-                        int idx_b1 = i_b1 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
-                        int idx_d  = b_inter * dipole_stride.basis + a * dipole_stride.a + b * dipole_stride.b
-                                + c * dipole_stride.c;
+                        int idx_b2
+                            = i_b2 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
+                        int idx_b1
+                            = i_b1 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
+                        int idx_d = b_inter * dipole_stride.basis + a * dipole_stride.a + b * dipole_stride.b
+                                    + c * dipole_stride.c;
 
                         auto & fs_x = ft_spins[idx_b2];
                         auto & fs_y = ft_spins[idx_b2 + 1 * spin_stride.comp];

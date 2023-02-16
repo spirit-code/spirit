@@ -11,7 +11,7 @@
 #include <Eigen/Dense>
 // #include <Eigen/Array>
 #include <Eigen/Eigenvalues>
-//#include <unsupported/Eigen/CXX11/Tensor>
+// #include <unsupported/Eigen/CXX11/Tensor>
 #include <GenEigsRealShiftSolver.h>
 #include <GenEigsSolver.h> // Also includes <MatOp/DenseGenMatProd.h>
 

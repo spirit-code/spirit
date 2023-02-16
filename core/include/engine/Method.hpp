@@ -159,7 +159,7 @@ public:
     long n_log;
 
     // History of relevant quantities
-    std::vector<int>    history_iteration;
+    std::vector<int> history_iteration;
     std::vector<scalar> history_max_torque;
     std::vector<scalar> history_energy;
 

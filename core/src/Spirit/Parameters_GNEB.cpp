@@ -285,7 +285,8 @@ catch( ... )
     spirit_handle_exception_api( -1, idx_chain );
 }
 
-void Parameters_GNEB_Set_Equilibrium_Delta_Rx( State * state, float delta_Rx_left, float delta_Rx_right, int idx_chain ) noexcept
+void Parameters_GNEB_Set_Equilibrium_Delta_Rx(
+    State * state, float delta_Rx_left, float delta_Rx_right, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -303,13 +304,15 @@ try
     chain->Unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
-         fmt::format( "Set equilibrium delta Rx for GNEB with moving endpoints. delta_Rx_left = {}, delta_Rx_right = {}", delta_Rx_left, delta_Rx_right ), idx_image, idx_chain );
+         fmt::format(
+             "Set equilibrium delta Rx for GNEB with moving endpoints. delta_Rx_left = {}, delta_Rx_right = {}",
+             delta_Rx_left, delta_Rx_right ),
+         idx_image, idx_chain );
 }
 catch( ... )
 {
     spirit_handle_exception_api( -1, idx_chain );
 }
-
 
 void Parameters_GNEB_Set_Climbing_Falling( State * state, int image_type, int idx_image, int idx_chain ) noexcept
 try
@@ -619,7 +622,8 @@ catch( ... )
     return 0;
 }
 
-void Parameters_GNEB_Get_Equilibrium_Delta_Rx( State * state, float * delta_Rx_left, float * delta_Rx_right, int idx_chain) noexcept
+void Parameters_GNEB_Get_Equilibrium_Delta_Rx(
+    State * state, float * delta_Rx_left, float * delta_Rx_right, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -629,9 +633,9 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
-    auto p = chain->gneb_parameters;
-    *delta_Rx_left = float(p->equilibrium_delta_Rx_left);
-    *delta_Rx_right = float(p->equilibrium_delta_Rx_right);
+    auto p          = chain->gneb_parameters;
+    *delta_Rx_left  = float( p->equilibrium_delta_Rx_left );
+    *delta_Rx_right = float( p->equilibrium_delta_Rx_right );
 }
 catch( ... )
 {

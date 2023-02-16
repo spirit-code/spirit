@@ -33,7 +33,7 @@ struct Parameters_Method_GNEB : Parameters_Method_Solver
     // Mersenne twister PRNG
     std::mt19937 prng = std::mt19937( rng_seed );
 
-    bool moving_endpoints = false;
+    bool moving_endpoints      = false;
     bool translating_endpoints = false;
 
     scalar equilibrium_delta_Rx_left  = 1.0;

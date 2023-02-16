@@ -20,15 +20,8 @@ else()
         MESSAGE( STATUS ">> User C compiler:           " ${USER_COMPILER_C} )
         MESSAGE( STATUS ">> User CXX compiler:         " ${USER_COMPILER_CXX} )
         MESSAGE( STATUS ">> User compiler path:        " ${USER_PATH_COMPILER} )
-        if (APPLE OR UNIX)
-            set(CMAKE_C_COMPILER   ${USER_PATH_COMPILER}/${USER_COMPILER_C})
-            set(CMAKE_CXX_COMPILER ${USER_PATH_COMPILER}/${USER_COMPILER_CXX})
-        elseif (WIN32)
-            ### By default we use VS
-            MESSAGE( STATUS ">> User compiler:             MSVC" )
-            MESSAGE( STATUS ">> Choosing a different compiler is not yet implemented for Windows" )
-        endif()
-        MESSAGE( STATUS ">> Letting CMake choose the compilers..." )
+        set(CMAKE_C_COMPILER   ${USER_PATH_COMPILER}/${USER_COMPILER_C})
+        set(CMAKE_CXX_COMPILER ${USER_PATH_COMPILER}/${USER_COMPILER_CXX})
     endif()
 ######################################################################
 

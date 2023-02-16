@@ -690,9 +690,9 @@ void saveTriplets( std::string fname, const SpMatrixX & matrix )
     std::ofstream file( fname );
     if( file && file.is_open() )
     {
-        for (int k=0; k < matrix.outerSize(); ++k)
+        for( int k = 0; k < matrix.outerSize(); ++k )
         {
-            for (SpMatrixX::InnerIterator it(matrix,k); it; ++it)
+            for( SpMatrixX::InnerIterator it( matrix, k ); it; ++it )
             {
                 file << it.row() << "\t"; // row index
                 file << it.col() << "\t"; // col index (here it is equal to k)
@@ -706,9 +706,8 @@ void saveTriplets( std::string fname, const SpMatrixX & matrix )
     }
 }
 
-
 void Hamiltonian_Write_Hessian(
-    State * state, const char * filename, bool triplet_format, int idx_image, int idx_chain) noexcept
+    State * state, const char * filename, bool triplet_format, int idx_image, int idx_chain ) noexcept
 {
     std::shared_ptr<Data::Spin_System> image;
     std::shared_ptr<Data::Spin_System_Chain> chain;
@@ -718,11 +717,11 @@ void Hamiltonian_Write_Hessian(
 
     // Compute hessian
     auto nos = image->geometry->nos;
-    SpMatrixX hessian(3*nos, 3*nos);
-    image->hamiltonian->Sparse_Hessian(*image->spins, hessian);
+    SpMatrixX hessian( 3 * nos, 3 * nos );
+    image->hamiltonian->Sparse_Hessian( *image->spins, hessian );
 
-    if (triplet_format)
-        saveTriplets(std::string(filename), hessian);
+    if( triplet_format )
+        saveTriplets( std::string( filename ), hessian );
     else
-        saveMatrix(std::string(filename), hessian);
+        saveMatrix( std::string( filename ), hessian );
 }

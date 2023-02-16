@@ -170,7 +170,7 @@ Writes the 3Nx3N embedding Hessian to a file.
 If triplet_format is set to true the hessian is written as a list of triplets, recommended for large and sparse Hessians.
 */
 PREFIX void Hamiltonian_Write_Hessian(
-    State * state, const char * filename, bool triplet_format = true, int idx_image = -1, int idx_chain = -1) SUFFIX;
+    State * state, const char * filename, bool triplet_format = true, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 #include "DLL_Undefine_Export.h"
 #endif
