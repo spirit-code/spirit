@@ -22,9 +22,17 @@ using Catch::Matchers::WithinAbs;
 
 // Reduce required precision if float accuracy
 #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
-constexpr double epsilon_apprx = 1e-11;
+constexpr float epsilon_2 = 1e-12;
+constexpr float epsilon_3 = 1e-12;
+constexpr float epsilon_4 = 1e-12;
+constexpr float epsilon_5 = 1e-6;
+constexpr float epsilon_6 = 1e-7;
 #else
-constexpr float epsilon_apprx = 1e-4;
+constexpr float epsilon_2 = 1e-2;
+constexpr float epsilon_3 = 1e-3;
+constexpr float epsilon_4 = 1e-4;
+constexpr float epsilon_5 = 1e-5;
+constexpr float epsilon_6 = 1e-6;
 #endif
 
 TEST_CASE( "Dynamics solvers should follow Larmor precession", "[physics]" )
@@ -58,7 +66,7 @@ TEST_CASE( "Dynamics solvers should follow Larmor precession", "[physics]" )
 
     // Get the magnitude of the magnetic field (it has only z-axis component)
     float B_mag{};
-    float normal[3]{0, 0, 1};
+    float normal[3]{ 0, 0, 1 };
     Hamiltonian_Get_Field( state.get(), &B_mag, normal );
 
     // Get time step of method
@@ -88,7 +96,7 @@ TEST_CASE( "Dynamics solvers should follow Larmor precession", "[physics]" )
             scalar sx_expected  = std::cos( phi_expected ) * rxy_expected;
 
             // TODO: why is precision so low for Heun and SIB solvers? Other solvers manage ~1e-10
-            REQUIRE_THAT( direction[0], WithinAbs( sx_expected, 1e-6 ) );
+            REQUIRE_THAT( direction[0], WithinAbs( sx_expected, epsilon_5 ) );
             REQUIRE_THAT( direction[2], WithinAbs( sz_expected, 1e-6 ) );
         }
 
@@ -120,10 +128,10 @@ TEST_CASE( "Finite difference and regular Hamiltonian should match", "[physics]"
         state->active_image->hamiltonian->Gradient( spins, grad );
         for( int i = 0; i < state->nos; i++ )
         {
-            INFO( "i = " << i << "\n" );
+            INFO( "i = " << i << ", epsilon = " << epsilon_2 << "\n" );
             INFO( "Gradient (FD) = " << grad_fd[i].transpose() << "\n" );
             INFO( "Gradient      = " << grad[i].transpose() << "\n" );
-            REQUIRE( grad_fd[i].isApprox( grad[i], epsilon_apprx ) );
+            REQUIRE( grad_fd[i].isApprox( grad[i], epsilon_2 ) );
         }
 
         // Compare Hessians
@@ -131,9 +139,10 @@ TEST_CASE( "Finite difference and regular Hamiltonian should match", "[physics]"
         auto hessian_fd = MatrixX( 3 * state->nos, 3 * state->nos );
         state->active_image->hamiltonian->Hessian_FD( spins, hessian_fd );
         state->active_image->hamiltonian->Hessian( spins, hessian );
-        INFO( "Hessian (FD) = " << hessian_fd << "\n" );
-        INFO( "Hessian      = " << hessian << "\n" );
-        REQUIRE( hessian_fd.isApprox( hessian, epsilon_apprx ) );
+        INFO( "epsilon = " << epsilon_3 << "\n" );
+        INFO( "Hessian (FD) =\n" << hessian_fd << "\n" );
+        INFO( "Hessian      =\n" << hessian << "\n" );
+        REQUIRE( hessian_fd.isApprox( hessian, epsilon_3 ) );
     }
 }
 
@@ -161,15 +170,16 @@ TEST_CASE( "Dipole-Dipole Interaction", "[physics]" )
     // Compare gradients
     for( int i = 0; i < state->nos; i++ )
     {
-        INFO( "Failed DDI-Gradient comparison at i = " << i );
-        INFO( "Gradient (FFT):\n" << grad_fft[i] );
-        INFO( "Gradient (Direct):\n" << grad_direct[i] );
-        REQUIRE( grad_fft[i].isApprox( grad_direct[i] ) );
+        INFO( "Failed DDI-Gradient comparison at i = " << i << ", epsilon = " << epsilon_4 << "\n" );
+        INFO( "Gradient (FFT)    = " << grad_fft[i].transpose() << "\n" );
+        INFO( "Gradient (Direct) = " << grad_direct[i].transpose() << "\n" );
+        REQUIRE( grad_fft[i].isApprox(
+            grad_direct[i], epsilon_4 ) ); // Seems this is a relative test, not an absolute error margin
     }
 
     // Compare energies
-    INFO( "Failed energy comparison test!" );
+    INFO( "Failed energy comparison test! epsilon = " << epsilon_6 );
     INFO( "Energy (Direct) = " << energy_direct << "\n" );
     INFO( "Energy (FFT)    = " << energy_fft << "\n" );
-    REQUIRE_THAT( energy_fft, WithinAbs( energy_direct, 1e-7 ) );
+    REQUIRE_THAT( energy_fft, WithinAbs( energy_direct, epsilon_6 ) );
 }

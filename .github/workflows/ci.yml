@@ -12,8 +12,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         build-type: [Release, Debug]
-        openmp: [false]
         name-suffix: [""]
+        openmp: [false]
+        single-precision: [false]
         include:
           - build-type: Debug
             excludetests: solver
@@ -27,6 +28,18 @@ jobs:
             build-type: Release
           - openmp: true
             name-suffix: "-openmp"
+            os: windows-latest
+            build-type: Release
+          - single-precision: true
+            name-suffix: "-single-precision"
+            os: ubuntu-latest
+            build-type: Release
+          - single-precision: true
+            name-suffix: "-single-precision"
+            os: macos-latest
+            build-type: Release
+          - single-precision: true
+            name-suffix: "-single-precision"
             os: windows-latest
             build-type: Release
     env:
@@ -64,13 +77,19 @@ jobs:
         "CMAKE_FLAGS=$env:CMAKE_FLAGS -G Ninja" >> $env:GITHUB_ENV
 
     - name: ⚙ Configure with OpenMP
-      if: matrix.openmp == true
+      if: matrix.openmp == true && matrix.single-precision == false
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DSPIRIT_USE_OPENMP=ON $CMAKE_FLAGS
 
+    - name: ⚙ Configure with single-precision
+      if: matrix.openmp == false && matrix.single-precision == true
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DSPIRIT_SCALAR_TYPE="float" $CMAKE_FLAGS
+
     - name: ⚙ Configure
-      if: matrix.openmp == false
+      if: matrix.openmp == false && matrix.single-precision == false
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS

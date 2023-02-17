@@ -11,6 +11,12 @@
 #include <catch.hpp>
 
 auto inputfile = "core/test/input/api.cfg";
+// Reduce required precision if float accuracy
+#ifdef SPIRIT_SCALAR_TYPE_DOUBLE
+constexpr double epsilon_rough = 1e-12;
+#else
+constexpr float epsilon_rough = 1e-6;
+#endif
 
 using Catch::Matchers::WithinAbs;
 
@@ -186,7 +192,7 @@ TEST_CASE( "Quantities", "[quantities]" )
             Configuration_PlusZ( state.get() );
             Configuration_Skyrmion( state.get(), 6.0, 1.0, -90.0, false, false, false );
             float charge = Quantity_Get_Topological_Charge( state.get() );
-            REQUIRE_THAT( charge, WithinAbs( -1, 1e-12 ) );
+            REQUIRE_THAT( charge, WithinAbs( -1, epsilon_rough ) );
         }
 
         SECTION( "positive charge" )
@@ -194,7 +200,7 @@ TEST_CASE( "Quantities", "[quantities]" )
             Configuration_MinusZ( state.get() );
             Configuration_Skyrmion( state.get(), 6.0, 1.0, -90.0, true, false, false );
             float charge = Quantity_Get_Topological_Charge( state.get() );
-            REQUIRE_THAT( charge, WithinAbs( 1, 1e-12 ) );
+            REQUIRE_THAT( charge, WithinAbs( 1, epsilon_rough ) );
         }
     }
 }

@@ -9,6 +9,17 @@
 
 using Catch::Matchers::WithinAbs;
 
+// Reduce required precision if float accuracy
+#ifdef SPIRIT_SCALAR_TYPE_DOUBLE
+constexpr double epsilon_close = 1e-12;
+constexpr double epsilon_apprx = 1e-11;
+constexpr double epsilon_rough = 1e-11;
+#else
+constexpr float epsilon_close = 1e-7;
+constexpr float epsilon_apprx = 1e-5;
+constexpr float epsilon_rough = 1e-2;
+#endif
+
 TEST_CASE( "Vectormath operations", "[vectormath]" )
 {
     int N       = 10000;
@@ -25,7 +36,7 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
         auto m = Engine::Vectormath::Magnetization( vf1, mu_s_field );
         REQUIRE_THAT( m[0], WithinAbs( 0, 1e-12 ) );
         REQUIRE_THAT( m[1], WithinAbs( 0, 1e-12 ) );
-        REQUIRE_THAT( m[2], WithinAbs( mu_s, 1e-12 ) );
+        REQUIRE_THAT( m[2], WithinAbs( mu_s, epsilon_rough ) );
     }
 
     SECTION( "Rotate" )
@@ -40,7 +51,7 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
 
         Engine::Vectormath::rotate( v1_in, v1_axis, angle, v1_out );
         for( unsigned int i = 0; i < 3; i++ )
-            REQUIRE_THAT( v1_out[i], WithinAbs( v1_exp[i], 1e-12 ) );
+            REQUIRE_THAT( v1_out[i], WithinAbs( v1_exp[i], epsilon_close ) );
 
         // zero rotation test
         Vector3 v2_out{ 0, 0, 0 };
@@ -301,16 +312,14 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
         intfield boundary_conditions = { 0, 0, 0 }; // Our test only works with open boundary conditions
         Engine::Vectormath::jacobian( vftest, test_geometry, boundary_conditions, jacobians );
 
-        double epsilon_apprx = 1e-11;
-
         for( int i = 0; i < test_geometry.nos; i++ )
         {
             auto j   = jacobians[i];
             auto j_e = expected_jacobians[i];
 
             INFO( "index " << i << "\n" );
-            INFO( "j.block( 0, 0, 3, 2 )   " << j.block( 0, 0, 3, 2 ) << "\n" );
-            INFO( "j_e.block( 0, 0, 3, 2 ) " << j_e.block( 0, 0, 3, 2 ) << "\n" );
+            INFO( "j.block( 0, 0, 3, 2 )\n" << j.block( 0, 0, 3, 2 ) << "\n" );
+            INFO( "j_e.block( 0, 0, 3, 2 )\n" << j_e.block( 0, 0, 3, 2 ) << "\n" );
 
             REQUIRE( j_e.block( 0, 0, 3, 2 ).isApprox( j.block( 0, 0, 3, 2 ), epsilon_apprx ) );
         }

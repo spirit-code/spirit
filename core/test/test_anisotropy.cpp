@@ -17,9 +17,9 @@ using Catch::Matchers::WithinAbs;
 
 // Reduce required precision if float accuracy
 #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
-constexpr double epsilon_apprx = 1e-11;
+constexpr double epsilon_rough = 1e-12;
 #else
-constexpr float epsilon_apprx = 1e-4;
+constexpr float epsilon_rough = 1e-1;
 #endif
 
 TEST_CASE( "Uniaxial nisotropy", "[anisotropy]" )
@@ -57,11 +57,12 @@ TEST_CASE( "Uniaxial nisotropy", "[anisotropy]" )
         for( auto & spin : spins )
             spin = { 0.0, 0.0, 1.0 };
         float energy_z = state->active_image->hamiltonian->Energy( spins );
-        REQUIRE_THAT( energy_x - energy_z, WithinAbs( init_magnitude * state->nos, 1e-12 ) );
+        REQUIRE_THAT( energy_x - energy_z, WithinAbs( init_magnitude * state->nos, epsilon_rough ) );
 
         // X and XY orientations energies should have equal energies
+        scalar sqrt2_2 = std::sqrt( 2 ) / 2;
         for( auto & spin : spins )
-            spin = { sqrt( 2 ) / 2, sqrt( 2 ) / 2, 0.0 };
+            spin = { sqrt2_2, sqrt2_2, 0.0 };
         float energy_xy = state->active_image->hamiltonian->Energy( spins );
         REQUIRE_THAT( energy_x - energy_xy, WithinAbs( 0, 1e-12 ) );
     }
@@ -73,7 +74,7 @@ TEST_CASE( "Uniaxial nisotropy", "[anisotropy]" )
         auto gradients = vectorfield( state->nos );
         state->active_image->hamiltonian->Gradient( spins, gradients );
 
-        Vector3 gradient_expected = { 0.0, 0.0, -2.0 * init_magnitude };
+        Vector3 gradient_expected{ 0.0, 0.0, scalar( -2.0 * init_magnitude ) };
         for( int idx = 0; idx < state->nos; idx++ )
         {
             INFO(
@@ -105,21 +106,22 @@ TEST_CASE( "Cubic anisotropy", "[anisotropy]" )
 
     SECTION( "Total energies for different orientations should match expected values" )
     {
+        scalar sqrt2_2 = std::sqrt( 2 ) / 2;
         for( auto & spin : spins )
-            spin = { sqrt( 2 ) / 2, sqrt( 2 ) / 2, 0.0 };
+            spin = { sqrt2_2, sqrt2_2, 0.0 };
         float energy_xy = state->active_image->hamiltonian->Energy( spins );
 
         // X and XY orientations energies should differ by NOS*init_magnitude/4
         for( auto & spin : spins )
             spin = { 1.0, 0.0, 0.0 };
         float energy_x = state->active_image->hamiltonian->Energy( spins );
-        REQUIRE_THAT( energy_x - energy_xy, WithinAbs( -init_magnitude / 4 * state->nos, 1e-12 ) );
+        REQUIRE_THAT( energy_x - energy_xy, WithinAbs( -init_magnitude / 4 * state->nos, epsilon_rough ) );
 
         // Y and XY orientations energies should differ by NOS*init_magnitude/4
         for( auto & spin : spins )
             spin = { 0.0, 1.0, 0.0 };
         float energy_y = state->active_image->hamiltonian->Energy( spins );
-        REQUIRE_THAT( energy_y - energy_xy, WithinAbs( -init_magnitude / 4 * state->nos, 1e-12 ) );
+        REQUIRE_THAT( energy_y - energy_xy, WithinAbs( -init_magnitude / 4 * state->nos, epsilon_rough ) );
 
         // Y and Z orientations should have equal energies
         for( auto & spin : spins )
@@ -135,7 +137,7 @@ TEST_CASE( "Cubic anisotropy", "[anisotropy]" )
         auto gradients = vectorfield( state->nos );
         state->active_image->hamiltonian->Gradient( spins, gradients );
 
-        Vector3 gradient_expected{ 0.0, 0.0, -2.0 * init_magnitude };
+        Vector3 gradient_expected{ 0.0, 0.0, scalar( -2.0 * init_magnitude ) };
 
         for( int idx = 0; idx < state->nos; idx++ )
         {

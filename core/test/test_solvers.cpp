@@ -20,8 +20,10 @@ using Catch::Matchers::WithinAbs;
 // Reduce required precision if float accuracy
 #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
 constexpr double epsilon_apprx = 1e-5;
+constexpr float epsilon_rough  = 1e-5;
 #else
-constexpr float epsilon_apprx = 5e-3;
+constexpr float epsilon_apprx = 1e-2;
+constexpr float epsilon_rough = 1e-1;
 #endif
 
 constexpr auto inputfile = "core/test/input/solvers.cfg";
@@ -59,12 +61,12 @@ TEST_CASE( "Solvers should find Skyrmion energy minimum with direct minimization
         Simulation_LLG_Start( state.get(), solver );
 
         // Check the values of energy and magnetization
-        scalar energy = System_Get_Energy( state.get() );
+        float energy = System_Get_Energy( state.get() );
         std::vector<float> magnetization{ 0, 0, 0 };
         Quantity_Get_Magnetization( state.get(), magnetization.data() );
-        REQUIRE_THAT( energy, WithinAbs( energy_expected, epsilon_apprx ) );
+        REQUIRE_THAT( energy, WithinAbs( energy_expected, epsilon_rough ) );
         for( int dim = 0; dim < 3; dim++ )
-            REQUIRE_THAT( magnetization[dim], WithinAbs( magnetization_expected[dim], epsilon_apprx ) );
+            REQUIRE_THAT( magnetization[dim], WithinAbs( magnetization_expected[dim], epsilon_rough ) );
     }
 }
 
@@ -84,7 +86,8 @@ TEST_CASE( "Solvers should find Skyrmion collapse barrier with GNEB method", "[s
     // Reduce convergence threshold if float accuracy
     if( std::string( Spirit_Scalar_Type() ) == "float" )
     {
-        WARN( "Detected single precision calculation. Reducing GNEB convergence threshold to 1e-4" );
+        WARN( "Detected single precision calculation. Reducing LLG convergence threshold to 1e-5 and GNEB to 1e-4" );
+        Parameters_LLG_Set_Convergence( state.get(), 1e-5 );
         Parameters_GNEB_Set_Convergence( state.get(), 1e-4 );
     }
 
@@ -112,7 +115,7 @@ TEST_CASE( "Solvers should find Skyrmion collapse barrier with GNEB method", "[s
         Transition_Homogeneous( state.get(), 0, NOI - 1 );
 
         // Perform simulation until convergence
-        Simulation_GNEB_Start( state.get(), solver, 2e4 );
+        Simulation_GNEB_Start( state.get(), solver, 20'000 );
         Parameters_GNEB_Set_Image_Type_Automatically( state.get() );
         Simulation_GNEB_Start( state.get(), solver );
 
@@ -136,17 +139,4 @@ TEST_CASE( "Solvers should find Skyrmion collapse barrier with GNEB method", "[s
         for( int dim = 0; dim < 3; dim++ )
             REQUIRE_THAT( magnetization_sp[dim], WithinAbs( magnetization_sp_expected[dim], epsilon_apprx ) );
     }
-
-    // -------------------------------------------------------------------------------
-    // Solvers should find Skyrmion collapse barrier with GNEB method
-    // -------------------------------------------------------------------------------
-    // /home/runner/work/spirit/spirit/core/test/test_solvers.cpp:71
-    // ...............................................................................
-
-    // /home/runner/work/spirit/spirit/core/test/test_solvers.cpp:127: FAILED:
-    //   REQUIRE_THAT( energy_sp, WithinAbs( energy_sp_expected, epsilon_apprx ) )
-    // with expansion:
-    //   -11.534090042114f is within 0.00001 of -5811.5244140625
-    // with message:
-    //   GNEB using 6 solver
 }
