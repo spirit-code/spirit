@@ -2,8 +2,8 @@
 #ifndef Method_CORE_ENGINE_Solver_HPP
 #define Method_CORE_ENGINE_Solver_HPP
 
-#include "Spirit_Defines.h"
 #include <Spirit/Simulation.h>
+#include <Spirit/Spirit_Defines.h>
 #include <data/Parameters_Method.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <engine/Manifoldmath.hpp>

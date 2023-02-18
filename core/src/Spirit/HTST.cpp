@@ -6,7 +6,7 @@
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 
-float HTST_Calculate(
+scalar HTST_Calculate(
     State * state, int idx_image_minimum, int idx_image_sp, int n_eigenmodes_keep, bool sparse, int idx_chain )
 try
 {
@@ -26,7 +26,7 @@ try
         Engine::Sparse_HTST::Calculate( chain->htst_info );
 #endif
 
-    return (float)info.prefactor;
+    return info.prefactor;
 }
 catch( ... )
 {
@@ -35,8 +35,9 @@ catch( ... )
 }
 
 void HTST_Get_Info(
-    State * state, float * temperature_exponent, float * me, float * Omega_0, float * s, float * volume_min,
-    float * volume_sp, float * prefactor_dynamical, float * prefactor, int * n_eigenmodes_keep, int idx_chain ) noexcept
+    State * state, scalar * temperature_exponent, scalar * me, scalar * Omega_0, scalar * s, scalar * volume_min,
+    scalar * volume_sp, scalar * prefactor_dynamical, scalar * prefactor, int * n_eigenmodes_keep,
+    int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -78,7 +79,7 @@ catch( ... )
     spirit_handle_exception_api( -1, idx_chain );
 }
 
-void HTST_Get_Eigenvalues_Min( State * state, float * eigenvalues_min, int idx_chain ) noexcept
+void HTST_Get_Eigenvalues_Min( State * state, scalar * eigenvalues_min, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -105,7 +106,7 @@ catch( ... )
     spirit_handle_exception_api( -1, idx_chain );
 }
 
-void HTST_Get_Eigenvectors_Min( State * state, float * eigenvectors_min, int idx_chain ) noexcept
+void HTST_Get_Eigenvectors_Min( State * state, scalar * eigenvectors_min, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -132,7 +133,7 @@ catch( ... )
     spirit_handle_exception_api( -1, idx_chain );
 }
 
-void HTST_Get_Eigenvalues_SP( State * state, float * eigenvalues_sp, int idx_chain ) noexcept
+void HTST_Get_Eigenvalues_SP( State * state, scalar * eigenvalues_sp, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -160,7 +161,7 @@ catch( ... )
     spirit_handle_exception_api( -1, idx_chain );
 }
 
-void HTST_Get_Eigenvectors_SP( State * state, float * eigenvectors_sp, int idx_chain ) noexcept
+void HTST_Get_Eigenvectors_SP( State * state, scalar * eigenvectors_sp, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -187,7 +188,7 @@ catch( ... )
     spirit_handle_exception_api( -1, idx_chain );
 }
 
-void HTST_Get_Velocities( State * state, float * velocities, int idx_chain ) noexcept
+void HTST_Get_Velocities( State * state, scalar * velocities, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;

@@ -13,7 +13,7 @@ spirit.wasm
 ### Generated Files
 VERSION.txt
 python/LICENSE.txt
-include/Spirit_Defines.h
+include/Spirit/Spirit_Defines.h
 include/utility/Version.hpp
 python/spirit/__init__.py
 python/test/io_test_files/*

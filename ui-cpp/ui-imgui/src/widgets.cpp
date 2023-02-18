@@ -871,6 +871,32 @@ bool RangeSliderFloat(
     return value_changed;
 }
 
+// ~95% common code with ImGui::InputFloat
+bool InputScalar(
+    const char * label, scalar * v, scalar step, scalar step_fast, const char * format, ImGuiInputTextFlags flags )
+{
+#ifdef SPIRIT_SCALAR_TYPE_DOUBLE
+    constexpr auto data_type = ImGuiDataType_Double;
+#else
+    constexpr auto data_type = ImGuiDataType_Float;
+#endif
+    flags |= ImGuiInputTextFlags_CharsScientific;
+    return ImGui::InputScalar(
+        label, data_type, (void *)v, (void *)( step > 0.0f ? &step : NULL ),
+        (void *)( step_fast > 0.0f ? &step_fast : NULL ), format, flags );
+}
+
+// ~95% common code with ImGui::InputFloat3
+bool InputScalar3( const char * label, scalar v[3], const char * format, ImGuiInputTextFlags flags )
+{
+#ifdef SPIRIT_SCALAR_TYPE_DOUBLE
+    constexpr auto data_type = ImGuiDataType_Double;
+#else
+    constexpr auto data_type = ImGuiDataType_Float;
+#endif
+    return ImGui::InputScalarN( label, data_type, v, 3, NULL, NULL, format, flags );
+}
+
 } // namespace widgets
 
 template<typename TYPE>

@@ -22,6 +22,8 @@ public:
         size_max = { 800, 999999 };
     };
 
+    virtual ~WidgetBase() = default;
+
     bool & show_;
     bool dragging = false; // Is the window being dragged?
     bool docked   = false; // Is the window docked to another window?

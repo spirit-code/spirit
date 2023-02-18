@@ -13,9 +13,9 @@
 auto inputfile = "core/test/input/api.cfg";
 // Reduce required precision if float accuracy
 #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
-constexpr double epsilon_rough = 1e-12;
+constexpr scalar epsilon_rough = 1e-12;
 #else
-constexpr float epsilon_rough = 1e-6;
+constexpr scalar epsilon_rough = 1e-6;
 #endif
 
 using Catch::Matchers::WithinAbs;
@@ -83,15 +83,15 @@ TEST_CASE( "Configurations", "[configurations]" )
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
 
     // Filters
-    float position[3]{ 0, 0, 0 };
-    float r_cut_rectangular[3]{ -1, -1, -1 };
-    float r_cut_cylindrical = -1;
-    float r_cut_spherical   = -1;
-    bool inverted           = false;
+    scalar position[3]{ 0, 0, 0 };
+    scalar r_cut_rectangular[3]{ -1, -1, -1 };
+    scalar r_cut_cylindrical = -1;
+    scalar r_cut_spherical   = -1;
+    bool inverted            = false;
 
     SECTION( "Domain" )
     {
-        float dir[3] = { 0, 0, 1 };
+        scalar dir[3] = { 0, 0, 1 };
         Configuration_PlusZ( state.get(), position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
         // TODO: actual test
 
@@ -104,7 +104,7 @@ TEST_CASE( "Configurations", "[configurations]" )
     }
     SECTION( "Random" )
     {
-        float temperature = 5;
+        scalar temperature = 5;
         Configuration_Add_Noise_Temperature(
             state.get(), temperature, position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
         // TODO: actual test
@@ -114,9 +114,9 @@ TEST_CASE( "Configurations", "[configurations]" )
     }
     SECTION( "Skyrmion" )
     {
-        float r     = 5;
-        int order   = 1;
-        float phase = 0;
+        scalar r     = 5;
+        int order    = 1;
+        scalar phase = 0;
         bool updown = false, achiral = false, rl = false;
         Configuration_Skyrmion(
             state.get(), r, order, phase, updown, achiral, rl, position, r_cut_rectangular, r_cut_cylindrical,
@@ -135,9 +135,9 @@ TEST_CASE( "Configurations", "[configurations]" )
     }
     SECTION( "Hopfion" )
     {
-        float r         = 5;
-        int order       = 1;
-        float normal[3] = { 0, 0, 1 };
+        scalar r         = 5;
+        int order        = 1;
+        scalar normal[3] = { 0, 0, 1 };
         Configuration_Hopfion(
             state.get(), r, order, position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted, normal );
         // TODO: actual test
@@ -145,7 +145,7 @@ TEST_CASE( "Configurations", "[configurations]" )
     SECTION( "Spin Spiral" )
     {
         auto dir_type = "real lattice";
-        float q[3]{ 0, 0, 0.1 }, axis[3]{ 0, 0, 1 }, theta{ 30 };
+        scalar q[3]{ 0, 0, 0.1 }, axis[3]{ 0, 0, 1 }, theta{ 30 };
         Configuration_SpinSpiral(
             state.get(), dir_type, q, axis, theta, position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical,
             inverted );
@@ -157,12 +157,12 @@ TEST_CASE( "Quantities", "[quantities]" )
 {
     SECTION( "Magnetization" )
     {
-        auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
-        float m[3] = { 0, 0, 1 };
+        auto state  = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
+        scalar m[3] = { 0, 0, 1 };
 
         SECTION( "001" )
         {
-            float dir[3] = { 0, 0, 1 };
+            scalar dir[3] = { 0, 0, 1 };
 
             Configuration_Domain( state.get(), dir );
             Quantity_Get_Magnetization( state.get(), m );
@@ -173,7 +173,7 @@ TEST_CASE( "Quantities", "[quantities]" )
         }
         SECTION( "011" )
         {
-            float dir[3] = { 0, 0, 1 };
+            scalar dir[3] = { 0, 0, 1 };
 
             Configuration_Domain( state.get(), dir );
             Quantity_Get_Magnetization( state.get(), m );
@@ -191,7 +191,7 @@ TEST_CASE( "Quantities", "[quantities]" )
         {
             Configuration_PlusZ( state.get() );
             Configuration_Skyrmion( state.get(), 6.0, 1.0, -90.0, false, false, false );
-            float charge = Quantity_Get_Topological_Charge( state.get() );
+            scalar charge = Quantity_Get_Topological_Charge( state.get() );
             REQUIRE_THAT( charge, WithinAbs( -1, epsilon_rough ) );
         }
 
@@ -199,7 +199,7 @@ TEST_CASE( "Quantities", "[quantities]" )
         {
             Configuration_MinusZ( state.get() );
             Configuration_Skyrmion( state.get(), 6.0, 1.0, -90.0, true, false, false );
-            float charge = Quantity_Get_Topological_Charge( state.get() );
+            scalar charge = Quantity_Get_Topological_Charge( state.get() );
             REQUIRE_THAT( charge, WithinAbs( 1, epsilon_rough ) );
         }
     }

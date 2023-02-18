@@ -1,4 +1,4 @@
-#include <Spirit_Defines.h>
+#include <Spirit/Spirit_Defines.h>
 #include <engine/Eigenmodes.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <engine/Method_MMF.hpp>
@@ -8,12 +8,11 @@
 #include <utility/Logging.hpp>
 #include <utility/Version.hpp>
 
-#include <cstring>
-
+#include <fmt/format.h>
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
 
-#include <fmt/format.h>
+#include <cstring>
 
 using Utility::Log_Level;
 using Utility::Log_Sender;

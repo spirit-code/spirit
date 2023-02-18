@@ -1,4 +1,5 @@
 #include <parameters_widget.hpp>
+#include <widgets.hpp>
 
 #include <Spirit/Chain.h>
 #include <Spirit/Parameters_EMA.h>
@@ -147,7 +148,7 @@ void ParametersWidget::show_content()
         ImGui::TextUnformatted( "Convergence limit" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 80 );
-        if( ImGui::InputFloat(
+        if( widgets::InputScalar(
                 "##llg_convergence_limit", &parameters_llg.force_convergence, 0, 0, "%.3e",
                 ImGuiInputTextFlags_EnterReturnsTrue ) )
         {
@@ -157,14 +158,14 @@ void ParametersWidget::show_content()
         ImGui::TextUnformatted( "dt" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 80 );
-        if( ImGui::InputFloat(
+        if( widgets::InputScalar(
                 "[ps]##llg_dt", &parameters_llg.dt, 0, 0, "%.3e", ImGuiInputTextFlags_EnterReturnsTrue ) )
             Parameters_LLG_Set_Time_Step( state.get(), parameters_llg.dt );
 
         ImGui::TextUnformatted( "Damping" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 80 );
-        if( ImGui::InputFloat(
+        if( widgets::InputScalar(
                 "##llg_damping", &parameters_llg.damping, 0, 0, "%.3e", ImGuiInputTextFlags_EnterReturnsTrue ) )
             Parameters_LLG_Set_Damping( state.get(), parameters_llg.damping );
 
@@ -175,14 +176,14 @@ void ParametersWidget::show_content()
         ImGui::TextUnformatted( "Base" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 80 );
-        if( ImGui::InputFloat(
+        if( widgets::InputScalar(
                 "[K]##llg_temperature", &parameters_llg.temperature, 0, 0, "%.5f",
                 ImGuiInputTextFlags_EnterReturnsTrue ) )
             Parameters_LLG_Set_Temperature( state.get(), parameters_llg.temperature );
         ImGui::TextUnformatted( "Gradient direction" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 180 );
-        if( ImGui::InputFloat3(
+        if( widgets::InputScalar3(
                 "##llg_temperature_gradient_dir", parameters_llg.temperature_gradient_direction, "%.2f",
                 ImGuiInputTextFlags_EnterReturnsTrue ) )
             Parameters_LLG_Set_Temperature_Gradient(
@@ -191,7 +192,7 @@ void ParametersWidget::show_content()
         ImGui::TextUnformatted( "Gradient inclination" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 80 );
-        if( ImGui::InputFloat(
+        if( widgets::InputScalar(
                 "[K]##llg_temperature_gradient_inclination", &parameters_llg.temperature_gradient_inclination, 0, 0,
                 "%.3e", ImGuiInputTextFlags_EnterReturnsTrue ) )
             Parameters_LLG_Set_Temperature_Gradient(
@@ -216,7 +217,7 @@ void ParametersWidget::show_content()
         ImGui::TextUnformatted( "Magnitude" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 80 );
-        if( ImGui::InputFloat(
+        if( widgets::InputScalar(
                 "##llg_stt_magnitude", &parameters_llg.stt_magnitude, 0, 0, "%.5f",
                 ImGuiInputTextFlags_EnterReturnsTrue ) )
             Parameters_LLG_Set_STT(
@@ -225,7 +226,7 @@ void ParametersWidget::show_content()
         ImGui::TextUnformatted( "Polarisation" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 180 );
-        if( ImGui::InputFloat3(
+        if( widgets::InputScalar3(
                 "##llg_stt_polarisation_normal", parameters_llg.stt_polarisation_normal, "%.2f",
                 ImGuiInputTextFlags_EnterReturnsTrue ) )
             Parameters_LLG_Set_STT(
@@ -354,7 +355,7 @@ void ParametersWidget::show_content()
         ImGui::TextUnformatted( "Base" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 80 );
-        if( ImGui::InputFloat(
+        if( widgets::InputScalar(
                 "[K]##mc_temperature", &parameters_mc.temperature, 0, 0, "%.5f",
                 ImGuiInputTextFlags_EnterReturnsTrue ) )
             Parameters_MC_Set_Temperature( state.get(), parameters_mc.temperature );
@@ -377,7 +378,7 @@ void ParametersWidget::show_content()
         ImGui::TextUnformatted( "cone angle" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 100 );
-        if( ImGui::InputFloat(
+        if( widgets::InputScalar(
                 "[deg]##mc_cone_angle", &parameters_mc.metropolis_cone_angle, 0, 0, "%.5f",
                 ImGuiInputTextFlags_EnterReturnsTrue ) )
             Parameters_MC_Set_Metropolis_Cone(
@@ -386,7 +387,7 @@ void ParametersWidget::show_content()
         ImGui::TextUnformatted( "target acceptance ratio" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 100 );
-        if( ImGui::InputFloat(
+        if( widgets::InputScalar(
                 "##mc_acceptance_ratio_target", &parameters_mc.acceptance_ratio_target, 0, 0, "%.5f",
                 ImGuiInputTextFlags_EnterReturnsTrue ) )
             Parameters_MC_Set_Metropolis_Cone(
@@ -499,7 +500,7 @@ void ParametersWidget::show_content()
         ImGui::TextUnformatted( "Convergence limit" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 80 );
-        if( ImGui::InputFloat(
+        if( widgets::InputScalar(
                 "##gneb_convergence_limit", &parameters_gneb.force_convergence, 0, 0, "%.3e",
                 ImGuiInputTextFlags_EnterReturnsTrue ) )
         {
@@ -523,7 +524,7 @@ void ParametersWidget::show_content()
         ImGui::TextUnformatted( "Spring constant" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 80 );
-        if( ImGui::InputFloat(
+        if( widgets::InputScalar(
                 "##gneb_spring_constant", &parameters_gneb.spring_constant, 0, 0, "%.3e",
                 ImGuiInputTextFlags_EnterReturnsTrue ) )
         {
@@ -534,7 +535,7 @@ void ParametersWidget::show_content()
         ImGui::TextUnformatted( "Spring/Energy ratio" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 80 );
-        if( ImGui::InputFloat(
+        if( widgets::InputScalar(
                 "##gneb_spring_energy_ratio", &parameters_gneb.spring_force_ratio, 0, 0, "%.2f",
                 ImGuiInputTextFlags_EnterReturnsTrue ) )
         {
@@ -544,7 +545,7 @@ void ParametersWidget::show_content()
         ImGui::TextUnformatted( "Path shortening constant" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 80 );
-        if( ImGui::InputFloat(
+        if( widgets::InputScalar(
                 "##gneb_path_shortening", &parameters_gneb.path_shortening_constant, 0, 0, "%.3e",
                 ImGuiInputTextFlags_EnterReturnsTrue ) )
         {
@@ -571,7 +572,7 @@ void ParametersWidget::show_content()
         ImGui::TableSetColumnIndex( 0 );
         ImGui::TextUnformatted( "Delta Rx left" );
         ImGui::TableNextColumn();
-        if( ImGui::InputFloat( "##gneb_delta_Rx_left", &parameters_gneb.delta_Rx_left ) )
+        if( widgets::InputScalar( "##gneb_delta_Rx_left", &parameters_gneb.delta_Rx_left ) )
         {
             Parameters_GNEB_Set_Equilibrium_Delta_Rx(
                 state.get(), parameters_gneb.delta_Rx_left, parameters_gneb.delta_Rx_right );
@@ -579,7 +580,7 @@ void ParametersWidget::show_content()
         ImGui::TableNextColumn();
         ImGui::TextUnformatted( "Delta Rx right" );
         ImGui::TableNextColumn();
-        if( ImGui::InputFloat( "##gneb_delta_Rx_right", &parameters_gneb.delta_Rx_right ) )
+        if( widgets::InputScalar( "##gneb_delta_Rx_right", &parameters_gneb.delta_Rx_right ) )
         {
             Parameters_GNEB_Set_Equilibrium_Delta_Rx(
                 state.get(), parameters_gneb.delta_Rx_left, parameters_gneb.delta_Rx_right );
@@ -726,14 +727,14 @@ void ParametersWidget::show_content()
         ImGui::TextUnformatted( "Frequency" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 80 );
-        if( ImGui::InputFloat(
+        if( widgets::InputScalar(
                 "##ema_frequency", &parameters_ema.frequency, 0, 0, "%.3e", ImGuiInputTextFlags_EnterReturnsTrue ) )
             Parameters_EMA_Set_Frequency( state.get(), parameters_ema.frequency );
 
         ImGui::TextUnformatted( "Amplitude" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 80 );
-        if( ImGui::InputFloat(
+        if( widgets::InputScalar(
                 "##ema_amplitude", &parameters_ema.amplitude, 0, 0, "%.3e", ImGuiInputTextFlags_EnterReturnsTrue ) )
             Parameters_EMA_Set_Amplitude( state.get(), parameters_ema.amplitude );
 

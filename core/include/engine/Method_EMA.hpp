@@ -2,7 +2,7 @@
 #ifndef SPIRIT_CORE_ENGINE_METHOD_EMA_HPP
 #define SPIRIT_CORE_ENGINE_METHOD_EMA_HPP
 
-#include "Spirit_Defines.h"
+#include <Spirit/Spirit_Defines.h>
 #include <engine/Method.hpp>
 
 #include <data/Parameters_Method_EMA.hpp>

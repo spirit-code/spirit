@@ -2,15 +2,15 @@
 #ifndef SPIRIT_CORE_ENGINE_HAMILTONIAN_HEISENBERG_HPP
 #define SPIRIT_CORE_ENGINE_HAMILTONIAN_HEISENBERG_HPP
 
-#include <memory>
-#include <vector>
-
-#include "FFT.hpp"
-#include "Spirit_Defines.h"
 #include <Spirit/Hamiltonian.h>
+#include <Spirit/Spirit_Defines.h>
 #include <data/Geometry.hpp>
+#include <engine/FFT.hpp>
 #include <engine/Hamiltonian.hpp>
 #include <engine/Vectormath_Defines.hpp>
+
+#include <memory>
+#include <vector>
 
 namespace Engine
 {

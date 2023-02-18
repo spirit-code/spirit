@@ -19,6 +19,7 @@ Testing/*
 !output/.gitkeep
 
 ### Output Logs ###
+spirit_settings.json
 Log.txt
 Log_*
 */Log_*

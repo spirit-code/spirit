@@ -3,9 +3,9 @@
 #define SPIRIT_CORE_VERSION_H
 #include "DLL_Define_Export.h"
 
-PREFIX const int Spirit_Version_Major() SUFFIX;
-PREFIX const int Spirit_Version_Minor() SUFFIX;
-PREFIX const int Spirit_Version_Patch() SUFFIX;
+PREFIX int Spirit_Version_Major() SUFFIX;
+PREFIX int Spirit_Version_Minor() SUFFIX;
+PREFIX int Spirit_Version_Patch() SUFFIX;
 
 PREFIX const char * Spirit_Version() SUFFIX;
 PREFIX const char * Spirit_Version_Revision() SUFFIX;

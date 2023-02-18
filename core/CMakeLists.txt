@@ -175,7 +175,7 @@ if( SPIRIT_USE_THREADS )
     find_package( Threads REQUIRED )
     set( THREAD_LIBS Threads::Threads )
 endif()
-configure_file( ${CMAKE_CURRENT_LIST_DIR}/CMake/Spirit_Defines.h.in   ${CMAKE_CURRENT_LIST_DIR}/include/Spirit_Defines.h )
+configure_file( ${CMAKE_CURRENT_LIST_DIR}/CMake/Spirit_Defines.h.in   ${CMAKE_CURRENT_LIST_DIR}/include/Spirit/Spirit_Defines.h )
 ####################################################################
 
 
@@ -282,7 +282,6 @@ add_subdirectory( ${PROJECT_SOURCE_DIR}/thirdparty/ovf )
 
 ######### Gather headers and sources ###############################
 ### Header Gropus
-set( HEADER_SPIRIT_ROOT )
 set( HEADER_SPIRIT_API )
 set( HEADER_SPIRIT_DATA )
 set( HEADER_SPIRIT_ENGINE )
@@ -303,7 +302,6 @@ add_subdirectory( ${CMAKE_CURRENT_LIST_DIR}/include )
 
 ############ Create object library #################################
 add_library( ${META_PROJECT_NAME} OBJECT
-    ${HEADER_SPIRIT_ROOT}
     ${HEADER_SPIRIT_DATA}
     ${HEADER_SPIRIT_ENGINE}
     ${HEADER_SPIRIT}
@@ -643,7 +641,6 @@ endif()
 
 ######### IDE Folders ##############################################
 ### Folder include
-source_group( "include"          FILES ${HEADER_SPIRIT_ROOT} )
 source_group( "include\\data"    FILES ${HEADER_SPIRIT_DATA} )
 source_group( "include\\engine"  FILES ${HEADER_SPIRIT_ENGINE} )
 source_group( "include\\io"      FILES ${HEADER_SPIRIT_IO} )
@@ -725,7 +722,7 @@ set( META_VERSION_REVISION    ${META_VERSION_REVISION}    PARENT_SCOPE )
 
 
 if( SPIRIT_PRINT_SOURCES )
-    MESSAGE( STATUS ">> Headers:                    ${HEADER_SPIRIT_ROOT} ${HEADER_SPIRIT_DATA} ${HEADER_SPIRIT_ENGINE} ${HEADER_SPIRIT} ${HEADER_SPIRIT_UTILITY}" )
+    MESSAGE( STATUS ">> Headers:                    ${HEADER_SPIRIT_DATA} ${HEADER_SPIRIT_ENGINE} ${HEADER_SPIRIT} ${HEADER_SPIRIT_UTILITY}" )
     MESSAGE( STATUS ">> Sources:                    ${SOURCE_SPIRIT_ROOT} ${SOURCE_SPIRIT_DATA} ${SOURCE_SPIRIT_ENGINE} ${SOURCE_SPIRIT} ${SOURCE_SPIRIT_UTILITY}" )
 endif()
 MESSAGE( STATUS ">> --------------------- Spirit done ---------------------------------- <<" )

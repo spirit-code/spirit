@@ -2,6 +2,7 @@
 #ifndef SPIRIT_CORE_PARAMETERS_LLG_H
 #define SPIRIT_CORE_PARAMETERS_LLG_H
 #include "IO.h"
+#include "Spirit_Defines.h"
 
 #include "DLL_Define_Export.h"
 
@@ -91,17 +92,17 @@ When the maximum absolute component value of the force drops below this value,
 the calculation is considered converged and will stop.
 */
 PREFIX void
-Parameters_LLG_Set_Convergence( State * state, float convergence, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+Parameters_LLG_Set_Convergence( State * state, scalar convergence, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Set the time step [ps] for the calculation.
-PREFIX void Parameters_LLG_Set_Time_Step( State * state, float dt, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+PREFIX void Parameters_LLG_Set_Time_Step( State * state, scalar dt, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Set the Gilbert damping parameter [unitless].
-PREFIX void Parameters_LLG_Set_Damping( State * state, float damping, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+PREFIX void Parameters_LLG_Set_Damping( State * state, scalar damping, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Set the non-adiabatic damping parameter beta [unitless].
 PREFIX void
-Parameters_LLG_Set_Non_Adiabatic_Damping( State * state, float beta, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+Parameters_LLG_Set_Non_Adiabatic_Damping( State * state, scalar beta, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
 Set the spin current configuration.
@@ -111,11 +112,11 @@ Set the spin current configuration.
 - direction: current direction or polarisation direction, array of shape (3)
 */
 PREFIX void Parameters_LLG_Set_STT(
-    State * state, bool use_gradient, float magnitude, const float normal[3], int idx_image = -1,
+    State * state, bool use_gradient, scalar magnitude, const scalar normal[3], int idx_image = -1,
     int idx_chain = -1 ) SUFFIX;
 
 // Set the (homogeneous) base temperature [K].
-PREFIX void Parameters_LLG_Set_Temperature( State * state, float T, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+PREFIX void Parameters_LLG_Set_Temperature( State * state, scalar T, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
 Set an additional temperature gradient.
@@ -124,7 +125,7 @@ Set an additional temperature gradient.
 - gradient_direction: direction of the temperature gradient, array of shape (3)
 */
 PREFIX void Parameters_LLG_Set_Temperature_Gradient(
-    State * state, float inclination, const float direction[3], int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+    State * state, scalar inclination, const scalar direction[3], int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
 Get Output
@@ -164,19 +165,19 @@ Get Parameters
 PREFIX bool Parameters_LLG_Get_Direct_Minimization( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Returns the convergence value.
-PREFIX float Parameters_LLG_Get_Convergence( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+PREFIX scalar Parameters_LLG_Get_Convergence( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Returns the time step [ps].
-PREFIX float Parameters_LLG_Get_Time_Step( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+PREFIX scalar Parameters_LLG_Get_Time_Step( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Returns the Gilbert damping parameter.
-PREFIX float Parameters_LLG_Get_Damping( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+PREFIX scalar Parameters_LLG_Get_Damping( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Returns the non-adiabatic damping parameter.
-PREFIX float Parameters_LLG_Get_Non_Adiabatic_Damping( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+PREFIX scalar Parameters_LLG_Get_Non_Adiabatic_Damping( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Returns the global base temperature [K].
-PREFIX float Parameters_LLG_Get_Temperature( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+PREFIX scalar Parameters_LLG_Get_Temperature( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
 Retrieves the temperature gradient.
@@ -185,7 +186,7 @@ Retrieves the temperature gradient.
 - direction of the temperature gradient, array of shape (3)
 */
 PREFIX void Parameters_LLG_Get_Temperature_Gradient(
-    State * state, float * inclination, float direction[3], int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+    State * state, scalar * inclination, scalar direction[3], int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
 Returns the spin current configuration.
@@ -195,7 +196,7 @@ Returns the spin current configuration.
 - whether the spatial gradient is used
 */
 PREFIX void Parameters_LLG_Get_STT(
-    State * state, bool * use_gradient, float * magnitude, float normal[3], int idx_image = -1,
+    State * state, bool * use_gradient, scalar * magnitude, scalar normal[3], int idx_image = -1,
     int idx_chain = -1 ) SUFFIX;
 
 #include "DLL_Undefine_Export.h"

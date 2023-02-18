@@ -77,7 +77,7 @@ void Transition_Homogeneous_Insert_Interpolated( State * state, int n_interpolat
     Chain_Update_Data( state );
 }
 
-void Transition_Add_Noise_Temperature( State * state, float temperature, int idx_1, int idx_2, int idx_chain ) noexcept
+void Transition_Add_Noise_Temperature( State * state, scalar temperature, int idx_1, int idx_2, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;

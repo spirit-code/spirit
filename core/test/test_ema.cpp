@@ -1,19 +1,8 @@
 #include <Spirit/Configurations.h>
-#include <Spirit/Constants.h>
-#include <Spirit/Hamiltonian.h>
-#include <Spirit/IO.h>
+#include <Spirit/Parameters_EMA.h>
 #include <Spirit/Simulation.h>
 #include <Spirit/State.h>
-#include <Spirit/System.h>
-
 #include <data/State.hpp>
-
-#include <Eigen/Core>
-#include <Eigen/Dense>
-
-#include <iomanip>
-#include <iostream>
-#include <sstream>
 
 #include <catch.hpp>
 
@@ -22,19 +11,28 @@ constexpr auto inputfile = "core/test/input/fd_pairs.cfg";
 
 TEST_CASE( "Trivial", "[EMA]" )
 {
-    // Create State
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
+
+    Parameters_EMA_Set_N_Modes( state.get(), 4 );
+    Parameters_EMA_Set_N_Mode_Follow( state.get(), 0 );
+    Parameters_EMA_Set_Frequency( state.get(), 0.02 );
+    Parameters_EMA_Set_Amplitude( state.get(), 1 );
+    Parameters_EMA_Set_Snapshot( state.get(), false );
+    Parameters_EMA_Set_Sparse( state.get(), false );
 
     Configuration_PlusZ( state.get() );
 
-    // NOTE: the choise of a solver does not affect the simulation for EMA. We have to provide a
-    // different API function for Methods (like MC and EMA) and a different for methods with solvers
-    // (Heun, Depondt etc). Or even an EgeinAnalysis might be appropriate.
-
-    // Simulation_SingleShot( state.get(), method, "Heun" );
     Simulation_EMA_Start( state.get(), 20 );
-    // IO_Image_Write( state.get(), testfile );
+    const auto & spins = *state->active_image->spins;
+    auto gradient      = vectorfield( state->nos );
+    state->active_image->hamiltonian->Gradient( spins, gradient );
+    Vector3 gradient_expected{ 6, -6, -22.8942 };
 
-    // Configuration_MinusZ( state.get() );
-    // IO_Image_Write( state.get(), testfile );
+    for( int i = 0; i < 1; i++ )
+    {
+        INFO( "Failed DDI-Gradient comparison at i = " << i );
+        INFO( "Gradient (FFT):      " << gradient[i].transpose() << "\n" );
+        INFO( "Gradient (expected): " << gradient_expected.transpose() << "\n" );
+        REQUIRE( gradient[i].isApprox( gradient_expected, 1e-4 ) );
+    }
 }

@@ -14,7 +14,7 @@
 
 namespace C = Utility::Constants;
 
-void Quantity_Get_Average_Spin( State * state, float s[3], int idx_image, int idx_chain )
+void Quantity_Get_Average_Spin( State * state, scalar s[3], int idx_image, int idx_chain )
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -29,14 +29,14 @@ try
     auto mean = Engine::Vectormath::mean( *image->spins );
 
     for( int i = 0; i < 3; ++i )
-        s[i] = (float)mean[i];
+        s[i] = mean[i];
 }
 catch( ... )
 {
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void Quantity_Get_Magnetization( State * state, float m[3], int idx_image, int idx_chain )
+void Quantity_Get_Magnetization( State * state, scalar m[3], int idx_image, int idx_chain )
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -54,14 +54,14 @@ try
     // image->Unlock();
 
     for( int i = 0; i < 3; ++i )
-        m[i] = (float)mag[i];
+        m[i] = mag[i];
 }
 catch( ... )
 {
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-float Quantity_Get_Topological_Charge( State * state, int idx_image, int idx_chain )
+scalar Quantity_Get_Topological_Charge( State * state, int idx_image, int idx_chain )
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -80,7 +80,7 @@ try
 
     // image->Unlock();
 
-    return (float)charge;
+    return charge;
 }
 catch( ... )
 {
@@ -89,7 +89,7 @@ catch( ... )
 }
 
 int Quantity_Get_Topological_Charge_Density(
-    State * state, float * charge_density_ptr, int * triangle_indices_ptr, int idx_image, int idx_chain )
+    State * state, scalar * charge_density_ptr, int * triangle_indices_ptr, int idx_image, int idx_chain )
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -100,7 +100,6 @@ try
 
     // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
 
-    scalar charge      = 0;
     int dimensionality = Geometry_Get_Dimensionality( state, idx_image, idx_chain );
     scalarfield charge_density( 0 );
     std::vector<int> triangle_indices( 0 );
@@ -183,8 +182,8 @@ void check_modes(
     scalar mode_grad_angle_2N
         = std::abs( evec_lowest_2N.dot( grad_tangent_2N ) / evec_lowest_2N.norm() / grad_tangent_2N.norm() );
     // Do some more checks to ensure the mode fulfills our requirements
-    bool bad_image_norm = 1e-8 < std::abs( image_norm - std::sqrt( (scalar)nos ) ); // image norm should be sqrt(nos)
-    bool bad_grad_norm  = 1e-8 > grad_norm;                // gradient should not be a zero vector
+    bool bad_image_norm        = 1e-8 < std::abs( image_norm - std::sqrt( nos ) ); // image norm should be sqrt(nos)
+    bool bad_grad_norm         = 1e-8 > grad_norm;         // gradient should not be a zero vector
     bool bad_grad_tangent_norm = 1e-8 > grad_tangent_norm; // gradient should not be a zero vector in tangent space
     bool bad_mode_norm         = 1e-8 > mode_norm;         // mode should not be a zero vector
     /////////
@@ -229,7 +228,7 @@ void check_modes(
 }
 
 void Quantity_Get_Grad_Force_MinimumMode(
-    State * state, float * f_grad, float * eval, float * mode, float * forces, int idx_image, int idx_chain )
+    State * state, scalar * f_grad, scalar * eval, scalar * mode, scalar * forces, int idx_image, int idx_chain )
 try
 {
     using namespace Engine;
@@ -251,7 +250,7 @@ try
     vectorfield minimum_mode( nos, { 0, 0, 0 } );
     MatrixX hess( 3 * nos, 3 * nos );
     vectorfield force( nos, { 0, 0, 0 } );
-    // std::vector<float> forces(3*nos);
+    // std::vector<scalar> forces(3*nos);
 
     // The gradient force (unprojected)
     system->hamiltonian->Gradient( image, grad );
@@ -262,7 +261,7 @@ try
     {
         for( int dim = 0; dim < 3; ++dim )
         {
-            f_grad[3 * _i + dim] = (float)-grad[_i][dim];
+            f_grad[3 * _i + dim] = -grad[_i][dim];
         }
     }
 
@@ -373,12 +372,12 @@ try
             if( std::abs( eigenvalues[0] ) > 1e-8 )
                 std::cerr << fmt::format(
                     "bad region:        {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(),
-                    std::acos( std::min( mode_grad_angle, scalar( 1.0 ) ) ) * 180.0 / C::Pi, std::abs( mode_grad ) )
+                    std::acos( std::min( mode_grad_angle, scalar( 1 ) ) ) * 180.0 / C::Pi, std::abs( mode_grad ) )
                           << std::endl;
             else
                 std::cerr << fmt::format(
                     "zero region:       {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(),
-                    std::acos( std::min( mode_grad_angle, scalar( 1.0 ) ) ) * 180.0 / C::Pi, std::abs( mode_grad ) )
+                    std::acos( std::min( mode_grad_angle, scalar( 1 ) ) ) * 180.0 / C::Pi, std::abs( mode_grad ) )
                           << std::endl;
 
             // Copy out the forces
@@ -400,8 +399,8 @@ try
         for( int dim = 0; dim < 3; ++dim )
         {
             // gradient[3*_i+dim] = -grad[3*_i+dim];
-            forces[3 * _i + dim] = (float)force[_i][dim];
-            mode[3 * _i + dim]   = (float)minimum_mode[_i][dim];
+            forces[3 * _i + dim] = force[_i][dim];
+            mode[3 * _i + dim]   = minimum_mode[_i][dim];
         }
     }
 }

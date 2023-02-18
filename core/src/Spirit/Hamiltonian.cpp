@@ -53,7 +53,7 @@ catch( ... )
 }
 
 void Hamiltonian_Set_Field(
-    State * state, float magnitude, const float * normal, int idx_image, int idx_chain ) noexcept
+    State * state, scalar magnitude, const scalar * normal, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -106,7 +106,7 @@ catch( ... )
 }
 
 void Hamiltonian_Set_Anisotropy(
-    State * state, float magnitude, const float * normal, int idx_image, int idx_chain ) noexcept
+    State * state, scalar magnitude, const scalar * normal, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -167,7 +167,7 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void Hamiltonian_Set_Cubic_Anisotropy( State * state, float magnitude, int idx_image, int idx_chain ) noexcept
+void Hamiltonian_Set_Cubic_Anisotropy( State * state, scalar magnitude, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -220,7 +220,7 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void Hamiltonian_Set_Exchange( State * state, int n_shells, const float * jij, int idx_image, int idx_chain ) noexcept
+void Hamiltonian_Set_Exchange( State * state, int n_shells, const scalar * jij, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -264,7 +264,7 @@ catch( ... )
 }
 
 void Hamiltonian_Set_DMI(
-    State * state, int n_shells, const float * dij, int chirality, int idx_image, int idx_chain ) noexcept
+    State * state, int n_shells, const scalar * dij, int chirality, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -318,7 +318,7 @@ catch( ... )
 }
 
 void Hamiltonian_Set_DDI(
-    State * state, int ddi_method, int n_periodic_images[3], float cutoff_radius, bool pb_zero_padding, int idx_image,
+    State * state, int ddi_method, int n_periodic_images[3], scalar cutoff_radius, bool pb_zero_padding, int idx_image,
     int idx_chain ) noexcept
 try
 {
@@ -407,7 +407,7 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void Hamiltonian_Get_Field( State * state, float * magnitude, float * normal, int idx_image, int idx_chain ) noexcept
+void Hamiltonian_Get_Field( State * state, scalar * magnitude, scalar * normal, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -425,12 +425,12 @@ try
         if( ham->external_field_magnitude > 0 )
         {
             // Magnitude
-            *magnitude = (float)( ham->external_field_magnitude / Constants::mu_B );
+            *magnitude = ham->external_field_magnitude / Constants::mu_B;
 
             // Normal
-            normal[0] = (float)ham->external_field_normal[0];
-            normal[1] = (float)ham->external_field_normal[1];
-            normal[2] = (float)ham->external_field_normal[2];
+            normal[0] = ham->external_field_normal[0];
+            normal[1] = ham->external_field_normal[1];
+            normal[2] = ham->external_field_normal[2];
         }
         else
         {
@@ -447,7 +447,7 @@ catch( ... )
 }
 
 void Hamiltonian_Get_Anisotropy(
-    State * state, float * magnitude, float * normal, int idx_image, int idx_chain ) noexcept
+    State * state, scalar * magnitude, scalar * normal, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -465,12 +465,12 @@ try
         if( !ham->anisotropy_indices.empty() )
         {
             // Magnitude
-            *magnitude = (float)ham->anisotropy_magnitudes[0];
+            *magnitude = ham->anisotropy_magnitudes[0];
 
             // Normal
-            normal[0] = (float)ham->anisotropy_normals[0][0];
-            normal[1] = (float)ham->anisotropy_normals[0][1];
-            normal[2] = (float)ham->anisotropy_normals[0][2];
+            normal[0] = ham->anisotropy_normals[0][0];
+            normal[1] = ham->anisotropy_normals[0][1];
+            normal[2] = ham->anisotropy_normals[0][2];
         }
         else
         {
@@ -486,7 +486,7 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void Hamiltonian_Get_Cubic_Anisotropy( State * state, float * magnitude, int idx_image, int idx_chain ) noexcept
+void Hamiltonian_Get_Cubic_Anisotropy( State * state, scalar * magnitude, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -503,7 +503,7 @@ try
         if( !ham->cubic_anisotropy_indices.empty() )
         {
             // Magnitude
-            *magnitude = (float)ham->cubic_anisotropy_magnitudes[0];
+            *magnitude = ham->cubic_anisotropy_magnitudes[0];
         }
         else
         {
@@ -517,7 +517,7 @@ catch( ... )
 }
 
 void Hamiltonian_Get_Exchange_Shells(
-    State * state, int * n_shells, float * jij, int idx_image, int idx_chain ) noexcept
+    State * state, int * n_shells, scalar * jij, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -537,7 +537,7 @@ try
         // Note the array needs to be correctly allocated beforehand!
         for( std::size_t i = 0; i < ham->exchange_shell_magnitudes.size(); ++i )
         {
-            jij[i] = (float)ham->exchange_shell_magnitudes[i];
+            jij[i] = ham->exchange_shell_magnitudes[i];
         }
     }
 }
@@ -570,7 +570,7 @@ catch( ... )
 }
 
 void Hamiltonian_Get_Exchange_Pairs(
-    State * state, int idx[][2], int translations[][3], float * Jij, int idx_image, int idx_chain ) noexcept
+    State * state, int idx[][2], int translations[][3], scalar * Jij, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -602,7 +602,7 @@ catch( ... )
 }
 
 void Hamiltonian_Get_DMI_Shells(
-    State * state, int * n_shells, float * dij, int * chirality, int idx_image, int idx_chain ) noexcept
+    State * state, int * n_shells, scalar * dij, int * chirality, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -623,7 +623,7 @@ try
 
         for( int i = 0; i < *n_shells; ++i )
         {
-            dij[i] = (float)ham->dmi_shell_magnitudes[i];
+            dij[i] = ham->dmi_shell_magnitudes[i];
         }
     }
 }
@@ -656,7 +656,7 @@ catch( ... )
 }
 
 void Hamiltonian_Get_DDI(
-    State * state, int * ddi_method, int n_periodic_images[3], float * cutoff_radius, bool * pb_zero_padding,
+    State * state, int * ddi_method, int n_periodic_images[3], scalar * cutoff_radius, bool * pb_zero_padding,
     int idx_image, int idx_chain ) noexcept
 try
 {
@@ -677,7 +677,7 @@ try
         n_periodic_images[0] = (int)ham->ddi_n_periodic_images[0];
         n_periodic_images[1] = (int)ham->ddi_n_periodic_images[1];
         n_periodic_images[2] = (int)ham->ddi_n_periodic_images[2];
-        *cutoff_radius       = (float)ham->ddi_cutoff_radius;
+        *cutoff_radius       = ham->ddi_cutoff_radius;
         *pb_zero_padding     = ham->ddi_pb_zero_padding;
     }
 }
@@ -686,7 +686,7 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void saveMatrix( std::string fname, const SpMatrixX & matrix )
+void saveMatrix( const std::string & fname, const SpMatrixX & matrix )
 {
     std::cout << "Saving matrix to file: " << fname << "\n";
     std::ofstream file( fname );
@@ -700,7 +700,7 @@ void saveMatrix( std::string fname, const SpMatrixX & matrix )
     }
 }
 
-void saveTriplets( std::string fname, const SpMatrixX & matrix )
+void saveTriplets( const std::string & fname, const SpMatrixX & matrix )
 {
 
     std::cout << "Saving triplets to file: " << fname << "\n";

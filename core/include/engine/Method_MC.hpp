@@ -2,11 +2,9 @@
 #ifndef SPIRIT_CORE_ENGINE_METHOD_MC_HPP
 #define SPIRIT_CORE_ENGINE_METHOD_MC_HPP
 
-#include "Spirit_Defines.h"
-#include <engine/Method.hpp>
-// #include <engine/Method_Solver.hpp>
+#include <Spirit/Spirit_Defines.h>
 #include <data/Spin_System.hpp>
-// #include <data/Parameters_Method_MC.hpp>
+#include <engine/Method.hpp>
 
 #include <vector>
 

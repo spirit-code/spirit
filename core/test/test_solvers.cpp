@@ -19,11 +19,11 @@ using Catch::Matchers::WithinAbs;
 
 // Reduce required precision if float accuracy
 #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
-constexpr double epsilon_apprx = 1e-5;
-constexpr float epsilon_rough  = 1e-5;
+constexpr scalar epsilon_apprx = 1e-5;
+constexpr scalar epsilon_rough = 1e-5;
 #else
-constexpr float epsilon_apprx = 1e-2;
-constexpr float epsilon_rough = 1e-1;
+constexpr scalar epsilon_apprx = 1e-2;
+constexpr scalar epsilon_rough = 1e-1;
 #endif
 
 constexpr auto inputfile = "core/test/input/solvers.cfg";
@@ -35,8 +35,8 @@ TEST_CASE( "Solvers should find Skyrmion energy minimum with direct minimization
         Solver_Heun,        Solver_SIB,       Solver_Depondt, Solver_RungeKutta4,
     };
     // Expected values
-    float energy_expected = -5849.69140625f;
-    std::vector<float> magnetization_expected{ 0, 0, 2.0 * 0.79977f };
+    scalar energy_expected = -5849.69140625f;
+    std::vector<scalar> magnetization_expected{ 0, 0, 2.0 * 0.79977 };
 
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
 
@@ -61,8 +61,8 @@ TEST_CASE( "Solvers should find Skyrmion energy minimum with direct minimization
         Simulation_LLG_Start( state.get(), solver );
 
         // Check the values of energy and magnetization
-        float energy = System_Get_Energy( state.get() );
-        std::vector<float> magnetization{ 0, 0, 0 };
+        scalar energy = System_Get_Energy( state.get() );
+        std::vector<scalar> magnetization{ 0, 0, 0 };
         Quantity_Get_Magnetization( state.get(), magnetization.data() );
         REQUIRE_THAT( energy, WithinAbs( energy_expected, epsilon_rough ) );
         for( int dim = 0; dim < 3; dim++ )
@@ -78,8 +78,8 @@ TEST_CASE( "Solvers should find Skyrmion collapse barrier with GNEB method", "[s
         Solver_LBFGS_Atlas, Solver_LBFGS_OSO, Solver_VP_OSO, Solver_VP, Solver_Heun, Solver_Depondt,
     };
     // Expected values
-    float energy_sp_expected = -5811.5244140625f;
-    std::vector<float> magnetization_sp_expected{ 0, 0, 2.0 * 0.96657f };
+    scalar energy_sp_expected = -5811.5244140625;
+    std::vector<scalar> magnetization_sp_expected{ 0, 0, 2.0 * 0.96657 };
 
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
 
@@ -121,10 +121,10 @@ TEST_CASE( "Solvers should find Skyrmion collapse barrier with GNEB method", "[s
 
         // Get saddle point index and energy
         int idx_sp      = 1;
-        float energy_sp = System_Get_Energy( state.get(), 0 );
+        scalar energy_sp = System_Get_Energy( state.get(), 0 );
         for( int idx = 1; idx < NOI - 1; ++idx )
         {
-            float E_temp = System_Get_Energy( state.get(), idx );
+            scalar E_temp = System_Get_Energy( state.get(), idx );
             if( E_temp > energy_sp )
             {
                 idx_sp    = idx;
@@ -133,7 +133,7 @@ TEST_CASE( "Solvers should find Skyrmion collapse barrier with GNEB method", "[s
         }
 
         // Check the values of energy and magnetization
-        std::vector<float> magnetization_sp{ 0, 0, 0 };
+        std::vector<scalar> magnetization_sp{ 0, 0, 0 };
         Quantity_Get_Magnetization( state.get(), magnetization_sp.data(), idx_sp );
         REQUIRE_THAT( energy_sp, WithinAbs( energy_sp_expected, epsilon_apprx ) );
         for( int dim = 0; dim < 3; dim++ )

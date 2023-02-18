@@ -2,7 +2,7 @@
 #ifndef SPIRIT_CORE_DATA_SPIN_SYSTEM_HPP
 #define SPIRIT_CORE_DATA_SPIN_SYSTEM_HPP
 
-#include "Spirit_Defines.h"
+#include <Spirit/Spirit_Defines.h>
 #include <data/Geometry.hpp>
 #include <data/Parameters_Method_EMA.hpp>
 #include <data/Parameters_Method_GNEB.hpp>

@@ -22,17 +22,17 @@ using Catch::Matchers::WithinAbs;
 
 // Reduce required precision if float accuracy
 #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
-constexpr float epsilon_2 = 1e-12;
-constexpr float epsilon_3 = 1e-12;
-constexpr float epsilon_4 = 1e-12;
-constexpr float epsilon_5 = 1e-6;
-constexpr float epsilon_6 = 1e-7;
+constexpr scalar epsilon_2 = 1e-10;
+constexpr scalar epsilon_3 = 1e-12;
+constexpr scalar epsilon_4 = 1e-12;
+constexpr scalar epsilon_5 = 1e-6;
+constexpr scalar epsilon_6 = 1e-7;
 #else
-constexpr float epsilon_2 = 1e-2;
-constexpr float epsilon_3 = 1e-3;
-constexpr float epsilon_4 = 1e-4;
-constexpr float epsilon_5 = 1e-5;
-constexpr float epsilon_6 = 1e-6;
+constexpr scalar epsilon_2 = 1e-2;
+constexpr scalar epsilon_3 = 1e-3;
+constexpr scalar epsilon_4 = 1e-4;
+constexpr scalar epsilon_5 = 1e-5;
+constexpr scalar epsilon_6 = 1e-6;
 #endif
 
 TEST_CASE( "Dynamics solvers should follow Larmor precession", "[physics]" )
@@ -49,7 +49,7 @@ TEST_CASE( "Dynamics solvers should follow Larmor precession", "[physics]" )
     auto state = std::shared_ptr<State>( State_Setup( input_file ), State_Delete );
 
     // Set up one the initial direction of the spin
-    float init_direction[3] = { 1., 0., 0. };            // vec parallel to x-axis
+    scalar init_direction[3] = { 1., 0., 0. };            // vec parallel to x-axis
     Configuration_Domain( state.get(), init_direction ); // set spin parallel to x-axis
 
     // Assure that the initial direction is set
@@ -60,18 +60,18 @@ TEST_CASE( "Dynamics solvers should follow Larmor precession", "[physics]" )
     REQUIRE( direction[2] == 0 );
 
     // Make sure that mu_s is the same as the one define in input file
-    float mu_s{};
+    scalar mu_s{};
     Geometry_Get_mu_s( state.get(), &mu_s );
     REQUIRE( mu_s == 2 );
 
     // Get the magnitude of the magnetic field (it has only z-axis component)
-    float B_mag{};
-    float normal[3]{ 0, 0, 1 };
+    scalar B_mag{};
+    scalar normal[3]{ 0, 0, 1 };
     Hamiltonian_Get_Field( state.get(), &B_mag, normal );
 
     // Get time step of method
     scalar damping = 0.3;
-    float tstep    = Parameters_LLG_Get_Time_Step( state.get() );
+    scalar tstep    = Parameters_LLG_Get_Time_Step( state.get() );
     Parameters_LLG_Set_Damping( state.get(), damping );
 
     scalar dtg = tstep * Constants_gamma() / ( 1.0 + damping * damping );

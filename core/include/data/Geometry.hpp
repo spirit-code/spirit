@@ -2,8 +2,8 @@
 #ifndef SPIRIT_CORE_DATA_GEOMETRY_HPP
 #define SPIRIT_CORE_DATA_GEOMETRY_HPP
 
-#include "Spirit_Defines.h"
 #include <Spirit/Geometry.h>
+#include <Spirit/Spirit_Defines.h>
 #include <engine/Vectormath_Defines.hpp>
 
 #include <vector>

@@ -1,4 +1,4 @@
-#include <Spirit_Defines.h>
+#include <Spirit/Spirit_Defines.h>
 #include <data/Spin_System.hpp>
 #include <engine/Eigenmodes.hpp>
 #include <engine/Method_EMA.hpp>

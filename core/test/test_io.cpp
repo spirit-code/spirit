@@ -20,9 +20,6 @@ using Catch::Matchers::WithinAbs;
 
 TEST_CASE( "IO: files written and read back in should restore the spin configuration", "[io]" )
 {
-    Catch::StringMaker<float>::precision  = 12;
-    Catch::StringMaker<double>::precision = 12;
-
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
 
     // files to be written
@@ -322,10 +319,10 @@ TEST_CASE( "IO-OVF-N_SEGMENTS", "[io-OVF-n_segments]" )
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
 
     std::string file;
-    int noi_read;
-    int noi_known;
+    int noi_read  = 0;
+    int noi_known = 0;
 
-    for( auto pair : filenames )
+    for( const auto & pair : filenames )
     {
         file      = pair.first;
         noi_known = pair.second;

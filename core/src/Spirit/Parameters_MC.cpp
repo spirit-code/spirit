@@ -146,7 +146,7 @@ catch( ... )
 }
 
 // Set MG Simulation Parameters
-void Parameters_MC_Set_Temperature( State * state, float T, int idx_image, int idx_chain ) noexcept
+void Parameters_MC_Set_Temperature( State * state, scalar T, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -170,7 +170,7 @@ catch( ... )
 }
 
 void Parameters_MC_Set_Metropolis_Cone(
-    State * state, bool cone, float cone_angle, bool adaptive_cone, float target_acceptance_ratio, int idx_image,
+    State * state, bool cone, scalar cone_angle, bool adaptive_cone, scalar target_acceptance_ratio, int idx_image,
     int idx_chain ) noexcept
 try
 {
@@ -351,7 +351,7 @@ catch( ... )
 }
 
 // Get MC Simulation Parameters
-float Parameters_MC_Get_Temperature( State * state, int idx_image, int idx_chain ) noexcept
+scalar Parameters_MC_Get_Temperature( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -360,7 +360,7 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
-    return static_cast<float>( image->mc_parameters->temperature );
+    return image->mc_parameters->temperature;
 }
 catch( ... )
 {
@@ -369,7 +369,7 @@ catch( ... )
 }
 
 void Parameters_MC_Get_Metropolis_Cone(
-    State * state, bool * cone, float * cone_angle, bool * adaptive_cone, float * target_acceptance_ratio,
+    State * state, bool * cone, scalar * cone_angle, bool * adaptive_cone, scalar * target_acceptance_ratio,
     int idx_image, int idx_chain ) noexcept
 try
 {
@@ -380,9 +380,9 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     *cone                    = image->mc_parameters->metropolis_step_cone;
-    *cone_angle              = static_cast<float>( image->mc_parameters->metropolis_cone_angle );
-    *adaptive_cone           = static_cast<float>( image->mc_parameters->metropolis_cone_adaptive );
-    *target_acceptance_ratio = static_cast<float>( image->mc_parameters->acceptance_ratio_target );
+    *cone_angle              = image->mc_parameters->metropolis_cone_angle;
+    *adaptive_cone           = image->mc_parameters->metropolis_cone_adaptive;
+    *target_acceptance_ratio = image->mc_parameters->acceptance_ratio_target;
 }
 catch( ... )
 {

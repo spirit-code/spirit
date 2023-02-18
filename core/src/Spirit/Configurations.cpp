@@ -1,5 +1,5 @@
-#include "Spirit_Defines.h"
 #include <Spirit/Configurations.h>
+#include <Spirit/Spirit_Defines.h>
 
 #include <data/State.hpp>
 #include <engine/Vectormath.hpp>
@@ -9,11 +9,10 @@
 #include <utility/Logging.hpp>
 
 #include <fmt/format.h>
-
 #include <Eigen/Dense>
 
 std::function<bool( const Vector3 &, const Vector3 & )> get_filter(
-    const Vector3 & position, const float r_cut_rectangular[3], float r_cut_cylindrical, float r_cut_spherical,
+    const Vector3 & position, const scalar r_cut_rectangular[3], scalar r_cut_cylindrical, scalar r_cut_spherical,
     bool inverted )
 {
     bool no_cut_rectangular_x = r_cut_rectangular[0] < 0;
@@ -63,7 +62,7 @@ std::function<bool( const Vector3 &, const Vector3 & )> get_filter(
 }
 
 std::string filter_to_string(
-    const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical, float r_cut_spherical,
+    const scalar position[3], const scalar r_cut_rectangular[3], scalar r_cut_cylindrical, scalar r_cut_spherical,
     bool inverted )
 {
     std::string ret = "";
@@ -128,8 +127,8 @@ catch( ... )
 }
 
 void Configuration_From_Clipboard(
-    State * state, const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical,
-    float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
+    State * state, const scalar position[3], const scalar r_cut_rectangular[3], scalar r_cut_cylindrical,
+    scalar r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -163,8 +162,8 @@ catch( ... )
 }
 
 bool Configuration_From_Clipboard_Shift(
-    State * state, const float shift[3], const float position[3], const float r_cut_rectangular[3],
-    float r_cut_cylindrical, float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
+    State * state, const scalar shift[3], const scalar position[3], const scalar r_cut_rectangular[3],
+    scalar r_cut_cylindrical, scalar r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
     // Apply configuration
@@ -223,8 +222,8 @@ catch( ... )
 }
 
 void Configuration_Domain(
-    State * state, const float direction[3], const float position[3], const float r_cut_rectangular[3],
-    float r_cut_cylindrical, float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
+    State * state, const scalar direction[3], const scalar position[3], const scalar r_cut_rectangular[3],
+    scalar r_cut_cylindrical, scalar r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -261,7 +260,7 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-// void Configuration_DomainWall( State *state, const float pos[3], float v[3], bool greater,
+// void Configuration_DomainWall( State *state, const scalar pos[3], scalar v[3], bool greater,
 //                                int idx_image, int idx_chain) noexcept
 // {
 //     std::shared_ptr<Data::Spin_System> image;
@@ -282,8 +281,8 @@ catch( ... )
 // }
 
 void Configuration_PlusZ(
-    State * state, const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical,
-    float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
+    State * state, const scalar position[3], const scalar r_cut_rectangular[3], scalar r_cut_cylindrical,
+    scalar r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -318,8 +317,8 @@ catch( ... )
 }
 
 void Configuration_MinusZ(
-    State * state, const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical,
-    float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
+    State * state, const scalar position[3], const scalar r_cut_rectangular[3], scalar r_cut_cylindrical,
+    scalar r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -354,8 +353,8 @@ catch( ... )
 }
 
 void Configuration_Random(
-    State * state, const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical,
-    float r_cut_spherical, bool inverted, bool external, int idx_image, int idx_chain ) noexcept
+    State * state, const scalar position[3], const scalar r_cut_rectangular[3], scalar r_cut_cylindrical,
+    scalar r_cut_spherical, bool inverted, bool external, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -389,8 +388,8 @@ catch( ... )
 }
 
 void Configuration_Add_Noise_Temperature(
-    State * state, float temperature, const float position[3], const float r_cut_rectangular[3],
-    float r_cut_cylindrical, float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
+    State * state, scalar temperature, const scalar position[3], const scalar r_cut_rectangular[3],
+    scalar r_cut_cylindrical, scalar r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -482,8 +481,8 @@ catch( ... )
 }
 
 void Configuration_Hopfion(
-    State * state, float r, int order, const float position[3], const float r_cut_rectangular[3],
-    float r_cut_cylindrical, float r_cut_spherical, bool inverted, const float normal[3], int idx_image,
+    State * state, scalar r, int order, const scalar position[3], const scalar r_cut_rectangular[3],
+    scalar r_cut_cylindrical, scalar r_cut_spherical, bool inverted, const scalar normal[3], int idx_image,
     int idx_chain ) noexcept
 try
 {
@@ -502,7 +501,7 @@ try
 
     // Set cutoff radius
     if( r_cut_spherical < 0 )
-        r_cut_spherical = r * (float)Utility::Constants::Pi;
+        r_cut_spherical = r * Utility::Constants::Pi;
 
     // Create position filter
     auto filter = get_filter( vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -526,8 +525,8 @@ catch( ... )
 }
 
 void Configuration_Skyrmion(
-    State * state, float r, float order, float phase, bool upDown, bool achiral, bool rl, const float position[3],
-    const float r_cut_rectangular[3], float r_cut_cylindrical, float r_cut_spherical, bool inverted, int idx_image,
+    State * state, scalar r, scalar order, scalar phase, bool upDown, bool achiral, bool rl, const scalar position[3],
+    const scalar r_cut_rectangular[3], scalar r_cut_cylindrical, scalar r_cut_spherical, bool inverted, int idx_image,
     int idx_chain ) noexcept
 try
 {
@@ -577,8 +576,8 @@ catch( ... )
 }
 
 void Configuration_DW_Skyrmion(
-    State * state, float dw_radius, float dw_width, float order, float phase, bool upDown, bool achiral, bool rl,
-    const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical, float r_cut_spherical,
+    State * state, scalar dw_radius, scalar dw_width, scalar order, scalar phase, bool upDown, bool achiral, bool rl,
+    const scalar position[3], const scalar r_cut_rectangular[3], scalar r_cut_cylindrical, scalar r_cut_spherical,
     bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
@@ -631,8 +630,8 @@ catch( ... )
 }
 
 void Configuration_SpinSpiral(
-    State * state, const char * direction_type, float q[3], float axis[3], float theta, const float position[3],
-    const float r_cut_rectangular[3], float r_cut_cylindrical, float r_cut_spherical, bool inverted, int idx_image,
+    State * state, const char * direction_type, scalar q[3], scalar axis[3], scalar theta, const scalar position[3],
+    const scalar r_cut_rectangular[3], scalar r_cut_cylindrical, scalar r_cut_spherical, bool inverted, int idx_image,
     int idx_chain ) noexcept
 try
 {
@@ -676,8 +675,8 @@ catch( ... )
 }
 
 void Configuration_SpinSpiral_2q(
-    State * state, const char * direction_type, float q1[3], float q2[3], float axis[3], float theta,
-    const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical, float r_cut_spherical,
+    State * state, const char * direction_type, scalar q1[3], scalar q2[3], scalar axis[3], scalar theta,
+    const scalar position[3], const scalar r_cut_rectangular[3], scalar r_cut_cylindrical, scalar r_cut_spherical,
     bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
@@ -724,8 +723,8 @@ catch( ... )
 
 // Pinning
 void Configuration_Set_Pinned(
-    State * state, bool pinned, const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical,
-    float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
+    State * state, bool pinned, const scalar position[3], const scalar r_cut_rectangular[3], scalar r_cut_cylindrical,
+    scalar r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -759,8 +758,8 @@ catch( ... )
 
 // Defects
 void Configuration_Set_Atom_Type(
-    State * state, int atom_type, const float position[3], const float r_cut_rectangular[3], float r_cut_cylindrical,
-    float r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
+    State * state, int atom_type, const scalar position[3], const scalar r_cut_rectangular[3], scalar r_cut_cylindrical,
+    scalar r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;

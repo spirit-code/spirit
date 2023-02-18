@@ -50,13 +50,13 @@ std::string get_is_visible_implementation(
     std::shared_ptr<State> state, float filter_position_min[3], float filter_position_max[3],
     float filter_direction_min[3], float filter_direction_max[3] )
 {
-    const float epsilon = 1e-5;
+    const scalar epsilon = 1e-5;
 
-    float b_min[3], b_max[3], b_range[3];
+    scalar b_min[3], b_max[3], b_range[3];
     Geometry_Get_Bounds( state.get(), b_min, b_max );
 
-    float filter_pos_min[3], filter_pos_max[3];
-    float filter_dir_min[3], filter_dir_max[3];
+    scalar filter_pos_min[3], filter_pos_max[3];
+    scalar filter_dir_min[3], filter_dir_max[3];
     for( int dim = 0; dim < 3; ++dim )
     {
         b_range[dim]        = b_max[dim] - b_min[dim];
@@ -826,7 +826,7 @@ void BoundingBoxRendererWidget::apply_settings()
 void BoundingBoxRendererWidget::update_geometry()
 {
     bool periodical[3];
-    float b_min[3], b_max[3];
+    scalar b_min[3], b_max[3];
     Geometry_Get_Bounds( state.get(), b_min, b_max );
     glm::vec3 bounds_min = glm::make_vec3( b_min );
     glm::vec3 bounds_max = glm::make_vec3( b_max );

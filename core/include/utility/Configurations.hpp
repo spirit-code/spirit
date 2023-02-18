@@ -2,7 +2,7 @@
 #ifndef SPIRIT_CORE_UTILITY_CONFIGURATIONS_HPP
 #define SPIRIT_CORE_UTILITY_CONFIGURATIONS_HPP
 
-#include "Spirit_Defines.h"
+#include <Spirit/Spirit_Defines.h>
 #include <data/Spin_System.hpp>
 
 #include <functional>

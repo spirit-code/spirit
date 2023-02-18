@@ -17,9 +17,9 @@ using Catch::Matchers::WithinAbs;
 
 // Reduce required precision if float accuracy
 #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
-constexpr double epsilon_rough = 1e-12;
+constexpr scalar epsilon_rough = 1e-12;
 #else
-constexpr float epsilon_rough = 1e-1;
+constexpr scalar epsilon_rough = 1e-1;
 #endif
 
 TEST_CASE( "Uniaxial nisotropy", "[anisotropy]" )
@@ -27,16 +27,16 @@ TEST_CASE( "Uniaxial nisotropy", "[anisotropy]" )
     auto state = std::shared_ptr<State>( State_Setup(), State_Delete );
 
     // Set the uniaxial anisotropy
-    float init_magnitude = 0.1;
-    float init_normal[3] = { 0.0, 0.0, 1.0 };
+    scalar init_magnitude = 0.1;
+    scalar init_normal[3] = { 0.0, 0.0, 1.0 };
     Hamiltonian_Set_Anisotropy( state.get(), init_magnitude, init_normal );
     // Set the cubic anisotropy to zero
     Hamiltonian_Set_Cubic_Anisotropy( state.get(), 0 );
 
     SECTION( "Get after set should return the previously set value" )
     {
-        float magnitude{};
-        float normal[3]{};
+        scalar magnitude{};
+        scalar normal[3]{};
         Hamiltonian_Get_Anisotropy( state.get(), &magnitude, normal );
 
         REQUIRE_THAT( magnitude, WithinAbs( init_magnitude, 1e-12 ) );
@@ -51,19 +51,19 @@ TEST_CASE( "Uniaxial nisotropy", "[anisotropy]" )
 
         for( auto & spin : spins )
             spin = { 1.0, 0.0, 0.0 };
-        float energy_x = state->active_image->hamiltonian->Energy( spins );
+        scalar energy_x = state->active_image->hamiltonian->Energy( spins );
 
         // X and Z orientations energies should differ by NOS*init_magnitude
         for( auto & spin : spins )
             spin = { 0.0, 0.0, 1.0 };
-        float energy_z = state->active_image->hamiltonian->Energy( spins );
+        scalar energy_z = state->active_image->hamiltonian->Energy( spins );
         REQUIRE_THAT( energy_x - energy_z, WithinAbs( init_magnitude * state->nos, epsilon_rough ) );
 
         // X and XY orientations energies should have equal energies
         scalar sqrt2_2 = std::sqrt( 2 ) / 2;
         for( auto & spin : spins )
             spin = { sqrt2_2, sqrt2_2, 0.0 };
-        float energy_xy = state->active_image->hamiltonian->Energy( spins );
+        scalar energy_xy = state->active_image->hamiltonian->Energy( spins );
         REQUIRE_THAT( energy_x - energy_xy, WithinAbs( 0, 1e-12 ) );
     }
 
@@ -91,15 +91,15 @@ TEST_CASE( "Cubic anisotropy", "[anisotropy]" )
     vectorfield spins( state->nos );
 
     // Set uniaxial anisotropy to zero
-    float init_normal_uniaxial[3] = { 0.0, 0.0, 1.0 };
+    scalar init_normal_uniaxial[3] = { 0.0, 0.0, 1.0 };
     Hamiltonian_Set_Anisotropy( state.get(), 0.0, init_normal_uniaxial );
     // Set the cubic anisotropy
-    float init_magnitude = 0.2;
+    scalar init_magnitude = 0.2;
     Hamiltonian_Set_Cubic_Anisotropy( state.get(), init_magnitude );
 
     SECTION( "Get after set should return the previously set value" )
     {
-        float magnitude{};
+        scalar magnitude{};
         Hamiltonian_Get_Cubic_Anisotropy( state.get(), &magnitude );
         REQUIRE_THAT( magnitude, WithinAbs( init_magnitude, 1e-12 ) );
     }
@@ -109,24 +109,24 @@ TEST_CASE( "Cubic anisotropy", "[anisotropy]" )
         scalar sqrt2_2 = std::sqrt( 2 ) / 2;
         for( auto & spin : spins )
             spin = { sqrt2_2, sqrt2_2, 0.0 };
-        float energy_xy = state->active_image->hamiltonian->Energy( spins );
+        scalar energy_xy = state->active_image->hamiltonian->Energy( spins );
 
         // X and XY orientations energies should differ by NOS*init_magnitude/4
         for( auto & spin : spins )
             spin = { 1.0, 0.0, 0.0 };
-        float energy_x = state->active_image->hamiltonian->Energy( spins );
+        scalar energy_x = state->active_image->hamiltonian->Energy( spins );
         REQUIRE_THAT( energy_x - energy_xy, WithinAbs( -init_magnitude / 4 * state->nos, epsilon_rough ) );
 
         // Y and XY orientations energies should differ by NOS*init_magnitude/4
         for( auto & spin : spins )
             spin = { 0.0, 1.0, 0.0 };
-        float energy_y = state->active_image->hamiltonian->Energy( spins );
+        scalar energy_y = state->active_image->hamiltonian->Energy( spins );
         REQUIRE_THAT( energy_y - energy_xy, WithinAbs( -init_magnitude / 4 * state->nos, epsilon_rough ) );
 
         // Y and Z orientations should have equal energies
         for( auto & spin : spins )
             spin = { 0.0, 0.0, 1.0 };
-        float energy_z = state->active_image->hamiltonian->Energy( spins );
+        scalar energy_z = state->active_image->hamiltonian->Energy( spins );
         REQUIRE_THAT( energy_y - energy_z, WithinAbs( 0, 1e-12 ) );
     }
 

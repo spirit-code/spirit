@@ -1,9 +1,9 @@
 #pragma once
 #ifndef SPIRIT_CORE_GEOMETRY_H
 #define SPIRIT_CORE_GEOMETRY_H
-#include "DLL_Define_Export.h"
-
 #include "Spirit_Defines.h"
+
+#include "DLL_Define_Export.h"
 
 struct State;
 
@@ -59,12 +59,12 @@ PREFIX void Geometry_Set_N_Cells( State * state, int n_cells[3] ) SUFFIX;
 Set the number and positions of atoms in a basis cell.
 Positions are in units of the bravais vectors (scaled by the lattice constant).
 */
-PREFIX void Geometry_Set_Cell_Atoms( State * state, int n_atoms, float ** atoms ) SUFFIX;
+PREFIX void Geometry_Set_Cell_Atoms( State * state, int n_atoms, scalar ** atoms ) SUFFIX;
 
 /*
 Set the magnetic moments of basis cell atoms.
 */
-PREFIX void Geometry_Set_mu_s( State * state, float mu_s, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+PREFIX void Geometry_Set_mu_s( State * state, scalar mu_s, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
 Set the types of the atoms in a basis cell.
@@ -74,12 +74,12 @@ PREFIX void Geometry_Set_Cell_Atom_Types( State * state, int n_atoms, int * atom
 /*
 Manually set the bravais vectors.
 */
-PREFIX void Geometry_Set_Bravais_Vectors( State * state, float ta[3], float tb[3], float tc[3] ) SUFFIX;
+PREFIX void Geometry_Set_Bravais_Vectors( State * state, scalar ta[3], scalar tb[3], scalar tc[3] ) SUFFIX;
 
 /*
 Set the overall lattice scaling constant.
 */
-PREFIX void Geometry_Set_Lattice_Constant( State * state, float lattice_constant ) SUFFIX;
+PREFIX void Geometry_Set_Lattice_Constant( State * state, scalar lattice_constant ) SUFFIX;
 
 /*
 Getters
@@ -105,12 +105,12 @@ PREFIX int * Geometry_Get_Atom_Types( State * state, int idx_image = -1, int idx
 Get Bounds as array (x,y,z).
 */
 PREFIX void
-Geometry_Get_Bounds( State * state, float min[3], float max[3], int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+Geometry_Get_Bounds( State * state, scalar min[3], scalar max[3], int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
 Get Center as array (x,y,z).
 */
-PREFIX void Geometry_Get_Center( State * state, float center[3], int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+PREFIX void Geometry_Get_Center( State * state, scalar center[3], int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
 Get bravais lattice type (see the `enum` defined above).
@@ -122,7 +122,7 @@ Geometry_Get_Bravais_Lattice_Type( State * state, int idx_image = -1, int idx_ch
 Get bravais vectors ta, tb, tc.
 */
 PREFIX void Geometry_Get_Bravais_Vectors(
-    State * state, float a[3], float b[3], float c[3], int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+    State * state, scalar a[3], scalar b[3], scalar c[3], int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
 Retrieve dimensionality of the system (0, 1, 2, 3).
@@ -132,7 +132,7 @@ PREFIX int Geometry_Get_Dimensionality( State * state, int idx_image = -1, int i
 /*
 Get the magnetic moments of basis cell atoms.
 */
-PREFIX void Geometry_Get_mu_s( State * state, float * mu_s, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+PREFIX void Geometry_Get_mu_s( State * state, scalar * mu_s, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
 Get number of basis cells in the three translation directions.
@@ -147,7 +147,7 @@ PREFIX void Geometry_Get_N_Cells( State * state, int n_cells[3], int idx_image =
 Get Cell Bounds as array (x,y,z).
 */
 PREFIX void
-Geometry_Get_Cell_Bounds( State * state, float min[3], float max[3], int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+Geometry_Get_Cell_Bounds( State * state, scalar min[3], scalar max[3], int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
 Get number of atoms in a basis cell.

@@ -9,19 +9,19 @@ using Catch::Matchers::WithinAbs;
 auto inputfile = "core/test/input/api.cfg";
 // Reduce required precision if float accuracy
 #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
-constexpr double epsilon_2 = 1e-10;
-constexpr double epsilon_3 = 1e-12;
-constexpr double epsilon_4 = 1e-12;
-constexpr double epsilon_5 = 1e-12;
-constexpr double epsilon_6 = 1e-12;
-constexpr double epsilon_7 = 1e-12;
+constexpr scalar epsilon_2 = 1e-10;
+constexpr scalar epsilon_3 = 1e-12;
+constexpr scalar epsilon_4 = 1e-12;
+constexpr scalar epsilon_5 = 1e-12;
+constexpr scalar epsilon_6 = 1e-12;
+constexpr scalar epsilon_7 = 1e-12;
 #else
-constexpr double epsilon_2 = 1e-2;
-constexpr double epsilon_3 = 1e-3;
-constexpr double epsilon_4 = 1e-4;
-constexpr double epsilon_5 = 1e-5;
-constexpr double epsilon_6 = 1e-6;
-constexpr double epsilon_7 = 1e-7;
+constexpr scalar epsilon_2 = 1e-2;
+constexpr scalar epsilon_3 = 1e-3;
+constexpr scalar epsilon_4 = 1e-4;
+constexpr scalar epsilon_5 = 1e-5;
+constexpr scalar epsilon_6 = 1e-6;
+constexpr scalar epsilon_7 = 1e-7;
 #endif
 
 TEST_CASE( "Manifold operations", "[manifold]" )

@@ -145,7 +145,7 @@ catch( ... )
 }
 
 // Set GNEB Calculation Parameters
-void Parameters_GNEB_Set_Convergence( State * state, float convergence, int idx_image, int idx_chain ) noexcept
+void Parameters_GNEB_Set_Convergence( State * state, scalar convergence, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -167,7 +167,7 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void Parameters_GNEB_Set_Spring_Constant( State * state, float spring_constant, int idx_image, int idx_chain ) noexcept
+void Parameters_GNEB_Set_Spring_Constant( State * state, scalar spring_constant, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -189,7 +189,7 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void Parameters_GNEB_Set_Spring_Force_Ratio( State * state, float ratio, int idx_chain ) noexcept
+void Parameters_GNEB_Set_Spring_Force_Ratio( State * state, scalar ratio, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -201,7 +201,7 @@ try
 
     chain->Lock();
     auto p                = chain->gneb_parameters;
-    ratio                 = std::max( std::min( ratio, 1.0f ), 0.0f );
+    ratio                 = std::max( std::min( ratio, scalar( 1 ) ), scalar( 0 ) );
     p->spring_force_ratio = ratio;
     chain->Unlock();
 
@@ -214,7 +214,7 @@ catch( ... )
 }
 
 void Parameters_GNEB_Set_Path_Shortening_Constant(
-    State * state, float path_shortening_constant, int idx_chain ) noexcept
+    State * state, scalar path_shortening_constant, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -286,7 +286,7 @@ catch( ... )
 }
 
 void Parameters_GNEB_Set_Equilibrium_Delta_Rx(
-    State * state, float delta_Rx_left, float delta_Rx_right, int idx_chain ) noexcept
+    State * state, scalar delta_Rx_left, scalar delta_Rx_right, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -510,7 +510,7 @@ catch( ... )
 }
 
 // Get GNEB Calculation Parameters
-float Parameters_GNEB_Get_Convergence( State * state, int idx_image, int idx_chain ) noexcept
+scalar Parameters_GNEB_Get_Convergence( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -520,7 +520,7 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     auto p = chain->gneb_parameters;
-    return static_cast<float>( p->force_convergence );
+    return p->force_convergence;
 }
 catch( ... )
 {
@@ -528,7 +528,7 @@ catch( ... )
     return 0;
 }
 
-float Parameters_GNEB_Get_Spring_Constant( State * state, int idx_image, int idx_chain ) noexcept
+scalar Parameters_GNEB_Get_Spring_Constant( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -538,7 +538,7 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     auto p = chain->gneb_parameters;
-    return static_cast<float>( p->spring_constant );
+    return p->spring_constant;
 }
 catch( ... )
 {
@@ -546,7 +546,7 @@ catch( ... )
     return 0;
 }
 
-float Parameters_GNEB_Get_Spring_Force_Ratio( State * state, int idx_chain ) noexcept
+scalar Parameters_GNEB_Get_Spring_Force_Ratio( State * state, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -557,7 +557,7 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     auto p = chain->gneb_parameters;
-    return static_cast<float>( p->spring_force_ratio );
+    return p->spring_force_ratio;
 }
 catch( ... )
 {
@@ -565,7 +565,7 @@ catch( ... )
     return 0;
 }
 
-float Parameters_GNEB_Get_Path_Shortening_Constant( State * state, int idx_chain ) noexcept
+scalar Parameters_GNEB_Get_Path_Shortening_Constant( State * state, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -576,7 +576,7 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     auto p = chain->gneb_parameters;
-    return static_cast<float>( p->path_shortening_constant );
+    return p->path_shortening_constant;
 }
 catch( ... )
 {
@@ -623,7 +623,7 @@ catch( ... )
 }
 
 void Parameters_GNEB_Get_Equilibrium_Delta_Rx(
-    State * state, float * delta_Rx_left, float * delta_Rx_right, int idx_chain ) noexcept
+    State * state, scalar * delta_Rx_left, scalar * delta_Rx_right, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -634,8 +634,8 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     auto p          = chain->gneb_parameters;
-    *delta_Rx_left  = float( p->equilibrium_delta_Rx_left );
-    *delta_Rx_right = float( p->equilibrium_delta_Rx_right );
+    *delta_Rx_left  = p->equilibrium_delta_Rx_left;
+    *delta_Rx_right = p->equilibrium_delta_Rx_right;
 }
 catch( ... )
 {

@@ -2,6 +2,7 @@
 #ifndef SPIRIT_CORE_PARAMETERS_MC_H
 #define SPIRIT_CORE_PARAMETERS_MC_H
 #include "IO.h"
+#include "Spirit_Defines.h"
 
 #include "DLL_Define_Export.h"
 
@@ -76,7 +77,7 @@ Set Parameters
 */
 
 // Set the (homogeneous) base temperature [K].
-PREFIX void Parameters_MC_Set_Temperature( State * state, float T, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+PREFIX void Parameters_MC_Set_Temperature( State * state, scalar T, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
 Configure the Metropolis parameters.
@@ -87,7 +88,7 @@ Configure the Metropolis parameters.
 - target_acceptance_ratio: target acceptance ratio for the adaptive cone algorithm
 */
 PREFIX void Parameters_MC_Set_Metropolis_Cone(
-    State * state, bool cone, float cone_angle, bool adaptive_cone, float target_acceptance_ratio, int idx_image = -1,
+    State * state, bool cone, scalar cone_angle, bool adaptive_cone, scalar target_acceptance_ratio, int idx_image = -1,
     int idx_chain = -1 ) SUFFIX;
 
 // Set whether spins should be sampled randomly or in sequence.
@@ -129,7 +130,7 @@ Get Parameters
 */
 
 // Returns the global base temperature [K].
-PREFIX float Parameters_MC_Get_Temperature( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+PREFIX scalar Parameters_MC_Get_Temperature( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
 Returns the Metropolis algorithm configuration.
@@ -140,7 +141,7 @@ Returns the Metropolis algorithm configuration.
 - target acceptance ratio for the adaptive cone algorithm
 */
 PREFIX void Parameters_MC_Get_Metropolis_Cone(
-    State * state, bool * cone, float * cone_angle, bool * adaptive_cone, float * target_acceptance_ratio,
+    State * state, bool * cone, scalar * cone_angle, bool * adaptive_cone, scalar * target_acceptance_ratio,
     int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Returns whether spins should be sampled randomly or in sequence.
