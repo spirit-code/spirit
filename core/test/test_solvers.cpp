@@ -12,19 +12,29 @@
 
 #include "catch.hpp"
 
-#include <iostream>
+#include <cmath>
 #include <string>
-
-using Catch::Matchers::WithinAbs;
 
 // Reduce required precision if float accuracy
 #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
-constexpr scalar epsilon_apprx = 1e-5;
-constexpr scalar epsilon_rough = 1e-5;
+constexpr int digits_a = 7;
+constexpr int digits_b = 8;
+constexpr int digits_c = 5;
 #else
-constexpr scalar epsilon_apprx = 1e-2;
-constexpr scalar epsilon_rough = 1e-1;
+constexpr int digits_a = 6;
+constexpr int digits_b = 4;
+constexpr int digits_c = 1;
 #endif
+
+template<typename T>
+auto within_digits( T value, int decimals_required_equal )
+{
+    double using_decimals = decimals_required_equal - int( std::ceil( std::log10( std::abs( value ) ) ) );
+    INFO(
+        "Requested " << decimals_required_equal << " decimals, meaning " << using_decimals
+                     << " decimals after the floating point" );
+    return Catch::Matchers::WithinAbs( value, std::pow( 10, -using_decimals ) );
+}
 
 constexpr auto inputfile = "core/test/input/solvers.cfg";
 
@@ -64,9 +74,9 @@ TEST_CASE( "Solvers should find Skyrmion energy minimum with direct minimization
         scalar energy = System_Get_Energy( state.get() );
         std::vector<scalar> magnetization{ 0, 0, 0 };
         Quantity_Get_Magnetization( state.get(), magnetization.data() );
-        REQUIRE_THAT( energy, WithinAbs( energy_expected, epsilon_rough ) );
+        REQUIRE_THAT( energy, within_digits( energy_expected, digits_b ) );
         for( int dim = 0; dim < 3; dim++ )
-            REQUIRE_THAT( magnetization[dim], WithinAbs( magnetization_expected[dim], epsilon_rough ) );
+            REQUIRE_THAT( magnetization[dim], within_digits( magnetization_expected[dim], digits_c ) );
     }
 }
 
@@ -135,8 +145,8 @@ TEST_CASE( "Solvers should find Skyrmion collapse barrier with GNEB method", "[s
         // Check the values of energy and magnetization
         std::vector<scalar> magnetization_sp{ 0, 0, 0 };
         Quantity_Get_Magnetization( state.get(), magnetization_sp.data(), idx_sp );
-        REQUIRE_THAT( energy_sp, WithinAbs( energy_sp_expected, epsilon_apprx ) );
+        REQUIRE_THAT( energy_sp, within_digits( energy_sp_expected, digits_a ) );
         for( int dim = 0; dim < 3; dim++ )
-            REQUIRE_THAT( magnetization_sp[dim], WithinAbs( magnetization_sp_expected[dim], epsilon_apprx ) );
+            REQUIRE_THAT( magnetization_sp[dim], within_digits( magnetization_sp_expected[dim], 6 ) );
     }
 }
