@@ -3,9 +3,8 @@ Quantities
 ====================
 """
 
-from spirit import spiritlib
-from spirit import system
-from spirit import scalar
+from spirit import spiritlib, system
+from spirit.scalar import scalar
 import ctypes
 
 import numpy as np
@@ -16,7 +15,7 @@ _spirit = spiritlib.load_spirit_library()
 _Get_Magnetization = _spirit.Quantity_Get_Magnetization
 _Get_Magnetization.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -27,7 +26,7 @@ def get_magnetization(p_state, idx_image=-1, idx_chain=-1):
     """Calculates and returns the average magnetization of the system as
     an array of `shape(3)`.
     """
-    magnetization = (3 * ctypes.c_float)()
+    magnetization = (3 * scalar)()
     _Get_Magnetization(
         ctypes.c_void_p(p_state),
         magnetization,
@@ -41,10 +40,10 @@ def get_magnetization(p_state, idx_image=-1, idx_chain=-1):
 _Get_MinimumMode = _spirit.Quantity_Get_Grad_Force_MinimumMode
 _Get_MinimumMode.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -61,7 +60,7 @@ def get_mmf_info(p_state, idx_image=-1, idx_chain=-1):
     """
     nos = system.get_nos(p_state, idx_image, idx_chain)
 
-    ArrayType = ctypes.c_float * (3 * nos)
+    ArrayType = scalar * (3 * nos)
 
     MM = [] * (3 * nos)
     _MM = ArrayType(*MM)
@@ -92,7 +91,7 @@ def get_mmf_info(p_state, idx_image=-1, idx_chain=-1):
 
 _Get_Topological_Charge = _spirit.Quantity_Get_Topological_Charge
 _Get_Topological_Charge.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_Get_Topological_Charge.restype = ctypes.c_float
+_Get_Topological_Charge.restype = scalar
 
 
 def get_topological_charge(p_state, idx_image=-1, idx_chain=-1):
@@ -113,7 +112,7 @@ def get_topological_charge(p_state, idx_image=-1, idx_chain=-1):
 _Get_Topological_Charge_Density = _spirit.Quantity_Get_Topological_Charge_Density
 _Get_Topological_Charge_Density.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
     ctypes.POINTER(ctypes.c_int),
     ctypes.c_int,
     ctypes.c_int,
@@ -145,7 +144,7 @@ def get_topological_charge_density(p_state, idx_image=-1, idx_chain=-1):
         return [], []
 
     # Allocate the required memory for indices_ptr and charge_density
-    charge_density_ptr = (ctypes.c_float * num_triangles)()
+    charge_density_ptr = (scalar * num_triangles)()
     triangle_indices_ptr = (ctypes.c_int * (3 * num_triangles))()
 
     _Get_Topological_Charge_Density(

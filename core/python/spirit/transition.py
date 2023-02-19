@@ -4,6 +4,7 @@ Transition
 """
 
 from spirit import spiritlib
+from spirit.scalar import scalar
 import ctypes
 
 ### Load Library
@@ -39,7 +40,7 @@ def homogeneous_insert_interpolated(p_state, n_interpolate, idx_chain=-1):
 _Add_Noise_Temperature = _spirit.Transition_Add_Noise_Temperature
 _Add_Noise_Temperature.argtypes = [
     ctypes.c_void_p,
-    ctypes.c_float,
+    scalar,
     ctypes.c_int,
     ctypes.c_int,
     ctypes.c_int,
@@ -51,7 +52,7 @@ def add_noise(p_state, temperature, idx_1, idx_2, idx_chain=-1):
     """Add some temperature-scaled noise to a transition between two images of a chain."""
     _Add_Noise_Temperature(
         ctypes.c_void_p(p_state),
-        ctypes.c_float(temperature),
+        scalar(temperature),
         ctypes.c_int(idx_1),
         ctypes.c_int(idx_2),
         ctypes.c_int(idx_chain),

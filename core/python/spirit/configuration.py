@@ -14,6 +14,7 @@ All configuration setters support the following arguments with default values:
 """
 
 from spirit import spiritlib
+from spirit.scalar import scalar
 import ctypes
 
 ### Load Library
@@ -22,11 +23,11 @@ _spirit = spiritlib.load_spirit_library()
 _Domain = _spirit.Configuration_Domain
 _Domain.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.c_float,
-    ctypes.c_float,
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    scalar,
+    scalar,
     ctypes.c_bool,
     ctypes.c_int,
     ctypes.c_int,
@@ -46,14 +47,14 @@ def domain(
     idx_chain=-1,
 ):
     """Set a domain (homogeneous) configuration."""
-    vec3 = ctypes.c_float * 3
+    vec3 = scalar * 3
     _Domain(
         ctypes.c_void_p(p_state),
         vec3(*dir),
         vec3(*pos),
         vec3(*border_rectangular),
-        ctypes.c_float(border_cylindrical),
-        ctypes.c_float(border_spherical),
+        scalar(border_cylindrical),
+        scalar(border_spherical),
         ctypes.c_bool(inverted),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
@@ -63,10 +64,10 @@ def domain(
 _PlusZ = _spirit.Configuration_PlusZ
 _PlusZ.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.c_float,
-    ctypes.c_float,
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    scalar,
+    scalar,
     ctypes.c_bool,
     ctypes.c_int,
     ctypes.c_int,
@@ -85,13 +86,13 @@ def plus_z(
     idx_chain=-1,
 ):
     """Set a `+z` (homogeneous) configuration."""
-    vec3 = ctypes.c_float * 3
+    vec3 = scalar * 3
     _PlusZ(
         ctypes.c_void_p(p_state),
         vec3(*pos),
         vec3(*border_rectangular),
-        ctypes.c_float(border_cylindrical),
-        ctypes.c_float(border_spherical),
+        scalar(border_cylindrical),
+        scalar(border_spherical),
         ctypes.c_bool(inverted),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
@@ -101,10 +102,10 @@ def plus_z(
 _MinusZ = _spirit.Configuration_MinusZ
 _MinusZ.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.c_float,
-    ctypes.c_float,
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    scalar,
+    scalar,
     ctypes.c_bool,
     ctypes.c_int,
     ctypes.c_int,
@@ -123,13 +124,13 @@ def minus_z(
     idx_chain=-1,
 ):
     """Set a `-z` (homogeneous) configuration."""
-    vec3 = ctypes.c_float * 3
+    vec3 = scalar * 3
     _MinusZ(
         ctypes.c_void_p(p_state),
         vec3(*pos),
         vec3(*border_rectangular),
-        ctypes.c_float(border_cylindrical),
-        ctypes.c_float(border_spherical),
+        scalar(border_cylindrical),
+        scalar(border_spherical),
         ctypes.c_bool(inverted),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
@@ -139,10 +140,10 @@ def minus_z(
 _Random = _spirit.Configuration_Random
 _Random.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.c_float,
-    ctypes.c_float,
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    scalar,
+    scalar,
     ctypes.c_bool,
     ctypes.c_bool,
     ctypes.c_int,
@@ -162,13 +163,13 @@ def random(
     idx_chain=-1,
 ):
     """Distribute all spins randomly on the unit sphere."""
-    vec3 = ctypes.c_float * 3
+    vec3 = scalar * 3
     _Random(
         ctypes.c_void_p(p_state),
         vec3(*pos),
         vec3(*border_rectangular),
-        ctypes.c_float(border_cylindrical),
-        ctypes.c_float(border_spherical),
+        scalar(border_cylindrical),
+        scalar(border_spherical),
         ctypes.c_bool(inverted),
         False,
         ctypes.c_int(idx_image),
@@ -179,11 +180,11 @@ def random(
 _Add_Noise_Temperature = _spirit.Configuration_Add_Noise_Temperature
 _Add_Noise_Temperature.argtypes = [
     ctypes.c_void_p,
-    ctypes.c_float,
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.c_float,
-    ctypes.c_float,
+    scalar,
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    scalar,
+    scalar,
     ctypes.c_bool,
     ctypes.c_int,
     ctypes.c_int,
@@ -203,14 +204,14 @@ def add_noise(
     idx_chain=-1,
 ):
     """Add temperature-scaled random noise to configuration."""
-    vec3 = ctypes.c_float * 3
+    vec3 = scalar * 3
     _Add_Noise_Temperature(
         ctypes.c_void_p(p_state),
-        ctypes.c_float(temperature),
+        scalar(temperature),
         vec3(*pos),
         vec3(*border_rectangular),
-        ctypes.c_float(border_cylindrical),
-        ctypes.c_float(border_spherical),
+        scalar(border_cylindrical),
+        scalar(border_spherical),
         ctypes.c_bool(inverted),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
@@ -220,16 +221,16 @@ def add_noise(
 _Skyrmion = _spirit.Configuration_Skyrmion
 _Skyrmion.argtypes = [
     ctypes.c_void_p,
-    ctypes.c_float,
-    ctypes.c_float,
-    ctypes.c_float,
+    scalar,
+    scalar,
+    scalar,
     ctypes.c_bool,
     ctypes.c_bool,
     ctypes.c_bool,
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.c_float,
-    ctypes.c_float,
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    scalar,
+    scalar,
     ctypes.c_bool,
     ctypes.c_int,
     ctypes.c_int,
@@ -268,19 +269,19 @@ def skyrmion(
     - `right_left`: if `True`, the in-plane rotation is inverted
 
     """
-    vec3 = ctypes.c_float * 3
+    vec3 = scalar * 3
     _Skyrmion(
         ctypes.c_void_p(p_state),
-        ctypes.c_float(radius),
-        ctypes.c_float(order),
-        ctypes.c_float(phase),
+        scalar(radius),
+        scalar(order),
+        scalar(phase),
         ctypes.c_bool(up_down),
         ctypes.c_bool(achiral),
         ctypes.c_bool(right_left),
         vec3(*pos),
         vec3(*border_rectangular),
-        ctypes.c_float(border_cylindrical),
-        ctypes.c_float(border_spherical),
+        scalar(border_cylindrical),
+        scalar(border_spherical),
         ctypes.c_bool(inverted),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
@@ -290,17 +291,17 @@ def skyrmion(
 _DW_Skyrmion = _spirit.Configuration_DW_Skyrmion
 _DW_Skyrmion.argtypes = [
     ctypes.c_void_p,
-    ctypes.c_float,
-    ctypes.c_float,
-    ctypes.c_float,
-    ctypes.c_float,
+    scalar,
+    scalar,
+    scalar,
+    scalar,
     ctypes.c_bool,
     ctypes.c_bool,
     ctypes.c_bool,
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.c_float,
-    ctypes.c_float,
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    scalar,
+    scalar,
     ctypes.c_bool,
     ctypes.c_int,
     ctypes.c_int,
@@ -341,20 +342,20 @@ def dw_skyrmion(
     - `right_left`: if `True`, the in-plane rotation is inverted
 
     """
-    vec3 = ctypes.c_float * 3
+    vec3 = scalar * 3
     _DW_Skyrmion(
         ctypes.c_void_p(p_state),
-        ctypes.c_float(dw_radius),
-        ctypes.c_float(dw_width),
-        ctypes.c_float(order),
-        ctypes.c_float(phase),
+        scalar(dw_radius),
+        scalar(dw_width),
+        scalar(order),
+        scalar(phase),
         ctypes.c_bool(up_down),
         ctypes.c_bool(achiral),
         ctypes.c_bool(right_left),
         vec3(*pos),
         vec3(*border_rectangular),
-        ctypes.c_float(border_cylindrical),
-        ctypes.c_float(border_spherical),
+        scalar(border_cylindrical),
+        scalar(border_spherical),
         ctypes.c_bool(inverted),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
@@ -364,14 +365,14 @@ def dw_skyrmion(
 _Hopfion = _spirit.Configuration_Hopfion
 _Hopfion.argtypes = [
     ctypes.c_void_p,
-    ctypes.c_float,
+    scalar,
     ctypes.c_int,
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.c_float,
-    ctypes.c_float,
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    scalar,
+    scalar,
     ctypes.c_bool,
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -403,15 +404,15 @@ def hopfion(
 
     In contrast to the skyrmion, it extends over the whole allowed space.
     """
-    vec3 = ctypes.c_float * 3
+    vec3 = scalar * 3
     _Hopfion(
         ctypes.c_void_p(p_state),
-        ctypes.c_float(radius),
+        scalar(radius),
         ctypes.c_int(order),
         vec3(*pos),
         vec3(*border_rectangular),
-        ctypes.c_float(border_cylindrical),
-        ctypes.c_float(border_spherical),
+        scalar(border_cylindrical),
+        scalar(border_spherical),
         ctypes.c_bool(inverted),
         vec3(*normal),
         ctypes.c_int(idx_image),
@@ -423,13 +424,13 @@ _SpinSpiral = _spirit.Configuration_SpinSpiral
 _SpinSpiral.argtypes = [
     ctypes.c_void_p,
     ctypes.c_char_p,
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.c_float,
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.c_float,
-    ctypes.c_float,
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    scalar,
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    scalar,
+    scalar,
     ctypes.c_bool,
     ctypes.c_int,
     ctypes.c_int,
@@ -460,17 +461,17 @@ def spin_spiral(
     - `axis`:
     - `theta`:
     """
-    vec3 = ctypes.c_float * 3
+    vec3 = scalar * 3
     _SpinSpiral(
         ctypes.c_void_p(p_state),
         ctypes.c_char_p(direction_type.encode("utf-8")),
         vec3(*q_vector),
         vec3(*axis),
-        ctypes.c_float(theta),
+        scalar(theta),
         vec3(*pos),
         vec3(*border_rectangular),
-        ctypes.c_float(border_cylindrical),
-        ctypes.c_float(border_spherical),
+        scalar(border_cylindrical),
+        scalar(border_spherical),
         ctypes.c_bool(inverted),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
@@ -481,10 +482,10 @@ _Set_Pinned = _spirit.Configuration_Set_Pinned
 _Set_Pinned.argtypes = [
     ctypes.c_void_p,
     ctypes.c_bool,
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.c_float,
-    ctypes.c_float,
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    scalar,
+    scalar,
     ctypes.c_bool,
     ctypes.c_int,
     ctypes.c_int,
@@ -507,14 +508,14 @@ def set_pinned(
 
     If they are pinned, they are pinned to their current orientation.
     """
-    vec3 = ctypes.c_float * 3
+    vec3 = scalar * 3
     _Set_Pinned(
         ctypes.c_void_p(p_state),
         ctypes.c_bool(pinned),
         vec3(*pos),
         vec3(*border_rectangular),
-        ctypes.c_float(border_cylindrical),
-        ctypes.c_float(border_spherical),
+        scalar(border_cylindrical),
+        scalar(border_spherical),
         ctypes.c_bool(inverted),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
@@ -525,10 +526,10 @@ _Set_Atom_Type = _spirit.Configuration_Set_Atom_Type
 _Set_Atom_Type.argtypes = [
     ctypes.c_void_p,
     ctypes.c_int,
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.c_float,
-    ctypes.c_float,
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    scalar,
+    scalar,
     ctypes.c_bool,
     ctypes.c_int,
     ctypes.c_int,
@@ -551,14 +552,14 @@ def set_atom_type(
 
     This can be used e.g. to insert defects (-1).
     """
-    vec3 = ctypes.c_float * 3
+    vec3 = scalar * 3
     _Set_Atom_Type(
         ctypes.c_void_p(p_state),
         ctypes.c_int(atom_type),
         vec3(*pos),
         vec3(*border_rectangular),
-        ctypes.c_float(border_cylindrical),
-        ctypes.c_float(border_spherical),
+        scalar(border_cylindrical),
+        scalar(border_spherical),
         ctypes.c_bool(inverted),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
