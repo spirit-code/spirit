@@ -10,6 +10,8 @@
 #include <QRegularExpressionValidator>
 #include <QtWidgets/QWidget>
 
+#include <Spirit/Spirit_Defines.h>
+
 #include <memory>
 #include <thread>
 
@@ -59,11 +61,11 @@ private:
     void Setup_Transitions_Slots();
 
     // Helpers
-    std::array<float, 3> get_position();
-    std::array<float, 3> get_border_rectangular();
-    float get_border_cylindrical();
-    float get_border_spherical();
-    float get_inverted();
+    std::array<scalar, 3> get_position();
+    std::array<scalar, 3> get_border_rectangular();
+    scalar get_border_cylindrical();
+    scalar get_border_spherical();
+    scalar get_inverted();
 
     // Debug?
     void print_Energies_to_console();

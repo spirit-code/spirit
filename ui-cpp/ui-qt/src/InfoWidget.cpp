@@ -49,7 +49,7 @@ void InfoWidget::updateData()
     this->m_Label_E_dens->setText( QString::fromLatin1( "E dens = " ) + QString::number( E / nos, 'f', 10 ) );
 
     // Magnetization
-    float M[3];
+    scalar M[3];
     Quantity_Get_Average_Spin( state.get(), M );
     this->m_Label_Mx->setText( QString::fromLatin1( "Sx: " ) + QString::number( M[0], 'f', 8 ) );
     this->m_Label_My->setText( QString::fromLatin1( "Sy: " ) + QString::number( M[1], 'f', 8 ) );
@@ -62,7 +62,7 @@ void InfoWidget::updateData()
 
     if( Simulation_Running_On_Chain( state.get() ) )
     {
-        float * forces = new float[Chain_Get_NOI( state.get() )];
+        scalar * forces = new scalar[Chain_Get_NOI( state.get() )];
         Simulation_Get_Chain_MaxTorqueNorms( state.get(), forces );
         float f_current = forces[System_Get_Index( state.get() )];
         this->m_Label_Force_Current->show();

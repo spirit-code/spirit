@@ -90,11 +90,11 @@ void ConfigurationsWidget::randomPressed()
 {
     Log_Send( state.get(), Log_Level_Debug, Log_Sender_UI, "button Random" );
     // Get settings
-    auto pos         = get_position();
-    auto border_rect = get_border_rectangular();
-    float border_cyl = get_border_cylindrical();
-    float border_sph = get_border_spherical();
-    bool inverted    = get_inverted();
+    auto pos          = get_position();
+    auto border_rect  = get_border_rectangular();
+    scalar border_cyl = get_border_cylindrical();
+    scalar border_sph = get_border_spherical();
+    bool inverted     = get_inverted();
     // Create configuration
     Configuration_Random( this->state.get(), pos.data(), border_rect.data(), border_cyl, border_sph, inverted );
 
@@ -109,11 +109,11 @@ void ConfigurationsWidget::addNoisePressed()
 {
     Log_Send( state.get(), Log_Level_Debug, Log_Sender_UI, "button Add Noise" );
     // Get settings
-    auto pos         = get_position();
-    auto border_rect = get_border_rectangular();
-    float border_cyl = get_border_cylindrical();
-    float border_sph = get_border_spherical();
-    bool inverted    = get_inverted();
+    auto pos          = get_position();
+    auto border_rect  = get_border_rectangular();
+    scalar border_cyl = get_border_cylindrical();
+    scalar border_sph = get_border_spherical();
+    bool inverted     = get_inverted();
     // Optionally add noise
     this->configurationAddNoise();
     print_Energies_to_console();
@@ -125,11 +125,11 @@ void ConfigurationsWidget::minusZ()
 {
     Log_Send( state.get(), Log_Level_Debug, Log_Sender_UI, "button Minus Z" );
     // Get settings
-    auto pos         = get_position();
-    auto border_rect = get_border_rectangular();
-    float border_cyl = get_border_cylindrical();
-    float border_sph = get_border_spherical();
-    bool inverted    = get_inverted();
+    auto pos          = get_position();
+    auto border_rect  = get_border_rectangular();
+    scalar border_cyl = get_border_cylindrical();
+    scalar border_sph = get_border_spherical();
+    bool inverted     = get_inverted();
     // Create configuration
     Configuration_MinusZ( this->state.get(), pos.data(), border_rect.data(), border_cyl, border_sph, inverted );
 
@@ -144,11 +144,11 @@ void ConfigurationsWidget::plusZ()
 {
     Log_Send( state.get(), Log_Level_Debug, Log_Sender_UI, "button Plus Z" );
     // Get settings
-    auto pos         = get_position();
-    auto border_rect = get_border_rectangular();
-    float border_cyl = get_border_cylindrical();
-    float border_sph = get_border_spherical();
-    bool inverted    = get_inverted();
+    auto pos          = get_position();
+    auto border_rect  = get_border_rectangular();
+    scalar border_cyl = get_border_cylindrical();
+    scalar border_sph = get_border_spherical();
+    bool inverted     = get_inverted();
     // Create configuration
     Configuration_PlusZ( this->state.get(), pos.data(), border_rect.data(), border_cyl, border_sph, inverted );
 
@@ -164,16 +164,16 @@ void ConfigurationsWidget::create_Hopfion()
     Log_Send( state.get(), Log_Level_Debug, Log_Sender_UI, "button Create Hopfion" );
     this->last_configuration = "hopfion";
     // Get settings
-    auto pos         = get_position();
-    auto border_rect = get_border_rectangular();
-    float border_cyl = get_border_cylindrical();
-    float border_sph = get_border_spherical();
-    bool inverted    = get_inverted();
+    auto pos          = get_position();
+    auto border_rect  = get_border_rectangular();
+    scalar border_cyl = get_border_cylindrical();
+    scalar border_sph = get_border_spherical();
+    bool inverted     = get_inverted();
     // Create configuration
-    float r   = lineEdit_hopfion_radius->text().toFloat();
+    scalar r  = lineEdit_hopfion_radius->text().toFloat();
     int order = lineEdit_hopfion_order->text().toInt();
 
-    float normal[3];
+    scalar normal[3];
     normal[0] = lineEdit_hopfion_normal_x->text().toFloat();
     normal[1] = lineEdit_hopfion_normal_y->text().toFloat();
     normal[2] = lineEdit_hopfion_normal_z->text().toFloat();
@@ -193,20 +193,20 @@ void ConfigurationsWidget::create_Skyrmion()
     Log_Send( state.get(), Log_Level_Debug, Log_Sender_UI, "button Create Skyrmion" );
     this->last_configuration = "skyrmion";
     // Get settings
-    auto pos         = get_position();
-    auto border_rect = get_border_rectangular();
-    float border_cyl = get_border_cylindrical();
-    float border_sph = get_border_spherical();
-    bool inverted    = get_inverted();
+    auto pos          = get_position();
+    auto border_rect  = get_border_rectangular();
+    scalar border_cyl = get_border_cylindrical();
+    scalar border_sph = get_border_spherical();
+    bool inverted     = get_inverted();
     // Create configuration
-    float rad      = lineEdit_skyrmion_radius->text().toFloat();
-    float order    = lineEdit_skyrmion_order->text().toFloat();
-    float phase    = lineEdit_skyrmion_phase->text().toFloat();
-    bool upDown    = checkBox_skyrmion_UpDown->isChecked();
-    bool achiral   = checkBox_skyrmion_achiral->isChecked();
-    bool rl        = checkBox_skyrmion_RL->isChecked();
-    bool dw        = checkBox_DW->isChecked();
-    float dw_width = lineEdit_DW->text().toFloat();
+    scalar rad      = lineEdit_skyrmion_radius->text().toFloat();
+    scalar order    = lineEdit_skyrmion_order->text().toFloat();
+    scalar phase    = lineEdit_skyrmion_phase->text().toFloat();
+    bool upDown     = checkBox_skyrmion_UpDown->isChecked();
+    bool achiral    = checkBox_skyrmion_achiral->isChecked();
+    bool rl         = checkBox_skyrmion_RL->isChecked();
+    bool dw         = checkBox_DW->isChecked();
+    scalar dw_width = lineEdit_DW->text().toFloat();
     // bool experimental = checkBox_sky_experimental->isChecked();
 
     if( !dw )
@@ -230,21 +230,21 @@ void ConfigurationsWidget::create_SpinSpiral()
     Log_Send( state.get(), Log_Level_Debug, Log_Sender_UI, "button createSpinSpiral" );
     this->last_configuration = "spinspiral";
     // Get settings
-    auto pos         = get_position();
-    auto border_rect = get_border_rectangular();
-    float border_cyl = get_border_cylindrical();
-    float border_sph = get_border_spherical();
-    bool inverted    = get_inverted();
+    auto pos          = get_position();
+    auto border_rect  = get_border_rectangular();
+    scalar border_cyl = get_border_cylindrical();
+    scalar border_sph = get_border_spherical();
+    bool inverted     = get_inverted();
     // Create configuration
-    float angle   = lineEdit_SS_angle->text().toFloat();
-    float axis[3] = { lineEdit_SS_axis_x->text().toFloat(), lineEdit_SS_axis_y->text().toFloat(),
-                      lineEdit_SS_axis_z->text().toFloat() };
-    float qmag    = this->doubleSpinBox_spiral_q->value();
-    float qvec[3] = { lineEdit_SS_dir_x->text().toFloat(), lineEdit_SS_dir_y->text().toFloat(),
-                      lineEdit_SS_dir_z->text().toFloat() };
+    scalar angle   = lineEdit_SS_angle->text().toFloat();
+    scalar axis[3] = { lineEdit_SS_axis_x->text().toFloat(), lineEdit_SS_axis_y->text().toFloat(),
+                       lineEdit_SS_axis_z->text().toFloat() };
+    scalar qmag    = this->doubleSpinBox_spiral_q->value();
+    scalar qvec[3] = { lineEdit_SS_dir_x->text().toFloat(), lineEdit_SS_dir_y->text().toFloat(),
+                       lineEdit_SS_dir_z->text().toFloat() };
 
     // Normalize qvec
-    float absq = std::sqrt( qvec[0] * qvec[0] + qvec[1] * qvec[1] + qvec[2] * qvec[2] );
+    scalar absq = std::sqrt( qvec[0] * qvec[0] + qvec[1] * qvec[1] + qvec[2] * qvec[2] );
     if( absq == 0 )
     {
         qvec[0] = 0;
@@ -270,13 +270,13 @@ void ConfigurationsWidget::create_SpinSpiral()
     // Create Spin Spiral
     if( this->checkBox_SS_q2->isChecked() )
     {
-        float qvec2[3] = { (float)doubleSpinBox_SS_q2_dir_x->value(), (float)doubleSpinBox_SS_q2_dir_y->value(),
-                           (float)doubleSpinBox_SS_q2_dir_z->value() };
+        scalar qvec2[3] = { scalar( doubleSpinBox_SS_q2_dir_x->value() ), scalar( doubleSpinBox_SS_q2_dir_y->value() ),
+                            scalar( doubleSpinBox_SS_q2_dir_z->value() ) };
 
-        float qmag2 = this->doubleSpinBox_spiral_q2->value();
+        scalar qmag2 = this->doubleSpinBox_spiral_q2->value();
 
         // Normalize qvec2
-        float absq2 = std::sqrt( qvec2[0] * qvec2[0] + qvec2[1] * qvec2[1] + qvec2[2] * qvec2[2] );
+        scalar absq2 = std::sqrt( qvec2[0] * qvec2[0] + qvec2[1] * qvec2[1] + qvec2[2] * qvec2[2] );
         if( absq == 0 )
         {
             qvec2[0] = 0;
@@ -310,14 +310,14 @@ void ConfigurationsWidget::domainPressed()
     Log_Send( state.get(), Log_Level_Debug, Log_Sender_UI, "button Domain" );
     this->last_configuration = "domain";
     // Get settings
-    auto pos         = get_position();
-    auto border_rect = get_border_rectangular();
-    float border_cyl = get_border_cylindrical();
-    float border_sph = get_border_spherical();
-    bool inverted    = get_inverted();
+    auto pos          = get_position();
+    auto border_rect  = get_border_rectangular();
+    scalar border_cyl = get_border_cylindrical();
+    scalar border_sph = get_border_spherical();
+    bool inverted     = get_inverted();
     // Create configuration
-    float dir[3] = { lineEdit_domain_dir_x->text().toFloat(), lineEdit_domain_dir_y->text().toFloat(),
-                     lineEdit_domain_dir_z->text().toFloat() };
+    scalar dir[3] = { lineEdit_domain_dir_x->text().toFloat(), lineEdit_domain_dir_y->text().toFloat(),
+                      lineEdit_domain_dir_z->text().toFloat() };
     Configuration_Domain( this->state.get(), dir, pos.data(), border_rect.data(), border_cyl, border_sph, inverted );
 
     // Optionally add noise
@@ -330,11 +330,11 @@ void ConfigurationsWidget::domainPressed()
 void ConfigurationsWidget::set_atom_type_pressed()
 {
     // Get settings
-    auto pos         = get_position();
-    auto border_rect = get_border_rectangular();
-    float border_cyl = get_border_cylindrical();
-    float border_sph = get_border_spherical();
-    bool inverted    = get_inverted();
+    auto pos          = get_position();
+    auto border_rect  = get_border_rectangular();
+    scalar border_cyl = get_border_cylindrical();
+    scalar border_sph = get_border_spherical();
+    bool inverted     = get_inverted();
     // Set
     int atom_type = lineEdit_atom_type->text().toInt();
     Configuration_Set_Atom_Type(
@@ -345,11 +345,11 @@ void ConfigurationsWidget::set_atom_type_pressed()
 void ConfigurationsWidget::set_pinned_pressed()
 {
     // Get settings
-    auto pos         = get_position();
-    auto border_rect = get_border_rectangular();
-    float border_cyl = get_border_cylindrical();
-    float border_sph = get_border_spherical();
-    bool inverted    = get_inverted();
+    auto pos          = get_position();
+    auto border_rect  = get_border_rectangular();
+    scalar border_cyl = get_border_cylindrical();
+    scalar border_sph = get_border_spherical();
+    bool inverted     = get_inverted();
     // Set
     Configuration_Set_Pinned(
         this->state.get(), this->checkBox_pinned->isChecked(), pos.data(), border_rect.data(), border_cyl, border_sph,
@@ -363,13 +363,13 @@ void ConfigurationsWidget::configurationAddNoise()
     if( this->checkBox_Configuration_Noise->isChecked() )
     {
         // Get settings
-        auto pos         = get_position();
-        auto border_rect = get_border_rectangular();
-        float border_cyl = get_border_cylindrical();
-        float border_sph = get_border_spherical();
-        bool inverted    = get_inverted();
+        auto pos          = get_position();
+        auto border_rect  = get_border_rectangular();
+        scalar border_cyl = get_border_cylindrical();
+        scalar border_sph = get_border_spherical();
+        bool inverted     = get_inverted();
         // Create configuration
-        float temperature = lineEdit_Configuration_Noise->text().toFloat();
+        scalar temperature = lineEdit_Configuration_Noise->text().toFloat();
         Configuration_Add_Noise_Temperature(
             this->state.get(), temperature, pos.data(), border_rect.data(), border_cyl, border_sph, inverted );
 
@@ -448,7 +448,7 @@ void ConfigurationsWidget::homogeneousTransitionFirstLastPressed()
     // Add Noise
     if( this->checkBox_Transition_Noise->isChecked() )
     {
-        float temperature = lineEdit_Transition_Noise->text().toFloat();
+        scalar temperature = lineEdit_Transition_Noise->text().toFloat();
         Transition_Add_Noise_Temperature( this->state.get(), temperature, idx_1, idx_2 );
     }
 
@@ -472,15 +472,15 @@ void ConfigurationsWidget::homogeneousTransitionInterpolatePressed()
 // -----------------------------------------------------------------------------------
 // -------------- Helpers for fetching Configurations Settings -----------------------
 // -----------------------------------------------------------------------------------
-std::array<float, 3> ConfigurationsWidget::get_position()
+std::array<scalar, 3> ConfigurationsWidget::get_position()
 {
-    return std::array<float, 3>{ lineEdit_pos_x->text().toFloat(), lineEdit_pos_y->text().toFloat(),
-                                 lineEdit_pos_z->text().toFloat() };
+    return std::array<scalar, 3>{ lineEdit_pos_x->text().toFloat(), lineEdit_pos_y->text().toFloat(),
+                                  lineEdit_pos_z->text().toFloat() };
 }
 
-std::array<float, 3> ConfigurationsWidget::get_border_rectangular()
+std::array<scalar, 3> ConfigurationsWidget::get_border_rectangular()
 {
-    std::array<float, 3> ret{ -1, -1, -1 };
+    std::array<scalar, 3> ret{ -1, -1, -1 };
     if( checkBox_border_rectangular_x->isChecked() )
         ret[0] = lineEdit_border_x->text().toFloat();
     if( checkBox_border_rectangular_y->isChecked() )
@@ -490,7 +490,7 @@ std::array<float, 3> ConfigurationsWidget::get_border_rectangular()
     return ret;
 }
 
-float ConfigurationsWidget::get_border_cylindrical()
+scalar ConfigurationsWidget::get_border_cylindrical()
 {
     if( checkBox_border_cylindrical->isChecked() )
     {
@@ -502,7 +502,7 @@ float ConfigurationsWidget::get_border_cylindrical()
     }
 }
 
-float ConfigurationsWidget::get_border_spherical()
+scalar ConfigurationsWidget::get_border_spherical()
 {
     if( checkBox_border_spherical->isChecked() )
     {
@@ -514,7 +514,7 @@ float ConfigurationsWidget::get_border_spherical()
     }
 }
 
-float ConfigurationsWidget::get_inverted()
+scalar ConfigurationsWidget::get_inverted()
 {
     return checkBox_inverted->isChecked();
 }

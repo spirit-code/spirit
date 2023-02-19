@@ -18,6 +18,8 @@
 
 #include "glm/glm.hpp"
 
+#include <Spirit/Spirit_Defines.h>
+
 #include <memory>
 #include <set>
 
@@ -308,7 +310,7 @@ private:
     //  winsize should be the device pixel size of the widget.
     //  This function also assumes an orthogonal z-projection.
     glm::vec2 system_coords_from_mouse( glm::vec2 mouse_pos, glm::vec2 winsize );
-    float system_radius_from_relative( float radius, glm::vec2 winsize );
+    scalar system_radius_from_relative( scalar radius, glm::vec2 winsize );
     QTimer * m_timer_drag;
     QTimer * m_timer_drag_decoration;
     void dragpaste();
