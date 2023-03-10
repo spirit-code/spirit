@@ -13,8 +13,13 @@
 #include <catch.hpp>
 #include <iostream>
 
+using Catch::Matchers::WithinAbs;
+
 TEST_CASE( "Solvers testing", "[solvers]" )
 {
+    Catch::StringMaker<float>::precision  = 12;
+    Catch::StringMaker<double>::precision = 12;
+
     // Input file
     auto inputfile = "core/test/input/solvers.cfg";
 
@@ -22,7 +27,7 @@ TEST_CASE( "Solvers testing", "[solvers]" )
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
 
     // Reduce precision if float accuracy
-    double epsilon_apprx = 1e-5;
+    float epsilon_apprx = 1e-5;
     if( strcmp( Spirit_Scalar_Type(), "float" ) == 0 )
     {
         WARN( "Detected single precision calculation. Reducing precision requirements." );
@@ -62,9 +67,9 @@ TEST_CASE( "Solvers testing", "[solvers]" )
         INFO( "LLG using " << solver << " solver (direct)" );
 
         // Check the values of energy and magnetization
-        REQUIRE( energy == Approx( energy_expected ).epsilon( epsilon_apprx ) );
+        REQUIRE_THAT( energy, WithinAbs( energy_expected, epsilon_apprx ) );
         for( int dim = 0; dim < 3; dim++ )
-            REQUIRE( magnetization[dim] == Approx( magnetization_expected[dim] ).epsilon( epsilon_apprx ) );
+            REQUIRE_THAT( magnetization[dim], WithinAbs( magnetization_expected[dim], epsilon_apprx ) );
     }
 
     Chain_Image_to_Clipboard( state.get() );
@@ -122,8 +127,8 @@ TEST_CASE( "Solvers testing", "[solvers]" )
         INFO( "GNEB using " << solver << " solver" );
 
         // Check the values of energy and magnetization
-        REQUIRE( energy_sp == Approx( energy_sp_expected ).epsilon( epsilon_apprx ) );
+        REQUIRE_THAT( energy_sp, WithinAbs( energy_sp_expected, epsilon_apprx ) );
         for( int dim = 0; dim < 3; dim++ )
-            REQUIRE( magnetization_sp[dim] == Approx( magnetization_sp_expected[dim] ).epsilon( epsilon_apprx ) );
+            REQUIRE_THAT( magnetization_sp[dim], WithinAbs( magnetization_sp_expected[dim], epsilon_apprx ) );
     }
 }

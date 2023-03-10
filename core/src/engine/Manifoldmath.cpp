@@ -1,9 +1,9 @@
+#include <engine/Backend_par.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
-#include <engine/Backend_par.hpp>
 
 #include <Eigen/Dense>
 
@@ -22,12 +22,10 @@ namespace Manifoldmath
 {
 void project_parallel( vectorfield & vf1, const vectorfield & vf2 )
 {
-    scalar proj = Vectormath::dot(vf1, vf2);
-    Backend::par::apply( vf1.size(), [vf1 = vf1.data(), vf2 = vf2.data(), proj] SPIRIT_LAMBDA (int idx)
-        {
-            vf1[idx] = proj * vf2[idx];
-        } 
-    );
+    scalar proj = Vectormath::dot( vf1, vf2 );
+    Backend::par::apply(
+        vf1.size(),
+        [vf1 = vf1.data(), vf2 = vf2.data(), proj] SPIRIT_LAMBDA( int idx ) { vf1[idx] = proj * vf2[idx]; } );
 }
 
 void project_orthogonal( vectorfield & vf1, const vectorfield & vf2 )
@@ -77,7 +75,8 @@ scalar dist_geodesic( const vectorfield & v1, const vectorfield & v2 )
 /*
     Helper function for a more accurate tangent
 */
-void Geodesic_Tangent( vectorfield & tangent, const vectorfield & image_1, const vectorfield & image_2, const vectorfield & image_mid )
+void Geodesic_Tangent(
+    vectorfield & tangent, const vectorfield & image_1, const vectorfield & image_2, const vectorfield & image_mid )
 {
     // clang-format off
     Backend::par::apply(
@@ -128,13 +127,17 @@ void Tangents(
         if( idx_img == 0 )
         {
             auto & image_plus = *configurations[idx_img + 1];
-            Geodesic_Tangent( tangents[idx_img], image, image_plus, image ); // Use the accurate tangent at the endpoints, useful for the dimer method
+            Geodesic_Tangent(
+                tangents[idx_img], image, image_plus,
+                image ); // Use the accurate tangent at the endpoints, useful for the dimer method
         }
         // Last Image
         else if( idx_img == noi - 1 )
         {
             auto & image_minus = *configurations[idx_img - 1];
-            Geodesic_Tangent( tangents[idx_img], image_minus, image, image ); // Use the accurate tangent at the endpoints, useful for the dimer method
+            Geodesic_Tangent(
+                tangents[idx_img], image_minus, image,
+                image ); // Use the accurate tangent at the endpoints, useful for the dimer method
         }
         // Images Inbetween
         else
@@ -561,7 +564,6 @@ void hessian_bordered(
     // Result is a 2Nx2N matrix
     hessian_out = tangent_basis.transpose() * tmp_3N * tangent_basis;
 }
-
 
 void hessian_projected(
     const vectorfield & image, const vectorfield & gradient, const MatrixX & hessian, MatrixX & tangent_basis,

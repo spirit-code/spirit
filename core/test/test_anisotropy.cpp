@@ -12,8 +12,12 @@
 #include <catch.hpp>
 #include <data/State.hpp>
 
+using Catch::Matchers::WithinAbs;
+
 TEST_CASE( "Anisotropy", "[anisotropy]" )
 {
+    Catch::StringMaker<float>::precision  = 12;
+    Catch::StringMaker<double>::precision = 12;
 
     double epsilon_apprx = 1e-11;
     if( strcmp( Spirit_Scalar_Type(), "float" ) == 0 )
@@ -34,10 +38,10 @@ TEST_CASE( "Anisotropy", "[anisotropy]" )
     float normal[3];
     Hamiltonian_Get_Anisotropy( state.get(), &magnitude, normal );
 
-    REQUIRE( Approx( magnitude ) == init_magnitude );
-    REQUIRE( Approx( normal[0] ) == 0 );
-    REQUIRE( Approx( normal[1] ) == 0 );
-    REQUIRE( Approx( normal[2] ) == 1 );
+    REQUIRE_THAT( magnitude, WithinAbs( init_magnitude, 1e-12 ) );
+    REQUIRE_THAT( normal[0], WithinAbs( 0, 1e-12 ) );
+    REQUIRE_THAT( normal[1], WithinAbs( 0, 1e-12 ) );
+    REQUIRE_THAT( normal[2], WithinAbs( 1, 1e-12 ) );
 
     // Test the uniaxial anisotropy energy
     vectorfield spins( state->nos );
@@ -53,14 +57,14 @@ TEST_CASE( "Anisotropy", "[anisotropy]" )
 
     energy2 = state->active_image->hamiltonian->Energy( spins );
 
-    REQUIRE( Approx( energy1 - energy2 ) == init_magnitude * state->nos );
+    REQUIRE_THAT( energy1 - energy2, WithinAbs( init_magnitude * state->nos, 1e-12 ) );
 
     for( int ispin = 0; ispin < state->nos; ++ispin )
         spins[ispin] = { sqrt( 2 ) / 2, sqrt( 2 ) / 2, 0.0 };
 
     energy2 = state->active_image->hamiltonian->Energy( spins );
 
-    REQUIRE( Approx( energy1 - energy2 ) == 0.0 );
+    REQUIRE_THAT( energy1 - energy2, WithinAbs( 0, 1e-12 ) );
 
     for( int ispin = 0; ispin < state->nos; ++ispin )
         spins[ispin] = { 0.0, 0.0, 1.0 };
@@ -88,7 +92,7 @@ TEST_CASE( "Anisotropy", "[anisotropy]" )
     float magnitude4;
     Hamiltonian_Get_Cubic_Anisotropy( state.get(), &magnitude4 );
 
-    REQUIRE( Approx( magnitude4 ) == init_magnitude4 );
+    REQUIRE_THAT( magnitude4, WithinAbs( init_magnitude4, 1e-12 ) );
 
     for( int ispin = 0; ispin < state->nos; ++ispin )
         spins[ispin] = { 1.0, 0.0, 0.0 };
@@ -100,21 +104,21 @@ TEST_CASE( "Anisotropy", "[anisotropy]" )
 
     energy2 = state->active_image->hamiltonian->Energy( spins );
 
-    REQUIRE( Approx( energy1 - energy2 ) == -init_magnitude4 / 4 * state->nos );
+    REQUIRE_THAT( energy1 - energy2, WithinAbs( -init_magnitude4 / 4 * state->nos, 1e-12 ) );
 
     for( int ispin = 0; ispin < state->nos; ++ispin )
         spins[ispin] = { 0.0, 1.0, 0.0 };
 
     energy1 = state->active_image->hamiltonian->Energy( spins );
 
-    REQUIRE( Approx( energy1 - energy2 ) == -init_magnitude4 / 4 * state->nos );
+    REQUIRE_THAT( energy1 - energy2, WithinAbs( -init_magnitude4 / 4 * state->nos, 1e-12 ) );
 
     for( int ispin = 0; ispin < state->nos; ++ispin )
         spins[ispin] = { 0.0, 0.0, 1.0 };
 
     energy2 = state->active_image->hamiltonian->Energy( spins );
 
-    REQUIRE( Approx( energy1 - energy2 ) == 0.0 );
+    REQUIRE_THAT( energy1 - energy2, WithinAbs( 0, 1e-12 ) );
 
     // Test the cubic anisotropy gradient
     state->active_image->hamiltonian->Gradient( spins, grad );
@@ -132,11 +136,10 @@ TEST_CASE( "Anisotropy", "[anisotropy]" )
         spins[ispin] = { 0.0, 0.0, 1.0 };
 
     scalar energy3;
-
     state->active_image->hamiltonian->Gradient_and_Energy( spins, grad, energy3 );
 
     energy1 = state->active_image->hamiltonian->Energy( spins );
-    REQUIRE( Approx( energy3 ) == energy1 );
+    REQUIRE_THAT( energy3, WithinAbs( energy1, 1e-4 ) ); // TODO: why the low precision?
 
     auto grad2 = vectorfield( state->nos );
 

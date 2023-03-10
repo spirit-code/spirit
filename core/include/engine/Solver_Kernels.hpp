@@ -130,8 +130,7 @@ void lbfgs_get_searchdir(
                 auto q = q_vec[img].data();
                 auto a = alpha.data();
                 auto d = delta_grad[img][c_ind].data();
-                Backend::par::apply(
-                    nos, [c_ind, q, a, d] SPIRIT_LAMBDA( int idx ) { q[idx] += -a[c_ind] * d[idx]; } );
+                Backend::par::apply( nos, [c_ind, q, a, d] SPIRIT_LAMBDA( int idx ) { q[idx] += -a[c_ind] * d[idx]; } );
             }
         }
 

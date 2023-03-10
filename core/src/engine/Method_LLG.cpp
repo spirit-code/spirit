@@ -348,40 +348,42 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
 
         // Function to write or append image and energy files
         auto writeOutputConfiguration
-            = [this, preSpinsFile, preEnergyFile, iteration]( const std::string & suffix, bool append ) {
-                  try
-                  {
-                      // File name and comment
-                      std::string spinsFile      = preSpinsFile + suffix + ".ovf";
-                      std::string output_comment = fmt::format(
-                          "{} simulation ({} solver)\n# Desc:      Iteration: {}\n# Desc:      Maximum torque: {}",
-                          this->Name(), this->SolverFullName(), iteration, this->max_torque );
+            = [this, preSpinsFile, preEnergyFile, iteration]( const std::string & suffix, bool append )
+        {
+            try
+            {
+                // File name and comment
+                std::string spinsFile      = preSpinsFile + suffix + ".ovf";
+                std::string output_comment = fmt::format(
+                    "{} simulation ({} solver)\n# Desc:      Iteration: {}\n# Desc:      Maximum torque: {}",
+                    this->Name(), this->SolverFullName(), iteration, this->max_torque );
 
-                      // File format
-                      IO::VF_FileFormat format = this->systems[0]->llg_parameters->output_vf_filetype;
+                // File format
+                IO::VF_FileFormat format = this->systems[0]->llg_parameters->output_vf_filetype;
 
-                      // Spin Configuration
-                      auto & spins        = *this->systems[0]->spins;
-                      auto segment        = IO::OVF_Segment( *this->systems[0] );
-                      std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
-                      segment.title       = strdup( title.c_str() );
-                      segment.comment     = strdup( output_comment.c_str() );
-                      segment.valuedim    = 3;
-                      segment.valuelabels = strdup( "spin_x spin_y spin_z" );
-                      segment.valueunits  = strdup( "none none none" );
-                      if( append )
-                          IO::OVF_File( spinsFile ).append_segment( segment, spins[0].data(), int( format ) );
-                      else
-                          IO::OVF_File( spinsFile ).write_segment( segment, spins[0].data(), int( format ) );
-                  }
-                  catch( ... )
-                  {
-                      spirit_handle_exception_core( "LLG output failed" );
-                  }
-              };
+                // Spin Configuration
+                auto & spins        = *this->systems[0]->spins;
+                auto segment        = IO::OVF_Segment( *this->systems[0] );
+                std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                segment.title       = strdup( title.c_str() );
+                segment.comment     = strdup( output_comment.c_str() );
+                segment.valuedim    = 3;
+                segment.valuelabels = strdup( "spin_x spin_y spin_z" );
+                segment.valueunits  = strdup( "none none none" );
+                if( append )
+                    IO::OVF_File( spinsFile ).append_segment( segment, spins[0].data(), int( format ) );
+                else
+                    IO::OVF_File( spinsFile ).write_segment( segment, spins[0].data(), int( format ) );
+            }
+            catch( ... )
+            {
+                spirit_handle_exception_core( "LLG output failed" );
+            }
+        };
 
-        auto writeOutputEnergy = [this, preSpinsFile, preEnergyFile,
-                                  iteration]( const std::string & suffix, bool append ) {
+        auto writeOutputEnergy
+            = [this, preSpinsFile, preEnergyFile, iteration]( const std::string & suffix, bool append )
+        {
             bool normalize   = this->systems[0]->llg_parameters->output_energy_divide_by_nspins;
             bool readability = this->systems[0]->llg_parameters->output_energy_add_readability_lines;
 

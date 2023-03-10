@@ -14,7 +14,7 @@ from wheel.bdist_wheel import bdist_wheel as bdist_wheel_
 
 
 NAME = "spirit"
-PACKAGES = ['spirit', 'spirit.parameters']
+PACKAGES = ["spirit", "spirit.parameters"]
 META_PATH = os.path.join("spirit", "__init__.py")
 KEYWORDS = ["Spirit", "Spin Dynamics"]
 CLASSIFIERS = [
@@ -42,7 +42,7 @@ def read(*parts):
     resulting file. Assume UTF-8 encoding, but replace Windows CRLF with Unix LF.
     """
     with codecs.open(os.path.join(HERE, *parts), "rb", "utf-8") as f:
-        return f.read().replace('\r\n','\n')
+        return f.read().replace("\r\n", "\n")
 
 
 META_FILE = read(META_PATH)
@@ -53,40 +53,61 @@ def find_meta(meta):
     Extract __*meta*__ from META_FILE.
     """
     meta_match = re.search(
-        r"^__{meta}__ = ['\"]([^'\"]*)['\"]".format(meta=meta),
-        META_FILE, re.M
+        r"^__{meta}__ = ['\"]([^'\"]*)['\"]".format(meta=meta), META_FILE, re.M
     )
     if meta_match:
         return meta_match.group(1)
     raise RuntimeError("Unable to find __{meta}__ string.".format(meta=meta))
 
+
 def get_git_commit_datetime():
     try:
-        commit_hash = subprocess.check_output("git rev-parse HEAD", shell=True, stderr=subprocess.STDOUT).decode("utf-8").strip()
-        commit_datetime = subprocess.check_output("git show -s --format=%ci "+commit_hash, shell=True, stderr=subprocess.STDOUT).decode("utf-8").strip()
+        commit_hash = (
+            subprocess.check_output(
+                "git rev-parse HEAD", shell=True, stderr=subprocess.STDOUT
+            )
+            .decode("utf-8")
+            .strip()
+        )
+        commit_datetime = (
+            subprocess.check_output(
+                "git show -s --format=%ci " + commit_hash,
+                shell=True,
+                stderr=subprocess.STDOUT,
+            )
+            .decode("utf-8")
+            .strip()
+        )
         print(commit_datetime)
-        commit_datetime = ' '.join(commit_datetime.split()[:-1])
+        commit_datetime = " ".join(commit_datetime.split()[:-1])
         print(commit_datetime)
-        datetime_object = datetime.datetime.strptime(commit_datetime, '%Y-%m-%d %H:%M:%S')
+        datetime_object = datetime.datetime.strptime(
+            commit_datetime, "%Y-%m-%d %H:%M:%S"
+        )
         print("{:%Y%m%d%H%M%S}".format(datetime_object))
         return "{:%Y%m%d%H%M%S}".format(datetime_object)
     except subprocess.CalledProcessError as cpe:
         print(cpe.output)
         return "00000000000000"
 
+
 import unittest
+
+
 def my_test_suite():
     test_loader = unittest.TestLoader()
-    test_suite = test_loader.discover('test', pattern='*.py')
+    test_suite = test_loader.discover("test", pattern="*.py")
     return test_suite
+
 
 class bdist_wheel(bdist_wheel_):
     def finalize_options(self):
         from sys import platform as _platform
+
         platform_name = get_build_platform()
         if _platform == "linux" or _platform == "linux2":
             # Linux
-            platform_name = 'manylinux1_x86_64'
+            platform_name = "manylinux1_x86_64"
 
         bdist_wheel_.finalize_options(self)
         self.universal = True
@@ -96,13 +117,17 @@ class bdist_wheel(bdist_wheel_):
 
 class CleanCommand(Command):
     """Custom clean command to tidy up the project root."""
+
     user_options = []
+
     def initialize_options(self):
         pass
+
     def finalize_options(self):
         pass
+
     def run(self):
-        os.system('rm -vrf ./build ./dist ./*.pyc ./*.tgz ./*.egg-info')
+        os.system("rm -vrf ./build ./dist ./*.pyc ./*.tgz ./*.egg-info")
 
 
 if __name__ == "__main__":
@@ -114,29 +139,29 @@ if __name__ == "__main__":
         timepoint_string = get_git_commit_datetime()
         if timepoint_string == "00000000000000":
             timepoint_string = "{:%Y%m%d%H%M}".format(datetime.datetime.now())
-        version_suffix = ".dev"+timepoint_string
+        version_suffix = ".dev" + timepoint_string
         print("setup.py: package version suffix = ", version_suffix)
 
     # Setup the package info
     setup(
-        name             = NAME,
-        description      = find_meta("description"),
-        long_description = read('README.md'),
-        long_description_content_type = "text/markdown",
-        license          = find_meta("license"),
-        url              = find_meta("uri"),
-        version          = find_meta("version")+version_suffix,
-        author           = find_meta("author"),
-        author_email     = find_meta("email"),
-        maintainer       = find_meta("author"),
-        maintainer_email = find_meta("email"),
-        keywords         = KEYWORDS,
-        packages         = PACKAGES,
-        classifiers      = CLASSIFIERS,
-        install_requires = INSTALL_REQUIRES,
-        package_data     = {
-            'spirit': ['libSpirit.dylib', 'libSpirit.so', 'Spirit.dll'],
+        name=NAME,
+        description=find_meta("description"),
+        long_description=read("README.md"),
+        long_description_content_type="text/markdown",
+        license=find_meta("license"),
+        url=find_meta("uri"),
+        version=find_meta("version") + version_suffix,
+        author=find_meta("author"),
+        author_email=find_meta("email"),
+        maintainer=find_meta("author"),
+        maintainer_email=find_meta("email"),
+        keywords=KEYWORDS,
+        packages=PACKAGES,
+        classifiers=CLASSIFIERS,
+        install_requires=INSTALL_REQUIRES,
+        package_data={
+            "spirit": ["libSpirit.dylib", "libSpirit.so", "Spirit.dll"],
         },
-        cmdclass         = {'bdist_wheel': bdist_wheel, 'clean': CleanCommand},
-        test_suite       = 'setup.my_test_suite',
+        cmdclass={"bdist_wheel": bdist_wheel, "clean": CleanCommand},
+        test_suite="setup.my_test_suite",
     )

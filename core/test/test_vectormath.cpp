@@ -5,8 +5,13 @@
 #include <iostream>
 #include <vector>
 
+using Catch::Matchers::WithinAbs;
+
 TEST_CASE( "Vectormath operations", "[vectormath]" )
 {
+    Catch::StringMaker<float>::precision  = 12;
+    Catch::StringMaker<double>::precision = 12;
+
     int N       = 10000;
     int N_check = std::min( 100, N );
     scalarfield sf( N, 1 );
@@ -19,9 +24,9 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
     {
         Engine::Vectormath::fill( vf1, { 0, 0, 1 } );
         auto m = Engine::Vectormath::Magnetization( vf1, mu_s_field );
-        REQUIRE( m[0] == Approx( 0 ) );
-        REQUIRE( m[1] == Approx( 0 ) );
-        REQUIRE( m[2] == Approx( mu_s ) );
+        REQUIRE_THAT( m[0], WithinAbs( 0, 1e-12 ) );
+        REQUIRE_THAT( m[1], WithinAbs( 0, 1e-12 ) );
+        REQUIRE_THAT( m[2], WithinAbs( mu_s, 1e-12 ) );
     }
 
     SECTION( "Rotate" )
@@ -36,7 +41,7 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
 
         Engine::Vectormath::rotate( v1_in, v1_axis, angle, v1_out );
         for( unsigned int i = 0; i < 3; i++ )
-            REQUIRE( v1_out[i] == Approx( v1_exp[i] ) );
+            REQUIRE_THAT( v1_out[i], WithinAbs( v1_exp[i], 1e-12 ) );
 
         // zero rotation test
         Vector3 v2_out{ 0, 0, 0 };
@@ -47,7 +52,7 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
 
         Engine::Vectormath::rotate( v2_in, v2_axis, angle2, v2_out );
         for( unsigned int i = 0; i < 3; i++ )
-            REQUIRE( v2_out[i] == Approx( v2_exp[i] ) );
+            REQUIRE_THAT( v2_out[i], WithinAbs( v2_exp[i], 1e-12 ) );
     }
 
     SECTION( "Fill" )
@@ -156,8 +161,8 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
         // Dot Product
         scalarfield dots( N, N );
         Engine::Vectormath::dot( vf1, vf2, dots );
-        REQUIRE( dots[0] == Approx( 1 ) );
-        REQUIRE( Engine::Vectormath::dot( vf1, vf2 ) == Approx( N ) );
+        REQUIRE_THAT( dots[0], WithinAbs( 1, 1e-12 ) );
+        REQUIRE_THAT( Engine::Vectormath::dot( vf1, vf2 ), WithinAbs( N, 1e-12 ) );
 
         // Scalarfields dot Product
         scalarfield sf1( N, 2 );
@@ -304,7 +309,7 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
             auto j   = jacobians[i];
             auto j_e = expected_jacobians[i];
 
-            INFO( i )
+            INFO( i );
             INFO( j.block( 0, 0, 3, 2 ) );
             INFO( j_e.block( 0, 0, 3, 2 ) );
 

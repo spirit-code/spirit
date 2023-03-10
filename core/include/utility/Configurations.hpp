@@ -38,7 +38,9 @@ void Add_Noise_Temperature(
     Data::Spin_System & s, scalar temperature, int delta_seed = 0, filterfunction filter = defaultfilter );
 
 // Creates a toroid
-void Hopfion( Data::Spin_System & s, Vector3 pos, scalar r, int order = 1, Vector3 normal = {0,0,1}, filterfunction filter = defaultfilter );
+void Hopfion(
+    Data::Spin_System & s, Vector3 pos, scalar r, int order = 1, Vector3 normal = { 0, 0, 1 },
+    filterfunction filter = defaultfilter );
 
 // Creates a Skyrmion
 void Skyrmion(

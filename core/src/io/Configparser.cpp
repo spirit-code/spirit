@@ -863,6 +863,7 @@ std::unique_ptr<Data::Parameters_Method_EMA> Parameters_Method_EMA_from_Config( 
             config_file_handle.Read_Single( parameters->n_mode_follow, "ema_n_mode_follow" );
             config_file_handle.Read_Single( parameters->frequency, "ema_frequency" );
             config_file_handle.Read_Single( parameters->amplitude, "ema_amplitude" );
+            config_file_handle.Read_Single( parameters->sparse, "ema_sparse" );
         }
         catch( ... )
         {
@@ -882,6 +883,7 @@ std::unique_ptr<Data::Parameters_Method_EMA> Parameters_Method_EMA_from_Config( 
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "amplitude", parameters->amplitude ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations_log", parameters->n_iterations_log ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations", parameters->n_iterations ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "sparse", parameters->sparse ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "maximum walltime", str_max_walltime ) );
     parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output_configuration_archive", parameters->output_configuration_archive ) );

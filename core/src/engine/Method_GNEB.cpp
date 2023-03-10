@@ -107,10 +107,13 @@ void Method_GNEB<solver>::Calculate_Force(
         //      while the gradient force is manipulated (e.g. projected)
         auto eff_field = this->chain->images[img]->effective_field.data();
         auto f_grad    = F_gradient[img].data();
-        Backend::par::apply( image.size(), [eff_field, f_grad] SPIRIT_LAMBDA( int idx ) {
-            eff_field[idx] *= -1;
-            f_grad[idx] = eff_field[idx];
-        } );
+        Backend::par::apply(
+            image.size(),
+            [eff_field, f_grad] SPIRIT_LAMBDA( int idx )
+            {
+                eff_field[idx] *= -1;
+                f_grad[idx] = eff_field[idx];
+            } );
 
         if( img > 0 )
         {
@@ -149,11 +152,11 @@ void Method_GNEB<solver>::Calculate_Force(
         scalar range_Rx
             = interp[0].at( std::distance( interp[0].begin(), std::max_element( interp[0].begin(), interp[0].end() ) ) )
               - interp[0].at(
-                    std::distance( interp[0].begin(), std::min_element( interp[0].begin(), interp[0].end() ) ) );
+                  std::distance( interp[0].begin(), std::min_element( interp[0].begin(), interp[0].end() ) ) );
         scalar range_E
             = interp[1].at( std::distance( interp[1].begin(), std::max_element( interp[1].begin(), interp[1].end() ) ) )
               - interp[1].at(
-                    std::distance( interp[1].begin(), std::min_element( interp[1].begin(), interp[1].end() ) ) );
+                  std::distance( interp[1].begin(), std::min_element( interp[1].begin(), interp[1].end() ) ) );
 
         for( int idx_image = 1; idx_image < this->chain->noi; ++idx_image )
         {
@@ -326,7 +329,7 @@ void Method_GNEB<solver>::Calculate_Force(
             scalar sign = (img == 0) ? 1.0 : -1.0;
             scalar delta_Rx0 = ( img == 0 ) ? chain->gneb_parameters->equilibrium_delta_Rx_left :
                                               chain->gneb_parameters->equilibrium_delta_Rx_right;
-            scalar delta_Rx = ( img == 0 ) ? Rx[1] - Rx[0] : Rx[chain->noi - 1] - Rx[chain->noi - 2];
+            scalar delta_Rx  = ( img == 0 ) ? Rx[1] - Rx[0] : Rx[chain->noi - 1] - Rx[chain->noi - 2];
 
             auto spring_constant  = this->chain->gneb_parameters->spring_constant;
 
@@ -644,8 +647,9 @@ void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bo
         preEnergiesFile = this->parameters->output_folder + "/" + fileTag + "Chain_Energies";
 
         // Function to write or append image and energy files
-        auto writeOutputChain = [this, preChainFile, preEnergiesFile,
-                                 iteration]( const std::string & suffix, bool append ) {
+        auto writeOutputChain
+            = [this, preChainFile, preEnergiesFile, iteration]( const std::string & suffix, bool append )
+        {
             try
             {
                 // File name
@@ -689,7 +693,8 @@ void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bo
         };
 
         Calculate_Interpolated_Energy_Contributions();
-        auto writeOutputEnergies = [this, preChainFile, preEnergiesFile, iteration]( const std::string & suffix ) {
+        auto writeOutputEnergies = [this, preChainFile, preEnergiesFile, iteration]( const std::string & suffix )
+        {
             bool normalize   = this->chain->gneb_parameters->output_energies_divide_by_nspins;
             bool readability = this->chain->gneb_parameters->output_energies_add_readability_lines;
 
