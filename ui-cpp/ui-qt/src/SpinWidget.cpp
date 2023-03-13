@@ -52,7 +52,7 @@ SpinWidget::SpinWidget( std::shared_ptr<State> state, QWidget * parent )
 
     setOverallDirectionRange( { -1, 1 }, { -1, 1 }, { -1, 1 } );
 
-    float b_min[3], b_max[3];
+    scalar b_min[3], b_max[3];
     Geometry_Get_Bounds( state.get(), b_min, b_max );
     glm::vec3 bounds_min = glm::make_vec3( b_min );
     glm::vec3 bounds_max = glm::make_vec3( b_max );
@@ -174,7 +174,7 @@ glm::vec2 SpinWidget::system_coords_from_mouse( glm::vec2 mouse_pos, glm::vec2 w
     return glm::vec2{ proj_back.x + camera_position.x, -proj_back.y + camera_position.y };
 }
 
-float SpinWidget::system_radius_from_relative( float radius, glm::vec2 winsize )
+scalar SpinWidget::system_radius_from_relative( scalar radius, glm::vec2 winsize )
 {
     auto r1 = system_coords_from_mouse( { 0.0f, 0.0f }, winsize );
     auto r2 = system_coords_from_mouse( { radius - 5, 0.0f }, winsize );
@@ -190,11 +190,11 @@ void SpinWidget::dragpaste()
     glm::vec2 size{ widgetSize.width(), widgetSize.height() };
 
     glm::vec2 coords = system_coords_from_mouse( mouse_pos, size );
-    float radius     = system_radius_from_relative( this->drag_radius, size );
-    float rect[3]{ -1, -1, -1 };
+    scalar radius    = system_radius_from_relative( this->drag_radius, size );
+    scalar rect[3]{ -1, -1, -1 };
 
-    float current_position[3]{ coords.x, coords.y, 0.0f };
-    float shift[3]{ last_drag_coords.x - coords.x, last_drag_coords.y - coords.y, 0.0f };
+    scalar current_position[3]{ coords.x, coords.y, 0.0f };
+    scalar shift[3]{ last_drag_coords.x - coords.x, last_drag_coords.y - coords.y, 0.0f };
     Configuration_From_Clipboard_Shift( state.get(), shift, current_position, rect, radius );
 }
 
@@ -207,11 +207,11 @@ void SpinWidget::defectpaste()
     glm::vec2 size{ widgetSize.width(), widgetSize.height() };
 
     glm::vec2 coords = system_coords_from_mouse( mouse_pos, size );
-    float radius     = system_radius_from_relative( this->drag_radius, size );
-    float rect[3]{ -1, -1, -1 };
+    scalar radius    = system_radius_from_relative( this->drag_radius, size );
+    scalar rect[3]{ -1, -1, -1 };
 
-    float current_position[3]{ coords.x, coords.y, 0.0f };
-    float center[3];
+    scalar current_position[3]{ coords.x, coords.y, 0.0f };
+    scalar center[3];
     Geometry_Get_Center( this->state.get(), center );
     current_position[0] -= center[0];
     current_position[1] -= center[1];
@@ -228,11 +228,11 @@ void SpinWidget::pinningpaste()
     glm::vec2 size{ widgetSize.width(), widgetSize.height() };
 
     glm::vec2 coords = system_coords_from_mouse( mouse_pos, size );
-    float radius     = system_radius_from_relative( this->drag_radius, size );
-    float rect[3]{ -1, -1, -1 };
+    scalar radius    = system_radius_from_relative( this->drag_radius, size );
+    scalar rect[3]{ -1, -1, -1 };
 
-    float current_position[3]{ coords.x, coords.y, 0.0f };
-    float center[3];
+    scalar current_position[3]{ coords.x, coords.y, 0.0f };
+    scalar center[3];
     Geometry_Get_Center( this->state.get(), center );
     current_position[0] -= center[0];
     current_position[1] -= center[1];
@@ -264,7 +264,7 @@ void SpinWidget::initializeGL()
     makeCurrent();
     // Initialize the visualisation options
 
-    float b_min[3], b_max[3];
+    scalar b_min[3], b_max[3];
     Geometry_Get_Bounds( state.get(), b_min, b_max );
     glm::vec3 bounds_min = glm::make_vec3( b_min );
     glm::vec3 bounds_max = glm::make_vec3( b_max );
@@ -440,9 +440,9 @@ void SpinWidget::updateVectorFieldGeometry()
 
         int n_cells[3];
         Geometry_Get_N_Cells( this->state.get(), n_cells );
-        float bounds_min[3], bounds_max[3];
+        scalar bounds_min[3], bounds_max[3];
         Geometry_Get_Bounds( state.get(), bounds_min, bounds_max );
-        float density = 0.01f;
+        scalar density = 0.01f;
         if( n_cells[0] > 1 )
             density = std::max( density, n_cells[0] / ( bounds_max[0] - bounds_min[0] ) );
         if( n_cells[1] > 1 )
@@ -450,7 +450,7 @@ void SpinWidget::updateVectorFieldGeometry()
         if( n_cells[2] > 1 )
             density = std::max( density, n_cells[2] / ( bounds_max[2] - bounds_min[2] ) );
         density /= n_cell_step;
-        glm::vec3 normal = this->arrowSize() / density * glm::normalize( glm::cross( basis[0], basis[1] ) );
+        glm::vec3 normal = this->arrowSize() / float( density ) * glm::normalize( glm::cross( basis[0], basis[1] ) );
 
         // By default, +z is up, which is where we want the normal oriented towards
         if( glm::dot( normal, glm::vec3{ 0, 0, 1 } ) < 1e-6 )
@@ -602,7 +602,7 @@ void SpinWidget::updateData( bool update_directions, bool update_geometry, bool 
     // Update the View
     if( update_camera )
     {
-        float b_min[3], b_max[3];
+        scalar b_min[3], b_max[3];
         Geometry_Get_Bounds( state.get(), b_min, b_max );
         glm::vec3 bounds_min = glm::make_vec3( b_min );
         glm::vec3 bounds_max = glm::make_vec3( b_max );
@@ -977,7 +977,7 @@ void SpinWidget::setCoordinateSystemPosition( SpinWidget::WidgetLocation locatio
 
 void SpinWidget::setSlabRanges()
 {
-    float f_center[3], bounds_min[3], bounds_max[3];
+    scalar f_center[3], bounds_min[3], bounds_max[3];
     Geometry_Get_Bounds( state.get(), bounds_min, bounds_max );
     Geometry_Get_Center( state.get(), f_center );
     glm::vec2 x_range( bounds_min[0], bounds_max[0] );
@@ -1019,13 +1019,13 @@ void SpinWidget::setSlabRanges()
         }
     }
 
-    float mini_shift = 1e-5f;
-    x_range.x        = std::max( bounds_min[0] + mini_shift, x_range.x );
-    x_range.y        = std::min( bounds_max[0] - mini_shift, x_range.y );
-    y_range.x        = std::max( bounds_min[1] + mini_shift, y_range.x );
-    y_range.y        = std::min( bounds_max[1] - mini_shift, y_range.y );
-    z_range.x        = std::max( bounds_min[2] + mini_shift, z_range.x );
-    z_range.y        = std::min( bounds_max[2] - mini_shift, z_range.y );
+    scalar mini_shift = 1e-5f;
+    x_range.x         = std::max( bounds_min[0] + mini_shift, scalar( x_range.x ) );
+    x_range.y         = std::min( bounds_max[0] - mini_shift, scalar( x_range.y ) );
+    y_range.x         = std::max( bounds_min[1] + mini_shift, scalar( y_range.x ) );
+    y_range.y         = std::min( bounds_max[1] - mini_shift, scalar( y_range.y ) );
+    z_range.x         = std::max( bounds_min[2] + mini_shift, scalar( z_range.x ) );
+    z_range.y         = std::min( bounds_max[2] - mini_shift, scalar( z_range.y ) );
 
     this->setSurface( x_range, y_range, z_range );
 }
@@ -1206,7 +1206,7 @@ void SpinWidget::enableSystem( bool arrows, bool boundingbox, bool surface, bool
 
 void SpinWidget::moveSlab( int amount )
 {
-    float f_center[3], bounds_min[3], bounds_max[3];
+    scalar f_center[3], bounds_min[3], bounds_max[3];
     Geometry_Get_Bounds( state.get(), bounds_min, bounds_max );
     Geometry_Get_Center( state.get(), f_center );
     for( int i = 0; i < 3; ++i )
@@ -1215,7 +1215,7 @@ void SpinWidget::moveSlab( int amount )
     glm::vec3 center( f_center[0], f_center[1], f_center[2] );
     glm::vec3 pos = center + this->slab_displacements;
 
-    float cell_bounds_min[3], cell_bounds_max[3];
+    scalar cell_bounds_min[3], cell_bounds_max[3];
     Geometry_Get_Cell_Bounds( state.get(), cell_bounds_min, cell_bounds_max );
     glm::vec3 cell_size{ cell_bounds_max[0] - cell_bounds_min[0], cell_bounds_max[1] - cell_bounds_min[1],
                          cell_bounds_max[2] - cell_bounds_min[2] };
@@ -1224,7 +1224,7 @@ void SpinWidget::moveSlab( int amount )
         // X
         amount *= cell_size[0];
         this->slab_displacements[0] = std::min(
-                                          std::max( bounds_min[0] + 0.5f * cell_size[0], pos[0] + amount ),
+                                          std::max( bounds_min[0] + 0.5f * cell_size[0], scalar( pos[0] ) + amount ),
                                           bounds_max[0] - 0.5f * cell_size[0] )
                                       - center[0];
     }
@@ -1233,7 +1233,7 @@ void SpinWidget::moveSlab( int amount )
         // Y
         amount *= cell_size[1];
         this->slab_displacements[1] = std::min(
-                                          std::max( bounds_min[1] + 0.5f * cell_size[1], pos[1] + amount ),
+                                          std::max( bounds_min[1] + 0.5f * cell_size[1], scalar( pos[1] ) + amount ),
                                           bounds_max[1] - 0.5f * cell_size[1] )
                                       - center[1];
     }
@@ -1242,7 +1242,7 @@ void SpinWidget::moveSlab( int amount )
         // Z
         amount *= cell_size[2];
         this->slab_displacements[2] = std::min(
-                                          std::max( bounds_min[2] + 0.5f * cell_size[2], pos[2] + amount ),
+                                          std::max( bounds_min[2] + 0.5f * cell_size[2], scalar( pos[2] ) + amount ),
                                           bounds_max[2] - 0.5f * cell_size[2] )
                                       - center[2];
     }
@@ -1262,7 +1262,7 @@ void SpinWidget::setArrows( float size, int lod )
     float cylinderradius = 0.125f;
     float cylinderheight = 0.7f;
 
-    float b_min[3], b_max[3];
+    scalar b_min[3], b_max[3];
     Geometry_Get_Bounds( state.get(), b_min, b_max );
     glm::vec3 bounds_min = glm::make_vec3( b_min );
     glm::vec3 bounds_max = glm::make_vec3( b_max );
@@ -1300,7 +1300,7 @@ void SpinWidget::setArrows( float size, int lod )
 
 float SpinWidget::arrowSize() const
 {
-    float b_min[3], b_max[3];
+    scalar b_min[3], b_max[3];
     Geometry_Get_Bounds( state.get(), b_min, b_max );
     glm::vec3 bounds_min = glm::make_vec3( b_min );
     glm::vec3 bounds_max = glm::make_vec3( b_max );
@@ -2011,7 +2011,7 @@ void SpinWidget::setBoundingBoxColor( Color bounding_box_color )
 void SpinWidget::updateBoundingBoxIndicators()
 {
     bool periodical[3];
-    float b_min[3], b_max[3];
+    scalar b_min[3], b_max[3];
     Geometry_Get_Bounds( state.get(), b_min, b_max );
     glm::vec3 bounds_min = glm::make_vec3( b_min );
     glm::vec3 bounds_max = glm::make_vec3( b_max );

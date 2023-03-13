@@ -5,17 +5,17 @@
 #include <omp.h>
 #endif
 
-const int Spirit_Version_Major() noexcept
+int Spirit_Version_Major() noexcept
 {
     return Utility::version_major;
 }
 
-const int Spirit_Version_Minor() noexcept
+int Spirit_Version_Minor() noexcept
 {
     return Utility::version_minor;
 }
 
-const int Spirit_Version_Patch() noexcept
+int Spirit_Version_Patch() noexcept
 {
     return Utility::version_patch;
 }

@@ -1,6 +1,8 @@
 #pragma once
 #ifndef SPIRIT_CORE_CHAIN_H
 #define SPIRIT_CORE_CHAIN_H
+#include "Spirit_Defines.h"
+
 #include "DLL_Define_Export.h"
 
 struct State;
@@ -121,25 +123,25 @@ Calculate data
 /*
 Fills an array with the reaction coordinate values of the images in the chain.
 */
-PREFIX void Chain_Get_Rx( State * state, float * Rx, int idx_chain = -1 ) SUFFIX;
+PREFIX void Chain_Get_Rx( State * state, scalar * Rx, int idx_chain = -1 ) SUFFIX;
 
 /*
 Fills an array with the interpolated reaction coordinate values along the chain.
 */
-PREFIX void Chain_Get_Rx_Interpolated( State * state, float * Rx_interpolated, int idx_chain = -1 ) SUFFIX;
+PREFIX void Chain_Get_Rx_Interpolated( State * state, scalar * Rx_interpolated, int idx_chain = -1 ) SUFFIX;
 
 /*
 Fills an array with the energy values of the images in the chain.
 */
-PREFIX void Chain_Get_Energy( State * state, float * energy, int idx_chain = -1 ) SUFFIX;
+PREFIX void Chain_Get_Energy( State * state, scalar * energy, int idx_chain = -1 ) SUFFIX;
 
 /*
 Fills an array with the interpolated energy values along the chain.
 */
-PREFIX void Chain_Get_Energy_Interpolated( State * state, float * E_interpolated, int idx_chain = -1 ) SUFFIX;
+PREFIX void Chain_Get_Energy_Interpolated( State * state, scalar * E_interpolated, int idx_chain = -1 ) SUFFIX;
 
 /* TODO: energy array getter
-std::vector<std::vector<float>> Chain_Get_Energy_Array_Interpolated(State * state, int idx_chain=-1) SUFFIX;
+std::vector<std::vector<scalar>> Chain_Get_Energy_Array_Interpolated(State * state, int idx_chain=-1) SUFFIX;
 */
 
 /*

@@ -5,8 +5,6 @@ Constants
 
 from spirit import spiritlib
 from spirit.scalar import scalar
-import spirit.spiritlib as spiritlib
-import ctypes
 
 # Load Library
 _spirit = spiritlib.load_spirit_library()

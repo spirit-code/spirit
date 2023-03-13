@@ -170,7 +170,7 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void Parameters_LLG_Set_Convergence( State * state, float convergence, int idx_image, int idx_chain ) noexcept
+void Parameters_LLG_Set_Convergence( State * state, scalar convergence, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -192,7 +192,7 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void Parameters_LLG_Set_Time_Step( State * state, float dt, int idx_image, int idx_chain ) noexcept
+void Parameters_LLG_Set_Time_Step( State * state, scalar dt, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -214,7 +214,7 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void Parameters_LLG_Set_Damping( State * state, float damping, int idx_image, int idx_chain ) noexcept
+void Parameters_LLG_Set_Damping( State * state, scalar damping, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -236,7 +236,7 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void Parameters_LLG_Set_Non_Adiabatic_Damping( State * state, float beta, int idx_image, int idx_chain ) noexcept
+void Parameters_LLG_Set_Non_Adiabatic_Damping( State * state, scalar beta, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -258,7 +258,7 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void Parameters_LLG_Set_Temperature( State * state, float T, int idx_image, int idx_chain ) noexcept
+void Parameters_LLG_Set_Temperature( State * state, scalar T, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -282,7 +282,7 @@ catch( ... )
 }
 
 void Parameters_LLG_Set_Temperature_Gradient(
-    State * state, float inclination, const float direction[3], int idx_image, int idx_chain ) noexcept
+    State * state, scalar inclination, const scalar direction[3], int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -310,7 +310,7 @@ catch( ... )
 }
 
 void Parameters_LLG_Set_STT(
-    State * state, bool use_gradient, float magnitude, const float normal[3], int idx_image, int idx_chain ) noexcept
+    State * state, bool use_gradient, scalar magnitude, const scalar normal[3], int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -492,7 +492,7 @@ catch( ... )
     return false;
 }
 
-float Parameters_LLG_Get_Convergence( State * state, int idx_image, int idx_chain ) noexcept
+scalar Parameters_LLG_Get_Convergence( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -502,7 +502,7 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     auto p = image->llg_parameters;
-    return static_cast<float>( p->force_convergence );
+    return p->force_convergence;
 }
 catch( ... )
 {
@@ -510,7 +510,7 @@ catch( ... )
     return 0;
 }
 
-float Parameters_LLG_Get_Time_Step( State * state, int idx_image, int idx_chain ) noexcept
+scalar Parameters_LLG_Get_Time_Step( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -520,7 +520,7 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     auto p = image->llg_parameters;
-    return static_cast<float>( p->dt );
+    return p->dt;
 }
 catch( ... )
 {
@@ -528,7 +528,7 @@ catch( ... )
     return 0;
 }
 
-float Parameters_LLG_Get_Damping( State * state, int idx_image, int idx_chain ) noexcept
+scalar Parameters_LLG_Get_Damping( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -538,7 +538,7 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     auto p = image->llg_parameters;
-    return static_cast<float>( p->damping );
+    return p->damping;
 }
 catch( ... )
 {
@@ -546,7 +546,7 @@ catch( ... )
     return 0;
 }
 
-float Parameters_LLG_Get_Non_Adiabatic_Damping( State * state, int idx_image, int idx_chain ) noexcept
+scalar Parameters_LLG_Get_Non_Adiabatic_Damping( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -556,7 +556,7 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     auto p = image->llg_parameters;
-    return static_cast<float>( p->beta );
+    return p->beta;
 }
 catch( ... )
 {
@@ -564,7 +564,7 @@ catch( ... )
     return 0;
 }
 
-float Parameters_LLG_Get_Temperature( State * state, int idx_image, int idx_chain ) noexcept
+scalar Parameters_LLG_Get_Temperature( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -573,7 +573,7 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
-    return static_cast<float>( image->llg_parameters->temperature );
+    return image->llg_parameters->temperature;
 }
 catch( ... )
 {
@@ -582,7 +582,7 @@ catch( ... )
 }
 
 void Parameters_LLG_Get_Temperature_Gradient(
-    State * state, float * inclination, float direction[3], int idx_image, int idx_chain ) noexcept
+    State * state, scalar * inclination, scalar direction[3], int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -592,11 +592,11 @@ try
     from_indices( state, idx_image, idx_chain, image, chain );
 
     // Inclination
-    *inclination = static_cast<float>( image->llg_parameters->temperature_gradient_inclination );
+    *inclination = image->llg_parameters->temperature_gradient_inclination;
     // Direction
-    direction[0] = static_cast<float>( image->llg_parameters->temperature_gradient_direction[0] );
-    direction[1] = static_cast<float>( image->llg_parameters->temperature_gradient_direction[1] );
-    direction[2] = static_cast<float>( image->llg_parameters->temperature_gradient_direction[2] );
+    direction[0] = image->llg_parameters->temperature_gradient_direction[0];
+    direction[1] = image->llg_parameters->temperature_gradient_direction[1];
+    direction[2] = image->llg_parameters->temperature_gradient_direction[2];
 }
 catch( ... )
 {
@@ -604,7 +604,7 @@ catch( ... )
 }
 
 void Parameters_LLG_Get_STT(
-    State * state, bool * use_gradient, float * magnitude, float normal[3], int idx_image, int idx_chain ) noexcept
+    State * state, bool * use_gradient, scalar * magnitude, scalar normal[3], int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -617,11 +617,11 @@ try
     *use_gradient = image->llg_parameters->stt_use_gradient;
 
     // Magnitude
-    *magnitude = static_cast<float>( image->llg_parameters->stt_magnitude );
+    *magnitude = image->llg_parameters->stt_magnitude;
     // Normal
-    normal[0] = static_cast<float>( image->llg_parameters->stt_polarisation_normal[0] );
-    normal[1] = static_cast<float>( image->llg_parameters->stt_polarisation_normal[1] );
-    normal[2] = static_cast<float>( image->llg_parameters->stt_polarisation_normal[2] );
+    normal[0] = image->llg_parameters->stt_polarisation_normal[0];
+    normal[1] = image->llg_parameters->stt_polarisation_normal[1];
+    normal[2] = image->llg_parameters->stt_polarisation_normal[2];
 }
 catch( ... )
 {

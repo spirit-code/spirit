@@ -2,7 +2,7 @@
 #ifndef SPIRIT_CORE_ENGINE_METHOD_LLG_HPP
 #define SPIRIT_CORE_ENGINE_METHOD_LLG_HPP
 
-#include "Spirit_Defines.h"
+#include <Spirit/Spirit_Defines.h>
 #include <data/Parameters_Method_LLG.hpp>
 #include <data/Spin_System.hpp>
 #include <engine/Method_Solver.hpp>

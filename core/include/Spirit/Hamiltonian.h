@@ -1,6 +1,8 @@
 #pragma once
 #ifndef SPIRIT_CORE_HAMILTONIAN_H
 #define SPIRIT_CORE_HAMILTONIAN_H
+#include "Spirit_Defines.h"
+
 #include "DLL_Define_Export.h"
 
 struct State;
@@ -67,23 +69,23 @@ PREFIX void Hamiltonian_Set_Boundary_Conditions(
 
 // Set the (homogeneous) external magnetic field [T]
 PREFIX void Hamiltonian_Set_Field(
-    State * state, float magnitude, const float * normal, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+    State * state, scalar magnitude, const scalar * normal, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Set a global uniaxial anisotropy [meV]
 PREFIX void Hamiltonian_Set_Anisotropy(
-    State * state, float magnitude, const float * normal, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+    State * state, scalar magnitude, const scalar * normal, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 //
 // Set a global cubic anisotropy [meV]
 PREFIX void
-Hamiltonian_Set_Cubic_Anisotropy( State * state, float magnitude, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+Hamiltonian_Set_Cubic_Anisotropy( State * state, scalar magnitude, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Set the exchange interaction in terms of neighbour shells [meV]
 PREFIX void Hamiltonian_Set_Exchange(
-    State * state, int n_shells, const float * jij, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+    State * state, int n_shells, const scalar * jij, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Set the Dzyaloshinskii-Moriya interaction in terms of neighbour shells [meV]
 PREFIX void Hamiltonian_Set_DMI(
-    State * state, int n_shells, const float * dij, int chirality = SPIRIT_CHIRALITY_BLOCH, int idx_image = -1,
+    State * state, int n_shells, const scalar * dij, int chirality = SPIRIT_CHIRALITY_BLOCH, int idx_image = -1,
     int idx_chain = -1 ) SUFFIX;
 
 /*
@@ -98,7 +100,7 @@ Configure the dipole-dipole interaction
 - `pb_zero_padding`: if `True` zero padding is used even for periodical directions
 */
 PREFIX void Hamiltonian_Set_DDI(
-    State * state, int ddi_method, int n_periodic_images[3], float cutoff_radius = 0, bool pb_zero_padding = true,
+    State * state, int ddi_method, int n_periodic_images[3], scalar cutoff_radius = 0, bool pb_zero_padding = true,
     int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
@@ -115,15 +117,15 @@ Hamiltonian_Get_Boundary_Conditions( State * state, bool * periodical, int idx_i
 
 // Retrieves the external magnetic field [T]
 PREFIX void Hamiltonian_Get_Field(
-    State * state, float * magnitude, float * normal, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+    State * state, scalar * magnitude, scalar * normal, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Retrieves the uniaxial anisotropy [meV]
 PREFIX void Hamiltonian_Get_Anisotropy(
-    State * state, float * magnitude, float * normal, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+    State * state, scalar * magnitude, scalar * normal, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Retrieves the cubic anisotropy [meV]
 PREFIX void
-Hamiltonian_Get_Cubic_Anisotropy( State * state, float * magnitude, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+Hamiltonian_Get_Cubic_Anisotropy( State * state, scalar * magnitude, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
 Retrieves the exchange interaction in terms of neighbour shells.
@@ -132,13 +134,13 @@ Retrieves the exchange interaction in terms of neighbour shells.
 will retrieve `n_shells=0`.
 */
 PREFIX void Hamiltonian_Get_Exchange_Shells(
-    State * state, int * n_shells, float * jij, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+    State * state, int * n_shells, scalar * jij, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Returns the number of exchange interaction pairs
 PREFIX int Hamiltonian_Get_Exchange_N_Pairs( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 PREFIX void Hamiltonian_Get_Exchange_Pairs(
-    State * state, int idx[][2], int translations[][3], float * Jij, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+    State * state, int idx[][2], int translations[][3], scalar * Jij, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
 Retrieves the Dzyaloshinskii-Moriya interaction in terms of neighbour shells.
@@ -147,7 +149,7 @@ Retrieves the Dzyaloshinskii-Moriya interaction in terms of neighbour shells.
 will retrieve `n_shells=0`.
 */
 PREFIX void Hamiltonian_Get_DMI_Shells(
-    State * state, int * n_shells, float * dij, int * chirality, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+    State * state, int * n_shells, scalar * dij, int * chirality, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Returns the number of Dzyaloshinskii-Moriya interaction pairs
 PREFIX int Hamiltonian_Get_DMI_N_Pairs( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
@@ -162,7 +164,7 @@ Retrieves the dipole-dipole interaction configuration.
 - `pb_zero_padding`: if `True` zero padding is used even for periodical directions
 */
 PREFIX void Hamiltonian_Get_DDI(
-    State * state, int * ddi_method, int n_periodic_images[3], float * cutoff_radius, bool * pb_zero_padding,
+    State * state, int * ddi_method, int n_periodic_images[3], scalar * cutoff_radius, bool * pb_zero_padding,
     int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*

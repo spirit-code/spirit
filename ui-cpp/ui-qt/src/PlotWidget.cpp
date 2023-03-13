@@ -148,13 +148,13 @@ void PlotWidget::plotEnergies()
     int size_interp = noi + ( noi - 1 ) * Parameters_GNEB_Get_N_Energy_Interpolations( state.get() );
 
     // Allocate arrays
-    Rx              = std::vector<float>( noi, 0 );
-    energies        = std::vector<float>( noi, 0 );
-    Rx_interp       = std::vector<float>( size_interp, 0 );
-    energies_interp = std::vector<float>( size_interp, 0 );
+    Rx              = std::vector<scalar>( noi, 0 );
+    energies        = std::vector<scalar>( noi, 0 );
+    Rx_interp       = std::vector<scalar>( size_interp, 0 );
+    energies_interp = std::vector<scalar>( size_interp, 0 );
 
     // Get Data
-    float Rx_tot = System_Get_Rx( state.get(), noi - 1 );
+    scalar Rx_tot = System_Get_Rx( state.get(), noi - 1 );
     Chain_Get_Rx( state.get(), Rx.data() );
     Chain_Get_Energy( state.get(), energies.data() );
     if( this->plot_interpolated )
@@ -179,14 +179,14 @@ void PlotWidget::plotEnergies()
     int idx_current = System_Get_Index( state.get() );
 
     scalar Rx_cur = Rx[idx_current];
-    if (renormalize_Rx && Rx_tot > 0)
+    if( renormalize_Rx && Rx_tot > 0 )
         Rx_cur /= Rx_tot;
-    
+
     scalar E_cur = energies[idx_current];
-    if (divide_by_nos)
+    if( divide_by_nos )
         E_cur /= nos;
 
-    current.push_back( QPointF( Rx_cur, E_cur) );
+    current.push_back( QPointF( Rx_cur, E_cur ) );
 
     if( this->plot_image_energies )
     {
@@ -196,10 +196,10 @@ void PlotWidget::plotEnergies()
                 Rx[i] = Rx[i];
             energies[i] = energies[i];
 
-            if (renormalize_Rx && Rx_tot > 0)
+            if( renormalize_Rx && Rx_tot > 0 )
                 Rx[i] /= Rx_tot;
 
-            if (divide_by_nos)
+            if( divide_by_nos )
                 energies[i] /= nos;
 
             if( Parameters_GNEB_Get_Climbing_Falling( state.get(), i ) == 0 )
@@ -225,10 +225,10 @@ void PlotWidget::plotEnergies()
                 Rx_interp[i] = Rx_interp[i];
             energies_interp[i] = energies_interp[i];
 
-            if (renormalize_Rx && Rx_tot > 0)
+            if( renormalize_Rx && Rx_tot > 0 )
                 Rx_interp[i] /= Rx_tot;
 
-            if (divide_by_nos)
+            if( divide_by_nos )
                 energies_interp[i] /= nos;
 
             interp.push_back( QPointF( Rx_interp[i], energies_interp[i] ) );
@@ -295,15 +295,19 @@ void PlotWidget::plotEnergies()
     this->chart->axisY()->setMax( ymax + delta );
 
     // Rescale x axis
-    if (!renormalize_Rx && Rx_tot > 0)
+    if( !renormalize_Rx && Rx_tot > 0 )
     {
         delta = 0.04 * Rx_tot;
         this->chart->axisX()->setMin( Rx[0] - delta );
-        this->chart->axisX()->setMax( Rx[noi-1] + delta );
-    } else if(Rx_tot > 0) {
+        this->chart->axisX()->setMax( Rx[noi - 1] + delta );
+    }
+    else if( Rx_tot > 0 )
+    {
         this->chart->axisX()->setMin( -0.04 );
         this->chart->axisX()->setMax( 1.04 );
-    } else {
+    }
+    else
+    {
         this->chart->axisX()->setMin( -0.04 );
         this->chart->axisX()->setMax( 0.04 );
     }

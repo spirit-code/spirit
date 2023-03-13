@@ -5,6 +5,7 @@ Monte Carlo (MC)
 
 from spirit import spiritlib
 from spirit.io import FILEFORMAT_OVF_TEXT
+from spirit.scalar import scalar
 import ctypes
 
 ### Load Library
@@ -189,7 +190,7 @@ def set_iterations(p_state, n_iterations, n_iterations_log, idx_image=-1, idx_ch
 _MC_Set_Temperature = _spirit.Parameters_MC_Set_Temperature
 _MC_Set_Temperature.argtypes = [
     ctypes.c_void_p,
-    ctypes.c_float,
+    scalar,
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -200,7 +201,7 @@ def set_temperature(p_state, temperature, idx_image=-1, idx_chain=-1):
     """Set the global base temperature [K]."""
     _MC_Set_Temperature(
         ctypes.c_void_p(p_state),
-        ctypes.c_float(temperature),
+        scalar(temperature),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
     )
@@ -210,9 +211,9 @@ _MC_Set_Metropolis_Cone = _spirit.Parameters_MC_Set_Metropolis_Cone
 _MC_Set_Metropolis_Cone.argtypes = [
     ctypes.c_void_p,
     ctypes.c_bool,
-    ctypes.c_float,
+    scalar,
     ctypes.c_bool,
-    ctypes.c_float,
+    scalar,
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -238,9 +239,9 @@ def set_metropolis_cone(
     _MC_Set_Metropolis_Cone(
         p_state,
         ctypes.c_bool(use_cone),
-        ctypes.c_float(cone_angle),
+        scalar(cone_angle),
         ctypes.c_bool(use_adaptive_cone),
-        ctypes.c_float(target_acceptance_ratio),
+        scalar(target_acceptance_ratio),
         idx_image,
         idx_chain,
     )
@@ -275,7 +276,7 @@ def get_iterations(p_state, idx_image=-1, idx_chain=-1):
 
 _MC_Get_Temperature = _spirit.Parameters_MC_Get_Temperature
 _MC_Get_Temperature.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_MC_Get_Temperature.restype = ctypes.c_float
+_MC_Get_Temperature.restype = scalar
 
 
 def get_temperature(p_state, idx_image=-1, idx_chain=-1):
@@ -291,9 +292,9 @@ _MC_Get_Metropolis_Cone = _spirit.Parameters_MC_Get_Metropolis_Cone
 _MC_Get_Metropolis_Cone.argtypes = [
     ctypes.c_void_p,
     ctypes.POINTER(ctypes.c_bool),
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
     ctypes.POINTER(ctypes.c_bool),
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -309,9 +310,9 @@ def get_metropolis_cone(p_state, idx_image=-1, idx_chain=-1):
     - target acceptance ratio for the adaptive cone algorithm
     """
     use_cone = ctypes.c_bool()
-    cone_angle = ctypes.c_float()
+    cone_angle = scalar()
     use_adaptive_cone = ctypes.c_bool()
-    target_acceptance_ratio = ctypes.c_float()
+    target_acceptance_ratio = scalar()
     _MC_Get_Metropolis_Cone(
         ctypes.c_void_p(p_state),
         ctypes.pointer(use_cone),

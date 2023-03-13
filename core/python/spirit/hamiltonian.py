@@ -6,6 +6,7 @@ Set the parameters of the Heisenberg Hamiltonian, such as external field or exch
 """
 
 from spirit import spiritlib
+from spirit.scalar import scalar
 import ctypes
 
 ### Load Library
@@ -66,8 +67,8 @@ def set_boundary_conditions(p_state, boundaries, idx_image=-1, idx_chain=-1):
 _Set_Field = _spirit.Hamiltonian_Set_Field
 _Set_Field.argtypes = [
     ctypes.c_void_p,
-    ctypes.c_float,
-    ctypes.POINTER(ctypes.c_float),
+    scalar,
+    ctypes.POINTER(scalar),
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -76,10 +77,10 @@ _Set_Field.restype = None
 
 def set_field(p_state, magnitude, direction, idx_image=-1, idx_chain=-1):
     """Set the (homogeneous) external magnetic field."""
-    vec3 = ctypes.c_float * 3
+    vec3 = scalar * 3
     _Set_Field(
         ctypes.c_void_p(p_state),
-        ctypes.c_float(magnitude),
+        scalar(magnitude),
         vec3(*direction),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
@@ -89,8 +90,8 @@ def set_field(p_state, magnitude, direction, idx_image=-1, idx_chain=-1):
 _Set_Anisotropy = _spirit.Hamiltonian_Set_Anisotropy
 _Set_Anisotropy.argtypes = [
     ctypes.c_void_p,
-    ctypes.c_float,
-    ctypes.POINTER(ctypes.c_float),
+    scalar,
+    ctypes.POINTER(scalar),
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -99,10 +100,10 @@ _Set_Anisotropy.restype = None
 
 def set_anisotropy(p_state, magnitude, direction, idx_image=-1, idx_chain=-1):
     """Set the (homogeneous) magnetocrystalline anisotropy."""
-    vec3 = ctypes.c_float * 3
+    vec3 = scalar * 3
     _Set_Anisotropy(
         ctypes.c_void_p(p_state),
-        ctypes.c_float(magnitude),
+        scalar(magnitude),
         vec3(*direction),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
@@ -113,7 +114,7 @@ _Set_Exchange = _spirit.Hamiltonian_Set_Exchange
 _Set_Exchange.argtypes = [
     ctypes.c_void_p,
     ctypes.c_int,
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -123,7 +124,7 @@ _Set_Exchange.restype = None
 _Set_Cubic_Anisotropy = _spirit.Hamiltonian_Set_Cubic_Anisotropy
 _Set_Cubic_Anisotropy.argtypes = [
     ctypes.c_void_p,
-    ctypes.c_float,
+    scalar,
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -134,7 +135,7 @@ def set_cubic_anisotropy(p_state, magnitude, idx_image=-1, idx_chain=-1):
     """Set the (homogeneous) magnetocrystalline anisotropy."""
     _Set_Cubic_Anisotropy(
         ctypes.c_void_p(p_state),
-        ctypes.c_float(magnitude),
+        scalar(magnitude),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
     )
@@ -144,7 +145,7 @@ _Set_Exchange = _spirit.Hamiltonian_Set_Exchange
 _Set_Exchange.argtypes = [
     ctypes.c_void_p,
     ctypes.c_int,
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -153,7 +154,7 @@ _Set_Exchange.restype = None
 
 def set_exchange(p_state, n_shells, J_ij, idx_image=-1, idx_chain=-1):
     """Set the Exchange interaction in terms of neighbour shells."""
-    vec = ctypes.c_float * n_shells
+    vec = scalar * n_shells
     _Set_Exchange(
         ctypes.c_void_p(p_state),
         ctypes.c_int(n_shells),
@@ -167,7 +168,7 @@ _Set_DMI = _spirit.Hamiltonian_Set_DMI
 _Set_DMI.argtypes = [
     ctypes.c_void_p,
     ctypes.c_int,
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
     ctypes.c_int,
     ctypes.c_int,
@@ -179,7 +180,7 @@ def set_dmi(
     p_state, n_shells, D_ij, chirality=CHIRALITY_BLOCH, idx_image=-1, idx_chain=-1
 ):
     """Set the Dzyaloshinskii-Moriya interaction in terms of neighbour shells."""
-    vec = ctypes.c_float * n_shells
+    vec = scalar * n_shells
     _Set_DMI(
         ctypes.c_void_p(p_state),
         ctypes.c_int(n_shells),
@@ -195,7 +196,7 @@ _Set_DDI.argtypes = [
     ctypes.c_void_p,
     ctypes.c_int,
     ctypes.POINTER(ctypes.c_int),
-    ctypes.c_float,
+    scalar,
     ctypes.c_bool,
     ctypes.c_int,
     ctypes.c_int,
@@ -225,7 +226,7 @@ def set_ddi(
         ctypes.c_void_p(p_state),
         ctypes.c_int(ddi_method),
         vec3(*n_periodic_images),
-        ctypes.c_float(radius),
+        scalar(radius),
         ctypes.c_bool(pb_zero_padding),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
@@ -275,8 +276,8 @@ def get_boundary_conditions(p_state, idx_image=-1, idx_chain=-1):
 _Get_Field = _spirit.Hamiltonian_Get_Field
 _Get_Field.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -287,8 +288,8 @@ def get_field(p_state, idx_image=-1, idx_chain=-1):
     """Returns the magnitude and an array of `shape(3)` containing the direction of
     the external magnetic field.
     """
-    magnitude = ctypes.c_float()
-    normal = (3 * ctypes.c_float)()
+    magnitude = scalar()
+    normal = (3 * scalar)()
     _Get_Field(
         ctypes.c_void_p(p_state),
         ctypes.byref(magnitude),
@@ -304,7 +305,7 @@ _Get_DDI.argtypes = [
     ctypes.c_void_p,
     ctypes.POINTER(ctypes.c_int),
     ctypes.POINTER(ctypes.c_int),
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
     ctypes.POINTER(ctypes.c_bool),
     ctypes.c_int,
     ctypes.c_int,
@@ -316,7 +317,7 @@ def get_ddi(p_state, idx_image=-1, idx_chain=-1):
     """Returns a dictionary, containing information about the used ddi settings"""
     ddi_method = ctypes.c_int()
     n_periodic_images = (3 * ctypes.c_int)()
-    cutoff_radius = ctypes.c_float()
+    cutoff_radius = scalar()
     pb_zero_padding = ctypes.c_bool()
     _Get_DDI(
         ctypes.c_void_p(p_state),
@@ -360,8 +361,8 @@ def write_hessian(p_state, filename, triplet_format=True, idx_image=-1, idx_chai
 _Get_Anisotropy = _spirit.Hamiltonian_Get_Anisotropy
 _Get_Anisotropy.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -370,8 +371,8 @@ _Get_Anisotropy.restype = None
 
 def get_anisotropy(p_state, idx_image=-1, idx_chain=-1):
     """Set the (homogeneous) magnetocrystalline anisotropy."""
-    magnitude = ctypes.c_float()
-    normal = (3 * ctypes.c_float)()
+    magnitude = scalar()
+    normal = (3 * scalar)()
     _Get_Anisotropy(
         ctypes.c_void_p(p_state),
         ctypes.byref(magnitude),
@@ -385,7 +386,7 @@ def get_anisotropy(p_state, idx_image=-1, idx_chain=-1):
 _Get_Cubic_Anisotropy = _spirit.Hamiltonian_Get_Cubic_Anisotropy
 _Get_Cubic_Anisotropy.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -394,7 +395,7 @@ _Get_Cubic_Anisotropy.restype = None
 
 def get_cubic_anisotropy(p_state, idx_image=-1, idx_chain=-1):
     """Set the (homogeneous) magnetocrystalline anisotropy."""
-    magnitude = ctypes.c_float()
+    magnitude = scalar()
     _Get_Cubic_Anisotropy(
         ctypes.c_void_p(p_state),
         ctypes.byref(magnitude),

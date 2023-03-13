@@ -12,12 +12,11 @@ Note that the VP and LBFGS Solvers are only meant for direct minimization and no
 """
 
 from spirit import spiritlib
+from spirit.scalar import scalar
 import ctypes
 
 ### Load Library
 _spirit = spiritlib.load_spirit_library()
-
-import threading
 
 
 ###     We use a thread for PlayPause, so that KeyboardInterrupt can be forwarded to the CDLL call
@@ -95,14 +94,14 @@ class simulation_run_info(ctypes.Structure):
     _fields_ = [
         ("total_iterations", ctypes.c_int),
         ("total_walltime", ctypes.c_int),
-        ("total_ips", ctypes.c_float),
-        ("max_torque", ctypes.c_float),
+        ("total_ips", scalar),
+        ("max_torque", scalar),
         ("_n_history_iteration", ctypes.c_int),
         ("_history_iteration", ctypes.POINTER(ctypes.c_int)),
         ("_n_history_max_torque", ctypes.c_int),
-        ("_history_max_torque", ctypes.POINTER(ctypes.c_float)),
+        ("_history_max_torque", ctypes.POINTER(scalar)),
         ("_n_history_energy", ctypes.c_int),
-        ("_history_energy", ctypes.POINTER(ctypes.c_float)),
+        ("_history_energy", ctypes.POINTER(scalar)),
     ]
 
     def history_iteration(self):
@@ -379,7 +378,7 @@ def running_anywhere_on_chain(p_state, idx_chain=-1):
 
 _Get_IterationsPerSecond = _spirit.Simulation_Get_IterationsPerSecond
 _Get_IterationsPerSecond.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_Get_IterationsPerSecond.restype = ctypes.c_float
+_Get_IterationsPerSecond.restype = scalar
 
 
 def get_iterations_per_second(p_state, idx_image=-1, idx_chain=-1):
@@ -393,7 +392,7 @@ def get_iterations_per_second(p_state, idx_image=-1, idx_chain=-1):
 
 _Get_MaxTorqueNorm = _spirit.Simulation_Get_MaxTorqueNorm
 _Get_MaxTorqueNorm.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_Get_MaxTorqueNorm.restype = ctypes.c_float
+_Get_MaxTorqueNorm.restype = scalar
 
 
 def get_max_torque_norm(p_state, idx_image=-1, idx_chain=-1):
@@ -407,7 +406,7 @@ def get_max_torque_norm(p_state, idx_image=-1, idx_chain=-1):
 
 _Get_Time = _spirit.Simulation_Get_Time
 _Get_Time.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_Get_Time.restype = ctypes.c_float
+_Get_Time.restype = scalar
 
 
 def get_time(p_state, idx_image=-1, idx_chain=-1):

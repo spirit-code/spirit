@@ -2,7 +2,6 @@
 #ifndef SPIRIT_CORE_DATA_PARAMETERS_METHOD_HPP
 #define SPIRIT_CORE_DATA_PARAMETERS_METHOD_HPP
 
-#include "Spirit_Defines.h"
 #include <io/Fileformat.hpp>
 
 #include <string>

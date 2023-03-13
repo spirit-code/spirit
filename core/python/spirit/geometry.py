@@ -6,17 +6,14 @@ Change or get info on the current geometrical configuration, e.g.
 number of cells in the three crystal translation directions.
 """
 
-from spirit import spiritlib
+from spirit import spiritlib, system
+from spirit.scalar import scalar
 import ctypes
+import numpy as np
 
 ### Load Library
 _spirit = spiritlib.load_spirit_library()
 
-### Imports
-from spirit.scalar import scalar
-from spirit import system
-
-import numpy as np
 
 ### Bravais lattice types
 BRAVAIS_LATTICE_IRREGULAR = 0
@@ -72,7 +69,7 @@ def set_n_cells(p_state, n_cells=[1, 1, 1], idx_image=-1, idx_chain=-1):
 
 
 _Set_mu_s = _spirit.Geometry_Set_mu_s
-_Set_mu_s.argtypes = [ctypes.c_void_p, ctypes.c_float, ctypes.c_int, ctypes.c_int]
+_Set_mu_s.argtypes = [ctypes.c_void_p, scalar, ctypes.c_int, ctypes.c_int]
 _Set_mu_s.restype = None
 
 
@@ -80,7 +77,7 @@ def set_mu_s(p_state, mu_s, idx_image=-1, idx_chain=-1):
     """Set the magnetic moment of all atoms."""
     _Set_mu_s(
         ctypes.c_void_p(p_state),
-        ctypes.c_float(mu_s),
+        scalar(mu_s),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
     )
@@ -90,7 +87,7 @@ _Set_Cell_Atom_Types = _spirit.Geometry_Set_Cell_Atom_Types
 _Set_Cell_Atom_Types.argtypes = [
     ctypes.c_void_p,
     ctypes.c_int,
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
 ]
 _Set_Cell_Atom_Types.restype = None
 
@@ -105,9 +102,9 @@ def set_cell_atom_types(p_state, atom_types, idx_image=-1, idx_chain=-1):
 _Set_Bravais_Vectors = _spirit.Geometry_Set_Bravais_Vectors
 _Set_Bravais_Vectors.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
 ]
 _Set_Bravais_Vectors.restype = None
 
@@ -121,18 +118,18 @@ def set_bravais_vectors(
     idx_chain=-1,
 ):
     """Manually specify the bravais vectors."""
-    vec3 = ctypes.c_float * 3
+    vec3 = scalar * 3
     _Set_Bravais_Vectors(ctypes.c_void_p(p_state), vec3(ta), vec3(tb), vec3(tc))
 
 
 _Set_Lattice_Constant = _spirit.Geometry_Set_Lattice_Constant
-_Set_Lattice_Constant.argtypes = [ctypes.c_void_p, ctypes.c_float]
+_Set_Lattice_Constant.argtypes = [ctypes.c_void_p, scalar]
 _Set_Lattice_Constant.restype = None
 
 
 def set_lattice_constant(p_state, lattice_constant, idx_image=-1, idx_chain=-1):
     """Set the global lattice scaling constant."""
-    _Set_Lattice_Constant(p_state, ctypes.c_float(lattice_constant))
+    _Set_Lattice_Constant(p_state, scalar(lattice_constant))
 
 
 ### ---------------------------------- Get ----------------------------------
@@ -140,8 +137,8 @@ def set_lattice_constant(p_state, lattice_constant, idx_image=-1, idx_chain=-1):
 _Get_Bounds = _spirit.Geometry_Get_Bounds
 _Get_Bounds.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -153,8 +150,8 @@ def get_bounds(p_state, idx_image=-1, idx_chain=-1):
 
     Returns two arrays of `shape(3)` containing minimum and maximum bounds respectively.
     """
-    _min = (3 * ctypes.c_float)()
-    _max = (3 * ctypes.c_float)()
+    _min = (3 * scalar)()
+    _max = (3 * scalar)()
     _Get_Bounds(
         ctypes.c_void_p(p_state),
         _min,
@@ -168,7 +165,7 @@ def get_bounds(p_state, idx_image=-1, idx_chain=-1):
 _Get_Center = _spirit.Geometry_Get_Center
 _Get_Center.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -180,7 +177,7 @@ def get_center(p_state, idx_image=-1, idx_chain=-1):
 
     Returns an array of `shape(3)`.
     """
-    _center = (3 * ctypes.c_float)()
+    _center = (3 * scalar)()
     _Get_Center(
         ctypes.c_void_p(p_state),
         _center,
@@ -207,9 +204,9 @@ def get_bravais_lattice_type(p_state, idx_image=-1, idx_chain=-1):
 _Get_Bravais_Vectors = _spirit.Geometry_Get_Bravais_Vectors
 _Get_Bravais_Vectors.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -221,9 +218,9 @@ def get_bravais_vectors(p_state, idx_image=-1, idx_chain=-1):
 
     Returns three arrays of `shape(3)`.
     """
-    _a = (3 * ctypes.c_float)()
-    _b = (3 * ctypes.c_float)()
-    _c = (3 * ctypes.c_float)()
+    _a = (3 * scalar)()
+    _b = (3 * scalar)()
+    _c = (3 * scalar)()
     _Get_Bravais_Vectors(
         ctypes.c_void_p(p_state),
         _a,

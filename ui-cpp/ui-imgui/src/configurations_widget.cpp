@@ -70,21 +70,21 @@ void ConfigurationsWidget::show_content()
 
         ImGui::TextUnformatted( "pos" );
         ImGui::SameLine();
-        ImGui::InputFloat3( "##configurations_pos", conf.pos );
+        widgets::InputScalar3( "##configurations_pos", conf.pos );
 
         ImGui::TextUnformatted( "Rectangular border" );
         ImGui::SameLine();
-        ImGui::InputFloat3( "##configurations_border_rect", conf.border_rect );
+        widgets::InputScalar3( "##configurations_border_rect", conf.border_rect );
 
         ImGui::TextUnformatted( "Cylindrical border" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 50 );
-        ImGui::InputFloat( "##configurations_border_cyl", &conf.border_cyl );
+        widgets::InputScalar( "##configurations_border_cyl", &conf.border_cyl );
 
         ImGui::TextUnformatted( "Spherical border" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 50 );
-        ImGui::InputFloat( "##configurations_border_sph", &conf.border_sph );
+        widgets::InputScalar( "##configurations_border_sph", &conf.border_sph );
 
         ImGui::TextUnformatted( "invert" );
         ImGui::SameLine();
@@ -114,7 +114,7 @@ void ConfigurationsWidget::show_content()
     ImGui::Dummy( { 0, 10 } );
 
     ImGui::SetNextItemWidth( 50 );
-    ImGui::InputFloat( "##configurations_noise", &conf.noise_temperature );
+    widgets::InputScalar( "##configurations_noise", &conf.noise_temperature );
     ImGui::SameLine();
     if( ImGui::Button( "Add noise" ) )
     {
@@ -140,15 +140,15 @@ void ConfigurationsWidget::show_content()
     ImGui::TextUnformatted( "Radius" );
     ImGui::SameLine();
     ImGui::SetNextItemWidth( 50 );
-    ImGui::InputFloat( "##configurations_sk_radius", &sk_radius );
+    widgets::InputScalar( "##configurations_sk_radius", &sk_radius );
     ImGui::TextUnformatted( "Speed" );
     ImGui::SameLine();
     ImGui::SetNextItemWidth( 50 );
-    ImGui::InputFloat( "##configurations_sk_speed", &sk_speed );
+    widgets::InputScalar( "##configurations_sk_speed", &sk_speed );
     ImGui::TextUnformatted( "Phase" );
     ImGui::SameLine();
     ImGui::SetNextItemWidth( 50 );
-    ImGui::InputFloat( "##configurations_sk_phase", &sk_phase );
+    widgets::InputScalar( "##configurations_sk_phase", &sk_phase );
 
     ImGui::TextUnformatted( "Up" );
     ImGui::SameLine();
@@ -180,7 +180,7 @@ void ConfigurationsWidget::show_content()
     ImGui::TextUnformatted( "Radius" );
     ImGui::SameLine();
     ImGui::SetNextItemWidth( 60 );
-    ImGui::InputFloat( "##configurations_hopfion_radius", &hopfion_radius );
+    widgets::InputScalar( "##configurations_hopfion_radius", &hopfion_radius );
 
     ImGui::TextUnformatted( "Order" );
     ImGui::SameLine();
@@ -203,20 +203,20 @@ void ConfigurationsWidget::show_content()
     ImGui::TextUnformatted( "q" );
     ImGui::SameLine();
     ImGui::SetNextItemWidth( 50 );
-    ImGui::InputFloat( "##configurations_spiral_qmag", &spiral_qmag );
+    widgets::InputScalar( "##configurations_spiral_qmag", &spiral_qmag );
 
     ImGui::TextUnformatted( "q dir" );
     ImGui::SameLine();
-    ImGui::InputFloat3( "##configurations_spiral_qvec", spiral_qvec );
+    widgets::InputScalar3( "##configurations_spiral_qvec", spiral_qvec );
 
     ImGui::TextUnformatted( "axis" );
     ImGui::SameLine();
-    ImGui::InputFloat3( "##configurations_spiral_axis", spiral_axis );
+    widgets::InputScalar3( "##configurations_spiral_axis", spiral_axis );
 
     ImGui::TextUnformatted( "angle" );
     ImGui::SameLine();
     ImGui::SetNextItemWidth( 50 );
-    ImGui::InputFloat( "##configurations_spiral_angle", &spiral_angle );
+    widgets::InputScalar( "##configurations_spiral_angle", &spiral_angle );
 
     ImGui::Indent( -15 );
 

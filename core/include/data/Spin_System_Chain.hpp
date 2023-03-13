@@ -2,8 +2,8 @@
 #ifndef SPIRIT_CORE_DATA_SPIN_SYSTEM_CHAIN_HPP
 #define SPIRIT_CORE_DATA_SPIN_SYSTEM_CHAIN_HPP
 
-#include "Spirit_Defines.h"
 #include <Spirit/Parameters_GNEB.h>
+#include <Spirit/Spirit_Defines.h>
 #include <data/Parameters_Method_GNEB.hpp>
 #include <data/Spin_System.hpp>
 

@@ -88,7 +88,7 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void Parameters_EMA_Set_Frequency( State * state, float frequency, int idx_image, int idx_chain ) noexcept
+void Parameters_EMA_Set_Frequency( State * state, scalar frequency, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -106,7 +106,7 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void Parameters_EMA_Set_Amplitude( State * state, float amplitude, int idx_image, int idx_chain ) noexcept
+void Parameters_EMA_Set_Amplitude( State * state, scalar amplitude, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -201,7 +201,7 @@ catch( ... )
     return 0;
 }
 
-float Parameters_EMA_Get_Frequency( State * state, int idx_image, int idx_chain ) noexcept
+scalar Parameters_EMA_Get_Frequency( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -218,7 +218,7 @@ catch( ... )
     return 0;
 }
 
-float Parameters_EMA_Get_Amplitude( State * state, int idx_image, int idx_chain ) noexcept
+scalar Parameters_EMA_Get_Amplitude( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;

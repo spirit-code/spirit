@@ -11,12 +11,18 @@
 #include <catch.hpp>
 
 auto inputfile = "core/test/input/api.cfg";
+// Reduce required precision if float accuracy
+#ifdef SPIRIT_SCALAR_TYPE_DOUBLE
+constexpr scalar epsilon_rough = 1e-12;
+#else
+constexpr scalar epsilon_rough = 1e-6;
+#endif
 
 using Catch::Matchers::WithinAbs;
 
 TEST_CASE( "State", "[state]" )
 {
-    SECTION( "State setup" )
+    SECTION( "State setup, minimal simulation, and state deletion should not throw" )
     {
         std::shared_ptr<State> state;
 
@@ -27,43 +33,48 @@ TEST_CASE( "State", "[state]" )
 
         // Test the default config with a nonexistent file
         CHECK_NOTHROW(
-            state = std::shared_ptr<State>( State_Setup( "__surely__nonexistent__file__.cfg" ), State_Delete ) );
+            state
+            = std::shared_ptr<State>( State_Setup( "__surely__this__file__does__not__exist__.cfg" ), State_Delete ) );
         CHECK_NOTHROW( Configuration_PlusZ( state.get() ) );
         CHECK_NOTHROW( Simulation_LLG_Start( state.get(), Solver_VP, 1 ) );
 
         // Test the default input file
         CHECK_NOTHROW( state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete ) );
+
+        // TODO: actual test
     }
 
     SECTION( "from_indices()" )
     {
-        // create a state with two images. Let the second one to be the active
+        // Create a state with two images. Let the second one to be the active
         auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
-        Chain_Image_to_Clipboard( state.get(), 0, 0 );   // copy to Clipboard
-        Chain_Insert_Image_Before( state.get(), 0, 0 );  // add before active
-        REQUIRE( Chain_Get_NOI( state.get() ) == 2 );    // number of images are 2
-        REQUIRE( System_Get_Index( state.get() ) == 1 ); // active is 2nd image
+        Chain_Image_to_Clipboard( state.get(), 0, 0 );   // Copy to "clipboard"
+        Chain_Insert_Image_Before( state.get(), 0, 0 );  // Add before active
+        REQUIRE( Chain_Get_NOI( state.get() ) == 2 );    // Number of images is 2
+        REQUIRE( System_Get_Index( state.get() ) == 1 ); // Active is 2nd image
 
-        // arguments for from_indices()
+        // Arguments for from_indices()
         std::shared_ptr<Data::Spin_System> image;
         std::shared_ptr<Data::Spin_System_Chain> chain;
-        int idx_image, idx_chain;
+        int idx_image{}, idx_chain{};
 
-        // Test for non-existing images
+        // A positive, index beyond the size of the chain should throw an exception
         idx_chain = 0;
         idx_image = 5;
         CHECK_THROWS_AS( from_indices( state.get(), idx_image, idx_chain, image, chain ), Utility::Exception );
         // TODO: find a way to see if the exception thrown was the right one
 
+        // A negative image index should translate to the active image
         idx_chain = 0;
         idx_image = -5;
         CHECK_NOTHROW( from_indices( state.get(), idx_image, idx_chain, image, chain ) );
-        REQUIRE( idx_image == 1 ); // the negative index image must be promoted to the active image
+        REQUIRE( idx_image == 1 );
 
+        // A negative chain index should translate to the active chain
         idx_chain = -5;
         idx_image = 0;
         CHECK_NOTHROW( from_indices( state.get(), idx_image, idx_chain, image, chain ) );
-        REQUIRE( idx_chain == 0 ); // the negative index chain must be promoted to the active chain
+        REQUIRE( idx_chain == 0 );
     }
 }
 
@@ -71,37 +82,46 @@ TEST_CASE( "Configurations", "[configurations]" )
 {
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
 
-    // filters
-    float position[3]{ 0, 0, 0 };
-    float r_cut_rectangular[3]{ -1, -1, -1 };
-    float r_cut_cylindrical = -1;
-    float r_cut_spherical   = -1;
-    bool inverted           = false;
+    // Filters
+    scalar position[3]{ 0, 0, 0 };
+    scalar r_cut_rectangular[3]{ -1, -1, -1 };
+    scalar r_cut_cylindrical = -1;
+    scalar r_cut_spherical   = -1;
+    bool inverted            = false;
 
     SECTION( "Domain" )
     {
-        float dir[3] = { 0, 0, 1 };
+        scalar dir[3] = { 0, 0, 1 };
         Configuration_PlusZ( state.get(), position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
+        // TODO: actual test
+
         Configuration_MinusZ( state.get(), position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
+        // TODO: actual test
+
         Configuration_Domain(
             state.get(), dir, position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
+        // TODO: actual test
     }
     SECTION( "Random" )
     {
-        float temperature = 5;
+        scalar temperature = 5;
         Configuration_Add_Noise_Temperature(
             state.get(), temperature, position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
+        // TODO: actual test
+
         Configuration_Random( state.get(), position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
+        // TODO: actual test
     }
     SECTION( "Skyrmion" )
     {
-        float r     = 5;
-        int order   = 1;
-        float phase = 0;
+        scalar r     = 5;
+        int order    = 1;
+        scalar phase = 0;
         bool updown = false, achiral = false, rl = false;
         Configuration_Skyrmion(
             state.get(), r, order, phase, updown, achiral, rl, position, r_cut_rectangular, r_cut_cylindrical,
             r_cut_spherical, inverted );
+        // TODO: actual test
 
         r     = 7;
         order = 1;
@@ -111,38 +131,38 @@ TEST_CASE( "Configurations", "[configurations]" )
         Configuration_Skyrmion(
             state.get(), r, order, phase, updown, achiral, rl, position, r_cut_rectangular, r_cut_cylindrical,
             r_cut_spherical, inverted );
+        // TODO: actual test
     }
     SECTION( "Hopfion" )
     {
-        float r         = 5;
-        int order       = 1;
-        float normal[3] = { 0, 0, 1 };
+        scalar r         = 5;
+        int order        = 1;
+        scalar normal[3] = { 0, 0, 1 };
         Configuration_Hopfion(
             state.get(), r, order, position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted, normal );
+        // TODO: actual test
     }
     SECTION( "Spin Spiral" )
     {
         auto dir_type = "real lattice";
-        float q[3]{ 0, 0, 0.1 }, axis[3]{ 0, 0, 1 }, theta{ 30 };
-        CHECK_NOTHROW( Configuration_SpinSpiral(
+        scalar q[3]{ 0, 0, 0.1 }, axis[3]{ 0, 0, 1 }, theta{ 30 };
+        Configuration_SpinSpiral(
             state.get(), dir_type, q, axis, theta, position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical,
-            inverted ) );
+            inverted );
+        // TODO: actual test
     }
 }
 
 TEST_CASE( "Quantities", "[quantities]" )
 {
-    Catch::StringMaker<float>::precision  = 12;
-    Catch::StringMaker<double>::precision = 12;
-
     SECTION( "Magnetization" )
     {
-        auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
-        float m[3] = { 0, 0, 1 };
+        auto state  = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
+        scalar m[3] = { 0, 0, 1 };
 
         SECTION( "001" )
         {
-            float dir[3] = { 0, 0, 1 };
+            scalar dir[3] = { 0, 0, 1 };
 
             Configuration_Domain( state.get(), dir );
             Quantity_Get_Magnetization( state.get(), m );
@@ -153,7 +173,7 @@ TEST_CASE( "Quantities", "[quantities]" )
         }
         SECTION( "011" )
         {
-            float dir[3] = { 0, 0, 1 };
+            scalar dir[3] = { 0, 0, 1 };
 
             Configuration_Domain( state.get(), dir );
             Quantity_Get_Magnetization( state.get(), m );
@@ -171,16 +191,16 @@ TEST_CASE( "Quantities", "[quantities]" )
         {
             Configuration_PlusZ( state.get() );
             Configuration_Skyrmion( state.get(), 6.0, 1.0, -90.0, false, false, false );
-            float charge = Quantity_Get_Topological_Charge( state.get() );
-            REQUIRE_THAT( charge, WithinAbs( -1, 1e-12 ) );
+            scalar charge = Quantity_Get_Topological_Charge( state.get() );
+            REQUIRE_THAT( charge, WithinAbs( -1, epsilon_rough ) );
         }
 
         SECTION( "positive charge" )
         {
             Configuration_MinusZ( state.get() );
             Configuration_Skyrmion( state.get(), 6.0, 1.0, -90.0, true, false, false );
-            float charge = Quantity_Get_Topological_Charge( state.get() );
-            REQUIRE_THAT( charge, WithinAbs( 1, 1e-12 ) );
+            scalar charge = Quantity_Get_Topological_Charge( state.get() );
+            REQUIRE_THAT( charge, WithinAbs( 1, epsilon_rough ) );
         }
     }
 }

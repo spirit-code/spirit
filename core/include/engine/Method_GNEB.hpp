@@ -2,11 +2,11 @@
 #ifndef SPIRIT_CORE_ENGINE_METHOD_GNEB_HPP
 #define SPIRIT_CORE_ENGINE_METHOD_GNEB_HPP
 
-#include <vector>
-
-#include "Spirit_Defines.h"
+#include <Spirit/Spirit_Defines.h>
 #include <data/Spin_System_Chain.hpp>
 #include <engine/Method_Solver.hpp>
+
+#include <vector>
 
 namespace Engine
 {

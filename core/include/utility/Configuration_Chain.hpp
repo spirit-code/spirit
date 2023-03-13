@@ -2,7 +2,7 @@
 #ifndef SPIRIT_CORE_UTILITY_CONFIGURATION_CHAIN_HPP
 #define SPIRIT_CORE_UTILITY_CONFIGURATION_CHAIN_HPP
 
-#include "Spirit_Defines.h"
+#include <Spirit/Spirit_Defines.h>
 #include <data/Spin_System_Chain.hpp>
 
 #include <vector>

@@ -1,9 +1,9 @@
 #pragma once
 #ifndef SPIRIT_CORE_SYSTEM_H
 #define SPIRIT_CORE_SYSTEM_H
-#include "DLL_Define_Export.h"
-
 #include "Spirit_Defines.h"
+
+#include "DLL_Define_Export.h"
 
 struct State;
 
@@ -49,10 +49,10 @@ The array is contiguous and of shape (NOS, 3).
 PREFIX scalar * System_Get_Eigenmode( State * state, int idx_mode, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Returns the reaction coordinate of a system along the chain.
-PREFIX float System_Get_Rx( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+PREFIX scalar System_Get_Rx( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Returns the energy of a spin system.
-PREFIX float System_Get_Energy( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+PREFIX scalar System_Get_Energy( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Retrieves the names of the energy contributions, represented as a single string and separated by "|". E.g
 // "Zeeman|Exchange|DMI" If 'names' is a nullptr, the required length of the char array is returned.
@@ -61,10 +61,11 @@ PREFIX int System_Get_Energy_Array_Names( State * state, char * names, int idx_i
 // Retrieves the energy contributions of a spin system.
 // If 'energies' is a nullptr, the required length of the energies array is returned.
 PREFIX int System_Get_Energy_Array(
-    State * state, float * energies, bool divide_by_nspins = true, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+    State * state, scalar * energies, bool divide_by_nspins = true, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Retrieves the eigenvalues of a spin system
-PREFIX void System_Get_Eigenvalues( State * state, float * eigenvalues, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+PREFIX void
+System_Get_Eigenvalues( State * state, scalar * eigenvalues, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Write the energy as formatted output to the console
 PREFIX void System_Print_Energy_Array( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;

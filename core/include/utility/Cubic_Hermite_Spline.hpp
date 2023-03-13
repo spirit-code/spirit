@@ -2,7 +2,7 @@
 #ifndef SPIRIT_CORE_UTILITY_CUBIC_HERMITE_SPLINE_HPP
 #define SPIRIT_CORE_UTILITY_CUBIC_HERMITE_SPLINE_HPP
 
-#include "Spirit_Defines.h"
+#include <Spirit/Spirit_Defines.h>
 
 #include <vector>
 

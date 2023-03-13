@@ -1,13 +1,13 @@
 #pragma once
 
+#include <Spirit/Spirit_Defines.h>
+
 #include <Eigen/Core>
 #include <Eigen/Sparse>
 
 #include <array>
 #include <complex>
 #include <vector>
-
-#include "Spirit_Defines.h"
 
 // Dynamic Eigen typedefs
 using VectorX    = Eigen::Matrix<scalar, -1, 1>;

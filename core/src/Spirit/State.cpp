@@ -1,4 +1,4 @@
-#include "Spirit_Defines.h"
+#include <Spirit/Spirit_Defines.h>
 #include <Spirit/State.h>
 
 #include <data/State.hpp>

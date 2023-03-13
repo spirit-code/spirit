@@ -7,9 +7,8 @@ Harmonic transition state theory.
 Note that `calculate_prefactor` needs to be called before using any of the getter functions.
 """
 
-from spirit import spiritlib
-from spirit import parameters
-from spirit import system
+from spirit import spiritlib, system
+from spirit.scalar import scalar
 import ctypes
 import numpy as np
 
@@ -26,7 +25,7 @@ _Calculate.argtypes = [
     ctypes.c_bool,
     ctypes.c_int,
 ]
-_Calculate.restype = ctypes.c_float
+_Calculate.restype = scalar
 
 
 def calculate(
@@ -50,14 +49,14 @@ def calculate(
 _Get_Info = _spirit.HTST_Get_Info
 _Get_Info.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
     ctypes.POINTER(ctypes.c_int),
     ctypes.c_int,
 ]
@@ -76,14 +75,14 @@ def get_info(p_state, idx_chain=-1):
     - dynamical prefactor
     - full rate prefactor (without temperature dependent part)
     """
-    temperature_exponent = ctypes.c_float()
-    me = ctypes.c_float()
-    Omega_0 = ctypes.c_float()
-    s = ctypes.c_float()
-    volume_min = ctypes.c_float()
-    volume_sp = ctypes.c_float()
-    prefactor_dynamical = ctypes.c_float()
-    prefactor = ctypes.c_float()
+    temperature_exponent = scalar()
+    me = scalar()
+    Omega_0 = scalar()
+    s = scalar()
+    volume_min = scalar()
+    volume_sp = scalar()
+    prefactor_dynamical = scalar()
+    prefactor = scalar()
     n_eigenmodes_keep = ctypes.c_int()
 
     _Get_Info(
@@ -124,14 +123,14 @@ def get_info_dict(p_state, idx_chain=-1):
     - dynamical prefactor
     - full rate prefactor (without temperature dependent part)
     """
-    temperature_exponent = ctypes.c_float()
-    me = ctypes.c_float()
-    Omega_0 = ctypes.c_float()
-    s = ctypes.c_float()
-    volume_min = ctypes.c_float()
-    volume_sp = ctypes.c_float()
-    prefactor_dynamical = ctypes.c_float()
-    prefactor = ctypes.c_float()
+    temperature_exponent = scalar()
+    me = scalar()
+    Omega_0 = scalar()
+    s = scalar()
+    volume_min = scalar()
+    volume_sp = scalar()
+    prefactor_dynamical = scalar()
+    prefactor = scalar()
     n_eigenmodes_keep = ctypes.c_int()
 
     _Get_Info(
@@ -164,7 +163,7 @@ def get_info_dict(p_state, idx_chain=-1):
 _Get_Eigenvalues_Min = _spirit.HTST_Get_Eigenvalues_Min
 _Get_Eigenvalues_Min.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
 ]
 _Get_Eigenvalues_Min.restype = None
@@ -173,7 +172,7 @@ _Get_Eigenvalues_Min.restype = None
 def get_eigenvalues_min(p_state, idx_chain=-1):
     """Returns the eigenvalues at the minimum with `shape(2*nos)`."""
     nos = system.get_nos(p_state, -1, idx_chain)
-    eigenvalues_min = (2 * nos * ctypes.c_float)()
+    eigenvalues_min = (2 * nos * scalar)()
     _Get_Eigenvalues_Min(
         ctypes.c_void_p(p_state), eigenvalues_min, ctypes.c_int(idx_chain)
     )
@@ -183,7 +182,7 @@ def get_eigenvalues_min(p_state, idx_chain=-1):
 _Get_Eigenvectors_Min = _spirit.HTST_Get_Eigenvectors_Min
 _Get_Eigenvectors_Min.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
 ]
 _Get_Eigenvectors_Min.restype = None
@@ -193,9 +192,9 @@ def get_eigenvectors_min(p_state, idx_chain=-1):
     """Returns a numpy array view to the eigenvectors at the minimum with `shape(n_eigenmodes_keep, 2*nos)`."""
     n_modes = get_info_dict(p_state)["n_eigenmodes_keep"]
     nos = system.get_nos(p_state, -1, idx_chain)
-    eigenvectors_min = (2 * nos * n_modes * ctypes.c_float)()
+    eigenvectors_min = (2 * nos * n_modes * scalar)()
 
-    ArrayType = ctypes.c_float * (2 * nos * n_modes)
+    ArrayType = scalar * (2 * nos * n_modes)
     ev_list = [] * (2 * nos * n_modes)
     _ev_buffer = ArrayType(*ev_list)
 
@@ -211,7 +210,7 @@ def get_eigenvectors_min(p_state, idx_chain=-1):
 _Get_Eigenvalues_SP = _spirit.HTST_Get_Eigenvalues_SP
 _Get_Eigenvalues_SP.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
 ]
 _Get_Eigenvalues_SP.restype = None
@@ -220,7 +219,7 @@ _Get_Eigenvalues_SP.restype = None
 def get_eigenvalues_sp(p_state, idx_chain=-1):
     """Returns the eigenvalues at the saddle point with `shape(2*nos)`."""
     nos = system.get_nos(p_state, -1, idx_chain)
-    eigenvalues_sp = (2 * nos * ctypes.c_float)()
+    eigenvalues_sp = (2 * nos * scalar)()
     _Get_Eigenvalues_SP(
         ctypes.c_void_p(p_state), eigenvalues_sp, ctypes.c_int(idx_chain)
     )
@@ -230,7 +229,7 @@ def get_eigenvalues_sp(p_state, idx_chain=-1):
 _Get_Eigenvectors_SP = _spirit.HTST_Get_Eigenvectors_SP
 _Get_Eigenvectors_SP.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
 ]
 _Get_Eigenvectors_SP.restype = None
@@ -242,7 +241,7 @@ def get_eigenvectors_sp(p_state, idx_chain=-1):
     n_modes = get_info_dict(p_state)["n_eigenmodes_keep"]
     nos = system.get_nos(p_state, -1, idx_chain)
 
-    ArrayType = ctypes.c_float * (2 * nos * n_modes)
+    ArrayType = scalar * (2 * nos * n_modes)
     ev_list = [] * (2 * nos * n_modes)
     _ev_buffer = ArrayType(*ev_list)
 
@@ -258,7 +257,7 @@ def get_eigenvectors_sp(p_state, idx_chain=-1):
 _Get_Velocities = _spirit.HTST_Get_Velocities
 _Get_Velocities.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
 ]
 _Get_Velocities.restype = None
@@ -267,6 +266,6 @@ _Get_Velocities.restype = None
 def get_velocities(p_state, idx_chain=-1):
     """Returns the velocities perpendicular to the dividing surface with `shape(2*nos)`."""
     nos = system.get_nos(p_state, -1, idx_chain)
-    velocities = (2 * nos * ctypes.c_float)()
+    velocities = (2 * nos * scalar)()
     _Get_Velocities(ctypes.c_void_p(p_state), velocities, ctypes.c_int(idx_chain))
     return velocities

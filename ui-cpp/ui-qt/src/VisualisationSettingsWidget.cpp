@@ -174,13 +174,13 @@ void VisualisationSettingsWidget::Load_Visualization_Contents()
     y_range = spinWidget->yRangePosition();
     z_range = spinWidget->zRangePosition();
 
-    float b_min[3], b_max[3], b_range[3];
+    scalar b_min[3], b_max[3], b_range[3];
     Geometry_Get_Bounds( state.get(), b_min, b_max );
     for( int dim = 0; dim < 3; ++dim )
         b_range[dim] = b_max[dim] - b_min[dim];
 
-    float range_min = horizontalSlider_overall_pos_xmin->value() / 10000.0;
-    float range_max = horizontalSlider_overall_pos_xmax->value() / 10000.0;
+    scalar range_min = horizontalSlider_overall_pos_xmin->value() / 10000.0;
+    scalar range_max = horizontalSlider_overall_pos_xmax->value() / 10000.0;
 
     // Overall position filter X
     // horizontalSlider_overall_pos_xmin->setInvertedAppearance(true);
@@ -241,7 +241,7 @@ void VisualisationSettingsWidget::Load_Visualization_Contents()
     checkBox_cell_b->setChecked( true );
     checkBox_cell_c->setChecked( true );
 
-    float bounds_min[3], bounds_max[3];
+    scalar bounds_min[3], bounds_max[3];
     Geometry_Get_Bounds( state.get(), bounds_min, bounds_max );
     glm::vec3 sys_size{ bounds_max[0] - bounds_min[0], bounds_max[1] - bounds_min[1], bounds_max[2] - bounds_min[2] };
     horizontalSlider_surface_xmin->blockSignals( true );
@@ -451,7 +451,7 @@ void VisualisationSettingsWidget::set_visualization_system_arrows()
 void VisualisationSettingsWidget::set_visualization_system_boundingbox() {}
 void VisualisationSettingsWidget::set_visualization_system_surface()
 {
-    float bounds_min[3], bounds_max[3];
+    scalar bounds_min[3], bounds_max[3];
     Geometry_Get_Bounds( state.get(), bounds_min, bounds_max );
     float s_min, s_max;
 
@@ -649,7 +649,7 @@ void VisualisationSettingsWidget::set_visualization_system_overall_position_slid
 void VisualisationSettingsWidget::set_visualization_system_overall_position(
     float range_xmin, float range_xmax, float range_ymin, float range_ymax, float range_zmin, float range_zmax )
 {
-    float b_min[3], b_max[3], b_range[3];
+    scalar b_min[3], b_max[3], b_range[3];
     Geometry_Get_Bounds( state.get(), b_min, b_max );
     for( int dim = 0; dim < 3; ++dim )
         b_range[dim] = b_max[dim] - b_min[dim];

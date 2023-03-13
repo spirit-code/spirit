@@ -18,46 +18,37 @@ const char inputfile[] = "core/test/input/fd_pairs.cfg";
 
 using Catch::Matchers::WithinAbs;
 
-TEST_CASE( "IO", "[io]" )
+TEST_CASE( "IO: files written and read back in should restore the spin configuration", "[io]" )
 {
-    Catch::StringMaker<float>::precision  = 12;
-    Catch::StringMaker<double>::precision = 12;
-
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
 
     // files to be written
-    std::vector<std::pair<std::string, int>> filetypes{
+    std::vector<std::pair<std::string, int>> files{
         { "core/test/io_test_files/image_ovf_txt.ovf", IO_Fileformat_OVF_text },
         { "core/test/io_test_files/image_ovf_bin_4.ovf", IO_Fileformat_OVF_bin4 },
         { "core/test/io_test_files/image_ovf_bin_8.ovf", IO_Fileformat_OVF_bin8 },
         { "core/test/io_test_files/image_ovf_csv.ovf", IO_Fileformat_OVF_csv },
     };
 
-    // buffer variables for better readability
-    const char * filename;
-    int filetype;
-
-    for( auto file : filetypes )
+    for( const auto & file : files )
     {
-        filename = file.first.c_str(); // get the filename from pair
-        filetype = file.second;        // fet the filetype from pair
+        auto file_name = file.first;
+        auto file_type = file.second;
+        INFO( "IO image " << file.first );
 
-        // Log the filename
-        INFO( "IO image " + file.first );
-
-        // set config to minus z and write the system out
+        // Set config to minus z and write the system out
         Configuration_MinusZ( state.get() );
-        IO_Image_Write( state.get(), filename, filetype, "io test" );
+        IO_Image_Write( state.get(), file_name.c_str(), file_type, "io test" );
 
-        // set config to plus z and read the previously saved system
+        // Set config to plus z and read the previously saved system
         Configuration_PlusZ( state.get() );
-        IO_Image_Read( state.get(), filename );
+        IO_Image_Read( state.get(), file_name.c_str() );
 
-        // make sure that the read in has the same nos
+        // Make sure that the read in has the same nos
         int nos = System_Get_NOS( state.get() );
         REQUIRE( nos == 4 );
 
-        // assure that the system read in corresponds to config minus z
+        // Check that the system read in corresponds to config minus z
         scalar * data = System_Get_Spin_Directions( state.get() );
 
         for( int i = 0; i < nos; i++ )
@@ -68,7 +59,7 @@ TEST_CASE( "IO", "[io]" )
         }
     }
 
-    // Energy and Energy per Spin
+    // TODO: Energy and energy per spin
     // IO_Image_Write_Energy_per_Spin( state.get(), "core/test/io_test_files/E_per_spin.data"  );
     IO_Image_Write_Energy( state.get(), "core/test/io_test_files/Energy.data" );
 }
@@ -77,8 +68,8 @@ TEST_CASE( "IO-EIGENMODE-WRITE", "[io-ema]" )
 {
     auto state = std::shared_ptr<State>( State_Setup( "core/test/input/fd_pairs.cfg" ), State_Delete );
 
-    // files to be written
-    std::vector<std::pair<std::string, int>> filetypes{
+    // Files to be written
+    std::vector<std::pair<std::string, int>> files{
         //{ "core/test/io_test_files/eigenmode_regular.data",     IO_Fileformat_Regular     },
         //{ "core/test/io_test_files/eigenmode_regular_pos.data", IO_Fileformat_Regular_Pos },
         //{ "core/test/io_test_files/eigenmode_csv.data",         IO_Fileformat_CSV         },
@@ -88,21 +79,15 @@ TEST_CASE( "IO-EIGENMODE-WRITE", "[io-ema]" )
         { "core/test/io_test_files/eigenmode_ovf_bin_8.ovf", IO_Fileformat_OVF_bin8 },
     };
 
-    // buffer variables for better readability
-    const char * filename;
-    int filetype;
-
-    for( auto file : filetypes )
+    for( const auto & file : files )
     {
-        filename = file.first.c_str(); // get the filename from pair
-        filetype = file.second;        // fet the filetype from pair
-
-        // Log the filename
+        auto file_name = file.first;
+        auto file_type = file.second;
         INFO( "IO eigenmodes " + file.first );
 
         Configuration_Skyrmion( state.get(), 5, 1, -90, false, false, false );
         System_Update_Eigenmodes( state.get() );
-        IO_Eigenmodes_Write( state.get(), filename, filetype );
+        IO_Eigenmodes_Write( state.get(), file_name.c_str(), file_type );
     }
 }
 
@@ -110,7 +95,7 @@ TEST_CASE( "IO-CHAIN-WRITE", "[io-chain]" )
 {
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
 
-    // create 2 additional images
+    // Create 2 additional images
     Chain_Image_to_Clipboard( state.get() );
     Chain_Insert_Image_Before( state.get() );
     Chain_Insert_Image_Before( state.get() );
@@ -124,26 +109,21 @@ TEST_CASE( "IO-CHAIN-WRITE", "[io-chain]" )
     Chain_Jump_To_Image( state.get(), 2 );
     Configuration_PlusZ( state.get() );
 
-    // files to be written
-    std::vector<std::pair<std::string, int>> filetypes{
+    // Files to be written
+    std::vector<std::pair<std::string, int>> files{
         { "core/test/io_test_files/chain_ovf_txt.ovf", IO_Fileformat_OVF_text },
         { "core/test/io_test_files/chain_ovf_bin_4.ovf", IO_Fileformat_OVF_bin4 },
         { "core/test/io_test_files/chain_ovf_bin_8.ovf", IO_Fileformat_OVF_bin8 },
         { "core/test/io_test_files/chain_ovf_csv.ovf", IO_Fileformat_OVF_csv },
     };
 
-    // buffer variables for better readability
-    const char * filename;
-    int filetype;
-
-    for( auto file : filetypes )
+    for( const auto & file : files )
     {
-        filename = file.first.c_str(); // get the filename from pair
-        filetype = file.second;        // fet the filetype from pair
-
-        // Log the filename
+        auto file_name = file.first;
+        auto file_type = file.second;
         INFO( "IO chain" + file.first );
-        IO_Chain_Write( state.get(), filename, filetype );
+
+        IO_Chain_Write( state.get(), file_name.c_str(), file_type );
     }
 }
 
@@ -158,18 +138,13 @@ TEST_CASE( "IO-CHAIN-READ", "[io-chain]" )
         { "core/test/io_test_files/chain_ovf_txt.ovf", IO_Fileformat_OVF_text }
     };
 
-    // buffer variables for better readability
-    const char * filename;
-    int filetype;
-
     for( auto file : filetypes )
     {
-        filename = file.first.c_str(); // get the filename from pair
-        filetype = file.second;        // fet the filetype from pair
-
-        // Log the filename
+        auto file_name = file.first;
+        auto file_type = file.second;
         INFO( "IO chain" + file.first );
-        IO_Chain_Read( state.get(), filename );
+
+        IO_Chain_Read( state.get(), file_name.c_str() );
 
         // Now the state must have 3 images
         int noi = Chain_Get_NOI( state.get() );
@@ -178,12 +153,9 @@ TEST_CASE( "IO-CHAIN-READ", "[io-chain]" )
         // Get nos. Each image must have the same nos
         int nos = System_Get_NOS( state.get() );
 
-        scalar * data;
-
         // Image 0 must have all the configurations to minus Z
-
         Chain_Jump_To_Image( state.get(), 0 );
-        data = System_Get_Spin_Directions( state.get() );
+        scalar * data = System_Get_Spin_Directions( state.get() );
         for( int i = 0; i < nos; i++ )
         {
             REQUIRE_THAT( data[i * 3 + 0], WithinAbs( 0, 1e-12 ) );
@@ -218,29 +190,27 @@ TEST_CASE( "IO-OVF-CAPITALIZATION", "[io-ovf]" )
     // rewrite it. Then (2) if we try to read in the capilized file test should NOT fail.
 
     // 1. Create the upper case file
-
-    std::ifstream ifile( "core/test/io_test_files/image_ovf_txt.ovf", std::ios::in );
-    std::ofstream ofile( "core/test/io_test_files/image_ovf_txt_CAP.ovf", std::ios::out );
+    std::ifstream in_file( "core/test/io_test_files/image_ovf_txt.ovf", std::ios::in );
+    std::ofstream out_file( "core/test/io_test_files/image_ovf_txt_CAP.ovf", std::ios::out );
     std::string line;
 
-    while( std::getline( ifile, line ) )
+    while( std::getline( in_file, line ) )
     {
         std::transform( line.begin(), line.end(), line.begin(), ::toupper );
-        ofile << line << std::endl;
+        out_file << line << std::endl;
     }
 
-    ifile.close();
-    ofile.close();
+    in_file.close();
+    out_file.close();
 
     // 2. Read the upper case file
-
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
 
     IO_Image_Read( state.get(), "core/test/io_test_files/image_ovf_txt_CAP.ovf" );
 
     scalar * data = System_Get_Spin_Directions( state.get() );
 
-    // make sure that the read in has the same nos
+    // Make sure that the read in has the same nos
     int nos = System_Get_NOS( state.get() );
     REQUIRE( nos == 4 );
 
@@ -267,7 +237,7 @@ TEST_CASE( "IO-READ-TXT-AND-CSV", "[io-txt-csv]" )
         { "core/test/io_test_files/chain_ovf_csv.ovf", "core/test/io_test_files/chain_ovf_csv.csv" },
     };
 
-    // from (*.ovf filetype), to (*.new filetype), dump for dumping the first line "# OOMMF OVF..."
+    // From (*.ovf filetype), to (*.new filetype), dump for dumping the first line "# OOMMF OVF..."
     std::string from, to, dump;
 
     for( auto pairs : filetypes )
@@ -349,10 +319,10 @@ TEST_CASE( "IO-OVF-N_SEGMENTS", "[io-OVF-n_segments]" )
     auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
 
     std::string file;
-    int noi_read;
-    int noi_known;
+    int noi_read  = 0;
+    int noi_known = 0;
 
-    for( auto pair : filenames )
+    for( const auto & pair : filenames )
     {
         file      = pair.first;
         noi_known = pair.second;

@@ -5,6 +5,7 @@ Landau-Lifshitz-Gilbert (LLG)
 
 from spirit import spiritlib
 from spirit.io import FILEFORMAT_OVF_TEXT
+from spirit.scalar import scalar
 import ctypes
 
 ### Load Library
@@ -213,7 +214,7 @@ def set_direct_minimization(p_state, use_minimization, idx_image=-1, idx_chain=-
 _LLG_Set_Convergence = _spirit.Parameters_LLG_Set_Convergence
 _LLG_Set_Convergence.argtypes = [
     ctypes.c_void_p,
-    ctypes.c_float,
+    scalar,
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -228,7 +229,7 @@ def set_convergence(p_state, convergence, idx_image=-1, idx_chain=-1):
     """
     _LLG_Set_Convergence(
         ctypes.c_void_p(p_state),
-        ctypes.c_float(convergence),
+        scalar(convergence),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
     )
@@ -237,7 +238,7 @@ def set_convergence(p_state, convergence, idx_image=-1, idx_chain=-1):
 _LLG_Set_Time_Step = _spirit.Parameters_LLG_Set_Time_Step
 _LLG_Set_Time_Step.argtypes = [
     ctypes.c_void_p,
-    ctypes.c_float,
+    scalar,
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -246,13 +247,13 @@ _LLG_Set_Time_Step.restype = None
 
 def set_timestep(p_state, dt, idx_image=-1, idx_chain=-1):
     """Set the time step [ps] for the calculation."""
-    _LLG_Set_Time_Step(p_state, ctypes.c_float(dt), idx_image, idx_chain)
+    _LLG_Set_Time_Step(p_state, scalar(dt), idx_image, idx_chain)
 
 
 _LLG_Set_Damping = _spirit.Parameters_LLG_Set_Damping
 _LLG_Set_Damping.argtypes = [
     ctypes.c_void_p,
-    ctypes.c_float,
+    scalar,
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -263,7 +264,7 @@ def set_damping(p_state, damping, idx_image=-1, idx_chain=-1):
     """Set the Gilbert damping parameter [unitless]."""
     _LLG_Set_Damping(
         ctypes.c_void_p(p_state),
-        ctypes.c_float(damping),
+        scalar(damping),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
     )
@@ -273,8 +274,8 @@ _LLG_Set_STT = _spirit.Parameters_LLG_Set_STT
 _LLG_Set_STT.argtypes = [
     ctypes.c_void_p,
     ctypes.c_bool,
-    ctypes.c_float,
-    ctypes.POINTER(3 * ctypes.c_float),
+    scalar,
+    ctypes.POINTER(3 * scalar),
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -284,7 +285,7 @@ _LLG_Set_STT.restype = None
 _LLG_Set_Non_Adiabatic_Damping = _spirit.Parameters_LLG_Set_Non_Adiabatic_Damping
 _LLG_Set_Non_Adiabatic_Damping.argtypes = [
     ctypes.c_void_p,
-    ctypes.c_float,
+    scalar,
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -295,7 +296,7 @@ def set_non_adiabatic_damping(p_state, beta, idx_image=-1, idx_chain=-1):
     """Set the Gilbert damping parameter [unitless]."""
     _LLG_Set_Non_Adiabatic_Damping(
         ctypes.c_void_p(p_state),
-        ctypes.c_float(beta),
+        scalar(beta),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
     )
@@ -305,8 +306,8 @@ _LLG_Set_STT = _spirit.Parameters_LLG_Set_STT
 _LLG_Set_STT.argtypes = [
     ctypes.c_void_p,
     ctypes.c_bool,
-    ctypes.c_float,
-    ctypes.POINTER(3 * ctypes.c_float),
+    scalar,
+    ctypes.POINTER(3 * scalar),
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -320,13 +321,13 @@ def set_stt(p_state, use_gradient, magnitude, direction, idx_image=-1, idx_chain
     - `magnitude`: current strength
     - `direction`: current direction or polarisation direction, array of `shape(3)`
     """
-    vec3 = ctypes.c_float * 3
+    vec3 = scalar * 3
     direction = vec3(*direction)
     ctypes.cast(direction, ctypes.POINTER(vec3))
     _LLG_Set_STT(
         ctypes.c_void_p(p_state),
         ctypes.c_bool(use_gradient),
-        ctypes.c_float(magnitude),
+        scalar(magnitude),
         direction,
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
@@ -336,7 +337,7 @@ def set_stt(p_state, use_gradient, magnitude, direction, idx_image=-1, idx_chain
 _LLG_Set_Temperature = _spirit.Parameters_LLG_Set_Temperature
 _LLG_Set_Temperature.argtypes = [
     ctypes.c_void_p,
-    ctypes.c_float,
+    scalar,
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -344,8 +345,8 @@ _LLG_Set_Temperature.restype = None
 _LLG_Set_Temperature_Gradient = _spirit.Parameters_LLG_Set_Temperature_Gradient
 _LLG_Set_Temperature_Gradient.argtypes = [
     ctypes.c_void_p,
-    ctypes.c_float,
-    ctypes.POINTER(3 * ctypes.c_float),
+    scalar,
+    ctypes.POINTER(3 * scalar),
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -368,16 +369,16 @@ def set_temperature(
     """
     _LLG_Set_Temperature(
         ctypes.c_void_p(p_state),
-        ctypes.c_float(temperature),
+        scalar(temperature),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
     )
-    vec3 = ctypes.c_float * 3
+    vec3 = scalar * 3
     gradient_direction = vec3(*gradient_direction)
     ctypes.cast(gradient_direction, ctypes.POINTER(vec3))
     _LLG_Set_Temperature_Gradient(
         ctypes.c_void_p(p_state),
-        ctypes.c_float(gradient_inclination),
+        scalar(gradient_inclination),
         gradient_direction,
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
@@ -427,7 +428,7 @@ def get_direct_minimization(p_state, idx_image=-1, idx_chain=-1):
 
 _LLG_Get_Convergence = _spirit.Parameters_LLG_Get_Convergence
 _LLG_Get_Convergence.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_LLG_Get_Convergence.restype = ctypes.c_float
+_LLG_Get_Convergence.restype = scalar
 
 
 def get_convergence(p_state, idx_image=-1, idx_chain=-1):
@@ -441,7 +442,7 @@ def get_convergence(p_state, idx_image=-1, idx_chain=-1):
 
 _LLG_Get_Time_Step = _spirit.Parameters_LLG_Get_Time_Step
 _LLG_Get_Time_Step.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_LLG_Get_Time_Step.restype = ctypes.c_float
+_LLG_Get_Time_Step.restype = scalar
 
 
 def get_timestep(p_state, idx_image=-1, idx_chain=-1):
@@ -455,7 +456,7 @@ def get_timestep(p_state, idx_image=-1, idx_chain=-1):
 
 _LLG_Get_Damping = _spirit.Parameters_LLG_Get_Damping
 _LLG_Get_Damping.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_LLG_Get_Damping.restype = ctypes.c_float
+_LLG_Get_Damping.restype = scalar
 
 
 def get_damping(p_state, idx_image=-1, idx_chain=-1):
@@ -471,8 +472,8 @@ _LLG_Get_STT = _spirit.Parameters_LLG_Get_STT
 _LLG_Get_STT.argtypes = [
     ctypes.c_void_p,
     ctypes.POINTER(ctypes.c_bool),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -481,7 +482,7 @@ _LLG_Get_STT.restype = None
 
 _LLG_Get_Non_Adiabatic_Damping = _spirit.Parameters_LLG_Get_Non_Adiabatic_Damping
 _LLG_Get_Non_Adiabatic_Damping.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_LLG_Get_Non_Adiabatic_Damping.restype = ctypes.c_float
+_LLG_Get_Non_Adiabatic_Damping.restype = scalar
 
 
 def get_non_adiabatic_damping(p_state, idx_image=-1, idx_chain=-1):
@@ -497,8 +498,8 @@ _LLG_Get_STT = _spirit.Parameters_LLG_Get_STT
 _LLG_Get_STT.argtypes = [
     ctypes.c_void_p,
     ctypes.POINTER(ctypes.c_bool),
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -512,9 +513,9 @@ def get_stt(p_state, idx_image=-1, idx_chain=-1):
     - direction, array of `shape(3)`
     - whether the spatial gradient is used
     """
-    direction = (3 * ctypes.c_float)()
+    direction = (3 * scalar)()
     use_gradient = ctypes.c_bool()
-    magnitude = ctypes.c_float()
+    magnitude = scalar()
     _LLG_Get_STT(
         ctypes.c_void_p(p_state),
         ctypes.pointer(use_gradient),
@@ -528,12 +529,12 @@ def get_stt(p_state, idx_image=-1, idx_chain=-1):
 
 _LLG_Get_Temperature = _spirit.Parameters_LLG_Get_Temperature
 _LLG_Get_Temperature.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_LLG_Get_Temperature.restype = ctypes.c_float
+_LLG_Get_Temperature.restype = scalar
 _LLG_Get_Temperature_Gradient = _spirit.Parameters_LLG_Get_Temperature_Gradient
 _LLG_Get_Temperature_Gradient.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -552,8 +553,8 @@ def get_temperature(p_state, idx_image=-1, idx_chain=-1):
             ctypes.c_void_p(p_state), ctypes.c_int(idx_image), ctypes.c_int(idx_chain)
         )
     )
-    gradient_inclination = ctypes.c_float()
-    gradient_direction = (3 * ctypes.c_float)()
+    gradient_inclination = scalar()
+    gradient_direction = (3 * scalar)()
     _LLG_Get_Temperature_Gradient(
         ctypes.c_void_p(p_state),
         ctypes.pointer(gradient_inclination),

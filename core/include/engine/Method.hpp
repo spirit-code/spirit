@@ -2,7 +2,7 @@
 #ifndef SPIRIT_CORE_ENGINE_METHOD_HPP
 #define SPIRIT_CORE_ENGINE_METHOD_HPP
 
-#include "Spirit_Defines.h"
+#include <Spirit/Spirit_Defines.h>
 #include <data/Parameters_Method.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <utility/Logging.hpp>

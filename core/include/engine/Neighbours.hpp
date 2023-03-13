@@ -2,7 +2,7 @@
 #ifndef SPIRIT_CORE_ENGINE_NEIGHBOURS_HPP
 #define SPIRIT_CORE_ENGINE_NEIGHBOURS_HPP
 
-#include "Spirit_Defines.h"
+#include <Spirit/Spirit_Defines.h>
 #include <data/Geometry.hpp>
 #include <engine/Vectormath_Defines.hpp>
 

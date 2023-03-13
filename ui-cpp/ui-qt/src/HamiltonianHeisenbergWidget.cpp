@@ -56,12 +56,12 @@ void HamiltonianHeisenbergWidget::updateData()
 
 void HamiltonianHeisenbergWidget::Load_Contents()
 {
-    float d, vd[3], jij[100], dij[100];
+    scalar d, vd[3], jij[100], dij[100];
     int ddi_method, ddi_n_periodic_images[3];
     bool pb_zero_padding;
     int n_neigh_shells_exchange, n_neigh_shells_dmi, dm_chirality;
     int n_basis_atoms = Geometry_Get_N_Cell_Atoms( state.get() );
-    std::vector<float> mu_s( n_basis_atoms );
+    std::vector<scalar> mu_s( n_basis_atoms );
 
     // Boundary conditions
     bool boundary_conditions[3];
@@ -182,7 +182,7 @@ void HamiltonianHeisenbergWidget::set_mu_s()
     auto apply = [this]( int idx_image ) -> void
     {
         // mu_s
-        float mu_s = this->lineEdit_muSpin_aniso->text().toFloat();
+        scalar mu_s = this->lineEdit_muSpin_aniso->text().toFloat();
         Geometry_Set_mu_s( state.get(), mu_s, idx_image );
     };
 
@@ -211,7 +211,7 @@ void HamiltonianHeisenbergWidget::set_external_field()
     // Closure to set the parameters of a specific spin system
     auto apply = [this]( int idx_image ) -> void
     {
-        float d, vd[3];
+        scalar d, vd[3];
 
         // External magnetic field
         //      magnitude
@@ -272,7 +272,7 @@ void HamiltonianHeisenbergWidget::set_anisotropy()
     // Closure to set the parameters of a specific spin system
     auto apply = [this]( int idx_image ) -> void
     {
-        float d, vd[3];
+        scalar d, vd[3];
 
         // Anisotropy
         //      magnitude
@@ -366,7 +366,7 @@ void HamiltonianHeisenbergWidget::set_exchange()
         if( this->checkBox_exchange->isChecked() )
         {
             int n_shells = this->exchange_shells.size();
-            std::vector<float> Jij( n_shells );
+            std::vector<scalar> Jij( n_shells );
             for( int i = 0; i < n_shells; ++i )
                 Jij[i] = this->exchange_shells[i]->value();
             Hamiltonian_Set_Exchange( state.get(), n_shells, Jij.data(), idx_image );
@@ -433,7 +433,7 @@ void HamiltonianHeisenbergWidget::set_dmi()
         if( this->checkBox_dmi->isChecked() )
         {
             int n_shells = this->dmi_shells.size();
-            std::vector<float> Dij( n_shells );
+            std::vector<scalar> Dij( n_shells );
             for( int i = 0; i < n_shells; ++i )
                 Dij[i] = this->dmi_shells[i]->value();
 
