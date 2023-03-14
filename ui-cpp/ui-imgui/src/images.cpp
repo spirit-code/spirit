@@ -13,6 +13,7 @@
 
 #include <array>
 #include <memory>
+#include <vector>
 
 CMRC_DECLARE( resources );
 

@@ -1053,12 +1053,13 @@ template<> EIGEN_STRONG_INLINE double pmadd(const double& a, const double& b, co
 
 #if EIGEN_COMP_PGI
 // PGI++ does not define the following intrinsics in C++ mode.
-static inline __m128  _mm_castpd_ps   (__m128d x) { return reinterpret_cast<__m128&>(x);  }
-static inline __m128i _mm_castpd_si128(__m128d x) { return reinterpret_cast<__m128i&>(x); }
-static inline __m128d _mm_castps_pd   (__m128  x) { return reinterpret_cast<__m128d&>(x); }
-static inline __m128i _mm_castps_si128(__m128  x) { return reinterpret_cast<__m128i&>(x); }
-static inline __m128  _mm_castsi128_ps(__m128i x) { return reinterpret_cast<__m128&>(x);  }
-static inline __m128d _mm_castsi128_pd(__m128i x) { return reinterpret_cast<__m128d&>(x); }
+// ... but NVC++ *does* => commented out by Andre Mueller
+// static inline __m128  _mm_castpd_ps   (__m128d x) { return reinterpret_cast<__m128&>(x);  }
+// static inline __m128i _mm_castpd_si128(__m128d x) { return reinterpret_cast<__m128i&>(x); }
+// static inline __m128d _mm_castps_pd   (__m128  x) { return reinterpret_cast<__m128d&>(x); }
+// static inline __m128i _mm_castps_si128(__m128  x) { return reinterpret_cast<__m128i&>(x); }
+// static inline __m128  _mm_castsi128_ps(__m128i x) { return reinterpret_cast<__m128&>(x);  }
+// static inline __m128d _mm_castsi128_pd(__m128i x) { return reinterpret_cast<__m128d&>(x); }
 #endif
 
 #endif // EIGEN_PACKET_MATH_SSE_H

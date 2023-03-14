@@ -62,16 +62,16 @@ private:
 
 #//!\name Constructors
 public:
-                        QhullLinkedList<T>(T b, T e) : begin_node(b), end_node(e) {}
+                        QhullLinkedList(T b, T e) : begin_node(b), end_node(e) {}
                         //! Copy constructor copies begin_node and end_node, but not the list elements.  Needed for return by value and parameter passing.
-                        QhullLinkedList<T>(const QhullLinkedList<T> &other) : begin_node(other.begin_node), end_node(other.end_node) {}
+                        QhullLinkedList(const QhullLinkedList &other) : begin_node(other.begin_node), end_node(other.end_node) {}
                         //! Copy assignment copies begin_node and end_node, but not the list elements.
-                        QhullLinkedList<T> & operator=(const QhullLinkedList<T> &other) { begin_node= other.begin_node; end_node= other.end_node; return *this; }
-                        ~QhullLinkedList<T>() {}
+                        QhullLinkedList & operator=(const QhullLinkedList &other) { begin_node= other.begin_node; end_node= other.end_node; return *this; }
+                        ~QhullLinkedList() {}
 
 private:
                         //!disabled since a sentinel must be allocated as the private type
-                        QhullLinkedList<T>() {}
+                        QhullLinkedList() {}
 
 public:
 
@@ -87,8 +87,8 @@ public:
     countT              count() const;
                         //count(t) under #//!\name Search
     bool                isEmpty() const { return (begin_node==end_node); }
-    bool                operator==(const QhullLinkedList<T> &o) const;
-    bool                operator!=(const QhullLinkedList<T> &o) const { return !operator==(o); }
+    bool                operator==(const QhullLinkedList &o) const;
+    bool                operator!=(const QhullLinkedList &o) const { return !operator==(o); }
     size_t              size() const { return count(); }
 
 #//!\name Element access

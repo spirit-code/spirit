@@ -315,7 +315,7 @@ add_library( ${META_PROJECT_NAME} OBJECT
     ${SOURCE_SPIRIT_UTILITY} )
 
 set_target_properties( ${META_PROJECT_NAME} PROPERTIES
-    CXX_STANDARD            14
+    CXX_STANDARD            20
     CXX_STANDARD_REQUIRED   ON
     CXX_EXTENSIONS          OFF )
 
@@ -460,7 +460,7 @@ if( SPIRIT_BUILD_FOR_CXX OR SPIRIT_BUILD_FOR_JS )
             target_link_libraries( ${testName} ${META_PROJECT_NAME}_static )
             # Properties
             set_target_properties( ${testName} PROPERTIES
-                CXX_STANDARD             14
+                CXX_STANDARD             20
                 CXX_STANDARD_REQUIRED    ON
                 CXX_EXTENSIONS           OFF
                 RUNTIME_OUTPUT_DIRECTORY ${TEST_RUNTIME_OUTPUT_DIRECTORY} )

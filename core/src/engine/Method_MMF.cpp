@@ -435,7 +435,7 @@ void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, boo
         // Convert indices to formatted strings
         auto s_img         = fmt::format( "{:0>2}", this->idx_image );
         auto base          = static_cast<std::int32_t>( log10( this->parameters->n_iterations ) );
-        std::string s_iter = fmt::format( "{:0>" + fmt::format( "{}", base ) + "}", iteration );
+        std::string s_iter = fmt::format( fmt::runtime("{:0>" + fmt::format( "{}", base ) + "}"), iteration );
 
         std::string preSpinsFile;
         std::string preEnergyFile;

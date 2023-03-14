@@ -66,10 +66,24 @@ endif()
 set( CMAKE_DISABLE_IN_SOURCE_BUILD ON )
 ### Position independent code
 set( CMAKE_POSITION_INDEPENDENT_CODE ON )
-### We need at least C++14
-set( CMAKE_CXX_STANDARD 14 )
+### We need at least C++20
+set( CMAKE_CXX_STANDARD 20 )
 ### Set the cmake subdirectory
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" )
+####################################################################
+
+
+
+######### Deactivate warning generate by third party library #######
+# generated in C++17 / C++20 mode
+# due to QHull
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-volatile" )
+# due to Eigen and Imgui
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations" )
+# due to Eigen
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-enum-enum-conversion" )
+# due to Imgui
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-overflow" )
 ####################################################################
 
 
