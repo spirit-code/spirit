@@ -304,7 +304,6 @@ template<typename T> EIGEN_DEVICE_FUNC inline T* construct_elements_of_array(T *
     destruct_elements_of_array(ptr, i);
     EIGEN_THROW;
   }
-  return NULL;
 }
 
 /*****************************************************************************

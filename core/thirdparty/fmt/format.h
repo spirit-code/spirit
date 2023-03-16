@@ -166,6 +166,13 @@ FMT_END_NAMESPACE
 #  endif
 #endif
 
+// __builtin_ctz is broken in Intel Compiler Classic on Windows:
+// https://github.com/fmtlib/fmt/issues/2510.
+#ifdef __PGI
+#    define FMT_BUILTIN_CTZ(n) __builtin_ctz(n)
+#    define FMT_BUILTIN_CTZLL(n) __builtin_ctzll(n)
+#endif
+
 #if FMT_MSC_VER
 #  include <intrin.h>  // _BitScanReverse[64], _BitScanForward[64], _umul128
 #endif
@@ -3025,18 +3032,18 @@ inline namespace literals {
     fmt::print("Elapsed time: {s:.2f} seconds", "s"_a=1.23);
   \endrst
  */
-#  if FMT_USE_NONTYPE_TEMPLATE_PARAMETERS
-template <detail_exported::fixed_string Str>
-constexpr auto operator""_a()
-    -> detail::udl_arg<remove_cvref_t<decltype(Str.data[0])>,
-                       sizeof(Str.data) / sizeof(decltype(Str.data[0])), Str> {
-  return {};
-}
-#  else
-constexpr auto operator"" _a(const char* s, size_t) -> detail::udl_arg<char> {
-  return {s};
-}
-#  endif
+// #  if FMT_USE_NONTYPE_TEMPLATE_PARAMETERS
+// template <detail_exported::fixed_string Str>
+// constexpr auto operator""_a()
+//     -> detail::udl_arg<remove_cvref_t<decltype(Str.data[0])>,
+//                        sizeof(Str.data) / sizeof(decltype(Str.data[0])), Str> {
+//   return {};
+// }
+// #  else
+// constexpr auto operator"" _a(const char* s, size_t) -> detail::udl_arg<char> {
+//   return {s};
+// }
+// #  endif
 
 // DEPRECATED!
 // User-defined literal equivalent of fmt::format.

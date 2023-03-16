@@ -68,7 +68,7 @@ public:
                         // Do not define facetT().  It conflicts with return type facetT*
     facetT *            getFacetT() const { return qh_facet; }
     QhullHyperplane     hyperplane() const { return QhullHyperplane(qh_qh, dimension(), qh_facet->normal, qh_facet->offset); }
-    countT              id() const { return (qh_facet ? qh_facet->id : (int)qh_IDunknown); }
+    countT              id() const { return (qh_facet ? int(qh_facet->id) : int(qh_IDunknown)); }
     QhullHyperplane     innerplane() const;
     bool                isValid() const { return qh_qh && qh_facet && qh_facet != &s_empty_facet; }
     bool                isGood() const { return qh_facet && qh_facet->good; }

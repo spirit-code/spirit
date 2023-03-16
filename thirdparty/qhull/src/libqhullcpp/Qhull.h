@@ -54,7 +54,7 @@ public:
                         Qhull();      //!< call runQhull() next
                         Qhull(const RboxPoints &rboxPoints, const char *qhullCommand2);
                         Qhull(const char *inputComment2, int pointDimension, int pointCount, const realT *pointCoordinates, const char *qhullCommand2);
-                        ~Qhull() throw();
+                        ~Qhull();
 private:                //! Disable copy constructor and assignment.  Qhull owns QhullQh.
                         Qhull(const Qhull &);
     Qhull &             operator=(const Qhull &);

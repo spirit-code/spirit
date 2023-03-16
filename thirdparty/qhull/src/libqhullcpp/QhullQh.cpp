@@ -139,7 +139,7 @@ maybeThrowQhullMessage(int exitCode)
 }//maybeThrowQhullMessage
 
 void QhullQh::
-maybeThrowQhullMessage(int exitCode, int noThrow)  throw()
+maybeThrowQhullMessage(int exitCode, int noThrow)
 {
     QHULL_UNUSED(noThrow);
 

@@ -75,6 +75,7 @@ list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" )
 
 
 ######### Deactivate warning generate by third party library #######
+if ("${CMAKE_CXX_COMPILER_ID}" MATCHES "GNU")
 # generated in C++17 / C++20 mode
 # due to QHull
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-volatile" )
@@ -84,8 +85,8 @@ set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations" )
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-enum-enum-conversion" )
 # due to Imgui
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-overflow" )
+endif()
 ####################################################################
-
 
 
 ####################################################################
