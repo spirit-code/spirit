@@ -11,10 +11,10 @@ inline void Method_Solver<Solver::VP>::Initialize()
         configurations_temp[i] = std::shared_ptr<vectorfield>( new vectorfield( this->nos ) );
 
     this->velocities = std::vector<vectorfield>( this->noi, vectorfield( this->nos, Vector3::Zero() ) ); // [noi][nos]
-    this->forces_previous     = velocities;                                                              // [noi][nos]
-    this->projection          = std::vector<scalar>( this->noi, 0 );                                     // [noi]
-    this->force_norm2         = std::vector<scalar>( this->noi, 0 );
-    this->searchdir = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) ); // [noi]
+    this->forces_previous = velocities;                                                                  // [noi][nos]
+    this->projection      = std::vector<scalar>( this->noi, 0 );                                         // [noi]
+    this->force_norm2     = std::vector<scalar>( this->noi, 0 );
+    this->searchdir       = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) ); // [noi]
 }
 
 /*
@@ -38,12 +38,7 @@ inline void Method_Solver<Solver::VP>::Iteration()
         auto f_pr = forces_previous[i].data();
         auto v    = velocities[i].data();
 
-        Backend::par::apply(
-            forces[i].size(),
-            [f, f_pr, v] SPIRIT_LAMBDA( int idx )
-            {
-                f_pr[idx] = f[idx];
-            } );
+        Backend::par::apply( forces[i].size(), [f, f_pr, v] SPIRIT_LAMBDA( int idx ) { f_pr[idx] = f[idx]; } );
     }
     // Get the forces on the configurations
     this->Calculate_Force( configurations, forces );
@@ -65,9 +60,9 @@ inline void Method_Solver<Solver::VP>::Iteration()
         auto m_temp = this->m;
 
         // Calculate the new velocity
-        Backend::par::apply(
-            force.size(),
-            [f, f_pr, v, m_temp] SPIRIT_LAMBDA( int idx ) { v[idx] += 0.5 / m_temp * ( f_pr[idx] + f[idx] ); } );
+        Backend::par::apply( force.size(), [f, f_pr, v, m_temp] SPIRIT_LAMBDA( int idx ) {
+            v[idx] += 0.5 / m_temp * ( f_pr[idx] + f[idx] );
+        } );
 
         // Get the projection of the velocity on the force
         projection[i]  = Vectormath::dot( velocity, force );
@@ -105,15 +100,12 @@ inline void Method_Solver<Solver::VP>::Iteration()
         }
 
         Backend::par::apply(
-            force.size(),
-            [sd = this->searchdir[i].data(), v, f, dt, m = this->m] SPIRIT_LAMBDA( int idx )
-            {
-                sd[idx] = dt * (v[idx] + 0.5 / m * f[idx]);
-            } 
-        );
+            force.size(), [sd = this->searchdir[i].data(), v, f, dt, m = this->m] SPIRIT_LAMBDA( int idx ) {
+                sd[idx] = dt * ( v[idx] + 0.5 / m * f[idx] );
+            } );
     }
 
-    linesearch->run(configurations, searchdir);
+    linesearch->run( configurations, searchdir );
 }
 
 template<>
