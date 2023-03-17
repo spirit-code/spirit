@@ -165,7 +165,7 @@ Set the Dzyaloshinskii-Moriya interaction in terms of neighbour shells [meV]
 ### Hamiltonian_Set_DDI
 
 ```C
-void Hamiltonian_Set_DDI(State *state, int ddi_method, int n_periodic_images[3], float cutoff_radius=0, int idx_image=-1, int idx_chain=-1)
+void Hamiltonian_Set_DDI(State *state, int ddi_method, int n_periodic_images[3], float cutoff_radius=0, bool pb_zero_padding=true, int idx_image=-1, int idx_chain=-1)
 ```
 
 Configure the dipole-dipole interaction
@@ -176,6 +176,7 @@ Configure the dipole-dipole interaction
   boundary conditions are used
 - `cutoff_radius`: the distance at which to stop the direct summation,
   if used
+- `pb_zero_padding`: if `True` zero padding is used even for periodical directions
 
 
 
@@ -273,15 +274,14 @@ Returns the number of Dzyaloshinskii-Moriya interaction pairs
 ### Hamiltonian_Get_DDI
 
 ```C
-void Hamiltonian_Get_DDI(State *state, int * ddi_method, int n_periodic_images[3], float * cutoff_radius, int idx_image=-1, int idx_chain=-1)
+void Hamiltonian_Get_DDI(State *state, int * ddi_method, int n_periodic_images[3], float * cutoff_radius,  bool * pb_zero_padding, int idx_image=-1, int idx_chain=-1)
 ```
 
 Retrieves the dipole-dipole interaction configuration.
 
 - `ddi_method`: see integers defined above
-- `n_periodic_images`: how many repetition of the spin configuration to
-  append along the translation directions [a, b, c], if periodical
-  boundary conditions are used
-- `cutoff_radius`: the distance at which to stop the direct summation,
-  if used
+- `n_periodic_images`: how many repetitions of the spin configuration to
+  append along the translation directions [a, b, c], if periodical boundary conditions are used
+- `cutoff_radius`: the distance at which to stop the direct summation, if method_cutoff is used
+- `pb_zero_padding`: if `True` zero padding is used even for periodical directions
 

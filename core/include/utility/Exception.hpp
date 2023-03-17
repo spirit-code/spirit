@@ -1,98 +1,130 @@
 #pragma once
-#ifndef UTILITY_EXEPTION_H
-#define UTILITY_EXEPTION_H
+#ifndef SPIRIT_CORE_UTILITY_EXEPTION_HPP
+#define SPIRIT_CORE_UTILITY_EXEPTION_HPP
 
 #include <utility/Logging.hpp>
+
 #include <fmt/format.h>
+
+#include <exception>
+#include <type_traits>
 
 namespace Utility
 {
-    enum class Exception_Classifier
+
+enum class Exception_Classifier
+{
+    File_not_Found,
+    System_not_Initialized,
+    Division_by_zero,
+    Simulated_domain_too_small,
+    Not_Implemented,
+    Non_existing_Image,
+    Non_existing_Chain,
+    Input_parse_failed,
+    Bad_File_Content,
+    Standard_Exception,
+    CUDA_Error,
+    Unknown_Exception
+    // TODO: from Chain.cpp
+    // Last image deletion ?
+    // Empty clipboard     ?
+};
+
+/*
+ * Spirit library exception class, derived from std::runtime_error.
+ *
+ * Adds file, line and function information to the exception message. Contains an exception classifier and a level so
+ * that the handler can decide if execution should be stopped or can continue.
+ */
+class Exception : public std::runtime_error
+{
+public:
+    Exception(
+        Exception_Classifier classifier, Log_Level level, const std::string & message, const char * file,
+        unsigned int line, const char * function ) noexcept( false )
+            : std::runtime_error(
+                fmt::format( "{}:{} in function \'{}\':\n{:>49}{}", file, line, function, " ", message ) ),
+              classifier( classifier ),
+              level( level ),
+              file( file ),
+              line( line ),
+              function( function )
     {
-        File_not_Found,
-        System_not_Initialized,
-        Division_by_zero,
-        Simulated_domain_too_small,
-        Not_Implemented,
-        Non_existing_Image,
-        Non_existing_Chain,
-        Input_parse_failed,
-        Bad_File_Content,
-		Standard_Exception,
-		CUDA_Error,
-		Unknown_Exception
-        // TODO: from Chain.cpp
-        // Last image deletion ?
-        // Empty clipboard     ?
-    };
+    }
 
+    // Copy-constructor
+    Exception( const Exception & ) noexcept = default;
+    // Copy-assignment operator
+    Exception & operator=( const Exception & ) = delete;
 
-    // Spirit library exception class:
-    //      Derived from std::runtime_error.
-    //      Adds file, line and function information to the exception message.
-    //      Contains an exception classifier and a level so that the handler
-    //      can decide if execution should be stopped or can continue.
-    class S_Exception : public std::runtime_error
-    {
-    public:
-        S_Exception(Exception_Classifier classifier, Log_Level level, const std::string & message, const char * file, unsigned int line, const std::string & function) :
-            std::runtime_error(message)
-        {
-            this->classifier = classifier;
-            this->level      = level;
-            this->message  = message;
-            this->file     = file;
-            this->line     = line;
-            this->function = function;
+    // Move-constructor
+    Exception( Exception && ) noexcept = default;
+    // Move-assignment constructor
+    Exception & operator=( Exception && ) = delete;
 
-            // The complete description
-            this->_what = fmt::format("{}:{} in function \'{}\':\n{:>49}{}", file, line, function, " ", message);
-        }
+    ~Exception() noexcept override = default;
 
-        ~S_Exception() throw() {}
+    const Exception_Classifier classifier;
+    const Log_Level level;
+    const char * file;
+    const unsigned int line;
+    const char * function;
+};
 
-        const char *what() const throw()
-        {
-            return _what.c_str();
-        }
-        
-        Exception_Classifier classifier;
-        Log_Level level;
-        std::string  message;
-        std::string  file;
-        unsigned int line;
-        std::string  function;
+// To make sure that the noexcept-specifications are correct
+static_assert(
+    std::is_nothrow_copy_constructible<Exception>::value,
+    "Utility::Exception is expected to be nothrow copy-constructible" );
+static_assert(
+    std::is_nothrow_move_constructible<Exception>::value,
+    "Utility::Exception is expected to be nothrow move-constructible" );
+static_assert(
+    std::is_nothrow_destructible<Exception>::value, "Utility::Exception is expected to be nothrow destructible" );
 
-    private:
-        std::string  _what;
-    };
+/*
+ * Rethrow (creating a std::nested_exception) an exception using the Exception class
+ * to add file and line info
+ */
+void rethrow( const std::string & message, const char * file, const unsigned int line, const char * function ) noexcept(
+    false );
 
+/*
+ * Handle_Exception_API finalizes what should be done when an exception is encountered at the API layer.
+ * This function catches any exceptions and should only be used in the catch-statements of API functions, since that is
+ * the top level at which an exception is caught.
+ */
+void Handle_Exception_API(
+    const char * file, const unsigned int line, const char * function = "", const int idx_image = -1,
+    const int idx_chain = -1 ) noexcept;
 
-    // Rethrow (creating a std::nested_exception) an exception using the Exception class
-    // to add file and line info
-    void rethrow(const std::string & message, const char * file, unsigned int line, const std::string & function);
+/*
+ * Handle_Exception_Core finalizes what should be done when an exception is encountered inside the core library.
+ * This function should only be used inside the core, below the API layer.
+ */
+void Handle_Exception_Core(
+    const std::string & message, const char * file, unsigned int line, const char * function ) noexcept( false );
 
-    // Handle_Exception_API finalizes what should be done when an exception is encountered at the API layer.
-    //      This function should only be used inside API functions, since that is the top level at which an
-    //      exception is caught.
-    void Handle_Exception_API( const char * file, unsigned int line, const std::string & function="", int idx_image=-1, int idx_chain=-1 );
+// Shorthand for throwing a Spirit library exception with file and line info
+#define spirit_throw( classifier, level, message )                                                                     \
+    /* NOLINTNEXTLINE(cppcoreguidelines-macro-usage,hicpp-no-array-decay) */                                           \
+    throw Utility::Exception( classifier, level, message, __FILE__, __LINE__, __func__ )
 
-    // Handle_Exception_Core finalizes what should be done when an exception is encountered inside the core.
-    //      This function should only be used inside the core, below the API layer.
-    void Handle_Exception_Core(std::string message, const char * file, unsigned int line, const std::string & function);
+// Rethrow any exception to create a backtraceable nested exception
+#define spirit_rethrow( message )                                                                                      \
+    /* NOLINTNEXTLINE(cppcoreguidelines-macro-usage,hicpp-no-array-decay) */                                           \
+    Utility::rethrow( message, __FILE__, __LINE__, __func__ )
 
+// Handle exception with backtrace and logging information on the calling API function
+#define spirit_handle_exception_api( idx_image, idx_chain )                                                            \
+    /* NOLINTNEXTLINE(cppcoreguidelines-macro-usage,hicpp-no-array-decay) */                                           \
+    Utility::Handle_Exception_API( __FILE__, __LINE__, __func__, idx_image, idx_chain )
 
-    // Shorthand for throwing a Spirit library exception with file and line info
-    #define spirit_throw(classifier, level, message) throw Utility::S_Exception(classifier, level, message, __FILE__, __LINE__, __func__)
+// Handle exception with backtrace and logging information on the calling core function
+#define spirit_handle_exception_core( message )                                                                        \
+    /* NOLINTNEXTLINE(cppcoreguidelines-macro-usage,hicpp-no-array-decay) */                                           \
+    Utility::Handle_Exception_Core( message, __FILE__, __LINE__, __func__ )
 
-    // Rethrow any exception to create a backtraceable nested exception
-    #define spirit_rethrow(message) Utility::rethrow(message, __FILE__, __LINE__, __func__)
-
-    // Handle exception with backtrace and logging information on the calling API function
-    #define spirit_handle_exception_api(idx_image, idx_chain) Utility::Handle_Exception_API(__FILE__, __LINE__, __func__, idx_image, idx_chain)
-
-    // Handle exception with backtrace and logging information on the calling core function
-    #define spirit_handle_exception_core(message) Utility::Handle_Exception_Core(message, __FILE__, __LINE__, __func__) 
-}
+} // namespace Utility
 
 #endif

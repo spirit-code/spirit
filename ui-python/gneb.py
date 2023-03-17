@@ -3,7 +3,9 @@ import sys
 
 ### Make sure to find the Spirit modules
 ### This is only needed if you did not install the package
-spirit_py_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), "../core/python"))
+spirit_py_dir = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "../core/python")
+)
 sys.path.insert(0, spirit_py_dir)
 
 ### Import Spirit modules
@@ -23,7 +25,12 @@ quiet = False
 
 with state.State(cfgfile, quiet) as p_state:
     noi = 7
-    log.send(p_state, log.LEVEL_ALL, log.SENDER_ALL, "Performing skyrmion collapse calculation with {} images".format(noi))
+    log.send(
+        p_state,
+        log.LEVEL_ALL,
+        log.SENDER_ALL,
+        "Performing skyrmion collapse calculation with {} images".format(noi),
+    )
 
     ### Set the length of the chain
     chain.image_to_clipboard(p_state)
@@ -39,17 +46,17 @@ with state.State(cfgfile, quiet) as p_state:
     configuration.plus_z(p_state, idx_image=0)
     configuration.skyrmion(p_state, 5.0, phase=-90.0, idx_image=0)
     ### Last image is homogeneous
-    configuration.plus_z(p_state, idx_image=noi-1)
+    configuration.plus_z(p_state, idx_image=noi - 1)
 
     ### Initial guess: homogeneous transition between first and last image
-    transition.homogeneous(p_state, 0, noi-1)
+    transition.homogeneous(p_state, 0, noi - 1)
 
     ### Energy minimisation of first and last image
     LLG = simulation.METHOD_LLG
     GNEB = simulation.METHOD_GNEB
-    VP = simulation.SOLVER_VP # Velocity projection minimiser
+    VP = simulation.SOLVER_VP  # Velocity projection minimiser
     simulation.start(p_state, LLG, VP, idx_image=0)
-    simulation.start(p_state, LLG, VP, idx_image=noi-1)
+    simulation.start(p_state, LLG, VP, idx_image=noi - 1)
 
     ### Initial relaxation of transition path
     simulation.start(p_state, GNEB, VP, n_iterations=10000)
@@ -60,4 +67,6 @@ with state.State(cfgfile, quiet) as p_state:
     ### Calculate the energy barrier of the transition
     E = chain.get_energy(p_state)
     delta = max(E) - E[0]
-    log.send(p_state, log.LEVEL_ALL, log.SENDER_ALL, "Energy barrier: {} meV".format(delta))
+    log.send(
+        p_state, log.LEVEL_ALL, log.SENDER_ALL, "Energy barrier: {} meV".format(delta)
+    )

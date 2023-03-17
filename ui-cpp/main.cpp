@@ -1,21 +1,25 @@
+#ifndef __EMSCRIPTEN__
+
 #include "utility/Handle_Signal.hpp"
 #include <lyra/lyra.hpp>
 
-#include "Spirit/Chain.h"
-#include "Spirit/Configurations.h"
-#include "Spirit/IO.h"
-#include "Spirit/Log.h"
-#include "Spirit/Simulation.h"
-#include "Spirit/State.h"
-#include "Spirit/Transitions.h"
-#include "Spirit/Version.h"
+#ifdef SPIRIT_UI_CXX_USE_QT
+#include "MainWindow.hpp"
+#elif SPIRIT_UI_USE_IMGUI
+#include "main_window.hpp"
+#endif
+
+#include <Spirit/Chain.h>
+#include <Spirit/Configurations.h>
+#include <Spirit/IO.h>
+#include <Spirit/Log.h>
+#include <Spirit/Simulation.h>
+#include <Spirit/State.h>
+#include <Spirit/Transitions.h>
+#include <Spirit/Version.h>
 
 #ifdef _OPENMP
 #include <omp.h>
-#endif
-
-#ifdef SPIRIT_UI_CXX_USE_QT
-#include "MainWindow.hpp"
 #endif
 
 #include <iostream>
@@ -28,7 +32,7 @@ std::shared_ptr<State> state;
 // Main
 int main( int argc, char ** argv )
 {
-    // Register SigInt
+    // Register interrupt signal
     signal( SIGINT, Utility::Handle_Signal::Handle_SigInt );
 
     // Default options
@@ -46,8 +50,7 @@ int main( int argc, char ** argv )
           | lyra::opt( cfgfile, "configuration file" )["-f"]["--cfg"]( "The configuration file to use." )
           | lyra::opt( imagefile, "initial image file" )["-i"]["--image"]( "The initial spin configuration to use." )
           | lyra::opt( chainfile, "initial chain file" )["-c"]["--chain"](
-                "The initial chain configuration to use. (Overwrites initial spin "
-                "configuration)" )
+              "The initial chain configuration to use. (Overwrites initial spin configuration)" )
           | lyra::opt( quiet )["-q"]["--quiet"]( "If spirit should run in quiet mode." )
           | lyra::opt( show_version )["--version"]( "Show version information." ) | lyra::help( show_help );
 
@@ -85,35 +88,36 @@ int main( int argc, char ** argv )
         exit( 0 );
     }
 
-    // Initialise State
+    // Initialise state
     state = std::shared_ptr<State>( State_Setup( cfgfile.c_str(), quiet ), State_Delete );
 
-    // Standard Initial spin configuration
+    // Standard initial spin configuration
     Configuration_PlusZ( state.get() );
 
-    // Read Image from file
-    if( imagefile != "" )
+    // Read image from file
+    if( !imagefile.empty() )
         IO_Image_Read( state.get(), imagefile.c_str(), 0 );
 
-    // Read Chain from file
-    if( chainfile != "" )
+    // Read chain from file
+    if( !chainfile.empty() )
         IO_Chain_Read( state.get(), chainfile.c_str() );
 
 #ifdef _OPENMP
-    int nt = omp_get_max_threads() - 1;
     Log_Send(
         state.get(), Log_Level_Info, Log_Sender_UI,
-        ( "Using OpenMP with n=" + std::to_string( nt ) + " threads" ).c_str() );
+        ( "Using OpenMP with " + std::to_string( Spirit_OpenMP_Get_Num_Threads() ) + "/"
+          + std::to_string( omp_get_max_threads() ) + " threads" )
+            .c_str() );
 #endif
 
-#ifdef SPIRIT_UI_CXX_USE_QT
+#if defined( SPIRIT_UI_CXX_USE_QT )
     //------------------------ User Interface ---------------------------------------
     // Initialise Application and MainWindow
     QApplication app( argc, argv );
     // app.setOrganizationName("--");
     // app.setApplicationName("Spirit - Atomistic Spin Code - OpenGL with Qt");
 
-    // Format for all GL Surfaces
+    // Format for all GL surfaces
     QSurfaceFormat format;
     format.setSamples( 16 );
     format.setVersion( 3, 3 );
@@ -134,17 +138,28 @@ int main( int argc, char ** argv )
     MainWindow window( state );
     window.setWindowTitle( app.applicationName() );
     window.show();
-    // Open the Application
+    // Open the application
     int exec = app.exec();
-    // If Application is closed normally
+    // If application is closed normally
     if( exec != 0 )
         throw exec;
     // Finish
     state.reset();
     return exec;
     //-------------------------------------------------------------------------------
+#elif defined( SPIRIT_UI_USE_IMGUI )
+    ui::MainWindow window( state );
+
+    // Open the Application
+    int exec = window.run();
+    // If Application is closed normally
+    if( exec != 0 )
+        throw exec;
+    // Finish
+    state.reset();
+    return exec;
 #else
-    //----------------------- LLG Iterations ----------------------------------------
+    //----------------------- LLG iterations ----------------------------------------
     Simulation_LLG_Start( state.get(), Solver_SIB );
     //-------------------------------------------------------------------------------
 #endif
@@ -152,3 +167,5 @@ int main( int argc, char ** argv )
     state.reset();
     return 0;
 }
+
+#endif

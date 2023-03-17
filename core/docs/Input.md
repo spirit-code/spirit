@@ -401,6 +401,9 @@ llg_force_convergence   10e-9
 llg_n_iterations        2000000
 ### Number of iterations after which to save
 llg_n_iterations_log    2000
+### Number of iterations that gets run with no checks or outputs (Increasing this boosts performance, especially in CUDA builds)
+llg_n_iterations_amortize 1
+
 ```
 
 **LLG:**
@@ -429,6 +432,8 @@ llg_stt_polarisation_normal	1.0 0.0 0.0
 The time step `dt` is given in picoseconds.
 The temperature is given in Kelvin and the temperature gradient in Kelvin/Angstrom.
 
+If you don't specify a seed for the RNG, it will be chosen randomly.
+
 **MC:**
 
 ```Python
@@ -441,6 +446,10 @@ mc_temperature      0
 ### Acceptance ratio
 mc_acceptance_ratio 0.5
 ```
+
+The temperature is given in Kelvin.
+
+If you don't specify a seed for the RNG, it will be chosen randomly.
 
 **GNEB:**
 

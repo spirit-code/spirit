@@ -1,5 +1,5 @@
 ######### CMake Version ############################################
-cmake_minimum_required( VERSION 3.10 )
+cmake_minimum_required( VERSION 3.12 )
 ### Distinguish between Clang and AppleClang
 cmake_policy( SET CMP0025 NEW )
 ####################################################################
@@ -30,13 +30,14 @@ set( SPIRIT_SCALAR_TYPE "double" CACHE STRING "The scalar type to be used in the
 set( SPIRIT_CUDA_ARCH   "sm_60"  CACHE STRING "The CUDA compute architecture to use in case of a CUDA build." )
 ####################################################################
 ### CMake Verbosity
-option( SPIRIT_PRINT_SOURCES  "Print Headers and Sources from Cmake."                         OFF )
-### Decide CXX UI
-option( SPIRIT_UI_CXX_USE_QT  "Build the QT User Interface instead of console version."       ON  )
+option( SPIRIT_PRINT_SOURCES    "Print Headers and Sources from Cmake."                          OFF )
+### Decide UI
+option( SPIRIT_UI_USE_IMGUI     "Build the ImGUI user interface instead of the console version." OFF )
+option( SPIRIT_UI_CXX_USE_QT    "Build the QT user interface instead of the console version."    ON  )
 ### Bundle option
-option( SPIRIT_BUNDLE_APP     "On installation, bundle the executable with its dependencies." OFF )
+option( SPIRIT_BUNDLE_APP       "On installation, bundle the executable with its dependencies."  OFF )
 ### Option for building on the IFF cluster
-option( SPIRIT_USER_PATHS_IFF "Use the compiler and library paths etc. for the IFF Cluster."  OFF )
+option( SPIRIT_USER_PATHS_IFF   "Use the compiler and library paths etc. for the IFF Cluster."   OFF )
 ####################################################################
 
 
@@ -54,17 +55,19 @@ else()
     message( STATUS ">> Did not need to set build type. Configuration types: ${CMAKE_CONFIGURATION_TYPES}" )
 endif()
 ### Set a default install directory in case none is passed
-if( CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT )
+if( CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT OR NOT CMAKE_INSTALL_PREFIX )
     set( CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install" CACHE PATH "default install path" FORCE )
-    message( STATUS ">> No installation directory given. Using: ${CMAKE_INSTALL_PREFIX}" )
+    message( STATUS ">> No installation directory given. Using: '${CMAKE_INSTALL_PREFIX}'" )
+else()
+    message( STATUS ">> Installation directory given: '${CMAKE_INSTALL_PREFIX}'" )
 endif()
 ### Prevent in-source builds
 # set(CMAKE_DISABLE_SOURCE_CHANGES ON) # we need source changes for the generated VERSION.txt
 set( CMAKE_DISABLE_IN_SOURCE_BUILD ON )
 ### Position independent code
 set( CMAKE_POSITION_INDEPENDENT_CODE ON )
-### We need at least C++11
-set( CMAKE_CXX_STANDARD 11 )
+### We need at least C++14
+set( CMAKE_CXX_STANDARD 14 )
 ### Set the cmake subdirectory
 list( APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake" )
 ####################################################################
@@ -80,10 +83,10 @@ if( SPIRIT_USE_CUDA )
     set( SPIRIT_USE_OPENMP OFF )
     ### Set cuda toolkit path
     if( NOT CUDA_TOOLKIT_ROOT_DIR )
-        if ( APPLE OR UNIX )
+        if( APPLE OR UNIX )
             set( CUDA_TOOLKIT_ROOT_DIR /usr/local/cuda )
             # set( CUDA_TOOLKIT_ROOT_DIR /opt/cuda )
-        elseif (WIN32)
+        elseif( WIN32 )
             set( CUDA_TOOLKIT_ROOT_DIR "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v8.0/" )
             message( WARNING ">> We are on Windows... CUDA_TOOLKIT_ROOT_DIR may need to be passed to cmake..." )
         endif()
@@ -155,13 +158,14 @@ elseif( UNIX )
     set( PLATFORM_NAME "UNIX" )
 elseif( WIN32 )
     set( PLATFORM_NAME "Win32" )
+    add_compile_definitions( NOMINMAX _CRT_SECURE_NO_WARNINGS )
 endif()
 ### Compiler-specific flags
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
-    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.1)
-        message(FATAL_ERROR "GCC version must be at least 5.1!")
+if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" )
+    if( CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.1 )
+        message( FATAL_ERROR "GCC version must be at least 5.1!" )
     endif()
-elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+elseif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" )
     ### Disable unnecessary warnings on Windows, such as C4996 and C4267, C4244
     set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNOMINMAX /wd4018 /wd4244 /wd4267 /wd4661 /wd4996" )
 endif()
@@ -196,69 +200,54 @@ if( SPIRIT_SKIP_HTST )
     add_definitions( "-DSPIRIT_SKIP_HTST" )
     message( STATUS ">> Skipping compilation of HTST!" )
 endif()
-####################################################################
+###
+if( SPIRIT_BUILD_FOR_JS )
+    set( SPIRIT_BUILD_FOR_CXX OFF )
+    set( SPIRIT_USE_CUDA      OFF )
+    set( SPIRIT_USE_OPENMP    OFF )
+    set( SPIRIT_UI_CXX_USE_QT OFF )
+    set( SPIRIT_UI_USE_IMGUI  ON  )
 
-
-
-######### External project: QHull ##################################
-set(         CMAKE_QHULL_ARGS "-DCMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/thirdparty-install" )
-list( APPEND CMAKE_QHULL_ARGS "-DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}" )
-list( APPEND CMAKE_QHULL_ARGS "-DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}" )
-list( APPEND CMAKE_QHULL_ARGS "-DCMAKE_AR=${CMAKE_AR}" )
-list( APPEND CMAKE_QHULL_ARGS "-DCMAKE_RANLIB=${CMAKE_RANLIB}" )
-include( ExternalProject )
-ExternalProject_add( qhull
-    SOURCE_DIR "${CMAKE_SOURCE_DIR}/thirdparty/qhull"
-    # GIT_REPOSITORY https://github.com/qhull/qhull.git
-    BINARY_DIR ${CMAKE_BINARY_DIR}/thirdparty-build/qhull
-    # INSTALL_DIR ${CMAKE_BINARY_DIR}/thirdparty-install
-    CMAKE_ARGS ${CMAKE_QHULL_ARGS}
-    CMAKE_CACHE_ARGS "-DCMAKE_POSITION_INDEPENDENT_CODE:BOOL=true"
-)
-### qhullstatic reentrant library
-add_library( libqhullstatic_r STATIC IMPORTED )
-# set_property( TARGET libqhullstatic_r PROPERTY MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE )
-set_property( TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX} )
-if( WIN32 )
-    set_property( TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION_DEBUG ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/Debug/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX} )
-    set_property( TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION_MINSIZEREL ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/MinSizeRel/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX} )
-    set_property( TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION_RELEASE ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/Release/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX} )
-    set_property( TARGET libqhullstatic_r PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/RelWithDebInfo/${CMAKE_STATIC_LIBRARY_PREFIX}qhullstatic_r${CMAKE_STATIC_LIBRARY_SUFFIX} )
+    if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten" )
+        message( WARNING "You set SPIRIT_BUILD_FOR_JS to ON but your are not using emscripten. That might not work" )
+    endif()
 endif()
-add_dependencies( libqhullstatic_r qhull )
-### qhullcpp library
-add_library( libqhullcpp STATIC IMPORTED )
-set_property( TARGET libqhullcpp PROPERTY INTERFACE_LINK_LIBRARIES libqhullstatic_r )
-# set_property( TARGET libqhullcpp PROPERTY MAP_IMPORTED_CONFIG_RELWITHDEBINFO RELEASE )
-set_property( TARGET libqhullcpp PROPERTY IMPORTED_LOCATION ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX} )
-if( WIN32 )
-    set_property( TARGET libqhullcpp PROPERTY IMPORTED_LOCATION_DEBUG ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/Debug/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX} )
-    set_property( TARGET libqhullcpp PROPERTY IMPORTED_LOCATION_MINSIZEREL ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/MinSizeRel/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX} )
-    set_property( TARGET libqhullcpp PROPERTY IMPORTED_LOCATION_RELEASE ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/Release/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX} )
-    set_property( TARGET libqhullcpp PROPERTY IMPORTED_LOCATION_RELWITHDEBINFO ${CMAKE_BINARY_DIR}/thirdparty-build/qhull/RelWithDebInfo/${CMAKE_STATIC_LIBRARY_PREFIX}qhullcpp${CMAKE_STATIC_LIBRARY_SUFFIX} )
+### Need to use pthread if emscripten is used
+if( SPIRIT_BUILD_FOR_JS AND SPIRIT_UI_USE_IMGUI )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -s USE_PTHREADS=1 -s USE_PTHREADS=1 -s WASM=1" )
 endif()
-add_dependencies( libqhullcpp qhull )
-set( qhull_LIBS libqhullcpp )
-### Add corresponding include directories
-set( qhull_INCLUDE_DIRS "${CMAKE_BINARY_DIR}/thirdparty-install/include;${CMAKE_BINARY_DIR}/thirdparty-install/include/libqhullcpp" )
-include_directories( ${qhull_INCLUDE_DIRS} )
 ####################################################################
 
 
 
 ######### Add subdirectory projects ################################
+add_subdirectory( thirdparty/qhull )
+set( qhull_INCLUDE_DIRS
+    ${CMAKE_CURRENT_LIST_DIR}/thirdparty/qhull/src
+    ${CMAKE_CURRENT_LIST_DIR}/thirdparty/qhull/src/libqhullcpp )
+if( CMAKE_BUILD_TYPE MATCHES "[dD]ebug" )
+    set( qhull_LIBS qhullcpp_d qhullstatic_rd)
+else()
+    set( qhull_LIBS qhullcpp qhullstatic_r )
+endif()
 ### Spirit library is built in any case
 add_subdirectory( core )
 ### Web UI
 if( SPIRIT_BUILD_FOR_JS )
+    if( SPIRIT_UI_USE_IMGUI )
+        add_definitions( -DSPIRIT_UI_USE_IMGUI )
+    endif()
     add_subdirectory( VFRendering )
+    add_subdirectory( ui-cpp )
     add_subdirectory( ui-web )
 ### CXX UI
 elseif( SPIRIT_BUILD_FOR_CXX )
-    if ( SPIRIT_UI_CXX_USE_QT )
-        add_subdirectory( VFRendering )
+    if( SPIRIT_UI_CXX_USE_QT )
         add_definitions( -DSPIRIT_UI_CXX_USE_QT )
+    elseif( SPIRIT_UI_USE_IMGUI )
+        add_definitions( -DSPIRIT_UI_USE_IMGUI )
     endif()
+    add_subdirectory( VFRendering )
     add_subdirectory( ui-cpp )
 endif()
 ####################################################################
@@ -266,13 +255,40 @@ endif()
 
 
 ################ Install ###########################################
-install( DIRECTORY docs DESTINATION docs/Spirit )
-install( FILES  LICENSE.txt
-                README.md
-                VERSION.txt DESTINATION docs/Spirit )
+install( DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/docs/
+         DESTINATION docs/Spirit/
+         COMPONENT spirit_root_files )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/README.md
+               ${CMAKE_CURRENT_LIST_DIR}/VERSION.txt
+         DESTINATION ./
+         COMPONENT spirit_root_files )
+
 if( SPIRIT_BUILD_FOR_CXX )
-    install( DIRECTORY input DESTINATION bin )
+    install( DIRECTORY input DESTINATION bin COMPONENT spirit_root_files )
 endif()
+
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/LICENSE.txt DESTINATION ./ COMPONENT spirit_licenses )
+
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/thirdparty/qhull/COPYING.txt DESTINATION licenses RENAME qhull.txt COMPONENT spirit_licenses )
+
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/cub/LICENSE.TXT   DESTINATION licenses RENAME cub.txt       COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/Eigen/COPYING.BSD DESTINATION licenses RENAME eigen.txt     COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/fmt/LICENSE.rst   DESTINATION licenses RENAME fmt.rst       COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/kiss_fft/COPYING  DESTINATION licenses RENAME kiss_fft.txt  COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/ovf/README.md     DESTINATION licenses RENAME ovf.md        COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/spectra/LICENSE   DESTINATION licenses RENAME spectra.txt   COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/termcolor/LICENSE DESTINATION licenses RENAME termcolor.txt COMPONENT spirit_licenses )
+
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/thirdparty/Lyra/LICENSE.txt DESTINATION licenses RENAME lyra.txt COMPONENT spirit_licenses )
+
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/filesystem/LICENSE       DESTINATION licenses RENAME filesystem.txt       COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/glad/LICENSE             DESTINATION licenses RENAME glad.md              COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/glfw/LICENSE.md          DESTINATION licenses RENAME glfw.md              COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/imgui/LICENSE.txt        DESTINATION licenses RENAME imgui.txt            COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/implot/LICENSE           DESTINATION licenses RENAME implot.txt           COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/json/LICENSE.MIT         DESTINATION licenses RENAME json.txt             COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/nativefiledialog/LICENSE DESTINATION licenses RENAME nativefiledialog.txt COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/ui-imgui/thirdparty/stb/LICENSE              DESTINATION licenses RENAME stb.txt              COMPONENT spirit_licenses )
 ####################################################################
 
 

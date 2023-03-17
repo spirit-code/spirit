@@ -1,6 +1,6 @@
 #pragma once
-#ifndef INTERFACE_STATE_H
-#define INTERFACE_STATE_H
+#ifndef SPIRIT_CORE_STATE_H
+#define SPIRIT_CORE_STATE_H
 #include "DLL_Define_Export.h"
 
 /*
@@ -16,8 +16,8 @@ initialized by an [input file](Input.md), and run the most simple example
 of a **spin dynamics simulation**:
 
 ```C
-#import "Spirit/State.h"
 #import "Spirit/Simulation.h"
+#import "Spirit/State.h"
 
 const char * cfgfile = "input/input.cfg";  // Input file
 State * p_state = State_Setup(cfgfile);    // State setup
@@ -68,30 +68,30 @@ Create the State and fill it with initial data.
 - `quiet`: if `true`, the defaults are changed such that only very few
   messages will be printed to the console and no output files are written
 */
-PREFIX State * State_Setup(const char * config_file = "", bool quiet = false) SUFFIX;
+PREFIX State * State_Setup( const char * config_file = "", bool quiet = false ) SUFFIX;
 
 /*
 Correctly deletes a State and frees the corresponding memory.
 */
-PREFIX void State_Delete(State * state) SUFFIX;
+PREFIX void State_Delete( State * state ) SUFFIX;
 
 /*
 Update the state to hold current values.
 */
-PREFIX void State_Update(State * state) SUFFIX;
+PREFIX void State_Update( State * state ) SUFFIX;
 
 /*
 Write a config file which should give the same state again when
 used in State_Setup (modulo the number of chains and images)
 */
-PREFIX void State_To_Config(State * state, const char * config_file, const char * original_config_file="") SUFFIX;
+PREFIX void State_To_Config( State * state, const char * config_file, const char * comment = "" ) SUFFIX;
 
 /*
 Returns a string containing the datetime tag (timepoint of creation) of this state.
 
 Format: `yyyy-mm-dd_hh-mm-ss`
 */
-PREFIX const char * State_DateTime(State * state) SUFFIX;
+PREFIX const char * State_DateTime( State * state ) SUFFIX;
 
 #include "DLL_Undefine_Export.h"
 #endif

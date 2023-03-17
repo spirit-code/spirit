@@ -2,7 +2,7 @@ import os
 import sys
 
 # spirit_py_dir = os.path.dirname(os.path.realpath(__file__))
-spirit_py_dir = os.path.abspath(os.path.join(os.path.dirname( __file__ ), ".."))
+spirit_py_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, spirit_py_dir)
 
 from spirit import state, geometry
@@ -11,18 +11,18 @@ import unittest
 
 ##########
 
-cfgfile = spirit_py_dir + "/../test/input/fd_neighbours.cfg"   # Input File
+cfgfile = spirit_py_dir + "/../test/input/fd_neighbours.cfg"  # Input File
 
-p_state = state.setup(cfgfile)                  # State setup
+p_state = state.setup(cfgfile)  # State setup
+
 
 class TestParameters(unittest.TestCase):
-
     def setUp(self):
-        ''' Setup a p_state and copy it to Clipboard'''
+        """Setup a p_state and copy it to Clipboard"""
         self.p_state = p_state
 
-class Geometry(TestParameters):
 
+class Geometry(TestParameters):
     def test_bounds(self):
         minb, maxb = geometry.get_bounds(self.p_state)
         # From the api.cfg the space is 2:2:1 particles
@@ -86,19 +86,22 @@ class Geometry(TestParameters):
         self.assertEqual(types[2], 0)
         self.assertEqual(types[3], 0)
 
+
 #########
+
 
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(Geometry))
     return suite
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     suite = suite()
 
     runner = unittest.TextTestRunner()
     success = runner.run(suite).wasSuccessful()
 
-    state.delete( p_state )                         # Delete State
+    state.delete(p_state)  # Delete State
 
     sys.exit(not success)

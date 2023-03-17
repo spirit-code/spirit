@@ -1,98 +1,103 @@
-#include <memory>
-#include <istream>
-#include <fstream>
-#include <sstream>
-#include <type_traits>
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <cstring>
-#include <sstream>
-#include <algorithm>
-#include <iomanip>
-#include <cctype>
-
 #include <io/IO.hpp>
 #include <utility/Logging.hpp>
 
+#include <fmt/format.h>
+
+#include <fstream>
+#include <memory>
+#include <string>
+
+#ifdef CORE_USE_THREADS
+#include <thread>
+#endif
+
+using Utility::Exception_Classifier;
 using Utility::Log_Level;
 using Utility::Log_Sender;
 
 namespace IO
 {
-    // ------ Saving Helpers --------------------------------------------
 
-    /*
-        Dump_to_File detaches a thread which writes the given string to a file.
-        This is asynchronous (i.e. fire & forget)
-    */
-    void Dump_to_File(const std::string text, const std::string name)
+/*
+ * This is a simple RAII file handle that allows streaming strings into a file.
+ * Optionally, if CORE_USE_THREADS is defined, it can launch these operations on
+ * a new thread.
+ */
+class OutFileHandle
+{
+public:
+    OutFileHandle( const std::string & filename, bool append )
+            : filename( filename ), operation( append ? "appending to" : "writing" )
     {
-        
-        #ifdef CORE_USE_THREADS
-        // thread:      method       args  args    args   detatch thread
-        std::thread(String_to_File, text, name).detach();
-        #else
-        String_to_File(text, name);
-        #endif
-    }
-
-    void Dump_to_File(const std::vector<std::string> text, const std::string name, const int no)
-    {
-        #ifdef CORE_USE_THREADS
-        std::thread(Strings_to_File, text, name, no).detach();
-        #else
-        Strings_to_File(text, name, no);
-        #endif
-    }
-
-    /*
-        String_to_File is a simple string streamer
-        Writing a vector of strings to file
-    */
-    void Strings_to_File(const std::vector<std::string> text, const std::string name, const int no)
-    {
-
-        std::ofstream myfile;
-        myfile.open(name);
-        if (myfile.is_open())
-        {
-            Log(Log_Level::Debug, Log_Sender::All, "Started writing " + name);
-            for (int i = 0; i < no; ++i) {
-                myfile << text[i];
-            }
-            myfile.close();
-            Log(Log_Level::Debug, Log_Sender::All, "Finished writing " + name);
-        }
+        if( append )
+            myfile.open( filename, std::ofstream::out | std::ofstream::app );
         else
+            myfile.open( filename );
+
+        if( !myfile.is_open() )
         {
-            Log(Log_Level::Error, Log_Sender::All, "Could not open " + name + " to write to file");
+            spirit_throw(
+                Exception_Classifier::File_not_Found, Log_Level::Error,
+                fmt::format( "Could not open file \"{}\"", filename ) );
         }
     }
 
-    void Append_String_to_File(const std::string text, const std::string name)
+    ~OutFileHandle()
     {
-        std::ofstream myfile;
-        myfile.open(name, std::ofstream::out | std::ofstream::app);
-        if (myfile.is_open())
-        {
-            Log(Log_Level::Debug, Log_Sender::All, "Started writing " + name);
-            myfile << text;
-            myfile.close();
-            Log(Log_Level::Debug, Log_Sender::All, "Finished writing " + name);
-        }
-        else
-        {
-            Log(Log_Level::Error, Log_Sender::All, "Could not open " + name + " to append to file");
-        }
+        myfile.close();
     }
 
-    void String_to_File(const std::string text, const std::string name)
+    void write( const std::string & str )
     {
-        std::vector<std::string> v(1);
-        v[0] = text;
-        Strings_to_File(v, name, 1);
+        Log( Log_Level::Debug, Log_Sender::All, fmt::format( "Started {} file '{}'", operation, filename ) );
+        myfile << str;
+        Log( Log_Level::Debug, Log_Sender::All, fmt::format( "Finished {} file '{}'", operation, filename ) );
     }
 
-    // ------------------------------------------------------------------
+    void write( const std::vector<std::string> & strings )
+    {
+        Log( Log_Level::Debug, Log_Sender::All, fmt::format( "Started {} file '{}'", operation, filename ) );
+        for( const auto & str : strings )
+        {
+            myfile << str;
+        }
+        Log( Log_Level::Debug, Log_Sender::All, fmt::format( "Finished {} file '{}'", operation, filename ) );
+    }
+
+private:
+    std::string filename;
+    std::string operation;
+    std::ofstream myfile;
+};
+
+void write_to_file( const std::string & str, const std::string & filename )
+try
+{
+    OutFileHandle( filename, false ).write( str );
 }
+catch( ... )
+{
+    spirit_handle_exception_core( fmt::format( "Unable to write to file \"{}\"", filename ) );
+}
+
+void append_to_file( const std::string & str, const std::string & filename )
+try
+{
+    OutFileHandle( filename, true ).write( str );
+}
+catch( ... )
+{
+    spirit_handle_exception_core( fmt::format( "Unable to append to file \"{}\"", filename ) );
+}
+
+void dump_to_file( const std::string & str, const std::string & filename )
+{
+#ifdef CORE_USE_THREADS
+    // Fire and forget
+    std::thread( write_to_file, str, filename ).detach();
+#else
+    write_to_file( str, filename );
+#endif
+}
+
+} // namespace IO
