@@ -6,9 +6,8 @@ Manipulate the chain of spin systems (also called images), e.g. add, remove or c
 Get information, such as number of images or energies and reaction coordinates.
 """
 
-from spirit import spiritlib
-from spirit import system
-from spirit import parameters
+from spirit import parameters, spiritlib
+from spirit.scalar import scalar
 import ctypes
 
 ### Load Library
@@ -228,14 +227,14 @@ def setup_data(p_state, idx_chain=-1):
 
 ### Get Rx
 _Get_Rx = _spirit.Chain_Get_Rx
-_Get_Rx.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int]
+_Get_Rx.argtypes = [ctypes.c_void_p, ctypes.POINTER(scalar), ctypes.c_int]
 _Get_Rx.restype = None
 
 
 def get_reaction_coordinate(p_state, idx_chain=-1):
     """Returns an array of `shape(NOI)` containing the reaction coordinates of the images."""
     noi = get_noi(p_state, idx_chain)
-    Rx = (noi * ctypes.c_float)()
+    Rx = (noi * scalar)()
     _Get_Rx(ctypes.c_void_p(p_state), Rx, ctypes.c_int(idx_chain))
     return [x for x in Rx]
 
@@ -244,7 +243,7 @@ def get_reaction_coordinate(p_state, idx_chain=-1):
 _Get_Rx_Interpolated = _spirit.Chain_Get_Rx_Interpolated
 _Get_Rx_Interpolated.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
 ]
 _Get_Rx_Interpolated.restype = None
@@ -258,21 +257,21 @@ def get_reaction_coordinate_interpolated(p_state, idx_chain=-1):
     noi = get_noi(p_state, idx_chain)
     n_interp = parameters.gneb.get_n_energy_interpolations(p_state, idx_chain)
     len_Rx = noi + (noi - 1) * n_interp
-    Rx = (len_Rx * ctypes.c_float)()
+    Rx = (len_Rx * scalar)()
     _Get_Rx_Interpolated(ctypes.c_void_p(p_state), Rx, ctypes.c_int(idx_chain))
     return [x for x in Rx]
 
 
 ### Get Energy
 _Get_Energy = _spirit.Chain_Get_Energy
-_Get_Energy.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_float), ctypes.c_int]
+_Get_Energy.argtypes = [ctypes.c_void_p, ctypes.POINTER(scalar), ctypes.c_int]
 _Get_Energy.restype = None
 
 
 def get_energy(p_state, idx_chain=-1):
     """Returns an array of `shape(NOI)` containing the energies of the images."""
     noi = get_noi(p_state, idx_chain)
-    Energy = (noi * ctypes.c_float)()
+    Energy = (noi * scalar)()
     _Get_Energy(ctypes.c_void_p(p_state), Energy, ctypes.c_int(idx_chain))
     return [E for E in Energy]
 
@@ -281,7 +280,7 @@ def get_energy(p_state, idx_chain=-1):
 _Get_Energy_Interpolated = _spirit.Chain_Get_Energy_Interpolated
 _Get_Energy_Interpolated.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
 ]
 _Get_Energy_Interpolated.restype = None
@@ -295,7 +294,7 @@ def get_energy_interpolated(p_state, idx_chain=-1):
     noi = get_noi(p_state, idx_chain)
     n_interp = parameters.gneb.get_n_energy_interpolations(p_state, idx_chain)
     len_Energy = noi + (noi - 1) * n_interp
-    Energy_interp = (len_Energy * ctypes.c_float)()
+    Energy_interp = (len_Energy * scalar)()
     _Get_Energy_Interpolated(
         ctypes.c_void_p(p_state), Energy_interp, ctypes.c_int(idx_chain)
     )

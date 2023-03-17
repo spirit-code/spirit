@@ -2,12 +2,12 @@
 #ifndef SPIRIT_CORE_ENGINE_HAMILTONIAN_GAUSSIAN_HPP
 #define SPIRIT_CORE_ENGINE_HAMILTONIAN_GAUSSIAN_HPP
 
-#include <vector>
-
-#include "Spirit_Defines.h"
+#include <Spirit/Spirit_Defines.h>
 #include <data/Geometry.hpp>
 #include <engine/Hamiltonian.hpp>
 #include <engine/Vectormath_Defines.hpp>
+
+#include <vector>
 
 namespace Engine
 {

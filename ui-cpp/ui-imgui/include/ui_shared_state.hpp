@@ -69,13 +69,13 @@ struct UiSharedState
     {
         std::string last_used = "";
 
-        float pos[3]{ 0, 0, 0 };
-        float border_rect[3]{ -1, -1, -1 };
-        float border_cyl = -1;
-        float border_sph = -1;
-        bool inverted    = false;
+        scalar pos[3]{ 0, 0, 0 };
+        scalar border_rect[3]{ -1, -1, -1 };
+        scalar border_cyl = -1;
+        scalar border_sph = -1;
+        bool inverted     = false;
 
-        float noise_temperature = 0;
+        scalar noise_temperature = 0;
     };
     Configurations configurations{};
 

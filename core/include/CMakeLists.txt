@@ -4,13 +4,6 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/include/engine)
 add_subdirectory(${PROJECT_SOURCE_DIR}/include/io)
 add_subdirectory(${PROJECT_SOURCE_DIR}/include/utility)
 
-set(HEADER_SPIRIT_ROOT
-	${HEADER_SPIRIT_ROOT}
-    ${CMAKE_CURRENT_SOURCE_DIR}/Spirit_Defines.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
-	PARENT_SCOPE
-)
-
 set(HEADER_SPIRIT
     ${HEADER_SPIRIT}
     PARENT_SCOPE

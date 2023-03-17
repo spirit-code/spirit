@@ -46,10 +46,10 @@ void GeometryWidget::setNCells()
     auto x_range = this->spinWidget->xRangePosition();
     auto y_range = this->spinWidget->yRangePosition();
     auto z_range = this->spinWidget->zRangePosition();
-    float pc_x   = x_range.y - x_range.x;
-    float pc_y   = y_range.y - y_range.x;
-    float pc_z   = z_range.y - z_range.x;
-    float b_min[3], b_max[3], b_range[3];
+    scalar pc_x  = x_range.y - x_range.x;
+    scalar pc_y  = y_range.y - y_range.x;
+    scalar pc_z  = z_range.y - z_range.x;
+    scalar b_min[3], b_max[3], b_range[3];
     Geometry_Get_Bounds( state.get(), b_min, b_max );
     if( std::abs( b_max[0] - b_min[0] ) > 0 )
         pc_x /= std::abs( b_max[0] - b_min[0] );
@@ -70,7 +70,7 @@ void GeometryWidget::setNCells()
     this->spinWidget->updateData();
 
     // Update the position filter of SpinWidget
-    float b_min_new[3], b_max_new[3], b_range_new[3];
+    scalar b_min_new[3], b_max_new[3], b_range_new[3];
     Geometry_Get_Bounds( state.get(), b_min_new, b_max_new );
     x_range.x = pc_x * b_min_new[0];
     x_range.y = pc_x * b_max_new[0];

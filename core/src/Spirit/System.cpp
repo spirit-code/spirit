@@ -100,7 +100,7 @@ catch( ... )
     return nullptr;
 }
 
-float System_Get_Rx( State * state, int idx_image, int idx_chain ) noexcept
+scalar System_Get_Rx( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -109,7 +109,7 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
-    return (float)chain->Rx[idx_image];
+    return chain->Rx[idx_image];
 }
 catch( ... )
 {
@@ -117,7 +117,7 @@ catch( ... )
     return 0;
 }
 
-float System_Get_Energy( State * state, int idx_image, int idx_chain ) noexcept
+scalar System_Get_Energy( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -126,7 +126,7 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
-    return (float)image->E;
+    return image->E;
 }
 catch( ... )
 {
@@ -177,7 +177,7 @@ catch( ... )
 }
 
 int System_Get_Energy_Array(
-    State * state, float * energies, bool divide_by_nspins, int idx_image, int idx_chain ) noexcept
+    State * state, scalar * energies, bool divide_by_nspins, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -186,7 +186,7 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
-    scalar nd = divide_by_nspins ? 1 / (scalar)image->nos : 1;
+    scalar nd = divide_by_nspins ? 1 / scalar( image->nos ) : 1;
 
     if( energies == nullptr )
     {
@@ -196,7 +196,7 @@ try
     {
         for( unsigned int i = 0; i < image->E_array.size(); ++i )
         {
-            energies[i] = nd * (float)image->E_array[i].second;
+            energies[i] = nd * image->E_array[i].second;
         }
         return -1;
     }
@@ -207,7 +207,7 @@ catch( ... )
     return -1;
 }
 
-void System_Get_Eigenvalues( State * state, float * eigenvalues, int idx_image, int idx_chain ) noexcept
+void System_Get_Eigenvalues( State * state, scalar * eigenvalues, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -218,7 +218,7 @@ try
 
     for( unsigned int i = 0; i < image->eigenvalues.size(); ++i )
     {
-        eigenvalues[i] = (float)image->eigenvalues[i];
+        eigenvalues[i] = image->eigenvalues[i];
     }
 }
 catch( ... )

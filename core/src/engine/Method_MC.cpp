@@ -1,4 +1,4 @@
-#include <Spirit_Defines.h>
+#include <Spirit/Spirit_Defines.h>
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <engine/Method_MC.hpp>

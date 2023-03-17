@@ -70,8 +70,8 @@ try
     image->Unlock();
 
     // Initial configuration
-    float defaultPos[3]  = { 0, 0, 0 };
-    float defaultRect[3] = { -1, -1, -1 };
+    scalar defaultPos[3]  = { 0, 0, 0 };
+    scalar defaultRect[3] = { -1, -1, -1 };
     Configuration_Random( state, defaultPos, defaultRect, -1, -1, false, false, idx_image, idx_chain );
 
     // Return success

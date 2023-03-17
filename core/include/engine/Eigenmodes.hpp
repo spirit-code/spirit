@@ -2,7 +2,6 @@
 #ifndef SPIRIT_CORE_ENGINE_EIGENMODES_HPP
 #define SPIRIT_CORE_ENGINE_EIGENMODES_HPP
 
-#include "Spirit_Defines.h"
 #include <data/Geometry.hpp>
 #include <data/Parameters_Method.hpp>
 #include <data/Spin_System.hpp>

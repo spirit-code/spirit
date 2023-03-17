@@ -5,6 +5,7 @@ Geodesic nudged elastic band (GNEB)
 
 from spirit import spiritlib
 from spirit.io import FILEFORMAT_OVF_TEXT
+from spirit.scalar import scalar
 import ctypes
 
 ### Load Library
@@ -196,7 +197,7 @@ def set_iterations(p_state, n_iterations, n_iterations_log, idx_image=-1, idx_ch
 _GNEB_Set_Convergence = _spirit.Parameters_GNEB_Set_Convergence
 _GNEB_Set_Convergence.argtypes = [
     ctypes.c_void_p,
-    ctypes.c_float,
+    scalar,
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -211,7 +212,7 @@ def set_convergence(p_state, convergence, idx_image=-1, idx_chain=-1):
     """
     _GNEB_Set_Convergence(
         ctypes.c_void_p(p_state),
-        ctypes.c_float(convergence),
+        scalar(convergence),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
     )
@@ -220,7 +221,7 @@ def set_convergence(p_state, convergence, idx_image=-1, idx_chain=-1):
 _GNEB_Set_Spring_Constant = _spirit.Parameters_GNEB_Set_Spring_Constant
 _GNEB_Set_Spring_Constant.argtypes = [
     ctypes.c_void_p,
-    ctypes.c_float,
+    scalar,
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -228,7 +229,7 @@ _GNEB_Set_Spring_Constant.restype = None
 _GNEB_Set_Spring_Force_Ratio = _spirit.Parameters_GNEB_Set_Spring_Force_Ratio
 _GNEB_Set_Spring_Force_Ratio.argtypes = [
     ctypes.c_void_p,
-    ctypes.c_float,
+    scalar,
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -239,13 +240,13 @@ def set_spring_force(p_state, spring_constant=1, ratio=0, idx_image=-1, idx_chai
     """Set the spring force constant and the ratio between energy and reaction coordinate."""
     _GNEB_Set_Spring_Constant(
         ctypes.c_void_p(p_state),
-        ctypes.c_float(spring_constant),
+        scalar(spring_constant),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
     )
     _GNEB_Set_Spring_Force_Ratio(
         ctypes.c_void_p(p_state),
-        ctypes.c_float(ratio),
+        scalar(ratio),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
     )
@@ -256,7 +257,7 @@ _GNEB_Set_Path_Shortening_Constant = (
 )
 _GNEB_Set_Path_Shortening_Constant.argtypes = [
     ctypes.c_void_p,
-    ctypes.c_float,
+    scalar,
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -269,7 +270,7 @@ def set_path_shortening_constant(
     """Set the path shortening constant."""
     _GNEB_Set_Path_Shortening_Constant(
         ctypes.c_void_p(p_state),
-        ctypes.c_float(shortening_constant),
+        scalar(shortening_constant),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
     )
@@ -310,8 +311,8 @@ def set_translating_endpoints(p_state, translating_endpoints, idx_chain=-1):
 _GNEB_Set_Equilibrium_Delta_Rx = _spirit.Parameters_GNEB_Set_Equilibrium_Delta_Rx
 _GNEB_Set_Equilibrium_Delta_Rx.argtypes = [
     ctypes.c_void_p,
-    ctypes.c_float,
-    ctypes.c_float,
+    scalar,
+    scalar,
     ctypes.c_int,
 ]
 _GNEB_Set_Equilibrium_Delta_Rx.restype = None
@@ -321,8 +322,8 @@ def set_equilibrium_delta_Rx(p_state, delta_Rx_left, delta_Rx_right, idx_chain=-
     """Set if moving endpoints should be used."""
     _GNEB_Set_Equilibrium_Delta_Rx(
         ctypes.c_void_p(p_state),
-        ctypes.c_float(delta_Rx_left),
-        ctypes.c_float(delta_Rx_right),
+        scalar(delta_Rx_left),
+        scalar(delta_Rx_right),
         ctypes.c_int(idx_chain),
     )
 
@@ -392,7 +393,7 @@ def get_iterations(p_state, idx_image=-1, idx_chain=-1):
 
 _GNEB_Get_Convergence = _spirit.Parameters_GNEB_Get_Convergence
 _GNEB_Get_Convergence.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_GNEB_Get_Convergence.restype = ctypes.c_float
+_GNEB_Get_Convergence.restype = scalar
 
 
 def get_convergence(p_state, idx_image=-1, idx_chain=-1):
@@ -406,10 +407,10 @@ def get_convergence(p_state, idx_image=-1, idx_chain=-1):
 
 _GNEB_Get_Spring_Constant = _spirit.Parameters_GNEB_Get_Spring_Constant
 _GNEB_Get_Spring_Constant.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_GNEB_Get_Spring_Constant.restype = ctypes.c_float
+_GNEB_Get_Spring_Constant.restype = scalar
 _GNEB_Get_Spring_Force_Ratio = _spirit.Parameters_GNEB_Get_Spring_Force_Ratio
 _GNEB_Get_Spring_Force_Ratio.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_GNEB_Get_Spring_Force_Ratio.restype = ctypes.c_float
+_GNEB_Get_Spring_Force_Ratio.restype = scalar
 
 
 def get_spring_force(p_state, idx_image=-1, idx_chain=-1):
@@ -435,7 +436,7 @@ _GNEB_Get_Path_Shortening_Constant.argtypes = [
     ctypes.c_int,
     ctypes.c_int,
 ]
-_GNEB_Get_Path_Shortening_Constant.restype = ctypes.c_float
+_GNEB_Get_Path_Shortening_Constant.restype = scalar
 
 
 def get_path_shortening_constant(p_state, idx_image=-1, idx_chain=-1):
@@ -476,8 +477,8 @@ def get_translating_endpoints(p_state, idx_chain=-1):
 _GNEB_Get_Equilibrium_Delta_Rx = _spirit.Parameters_GNEB_Get_Equilibrium_Delta_Rx
 _GNEB_Get_Equilibrium_Delta_Rx.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
 ]
 _GNEB_Get_Equilibrium_Delta_Rx.restype = None
@@ -485,8 +486,8 @@ _GNEB_Get_Equilibrium_Delta_Rx.restype = None
 
 def get_equilibrium_delta_Rx(p_state, idx_chain=-1):
     """Return the equilibrium delta_Rx for the moving endpoints."""
-    delta_Rx_left = ctypes.c_float()
-    delta_Rx_right = ctypes.c_float()
+    delta_Rx_left = scalar()
+    delta_Rx_right = scalar()
 
     _GNEB_Get_Equilibrium_Delta_Rx(
         ctypes.c_void_p(p_state),

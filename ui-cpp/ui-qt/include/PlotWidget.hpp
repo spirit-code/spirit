@@ -6,6 +6,8 @@
 #include <QtCharts/QLineSeries>
 #include <QtCharts/QScatterSeries>
 
+#include <Spirit/Spirit_Defines.h>
+
 #include <memory>
 
 struct State;
@@ -25,8 +27,8 @@ public:
 
 private:
     std::shared_ptr<State> state;
-    std::vector<float> Rx, energies;
-    std::vector<float> Rx_interp, energies_interp;
+    std::vector<scalar> Rx, energies;
+    std::vector<scalar> Rx_interp, energies_interp;
 
     QtCharts::QChart * chart;
     QtCharts::QScatterSeries * series_E_normal;

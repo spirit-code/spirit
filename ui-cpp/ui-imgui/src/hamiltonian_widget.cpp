@@ -1,5 +1,6 @@
 #include <fonts.hpp>
 #include <hamiltonian_widget.hpp>
+#include <widgets.hpp>
 
 #include <Spirit/Geometry.h>
 #include <Spirit/Hamiltonian.h>
@@ -15,12 +16,13 @@
 namespace ui
 {
 
-void normalize( std::array<float, 3> vec )
+template<typename T>
+void normalize( std::array<T, 3> vec )
 {
-    float x2 = vec[0] * vec[0];
-    float y2 = vec[1] * vec[1];
-    float z2 = vec[2] * vec[2];
-    float v  = std::sqrt( x2 + y2 + z2 );
+    T x2 = vec[0] * vec[0];
+    T y2 = vec[1] * vec[1];
+    T z2 = vec[2] * vec[2];
+    T v  = std::sqrt( x2 + y2 + z2 );
     if( v > 0 )
     {
         vec[0] /= v;
@@ -95,7 +97,7 @@ void HamiltonianWidget::show_content()
             ImGui::Indent( 15 );
             ImGui::SetNextItemWidth( 80 );
             bool update_mu_s
-                = ImGui::InputFloat( "##mu_s_0", &mu_s[0], 0, 0, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue );
+                = widgets::InputScalar( "##mu_s_0", &mu_s[0], 0, 0, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue );
             for( std::size_t i = 1; i < mu_s.size() && i < 100; ++i )
             {
                 // Up to 3 in a row
@@ -103,7 +105,7 @@ void HamiltonianWidget::show_content()
                     ImGui::SameLine();
                 ImGui::SetNextItemWidth( 80 );
                 update_mu_s = update_mu_s
-                              || ImGui::InputFloat(
+                              || widgets::InputScalar(
                                   fmt::format( "##mu_s_{}", i ).c_str(), &mu_s[i], 0, 0, "%.3f",
                                   ImGuiInputTextFlags_EnterReturnsTrue );
             }
@@ -128,7 +130,7 @@ void HamiltonianWidget::show_content()
             }
             ImGui::SameLine();
             ImGui::SetNextItemWidth( 100 );
-            if( ImGui::InputFloat(
+            if( widgets::InputScalar(
                     "##external_field", &external_field, 0, 0, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue ) )
                 update_external_field = true;
             ImGui::SameLine();
@@ -137,7 +139,7 @@ void HamiltonianWidget::show_content()
             ImGui::TextUnformatted( "dir" );
             ImGui::SameLine();
             ImGui::SetNextItemWidth( 140 );
-            if( ImGui::InputFloat3(
+            if( widgets::InputScalar3(
                     "##external_field_dir", external_field_dir.data(), "%.3f", ImGuiInputTextFlags_EnterReturnsTrue ) )
             {
                 update_external_field = true;
@@ -159,7 +161,8 @@ void HamiltonianWidget::show_content()
             }
             ImGui::SameLine();
             ImGui::SetNextItemWidth( 100 );
-            if( ImGui::InputFloat( "##anisotropy", &anisotropy, 0, 0, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue ) )
+            if( widgets::InputScalar(
+                    "##anisotropy", &anisotropy, 0, 0, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue ) )
                 update_anisotropy = true;
             ImGui::SameLine();
             ImGui::TextUnformatted( "T" );
@@ -167,7 +170,7 @@ void HamiltonianWidget::show_content()
             ImGui::TextUnformatted( "dir" );
             ImGui::SameLine();
             ImGui::SetNextItemWidth( 140 );
-            if( ImGui::InputFloat3(
+            if( widgets::InputScalar3(
                     "##anisotropy_dir", anisotropy_dir.data(), "%.3f", ImGuiInputTextFlags_EnterReturnsTrue ) )
             {
                 update_anisotropy = true;
@@ -205,7 +208,7 @@ void HamiltonianWidget::show_content()
                 if( i % 3 != 0 )
                     ImGui::SameLine();
                 ImGui::SetNextItemWidth( 80 );
-                if( ImGui::InputFloat(
+                if( widgets::InputScalar(
                         fmt::format( "##exchange_{}", i ).c_str(), &exchange[i], 0, 0, "%.5f",
                         ImGuiInputTextFlags_EnterReturnsTrue ) )
                     update_exchange = true;
@@ -278,7 +281,7 @@ void HamiltonianWidget::show_content()
                         }
                         ImGui::TableNextColumn();
                         ImGui::SetNextItemWidth( 80 );
-                        if( ImGui::InputFloat(
+                        if( widgets::InputScalar(
                                 fmt::format( "##exchange_jij_{}", row ).c_str(), &exchange_magnitudes[row], 0, 0,
                                 "%.5f", ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly ) )
                         {
@@ -321,7 +324,7 @@ void HamiltonianWidget::show_content()
                 // Up to 3 in a row
                 if( i % 3 != 0 )
                     ImGui::SameLine();
-                if( ImGui::InputFloat(
+                if( widgets::InputScalar(
                         fmt::format( "##dmi_{}", i ).c_str(), &dmi[i], 0, 0, "%.5f",
                         ImGuiInputTextFlags_EnterReturnsTrue ) )
                     update_dmi = true;
@@ -398,7 +401,7 @@ void HamiltonianWidget::show_content()
                         }
                         ImGui::TableNextColumn();
                         ImGui::SetNextItemWidth( 80 );
-                        if( ImGui::InputFloat(
+                        if( widgets::InputScalar(
                                 fmt::format( "##dmi_dij_{}", row ).c_str(), &dmi_magnitudes[row], 0, 0, "%.5f",
                                 ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly ) )
                         {
@@ -406,7 +409,7 @@ void HamiltonianWidget::show_content()
                         }
                         ImGui::TableNextColumn();
                         ImGui::SetNextItemWidth( 140 );
-                        if( ImGui::InputFloat3(
+                        if( widgets::InputScalar3(
                                 fmt::format( "##dmi_normal_{}", row ).c_str(), &dmi_normals[row][0], "%.3f",
                                 ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_ReadOnly ) )
                         {
@@ -453,7 +456,7 @@ void HamiltonianWidget::show_content()
             ImGui::TextUnformatted( "Cutoff radius" );
             ImGui::SameLine();
             ImGui::SetNextItemWidth( 80 );
-            ImGui::InputFloat(
+            widgets::InputScalar(
                 "##ddi_cutoff_radius", &ddi_cutoff_radius, 0, 0, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue );
             ImGui::Checkbox( "zero-padding", &ddi_zero_padding );
             ImGui::Indent( -15 );
@@ -510,7 +513,7 @@ void HamiltonianWidget::update_data_heisenberg()
     exchange_n_pairs      = Hamiltonian_Get_Exchange_N_Pairs( state.get() );
     exchange_indices      = std::vector<std::array<int, 2>>( exchange_n_pairs );
     exchange_translations = std::vector<std::array<int, 3>>( exchange_n_pairs );
-    exchange_magnitudes   = std::vector<float>( exchange_n_pairs, 0 );
+    exchange_magnitudes   = std::vector<scalar>( exchange_n_pairs, 0 );
     Hamiltonian_Get_Exchange_Pairs(
         state.get(), reinterpret_cast<int( * )[2]>( exchange_indices[0].data() ),
         reinterpret_cast<int( * )[3]>( exchange_translations.data() ), exchange_magnitudes.data() );
@@ -525,8 +528,8 @@ void HamiltonianWidget::update_data_heisenberg()
     dmi_n_pairs      = Hamiltonian_Get_DMI_N_Pairs( state.get() );
     dmi_indices      = std::vector<std::array<int, 2>>( dmi_n_pairs );
     dmi_translations = std::vector<std::array<int, 3>>( dmi_n_pairs );
-    dmi_magnitudes   = std::vector<float>( dmi_n_pairs, 0 );
-    dmi_normals      = std::vector<std::array<float, 3>>( dmi_n_pairs );
+    dmi_magnitudes   = std::vector<scalar>( dmi_n_pairs, 0 );
+    dmi_normals      = std::vector<std::array<scalar, 3>>( dmi_n_pairs );
     // Hamiltonian_Get_DMI_Pairs(
     //     state.get(), (int( * )[2])dmi_indices.data(), (int( * )[3])dmi_translations.data(), dmi_magnitudes.data(),
     //     (float( * )[3])dmi_normals );

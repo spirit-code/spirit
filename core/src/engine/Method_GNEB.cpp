@@ -1,6 +1,4 @@
-#include <Spirit_Defines.h>
-#include <Eigen/Geometry>
-#include <cmath>
+#include <Spirit/Spirit_Defines.h>
 #include <data/Spin_System_Chain.hpp>
 #include <engine/Backend_par.hpp>
 #include <engine/Manifoldmath.hpp>
@@ -8,12 +6,15 @@
 #include <engine/Vectormath.hpp>
 #include <io/IO.hpp>
 #include <io/OVF_File.hpp>
-#include <iostream>
 #include <utility/Cubic_Hermite_Spline.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Version.hpp>
 
 #include <fmt/format.h>
+#include <Eigen/Geometry>
+
+#include <cmath>
+#include <iostream>
 
 using namespace Utility;
 

@@ -861,7 +861,7 @@ void MainWindow::updateStatusBar()
     this->m_Label_FPS->setText(
         QString::fromLatin1( "FPS: " ) + QString::number( (int)this->spinWidget->getFramesPerSecond() ) );
 
-    float F = Simulation_Get_MaxTorqueComponent( state.get() );
+    scalar F = Simulation_Get_MaxTorqueComponent( state.get() );
     if( !Simulation_Running_On_Chain( state.get() ) )
         this->m_Label_Torque->setText( QString::fromLatin1( "F_max: " ) + QString::number( F, 'E', 2 ) );
 
@@ -869,20 +869,20 @@ void MainWindow::updateStatusBar()
     this->m_Label_E->setText(
         QString::fromLatin1( "E: " ) + QString::number( E, 'f', 6 ) + QString::fromLatin1( "  " ) );
 
-    float M[3];
+    scalar M[3];
     Quantity_Get_Average_Spin( state.get(), M );
     this->m_Label_Mz->setText( QString::fromLatin1( "S_z: " ) + QString::number( M[2], 'f', 6 ) );
 
-    float ips;
+    scalar ips;
     int precision;
     QString qstr_ips;
     std::vector<QString> v_str( 0 );
 
     if( Simulation_Running_On_Chain( state.get() ) )
     {
-        float * f = new float[Chain_Get_NOI( state.get() )];
+        scalar * f = new scalar[Chain_Get_NOI( state.get() )];
         Simulation_Get_Chain_MaxTorqueComponents( state.get(), f );
-        float f_current = f[System_Get_Index( state.get() )];
+        scalar f_current = f[System_Get_Index( state.get() )];
         this->m_Label_Torque->setText(
             QString::fromLatin1( "F_current: " ) + QString::number( f_current, 'E', 2 )
             + QString::fromLatin1( "  F_max: " ) + QString::number( F, 'E', 2 ) );

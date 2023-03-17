@@ -1,4 +1,5 @@
 #include <geometry_widget.hpp>
+#include <widgets.hpp>
 
 #include <Spirit/Geometry.h>
 
@@ -56,7 +57,7 @@ void GeometryWidget::show_content()
     ImGui::TextUnformatted( "Lattice constant" );
     ImGui::SameLine();
     ImGui::SetNextItemWidth( 80 );
-    if( ImGui::InputFloat(
+    if( widgets::InputScalar(
             "##geometry_lattice_constant", &lattice_constant, 0, 0, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue ) )
     {
         Geometry_Set_Lattice_Constant( state.get(), lattice_constant );
@@ -92,7 +93,7 @@ void GeometryWidget::show_content()
         ImGui::TextUnformatted( "a" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 160 );
-        if( ImGui::InputFloat3(
+        if( widgets::InputScalar3(
                 "##geometry_bravais_vector_a", bravais_vector_a, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue ) )
         {
             // Geometry_Set_Bravais_Vectors
@@ -100,7 +101,7 @@ void GeometryWidget::show_content()
         ImGui::TextUnformatted( "b" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 160 );
-        if( ImGui::InputFloat3(
+        if( widgets::InputScalar3(
                 "##geometry_bravais_vector_b", bravais_vector_b, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue ) )
         {
             // Geometry_Set_Bravais_Vectors
@@ -108,7 +109,7 @@ void GeometryWidget::show_content()
         ImGui::TextUnformatted( "c" );
         ImGui::SameLine();
         ImGui::SetNextItemWidth( 160 );
-        if( ImGui::InputFloat3(
+        if( widgets::InputScalar3(
                 "##geometry_bravais_vector_c", bravais_vector_c, "%.3f", ImGuiInputTextFlags_EnterReturnsTrue ) )
         {
             // Geometry_Set_Bravais_Vectors

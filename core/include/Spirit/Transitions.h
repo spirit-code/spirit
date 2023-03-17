@@ -1,6 +1,8 @@
 #pragma once
 #ifndef SPIRIT_CORE_TRANSITIONS_H
 #define SPIRIT_CORE_TRANSITIONS_H
+#include "Spirit_Defines.h"
+
 #include "DLL_Define_Export.h"
 
 struct State;
@@ -44,7 +46,7 @@ Adds some stochastic noise to the transition between two images.
 - `idx_2`: the index of the second image. `idx_2 > idx_1` is required
 */
 PREFIX void
-Transition_Add_Noise_Temperature( State * state, float temperature, int idx_1, int idx_2, int idx_chain = -1 ) SUFFIX;
+Transition_Add_Noise_Temperature( State * state, scalar temperature, int idx_1, int idx_2, int idx_chain = -1 ) SUFFIX;
 
 #include "DLL_Undefine_Export.h"
 #endif

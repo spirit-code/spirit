@@ -26,40 +26,40 @@ struct HamiltonianWidget : public WidgetBase
 
     std::array<bool, 3> boundary_conditions;
 
-    std::vector<float> mu_s;
+    std::vector<scalar> mu_s;
 
     bool external_field_active;
-    float external_field;
-    std::array<float, 3> external_field_dir;
+    scalar external_field;
+    std::array<scalar, 3> external_field_dir;
 
     bool anisotropy_active;
-    float anisotropy;
-    std::array<float, 3> anisotropy_dir;
+    scalar anisotropy;
+    std::array<scalar, 3> anisotropy_dir;
 
     bool exchange_active;
     int n_exchange_shells;
-    std::vector<float> exchange;
+    std::vector<scalar> exchange;
 
     int exchange_n_pairs;
     std::vector<std::array<int, 2>> exchange_indices;
     std::vector<std::array<int, 3>> exchange_translations;
-    std::vector<float> exchange_magnitudes;
+    std::vector<scalar> exchange_magnitudes;
 
     bool dmi_active;
     int n_dmi_shells;
     int dmi_chirality;
-    std::vector<float> dmi;
+    std::vector<scalar> dmi;
 
     int dmi_n_pairs;
     std::vector<std::array<int, 2>> dmi_indices;
     std::vector<std::array<int, 3>> dmi_translations;
-    std::vector<float> dmi_magnitudes;
-    std::vector<std::array<float, 3>> dmi_normals;
+    std::vector<scalar> dmi_magnitudes;
+    std::vector<std::array<scalar, 3>> dmi_normals;
 
     bool ddi_active;
     int ddi_method;
     std::array<int, 3> ddi_n_periodic_images;
-    float ddi_cutoff_radius;
+    scalar ddi_cutoff_radius;
     bool ddi_zero_padding;
 };
 

@@ -2,7 +2,6 @@
 #ifndef SPIRIT_CORE_DATA_PARAMETERS_METHOD_SOLVER_HPP
 #define SPIRIT_CORE_DATA_PARAMETERS_METHOD_SOLVER_HPP
 
-#include "Spirit_Defines.h"
 #include <data/Parameters_Method.hpp>
 
 namespace Data

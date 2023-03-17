@@ -2,6 +2,7 @@
 #ifndef SPIRIT_CORE_PARAMETERS_GNEB_H
 #define SPIRIT_CORE_PARAMETERS_GNEB_H
 #include "IO.h"
+#include "Spirit_Defines.h"
 
 #include "DLL_Define_Export.h"
 
@@ -98,18 +99,18 @@ When the maximum absolute component value of the force drops below this value,
 the calculation is considered converged and will stop.
 */
 PREFIX void
-Parameters_GNEB_Set_Convergence( State * state, float convergence, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+Parameters_GNEB_Set_Convergence( State * state, scalar convergence, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Set the spring force constant.
 PREFIX void Parameters_GNEB_Set_Spring_Constant(
-    State * state, float spring_constant, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+    State * state, scalar spring_constant, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Set the ratio between energy and reaction coordinate.
-PREFIX void Parameters_GNEB_Set_Spring_Force_Ratio( State * state, float ratio, int idx_chain = -1 ) SUFFIX;
+PREFIX void Parameters_GNEB_Set_Spring_Force_Ratio( State * state, scalar ratio, int idx_chain = -1 ) SUFFIX;
 
 // Set the path shortening constant.
 PREFIX void Parameters_GNEB_Set_Path_Shortening_Constant(
-    State * state, float path_shortening_constant, int idx_chain = -1 ) SUFFIX;
+    State * state, scalar path_shortening_constant, int idx_chain = -1 ) SUFFIX;
 
 // Set if moving endpoints should be used
 PREFIX void Parameters_GNEB_Set_Moving_Endpoints( State * state, bool moving_endpoints, int idx_chain = -1 ) SUFFIX;
@@ -120,7 +121,7 @@ Parameters_GNEB_Set_Translating_Endpoints( State * state, bool translating_endpo
 
 // Set equilibrium Rx, used for the  moving endpoints method
 PREFIX void Parameters_GNEB_Set_Equilibrium_Delta_Rx(
-    State * state, float delta_Rx_left, float delta_Rx_right, int idx_chain = -1 ) SUFFIX;
+    State * state, scalar delta_Rx_left, scalar delta_Rx_right, int idx_chain = -1 ) SUFFIX;
 
 // Set the GNEB image type (see the integers defined above).
 PREFIX void
@@ -169,16 +170,16 @@ Get Parameters
 */
 
 // Simulation Parameters
-PREFIX float Parameters_GNEB_Get_Convergence( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+PREFIX scalar Parameters_GNEB_Get_Convergence( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Returns the spring force constant.
-PREFIX float Parameters_GNEB_Get_Spring_Constant( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+PREFIX scalar Parameters_GNEB_Get_Spring_Constant( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Returns the spring force cratio of energy to reaction coordinate.
-PREFIX float Parameters_GNEB_Get_Spring_Force_Ratio( State * state, int idx_chain = -1 ) SUFFIX;
+PREFIX scalar Parameters_GNEB_Get_Spring_Force_Ratio( State * state, int idx_chain = -1 ) SUFFIX;
 
 // Return the path shortening constant.
-PREFIX float Parameters_GNEB_Get_Path_Shortening_Constant( State * state, int idx_chain = -1 ) SUFFIX;
+PREFIX scalar Parameters_GNEB_Get_Path_Shortening_Constant( State * state, int idx_chain = -1 ) SUFFIX;
 
 // Return if moving endpoints are used
 PREFIX bool Parameters_GNEB_Get_Moving_Endpoints( State * state, int idx_chain = -1 ) SUFFIX;
@@ -188,7 +189,7 @@ PREFIX bool Parameters_GNEB_Get_Translating_Endpoints( State * state, int idx_ch
 
 // Get the equilibrium Rx, used for the moving endpoints method
 PREFIX void Parameters_GNEB_Get_Equilibrium_Delta_Rx(
-    State * state, float * delta_Rx_left, float * delta_Rx_right, int idx_chain = -1 ) SUFFIX;
+    State * state, scalar * delta_Rx_left, scalar * delta_Rx_right, int idx_chain = -1 ) SUFFIX;
 
 /*
 Returns the integer of whether an image is regular, climbing, falling, or stationary.

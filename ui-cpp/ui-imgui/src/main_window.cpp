@@ -155,34 +155,34 @@ void MainWindow::handle_mouse()
 
     auto set_configuration = [&]()
     {
-        float shift[3]{ interaction_click_pos.x - mouse_pos_in_system.x,
-                        interaction_click_pos.y - mouse_pos_in_system.y, 0.0f };
-        float current_position[3]{ mouse_pos_in_system.x, mouse_pos_in_system.y, 0.0f };
-        float rect[3]{ -1, -1, -1 };
+        scalar shift[3]{ interaction_click_pos.x - mouse_pos_in_system.x,
+                         interaction_click_pos.y - mouse_pos_in_system.y, 0 };
+        scalar current_position[3]{ mouse_pos_in_system.x, mouse_pos_in_system.y, 0 };
+        scalar rect[3]{ -1, -1, -1 };
 
         Configuration_From_Clipboard_Shift( state.get(), shift, current_position, rect, radius_in_system );
     };
 
     auto set_atom_type = [&]( int atom_type )
     {
-        float center[3];
+        scalar center[3];
         Geometry_Get_Center( this->state.get(), center );
-        float current_position[3]{ mouse_pos_in_system.x, mouse_pos_in_system.y, 0.0f };
+        scalar current_position[3]{ mouse_pos_in_system.x, mouse_pos_in_system.y, 0.0f };
         current_position[0] -= center[0];
         current_position[1] -= center[1];
-        float rect[3]{ -1, -1, -1 };
+        scalar rect[3]{ -1, -1, -1 };
 
         Configuration_Set_Atom_Type( state.get(), atom_type, current_position, rect, radius_in_system );
     };
 
     auto set_pinning = [&]( bool pinned )
     {
-        float center[3];
+        scalar center[3];
         Geometry_Get_Center( this->state.get(), center );
-        float current_position[3]{ mouse_pos_in_system.x, mouse_pos_in_system.y, 0.0f };
+        scalar current_position[3]{ mouse_pos_in_system.x, mouse_pos_in_system.y, 0.0f };
         current_position[0] -= center[0];
         current_position[1] -= center[1];
-        float rect[3]{ -1, -1, -1 };
+        scalar rect[3]{ -1, -1, -1 };
 
         Configuration_Set_Pinned( state.get(), pinned, current_position, rect, radius_in_system );
     };

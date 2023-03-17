@@ -65,6 +65,17 @@ inline void check_state( const State * state )
     }
 }
 
+// Check if the given pointer is a null pointer and, if so, throw with a suitable message
+inline void throw_if_nullptr( const void * ptr, const std::string & name )
+{
+    if( ptr == nullptr )
+    {
+        spirit_throw(
+            Utility::Exception_Classifier::API_GOT_NULLPTR, Utility::Log_Level::Error,
+            fmt::format( "Got passed a null pointer for '{}'", name ) );
+    }
+}
+
 /*
  * Passed indices for a chain and an image in the corresponding chain, this function converts
  * negative indices into the corresponding index of the currently "active" chain and image.

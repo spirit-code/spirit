@@ -579,7 +579,7 @@ catch( ... )
     return false;
 }
 
-void Chain_Get_Rx( State * state, float * Rx, int idx_chain ) noexcept
+void Chain_Get_Rx( State * state, scalar * Rx, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -588,10 +588,11 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( Rx, "Rx" );
 
     for( unsigned int i = 0; i < chain->Rx.size(); ++i )
     {
-        Rx[i] = (float)chain->Rx[i];
+        Rx[i] = chain->Rx[i];
     }
 }
 catch( ... )
@@ -599,7 +600,7 @@ catch( ... )
     spirit_handle_exception_api( -1, idx_chain );
 }
 
-void Chain_Get_Rx_Interpolated( State * state, float * Rx_interpolated, int idx_chain ) noexcept
+void Chain_Get_Rx_Interpolated( State * state, scalar * Rx_interpolated, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -608,10 +609,11 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( Rx_interpolated, "Rx_interpolated" );
 
     for( unsigned int i = 0; i < chain->Rx_interpolated.size(); ++i )
     {
-        Rx_interpolated[i] = (float)chain->Rx_interpolated[i];
+        Rx_interpolated[i] = chain->Rx_interpolated[i];
     }
 }
 catch( ... )
@@ -619,7 +621,7 @@ catch( ... )
     spirit_handle_exception_api( -1, idx_chain );
 }
 
-void Chain_Get_Energy( State * state, float * Energy, int idx_chain ) noexcept
+void Chain_Get_Energy( State * state, scalar * Energy, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -628,10 +630,11 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( Energy, "Energy" );
 
     for( int i = 0; i < chain->noi; ++i )
     {
-        Energy[i] = (float)chain->images[i]->E;
+        Energy[i] = chain->images[i]->E;
     }
 }
 catch( ... )
@@ -639,7 +642,7 @@ catch( ... )
     spirit_handle_exception_api( -1, idx_chain );
 }
 
-void Chain_Get_Energy_Interpolated( State * state, float * E_interpolated, int idx_chain ) noexcept
+void Chain_Get_Energy_Interpolated( State * state, scalar * E_interpolated, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -648,10 +651,11 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( E_interpolated, "E_interpolated" );
 
     for( unsigned int i = 0; i < chain->E_interpolated.size(); ++i )
     {
-        E_interpolated[i] = (float)chain->E_interpolated[i];
+        E_interpolated[i] = chain->E_interpolated[i];
     }
 }
 catch( ... )
@@ -659,35 +663,35 @@ catch( ... )
     spirit_handle_exception_api( -1, idx_chain );
 }
 
-std::vector<std::vector<float>> Chain_Get_Energy_Array_Interpolated( State * state, int idx_chain ) noexcept
-try
-{
-    int idx_image = -1;
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+// std::vector<std::vector<scalar>> Chain_Get_Energy_Array_Interpolated( State * state, int idx_chain ) noexcept
+// try
+// {
+//     int idx_image = -1;
+//     std::shared_ptr<Data::Spin_System> image;
+//     std::shared_ptr<Data::Spin_System_Chain> chain;
 
-    std::vector<std::vector<float>> E_arr_interpolated( chain->E_array_interpolated.size() );
-    for( unsigned int i = 0; i < chain->E_array_interpolated.size(); i++ )
-        E_arr_interpolated[i] = std::vector<float>( chain->E_array_interpolated[i].size(), 0 );
+//     std::vector<std::vector<scalar>> E_arr_interpolated( chain->E_array_interpolated.size() );
+//     for( unsigned int i = 0; i < chain->E_array_interpolated.size(); i++ )
+//         E_arr_interpolated[i] = std::vector<scalar>( chain->E_array_interpolated[i].size(), 0 );
 
-    // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+//     // Fetch correct indices and pointers
+//     from_indices( state, idx_image, idx_chain, image, chain );
 
-    for( unsigned int i = 0; i < chain->E_array_interpolated.size(); i++ )
-        for( unsigned int j = 0; j < chain->E_array_interpolated[i].size(); j++ )
-            E_arr_interpolated[i][j] = (float)chain->E_array_interpolated[i][j];
+//     for( unsigned int i = 0; i < chain->E_array_interpolated.size(); i++ )
+//         for( unsigned int j = 0; j < chain->E_array_interpolated[i].size(); j++ )
+//             E_arr_interpolated[i][j] = chain->E_array_interpolated[i][j];
 
-    return E_arr_interpolated;
-}
-catch( ... )
-{
-    spirit_handle_exception_api( -1, idx_chain );
+//     return E_arr_interpolated;
+// }
+// catch( ... )
+// {
+//     spirit_handle_exception_api( -1, idx_chain );
 
-    // XXX: what should we return in that situation
-    std::vector<std::vector<float>> E_at_failure( 1 );
-    E_at_failure[0] = std::vector<float>( 1, 0 );
-    return E_at_failure;
-}
+//     // XXX: what should we return in that situation
+//     std::vector<std::vector<scalar>> E_at_failure( 1 );
+//     E_at_failure[0] = std::vector<scalar>( 1, 0 );
+//     return E_at_failure;
+// }
 
 void Chain_Update_Data( State * state, int idx_chain ) noexcept
 try

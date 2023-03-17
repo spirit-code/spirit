@@ -14,16 +14,19 @@ namespace Utility
 
 enum class Exception_Classifier
 {
+    // Recoverable
     File_not_Found,
-    System_not_Initialized,
     Division_by_zero,
-    Simulated_domain_too_small,
     Not_Implemented,
     Non_existing_Image,
     Non_existing_Chain,
     Input_parse_failed,
     Bad_File_Content,
     Standard_Exception,
+    API_GOT_NULLPTR,
+    // Unrecoverable
+    System_not_Initialized,
+    Simulated_domain_too_small,
     CUDA_Error,
     Unknown_Exception
     // TODO: from Chain.cpp

@@ -2,11 +2,11 @@
 #ifndef SPIRIT_CORE_ENGINE_HAMILTONIAN_HPP
 #define SPIRIT_CORE_ENGINE_HAMILTONIAN_HPP
 
+#include <Spirit/Spirit_Defines.h>
+#include <engine/Vectormath_Defines.hpp>
+
 #include <random>
 #include <vector>
-
-#include "Spirit_Defines.h"
-#include <engine/Vectormath_Defines.hpp>
 
 namespace Engine
 {

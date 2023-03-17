@@ -2,7 +2,7 @@
 #ifndef SPIRIT_CORE_IO_IO_HPP
 #define SPIRIT_CORE_IO_IO_HPP
 
-#include "Spirit_Defines.h"
+#include <Spirit/Spirit_Defines.h>
 #include <io/Fileformat.hpp>
 
 #include <string>

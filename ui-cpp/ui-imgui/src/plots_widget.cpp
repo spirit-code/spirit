@@ -18,22 +18,23 @@
 namespace ui
 {
 
-void plot_tooltip( const char * label_id, const float * xs, const float * ys, int count )
+template<typename T>
+void plot_tooltip( const char * label_id, const T * xs, const T * ys, int count )
 {
     if( ImPlot::IsPlotHovered() )
     {
         ImPlotPoint mouse = ImPlot::GetPlotMousePos();
         auto mouse_pixels = ImPlot::PlotToPixels( mouse.x, mouse.y, IMPLOT_AUTO );
 
-        int idx_best        = 0;
-        float distance_best = 1e30f;
+        int idx_best    = 0;
+        T distance_best = 1e30;
         for( int idx = 0; idx < count; ++idx )
         {
             auto data_pixels = ImPlot::PlotToPixels( xs[idx], ys[idx], IMPLOT_AUTO );
 
-            float dx       = mouse_pixels.x - data_pixels.x;
-            float dy       = mouse_pixels.y - data_pixels.y;
-            float distance = std::sqrt( dx * dx + dy * dy );
+            T dx       = mouse_pixels.x - data_pixels.x;
+            T dy       = mouse_pixels.y - data_pixels.y;
+            T distance = std::sqrt( dx * dx + dy * dy );
             if( distance < distance_best )
             {
                 idx_best      = idx;
@@ -52,8 +53,8 @@ PlotsWidget::PlotsWidget( bool & show, std::shared_ptr<State> state ) : WidgetBa
 {
     title             = "Plots";
     history_size      = 200;
-    iteration_history = std::vector<float>( history_size );
-    force_history     = std::vector<float>( history_size );
+    iteration_history = std::vector<scalar>( history_size );
+    force_history     = std::vector<scalar>( history_size );
 }
 
 void PlotsWidget::hook_pre_show()
@@ -78,11 +79,11 @@ void PlotsWidget::show_content()
     static bool tooltip  = false;
 
     static int n_interpolate = Parameters_GNEB_Get_N_Energy_Interpolations( state.get() );
-    static std::vector<float> rx( 1, 0 );
-    static std::vector<float> energies( 1, 0 );
-    static std::vector<float> rx_interpolated( 1, 0 );
-    static std::vector<float> energies_interpolated( 1, 0 );
-    static std::vector<float> max_force( 1, 0 );
+    static std::vector<scalar> rx( 1, 0 );
+    static std::vector<scalar> energies( 1, 0 );
+    static std::vector<scalar> rx_interpolated( 1, 0 );
+    static std::vector<scalar> energies_interpolated( 1, 0 );
+    static std::vector<scalar> max_force( 1, 0 );
 
     ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
     if( ImGui::BeginTabBar( "plots_tab_bar", tab_bar_flags ) )
@@ -138,21 +139,21 @@ void PlotsWidget::show_content()
                     // Image energies except current image
                     if( noi > 1 )
                     {
-                        std::vector<float> rx_regular( 0 );
-                        std::vector<float> e_regular( 0 );
-                        std::vector<float> rx_climbing( 0 );
-                        std::vector<float> e_climbing( 0 );
-                        std::vector<float> rx_falling( 0 );
-                        std::vector<float> e_falling( 0 );
-                        std::vector<float> rx_stationary( 0 );
-                        std::vector<float> e_stationary( 0 );
+                        std::vector<scalar> rx_regular( 0 );
+                        std::vector<scalar> e_regular( 0 );
+                        std::vector<scalar> rx_climbing( 0 );
+                        std::vector<scalar> e_climbing( 0 );
+                        std::vector<scalar> rx_falling( 0 );
+                        std::vector<scalar> e_falling( 0 );
+                        std::vector<scalar> rx_stationary( 0 );
+                        std::vector<scalar> e_stationary( 0 );
 
                         if( noi != max_force.size() )
                             max_force.resize( noi );
 
                         Simulation_Get_Chain_MaxTorqueNorms( state.get(), max_force.data() );
                         int idx_max_force = idx_current;
-                        float max_f       = max_force[idx_current];
+                        scalar max_f      = max_force[idx_current];
 
                         // Get max. force image
                         for( int idx = 0; idx < noi; ++idx )
@@ -195,7 +196,7 @@ void PlotsWidget::show_content()
                         }
 
                         int idx_max_energy = 0;
-                        float max_energy   = energies[0];
+                        scalar max_energy  = energies[0];
                         int max_image_type = Parameters_GNEB_Get_Climbing_Falling( state.get(), 0 );
                         for( int idx = 1; idx < noi; ++idx )
                         {
@@ -251,8 +252,8 @@ void PlotsWidget::show_content()
                     }
 
                     // Current image marker (red)
-                    float rx_current          = rx[idx_current];
-                    float energy_current      = energies[idx_current];
+                    scalar rx_current         = rx[idx_current];
+                    scalar energy_current     = energies[idx_current];
                     int current_image_type    = Parameters_GNEB_Get_Climbing_Falling( state.get(), idx_current );
                     ImPlotMarker marker_style = IMPLOT_AUTO;
                     if( current_image_type == GNEB_IMAGE_CLIMBING )

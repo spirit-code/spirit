@@ -3,15 +3,13 @@ System
 ====================
 """
 
-from spirit import spiritlib
+from spirit import parameters, spiritlib
+from spirit.scalar import scalar
 import ctypes
+from numpy import frombuffer
 
 ### Load Library
 _spirit = spiritlib.load_spirit_library()
-
-from spirit.scalar import scalar
-from spirit import parameters
-from numpy import frombuffer, ndarray as np
 
 ### Get Chain index
 _Get_Index = _spirit.System_Get_Index
@@ -109,7 +107,7 @@ def get_eigenmode(p_state, idx_mode, idx_image=-1, idx_chain=-1):
 ### Get total Energy
 _Get_Energy = _spirit.System_Get_Energy
 _Get_Energy.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]
-_Get_Energy.restype = ctypes.c_float
+_Get_Energy.restype = scalar
 
 
 def get_energy(p_state, idx_image=-1, idx_chain=-1):
@@ -125,7 +123,7 @@ def get_energy(p_state, idx_image=-1, idx_chain=-1):
 _Get_Eigenvalues = _spirit.System_Get_Eigenvalues
 _Get_Eigenvalues.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -134,7 +132,7 @@ _Get_Eigenvalues.restype = None
 
 def get_eigenvalues(p_state, idx_image=-1, idx_chain=-1):
     noe = parameters.ema.getNModes(p_state, idx_image, idx_chain)
-    eigenvalues = (noe * ctypes.c_float)()
+    eigenvalues = (noe * scalar)()
     _Get_Eigenvalues(
         ctypes.c_void_p(p_state),
         eigenvalues,
@@ -150,7 +148,7 @@ def get_eigenvalues(p_state, idx_image=-1, idx_chain=-1):
 _Get_Energy_Array = _spirit.System_Get_Energy_Array
 _Get_Energy_Array.argtypes = [
     ctypes.c_void_p,
-    ctypes.POINTER(ctypes.c_float),
+    ctypes.POINTER(scalar),
     ctypes.c_bool,
     ctypes.c_int,
     ctypes.c_int,
@@ -187,7 +185,7 @@ def get_energy_contributions(
 
     contrib_names = str(energy_array_names[:].decode("utf-8")).split("|")
     n_contribs = len(contrib_names)
-    energies = (n_contribs * ctypes.c_float)()
+    energies = (n_contribs * scalar)()
 
     _Get_Energy_Array(
         ctypes.c_void_p(p_state),

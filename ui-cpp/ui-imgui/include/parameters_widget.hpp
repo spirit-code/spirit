@@ -28,7 +28,7 @@ struct Parameters
         int max_walltime_sec = 0;
 
         // Force convergence criterium
-        float force_convergence = 1e-10;
+        scalar force_convergence = 1e-10;
 
         // ----------------- Output --------------
         // Data output folder
@@ -48,7 +48,7 @@ struct Parameters
     struct MC : Common
     {
         // Temperature [K]
-        float temperature = 0;
+        scalar temperature = 0;
         // Seed for RNG
         int rng_seed = 2006;
 
@@ -59,10 +59,10 @@ struct Parameters
         // Whether to adapt the metropolis cone angle throughout a MC run to try to hit a target acceptance ratio
         bool metropolis_cone_adaptive = true;
         // The metropolis cone angle
-        float metropolis_cone_angle = 30;
+        scalar metropolis_cone_angle = 30;
 
         // Target acceptance ratio of mc steps for adaptive cone angle
-        float acceptance_ratio_target = 0.5;
+        scalar acceptance_ratio_target = 0.5;
 
         // ----------------- Output --------------
         // Energy output settings
@@ -79,28 +79,28 @@ struct Parameters
     struct LLG : Common
     {
         // Time step per iteration [ps]
-        float dt = 1e-3;
+        scalar dt = 1e-3;
 
         // Damping
-        float damping = 0.3;
-        float beta    = 0;
+        scalar damping = 0.3;
+        scalar beta    = 0;
 
         // Seed for RNG
         int rng_seed = 2006;
 
         // Temperature [K]
-        float temperature = 0;
+        scalar temperature = 0;
         // Temperature gradient [K]
-        float temperature_gradient_direction[3]{ 1, 0, 0 };
-        float temperature_gradient_inclination = 0;
+        scalar temperature_gradient_direction[3]{ 1, 0, 0 };
+        scalar temperature_gradient_inclination = 0;
 
         // - true:  use gradient approximation for STT
         // - false: use pinned monolayer approximation with current in z-direction
         bool stt_use_gradient = true;
         // Spin transfer torque parameter (prop to injected current density)
-        float stt_magnitude = 0;
+        scalar stt_magnitude = 0;
         // Spin current polarisation normal vector
-        float stt_polarisation_normal[3]{ 1, 0, 0 };
+        scalar stt_polarisation_normal[3]{ 1, 0, 0 };
 
         // Do direct minimization instead of dynamics
         bool direct_minimization = false;
@@ -120,31 +120,31 @@ struct Parameters
     struct GNEB : Common
     {
         // Time step per iteration [ps]
-        float dt = 1e-3;
+        scalar dt = 1e-3;
 
         // Strength of springs between images
-        float spring_constant = 1;
+        scalar spring_constant = 1;
 
         // The ratio of energy to reaction coordinate in the spring force
         //      0 is Rx only, 1 is E only
-        float spring_force_ratio = 0;
+        scalar spring_force_ratio = 0;
 
         // With which minimum norm per spin the path shortening force should be applied
-        float path_shortening_constant = 0;
+        scalar path_shortening_constant = 0;
 
         // Number of Energy interpolations between Images
         int n_enery_interpolations = 10;
 
         // Temperature [K]
-        float temperature = 0;
+        scalar temperature = 0;
         // Seed for RNG
         int rng_seed = 2006;
 
         bool moving_endpoints      = false;
         bool translating_endpoints = false;
 
-        float delta_Rx_left  = 1.0;
-        float delta_Rx_right = 1.0;
+        scalar delta_Rx_left  = 1.0;
+        scalar delta_Rx_right = 1.0;
 
         // ----------------- Output --------------
         bool output_energies_step                  = false;
@@ -157,7 +157,7 @@ struct Parameters
     struct MMF : Common
     {
         // Time step per iteration [ps]
-        float dt = 1e-3;
+        scalar dt = 1e-3;
 
         // Which mode to follow (based on some conditions)
         int n_mode_follow = 0;
@@ -180,8 +180,8 @@ struct Parameters
     {
         int n_modes       = 10;
         int n_mode_follow = 0;
-        float frequency   = 0.02;
-        float amplitude   = 1;
+        scalar frequency  = 0.02;
+        scalar amplitude  = 1;
         bool snapshot     = false;
 
         // ----------------- Output --------------

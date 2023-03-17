@@ -1,4 +1,4 @@
-#include <Spirit_Defines.h>
+#include <Spirit/Spirit_Defines.h>
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <engine/Method_LLG.hpp>
@@ -8,10 +8,10 @@
 #include <utility/Logging.hpp>
 #include <utility/Version.hpp>
 
+#include <fmt/format.h>
+
 #include <ctime>
 #include <iostream>
-
-#include <fmt/format.h>
 
 using namespace Utility;
 
@@ -189,7 +189,7 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
                     Vectormath::jacobian( image, geometry, boundary_conditions, jacobians );
 
                     // clang-format off
-                    Backend::par::apply(image.size(), [s_c_grad = s_c_grad.data(), jacobians=jacobians.data(), direction=je] SPIRIT_LAMBDA (int idx) 
+                    Backend::par::apply(image.size(), [s_c_grad = s_c_grad.data(), jacobians=jacobians.data(), direction=je] SPIRIT_LAMBDA (int idx)
                             {
                                 s_c_grad[idx] = jacobians[idx] * direction;
                             }

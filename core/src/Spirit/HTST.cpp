@@ -6,7 +6,7 @@
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 
-float HTST_Calculate(
+scalar HTST_Calculate(
     State * state, int idx_image_minimum, int idx_image_sp, int n_eigenmodes_keep, bool sparse, int idx_chain )
 try
 {
@@ -26,7 +26,7 @@ try
         Engine::Sparse_HTST::Calculate( chain->htst_info );
 #endif
 
-    return (float)info.prefactor;
+    return info.prefactor;
 }
 catch( ... )
 {
@@ -35,8 +35,9 @@ catch( ... )
 }
 
 void HTST_Get_Info(
-    State * state, float * temperature_exponent, float * me, float * Omega_0, float * s, float * volume_min,
-    float * volume_sp, float * prefactor_dynamical, float * prefactor, int * n_eigenmodes_keep, int idx_chain ) noexcept
+    State * state, scalar * temperature_exponent, scalar * me, scalar * Omega_0, scalar * s, scalar * volume_min,
+    scalar * volume_sp, scalar * prefactor_dynamical, scalar * prefactor, int * n_eigenmodes_keep,
+    int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -78,7 +79,7 @@ catch( ... )
     spirit_handle_exception_api( -1, idx_chain );
 }
 
-void HTST_Get_Eigenvalues_Min( State * state, float * eigenvalues_min, int idx_chain ) noexcept
+void HTST_Get_Eigenvalues_Min( State * state, scalar * eigenvalues_min, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -96,21 +97,16 @@ try
         return;
     }
 
-    if( eigenvalues_min != nullptr )
-    {
-        for( int i = 0; i < chain->htst_info.eigenvalues_min.size(); ++i )
-            eigenvalues_min[i] = chain->htst_info.eigenvalues_min[i];
-    }
-    else
-        Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
-             "HTST_Get_Eigenvalues_Min: you passed a null pointer" );
+    throw_if_nullptr( eigenvalues_min, "eigenvalues_min" );
+    for( int i = 0; i < chain->htst_info.eigenvalues_min.size(); ++i )
+        eigenvalues_min[i] = chain->htst_info.eigenvalues_min[i];
 }
 catch( ... )
 {
     spirit_handle_exception_api( -1, idx_chain );
 }
 
-void HTST_Get_Eigenvectors_Min( State * state, float * eigenvectors_min, int idx_chain ) noexcept
+void HTST_Get_Eigenvectors_Min( State * state, scalar * eigenvectors_min, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -128,21 +124,16 @@ try
         return;
     }
 
-    if( eigenvectors_min != nullptr )
-    {
-        for( int i = 0; i < chain->htst_info.eigenvectors_min.size(); ++i )
-            eigenvectors_min[i] = chain->htst_info.eigenvectors_min( i );
-    }
-    else
-        Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
-             "HTST_Get_Eigenvectors_Min: you passed a null pointer" );
+    throw_if_nullptr( eigenvectors_min, "eigenvectors_min" );
+    for( int i = 0; i < chain->htst_info.eigenvectors_min.size(); ++i )
+        eigenvectors_min[i] = chain->htst_info.eigenvectors_min( i );
 }
 catch( ... )
 {
     spirit_handle_exception_api( -1, idx_chain );
 }
 
-void HTST_Get_Eigenvalues_SP( State * state, float * eigenvalues_sp, int idx_chain ) noexcept
+void HTST_Get_Eigenvalues_SP( State * state, scalar * eigenvalues_sp, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -160,22 +151,17 @@ try
         return;
     }
 
-    if( eigenvalues_sp != nullptr )
-    {
-        int nos = image->nos;
-        for( int i = 0; i < 2 * nos && i < chain->htst_info.eigenvalues_sp.size(); ++i )
-            eigenvalues_sp[i] = chain->htst_info.eigenvalues_sp[i];
-    }
-    else
-        Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
-             "HTST_Get_Eigenvalues_SP: you passed a null pointer" );
+    throw_if_nullptr( eigenvalues_sp, "eigenvalues_sp" );
+    int nos = image->nos;
+    for( int i = 0; i < 2 * nos && i < chain->htst_info.eigenvalues_sp.size(); ++i )
+        eigenvalues_sp[i] = chain->htst_info.eigenvalues_sp[i];
 }
 catch( ... )
 {
     spirit_handle_exception_api( -1, idx_chain );
 }
 
-void HTST_Get_Eigenvectors_SP( State * state, float * eigenvectors_sp, int idx_chain ) noexcept
+void HTST_Get_Eigenvectors_SP( State * state, scalar * eigenvectors_sp, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -193,21 +179,16 @@ try
         return;
     }
 
-    if( eigenvectors_sp != nullptr )
-    {
-        for( int i = 0; i < chain->htst_info.eigenvectors_sp.size(); ++i )
-            eigenvectors_sp[i] = chain->htst_info.eigenvectors_sp( i );
-    }
-    else
-        Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
-             "HTST_Get_Eigenvectors_SP: you passed a null pointer" );
+    throw_if_nullptr( eigenvectors_sp, "eigenvectors_sp" );
+    for( int i = 0; i < chain->htst_info.eigenvectors_sp.size(); ++i )
+        eigenvectors_sp[i] = chain->htst_info.eigenvectors_sp( i );
 }
 catch( ... )
 {
     spirit_handle_exception_api( -1, idx_chain );
 }
 
-void HTST_Get_Velocities( State * state, float * velocities, int idx_chain ) noexcept
+void HTST_Get_Velocities( State * state, scalar * velocities, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
@@ -225,14 +206,10 @@ try
         return;
     }
 
-    if( velocities != nullptr )
-    {
-        int nos = image->nos;
-        for( int i = 0; i < 2 * nos * nos && i < chain->htst_info.perpendicular_velocity.size(); ++i )
-            velocities[i] = chain->htst_info.perpendicular_velocity[i];
-    }
-    else
-        Log( Utility::Log_Level::Error, Utility::Log_Sender::API, "HTST_Get_Velocities: you passed a null pointer" );
+    throw_if_nullptr( velocities, "velocities" );
+    int nos = image->nos;
+    for( int i = 0; i < 2 * nos * nos && i < chain->htst_info.perpendicular_velocity.size(); ++i )
+        velocities[i] = chain->htst_info.perpendicular_velocity[i];
 }
 catch( ... )
 {

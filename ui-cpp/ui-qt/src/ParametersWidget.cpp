@@ -64,7 +64,7 @@ void ParametersWidget::updateData()
 
 void ParametersWidget::Load_Parameters_Contents()
 {
-    float d, d2, vd[3];
+    scalar d, d2, vd[3];
     int image_type;
     int i1, i2;
     bool b1, b2, b3, b4, b5;
@@ -194,8 +194,8 @@ void ParametersWidget::Load_Parameters_Contents()
     this->checkBox_moving_endpoints->setChecked( moving_endpoints );
     bool translating_endpoints = Parameters_GNEB_Get_Translating_Endpoints( state.get() );
     this->checkBox_translating_endpoints->setChecked( translating_endpoints );
-    float delta_Rx_left, delta_Rx_right;
-    Parameters_GNEB_Get_Equilibrium_Delta_Rx( state.get(), &delta_Rx_left, &delta_Rx_right);
+    scalar delta_Rx_left, delta_Rx_right;
+    Parameters_GNEB_Get_Equilibrium_Delta_Rx( state.get(), &delta_Rx_left, &delta_Rx_right );
     this->doubleSpinBox_delta_Rx_left->setValue( delta_Rx_left );
     this->doubleSpinBox_delta_Rx_right->setValue( delta_Rx_right );
 
@@ -245,7 +245,7 @@ void ParametersWidget::set_parameters_llg()
     // Closure to set the parameters of a specific spin system
     auto apply = [this]( int idx_image ) -> void
     {
-        float d, d2, vd[3];
+        scalar d, d2, vd[3];
         int i1, i2;
         bool b1, b2, b3, b4;
 
@@ -364,7 +364,7 @@ void ParametersWidget::set_parameters_mc()
     // Closure to set the parameters of a specific spin system
     auto apply = [this]( int idx_image ) -> void
     {
-        float d;
+        scalar d;
         int i1, i2;
         bool b1, b2, b3, b4;
 
@@ -421,7 +421,7 @@ void ParametersWidget::set_parameters_mc()
 
 void ParametersWidget::set_parameters_gneb()
 {
-    float d;
+    scalar d;
     int i1, i2;
 
     // Convergence
@@ -457,14 +457,14 @@ void ParametersWidget::set_parameters_gneb()
     Parameters_GNEB_Set_Output_Folder( state.get(), folder.c_str() );
 
     // Moving endpoints
-    bool moving_endpoints = this->checkBox_moving_endpoints->isChecked();
+    bool moving_endpoints      = this->checkBox_moving_endpoints->isChecked();
     bool translating_endpoints = this->checkBox_translating_endpoints->isChecked();
-    float delta_Rx_left = this->doubleSpinBox_delta_Rx_left->value();
-    float delta_Rx_right = this->doubleSpinBox_delta_Rx_right->value();
+    scalar delta_Rx_left       = this->doubleSpinBox_delta_Rx_left->value();
+    scalar delta_Rx_right      = this->doubleSpinBox_delta_Rx_right->value();
 
-    Parameters_GNEB_Set_Moving_Endpoints(state.get(), moving_endpoints);
-    Parameters_GNEB_Set_Translating_Endpoints(state.get(), translating_endpoints);
-    Parameters_GNEB_Set_Equilibrium_Delta_Rx(state.get(), delta_Rx_left, delta_Rx_right);
+    Parameters_GNEB_Set_Moving_Endpoints( state.get(), moving_endpoints );
+    Parameters_GNEB_Set_Translating_Endpoints( state.get(), translating_endpoints );
+    Parameters_GNEB_Set_Equilibrium_Delta_Rx( state.get(), delta_Rx_left, delta_Rx_right );
 }
 
 void ParametersWidget::set_gneb_auto_image_type()
@@ -538,11 +538,11 @@ void ParametersWidget::set_parameters_mmf()
 
 void ParametersWidget::set_parameters_ema()
 {
-    int i1   = this->spinBox_ema_n_modes->value();
-    int i2   = this->spinBox_ema_n_mode_follow->value();
-    float d1 = this->doubleSpinBox_ema_frequency->value();
-    float d2 = this->doubleSpinBox_ema_amplitude->value();
-    bool b1  = this->checkBox_snapshot_mode->isChecked();
+    int i1    = this->spinBox_ema_n_modes->value();
+    int i2    = this->spinBox_ema_n_mode_follow->value();
+    scalar d1 = this->doubleSpinBox_ema_frequency->value();
+    scalar d2 = this->doubleSpinBox_ema_amplitude->value();
+    bool b1   = this->checkBox_snapshot_mode->isChecked();
 
     Parameters_EMA_Set_N_Modes( state.get(), i1 );
     Parameters_EMA_Set_N_Mode_Follow( state.get(), i2 - 1 );
