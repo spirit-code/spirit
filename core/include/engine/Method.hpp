@@ -169,11 +169,11 @@ protected:
     int idx_chain;
 
     // Number of images
-    int noi;
+    int noi = 0;
     // Number of spins in an image
-    int nos;
+    int nos = 0;
 
-    int n_iterations_amortize;
+    int n_iterations_amortize = 1;
 
     // Method name as enum
     Utility::Log_Sender SenderName;
