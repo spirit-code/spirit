@@ -49,6 +49,8 @@ elseif( CMAKE_BUILD_TYPE )
 else()
     message( STATUS ">> Spirit core: Did not need to set build type. Configuration types: ${CMAKE_CONFIGURATION_TYPES}" )
 endif()
+#----- Write a compilation database (compile-commands.json)
+set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 ####################################################################
 
 
@@ -191,10 +193,10 @@ if( SPIRIT_USE_OPENMP )
         message( STATUS ">> OpenMP C Flags:          ${OpenMP_C_FLAGS}" )
         message( STATUS ">> OpenMP CXX Flags:        ${OpenMP_CXX_FLAGS}" )
         message( STATUS ">> OpenMP EXE Linker Flags: ${OpenMP_EXE_LINKER_FLAGS}" )
-    else( OPENMP_FOUND )
+    else()
         message( WARNING ">> OpenMP could not be found." )
-        set(SPIRIT_USE_OPENMP OFF)
-    endif( OPENMP_FOUND )
+        set( SPIRIT_USE_OPENMP OFF )
+    endif()
 endif()
 ####################################################################
 
