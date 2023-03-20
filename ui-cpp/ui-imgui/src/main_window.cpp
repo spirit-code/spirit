@@ -1947,7 +1947,7 @@ MainWindow::MainWindow( std::shared_ptr<State> state )
 
     emscripten_webgl_make_context_current( context_imgui );
 #endif
-    fmt::print( "OpenGL Version: {}\n", glGetString( GL_VERSION ) );
+    fmt::print( "OpenGL Version: {}\n", reinterpret_cast<const char *>( glGetString( GL_VERSION ) ) );
 
     glfwSetWindowPos( glfw_window, ui_config_file.window_position[0], ui_config_file.window_position[1] );
     glfwSetWindowSize( glfw_window, ui_config_file.window_size[0], ui_config_file.window_size[1] );

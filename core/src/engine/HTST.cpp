@@ -4,6 +4,7 @@
 #include <engine/Hamiltonian_Heisenberg.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <engine/Vectormath.hpp>
+#include <io/Formatters.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
 

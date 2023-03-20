@@ -240,7 +240,7 @@ target_compile_definitions( ${PROJECT_NAME} PRIVATE -DFMT_HEADER_ONLY )
 
 target_include_directories( ${PROJECT_NAME} PRIVATE
     ${SPIRIT_INCLUDE_DIRS}
-    # ${CMAKE_SOURCE_DIR}/thirdparty/fmt/include
+    ${libfmt_INCLUDE_DIRS}
     ${PROJECT_SOURCE_DIR}/thirdparty/Lyra/include
     ${PROJECT_BINARY_DIR}/thirdparty-install/include )
 

@@ -1,6 +1,7 @@
 #include <engine/Eigenmodes.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <engine/Vectormath.hpp>
+#include <io/Formatters.hpp>
 // #include <engine/Backend_par.hpp>
 
 #include <MatOp/SparseSymMatProd.h> // Also includes <MatOp/DenseSymMatProd.h>

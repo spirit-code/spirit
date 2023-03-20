@@ -5,6 +5,7 @@
 #include <engine/Eigenmodes.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <engine/Vectormath.hpp>
+#include <io/Formatters.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>

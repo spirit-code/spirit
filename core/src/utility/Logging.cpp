@@ -1,8 +1,10 @@
+#include <io/Formatters.hpp>
 #include <io/IO.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Timing.hpp>
 
+#include <fmt/chrono.h>
 #include <fmt/format.h>
 
 #include <termcolor/termcolor.hpp>
@@ -224,60 +226,3 @@ void LoggingHandler::Dump_to_File()
 }
 
 } // end namespace Utility
-
-std::ostream & operator<<( std::ostream & os, Utility::Log_Sender sender )
-{
-    using namespace Utility;
-
-    if( sender == Log_Sender::All )
-        return os << "ALL";
-    else if( sender == Log_Sender::IO )
-        return os << "IO";
-    else if( sender == Log_Sender::API )
-        return os << "API";
-    else if( sender == Log_Sender::GNEB )
-        return os << "GNEB";
-    else if( sender == Log_Sender::HTST )
-        return os << "HTST";
-    else if( sender == Log_Sender::LLG )
-        return os << "LLG";
-    else if( sender == Log_Sender::MC )
-        return os << "MC";
-    else if( sender == Log_Sender::MMF )
-        return os << "MMF";
-    else if( sender == Log_Sender::UI )
-        return os << "UI";
-    else if( sender == Log_Sender::EMA )
-        return os << "EMA";
-    else
-    {
-        spirit_throw(
-            Exception_Classifier::Not_Implemented, Log_Level::Severe, "Tried converting unknown Log_Sender to string" );
-    }
-}
-
-// Conversion of Log_Level to string, usable by fmt
-std::ostream & operator<<( std::ostream & os, Utility::Log_Level level )
-{
-    using namespace Utility;
-
-    if( level == Log_Level::All )
-        return os << "ALL";
-    else if( level == Log_Level::Severe )
-        return os << "SEVERE";
-    else if( level == Log_Level::Error )
-        return os << "ERROR";
-    else if( level == Log_Level::Warning )
-        return os << "WARNING";
-    else if( level == Log_Level::Parameter )
-        return os << "PARAM";
-    else if( level == Log_Level::Info )
-        return os << "INFO";
-    else if( level == Log_Level::Debug )
-        return os << "DEBUG";
-    else
-    {
-        spirit_throw(
-            Exception_Classifier::Not_Implemented, Log_Level::Severe, "Tried converting unknown Log_Level to string" );
-    }
-}

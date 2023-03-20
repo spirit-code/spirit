@@ -4,6 +4,7 @@
 #include <data/State.hpp>
 #include <engine/Hamiltonian_Heisenberg.hpp>
 #include <engine/Indexing.hpp>
+#include <io/Formatters.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 
@@ -160,7 +161,7 @@ try
     {
         spirit_throw(
             Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Error,
-            fmt::format( "Unknown lattice type index '{}'", lattice_type ) );
+            fmt::format( "Unknown lattice type index '{}'", int( lattice_type ) ) );
     }
 
     // The new geometry
