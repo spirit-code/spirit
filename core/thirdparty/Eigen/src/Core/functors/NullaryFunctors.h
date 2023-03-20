@@ -44,17 +44,17 @@ struct linspaced_op_impl<Scalar,/*IsInteger*/false>
 {
   typedef typename NumTraits<Scalar>::Real RealScalar;
 
-  linspaced_op_impl(const Scalar& low, const Scalar& high, Index num_steps) :
-    m_low(low), m_high(high), m_size1(num_steps==1 ? 1 : num_steps-1), m_step(num_steps==1 ? Scalar() : (high-low)/RealScalar(num_steps-1)),
+  EIGEN_DEVICE_FUNC linspaced_op_impl(const Scalar& low, const Scalar& high, Index num_steps) :
+    m_low(low), m_high(high), m_size1(num_steps==1 ? 1 : num_steps-1), m_step(num_steps==1 ? Scalar() : Scalar((high-low)/RealScalar(num_steps-1))),
     m_flip(numext::abs(high)<numext::abs(low))
   {}
 
   template<typename IndexType>
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Scalar operator() (IndexType i) const {
     if(m_flip)
-      return (i==0)? m_low : (m_high - RealScalar(m_size1-i)*m_step);
+      return (i==0)? m_low : Scalar(m_high - RealScalar(m_size1-i)*m_step);
     else
-      return (i==m_size1)? m_high : (m_low + RealScalar(i)*m_step);
+      return (i==m_size1)? m_high : Scalar(m_low + RealScalar(i)*m_step);
   }
 
   template<typename Packet, typename IndexType>
@@ -66,17 +66,17 @@ struct linspaced_op_impl<Scalar,/*IsInteger*/false>
     {
       Packet pi = plset<Packet>(Scalar(i-m_size1));
       Packet res = padd(pset1<Packet>(m_high), pmul(pset1<Packet>(m_step), pi));
-      if(i==0)
-        res = pinsertfirst(res, m_low);
-      return res;
+      if (EIGEN_PREDICT_TRUE(i != 0)) return res;
+      Packet mask = pcmp_lt(pset1<Packet>(0), plset<Packet>(0));
+      return pselect<Packet>(mask, res, pset1<Packet>(m_low));
     }
     else
     {
       Packet pi = plset<Packet>(Scalar(i));
       Packet res = padd(pset1<Packet>(m_low), pmul(pset1<Packet>(m_step), pi));
-      if(i==m_size1-unpacket_traits<Packet>::size+1)
-        res = pinsertlast(res, m_high);
-      return res;
+      if(EIGEN_PREDICT_TRUE(i != m_size1-unpacket_traits<Packet>::size+1)) return res;
+      Packet mask = pcmp_lt(plset<Packet>(0), pset1<Packet>(unpacket_traits<Packet>::size-1));
+      return pselect<Packet>(mask, res, pset1<Packet>(m_high));
     }
   }
 
@@ -90,7 +90,7 @@ struct linspaced_op_impl<Scalar,/*IsInteger*/false>
 template <typename Scalar>
 struct linspaced_op_impl<Scalar,/*IsInteger*/true>
 {
-  linspaced_op_impl(const Scalar& low, const Scalar& high, Index num_steps) :
+  EIGEN_DEVICE_FUNC linspaced_op_impl(const Scalar& low, const Scalar& high, Index num_steps) :
     m_low(low),
     m_multiplier((high-low)/convert_index<Scalar>(num_steps<=1 ? 1 : num_steps-1)),
     m_divisor(convert_index<Scalar>((high>=low?num_steps:-num_steps)+(high-low))/((numext::abs(high-low)+1)==0?1:(numext::abs(high-low)+1))),
@@ -129,7 +129,7 @@ template <typename Scalar> struct functor_traits< linspaced_op<Scalar> >
 };
 template <typename Scalar> struct linspaced_op
 {
-  linspaced_op(const Scalar& low, const Scalar& high, Index num_steps)
+  EIGEN_DEVICE_FUNC linspaced_op(const Scalar& low, const Scalar& high, Index num_steps)
     : impl((num_steps==1 ? high : low),high,num_steps)
   {}
 

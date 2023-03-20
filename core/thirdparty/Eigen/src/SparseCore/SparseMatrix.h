@@ -329,7 +329,8 @@ class SparseMatrix
           m_outerIndex[j] = newOuterIndex[j];
           m_innerNonZeros[j] = innerNNZ;
         }
-        m_outerIndex[m_outerSize] = m_outerIndex[m_outerSize-1] + m_innerNonZeros[m_outerSize-1] + reserveSizes[m_outerSize-1];
+        if(m_outerSize>0)
+          m_outerIndex[m_outerSize] = m_outerIndex[m_outerSize-1] + m_innerNonZeros[m_outerSize-1] + reserveSizes[m_outerSize-1];
         
         m_data.resize(m_outerIndex[m_outerSize]);
       }
@@ -578,10 +579,12 @@ class SparseMatrix
       else if (innerChange < 0) 
       {
         // Inner size decreased: allocate a new m_innerNonZeros
-        m_innerNonZeros = static_cast<StorageIndex*>(std::malloc((m_outerSize+outerChange+1) * sizeof(StorageIndex)));
+        m_innerNonZeros = static_cast<StorageIndex*>(std::malloc((m_outerSize + outerChange) * sizeof(StorageIndex)));
         if (!m_innerNonZeros) internal::throw_std_bad_alloc();
-        for(Index i = 0; i < m_outerSize; i++)
+        for(Index i = 0; i < m_outerSize + (std::min)(outerChange, Index(0)); i++)
           m_innerNonZeros[i] = m_outerIndex[i+1] - m_outerIndex[i];
+        for(Index i = m_outerSize; i < m_outerSize + outerChange; i++)
+          m_innerNonZeros[i] = 0;
       }
       
       // Change the m_innerNonZeros in case of a decrease of inner size
@@ -782,6 +785,9 @@ class SparseMatrix
     template<typename OtherDerived>
     inline SparseMatrix& operator=(const EigenBase<OtherDerived>& other)
     { return Base::operator=(other.derived()); }
+
+    template<typename Lhs, typename Rhs>
+    inline SparseMatrix& operator=(const Product<Lhs,Rhs,AliasFreeProduct>& other);
 #endif // EIGEN_PARSED_BY_DOXYGEN
 
     template<typename OtherDerived>
@@ -1082,7 +1088,7 @@ void set_from_triplets(const InputIterator& begin, const InputIterator& end, Spa
   * \code
     typedef Triplet<double> T;
     std::vector<T> tripletList;
-    triplets.reserve(estimation_of_entries);
+    tripletList.reserve(estimation_of_entries);
     for(...)
     {
       // ...
@@ -1341,7 +1347,7 @@ typename SparseMatrix<_Scalar,_Options,_StorageIndex>::Scalar& SparseMatrix<_Sca
     }
     
     m_data.index(p) = convert_index(inner);
-    return (m_data.value(p) = 0);
+    return (m_data.value(p) = Scalar(0));
   }
   
   if(m_data.size() != m_data.allocatedSize())

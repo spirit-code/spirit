@@ -15,13 +15,13 @@ namespace Eigen {
 
 namespace internal {
 
-enum PacketSizeType {
-  PacketFull = 0,
-  PacketHalf,
-  PacketQuarter
+enum GEBPPacketSizeType {
+  GEBPPacketFull = 0,
+  GEBPPacketHalf,
+  GEBPPacketQuarter
 };
 
-template<typename _LhsScalar, typename _RhsScalar, bool _ConjLhs=false, bool _ConjRhs=false, int Arch=Architecture::Target, int _PacketSize=PacketFull>
+template<typename _LhsScalar, typename _RhsScalar, bool _ConjLhs=false, bool _ConjRhs=false, int Arch=Architecture::Target, int _PacketSize=GEBPPacketFull>
 class gebp_traits;
 
 
@@ -31,15 +31,41 @@ inline std::ptrdiff_t manage_caching_sizes_helper(std::ptrdiff_t a, std::ptrdiff
   return a<=0 ? b : a;
 }
 
-#if EIGEN_ARCH_i386_OR_x86_64
-const std::ptrdiff_t defaultL1CacheSize = 32*1024;
-const std::ptrdiff_t defaultL2CacheSize = 256*1024;
-const std::ptrdiff_t defaultL3CacheSize = 2*1024*1024;
+#if defined(EIGEN_DEFAULT_L1_CACHE_SIZE)
+#define EIGEN_SET_DEFAULT_L1_CACHE_SIZE(val) EIGEN_DEFAULT_L1_CACHE_SIZE
 #else
-const std::ptrdiff_t defaultL1CacheSize = 16*1024;
-const std::ptrdiff_t defaultL2CacheSize = 512*1024;
-const std::ptrdiff_t defaultL3CacheSize = 512*1024;
+#define EIGEN_SET_DEFAULT_L1_CACHE_SIZE(val) val
+#endif // defined(EIGEN_DEFAULT_L1_CACHE_SIZE)
+
+#if defined(EIGEN_DEFAULT_L2_CACHE_SIZE)
+#define EIGEN_SET_DEFAULT_L2_CACHE_SIZE(val) EIGEN_DEFAULT_L2_CACHE_SIZE
+#else
+#define EIGEN_SET_DEFAULT_L2_CACHE_SIZE(val) val
+#endif // defined(EIGEN_DEFAULT_L2_CACHE_SIZE)
+
+#if defined(EIGEN_DEFAULT_L3_CACHE_SIZE)
+#define EIGEN_SET_DEFAULT_L3_CACHE_SIZE(val) EIGEN_DEFAULT_L3_CACHE_SIZE
+#else
+#define EIGEN_SET_DEFAULT_L3_CACHE_SIZE(val) val
+#endif // defined(EIGEN_DEFAULT_L3_CACHE_SIZE)
+  
+#if EIGEN_ARCH_i386_OR_x86_64
+const std::ptrdiff_t defaultL1CacheSize = EIGEN_SET_DEFAULT_L1_CACHE_SIZE(32*1024);
+const std::ptrdiff_t defaultL2CacheSize = EIGEN_SET_DEFAULT_L2_CACHE_SIZE(256*1024);
+const std::ptrdiff_t defaultL3CacheSize = EIGEN_SET_DEFAULT_L3_CACHE_SIZE(2*1024*1024);
+#elif EIGEN_ARCH_PPC
+const std::ptrdiff_t defaultL1CacheSize = EIGEN_SET_DEFAULT_L1_CACHE_SIZE(64*1024);
+const std::ptrdiff_t defaultL2CacheSize = EIGEN_SET_DEFAULT_L2_CACHE_SIZE(512*1024);
+const std::ptrdiff_t defaultL3CacheSize = EIGEN_SET_DEFAULT_L3_CACHE_SIZE(4*1024*1024);
+#else
+const std::ptrdiff_t defaultL1CacheSize = EIGEN_SET_DEFAULT_L1_CACHE_SIZE(16*1024);
+const std::ptrdiff_t defaultL2CacheSize = EIGEN_SET_DEFAULT_L2_CACHE_SIZE(512*1024);
+const std::ptrdiff_t defaultL3CacheSize = EIGEN_SET_DEFAULT_L3_CACHE_SIZE(512*1024);
 #endif
+
+#undef EIGEN_SET_DEFAULT_L1_CACHE_SIZE
+#undef EIGEN_SET_DEFAULT_L2_CACHE_SIZE
+#undef EIGEN_SET_DEFAULT_L3_CACHE_SIZE
 
 /** \internal */
 struct CacheSizes {
@@ -55,7 +81,6 @@ struct CacheSizes {
   std::ptrdiff_t m_l2;
   std::ptrdiff_t m_l3;
 };
-
 
 /** \internal */
 inline void manage_caching_sizes(Action action, std::ptrdiff_t* l1, std::ptrdiff_t* l2, std::ptrdiff_t* l3)
@@ -131,7 +156,8 @@ void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index n
     // registers. However once the latency is hidden there is no point in
     // increasing the value of k, so we'll cap it at 320 (value determined
     // experimentally).
-    const Index k_cache = (numext::mini<Index>)((l1-ksub)/kdiv, 320);
+    // To avoid that k vanishes, we make k_cache at least as big as kr
+    const Index k_cache = numext::maxi<Index>(kr, (numext::mini<Index>)((l1-ksub)/kdiv, 320));
     if (k_cache < k) {
       k = k_cache - (k_cache % kr);
       eigen_internal_assert(k > 0);
@@ -323,36 +349,6 @@ inline void computeProductBlockingSizes(Index& k, Index& m, Index& n, Index num_
   computeProductBlockingSizes<LhsScalar,RhsScalar,1,Index>(k, m, n, num_threads);
 }
 
-#ifdef EIGEN_HAS_SINGLE_INSTRUCTION_CJMADD
-  #define CJMADD(CJ,A,B,C,T)  C = CJ.pmadd(A,B,C);
-#else
-
-  // FIXME (a bit overkill maybe ?)
-
-  template<typename CJ, typename A, typename B, typename C, typename T> struct gebp_madd_selector {
-    EIGEN_ALWAYS_INLINE static void run(const CJ& cj, A& a, B& b, C& c, T& /*t*/)
-    {
-      c = cj.pmadd(a,b,c);
-    }
-  };
-
-  template<typename CJ, typename T> struct gebp_madd_selector<CJ,T,T,T,T> {
-    EIGEN_ALWAYS_INLINE static void run(const CJ& cj, T& a, T& b, T& c, T& t)
-    {
-      t = b; t = cj.pmul(a,t); c = padd(c,t);
-    }
-  };
-
-  template<typename CJ, typename A, typename B, typename C, typename T>
-  EIGEN_STRONG_INLINE void gebp_madd(const CJ& cj, A& a, B& b, C& c, T& t)
-  {
-    gebp_madd_selector<CJ,A,B,C,T>::run(cj,a,b,c,t);
-  }
-
-  #define CJMADD(CJ,A,B,C,T)  gebp_madd(CJ,A,B,C,T);
-//   #define CJMADD(CJ,A,B,C,T)  T = B; T = CJ.pmul(A,T); C = padd(C,T);
-#endif
-
 template <typename RhsPacket, typename RhsPacketx4, int registers_taken>
 struct RhsPanelHelper {
  private:
@@ -375,10 +371,10 @@ template <int N, typename T1, typename T2, typename T3>
 struct packet_conditional { typedef T3 type; };
 
 template <typename T1, typename T2, typename T3>
-struct packet_conditional<PacketFull, T1, T2, T3> { typedef T1 type; };
+struct packet_conditional<GEBPPacketFull, T1, T2, T3> { typedef T1 type; };
 
 template <typename T1, typename T2, typename T3>
-struct packet_conditional<PacketHalf, T1, T2, T3> { typedef T2 type; };
+struct packet_conditional<GEBPPacketHalf, T1, T2, T3> { typedef T2 type; };
 
 #define PACKET_DECL_COND_PREFIX(prefix, name, packet_size)         \
   typedef typename packet_conditional<packet_size,                 \
@@ -729,8 +725,8 @@ template<typename Scalar, typename RealPacket>
 void loadQuadToDoublePacket(const Scalar* b, DoublePacket<RealPacket>& dest,
                             typename enable_if<unpacket_traits<RealPacket>::size<=8>::type* = 0)
 {
-  dest.first  = pset1<RealPacket>(real(*b));
-  dest.second = pset1<RealPacket>(imag(*b));
+  dest.first  = pset1<RealPacket>(numext::real(*b));
+  dest.second = pset1<RealPacket>(numext::imag(*b));
 }
 
 template<typename Scalar, typename RealPacket>
@@ -739,8 +735,8 @@ void loadQuadToDoublePacket(const Scalar* b, DoublePacket<RealPacket>& dest,
 {
   // yes, that's pretty hackish too :(
   typedef typename NumTraits<Scalar>::Real RealScalar;
-  RealScalar r[4] = {real(b[0]), real(b[0]), real(b[1]), real(b[1])};
-  RealScalar i[4] = {imag(b[0]), imag(b[0]), imag(b[1]), imag(b[1])};
+  RealScalar r[4] = {numext::real(b[0]), numext::real(b[0]), numext::real(b[1]), numext::real(b[1])};
+  RealScalar i[4] = {numext::imag(b[0]), numext::imag(b[0]), numext::imag(b[1]), numext::imag(b[1])};
   dest.first  = ploadquad<RealPacket>(r);
   dest.second = ploadquad<RealPacket>(i);
 }
@@ -820,8 +816,8 @@ public:
   template<typename RealPacketType>
   EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, DoublePacket<RealPacketType>& dest) const
   {
-    dest.first  = pset1<RealPacketType>(real(*b));
-    dest.second = pset1<RealPacketType>(imag(*b));
+    dest.first  = pset1<RealPacketType>(numext::real(*b));
+    dest.second = pset1<RealPacketType>(numext::imag(*b));
   }
 
   EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, RhsPacketx4& dest) const
@@ -1050,148 +1046,6 @@ protected:
 
 };
 
-
-#if EIGEN_ARCH_ARM64 && defined EIGEN_VECTORIZE_NEON
-
-template<>
-struct gebp_traits <float, float, false, false,Architecture::NEON,PacketFull>
- : gebp_traits<float,float,false,false,Architecture::Generic,PacketFull>
-{
-  typedef float RhsPacket;
-
-  typedef float32x4_t RhsPacketx4;
-
-  EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, RhsPacket& dest) const
-  {
-    dest = *b;
-  }
-
-  EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, RhsPacketx4& dest) const
-  {
-    dest = vld1q_f32(b);
-  }
-
-  EIGEN_STRONG_INLINE void updateRhs(const RhsScalar* b, RhsPacket& dest) const
-  {
-    dest = *b;
-  }
-
-  EIGEN_STRONG_INLINE void updateRhs(const RhsScalar* b, RhsPacketx4& dest) const
-  {}
-
-  EIGEN_STRONG_INLINE void loadRhsQuad(const RhsScalar* b, RhsPacket& dest) const
-  {
-    loadRhs(b,dest);
-  }
-
-  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<0>&) const
-  {
-    c = vfmaq_n_f32(c, a, b);
-  }
-
-  // NOTE: Template parameter inference failed when compiled with Android NDK:
-  // "candidate template ignored: could not match 'FixedInt<N>' against 'Eigen::internal::FixedInt<0>".
-
-  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<0>&) const
-  { madd_helper<0>(a, b, c); }
-  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<1>&) const
-  { madd_helper<1>(a, b, c); }
-  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<2>&) const
-  { madd_helper<2>(a, b, c); }
-  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<3>&) const
-  { madd_helper<3>(a, b, c); }
-
- private:
-  template<int LaneID>
-  EIGEN_STRONG_INLINE void madd_helper(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c) const
-  {
-    #if EIGEN_COMP_GNUC_STRICT && !(EIGEN_GNUC_AT_LEAST(9,0))
-    // workaround gcc issue https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89101
-    // vfmaq_laneq_f32 is implemented through a costly dup
-         if(LaneID==0)  asm("fmla %0.4s, %1.4s, %2.s[0]\n" : "+w" (c) : "w" (a), "w" (b) :  );
-    else if(LaneID==1)  asm("fmla %0.4s, %1.4s, %2.s[1]\n" : "+w" (c) : "w" (a), "w" (b) :  );
-    else if(LaneID==2)  asm("fmla %0.4s, %1.4s, %2.s[2]\n" : "+w" (c) : "w" (a), "w" (b) :  );
-    else if(LaneID==3)  asm("fmla %0.4s, %1.4s, %2.s[3]\n" : "+w" (c) : "w" (a), "w" (b) :  );
-    #else
-    c = vfmaq_laneq_f32(c, a, b, LaneID);
-    #endif
-  }
-};
-
-
-template<>
-struct gebp_traits <double, double, false, false,Architecture::NEON>
- : gebp_traits<double,double,false,false,Architecture::Generic>
-{
-  typedef double RhsPacket;
-
-  struct RhsPacketx4 {
-    float64x2_t B_0, B_1;
-  };
-
-  EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, RhsPacket& dest) const
-  {
-    dest = *b;
-  }
-
-  EIGEN_STRONG_INLINE void loadRhs(const RhsScalar* b, RhsPacketx4& dest) const
-  {
-    dest.B_0 = vld1q_f64(b);
-    dest.B_1 = vld1q_f64(b+2);
-  }
-
-  EIGEN_STRONG_INLINE void updateRhs(const RhsScalar* b, RhsPacket& dest) const
-  {
-    loadRhs(b,dest);
-  }
-
-  EIGEN_STRONG_INLINE void updateRhs(const RhsScalar* b, RhsPacketx4& dest) const
-  {}
-
-  EIGEN_STRONG_INLINE void loadRhsQuad(const RhsScalar* b, RhsPacket& dest) const
-  {
-    loadRhs(b,dest);
-  }
-
-  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacket& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<0>&) const
-  {
-    c = vfmaq_n_f64(c, a, b);
-  }
-
-  // NOTE: Template parameter inference failed when compiled with Android NDK:
-  // "candidate template ignored: could not match 'FixedInt<N>' against 'Eigen::internal::FixedInt<0>".
-
-  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<0>&) const
-  { madd_helper<0>(a, b, c); }
-  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<1>&) const
-  { madd_helper<1>(a, b, c); }
-  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<2>&) const
-  { madd_helper<2>(a, b, c); }
-  EIGEN_STRONG_INLINE void madd(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c, RhsPacket& /*tmp*/, const FixedInt<3>&) const
-  { madd_helper<3>(a, b, c); }
-
- private:
-  template <int LaneID>
-  EIGEN_STRONG_INLINE void madd_helper(const LhsPacket& a, const RhsPacketx4& b, AccPacket& c) const
-  {
-    #if EIGEN_COMP_GNUC_STRICT && !(EIGEN_GNUC_AT_LEAST(9,0))
-    // workaround gcc issue https://gcc.gnu.org/bugzilla/show_bug.cgi?id=89101
-    // vfmaq_laneq_f64 is implemented through a costly dup
-         if(LaneID==0)  asm("fmla %0.2d, %1.2d, %2.d[0]\n" : "+w" (c) : "w" (a), "w" (b.B_0) :  );
-    else if(LaneID==1)  asm("fmla %0.2d, %1.2d, %2.d[1]\n" : "+w" (c) : "w" (a), "w" (b.B_0) :  );
-    else if(LaneID==2)  asm("fmla %0.2d, %1.2d, %2.d[0]\n" : "+w" (c) : "w" (a), "w" (b.B_1) :  );
-    else if(LaneID==3)  asm("fmla %0.2d, %1.2d, %2.d[1]\n" : "+w" (c) : "w" (a), "w" (b.B_1) :  );
-    #else
-         if(LaneID==0) c = vfmaq_laneq_f64(c, a, b.B_0, 0);
-    else if(LaneID==1) c = vfmaq_laneq_f64(c, a, b.B_0, 1);
-    else if(LaneID==2) c = vfmaq_laneq_f64(c, a, b.B_1, 0);
-    else if(LaneID==3) c = vfmaq_laneq_f64(c, a, b.B_1, 1);
-    #endif
-  }
-};
-
-#endif
-
 /* optimized General packed Block * packed Panel product kernel
  *
  * Mixing type logic: C += A * B
@@ -1203,8 +1057,8 @@ template<typename LhsScalar, typename RhsScalar, typename Index, typename DataMa
 struct gebp_kernel
 {
   typedef gebp_traits<LhsScalar,RhsScalar,ConjugateLhs,ConjugateRhs,Architecture::Target> Traits;
-  typedef gebp_traits<LhsScalar,RhsScalar,ConjugateLhs,ConjugateRhs,Architecture::Target,PacketHalf> HalfTraits;
-  typedef gebp_traits<LhsScalar,RhsScalar,ConjugateLhs,ConjugateRhs,Architecture::Target,PacketQuarter> QuarterTraits;
+  typedef gebp_traits<LhsScalar,RhsScalar,ConjugateLhs,ConjugateRhs,Architecture::Target,GEBPPacketHalf> HalfTraits;
+  typedef gebp_traits<LhsScalar,RhsScalar,ConjugateLhs,ConjugateRhs,Architecture::Target,GEBPPacketQuarter> QuarterTraits;
   
   typedef typename Traits::ResScalar ResScalar;
   typedef typename Traits::LhsPacket LhsPacket;
@@ -1789,8 +1643,8 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
             EIGEN_GEBGP_ONESTEP(6);
             EIGEN_GEBGP_ONESTEP(7);
 
-            blB += pk*RhsProgress;
-            blA += pk*3*Traits::LhsProgress;
+            blB += int(pk) * int(RhsProgress);
+            blA += int(pk) * 3 * int(Traits::LhsProgress);
 
             EIGEN_ASM_COMMENT("end gebp micro kernel 3pX1");
           }
@@ -2001,8 +1855,8 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
             EIGEN_GEBGP_ONESTEP(6);
             EIGEN_GEBGP_ONESTEP(7);
 
-            blB += pk*RhsProgress;
-            blA += pk*2*Traits::LhsProgress;
+            blB += int(pk) * int(RhsProgress);
+            blA += int(pk) * 2 * int(Traits::LhsProgress);
 
             EIGEN_ASM_COMMENT("end gebp micro kernel 2pX1");
           }
@@ -2176,14 +2030,14 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
 
               B_0 = blB[0];
               B_1 = blB[1];
-              CJMADD(cj,A0,B_0,C0,  B_0);
-              CJMADD(cj,A0,B_1,C1,  B_1);
-              
+              C0 = cj.pmadd(A0,B_0,C0);
+              C1 = cj.pmadd(A0,B_1,C1);
+
               B_0 = blB[2];
               B_1 = blB[3];
-              CJMADD(cj,A0,B_0,C2,  B_0);
-              CJMADD(cj,A0,B_1,C3,  B_1);
-              
+              C2 = cj.pmadd(A0,B_0,C2);
+              C3 = cj.pmadd(A0,B_1,C3);
+
               blB += 4;
             }
             res(i, j2 + 0) += alpha * C0;
@@ -2208,7 +2062,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
           {
             LhsScalar A0 = blA[k];
             RhsScalar B_0 = blB[k];
-            CJMADD(cj, A0, B_0, C0, B_0);
+            C0 = cj.pmadd(A0, B_0, C0);
           }
           res(i, j2) += alpha * C0;
         }
@@ -2216,8 +2070,6 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
     }
   }
 
-
-#undef CJMADD
 
 // pack a block of the lhs
 // The traversal is as follow (mr==4):
@@ -2649,94 +2501,104 @@ template<typename Scalar, typename Index, typename DataMapper, int nr, bool Conj
 struct gemm_pack_rhs<Scalar, Index, DataMapper, nr, RowMajor, Conjugate, PanelMode>
 {
   typedef typename packet_traits<Scalar>::type Packet;
+  typedef typename unpacket_traits<Packet>::half HalfPacket;
+  typedef typename unpacket_traits<typename unpacket_traits<Packet>::half>::half QuarterPacket;
   typedef typename DataMapper::LinearMapper LinearMapper;
-  enum { PacketSize = packet_traits<Scalar>::size };
-  EIGEN_DONT_INLINE void operator()(Scalar* blockB, const DataMapper& rhs, Index depth, Index cols, Index stride=0, Index offset=0);
-};
-
-template<typename Scalar, typename Index, typename DataMapper, int nr, bool Conjugate, bool PanelMode>
-EIGEN_DONT_INLINE void gemm_pack_rhs<Scalar, Index, DataMapper, nr, RowMajor, Conjugate, PanelMode>
-  ::operator()(Scalar* blockB, const DataMapper& rhs, Index depth, Index cols, Index stride, Index offset)
-{
-  EIGEN_ASM_COMMENT("EIGEN PRODUCT PACK RHS ROWMAJOR");
-  EIGEN_UNUSED_VARIABLE(stride);
-  EIGEN_UNUSED_VARIABLE(offset);
-  eigen_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
-  conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
-  Index packet_cols8 = nr>=8 ? (cols/8) * 8 : 0;
-  Index packet_cols4 = nr>=4 ? (cols/4) * 4 : 0;
-  Index count = 0;
-
-//   if(nr>=8)
-//   {
-//     for(Index j2=0; j2<packet_cols8; j2+=8)
-//     {
-//       // skip what we have before
-//       if(PanelMode) count += 8 * offset;
-//       for(Index k=0; k<depth; k++)
-//       {
-//         if (PacketSize==8) {
-//           Packet A = ploadu<Packet>(&rhs[k*rhsStride + j2]);
-//           pstoreu(blockB+count, cj.pconj(A));
-//         } else if (PacketSize==4) {
-//           Packet A = ploadu<Packet>(&rhs[k*rhsStride + j2]);
-//           Packet B = ploadu<Packet>(&rhs[k*rhsStride + j2 + PacketSize]);
-//           pstoreu(blockB+count, cj.pconj(A));
-//           pstoreu(blockB+count+PacketSize, cj.pconj(B));
-//         } else {
-//           const Scalar* b0 = &rhs[k*rhsStride + j2];
-//           blockB[count+0] = cj(b0[0]);
-//           blockB[count+1] = cj(b0[1]);
-//           blockB[count+2] = cj(b0[2]);
-//           blockB[count+3] = cj(b0[3]);
-//           blockB[count+4] = cj(b0[4]);
-//           blockB[count+5] = cj(b0[5]);
-//           blockB[count+6] = cj(b0[6]);
-//           blockB[count+7] = cj(b0[7]);
-//         }
-//         count += 8;
-//       }
-//       // skip what we have after
-//       if(PanelMode) count += 8 * (stride-offset-depth);
-//     }
-//   }
-  if(nr>=4)
+  enum { PacketSize = packet_traits<Scalar>::size,
+         HalfPacketSize = unpacket_traits<HalfPacket>::size,
+		 QuarterPacketSize = unpacket_traits<QuarterPacket>::size};
+  EIGEN_DONT_INLINE void operator()(Scalar* blockB, const DataMapper& rhs, Index depth, Index cols, Index stride=0, Index offset=0)
   {
-    for(Index j2=packet_cols8; j2<packet_cols4; j2+=4)
+    EIGEN_ASM_COMMENT("EIGEN PRODUCT PACK RHS ROWMAJOR");
+    EIGEN_UNUSED_VARIABLE(stride);
+    EIGEN_UNUSED_VARIABLE(offset);
+    eigen_assert(((!PanelMode) && stride==0 && offset==0) || (PanelMode && stride>=depth && offset<=stride));
+    const bool HasHalf = (int)HalfPacketSize < (int)PacketSize;
+    const bool HasQuarter = (int)QuarterPacketSize < (int)HalfPacketSize;
+    conj_if<NumTraits<Scalar>::IsComplex && Conjugate> cj;
+    Index packet_cols8 = nr>=8 ? (cols/8) * 8 : 0;
+    Index packet_cols4 = nr>=4 ? (cols/4) * 4 : 0;
+    Index count = 0;
+
+  //   if(nr>=8)
+  //   {
+  //     for(Index j2=0; j2<packet_cols8; j2+=8)
+  //     {
+  //       // skip what we have before
+  //       if(PanelMode) count += 8 * offset;
+  //       for(Index k=0; k<depth; k++)
+  //       {
+  //         if (PacketSize==8) {
+  //           Packet A = ploadu<Packet>(&rhs[k*rhsStride + j2]);
+  //           pstoreu(blockB+count, cj.pconj(A));
+  //         } else if (PacketSize==4) {
+  //           Packet A = ploadu<Packet>(&rhs[k*rhsStride + j2]);
+  //           Packet B = ploadu<Packet>(&rhs[k*rhsStride + j2 + PacketSize]);
+  //           pstoreu(blockB+count, cj.pconj(A));
+  //           pstoreu(blockB+count+PacketSize, cj.pconj(B));
+  //         } else {
+  //           const Scalar* b0 = &rhs[k*rhsStride + j2];
+  //           blockB[count+0] = cj(b0[0]);
+  //           blockB[count+1] = cj(b0[1]);
+  //           blockB[count+2] = cj(b0[2]);
+  //           blockB[count+3] = cj(b0[3]);
+  //           blockB[count+4] = cj(b0[4]);
+  //           blockB[count+5] = cj(b0[5]);
+  //           blockB[count+6] = cj(b0[6]);
+  //           blockB[count+7] = cj(b0[7]);
+  //         }
+  //         count += 8;
+  //       }
+  //       // skip what we have after
+  //       if(PanelMode) count += 8 * (stride-offset-depth);
+  //     }
+  //   }
+    if(nr>=4)
     {
-      // skip what we have before
-      if(PanelMode) count += 4 * offset;
+      for(Index j2=packet_cols8; j2<packet_cols4; j2+=4)
+      {
+        // skip what we have before
+        if(PanelMode) count += 4 * offset;
+        for(Index k=0; k<depth; k++)
+        {
+          if (PacketSize==4) {
+            Packet A = rhs.template loadPacket<Packet>(k, j2);
+            pstoreu(blockB+count, cj.pconj(A));
+            count += PacketSize;
+          } else if (HasHalf && HalfPacketSize==4) {
+            HalfPacket A = rhs.template loadPacket<HalfPacket>(k, j2);
+            pstoreu(blockB+count, cj.pconj(A));
+            count += HalfPacketSize;
+          } else if (HasQuarter && QuarterPacketSize==4) {
+            QuarterPacket A = rhs.template loadPacket<QuarterPacket>(k, j2);
+            pstoreu(blockB+count, cj.pconj(A));
+            count += QuarterPacketSize;
+          } else {
+            const LinearMapper dm0 = rhs.getLinearMapper(k, j2);
+            blockB[count+0] = cj(dm0(0));
+            blockB[count+1] = cj(dm0(1));
+            blockB[count+2] = cj(dm0(2));
+            blockB[count+3] = cj(dm0(3));
+            count += 4;
+          }
+        }
+        // skip what we have after
+        if(PanelMode) count += 4 * (stride-offset-depth);
+      }
+    }
+    // copy the remaining columns one at a time (nr==1)
+    for(Index j2=packet_cols4; j2<cols; ++j2)
+    {
+      if(PanelMode) count += offset;
       for(Index k=0; k<depth; k++)
       {
-        if (PacketSize==4) {
-          Packet A = rhs.template loadPacket<Packet>(k, j2);
-          pstoreu(blockB+count, cj.pconj(A));
-          count += PacketSize;
-        } else {
-          const LinearMapper dm0 = rhs.getLinearMapper(k, j2);
-          blockB[count+0] = cj(dm0(0));
-          blockB[count+1] = cj(dm0(1));
-          blockB[count+2] = cj(dm0(2));
-          blockB[count+3] = cj(dm0(3));
-          count += 4;
-        }
+        blockB[count] = cj(rhs(k, j2));
+        count += 1;
       }
-      // skip what we have after
-      if(PanelMode) count += 4 * (stride-offset-depth);
+      if(PanelMode) count += stride-offset-depth;
     }
   }
-  // copy the remaining columns one at a time (nr==1)
-  for(Index j2=packet_cols4; j2<cols; ++j2)
-  {
-    if(PanelMode) count += offset;
-    for(Index k=0; k<depth; k++)
-    {
-      blockB[count] = cj(rhs(k, j2));
-      count += 1;
-    }
-    if(PanelMode) count += stride-offset-depth;
-  }
-}
+};
 
 } // end namespace internal
 

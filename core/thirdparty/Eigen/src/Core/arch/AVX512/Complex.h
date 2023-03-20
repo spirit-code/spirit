@@ -37,27 +37,29 @@ template<> struct packet_traits<std::complex<float> >  : default_packet_traits
     HasMul    = 1,
     HasDiv    = 1,
     HasNegate = 1,
+    HasSqrt   = 1,
     HasAbs    = 0,
     HasAbs2   = 0,
     HasMin    = 0,
     HasMax    = 0,
-    HasSetLinear = 0,
-    HasReduxp = 0
+    HasSetLinear = 0
   };
 };
 
 template<> struct unpacket_traits<Packet8cf> {
   typedef std::complex<float> type;
+  typedef Packet4cf half;
+  typedef Packet16f as_real;
   enum {
     size = 8,
     alignment=unpacket_traits<Packet16f>::alignment,
-    vectorizable=true
+    vectorizable=true,
+    masked_load_available=false,
+    masked_store_available=false
   };
-  typedef Packet4cf half;
 };
 
 template<> EIGEN_STRONG_INLINE Packet8cf ptrue<Packet8cf>(const Packet8cf& a) { return Packet8cf(ptrue(Packet16f(a.v))); }
-template<> EIGEN_STRONG_INLINE Packet8cf pnot<Packet8cf>(const Packet8cf& a) { return Packet8cf(pnot(Packet16f(a.v))); }
 template<> EIGEN_STRONG_INLINE Packet8cf padd<Packet8cf>(const Packet8cf& a, const Packet8cf& b) { return Packet8cf(_mm512_add_ps(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet8cf psub<Packet8cf>(const Packet8cf& a, const Packet8cf& b) { return Packet8cf(_mm512_sub_ps(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet8cf pnegate(const Packet8cf& a)
@@ -151,49 +153,6 @@ EIGEN_STRONG_INLINE Packet4cf predux_half_dowto4<Packet8cf>(const Packet8cf& a) 
   return Packet4cf(res);
 }
 
-template<int Offset>
-struct palign_impl<Offset,Packet8cf>
-{
-  static EIGEN_STRONG_INLINE void run(Packet8cf& first, const Packet8cf& second)
-  {
-    if (Offset==0) return;
-    palign_impl<Offset*2,Packet16f>::run(first.v, second.v);
-  }
-};
-
-template<> struct conj_helper<Packet8cf, Packet8cf, false,true>
-{
-  EIGEN_STRONG_INLINE Packet8cf pmadd(const Packet8cf& x, const Packet8cf& y, const Packet8cf& c) const
-  { return padd(pmul(x,y),c); }
-
-  EIGEN_STRONG_INLINE Packet8cf pmul(const Packet8cf& a, const Packet8cf& b) const
-  {
-    return internal::pmul(a, pconj(b));
-  }
-};
-
-template<> struct conj_helper<Packet8cf, Packet8cf, true,false>
-{
-  EIGEN_STRONG_INLINE Packet8cf pmadd(const Packet8cf& x, const Packet8cf& y, const Packet8cf& c) const
-  { return padd(pmul(x,y),c); }
-
-  EIGEN_STRONG_INLINE Packet8cf pmul(const Packet8cf& a, const Packet8cf& b) const
-  {
-    return internal::pmul(pconj(a), b);
-  }
-};
-
-template<> struct conj_helper<Packet8cf, Packet8cf, true,true>
-{
-  EIGEN_STRONG_INLINE Packet8cf pmadd(const Packet8cf& x, const Packet8cf& y, const Packet8cf& c) const
-  { return padd(pmul(x,y),c); }
-
-  EIGEN_STRONG_INLINE Packet8cf pmul(const Packet8cf& a, const Packet8cf& b) const
-  {
-    return pconj(internal::pmul(a, b));
-  }
-};
-
 EIGEN_MAKE_CONJ_HELPER_CPLX_REAL(Packet8cf,Packet16f)
 
 template<> EIGEN_STRONG_INLINE Packet8cf pdiv<Packet8cf>(const Packet8cf& a, const Packet8cf& b)
@@ -233,23 +192,26 @@ template<> struct packet_traits<std::complex<double> >  : default_packet_traits
     HasMul    = 1,
     HasDiv    = 1,
     HasNegate = 1,
+    HasSqrt   = 1,
     HasAbs    = 0,
     HasAbs2   = 0,
     HasMin    = 0,
     HasMax    = 0,
-    HasSetLinear = 0,
-    HasReduxp = 0
+    HasSetLinear = 0
   };
 };
 
 template<> struct unpacket_traits<Packet4cd> {
   typedef std::complex<double> type;
+  typedef Packet2cd half;
+  typedef Packet8d as_real;
   enum {
     size = 4,
     alignment = unpacket_traits<Packet8d>::alignment,
-    vectorizable=true
+    vectorizable=true,
+    masked_load_available=false,
+    masked_store_available=false
   };
-  typedef Packet2cd half;
 };
 
 template<> EIGEN_STRONG_INLINE Packet4cd padd<Packet4cd>(const Packet4cd& a, const Packet4cd& b) { return Packet4cd(_mm512_add_pd(a.v,b.v)); }
@@ -273,7 +235,6 @@ template<> EIGEN_STRONG_INLINE Packet4cd pmul<Packet4cd>(const Packet4cd& a, con
 }
 
 template<> EIGEN_STRONG_INLINE Packet4cd ptrue<Packet4cd>(const Packet4cd& a) { return Packet4cd(ptrue(Packet8d(a.v))); }
-template<> EIGEN_STRONG_INLINE Packet4cd pnot<Packet4cd>(const Packet4cd& a) { return Packet4cd(pnot(Packet8d(a.v))); }
 template<> EIGEN_STRONG_INLINE Packet4cd pand   <Packet4cd>(const Packet4cd& a, const Packet4cd& b) { return Packet4cd(pand(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet4cd por    <Packet4cd>(const Packet4cd& a, const Packet4cd& b) { return Packet4cd(por(a.v,b.v)); }
 template<> EIGEN_STRONG_INLINE Packet4cd pxor   <Packet4cd>(const Packet4cd& a, const Packet4cd& b) { return Packet4cd(pxor(a.v,b.v)); }
@@ -333,7 +294,7 @@ template<> EIGEN_STRONG_INLINE std::complex<double> pfirst<Packet4cd>(const Pack
 }
 
 template<> EIGEN_STRONG_INLINE Packet4cd preverse(const Packet4cd& a) {
-  return Packet4cd(_mm512_shuffle_f64x2(a.v, a.v, EIGEN_SSE_SHUFFLE_MASK(3,2,1,0)));
+  return Packet4cd(_mm512_shuffle_f64x2(a.v, a.v, (shuffle_mask<3,2,1,0>::mask)));
 }
 
 template<> EIGEN_STRONG_INLINE std::complex<double> predux<Packet4cd>(const Packet4cd& a)
@@ -347,16 +308,6 @@ template<> EIGEN_STRONG_INLINE std::complex<double> predux_mul<Packet4cd>(const 
   return predux_mul(pmul(Packet2cd(_mm512_extractf64x4_pd(a.v,0)),
                          Packet2cd(_mm512_extractf64x4_pd(a.v,1))));
 }
-
-template<int Offset>
-struct palign_impl<Offset,Packet4cd>
-{
-  static EIGEN_STRONG_INLINE void run(Packet4cd& first, const Packet4cd& second)
-  {
-    if (Offset==0) return;
-    palign_impl<Offset*2,Packet8d>::run(first.v, second.v);
-  }
-};
 
 template<> struct conj_helper<Packet4cd, Packet4cd, false,true>
 {
@@ -446,43 +397,26 @@ ptranspose(PacketBlock<Packet8cf,8>& kernel) {
 
 EIGEN_DEVICE_FUNC inline void
 ptranspose(PacketBlock<Packet4cd,4>& kernel) {
-  __m512d T0 = _mm512_shuffle_f64x2(kernel.packet[0].v, kernel.packet[1].v, EIGEN_SSE_SHUFFLE_MASK(0,1,0,1)); // [a0 a1 b0 b1]
-  __m512d T1 = _mm512_shuffle_f64x2(kernel.packet[0].v, kernel.packet[1].v, EIGEN_SSE_SHUFFLE_MASK(2,3,2,3)); // [a2 a3 b2 b3]
-  __m512d T2 = _mm512_shuffle_f64x2(kernel.packet[2].v, kernel.packet[3].v, EIGEN_SSE_SHUFFLE_MASK(0,1,0,1)); // [c0 c1 d0 d1]
-  __m512d T3 = _mm512_shuffle_f64x2(kernel.packet[2].v, kernel.packet[3].v, EIGEN_SSE_SHUFFLE_MASK(2,3,2,3)); // [c2 c3 d2 d3]
+  __m512d T0 = _mm512_shuffle_f64x2(kernel.packet[0].v, kernel.packet[1].v, (shuffle_mask<0,1,0,1>::mask)); // [a0 a1 b0 b1]
+  __m512d T1 = _mm512_shuffle_f64x2(kernel.packet[0].v, kernel.packet[1].v, (shuffle_mask<2,3,2,3>::mask)); // [a2 a3 b2 b3]
+  __m512d T2 = _mm512_shuffle_f64x2(kernel.packet[2].v, kernel.packet[3].v, (shuffle_mask<0,1,0,1>::mask)); // [c0 c1 d0 d1]
+  __m512d T3 = _mm512_shuffle_f64x2(kernel.packet[2].v, kernel.packet[3].v, (shuffle_mask<2,3,2,3>::mask)); // [c2 c3 d2 d3]
 
-  kernel.packet[3] = Packet4cd(_mm512_shuffle_f64x2(T1, T3, EIGEN_SSE_SHUFFLE_MASK(1,3,1,3))); // [a3 b3 c3 d3]
-  kernel.packet[2] = Packet4cd(_mm512_shuffle_f64x2(T1, T3, EIGEN_SSE_SHUFFLE_MASK(0,2,0,2))); // [a2 b2 c2 d2]
-  kernel.packet[1] = Packet4cd(_mm512_shuffle_f64x2(T0, T2, EIGEN_SSE_SHUFFLE_MASK(1,3,1,3))); // [a1 b1 c1 d1]
-  kernel.packet[0] = Packet4cd(_mm512_shuffle_f64x2(T0, T2, EIGEN_SSE_SHUFFLE_MASK(0,2,0,2))); // [a0 b0 c0 d0]
+  kernel.packet[3] = Packet4cd(_mm512_shuffle_f64x2(T1, T3, (shuffle_mask<1,3,1,3>::mask))); // [a3 b3 c3 d3]
+  kernel.packet[2] = Packet4cd(_mm512_shuffle_f64x2(T1, T3, (shuffle_mask<0,2,0,2>::mask))); // [a2 b2 c2 d2]
+  kernel.packet[1] = Packet4cd(_mm512_shuffle_f64x2(T0, T2, (shuffle_mask<1,3,1,3>::mask))); // [a1 b1 c1 d1]
+  kernel.packet[0] = Packet4cd(_mm512_shuffle_f64x2(T0, T2, (shuffle_mask<0,2,0,2>::mask))); // [a0 b0 c0 d0]
 }
 
-template<> EIGEN_STRONG_INLINE Packet8cf pinsertfirst(const Packet8cf& a, std::complex<float> b)
-{
-  Packet2cf tmp = Packet2cf(_mm512_extractf32x4_ps(a.v,0));
-  tmp = pinsertfirst(tmp, b);
-  return Packet8cf( _mm512_insertf32x4(a.v, tmp.v, 0) );
+template<> EIGEN_STRONG_INLINE Packet4cd psqrt<Packet4cd>(const Packet4cd& a) {
+  return psqrt_complex<Packet4cd>(a);
 }
 
-template<> EIGEN_STRONG_INLINE Packet4cd pinsertfirst(const Packet4cd& a, std::complex<double> b)
-{
-  return Packet4cd(_mm512_castsi512_pd( _mm512_inserti32x4(_mm512_castpd_si512(a.v), _mm_castpd_si128(pset1<Packet1cd>(b).v), 0) ));
-}
-
-template<> EIGEN_STRONG_INLINE Packet8cf pinsertlast(const Packet8cf& a, std::complex<float> b)
-{
-  Packet2cf tmp = Packet2cf(_mm512_extractf32x4_ps(a.v,3) );
-  tmp = pinsertlast(tmp, b);
-  return Packet8cf( _mm512_insertf32x4(a.v, tmp.v, 3) );
-}
-
-template<> EIGEN_STRONG_INLINE Packet4cd pinsertlast(const Packet4cd& a, std::complex<double> b)
-{
-  return Packet4cd(_mm512_castsi512_pd( _mm512_inserti32x4(_mm512_castpd_si512(a.v), _mm_castpd_si128(pset1<Packet1cd>(b).v), 3) ));
+template<> EIGEN_STRONG_INLINE Packet8cf psqrt<Packet8cf>(const Packet8cf& a) {
+  return psqrt_complex<Packet8cf>(a);
 }
 
 } // end namespace internal
-
 } // end namespace Eigen
 
 #endif // EIGEN_COMPLEX_AVX512_H

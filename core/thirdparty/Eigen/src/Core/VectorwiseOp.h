@@ -1,7 +1,7 @@
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
 //
-// Copyright (C) 2008-2010 Gael Guennebaud <gael.guennebaud@inria.fr>
+// Copyright (C) 2008-2019 Gael Guennebaud <gael.guennebaud@inria.fr>
 // Copyright (C) 2006-2008 Benoit Jacob <jacob.benoit.1@gmail.com>
 //
 // This Source Code Form is subject to the terms of the Mozilla
@@ -65,10 +65,10 @@ class PartialReduxExpr : public internal::dense_xpr_base< PartialReduxExpr<Matri
     explicit PartialReduxExpr(const MatrixType& mat, const MemberOp& func = MemberOp())
       : m_matrix(mat), m_functor(func) {}
 
-    EIGEN_DEVICE_FUNC
-    Index rows() const { return (Direction==Vertical   ? 1 : m_matrix.rows()); }
-    EIGEN_DEVICE_FUNC
-    Index cols() const { return (Direction==Horizontal ? 1 : m_matrix.cols()); }
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+    Index rows() const EIGEN_NOEXCEPT { return (Direction==Vertical   ? 1 : m_matrix.rows()); }
+    EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR
+    Index cols() const EIGEN_NOEXCEPT { return (Direction==Horizontal ? 1 : m_matrix.cols()); }
 
     EIGEN_DEVICE_FUNC
     typename MatrixType::Nested nestedExpression() const { return m_matrix; }
@@ -134,7 +134,7 @@ struct member_redux {
   typedef typename result_of<
                      BinaryOp(const Scalar&,const Scalar&)
                    >::type  result_type;
-  
+
   enum { Vectorizable = functor_traits<BinaryOp>::PacketAccess };
   template<int Size> struct Cost { enum { value = (Size-1) * functor_traits<BinaryOp>::Cost }; };
   EIGEN_DEVICE_FUNC explicit member_redux(const BinaryOp func) : m_functor(func) {}
@@ -162,17 +162,17 @@ struct member_redux {
   * where `foo` is any method of `VectorwiseOp`. This expression is equivalent to applying `foo()` to each
   * column of `A` and then re-assemble the outputs in a matrix expression:
   * \code [A.col(0).foo(), A.col(1).foo(), ..., A.col(A.cols()-1).foo()] \endcode
-  * 
+  *
   * Example: \include MatrixBase_colwise.cpp
   * Output: \verbinclude MatrixBase_colwise.out
   *
   * The begin() and end() methods are obviously exceptions to the previous rule as they
   * return STL-compatible begin/end iterators to the rows or columns of the nested expression.
   * Typical use cases include for-range-loop and calls to STL algorithms:
-  * 
+  *
   * Example: \include MatrixBase_colwise_iterator_cxx11.cpp
   * Output: \verbinclude MatrixBase_colwise_iterator_cxx11.out
-  * 
+  *
   * For a partial reduction on an empty input, some rules apply.
   * For the sake of clarity, let's consider a vertical reduction:
   *   - If the number of columns is zero, then a 1x0 row-major vector expression is returned.
@@ -180,7 +180,7 @@ struct member_redux {
   *       - a row vector of zeros is returned for sum-like reductions (sum, squaredNorm, norm, etc.)
   *       - a row vector of ones is returned for a product reduction (e.g., <code>MatrixXd(n,0).colwise().prod()</code>)
   *       - an assert is triggered for all other reductions (minCoeff,maxCoeff,redux(bin_op))
-  * 
+  *
   * \sa DenseBase::colwise(), DenseBase::rowwise(), class PartialReduxExpr
   */
 template<typename ExpressionType, int Direction> class VectorwiseOp
@@ -216,7 +216,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     };
 
   protected:
-  
+
     template<typename OtherDerived> struct ExtendedType {
       typedef Replicate<OtherDerived,
                         isVertical   ? 1 : ExpressionType::RowsAtCompileTime,
@@ -279,23 +279,47 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
     /** This is the const version of iterator (aka read-only) */
     random_access_iterator_type const_iterator;
     #else
-    typedef internal::subvector_stl_iterator<ExpressionType,       DirectionType(Direction)> iterator;
-    typedef internal::subvector_stl_iterator<const ExpressionType, DirectionType(Direction)> const_iterator;
+    typedef internal::subvector_stl_iterator<ExpressionType,               DirectionType(Direction)> iterator;
+    typedef internal::subvector_stl_iterator<const ExpressionType,         DirectionType(Direction)> const_iterator;
+    typedef internal::subvector_stl_reverse_iterator<ExpressionType,       DirectionType(Direction)> reverse_iterator;
+    typedef internal::subvector_stl_reverse_iterator<const ExpressionType, DirectionType(Direction)> const_reverse_iterator;
     #endif
 
     /** returns an iterator to the first row (rowwise) or column (colwise) of the nested expression.
       * \sa end(), cbegin()
       */
-    iterator        begin() const { return iterator      (m_matrix, 0); }
+    iterator                 begin()       { return iterator      (m_matrix, 0); }
     /** const version of begin() */
-    const_iterator cbegin() const { return const_iterator(m_matrix, 0); }
+    const_iterator           begin() const { return const_iterator(m_matrix, 0); }
+    /** const version of begin() */
+    const_iterator          cbegin() const { return const_iterator(m_matrix, 0); }
+
+    /** returns a reverse iterator to the last row (rowwise) or column (colwise) of the nested expression.
+      * \sa rend(), crbegin()
+      */
+    reverse_iterator        rbegin()       { return reverse_iterator       (m_matrix, m_matrix.template subVectors<DirectionType(Direction)>()-1); }
+	/** const version of rbegin() */
+    const_reverse_iterator  rbegin() const { return const_reverse_iterator (m_matrix, m_matrix.template subVectors<DirectionType(Direction)>()-1); }
+	/** const version of rbegin() */
+	const_reverse_iterator crbegin() const { return const_reverse_iterator (m_matrix, m_matrix.template subVectors<DirectionType(Direction)>()-1); }
 
     /** returns an iterator to the row (resp. column) following the last row (resp. column) of the nested expression
       * \sa begin(), cend()
       */
-    iterator        end()   const { return iterator      (m_matrix, m_matrix.template subVectors<DirectionType(Direction)>()); }
+    iterator                 end()         { return iterator      (m_matrix, m_matrix.template subVectors<DirectionType(Direction)>()); }
     /** const version of end() */
-    const_iterator cend()   const { return const_iterator(m_matrix, m_matrix.template subVectors<DirectionType(Direction)>()); }
+    const_iterator           end()  const  { return const_iterator(m_matrix, m_matrix.template subVectors<DirectionType(Direction)>()); }
+    /** const version of end() */
+    const_iterator          cend()  const  { return const_iterator(m_matrix, m_matrix.template subVectors<DirectionType(Direction)>()); }
+
+    /** returns a reverse iterator to the row (resp. column) before the first row (resp. column) of the nested expression
+      * \sa begin(), cend()
+      */
+    reverse_iterator        rend()         { return reverse_iterator       (m_matrix, -1); }
+    /** const version of rend() */
+    const_reverse_iterator  rend()  const  { return const_reverse_iterator (m_matrix, -1); }
+    /** const version of rend() */
+    const_reverse_iterator crend()  const  { return const_reverse_iterator (m_matrix, -1); }
 
     /** \returns a row or column vector expression of \c *this reduxed by \a func
       *
@@ -304,7 +328,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       *
       * \warning the size along the reduction direction must be strictly positive,
       *          otherwise an assertion is triggered.
-      * 
+      *
       * \sa class VectorwiseOp, DenseBase::colwise(), DenseBase::rowwise()
       */
     template<typename BinaryOp>
@@ -341,7 +365,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       *
       * \warning the size along the reduction direction must be strictly positive,
       *          otherwise an assertion is triggered.
-      * 
+      *
       * \warning the result is undefined if \c *this contains NaN.
       *
       * Example: \include PartialRedux_minCoeff.cpp
@@ -360,7 +384,7 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
       *
       * \warning the size along the reduction direction must be strictly positive,
       *          otherwise an assertion is triggered.
-      * 
+      *
       * \warning the result is undefined if \c *this contains NaN.
       *
       * Example: \include PartialRedux_maxCoeff.cpp
@@ -714,6 +738,10 @@ template<typename ExpressionType, int Direction> class VectorwiseOp
 
     EIGEN_DEVICE_FUNC
     const HNormalizedReturnType hnormalized() const;
+
+#   ifdef EIGEN_VECTORWISEOP_PLUGIN
+#     include EIGEN_VECTORWISEOP_PLUGIN
+#   endif
 
   protected:
     Index redux_length() const
