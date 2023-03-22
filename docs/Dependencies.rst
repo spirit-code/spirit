@@ -11,5 +11,4 @@
    Spectra      <../core/thirdparty/spectra/README>
    kissFFT      <../core/thirdparty/kiss_fft/README>
    fmtlib       <../core/thirdparty/fmt/README>
-   termcolor    <../core/thirdparty/termcolor/README>
    QHull        <../thirdparty/qhull/README>

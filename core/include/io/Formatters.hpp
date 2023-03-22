@@ -8,6 +8,7 @@
 
 #include <Eigen/Core>
 
+#include <fmt/color.h>
 #include <fmt/ostream.h>
 
 #include <iostream>
@@ -88,6 +89,42 @@ struct fmt::formatter<Utility::Log_Level> : formatter<string_view>
         }
 
         return formatter<string_view>::format( name, ctx );
+    }
+};
+
+template<>
+struct fmt::formatter<Utility::LogEntry> : formatter<string_view>
+{
+    template<typename FmtContext>
+    auto format( Utility::LogEntry entry, FmtContext & ctx )
+    {
+        using namespace Utility;
+
+        auto index_to_string = []( int idx ) -> std::string
+        {
+            if( idx >= 0 )
+                return fmt::format( "{:0>2}", idx + 1 );
+            else
+                return "--";
+        };
+
+        // First line includes the datetime tag etc.
+        std::string format_str;
+        if( Log.bracket_separators )
+            format_str = "{}  [{:^7}] [{:^4}] [{}]  {}";
+        else
+            format_str = "{}   {:^7}   {:^4}   {}   {}";
+        // Note, ctx.out() is an output iterator to write to.
+        // Currently not using entry.idx_chain, as it is not actively used in the codebase
+        auto out = fmt::format_to(
+            ctx.out(), format_str, entry.time, entry.level, entry.sender, index_to_string( entry.idx_image ),
+            entry.message_lines[0] );
+
+        // Rest of the block
+        for( std::size_t i = 1; i < entry.message_lines.size(); ++i )
+            out = fmt::format_to( ctx.out(), "\n{}{}", Log.tags_space, entry.message_lines[i] );
+
+        return out;
     }
 };
 

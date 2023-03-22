@@ -113,14 +113,15 @@ void Method_EMA::Finalize()
 void Method_EMA::Message_Start()
 {
     //---- Log messages
-    Log.SendBlock(
-        Log_Level::All, this->SenderName,
-        { "------------  Started  " + this->Name() + " Visualization ------------",
-          "    Mode frequency  " + fmt::format( "{}", this->parameters_ema->frequency ),
-          "    Mode amplitude  " + fmt::format( "{}", this->parameters_ema->amplitude ),
-          "    Number of modes " + fmt::format( "{}", this->parameters_ema->n_modes ),
-          "-----------------------------------------------------" },
-        this->idx_image, this->idx_chain );
+    Log( Log_Level::All, this->SenderName,
+         {
+             "------------  Started  " + this->Name() + " Visualization ------------",
+             "    Mode frequency  " + fmt::format( "{}", this->parameters_ema->frequency ),
+             "    Mode amplitude  " + fmt::format( "{}", this->parameters_ema->amplitude ),
+             "    Number of modes " + fmt::format( "{}", this->parameters_ema->n_modes ),
+             "-----------------------------------------------------",
+         },
+         this->idx_image, this->idx_chain );
 }
 
 void Method_EMA::Message_Step() {}

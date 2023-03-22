@@ -120,10 +120,10 @@ void Calculate( Data::HTST_Info & htst_info, int n_eigenmodes_keep )
         // Print some eigenvalues
         block = std::vector<std::string>{ "10 lowest eigenvalues at saddle point:" };
         for( int i = 0; i < 10; ++i )
-            block.push_back( fmt::format(
+            block.emplace_back( fmt::format(
                 "ew[{}]={:^20e}   ew[{}]={:^20e}", i, htst_info.eigenvalues_sp[i], i + 2 * nos - 10,
                 htst_info.eigenvalues_sp[i + 2 * nos - 10] ) );
-        Log.SendBlock( Utility::Log_Level::Info, Utility::Log_Sender::HTST, block, -1, -1 );
+        Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST, block, -1, -1 );
 
         // Check if lowest eigenvalue < 0 (else it's not a SP)
         Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking if actually a saddle point..." );
@@ -224,10 +224,10 @@ void Calculate( Data::HTST_Info & htst_info, int n_eigenmodes_keep )
         // Print some eigenvalues
         block = std::vector<std::string>{ "10 lowest eigenvalues at minimum:" };
         for( int i = 0; i < 10; ++i )
-            block.push_back( fmt::format(
+            block.emplace_back( fmt::format(
                 "ew[{}]={:^20e}   ew[{}]={:^20e}", i, htst_info.eigenvalues_min[i], i + 2 * nos - 10,
                 htst_info.eigenvalues_min[i + 2 * nos - 10] ) );
-        Log.SendBlock( Utility::Log_Level::Info, Utility::Log_Sender::HTST, block, -1, -1 );
+        Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST, block, -1, -1 );
 
         // Check for eigenvalues < 0 (i.e. not a minimum)
         Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST, "Checking if actually a minimum..." );
@@ -301,19 +301,20 @@ void Calculate( Data::HTST_Info & htst_info, int n_eigenmodes_keep )
     htst_info.prefactor
         = C::g_e / ( C::hbar * 1e-12 ) * htst_info.Omega_0 * htst_info.prefactor_dynamical / ( 2 * C::Pi );
 
-    Log.SendBlock(
-        Utility::Log_Level::All, Utility::Log_Sender::HTST,
-        { "---- Prefactor calculation successful!",
-          fmt::format( "exponent    = {:^20e}", htst_info.temperature_exponent ),
-          fmt::format( "me          = {:^20e}", htst_info.me ),
-          fmt::format( "m = Omega_0 = {:^20e}", htst_info.Omega_0 ),
-          fmt::format( "s           = {:^20e}", htst_info.s ),
-          fmt::format( "volume_sp   = {:^20e}", htst_info.volume_sp ),
-          fmt::format( "volume_min  = {:^20e}", htst_info.volume_min ),
-          fmt::format( "hbar[meV*s] = {:^20e}", C::hbar * 1e-12 ),
-          fmt::format( "v = dynamical prefactor = {:^20e}", htst_info.prefactor_dynamical ),
-          fmt::format( "prefactor               = {:^20e}", htst_info.prefactor ) },
-        -1, -1 );
+    Log( Utility::Log_Level::All, Utility::Log_Sender::HTST,
+         {
+             "---- Prefactor calculation successful!",
+             fmt::format( "exponent    = {:^20e}", htst_info.temperature_exponent ),
+             fmt::format( "me          = {:^20e}", htst_info.me ),
+             fmt::format( "m = Omega_0 = {:^20e}", htst_info.Omega_0 ),
+             fmt::format( "s           = {:^20e}", htst_info.s ),
+             fmt::format( "volume_sp   = {:^20e}", htst_info.volume_sp ),
+             fmt::format( "volume_min  = {:^20e}", htst_info.volume_min ),
+             fmt::format( "hbar[meV*s] = {:^20e}", C::hbar * 1e-12 ),
+             fmt::format( "v = dynamical prefactor = {:^20e}", htst_info.prefactor_dynamical ),
+             fmt::format( "prefactor               = {:^20e}", htst_info.prefactor ),
+         },
+         -1, -1 );
 }
 
 scalar Calculate_Zero_Volume( const std::shared_ptr<Data::Spin_System> system )
@@ -374,12 +375,13 @@ scalar Calculate_Zero_Volume( const std::shared_ptr<Data::Spin_System> system )
         zero_volume          = zero_mode_length[0] * zero_mode_length[1] * zero_mode_length[2] * volume_factor;
     }
 
-    Log.SendBlock(
-        Utility::Log_Level::Info, Utility::Log_Sender::HTST,
-        { fmt::format( "ZV zero mode dimensionality = {}", zero_mode_dimensionality ),
-          fmt::format( "ZV         zero mode length = {}", zero_mode_length.transpose() ),
-          fmt::format( "ZV = {}", zero_volume ) },
-        -1, -1 );
+    Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST,
+         {
+             fmt::format( "ZV zero mode dimensionality = {}", zero_mode_dimensionality ),
+             fmt::format( "ZV         zero mode length = {}", zero_mode_length.transpose() ),
+             fmt::format( "ZV = {}", zero_volume ),
+         },
+         -1, -1 );
 
     // Return
     return zero_volume;
@@ -415,8 +417,8 @@ void Calculate_Perpendicular_Velocity(
 
     std::vector<std::string> block( 0 );
     for( int i = 0; i < 10; ++i )
-        block.push_back( fmt::format( "  a[{}] = {}", i, perpendicular_velocity[i] ) );
-    Log.SendBlock( Utility::Log_Level::Info, Utility::Log_Sender::HTST, block, -1, -1 );
+        block.emplace_back( fmt::format( "  a[{}] = {}", i, perpendicular_velocity[i] ) );
+    Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST, block, -1, -1 );
 
     // std::cerr << "without units:" << std::endl;
     // for (int i=0; i<10; ++i)

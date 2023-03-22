@@ -64,7 +64,7 @@ void DebugWidget::UpdateFromLog()
                 || ( this->checkBox_GNEB->isChecked() && ( entries[i].sender == Log_Sender::GNEB ) )
                 || ( this->checkBox_MMF->isChecked() && ( entries[i].sender == Log_Sender::MMF ) ) )
             {
-                this->plainTextEdit->appendPlainText( QString::fromLatin1( LogEntryToString( entries[i] ).c_str() ) );
+                this->plainTextEdit->appendPlainText( QString::fromLatin1( fmt::format( "{}", entries[i] ).c_str() ) );
             }
         }
     }

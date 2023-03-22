@@ -58,11 +58,6 @@ struct LogEntry
     int idx_chain;
 };
 
-// Convert the contents of a log entry to a string
-std::string LogEntryToString( LogEntry entry, bool braces_separators = true );
-// Convert the contents of a log block to a formatted string
-std::string LogBlockToString( std::vector<LogEntry> entries, bool braces_separators = true );
-
 /*
  * The Logging Handler keeps all Log Entries and provides methods to dump or append the entire Log to a file.
  * Note: the Handler is a singleton.
@@ -71,13 +66,8 @@ class LoggingHandler
 {
 public:
     // Send Log messages
-    void
-    Send( Log_Level level, Log_Sender sender, const std::string & message, int idx_image = -1, int idx_chain = -1 );
     void operator()(
         Log_Level level, Log_Sender sender, const std::string & message, int idx_image = -1, int idx_chain = -1 );
-    void SendBlock(
-        Log_Level level, Log_Sender sender, const std::vector<std::string> & messages, int idx_image = -1,
-        int idx_chain = -1 );
     void operator()(
         Log_Level level, Log_Sender sender, const std::vector<std::string> & messages, int idx_image = -1,
         int idx_chain = -1 );
@@ -120,6 +110,8 @@ public:
     int n_warnings{ 0 };
     // Length of the tags before each message in spaces
     const std::string tags_space = std::string( 49, ' ' );
+    // Whether to put brackets around bits before each log message
+    bool bracket_separators{ true };
 
     // Retrieve the singleton instance
     static LoggingHandler & getInstance()
@@ -133,6 +125,11 @@ public:
 private:
     // Constructor
     LoggingHandler();
+
+    // Send log messages
+    void Send(
+        Log_Level level, Log_Sender sender, const std::vector<std::string> & messages, int idx_image = -1,
+        int idx_chain = -1 );
 
     // Get the Log's entries, filtered for level, sender and indices
     std::vector<LogEntry> Filter(

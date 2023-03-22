@@ -512,22 +512,23 @@ void Calculate( Data::HTST_Info & htst_info )
     htst_info.prefactor
         = C::g_e / ( C::hbar * 1e-12 ) * htst_info.Omega_0 * htst_info.prefactor_dynamical / ( 2 * C::Pi );
 
-    Log.SendBlock(
-        Utility::Log_Level::All, Utility::Log_Sender::HTST,
-        { "---- Prefactor calculation successful!",
-          fmt::format( "exponent      = {:^20e}", htst_info.temperature_exponent ),
-          fmt::format( "me            = {:^20e}", htst_info.me ),
-          fmt::format( "m = Omega_0   = {:^20e}", htst_info.Omega_0 ),
-          fmt::format( "s             = {:^20e}", htst_info.s ),
-          fmt::format( "volume_sp     = {:^20e}", htst_info.volume_sp ),
-          fmt::format( "volume_min    = {:^20e}", htst_info.volume_min ),
-          fmt::format( "log |det_min| = {:^20e}", htst_info.det_min ),
-          fmt::format( "log |det_sp|  = {:^20e}", htst_info.det_sp ),
-          fmt::format( "0-mode factor = {:^20e}", zero_mode_factor ),
-          fmt::format( "hbar[meV*s]   = {:^20e}", C::hbar * 1e-12 ),
-          fmt::format( "v = dynamical prefactor = {:^20e}", htst_info.prefactor_dynamical ),
-          fmt::format( "prefactor               = {:^20e}", htst_info.prefactor ) },
-        -1, -1 );
+    Log( Utility::Log_Level::All, Utility::Log_Sender::HTST,
+         {
+             "---- Prefactor calculation successful!",
+             fmt::format( "exponent      = {:^20e}", htst_info.temperature_exponent ),
+             fmt::format( "me            = {:^20e}", htst_info.me ),
+             fmt::format( "m = Omega_0   = {:^20e}", htst_info.Omega_0 ),
+             fmt::format( "s             = {:^20e}", htst_info.s ),
+             fmt::format( "volume_sp     = {:^20e}", htst_info.volume_sp ),
+             fmt::format( "volume_min    = {:^20e}", htst_info.volume_min ),
+             fmt::format( "log |det_min| = {:^20e}", htst_info.det_min ),
+             fmt::format( "log |det_sp|  = {:^20e}", htst_info.det_sp ),
+             fmt::format( "0-mode factor = {:^20e}", zero_mode_factor ),
+             fmt::format( "hbar[meV*s]   = {:^20e}", C::hbar * 1e-12 ),
+             fmt::format( "v = dynamical prefactor = {:^20e}", htst_info.prefactor_dynamical ),
+             fmt::format( "prefactor               = {:^20e}", htst_info.prefactor ),
+         },
+         -1, -1 );
 }
 
 void Sparse_Calculate_Dynamical_Matrix(

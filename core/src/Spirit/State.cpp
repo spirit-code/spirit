@@ -23,7 +23,7 @@ try
 
     // Initialize the state
     state->datetime_creation        = std::chrono::system_clock::now();
-    state->datetime_creation_string = Utility::Timing::TimePointToString( state->datetime_creation );
+    state->datetime_creation_string = fmt::format( "{:%Y-%m-%d_%H-%M-%S}", state->datetime_creation );
     state->config_file              = config_file;
     state->quiet                    = quiet;
 
@@ -52,7 +52,7 @@ try
     block.emplace_back( "==========     Version:  " + version );
     // Log revision hash
     block.emplace_back( "==========     Revision: " + version_revision );
-    Log.SendBlock( Log_Level::All, Log_Sender::All, block );
+    Log( Log_Level::All, Log_Sender::All, block );
     // Log compiler
     Log( Log_Level::Info, Log_Sender::All, "==========     Compiled with: " + compiler_full );
 
@@ -120,7 +120,7 @@ try
 #ifdef SPIRIT_SCALAR_TYPE_FLOAT
     block.emplace_back( "    Using float as scalar type" );
 #endif
-    Log.SendBlock( Log_Level::Info, Log_Sender::All, block );
+    Log( Log_Level::Info, Log_Sender::All, block );
     Log( Log_Level::All, Log_Sender::All, "=====================================================" );
     //------------------------------------------------------------------------------------------
 
@@ -176,7 +176,7 @@ try
     block.emplace_back( "    Number of  Errors:  " + fmt::format( "{}", Log_Get_N_Errors( state ) ) );
     block.emplace_back( "    Number of Warnings: " + fmt::format( "{}", Log_Get_N_Warnings( state ) ) );
     block.emplace_back( "=====================================================" );
-    Log.SendBlock( Log_Level::All, Log_Sender::All, block );
+    Log( Log_Level::All, Log_Sender::All, block );
     // Try to write the log file
     try
     {
@@ -221,7 +221,7 @@ try
     block.emplace_back( "============== Spirit State: Deleted ================" );
     block.emplace_back( "=====================================================" );
 
-    Log.SendBlock( Log_Level::All, Log_Sender::All, block );
+    Log( Log_Level::All, Log_Sender::All, block );
     Log.Append_to_File();
 }
 catch( ... )

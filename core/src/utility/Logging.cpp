@@ -5,9 +5,8 @@
 #include <utility/Timing.hpp>
 
 #include <fmt/chrono.h>
+#include <fmt/color.h>
 #include <fmt/format.h>
-
-#include <termcolor/termcolor.hpp>
 
 #include <csignal>
 #include <ctime>
@@ -26,25 +25,6 @@ std::string IndexToString( int idx )
         return "--";
 }
 
-std::string LogEntryToString( LogEntry entry, bool braces_separators )
-{
-    std::string format_str;
-    if( braces_separators )
-        format_str = "{}  [{:^7}] [{:^4}] [{}] [{}]  {}";
-    else
-        format_str = "{}   {:^7}   {:^4}   {}   {}   {}";
-
-    std::string result = fmt::format(
-        format_str, entry.time, entry.level, entry.sender, IndexToString( entry.idx_chain ),
-        IndexToString( entry.idx_image ), entry.message_lines[0] );
-
-    // Rest of the block
-    for( std::size_t i = 1; i < entry.message_lines.size(); ++i )
-        result += fmt::format( "\n{}{}", Log.tags_space, entry.message_lines[i] );
-
-    return result;
-}
-
 LoggingHandler::LoggingHandler()
 {
     if( file_tag == "<time>" )
@@ -56,39 +36,6 @@ LoggingHandler::LoggingHandler()
 }
 
 void LoggingHandler::Send(
-    Log_Level level, Log_Sender sender, const std::string & message, int idx_image, int idx_chain )
-{
-    // Lock mutex because of reallocation (push_back)
-    std::lock_guard<std::mutex> guard( mutex );
-
-    // All messages are saved in the Log
-    LogEntry entry = { std::chrono::system_clock::now(), sender, level, { message }, idx_image, idx_chain };
-    log_entries.push_back( entry );
-
-    // Increment message count
-    n_entries++;
-    // Increment error count
-    if( level == Log_Level::Error )
-        n_errors++;
-    // Increment warning count
-    if( level == Log_Level::Warning )
-        n_warnings++;
-
-    // Determine message color in console
-    auto color = termcolor::reset;
-    if( level <= Log_Level::Warning )
-        color = termcolor::yellow;
-    if( level <= Log_Level::Error )
-        color = termcolor::red;
-    if( level == Log_Level::All )
-        color = termcolor::reset;
-
-    // If level <= verbosity, we print to console, but Error and Severe are always printed
-    if( ( messages_to_console && level <= level_console ) || level == Log_Level::Error || level == Log_Level::Severe )
-        std::cout << color << LogEntryToString( log_entries.back() ) << termcolor::reset << "\n";
-}
-
-void LoggingHandler::SendBlock(
     Log_Level level, Log_Sender sender, const std::vector<std::string> & messages, int idx_image, int idx_chain )
 {
     // Lock mutex because of reallocation (push_back)
@@ -100,31 +47,35 @@ void LoggingHandler::SendBlock(
 
     // Increment message count
     n_entries++;
-
-    // Determine message color in console
-    auto color = termcolor::reset;
-    if( level <= Log_Level::Warning )
-        color = termcolor::yellow;
-    if( level <= Log_Level::Error )
-        color = termcolor::red;
-    if( level == Log_Level::All )
-        color = termcolor::reset;
+    // Increment error count
+    if( level == Log_Level::Error )
+        n_errors++;
+    // Increment warning count
+    if( level == Log_Level::Warning )
+        n_warnings++;
 
     // If level <= verbosity, we print to console, but Error and Severe are always printed
     if( ( messages_to_console && level <= level_console ) || level == Log_Level::Error || level == Log_Level::Severe )
-        std::cout << color << LogEntryToString( log_entries.back() ) << termcolor::reset << "\n";
+    {
+        if( level == Log_Level::Warning )
+            fmt::print( fg( fmt::color::orange ) | fmt::emphasis::bold, "{}\n", log_entries.back() );
+        else if( level == Log_Level::Error )
+            fmt::print( fg( fmt::color::red ) | fmt::emphasis::bold, "{}\n", log_entries.back() );
+        else
+            fmt::print( "{}\n", log_entries.back() );
+    }
 }
 
 void LoggingHandler::operator()(
     Log_Level level, Log_Sender sender, const std::string & message, int idx_image, int idx_chain )
 {
-    Send( level, sender, message, idx_image, idx_chain );
+    Send( level, sender, { message }, idx_image, idx_chain );
 }
 
 void LoggingHandler::operator()(
     Log_Level level, Log_Sender sender, const std::vector<std::string> & messages, int idx_image, int idx_chain )
 {
-    SendBlock( level, sender, messages, idx_image, idx_chain );
+    Send( level, sender, messages, idx_image, idx_chain );
 }
 
 std::vector<LogEntry> LoggingHandler::GetEntries()
@@ -167,7 +118,7 @@ void LoggingHandler::Append_to_File()
         // Log this event
         Send(
             Log_Level::Debug, Log_Sender::All,
-            fmt::format( "Appending log to file \"{}/{}\"", output_folder, file_name ) );
+            { fmt::format( "Appending log to file \"{}/{}\"", output_folder, file_name ) } );
 
         // Gather the string
         std::string logstring = "";
@@ -178,7 +129,7 @@ void LoggingHandler::Append_to_File()
             const auto & level = log_entries[i].level;
             if( level <= level_file || level == Log_Level::Error || level == Log_Level::Severe )
             {
-                logstring += fmt::format( "{}\n", LogEntryToString( log_entries[i] ) );
+                logstring += fmt::format( "{}\n", log_entries[i] );
             }
         }
 
@@ -189,7 +140,7 @@ void LoggingHandler::Append_to_File()
     {
         Send(
             Log_Level::Debug, Log_Sender::All,
-            fmt::format( "Not appending log to file \"{}/{}\"", output_folder, file_name ) );
+            { fmt::format( "Not appending log to file \"{}/{}\"", output_folder, file_name ) } );
     }
 }
 
@@ -201,7 +152,7 @@ void LoggingHandler::Dump_to_File()
         // Log this event
         Send(
             Log_Level::Info, Log_Sender::All,
-            fmt::format( "Dumping log to file \"{}/{}\"", output_folder, file_name ) );
+            { fmt::format( "Dumping log to file \"{}/{}\"", output_folder, file_name ) } );
 
         // Gather the string
         std::string logstring = "";
@@ -210,7 +161,7 @@ void LoggingHandler::Dump_to_File()
             auto level = log_entries[i].level;
             if( level <= level_file || level == Log_Level::Error || level == Log_Level::Severe )
             {
-                logstring += fmt::format( "{}\n", LogEntryToString( log_entries[i] ) );
+                logstring += fmt::format( "{}\n", log_entries[i] );
             }
         }
 
@@ -221,7 +172,7 @@ void LoggingHandler::Dump_to_File()
     {
         Send(
             Log_Level::Debug, Log_Sender::All,
-            fmt::format( "Not dumping log to file \"{}/{}\"", output_folder, file_name ) );
+            { fmt::format( "Not dumping log to file \"{}/{}\"", output_folder, file_name ) } );
     }
 }
 

@@ -4,7 +4,11 @@
 
 #include <engine/Method.hpp>
 #include <utility/Exception.hpp>
-#include <utility/Timing.hpp>
+
+#include <fmt/chrono.h>
+#include <fmt/format.h>
+
+#include <chrono>
 
 /*
  * The State struct is passed around in an application to make the
@@ -39,7 +43,7 @@ struct State
 
     // Timepoint of creation
     std::chrono::system_clock::time_point datetime_creation = std::chrono::system_clock::now();
-    std::string datetime_creation_string                    = Utility::Timing::TimePointToString( datetime_creation );
+    std::string datetime_creation_string                    = fmt::format( "{:%Y-%m-%d_%H-%M-%S}", datetime_creation );
 
     // Config file at creation
     std::string config_file{ "" };
