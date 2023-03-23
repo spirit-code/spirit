@@ -6,6 +6,8 @@ using Utility::Log_Level;
 using Utility::Log_Sender;
 ///////////////////////////////////
 
+#include <fmt/format.h>
+
 DebugWidget::DebugWidget( std::shared_ptr<State> state )
 {
     this->state = state;

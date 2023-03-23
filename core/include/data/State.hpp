@@ -9,6 +9,9 @@
 #include <fmt/format.h>
 
 #include <chrono>
+#include <memory>
+#include <string>
+#include <vector>
 
 /*
  * The State struct is passed around in an application to make the
