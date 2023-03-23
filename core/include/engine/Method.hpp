@@ -163,6 +163,14 @@ public:
     std::vector<scalar> history_max_torque;
     std::vector<scalar> history_energy;
 
+    Engine::Hamiltonian * Hamiltonian()
+    {
+        if (systems.size() > 0)
+            return systems[0]->hamiltonian.get();
+        else
+            return nullptr;
+    }
+
 protected:
     //////////// Information for Logging and Save_Current ////////////////////////
     int idx_image;

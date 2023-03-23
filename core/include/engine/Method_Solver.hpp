@@ -55,7 +55,7 @@ public:
     Method_Solver( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain )
             : Method( parameters, idx_img, idx_chain )
     {
-        this->linesearch = std::make_unique<Trivial_Linesearch>(nos);
+        this->linesearch = std::make_unique<Trivial_Linesearch<Vector3>>(new Renormalisation_Propagator());
     }
 
     virtual ~Method_Solver() = default;
@@ -137,7 +137,7 @@ protected:
     virtual void Message_End() override;
 
     // Linesearch
-    std::unique_ptr<Linesearch> linesearch;
+    std::unique_ptr<Linesearch<Vector3>> linesearch;
 
     //////////// DEPONDT ////////////////////////////////////////////////////////////
     // Temporaries for virtual forces
