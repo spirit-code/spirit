@@ -1,6 +1,6 @@
 #include <data/Geometry.hpp>
+#include <engine/Indexing.hpp>
 #include <engine/Neighbours.hpp>
-#include <engine/Vectormath.hpp>
 #include <utility/Exception.hpp>
 
 #include <Eigen/Core>
@@ -61,7 +61,7 @@ Geometry::Geometry(
     {
         const auto & site = pinning.sites[isite];
         std::size_t ispin = site.i
-                            + Engine::Vectormath::idx_from_translations(
+                            + Engine::Indexing::idx_from_translations(
                                 this->n_cells, this->n_cell_atoms,
                                 { site.translations[0], site.translations[1], site.translations[2] } );
 
@@ -74,7 +74,7 @@ Geometry::Geometry(
     {
         auto & defect     = defects.sites[i];
         std::size_t ispin = defects.sites[i].i
-                            + Engine::Vectormath::idx_from_translations(
+                            + Engine::Indexing::idx_from_translations(
                                 this->n_cells, this->n_cell_atoms,
                                 { defect.translations[0], defect.translations[1], defect.translations[2] } );
         this->atom_types[ispin] = defects.types[i];

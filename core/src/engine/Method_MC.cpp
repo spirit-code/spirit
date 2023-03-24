@@ -1,6 +1,7 @@
 #include <Spirit/Spirit_Defines.h>
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
+#include <engine/Indexing.hpp>
 #include <engine/Method_MC.hpp>
 #include <engine/Vectormath.hpp>
 #include <io/IO.hpp>
@@ -107,7 +108,7 @@ void Method_MC::Metropolis( const vectorfield & spins_old, vectorfield & spins_n
             // Faster, but worse statistics
             ispin = idx;
 
-        if( Vectormath::check_atom_type( this->systems[0]->geometry->atom_types[ispin] ) )
+        if( Indexing::check_atom_type( this->systems[0]->geometry->atom_types[ispin] ) )
         {
             // Sample a cone
             if( this->parameters_mc->metropolis_step_cone )

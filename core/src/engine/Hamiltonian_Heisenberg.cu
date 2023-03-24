@@ -4,6 +4,7 @@
 #include <engine/Backend_par.hpp>
 #include <engine/FFT.hpp>
 #include <engine/Hamiltonian_Heisenberg.hpp>
+#include <engine/Indexing.hpp>
 #include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Constants.hpp>
@@ -16,11 +17,12 @@
 using namespace Data;
 using namespace Utility;
 namespace C = Utility::Constants;
-using Engine::Vectormath::check_atom_type;
-using Engine::Vectormath::cu_check_atom_type;
-using Engine::Vectormath::cu_idx_from_pair;
-using Engine::Vectormath::cu_tupel_from_idx;
-using Engine::Vectormath::idx_from_pair;
+using Engine::Indexing::check_atom_type;
+using Engine::Indexing::cu_check_atom_type;
+using Engine::Indexing::cu_idx_from_pair;
+using Engine::Indexing::cu_tupel_from_idx;
+using Engine::Indexing::idx_from_pair;
+using Engine::Indexing::idx_from_translations;
 
 namespace Engine
 {
@@ -632,9 +634,7 @@ void Hamiltonian_Heisenberg::E_Quadruplet( const vectorfield & spins, scalarfiel
             {
                 for( int dc = 0; dc < geometry->n_cells[2]; ++dc )
                 {
-                    int ispin = i
-                                + Vectormath::idx_from_translations(
-                                    geometry->n_cells, geometry->n_cell_atoms, { da, db, dc } );
+                    int ispin = i + idx_from_translations( geometry->n_cells, geometry->n_cell_atoms, { da, db, dc } );
                     int jspin = idx_from_pair(
                         ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
                         { i, j, { d_j[0], d_j[1], d_j[2] } } );
@@ -1129,9 +1129,7 @@ void Hamiltonian_Heisenberg::Gradient_Quadruplet( const vectorfield & spins, vec
             {
                 for( int dc = 0; dc < geometry->n_cells[2]; ++dc )
                 {
-                    int ispin = i
-                                + Vectormath::idx_from_translations(
-                                    geometry->n_cells, geometry->n_cell_atoms, { da, db, dc } );
+                    int ispin = i + idx_from_translations( geometry->n_cells, geometry->n_cell_atoms, { da, db, dc } );
                     int jspin = idx_from_pair(
                         ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
                         { i, j, { d_j[0], d_j[1], d_j[2] } } );

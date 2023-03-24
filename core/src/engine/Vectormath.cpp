@@ -1,3 +1,4 @@
+#include <engine/Indexing.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Constants.hpp>
@@ -705,7 +706,8 @@ void directional_gradient(
     // Loop over vectorfield
     for( unsigned int ispin = 0; ispin < vf.size(); ++ispin )
     {
-        auto translations_i = translations_from_idx( n_cells, geometry.n_cell_atoms, ispin ); // transVec of spin i
+        auto translations_i
+            = Indexing::translations_from_idx( n_cells, geometry.n_cell_atoms, ispin ); // transVec of spin i
         // int k = i%geometry.n_cell_atoms; // index within unit cell - k=0 for all cases used in the thesis
         scalar n = 0;
 
@@ -721,12 +723,12 @@ void directional_gradient(
         // Loop over neighbours of this vector to calculate contributions of finite differences to current direction
         for( unsigned int j = 0; j < neigh.size(); ++j )
         {
-            if( boundary_conditions_fulfilled(
+            if( Indexing::boundary_conditions_fulfilled(
                     geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations ) )
             {
                 // Index of neighbour
-                int ineigh
-                    = idx_from_translations( n_cells, geometry.n_cell_atoms, translations_i, neigh[j].translations );
+                int ineigh = Indexing::idx_from_translations(
+                    n_cells, geometry.n_cell_atoms, translations_i, neigh[j].translations );
                 if( ineigh >= 0 )
                 {
                     auto d = geometry.positions[ineigh] - geometry.positions[ispin];
@@ -745,12 +747,12 @@ void directional_gradient(
         // Loop over neighbours of this vector to calculate finite differences
         for( unsigned int j = 0; j < neigh.size(); ++j )
         {
-            if( boundary_conditions_fulfilled(
+            if( Indexing::boundary_conditions_fulfilled(
                     geometry.n_cells, boundary_conditions, translations_i, neigh[j].translations ) )
             {
                 // Index of neighbour
-                int ineigh
-                    = idx_from_translations( n_cells, geometry.n_cell_atoms, translations_i, neigh[j].translations );
+                int ineigh = Indexing::idx_from_translations(
+                    n_cells, geometry.n_cell_atoms, translations_i, neigh[j].translations );
                 if( ineigh >= 0 )
                 {
                     auto d = geometry.positions[ineigh] - geometry.positions[ispin];
