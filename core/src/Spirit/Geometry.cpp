@@ -3,7 +3,7 @@
 
 #include <data/State.hpp>
 #include <engine/Hamiltonian_Heisenberg.hpp>
-#include <engine/Vectormath.hpp>
+#include <engine/Indexing.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 
@@ -18,10 +18,10 @@ void Helper_System_Set_Geometry( Data::Spin_System & system, const Data::Geometr
     system.nos = nos;
 
     // Move the vector-fields to the new geometry
-    *system.spins = Engine::Vectormath::change_dimensions(
+    *system.spins = Engine::Indexing::change_dimensions(
         *system.spins, old_geometry.n_cell_atoms, old_geometry.n_cells, new_geometry.n_cell_atoms, new_geometry.n_cells,
         { 0, 0, 1 } );
-    system.effective_field = Engine::Vectormath::change_dimensions(
+    system.effective_field = Engine::Indexing::change_dimensions(
         system.effective_field, old_geometry.n_cell_atoms, old_geometry.n_cells, new_geometry.n_cell_atoms,
         new_geometry.n_cells, { 0, 0, 0 } );
 
@@ -83,7 +83,7 @@ void Helper_State_Set_Geometry(
 
     // Deal with clipboard configuration of State
     if( state.clipboard_spins )
-        *state.clipboard_spins = Engine::Vectormath::change_dimensions(
+        *state.clipboard_spins = Engine::Indexing::change_dimensions(
             *state.clipboard_spins, old_geometry.n_cell_atoms, old_geometry.n_cells, new_geometry.n_cell_atoms,
             new_geometry.n_cells, { 0, 0, 1 } );
 

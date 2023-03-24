@@ -6,7 +6,7 @@
 
 namespace Engine
 {
-namespace Vectormath
+namespace Indexing
 {
 
 // Note: translations must lie within bounds of n_cells
@@ -444,7 +444,52 @@ inline int idx_from_pair(
     return jspin;
 }
 
-} // namespace Vectormath
+// Re-distribute a given field according to a new set of dimensions.
+template<typename T>
+field<T> change_dimensions(
+    field<T> & oldfield, const int n_cell_atoms_old, const intfield & n_cells_old, const int n_cell_atoms_new,
+    const intfield & n_cells_new, T default_value, std::array<int, 3> shift = std::array<int, 3>{ 0, 0, 0 } )
+{
+    // As a workaround for compatibility with the intel compiler, the loop boundaries are copied to a local array;
+    //  not sure whether the "parallel loops with collapse must be perfectly nested" error (without this) is a compiler
+    //  bug or standard conform behaviour
+    const int n_cells_new_local_copy[] = { n_cells_new[0], n_cells_new[1], n_cells_new[2] };
+
+    int N_new = n_cell_atoms_new * n_cells_new[0] * n_cells_new[1] * n_cells_new[2];
+    field<T> newfield( N_new, default_value );
+
+#pragma omp parallel for collapse( 3 )
+    for( int i = 0; i < n_cells_new_local_copy[0]; ++i )
+    {
+        for( int j = 0; j < n_cells_new_local_copy[1]; ++j )
+        {
+            for( int k = 0; k < n_cells_new_local_copy[2]; ++k )
+            {
+                for( int iatom = 0; iatom < n_cell_atoms_new; ++iatom )
+                {
+#ifdef SPIRIT_USE_CUDA
+                    int idx_new
+                        = iatom + idx_from_translations( n_cells_new, n_cell_atoms_new, { i, j, k }, shift.data() );
+#else
+                    int idx_new = iatom + idx_from_translations( n_cells_new, n_cell_atoms_new, { i, j, k }, shift );
+#endif
+
+                    if( ( iatom < n_cell_atoms_old ) && ( i < n_cells_old[0] ) && ( j < n_cells_old[1] )
+                        && ( k < n_cells_old[2] ) )
+                    {
+                        int idx_old       = iatom + idx_from_translations( n_cells_old, n_cell_atoms_old, { i, j, k } );
+                        newfield[idx_new] = oldfield[idx_old];
+                    }
+                    // else
+                    //     newfield[idx_new] = default_value;
+                }
+            }
+        }
+    }
+    return newfield;
+}
+
+} // namespace Indexing
 } // namespace Engine
 
 #endif
