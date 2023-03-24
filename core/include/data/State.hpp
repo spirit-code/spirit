@@ -38,8 +38,8 @@ struct State
     std::shared_ptr<Engine::Method> method_chain{};
 
     // Timepoint of creation
-    std::chrono::system_clock::time_point datetime_creation{ std::chrono::system_clock::now() };
-    std::string datetime_creation_string{ Utility::Timing::TimePointToString( datetime_creation ) };
+    std::chrono::system_clock::time_point datetime_creation = std::chrono::system_clock::now();
+    std::string datetime_creation_string                    = Utility::Timing::TimePointToString( datetime_creation );
 
     // Config file at creation
     std::string config_file{ "" };
