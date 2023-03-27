@@ -28,7 +28,13 @@ public:
 
     // General Hamiltonian functions
     void Hessian( const vectorfield & spins, MatrixX & hessian ) override;
+
+    void Sparse_Hessian( const vectorfield & spins, SpMatrixX & hessian ) override;
+
     void Gradient( const vectorfield & spins, vectorfield & gradient ) override;
+
+    void Gradient_and_Energy( const vectorfield & spins, vectorfield & gradient, scalar & energy ) override;
+
     void Energy_Contributions_per_Spin(
         const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions ) override;
 
@@ -38,6 +44,7 @@ public:
     // Hamiltonian name as string
     const std::string & Name() const override;
 
+// private:
     // Parameters of the energy landscape
     int n_gaussians;
     std::vector<scalar> amplitude;

@@ -196,61 +196,61 @@ void Hamiltonian_Heisenberg::Update_Interactions()
 
 void Hamiltonian_Heisenberg::Update_Energy_Contributions()
 {
-    this->energy_contributions_per_spin = std::vector<std::pair<std::string, scalarfield>>( 0 );
+    energy_contributions_per_spin_ = std::vector<std::pair<std::string, scalarfield>>( 0 );
 
     // External field
     if( std::abs( this->external_field_magnitude ) > 1e-60 )
     {
-        this->energy_contributions_per_spin.push_back( { "Zeeman", scalarfield( 0 ) } );
-        this->idx_zeeman = this->energy_contributions_per_spin.size() - 1;
+        energy_contributions_per_spin_.push_back( { "Zeeman", scalarfield( 0 ) } );
+        this->idx_zeeman = energy_contributions_per_spin_.size() - 1;
     }
     else
         this->idx_zeeman = -1;
     // Anisotropy
     if( this->anisotropy_indices.size() > 0 )
     {
-        this->energy_contributions_per_spin.push_back( { "Anisotropy", scalarfield( 0 ) } );
-        this->idx_anisotropy = this->energy_contributions_per_spin.size() - 1;
+        energy_contributions_per_spin_.push_back( { "Anisotropy", scalarfield( 0 ) } );
+        this->idx_anisotropy = energy_contributions_per_spin_.size() - 1;
     }
     else
         this->idx_anisotropy = -1;
     // Cubic anisotropy
     if( this->cubic_anisotropy_indices.size() > 0 )
     {
-        this->energy_contributions_per_spin.push_back( { "Cubic anisotropy", scalarfield( 0 ) } );
-        this->idx_cubic_anisotropy = this->energy_contributions_per_spin.size() - 1;
+        energy_contributions_per_spin_.push_back( { "Cubic anisotropy", scalarfield( 0 ) } );
+        this->idx_cubic_anisotropy = energy_contributions_per_spin_.size() - 1;
     }
     else
         this->idx_cubic_anisotropy = -1;
     // Exchange
     if( this->exchange_pairs.size() > 0 )
     {
-        this->energy_contributions_per_spin.push_back( { "Exchange", scalarfield( 0 ) } );
-        this->idx_exchange = this->energy_contributions_per_spin.size() - 1;
+        energy_contributions_per_spin_.push_back( { "Exchange", scalarfield( 0 ) } );
+        this->idx_exchange = energy_contributions_per_spin_.size() - 1;
     }
     else
         this->idx_exchange = -1;
     // DMI
     if( this->dmi_pairs.size() > 0 )
     {
-        this->energy_contributions_per_spin.push_back( { "DMI", scalarfield( 0 ) } );
-        this->idx_dmi = this->energy_contributions_per_spin.size() - 1;
+        energy_contributions_per_spin_.push_back( { "DMI", scalarfield( 0 ) } );
+        this->idx_dmi = energy_contributions_per_spin_.size() - 1;
     }
     else
         this->idx_dmi = -1;
     // Dipole-Dipole
     if( this->ddi_method != DDI_Method::None )
     {
-        this->energy_contributions_per_spin.push_back( { "DDI", scalarfield( 0 ) } );
-        this->idx_ddi = this->energy_contributions_per_spin.size() - 1;
+        energy_contributions_per_spin_.push_back( { "DDI", scalarfield( 0 ) } );
+        this->idx_ddi = energy_contributions_per_spin_.size() - 1;
     }
     else
         this->idx_ddi = -1;
     // Quadruplets
     if( this->quadruplets.size() > 0 )
     {
-        this->energy_contributions_per_spin.push_back( { "Quadruplets", scalarfield( 0 ) } );
-        this->idx_quadruplet = this->energy_contributions_per_spin.size() - 1;
+        energy_contributions_per_spin_.push_back( { "Quadruplets", scalarfield( 0 ) } );
+        this->idx_quadruplet = energy_contributions_per_spin_.size() - 1;
     }
     else
         this->idx_quadruplet = -1;
@@ -259,9 +259,9 @@ void Hamiltonian_Heisenberg::Update_Energy_Contributions()
 void Hamiltonian_Heisenberg::Energy_Contributions_per_Spin(
     const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions )
 {
-    if( contributions.size() != this->energy_contributions_per_spin.size() )
+    if( contributions.size() != energy_contributions_per_spin_.size() )
     {
-        contributions = this->energy_contributions_per_spin;
+        contributions = energy_contributions_per_spin_;
     }
     int nos = spins.size();
     for( auto & pair : contributions )

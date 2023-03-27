@@ -17,7 +17,7 @@ Hamiltonian_Gaussian::Hamiltonian_Gaussian(
 
 void Hamiltonian_Gaussian::Update_Energy_Contributions()
 {
-    this->energy_contributions_per_spin = { { "Gaussian", scalarfield( 0 ) } };
+    energy_contributions_per_spin_ = { { "Gaussian", scalarfield( 0 ) } };
 }
 
 void Hamiltonian_Gaussian::Hessian( const vectorfield & spins, MatrixX & hessian )
@@ -50,6 +50,14 @@ void Hamiltonian_Gaussian::Hessian( const vectorfield & spins, MatrixX & hessian
     }
 }
 
+void Hamiltonian_Gaussian::Sparse_Hessian( const vectorfield &, SpMatrixX &)
+{
+    spirit_throw(
+        Utility::Exception_Classifier::Not_Implemented,
+        Utility::Log_Level::Error,
+        "Hamiltonian_Gaussian::Sparse_Hessian not implemented!");
+}
+
 void Hamiltonian_Gaussian::Gradient( const vectorfield & spins, vectorfield & gradient )
 {
     std::size_t nos = spins.size();
@@ -78,17 +86,23 @@ void Hamiltonian_Gaussian::Gradient( const vectorfield & spins, vectorfield & gr
     }
 }
 
+void Hamiltonian_Gaussian::Gradient_and_Energy( const vectorfield & spins, vectorfield & gradient, scalar & energy )
+{
+    Gradient( spins, gradient );
+    energy = Energy( spins );
+}
+
 void Hamiltonian_Gaussian::Energy_Contributions_per_Spin(
     const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions )
 {
     std::size_t nos = spins.size();
 
     // Allocate if not already allocated
-    if( this->energy_contributions_per_spin[0].second.size() != nos )
-        this->energy_contributions_per_spin = { { "Gaussian", scalarfield( nos, 0 ) } };
+    if( energy_contributions_per_spin_[0].second.size() != nos )
+        energy_contributions_per_spin_ = { { "Gaussian", scalarfield( nos, 0 ) } };
 
     // Set to zero
-    for( auto & pair : energy_contributions_per_spin )
+    for( auto & pair : energy_contributions_per_spin_ )
         Vectormath::fill( pair.second, 0 );
 
     for( int i = 0; i < this->n_gaussians; ++i )
@@ -100,7 +114,7 @@ void Hamiltonian_Gaussian::Energy_Contributions_per_Spin(
                 = 1
                   - this->center[i].dot( spins[ispin] ); // Utility::Manifoldmath::Dist_Greatcircle(this->center[i], n);
             // Energy contribution
-            this->energy_contributions_per_spin[0].second[ispin]
+            energy_contributions_per_spin_[0].second[ispin]
                 += this->amplitude[i] * std::exp( -std::pow( l, 2 ) / ( 2.0 * std::pow( this->width[i], 2 ) ) );
         }
     }
@@ -115,7 +129,7 @@ scalar Hamiltonian_Gaussian::Energy_Single_Spin( int ispin, const vectorfield & 
         scalar l
             = 1 - this->center[i].dot( spins[ispin] ); // Utility::Manifoldmath::Dist_Greatcircle(this->center[i], n);
         // Energy contribution
-        this->energy_contributions_per_spin[0].second[ispin]
+        energy_contributions_per_spin_[0].second[ispin]
             += this->amplitude[i] * std::exp( -std::pow( l, 2 ) / ( 2.0 * std::pow( this->width[i], 2 ) ) );
     }
     return Energy;
