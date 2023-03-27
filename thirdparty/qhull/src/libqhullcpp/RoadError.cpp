@@ -134,7 +134,7 @@ operator=(const RoadError &other)
 
 #//!\name Virtual
 const char * RoadError::
-what() const
+what() const noexcept
 {
     if(error_message.empty()){
         error_message= log_event.toString(ROADtag, error_code);
