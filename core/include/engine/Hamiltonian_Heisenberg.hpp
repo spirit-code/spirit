@@ -134,34 +134,41 @@ public:
 
     // ------------ Energy Functions ------------
     // Getters for Indices of the energy vector
-    inline int Idx_Zeeman()
+    [[nodiscard]]
+    int Idx_Zeeman() const noexcept
     {
         return idx_zeeman;
-    };
-    inline int Idx_Anisotropy()
+    }
+    [[nodiscard]]
+    int Idx_Anisotropy() const noexcept
     {
         return idx_anisotropy;
-    };
-    inline int Idx_Cubic_Anisotropy()
+    }
+    [[nodiscard]]
+    int Idx_Cubic_Anisotropy() const noexcept
     {
         return idx_cubic_anisotropy;
-    };
-    inline int Idx_Exchange()
+    }
+    [[nodiscard]]
+    int Idx_Exchange() const noexcept
     {
         return idx_exchange;
-    };
-    inline int Idx_DMI()
+    }
+    [[nodiscard]]
+    int Idx_DMI() const noexcept
     {
         return idx_dmi;
-    };
-    inline int Idx_DDI()
+    }
+    [[nodiscard]]
+    int Idx_DDI() const noexcept
     {
         return idx_ddi;
-    };
-    inline int Idx_Quadruplet()
+    }
+    [[nodiscard]]
+    int Idx_Quadruplet() const noexcept
     {
         return idx_quadruplet;
-    };
+    }
 
     // Calculate the Zeeman energy of a Spin System
     void E_Zeeman( const vectorfield & spins, scalarfield & Energy );

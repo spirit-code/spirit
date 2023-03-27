@@ -55,7 +55,7 @@ public:
     {
     }
 
-    virtual ~Method_Solver() = default;
+    ~Method_Solver() override = default;
 
     // // `Iterate` uses the `Solver_Iteration` function to evolve given systems according to the
     // // `Calculate_Force` implementation of the Method-Subclass.
@@ -65,11 +65,11 @@ public:
     // virtual void Iterate() override;
 
     // Solver name as string
-    virtual std::string SolverName() override;
-    virtual std::string SolverFullName() override;
+    std::string SolverName() override;
+    std::string SolverFullName() override;
 
     // Iteration represents one iteration of a certain Solver
-    virtual void Iteration() override;
+    void Iteration() override;
 
 protected:
     // Prepare random numbers for thermal fields, if needed
@@ -125,13 +125,13 @@ protected:
     }
 
     // Initialise contains the initialisations of arrays etc. for a certain solver
-    virtual void Initialize() override;
-    virtual void Finalize() override;
+    void Initialize() override;
+    void Finalize() override;
 
     // Log message blocks
-    virtual void Message_Start() override;
-    virtual void Message_Step() override;
-    virtual void Message_End() override;
+    void Message_Start() override;
+    void Message_Step() override;
+    void Message_End() override;
 
     //////////// DEPONDT ////////////////////////////////////////////////////////////
     // Temporaries for virtual forces
