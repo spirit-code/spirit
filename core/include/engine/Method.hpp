@@ -37,22 +37,22 @@ public:
     // ------------------------------------------------------
 
     // Calculate a smooth but current IPS value
-    virtual scalar getIterationsPerSecond() final;
+    scalar getIterationsPerSecond();
 
     // Get the number of iterations passed
-    virtual int getNIterations() final;
+    int getNIterations() const noexcept;
 
     // The amount of simulated time passed by the simulation
-    virtual double get_simulated_time();
+    virtual double get_simulated_time() const;
 
     // Get the number of milliseconds since the Method started iterating
-    virtual std::int64_t getWallTime() final;
+    std::int64_t getWallTime() const noexcept;
 
     /*
      * NOTE: This is a bad convergence criterion and is therefore currently being phased out
      * Maximum of the absolutes of all components of the force - needs to be updated at each calculation
      */
-    virtual scalar getForceMaxAbsComponent() final;
+    scalar getForceMaxAbsComponent() const;
 
     /*
      * Maximum of the absolutes of all components of the force for all images the method uses
@@ -61,10 +61,10 @@ public:
     virtual std::vector<scalar> getForceMaxAbsComponent_All();
 
     // Maximum norm of the torque - needs to be updated at each calculation
-    virtual scalar getTorqueMaxNorm() final;
+    scalar getTorqueMaxNorm() const;
 
     // Maximum of the norm of the torque for all images the method uses
-    virtual std::vector<scalar> getTorqueMaxNorm_All();
+    virtual std::vector<scalar> getTorqueMaxNorm_All() const;
 
     // ------------------------------------------------------
 
@@ -133,9 +133,9 @@ public:
 
     //////////// Final implementations
     // Check if walltime ran out
-    virtual bool Walltime_Expired( std::chrono::duration<scalar> dt_seconds ) final;
+    bool Walltime_Expired( std::chrono::duration<scalar> dt_seconds ) const;
     // Check if a stop file is present -> Stop the iterations
-    virtual bool StopFile_Present() final;
+    bool StopFile_Present() const;
 
     std::chrono::time_point<std::chrono::system_clock> t_start, t_last;
 

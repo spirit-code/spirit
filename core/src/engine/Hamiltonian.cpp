@@ -8,10 +8,8 @@ using namespace Utility;
 namespace Engine
 {
 
-Hamiltonian::Hamiltonian( intfield boundary_conditions ) : 
-    boundary_conditions{ std::move(boundary_conditions) },
-    energy_contributions_per_spin_{},
-    delta_{ 1e-3 }
+Hamiltonian::Hamiltonian( intfield boundary_conditions )
+        : boundary_conditions{ std::move( boundary_conditions ) }, energy_contributions_per_spin_{}, delta_{ 1e-3 }
 {
 }
 
@@ -73,7 +71,6 @@ void Hamiltonian::Hessian_FD( const vectorfield & spins, MatrixX & hessian )
     }
 }
 
-
 void Hamiltonian::Gradient_and_Energy( const vectorfield & spins, vectorfield & gradient, scalar & energy )
 {
     Gradient( spins, gradient );
@@ -120,15 +117,14 @@ scalar Hamiltonian::Energy( const vectorfield & spins )
     return sum;
 }
 
-std::vector<std::pair<std::string, scalar>>
-Hamiltonian::Energy_Contributions( const vectorfield & spins )
+std::vector<std::pair<std::string, scalar>> Hamiltonian::Energy_Contributions( const vectorfield & spins )
 {
     Energy_Contributions_per_Spin( spins, energy_contributions_per_spin_ );
     std::vector<std::pair<std::string, scalar>> energy( energy_contributions_per_spin_.size() );
     for( std::size_t i = 0; i < energy.size(); ++i )
     {
-        energy[i] = { energy_contributions_per_spin_[i].first,
-                      Vectormath::sum( energy_contributions_per_spin_[i].second ) };
+        energy[i]
+            = { energy_contributions_per_spin_[i].first, Vectormath::sum( energy_contributions_per_spin_[i].second ) };
     }
     return energy;
 }
@@ -137,6 +133,5 @@ std::size_t Hamiltonian::Number_of_Interactions() const
 {
     return energy_contributions_per_spin_.size();
 }
-
 
 } // namespace Engine

@@ -26,7 +26,7 @@ public:
     std::vector<scalar> getForceMaxAbsComponent_All() override;
 
     // Return maximum force components of the images in the chain
-    std::vector<scalar> getTorqueMaxNorm_All() override;
+    std::vector<scalar> getTorqueMaxNorm_All() const override;
 
     // Method name as string
     std::string Name() override;

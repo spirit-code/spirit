@@ -123,12 +123,12 @@ scalar Method::getIterationsPerSecond()
     return this->ips;
 }
 
-int Method::getNIterations()
+int Method::getNIterations() const noexcept
 {
     return this->iteration;
 }
 
-double Method::get_simulated_time()
+double Method::get_simulated_time() const
 {
     // Not Implemented!
     spirit_throw(
@@ -136,7 +136,7 @@ double Method::get_simulated_time()
         "Tried to use Method::get_simulated_time() of the Method base class!" );
 }
 
-std::int64_t Method::getWallTime()
+std::int64_t Method::getWallTime() const noexcept
 {
     auto t_current                           = std::chrono::system_clock::now();
     std::chrono::duration<scalar> dt_seconds = t_current - this->t_start;
@@ -144,7 +144,7 @@ std::int64_t Method::getWallTime()
     return dt_ms.count();
 }
 
-scalar Method::getForceMaxAbsComponent()
+scalar Method::getForceMaxAbsComponent() const
 {
     return this->force_max_abs_component;
 }
@@ -154,12 +154,12 @@ std::vector<scalar> Method::getForceMaxAbsComponent_All()
     return { this->force_max_abs_component };
 }
 
-scalar Method::getTorqueMaxNorm()
+scalar Method::getTorqueMaxNorm() const
 {
     return this->max_torque;
 }
 
-std::vector<scalar> Method::getTorqueMaxNorm_All()
+std::vector<scalar> Method::getTorqueMaxNorm_All() const
 {
     return { this->max_torque };
 }
@@ -185,7 +185,7 @@ bool Method::Iterations_Allowed()
     return this->systems[0]->iteration_allowed;
 }
 
-bool Method::Walltime_Expired( std::chrono::duration<scalar> dt_seconds )
+bool Method::Walltime_Expired( std::chrono::duration<scalar> dt_seconds ) const
 {
     if( this->parameters->max_walltime_sec <= 0 )
         return false;
@@ -193,7 +193,7 @@ bool Method::Walltime_Expired( std::chrono::duration<scalar> dt_seconds )
         return dt_seconds.count() > this->parameters->max_walltime_sec;
 }
 
-bool Method::StopFile_Present()
+bool Method::StopFile_Present() const
 {
     std::ifstream f( "STOP" );
     return f.good();

@@ -59,7 +59,8 @@ public:
 
     // Calculate the Energy contributions for the spins of a configuration
     virtual void Energy_Contributions_per_Spin(
-        const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions ) = 0;
+        const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions )
+        = 0;
 
     // Calculate the total energy for a single spin
     virtual scalar Energy_Single_Spin( int ispin, const vectorfield & spins ) = 0;

@@ -52,13 +52,12 @@ public:
         CU_HANDLE_ERROR( cudaFree( ptr ) );
     }
 
-    managed_allocator() throw() : std::allocator<T>() {} // fprintf(stderr, "Hello managed allocator!\n"); }
-    managed_allocator( const managed_allocator & a ) throw() : std::allocator<T>( a ) {}
+    managed_allocator() noexcept : std::allocator<T>() {} // fprintf(stderr, "Hello managed allocator!\n"); }
+    managed_allocator( const managed_allocator & a ) noexcept : std::allocator<T>( a ) {}
     template<class U>
-    managed_allocator( const managed_allocator<U> & a ) throw() : std::allocator<T>( a )
+    managed_allocator( const managed_allocator<U> & a ) noexcept : std::allocator<T>( a )
     {
     }
-    ~managed_allocator() throw() = default;
 };
 
 #endif

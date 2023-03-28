@@ -226,7 +226,7 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
 }
 
 template<Solver solver>
-double Method_LLG<solver>::get_simulated_time()
+double Method_LLG<solver>::get_simulated_time() const
 {
     return this->picoseconds_passed;
 }

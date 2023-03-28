@@ -80,7 +80,7 @@ std::vector<scalar> Method_GNEB<solver>::getForceMaxAbsComponent_All()
 }
 
 template<Solver solver>
-std::vector<scalar> Method_GNEB<solver>::getTorqueMaxNorm_All()
+std::vector<scalar> Method_GNEB<solver>::getTorqueMaxNorm_All() const
 {
     return this->max_torque_all;
 }
