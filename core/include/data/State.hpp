@@ -5,6 +5,7 @@
 #include <engine/Method.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Timing.hpp>
+#include <utility/Execution.hpp>
 
 /*
  * The State struct is passed around in an application to make the
@@ -14,6 +15,8 @@
  */
 struct State
 {
+    Execution::Compute_Resource compute_resource;
+
     // Currently "active" chain
     std::shared_ptr<Data::Spin_System_Chain> chain;
     // Currently "active" image

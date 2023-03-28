@@ -19,8 +19,12 @@ namespace Engine
 {
 
 template<Solver solver>
-Method_LLG<solver>::Method_LLG( std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain )
-        : Method_Solver<solver>( system->llg_parameters, idx_img, idx_chain ), picoseconds_passed( 0 )
+Method_LLG<solver>::Method_LLG( 
+    Execution::Context exec_ctx,
+    std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain )
+: 
+    Method_Solver<solver>( exec_ctx, system->llg_parameters, idx_img, idx_chain ),
+    picoseconds_passed( 0 )
 {
     // Currently we only support a single image being iterated at once:
     this->systems    = std::vector<std::shared_ptr<Data::Spin_System>>( 1, system );

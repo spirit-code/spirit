@@ -13,13 +13,19 @@ using namespace Utility;
 namespace Engine
 {
 
-Method::Method( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain )
-        : iteration( 0 ),
-          step( 0 ),
-          idx_image( idx_img ),
-          idx_chain( idx_chain ),
-          parameters( parameters ),
-          n_iterations_amortize( parameters->n_iterations_amortize )
+Method::Method(
+    Execution::Context exec_ctx,
+    std::shared_ptr<Data::Parameters_Method> parameters,
+    int idx_img,
+    int idx_chain )
+: 
+    exec_context{ exec_ctx },
+    iteration( 0 ),
+    step( 0 ),
+    idx_image( idx_img ),
+    idx_chain( idx_chain ),
+    parameters( parameters ),
+    n_iterations_amortize( parameters->n_iterations_amortize )
 {
     // Sender name for log messages
     this->SenderName = Log_Sender::All;

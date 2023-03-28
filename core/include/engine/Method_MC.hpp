@@ -18,7 +18,7 @@ class Method_MC : public Method
 {
 public:
     // Constructor
-    Method_MC( std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain );
+    Method_MC( Execution::Context, std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain );
 
     // Method name as string
     std::string Name() override;

@@ -22,8 +22,13 @@ namespace Engine
 {
 
 template<Solver solver>
-Method_GNEB<solver>::Method_GNEB( std::shared_ptr<Data::Spin_System_Chain> chain, int idx_chain )
-        : Method_Solver<solver>( chain->gneb_parameters, -1, idx_chain ), chain( chain )
+Method_GNEB<solver>::Method_GNEB(
+    Execution::Context exec_ctx,
+    std::shared_ptr<Data::Spin_System_Chain> chain,
+    int idx_chain )
+: 
+    Method_Solver<solver>( exec_ctx, chain->gneb_parameters, -1, idx_chain ),
+    chain( chain )
 {
     this->systems    = chain->images;
     this->SenderName = Utility::Log_Sender::GNEB;

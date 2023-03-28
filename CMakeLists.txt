@@ -23,6 +23,7 @@ set( SPIRIT_TEST_COVERAGE     OFF  CACHE BOOL "Build in debug mode with special 
 set( SPIRIT_USE_CUDA          OFF  CACHE BOOL "Use CUDA to speed up certain parts of the code." )
 set( SPIRIT_USE_OPENMP        OFF  CACHE BOOL "Use OpenMP to speed up certain parts of the code." )
 set( SPIRIT_USE_THREADS       OFF  CACHE BOOL "Use std threads to speed up certain parts of the code." )
+set( SPIRIT_USE_STDEXEC       OFF  CACHE BOOL "Use std::execution, PR2300 standard proposal and nvexec facilities." )
 set( SPIRIT_USE_FFTW          ON   CACHE BOOL "If available, use the FFTW library instead of kissFFT." )
 ### Set the scalar type used in the Spirit library
 set( SPIRIT_SCALAR_TYPE "double" CACHE STRING "The scalar type to be used in the Spirit library." )
@@ -83,8 +84,16 @@ set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-volatile" )
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-declarations" )
 # due to Eigen
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-enum-enum-conversion" )
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-incompatible-vectors-conversion" )
 # due to Imgui
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-format-overflow" )
+endif()
+####################################################################
+
+
+####################################################################
+if ( SPIRIT_USE_STDEXEC )
+    set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DSPIRIT_USE_STDEXEC )
 endif()
 ####################################################################
 

@@ -18,7 +18,7 @@ class Method_EMA : public Method
 {
 public:
     // Constructor
-    Method_EMA( std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain );
+    Method_EMA( Execution::Context, std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain );
 
     // Method name as string
     std::string Name() override;

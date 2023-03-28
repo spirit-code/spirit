@@ -22,8 +22,12 @@ namespace Engine
 {
 
 template<Solver solver>
-Method_MMF<solver>::Method_MMF( std::shared_ptr<Data::Spin_System> system, int idx_chain )
-        : Method_Solver<solver>( system->mmf_parameters, -1, idx_chain )
+Method_MMF<solver>::Method_MMF( 
+    Execution::Context exec_ctx,
+    std::shared_ptr<Data::Spin_System> system,
+    int idx_chain )
+:
+    Method_Solver<solver>( exec_ctx, system->mmf_parameters, -1, idx_chain )
 {
     this->systems = std::vector<std::shared_ptr<Data::Spin_System>>( 1, system );
     this->system  = system;

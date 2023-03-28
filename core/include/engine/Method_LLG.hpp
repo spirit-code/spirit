@@ -20,7 +20,7 @@ class Method_LLG : public Method_Solver<solver>
 {
 public:
     // Constructor
-    Method_LLG( std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain );
+    Method_LLG( Execution::Context, std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain );
 
     double get_simulated_time() const override;
 

@@ -20,7 +20,7 @@ class Method_GNEB : public Method_Solver<solver>
 {
 public:
     // Constructor
-    Method_GNEB( std::shared_ptr<Data::Spin_System_Chain> chain, int idx_chain );
+    Method_GNEB( Execution::Context, std::shared_ptr<Data::Spin_System_Chain> chain, int idx_chain );
 
     // Return maximum force components of the images in the chain
     std::vector<scalar> getForceMaxAbsComponent_All() override;

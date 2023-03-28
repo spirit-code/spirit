@@ -7,6 +7,7 @@
 #include <data/Spin_System_Chain.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Timing.hpp>
+#include <utility/Execution.hpp>
 
 #include <deque>
 #include <fstream>
@@ -27,7 +28,7 @@ public:
      *   The constructor does not allocate any large arrays. The solvers should allocate
      *   what they need in Solver_Initialise.
      */
-    Method( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain );
+    Method( Execution::Context, std::shared_ptr<Data::Parameters_Method>, int idx_img, int idx_chain );
 
     virtual ~Method() = default;
 
@@ -165,6 +166,8 @@ public:
     std::vector<scalar> history_energy;
 
 protected:
+    Execution::Context exec_context;
+
     //////////// Information for Logging and Save_Current ////////////////////////
     int idx_image;
     int idx_chain;

@@ -50,8 +50,12 @@ class Method_Solver : public Method
 {
 public:
     // Constructor to be used in derived classes
-    Method_Solver( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain )
-            : Method( parameters, idx_img, idx_chain )
+    Method_Solver( 
+        Execution::Context exec_ctx,
+        std::shared_ptr<Data::Parameters_Method> parameters,
+        int idx_img, int idx_chain )
+    : 
+        Method( exec_ctx, parameters, idx_img, idx_chain )
     {
     }
 
