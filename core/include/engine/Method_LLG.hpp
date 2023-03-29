@@ -37,6 +37,8 @@ public:
         std::vector<vectorfield> & forces_virtual ) override;
 
 private:
+    using Method::exec_context;
+
     // Check if the Forces are converged
     bool Converged() override;
 

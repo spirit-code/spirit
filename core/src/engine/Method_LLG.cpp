@@ -7,6 +7,7 @@
 #include <io/OVF_File.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Version.hpp>
+#include <utility/Stdexec_Algorithms.hpp>
 
 #include <fmt/format.h>
 
@@ -134,7 +135,8 @@ void Method_LLG<solver>::Calculate_Force(
 
 template<Solver solver>
 void Method_LLG<solver>::Calculate_Force_Virtual(
-    const std::vector<std::shared_ptr<vectorfield>> & configurations, const std::vector<vectorfield> & forces,
+    const std::vector<std::shared_ptr<vectorfield>> & configurations,
+    const std::vector<vectorfield> & forces,
     std::vector<vectorfield> & forces_virtual )
 {
     using namespace Utility;
@@ -162,16 +164,62 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
         Vector3 je  = s_c_vec;         // direction of current
         //////////
 
+        using namespace Execution;
+
+        // DEMO
+        // {
+        //     auto sched = exec_context.get_scheduler();
+        //     const auto tileCount = exec_context.max_concurrency();
+        //
+        //
+        //     auto task1 = with_elements(sched, force_virtual) 
+        //         | generate_indexed(tileCount,
+        //             [&](std::size_t i) { return image[i].cross( force[i] ); });
+        //     stdexec::sync_wait(task1).value();
+        //
+        //
+        //     auto task2 = generate_enumerated(sched, force_virtual, tileCount, 
+        //         [&](std::size_t i){
+        //             return image[i].cross( force[i] );
+        //         });
+        //     stdexec::sync_wait(task2).value();
+        //
+        //
+        //     auto task3 = zip_transform(sched, image, force, force_virtual, tileCount,
+        //         [](auto const& value1, auto const& value2) {
+        //             return value1.cross(value2); 
+        //         });
+        //     stdexec::sync_wait(task3).value();
+        //
+        //
+        //     auto task4 = parallel_for(sched, 0, force_virtual.size(), tileCount,
+        //         [&](std::size_t i) {
+        //             force_virtual[i] = image[i].cross( force[i] );
+        //         });
+        //     stdexec::sync_wait(task4).value();
+        // }
+
+
         // This is the force calculation as it should be for direct minimization
         // TODO: Also calculate force for VP solvers without additional scaling
         if( solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas )
         {
-            Vectormath::set_c_cross( 1.0, image, force, force_virtual );
+            // dtg = 1.0;
+            auto task = with_elements(exec_context, force_virtual) 
+                | generate_indexed([&](std::size_t i) { 
+                    return image[i].cross( force[i] ); });
+
+            stdexec::sync_wait(task).value();
         }
         else if( parameters.direct_minimization || solver == Solver::VP || solver == Solver::VP_OSO )
         {
             dtg = parameters.dt * Constants::gamma / Constants::mu_B;
-            Vectormath::set_c_cross( dtg, image, force, force_virtual );
+
+            auto task = with_elements(exec_context, force_virtual) 
+                | generate_indexed([&](std::size_t i) { 
+                    return dtg * image[i].cross( force[i] ); });
+
+            stdexec::sync_wait(task).value();
         }
         // Dynamics simulation
         else
@@ -181,6 +229,24 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
             Vectormath::set_c_a( dtg, force, force_virtual );
             Vectormath::add_c_cross( dtg * damping, image, force, force_virtual );
             Vectormath::scale( force_virtual, geometry.mu_s, true );
+
+
+            // void set_c_a( const scalar & c, const Vector3 & vec, vectorfield & out ) {
+            //     for( unsigned int idx = 0; idx < out.size(); ++idx ) out[idx] = c * vec;
+            // }
+
+            // void add_c_cross( const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out ) {
+            //     for( unsigned int idx = 0; idx < out.size(); ++idx ) out[idx] += c * a.cross( b[idx] );
+            // }
+
+            // void scale( vectorfield & vf, const scalarfield & sf, bool inverse ) {
+            //     if( inverse ) {
+            //         for( unsigned int i = 0; i < vf.size(); ++i ) vf[i] /= sf[i];
+            //     }
+            //     else {
+            //         for( unsigned int i = 0; i < vf.size(); ++i ) vf[i] *= sf[i];
+            //     }
+            // }
 
             // STT
             if( a_j > 0 )
@@ -230,7 +296,7 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
 }
 
 template<Solver solver>
-double Method_LLG<solver>::get_simulated_time()
+double Method_LLG<solver>::get_simulated_time() const
 {
     return this->picoseconds_passed;
 }
