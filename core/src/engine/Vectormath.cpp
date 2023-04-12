@@ -94,7 +94,9 @@ void add( scalarfield & sf, scalar s )
 scalar sum( const scalarfield & sf )
 {
     scalar ret = 0;
+#ifndef __PGI
 #pragma omp parallel for reduction( + : ret )
+#endif
     for( unsigned int i = 0; i < sf.size(); ++i )
         ret += sf[i];
     return ret;
@@ -143,7 +145,9 @@ std::pair<scalar, scalar> minmax_component( const vectorfield & v1 )
 {
     scalar minval = 1e6, maxval = -1e6;
     std::pair<scalar, scalar> minmax;
+#ifndef __PGI
 #pragma omp parallel for reduction( min : minval ) reduction( max : maxval )
+#endif
     for( unsigned int i = 0; i < v1.size(); ++i )
     {
         for( int dim = 0; dim < 3; ++dim )
@@ -198,7 +202,9 @@ void scale( vectorfield & vf, const scalarfield & sf, bool inverse )
 Vector3 sum( const vectorfield & vf )
 {
     Vector3 ret = { 0, 0, 0 };
+#ifndef __PGI
 #pragma omp parallel for reduction( + : ret )
+#endif
     for( unsigned int i = 0; i < vf.size(); ++i )
         ret += vf[i];
     return ret;
@@ -221,7 +227,9 @@ void divide( const scalarfield & numerator, const scalarfield & denominator, sca
 scalar dot( const vectorfield & v1, const vectorfield & v2 )
 {
     scalar ret = 0;
+#ifndef __PGI
 #pragma omp parallel for reduction( + : ret )
+#endif
     for( unsigned int i = 0; i < v1.size(); ++i )
         ret += v1[i].dot( v2[i] );
     return ret;
@@ -389,7 +397,9 @@ void set_c_cross( const scalar & c, const vectorfield & a, const vectorfield & b
 scalar max_norm( const vectorfield & vf )
 {
     scalar max_norm = 0;
+#ifndef __PGI
 #pragma omp parallel for reduction( max : max_norm )
+#endif
     for( int i = 0; i < vf.size(); i++ )
     {
         max_norm = std::max( max_norm, vf[i].squaredNorm() );

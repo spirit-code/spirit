@@ -86,7 +86,11 @@ struct Quadruplet
 };
 
 // Definition for OpenMP reduction operation using Vector3's
+// note: NVC++ doesn't support this and will abort compilation
+#ifndef __PGI
 #pragma omp declare reduction( + : Vector3 : omp_out = omp_out + omp_in ) initializer( omp_priv = Vector3::Zero() )
+#endif
+
 #endif
 
 struct Neighbour : Pair
