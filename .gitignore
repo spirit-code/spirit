@@ -1,5 +1,6 @@
 ### Directories ###
 build/*
+build_*/*
 _build/*
 output/*
 output_llg/*

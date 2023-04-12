@@ -21,11 +21,11 @@ echo "-- BUILD: NVC++ + ImGUI"
 
 if [ $CLEAN ]; then
     echo "-- CLEAN BUILD"
-    rm -rf build
+    rm -rf $BUILD_DIR
 fi
 
 
-if [ ! -d build ]; then
+if [ ! -d $BUILD_DIR ]; then
     mkdir $BUILD_DIR
 fi
 

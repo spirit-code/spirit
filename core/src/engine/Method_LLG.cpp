@@ -141,12 +141,12 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
 {
     using namespace Utility;
 
-    for( std::size_t i = 0; i < configurations.size(); ++i )
+    for( std::size_t cidx = 0; cidx < configurations.size(); ++cidx )
     {
-        auto & image         = *configurations[i];
-        auto & force         = forces[i];
-        auto & force_virtual = forces_virtual[i];
-        auto & parameters    = *this->systems[i]->llg_parameters;
+        auto const& image      = *configurations[cidx];
+        auto const& force      = forces[cidx];
+        auto const& parameters = *this->systems[cidx]->llg_parameters;
+        auto & force_virtual   = forces_virtual[cidx];
 
         //////////
         // time steps
@@ -166,19 +166,20 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
 
         using namespace Execution;
 
+        auto sched = exec_context.get_scheduler();
+        auto const tileCount = exec_context.resource_shape().threads;
+
+        // auto task_root = with_elements(sched, force_virtual);
+            
         // DEMO
         // {
-        //     auto sched = exec_context.get_scheduler();
-        //     const auto tileCount = exec_context.max_concurrency();
-        //
-        //
         //     auto task1 = with_elements(sched, force_virtual) 
         //         | generate_indexed(tileCount,
         //             [&](std::size_t i) { return image[i].cross( force[i] ); });
         //     stdexec::sync_wait(task1).value();
         //
         //
-        //     auto task2 = generate_enumerated(sched, force_virtual, tileCount, 
+        //     auto task2 = generate_indexed(sched, force_virtual, tileCount, 
         //         [&](std::size_t i){
         //             return image[i].cross( force[i] );
         //         });
@@ -192,7 +193,7 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
         //     stdexec::sync_wait(task3).value();
         //
         //
-        //     auto task4 = parallel_for(sched, 0, force_virtual.size(), tileCount,
+        //     auto task4 = for_each(sched, indices{0,force_virtual.size()}, tileCount,
         //         [&](std::size_t i) {
         //             force_virtual[i] = image[i].cross( force[i] );
         //         });
@@ -204,49 +205,87 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
         // TODO: Also calculate force for VP solvers without additional scaling
         if( solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas )
         {
-            // dtg = 1.0;
-            auto task = with_elements(exec_context, force_virtual) 
-                | generate_indexed([&](std::size_t i) { 
-                    return image[i].cross( force[i] ); });
+            dtg = 1.0;
 
+            // Vectormath::set_c_cross( dtg, force, image, force_virtual );
+
+            // generate_indexed(exec_context, force_virtual,
+            //     [&](std::size_t i) { return image[i].cross( force[i] ); });
+            
+            auto task = generate_indexed(sched, force_virtual, tileCount,
+                [&](std::size_t i) { return image[i].cross( force[i] ); });
+            
             stdexec::sync_wait(task).value();
         }
         else if( parameters.direct_minimization || solver == Solver::VP || solver == Solver::VP_OSO )
         {
-            dtg = parameters.dt * Constants::gamma / Constants::mu_B;
+            // fmt::print("---> direct minimization\n");
 
-            auto task = with_elements(exec_context, force_virtual) 
-                | generate_indexed([&](std::size_t i) { 
-                    return dtg * image[i].cross( force[i] ); });
+            // dtg = parameters.dt * Constants::gamma / Constants::mu_B;
+            
+            // Vectormath::set_c_cross( dtg, force, image, force_virtual );
+            
+            auto task = generate_indexed(sched, force_virtual, tileCount,
+                [&](std::size_t i) { return dtg * image[i].cross( force[i] ); });
 
             stdexec::sync_wait(task).value();
         }
         // Dynamics simulation
         else
         {
-            auto & geometry = *this->systems[0]->geometry;
+            // fmt::print("---> dynamics\n");
+            auto const& geometry = *this->systems[0]->geometry;
 
-            Vectormath::set_c_a( dtg, force, force_virtual );
-            Vectormath::add_c_cross( dtg * damping, image, force, force_virtual );
-            Vectormath::scale( force_virtual, geometry.mu_s, true );
+            // old version: 
+            // separate 'omp parallel' sections in separate non-inlinable functions 
+            // Vectormath::set_c_a( dtg, force, force_virtual );
+            // Vectormath::add_c_cross( dtg * damping, image, force, force_virtual );
+            // Vectormath::scale( force_virtual, geometry.mu_s, true );
 
-
-            // void set_c_a( const scalar & c, const Vector3 & vec, vectorfield & out ) {
-            //     for( unsigned int idx = 0; idx < out.size(); ++idx ) out[idx] = c * vec;
+            // fused operations in one 'omp parallel' block
+            // #pragma omp parallel for
+            // for( std::size_t i = 0; i < force_virtual.size(); ++i ) {
+            //     force_virtual[i] = dtg * force[i];
+            //     force_virtual[i] += dtg * damping * image[i].cross( force[i] );
+            //     force_virtual[i] /= geometry.mu_s[i];
             // }
 
-            // void add_c_cross( const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out ) {
-            //     for( unsigned int idx = 0; idx < out.size(); ++idx ) out[idx] += c * a.cross( b[idx] );
-            // }
+            // indices idx {0,force_virtual.size()};
+            // std::for_each(
+            //     // std::execution::par_unseq,
+            //     idx.begin(), idx.end(),
+            //     [&](std::size_t i){
+            //         force_virtual[i] = dtg * force[i];
+            //         force_virtual[i] += dtg * damping * image[i].cross( force[i] );
+            //         force_virtual[i] /= geometry.mu_s[i];
+            //     });
 
-            // void scale( vectorfield & vf, const scalarfield & sf, bool inverse ) {
-            //     if( inverse ) {
-            //         for( unsigned int i = 0; i < vf.size(); ++i ) vf[i] /= sf[i];
-            //     }
-            //     else {
-            //         for( unsigned int i = 0; i < vf.size(); ++i ) vf[i] *= sf[i];
-            //     }
-            // }
+            // auto task = for_each(sched, indices{0,force_virtual.size()}, tileCount,
+            //     [&](std::size_t i) { 
+            //         force_virtual[i] = dtg * force[i];
+            //         force_virtual[i] += dtg * damping * image[i].cross( force[i] );
+            //         force_virtual[i] /= geometry.mu_s[i];
+            //     });
+
+            // auto task = with_elements(sched, force_virtual) 
+            //     | generate_indexed(tileCount, [&](std::size_t i) { 
+            //             auto fvi = force[i];
+            //             fvi *= dtg;
+            //             fvi += dtg * damping * image[i].cross(force[i]);
+            //             fvi /= geometry.mu_s[i];
+            //             return fvi;
+            //         });
+
+            auto task = generate_indexed(sched, force_virtual, tileCount,
+                [&](std::size_t i) { 
+                    auto fvi = force[i];
+                    fvi *= dtg;
+                    fvi += dtg * damping * image[i].cross(force[i]);
+                    fvi /= geometry.mu_s[i];
+                    return fvi;
+                });
+
+            stdexec::sync_wait(task).value();
 
             // STT
             if( a_j > 0 )
@@ -255,8 +294,15 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
                 {
                     auto & boundary_conditions = this->systems[0]->hamiltonian->boundary_conditions;
 
+
+                    // generate_indexed(exec_context, jacobians,
+                    //     [&](std::size_t i) { 
+                    //     });
+                    
+
                     // Gradient approximation for in-plane currents
                     Vectormath::jacobian( image, geometry, boundary_conditions, jacobians );
+
 
                     // clang-format off
                     Backend::par::apply(image.size(), [s_c_grad = s_c_grad.data(), jacobians=jacobians.data(), direction=je] SPIRIT_LAMBDA (int idx)
@@ -288,6 +334,9 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
                 Vectormath::add_c_cross( damping, image, this->xi, force_virtual );
             }
         }
+
+        // stdexec::sync_wait(task).value();
+
 // Apply Pinning
 #ifdef SPIRIT_ENABLE_PINNING
         Vectormath::set_c_a( 1, force_virtual, force_virtual, this->systems[0]->geometry->mask_unpinned );

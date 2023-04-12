@@ -2,7 +2,6 @@
 #ifndef SPIRIT_CORE_UTILITY_EXECUTION_HPP
 #define SPIRIT_CORE_UTILITY_EXECUTION_HPP
 
-
 #include <thread>                   
 
 #include <utility/Exception.hpp>
@@ -29,9 +28,15 @@ namespace Execution {
 struct Void_Schedule {};
 
 struct Void_Context {
-    static Void_Schedule get_schedule() noexcept { return Void_Schedule{}; }
+    static Void_Schedule get_scheduler() noexcept { return Void_Schedule{}; }
 };
 
+
+
+struct Execution_Shape
+{
+    int threads = 1;
+};
 
 
 
@@ -43,12 +48,12 @@ public:
 
     explicit
     Compute_Resource (int num_threads = std::thread::hardware_concurrency()):
-        thread_count_{num_threads},
+        shape_{ .threads = num_threads },
         thread_pool_(num_threads)
     {}
 
 private:
-    int thread_count_;
+    Execution_Shape shape_;
     exec::static_thread_pool thread_pool_;
     // int gpu_count_;
     // nvexec::stream_context stream_context_; 
@@ -65,7 +70,7 @@ public:
     Compute_Resource (int = 0) {}
 
 private:
-    inline static constexpr int thread_count_ = 0;
+    inline static constexpr Execution_Shape shape_;
     Void_Context thread_pool_;
     Void_Context stream_context_;
 };
@@ -103,8 +108,8 @@ public:
     }
 
     [[nodiscard]]
-    int max_concurrency () const noexcept { 
-        return static_cast<bool>(res_) ? res_->thread_count_ : 0;
+    Execution_Shape resource_shape () const noexcept { 
+        return static_cast<bool>(res_) ? res_->shape_ : Execution_Shape{};
     }
 
             

@@ -1,0 +1,19 @@
+
+LLG dynamics
+
+100 x 100 x 20
+external field 5T, (0,0,1)
+Hopfion R=40 at (0,0,0)
+LLG dynamics
+
+
+USE_OPENMP=OFF
+serial raw for loop:               22.7
+
+USE_OPENMP=ON
+serial raw for loop:               44 - 46.5
+std::for_each:                     44 - 46
+baseline (separate omp parallel):  48 - 51
+fused omp parallel for loop:       48 - 51.5
+generate_indexed (4 threads):      46 - 48.2
+generate_indexed (16 threads):     50 - 51.6
