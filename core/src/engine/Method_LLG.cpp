@@ -168,63 +168,17 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
 
         auto sched = exec_context.get_scheduler();
         auto const tileCount = exec_context.resource_shape().threads;
-
-        // auto task_root = with_elements(sched, force_virtual);
-            
-        // DEMO
-        // {
-        //     auto task1 = with_elements(sched, force_virtual) 
-        //         | generate_indexed(tileCount,
-        //             [&](std::size_t i) { return image[i].cross( force[i] ); });
-        //     stdexec::sync_wait(task1).value();
-        //
-        //
-        //     auto task2 = generate_indexed(sched, force_virtual, tileCount, 
-        //         [&](std::size_t i){
-        //             return image[i].cross( force[i] );
-        //         });
-        //     stdexec::sync_wait(task2).value();
-        //
-        //
-        //     auto task3 = zip_transform(sched, image, force, force_virtual, tileCount,
-        //         [](auto const& value1, auto const& value2) {
-        //             return value1.cross(value2); 
-        //         });
-        //     stdexec::sync_wait(task3).value();
-        //
-        //
-        //     auto task4 = for_each(sched, indices{0,force_virtual.size()}, tileCount,
-        //         [&](std::size_t i) {
-        //             force_virtual[i] = image[i].cross( force[i] );
-        //         });
-        //     stdexec::sync_wait(task4).value();
-        // }
-
-
+           
         // This is the force calculation as it should be for direct minimization
         // TODO: Also calculate force for VP solvers without additional scaling
-        if( solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas )
+        if( parameters.direct_minimization 
+            || solver == Solver::VP || solver == Solver::VP_OSO
+            || solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas )
         {
-            dtg = 1.0;
+            if( solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas ) {
+                dtg = 1.0;
+            }
 
-            // Vectormath::set_c_cross( dtg, force, image, force_virtual );
-
-            // generate_indexed(exec_context, force_virtual,
-            //     [&](std::size_t i) { return image[i].cross( force[i] ); });
-            
-            auto task = generate_indexed(sched, force_virtual, tileCount,
-                [&](std::size_t i) { return image[i].cross( force[i] ); });
-            
-            stdexec::sync_wait(task).value();
-        }
-        else if( parameters.direct_minimization || solver == Solver::VP || solver == Solver::VP_OSO )
-        {
-            // fmt::print("---> direct minimization\n");
-
-            // dtg = parameters.dt * Constants::gamma / Constants::mu_B;
-            
-            // Vectormath::set_c_cross( dtg, force, image, force_virtual );
-            
             auto task = generate_indexed(sched, force_virtual, tileCount,
                 [&](std::size_t i) { return dtg * image[i].cross( force[i] ); });
 
@@ -237,7 +191,7 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
             auto const& geometry = *this->systems[0]->geometry;
 
             // old version: 
-            // separate 'omp parallel' sections in separate non-inlinable functions 
+            // separate 'omp parallel' sections in separate functions 
             // Vectormath::set_c_a( dtg, force, force_virtual );
             // Vectormath::add_c_cross( dtg * damping, image, force, force_virtual );
             // Vectormath::scale( force_virtual, geometry.mu_s, true );
@@ -267,15 +221,6 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
             //         force_virtual[i] /= geometry.mu_s[i];
             //     });
 
-            // auto task = with_elements(sched, force_virtual) 
-            //     | generate_indexed(tileCount, [&](std::size_t i) { 
-            //             auto fvi = force[i];
-            //             fvi *= dtg;
-            //             fvi += dtg * damping * image[i].cross(force[i]);
-            //             fvi /= geometry.mu_s[i];
-            //             return fvi;
-            //         });
-
             auto task = generate_indexed(sched, force_virtual, tileCount,
                 [&](std::size_t i) { 
                     auto fvi = force[i];
@@ -293,11 +238,6 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
                 if( parameters.stt_use_gradient )
                 {
                     auto & boundary_conditions = this->systems[0]->hamiltonian->boundary_conditions;
-
-
-                    // generate_indexed(exec_context, jacobians,
-                    //     [&](std::size_t i) { 
-                    //     });
                     
 
                     // Gradient approximation for in-plane currents

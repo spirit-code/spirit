@@ -70,7 +70,7 @@ public:
     Compute_Resource (int = 0) {}
 
 private:
-    inline static constexpr Execution_Shape shape_;
+    inline static constexpr Execution_Shape shape_ {};
     Void_Context thread_pool_;
     Void_Context stream_context_;
 };

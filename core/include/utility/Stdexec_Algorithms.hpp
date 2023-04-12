@@ -23,13 +23,31 @@ namespace Execution {
 
 
 //-----------------------------------------------------------------------------
-template <typename Fn>
+// template <typename... Ts>
+// using any_sender_of =
+//     typename exec::any_receiver_ref<stdexec::completion_signatures<Ts...>>::template any_sender<>;
+
+
+
+
+//-----------------------------------------------------------------------------
+template <typename Fn, typename Range>
 concept IndexToValueMapping = 
-    std::invocable<Fn,std::size_t>;
-    // std::convertible_to<std::invoke_result_t<Fn,std::size_t>,Value>
+    std::invocable<Fn,std::size_t> &&
+    std::convertible_to<std::invoke_result_t<Fn,std::size_t>,
+                        std::ranges::range_value_t<Range>>;
 
 
-#ifdef SPIRIT_USE_STDEXEC
+
+//-----------------------------------------------------------------------------
+[[nodiscard]]                                         
+inline stdexec::sender auto                           
+schedule (Context ctx)                                
+{                                                     
+    return stdexec::schedule(ctx.get_scheduler());    
+}                                                     
+
+
 
 
 //-----------------------------------------------------------------------------
@@ -175,29 +193,29 @@ async_inclusive_scan (
 
     return stdexec::transfer_just(sch, std::move(partials))
         | stdexec::bulk(tileCount,
-            [=](std::size_t i, std::vector<double>&& partials) {
+            [=](std::size_t i, std::vector<double>&& part) {
                 auto start = i * tileSize;
                 auto end   = std::min(input.size(), (i + 1) * tileSize);
-                partials[i + 1] = *--std::inclusive_scan(begin(input) + start,
+                part[i + 1] = *--std::inclusive_scan(begin(input) + start,
                                                         begin(input) + end,
                                                         begin(output) + start);
             })
         | stdexec::then(
-            [](std::vector<double>&& partials) {
-                std::inclusive_scan(begin(partials), end(partials),
-                                    begin(partials));
-                return partials;
+            [](std::vector<double>&& part) {
+                std::inclusive_scan(begin(part), end(part),
+                                    begin(part));
+                return part;
             })
         | stdexec::bulk(tileCount,
-            [=](std::size_t i, std::vector<double>&& partials) {
+            [=](std::size_t i, std::vector<double>&& part) {
                 auto start = i * tileSize;
                 auto end   = std::min(input.size(), (i + 1) * tileSize);
                 std::for_each(output.begin() + start, output.begin() + end,
-                [=] (double& e) { e = partials[i] + e; }
+                [=] (double& e) { e = part[i] + e; }
                 );
             })
         | stdexec::then(
-            [](std::vector<double>&& partials) { return partials; } );
+            [](std::vector<double>&& part) { return part; } );
 }
 
 
@@ -316,14 +334,14 @@ for_each (Scheduler sched, Input const& input, std::size_t tileCount, Body body)
     auto const size = std::ranges::size(input);
     auto const tileSize = (size + tileCount - 1) / tileCount;
 
-    return stdexec::schedule(sched)
-      | stdexec::bulk(tileCount, [=](std::size_t tileIdx)
+    return stdexec::schedule(sched) 
+    |  stdexec::bulk(tileCount, [=,&input](std::size_t tileIdx)
         {
             auto const end = std::ranges::begin(input) 
                            + std::min(size, (tileIdx + 1) * tileSize);
 
             for (auto i = std::ranges::begin(input) + tileIdx * tileSize;
-                 i != end; ++i) 
+                    i != end; ++i) 
             {
                 body(*i);
             }
@@ -334,25 +352,6 @@ for_each (Scheduler sched, Input const& input, std::size_t tileCount, Body body)
             //
             // std::for_each(std::execution::unseq, beg, end, body);
         });
-}
-
-
-
-
-//-----------------------------------------------------------------------------
-template <typename Input, typename Body>
-requires 
-    std::ranges::random_access_range<Input> &&
-    std::ranges::sized_range<Input> &&
-    std::invocable<Body,std::ranges::range_value_t<Input>>
-void for_each (Context ctx, Input const& input, Body&& body)
-{
-    auto const tileCount = ctx.resource_shape().threads;
-
-    auto task = for_each(ctx.get_scheduler(), input, tileCount,
-                         std::forward<Body>(body));
-
-    stdexec::sync_wait(task).value();
 }
 
 
@@ -447,7 +446,7 @@ zip_transform (
     Transf fn)
 {
     return stdexec::schedule(sched)
-      | stdexec::bulk(tileCount, [&,tileCount](std::size_t tileIdx)
+      | stdexec::bulk(tileCount, [&](std::size_t tileIdx)
         {
             auto const size = std::min(std::min(in1.size(), in2.size()), out.size());
             auto const tileSize = (size + tileCount - 1) / tileCount;
@@ -464,33 +463,71 @@ zip_transform (
 
 
 //-----------------------------------------------------------------------------
-[[nodiscard]] stdexec::sender auto
-with_elements (stdexec::scheduler auto sched,
-               std::ranges::random_access_range auto& output,
-               std::size_t tileCount)
-{
-    return stdexec::transfer_just(sched, std::span{output}, tileCount);
-}
+template <typename Fn, typename T>
+concept PairReductionOperation =
+    (std::floating_point<T> || std::signed_integral<T>) &&
+    std::invocable<Fn,T,T,T> &&
+    std::convertible_to<T,std::invoke_result_t<Fn,T,T,T>>;
 
 
+
+// template <typename ValueT, typename Operation>
+//     requires std::floating_point<ValueT> || std::signed_integral<ValueT>
 [[nodiscard]] stdexec::sender auto
-with_elements (Context ctx,
-               std::ranges::random_access_range auto& output,
-               std::size_t tileCount)
+zip_reduce (
+    stdexec::scheduler auto sch,
+    std::span<double const> in1,
+    std::span<double const> in2,
+    double initValue,
+    std::size_t tileCount,
+    PairReductionOperation<double> auto redOp)
+    // Operation redOp)
 {
-    return stdexec::transfer_just(ctx.get_scheduler(), ctx, std::span{output}, tileCount);
+    using ValueT = double;
+
+    auto const inSize = std::min(in1.size(), in2.size());
+    std::size_t const tileSize = (inSize + tileCount - 1) / tileCount;
+
+    std::vector<ValueT> partials(tileCount);
+
+    return stdexec::transfer_just(sch, std::move(partials))
+        | stdexec::bulk(tileCount,
+            [=](std::size_t tileIdx, std::vector<ValueT>&& part)
+            {
+                auto const start = tileIdx * tileSize;
+                auto const end   = std::min(inSize, (tileIdx + 1) * tileSize);
+
+                auto intermediate = ValueT(0);
+                for (std::size_t i = start; i < end; ++i) {
+                    part[i] = redOp(intermediate, in1[i], in2[i]);
+                }
+            })
+        | stdexec::then(
+            [=](std::vector<ValueT>&& part)
+            {
+                return std::reduce(begin(part), end(part), initValue);
+            });
 }
 
 
 
 
 //-----------------------------------------------------------------------------
-[[nodiscard]] auto 
-generate_indexed (std::size_t tileCount, IndexToValueMapping auto gen)
+template <
+    stdexec::scheduler Scheduler, 
+    typename OutRange, 
+    typename Generator
+>
+requires std::ranges::random_access_range<OutRange> &&
+         std::ranges::sized_range<OutRange> &&
+         IndexToValueMapping<Generator,OutRange>
+[[nodiscard]] stdexec::sender auto
+generate_indexed (Scheduler sched, 
+                  OutRange& out, std::size_t tileCount, Generator&& gen)
 {
-    return 
-        stdexec::bulk(tileCount,
-        [=]<typename T>(std::size_t tileIdx, std::span<T> out)
+    return stdexec::schedule(sched)
+    |   stdexec::bulk(tileCount,
+        [=,&out](std::size_t tileIdx)
         {
             auto const size  = (out.size() + tileCount-1) / tileCount;
             auto const start = tileIdx * size;
@@ -499,74 +536,10 @@ generate_indexed (std::size_t tileCount, IndexToValueMapping auto gen)
             for (std::size_t i = start; i < end; ++i) {
                 out[i] = gen(i);
             }
-        })
-    |   stdexec::then([]<typename T>(std::span<T> out){
-            return out;
         });
 }
 
 
-
-// starts a new sender chain with scheduler and output range
-template <
-    stdexec::scheduler Scheduler, 
-    typename OutRange, 
-    IndexToValueMapping Generator
->
-requires std::ranges::random_access_range<OutRange> &&
-         std::ranges::sized_range<OutRange>
-[[nodiscard]] stdexec::sender auto
-generate_indexed (
-    Scheduler sched, OutRange& output, std::size_t tileCount, Generator&& gen)
-{
-    auto const size = std::ranges::size(output);
-    auto const tileSize = (size + tileCount - 1) / tileCount;
-
-    return stdexec::transfer_just(sched, std::span{output})
-        |  generate_indexed(tileCount, std::forward<Generator>(gen));
-}
-
-
-
-// starts a new sender chain with context and output range
-template <typename OutRange, IndexToValueMapping Generator>
-    requires std::ranges::random_access_range<OutRange> &&
-             std::ranges::sized_range<OutRange>
-void generate_indexed (Context ctx, OutRange& output, Generator gen)
-{
-    auto const tileCount = ctx.resource_shape().threads;
-    auto const size = std::ranges::size(output);
-    auto const tileSize = (size + tileCount - 1) / tileCount;
-
-    auto task = generate_indexed(ctx.get_scheduler(),
-                                 output, tileCount,
-                                 std::forward<Generator>(gen));
-    
-    stdexec::sync_wait(task).value();
-}
-
-
-
-#else   // SPIRIT_USE_STDEXEC
-
-
-
-//-----------------------------------------------------------------------------
-template <typename OutRange, IndexToValueMapping Generator>
-    requires std::ranges::random_access_range<OutRange> &&
-             std::ranges::sized_range<OutRange>
-void generate_indexed (Context, OutRange& output, Generator gen)
-{
-    #pragma omp parallel for
-    for (std::size_t i = 0; i < output.size(); ++i) {
-        output[i] = gen(i);
-    }
-}
-
-
-
-
-#endif  // SPIRIT_USE_STDEXEC
 
 }  // namespace Execution
 
