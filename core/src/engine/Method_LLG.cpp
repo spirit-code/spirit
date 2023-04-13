@@ -125,11 +125,15 @@ void Method_LLG<solver>::Calculate_Force(
         this->systems[img]->hamiltonian->Gradient_and_Energy( *configurations[img], Gradient[img], current_energy );
 
 #ifdef SPIRIT_ENABLE_PINNING
-        Vectormath::set_c_a( 1, Gradient[img], Gradient[img], this->systems[img]->geometry->mask_unpinned );
+        generate_indexed(exec_context, Gradient[img], [&](std::size_t i) { 
+            return mask[i] * Gradient[img][i];
+        });
 #endif // SPIRIT_ENABLE_PINNING
 
         // Copy out
-        Vectormath::set_c_a( -1, Gradient[img], forces[img] );
+        generate_indexed(exec_context, forces[img], [&](std::size_t i) { 
+            return -1 * Gradient[img][i];
+        });
     }
 }
 
@@ -153,15 +157,7 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
         scalar damping = parameters.damping;
         // dt = time_step [ps] * gyromagnetic ratio / mu_B / (1+damping^2) <- not implemented
         scalar dtg     = parameters.dt * Constants::gamma / Constants::mu_B / ( 1 + damping * damping );
-        scalar sqrtdtg = dtg / std::sqrt( parameters.dt );
-        // STT
-        // - monolayer
-        scalar a_j      = parameters.stt_magnitude;
-        Vector3 s_c_vec = parameters.stt_polarisation_normal;
-        // - gradient
-        // scalar b_j  = a_j;          // pre-factor b_j = u*mu_s/gamma (see bachelorthesis Constantin)
-        scalar beta = parameters.beta; // non-adiabatic parameter of correction term
-        Vector3 je  = s_c_vec;         // direction of current
+        // scalar sqrtdtg = dtg / std::sqrt( parameters.dt );
         //////////
 
         using namespace Execution;
@@ -176,163 +172,76 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
                 dtg = 1.0;
             }
 
-            generate_indexed(exec_context, force_virtual,
-                [&](std::size_t i) { return dtg * image[i].cross( force[i] ); });
+            generate_indexed(exec_context, force_virtual, [&](std::size_t i) { 
+                return dtg * image[i].cross( force[i] ); });
         }
         // Dynamics simulation
         else
         {
-            // fmt::print("---> dynamics\n");
             auto const& geometry = *this->systems[0]->geometry;
 
-            // 1) old version: 
-            // separate 'omp parallel' sections in separately compiled functions 
-            // Vectormath::set_c_a( dtg, force, force_virtual );
-            // Vectormath::add_c_cross( dtg * damping, image, force, force_virtual );
-            // Vectormath::scale( force_virtual, geometry.mu_s, true );
+            generate_indexed(exec_context, force_virtual, [&](std::size_t i) { 
+                auto fvi = force[i];
+                fvi *= dtg;
+                fvi += dtg * damping * image[i].cross(force[i]);
+                fvi /= geometry.mu_s[i];
+                return fvi;
+            });
 
-            // 2) fused, equivalent operations in one 'omp parallel' block
-            // #pragma omp parallel for
-            // for( std::size_t i = 0; i < force_virtual.size(); ++i ) {
-            //     force_virtual[i] = dtg * force[i];
-            //     force_virtual[i] += dtg * damping * image[i].cross( force[i] );
-            //     force_virtual[i] /= geometry.mu_s[i];
-            // }
-
-            // 3) std algorithm - note: (std::execution::*) fails with NVC++
-            // indices idx {0,force_virtual.size()};
-            // std::for_each(
-            //     // std::execution::par_unseq,
-            //     idx.begin(), idx.end(),
-            //     [&](std::size_t i){
-            //         force_virtual[i] = dtg * force[i];
-            //         force_virtual[i] += dtg * damping * image[i].cross( force[i] );
-            //         force_virtual[i] /= geometry.mu_s[i];
-            //     });
-
-            // 4) stdexec-based for loop with 'index_range' 
-            // auto task = for_each(exec_context, index_range{force_virtual.size()},
-            //     [&](std::size_t i) { 
-            //         force_virtual[i] = dtg * force[i];
-            //         force_virtual[i] += dtg * damping * image[i].cross( force[i] );
-            //         force_virtual[i] /= geometry.mu_s[i];
-            //     });
-
-            // 5) stdexec-based algorithm
-            generate_indexed(exec_context, force_virtual,
-                [&](std::size_t i) { 
-                    auto fvi = force[i];
-                    fvi *= dtg;
-                    fvi += dtg * damping * image[i].cross(force[i]);
-                    fvi /= geometry.mu_s[i];
-                    return fvi;
-                });
+            scalar a_j = parameters.stt_magnitude;
+            // scalar b_j  = a_j;   // pre-factor b_j = u*mu_s/gamma (see bachelorthesis Constantin)
 
             // STT
             if( a_j > 0 )
             {
+                Vector3 s_c_vec = parameters.stt_polarisation_normal;
+                Vector3 je      = s_c_vec;   // direction of current
+                scalar beta     = parameters.beta; // non-adiabatic parameter of correction term
+
                 if( parameters.stt_use_gradient )
                 {
                     auto & boundary_conditions = this->systems[0]->hamiltonian->boundary_conditions;
 
-                    // 1) old version
-                    // // Gradient approximation for in-plane currents
-                    // Vectormath::jacobian( image, geometry, boundary_conditions, jacobians );
-                    //
-                    // Backend::par::apply(image.size(), 
-                    //     [s_c_grad = s_c_grad.data(), jacobians=jacobians.data(), direction=je] SPIRIT_LAMBDA (int idx)
-                    //     {
-                    //         s_c_grad[idx] = jacobians[idx] * direction;
-                    //     });
-                    //
-                    // // TODO: replace 'a_j' with 'b_j'
-                    // Vectormath::add_c_a(
-                    //     dtg * a_j * (damping - beta), s_c_grad, force_virtual );
-                    //
-                    // Vectormath::add_c_cross(
-                    //     dtg * a_j * (1 + beta * damping), s_c_grad, image,
-                    //     force_virtual ); 
-                   
-
-                    // 2) separate update of s_c_grad & force_virtual
-                    // // Gradient approximation for in-plane currents
-                    // Vectormath::jacobian( image, geometry, boundary_conditions, jacobians );
-                    //
-                    // generate_indexed(exec_context, s_c_grad,
-                    //     [&](std::size_t i) { jacobians[i] * je; });
-                    //
-                    // generate_indexed(exec_context, force_virtual,
-                    //     [&](std::size_t i) {
-                    //         // TODO: replace 'a_j' with 'b_j'
-                    //         return force_virtual[i] + 
-                    //             dtg * a_j * (damping - beta) * s_c_grad[i] +
-                    //             dtg * a_j * (1 + beta * damping) * s_c_grad[i].cross(image[i])
-                    //     });
-                   
-
-                    // 3) simultaneous update of s_c_grad & force_virtual
                     // Gradient approximation for in-plane currents
                     Vectormath::jacobian( image, geometry, boundary_conditions, jacobians );
 
-                    for_each(exec_context, index_range{force_virtual.size()},
-                        [&](std::size_t i) {
-                            s_c_grad[i] = jacobians[i] * je;
-                            // TODO: replace 'a_j' with 'b_j'
-                            force_virtual[i] += 
-                                dtg * a_j * (damping - beta) * s_c_grad[i] +
-                                dtg * a_j * (1 + beta * damping) * s_c_grad[i].cross(image[i]);
-                        });
-
+                    for_each(exec_context, index_range{force_virtual.size()}, [&](std::size_t i) {
+                        s_c_grad[i] = jacobians[i] * je;
+                        // TODO: replace 'a_j' with 'b_j'
+                        force_virtual[i] += 
+                            dtg * a_j * (damping - beta) * s_c_grad[i] +
+                            dtg * a_j * (1 + beta * damping) * s_c_grad[i].cross(image[i]);
+                    });
                     // gradient in current direction, thus => *(-1)
                 }
                 else
-                {
+                {   
                     // Monolayer approximation
-
-                    // 1) old version
-                    // Vectormath::add_c_a( -dtg * a_j * ( damping - beta ), s_c_vec, force_virtual );
-                    // Vectormath::add_c_cross( -dtg * a_j * ( 1 + beta * damping ), s_c_vec, image, force_virtual );
-
-                    // 2) stdexec-based algorithm
-                    generate_indexed(exec_context, force_virtual,
-                        [&](std::size_t i) {
-                            return force_virtual[i]
-                                - dtg * a_j * (damping - beta)     * s_c_vec
-                                - dtg * a_j * (1 + beta * damping) * s_c_vec.cross(image[i]);
-                        });
+                    generate_indexed(exec_context, force_virtual, [&](std::size_t i) {
+                        return force_virtual[i]
+                            - dtg * a_j * (damping - beta)     * s_c_vec
+                            - dtg * a_j * (1 + beta * damping) * s_c_vec.cross(image[i]);
+                    });
                 }
             }
 
             // Temperature
             if( parameters.temperature > 0 || parameters.temperature_gradient_inclination != 0 )
             {
-                // 1) old version
-                // Vectormath::add_c_a( 1, this->xi, force_virtual );
-                // Vectormath::add_c_cross( damping, image, this->xi, force_virtual );
-
-                // 2) stdexec-based algorithm
-                generate_indexed(exec_context, force_virtual,
-                    [&](std::size_t i) {
-                        return force_virtual[i]
-                            + this->xi[i]
-                            + damping * image[i].cross(this->xi[i]);
-                    });
+                generate_indexed(exec_context, force_virtual, [&](std::size_t i) {
+                    return force_virtual[i]
+                        + this->xi[i]
+                        + damping * image[i].cross(this->xi[i]);
+                });
             }
         }
 
 
 // Apply Pinning
 #ifdef SPIRIT_ENABLE_PINNING
-        // 1) old
-        // Vectormath::set_c_a( 1, force_virtual, force_virtual, this->systems[0]->geometry->mask_unpinned );
-
-        // 2) stdexec-based algorithm
         auto const& mask = this->systems[0]->geometry->mask_unpinned;
         generate_indexed(exec_context, force_virtual,
-            [&](std::size_t i) {
-                return mask[i] * force_virtual[i];
-            });
-
+            [&](std::size_t i) { return mask[i] * force_virtual[i]; });
 #endif // SPIRIT_ENABLE_PINNING
     }
 }
