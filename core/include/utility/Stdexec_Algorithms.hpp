@@ -3,6 +3,7 @@
 #define SPIRIT_CORE_UTILITY_STDEXEC_ALGORITHMS_HPP
 
 #include <utility/Execution.hpp>
+#include <utility/Indices.hpp>
 
 // #include <fmt/format.h>
 
@@ -46,177 +47,6 @@ schedule (Context ctx)
 {                                                     
     return stdexec::schedule(ctx.get_scheduler());    
 }                                                     
-
-
-
-
-//-----------------------------------------------------------------------------
-/** 
- * @brief  non-modifiable range that (conceptually) contains consecutive indices
- */
-class indices
-{
-public:
-    using value_type = std::size_t;
-    using size_type  = value_type;
-
-private:
-    value_type beg_ = 0;
-    value_type end_ = 0;
-
-public:
-    class iterator {
-        value_type i_ = 0;
-    public:
-        using iterator_category = std::contiguous_iterator_tag;
-        using value_type = indices::value_type;
-        using difference_type = std::int64_t;
-
-        constexpr
-        iterator () = default;
-
-        constexpr explicit
-        iterator (value_type i) noexcept : i_{i} {}
-
-        [[nodiscard]] constexpr
-        value_type operator * () const noexcept { return i_; }
-
-        [[nodiscard]] constexpr
-        value_type operator [] (difference_type idx) const noexcept { 
-            return i_ + idx;
-        }
-
-        constexpr auto operator <=> (iterator const&) const noexcept = default;
-
-        constexpr iterator& operator ++ () noexcept { ++i_; return *this; }
-        constexpr iterator& operator -- () noexcept { ++i_; return *this; }
-
-        constexpr iterator
-        operator ++ (int) noexcept { 
-            auto old {*this};
-            ++i_;
-            return old;
-        }
-
-        constexpr iterator
-        operator -- (int) noexcept { 
-            auto old {*this};
-            --i_;
-            return old;
-        }
-
-        constexpr iterator&
-        operator += (difference_type offset) noexcept { 
-            i_ += offset;
-            return *this;
-        }
-
-        constexpr iterator&
-        operator -= (difference_type offset) noexcept { 
-            i_ -= offset;
-            return *this;
-        }
-
-        [[nodiscard]] constexpr friend iterator
-        operator + (iterator const& it, difference_type idx) noexcept { 
-            return iterator{it.i_ + idx}; 
-        }
-
-        [[nodiscard]] constexpr friend iterator
-        operator + (difference_type idx, iterator const& it) noexcept { 
-            return iterator{it.i_ + idx}; 
-        }
-
-        [[nodiscard]] constexpr friend iterator
-        operator - (iterator const& it, difference_type idx) noexcept { 
-            return iterator{it.i_ - idx}; 
-        }
-
-        [[nodiscard]] constexpr friend iterator
-        operator - (difference_type idx, iterator const& it) noexcept { 
-            return iterator{it.i_ - idx}; 
-        }
-
-        [[nodiscard]] friend constexpr
-        difference_type operator - (iterator const& a, iterator const& b) noexcept { 
-            return difference_type(b.i_) - difference_type(a.i_);
-        }
-    };
-
-    using const_iterator = iterator;
-
-
-    constexpr
-    indices () = default;
-
-    constexpr explicit
-    indices (value_type beg, value_type end) noexcept:
-        beg_{beg}, end_{end}
-    {}
-
-
-    [[nodiscard]] constexpr
-    value_type operator [] (size_type idx) const noexcept { return beg_ + idx; }
-
-
-    [[nodiscard]]
-    size_type size () const noexcept { return end_ - beg_; }
-
-    [[nodiscard]]
-    bool empty () const noexcept { return end_ <= beg_; }
-
-
-    [[nodiscard]] constexpr
-    iterator begin () const noexcept { return iterator{beg_}; }
-
-    [[nodiscard]] constexpr
-    iterator end () const noexcept { return iterator{end_}; }
-};
-
-
-
-
-//-----------------------------------------------------------------------------
-// based on example from PR2300
-[[nodiscard]] stdexec::sender auto
-async_inclusive_scan (
-    stdexec::scheduler auto sch,
-    std::span<const double> input,
-    std::span<double> output,
-    double init,
-    std::size_t tileCount)
-{
-    std::size_t const tileSize = (input.size() + tileCount - 1) / tileCount;
-
-    std::vector<double> partials(tileCount + 1);
-    partials[0] = init;
-
-    return stdexec::transfer_just(sch, std::move(partials))
-        | stdexec::bulk(tileCount,
-            [=](std::size_t i, std::vector<double>&& part) {
-                auto start = i * tileSize;
-                auto end   = std::min(input.size(), (i + 1) * tileSize);
-                part[i + 1] = *--std::inclusive_scan(begin(input) + start,
-                                                        begin(input) + end,
-                                                        begin(output) + start);
-            })
-        | stdexec::then(
-            [](std::vector<double>&& part) {
-                std::inclusive_scan(begin(part), end(part),
-                                    begin(part));
-                return part;
-            })
-        | stdexec::bulk(tileCount,
-            [=](std::size_t i, std::vector<double>&& part) {
-                auto start = i * tileSize;
-                auto end   = std::min(input.size(), (i + 1) * tileSize);
-                std::for_each(output.begin() + start, output.begin() + end,
-                [=] (double& e) { e = part[i] + e; }
-                );
-            })
-        | stdexec::then(
-            [](std::vector<double>&& part) { return part; } );
-}
 
 
 
@@ -328,30 +158,25 @@ requires
     std::ranges::random_access_range<Input> &&
     std::ranges::sized_range<Input> &&
     std::invocable<Body,std::ranges::range_value_t<Input>>
-[[nodiscard]] stdexec::sender auto
-for_each (Scheduler sched, Input const& input, std::size_t tileCount, Body body)
+void for_each (Scheduler sched, Input const& input, std::size_t tileCount, Body body)
 {
     auto const size = std::ranges::size(input);
     auto const tileSize = (size + tileCount - 1) / tileCount;
 
-    return stdexec::schedule(sched) 
-    |  stdexec::bulk(tileCount, [=,&input](std::size_t tileIdx)
-        {
-            auto const end = std::ranges::begin(input) 
-                           + std::min(size, (tileIdx + 1) * tileSize);
-
-            for (auto i = std::ranges::begin(input) + tileIdx * tileSize;
-                    i != end; ++i) 
+    auto task = stdexec::schedule(sched) 
+        |  stdexec::bulk(tileCount, [=,&input](std::size_t tileIdx)
             {
-                body(*i);
-            }
+                auto const end = std::ranges::begin(input) 
+                            + std::min(size, (tileIdx + 1) * tileSize);
 
-            // auto const beg = std::ranges::begin(input) + tileIdx * tileSize;
-            // auto const end = std::ranges::begin(input) 
-            //                + std::min(size, (tileIdx + 1) * tileSize);
-            //
-            // std::for_each(std::execution::unseq, beg, end, body);
-        });
+                for (auto i = std::ranges::begin(input) + tileIdx * tileSize;
+                        i != end; ++i) 
+                {
+                    body(*i);
+                }
+            });
+
+    stdexec::sync_wait(task).value();
 }
 
 
@@ -378,8 +203,7 @@ requires
     std::ranges::sized_range<OutRange> &&
     std::invocable<Transf,Value1,Value2> &&
     std::convertible_to<OutValue,std::invoke_result_t<Transf,Value1,Value2>>
-[[nodiscard]] stdexec::sender auto
-zip_transform (
+void zip_transform (
     Scheduler sched,
     InRange1 const& in1,
     InRange2 const& in2,
@@ -389,7 +213,7 @@ zip_transform (
 {
     // return stdexec::transfer_just(sched, std::span{input1}, std::span{input2}, std::span{output})
     //   | stdexec::bulk(tileCount, [&](std::size_t tileIdx, auto in1, auto in2, auto out)
-    return stdexec::schedule(sched)
+    auto task = stdexec::schedule(sched)
       | stdexec::bulk(tileCount, [&,tileCount](std::size_t tileIdx)
         {
             auto const size     = std::min(std::min(in1.size(), in2.size()), out.size());
@@ -411,6 +235,8 @@ zip_transform (
     //                 out[i] = fn(in1[i], in2[i]);
     //             }
     //         });
+
+    stdexec::sync_wait(task).value();
 }
 
 
@@ -436,8 +262,7 @@ requires
     std::ranges::sized_range<InRange2> &&
     std::ranges::sized_range<OutRange> &&
     std::invocable<Transf,Value1,Value2,OutValue&>
-[[nodiscard]] stdexec::sender auto
-zip_transform (
+void zip_transform (
     Scheduler sched,
     InRange1 const& in1,
     InRange2 const& in2,
@@ -445,7 +270,7 @@ zip_transform (
     std::size_t tileCount,
     Transf fn)
 {
-    return stdexec::schedule(sched)
+    auto task = stdexec::schedule(sched)
       | stdexec::bulk(tileCount, [&](std::size_t tileIdx)
         {
             auto const size = std::min(std::min(in1.size(), in2.size()), out.size());
@@ -457,6 +282,8 @@ zip_transform (
                 fn(in1[i], in2[i], out[i]);
             }
         });
+
+    stdexec::sync_wait(task).value();
 }
 
 
@@ -469,12 +296,8 @@ concept PairReductionOperation =
     std::invocable<Fn,T,T,T> &&
     std::convertible_to<T,std::invoke_result_t<Fn,T,T,T>>;
 
-
-
-// template <typename ValueT, typename Operation>
-//     requires std::floating_point<ValueT> || std::signed_integral<ValueT>
-[[nodiscard]] stdexec::sender auto
-zip_reduce (
+[[nodiscard]] 
+double zip_reduce (
     stdexec::scheduler auto sch,
     std::span<double const> in1,
     std::span<double const> in2,
@@ -490,7 +313,7 @@ zip_reduce (
 
     std::vector<ValueT> partials(tileCount);
 
-    return stdexec::transfer_just(sch, std::move(partials))
+    auto task = stdexec::transfer_just(sch, std::move(partials))
         | stdexec::bulk(tileCount,
             [=](std::size_t tileIdx, std::vector<ValueT>&& part)
             {
@@ -507,6 +330,8 @@ zip_reduce (
             {
                 return std::reduce(begin(part), end(part), initValue);
             });
+
+    return stdexec::sync_wait(task).value();
 }
 
 
@@ -521,22 +346,23 @@ template <
 requires std::ranges::random_access_range<OutRange> &&
          std::ranges::sized_range<OutRange> &&
          IndexToValueMapping<Generator,OutRange>
-[[nodiscard]] stdexec::sender auto
-generate_indexed (Scheduler sched, 
-                  OutRange& out, std::size_t tileCount, Generator&& gen)
+void generate_indexed (
+    Scheduler sched, OutRange& out, std::size_t tileCount, Generator gen)
 {
-    return stdexec::schedule(sched)
-    |   stdexec::bulk(tileCount,
-        [=,&out](std::size_t tileIdx)
-        {
-            auto const size  = (out.size() + tileCount-1) / tileCount;
-            auto const start = tileIdx * size;
-            auto const end   = std::min(out.size(), (tileIdx + 1) * size);
+    auto task = stdexec::schedule(sched)
+        | stdexec::bulk(tileCount,
+            [=,&out](std::size_t tileIdx)
+            {
+                auto const size  = (out.size() + tileCount-1) / tileCount;
+                auto const start = tileIdx * size;
+                auto const end   = std::min(out.size(), (tileIdx + 1) * size);
 
-            for (std::size_t i = start; i < end; ++i) {
-                out[i] = gen(i);
-            }
-        });
+                for (std::size_t i = start; i < end; ++i) {
+                    out[i] = gen(i);
+                }
+            });
+
+    stdexec::sync_wait(task).value();
 }
 
 
