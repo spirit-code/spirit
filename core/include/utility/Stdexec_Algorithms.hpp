@@ -122,9 +122,9 @@ void generate_indexed (Context ctx, OutRange& out, Generator gen)
     auto task = stdexec::schedule(sched)
     |   stdexec::bulk(tileCount, [&](std::size_t tileIdx)
         {
-            auto const size  = (out.size() + tileCount-1) / tileCount;
+            auto const size  = (std::ranges::size(out) + tileCount-1) / tileCount;
             auto const start = tileIdx * size;
-            auto const end   = std::min(out.size(), (tileIdx + 1) * size);
+            auto const end   = std::min(std::ranges::size(out), (tileIdx + 1) * size);
 
             for (auto i = start; i < end; ++i) {
                 out[i] = gen(i);
