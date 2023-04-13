@@ -166,9 +166,6 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
 
         using namespace Execution;
 
-        auto sched = exec_context.get_scheduler();
-        auto const concurrency = exec_context.resource_shape().threads;
-           
         // This is the force calculation as it should be for direct minimization
         // TODO: Also calculate force for VP solvers without additional scaling
         if( parameters.direct_minimization 
@@ -179,7 +176,7 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
                 dtg = 1.0;
             }
 
-            generate_indexed(sched, force_virtual, concurrency,
+            generate_indexed(exec_context, force_virtual,
                 [&](std::size_t i) { return dtg * image[i].cross( force[i] ); });
         }
         // Dynamics simulation
@@ -214,7 +211,7 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
             //     });
 
             // 4) stdexec-based for loop with 'index_range' 
-            // auto task = for_each(sched, index_range{force_virtual.size()}, concurrency,
+            // auto task = for_each(exec_context, index_range{force_virtual.size()},
             //     [&](std::size_t i) { 
             //         force_virtual[i] = dtg * force[i];
             //         force_virtual[i] += dtg * damping * image[i].cross( force[i] );
@@ -222,7 +219,7 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
             //     });
 
             // 5) stdexec-based algorithm
-            generate_indexed(sched, force_virtual, concurrency,
+            generate_indexed(exec_context, force_virtual,
                 [&](std::size_t i) { 
                     auto fvi = force[i];
                     fvi *= dtg;
@@ -261,10 +258,10 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
                     // // Gradient approximation for in-plane currents
                     // Vectormath::jacobian( image, geometry, boundary_conditions, jacobians );
                     //
-                    // generate_indexed(sched, s_c_grad, concurrency,
+                    // generate_indexed(exec_context, s_c_grad,
                     //     [&](std::size_t i) { jacobians[i] * je; });
                     //
-                    // generate_indexed(sched, force_virtual, concurrency,
+                    // generate_indexed(exec_context, force_virtual,
                     //     [&](std::size_t i) {
                     //         // TODO: replace 'a_j' with 'b_j'
                     //         return force_virtual[i] + 
@@ -277,7 +274,7 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
                     // Gradient approximation for in-plane currents
                     Vectormath::jacobian( image, geometry, boundary_conditions, jacobians );
 
-                    for_each(sched, index_range{force_virtual.size()}, concurrency,
+                    for_each(exec_context, index_range{force_virtual.size()},
                         [&](std::size_t i) {
                             s_c_grad[i] = jacobians[i] * je;
                             // TODO: replace 'a_j' with 'b_j'
@@ -297,7 +294,7 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
                     // Vectormath::add_c_cross( -dtg * a_j * ( 1 + beta * damping ), s_c_vec, image, force_virtual );
 
                     // 2) stdexec-based algorithm
-                    generate_indexed(sched, force_virtual, concurrency,
+                    generate_indexed(exec_context, force_virtual,
                         [&](std::size_t i) {
                             return force_virtual[i]
                                 - dtg * a_j * (damping - beta)     * s_c_vec
@@ -314,7 +311,7 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
                 // Vectormath::add_c_cross( damping, image, this->xi, force_virtual );
 
                 // 2) stdexec-based algorithm
-                generate_indexed(sched, force_virtual, concurrency,
+                generate_indexed(exec_context, force_virtual,
                     [&](std::size_t i) {
                         return force_virtual[i]
                             + this->xi[i]
@@ -331,7 +328,7 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
 
         // 2) stdexec-based algorithm
         auto const& mask = this->systems[0]->geometry->mask_unpinned;
-        generate_indexed(sched, force_virtual, concurrency,
+        generate_indexed(exec_context, force_virtual,
             [&](std::size_t i) {
                 return mask[i] * force_virtual[i];
             });
