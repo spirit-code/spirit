@@ -179,6 +179,12 @@ configure_file( ${CMAKE_CURRENT_LIST_DIR}/CMake/Spirit_Defines.h.in   ${CMAKE_CU
 ####################################################################
 
 
+######### stdexec decisions ########################################
+add_subdirectory( ${CMAKE_CURRENT_LIST_DIR}/thirdparty/stdexec )
+set( STDEXEC_LIB STDEXEC::stdexec )
+####################################################################
+
+
 ######### OpenMP decisions #########################################
 if( SPIRIT_USE_OPENMP )
     include( FindOpenMP )
@@ -326,11 +332,13 @@ target_include_directories( ${META_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/thirdparty
     ${CMAKE_CURRENT_LIST_DIR}/thirdparty/ovf/include
     ${CMAKE_CURRENT_LIST_DIR}/thirdparty/spectra/include
+    ${CMAKE_CURRENT_LIST_DIR}/thirdparty/stdexec/include
     ${qhull_INCLUDE_DIRS}
     ${FFT_INCLUDE_DIRS} )
 
+
 target_link_libraries( ${META_PROJECT_NAME} INTERFACE
-    ${qhull_LIBS} ${OVF_LIBRARIES_STATIC} ${FFT_LIB} ${THREAD_LIBS} )
+    ${qhull_LIBS} ${OVF_LIBRARIES_STATIC} ${FFT_LIB} ${THREAD_LIBS} ${STDEXEC_LIB})
 
 ### Flag needed to use fmt as header-only
 set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DFMT_HEADER_ONLY )
