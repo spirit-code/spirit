@@ -75,17 +75,17 @@ concept PairReductionOperation =
 
 
 
-
 //-----------------------------------------------------------------------------
 template <typename Input, typename Body>
 requires 
     std::ranges::random_access_range<Input> &&
     std::ranges::sized_range<Input> &&
+    std::copy_constructible<Body> &&
     std::invocable<Body,std::ranges::range_value_t<Input>>
 void for_each (Context ctx, Input const& input, Body body)
 {
     auto const size      = std::ranges::size(input);
-    auto const tileCount = ctx.resource_shape().threads;
+    auto const tileCount = std::min(size, static_cast<std::size_t>(ctx.resource_shape().threads));
     auto const tileSize  = (size + tileCount - 1) / tileCount;
 
     auto sched = ctx.get_scheduler();
@@ -94,11 +94,71 @@ void for_each (Context ctx, Input const& input, Body body)
     |   stdexec::bulk(tileCount, [&](std::size_t tileIdx)
         {
             auto const end = std::ranges::begin(input) 
-                        + std::min(size, (tileIdx + 1) * tileSize);
+                           + std::min(size, (tileIdx + 1) * tileSize);
 
             for (auto i = std::ranges::begin(input) + tileIdx * tileSize; i != end; ++i) 
             {
                 body(*i);
+            }
+        });
+
+    stdexec::sync_wait(task).value();
+}
+
+
+
+
+//-----------------------------------------------------------------------------
+template <typename GridExtents, typename Body>
+requires 
+    std::copy_constructible<Body>
+void for_each_grid_index (Context ctx, GridExtents ext, Body body)
+{
+    // size of collapsed index range
+    std::size_t size = 1;
+    for (auto x : ext) { size *= static_cast<std::size_t>(x); }
+    
+    auto const N = static_cast<int>(ext.size());
+    auto const tileCount = std::min(size, static_cast<std::size_t>(ctx.resource_shape().threads));
+    auto const tileSize  = static_cast<std::size_t>((size + tileCount - 1) / tileCount);
+
+    auto sched = ctx.get_scheduler();
+
+    auto task = stdexec::schedule(sched) 
+    |   stdexec::bulk(tileCount, [&](std::size_t tileIdx)
+        {
+            // start/end of collapsed index range
+            auto const start = tileIdx * tileSize;
+            auto const end   = std::min(size, (tileIdx + 1) * tileSize);
+            if (start >= end) return;
+            // compute start index
+            GridExtents idx;
+            for (int i = 0; i < N; ++i) { idx[i] = 0; }
+
+            if (start > 0) {
+                std::size_t mul[N];
+                mul[0] = 1;
+                for (int i = 0; i < N-1; ++i) {
+                    mul[i+1] = mul[i] * ext[i]; 
+                }
+                auto offset = start;
+                for (int i = N; i > 0; --i) {
+                    if (offset >= mul[i-1]) {
+                        idx[i-1] += offset / mul[i-1];
+                        offset = offset % mul[i-1];
+                        if (offset == 0) break;
+                    }
+                }
+            }
+            // execute body on local index subrange
+            for (auto ci = start; ci < end; ++ci) {
+                body(idx);
+                // increment index
+                for (int i = 0; i < N; ++i) {
+                    ++idx[i];
+                    if (idx[i] < ext[i]) break;
+                    idx[i] = 0;
+                }
             }
         });
 
@@ -115,16 +175,17 @@ requires std::ranges::random_access_range<OutRange> &&
          IndexToValueMapping<Generator,OutRange>
 void generate_indexed (Context ctx, OutRange& out, Generator gen)
 {
-    auto const tileCount = ctx.resource_shape().threads;
+    auto const outSize   = static_cast<std::size_t>(std::ranges::size(out));
+    auto const tileCount = std::min(outSize, static_cast<std::size_t>(ctx.resource_shape().threads));
 
     auto sched = ctx.get_scheduler();
 
     auto task = stdexec::schedule(sched)
     |   stdexec::bulk(tileCount, [&](std::size_t tileIdx)
         {
-            auto const size  = (std::ranges::size(out) + tileCount-1) / tileCount;
+            auto const size  = (outSize + tileCount-1) / tileCount;
             auto const start = tileIdx * size;
-            auto const end   = std::min(std::ranges::size(out), (tileIdx + 1) * size);
+            auto const end   = std::min(outSize, (tileIdx + 1) * size);
 
             for (auto i = start; i < end; ++i) {
                 out[i] = gen(i);
@@ -146,8 +207,8 @@ requires std::ranges::random_access_range<InRange> &&
          std::copy_constructible<Transf>
 void transform (Context ctx, InRange const& in, OutRange& out, Transf fn)
 {
-    auto const size      = std::ranges::size(in);
-    auto const tileCount = ctx.resource_shape().threads;
+    auto const size      = static_cast<std::size_t>(std::ranges::size(in));
+    auto const tileCount = std::min(size, static_cast<std::size_t>(ctx.resource_shape().threads));
     auto const tileSize  = (size + tileCount-1) / tileCount;
 
     auto sched = ctx.get_scheduler();
@@ -178,8 +239,8 @@ requires std::ranges::random_access_range<InRange> &&
          std::copy_constructible<Transf>
 void transform_indexed (Context ctx, InRange const& in, OutRange& out, Transf fn)
 {
-    auto const size      = std::ranges::size(in);
-    auto const tileCount = ctx.resource_shape().threads;
+    auto const size      = static_cast<std::size_t>(std::ranges::size(in));
+    auto const tileCount = std::min(size, static_cast<std::size_t>(ctx.resource_shape().threads));
     auto const tileSize  = (size + tileCount-1) / tileCount;
 
     auto sched = ctx.get_scheduler();
@@ -232,7 +293,8 @@ void zip_transform (
         std::min(std::ranges::size(in1), std::ranges::size(in2)),
         std::ranges::size(out));
 
-    auto const tileCount = ctx.resource_shape().threads;
+    auto const tileCount = std::min(size, static_cast<std::size_t>(ctx.resource_shape().threads));
+
     auto const tileSize = (size + tileCount-1) / tileCount;
 
     auto sched = ctx.get_scheduler();
@@ -284,8 +346,8 @@ void zip_transform (
         std::min(std::ranges::size(in1), std::ranges::size(in2)),
         std::ranges::size(out));
 
-    auto const tileCount = ctx.resource_shape().threads;
-    auto const tileSize = (size + tileCount - 1) / tileCount;
+    auto const tileCount = std::min(size, static_cast<std::size_t>(ctx.resource_shape().threads));
+    auto const tileSize  = (size + tileCount - 1) / tileCount;
 
     auto sched = ctx.get_scheduler();
 
@@ -317,9 +379,9 @@ double zip_reduce (
 {
     using ValueT = double;
 
-    auto const inSize = std::min(in1.size(), in2.size());
-    auto const tileCount = ctx.resource_shape().threads;
-    auto const tileSize = (inSize + tileCount - 1) / tileCount;
+    auto const inSize    = std::min(in1.size(), in2.size());
+    auto const tileCount = std::min(inSize, static_cast<std::size_t>(ctx.resource_shape().threads));
+    auto const tileSize  = (inSize + tileCount - 1) / tileCount;
 
     std::vector<ValueT> partials(tileCount);
 

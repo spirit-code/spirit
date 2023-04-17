@@ -10,6 +10,7 @@
 #include <data/Geometry.hpp>
 #include <data/Spin_System.hpp>
 #include <engine/Vectormath_Defines.hpp>
+#include <utility/Execution.hpp>
 
 namespace Engine
 {
@@ -561,7 +562,8 @@ void directional_gradient(
 
 // Calculate the jacobians of a vectorfield
 void jacobian(
-    const vectorfield & vf, const Data::Geometry & geometry, const intfield & boundary_conditions,
+    Execution::Context,
+    const vectorfield &, const Data::Geometry &, const intfield & boundary_conditions,
     field<Matrix3> & jacobian );
 
 /////////////////////////////////////////////////////////////////

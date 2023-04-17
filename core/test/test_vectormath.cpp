@@ -3,6 +3,7 @@
 #include <engine/Vectormath_Defines.hpp>
 
 #include "catch.hpp"
+#include "utility/Execution.hpp"
 
 #include <iostream>
 #include <vector>
@@ -310,7 +311,11 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
 
         field<Matrix3> jacobians( test_geometry.nos );
         intfield boundary_conditions = { 0, 0, 0 }; // Our test only works with open boundary conditions
-        Engine::Vectormath::jacobian( vftest, test_geometry, boundary_conditions, jacobians );
+                                                    
+        Execution::Compute_Resource comp_resource{};
+        Execution::Context ctx {comp_resource};
+                                                   
+        Engine::Vectormath::jacobian( ctx, vftest, test_geometry, boundary_conditions, jacobians );
 
         for( int i = 0; i < test_geometry.nos; i++ )
         {

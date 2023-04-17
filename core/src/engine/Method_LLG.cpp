@@ -194,19 +194,18 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
             // STT
             if( a_j > 0 )
             {
-                Vector3 s_c_vec = parameters.stt_polarisation_normal;
-                Vector3 je      = s_c_vec;   // direction of current
-                scalar beta     = parameters.beta; // non-adiabatic parameter of correction term
+                Vector3 s_c_vec  = parameters.stt_polarisation_normal;
+                scalar beta      = parameters.beta; // non-adiabatic parameter of correction term
 
                 if( parameters.stt_use_gradient )
                 {
                     auto & boundary_conditions = this->systems[0]->hamiltonian->boundary_conditions;
 
                     // Gradient approximation for in-plane currents
-                    Vectormath::jacobian( image, geometry, boundary_conditions, jacobians );
+                    Vectormath::jacobian( exec_context, image, geometry, boundary_conditions, jacobians );
 
                     for_each(exec_context, index_range{force_virtual.size()}, [&](std::size_t i) {
-                        s_c_grad[i] = jacobians[i] * je;
+                        s_c_grad[i] = jacobians[i] * s_c_vec;
                         // TODO: replace 'a_j' with 'b_j'
                         force_virtual[i] += 
                             dtg * a_j * (damping - beta) * s_c_grad[i] +
