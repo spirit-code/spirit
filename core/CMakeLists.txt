@@ -138,7 +138,7 @@ if( SPIRIT_USE_CUDA )
     find_package( CUDA 8 REQUIRED )
 
     # set( CUDA_PROPAGATE_HOST_FLAGS ON )
-    # --std=c++14 flag may be necessary, but it is propagated from global flags...
+    # --std=c++20 flag may be necessary, but it is propagated from global flags...
     # if it appears twice, for some reason the compilation breaks
 
     set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -lineinfo -arch=${SPIRIT_CUDA_ARCH} --expt-relaxed-constexpr --expt-extended-lambda" )
@@ -155,7 +155,7 @@ if( SPIRIT_USE_CUDA )
     set( META_COMPILER_FULL    "${META_COMPILER_FULL} and nvcc (${CUDA_VERSION}) for cuda arch \\\"${SPIRIT_CUDA_ARCH}\\\"" )
 
     if( NOT DEFINED CMAKE_CUDA_STANDARD )
-        set( CMAKE_CUDA_STANDARD 14 )
+        set( CMAKE_CUDA_STANDARD 20 )
         set( CMAKE_CUDA_STANDARD_REQUIRED ON )
     endif()
 
