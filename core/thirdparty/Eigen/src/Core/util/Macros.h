@@ -571,12 +571,12 @@
 // It's likely that MSVC 2013 supports result_of but I couldn't not find a good source for that,
 // so let's be conservative.
 #ifndef EIGEN_HAS_STD_RESULT_OF
-#if EIGEN_MAX_CPP_VER>=11 && \
-    (__has_feature(cxx_lambdas) || (defined(__cplusplus) && __cplusplus >= 201103L) || EIGEN_COMP_MSVC >= 1900)
-#define EIGEN_HAS_STD_RESULT_OF 1
-#else
+// #if EIGEN_MAX_CPP_VER>=11 && \
+//     (__has_feature(cxx_lambdas) || (defined(__cplusplus) && __cplusplus >= 201103L) || EIGEN_COMP_MSVC >= 1900)
+// #define EIGEN_HAS_STD_RESULT_OF 1
+// #else
 #define EIGEN_HAS_STD_RESULT_OF 0
-#endif
+// #endif
 #endif
 
 #ifndef EIGEN_HAS_ALIGNAS

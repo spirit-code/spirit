@@ -171,8 +171,7 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
             if( solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas ) {
                 dtg = 1.0;
             }
-
-            generate_indexed(exec_context, force_virtual, [&](std::size_t i) { 
+            generate_indexed(exec_context, force_virtual, [&](std::size_t i) -> Vector3 {
                 return dtg * image[i].cross( force[i] ); });
         }
         // Dynamics simulation

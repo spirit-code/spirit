@@ -24,6 +24,7 @@
 #include <Spirit/Configurations.h>
 #include <Spirit/Geometry.h>
 #include <Spirit/Log.h>
+#include <Spirit/Parameters_LLG.h>
 #include <Spirit/Simulation.h>
 #include <Spirit/State.h>
 #include <Spirit/System.h>
@@ -720,15 +721,17 @@ try
         if( ui_shared_state.selected_mode == GUI_Mode::Minimizer )
         {
             int idx = System_Get_Index( state.get() );
+            Parameters_LLG_Set_Direct_Minimization( state.get(), true, idx );
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )] = std::thread(
                 &Simulation_LLG_Start, this->state.get(), ui_shared_state.selected_solver_min, -1, -1, false, nullptr,
                 -1, -1 );
         }
-        if( ui_shared_state.selected_mode == GUI_Mode::LLG )
+        else if( ui_shared_state.selected_mode == GUI_Mode::LLG )
         {
             int idx = System_Get_Index( state.get() );
+            Parameters_LLG_Set_Direct_Minimization( state.get(), false, idx );
             if( threads_image[idx].joinable() )
                 threads_image[System_Get_Index( state.get() )].join();
             this->threads_image[System_Get_Index( state.get() )] = std::thread(
