@@ -491,7 +491,7 @@ jobs:
     env:
       BUILD_TYPE: Release
       CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_BUILD_FOR_JS=ON
-      EMSCRIPTEN_VERSION: "3.1.30"
+      EMSCRIPTEN_VERSION: "3.1.38"
 
     steps:
     - uses: actions/checkout@v3
@@ -532,7 +532,7 @@ jobs:
     env:
       BUILD_TYPE: Release
       CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_BUILD_FOR_JS=ON
-      EMSCRIPTEN_VERSION: "3.1.30"
+      EMSCRIPTEN_VERSION: "3.1.38"
 
     steps:
     - uses: actions/checkout@v3
@@ -568,161 +568,162 @@ jobs:
         name: webapp-desktop
         path: ui-cpp/ui-imgui/webapp/
 
-  deploy-pypi:
-    if: github.event_name != 'pull_request'
-    needs: [test, lint]
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    env:
-      BUILD_TYPE: Release
-      CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=OFF
-      SPIRIT_ADD_VERSION_SUFFIX: true
+  # Cannot yet get it running cross-platform with C++20 and all
+  # deploy-pypi:
+  #   if: github.event_name != 'pull_request'
+  #   needs: [test, lint]
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       os: [ubuntu-latest, macos-latest, windows-latest]
+  #   env:
+  #     BUILD_TYPE: Release
+  #     CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=OFF
+  #     SPIRIT_ADD_VERSION_SUFFIX: true
 
-    steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #   - uses: actions/setup-python@v4
+  #     with:
+  #       python-version: '3.x'
 
-    - name: ⚙ Configure environment
-      shell: bash
-      if: github.ref == 'refs/heads/master'
-      run: echo "SPIRIT_ADD_VERSION_SUFFIX=false" >> $GITHUB_ENV
+  #   - name: ⚙ Configure environment
+  #     shell: bash
+  #     if: github.ref == 'refs/heads/master'
+  #     run: echo "SPIRIT_ADD_VERSION_SUFFIX=false" >> $GITHUB_ENV
 
-    - name: 📁 Create build folder
-      run: cmake -E make_directory ${{runner.workspace}}/build
+  #   - name: 📁 Create build folder
+  #     run: cmake -E make_directory ${{runner.workspace}}/build
 
-    - name: ⚙ Configure
-      shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
+  #   - name: ⚙ Configure
+  #     shell: bash
+  #     working-directory: ${{runner.workspace}}/build
+  #     run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
 
-    - name: 🛠 Build
-      shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: cmake --build . --config $BUILD_TYPE -j 2
+  #   - name: 🛠 Build
+  #     shell: bash
+  #     working-directory: ${{runner.workspace}}/build
+  #     run: cmake --build . --config $BUILD_TYPE -j 2
 
-    - name: 📚 Install necessary packages
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install numpy setuptools wheel twine
+  #   - name: 📚 Install necessary packages
+  #     run: |
+  #       python -m pip install --upgrade pip
+  #       python -m pip install numpy setuptools wheel twine
 
-    - name: 🛠 Build Python package
-      shell: bash
-      working-directory: ./core/python
-      run: |
-        echo "Python package build"
-        echo "Add suffix to spirit version tag for python package $SPIRIT_ADD_VERSION_SUFFIX"
-        python setup.py sdist bdist_wheel
+  #   - name: 🛠 Build Python package
+  #     shell: bash
+  #     working-directory: ./core/python
+  #     run: |
+  #       echo "Python package build"
+  #       echo "Add suffix to spirit version tag for python package $SPIRIT_ADD_VERSION_SUFFIX"
+  #       python setup.py sdist bdist_wheel
 
-    - name: 🚀 Deploy to TestPyPI
-      working-directory: ./core/python
-      env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      if: github.ref != 'refs/heads/master'
-      run: twine upload --skip-existing --repository testpypi dist/*
+  #   - name: 🚀 Deploy to TestPyPI
+  #     working-directory: ./core/python
+  #     env:
+  #       TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+  #       TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+  #     if: github.ref != 'refs/heads/master'
+  #     run: twine upload --skip-existing --repository testpypi dist/*
 
-    - name: 🚀 Deploy to PyPI
-      working-directory: ./core/python
-      env:
-        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      if: github.ref == 'refs/heads/master'
-      run: twine upload --skip-existing dist/*
+  #   - name: 🚀 Deploy to PyPI
+  #     working-directory: ./core/python
+  #     env:
+  #       TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+  #       TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+  #     if: github.ref == 'refs/heads/master'
+  #     run: twine upload --skip-existing dist/*
 
-  deploy-package:
-    if: github.event_name != 'pull_request'
-    needs: [test, lint]
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    env:
-      BUILD_TYPE: Release
-      CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_BUNDLE_APP=ON
+  # deploy-package:
+  #   if: github.event_name != 'pull_request'
+  #   needs: [test, lint]
+  #   runs-on: ${{ matrix.os }}
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       os: [ubuntu-latest, macos-latest, windows-latest]
+  #   env:
+  #     BUILD_TYPE: Release
+  #     CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_BUNDLE_APP=ON
 
-    steps:
-    - uses: actions/checkout@v3
+  #   steps:
+  #   - uses: actions/checkout@v3
 
-    - name: 📚 Install required system packages
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt update
-        sudo apt install xorg-dev libglu1-mesa-dev libgtk-3-dev
+  #   - name: 📚 Install required system packages
+  #     if: matrix.os == 'ubuntu-latest'
+  #     run: |
+  #       sudo apt update
+  #       sudo apt install xorg-dev libglu1-mesa-dev libgtk-3-dev
 
-    - name: 📁 Create build folder
-      run: cmake -E make_directory ${{runner.workspace}}/build
+  #   - name: 📁 Create build folder
+  #     run: cmake -E make_directory ${{runner.workspace}}/build
 
-    - name: ⚙ Configure
-      shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
+  #   - name: ⚙ Configure
+  #     shell: bash
+  #     working-directory: ${{runner.workspace}}/build
+  #     run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
 
-    - name: 🛠 Build
-      shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: |
-        cmake --build . --config $BUILD_TYPE -j 2
-        cmake --install .
-        cmake --build . --config $BUILD_TYPE -j 2 --target package
+  #   - name: 🛠 Build
+  #     shell: bash
+  #     working-directory: ${{runner.workspace}}/build
+  #     run: |
+  #       cmake --build . --config $BUILD_TYPE -j 2
+  #       cmake --install .
+  #       cmake --build . --config $BUILD_TYPE -j 2 --target package
 
-    - name: 📦 Archive ubuntu package
-      if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v2
-      with:
-        name: spirit-ubuntu
-        path: |
-          ${{runner.workspace}}/build/*.tar.gz
+  #   - name: 📦 Archive ubuntu package
+  #     if: matrix.os == 'ubuntu-latest'
+  #     uses: actions/upload-artifact@v2
+  #     with:
+  #       name: spirit-ubuntu
+  #       path: |
+  #         ${{runner.workspace}}/build/*.tar.gz
 
-    - name: 📦 Archive macOS package
-      if: matrix.os == 'macos-latest'
-      uses: actions/upload-artifact@v2
-      with:
-        name: spirit-macos
-        path: |
-          ${{runner.workspace}}/build/*.dmg
-          ${{runner.workspace}}/build/install/README.md
-          ${{runner.workspace}}/build/install/LICENSE.txt
-          ${{runner.workspace}}/build/install/VERSION.txt
-          ${{runner.workspace}}/build/install/licenses/
+  #   - name: 📦 Archive macOS package
+  #     if: matrix.os == 'macos-latest'
+  #     uses: actions/upload-artifact@v2
+  #     with:
+  #       name: spirit-macos
+  #       path: |
+  #         ${{runner.workspace}}/build/*.dmg
+  #         ${{runner.workspace}}/build/install/README.md
+  #         ${{runner.workspace}}/build/install/LICENSE.txt
+  #         ${{runner.workspace}}/build/install/VERSION.txt
+  #         ${{runner.workspace}}/build/install/licenses/
 
-    - name: 📦 Archive windows package
-      if: matrix.os == 'windows-latest'
-      uses: actions/upload-artifact@v2
-      with:
-        name: spirit-windows
-        path: |
-          ${{runner.workspace}}/build/*.zip
+  #   - name: 📦 Archive windows package
+  #     if: matrix.os == 'windows-latest'
+  #     uses: actions/upload-artifact@v2
+  #     with:
+  #       name: spirit-windows
+  #       path: |
+  #         ${{runner.workspace}}/build/*.zip
 
-  draft-release:
-    if: github.event_name == 'push' && startsWith( github.ref, 'refs/tags/' )
-    needs: [test, lint, webapp-mobile, webapp-desktop, deploy-package]
-    runs-on: ubuntu-latest
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  # draft-release:
+  #   if: github.event_name == 'push' && startsWith( github.ref, 'refs/tags/' )
+  #   needs: [test, lint, webapp-mobile, webapp-desktop, deploy-package]
+  #   runs-on: ubuntu-latest
+  #   env:
+  #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    steps:
-    - uses: actions/checkout@v3
+  #   steps:
+  #   - uses: actions/checkout@v3
 
-    - name: 📄 Generate a changelog
-      id: changelog
-      uses: metcalfc/changelog-generator@v1.0.0
-      with:
-        myToken: ${{ secrets.GITHUB_TOKEN }}
+  #   - name: 📄 Generate a changelog
+  #     id: changelog
+  #     uses: metcalfc/changelog-generator@v1.0.0
+  #     with:
+  #       myToken: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: 📄 Print the changelog
-      run: echo "${{ steps.changelog.outputs.changelog }}"
+  #   - name: 📄 Print the changelog
+  #     run: echo "${{ steps.changelog.outputs.changelog }}"
 
-    - name: 🎉 Create draft release
-      id: draft_release
-      uses: actions/create-release@v1
-      with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
-        body: ${{ steps.changelog.outputs.changelog }}
-        draft: true
+  #   - name: 🎉 Create draft release
+  #     id: draft_release
+  #     uses: actions/create-release@v1
+  #     with:
+  #       tag_name: ${{ github.ref }}
+  #       release_name: Release ${{ github.ref }}
+  #       body: ${{ steps.changelog.outputs.changelog }}
+  #       draft: true
