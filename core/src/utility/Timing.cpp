@@ -1,8 +1,8 @@
 #include <utility/Timing.hpp>
 
+#include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
-#include <fmt/chrono.h>
 
 #include <sstream>
 #include <string>

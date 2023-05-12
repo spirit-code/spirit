@@ -134,38 +134,31 @@ public:
 
     // ------------ Energy Functions ------------
     // Getters for Indices of the energy vector
-    [[nodiscard]]
-    int Idx_Zeeman() const noexcept
+    [[nodiscard]] int Idx_Zeeman() const noexcept
     {
         return idx_zeeman;
     }
-    [[nodiscard]]
-    int Idx_Anisotropy() const noexcept
+    [[nodiscard]] int Idx_Anisotropy() const noexcept
     {
         return idx_anisotropy;
     }
-    [[nodiscard]]
-    int Idx_Cubic_Anisotropy() const noexcept
+    [[nodiscard]] int Idx_Cubic_Anisotropy() const noexcept
     {
         return idx_cubic_anisotropy;
     }
-    [[nodiscard]]
-    int Idx_Exchange() const noexcept
+    [[nodiscard]] int Idx_Exchange() const noexcept
     {
         return idx_exchange;
     }
-    [[nodiscard]]
-    int Idx_DMI() const noexcept
+    [[nodiscard]] int Idx_DMI() const noexcept
     {
         return idx_dmi;
     }
-    [[nodiscard]]
-    int Idx_DDI() const noexcept
+    [[nodiscard]] int Idx_DDI() const noexcept
     {
         return idx_ddi;
     }
-    [[nodiscard]]
-    int Idx_Quadruplet() const noexcept
+    [[nodiscard]] int Idx_Quadruplet() const noexcept
     {
         return idx_quadruplet;
     }

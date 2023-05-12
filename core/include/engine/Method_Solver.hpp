@@ -50,12 +50,9 @@ class Method_Solver : public Method
 {
 public:
     // Constructor to be used in derived classes
-    Method_Solver( 
-        Execution::Context exec_ctx,
-        std::shared_ptr<Data::Parameters_Method> parameters,
-        int idx_img, int idx_chain )
-    : 
-        Method( exec_ctx, parameters, idx_img, idx_chain )
+    Method_Solver(
+        Execution::Context exec_ctx, std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain )
+            : Method( exec_ctx, parameters, idx_img, idx_chain )
     {
     }
 
@@ -265,10 +262,10 @@ void Method_Solver<solver>::Message_Start()
     block.push_back( fmt::format( "    Going to iterate {} step(s)", this->n_log ) );
     block.push_back( fmt::format( "                with {} iterations per step", this->n_iterations_log ) );
     block.push_back( fmt::format(
-        fmt::runtime("    Force convergence parameter: {:." + fmt::format( "{}", this->print_precision ) + "f}"),
+        fmt::runtime( "    Force convergence parameter: {:." + fmt::format( "{}", this->print_precision ) + "f}" ),
         this->parameters->force_convergence ) );
     block.push_back( fmt::format(
-        fmt::runtime("    Maximum torque:              {:." + fmt::format( "{}", this->print_precision ) + "f}"),
+        fmt::runtime( "    Maximum torque:              {:." + fmt::format( "{}", this->print_precision ) + "f}" ),
         this->max_torque ) );
     block.push_back( fmt::format( "    Solver: {}", this->SolverFullName() ) );
     if( this->Name() == "GNEB" )
@@ -315,10 +312,10 @@ void Method_Solver<solver>::Message_Step()
         block.push_back( fmt::format( "    Total path length:    {}", length ) );
     }
     block.push_back( fmt::format(
-        fmt::runtime("    Force convergence parameter: {:." + fmt::format( "{}", this->print_precision ) + "f}"),
+        fmt::runtime( "    Force convergence parameter: {:." + fmt::format( "{}", this->print_precision ) + "f}" ),
         this->parameters->force_convergence ) );
     block.push_back( fmt::format(
-        fmt::runtime("    Maximum torque:              {:." + fmt::format( "{}", this->print_precision ) + "f}"),
+        fmt::runtime( "    Maximum torque:              {:." + fmt::format( "{}", this->print_precision ) + "f}" ),
         this->max_torque ) );
     Log.SendBlock( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 
@@ -368,10 +365,10 @@ void Method_Solver<solver>::Message_End()
         block.push_back( fmt::format( "    Total path length: {}", length ) );
     }
     block.push_back( fmt::format(
-        fmt::runtime("    Force convergence parameter: {:." + fmt::format( "{}", this->print_precision ) + "f}"),
+        fmt::runtime( "    Force convergence parameter: {:." + fmt::format( "{}", this->print_precision ) + "f}" ),
         this->parameters->force_convergence ) );
     block.push_back( fmt::format(
-        fmt::runtime("    Maximum torque:              {:." + fmt::format( "{}", this->print_precision ) + "f}"),
+        fmt::runtime( "    Maximum torque:              {:." + fmt::format( "{}", this->print_precision ) + "f}" ),
         this->max_torque ) );
     block.push_back( fmt::format( "    Solver: {}", this->SolverFullName() ) );
     block.push_back( "-----------------------------------------------------" );

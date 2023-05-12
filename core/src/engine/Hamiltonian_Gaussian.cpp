@@ -50,12 +50,11 @@ void Hamiltonian_Gaussian::Hessian( const vectorfield & spins, MatrixX & hessian
     }
 }
 
-void Hamiltonian_Gaussian::Sparse_Hessian( const vectorfield &, SpMatrixX &)
+void Hamiltonian_Gaussian::Sparse_Hessian( const vectorfield &, SpMatrixX & )
 {
     spirit_throw(
-        Utility::Exception_Classifier::Not_Implemented,
-        Utility::Log_Level::Error,
-        "Hamiltonian_Gaussian::Sparse_Hessian not implemented!");
+        Utility::Exception_Classifier::Not_Implemented, Utility::Log_Level::Error,
+        "Hamiltonian_Gaussian::Sparse_Hessian not implemented!" );
 }
 
 void Hamiltonian_Gaussian::Gradient( const vectorfield & spins, vectorfield & gradient )

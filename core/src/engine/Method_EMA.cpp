@@ -22,12 +22,8 @@ namespace Engine
 {
 
 Method_EMA::Method_EMA(
-    Execution::Context exec_ctx,
-    std::shared_ptr<Data::Spin_System> system,
-    int idx_img,
-    int idx_chain )
-: 
-    Method( exec_ctx, system->ema_parameters, idx_img, idx_chain )
+    Execution::Context exec_ctx, std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain )
+        : Method( exec_ctx, system->ema_parameters, idx_img, idx_chain )
 {
     this->systems        = std::vector<std::shared_ptr<Data::Spin_System>>( 1, system );
     this->SenderName     = Log_Sender::EMA;

@@ -5,9 +5,9 @@
 #include <Spirit/Spirit_Defines.h>
 #include <data/Parameters_Method.hpp>
 #include <data/Spin_System_Chain.hpp>
+#include <utility/Execution.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Timing.hpp>
-#include <utility/Execution.hpp>
 
 #include <deque>
 #include <fstream>
@@ -137,7 +137,6 @@ public:
     bool Walltime_Expired( std::chrono::duration<scalar> dt_seconds ) const;
     // Check if a stop file is present -> Stop the iterations
     bool StopFile_Present() const;
-
 
     std::chrono::time_point<std::chrono::system_clock> t_start, t_last;
 

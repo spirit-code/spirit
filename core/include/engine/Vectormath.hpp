@@ -562,8 +562,7 @@ void directional_gradient(
 
 // Calculate the jacobians of a vectorfield
 void jacobian(
-    Execution::Context,
-    const vectorfield &, const Data::Geometry &, const intfield & boundary_conditions,
+    Execution::Context, const vectorfield &, const Data::Geometry &, const intfield & boundary_conditions,
     field<Matrix3> & jacobian );
 
 /////////////////////////////////////////////////////////////////

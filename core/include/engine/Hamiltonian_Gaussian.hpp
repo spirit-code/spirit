@@ -44,7 +44,7 @@ public:
     // Hamiltonian name as string
     const std::string & Name() const override;
 
-// private:
+    // private:
     // Parameters of the energy landscape
     int n_gaussians;
     std::vector<scalar> amplitude;

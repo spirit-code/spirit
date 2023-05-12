@@ -111,14 +111,16 @@ try
         image->iteration_allowed  = true;
         image->singleshot_allowed = singleshot;
 
-        if( n_iterations > 0 ) {
+        if( n_iterations > 0 )
+        {
             image->mc_parameters->n_iterations = n_iterations;
         }
-        if( n_iterations_log > 0 ) {
+        if( n_iterations_log > 0 )
+        {
             image->mc_parameters->n_iterations_log = n_iterations_log;
         }
 
-        Execution::Context exec_ctx {state->compute_resource};
+        Execution::Context exec_ctx{ state->compute_resource };
 
         auto method = std::make_shared<Engine::Method_MC>( exec_ctx, image, idx_image, idx_chain );
 
@@ -172,41 +174,58 @@ try
         image->iteration_allowed  = true;
         image->singleshot_allowed = singleshot;
 
-        if( n_iterations > 0 ) {
+        if( n_iterations > 0 )
+        {
             image->llg_parameters->n_iterations = n_iterations;
         }
-        if( n_iterations_log > 0 ) {
+        if( n_iterations_log > 0 )
+        {
             image->llg_parameters->n_iterations_log = n_iterations_log;
         }
 
-        Execution::Context exec_ctx {state->compute_resource};
+        Execution::Context exec_ctx{ state->compute_resource };
 
         std::shared_ptr<Engine::Method> method;
-        if( solver_type == int( Engine::Solver::SIB ) ) {
+        if( solver_type == int( Engine::Solver::SIB ) )
+        {
             method = std::make_shared<Engine::Method_LLG<Engine::Solver::SIB>>( exec_ctx, image, idx_image, idx_chain );
         }
-        else if( solver_type == int( Engine::Solver::Heun ) ) {
-            method = std::make_shared<Engine::Method_LLG<Engine::Solver::Heun>>( exec_ctx, image, idx_image, idx_chain );
+        else if( solver_type == int( Engine::Solver::Heun ) )
+        {
+            method
+                = std::make_shared<Engine::Method_LLG<Engine::Solver::Heun>>( exec_ctx, image, idx_image, idx_chain );
         }
-        else if( solver_type == int( Engine::Solver::Depondt ) ) {
-            method = std::make_shared<Engine::Method_LLG<Engine::Solver::Depondt>>( exec_ctx, image, idx_image, idx_chain );
+        else if( solver_type == int( Engine::Solver::Depondt ) )
+        {
+            method = std::make_shared<Engine::Method_LLG<Engine::Solver::Depondt>>(
+                exec_ctx, image, idx_image, idx_chain );
         }
-        else if( solver_type == int( Engine::Solver::RungeKutta4 ) ) {
-            method = std::make_shared<Engine::Method_LLG<Engine::Solver::RungeKutta4>>( exec_ctx, image, idx_image, idx_chain );
+        else if( solver_type == int( Engine::Solver::RungeKutta4 ) )
+        {
+            method = std::make_shared<Engine::Method_LLG<Engine::Solver::RungeKutta4>>(
+                exec_ctx, image, idx_image, idx_chain );
         }
-        else if( solver_type == int( Engine::Solver::VP ) ) {
+        else if( solver_type == int( Engine::Solver::VP ) )
+        {
             method = std::make_shared<Engine::Method_LLG<Engine::Solver::VP>>( exec_ctx, image, idx_image, idx_chain );
         }
-        else if( solver_type == int( Engine::Solver::LBFGS_OSO ) ) {
-            method = std::make_shared<Engine::Method_LLG<Engine::Solver::LBFGS_OSO>>( exec_ctx, image, idx_image, idx_chain );
+        else if( solver_type == int( Engine::Solver::LBFGS_OSO ) )
+        {
+            method = std::make_shared<Engine::Method_LLG<Engine::Solver::LBFGS_OSO>>(
+                exec_ctx, image, idx_image, idx_chain );
         }
-        else if( solver_type == int( Engine::Solver::LBFGS_Atlas ) ) {
-            method = std::make_shared<Engine::Method_LLG<Engine::Solver::LBFGS_Atlas>>( exec_ctx, image, idx_image, idx_chain );
+        else if( solver_type == int( Engine::Solver::LBFGS_Atlas ) )
+        {
+            method = std::make_shared<Engine::Method_LLG<Engine::Solver::LBFGS_Atlas>>(
+                exec_ctx, image, idx_image, idx_chain );
         }
-        else if( solver_type == int( Engine::Solver::VP_OSO )  ) {
-            method = std::make_shared<Engine::Method_LLG<Engine::Solver::VP_OSO>>( exec_ctx, image, idx_image, idx_chain );
+        else if( solver_type == int( Engine::Solver::VP_OSO ) )
+        {
+            method
+                = std::make_shared<Engine::Method_LLG<Engine::Solver::VP_OSO>>( exec_ctx, image, idx_image, idx_chain );
         }
-        else {
+        else
+        {
             spirit_throw(
                 Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Warning,
                 fmt::format( "Invalid solver_type {}", solver_type ) );
@@ -277,38 +296,49 @@ try
             chain->iteration_allowed  = true;
             chain->singleshot_allowed = singleshot;
 
-            if( n_iterations > 0 ) {
+            if( n_iterations > 0 )
+            {
                 chain->gneb_parameters->n_iterations = n_iterations;
             }
-            if( n_iterations_log > 0 ) {
+            if( n_iterations_log > 0 )
+            {
                 chain->gneb_parameters->n_iterations_log = n_iterations_log;
             }
 
-            Execution::Context exec_ctx {state->compute_resource};
+            Execution::Context exec_ctx{ state->compute_resource };
 
             std::shared_ptr<Engine::Method> method;
-            if( solver_type == int( Engine::Solver::SIB ) ) {
+            if( solver_type == int( Engine::Solver::SIB ) )
+            {
                 method = std::make_shared<Engine::Method_GNEB<Engine::Solver::SIB>>( exec_ctx, chain, idx_chain );
             }
-            else if( solver_type == int( Engine::Solver::Heun ) ) {
+            else if( solver_type == int( Engine::Solver::Heun ) )
+            {
                 method = std::make_shared<Engine::Method_GNEB<Engine::Solver::Heun>>( exec_ctx, chain, idx_chain );
             }
-            else if( solver_type == int( Engine::Solver::Depondt ) ) {
+            else if( solver_type == int( Engine::Solver::Depondt ) )
+            {
                 method = std::make_shared<Engine::Method_GNEB<Engine::Solver::Depondt>>( exec_ctx, chain, idx_chain );
             }
-            else if( solver_type == int( Engine::Solver::VP ) ) {
+            else if( solver_type == int( Engine::Solver::VP ) )
+            {
                 method = std::make_shared<Engine::Method_GNEB<Engine::Solver::VP>>( exec_ctx, chain, idx_chain );
             }
-            else if( solver_type == int( Engine::Solver::LBFGS_OSO ) ) {
+            else if( solver_type == int( Engine::Solver::LBFGS_OSO ) )
+            {
                 method = std::make_shared<Engine::Method_GNEB<Engine::Solver::LBFGS_OSO>>( exec_ctx, chain, idx_chain );
             }
-            else if( solver_type == int( Engine::Solver::LBFGS_Atlas ) ) {
-                method = std::make_shared<Engine::Method_GNEB<Engine::Solver::LBFGS_Atlas>>( exec_ctx, chain, idx_chain );
+            else if( solver_type == int( Engine::Solver::LBFGS_Atlas ) )
+            {
+                method
+                    = std::make_shared<Engine::Method_GNEB<Engine::Solver::LBFGS_Atlas>>( exec_ctx, chain, idx_chain );
             }
-            else if( solver_type == int( Engine::Solver::VP_OSO ) ) {
+            else if( solver_type == int( Engine::Solver::VP_OSO ) )
+            {
                 method = std::make_shared<Engine::Method_GNEB<Engine::Solver::VP_OSO>>( exec_ctx, chain, idx_chain );
             }
-            else {
+            else
+            {
                 spirit_throw(
                     Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Warning,
                     fmt::format( "Invalid solver_type {}", solver_type ) );
@@ -365,33 +395,39 @@ try
         image->iteration_allowed  = true;
         image->singleshot_allowed = singleshot;
 
-        if( n_iterations > 0 ) {
+        if( n_iterations > 0 )
+        {
             image->mmf_parameters->n_iterations = n_iterations;
         }
 
-        if( n_iterations_log > 0 ) {
+        if( n_iterations_log > 0 )
+        {
             image->mmf_parameters->n_iterations_log = n_iterations_log;
         }
-    
-        Execution::Context exec_ctx {state->compute_resource};
+
+        Execution::Context exec_ctx{ state->compute_resource };
 
         std::shared_ptr<Engine::Method> method;
-        if( solver_type == int( Engine::Solver::SIB ) ) {
+        if( solver_type == int( Engine::Solver::SIB ) )
+        {
             method = std::make_shared<Engine::Method_MMF<Engine::Solver::SIB>>( exec_ctx, image, idx_chain );
         }
-        else if( solver_type == int( Engine::Solver::Heun ) ) {
-            method
-                = std::make_shared<Engine::Method_MMF<Engine::Solver::Heun>>( exec_ctx, image, idx_chain );
+        else if( solver_type == int( Engine::Solver::Heun ) )
+        {
+            method = std::make_shared<Engine::Method_MMF<Engine::Solver::Heun>>( exec_ctx, image, idx_chain );
         }
-        else if( solver_type == int( Engine::Solver::Depondt ) ) {
+        else if( solver_type == int( Engine::Solver::Depondt ) )
+        {
             method = std::make_shared<Engine::Method_MMF<Engine::Solver::Depondt>>( exec_ctx, image, idx_chain );
-        // else if (solver_type == int(Engine::Solver::NCG))
-        //     method = std::make_shared<Engine::Method_MMF<Engine::Solver::NCG>>( exec_ctx, image, idx_chain );
+            // else if (solver_type == int(Engine::Solver::NCG))
+            //     method = std::make_shared<Engine::Method_MMF<Engine::Solver::NCG>>( exec_ctx, image, idx_chain );
         }
-        else if( solver_type == int( Engine::Solver::VP ) ) {
+        else if( solver_type == int( Engine::Solver::VP ) )
+        {
             method = std::make_shared<Engine::Method_MMF<Engine::Solver::VP>>( exec_ctx, image, idx_chain );
         }
-        else {
+        else
+        {
             spirit_throw(
                 Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Warning,
                 fmt::format( "Invalid solver_type {}", solver_type ) );
@@ -452,7 +488,7 @@ try
         if( n_iterations_log > 0 )
             image->ema_parameters->n_iterations_log = n_iterations_log;
 
-        Execution::Context exec_ctx {state->compute_resource};
+        Execution::Context exec_ctx{ state->compute_resource };
         auto method = std::make_shared<Engine::Method_EMA>( exec_ctx, image, idx_image, idx_chain );
 
         image->Unlock();

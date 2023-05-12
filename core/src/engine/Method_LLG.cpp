@@ -6,8 +6,8 @@
 #include <io/IO.hpp>
 #include <io/OVF_File.hpp>
 #include <utility/Logging.hpp>
-#include <utility/Version.hpp>
 #include <utility/Stdexec_Algorithms.hpp>
+#include <utility/Version.hpp>
 
 #include <fmt/format.h>
 
@@ -20,12 +20,9 @@ namespace Engine
 {
 
 template<Solver solver>
-Method_LLG<solver>::Method_LLG( 
-    Execution::Context exec_ctx,
-    std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain )
-: 
-    Method_Solver<solver>( exec_ctx, system->llg_parameters, idx_img, idx_chain ),
-    picoseconds_passed( 0 )
+Method_LLG<solver>::Method_LLG(
+    Execution::Context exec_ctx, std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain )
+        : Method_Solver<solver>( exec_ctx, system->llg_parameters, idx_img, idx_chain ), picoseconds_passed( 0 )
 {
     // Currently we only support a single image being iterated at once:
     this->systems    = std::vector<std::shared_ptr<Data::Spin_System>>( 1, system );
@@ -125,38 +122,33 @@ void Method_LLG<solver>::Calculate_Force(
         this->systems[img]->hamiltonian->Gradient_and_Energy( *configurations[img], Gradient[img], current_energy );
 
 #ifdef SPIRIT_ENABLE_PINNING
-        generate_indexed(exec_context, Gradient[img], [&](std::size_t i) { 
-            return mask[i] * Gradient[img][i];
-        });
+        generate_indexed( exec_context, Gradient[img], [&]( std::size_t i ) { return mask[i] * Gradient[img][i]; } );
 #endif // SPIRIT_ENABLE_PINNING
 
         // Copy out
-        generate_indexed(exec_context, forces[img], [&](std::size_t i) { 
-            return -1 * Gradient[img][i];
-        });
+        generate_indexed( exec_context, forces[img], [&]( std::size_t i ) { return -1 * Gradient[img][i]; } );
     }
 }
 
 template<Solver solver>
 void Method_LLG<solver>::Calculate_Force_Virtual(
-    const std::vector<std::shared_ptr<vectorfield>> & configurations,
-    const std::vector<vectorfield> & forces,
+    const std::vector<std::shared_ptr<vectorfield>> & configurations, const std::vector<vectorfield> & forces,
     std::vector<vectorfield> & forces_virtual )
 {
     using namespace Utility;
 
     for( std::size_t cidx = 0; cidx < configurations.size(); ++cidx )
     {
-        auto const& image      = *configurations[cidx];
-        auto const& force      = forces[cidx];
-        auto const& parameters = *this->systems[cidx]->llg_parameters;
-        auto & force_virtual   = forces_virtual[cidx];
+        auto const & image      = *configurations[cidx];
+        auto const & force      = forces[cidx];
+        auto const & parameters = *this->systems[cidx]->llg_parameters;
+        auto & force_virtual    = forces_virtual[cidx];
 
         //////////
         // time steps
         scalar damping = parameters.damping;
         // dt = time_step [ps] * gyromagnetic ratio / mu_B / (1+damping^2) <- not implemented
-        scalar dtg     = parameters.dt * Constants::gamma / Constants::mu_B / ( 1 + damping * damping );
+        scalar dtg = parameters.dt * Constants::gamma / Constants::mu_B / ( 1 + damping * damping );
         // scalar sqrtdtg = dtg / std::sqrt( parameters.dt );
         //////////
 
@@ -164,28 +156,32 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
 
         // This is the force calculation as it should be for direct minimization
         // TODO: Also calculate force for VP solvers without additional scaling
-        if( parameters.direct_minimization 
-            || solver == Solver::VP || solver == Solver::VP_OSO
+        if( parameters.direct_minimization || solver == Solver::VP || solver == Solver::VP_OSO
             || solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas )
         {
-            if( solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas ) {
+            if( solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas )
+            {
                 dtg = 1.0;
             }
-            generate_indexed(exec_context, force_virtual, [&](std::size_t i) -> Vector3 {
-                return dtg * image[i].cross( force[i] ); });
+            generate_indexed(
+                exec_context, force_virtual,
+                [&]( std::size_t i ) -> Vector3 { return dtg * image[i].cross( force[i] ); } );
         }
         // Dynamics simulation
         else
         {
-            auto const& geometry = *this->systems[0]->geometry;
+            auto const & geometry = *this->systems[0]->geometry;
 
-            generate_indexed(exec_context, force_virtual, [&](std::size_t i) { 
-                auto fvi = force[i];
-                fvi *= dtg;
-                fvi += dtg * damping * image[i].cross(force[i]);
-                fvi /= geometry.mu_s[i];
-                return fvi;
-            });
+            generate_indexed(
+                exec_context, force_virtual,
+                [&]( std::size_t i )
+                {
+                    auto fvi = force[i];
+                    fvi *= dtg;
+                    fvi += dtg * damping * image[i].cross( force[i] );
+                    fvi /= geometry.mu_s[i];
+                    return fvi;
+                } );
 
             scalar a_j = parameters.stt_magnitude;
             // scalar b_j  = a_j;   // pre-factor b_j = u*mu_s/gamma (see bachelorthesis Constantin)
@@ -193,8 +189,8 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
             // STT
             if( a_j > 0 )
             {
-                Vector3 s_c_vec  = parameters.stt_polarisation_normal;
-                scalar beta      = parameters.beta; // non-adiabatic parameter of correction term
+                Vector3 s_c_vec = parameters.stt_polarisation_normal;
+                scalar beta     = parameters.beta; // non-adiabatic parameter of correction term
 
                 if( parameters.stt_use_gradient )
                 {
@@ -203,43 +199,44 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
                     // Gradient approximation for in-plane currents
                     Vectormath::jacobian( exec_context, image, geometry, boundary_conditions, jacobians );
 
-                    for_each(exec_context, index_range{force_virtual.size()}, [&](std::size_t i) {
-                        s_c_grad[i] = jacobians[i] * s_c_vec;
-                        // TODO: replace 'a_j' with 'b_j'
-                        force_virtual[i] += 
-                            dtg * a_j * (damping - beta) * s_c_grad[i] +
-                            dtg * a_j * (1 + beta * damping) * s_c_grad[i].cross(image[i]);
-                    });
+                    for_each(
+                        exec_context, index_range{ force_virtual.size() },
+                        [&]( std::size_t i )
+                        {
+                            s_c_grad[i] = jacobians[i] * s_c_vec;
+                            // TODO: replace 'a_j' with 'b_j'
+                            force_virtual[i] += dtg * a_j * ( damping - beta ) * s_c_grad[i]
+                                                + dtg * a_j * ( 1 + beta * damping ) * s_c_grad[i].cross( image[i] );
+                        } );
                     // gradient in current direction, thus => *(-1)
                 }
                 else
-                {   
+                {
                     // Monolayer approximation
-                    generate_indexed(exec_context, force_virtual, [&](std::size_t i) {
-                        return force_virtual[i]
-                            - dtg * a_j * (damping - beta)     * s_c_vec
-                            - dtg * a_j * (1 + beta * damping) * s_c_vec.cross(image[i]);
-                    });
+                    generate_indexed(
+                        exec_context, force_virtual,
+                        [&]( std::size_t i )
+                        {
+                            return force_virtual[i] - dtg * a_j * ( damping - beta ) * s_c_vec
+                                   - dtg * a_j * ( 1 + beta * damping ) * s_c_vec.cross( image[i] );
+                        } );
                 }
             }
 
             // Temperature
             if( parameters.temperature > 0 || parameters.temperature_gradient_inclination != 0 )
             {
-                generate_indexed(exec_context, force_virtual, [&](std::size_t i) {
-                    return force_virtual[i]
-                        + this->xi[i]
-                        + damping * image[i].cross(this->xi[i]);
-                });
+                generate_indexed(
+                    exec_context, force_virtual,
+                    [&]( std::size_t i )
+                    { return force_virtual[i] + this->xi[i] + damping * image[i].cross( this->xi[i] ); } );
             }
         }
 
-
 // Apply Pinning
 #ifdef SPIRIT_ENABLE_PINNING
-        auto const& mask = this->systems[0]->geometry->mask_unpinned;
-        generate_indexed(exec_context, force_virtual,
-            [&](std::size_t i) { return mask[i] * force_virtual[i]; });
+        auto const & mask = this->systems[0]->geometry->mask_unpinned;
+        generate_indexed( exec_context, force_virtual, [&]( std::size_t i ) { return mask[i] * force_virtual[i]; } );
 #endif // SPIRIT_ENABLE_PINNING
     }
 }
@@ -346,7 +343,7 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
         // Convert indices to formatted strings
         auto s_img         = fmt::format( "{:0>2}", this->idx_image );
         auto base          = static_cast<std::int32_t>( log10( this->parameters->n_iterations ) );
-        std::string s_iter = fmt::format( fmt::runtime("{:0>" + fmt::format( "{}", base ) + "}"), iteration );
+        std::string s_iter = fmt::format( fmt::runtime( "{:0>" + fmt::format( "{}", base ) + "}" ), iteration );
 
         std::string preSpinsFile;
         std::string preEnergyFile;

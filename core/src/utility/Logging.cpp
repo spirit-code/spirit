@@ -33,8 +33,7 @@ std::string LogEntryToString( LogEntry entry, bool braces_separators )
         format_str = "{}   {:^7}   {:^4}   {}   {}   {}";
 
     std::string result = fmt::format(
-        fmt::runtime(format_str),
-        entry.time, entry.level, entry.sender, IndexToString( entry.idx_chain ),
+        fmt::runtime( format_str ), entry.time, entry.level, entry.sender, IndexToString( entry.idx_chain ),
         IndexToString( entry.idx_image ), entry.message_lines[0] );
 
     // Rest of the block

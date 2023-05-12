@@ -19,12 +19,8 @@ namespace Engine
 {
 
 Method_MC::Method_MC(
-    Execution::Context exec_ctx,
-    std::shared_ptr<Data::Spin_System> system,
-    int idx_img,
-    int idx_chain )
-:
-    Method( exec_ctx, system->mc_parameters, idx_img, idx_chain )
+    Execution::Context exec_ctx, std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain )
+        : Method( exec_ctx, system->mc_parameters, idx_img, idx_chain )
 {
     // Currently we only support a single image being iterated at once:
     this->systems    = std::vector<std::shared_ptr<Data::Spin_System>>( 1, system );

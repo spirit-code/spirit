@@ -4,8 +4,8 @@
 
 #include <engine/Method.hpp>
 #include <utility/Exception.hpp>
-#include <utility/Timing.hpp>
 #include <utility/Execution.hpp>
+#include <utility/Timing.hpp>
 
 /*
  * The State struct is passed around in an application to make the
