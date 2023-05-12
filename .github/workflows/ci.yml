@@ -256,18 +256,26 @@ jobs:
       run: pylint core/python/spirit --fail-under=8
 
   test-clang:
-    runs-on: ubuntu-22.04
-    name: clang${{ matrix.name-suffix }} (ubuntu-22.04)
+    runs-on: ${{ matrix.os }}
+    name: clang ${{ matrix.parallelisation }} (${{ matrix.os }})
     strategy:
       fail-fast: false
       matrix:
-        name-suffix: [""]
-        parallelisation: ["none"]
         include:
-          - parallelisation: "cuda"
-            name-suffix: "-cuda"
-          - parallelisation: "openmp"
-            name-suffix: "-openmp"
+          - os: ubuntu-22.04
+            parallelisation: ""
+          - os: ubuntu-22.04
+            parallelisation: "openmp"
+          - os: ubuntu-22.04
+            parallelisation: "cuda"
+          - os: macos-13
+            parallelisation: ""
+          - os: macos-13
+            parallelisation: "openmp"
+          - os: windows-2022
+            parallelisation: ""
+          - os: windows-2022
+            parallelisation: "openmp"
     env:
       BUILD_TYPE: Release
       CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
@@ -275,13 +283,14 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - name: 📚 Install LLVM and some libs
+    - name: 📚 Install LLVM and some libs (Ubuntu)
+      if: matrix.os == 'ubuntu-22.04'
       shell: bash
       run: |
         wget --no-verbose -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
         sudo add-apt-repository "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-16 main"
         sudo apt update
-        sudo apt install xorg-dev libglu1-mesa-dev libgtk-3-dev clang-16 lldb-16 lld-16
+        sudo apt install xorg-dev libglu1-mesa-dev libgtk-3-dev clang-16 lldb-16 lld-16 libomp-16-dev
 
     - name: 📚 Install NVIDIA HPC SDK
       if: matrix.parallelisation == 'cuda'
@@ -291,19 +300,29 @@ jobs:
         echo 'deb [signed-by=/usr/share/keyrings/nvidia-hpcsdk-archive-keyring.gpg] https://developer.download.nvidia.com/hpc-sdk/ubuntu/amd64 /' | sudo tee /etc/apt/sources.list.d/nvhpc.list
         sudo apt update -y
         sudo apt install -y nvhpc-23-3
-
-    - name: ⚙ Configure environment
-      if: matrix.parallelisation == 'cuda'
-      shell: bash
-      run: |
         echo "/opt/nvidia/hpc_sdk/Linux_x86_64/23.3/compilers/bin" >> $GITHUB_PATH
         echo "/opt/nvidia/hpc_sdk/Linux_x86_64/23.3/comm_libs/mpi/bin" >> $GITHUB_PATH
+
+    - name: 📚 Install LLVM (MacOS)
+      if: matrix.os == 'macos-13'
+      shell: bash
+      run: |
+        brew update
+        brew install llvm
+
+    - name: 📚 Install LLVM and Ninja (Windows)
+      if: matrix.os == 'windows-2022'
+      shell: pwsh
+      run: |
+        Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+        choco install llvm ninja -y
+        "CMAKE_FLAGS=$env:CMAKE_FLAGS -G Ninja" >> $env:GITHUB_ENV
 
     - name: 📁 Create build folder
       run: cmake -E make_directory ${{runner.workspace}}/build
 
     - name: ⚙ Configure
-      if: matrix.parallelisation == 'none'
+      if: matrix.parallelisation == ''
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
