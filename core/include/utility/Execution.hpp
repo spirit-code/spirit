@@ -63,7 +63,7 @@ public:
 
     [[nodiscard]] auto get_scheduler() noexcept
     {
-        assert( res_->!= nullptr );
+        assert( res_ != nullptr );
         // if (not is_engaged()) {
         //     spirit_throw(
         //         Utility::Exception_Classifier::Standard_Exception,
@@ -76,7 +76,7 @@ public:
     [[nodiscard]] Execution_Shape resource_shape() const noexcept
     {
         // return static_cast<bool>(res_) ? res_->shape_ : Execution_Shape{};
-        assert( res_->!= nullptr );
+        assert( res_ != nullptr );
         return res_->shape_;
     }
 

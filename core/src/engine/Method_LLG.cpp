@@ -122,6 +122,7 @@ void Method_LLG<solver>::Calculate_Force(
         this->systems[img]->hamiltonian->Gradient_and_Energy( *configurations[img], Gradient[img], current_energy );
 
 #ifdef SPIRIT_ENABLE_PINNING
+        auto const & mask = this->systems[0]->geometry->mask_unpinned;
         generate_indexed( exec_context, Gradient[img], [&]( std::size_t i ) { return mask[i] * Gradient[img][i]; } );
 #endif // SPIRIT_ENABLE_PINNING
 
