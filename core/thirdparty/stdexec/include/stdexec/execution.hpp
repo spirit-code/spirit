@@ -729,9 +729,9 @@ namespace stdexec {
     void _ATTENTION_() noexcept {}
 
     template <class... _Sigs>
-    struct __fallthrough {
+    struct __fallthrough_m {
       struct __ignore {
-        STDEXEC_DETAIL_CUDACC_HOST_DEVICE __ignore(__fallthrough) noexcept {
+        STDEXEC_DETAIL_CUDACC_HOST_DEVICE __ignore(__fallthrough_m) noexcept {
         }
       };
 
@@ -763,7 +763,7 @@ namespace stdexec {
     template <class _Env, class... _Sigs>
     struct __debug_receiver<_Env, completion_signatures<_Sigs...>> //
       : __completion<_Sigs>...
-      , __fallthrough<_Sigs...> {
+      , __fallthrough_m<_Sigs...> {
       using is_receiver = void;
       using __t = __debug_receiver;
       using __id = __debug_receiver;
@@ -865,13 +865,13 @@ namespace stdexec {
   namespace __get_completion_signatures {
     template <class _Sender, class _Env>
     concept __with_tag_invoke =
-      __valid<tag_invoke_result_t, get_completion_signatures_t, _Sender, _Env>;
+      __valid_m<tag_invoke_result_t, get_completion_signatures_t, _Sender, _Env>;
 
     template <class _Sender, class...>
     using __member_alias_t = typename __decay_t<_Sender>::completion_signatures;
 
     template <class _Sender>
-    concept __with_member_alias = __valid<__member_alias_t, _Sender>;
+    concept __with_member_alias = __valid_m<__member_alias_t, _Sender>;
 
     struct get_completion_signatures_t {
       template <class _Sender, class _Env>
@@ -1114,11 +1114,11 @@ namespace stdexec {
   using __count_of = __msuccess_or_t<__try_count_of<_Tag, _Sender, _Env>>;
 
   template <class _Tag, class _Sender, class _Env = __default_env>
-    requires __valid<__count_of, _Tag, _Sender, _Env>
+    requires __valid_m<__count_of, _Tag, _Sender, _Env>
   inline constexpr bool __sends = (__v<__count_of<_Tag, _Sender, _Env>> != 0);
 
   template <class _Sender, class _Env = __default_env>
-    requires __valid<__count_of, set_stopped_t, _Sender, _Env>
+    requires __valid_m<__count_of, set_stopped_t, _Sender, _Env>
   inline constexpr bool sends_stopped = __sends<set_stopped_t, _Sender, _Env>;
 
   template <class _Sender, class _Env = __default_env>
@@ -1130,11 +1130,11 @@ namespace stdexec {
 
   template <class _Sender, class _Env = __default_env>
   concept __single_typed_sender =
-    sender_in<_Sender, _Env> && __valid<__single_sender_value_t, _Sender, _Env>;
+    sender_in<_Sender, _Env> && __valid_m<__single_sender_value_t, _Sender, _Env>;
 
   template <class _Sender, class _Env = __default_env>
   concept __single_value_variant_sender =
-    sender_in<_Sender, _Env> && __valid<__single_value_variant_sender_t, _Sender, _Env>;
+    sender_in<_Sender, _Env> && __valid_m<__single_value_variant_sender_t, _Sender, _Env>;
 
   template <class... Errs>
   using __nofail = __mbool<sizeof...(Errs) == 0>;
@@ -1166,7 +1166,7 @@ namespace stdexec {
         __if<__try_count_of<set_stopped_t, _Sender, _Env>, _SetStp, completion_signatures<>>>;
 
     template <class _Sender, class _Env, class _Sigs, class _SetVal, class _SetErr, class _SetStp>
-      requires __valid<__compl_sigs_impl, _Sender, _Env, _Sigs, _SetVal, _SetErr, _SetStp>
+      requires __valid_m<__compl_sigs_impl, _Sender, _Env, _Sigs, _SetVal, _SetErr, _SetStp>
     extern __compl_sigs_impl<_Sender, _Env, _Sigs, _SetVal, _SetErr, _SetStp> __compl_sigs_v;
 
     template <class _Sender, class _Env, class _Sigs, class _SetVal, class _SetErr, class _SetStp>
@@ -5518,7 +5518,7 @@ namespace stdexec {
     template <class _Sender, class _Env>
     concept __max1_sender =
       sender_in<_Sender, _Env>
-      && __valid<__value_types_of_t, _Sender, _Env, __mconst<int>, __msingle_or<void>>;
+      && __valid_m<__value_types_of_t, _Sender, _Env, __mconst<int>, __msingle_or<void>>;
 
     template <class _Env, class _Sender>
     using __single_values_of_t = //
@@ -5803,7 +5803,7 @@ namespace stdexec {
       typename __traits_ex<_Cvref, _ReceiverId, _SenderIds...>::template __op_states_tuple<>;
 
     template <class _Cvref, class _ReceiverId, class... _SenderIds>
-      requires __valid<__op_states_tuple_ex, _Cvref, _ReceiverId, _SenderIds...>
+      requires __valid_m<__op_states_tuple_ex, _Cvref, _ReceiverId, _SenderIds...>
     struct __operation {
       using _Receiver = stdexec::__t<_ReceiverId>;
       using _Traits = __traits_ex<_Cvref, _ReceiverId, _SenderIds...>;
@@ -6216,7 +6216,7 @@ namespace stdexec {
     // [execution.senders.consumers.sync_wait]
     struct sync_wait_t {
       template <sender_in<__env> _Sender>
-        requires __valid<__single_value_variant_sender_t, _Sender, __env>
+        requires __valid_m<__single_value_variant_sender_t, _Sender, __env>
               && (sender_to<_Sender, __receiver_t<_Sender>> || __is_sync_wait_customized<_Sender>)
       auto operator()(_Sender&& __sndr) const -> std::optional<__sync_wait_result_t<_Sender>> {
         // The selected implementation should return void
