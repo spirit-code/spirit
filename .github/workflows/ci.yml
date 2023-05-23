@@ -4,196 +4,6 @@ on: [push, pull_request]
 
 jobs:
 
-  test:
-    runs-on: ${{ matrix.os }}
-    name: test${{ matrix.name-suffix }} (${{ matrix.os }}, ${{ matrix.build-type }})
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest] #, macos-latest, windows-latest] ### CANNOT BUILD ON APPLE-CLANG OR MSVC YET
-        build-type: [Release, Debug]
-        name-suffix: [""]
-        openmp: [false]
-        single-precision: [false]
-        include:
-          - build-type: Debug
-            excludetests: solver
-          - openmp: true
-            name-suffix: "-openmp"
-            os: ubuntu-latest
-            build-type: Release
-          # - openmp: true ### CANNOT BUILD ON APPLE-CLANG YET
-          #   name-suffix: "-openmp"
-          #   os: macos-latest
-          #   build-type: Release
-          # - openmp: true ### CANNOT BUILD ON MSVC YET
-          #   name-suffix: "-openmp"
-          #   os: windows-latest
-          #   build-type: Release
-          - single-precision: true
-            name-suffix: "-single-precision"
-            os: ubuntu-latest
-            build-type: Release
-          # - single-precision: true ### CANNOT BUILD ON APPLE-CLANG YET
-          #   name-suffix: "-single-precision"
-          #   os: macos-latest
-          #   build-type: Release
-          # - single-precision: true ### CANNOT BUILD ON MSVC YET
-          #   name-suffix: "-single-precision"
-          #   os: windows-latest
-          #   build-type: Release
-    env:
-      BUILD_TYPE: ${{ matrix.build-type }}
-      CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF
-      OMP_NUM_THREADS: 4
-      EXCLUDETESTS: ${{ matrix.excludetests }}
-
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: 📚 Install required system packages
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt update
-        sudo apt install xorg-dev libglu1-mesa-dev libgtk-3-dev
-
-    - name: 📁 Create build folder
-      run: cmake -E make_directory ${{runner.workspace}}/build
-
-    - name: ⚙ Install LLVM (for OpenMP) on macOS
-      if: matrix.openmp == true && matrix.os == 'macos-latest'
-      shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: |
-        brew install llvm
-        echo "$(brew --prefix llvm)/bin/" >> $GITHUB_PATH
-
-    - name: ⚙ Install LLVM and Ninja (for OpenMP) on Windows
-      if: matrix.openmp == true && matrix.os == 'windows-latest'
-      shell: pwsh
-      working-directory: ${{runner.workspace}}/build
-      run: |
-        choco install llvm ninja -y
-        "CMAKE_FLAGS=$env:CMAKE_FLAGS -G Ninja" >> $env:GITHUB_ENV
-
-    - name: ⚙ Configure with OpenMP
-      if: matrix.openmp == true && matrix.single-precision == false
-      shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DSPIRIT_USE_OPENMP=ON $CMAKE_FLAGS
-
-    - name: ⚙ Configure with single-precision
-      if: matrix.openmp == false && matrix.single-precision == true
-      shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DSPIRIT_SCALAR_TYPE="float" $CMAKE_FLAGS
-
-    - name: ⚙ Configure
-      if: matrix.openmp == false && matrix.single-precision == false
-      shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
-
-    - name: 🛠 Build
-      shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: cmake --build . --config $BUILD_TYPE -j 2
-
-    - name: 📚 Install python packages
-      run: pip install --user numpy
-
-    - name: 🧪 Test
-      shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: ctest -C $BUILD_TYPE -E $EXCLUDETESTS --rerun-failed --output-on-failure
-
-  test-coverage:
-    runs-on: ubuntu-latest
-    env:
-      BUILD_TYPE: Release
-      CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_TEST_COVERAGE=ON
-
-    steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
-      with:
-        python-version: '3.x'
-
-    - name: 📁 Create build folder
-      run: cmake -E make_directory ${{runner.workspace}}/build
-
-    - name: ⚙ Configure
-      shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
-
-    - name: 🛠 Build
-      shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: cmake --build . --config Release -j 2
-
-    - name: 📚 Install necessary packages
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install numpy coverage 'coveralls<3' wheel
-        sudo apt update
-        sudo apt install lcov
-
-    - name: 🧪 Generate C++ coverage
-      shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: |
-        lcov -c -i --no-external --directory . --base-directory $GITHUB_WORKSPACE/core -o baseline.info
-        make test
-        lcov -c --no-external --directory . --base-directory $GITHUB_WORKSPACE/core -o after_test.info
-        lcov -a baseline.info -a after_test.info -o total_test.info
-        lcov -r total_test.info \*thirdparty\* \*/test/\* \*Collection\* \*DLL_\* -o coverage.info
-    - name: ⬆ Upload C++ coverage
-      uses: codecov/codecov-action@v1
-      with:
-        files: ${{runner.workspace}}/build/coverage.info
-
-    - name: 🧪 Python API coverage
-      working-directory: ./core/python
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        coverage run --source spirit --omit=spirit/spiritlib.py setup.py test > cov.txt
-        head cov.txt
-        coverage report -m
-        coverage xml
-        coveralls
-
-  test-pinning-defects:
-    runs-on: ubuntu-latest
-    env:
-      BUILD_TYPE: Release
-      CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_ENABLE_PINNING=ON -DSPIRIT_ENABLE_DEFECTS=ON
-
-    steps:
-    - uses: actions/checkout@v3
-
-    - name: 📁 Create build folder
-      run: cmake -E make_directory ${{runner.workspace}}/build
-
-    - name: ⚙ Configure
-      shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
-
-    - name: 🛠 Build
-      shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: cmake --build . --config $BUILD_TYPE -j 2
-
-    - name: 📚 Install python packages
-      run: pip install --user numpy
-
-    - name: 🧪 Test
-      shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: ctest -C $BUILD_TYPE --output-on-failure
-
   lint:
     runs-on: ubuntu-20.04
     strategy:
@@ -255,9 +65,61 @@ jobs:
       shell: bash
       run: pylint core/python/spirit --fail-under=8
 
-  test-clang:
+  test-gcc:
+    name: gcc ${{ matrix.parallelisation }} (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+          - os: ubuntu-22.04
+            parallelisation: "openmp"
+    env:
+      BUILD_TYPE: Release
+      CMAKE_FLAGS: -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF
+      OMP_NUM_THREADS: 4
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: 📚 Install required system packages
+      if: matrix.os == 'ubuntu-22.04'
+      run: |
+        sudo apt update
+        sudo apt install xorg-dev libglu1-mesa-dev libgtk-3-dev
+
+    - name: 📁 Create build folder
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: ⚙ Configure
+      if: matrix.parallelisation == ''
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
+
+    - name: ⚙ Configure with OpenMP
+      if: matrix.parallelisation == 'openmp'
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DSPIRIT_USE_OPENMP=ON $CMAKE_FLAGS
+
+    - name: 🛠 Build
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake --build . --config $BUILD_TYPE -j 2
+
+    - name: 📚 Install python packages
+      run: pip install --user numpy
+
+    - name: 🧪 Test
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: ctest -C $BUILD_TYPE --rerun-failed --output-on-failure
+
+  test-clang:
     name: clang ${{ matrix.parallelisation }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -278,7 +140,8 @@ jobs:
             parallelisation: "openmp"
     env:
       BUILD_TYPE: Release
-      CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+      CMAKE_FLAGS: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF
+      OMP_NUM_THREADS: 4
 
     steps:
     - uses: actions/checkout@v3
@@ -287,10 +150,13 @@ jobs:
       if: matrix.os == 'ubuntu-22.04'
       shell: bash
       run: |
+        sudo apt-get --purge remove "clang*"
         wget --no-verbose -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
         sudo add-apt-repository "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-16 main"
         sudo apt update
         sudo apt install xorg-dev libglu1-mesa-dev libgtk-3-dev clang-16 lldb-16 lld-16 libomp-16-dev
+        sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-16 16
+        sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-16 16
 
     - name: 📚 Install NVIDIA HPC SDK
       if: matrix.parallelisation == 'cuda'
@@ -309,13 +175,15 @@ jobs:
       run: |
         brew update
         brew install llvm
+        echo "/usr/local/opt/llvm/bin" >> $GITHUB_PATH
+        echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
 
     - name: 📚 Install LLVM and Ninja (Windows)
       if: matrix.os == 'windows-2022'
       shell: pwsh
       run: |
-        Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
         choco install llvm ninja -y
+        choco upgrade llvm
         "CMAKE_FLAGS=$env:CMAKE_FLAGS -G Ninja" >> $env:GITHUB_ENV
 
     - name: 📁 Create build folder
@@ -351,24 +219,22 @@ jobs:
       if: matrix.parallelisation != 'cuda'
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: ctest -C $BUILD_TYPE -E $EXCLUDETESTS --rerun-failed --output-on-failure
+      run: ctest -C $BUILD_TYPE --rerun-failed --output-on-failure
 
   test-nvcpp:
+    name: nvcpp ${{ matrix.parallelisation }} (ubuntu-22.04)
     runs-on: ubuntu-22.04
-    name: nvcpp${{ matrix.name-suffix }} (ubuntu-22.04)
     strategy:
       fail-fast: false
       matrix:
-        name-suffix: [""]
-        parallelisation: ["none"]
         include:
-          - parallelisation: "cuda"
-            name-suffix: "-cuda"
+          - parallelisation: ""
           - parallelisation: "openmp"
-            name-suffix: "-openmp"
+          - parallelisation: "cuda"
     env:
       BUILD_TYPE: Release
-      CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF -DCMAKE_CXX_COMPILER=nvc++
+      CMAKE_FLAGS: -DCMAKE_CXX_COMPILER=nvc++ -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF
+      OMP_NUM_THREADS: 4
 
     steps:
     - uses: actions/checkout@v3
@@ -401,22 +267,22 @@ jobs:
       run: cmake -E make_directory ${{runner.workspace}}/build
 
     - name: ⚙ Configure
-      if: matrix.parallelisation == 'none'
+      if: matrix.parallelisation == ''
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
-
-    - name: ⚙ Configure with CUDA
-      if: matrix.parallelisation == 'cuda'
-      shell: bash
-      working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS -DSPIRIT_USE_CUDA=ON -DCUDA_TOOLKIT_ROOT_DIR=/opt/nvidia/hpc_sdk/Linux_x86_64/23.3/cuda/
 
     - name: ⚙ Configure with OpenMP
       if: matrix.parallelisation == 'openmp'
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS -DSPIRIT_USE_OPENMP=ON
+
+    - name: ⚙ Configure with CUDA
+      if: matrix.parallelisation == 'cuda'
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS -DSPIRIT_USE_CUDA=ON -DCUDA_TOOLKIT_ROOT_DIR=/opt/nvidia/hpc_sdk/Linux_x86_64/23.3/cuda/
 
     - name: 🛠 Build
       shell: bash
@@ -430,80 +296,114 @@ jobs:
       if: matrix.parallelisation != 'cuda'
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: ctest -C $BUILD_TYPE -E $EXCLUDETESTS --rerun-failed --output-on-failure
+      run: ctest -C $BUILD_TYPE --rerun-failed --output-on-failure
 
-  ### CANNOT BUILD ON NVCC
-  # build-cuda:
-  #   runs-on: ${{ matrix.config.os }}
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       config:
-  #         - os: ubuntu-22.04
-  #         - os: ubuntu-20.04
-  #         - os: ubuntu-18.04
-  #   env:
-  #     BUILD_TYPE: Release
-  #     CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_USE_CUDA=ON -DSPIRIT_CUDA_ARCH=sm_70
 
-  #   steps:
-  #   - uses: actions/checkout@v3
+  test-other-configurations:
+    name: test-${{ matrix.configuration }} (ubuntu-22.04)
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - configuration: "debug"
+            build-type: Debug
+            excludetests: solver
+          - configuration: "coverage"
+            build-type: Debug
+          - configuration: "single-precision"
+            build-type: Release
+          - configuration: "pinning-and-defects"
+            build-type: Release
+    env:
+      BUILD_TYPE: ${{ matrix.build-type }}
+      CMAKE_FLAGS: -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF
+      OMP_NUM_THREADS: 4
 
-  #   - name: Force downgrade to gcc-10 on Ubuntu 22.04 to avoid a bug in gcc-11.3 header
-  #     if: matrix.config.os == 'ubuntu-22.04'
-  #     shell: bash
-  #     run: |
-  #       sudo apt-get --purge remove "g++*"
-  #       sudo apt install g++-10
-  #       sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 10
-  #       sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 10
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
 
-  #   - name: 📚 Install CUDA
-  #     shell: bash
-  #     run: |
-  #       sudo apt update
-  #       sudo apt install nvidia-cuda-toolkit
+    - name: 📚 Install required system packages
+      run: |
+        sudo apt update
+        sudo apt install xorg-dev libglu1-mesa-dev libgtk-3-dev
 
-  #   - name: 📁 Create build folder
-  #     run: cmake -E make_directory ${{runner.workspace}}/build
+    - name: 📁 Create build folder
+      run: cmake -E make_directory ${{runner.workspace}}/build
 
-  #   - name: ⚙ Configure
-  #     shell: bash
-  #     working-directory: ${{runner.workspace}}/build
-  #     run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
+    - name: ⚙ Configure debug build
+      if: matrix.configuration == 'debug'
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
 
-  #   - name: 🛠 Build
-  #     shell: bash
-  #     working-directory: ${{runner.workspace}}/build
-  #     run: cmake --build . --config $BUILD_TYPE -j 2
+    - name: ⚙ Configure coverage build
+      if: matrix.configuration == 'coverage'
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DSPIRIT_TEST_COVERAGE=ON $CMAKE_FLAGS
 
-  ### I don't feel like getting C++20 running on Ubuntu 18
-  # build-ui-qt:
-  #   runs-on: ubuntu-18.04
-  #   env:
-  #     BUILD_TYPE: Release
-  #     CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=ON
+    - name: ⚙ Configure single-precision build
+      if: matrix.configuration == 'single-precision'
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DSPIRIT_SCALAR_TYPE="float" $CMAKE_FLAGS
 
-  #   steps:
-  #   - uses: actions/checkout@v3
+    - name: ⚙ Configure pinning-and-defects build
+      if: matrix.configuration == 'pinning-and-defects'
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DSPIRIT_ENABLE_PINNING=ON -DSPIRIT_ENABLE_DEFECTS=ON $CMAKE_FLAGS
 
-  #   - name: 📚 Install Qt5
-  #     run: |
-  #       sudo apt update
-  #       sudo apt install qt5-default libqt5charts5-dev
+    - name: 🛠 Build
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake --build . --config $BUILD_TYPE -j 2
 
-  #   - name: 📁 Create build folder
-  #     run: cmake -E make_directory ${{runner.workspace}}/build
+    - name: 📚 Install necessary packages
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install numpy coverage 'coveralls<3' wheel
+        sudo apt update
+        sudo apt install lcov
 
-  #   - name: ⚙ Configure
-  #     shell: bash
-  #     working-directory: ${{runner.workspace}}/build
-  #     run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
+    - name: 🧪 Test (non-coverage)
+      if: matrix.configuration != 'coverage'
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: ctest -C $BUILD_TYPE -E ${{ matrix.excludetests }} --rerun-failed --output-on-failure
 
-  #   - name: 🛠 Build
-  #     shell: bash
-  #     working-directory: ${{runner.workspace}}/build
-  #     run: cmake --build . --config $BUILD_TYPE -j 2
+    - name: 🧪 Generate C++ coverage
+      if: matrix.configuration == 'coverage'
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: |
+        lcov -c -i --no-external --directory . --base-directory $GITHUB_WORKSPACE/core -o baseline.info
+        make test
+        lcov -c --no-external --directory . --base-directory $GITHUB_WORKSPACE/core -o after_test.info
+        lcov -a baseline.info -a after_test.info -o total_test.info
+        lcov -r total_test.info \*thirdparty\* \*/test/\* \*Collection\* \*DLL_\* -o coverage.info
+
+    - name: ⬆ Upload C++ coverage
+      if: matrix.configuration == 'coverage'
+      uses: codecov/codecov-action@v1
+      with:
+        files: ${{runner.workspace}}/build/coverage.info
+
+    - name: 🧪 Python API coverage
+      if: matrix.configuration == 'coverage'
+      working-directory: ./core/python
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        coverage run --source spirit --omit=spirit/spiritlib.py setup.py test > cov.txt
+        head cov.txt
+        coverage report -m
+        coverage xml
+        coveralls
 
   webapp-mobile:
     runs-on: ubuntu-22.04
@@ -586,163 +486,3 @@ jobs:
       with:
         name: webapp-desktop
         path: ui-cpp/ui-imgui/webapp/
-
-  # Cannot yet get it running cross-platform with C++20 and all
-  # deploy-pypi:
-  #   if: github.event_name != 'pull_request'
-  #   needs: [test, lint]
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       os: [ubuntu-latest, macos-latest, windows-latest]
-  #   env:
-  #     BUILD_TYPE: Release
-  #     CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=OFF
-  #     SPIRIT_ADD_VERSION_SUFFIX: true
-
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #   - uses: actions/setup-python@v4
-  #     with:
-  #       python-version: '3.x'
-
-  #   - name: ⚙ Configure environment
-  #     shell: bash
-  #     if: github.ref == 'refs/heads/master'
-  #     run: echo "SPIRIT_ADD_VERSION_SUFFIX=false" >> $GITHUB_ENV
-
-  #   - name: 📁 Create build folder
-  #     run: cmake -E make_directory ${{runner.workspace}}/build
-
-  #   - name: ⚙ Configure
-  #     shell: bash
-  #     working-directory: ${{runner.workspace}}/build
-  #     run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
-
-  #   - name: 🛠 Build
-  #     shell: bash
-  #     working-directory: ${{runner.workspace}}/build
-  #     run: cmake --build . --config $BUILD_TYPE -j 2
-
-  #   - name: 📚 Install necessary packages
-  #     run: |
-  #       python -m pip install --upgrade pip
-  #       python -m pip install numpy setuptools wheel twine
-
-  #   - name: 🛠 Build Python package
-  #     shell: bash
-  #     working-directory: ./core/python
-  #     run: |
-  #       echo "Python package build"
-  #       echo "Add suffix to spirit version tag for python package $SPIRIT_ADD_VERSION_SUFFIX"
-  #       python setup.py sdist bdist_wheel
-
-  #   - name: 🚀 Deploy to TestPyPI
-  #     working-directory: ./core/python
-  #     env:
-  #       TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-  #       TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-  #     if: github.ref != 'refs/heads/master'
-  #     run: twine upload --skip-existing --repository testpypi dist/*
-
-  #   - name: 🚀 Deploy to PyPI
-  #     working-directory: ./core/python
-  #     env:
-  #       TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-  #       TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-  #     if: github.ref == 'refs/heads/master'
-  #     run: twine upload --skip-existing dist/*
-
-  # deploy-package:
-  #   if: github.event_name != 'pull_request'
-  #   needs: [test, lint]
-  #   runs-on: ${{ matrix.os }}
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       os: [ubuntu-latest, macos-latest, windows-latest]
-  #   env:
-  #     BUILD_TYPE: Release
-  #     CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_BUNDLE_APP=ON
-
-  #   steps:
-  #   - uses: actions/checkout@v3
-
-  #   - name: 📚 Install required system packages
-  #     if: matrix.os == 'ubuntu-latest'
-  #     run: |
-  #       sudo apt update
-  #       sudo apt install xorg-dev libglu1-mesa-dev libgtk-3-dev
-
-  #   - name: 📁 Create build folder
-  #     run: cmake -E make_directory ${{runner.workspace}}/build
-
-  #   - name: ⚙ Configure
-  #     shell: bash
-  #     working-directory: ${{runner.workspace}}/build
-  #     run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
-
-  #   - name: 🛠 Build
-  #     shell: bash
-  #     working-directory: ${{runner.workspace}}/build
-  #     run: |
-  #       cmake --build . --config $BUILD_TYPE -j 2
-  #       cmake --install .
-  #       cmake --build . --config $BUILD_TYPE -j 2 --target package
-
-  #   - name: 📦 Archive ubuntu package
-  #     if: matrix.os == 'ubuntu-latest'
-  #     uses: actions/upload-artifact@v2
-  #     with:
-  #       name: spirit-ubuntu
-  #       path: |
-  #         ${{runner.workspace}}/build/*.tar.gz
-
-  #   - name: 📦 Archive macOS package
-  #     if: matrix.os == 'macos-latest'
-  #     uses: actions/upload-artifact@v2
-  #     with:
-  #       name: spirit-macos
-  #       path: |
-  #         ${{runner.workspace}}/build/*.dmg
-  #         ${{runner.workspace}}/build/install/README.md
-  #         ${{runner.workspace}}/build/install/LICENSE.txt
-  #         ${{runner.workspace}}/build/install/VERSION.txt
-  #         ${{runner.workspace}}/build/install/licenses/
-
-  #   - name: 📦 Archive windows package
-  #     if: matrix.os == 'windows-latest'
-  #     uses: actions/upload-artifact@v2
-  #     with:
-  #       name: spirit-windows
-  #       path: |
-  #         ${{runner.workspace}}/build/*.zip
-
-  # draft-release:
-  #   if: github.event_name == 'push' && startsWith( github.ref, 'refs/tags/' )
-  #   needs: [test, lint, webapp-mobile, webapp-desktop, deploy-package]
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  #   steps:
-  #   - uses: actions/checkout@v3
-
-  #   - name: 📄 Generate a changelog
-  #     id: changelog
-  #     uses: metcalfc/changelog-generator@v1.0.0
-  #     with:
-  #       myToken: ${{ secrets.GITHUB_TOKEN }}
-
-  #   - name: 📄 Print the changelog
-  #     run: echo "${{ steps.changelog.outputs.changelog }}"
-
-  #   - name: 🎉 Create draft release
-  #     id: draft_release
-  #     uses: actions/create-release@v1
-  #     with:
-  #       tag_name: ${{ github.ref }}
-  #       release_name: Release ${{ github.ref }}
-  #       body: ${{ steps.changelog.outputs.changelog }}
-  #       draft: true
