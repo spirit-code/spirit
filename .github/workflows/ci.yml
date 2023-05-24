@@ -65,6 +65,58 @@ jobs:
       shell: bash
       run: pylint core/python/spirit --fail-under=8
 
+  test-gcc:
+    name: gcc ${{ matrix.parallelisation }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+          - os: ubuntu-22.04
+            parallelisation: "openmp"
+    env:
+      BUILD_TYPE: Release
+      CMAKE_FLAGS: -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF
+      OMP_NUM_THREADS: 4
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: 📚 Install required system packages
+      if: matrix.os == 'ubuntu-22.04'
+      run: |
+        sudo apt update
+        sudo apt install xorg-dev libglu1-mesa-dev libgtk-3-dev
+
+    - name: 📁 Create build folder
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: ⚙ Configure
+      if: matrix.parallelisation == ''
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
+
+    - name: ⚙ Configure with OpenMP
+      if: matrix.parallelisation == 'openmp'
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DSPIRIT_USE_OPENMP=ON $CMAKE_FLAGS
+
+    - name: 🛠 Build
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake --build . --config $BUILD_TYPE -j 2
+
+    - name: 📚 Install python packages
+      run: pip install --user numpy
+
+    - name: 🧪 Test
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: ctest -C $BUILD_TYPE --rerun-failed --output-on-failure
+
   test:
     runs-on: ${{ matrix.os }}
     name: test${{ matrix.name-suffix }} (${{ matrix.os }}, ${{ matrix.build-type }})
