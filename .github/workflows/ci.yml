@@ -117,6 +117,110 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       run: ctest -C $BUILD_TYPE --rerun-failed --output-on-failure
 
+  test-clang:
+    name: clang ${{ matrix.parallelisation }} (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            parallelisation: ""
+          - os: ubuntu-22.04
+            parallelisation: "openmp"
+          - os: ubuntu-22.04
+            parallelisation: "cuda"
+          - os: macos-13
+            parallelisation: ""
+          - os: macos-13
+            parallelisation: "openmp"
+          - os: windows-2022
+            parallelisation: ""
+          - os: windows-2022
+            parallelisation: "openmp"
+    env:
+      BUILD_TYPE: Release
+      CMAKE_FLAGS: -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF
+      OMP_NUM_THREADS: 4
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: 📚 Install LLVM and some libs (Ubuntu)
+      if: matrix.os == 'ubuntu-22.04'
+      shell: bash
+      run: |
+        sudo apt-get --purge remove "clang*"
+        wget --no-verbose -O - https://apt.llvm.org/llvm-snapshot.gpg.key | sudo apt-key add -
+        sudo add-apt-repository "deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-16 main"
+        sudo apt update
+        sudo apt install xorg-dev libglu1-mesa-dev libgtk-3-dev clang-16 lldb-16 lld-16 libomp-16-dev
+        sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-16 16
+        sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-16 16
+
+    - name: 📚 Install NVIDIA HPC SDK
+      if: matrix.parallelisation == 'cuda'
+      shell: bash
+      run: |
+        curl https://developer.download.nvidia.com/hpc-sdk/ubuntu/DEB-GPG-KEY-NVIDIA-HPC-SDK | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-hpcsdk-archive-keyring.gpg
+        echo 'deb [signed-by=/usr/share/keyrings/nvidia-hpcsdk-archive-keyring.gpg] https://developer.download.nvidia.com/hpc-sdk/ubuntu/amd64 /' | sudo tee /etc/apt/sources.list.d/nvhpc.list
+        sudo apt update -y
+        sudo apt install -y nvhpc-23-3
+        echo "/opt/nvidia/hpc_sdk/Linux_x86_64/23.3/compilers/bin" >> $GITHUB_PATH
+        echo "/opt/nvidia/hpc_sdk/Linux_x86_64/23.3/math_libs/lib64" >> $GITHUB_PATH
+
+    - name: 📚 Install LLVM (MacOS)
+      if: matrix.os == 'macos-13'
+      shell: bash
+      run: |
+        brew update
+        brew install llvm
+        echo "/usr/local/opt/llvm/bin" >> $GITHUB_PATH
+        echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
+
+    - name: 📚 Install LLVM and Ninja (Windows)
+      if: matrix.os == 'windows-2022'
+      shell: pwsh
+      run: |
+        choco install llvm ninja -y
+        choco upgrade llvm
+        "CMAKE_FLAGS=$env:CMAKE_FLAGS -G Ninja" >> $env:GITHUB_ENV
+
+    - name: 📁 Create build folder
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: ⚙ Configure
+      if: matrix.parallelisation == ''
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
+
+    - name: ⚙ Configure with CUDA
+      if: matrix.parallelisation == 'cuda'
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS -DSPIRIT_USE_CUDA=ON -DCUDA_TOOLKIT_ROOT_DIR=/opt/nvidia/hpc_sdk/Linux_x86_64/23.3/cuda/
+
+    - name: ⚙ Configure with OpenMP
+      if: matrix.parallelisation == 'openmp'
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS -DSPIRIT_USE_OPENMP=ON
+
+    - name: 🛠 Build
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: cmake --build . --config $BUILD_TYPE -j 2
+
+    - name: 📚 Install python packages
+      run: pip install --user numpy
+
+    - name: 🧪 Test
+      if: matrix.parallelisation != 'cuda'
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      run: ctest -C $BUILD_TYPE --rerun-failed --output-on-failure
+
   test:
     runs-on: ${{ matrix.os }}
     name: test${{ matrix.name-suffix }} (${{ matrix.os }}, ${{ matrix.build-type }})
