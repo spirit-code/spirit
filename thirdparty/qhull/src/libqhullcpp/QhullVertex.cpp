@@ -1,8 +1,8 @@
 /****************************************************************************
 **
-** Copyright (c) 2008-2015 C.B. Barber. All rights reserved.
-** $Id: //main/2015/qhull/src/libqhullcpp/QhullVertex.cpp#3 $$Change: 2066 $
-** $DateTime: 2016/01/18 19:29:17 $$Author: bbarber $
+** Copyright (c) 2008-2020 C.B. Barber. All rights reserved.
+** $Id: //main/2019/qhull/src/libqhullcpp/QhullVertex.cpp#3 $$Change: 2953 $
+** $DateTime: 2020/05/21 22:05:32 $$Author: bbarber $
 **
 ****************************************************************************/
 
@@ -24,9 +24,8 @@ namespace orgQhull {
 
 #//!\name Class objects
 vertexT QhullVertex::
-s_empty_vertex= {0,0,0,0,0,
-                 0,0,0,0,0,
-                 0};
+s_empty_vertex= {NULL,NULL,NULL,NULL,0,0,       // must match vertexT -Wmissing-field-initializers
+                false,false,false,false,false,false};
 
 #//!\name Constructors
 
@@ -83,13 +82,22 @@ operator<<(ostream &os, const QhullVertex::PrintVertex &pr)
     os << "p" << p.id() << " (v" << v.id() << "): ";
     const realT *c= p.coordinates();
     for(int k= p.dimension(); k--; ){
-        os << " " << *c++; // FIXUP QH11010 %5.2g
+        os << " " << *c++; // QH11010 FIX: %5.2g
     }
     if(v.getVertexT()->deleted){
         os << " deleted";
     }
     if(v.getVertexT()->delridge){
-        os << " ridgedeleted";
+        os << " delridge";
+    }
+    if(v.getVertexT()->newfacet){
+      os << " newfacet";
+    }
+    if(v.getVertexT()->seen && v.qh()->IStracing){
+      os << " seen";
+    }
+    if(v.getVertexT()->seen2 && v.qh()->IStracing){
+      os << " seen2";
     }
     os << endl;
     if(v.neighborFacetsDefined()){

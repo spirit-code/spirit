@@ -1,8 +1,8 @@
 /****************************************************************************
 **
-** Copyright (c) 2006-2015 C.B. Barber. All rights reserved.
-** $Id: //main/2015/qhull/src/qhulltest/RboxPoints_test.cpp#2 $$Change: 2062 $
-** $DateTime: 2016/01/17 13:13:18 $$Author: bbarber $
+** Copyright (c) 2006-2020 C.B. Barber. All rights reserved.
+** $Id: //main/2019/qhull/src/qhulltest/RboxPoints_test.cpp#3 $$Change: 2966 $
+** $DateTime: 2020/06/04 16:14:31 $$Author: bbarber $
 **
 ****************************************************************************/
 
@@ -191,7 +191,7 @@ t_change()
     orgQhull::Coordinates::ConstIterator cie= rp2.beginCoordinates(8);
     QCOMPARE(*cie, 0.0);
     RboxPoints rp3;
-    coordT points[] = { 0, 1,1,0,1,1,0,0};
+    coordT points[]= { 0, 1,1,0,1,1,0,0};
     rp3.setDimension(2);
     rp3.append(8,points);
     QCOMPARE(rp3.count(), 4);

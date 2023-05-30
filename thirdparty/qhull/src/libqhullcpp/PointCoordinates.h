@@ -1,8 +1,8 @@
 /****************************************************************************
 **
-** Copyright (c) 2009-2015 C.B. Barber. All rights reserved.
-** $Id: //main/2015/qhull/src/libqhullcpp/PointCoordinates.h#4 $$Change: 2079 $
-** $DateTime: 2016/02/07 17:43:34 $$Author: bbarber $
+** Copyright (c) 2009-2020 C.B. Barber. All rights reserved.
+** $Id: //main/2019/qhull/src/libqhullcpp/PointCoordinates.h#5 $$Change: 2961 $
+** $DateTime: 2020/06/01 22:17:03 $$Author: bbarber $
 **
 ****************************************************************************/
 
@@ -60,7 +60,7 @@ public:
 #//!\name Convert
     //! QhullPoints coordinates, constData, data, count, size
 #ifndef QHULL_NO_STL
-    void                append(const std::vector<coordT> &otherCoordinates) { if(!otherCoordinates.empty()){ append((int)otherCoordinates.size(), &otherCoordinates[0]); } }
+    void                append(const std::vector<coordT> &otherCoordinates) { if(!otherCoordinates.empty()){ append(static_cast<int>(otherCoordinates.size()), &otherCoordinates[0]); } }
     std::vector<coordT> toStdVector() const { return point_coordinates.toStdVector(); }
 #endif //QHULL_NO_STL
 #ifdef QHULL_USES_QT
@@ -101,7 +101,7 @@ public:
     PointCoordinates    operator+(const PointCoordinates &other) const;
 
 #//!\name Modify
-    //FIXUP QH11001: Add clear() and other modify operators from Coordinates.h.  Include QhullPoint::operator=()
+    // QH11001 FIX: Add clear() and other modify operators from Coordinates.h.  Include QhullPoint::operator=()
     void                append(countT coordinatesCount, const coordT *c);  //! Dimension previously defined
     void                append(const coordT &c) { append(1, &c); } //! Dimension previously defined
     void                append(const QhullPoint &p);
@@ -136,22 +136,22 @@ private:
 
 public:
                         PointCoordinatesIterator(const PointCoordinates &container) : c(&container), i(c->constBegin()) {}
-                        PointCoordinatesIterator &operator=(const PointCoordinates &container) { c = &container; i = c->constBegin(); return *this; }
+                        PointCoordinatesIterator &operator=(const PointCoordinates &container) { c= &container; i= c->constBegin(); return *this; }
 
-    void                toFront() { i = c->constBegin(); }
-    void                toBack() { i = c->constEnd(); }
+    void                toFront() { i= c->constBegin(); }
+    void                toBack() { i= c->constEnd(); }
     bool                hasNext() const { return i != c->constEnd(); }
     const QhullPoint    next() { return *i++; }
     const QhullPoint    peekNext() const { return *i; }
     bool                hasPrevious() const { return i != c->constBegin(); }
     const QhullPoint    previous() { return *--i; }
-    const QhullPoint    peekPrevious() const { const_iterator p = i; return *--p; }
+    const QhullPoint    peekPrevious() const { const_iterator p= i; return *--p; }
     bool                findNext(const QhullPoint &t) { while(i != c->constEnd()){ if (*i++ == t) return true;} return false; }
     bool                findPrevious(const QhullPoint &t) { while(i != c->constBegin()){ if (*(--i) == t) return true;} return false;  }
 };//CoordinatesIterator
 
-// FIXUP QH11002:  Add MutablePointCoordinatesIterator after adding modify operators
-\
+// QH11002 FIX: Add MutablePointCoordinatesIterator after adding modify operators
+
 }//namespace orgQhull
 
 #//!\name Global

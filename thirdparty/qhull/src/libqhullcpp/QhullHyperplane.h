@@ -1,8 +1,8 @@
 /****************************************************************************
 **
-** Copyright (c) 2009-2015 C.B. Barber. All rights reserved.
-** $Id: //main/2015/qhull/src/libqhullcpp/QhullHyperplane.h#4 $$Change: 2079 $
-** $DateTime: 2016/02/07 17:43:34 $$Author: bbarber $
+** Copyright (c) 2009-2020 C.B. Barber. All rights reserved.
+** $Id: //main/2019/qhull/src/libqhullcpp/QhullHyperplane.h#2 $$Change: 2953 $
+** $DateTime: 2020/05/21 22:05:32 $$Author: bbarber $
 **
 ****************************************************************************/
 
@@ -91,7 +91,7 @@ public:
     int                 count() { return hyperplane_dimension; }
     iterator            end() { return hyperplane_coordinates+hyperplane_dimension; }
     const_iterator      end() const { return hyperplane_coordinates+hyperplane_dimension; }
-    size_t              size() { return (size_t)hyperplane_dimension; }
+    size_t              size() { return static_cast<size_t>(hyperplane_dimension); }
 
 #//!\name Methods
     double              distance(const QhullPoint &p) const;
