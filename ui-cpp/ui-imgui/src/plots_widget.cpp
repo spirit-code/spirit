@@ -104,15 +104,17 @@ void PlotsWidget::show_content()
             ImGui::TextUnformatted(
                 fmt::format( "E[{}] = {:.5e} meV", idx_current + 1, energies[idx_current] ).c_str() );
 
-            if( fit_axes )
-                ImPlot::FitNextPlotAxes();
             if( ImPlot::BeginPlot(
-                    "", "Rx", "E [meV]",
+                    "##Energy_over_Rx",
                     ImVec2(
                         ImGui::GetWindowContentRegionMax().x - 2 * style.FramePadding.x,
                         ImGui::GetWindowContentRegionMax().y - 130.f ),
-                    ImPlotFlags_NoMousePos ) )
+                    ImPlotFlags_NoMouseText ) )
             {
+                if( fit_axes )
+                    ImPlot::SetNextAxesToFit();
+                ImPlot::SetupAxes( "Rx", "E [meV]" );
+
                 // Line plots
                 if( noi > 1 )
                 {
@@ -297,14 +299,17 @@ void PlotsWidget::show_content()
         if( ImGui::BeginTabItem( "Convergence" ) )
         {
             ImGui::TextUnformatted( fmt::format( "Latest: {:.5e}", force_history[force_index] ).c_str() );
-            ImPlot::FitNextPlotAxes();
             if( ImPlot::BeginPlot(
-                    "", "iteration", "max(F)",
-                    ImVec2(
-                        ImGui::GetWindowContentRegionMax().x - 2 * style.FramePadding.x,
-                        ImGui::GetWindowContentRegionMax().y - 90.f ) ) )
+                    "##Energy_over_Rx", ImVec2(
+                                            ImGui::GetWindowContentRegionMax().x - 2 * style.FramePadding.x,
+                                            ImGui::GetWindowContentRegionMax().y - 90.f ) ) )
             {
-                ImPlot::PlotLine( "", iteration_history.data(), force_history.data(), history_size, force_index );
+                ImPlot::SetNextAxesToFit();
+                ImPlot::SetupAxes( "iteration", "max(F)" );
+
+                ImPlot::PlotLine(
+                    "", iteration_history.data(), force_history.data(), history_size, ImPlotLineFlags_None,
+                    force_index );
                 ImPlot::EndPlot();
             }
 
