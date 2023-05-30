@@ -4,8 +4,8 @@
 #include <io/Formatters.hpp>
 // #include <engine/Backend_par.hpp>
 
-#include <MatOp/SparseSymMatProd.h> // Also includes <MatOp/DenseSymMatProd.h>
-#include <SymEigsSolver.h>
+#include <Spectra/MatOp/SparseSymMatProd.h> // Also includes <Spectra/MatOp/DenseSymMatProd.h>
+#include <Spectra/SymEigsSolver.h>
 
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
@@ -224,12 +224,12 @@ bool Hessian_Partial_Spectrum(
     // Create the Spectra Matrix product operation
     Spectra::DenseSymMatProd<scalar> op( hessian_constrained );
     // Create and initialize a Spectra solver
-    Spectra::SymEigsSolver<scalar, Spectra::SMALLEST_ALGE, Spectra::DenseSymMatProd<scalar>> hessian_spectrum(
-        &op, n_modes, 2 * nos );
+    Spectra::SymEigsSolver<Spectra::DenseSymMatProd<scalar>> hessian_spectrum( op, n_modes, 2 * nos );
     hessian_spectrum.init();
 
     // Compute the specified spectrum, sorted by smallest real eigenvalue
-    int nconv = hessian_spectrum.compute( 1000, 1e-10, int( Spectra::SMALLEST_ALGE ) );
+    int nconv
+        = hessian_spectrum.compute( Spectra::SortRule::SmallestAlge, 1000, 1e-10, Spectra::SortRule::SmallestAlge );
 
     // Extract real eigenvalues
     eigenvalues = hessian_spectrum.eigenvalues().real();
@@ -238,7 +238,7 @@ bool Hessian_Partial_Spectrum(
     eigenvectors = hessian_spectrum.eigenvectors().real();
 
     // Return whether the calculation was successful
-    return ( hessian_spectrum.info() == Spectra::SUCCESSFUL ) && ( nconv > 0 );
+    return ( hessian_spectrum.info() == Spectra::CompInfo::Successful ) && ( nconv > 0 );
 }
 
 bool Sparse_Hessian_Partial_Spectrum(
@@ -268,12 +268,12 @@ bool Sparse_Hessian_Partial_Spectrum(
     // Create the Spectra Matrix product operation
     Spectra::SparseSymMatProd<scalar> op( hessian_constrained );
     // Create and initialize a Spectra solver
-    Spectra::SymEigsSolver<scalar, Spectra::SMALLEST_ALGE, Spectra::SparseSymMatProd<scalar>> hessian_spectrum(
-        &op, n_modes, ncv );
+    Spectra::SymEigsSolver<Spectra::SparseSymMatProd<scalar>> hessian_spectrum( op, n_modes, ncv );
     hessian_spectrum.init();
 
     // Compute the specified spectrum, sorted by smallest real eigenvalue
-    int nconv = hessian_spectrum.compute( max_iter, 1e-10, int( Spectra::SMALLEST_ALGE ) );
+    int nconv
+        = hessian_spectrum.compute( Spectra::SortRule::SmallestAlge, max_iter, 1e-10, Spectra::SortRule::SmallestAlge );
 
     // Extract real eigenvalues
     eigenvalues = hessian_spectrum.eigenvalues().real();
@@ -282,7 +282,7 @@ bool Sparse_Hessian_Partial_Spectrum(
     eigenvectors = hessian_spectrum.eigenvectors().real();
 
     // Return whether the calculation was successful
-    return ( hessian_spectrum.info() == Spectra::SUCCESSFUL ) && ( nconv > 0 );
+    return ( hessian_spectrum.info() == Spectra::CompInfo::Successful ) && ( nconv > 0 );
 }
 
 } // namespace Eigenmodes

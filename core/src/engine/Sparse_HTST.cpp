@@ -8,10 +8,10 @@
 #include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
 
-#include <GenEigsRealShiftSolver.h>
-#include <GenEigsSolver.h> // Also includes <MatOp/DenseGenMatProd.h>
-#include <MatOp/SparseSymMatProd.h>
-#include <SymEigsSolver.h>
+#include <Spectra/GenEigsRealShiftSolver.h>
+#include <Spectra/GenEigsSolver.h> // Also includes <Spectra/MatOp/DenseGenMatProd.h>
+#include <Spectra/MatOp/SparseSymMatProd.h>
+#include <Spectra/SymEigsSolver.h>
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <Eigen/Eigenvalues>
@@ -47,13 +47,13 @@ void Sparse_Get_Lowest_Eigenvectors(
 
     Spectra::SparseSymMatProd<scalar> op( matrix );
     // Create and initialize a Spectra solver
-    Spectra::SymEigsSolver<scalar, Spectra::SMALLEST_ALGE, Spectra::SparseSymMatProd<scalar>> matrix_spectrum(
-        &op, n_modes, ncv );
+    Spectra::SymEigsSolver<Spectra::SparseSymMatProd<scalar>> matrix_spectrum( op, n_modes, ncv );
     matrix_spectrum.init();
 
-    int nconv = matrix_spectrum.compute( max_iter, 1e-10, int( Spectra::SMALLEST_ALGE ) );
+    int nconv
+        = matrix_spectrum.compute( Spectra::SortRule::SmallestAlge, max_iter, 1e-10, Spectra::SortRule::SmallestAlge );
 
-    if( matrix_spectrum.info() != Spectra::SUCCESSFUL )
+    if( matrix_spectrum.info() != Spectra::CompInfo::Successful )
     {
         Log( Utility::Log_Level::All, Utility::Log_Sender::HTST,
              "        Failed to calculate lowest eigenmode. Aborting!" );

@@ -13,8 +13,8 @@
 // #include <Eigen/Array>
 #include <Eigen/Eigenvalues>
 // #include <unsupported/Eigen/CXX11/Tensor>
-#include <GenEigsRealShiftSolver.h>
-#include <GenEigsSolver.h> // Also includes <MatOp/DenseGenMatProd.h>
+#include <Spectra/GenEigsRealShiftSolver.h>
+#include <Spectra/GenEigsSolver.h> // Also includes <Spectra/MatOp/DenseGenMatProd.h>
 
 #include <fmt/format.h>
 #include <fmt/ostream.h>
@@ -512,14 +512,13 @@ void Eigen_Decomposition_Spectra(
 
     //      Create a Spectra solver
     Spectra::DenseGenMatProd<scalar> op( matrix );
-    Spectra::GenEigsSolver<scalar, Spectra::SMALLEST_REAL, Spectra::DenseGenMatProd<scalar>> matrix_spectrum(
-        &op, n_decompose, n_steps );
+    Spectra::GenEigsSolver<Spectra::DenseGenMatProd<scalar>> matrix_spectrum( op, n_decompose, n_steps );
     matrix_spectrum.init();
 
     //      Compute the specified spectrum
-    int nconv = matrix_spectrum.compute();
+    int nconv = matrix_spectrum.compute( Spectra::SortRule::SmallestReal );
 
-    if( matrix_spectrum.info() == Spectra::SUCCESSFUL )
+    if( matrix_spectrum.info() == Spectra::CompInfo::Successful )
     {
         evalues  = matrix_spectrum.eigenvalues().real();
         evectors = matrix_spectrum.eigenvectors().real();
