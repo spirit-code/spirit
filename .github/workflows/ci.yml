@@ -518,10 +518,11 @@ jobs:
         cmake --build . --config $BUILD_TYPE -j 2
 
     - name: 📦 Archive mobile web app
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: webapp-mobile
         path: ui-web/
+        if-no-files-found: error
 
   webapp-desktop:
     runs-on: ubuntu-20.04
@@ -559,10 +560,11 @@ jobs:
         cmake --build . --config $BUILD_TYPE -j 2
 
     - name: 📦 Archive desktop web app
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: webapp-desktop
         path: ui-cpp/ui-imgui/webapp/
+        if-no-files-found: error
 
   deploy-pypi:
     if: github.event_name != 'pull_request'
@@ -669,15 +671,15 @@ jobs:
 
     - name: 📦 Archive ubuntu package
       if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: spirit-ubuntu
-        path: |
-          ${{runner.workspace}}/build/*.tar.gz
+        path: ${{runner.workspace}}/build/*.tar.gz
+        if-no-files-found: error
 
     - name: 📦 Archive macOS package
       if: matrix.os == 'macos-latest'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: spirit-macos
         path: |
@@ -686,14 +688,15 @@ jobs:
           ${{runner.workspace}}/build/install/LICENSE.txt
           ${{runner.workspace}}/build/install/VERSION.txt
           ${{runner.workspace}}/build/install/licenses/
+        if-no-files-found: error
 
     - name: 📦 Archive windows package
       if: matrix.os == 'windows-latest'
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: spirit-windows
-        path: |
-          ${{runner.workspace}}/build/*.zip
+        path: ${{runner.workspace}}/build/*.zip
+        if-no-files-found: error
 
   draft-release:
     if: github.event_name == 'push' && startsWith( github.ref, 'refs/tags/' )
