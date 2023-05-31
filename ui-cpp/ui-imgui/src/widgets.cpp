@@ -9,7 +9,9 @@
 #include <Spirit/System.h>
 #include <Spirit/Version.h>
 
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
+#endif
 #include <imgui/imgui.h>
 #include <imgui/imgui_internal.h>
 
@@ -545,9 +547,9 @@ void show_about( bool & show_about )
 
     ImGui::Begin( fmt::format( "About Spirit {}", Spirit_Version() ).c_str(), &show_about );
 
-    int scaled_width  = ImGui::GetContentRegionAvailWidth() * 0.8;
+    int scaled_width  = ImGui::GetContentRegionAvail().x * 0.8;
     int scaled_height = logo_height * scaled_width / logo_width;
-    ImGui::SameLine( ImGui::GetContentRegionAvailWidth() * 0.1, 0 );
+    ImGui::SameLine( ImGui::GetContentRegionAvail().x * 0.1, 0 );
     ImGui::Image( (void *)(intptr_t)logo_texture, ImVec2( scaled_width, scaled_height ) );
 
     ImGui::TextWrapped( "The Spirit GUI application incorporates intuitive visualisations,"
@@ -622,7 +624,7 @@ void help_marker( const char * description )
 
 float RoundScalarWithFormatFloat( const char * format, ImGuiDataType data_type, float v )
 {
-    return ImGui::RoundScalarWithFormatT<float, float>( format, data_type, v );
+    return ImGui::RoundScalarWithFormatT<float>( format, data_type, v );
 }
 
 float SliderCalcRatioFromValueFloat(
@@ -919,7 +921,7 @@ static const char * ImAtoi( const char * src, TYPE * output )
     return src;
 }
 
-template<typename TYPE, typename SIGNEDTYPE>
+template<typename TYPE>
 TYPE ImGui::RoundScalarWithFormatT( const char * format, ImGuiDataType data_type, TYPE v )
 {
     const char * fmt_start = ImParseFormatFindStart( format );
@@ -933,6 +935,6 @@ TYPE ImGui::RoundScalarWithFormatT( const char * format, ImGuiDataType data_type
     if( data_type == ImGuiDataType_Float || data_type == ImGuiDataType_Double )
         v = (TYPE)ImAtof( p );
     else
-        ImAtoi( p, (SIGNEDTYPE *)&v );
+        ImAtoi( p, &v );
     return v;
 }

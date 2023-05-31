@@ -174,6 +174,8 @@ if( SPIRIT_UI_USE_IMGUI )
         ${CMAKE_CURRENT_LIST_DIR}/thirdparty
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/glad/include )
+    target_compile_definitions( imgui PRIVATE -DIMGUI_IMPL_OPENGL_LOADER_CUSTOM )
+    target_compile_definitions( imgui PUBLIC -DIMGUI_DEFINE_MATH_OPERATORS )
 
     #----- ImPlot library
     add_library( implot STATIC
@@ -181,6 +183,7 @@ if( SPIRIT_UI_USE_IMGUI )
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/implot/implot_items.cpp
         ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/implot/implot_demo.cpp )
     target_include_directories( implot PUBLIC ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty )
+    target_compile_definitions( implot PRIVATE -DIMGUI_DEFINE_MATH_OPERATORS )
 
     #----- Native file dialog
     set( NFD_SRC_DIR ${CMAKE_CURRENT_LIST_DIR}/ui-imgui/thirdparty/nativefiledialog/src )
