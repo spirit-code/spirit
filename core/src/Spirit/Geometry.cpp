@@ -4,8 +4,8 @@
 #include <data/State.hpp>
 #include <engine/Hamiltonian_Heisenberg.hpp>
 #include <engine/Indexing.hpp>
-#include <io/Formatters.hpp>
 #include <utility/Exception.hpp>
+#include <utility/Formatters_Eigen.hpp>
 #include <utility/Logging.hpp>
 
 #include <fmt/format.h>

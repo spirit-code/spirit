@@ -1,22 +1,16 @@
 #pragma once
-#include <type_traits>
-#ifndef SPIRIT_CORE_IO_TYPE_FORMATTERS_HPP
-#define SPIRIT_CORE_IO_TYPE_FORMATTERS_HPP
+#ifndef SPIRIT_CORE_FORMATTERS_LOGGING_HPP
+#define SPIRIT_CORE_FORMATTERS_LOGGING_HPP
 
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 
-#include <Eigen/Core>
-
+#include <fmt/chrono.h>
 #include <fmt/color.h>
 #include <fmt/ostream.h>
 
 #include <iostream>
-
-template<typename T>
-struct fmt::formatter<T, std::enable_if_t<std::is_base_of_v<Eigen::DenseBase<T>, T>, char>> : ostream_formatter
-{
-};
+#include <type_traits>
 
 template<>
 struct fmt::formatter<Utility::Log_Sender> : formatter<string_view>

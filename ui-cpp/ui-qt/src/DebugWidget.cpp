@@ -1,6 +1,7 @@
 #include "DebugWidget.hpp"
 
 ///// TODO: Find a way around this...
+#include <utility/Formatters_Logging.hpp>
 #include <utility/Logging.hpp>
 using Utility::Log_Level;
 using Utility::Log_Sender;
