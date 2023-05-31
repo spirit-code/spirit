@@ -825,14 +825,14 @@ VK_DEFINE_NON_DISPATCHABLE_HANDLE(VkSurfaceKHR)
 struct VkAllocationCallbacks;
 enum VkResult { VK_RESULT_MAX_ENUM = 0x7FFFFFFF };
 #endif // VULKAN_H_
-extern "C" { extern GLFWAPI VkResult glfwCreateWindowSurface(VkInstance instance, GLFWwindow* window, const VkAllocationCallbacks* allocator, VkSurfaceKHR* surface); }
-static int ImGui_ImplGlfw_CreateVkSurface(ImGuiViewport* viewport, ImU64 vk_instance, const void* vk_allocator, ImU64* out_vk_surface)
-{
-    ImGuiViewportDataGlfw* data = (ImGuiViewportDataGlfw*)viewport->PlatformUserData;
-    IM_ASSERT(g_ClientApi == GlfwClientApi_Vulkan);
-    VkResult err = glfwCreateWindowSurface((VkInstance)vk_instance, data->Window, (const VkAllocationCallbacks*)vk_allocator, (VkSurfaceKHR*)out_vk_surface);
-    return (int)err;
-}
+// extern "C" { extern GLFWAPI VkResult glfwCreateWindowSurface(VkInstance instance, GLFWwindow* window, const VkAllocationCallbacks* allocator, VkSurfaceKHR* surface); }
+// static int ImGui_ImplGlfw_CreateVkSurface(ImGuiViewport* viewport, ImU64 vk_instance, const void* vk_allocator, ImU64* out_vk_surface)
+// {
+//     ImGuiViewportDataGlfw* data = (ImGuiViewportDataGlfw*)viewport->PlatformUserData;
+//     IM_ASSERT(g_ClientApi == GlfwClientApi_Vulkan);
+//     VkResult err = glfwCreateWindowSurface((VkInstance)vk_instance, data->Window, (const VkAllocationCallbacks*)vk_allocator, (VkSurfaceKHR*)out_vk_surface);
+//     return (int)err;
+// }
 #endif // GLFW_HAS_VULKAN
 
 static void ImGui_ImplGlfw_InitPlatformInterface()
@@ -856,7 +856,7 @@ static void ImGui_ImplGlfw_InitPlatformInterface()
     platform_io.Platform_SetWindowAlpha = ImGui_ImplGlfw_SetWindowAlpha;
 #endif
 #if GLFW_HAS_VULKAN
-    platform_io.Platform_CreateVkSurface = ImGui_ImplGlfw_CreateVkSurface;
+    // platform_io.Platform_CreateVkSurface = ImGui_ImplGlfw_CreateVkSurface;
 #endif
 #if HAS_WIN32_IME
     platform_io.Platform_SetImeInputPos = ImGui_ImplWin32_SetImeInputPos;
