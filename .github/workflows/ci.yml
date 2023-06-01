@@ -394,7 +394,7 @@ jobs:
 
     - name: ⬆ Upload C++ coverage
       if: matrix.coverage == true
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v3
       with:
         files: ${{runner.workspace}}/build/coverage.info
 
