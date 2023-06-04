@@ -110,7 +110,7 @@ template<typename _IndicesType> class TranspositionsWrapper;
 template<typename Derived,
          int Level = internal::accessors_level<Derived>::has_write_access ? WriteAccessors : ReadOnlyAccessors
 > class MapBase;
-template<int InnerStrideAtCompileTime, int OuterStrideAtCompileTime> class Stride;
+template<int OuterStrideAtCompileTime, int InnerStrideAtCompileTime> class Stride;
 template<int Value = Dynamic> class InnerStride;
 template<int Value = Dynamic> class OuterStride;
 template<typename MatrixType, int MapOptions=Unaligned, typename StrideType = Stride<0,0> > class Map;
@@ -134,6 +134,7 @@ namespace internal {
 template<typename XprType> class generic_randaccess_stl_iterator;
 template<typename XprType> class pointer_based_stl_iterator;
 template<typename XprType, DirectionType Direction> class subvector_stl_iterator;
+template<typename XprType, DirectionType Direction> class subvector_stl_reverse_iterator;
 template<typename DecompositionType> struct kernel_retval_base;
 template<typename DecompositionType> struct kernel_retval;
 template<typename DecompositionType> struct image_retval_base;
@@ -179,14 +180,15 @@ template<typename LhsScalar, typename RhsScalar, bool ConjLhs=false, bool ConjRh
 template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_sum_op;
 template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_difference_op;
 template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_conj_product_op;
-template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_min_op;
-template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_max_op;
+template<typename LhsScalar,typename RhsScalar=LhsScalar, int NaNPropagation=PropagateFast> struct scalar_min_op;
+template<typename LhsScalar,typename RhsScalar=LhsScalar, int NaNPropagation=PropagateFast> struct scalar_max_op;
 template<typename Scalar> struct scalar_opposite_op;
 template<typename Scalar> struct scalar_conjugate_op;
 template<typename Scalar> struct scalar_real_op;
 template<typename Scalar> struct scalar_imag_op;
 template<typename Scalar> struct scalar_abs_op;
 template<typename Scalar> struct scalar_abs2_op;
+template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_absolute_difference_op;
 template<typename Scalar> struct scalar_sqrt_op;
 template<typename Scalar> struct scalar_rsqrt_op;
 template<typename Scalar> struct scalar_exp_op;
@@ -203,7 +205,7 @@ template<typename Scalar, typename NewType> struct scalar_cast_op;
 template<typename Scalar> struct scalar_random_op;
 template<typename Scalar> struct scalar_constant_op;
 template<typename Scalar> struct scalar_identity_op;
-template<typename Scalar,bool iscpx> struct scalar_sign_op;
+template<typename Scalar,bool is_complex, bool is_integer> struct scalar_sign_op;
 template<typename Scalar,typename ScalarExponent> struct scalar_pow_op;
 template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_hypot_op;
 template<typename LhsScalar,typename RhsScalar=LhsScalar> struct scalar_product_op;
@@ -214,10 +216,26 @@ template<typename Scalar> struct scalar_lgamma_op;
 template<typename Scalar> struct scalar_digamma_op;
 template<typename Scalar> struct scalar_erf_op;
 template<typename Scalar> struct scalar_erfc_op;
+template<typename Scalar> struct scalar_ndtri_op;
 template<typename Scalar> struct scalar_igamma_op;
 template<typename Scalar> struct scalar_igammac_op;
 template<typename Scalar> struct scalar_zeta_op;
 template<typename Scalar> struct scalar_betainc_op;
+
+// Bessel functions in SpecialFunctions module
+template<typename Scalar> struct scalar_bessel_i0_op;
+template<typename Scalar> struct scalar_bessel_i0e_op;
+template<typename Scalar> struct scalar_bessel_i1_op;
+template<typename Scalar> struct scalar_bessel_i1e_op;
+template<typename Scalar> struct scalar_bessel_j0_op;
+template<typename Scalar> struct scalar_bessel_y0_op;
+template<typename Scalar> struct scalar_bessel_j1_op;
+template<typename Scalar> struct scalar_bessel_y1_op;
+template<typename Scalar> struct scalar_bessel_k0_op;
+template<typename Scalar> struct scalar_bessel_k0e_op;
+template<typename Scalar> struct scalar_bessel_k1_op;
+template<typename Scalar> struct scalar_bessel_k1e_op;
+
 
 } // end namespace internal
 

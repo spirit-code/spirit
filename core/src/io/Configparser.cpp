@@ -117,7 +117,7 @@ try
     block.emplace_back( fmt::format( "    positions save final    = {}", save_positions_final ) );
     block.emplace_back( fmt::format( "    neighbours save initial = {}", save_neighbours_initial ) );
     block.emplace_back( fmt::format( "    neighbours save final   = {}", save_neighbours_final ) );
-    Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, block );
+    Log( Log_Level::Parameter, Log_Sender::IO, block );
 
     // Update the Log
     if( !force_quiet )
@@ -458,14 +458,13 @@ try
     parameter_log.emplace_back( "Geometry:" );
     parameter_log.emplace_back( fmt::format( "    lattice constant = {} Angstrom", lattice_constant ) );
     parameter_log.emplace_back( fmt::format( "    Bravais lattice type: {}", bravais_lattice_type_str ) );
-    Log.SendBlock(
-        Log_Level::Debug, Log_Sender::IO,
-        {
-            "    Bravais vectors in units of lattice constant",
-            fmt::format( "        a = {}", bravais_vectors[0].transpose() / lattice_constant ),
-            fmt::format( "        b = {}", bravais_vectors[1].transpose() / lattice_constant ),
-            fmt::format( "        c = {}", bravais_vectors[2].transpose() / lattice_constant ),
-        } );
+    Log( Log_Level::Debug, Log_Sender::IO,
+         {
+             "    Bravais vectors in units of lattice constant",
+             fmt::format( "        a = {}", bravais_vectors[0].transpose() / lattice_constant ),
+             fmt::format( "        b = {}", bravais_vectors[1].transpose() / lattice_constant ),
+             fmt::format( "        c = {}", bravais_vectors[2].transpose() / lattice_constant ),
+         } );
     parameter_log.emplace_back( "    Bravais vectors" );
     parameter_log.emplace_back( fmt::format( "        a = {}", bravais_vectors[0].transpose() ) );
     parameter_log.emplace_back( fmt::format( "        b = {}", bravais_vectors[1].transpose() ) );
@@ -559,7 +558,7 @@ try
     parameter_log.emplace_back( fmt::format( "    {} spins", geometry->nos ) );
     parameter_log.emplace_back( fmt::format( "    the geometry is {}-dimensional", geometry->dimensionality ) );
 
-    Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
+    Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
     Log( Log_Level::Debug, Log_Sender::IO, "Geometry: built" );
     return geometry;
@@ -817,7 +816,7 @@ std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config( 
         fmt::format( "    {:<30} = {}", "output_configuration_archive", parameters->output_configuration_archive ) );
     parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output_configuration_filetype", (int)parameters->output_vf_filetype ) );
-    Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
+    Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters LLG: built" );
     return parameters;
@@ -901,7 +900,7 @@ std::unique_ptr<Data::Parameters_Method_EMA> Parameters_Method_EMA_from_Config( 
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_initial", parameters->output_initial ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_any", parameters->output_any ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = \"{}\"", "output_folder", parameters->output_folder ) );
-    Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
+    Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters EMA: built" );
     return parameters;
@@ -1001,7 +1000,7 @@ std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config( co
         fmt::format( "    {:<30} = {}", "output_configuration_archive", parameters->output_configuration_archive ) );
     parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output_configuration_filetype", (int)parameters->output_vf_filetype ) );
-    Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
+    Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters MC: built" );
     return parameters;
@@ -1097,7 +1096,7 @@ std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "output_chain_step", parameters->output_chain_step ) );
     parameter_log.emplace_back(
         fmt::format( "    {:<18} = {}", "output_chain_filetype", (int)parameters->output_vf_filetype ) );
-    Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
+    Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters GNEB: built" );
     return parameters;
@@ -1186,7 +1185,7 @@ std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config( 
         fmt::format( "    {:<30} = {}", "output_configuration_archive", parameters->output_configuration_archive ) );
     parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output_configuration_filetype", (int)parameters->output_vf_filetype ) );
-    Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
+    Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters MMF: built" );
     return parameters;
@@ -1608,7 +1607,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
         ddi_n_periodic_images[2] ) );
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_radius", ddi_radius ) );
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_pb_zero_padding", ddi_pb_zero_padding ) );
-    Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
+    Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
     std::unique_ptr<Engine::Hamiltonian_Heisenberg> hamiltonian;
 
@@ -1696,7 +1695,7 @@ Hamiltonian_Gaussian_from_Config( const std::string & config_file_name, std::sha
     parameter_log.emplace_back( fmt::format( "    {0:<12} = {1}", "amplitude[0]", amplitude[0] ) );
     parameter_log.emplace_back( fmt::format( "    {0:<12} = {1}", "width[0]", width[0] ) );
     parameter_log.emplace_back( fmt::format( "    {0:<12} = {1}", "center[0]", center[0].transpose() ) );
-    Log.SendBlock( Log_Level::Parameter, Log_Sender::IO, parameter_log );
+    Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
     auto hamiltonian = std::make_unique<Engine::Hamiltonian_Gaussian>( amplitude, width, center );
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Gaussian: built" );
     return hamiltonian;

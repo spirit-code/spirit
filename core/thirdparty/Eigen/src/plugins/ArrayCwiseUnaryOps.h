@@ -14,6 +14,7 @@ typedef CwiseUnaryOp<internal::scalar_expm1_op<Scalar>, const Derived> Expm1Retu
 typedef CwiseUnaryOp<internal::scalar_log_op<Scalar>, const Derived> LogReturnType;
 typedef CwiseUnaryOp<internal::scalar_log1p_op<Scalar>, const Derived> Log1pReturnType;
 typedef CwiseUnaryOp<internal::scalar_log10_op<Scalar>, const Derived> Log10ReturnType;
+typedef CwiseUnaryOp<internal::scalar_log2_op<Scalar>, const Derived> Log2ReturnType;
 typedef CwiseUnaryOp<internal::scalar_cos_op<Scalar>, const Derived> CosReturnType;
 typedef CwiseUnaryOp<internal::scalar_sin_op<Scalar>, const Derived> SinReturnType;
 typedef CwiseUnaryOp<internal::scalar_tan_op<Scalar>, const Derived> TanReturnType;
@@ -32,6 +33,7 @@ typedef CwiseUnaryOp<internal::scalar_cosh_op<Scalar>, const Derived> CoshReturn
 typedef CwiseUnaryOp<internal::scalar_square_op<Scalar>, const Derived> SquareReturnType;
 typedef CwiseUnaryOp<internal::scalar_cube_op<Scalar>, const Derived> CubeReturnType;
 typedef CwiseUnaryOp<internal::scalar_round_op<Scalar>, const Derived> RoundReturnType;
+typedef CwiseUnaryOp<internal::scalar_rint_op<Scalar>, const Derived> RintReturnType;
 typedef CwiseUnaryOp<internal::scalar_floor_op<Scalar>, const Derived> FloorReturnType;
 typedef CwiseUnaryOp<internal::scalar_ceil_op<Scalar>, const Derived> CeilReturnType;
 typedef CwiseUnaryOp<internal::scalar_isnan_op<Scalar>, const Derived> IsNaNReturnType;
@@ -156,6 +158,18 @@ inline const Log10ReturnType
 log10() const
 {
   return Log10ReturnType(derived());
+}
+
+/** \returns an expression of the coefficient-wise base-2 logarithm of *this.
+  *
+  * This function computes the coefficient-wise base-2 logarithm.
+  *
+  */
+EIGEN_DEVICE_FUNC
+inline const Log2ReturnType
+log2() const
+{
+  return Log2ReturnType(derived());
 }
 
 /** \returns an expression of the coefficient-wise square root of *this.
@@ -427,6 +441,20 @@ cube() const
   return CubeReturnType(derived());
 }
 
+/** \returns an expression of the coefficient-wise rint of *this.
+  *
+  * Example: \include Cwise_rint.cpp
+  * Output: \verbinclude Cwise_rint.out
+  *
+  * \sa <a href="group__CoeffwiseMathFunctions.html#cwisetable_rint">Math functions</a>, ceil(), floor()
+  */
+EIGEN_DEVICE_FUNC
+inline const RintReturnType
+rint() const
+{
+  return RintReturnType(derived());
+}
+
 /** \returns an expression of the coefficient-wise round of *this.
   *
   * Example: \include Cwise_round.cpp
@@ -467,6 +495,45 @@ inline const CeilReturnType
 ceil() const
 {
   return CeilReturnType(derived());
+}
+
+template<int N> struct ShiftRightXpr {
+  typedef CwiseUnaryOp<internal::scalar_shift_right_op<Scalar, N>, const Derived> Type;
+};
+
+/** \returns an expression of \c *this with the \a Scalar type arithmetically
+  * shifted right by \a N bit positions.
+  *
+  * The template parameter \a N specifies the number of bit positions to shift.
+  * 
+  * \sa shiftLeft()
+  */
+template<int N>
+EIGEN_DEVICE_FUNC
+typename ShiftRightXpr<N>::Type
+shiftRight() const
+{
+  return typename ShiftRightXpr<N>::Type(derived());
+}
+
+
+template<int N> struct ShiftLeftXpr {
+  typedef CwiseUnaryOp<internal::scalar_shift_left_op<Scalar, N>, const Derived> Type;
+};
+
+/** \returns an expression of \c *this with the \a Scalar type logically
+  * shifted left by \a N bit positions.
+  *
+  * The template parameter \a N specifies the number of bit positions to shift.
+  *
+  * \sa shiftRight()
+  */
+template<int N>
+EIGEN_DEVICE_FUNC
+typename ShiftLeftXpr<N>::Type
+shiftLeft() const
+{
+  return typename ShiftLeftXpr<N>::Type(derived());
 }
 
 /** \returns an expression of the coefficient-wise isnan of *this.
@@ -536,13 +603,11 @@ typedef CwiseUnaryOp<internal::scalar_lgamma_op<Scalar>, const Derived> LgammaRe
 typedef CwiseUnaryOp<internal::scalar_digamma_op<Scalar>, const Derived> DigammaReturnType;
 typedef CwiseUnaryOp<internal::scalar_erf_op<Scalar>, const Derived> ErfReturnType;
 typedef CwiseUnaryOp<internal::scalar_erfc_op<Scalar>, const Derived> ErfcReturnType;
+typedef CwiseUnaryOp<internal::scalar_ndtri_op<Scalar>, const Derived> NdtriReturnType;
 
 /** \cpp11 \returns an expression of the coefficient-wise ln(|gamma(*this)|).
   *
   * \specialfunctions_module
-  *
-  * Example: \include Cwise_lgamma.cpp
-  * Output: \verbinclude Cwise_lgamma.out
   *
   * \note This function supports only float and double scalar types in c++11 mode. To support other scalar types,
   * or float/double in non c++11 mode, the user has to provide implementations of lgamma(T) for any scalar
@@ -579,9 +644,6 @@ digamma() const
   *
   * \specialfunctions_module
   *
-  * Example: \include Cwise_erf.cpp
-  * Output: \verbinclude Cwise_erf.out
-  *
   * \note This function supports only float and double scalar types in c++11 mode. To support other scalar types,
   * or float/double in non c++11 mode, the user has to provide implementations of erf(T) for any scalar
   * type T to be supported.
@@ -600,9 +662,6 @@ erf() const
   *
   * \specialfunctions_module
   *
-  * Example: \include Cwise_erfc.cpp
-  * Output: \verbinclude Cwise_erfc.out
-  *
   * \note This function supports only float and double scalar types in c++11 mode. To support other scalar types,
   * or float/double in non c++11 mode, the user has to provide implementations of erfc(T) for any scalar
   * type T to be supported.
@@ -614,4 +673,24 @@ inline const ErfcReturnType
 erfc() const
 {
   return ErfcReturnType(derived());
+}
+
+/** \returns an expression of the coefficient-wise inverse of the CDF of the Normal distribution function
+  * function of *this.
+  *
+  * \specialfunctions_module
+  * 
+  * In other words, considering `x = ndtri(y)`, it returns the argument, x, for which the area under the
+  * Gaussian probability density function (integrated from minus infinity to x) is equal to y.
+  *
+  * \note This function supports only float and double scalar types. To support other scalar types,
+  * the user has to provide implementations of ndtri(T) for any scalar type T to be supported.
+  *
+  * \sa <a href="group__CoeffwiseMathFunctions.html#cwisetable_ndtri">Math functions</a>
+  */
+EIGEN_DEVICE_FUNC
+inline const NdtriReturnType
+ndtri() const
+{
+  return NdtriReturnType(derived());
 }

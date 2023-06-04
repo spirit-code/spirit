@@ -1,8 +1,8 @@
 #include <utility/Timing.hpp>
 
+#include <fmt/chrono.h>
 #include <fmt/format.h>
 #include <fmt/ostream.h>
-#include <fmt/time.h>
 
 #include <sstream>
 #include <string>
@@ -15,32 +15,12 @@ namespace Timing
 using std::chrono::duration;
 using std::chrono::system_clock;
 
-std::string TimePointToString( system_clock::time_point t )
-{
-    // Convert to C-Time
-    std::time_t t_c = system_clock::to_time_t( t );
-    // Convert to TM struct
-    std::tm time_s = *localtime( &t_c );
-    // Return formatted time
-    return fmt::format( "{:%Y-%m-%d_%H-%M-%S}", time_s );
-}
-
-std::string TimePointToString_Pretty( system_clock::time_point t )
-{
-    // Convert to C-Time
-    std::time_t t_c = system_clock::to_time_t( t );
-    // Convert to TM struct
-    std::tm time_s = *localtime( &t_c );
-    // Return formatted time
-    return fmt::format( "{:%Y-%m-%d %H:%M:%S}", time_s );
-}
-
 std::string CurrentDateTime()
 {
     // Get timepoint
     system_clock::time_point now = system_clock::now();
     // Return string from timepoint
-    return TimePointToString( now );
+    return fmt::format( "{:%Y-%m-%d_%H-%M-%S}", now );
 }
 
 std::string DateTimePassed( duration<scalar> dt )
@@ -114,8 +94,3 @@ duration<scalar> DurationFromString( const std::string & dt )
 
 } // namespace Timing
 } // namespace Utility
-
-std::ostream & operator<<( std::ostream & os, std::chrono::system_clock::time_point time_point )
-{
-    return os << Utility::Timing::TimePointToString_Pretty( time_point );
-}

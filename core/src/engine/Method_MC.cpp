@@ -232,7 +232,7 @@ void Method_MC::Message_Start()
         }
     }
     block.emplace_back( "-----------------------------------------------------" );
-    Log.SendBlock( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
+    Log( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 }
 
 void Method_MC::Message_Step()
@@ -275,7 +275,7 @@ void Method_MC::Message_Step()
         }
     }
     block.emplace_back( fmt::format( "    Total energy:             {:20.10f}", this->systems[0]->E ) );
-    Log.SendBlock( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
+    Log( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 
     // Update time of last step
     this->t_last = t_current;
@@ -325,7 +325,7 @@ void Method_MC::Message_End()
     }
     block.emplace_back( fmt::format( "    Total energy:     {:20.10f}", this->systems[0]->E ) );
     block.emplace_back( "-----------------------------------------------------" );
-    Log.SendBlock( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
+    Log( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 }
 
 void Method_MC::Save_Current( std::string starttime, int iteration, bool initial, bool final ) {}

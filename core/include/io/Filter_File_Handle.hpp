@@ -5,10 +5,10 @@
 #include <engine/Vectormath_Defines.hpp>
 #include <io/Fileformat.hpp>
 #include <utility/Exception.hpp>
+#include <utility/Formatters_Eigen.hpp>
 #include <utility/Logging.hpp>
 
 #include <fmt/format.h>
-#include <fmt/ostream.h>
 
 #include <fstream>
 #include <sstream>

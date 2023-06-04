@@ -1,8 +1,8 @@
 /****************************************************************************
 **
-** Copyright (c) 2008-2015 C.B. Barber. All rights reserved.
-** $Id: //main/2015/qhull/src/qhulltest/QhullVertex_test.cpp#3 $$Change: 2062 $
-** $DateTime: 2016/01/17 13:13:18 $$Author: bbarber $
+** Copyright (c) 2008-2020 C.B. Barber. All rights reserved.
+** $Id: //main/2019/qhull/src/qhulltest/QhullVertex_test.cpp#3 $$Change: 2963 $
+** $DateTime: 2020/06/03 19:31:01 $$Author: bbarber $
 **
 ****************************************************************************/
 
@@ -97,13 +97,34 @@ t_getSet()
             QCOMPARE(v.dimension(),3);
             QVERIFY(v.id()>=0 && v.id()<9);
             QVERIFY(v.isValid());
+            QhullVertex v2;
+            v2.setVertexT(v.qh(), v.getVertexT());
+            QCOMPARE(v, v2);
             if(i.hasNext()){
                 QCOMPARE(v.next(), i.peekNext());
                 QVERIFY(v.next()!=v);
-                QVERIFY(v.next().previous()==v);
-            }
+                QCOMPARE(v.next().previous(), v);
+                QVERIFY(v.hasNext());
+                QVERIFY(v.next().hasPrevious());
+            }else
+              QVERIFY(!v.hasNext());
             QVERIFY(i.hasPrevious());
             QCOMPARE(v, i.peekPrevious());
+        }
+        while(i.hasPrevious()){
+          const QhullVertex v= i.previous();
+          cout << v.id() << endl;
+          QVERIFY(v.isValid());
+          if(i.hasPrevious()){
+            QVERIFY(v.hasPrevious());
+            QCOMPARE(v.previous(), i.peekPrevious());
+            QVERIFY(v.previous()!=v);
+            QVERIFY(v.previous().hasNext());
+            QCOMPARE(v.previous().next(), v);
+          }else
+            QVERIFY(!v.hasPrevious());
+          QVERIFY(i.hasNext());
+          QCOMPARE(v, i.peekNext());
         }
 
         // test point()

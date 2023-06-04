@@ -257,23 +257,23 @@ void Method_Solver<solver>::Message_Start()
 
     //---- Log messages
     std::vector<std::string> block;
-    block.push_back( fmt::format( "------------  Started  {} Calculation  ------------", this->Name() ) );
-    block.push_back( fmt::format( "    Going to iterate {} step(s)", this->n_log ) );
-    block.push_back( fmt::format( "                with {} iterations per step", this->n_iterations_log ) );
-    block.push_back( fmt::format(
+    block.emplace_back( fmt::format( "------------  Started  {} Calculation  ------------", this->Name() ) );
+    block.emplace_back( fmt::format( "    Going to iterate {} step(s)", this->n_log ) );
+    block.emplace_back( fmt::format( "                with {} iterations per step", this->n_iterations_log ) );
+    block.emplace_back( fmt::format(
         "    Force convergence parameter: {:." + fmt::format( "{}", this->print_precision ) + "f}",
         this->parameters->force_convergence ) );
-    block.push_back( fmt::format(
+    block.emplace_back( fmt::format(
         "    Maximum torque:              {:." + fmt::format( "{}", this->print_precision ) + "f}",
         this->max_torque ) );
-    block.push_back( fmt::format( "    Solver: {}", this->SolverFullName() ) );
+    block.emplace_back( fmt::format( "    Solver: {}", this->SolverFullName() ) );
     if( this->Name() == "GNEB" )
     {
         scalar length = Manifoldmath::dist_geodesic( *this->configurations[0], *this->configurations[this->noi - 1] );
-        block.push_back( fmt::format( "    Total path length: {}", length ) );
+        block.emplace_back( fmt::format( "    Total path length: {}", length ) );
     }
-    block.push_back( "-----------------------------------------------------" );
-    Log.SendBlock( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
+    block.emplace_back( "-----------------------------------------------------" );
+    Log( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 }
 
 template<Solver solver>
@@ -293,30 +293,30 @@ void Method_Solver<solver>::Message_Step()
 
     // Send log message
     std::vector<std::string> block;
-    block.push_back( fmt::format(
+    block.emplace_back( fmt::format(
         "----- {} Calculation ({} Solver): {}", this->Name(), this->SolverName(),
         Timing::DateTimePassed( t_current - this->t_start ) ) );
-    block.push_back(
+    block.emplace_back(
         fmt::format( "    Time since last step: {}", Timing::DateTimePassed( t_current - this->t_last ) ) );
-    block.push_back(
+    block.emplace_back(
         fmt::format( "    Completed {:>8}    {} / {} iterations", percentage, this->iteration, this->n_iterations ) );
-    block.push_back( fmt::format(
+    block.emplace_back( fmt::format(
         "    Iterations / sec:     {:.2f}",
         this->n_iterations_log / Timing::SecondsPassed( t_current - this->t_last ) ) );
     if( llg_dynamics )
-        block.push_back( fmt::format( "    Simulated time:       {} ps", this->get_simulated_time() ) );
+        block.emplace_back( fmt::format( "    Simulated time:       {} ps", this->get_simulated_time() ) );
     if( this->Name() == "GNEB" )
     {
         scalar length = Manifoldmath::dist_geodesic( *this->configurations[0], *this->configurations[this->noi - 1] );
-        block.push_back( fmt::format( "    Total path length:    {}", length ) );
+        block.emplace_back( fmt::format( "    Total path length:    {}", length ) );
     }
-    block.push_back( fmt::format(
+    block.emplace_back( fmt::format(
         "    Force convergence parameter: {:." + fmt::format( "{}", this->print_precision ) + "f}",
         this->parameters->force_convergence ) );
-    block.push_back( fmt::format(
+    block.emplace_back( fmt::format(
         "    Maximum torque:              {:." + fmt::format( "{}", this->print_precision ) + "f}",
         this->max_torque ) );
-    Log.SendBlock( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
+    Log( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 
     // Update time of last step
     this->t_last = t_current;
@@ -348,30 +348,30 @@ void Method_Solver<solver>::Message_End()
 
     //---- Log messages
     std::vector<std::string> block;
-    block.push_back( fmt::format( "------------ Terminated {} Calculation ------------", this->Name() ) );
+    block.emplace_back( fmt::format( "------------ Terminated {} Calculation ------------", this->Name() ) );
     if( reason.length() > 0 )
-        block.push_back( fmt::format( "------- Reason: {}", reason ) );
-    block.push_back( fmt::format( "    Total duration:    {}", Timing::DateTimePassed( t_end - this->t_start ) ) );
-    block.push_back(
+        block.emplace_back( fmt::format( "------- Reason: {}", reason ) );
+    block.emplace_back( fmt::format( "    Total duration:    {}", Timing::DateTimePassed( t_end - this->t_start ) ) );
+    block.emplace_back(
         fmt::format( "    Completed {:>8} {} / {} iterations", percentage, this->iteration, this->n_iterations ) );
-    block.push_back( fmt::format(
+    block.emplace_back( fmt::format(
         "    Iterations / sec:  {:.2f}", this->iteration / Timing::SecondsPassed( t_end - this->t_start ) ) );
     if( llg_dynamics )
-        block.push_back( fmt::format( "    Simulated time:    {} ps", this->get_simulated_time() ) );
+        block.emplace_back( fmt::format( "    Simulated time:    {} ps", this->get_simulated_time() ) );
     if( this->Name() == "GNEB" )
     {
         scalar length = Manifoldmath::dist_geodesic( *this->configurations[0], *this->configurations[this->noi - 1] );
-        block.push_back( fmt::format( "    Total path length: {}", length ) );
+        block.emplace_back( fmt::format( "    Total path length: {}", length ) );
     }
-    block.push_back( fmt::format(
+    block.emplace_back( fmt::format(
         "    Force convergence parameter: {:." + fmt::format( "{}", this->print_precision ) + "f}",
         this->parameters->force_convergence ) );
-    block.push_back( fmt::format(
+    block.emplace_back( fmt::format(
         "    Maximum torque:              {:." + fmt::format( "{}", this->print_precision ) + "f}",
         this->max_torque ) );
-    block.push_back( fmt::format( "    Solver: {}", this->SolverFullName() ) );
-    block.push_back( "-----------------------------------------------------" );
-    Log.SendBlock( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
+    block.emplace_back( fmt::format( "    Solver: {}", this->SolverFullName() ) );
+    block.emplace_back( "-----------------------------------------------------" );
+    Log( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 }
 
 template<>

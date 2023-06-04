@@ -4,6 +4,7 @@
 #include <engine/Vectormath.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Exception.hpp>
+#include <utility/Formatters_Eigen.hpp>
 #include <utility/Logging.hpp>
 
 #include <fmt/format.h>

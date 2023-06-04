@@ -7,9 +7,6 @@
 
 #include <Eigen/Dense>
 
-#include <GenEigsRealShiftSolver.h>
-#include <GenEigsSolver.h> // Also includes <MatOp/DenseGenMatProd.h>
-
 #include <array>
 
 namespace C = Utility::Constants;

@@ -1,8 +1,8 @@
 /****************************************************************************
 **
-** Copyright (c) 2008-2015 C.B. Barber. All rights reserved.
-** $Id: //main/2015/qhull/src/libqhullcpp/QhullVertex.h#4 $$Change: 2079 $
-** $DateTime: 2016/02/07 17:43:34 $$Author: bbarber $
+** Copyright (c) 2008-2020 C.B. Barber. All rights reserved.
+** $Id: //main/2019/qhull/src/libqhullcpp/QhullVertex.h#3 $$Change: 2963 $
+** $DateTime: 2020/06/03 19:31:01 $$Author: bbarber $
 **
 ****************************************************************************/
 
@@ -70,6 +70,8 @@ public:
     int                 dimension() const { return (qh_qh ? qh_qh->hull_dim : 0); }
     vertexT *           getBaseT() const { return getVertexT(); } //!< For QhullSet<QhullVertex>
     vertexT *           getVertexT() const { return qh_vertex; }
+    bool                hasNext() const { return (qh_vertex->next != NULL && qh_vertex->next != qh_qh->vertex_tail); }
+    bool                hasPrevious() const { return (qh_vertex->previous != NULL); }
     countT              id() const { return qh_vertex->id; }
     bool                isValid() const { return (qh_qh && qh_vertex != &s_empty_vertex); }
                         //! True if defineVertexNeighborFacets() already called.  Auotomatically set for facet merging, Voronoi diagrams
@@ -80,6 +82,7 @@ public:
     QhullPoint          point() const { return QhullPoint(qh_qh, qh_vertex->point); }
     QhullVertex         previous() const { return QhullVertex(qh_qh, qh_vertex->previous); }
     QhullQh *           qh() const { return qh_qh; }
+    void                setVertexT(QhullQh *qqh, vertexT *vertex) { qh_qh= qqh; qh_vertex= vertex; }
 
 #//!\name foreach
     //See also QhullVertexList

@@ -1,7 +1,9 @@
 #include <data/Geometry.hpp>
 #include <engine/Indexing.hpp>
 #include <engine/Neighbours.hpp>
+#include <engine/Vectormath.hpp>
 #include <utility/Exception.hpp>
+#include <utility/Formatters_Eigen.hpp>
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>

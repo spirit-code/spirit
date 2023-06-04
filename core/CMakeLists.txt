@@ -279,6 +279,7 @@ configure_file( ${CMAKE_CURRENT_LIST_DIR}/CMake/Spirit_Version.hpp.in ${CMAKE_CU
 ######### Dependencies that need to be built #######################
 include( GetQHull )
 add_subdirectory( ${PROJECT_SOURCE_DIR}/thirdparty/ovf )
+target_include_directories( ovf PRIVATE ${libfmt_INCLUDE_DIRS} )
 ####################################################################
 
 
@@ -328,6 +329,7 @@ target_include_directories( ${META_PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/thirdparty
     ${CMAKE_CURRENT_LIST_DIR}/thirdparty/ovf/include
     ${CMAKE_CURRENT_LIST_DIR}/thirdparty/spectra/include
+    ${libfmt_INCLUDE_DIRS}
     ${qhull_INCLUDE_DIRS}
     ${FFT_INCLUDE_DIRS} )
 
@@ -470,6 +472,7 @@ if( SPIRIT_BUILD_FOR_CXX OR SPIRIT_BUILD_FOR_JS )
             target_include_directories( ${testName} PRIVATE
                 ${CMAKE_CURRENT_LIST_DIR}/test
                 ${CMAKE_CURRENT_LIST_DIR}/thirdparty
+                ${libfmt_INCLUDE_DIRS}
                 ${FFT_INCLUDE_DIRS} )
             # Apply public includes from the object library
             target_include_directories( ${testName} PUBLIC

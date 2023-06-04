@@ -1,8 +1,8 @@
 /****************************************************************************
 **
-** Copyright (c) 2008-2015 C.B. Barber. All rights reserved.
-** $Id: //main/2015/qhull/src/libqhullcpp/QhullLinkedList.h#7 $$Change: 2079 $
-** $DateTime: 2016/02/07 17:43:34 $$Author: bbarber $
+** Copyright (c) 2008-2020 C.B. Barber. All rights reserved.
+** $Id: //main/2019/qhull/src/libqhullcpp/QhullLinkedList.h#4 $$Change: 2953 $
+** $DateTime: 2020/05/21 22:05:32 $$Author: bbarber $
 **
 ****************************************************************************/
 
@@ -172,7 +172,7 @@ public:
         const_iterator &operator=(const const_iterator &o) { i= o.i; return *this; }
 
         const T &       operator*() const { return i; }
-        const T *       operator->() const { return i; }
+        const T *       operator->() const { return &i; }
         bool            operator==(const const_iterator &o) const { return i == o.i; }
         bool            operator!=(const const_iterator &o) const { return !operator==(o); }
                         // No comparisons or iterator diff
@@ -189,7 +189,7 @@ public:
 };//QhullLinkedList
 
 template <typename T>
-class QhullLinkedListIterator // FIXUP QH11016 define QhullMutableLinkedListIterator
+class QhullLinkedListIterator // QH11016 FIX: define QhullMutableLinkedListIterator
 {
     typedef typename QhullLinkedList<T>::const_iterator const_iterator;
     const QhullLinkedList<T> *c;

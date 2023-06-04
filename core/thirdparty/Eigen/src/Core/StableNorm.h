@@ -123,41 +123,28 @@ blueNorm_impl(const EigenBase<Derived>& _vec)
   using std::pow;
   using std::sqrt;
   using std::abs;
+
+  // This program calculates the machine-dependent constants
+  // bl, b2, slm, s2m, relerr overfl
+  // from the "basic" machine-dependent numbers
+  // nbig, ibeta, it, iemin, iemax, rbig.
+  // The following define the basic machine-dependent constants.
+  // For portability, the PORT subprograms "ilmaeh" and "rlmach"
+  // are used. For any specific computer, each of the assignment
+  // statements can be replaced
+  static const int ibeta = std::numeric_limits<RealScalar>::radix;  // base for floating-point numbers
+  static const int it    = NumTraits<RealScalar>::digits();  // number of base-beta digits in mantissa
+  static const int iemin = NumTraits<RealScalar>::min_exponent();  // minimum exponent
+  static const int iemax = NumTraits<RealScalar>::max_exponent();  // maximum exponent
+  static const RealScalar rbig   = NumTraits<RealScalar>::highest();  // largest floating-point number
+  static const RealScalar b1     = RealScalar(pow(RealScalar(ibeta),RealScalar(-((1-iemin)/2))));  // lower boundary of midrange
+  static const RealScalar b2     = RealScalar(pow(RealScalar(ibeta),RealScalar((iemax + 1 - it)/2)));  // upper boundary of midrange
+  static const RealScalar s1m    = RealScalar(pow(RealScalar(ibeta),RealScalar((2-iemin)/2)));  // scaling factor for lower range
+  static const RealScalar s2m    = RealScalar(pow(RealScalar(ibeta),RealScalar(- ((iemax+it)/2))));  // scaling factor for upper range
+  static const RealScalar eps    = RealScalar(pow(double(ibeta), 1-it));
+  static const RealScalar relerr = sqrt(eps);  // tolerance for neglecting asml
+
   const Derived& vec(_vec.derived());
-  static bool initialized = false;
-  static RealScalar b1, b2, s1m, s2m, rbig, relerr;
-  if(!initialized)
-  {
-    int ibeta, it, iemin, iemax, iexp;
-    RealScalar eps;
-    // This program calculates the machine-dependent constants
-    // bl, b2, slm, s2m, relerr overfl
-    // from the "basic" machine-dependent numbers
-    // nbig, ibeta, it, iemin, iemax, rbig.
-    // The following define the basic machine-dependent constants.
-    // For portability, the PORT subprograms "ilmaeh" and "rlmach"
-    // are used. For any specific computer, each of the assignment
-    // statements can be replaced
-    ibeta = std::numeric_limits<RealScalar>::radix;                 // base for floating-point numbers
-    it    = NumTraits<RealScalar>::digits();                        // number of base-beta digits in mantissa
-    iemin = std::numeric_limits<RealScalar>::min_exponent;          // minimum exponent
-    iemax = std::numeric_limits<RealScalar>::max_exponent;          // maximum exponent
-    rbig  = (std::numeric_limits<RealScalar>::max)();               // largest floating-point number
-
-    iexp  = -((1-iemin)/2);
-    b1    = RealScalar(pow(RealScalar(ibeta),RealScalar(iexp)));    // lower boundary of midrange
-    iexp  = (iemax + 1 - it)/2;
-    b2    = RealScalar(pow(RealScalar(ibeta),RealScalar(iexp)));    // upper boundary of midrange
-
-    iexp  = (2-iemin)/2;
-    s1m   = RealScalar(pow(RealScalar(ibeta),RealScalar(iexp)));    // scaling factor for lower range
-    iexp  = - ((iemax+it)/2);
-    s2m   = RealScalar(pow(RealScalar(ibeta),RealScalar(iexp)));    // scaling factor for upper range
-
-    eps     = RealScalar(pow(double(ibeta), 1-it));
-    relerr  = sqrt(eps);                                            // tolerance for neglecting asml
-    initialized = true;
-  }
   Index n = vec.size();
   RealScalar ab2 = b2 / RealScalar(n);
   RealScalar asml = RealScalar(0);
@@ -166,9 +153,9 @@ blueNorm_impl(const EigenBase<Derived>& _vec)
 
   for(Index j=0; j<vec.outerSize(); ++j)
   {
-    for(typename Derived::InnerIterator it(vec, j); it; ++it)
+    for(typename Derived::InnerIterator iter(vec, j); iter; ++iter)
     {
-      RealScalar ax = abs(it.value());
+      RealScalar ax = abs(iter.value());
       if(ax > ab2)     abig += numext::abs2(ax*s2m);
       else if(ax < b1) asml += numext::abs2(ax*s1m);
       else             amed += numext::abs2(ax);
