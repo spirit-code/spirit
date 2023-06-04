@@ -208,16 +208,16 @@ if( SPIRIT_BUILD_FOR_JS )
     set( SPIRIT_USE_CUDA      OFF   )
     set( SPIRIT_USE_OPENMP    OFF   )
     set( SPIRIT_UI_CXX_USE_QT OFF   )
-    set( SPIRIT_UI_USE_IMGUI  ON    )
     set( SPIRIT_SCALAR_TYPE   float )
 
     if( ${CMAKE_SYSTEM_NAME} MATCHES "Emscripten" )
         message( WARNING "You set SPIRIT_BUILD_FOR_JS to ON but your are not using emscripten. That might not work" )
     endif()
-endif()
-### Need to use pthread if emscripten is used
-if( SPIRIT_BUILD_FOR_JS AND SPIRIT_UI_USE_IMGUI )
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -s USE_PTHREADS=1 -s USE_PTHREADS=1 -s WASM=1" )
+    ### Need to use pthread if emscripten is used
+    set( CMAKE_C_FLAGS "${CMAKE_CXX_FLAGS} -pthread" )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread" )
+    set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread" )
+    set( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pthread" )
 endif()
 ####################################################################
 
@@ -236,7 +236,7 @@ set( qhull_INCLUDE_DIRS
     ${CMAKE_CURRENT_LIST_DIR}/thirdparty/qhull/src
     ${CMAKE_CURRENT_LIST_DIR}/thirdparty/qhull/src/libqhullcpp )
 if( CMAKE_BUILD_TYPE MATCHES "[dD]ebug" )
-    set( qhull_LIBS qhullcpp_d qhullstatic_rd)
+    set( qhull_LIBS qhullcpp_d qhullstatic_rd )
 else()
     set( qhull_LIBS qhullcpp qhullstatic_r )
 endif()
@@ -246,9 +246,9 @@ add_subdirectory( core )
 if( SPIRIT_BUILD_FOR_JS )
     if( SPIRIT_UI_USE_IMGUI )
         add_definitions( -DSPIRIT_UI_USE_IMGUI )
+        add_subdirectory( ui-cpp )
     endif()
     add_subdirectory( VFRendering )
-    add_subdirectory( ui-cpp )
     add_subdirectory( ui-web )
 ### CXX UI
 elseif( SPIRIT_BUILD_FOR_CXX )
@@ -282,7 +282,6 @@ install( FILES ${CMAKE_CURRENT_LIST_DIR}/LICENSE.txt DESTINATION ./ COMPONENT sp
 install( FILES ${CMAKE_CURRENT_LIST_DIR}/thirdparty/qhull/COPYING.txt DESTINATION licenses RENAME qhull.txt COMPONENT spirit_licenses )
 install( FILES ${CMAKE_CURRENT_LIST_DIR}/thirdparty/fmt/LICENSE.rst   DESTINATION licenses RENAME fmt.rst   COMPONENT spirit_licenses )
 
-install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/cub/LICENSE.TXT   DESTINATION licenses RENAME cub.txt       COMPONENT spirit_licenses )
 install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/Eigen/COPYING.BSD DESTINATION licenses RENAME eigen.txt     COMPONENT spirit_licenses )
 install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/kiss_fft/COPYING  DESTINATION licenses RENAME kiss_fft.txt  COMPONENT spirit_licenses )
 install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/ovf/README.md     DESTINATION licenses RENAME ovf.md        COMPONENT spirit_licenses )

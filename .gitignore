@@ -31,6 +31,7 @@ input_*
 /spirit
 libSpirit.js
 libSpirit.js.mem
+libSpirit.worker.js
 libSpirit.wasm
 libSpirit.wast
 spirit.js

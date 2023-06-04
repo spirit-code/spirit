@@ -293,7 +293,7 @@ scalar max_abs_component( const vectorfield & vf )
     // Determine temporary device storage requirements
     void * d_temp_storage     = NULL;
     size_t temp_storage_bytes = 0;
-    auto lam                  = [] __device__( const scalar & a, const scalar & b ) { return ( a > b ) ? a : b; };
+    auto lam = [] __host__ __device__( const scalar & a, const scalar & b ) { return ( a > b ) ? a : b; };
     cub::DeviceReduce::Reduce( d_temp_storage, temp_storage_bytes, vf[0].data(), out.data(), N, lam, init );
     // Allocate temporary storage
     cudaMalloc( &d_temp_storage, temp_storage_bytes );
@@ -319,7 +319,7 @@ scalar max_norm( const vectorfield & vf )
 
     void * d_temp_storage     = NULL;
     size_t temp_storage_bytes = 0;
-    auto lam                  = [] __device__( const scalar & a, const scalar & b ) { return ( a > b ) ? a : b; };
+    auto lam = [] __host__ __device__( const scalar & a, const scalar & b ) { return ( a > b ) ? a : b; };
 
     scalar init = 0;
     cub::DeviceReduce::Reduce( d_temp_storage, temp_storage_bytes, temp.data(), ret.data(), N, lam, init );
