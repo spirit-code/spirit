@@ -28,7 +28,7 @@ option( SPIRIT_USE_FFTW         "If available, use the FFTW library instead of k
 ### Set the scalar type used in the Spirit library
 option( SPIRIT_SCALAR_TYPE      "Use std threads to speed up certain parts of the code." "double" )
 ### Set the compute capability for CUDA compilation
-option( SPIRIT_CUDA_ARCH        "Use std threads to speed up certain parts of the code." "sm_60"  )
+option( SPIRIT_CUDA_ARCH        "Use std threads to speed up certain parts of the code." "60"  )
 ####################################################################
 
 
@@ -146,8 +146,8 @@ if( SPIRIT_USE_CUDA )
     set( SPIRIT_CUDA_LIBS "${CUDA_LIBRARIES};${CUDA_CUFFT_LIBRARIES};${CUDA_curand_LIBRARY}" )
     set( FFT_LIB          ${CUDA_CUFFT_LIBRARIES} )
 
-    if( "${CMAKE_CXX_COMPILER_ID}" MATCHES "NVHPC" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "NVCC" ) 
-        set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -lineinfo -arch=${SPIRIT_CUDA_ARCH} --expt-relaxed-constexpr --expt-extended-lambda" )
+    if( "${CMAKE_CUDA_COMPILER_ID}" MATCHES "NVIDIA" ) 
+        set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -lineinfo -arch=sm_${SPIRIT_CUDA_ARCH} --expt-relaxed-constexpr --expt-extended-lambda" )
         ### Deactivate CUDA warning inside Eigen such as "warning: __host__ annotation is ignored on a function("Quaternion") that is explicitly defaulted on its first declaration"
         set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcudafe=\"--diag_suppress=esa_on_defaulted_function_ignored\"")
         ### Display warning number when writing a warning
@@ -155,11 +155,19 @@ if( SPIRIT_USE_CUDA )
 
         set( META_COMPILER         "${META_COMPILER} and nvcc" )
         set( META_COMPILER_VERSION "${META_COMPILER_VERSION} and ${CUDA_VERSION}" )
-        set( META_COMPILER_FULL    "${META_COMPILER_FULL} and nvcc (${CUDA_VERSION}) for cuda arch \\\"${SPIRIT_CUDA_ARCH}\\\"" )
+        set( META_COMPILER_FULL    "${META_COMPILER_FULL} and nvcc (${CUDA_VERSION}) for cuda arch \\\"sm_${SPIRIT_CUDA_ARCH}\\\"" )
+
+    elseif( "${CMAKE_CXX_COMPILER_ID}" MATCHES "NVHPC") 
+        set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -cuda" )
+
+        set( META_COMPILER         "${META_COMPILER}" )
+        set( META_COMPILER_VERSION "${META_COMPILER_VERSION} and ${CUDA_VERSION}" )
+        set( META_COMPILER_FULL    "${META_COMPILER_FULL} and nvcc (${CUDA_VERSION}) for cuda arch \\\"sm_${SPIRIT_CUDA_ARCH}\\\"" )
+
     else()
+        set( CMAKE_CUDA_ARCHITECTURES ${SPIRIT_CUDA_ARCH} )
         # set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -D__STRICT_ANSI__" )
         # set( SPIRIT_COMPILE_DEFINITIONS "${SPIRIT_COMPILE_DEFINITIONS} -D__STRICT_ANSI__" )
-
         set( META_COMPILER         "${META_COMPILER}" )
         set( META_COMPILER_VERSION "${META_COMPILER_VERSION} and CUDA ${CUDA_VERSION}" )
         set( META_COMPILER_FULL    "${META_COMPILER_FULL} and (CUDA ${CUDA_VERSION}) for cuda arch \\\"${SPIRIT_CUDA_ARCH}\\\"" )

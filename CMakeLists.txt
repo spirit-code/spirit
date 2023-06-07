@@ -26,8 +26,8 @@ set( SPIRIT_USE_THREADS       OFF  CACHE BOOL "Use std threads to speed up certa
 set( SPIRIT_USE_FFTW          ON   CACHE BOOL "If available, use the FFTW library instead of kissFFT." )
 ### Set the scalar type used in the Spirit library
 set( SPIRIT_SCALAR_TYPE "double" CACHE STRING "The scalar type to be used in the Spirit library." )
-### Set the compute capability for CUDA compilation
-set( SPIRIT_CUDA_ARCH   "sm_60"  CACHE STRING "The CUDA compute architecture to use in case of a CUDA build." )
+### Set the compute capability for CUDA compilation (note: specify without prefix "sm_")
+set( SPIRIT_CUDA_ARCH   "60"  CACHE STRING "The CUDA compute architecture to use in case of a CUDA build." )
 ####################################################################
 ### CMake Verbosity
 option( SPIRIT_PRINT_SOURCES    "Print Headers and Sources from Cmake."                          OFF )
