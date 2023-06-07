@@ -111,8 +111,8 @@ struct fmt::formatter<Utility::LogEntry> : formatter<string_view>
         // Note, ctx.out() is an output iterator to write to.
         // Currently not using entry.idx_chain, as it is not actively used in the codebase
         auto out = fmt::format_to(
-            ctx.out(), format_str, entry.time, entry.level, entry.sender, index_to_string( entry.idx_image ),
-            entry.message_lines[0] );
+            ctx.out(), fmt::runtime( format_str ), entry.time, entry.level, entry.sender,
+            index_to_string( entry.idx_image ), entry.message_lines[0] );
 
         // Rest of the block
         for( std::size_t i = 1; i < entry.message_lines.size(); ++i )

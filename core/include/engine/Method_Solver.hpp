@@ -261,10 +261,10 @@ void Method_Solver<solver>::Message_Start()
     block.emplace_back( fmt::format( "    Going to iterate {} step(s)", this->n_log ) );
     block.emplace_back( fmt::format( "                with {} iterations per step", this->n_iterations_log ) );
     block.emplace_back( fmt::format(
-        "    Force convergence parameter: {:." + fmt::format( "{}", this->print_precision ) + "f}",
+        fmt::runtime( "    Force convergence parameter: {:." + fmt::format( "{}", this->print_precision ) + "f}" ),
         this->parameters->force_convergence ) );
     block.emplace_back( fmt::format(
-        "    Maximum torque:              {:." + fmt::format( "{}", this->print_precision ) + "f}",
+        fmt::runtime( "    Maximum torque:              {:." + fmt::format( "{}", this->print_precision ) + "f}" ),
         this->max_torque ) );
     block.emplace_back( fmt::format( "    Solver: {}", this->SolverFullName() ) );
     if( this->Name() == "GNEB" )
@@ -311,10 +311,10 @@ void Method_Solver<solver>::Message_Step()
         block.emplace_back( fmt::format( "    Total path length:    {}", length ) );
     }
     block.emplace_back( fmt::format(
-        "    Force convergence parameter: {:." + fmt::format( "{}", this->print_precision ) + "f}",
+        fmt::runtime( "    Force convergence parameter: {:." + fmt::format( "{}", this->print_precision ) + "f}" ),
         this->parameters->force_convergence ) );
     block.emplace_back( fmt::format(
-        "    Maximum torque:              {:." + fmt::format( "{}", this->print_precision ) + "f}",
+        fmt::runtime( "    Maximum torque:              {:." + fmt::format( "{}", this->print_precision ) + "f}" ),
         this->max_torque ) );
     Log( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 
@@ -364,10 +364,10 @@ void Method_Solver<solver>::Message_End()
         block.emplace_back( fmt::format( "    Total path length: {}", length ) );
     }
     block.emplace_back( fmt::format(
-        "    Force convergence parameter: {:." + fmt::format( "{}", this->print_precision ) + "f}",
+        fmt::runtime( "    Force convergence parameter: {:." + fmt::format( "{}", this->print_precision ) + "f}" ),
         this->parameters->force_convergence ) );
     block.emplace_back( fmt::format(
-        "    Maximum torque:              {:." + fmt::format( "{}", this->print_precision ) + "f}",
+        fmt::runtime( "    Maximum torque:              {:." + fmt::format( "{}", this->print_precision ) + "f}" ),
         this->max_torque ) );
     block.emplace_back( fmt::format( "    Solver: {}", this->SolverFullName() ) );
     block.emplace_back( "-----------------------------------------------------" );

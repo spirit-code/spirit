@@ -737,6 +737,7 @@ inline auto code_point_index(basic_string_view<char8_type> s, size_t n)
       string_view(reinterpret_cast<const char*>(s.data()), s.size()), n);
 }
 
+#define FMT_USE_FLOAT128 0
 #ifndef FMT_USE_FLOAT128
 #  ifdef __SIZEOF_FLOAT128__
 #    define FMT_USE_FLOAT128 1
