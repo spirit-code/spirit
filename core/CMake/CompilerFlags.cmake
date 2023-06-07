@@ -62,6 +62,21 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "Intel")
     endif()
 ######################################################################
 
+######## NVIDIA NVC++ ################################################
+elseif ("${CMAKE_CXX_COMPILER_ID}" MATCHES "NVHPC")
+    ### Message
+    MESSAGE( STATUS ">> Chose compiler:                NVC++" )
+    ### Compiler Flags
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdpar=multicore" )
+    # set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdpar=gpu" )
+    # set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdpar=gpu -cuda" )
+    # set( CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -cuda")
+    # set( CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -cuda")
+    # set( CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -cuda")
+    ### Linker Flags
+    # set( CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -cuda" )
+######################################################################
+
 ######## The End #####################################################
 endif()
 ######## Print flags info

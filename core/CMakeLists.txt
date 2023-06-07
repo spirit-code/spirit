@@ -143,25 +143,34 @@ if( SPIRIT_USE_CUDA )
     # --std=c++17 flag may be necessary, but it is propagated from global flags...
     # if it appears twice, for some reason the compilation breaks
 
-    set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -lineinfo -arch=${SPIRIT_CUDA_ARCH} --expt-relaxed-constexpr --expt-extended-lambda" )
     set( SPIRIT_CUDA_LIBS "${CUDA_LIBRARIES};${CUDA_CUFFT_LIBRARIES};${CUDA_curand_LIBRARY}" )
     set( FFT_LIB          ${CUDA_CUFFT_LIBRARIES} )
 
-    ### Deactivate CUDA warning inside Eigen such as "warning: __host__ annotation is ignored on a function("Quaternion") that is explicitly defaulted on its first declaration"
-    set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcudafe=\"--diag_suppress=esa_on_defaulted_function_ignored\"")
-    ### Display warning number when writing a warning
-    set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcudafe \"--display_error_number\"" )
+    if( "${CMAKE_CXX_COMPILER_ID}" MATCHES "NVHPC" OR "${CMAKE_CXX_COMPILER_ID}" MATCHES "NVCC" ) 
+        set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -lineinfo -arch=${SPIRIT_CUDA_ARCH} --expt-relaxed-constexpr --expt-extended-lambda" )
+        ### Deactivate CUDA warning inside Eigen such as "warning: __host__ annotation is ignored on a function("Quaternion") that is explicitly defaulted on its first declaration"
+        set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcudafe=\"--diag_suppress=esa_on_defaulted_function_ignored\"")
+        ### Display warning number when writing a warning
+        set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcudafe \"--display_error_number\"" )
 
-    set( META_COMPILER         "${META_COMPILER} and nvcc" )
-    set( META_COMPILER_VERSION "${META_COMPILER_VERSION} and ${CUDA_VERSION}" )
-    set( META_COMPILER_FULL    "${META_COMPILER_FULL} and nvcc (${CUDA_VERSION}) for cuda arch \\\"${SPIRIT_CUDA_ARCH}\\\"" )
+        set( META_COMPILER         "${META_COMPILER} and nvcc" )
+        set( META_COMPILER_VERSION "${META_COMPILER_VERSION} and ${CUDA_VERSION}" )
+        set( META_COMPILER_FULL    "${META_COMPILER_FULL} and nvcc (${CUDA_VERSION}) for cuda arch \\\"${SPIRIT_CUDA_ARCH}\\\"" )
+    else()
+        # set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -D__STRICT_ANSI__" )
+        # set( SPIRIT_COMPILE_DEFINITIONS "${SPIRIT_COMPILE_DEFINITIONS} -D__STRICT_ANSI__" )
+
+        set( META_COMPILER         "${META_COMPILER}" )
+        set( META_COMPILER_VERSION "${META_COMPILER_VERSION} and CUDA ${CUDA_VERSION}" )
+        set( META_COMPILER_FULL    "${META_COMPILER_FULL} and (CUDA ${CUDA_VERSION}) for cuda arch \\\"${SPIRIT_CUDA_ARCH}\\\"" )
+    endif()
 
     if( NOT DEFINED CMAKE_CUDA_STANDARD )
         set( CMAKE_CUDA_STANDARD 17 )
         set( CMAKE_CUDA_STANDARD_REQUIRED ON )
     endif()
 
-    message( STATUS ">> Using CUDA. Flags: ${CUDA_NVCC_FLAGS}" )
+    message( STATUS ">> Using CUDA. Flags: ${CMAKE_CUDA_FLAGS}" )
     message( STATUS ">> CUDA toolkit path: ${CUDA_TOOLKIT_ROOT_DIR}" )
     message( STATUS ">> CUDA libraries: ${SPIRIT_CUDA_LIBS}" )
 endif()
