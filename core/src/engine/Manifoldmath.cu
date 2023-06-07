@@ -7,6 +7,8 @@
 
 #include <Eigen/Dense>
 
+#include <cmath>
+
 namespace C = Utility::Constants;
 
 // CUDA Version
@@ -88,7 +90,7 @@ scalar dist_greatcircle( const Vector3 & v1, const Vector3 & v2 )
     scalar r = v1.dot( v2 );
 
     // Prevent NaNs from occurring
-    r = max( -1.0, min( 1.0, r ) );
+    r = std::max( scalar( -1 ), std::min( scalar( 1 ), r ) );
 
     // Greatcircle distance
     return std::acos( r );

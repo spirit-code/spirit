@@ -172,10 +172,11 @@ void Hamiltonian_Heisenberg::Update_Interactions()
     }
 
     // Dipole-dipole (cutoff)
-    scalar radius = this->ddi_cutoff_radius;
-    if( this->ddi_method != DDI_Method::Cutoff )
-        radius = 0;
-    this->ddi_pairs      = Engine::Neighbours::Get_Pairs_in_Radius( *this->geometry, radius );
+    if( this->ddi_method == DDI_Method::Cutoff )
+        this->ddi_pairs = Engine::Neighbours::Get_Pairs_in_Radius( *this->geometry, this->ddi_cutoff_radius );
+    else
+        this->ddi_pairs = field<Pair>{};
+
     this->ddi_magnitudes = scalarfield( this->ddi_pairs.size() );
     this->ddi_normals    = vectorfield( this->ddi_pairs.size() );
 

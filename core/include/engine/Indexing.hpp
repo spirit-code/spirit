@@ -96,19 +96,19 @@ inline bool boundary_conditions_fulfilled(
 #endif
 #ifdef SPIRIT_USE_CUDA
 
-// Get the linear index in a n-D array where tupel contains the components in n-dimensions from fatest to slowest
-// varying and maxVal is the extent in every dimension
-inline __device__ int cu_idx_from_tupel( field<int> & tupel, field<int> & maxVal )
-{
-    int idx  = 0;
-    int mult = 1;
-    for( int i = 0; i < tupel.size(); i++ )
-    {
-        idx += mult * tupel[i];
-        mult *= maxVal[i];
-    }
-    return idx;
-}
+// // Get the linear index in a n-D array where tupel contains the components in n-dimensions from fatest to slowest
+// // varying and maxVal is the extent in every dimension
+// inline __device__ int cu_idx_from_tupel( field<int> & tupel, field<int> & maxVal )
+// {
+//     int idx  = 0;
+//     int mult = 1;
+//     for( int i = 0; i < tupel.size(); i++ )
+//     {
+//         idx += mult * tupel[i];
+//         mult *= maxVal[i];
+//     }
+//     return idx;
+// }
 
 // reverse of idx_from_tupel
 inline __device__ void cu_tupel_from_idx( int & idx, int * tupel, int * maxVal, int n )
