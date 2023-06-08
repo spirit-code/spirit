@@ -25,7 +25,10 @@ public:
     double get_simulated_time() override;
 
     // Method name as string
-    std::string Name() override;
+    inline const char * Name() override
+    {
+        return "LLG";
+    }
 
     // Prepare random numbers for thermal fields, if needed
     void Prepare_Thermal_Field() override;

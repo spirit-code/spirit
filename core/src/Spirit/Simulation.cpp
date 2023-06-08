@@ -3,11 +3,13 @@
 #include <Spirit/State.h>
 
 #include <data/State.hpp>
+#include <engine/Method.hpp>
 #include <engine/Method_EMA.hpp>
 #include <engine/Method_GNEB.hpp>
 #include <engine/Method_LLG.hpp>
 #include <engine/Method_MC.hpp>
 #include <engine/Method_MMF.hpp>
+#include <engine/Method_Solver.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 
@@ -799,7 +801,7 @@ try
     {
         if( state->method_image[idx_image] )
         {
-            if( state->method_image[idx_image]->Name() == "LLG" )
+            if( std::string( state->method_image[idx_image]->Name() ) == "LLG" )
             {
                 return state->method_image[idx_image]->get_simulated_time();
             }
@@ -856,12 +858,12 @@ try
     if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
     {
         if( state->method_image[idx_image] )
-            return state->method_image[idx_image]->SolverName().c_str();
+            return state->method_image[idx_image]->SolverName();
     }
     else if( Simulation_Running_On_Chain( state, idx_chain ) )
     {
         if( state->method_chain )
-            return state->method_chain->SolverName().c_str();
+            return state->method_chain->SolverName();
     }
 
     return "";
@@ -885,12 +887,12 @@ try
     if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
     {
         if( state->method_image[idx_image] )
-            return state->method_image[idx_image]->Name().c_str();
+            return state->method_image[idx_image]->Name();
     }
     else if( Simulation_Running_On_Chain( state, idx_chain ) )
     {
         if( state->method_chain )
-            return state->method_chain->Name().c_str();
+            return state->method_chain->Name();
     }
 
     return "";

@@ -21,10 +21,19 @@ public:
     Method_EMA( std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain );
 
     // Method name as string
-    std::string Name() override;
-
+    inline const char * Name() override
+    {
+        return "EMA";
+    }
     // Solver name as string
-    std::string SolverName() override;
+    inline const char * SolverName() override
+    {
+        return "None";
+    }
+    inline const char * SolverFullName() override
+    {
+        return "None";
+    }
 
 private:
     // Iteration does one time step of the oscillation

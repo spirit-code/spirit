@@ -20,7 +20,10 @@ public:
     Method_MMF( std::shared_ptr<Data::Spin_System> system, int idx_chain );
 
     // Method name as string
-    std::string Name() override;
+    inline const char * Name() override
+    {
+        return "MMF";
+    }
 
 private:
     // Calculate Forces onto Systems

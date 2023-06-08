@@ -11,6 +11,7 @@
 #include <deque>
 #include <fstream>
 #include <map>
+#include <string_view>
 
 namespace Engine
 {
@@ -69,11 +70,11 @@ public:
     // ------------------------------------------------------
 
     // Method name as string
-    virtual std::string Name();
+    virtual const char * Name() = 0;
 
     // Solver name as string
-    virtual std::string SolverName();
-    virtual std::string SolverFullName();
+    virtual const char * SolverName()     = 0;
+    virtual const char * SolverFullName() = 0;
 
     // ------------------------------------------------------
 

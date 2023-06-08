@@ -80,13 +80,13 @@ inline void Method_Solver<Solver::Heun>::Iteration()
 }
 
 template<>
-inline std::string Method_Solver<Solver::Heun>::SolverName()
+inline const char * Method_Solver<Solver::Heun>::SolverName()
 {
     return "Heun";
 }
 
 template<>
-inline std::string Method_Solver<Solver::Heun>::SolverFullName()
+inline const char * Method_Solver<Solver::Heun>::SolverFullName()
 {
     return "Heun";
 }

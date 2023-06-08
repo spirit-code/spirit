@@ -115,10 +115,10 @@ void Method_EMA::Message_Start()
     //---- Log messages
     Log( Log_Level::All, this->SenderName,
          {
-             "------------  Started  " + this->Name() + " Visualization ------------",
-             "    Mode frequency  " + fmt::format( "{}", this->parameters_ema->frequency ),
-             "    Mode amplitude  " + fmt::format( "{}", this->parameters_ema->amplitude ),
-             "    Number of modes " + fmt::format( "{}", this->parameters_ema->n_modes ),
+             fmt::format( "------------  Started  {} Visualization ------------", this->Name() ),
+             fmt::format( "    Mode frequency  {}", this->parameters_ema->frequency ),
+             fmt::format( "    Mode amplitude  {}", this->parameters_ema->amplitude ),
+             fmt::format( "    Number of modes {}", this->parameters_ema->n_modes ),
              "-----------------------------------------------------",
          },
          this->idx_image, this->idx_chain );
@@ -127,17 +127,5 @@ void Method_EMA::Message_Start()
 void Method_EMA::Message_Step() {}
 
 void Method_EMA::Message_End() {}
-
-// Method name as string
-std::string Method_EMA::Name()
-{
-    return "EMA";
-}
-
-// Solver name as string
-std::string Method_EMA::SolverName()
-{
-    return "None";
-}
 
 } // namespace Engine

@@ -114,13 +114,13 @@ inline void Method_Solver<Solver::VP_OSO>::Iteration()
 }
 
 template<>
-inline std::string Method_Solver<Solver::VP_OSO>::SolverName()
+inline const char * Method_Solver<Solver::VP_OSO>::SolverName()
 {
     return "VP_OSO";
 }
 
 template<>
-inline std::string Method_Solver<Solver::VP_OSO>::SolverFullName()
+inline const char * Method_Solver<Solver::VP_OSO>::SolverFullName()
 {
     return "Velocity Projection using exponential transforms";
 }

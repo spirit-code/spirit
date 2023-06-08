@@ -77,13 +77,13 @@ inline void Method_Solver<Solver::Depondt>::Iteration()
 }
 
 template<>
-inline std::string Method_Solver<Solver::Depondt>::SolverName()
+inline const char * Method_Solver<Solver::Depondt>::SolverName()
 {
     return "Depondt";
 }
 
 template<>
-inline std::string Method_Solver<Solver::Depondt>::SolverFullName()
+inline const char * Method_Solver<Solver::Depondt>::SolverFullName()
 {
     return "Depondt";
 }

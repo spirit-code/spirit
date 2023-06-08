@@ -613,13 +613,6 @@ void Method_MMF<solver>::Finalize()
     this->systems[0]->iteration_allowed = false;
 }
 
-// Method name as string
-template<Solver solver>
-std::string Method_MMF<solver>::Name()
-{
-    return "MMF";
-}
-
 // Template instantiations
 template class Method_MMF<Solver::SIB>;
 template class Method_MMF<Solver::Heun>;

@@ -29,7 +29,10 @@ public:
     std::vector<scalar> getTorqueMaxNorm_All() override;
 
     // Method name as string
-    std::string Name() override;
+    inline const char * Name() override
+    {
+        return "GNEB";
+    }
 
     void Calculate_Force(
         const std::vector<std::shared_ptr<vectorfield>> & configurations,

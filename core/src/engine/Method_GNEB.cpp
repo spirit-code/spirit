@@ -736,13 +736,6 @@ void Method_GNEB<solver>::Unlock()
     this->chain->Unlock();
 }
 
-// Method name as string
-template<Solver solver>
-std::string Method_GNEB<solver>::Name()
-{
-    return "GNEB";
-}
-
 // Template instantiations
 template class Method_GNEB<Solver::SIB>;
 template class Method_GNEB<Solver::Heun>;

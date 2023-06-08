@@ -21,7 +21,19 @@ public:
     Method_MC( std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain );
 
     // Method name as string
-    std::string Name() override;
+    inline const char * Name() override
+    {
+        return "MC";
+    }
+    // Solver name as string
+    inline const char * SolverName() override
+    {
+        return "None";
+    }
+    inline const char * SolverFullName() override
+    {
+        return "None";
+    }
 
 private:
     // Solver_Iteration represents one iteration of a certain Solver

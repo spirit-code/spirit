@@ -243,30 +243,4 @@ void Method::Unlock()
         system->Unlock();
 }
 
-std::string Method::Name()
-{
-    // Not Implemented!
-    Log( Log_Level::Error, Log_Sender::All, std::string( "Tried to use Method::Name() of the Method base class!" ) );
-    return "--";
-}
-
-// Solver name as string
-std::string Method::SolverName()
-{
-    // Not Implemented!
-    Log( Log_Level::Error, Log_Sender::All,
-         std::string( "Tried to use Method::SolverName() of the Method base class!" ), this->idx_image,
-         this->idx_chain );
-    return "--";
-}
-
-std::string Method::SolverFullName()
-{
-    // Not Implemented!
-    Log( Log_Level::Error, Log_Sender::All,
-         std::string( "Tried to use Method::SolverFullname() of the Method base class!" ), this->idx_image,
-         this->idx_chain );
-    return "--";
-}
-
 } // namespace Engine

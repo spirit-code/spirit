@@ -65,8 +65,8 @@ public:
     // virtual void Iterate() override;
 
     // Solver name as string
-    virtual std::string SolverName() override;
-    virtual std::string SolverFullName() override;
+    virtual const char * SolverName() override;
+    virtual const char * SolverFullName() override;
 
     // Iteration represents one iteration of a certain Solver
     virtual void Iteration() override;
@@ -375,13 +375,13 @@ void Method_Solver<solver>::Message_End()
 }
 
 template<>
-inline std::string Method_Solver<Solver::None>::SolverName()
+inline const char * Method_Solver<Solver::None>::SolverName()
 {
     return "None";
 };
 
 template<>
-inline std::string Method_Solver<Solver::None>::SolverFullName()
+inline const char * Method_Solver<Solver::None>::SolverFullName()
 {
     return "None";
 };
