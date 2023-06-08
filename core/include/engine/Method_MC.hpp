@@ -8,7 +8,7 @@
 
 #include <vector>
 
-namespace Engine
+namespace Spirit::Engine
 {
 
 /*
@@ -59,6 +59,6 @@ private:
     vectorfield xi;
 };
 
-} // namespace Engine
+} // namespace Spirit::Engine
 
 #endif

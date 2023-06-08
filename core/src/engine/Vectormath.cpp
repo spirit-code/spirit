@@ -10,14 +10,12 @@
 #include <algorithm>
 #include <array>
 
-using namespace Utility;
-using Utility::Constants::Pi;
+using namespace Spirit::Utility;
+using Spirit::Utility::Constants::Pi;
 
 #ifndef SPIRIT_USE_CUDA
 
-namespace Engine
-{
-namespace Vectormath
+namespace Spirit::Engine::Vectormath
 {
 
 void get_random_vector( std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec )
@@ -397,14 +395,12 @@ scalar max_norm( const vectorfield & vf )
     }
     return sqrt( max_norm );
 }
-} // namespace Vectormath
-} // namespace Engine
+
+} // namespace Spirit::Engine::Vectormath
 
 #endif
 
-namespace Engine
-{
-namespace Vectormath
+namespace Spirit::Engine::Vectormath
 {
 
 // Constructs a rotation matrix that rotates to a frame with "normal" as the z-axis
@@ -902,5 +898,4 @@ void jacobian(
     }
 }
 
-} // namespace Vectormath
-} // namespace Engine
+} // namespace Spirit::Engine::Vectormath

@@ -11,7 +11,7 @@
 #include <engine/Hamiltonian_Gaussian.hpp>
 #include <engine/Hamiltonian_Heisenberg.hpp>
 
-namespace IO
+namespace Spirit::IO
 {
 
 /*
@@ -48,6 +48,6 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
 std::unique_ptr<Engine::Hamiltonian_Gaussian> Hamiltonian_Gaussian_from_Config(
     const std::string & config_file_name, const std::shared_ptr<Data::Geometry> geometry );
 
-} // namespace IO
+} // namespace Spirit::IO
 
 #endif

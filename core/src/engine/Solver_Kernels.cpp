@@ -4,12 +4,9 @@
 #include <engine/Solver_Kernels.hpp>
 #include <utility/Constants.hpp>
 
-using namespace Utility;
-using Utility::Constants::Pi;
+using namespace Spirit::Utility;
 
-namespace Engine
-{
-namespace Solver_Kernels
+namespace Spirit::Engine::Solver_Kernels
 {
 
 void sib_transform( const vectorfield & spins, const vectorfield & force, vectorfield & out )
@@ -241,5 +238,4 @@ void lbfgs_atlas_transform_direction(
     }
 }
 
-} // namespace Solver_Kernels
-} // namespace Engine
+} // namespace Spirit::Engine::Solver_Kernels

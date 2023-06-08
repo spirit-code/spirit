@@ -5,9 +5,7 @@
 #include <iostream>
 #include <vector>
 
-namespace Engine
-{
-namespace FFT
+namespace Spirit::Engine::FFT
 {
 
 //=== Functions for FFTW backend ===
@@ -125,7 +123,6 @@ void FFT_Plan::Free_Configuration()
 }
 #endif // end kiss_fft backend
 
-} // namespace FFT
-} // namespace Engine
+} // namespace Spirit::Engine::FFT
 
 #endif

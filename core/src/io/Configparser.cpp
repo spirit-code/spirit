@@ -18,10 +18,10 @@
 #include <string>
 
 // using namespace Utility;
-using Utility::Log_Level;
-using Utility::Log_Sender;
+using Spirit::Utility::Log_Level;
+using Spirit::Utility::Log_Sender;
 
-namespace IO
+namespace Spirit::IO
 {
 
 void Log_from_Config( const std::string & config_file_name, bool force_quiet )
@@ -1701,4 +1701,4 @@ Hamiltonian_Gaussian_from_Config( const std::string & config_file_name, std::sha
     return hamiltonian;
 }
 
-} // namespace IO
+} // namespace Spirit::IO

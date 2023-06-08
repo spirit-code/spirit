@@ -8,7 +8,7 @@
 
 #include <vector>
 
-namespace Data
+namespace Spirit::Data
 {
 
 // TODO: replace that type with Eigen!
@@ -174,6 +174,6 @@ private:
 // TODO: find better place (?)
 std::vector<triangle_t> compute_delaunay_triangulation_2D( const std::vector<vector2_t> & points );
 
-} // namespace Data
+} // namespace Spirit::Data
 
 #endif

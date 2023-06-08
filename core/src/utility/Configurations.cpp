@@ -16,11 +16,9 @@
 #include <string>
 #include <vector>
 
-using Utility::Constants::Pi;
+using Spirit::Utility::Constants::Pi;
 
-namespace Utility
-{
-namespace Configurations
+namespace Spirit::Utility::Configurations
 {
 
 void filter_to_mask( const vectorfield & spins, const vectorfield & positions, filterfunction filter, intfield & mask )
@@ -598,5 +596,4 @@ void Set_Pinned( Data::Spin_System & s, bool pinned, filterfunction filter )
     }
 }
 
-} // namespace Configurations
-} // namespace Utility
+} // namespace Spirit::Utility::Configurations

@@ -8,7 +8,7 @@
 #include <random>
 #include <vector>
 
-namespace Engine
+namespace Spirit::Engine
 {
 
 /*
@@ -100,6 +100,6 @@ protected:
     scalar delta;
 };
 
-} // namespace Engine
+} // namespace Spirit::Engine
 
 #endif

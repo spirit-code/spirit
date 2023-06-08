@@ -9,9 +9,7 @@
 #include <random>
 #include <vector>
 
-namespace Utility
-{
-namespace Configurations
+namespace Spirit::Utility::Configurations
 {
 
 // Default filter function
@@ -68,7 +66,6 @@ void Set_Atom_Types( Data::Spin_System & s, int atom_type = 0, filterfunction fi
 // Set spins to be pinned
 void Set_Pinned( Data::Spin_System & s, bool pinned, filterfunction filter = defaultfilter );
 
-} //  namespace Configurations
-} //  namespace Utility
+} // namespace Spirit::Utility::Configurations
 
 #endif

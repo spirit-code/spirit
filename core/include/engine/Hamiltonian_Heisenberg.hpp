@@ -12,7 +12,7 @@
 #include <memory>
 #include <vector>
 
-namespace Engine
+namespace Spirit::Engine
 {
 
 enum class DDI_Method
@@ -225,6 +225,6 @@ private:
     field<int> it_bounds_write_dipole;
 };
 
-} // namespace Engine
+} // namespace Spirit::Engine
 
 #endif

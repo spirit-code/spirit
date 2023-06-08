@@ -11,11 +11,11 @@
 #include <thread>
 #endif
 
-using Utility::Exception_Classifier;
-using Utility::Log_Level;
-using Utility::Log_Sender;
+using Spirit::Utility::Exception_Classifier;
+using Spirit::Utility::Log_Level;
+using Spirit::Utility::Log_Sender;
 
-namespace IO
+namespace Spirit::IO
 {
 
 /*
@@ -100,4 +100,4 @@ void dump_to_file( const std::string & str, const std::string & filename )
 #endif
 }
 
-} // namespace IO
+} // namespace Spirit::IO

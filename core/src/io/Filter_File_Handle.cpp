@@ -8,7 +8,7 @@
 #include <sstream>
 #include <string>
 
-namespace IO
+namespace Spirit::IO
 {
 
 // Removes a set of chars from a string
@@ -200,4 +200,4 @@ int Filter_File_Handle::Get_N_Non_Comment_Lines()
     return ( this->n_lines - this->n_comment_lines );
 }
 
-} // namespace IO
+} // namespace Spirit::IO

@@ -12,7 +12,7 @@
 #include <fstream>
 #include <map>
 
-namespace Engine
+namespace Spirit::Engine
 {
 
 /*
@@ -199,6 +199,6 @@ protected:
     int print_precision;
 };
 
-} // namespace Engine
+} // namespace Spirit::Engine
 
 #endif

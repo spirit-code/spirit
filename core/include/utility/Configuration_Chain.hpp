@@ -7,9 +7,7 @@
 
 #include <vector>
 
-namespace Utility
-{
-namespace Configuration_Chain
+namespace Spirit::Utility::Configuration_Chain
 {
 
 // Add noise to the images of a transition (except the border images)
@@ -18,7 +16,6 @@ void Add_Noise_Temperature( std::shared_ptr<Data::Spin_System_Chain> c, int idx_
 // Homogeneous rotation of all spins from first to last configuration of the given configurations
 void Homogeneous_Rotation( std::shared_ptr<Data::Spin_System_Chain> c, int idx_1, int idx_2 );
 
-} // namespace Configuration_Chain
-} // namespace Utility
+} // namespace Spirit::Utility::Configuration_Chain
 
 #endif

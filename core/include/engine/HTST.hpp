@@ -8,9 +8,7 @@
 #include <data/Spin_System_Chain.hpp>
 #include <engine/Vectormath_Defines.hpp>
 
-namespace Engine
-{
-namespace HTST
+namespace Spirit::Engine::HTST
 {
 
 // Note the two images should correspond to one minimum and one saddle point
@@ -35,8 +33,7 @@ void Geodesic_Eigen_Decomposition(
 
 scalar Calculate_Zero_Volume( const std::shared_ptr<Data::Spin_System> system );
 
-} // namespace HTST
-} // namespace Engine
+} // namespace Spirit::Engine::HTST
 
 #endif
 #endif

@@ -3,9 +3,9 @@
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 
-using namespace Utility;
+using namespace Spirit::Utility;
 
-namespace Engine
+namespace Spirit::Engine
 {
 
 Hamiltonian::Hamiltonian( intfield boundary_conditions ) : boundary_conditions( boundary_conditions )
@@ -177,4 +177,4 @@ scalar Hamiltonian::Energy_Single_Spin( int ispin, const vectorfield & spins )
         "Tried to use  Hamiltonian::Energy_Single_Spin() of the Hamiltonian base class!" );
 }
 
-} // namespace Engine
+} // namespace Spirit::Engine

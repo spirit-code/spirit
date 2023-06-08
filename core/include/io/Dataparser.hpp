@@ -10,7 +10,7 @@
 #include <io/Filter_File_Handle.hpp>
 #include <io/IO.hpp>
 
-namespace IO
+namespace Spirit::IO
 {
 
 void Read_NonOVF_Spin_Configuration(
@@ -45,6 +45,6 @@ void Defects_from_File(
 void Pinned_from_File(
     const std::string & pinned_file, int & n_pinned, field<Site> & pinned_sites, vectorfield & pinned_spins ) noexcept;
 
-} // namespace IO
+} // namespace Spirit::IO
 
 #endif

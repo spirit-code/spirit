@@ -22,11 +22,11 @@
 struct State
 {
     // Currently "active" chain
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spirit::Data::Spin_System_Chain> chain;
     // Currently "active" image
-    std::shared_ptr<Data::Spin_System> active_image;
+    std::shared_ptr<Spirit::Data::Spin_System> active_image;
     // Spin System instance in clipboard
-    std::shared_ptr<Data::Spin_System> clipboard_image;
+    std::shared_ptr<Spirit::Data::Spin_System> clipboard_image;
 
     // Spin configuration in clipboard
     std::shared_ptr<vectorfield> clipboard_spins;
@@ -40,9 +40,9 @@ struct State
 
     // The Methods
     //    max. noi*noc methods on images [noc][noi]
-    std::vector<std::shared_ptr<Engine::Method>> method_image{};
+    std::vector<std::shared_ptr<Spirit::Engine::Method>> method_image{};
     //    max. noc methods on the entire chain [noc]
-    std::shared_ptr<Engine::Method> method_chain{};
+    std::shared_ptr<Spirit::Engine::Method> method_chain{};
 
     // Timepoint of creation
     std::chrono::system_clock::time_point datetime_creation = std::chrono::system_clock::now();
@@ -61,13 +61,13 @@ inline void check_state( const State * state )
     if( state == nullptr )
     {
         spirit_throw(
-            Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Error,
+            Spirit::Utility::Exception_Classifier::System_not_Initialized, Spirit::Utility::Log_Level::Error,
             "The State pointer is invalid" );
     }
     if( state->chain == nullptr )
     {
         spirit_throw(
-            Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Error,
+            Spirit::Utility::Exception_Classifier::System_not_Initialized, Spirit::Utility::Log_Level::Error,
             "The State seems to not be initialised correctly" );
     }
 }
@@ -78,7 +78,7 @@ inline void throw_if_nullptr( const void * ptr, const std::string & name )
     if( ptr == nullptr )
     {
         spirit_throw(
-            Utility::Exception_Classifier::API_GOT_NULLPTR, Utility::Log_Level::Error,
+            Spirit::Utility::Exception_Classifier::API_GOT_NULLPTR, Spirit::Utility::Log_Level::Error,
             fmt::format( "Got passed a null pointer for '{}'", name ) );
     }
 }
@@ -95,8 +95,8 @@ inline void throw_if_nullptr( const void * ptr, const std::string & name )
  *    any change to the corresponding variable (eg. )
  */
 inline void from_indices(
-    const State * state, int & idx_image, int & idx_chain, std::shared_ptr<Data::Spin_System> & image,
-    std::shared_ptr<Data::Spin_System_Chain> & chain )
+    const State * state, int & idx_image, int & idx_chain, std::shared_ptr<Spirit::Data::Spin_System> & image,
+    std::shared_ptr<Spirit::Data::Spin_System_Chain> & chain )
 {
     check_state( state );
 
@@ -108,7 +108,7 @@ inline void from_indices(
     if( idx_image >= state->chain->noi )
     {
         spirit_throw(
-            Utility::Exception_Classifier::Non_existing_Image, Utility::Log_Level::Warning,
+            Spirit::Utility::Exception_Classifier::Non_existing_Image, Spirit::Utility::Log_Level::Warning,
             fmt::format(
                 "Index {} points to non-existent image (NOI={}). No action taken.", idx_image, state->chain->noi ) );
     }

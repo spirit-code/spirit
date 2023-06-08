@@ -14,7 +14,7 @@
 #include <sstream>
 #include <string>
 
-namespace IO
+namespace Spirit::IO
 {
 
 /*
@@ -152,6 +152,6 @@ private:
     }
 };
 
-} // namespace IO
+} // namespace Spirit::IO
 
 #endif

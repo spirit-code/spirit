@@ -12,9 +12,7 @@
 #include <string>
 #include <vector>
 
-namespace Utility
-{
-namespace Configuration_Chain
+namespace Spirit::Utility::Configuration_Chain
 {
 
 void Add_Noise_Temperature( std::shared_ptr<Data::Spin_System_Chain> c, int idx_1, int idx_2, scalar temperature )
@@ -74,5 +72,4 @@ void Homogeneous_Rotation( std::shared_ptr<Data::Spin_System_Chain> c, int idx_1
              "For the interpolation of antiparallel spins an arbitrary rotation axis has been chosen." );
 }
 
-} // namespace Configuration_Chain
-} // namespace Utility
+} // namespace Spirit::Utility::Configuration_Chain

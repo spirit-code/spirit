@@ -2,9 +2,9 @@
 #include <engine/Vectormath.hpp>
 #include <utility/Exception.hpp>
 
-using namespace Data;
+using namespace Spirit::Data;
 
-namespace Engine
+namespace Spirit::Engine
 {
 
 Hamiltonian_Gaussian::Hamiltonian_Gaussian(
@@ -128,4 +128,4 @@ const std::string & Hamiltonian_Gaussian::Name() const
     return name;
 }
 
-} // namespace Engine
+} // namespace Spirit::Engine

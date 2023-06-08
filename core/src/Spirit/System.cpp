@@ -6,6 +6,11 @@
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 
+using Spirit::Data::Spin_System;
+using Spirit::Data::Spin_System_Chain;
+using Spirit::Utility::Log_Level;
+using Spirit::Utility::Log_Sender;
+
 int System_Get_Index( State * state ) noexcept
 try
 {
@@ -20,8 +25,8 @@ catch( ... )
 int System_Get_NOS( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -37,8 +42,8 @@ catch( ... )
 scalar * System_Get_Spin_Directions( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -54,8 +59,8 @@ catch( ... )
 scalar * System_Get_Effective_Field( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -70,8 +75,8 @@ catch( ... )
 scalar * System_Get_Eigenmode( State * state, int idx_mode, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -79,7 +84,7 @@ try
     // Check mode index
     if( idx_mode >= image->modes.size() )
     {
-        Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
+        Log( Log_Level::Error, Log_Sender::API,
              fmt::format( "Invalid mode index {}, image has only {} modes stored.", idx_mode, image->modes.size() ) );
         return nullptr;
     }
@@ -87,8 +92,7 @@ try
     // Check if mode has been calculated
     if( !image->modes[idx_mode] )
     {
-        Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
-             fmt::format( "Mode {} has not yet been calculated.", idx_mode ) );
+        Log( Log_Level::Error, Log_Sender::API, fmt::format( "Mode {} has not yet been calculated.", idx_mode ) );
         return nullptr;
     }
 
@@ -103,8 +107,8 @@ catch( ... )
 scalar System_Get_Rx( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -120,8 +124,8 @@ catch( ... )
 scalar System_Get_Energy( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -137,8 +141,8 @@ catch( ... )
 int System_Get_Energy_Array_Names( State * state, char * names, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -180,8 +184,8 @@ int System_Get_Energy_Array(
     State * state, scalar * energies, bool divide_by_nspins, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -210,8 +214,8 @@ catch( ... )
 void System_Get_Eigenvalues( State * state, scalar * eigenvalues, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -229,8 +233,8 @@ catch( ... )
 void System_Print_Energy_Array( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -255,8 +259,8 @@ catch( ... )
 void System_Update_Data( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -282,14 +286,14 @@ void System_Update_Eigenmodes( State * state, int idx_image, int idx_chain ) noe
 try
 {
     // Fetch correct indices and pointers for image and chain
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
     image->Lock();
-    Engine::Eigenmodes::Calculate_Eigenmodes( image, idx_image, idx_chain );
+    Spirit::Engine::Eigenmodes::Calculate_Eigenmodes( image, idx_image, idx_chain );
     image->Unlock();
 }
 catch( ... )

@@ -4,12 +4,9 @@
 
 #include <engine/Vectormath_Defines.hpp>
 
-namespace Engine
+namespace Spirit::Engine::Backend::seq
 {
-namespace Backend
-{
-namespace seq
-{
+
 template<typename A, typename F>
 scalar reduce( const field<A> & vf1, const F f )
 {
@@ -64,8 +61,6 @@ void apply( int N, const F & f )
     }
 }
 
-} // namespace seq
-} // namespace Backend
-} // namespace Engine
+} // namespace Spirit::Engine::Backend::seq
 
 #endif

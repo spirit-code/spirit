@@ -16,7 +16,7 @@
 #include <sstream>
 #include <string>
 
-namespace IO
+namespace Spirit::IO
 {
 
 void Write_Neighbours_Exchange( const Data::Spin_System & system, const std::string & filename )
@@ -281,4 +281,4 @@ void Write_Chain_Energies_Interpolated(
     }
 }
 
-} // namespace IO
+} // namespace Spirit::IO

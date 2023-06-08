@@ -8,7 +8,7 @@
 #include <data/Parameters_Method_EMA.hpp>
 #include <data/Parameters_Method_LLG.hpp>
 
-namespace Engine
+namespace Spirit::Engine
 {
 
 /*
@@ -60,6 +60,6 @@ private:
     vectorfield spins_initial;
 };
 
-} // namespace Engine
+} // namespace Spirit::Engine
 
 #endif

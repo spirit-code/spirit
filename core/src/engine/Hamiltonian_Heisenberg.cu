@@ -14,17 +14,17 @@
 
 #include <complex>
 
-using namespace Data;
-using namespace Utility;
-namespace C = Utility::Constants;
-using Engine::Indexing::check_atom_type;
-using Engine::Indexing::cu_check_atom_type;
-using Engine::Indexing::cu_idx_from_pair;
-using Engine::Indexing::cu_tupel_from_idx;
-using Engine::Indexing::idx_from_pair;
-using Engine::Indexing::idx_from_translations;
+using namespace Spirit::Data;
+using namespace Spirit::Utility;
+namespace C = Spirit::Utility::Constants;
+using Spirit::Engine::Indexing::check_atom_type;
+using Spirit::Engine::Indexing::cu_check_atom_type;
+using Spirit::Engine::Indexing::cu_idx_from_pair;
+using Spirit::Engine::Indexing::cu_tupel_from_idx;
+using Spirit::Engine::Indexing::idx_from_pair;
+using Spirit::Engine::Indexing::idx_from_translations;
 
-namespace Engine
+namespace Spirit::Engine
 {
 // Construct a Heisenberg Hamiltonian with pairs
 Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
@@ -1617,6 +1617,6 @@ const std::string & Hamiltonian_Heisenberg::Name() const
 {
     return name;
 }
-} // namespace Engine
+} // namespace Spirit::Engine
 
 #endif

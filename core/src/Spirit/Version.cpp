@@ -5,79 +5,81 @@
 #include <omp.h>
 #endif
 
+namespace Version = Spirit::Utility::Version;
+
 int Spirit_Version_Major() noexcept
 {
-    return Utility::version_major;
+    return Version::major;
 }
 
 int Spirit_Version_Minor() noexcept
 {
-    return Utility::version_minor;
+    return Version::minor;
 }
 
 int Spirit_Version_Patch() noexcept
 {
-    return Utility::version_patch;
+    return Version::patch;
 }
 
 const char * Spirit_Version() noexcept
 {
-    return Utility::version.c_str();
+    return Version::version.c_str();
 }
 
 const char * Spirit_Version_Revision() noexcept
 {
-    return Utility::version_revision.c_str();
+    return Version::revision.c_str();
 }
 
 const char * Spirit_Version_Full() noexcept
 {
-    return Utility::version_full.c_str();
+    return Version::full.c_str();
 }
 
 const char * Spirit_Compiler() noexcept
 {
-    return Utility::compiler.c_str();
+    return Version::compiler.c_str();
 }
 
 const char * Spirit_Compiler_Version() noexcept
 {
-    return Utility::compiler_version.c_str();
+    return Version::compiler_version.c_str();
 }
 
 const char * Spirit_Compiler_Full() noexcept
 {
-    return Utility::compiler_full.c_str();
+    return Version::compiler_full.c_str();
 }
 
 const char * Spirit_Scalar_Type() noexcept
 {
-    return Utility::scalartype.c_str();
+    return Version::scalartype.c_str();
 }
 
 const char * Spirit_Pinning() noexcept
 {
-    return Utility::pinning.c_str();
+    return Version::pinning.c_str();
 }
 
 const char * Spirit_Defects() noexcept
 {
-    return Utility::defects.c_str();
+    return Version::defects.c_str();
 }
 
 const char * Spirit_FFTW() noexcept
 {
-    return Utility::fftw.c_str();
+    return Version::fftw.c_str();
 }
 
 const char * Spirit_Cuda() noexcept
 {
-    return Utility::cuda.c_str();
+    return Version::cuda.c_str();
 }
 
 const char * Spirit_OpenMP() noexcept
 {
-    return Utility::openmp.c_str();
+    return Version::openmp.c_str();
 }
 
 int Spirit_OpenMP_Get_Num_Threads() noexcept
@@ -97,5 +99,5 @@ int Spirit_OpenMP_Get_Num_Threads() noexcept
 
 const char * Spirit_Threads() noexcept
 {
-    return Utility::threads.c_str();
+    return Version::threads.c_str();
 }

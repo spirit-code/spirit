@@ -13,9 +13,7 @@
 #include <engine/Vectormath.hpp>
 #include <engine/Vectormath_Defines.hpp>
 
-namespace Engine
-{
-namespace Solver_Kernels
+namespace Spirit::Engine::Solver_Kernels
 {
 
 // SIB
@@ -190,7 +188,6 @@ void lbfgs_get_searchdir(
     local_iter++;
 }
 
-} // namespace Solver_Kernels
-} // namespace Engine
+} // namespace Spirit::Engine::Solver_Kernels
 
 #endif

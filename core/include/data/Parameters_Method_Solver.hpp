@@ -4,7 +4,7 @@
 
 #include <data/Parameters_Method.hpp>
 
-namespace Data
+namespace Spirit::Data
 {
 
 // Solver Parameters Base Class
@@ -14,6 +14,6 @@ struct Parameters_Method_Solver : Parameters_Method
     double dt = 1e-3;
 };
 
-} // namespace Data
+} // namespace Spirit::Data
 
 #endif

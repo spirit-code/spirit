@@ -11,9 +11,7 @@
 #include <fstream>
 #include <iostream>
 
-namespace Engine
-{
-namespace Sparse_HTST
+namespace Spirit::Engine::Sparse_HTST
 {
 
 // A small function for debugging purposes
@@ -62,8 +60,7 @@ void Sparse_Geodesic_Eigen_Decomposition(
 void sparse_hessian_bordered_3N(
     const vectorfield & image, const vectorfield & gradient, const SpMatrixX & hessian, SpMatrixX & hessian_out );
 
-} // namespace Sparse_HTST
-} // namespace Engine
+} // namespace Spirit::Engine::Sparse_HTST
 
 #endif
 #endif

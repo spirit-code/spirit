@@ -13,10 +13,10 @@
 #include <string>
 #include <thread>
 
-using Utility::Log_Level;
-using Utility::Log_Sender;
+using Spirit::Utility::Log_Level;
+using Spirit::Utility::Log_Sender;
 
-namespace IO
+namespace Spirit::IO
 {
 
 // Reads a non-OVF spins file with plain text and discarding any headers starting with '#'
@@ -772,4 +772,4 @@ catch( ... )
     spirit_rethrow( fmt::format( "Could not read pinned sites file  \"{}\"", pinned_file ) );
 }
 
-} // namespace IO
+} // namespace Spirit::IO

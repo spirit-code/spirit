@@ -14,9 +14,9 @@
 #include <ctime>
 #include <iostream>
 
-using namespace Utility;
+using namespace Spirit::Utility;
 
-namespace Engine
+namespace Spirit::Engine
 {
 
 Method_MC::Method_MC( std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain )
@@ -336,4 +336,4 @@ std::string Method_MC::Name()
     return "MC";
 }
 
-} // namespace Engine
+} // namespace Spirit::Engine

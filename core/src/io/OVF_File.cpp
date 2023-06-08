@@ -1,7 +1,7 @@
 #include <io/OVF_File.hpp>
 #include <utility/Exception.hpp>
 
-namespace IO
+namespace Spirit::IO
 {
 
 OVF_Segment::OVF_Segment()
@@ -156,4 +156,4 @@ void OVF_File::append_segment( const ovf_segment & segment, double * data, int f
     }
 }
 
-} // namespace IO
+} // namespace Spirit::IO

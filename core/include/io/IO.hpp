@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace IO
+namespace Spirit::IO
 {
 
 // Overwrites the file with the given string
@@ -23,7 +23,7 @@ void append_to_file( const std::string & str, const std::string & filename );
  */
 void dump_to_file( const std::string & str, const std::string & filename );
 
-} // namespace IO
+} // namespace Spirit::IO
 
 #endif
 

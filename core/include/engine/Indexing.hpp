@@ -4,9 +4,7 @@
 
 #include <engine/Vectormath_Defines.hpp>
 
-namespace Engine
-{
-namespace Indexing
+namespace Spirit::Engine::Indexing
 {
 
 // Note: translations must lie within bounds of n_cells
@@ -489,7 +487,6 @@ field<T> change_dimensions(
     return newfield;
 }
 
-} // namespace Indexing
-} // namespace Engine
+} // namespace Spirit::Engine::Indexing
 
 #endif

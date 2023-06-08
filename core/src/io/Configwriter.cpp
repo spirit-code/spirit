@@ -14,7 +14,7 @@
 #include <sstream>
 #include <string>
 
-namespace IO
+namespace Spirit::IO
 {
 
 void Folders_to_Config(
@@ -357,4 +357,4 @@ void Hamiltonian_Gaussian_to_Config(
     append_to_file( config, config_file );
 }
 
-} // namespace IO
+} // namespace Spirit::IO

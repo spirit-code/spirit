@@ -7,9 +7,7 @@
 #include <sstream>
 #include <string>
 
-namespace Utility
-{
-namespace Timing
+namespace Spirit::Utility::Timing
 {
 
 using std::chrono::duration;
@@ -92,5 +90,4 @@ duration<scalar> DurationFromString( const std::string & dt )
     return duration<scalar>( chrono_seconds );
 }
 
-} // namespace Timing
-} // namespace Utility
+} // namespace Spirit::Utility::Timing

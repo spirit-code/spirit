@@ -3,7 +3,7 @@
 
 #include <algorithm>
 
-namespace Utility
+namespace Spirit::Utility
 {
 
 void rethrow( const std::string & message, const char * file, const unsigned int line, const char * function ) noexcept(
@@ -198,4 +198,4 @@ catch( ... )
     spirit_rethrow( message );
 }
 
-} // namespace Utility
+} // namespace Spirit::Utility

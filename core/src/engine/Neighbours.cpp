@@ -7,9 +7,7 @@
 
 #include <limits>
 
-namespace Engine
-{
-namespace Neighbours
+namespace Spirit::Engine::Neighbours
 {
 
 std::vector<scalar> Get_Shell_Radii( const Data::Geometry & geometry, const std::size_t n_shells )
@@ -306,5 +304,4 @@ void DDI_from_Pair( const Data::Geometry & geometry, const Pair & pair, scalar &
     normal    = vector_ij.normalized();
 }
 
-} // end Namespace Neighbours
-} // end Namespace Engine
+} // namespace Spirit::Engine::Neighbours

@@ -9,7 +9,7 @@
 
 #include <vector>
 
-namespace Engine
+namespace Spirit::Engine
 {
 
 /*
@@ -69,6 +69,6 @@ private:
     double picoseconds_passed;
 };
 
-} // namespace Engine
+} // namespace Spirit::Engine
 
 #endif

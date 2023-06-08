@@ -17,13 +17,11 @@
 
 #include <cub/cub.cuh>
 
-using namespace Utility;
-using Utility::Constants::Pi;
+using namespace Spirit::Utility;
+using Spirit::Utility::Constants::Pi;
 
 // CUDA Version
-namespace Engine
-{
-namespace Vectormath
+namespace Spirit::Engine::Vectormath
 {
 
 void get_random_vector( std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec )
@@ -760,7 +758,6 @@ void set_c_cross( const scalar & c, const vectorfield & a, const vectorfield & b
     CU_CHECK_AND_SYNC();
 }
 
-} // namespace Vectormath
-} // namespace Engine
+} // namespace Spirit::Engine::Vectormath
 
 #endif

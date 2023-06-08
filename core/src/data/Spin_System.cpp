@@ -8,7 +8,7 @@
 #include <numeric>
 #include <random>
 
-namespace Data
+namespace Spirit::Data
 {
 
 Spin_System::Spin_System(
@@ -180,4 +180,4 @@ catch( ... )
     spirit_handle_exception_core( "Unlocking the Spin_System failed!" );
 }
 
-} // namespace Data
+} // namespace Spirit::Data

@@ -7,7 +7,7 @@
 #include <random>
 #include <vector>
 
-namespace Data
+namespace Spirit::Data
 {
 
 // LLG_Parameters contains all LLG information about the spin system
@@ -49,6 +49,6 @@ struct Parameters_Method_GNEB : Parameters_Method_Solver
     bool output_chain_step                     = false;
 };
 
-} // namespace Data
+} // namespace Spirit::Data
 
 #endif

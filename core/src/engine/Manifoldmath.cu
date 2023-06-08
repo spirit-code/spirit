@@ -9,12 +9,10 @@
 
 #include <cmath>
 
-namespace C = Utility::Constants;
+namespace C = Spirit::Utility::Constants;
 
 // CUDA Version
-namespace Engine
-{
-namespace Manifoldmath
+namespace Spirit::Engine::Manifoldmath
 {
 
 void project_parallel( vectorfield & vf1, const vectorfield & vf2 )
@@ -217,7 +215,6 @@ void Tangents(
     } // end for idx_img
 } // end Tangents
 
-} // namespace Manifoldmath
-} // namespace Engine
+} // namespace Spirit::Engine::Manifoldmath
 
 #endif

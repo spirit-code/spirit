@@ -6,7 +6,7 @@
 #include <mutex>
 #include <queue>
 
-namespace Utility
+namespace Spirit::Utility
 {
 
 /*
@@ -44,6 +44,6 @@ public:
     }
 };
 
-} // namespace Utility
+} // namespace Spirit::Utility
 
 #endif

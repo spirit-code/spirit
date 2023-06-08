@@ -13,13 +13,17 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
-namespace C = Utility::Constants;
+namespace Constants = Spirit::Utility::Constants;
+using Spirit::Data::Spin_System;
+using Spirit::Data::Spin_System_Chain;
+using Spirit::Utility::Log_Level;
+using Spirit::Utility::Log_Sender;
 
 void Quantity_Get_Average_Spin( State * state, scalar s[3], int idx_image, int idx_chain )
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -27,7 +31,7 @@ try
 
     // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
 
-    auto mean = Engine::Vectormath::mean( *image->spins );
+    auto mean = Spirit::Engine::Vectormath::mean( *image->spins );
 
     for( int i = 0; i < 3; ++i )
         s[i] = mean[i];
@@ -40,8 +44,8 @@ catch( ... )
 void Quantity_Get_Magnetization( State * state, scalar m[3], int idx_image, int idx_chain )
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -49,7 +53,7 @@ try
 
     // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
 
-    auto mag = Engine::Vectormath::Magnetization( *image->spins, image->geometry->mu_s );
+    auto mag = Spirit::Engine::Vectormath::Magnetization( *image->spins, image->geometry->mu_s );
     image->M = Vector3{ mag[0], mag[1], mag[2] };
 
     // image->Unlock();
@@ -65,8 +69,8 @@ catch( ... )
 scalar Quantity_Get_Topological_Charge( State * state, int idx_image, int idx_chain )
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -76,7 +80,7 @@ try
     scalar charge      = 0;
     int dimensionality = Geometry_Get_Dimensionality( state, idx_image, idx_chain );
     if( dimensionality == 2 )
-        charge = Engine::Vectormath::TopologicalCharge(
+        charge = Spirit::Engine::Vectormath::TopologicalCharge(
             *image->spins, *image->geometry, image->hamiltonian->boundary_conditions );
 
     // image->Unlock();
@@ -93,8 +97,8 @@ int Quantity_Get_Topological_Charge_Density(
     State * state, scalar * charge_density_ptr, int * triangle_indices_ptr, int idx_image, int idx_chain )
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -107,7 +111,7 @@ try
 
     if( dimensionality == 2 )
     {
-        Engine::Vectormath::TopologicalChargeDensity(
+        Spirit::Engine::Vectormath::TopologicalChargeDensity(
             *image->spins, *image->geometry, image->hamiltonian->boundary_conditions, charge_density,
             triangle_indices );
     }
@@ -137,8 +141,7 @@ void check_modes(
     const vectorfield & image, const vectorfield & grad, const MatrixX & tangent_basis, const VectorX & eigenvalues,
     const MatrixX & eigenvectors_2N, const vectorfield & minimum_mode )
 {
-    using namespace Engine;
-    using namespace Utility;
+    using namespace Spirit::Engine;
 
     int nos = image.size();
 
@@ -232,11 +235,10 @@ void Quantity_Get_Grad_Force_MinimumMode(
     State * state, scalar * f_grad, scalar * eval, scalar * mode, scalar * forces, int idx_image, int idx_chain )
 try
 {
-    using namespace Engine;
-    using namespace Utility;
+    using namespace Spirit::Engine;
 
-    std::shared_ptr<Data::Spin_System> system;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> system;
+    std::shared_ptr<Spin_System_Chain> chain;
     from_indices( state, idx_image, idx_chain, system, chain );
     throw_if_nullptr( f_grad, "f_grad" );
     throw_if_nullptr( eval, "eval" );
@@ -342,7 +344,7 @@ try
         {
             std::cerr << fmt::format(
                 "negative region: {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(),
-                std::acos( std::min( mode_grad_angle, scalar( 1.0 ) ) ) * 180.0 / C::Pi, std::abs( mode_grad ) )
+                std::acos( std::min( mode_grad_angle, scalar( 1.0 ) ) ) * 180.0 / Constants::Pi, std::abs( mode_grad ) )
                       << std::endl;
 
             // Invert the gradient force along the minimum mode
@@ -356,7 +358,7 @@ try
         {
             std::cerr << fmt::format(
                 "positive region: {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(),
-                std::acos( std::min( mode_grad_angle, scalar( 1.0 ) ) ) * 180.0 / C::Pi, std::abs( mode_grad ) )
+                std::acos( std::min( mode_grad_angle, scalar( 1.0 ) ) ) * 180.0 / Constants::Pi, std::abs( mode_grad ) )
                       << std::endl;
 
             int sign = ( scalar( 0 ) < mode_grad ) - ( mode_grad < scalar( 0 ) );
@@ -373,12 +375,14 @@ try
             if( std::abs( eigenvalues[0] ) > 1e-8 )
                 std::cerr << fmt::format(
                     "bad region:        {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(),
-                    std::acos( std::min( mode_grad_angle, scalar( 1 ) ) ) * 180.0 / C::Pi, std::abs( mode_grad ) )
+                    std::acos( std::min( mode_grad_angle, scalar( 1 ) ) ) * 180.0 / Constants::Pi,
+                    std::abs( mode_grad ) )
                           << std::endl;
             else
                 std::cerr << fmt::format(
                     "zero region:       {:<20}   angle = {:15.10f}   lambda*F = {:15.10f}", eigenvalues.transpose(),
-                    std::acos( std::min( mode_grad_angle, scalar( 1 ) ) ) * 180.0 / C::Pi, std::abs( mode_grad ) )
+                    std::acos( std::min( mode_grad_angle, scalar( 1 ) ) ) * 180.0 / Constants::Pi,
+                    std::abs( mode_grad ) )
                           << std::endl;
 
             // Copy out the forces

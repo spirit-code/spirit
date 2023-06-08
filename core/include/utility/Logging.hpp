@@ -14,10 +14,10 @@
 
 // Define Log as the singleton instance, so that messages can be sent with Log(..., message, ...)
 #ifndef Log
-#define Log Utility::LoggingHandler::getInstance()
+#define Log Spirit::Utility::LoggingHandler::getInstance()
 #endif
 
-namespace Utility
+namespace Spirit::Utility
 {
 
 // List of possible senders of a Log Entry
@@ -154,6 +154,6 @@ public:
      */
 };
 
-} // namespace Utility
+} // namespace Spirit::Utility
 
 #endif

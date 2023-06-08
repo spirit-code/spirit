@@ -10,7 +10,10 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
-using namespace Utility;
+using Spirit::Data::Spin_System;
+using Spirit::Data::Spin_System_Chain;
+using Spirit::Utility::Log_Level;
+using Spirit::Utility::Log_Sender;
 
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Set LLG ----------------------------------------------------------- */
@@ -20,8 +23,8 @@ using namespace Utility;
 void Parameters_LLG_Set_Output_Tag( State * state, const char * tag, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -30,8 +33,8 @@ try
     image->llg_parameters->output_file_tag = tag;
     image->Unlock();
 
-    Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, fmt::format( "Set LLG output tag = \"{}\"", tag ),
-         idx_image, idx_chain );
+    Log( Log_Level::Parameter, Log_Sender::API, fmt::format( "Set LLG output tag = \"{}\"", tag ), idx_image,
+         idx_chain );
 }
 catch( ... )
 {
@@ -41,8 +44,8 @@ catch( ... )
 void Parameters_LLG_Set_Output_Folder( State * state, const char * folder, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -51,8 +54,8 @@ try
     image->llg_parameters->output_folder = folder;
     image->Unlock();
 
-    Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, "Set LLG Output Folder = " + std::string( folder ),
-         idx_image, idx_chain );
+    Log( Log_Level::Parameter, Log_Sender::API, "Set LLG Output Folder = " + std::string( folder ), idx_image,
+         idx_chain );
 }
 catch( ... )
 {
@@ -63,8 +66,8 @@ void Parameters_LLG_Set_Output_General(
     State * state, bool any, bool initial, bool final, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -85,8 +88,8 @@ void Parameters_LLG_Set_Output_Energy(
     bool energy_add_readability_lines, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -109,8 +112,8 @@ void Parameters_LLG_Set_Output_Configuration(
     int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -118,7 +121,7 @@ try
     image->Lock();
     image->llg_parameters->output_configuration_step    = configuration_step;
     image->llg_parameters->output_configuration_archive = configuration_archive;
-    image->llg_parameters->output_vf_filetype           = IO::VF_FileFormat( configuration_filetype );
+    image->llg_parameters->output_vf_filetype           = Spirit::IO::VF_FileFormat( configuration_filetype );
     image->Unlock();
 }
 catch( ... )
@@ -130,8 +133,8 @@ void Parameters_LLG_Set_N_Iterations(
     State * state, int n_iterations, int n_iterations_log, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -150,8 +153,8 @@ catch( ... )
 void Parameters_LLG_Set_Direct_Minimization( State * state, bool direct, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
     from_indices( state, idx_image, idx_chain, image, chain );
 
     image->Lock();
@@ -160,11 +163,9 @@ try
     image->Unlock();
 
     if( direct )
-        Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, "Set LLG solver to direct minimization",
-             idx_image, idx_chain );
+        Log( Log_Level::Parameter, Log_Sender::API, "Set LLG solver to direct minimization", idx_image, idx_chain );
     else
-        Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, "Set LLG solver to dynamics", idx_image,
-             idx_chain );
+        Log( Log_Level::Parameter, Log_Sender::API, "Set LLG solver to dynamics", idx_image, idx_chain );
 }
 catch( ... )
 {
@@ -174,8 +175,8 @@ catch( ... )
 void Parameters_LLG_Set_Convergence( State * state, scalar convergence, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -185,8 +186,8 @@ try
     p->force_convergence = convergence;
     image->Unlock();
 
-    Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
-         fmt::format( "Set LLG force convergence = {}", convergence ), idx_image, idx_chain );
+    Log( Log_Level::Parameter, Log_Sender::API, fmt::format( "Set LLG force convergence = {}", convergence ), idx_image,
+         idx_chain );
 }
 catch( ... )
 {
@@ -196,8 +197,8 @@ catch( ... )
 void Parameters_LLG_Set_Time_Step( State * state, scalar dt, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -207,8 +208,7 @@ try
     p->dt  = dt;
     image->Unlock();
 
-    Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, fmt::format( "Set LLG dt = {}", dt ), idx_image,
-         idx_chain );
+    Log( Log_Level::Parameter, Log_Sender::API, fmt::format( "Set LLG dt = {}", dt ), idx_image, idx_chain );
 }
 catch( ... )
 {
@@ -218,8 +218,8 @@ catch( ... )
 void Parameters_LLG_Set_Damping( State * state, scalar damping, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -229,8 +229,7 @@ try
     p->damping = damping;
     image->Unlock();
 
-    Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, fmt::format( "Set LLG damping = {}", damping ),
-         idx_image, idx_chain );
+    Log( Log_Level::Parameter, Log_Sender::API, fmt::format( "Set LLG damping = {}", damping ), idx_image, idx_chain );
 }
 catch( ... )
 {
@@ -240,8 +239,8 @@ catch( ... )
 void Parameters_LLG_Set_Non_Adiabatic_Damping( State * state, scalar beta, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -251,8 +250,7 @@ try
     p->beta = beta;
     image->Unlock();
 
-    Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, fmt::format( "Set LLG beta = {}", beta ), idx_image,
-         idx_chain );
+    Log( Log_Level::Parameter, Log_Sender::API, fmt::format( "Set LLG beta = {}", beta ), idx_image, idx_chain );
 }
 catch( ... )
 {
@@ -262,8 +260,8 @@ catch( ... )
 void Parameters_LLG_Set_Temperature( State * state, scalar T, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -272,8 +270,7 @@ try
 
     image->llg_parameters->temperature = T;
 
-    Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, fmt::format( "Set LLG temperature to {}", T ),
-         idx_image, idx_chain );
+    Log( Log_Level::Parameter, Log_Sender::API, fmt::format( "Set LLG temperature to {}", T ), idx_image, idx_chain );
 
     image->Unlock();
 }
@@ -286,8 +283,8 @@ void Parameters_LLG_Set_Temperature_Gradient(
     State * state, scalar inclination, const scalar direction[3], int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -298,7 +295,7 @@ try
     image->llg_parameters->temperature_gradient_inclination = inclination;
     image->llg_parameters->temperature_gradient_direction   = v_direction;
 
-    Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
+    Log( Log_Level::Parameter, Log_Sender::API,
          fmt::format(
              "Set LLG temperature gradient to inclination={}, direction={}", inclination, v_direction.transpose() ),
          idx_image, idx_chain );
@@ -314,8 +311,8 @@ void Parameters_LLG_Set_STT(
     State * state, bool use_gradient, scalar magnitude, const scalar normal[3], int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -333,22 +330,21 @@ try
     if( image->llg_parameters->stt_polarisation_normal.norm() < 0.9 )
     {
         image->llg_parameters->stt_polarisation_normal = { 0, 0, 1 };
-        Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, "s_c_vec = {0,0,0} replaced by {0,0,1}" );
+        Log( Log_Level::Warning, Log_Sender::API, "s_c_vec = {0,0,0} replaced by {0,0,1}" );
     }
     else
         image->llg_parameters->stt_polarisation_normal.normalize();
 
-    Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
+    Log( Log_Level::Parameter, Log_Sender::API,
          fmt::format(
              "Set LLG spin current to {}, direction ({})", magnitude,
              image->llg_parameters->stt_polarisation_normal.transpose() ),
          idx_image, idx_chain );
     if( use_gradient )
-        Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, "STT: using the gradient approximation",
-             idx_image, idx_chain );
+        Log( Log_Level::Parameter, Log_Sender::API, "STT: using the gradient approximation", idx_image, idx_chain );
     else
-        Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, "STT: using the pinned monolayer approximation",
-             idx_image, idx_chain );
+        Log( Log_Level::Parameter, Log_Sender::API, "STT: using the pinned monolayer approximation", idx_image,
+             idx_chain );
 
     image->Unlock();
 }
@@ -365,8 +361,8 @@ catch( ... )
 const char * Parameters_LLG_Get_Output_Tag( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -382,8 +378,8 @@ catch( ... )
 const char * Parameters_LLG_Get_Output_Folder( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -400,8 +396,8 @@ void Parameters_LLG_Get_Output_General(
     State * state, bool * any, bool * initial, bool * final, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -420,8 +416,8 @@ void Parameters_LLG_Get_Output_Energy(
     bool * energy_add_readability_lines, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -442,8 +438,8 @@ void Parameters_LLG_Get_Output_Configuration(
     int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -461,8 +457,8 @@ void Parameters_LLG_Get_N_Iterations(
     State * state, int * iterations, int * iterations_log, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -480,8 +476,8 @@ catch( ... )
 bool Parameters_LLG_Get_Direct_Minimization( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
     from_indices( state, idx_image, idx_chain, image, chain );
 
     auto p = image->llg_parameters;
@@ -496,8 +492,8 @@ catch( ... )
 scalar Parameters_LLG_Get_Convergence( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -514,8 +510,8 @@ catch( ... )
 scalar Parameters_LLG_Get_Time_Step( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -532,8 +528,8 @@ catch( ... )
 scalar Parameters_LLG_Get_Damping( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -550,8 +546,8 @@ catch( ... )
 scalar Parameters_LLG_Get_Non_Adiabatic_Damping( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -568,8 +564,8 @@ catch( ... )
 scalar Parameters_LLG_Get_Temperature( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -586,8 +582,8 @@ void Parameters_LLG_Get_Temperature_Gradient(
     State * state, scalar * inclination, scalar direction[3], int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -608,8 +604,8 @@ void Parameters_LLG_Get_STT(
     State * state, bool * use_gradient, scalar * magnitude, scalar normal[3], int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );

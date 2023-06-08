@@ -11,9 +11,7 @@
 #include <memory>
 #include <vector>
 
-namespace Engine
-{
-namespace Neighbours
+namespace Spirit::Engine::Neighbours
 {
 
 std::vector<scalar> Get_Shell_Radii( const Data::Geometry & geometry, std::size_t n_shells );
@@ -28,7 +26,6 @@ Vector3 DMI_Normal_from_Pair( const Data::Geometry & geometry, const Pair & pair
 
 void DDI_from_Pair( const Data::Geometry & geometry, const Pair & pair, scalar & magnitude, Vector3 & normal );
 
-} // namespace Neighbours
-} // namespace Engine
+} // namespace Spirit::Engine::Neighbours
 
 #endif

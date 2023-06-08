@@ -13,9 +13,9 @@
 #include <ctime>
 #include <iostream>
 
-using namespace Utility;
+using namespace Spirit::Utility;
 
-namespace Engine
+namespace Spirit::Engine
 {
 
 template<Solver solver>
@@ -361,7 +361,7 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
                 // Spin Configuration
                 auto & spins        = *this->systems[0]->spins;
                 auto segment        = IO::OVF_Segment( *this->systems[0] );
-                std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                std::string title   = fmt::format( "SPIRIT Version {}", Utility::Version::full );
                 segment.title       = strdup( title.c_str() );
                 segment.comment     = strdup( output_comment.c_str() );
                 segment.valuedim    = 3;
@@ -429,7 +429,7 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
                     // Segment
                     auto segment = IO::OVF_Segment( *this->systems[0] );
 
-                    std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                    std::string title   = fmt::format( "SPIRIT Version {}", Utility::Version::full );
                     segment.title       = strdup( title.c_str() );
                     std::string comment = fmt::format( "Energy per spin. Total={}meV", this->systems[0]->E );
                     for( const auto & contribution : this->systems[0]->E_array )
@@ -516,4 +516,4 @@ template class Method_LLG<Solver::LBFGS_Atlas>;
 template class Method_LLG<Solver::VP>;
 template class Method_LLG<Solver::VP_OSO>;
 
-} // namespace Engine
+} // namespace Spirit::Engine

@@ -19,11 +19,9 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
-namespace C = Utility::Constants;
+namespace C = Spirit::Utility::Constants;
 
-namespace Engine
-{
-namespace Sparse_HTST
+namespace Spirit::Engine::Sparse_HTST
 {
 
 // TODO: fix the mess of the partial spectrum solvers, should in general be refactored and merged with ema method somehow
@@ -683,7 +681,6 @@ void Sparse_Geodesic_Eigen_Decomposition(
     Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST, "---------- Sparse Geodesic Eigen Decomposition Done" );
 }
 
-} // namespace Sparse_HTST
-} // namespace Engine
+} // namespace Spirit::Engine::Sparse_HTST
 
 #endif

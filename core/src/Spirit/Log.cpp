@@ -6,20 +6,23 @@
 #include <iostream>
 #include <string>
 
+using Spirit::Utility::Log_Level;
+using Spirit::Utility::Log_Sender;
+
 void Log_Send(
     State * state, Spirit_Log_Level level, Spirit_Log_Sender sender, const char * message, int idx_image,
     int idx_chain ) noexcept
 try
 {
-    Log( static_cast<Utility::Log_Level>( level ), static_cast<Utility::Log_Sender>( sender ), std::string( message ),
-         idx_image, idx_chain );
+    Log( static_cast<Log_Level>( level ), static_cast<Log_Sender>( sender ), std::string( message ), idx_image,
+         idx_chain );
 }
 catch( ... )
 {
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-std::vector<Utility::LogEntry> Log_Get_Entries( State * state ) noexcept
+std::vector<Spirit::Utility::LogEntry> Log_Get_Entries( State * state ) noexcept
 try
 {
     // Get all entries
@@ -29,15 +32,10 @@ catch( ... )
 {
     spirit_handle_exception_api( -1, -1 );
 
-    Utility::LogEntry Error = {
-        std::chrono::system_clock::now(),
-        Utility::Log_Sender::API,
-        Utility::Log_Level::Error,
-        { "GetEntries() failed" },
-        -1,
-        -1,
+    Spirit::Utility::LogEntry Error = {
+        std::chrono::system_clock::now(), Log_Sender::API, Log_Level::Error, { "GetEntries() failed" }, -1, -1,
     };
-    std::vector<Utility::LogEntry> ret = { Error };
+    std::vector<Spirit::Utility::LogEntry> ret = { Error };
     return ret;
 }
 
@@ -101,7 +99,7 @@ try
     Log.file_tag         = file_tag;
 
     if( file_tag == std::string( "<time>" ) )
-        Log.file_name = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
+        Log.file_name = "Log_" + Spirit::Utility::Timing::CurrentDateTime() + ".txt";
     else if( file_tag == std::string( "" ) )
         Log.file_name = "Log.txt";
     else
@@ -126,7 +124,7 @@ void Log_Set_Output_To_Console( State * state, bool output, int level ) noexcept
 try
 {
     Log.messages_to_console = output;
-    Log.level_console       = Utility::Log_Level( level );
+    Log.level_console       = Log_Level( level );
 }
 catch( ... )
 {
@@ -137,7 +135,7 @@ void Log_Set_Output_To_File( State * state, bool output, int level ) noexcept
 try
 {
     Log.messages_to_file = output;
-    Log.level_file       = Utility::Log_Level( level );
+    Log.level_file       = Log_Level( level );
 }
 catch( ... )
 {

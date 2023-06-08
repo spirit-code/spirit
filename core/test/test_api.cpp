@@ -54,14 +54,14 @@ TEST_CASE( "State", "[state]" )
         REQUIRE( System_Get_Index( state.get() ) == 1 ); // Active is 2nd image
 
         // Arguments for from_indices()
-        std::shared_ptr<Data::Spin_System> image;
-        std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Spirit::Data::Spin_System> image;
+        std::shared_ptr<Spirit::Data::Spin_System_Chain> chain;
         int idx_image{}, idx_chain{};
 
         // A positive, index beyond the size of the chain should throw an exception
         idx_chain = 0;
         idx_image = 5;
-        CHECK_THROWS_AS( from_indices( state.get(), idx_image, idx_chain, image, chain ), Utility::Exception );
+        CHECK_THROWS_AS( from_indices( state.get(), idx_image, idx_chain, image, chain ), Spirit::Utility::Exception );
         // TODO: find a way to see if the exception thrown was the right one
 
         // A negative image index should translate to the active image

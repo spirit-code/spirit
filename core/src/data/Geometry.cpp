@@ -18,7 +18,7 @@
 #include <cstdint>
 #include <random>
 
-namespace Data
+namespace Spirit::Data
 {
 
 Geometry::Geometry(
@@ -833,4 +833,4 @@ void Geometry::Apply_Pinning( vectorfield & vf )
 #endif
 }
 
-} // namespace Data
+} // namespace Spirit::Data

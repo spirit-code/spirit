@@ -9,7 +9,7 @@
 
 #include <vector>
 
-namespace Engine
+namespace Spirit::Engine
 {
 
 /*
@@ -45,6 +45,6 @@ public:
     std::vector<Vector3> center;
 };
 
-} // namespace Engine
+} // namespace Spirit::Engine
 
 #endif

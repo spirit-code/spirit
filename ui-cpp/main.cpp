@@ -33,7 +33,7 @@ std::shared_ptr<State> state;
 int main( int argc, char ** argv )
 {
     // Register interrupt signal
-    signal( SIGINT, Utility::Handle_Signal::Handle_SigInt );
+    signal( SIGINT, Spirit_UI::Utility::Handle_Signal::Handle_SigInt );
 
     // Default options
     bool show_help    = false;

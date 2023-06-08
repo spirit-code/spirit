@@ -15,10 +15,10 @@
 #include <iostream>
 #include <thread>
 
-using namespace Utility;
-namespace C = Utility::Constants;
+using namespace Spirit::Utility;
+namespace C = Spirit::Utility::Constants;
 
-namespace Engine
+namespace Spirit::Engine
 {
 
 Method_EMA::Method_EMA( std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain )
@@ -140,4 +140,4 @@ std::string Method_EMA::SolverName()
     return "None";
 }
 
-} // namespace Engine
+} // namespace Spirit::Engine

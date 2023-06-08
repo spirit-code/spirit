@@ -18,6 +18,13 @@
 #include <memory>
 #include <string>
 
+namespace IO = Spirit::IO;
+using Spirit::Data::Spin_System;
+using Spirit::Data::Spin_System_Chain;
+using Spirit::Utility::Exception_Classifier;
+using Spirit::Utility::Log_Level;
+using Spirit::Utility::Log_Sender;
+
 // Helper function
 std::string Get_Extension( const char * file )
 {
@@ -36,14 +43,14 @@ std::string Get_Extension( const char * file )
 int IO_System_From_Config( State * state, const char * file, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
     // Create System (and lock it)
-    std::shared_ptr<Data::Spin_System> system = IO::Spin_System_from_Config( std::string( file ) );
+    std::shared_ptr<Spin_System> system = IO::Spin_System_from_Config( std::string( file ) );
     system->Lock();
 
     // Filter for unacceptable differences to other systems in the chain
@@ -91,8 +98,8 @@ void IO_Positions_Write(
     State * state, const char * filename, int format, const char * comment, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -102,7 +109,7 @@ try
     try
     {
         if( Get_Extension( filename ) != ".ovf" )
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+            Log( Log_Level::Warning, Log_Sender::API,
                  fmt::format(
                      "The file \"{}\" is written in OVF format but has different extension. "
                      "It is recommend to use the appropriate \".ovf\" extension",
@@ -123,7 +130,7 @@ try
             {
                 auto segment = IO::OVF_Segment( *image );
 
-                std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                std::string title   = fmt::format( "SPIRIT Version {}", Spirit::Utility::Version::full );
                 segment.title       = strdup( title.c_str() );
                 segment.comment     = strdup( comment );
                 segment.valuedim    = 3;
@@ -133,7 +140,7 @@ try
                 // Open and write
                 IO::OVF_File( filename ).write_segment( segment, geometry.positions[0].data(), format );
 
-                Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+                Log( Log_Level::Info, Log_Sender::API,
                      fmt::format( "Wrote positions to file \"{}\" in {} format", filename, str( fileformat ) ),
                      idx_image, idx_chain );
 
@@ -142,7 +149,7 @@ try
             default:
             {
                 spirit_throw(
-                    Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                    Exception_Classifier::Bad_File_Content, Log_Level::Error,
                     fmt::format( "Invalid file format index {}", format ) );
             }
         }
@@ -171,7 +178,7 @@ try
         return file.n_segments;
     else
     {
-        Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+        Log( Log_Level::Warning, Log_Sender::API,
              fmt::format( "File \"{}\" is not OVF. Cannot measure number of images.", filename ), idx_image,
              idx_chain );
         return -1;
@@ -187,8 +194,8 @@ void IO_Image_Read(
     State * state, const char * filename, int idx_image_infile, int idx_image_inchain, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image_inchain, idx_chain, image, chain );
@@ -208,7 +215,7 @@ try
 
         if( !file.is_ovf )
         {
-            Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
+            Log( Log_Level::Error, Log_Sender::API,
                  fmt::format(
                      "File \"{}\" does not seem to be in valid OVF format. Message: {}. "
                      "Will try to read as data column text format file.",
@@ -232,7 +239,7 @@ try
 
         if( segment.N < image->nos )
         {
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+            Log( Log_Level::Warning, Log_Sender::API,
                  fmt::format(
                      "OVF file \"{}\": segment {}/{} contains only {} spins while the system contains {}.", filename,
                      idx_image_infile + 1, file.n_segments, segment.N, image->nos ),
@@ -241,7 +248,7 @@ try
         }
         else if( segment.N > image->nos )
         {
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+            Log( Log_Level::Warning, Log_Sender::API,
                  fmt::format(
                      "OVF file \"{}\": segment {}/{} contains {} spins while the system contains only {}. "
                      "Reading only part of the segment data.",
@@ -253,7 +260,7 @@ try
         if( segment.valuedim != 3 )
         {
             spirit_throw(
-                Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                Exception_Classifier::Bad_File_Content, Log_Level::Error,
                 fmt::format(
                     "Segment {}/{} in OVF file \"{}\" should have 3 columns, but only has {}. Will not read.",
                     idx_image_infile + 1, file.n_segments, filename, segment.valuedim ) );
@@ -276,7 +283,7 @@ try
                 spins[ispin].normalize();
         }
 
-        Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Read image from file \"{}\"", filename ),
+        Log( Log_Level::Info, Log_Sender::API, fmt::format( "Read image from file \"{}\"", filename ),
              idx_image_inchain, idx_chain );
     }
     catch( ... )
@@ -294,8 +301,8 @@ void IO_Image_Write(
     State * state, const char * filename, int format, const char * comment, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -306,7 +313,7 @@ try
     try
     {
         if( Get_Extension( filename ) != ".ovf" )
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+            Log( Log_Level::Warning, Log_Sender::API,
                  fmt::format(
                      "The file \"{}\" is written in OVF format but has different extension. "
                      "It is recommend to use the appropriate \".ovf\" extension",
@@ -325,7 +332,7 @@ try
                 auto segment = IO::OVF_Segment( *image );
                 auto & spins = *image->spins;
 
-                std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                std::string title   = fmt::format( "SPIRIT Version {}", Spirit::Utility::Version::full );
                 segment.title       = strdup( title.c_str() );
                 segment.comment     = strdup( comment );
                 segment.valuedim    = 3;
@@ -335,7 +342,7 @@ try
                 // Open and write
                 IO::OVF_File( filename ).write_segment( segment, spins[0].data(), format );
 
-                Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+                Log( Log_Level::Info, Log_Sender::API,
                      fmt::format( "Wrote spins to file \"{}\" in {} format", filename, str( fileformat ) ), idx_image,
                      idx_chain );
 
@@ -344,7 +351,7 @@ try
             default:
             {
                 spirit_throw(
-                    Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                    Exception_Classifier::Bad_File_Content, Log_Level::Error,
                     fmt::format( "Invalid file format index {}", format ) );
             }
         }
@@ -364,8 +371,8 @@ void IO_Image_Append(
     State * state, const char * filename, int format, const char * comment, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -391,14 +398,14 @@ try
                 if( file.found && !file.is_ovf )
                 {
                     spirit_throw(
-                        Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                        Exception_Classifier::Bad_File_Content, Log_Level::Error,
                         fmt::format( "Cannot append to non-OVF file \"{}\"", filename ) );
                 }
 
                 auto segment = IO::OVF_Segment( *image );
                 auto & spins = *image->spins;
 
-                std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                std::string title   = fmt::format( "SPIRIT Version {}", Spirit::Utility::Version::full );
                 segment.title       = strdup( title.c_str() );
                 segment.comment     = strdup( comment );
                 segment.valuedim    = 3;
@@ -413,11 +420,11 @@ try
             default:
             {
                 spirit_throw(
-                    Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                    Exception_Classifier::Bad_File_Content, Log_Level::Error,
                     fmt::format( "Invalid file format index {}", format ) );
             }
         }
-        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+        Log( Log_Level::Info, Log_Sender::API,
              fmt::format( "Appended spins to file \"{}\" in {} format", filename, str( fileformat ) ), idx_image,
              idx_chain );
     }
@@ -441,8 +448,8 @@ void IO_Chain_Read(
     int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, insert_idx, idx_chain, image, chain );
@@ -463,7 +470,7 @@ try
 
         if( insert_idx > noi )
         {
-            Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
+            Log( Log_Level::Error, Log_Sender::API,
                  fmt::format(
                      "IO_Chain_Read: Tried to start reading chain on invalid index"
                      "(insert_idx={}, but chain has {} images)",
@@ -487,7 +494,7 @@ try
             // Check if the ending image is valid otherwise set it to the last image infile
             if( end_image_infile < start_image_infile || end_image_infile >= noi_infile )
             {
-                Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                Log( Log_Level::Warning, Log_Sender::API,
                      fmt::format(
                          "IO_Chain_Read: specified invalid reading range (start_image_infile={}, end_image_infile={})."
                          " Set to read entire file \"{}\" ({} images).",
@@ -499,7 +506,7 @@ try
             if( start_image_infile >= noi_infile )
             {
                 spirit_throw(
-                    Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                    Exception_Classifier::Bad_File_Content, Log_Level::Error,
                     fmt::format(
                         "Specified starting index {}, but file \"{}\" contains only {} images.", start_image_infile,
                         filename, noi_infile ) );
@@ -537,7 +544,7 @@ try
 
                 if( segment.N < image->nos )
                 {
-                    Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                    Log( Log_Level::Warning, Log_Sender::API,
                          fmt::format(
                              "OVF file \"{}\": segment {}/{} contains only {} spins while the system contains {}.",
                              filename, start_image_infile + 1, file.n_segments, segment.N, image->nos ),
@@ -546,7 +553,7 @@ try
                 }
                 else if( segment.N > image->nos )
                 {
-                    Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                    Log( Log_Level::Warning, Log_Sender::API,
                          fmt::format(
                              "OVF file \"{}\": segment {}/{} contains {} spins while the system contains only {}. "
                              "Reading only part of the segment data.",
@@ -558,7 +565,7 @@ try
                 if( segment.valuedim != 3 )
                 {
                     spirit_throw(
-                        Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                        Exception_Classifier::Bad_File_Content, Log_Level::Error,
                         fmt::format(
                             "Segment {}/{} in OVF file \"{}\" should have 3 columns, but only has {}. Will not read.",
                             start_image_infile + 1, file.n_segments, filename, segment.valuedim ) );
@@ -588,7 +595,7 @@ try
         }
         else
         {
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+            Log( Log_Level::Warning, Log_Sender::API,
                  fmt::format( "IO_Chain_Read: File \"{}\" seems to not be OVF. Trying to read column data", filename ),
                  insert_idx, idx_chain );
 
@@ -631,7 +638,7 @@ try
     {
         // Update llg simulation information array size
         for( int i = state->method_image.size(); i < chain->noi; ++i )
-            state->method_image.push_back( std::shared_ptr<Engine::Method>() );
+            state->method_image.push_back( std::shared_ptr<Spirit::Engine::Method>() );
 
         // Update state
         State_Update( state );
@@ -639,8 +646,8 @@ try
         // Update array lengths
         Chain_Setup_Data( state, idx_chain );
 
-        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-             fmt::format( "IO_Chain_Read: Read chain from file \"{}\"", filename ), insert_idx, idx_chain );
+        Log( Log_Level::Info, Log_Sender::API, fmt::format( "IO_Chain_Read: Read chain from file \"{}\"", filename ),
+             insert_idx, idx_chain );
     }
 }
 catch( ... )
@@ -653,8 +660,8 @@ try
 {
     int idx_image = 0;
 
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -681,7 +688,7 @@ try
                 auto segment = IO::OVF_Segment( *image );
                 auto & spins = *image->spins;
 
-                std::string title       = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                std::string title       = fmt::format( "SPIRIT Version {}", Spirit::Utility::Version::full );
                 segment.title           = strdup( title.c_str() );
                 segment.valuedim        = 3;
                 segment.valuelabels     = strdup( "spin_x spin_y spin_z" );
@@ -707,12 +714,12 @@ try
             default:
             {
                 spirit_throw(
-                    Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                    Exception_Classifier::Bad_File_Content, Log_Level::Error,
                     fmt::format( "Invalid file format index {}", format ) );
             }
         }
 
-        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+        Log( Log_Level::Info, Log_Sender::API,
              fmt::format( "Wrote chain to file \"{}\" in {} format", filename, str( fileformat ) ), idx_image,
              idx_chain );
     }
@@ -732,8 +739,8 @@ try
 {
     int idx_image = 0;
 
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -758,14 +765,14 @@ try
                 if( file.found && !file.is_ovf )
                 {
                     spirit_throw(
-                        Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                        Exception_Classifier::Bad_File_Content, Log_Level::Error,
                         fmt::format( "Cannot append to non-OVF file \"{}\"", filename ) );
                 }
 
                 auto segment = IO::OVF_Segment( *image );
                 auto & spins = *image->spins;
 
-                std::string title       = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                std::string title       = fmt::format( "SPIRIT Version {}", Spirit::Utility::Version::full );
                 segment.title           = strdup( title.c_str() );
                 segment.valuedim        = 3;
                 segment.valuelabels     = strdup( "spin_x spin_y spin_z" );
@@ -789,11 +796,11 @@ try
             default:
             {
                 spirit_throw(
-                    Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                    Exception_Classifier::Bad_File_Content, Log_Level::Error,
                     fmt::format( "Invalid file format index {}", format ) );
             }
         }
-        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+        Log( Log_Level::Info, Log_Sender::API,
              fmt::format( "Wrote chain to file \"{}\" in {} format", filename, str( fileformat ) ), idx_image,
              idx_chain );
     }
@@ -816,8 +823,8 @@ catch( ... )
 void IO_Image_Write_Neighbours_Exchange( State * state, const char * file, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -833,8 +840,8 @@ catch( ... )
 void IO_Image_Write_Neighbours_DMI( State * state, const char * file, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -852,8 +859,8 @@ void IO_Image_Write_Energy_per_Spin(
     State * state, const char * filename, int format, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -887,7 +894,7 @@ try
     try
     {
         if( Get_Extension( filename ) != ".ovf" )
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+            Log( Log_Level::Warning, Log_Sender::API,
                  fmt::format(
                      "The file \"{}\" is written in OVF format but has different extension. "
                      "It is recommend to use the appropriate \".ovf\" extension",
@@ -905,7 +912,7 @@ try
             {
                 auto segment = IO::OVF_Segment( *image );
 
-                std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                std::string title   = fmt::format( "SPIRIT Version {}", Spirit::Utility::Version::full );
                 segment.title       = strdup( title.c_str() );
                 std::string comment = fmt::format( "Energy per spin. Total={}meV", system.E );
                 for( auto & contribution : system.E_array )
@@ -927,7 +934,7 @@ try
                 // Write
                 file.write_segment( segment, data.data(), format );
 
-                Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+                Log( Log_Level::Info, Log_Sender::API,
                      fmt::format( "Wrote spins to file \"{}\" in {} format", filename, str( fileformat ) ), idx_image,
                      idx_chain );
 
@@ -936,7 +943,7 @@ try
             default:
             {
                 spirit_throw(
-                    Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                    Exception_Classifier::Bad_File_Content, Log_Level::Error,
                     fmt::format( "Invalid file format index {}", format ) );
             }
         }
@@ -957,8 +964,8 @@ catch( ... )
 void IO_Image_Write_Energy( State * state, const char * file, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -977,8 +984,8 @@ try
 {
     int idx_image = -1;
 
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -997,8 +1004,8 @@ try
 {
     int idx_image = -1;
 
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -1018,8 +1025,8 @@ catch( ... )
 void IO_Eigenmodes_Read( State * state, const char * filename, int idx_image_inchain, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image_inchain, idx_chain, image, chain );
@@ -1038,7 +1045,7 @@ try
         if( !file.is_ovf )
         {
             spirit_throw(
-                Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                Exception_Classifier::Bad_File_Content, Log_Level::Error,
                 fmt::format(
                     "IO_Eigenmodes_Read only supports the OVF file format, "
                     "but \"{}\" does not seem to be valid OVF format. Message: {}",
@@ -1049,7 +1056,7 @@ try
         int n_eigenmodes = file.n_segments - 1;
         if( image->modes.size() != n_eigenmodes )
         {
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::IO,
+            Log( Log_Level::Warning, Log_Sender::IO,
                  fmt::format(
                      "Resizing eigenmode buffer because the number of modes in the OVF file ({}) "
                      "is different from the buffer size ({})",
@@ -1058,7 +1065,7 @@ try
             image->eigenvalues.resize( n_eigenmodes );
         }
 
-        Log( Utility::Log_Level::Debug, Utility::Log_Sender::IO,
+        Log( Log_Level::Debug, Log_Sender::IO,
              fmt::format( "Reading {} eigenmodes from file \"{}\"", n_eigenmodes, filename ) );
 
         ////////// Read in the eigenvalues
@@ -1070,7 +1077,7 @@ try
         if( segment.valuedim != 1 )
         {
             spirit_throw(
-                Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                Exception_Classifier::Bad_File_Content, Log_Level::Error,
                 fmt::format(
                     "Eigenvalue segment of OVF file \"{}\" should have 1 column, but has {}. Will not read.", filename,
                     segment.valuedim ) );
@@ -1094,7 +1101,7 @@ try
 
             if( segment.N < image->nos )
             {
-                Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                Log( Log_Level::Warning, Log_Sender::API,
                      fmt::format(
                          "OVF file \"{}\": segment {}/{} contains only {} vectors while the system contains {}.",
                          filename, idx + 1, file.n_segments, segment.N, image->nos ),
@@ -1103,7 +1110,7 @@ try
             }
             else if( segment.N > image->nos )
             {
-                Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                Log( Log_Level::Warning, Log_Sender::API,
                      fmt::format(
                          "OVF file \"{}\": segment {}/{} contains {} vectors while the system contains only {}. "
                          "Reading only part of the segment data.",
@@ -1115,7 +1122,7 @@ try
             if( segment.valuedim != 3 )
             {
                 spirit_throw(
-                    Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                    Exception_Classifier::Bad_File_Content, Log_Level::Error,
                     fmt::format(
                         "OVF file \"{}\" should have 3 columns, but only has {}. Will not read.", filename,
                         segment.valuedim ) );
@@ -1132,7 +1139,7 @@ try
         // Print the first eigenvalues
         int n_log_eigenvalues = ( n_eigenmodes > 50 ) ? 50 : n_eigenmodes;
 
-        Log( Utility::Log_Level::Info, Utility::Log_Sender::IO,
+        Log( Log_Level::Info, Log_Sender::IO,
              fmt::format(
                  "The first {} eigenvalues are: {}", n_log_eigenvalues,
                  fmt::join( image->eigenvalues.begin(), image->eigenvalues.begin() + n_log_eigenvalues, ", " ) ) );
@@ -1152,8 +1159,8 @@ void IO_Eigenmodes_Write(
     State * state, const char * filename, int format, const char * comment, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -1163,7 +1170,7 @@ try
     try
     {
         if( Get_Extension( filename ) != ".ovf" )
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+            Log( Log_Level::Warning, Log_Sender::API,
                  fmt::format(
                      "The file \"{}\" is written in OVF format but has different extension. "
                      "It is recommend to use the appropriate \".ovf\" extension",
@@ -1180,7 +1187,7 @@ try
             case IO::VF_FileFormat::OVF_CSV:
             {
                 auto segment      = IO::OVF_Segment( *image );
-                std::string title = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                std::string title = fmt::format( "SPIRIT Version {}", Spirit::Utility::Version::full );
                 segment.title     = strdup( title.c_str() );
 
                 // Determine number of modes
@@ -1229,7 +1236,7 @@ try
                     file.append_segment( segment, ( *image->modes[i] )[0].data(), format );
                 }
 
-                Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+                Log( Log_Level::Info, Log_Sender::API,
                      fmt::format( "Wrote eigenmodes to file \"{}\" in {} format", filename, str( fileformat ) ),
                      idx_image, idx_chain );
 
@@ -1238,7 +1245,7 @@ try
             default:
             {
                 spirit_throw(
-                    Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
+                    Exception_Classifier::Bad_File_Content, Log_Level::Error,
                     fmt::format( "Invalid file format index {}", format ) );
             }
         }

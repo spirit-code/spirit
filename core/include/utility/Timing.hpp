@@ -7,9 +7,7 @@
 #include <chrono>
 #include <string>
 
-namespace Utility
-{
-namespace Timing
+namespace Spirit::Utility::Timing
 {
 
 // Returns the current time like: 2012-05-06_21:47:59
@@ -30,8 +28,7 @@ scalar HoursPassed( std::chrono::duration<scalar> dt );
 // Returns the duration when passed a string "hh:mm:ss"
 std::chrono::duration<scalar> DurationFromString( const std::string & dt );
 
-} // namespace Timing
-} // namespace Utility
+} // namespace Spirit::Utility::Timing
 
 // Conversion of time_point to string, usable by fmt
 std::ostream & operator<<( std::ostream & os, std::chrono::system_clock::time_point time_point );

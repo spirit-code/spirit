@@ -9,9 +9,6 @@
 
 #include <engine/Vectormath_Defines.hpp>
 
-namespace Engine
-{
-
 // Basically all math inside this namespace assumes that the given
 //      vectorfields contain unit vectors. They are therefore interpreted
 //      as living in a manifold which is the direct product space of N
@@ -19,8 +16,9 @@ namespace Engine
 // The only exception are functions which interpret the vectorfield
 //      as a single 3N-dimensional vector.
 // TODO: cleanly separate these two cases!
-namespace Manifoldmath
+namespace Spirit::Engine::Manifoldmath
 {
+
 // Get the norm of a vectorfield (interpreted as a 3N-vector)
 scalar norm( const vectorfield & vf );
 // Normalize a vectorfield (interpreted as a 3N-vector)
@@ -117,7 +115,6 @@ void Tangents(
     std::vector<std::shared_ptr<vectorfield>> configurations, const std::vector<scalar> & energies,
     std::vector<vectorfield> & tangents );
 
-} // namespace Manifoldmath
-} // namespace Engine
+} // namespace Spirit::Engine::Manifoldmath
 
 #endif

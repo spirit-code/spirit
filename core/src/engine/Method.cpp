@@ -8,9 +8,9 @@
 
 #include <algorithm>
 
-using namespace Utility;
+using namespace Spirit::Utility;
 
-namespace Engine
+namespace Spirit::Engine
 {
 
 Method::Method( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain )
@@ -269,4 +269,4 @@ std::string Method::SolverFullName()
     return "--";
 }
 
-} // namespace Engine
+} // namespace Spirit::Engine

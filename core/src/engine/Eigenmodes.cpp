@@ -13,12 +13,10 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
-using Utility::Log_Level;
-using Utility::Log_Sender;
+using Spirit::Utility::Log_Level;
+using Spirit::Utility::Log_Sender;
 
-namespace Engine
-{
-namespace Eigenmodes
+namespace Spirit::Engine::Eigenmodes
 {
 
 void Check_Eigenmode_Parameters( std::shared_ptr<Data::Spin_System> system )
@@ -285,5 +283,4 @@ bool Sparse_Hessian_Partial_Spectrum(
     return ( hessian_spectrum.info() == Spectra::CompInfo::Successful ) && ( nconv > 0 );
 }
 
-} // namespace Eigenmodes
-} // namespace Engine
+} // namespace Spirit::Engine::Eigenmodes

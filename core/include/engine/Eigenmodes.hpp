@@ -10,9 +10,7 @@
 #include <memory>
 #include <vector>
 
-namespace Engine
-{
-namespace Eigenmodes
+namespace Spirit::Engine::Eigenmodes
 {
 
 // Check whether system members and EMA parameters are consistent with eachother
@@ -42,7 +40,6 @@ bool Sparse_Hessian_Partial_Spectrum(
     const SpMatrixX & hessian, int n_modes, SpMatrixX & tangent_basis, SpMatrixX & hessian_constrained,
     VectorX & eigenvalues, MatrixX & eigenvectors );
 
-} // end namespace Eigenmodes
-} // end namespace Engine
+} // namespace Spirit::Engine::Eigenmodes
 
 #endif

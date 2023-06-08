@@ -6,7 +6,7 @@
 
 #include <ovf.h>
 
-namespace IO
+namespace Spirit::IO
 {
 
 struct OVF_Segment : ::ovf_segment
@@ -32,6 +32,6 @@ struct OVF_File : ::ovf_file
     void append_segment( const ::ovf_segment & segment, double * data, int format = OVF_FORMAT_BIN );
 };
 
-} // namespace IO
+} // namespace Spirit::IO
 
 #endif

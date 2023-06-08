@@ -13,12 +13,14 @@
 #include <type_traits>
 
 template<>
-struct fmt::formatter<Utility::Log_Sender> : formatter<string_view>
+struct fmt::formatter<Spirit::Utility::Log_Sender> : formatter<string_view>
 {
+
     template<typename FmtContext>
-    auto format( Utility::Log_Sender sender, FmtContext & ctx )
+    auto format( Spirit::Utility::Log_Sender sender, FmtContext & ctx )
     {
-        using namespace Utility;
+        using Spirit::Utility::Log_Sender;
+
         string_view name = "???";
 
         if( sender == Log_Sender::All )
@@ -44,7 +46,7 @@ struct fmt::formatter<Utility::Log_Sender> : formatter<string_view>
         else
         {
             spirit_throw(
-                Exception_Classifier::Not_Implemented, Log_Level::Severe,
+                Spirit::Utility::Exception_Classifier::Not_Implemented, Spirit::Utility::Log_Level::Severe,
                 "Tried converting unknown Log_Sender to string" );
         }
 
@@ -53,14 +55,15 @@ struct fmt::formatter<Utility::Log_Sender> : formatter<string_view>
 };
 
 template<>
-struct fmt::formatter<Utility::Log_Level> : formatter<string_view>
+struct fmt::formatter<Spirit::Utility::Log_Level> : formatter<string_view>
 {
     template<typename FmtContext>
-    auto format( Utility::Log_Level level, FmtContext & ctx )
+    auto format( Spirit::Utility::Log_Level level, FmtContext & ctx )
     {
-        using namespace Utility;
+        using Spirit::Utility::Log_Level;
 
         string_view name = "unknown";
+
         if( level == Log_Level::All )
             name = "ALL";
         else if( level == Log_Level::Severe )
@@ -78,7 +81,7 @@ struct fmt::formatter<Utility::Log_Level> : formatter<string_view>
         else
         {
             spirit_throw(
-                Exception_Classifier::Not_Implemented, Log_Level::Severe,
+                Spirit::Utility::Exception_Classifier::Not_Implemented, Log_Level::Severe,
                 "Tried converting unknown Log_Level to string" );
         }
 
@@ -87,13 +90,11 @@ struct fmt::formatter<Utility::Log_Level> : formatter<string_view>
 };
 
 template<>
-struct fmt::formatter<Utility::LogEntry> : formatter<string_view>
+struct fmt::formatter<Spirit::Utility::LogEntry> : formatter<string_view>
 {
     template<typename FmtContext>
-    auto format( Utility::LogEntry entry, FmtContext & ctx )
+    auto format( Spirit::Utility::LogEntry entry, FmtContext & ctx )
     {
-        using namespace Utility;
-
         auto index_to_string = []( int idx ) -> std::string
         {
             if( idx >= 0 )

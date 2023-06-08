@@ -8,7 +8,7 @@
 
 #include <vector>
 
-namespace Engine
+namespace Spirit::Engine
 {
 
 /*
@@ -86,6 +86,6 @@ private:
     vectorfield tangent_endpoints_right;
 };
 
-} // namespace Engine
+} // namespace Spirit::Engine
 
 #endif

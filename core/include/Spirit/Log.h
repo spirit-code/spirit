@@ -60,11 +60,11 @@ PREFIX void Log_Send(
 
 // Get the entries from the Log and write new number of entries into given int
 // TODO: can this be written in a C-style way?
-namespace Utility
+namespace Spirit::Utility
 {
 struct LogEntry;
 }
-std::vector<Utility::LogEntry> Log_Get_Entries( State * state ) SUFFIX;
+std::vector<Spirit::Utility::LogEntry> Log_Get_Entries( State * state ) SUFFIX;
 
 // Append the Log to it's file
 PREFIX void Log_Append( State * state ) SUFFIX;

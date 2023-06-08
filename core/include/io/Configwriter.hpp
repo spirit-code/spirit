@@ -11,7 +11,7 @@
 #include <engine/Hamiltonian_Gaussian.hpp>
 #include <engine/Hamiltonian_Heisenberg.hpp>
 
-namespace IO
+namespace Spirit::IO
 {
 
 void Folders_to_Config(
@@ -47,6 +47,6 @@ void Hamiltonian_Heisenberg_to_Config(
 void Hamiltonian_Gaussian_to_Config(
     const std::string & config_file, const std::shared_ptr<Engine::Hamiltonian> hamiltonian );
 
-} // namespace IO
+} // namespace Spirit::IO
 
 #endif

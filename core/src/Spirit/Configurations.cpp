@@ -11,6 +11,12 @@
 #include <fmt/format.h>
 #include <Eigen/Dense>
 
+namespace Configurations = Spirit::Utility::Configurations;
+using Spirit::Data::Spin_System;
+using Spirit::Data::Spin_System_Chain;
+using Spirit::Utility::Log_Level;
+using Spirit::Utility::Log_Sender;
+
 std::function<bool( const Vector3 &, const Vector3 & )> get_filter(
     const Vector3 & position, const scalar r_cut_rectangular[3], scalar r_cut_cylindrical, scalar r_cut_spherical,
     bool inverted )
@@ -111,15 +117,14 @@ std::string filter_to_string(
 void Configuration_To_Clipboard( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
     state->clipboard_spins = std::shared_ptr<vectorfield>( new vectorfield( *image->spins ) );
-    Log( Utility::Log_Level::Info, Utility::Log_Sender::API, "Copied spin configuration to clipboard.", idx_image,
-         idx_chain );
+    Log( Log_Level::Info, Log_Sender::API, "Copied spin configuration to clipboard.", idx_image, idx_chain );
 }
 catch( ... )
 {
@@ -131,8 +136,8 @@ void Configuration_From_Clipboard(
     scalar r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -148,13 +153,13 @@ try
 
     // Apply configuration
     image->Lock();
-    Utility::Configurations::Insert( *image, *state->clipboard_spins, 0, filter );
+    Configurations::Insert( *image, *state->clipboard_spins, 0, filter );
     image->geometry->Apply_Pinning( *image->spins );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
-    Log( Utility::Log_Level::Info, Utility::Log_Sender::API, "Set spin configuration from clipboard. " + filterstring,
-         idx_image, idx_chain );
+    Log( Log_Level::Info, Log_Sender::API, "Set spin configuration from clipboard. " + filterstring, idx_image,
+         idx_chain );
 }
 catch( ... )
 {
@@ -169,8 +174,8 @@ try
     // Apply configuration
     if( state->clipboard_spins )
     {
-        std::shared_ptr<Data::Spin_System> image;
-        std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<Spin_System> image;
+        std::shared_ptr<Spin_System_Chain> chain;
 
         // Fetch correct indices and pointers
         from_indices( state, idx_image, idx_chain, image, chain );
@@ -181,7 +186,7 @@ try
         Vector3 vpos{ position[0], position[1], position[2] };
         Vector3 vshift{ shift[0], shift[1], shift[2] };
 
-        Vector3 decomposed = Engine::Vectormath::decompose( vshift, image->geometry->bravais_vectors );
+        Vector3 decomposed = Spirit::Engine::Vectormath::decompose( vshift, image->geometry->bravais_vectors );
 
         int da = (int)std::round( decomposed[0] );
         int db = (int)std::round( decomposed[1] );
@@ -198,20 +203,20 @@ try
         auto filter = get_filter( vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
 
         image->Lock();
-        Utility::Configurations::Insert( *image, *state->clipboard_spins, delta, filter );
+        Spirit::Utility::Configurations::Insert( *image, *state->clipboard_spins, delta, filter );
         image->geometry->Apply_Pinning( *image->spins );
         image->Unlock();
 
         auto filterstring
             = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
-        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-             "Set shifted spin configuration from clipboard. " + filterstring, idx_image, idx_chain );
+        Log( Log_Level::Info, Log_Sender::API, "Set shifted spin configuration from clipboard. " + filterstring,
+             idx_image, idx_chain );
         return true;
     }
     else
     {
-        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-             "Tried to insert configuration, but clipboard was empty.", idx_image, idx_chain );
+        Log( Log_Level::Info, Log_Sender::API, "Tried to insert configuration, but clipboard was empty.", idx_image,
+             idx_chain );
         return false;
     }
 }
@@ -226,8 +231,8 @@ void Configuration_Domain(
     scalar r_cut_cylindrical, scalar r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -245,12 +250,12 @@ try
     // Apply configuration
     Vector3 vdir{ direction[0], direction[1], direction[2] };
     image->Lock();
-    Utility::Configurations::Domain( *image, vdir, filter );
+    Spirit::Utility::Configurations::Domain( *image, vdir, filter );
     image->geometry->Apply_Pinning( *image->spins );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
-    Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+    Log( Log_Level::Info, Log_Sender::API,
          fmt::format(
              "Set domain configuration ({}, {}, {}). {}", direction[0], direction[1], direction[2], filterstring ),
          idx_image, idx_chain );
@@ -263,8 +268,8 @@ catch( ... )
 // void Configuration_DomainWall( State *state, const scalar pos[3], scalar v[3], bool greater,
 //                                int idx_image, int idx_chain) noexcept
 // {
-//     std::shared_ptr<Data::Spin_System> image;
-//     std::shared_ptr<Data::Spin_System_Chain> chain;
+//     std::shared_ptr<Spin_System> image;
+//     std::shared_ptr<Spin_System_Chain> chain;
 //     from_indices(state, idx_image, idx_chain, image, chain);
 
 //     // Create position filter
@@ -277,7 +282,7 @@ catch( ... )
 //         return false;
 //     };
 //     // Apply configuration
-//     Utility::Configurations::Domain(*image, Vector3{ v[0],v[1],v[2] }, filter);
+//     Spirit::Utility::Configurations::Domain(*image, Vector3{ v[0],v[1],v[2] }, filter);
 // }
 
 void Configuration_PlusZ(
@@ -285,8 +290,8 @@ void Configuration_PlusZ(
     scalar r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -303,13 +308,12 @@ try
     // Apply configuration
     Vector3 vdir{ 0, 0, 1 };
     image->Lock();
-    Utility::Configurations::Domain( *image, vdir, filter );
+    Spirit::Utility::Configurations::Domain( *image, vdir, filter );
     image->geometry->Apply_Pinning( *image->spins );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
-    Log( Utility::Log_Level::Info, Utility::Log_Sender::API, "Set PlusZ configuration. " + filterstring, idx_image,
-         idx_chain );
+    Log( Log_Level::Info, Log_Sender::API, "Set PlusZ configuration. " + filterstring, idx_image, idx_chain );
 }
 catch( ... )
 {
@@ -321,8 +325,8 @@ void Configuration_MinusZ(
     scalar r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -339,13 +343,12 @@ try
     // Apply configuration
     Vector3 vdir{ 0, 0, -1 };
     image->Lock();
-    Utility::Configurations::Domain( *image, vdir, filter );
+    Spirit::Utility::Configurations::Domain( *image, vdir, filter );
     image->geometry->Apply_Pinning( *image->spins );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
-    Log( Utility::Log_Level::Info, Utility::Log_Sender::API, "Set MinusZ configuration. " + filterstring, idx_image,
-         idx_chain );
+    Log( Log_Level::Info, Log_Sender::API, "Set MinusZ configuration. " + filterstring, idx_image, idx_chain );
 }
 catch( ... )
 {
@@ -357,8 +360,8 @@ void Configuration_Random(
     scalar r_cut_spherical, bool inverted, bool external, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -374,13 +377,12 @@ try
 
     // Apply configuration
     image->Lock();
-    Utility::Configurations::Random( *image, filter, external );
+    Spirit::Utility::Configurations::Random( *image, filter, external );
     image->geometry->Apply_Pinning( *image->spins );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
-    Log( Utility::Log_Level::Info, Utility::Log_Sender::API, "Set random configuration. " + filterstring, idx_image,
-         idx_chain );
+    Log( Log_Level::Info, Log_Sender::API, "Set random configuration. " + filterstring, idx_image, idx_chain );
 }
 catch( ... )
 {
@@ -392,8 +394,8 @@ void Configuration_Add_Noise_Temperature(
     scalar r_cut_cylindrical, scalar r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -409,12 +411,12 @@ try
 
     // Apply configuration
     image->Lock();
-    Utility::Configurations::Add_Noise_Temperature( *image, temperature, 0, filter );
+    Configurations::Add_Noise_Temperature( *image, temperature, 0, filter );
     image->geometry->Apply_Pinning( *image->spins );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
-    Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+    Log( Log_Level::Info, Log_Sender::API,
          fmt::format( "Added noise with temperature T={}. {}", temperature, filterstring ), idx_image, idx_chain );
 }
 catch( ... )
@@ -426,14 +428,14 @@ void Configuration_Displace_Eigenmode( State * state, int idx_mode, int idx_imag
 try
 {
     // Fetch correct indices and pointers for image and chain
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
     if( idx_mode >= image->modes.size() )
-        Log( Utility::Log_Level::Warning, Utility::Log_Sender::EMA,
+        Log( Log_Level::Warning, Log_Sender::EMA,
              fmt::format(
                  "You tried to apply eigenmode number {}, "
                  "but you only calculated {} modes",
@@ -442,7 +444,7 @@ try
 
     // The eigenmode was potentially not calculated, yet
     if( image->modes[idx_mode] == nullptr )
-        Log( Utility::Log_Level::Warning, Utility::Log_Sender::EMA,
+        Log( Log_Level::Warning, Log_Sender::EMA,
              fmt::format(
                  "Eigenmode number {} has not "
                  "yet been calculated.",
@@ -467,10 +469,10 @@ try
         }
 
         // Scale the angles
-        Engine::Vectormath::scale( angles, image->ema_parameters->amplitude );
+        Spirit::Engine::Vectormath::scale( angles, image->ema_parameters->amplitude );
 
         // Rotate around axes by certain angles
-        Engine::Vectormath::rotate( spins, axes, angles, spins );
+        Spirit::Engine::Vectormath::rotate( spins, axes, angles, spins );
 
         image->Unlock();
     }
@@ -486,8 +488,8 @@ void Configuration_Hopfion(
     int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -501,14 +503,14 @@ try
 
     // Set cutoff radius
     if( r_cut_spherical < 0 )
-        r_cut_spherical = r * Utility::Constants::Pi;
+        r_cut_spherical = r * Spirit::Utility::Constants::Pi;
 
     // Create position filter
     auto filter = get_filter( vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
 
     // Apply configuration
     image->Lock();
-    Utility::Configurations::Hopfion( *image, vpos, r, order, { normal[0], normal[1], normal[2] }, filter );
+    Configurations::Hopfion( *image, vpos, r, order, { normal[0], normal[1], normal[2] }, filter );
     image->geometry->Apply_Pinning( *image->spins );
     image->Unlock();
 
@@ -516,8 +518,8 @@ try
     std::string parameterstring = fmt::format( "r={}", r );
     if( order != 1 )
         parameterstring += fmt::format( ", order={}", order );
-    Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-         "Set hopfion configuration, " + parameterstring + ". " + filterstring, idx_image, idx_chain );
+    Log( Log_Level::Info, Log_Sender::API, "Set hopfion configuration, " + parameterstring + ". " + filterstring,
+         idx_image, idx_chain );
 }
 catch( ... )
 {
@@ -530,8 +532,8 @@ void Configuration_Skyrmion(
     int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -551,7 +553,7 @@ try
 
     // Apply configuration
     image->Lock();
-    Utility::Configurations::Skyrmion( *image, vpos, r, order, phase, upDown, achiral, rl, false, filter );
+    Configurations::Skyrmion( *image, vpos, r, order, phase, upDown, achiral, rl, false, filter );
     image->geometry->Apply_Pinning( *image->spins );
     image->Unlock();
 
@@ -567,8 +569,8 @@ try
         parameterstring += ", achiral";
     if( rl )
         parameterstring += fmt::format( ", rl={}", rl );
-    Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-         "Set skyrmion configuration, " + parameterstring + ". " + filterstring, idx_image, idx_chain );
+    Log( Log_Level::Info, Log_Sender::API, "Set skyrmion configuration, " + parameterstring + ". " + filterstring,
+         idx_image, idx_chain );
 }
 catch( ... )
 {
@@ -581,8 +583,8 @@ void Configuration_DW_Skyrmion(
     bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -602,8 +604,7 @@ try
 
     // Apply configuration
     image->Lock();
-    Utility::Configurations::DW_Skyrmion(
-        *image, vpos, dw_radius, dw_width, order, phase, upDown, achiral, rl, filter );
+    Configurations::DW_Skyrmion( *image, vpos, dw_radius, dw_width, order, phase, upDown, achiral, rl, filter );
     image->geometry->Apply_Pinning( *image->spins );
     image->Unlock();
 
@@ -620,7 +621,7 @@ try
         parameterstring += ", achiral";
     if( rl )
         parameterstring += fmt::format( ", rl={}", rl );
-    Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+    Log( Log_Level::Info, Log_Sender::API,
          "Set 360 deg domain wall skyrmion configuration, " + parameterstring + ". " + filterstring, idx_image,
          idx_chain );
 }
@@ -635,8 +636,8 @@ void Configuration_SpinSpiral(
     int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -657,7 +658,7 @@ try
     Vector3 vq{ q[0], q[1], q[2] };
     Vector3 vaxis{ axis[0], axis[1], axis[2] };
     image->Lock();
-    Utility::Configurations::SpinSpiral( *image, dir_type, vq, vaxis, theta, filter );
+    Configurations::SpinSpiral( *image, dir_type, vq, vaxis, theta, filter );
     image->geometry->Apply_Pinning( *image->spins );
     image->Unlock();
 
@@ -666,8 +667,8 @@ try
         "W.r.t. {}, q=({}, {}, {}), axis=({}, {},{}), theta={}", direction_type, q[0], q[1], q[2], axis[0], axis[1],
         axis[2], theta );
 
-    Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-         "Set spin spiral configuration. " + parameterstring + ". " + filterstring, idx_image, idx_chain );
+    Log( Log_Level::Info, Log_Sender::API, "Set spin spiral configuration. " + parameterstring + ". " + filterstring,
+         idx_image, idx_chain );
 }
 catch( ... )
 {
@@ -680,8 +681,8 @@ void Configuration_SpinSpiral_2q(
     bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -704,7 +705,7 @@ try
     Vector3 vq2{ q2[0], q2[1], q2[2] };
     Vector3 vaxis{ axis[0], axis[1], axis[2] };
     image->Lock();
-    Utility::Configurations::SpinSpiral( *image, dir_type, vq1, vq2, vaxis, theta, filter );
+    Configurations::SpinSpiral( *image, dir_type, vq1, vq2, vaxis, theta, filter );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -713,8 +714,8 @@ try
         "W.r.t. {}, q1=({}, {}, {}), q2=({}, {}, {}), axis=({}, {},{}), theta={}", direction_type, q1[0], q1[1], q1[2],
         q2[0], q2[1], q2[2], axis[0], axis[1], axis[2], theta );
 
-    Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-         "Set spin spiral 2q configuration. " + parameterstring + ". " + filterstring, idx_image, idx_chain );
+    Log( Log_Level::Info, Log_Sender::API, "Set spin spiral 2q configuration. " + parameterstring + ". " + filterstring,
+         idx_image, idx_chain );
 }
 catch( ... )
 {
@@ -727,8 +728,8 @@ void Configuration_Set_Pinned(
     scalar r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -744,12 +745,11 @@ try
 
     // Apply configuration
     image->Lock();
-    Utility::Configurations::Set_Pinned( *image, pinned, filter );
+    Configurations::Set_Pinned( *image, pinned, filter );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
-    Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Set pinned spins. {}", filterstring ),
-         idx_image, idx_chain );
+    Log( Log_Level::Info, Log_Sender::API, fmt::format( "Set pinned spins. {}", filterstring ), idx_image, idx_chain );
 }
 catch( ... )
 {
@@ -762,8 +762,8 @@ void Configuration_Set_Atom_Type(
     scalar r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -779,12 +779,12 @@ try
 
     // Apply configuration
     image->Lock();
-    Utility::Configurations::Set_Atom_Types( *image, atom_type, filter );
+    Configurations::Set_Atom_Types( *image, atom_type, filter );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
-    Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-         fmt::format( "Set atom types to {}. {}", atom_type, filterstring ), idx_image, idx_chain );
+    Log( Log_Level::Info, Log_Sender::API, fmt::format( "Set atom types to {}. {}", atom_type, filterstring ),
+         idx_image, idx_chain );
 }
 catch( ... )
 {

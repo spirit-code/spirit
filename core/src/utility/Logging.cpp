@@ -13,7 +13,7 @@
 #include <iostream>
 #include <string>
 
-namespace Utility
+namespace Spirit::Utility
 {
 
 std::string IndexToString( int idx )
@@ -176,4 +176,4 @@ void LoggingHandler::Dump_to_File()
     }
 }
 
-} // end namespace Utility
+} // namespace Spirit::Utility

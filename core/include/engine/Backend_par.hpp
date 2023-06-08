@@ -14,11 +14,7 @@
 #endif
 // clang-format on
 
-namespace Engine
-{
-namespace Backend
-{
-namespace par
+namespace Spirit::Engine::Backend::par
 {
 
 #ifdef SPIRIT_USE_CUDA
@@ -210,7 +206,7 @@ void apply( int N, const F & f )
 }
 
 #endif
-} // namespace par
-} // namespace Backend
-} // namespace Engine
+
+} // namespace Engine::Backend::par
+
 #endif

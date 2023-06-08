@@ -4,7 +4,7 @@
 
 #include <data/Parameters_Method.hpp>
 
-namespace Data
+namespace Spirit::Data
 {
 
 // EMA_Parameters contains all EMA information about the spin system
@@ -29,6 +29,6 @@ struct Parameters_Method_EMA : Parameters_Method
     bool output_configuration_archive = false;
 };
 
-} // namespace Data
+} // namespace Spirit::Data
 
 #endif

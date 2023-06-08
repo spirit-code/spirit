@@ -6,7 +6,7 @@
 
 #include <string>
 
-namespace Data
+namespace Spirit::Data
 {
 
 // Solver Parameters Base Class
@@ -42,6 +42,6 @@ struct Parameters_Method
     IO::VF_FileFormat output_vf_filetype = IO::VF_FileFormat::OVF_TEXT;
 };
 
-} // namespace Data
+} // namespace Spirit::Data
 
 #endif

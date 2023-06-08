@@ -7,7 +7,7 @@
 #include <data/Parameters_Method_GNEB.hpp>
 #include <data/Spin_System.hpp>
 
-namespace Data
+namespace Spirit::Data
 {
 
 enum class GNEB_Image_Type
@@ -91,6 +91,6 @@ private:
     Utility::OrderedLock ordered_lock;
 };
 
-} // namespace Data
+} // namespace Spirit::Data
 
 #endif

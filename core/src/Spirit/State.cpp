@@ -10,7 +10,10 @@
 
 #include <fmt/format.h>
 
-using namespace Utility;
+using Spirit::Data::Spin_System;
+using Spirit::Data::Spin_System_Chain;
+using Spirit::Utility::Log_Level;
+using Spirit::Utility::Log_Sender;
 
 // Forward declaration of helper function
 void Save_Initial_Final( State * state, bool initial ) noexcept;
@@ -32,7 +35,7 @@ try
     {
         try
         {
-            IO::Filter_File_Handle myfile( state->config_file );
+            Spirit::IO::Filter_File_Handle myfile( state->config_file );
         }
         catch( ... )
         {
@@ -49,12 +52,12 @@ try
     block.emplace_back( "========== Spirit State: Initialising... ============" );
 
     // Log version info
-    block.emplace_back( "==========     Version:  " + version );
+    block.emplace_back( "==========     Version:  " + Spirit::Utility::Version::version );
     // Log revision hash
-    block.emplace_back( "==========     Revision: " + version_revision );
+    block.emplace_back( "==========     Revision: " + Spirit::Utility::Version::revision );
     Log( Log_Level::All, Log_Sender::All, block );
     // Log compiler
-    Log( Log_Level::Info, Log_Sender::All, "==========     Compiled with: " + compiler_full );
+    Log( Log_Level::Info, Log_Sender::All, "==========     Compiled with: " + Spirit::Utility::Version::compiler_full );
 
     // Log whether running in "quiet" mode
     if( state->quiet )
@@ -70,7 +73,7 @@ try
     //---------------------- Initialize the log ------------------------------------------------
     try
     {
-        IO::Log_from_Config( state->config_file, state->quiet );
+        Spirit::IO::Log_from_Config( state->config_file, state->quiet );
     }
     catch( ... )
     {
@@ -125,19 +128,19 @@ try
     //------------------------------------------------------------------------------------------
 
     //---------------------- Initialize spin_system --------------------------------------------
-    state->active_image = IO::Spin_System_from_Config( state->config_file );
-    Configurations::Random( *state->active_image );
+    state->active_image = Spirit::IO::Spin_System_from_Config( state->config_file );
+    Spirit::Utility::Configurations::Random( *state->active_image );
     //------------------------------------------------------------------------------------------
 
     //----------------------- Initialize spin system chain -------------------------------------
     // Get parameters
-    auto params_gneb
-        = std::shared_ptr<Data::Parameters_Method_GNEB>( IO::Parameters_Method_GNEB_from_Config( state->config_file ) );
+    auto params_gneb = std::shared_ptr<Spirit::Data::Parameters_Method_GNEB>(
+        Spirit::IO::Parameters_Method_GNEB_from_Config( state->config_file ) );
 
     // Create the chain
-    auto sv = std::vector<std::shared_ptr<Data::Spin_System>>();
+    auto sv = std::vector<std::shared_ptr<Spirit::Data::Spin_System>>();
     sv.push_back( state->active_image );
-    state->chain = std::make_shared<Data::Spin_System_Chain>( sv, params_gneb, false );
+    state->chain = std::make_shared<Spirit::Data::Spin_System_Chain>( sv, params_gneb, false );
     //------------------------------------------------------------------------------------------
 
     //----------------------- Fill in the state ------------------------------------------------
@@ -149,8 +152,8 @@ try
     state->nos = state->active_image->nos;
 
     // Methods
-    state->method_image = std::vector<std::shared_ptr<Engine::Method>>( state->noi );
-    state->method_chain = std::shared_ptr<Engine::Method>();
+    state->method_image = std::vector<std::shared_ptr<Spirit::Engine::Method>>( state->noi );
+    state->method_chain = std::shared_ptr<Spirit::Engine::Method>();
 
     // Set quiet method parameters
     if( state->quiet )
@@ -168,7 +171,7 @@ try
     //----------------------- Final log --------------------------------------------------------
     block.clear();
     auto now  = std::chrono::system_clock::now();
-    auto diff = Timing::DateTimePassed( now - state->datetime_creation );
+    auto diff = Spirit::Utility::Timing::DateTimePassed( now - state->datetime_creation );
     block.emplace_back( "=====================================================" );
     block.emplace_back( "============ Spirit State: Initialised ==============" );
     block.emplace_back( "============     " + fmt::format( "NOS={} NOI={}", state->nos, state->noi ) );
@@ -210,7 +213,7 @@ try
 
     // Timing
     auto now  = std::chrono::system_clock::now();
-    auto diff = Timing::DateTimePassed( now - state->datetime_creation );
+    auto diff = Spirit::Utility::Timing::DateTimePassed( now - state->datetime_creation );
     block.emplace_back( fmt::format( "    State existed for {}", diff ) );
     block.emplace_back( fmt::format( "    Number of  Errors:  {}", Log_Get_N_Errors( state ) ) );
     block.emplace_back( fmt::format( "    Number of Warnings: {}", Log_Get_N_Warnings( state ) ) );
@@ -264,40 +267,40 @@ try
     std::string header{ comment };
     if( !header.empty() )
         header += "\n";
-    IO::write_to_file( header, cfg );
+    Spirit::IO::write_to_file( header, cfg );
 
     // Folders
-    IO::Folders_to_Config(
+    Spirit::IO::Folders_to_Config(
         cfg, state->active_image->llg_parameters, state->active_image->mc_parameters, state->chain->gneb_parameters,
         state->active_image->mmf_parameters );
 
     // Log Parameters
-    IO::append_to_file( "\n\n\n", cfg );
-    IO::Log_Levels_to_Config( cfg );
+    Spirit::IO::append_to_file( "\n\n\n", cfg );
+    Spirit::IO::Log_Levels_to_Config( cfg );
 
     // Geometry
-    IO::append_to_file( "\n\n\n", cfg );
-    IO::Geometry_to_Config( cfg, state->active_image->geometry );
+    Spirit::IO::append_to_file( "\n\n\n", cfg );
+    Spirit::IO::Geometry_to_Config( cfg, state->active_image->geometry );
 
     // LLG
-    IO::append_to_file( "\n\n\n", cfg );
-    IO::Parameters_Method_LLG_to_Config( cfg, state->active_image->llg_parameters );
+    Spirit::IO::append_to_file( "\n\n\n", cfg );
+    Spirit::IO::Parameters_Method_LLG_to_Config( cfg, state->active_image->llg_parameters );
 
     // MC
-    IO::append_to_file( "\n\n\n", cfg );
-    IO::Parameters_Method_MC_to_Config( cfg, state->active_image->mc_parameters );
+    Spirit::IO::append_to_file( "\n\n\n", cfg );
+    Spirit::IO::Parameters_Method_MC_to_Config( cfg, state->active_image->mc_parameters );
 
     // GNEB
-    IO::append_to_file( "\n\n\n", cfg );
-    IO::Parameters_Method_GNEB_to_Config( cfg, state->chain->gneb_parameters );
+    Spirit::IO::append_to_file( "\n\n\n", cfg );
+    Spirit::IO::Parameters_Method_GNEB_to_Config( cfg, state->chain->gneb_parameters );
 
     // MMF
-    IO::append_to_file( "\n\n\n", cfg );
-    IO::Parameters_Method_MMF_to_Config( cfg, state->active_image->mmf_parameters );
+    Spirit::IO::append_to_file( "\n\n\n", cfg );
+    Spirit::IO::Parameters_Method_MMF_to_Config( cfg, state->active_image->mmf_parameters );
 
     // Hamiltonian
-    IO::append_to_file( "\n\n\n", cfg );
-    IO::Hamiltonian_to_Config( cfg, state->active_image->hamiltonian, state->active_image->geometry );
+    Spirit::IO::append_to_file( "\n\n\n", cfg );
+    Spirit::IO::Hamiltonian_to_Config( cfg, state->active_image->hamiltonian, state->active_image->geometry );
 }
 catch( ... )
 {

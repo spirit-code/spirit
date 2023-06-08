@@ -4,9 +4,7 @@
 
 #include <cufft.h>
 
-namespace Engine
-{
-namespace FFT
+namespace Spirit::Engine::FFT
 {
 
 // Dont need the single transforms because cuFFT can do real batch transforms
@@ -89,7 +87,6 @@ void FFT_Plan::Free_Configuration()
     }
 }
 
-} // namespace FFT
-} // namespace Engine
+} // namespace Spirit::Engine::FFT
 
 #endif

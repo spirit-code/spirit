@@ -16,9 +16,9 @@
 #include <cmath>
 #include <iostream>
 
-using namespace Utility;
+using namespace Spirit::Utility;
 
-namespace Engine
+namespace Spirit::Engine
 {
 
 template<Solver solver>
@@ -646,7 +646,7 @@ void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bo
 
                 // write/append the first image
                 auto segment      = IO::OVF_Segment( *this->chain->images[0] );
-                std::string title = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                std::string title = fmt::format( "SPIRIT Version {}", Utility::Version::full );
                 segment.title     = strdup( title.c_str() );
                 std::string output_comment
                     = fmt::format( "{}\n# Desc: Image {} of {}", output_comment_base, 0, chain->noi );
@@ -753,4 +753,4 @@ template class Method_GNEB<Solver::LBFGS_Atlas>;
 template class Method_GNEB<Solver::VP>;
 template class Method_GNEB<Solver::VP_OSO>;
 
-} // namespace Engine
+} // namespace Spirit::Engine

@@ -1,5 +1,7 @@
 #include <Spirit/Geometry.h>
 #include <Spirit/Simulation.h>
+#include <data/Geometry.hpp>
+#include <data/Spin_System_Chain.hpp>
 
 #include <data/State.hpp>
 #include <engine/Hamiltonian_Heisenberg.hpp>
@@ -11,7 +13,14 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
-void Helper_System_Set_Geometry( Data::Spin_System & system, const Data::Geometry & new_geometry )
+using Spirit::Data::Geometry;
+using Spirit::Data::Spin_System;
+using Spirit::Data::Spin_System_Chain;
+using Spirit::Utility::Exception_Classifier;
+using Spirit::Utility::Log_Level;
+using Spirit::Utility::Log_Sender;
+
+void Helper_System_Set_Geometry( Spin_System & system, const Geometry & new_geometry )
 {
     auto old_geometry = *system.geometry;
 
@@ -19,10 +28,10 @@ void Helper_System_Set_Geometry( Data::Spin_System & system, const Data::Geometr
     system.nos = nos;
 
     // Move the vector-fields to the new geometry
-    *system.spins = Engine::Indexing::change_dimensions(
+    *system.spins = Spirit::Engine::Indexing::change_dimensions(
         *system.spins, old_geometry.n_cell_atoms, old_geometry.n_cells, new_geometry.n_cell_atoms, new_geometry.n_cells,
         { 0, 0, 1 } );
-    system.effective_field = Engine::Indexing::change_dimensions(
+    system.effective_field = Spirit::Engine::Indexing::change_dimensions(
         system.effective_field, old_geometry.n_cell_atoms, old_geometry.n_cells, new_geometry.n_cell_atoms,
         new_geometry.n_cells, { 0, 0, 0 } );
 
@@ -31,11 +40,10 @@ void Helper_System_Set_Geometry( Data::Spin_System & system, const Data::Geometr
 
     // Update the Heisenberg Hamiltonian
     if( system.hamiltonian->Name() == "Heisenberg" )
-        std::static_pointer_cast<Engine::Hamiltonian_Heisenberg>( system.hamiltonian )->Update_Interactions();
+        std::static_pointer_cast<Spirit::Engine::Hamiltonian_Heisenberg>( system.hamiltonian )->Update_Interactions();
 }
 
-void Helper_State_Set_Geometry(
-    State & state, const Data::Geometry & old_geometry, const Data::Geometry & new_geometry )
+void Helper_State_Set_Geometry( State & state, const Geometry & old_geometry, const Geometry & new_geometry )
 {
     // This requires simulations to be stopped, as Methods' temporary arrays may have the wrong size afterwards
     Simulation_Stop_All( &state );
@@ -84,7 +92,7 @@ void Helper_State_Set_Geometry(
 
     // Deal with clipboard configuration of State
     if( state.clipboard_spins )
-        *state.clipboard_spins = Engine::Indexing::change_dimensions(
+        *state.clipboard_spins = Spirit::Engine::Indexing::change_dimensions(
             *state.clipboard_spins, old_geometry.n_cell_atoms, old_geometry.n_cells, new_geometry.n_cell_atoms,
             new_geometry.n_cells, { 0, 0, 1 } );
 
@@ -111,69 +119,69 @@ try
     std::vector<Vector3> bravais_vectors;
     if( lattice_type == Bravais_Lattice_Irregular )
     {
-        Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
+        Log( Log_Level::Error, Log_Sender::API,
              "Geometry_Set_Bravais_Lattice_Type: cannot set lattice type to Irregular", -1, -1 );
         return;
     }
     else if( lattice_type == Bravais_Lattice_Rectilinear )
     {
-        Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
+        Log( Log_Level::Error, Log_Sender::API,
              "Geometry_Set_Bravais_Lattice_Type: cannot set lattice type to Rectilinear", -1, -1 );
         return;
     }
     else if( lattice_type == Bravais_Lattice_HCP )
     {
-        Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
-             "Geometry_Set_Bravais_Lattice_Type: cannot set lattice type to HCP", -1, -1 );
+        Log( Log_Level::Error, Log_Sender::API, "Geometry_Set_Bravais_Lattice_Type: cannot set lattice type to HCP", -1,
+             -1 );
         return;
     }
     else if( lattice_type == Bravais_Lattice_SC )
     {
         lattice_name    = "Simple Cubic";
-        bravais_vectors = Data::Geometry::BravaisVectorsSC();
+        bravais_vectors = Geometry::BravaisVectorsSC();
     }
     else if( lattice_type == Bravais_Lattice_Hex2D )
     {
         lattice_name    = "2D Hexagonal";
-        bravais_vectors = Data::Geometry::BravaisVectorsHex2D60();
+        bravais_vectors = Geometry::BravaisVectorsHex2D60();
     }
     else if( lattice_type == Bravais_Lattice_Hex2D_60 )
     {
         lattice_name    = "2D Hexagonal (60deg)";
-        bravais_vectors = Data::Geometry::BravaisVectorsHex2D60();
+        bravais_vectors = Geometry::BravaisVectorsHex2D60();
     }
     else if( lattice_type == Bravais_Lattice_Hex2D_120 )
     {
         lattice_name    = "2D Hexagonal (120deg)";
-        bravais_vectors = Data::Geometry::BravaisVectorsHex2D120();
+        bravais_vectors = Geometry::BravaisVectorsHex2D120();
     }
     else if( lattice_type == Bravais_Lattice_BCC )
     {
         lattice_name    = "Body-Centered Cubic";
-        bravais_vectors = Data::Geometry::BravaisVectorsBCC();
+        bravais_vectors = Geometry::BravaisVectorsBCC();
     }
     else if( lattice_type == Bravais_Lattice_FCC )
     {
         lattice_name    = "Face-Centered Cubic";
-        bravais_vectors = Data::Geometry::BravaisVectorsFCC();
+        bravais_vectors = Geometry::BravaisVectorsFCC();
     }
     else
     {
         spirit_throw(
-            Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Error,
+            Exception_Classifier::System_not_Initialized, Log_Level::Error,
             fmt::format( "Unknown lattice type index '{}'", int( lattice_type ) ) );
     }
 
     // The new geometry
     const auto & old_geometry = *state->active_image->geometry;
-    auto new_geometry         = Data::Geometry(
+    auto new_geometry         = Geometry(
         bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms, old_geometry.cell_composition,
         old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects );
 
     // Update the State
     Helper_State_Set_Geometry( *state, old_geometry, new_geometry );
 
-    Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+    Log( Log_Level::Warning, Log_Sender::API,
          fmt::format( "Set Bravais lattice type to {} for all Systems", lattice_name ), -1, -1 );
 }
 catch( ... )
@@ -192,14 +200,14 @@ try
 
     // The new geometry
     auto & old_geometry = *state->active_image->geometry;
-    auto new_geometry   = Data::Geometry(
+    auto new_geometry   = Geometry(
         old_geometry.bravais_vectors, n_cells, old_geometry.cell_atoms, old_geometry.cell_composition,
         old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects );
 
     // Update the State
     Helper_State_Set_Geometry( *state, old_geometry, new_geometry );
 
-    Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+    Log( Log_Level::Warning, Log_Sender::API,
          fmt::format( "Set number of cells for all Systems: ({}, {}, {})", n_cells[0], n_cells[1], n_cells[2] ), -1,
          -1 );
 }
@@ -216,7 +224,7 @@ try
     if( n_atoms < 1 )
     {
         spirit_throw(
-            Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Error,
+            Exception_Classifier::System_not_Initialized, Log_Level::Error,
             fmt::format( "Cannot set number of atoms to less than one (you passed {})", n_atoms ) );
     }
 
@@ -237,7 +245,7 @@ try
         if( atoms[i] == nullptr )
         {
             spirit_throw(
-                Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Error,
+                Exception_Classifier::System_not_Initialized, Log_Level::Error,
                 fmt::format( "Got passed a null pointer for atom {} of {}", i, n_atoms ) );
         }
         cell_atoms.emplace_back( atoms[i][0], atoms[i][1], atoms[i][2] );
@@ -278,21 +286,21 @@ try
         }
     }
 
-    Data::Basis_Cell_Composition new_composition{ old_geometry.cell_composition.disordered, iatom, atom_type, mu_s,
-                                                  concentration };
+    Spirit::Data::Basis_Cell_Composition new_composition{ old_geometry.cell_composition.disordered, iatom, atom_type,
+                                                          mu_s, concentration };
 
     // The new geometry
-    auto new_geometry = Data::Geometry(
+    auto new_geometry = Geometry(
         old_geometry.bravais_vectors, old_geometry.n_cells, cell_atoms, new_composition, old_geometry.lattice_constant,
         old_geometry.pinning, old_geometry.defects );
 
     // Update the State
     Helper_State_Set_Geometry( *state, old_geometry, new_geometry );
 
-    Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+    Log( Log_Level::Warning, Log_Sender::API,
          fmt::format( "Set {} cell atoms for all Systems. cell_atom[0]={}", n_atoms, cell_atoms[0] ), -1, -1 );
     if( new_geometry.n_cell_atoms > old_geometry.n_cell_atoms )
-        Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+        Log( Log_Level::Warning, Log_Sender::API,
              fmt::format(
                  "The basis cell size increased. Set {} additional values of mu_s to {}",
                  new_geometry.n_cell_atoms - old_geometry.n_cell_atoms, mu_s[0] ),
@@ -308,8 +316,8 @@ try
 {
     check_state( state );
 
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -323,15 +331,14 @@ try
             m = mu_s;
 
         // The new geometry
-        auto new_geometry = Data::Geometry(
+        auto new_geometry = Geometry(
             old_geometry.bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms, new_composition,
             old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects );
 
         // Update the State
         Helper_State_Set_Geometry( *state, old_geometry, new_geometry );
 
-        Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Set mu_s to {}", mu_s ), idx_image,
-             idx_chain );
+        Log( Log_Level::Info, Log_Sender::API, fmt::format( "Set mu_s to {}", mu_s ), idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -352,7 +359,7 @@ try
     if( n_atoms < 1 )
     {
         spirit_throw(
-            Utility::Exception_Classifier::System_not_Initialized, Utility::Log_Level::Error,
+            Exception_Classifier::System_not_Initialized, Log_Level::Error,
             fmt::format( "Cannot set atom types for less than one site (you passed {})", n_atoms ) );
     }
 
@@ -366,14 +373,14 @@ try
     }
 
     // The new geometry
-    auto new_geometry = Data::Geometry(
+    auto new_geometry = Geometry(
         old_geometry.bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms, new_composition,
         old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects );
 
     // Update the State
     Helper_State_Set_Geometry( *state, old_geometry, new_geometry );
 
-    Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+    Log( Log_Level::Warning, Log_Sender::API,
          fmt::format( "Set {} types of basis cell atoms for all Systems. type[0]={}", n_atoms, atom_types[0] ), -1,
          -1 );
 }
@@ -399,14 +406,14 @@ try
 
     // The new geometry
     auto & old_geometry = *state->active_image->geometry;
-    auto new_geometry   = Data::Geometry(
+    auto new_geometry   = Geometry(
         bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms, old_geometry.cell_composition,
         old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects );
 
     // Update the State
     Helper_State_Set_Geometry( *state, old_geometry, new_geometry );
 
-    Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+    Log( Log_Level::Warning, Log_Sender::API,
          fmt::format(
              "Set Bravais vectors for all Systems: ({}), ({}), ({})", bravais_vectors[0], bravais_vectors[1],
              bravais_vectors[2] ),
@@ -424,14 +431,14 @@ try
 
     // The new geometry
     auto & old_geometry = *state->active_image->geometry;
-    auto new_geometry   = Data::Geometry(
+    auto new_geometry   = Geometry(
         old_geometry.bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms, old_geometry.cell_composition,
         lattice_constant, old_geometry.pinning, old_geometry.defects );
 
     // Update the State
     Helper_State_Set_Geometry( *state, old_geometry, new_geometry );
 
-    Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+    Log( Log_Level::Warning, Log_Sender::API,
          fmt::format( "Set lattice constant for all Systems to {}", lattice_constant ), -1, -1 );
 }
 catch( ... )
@@ -448,8 +455,8 @@ int Geometry_Get_NOS( State * state ) noexcept
 scalar * Geometry_Get_Positions( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -467,8 +474,8 @@ catch( ... )
 int * Geometry_Get_Atom_Types( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -486,8 +493,8 @@ catch( ... )
 void Geometry_Get_Bounds( State * state, scalar min[3], scalar max[3], int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -512,8 +519,8 @@ catch( ... )
 void Geometry_Get_Center( State * state, scalar center[3], int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -535,8 +542,8 @@ catch( ... )
 void Geometry_Get_Cell_Bounds( State * state, scalar min[3], scalar max[3], int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -561,8 +568,8 @@ catch( ... )
 Bravais_Lattice_Type Geometry_Get_Bravais_Lattice_Type( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -580,8 +587,8 @@ void Geometry_Get_Bravais_Vectors(
     State * state, scalar a[3], scalar b[3], scalar c[3], int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -608,8 +615,8 @@ catch( ... )
 int Geometry_Get_N_Cell_Atoms( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -628,8 +635,8 @@ catch( ... )
 int Geometry_Get_Cell_Atoms( State * state, scalar ** atoms, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -649,8 +656,8 @@ catch( ... )
 void Geometry_Get_mu_s( State * state, scalar * mu_s, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -668,8 +675,8 @@ catch( ... )
 void Geometry_Get_N_Cells( State * state, int n_cells[3], int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -690,8 +697,8 @@ catch( ... )
 int Geometry_Get_Dimensionality( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -711,8 +718,8 @@ int Geometry_Get_Triangulation(
     State * state, const int ** indices_ptr, int n_cell_step, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -737,8 +744,8 @@ int Geometry_Get_Triangulation_Ranged(
     State * state, const int ** indices_ptr, int n_cell_step, int ranges[6], int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -764,8 +771,8 @@ int Geometry_Get_Tetrahedra(
     State * state, const int ** indices_ptr, int n_cell_step, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
     from_indices( state, idx_image, idx_chain, image, chain );
 
     auto g                  = image->geometry;
@@ -786,8 +793,8 @@ int Geometry_Get_Tetrahedra_Ranged(
     State * state, const int ** indices_ptr, int n_cell_step, int ranges[6], int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
     from_indices( state, idx_image, idx_chain, image, chain );
     throw_if_nullptr( ranges, "ranges" );
 

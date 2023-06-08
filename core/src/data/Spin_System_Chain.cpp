@@ -1,7 +1,7 @@
 #include <data/Spin_System_Chain.hpp>
 #include <utility/Exception.hpp>
 
-namespace Data
+namespace Spirit::Data
 {
 
 Spin_System_Chain::Spin_System_Chain(
@@ -48,4 +48,4 @@ catch( ... )
     spirit_handle_exception_core( "Unlocking the Spin_System_Chain failed!" );
 }
 
-} // namespace Data
+} // namespace Spirit::Data

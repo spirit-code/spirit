@@ -16,7 +16,7 @@
 #include <memory>
 #include <random>
 
-namespace Data
+namespace Spirit::Data
 {
 
 /*
@@ -82,6 +82,6 @@ private:
     Utility::OrderedLock ordered_lock;
 };
 
-} // namespace Data
+} // namespace Spirit::Data
 
 #endif

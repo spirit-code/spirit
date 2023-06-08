@@ -11,9 +11,7 @@
 #include <data/Spin_System.hpp>
 #include <engine/Vectormath_Defines.hpp>
 
-namespace Engine
-{
-namespace Vectormath
+namespace Spirit::Engine::Vectormath
 {
 
 // A "rotated view" into a vectorfield, with optional shifts applied before and after rotation.
@@ -207,7 +205,6 @@ void set_c_cross( const scalar & c, const Vector3 & a, const vectorfield & b, ve
 // out[i] = c * a[i] x b[i]
 void set_c_cross( const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out );
 
-} // namespace Vectormath
-} // namespace Engine
+} // namespace Spirit::Engine::Vectormath
 
 #endif

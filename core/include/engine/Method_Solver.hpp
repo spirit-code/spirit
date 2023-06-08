@@ -25,7 +25,7 @@
 
 #include <fmt/format.h>
 
-namespace Engine
+namespace Spirit::Engine
 {
 
 enum class Solver
@@ -396,6 +396,6 @@ inline std::string Method_Solver<Solver::None>::SolverFullName()
 #include <engine/Solver_VP.hpp>
 #include <engine/Solver_VP_OSO.hpp>
 
-} // namespace Engine
+} // namespace Spirit::Engine
 
 #endif

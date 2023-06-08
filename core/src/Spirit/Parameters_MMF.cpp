@@ -7,6 +7,11 @@
 
 #include <memory>
 
+using Spirit::Data::Spin_System;
+using Spirit::Data::Spin_System_Chain;
+using Spirit::Utility::Log_Level;
+using Spirit::Utility::Log_Sender;
+
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Set MMF ----------------------------------------------------------- */
 /*------------------------------------------------------------------------------------------------------ */
@@ -15,8 +20,8 @@
 void Parameters_MMF_Set_Output_Tag( State * state, const char * tag, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -26,8 +31,8 @@ try
     p->output_file_tag = tag;
     chain->Unlock();
 
-    Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, fmt::format( "Set MMF output tag = \"{}\"", tag ),
-         idx_image, idx_chain );
+    Log( Log_Level::Parameter, Log_Sender::API, fmt::format( "Set MMF output tag = \"{}\"", tag ), idx_image,
+         idx_chain );
 }
 catch( ... )
 {
@@ -37,8 +42,8 @@ catch( ... )
 void Parameters_MMF_Set_Output_Folder( State * state, const char * folder, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -48,8 +53,8 @@ try
     p->output_folder = folder;
     image->Unlock();
 
-    Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, "Set MMF Output Folder = " + std::string( folder ),
-         idx_image, idx_chain );
+    Log( Log_Level::Parameter, Log_Sender::API, "Set MMF Output Folder = " + std::string( folder ), idx_image,
+         idx_chain );
 }
 catch( ... )
 {
@@ -60,8 +65,8 @@ void Parameters_MMF_Set_Output_General(
     State * state, bool any, bool initial, bool final, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -83,8 +88,8 @@ void Parameters_MMF_Set_Output_Energy(
     bool energy_add_readability_lines, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -108,8 +113,8 @@ void Parameters_MMF_Set_Output_Configuration(
     int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -118,7 +123,7 @@ try
     auto p                          = image->mmf_parameters;
     p->output_configuration_step    = configuration_step;
     p->output_configuration_archive = configuration_archive;
-    p->output_vf_filetype           = IO::VF_FileFormat( configuration_filetype );
+    p->output_vf_filetype           = Spirit::IO::VF_FileFormat( configuration_filetype );
     image->Unlock();
 }
 catch( ... )
@@ -130,8 +135,8 @@ void Parameters_MMF_Set_N_Iterations(
     State * state, int n_iterations, int n_iterations_log, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -151,15 +156,15 @@ catch( ... )
 void Parameters_MMF_Set_N_Modes( State * state, int n_modes, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
     if( n_modes < 1 || n_modes > 2 * image->nos )
     {
-        Log( Utility::Log_Level::Debug, Utility::Log_Sender::API,
+        Log( Log_Level::Debug, Log_Sender::API,
              fmt::format( "Illegal value of number of modes (max value is {})", 2 * image->nos ), idx_image,
              idx_chain );
     }
@@ -172,8 +177,8 @@ try
         p->n_mode_follow = std::min( p->n_mode_follow, n_modes );
         image->Unlock();
 
-        Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
-             fmt::format( "Set MMF number of modes = {}", n_modes ), idx_image, idx_chain );
+        Log( Log_Level::Parameter, Log_Sender::API, fmt::format( "Set MMF number of modes = {}", n_modes ), idx_image,
+             idx_chain );
     }
 }
 catch( ... )
@@ -184,8 +189,8 @@ catch( ... )
 void Parameters_MMF_Set_N_Mode_Follow( State * state, int n_mode_follow, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -196,8 +201,8 @@ try
                > p->n_modes - 1 ) // ||
                                   //  n_mode_follow >= image->modes.size() || image->modes[n_mode_follow] == NULL )
     {
-        Log( Utility::Log_Level::Debug, Utility::Log_Sender::API, fmt::format( "Illegal value of mode to follow" ),
-             idx_image, idx_chain );
+        Log( Log_Level::Debug, Log_Sender::API, fmt::format( "Illegal value of mode to follow" ), idx_image,
+             idx_chain );
     }
     else
     {
@@ -205,8 +210,8 @@ try
         p->n_mode_follow = n_mode_follow;
         image->Unlock();
 
-        Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
-             fmt::format( "Set MMF mode to follow = {}", n_mode_follow ), idx_image, idx_chain );
+        Log( Log_Level::Parameter, Log_Sender::API, fmt::format( "Set MMF mode to follow = {}", n_mode_follow ),
+             idx_image, idx_chain );
     }
 }
 catch( ... )
@@ -222,8 +227,8 @@ catch( ... )
 const char * Parameters_MMF_Get_Output_Tag( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -240,8 +245,8 @@ catch( ... )
 const char * Parameters_MMF_Get_Output_Folder( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -259,8 +264,8 @@ void Parameters_MMF_Get_Output_General(
     State * state, bool * any, bool * initial, bool * final, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -280,8 +285,8 @@ void Parameters_MMF_Get_Output_Energy(
     bool * energy_add_readability_lines, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -303,8 +308,8 @@ void Parameters_MMF_Get_Output_Configuration(
     int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -323,8 +328,8 @@ void Parameters_MMF_Get_N_Iterations(
     State * state, int * iterations, int * iterations_log, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -342,8 +347,8 @@ catch( ... )
 int Parameters_MMF_Get_N_Modes( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -360,8 +365,8 @@ catch( ... )
 int Parameters_MMF_Get_N_Mode_Follow( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );

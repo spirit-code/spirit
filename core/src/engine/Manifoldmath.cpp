@@ -9,14 +9,13 @@
 
 #include <array>
 
-namespace C = Utility::Constants;
+namespace C = Spirit::Utility::Constants;
 
 #ifndef SPIRIT_USE_CUDA
 
-namespace Engine
+namespace Spirit::Engine::Manifoldmath
 {
-namespace Manifoldmath
-{
+
 void project_parallel( vectorfield & vf1, const vectorfield & vf2 )
 {
     scalar proj = Vectormath::dot( vf1, vf2 );
@@ -204,15 +203,13 @@ void Tangents(
         }
     } // end for idx_img
 } // end Tangents
-} // namespace Manifoldmath
-} // namespace Engine
+} // namespace Spirit::Engine::Manifoldmath
 
 #endif
 
-namespace Engine
+namespace Spirit::Engine::Manifoldmath
 {
-namespace Manifoldmath
-{
+
 scalar norm( const vectorfield & vf )
 {
     scalar x = Vectormath::dot( vf, vf );
@@ -686,5 +683,4 @@ void hessian_covariant(
     }
 }
 
-} // namespace Manifoldmath
-} // namespace Engine
+} // namespace Spirit::Engine::Manifoldmath

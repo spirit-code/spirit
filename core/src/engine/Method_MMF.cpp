@@ -14,11 +14,11 @@
 
 #include <cstring>
 
-using Utility::Log_Level;
-using Utility::Log_Sender;
-namespace C = Utility::Constants;
+using Spirit::Utility::Log_Level;
+using Spirit::Utility::Log_Sender;
+namespace C = Spirit::Utility::Constants;
 
-namespace Engine
+namespace Spirit::Engine
 {
 
 template<Solver solver>
@@ -32,7 +32,7 @@ Method_MMF<solver>::Method_MMF( std::shared_ptr<Data::Spin_System> system, int i
 
     switched1        = false;
     switched2        = false;
-    this->SenderName = Utility::Log_Sender::MMF;
+    this->SenderName = Log_Sender::MMF;
 
     // History
     // this->history = std::map<std::string, std::vector<scalar>>{ { "max_torque", { this->max_torque } } };
@@ -469,7 +469,7 @@ void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, boo
                 // Spin Configuration
                 auto & spins        = *this->systems[0]->spins;
                 auto segment        = IO::OVF_Segment( *this->systems[0] );
-                std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                std::string title   = fmt::format( "SPIRIT Version {}", Utility::Version::full );
                 segment.title       = strdup( title.c_str() );
                 segment.comment     = strdup( output_comment.c_str() );
                 segment.valuedim    = 3;
@@ -537,7 +537,7 @@ void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, boo
                     // Segment
                     auto segment = IO::OVF_Segment( *this->systems[0] );
 
-                    std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                    std::string title   = fmt::format( "SPIRIT Version {}", Utility::Version::full );
                     segment.title       = strdup( title.c_str() );
                     std::string comment = fmt::format( "Energy per spin. Total={}meV", this->systems[0]->E );
                     for( const auto & contribution : this->systems[0]->E_array )
@@ -560,7 +560,7 @@ void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, boo
                     // open and write
                     IO::OVF_File( energyFilePerSpin ).write_segment( segment, data.data(), static_cast<int>( format ) );
 
-                    Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+                    Log( Log_Level::Info, Log_Sender::API,
                          fmt::format(
                              "Wrote spins to file \"{}\" with format {}", energyFilePerSpin,
                              static_cast<int>( format ) ),
@@ -630,4 +630,4 @@ template class Method_MMF<Solver::LBFGS_Atlas>;
 template class Method_MMF<Solver::VP>;
 template class Method_MMF<Solver::VP_OSO>;
 
-} // namespace Engine
+} // namespace Spirit::Engine

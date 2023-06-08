@@ -19,11 +19,9 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
-namespace C = Utility::Constants;
+namespace C = Spirit::Utility::Constants;
 
-namespace Engine
-{
-namespace HTST
+namespace Spirit::Engine::HTST
 {
 
 // Note the two images should correspond to one minimum and one saddle point
@@ -570,7 +568,6 @@ void Geodesic_Eigen_Decomposition(
     Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST, "---------- Geodesic Eigen Decomposition Done" );
 }
 
-} // end namespace HTST
-} // end namespace Engine
+} // namespace Spirit::Engine::HTST
 
 #endif

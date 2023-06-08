@@ -28,9 +28,7 @@
 #include <cufft.h>
 #endif
 
-namespace Engine
-{
-namespace FFT
+namespace Spirit::Engine::FFT
 {
 
 #ifdef SPIRIT_USE_KISSFFT
@@ -264,7 +262,6 @@ void iFour_3D( const FFT_Plan & plan, field<FFT_cpx_type> & in, field<FFT_real_t
 void batch_Four_3D( FFT_Plan & plan );
 void batch_iFour_3D( FFT_Plan & plan );
 
-} // namespace FFT
-} // namespace Engine
+} // namespace Spirit::Engine::FFT
 
 #endif

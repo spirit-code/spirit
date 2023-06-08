@@ -13,12 +13,9 @@
 struct State;
 std::shared_ptr<State> extern state;
 
-// Use the System Clock (Wall Time) to handle Timing
-using std::chrono::duration;
-using std::chrono::system_clock;
-using std::chrono::time_point;
+using namespace std::chrono;
 
-namespace Utility
+namespace Spirit_UI::Utility
 {
 
 static system_clock::time_point t_last_sigint = system_clock::now();
@@ -35,8 +32,7 @@ void Handle_Signal::Handle_SigInt( int sig )
         system_clock::time_point t_now = system_clock::now();
 
         // If time difference is less than 2 seconds
-        if( std::chrono::duration_cast<std::chrono::seconds>( t_now - t_last_sigint )
-            < std::chrono::duration<double>( 2.0 ) )
+        if( duration_cast<seconds>( t_now - t_last_sigint ) < duration<double>( 2.0 ) )
         {
             Log_Send(
                 state.get(), Log_Level_All, Log_Sender_All, "SIGINT received! Received second time in less than 2s." );
@@ -72,4 +68,4 @@ void Handle_Signal::Handle_SigInt( int sig )
     t_last_sigint = system_clock::now();
 }
 
-} // namespace Utility
+} // namespace Spirit_UI::Utility

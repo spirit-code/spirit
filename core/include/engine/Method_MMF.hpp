@@ -6,7 +6,7 @@
 #include <data/Parameters_Method_MMF.hpp>
 #include <engine/Method_Solver.hpp>
 
-namespace Engine
+namespace Spirit::Engine
 {
 
 /*
@@ -68,6 +68,6 @@ private:
         const std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces );
 };
 
-} // namespace Engine
+} // namespace Spirit::Engine
 
 #endif

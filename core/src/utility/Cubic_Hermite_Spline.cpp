@@ -2,9 +2,7 @@
 
 #include <cmath>
 
-namespace Utility
-{
-namespace Cubic_Hermite_Spline
+namespace Spirit::Utility::Cubic_Hermite_Spline
 {
 
 // See http://de.wikipedia.org/wiki/Kubisch_Hermitescher_Spline
@@ -46,5 +44,4 @@ std::vector<std::vector<scalar>> Interpolate(
     return result;
 }
 
-} // namespace Cubic_Hermite_Spline
-} // namespace Utility
+} // namespace Spirit::Utility::Cubic_Hermite_Spline

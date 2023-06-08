@@ -7,7 +7,7 @@
 #include <ostream>
 #include <type_traits>
 
-namespace IO
+namespace Spirit::IO
 {
 
 // The supported OOMF Vector Field (OVF) file formats
@@ -36,6 +36,6 @@ inline std::string str( IO::VF_FileFormat format )
         return "unknown";
 }
 
-} // namespace IO
+} // namespace Spirit::IO
 
 #endif

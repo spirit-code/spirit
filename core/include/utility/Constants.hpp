@@ -2,7 +2,7 @@
 #ifndef SPIRIT_CORE_UTILITY_CONSTANTS_HPP
 #define SPIRIT_CORE_UTILITY_CONSTANTS_HPP
 
-namespace Utility
+namespace Spirit::Utility
 {
 
 /*
@@ -82,6 +82,6 @@ double const Pi_2 = 1.570796326794896619231321691639751442098584699687552910487;
 
 } // namespace Constants_mRy
 
-} // namespace Utility
+} // namespace Spirit::Utility
 
 #endif

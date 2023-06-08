@@ -12,12 +12,18 @@
 
 #include <memory>
 
+namespace Transition = Spirit::Utility::Configuration_Chain;
+using Spirit::Data::Spin_System;
+using Spirit::Data::Spin_System_Chain;
+using Spirit::Utility::Log_Level;
+using Spirit::Utility::Log_Sender;
+
 void Transition_Homogeneous( State * state, int idx_1, int idx_2, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -25,7 +31,7 @@ try
     // Check indices
     if( idx_2 <= idx_1 )
     {
-        Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
+        Log( Log_Level::Error, Log_Sender::API,
              fmt::format(
                  "Cannot set homogeneous transition between images {} and {}, because the second index needs to be "
                  "larger than the first",
@@ -37,11 +43,11 @@ try
     chain->Lock();
     try
     {
-        Utility::Configuration_Chain::Homogeneous_Rotation( chain, idx_1, idx_2 );
+        Transition::Homogeneous_Rotation( chain, idx_1, idx_2 );
         for( int img = 0; img < chain->noi; ++img )
             chain->images[img]->geometry->Apply_Pinning( *chain->images[img]->spins );
 
-        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+        Log( Log_Level::Info, Log_Sender::API,
              fmt::format( "Set homogeneous transition between images {} and {}", idx_1 + 1, idx_2 + 1 ), -1,
              idx_chain );
     }
@@ -81,8 +87,8 @@ void Transition_Add_Noise_Temperature( State * state, scalar temperature, int id
 try
 {
     int idx_image = -1;
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<Spin_System> image;
+    std::shared_ptr<Spin_System_Chain> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -90,7 +96,7 @@ try
     // Check indices
     if( idx_2 <= idx_1 )
     {
-        Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
+        Log( Log_Level::Error, Log_Sender::API,
              fmt::format(
                  "Cannot set homogeneous transition between images {} and {}, because the second index needs to be "
                  "larger than the first",
@@ -102,11 +108,11 @@ try
     chain->Lock();
     try
     {
-        Utility::Configuration_Chain::Add_Noise_Temperature( chain, idx_1, idx_2, temperature );
+        Transition::Add_Noise_Temperature( chain, idx_1, idx_2, temperature );
         for( int img = 0; img < chain->noi; ++img )
             chain->images[img]->geometry->Apply_Pinning( *chain->images[img]->spins );
 
-        Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+        Log( Log_Level::Info, Log_Sender::API,
              fmt::format( "Added noise with temperature T={} to images {} - {}", temperature, idx_1 + 1, idx_2 + 1 ),
              -1, idx_chain );
     }

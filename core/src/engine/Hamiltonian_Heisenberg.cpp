@@ -13,15 +13,15 @@
 #include <engine/Vectormath.hpp>
 #include <utility/Constants.hpp>
 
-using namespace Data;
-using namespace Utility;
-namespace C = Utility::Constants;
-using Engine::Indexing::check_atom_type;
-using Engine::Indexing::idx_from_pair;
-using Engine::Indexing::idx_from_translations;
-using Engine::Indexing::idx_from_tupel;
+using namespace Spirit::Data;
+using namespace Spirit::Utility;
+namespace C = Spirit::Utility::Constants;
+using Spirit::Engine::Indexing::check_atom_type;
+using Spirit::Engine::Indexing::idx_from_pair;
+using Spirit::Engine::Indexing::idx_from_translations;
+using Spirit::Engine::Indexing::idx_from_tupel;
 
-namespace Engine
+namespace Spirit::Engine
 {
 
 // Construct a Heisenberg Hamiltonian with pairs
@@ -1604,6 +1604,6 @@ const std::string & Hamiltonian_Heisenberg::Name() const
     return name;
 }
 
-} // namespace Engine
+} // namespace Spirit::Engine
 
 #endif
