@@ -470,7 +470,7 @@ jobs:
       run: ctest -C $BUILD_TYPE --rerun-failed --output-on-failure
 
   build-cuda:
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.config.os }}
     strategy:
       fail-fast: false
       matrix:
@@ -484,7 +484,7 @@ jobs:
     - uses: actions/checkout@v3
 
     - name: Force downgrade to gcc-10 on Ubuntu 22.04 to avoid a bug in gcc-11.3 header
-      if: matrix.os == 'ubuntu-22.04'
+      if: matrix.config.os == 'ubuntu-22.04'
       shell: bash
       run: |
         sudo apt-get --purge remove "g++*"
