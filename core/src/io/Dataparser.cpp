@@ -30,7 +30,7 @@ void Read_NonOVF_Spin_Configuration(
     for( int i = 0; i < ( nos * idx_image_infile ); i++ )
         file_handle.GetLine();
 
-    for( int i = 0; i < nos && file_handle.GetLine( "," ); i++ )
+    for( int i = 0; i < nos and file_handle.GetLine( "," ); i++ )
     {
         file_handle >> spins[i][0];
         file_handle >> spins[i][1];
@@ -70,7 +70,7 @@ void Check_NonOVF_Chain_Configuration(
     }
 
     // Check if the ending image is valid otherwise set it to the last image infile
-    if( end_image_infile < start_image_infile || end_image_infile >= noi_infile )
+    if( end_image_infile < start_image_infile or end_image_infile >= noi_infile )
     {
         end_image_infile = noi_infile - 1;
         Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
@@ -157,13 +157,13 @@ try
         else if( columns[i] == "k4" )
             col_K4 = i;
 
-        if( col_Kx >= 0 && col_Ky >= 0 && col_Kz >= 0 )
+        if( col_Kx >= 0 and col_Ky >= 0 and col_Kz >= 0 )
             K_xyz = true;
-        if( col_Ka >= 0 && col_Kb >= 0 && col_Kc >= 0 )
+        if( col_Ka >= 0 and col_Kb >= 0 and col_Kc >= 0 )
             K_abc = true;
     }
 
-    if( !K_xyz && !K_abc )
+    if( not K_xyz and not K_abc )
         Log( Log_Level::Warning, Log_Sender::IO,
              fmt::format( "No anisotropy data could be found in header of file \"{}\"", anisotropyFile ) );
 
@@ -180,7 +180,7 @@ try
     // Get actual Data
     int i_anisotropy = 0;
     std::string sdump;
-    while( file_handle.GetLine() && i_anisotropy < n_anisotropy )
+    while( file_handle.GetLine() and i_anisotropy < n_anisotropy )
     {
         // Read a line from the File
         for( std::size_t i = 0; i < columns.size(); ++i )
@@ -189,17 +189,17 @@ try
                 file_handle >> spin_i;
             else if( i == col_K )
                 file_handle >> spin_K;
-            else if( i == col_Kx && K_xyz )
+            else if( i == col_Kx and K_xyz )
                 file_handle >> spin_K1;
-            else if( i == col_Ky && K_xyz )
+            else if( i == col_Ky and K_xyz )
                 file_handle >> spin_K2;
-            else if( i == col_Kz && K_xyz )
+            else if( i == col_Kz and K_xyz )
                 file_handle >> spin_K3;
-            else if( i == col_Ka && K_abc )
+            else if( i == col_Ka and K_abc )
                 file_handle >> spin_K1;
-            else if( i == col_Kb && K_abc )
+            else if( i == col_Kb and K_abc )
                 file_handle >> spin_K2;
-            else if( i == col_Kc && K_abc )
+            else if( i == col_Kc and K_abc )
                 file_handle >> spin_K3;
             else if( i == col_K4 )
             {
@@ -359,21 +359,21 @@ try
         else if( columns[i] == "dijc" )
             col_DMIz = i;
 
-        if( col_DMIx >= 0 && col_DMIy >= 0 && col_DMIz >= 0 )
+        if( col_DMIx >= 0 and col_DMIy >= 0 and col_DMIz >= 0 )
             DMI_xyz = true;
-        if( col_DMIa >= 0 && col_DMIb >= 0 && col_DMIc >= 0 )
+        if( col_DMIa >= 0 and col_DMIb >= 0 and col_DMIc >= 0 )
             DMI_abc = true;
     }
 
     // Check if interactions have been found in header
-    if( !J && !DMI_xyz && !DMI_abc )
+    if( not J and not DMI_xyz and not DMI_abc )
         Log( Log_Level::Warning, Log_Sender::IO,
              fmt::format( "No interactions could be found in pairs file \"{}\"", pairs_file ) );
 
     // Get actual Pairs Data
     int i_pair = 0;
     std::string sdump;
-    while( file_handle.GetLine() && i_pair < n_pairs )
+    while( file_handle.GetLine() and i_pair < n_pairs )
     {
         // Pair Indices
         int pair_i = 0, pair_j = 0, pair_da = 0, pair_db = 0, pair_dc = 0;
@@ -391,21 +391,21 @@ try
                 file_handle >> pair_db;
             else if( i == col_dc )
                 file_handle >> pair_dc;
-            else if( i == col_J && J )
+            else if( i == col_J and J )
                 file_handle >> pair_Jij;
-            else if( i == col_Dij && Dij )
+            else if( i == col_Dij and Dij )
                 file_handle >> pair_Dij;
-            else if( i == col_DMIa && DMI_abc )
+            else if( i == col_DMIa and DMI_abc )
                 file_handle >> pair_D1;
-            else if( i == col_DMIb && DMI_abc )
+            else if( i == col_DMIb and DMI_abc )
                 file_handle >> pair_D2;
-            else if( i == col_DMIc && DMI_abc )
+            else if( i == col_DMIc and DMI_abc )
                 file_handle >> pair_D3;
-            else if( i == col_DMIx && DMI_xyz )
+            else if( i == col_DMIx and DMI_xyz )
                 file_handle >> pair_D1;
-            else if( i == col_DMIy && DMI_xyz )
+            else if( i == col_DMIy and DMI_xyz )
                 file_handle >> pair_D2;
-            else if( i == col_DMIz && DMI_xyz )
+            else if( i == col_DMIz and DMI_xyz )
                 file_handle >> pair_D3;
             else
                 file_handle >> sdump;
@@ -429,7 +429,7 @@ try
             pair_D2 = pair_D2 / dnorm;
             pair_D3 = pair_D3 / dnorm;
         }
-        if( !Dij )
+        if( not Dij )
         {
             pair_Dij = dnorm;
         }
@@ -444,8 +444,8 @@ try
                 auto & p                = exchange_pairs[icheck];
                 auto & t                = p.translations;
                 std::array<int, 3> tnew = { pair_da, pair_db, pair_dc };
-                if( ( pair_i == p.i && pair_j == p.j && tnew == std::array<int, 3>{ t[0], t[1], t[2] } )
-                    || ( pair_i == p.j && pair_j == p.i && tnew == std::array<int, 3>{ -t[0], -t[1], -t[2] } ) )
+                if( ( pair_i == p.i and pair_j == p.j and tnew == std::array<int, 3>{ t[0], t[1], t[2] } )
+                    or ( pair_i == p.j and pair_j == p.i and tnew == std::array<int, 3>{ -t[0], -t[1], -t[2] } ) )
                 {
                     already_in = true;
                     atposition = icheck;
@@ -472,13 +472,13 @@ try
                 auto & p                = dmi_pairs[icheck];
                 auto & t                = p.translations;
                 std::array<int, 3> tnew = { pair_da, pair_db, pair_dc };
-                if( pair_i == p.i && pair_j == p.j && tnew == std::array<int, 3>{ t[0], t[1], t[2] } )
+                if( pair_i == p.i and pair_j == p.j and tnew == std::array<int, 3>{ t[0], t[1], t[2] } )
                 {
                     already_in = true;
                     atposition = icheck;
                     break;
                 }
-                else if( pair_i == p.j && pair_j == p.i && tnew == std::array<int, 3>{ -t[0], -t[1], -t[2] } )
+                else if( pair_i == p.j and pair_j == p.i and tnew == std::array<int, 3>{ -t[0], -t[1], -t[2] } )
                 {
                     // If the inverted pair is present, the DMI vector has to be mirrored due to its pseudo-vector behaviour
                     dfact      = -1;
@@ -597,7 +597,7 @@ try
     }
 
     // Check if interactions have been found in header
-    if( !Q )
+    if( not Q )
         Log( Log_Level::Warning, Log_Sender::IO,
              fmt::format( "No interactions could be found in header of quadruplets file ", quadruplets_file ) );
 
@@ -611,7 +611,7 @@ try
     // Get actual Quadruplets Data
     int i_quadruplet = 0;
     std::string sdump;
-    while( file_handle.GetLine() && i_quadruplet < n_quadruplets )
+    while( file_handle.GetLine() and i_quadruplet < n_quadruplets )
     {
         // Read a Quadruplet from the File
         for( std::size_t i = 0; i < columns.size(); ++i )
@@ -647,7 +647,7 @@ try
             else if( i == col_dc_l )
                 file_handle >> q_dc_l;
             // Quadruplet magnitude
-            else if( i == col_Q && Q )
+            else if( i == col_Q and Q )
                 file_handle >> q_Q;
             // Otherwise dump the line
             else
@@ -706,7 +706,7 @@ try
              fmt::format( "Trying to parse defects from top of file \"{}\"", defects_file ) );
     }
 
-    while( myfile.GetLine() && n_defects < nod )
+    while( myfile.GetLine() and n_defects < nod )
     {
         Site site{};
         int type{ 0 };
@@ -753,7 +753,7 @@ try
              fmt::format( "Trying to parse pinned sites from top of file \"{}\"", pinned_file ) );
     }
 
-    while( myfile.GetLine() && n_pinned < nop )
+    while( myfile.GetLine() and n_pinned < nop )
     {
         Site site{};
         Vector3 orientation{};

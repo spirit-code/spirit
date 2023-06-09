@@ -87,10 +87,9 @@ inline bool boundary_conditions_fulfilled(
     int da = translations_i[0] + translations_j[0];
     int db = translations_i[1] + translations_j[1];
     int dc = translations_i[2] + translations_j[2];
-    return (
-        ( boundary_conditions[0] || ( 0 <= da && da < n_cells[0] ) )
-        && ( boundary_conditions[1] || ( 0 <= db && db < n_cells[1] ) )
-        && ( boundary_conditions[2] || ( 0 <= dc && dc < n_cells[2] ) ) );
+    return ( boundary_conditions[0] or ( 0 <= da and da < n_cells[0] ) )
+           and ( boundary_conditions[1] or ( 0 <= db and db < n_cells[1] ) )
+           and ( boundary_conditions[2] or ( 0 <= dc and dc < n_cells[2] ) );
 }
 
 #endif
@@ -173,10 +172,9 @@ inline bool boundary_conditions_fulfilled(
     int da = translations_i[0] + translations_j[0];
     int db = translations_i[1] + translations_j[1];
     int dc = translations_i[2] + translations_j[2];
-    return (
-        ( boundary_conditions[0] || ( 0 <= da && da < n_cells[0] ) )
-        && ( boundary_conditions[1] || ( 0 <= db && db < n_cells[1] ) )
-        && ( boundary_conditions[2] || ( 0 <= dc && dc < n_cells[2] ) ) );
+    return ( boundary_conditions[0] or ( 0 <= da and da < n_cells[0] ) )
+           and ( boundary_conditions[1] or ( 0 <= db and db < n_cells[1] ) )
+           and ( boundary_conditions[2] or ( 0 <= dc and dc < n_cells[2] ) );
 }
 
 __inline__ __device__ bool cu_check_atom_type( int atom_type )
@@ -216,7 +214,7 @@ __inline__ __device__ int cu_idx_from_pair(
     bool invert = false )
 {
     // Invalid index if atom type of spin i is not correct
-    if( pair.i != ispin % N || !cu_check_atom_type( atom_types[ispin] ) )
+    if( pair.i != ispin % N or not cu_check_atom_type( atom_types[ispin] ) )
         return -1;
 
     // Number of cells
@@ -225,8 +223,8 @@ __inline__ __device__ int cu_idx_from_pair(
     auto & Nc = n_cells[2];
 
     // Invalid index if translations reach out over the lattice bounds
-    if( std::abs( pair.translations[0] ) > Na || std::abs( pair.translations[1] ) > Nb
-        || std::abs( pair.translations[2] ) > Nc )
+    if( std::abs( pair.translations[0] ) > Na or std::abs( pair.translations[1] ) > Nb
+        or std::abs( pair.translations[2] ) > Nc )
         return -1;
 
     // Translations (cell) of spin i
@@ -243,7 +241,7 @@ __inline__ __device__ int cu_idx_from_pair(
     int njc = nic + pm * pair.translations[2];
 
     // Check boundary conditions: a
-    if( boundary_conditions[0] || ( 0 <= nja && nja < Na ) )
+    if( boundary_conditions[0] or ( 0 <= nja and nja < Na ) )
     {
         // Boundary conditions fulfilled
         // Find the translations of spin j within the non-periodical domain
@@ -260,7 +258,7 @@ __inline__ __device__ int cu_idx_from_pair(
     }
 
     // Check boundary conditions: b
-    if( boundary_conditions[1] || ( 0 <= njb && njb < Nb ) )
+    if( boundary_conditions[1] or ( 0 <= njb and njb < Nb ) )
     {
         // Boundary conditions fulfilled
         // Find the translations of spin j within the non-periodical domain
@@ -277,7 +275,7 @@ __inline__ __device__ int cu_idx_from_pair(
     }
 
     // Check boundary conditions: c
-    if( boundary_conditions[2] || ( 0 <= njc && njc < Nc ) )
+    if( boundary_conditions[2] or ( 0 <= njc and njc < Nc ) )
     {
         // Boundary conditions fulfilled
         // Find the translations of spin j within the non-periodical domain
@@ -296,7 +294,7 @@ __inline__ __device__ int cu_idx_from_pair(
     // Calculate the index of spin j according to it's translations
     int jspin = pair.j + (nja)*N + (njb)*N * Na + (njc)*N * Na * Nb;
 
-    if( !cu_check_atom_type( atom_types[jspin] ) )
+    if( not cu_check_atom_type( atom_types[jspin] ) )
         return -1;
 
     // Return a valid index
@@ -356,7 +354,7 @@ inline int idx_from_pair(
     const Pair & pair, bool invert = false )
 {
     // Invalid index if atom type of spin i is not correct
-    if( pair.i != ispin % N || !check_atom_type( atom_types[ispin] ) )
+    if( pair.i != ispin % N or not check_atom_type( atom_types[ispin] ) )
         return -1;
 
     // Number of cells
@@ -365,8 +363,8 @@ inline int idx_from_pair(
     auto & Nc = n_cells[2];
 
     // Invalid index if translations reach out over the lattice bounds
-    if( std::abs( pair.translations[0] ) > Na || std::abs( pair.translations[1] ) > Nb
-        || std::abs( pair.translations[2] ) > Nc )
+    if( std::abs( pair.translations[0] ) > Na or std::abs( pair.translations[1] ) > Nb
+        or std::abs( pair.translations[2] ) > Nc )
         return -1;
 
     // Translations (cell) of spin i
@@ -383,7 +381,7 @@ inline int idx_from_pair(
     int njc = nic + pm * pair.translations[2];
 
     // Check boundary conditions: a
-    if( boundary_conditions[0] || ( 0 <= nja && nja < Na ) )
+    if( boundary_conditions[0] or ( 0 <= nja and nja < Na ) )
     {
         // Boundary conditions fulfilled
         // Find the translations of spin j within the non-periodical domain
@@ -400,7 +398,7 @@ inline int idx_from_pair(
     }
 
     // Check boundary conditions: b
-    if( boundary_conditions[1] || ( 0 <= njb && njb < Nb ) )
+    if( boundary_conditions[1] or ( 0 <= njb and njb < Nb ) )
     {
         // Boundary conditions fulfilled
         // Find the translations of spin j within the non-periodical domain
@@ -417,7 +415,7 @@ inline int idx_from_pair(
     }
 
     // Check boundary conditions: c
-    if( boundary_conditions[2] || ( 0 <= njc && njc < Nc ) )
+    if( boundary_conditions[2] or ( 0 <= njc and njc < Nc ) )
     {
         // Boundary conditions fulfilled
         // Find the translations of spin j within the non-periodical domain
@@ -437,7 +435,7 @@ inline int idx_from_pair(
     int jspin = pair.j + (nja)*N + (njb)*N * Na + (njc)*N * Na * Nb;
 
     // Invalid index if atom type of spin j is not correct
-    if( !check_atom_type( atom_types[jspin] ) )
+    if( not check_atom_type( atom_types[jspin] ) )
         return -1;
 
     // Return a valid index
@@ -474,8 +472,8 @@ field<T> change_dimensions(
                     int idx_new = iatom + idx_from_translations( n_cells_new, n_cell_atoms_new, { i, j, k }, shift );
 #endif
 
-                    if( ( iatom < n_cell_atoms_old ) && ( i < n_cells_old[0] ) && ( j < n_cells_old[1] )
-                        && ( k < n_cells_old[2] ) )
+                    if( ( iatom < n_cell_atoms_old ) and ( i < n_cells_old[0] ) and ( j < n_cells_old[1] )
+                        and ( k < n_cells_old[2] ) )
                     {
                         int idx_old       = iatom + idx_from_translations( n_cells_old, n_cell_atoms_old, { i, j, k } );
                         newfield[idx_new] = oldfield[idx_old];

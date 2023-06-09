@@ -66,21 +66,21 @@ duration<scalar> DurationFromString( const std::string & dt )
     // Hours
     if( std::getline( iss, token, ':' ) )
     {
-        if( !token.empty() )
+        if( not token.empty() )
             hours = std::stoi( token );
     }
 
     // Minutes
     if( std::getline( iss, token, ':' ) )
     {
-        if( !token.empty() )
+        if( not token.empty() )
             minutes = std::stoi( token );
     }
 
     // Seconds
     if( std::getline( iss, token, ':' ) )
     {
-        if( !token.empty() )
+        if( not token.empty() )
             seconds = std::stol( token );
     }
 

@@ -59,7 +59,7 @@ OVF_File::OVF_File( const std::string & filename, bool should_exist )
 {
     ovf_file_initialize( this, filename.c_str() );
 
-    if( !this->found && should_exist )
+    if( should_exist and not this->found )
     {
         spirit_throw(
             Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,

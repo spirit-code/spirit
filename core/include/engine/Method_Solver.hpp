@@ -121,7 +121,7 @@ protected:
     // Check if any stop criteria were encountered
     bool ContinueIterating() override
     {
-        return Method::ContinueIterating() && !this->Converged();
+        return Method::ContinueIterating() and not this->Converged();
     }
 
     // Initialise contains the initialisations of arrays etc. for a certain solver
@@ -284,9 +284,9 @@ void Method_Solver<solver>::Message_Step()
     std::string percentage = fmt::format( "{:.2f}%:", 100 * double( this->iteration ) / double( this->n_iterations ) );
     bool llg_dynamics
         = this->Name() == "LLG"
-          && !(
-              this->systems[0]->llg_parameters->direct_minimization || solver == Solver::VP || solver == Solver::VP_OSO
-              || solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas );
+          and not(
+              this->systems[0]->llg_parameters->direct_minimization or solver == Solver::VP or solver == Solver::VP_OSO
+              or solver == Solver::LBFGS_OSO or solver == Solver::LBFGS_Atlas );
 
     // Update time of current step
     auto t_current = std::chrono::system_clock::now();
@@ -330,9 +330,9 @@ void Method_Solver<solver>::Message_End()
     std::string percentage = fmt::format( "{:.2f}%:", 100 * double( this->iteration ) / double( this->n_iterations ) );
     bool llg_dynamics
         = this->Name() == "LLG"
-          && !(
-              this->systems[0]->llg_parameters->direct_minimization || solver == Solver::VP || solver == Solver::VP_OSO
-              || solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas );
+          and not(
+              this->systems[0]->llg_parameters->direct_minimization or solver == Solver::VP or solver == Solver::VP_OSO
+              or solver == Solver::LBFGS_OSO or solver == Solver::LBFGS_Atlas );
 
     //---- End timings
     auto t_end = std::chrono::system_clock::now();

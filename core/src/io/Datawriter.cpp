@@ -40,7 +40,7 @@ void Write_Neighbours_Exchange( const Data::Spin_System & system, const std::str
     output += "###    Interaction neighbours:\n";
     output += fmt::format( "n_neighbours_exchange {}\n", n_neighbours );
 
-    if( !ham->exchange_pairs.empty() )
+    if( not ham->exchange_pairs.empty() )
     {
         output += fmt::format( "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15}\n", "i", "j", "da", "db", "dc", "Jij" );
         for( std::size_t i = 0; i < ham->exchange_pairs.size(); ++i )
@@ -85,7 +85,7 @@ void Write_Neighbours_DMI( const Data::Spin_System & system, const std::string &
     output += "###    Interaction neighbours:\n";
     output += fmt::format( "n_neighbours_dmi {}\n", n_neighbours );
 
-    if( !ham->dmi_pairs.empty() )
+    if( not ham->dmi_pairs.empty() )
     {
         output += fmt::format(
             "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15} {:^15} {:^15} {:^15}\n", "i", "j", "da", "db", "dc", "Dij",
@@ -153,7 +153,7 @@ void Write_Energy_Header(
         header = separator + line + separator;
     else
         header = line;
-    if( !readability_toggle )
+    if( not readability_toggle )
         std::replace( header.begin(), header.end(), '|', ' ' );
 
     write_to_file( header, filename );
@@ -177,7 +177,7 @@ void Append_Image_Energy(
     }
     line += "\n";
 
-    if( !readability_toggle )
+    if( not readability_toggle )
         std::replace( line.begin(), line.end(), '|', ' ' );
 
     append_to_file( line, filename );
@@ -199,7 +199,7 @@ void Write_Image_Energy(
     }
     line += "\n";
 
-    if( !readability_toggle )
+    if( not readability_toggle )
         std::replace( line.begin(), line.end(), '|', ' ' );
 
     append_to_file( line, filename );
@@ -226,7 +226,7 @@ void Write_Chain_Energies(
         }
         line += "\n";
 
-        if( !readability_toggle )
+        if( not readability_toggle )
             std::replace( line.begin(), line.end(), '|', ' ' );
 
         append_to_file( line, filename );
@@ -268,7 +268,7 @@ void Write_Chain_Energies_Interpolated(
             line += "\n";
 
             // Whether to use space or | as column separator
-            if( !readability_toggle )
+            if( not readability_toggle )
                 std::replace( line.begin(), line.end(), '|', ' ' );
 
             // Write

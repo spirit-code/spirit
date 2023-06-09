@@ -55,7 +55,7 @@ void LoggingHandler::Send(
         n_warnings++;
 
     // If level <= verbosity, we print to console, but Error and Severe are always printed
-    if( ( messages_to_console && level <= level_console ) || level == Log_Level::Error || level == Log_Level::Severe )
+    if( ( messages_to_console and level <= level_console ) or level == Log_Level::Error or level == Log_Level::Severe )
     {
         if( level == Log_Level::Warning )
             fmt::print( fg( fmt::color::orange ) | fmt::emphasis::bold, "{}\n", log_entries.back() );
@@ -89,16 +89,16 @@ std::vector<LogEntry> LoggingHandler::Filter( Log_Level level, Log_Sender sender
     auto result = std::vector<LogEntry>();
     for( const auto & entry : log_entries )
     {
-        if( ( level == Log_Level::All || level == entry.level )
-            && ( sender == Log_Sender::All || sender == entry.sender )
-            && ( idx_image == -1 || idx_image == entry.idx_image )
-            && ( idx_chain == -1 || idx_chain == entry.idx_chain ) )
+        if( ( level == Log_Level::All or level == entry.level )
+            and ( sender == Log_Sender::All or sender == entry.sender )
+            and ( idx_image == -1 or idx_image == entry.idx_image )
+            and ( idx_chain == -1 or idx_chain == entry.idx_chain ) )
         {
-            if( sender == Log_Sender::All || sender == entry.sender )
+            if( sender == Log_Sender::All or sender == entry.sender )
             {
-                if( idx_image == -1 || idx_image == entry.idx_image )
+                if( idx_image == -1 or idx_image == entry.idx_image )
                 {
-                    if( idx_chain == -1 || idx_chain == entry.idx_chain )
+                    if( idx_chain == -1 or idx_chain == entry.idx_chain )
                     {
                         result.push_back( entry );
                     }
@@ -127,7 +127,7 @@ void LoggingHandler::Append_to_File()
         for( int i = begin_append; i < n_entries; ++i )
         {
             const auto & level = log_entries[i].level;
-            if( level <= level_file || level == Log_Level::Error || level == Log_Level::Severe )
+            if( level <= level_file or level == Log_Level::Error or level == Log_Level::Severe )
             {
                 logstring += fmt::format( "{}\n", log_entries[i] );
             }
@@ -159,7 +159,7 @@ void LoggingHandler::Dump_to_File()
         for( int i = 0; i < n_entries; ++i )
         {
             auto level = log_entries[i].level;
-            if( level <= level_file || level == Log_Level::Error || level == Log_Level::Severe )
+            if( level <= level_file or level == Log_Level::Error or level == Log_Level::Severe )
             {
                 logstring += fmt::format( "{}\n", log_entries[i] );
             }

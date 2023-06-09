@@ -97,9 +97,9 @@ try
 
         // Check if the exception was recoverable
         if( ex.classifier == Exception_Classifier::Unknown_Exception
-            || ex.classifier == Exception_Classifier::System_not_Initialized
-            || ex.classifier == Exception_Classifier::Simulated_domain_too_small
-            || ex.classifier == Exception_Classifier::CUDA_Error || int( ex.level ) <= 1 )
+            or ex.classifier == Exception_Classifier::System_not_Initialized
+            or ex.classifier == Exception_Classifier::Simulated_domain_too_small
+            or ex.classifier == Exception_Classifier::CUDA_Error or int( ex.level ) <= 1 )
         {
             Log( Log_Level::Severe, Log_Sender::API, "TERMINATING!", idx_image, idx_chain );
             Log.Append_to_File();
@@ -164,9 +164,9 @@ catch( const Exception & ex )
 {
     bool can_handle = true;
     if( ex.classifier == Exception_Classifier::Unknown_Exception
-        || ex.classifier == Exception_Classifier::System_not_Initialized
-        || ex.classifier == Exception_Classifier::Simulated_domain_too_small
-        || ex.classifier == Exception_Classifier::CUDA_Error || int( ex.level ) <= 1 )
+        or ex.classifier == Exception_Classifier::System_not_Initialized
+        or ex.classifier == Exception_Classifier::Simulated_domain_too_small
+        or ex.classifier == Exception_Classifier::CUDA_Error or int( ex.level ) <= 1 )
         can_handle = false;
 
     if( can_handle )

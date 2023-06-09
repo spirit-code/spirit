@@ -102,7 +102,7 @@ void Random( Data::Spin_System & s, filterfunction filter, bool external )
     auto & positions = s.geometry->positions;
 
     auto distribution = std::uniform_real_distribution<scalar>( -1, 1 );
-    if( !external )
+    if( not external )
     {
         for( int iatom = 0; iatom < s.nos; ++iatom )
         {
@@ -587,7 +587,7 @@ void Set_Pinned( Data::Spin_System & s, bool pinned, filterfunction filter )
     auto & geometry  = s.geometry;
     auto & positions = geometry->positions;
 
-    int unpinned = (int)!pinned;
+    int unpinned = int( not pinned );
     for( int iatom = 0; iatom < s.nos; ++iatom )
     {
         if( filter( spins[iatom], positions[iatom] ) )

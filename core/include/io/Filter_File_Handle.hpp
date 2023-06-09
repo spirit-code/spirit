@@ -77,7 +77,7 @@ public:
     template<typename T>
     void Require_Single( T & var, const std::string & keyword )
     {
-        if( !Read_Single( var, keyword, false ) )
+        if( not Read_Single( var, keyword, false ) )
         {
             spirit_throw(
                 Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,

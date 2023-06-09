@@ -47,7 +47,7 @@ Filter_File_Handle::Filter_File_Handle( const std::string & filename, const std:
     this->in_file_stream = std::ifstream( filename, std::ios::in | std::ios::binary );
 
     // Check success
-    if( !this->in_file_stream.is_open() )
+    if( not this->in_file_stream.is_open() )
     {
         spirit_throw(
             Utility::Exception_Classifier::File_not_Found, Utility::Log_Level::Error,
@@ -89,7 +89,7 @@ bool Filter_File_Handle::GetLine_Handle( const std::string & str_to_remove )
         remove_chars_from_string( this->current_line, "|+" );
 
         // Remove any unwanted str from the line eg. delimiters
-        if( !str_to_remove.empty() )
+        if( not str_to_remove.empty() )
             remove_chars_from_string( this->current_line, str_to_remove );
 
         // If the string does not start with a comment identifier
@@ -126,7 +126,7 @@ bool Filter_File_Handle::Find( const std::string & keyword, const bool ignore_ca
     in_file_stream.clear();
     in_file_stream.seekg( this->position_start );
 
-    while( GetLine() && ( this->in_file_stream.tellg() <= this->position_stop ) )
+    while( GetLine() and ( this->in_file_stream.tellg() <= this->position_stop ) )
     {
         if( Find_in_Line( this->current_line, keyword, ignore_case ) )
             return true;
@@ -151,7 +151,7 @@ bool Filter_File_Handle::Find_in_Line( const std::string & line, const std::stri
         this->iss.clear();     // Empty the stream
         this->iss.str( line ); // Copy line into the iss stream
 
-        if( !keyword.empty() )
+        if( not keyword.empty() )
         {
             int n_words = Count_Words( keyword );
             for( int i = 0; i < n_words; i++ )

@@ -34,7 +34,7 @@ public:
         else
             myfile.open( filename );
 
-        if( !myfile.is_open() )
+        if( not myfile.is_open() )
         {
             spirit_throw(
                 Exception_Classifier::File_not_Found, Log_Level::Error,

@@ -28,7 +28,7 @@ public:
         if( locked_ )
         {
             condition_.emplace();
-            condition_.back().wait( condition_lock, [&] { return !locked_; } );
+            condition_.back().wait( condition_lock, [&] { return not locked_; } );
             condition_.pop();
         }
         else

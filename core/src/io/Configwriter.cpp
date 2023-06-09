@@ -88,7 +88,7 @@ void Geometry_to_Config( const std::string & config_file, const std::shared_ptr<
     }
 
     // Magnetic moment
-    if( !geometry->cell_composition.disordered )
+    if( not geometry->cell_composition.disordered )
     {
         config += "mu_s                     ";
         for( int i = 0; i < geometry->n_cell_atoms; ++i )
@@ -261,7 +261,7 @@ void Hamiltonian_Heisenberg_to_Config(
     config += "###    Anisotropy:\n";
     scalar K = 0;
     Vector3 K_normal{ 0, 0, 0 };
-    if( !ham->anisotropy_indices.empty() )
+    if( not ham->anisotropy_indices.empty() )
     {
         K        = ham->anisotropy_magnitudes[0];
         K_normal = ham->anisotropy_normals[0];
@@ -318,7 +318,7 @@ void Hamiltonian_Heisenberg_to_Config(
     // Quadruplets
     config += "###    Quadruplets:\n";
     config += fmt::format( "n_interaction_quadruplets {}\n", ham->quadruplets.size() );
-    if( !ham->quadruplets.empty() )
+    if( not ham->quadruplets.empty() )
     {
         config += fmt::format(
             "{:^3} {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15}\n", "i",

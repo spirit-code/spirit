@@ -57,7 +57,7 @@ try
     }
 
     //------------------------------- Parser --------------------------------
-    if( !config_file_name.empty() )
+    if( not config_file_name.empty() )
     {
         try
         {
@@ -120,7 +120,7 @@ try
     Log( Log_Level::Parameter, Log_Sender::IO, block );
 
     // Update the Log
-    if( !force_quiet )
+    if( not force_quiet )
     {
         Log.level_file    = Log_Level( i_level_file );
         Log.level_console = Log_Level( i_level_console );
@@ -140,7 +140,7 @@ try
 
     if( file_tag == "<time>" )
         Log.file_name = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
-    else if( !file_tag.empty() )
+    else if( not file_tag.empty() )
         Log.file_name = "Log_" + file_tag + ".txt";
     else
         Log.file_name = "Log.txt";
@@ -299,7 +299,7 @@ try
 
     //------------------------------- Parser --------------------------------
     Log( Log_Level::Debug, Log_Sender::IO, "Geometry: building" );
-    if( !config_file_name.empty() )
+    if( not config_file_name.empty() )
     {
         try
         {
@@ -325,7 +325,7 @@ try
                 basis_file = config_file_name;
             }
 
-            if( !basis_file.empty() )
+            if( not basis_file.empty() )
             {
                 Basis_from_File( basis_file, cell_composition, cell_atoms, n_cell_atoms );
             }
@@ -341,13 +341,13 @@ try
             IO::Filter_File_Handle config_file_handle( config_file_name );
 
             // Spin moment
-            if( !config_file_handle.Find( "atom_types" ) )
+            if( not config_file_handle.Find( "atom_types" ) )
             {
                 if( config_file_handle.Find( "mu_s" ) )
                 {
                     for( std::size_t iatom = 0; iatom < n_cell_atoms; ++iatom )
                     {
-                        if( !( config_file_handle >> cell_composition.mu_s[iatom] ) )
+                        if( not( config_file_handle >> cell_composition.mu_s[iatom] ) )
                         {
                             Log( Log_Level::Warning, Log_Sender::IO,
                                  fmt::format(
@@ -400,7 +400,7 @@ try
             else if( config_file_handle.Find( "defects_from_file" ) )
                 config_file_handle >> defects_file;
 
-            if( !defects_file.empty() )
+            if( not defects_file.empty() )
             {
                 // The file name should be valid so we try to read it
                 Defects_from_File( defects_file, n_defects, defect_sites, defect_types );
@@ -422,7 +422,7 @@ try
                     config_file_handle >> cell_composition.atom_type[itype];
                     config_file_handle >> cell_composition.mu_s[itype];
                     config_file_handle >> cell_composition.concentration[itype];
-                    // if ( !(config_file_handle >> mu_s[itype]) )
+                    // if ( not(config_file_handle >> mu_s[itype]) )
                     // {
                     //     Log(Log_Level::Warning, Log_Sender::IO,
                     //         fmt::format("Not enough values specified after 'mu_s'. Expected {}. Using
@@ -471,12 +471,12 @@ try
     parameter_log.emplace_back( fmt::format( "        c = {}", bravais_vectors[2].transpose() ) );
     parameter_log.emplace_back( fmt::format( "    basis cell: {} atom(s)", n_cell_atoms ) );
     parameter_log.emplace_back( "    relative positions (first 10):" );
-    for( std::size_t iatom = 0; iatom < n_cell_atoms && iatom < 10; ++iatom )
+    for( std::size_t iatom = 0; iatom < n_cell_atoms and iatom < 10; ++iatom )
         parameter_log.emplace_back( fmt::format(
             "        atom {} at ({}), mu_s={}", iatom, cell_atoms[iatom].transpose(), cell_composition.mu_s[iatom] ) );
 
     parameter_log.emplace_back( "    absolute atom positions (first 10):" );
-    for( std::size_t iatom = 0; iatom < n_cell_atoms && iatom < 10; ++iatom )
+    for( std::size_t iatom = 0; iatom < n_cell_atoms and iatom < 10; ++iatom )
     {
         Vector3 cell_atom = lattice_constant
                             * ( bravais_vectors[0] * cell_atoms[iatom][0] + bravais_vectors[1] * cell_atoms[iatom][1]
@@ -490,8 +490,8 @@ try
 #ifdef SPIRIT_ENABLE_PINNING
     // Log pinning
     auto n_pinned_cell_sites = pinning.sites.size();
-    if( n_pinned_cell_sites == 0 && pinning.na_left == 0 && pinning.na_right == 0 && pinning.nb_left == 0
-        && pinning.nb_right == 0 && pinning.nc_left == 0 && pinning.nc_right == 0 )
+    if( n_pinned_cell_sites == 0 and pinning.na_left == 0 and pinning.na_right == 0 and pinning.nb_left == 0
+        and pinning.nb_right == 0 and pinning.nc_left == 0 and pinning.nc_right == 0 )
     {
         parameter_log.emplace_back( "    no pinned spins" );
     }
@@ -587,7 +587,7 @@ Data::Pinning Pinning_from_Config( const std::string & config_file_name, std::si
 #ifdef SPIRIT_ENABLE_PINNING
     //------------------------------- Parser --------------------------------
     Log( Log_Level::Debug, Log_Sender::IO, "going to read pinning" );
-    if( !config_file_name.empty() )
+    if( not config_file_name.empty() )
     {
         try
         {
@@ -597,7 +597,7 @@ Data::Pinning Pinning_from_Config( const std::string & config_file_name, std::si
             config_file_handle.Read_Single( na_left, "pin_na_left", false );
             config_file_handle.Read_Single( na_right, "pin_na_right", false );
             config_file_handle.Read_Single( na, "pin_na ", false );
-            if( na > 0 && ( na_left == 0 || na_right == 0 ) )
+            if( na > 0 and ( na_left == 0 or na_right == 0 ) )
             {
                 na_left  = na;
                 na_right = na;
@@ -607,7 +607,7 @@ Data::Pinning Pinning_from_Config( const std::string & config_file_name, std::si
             config_file_handle.Read_Single( nb_left, "pin_nb_left", false );
             config_file_handle.Read_Single( nb_right, "pin_nb_right", false );
             config_file_handle.Read_Single( nb, "pin_nb ", false );
-            if( nb > 0 && ( nb_left == 0 || nb_right == 0 ) )
+            if( nb > 0 and ( nb_left == 0 or nb_right == 0 ) )
             {
                 nb_left  = nb;
                 nb_right = nb;
@@ -617,14 +617,14 @@ Data::Pinning Pinning_from_Config( const std::string & config_file_name, std::si
             config_file_handle.Read_Single( nc_left, "pin_nc_left", false );
             config_file_handle.Read_Single( nc_right, "pin_nc_right", false );
             config_file_handle.Read_Single( nc, "pin_nc ", false );
-            if( nc > 0 && ( nc_left == 0 || nc_right == 0 ) )
+            if( nc > 0 and ( nc_left == 0 or nc_right == 0 ) )
             {
                 nc_left  = nc;
                 nc_right = nc;
             }
 
             // How should the cells be pinned
-            if( na_left > 0 || na_right > 0 || nb_left > 0 || nb_right > 0 || nc_left > 0 || nc_right > 0 )
+            if( na_left > 0 or na_right > 0 or nb_left > 0 or nb_right > 0 or nc_left > 0 or nc_right > 0 )
             {
                 if( config_file_handle.Find( "pinning_cell" ) )
                 {
@@ -654,7 +654,7 @@ Data::Pinning Pinning_from_Config( const std::string & config_file_name, std::si
             else if( config_file_handle.Find( "pinned_from_file" ) )
                 config_file_handle >> pinned_file;
 
-            if( !pinned_file.empty() )
+            if( not pinned_file.empty() )
             {
                 // The file name should be valid so we try to read it
                 Pinned_from_File( pinned_file, n_pinned, pinned_sites, pinned_spins );
@@ -677,7 +677,7 @@ Data::Pinning Pinning_from_Config( const std::string & config_file_name, std::si
     return pinning;
 #else  // SPIRIT_ENABLE_PINNING
     Log( Log_Level::Parameter, Log_Sender::IO, "Pinning is disabled" );
-    if( !config_file_name.empty() )
+    if( not config_file_name.empty() )
     {
         try
         {
@@ -715,7 +715,7 @@ std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config( 
 
     // Parse
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters LLG: building" );
-    if( !config_file_name.empty() )
+    if( not config_file_name.empty() )
     {
         try
         {
@@ -832,7 +832,7 @@ std::unique_ptr<Data::Parameters_Method_EMA> Parameters_Method_EMA_from_Config( 
 
     // Parse
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters EMA: building" );
-    if( !config_file_name.empty() )
+    if( not config_file_name.empty() )
     {
         try
         {
@@ -924,7 +924,7 @@ std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config( co
 
     // Parse
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters MC: building" );
-    if( !config_file_name.empty() )
+    if( not config_file_name.empty() )
     {
         try
         {
@@ -1019,7 +1019,7 @@ std::unique_ptr<Data::Parameters_Method_GNEB> Parameters_Method_GNEB_from_Config
 
     // Parse
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters GNEB: building" );
-    if( !config_file_name.empty() )
+    if( not config_file_name.empty() )
     {
         try
         {
@@ -1115,7 +1115,7 @@ std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config( 
 
     // Parse
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters MMF: building" );
-    if( !config_file_name.empty() )
+    if( not config_file_name.empty() )
     {
         try
         {
@@ -1202,7 +1202,7 @@ Hamiltonian_from_Config( const std::string & config_file_name, std::shared_ptr<D
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian: building" );
 
     // Hamiltonian type
-    if( !config_file_name.empty() )
+    if( not config_file_name.empty() )
     {
         try
         {
@@ -1226,7 +1226,7 @@ Hamiltonian_from_Config( const std::string & config_file_name, std::shared_ptr<D
     std::unique_ptr<Engine::Hamiltonian> hamiltonian;
     try
     {
-        if( hamiltonian_type == "heisenberg_neighbours" || hamiltonian_type == "heisenberg_pairs" )
+        if( hamiltonian_type == "heisenberg_neighbours" or hamiltonian_type == "heisenberg_pairs" )
         {
             hamiltonian = Hamiltonian_Heisenberg_from_Config( config_file_name, geometry, hamiltonian_type );
         }
@@ -1307,7 +1307,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
     //------------------------------- Parser --------------------------------
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Heisenberg: building" );
     // Iteration variables
-    if( !config_file_name.empty() )
+    if( not config_file_name.empty() )
     {
         try
         {
@@ -1356,7 +1356,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
             else if( config_file_handle.Find( "anisotropy_file" ) )
                 config_file_handle >> anisotropy_file;
 
-            if( !anisotropy_file.empty() )
+            if( not anisotropy_file.empty() )
             {
                 // The file name should be valid so we try to read it
                 Anisotropy_from_File(
@@ -1364,7 +1364,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                     cubic_anisotropy_index, cubic_anisotropy_magnitude );
 
                 anisotropy_from_file = true;
-                if( !anisotropy_index.empty() )
+                if( not anisotropy_index.empty() )
                 {
                     K        = anisotropy_magnitude[0];
                     K_normal = anisotropy_normal[0];
@@ -1374,7 +1374,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                     K        = 0;
                     K_normal = { 0, 0, 0 };
                 }
-                if( !cubic_anisotropy_index.empty() )
+                if( not cubic_anisotropy_index.empty() )
                     K4 = cubic_anisotropy_magnitude[0];
                 else
                     K4 = 0;
@@ -1438,7 +1438,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                 else if( config_file_handle.Find( "interaction_pairs_file" ) )
                     config_file_handle >> interaction_pairs_file;
 
-                if( !interaction_pairs_file.empty() )
+                if( not interaction_pairs_file.empty() )
                 {
                     // The file name should be valid so we try to read it
                     Pairs_from_File(
@@ -1647,7 +1647,7 @@ Hamiltonian_Gaussian_from_Config( const std::string & config_file_name, std::sha
     //------------------------------- Parser --------------------------------
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Gaussian: building" );
 
-    if( !config_file_name.empty() )
+    if( not config_file_name.empty() )
     {
         try
         {
