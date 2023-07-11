@@ -130,27 +130,27 @@ void Tangents(
 
     for( int idx_img = 0; idx_img < noi; ++idx_img )
     {
-        auto & image = *configurations[idx_img];
+        const auto & image = *configurations[idx_img];
 
         // First Image
         if( idx_img == 0 )
         {
-            auto & image_plus = *configurations[idx_img + 1];
+            const auto & image_plus = *configurations[idx_img + 1];
             Vectormath::set_c_a( 1, image_plus, tangents[idx_img] );
             Vectormath::add_c_a( -1, image, tangents[idx_img] );
         }
         // Last Image
         else if( idx_img == noi - 1 )
         {
-            auto & image_minus = *configurations[idx_img - 1];
+            const auto & image_minus = *configurations[idx_img - 1];
             Vectormath::set_c_a( 1, image, tangents[idx_img] );
             Vectormath::add_c_a( -1, image_minus, tangents[idx_img] );
         }
         // Images Inbetween
         else
         {
-            auto & image_plus  = *configurations[idx_img + 1];
-            auto & image_minus = *configurations[idx_img - 1];
+            const auto & image_plus  = *configurations[idx_img + 1];
+            const auto & image_minus = *configurations[idx_img - 1];
 
             // Energies
             scalar E_mid = 0, E_plus = 0, E_minus = 0;

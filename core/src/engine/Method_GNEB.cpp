@@ -23,13 +23,11 @@ namespace Engine
 
 template<Solver solver>
 Method_GNEB<solver>::Method_GNEB( std::shared_ptr<Data::Spin_System_Chain> chain, int idx_chain )
-        : Method_Solver<solver>( chain->gneb_parameters, -1, idx_chain ), chain( chain )
+        : Method_Solver<solver>( chain->gneb_parameters, chain->noi, chain->images[0]->nos, -1, idx_chain ),
+          chain( chain )
 {
     this->systems    = chain->images;
     this->SenderName = Utility::Log_Sender::GNEB;
-
-    this->noi = chain->noi;
-    this->nos = chain->images[0]->nos;
 
     this->energies = std::vector<scalar>( this->noi, 0 );
     this->Rx       = std::vector<scalar>( this->noi, 0 );
@@ -62,9 +60,6 @@ Method_GNEB<solver>::Method_GNEB( std::shared_ptr<Data::Spin_System_Chain> chain
 
     // History
     // this->history = std::map<std::string, std::vector<scalar>>{ { "max_torque", { this->max_torque } } };
-
-    //---- Initialise Solver-specific variables
-    this->Initialize();
 
     // Calculate Data for the border images, which will not be updated
     this->chain->images[0]
@@ -404,12 +399,7 @@ bool Method_GNEB<solver>::Iterations_Allowed()
 }
 
 template<Solver solver>
-void Method_GNEB<solver>::Hook_Pre_Iteration()
-{
-}
-
-template<Solver solver>
-void Method_GNEB<solver>::Hook_Post_Iteration()
+void Method_GNEB<solver>::Post_Iteration_Hook()
 {
     // --- Convergence Parameter Update
     this->max_torque = 0;

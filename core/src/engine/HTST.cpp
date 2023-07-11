@@ -35,8 +35,8 @@ void Calculate( Data::HTST_Info & htst_info, int n_eigenmodes_keep )
     const scalar epsilon       = 1e-4;
     const scalar epsilon_force = 1e-8;
 
-    auto & image_minimum = *htst_info.minimum->spins;
-    auto & image_sp      = *htst_info.saddle_point->spins;
+    const auto & image_minimum = *htst_info.minimum->spins;
+    const auto & image_sp      = *htst_info.saddle_point->spins;
 
     int nos = image_minimum.size();
 
@@ -319,12 +319,12 @@ void Calculate( Data::HTST_Info & htst_info, int n_eigenmodes_keep )
 
 scalar Calculate_Zero_Volume( const std::shared_ptr<Data::Spin_System> system )
 {
-    int nos                = system->geometry->nos;
-    auto & n_cells         = system->geometry->n_cells;
-    auto & spins           = *system->spins;
-    auto & spin_positions  = system->geometry->positions;
-    auto & geometry        = *system->geometry;
-    auto & bravais_vectors = system->geometry->bravais_vectors;
+    int nos                      = system->geometry->nos;
+    const auto & n_cells         = system->geometry->n_cells;
+    const auto & spins           = *system->spins;
+    const auto & spin_positions  = system->geometry->positions;
+    const auto & geometry        = *system->geometry;
+    const auto & bravais_vectors = system->geometry->bravais_vectors;
 
     // Dimensionality of the zero mode
     int zero_mode_dimensionality = 0;

@@ -10,7 +10,7 @@
 using namespace Utility;
 
 template<>
-inline void Method_Solver<Solver::LBFGS_OSO>::Initialize()
+inline void Method_Solver<Solver::LBFGS_OSO>::Initialize_Solver()
 {
     this->n_lbfgs_memory = 3; // how many previous iterations are stored in the memory
     this->delta_a        = std::vector<field<vectorfield>>(

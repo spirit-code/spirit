@@ -20,14 +20,11 @@ namespace Engine
 
 template<Solver solver>
 Method_LLG<solver>::Method_LLG( std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain )
-        : Method_Solver<solver>( system->llg_parameters, idx_img, idx_chain ), picoseconds_passed( 0 )
+        : Method_Solver<solver>( system->llg_parameters, 1, system->nos, idx_img, idx_chain ), picoseconds_passed( 0 )
 {
     // Currently we only support a single image being iterated at once:
     this->systems    = std::vector<std::shared_ptr<Data::Spin_System>>( 1, system );
     this->SenderName = Utility::Log_Sender::LLG;
-
-    this->noi = this->systems.size();
-    this->nos = this->systems[0]->nos;
 
     // Forces
     this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos ) );
@@ -51,15 +48,12 @@ Method_LLG<solver>::Method_LLG( std::shared_ptr<Data::Spin_System> system, int i
     // Allocate force array
     // this->force = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));	// [noi][3*nos]
 
-    //---- Initialise Solver-specific variables
-    this->Initialize();
-
     // Initial force calculation s.t. it does not seem to be already converged
     this->Prepare_Thermal_Field();
     this->Calculate_Force( this->configurations, this->forces );
     this->Calculate_Force_Virtual( this->configurations, this->forces, this->forces_virtual );
-    // Post iteration hook to get forceMaxAbsComponent etc
-    this->Hook_Post_Iteration();
+    // Call post iteration hook to get forceMaxAbsComponent etc
+    this->Post_Iteration_Hook();
 }
 
 template<Solver solver>
@@ -239,12 +233,7 @@ bool Method_LLG<solver>::Converged()
 }
 
 template<Solver solver>
-void Method_LLG<solver>::Hook_Pre_Iteration()
-{
-}
-
-template<Solver solver>
-void Method_LLG<solver>::Hook_Post_Iteration()
+void Method_LLG<solver>::Post_Iteration_Hook()
 {
     // Increment the time counter (picoseconds)
     this->picoseconds_passed += this->systems[0]->llg_parameters->dt;

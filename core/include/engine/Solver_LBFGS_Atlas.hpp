@@ -11,7 +11,7 @@
 using namespace Utility;
 
 template<>
-inline void Method_Solver<Solver::LBFGS_Atlas>::Initialize()
+inline void Method_Solver<Solver::LBFGS_Atlas>::Initialize_Solver()
 {
     this->n_lbfgs_memory = 3; // how many updates the solver tracks to estimate the hessian
     this->atlas_updates  = std::vector<field<vector2field>>(

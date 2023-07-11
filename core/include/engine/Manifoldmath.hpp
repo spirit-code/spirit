@@ -21,6 +21,7 @@ namespace Engine
 // TODO: cleanly separate these two cases!
 namespace Manifoldmath
 {
+
 // Get the norm of a vectorfield (interpreted as a 3N-vector)
 scalar norm( const vectorfield & vf );
 // Normalize a vectorfield (interpreted as a 3N-vector)

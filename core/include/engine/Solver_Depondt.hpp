@@ -1,5 +1,5 @@
 template<>
-inline void Method_Solver<Solver::Depondt>::Initialize()
+inline void Method_Solver<Solver::Depondt>::Initialize_Solver()
 {
     this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
     this->forces_virtual = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
@@ -13,7 +13,7 @@ inline void Method_Solver<Solver::Depondt>::Initialize()
 
     this->configurations_predictor = std::vector<std::shared_ptr<vectorfield>>( this->noi );
     for( int i = 0; i < this->noi; i++ )
-        configurations_predictor[i] = std::shared_ptr<vectorfield>( new vectorfield( this->nos, { 0, 0, 0 } ) );
+        configurations_predictor[i] = std::make_shared<vectorfield>( this->nos );
 
     this->temp1 = vectorfield( this->nos, { 0, 0, 0 } );
 }

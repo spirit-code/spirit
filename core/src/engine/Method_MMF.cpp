@@ -23,12 +23,10 @@ namespace Engine
 
 template<Solver solver>
 Method_MMF<solver>::Method_MMF( std::shared_ptr<Data::Spin_System> system, int idx_chain )
-        : Method_Solver<solver>( system->mmf_parameters, -1, idx_chain )
+        : Method_Solver<solver>( system->mmf_parameters, 1, system->nos, -1, idx_chain )
 {
     this->systems = std::vector<std::shared_ptr<Data::Spin_System>>( 1, system );
     this->system  = system;
-    this->noi     = this->systems.size();
-    this->nos     = this->systems[0]->nos;
 
     switched1        = false;
     switched2        = false;
@@ -59,9 +57,6 @@ Method_MMF<solver>::Method_MMF( std::shared_ptr<Data::Spin_System> system, int i
     // Create shared pointers to the method's systems' spin configurations
     this->configurations    = std::vector<std::shared_ptr<vectorfield>>( 1 );
     this->configurations[0] = this->system->spins;
-
-    //---- Initialise Solver-specific variables
-    this->Initialize();
 }
 
 template<Solver solver>
@@ -402,12 +397,7 @@ bool Method_MMF<solver>::Converged()
 }
 
 template<Solver solver>
-void Method_MMF<solver>::Hook_Pre_Iteration()
-{
-}
-
-template<Solver solver>
-void Method_MMF<solver>::Hook_Post_Iteration()
+void Method_MMF<solver>::Post_Iteration_Hook()
 {
     // --- Convergence Parameter Update
     this->max_torque = 0;

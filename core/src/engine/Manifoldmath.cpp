@@ -17,6 +17,7 @@ namespace Engine
 {
 namespace Manifoldmath
 {
+
 void project_parallel( vectorfield & vf1, const vectorfield & vf2 )
 {
     scalar proj = Vectormath::dot( vf1, vf2 );
@@ -285,8 +286,7 @@ void tangent_basis_spherical( const vectorfield & vf, MatrixX & basis )
 
 void sparse_tangent_basis_spherical( const vectorfield & vf, SpMatrixX & basis )
 {
-    typedef Eigen::Triplet<scalar> T;
-    std::vector<T> triplet_list;
+    std::vector<Eigen::Triplet<scalar>> triplet_list;
     triplet_list.reserve( vf.size() * 3 );
 
     Vector3 tmp, etheta, ephi, res;
@@ -297,29 +297,29 @@ void sparse_tangent_basis_spherical( const vectorfield & vf, SpMatrixX & basis )
             tmp = Vector3{ 1, 0, 0 };
             res = ( tmp - tmp.dot( vf[i] ) * vf[i] ).normalized();
 
-            triplet_list.push_back( T( 3 * i, 2 * i, res[0] ) );
-            triplet_list.push_back( T( 3 * i + 1, 2 * i, res[1] ) );
-            triplet_list.push_back( T( 3 * i + 2, 2 * i, res[2] ) );
+            triplet_list.emplace_back( 3 * i, 2 * i, res[0] );
+            triplet_list.emplace_back( 3 * i + 1, 2 * i, res[1] );
+            triplet_list.emplace_back( 3 * i + 2, 2 * i, res[2] );
 
             tmp = Vector3{ 0, 1, 0 };
             res = ( tmp - tmp.dot( vf[i] ) * vf[i] ).normalized();
-            triplet_list.push_back( T( 3 * i, 2 * i + 1, res[0] ) );
-            triplet_list.push_back( T( 3 * i + 1, 2 * i + 1, res[1] ) );
-            triplet_list.push_back( T( 3 * i + 2, 2 * i + 1, res[2] ) );
+            triplet_list.emplace_back( 3 * i, 2 * i + 1, res[0] );
+            triplet_list.emplace_back( 3 * i + 1, 2 * i + 1, res[1] );
+            triplet_list.emplace_back( 3 * i + 2, 2 * i + 1, res[2] );
         }
         else if( vf[i][2] < -1 + 1e-8 )
         {
             tmp = Vector3{ 1, 0, 0 };
             res = ( tmp - tmp.dot( vf[i] ) * vf[i] ).normalized();
-            triplet_list.push_back( T( 3 * i, 2 * i, res[0] ) );
-            triplet_list.push_back( T( 3 * i + 1, 2 * i, res[1] ) );
-            triplet_list.push_back( T( 3 * i + 2, 2 * i, res[2] ) );
+            triplet_list.emplace_back( 3 * i, 2 * i, res[0] );
+            triplet_list.emplace_back( 3 * i + 1, 2 * i, res[1] );
+            triplet_list.emplace_back( 3 * i + 2, 2 * i, res[2] );
 
             tmp = Vector3{ 0, -1, 0 };
             res = ( tmp - tmp.dot( vf[i] ) * vf[i] ).normalized();
-            triplet_list.push_back( T( 3 * i, 2 * i + 1, res[0] ) );
-            triplet_list.push_back( T( 3 * i + 1, 2 * i + 1, res[1] ) );
-            triplet_list.push_back( T( 3 * i + 2, 2 * i + 1, res[2] ) );
+            triplet_list.emplace_back( 3 * i, 2 * i + 1, res[0] );
+            triplet_list.emplace_back( 3 * i + 1, 2 * i + 1, res[1] );
+            triplet_list.emplace_back( 3 * i + 2, 2 * i + 1, res[2] );
         }
         else
         {
@@ -331,13 +331,13 @@ void sparse_tangent_basis_spherical( const vectorfield & vf, SpMatrixX & basis )
             ephi   = Vector3{ -vf[i][1] / rxy, vf[i][0] / rxy, 0 };
 
             res = ( etheta - etheta.dot( vf[i] ) * vf[i] ).normalized();
-            triplet_list.push_back( T( 3 * i, 2 * i, res[0] ) );
-            triplet_list.push_back( T( 3 * i + 1, 2 * i, res[1] ) );
-            triplet_list.push_back( T( 3 * i + 2, 2 * i, res[2] ) );
+            triplet_list.emplace_back( 3 * i, 2 * i, res[0] );
+            triplet_list.emplace_back( 3 * i + 1, 2 * i, res[1] );
+            triplet_list.emplace_back( 3 * i + 2, 2 * i, res[2] );
             res = ( ephi - ephi.dot( vf[i] ) * vf[i] ).normalized();
-            triplet_list.push_back( T( 3 * i, 2 * i + 1, res[0] ) );
-            triplet_list.push_back( T( 3 * i + 1, 2 * i + 1, res[1] ) );
-            triplet_list.push_back( T( 3 * i + 2, 2 * i + 1, res[2] ) );
+            triplet_list.emplace_back( 3 * i, 2 * i + 1, res[0] );
+            triplet_list.emplace_back( 3 * i + 1, 2 * i + 1, res[1] );
+            triplet_list.emplace_back( 3 * i + 2, 2 * i + 1, res[2] );
         }
     }
     basis.setFromTriplets( triplet_list.begin(), triplet_list.end() );
@@ -379,7 +379,7 @@ void tangent_basis_righthanded( const vectorfield & vf, MatrixX & basis )
 
     for( int i = 0; i < size; ++i )
     {
-        auto & axis = vf[i];
+        const auto & axis = vf[i];
 
         // Choose orthogonalisation basis for Grahm-Schmidt
         //      We will need two vectors with which the axis always forms the
@@ -514,8 +514,7 @@ void sparse_hessian_bordered_3N(
         lambda[i] = image[i].normalized().dot( gradient[i] );
 
     // Construct hessian_out
-    typedef Eigen::Triplet<scalar> T;
-    std::vector<T> tripletList;
+    std::vector<Eigen::Triplet<scalar>> tripletList;
     tripletList.reserve( hessian.nonZeros() + 3 * nos );
 
     // Iterate over non zero entries of hesiian
@@ -523,11 +522,11 @@ void sparse_hessian_bordered_3N(
     {
         for( SpMatrixX::InnerIterator it( hessian, k ); it; ++it )
         {
-            tripletList.push_back( T( it.row(), it.col(), it.value() ) );
+            tripletList.emplace_back( it.row(), it.col(), it.value() );
         }
         int j = k % 3;
         int i = ( k - j ) / 3;
-        tripletList.push_back( T( k, k, -lambda[i] ) ); // Correction to the diagonal
+        tripletList.emplace_back( k, k, -lambda[i] ); // Correction to the diagonal
     }
     hessian_out.setFromTriplets( tripletList.begin(), tripletList.end() );
 }
