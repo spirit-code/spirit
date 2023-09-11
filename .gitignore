@@ -380,7 +380,7 @@ Makefile
 cmake_install.cmake
 install_manifest.txt
 CTestTestfile.cmake
-
+compile_commands.json
 
 ### Python ###
 # Byte-compiled / optimized / DLL files
