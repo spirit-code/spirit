@@ -14,12 +14,10 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-mkdir -p build
-cd build
 if [ $DEBUG ]
 then
     echo "-- >> CMake: Using Debug Build Type"
-    cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug ..
+    cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug .
 else
-    cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON ..
+    cmake -B build -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .
 fi
