@@ -1224,10 +1224,10 @@ void Hamiltonian_Heisenberg::Hessian( const vectorfield & spins, MatrixX & hessi
 
                 hessian( i + 2, j + 1 ) += dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
                 hessian( i + 1, j + 2 ) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-                hessian( i, j + 2 ) += dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-                hessian( i + 2, j ) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-                hessian( i + 1, j ) += dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
-                hessian( i, j + 1 ) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
+                hessian( i + 0, j + 2 ) += dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
+                hessian( i + 2, j + 0 ) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
+                hessian( i + 1, j + 0 ) += dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
+                hessian( i + 0, j + 1 ) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
             }
         }
     }
@@ -1373,18 +1373,18 @@ void Hamiltonian_Heisenberg::Sparse_Hessian( const vectorfield & spins, SpMatrix
 
                 tripletList.push_back( T( i + 2, j + 1, dmi_magnitudes[i_pair] * dmi_normals[i_pair][0] ) );
                 tripletList.push_back( T( i + 1, j + 2, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0] ) );
-                tripletList.push_back( T( i, j + 2, dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] ) );
-                tripletList.push_back( T( i + 2, j, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] ) );
-                tripletList.push_back( T( i + 1, j, dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] ) );
-                tripletList.push_back( T( i, j + 1, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] ) );
+                tripletList.push_back( T( i + 0, j + 2, dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] ) );
+                tripletList.push_back( T( i + 2, j + 0, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] ) );
+                tripletList.push_back( T( i + 1, j + 0, dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] ) );
+                tripletList.push_back( T( i + 0, j + 1, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] ) );
 
 #ifndef SPIRIT_USE_OPENMP
                 tripletList.push_back( T( j + 1, i + 2, dmi_magnitudes[i_pair] * dmi_normals[i_pair][0] ) );
                 tripletList.push_back( T( j + 2, i + 1, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0] ) );
-                tripletList.push_back( T( j + 2, i, dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] ) );
-                tripletList.push_back( T( j, i + 2, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] ) );
-                tripletList.push_back( T( j, i + 1, dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] ) );
-                tripletList.push_back( T( j + 1, i, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] ) );
+                tripletList.push_back( T( j + 2, i + 0, dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] ) );
+                tripletList.push_back( T( j + 0, i + 2, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] ) );
+                tripletList.push_back( T( j + 0, i + 1, dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] ) );
+                tripletList.push_back( T( j + 1, i + 0, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] ) );
 #endif
             }
         }
