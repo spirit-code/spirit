@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <memory>
 #include <numeric>
 #include <random>
 
@@ -48,14 +49,14 @@ Spin_System::Spin_System( Spin_System const & other )
 try
 {
     this->nos         = other.nos;
-    this->spins       = std::shared_ptr<vectorfield>( new vectorfield( *other.spins ) );
+    this->spins       = std::make_unique<vectorfield>( *other.spins );
     this->modes       = std::vector<std::shared_ptr<vectorfield>>( other.modes.size(), NULL );
     this->eigenvalues = other.eigenvalues;
 
     // copy the modes
     for( int i = 0; i < other.modes.size(); i++ )
         if( other.modes[i] != NULL )
-            this->modes[i] = std::shared_ptr<vectorfield>( new vectorfield( *other.modes[i] ) );
+            this->modes[i] = std::make_shared<vectorfield>( *other.modes[i] );
 
     this->E               = other.E;
     this->E_array         = other.E_array;
@@ -93,14 +94,14 @@ try
     if( this != &other )
     {
         this->nos         = other.nos;
-        this->spins       = std::shared_ptr<vectorfield>( new vectorfield( *other.spins ) );
+        this->spins       = std::make_unique<vectorfield>( *other.spins );
         this->modes       = std::vector<std::shared_ptr<vectorfield>>( other.modes.size(), NULL );
         this->eigenvalues = other.eigenvalues;
 
         // copy the modes
         for( int i = 0; i < other.modes.size(); i++ )
             if( other.modes[i] != NULL )
-                this->modes[i] = std::shared_ptr<vectorfield>( new vectorfield( *other.modes[i] ) );
+                this->modes[i] = std::make_shared<vectorfield>( *other.modes[i] );
 
         this->E               = other.E;
         this->E_array         = other.E_array;
