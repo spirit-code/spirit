@@ -9,7 +9,7 @@ inline void Method_Solver<Solver::SIB>::Initialize()
 
     this->configurations_predictor = std::vector<std::shared_ptr<vectorfield>>( this->noi );
     for( int i = 0; i < this->noi; i++ )
-        configurations_predictor[i] = std::shared_ptr<vectorfield>( new vectorfield( this->nos ) );
+        configurations_predictor[i] = std::make_shared<vectorfield>( this->nos );
 }
 
 /*

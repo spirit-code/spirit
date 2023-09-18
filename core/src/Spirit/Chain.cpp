@@ -147,7 +147,7 @@ try
         {
             // Copy the clipboard image
             state->clipboard_image->Lock();
-            auto copy = std::shared_ptr<Data::Spin_System>( new Data::Spin_System( *state->clipboard_image ) );
+            auto copy = std::make_shared<Data::Spin_System>( *state->clipboard_image );
             state->clipboard_image->Unlock();
 
             chain->Lock();
@@ -232,7 +232,7 @@ try
     image->Lock();
     try
     {
-        state->clipboard_image = std::shared_ptr<Data::Spin_System>( new Data::Spin_System( *image ) );
+        state->clipboard_image = std::make_shared<Data::Spin_System>( *image );
     }
     catch( ... )
     {
@@ -260,7 +260,7 @@ try
     {
         // Copy the clipboard image
         state->clipboard_image->Lock();
-        auto copy = std::shared_ptr<Data::Spin_System>( new Data::Spin_System( *state->clipboard_image ) );
+        auto copy = std::make_shared<Data::Spin_System>( *state->clipboard_image );
         state->clipboard_image->Unlock();
 
         chain->Lock();
@@ -307,7 +307,7 @@ try
 
         // Copy the clipboard image
         state->clipboard_image->Lock();
-        auto copy = std::shared_ptr<Data::Spin_System>( new Data::Spin_System( *state->clipboard_image ) );
+        auto copy = std::make_shared<Data::Spin_System>( *state->clipboard_image );
         state->clipboard_image->Unlock();
 
         chain->Lock();
@@ -365,7 +365,7 @@ try
 
         // Copy the clipboard image
         state->clipboard_image->Lock();
-        auto copy = std::shared_ptr<Data::Spin_System>( new Data::Spin_System( *state->clipboard_image ) );
+        auto copy = std::make_shared<Data::Spin_System>( *state->clipboard_image );
         state->clipboard_image->Unlock();
 
         chain->Lock();
@@ -421,7 +421,7 @@ try
 
         // Copy the clipboard image
         state->clipboard_image->Lock();
-        auto copy = std::shared_ptr<Data::Spin_System>( new Data::Spin_System( *state->clipboard_image ) );
+        auto copy = std::make_shared<Data::Spin_System>( *state->clipboard_image );
         state->clipboard_image->Unlock();
 
         chain->Lock();

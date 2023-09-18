@@ -25,7 +25,7 @@ try : iteration_allowed( iteration_allowed ), singleshot_allowed( false ), hamil
     this->nos = this->geometry->nos;
 
     // Initialize Spins Array
-    this->spins = std::shared_ptr<vectorfield>( new vectorfield( nos ) );
+    this->spins = std::make_shared<vectorfield>( nos );
 
     // Initialize Modes container
     this->modes = std::vector<std::shared_ptr<vectorfield>>( this->ema_parameters->n_modes, NULL );
@@ -141,8 +141,8 @@ try
 {
     this->E_array = this->hamiltonian->Energy_Contributions( *this->spins );
     scalar sum    = 0;
-    for( auto & E : E_array )
-        sum += E.second;
+    for( auto & E_item : E_array )
+        sum += E_item.second;
     this->E = sum;
 }
 catch( ... )

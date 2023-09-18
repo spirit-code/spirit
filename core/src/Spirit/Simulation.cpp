@@ -116,7 +116,7 @@ try
         if( n_iterations_log > 0 )
             image->mc_parameters->n_iterations_log = n_iterations_log;
 
-        auto method = std::shared_ptr<Engine::Method>( new Engine::Method_MC( image, idx_image, idx_chain ) );
+        std::shared_ptr<Engine::Method> method = std::make_shared<Engine::Method_MC>( image, idx_image, idx_chain );
 
         image->Unlock();
 
@@ -358,18 +358,16 @@ try
 
         std::shared_ptr<Engine::Method> method;
         if( solver_type == int( Engine::Solver::SIB ) )
-            method = std::shared_ptr<Engine::Method>( new Engine::Method_MMF<Engine::Solver::SIB>( image, idx_chain ) );
+            method = std::make_shared<Engine::Method_MMF<Engine::Solver::SIB>>( image, idx_chain );
         else if( solver_type == int( Engine::Solver::Heun ) )
-            method
-                = std::shared_ptr<Engine::Method>( new Engine::Method_MMF<Engine::Solver::Heun>( image, idx_chain ) );
+            method = std::make_shared<Engine::Method_MMF<Engine::Solver::Heun>>( image, idx_chain );
         else if( solver_type == int( Engine::Solver::Depondt ) )
-            method = std::shared_ptr<Engine::Method>(
-                new Engine::Method_MMF<Engine::Solver::Depondt>( image, idx_chain ) );
+            method = std::make_shared<Engine::Method_MMF<Engine::Solver::Depondt>>( image, idx_chain );
         // else if (solver_type == int(Engine::Solver::NCG))
         //     method = std::shared_ptr<Engine::Method>(
         //         new Engine::Method_MMF<Engine::Solver::NCG>( image, idx_chain ) );
         else if( solver_type == int( Engine::Solver::VP ) )
-            method = std::shared_ptr<Engine::Method>( new Engine::Method_MMF<Engine::Solver::VP>( image, idx_chain ) );
+            method = std::make_shared<Engine::Method_MMF<Engine::Solver::VP>>( image, idx_chain );
         else
             spirit_throw(
                 Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Warning,
@@ -430,7 +428,7 @@ try
         if( n_iterations_log > 0 )
             image->ema_parameters->n_iterations_log = n_iterations_log;
 
-        auto method = std::shared_ptr<Engine::Method>( new Engine::Method_EMA( image, idx_image, idx_chain ) );
+        auto method = std::make_shared<Engine::Method_EMA>( image, idx_image, idx_chain );
 
         image->Unlock();
 
