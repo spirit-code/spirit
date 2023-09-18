@@ -4,6 +4,7 @@
 
 #include <Spirit/Spirit_Defines.h>
 #include <engine/Vectormath_Defines.hpp>
+#include <engine/Hamiltonian_Defines.hpp>
 
 #include <random>
 #include <vector>

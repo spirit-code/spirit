@@ -18,6 +18,7 @@
 #include <string>
 
 // using namespace Utility;
+using namespace Data;
 using Utility::Log_Level;
 using Utility::Log_Sender;
 
@@ -1262,8 +1263,7 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
     intfield boundary_conditions           = { false, false, false };
 
     // External Magnetic Field
-    scalar B         = 0;
-    Vector3 B_normal = { 0.0, 0.0, 1.0 };
+    NormalVector external_field{ 0, { 0.0, 0.0, 1.0 } };
 
     // Anisotropy
     std::string anisotropy_file = "";
@@ -1271,38 +1271,45 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
     scalar K4                   = 0;
     Vector3 K_normal            = { 0.0, 0.0, 1.0 };
     bool anisotropy_from_file   = false;
-    intfield anisotropy_index( geometry->n_cell_atoms );
-    scalarfield anisotropy_magnitude( geometry->n_cell_atoms, 0.0 );
-    vectorfield anisotropy_normal( geometry->n_cell_atoms, K_normal );
-    intfield cubic_anisotropy_index( geometry->n_cell_atoms );
-    scalarfield cubic_anisotropy_magnitude( geometry->n_cell_atoms, 0.0 );
+    VectorfieldData anisotropy_data{};
+    anisotropy_data.indices    = intfield( geometry->n_cell_atoms );
+    anisotropy_data.magnitudes = scalarfield( geometry->n_cell_atoms, 0.0 );
+    anisotropy_data.normals    = vectorfield( geometry->n_cell_atoms, K_normal );
+    ScalarfieldData cubic_anisotropy_data;
+    cubic_anisotropy_data.indices    = intfield( geometry->n_cell_atoms );
+    cubic_anisotropy_data.magnitudes = scalarfield( geometry->n_cell_atoms, 0.0 );
 
     // ------------ Pair Interactions ------------
     int n_pairs                        = 0;
     std::string interaction_pairs_file = "";
-    pairfield exchange_pairs( 0 );
-    scalarfield exchange_magnitudes( 0 );
-    pairfield dmi_pairs( 0 );
-    scalarfield dmi_magnitudes( 0 );
-    vectorfield dmi_normals( 0 );
+    ScalarPairfieldData exchange;
+    exchange.pairs      = pairfield( 0 );
+    exchange.magnitudes = scalarfield( 0 );
+    VectorPairfieldData dmi{};
+    dmi.pairs      = pairfield( 0 );
+    dmi.magnitudes = scalarfield( 0 );
+    dmi.normals    = vectorfield( 0 );
 
     // Number of shells in which we calculate neighbours
-    std::size_t n_shells_exchange = exchange_magnitudes.size();
+    std::size_t n_shells_exchange = exchange.magnitudes.size();
     // DM constant
-    std::size_t n_shells_dmi = dmi_magnitudes.size();
+    std::size_t n_shells_dmi = dmi.magnitudes.size();
     int dm_chirality         = 1;
 
-    std::string ddi_method_str     = "none";
-    auto ddi_method                = Engine::DDI_Method::None;
-    intfield ddi_n_periodic_images = { 4, 4, 4 };
-    scalar ddi_radius              = 0.0;
-    bool ddi_pb_zero_padding       = true;
+    std::string ddi_method_str = "none";
+    auto ddi_method            = Engine::DDI_Method::None;
+
+    DDI_Data ddi_data{};
+    ddi_data.n_periodic_images = { 4, 4, 4 };
+    ddi_data.radius            = 0.0;
+    ddi_data.pb_zero_padding   = false;
 
     // ------------ Quadruplet Interactions ------------
     int n_quadruplets            = 0;
     std::string quadruplets_file = "";
-    quadrupletfield quadruplets( 0 );
-    scalarfield quadruplet_magnitudes( 0 );
+    QuadrupletfieldData quadruplets;
+    quadruplets.quadruplets = quadrupletfield( 0 );
+    quadruplets.magnitudes  = scalarfield( 0 );
 
     //------------------------------- Parser --------------------------------
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Heisenberg: building" );
@@ -1330,12 +1337,12 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
             IO::Filter_File_Handle config_file_handle( config_file_name );
 
             // Read parameters from config if available
-            config_file_handle.Read_Single( B, "external_field_magnitude" );
-            config_file_handle.Read_Vector3( B_normal, "external_field_normal" );
-            B_normal.normalize();
-            if( B_normal.norm() < 1e-8 )
+            config_file_handle.Read_Single( external_field.magnitude, "external_field_magnitude" );
+            config_file_handle.Read_Vector3( external_field.normal, "external_field_normal" );
+            external_field.normal.normalize();
+            if( external_field.normal.norm() < 1e-8 )
             {
-                B_normal = { 0, 0, 1 };
+                external_field.normal = { 0, 0, 1 };
                 Log( Log_Level::Warning, Log_Sender::IO,
                      "Input for 'external_field_normal' had norm zero and has been set to (0,0,1)" );
             }
@@ -1360,22 +1367,22 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
             {
                 // The file name should be valid so we try to read it
                 Anisotropy_from_File(
-                    anisotropy_file, geometry, n_pairs, anisotropy_index, anisotropy_magnitude, anisotropy_normal,
-                    cubic_anisotropy_index, cubic_anisotropy_magnitude );
+                    anisotropy_file, geometry, n_pairs, anisotropy_data.indices, anisotropy_data.magnitudes,
+                    anisotropy_data.normals, cubic_anisotropy_data.indices, cubic_anisotropy_data.magnitudes );
 
                 anisotropy_from_file = true;
-                if( !anisotropy_index.empty() )
+                if( !anisotropy_data.indices.empty() )
                 {
-                    K        = anisotropy_magnitude[0];
-                    K_normal = anisotropy_normal[0];
+                    K        = anisotropy_data.magnitudes[0];
+                    K_normal = anisotropy_data.normals[0];
                 }
                 else
                 {
                     K        = 0;
                     K_normal = { 0, 0, 0 };
                 }
-                if( !cubic_anisotropy_index.empty() )
-                    K4 = cubic_anisotropy_magnitude[0];
+                if( !cubic_anisotropy_data.indices.empty() )
+                    K4 = cubic_anisotropy_data.magnitudes[0];
                 else
                     K4 = 0;
             }
@@ -1391,32 +1398,32 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                 if( K != 0 )
                 {
                     // Fill the arrays
-                    for( std::size_t i = 0; i < anisotropy_index.size(); ++i )
+                    for( std::size_t i = 0; i < anisotropy_data.indices.size(); ++i )
                     {
-                        anisotropy_index[i]     = static_cast<int>( i );
-                        anisotropy_magnitude[i] = K;
-                        anisotropy_normal[i]    = K_normal;
+                        anisotropy_data.indices[i]    = static_cast<int>( i );
+                        anisotropy_data.magnitudes[i] = K;
+                        anisotropy_data.normals[i]    = K_normal;
                     }
                 }
                 else
                 {
-                    anisotropy_index     = intfield( 0 );
-                    anisotropy_magnitude = scalarfield( 0 );
-                    anisotropy_normal    = vectorfield( 0 );
+                    anisotropy_data.indices    = intfield( 0 );
+                    anisotropy_data.magnitudes = scalarfield( 0 );
+                    anisotropy_data.normals    = vectorfield( 0 );
                 }
                 if( K4 != 0 )
                 {
                     // Fill the arrays
-                    for( std::size_t i = 0; i < cubic_anisotropy_index.size(); ++i )
+                    for( std::size_t i = 0; i < cubic_anisotropy_data.indices.size(); ++i )
                     {
-                        cubic_anisotropy_index[i]     = static_cast<int>( i );
-                        cubic_anisotropy_magnitude[i] = K4;
+                        cubic_anisotropy_data.indices[i]    = static_cast<int>( i );
+                        cubic_anisotropy_data.magnitudes[i] = K4;
                     }
                 }
                 else
                 {
-                    cubic_anisotropy_index     = intfield( 0 );
-                    cubic_anisotropy_magnitude = scalarfield( 0 );
+                    cubic_anisotropy_data.indices    = intfield( 0 );
+                    cubic_anisotropy_data.magnitudes = scalarfield( 0 );
                 }
             }
         }
@@ -1442,8 +1449,8 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                 {
                     // The file name should be valid so we try to read it
                     Pairs_from_File(
-                        interaction_pairs_file, geometry, n_pairs, exchange_pairs, exchange_magnitudes, dmi_pairs,
-                        dmi_magnitudes, dmi_normals );
+                        interaction_pairs_file, geometry, n_pairs, exchange.pairs, exchange.magnitudes, dmi.pairs,
+                        dmi.magnitudes, dmi.normals );
                 }
                 // else
                 //{
@@ -1465,20 +1472,20 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                 IO::Filter_File_Handle config_file_handle( config_file_name );
 
                 config_file_handle.Read_Single( n_shells_exchange, "n_shells_exchange" );
-                if( exchange_magnitudes.size() != n_shells_exchange )
-                    exchange_magnitudes = scalarfield( n_shells_exchange );
+                if( exchange.magnitudes.size() != n_shells_exchange )
+                    exchange.magnitudes = scalarfield( n_shells_exchange );
                 if( n_shells_exchange > 0 )
                 {
                     if( config_file_handle.Find( "jij" ) )
                     {
                         for( std::size_t ishell = 0; ishell < n_shells_exchange; ++ishell )
-                            config_file_handle >> exchange_magnitudes[ishell];
+                            config_file_handle >> exchange.magnitudes[ishell];
                     }
                     else
                         Log( Log_Level::Warning, Log_Sender::IO,
                              fmt::format(
                                  "Hamiltonian_Heisenberg: Keyword 'jij' not found. Using Default: {}",
-                                 exchange_magnitudes[0] ) );
+                                 exchange.magnitudes[0] ) );
                 }
             }
             catch( ... )
@@ -1492,20 +1499,20 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
                 IO::Filter_File_Handle config_file_handle( config_file_name );
 
                 config_file_handle.Read_Single( n_shells_dmi, "n_shells_dmi" );
-                if( dmi_magnitudes.size() != n_shells_dmi )
-                    dmi_magnitudes = scalarfield( n_shells_dmi );
+                if( dmi.magnitudes.size() != n_shells_dmi )
+                    dmi.magnitudes = scalarfield( n_shells_dmi );
                 if( n_shells_dmi > 0 )
                 {
                     if( config_file_handle.Find( "dij" ) )
                     {
-                        for( int ishell = 0; ishell < n_shells_dmi; ++ishell )
-                            config_file_handle >> dmi_magnitudes[ishell];
+                        for( unsigned int ishell = 0; ishell < n_shells_dmi; ++ishell )
+                            config_file_handle >> dmi.magnitudes[ishell];
                     }
                     else
                         Log( Log_Level::Warning, Log_Sender::IO,
                              fmt::format(
                                  "Hamiltonian_Heisenberg: Keyword 'dij' not found. Using Default: {}",
-                                 dmi_magnitudes[0] ) );
+                                 dmi.magnitudes[0] ) );
                 }
                 config_file_handle.Read_Single( dm_chirality, "dm_chirality" );
             }
@@ -1541,11 +1548,11 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
             }
 
             // Number of periodical images
-            config_file_handle.Read_3Vector( ddi_n_periodic_images, "ddi_n_periodic_images" );
-            config_file_handle.Read_Single( ddi_pb_zero_padding, "ddi_pb_zero_padding" );
+            config_file_handle.Read_3Vector( ddi_data.n_periodic_images, "ddi_n_periodic_images" );
+            config_file_handle.Read_Single( ddi_data.pb_zero_padding, "ddi_pb_zero_padding" );
 
             // Dipole-dipole cutoff radius
-            config_file_handle.Read_Single( ddi_radius, "ddi_radius" );
+            config_file_handle.Read_Single( ddi_data.radius, "ddi_radius" );
         }
         catch( ... )
         {
@@ -1566,7 +1573,8 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
             if( quadruplets_file.length() > 0 )
             {
                 // The file name should be valid so we try to read it
-                Quadruplets_from_File( quadruplets_file, geometry, n_quadruplets, quadruplets, quadruplet_magnitudes );
+                Quadruplets_from_File(
+                    quadruplets_file, geometry, n_quadruplets, quadruplets.quadruplets, quadruplets.magnitudes );
             }
         }
         catch( ... )
@@ -1584,8 +1592,8 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
     parameter_log.emplace_back( fmt::format(
         "    {:<21} = {} {} {}", "boundary conditions", boundary_conditions[0], boundary_conditions[1],
         boundary_conditions[2] ) );
-    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "external field", B ) );
-    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "field_normal", B_normal.transpose() ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "external field", external_field.magnitude ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "field_normal", external_field.normal.transpose() ) );
     if( anisotropy_from_file )
         parameter_log.emplace_back( fmt::format( "    K from file \"{}\"", anisotropy_file ) );
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy[0]", K ) );
@@ -1595,37 +1603,36 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
     {
         parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "n_shells_exchange", n_shells_exchange ) );
         if( n_shells_exchange > 0 )
-            parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "J_ij[0]", exchange_magnitudes[0] ) );
+            parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "J_ij[0]", exchange.magnitudes[0] ) );
         parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "n_shells_dmi", n_shells_dmi ) );
         if( n_shells_dmi > 0 )
-            parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "D_ij[0]", dmi_magnitudes[0] ) );
+            parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "D_ij[0]", dmi.magnitudes[0] ) );
         parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "DM chirality", dm_chirality ) );
     }
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_method", ddi_method_str ) );
     parameter_log.emplace_back( fmt::format(
-        "    {:<21} = ({} {} {})", "ddi_n_periodic_images", ddi_n_periodic_images[0], ddi_n_periodic_images[1],
-        ddi_n_periodic_images[2] ) );
-    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_radius", ddi_radius ) );
-    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_pb_zero_padding", ddi_pb_zero_padding ) );
+        "    {:<21} = ({} {} {})", "ddi_n_periodic_images", ddi_data.n_periodic_images[0],
+        ddi_data.n_periodic_images[1], ddi_data.n_periodic_images[2] ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_radius", ddi_data.radius ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_pb_zero_padding", ddi_data.pb_zero_padding ) );
     Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
     std::unique_ptr<Engine::Hamiltonian_Heisenberg> hamiltonian;
 
     if( hamiltonian_type == "heisenberg_neighbours" )
     {
+        const auto & exchange_magnitudes = exchange.magnitudes;
+        const auto & dmi_magnitudes      = dmi.magnitudes;
+
         hamiltonian = std::make_unique<Engine::Hamiltonian_Heisenberg>(
-            B, B_normal, anisotropy_index, anisotropy_magnitude, anisotropy_normal, cubic_anisotropy_index,
-            cubic_anisotropy_magnitude, exchange_magnitudes, dmi_magnitudes, dm_chirality, ddi_method,
-            ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius, quadruplets, quadruplet_magnitudes, geometry,
-            boundary_conditions );
+            geometry, boundary_conditions, external_field, anisotropy_data, cubic_anisotropy_data, exchange_magnitudes,
+            dmi_magnitudes, dm_chirality, quadruplets, ddi_method, ddi_data );
     }
     else
     {
         hamiltonian = std::make_unique<Engine::Hamiltonian_Heisenberg>(
-            B, B_normal, anisotropy_index, anisotropy_magnitude, anisotropy_normal, cubic_anisotropy_index,
-            cubic_anisotropy_magnitude, exchange_pairs, exchange_magnitudes, dmi_pairs, dmi_magnitudes, dmi_normals,
-            ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius, quadruplets, quadruplet_magnitudes,
-            geometry, boundary_conditions );
+            geometry, boundary_conditions, external_field, anisotropy_data, cubic_anisotropy_data, exchange, dmi,
+            quadruplets, ddi_method, ddi_data );
     }
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Heisenberg: built" );
     return hamiltonian;

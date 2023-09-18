@@ -1,6 +1,7 @@
 set(HEADER_SPIRIT_ENGINE
     ${HEADER_SPIRIT_ENGINE}
     ${CMAKE_CURRENT_SOURCE_DIR}/Neighbours.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Defines.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Gaussian.hpp

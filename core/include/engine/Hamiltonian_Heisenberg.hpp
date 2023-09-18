@@ -32,20 +32,18 @@ class Hamiltonian_Heisenberg : public Hamiltonian
 {
 public:
     Hamiltonian_Heisenberg(
-        scalar external_field_magnitude, Vector3 external_field_normal, intfield anisotropy_indices,
-        scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals, intfield cubic_anisotropy_indices,
-        scalarfield cubic_anisotropy_magnitudes, pairfield exchange_pairs, scalarfield exchange_magnitudes,
-        pairfield dmi_pairs, scalarfield dmi_magnitudes, vectorfield dmi_normals, DDI_Method ddi_method,
-        intfield ddi_n_periodic_images, bool ddi_pb_zero_padding, scalar ddi_radius, quadrupletfield quadruplets,
-        scalarfield quadruplet_magnitudes, std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions );
+        std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
+        const Data::NormalVector & external_field, const Data::VectorfieldData & anisotropy,
+        const Data::ScalarfieldData & cubic_anisotropy, const Data::ScalarPairfieldData & exchange,
+        const Data::VectorPairfieldData & dmi, const Data::QuadrupletfieldData & quadruplet,
+        Engine::DDI_Method ddi_method, const Data::DDI_Data & ddi_data );
 
     Hamiltonian_Heisenberg(
-        scalar external_field_magnitude, Vector3 external_field_normal, intfield anisotropy_indices,
-        scalarfield anisotropy_magnitudes, vectorfield anisotropy_normals, intfield cubic_anisotropy_indices,
-        scalarfield cubic_anisotropy_magnitudes, scalarfield exchange_shell_magnitudes,
-        scalarfield dmi_shell_magnitudes, int dm_chirality, DDI_Method ddi_method, intfield ddi_n_periodic_images,
-        bool ddi_pb_zero_padding, scalar ddi_radius, quadrupletfield quadruplets, scalarfield quadruplet_magnitudes,
-        std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions );
+        std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
+        const Data::NormalVector & external_field, const Data::VectorfieldData & anisotropy,
+        const Data::ScalarfieldData & cubic_anisotropy, const scalarfield & exchange_shell_magnitudes,
+        const scalarfield & dmi_shell_magnitudes, int dm_chirality, const Data::QuadrupletfieldData & quadruplet,
+        Engine::DDI_Method ddi_method, const Data::DDI_Data & ddi_data );
 
     void Update_Interactions();
 
