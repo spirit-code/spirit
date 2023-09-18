@@ -9,6 +9,7 @@
 #include <io/Filter_File_Handle.hpp>
 #include <io/IO.hpp>
 #include <io/OVF_File.hpp>
+#include <memory>
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Version.hpp>
@@ -1083,7 +1084,7 @@ try
         {
             // If the mode buffer is created by resizing then it needs to be allocated
             if( image->modes[idx] == NULL )
-                image->modes[idx] = std::shared_ptr<vectorfield>( new vectorfield( spins.size(), Vector3{ 1, 0, 0 } ) );
+                image->modes[idx] = std::make_shared<vectorfield>( spins.size(), Vector3{ 1, 0, 0 } );
 
             // Read header
             file.read_segment_header( idx + 1, segment );

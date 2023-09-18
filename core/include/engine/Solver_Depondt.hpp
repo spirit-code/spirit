@@ -13,7 +13,7 @@ inline void Method_Solver<Solver::Depondt>::Initialize()
 
     this->configurations_predictor = std::vector<std::shared_ptr<vectorfield>>( this->noi );
     for( int i = 0; i < this->noi; i++ )
-        configurations_predictor[i] = std::shared_ptr<vectorfield>( new vectorfield( this->nos, { 0, 0, 0 } ) );
+        configurations_predictor[i] = std::make_shared<vectorfield>( this->nos, Vector3{ 0, 0, 0 } );
 
     this->temp1 = vectorfield( this->nos, { 0, 0, 0 } );
 }

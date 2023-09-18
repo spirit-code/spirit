@@ -1,6 +1,7 @@
 #include <engine/Eigenmodes.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <engine/Vectormath.hpp>
+#include <memory>
 #include <utility/Formatters_Eigen.hpp>
 // #include <engine/Backend_par.hpp>
 
@@ -122,7 +123,7 @@ void Calculate_Eigenmodes( std::shared_ptr<Data::Spin_System> system, int idx_im
             VectorX evec_3N = tangent_basis * eigenvectors.col( i );
 
             // dynamically allocate the system->modes
-            system->modes[i] = std::shared_ptr<vectorfield>( new vectorfield( nos, Vector3{ 1, 0, 0 } ) );
+            system->modes[i] = std::make_shared<vectorfield>( nos, Vector3{ 1, 0, 0 } );
 
             // Set the modes
             for( int j = 0; j < nos; j++ )

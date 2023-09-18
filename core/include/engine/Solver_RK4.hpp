@@ -9,27 +9,27 @@ inline void Method_Solver<Solver::RungeKutta4>::Initialize()
 
     this->configurations_temp = std::vector<std::shared_ptr<vectorfield>>( this->noi );
     for( int i = 0; i < this->noi; i++ )
-        this->configurations_temp[i] = std::shared_ptr<vectorfield>( new vectorfield( this->nos ) );
+        this->configurations_temp[i] = std::make_shared<vectorfield>( this->nos );
 
     this->configurations_predictor = std::vector<std::shared_ptr<vectorfield>>( this->noi );
     for( int i = 0; i < this->noi; i++ )
-        this->configurations_predictor[i] = std::shared_ptr<vectorfield>( new vectorfield( this->nos ) );
+        this->configurations_predictor[i] = std::make_shared<vectorfield>( this->nos );
 
     this->configurations_k1 = std::vector<std::shared_ptr<vectorfield>>( this->noi );
     for( int i = 0; i < this->noi; i++ )
-        this->configurations_k1[i] = std::shared_ptr<vectorfield>( new vectorfield( this->nos ) );
+        this->configurations_k1[i] = std::make_shared<vectorfield>( this->nos );
 
     this->configurations_k2 = std::vector<std::shared_ptr<vectorfield>>( this->noi );
     for( int i = 0; i < this->noi; i++ )
-        this->configurations_k2[i] = std::shared_ptr<vectorfield>( new vectorfield( this->nos ) );
+        this->configurations_k2[i] = std::make_shared<vectorfield>( this->nos );
 
     this->configurations_k3 = std::vector<std::shared_ptr<vectorfield>>( this->noi );
     for( int i = 0; i < this->noi; i++ )
-        this->configurations_k3[i] = std::shared_ptr<vectorfield>( new vectorfield( this->nos ) );
+        this->configurations_k3[i] = std::make_shared<vectorfield>( this->nos );
 
     this->configurations_k4 = std::vector<std::shared_ptr<vectorfield>>( this->noi );
     for( int i = 0; i < this->noi; i++ )
-        this->configurations_k4[i] = std::shared_ptr<vectorfield>( new vectorfield( this->nos ) );
+        this->configurations_k4[i] = std::make_shared<vectorfield>( this->nos );
 
     this->temp1 = vectorfield( this->nos, { 0, 0, 0 } );
 }
