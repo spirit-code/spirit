@@ -3,6 +3,7 @@
 
 #include <data/State.hpp>
 #include <engine/Vectormath.hpp>
+#include <memory>
 #include <utility/Configurations.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Exception.hpp>
@@ -117,7 +118,7 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
-    state->clipboard_spins = std::shared_ptr<vectorfield>( new vectorfield( *image->spins ) );
+    state->clipboard_spins = std::make_shared<vectorfield>( *image->spins );
     Log( Utility::Log_Level::Info, Utility::Log_Sender::API, "Copied spin configuration to clipboard.", idx_image,
          idx_chain );
 }
