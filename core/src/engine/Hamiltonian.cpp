@@ -4,6 +4,7 @@
 #include <utility/Logging.hpp>
 
 using namespace Utility;
+using namespace Data;
 
 namespace Engine
 {
@@ -143,10 +144,10 @@ scalar Hamiltonian::Energy( const vectorfield & spins )
     return sum;
 }
 
-std::vector<std::pair<std::string, scalar>> Hamiltonian::Energy_Contributions( const vectorfield & spins )
+Data::vectorlabeled<scalar> Hamiltonian::Energy_Contributions( const vectorfield & spins )
 {
     Energy_Contributions_per_Spin( spins, this->energy_contributions_per_spin );
-    std::vector<std::pair<std::string, scalar>> energy( this->energy_contributions_per_spin.size() );
+    vectorlabeled<scalar> energy( this->energy_contributions_per_spin.size() );
     for( std::size_t i = 0; i < energy.size(); ++i )
     {
         energy[i] = { this->energy_contributions_per_spin[i].first,
@@ -156,7 +157,7 @@ std::vector<std::pair<std::string, scalar>> Hamiltonian::Energy_Contributions( c
 }
 
 void Hamiltonian::Energy_Contributions_per_Spin(
-    const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions )
+    const vectorfield & spins, Data::vectorlabeled<scalarfield> & contributions )
 {
     // Not Implemented!
     spirit_throw(
