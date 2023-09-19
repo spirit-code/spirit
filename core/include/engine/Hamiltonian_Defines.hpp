@@ -6,36 +6,42 @@
 
 namespace Data
 {
-
-struct NormalVector {
+struct NormalVector
+{
     scalar magnitude;
     Vector3 normal;
 };
 
-struct ScalarfieldData {
+struct ScalarfieldData
+{
     intfield indices;
     scalarfield magnitudes;
 };
 
-struct VectorfieldData : ScalarfieldData {
+struct VectorfieldData : ScalarfieldData
+{
     vectorfield normals;
 };
 
-struct ScalarPairfieldData {
+struct ScalarPairfieldData
+{
     pairfield pairs;
     scalarfield magnitudes;
 };
 
-struct VectorPairfieldData : ScalarPairfieldData {
+struct VectorPairfieldData : ScalarPairfieldData
+{
     vectorfield normals;
 };
 
-struct QuadrupletfieldData {
-  quadrupletfield quadruplets;
-  scalarfield magnitudes;
+struct QuadrupletfieldData
+{
+    quadrupletfield quadruplets;
+    scalarfield magnitudes;
 };
 
-struct DDI_Data {
+struct DDI_Data
+{
     intfield n_periodic_images;
     scalar radius;
     bool pb_zero_padding;
