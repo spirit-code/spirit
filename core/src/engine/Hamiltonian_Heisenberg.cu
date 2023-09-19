@@ -28,10 +28,10 @@ namespace Engine
 {
 // Construct a Heisenberg Hamiltonian with pairs
 Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
-    std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
-    const NormalVector & external_field, const VectorfieldData & anisotropy, const ScalarfieldData & cubic_anisotropy,
-    const ScalarPairfieldData & exchange, const VectorPairfieldData & dmi, const QuadrupletfieldData & quadruplet,
-    const DDI_Method ddi_method, const DDI_Data & ddi_data )
+    std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions, const NormalVector & external_field,
+    const VectorfieldData & anisotropy, const ScalarfieldData & cubic_anisotropy, const ScalarPairfieldData & exchange,
+    const VectorPairfieldData & dmi, const QuadrupletfieldData & quadruplet, const DDI_Method ddi_method,
+    const DDI_Data & ddi_data )
         : Hamiltonian( boundary_conditions ),
           external_field_magnitude( external_field.magnitude * C::mu_B ),
           external_field_normal( external_field.normal ),
@@ -54,7 +54,7 @@ Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
           ddi_cutoff_radius( ddi_data.radius ),
           quadruplets( quadruplet.quadruplets ),
           quadruplet_magnitudes( quadruplet.magnitudes ),
-          geometry( std::move(geometry) ),
+          geometry( std::move( geometry ) ),
           fft_plan_spins( FFT::FFT_Plan() ),
           fft_plan_reverse( FFT::FFT_Plan() )
 {
@@ -64,8 +64,8 @@ Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
 
 // Construct a Heisenberg Hamiltonian from shells
 Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
-    std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
-    const NormalVector & external_field, const VectorfieldData & anisotropy, const ScalarfieldData & cubic_anisotropy,
+    std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions, const NormalVector & external_field,
+    const VectorfieldData & anisotropy, const ScalarfieldData & cubic_anisotropy,
     const scalarfield & exchange_shell_magnitudes, const scalarfield & dmi_shell_magnitudes, int dm_chirality,
     const QuadrupletfieldData & quadruplet, const DDI_Method ddi_method, const DDI_Data & ddi_data )
         : Hamiltonian( boundary_conditions ),
@@ -90,7 +90,7 @@ Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
           ddi_cutoff_radius( ddi_data.radius ),
           quadruplets( quadruplet.quadruplets ),
           quadruplet_magnitudes( quadruplet.magnitudes ),
-          geometry( std::move(geometry) ),
+          geometry( std::move( geometry ) ),
           fft_plan_spins( FFT::FFT_Plan() ),
           fft_plan_reverse( FFT::FFT_Plan() )
 {
