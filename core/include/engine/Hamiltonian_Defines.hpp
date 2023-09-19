@@ -6,6 +6,13 @@
 
 namespace Data
 {
+
+template<typename T>
+using labeled = std::pair<std::string, T>;
+
+template<typename T>
+using vectorlabeled = std::vector<labeled<T>>;
+
 struct NormalVector
 {
     scalar magnitude;

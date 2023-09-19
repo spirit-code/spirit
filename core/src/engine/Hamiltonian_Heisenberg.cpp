@@ -197,7 +197,7 @@ void Hamiltonian_Heisenberg::Update_Interactions()
 
 void Hamiltonian_Heisenberg::Update_Energy_Contributions()
 {
-    this->energy_contributions_per_spin = std::vector<std::pair<std::string, scalarfield>>( 0 );
+    this->energy_contributions_per_spin = vectorlabeled<scalarfield>( 0 );
 
     // External field
     if( std::abs( this->external_field_magnitude ) > 1e-60 )
@@ -258,7 +258,7 @@ void Hamiltonian_Heisenberg::Update_Energy_Contributions()
 }
 
 void Hamiltonian_Heisenberg::Energy_Contributions_per_Spin(
-    const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions )
+    const vectorfield & spins, vectorlabeled<scalarfield> & contributions )
 {
     if( contributions.size() != this->energy_contributions_per_spin.size() )
     {

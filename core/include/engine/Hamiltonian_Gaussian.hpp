@@ -30,7 +30,7 @@ public:
     void Hessian( const vectorfield & spins, MatrixX & hessian ) override;
     void Gradient( const vectorfield & spins, vectorfield & gradient ) override;
     void Energy_Contributions_per_Spin(
-        const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions ) override;
+        const vectorfield & spins, Data::vectorlabeled<scalarfield> & contributions ) override;
 
     // Calculate the total energy for a single spin
     scalar Energy_Single_Spin( int ispin, const vectorfield & spins ) override;

@@ -71,7 +71,7 @@ public:
 
     // Total energy of the spin system (to be updated from outside, i.e. SIB, GNEB, ...)
     scalar E;
-    std::vector<std::pair<std::string, scalar>> E_array;
+    Data::vectorlabeled<scalar> E_array;
     // Mean of magnetization
     Vector3 M;
     // Total effective field of the spins [3][nos]

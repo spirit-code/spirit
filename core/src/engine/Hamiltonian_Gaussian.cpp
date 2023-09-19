@@ -79,7 +79,7 @@ void Hamiltonian_Gaussian::Gradient( const vectorfield & spins, vectorfield & gr
 }
 
 void Hamiltonian_Gaussian::Energy_Contributions_per_Spin(
-    const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions )
+    const vectorfield & spins, vectorlabeled<scalarfield> & contributions )
 {
     std::size_t nos = spins.size();
 

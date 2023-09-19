@@ -72,11 +72,11 @@ public:
     virtual void Gradient_FD( const vectorfield & spins, vectorfield & gradient ) final;
 
     // Calculate the Energy contributions for the spins of a configuration
-    virtual void Energy_Contributions_per_Spin(
-        const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions );
+    virtual void
+    Energy_Contributions_per_Spin( const vectorfield & spins, Data::vectorlabeled<scalarfield> & contributions );
 
     // Calculate the Energy contributions for a spin configuration
-    virtual std::vector<std::pair<std::string, scalar>> Energy_Contributions( const vectorfield & spins );
+    virtual Data::vectorlabeled<scalar> Energy_Contributions( const vectorfield & spins );
 
     // Calculate the Energy of a spin configuration
     virtual scalar Energy( const vectorfield & spins );
@@ -94,7 +94,7 @@ public:
 
 protected:
     // Energy contributions per spin
-    std::vector<std::pair<std::string, scalarfield>> energy_contributions_per_spin;
+    Data::vectorlabeled<scalarfield> energy_contributions_per_spin;
 
     std::mt19937 prng;
     std::uniform_int_distribution<int> distribution_int;
