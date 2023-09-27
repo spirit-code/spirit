@@ -359,7 +359,7 @@ try
                     }
                 }
                 else
-                    Log( Log_Level::Error, Log_Sender::IO,
+                    Log( Log_Level::Warning, Log_Sender::IO,
                          fmt::format( "Keyword 'mu_s' not found. Using Default: {}", cell_composition.mu_s[0] ) );
             }
             // else
