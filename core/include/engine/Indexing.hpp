@@ -13,14 +13,14 @@ namespace Indexing
 inline int
 idx_from_translations( const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations )
 {
-    auto & Na = n_cells[0];
-    auto & Nb = n_cells[1];
-    auto & Nc = n_cells[2];
-    auto & N  = n_cell_atoms;
+    const auto & Na = n_cells[0];
+    const auto & Nb = n_cells[1];
+    const auto & Nc = n_cells[2];
+    const auto & N  = n_cell_atoms;
 
-    auto & da = translations[0];
-    auto & db = translations[1];
-    auto & dc = translations[2];
+    const auto & da = translations[0];
+    const auto & db = translations[1];
+    const auto & dc = translations[2];
 
     return da * N + db * N * Na + dc * N * Na * Nb;
 }
@@ -29,7 +29,7 @@ idx_from_translations( const intfield & n_cells, const int n_cell_atoms, const s
 
 // Get the linear index in a n-D array where tupel contains the components in n-dimensions from fatest to slowest
 // varying and maxVal is the extent in every dimension
-inline int idx_from_tupel( const field<int> & tupel, const field<int> & maxVal )
+inline int idx_from_tupel( const intfield & tupel, const intfield & maxVal )
 {
     int idx  = 0;
     int mult = 1;
@@ -42,7 +42,7 @@ inline int idx_from_tupel( const field<int> & tupel, const field<int> & maxVal )
 }
 
 // reverse of idx_from_tupel
-inline void tupel_from_idx( int & idx, field<int> & tupel, field<int> & maxVal )
+inline void tupel_from_idx( const int & idx, intfield & tupel, const intfield & maxVal )
 {
     int idx_diff = idx;
     int div      = 1;
@@ -61,10 +61,10 @@ inline int idx_from_translations(
     const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations_i,
     const std::array<int, 3> & translations )
 {
-    auto & Na = n_cells[0];
-    auto & Nb = n_cells[1];
-    auto & Nc = n_cells[2];
-    auto & N  = n_cell_atoms;
+    const auto & Na = n_cells[0];
+    const auto & Nb = n_cells[1];
+    const auto & Nc = n_cells[2];
+    const auto & N  = n_cell_atoms;
 
     int da = translations_i[0] + translations[0];
     int db = translations_i[1] + translations[1];
@@ -98,7 +98,7 @@ inline bool boundary_conditions_fulfilled(
 
 // // Get the linear index in a n-D array where tupel contains the components in n-dimensions from fatest to slowest
 // // varying and maxVal is the extent in every dimension
-// inline __device__ int cu_idx_from_tupel( field<int> & tupel, field<int> & maxVal )
+// inline __device__ int cu_idx_from_tupel( intfield & tupel, intfield & maxVal )
 // {
 //     int idx  = 0;
 //     int mult = 1;
@@ -111,7 +111,7 @@ inline bool boundary_conditions_fulfilled(
 // }
 
 // reverse of idx_from_tupel
-inline __device__ void cu_tupel_from_idx( int & idx, int * tupel, int * maxVal, int n )
+inline __device__ void cu_tupel_from_idx( const int & idx, int * tupel, const int * maxVal, const int n )
 {
     int idx_diff = idx;
     int div      = 1;
@@ -126,7 +126,7 @@ inline __device__ void cu_tupel_from_idx( int & idx, int * tupel, int * maxVal, 
     tupel[0] = idx_diff / div;
 }
 
-inline void tupel_from_idx( int & idx, field<int> & tupel, const field<int> & maxVal )
+inline void tupel_from_idx( const int & idx, intfield & tupel, const intfield & maxVal )
 {
     int idx_diff = idx;
     int div      = 1;
@@ -145,10 +145,10 @@ inline int idx_from_translations(
     const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations_i,
     const int translations[3] )
 {
-    int Na = n_cells[0];
-    int Nb = n_cells[1];
-    int Nc = n_cells[2];
-    int N  = n_cell_atoms;
+    const int Na = n_cells[0];
+    const int Nb = n_cells[1];
+    const int Nc = n_cells[2];
+    const int N  = n_cell_atoms;
 
     int da = translations_i[0] + translations[0];
     int db = translations_i[1] + translations[1];
@@ -170,9 +170,9 @@ inline bool boundary_conditions_fulfilled(
     const intfield & n_cells, const intfield & boundary_conditions, const std::array<int, 3> & translations_i,
     const int translations_j[3] )
 {
-    int da = translations_i[0] + translations_j[0];
-    int db = translations_i[1] + translations_j[1];
-    int dc = translations_i[2] + translations_j[2];
+    const int da = translations_i[0] + translations_j[0];
+    const int db = translations_i[1] + translations_j[1];
+    const int dc = translations_i[2] + translations_j[2];
     return (
         ( boundary_conditions[0] || ( 0 <= da && da < n_cells[0] ) )
         && ( boundary_conditions[1] || ( 0 <= db && db < n_cells[1] ) )
@@ -194,7 +194,7 @@ __inline__ __device__ bool cu_check_atom_type( int atom_type )
 #endif
 }
 
-__inline__ __device__ bool cu_check_atom_type( int atom_type, int reference_type )
+__inline__ __device__ bool cu_check_atom_type( const int atom_type, const int reference_type )
 {
 #ifdef SPIRIT_ENABLE_DEFECTS
     // If defects are enabled we do a check if
@@ -220,9 +220,9 @@ __inline__ __device__ int cu_idx_from_pair(
         return -1;
 
     // Number of cells
-    auto & Na = n_cells[0];
-    auto & Nb = n_cells[1];
-    auto & Nc = n_cells[2];
+    const auto & Na = n_cells[0];
+    const auto & Nb = n_cells[1];
+    const auto & Nc = n_cells[2];
 
     // Invalid index if translations reach out over the lattice bounds
     if( std::abs( pair.translations[0] ) > Na || std::abs( pair.translations[1] ) > Nb
@@ -352,7 +352,7 @@ inline bool check_atom_type( int atom_type, int reference_type )
 // Calculates, for a spin i, a pair spin's index j.
 // This function takes into account boundary conditions and atom types and returns `-1` if any condition is not met.
 inline int idx_from_pair(
-    int ispin, const intfield & boundary_conditions, const intfield & n_cells, int N, const intfield & atom_types,
+    const int ispin, const intfield & boundary_conditions, const intfield & n_cells, int N, const intfield & atom_types,
     const Pair & pair, bool invert = false )
 {
     // Invalid index if atom type of spin i is not correct
@@ -360,9 +360,9 @@ inline int idx_from_pair(
         return -1;
 
     // Number of cells
-    auto & Na = n_cells[0];
-    auto & Nb = n_cells[1];
-    auto & Nc = n_cells[2];
+    const auto & Na = n_cells[0];
+    const auto & Nb = n_cells[1];
+    const auto & Nc = n_cells[2];
 
     // Invalid index if translations reach out over the lattice bounds
     if( std::abs( pair.translations[0] ) > Na || std::abs( pair.translations[1] ) > Nb

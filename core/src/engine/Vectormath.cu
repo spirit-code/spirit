@@ -35,7 +35,7 @@ void get_random_vector( std::uniform_real_distribution<scalar> & distribution, s
 }
 
 // TODO: improve random number generation - this one might give undefined behaviour!
-__global__ void cu_get_random_vectorfield( Vector3 * xi, size_t N )
+__global__ void cu_get_random_vectorfield( Vector3 * xi, const size_t N )
 {
     unsigned long long subsequence = 0;
     unsigned long long offset      = 0;
@@ -70,7 +70,7 @@ void get_random_vector_unitsphere(
     vec[1] = r_xy * std::sin( 2 * Pi * phi );
     vec[2] = v_z;
 }
-// __global__ void cu_get_random_vectorfield_unitsphere(Vector3 * xi, size_t N)
+// __global__ void cu_get_random_vectorfield_unitsphere(Vector3 * xi, const size_t N)
 // {
 //     unsigned long long subsequence = 0;
 //     unsigned long long offset= 0;
@@ -113,7 +113,7 @@ void get_random_vectorfield_unitsphere( std::mt19937 & prng, vectorfield & xi )
 
 /////////////////////////////////////////////////////////////////
 
-__global__ void cu_fill( scalar * sf, scalar s, size_t N )
+__global__ void cu_fill( scalar * sf, scalar s, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -127,7 +127,7 @@ void fill( scalarfield & sf, scalar s )
     cu_fill<<<( n + 1023 ) / 1024, 1024>>>( sf.data(), s, n );
     CU_CHECK_AND_SYNC();
 }
-__global__ void cu_fill_mask( scalar * sf, scalar s, const int * mask, size_t N )
+__global__ void cu_fill_mask( scalar * sf, scalar s, const int * mask, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -142,7 +142,7 @@ void fill( scalarfield & sf, scalar s, const intfield & mask )
     CU_CHECK_AND_SYNC();
 }
 
-__global__ void cu_scale( scalar * sf, scalar s, size_t N )
+__global__ void cu_scale( scalar * sf, scalar s, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -157,7 +157,7 @@ void scale( scalarfield & sf, scalar s )
     CU_CHECK_AND_SYNC();
 }
 
-__global__ void cu_add( scalar * sf, scalar s, size_t N )
+__global__ void cu_add( scalar * sf, scalar s, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -193,7 +193,7 @@ scalar mean( const scalarfield & sf )
     return sum( sf ) / sf.size();
 }
 
-__global__ void cu_divide( const scalar * numerator, const scalar * denominator, scalar * out, size_t N )
+__global__ void cu_divide( const scalar * numerator, const scalar * denominator, scalar * out, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -215,7 +215,7 @@ void set_range( scalarfield & sf, scalar sf_min, scalar sf_max )
         sf[i] = std::min( std::max( sf_min, sf[i] ), sf_max );
 }
 
-__global__ void cu_fill( Vector3 * vf1, Vector3 v2, size_t N )
+__global__ void cu_fill( Vector3 * vf1, Vector3 v2, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -229,7 +229,7 @@ void fill( vectorfield & vf, const Vector3 & v )
     cu_fill<<<( n + 1023 ) / 1024, 1024>>>( vf.data(), v, n );
     CU_CHECK_AND_SYNC();
 }
-__global__ void cu_fill_mask( Vector3 * vf1, Vector3 v2, const int * mask, size_t N )
+__global__ void cu_fill_mask( Vector3 * vf1, Vector3 v2, const int * mask, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -244,7 +244,7 @@ void fill( vectorfield & vf, const Vector3 & v, const intfield & mask )
     CU_CHECK_AND_SYNC();
 }
 
-__global__ void cu_normalize_vectors( Vector3 * vf, size_t N )
+__global__ void cu_normalize_vectors( Vector3 * vf, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -259,7 +259,7 @@ void normalize_vectors( vectorfield & vf )
     CU_CHECK_AND_SYNC();
 }
 
-__global__ void cu_norm( const Vector3 * vf, scalar * norm, size_t N )
+__global__ void cu_norm( const Vector3 * vf, scalar * norm, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -332,7 +332,7 @@ scalar max_norm( const vectorfield & vf )
     return std::sqrt( ret[0] );
 }
 
-__global__ void cu_scale( Vector3 * vf1, scalar sc, size_t N )
+__global__ void cu_scale( Vector3 * vf1, scalar sc, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -347,7 +347,7 @@ void scale( vectorfield & vf, const scalar & sc )
     CU_CHECK_AND_SYNC();
 }
 
-__global__ void cu_scale( Vector3 * vf1, const scalar * sf, bool inverse, size_t N )
+__global__ void cu_scale( Vector3 * vf1, const scalar * sf, bool inverse, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -399,7 +399,7 @@ Vector3 mean( const vectorfield & vf )
     return sum( vf ) / vf.size();
 }
 
-__global__ void cu_dot( const Vector3 * vf1, const Vector3 * vf2, scalar * out, size_t N )
+__global__ void cu_dot( const Vector3 * vf1, const Vector3 * vf2, scalar * out, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -437,7 +437,7 @@ void dot( const vectorfield & vf1, const vectorfield & vf2, scalarfield & s )
     CU_CHECK_AND_SYNC();
 }
 
-__global__ void cu_scalardot( const scalar * s1, const scalar * s2, scalar * out, size_t N )
+__global__ void cu_scalardot( const scalar * s1, const scalar * s2, scalar * out, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -456,7 +456,7 @@ void dot( const scalarfield & s1, const scalarfield & s2, scalarfield & out )
     CU_CHECK_AND_SYNC();
 }
 
-__global__ void cu_cross( const Vector3 * vf1, const Vector3 * vf2, Vector3 * out, size_t N )
+__global__ void cu_cross( const Vector3 * vf1, const Vector3 * vf2, Vector3 * out, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -474,7 +474,7 @@ void cross( const vectorfield & vf1, const vectorfield & vf2, vectorfield & s )
     CU_CHECK_AND_SYNC();
 }
 
-__global__ void cu_add_c_a( scalar c, Vector3 a, Vector3 * out, size_t N )
+__global__ void cu_add_c_a( const scalar c, Vector3 a, Vector3 * out, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -490,7 +490,7 @@ void add_c_a( const scalar & c, const Vector3 & a, vectorfield & out )
     CU_CHECK_AND_SYNC();
 }
 
-__global__ void cu_add_c_a2( scalar c, const Vector3 * a, Vector3 * out, size_t N )
+__global__ void cu_add_c_a2( const scalar c, const Vector3 * a, Vector3 * out, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -506,7 +506,7 @@ void add_c_a( const scalar & c, const vectorfield & a, vectorfield & out )
     CU_CHECK_AND_SYNC();
 }
 
-__global__ void cu_add_c_a2_mask( scalar c, const Vector3 * a, Vector3 * out, const int * mask, size_t N )
+__global__ void cu_add_c_a2_mask( const scalar c, const Vector3 * a, Vector3 * out, const int * mask, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -522,7 +522,7 @@ void add_c_a( const scalar & c, const vectorfield & a, vectorfield & out, const 
     CU_CHECK_AND_SYNC();
 }
 
-__global__ void cu_add_c_a3( const scalar * c, const Vector3 * a, Vector3 * out, size_t N )
+__global__ void cu_add_c_a3( const scalar * c, const Vector3 * a, Vector3 * out, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -538,7 +538,7 @@ void add_c_a( const scalarfield & c, const vectorfield & a, vectorfield & out )
     CU_CHECK_AND_SYNC();
 }
 
-__global__ void cu_set_c_a( scalar c, Vector3 a, Vector3 * out, size_t N )
+__global__ void cu_set_c_a( const scalar c, Vector3 a, Vector3 * out, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -553,7 +553,7 @@ void set_c_a( const scalar & c, const Vector3 & a, vectorfield & out )
     cu_set_c_a<<<( n + 1023 ) / 1024, 1024>>>( c, a, out.data(), n );
     CU_CHECK_AND_SYNC();
 }
-__global__ void cu_set_c_a_mask( scalar c, Vector3 a, Vector3 * out, const int * mask, size_t N )
+__global__ void cu_set_c_a_mask( const scalar c, Vector3 a, Vector3 * out, const int * mask, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -569,7 +569,7 @@ void set_c_a( const scalar & c, const Vector3 & a, vectorfield & out, const intf
     CU_CHECK_AND_SYNC();
 }
 
-__global__ void cu_set_c_a2( scalar c, const Vector3 * a, Vector3 * out, size_t N )
+__global__ void cu_set_c_a2( const scalar c, const Vector3 * a, Vector3 * out, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -584,7 +584,7 @@ void set_c_a( const scalar & c, const vectorfield & a, vectorfield & out )
     cu_set_c_a2<<<( n + 1023 ) / 1024, 1024>>>( c, a.data(), out.data(), n );
     CU_CHECK_AND_SYNC();
 }
-__global__ void cu_set_c_a2_mask( scalar c, const Vector3 * a, Vector3 * out, const int * mask, size_t N )
+__global__ void cu_set_c_a2_mask( const scalar c, const Vector3 * a, Vector3 * out, const int * mask, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -600,7 +600,7 @@ void set_c_a( const scalar & c, const vectorfield & a, vectorfield & out, const 
     CU_CHECK_AND_SYNC();
 }
 
-__global__ void cu_set_c_a3( const scalar * c, const Vector3 * a, Vector3 * out, size_t N )
+__global__ void cu_set_c_a3( const scalar * c, const Vector3 * a, Vector3 * out, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -616,7 +616,7 @@ void set_c_a( const scalarfield & c, const vectorfield & a, vectorfield & out )
     CU_CHECK_AND_SYNC();
 }
 
-__global__ void cu_add_c_dot( scalar c, Vector3 a, const Vector3 * b, scalar * out, size_t N )
+__global__ void cu_add_c_dot( const scalar c, Vector3 a, const Vector3 * b, scalar * out, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -632,7 +632,7 @@ void add_c_dot( const scalar & c, const Vector3 & a, const vectorfield & b, scal
     CU_CHECK_AND_SYNC();
 }
 
-__global__ void cu_add_c_dot( scalar c, const Vector3 * a, const Vector3 * b, scalar * out, size_t N )
+__global__ void cu_add_c_dot( const scalar c, const Vector3 * a, const Vector3 * b, scalar * out, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -648,7 +648,7 @@ void add_c_dot( const scalar & c, const vectorfield & a, const vectorfield & b, 
     CU_CHECK_AND_SYNC();
 }
 
-__global__ void cu_set_c_dot( scalar c, Vector3 a, const Vector3 * b, scalar * out, size_t N )
+__global__ void cu_set_c_dot( const scalar c, Vector3 a, const Vector3 * b, scalar * out, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -664,7 +664,7 @@ void set_c_dot( const scalar & c, const Vector3 & a, const vectorfield & b, scal
     CU_CHECK_AND_SYNC();
 }
 
-__global__ void cu_set_c_dot( scalar c, const Vector3 * a, const Vector3 * b, scalar * out, size_t N )
+__global__ void cu_set_c_dot( const scalar c, const Vector3 * a, const Vector3 * b, scalar * out, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -681,7 +681,7 @@ void set_c_dot( const scalar & c, const vectorfield & a, const vectorfield & b, 
 }
 
 // out[i] += c * a x b[i]
-__global__ void cu_add_c_cross( scalar c, const Vector3 a, const Vector3 * b, Vector3 * out, size_t N )
+__global__ void cu_add_c_cross( const scalar c, const Vector3 a, const Vector3 * b, Vector3 * out, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -697,7 +697,7 @@ void add_c_cross( const scalar & c, const Vector3 & a, const vectorfield & b, ve
 }
 
 // out[i] += c * a[i] x b[i]
-__global__ void cu_add_c_cross( scalar c, const Vector3 * a, const Vector3 * b, Vector3 * out, size_t N )
+__global__ void cu_add_c_cross( const scalar c, const Vector3 * a, const Vector3 * b, Vector3 * out, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -713,7 +713,7 @@ void add_c_cross( const scalar & c, const vectorfield & a, const vectorfield & b
 }
 
 // out[i] += c * a[i] x b[i]
-__global__ void cu_add_c_cross( const scalar * c, const Vector3 * a, const Vector3 * b, Vector3 * out, size_t N )
+__global__ void cu_add_c_cross( const scalar * c, const Vector3 * a, const Vector3 * b, Vector3 * out, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -729,7 +729,7 @@ void add_c_cross( const scalarfield & c, const vectorfield & a, const vectorfiel
 }
 
 // out[i] = c * a x b[i]
-__global__ void cu_set_c_cross( scalar c, const Vector3 a, const Vector3 * b, Vector3 * out, size_t N )
+__global__ void cu_set_c_cross( const scalar c, const Vector3 a, const Vector3 * b, Vector3 * out, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
@@ -745,7 +745,7 @@ void set_c_cross( const scalar & c, const Vector3 & a, const vectorfield & b, ve
 }
 
 // out[i] = c * a[i] x b[i]
-__global__ void cu_set_c_cross( scalar c, const Vector3 * a, const Vector3 * b, Vector3 * out, size_t N )
+__global__ void cu_set_c_cross( const scalar c, const Vector3 * a, const Vector3 * b, Vector3 * out, const size_t N )
 {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
     if( idx < N )
