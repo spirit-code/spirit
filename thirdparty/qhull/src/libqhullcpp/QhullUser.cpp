@@ -11,6 +11,7 @@
 #include "libqhullcpp/QhullError.h"
 
 #include <iostream>
+#include <cstdint>
 
 using std::cerr;
 using std::endl;
