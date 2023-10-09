@@ -53,7 +53,7 @@ __global__ void cu_get_random_vectorfield( Vector3 * xi, const size_t N )
 void get_random_vectorfield(
     std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, vectorfield & xi )
 {
-    int n = xi.size();
+    unsigned int n = xi.size();
     cu_get_random_vectorfield<<<( n + 1023 ) / 1024, 1024>>>( xi.data(), n );
     CU_CHECK_AND_SYNC();
 }
@@ -123,7 +123,7 @@ __global__ void cu_fill( scalar * sf, scalar s, const size_t N )
 }
 void fill( scalarfield & sf, scalar s )
 {
-    int n = sf.size();
+    unsigned int n = sf.size();
     cu_fill<<<( n + 1023 ) / 1024, 1024>>>( sf.data(), s, n );
     CU_CHECK_AND_SYNC();
 }
@@ -137,7 +137,7 @@ __global__ void cu_fill_mask( scalar * sf, scalar s, const int * mask, const siz
 }
 void fill( scalarfield & sf, scalar s, const intfield & mask )
 {
-    int n = sf.size();
+    unsigned int n = sf.size();
     cu_fill_mask<<<( n + 1023 ) / 1024, 1024>>>( sf.data(), s, mask.data(), n );
     CU_CHECK_AND_SYNC();
 }
@@ -152,7 +152,7 @@ __global__ void cu_scale( scalar * sf, scalar s, const size_t N )
 }
 void scale( scalarfield & sf, scalar s )
 {
-    int n = sf.size();
+    unsigned int n = sf.size();
     cu_scale<<<( n + 1023 ) / 1024, 1024>>>( sf.data(), s, n );
     CU_CHECK_AND_SYNC();
 }
@@ -167,7 +167,7 @@ __global__ void cu_add( scalar * sf, scalar s, const size_t N )
 }
 void add( scalarfield & sf, scalar s )
 {
-    int n = sf.size();
+    unsigned int n = sf.size();
     cu_add<<<( n + 1023 ) / 1024, 1024>>>( sf.data(), s, n );
     cudaDeviceSynchronize();
 }
@@ -203,7 +203,7 @@ __global__ void cu_divide( const scalar * numerator, const scalar * denominator,
 }
 void divide( const scalarfield & numerator, const scalarfield & denominator, scalarfield & out )
 {
-    int n = numerator.size();
+    unsigned int n = numerator.size();
     cu_divide<<<( n + 1023 ) / 1024, 1024>>>( numerator.data(), denominator.data(), out.data(), n );
     CU_CHECK_AND_SYNC();
 }
@@ -225,7 +225,7 @@ __global__ void cu_fill( Vector3 * vf1, Vector3 v2, const size_t N )
 }
 void fill( vectorfield & vf, const Vector3 & v )
 {
-    int n = vf.size();
+    unsigned int n = vf.size();
     cu_fill<<<( n + 1023 ) / 1024, 1024>>>( vf.data(), v, n );
     CU_CHECK_AND_SYNC();
 }
@@ -239,7 +239,7 @@ __global__ void cu_fill_mask( Vector3 * vf1, Vector3 v2, const int * mask, const
 }
 void fill( vectorfield & vf, const Vector3 & v, const intfield & mask )
 {
-    int n = vf.size();
+    unsigned int n = vf.size();
     cu_fill_mask<<<( n + 1023 ) / 1024, 1024>>>( vf.data(), v, mask.data(), n );
     CU_CHECK_AND_SYNC();
 }
@@ -254,7 +254,7 @@ __global__ void cu_normalize_vectors( Vector3 * vf, const size_t N )
 }
 void normalize_vectors( vectorfield & vf )
 {
-    int n = vf.size();
+    unsigned int n = vf.size();
     cu_normalize_vectors<<<( n + 1023 ) / 1024, 1024>>>( vf.data(), n );
     CU_CHECK_AND_SYNC();
 }
@@ -269,7 +269,7 @@ __global__ void cu_norm( const Vector3 * vf, scalar * norm, const size_t N )
 }
 void norm( const vectorfield & vf, scalarfield & norm )
 {
-    int n = vf.size();
+    unsigned int n = vf.size();
     cu_norm<<<( n + 1023 ) / 1024, 1024>>>( vf.data(), norm.data(), n );
     CU_CHECK_AND_SYNC();
 }
@@ -342,7 +342,7 @@ __global__ void cu_scale( Vector3 * vf1, scalar sc, const size_t N )
 }
 void scale( vectorfield & vf, const scalar & sc )
 {
-    int n = vf.size();
+    unsigned int n = vf.size();
     cu_scale<<<( n + 1023 ) / 1024, 1024>>>( vf.data(), sc, n );
     CU_CHECK_AND_SYNC();
 }
@@ -360,7 +360,7 @@ __global__ void cu_scale( Vector3 * vf1, const scalar * sf, bool inverse, const 
 }
 void scale( vectorfield & vf, const scalarfield & sf, bool inverse )
 {
-    int n = vf.size();
+    unsigned int n = vf.size();
     cu_scale<<<( n + 1023 ) / 1024, 1024>>>( vf.data(), sf.data(), inverse, n );
     CU_CHECK_AND_SYNC();
 }
@@ -410,7 +410,7 @@ __global__ void cu_dot( const Vector3 * vf1, const Vector3 * vf2, scalar * out, 
 
 scalar dot( const vectorfield & vf1, const vectorfield & vf2 )
 {
-    int n = vf1.size();
+    unsigned int n = vf1.size();
     static scalarfield sf( n, 0 );
 
     if( sf.size() != vf1.size() )
@@ -430,7 +430,7 @@ scalar dot( const vectorfield & vf1, const vectorfield & vf2 )
 
 void dot( const vectorfield & vf1, const vectorfield & vf2, scalarfield & s )
 {
-    int n = vf1.size();
+    unsigned int n = vf1.size();
 
     // Dot product
     cu_dot<<<( n + 1023 ) / 1024, 1024>>>( vf1.data(), vf2.data(), s.data(), n );
@@ -449,7 +449,7 @@ __global__ void cu_scalardot( const scalar * s1, const scalar * s2, scalar * out
 // s1 and s2 are scalarfields
 void dot( const scalarfield & s1, const scalarfield & s2, scalarfield & out )
 {
-    int n = s1.size();
+    unsigned int n = s1.size();
 
     // Dot product
     cu_scalardot<<<( n + 1023 ) / 1024, 1024>>>( s1.data(), s2.data(), out.data(), n );
@@ -467,7 +467,7 @@ __global__ void cu_cross( const Vector3 * vf1, const Vector3 * vf2, Vector3 * ou
 // The wrapper for the calling of the actual kernel
 void cross( const vectorfield & vf1, const vectorfield & vf2, vectorfield & s )
 {
-    int n = vf1.size();
+    unsigned int n = vf1.size();
 
     // Dot product
     cu_cross<<<( n + 1023 ) / 1024, 1024>>>( vf1.data(), vf2.data(), s.data(), n );
@@ -485,7 +485,7 @@ __global__ void cu_add_c_a( const scalar c, Vector3 a, Vector3 * out, const size
 // out[i] += c*a
 void add_c_a( const scalar & c, const Vector3 & a, vectorfield & out )
 {
-    int n = out.size();
+    unsigned int n = out.size();
     cu_add_c_a<<<( n + 1023 ) / 1024, 1024>>>( c, a, out.data(), n );
     CU_CHECK_AND_SYNC();
 }
@@ -501,7 +501,7 @@ __global__ void cu_add_c_a2( const scalar c, const Vector3 * a, Vector3 * out, c
 // out[i] += c*a[i]
 void add_c_a( const scalar & c, const vectorfield & a, vectorfield & out )
 {
-    int n = out.size();
+    unsigned int n = out.size();
     cu_add_c_a2<<<( n + 1023 ) / 1024, 1024>>>( c, a.data(), out.data(), n );
     CU_CHECK_AND_SYNC();
 }
@@ -517,7 +517,7 @@ __global__ void cu_add_c_a2_mask( const scalar c, const Vector3 * a, Vector3 * o
 // out[i] += c*a[i]
 void add_c_a( const scalar & c, const vectorfield & a, vectorfield & out, const intfield & mask )
 {
-    int n = out.size();
+    unsigned int n = out.size();
     cu_add_c_a2_mask<<<( n + 1023 ) / 1024, 1024>>>( c, a.data(), out.data(), mask.data(), n );
     CU_CHECK_AND_SYNC();
 }
@@ -533,7 +533,7 @@ __global__ void cu_add_c_a3( const scalar * c, const Vector3 * a, Vector3 * out,
 // out[i] += c[i]*a[i]
 void add_c_a( const scalarfield & c, const vectorfield & a, vectorfield & out )
 {
-    int n = out.size();
+    unsigned int n = out.size();
     cu_add_c_a3<<<( n + 1023 ) / 1024, 1024>>>( c.data(), a.data(), out.data(), n );
     CU_CHECK_AND_SYNC();
 }
@@ -549,7 +549,7 @@ __global__ void cu_set_c_a( const scalar c, Vector3 a, Vector3 * out, const size
 // out[i] = c*a
 void set_c_a( const scalar & c, const Vector3 & a, vectorfield & out )
 {
-    int n = out.size();
+    unsigned int n = out.size();
     cu_set_c_a<<<( n + 1023 ) / 1024, 1024>>>( c, a, out.data(), n );
     CU_CHECK_AND_SYNC();
 }
@@ -564,7 +564,7 @@ __global__ void cu_set_c_a_mask( const scalar c, Vector3 a, Vector3 * out, const
 // out[i] = c*a
 void set_c_a( const scalar & c, const Vector3 & a, vectorfield & out, const intfield & mask )
 {
-    int n = out.size();
+    unsigned int n = out.size();
     cu_set_c_a_mask<<<( n + 1023 ) / 1024, 1024>>>( c, a, out.data(), mask.data(), n );
     CU_CHECK_AND_SYNC();
 }
@@ -580,7 +580,7 @@ __global__ void cu_set_c_a2( const scalar c, const Vector3 * a, Vector3 * out, c
 // out[i] = c*a[i]
 void set_c_a( const scalar & c, const vectorfield & a, vectorfield & out )
 {
-    int n = out.size();
+    unsigned int n = out.size();
     cu_set_c_a2<<<( n + 1023 ) / 1024, 1024>>>( c, a.data(), out.data(), n );
     CU_CHECK_AND_SYNC();
 }
@@ -595,7 +595,7 @@ __global__ void cu_set_c_a2_mask( const scalar c, const Vector3 * a, Vector3 * o
 // out[i] = c*a[i]
 void set_c_a( const scalar & c, const vectorfield & a, vectorfield & out, const intfield & mask )
 {
-    int n = out.size();
+    unsigned int n = out.size();
     cu_set_c_a2_mask<<<( n + 1023 ) / 1024, 1024>>>( c, a.data(), out.data(), mask.data(), n );
     CU_CHECK_AND_SYNC();
 }
@@ -611,7 +611,7 @@ __global__ void cu_set_c_a3( const scalar * c, const Vector3 * a, Vector3 * out,
 // out[i] = c[i]*a[i]
 void set_c_a( const scalarfield & c, const vectorfield & a, vectorfield & out )
 {
-    int n = out.size();
+    unsigned int n = out.size();
     cu_set_c_a3<<<( n + 1023 ) / 1024, 1024>>>( c.data(), a.data(), out.data(), n );
     CU_CHECK_AND_SYNC();
 }
@@ -627,7 +627,7 @@ __global__ void cu_add_c_dot( const scalar c, Vector3 a, const Vector3 * b, scal
 // out[i] += c * a*b[i]
 void add_c_dot( const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out )
 {
-    int n = out.size();
+    unsigned int n = out.size();
     cu_add_c_dot<<<( n + 1023 ) / 1024, 1024>>>( c, a, b.data(), out.data(), n );
     CU_CHECK_AND_SYNC();
 }
@@ -643,7 +643,7 @@ __global__ void cu_add_c_dot( const scalar c, const Vector3 * a, const Vector3 *
 // out[i] += c * a[i]*b[i]
 void add_c_dot( const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out )
 {
-    int n = out.size();
+    unsigned int n = out.size();
     cu_add_c_dot<<<( n + 1023 ) / 1024, 1024>>>( c, a.data(), b.data(), out.data(), n );
     CU_CHECK_AND_SYNC();
 }
@@ -659,7 +659,7 @@ __global__ void cu_set_c_dot( const scalar c, Vector3 a, const Vector3 * b, scal
 // out[i] = c * a*b[i]
 void set_c_dot( const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out )
 {
-    int n = out.size();
+    unsigned int n = out.size();
     cu_set_c_dot<<<( n + 1023 ) / 1024, 1024>>>( c, a, b.data(), out.data(), n );
     CU_CHECK_AND_SYNC();
 }
@@ -675,7 +675,7 @@ __global__ void cu_set_c_dot( const scalar c, const Vector3 * a, const Vector3 *
 // out[i] = c * a[i]*b[i]
 void set_c_dot( const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out )
 {
-    int n = out.size();
+    unsigned int n = out.size();
     cu_set_c_dot<<<( n + 1023 ) / 1024, 1024>>>( c, a.data(), b.data(), out.data(), n );
     CU_CHECK_AND_SYNC();
 }
@@ -691,7 +691,7 @@ __global__ void cu_add_c_cross( const scalar c, const Vector3 a, const Vector3 *
 }
 void add_c_cross( const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out )
 {
-    int n = out.size();
+    unsigned int n = out.size();
     cu_add_c_cross<<<( n + 1023 ) / 1024, 1024>>>( c, a, b.data(), out.data(), n );
     CU_CHECK_AND_SYNC();
 }
@@ -707,7 +707,7 @@ __global__ void cu_add_c_cross( const scalar c, const Vector3 * a, const Vector3
 }
 void add_c_cross( const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out )
 {
-    int n = out.size();
+    unsigned int n = out.size();
     cu_add_c_cross<<<( n + 1023 ) / 1024, 1024>>>( c, a.data(), b.data(), out.data(), n );
     CU_CHECK_AND_SYNC();
 }
@@ -723,7 +723,7 @@ __global__ void cu_add_c_cross( const scalar * c, const Vector3 * a, const Vecto
 }
 void add_c_cross( const scalarfield & c, const vectorfield & a, const vectorfield & b, vectorfield & out )
 {
-    int n = out.size();
+    unsigned int n = out.size();
     cu_add_c_cross<<<( n + 1023 ) / 1024, 1024>>>( c.data(), a.data(), b.data(), out.data(), n );
     cudaDeviceSynchronize();
 }
@@ -739,7 +739,7 @@ __global__ void cu_set_c_cross( const scalar c, const Vector3 a, const Vector3 *
 }
 void set_c_cross( const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out )
 {
-    int n = out.size();
+    unsigned int n = out.size();
     cu_set_c_cross<<<( n + 1023 ) / 1024, 1024>>>( c, a, b.data(), out.data(), n );
     CU_CHECK_AND_SYNC();
 }
@@ -755,7 +755,7 @@ __global__ void cu_set_c_cross( const scalar c, const Vector3 * a, const Vector3
 }
 void set_c_cross( const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out )
 {
-    int n = out.size();
+    unsigned int n = out.size();
     cu_set_c_cross<<<( n + 1023 ) / 1024, 1024>>>( c, a.data(), b.data(), out.data(), n );
     CU_CHECK_AND_SYNC();
 }
