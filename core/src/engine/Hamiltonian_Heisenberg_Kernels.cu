@@ -1,12 +1,24 @@
-#include <engine/Indexing.hpp>
+#ifdef SPIRIT_USE_CUDA
 
+#include <engine/Hamiltonian_Heisenberg_Kernels.cuh>
+#include <engine/Vectormath_Defines.hpp>
+#include <engine/Indexing.hpp>
+#include <utility/Constants.hpp>
+
+#include <Eigen/Core>
+#include <Eigen/Dense>
+
+namespace C = Utility::Constants;
 using Engine::Indexing::cu_check_atom_type;
 using Engine::Indexing::cu_idx_from_pair;
 using Engine::Indexing::cu_tupel_from_idx;
 
+namespace Engine
+{
+
 __global__ void CU_E_Zeeman(
     const Vector3 * spins, const int * atom_types, const int n_cell_atoms, const scalar * mu_s,
-    const scalar external_field_magnitude, const Vector3 external_field_normal, scalar * Energy, size_t n_cells_total )
+    const scalar external_field_magnitude, const Vector3 external_field_normal, scalar * energy, size_t n_cells_total )
 {
     for( auto icell = blockIdx.x * blockDim.x + threadIdx.x; icell < n_cells_total; icell += blockDim.x * gridDim.x )
     {
@@ -14,7 +26,7 @@ __global__ void CU_E_Zeeman(
         {
             int ispin = n_cell_atoms * icell + ibasis;
             if( cu_check_atom_type( atom_types[ispin] ) )
-                Energy[ispin] -= mu_s[ispin] * external_field_magnitude * external_field_normal.dot( spins[ispin] );
+                energy[ispin] -= mu_s[ispin] * external_field_magnitude * external_field_normal.dot( spins[ispin] );
         }
     }
 }
@@ -22,7 +34,7 @@ __global__ void CU_E_Zeeman(
 __global__ void CU_E_Anisotropy(
     const Vector3 * spins, const int * atom_types, const int n_cell_atoms, const int n_anisotropies,
     const int * anisotropy_indices, const scalar * anisotropy_magnitude, const Vector3 * anisotropy_normal,
-    scalar * Energy, size_t n_cells_total )
+    scalar * energy, size_t n_cells_total )
 {
     for( auto icell = blockIdx.x * blockDim.x + threadIdx.x; icell < n_cells_total; icell += blockDim.x * gridDim.x )
     {
@@ -30,14 +42,14 @@ __global__ void CU_E_Anisotropy(
         {
             int ispin = icell * n_cell_atoms + anisotropy_indices[iani];
             if( cu_check_atom_type( atom_types[ispin] ) )
-                Energy[ispin] -= anisotropy_magnitude[iani] * pow( anisotropy_normal[iani].dot( spins[ispin] ), 2 );
+                energy[ispin] -= anisotropy_magnitude[iani] * pow( anisotropy_normal[iani].dot( spins[ispin] ), 2 );
         }
     }
 }
 
 __global__ void CU_E_Cubic_Anisotropy(
     const Vector3 * spins, const int * atom_types, const int n_cell_atoms, const int n_anisotropies,
-    const int * anisotropy_indices, const scalar * anisotropy_magnitude, scalar * Energy, size_t n_cells_total )
+    const int * anisotropy_indices, const scalar * anisotropy_magnitude, scalar * energy, size_t n_cells_total )
 {
     for( auto icell = blockIdx.x * blockDim.x + threadIdx.x; icell < n_cells_total; icell += blockDim.x * gridDim.x )
     {
@@ -45,7 +57,7 @@ __global__ void CU_E_Cubic_Anisotropy(
         {
             int ispin = icell * n_cell_atoms + anisotropy_indices[iani];
             if( cu_check_atom_type( atom_types[ispin] ) )
-                Energy[ispin]
+                energy[ispin]
                     -= anisotropy_magnitude[iani] / 2
                        * ( pow( spins[ispin][0], 4.0 ) + pow( spins[ispin][1], 4.0 ) + pow( spins[ispin][2], 4.0 ) );
         }
@@ -54,7 +66,7 @@ __global__ void CU_E_Cubic_Anisotropy(
 
 __global__ void CU_E_Exchange(
     const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells,
-    int n_cell_atoms, int n_pairs, const Pair * pairs, const scalar * magnitudes, scalar * Energy, size_t size )
+    int n_cell_atoms, int n_pairs, const Pair * pairs, const scalar * magnitudes, scalar * energy, size_t size )
 {
     int bc[3] = { boundary_conditions[0], boundary_conditions[1], boundary_conditions[2] };
     int nc[3] = { n_cells[0], n_cells[1], n_cells[2] };
@@ -67,7 +79,7 @@ __global__ void CU_E_Exchange(
             int jspin = cu_idx_from_pair( ispin, bc, nc, n_cell_atoms, atom_types, pairs[ipair] );
             if( jspin >= 0 )
             {
-                Energy[ispin] -= 0.5 * magnitudes[ipair] * spins[ispin].dot( spins[jspin] );
+                energy[ispin] -= 0.5 * magnitudes[ipair] * spins[ispin].dot( spins[jspin] );
             }
         }
     }
@@ -76,7 +88,7 @@ __global__ void CU_E_Exchange(
 __global__ void CU_E_DMI(
     const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells,
     int n_cell_atoms, int n_pairs, const Pair * pairs, const scalar * magnitudes, const Vector3 * normals,
-    scalar * Energy, size_t size )
+    scalar * energy, size_t size )
 {
     int bc[3] = { boundary_conditions[0], boundary_conditions[1], boundary_conditions[2] };
     int nc[3] = { n_cells[0], n_cells[1], n_cells[2] };
@@ -89,7 +101,7 @@ __global__ void CU_E_DMI(
             int jspin = cu_idx_from_pair( ispin, bc, nc, n_cell_atoms, atom_types, pairs[ipair] );
             if( jspin >= 0 )
             {
-                Energy[ispin] -= 0.5 * magnitudes[ipair] * normals[ipair].dot( spins[ispin].cross( spins[jspin] ) );
+                energy[ispin] -= 0.5 * magnitudes[ipair] * normals[ipair].dot( spins[ispin].cross( spins[jspin] ) );
             }
         }
     }
@@ -97,12 +109,12 @@ __global__ void CU_E_DMI(
 
 // TODO: add dot_scaled to Vectormath and use that
 __global__ void CU_E_DDI_FFT(
-    scalar * Energy, const Vector3 * spins, const Vector3 * gradients, const int nos, const int n_cell_atoms,
+    scalar * energy, const Vector3 * spins, const Vector3 * gradients, const int nos, const int n_cell_atoms,
     const scalar * mu_s )
 {
     for( int idx = blockIdx.x * blockDim.x + threadIdx.x; idx < nos; idx += blockDim.x * gridDim.x )
     {
-        Energy[idx] += 0.5 * spins[idx].dot( gradients[idx] );
+        energy[idx] += 0.5 * spins[idx].dot( gradients[idx] );
     }
 }
 
@@ -202,7 +214,6 @@ __global__ void CU_Gradient_Zeeman(
         }
     }
 }
-
 
 __global__ void CU_FFT_Pointwise_Mult(
     FFT::FFT_cpx_type * ft_D_matrices, FFT::FFT_cpx_type * ft_spins, FFT::FFT_cpx_type * res_mult,
@@ -370,3 +381,7 @@ __global__ void CU_Write_FFT_Dipole_Input(
         }
     }
 }
+
+} // namespace Engine
+
+#endif
