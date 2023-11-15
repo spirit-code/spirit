@@ -2,7 +2,7 @@
 #include <Spirit/Simulation.h>
 
 #include <data/State.hpp>
-#include <engine/Hamiltonian_Heisenberg.hpp>
+#include <engine/Hamiltonian.hpp>
 #include <engine/Indexing.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Formatters_Eigen.hpp>

@@ -1,8 +1,8 @@
 #ifdef SPIRIT_USE_CUDA
 
-#include <engine/Hamiltonian_Heisenberg_Kernels.cuh>
-#include <engine/Vectormath_Defines.hpp>
 #include <engine/Indexing.hpp>
+#include <engine/Vectormath_Defines.hpp>
+#include <engine/interaction/Hamiltonian_Heisenberg_Kernels.cuh>
 #include <utility/Constants.hpp>
 
 #include <Eigen/Core>

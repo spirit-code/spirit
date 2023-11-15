@@ -1,6 +1,6 @@
 #include <data/Spin_System.hpp>
 #include <engine/Backend_par.hpp>
-#include <engine/Hamiltonian_Heisenberg.hpp>
+#include <engine/Hamiltonian.hpp>
 #include <engine/Indexing.hpp>
 #include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
@@ -13,7 +13,6 @@
 #include <algorithm>
 #else
 #include <complex> // TODO: check if I need complex for the CUDA implementation
-#include <engine/Hamiltonian_Heisenberg_Kernels.cuh>
 #endif
 
 using namespace Data;

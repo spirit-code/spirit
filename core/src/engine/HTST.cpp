@@ -1,7 +1,7 @@
 #ifndef SPIRIT_SKIP_HTST
 
 #include <engine/HTST.hpp>
-#include <engine/Hamiltonian_Heisenberg.hpp>
+#include <engine/Hamiltonian.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Constants.hpp>

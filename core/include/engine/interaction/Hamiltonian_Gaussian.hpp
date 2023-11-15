@@ -1,11 +1,11 @@
 #pragma once
-#ifndef SPIRIT_CORE_ENGINE_HAMILTONIAN_GAUSSIAN_HPP
-#define SPIRIT_CORE_ENGINE_HAMILTONIAN_GAUSSIAN_HPP
+#ifndef SPIRIT_CORE_ENGINE_INTERACTION_HAMILTONIAN_GAUSSIAN_HPP
+#define SPIRIT_CORE_ENGINE_INTERACTION_HAMILTONIAN_GAUSSIAN_HPP
 
 #include <Spirit/Spirit_Defines.h>
 #include <data/Geometry.hpp>
-#include <engine/Hamiltonian.hpp>
 #include <engine/Vectormath_Defines.hpp>
+#include <engine/interaction/Hamiltonian_Base.hpp>
 
 #include <vector>
 

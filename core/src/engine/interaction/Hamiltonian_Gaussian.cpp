@@ -1,4 +1,4 @@
-#include <engine/Hamiltonian_Gaussian.hpp>
+#include <engine/Hamiltonian.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Exception.hpp>
 

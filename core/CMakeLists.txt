@@ -305,6 +305,7 @@ target_include_directories( ovf PRIVATE ${libfmt_INCLUDE_DIRS} )
 set( HEADER_SPIRIT_API )
 set( HEADER_SPIRIT_DATA )
 set( HEADER_SPIRIT_ENGINE )
+set( HEADER_SPIRIT_ENGINE_INTERACTION )
 set( HEADER_SPIRIT_IO )
 set( HEADER_SPIRIT_UTILITY )
 ### Source Groups
@@ -312,6 +313,7 @@ set( SOURCE_SPIRIT_ROOT )
 set( SOURCE_SPIRIT_API )
 set( SOURCE_SPIRIT_DATA )
 set( SOURCE_SPIRIT_ENGINE )
+set( SOURCE_SPIRIT_ENGINE_INTERACTION )
 set( SOURCE_SPIRIT_IO )
 set( SOURCE_SPIRIT_UTILITY )
 ### Add Subdirectories
@@ -323,12 +325,14 @@ add_subdirectory( ${CMAKE_CURRENT_LIST_DIR}/include )
 ############ Create object library #################################
 add_library( ${META_PROJECT_NAME} OBJECT
     ${HEADER_SPIRIT_DATA}
+    ${HEADER_SPIRIT_ENGINE_INTERACTION}
     ${HEADER_SPIRIT_ENGINE}
     ${HEADER_SPIRIT}
     ${HEADER_SPIRIT_IO}
     ${HEADER_SPIRIT_UTILITY}
     ${SOURCE_SPIRIT_ROOT}
     ${SOURCE_SPIRIT_DATA}
+    ${SOURCE_SPIRIT_ENGINE_INTERACTION}
     ${SOURCE_SPIRIT_ENGINE}
     ${SOURCE_SPIRIT}
     ${SOURCE_SPIRIT_IO}
@@ -370,11 +374,11 @@ if( SPIRIT_USE_CUDA )
         ${CMAKE_CURRENT_LIST_DIR}/src/data/Geometry.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data/Spin_System.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data/Spin_System_Chain.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Hamiltonian_Base.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Hamiltonian_Gaussian.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Hamiltonian_Heisenberg.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Hamiltonian_Heisenberg_Kernels.cu
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/Eigenmodes.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Hamiltonian.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Hamiltonian_Gaussian.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Hamiltonian_Heisenberg.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Hamiltonian_Heisenberg_Kernels.cu
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/HTST.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/Sparse_HTST.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/Manifoldmath.cpp

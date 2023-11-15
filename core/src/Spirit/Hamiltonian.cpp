@@ -3,8 +3,7 @@
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <data/State.hpp>
-#include <engine/Hamiltonian_Gaussian.hpp>
-#include <engine/Hamiltonian_Heisenberg.hpp>
+#include <engine/Hamiltonian.hpp>
 #include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Constants.hpp>
