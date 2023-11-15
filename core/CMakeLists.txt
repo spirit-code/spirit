@@ -149,9 +149,9 @@ if( SPIRIT_USE_CUDA )
     if( "${CMAKE_CUDA_COMPILER_ID}" MATCHES "NVIDIA" ) 
         set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -lineinfo -arch=sm_${SPIRIT_CUDA_ARCH} --expt-relaxed-constexpr --expt-extended-lambda" )
         ### Deactivate CUDA warning inside Eigen such as "warning: __host__ annotation is ignored on a function("Quaternion") that is explicitly defaulted on its first declaration"
-        set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcudafe=\"--diag_suppress=esa_on_defaulted_function_ignored\"")
+        set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --diag-suppress=20011 --diag-suppress=20012 --diag-suppress=20014 --diag-suppress=1675")
         ### Display warning number when writing a warning
-        set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} -Xcudafe \"--display_error_number\"" )
+        set( CMAKE_CUDA_FLAGS "${CMAKE_CUDA_FLAGS} --display-error-number" )
 
         set( META_COMPILER         "${META_COMPILER} and nvcc" )
         set( META_COMPILER_VERSION "${META_COMPILER_VERSION} and ${CUDA_VERSION}" )
