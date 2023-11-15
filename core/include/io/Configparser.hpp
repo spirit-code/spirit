@@ -8,8 +8,7 @@
 #include <data/Parameters_Method_MMF.hpp>
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
-#include <engine/Hamiltonian_Gaussian.hpp>
-#include <engine/Hamiltonian_Heisenberg.hpp>
+#include <engine/Hamiltonian.hpp>
 
 namespace IO
 {

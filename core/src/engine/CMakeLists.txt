@@ -1,10 +1,13 @@
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/interaction)
+
+set(SOURCE_SPIRIT_ENGINE_INTERACTION
+    ${SOURCE_SPIRIT_ENGINE_INTERACTION}
+    PARENT_SCOPE
+)
+
 set(SOURCE_SPIRIT_ENGINE
     ${SOURCE_SPIRIT_ENGINE}
     ${CMAKE_CURRENT_SOURCE_DIR}/Neighbours.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Heisenberg_Kernels.cu
-    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Gaussian.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Eigenmodes.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/HTST.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Sparse_HTST.cpp

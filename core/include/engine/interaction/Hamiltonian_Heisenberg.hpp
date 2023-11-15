@@ -1,12 +1,12 @@
 #pragma once
-#ifndef SPIRIT_CORE_ENGINE_HAMILTONIAN_HEISENBERG_HPP
-#define SPIRIT_CORE_ENGINE_HAMILTONIAN_HEISENBERG_HPP
+#ifndef SPIRIT_CORE_ENGINE_INTERACTION_HAMILTONIAN_HEISENBERG_HPP
+#define SPIRIT_CORE_ENGINE_INTERACTION_HAMILTONIAN_HEISENBERG_HPP
 
 #include <Spirit/Hamiltonian.h>
 #include <Spirit/Spirit_Defines.h>
 #include <data/Geometry.hpp>
 #include <engine/FFT.hpp>
-#include <engine/Hamiltonian.hpp>
+#include <engine/interaction/Hamiltonian_Base.hpp>
 #include <engine/Vectormath_Defines.hpp>
 
 #include <memory>
