@@ -159,6 +159,8 @@ try
 
     // Geometry
     auto geometry = Geometry_from_Config( config_file_name );
+    // Boundary conditions
+    auto boundary_conditions = Boundary_Conditions_from_Config( config_file_name );
     // LLG Parameters
     auto llg_params = Parameters_Method_LLG_from_Config( config_file_name );
     // MC Parameters
@@ -168,7 +170,7 @@ try
     // MMF Parameters
     auto mmf_params = Parameters_Method_MMF_from_Config( config_file_name );
     // Hamiltonian
-    auto hamiltonian = Hamiltonian_from_Config( config_file_name, geometry );
+    auto hamiltonian = Hamiltonian_from_Config( config_file_name, geometry, boundary_conditions );
     // Spin System
     auto system = std::make_unique<Data::Spin_System>(
         std::move( hamiltonian ), std::move( geometry ), std::move( llg_params ), std::move( mc_params ),
@@ -569,6 +571,32 @@ catch( ... )
     spirit_rethrow( fmt::format( "Unable to parse geometry from config file \"{}\"", config_file_name ) );
     return nullptr;
 } // End Geometry from Config
+
+intfield Boundary_Conditions_from_Config( const std::string & config_file_name )
+try
+{
+    // Boundary conditions (a, b, c)
+    std::vector<int> boundary_conditions_i = { 0, 0, 0 };
+    intfield boundary_conditions           = { false, false, false };
+
+    if( !config_file_name.empty() )
+    {
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+
+        // Boundary conditions
+        config_file_handle.Read_3Vector( boundary_conditions_i, "boundary_conditions" );
+        boundary_conditions[0] = static_cast<int>( boundary_conditions_i[0] != 0 );
+        boundary_conditions[1] = static_cast<int>( boundary_conditions_i[1] != 0 );
+        boundary_conditions[2] = static_cast<int>( boundary_conditions_i[2] != 0 );
+    }
+
+    return boundary_conditions;
+}
+catch( ... )
+{
+    spirit_rethrow( fmt::format( "Unable to parse boundary conditions from config file \"{}\"", config_file_name ) );
+    return { 0, 0, 0 };
+} // End boundary_conditions from Config
 
 Data::Pinning Pinning_from_Config( const std::string & config_file_name, std::size_t n_cell_atoms )
 {
@@ -1192,8 +1220,9 @@ std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config( 
     return parameters;
 }
 
-std::unique_ptr<Engine::Hamiltonian>
-Hamiltonian_from_Config( const std::string & config_file_name, std::shared_ptr<Data::Geometry> geometry )
+std::unique_ptr<Engine::Hamiltonian> Hamiltonian_from_Config(
+    const std::string & config_file_name, const std::shared_ptr<Data::Geometry> geometry,
+    const intfield boundary_conditions )
 {
     //-------------- Insert default values here -----------------------------
     // The type of hamiltonian we will use
@@ -1229,11 +1258,12 @@ Hamiltonian_from_Config( const std::string & config_file_name, std::shared_ptr<D
     {
         if( hamiltonian_type == "heisenberg_neighbours" || hamiltonian_type == "heisenberg_pairs" )
         {
-            hamiltonian = Hamiltonian_Heisenberg_from_Config( config_file_name, geometry, hamiltonian_type );
+            hamiltonian = Hamiltonian_Heisenberg_from_Config(
+                config_file_name, geometry, boundary_conditions, hamiltonian_type );
         }
         else if( hamiltonian_type == "gaussian" )
         {
-            hamiltonian = std::move( Hamiltonian_Gaussian_from_Config( config_file_name, geometry ) );
+            hamiltonian = Hamiltonian_Gaussian_from_Config( config_file_name, geometry, boundary_conditions );
         }
         else
         {
@@ -1253,15 +1283,11 @@ Hamiltonian_from_Config( const std::string & config_file_name, std::shared_ptr<D
     return hamiltonian;
 }
 
-std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Config(
-    const std::string & config_file_name, std::shared_ptr<Data::Geometry> geometry,
-    const std::string & hamiltonian_type )
+std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
+    const std::string & config_file_name, const std::shared_ptr<Data::Geometry> geometry,
+    const intfield boundary_conditions, const std::string & hamiltonian_type )
 {
     //-------------- Insert default values here -----------------------------
-    // Boundary conditions (a, b, c)
-    std::vector<int> boundary_conditions_i = { 0, 0, 0 };
-    intfield boundary_conditions           = { false, false, false };
-
     // External Magnetic Field
     NormalVector external_field{ 0, { 0.0, 0.0, 1.0 } };
 
@@ -1316,22 +1342,6 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
     // Iteration variables
     if( !config_file_name.empty() )
     {
-        try
-        {
-            IO::Filter_File_Handle config_file_handle( config_file_name );
-
-            // Boundary conditions
-            config_file_handle.Read_3Vector( boundary_conditions_i, "boundary_conditions" );
-            boundary_conditions[0] = static_cast<int>( boundary_conditions_i[0] != 0 );
-            boundary_conditions[1] = static_cast<int>( boundary_conditions_i[1] != 0 );
-            boundary_conditions[2] = static_cast<int>( boundary_conditions_i[2] != 0 );
-        }
-        catch( ... )
-        {
-            spirit_handle_exception_core(
-                fmt::format( "Unable to read boundary conditions from config file \"{}\"", config_file_name ) );
-        }
-
         try
         {
             IO::Filter_File_Handle config_file_handle( config_file_name );
@@ -1617,29 +1627,35 @@ std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Conf
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_pb_zero_padding", ddi_data.pb_zero_padding ) );
     Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
-    std::unique_ptr<Engine::Hamiltonian_Heisenberg> hamiltonian;
+    std::unique_ptr<Engine::Hamiltonian> hamiltonian;
 
     if( hamiltonian_type == "heisenberg_neighbours" )
     {
         const auto & exchange_magnitudes = exchange.magnitudes;
         const auto & dmi_magnitudes      = dmi.magnitudes;
 
-        hamiltonian = std::make_unique<Engine::Hamiltonian_Heisenberg>(
+        hamiltonian = std::make_unique<Engine::Hamiltonian>(
             geometry, boundary_conditions, external_field, anisotropy_data, cubic_anisotropy_data, exchange_magnitudes,
             dmi_magnitudes, dm_chirality, quadruplets, ddi_method, ddi_data );
     }
     else
     {
-        hamiltonian = std::make_unique<Engine::Hamiltonian_Heisenberg>(
+        hamiltonian = std::make_unique<Engine::Hamiltonian>(
             geometry, boundary_conditions, external_field, anisotropy_data, cubic_anisotropy_data, exchange, dmi,
             quadruplets, ddi_method, ddi_data );
     }
-    Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Heisenberg: built" );
+
+    hamiltonian->updateName();
+    hamiltonian->Update_Energy_Contributions();
+
+    assert( hamiltonian->Name() == "Heisenberg" );
+    Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Hamiltonian_{}: built", hamiltonian->Name() ) );
     return hamiltonian;
 } // end Hamiltonian_Heisenberg_From_Config
 
-std::unique_ptr<Engine::Hamiltonian_Gaussian>
-Hamiltonian_Gaussian_from_Config( const std::string & config_file_name, std::shared_ptr<Data::Geometry> geometry )
+std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Gaussian_from_Config(
+    const std::string & config_file_name, const std::shared_ptr<Data::Geometry> geometry,
+    const intfield boundary_conditions )
 {
     //-------------- Insert default values here -----------------------------
     // Number of Gaussians
@@ -1703,8 +1719,17 @@ Hamiltonian_Gaussian_from_Config( const std::string & config_file_name, std::sha
     parameter_log.emplace_back( fmt::format( "    {0:<12} = {1}", "width[0]", width[0] ) );
     parameter_log.emplace_back( fmt::format( "    {0:<12} = {1}", "center[0]", center[0].transpose() ) );
     Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
-    auto hamiltonian = std::make_unique<Engine::Hamiltonian_Gaussian>( amplitude, width, center );
-    Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Gaussian: built" );
+    auto hamiltonian = std::make_unique<Engine::Hamiltonian>( geometry, boundary_conditions );
+    hamiltonian->pauseUpdateName();
+
+    // hamiltonian->setInteraction<Engine::Interaction::Gaussian>( amplitude, width, center );
+
+    hamiltonian->unpauseUpdateName();
+    hamiltonian->updateName();
+    hamiltonian->Update_Energy_Contributions();
+
+    // assert( hamiltonian->Name() == "Gaussian" );
+    Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Hamiltonian_{}: built", hamiltonian->Name() ) );
     return hamiltonian;
 }
 

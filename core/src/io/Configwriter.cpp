@@ -1,4 +1,5 @@
-﻿#include <engine/Neighbours.hpp>
+﻿#include <engine/Hamiltonian.hpp>
+#include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
 #include <io/Filter_File_Handle.hpp>
 #include <io/IO.hpp>
@@ -249,7 +250,7 @@ void Hamiltonian_Heisenberg_to_Config(
     int n_cells_tot    = geometry->n_cells[0] * geometry->n_cells[1] * geometry->n_cells[2];
     std::string config = "";
 
-    auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( hamiltonian.get() );
+    const auto & ham = hamiltonian;
 
     // External Field
     config += "###    External Field:\n";
@@ -343,15 +344,21 @@ void Hamiltonian_Gaussian_to_Config(
 {
     std::string config = "";
 
-    auto * ham_gaussian = dynamic_cast<Engine::Hamiltonian_Gaussian *>( hamiltonian.get() );
-    config += fmt::format( "n_gaussians {}\n", ham_gaussian->n_gaussians );
-    if( ham_gaussian->n_gaussians > 0 )
+    scalarfield amplitude( 0 );
+    scalarfield width( 0 );
+    vectorfield center( 0 );
+
+    // hamiltonian->getInteraction<Engine::Interaction::Gaussian>()->getParameters( amplitude, width, center );
+
+    const auto n_gaussians = amplitude.size();
+
+    config += fmt::format( "n_gaussians {}\n", n_gaussians );
+    if( n_gaussians > 0 )
     {
         config += "gaussians\n";
-        for( int i = 0; i < ham_gaussian->n_gaussians; ++i )
+        for( std::size_t i = 0; i < n_gaussians; ++i )
         {
-            config += fmt::format(
-                "{} {} {}\n", ham_gaussian->amplitude[i], ham_gaussian->width[i], ham_gaussian->center[i].transpose() );
+            config += fmt::format( "{} {} {}\n", amplitude[i], width[i], center[i].transpose() );
         }
     }
     append_to_file( config, config_file );

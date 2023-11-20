@@ -25,13 +25,76 @@ using Engine::Indexing::idx_from_translations;
 namespace Engine
 {
 
+Hamiltonian::Hamiltonian( std::shared_ptr<Geometry> geometry, intfield boundary_conditions )
+        : geometry( std::move( geometry ) ),
+          boundary_conditions( std::move( boundary_conditions ) ),
+          name_update_paused( false ),
+          hamiltonian_class( HAMILTONIAN_CLASS::GENERIC ),
+          spin_stride(),
+          dipole_stride()
+{
+    // legacy block
+    external_field_magnitude    = 0;
+    external_field_normal       = { 0, 0, 1 };
+    anisotropy_indices          = intfield( 0 );
+    anisotropy_magnitudes       = scalarfield( 0 );
+    anisotropy_normals          = vectorfield( 0 );
+    cubic_anisotropy_indices    = intfield( 0 );
+    cubic_anisotropy_magnitudes = scalarfield( 0 );
+    exchange_shell_magnitudes   = scalarfield( 0 );
+    exchange_pairs_in           = pairfield( 0 );
+    exchange_magnitudes_in      = scalarfield( 0 );
+    dmi_shell_magnitudes        = scalarfield( 0 );
+    dmi_shell_chirality         = 0;
+    dmi_pairs_in                = pairfield( 0 );
+    dmi_magnitudes_in           = scalarfield( 0 );
+    dmi_normals_in              = vectorfield( 0 );
+    quadruplets                 = quadrupletfield( 0 );
+    quadruplet_magnitudes       = scalarfield( 0 );
+    fft_plan_spins              = FFT::FFT_Plan();
+    fft_plan_reverse            = FFT::FFT_Plan();
+
+    ddi_method                  = DDI_Method::None;
+    ddi_n_periodic_images       = intfield( 0 );
+    ddi_pb_zero_padding         = false;
+    ddi_cutoff_radius           = 0;
+    n_inter_sublattice          = 0;
+    sublattice_size             = 0;
+    n_cells_padded              = field<int>( 0 );
+    transformed_dipole_matrices = field<FFT::FFT_cpx_type>( 0 );
+    dipole_matrices             = field<FFT::FFT_real_type>( 0 );
+    save_dipole_matrices        = false;
+    it_bounds_pointwise_mult    = field<int>( 0 );
+    it_bounds_write_gradients   = field<int>( 0 );
+    it_bounds_write_spins       = field<int>( 0 );
+    it_bounds_write_dipole      = field<int>( 0 );
+
+    // init to 0, because initializing to -1 can fail silently
+    energy_contributions_per_spin = Data::vectorlabeled<scalarfield>( 0 );
+    idx_zeeman                    = 0;
+    idx_exchange                  = 0;
+    idx_dmi                       = 0;
+    idx_anisotropy                = 0;
+    idx_cubic_anisotropy          = 0;
+    idx_ddi                       = 0;
+    idx_quadruplet                = 0;
+
+    prng             = std::mt19937( 94199188 );
+    distribution_int = std::uniform_int_distribution<int>( 0, 1 );
+    this->updateInteractions(); // should be a nop, but has to be here semantically
+    this->updateName();
+}
+
 // Construct a Heisenberg Hamiltonian with pairs
-Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
+Hamiltonian::Hamiltonian(
     std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions, const NormalVector & external_field,
     const VectorfieldData & anisotropy, const ScalarfieldData & cubic_anisotropy, const ScalarPairfieldData & exchange,
     const VectorPairfieldData & dmi, const QuadrupletfieldData & quadruplet, const DDI_Method ddi_method,
     const DDI_Data & ddi_data )
-        : Hamiltonian( boundary_conditions ),
+        : geometry( std::move( geometry ) ),
+          boundary_conditions( std::move( boundary_conditions ) ),
+          name_update_paused( false ),
+          hamiltonian_class( HAMILTONIAN_CLASS::GENERIC ),
           external_field_magnitude( external_field.magnitude * C::mu_B ),
           external_field_normal( external_field.normal ),
           anisotropy_indices( anisotropy.indices ),
@@ -53,21 +116,48 @@ Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
           ddi_cutoff_radius( ddi_data.radius ),
           quadruplets( quadruplet.quadruplets ),
           quadruplet_magnitudes( quadruplet.magnitudes ),
-          geometry( std::move( geometry ) ),
           fft_plan_spins( FFT::FFT_Plan() ),
-          fft_plan_reverse( FFT::FFT_Plan() )
+          fft_plan_reverse( FFT::FFT_Plan() ),
+          spin_stride(),
+          dipole_stride()
 {
+    n_inter_sublattice          = 0;
+    sublattice_size             = 0;
+    n_cells_padded              = field<int>( 0 );
+    transformed_dipole_matrices = field<FFT::FFT_cpx_type>( 0 );
+    dipole_matrices             = field<FFT::FFT_real_type>( 0 );
+    save_dipole_matrices        = false;
+
+    // init to 0, because initializing to -1 can fail silently
+    energy_contributions_per_spin = decltype( energy_contributions_per_spin )( 0 );
+    idx_zeeman                    = 0;
+    idx_exchange                  = 0;
+    idx_dmi                       = 0;
+    idx_anisotropy                = 0;
+    idx_cubic_anisotropy          = 0;
+    idx_ddi                       = 0;
+    idx_quadruplet                = 0;
+
+    it_bounds_pointwise_mult  = field<int>( 0 );
+    it_bounds_write_gradients = field<int>( 0 );
+    it_bounds_write_spins     = field<int>( 0 );
+    it_bounds_write_dipole    = field<int>( 0 );
+
     // Generate interaction pairs, constants etc.
-    this->Update_Interactions();
+    this->updateInteractions();
+    this->updateName();
 }
 
 // Construct a Heisenberg Hamiltonian from shells
-Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
+Hamiltonian::Hamiltonian(
     std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions, const NormalVector & external_field,
     const VectorfieldData & anisotropy, const ScalarfieldData & cubic_anisotropy,
     const scalarfield & exchange_shell_magnitudes, const scalarfield & dmi_shell_magnitudes, int dm_chirality,
     const QuadrupletfieldData & quadruplet, const DDI_Method ddi_method, const DDI_Data & ddi_data )
-        : Hamiltonian( boundary_conditions ),
+        : geometry( std::move( geometry ) ),
+          boundary_conditions( std::move( boundary_conditions ) ),
+          name_update_paused( false ),
+          hamiltonian_class( HAMILTONIAN_CLASS::GENERIC ),
           external_field_magnitude( external_field.magnitude * C::mu_B ),
           external_field_normal( external_field.normal ),
           anisotropy_indices( anisotropy.indices ),
@@ -89,15 +179,39 @@ Hamiltonian_Heisenberg::Hamiltonian_Heisenberg(
           ddi_cutoff_radius( ddi_data.radius ),
           quadruplets( quadruplet.quadruplets ),
           quadruplet_magnitudes( quadruplet.magnitudes ),
-          geometry( std::move( geometry ) ),
           fft_plan_spins( FFT::FFT_Plan() ),
-          fft_plan_reverse( FFT::FFT_Plan() )
+          fft_plan_reverse( FFT::FFT_Plan() ),
+          spin_stride(),
+          dipole_stride()
 {
+    n_inter_sublattice          = 0;
+    sublattice_size             = 0;
+    n_cells_padded              = field<int>( 0 );
+    transformed_dipole_matrices = field<FFT::FFT_cpx_type>( 0 );
+    dipole_matrices             = field<FFT::FFT_real_type>( 0 );
+    save_dipole_matrices        = false;
+
+    // init to 0, because initializing to -1 can fail silently
+    energy_contributions_per_spin = decltype( energy_contributions_per_spin )( 0 );
+    idx_zeeman                    = 0;
+    idx_exchange                  = 0;
+    idx_dmi                       = 0;
+    idx_anisotropy                = 0;
+    idx_cubic_anisotropy          = 0;
+    idx_ddi                       = 0;
+    idx_quadruplet                = 0;
+
+    it_bounds_pointwise_mult  = field<int>( 0 );
+    it_bounds_write_gradients = field<int>( 0 );
+    it_bounds_write_spins     = field<int>( 0 );
+    it_bounds_write_dipole    = field<int>( 0 );
+
     // Generate interaction pairs, constants etc.
-    this->Update_Interactions();
+    this->updateInteractions();
+    this->updateName();
 }
 
-void Hamiltonian_Heisenberg::Update_Interactions()
+void Hamiltonian::updateInteractions()
 {
 #if defined( SPIRIT_USE_OPENMP ) || defined( SPIRIT_USE_CUDA )
     // When parallelising (cuda or openmp), we need all neighbours per spin
@@ -206,7 +320,7 @@ void Hamiltonian_Heisenberg::Update_Interactions()
     this->Update_Energy_Contributions();
 }
 
-void Hamiltonian_Heisenberg::Update_Energy_Contributions()
+void Hamiltonian::Update_Energy_Contributions()
 {
     this->energy_contributions_per_spin = vectorlabeled<scalarfield>( 0 );
 
@@ -268,8 +382,7 @@ void Hamiltonian_Heisenberg::Update_Energy_Contributions()
         this->idx_quadruplet = -1;
 }
 
-void Hamiltonian_Heisenberg::Energy_Contributions_per_Spin(
-    const vectorfield & spins, vectorlabeled<scalarfield> & contributions )
+void Hamiltonian::Energy_Contributions_per_Spin( const vectorfield & spins, vectorlabeled<scalarfield> & contributions )
 {
     if( contributions.size() != this->energy_contributions_per_spin.size() )
     {
@@ -314,13 +427,13 @@ void Hamiltonian_Heisenberg::Energy_Contributions_per_Spin(
         E_Quadruplet( spins, contributions[idx_quadruplet].second );
 }
 
-void Hamiltonian_Heisenberg::E_Zeeman( const vectorfield & spins, scalarfield & Energy )
+void Hamiltonian::E_Zeeman( const vectorfield & spins, scalarfield & energy )
 {
 #ifdef SPIRIT_USE_CUDA
     int size = geometry->n_cells_total;
     CU_E_Zeeman<<<( size + 1023 ) / 1024, 1024>>>(
         spins.data(), this->geometry->atom_types.data(), geometry->n_cell_atoms, geometry->mu_s.data(),
-        this->external_field_magnitude, this->external_field_normal, Energy.data(), size );
+        this->external_field_magnitude, this->external_field_normal, energy.data(), size );
     CU_CHECK_AND_SYNC();
 #else
     const int N = geometry->n_cell_atoms;
@@ -333,21 +446,21 @@ void Hamiltonian_Heisenberg::E_Zeeman( const vectorfield & spins, scalarfield & 
         {
             int ispin = icell * N + ibasis;
             if( check_atom_type( this->geometry->atom_types[ispin] ) )
-                Energy[ispin]
+                energy[ispin]
                     -= mu_s[ispin] * this->external_field_magnitude * this->external_field_normal.dot( spins[ispin] );
         }
     }
 #endif
 }
 
-void Hamiltonian_Heisenberg::E_Anisotropy( const vectorfield & spins, scalarfield & Energy )
+void Hamiltonian::E_Anisotropy( const vectorfield & spins, scalarfield & energy )
 {
 #ifdef SPIRIT_USE_CUDA
     int size = geometry->n_cells_total;
     CU_E_Anisotropy<<<( size + 1023 ) / 1024, 1024>>>(
         spins.data(), this->geometry->atom_types.data(), this->geometry->n_cell_atoms, this->anisotropy_indices.size(),
         this->anisotropy_indices.data(), this->anisotropy_magnitudes.data(), this->anisotropy_normals.data(),
-        Energy.data(), size );
+        energy.data(), size );
     CU_CHECK_AND_SYNC();
 #else
     const int N = geometry->n_cell_atoms;
@@ -359,21 +472,21 @@ void Hamiltonian_Heisenberg::E_Anisotropy( const vectorfield & spins, scalarfiel
         {
             int ispin = icell * N + anisotropy_indices[iani];
             if( check_atom_type( this->geometry->atom_types[ispin] ) )
-                Energy[ispin] -= this->anisotropy_magnitudes[iani]
+                energy[ispin] -= this->anisotropy_magnitudes[iani]
                                  * std::pow( anisotropy_normals[iani].dot( spins[ispin] ), 2.0 );
         }
     }
 #endif
 }
 
-void Hamiltonian_Heisenberg::E_Cubic_Anisotropy( const vectorfield & spins, scalarfield & Energy )
+void Hamiltonian::E_Cubic_Anisotropy( const vectorfield & spins, scalarfield & energy )
 {
 #ifdef SPIRIT_USE_CUDA
     int size = geometry->n_cells_total;
     CU_E_Cubic_Anisotropy<<<( size + 1023 ) / 1024, 1024>>>(
         spins.data(), this->geometry->atom_types.data(), this->geometry->n_cell_atoms,
         this->cubic_anisotropy_indices.size(), this->cubic_anisotropy_indices.data(),
-        this->cubic_anisotropy_magnitudes.data(), Energy.data(), size );
+        this->cubic_anisotropy_magnitudes.data(), energy.data(), size );
     CU_CHECK_AND_SYNC();
 #else
     const int N = geometry->n_cell_atoms;
@@ -385,7 +498,7 @@ void Hamiltonian_Heisenberg::E_Cubic_Anisotropy( const vectorfield & spins, scal
         {
             int ispin = icell * N + cubic_anisotropy_indices[iani];
             if( check_atom_type( this->geometry->atom_types[ispin] ) )
-                Energy[ispin] -= this->cubic_anisotropy_magnitudes[iani] / 2
+                energy[ispin] -= this->cubic_anisotropy_magnitudes[iani] / 2
                                  * ( std::pow( spins[ispin][0], 4.0 ) + std::pow( spins[ispin][1], 4.0 )
                                      + std::pow( spins[ispin][2], 4.0 ) );
         }
@@ -393,14 +506,14 @@ void Hamiltonian_Heisenberg::E_Cubic_Anisotropy( const vectorfield & spins, scal
 #endif
 }
 
-void Hamiltonian_Heisenberg::E_Exchange( const vectorfield & spins, scalarfield & Energy )
+void Hamiltonian::E_Exchange( const vectorfield & spins, scalarfield & energy )
 {
 #ifdef SPIRIT_USE_CUDA
     int size = geometry->n_cells_total;
     CU_E_Exchange<<<( size + 1023 ) / 1024, 1024>>>(
         spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(),
         geometry->n_cell_atoms, this->exchange_pairs.size(), this->exchange_pairs.data(),
-        this->exchange_magnitudes.data(), Energy.data(), size );
+        this->exchange_magnitudes.data(), energy.data(), size );
     CU_CHECK_AND_SYNC();
 #else
 
@@ -415,9 +528,9 @@ void Hamiltonian_Heisenberg::E_Exchange( const vectorfield & spins, scalarfield 
                 exchange_pairs[i_pair] );
             if( jspin >= 0 )
             {
-                Energy[ispin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot( spins[jspin] );
+                energy[ispin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot( spins[jspin] );
 #ifndef SPIRIT_USE_OPENMP
-                Energy[jspin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot( spins[jspin] );
+                energy[jspin] -= 0.5 * exchange_magnitudes[i_pair] * spins[ispin].dot( spins[jspin] );
 #endif
             }
         }
@@ -425,14 +538,14 @@ void Hamiltonian_Heisenberg::E_Exchange( const vectorfield & spins, scalarfield 
 #endif
 }
 
-void Hamiltonian_Heisenberg::E_DMI( const vectorfield & spins, scalarfield & Energy )
+void Hamiltonian::E_DMI( const vectorfield & spins, scalarfield & energy )
 {
 #ifdef SPIRIT_USE_CUDA
     int size = geometry->n_cells_total;
     CU_E_DMI<<<( size + 1023 ) / 1024, 1024>>>(
         spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(),
         geometry->n_cell_atoms, this->dmi_pairs.size(), this->dmi_pairs.data(), this->dmi_magnitudes.data(),
-        this->dmi_normals.data(), Energy.data(), size );
+        this->dmi_normals.data(), energy.data(), size );
     CU_CHECK_AND_SYNC();
 #else
 #pragma omp parallel for
@@ -446,10 +559,10 @@ void Hamiltonian_Heisenberg::E_DMI( const vectorfield & spins, scalarfield & Ene
                 dmi_pairs[i_pair] );
             if( jspin >= 0 )
             {
-                Energy[ispin]
+                energy[ispin]
                     -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot( spins[ispin].cross( spins[jspin] ) );
 #ifndef SPIRIT_USE_OPENMP
-                Energy[jspin]
+                energy[jspin]
                     -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot( spins[ispin].cross( spins[jspin] ) );
 #endif
             }
@@ -458,21 +571,21 @@ void Hamiltonian_Heisenberg::E_DMI( const vectorfield & spins, scalarfield & Ene
 #endif
 }
 
-void Hamiltonian_Heisenberg::E_DDI( const vectorfield & spins, scalarfield & Energy )
+void Hamiltonian::E_DDI( const vectorfield & spins, scalarfield & energy )
 {
     if( this->ddi_method == DDI_Method::FFT )
-        this->E_DDI_FFT( spins, Energy );
+        this->E_DDI_FFT( spins, energy );
     else if( this->ddi_method == DDI_Method::Cutoff )
     {
         // TODO: Merge these implementations in the future
         if( ddi_cutoff_radius >= 0 )
-            this->E_DDI_Cutoff( spins, Energy );
+            this->E_DDI_Cutoff( spins, energy );
         else
-            this->E_DDI_Direct( spins, Energy );
+            this->E_DDI_Direct( spins, energy );
     }
 }
 
-void Hamiltonian_Heisenberg::E_DDI_Direct( const vectorfield & spins, scalarfield & Energy )
+void Hamiltonian::E_DDI_Direct( const vectorfield & spins, scalarfield & energy )
 {
     vectorfield gradients_temp;
     gradients_temp.resize( geometry->nos );
@@ -481,10 +594,10 @@ void Hamiltonian_Heisenberg::E_DDI_Direct( const vectorfield & spins, scalarfiel
 
 #pragma omp parallel for
     for( int ispin = 0; ispin < geometry->nos; ispin++ )
-        Energy[ispin] += 0.5 * spins[ispin].dot( gradients_temp[ispin] );
+        energy[ispin] += 0.5 * spins[ispin].dot( gradients_temp[ispin] );
 }
 
-void Hamiltonian_Heisenberg::E_DDI_Cutoff( const vectorfield & spins, scalarfield & Energy )
+void Hamiltonian::E_DDI_Cutoff( const vectorfield & spins, scalarfield & energy )
 {
 #ifdef SPIRIT_USE_CUDA
     // //scalar mult = -mu_B*mu_B*1.0 / 4.0 / Pi; // multiply with mu_B^2
@@ -507,10 +620,10 @@ void Hamiltonian_Heisenberg::E_DDI_Cutoff( const vectorfield & spins, scalarfiel
     //                     // int idx_j = ddi_pairs[i_pair].j;
     //                     int idx_i = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
     //                     int idx_j = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations,
-    //                     ddi_pairs[i_pair].translations); Energy[idx_i] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
+    //                     ddi_pairs[i_pair].translations); energy[idx_i] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
     //                         (3 * spins[idx_j].dot(ddi_normals[i_pair]) * spins[idx_i].dot(ddi_normals[i_pair]) -
     //                         spins[idx_i].dot(spins[idx_j]));
-    //                     Energy[idx_j] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
+    //                     energy[idx_j] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
     //                         (3 * spins[idx_j].dot(ddi_normals[i_pair]) * spins[idx_i].dot(ddi_normals[i_pair]) -
     //                         spins[idx_i].dot(spins[idx_j]));
     //                 }
@@ -547,7 +660,7 @@ void Hamiltonian_Heisenberg::E_DDI_Cutoff( const vectorfield & spins, scalarfiel
                             ddi_pairs[i_pair] );
                         if( jspin >= 0 )
                         {
-                            Energy[ispin] -= 0.5 * mu_s[ispin] * mu_s[jspin] * mult
+                            energy[ispin] -= 0.5 * mu_s[ispin] * mu_s[jspin] * mult
                                              / std::pow( ddi_magnitudes[i_pair], 3.0 )
                                              * ( 3 * spins[ispin].dot( ddi_normals[i_pair] )
                                                      * spins[jspin].dot( ddi_normals[i_pair] )
@@ -561,7 +674,7 @@ void Hamiltonian_Heisenberg::E_DDI_Cutoff( const vectorfield & spins, scalarfiel
 #endif
 } // end DipoleDipole
 
-void Hamiltonian_Heisenberg::E_DDI_FFT( const vectorfield & spins, scalarfield & Energy )
+void Hamiltonian::E_DDI_FFT( const vectorfield & spins, scalarfield & energy )
 {
 #ifdef SPIRIT_USE_CUDA
     // todo maybe the gradient should be cached somehow, it is quite inefficient to calculate it
@@ -570,7 +683,7 @@ void Hamiltonian_Heisenberg::E_DDI_FFT( const vectorfield & spins, scalarfield &
     Vectormath::fill( gradients_temp, { 0, 0, 0 } );
     this->Gradient_DDI( spins, gradients_temp );
     CU_E_DDI_FFT<<<( geometry->nos + 1023 ) / 1024, 1024>>>(
-        Energy.data(), spins.data(), gradients_temp.data(), geometry->nos, geometry->n_cell_atoms,
+        energy.data(), spins.data(), gradients_temp.data(), geometry->nos, geometry->n_cell_atoms,
         geometry->mu_s.data() );
 
     // === DEBUG: begin gradient comparison ===
@@ -614,13 +727,13 @@ void Hamiltonian_Heisenberg::E_DDI_FFT( const vectorfield & spins, scalarfield &
 #pragma omp parallel for
     for( int ispin = 0; ispin < geometry->nos; ispin++ )
     {
-        Energy[ispin] += 0.5 * spins[ispin].dot( gradients_temp[ispin] );
+        energy[ispin] += 0.5 * spins[ispin].dot( gradients_temp[ispin] );
         // Energy_DDI    += 0.5 * spins[ispin].dot(gradients_temp[ispin]);
     }
 #endif
 } // end DipoleDipole
 
-void Hamiltonian_Heisenberg::E_Quadruplet( const vectorfield & spins, scalarfield & Energy )
+void Hamiltonian::E_Quadruplet( const vectorfield & spins, scalarfield & energy )
 {
     for( unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad )
     {
@@ -665,13 +778,13 @@ void Hamiltonian_Heisenberg::E_Quadruplet( const vectorfield & spins, scalarfiel
 #endif
                     if( ispin >= 0 && jspin >= 0 && kspin >= 0 && lspin >= 0 )
                     {
-                        Energy[ispin] -= 0.25 * quadruplet_magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) )
+                        energy[ispin] -= 0.25 * quadruplet_magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) )
                                          * ( spins[kspin].dot( spins[lspin] ) );
-                        Energy[jspin] -= 0.25 * quadruplet_magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) )
+                        energy[jspin] -= 0.25 * quadruplet_magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) )
                                          * ( spins[kspin].dot( spins[lspin] ) );
-                        Energy[kspin] -= 0.25 * quadruplet_magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) )
+                        energy[kspin] -= 0.25 * quadruplet_magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) )
                                          * ( spins[kspin].dot( spins[lspin] ) );
-                        Energy[lspin] -= 0.25 * quadruplet_magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) )
+                        energy[lspin] -= 0.25 * quadruplet_magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) )
                                          * ( spins[kspin].dot( spins[lspin] ) );
                     }
                 }
@@ -680,9 +793,9 @@ void Hamiltonian_Heisenberg::E_Quadruplet( const vectorfield & spins, scalarfiel
     }
 }
 
-scalar Hamiltonian_Heisenberg::Energy_Single_Spin( int ispin, const vectorfield & spins )
+scalar Hamiltonian::Energy_Single_Spin( int ispin, const vectorfield & spins )
 {
-    scalar Energy = 0;
+    scalar energy = 0;
     if( check_atom_type( this->geometry->atom_types[ispin] ) )
     {
         int icell   = ispin / this->geometry->n_cell_atoms;
@@ -692,7 +805,7 @@ scalar Hamiltonian_Heisenberg::Energy_Single_Spin( int ispin, const vectorfield 
 
         // External field
         if( this->idx_zeeman >= 0 )
-            Energy -= mu_s[ispin] * this->external_field_magnitude * this->external_field_normal.dot( spins[ispin] );
+            energy -= mu_s[ispin] * this->external_field_magnitude * this->external_field_normal.dot( spins[ispin] );
 
         // Anisotropy
         if( this->idx_anisotropy >= 0 )
@@ -702,7 +815,7 @@ scalar Hamiltonian_Heisenberg::Energy_Single_Spin( int ispin, const vectorfield 
                 if( anisotropy_indices[iani] == ibasis )
                 {
                     if( check_atom_type( this->geometry->atom_types[ispin] ) )
-                        Energy -= this->anisotropy_magnitudes[iani]
+                        energy -= this->anisotropy_magnitudes[iani]
                                   * std::pow( anisotropy_normals[iani].dot( spins[ispin] ), 2.0 );
                 }
             }
@@ -716,7 +829,7 @@ scalar Hamiltonian_Heisenberg::Energy_Single_Spin( int ispin, const vectorfield 
                 if( cubic_anisotropy_indices[iani] == ibasis )
                 {
                     if( check_atom_type( this->geometry->atom_types[ispin] ) )
-                        Energy -= this->cubic_anisotropy_magnitudes[iani] / 2
+                        energy -= this->cubic_anisotropy_magnitudes[iani] / 2
                                   * ( std::pow( spins[ispin][0], 4.0 ) + std::pow( spins[ispin][1], 4.0 )
                                       + std::pow( spins[ispin][2], 4.0 ) );
                 }
@@ -735,7 +848,7 @@ scalar Hamiltonian_Heisenberg::Energy_Single_Spin( int ispin, const vectorfield 
                         ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
                         pair );
                     if( jspin >= 0 )
-                        Energy -= this->exchange_magnitudes[ipair] * spins[ispin].dot( spins[jspin] );
+                        energy -= this->exchange_magnitudes[ipair] * spins[ispin].dot( spins[jspin] );
                 }
 #if !( defined( SPIRIT_USE_OPENMP ) || defined( SPIRIT_USE_CUDA ) )
                 if( pair.j == ibasis )
@@ -746,7 +859,7 @@ scalar Hamiltonian_Heisenberg::Energy_Single_Spin( int ispin, const vectorfield 
                         ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
                         pair_inv );
                     if( jspin >= 0 )
-                        Energy -= this->exchange_magnitudes[ipair] * spins[ispin].dot( spins[jspin] );
+                        energy -= this->exchange_magnitudes[ipair] * spins[ispin].dot( spins[jspin] );
                 }
 #endif
             }
@@ -764,7 +877,7 @@ scalar Hamiltonian_Heisenberg::Energy_Single_Spin( int ispin, const vectorfield 
                         ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
                         pair );
                     if( jspin >= 0 )
-                        Energy -= this->dmi_magnitudes[ipair]
+                        energy -= this->dmi_magnitudes[ipair]
                                   * this->dmi_normals[ipair].dot( spins[ispin].cross( spins[jspin] ) );
                 }
 #if !( defined( SPIRIT_USE_OPENMP ) || defined( SPIRIT_USE_CUDA ) )
@@ -776,7 +889,7 @@ scalar Hamiltonian_Heisenberg::Energy_Single_Spin( int ispin, const vectorfield 
                         ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
                         pair_inv );
                     if( jspin >= 0 )
-                        Energy += this->dmi_magnitudes[ipair]
+                        energy += this->dmi_magnitudes[ipair]
                                   * this->dmi_normals[ipair].dot( spins[ispin].cross( spins[jspin] ) );
                 }
 #endif
@@ -788,10 +901,10 @@ scalar Hamiltonian_Heisenberg::Energy_Single_Spin( int ispin, const vectorfield 
         {
         }
     }
-    return Energy;
+    return energy;
 }
 
-void Hamiltonian_Heisenberg::Gradient( const vectorfield & spins, vectorfield & gradient )
+void Hamiltonian::Gradient( const vectorfield & spins, vectorfield & gradient )
 {
     // Set to zero
     Vectormath::fill( gradient, { 0, 0, 0 } );
@@ -825,7 +938,7 @@ void Hamiltonian_Heisenberg::Gradient( const vectorfield & spins, vectorfield & 
         this->Gradient_Quadruplet( spins, gradient );
 }
 
-void Hamiltonian_Heisenberg::Gradient_and_Energy( const vectorfield & spins, vectorfield & gradient, scalar & energy )
+void Hamiltonian::Gradient_and_Energy( const vectorfield & spins, vectorfield & gradient, scalar & energy )
 {
     // Set to zero
     Vectormath::fill( gradient, { 0, 0, 0 } );
@@ -888,7 +1001,7 @@ void Hamiltonian_Heisenberg::Gradient_and_Energy( const vectorfield & spins, vec
     }
 }
 
-void Hamiltonian_Heisenberg::Gradient_Zeeman( vectorfield & gradient )
+void Hamiltonian::Gradient_Zeeman( vectorfield & gradient )
 {
 #ifdef SPIRIT_USE_CUDA
     int size = geometry->n_cells_total;
@@ -913,7 +1026,7 @@ void Hamiltonian_Heisenberg::Gradient_Zeeman( vectorfield & gradient )
 #endif
 }
 
-void Hamiltonian_Heisenberg::Gradient_Anisotropy( const vectorfield & spins, vectorfield & gradient )
+void Hamiltonian::Gradient_Anisotropy( const vectorfield & spins, vectorfield & gradient )
 {
 #ifdef SPIRIT_USE_CUDA
     int size = geometry->n_cells_total;
@@ -939,7 +1052,7 @@ void Hamiltonian_Heisenberg::Gradient_Anisotropy( const vectorfield & spins, vec
 #endif
 }
 
-void Hamiltonian_Heisenberg::Gradient_Cubic_Anisotropy( const vectorfield & spins, vectorfield & gradient )
+void Hamiltonian::Gradient_Cubic_Anisotropy( const vectorfield & spins, vectorfield & gradient )
 {
 #ifdef SPIRIT_USE_CUDA
     int size = geometry->n_cells_total;
@@ -968,7 +1081,7 @@ void Hamiltonian_Heisenberg::Gradient_Cubic_Anisotropy( const vectorfield & spin
 #endif
 }
 
-void Hamiltonian_Heisenberg::Gradient_Exchange( const vectorfield & spins, vectorfield & gradient )
+void Hamiltonian::Gradient_Exchange( const vectorfield & spins, vectorfield & gradient )
 {
 #ifdef SPIRIT_USE_CUDA
     int size = geometry->n_cells_total;
@@ -999,7 +1112,7 @@ void Hamiltonian_Heisenberg::Gradient_Exchange( const vectorfield & spins, vecto
 #endif
 }
 
-void Hamiltonian_Heisenberg::Gradient_DMI( const vectorfield & spins, vectorfield & gradient )
+void Hamiltonian::Gradient_DMI( const vectorfield & spins, vectorfield & gradient )
 {
 #ifdef SPIRIT_USE_CUDA
     int size = geometry->n_cells_total;
@@ -1030,7 +1143,7 @@ void Hamiltonian_Heisenberg::Gradient_DMI( const vectorfield & spins, vectorfiel
 #endif
 }
 
-void Hamiltonian_Heisenberg::Gradient_DDI( const vectorfield & spins, vectorfield & gradient )
+void Hamiltonian::Gradient_DDI( const vectorfield & spins, vectorfield & gradient )
 {
     if( this->ddi_method == DDI_Method::FFT )
         this->Gradient_DDI_FFT( spins, gradient );
@@ -1044,7 +1157,7 @@ void Hamiltonian_Heisenberg::Gradient_DDI( const vectorfield & spins, vectorfiel
     }
 }
 
-void Hamiltonian_Heisenberg::Gradient_DDI_Cutoff( const vectorfield & spins, vectorfield & gradient )
+void Hamiltonian::Gradient_DDI_Cutoff( const vectorfield & spins, vectorfield & gradient )
 {
 #ifdef SPIRIT_USE_CUDA
 // TODO
@@ -1087,7 +1200,7 @@ void Hamiltonian_Heisenberg::Gradient_DDI_Cutoff( const vectorfield & spins, vec
 #endif
 } // end Field_DipoleDipole
 
-void Hamiltonian_Heisenberg::Gradient_DDI_FFT( const vectorfield & spins, vectorfield & gradient )
+void Hamiltonian::Gradient_DDI_FFT( const vectorfield & spins, vectorfield & gradient )
 {
 #ifdef SPIRIT_USE_CUDA
     auto & ft_D_matrices = transformed_dipole_matrices;
@@ -1214,7 +1327,7 @@ void Hamiltonian_Heisenberg::Gradient_DDI_FFT( const vectorfield & spins, vector
 #endif
 } // end Field_DipoleDipole
 
-void Hamiltonian_Heisenberg::Gradient_DDI_Direct( const vectorfield & spins, vectorfield & gradient )
+void Hamiltonian::Gradient_DDI_Direct( const vectorfield & spins, vectorfield & gradient )
 {
     scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4 * C::Pi * 1e-30 );
     scalar d, d3, d5;
@@ -1271,7 +1384,7 @@ void Hamiltonian_Heisenberg::Gradient_DDI_Direct( const vectorfield & spins, vec
     }
 }
 
-void Hamiltonian_Heisenberg::Gradient_Quadruplet( const vectorfield & spins, vectorfield & gradient )
+void Hamiltonian::Gradient_Quadruplet( const vectorfield & spins, vectorfield & gradient )
 {
     for( unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad )
     {
@@ -1332,7 +1445,7 @@ void Hamiltonian_Heisenberg::Gradient_Quadruplet( const vectorfield & spins, vec
     }
 }
 
-void Hamiltonian_Heisenberg::Hessian( const vectorfield & spins, MatrixX & hessian )
+void Hamiltonian::Hessian( const vectorfield & spins, MatrixX & hessian )
 {
     int nos     = spins.size();
     const int N = geometry->n_cell_atoms;
@@ -1490,7 +1603,7 @@ void Hamiltonian_Heisenberg::Hessian( const vectorfield & spins, MatrixX & hessi
     // TODO: Quadruplets
 }
 
-void Hamiltonian_Heisenberg::Sparse_Hessian( const vectorfield & spins, SpMatrixX & hessian )
+void Hamiltonian::Sparse_Hessian( const vectorfield & spins, SpMatrixX & hessian )
 {
     int nos     = spins.size();
     const int N = geometry->n_cell_atoms;
@@ -1586,7 +1699,7 @@ void Hamiltonian_Heisenberg::Sparse_Hessian( const vectorfield & spins, SpMatrix
     hessian.setFromTriplets( tripletList.begin(), tripletList.end() );
 }
 
-void Hamiltonian_Heisenberg::FFT_Spins( const vectorfield & spins )
+void Hamiltonian::FFT_Spins( const vectorfield & spins )
 {
 #ifdef SPIRIT_USE_CUDA
     CU_Write_FFT_Spin_Input<<<( geometry->nos + 1023 ) / 1024, 1024>>>(
@@ -1625,7 +1738,7 @@ void Hamiltonian_Heisenberg::FFT_Spins( const vectorfield & spins )
     FFT::batch_Four_3D( fft_plan_spins );
 }
 
-void Hamiltonian_Heisenberg::FFT_Dipole_Matrices( FFT::FFT_Plan & fft_plan_dipole, int img_a, int img_b, int img_c )
+void Hamiltonian::FFT_Dipole_Matrices( FFT::FFT_Plan & fft_plan_dipole, int img_a, int img_b, int img_c )
 {
 #ifdef SPIRIT_USE_CUDA
     auto & fft_dipole_inputs = fft_plan_dipole.real_ptr;
@@ -1742,7 +1855,7 @@ void Hamiltonian_Heisenberg::FFT_Dipole_Matrices( FFT::FFT_Plan & fft_plan_dipol
     FFT::batch_Four_3D( fft_plan_dipole );
 }
 
-void Hamiltonian_Heisenberg::Prepare_DDI()
+void Hamiltonian::Prepare_DDI()
 {
     Clean_DDI();
 
@@ -1852,17 +1965,141 @@ void Hamiltonian_Heisenberg::Prepare_DDI()
     }
 } // End prepare
 
-void Hamiltonian_Heisenberg::Clean_DDI()
+void Hamiltonian::Clean_DDI()
 {
     fft_plan_spins   = FFT::FFT_Plan();
     fft_plan_reverse = FFT::FFT_Plan();
 }
 
-// Hamiltonian name as string
-static const std::string name = "Heisenberg";
-const std::string & Hamiltonian_Heisenberg::Name() const
+void Hamiltonian::Hessian_FD( const vectorfield & spins, MatrixX & hessian )
 {
-    return name;
+    // This is a regular finite difference implementation (probably not very efficient)
+    // using the differences between gradient values (not function)
+    // see https://v8doc.sas.com/sashtml/ormp/chap5/sect28.htm
+
+    std::size_t nos = spins.size();
+
+    vectorfield spins_pi( nos );
+    vectorfield spins_mi( nos );
+    vectorfield spins_pj( nos );
+    vectorfield spins_mj( nos );
+
+    spins_pi = spins;
+    spins_mi = spins;
+    spins_pj = spins;
+    spins_mj = spins;
+
+    vectorfield grad_pi( nos );
+    vectorfield grad_mi( nos );
+    vectorfield grad_pj( nos );
+    vectorfield grad_mj( nos );
+
+    for( std::size_t i = 0; i < nos; ++i )
+    {
+        for( std::size_t j = 0; j < nos; ++j )
+        {
+            for( std::uint8_t alpha = 0; alpha < 3; ++alpha )
+            {
+                for( std::uint8_t beta = 0; beta < 3; ++beta )
+                {
+                    // Displace
+                    spins_pi[i][alpha] += delta;
+                    spins_mi[i][alpha] -= delta;
+                    spins_pj[j][beta] += delta;
+                    spins_mj[j][beta] -= delta;
+
+                    // Calculate Hessian component
+                    this->Gradient( spins_pi, grad_pi );
+                    this->Gradient( spins_mi, grad_mi );
+                    this->Gradient( spins_pj, grad_pj );
+                    this->Gradient( spins_mj, grad_mj );
+
+                    hessian( 3 * i + alpha, 3 * j + beta )
+                        = 0.25 / delta
+                          * ( grad_pj[i][alpha] - grad_mj[i][alpha] + grad_pi[j][beta] - grad_mi[j][beta] );
+
+                    // Un-Displace
+                    spins_pi[i][alpha] -= delta;
+                    spins_mi[i][alpha] += delta;
+                    spins_pj[j][beta] -= delta;
+                    spins_mj[j][beta] += delta;
+                }
+            }
+        }
+    }
 }
+
+void Hamiltonian::Gradient_FD( const vectorfield & spins, vectorfield & gradient )
+{
+    std::size_t nos = spins.size();
+
+    // Calculate finite difference
+    vectorfield spins_plus( nos );
+    vectorfield spins_minus( nos );
+
+    spins_plus  = spins;
+    spins_minus = spins;
+
+    for( std::size_t i = 0; i < nos; ++i )
+    {
+        for( std::uint8_t dim = 0; dim < 3; ++dim )
+        {
+            // Displace
+            spins_plus[i][dim] += delta;
+            spins_minus[i][dim] -= delta;
+
+            // Calculate gradient component
+            scalar E_plus    = this->Energy( spins_plus );
+            scalar E_minus   = this->Energy( spins_minus );
+            gradient[i][dim] = 0.5 * ( E_plus - E_minus ) / delta;
+
+            // Un-Displace
+            spins_plus[i][dim] -= delta;
+            spins_minus[i][dim] += delta;
+        }
+    }
+}
+
+scalar Hamiltonian::Energy( const vectorfield & spins )
+{
+    scalar sum  = 0;
+    auto energy = Energy_Contributions( spins );
+    for( const auto & E : energy )
+        sum += E.second;
+    return sum;
+}
+
+Data::vectorlabeled<scalar> Hamiltonian::Energy_Contributions( const vectorfield & spins )
+{
+    Energy_Contributions_per_Spin( spins, this->energy_contributions_per_spin );
+    vectorlabeled<scalar> energy( Number_of_Interactions() );
+    for( std::size_t i = 0; i < energy.size(); ++i )
+    {
+        energy[i] = { this->energy_contributions_per_spin[i].first,
+                      Vectormath::sum( this->energy_contributions_per_spin[i].second ) };
+    }
+    return energy;
+}
+
+std::size_t Hamiltonian::Number_of_Interactions()
+{
+    // TODO: integrate this with `Hamiltonian::getActiveInteractionsSize()`
+    return energy_contributions_per_spin.size();
+}
+
+void Hamiltonian::updateName()
+{
+    if( name_update_paused )
+        return;
+
+    hamiltonian_class = HAMILTONIAN_CLASS::HEISENBERG;
+    class_name = hamiltonianClassName( hamiltonian_class );
+}
+
+// Hamiltonian name as string
+std::string_view Hamiltonian::Name() const
+{
+    return class_name;
+};
 
 } // namespace Engine

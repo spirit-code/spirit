@@ -1,20 +1,58 @@
 #pragma once
-#ifndef SPIRIT_CORE_ENGINE_INTERACTION_HAMILTONIAN_HEISENBERG_HPP
-#define SPIRIT_CORE_ENGINE_INTERACTION_HAMILTONIAN_HEISENBERG_HPP
+#ifndef SPIRIT_CORE_ENGINE_INTERACTION_HAMILTONIAN_HPP
+#define SPIRIT_CORE_ENGINE_INTERACTION_HAMILTONIAN_HPP
 
 #include <Spirit/Hamiltonian.h>
 #include <Spirit/Spirit_Defines.h>
 #include <data/Geometry.hpp>
 #include <engine/FFT.hpp>
-#include <engine/interaction/Hamiltonian_Base.hpp>
+#include <engine/Hamiltonian_Defines.hpp>
 #include <engine/Vectormath_Defines.hpp>
 
 #include <memory>
+#include <random>
 #include <vector>
 
 namespace Engine
 {
 
+// forward declaration of interactions for following friend declaration
+namespace Interaction
+{
+
+using triplet = Eigen::Triplet<scalar>;
+
+// common interaction base class
+class ABC;
+
+// CRTP class for shared implementations that need knowledge of the specific child class
+template<class Derived>
+class Base;
+
+// Interaction classes
+class Gaussian;
+
+} // namespace Interaction
+
+enum class HAMILTONIAN_CLASS
+{
+    GENERIC    = SPIRIT_HAMILTONIAN_CLASS_GENERIC,
+    GAUSSIAN   = SPIRIT_HAMILTONIAN_CLASS_GAUSSIAN,
+    HEISENBERG = SPIRIT_HAMILTONIAN_CLASS_HEISENBERG,
+};
+
+static constexpr std::string_view hamiltonianClassName( HAMILTONIAN_CLASS cls )
+{
+    switch( cls )
+    {
+        case HAMILTONIAN_CLASS::GENERIC: return "Generic";
+        case HAMILTONIAN_CLASS::GAUSSIAN: return "Gaussian";
+        case HAMILTONIAN_CLASS::HEISENBERG: return "Heisenberg";
+        default: return "Unknown";
+    };
+}
+
+// Forward declaration of DDI_Method
 enum class DDI_Method
 {
     FFT    = SPIRIT_DDI_METHOD_FFT,
@@ -28,42 +66,91 @@ enum class DDI_Method
     The information is presented in pair lists and parameter lists in order to easily e.g. calculate the energy of the
    system via summation. Calculations are made on a per-pair basis running over all pairs.
 */
-class Hamiltonian_Heisenberg : public Hamiltonian
+class Hamiltonian
 {
+    // Marked as friend classes as an alternative to having a proper accessor for geometry & boundary_conditions.
+    // This might also prove to be more flexible and makes sense semantically because interactions and Hamiltonian are
+    // so intimately linked
+    friend class Interaction::ABC;
+    template<class Derived>
+    friend class Interaction::Base;
+    // Interaction classes
+    friend class Interaction::Gaussian;
+
 public:
-    Hamiltonian_Heisenberg(
+    Hamiltonian(
         std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
         const Data::NormalVector & external_field, const Data::VectorfieldData & anisotropy,
         const Data::ScalarfieldData & cubic_anisotropy, const Data::ScalarPairfieldData & exchange,
         const Data::VectorPairfieldData & dmi, const Data::QuadrupletfieldData & quadruplet,
         Engine::DDI_Method ddi_method, const Data::DDI_Data & ddi_data );
 
-    Hamiltonian_Heisenberg(
+    Hamiltonian(
         std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
         const Data::NormalVector & external_field, const Data::VectorfieldData & anisotropy,
         const Data::ScalarfieldData & cubic_anisotropy, const scalarfield & exchange_shell_magnitudes,
         const scalarfield & dmi_shell_magnitudes, int dm_chirality, const Data::QuadrupletfieldData & quadruplet,
         Engine::DDI_Method ddi_method, const Data::DDI_Data & ddi_data );
 
-    void Update_Interactions();
+    Hamiltonian( std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions );
 
-    void Update_Energy_Contributions() override;
+    /*
+     * Update the internal state of the interactions.
+     * This needs to be done every time the parameters are changed, in case an energy
+     * contribution is now non-zero or vice versa.
+     * The interactions know when to trigger this if the parameters are updated for them directly,
+     * the manual update should only be neccessary if the geometry or boundary_conditions are changed.
+     */
+    void updateInteractions();
 
-    void Hessian( const vectorfield & spins, MatrixX & hessian ) override;
-    void Sparse_Hessian( const vectorfield & spins, SpMatrixX & hessian ) override;
+    // old mechanism
+    void Update_Energy_Contributions();
 
-    void Gradient( const vectorfield & spins, vectorfield & gradient ) override;
-    void Gradient_and_Energy( const vectorfield & spins, vectorfield & gradient, scalar & energy ) override;
+    /*
+     * update functions for when the geometry or an Interaction has been changed,
+     * these serve as an alternative to more rigid accessors
+     */
+    void onInteractionChanged()
+    {
+        Update_Energy_Contributions();
+    };
+    void onGeometryChanged()
+    {
+        updateInteractions();
+    };
 
-    void Energy_Contributions_per_Spin(
-        const vectorfield & spins, std::vector<std::pair<std::string, scalarfield>> & contributions ) override;
+    void Hessian( const vectorfield & spins, MatrixX & hessian );
+    void Sparse_Hessian( const vectorfield & spins, SpMatrixX & hessian );
+
+    void Gradient( const vectorfield & spins, vectorfield & gradient );
+    void Gradient_and_Energy( const vectorfield & spins, vectorfield & gradient, scalar & energy );
+
+    void Energy_Contributions_per_Spin( const vectorfield & spins, Data::vectorlabeled<scalarfield> & contributions );
+    Data::vectorlabeled<scalar> Energy_Contributions( const vectorfield & spins );
 
     // Calculate the total energy for a single spin to be used in Monte Carlo.
     //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
-    scalar Energy_Single_Spin( int ispin, const vectorfield & spins ) override;
+    scalar Energy_Single_Spin( int ispin, const vectorfield & spins );
+
+    scalar Energy( const vectorfield & spins );
+
+    void Gradient_FD( const vectorfield & spins, vectorfield & gradient );
+    void Hessian_FD( const vectorfield & spins, MatrixX & hessian );
+    std::size_t Number_of_Interactions();
 
     // Hamiltonian name as string
-    const std::string & Name() const override;
+    void pauseUpdateName()
+    {
+        name_update_paused = true;
+    };
+
+    void unpauseUpdateName()
+    {
+        name_update_paused = false;
+    };
+
+    void updateName();
+    std::string_view Name() const;
 
     // ------------ Single Spin Interactions ------------
     // External magnetic field across the sample
@@ -112,6 +199,7 @@ public:
     scalarfield quadruplet_magnitudes;
 
     std::shared_ptr<Data::Geometry> geometry;
+    intfield boundary_conditions;
 
     // ------------ Effective Field Functions ------------
     // Calculate the Zeeman effective field of a single Spin
@@ -185,6 +273,16 @@ private:
     void E_DDI_Cutoff( const vectorfield & spins, scalarfield & Energy );
     void E_DDI_FFT( const vectorfield & spins, scalarfield & Energy );
 
+    Data::vectorlabeled<scalarfield> energy_contributions_per_spin;
+
+    std::mt19937 prng;
+    std::uniform_int_distribution<int> distribution_int;
+    scalar delta = 1e-3;
+
+    // naming mechanism for compatibility with the named subclasses architecture
+    bool name_update_paused             = false;
+    HAMILTONIAN_CLASS hamiltonian_class = HAMILTONIAN_CLASS::GENERIC;
+    std::string_view class_name{ hamiltonianClassName( HAMILTONIAN_CLASS::GENERIC ) };
     // Preparations for DDI-Convolution Algorithm
     void Prepare_DDI();
     void Clean_DDI();

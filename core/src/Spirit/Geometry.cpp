@@ -29,9 +29,8 @@ void Helper_System_Set_Geometry( Data::Spin_System & system, const Data::Geometr
     // Update the system geometry
     *system.geometry = new_geometry;
 
-    // Update the Heisenberg Hamiltonian
-    if( system.hamiltonian->Name() == "Heisenberg" )
-        std::static_pointer_cast<Engine::Hamiltonian_Heisenberg>( system.hamiltonian )->Update_Interactions();
+    // Update the internal state of the interactions
+    system.hamiltonian->onGeometryChanged();
 }
 
 void Helper_State_Set_Geometry(

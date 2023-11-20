@@ -26,6 +26,8 @@ Data::Pinning Pinning_from_Config( const std::string & config_file_name, std::si
 
 std::shared_ptr<Data::Geometry> Geometry_from_Config( const std::string & config_file_name );
 
+intfield Boundary_Conditions_from_Config( const std::string & config_file_name );
+
 std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config( const std::string & config_file_name );
 
 std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config( const std::string & config_file_name );
@@ -37,15 +39,15 @@ std::unique_ptr<Data::Parameters_Method_EMA> Parameters_Method_EMA_from_Config( 
 
 std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config( const std::string & config_file_name );
 
-std::unique_ptr<Engine::Hamiltonian>
-Hamiltonian_from_Config( const std::string & config_file_name, const std::shared_ptr<Data::Geometry> geometry );
+std::unique_ptr<Engine::Hamiltonian> Hamiltonian_from_Config(
+    const std::string & config_file_name, std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions );
 
-std::unique_ptr<Engine::Hamiltonian_Heisenberg> Hamiltonian_Heisenberg_from_Config(
-    const std::string & config_file_name, const std::shared_ptr<Data::Geometry> geometry,
+std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
+    const std::string & config_file_name, std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions,
     const std::string & hamiltonian_type );
 
-std::unique_ptr<Engine::Hamiltonian_Gaussian> Hamiltonian_Gaussian_from_Config(
-    const std::string & config_file_name, const std::shared_ptr<Data::Geometry> geometry );
+std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Gaussian_from_Config(
+    const std::string & config_file_name, std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions );
 
 } // namespace IO
 

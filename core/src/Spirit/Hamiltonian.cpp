@@ -69,7 +69,7 @@ try
         // Set
         if( image->hamiltonian->Name() == "Heisenberg" )
         {
-            auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
+            auto & ham =  image->hamiltonian;
 
             // Normals
             Vector3 new_normal{ normal[0], normal[1], normal[2] };
@@ -89,7 +89,7 @@ try
         }
         else
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 "External field cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain );
+                 fmt::format("External field cannot be set on {}", image->hamiltonian->Name() ), idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -120,7 +120,7 @@ try
     {
         if( image->hamiltonian->Name() == "Heisenberg" )
         {
-            auto * ham       = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
+            auto & ham       = image->hamiltonian;
             int nos          = image->nos;
             int n_cell_atoms = image->geometry->n_cell_atoms;
 
@@ -152,7 +152,7 @@ try
         }
         else
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 "Anisotropy cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain );
+                 fmt::format("Anisotropy cannot be set on {}", image->hamiltonian->Name() ), idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -180,7 +180,7 @@ try
     {
         if( image->hamiltonian->Name() == "Heisenberg" )
         {
-            auto * ham       = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
+            auto & ham       = image->hamiltonian;
             int nos          = image->nos;
             int n_cell_atoms = image->geometry->n_cell_atoms;
 
@@ -205,7 +205,7 @@ try
         }
         else
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 "Cubic anisotropy cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain );
+                 fmt::format( "Cubic anisotropy cannot be set on {}", image->hamiltonian->Name() ), idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -235,11 +235,11 @@ try
         if( image->hamiltonian->Name() == "Heisenberg" )
         {
             // Update the Hamiltonian
-            auto * ham                     = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
+            auto & ham                     = image->hamiltonian;
             ham->exchange_shell_magnitudes = scalarfield( jij, jij + n_shells );
             ham->exchange_pairs_in         = pairfield( 0 );
             ham->exchange_magnitudes_in    = scalarfield( 0 );
-            ham->Update_Interactions();
+            ham->updateInteractions();
 
             std::string message = fmt::format( "Set exchange to {} shells", n_shells );
             if( n_shells > 0 )
@@ -248,7 +248,7 @@ try
         }
         else
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 "Exchange cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain );
+                 fmt::format( "Exchange cannot be set on {}", image->hamiltonian->Name() ), idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -287,13 +287,13 @@ try
         if( image->hamiltonian->Name() == "Heisenberg" )
         {
             // Update the Hamiltonian
-            auto * ham                = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
+            auto & ham                = image->hamiltonian;
             ham->dmi_shell_magnitudes = scalarfield( dij, dij + n_shells );
             ham->dmi_shell_chirality  = chirality;
             ham->dmi_pairs_in         = pairfield( 0 );
             ham->dmi_magnitudes_in    = scalarfield( 0 );
             ham->dmi_normals_in       = vectorfield( 0 );
-            ham->Update_Interactions();
+            ham->updateInteractions();
 
             std::string message = fmt::format( "Set dmi to {} shells", n_shells );
             if( n_shells > 0 )
@@ -302,7 +302,7 @@ try
         }
         else
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 "DMI cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain );
+                 fmt::format( "DMI cannot be set on {}", image->hamiltonian->Name() ), idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -333,7 +333,7 @@ try
     {
         if( image->hamiltonian->Name() == "Heisenberg" )
         {
-            auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
+            auto & ham = image->hamiltonian;
 
             ham->ddi_method               = Engine::DDI_Method( ddi_method );
             ham->ddi_n_periodic_images[0] = n_periodic_images[0];
@@ -341,7 +341,7 @@ try
             ham->ddi_n_periodic_images[2] = n_periodic_images[2];
             ham->ddi_cutoff_radius        = cutoff_radius;
             ham->ddi_pb_zero_padding      = pb_zero_padding;
-            ham->Update_Interactions();
+            ham->updateInteractions();
 
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                  fmt::format(
@@ -352,7 +352,7 @@ try
         }
         else
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 "DDI cannot be set on " + image->hamiltonian->Name(), idx_image, idx_chain );
+                 fmt::format( "DDI cannot be set on {}", image->hamiltonian->Name() ), idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -379,7 +379,7 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
-    return image->hamiltonian->Name().c_str();
+    return strdup( std::string( image->hamiltonian->Name() ).c_str() );
 }
 catch( ... )
 {
@@ -419,7 +419,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
+        auto & ham =  image->hamiltonian;
 
         if( ham->external_field_magnitude > 0 )
         {
@@ -459,7 +459,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
+        auto & ham =  image->hamiltonian;
 
         if( !ham->anisotropy_indices.empty() )
         {
@@ -497,7 +497,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
+        auto & ham =  image->hamiltonian;
 
         if( !ham->cubic_anisotropy_indices.empty() )
         {
@@ -529,7 +529,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
+        auto & ham =  image->hamiltonian;
 
         *n_shells = ham->exchange_shell_magnitudes.size();
 
@@ -556,7 +556,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
+        auto & ham =  image->hamiltonian;
         return ham->exchange_pairs.size();
     }
 
@@ -581,7 +581,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
+        auto & ham =  image->hamiltonian;
 
         for( std::size_t i = 0; i < ham->exchange_pairs.size() && i < ham->exchange_magnitudes.size(); ++i )
         {
@@ -615,7 +615,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
+        auto & ham =  image->hamiltonian;
 
         *n_shells  = ham->dmi_shell_magnitudes.size();
         *chirality = ham->dmi_shell_chirality;
@@ -642,8 +642,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
-        return ham->dmi_pairs.size();
+        return image->hamiltonian->dmi_pairs.size();
     }
 
     return 0;
@@ -670,7 +669,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( image->hamiltonian.get() );
+        auto & ham =  image->hamiltonian;
 
         *ddi_method          = (int)ham->ddi_method;
         n_periodic_images[0] = (int)ham->ddi_n_periodic_images[0];

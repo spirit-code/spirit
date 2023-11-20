@@ -476,7 +476,7 @@ void Method_GNEB<solver>::Calculate_Interpolated_Energy_Contributions()
              -1 );
         return;
     }
-    auto & ham                 = (Engine::Hamiltonian_Heisenberg &)*( chain->images[0]->hamiltonian );
+    auto & ham                 = *chain->images[0]->hamiltonian;
     std::size_t n_interactions = ham.Number_of_Interactions();
 
     // Allocate temporaries

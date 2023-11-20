@@ -21,7 +21,7 @@ namespace IO
 
 void Write_Neighbours_Exchange( const Data::Spin_System & system, const std::string & filename )
 {
-    auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( system.hamiltonian.get() );
+    const auto & ham = system.hamiltonian;
 
     std::size_t n_neighbours = ham->exchange_pairs.size();
 
@@ -66,7 +66,7 @@ void Write_Neighbours_Exchange( const Data::Spin_System & system, const std::str
 
 void Write_Neighbours_DMI( const Data::Spin_System & system, const std::string & filename )
 {
-    auto * ham = dynamic_cast<Engine::Hamiltonian_Heisenberg *>( system.hamiltonian.get() );
+    const auto & ham = system.hamiltonian;
 
     std::size_t n_neighbours = ham->dmi_pairs.size();
 
