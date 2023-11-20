@@ -1297,10 +1297,9 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
     scalar K4                   = 0;
     Vector3 K_normal            = { 0.0, 0.0, 1.0 };
     bool anisotropy_from_file   = false;
-    VectorfieldData anisotropy_data{};
-    anisotropy_data.indices    = intfield( geometry->n_cell_atoms );
-    anisotropy_data.magnitudes = scalarfield( geometry->n_cell_atoms, 0.0 );
-    anisotropy_data.normals    = vectorfield( geometry->n_cell_atoms, K_normal );
+    auto anisotropy_indices     = intfield( geometry->n_cell_atoms );
+    auto anisotropy_magnitudes  = scalarfield( geometry->n_cell_atoms, 0.0 );
+    auto anisotropy_normals     = vectorfield( geometry->n_cell_atoms, K_normal );
     ScalarfieldData cubic_anisotropy_data;
     cubic_anisotropy_data.indices    = intfield( geometry->n_cell_atoms );
     cubic_anisotropy_data.magnitudes = scalarfield( geometry->n_cell_atoms, 0.0 );
@@ -1377,14 +1376,14 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
             {
                 // The file name should be valid so we try to read it
                 Anisotropy_from_File(
-                    anisotropy_file, geometry, n_pairs, anisotropy_data.indices, anisotropy_data.magnitudes,
-                    anisotropy_data.normals, cubic_anisotropy_data.indices, cubic_anisotropy_data.magnitudes );
+                    anisotropy_file, geometry, n_pairs, anisotropy_indices, anisotropy_magnitudes, anisotropy_normals,
+                    cubic_anisotropy_data.indices, cubic_anisotropy_data.magnitudes );
 
                 anisotropy_from_file = true;
-                if( !anisotropy_data.indices.empty() )
+                if( !anisotropy_indices.empty() )
                 {
-                    K        = anisotropy_data.magnitudes[0];
-                    K_normal = anisotropy_data.normals[0];
+                    K        = anisotropy_magnitudes[0];
+                    K_normal = anisotropy_normals[0];
                 }
                 else
                 {
@@ -1408,18 +1407,18 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
                 if( K != 0 )
                 {
                     // Fill the arrays
-                    for( std::size_t i = 0; i < anisotropy_data.indices.size(); ++i )
+                    for( std::size_t i = 0; i < anisotropy_indices.size(); ++i )
                     {
-                        anisotropy_data.indices[i]    = static_cast<int>( i );
-                        anisotropy_data.magnitudes[i] = K;
-                        anisotropy_data.normals[i]    = K_normal;
+                        anisotropy_indices[i]    = static_cast<int>( i );
+                        anisotropy_magnitudes[i] = K;
+                        anisotropy_normals[i]    = K_normal;
                     }
                 }
                 else
                 {
-                    anisotropy_data.indices    = intfield( 0 );
-                    anisotropy_data.magnitudes = scalarfield( 0 );
-                    anisotropy_data.normals    = vectorfield( 0 );
+                    anisotropy_indices    = intfield( 0 );
+                    anisotropy_magnitudes = scalarfield( 0 );
+                    anisotropy_normals    = vectorfield( 0 );
                 }
                 if( K4 != 0 )
                 {
@@ -1635,16 +1634,21 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
         const auto & dmi_magnitudes      = dmi.magnitudes;
 
         hamiltonian = std::make_unique<Engine::Hamiltonian>(
-            geometry, boundary_conditions, external_field, anisotropy_data, cubic_anisotropy_data, exchange_magnitudes,
-            dmi_magnitudes, dm_chirality, quadruplets, ddi_method, ddi_data );
+            geometry, boundary_conditions, external_field, cubic_anisotropy_data, exchange_magnitudes, dmi_magnitudes,
+            dm_chirality, quadruplets, ddi_method, ddi_data );
     }
     else
     {
         hamiltonian = std::make_unique<Engine::Hamiltonian>(
-            geometry, boundary_conditions, external_field, anisotropy_data, cubic_anisotropy_data, exchange, dmi,
-            quadruplets, ddi_method, ddi_data );
+            geometry, boundary_conditions, external_field, cubic_anisotropy_data, exchange, dmi, quadruplets,
+            ddi_method, ddi_data );
     }
+    hamiltonian->pauseUpdateName();
 
+    hamiltonian->setInteraction<Engine::Interaction::Anisotropy>(
+        anisotropy_indices, anisotropy_magnitudes, anisotropy_normals );
+
+    hamiltonian->unpauseUpdateName();
     hamiltonian->updateName();
     hamiltonian->Update_Energy_Contributions();
 

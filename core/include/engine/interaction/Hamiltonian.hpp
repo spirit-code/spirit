@@ -34,6 +34,7 @@ class Base;
 
 // Interaction classes
 class Gaussian;
+class Anisotropy;
 
 void setOwnerPtr( ABC & interaction, Hamiltonian * hamiltonian ) noexcept;
 
@@ -80,6 +81,7 @@ class Hamiltonian
     template<class Derived>
     friend class Interaction::Base;
     // Interaction classes
+    friend class Interaction::Anisotropy;
     friend class Interaction::Gaussian;
 
 public:
@@ -99,9 +101,6 @@ public:
         // interactions legacy block
         swap( first.external_field_magnitude, second.external_field_magnitude );
         swap( first.external_field_normal, second.external_field_normal );
-        swap( first.anisotropy_indices, second.anisotropy_indices );
-        swap( first.anisotropy_magnitudes, second.anisotropy_magnitudes );
-        swap( first.anisotropy_normals, second.anisotropy_normals );
         swap( first.cubic_anisotropy_indices, second.cubic_anisotropy_indices );
         swap( first.cubic_anisotropy_magnitudes, second.cubic_anisotropy_magnitudes );
         swap( first.exchange_shell_magnitudes, second.exchange_shell_magnitudes );
@@ -161,17 +160,15 @@ public:
 
     Hamiltonian(
         std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
-        const Data::NormalVector & external_field, const Data::VectorfieldData & anisotropy,
-        const Data::ScalarfieldData & cubic_anisotropy, const Data::ScalarPairfieldData & exchange,
-        const Data::VectorPairfieldData & dmi, const Data::QuadrupletfieldData & quadruplet,
-        Engine::DDI_Method ddi_method, const Data::DDI_Data & ddi_data );
+        const Data::NormalVector & external_field, const Data::ScalarfieldData & cubic_anisotropy,
+        const Data::ScalarPairfieldData & exchange, const Data::VectorPairfieldData & dmi,
+        const Data::QuadrupletfieldData & quadruplet, Engine::DDI_Method ddi_method, const Data::DDI_Data & ddi_data );
 
     Hamiltonian(
         std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
-        const Data::NormalVector & external_field, const Data::VectorfieldData & anisotropy,
-        const Data::ScalarfieldData & cubic_anisotropy, const scalarfield & exchange_shell_magnitudes,
-        const scalarfield & dmi_shell_magnitudes, int dm_chirality, const Data::QuadrupletfieldData & quadruplet,
-        Engine::DDI_Method ddi_method, const Data::DDI_Data & ddi_data );
+        const Data::NormalVector & external_field, const Data::ScalarfieldData & cubic_anisotropy,
+        const scalarfield & exchange_shell_magnitudes, const scalarfield & dmi_shell_magnitudes, int dm_chirality,
+        const Data::QuadrupletfieldData & quadruplet, Engine::DDI_Method ddi_method, const Data::DDI_Data & ddi_data );
 
     Hamiltonian( std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions );
 
@@ -304,11 +301,6 @@ public:
     // If required, an additional, inhomogeneous external field should be added
     //   scalarfield external_field_magnitudes;
     //   vectorfield external_field_normals;
-    // Anisotropy axes of a basis cell
-    // (indexed, as any atom of the basis cell can have one or more anisotropy axes)
-    intfield anisotropy_indices;
-    scalarfield anisotropy_magnitudes;
-    vectorfield anisotropy_normals;
     intfield cubic_anisotropy_indices;
     scalarfield cubic_anisotropy_magnitudes;
 
@@ -345,8 +337,6 @@ public:
     // ------------ Effective Field Functions ------------
     // Calculate the Zeeman effective field of a single Spin
     void Gradient_Zeeman( vectorfield & gradient );
-    // Calculate the Anisotropy effective field of a single Spin
-    void Gradient_Anisotropy( const vectorfield & spins, vectorfield & gradient );
     // Calculate the Cubic Anisotropy effective field of a single Spin
     void Gradient_Cubic_Anisotropy( const vectorfield & spins, vectorfield & gradient );
     // Calculate the exchange interaction effective field of a Spin Pair
@@ -396,8 +386,6 @@ public:
 
     // Calculate the Zeeman energy of a Spin System
     void E_Zeeman( const vectorfield & spins, scalarfield & Energy );
-    // Calculate the Anisotropy energy of a Spin System
-    void E_Anisotropy( const vectorfield & spins, scalarfield & Energy );
     // Calculate the exchange interaction energy of a Spin System
     void E_Cubic_Anisotropy( const vectorfield & spins, scalarfield & Energy );
     // Calculate the exchange interaction energy of a Spin System
@@ -437,8 +425,7 @@ private:
     Utility::Span<const std::unique_ptr<Interaction::ABC>> getUncommonInteractions() const
     {
         return Utility::Span(
-            interactions.begin() + common_interactions_size,
-            active_interactions_size - common_interactions_size );
+            interactions.begin() + common_interactions_size, active_interactions_size - common_interactions_size );
     };
 
     int idx_gaussian, idx_zeeman, idx_anisotropy, idx_cubic_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet;
