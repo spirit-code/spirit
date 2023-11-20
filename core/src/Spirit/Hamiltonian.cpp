@@ -120,7 +120,6 @@ try
     {
         if( image->hamiltonian->Name() == "Heisenberg" )
         {
-            auto & ham       = image->hamiltonian;
             int nos          = image->nos;
             int n_cell_atoms = image->geometry->n_cell_atoms;
 
@@ -137,13 +136,9 @@ try
             new_normal.normalize();
             vectorfield new_normals( nos, new_normal );
 
-            // Into the Hamiltonian
-            ham->anisotropy_indices    = new_indices;
-            ham->anisotropy_magnitudes = new_magnitudes;
-            ham->anisotropy_normals    = new_normals;
-
-            // Update Energies
-            ham->Update_Energy_Contributions();
+            // Update the Hamiltonian
+            image->hamiltonian->getInteraction<Engine::Interaction::Anisotropy>()->setParameters(
+                new_indices, new_magnitudes, new_normals );
 
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                  fmt::format(
@@ -459,17 +454,20 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto & ham =  image->hamiltonian;
-
-        if( !ham->anisotropy_indices.empty() )
+        intfield anisotropy_indices;
+        scalarfield anisotropy_magnitudes;
+        vectorfield anisotropy_normals;
+        image->hamiltonian->getInteraction<Engine::Interaction::Anisotropy>()->getParameters(
+            anisotropy_indices, anisotropy_magnitudes, anisotropy_normals );
+        if( !anisotropy_indices.empty() )
         {
             // Magnitude
-            *magnitude = ham->anisotropy_magnitudes[0];
+            *magnitude = anisotropy_magnitudes[0];
 
             // Normal
-            normal[0] = ham->anisotropy_normals[0][0];
-            normal[1] = ham->anisotropy_normals[0][1];
-            normal[2] = ham->anisotropy_normals[0][2];
+            normal[0] = anisotropy_normals[0][0];
+            normal[1] = anisotropy_normals[0][1];
+            normal[2] = anisotropy_normals[0][2];
         }
         else
         {

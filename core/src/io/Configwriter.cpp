@@ -260,12 +260,18 @@ void Hamiltonian_Heisenberg_to_Config(
 
     // Anisotropy
     config += "###    Anisotropy:\n";
+    intfield anisotropy_indices;
+    scalarfield anisotropy_magnitudes;
+    vectorfield anisotropy_normals;
+    hamiltonian->getInteraction<Engine::Interaction::Anisotropy>()->getParameters(
+        anisotropy_indices, anisotropy_magnitudes, anisotropy_normals );
+
     scalar K = 0;
     Vector3 K_normal{ 0, 0, 0 };
-    if( !ham->anisotropy_indices.empty() )
+    if( !anisotropy_indices.empty() )
     {
-        K        = ham->anisotropy_magnitudes[0];
-        K_normal = ham->anisotropy_normals[0];
+        K        = anisotropy_magnitudes[0];
+        K_normal = anisotropy_normals[0];
     }
     config += fmt::format( "{:<25} {}\n", "anisotropy_magnitude", K );
     config += fmt::format( "{:<25} {}\n", "anisotropy_normal", K_normal.transpose() );

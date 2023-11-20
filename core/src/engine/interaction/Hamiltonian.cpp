@@ -34,9 +34,6 @@ Hamiltonian::Hamiltonian( std::shared_ptr<Geometry> geometry, intfield boundary_
     // legacy block
     external_field_magnitude    = 0;
     external_field_normal       = { 0, 0, 1 };
-    anisotropy_indices          = intfield( 0 );
-    anisotropy_magnitudes       = scalarfield( 0 );
-    anisotropy_normals          = vectorfield( 0 );
     cubic_anisotropy_indices    = intfield( 0 );
     cubic_anisotropy_magnitudes = scalarfield( 0 );
     exchange_shell_magnitudes   = scalarfield( 0 );
@@ -87,7 +84,7 @@ Hamiltonian::Hamiltonian( std::shared_ptr<Geometry> geometry, intfield boundary_
 // Construct a Heisenberg Hamiltonian with pairs
 Hamiltonian::Hamiltonian(
     std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions, const NormalVector & external_field,
-    const VectorfieldData & anisotropy, const ScalarfieldData & cubic_anisotropy, const ScalarPairfieldData & exchange,
+    const ScalarfieldData & cubic_anisotropy, const ScalarPairfieldData & exchange,
     const VectorPairfieldData & dmi, const QuadrupletfieldData & quadruplet, const DDI_Method ddi_method,
     const DDI_Data & ddi_data )
         : geometry( std::move( geometry ) ),
@@ -99,9 +96,6 @@ Hamiltonian::Hamiltonian(
           hamiltonian_class( HAMILTONIAN_CLASS::GENERIC ),
           external_field_magnitude( external_field.magnitude * C::mu_B ),
           external_field_normal( external_field.normal ),
-          anisotropy_indices( anisotropy.indices ),
-          anisotropy_magnitudes( anisotropy.magnitudes ),
-          anisotropy_normals( anisotropy.normals ),
           cubic_anisotropy_indices( cubic_anisotropy.indices ),
           cubic_anisotropy_magnitudes( cubic_anisotropy.magnitudes ),
           exchange_shell_magnitudes( 0 ),
@@ -154,7 +148,7 @@ Hamiltonian::Hamiltonian(
 // Construct a Heisenberg Hamiltonian from shells
 Hamiltonian::Hamiltonian(
     std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions, const NormalVector & external_field,
-    const VectorfieldData & anisotropy, const ScalarfieldData & cubic_anisotropy,
+    const ScalarfieldData & cubic_anisotropy,
     const scalarfield & exchange_shell_magnitudes, const scalarfield & dmi_shell_magnitudes, int dm_chirality,
     const QuadrupletfieldData & quadruplet, const DDI_Method ddi_method, const DDI_Data & ddi_data )
         : geometry( std::move( geometry ) ),
@@ -166,9 +160,6 @@ Hamiltonian::Hamiltonian(
           hamiltonian_class( HAMILTONIAN_CLASS::GENERIC ),
           external_field_magnitude( external_field.magnitude * C::mu_B ),
           external_field_normal( external_field.normal ),
-          anisotropy_indices( anisotropy.indices ),
-          anisotropy_magnitudes( anisotropy.magnitudes ),
-          anisotropy_normals( anisotropy.normals ),
           cubic_anisotropy_indices( cubic_anisotropy.indices ),
           cubic_anisotropy_magnitudes( cubic_anisotropy.magnitudes ),
           exchange_shell_magnitudes( exchange_shell_magnitudes ),
@@ -231,9 +222,6 @@ Hamiltonian::Hamiltonian( const Hamiltonian & other )
 {
     external_field_magnitude    = other.external_field_magnitude;
     external_field_normal       = other.external_field_normal;
-    anisotropy_indices          = other.anisotropy_indices;
-    anisotropy_magnitudes       = other.anisotropy_magnitudes;
-    anisotropy_normals          = other.anisotropy_normals;
     cubic_anisotropy_indices    = other.cubic_anisotropy_indices;
     cubic_anisotropy_magnitudes = other.cubic_anisotropy_magnitudes;
     exchange_shell_magnitudes   = other.exchange_shell_magnitudes;
@@ -442,7 +430,8 @@ void Hamiltonian::Update_Energy_Contributions()
     else
         this->idx_zeeman = -1;
     // Anisotropy
-    if( !this->anisotropy_indices.empty() )
+    if( auto * interaction = getInteraction<Interaction::Anisotropy>();
+        interaction != nullptr && interaction->is_active() )
     {
         this->energy_contributions_per_spin.emplace_back( "Anisotropy", scalarfield( 0 ) );
         this->idx_anisotropy = this->energy_contributions_per_spin.size() - 1;
@@ -518,7 +507,7 @@ void Hamiltonian::Energy_Contributions_per_Spin( const vectorfield & spins, vect
 
     // Anisotropy
     if( this->idx_anisotropy >= 0 )
-        E_Anisotropy( spins, contributions[idx_anisotropy].second );
+        getInteraction<Interaction::Anisotropy>()->Energy_per_Spin( spins, contributions[idx_anisotropy].second );
 
     // Cubic anisotropy
     if( this->idx_cubic_anisotropy >= 0 )
@@ -560,32 +549,6 @@ void Hamiltonian::E_Zeeman( const vectorfield & spins, scalarfield & energy )
             if( check_atom_type( this->geometry->atom_types[ispin] ) )
                 energy[ispin]
                     -= mu_s[ispin] * this->external_field_magnitude * this->external_field_normal.dot( spins[ispin] );
-        }
-    }
-#endif
-}
-
-void Hamiltonian::E_Anisotropy( const vectorfield & spins, scalarfield & energy )
-{
-#ifdef SPIRIT_USE_CUDA
-    int size = geometry->n_cells_total;
-    CU_E_Anisotropy<<<( size + 1023 ) / 1024, 1024>>>(
-        spins.data(), this->geometry->atom_types.data(), this->geometry->n_cell_atoms, this->anisotropy_indices.size(),
-        this->anisotropy_indices.data(), this->anisotropy_magnitudes.data(), this->anisotropy_normals.data(),
-        energy.data(), size );
-    CU_CHECK_AND_SYNC();
-#else
-    const int N = geometry->n_cell_atoms;
-
-#pragma omp parallel for
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
-    {
-        for( int iani = 0; iani < anisotropy_indices.size(); ++iani )
-        {
-            int ispin = icell * N + anisotropy_indices[iani];
-            if( check_atom_type( this->geometry->atom_types[ispin] ) )
-                energy[ispin] -= this->anisotropy_magnitudes[iani]
-                                 * std::pow( anisotropy_normals[iani].dot( spins[ispin] ), 2.0 );
         }
     }
 #endif
@@ -915,7 +878,7 @@ scalar Hamiltonian::Energy_Single_Spin( int ispin, const vectorfield & spins )
         auto & mu_s = this->geometry->mu_s;
         Pair pair_inv;
 
-        if( auto * interaction = getInteraction<Interaction::Gaussian>(); interaction != nullptr )
+        for( const auto & interaction : getActiveInteractions() )
         {
             energy += interaction->Energy_Single_Spin( ispin, spins );
         }
@@ -923,20 +886,6 @@ scalar Hamiltonian::Energy_Single_Spin( int ispin, const vectorfield & spins )
         // External field
         if( this->idx_zeeman >= 0 )
             energy -= mu_s[ispin] * this->external_field_magnitude * this->external_field_normal.dot( spins[ispin] );
-
-        // Anisotropy
-        if( this->idx_anisotropy >= 0 )
-        {
-            for( int iani = 0; iani < anisotropy_indices.size(); ++iani )
-            {
-                if( anisotropy_indices[iani] == ibasis )
-                {
-                    if( check_atom_type( this->geometry->atom_types[ispin] ) )
-                        energy -= this->anisotropy_magnitudes[iani]
-                                  * std::pow( anisotropy_normals[iani].dot( spins[ispin] ), 2.0 );
-                }
-            }
-        }
 
         // Cubic Anisotropy
         if( this->idx_cubic_anisotropy >= 0 )
@@ -1035,10 +984,6 @@ void Hamiltonian::Gradient( const vectorfield & spins, vectorfield & gradient )
     if( idx_zeeman >= 0 )
         this->Gradient_Zeeman( gradient );
 
-    // Anisotropy
-    if( idx_anisotropy >= 0 )
-        this->Gradient_Anisotropy( spins, gradient );
-
     // Cubic Anisotropy
     if( idx_cubic_anisotropy >= 0 )
         this->Gradient_Cubic_Anisotropy( spins, gradient );
@@ -1075,10 +1020,6 @@ void Hamiltonian::Gradient_and_Energy( const vectorfield & spins, vectorfield & 
     {
         interaction->Gradient( spins, gradient );
     }
-
-    // Anisotropy
-    if( idx_anisotropy >= 0 )
-        this->Gradient_Anisotropy( spins, gradient );
 
     // Exchange
     if( idx_exchange >= 0 )
@@ -1154,32 +1095,6 @@ void Hamiltonian::Gradient_Zeeman( vectorfield & gradient )
             int ispin = icell * N + ibasis;
             if( check_atom_type( this->geometry->atom_types[ispin] ) )
                 gradient[ispin] -= mu_s[ispin] * this->external_field_magnitude * this->external_field_normal;
-        }
-    }
-#endif
-}
-
-void Hamiltonian::Gradient_Anisotropy( const vectorfield & spins, vectorfield & gradient )
-{
-#ifdef SPIRIT_USE_CUDA
-    int size = geometry->n_cells_total;
-    CU_Gradient_Anisotropy<<<( size + 1023 ) / 1024, 1024>>>(
-        spins.data(), this->geometry->atom_types.data(), this->geometry->n_cell_atoms, this->anisotropy_indices.size(),
-        this->anisotropy_indices.data(), this->anisotropy_magnitudes.data(), this->anisotropy_normals.data(),
-        gradient.data(), size );
-    CU_CHECK_AND_SYNC();
-#else
-    const int N = geometry->n_cell_atoms;
-
-#pragma omp parallel for
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
-    {
-        for( int iani = 0; iani < anisotropy_indices.size(); ++iani )
-        {
-            int ispin = icell * N + anisotropy_indices[iani];
-            if( check_atom_type( this->geometry->atom_types[ispin] ) )
-                gradient[ispin] -= 2.0 * this->anisotropy_magnitudes[iani] * this->anisotropy_normals[iani]
-                                   * anisotropy_normals[iani].dot( spins[ispin] );
         }
     }
 #endif
@@ -1586,33 +1501,9 @@ void Hamiltonian::Hessian( const vectorfield & spins, MatrixX & hessian )
     // --- Set to zero
     hessian.setZero();
 
-    for ( const auto & interaction : getActiveInteractions() )
+    for( const auto & interaction : getActiveInteractions() )
     {
         interaction->Hessian( spins, hessian );
-    }
-
-    // --- Single Spin elements
-#pragma omp parallel for
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
-    {
-        for( int iani = 0; iani < anisotropy_indices.size(); ++iani )
-        {
-            int ispin = icell * N + anisotropy_indices[iani];
-            if( check_atom_type( this->geometry->atom_types[ispin] ) )
-            {
-                for( int alpha = 0; alpha < 3; ++alpha )
-                {
-                    for( int beta = 0; beta < 3; ++beta )
-                    {
-                        int i = 3 * ispin + alpha;
-                        int j = 3 * ispin + alpha;
-                        hessian( i, j ) += -2.0 * this->anisotropy_magnitudes[iani]
-                                           * this->anisotropy_normals[iani][alpha]
-                                           * this->anisotropy_normals[iani][beta];
-                    }
-                }
-            }
-        }
     }
 
     // --- Spin Pair elements
@@ -1746,37 +1637,16 @@ void Hamiltonian::Sparse_Hessian( const vectorfield & spins, SpMatrixX & hessian
     int nos     = spins.size();
     const int N = geometry->n_cell_atoms;
 
-    std::vector<Interaction::triplet> tripletList;
-    tripletList.reserve(
-        geometry->n_cells_total
-        * ( anisotropy_indices.size() * 9 + exchange_pairs.size() * 2 + dmi_pairs.size() * 3 ) );
+    std::size_t sparse_size_per_cell = ( exchange_pairs.size() * 2 + dmi_pairs.size() * 3 );
+    for (const auto & interaction : getActiveInteractions() )
+        sparse_size_per_cell += interaction->Sparse_Hessian_Size_per_Cell();
 
-    for ( const auto & interaction : getActiveInteractions() )
+    std::vector<Interaction::triplet> tripletList;
+    tripletList.reserve( geometry->n_cells_total * sparse_size_per_cell );
+
+    for( const auto & interaction : getActiveInteractions() )
     {
         interaction->Sparse_Hessian( spins, tripletList );
-    }
-
-    // --- Single Spin elements
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
-    {
-        for( int iani = 0; iani < anisotropy_indices.size(); ++iani )
-        {
-            int ispin = icell * N + anisotropy_indices[iani];
-            if( check_atom_type( this->geometry->atom_types[ispin] ) )
-            {
-                for( int alpha = 0; alpha < 3; ++alpha )
-                {
-                    for( int beta = 0; beta < 3; ++beta )
-                    {
-                        int i      = 3 * ispin + alpha;
-                        int j      = 3 * ispin + alpha;
-                        scalar res = -2.0 * this->anisotropy_magnitudes[iani] * this->anisotropy_normals[iani][alpha]
-                                     * this->anisotropy_normals[iani][beta];
-                        tripletList.emplace_back( i, j, res );
-                    }
-                }
-            }
-        }
     }
 
     // --- Spin Pair elements
