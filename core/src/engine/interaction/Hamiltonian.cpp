@@ -8,10 +8,8 @@
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
-
-#ifndef SPIRIT_USE_CUDA
 #include <algorithm>
-#else
+#ifdef SPIRIT_USE_CUDA
 #include <complex> // TODO: check if I need complex for the CUDA implementation
 #endif
 
@@ -71,6 +69,7 @@ Hamiltonian::Hamiltonian( std::shared_ptr<Geometry> geometry, intfield boundary_
 
     // init to 0, because initializing to -1 can fail silently
     energy_contributions_per_spin = Data::vectorlabeled<scalarfield>( 0 );
+    idx_gaussian                  = 0;
     idx_zeeman                    = 0;
     idx_exchange                  = 0;
     idx_dmi                       = 0;
@@ -133,6 +132,7 @@ Hamiltonian::Hamiltonian(
 
     // init to 0, because initializing to -1 can fail silently
     energy_contributions_per_spin = decltype( energy_contributions_per_spin )( 0 );
+    idx_gaussian                  = 0;
     idx_zeeman                    = 0;
     idx_exchange                  = 0;
     idx_dmi                       = 0;
@@ -259,6 +259,7 @@ Hamiltonian::Hamiltonian( const Hamiltonian & other )
     quadruplets                 = other.quadruplets;
     quadruplet_magnitudes       = other.quadruplet_magnitudes;
 
+    idx_gaussian                  = other.idx_gaussian;
     idx_zeeman                    = other.idx_zeeman;
     idx_anisotropy                = other.idx_anisotropy;
     idx_cubic_anisotropy          = other.idx_cubic_anisotropy;
@@ -288,6 +289,20 @@ Hamiltonian::Hamiltonian( const Hamiltonian & other )
     interactions.reserve( other.interactions.capacity() );
     for( const auto & interaction : other.interactions )
         interactions.emplace_back( interaction->clone( this ) );
+}
+
+void Hamiltonian::updateActiveInteractions()
+{
+    // take inventory and put the interactions that contribute to the front of the vector
+    const auto is_active                 = []( const auto & i ) { return i->is_active(); };
+    const auto active_partition_boundary = std::partition( begin( interactions ), end( interactions ), is_active );
+    active_interactions_size             = std::distance( begin( interactions ), active_partition_boundary );
+
+    // sort by spin order (may speed up predictions)
+    const auto has_common_spin_order = []( const auto & i ) { return i->spin_order() == common_spin_order; };
+    const auto common_partition_boundary
+        = std::partition( begin( interactions ), active_partition_boundary, has_common_spin_order );
+    common_interactions_size = std::distance( begin( interactions ), common_partition_boundary );
 }
 
 void Hamiltonian::updateInteractions()
@@ -395,50 +410,65 @@ void Hamiltonian::updateInteractions()
     // Dipole-dipole
     this->Prepare_DDI();
 
+    for( const auto & interaction : interactions )
+    {
+        interaction->updateGeometry();
+    }
+
     // Update, which terms still contribute
     this->Update_Energy_Contributions();
 }
 
 void Hamiltonian::Update_Energy_Contributions()
 {
+    updateActiveInteractions();
+
     this->energy_contributions_per_spin = vectorlabeled<scalarfield>( 0 );
+
+    if( auto * interaction = getInteraction<Interaction::Gaussian>(); interaction != nullptr )
+    {
+        this->energy_contributions_per_spin.emplace_back( "Gaussian", scalarfield( 0 ) );
+        this->idx_gaussian = this->energy_contributions_per_spin.size() - 1;
+    }
+    else
+        this->idx_gaussian = -1;
 
     // External field
     if( std::abs( this->external_field_magnitude ) > 1e-60 )
     {
-        this->energy_contributions_per_spin.push_back( { "Zeeman", scalarfield( 0 ) } );
+        this->energy_contributions_per_spin.emplace_back( "Zeeman", scalarfield( 0 ) );
         this->idx_zeeman = this->energy_contributions_per_spin.size() - 1;
     }
     else
         this->idx_zeeman = -1;
     // Anisotropy
-    if( this->anisotropy_indices.size() > 0 )
+    if( !this->anisotropy_indices.empty() )
     {
-        this->energy_contributions_per_spin.push_back( { "Anisotropy", scalarfield( 0 ) } );
+        this->energy_contributions_per_spin.emplace_back( "Anisotropy", scalarfield( 0 ) );
         this->idx_anisotropy = this->energy_contributions_per_spin.size() - 1;
     }
     else
         this->idx_anisotropy = -1;
     // Cubic anisotropy
-    if( this->cubic_anisotropy_indices.size() > 0 )
+    if( !this->cubic_anisotropy_indices.empty() )
     {
-        this->energy_contributions_per_spin.push_back( { "Cubic anisotropy", scalarfield( 0 ) } );
+        this->energy_contributions_per_spin.emplace_back( "Cubic anisotropy", scalarfield( 0 ) );
         this->idx_cubic_anisotropy = this->energy_contributions_per_spin.size() - 1;
     }
     else
         this->idx_cubic_anisotropy = -1;
     // Exchange
-    if( this->exchange_pairs.size() > 0 )
+    if( !this->exchange_pairs.empty() )
     {
-        this->energy_contributions_per_spin.push_back( { "Exchange", scalarfield( 0 ) } );
+        this->energy_contributions_per_spin.emplace_back( "Exchange", scalarfield( 0 ) );
         this->idx_exchange = this->energy_contributions_per_spin.size() - 1;
     }
     else
         this->idx_exchange = -1;
     // DMI
-    if( this->dmi_pairs.size() > 0 )
+    if( !this->dmi_pairs.empty() )
     {
-        this->energy_contributions_per_spin.push_back( { "DMI", scalarfield( 0 ) } );
+        this->energy_contributions_per_spin.emplace_back( "DMI", scalarfield( 0 ) );
         this->idx_dmi = this->energy_contributions_per_spin.size() - 1;
     }
     else
@@ -446,15 +476,15 @@ void Hamiltonian::Update_Energy_Contributions()
     // Dipole-Dipole
     if( this->ddi_method != DDI_Method::None )
     {
-        this->energy_contributions_per_spin.push_back( { "DDI", scalarfield( 0 ) } );
+        this->energy_contributions_per_spin.emplace_back( "DDI", scalarfield( 0 ) );
         this->idx_ddi = this->energy_contributions_per_spin.size() - 1;
     }
     else
         this->idx_ddi = -1;
     // Quadruplets
-    if( this->quadruplets.size() > 0 )
+    if( !this->quadruplets.empty() )
     {
-        this->energy_contributions_per_spin.push_back( { "Quadruplets", scalarfield( 0 ) } );
+        this->energy_contributions_per_spin.emplace_back( "Quadruplets", scalarfield( 0 ) );
         this->idx_quadruplet = this->energy_contributions_per_spin.size() - 1;
     }
     else
@@ -478,6 +508,9 @@ void Hamiltonian::Energy_Contributions_per_Spin( const vectorfield & spins, vect
         else
             Vectormath::fill( contrib.second, 0 );
     }
+
+    if( this->idx_gaussian >= 0 )
+        getInteraction<Interaction::Gaussian>()->Energy_per_Spin( spins, contributions[idx_gaussian].second );
 
     // External field
     if( this->idx_zeeman >= 0 )
@@ -882,6 +915,11 @@ scalar Hamiltonian::Energy_Single_Spin( int ispin, const vectorfield & spins )
         auto & mu_s = this->geometry->mu_s;
         Pair pair_inv;
 
+        if( auto * interaction = getInteraction<Interaction::Gaussian>(); interaction != nullptr )
+        {
+            energy += interaction->Energy_Single_Spin( ispin, spins );
+        }
+
         // External field
         if( this->idx_zeeman >= 0 )
             energy -= mu_s[ispin] * this->external_field_magnitude * this->external_field_normal.dot( spins[ispin] );
@@ -988,6 +1026,11 @@ void Hamiltonian::Gradient( const vectorfield & spins, vectorfield & gradient )
     // Set to zero
     Vectormath::fill( gradient, { 0, 0, 0 } );
 
+    for( const auto & interaction : getActiveInteractions() )
+    {
+        interaction->Gradient( spins, gradient );
+    }
+
     // External field
     if( idx_zeeman >= 0 )
         this->Gradient_Zeeman( gradient );
@@ -1023,10 +1066,15 @@ void Hamiltonian::Gradient_and_Energy( const vectorfield & spins, vectorfield & 
     Vectormath::fill( gradient, { 0, 0, 0 } );
     energy = 0;
 
-    auto N    = spins.size();
-    auto s    = spins.data();
-    auto mu_s = geometry->mu_s.data();
-    auto g    = gradient.data();
+    const auto N      = spins.size();
+    const auto * s    = spins.data();
+    const auto * mu_s = geometry->mu_s.data();
+    const auto * g    = gradient.data();
+
+    for( const auto & interaction : getCommonInteractions() )
+    {
+        interaction->Gradient( spins, gradient );
+    }
 
     // Anisotropy
     if( idx_anisotropy >= 0 )
@@ -1045,6 +1093,12 @@ void Hamiltonian::Gradient_and_Energy( const vectorfield & spins, vectorfield & 
         this->Gradient_DDI( spins, gradient );
 
     energy += Backend::par::reduce( N, [s, g] SPIRIT_LAMBDA( int idx ) { return 0.5 * g[idx].dot( s[idx] ); } );
+
+    for( const auto & interaction : getUncommonInteractions() )
+    {
+        interaction->Gradient( spins, gradient );
+        energy += interaction->Energy( spins );
+    }
 
     // Cubic Anisotropy
     if( idx_cubic_anisotropy >= 0 )
@@ -1532,6 +1586,11 @@ void Hamiltonian::Hessian( const vectorfield & spins, MatrixX & hessian )
     // --- Set to zero
     hessian.setZero();
 
+    for ( const auto & interaction : getActiveInteractions() )
+    {
+        interaction->Hessian( spins, hessian );
+    }
+
     // --- Single Spin elements
 #pragma omp parallel for
     for( int icell = 0; icell < geometry->n_cells_total; ++icell )
@@ -1687,11 +1746,15 @@ void Hamiltonian::Sparse_Hessian( const vectorfield & spins, SpMatrixX & hessian
     int nos     = spins.size();
     const int N = geometry->n_cell_atoms;
 
-    typedef Eigen::Triplet<scalar> T;
-    std::vector<T> tripletList;
+    std::vector<Interaction::triplet> tripletList;
     tripletList.reserve(
         geometry->n_cells_total
         * ( anisotropy_indices.size() * 9 + exchange_pairs.size() * 2 + dmi_pairs.size() * 3 ) );
+
+    for ( const auto & interaction : getActiveInteractions() )
+    {
+        interaction->Sparse_Hessian( spins, tripletList );
+    }
 
     // --- Single Spin elements
     for( int icell = 0; icell < geometry->n_cells_total; ++icell )
@@ -1709,7 +1772,7 @@ void Hamiltonian::Sparse_Hessian( const vectorfield & spins, SpMatrixX & hessian
                         int j      = 3 * ispin + alpha;
                         scalar res = -2.0 * this->anisotropy_magnitudes[iani] * this->anisotropy_normals[iani][alpha]
                                      * this->anisotropy_normals[iani][beta];
-                        tripletList.push_back( T( i, j, res ) );
+                        tripletList.emplace_back( i, j, res );
                     }
                 }
             }
@@ -1733,9 +1796,9 @@ void Hamiltonian::Sparse_Hessian( const vectorfield & spins, SpMatrixX & hessian
                     int i = 3 * ispin + alpha;
                     int j = 3 * jspin + alpha;
 
-                    tripletList.push_back( T( i, j, -exchange_magnitudes[i_pair] ) );
+                    tripletList.emplace_back( i, j, -exchange_magnitudes[i_pair] );
 #if !( defined( SPIRIT_USE_OPENMP ) || defined( SPIRIT_USE_CUDA ) )
-                    tripletList.push_back( T( j, i, -exchange_magnitudes[i_pair] ) );
+                    tripletList.emplace_back( j, i, -exchange_magnitudes[i_pair] );
 #endif
                 }
             }
@@ -1756,20 +1819,20 @@ void Hamiltonian::Sparse_Hessian( const vectorfield & spins, SpMatrixX & hessian
                 int i = 3 * ispin;
                 int j = 3 * jspin;
 
-                tripletList.push_back( T( i + 2, j + 1, dmi_magnitudes[i_pair] * dmi_normals[i_pair][0] ) );
-                tripletList.push_back( T( i + 1, j + 2, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0] ) );
-                tripletList.push_back( T( i + 0, j + 2, dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] ) );
-                tripletList.push_back( T( i + 2, j + 0, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] ) );
-                tripletList.push_back( T( i + 1, j + 0, dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] ) );
-                tripletList.push_back( T( i + 0, j + 1, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] ) );
+                tripletList.emplace_back( i + 2, j + 1, dmi_magnitudes[i_pair] * dmi_normals[i_pair][0] );
+                tripletList.emplace_back( i + 1, j + 2, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0] );
+                tripletList.emplace_back( i + 0, j + 2, dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] );
+                tripletList.emplace_back( i + 2, j + 0, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] );
+                tripletList.emplace_back( i + 1, j + 0, dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] );
+                tripletList.emplace_back( i + 0, j + 1, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] );
 
 #if !( defined( SPIRIT_USE_OPENMP ) || defined( SPIRIT_USE_CUDA ) )
-                tripletList.push_back( T( j + 1, i + 2, dmi_magnitudes[i_pair] * dmi_normals[i_pair][0] ) );
-                tripletList.push_back( T( j + 2, i + 1, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0] ) );
-                tripletList.push_back( T( j + 2, i + 0, dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] ) );
-                tripletList.push_back( T( j + 0, i + 2, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] ) );
-                tripletList.push_back( T( j + 0, i + 1, dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] ) );
-                tripletList.push_back( T( j + 1, i + 0, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] ) );
+                tripletList.emplace_back( j + 1, i + 2, dmi_magnitudes[i_pair] * dmi_normals[i_pair][0] );
+                tripletList.emplace_back( j + 2, i + 1, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0] );
+                tripletList.emplace_back( j + 2, i + 0, dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] );
+                tripletList.emplace_back( j + 0, i + 2, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] );
+                tripletList.emplace_back( j + 0, i + 1, dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] );
+                tripletList.emplace_back( j + 1, i + 0, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] );
 #endif
             }
         }
