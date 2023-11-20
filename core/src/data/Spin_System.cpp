@@ -62,18 +62,8 @@ try
     this->E_array         = other.E_array;
     this->effective_field = other.effective_field;
 
-    this->geometry = std::make_shared<Data::Geometry>( *other.geometry );
-
-    if( other.hamiltonian->Name() == "Heisenberg" )
-    {
-        this->hamiltonian = std::make_shared<Engine::Hamiltonian_Heisenberg>(
-            static_cast<Engine::Hamiltonian_Heisenberg &>( *other.hamiltonian ) );
-    }
-    else if( other.hamiltonian->Name() == "Gaussian" )
-    {
-        this->hamiltonian = std::make_shared<Engine::Hamiltonian_Gaussian>(
-            static_cast<Engine::Hamiltonian_Gaussian &>( *other.hamiltonian ) );
-    }
+    this->geometry    = std::make_shared<Data::Geometry>( *other.geometry );
+    this->hamiltonian = std::make_shared<Engine::Hamiltonian>( *other.hamiltonian );
 
     this->llg_parameters = std::make_shared<Data::Parameters_Method_LLG>( *other.llg_parameters );
     this->mc_parameters  = std::make_shared<Data::Parameters_Method_MC>( *other.mc_parameters );
@@ -107,18 +97,8 @@ try
         this->E_array         = other.E_array;
         this->effective_field = other.effective_field;
 
-        this->geometry = std::make_shared<Data::Geometry>( *other.geometry );
-
-        if( other.hamiltonian->Name() == "Heisenberg" )
-        {
-            this->hamiltonian = std::make_shared<Engine::Hamiltonian_Heisenberg>(
-                *(Engine::Hamiltonian_Heisenberg *)( other.hamiltonian.get() ) );
-        }
-        else if( other.hamiltonian->Name() == "Gaussian" )
-        {
-            this->hamiltonian = std::make_shared<Engine::Hamiltonian_Gaussian>(
-                *(Engine::Hamiltonian_Gaussian *)( other.hamiltonian.get() ) );
-        }
+        this->geometry    = std::make_shared<Data::Geometry>( *other.geometry );
+        this->hamiltonian = std::make_shared<Engine::Hamiltonian>( *other.hamiltonian );
 
         this->llg_parameters = std::make_shared<Data::Parameters_Method_LLG>( *other.llg_parameters );
         this->mc_parameters  = std::make_shared<Data::Parameters_Method_MC>( *other.mc_parameters );

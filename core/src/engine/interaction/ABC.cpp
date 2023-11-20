@@ -1,5 +1,5 @@
-#include <engine/Hamiltonian.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/interaction/ABC.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 
@@ -9,33 +9,35 @@ using namespace Data;
 namespace Engine
 {
 
-Hamiltonian::Hamiltonian( intfield boundary_conditions ) : boundary_conditions( boundary_conditions )
+namespace Interaction
 {
-    prng             = std::mt19937( 94199188 );
-    distribution_int = std::uniform_int_distribution<int>( 0, 1 );
 
-    delta = 1e-3;
+void ABC::updateFromGeometry( const Geometry * geometry ){};
+
+scalar ABC::Energy( const vectorfield & spins )
+{
+    auto nos = spins.size();
+    if( energy_per_spin.size() != nos )
+        energy_per_spin = scalarfield( nos, 0 );
+    else
+        Vectormath::fill( energy_per_spin, 0 );
+
+    Energy_per_Spin( spins, energy_per_spin );
+
+    return Vectormath::sum( energy_per_spin );
 }
 
-void Hamiltonian::Update_Energy_Contributions()
-{
-    // Not Implemented!
-    spirit_throw(
-        Exception_Classifier::Not_Implemented, Log_Level::Error,
-        "Tried to use  Hamiltonian::Update_Energy_Contributions() of the Hamiltonian base class!" );
-}
-
-void Hamiltonian::Hessian( const vectorfield & spins, MatrixX & hessian )
+void ABC::Hessian( const vectorfield & spins, MatrixX & hessian )
 {
     this->Hessian_FD( spins, hessian );
 }
 
-void Hamiltonian::Sparse_Hessian( const vectorfield & spins, SpMatrixX & hessian )
+std::size_t ABC::Sparse_Hessian_Size_per_Cell() const
 {
-    // Not implemented
-}
+    return 0;
+};
 
-void Hamiltonian::Hessian_FD( const vectorfield & spins, MatrixX & hessian )
+void ABC::Hessian_FD( const vectorfield & spins, MatrixX & hessian )
 {
     // This is a regular finite difference implementation (probably not very efficient)
     // using the differences between gradient values (not function)
@@ -53,17 +55,19 @@ void Hamiltonian::Hessian_FD( const vectorfield & spins, MatrixX & hessian )
     spins_pj = spins;
     spins_mj = spins;
 
-    vectorfield grad_pi( nos );
-    vectorfield grad_mi( nos );
-    vectorfield grad_pj( nos );
-    vectorfield grad_mj( nos );
+    vectorfield grad_pi( nos, Vector3::Zero() );
+    vectorfield grad_mi( nos, Vector3::Zero() );
+    vectorfield grad_pj( nos, Vector3::Zero() );
+    vectorfield grad_mj( nos, Vector3::Zero() );
 
     for( std::size_t i = 0; i < nos; ++i )
     {
         for( std::size_t j = 0; j < nos; ++j )
         {
+#pragma unroll
             for( std::uint8_t alpha = 0; alpha < 3; ++alpha )
             {
+#pragma unroll
                 for( std::uint8_t beta = 0; beta < 3; ++beta )
                 {
                     // Displace
@@ -71,6 +75,11 @@ void Hamiltonian::Hessian_FD( const vectorfield & spins, MatrixX & hessian )
                     spins_mi[i][alpha] -= delta;
                     spins_pj[j][beta] += delta;
                     spins_mj[j][beta] -= delta;
+
+                    Vectormath::fill( grad_pi, Vector3::Zero() );
+                    Vectormath::fill( grad_mi, Vector3::Zero() );
+                    Vectormath::fill( grad_pj, Vector3::Zero() );
+                    Vectormath::fill( grad_mj, Vector3::Zero() );
 
                     // Calculate Hessian component
                     this->Gradient( spins_pi, grad_pi );
@@ -93,18 +102,12 @@ void Hamiltonian::Hessian_FD( const vectorfield & spins, MatrixX & hessian )
     }
 }
 
-void Hamiltonian::Gradient( const vectorfield & spins, vectorfield & gradient )
+void ABC::Gradient( const vectorfield & spins, vectorfield & gradient )
 {
     this->Gradient_FD( spins, gradient );
 }
 
-void Hamiltonian::Gradient_and_Energy( const vectorfield & spins, vectorfield & gradient, scalar & energy )
-{
-    this->Gradient( spins, gradient );
-    energy = this->Energy( spins );
-}
-
-void Hamiltonian::Gradient_FD( const vectorfield & spins, vectorfield & gradient )
+void ABC::Gradient_FD( const vectorfield & spins, vectorfield & gradient )
 {
     std::size_t nos = spins.size();
 
@@ -135,47 +138,29 @@ void Hamiltonian::Gradient_FD( const vectorfield & spins, vectorfield & gradient
     }
 }
 
-scalar Hamiltonian::Energy( const vectorfield & spins )
+scalar ABC::Energy_Single_Spin( const int ispin, const vectorfield & spins )
 {
-    scalar sum  = 0;
-    auto energy = Energy_Contributions( spins );
-    for( const auto & E : energy )
-        sum += E.second;
-    return sum;
-}
-
-Data::vectorlabeled<scalar> Hamiltonian::Energy_Contributions( const vectorfield & spins )
-{
-    Energy_Contributions_per_Spin( spins, this->energy_contributions_per_spin );
-    vectorlabeled<scalar> energy( this->energy_contributions_per_spin.size() );
-    for( std::size_t i = 0; i < energy.size(); ++i )
+    Log( Log_Level::Error, Log_Sender::All,
+         fmt::format(
+             "Interaction: {} uses the highly inefficient fallback implementation for Energy_Single_Spin()!",
+             this->Name() ) );
+    if( this->spin_order().has_value() )
     {
-        energy[i] = { this->energy_contributions_per_spin[i].first,
-                      Vectormath::sum( this->energy_contributions_per_spin[i].second ) };
+        energy_per_spin[ispin] = 0;
+        Energy_per_Spin( spins, this->energy_per_spin );
+        return this->spin_order().value() * energy_per_spin[ispin];
     }
-    return energy;
+    else
+    {
+        spirit_throw(
+            Exception_Classifier::Not_Implemented, Log_Level::Error,
+            fmt::format(
+                "Cannot use fallback Interaction::ABC::Energy_Single_Spin() without a valid spin_order(), "
+                "please implement a proper Energy_Single_Spin() method for your subclass: \"{}\"",
+                this->Name() ) );
+    }
 }
 
-void Hamiltonian::Energy_Contributions_per_Spin(
-    const vectorfield & spins, Data::vectorlabeled<scalarfield> & contributions )
-{
-    // Not Implemented!
-    spirit_throw(
-        Exception_Classifier::Not_Implemented, Log_Level::Error,
-        "Tried to use  Hamiltonian::Energy_Contributions_per_Spin() of the Hamiltonian base class!" );
-}
-
-std::size_t Hamiltonian::Number_of_Interactions()
-{
-    return energy_contributions_per_spin.size();
-}
-
-scalar Hamiltonian::Energy_Single_Spin( int ispin, const vectorfield & spins )
-{
-    // Not Implemented!
-    spirit_throw(
-        Exception_Classifier::Not_Implemented, Log_Level::Error,
-        "Tried to use  Hamiltonian::Energy_Single_Spin() of the Hamiltonian base class!" );
-}
+} // namespace Interaction
 
 } // namespace Engine

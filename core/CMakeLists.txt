@@ -374,10 +374,10 @@ if( SPIRIT_USE_CUDA )
         ${CMAKE_CURRENT_LIST_DIR}/src/data/Geometry.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data/Spin_System.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/data/Spin_System_Chain.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Hamiltonian_Base.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Hamiltonian_Gaussian.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Hamiltonian_Heisenberg.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Hamiltonian_Heisenberg_Kernels.cu
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/ABC.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Gaussian.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Hamiltonian_Kernels.cu
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Hamiltonian.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/Eigenmodes.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/HTST.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/Sparse_HTST.cpp

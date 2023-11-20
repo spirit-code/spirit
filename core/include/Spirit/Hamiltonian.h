@@ -59,6 +59,15 @@ Dipole-Dipole method
 #define SPIRIT_DDI_METHOD_CUTOFF 3
 
 /*
+Hamiltonian classification id (legacy support)
+*/
+
+#define SPIRIT_HAMILTONIAN_CLASS_GENERIC 0
+
+#define SPIRIT_HAMILTONIAN_CLASS_GAUSSIAN 1
+
+#define SPIRIT_HAMILTONIAN_CLASS_HEISENBERG 2
+/*
 Setters
 --------------------------------------------------------------------
 */
