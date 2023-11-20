@@ -93,6 +93,9 @@ Hamiltonian::Hamiltonian(
     const DDI_Data & ddi_data )
         : geometry( std::move( geometry ) ),
           boundary_conditions( std::move( boundary_conditions ) ),
+          interactions( 0 ),
+          active_interactions_size( 0 ),
+          common_interactions_size( 0 ),
           name_update_paused( false ),
           hamiltonian_class( HAMILTONIAN_CLASS::GENERIC ),
           external_field_magnitude( external_field.magnitude * C::mu_B ),
@@ -156,6 +159,9 @@ Hamiltonian::Hamiltonian(
     const QuadrupletfieldData & quadruplet, const DDI_Method ddi_method, const DDI_Data & ddi_data )
         : geometry( std::move( geometry ) ),
           boundary_conditions( std::move( boundary_conditions ) ),
+          interactions( 0 ),
+          active_interactions_size( 0 ),
+          common_interactions_size( 0 ),
           name_update_paused( false ),
           hamiltonian_class( HAMILTONIAN_CLASS::GENERIC ),
           external_field_magnitude( external_field.magnitude * C::mu_B ),
@@ -209,6 +215,79 @@ Hamiltonian::Hamiltonian(
     // Generate interaction pairs, constants etc.
     this->updateInteractions();
     this->updateName();
+}
+
+Hamiltonian::Hamiltonian( const Hamiltonian & other )
+        : geometry( other.geometry ),
+          boundary_conditions( other.boundary_conditions ),
+          interactions( 0 ),
+          active_interactions_size( other.active_interactions_size ),
+          common_interactions_size( other.common_interactions_size ),
+          prng( other.prng ),
+          distribution_int( other.distribution_int ),
+          name_update_paused( other.name_update_paused ),
+          hamiltonian_class( other.hamiltonian_class ),
+          class_name( other.class_name )
+{
+    external_field_magnitude    = other.external_field_magnitude;
+    external_field_normal       = other.external_field_normal;
+    anisotropy_indices          = other.anisotropy_indices;
+    anisotropy_magnitudes       = other.anisotropy_magnitudes;
+    anisotropy_normals          = other.anisotropy_normals;
+    cubic_anisotropy_indices    = other.cubic_anisotropy_indices;
+    cubic_anisotropy_magnitudes = other.cubic_anisotropy_magnitudes;
+    exchange_shell_magnitudes   = other.exchange_shell_magnitudes;
+    exchange_pairs_in           = other.exchange_pairs_in;
+    exchange_magnitudes_in      = other.exchange_magnitudes_in;
+    exchange_pairs              = other.exchange_pairs;
+    exchange_magnitudes         = other.exchange_magnitudes;
+    dmi_shell_magnitudes        = other.dmi_shell_magnitudes;
+    dmi_shell_chirality         = other.dmi_shell_chirality;
+    dmi_pairs_in                = other.dmi_pairs_in;
+    dmi_magnitudes_in           = other.dmi_magnitudes_in;
+    dmi_normals_in              = other.dmi_normals_in;
+    dmi_pairs                   = other.dmi_pairs;
+    dmi_magnitudes              = other.dmi_magnitudes;
+    dmi_normals                 = other.dmi_normals;
+    ddi_method                  = other.ddi_method;
+    ddi_n_periodic_images       = other.ddi_n_periodic_images;
+    ddi_pb_zero_padding         = other.ddi_pb_zero_padding;
+    ddi_cutoff_radius           = other.ddi_cutoff_radius;
+    ddi_pairs                   = other.ddi_pairs;
+    ddi_magnitudes              = other.ddi_magnitudes;
+    ddi_normals                 = other.ddi_normals;
+    quadruplets                 = other.quadruplets;
+    quadruplet_magnitudes       = other.quadruplet_magnitudes;
+
+    idx_zeeman                    = other.idx_zeeman;
+    idx_anisotropy                = other.idx_anisotropy;
+    idx_cubic_anisotropy          = other.idx_cubic_anisotropy;
+    idx_exchange                  = other.idx_exchange;
+    idx_dmi                       = other.idx_dmi;
+    idx_ddi                       = other.idx_ddi;
+    idx_quadruplet                = other.idx_quadruplet;
+    energy_contributions_per_spin = other.energy_contributions_per_spin;
+
+    fft_plan_spins              = other.fft_plan_spins;
+    fft_plan_reverse            = other.fft_plan_reverse;
+    transformed_dipole_matrices = other.transformed_dipole_matrices;
+    save_dipole_matrices        = other.save_dipole_matrices;
+    dipole_matrices             = other.dipole_matrices;
+    n_inter_sublattice          = other.n_inter_sublattice;
+    inter_sublattice_lookup     = other.inter_sublattice_lookup;
+    n_cells_padded              = other.n_cells_padded;
+    sublattice_size             = other.sublattice_size;
+    spin_stride                 = other.spin_stride;
+    dipole_stride               = other.dipole_stride;
+
+    it_bounds_pointwise_mult  = other.it_bounds_pointwise_mult;
+    it_bounds_write_gradients = other.it_bounds_write_gradients;
+    it_bounds_write_spins     = other.it_bounds_write_spins;
+    it_bounds_write_dipole    = other.it_bounds_write_dipole;
+
+    interactions.reserve( other.interactions.capacity() );
+    for( const auto & interaction : other.interactions )
+        interactions.emplace_back( interaction->clone( this ) );
 }
 
 void Hamiltonian::updateInteractions()
@@ -2092,7 +2171,13 @@ void Hamiltonian::updateName()
     if( name_update_paused )
         return;
 
-    hamiltonian_class = HAMILTONIAN_CLASS::HEISENBERG;
+    if( interactions.size() == 1 && hasInteraction<Interaction::Gaussian>() )
+        hamiltonian_class = HAMILTONIAN_CLASS::GAUSSIAN;
+    else if( !hasInteraction<Interaction::Gaussian>() )
+        hamiltonian_class = HAMILTONIAN_CLASS::HEISENBERG;
+    else
+        hamiltonian_class = HAMILTONIAN_CLASS::GENERIC;
+
     class_name = hamiltonianClassName( hamiltonian_class );
 }
 

@@ -1661,11 +1661,11 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Gaussian_from_Config(
     // Number of Gaussians
     std::size_t n_gaussians = 1;
     // Amplitudes
-    std::vector<scalar> amplitude = { 1 };
+    scalarfield amplitude = { 1 };
     // Widths
-    std::vector<scalar> width = { 1 };
+    scalarfield width = { 1 };
     // Centers
-    std::vector<Vector3> center = { Vector3{ 0, 0, 1 } };
+    vectorfield center = { Vector3{ 0, 0, 1 } };
 
     //------------------------------- Parser --------------------------------
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Gaussian: building" );
@@ -1680,9 +1680,9 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Gaussian_from_Config(
             config_file_handle.Read_Single( n_gaussians, "n_gaussians" );
 
             // Allocate arrays
-            amplitude = std::vector<scalar>( n_gaussians, 1.0 );
-            width     = std::vector<scalar>( n_gaussians, 1.0 );
-            center    = std::vector<Vector3>( n_gaussians, Vector3{ 0, 0, 1 } );
+            amplitude = scalarfield( n_gaussians, 1.0 );
+            width     = scalarfield( n_gaussians, 1.0 );
+            center    = vectorfield( n_gaussians, Vector3{ 0, 0, 1 } );
             // Read arrays
             if( config_file_handle.Find( "gaussians" ) )
             {
@@ -1722,7 +1722,7 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Gaussian_from_Config(
     auto hamiltonian = std::make_unique<Engine::Hamiltonian>( geometry, boundary_conditions );
     hamiltonian->pauseUpdateName();
 
-    // hamiltonian->setInteraction<Engine::Interaction::Gaussian>( amplitude, width, center );
+    hamiltonian->setInteraction<Engine::Interaction::Gaussian>( amplitude, width, center );
 
     hamiltonian->unpauseUpdateName();
     hamiltonian->updateName();

@@ -348,7 +348,7 @@ void Hamiltonian_Gaussian_to_Config(
     scalarfield width( 0 );
     vectorfield center( 0 );
 
-    // hamiltonian->getInteraction<Engine::Interaction::Gaussian>()->getParameters( amplitude, width, center );
+    hamiltonian->getInteraction<Engine::Interaction::Gaussian>()->getParameters( amplitude, width, center );
 
     const auto n_gaussians = amplitude.size();
 
