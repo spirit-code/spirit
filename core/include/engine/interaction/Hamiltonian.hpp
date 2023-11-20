@@ -8,6 +8,7 @@
 #include <engine/FFT.hpp>
 #include <engine/Hamiltonian_Defines.hpp>
 #include <engine/Vectormath_Defines.hpp>
+#include <utility/Span.hpp>
 
 #include <memory>
 #include <random>
@@ -134,6 +135,7 @@ public:
         swap( first.it_bounds_write_dipole, second.it_bounds_write_dipole );
         // energy_contributions_per_spin legacy block
         swap( first.energy_contributions_per_spin, second.energy_contributions_per_spin );
+        swap( first.idx_gaussian, second.idx_gaussian );
         swap( first.idx_zeeman, second.idx_zeeman );
         swap( first.idx_anisotropy, second.idx_anisotropy );
         swap( first.idx_cubic_anisotropy, second.idx_cubic_anisotropy );
@@ -196,6 +198,36 @@ public:
 
     ~Hamiltonian() = default;
 
+    Utility::Span<const std::unique_ptr<Interaction::ABC>> getActiveInteractions() const
+    {
+        return Utility::Span( interactions.begin(), active_interactions_size );
+    }
+
+    std::size_t getActiveInteractionsSize() const
+    {
+        return active_interactions_size;
+    };
+
+    Utility::Span<const std::unique_ptr<Interaction::ABC>> getInactiveInteractions() const
+    {
+        return Utility::Span( interactions.begin() + active_interactions_size, interactions.end() );
+    }
+
+    std::size_t getInactiveInteractionsSize() const
+    {
+        return interactions.size() - active_interactions_size;
+    };
+
+    const auto & getInteractions() const
+    {
+        return interactions;
+    };
+
+    std::size_t getInteractionsSize() const
+    {
+        return interactions.size();
+    };
+
     /*
      * Update the internal state of the interactions.
      * This needs to be done every time the parameters are changed, in case an energy
@@ -204,6 +236,7 @@ public:
      * the manual update should only be neccessary if the geometry or boundary_conditions are changed.
      */
     void updateInteractions();
+    void updateActiveInteractions();
 
     // old mechanism
     void Update_Energy_Contributions();
@@ -328,6 +361,10 @@ public:
 
     // ------------ Energy Functions ------------
     // Getters for Indices of the energy vector
+    inline int Idx_Gaussian()
+    {
+        return idx_gaussian;
+    }
     inline int Idx_Zeeman()
     {
         return idx_zeeman;
@@ -391,7 +428,20 @@ public:
     std::size_t deleteInteraction();
 
 private:
-    int idx_zeeman, idx_anisotropy, idx_cubic_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet;
+    // common and uncommon interactions partition the active interactions
+    Utility::Span<const std::unique_ptr<Interaction::ABC>> getCommonInteractions() const
+    {
+        return Utility::Span( interactions.begin(), common_interactions_size );
+    };
+
+    Utility::Span<const std::unique_ptr<Interaction::ABC>> getUncommonInteractions() const
+    {
+        return Utility::Span(
+            interactions.begin() + common_interactions_size,
+            active_interactions_size - common_interactions_size );
+    };
+
+    int idx_gaussian, idx_zeeman, idx_anisotropy, idx_cubic_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet;
     void Gradient_DDI_Cutoff( const vectorfield & spins, vectorfield & gradient );
     void Gradient_DDI_Direct( const vectorfield & spins, vectorfield & gradient );
     void Gradient_DDI_FFT( const vectorfield & spins, vectorfield & gradient );
@@ -409,6 +459,8 @@ private:
     bool name_update_paused             = false;
     HAMILTONIAN_CLASS hamiltonian_class = HAMILTONIAN_CLASS::GENERIC;
     std::string_view class_name{ hamiltonianClassName( HAMILTONIAN_CLASS::GENERIC ) };
+
+    static constexpr int common_spin_order = 2;
     // Preparations for DDI-Convolution Algorithm
     void Prepare_DDI();
     void Clean_DDI();
