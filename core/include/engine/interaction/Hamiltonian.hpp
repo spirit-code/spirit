@@ -16,6 +16,8 @@
 namespace Engine
 {
 
+class Hamiltonian;
+
 // forward declaration of interactions for following friend declaration
 namespace Interaction
 {
@@ -31,6 +33,8 @@ class Base;
 
 // Interaction classes
 class Gaussian;
+
+void setOwnerPtr( ABC & interaction, Hamiltonian * hamiltonian ) noexcept;
 
 } // namespace Interaction
 
@@ -78,6 +82,81 @@ class Hamiltonian
     friend class Interaction::Gaussian;
 
 public:
+    friend void swap( Hamiltonian & first, Hamiltonian & second ) noexcept
+    {
+        using std::swap;
+        if( &first == &second )
+        {
+            return;
+        }
+        swap( first.geometry, second.geometry );
+        swap( first.boundary_conditions, second.boundary_conditions );
+        swap( first.name_update_paused, second.name_update_paused );
+        swap( first.hamiltonian_class, second.hamiltonian_class );
+        swap( first.class_name, second.class_name );
+
+        // interactions legacy block
+        swap( first.external_field_magnitude, second.external_field_magnitude );
+        swap( first.external_field_normal, second.external_field_normal );
+        swap( first.anisotropy_indices, second.anisotropy_indices );
+        swap( first.anisotropy_magnitudes, second.anisotropy_magnitudes );
+        swap( first.anisotropy_normals, second.anisotropy_normals );
+        swap( first.cubic_anisotropy_indices, second.cubic_anisotropy_indices );
+        swap( first.cubic_anisotropy_magnitudes, second.cubic_anisotropy_magnitudes );
+        swap( first.exchange_shell_magnitudes, second.exchange_shell_magnitudes );
+        swap( first.exchange_pairs_in, second.exchange_pairs_in );
+        swap( first.exchange_magnitudes_in, second.exchange_magnitudes_in );
+        swap( first.dmi_shell_magnitudes, second.dmi_shell_magnitudes );
+        swap( first.dmi_shell_chirality, second.dmi_shell_chirality );
+        swap( first.dmi_pairs_in, second.dmi_pairs_in );
+        swap( first.dmi_magnitudes_in, second.dmi_magnitudes_in );
+        swap( first.dmi_normals_in, second.dmi_normals_in );
+        swap( first.quadruplets, second.quadruplets );
+        swap( first.quadruplet_magnitudes, second.quadruplet_magnitudes );
+        // ddi legacy block
+        swap( first.ddi_method, second.ddi_method );
+        swap( first.ddi_n_periodic_images, second.ddi_n_periodic_images );
+        swap( first.ddi_pb_zero_padding, second.ddi_pb_zero_padding );
+        swap( first.ddi_cutoff_radius, second.ddi_cutoff_radius );
+        swap( first.fft_plan_spins, second.fft_plan_spins );
+        swap( first.fft_plan_reverse, second.fft_plan_reverse );
+        swap( first.n_inter_sublattice, second.n_inter_sublattice );
+        swap( first.sublattice_size, second.sublattice_size );
+        swap( first.n_cells_padded, second.n_cells_padded );
+        swap( first.transformed_dipole_matrices, second.transformed_dipole_matrices );
+        swap( first.dipole_matrices, second.dipole_matrices );
+        swap( first.save_dipole_matrices, second.save_dipole_matrices );
+        swap( first.dipole_stride, second.dipole_stride );
+        swap( first.spin_stride, second.spin_stride );
+        swap( first.it_bounds_pointwise_mult, second.it_bounds_pointwise_mult );
+        swap( first.it_bounds_write_gradients, second.it_bounds_write_gradients );
+        swap( first.it_bounds_write_spins, second.it_bounds_write_spins );
+        swap( first.it_bounds_write_dipole, second.it_bounds_write_dipole );
+        // energy_contributions_per_spin legacy block
+        swap( first.energy_contributions_per_spin, second.energy_contributions_per_spin );
+        swap( first.idx_zeeman, second.idx_zeeman );
+        swap( first.idx_anisotropy, second.idx_anisotropy );
+        swap( first.idx_cubic_anisotropy, second.idx_cubic_anisotropy );
+        swap( first.idx_exchange, second.idx_exchange );
+        swap( first.idx_dmi, second.idx_dmi );
+        swap( first.idx_quadruplet, second.idx_quadruplet );
+        swap( first.idx_ddi, second.idx_ddi );
+
+        swap( first.interactions, second.interactions );
+        swap( first.active_interactions_size, second.active_interactions_size );
+        swap( first.common_interactions_size, second.common_interactions_size );
+
+        swap( first.prng, second.prng );
+        swap( first.distribution_int, second.distribution_int );
+        swap( first.delta, second.delta );
+
+        for( const auto & interaction : first.interactions )
+            Interaction::setOwnerPtr( *interaction, &first );
+
+        for( const auto & interaction : second.interactions )
+            Interaction::setOwnerPtr( *interaction, &second );
+    }
+
     Hamiltonian(
         std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
         const Data::NormalVector & external_field, const Data::VectorfieldData & anisotropy,
@@ -93,6 +172,29 @@ public:
         Engine::DDI_Method ddi_method, const Data::DDI_Data & ddi_data );
 
     Hamiltonian( std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions );
+
+    Hamiltonian() = default;
+    // rule of five, because the Hamiltonian owns the interactions
+    Hamiltonian( const Hamiltonian & other );
+    // using the copy-and-swap idiom for brevity. Should be implemented more efficiently once the refactor is finished.
+    Hamiltonian & operator=( Hamiltonian other )
+    {
+        swap( *this, other );
+        return *this;
+    };
+
+    Hamiltonian( Hamiltonian && other ) noexcept : Hamiltonian()
+    {
+        swap( *this, other );
+    };
+
+    Hamiltonian & operator=( Hamiltonian && other ) noexcept
+    {
+        swap( *this, other );
+        return *this;
+    };
+
+    ~Hamiltonian() = default;
 
     /*
      * Update the internal state of the interactions.
@@ -152,6 +254,15 @@ public:
     void updateName();
     std::string_view Name() const;
 
+    std::shared_ptr<Data::Geometry> geometry;
+    intfield boundary_conditions;
+
+private:
+    std::vector<std::unique_ptr<Interaction::ABC>> interactions{};
+    std::size_t active_interactions_size = 0;
+    std::size_t common_interactions_size = 0;
+
+public:
     // ------------ Single Spin Interactions ------------
     // External magnetic field across the sample
     scalar external_field_magnitude;
@@ -197,9 +308,6 @@ public:
     // ------------ Quadruplet Interactions ------------
     quadrupletfield quadruplets;
     scalarfield quadruplet_magnitudes;
-
-    std::shared_ptr<Data::Geometry> geometry;
-    intfield boundary_conditions;
 
     // ------------ Effective Field Functions ------------
     // Calculate the Zeeman effective field of a single Spin
@@ -263,6 +371,24 @@ public:
     void E_DDI( const vectorfield & spins, scalarfield & Energy );
     // Calculate the Quadruplet energy
     void E_Quadruplet( const vectorfield & spins, scalarfield & Energy );
+
+    Interaction::ABC * getInteraction( std::string_view name );
+    std::size_t deleteInteraction( std::string_view name );
+
+    template<class T, typename... Args>
+    T & setInteraction( Args &&... args );
+
+    template<class T>
+    const T * getInteraction() const;
+
+    template<class T>
+    T * getInteraction();
+
+    template<class T>
+    bool hasInteraction();
+
+    template<class T>
+    std::size_t deleteInteraction();
 
 private:
     int idx_zeeman, idx_anisotropy, idx_cubic_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet;
