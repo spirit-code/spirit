@@ -281,21 +281,26 @@ void Hamiltonian_Heisenberg_to_Config(
     config += fmt::format( "{:<25} {}\n", "anisotropy_magnitude", K );
     config += fmt::format( "{:<25} {}\n", "anisotropy_normal", K_normal.transpose() );
 
+    // Pair interactions (Exchange & DMI)
+    pairfield exchange_pairs;
+    scalarfield exchange_magnitudes;
+    hamiltonian->getInteraction<Engine::Interaction::Exchange>()->getParameters( exchange_pairs, exchange_magnitudes );
+
     config += "###    Interaction pairs:\n";
-    config += fmt::format( "n_interaction_pairs {}\n", ham->exchange_pairs.size() + ham->dmi_pairs.size() );
-    if( ham->exchange_pairs.size() + ham->dmi_pairs.size() > 0 )
+    config += fmt::format( "n_interaction_pairs {}\n", exchange_pairs.size() + ham->dmi_pairs.size() );
+    if( exchange_pairs.size() + ham->dmi_pairs.size() > 0 )
     {
         config += fmt::format(
             "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15}    {:^15} {:^15} {:^15} {:^15}\n", "i", "j", "da", "db", "dc",
             "Jij", "Dij", "Dijx", "Dijy", "Dijz" );
         // Exchange
-        for( unsigned int i = 0; i < ham->exchange_pairs.size(); ++i )
+        for( unsigned int i = 0; i < exchange_pairs.size(); ++i )
         {
             config += fmt::format(
                 "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}    {:^15.8f} {:^15.8f} {:^15.8f} {:^15.8f}\n",
-                ham->exchange_pairs[i].i, ham->exchange_pairs[i].j, ham->exchange_pairs[i].translations[0],
-                ham->exchange_pairs[i].translations[1], ham->exchange_pairs[i].translations[2],
-                ham->exchange_magnitudes[i], 0.0, 0.0, 0.0, 0.0 );
+                exchange_pairs[i].i, exchange_pairs[i].j, exchange_pairs[i].translations[0],
+                exchange_pairs[i].translations[1], exchange_pairs[i].translations[2],
+                exchange_magnitudes[i], 0.0, 0.0, 0.0, 0.0 );
         }
         // DMI
         for( unsigned int i = 0; i < ham->dmi_pairs.size(); ++i )

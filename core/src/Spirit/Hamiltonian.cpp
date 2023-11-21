@@ -223,12 +223,8 @@ try
         if( image->hamiltonian->Name() == "Heisenberg" )
         {
             // Update the Hamiltonian
-            auto & ham                     = image->hamiltonian;
-            ham->exchange_shell_magnitudes = scalarfield( jij, jij + n_shells );
-            ham->exchange_pairs_in         = pairfield( 0 );
-            ham->exchange_magnitudes_in    = scalarfield( 0 );
-            ham->updateInteractions();
-
+            image->hamiltonian->getInteraction<Engine::Interaction::Exchange>()->setParameters(
+                scalarfield( jij, jij + n_shells ) );
             std::string message = fmt::format( "Set exchange to {} shells", n_shells );
             if( n_shells > 0 )
                 message += fmt::format( " Jij[0] = {}", jij[0] );
@@ -523,14 +519,16 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto & ham = image->hamiltonian;
+        scalarfield exchange_shell_magnitudes;
+        image->hamiltonian->getInteraction<Engine::Interaction::Exchange>()->getInitParameters(
+            exchange_shell_magnitudes );
 
-        *n_shells = ham->exchange_shell_magnitudes.size();
+        *n_shells = exchange_shell_magnitudes.size();
 
         // Note the array needs to be correctly allocated beforehand!
-        for( std::size_t i = 0; i < ham->exchange_shell_magnitudes.size(); ++i )
+        for( std::size_t i = 0; i < exchange_shell_magnitudes.size(); ++i )
         {
-            jij[i] = ham->exchange_shell_magnitudes[i];
+            jij[i] = exchange_shell_magnitudes[i];
         }
     }
 }
@@ -550,8 +548,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto & ham = image->hamiltonian;
-        return ham->exchange_pairs.size();
+        return image->hamiltonian->getInteraction<Engine::Interaction::Exchange>()->getN_Pairs();
     }
 
     return 0;
@@ -575,17 +572,20 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto & ham = image->hamiltonian;
+        pairfield exchange_pairs;
+        scalarfield exchange_magnitudes;
+        image->hamiltonian->getInteraction<Engine::Interaction::Exchange>()->getParameters(
+            exchange_pairs, exchange_magnitudes );
 
-        for( std::size_t i = 0; i < ham->exchange_pairs.size() && i < ham->exchange_magnitudes.size(); ++i )
+        for( std::size_t i = 0; i < exchange_pairs.size() && i < exchange_magnitudes.size(); ++i )
         {
-            auto & pair        = ham->exchange_pairs[i];
+            const auto & pair  = exchange_pairs[i];
             idx[i][0]          = pair.i;
             idx[i][1]          = pair.j;
             translations[i][0] = pair.translations[0];
             translations[i][1] = pair.translations[1];
             translations[i][2] = pair.translations[2];
-            Jij[i]             = ham->exchange_magnitudes[i];
+            Jij[i]             = exchange_magnitudes[i];
         }
     }
 }
