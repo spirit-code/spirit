@@ -34,6 +34,7 @@ class Base;
 
 // Interaction classes
 class Gaussian;
+class Zeeman;
 class Anisotropy;
 
 void setOwnerPtr( ABC & interaction, Hamiltonian * hamiltonian ) noexcept;
@@ -81,8 +82,9 @@ class Hamiltonian
     template<class Derived>
     friend class Interaction::Base;
     // Interaction classes
-    friend class Interaction::Anisotropy;
     friend class Interaction::Gaussian;
+    friend class Interaction::Zeeman;
+    friend class Interaction::Anisotropy;
 
 public:
     friend void swap( Hamiltonian & first, Hamiltonian & second ) noexcept
@@ -99,8 +101,6 @@ public:
         swap( first.class_name, second.class_name );
 
         // interactions legacy block
-        swap( first.external_field_magnitude, second.external_field_magnitude );
-        swap( first.external_field_normal, second.external_field_normal );
         swap( first.cubic_anisotropy_indices, second.cubic_anisotropy_indices );
         swap( first.cubic_anisotropy_magnitudes, second.cubic_anisotropy_magnitudes );
         swap( first.exchange_shell_magnitudes, second.exchange_shell_magnitudes );
@@ -160,13 +160,13 @@ public:
 
     Hamiltonian(
         std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
-        const Data::NormalVector & external_field, const Data::ScalarfieldData & cubic_anisotropy,
+        const Data::ScalarfieldData & cubic_anisotropy,
         const Data::ScalarPairfieldData & exchange, const Data::VectorPairfieldData & dmi,
         const Data::QuadrupletfieldData & quadruplet, Engine::DDI_Method ddi_method, const Data::DDI_Data & ddi_data );
 
     Hamiltonian(
         std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
-        const Data::NormalVector & external_field, const Data::ScalarfieldData & cubic_anisotropy,
+        const Data::ScalarfieldData & cubic_anisotropy,
         const scalarfield & exchange_shell_magnitudes, const scalarfield & dmi_shell_magnitudes, int dm_chirality,
         const Data::QuadrupletfieldData & quadruplet, Engine::DDI_Method ddi_method, const Data::DDI_Data & ddi_data );
 
@@ -294,13 +294,6 @@ private:
 
 public:
     // ------------ Single Spin Interactions ------------
-    // External magnetic field across the sample
-    scalar external_field_magnitude;
-    Vector3 external_field_normal;
-    // External magnetic field - for now external magnetic field is homogeneous
-    // If required, an additional, inhomogeneous external field should be added
-    //   scalarfield external_field_magnitudes;
-    //   vectorfield external_field_normals;
     intfield cubic_anisotropy_indices;
     scalarfield cubic_anisotropy_magnitudes;
 
@@ -335,8 +328,6 @@ public:
     scalarfield quadruplet_magnitudes;
 
     // ------------ Effective Field Functions ------------
-    // Calculate the Zeeman effective field of a single Spin
-    void Gradient_Zeeman( vectorfield & gradient );
     // Calculate the Cubic Anisotropy effective field of a single Spin
     void Gradient_Cubic_Anisotropy( const vectorfield & spins, vectorfield & gradient );
     // Calculate the exchange interaction effective field of a Spin Pair
@@ -384,8 +375,6 @@ public:
         return idx_quadruplet;
     };
 
-    // Calculate the Zeeman energy of a Spin System
-    void E_Zeeman( const vectorfield & spins, scalarfield & Energy );
     // Calculate the exchange interaction energy of a Spin System
     void E_Cubic_Anisotropy( const vectorfield & spins, scalarfield & Energy );
     // Calculate the exchange interaction energy of a Spin System

@@ -1289,7 +1289,8 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
 {
     //-------------- Insert default values here -----------------------------
     // External Magnetic Field
-    NormalVector external_field{ 0, { 0.0, 0.0, 1.0 } };
+    scalar external_field_magnitude = 0;
+    Vector3 external_field_normal   = { 0.0, 0.0, 1.0 };
 
     // Anisotropy
     std::string anisotropy_file = "";
@@ -1346,12 +1347,12 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
             IO::Filter_File_Handle config_file_handle( config_file_name );
 
             // Read parameters from config if available
-            config_file_handle.Read_Single( external_field.magnitude, "external_field_magnitude" );
-            config_file_handle.Read_Vector3( external_field.normal, "external_field_normal" );
-            external_field.normal.normalize();
-            if( external_field.normal.norm() < 1e-8 )
+            config_file_handle.Read_Single( external_field_magnitude, "external_field_magnitude" );
+            config_file_handle.Read_Vector3( external_field_normal, "external_field_normal" );
+            external_field_normal.normalize();
+            if( external_field_normal.norm() < 1e-8 )
             {
-                external_field.normal = { 0, 0, 1 };
+                external_field_normal = { 0, 0, 1 };
                 Log( Log_Level::Warning, Log_Sender::IO,
                      "Input for 'external_field_normal' had norm zero and has been set to (0,0,1)" );
             }
@@ -1601,8 +1602,8 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
     parameter_log.emplace_back( fmt::format(
         "    {:<21} = {} {} {}", "boundary conditions", boundary_conditions[0], boundary_conditions[1],
         boundary_conditions[2] ) );
-    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "external field", external_field.magnitude ) );
-    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "field_normal", external_field.normal.transpose() ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "external field", external_field_magnitude ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "field_normal", external_field_normal.transpose() ) );
     if( anisotropy_from_file )
         parameter_log.emplace_back( fmt::format( "    K from file \"{}\"", anisotropy_file ) );
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy[0]", K ) );
@@ -1634,16 +1635,18 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
         const auto & dmi_magnitudes      = dmi.magnitudes;
 
         hamiltonian = std::make_unique<Engine::Hamiltonian>(
-            geometry, boundary_conditions, external_field, cubic_anisotropy_data, exchange_magnitudes, dmi_magnitudes,
-            dm_chirality, quadruplets, ddi_method, ddi_data );
+            geometry, boundary_conditions, cubic_anisotropy_data, exchange_magnitudes, dmi_magnitudes, dm_chirality,
+            quadruplets, ddi_method, ddi_data );
     }
     else
     {
         hamiltonian = std::make_unique<Engine::Hamiltonian>(
-            geometry, boundary_conditions, external_field, cubic_anisotropy_data, exchange, dmi, quadruplets,
-            ddi_method, ddi_data );
+            geometry, boundary_conditions, cubic_anisotropy_data, exchange, dmi, quadruplets, ddi_method, ddi_data );
     }
     hamiltonian->pauseUpdateName();
+
+    hamiltonian->setInteraction<Engine::Interaction::Zeeman>(
+        external_field_magnitude * Utility::Constants::mu_B, external_field_normal );
 
     hamiltonian->setInteraction<Engine::Interaction::Anisotropy>(
         anisotropy_indices, anisotropy_magnitudes, anisotropy_normals );

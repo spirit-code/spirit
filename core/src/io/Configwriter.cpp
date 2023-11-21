@@ -253,10 +253,15 @@ void Hamiltonian_Heisenberg_to_Config(
     const auto & ham = hamiltonian;
 
     // External Field
+    scalar external_field_magnitude = 0;
+    Vector3 external_field_normal;
+    hamiltonian->getInteraction<Engine::Interaction::Zeeman>()->getParameters(
+        external_field_magnitude, external_field_normal );
+
     config += "###    External Field:\n";
     config += fmt::format(
-        "{:<25} {}\n", "external_field_magnitude", ham->external_field_magnitude / Utility::Constants::mu_B );
-    config += fmt::format( "{:<25} {}\n", "external_field_normal", ham->external_field_normal.transpose() );
+        "{:<25} {}\n", "external_field_magnitude", external_field_magnitude / Utility::Constants::mu_B );
+    config += fmt::format( "{:<25} {}\n", "external_field_normal", external_field_normal.transpose() );
 
     // Anisotropy
     config += "###    Anisotropy:\n";

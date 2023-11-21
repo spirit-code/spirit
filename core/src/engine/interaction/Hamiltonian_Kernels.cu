@@ -16,21 +16,6 @@ using Engine::Indexing::cu_tupel_from_idx;
 namespace Engine
 {
 
-__global__ void CU_E_Zeeman(
-    const Vector3 * spins, const int * atom_types, const int n_cell_atoms, const scalar * mu_s,
-    const scalar external_field_magnitude, const Vector3 external_field_normal, scalar * energy, size_t n_cells_total )
-{
-    for( auto icell = blockIdx.x * blockDim.x + threadIdx.x; icell < n_cells_total; icell += blockDim.x * gridDim.x )
-    {
-        for( int ibasis = 0; ibasis < n_cell_atoms; ++ibasis )
-        {
-            int ispin = n_cell_atoms * icell + ibasis;
-            if( cu_check_atom_type( atom_types[ispin] ) )
-                energy[ispin] -= mu_s[ispin] * external_field_magnitude * external_field_normal.dot( spins[ispin] );
-        }
-    }
-}
-
 __global__ void CU_E_Cubic_Anisotropy(
     const Vector3 * spins, const int * atom_types, const int n_cell_atoms, const int n_anisotropies,
     const int * anisotropy_indices, const scalar * anisotropy_magnitude, scalar * energy, size_t n_cells_total )
@@ -161,21 +146,6 @@ __global__ void CU_Gradient_DMI(
             {
                 gradient[ispin] -= magnitudes[ipair] * spins[jspin].cross( normals[ipair] );
             }
-        }
-    }
-}
-
-__global__ void CU_Gradient_Zeeman(
-    const int * atom_types, const int n_cell_atoms, const scalar * mu_s, const scalar external_field_magnitude,
-    const Vector3 external_field_normal, Vector3 * gradient, size_t n_cells_total )
-{
-    for( auto icell = blockIdx.x * blockDim.x + threadIdx.x; icell < n_cells_total; icell += blockDim.x * gridDim.x )
-    {
-        for( int ibasis = 0; ibasis < n_cell_atoms; ++ibasis )
-        {
-            int ispin = n_cell_atoms * icell + ibasis;
-            if( cu_check_atom_type( atom_types[ispin] ) )
-                gradient[ispin] -= mu_s[ispin] * external_field_magnitude * external_field_normal;
         }
     }
 }

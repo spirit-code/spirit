@@ -376,6 +376,7 @@ if( SPIRIT_USE_CUDA )
         ${CMAKE_CURRENT_LIST_DIR}/src/data/Spin_System_Chain.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/ABC.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Gaussian.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Zeeman.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Anisotropy.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Hamiltonian_Kernels.cu
         ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Hamiltonian.cpp

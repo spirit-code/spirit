@@ -503,11 +503,12 @@ void Method_GNEB<solver>::Calculate_Interpolated_Energy_Contributions()
         }
         if( ham.Idx_Zeeman() >= 0 )
         {
+            auto * interaction = ham.getInteraction<Interaction::Zeeman>();
             Vectormath::fill( temp_field, Vector3::Zero() );
             Vectormath::fill( temp_energy, 0 );
-            ham.E_Zeeman( image, temp_energy );
+            interaction->Energy_per_Spin( image, temp_energy );
             temp_energies[ham.Idx_Zeeman()][img] = Vectormath::sum( temp_energy );
-            ham.Gradient_Zeeman( temp_field );
+            interaction->Gradient( image, temp_field );
             temp_dE_dRx[ham.Idx_Zeeman()][img] = -Vectormath::dot( temp_field, this->tangents[img] );
         }
         if( ham.Idx_Anisotropy() >= 0 )

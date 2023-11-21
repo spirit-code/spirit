@@ -69,18 +69,13 @@ try
         // Set
         if( image->hamiltonian->Name() == "Heisenberg" )
         {
-            auto & ham =  image->hamiltonian;
-
             // Normals
             Vector3 new_normal{ normal[0], normal[1], normal[2] };
             new_normal.normalize();
 
             // Into the Hamiltonian
-            ham->external_field_magnitude = magnitude * Constants::mu_B;
-            ham->external_field_normal    = new_normal;
-
-            // Update Energies
-            ham->Update_Energy_Contributions();
+            image->hamiltonian->getInteraction<Engine::Interaction::Zeeman>()->setParameters(
+                magnitude * Constants::mu_B, new_normal );
 
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                  fmt::format(
@@ -89,7 +84,8 @@ try
         }
         else
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 fmt::format("External field cannot be set on {}", image->hamiltonian->Name() ), idx_image, idx_chain );
+                 fmt::format( "External field cannot be set on {}", image->hamiltonian->Name() ), idx_image,
+                 idx_chain );
     }
     catch( ... )
     {
@@ -147,7 +143,7 @@ try
         }
         else
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 fmt::format("Anisotropy cannot be set on {}", image->hamiltonian->Name() ), idx_image, idx_chain );
+                 fmt::format( "Anisotropy cannot be set on {}", image->hamiltonian->Name() ), idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -200,7 +196,8 @@ try
         }
         else
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 fmt::format( "Cubic anisotropy cannot be set on {}", image->hamiltonian->Name() ), idx_image, idx_chain );
+                 fmt::format( "Cubic anisotropy cannot be set on {}", image->hamiltonian->Name() ), idx_image,
+                 idx_chain );
     }
     catch( ... )
     {
@@ -414,17 +411,17 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto & ham =  image->hamiltonian;
+        scalar field_magnitude = 0;
+        Vector3 field_normal   = Vector3::Zero();
+        image->hamiltonian->getInteraction<Engine::Interaction::Zeeman>()->getParameters(
+            field_magnitude, field_normal );
 
-        if( ham->external_field_magnitude > 0 )
+        if( field_magnitude > 0 )
         {
-            // Magnitude
-            *magnitude = ham->external_field_magnitude / Constants::mu_B;
-
-            // Normal
-            normal[0] = ham->external_field_normal[0];
-            normal[1] = ham->external_field_normal[1];
-            normal[2] = ham->external_field_normal[2];
+            *magnitude = field_magnitude / Constants::mu_B;
+            normal[0]  = field_normal[0];
+            normal[1]  = field_normal[1];
+            normal[2]  = field_normal[2];
         }
         else
         {
@@ -495,7 +492,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto & ham =  image->hamiltonian;
+        auto & ham = image->hamiltonian;
 
         if( !ham->cubic_anisotropy_indices.empty() )
         {
@@ -527,7 +524,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto & ham =  image->hamiltonian;
+        auto & ham = image->hamiltonian;
 
         *n_shells = ham->exchange_shell_magnitudes.size();
 
@@ -554,7 +551,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto & ham =  image->hamiltonian;
+        auto & ham = image->hamiltonian;
         return ham->exchange_pairs.size();
     }
 
@@ -579,7 +576,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto & ham =  image->hamiltonian;
+        auto & ham = image->hamiltonian;
 
         for( std::size_t i = 0; i < ham->exchange_pairs.size() && i < ham->exchange_magnitudes.size(); ++i )
         {
@@ -613,7 +610,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto & ham =  image->hamiltonian;
+        auto & ham = image->hamiltonian;
 
         *n_shells  = ham->dmi_shell_magnitudes.size();
         *chirality = ham->dmi_shell_chirality;
@@ -667,7 +664,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto & ham =  image->hamiltonian;
+        auto & ham = image->hamiltonian;
 
         *ddi_method          = (int)ham->ddi_method;
         n_periodic_images[0] = (int)ham->ddi_n_periodic_images[0];

@@ -13,10 +13,6 @@
 namespace Engine
 {
 
-__global__ void CU_E_Zeeman(
-    const Vector3 * spins, const int * atom_types, const int n_cell_atoms, const scalar * mu_s,
-    const scalar external_field_magnitude, const Vector3 external_field_normal, scalar * energy, size_t n_cells_total );
-
 __global__ void CU_E_Cubic_Anisotropy(
     const Vector3 * spins, const int * atom_types, const int n_cell_atoms, const int n_anisotropies,
     const int * anisotropy_indices, const scalar * anisotropy_magnitude, scalar * energy, size_t n_cells_total );
@@ -47,11 +43,6 @@ __global__ void CU_Gradient_DMI(
     const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells,
     int n_cell_atoms, int n_pairs, const Pair * pairs, const scalar * magnitudes, const Vector3 * normals,
     Vector3 * gradient, size_t size );
-
-__global__ void CU_Gradient_Zeeman(
-    const int * atom_types, const int n_cell_atoms, const scalar * mu_s, const scalar external_field_magnitude,
-    const Vector3 external_field_normal, Vector3 * gradient, size_t n_cells_total );
-
 
 __global__ void CU_FFT_Pointwise_Mult(
     FFT::FFT_cpx_type * ft_D_matrices, FFT::FFT_cpx_type * ft_spins, FFT::FFT_cpx_type * res_mult,
