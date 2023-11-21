@@ -36,6 +36,7 @@ class Base;
 class Gaussian;
 class Zeeman;
 class Anisotropy;
+class Cubic_Anisotropy;
 
 void setOwnerPtr( ABC & interaction, Hamiltonian * hamiltonian ) noexcept;
 
@@ -85,6 +86,7 @@ class Hamiltonian
     friend class Interaction::Gaussian;
     friend class Interaction::Zeeman;
     friend class Interaction::Anisotropy;
+    friend class Interaction::Cubic_Anisotropy;
 
 public:
     friend void swap( Hamiltonian & first, Hamiltonian & second ) noexcept
@@ -101,8 +103,6 @@ public:
         swap( first.class_name, second.class_name );
 
         // interactions legacy block
-        swap( first.cubic_anisotropy_indices, second.cubic_anisotropy_indices );
-        swap( first.cubic_anisotropy_magnitudes, second.cubic_anisotropy_magnitudes );
         swap( first.exchange_shell_magnitudes, second.exchange_shell_magnitudes );
         swap( first.exchange_pairs_in, second.exchange_pairs_in );
         swap( first.exchange_magnitudes_in, second.exchange_magnitudes_in );
@@ -160,13 +160,11 @@ public:
 
     Hamiltonian(
         std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
-        const Data::ScalarfieldData & cubic_anisotropy,
         const Data::ScalarPairfieldData & exchange, const Data::VectorPairfieldData & dmi,
         const Data::QuadrupletfieldData & quadruplet, Engine::DDI_Method ddi_method, const Data::DDI_Data & ddi_data );
 
     Hamiltonian(
         std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
-        const Data::ScalarfieldData & cubic_anisotropy,
         const scalarfield & exchange_shell_magnitudes, const scalarfield & dmi_shell_magnitudes, int dm_chirality,
         const Data::QuadrupletfieldData & quadruplet, Engine::DDI_Method ddi_method, const Data::DDI_Data & ddi_data );
 
@@ -293,10 +291,6 @@ private:
     std::size_t common_interactions_size = 0;
 
 public:
-    // ------------ Single Spin Interactions ------------
-    intfield cubic_anisotropy_indices;
-    scalarfield cubic_anisotropy_magnitudes;
-
     // ------------ Pair Interactions ------------
     // Exchange interaction
     scalarfield exchange_shell_magnitudes;
@@ -328,8 +322,6 @@ public:
     scalarfield quadruplet_magnitudes;
 
     // ------------ Effective Field Functions ------------
-    // Calculate the Cubic Anisotropy effective field of a single Spin
-    void Gradient_Cubic_Anisotropy( const vectorfield & spins, vectorfield & gradient );
     // Calculate the exchange interaction effective field of a Spin Pair
     void Gradient_Exchange( const vectorfield & spins, vectorfield & gradient );
     // Calculate the DMI effective field of a Spin Pair
@@ -375,8 +367,6 @@ public:
         return idx_quadruplet;
     };
 
-    // Calculate the exchange interaction energy of a Spin System
-    void E_Cubic_Anisotropy( const vectorfield & spins, scalarfield & Energy );
     // Calculate the exchange interaction energy of a Spin System
     void E_Exchange( const vectorfield & spins, scalarfield & Energy );
     // Calculate the DMI energy of a Spin System

@@ -16,23 +16,6 @@ using Engine::Indexing::cu_tupel_from_idx;
 namespace Engine
 {
 
-__global__ void CU_E_Cubic_Anisotropy(
-    const Vector3 * spins, const int * atom_types, const int n_cell_atoms, const int n_anisotropies,
-    const int * anisotropy_indices, const scalar * anisotropy_magnitude, scalar * energy, size_t n_cells_total )
-{
-    for( auto icell = blockIdx.x * blockDim.x + threadIdx.x; icell < n_cells_total; icell += blockDim.x * gridDim.x )
-    {
-        for( int iani = 0; iani < n_anisotropies; ++iani )
-        {
-            int ispin = icell * n_cell_atoms + anisotropy_indices[iani];
-            if( cu_check_atom_type( atom_types[ispin] ) )
-                energy[ispin]
-                    -= anisotropy_magnitude[iani] / 2
-                       * ( pow( spins[ispin][0], 4.0 ) + pow( spins[ispin][1], 4.0 ) + pow( spins[ispin][2], 4.0 ) );
-        }
-    }
-}
-
 __global__ void CU_E_Exchange(
     const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells,
     int n_cell_atoms, int n_pairs, const Pair * pairs, const scalar * magnitudes, scalar * energy, size_t size )
@@ -84,26 +67,6 @@ __global__ void CU_E_DDI_FFT(
     for( int idx = blockIdx.x * blockDim.x + threadIdx.x; idx < nos; idx += blockDim.x * gridDim.x )
     {
         energy[idx] += 0.5 * spins[idx].dot( gradients[idx] );
-    }
-}
-
-__global__ void CU_Gradient_Cubic_Anisotropy(
-    const Vector3 * spins, const int * atom_types, const int n_cell_atoms, const int n_anisotropies,
-    const int * anisotropy_indices, const scalar * anisotropy_magnitude, Vector3 * gradient, size_t n_cells_total )
-{
-    for( auto icell = blockIdx.x * blockDim.x + threadIdx.x; icell < n_cells_total; icell += blockDim.x * gridDim.x )
-    {
-        for( int iani = 0; iani < n_anisotropies; ++iani )
-        {
-            int ispin = icell * n_cell_atoms + anisotropy_indices[iani];
-            if( cu_check_atom_type( atom_types[ispin] ) )
-            {
-                for( int icomp = 0; icomp < 3; ++icomp )
-                {
-                    gradient[ispin][icomp] -= 2.0 * anisotropy_magnitude[iani] * pow( spins[ispin][icomp], 3.0 );
-                }
-            }
-        }
     }
 }
 

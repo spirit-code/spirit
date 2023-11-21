@@ -171,7 +171,6 @@ try
     {
         if( image->hamiltonian->Name() == "Heisenberg" )
         {
-            auto & ham       = image->hamiltonian;
             int nos          = image->nos;
             int n_cell_atoms = image->geometry->n_cell_atoms;
 
@@ -183,13 +182,10 @@ try
                 new_indices[i]    = i;
                 new_magnitudes[i] = magnitude;
             }
-            //
-            // Into the Hamiltonian
-            ham->cubic_anisotropy_indices    = new_indices;
-            ham->cubic_anisotropy_magnitudes = new_magnitudes;
 
-            // Update Energies
-            ham->Update_Energy_Contributions();
+            // Update the Hamiltonian
+            image->hamiltonian->getInteraction<Engine::Interaction::Cubic_Anisotropy>()->setParameters(
+                new_indices, new_magnitudes );
 
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                  fmt::format( "Set cubic anisotropy to {}", magnitude ), idx_image, idx_chain );
@@ -492,12 +488,15 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto & ham = image->hamiltonian;
+        intfield cubic_anisotropy_indices;
+        scalarfield cubic_anisotropy_magnitudes;
+        image->hamiltonian->getInteraction<Engine::Interaction::Cubic_Anisotropy>()->getParameters(
+            cubic_anisotropy_indices, cubic_anisotropy_magnitudes );
 
-        if( !ham->cubic_anisotropy_indices.empty() )
+        if( !cubic_anisotropy_indices.empty() )
         {
             // Magnitude
-            *magnitude = ham->cubic_anisotropy_magnitudes[0];
+            *magnitude = cubic_anisotropy_magnitudes[0];
         }
         else
         {

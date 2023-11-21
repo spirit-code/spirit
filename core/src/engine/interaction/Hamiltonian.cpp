@@ -32,20 +32,18 @@ Hamiltonian::Hamiltonian( std::shared_ptr<Geometry> geometry, intfield boundary_
           dipole_stride()
 {
     // legacy block
-    cubic_anisotropy_indices    = intfield( 0 );
-    cubic_anisotropy_magnitudes = scalarfield( 0 );
-    exchange_shell_magnitudes   = scalarfield( 0 );
-    exchange_pairs_in           = pairfield( 0 );
-    exchange_magnitudes_in      = scalarfield( 0 );
-    dmi_shell_magnitudes        = scalarfield( 0 );
-    dmi_shell_chirality         = 0;
-    dmi_pairs_in                = pairfield( 0 );
-    dmi_magnitudes_in           = scalarfield( 0 );
-    dmi_normals_in              = vectorfield( 0 );
-    quadruplets                 = quadrupletfield( 0 );
-    quadruplet_magnitudes       = scalarfield( 0 );
-    fft_plan_spins              = FFT::FFT_Plan();
-    fft_plan_reverse            = FFT::FFT_Plan();
+    exchange_shell_magnitudes = scalarfield( 0 );
+    exchange_pairs_in         = pairfield( 0 );
+    exchange_magnitudes_in    = scalarfield( 0 );
+    dmi_shell_magnitudes      = scalarfield( 0 );
+    dmi_shell_chirality       = 0;
+    dmi_pairs_in              = pairfield( 0 );
+    dmi_magnitudes_in         = scalarfield( 0 );
+    dmi_normals_in            = vectorfield( 0 );
+    quadruplets               = quadrupletfield( 0 );
+    quadruplet_magnitudes     = scalarfield( 0 );
+    fft_plan_spins            = FFT::FFT_Plan();
+    fft_plan_reverse          = FFT::FFT_Plan();
 
     ddi_method                  = DDI_Method::None;
     ddi_n_periodic_images       = intfield( 0 );
@@ -82,8 +80,8 @@ Hamiltonian::Hamiltonian( std::shared_ptr<Geometry> geometry, intfield boundary_
 // Construct a Heisenberg Hamiltonian with pairs
 Hamiltonian::Hamiltonian(
     std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
-    const ScalarfieldData & cubic_anisotropy, const ScalarPairfieldData & exchange, const VectorPairfieldData & dmi,
-    const QuadrupletfieldData & quadruplet, const DDI_Method ddi_method, const DDI_Data & ddi_data )
+    const ScalarPairfieldData & exchange, const VectorPairfieldData & dmi, const QuadrupletfieldData & quadruplet,
+    const DDI_Method ddi_method, const DDI_Data & ddi_data )
         : geometry( std::move( geometry ) ),
           boundary_conditions( std::move( boundary_conditions ) ),
           interactions( 0 ),
@@ -91,8 +89,6 @@ Hamiltonian::Hamiltonian(
           common_interactions_size( 0 ),
           name_update_paused( false ),
           hamiltonian_class( HAMILTONIAN_CLASS::GENERIC ),
-          cubic_anisotropy_indices( cubic_anisotropy.indices ),
-          cubic_anisotropy_magnitudes( cubic_anisotropy.magnitudes ),
           exchange_shell_magnitudes( 0 ),
           exchange_pairs_in( exchange.pairs ),
           exchange_magnitudes_in( exchange.magnitudes ),
@@ -143,9 +139,8 @@ Hamiltonian::Hamiltonian(
 // Construct a Heisenberg Hamiltonian from shells
 Hamiltonian::Hamiltonian(
     std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
-    const ScalarfieldData & cubic_anisotropy, const scalarfield & exchange_shell_magnitudes,
-    const scalarfield & dmi_shell_magnitudes, int dm_chirality, const QuadrupletfieldData & quadruplet,
-    const DDI_Method ddi_method, const DDI_Data & ddi_data )
+    const scalarfield & exchange_shell_magnitudes, const scalarfield & dmi_shell_magnitudes, int dm_chirality,
+    const QuadrupletfieldData & quadruplet, const DDI_Method ddi_method, const DDI_Data & ddi_data )
         : geometry( std::move( geometry ) ),
           boundary_conditions( std::move( boundary_conditions ) ),
           interactions( 0 ),
@@ -153,8 +148,6 @@ Hamiltonian::Hamiltonian(
           common_interactions_size( 0 ),
           name_update_paused( false ),
           hamiltonian_class( HAMILTONIAN_CLASS::GENERIC ),
-          cubic_anisotropy_indices( cubic_anisotropy.indices ),
-          cubic_anisotropy_magnitudes( cubic_anisotropy.magnitudes ),
           exchange_shell_magnitudes( exchange_shell_magnitudes ),
           exchange_pairs_in( 0 ),
           exchange_magnitudes_in( 0 ),
@@ -213,30 +206,28 @@ Hamiltonian::Hamiltonian( const Hamiltonian & other )
           hamiltonian_class( other.hamiltonian_class ),
           class_name( other.class_name )
 {
-    cubic_anisotropy_indices    = other.cubic_anisotropy_indices;
-    cubic_anisotropy_magnitudes = other.cubic_anisotropy_magnitudes;
-    exchange_shell_magnitudes   = other.exchange_shell_magnitudes;
-    exchange_pairs_in           = other.exchange_pairs_in;
-    exchange_magnitudes_in      = other.exchange_magnitudes_in;
-    exchange_pairs              = other.exchange_pairs;
-    exchange_magnitudes         = other.exchange_magnitudes;
-    dmi_shell_magnitudes        = other.dmi_shell_magnitudes;
-    dmi_shell_chirality         = other.dmi_shell_chirality;
-    dmi_pairs_in                = other.dmi_pairs_in;
-    dmi_magnitudes_in           = other.dmi_magnitudes_in;
-    dmi_normals_in              = other.dmi_normals_in;
-    dmi_pairs                   = other.dmi_pairs;
-    dmi_magnitudes              = other.dmi_magnitudes;
-    dmi_normals                 = other.dmi_normals;
-    ddi_method                  = other.ddi_method;
-    ddi_n_periodic_images       = other.ddi_n_periodic_images;
-    ddi_pb_zero_padding         = other.ddi_pb_zero_padding;
-    ddi_cutoff_radius           = other.ddi_cutoff_radius;
-    ddi_pairs                   = other.ddi_pairs;
-    ddi_magnitudes              = other.ddi_magnitudes;
-    ddi_normals                 = other.ddi_normals;
-    quadruplets                 = other.quadruplets;
-    quadruplet_magnitudes       = other.quadruplet_magnitudes;
+    exchange_shell_magnitudes = other.exchange_shell_magnitudes;
+    exchange_pairs_in         = other.exchange_pairs_in;
+    exchange_magnitudes_in    = other.exchange_magnitudes_in;
+    exchange_pairs            = other.exchange_pairs;
+    exchange_magnitudes       = other.exchange_magnitudes;
+    dmi_shell_magnitudes      = other.dmi_shell_magnitudes;
+    dmi_shell_chirality       = other.dmi_shell_chirality;
+    dmi_pairs_in              = other.dmi_pairs_in;
+    dmi_magnitudes_in         = other.dmi_magnitudes_in;
+    dmi_normals_in            = other.dmi_normals_in;
+    dmi_pairs                 = other.dmi_pairs;
+    dmi_magnitudes            = other.dmi_magnitudes;
+    dmi_normals               = other.dmi_normals;
+    ddi_method                = other.ddi_method;
+    ddi_n_periodic_images     = other.ddi_n_periodic_images;
+    ddi_pb_zero_padding       = other.ddi_pb_zero_padding;
+    ddi_cutoff_radius         = other.ddi_cutoff_radius;
+    ddi_pairs                 = other.ddi_pairs;
+    ddi_magnitudes            = other.ddi_magnitudes;
+    ddi_normals               = other.ddi_normals;
+    quadruplets               = other.quadruplets;
+    quadruplet_magnitudes     = other.quadruplet_magnitudes;
 
     idx_gaussian                  = other.idx_gaussian;
     idx_zeeman                    = other.idx_zeeman;
@@ -430,7 +421,8 @@ void Hamiltonian::Update_Energy_Contributions()
     else
         this->idx_anisotropy = -1;
     // Cubic anisotropy
-    if( !this->cubic_anisotropy_indices.empty() )
+    if( auto * interaction = getInteraction<Interaction::Cubic_Anisotropy>();
+        interaction != nullptr && interaction->is_active() )
     {
         this->energy_contributions_per_spin.emplace_back( "Cubic anisotropy", scalarfield( 0 ) );
         this->idx_cubic_anisotropy = this->energy_contributions_per_spin.size() - 1;
@@ -502,7 +494,8 @@ void Hamiltonian::Energy_Contributions_per_Spin( const vectorfield & spins, vect
 
     // Cubic anisotropy
     if( this->idx_cubic_anisotropy >= 0 )
-        E_Cubic_Anisotropy( spins, contributions[idx_cubic_anisotropy].second );
+        getInteraction<Interaction::Cubic_Anisotropy>()->Energy_per_Spin(
+            spins, contributions[idx_cubic_anisotropy].second );
 
     // Exchange
     if( this->idx_exchange >= 0 )
@@ -517,33 +510,6 @@ void Hamiltonian::Energy_Contributions_per_Spin( const vectorfield & spins, vect
     // Quadruplets
     if( this->idx_quadruplet >= 0 )
         E_Quadruplet( spins, contributions[idx_quadruplet].second );
-}
-
-void Hamiltonian::E_Cubic_Anisotropy( const vectorfield & spins, scalarfield & energy )
-{
-#ifdef SPIRIT_USE_CUDA
-    int size = geometry->n_cells_total;
-    CU_E_Cubic_Anisotropy<<<( size + 1023 ) / 1024, 1024>>>(
-        spins.data(), this->geometry->atom_types.data(), this->geometry->n_cell_atoms,
-        this->cubic_anisotropy_indices.size(), this->cubic_anisotropy_indices.data(),
-        this->cubic_anisotropy_magnitudes.data(), energy.data(), size );
-    CU_CHECK_AND_SYNC();
-#else
-    const int N = geometry->n_cell_atoms;
-
-#pragma omp parallel for
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
-    {
-        for( int iani = 0; iani < cubic_anisotropy_indices.size(); ++iani )
-        {
-            int ispin = icell * N + cubic_anisotropy_indices[iani];
-            if( check_atom_type( this->geometry->atom_types[ispin] ) )
-                energy[ispin] -= this->cubic_anisotropy_magnitudes[iani] / 2
-                                 * ( std::pow( spins[ispin][0], 4.0 ) + std::pow( spins[ispin][1], 4.0 )
-                                     + std::pow( spins[ispin][2], 4.0 ) );
-        }
-    }
-#endif
 }
 
 void Hamiltonian::E_Exchange( const vectorfield & spins, scalarfield & energy )
@@ -848,21 +814,6 @@ scalar Hamiltonian::Energy_Single_Spin( int ispin, const vectorfield & spins )
             energy += interaction->Energy_Single_Spin( ispin, spins );
         }
 
-        // Cubic Anisotropy
-        if( this->idx_cubic_anisotropy >= 0 )
-        {
-            for( int iani = 0; iani < cubic_anisotropy_indices.size(); ++iani )
-            {
-                if( cubic_anisotropy_indices[iani] == ibasis )
-                {
-                    if( check_atom_type( this->geometry->atom_types[ispin] ) )
-                        energy -= this->cubic_anisotropy_magnitudes[iani] / 2
-                                  * ( std::pow( spins[ispin][0], 4.0 ) + std::pow( spins[ispin][1], 4.0 )
-                                      + std::pow( spins[ispin][2], 4.0 ) );
-                }
-            }
-        }
-
         // Exchange
         if( this->idx_exchange >= 0 )
         {
@@ -941,10 +892,6 @@ void Hamiltonian::Gradient( const vectorfield & spins, vectorfield & gradient )
         interaction->Gradient( spins, gradient );
     }
 
-    // Cubic Anisotropy
-    if( idx_cubic_anisotropy >= 0 )
-        this->Gradient_Cubic_Anisotropy( spins, gradient );
-
     // Exchange
     if( idx_exchange >= 0 )
         this->Gradient_Exchange( spins, gradient );
@@ -999,16 +946,6 @@ void Hamiltonian::Gradient_and_Energy( const vectorfield & spins, vectorfield & 
         energy += interaction->Energy( spins );
     }
 
-    // Cubic Anisotropy
-    if( idx_cubic_anisotropy >= 0 )
-    {
-        this->Gradient_Cubic_Anisotropy( spins, gradient );
-
-        scalarfield energy_cubic( N );
-        this->E_Cubic_Anisotropy( spins, energy_cubic );
-        energy += Vectormath::sum( energy_cubic );
-    }
-
     // Quadruplets
     if( idx_quadruplet > 0 )
     {
@@ -1022,35 +959,6 @@ void Hamiltonian::Gradient_and_Energy( const vectorfield & spins, vectorfield & 
         E_Quadruplet( spins, energy_contributions_per_spin[idx_quadruplet].second );
         energy += Vectormath::sum( energy_contributions_per_spin[idx_quadruplet].second );
     }
-}
-
-void Hamiltonian::Gradient_Cubic_Anisotropy( const vectorfield & spins, vectorfield & gradient )
-{
-#ifdef SPIRIT_USE_CUDA
-    int size = geometry->n_cells_total;
-    CU_Gradient_Cubic_Anisotropy<<<( size + 1023 ) / 1024, 1024>>>(
-        spins.data(), this->geometry->atom_types.data(), this->geometry->n_cell_atoms,
-        this->cubic_anisotropy_indices.size(), this->cubic_anisotropy_indices.data(),
-        this->cubic_anisotropy_magnitudes.data(), gradient.data(), size );
-    CU_CHECK_AND_SYNC();
-#else
-    const int N = geometry->n_cell_atoms;
-
-#pragma omp parallel for
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
-    {
-        for( int iani = 0; iani < cubic_anisotropy_indices.size(); ++iani )
-        {
-            int ispin = icell * N + cubic_anisotropy_indices[iani];
-            if( check_atom_type( this->geometry->atom_types[ispin] ) )
-                for( int icomp = 0; icomp < 3; ++icomp )
-                {
-                    gradient[ispin][icomp]
-                        -= 2.0 * this->cubic_anisotropy_magnitudes[iani] * std::pow( spins[ispin][icomp], 3.0 );
-                }
-        }
-    }
-#endif
 }
 
 void Hamiltonian::Gradient_Exchange( const vectorfield & spins, vectorfield & gradient )
