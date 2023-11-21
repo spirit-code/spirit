@@ -21,9 +21,12 @@ namespace IO
 
 void Write_Neighbours_Exchange( const Data::Spin_System & system, const std::string & filename )
 {
-    const auto & ham = system.hamiltonian;
+    pairfield exchange_pairs;
+    scalarfield exchange_magnitudes;
+    system.hamiltonian->getInteraction<Engine::Interaction::Exchange>()->getParameters(
+        exchange_pairs, exchange_magnitudes );
 
-    std::size_t n_neighbours = ham->exchange_pairs.size();
+    std::size_t n_neighbours = exchange_pairs.size();
 
 #if defined( SPIRIT_USE_OPENMP )
     // When parallelising (cuda or openmp), all neighbours per spin are already there
@@ -40,23 +43,22 @@ void Write_Neighbours_Exchange( const Data::Spin_System & system, const std::str
     output += "###    Interaction neighbours:\n";
     output += fmt::format( "n_neighbours_exchange {}\n", n_neighbours );
 
-    if( !ham->exchange_pairs.empty() )
+    if( !exchange_pairs.empty() )
     {
         output += fmt::format( "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15}\n", "i", "j", "da", "db", "dc", "Jij" );
-        for( std::size_t i = 0; i < ham->exchange_pairs.size(); ++i )
+        for( std::size_t i = 0; i < exchange_pairs.size(); ++i )
         {
             output += fmt::format(
-                "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}\n", ham->exchange_pairs[i].i, ham->exchange_pairs[i].j,
-                ham->exchange_pairs[i].translations[0], ham->exchange_pairs[i].translations[1],
-                ham->exchange_pairs[i].translations[2], ham->exchange_magnitudes[i] );
+                "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}\n", exchange_pairs[i].i, exchange_pairs[i].j,
+                exchange_pairs[i].translations[0], exchange_pairs[i].translations[1], exchange_pairs[i].translations[2],
+                exchange_magnitudes[i] );
             if( mirror_neighbours )
             {
                 // Mirrored interactions
                 output += fmt::format(
-                    "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}\n", ham->exchange_pairs[i].j,
-                    ham->exchange_pairs[i].i, ( -1 ) * ham->exchange_pairs[i].translations[0],
-                    ( -1 ) * ham->exchange_pairs[i].translations[1], ( -1 ) * ham->exchange_pairs[i].translations[2],
-                    ham->exchange_magnitudes[i] );
+                    "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}\n", exchange_pairs[i].j, exchange_pairs[i].i,
+                    ( -1 ) * exchange_pairs[i].translations[0], ( -1 ) * exchange_pairs[i].translations[1],
+                    ( -1 ) * exchange_pairs[i].translations[2], exchange_magnitudes[i] );
             }
         }
     }

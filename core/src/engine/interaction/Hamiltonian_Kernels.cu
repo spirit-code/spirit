@@ -16,27 +16,6 @@ using Engine::Indexing::cu_tupel_from_idx;
 namespace Engine
 {
 
-__global__ void CU_E_Exchange(
-    const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells,
-    int n_cell_atoms, int n_pairs, const Pair * pairs, const scalar * magnitudes, scalar * energy, size_t size )
-{
-    int bc[3] = { boundary_conditions[0], boundary_conditions[1], boundary_conditions[2] };
-    int nc[3] = { n_cells[0], n_cells[1], n_cells[2] };
-
-    for( auto icell = blockIdx.x * blockDim.x + threadIdx.x; icell < size; icell += blockDim.x * gridDim.x )
-    {
-        for( auto ipair = 0; ipair < n_pairs; ++ipair )
-        {
-            int ispin = pairs[ipair].i + icell * n_cell_atoms;
-            int jspin = cu_idx_from_pair( ispin, bc, nc, n_cell_atoms, atom_types, pairs[ipair] );
-            if( jspin >= 0 )
-            {
-                energy[ispin] -= 0.5 * magnitudes[ipair] * spins[ispin].dot( spins[jspin] );
-            }
-        }
-    }
-}
-
 __global__ void CU_E_DMI(
     const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells,
     int n_cell_atoms, int n_pairs, const Pair * pairs, const scalar * magnitudes, const Vector3 * normals,
@@ -67,27 +46,6 @@ __global__ void CU_E_DDI_FFT(
     for( int idx = blockIdx.x * blockDim.x + threadIdx.x; idx < nos; idx += blockDim.x * gridDim.x )
     {
         energy[idx] += 0.5 * spins[idx].dot( gradients[idx] );
-    }
-}
-
-__global__ void CU_Gradient_Exchange(
-    const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells,
-    int n_cell_atoms, int n_pairs, const Pair * pairs, const scalar * magnitudes, Vector3 * gradient, size_t size )
-{
-    int bc[3] = { boundary_conditions[0], boundary_conditions[1], boundary_conditions[2] };
-    int nc[3] = { n_cells[0], n_cells[1], n_cells[2] };
-
-    for( auto icell = blockIdx.x * blockDim.x + threadIdx.x; icell < size; icell += blockDim.x * gridDim.x )
-    {
-        for( auto ipair = 0; ipair < n_pairs; ++ipair )
-        {
-            int ispin = pairs[ipair].i + icell * n_cell_atoms;
-            int jspin = cu_idx_from_pair( ispin, bc, nc, n_cell_atoms, atom_types, pairs[ipair] );
-            if( jspin >= 0 )
-            {
-                gradient[ispin] -= magnitudes[ipair] * spins[jspin];
-            }
-        }
     }
 }
 

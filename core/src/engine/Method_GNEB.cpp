@@ -494,11 +494,12 @@ void Method_GNEB<solver>::Calculate_Interpolated_Energy_Contributions()
         auto & image = *this->configurations[img];
         if( ham.Idx_Exchange() >= 0 )
         {
+            auto * interaction = ham.getInteraction<Interaction::Exchange>();
             Vectormath::fill( temp_field, Vector3::Zero() );
             Vectormath::fill( temp_energy, 0 );
-            ham.E_Exchange( image, temp_energy );
+            interaction->Energy_per_Spin( image, temp_energy );
             temp_energies[ham.Idx_Exchange()][img] = Vectormath::sum( temp_energy );
-            ham.Gradient_Exchange( image, temp_field );
+            interaction->Gradient( image, temp_field );
             temp_dE_dRx[ham.Idx_Exchange()][img] = -Vectormath::dot( temp_field, this->tangents[img] );
         }
         if( ham.Idx_Zeeman() >= 0 )
