@@ -32,11 +32,6 @@ Hamiltonian::Hamiltonian( std::shared_ptr<Geometry> geometry, intfield boundary_
           dipole_stride()
 {
     // legacy block
-    dmi_shell_magnitudes  = scalarfield( 0 );
-    dmi_shell_chirality   = 0;
-    dmi_pairs_in          = pairfield( 0 );
-    dmi_magnitudes_in     = scalarfield( 0 );
-    dmi_normals_in        = vectorfield( 0 );
     quadruplets           = quadrupletfield( 0 );
     quadruplet_magnitudes = scalarfield( 0 );
     fft_plan_spins        = FFT::FFT_Plan();
@@ -74,11 +69,10 @@ Hamiltonian::Hamiltonian( std::shared_ptr<Geometry> geometry, intfield boundary_
     this->updateName();
 }
 
-// Construct a Heisenberg Hamiltonian with pairs
+// Construct a Heisenberg Hamiltonian
 Hamiltonian::Hamiltonian(
     std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
-    const VectorPairfieldData & dmi, const QuadrupletfieldData & quadruplet,
-    const DDI_Method ddi_method, const DDI_Data & ddi_data )
+    const QuadrupletfieldData & quadruplet, const DDI_Method ddi_method, const DDI_Data & ddi_data )
         : geometry( std::move( geometry ) ),
           boundary_conditions( std::move( boundary_conditions ) ),
           interactions( 0 ),
@@ -86,11 +80,6 @@ Hamiltonian::Hamiltonian(
           common_interactions_size( 0 ),
           name_update_paused( false ),
           hamiltonian_class( HAMILTONIAN_CLASS::GENERIC ),
-          dmi_shell_magnitudes( 0 ),
-          dmi_shell_chirality( 0 ),
-          dmi_pairs_in( dmi.pairs ),
-          dmi_magnitudes_in( dmi.magnitudes ),
-          dmi_normals_in( dmi.normals ),
           ddi_method( ddi_method ),
           ddi_n_periodic_images( ddi_data.n_periodic_images ),
           ddi_pb_zero_padding( ddi_data.pb_zero_padding ),
@@ -130,61 +119,6 @@ Hamiltonian::Hamiltonian(
     this->updateName();
 }
 
-// Construct a Heisenberg Hamiltonian from shells
-Hamiltonian::Hamiltonian(
-    std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
-    const scalarfield & dmi_shell_magnitudes, int dm_chirality,
-    const QuadrupletfieldData & quadruplet, const DDI_Method ddi_method, const DDI_Data & ddi_data )
-        : geometry( std::move( geometry ) ),
-          boundary_conditions( std::move( boundary_conditions ) ),
-          interactions( 0 ),
-          active_interactions_size( 0 ),
-          common_interactions_size( 0 ),
-          name_update_paused( false ),
-          hamiltonian_class( HAMILTONIAN_CLASS::GENERIC ),
-          dmi_shell_magnitudes( dmi_shell_magnitudes ),
-          dmi_shell_chirality( dm_chirality ),
-          dmi_pairs_in( 0 ),
-          dmi_magnitudes_in( 0 ),
-          dmi_normals_in( 0 ),
-          ddi_method( ddi_method ),
-          ddi_n_periodic_images( ddi_data.n_periodic_images ),
-          ddi_pb_zero_padding( ddi_data.pb_zero_padding ),
-          ddi_cutoff_radius( ddi_data.radius ),
-          quadruplets( quadruplet.quadruplets ),
-          quadruplet_magnitudes( quadruplet.magnitudes ),
-          fft_plan_spins( FFT::FFT_Plan() ),
-          fft_plan_reverse( FFT::FFT_Plan() ),
-          spin_stride(),
-          dipole_stride()
-{
-    n_inter_sublattice          = 0;
-    sublattice_size             = 0;
-    n_cells_padded              = field<int>( 0 );
-    transformed_dipole_matrices = field<FFT::FFT_cpx_type>( 0 );
-    dipole_matrices             = field<FFT::FFT_real_type>( 0 );
-    save_dipole_matrices        = false;
-
-    // init to 0, because initializing to -1 can fail silently
-    energy_contributions_per_spin = decltype( energy_contributions_per_spin )( 0 );
-    idx_zeeman                    = 0;
-    idx_exchange                  = 0;
-    idx_dmi                       = 0;
-    idx_anisotropy                = 0;
-    idx_cubic_anisotropy          = 0;
-    idx_ddi                       = 0;
-    idx_quadruplet                = 0;
-
-    it_bounds_pointwise_mult  = field<int>( 0 );
-    it_bounds_write_gradients = field<int>( 0 );
-    it_bounds_write_spins     = field<int>( 0 );
-    it_bounds_write_dipole    = field<int>( 0 );
-
-    // Generate interaction pairs, constants etc.
-    this->updateInteractions();
-    this->updateName();
-}
-
 Hamiltonian::Hamiltonian( const Hamiltonian & other )
         : geometry( other.geometry ),
           boundary_conditions( other.boundary_conditions ),
@@ -197,14 +131,6 @@ Hamiltonian::Hamiltonian( const Hamiltonian & other )
           hamiltonian_class( other.hamiltonian_class ),
           class_name( other.class_name )
 {
-    dmi_shell_magnitudes  = other.dmi_shell_magnitudes;
-    dmi_shell_chirality   = other.dmi_shell_chirality;
-    dmi_pairs_in          = other.dmi_pairs_in;
-    dmi_magnitudes_in     = other.dmi_magnitudes_in;
-    dmi_normals_in        = other.dmi_normals_in;
-    dmi_pairs             = other.dmi_pairs;
-    dmi_magnitudes        = other.dmi_magnitudes;
-    dmi_normals           = other.dmi_normals;
     ddi_method            = other.ddi_method;
     ddi_n_periodic_images = other.ddi_n_periodic_images;
     ddi_pb_zero_padding   = other.ddi_pb_zero_padding;
@@ -270,42 +196,6 @@ void Hamiltonian::updateInteractions()
     // When running on a single thread, we can ignore redundant neighbours
     const bool use_redundant_neighbours = false;
 #endif
-
-    // DMI
-    this->dmi_pairs      = pairfield( 0 );
-    this->dmi_magnitudes = scalarfield( 0 );
-    this->dmi_normals    = vectorfield( 0 );
-    if( !dmi_shell_magnitudes.empty() )
-    {
-        // Generate DMI neighbours and normals
-        intfield dmi_shells( 0 );
-        Neighbours::Get_Neighbours_in_Shells(
-            *geometry, dmi_shell_magnitudes.size(), dmi_pairs, dmi_shells, use_redundant_neighbours );
-        for( std::size_t ineigh = 0; ineigh < dmi_pairs.size(); ++ineigh )
-        {
-            this->dmi_normals.push_back(
-                Neighbours::DMI_Normal_from_Pair( *geometry, dmi_pairs[ineigh], this->dmi_shell_chirality ) );
-            this->dmi_magnitudes.push_back( dmi_shell_magnitudes[dmi_shells[ineigh]] );
-        }
-    }
-    else
-    {
-        // Use direct list of pairs
-        this->dmi_pairs      = this->dmi_pairs_in;
-        this->dmi_magnitudes = this->dmi_magnitudes_in;
-        this->dmi_normals    = this->dmi_normals_in;
-        if( use_redundant_neighbours )
-        {
-            for( std::size_t i = 0; i < dmi_pairs_in.size(); ++i )
-            {
-                auto & p = dmi_pairs_in[i];
-                auto & t = p.translations;
-                this->dmi_pairs.push_back( Pair{ p.j, p.i, { -t[0], -t[1], -t[2] } } );
-                this->dmi_magnitudes.push_back( dmi_magnitudes_in[i] );
-                this->dmi_normals.push_back( -dmi_normals_in[i] );
-            }
-        }
-    }
 
     // Dipole-dipole (cutoff)
     if( this->ddi_method == DDI_Method::Cutoff )
@@ -394,7 +284,7 @@ void Hamiltonian::Update_Energy_Contributions()
     else
         this->idx_exchange = -1;
     // DMI
-    if( !this->dmi_pairs.empty() )
+    if( auto * interaction = getInteraction<Interaction::DMI>(); interaction != nullptr && interaction->is_active() )
     {
         this->energy_contributions_per_spin.emplace_back( "DMI", scalarfield( 0 ) );
         this->idx_dmi = this->energy_contributions_per_spin.size() - 1;
@@ -459,7 +349,8 @@ void Hamiltonian::Energy_Contributions_per_Spin( const vectorfield & spins, vect
 
     // DMI
     if( this->idx_dmi >= 0 )
-        E_DMI( spins, contributions[idx_dmi].second );
+        getInteraction<Interaction::DMI>()->Energy_per_Spin( spins, contributions[idx_dmi].second );
+
     // DDI
     if( this->idx_ddi >= 0 )
         E_DDI( spins, contributions[idx_ddi].second );
@@ -467,39 +358,6 @@ void Hamiltonian::Energy_Contributions_per_Spin( const vectorfield & spins, vect
     // Quadruplets
     if( this->idx_quadruplet >= 0 )
         E_Quadruplet( spins, contributions[idx_quadruplet].second );
-}
-
-void Hamiltonian::E_DMI( const vectorfield & spins, scalarfield & energy )
-{
-#ifdef SPIRIT_USE_CUDA
-    int size = geometry->n_cells_total;
-    CU_E_DMI<<<( size + 1023 ) / 1024, 1024>>>(
-        spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(),
-        geometry->n_cell_atoms, this->dmi_pairs.size(), this->dmi_pairs.data(), this->dmi_magnitudes.data(),
-        this->dmi_normals.data(), energy.data(), size );
-    CU_CHECK_AND_SYNC();
-#else
-#pragma omp parallel for
-    for( unsigned int icell = 0; icell < geometry->n_cells_total; ++icell )
-    {
-        for( unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair )
-        {
-            int ispin = dmi_pairs[i_pair].i + icell * geometry->n_cell_atoms;
-            int jspin = idx_from_pair(
-                ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                dmi_pairs[i_pair] );
-            if( jspin >= 0 )
-            {
-                energy[ispin]
-                    -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot( spins[ispin].cross( spins[jspin] ) );
-#ifndef SPIRIT_USE_OPENMP
-                energy[jspin]
-                    -= 0.5 * dmi_magnitudes[i_pair] * dmi_normals[i_pair].dot( spins[ispin].cross( spins[jspin] ) );
-#endif
-            }
-        }
-    }
-#endif
 }
 
 void Hamiltonian::E_DDI( const vectorfield & spins, scalarfield & energy )
@@ -739,37 +597,6 @@ scalar Hamiltonian::Energy_Single_Spin( int ispin, const vectorfield & spins )
             energy += interaction->Energy_Single_Spin( ispin, spins );
         }
 
-        // DMI
-        if( this->idx_dmi >= 0 )
-        {
-            for( unsigned int ipair = 0; ipair < dmi_pairs.size(); ++ipair )
-            {
-                const auto & pair = dmi_pairs[ipair];
-                if( pair.i == ibasis )
-                {
-                    int jspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                        pair );
-                    if( jspin >= 0 )
-                        energy -= this->dmi_magnitudes[ipair]
-                                  * this->dmi_normals[ipair].dot( spins[ispin].cross( spins[jspin] ) );
-                }
-#if !( defined( SPIRIT_USE_OPENMP ) || defined( SPIRIT_USE_CUDA ) )
-                if( pair.j == ibasis )
-                {
-                    const auto & t = pair.translations;
-                    pair_inv       = Pair{ pair.j, pair.i, { -t[0], -t[1], -t[2] } };
-                    int jspin      = idx_from_pair(
-                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                        pair_inv );
-                    if( jspin >= 0 )
-                        energy += this->dmi_magnitudes[ipair]
-                                  * this->dmi_normals[ipair].dot( spins[ispin].cross( spins[jspin] ) );
-                }
-#endif
-            }
-        }
-
         // TODO: Quadruplets
         if( this->idx_quadruplet >= 0 )
         {
@@ -787,10 +614,6 @@ void Hamiltonian::Gradient( const vectorfield & spins, vectorfield & gradient )
     {
         interaction->Gradient( spins, gradient );
     }
-
-    // DMI
-    if( idx_dmi >= 0 )
-        this->Gradient_DMI( spins, gradient );
 
     // DDI
     if( idx_ddi >= 0 )
@@ -818,10 +641,6 @@ void Hamiltonian::Gradient_and_Energy( const vectorfield & spins, vectorfield & 
         interaction->Gradient( spins, gradient );
     }
 
-    // DMI
-    if( idx_dmi >= 0 )
-        this->Gradient_DMI( spins, gradient );
-
     // DDI
     if( idx_ddi >= 0 )
         this->Gradient_DDI( spins, gradient );
@@ -847,37 +666,6 @@ void Hamiltonian::Gradient_and_Energy( const vectorfield & spins, vectorfield & 
         E_Quadruplet( spins, energy_contributions_per_spin[idx_quadruplet].second );
         energy += Vectormath::sum( energy_contributions_per_spin[idx_quadruplet].second );
     }
-}
-
-void Hamiltonian::Gradient_DMI( const vectorfield & spins, vectorfield & gradient )
-{
-#ifdef SPIRIT_USE_CUDA
-    int size = geometry->n_cells_total;
-    CU_Gradient_DMI<<<( size + 1023 ) / 1024, 1024>>>(
-        spins.data(), this->geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(),
-        geometry->n_cell_atoms, this->dmi_pairs.size(), this->dmi_pairs.data(), this->dmi_magnitudes.data(),
-        this->dmi_normals.data(), gradient.data(), size );
-    CU_CHECK_AND_SYNC();
-#else
-#pragma omp parallel for
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
-    {
-        for( unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair )
-        {
-            int ispin = dmi_pairs[i_pair].i + icell * geometry->n_cell_atoms;
-            int jspin = idx_from_pair(
-                ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                dmi_pairs[i_pair] );
-            if( jspin >= 0 )
-            {
-                gradient[ispin] -= dmi_magnitudes[i_pair] * spins[jspin].cross( dmi_normals[i_pair] );
-#ifndef SPIRIT_USE_OPENMP
-                gradient[jspin] += dmi_magnitudes[i_pair] * spins[ispin].cross( dmi_normals[i_pair] );
-#endif
-            }
-        }
-    }
-#endif
 }
 
 void Hamiltonian::Gradient_DDI( const vectorfield & spins, vectorfield & gradient )
@@ -1196,40 +984,6 @@ void Hamiltonian::Hessian( const vectorfield & spins, MatrixX & hessian )
     }
 
     // --- Spin Pair elements
-    // DMI
-#pragma omp parallel for
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
-    {
-        for( unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair )
-        {
-            int ispin = dmi_pairs[i_pair].i + icell * geometry->n_cell_atoms;
-            int jspin = idx_from_pair(
-                ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                dmi_pairs[i_pair] );
-            if( jspin >= 0 )
-            {
-                int i = 3 * ispin;
-                int j = 3 * jspin;
-
-                hessian( i + 2, j + 1 ) += dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-                hessian( i + 1, j + 2 ) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-                hessian( i + 0, j + 2 ) += dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-                hessian( i + 2, j + 0 ) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-                hessian( i + 1, j + 0 ) += dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
-                hessian( i + 0, j + 1 ) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
-
-#if !( defined( SPIRIT_USE_OPENMP ) || defined( SPIRIT_USE_CUDA ) )
-                hessian( j + 1, i + 2 ) += dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-                hessian( j + 2, i + 1 ) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0];
-                hessian( j + 2, i + 0 ) += dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-                hessian( j + 0, i + 2 ) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1];
-                hessian( j + 0, i + 1 ) += dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
-                hessian( j + 1, i + 0 ) += -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2];
-#endif
-            }
-        }
-    }
-
     // Tentative Dipole-Dipole (only works for open boundary conditions)
     if( ddi_method != DDI_Method::None )
     {
@@ -1297,7 +1051,7 @@ void Hamiltonian::Hessian( const vectorfield & spins, MatrixX & hessian )
 
 void Hamiltonian::Sparse_Hessian( const vectorfield & spins, SpMatrixX & hessian )
 {
-    std::size_t sparse_size_per_cell = dmi_pairs.size() * 3;
+    std::size_t sparse_size_per_cell = 0;
     for( const auto & interaction : getActiveInteractions() )
         sparse_size_per_cell += interaction->Sparse_Hessian_Size_per_Cell();
 
@@ -1307,40 +1061,6 @@ void Hamiltonian::Sparse_Hessian( const vectorfield & spins, SpMatrixX & hessian
     for( const auto & interaction : getActiveInteractions() )
     {
         interaction->Sparse_Hessian( spins, tripletList );
-    }
-
-    // --- Spin Pair elements
-    // DMI
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
-    {
-        for( unsigned int i_pair = 0; i_pair < dmi_pairs.size(); ++i_pair )
-        {
-            int ispin = dmi_pairs[i_pair].i + icell * geometry->n_cell_atoms;
-            int jspin = idx_from_pair(
-                ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                dmi_pairs[i_pair] );
-            if( jspin >= 0 )
-            {
-                int i = 3 * ispin;
-                int j = 3 * jspin;
-
-                tripletList.emplace_back( i + 2, j + 1, dmi_magnitudes[i_pair] * dmi_normals[i_pair][0] );
-                tripletList.emplace_back( i + 1, j + 2, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0] );
-                tripletList.emplace_back( i + 0, j + 2, dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] );
-                tripletList.emplace_back( i + 2, j + 0, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] );
-                tripletList.emplace_back( i + 1, j + 0, dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] );
-                tripletList.emplace_back( i + 0, j + 1, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] );
-
-#if !( defined( SPIRIT_USE_OPENMP ) || defined( SPIRIT_USE_CUDA ) )
-                tripletList.emplace_back( j + 1, i + 2, dmi_magnitudes[i_pair] * dmi_normals[i_pair][0] );
-                tripletList.emplace_back( j + 2, i + 1, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][0] );
-                tripletList.emplace_back( j + 2, i + 0, dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] );
-                tripletList.emplace_back( j + 0, i + 2, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][1] );
-                tripletList.emplace_back( j + 0, i + 1, dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] );
-                tripletList.emplace_back( j + 1, i + 0, -dmi_magnitudes[i_pair] * dmi_normals[i_pair][2] );
-#endif
-            }
-        }
     }
 
     hessian.setFromTriplets( tripletList.begin(), tripletList.end() );

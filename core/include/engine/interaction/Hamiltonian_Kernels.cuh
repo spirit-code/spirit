@@ -13,20 +13,10 @@
 namespace Engine
 {
 
-__global__ void CU_E_DMI(
-    const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells,
-    int n_cell_atoms, int n_pairs, const Pair * pairs, const scalar * magnitudes, const Vector3 * normals,
-    scalar * energy, size_t size );
-
 // TODO: add dot_scaled to Vectormath and use that
 __global__ void CU_E_DDI_FFT(
     scalar * energy, const Vector3 * spins, const Vector3 * gradients, const int nos, const int n_cell_atoms,
     const scalar * mu_s );
-
-__global__ void CU_Gradient_DMI(
-    const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells,
-    int n_cell_atoms, int n_pairs, const Pair * pairs, const scalar * magnitudes, const Vector3 * normals,
-    Vector3 * gradient, size_t size );
 
 __global__ void CU_FFT_Pointwise_Mult(
     FFT::FFT_cpx_type * ft_D_matrices, FFT::FFT_cpx_type * ft_spins, FFT::FFT_cpx_type * res_mult,

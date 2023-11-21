@@ -286,9 +286,14 @@ void Hamiltonian_Heisenberg_to_Config(
     scalarfield exchange_magnitudes;
     hamiltonian->getInteraction<Engine::Interaction::Exchange>()->getParameters( exchange_pairs, exchange_magnitudes );
 
+    pairfield dmi_pairs;
+    scalarfield dmi_magnitudes;
+    vectorfield dmi_normals;
+    hamiltonian->getInteraction<Engine::Interaction::DMI>()->getParameters( dmi_pairs, dmi_magnitudes, dmi_normals );
+
     config += "###    Interaction pairs:\n";
-    config += fmt::format( "n_interaction_pairs {}\n", exchange_pairs.size() + ham->dmi_pairs.size() );
-    if( exchange_pairs.size() + ham->dmi_pairs.size() > 0 )
+    config += fmt::format( "n_interaction_pairs {}\n", exchange_pairs.size() + dmi_pairs.size() );
+    if( exchange_pairs.size() + dmi_pairs.size() > 0 )
     {
         config += fmt::format(
             "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15}    {:^15} {:^15} {:^15} {:^15}\n", "i", "j", "da", "db", "dc",
@@ -303,13 +308,13 @@ void Hamiltonian_Heisenberg_to_Config(
                 exchange_magnitudes[i], 0.0, 0.0, 0.0, 0.0 );
         }
         // DMI
-        for( unsigned int i = 0; i < ham->dmi_pairs.size(); ++i )
+        for( unsigned int i = 0; i < dmi_pairs.size(); ++i )
         {
             config += fmt::format(
                 "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}    {:^15.8f} {:^15.8f} {:^15.8f} {:^15.8f}\n",
-                ham->dmi_pairs[i].i, ham->dmi_pairs[i].j, ham->dmi_pairs[i].translations[0],
-                ham->dmi_pairs[i].translations[1], ham->dmi_pairs[i].translations[2], 0.0, ham->dmi_magnitudes[i],
-                ham->dmi_normals[i][0], ham->dmi_normals[i][1], ham->dmi_normals[i][2] );
+                dmi_pairs[i].i, dmi_pairs[i].j, dmi_pairs[i].translations[0],
+                dmi_pairs[i].translations[1], dmi_pairs[i].translations[2], 0.0, dmi_magnitudes[i],
+                dmi_normals[i][0], dmi_normals[i][1], dmi_normals[i][2] );
         }
     }
 

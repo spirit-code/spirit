@@ -38,6 +38,7 @@ class Zeeman;
 class Anisotropy;
 class Cubic_Anisotropy;
 class Exchange;
+class DMI;
 
 void setOwnerPtr( ABC & interaction, Hamiltonian * hamiltonian ) noexcept;
 
@@ -89,6 +90,7 @@ class Hamiltonian
     friend class Interaction::Anisotropy;
     friend class Interaction::Cubic_Anisotropy;
     friend class Interaction::Exchange;
+    friend class Interaction::DMI;
 
 public:
     friend void swap( Hamiltonian & first, Hamiltonian & second ) noexcept
@@ -105,11 +107,6 @@ public:
         swap( first.class_name, second.class_name );
 
         // interactions legacy block
-        swap( first.dmi_shell_magnitudes, second.dmi_shell_magnitudes );
-        swap( first.dmi_shell_chirality, second.dmi_shell_chirality );
-        swap( first.dmi_pairs_in, second.dmi_pairs_in );
-        swap( first.dmi_magnitudes_in, second.dmi_magnitudes_in );
-        swap( first.dmi_normals_in, second.dmi_normals_in );
         swap( first.quadruplets, second.quadruplets );
         swap( first.quadruplet_magnitudes, second.quadruplet_magnitudes );
         // ddi legacy block
@@ -159,12 +156,6 @@ public:
 
     Hamiltonian(
         std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
-        const Data::VectorPairfieldData & dmi,
-        const Data::QuadrupletfieldData & quadruplet, Engine::DDI_Method ddi_method, const Data::DDI_Data & ddi_data );
-
-    Hamiltonian(
-        std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
-        const scalarfield & dmi_shell_magnitudes, int dm_chirality,
         const Data::QuadrupletfieldData & quadruplet, Engine::DDI_Method ddi_method, const Data::DDI_Data & ddi_data );
 
     Hamiltonian( std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions );
@@ -290,15 +281,6 @@ private:
     std::size_t common_interactions_size = 0;
 
 public:
-    // DMI
-    scalarfield dmi_shell_magnitudes;
-    int dmi_shell_chirality;
-    pairfield dmi_pairs_in;
-    scalarfield dmi_magnitudes_in;
-    vectorfield dmi_normals_in;
-    pairfield dmi_pairs;
-    scalarfield dmi_magnitudes;
-    vectorfield dmi_normals;
     // Dipole Dipole interaction
     DDI_Method ddi_method;
     intfield ddi_n_periodic_images;
@@ -314,8 +296,6 @@ public:
     scalarfield quadruplet_magnitudes;
 
     // ------------ Effective Field Functions ------------
-    // Calculate the DMI effective field of a Spin Pair
-    void Gradient_DMI( const vectorfield & spins, vectorfield & gradient );
     // Calculates the Dipole-Dipole contribution to the effective field of spin ispin within system s
     void Gradient_DDI( const vectorfield & spins, vectorfield & gradient );
 
@@ -357,8 +337,6 @@ public:
         return idx_quadruplet;
     };
 
-    // Calculate the DMI energy of a Spin System
-    void E_DMI( const vectorfield & spins, scalarfield & Energy );
     // Calculate the Dipole-Dipole energy
     void E_DDI( const vectorfield & spins, scalarfield & Energy );
     // Calculate the Quadruplet energy
