@@ -1309,15 +1309,14 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
     std::string interaction_pairs_file = "";
     auto exchange_pairs                = pairfield( 0 );
     auto exchange_magnitudes           = scalarfield( 0 );
-    VectorPairfieldData dmi{};
-    dmi.pairs      = pairfield( 0 );
-    dmi.magnitudes = scalarfield( 0 );
-    dmi.normals    = vectorfield( 0 );
+    auto dmi_pairs                     = pairfield( 0 );
+    auto dmi_magnitudes                = scalarfield( 0 );
+    auto dmi_normals                   = vectorfield( 0 );
 
     // Number of shells in which we calculate neighbours
     std::size_t n_shells_exchange = exchange_magnitudes.size();
     // DM constant
-    std::size_t n_shells_dmi = dmi.magnitudes.size();
+    std::size_t n_shells_dmi = dmi_magnitudes.size();
     int dm_chirality         = 1;
 
     std::string ddi_method_str = "none";
@@ -1457,8 +1456,8 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
                 {
                     // The file name should be valid so we try to read it
                     Pairs_from_File(
-                        interaction_pairs_file, geometry, n_pairs, exchange_pairs, exchange_magnitudes, dmi.pairs,
-                        dmi.magnitudes, dmi.normals );
+                        interaction_pairs_file, geometry, n_pairs, exchange_pairs, exchange_magnitudes, dmi_pairs,
+                        dmi_magnitudes, dmi_normals );
                 }
                 // else
                 //{
@@ -1507,20 +1506,20 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
                 IO::Filter_File_Handle config_file_handle( config_file_name );
 
                 config_file_handle.Read_Single( n_shells_dmi, "n_shells_dmi" );
-                if( dmi.magnitudes.size() != n_shells_dmi )
-                    dmi.magnitudes = scalarfield( n_shells_dmi );
+                if( dmi_magnitudes.size() != n_shells_dmi )
+                    dmi_magnitudes = scalarfield( n_shells_dmi );
                 if( n_shells_dmi > 0 )
                 {
                     if( config_file_handle.Find( "dij" ) )
                     {
                         for( unsigned int ishell = 0; ishell < n_shells_dmi; ++ishell )
-                            config_file_handle >> dmi.magnitudes[ishell];
+                            config_file_handle >> dmi_magnitudes[ishell];
                     }
                     else
                         Log( Log_Level::Warning, Log_Sender::IO,
                              fmt::format(
                                  "Hamiltonian_Heisenberg: Keyword 'dij' not found. Using Default: {}",
-                                 dmi.magnitudes[0] ) );
+                                 dmi_magnitudes[0] ) );
                 }
                 config_file_handle.Read_Single( dm_chirality, "dm_chirality" );
             }
@@ -1614,7 +1613,7 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
             parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "J_ij[0]", exchange_magnitudes[0] ) );
         parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "n_shells_dmi", n_shells_dmi ) );
         if( n_shells_dmi > 0 )
-            parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "D_ij[0]", dmi.magnitudes[0] ) );
+            parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "D_ij[0]", dmi_magnitudes[0] ) );
         parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "DM chirality", dm_chirality ) );
     }
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_method", ddi_method_str ) );
@@ -1625,23 +1624,18 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_pb_zero_padding", ddi_data.pb_zero_padding ) );
     Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
-    std::unique_ptr<Engine::Hamiltonian> hamiltonian;
+    auto hamiltonian
+        = std::make_unique<Engine::Hamiltonian>( geometry, boundary_conditions, quadruplets, ddi_method, ddi_data );
 
     if( hamiltonian_type == "heisenberg_neighbours" )
     {
-        const auto & dmi_magnitudes = dmi.magnitudes;
-
-        hamiltonian = std::make_unique<Engine::Hamiltonian>(
-            geometry, boundary_conditions, dmi_magnitudes, dm_chirality, quadruplets, ddi_method, ddi_data );
-
         hamiltonian->setInteraction<Engine::Interaction::Exchange>( exchange_magnitudes );
+        hamiltonian->setInteraction<Engine::Interaction::DMI>( dmi_magnitudes, dm_chirality );
     }
     else
     {
-        hamiltonian = std::make_unique<Engine::Hamiltonian>(
-            geometry, boundary_conditions, dmi, quadruplets, ddi_method, ddi_data );
-
         hamiltonian->setInteraction<Engine::Interaction::Exchange>( exchange_pairs, exchange_magnitudes );
+        hamiltonian->setInteraction<Engine::Interaction::DMI>( dmi_pairs, dmi_magnitudes, dmi_normals );
     }
     hamiltonian->pauseUpdateName();
 

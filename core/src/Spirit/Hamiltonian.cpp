@@ -271,13 +271,8 @@ try
         if( image->hamiltonian->Name() == "Heisenberg" )
         {
             // Update the Hamiltonian
-            auto & ham                = image->hamiltonian;
-            ham->dmi_shell_magnitudes = scalarfield( dij, dij + n_shells );
-            ham->dmi_shell_chirality  = chirality;
-            ham->dmi_pairs_in         = pairfield( 0 );
-            ham->dmi_magnitudes_in    = scalarfield( 0 );
-            ham->dmi_normals_in       = vectorfield( 0 );
-            ham->updateInteractions();
+            image->hamiltonian->getInteraction<Engine::Interaction::DMI>()->setParameters(
+                scalarfield( dij, dij + n_shells ), chirality );
 
             std::string message = fmt::format( "Set dmi to {} shells", n_shells );
             if( n_shells > 0 )
@@ -609,14 +604,18 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto & ham = image->hamiltonian;
+        scalarfield dmi_shell_magnitudes;
+        int dmi_shell_chirality = 0;
 
-        *n_shells  = ham->dmi_shell_magnitudes.size();
-        *chirality = ham->dmi_shell_chirality;
+        image->hamiltonian->getInteraction<Engine::Interaction::DMI>()->getInitParameters(
+            dmi_shell_magnitudes, dmi_shell_chirality );
+
+        *n_shells  = dmi_shell_magnitudes.size();
+        *chirality = dmi_shell_chirality;
 
         for( int i = 0; i < *n_shells; ++i )
         {
-            dij[i] = ham->dmi_shell_magnitudes[i];
+            dij[i] = dmi_shell_magnitudes[i];
         }
     }
 }
@@ -636,7 +635,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        return image->hamiltonian->dmi_pairs.size();
+        return image->hamiltonian->getInteraction<Engine::Interaction::DMI>()->getN_Pairs();
     }
 
     return 0;
