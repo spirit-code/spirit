@@ -9,16 +9,11 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <algorithm>
-#ifdef SPIRIT_USE_CUDA
-#include <complex> // TODO: check if I need complex for the CUDA implementation
-#endif
 
 using namespace Data;
 using namespace Utility;
-namespace C = Utility::Constants;
+
 using Engine::Indexing::check_atom_type;
-using Engine::Indexing::idx_from_pair;
-using Engine::Indexing::idx_from_translations;
 
 namespace Engine
 {
@@ -89,14 +84,6 @@ void Hamiltonian::updateActiveInteractions()
 
 void Hamiltonian::updateInteractions()
 {
-#if defined( SPIRIT_USE_OPENMP ) || defined( SPIRIT_USE_CUDA )
-    // When parallelising (cuda or openmp), we need all neighbours per spin
-    const bool use_redundant_neighbours = true;
-#else
-    // When running on a single thread, we can ignore redundant neighbours
-    const bool use_redundant_neighbours = false;
-#endif
-
     for( const auto & interaction : interactions )
     {
         interaction->updateGeometry();
@@ -238,11 +225,6 @@ scalar Hamiltonian::Energy_Single_Spin( int ispin, const vectorfield & spins )
     scalar energy = 0;
     if( check_atom_type( this->geometry->atom_types[ispin] ) )
     {
-        int icell   = ispin / this->geometry->n_cell_atoms;
-        int ibasis  = ispin - icell * this->geometry->n_cell_atoms;
-        auto & mu_s = this->geometry->mu_s;
-        Pair pair_inv;
-
         for( const auto & interaction : getActiveInteractions() )
         {
             energy += interaction->Energy_Single_Spin( ispin, spins );
@@ -270,7 +252,6 @@ void Hamiltonian::Gradient_and_Energy( const vectorfield & spins, vectorfield & 
 
     const auto N              = spins.size();
     const auto * s            = spins.data();
-    const auto * mu_s         = geometry->mu_s.data();
     const auto * g            = gradient.data();
     static constexpr scalar c = 1.0 / static_cast<scalar>( common_spin_order );
 
@@ -290,9 +271,6 @@ void Hamiltonian::Gradient_and_Energy( const vectorfield & spins, vectorfield & 
 
 void Hamiltonian::Hessian( const vectorfield & spins, MatrixX & hessian )
 {
-    int nos     = spins.size();
-    const int N = geometry->n_cell_atoms;
-
     // --- Set to zero
     hessian.setZero();
 

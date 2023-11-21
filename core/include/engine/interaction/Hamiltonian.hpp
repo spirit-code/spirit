@@ -244,13 +244,6 @@ public:
     std::shared_ptr<Data::Geometry> geometry;
     intfield boundary_conditions;
 
-private:
-    std::vector<std::unique_ptr<Interaction::ABC>> interactions{};
-    std::size_t active_interactions_size = 0;
-    std::size_t common_interactions_size = 0;
-
-public:
-    // ------------ Energy Functions ------------
     // Getters for Indices of the energy vector
     inline int Idx_Gaussian()
     {
@@ -315,6 +308,10 @@ private:
         return Utility::Span(
             interactions.begin() + common_interactions_size, active_interactions_size - common_interactions_size );
     };
+
+    std::vector<std::unique_ptr<Interaction::ABC>> interactions{};
+    std::size_t active_interactions_size = 0;
+    std::size_t common_interactions_size = 0;
 
     int idx_gaussian, idx_zeeman, idx_anisotropy, idx_cubic_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet;
     Data::vectorlabeled<scalarfield> energy_contributions_per_spin;
