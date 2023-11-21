@@ -24,17 +24,6 @@ Hamiltonian::Hamiltonian( std::shared_ptr<Geometry> geometry, intfield boundary_
           name_update_paused( false ),
           hamiltonian_class( HAMILTONIAN_CLASS::GENERIC )
 {
-    // init to 0, because initializing to -1 can fail silently
-    energy_contributions_per_spin = Data::vectorlabeled<scalarfield>( 0 );
-    idx_gaussian                  = 0;
-    idx_zeeman                    = 0;
-    idx_exchange                  = 0;
-    idx_dmi                       = 0;
-    idx_anisotropy                = 0;
-    idx_cubic_anisotropy          = 0;
-    idx_ddi                       = 0;
-    idx_quadruplet                = 0;
-
     prng             = std::mt19937( 94199188 );
     distribution_int = std::uniform_int_distribution<int>( 0, 1 );
     this->updateInteractions(); // should be a nop, but has to be here semantically
@@ -53,16 +42,6 @@ Hamiltonian::Hamiltonian( const Hamiltonian & other )
           hamiltonian_class( other.hamiltonian_class ),
           class_name( other.class_name )
 {
-    idx_gaussian                  = other.idx_gaussian;
-    idx_zeeman                    = other.idx_zeeman;
-    idx_anisotropy                = other.idx_anisotropy;
-    idx_cubic_anisotropy          = other.idx_cubic_anisotropy;
-    idx_exchange                  = other.idx_exchange;
-    idx_dmi                       = other.idx_dmi;
-    idx_ddi                       = other.idx_ddi;
-    idx_quadruplet                = other.idx_quadruplet;
-    energy_contributions_per_spin = other.energy_contributions_per_spin;
-
     interactions.reserve( other.interactions.capacity() );
     for( const auto & interaction : other.interactions )
         interactions.emplace_back( interaction->clone( this ) );
@@ -90,134 +69,36 @@ void Hamiltonian::updateInteractions()
     }
 
     // Update, which terms still contribute
-    this->Update_Energy_Contributions();
-}
-
-void Hamiltonian::Update_Energy_Contributions()
-{
-    updateActiveInteractions();
-
-    this->energy_contributions_per_spin = vectorlabeled<scalarfield>( 0 );
-
-    if( auto * interaction = getInteraction<Interaction::Gaussian>(); interaction != nullptr )
-    {
-        this->energy_contributions_per_spin.emplace_back( "Gaussian", scalarfield( 0 ) );
-        this->idx_gaussian = this->energy_contributions_per_spin.size() - 1;
-    }
-    else
-        this->idx_gaussian = -1;
-
-    // External field
-    if( auto * interaction = getInteraction<Interaction::Zeeman>(); interaction != nullptr && interaction->is_active() )
-    {
-        this->energy_contributions_per_spin.emplace_back( "Zeeman", scalarfield( 0 ) );
-        this->idx_zeeman = this->energy_contributions_per_spin.size() - 1;
-    }
-    else
-        this->idx_zeeman = -1;
-    // Anisotropy
-    if( auto * interaction = getInteraction<Interaction::Anisotropy>();
-        interaction != nullptr && interaction->is_active() )
-    {
-        this->energy_contributions_per_spin.emplace_back( "Anisotropy", scalarfield( 0 ) );
-        this->idx_anisotropy = this->energy_contributions_per_spin.size() - 1;
-    }
-    else
-        this->idx_anisotropy = -1;
-    // Cubic anisotropy
-    if( auto * interaction = getInteraction<Interaction::Cubic_Anisotropy>();
-        interaction != nullptr && interaction->is_active() )
-    {
-        this->energy_contributions_per_spin.emplace_back( "Cubic anisotropy", scalarfield( 0 ) );
-        this->idx_cubic_anisotropy = this->energy_contributions_per_spin.size() - 1;
-    }
-    else
-        this->idx_cubic_anisotropy = -1;
-    // Exchange
-    if( auto * interaction = getInteraction<Interaction::Exchange>();
-        interaction != nullptr && interaction->is_active() )
-    {
-        this->energy_contributions_per_spin.emplace_back( "Exchange", scalarfield( 0 ) );
-        this->idx_exchange = this->energy_contributions_per_spin.size() - 1;
-    }
-    else
-        this->idx_exchange = -1;
-    // DMI
-    if( auto * interaction = getInteraction<Interaction::DMI>(); interaction != nullptr && interaction->is_active() )
-    {
-        this->energy_contributions_per_spin.emplace_back( "DMI", scalarfield( 0 ) );
-        this->idx_dmi = this->energy_contributions_per_spin.size() - 1;
-    }
-    else
-        this->idx_dmi = -1;
-    // Dipole-Dipole
-    if( auto * interaction = getInteraction<Interaction::DDI>(); interaction != nullptr && interaction->is_active() )
-    {
-        this->energy_contributions_per_spin.emplace_back( "DDI", scalarfield( 0 ) );
-        this->idx_ddi = this->energy_contributions_per_spin.size() - 1;
-    }
-    else
-        this->idx_ddi = -1;
-    // Quadruplets
-    if( auto * interaction = getInteraction<Interaction::Quadruplet>();
-        interaction != nullptr && interaction->is_active() )
-    {
-        this->energy_contributions_per_spin.emplace_back( "Quadruplets", scalarfield( 0 ) );
-        this->idx_quadruplet = this->energy_contributions_per_spin.size() - 1;
-    }
-    else
-        this->idx_quadruplet = -1;
+    this->updateActiveInteractions();
 }
 
 void Hamiltonian::Energy_Contributions_per_Spin( const vectorfield & spins, vectorlabeled<scalarfield> & contributions )
 {
-    if( contributions.size() != this->energy_contributions_per_spin.size() )
+    const auto nos = spins.size();
+
+    if( contributions.size() != active_interactions_size )
     {
-        contributions = this->energy_contributions_per_spin;
+        contributions = std::vector( active_interactions_size, std::pair{ std::string_view{}, scalarfield( nos, 0 ) } );
+    }
+    else
+    {
+        for( auto & contrib : contributions )
+        {
+            // Allocate if not already allocated
+            if( contrib.second.size() != nos )
+                contrib.second = scalarfield( nos, 0 );
+            // Otherwise set to zero
+            else
+                Vectormath::fill( contrib.second, 0 );
+        }
     }
 
-    auto nos = spins.size();
-    for( auto & contrib : contributions )
+    const auto & active_interactions = getActiveInteractions();
+    for( std::size_t i = 0; i < active_interactions.size(); ++i )
     {
-        // Allocate if not already allocated
-        if( contrib.second.size() != nos )
-            contrib.second = scalarfield( nos, 0 );
-        // Otherwise set to zero
-        else
-            Vectormath::fill( contrib.second, 0 );
+        contributions[i].first = active_interactions[i]->Name();
+        active_interactions[i]->Energy_per_Spin( spins, contributions[i].second );
     }
-
-    if( this->idx_gaussian >= 0 )
-        getInteraction<Interaction::Gaussian>()->Energy_per_Spin( spins, contributions[idx_gaussian].second );
-
-    // External field
-    if( this->idx_zeeman >= 0 )
-        getInteraction<Interaction::Zeeman>()->Energy_per_Spin( spins, contributions[idx_zeeman].second );
-
-    // Anisotropy
-    if( this->idx_anisotropy >= 0 )
-        getInteraction<Interaction::Anisotropy>()->Energy_per_Spin( spins, contributions[idx_anisotropy].second );
-
-    // Cubic anisotropy
-    if( this->idx_cubic_anisotropy >= 0 )
-        getInteraction<Interaction::Cubic_Anisotropy>()->Energy_per_Spin(
-            spins, contributions[idx_cubic_anisotropy].second );
-
-    // Exchange
-    if( this->idx_exchange >= 0 )
-        getInteraction<Interaction::Exchange>()->Energy_per_Spin( spins, contributions[idx_exchange].second );
-
-    // DMI
-    if( this->idx_dmi >= 0 )
-        getInteraction<Interaction::DMI>()->Energy_per_Spin( spins, contributions[idx_dmi].second );
-
-    // DDI
-    if( this->idx_ddi >= 0 )
-        getInteraction<Interaction::DDI>()->Energy_per_Spin( spins, contributions[idx_ddi].second );
-
-    // Quadruplets
-    if( this->idx_quadruplet >= 0 )
-        getInteraction<Interaction::Quadruplet>()->Energy_per_Spin( spins, contributions[idx_quadruplet].second );
 }
 
 scalar Hamiltonian::Energy_Single_Spin( int ispin, const vectorfield & spins )
@@ -388,29 +269,23 @@ void Hamiltonian::Gradient_FD( const vectorfield & spins, vectorfield & gradient
 
 scalar Hamiltonian::Energy( const vectorfield & spins )
 {
-    scalar sum  = 0;
-    auto energy = Energy_Contributions( spins );
-    for( const auto & E : energy )
-        sum += E.second;
+    scalar sum = 0;
+    for( const auto & interaction : getActiveInteractions() )
+    {
+        sum += interaction->Energy( spins );
+    }
     return sum;
 }
 
 Data::vectorlabeled<scalar> Hamiltonian::Energy_Contributions( const vectorfield & spins )
 {
-    Energy_Contributions_per_Spin( spins, this->energy_contributions_per_spin );
-    vectorlabeled<scalar> energy( Number_of_Interactions() );
-    for( std::size_t i = 0; i < energy.size(); ++i )
+    vectorlabeled<scalar> contributions( 0 );
+    contributions.reserve( getActiveInteractionsSize() );
+    for( const auto & interaction : getActiveInteractions() )
     {
-        energy[i] = { this->energy_contributions_per_spin[i].first,
-                      Vectormath::sum( this->energy_contributions_per_spin[i].second ) };
+        contributions.emplace_back( interaction->Name(), interaction->Energy( spins ) );
     }
-    return energy;
-}
-
-std::size_t Hamiltonian::Number_of_Interactions()
-{
-    // TODO: integrate this with `Hamiltonian::getActiveInteractionsSize()`
-    return energy_contributions_per_spin.size();
+    return contributions;
 }
 
 void Hamiltonian::updateName()

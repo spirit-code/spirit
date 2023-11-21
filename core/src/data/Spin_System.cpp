@@ -1,6 +1,7 @@
 #include <data/Spin_System.hpp>
 #include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/Hamiltonian_Defines.hpp>
 #include <io/IO.hpp>
 
 #include <algorithm>
@@ -35,7 +36,7 @@ try : iteration_allowed( iteration_allowed ), singleshot_allowed( false ), hamil
 
     // ...
     this->E               = 0;
-    this->E_array         = std::vector<std::pair<std::string, scalar>>( 0 );
+    this->E_array         = vectorlabeled<scalar>( 0 );
     this->M               = Vector3{ 0, 0, 0 };
     this->effective_field = vectorfield( this->nos );
 }

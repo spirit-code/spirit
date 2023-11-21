@@ -476,124 +476,42 @@ void Method_GNEB<solver>::Calculate_Interpolated_Energy_Contributions()
              -1 );
         return;
     }
-    auto & ham                 = *chain->images[0]->hamiltonian;
-    std::size_t n_interactions = ham.Number_of_Interactions();
+    const auto & hamiltonian  = *chain->images[0]->hamiltonian;
+    const auto n_interactions = hamiltonian.getActiveInteractionsSize();
+
+    // resize if too small
+    if( this->chain->E_array_interpolated.size() < n_interactions )
+    {
+        this->chain->E_array_interpolated.resize( n_interactions );
+    }
 
     // Allocate temporaries
-    field<Vector3> temp_field( nos, { 0, 0, 0 } );
-    field<scalar> temp_energy( nos, 0 );
+    field<Vector3> temp_field( nos, Vector3::Zero() );
 
-    std::vector<std::vector<scalar>> temp_dE_dRx( n_interactions, std::vector<scalar>( noi, 0 ) );
-    std::vector<std::vector<scalar>> temp_energies( n_interactions, std::vector<scalar>( noi, 0 ) );
+    // intermediate storage for generation before interpolation
+    auto temp_energies = std::vector( n_interactions, std::vector<scalar>( noi, 0.0 ) );
+    auto temp_dE_dRx   = std::vector( n_interactions, std::vector<scalar>( noi, 0.0 ) );
 
     // Calculate the energies and the inclinations
-    // TODO: Find a better way to do this without so much code duplication. Probably requires extension of the
-    // Hamiltonian in a way that allows to request information about the different contributions.
     for( int img = 0; img < noi; img++ )
     {
-        auto & image = *this->configurations[img];
-        if( ham.Idx_Exchange() >= 0 )
+        const auto & interactions = hamiltonian.getActiveInteractions();
+        const auto & image        = *this->configurations[img];
+        for( std::size_t i = 0; i < n_interactions; ++i )
         {
-            auto * interaction = ham.getInteraction<Interaction::Exchange>();
             Vectormath::fill( temp_field, Vector3::Zero() );
-            Vectormath::fill( temp_energy, 0 );
-            interaction->Energy_per_Spin( image, temp_energy );
-            temp_energies[ham.Idx_Exchange()][img] = Vectormath::sum( temp_energy );
-            interaction->Gradient( image, temp_field );
-            temp_dE_dRx[ham.Idx_Exchange()][img] = -Vectormath::dot( temp_field, this->tangents[img] );
-        }
-        if( ham.Idx_Zeeman() >= 0 )
-        {
-            auto * interaction = ham.getInteraction<Interaction::Zeeman>();
-            Vectormath::fill( temp_field, Vector3::Zero() );
-            Vectormath::fill( temp_energy, 0 );
-            interaction->Energy_per_Spin( image, temp_energy );
-            temp_energies[ham.Idx_Zeeman()][img] = Vectormath::sum( temp_energy );
-            interaction->Gradient( image, temp_field );
-            temp_dE_dRx[ham.Idx_Zeeman()][img] = -Vectormath::dot( temp_field, this->tangents[img] );
-        }
-        if( ham.Idx_Anisotropy() >= 0 )
-        {
-            auto * interaction = ham.getInteraction<Interaction::Anisotropy>();
-            Vectormath::fill( temp_field, Vector3::Zero() );
-            Vectormath::fill( temp_energy, 0 );
-            interaction->Energy_per_Spin( image, temp_energy );
-            temp_energies[ham.Idx_Anisotropy()][img] = Vectormath::sum( temp_energy );
-            interaction->Gradient( image, temp_field );
-            temp_dE_dRx[ham.Idx_Anisotropy()][img] = -Vectormath::dot( temp_field, this->tangents[img] );
-        }
-        if( ham.Idx_DMI() >= 0 )
-        {
-            auto * interaction = ham.getInteraction<Interaction::DMI>();
-            Vectormath::fill( temp_field, Vector3::Zero() );
-            Vectormath::fill( temp_energy, 0 );
-            interaction->Energy_per_Spin( image, temp_energy );
-            temp_energies[ham.Idx_DMI()][img] = Vectormath::sum( temp_energy );
-            interaction->Gradient( image, temp_field );
-            temp_dE_dRx[ham.Idx_DMI()][img] = -Vectormath::dot( temp_field, this->tangents[img] );
-        }
-        if( ham.Idx_DDI() >= 0 )
-        {
-            auto * interaction = ham.getInteraction<Interaction::DDI>();
-            Vectormath::fill( temp_field, Vector3::Zero() );
-            Vectormath::fill( temp_energy, 0 );
-            interaction->Energy_per_Spin( image, temp_energy );
-            temp_energies[ham.Idx_DDI()][img] = Vectormath::sum( temp_energy );
-            interaction->Gradient( image, temp_field );
-            temp_dE_dRx[ham.Idx_DDI()][img] = -Vectormath::dot( temp_field, this->tangents[img] );
-        }
-        if( ham.Idx_Quadruplet() >= 0 )
-        {
-            auto * interaction = ham.getInteraction<Interaction::DMI>();
-            Vectormath::fill( temp_field, Vector3::Zero() );
-            Vectormath::fill( temp_energy, 0 );
-            interaction->Energy_per_Spin( image, temp_energy );
-            temp_energies[ham.Idx_Quadruplet()][img] = Vectormath::sum( temp_energy );
-            interaction->Gradient( image, temp_field );
-            temp_dE_dRx[ham.Idx_Quadruplet()][img] = -Vectormath::dot( temp_field, this->tangents[img] );
-        }
+            interactions[i]->Gradient( image, temp_field );
+            temp_dE_dRx[i][img] = -Vectormath::dot( temp_field, this->tangents[img] );
+
+            temp_energies[i][img] = interactions[i]->Energy( image );
+        };
     }
-    if( ham.Idx_Exchange() >= 0 )
+
+    for( std::size_t i = 0; i < n_interactions; ++i )
     {
         auto interp = Utility::Cubic_Hermite_Spline::Interpolate(
-            this->Rx, temp_energies[ham.Idx_Exchange()], temp_dE_dRx[ham.Idx_Exchange()],
-            this->chain->gneb_parameters->n_E_interpolations );
-        this->chain->E_array_interpolated[ham.Idx_Exchange()] = interp[1];
-    }
-    if( ham.Idx_Zeeman() >= 0 )
-    {
-        auto interp = Utility::Cubic_Hermite_Spline::Interpolate(
-            this->Rx, temp_energies[ham.Idx_Zeeman()], temp_dE_dRx[ham.Idx_Zeeman()],
-            this->chain->gneb_parameters->n_E_interpolations );
-        this->chain->E_array_interpolated[ham.Idx_Zeeman()] = interp[1];
-    }
-    if( ham.Idx_Anisotropy() >= 0 )
-    {
-        auto interp = Utility::Cubic_Hermite_Spline::Interpolate(
-            this->Rx, temp_energies[ham.Idx_Anisotropy()], temp_dE_dRx[ham.Idx_Anisotropy()],
-            this->chain->gneb_parameters->n_E_interpolations );
-        this->chain->E_array_interpolated[ham.Idx_Anisotropy()] = interp[1];
-    }
-    if( ham.Idx_DMI() >= 0 )
-    {
-        auto interp = Utility::Cubic_Hermite_Spline::Interpolate(
-            this->Rx, temp_energies[ham.Idx_DMI()], temp_dE_dRx[ham.Idx_DMI()],
-            this->chain->gneb_parameters->n_E_interpolations );
-        this->chain->E_array_interpolated[ham.Idx_DMI()] = interp[1];
-    }
-    if( ham.Idx_DDI() >= 0 )
-    {
-        auto interp = Utility::Cubic_Hermite_Spline::Interpolate(
-            this->Rx, temp_energies[ham.Idx_DDI()], temp_dE_dRx[ham.Idx_DDI()],
-            this->chain->gneb_parameters->n_E_interpolations );
-        this->chain->E_array_interpolated[ham.Idx_DDI()] = interp[1];
-    }
-    if( ham.Idx_Quadruplet() >= 0 )
-    {
-        auto interp = Utility::Cubic_Hermite_Spline::Interpolate(
-            this->Rx, temp_energies[ham.Idx_Quadruplet()], temp_dE_dRx[ham.Idx_Quadruplet()],
-            this->chain->gneb_parameters->n_E_interpolations );
-        this->chain->E_array_interpolated[ham.Idx_Quadruplet()] = interp[1];
+            this->Rx, temp_energies[i], temp_dE_dRx[i], this->chain->gneb_parameters->n_E_interpolations );
+        this->chain->E_array_interpolated[i] = interp[1];
     }
 }
 

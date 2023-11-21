@@ -866,7 +866,7 @@ try
     auto & spins  = *image->spins;
 
     // Gather the data
-    std::vector<std::pair<std::string, scalarfield>> contributions_spins( 0 );
+    Data::vectorlabeled<scalarfield> contributions_spins( 0 );
     system.UpdateEnergy();
     system.hamiltonian->Energy_Contributions_per_Spin( spins, contributions_spins );
     int dataperspin = 1 + contributions_spins.size();

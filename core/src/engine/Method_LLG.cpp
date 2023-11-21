@@ -407,7 +407,7 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
                 if( this->systems[0]->llg_parameters->output_energy_spin_resolved )
                 {
                     // Gather the data
-                    std::vector<std::pair<std::string, scalarfield>> contributions_spins( 0 );
+                    Data::vectorlabeled<scalarfield> contributions_spins( 0 );
                     this->systems[0]->UpdateEnergy();
                     this->systems[0]->hamiltonian->Energy_Contributions_per_Spin(
                         *this->systems[0]->spins, contributions_spins );
@@ -417,7 +417,7 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
                     {
                         scalar E_spin = 0;
                         int j         = 1;
-                        for( auto & contribution : contributions_spins )
+                        for( const auto & contribution : contributions_spins )
                         {
                             E_spin += contribution.second[ispin];
                             data[ispin + j] = contribution.second[ispin];
