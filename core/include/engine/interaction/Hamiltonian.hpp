@@ -39,6 +39,7 @@ class Anisotropy;
 class Cubic_Anisotropy;
 class Exchange;
 class DMI;
+class DDI;
 class Quadruplet;
 
 void setOwnerPtr( ABC & interaction, Hamiltonian * hamiltonian ) noexcept;
@@ -63,15 +64,6 @@ static constexpr std::string_view hamiltonianClassName( HAMILTONIAN_CLASS cls )
     };
 }
 
-// Forward declaration of DDI_Method
-enum class DDI_Method
-{
-    FFT    = SPIRIT_DDI_METHOD_FFT,
-    FMM    = SPIRIT_DDI_METHOD_FMM,
-    Cutoff = SPIRIT_DDI_METHOD_CUTOFF,
-    None   = SPIRIT_DDI_METHOD_NONE
-};
-
 /*
     The Heisenberg Hamiltonian using Pairs contains all information on the interactions between spins.
     The information is presented in pair lists and parameter lists in order to easily e.g. calculate the energy of the
@@ -92,6 +84,7 @@ class Hamiltonian
     friend class Interaction::Cubic_Anisotropy;
     friend class Interaction::Exchange;
     friend class Interaction::DMI;
+    friend class Interaction::DDI;
     friend class Interaction::Quadruplet;
 
 public:
@@ -108,25 +101,6 @@ public:
         swap( first.hamiltonian_class, second.hamiltonian_class );
         swap( first.class_name, second.class_name );
 
-        // ddi legacy block
-        swap( first.ddi_method, second.ddi_method );
-        swap( first.ddi_n_periodic_images, second.ddi_n_periodic_images );
-        swap( first.ddi_pb_zero_padding, second.ddi_pb_zero_padding );
-        swap( first.ddi_cutoff_radius, second.ddi_cutoff_radius );
-        swap( first.fft_plan_spins, second.fft_plan_spins );
-        swap( first.fft_plan_reverse, second.fft_plan_reverse );
-        swap( first.n_inter_sublattice, second.n_inter_sublattice );
-        swap( first.sublattice_size, second.sublattice_size );
-        swap( first.n_cells_padded, second.n_cells_padded );
-        swap( first.transformed_dipole_matrices, second.transformed_dipole_matrices );
-        swap( first.dipole_matrices, second.dipole_matrices );
-        swap( first.save_dipole_matrices, second.save_dipole_matrices );
-        swap( first.dipole_stride, second.dipole_stride );
-        swap( first.spin_stride, second.spin_stride );
-        swap( first.it_bounds_pointwise_mult, second.it_bounds_pointwise_mult );
-        swap( first.it_bounds_write_gradients, second.it_bounds_write_gradients );
-        swap( first.it_bounds_write_spins, second.it_bounds_write_spins );
-        swap( first.it_bounds_write_dipole, second.it_bounds_write_dipole );
         // energy_contributions_per_spin legacy block
         swap( first.energy_contributions_per_spin, second.energy_contributions_per_spin );
         swap( first.idx_gaussian, second.idx_gaussian );
@@ -152,10 +126,6 @@ public:
         for( const auto & interaction : second.interactions )
             Interaction::setOwnerPtr( *interaction, &second );
     }
-
-    Hamiltonian(
-        std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
-        Engine::DDI_Method ddi_method, const Data::DDI_Data & ddi_data );
 
     Hamiltonian( std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions );
 
@@ -280,20 +250,6 @@ private:
     std::size_t common_interactions_size = 0;
 
 public:
-    // Dipole Dipole interaction
-    DDI_Method ddi_method;
-    intfield ddi_n_periodic_images;
-    bool ddi_pb_zero_padding;
-    //      ddi cutoff variables
-    scalar ddi_cutoff_radius;
-    pairfield ddi_pairs;
-    scalarfield ddi_magnitudes;
-    vectorfield ddi_normals;
-
-    // ------------ Effective Field Functions ------------
-    // Calculates the Dipole-Dipole contribution to the effective field of spin ispin within system s
-    void Gradient_DDI( const vectorfield & spins, vectorfield & gradient );
-
     // ------------ Energy Functions ------------
     // Getters for Indices of the energy vector
     inline int Idx_Gaussian()
@@ -329,9 +285,6 @@ public:
         return idx_quadruplet;
     };
 
-    // Calculate the Dipole-Dipole energy
-    void E_DDI( const vectorfield & spins, scalarfield & Energy );
-
     Interaction::ABC * getInteraction( std::string_view name );
     std::size_t deleteInteraction( std::string_view name );
 
@@ -364,13 +317,6 @@ private:
     };
 
     int idx_gaussian, idx_zeeman, idx_anisotropy, idx_cubic_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet;
-    void Gradient_DDI_Cutoff( const vectorfield & spins, vectorfield & gradient );
-    void Gradient_DDI_Direct( const vectorfield & spins, vectorfield & gradient );
-    void Gradient_DDI_FFT( const vectorfield & spins, vectorfield & gradient );
-    void E_DDI_Direct( const vectorfield & spins, scalarfield & Energy );
-    void E_DDI_Cutoff( const vectorfield & spins, scalarfield & Energy );
-    void E_DDI_FFT( const vectorfield & spins, scalarfield & Energy );
-
     Data::vectorlabeled<scalarfield> energy_contributions_per_spin;
 
     std::mt19937 prng;
@@ -383,42 +329,6 @@ private:
     std::string_view class_name{ hamiltonianClassName( HAMILTONIAN_CLASS::GENERIC ) };
 
     static constexpr int common_spin_order = 2;
-    // Preparations for DDI-Convolution Algorithm
-    void Prepare_DDI();
-    void Clean_DDI();
-
-    // Plans for FT / rFT
-    FFT::FFT_Plan fft_plan_spins;
-    FFT::FFT_Plan fft_plan_reverse;
-
-    field<FFT::FFT_cpx_type> transformed_dipole_matrices;
-
-    bool save_dipole_matrices = false;
-    field<FFT::FFT_real_type> dipole_matrices;
-
-    // Number of inter-sublattice contributions
-    int n_inter_sublattice;
-    // At which index to look up the inter-sublattice D-matrices
-    field<int> inter_sublattice_lookup;
-
-    // Lengths of padded system
-    field<int> n_cells_padded;
-    // Total number of padded spins per sublattice
-    int sublattice_size;
-
-    FFT::StrideContainer spin_stride;
-    FFT::StrideContainer dipole_stride;
-
-    // Calculate the FT of the padded D-matrics
-    void FFT_Dipole_Matrices( FFT::FFT_Plan & fft_plan_dipole, int img_a, int img_b, int img_c );
-    // Calculate the FT of the padded spins
-    void FFT_Spins( const vectorfield & spins );
-
-    // Bounds for nested for loops. Only important for the CUDA version
-    field<int> it_bounds_pointwise_mult;
-    field<int> it_bounds_write_gradients;
-    field<int> it_bounds_write_spins;
-    field<int> it_bounds_write_dipole;
 };
 
 } // namespace Engine

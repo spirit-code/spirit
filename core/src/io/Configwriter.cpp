@@ -318,24 +318,34 @@ void Hamiltonian_Heisenberg_to_Config(
         }
     }
 
+    
+
     // Dipole-dipole
     std::string ddi_method;
-    if( ham->ddi_method == Engine::DDI_Method::None )
+    Engine::DDI_Method ddi_method_id = Engine::DDI_Method::None;
+    intfield ddi_n_periodic_images;
+    bool ddi_pb_zero_padding = false;
+    scalar ddi_cutoff_radius = 0;
+
+    hamiltonian->getInteraction<Engine::Interaction::DDI>()->getParameters(
+        ddi_method_id, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_cutoff_radius );
+
+    if( ddi_method_id == Engine::DDI_Method::None )
         ddi_method = "none";
-    else if( ham->ddi_method == Engine::DDI_Method::FFT )
+    else if( ddi_method_id == Engine::DDI_Method::FFT )
         ddi_method = "fft";
-    else if( ham->ddi_method == Engine::DDI_Method::FMM )
+    else if( ddi_method_id == Engine::DDI_Method::FMM )
         ddi_method = "fmm";
-    else if( ham->ddi_method == Engine::DDI_Method::Cutoff )
+    else if( ddi_method_id == Engine::DDI_Method::Cutoff )
         ddi_method = "cutoff";
     config += "### Dipole-dipole interaction caclulation method\n### (fft, fmm, cutoff, none)";
     config += fmt::format( "ddi_method                 {}\n", ddi_method );
     config += "### DDI number of periodic images in (a b c)";
     config += fmt::format(
-        "ddi_n_periodic_images      {} {} {}\n", ham->ddi_n_periodic_images[0], ham->ddi_n_periodic_images[1],
-        ham->ddi_n_periodic_images[2] );
+        "ddi_n_periodic_images      {} {} {}\n", ddi_n_periodic_images[0], ddi_n_periodic_images[1],
+        ddi_n_periodic_images[2] );
     config += "### DDI cutoff radius (if cutoff is used)";
-    config += fmt::format( "ddi_radius                 {}\n", ham->ddi_cutoff_radius );
+    config += fmt::format( "ddi_radius                 {}\n", ddi_cutoff_radius );
 
     // Quadruplets
     quadrupletfield quadruplets;
