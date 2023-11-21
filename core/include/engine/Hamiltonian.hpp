@@ -9,6 +9,7 @@
 #include <engine/interaction/Exchange.hpp>
 #include <engine/interaction/Gaussian.hpp>
 #include <engine/interaction/Hamiltonian.hpp>
+#include <engine/interaction/Quadruplet.hpp>
 #include <engine/interaction/Zeeman.hpp>
 
 namespace Engine

@@ -304,17 +304,17 @@ void Hamiltonian_Heisenberg_to_Config(
             config += fmt::format(
                 "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}    {:^15.8f} {:^15.8f} {:^15.8f} {:^15.8f}\n",
                 exchange_pairs[i].i, exchange_pairs[i].j, exchange_pairs[i].translations[0],
-                exchange_pairs[i].translations[1], exchange_pairs[i].translations[2],
-                exchange_magnitudes[i], 0.0, 0.0, 0.0, 0.0 );
+                exchange_pairs[i].translations[1], exchange_pairs[i].translations[2], exchange_magnitudes[i], 0.0, 0.0,
+                0.0, 0.0 );
         }
         // DMI
         for( unsigned int i = 0; i < dmi_pairs.size(); ++i )
         {
             config += fmt::format(
                 "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}    {:^15.8f} {:^15.8f} {:^15.8f} {:^15.8f}\n",
-                dmi_pairs[i].i, dmi_pairs[i].j, dmi_pairs[i].translations[0],
-                dmi_pairs[i].translations[1], dmi_pairs[i].translations[2], 0.0, dmi_magnitudes[i],
-                dmi_normals[i][0], dmi_normals[i][1], dmi_normals[i][2] );
+                dmi_pairs[i].i, dmi_pairs[i].j, dmi_pairs[i].translations[0], dmi_pairs[i].translations[1],
+                dmi_pairs[i].translations[2], 0.0, dmi_magnitudes[i], dmi_normals[i][0], dmi_normals[i][1],
+                dmi_normals[i][2] );
         }
     }
 
@@ -338,22 +338,28 @@ void Hamiltonian_Heisenberg_to_Config(
     config += fmt::format( "ddi_radius                 {}\n", ham->ddi_cutoff_radius );
 
     // Quadruplets
+    quadrupletfield quadruplets;
+    scalarfield quadruplet_magnitudes;
+    hamiltonian->getInteraction<Engine::Interaction::Quadruplet>()->getParameters( quadruplets, quadruplet_magnitudes );
+
     config += "###    Quadruplets:\n";
-    config += fmt::format( "n_interaction_quadruplets {}\n", ham->quadruplets.size() );
-    if( !ham->quadruplets.empty() )
+    config += fmt::format( "n_interaction_quadruplets {}\n", quadruplets.size() );
+    if( !quadruplets.empty() )
     {
         config += fmt::format(
             "{:^3} {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15}\n", "i",
             "j", "k", "l", "da_j", "db_j", "dc_j", "da_k", "db_k", "dc_k", "da_l", "db_l", "dc_l", "Q" );
-        for( unsigned int i = 0; i < ham->quadruplets.size(); ++i )
+        for( unsigned int i = 0; i < quadruplets.size(); ++i )
         {
+            // clang-format off
             config += fmt::format(
                 "{:^3} {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}\n",
-                ham->quadruplets[i].i, ham->quadruplets[i].j, ham->quadruplets[i].k, ham->quadruplets[i].l,
-                ham->quadruplets[i].d_j[0], ham->quadruplets[i].d_j[1], ham->quadruplets[i].d_j[2],
-                ham->quadruplets[i].d_k[0], ham->quadruplets[i].d_k[1], ham->quadruplets[i].d_k[2],
-                ham->quadruplets[i].d_l[0], ham->quadruplets[i].d_l[1], ham->quadruplets[i].d_l[2],
-                ham->quadruplet_magnitudes[i] );
+                quadruplets[i].i, quadruplets[i].j, quadruplets[i].k, quadruplets[i].l,
+                quadruplets[i].d_j[0], quadruplets[i].d_j[1], quadruplets[i].d_j[2],
+                quadruplets[i].d_k[0], quadruplets[i].d_k[1], quadruplets[i].d_k[2],
+                quadruplets[i].d_l[0], quadruplets[i].d_l[1], quadruplets[i].d_l[2],
+                quadruplet_magnitudes[i] );
+            // clang-format on
         }
     }
 

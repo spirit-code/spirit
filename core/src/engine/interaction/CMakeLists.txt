@@ -6,6 +6,7 @@ set(SOURCE_SPIRIT_ENGINE_INTERACTION
     ${CMAKE_CURRENT_SOURCE_DIR}/Cubic_Anisotropy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Exchange.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DMI.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Quadruplet.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Kernels.cu
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
