@@ -1652,7 +1652,7 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
 
     hamiltonian->unpauseUpdateName();
     hamiltonian->updateName();
-    hamiltonian->Update_Energy_Contributions();
+    hamiltonian->updateActiveInteractions();
 
     assert( hamiltonian->Name() == "Heisenberg" );
     Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Hamiltonian_{}: built", hamiltonian->Name() ) );
@@ -1732,7 +1732,7 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Gaussian_from_Config(
 
     hamiltonian->unpauseUpdateName();
     hamiltonian->updateName();
-    hamiltonian->Update_Energy_Contributions();
+    hamiltonian->updateActiveInteractions();
 
     // assert( hamiltonian->Name() == "Gaussian" );
     Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Hamiltonian_{}: built", hamiltonian->Name() ) );

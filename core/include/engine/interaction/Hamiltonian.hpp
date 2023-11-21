@@ -101,17 +101,6 @@ public:
         swap( first.hamiltonian_class, second.hamiltonian_class );
         swap( first.class_name, second.class_name );
 
-        // energy_contributions_per_spin legacy block
-        swap( first.energy_contributions_per_spin, second.energy_contributions_per_spin );
-        swap( first.idx_gaussian, second.idx_gaussian );
-        swap( first.idx_zeeman, second.idx_zeeman );
-        swap( first.idx_anisotropy, second.idx_anisotropy );
-        swap( first.idx_cubic_anisotropy, second.idx_cubic_anisotropy );
-        swap( first.idx_exchange, second.idx_exchange );
-        swap( first.idx_dmi, second.idx_dmi );
-        swap( first.idx_quadruplet, second.idx_quadruplet );
-        swap( first.idx_ddi, second.idx_ddi );
-
         swap( first.interactions, second.interactions );
         swap( first.active_interactions_size, second.active_interactions_size );
         swap( first.common_interactions_size, second.common_interactions_size );
@@ -192,16 +181,13 @@ public:
     void updateInteractions();
     void updateActiveInteractions();
 
-    // old mechanism
-    void Update_Energy_Contributions();
-
     /*
      * update functions for when the geometry or an Interaction has been changed,
      * these serve as an alternative to more rigid accessors
      */
     void onInteractionChanged()
     {
-        Update_Energy_Contributions();
+        updateActiveInteractions();
     };
     void onGeometryChanged()
     {
@@ -225,7 +211,6 @@ public:
 
     void Gradient_FD( const vectorfield & spins, vectorfield & gradient );
     void Hessian_FD( const vectorfield & spins, MatrixX & hessian );
-    std::size_t Number_of_Interactions();
 
     // Hamiltonian name as string
     void pauseUpdateName()
@@ -240,43 +225,6 @@ public:
 
     void updateName();
     std::string_view Name() const;
-
-    std::shared_ptr<Data::Geometry> geometry;
-    intfield boundary_conditions;
-
-    // Getters for Indices of the energy vector
-    inline int Idx_Gaussian()
-    {
-        return idx_gaussian;
-    }
-    inline int Idx_Zeeman()
-    {
-        return idx_zeeman;
-    };
-    inline int Idx_Anisotropy()
-    {
-        return idx_anisotropy;
-    };
-    inline int Idx_Cubic_Anisotropy()
-    {
-        return idx_cubic_anisotropy;
-    };
-    inline int Idx_Exchange()
-    {
-        return idx_exchange;
-    };
-    inline int Idx_DMI()
-    {
-        return idx_dmi;
-    };
-    inline int Idx_DDI()
-    {
-        return idx_ddi;
-    };
-    inline int Idx_Quadruplet()
-    {
-        return idx_quadruplet;
-    };
 
     Interaction::ABC * getInteraction( std::string_view name );
     std::size_t deleteInteraction( std::string_view name );
@@ -296,6 +244,9 @@ public:
     template<class T>
     std::size_t deleteInteraction();
 
+    std::shared_ptr<Data::Geometry> geometry;
+    intfield boundary_conditions;
+
 private:
     // common and uncommon interactions partition the active interactions
     Utility::Span<const std::unique_ptr<Interaction::ABC>> getCommonInteractions() const
@@ -312,9 +263,6 @@ private:
     std::vector<std::unique_ptr<Interaction::ABC>> interactions{};
     std::size_t active_interactions_size = 0;
     std::size_t common_interactions_size = 0;
-
-    int idx_gaussian, idx_zeeman, idx_anisotropy, idx_cubic_anisotropy, idx_exchange, idx_dmi, idx_ddi, idx_quadruplet;
-    Data::vectorlabeled<scalarfield> energy_contributions_per_spin;
 
     std::mt19937 prng;
     std::uniform_int_distribution<int> distribution_int;

@@ -515,7 +515,7 @@ void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, boo
                 if( this->systems[0]->mmf_parameters->output_energy_spin_resolved )
                 {
                     // Gather the data
-                    std::vector<std::pair<std::string, scalarfield>> contributions_spins( 0 );
+                    Data::vectorlabeled<scalarfield> contributions_spins( 0 );
                     this->systems[0]->UpdateEnergy();
                     this->systems[0]->hamiltonian->Energy_Contributions_per_Spin(
                         *this->systems[0]->spins, contributions_spins );
