@@ -1322,10 +1322,9 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
     std::string ddi_method_str = "none";
     auto ddi_method            = Engine::DDI_Method::None;
 
-    DDI_Data ddi_data{};
-    ddi_data.n_periodic_images = { 4, 4, 4 };
-    ddi_data.radius            = 0.0;
-    ddi_data.pb_zero_padding   = false;
+    intfield ddi_n_periodic_images = { 4, 4, 4 };
+    scalar ddi_radius              = 0.0;
+    bool ddi_pb_zero_padding       = false;
 
     // ------------ Quadruplet Interactions ------------
     int n_quadruplets            = 0;
@@ -1554,11 +1553,11 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
             }
 
             // Number of periodical images
-            config_file_handle.Read_3Vector( ddi_data.n_periodic_images, "ddi_n_periodic_images" );
-            config_file_handle.Read_Single( ddi_data.pb_zero_padding, "ddi_pb_zero_padding" );
+            config_file_handle.Read_3Vector( ddi_n_periodic_images, "ddi_n_periodic_images" );
+            config_file_handle.Read_Single( ddi_pb_zero_padding, "ddi_pb_zero_padding" );
 
             // Dipole-dipole cutoff radius
-            config_file_handle.Read_Single( ddi_data.radius, "ddi_radius" );
+            config_file_handle.Read_Single( ddi_radius, "ddi_radius" );
         }
         catch( ... )
         {
@@ -1616,14 +1615,13 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
     }
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_method", ddi_method_str ) );
     parameter_log.emplace_back( fmt::format(
-        "    {:<21} = ({} {} {})", "ddi_n_periodic_images", ddi_data.n_periodic_images[0],
-        ddi_data.n_periodic_images[1], ddi_data.n_periodic_images[2] ) );
-    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_radius", ddi_data.radius ) );
-    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_pb_zero_padding", ddi_data.pb_zero_padding ) );
+        "    {:<21} = ({} {} {})", "ddi_n_periodic_images", ddi_n_periodic_images[0], ddi_n_periodic_images[1],
+        ddi_n_periodic_images[2] ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_radius", ddi_radius ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_pb_zero_padding", ddi_pb_zero_padding ) );
     Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
-    auto hamiltonian
-        = std::make_unique<Engine::Hamiltonian>( geometry, boundary_conditions, ddi_method, ddi_data );
+    auto hamiltonian = std::make_unique<Engine::Hamiltonian>( geometry, boundary_conditions );
 
     hamiltonian->pauseUpdateName();
 
@@ -1646,6 +1644,9 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
 
     hamiltonian->setInteraction<Engine::Interaction::Cubic_Anisotropy>(
         cubic_anisotropy_indices, cubic_anisotropy_magnitudes );
+
+    hamiltonian->setInteraction<Engine::Interaction::DDI>(
+        ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius );
 
     hamiltonian->setInteraction<Engine::Interaction::Quadruplet>( quadruplets, quadruplet_magnitudes );
 

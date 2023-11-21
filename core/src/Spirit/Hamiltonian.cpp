@@ -312,15 +312,13 @@ try
     {
         if( image->hamiltonian->Name() == "Heisenberg" )
         {
-            auto & ham = image->hamiltonian;
+            auto new_n_periodic_images = intfield( 3 );
+            new_n_periodic_images[0]   = n_periodic_images[0];
+            new_n_periodic_images[1]   = n_periodic_images[1];
+            new_n_periodic_images[2]   = n_periodic_images[2];
 
-            ham->ddi_method               = Engine::DDI_Method( ddi_method );
-            ham->ddi_n_periodic_images[0] = n_periodic_images[0];
-            ham->ddi_n_periodic_images[1] = n_periodic_images[1];
-            ham->ddi_n_periodic_images[2] = n_periodic_images[2];
-            ham->ddi_cutoff_radius        = cutoff_radius;
-            ham->ddi_pb_zero_padding      = pb_zero_padding;
-            ham->updateInteractions();
+            image->hamiltonian->getInteraction<Engine::Interaction::DDI>()->setParameters(
+                Engine::DDI_Method( ddi_method ), new_n_periodic_images, pb_zero_padding, cutoff_radius );
 
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                  fmt::format(
@@ -662,14 +660,20 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        auto & ham = image->hamiltonian;
+        Engine::DDI_Method method{};
+        intfield ddi_n_periodic_images;
+        scalar ddi_cutoff_radius = 0;
+        bool ddi_pb_zero_padding = false;
 
-        *ddi_method          = (int)ham->ddi_method;
-        n_periodic_images[0] = (int)ham->ddi_n_periodic_images[0];
-        n_periodic_images[1] = (int)ham->ddi_n_periodic_images[1];
-        n_periodic_images[2] = (int)ham->ddi_n_periodic_images[2];
-        *cutoff_radius       = ham->ddi_cutoff_radius;
-        *pb_zero_padding     = ham->ddi_pb_zero_padding;
+        image->hamiltonian->getInteraction<Engine::Interaction::DDI>()->getParameters(
+            method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_cutoff_radius );
+
+        *ddi_method          = (int)method;
+        n_periodic_images[0] = (int)ddi_n_periodic_images[0];
+        n_periodic_images[1] = (int)ddi_n_periodic_images[1];
+        n_periodic_images[2] = (int)ddi_n_periodic_images[2];
+        *cutoff_radius       = ddi_cutoff_radius;
+        *pb_zero_padding     = ddi_pb_zero_padding;
     }
 }
 catch( ... )
