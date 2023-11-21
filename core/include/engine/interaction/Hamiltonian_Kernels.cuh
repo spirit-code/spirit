@@ -13,10 +13,6 @@
 namespace Engine
 {
 
-__global__ void CU_E_Cubic_Anisotropy(
-    const Vector3 * spins, const int * atom_types, const int n_cell_atoms, const int n_anisotropies,
-    const int * anisotropy_indices, const scalar * anisotropy_magnitude, scalar * energy, size_t n_cells_total );
-
 __global__ void CU_E_Exchange(
     const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells,
     int n_cell_atoms, int n_pairs, const Pair * pairs, const scalar * magnitudes, scalar * energy, size_t size );
@@ -30,10 +26,6 @@ __global__ void CU_E_DMI(
 __global__ void CU_E_DDI_FFT(
     scalar * energy, const Vector3 * spins, const Vector3 * gradients, const int nos, const int n_cell_atoms,
     const scalar * mu_s );
-
-__global__ void CU_Gradient_Cubic_Anisotropy(
-    const Vector3 * spins, const int * atom_types, const int n_cell_atoms, const int n_anisotropies,
-    const int * anisotropy_indices, const scalar * anisotropy_magnitude, Vector3 * gradient, size_t n_cells_total );
 
 __global__ void CU_Gradient_Exchange(
     const Vector3 * spins, const int * atom_types, const int * boundary_conditions, const int * n_cells,

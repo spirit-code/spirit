@@ -4,6 +4,7 @@ set(HEADER_SPIRIT_ENGINE_INTERACTION
     ${CMAKE_CURRENT_SOURCE_DIR}/Gaussian.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Zeeman.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Anisotropy.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Cubic_Anisotropy.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Kernels.cuh
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     PARENT_SCOPE

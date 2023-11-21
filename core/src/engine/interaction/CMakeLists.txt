@@ -3,6 +3,7 @@ set(SOURCE_SPIRIT_ENGINE_INTERACTION
     ${CMAKE_CURRENT_SOURCE_DIR}/Gaussian.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Zeeman.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Anisotropy.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Cubic_Anisotropy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Kernels.cu
     ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
