@@ -32,8 +32,6 @@ Hamiltonian::Hamiltonian( std::shared_ptr<Geometry> geometry, intfield boundary_
           dipole_stride()
 {
     // legacy block
-    external_field_magnitude    = 0;
-    external_field_normal       = { 0, 0, 1 };
     cubic_anisotropy_indices    = intfield( 0 );
     cubic_anisotropy_magnitudes = scalarfield( 0 );
     exchange_shell_magnitudes   = scalarfield( 0 );
@@ -83,10 +81,9 @@ Hamiltonian::Hamiltonian( std::shared_ptr<Geometry> geometry, intfield boundary_
 
 // Construct a Heisenberg Hamiltonian with pairs
 Hamiltonian::Hamiltonian(
-    std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions, const NormalVector & external_field,
-    const ScalarfieldData & cubic_anisotropy, const ScalarPairfieldData & exchange,
-    const VectorPairfieldData & dmi, const QuadrupletfieldData & quadruplet, const DDI_Method ddi_method,
-    const DDI_Data & ddi_data )
+    std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
+    const ScalarfieldData & cubic_anisotropy, const ScalarPairfieldData & exchange, const VectorPairfieldData & dmi,
+    const QuadrupletfieldData & quadruplet, const DDI_Method ddi_method, const DDI_Data & ddi_data )
         : geometry( std::move( geometry ) ),
           boundary_conditions( std::move( boundary_conditions ) ),
           interactions( 0 ),
@@ -94,8 +91,6 @@ Hamiltonian::Hamiltonian(
           common_interactions_size( 0 ),
           name_update_paused( false ),
           hamiltonian_class( HAMILTONIAN_CLASS::GENERIC ),
-          external_field_magnitude( external_field.magnitude * C::mu_B ),
-          external_field_normal( external_field.normal ),
           cubic_anisotropy_indices( cubic_anisotropy.indices ),
           cubic_anisotropy_magnitudes( cubic_anisotropy.magnitudes ),
           exchange_shell_magnitudes( 0 ),
@@ -147,10 +142,10 @@ Hamiltonian::Hamiltonian(
 
 // Construct a Heisenberg Hamiltonian from shells
 Hamiltonian::Hamiltonian(
-    std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions, const NormalVector & external_field,
-    const ScalarfieldData & cubic_anisotropy,
-    const scalarfield & exchange_shell_magnitudes, const scalarfield & dmi_shell_magnitudes, int dm_chirality,
-    const QuadrupletfieldData & quadruplet, const DDI_Method ddi_method, const DDI_Data & ddi_data )
+    std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
+    const ScalarfieldData & cubic_anisotropy, const scalarfield & exchange_shell_magnitudes,
+    const scalarfield & dmi_shell_magnitudes, int dm_chirality, const QuadrupletfieldData & quadruplet,
+    const DDI_Method ddi_method, const DDI_Data & ddi_data )
         : geometry( std::move( geometry ) ),
           boundary_conditions( std::move( boundary_conditions ) ),
           interactions( 0 ),
@@ -158,8 +153,6 @@ Hamiltonian::Hamiltonian(
           common_interactions_size( 0 ),
           name_update_paused( false ),
           hamiltonian_class( HAMILTONIAN_CLASS::GENERIC ),
-          external_field_magnitude( external_field.magnitude * C::mu_B ),
-          external_field_normal( external_field.normal ),
           cubic_anisotropy_indices( cubic_anisotropy.indices ),
           cubic_anisotropy_magnitudes( cubic_anisotropy.magnitudes ),
           exchange_shell_magnitudes( exchange_shell_magnitudes ),
@@ -220,8 +213,6 @@ Hamiltonian::Hamiltonian( const Hamiltonian & other )
           hamiltonian_class( other.hamiltonian_class ),
           class_name( other.class_name )
 {
-    external_field_magnitude    = other.external_field_magnitude;
-    external_field_normal       = other.external_field_normal;
     cubic_anisotropy_indices    = other.cubic_anisotropy_indices;
     cubic_anisotropy_magnitudes = other.cubic_anisotropy_magnitudes;
     exchange_shell_magnitudes   = other.exchange_shell_magnitudes;
@@ -422,7 +413,7 @@ void Hamiltonian::Update_Energy_Contributions()
         this->idx_gaussian = -1;
 
     // External field
-    if( std::abs( this->external_field_magnitude ) > 1e-60 )
+    if( auto * interaction = getInteraction<Interaction::Zeeman>(); interaction != nullptr && interaction->is_active() )
     {
         this->energy_contributions_per_spin.emplace_back( "Zeeman", scalarfield( 0 ) );
         this->idx_zeeman = this->energy_contributions_per_spin.size() - 1;
@@ -503,7 +494,7 @@ void Hamiltonian::Energy_Contributions_per_Spin( const vectorfield & spins, vect
 
     // External field
     if( this->idx_zeeman >= 0 )
-        E_Zeeman( spins, contributions[idx_zeeman].second );
+        getInteraction<Interaction::Zeeman>()->Energy_per_Spin( spins, contributions[idx_zeeman].second );
 
     // Anisotropy
     if( this->idx_anisotropy >= 0 )
@@ -526,32 +517,6 @@ void Hamiltonian::Energy_Contributions_per_Spin( const vectorfield & spins, vect
     // Quadruplets
     if( this->idx_quadruplet >= 0 )
         E_Quadruplet( spins, contributions[idx_quadruplet].second );
-}
-
-void Hamiltonian::E_Zeeman( const vectorfield & spins, scalarfield & energy )
-{
-#ifdef SPIRIT_USE_CUDA
-    int size = geometry->n_cells_total;
-    CU_E_Zeeman<<<( size + 1023 ) / 1024, 1024>>>(
-        spins.data(), this->geometry->atom_types.data(), geometry->n_cell_atoms, geometry->mu_s.data(),
-        this->external_field_magnitude, this->external_field_normal, energy.data(), size );
-    CU_CHECK_AND_SYNC();
-#else
-    const int N = geometry->n_cell_atoms;
-    auto & mu_s = this->geometry->mu_s;
-
-#pragma omp parallel for
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
-    {
-        for( int ibasis = 0; ibasis < N; ++ibasis )
-        {
-            int ispin = icell * N + ibasis;
-            if( check_atom_type( this->geometry->atom_types[ispin] ) )
-                energy[ispin]
-                    -= mu_s[ispin] * this->external_field_magnitude * this->external_field_normal.dot( spins[ispin] );
-        }
-    }
-#endif
 }
 
 void Hamiltonian::E_Cubic_Anisotropy( const vectorfield & spins, scalarfield & energy )
@@ -883,10 +848,6 @@ scalar Hamiltonian::Energy_Single_Spin( int ispin, const vectorfield & spins )
             energy += interaction->Energy_Single_Spin( ispin, spins );
         }
 
-        // External field
-        if( this->idx_zeeman >= 0 )
-            energy -= mu_s[ispin] * this->external_field_magnitude * this->external_field_normal.dot( spins[ispin] );
-
         // Cubic Anisotropy
         if( this->idx_cubic_anisotropy >= 0 )
         {
@@ -980,10 +941,6 @@ void Hamiltonian::Gradient( const vectorfield & spins, vectorfield & gradient )
         interaction->Gradient( spins, gradient );
     }
 
-    // External field
-    if( idx_zeeman >= 0 )
-        this->Gradient_Zeeman( gradient );
-
     // Cubic Anisotropy
     if( idx_cubic_anisotropy >= 0 )
         this->Gradient_Cubic_Anisotropy( spins, gradient );
@@ -1011,10 +968,11 @@ void Hamiltonian::Gradient_and_Energy( const vectorfield & spins, vectorfield & 
     Vectormath::fill( gradient, { 0, 0, 0 } );
     energy = 0;
 
-    const auto N      = spins.size();
-    const auto * s    = spins.data();
-    const auto * mu_s = geometry->mu_s.data();
-    const auto * g    = gradient.data();
+    const auto N              = spins.size();
+    const auto * s            = spins.data();
+    const auto * mu_s         = geometry->mu_s.data();
+    const auto * g            = gradient.data();
+    static constexpr scalar c = 1.0 / static_cast<scalar>( common_spin_order );
 
     for( const auto & interaction : getCommonInteractions() )
     {
@@ -1033,7 +991,7 @@ void Hamiltonian::Gradient_and_Energy( const vectorfield & spins, vectorfield & 
     if( idx_ddi >= 0 )
         this->Gradient_DDI( spins, gradient );
 
-    energy += Backend::par::reduce( N, [s, g] SPIRIT_LAMBDA( int idx ) { return 0.5 * g[idx].dot( s[idx] ); } );
+    energy += Backend::par::reduce( N, [s, g] SPIRIT_LAMBDA( int idx ) { return c * g[idx].dot( s[idx] ); } );
 
     for( const auto & interaction : getUncommonInteractions() )
     {
@@ -1051,15 +1009,6 @@ void Hamiltonian::Gradient_and_Energy( const vectorfield & spins, vectorfield & 
         energy += Vectormath::sum( energy_cubic );
     }
 
-    // External field
-    if( idx_zeeman >= 0 )
-    {
-        Vector3 ext_field = external_field_normal * external_field_magnitude;
-        this->Gradient_Zeeman( gradient );
-        energy += Backend::par::reduce(
-            N, [s, ext_field, mu_s] SPIRIT_LAMBDA( int idx ) { return -mu_s[idx] * ext_field.dot( s[idx] ); } );
-    }
-
     // Quadruplets
     if( idx_quadruplet > 0 )
     {
@@ -1073,31 +1022,6 @@ void Hamiltonian::Gradient_and_Energy( const vectorfield & spins, vectorfield & 
         E_Quadruplet( spins, energy_contributions_per_spin[idx_quadruplet].second );
         energy += Vectormath::sum( energy_contributions_per_spin[idx_quadruplet].second );
     }
-}
-
-void Hamiltonian::Gradient_Zeeman( vectorfield & gradient )
-{
-#ifdef SPIRIT_USE_CUDA
-    int size = geometry->n_cells_total;
-    CU_Gradient_Zeeman<<<( size + 1023 ) / 1024, 1024>>>(
-        this->geometry->atom_types.data(), geometry->n_cell_atoms, geometry->mu_s.data(),
-        this->external_field_magnitude, this->external_field_normal, gradient.data(), size );
-    CU_CHECK_AND_SYNC();
-#else
-    const int N = geometry->n_cell_atoms;
-    auto & mu_s = this->geometry->mu_s;
-
-#pragma omp parallel for
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
-    {
-        for( int ibasis = 0; ibasis < N; ++ibasis )
-        {
-            int ispin = icell * N + ibasis;
-            if( check_atom_type( this->geometry->atom_types[ispin] ) )
-                gradient[ispin] -= mu_s[ispin] * this->external_field_magnitude * this->external_field_normal;
-        }
-    }
-#endif
 }
 
 void Hamiltonian::Gradient_Cubic_Anisotropy( const vectorfield & spins, vectorfield & gradient )
@@ -1638,7 +1562,7 @@ void Hamiltonian::Sparse_Hessian( const vectorfield & spins, SpMatrixX & hessian
     const int N = geometry->n_cell_atoms;
 
     std::size_t sparse_size_per_cell = ( exchange_pairs.size() * 2 + dmi_pairs.size() * 3 );
-    for (const auto & interaction : getActiveInteractions() )
+    for( const auto & interaction : getActiveInteractions() )
         sparse_size_per_cell += interaction->Sparse_Hessian_Size_per_Cell();
 
     std::vector<Interaction::triplet> tripletList;
