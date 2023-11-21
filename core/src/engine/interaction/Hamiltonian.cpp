@@ -32,10 +32,8 @@ Hamiltonian::Hamiltonian( std::shared_ptr<Geometry> geometry, intfield boundary_
           dipole_stride()
 {
     // legacy block
-    quadruplets           = quadrupletfield( 0 );
-    quadruplet_magnitudes = scalarfield( 0 );
-    fft_plan_spins        = FFT::FFT_Plan();
-    fft_plan_reverse      = FFT::FFT_Plan();
+    fft_plan_spins   = FFT::FFT_Plan();
+    fft_plan_reverse = FFT::FFT_Plan();
 
     ddi_method                  = DDI_Method::None;
     ddi_n_periodic_images       = intfield( 0 );
@@ -72,7 +70,7 @@ Hamiltonian::Hamiltonian( std::shared_ptr<Geometry> geometry, intfield boundary_
 // Construct a Heisenberg Hamiltonian
 Hamiltonian::Hamiltonian(
     std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
-    const QuadrupletfieldData & quadruplet, const DDI_Method ddi_method, const DDI_Data & ddi_data )
+    const DDI_Method ddi_method, const DDI_Data & ddi_data )
         : geometry( std::move( geometry ) ),
           boundary_conditions( std::move( boundary_conditions ) ),
           interactions( 0 ),
@@ -84,8 +82,6 @@ Hamiltonian::Hamiltonian(
           ddi_n_periodic_images( ddi_data.n_periodic_images ),
           ddi_pb_zero_padding( ddi_data.pb_zero_padding ),
           ddi_cutoff_radius( ddi_data.radius ),
-          quadruplets( quadruplet.quadruplets ),
-          quadruplet_magnitudes( quadruplet.magnitudes ),
           fft_plan_spins( FFT::FFT_Plan() ),
           fft_plan_reverse( FFT::FFT_Plan() ),
           spin_stride(),
@@ -138,8 +134,6 @@ Hamiltonian::Hamiltonian( const Hamiltonian & other )
     ddi_pairs             = other.ddi_pairs;
     ddi_magnitudes        = other.ddi_magnitudes;
     ddi_normals           = other.ddi_normals;
-    quadruplets           = other.quadruplets;
-    quadruplet_magnitudes = other.quadruplet_magnitudes;
 
     idx_gaussian                  = other.idx_gaussian;
     idx_zeeman                    = other.idx_zeeman;
@@ -300,7 +294,8 @@ void Hamiltonian::Update_Energy_Contributions()
     else
         this->idx_ddi = -1;
     // Quadruplets
-    if( !this->quadruplets.empty() )
+    if( auto * interaction = getInteraction<Interaction::Quadruplet>();
+        interaction != nullptr && interaction->is_active() )
     {
         this->energy_contributions_per_spin.emplace_back( "Quadruplets", scalarfield( 0 ) );
         this->idx_quadruplet = this->energy_contributions_per_spin.size() - 1;
@@ -357,7 +352,7 @@ void Hamiltonian::Energy_Contributions_per_Spin( const vectorfield & spins, vect
 
     // Quadruplets
     if( this->idx_quadruplet >= 0 )
-        E_Quadruplet( spins, contributions[idx_quadruplet].second );
+        getInteraction<Interaction::Quadruplet>()->Energy_per_Spin( spins, contributions[idx_quadruplet].second );
 }
 
 void Hamiltonian::E_DDI( const vectorfield & spins, scalarfield & energy )
@@ -522,66 +517,6 @@ void Hamiltonian::E_DDI_FFT( const vectorfield & spins, scalarfield & energy )
 #endif
 } // end DipoleDipole
 
-void Hamiltonian::E_Quadruplet( const vectorfield & spins, scalarfield & energy )
-{
-    for( unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad )
-    {
-        const auto & quad = quadruplets[iquad];
-
-        int i = quad.i;
-        int j = quad.j;
-        int k = quad.k;
-        int l = quad.l;
-
-        const auto & d_j = quad.d_j;
-        const auto & d_k = quad.d_k;
-        const auto & d_l = quad.d_l;
-
-        for( int da = 0; da < geometry->n_cells[0]; ++da )
-        {
-            for( int db = 0; db < geometry->n_cells[1]; ++db )
-            {
-                for( int dc = 0; dc < geometry->n_cells[2]; ++dc )
-                {
-                    int ispin = i + idx_from_translations( geometry->n_cells, geometry->n_cell_atoms, { da, db, dc } );
-#ifdef SPIRIT_USE_CUDA
-                    int jspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                        { i, j, { d_j[0], d_j[1], d_j[2] } } );
-                    int kspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                        { i, k, { d_k[0], d_k[1], d_k[2] } } );
-                    int lspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                        { i, l, { d_l[0], d_l[1], d_l[2] } } );
-#else
-                    int jspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                        { i, j, d_j } );
-                    int kspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                        { i, k, d_k } );
-                    int lspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                        { i, l, d_l } );
-#endif
-                    if( ispin >= 0 && jspin >= 0 && kspin >= 0 && lspin >= 0 )
-                    {
-                        energy[ispin] -= 0.25 * quadruplet_magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) )
-                                         * ( spins[kspin].dot( spins[lspin] ) );
-                        energy[jspin] -= 0.25 * quadruplet_magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) )
-                                         * ( spins[kspin].dot( spins[lspin] ) );
-                        energy[kspin] -= 0.25 * quadruplet_magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) )
-                                         * ( spins[kspin].dot( spins[lspin] ) );
-                        energy[lspin] -= 0.25 * quadruplet_magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) )
-                                         * ( spins[kspin].dot( spins[lspin] ) );
-                    }
-                }
-            }
-        }
-    }
-}
-
 scalar Hamiltonian::Energy_Single_Spin( int ispin, const vectorfield & spins )
 {
     scalar energy = 0;
@@ -595,11 +530,6 @@ scalar Hamiltonian::Energy_Single_Spin( int ispin, const vectorfield & spins )
         for( const auto & interaction : getActiveInteractions() )
         {
             energy += interaction->Energy_Single_Spin( ispin, spins );
-        }
-
-        // TODO: Quadruplets
-        if( this->idx_quadruplet >= 0 )
-        {
         }
     }
     return energy;
@@ -618,10 +548,6 @@ void Hamiltonian::Gradient( const vectorfield & spins, vectorfield & gradient )
     // DDI
     if( idx_ddi >= 0 )
         this->Gradient_DDI( spins, gradient );
-
-    // Quadruplets
-    if( idx_quadruplet >= 0 )
-        this->Gradient_Quadruplet( spins, gradient );
 }
 
 void Hamiltonian::Gradient_and_Energy( const vectorfield & spins, vectorfield & gradient, scalar & energy )
@@ -651,20 +577,6 @@ void Hamiltonian::Gradient_and_Energy( const vectorfield & spins, vectorfield & 
     {
         interaction->Gradient( spins, gradient );
         energy += interaction->Energy( spins );
-    }
-
-    // Quadruplets
-    if( idx_quadruplet > 0 )
-    {
-        // Kind of a bandaid fix
-        this->Gradient_Quadruplet( spins, gradient );
-        if( energy_contributions_per_spin[idx_quadruplet].second.size() != spins.size() )
-        {
-            energy_contributions_per_spin[idx_quadruplet].second.resize( spins.size() );
-        };
-        Vectormath::fill( energy_contributions_per_spin[idx_quadruplet].second, 0 );
-        E_Quadruplet( spins, energy_contributions_per_spin[idx_quadruplet].second );
-        energy += Vectormath::sum( energy_contributions_per_spin[idx_quadruplet].second );
     }
 }
 
@@ -909,67 +821,6 @@ void Hamiltonian::Gradient_DDI_Direct( const vectorfield & spins, vectorfield & 
     }
 }
 
-void Hamiltonian::Gradient_Quadruplet( const vectorfield & spins, vectorfield & gradient )
-{
-    for( unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad )
-    {
-        const auto & quad = quadruplets[iquad];
-
-        const int i = quad.i;
-        const int j = quad.j;
-        const int k = quad.k;
-        const int l = quad.l;
-
-        const auto & d_j = quad.d_j;
-        const auto & d_k = quad.d_k;
-        const auto & d_l = quad.d_l;
-
-        for( int da = 0; da < geometry->n_cells[0]; ++da )
-        {
-            for( int db = 0; db < geometry->n_cells[1]; ++db )
-            {
-                for( int dc = 0; dc < geometry->n_cells[2]; ++dc )
-                {
-                    int ispin = i + idx_from_translations( geometry->n_cells, geometry->n_cell_atoms, { da, db, dc } );
-#ifdef SPIRIT_USE_CUDA
-                    int jspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                        { i, j, { d_j[0], d_j[1], d_j[2] } } );
-                    int kspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                        { i, k, { d_k[0], d_k[1], d_k[2] } } );
-                    int lspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                        { i, l, { d_l[0], d_l[1], d_l[2] } } );
-#else
-                    int jspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                        { i, j, d_j } );
-                    int kspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                        { i, k, d_k } );
-                    int lspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
-                        { i, l, d_l } );
-#endif
-
-                    if( ispin >= 0 && jspin >= 0 && kspin >= 0 && lspin >= 0 )
-                    {
-                        gradient[ispin]
-                            -= quadruplet_magnitudes[iquad] * spins[jspin] * ( spins[kspin].dot( spins[lspin] ) );
-                        gradient[jspin]
-                            -= quadruplet_magnitudes[iquad] * spins[ispin] * ( spins[kspin].dot( spins[lspin] ) );
-                        gradient[kspin]
-                            -= quadruplet_magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) ) * spins[lspin];
-                        gradient[lspin]
-                            -= quadruplet_magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) ) * spins[kspin];
-                    }
-                }
-            }
-        }
-    }
-}
-
 void Hamiltonian::Hessian( const vectorfield & spins, MatrixX & hessian )
 {
     int nos     = spins.size();
@@ -1045,8 +896,6 @@ void Hamiltonian::Hessian( const vectorfield & spins, MatrixX & hessian )
     //         }
     //     }
     // }
-
-    // TODO: Quadruplets
 }
 
 void Hamiltonian::Sparse_Hessian( const vectorfield & spins, SpMatrixX & hessian )

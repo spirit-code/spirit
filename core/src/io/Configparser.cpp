@@ -1330,9 +1330,8 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
     // ------------ Quadruplet Interactions ------------
     int n_quadruplets            = 0;
     std::string quadruplets_file = "";
-    QuadrupletfieldData quadruplets;
-    quadruplets.quadruplets = quadrupletfield( 0 );
-    quadruplets.magnitudes  = scalarfield( 0 );
+    auto quadruplets             = quadrupletfield( 0 );
+    auto quadruplet_magnitudes   = scalarfield( 0 );
 
     //------------------------------- Parser --------------------------------
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Heisenberg: building" );
@@ -1580,8 +1579,7 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
             if( quadruplets_file.length() > 0 )
             {
                 // The file name should be valid so we try to read it
-                Quadruplets_from_File(
-                    quadruplets_file, geometry, n_quadruplets, quadruplets.quadruplets, quadruplets.magnitudes );
+                Quadruplets_from_File( quadruplets_file, geometry, n_quadruplets, quadruplets, quadruplet_magnitudes );
             }
         }
         catch( ... )
@@ -1625,7 +1623,9 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
     Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
     auto hamiltonian
-        = std::make_unique<Engine::Hamiltonian>( geometry, boundary_conditions, quadruplets, ddi_method, ddi_data );
+        = std::make_unique<Engine::Hamiltonian>( geometry, boundary_conditions, ddi_method, ddi_data );
+
+    hamiltonian->pauseUpdateName();
 
     if( hamiltonian_type == "heisenberg_neighbours" )
     {
@@ -1637,7 +1637,6 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
         hamiltonian->setInteraction<Engine::Interaction::Exchange>( exchange_pairs, exchange_magnitudes );
         hamiltonian->setInteraction<Engine::Interaction::DMI>( dmi_pairs, dmi_magnitudes, dmi_normals );
     }
-    hamiltonian->pauseUpdateName();
 
     hamiltonian->setInteraction<Engine::Interaction::Zeeman>(
         external_field_magnitude * Utility::Constants::mu_B, external_field_normal );
@@ -1647,6 +1646,8 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
 
     hamiltonian->setInteraction<Engine::Interaction::Cubic_Anisotropy>(
         cubic_anisotropy_indices, cubic_anisotropy_magnitudes );
+
+    hamiltonian->setInteraction<Engine::Interaction::Quadruplet>( quadruplets, quadruplet_magnitudes );
 
     hamiltonian->unpauseUpdateName();
     hamiltonian->updateName();

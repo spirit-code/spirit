@@ -39,6 +39,7 @@ class Anisotropy;
 class Cubic_Anisotropy;
 class Exchange;
 class DMI;
+class Quadruplet;
 
 void setOwnerPtr( ABC & interaction, Hamiltonian * hamiltonian ) noexcept;
 
@@ -91,6 +92,7 @@ class Hamiltonian
     friend class Interaction::Cubic_Anisotropy;
     friend class Interaction::Exchange;
     friend class Interaction::DMI;
+    friend class Interaction::Quadruplet;
 
 public:
     friend void swap( Hamiltonian & first, Hamiltonian & second ) noexcept
@@ -106,9 +108,6 @@ public:
         swap( first.hamiltonian_class, second.hamiltonian_class );
         swap( first.class_name, second.class_name );
 
-        // interactions legacy block
-        swap( first.quadruplets, second.quadruplets );
-        swap( first.quadruplet_magnitudes, second.quadruplet_magnitudes );
         // ddi legacy block
         swap( first.ddi_method, second.ddi_method );
         swap( first.ddi_n_periodic_images, second.ddi_n_periodic_images );
@@ -156,7 +155,7 @@ public:
 
     Hamiltonian(
         std::shared_ptr<Data::Geometry> geometry, const intfield & boundary_conditions,
-        const Data::QuadrupletfieldData & quadruplet, Engine::DDI_Method ddi_method, const Data::DDI_Data & ddi_data );
+        Engine::DDI_Method ddi_method, const Data::DDI_Data & ddi_data );
 
     Hamiltonian( std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions );
 
@@ -291,16 +290,9 @@ public:
     scalarfield ddi_magnitudes;
     vectorfield ddi_normals;
 
-    // ------------ Quadruplet Interactions ------------
-    quadrupletfield quadruplets;
-    scalarfield quadruplet_magnitudes;
-
     // ------------ Effective Field Functions ------------
     // Calculates the Dipole-Dipole contribution to the effective field of spin ispin within system s
     void Gradient_DDI( const vectorfield & spins, vectorfield & gradient );
-
-    // Quadruplet
-    void Gradient_Quadruplet( const vectorfield & spins, vectorfield & gradient );
 
     // ------------ Energy Functions ------------
     // Getters for Indices of the energy vector
@@ -339,8 +331,6 @@ public:
 
     // Calculate the Dipole-Dipole energy
     void E_DDI( const vectorfield & spins, scalarfield & Energy );
-    // Calculate the Quadruplet energy
-    void E_Quadruplet( const vectorfield & spins, scalarfield & Energy );
 
     Interaction::ABC * getInteraction( std::string_view name );
     std::size_t deleteInteraction( std::string_view name );
