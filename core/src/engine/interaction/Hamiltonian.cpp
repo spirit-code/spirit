@@ -132,8 +132,13 @@ scalar Hamiltonian::Energy_Single_Spin( int ispin, const vectorfield & spins )
 
 void Hamiltonian::Gradient( const vectorfield & spins, vectorfield & gradient )
 {
-    // Set to zero
-    Vectormath::fill( gradient, { 0, 0, 0 } );
+    const auto nos = spins.size();
+    // Allocate if not already allocated
+    if( gradient.size() != nos )
+        gradient = vectorfield( nos, Vector3::Zero() );
+    // Otherwise set to zero
+    else
+        Vectormath::fill( gradient, Vector3::Zero() );
 
     for( const auto & interaction : getActiveInteractions() )
     {
@@ -143,8 +148,13 @@ void Hamiltonian::Gradient( const vectorfield & spins, vectorfield & gradient )
 
 void Hamiltonian::Gradient_and_Energy( const vectorfield & spins, vectorfield & gradient, scalar & energy )
 {
-    // Set to zero
-    Vectormath::fill( gradient, { 0, 0, 0 } );
+    const auto nos = spins.size();
+    // Allocate if not already allocated
+    if( gradient.size() != nos )
+        gradient = vectorfield( nos, Vector3::Zero() );
+    // Otherwise set to zero
+    else
+        Vectormath::fill( gradient, Vector3::Zero() );
     energy = 0;
 
     const auto N              = spins.size();
