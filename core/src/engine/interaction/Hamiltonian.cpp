@@ -72,6 +72,22 @@ void Hamiltonian::updateInteractions()
     this->updateActiveInteractions();
 }
 
+void Hamiltonian::Energy_per_Spin( const vectorfield & spins, scalarfield & energy_per_spin )
+{
+    const auto nos = spins.size();
+    // Allocate if not already allocated
+    if( energy_per_spin.size() != nos )
+        energy_per_spin = scalarfield( nos, 0 );
+    // Otherwise set to zero
+    else
+        Vectormath::fill( energy_per_spin, 0 );
+
+    for( const auto & interaction : getActiveInteractions() )
+    {
+        interaction->Energy_per_Spin( spins, energy_per_spin );
+    }
+}
+
 void Hamiltonian::Energy_Contributions_per_Spin( const vectorfield & spins, vectorlabeled<scalarfield> & contributions )
 {
     const auto nos = spins.size();

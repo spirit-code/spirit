@@ -200,6 +200,7 @@ public:
     void Gradient( const vectorfield & spins, vectorfield & gradient );
     void Gradient_and_Energy( const vectorfield & spins, vectorfield & gradient, scalar & energy );
 
+    void Energy_per_Spin( const vectorfield & spins, scalarfield & contributions );
     void Energy_Contributions_per_Spin( const vectorfield & spins, Data::vectorlabeled<scalarfield> & contributions );
     Data::vectorlabeled<scalar> Energy_Contributions( const vectorfield & spins );
 
