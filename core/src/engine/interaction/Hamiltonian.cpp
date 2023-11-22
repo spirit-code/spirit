@@ -24,8 +24,6 @@ Hamiltonian::Hamiltonian( std::shared_ptr<Geometry> geometry, intfield boundary_
           name_update_paused( false ),
           hamiltonian_class( HAMILTONIAN_CLASS::GENERIC )
 {
-    prng             = std::mt19937( 94199188 );
-    distribution_int = std::uniform_int_distribution<int>( 0, 1 );
     this->updateInteractions(); // should be a nop, but has to be here semantically
     this->updateName();
 }
@@ -36,8 +34,6 @@ Hamiltonian::Hamiltonian( const Hamiltonian & other )
           interactions( 0 ),
           active_interactions_size( other.active_interactions_size ),
           common_interactions_size( other.common_interactions_size ),
-          prng( other.prng ),
-          distribution_int( other.distribution_int ),
           name_update_paused( other.name_update_paused ),
           hamiltonian_class( other.hamiltonian_class ),
           class_name( other.class_name )

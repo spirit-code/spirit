@@ -122,9 +122,6 @@ protected:
     ABC( Hamiltonian * hamiltonian, scalarfield energy_per_spin, scalar delta = 1e-3 ) noexcept
             : energy_per_spin( std::move( energy_per_spin ) ), delta( delta ), hamiltonian( hamiltonian ){};
 
-    std::mt19937 prng;
-    std::uniform_int_distribution<int> distribution_int;
-
     virtual void updateFromGeometry( const Data::Geometry * geometry ) = 0;
 
     // local compute buffer
@@ -162,11 +159,7 @@ class Base : public Interaction::ABC
 {
 protected:
     Base( Hamiltonian * hamiltonian, scalarfield energy_per_spin, scalar delta = 1e-3 ) noexcept
-            : ABC( hamiltonian, energy_per_spin, delta )
-    {
-        prng             = std::mt19937( 94199188 );
-        distribution_int = std::uniform_int_distribution<int>( 0, 1 );
-    };
+            : ABC( hamiltonian, energy_per_spin, delta ){};
 
 public:
     [[nodiscard]] std::unique_ptr<ABC> clone( Hamiltonian * new_hamiltonian ) const override
