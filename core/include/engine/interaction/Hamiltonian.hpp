@@ -100,14 +100,11 @@ public:
         swap( first.name_update_paused, second.name_update_paused );
         swap( first.hamiltonian_class, second.hamiltonian_class );
         swap( first.class_name, second.class_name );
+        swap( first.delta, second.delta );
 
         swap( first.interactions, second.interactions );
         swap( first.active_interactions_size, second.active_interactions_size );
         swap( first.common_interactions_size, second.common_interactions_size );
-
-        swap( first.prng, second.prng );
-        swap( first.distribution_int, second.distribution_int );
-        swap( first.delta, second.delta );
 
         for( const auto & interaction : first.interactions )
             Interaction::setOwnerPtr( *interaction, &first );
@@ -265,8 +262,6 @@ private:
     std::size_t active_interactions_size = 0;
     std::size_t common_interactions_size = 0;
 
-    std::mt19937 prng;
-    std::uniform_int_distribution<int> distribution_int;
     scalar delta = 1e-3;
 
     // naming mechanism for compatibility with the named subclasses architecture
