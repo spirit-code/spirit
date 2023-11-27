@@ -30,8 +30,8 @@ TEST_CASE( "Trivial", "[EMA]" )
 
     for( int i = 0; i < 1; i++ )
     {
-        INFO( "Failed DDI-Gradient comparison at i = " << i );
-        INFO( "Gradient (FFT):      " << gradient[i].transpose() << "\n" );
+        INFO( "Failed EMA-Gradient comparison at i = " << i );
+        INFO( "Gradient (EMA):      " << gradient[i].transpose() << "\n" );
         INFO( "Gradient (expected): " << gradient_expected.transpose() << "\n" );
         REQUIRE( gradient[i].isApprox( gradient_expected, 1e-4 ) );
     }
