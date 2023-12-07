@@ -16,6 +16,152 @@
 using Utility::Log_Level;
 using Utility::Log_Sender;
 
+namespace
+{
+
+/*
+ * Universal implementation of a table parser.
+ * Initialized using the data types and header labels for each column. The `parse` method accepts a factory function
+ * that takes a map of column labels to their respective index in the read buffer (implemented as a tuple) and returns a
+ * function that transforms the data from the read buffer into a more readily usable representation of each row.
+ */
+template<typename... Args>
+class TableParser
+{
+public:
+    static constexpr std::size_t n_columns = sizeof...( Args );
+
+    using read_row_t = std::tuple<Args...>;
+    using labels_t   = std::array<std::string_view, n_columns>;
+
+    constexpr TableParser( labels_t && labels ) : labels( std::forward<labels_t>( labels ) ){};
+    constexpr TableParser( const labels_t & labels ) : labels( labels ){};
+
+    template<typename... InitArgs, typename = std::enable_if_t<std::is_constructible_v<labels_t, InitArgs &&...>>>
+    constexpr explicit TableParser( InitArgs &&... labels ) : labels( std::forward<InitArgs>( labels )... )
+    {
+        static_assert(
+            sizeof...( InitArgs ) == n_columns, "The number of labels has to match the number of specified types" );
+    };
+
+private:
+    // mapping: index in data tuple -> column name
+    labels_t labels;
+
+    // constexpr way to iterate over all indices and read the value into the right position using the right type
+    template<std::size_t Index = 0>
+    static void readTupleElements( IO::Filter_File_Handle & file_handle, read_row_t & container, std::size_t index )
+    {
+        if( index >= n_columns )
+        {
+            std::string sdump{};
+            file_handle >> sdump;
+        }
+        else if constexpr( Index < n_columns )
+        {
+            if( Index == index )
+            {
+                // templated `std::get` in order to have access to the type at that position
+                file_handle >> std::get<Index>( container );
+            }
+            // Continue with the next element
+            readTupleElements<Index + 1>( file_handle, container, index );
+        }
+    };
+
+public:
+    // default factory for forwarding the parsed data
+    template<typename In = read_row_t>
+    static constexpr auto forwarding_factory
+        = []( const std::map<std::string_view, int> & ) { return []( In row ) -> In { return row; }; };
+
+    // parse function, transform_factory expects a second oder function whose result can transform the read in row into
+    // a format that should be stored
+    template<typename F>
+    [[nodiscard]] decltype( auto ) parse(
+        const std::string & table_file, const std::string & table_size_id, const std::size_t n_columns_read,
+        F transform_factory = forwarding_factory<read_row_t> ) const
+    {
+        std::vector<std::string> columns( n_columns_read, "" );   // data storage for parsed row
+        std::vector<std::size_t> tuple_idx( n_columns_read, -1 ); // mapping: index in file -> index in data tuple
+        std::array<int, n_columns> column_idx{};                  // mapping: index in data tuple -> index in file
+        std::fill( begin( column_idx ), end( column_idx ), -1 );  // initialize with sentinal value
+        int table_size{ 0 };                                      // table size for single config file setup
+
+        IO::Filter_File_Handle file_handle( table_file );
+
+        if( file_handle.Find( table_size_id ) )
+        {
+            // Read n interaction pairs
+            file_handle >> table_size;
+            Log( Log_Level::Debug, Log_Sender::IO,
+                 fmt::format( "Table file {} should have {} rows", table_file, table_size ) );
+            // if we know the expected size, we can reserve the necessary space
+        }
+        else
+        {
+            // Read the whole file
+            table_size = (int)1e8;
+            // First line should contain the columns
+            file_handle.To_Start();
+            Log( Log_Level::Debug, Log_Sender::IO, "Trying to parse columns from top of file " + table_file );
+        }
+
+        file_handle.GetLine();
+        for( std::size_t i = 0; i < columns.size(); ++i )
+        {
+            // read in lower case
+            file_handle >> columns[i];
+            std::transform( begin( columns[i] ), end( columns[i] ), begin( columns[i] ), ::tolower );
+
+            // find tuple position and update mappings
+            const auto it = find( begin( labels ), end( labels ), columns[i] );
+            if( it != end( labels ) )
+            {
+                const std::size_t pos = std::distance( begin( labels ), it );
+                column_idx[pos]       = i;
+                tuple_idx[i]          = pos;
+            }
+            else if( !columns[i].empty() )
+            {
+                Log( Log_Level::Warning, Log_Sender::IO,
+                     fmt::format(
+                         "Unknown column \"{}\" in header of table file \"{}\" below \"{}\"", columns[i], table_file,
+                         table_size_id ) );
+            }
+        }
+
+        // make the transform function based on the columns that are present.
+        std::map<std::string_view, int> lookup;
+        for( std::size_t i = 0; i < labels.size(); ++i )
+            lookup.emplace( std::make_pair( labels[i], column_idx[i] ) );
+        auto transform = transform_factory( lookup );
+
+        // read data row by row and store a transformed version of it
+        auto row = std::make_tuple( Args{}... );                           // read buffer
+        std::vector<std::decay_t<decltype( transform( row ) )>> data( 0 ); // return value
+        for( int row_idx = 0; row_idx < table_size; ++row_idx )
+        {
+            // read a new line and stop reading if EOF
+            if( !file_handle.GetLine() )
+                break;
+
+            // Read a line from the File
+            for( std::size_t i = 0; i < columns.size(); ++i )
+            {
+
+                readTupleElements( file_handle, row, tuple_idx[i] );
+            }
+
+            data.emplace_back( transform( row ) );
+        }
+
+        return data;
+    };
+};
+
+} // namespace
+
 namespace IO
 {
 
@@ -95,81 +241,72 @@ void Check_NonOVF_Chain_Configuration(
 
 // Read from Anisotropy file
 void Anisotropy_from_File(
-    const std::string & anisotropyFile, const std::shared_ptr<Data::Geometry> geometry, int & n_indices,
+    const std::string & anisotropy_file, const std::shared_ptr<Data::Geometry> geometry, int & n_indices,
     intfield & anisotropy_index, scalarfield & anisotropy_magnitude, vectorfield & anisotropy_normal,
     intfield & cubic_anisotropy_index, scalarfield & cubic_anisotropy_magnitude ) noexcept
 try
 {
-    Log( Log_Level::Debug, Log_Sender::IO, "Reading anisotropy from file " + anisotropyFile );
+    Log( Log_Level::Debug, Log_Sender::IO, "Reading anisotropy from file " + anisotropy_file );
 
-    std::vector<std::string> columns( 6 ); // At least: 1 (index) + 3 (K)
-    // Column indices of pair indices and interactions
-    int col_i = -1, col_K = -1, col_Kx = -1, col_Ky = -1, col_Kz = -1, col_Ka = -1, col_Kb = -1, col_Kc = -1;
-    int col_K4       = -1;
-    bool K_magnitude = false, K_xyz = false, K_abc = false;
-    Vector3 K_temp = { 0, 0, 0 };
-    int n_anisotropy{ 0 };
+    // parser initialization
+    using AnisotropyTableParser = TableParser<int, scalar, scalar, scalar, scalar, scalar, scalar, scalar, scalar>;
+    const AnisotropyTableParser parser( { "i", "k", "kx", "ky", "kz", "ka", "kb", "kc", "k4" } );
 
-    Filter_File_Handle file_handle( anisotropyFile );
-
-    if( file_handle.Find( "n_anisotropy" ) )
+    // factory function for creating a lambda that transforms the row that is read
+    auto transform_factory = [&anisotropy_file, &geometry]( const std::map<std::string_view, int> & idx )
     {
-        // Read n interaction pairs
-        file_handle >> n_anisotropy;
-        Log( Log_Level::Debug, Log_Sender::IO,
-             fmt::format( "Anisotropy file {} should have {} vectors", anisotropyFile, n_anisotropy ) );
-    }
-    else
-    {
-        // Read the whole file
-        n_anisotropy = (int)1e8;
-        // First line should contain the columns
-        file_handle.To_Start();
-        Log( Log_Level::Debug, Log_Sender::IO,
-             "Trying to parse anisotropy columns from top of file " + anisotropyFile );
-    }
+        bool K_xyz = false, K_abc = false, K_magnitude = false;
 
-    // Get column indices
-    file_handle.GetLine(); // First line contains the columns
-    for( std::size_t i = 0; i < columns.size(); ++i )
-    {
-        file_handle >> columns[i];
-        std::transform( columns[i].begin(), columns[i].end(), columns[i].begin(), ::tolower );
-        if( columns[i] == "i" )
-            col_i = i;
-        else if( columns[i] == "k" )
-        {
-            col_K       = i;
-            K_magnitude = true;
-        }
-        else if( columns[i] == "kx" )
-            col_Kx = i;
-        else if( columns[i] == "ky" )
-            col_Ky = i;
-        else if( columns[i] == "kz" )
-            col_Kz = i;
-        else if( columns[i] == "ka" )
-            col_Ka = i;
-        else if( columns[i] == "kb" )
-            col_Kb = i;
-        else if( columns[i] == "kc" )
-            col_Kc = i;
-        else if( columns[i] == "k4" )
-            col_K4 = i;
-
-        if( col_Kx >= 0 && col_Ky >= 0 && col_Kz >= 0 )
+        if( idx.at( "kx" ) >= 0 && idx.at( "ky" ) >= 0 && idx.at( "kz" ) >= 0 )
             K_xyz = true;
-        if( col_Ka >= 0 && col_Kb >= 0 && col_Kc >= 0 )
+        if( idx.at( "ka" ) >= 0 && idx.at( "kb" ) >= 0 && idx.at( "kc" ) >= 0 )
             K_abc = true;
-    }
+        if( idx.at( "k" ) >= 0 )
+            K_magnitude = true;
 
-    if( !K_xyz && !K_abc )
-        Log( Log_Level::Warning, Log_Sender::IO,
-             fmt::format( "No anisotropy data could be found in header of file \"{}\"", anisotropyFile ) );
+        if( !K_xyz && !K_abc )
+            Log( Log_Level::Warning, Log_Sender::IO,
+                 fmt::format( "No anisotropy data could be found in header of file \"{}\"", anisotropy_file ) );
 
-    // Indices
-    int spin_i    = 0;
-    scalar spin_K = 0, spin_K1 = 0, spin_K2 = 0, spin_K3 = 0, spin_K4 = 0;
+        return [K_xyz, K_abc, K_magnitude,
+                &geometry]( const AnisotropyTableParser::read_row_t & row ) -> std::tuple<int, scalar, Vector3, scalar>
+        {
+            auto [i, k, kx, ky, kz, ka, kb, kc, k4] = row;
+
+            Vector3 K_temp;
+            if( K_xyz )
+                K_temp = { kx, ky, kz };
+            // Anisotropy vector orientation
+            if( K_abc )
+            {
+                K_temp = { ka, kb, kc };
+                K_temp = { K_temp.dot( geometry->lattice_constant * geometry->bravais_vectors[0] ),
+                           K_temp.dot( geometry->lattice_constant * geometry->bravais_vectors[1] ),
+                           K_temp.dot( geometry->lattice_constant * geometry->bravais_vectors[2] ) };
+            }
+
+            // Anisotropy vector normalisation
+            if( K_magnitude )
+            {
+                K_temp.normalize();
+                if( K_temp.norm() == 0 )
+                    K_temp = Vector3{ 0, 0, 1 };
+            }
+            else
+            {
+                k = K_temp.norm();
+                if( k != 0 )
+                    K_temp.normalize();
+            }
+
+            return std::make_tuple( i, k, K_temp, k4 );
+        };
+    };
+
+    const std::string anisotropy_size_id = "n_anisotropy";
+    const auto data = parser.parse( anisotropy_file, anisotropy_size_id, std::size_t( 6 ), transform_factory );
+    n_indices       = data.size();
+
     // Arrays
     anisotropy_index           = intfield( 0 );
     anisotropy_magnitude       = scalarfield( 0 );
@@ -177,82 +314,25 @@ try
     cubic_anisotropy_index     = intfield( 0 );
     cubic_anisotropy_magnitude = scalarfield( 0 );
 
-    // Get actual Data
-    int i_anisotropy = 0;
-    std::string sdump;
-    while( file_handle.GetLine() && i_anisotropy < n_anisotropy )
+    for( const auto & [i, k, k_vec, k4] : data )
     {
-        // Read a line from the File
-        for( std::size_t i = 0; i < columns.size(); ++i )
+        if( k != 0 )
         {
-            if( i == col_i )
-                file_handle >> spin_i;
-            else if( i == col_K )
-                file_handle >> spin_K;
-            else if( i == col_Kx && K_xyz )
-                file_handle >> spin_K1;
-            else if( i == col_Ky && K_xyz )
-                file_handle >> spin_K2;
-            else if( i == col_Kz && K_xyz )
-                file_handle >> spin_K3;
-            else if( i == col_Ka && K_abc )
-                file_handle >> spin_K1;
-            else if( i == col_Kb && K_abc )
-                file_handle >> spin_K2;
-            else if( i == col_Kc && K_abc )
-                file_handle >> spin_K3;
-            else if( i == col_K4 )
-            {
-                file_handle >> spin_K4;
-                Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "loaded spin K4\"{}\"", spin_K4 ) );
-            }
-            else
-                file_handle >> sdump;
+            anisotropy_index.push_back( i );
+            anisotropy_magnitude.push_back( k );
+            anisotropy_normal.push_back( k_vec );
         }
-        K_temp = { spin_K1, spin_K2, spin_K3 };
-        // Anisotropy vector orientation
-        if( K_abc )
+        if( k4 != 0 )
         {
-            spin_K1 = K_temp.dot( geometry->lattice_constant * geometry->bravais_vectors[0] );
-            spin_K2 = K_temp.dot( geometry->lattice_constant * geometry->bravais_vectors[1] );
-            spin_K3 = K_temp.dot( geometry->lattice_constant * geometry->bravais_vectors[2] );
-            K_temp  = { spin_K1, spin_K2, spin_K3 };
+            Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "appending spin K4\"{}\"", k4 ) );
+            cubic_anisotropy_index.push_back( i );
+            cubic_anisotropy_magnitude.push_back( k4 );
         }
-
-        // Anisotropy vector normalisation
-        if( K_magnitude )
-        {
-            K_temp.normalize();
-            if( K_temp.norm() == 0 )
-                K_temp = Vector3{ 0, 0, 1 };
-        }
-        else
-        {
-            spin_K = K_temp.norm();
-            if( spin_K != 0 )
-                K_temp.normalize();
-        }
-
-        // Add the index and parameters to the corresponding lists
-        if( spin_K != 0 )
-        {
-            anisotropy_index.push_back( spin_i );
-            anisotropy_magnitude.push_back( spin_K );
-            anisotropy_normal.push_back( K_temp );
-        }
-        if( spin_K4 != 0 )
-        {
-            Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "appending spin K4\"{}\"", spin_K4 ) );
-            cubic_anisotropy_index.push_back( spin_i );
-            cubic_anisotropy_magnitude.push_back( spin_K4 );
-        }
-        ++i_anisotropy;
-    } // end while getline
-    n_indices = i_anisotropy;
+    }
 }
 catch( ... )
 {
-    spirit_rethrow( fmt::format( "Could not read anisotropies from file \"{}\"", anisotropyFile ) );
+    spirit_rethrow( fmt::format( "Could not read anisotropies from file \"{}\"", anisotropy_file ) );
 }
 
 // Read Basis from file
@@ -295,222 +375,132 @@ try
 {
     Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Reading spin pairs from file \"{}\"", pairs_file ) );
 
-    std::vector<std::string> columns( 20 ); // at least: 2 (indices) + 3 (J) + 3 (DMI)
-    // column indices of pair indices and interactions
-    int n_pairs = 0;
-    int col_i = -1, col_j = -1, col_da = -1, col_db = -1, col_dc = -1, col_J = -1, col_DMIx = -1, col_DMIy = -1,
-        col_DMIz = -1, col_Dij = -1, col_DMIa = -1, col_DMIb = -1, col_DMIc = -1;
-    bool J = false, DMI_xyz = false, DMI_abc = false, Dij = false;
-    int pair_periodicity = 0;
-    Vector3 pair_D_temp  = { 0, 0, 0 };
-    // Get column indices
-    Filter_File_Handle file_handle( pairs_file );
+    using PairTableParser
+        = TableParser<int, int, int, int, int, scalar, scalar, scalar, scalar, scalar, scalar, scalar, scalar>;
+    const PairTableParser parser(
+        { "i", "j", "da", "db", "dc", "dij", "dijx", "dijy", "dijz", "dija", "dijb", "dijc", "jij" } );
 
-    if( file_handle.Find( "n_interaction_pairs" ) )
+    auto transform_factory = [&pairs_file, &geometry]( const std::map<std::string_view, int> & idx )
     {
-        // Read n interaction pairs
-        file_handle >> n_pairs;
-        Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "File {} should have {} pairs", pairs_file, n_pairs ) );
-    }
-    else
-    {
-        // Read the whole file
-        n_pairs = (int)1e8;
-        // First line should contain the columns
-        file_handle.To_Start();
-        Log( Log_Level::Debug, Log_Sender::IO, "Trying to parse spin pairs columns from top of file " + pairs_file );
-    }
+        bool DMI_xyz = false, DMI_abc = false, DMI_magnitude = false;
 
-    file_handle.GetLine();
-    for( std::size_t i = 0; i < columns.size(); ++i )
-    {
-        file_handle >> columns[i];
-        std::transform( columns[i].begin(), columns[i].end(), columns[i].begin(), ::tolower );
-        if( columns[i] == "i" )
-            col_i = i;
-        else if( columns[i] == "j" )
-            col_j = i;
-        else if( columns[i] == "da" )
-            col_da = i;
-        else if( columns[i] == "db" )
-            col_db = i;
-        else if( columns[i] == "dc" )
-            col_dc = i;
-        else if( columns[i] == "jij" )
-        {
-            col_J = i;
-            J     = true;
-        }
-        else if( columns[i] == "dij" )
-        {
-            col_Dij = i;
-            Dij     = true;
-        }
-        else if( columns[i] == "dijx" )
-            col_DMIx = i;
-        else if( columns[i] == "dijy" )
-            col_DMIy = i;
-        else if( columns[i] == "dijz" )
-            col_DMIz = i;
-        else if( columns[i] == "dija" )
-            col_DMIx = i;
-        else if( columns[i] == "dijb" )
-            col_DMIy = i;
-        else if( columns[i] == "dijc" )
-            col_DMIz = i;
-
-        if( col_DMIx >= 0 && col_DMIy >= 0 && col_DMIz >= 0 )
+        if( idx.at( "dijx" ) >= 0 && idx.at( "dijy" ) >= 0 && idx.at( "dijz" ) >= 0 )
             DMI_xyz = true;
-        if( col_DMIa >= 0 && col_DMIb >= 0 && col_DMIc >= 0 )
+        if( idx.at( "dija" ) >= 0 && idx.at( "dijb" ) >= 0 && idx.at( "dijc" ) >= 0 )
             DMI_abc = true;
+        if( idx.at( "dij" ) >= 0 )
+            DMI_magnitude = true;
+
+        if( idx.at( "j" ) < 0 && !DMI_xyz && !DMI_abc )
+            Log( Log_Level::Warning, Log_Sender::IO,
+                 fmt::format( "No interactions could be found in pairs file \"{}\"", pairs_file ) );
+
+        return [DMI_xyz, DMI_abc, DMI_magnitude,
+                &geometry]( const PairTableParser::read_row_t & row ) -> std::tuple<Pair, scalar, Vector3, scalar>
+        {
+            auto [i, j, da, db, dc, Dij, Dijx, Dijy, Dijz, Dija, Dijb, Dijc, Jij] = row;
+            Vector3 D_temp;
+            if( DMI_xyz )
+                D_temp = { Dijx, Dijy, Dijz };
+            // Anisotropy vector orientation
+            if( DMI_abc )
+            {
+                D_temp = { Dija, Dijb, Dijc };
+                D_temp = { D_temp.dot( geometry->lattice_constant * geometry->bravais_vectors[0] ),
+                           D_temp.dot( geometry->lattice_constant * geometry->bravais_vectors[1] ),
+                           D_temp.dot( geometry->lattice_constant * geometry->bravais_vectors[2] ) };
+            }
+
+            if( !DMI_magnitude )
+                Dij = D_temp.norm();
+
+            D_temp.normalize();
+
+            return std::make_tuple( Pair{ i, j, { da, db, dc } }, Jij, D_temp, Dij );
+        };
+    };
+
+    const auto data = parser.parse( pairs_file, "n_interaction_pairs", 20, transform_factory );
+    nop             = data.size();
+
+    {
+        auto predicate = []( const auto & first, const auto & second ) -> int
+        {
+            const auto t1 = std::array{ first.translations[0], first.translations[1], first.translations[2] };
+            const auto t2 = std::array{ second.translations[0], second.translations[1], second.translations[2] };
+
+            if( first.i == second.i && first.j == second.j && t1 == std::array{ t2[0], t2[1], t2[2] } )
+                return 1;
+            else if( first.i == second.j && first.j == second.i && t1 == std::array{ -t2[0], -t2[1], -t2[2] } )
+                return -1;
+            else
+                return 0;
+        };
+
+        // Add the indices and parameters to the corresponding lists and deduplicate entries
+        for( const auto & [pair, Jij, D_vec, Dij] : data )
+        {
+            if( Jij != 0 )
+            {
+                bool already_in{ false };
+                int atposition = -1;
+                for( std::size_t icheck = 0; icheck < exchange_pairs.size(); ++icheck )
+                {
+                    if( predicate( pair, exchange_pairs[icheck] ) == 0 )
+                        continue;
+
+                    already_in = true;
+                    atposition = icheck;
+                    break;
+                }
+                if( already_in )
+                {
+                    exchange_magnitudes[atposition] += Jij;
+                }
+                else
+                {
+                    exchange_pairs.push_back( pair );
+                    exchange_magnitudes.push_back( Jij );
+                }
+            }
+            if( Dij != 0 )
+            {
+                bool already_in{ false };
+                int dfact      = 1;
+                int atposition = -1;
+                for( std::size_t icheck = 0; icheck < dmi_pairs.size(); ++icheck )
+                {
+                    const auto pred = predicate( pair, dmi_pairs[icheck] );
+                    if( pred == 0 )
+                        continue;
+
+                    already_in = true;
+                    dfact      = pred;
+                    break;
+                }
+                if( already_in )
+                {
+                    // Calculate new D vector by adding the two redundant ones and normalize again
+                    Vector3 newD    = dmi_magnitudes[atposition] * dmi_normals[atposition] + dfact * Dij * D_vec;
+                    scalar newdnorm = newD.norm();
+                    newD.normalize();
+                    dmi_magnitudes[atposition] = newdnorm;
+                    dmi_normals[atposition]    = newD;
+                }
+                else
+                {
+                    dmi_pairs.push_back( pair );
+                    dmi_magnitudes.push_back( Dij );
+                    dmi_normals.push_back( D_vec );
+                }
+            }
+        }
     }
 
-    // Check if interactions have been found in header
-    if( !J && !DMI_xyz && !DMI_abc )
-        Log( Log_Level::Warning, Log_Sender::IO,
-             fmt::format( "No interactions could be found in pairs file \"{}\"", pairs_file ) );
-
-    // Get actual Pairs Data
-    int i_pair = 0;
-    std::string sdump;
-    while( file_handle.GetLine() && i_pair < n_pairs )
-    {
-        // Pair Indices
-        int pair_i = 0, pair_j = 0, pair_da = 0, pair_db = 0, pair_dc = 0;
-        scalar pair_Jij = 0, pair_Dij = 0, pair_D1 = 0, pair_D2 = 0, pair_D3 = 0;
-        // Read a Pair from the File
-        for( std::size_t i = 0; i < columns.size(); ++i )
-        {
-            if( i == col_i )
-                file_handle >> pair_i;
-            else if( i == col_j )
-                file_handle >> pair_j;
-            else if( i == col_da )
-                file_handle >> pair_da;
-            else if( i == col_db )
-                file_handle >> pair_db;
-            else if( i == col_dc )
-                file_handle >> pair_dc;
-            else if( i == col_J && J )
-                file_handle >> pair_Jij;
-            else if( i == col_Dij && Dij )
-                file_handle >> pair_Dij;
-            else if( i == col_DMIa && DMI_abc )
-                file_handle >> pair_D1;
-            else if( i == col_DMIb && DMI_abc )
-                file_handle >> pair_D2;
-            else if( i == col_DMIc && DMI_abc )
-                file_handle >> pair_D3;
-            else if( i == col_DMIx && DMI_xyz )
-                file_handle >> pair_D1;
-            else if( i == col_DMIy && DMI_xyz )
-                file_handle >> pair_D2;
-            else if( i == col_DMIz && DMI_xyz )
-                file_handle >> pair_D3;
-            else
-                file_handle >> sdump;
-        } // end for columns
-
-        // DMI vector orientation
-        if( DMI_abc )
-        {
-            pair_D_temp = pair_D1 * geometry->lattice_constant * geometry->bravais_vectors[0]
-                          + pair_D2 * geometry->lattice_constant * geometry->bravais_vectors[1]
-                          + pair_D3 * geometry->lattice_constant * geometry->bravais_vectors[2];
-            pair_D1 = pair_D_temp[0];
-            pair_D2 = pair_D_temp[1];
-            pair_D3 = pair_D_temp[2];
-        }
-        // DMI vector normalisation
-        scalar dnorm = std::sqrt( std::pow( pair_D1, 2 ) + std::pow( pair_D2, 2 ) + std::pow( pair_D3, 2 ) );
-        if( dnorm != 0 )
-        {
-            pair_D1 = pair_D1 / dnorm;
-            pair_D2 = pair_D2 / dnorm;
-            pair_D3 = pair_D3 / dnorm;
-        }
-        if( !Dij )
-        {
-            pair_Dij = dnorm;
-        }
-
-        // Add the indices and parameters to the corresponding lists
-        if( pair_Jij != 0 )
-        {
-            bool already_in{ false };
-            int atposition = -1;
-            for( std::size_t icheck = 0; icheck < exchange_pairs.size(); ++icheck )
-            {
-                auto & p                = exchange_pairs[icheck];
-                auto & t                = p.translations;
-                std::array<int, 3> tnew = { pair_da, pair_db, pair_dc };
-                if( ( pair_i == p.i && pair_j == p.j && tnew == std::array<int, 3>{ t[0], t[1], t[2] } )
-                    || ( pair_i == p.j && pair_j == p.i && tnew == std::array<int, 3>{ -t[0], -t[1], -t[2] } ) )
-                {
-                    already_in = true;
-                    atposition = icheck;
-                    break;
-                }
-            }
-            if( already_in )
-            {
-                exchange_magnitudes[atposition] += pair_Jij;
-            }
-            else
-            {
-                exchange_pairs.push_back( { pair_i, pair_j, { pair_da, pair_db, pair_dc } } );
-                exchange_magnitudes.push_back( pair_Jij );
-            }
-        }
-        if( pair_Dij != 0 )
-        {
-            bool already_in{ false };
-            int dfact      = 1;
-            int atposition = -1;
-            for( std::size_t icheck = 0; icheck < dmi_pairs.size(); ++icheck )
-            {
-                auto & p                = dmi_pairs[icheck];
-                auto & t                = p.translations;
-                std::array<int, 3> tnew = { pair_da, pair_db, pair_dc };
-                if( pair_i == p.i && pair_j == p.j && tnew == std::array<int, 3>{ t[0], t[1], t[2] } )
-                {
-                    already_in = true;
-                    atposition = icheck;
-                    break;
-                }
-                else if( pair_i == p.j && pair_j == p.i && tnew == std::array<int, 3>{ -t[0], -t[1], -t[2] } )
-                {
-                    // If the inverted pair is present, the DMI vector has to be mirrored due to its pseudo-vector behaviour
-                    dfact      = -1;
-                    already_in = true;
-                    atposition = icheck;
-                    break;
-                }
-            }
-            if( already_in )
-            {
-                // Calculate new D vector by adding the two redundant ones and normalize again
-                Vector3 newD = dmi_magnitudes[atposition] * dmi_normals[atposition]
-                               + dfact * pair_Dij * Vector3{ pair_D1, pair_D2, pair_D3 };
-                scalar newdnorm = std::sqrt( std::pow( newD[0], 2 ) + std::pow( newD[1], 2 ) + std::pow( newD[2], 2 ) );
-                dmi_magnitudes[atposition] = newdnorm;
-                dmi_normals[atposition]    = newD / newdnorm;
-            }
-            else
-            {
-                dmi_pairs.push_back( { pair_i, pair_j, { pair_da, pair_db, pair_dc } } );
-                dmi_magnitudes.push_back( pair_Dij );
-                dmi_normals.push_back( Vector3{ pair_D1, pair_D2, pair_D3 } );
-            }
-        }
-
-        ++i_pair;
-    } // end while GetLine
     Log( Log_Level::Parameter, Log_Sender::IO,
          fmt::format(
-             "Done reading {} spin pairs from file \"{}\", giving {} exchange and {} DM (symmetry-reduced) pairs.",
-             i_pair, pairs_file, exchange_pairs.size(), dmi_pairs.size() ) );
-    nop = i_pair;
+             "Done reading {} spin pairs from file \"{}\", giving {} exchange and {} DM (symmetry-reduced) pairs.", nop,
+             pairs_file, exchange_pairs.size(), dmi_pairs.size() ) );
 }
 catch( ... )
 {
@@ -526,152 +516,36 @@ try
     Log( Log_Level::Debug, Log_Sender::IO,
          fmt::format( "Reading spin quadruplets from file \"{}\"", quadruplets_file ) );
 
-    std::vector<std::string> columns( 20 ); // at least: 4 (indices) + 3*3 (positions) + 1 (magnitude)
-    // column indices of pair indices and interactions
-    int col_i = -1;
-    int col_j = -1, col_da_j = -1, col_db_j = -1, col_dc_j = -1, periodicity_j = 0;
-    int col_k = -1, col_da_k = -1, col_db_k = -1, col_dc_k = -1, periodicity_k = 0;
-    int col_l = -1, col_da_l = -1, col_db_l = -1, col_dc_l = -1, periodicity_l = 0;
-    int col_Q         = -1;
-    bool Q            = false;
-    int max_periods_a = 0, max_periods_b = 0, max_periods_c = 0;
-    int quadruplet_periodicity = 0;
-    int n_quadruplets          = 0;
+    // parser initialization
+    using QuadrupletTableParser = TableParser<int, int, int, int, int, int, int, int, int, int, int, int, int, scalar>;
+    const QuadrupletTableParser parser(
+        { "i", "j", "da_j", "db_j", "dc_j", "k", "da_k", "db_k", "dc_k", "l", "da_l", "db_l", "dc_l", "q" } );
 
-    // Get column indices
-    Filter_File_Handle file_handle( quadruplets_file );
+    // factory function for creating a lambda that transforms the row that is read
+    auto transform_factory = [&quadruplets_file]( const std::map<std::string_view, int> & idx )
+    {
+        if( idx.at( "q" ) < 0 )
+            Log( Log_Level::Warning, Log_Sender::IO,
+                 fmt::format( "No interactions could be found in header of quadruplets file ", quadruplets_file ) );
 
-    if( file_handle.Find( "n_interaction_quadruplets" ) )
-    {
-        // Read n interaction quadruplets
-        file_handle >> n_quadruplets;
-        Log( Log_Level::Debug, Log_Sender::IO,
-             fmt::format( "File {} should have {} quadruplets", quadruplets_file, n_quadruplets ) );
-    }
-    else
-    {
-        // Read the whole file
-        n_quadruplets = (int)1e8;
-        // First line should contain the columns
-        file_handle.To_Start();
-        Log( Log_Level::Debug, Log_Sender::IO,
-             "Trying to parse quadruplet columns from top of file " + quadruplets_file );
-    }
-
-    file_handle.GetLine();
-    for( std::size_t i = 0; i < columns.size(); ++i )
-    {
-        file_handle >> columns[i];
-        std::transform( columns[i].begin(), columns[i].end(), columns[i].begin(), ::tolower );
-        if( columns[i] == "i" )
-            col_i = i;
-        else if( columns[i] == "j" )
-            col_j = i;
-        else if( columns[i] == "da_j" )
-            col_da_j = i;
-        else if( columns[i] == "db_j" )
-            col_db_j = i;
-        else if( columns[i] == "dc_j" )
-            col_dc_j = i;
-        else if( columns[i] == "k" )
-            col_k = i;
-        else if( columns[i] == "da_k" )
-            col_da_k = i;
-        else if( columns[i] == "db_k" )
-            col_db_k = i;
-        else if( columns[i] == "dc_k" )
-            col_dc_k = i;
-        else if( columns[i] == "l" )
-            col_l = i;
-        else if( columns[i] == "da_l" )
-            col_da_l = i;
-        else if( columns[i] == "db_l" )
-            col_db_l = i;
-        else if( columns[i] == "dc_l" )
-            col_dc_l = i;
-        else if( columns[i] == "q" )
+        return []( const QuadrupletTableParser::read_row_t & row ) -> std::tuple<Quadruplet, scalar>
         {
-            col_Q = i;
-            Q     = true;
+            const auto & [i, j, da_j, db_j, dc_j, k, da_k, db_k, dc_k, l, da_l, db_l, dc_l, Q] = row;
+            return std::make_tuple(
+                Quadruplet{ i, j, k, l, { da_j, db_j, dc_j }, { da_k, db_k, dc_k }, { da_l, db_l, dc_l } }, Q );
+        };
+    };
+    const auto data = parser.parse( quadruplets_file, "n_interaction_quadruplets", 20, transform_factory );
+    noq             = data.size();
+
+    for( const auto & [quadruplet, magnitude] : data )
+    {
+        if( magnitude != 0 )
+        {
+            quadruplets.push_back( quadruplet );
+            quadruplet_magnitudes.push_back( magnitude );
         }
     }
-
-    // Check if interactions have been found in header
-    if( !Q )
-        Log( Log_Level::Warning, Log_Sender::IO,
-             fmt::format( "No interactions could be found in header of quadruplets file ", quadruplets_file ) );
-
-    // Quadruplet Indices
-    int q_i = 0;
-    int q_j = 0, q_da_j = 0, q_db_j = 0, q_dc_j = 0;
-    int q_k = 0, q_da_k = 0, q_db_k = 0, q_dc_k = 0;
-    int q_l = 0, q_da_l = 0, q_db_l = 0, q_dc_l = 0;
-    scalar q_Q = 0;
-
-    // Get actual Quadruplets Data
-    int i_quadruplet = 0;
-    std::string sdump;
-    while( file_handle.GetLine() && i_quadruplet < n_quadruplets )
-    {
-        // Read a Quadruplet from the File
-        for( std::size_t i = 0; i < columns.size(); ++i )
-        {
-            // i
-            if( i == col_i )
-                file_handle >> q_i;
-            // j
-            else if( i == col_j )
-                file_handle >> q_j;
-            else if( i == col_da_j )
-                file_handle >> q_da_j;
-            else if( i == col_db_j )
-                file_handle >> q_db_j;
-            else if( i == col_dc_j )
-                file_handle >> q_dc_j;
-            // k
-            else if( i == col_k )
-                file_handle >> q_k;
-            else if( i == col_da_k )
-                file_handle >> q_da_k;
-            else if( i == col_db_k )
-                file_handle >> q_db_k;
-            else if( i == col_dc_k )
-                file_handle >> q_dc_k;
-            // l
-            else if( i == col_l )
-                file_handle >> q_l;
-            else if( i == col_da_l )
-                file_handle >> q_da_l;
-            else if( i == col_db_l )
-                file_handle >> q_db_l;
-            else if( i == col_dc_l )
-                file_handle >> q_dc_l;
-            // Quadruplet magnitude
-            else if( i == col_Q && Q )
-                file_handle >> q_Q;
-            // Otherwise dump the line
-            else
-                file_handle >> sdump;
-        } // end for columns
-
-        // Add the indices and parameter to the corresponding list
-        if( q_Q != 0 )
-        {
-            quadruplets.push_back( { q_i,
-                                     q_j,
-                                     q_k,
-                                     q_l,
-                                     { q_da_j, q_db_j, q_dc_j },
-                                     { q_da_k, q_db_k, q_dc_k },
-                                     { q_da_l, q_db_l, q_dc_l } } );
-            quadruplet_magnitudes.push_back( q_Q );
-        }
-
-        ++i_quadruplet;
-    } // end while GetLine
-    Log( Log_Level::Parameter, Log_Sender::IO,
-         fmt::format( "Done reading {} spin quadruplets from file \"{}\"", i_quadruplet, quadruplets_file ) );
-    noq = i_quadruplet;
 }
 catch( ... )
 {
