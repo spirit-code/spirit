@@ -112,16 +112,17 @@ class Chain_IO(TestParameters):
 #########
 
 
-def suite():
+def make_suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(Image_IO))
-    suite.addTest(unittest.makeSuite(Eigenmodes_IO))
-    suite.addTest(unittest.makeSuite(Chain_IO))
+    loader = unittest.TestLoader()
+    suite.addTest(loader.loadTestsFromTestCase(Image_IO))
+    suite.addTest(loader.loadTestsFromTestCase(Eigenmodes_IO))
+    suite.addTest(loader.loadTestsFromTestCase(Chain_IO))
     return suite
 
 
 if __name__ == "__main__":
-    suite = suite()
+    suite = make_suite()
 
     runner = unittest.TextTestRunner()
     success = runner.run(suite).wasSuccessful()

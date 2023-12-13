@@ -64,15 +64,16 @@ class Simulation_Running(TestParameters):
 #########
 
 
-def suite():
+def make_suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(Simulation_StartStop))
-    suite.addTest(unittest.makeSuite(Simulation_Running))
+    loader = unittest.TestLoader()
+    suite.addTest(loader.loadTestsFromTestCase(Simulation_StartStop))
+    suite.addTest(loader.loadTestsFromTestCase(Simulation_Running))
     return suite
 
 
 if __name__ == "__main__":
-    suite = suite()
+    suite = make_suite()
 
     runner = unittest.TextTestRunner()
     success = runner.run(suite).wasSuccessful()

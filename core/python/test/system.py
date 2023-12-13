@@ -63,14 +63,15 @@ class SystemGetters(TestSystem):
 #########
 
 
-def suite():
+def make_suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(SystemGetters))
+    loader = unittest.TestLoader()
+    suite.addTest(loader.loadTestsFromTestCase(SystemGetters))
     return suite
 
 
 if __name__ == "__main__":
-    suite = suite()
+    suite = make_suite()
 
     runner = unittest.TextTestRunner()
     success = runner.run(suite).wasSuccessful()

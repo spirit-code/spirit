@@ -22,14 +22,15 @@ class TestLog(unittest.TestCase):
 ##########
 
 
-def suite():
+def make_suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestLog))
+    loader = unittest.TestLoader()
+    suite.addTest(loader.loadTestsFromTestCase(TestLog))
     return suite
 
 
 if __name__ == "__main__":
-    suite = suite()
+    suite = make_suite()
 
     runner = unittest.TextTestRunner()
     success = runner.run(suite).wasSuccessful()

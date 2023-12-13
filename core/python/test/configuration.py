@@ -40,15 +40,16 @@ class TestConfigurations(unittest.TestCase):
 #########
 
 
-def suite():
+def make_suite():
+    loader = unittest.TestLoader()
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestConfigurations))
+    suite.addTest(loader.loadTestsFromTestCase(TestConfigurations))
 
     return suite
 
 
 if __name__ == "__main__":
-    suite = suite()
+    suite = make_suite()
 
     runner = unittest.TextTestRunner()
     success = runner.run(suite).wasSuccessful()

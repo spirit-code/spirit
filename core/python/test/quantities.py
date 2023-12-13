@@ -53,14 +53,15 @@ class Quantities_Get(TestParameters):
 #########
 
 
-def suite():
+def make_suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(Quantities_Get))
+    loader = unittest.TestLoader()
+    suite.addTest(loader.loadTestsFromTestCase(Quantities_Get))
     return suite
 
 
 if __name__ == "__main__":
-    suite = suite()
+    suite = make_suite()
 
     runner = unittest.TextTestRunner()
     success = runner.run(suite).wasSuccessful()

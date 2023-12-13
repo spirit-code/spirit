@@ -23,15 +23,16 @@ class TestState(unittest.TestCase):
 #########
 
 
-def suite():
+def make_suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestState))
+    loader = unittest.TestLoader()
+    suite.addTest(loader.loadTestsFromTestCase(TestState))
 
     return suite
 
 
 if __name__ == "__main__":
-    suite = suite()
+    suite = make_suite()
 
     runner = unittest.TextTestRunner()
     success = runner.run(suite).wasSuccessful()

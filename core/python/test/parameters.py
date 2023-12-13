@@ -125,15 +125,16 @@ class GNEB_set_get(TestParameters):
 #########
 
 
-def suite():
+def make_suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(LLG_set_get))
-    suite.addTest(unittest.makeSuite(GNEB_set_get))
+    loader = unittest.TestLoader()
+    suite.addTest(loader.loadTestsFromTestCase(LLG_set_get))
+    suite.addTest(loader.loadTestsFromTestCase(GNEB_set_get))
     return suite
 
 
 if __name__ == "__main__":
-    suite = suite()
+    suite = make_suite()
 
     runner = unittest.TextTestRunner()
     success = runner.run(suite).wasSuccessful()

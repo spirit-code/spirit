@@ -43,14 +43,15 @@ class trivialTestTransition(TestTransition):
 ##########
 
 
-def suite():
+def make_suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(trivialTestTransition))
+    loader = unittest.TestLoader()
+    suite.addTest(loader.loadTestsFromTestCase(trivialTestTransition))
     return suite
 
 
 if __name__ == "__main__":
-    suite = suite()
+    suite = make_suite()
 
     runner = unittest.TextTestRunner()
     success = runner.run(suite).wasSuccessful()
