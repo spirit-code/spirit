@@ -225,22 +225,23 @@ class remove_TestChain(TestChain):
 #########
 
 
-def suite():
+def make_suite():
+    loader = unittest.TestLoader()
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(simpleTestChain))
-    suite.addTest(unittest.makeSuite(clipboard_TestChain))
-    suite.addTest(unittest.makeSuite(insert_deleteTestChain))
-    suite.addTest(unittest.makeSuite(switch_TestChain))
-    suite.addTest(unittest.makeSuite(jump_TestChain))
-    suite.addTest(unittest.makeSuite(replace_TestChain))
-    suite.addTest(unittest.makeSuite(remove_TestChain))
-    # suite.addTest( unittest.makeSuite( getters_TestChain ) )
-    # suite.addTest( unittest.makeSuite( data_TestChain ) )
+    suite.addTest(loader.loadTestsFromTestCase(simpleTestChain))
+    suite.addTest(loader.loadTestsFromTestCase(clipboard_TestChain))
+    suite.addTest(loader.loadTestsFromTestCase(insert_deleteTestChain))
+    suite.addTest(loader.loadTestsFromTestCase(switch_TestChain))
+    suite.addTest(loader.loadTestsFromTestCase(jump_TestChain))
+    suite.addTest(loader.loadTestsFromTestCase(replace_TestChain))
+    suite.addTest(loader.loadTestsFromTestCase(remove_TestChain))
+    # suite.addTest(loader.loadTestsFromTestCase(getters_TestChain))
+    # suite.addTest(loader.loadTestsFromTestCase(data_TestChain))
     return suite
 
 
 if __name__ == "__main__":
-    suite = suite()
+    suite = make_suite()
 
     runner = unittest.TextTestRunner()
     success = runner.run(suite).wasSuccessful()
