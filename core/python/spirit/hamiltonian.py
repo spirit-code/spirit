@@ -5,9 +5,13 @@ Hamiltonian
 Set the parameters of the Heisenberg Hamiltonian, such as external field or exchange interaction.
 """
 
+import ctypes
+from typing import NamedTuple
+
+import numpy as np
+
 from spirit import spiritlib
 from spirit.scalar import scalar
-import ctypes
 
 ### Load Library
 _spirit = spiritlib.load_spirit_library()
@@ -136,6 +140,52 @@ def set_cubic_anisotropy(p_state, magnitude, idx_image=-1, idx_chain=-1):
     _Set_Cubic_Anisotropy(
         ctypes.c_void_p(p_state),
         scalar(magnitude),
+        ctypes.c_int(idx_image),
+        ctypes.c_int(idx_chain),
+    )
+
+
+# ----- Biaxial Anisotropy ------------------------------------------------------------
+
+
+_Set_Biaxial_Anisotropy = _spirit.Hamiltonian_Set_Biaxial_Anisotropy
+_Set_Biaxial_Anisotropy.argtypes = [
+    ctypes.c_void_p,
+    np.ctypeslib.ndpointer(scalar, ndim=1, flags='C'),
+    np.ctypeslib.ndpointer(ctypes.c_uint, ndim=2, flags='C'),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    ctypes.c_int,
+    ctypes.c_int,
+    ctypes.c_int,
+]
+_Set_Anisotropy.restype = None
+
+
+def set_biaxial_anisotropy(
+    p_state,
+    magnitude,
+    exponents,
+    primary,
+    secondary,
+    n_terms=None,
+    idx_image=-1,
+    idx_chain=-1
+):
+    """Set the (homogeneous) biaxial magnetocrystalline anisotropy."""
+    vec3 = scalar * 3
+    if n_terms is None:
+        n_terms_ = min(map(len, [magnitude, exponents]))
+    else:
+        n_terms_ = n_terms
+
+    _Set_Biaxial_Anisotropy(
+        ctypes.c_void_p(p_state),
+        np.asarray(magnitude, dtype=scalar),
+        np.asarray(exponents, dtype=ctypes.c_uint),
+        vec3(*primary),
+        vec3(*secondary),
+        ctypes.c_int(n_terms_),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
     )
@@ -426,3 +476,119 @@ def get_cubic_anisotropy(p_state, idx_image=-1, idx_chain=-1):
         ctypes.c_int(idx_chain),
     )
     return float(magnitude.value)
+
+
+# ----- Biaxial Anisotropy ------------------------------------------------------------
+
+
+_Get_Biaxial_Anisotropy_N_Atoms = _spirit.Hamiltonian_Get_Biaxial_Anisotropy_N_Atoms
+_Get_Biaxial_Anisotropy_N_Atoms.argtypes = [
+    ctypes.c_void_p,
+    ctypes.c_int,
+    ctypes.c_int,
+]
+_Get_Biaxial_Anisotropy_N_Atoms.restype = ctypes.c_int
+
+
+def get_biaxial_anisotropy_n_atoms(p_state, idx_image=-1, idx_chain=-1):
+    """Set the (homogeneous) magnetocrystalline anisotropy."""
+    result = _Get_Biaxial_Anisotropy_N_Atoms(
+        ctypes.c_void_p(p_state),
+        ctypes.c_int(idx_image),
+        ctypes.c_int(idx_chain),
+    )
+
+    return int(result)
+
+
+_Get_Biaxial_Anisotropy_N_Terms = _spirit.Hamiltonian_Get_Biaxial_Anisotropy_N_Terms
+_Get_Biaxial_Anisotropy_N_Terms.argtypes = [
+    ctypes.c_void_p,
+    ctypes.c_int,
+    np.ctypeslib.ndpointer(ctypes.c_int, ndim=1, flags='C'),
+    ctypes.c_int,
+    ctypes.c_int,
+]
+_Get_Biaxial_Anisotropy_N_Terms.restype = None
+
+
+def get_biaxial_anisotropy_n_terms(p_state, n_atoms=None, idx_image=-1, idx_chain=-1):
+    n_atoms_: int
+    if n_atoms is None:
+        n_atoms_ = get_biaxial_anisotropy_n_atoms(p_state, idx_image, idx_chain)
+    else:
+        n_atoms_ = n_atoms
+    n_terms = np.zeros((n_atoms_ + 1,), dtype=ctypes.c_int)
+
+    """Set the (homogeneous) magnetocrystalline anisotropy."""
+    _Get_Biaxial_Anisotropy_N_Terms(
+        ctypes.c_void_p(p_state),
+        n_atoms,
+        n_terms,
+        ctypes.c_int(idx_image),
+        ctypes.c_int(idx_chain),
+    )
+
+    return n_terms
+
+
+class BiaxialAnisotropyData(NamedTuple):
+    indices: list[int]
+    n_terms: list[int]
+    primary: list[list[float]]
+    secondary: list[list[float]]
+    magnitude: list[float]
+    exponents: list[list[int]]
+
+
+_Get_Biaxial_Anisotropy = _spirit.Hamiltonian_Get_Biaxial_Anisotropy
+_Get_Biaxial_Anisotropy.argtypes = [
+    ctypes.c_void_p,
+    np.ctypeslib.ndpointer(ctypes.c_int, ndim=1, flags='C'),
+    np.ctypeslib.ndpointer(ctypes.c_int, ndim=1, flags=['C', 'W']),
+    np.ctypeslib.ndpointer(scalar, ndim=2, flags=['C', 'W']),
+    np.ctypeslib.ndpointer(scalar, ndim=2, flags=['C', 'W']),
+    np.ctypeslib.ndpointer(scalar, ndim=1, flags=['C', 'W']),
+    np.ctypeslib.ndpointer(ctypes.c_uint, ndim=2, flags=['C', 'W']),
+    ctypes.c_int,
+    ctypes.c_int,
+    ctypes.c_int,
+]
+_Get_Biaxial_Anisotropy.restype = None
+
+
+def get_biaxial_anisotropy(p_state, n_terms=None, idx_image=-1, idx_chain=-1):
+    """Set the (homogeneous) magnetocrystalline anisotropy."""
+    if n_terms is None:
+        n_terms_ = get_biaxial_anisotropy_n_terms(p_state, idx_image, idx_chain)
+    else:
+        n_terms_ = np.asarray(n_terms)
+
+    n_indices = (len(n_terms_) - 1) if len(n_terms_) > 0 else 0
+    indices = np.zeros((n_indices,), dtype=ctypes.c_int)
+    primary = np.zeros((n_indices, 3), dtype=scalar)
+    secondary = np.zeros((n_indices, 3), dtype=scalar)
+    magnitude = np.zeros((n_terms_[-1],), dtype=scalar)
+    exponents = np.zeros((n_terms_[-1], 3), dtype=ctypes.c_uint)
+
+    _Get_Biaxial_Anisotropy(
+        ctypes.c_void_p(p_state),
+        n_terms,
+        indices,
+        primary,
+        secondary,
+        magnitude,
+        exponents,
+        ctypes.c_int(n_indices),
+        ctypes.c_int(idx_image),
+        ctypes.c_int(idx_chain),
+    )
+
+    return BiaxialAnisotropyData(
+        [int(i) for i in indices],
+        n_terms_.tolist(),
+        [[float(c) for c in axis] for axis in primary],
+        [[float(c) for c in axis] for axis in secondary],
+        [float(m) for m in magnitude],
+        [[int(e) for e in exp] for exp in exponents]
+    )

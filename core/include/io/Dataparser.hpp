@@ -26,6 +26,18 @@ void Anisotropy_from_File(
     intfield & anisotropy_index, scalarfield & anisotropy_magnitude, vectorfield & anisotropy_normal,
     intfield & cubic_anisotropy_index, scalarfield & cubic_anisotropy_magnitude ) noexcept;
 
+void Biaxial_Anisotropy_Axes_from_File(
+    const std::string & anisotropy_axes_file, const std::shared_ptr<Data::Geometry> geometry, int & n_axes,
+    std::map<int, std::pair<Vector3, Vector3>> & anisotropy_axes ) noexcept;
+
+void Biaxial_Anisotropy_Terms_from_File(
+    const std::string & anisotropy_terms_file, const std::shared_ptr<Data::Geometry> geometry, int & n_terms,
+    std::map<int, std::vector<PolynomialTerm>> & anisotropy_terms ) noexcept;
+
+void Biaxial_Anisotropy_from_File(
+    const std::string & anisotropy_axes_file, const std::string & anisotropy_terms_file, const std::shared_ptr<Data::Geometry> geometry, int & n_indices,
+    intfield & anisotropy_indices, field<AnisotropyPolynomial> & anisotropy_polynomials ) noexcept;
+
 void Basis_from_File(
     const std::string & basis_file, Data::Basis_Cell_Composition & cell_composition, std::vector<Vector3> & cell_atoms,
     std::size_t & n_cell_atoms ) noexcept;

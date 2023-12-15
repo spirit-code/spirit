@@ -37,6 +37,7 @@ class Gaussian;
 class Zeeman;
 class Anisotropy;
 class Cubic_Anisotropy;
+class Biaxial_Anisotropy;
 class Exchange;
 class DMI;
 class DDI;
@@ -82,6 +83,7 @@ class Hamiltonian
     friend class Interaction::Zeeman;
     friend class Interaction::Anisotropy;
     friend class Interaction::Cubic_Anisotropy;
+    friend class Interaction::Biaxial_Anisotropy;
     friend class Interaction::Exchange;
     friend class Interaction::DMI;
     friend class Interaction::DDI;
