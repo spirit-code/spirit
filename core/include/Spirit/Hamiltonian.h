@@ -88,6 +88,11 @@ PREFIX void Hamiltonian_Set_Anisotropy(
 PREFIX void
 Hamiltonian_Set_Cubic_Anisotropy( State * state, scalar magnitude, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
+// Set a global biaxial anisotropy [meV]
+PREFIX void Hamiltonian_Set_Biaxial_Anisotropy(
+    State * state, const scalar * magnitude, const unsigned int exponents[][3], const scalar * primary,
+    const scalar * secondary, int n_terms, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+
 // Set the exchange interaction in terms of neighbour shells [meV]
 PREFIX void Hamiltonian_Set_Exchange(
     State * state, int n_shells, const scalar * jij, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
@@ -135,6 +140,20 @@ PREFIX void Hamiltonian_Get_Anisotropy(
 // Retrieves the cubic anisotropy [meV]
 PREFIX void
 Hamiltonian_Get_Cubic_Anisotropy( State * state, scalar * magnitude, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+
+// Retrieves the number of atoms in the magnetic unit cell for which a biaxial anisotropy has been set.
+PREFIX int Hamiltonian_Get_Biaxial_Anisotropy_N_Atoms( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+
+// Retrieves the number of terms that contribute to the biaxial anisotropy.
+// The returned value is an ascending array of indices that mark the boundaries between the terms contributing to an
+// atom. It has length `n_atoms + 1`.
+PREFIX void Hamiltonian_Get_Biaxial_Anisotropy_N_Terms(
+    State * state, int n_atoms, int n_terms[], int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+
+// Retrieves the biaxial anisotropy.
+PREFIX void Hamiltonian_Get_Biaxial_Anisotropy(
+    State * state, const int * n_terms, int * indices, scalar primary[][3], scalar secondary[][3], scalar * magnitude,
+    int exponents[][3], int n_indices, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 /*
 Retrieves the exchange interaction in terms of neighbour shells.

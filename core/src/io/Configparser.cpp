@@ -1304,6 +1304,12 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
     auto cubic_anisotropy_indices    = intfield( geometry->n_cell_atoms );
     auto cubic_anisotropy_magnitudes = scalarfield( geometry->n_cell_atoms, 0.0 );
 
+    int n_biaxial_anisotropy_terms            = 0;
+    std::string biaxial_anisotropy_axes_file  = "";
+    std::string biaxial_anisotropy_terms_file = "";
+    auto biaxial_anisotropy_indices           = intfield( 0 );
+    auto biaxial_anisotropy_polynomials       = field<AnisotropyPolynomial>( 0 );
+
     // ------------ Pair Interactions ------------
     int n_pairs                        = 0;
     std::string interaction_pairs_file = "";
@@ -1436,6 +1442,40 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
         {
             spirit_handle_exception_core(
                 fmt::format( "Unable to read anisotropy from config file \"{}\"", config_file_name ) );
+        }
+
+        try
+        {
+            IO::Filter_File_Handle config_file_handle( config_file_name );
+
+            if( config_file_handle.Find( "n_biaxial_anisotropy_axes" ) )
+                biaxial_anisotropy_axes_file = config_file_name;
+            else if( config_file_handle.Find( "biaxial_anisotropy_axes_file" ) )
+                config_file_handle >> biaxial_anisotropy_axes_file;
+
+            if( config_file_handle.Find( "n_biaxial_anisotropy_terms" ) )
+                biaxial_anisotropy_terms_file = config_file_name;
+            else if( config_file_handle.Find( "biaxial_anisotropy_terms_file" ) )
+                config_file_handle >> biaxial_anisotropy_terms_file;
+
+            if( biaxial_anisotropy_terms_file.empty() xor biaxial_anisotropy_axes_file.empty() )
+            {
+                Log( Log_Level::Error, Log_Sender::IO,
+                     fmt::format(
+                         "Found incomplete specification for biaxial anisotropy: missing specification for \"{}\"",
+                         biaxial_anisotropy_axes_file.empty() ? "axes" : "terms" ) );
+            }
+            else if( !biaxial_anisotropy_terms_file.empty() && !biaxial_anisotropy_axes_file.empty() )
+            {
+                Biaxial_Anisotropy_from_File(
+                    biaxial_anisotropy_axes_file, biaxial_anisotropy_terms_file, geometry, n_biaxial_anisotropy_terms,
+                    biaxial_anisotropy_indices, biaxial_anisotropy_polynomials );
+            }
+        }
+        catch( ... )
+        {
+            spirit_handle_exception_core(
+                fmt::format( "Could not read biaxial anisotropy from config \"{}\"", config_file_name ) );
         }
 
         if( hamiltonian_type == "heisenberg_pairs" )
@@ -1603,6 +1643,15 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy[0]", K ) );
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy_normal[0]", K_normal.transpose() ) );
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "cubic_anisotropy_magnitude[0]", K4 ) );
+    if( !biaxial_anisotropy_polynomials.empty() )
+    {
+        const auto & p = biaxial_anisotropy_polynomials[0];
+        parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "biaxial_anisotropy[0].k1", p.k1.transpose() ) );
+        parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "biaxial_anisotropy[0].k2", p.k2.transpose() ) );
+        parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "biaxial_anisotropy[0].k3", p.k3.transpose() ) );
+    }
+    if( !biaxial_anisotropy_terms_file.empty() )
+        parameter_log.emplace_back( fmt::format( "    biaxial anisotropy terms from file \"{}\"", biaxial_anisotropy_terms_file ) );
     if( hamiltonian_type == "heisenberg_neighbours" )
     {
         parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "n_shells_exchange", n_shells_exchange ) );
@@ -1644,6 +1693,9 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
 
     hamiltonian->setInteraction<Engine::Interaction::Cubic_Anisotropy>(
         cubic_anisotropy_indices, cubic_anisotropy_magnitudes );
+
+    hamiltonian->setInteraction<Engine::Interaction::Biaxial_Anisotropy>(
+        biaxial_anisotropy_indices, biaxial_anisotropy_polynomials );
 
     hamiltonian->setInteraction<Engine::Interaction::DDI>(
         ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius );

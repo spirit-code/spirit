@@ -89,6 +89,18 @@ struct Quadruplet
 #pragma omp declare reduction( + : Vector3 : omp_out = omp_out + omp_in ) initializer( omp_priv = Vector3::Zero() )
 #endif
 
+struct PolynomialTerm
+{
+    scalar coefficient;
+    unsigned int n1, n2, n3;
+};
+
+struct AnisotropyPolynomial
+{
+    Vector3 k1, k2, k3;
+    field<PolynomialTerm> terms;
+};
+
 struct Neighbour : Pair
 {
     // Shell index
