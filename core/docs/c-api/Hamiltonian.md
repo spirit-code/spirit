@@ -142,6 +142,19 @@ Set a global uniaxial anisotropy [meV]
 
 
 
+### Hamiltonian_Set_Biaxial_Anisotropy
+
+```C
+void Hamiltonian_Set_Biaxial_Anisotropy(
+    State * state, const scalar * magnitude, const unsigned int exponents[][3], const scalar * primary,
+    const scalar * secondary, int n_terms, int idx_image=-1, int idx_chain=-1)
+```
+
+Set a global biaxial anisotropy [meV]
+**Note:** the secondary axis will be orthogonalized with respect to the primary axis and both axes will be normalized.
+
+
+
 ### Hamiltonian_Set_Exchange
 
 ```C
@@ -222,6 +235,42 @@ void Hamiltonian_Get_Anisotropy(State *state, float * magnitude, float * normal,
 ```
 
 Retrieves the uniaxial anisotropy [meV]
+
+
+
+### Hamiltonian_Get_Biaxial_Anisotropy_N_Atoms
+
+```C
+int Hamiltonian_Get_Biaxial_Anisotropy_N_Atoms( State * state, int idx_image = -1, int idx_chain = -1 )
+```
+
+Retrieve the number of atoms within the unit cell for which a biaxial anisotropy is defined
+
+
+
+### Hamiltonian_Get_Biaxial_Anisotropy_N_Terms
+
+```C
+void Hamiltonian_Get_Biaxial_Anisotropy_N_Terms(State * state, const int n_atoms, int n_terms[], int idx_image = -1, int idx_chain = -1 )
+```
+
+Retrieve the number of terms for all atoms as a range of range offsets.
+Each consecutive pair of numbers in `n_atoms` is the offset to the beginning and the end of the range representing the actual data.
+**Note:** `n_terms` must be one element larger than `n_atoms`, the fist entry is always `0` and the last entry is the total number of terms.
+
+
+
+### Hamiltonian_Get_Biaxial_Anisotropy
+
+```C
+void Hamiltonian_Get_Biaxial_Anisotropy(
+    State * state, const int * n_terms, int * indices, scalar primary[][3], scalar secondary[][3], scalar * magnitude,
+    int exponents[][3], const int n_indices, int idx_image = -1, int idx_chain = -1 )
+```
+
+Retrieve the data representing the biaxial anisotropy.
+The primary and secondary axes are always orthogonal and there is one pair of axes for each atom for which the anisotropy is defined.
+The magnitudes (in [meV]) and exponents applied to atom `indices[i]` are stored in the range `magnitudes[n_terms[i]..(n_terms[i+1] - 1)]`
 
 
 
