@@ -8,6 +8,12 @@
 #include <Spirit/System.h>
 #include <Spirit/Version.h>
 #include <data/State.hpp>
+#include <engine/Vectormath.hpp>
+#include <engine/Vectormath_Defines.hpp>
+#include <utility/Constants.hpp>
+
+#include "matchers.hpp"
+#include "utility.hpp"
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -26,15 +32,26 @@ constexpr int digits_b = 4;
 constexpr int digits_c = 1;
 #endif
 
-template<typename T>
-auto within_digits( T value, int decimals_required_equal )
-{
-    double using_decimals = decimals_required_equal - int( std::ceil( std::log10( std::abs( value ) ) ) );
-    INFO(
-        "Requested " << decimals_required_equal << " decimals, meaning " << using_decimals
-                     << " decimals after the floating point" );
-    return Catch::Matchers::WithinAbs( value, std::pow( 10, -using_decimals ) );
-}
+#ifdef SPIRIT_SCALAR_TYPE_DOUBLE
+constexpr scalar epsilon_2 = 1e-10;
+constexpr scalar epsilon_3 = 1e-12;
+constexpr scalar epsilon_4 = 1e-12;
+constexpr scalar epsilon_5 = 1e-6;
+constexpr scalar epsilon_6 = 1e-7;
+#else
+constexpr scalar epsilon_2 = 1e-2;
+constexpr scalar epsilon_3 = 1e-3;
+constexpr scalar epsilon_4 = 1e-4;
+constexpr scalar epsilon_5 = 1e-5;
+constexpr scalar epsilon_6 = 1e-6;
+#endif
+
+namespace C = Utility::Constants;
+
+using Catch::CustomMatchers::MapApprox;
+using Catch::CustomMatchers::within_digits;
+using Catch::Matchers::Equals;
+using Catch::Matchers::WithinAbs;
 
 TEST_CASE( "Uniaxial nisotropy", "[anisotropy]" )
 {
@@ -94,7 +111,7 @@ TEST_CASE( "Uniaxial nisotropy", "[anisotropy]" )
             INFO(
                 "i = " << idx << ", Gradient = " << gradients[idx].transpose() << " was expected to be "
                        << gradient_expected.transpose() << "\n" );
-            REQUIRE( gradients[idx].isApprox( gradient_expected, 1e-12 ) );
+            REQUIRE( gradients[idx].isApprox( gradient_expected, epsilon_3 ) );
         }
     }
 }
@@ -158,7 +175,7 @@ TEST_CASE( "Cubic anisotropy", "[anisotropy]" )
             INFO(
                 "i = " << idx << ", Gradient = " << gradients[idx].transpose() << " was expected to be "
                        << gradient_expected.transpose() << "\n" );
-            REQUIRE( gradients[idx].isApprox( gradient_expected, 1e-12 ) );
+            REQUIRE( gradients[idx].isApprox( gradient_expected, epsilon_3 ) );
         }
     }
 
@@ -185,7 +202,223 @@ TEST_CASE( "Cubic anisotropy", "[anisotropy]" )
                 "i = " << idx << ", Gradient from `Gradient_and_Energy` = " << gradients_a[idx].transpose()
                        << " was expected to be equal to directly calculated gradient " << gradients_b[idx].transpose()
                        << "\n" );
-            REQUIRE( gradients_a[idx].isApprox( gradients_b[idx], 1e-12 ) );
+            REQUIRE( gradients_a[idx].isApprox( gradients_b[idx], epsilon_3 ) );
+        }
+    }
+}
+
+TEST_CASE( "Biaxial anisotropy", "[anisotropy]" )
+{
+    auto state = std::shared_ptr<State>( State_Setup(), State_Delete );
+
+    std::shared_ptr<Data::Spin_System> image;
+    std::shared_ptr<Data::Spin_System_Chain> chain;
+
+    int idx_image = -1, idx_chain = -1;
+    from_indices( state.get(), idx_image, idx_chain, image, chain );
+
+    auto * hamiltonian = image->hamiltonian.get();
+    REQUIRE( hamiltonian != nullptr );
+
+    auto * interaction = hamiltonian->getInteraction<Engine::Interaction::Biaxial_Anisotropy>();
+    REQUIRE( interaction != nullptr );
+
+    constexpr int init_n_terms = 7;
+    constexpr std::array<scalar, 3> init_primary{ 0, 0, 1 };
+    constexpr std::array<scalar, 3> init_secondary{ 1, 0, 0 };
+    constexpr std::array init_exponents{
+        std::array{ 1u, 0u, 0u }, std::array{ 2u, 0u, 0u }, std::array{ 3u, 0u, 0u }, std::array{ 1u, 2u, 0u },
+        std::array{ 0u, 4u, 0u }, std::array{ 3u, 2u, 0u }, std::array{ 3u, 4u, 0u },
+    };
+    constexpr std::array<scalar, 7> init_magnitudes{ 3.0, 1.8, 0.9, -3.2, 3.2, -1.6, 1.6 };
+
+    SECTION( "API: Get after set should return the previously set value" )
+    {
+        Hamiltonian_Set_Biaxial_Anisotropy(
+            state.get(), init_magnitudes.data(), array_cast( init_exponents ), init_primary.data(),
+            init_secondary.data(), init_n_terms );
+
+        const int n_atoms = Hamiltonian_Get_Biaxial_Anisotropy_N_Atoms( state.get() );
+
+        REQUIRE( n_atoms == hamiltonian->geometry->n_cell_atoms );
+
+        intfield n_terms( n_atoms + 1 );
+        Hamiltonian_Get_Biaxial_Anisotropy_N_Terms( state.get(), n_atoms, n_terms.data() );
+
+        REQUIRE( n_terms[0] == 0 );
+        for( int i = 0; i < n_atoms; ++i )
+        {
+            REQUIRE( n_terms[i + 1] - n_terms[i] == init_n_terms );
+        }
+
+        const int n_terms_total = n_terms[n_atoms];
+
+        intfield indices( n_atoms );
+        std::vector<std::array<scalar, 3>> primary( n_atoms );
+        std::vector<std::array<scalar, 3>> secondary( n_atoms );
+        std::vector exponents( n_terms_total, std::array{ 0, 0, 0 } );
+        scalarfield magnitudes( n_terms_total );
+
+        Hamiltonian_Get_Biaxial_Anisotropy(
+            state.get(), n_terms.data(), indices.data(), array_cast( primary ), array_cast( secondary ),
+            magnitudes.data(), array_cast( exponents ), n_atoms );
+
+        intfield indices_ref( n_atoms );
+        std::generate( begin( indices_ref ), end( indices_ref ), [i = 0]() mutable { return i++; } );
+
+        REQUIRE_THAT( indices, Equals( indices_ref ) );
+
+        for( const auto & k1 : primary )
+            for( int i = 0; i < 3; ++i )
+            {
+                REQUIRE_THAT( k1[i], WithinAbs( init_primary[i], epsilon_3 ) );
+            }
+
+        for( const auto & k2 : secondary )
+            for( int i = 0; i < 3; ++i )
+            {
+                REQUIRE_THAT( k2[i], WithinAbs( init_secondary[i], epsilon_3 ) );
+            }
+
+        if( !n_terms.empty() )
+        {
+            // use std::map to compare them, because the order of the polynomial terms need not be fixed
+            using term_idx = std::tuple<int, int, int>;
+            using term_map = std::map<term_idx, scalar>;
+            auto make_polynomial
+                = []( const int offset_begin, const int offset_end, const auto & exponents, const auto & magnitudes )
+            {
+                term_map polynomial{};
+                for( int i = offset_begin; i < offset_end; ++i )
+                    polynomial.emplace(
+                        std::make_tuple( exponents[i][0], exponents[i][1], exponents[i][2] ), magnitudes[i] );
+                return polynomial;
+            };
+
+            const auto init_polynomial = make_polynomial( 0, init_n_terms, init_exponents, init_magnitudes );
+            for( std::size_t i = 0; i < n_terms.size() - 1; ++i )
+            {
+                const auto polynomial = make_polynomial( n_terms[i], n_terms[i + 1], exponents, magnitudes );
+                REQUIRE_THAT( polynomial, MapApprox( init_polynomial, epsilon_3 ) );
+            }
+        }
+    }
+
+    SECTION( "Engine: Check results of the energy calculations" )
+    {
+        auto rng         = std::mt19937( 3548368 );
+        auto angle_theta = std::uniform_real_distribution<scalar>( 0, C::Pi );
+        auto angle_phi   = std::uniform_real_distribution<scalar>( -2 * C::Pi, 2 * C::Pi );
+        auto coeff       = std::uniform_real_distribution<scalar>( -10.0, 10.0 );
+        auto exp         = std::uniform_int_distribution<unsigned int>( 0, 6 );
+
+        auto term_info = []( const auto &... terms )
+        {
+            static constexpr std::size_t N = std::tuple_size_v<std::tuple<decltype( terms )...>>;
+            return fmt::format( "{} term(s):\n", N )
+                   + ( ...
+                       + fmt::format(
+                           "    n1={}, n2={}, n3={}, c={}\n", terms.n1, terms.n2, terms.n3, terms.coefficient ) );
+        };
+
+        const auto test = [&state, &interaction, &init_primary, &init_secondary,
+                           &term_info]( const int idx, const scalar theta, const scalar phi, const auto &... terms )
+        {
+            auto make_spherical = []( const scalar theta, const scalar phi ) -> Vector3 {
+                return { cos( phi ) * sin( theta ), sin( phi ) * sin( theta ), cos( theta ) };
+            };
+
+            static constexpr std::size_t N = std::tuple_size_v<std::tuple<decltype( terms )...>>;
+            using exponents_t              = std::array<unsigned int, 3>;
+
+            const std::array magnitude{ terms.coefficient... };
+            const std::array<exponents_t, N> exponents{ exponents_t{ terms.n1, terms.n2, terms.n3 }... };
+
+            Hamiltonian_Set_Biaxial_Anisotropy(
+                state.get(), magnitude.data(), array_cast( exponents ), init_primary.data(), init_secondary.data(), N );
+
+            vectorfield spins( state->nos, make_spherical( theta, phi ) );
+            scalarfield energy( state->nos, 0.0 );
+            interaction->Energy_per_Spin( spins, energy );
+
+            // reference energy
+            const scalar ref_energy
+                = ( ...
+                    + ( terms.coefficient * pow( sin( theta ), 2 * terms.n1 + terms.n2 + terms.n3 )
+                        * pow( cos( phi ), terms.n2 ) * pow( sin( phi ), terms.n3 ) ) );
+
+            for( const auto & e : energy )
+            {
+                INFO( "Energy:" )
+                INFO( "trial: " << idx << ", theta=" << theta << ", phi=" << phi );
+                INFO( term_info( terms... ) );
+                REQUIRE_THAT( e, WithinAbs( ref_energy, epsilon_3 ) );
+            };
+
+            INFO( "Total Energy:" )
+            INFO( "trial: " << idx << ", theta=" << theta << ", phi=" << phi );
+            INFO( term_info( terms... ) );
+            REQUIRE_THAT( interaction->Energy( spins ), WithinAbs( state->nos * ref_energy, epsilon_5 ) );
+
+            vectorfield gradient( state->nos, Vector3::Zero() );
+            interaction->Gradient( spins, gradient );
+
+            const auto k1 = Vector3{ init_primary[0], init_primary[1], init_primary[2] };
+            const auto k2 = Vector3{ init_secondary[0], init_secondary[1], init_secondary[2] };
+            const auto k3 = k1.cross( k2 );
+
+            Vector3 ref_gradient
+                = ( ... +
+                    [&theta, &phi, &k1, &k2, &k3]( const auto & term )
+                    {
+                        Vector3 result{ 0, 0, 0 };
+                        const scalar s1 = cos( theta );
+                        const scalar s2 = sin( theta ) * cos( phi );
+                        const scalar s3 = sin( theta ) * sin( phi );
+
+                        const scalar a = pow( s2, term.n2 );
+                        const scalar b = pow( s3, term.n3 );
+                        const scalar c = pow( 1 - s1 * s1, term.n1 );
+
+                        const auto & [coefficient, n1, n2, n3] = term;
+                        if( n1 > 0 )
+                            result += k1 * ( coefficient * a * b * n1 * ( -2 * s1 * pow( 1 - s1 * s1, n1 - 1 ) ) );
+                        if( n2 > 0 )
+                            result += k2 * ( coefficient * b * c * n2 * pow( s2, n2 - 1 ) );
+                        if( n3 > 0 )
+                            result += k3 * ( coefficient * a * c * n3 * pow( s3, n3 - 1 ) );
+                        return result;
+                    }( terms ) );
+
+            for( const auto & g : gradient )
+            {
+                for( std::size_t i = 0; i < 3; ++i )
+                {
+                    INFO( "trial: " << idx << ", theta=" << theta << ", phi=" << phi );
+                    INFO( term_info( terms... ) );
+                    INFO( "Gradient(expected): " << ref_gradient.transpose() );
+                    INFO( "Gradient(actual):   " << g.transpose() );
+                    REQUIRE( g.isApprox( ref_gradient, epsilon_3 ) );
+                }
+            }
+        };
+
+        for( int n = 0; n < 6; ++n )
+        {
+            const scalar theta = angle_theta( rng );
+            const scalar phi   = angle_phi( rng );
+
+            std::array terms{
+                PolynomialTerm{ coeff( rng ), exp( rng ), exp( rng ), exp( rng ) },
+                PolynomialTerm{ coeff( rng ), exp( rng ), exp( rng ), exp( rng ) },
+            };
+
+            for( const auto & term : terms )
+                test( n, theta, phi, term );
+
+            for( const auto & term_a : terms )
+                for( const auto & term_b : terms )
+                    test( n, theta, phi, term_a, term_b );
         }
     }
 }

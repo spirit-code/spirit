@@ -58,7 +58,7 @@ public:
     scalar Energy_Single_Spin( int ispin, const vectorfield & spins ) override;
 
     // Interaction name as string
-    static constexpr std::string_view name          = "Generalized Anisotropy";
+    static constexpr std::string_view name          = "Biaxial Anisotropy";
     static constexpr std::optional<int> spin_order_ = std::nullopt;
 
 protected:

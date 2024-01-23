@@ -435,6 +435,7 @@ if( SPIRIT_USE_CUDA )
         ${CMAKE_CURRENT_LIST_DIR}/test/test_ema.cpp
         ${CMAKE_CURRENT_LIST_DIR}/test/test_anisotropy.cpp
         ${CMAKE_CURRENT_LIST_DIR}/test/test_aggregation.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/test/test_configparser.cpp
         PROPERTIES LANGUAGE CUDA )
 endif()
 
@@ -526,6 +527,7 @@ if( SPIRIT_BUILD_FOR_CXX OR SPIRIT_BUILD_FOR_JS )
         #----- Create test executables
         set( TEST_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR} )
         set( TEST_EXECUTABLES )
+        add_framework_test( test_configparser       test/test_configparser.cpp )
         add_framework_test( test_vmath              test/test_vectormath.cpp )
         add_framework_test( test_mmath              test/test_manifoldmath.cpp )
         add_framework_test( test_api                test/test_api.cpp )

@@ -1304,7 +1304,7 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
     auto cubic_anisotropy_indices    = intfield( geometry->n_cell_atoms );
     auto cubic_anisotropy_magnitudes = scalarfield( geometry->n_cell_atoms, 0.0 );
 
-    int n_biaxial_anisotropy_terms            = 0;
+    int n_biaxial_anisotropy                  = 0;
     std::string biaxial_anisotropy_axes_file  = "";
     std::string biaxial_anisotropy_terms_file = "";
     auto biaxial_anisotropy_indices           = intfield( 0 );
@@ -1468,7 +1468,7 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
             else if( !biaxial_anisotropy_terms_file.empty() && !biaxial_anisotropy_axes_file.empty() )
             {
                 Biaxial_Anisotropy_from_File(
-                    biaxial_anisotropy_axes_file, biaxial_anisotropy_terms_file, geometry, n_biaxial_anisotropy_terms,
+                    biaxial_anisotropy_axes_file, biaxial_anisotropy_terms_file, geometry, n_biaxial_anisotropy,
                     biaxial_anisotropy_indices, biaxial_anisotropy_polynomials );
             }
         }
@@ -1651,7 +1651,8 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
         parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "biaxial_anisotropy[0].k3", p.k3.transpose() ) );
     }
     if( !biaxial_anisotropy_terms_file.empty() )
-        parameter_log.emplace_back( fmt::format( "    biaxial anisotropy terms from file \"{}\"", biaxial_anisotropy_terms_file ) );
+        parameter_log.emplace_back(
+            fmt::format( "    biaxial anisotropy terms from file \"{}\"", biaxial_anisotropy_terms_file ) );
     if( hamiltonian_type == "heisenberg_neighbours" )
     {
         parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "n_shells_exchange", n_shells_exchange ) );
