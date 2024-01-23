@@ -339,7 +339,7 @@ catch( ... )
 }
 
 void Biaxial_Anisotropy_Axes_from_File(
-    const std::string & anisotropy_terms_file, const std::shared_ptr<Data::Geometry> geometry, int & n_axes,
+    const std::string & anisotropy_axes_file, const std::shared_ptr<Data::Geometry> geometry, int & n_axes,
     std::map<int, std::pair<Vector3, Vector3>> & anisotropy_axes ) noexcept
 try
 {
@@ -350,7 +350,7 @@ try
         { "i", "k1x", "k1y", "k1z", "k1a", "k1b", "k1c", "k2x", "k2y", "k2z", "k2a", "k2b", "k2c" } );
 
     // factory function for creating a lambda that transforms the row that is read
-    auto transform_factory = [&anisotropy_terms_file, &geometry]( const std::map<std::string_view, int> & idx )
+    auto transform_factory = [&anisotropy_axes_file, &geometry]( const std::map<std::string_view, int> & idx )
     {
         bool K1_xyz = ( idx.at( "k1x" ) >= 0 && idx.at( "k1y" ) >= 0 && idx.at( "k1z" ) >= 0 );
         bool K1_abc = ( idx.at( "k1a" ) >= 0 && idx.at( "k1b" ) >= 0 && idx.at( "k1c" ) >= 0 );
@@ -359,7 +359,7 @@ try
 
         if( !( ( K1_xyz || K1_abc ) && ( K2_xyz || K2_abc ) ) )
             Log( Log_Level::Warning, Log_Sender::IO,
-                 fmt::format( "No anisotropy data could be found in header of file \"{}\"", anisotropy_terms_file ) );
+                 fmt::format( "No anisotropy data could be found in header of file \"{}\"", anisotropy_axes_file ) );
 
         return [K1_xyz, K1_abc, K2_xyz, K2_abc, &geometry](
                    const AnisotropyTableParser::read_row_t & row ) -> std::pair<int, std::pair<Vector3, Vector3>>
@@ -398,14 +398,15 @@ try
         };
     };
 
-    const auto data = parser.parse( anisotropy_terms_file, "n_anisotropy_axes", std::size_t( 6 ), transform_factory );
-    n_axes          = data.size();
+    const auto data
+        = parser.parse( anisotropy_axes_file, "n_biaxial_anisotropy_axes", std::size_t( 7 ), transform_factory );
+    n_axes = data.size();
 
-    anisotropy_axes = std::map<int, std::pair<Vector3, Vector3>>( begin( data ), end( data ) );
+    anisotropy_axes = std::map( begin( data ), end( data ) );
 }
 catch( ... )
 {
-    spirit_rethrow( fmt::format( "Could not read anisotropy axes from file \"{}\"", anisotropy_terms_file ) );
+    spirit_rethrow( fmt::format( "Could not read anisotropy axes from file \"{}\"", anisotropy_axes_file ) );
 }
 
 void Biaxial_Anisotropy_Terms_from_File(
@@ -432,9 +433,9 @@ try
         };
     };
 
-    const std::string anisotropy_size_id = "n_anisotropy";
-    const auto data = parser.parse( anisotropy_terms_file, anisotropy_size_id, std::size_t( 6 ), transform_factory );
-    n_terms         = data.size();
+    const auto data
+        = parser.parse( anisotropy_terms_file, "n_biaxial_anisotropy_terms", std::size_t( 6 ), transform_factory );
+    n_terms = data.size();
 
     anisotropy_terms.clear();
     for( const auto & [i, term] : data )
@@ -475,8 +476,8 @@ try
             if( const auto & terms = anisotropy_terms[i]; !terms.empty() )
             {
                 anisotropy_indices.emplace_back( i );
-                anisotropy_polynomials.emplace_back(
-                    AnisotropyPolynomial{ axes.first, axes.second, axes.first.cross( axes.second ).normalized(), terms } );
+                anisotropy_polynomials.emplace_back( AnisotropyPolynomial{
+                    axes.first, axes.second, axes.first.cross( axes.second ).normalized(), terms } );
             }
             else
             {

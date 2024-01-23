@@ -56,7 +56,9 @@ class Hamiltonian_set_get(TestParameters):
         dir1_set = [1.0, 1.0, 0.0]
         dir2_set = [1.0, -1.0, 0.0]
         exp_set = [[1, 0, 0], [0, 1, 1], [2, 0, 0], [1, 2, 2]]
-        hamiltonian.set_biaxial_anisotropy(self.p_state, mag_set, exp_set, dir1_set, dir2_set)
+        hamiltonian.set_biaxial_anisotropy(
+            self.p_state, mag_set, exp_set, dir1_set, dir2_set
+        )
 
     def test_get_biaxial_anisotropy(self):
         import math
@@ -66,11 +68,30 @@ class Hamiltonian_set_get(TestParameters):
         n_atoms = hamiltonian.get_biaxial_anisotropy_n_atoms(self.p_state)
         n_terms = hamiltonian.get_biaxial_anisotropy_n_terms(self.p_state, n_atoms)
 
+        n_terms_im = hamiltonian.get_biaxial_anisotropy_n_terms(self.p_state)
+        self.assertListEqual(n_terms.tolist(), n_terms_im.tolist())
+
         self.assertTrue(n_atoms == 0 or n_atoms == len(n_terms) - 1)
 
-        result = hamiltonian.get_biaxial_anisotropy(self.p_state, n_terms)
+        res = hamiltonian.get_biaxial_anisotropy(self.p_state, n_terms)
+        res_im = hamiltonian.get_biaxial_anisotropy(self.p_state)
 
-        self.assertListEqual(n_terms.tolist(), result.n_terms)
+        for mag, expected in zip(res.magnitude, res_im.magnitude, strict=True):
+            self.assertAlmostEqual(mag, expected)
+
+
+        for k1, k1_expected in zip(res.primary, res_im.primary, strict=True):
+            for actual, expected in zip(k1, k1_expected, strict=True):
+                self.assertAlmostEqual(actual, expected)
+
+        for k2, k2_expected in zip(res.secondary, res_im.secondary, strict=True):
+            for actual, expected in zip(k2, k2_expected, strict=True):
+                self.assertAlmostEqual(actual, expected)
+
+        for exponent, expected in zip(res.exponents, res_im.exponents, strict=True):
+            self.assertListEqual(exponent.tolist(), expected.tolist())
+
+        self.assertListEqual(n_terms.tolist(), res.n_terms.tolist())
 
         mag_expected = [0.5, 0.4, 0.3, 0.2]
         dir1_expected = [1.0 / math.sqrt(2), 1.0 / math.sqrt(2), 0.0]
@@ -79,20 +100,20 @@ class Hamiltonian_set_get(TestParameters):
 
         n_terms_atom = len(mag_expected)
 
-        for mag, expected in zip(result.magnitude, mag_expected):
+        for mag, expected in zip(res.magnitude, mag_expected, strict=True):
             self.assertAlmostEqual(mag, expected)
 
-        for primary_axis, expected in zip(result.primary[0], dir1_expected):
-            self.assertAlmostEqual(primary_axis, expected)
+        for k1, expected in zip(res.primary[0], dir1_expected, strict=True):
+            self.assertAlmostEqual(k1, expected)
 
-        for secondary_axis, expected in zip(result.secondary[0], dir2_expected):
-            self.assertAlmostEqual(secondary_axis, expected)
+        for k2, expected in zip(res.secondary[0], dir2_expected, strict=True):
+            self.assertAlmostEqual(k2, expected)
 
-        for exponent, expected in zip(result.exponents, exp_expected):
-            self.assertListEqual(exponent, expected)
+        for exponent, expected in zip(res.exponents, exp_expected, strict=True):
+            self.assertListEqual(exponent.tolist(), expected)
 
         for i in range(n_atoms):
-            self.assertEqual(result.n_terms[i + 1] - result.n_terms[i], n_terms_atom)
+            self.assertEqual(res.n_terms[i + 1] - res.n_terms[i], n_terms_atom)
 
 #########
 

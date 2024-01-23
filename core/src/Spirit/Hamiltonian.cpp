@@ -583,20 +583,15 @@ try
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
 
-    try
+    if( auto * interaction = image->hamiltonian->getInteraction<Engine::Interaction::Biaxial_Anisotropy>();
+        interaction != nullptr )
     {
-        if( auto * interaction = image->hamiltonian->getInteraction<Engine::Interaction::Biaxial_Anisotropy>();
-            interaction != nullptr )
-        {
-            return interaction->getN_Atoms();
-        }
+        return interaction->getN_Atoms();
     }
-    catch( ... )
+    else
     {
-        spirit_handle_exception_api( idx_image, idx_chain );
+        return 0;
     }
-
-    return 0;
 }
 catch( ... )
 {
@@ -613,24 +608,18 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( n_terms, "n_terms" );
 
-    try
+    if( n_atoms == 0 )
+        return;
+
+    if( auto * interaction = image->hamiltonian->getInteraction<Engine::Interaction::Biaxial_Anisotropy>();
+        interaction != nullptr )
     {
-        if( n_atoms == 0 )
-            return;
+        n_terms[0] = 0;
 
-        if( auto * interaction = image->hamiltonian->getInteraction<Engine::Interaction::Biaxial_Anisotropy>();
-            interaction != nullptr )
-        {
-            n_terms[0] = 0;
-
-            for( int i = 0; i < n_atoms; ++i )
-                n_terms[i + 1] = n_terms[i] + interaction->getN_Terms( i );
-        }
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api( idx_image, idx_chain );
+        for( int i = 0; i < n_atoms; ++i )
+            n_terms[i + 1] = n_terms[i] + interaction->getN_Terms( i );
     }
 }
 catch( ... )
@@ -648,47 +637,45 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
+    throw_if_nullptr( n_terms, "n_terms" );
+    throw_if_nullptr( indices, "indices" );
+    throw_if_nullptr( primary, "primary" );
+    throw_if_nullptr( secondary, "secondary" );
+    throw_if_nullptr( magnitude, "magnitude" );
+    throw_if_nullptr( exponents, "exponents" );
 
-    try
+    if( auto * interaction = image->hamiltonian->getInteraction<Engine::Interaction::Biaxial_Anisotropy>();
+        interaction != nullptr )
     {
-        if( auto * interaction = image->hamiltonian->getInteraction<Engine::Interaction::Biaxial_Anisotropy>();
-            interaction != nullptr )
+        intfield anisotropy_indices;
+        field<AnisotropyPolynomial> anisotropy_polynomials;
+
+        interaction->getParameters( anisotropy_indices, anisotropy_polynomials );
+
+        const auto n_read = std::min( n_indices, static_cast<decltype( n_indices )>( anisotropy_indices.size() ) );
+        for( int j = 0; j < n_read; ++j )
         {
-            intfield anisotropy_indices;
-            field<AnisotropyPolynomial> anisotropy_polynomials;
+            indices[j] = anisotropy_indices[j];
 
-            interaction->getParameters( anisotropy_indices, anisotropy_polynomials );
-
-            const auto n_read = std::min( n_indices, static_cast<decltype( n_indices )>( anisotropy_indices.size() ) );
-            for( int j = 0; j < n_read; ++j )
-            {
-                indices[j] = anisotropy_indices[j];
-
-                const auto & k1 = anisotropy_polynomials[j].k1;
-                const auto & k2 = anisotropy_polynomials[j].k2;
+            const auto & k1 = anisotropy_polynomials[j].k1;
+            const auto & k2 = anisotropy_polynomials[j].k2;
 
 #pragma unroll
-                for( int i = 0; i < 3; ++i )
-                {
-                    primary[j][i]   = k1[i];
-                    secondary[j][i] = k2[i];
-                }
+            for( int i = 0; i < 3; ++i )
+            {
+                primary[j][i]   = k1[i];
+                secondary[j][i] = k2[i];
+            }
 
-                // Magnitude
-                const auto & terms = anisotropy_polynomials[j].terms;
-                for( int i = 0, idx = n_terms[j]; idx < n_terms[j + 1]; ++i, ++idx )
-                {
-                    magnitude[idx]    = terms[i].coefficient;
-                    exponents[idx][0] = terms[i].n1;
-                    exponents[idx][1] = terms[i].n2;
-                    exponents[idx][2] = terms[i].n3;
-                }
+            const auto & terms = anisotropy_polynomials[j].terms;
+            for( int i = 0, idx = n_terms[j]; idx < n_terms[j + 1]; ++i, ++idx )
+            {
+                magnitude[idx]    = terms[i].coefficient;
+                exponents[idx][0] = terms[i].n1;
+                exponents[idx][1] = terms[i].n2;
+                exponents[idx][2] = terms[i].n3;
             }
         }
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_api( idx_image, idx_chain );
     }
 }
 catch( ... )

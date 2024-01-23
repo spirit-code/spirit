@@ -151,8 +151,8 @@ def set_cubic_anisotropy(p_state, magnitude, idx_image=-1, idx_chain=-1):
 _Set_Biaxial_Anisotropy = _spirit.Hamiltonian_Set_Biaxial_Anisotropy
 _Set_Biaxial_Anisotropy.argtypes = [
     ctypes.c_void_p,
-    np.ctypeslib.ndpointer(scalar, ndim=1, flags='C'),
-    np.ctypeslib.ndpointer(ctypes.c_uint, ndim=2, flags='C'),
+    np.ctypeslib.ndpointer(scalar, ndim=1, flags="C"),
+    np.ctypeslib.ndpointer(ctypes.c_uint, ndim=2, flags="C"),
     ctypes.POINTER(scalar),
     ctypes.POINTER(scalar),
     ctypes.c_int,
@@ -170,7 +170,7 @@ def set_biaxial_anisotropy(
     secondary,
     n_terms=None,
     idx_image=-1,
-    idx_chain=-1
+    idx_chain=-1,
 ):
     """Set the (homogeneous) biaxial magnetocrystalline anisotropy."""
     vec3 = scalar * 3
@@ -505,7 +505,7 @@ _Get_Biaxial_Anisotropy_N_Terms = _spirit.Hamiltonian_Get_Biaxial_Anisotropy_N_T
 _Get_Biaxial_Anisotropy_N_Terms.argtypes = [
     ctypes.c_void_p,
     ctypes.c_int,
-    np.ctypeslib.ndpointer(ctypes.c_int, ndim=1, flags='C'),
+    np.ctypeslib.ndpointer(ctypes.c_int, ndim=1, flags=["C", "W"]),
     ctypes.c_int,
     ctypes.c_int,
 ]
@@ -516,14 +516,16 @@ def get_biaxial_anisotropy_n_terms(p_state, n_atoms=None, idx_image=-1, idx_chai
     """Get the offset ranges for the biaxial anisotropy."""
     n_atoms_: int
     if n_atoms is None:
-        n_atoms_ = get_biaxial_anisotropy_n_atoms(p_state, idx_image, idx_chain)
+        n_atoms_ = get_biaxial_anisotropy_n_atoms(
+            p_state, idx_image=idx_image, idx_chain=idx_chain
+        )
     else:
         n_atoms_ = n_atoms
     n_terms = np.zeros((n_atoms_ + 1,), dtype=ctypes.c_int)
 
     _Get_Biaxial_Anisotropy_N_Terms(
         ctypes.c_void_p(p_state),
-        n_atoms,
+        ctypes.c_int(n_atoms_),
         n_terms,
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
@@ -544,12 +546,12 @@ class BiaxialAnisotropyData(NamedTuple):
 _Get_Biaxial_Anisotropy = _spirit.Hamiltonian_Get_Biaxial_Anisotropy
 _Get_Biaxial_Anisotropy.argtypes = [
     ctypes.c_void_p,
-    np.ctypeslib.ndpointer(ctypes.c_int, ndim=1, flags='C'),
-    np.ctypeslib.ndpointer(ctypes.c_int, ndim=1, flags=['C', 'W']),
-    np.ctypeslib.ndpointer(scalar, ndim=2, flags=['C', 'W']),
-    np.ctypeslib.ndpointer(scalar, ndim=2, flags=['C', 'W']),
-    np.ctypeslib.ndpointer(scalar, ndim=1, flags=['C', 'W']),
-    np.ctypeslib.ndpointer(ctypes.c_uint, ndim=2, flags=['C', 'W']),
+    np.ctypeslib.ndpointer(ctypes.c_int, ndim=1, flags="C"),
+    np.ctypeslib.ndpointer(ctypes.c_int, ndim=1, flags=["C", "W"]),
+    np.ctypeslib.ndpointer(scalar, ndim=2, flags=["C", "W"]),
+    np.ctypeslib.ndpointer(scalar, ndim=2, flags=["C", "W"]),
+    np.ctypeslib.ndpointer(scalar, ndim=1, flags=["C", "W"]),
+    np.ctypeslib.ndpointer(ctypes.c_uint, ndim=2, flags=["C", "W"]),
     ctypes.c_int,
     ctypes.c_int,
     ctypes.c_int,
@@ -560,20 +562,28 @@ _Get_Biaxial_Anisotropy.restype = None
 def get_biaxial_anisotropy(p_state, n_terms=None, idx_image=-1, idx_chain=-1):
     """Get the data representing the biaxial anisotropy."""
     if n_terms is None:
-        n_terms_ = get_biaxial_anisotropy_n_terms(p_state, idx_image, idx_chain)
+        n_terms_ = get_biaxial_anisotropy_n_terms(
+            p_state, idx_image=idx_image, idx_chain=idx_chain
+        )
     else:
         n_terms_ = np.asarray(n_terms)
 
-    n_indices = max(0, len(n_terms_) - 1)
+    if len(n_terms_) > 0:
+        n_indices = len(n_terms_) - 1
+        n_terms_total = int(n_terms_[-1])
+    else:
+        n_indices = 0
+        n_terms_total = 0
+
     indices = np.zeros((n_indices,), dtype=ctypes.c_int)
     primary = np.zeros((n_indices, 3), dtype=scalar)
     secondary = np.zeros((n_indices, 3), dtype=scalar)
-    magnitude = np.zeros((n_terms_[-1],), dtype=scalar)
-    exponents = np.zeros((n_terms_[-1], 3), dtype=ctypes.c_uint)
+    magnitude = np.zeros((n_terms_total,), dtype=scalar)
+    exponents = np.zeros((n_terms_total, 3), dtype=ctypes.c_uint)
 
     _Get_Biaxial_Anisotropy(
         ctypes.c_void_p(p_state),
-        n_terms,
+        n_terms_,
         indices,
         primary,
         secondary,
@@ -585,5 +595,5 @@ def get_biaxial_anisotropy(p_state, n_terms=None, idx_image=-1, idx_chain=-1):
     )
 
     return BiaxialAnisotropyData(
-        indices, n_terms_, primary, secondary, magnitude, exponents 
+        indices, n_terms_, primary, secondary, magnitude, exponents
     )
