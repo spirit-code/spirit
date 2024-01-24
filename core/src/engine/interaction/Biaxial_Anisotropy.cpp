@@ -52,17 +52,16 @@ __global__ void CU_E_Biaxial_Anisotropy(
             if( cu_check_atom_type( atom_types[ispin] ) )
             {
                 const auto & poly = anisotropy_polynomials[iani];
-                const scalar n1   = poly.k1.dot( spins[ispin] );
-                const scalar n2   = poly.k2.dot( spins[ispin] );
-                const scalar n3   = poly.k3.dot( spins[ispin] );
+                const scalar s1   = poly.k1.dot( spins[ispin] );
+                const scalar s2   = poly.k2.dot( spins[ispin] );
+                const scalar s3   = poly.k3.dot( spins[ispin] );
 
-                const scalar sin_theta_2 = 1 - n1 * n1;
+                const scalar sin_theta_2 = 1 - s1 * s1;
 
                 scalar result = 0;
-                for( const auto & [coeff, exp_a, exp_b, exp_st2] : poly.terms )
+                for( const auto & [coeff, n1, n2, n3] : poly.terms )
                 {
-                    using std::pow;
-                    result += coeff * pow( sin_theta_2, exp_st2 ) * pow( n2, exp_a ) * pow( n3, exp_b );
+                    result += coeff * pow( sin_theta_2, n1 ) * pow( s2, n2 ) * pow( s3, n3 );
                 }
                 energy[ispin] += result;
             }
@@ -93,17 +92,16 @@ void Biaxial_Anisotropy::Energy_per_Spin( const vectorfield & spins, scalarfield
             if( check_atom_type( geometry->atom_types[ispin] ) )
             {
                 const auto & poly = anisotropy_polynomials[iani];
-                const scalar n1   = poly.k1.dot( spins[ispin] );
-                const scalar n2   = poly.k2.dot( spins[ispin] );
-                const scalar n3   = poly.k3.dot( spins[ispin] );
+                const scalar s1   = poly.k1.dot( spins[ispin] );
+                const scalar s2   = poly.k2.dot( spins[ispin] );
+                const scalar s3   = poly.k3.dot( spins[ispin] );
 
-                const scalar sin_theta_2 = 1 - n1 * n1;
+                const scalar sin_theta_2 = 1 - s1 * s1;
 
                 scalar result = 0;
-                for( const auto & [coeff, exp_a, exp_b, exp_st2] : poly.terms )
+                for( const auto & [coeff, n1, n2, n3] : poly.terms )
                 {
-                    using std::pow;
-                    result += coeff * pow( sin_theta_2, exp_st2 ) * pow( n2, exp_a ) * pow( n3, exp_b );
+                    result += coeff * pow( sin_theta_2, n1 ) * pow( s2, n2 ) * pow( s3, n3 );
                 }
                 energy[ispin] += result;
             }
@@ -130,17 +128,16 @@ scalar Biaxial_Anisotropy::Energy_Single_Spin( const int ispin, const vectorfiel
             if( check_atom_type( geometry->atom_types[ispin] ) )
             {
                 const auto & poly = anisotropy_polynomials[iani];
-                const scalar n1   = poly.k1.dot( spins[ispin] );
-                const scalar n2   = poly.k2.dot( spins[ispin] );
-                const scalar n3   = poly.k3.dot( spins[ispin] );
+                const scalar s1   = poly.k1.dot( spins[ispin] );
+                const scalar s2   = poly.k2.dot( spins[ispin] );
+                const scalar s3   = poly.k3.dot( spins[ispin] );
 
-                const scalar sin_theta_2 = 1 - n1 * n1;
+                const scalar sin_theta_2 = 1 - s1 * s1;
 
                 scalar result = 0;
-                for( const auto & [coeff, exp_theta, exp_a, exp_b] : anisotropy_polynomials[iani].terms )
+                for( const auto & [coeff, n1, n2, n3] : anisotropy_polynomials[iani].terms )
                 {
-                    using std::pow;
-                    result += coeff * pow( sin_theta_2, exp_theta ) * pow( n2, exp_a ) * pow( n3, exp_b );
+                    result += coeff * pow( sin_theta_2, n1 ) * pow( s2, n2 ) * pow( s3, n3 );
                 }
                 energy += result;
             }
@@ -173,7 +170,6 @@ void Biaxial_Anisotropy::Hessian( const vectorfield & spins, MatrixX & hessian )
                 for( const auto & [coeff, n1, n2, n3] : poly.terms )
                 {
 
-                    using std::pow;
                     const scalar a = pow( s2, n2 );
                     const scalar b = pow( s3, n3 );
                     const scalar c = pow( st2, n1 );
@@ -237,7 +233,6 @@ void Biaxial_Anisotropy::Sparse_Hessian( const vectorfield & spins, std::vector<
                 for( const auto & [coeff, n1, n2, n3] : poly.terms )
                 {
 
-                    using std::pow;
                     const scalar a = pow( s2, n2 );
                     const scalar b = pow( s3, n3 );
                     const scalar c = pow( st2, n1 );
@@ -354,7 +349,6 @@ void Biaxial_Anisotropy::Gradient( const vectorfield & spins, vectorfield & grad
 
                 for( const auto & [coeff, n1, n2, n3] : poly.terms )
                 {
-                    using std::pow;
                     const scalar a = pow( s2, n2 );
                     const scalar b = pow( s3, n3 );
                     const scalar c = pow( sin_theta_2, n1 );
