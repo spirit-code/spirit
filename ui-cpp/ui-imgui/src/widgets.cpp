@@ -545,9 +545,9 @@ void show_about( bool & show_about )
 
     ImGui::Begin( fmt::format( "About Spirit {}", Spirit_Version() ).c_str(), &show_about );
 
-    int scaled_width  = ImGui::GetContentRegionAvailWidth() * 0.8;
+    int scaled_width  = ImGui::GetContentRegionAvail().x * 0.8;
     int scaled_height = logo_height * scaled_width / logo_width;
-    ImGui::SameLine( ImGui::GetContentRegionAvailWidth() * 0.1, 0 );
+    ImGui::SameLine( ImGui::GetContentRegionAvail().x * 0.1, 0 );
     ImGui::Image( (void *)(intptr_t)logo_texture, ImVec2( scaled_width, scaled_height ) );
 
     ImGui::TextWrapped( "The Spirit GUI application incorporates intuitive visualisations,"
@@ -622,7 +622,7 @@ void help_marker( const char * description )
 
 float RoundScalarWithFormatFloat( const char * format, ImGuiDataType data_type, float v )
 {
-    return ImGui::RoundScalarWithFormatT<float, float>( format, data_type, v );
+    return ImGui::RoundScalarWithFormatT( format, data_type, v );
 }
 
 float SliderCalcRatioFromValueFloat(
@@ -823,30 +823,33 @@ bool RangeSliderFloat(
         return false;
     }
 
-    const bool hovered = ImGui::ItemHoverable( frame_bb, id );
-    if( hovered )
-        ImGui::SetHoveredID( id );
-
     if( !display_format )
         display_format = "(%.3f, %.3f)";
     int decimal_precision = ImParseFormatPrecision( display_format, 3 );
 
-    // Tabbing or CTRL-clicking on Slider turns it into an input box
-    bool start_text_input          = false;
-    const bool tab_focus_requested = ImGui::FocusableItemRegister( window, g.ActiveId == id );
-    if( tab_focus_requested || ( hovered && g.IO.MouseClicked[0] ) )
+    const bool hovered = ImGui::ItemHoverable(frame_bb, id, g.LastItemData.InFlags);
+    bool temp_input_is_active = ImGui::TempInputIsActive(id);
+    if (!temp_input_is_active)
     {
-        ImGui::SetActiveID( id, window );
-        ImGui::FocusWindow( window );
+        // Tabbing or CTRL-clicking on Slider turns it into an input box
+        const bool clicked = hovered && ImGui::IsMouseClicked(0, id);
+        const bool make_active = (clicked || g.NavActivateId == id);
+        if (make_active && clicked)
+            ImGui::SetKeyOwner(ImGuiKey_MouseLeft, id);
+        if (make_active)
+            if ((clicked && g.IO.KeyCtrl) || (g.NavActivateId == id && (g.NavActivateFlags & ImGuiActivateFlags_PreferInput)))
+                temp_input_is_active = true;
 
-        if( tab_focus_requested || g.IO.KeyCtrl )
+        if (make_active && !temp_input_is_active)
         {
-            start_text_input = true;
-            g.TempInputId    = 0;
+            ImGui::SetActiveID(id, window);
+            ImGui::SetFocusID(id, window);
+            ImGui::FocusWindow(window);
+            g.ActiveIdUsingNavDirMask |= (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
         }
     }
 
-    if( start_text_input || ( g.ActiveId == id && g.TempInputId == id ) )
+    if( temp_input_is_active )
     {
         char fmt[64];
         snprintf( fmt, 64, "%%.%df", decimal_precision );
@@ -919,7 +922,7 @@ static const char * ImAtoi( const char * src, TYPE * output )
     return src;
 }
 
-template<typename TYPE, typename SIGNEDTYPE>
+template<typename TYPE>
 TYPE ImGui::RoundScalarWithFormatT( const char * format, ImGuiDataType data_type, TYPE v )
 {
     const char * fmt_start = ImParseFormatFindStart( format );
@@ -931,8 +934,8 @@ TYPE ImGui::RoundScalarWithFormatT( const char * format, ImGuiDataType data_type
     while( *p == ' ' )
         p++;
     if( data_type == ImGuiDataType_Float || data_type == ImGuiDataType_Double )
-        v = (TYPE)ImAtof( p );
+        v = ImAtof( p );
     else
-        ImAtoi( p, (SIGNEDTYPE *)&v );
+        ImAtoi( p, &v );
     return v;
 }
