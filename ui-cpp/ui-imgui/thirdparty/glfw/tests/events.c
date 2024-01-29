@@ -31,6 +31,7 @@
 //
 //========================================================================
 
+#define GLAD_GL_IMPLEMENTATION
 #include <glad/gl.h>
 #define GLFW_INCLUDE_NONE
 #include <GLFW/glfw3.h>
@@ -320,6 +321,12 @@ static void window_close_callback(GLFWwindow* window)
     printf("%08x to %i at %0.3f: Window close\n",
            counter++, slot->number, glfwGetTime());
 
+    if (!slot->closeable)
+    {
+        printf("(( closing is disabled, press %s to re-enable )\n",
+               glfwGetKeyName(GLFW_KEY_C, 0));
+    }
+
     glfwSetWindowShouldClose(window, slot->closeable);
 }
 
@@ -503,6 +510,20 @@ static void joystick_callback(int jid, int event)
                axisCount,
                buttonCount,
                hatCount);
+
+        if (glfwJoystickIsGamepad(jid))
+        {
+            printf("  Joystick %i (%s) has a gamepad mapping (%s)\n",
+                   jid,
+                   glfwGetJoystickGUID(jid),
+                   glfwGetGamepadName(jid));
+        }
+        else
+        {
+            printf("  Joystick %i (%s) has no gamepad mapping\n",
+                   jid,
+                   glfwGetJoystickGUID(jid));
+        }
     }
     else
     {
@@ -621,7 +642,7 @@ int main(int argc, char** argv)
 
         glfwMakeContextCurrent(slots[i].window);
         gladLoadGL(glfwGetProcAddress);
-        glfwSwapInterval(1);
+        glfwSwapBuffers(slots[i].window);
     }
 
     printf("Main loop starting\n");
