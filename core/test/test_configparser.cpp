@@ -37,7 +37,7 @@ TEST_CASE( "Parse Hamiltonian (Pairs) config and check parsed values using the C
 
     auto state = std::shared_ptr<State>( State_Setup( input_file ), State_Delete );
 
-    SECTION("External field")
+    SECTION( "External field" )
     {
         scalar magnitude_ref{ 25.0 };
         std::array<scalar, 3> direction_ref{ 0.0, 1.0 / std::sqrt( 2.0 ), 1.0 / std::sqrt( 2.0 ) };
@@ -52,7 +52,7 @@ TEST_CASE( "Parse Hamiltonian (Pairs) config and check parsed values using the C
             REQUIRE_THAT( direction[i], WithinAbs( direction_ref[i], epsilon_2 ) );
     }
 
-    SECTION("Uniaxial Anisotropy")
+    SECTION( "Uniaxial Anisotropy" )
     {
         constexpr scalar magnitude_ref{ 1.0 };
         constexpr std::array<scalar, 3> direction_ref{ 0.0, 0.0, 1.0 };
@@ -67,7 +67,7 @@ TEST_CASE( "Parse Hamiltonian (Pairs) config and check parsed values using the C
             REQUIRE_THAT( direction[i], WithinAbs( direction_ref[i], epsilon_2 ) );
     }
 
-    SECTION("Cubic Anisotropy")
+    SECTION( "Cubic Anisotropy" )
     {
         constexpr scalar magnitude_ref{ 4.0 };
         scalar magnitude{};
@@ -77,45 +77,52 @@ TEST_CASE( "Parse Hamiltonian (Pairs) config and check parsed values using the C
         REQUIRE_THAT( magnitude, WithinAbs( magnitude_ref, epsilon_2 ) );
     }
 
-    SECTION("Biaxial Anisotropy")
+    SECTION( "Biaxial Anisotropy" )
     {
         constexpr int n_atoms_ref        = 1;
-        constexpr std::array n_terms_ref = { 0, 7 };
+        constexpr int n_terms_ref        = 7;
         constexpr std::array indices_ref = { 0 };
+        constexpr std::array<std::array<scalar, 3>, 1> primary_ref{ { { 0, 0, 1 } } };
+        constexpr std::array<std::array<scalar, 3>, 1> secondary_ref{ { { 1, 0, 0 } } };
+        constexpr std::array site_p_ref{ 0, 7 };
+        constexpr std::array<scalar, 7> magnitudes_ref{ 3.0, 1.8, 0.9, -3.2, 3.2, -1.6, 1.6 };
         constexpr std::array exponents_ref{
             std::array{ 1, 0, 0 }, std::array{ 2, 0, 0 }, std::array{ 3, 0, 0 }, std::array{ 1, 2, 0 },
             std::array{ 0, 4, 0 }, std::array{ 3, 2, 0 }, std::array{ 3, 4, 0 },
         };
-        constexpr std::array<std::array<scalar, 3>, 1> primary_ref{ { { 0, 0, 1 } } };
-        constexpr std::array<std::array<scalar, 3>, 1> secondary_ref{ { { 1, 0, 0 } } };
-        constexpr std::array<scalar, 7> magnitudes_ref{ 3.0, 1.8, 0.9, -3.2, 3.2, -1.6, 1.6 };
 
         const int n_atoms = Hamiltonian_Get_Biaxial_Anisotropy_N_Atoms( state.get() );
 
         REQUIRE( n_atoms > 0 );
         REQUIRE( n_atoms == n_atoms_ref );
 
-        intfield n_terms( n_atoms + 1 );
-        Hamiltonian_Get_Biaxial_Anisotropy_N_Terms( state.get(), n_atoms, n_terms.data() );
+        const int n_terms = Hamiltonian_Get_Biaxial_Anisotropy_N_Terms( state.get() );
 
-        REQUIRE( n_terms[0] == 0 );
-        for( int i = 0; i < n_atoms; ++i )
-            REQUIRE( n_terms[i] < n_terms[i + 1] );
-
-        for( std::size_t i = 0; i < n_terms.size(); ++i )
-            REQUIRE( n_terms[i] == n_terms_ref[i] );
-
-        const int n_terms_total = n_terms[n_atoms];
+        REQUIRE( n_terms > n_atoms );
+        REQUIRE( n_terms == n_terms_ref );
 
         intfield indices( n_atoms );
-        std::vector exponents( n_terms_total, std::array{ 0, 0, 0 } );
-        std::vector<std::array<scalar, 3>> primary( n_terms_total );
-        std::vector<std::array<scalar, 3>> secondary( n_terms_total );
-        scalarfield magnitudes( n_terms_total );
+        field<std::array<scalar, 3>> primary( n_atoms );
+        std::vector<std::array<scalar, 3>> secondary( n_atoms );
+        field<int> site_p( n_atoms + 1 );
+        scalarfield magnitudes( n_terms );
+        std::vector exponents( n_terms, std::array{ 0, 0, 0 } );
 
         Hamiltonian_Get_Biaxial_Anisotropy(
-            state.get(), n_terms.data(), indices.data(), array_cast( primary ), array_cast( secondary ),
-            magnitudes.data(), array_cast( exponents ), n_atoms );
+            state.get(), indices.data(), array_cast( primary ), array_cast( secondary ), site_p.data(), n_atoms,
+            magnitudes.data(), array_cast( exponents ), n_terms );
+
+        if( n_atoms > 0 )
+        {
+            REQUIRE( site_p[0] == 0 );
+            REQUIRE( site_p.size() == static_cast<unsigned int>( n_atoms ) + 1 );
+        }
+
+        for( int i = 0; i < n_atoms; ++i )
+            REQUIRE( site_p[i] < site_p[i + 1] );
+
+        for( std::size_t i = 0; i < site_p.size(); ++i )
+            REQUIRE( site_p[i] == site_p_ref[i] );
 
         for( std::size_t i = 0; i < indices.size(); ++i )
             REQUIRE( indices[i] == indices_ref[i] );
@@ -143,23 +150,52 @@ TEST_CASE( "Parse Hamiltonian (Pairs) config and check parsed values using the C
             return polynomial;
         };
 
-        for( std::size_t i = 0; i < std::max( 1ul, n_terms.size() ) - 1; ++i )
+        for( std::size_t i = 1; i < site_p.size(); ++i )
         {
-            const auto polynomial = make_polynomial( n_terms[i], n_terms[i + 1], exponents, magnitudes );
             const auto polynomial_ref
-                = make_polynomial( n_terms_ref[i], n_terms_ref[i + 1], exponents_ref, magnitudes_ref );
+                = make_polynomial( site_p_ref[i - 1], site_p_ref[i], exponents_ref, magnitudes_ref );
+            const auto polynomial = make_polynomial( site_p[i - 1], site_p[i], exponents, magnitudes );
 
             REQUIRE_THAT( polynomial, MapApprox( polynomial_ref, epsilon_2 ) );
         }
     }
 
-    SECTION("Heisenberg Exchange")
+    auto index_invert       = []( const std::array<int, 2> & idx ) { return std::array{ idx[1], idx[0] }; };
+    auto translation_invert = []( const std::array<int, 3> & t ) { return std::array{ -t[0], -t[1], -t[2] }; };
+
+    auto duplicate_invert = []( const auto & arr, auto inverter )
     {
+        static constexpr std::size_t N = std::tuple_size_v<std::decay_t<decltype( arr )>>;
+        using value_type               = typename std::decay_t<decltype( arr )>::value_type;
+        std::array<value_type, 2 * N> out{};
+        std::copy( begin( arr ), end( arr ), begin( out ) );
+        std::transform( begin( arr ), end( arr ), begin( out ) + N, inverter );
+        return out;
+    };
+
+    SECTION( "Heisenberg Exchange" )
+    {
+        constexpr std::array<std::array<int, 2>, 3> indices_decl
+            = { std::array{ 0, 0 }, std::array{ 0, 0 }, std::array{ 0, 0 } };
+        constexpr std::array<std::array<int, 3>, 3> translations_decl
+            = { std::array{ 1, 0, 0 }, std::array{ 0, 1, 0 }, std::array{ 0, 0, 1 } };
+        constexpr std::array<scalar, 3> Jij_decl{ 10.0, 10.0, 10.0 };
+
+#if( defined( SPIRIT_USE_CUDA ) || defined( SPIRIT_USE_OPENMP ) )
+        const auto indices_ref      = duplicate_invert( indices_decl, index_invert );
+        const auto translations_ref = duplicate_invert( translations_decl, translation_invert );
+        const auto Jij_ref          = duplicate_invert( Jij_decl, []( const auto & i ) { return i; } );
+#else
+        constexpr auto indices_ref      = indices_decl;
+        constexpr auto translations_ref = translations_decl;
+        constexpr auto Jij_ref          = Jij_decl;
+#endif
+
         const int n_pairs = Hamiltonian_Get_Exchange_N_Pairs( state.get() );
-        std::vector<std::array<int, 2>> indices( n_pairs ), indices_ref{ { 0, 0 }, { 0, 0 }, { 0, 0 } };
-        std::vector<std::array<int, 3>> translations( n_pairs ),
-            translations_ref{ { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
-        std::vector<scalar> Jij( n_pairs ), Jij_ref{ 10.0, 10.0, 10.0 };
+
+        std::vector<std::array<int, 2>> indices( n_pairs );
+        std::vector<std::array<int, 3>> translations( n_pairs );
+        std::vector<scalar> Jij( n_pairs );
 
         Hamiltonian_Get_Exchange_Pairs( state.get(), array_cast( indices ), array_cast( translations ), Jij.data() );
 
@@ -186,13 +222,13 @@ TEST_CASE( "Parse Hamiltonian (Pairs) config and check parsed values using the C
         REQUIRE_THAT( exchange, MapApprox( exchange_ref, epsilon_2 ) );
     }
 
-    SECTION("DMI")
+    SECTION( "DMI" )
     {
         // TODO: DMI once the API supports it
         const int n_pairs = Hamiltonian_Get_DMI_N_Pairs( state.get() );
     }
 
-    SECTION("Dipole-Dipole Interaction")
+    SECTION( "Dipole-Dipole Interaction" )
     {
         constexpr int ddi_method_ref = static_cast<int>( Engine::DDI_Method::None );
         constexpr std::array<int, 3> n_periodic_images_ref{ 4, 4, 4 };

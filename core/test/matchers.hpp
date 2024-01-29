@@ -10,7 +10,7 @@ namespace Catch
 template<typename KeyType>
 struct MapApproxMatcher : Catch::MatcherBase<std::map<KeyType, scalar>>
 {
-    constexpr MapApproxMatcher( const std::map<KeyType, scalar> & expected, double threshold )
+    constexpr MapApproxMatcher( const std::map<KeyType, scalar> & expected, scalar threshold )
             : expected( expected ), threshold( threshold )
     {
     }
@@ -33,11 +33,11 @@ struct MapApproxMatcher : Catch::MatcherBase<std::map<KeyType, scalar>>
 
     std::string describe() const override
     {
-        return fmt::format( "is approximately equal to the expected map within {}", threshold );
+        return fmt::format( "is approximately equal to the expected map within {}\nExpected: {}", threshold, expected );
     }
 
 private:
-    const std::map<KeyType, double> & expected;
+    const std::map<KeyType, scalar> & expected;
     scalar threshold;
 };
 
@@ -45,7 +45,7 @@ namespace CustomMatchers
 {
 // Factory function for creating the matcher
 template<typename KeyType>
-MapApproxMatcher<KeyType> MapApprox( const std::map<KeyType, scalar> & expected, double threshold )
+MapApproxMatcher<KeyType> MapApprox( const std::map<KeyType, scalar> & expected, scalar threshold )
 {
     return MapApproxMatcher<KeyType>( expected, threshold );
 };

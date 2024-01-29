@@ -240,31 +240,45 @@ try
 
             const Vector3 new_ternary = new_primary.cross( new_secondary ).normalized();
 
-            field<PolynomialTerm> new_terms{};
+            field<PolynomialTerm> new_on_site_terms{};
             for( auto i = 0; i < n_terms; ++i )
             {
                 if( magnitude[i] == 0 )
                     continue;
 
-                new_terms.emplace_back(
+                new_on_site_terms.emplace_back(
                     PolynomialTerm{ magnitude[i], exponents[i][0], exponents[i][1], exponents[i][2] } );
             };
 
-            AnisotropyPolynomial new_polynomial = { new_primary, new_secondary, new_ternary, new_terms };
-
-            // Indices and Polynomials
-            field<AnisotropyPolynomial> new_polynomials( n_cell_atoms, new_polynomial );
+            // Indices and polynomial data
             intfield new_indices( n_cell_atoms );
             for( int i = 0; i < n_cell_atoms; ++i )
             {
                 new_indices[i] = i;
             }
+            field<PolynomialBasis> new_polynomial_bases( n_cell_atoms, { new_primary, new_secondary, new_ternary } );
+
+            field<unsigned int> new_polynomial_site_p( n_cell_atoms == 0 ? 0 : n_cell_atoms + 1, 0u );
+            std::generate(
+                begin( new_polynomial_site_p ), end( new_polynomial_site_p ),
+                [i = 0, n = new_on_site_terms.size()]() mutable { return ( i++ ) * n; } );
+
+            field<PolynomialTerm> new_polynomial_terms{};
+            new_polynomial_terms.reserve( n_cell_atoms * new_on_site_terms.size() );
+
+            for( int i = 0; i < n_cell_atoms; ++i )
+            {
+                std::copy(
+                    cbegin( new_on_site_terms ), cend( new_on_site_terms ),
+                    std::back_inserter( new_polynomial_terms ) );
+            }
 
             // Update the Hamiltonian
-            interaction->setParameters( new_indices, new_polynomials );
+            interaction->setParameters(
+                new_indices, new_polynomial_bases, new_polynomial_site_p, new_polynomial_terms );
 
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-                 fmt::format( "Set {} terms for biaxial anisotropy", new_terms.size() ), idx_image, idx_chain );
+                 fmt::format( "Set {} terms for biaxial anisotropy", new_on_site_terms.size() ), idx_image, idx_chain );
         }
         else
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
@@ -599,8 +613,7 @@ catch( ... )
     return 0;
 }
 
-void Hamiltonian_Get_Biaxial_Anisotropy_N_Terms(
-    State * state, const int n_atoms, int n_terms[], int idx_image, int idx_chain ) noexcept
+int Hamiltonian_Get_Biaxial_Anisotropy_N_Terms( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -608,28 +621,26 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
-    throw_if_nullptr( n_terms, "n_terms" );
-
-    if( n_atoms == 0 )
-        return;
 
     if( auto * interaction = image->hamiltonian->getInteraction<Engine::Interaction::Biaxial_Anisotropy>();
         interaction != nullptr )
     {
-        n_terms[0] = 0;
-
-        for( int i = 0; i < n_atoms; ++i )
-            n_terms[i + 1] = n_terms[i] + interaction->getN_Terms( i );
+        return interaction->getN_Terms();
+    }
+    else
+    {
+        return 0;
     }
 }
 catch( ... )
 {
     spirit_handle_exception_api( idx_image, idx_chain );
+    return 0;
 }
 
 void Hamiltonian_Get_Biaxial_Anisotropy(
-    State * state, const int * n_terms, int * indices, scalar primary[][3], scalar secondary[][3], scalar * magnitude,
-    int exponents[][3], const int n_indices, int idx_image, int idx_chain ) noexcept
+    State * state, int * indices, scalar primary[][3], scalar secondary[][3], int * site_p, const int n_indices,
+    scalar * magnitude, int exponents[][3], const int n_terms, int idx_image, int idx_chain ) noexcept
 try
 {
     std::shared_ptr<Data::Spin_System> image;
@@ -637,10 +648,10 @@ try
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
-    throw_if_nullptr( n_terms, "n_terms" );
     throw_if_nullptr( indices, "indices" );
     throw_if_nullptr( primary, "primary" );
     throw_if_nullptr( secondary, "secondary" );
+    throw_if_nullptr( site_p, "site_p" );
     throw_if_nullptr( magnitude, "magnitude" );
     throw_if_nullptr( exponents, "exponents" );
 
@@ -648,33 +659,33 @@ try
         interaction != nullptr )
     {
         intfield anisotropy_indices;
-        field<AnisotropyPolynomial> anisotropy_polynomials;
+        field<PolynomialBasis> anisotropy_polynomial_basis;
+        field<unsigned int> anisotropy_polynomial_site_p;
+        field<PolynomialTerm> anisotropy_polynomial_terms;
 
-        interaction->getParameters( anisotropy_indices, anisotropy_polynomials );
+        interaction->getParameters(
+            anisotropy_indices, anisotropy_polynomial_basis, anisotropy_polynomial_site_p,
+            anisotropy_polynomial_terms );
 
-        const auto n_read = std::min( n_indices, static_cast<decltype( n_indices )>( anisotropy_indices.size() ) );
-        for( int j = 0; j < n_read; ++j )
+        std::copy_n( cbegin( anisotropy_indices ), n_indices, indices );
+
+        for( int j = 0; j < n_indices; ++j )
         {
-            indices[j] = anisotropy_indices[j];
+            const auto & k1 = anisotropy_polynomial_basis[j].k1;
+            std::copy( std::cbegin( k1 ), std::cend( k1 ), primary[j] );
 
-            const auto & k1 = anisotropy_polynomials[j].k1;
-            const auto & k2 = anisotropy_polynomials[j].k2;
+            auto & k2 = anisotropy_polynomial_basis[j].k2;
+            std::copy( std::cbegin( k2 ), std::cend( k2 ), secondary[j] );
+        }
 
-#pragma unroll
-            for( int i = 0; i < 3; ++i )
-            {
-                primary[j][i]   = k1[i];
-                secondary[j][i] = k2[i];
-            }
+        std::copy_n( cbegin( anisotropy_polynomial_site_p ), n_indices + 1, site_p );
 
-            const auto & terms = anisotropy_polynomials[j].terms;
-            for( int i = 0, idx = n_terms[j]; idx < n_terms[j + 1]; ++i, ++idx )
-            {
-                magnitude[idx]    = terms[i].coefficient;
-                exponents[idx][0] = terms[i].n1;
-                exponents[idx][1] = terms[i].n2;
-                exponents[idx][2] = terms[i].n3;
-            }
+        for( int i = 0; i < n_terms; ++i )
+        {
+            magnitude[i]    = anisotropy_polynomial_terms[i].coefficient;
+            exponents[i][0] = anisotropy_polynomial_terms[i].n1;
+            exponents[i][1] = anisotropy_polynomial_terms[i].n2;
+            exponents[i][2] = anisotropy_polynomial_terms[i].n3;
         }
     }
 }

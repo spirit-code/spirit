@@ -66,19 +66,18 @@ class Hamiltonian_set_get(TestParameters):
         self.test_set_biaxial_anisotropy()
 
         n_atoms = hamiltonian.get_biaxial_anisotropy_n_atoms(self.p_state)
-        n_terms = hamiltonian.get_biaxial_anisotropy_n_terms(self.p_state, n_atoms)
+        n_terms = hamiltonian.get_biaxial_anisotropy_n_terms(self.p_state)
 
         n_terms_im = hamiltonian.get_biaxial_anisotropy_n_terms(self.p_state)
-        self.assertListEqual(n_terms.tolist(), n_terms_im.tolist())
+        self.assertEqual(n_terms, n_terms_im)
 
-        self.assertTrue(n_atoms == 0 or n_atoms == len(n_terms) - 1)
+        self.assertTrue(n_terms >= n_atoms)
 
-        res = hamiltonian.get_biaxial_anisotropy(self.p_state, n_terms)
+        res = hamiltonian.get_biaxial_anisotropy(self.p_state, n_atoms, n_terms)
         res_im = hamiltonian.get_biaxial_anisotropy(self.p_state)
 
         for mag, expected in zip(res.magnitude, res_im.magnitude, strict=True):
             self.assertAlmostEqual(mag, expected)
-
 
         for k1, k1_expected in zip(res.primary, res_im.primary, strict=True):
             for actual, expected in zip(k1, k1_expected, strict=True):
@@ -91,7 +90,7 @@ class Hamiltonian_set_get(TestParameters):
         for exponent, expected in zip(res.exponents, res_im.exponents, strict=True):
             self.assertListEqual(exponent.tolist(), expected.tolist())
 
-        self.assertListEqual(n_terms.tolist(), res.n_terms.tolist())
+        self.assertListEqual(res.site_p.tolist(), res_im.site_p.tolist())
 
         mag_expected = [0.5, 0.4, 0.3, 0.2]
         dir1_expected = [1.0 / math.sqrt(2), 1.0 / math.sqrt(2), 0.0]
@@ -113,7 +112,7 @@ class Hamiltonian_set_get(TestParameters):
             self.assertListEqual(exponent.tolist(), expected)
 
         for i in range(n_atoms):
-            self.assertEqual(res.n_terms[i + 1] - res.n_terms[i], n_terms_atom)
+            self.assertEqual(res.site_p[i + 1] - res.site_p[i], n_terms_atom)
 
 #########
 

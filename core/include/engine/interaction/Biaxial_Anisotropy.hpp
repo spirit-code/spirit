@@ -10,34 +10,49 @@ namespace Engine
 namespace Interaction
 {
 
+/*
+ * Biaxial Anisotropy
+ * The terms use a CSR like format. The site_p attribute stores the information which term corresponds to which site,
+ * such that the terms for the atom at `indices[i]` are the ones between `site_p[i]` & `site_p[i+1]`.
+ */
 class Biaxial_Anisotropy : public Interaction::Base<Biaxial_Anisotropy>
 {
 public:
     Biaxial_Anisotropy(
-        Hamiltonian * hamiltonian, intfield indices, field<AnisotropyPolynomial> polynomials ) noexcept;
+        Hamiltonian * hamiltonian, intfield indices, field<PolynomialBasis> pBases, field<unsigned int> pSite_ptr,
+        field<PolynomialTerm> pTerms ) noexcept;
 
-    void setParameters( const intfield & pIndices, const field<AnisotropyPolynomial> & pPolynomials )
+    void setParameters(
+        const intfield & pIndices, const field<PolynomialBasis> & pBases, const field<unsigned int> & pSite_ptr,
+        const field<PolynomialTerm> & pTerms )
     {
-        assert( pIndices.size() == pPolynomials.size() );
-        this->anisotropy_indices     = pIndices;
-        this->anisotropy_polynomials = pPolynomials;
+        assert( pIndices.size() == pBases.size() );
+        assert( ( pIndices.empty() && pSite_ptr.empty() ) || ( pIndices.size() + 1 == pSite_ptr.size() ) );
+        assert( pSite_ptr.empty() || pSite_ptr.back() == pTerms.size() );
+
+        this->indices = pIndices;
+        this->bases   = pBases;
+        this->site_p  = pSite_ptr;
+        this->terms   = pTerms;
         hamiltonian->onInteractionChanged();
     };
-    void getParameters( intfield & pIndices, field<AnisotropyPolynomial> & pPolynomials ) const
+    void getParameters(
+        intfield & pIndices, field<PolynomialBasis> & pBases, field<unsigned int> & pSite_ptr,
+        field<PolynomialTerm> & pTerms ) const
     {
-        pIndices     = this->anisotropy_indices;
-        pPolynomials = this->anisotropy_polynomials;
+        pIndices  = this->indices;
+        pBases    = this->bases;
+        pSite_ptr = this->site_p;
+        pTerms    = this->terms;
     };
     [[nodiscard]] std::size_t getN_Atoms() const
     {
-        return anisotropy_polynomials.size();
+        return indices.size();
     }
 
-    [[nodiscard]] std::size_t getN_Terms( const std::size_t i ) const
+    [[nodiscard]] std::size_t getN_Terms() const
     {
-        if( i >= anisotropy_polynomials.size() )
-            return 0;
-        return anisotropy_polynomials[i].terms.size();
+        return terms.size();
     }
 
     bool is_contributing() const override;
@@ -48,7 +63,7 @@ public:
 
     std::size_t Sparse_Hessian_Size_per_Cell() const override
     {
-        return anisotropy_indices.size() * 9;
+        return indices.size() * 9;
     };
 
     void Gradient( const vectorfield & spins, vectorfield & gradient ) override;
@@ -65,8 +80,13 @@ protected:
     void updateFromGeometry( const Data::Geometry * geometry ) override;
 
 private:
-    intfield anisotropy_indices;
-    field<AnisotropyPolynomial> anisotropy_polynomials;
+    template<typename F>
+    void Hessian_Impl( const vectorfield & spins, F f );
+
+    intfield indices;
+    field<PolynomialBasis> bases;
+    field<unsigned int> site_p;
+    field<PolynomialTerm> terms;
 };
 
 } // namespace Interaction

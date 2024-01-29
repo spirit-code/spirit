@@ -57,6 +57,7 @@ struct Quadruplet
     int i, j, k, l;
     int d_j[3], d_k[3], d_l[3];
 };
+
 #else
 // The general field
 template<typename T>
@@ -89,6 +90,10 @@ struct Quadruplet
 #pragma omp declare reduction( + : Vector3 : omp_out = omp_out + omp_in ) initializer( omp_priv = Vector3::Zero() )
 #endif
 
+struct PolynomialBasis {
+    Vector3 k1, k2, k3;
+};
+
 struct PolynomialTerm
 {
     scalar coefficient;
@@ -98,6 +103,12 @@ struct PolynomialTerm
 struct AnisotropyPolynomial
 {
     Vector3 k1, k2, k3;
+    field<PolynomialTerm> terms;
+};
+
+struct PolynomialField {
+    field<PolynomialBasis> basis;
+    field<unsigned int> site_p;
     field<PolynomialTerm> terms;
 };
 

@@ -282,46 +282,50 @@ void Hamiltonian_Heisenberg_to_Config(
     config += fmt::format( "{:<25} {}\n", "anisotropy_normal", K_normal.transpose() );
 
     // Biaxial Anisotropy
-    intfield indices;
-    field<AnisotropyPolynomial> polynomials;
-    hamiltonian->getInteraction<Engine::Interaction::Biaxial_Anisotropy>()->getParameters(
-        indices, polynomials );
-
-    const auto n_anisotropy_axes = indices.size();
-    const auto n_anisotropy_terms = std::accumulate(
-        begin( polynomials ), end( polynomials ), 0,
-        []( std::size_t n, const auto & p ) { return n + p.terms.size(); } );
-
-    assert( n_anisotropy_axes != 0 || n_anisotropy_terms == 0 );
-
-    config += "###   Biaxial Anisotropy Axes\n";
-    config += fmt::format( "n_anisotropy_axes {}\n", n_anisotropy_axes );
-
-    if( n_anisotropy_axes > 0 )
     {
-        config += fmt::format(
-            "{:^3}   {:^15} {:^15} {:^15}  {:^15} {:^15} {:^15}\n", "i", "K1x", "K1y", "K1z", "K2x", "K2y", "K2z" );
+        intfield indices;
+        field<PolynomialBasis> polynomial_bases;
+        field<unsigned int> polynomial_site_p;
+        field<PolynomialTerm> polynomial_terms;
 
-        for( std::size_t i = 0; i < n_anisotropy_axes; ++i )
+        hamiltonian->getInteraction<Engine::Interaction::Biaxial_Anisotropy>()->getParameters(
+            indices, polynomial_bases, polynomial_site_p, polynomial_terms );
+
+        const auto n_anisotropy_axes  = indices.size();
+        const auto n_anisotropy_terms = polynomial_terms.size();
+
+        assert( n_anisotropy_axes != 0 || n_anisotropy_terms == 0 );
+
+        config += "###   Biaxial Anisotropy Axes\n";
+        config += fmt::format( "n_anisotropy_axes {}\n", n_anisotropy_axes );
+
+        if( n_anisotropy_axes > 0 )
         {
             config += fmt::format(
-                "{:^3}   {:^15.8f} {:^15.8f} {:^15.8f}  {:^15.8f} {:^15.8f} {:^15.8f}\n", indices[i],
-                polynomials[i].k1[0], polynomials[i].k1[1], polynomials[i].k1[2], polynomials[i].k2[0],
-                polynomials[i].k2[1], polynomials[i].k2[2] );
-        }
-    }
+                "{:^3}   {:^15} {:^15} {:^15}  {:^15} {:^15} {:^15}\n", "i", "K1x", "K1y", "K1z", "K2x", "K2y", "K2z" );
 
-    config += "###   Biaxial Anisotropy Terms\n";
-    config += fmt::format( "n_anisotropy_terms {}\n", n_anisotropy_terms );
-
-    if( n_anisotropy_axes > 0 )
-    {
-        config += fmt::format( "{:^3}  {:^3} {:^3} {:^3}  {:^15}\n", "i", "n1", "n2", "n3", "k" );
-        for( std::size_t i = 0; i < n_anisotropy_axes; ++i )
-        {
-            for( const auto & p : polynomials[i].terms )
+            for( std::size_t i = 0; i < n_anisotropy_axes; ++i )
             {
-                config += fmt::format( "{:^3}  {:^3} {:^3} {:^3}  {:^15.8f}\n", i, p.n1, p.n2, p.n3, p.coefficient );
+                config += fmt::format(
+                    "{:^3}   {:^15.8f} {:^15.8f} {:^15.8f}  {:^15.8f} {:^15.8f} {:^15.8f}\n", indices[i],
+                    polynomial_bases[i].k1[0], polynomial_bases[i].k1[1], polynomial_bases[i].k1[2],
+                    polynomial_bases[i].k2[0], polynomial_bases[i].k2[1], polynomial_bases[i].k2[2] );
+            }
+        }
+        config += "###   Biaxial Anisotropy Terms\n";
+        config += fmt::format( "n_anisotropy_terms {}\n", n_anisotropy_terms );
+
+        if( n_anisotropy_axes > 0 )
+        {
+            config += fmt::format( "{:^3}  {:^3} {:^3} {:^3}  {:^15}\n", "i", "n1", "n2", "n3", "k" );
+            for( std::size_t i = 0; i < n_anisotropy_axes; ++i )
+            {
+                for( std::size_t j = polynomial_site_p[i]; j < polynomial_site_p[i + 1]; ++j )
+                {
+                    const auto & p = polynomial_terms[j];
+                    config
+                        += fmt::format( "{:^3}  {:^3} {:^3} {:^3}  {:^15.8f}\n", i, p.n1, p.n2, p.n3, p.coefficient );
+                }
             }
         }
     }
@@ -362,8 +366,6 @@ void Hamiltonian_Heisenberg_to_Config(
                 dmi_normals[i][2] );
         }
     }
-
-    
 
     // Dipole-dipole
     std::string ddi_method;
