@@ -1,3 +1,6 @@
+#include <fmt/ranges.h>
+
+#include <array>
 #include <cstddef>
 #include <tuple>
 
@@ -15,3 +18,30 @@ static inline decltype( auto ) array_cast( T & v )
     else
         return reinterpret_cast<value_type( * )[N]>( v.data()->data() );
 };
+
+template<typename T, std::size_t N>
+constexpr inline decltype( auto ) array_fmt( const std::array<T, N> & arr, const char * sep = ", " )
+{
+    return fmt::join( cbegin( arr ), cend( arr ), sep );
+}
+
+// // ostream overload to use for std::array
+// template<typename T, std::size_t N>
+// std::ostream & operator<<( std::ostream && os, const std::array<T, N> & arr )
+// {
+//     if constexpr( N == 0 )
+//     {
+//         return os << "{ }";
+//     }
+//     else
+//     {
+//         os << "{ ";
+//         std::for_each_n( begin( arr ), N - 1, [&os]( const T & element ) { os << element << ", "; } );
+//         return os << arr.back() << " }";
+//     }
+// }
+//
+// template<typename T, std::size_t N>
+// struct fmt::formatter<std::array<T, N>, char> : ostream_formatter
+// {
+// };

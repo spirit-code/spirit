@@ -1308,7 +1308,9 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
     std::string biaxial_anisotropy_axes_file  = "";
     std::string biaxial_anisotropy_terms_file = "";
     auto biaxial_anisotropy_indices           = intfield( 0 );
-    auto biaxial_anisotropy_polynomials       = field<AnisotropyPolynomial>( 0 );
+    auto biaxial_anisotropy_polynomial_bases  = field<PolynomialBasis>{};
+    auto biaxial_anisotropy_polynomial_site_p = field<unsigned int>{};
+    auto biaxial_anisotropy_polynomial_terms  = field<PolynomialTerm>{};
 
     // ------------ Pair Interactions ------------
     int n_pairs                        = 0;
@@ -1469,7 +1471,8 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
             {
                 Biaxial_Anisotropy_from_File(
                     biaxial_anisotropy_axes_file, biaxial_anisotropy_terms_file, geometry, n_biaxial_anisotropy,
-                    biaxial_anisotropy_indices, biaxial_anisotropy_polynomials );
+                    biaxial_anisotropy_indices, biaxial_anisotropy_polynomial_bases,
+                    biaxial_anisotropy_polynomial_site_p, biaxial_anisotropy_polynomial_terms );
             }
         }
         catch( ... )
@@ -1643,9 +1646,9 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy[0]", K ) );
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy_normal[0]", K_normal.transpose() ) );
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "cubic_anisotropy_magnitude[0]", K4 ) );
-    if( !biaxial_anisotropy_polynomials.empty() )
+    if( !biaxial_anisotropy_polynomial_bases.empty() )
     {
-        const auto & p = biaxial_anisotropy_polynomials[0];
+        const auto & p = biaxial_anisotropy_polynomial_bases[0];
         parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "biaxial_anisotropy[0].k1", p.k1.transpose() ) );
         parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "biaxial_anisotropy[0].k2", p.k2.transpose() ) );
         parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "biaxial_anisotropy[0].k3", p.k3.transpose() ) );
@@ -1696,7 +1699,8 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
         cubic_anisotropy_indices, cubic_anisotropy_magnitudes );
 
     hamiltonian->setInteraction<Engine::Interaction::Biaxial_Anisotropy>(
-        biaxial_anisotropy_indices, biaxial_anisotropy_polynomials );
+        biaxial_anisotropy_indices, biaxial_anisotropy_polynomial_bases, biaxial_anisotropy_polynomial_site_p,
+        biaxial_anisotropy_polynomial_terms );
 
     hamiltonian->setInteraction<Engine::Interaction::DDI>(
         ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius );

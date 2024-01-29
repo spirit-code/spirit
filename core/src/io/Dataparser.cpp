@@ -141,8 +141,8 @@ public:
         auto transform = transform_factory( lookup );
 
         // read data row by row and store a transformed version of it
-        auto row = std::make_tuple( Args{}... );                           // read buffer
-        std::vector<std::decay_t<decltype( transform( row ) )>> data( 0 ); // return value
+        auto row = std::make_tuple( Args{}... );                     // read buffer
+        field<std::decay_t<decltype( transform( row ) )>> data( 0 ); // return value
         for( int row_idx = 0; row_idx < table_size; ++row_idx )
         {
             // read a new line and stop reading if EOF
@@ -307,8 +307,8 @@ try
     };
 
     const std::string anisotropy_size_id = "n_anisotropy";
-    const auto data = parser.parse( anisotropy_file, anisotropy_size_id, std::size_t( 6 ), transform_factory );
-    n_indices       = data.size();
+    const auto data                      = parser.parse( anisotropy_file, anisotropy_size_id, 6ul, transform_factory );
+    n_indices                            = data.size();
 
     // Arrays
     anisotropy_index           = intfield( 0 );
@@ -398,9 +398,8 @@ try
         };
     };
 
-    const auto data
-        = parser.parse( anisotropy_axes_file, "n_biaxial_anisotropy_axes", std::size_t( 7 ), transform_factory );
-    n_axes = data.size();
+    const auto data = parser.parse( anisotropy_axes_file, "n_biaxial_anisotropy_axes", 7ul, transform_factory );
+    n_axes          = data.size();
 
     anisotropy_axes = std::map( begin( data ), end( data ) );
 }
@@ -411,7 +410,7 @@ catch( ... )
 
 void Biaxial_Anisotropy_Terms_from_File(
     const std::string & anisotropy_terms_file, const std::shared_ptr<Data::Geometry>, int & n_terms,
-    std::map<int, std::vector<PolynomialTerm>> & anisotropy_terms ) noexcept
+    std::map<int, field<PolynomialTerm>> & anisotropy_terms ) noexcept
 try
 {
     // parser initialization
@@ -433,9 +432,8 @@ try
         };
     };
 
-    const auto data
-        = parser.parse( anisotropy_terms_file, "n_biaxial_anisotropy_terms", std::size_t( 6 ), transform_factory );
-    n_terms = data.size();
+    const auto data = parser.parse( anisotropy_terms_file, "n_biaxial_anisotropy_terms", 6ul, transform_factory );
+    n_terms         = data.size();
 
     anisotropy_terms.clear();
     for( const auto & [i, term] : data )
@@ -449,12 +447,13 @@ catch( ... )
 void Biaxial_Anisotropy_from_File(
     const std::string & anisotropy_axes_file, const std::string & anisotropy_terms_file,
     const std::shared_ptr<Data::Geometry> geometry, int & n_indices, intfield & anisotropy_indices,
-    field<AnisotropyPolynomial> & anisotropy_polynomials ) noexcept
+    field<PolynomialBasis> & anisotropy_polynomial_bases, field<unsigned int> & anisotropy_polynomial_site_p,
+    field<PolynomialTerm> & anisotropy_polynomial_terms ) noexcept
 try
 {
     int n_axes = 0, n_terms = 0;
     auto anisotropy_axes  = std::map<int, std::pair<Vector3, Vector3>>();
-    auto anisotropy_terms = std::map<int, std::vector<PolynomialTerm>>();
+    auto anisotropy_terms = std::map<int, field<PolynomialTerm>>();
 
     Log( Log_Level::Debug, Log_Sender::IO, "Reading anisotropy axes from file " + anisotropy_axes_file );
     Biaxial_Anisotropy_Axes_from_File( anisotropy_axes_file, geometry, n_axes, anisotropy_axes );
@@ -465,8 +464,16 @@ try
     n_indices = n_axes + n_terms;
 
     // Arrays
-    anisotropy_indices     = intfield( 0 );
-    anisotropy_polynomials = field<AnisotropyPolynomial>( 0 );
+    anisotropy_indices           = intfield{};
+    anisotropy_polynomial_bases  = field<PolynomialBasis>{};
+    anisotropy_polynomial_site_p = field<unsigned int>{};
+    anisotropy_polynomial_terms  = field<PolynomialTerm>{};
+
+    if( n_terms > 0 )
+    {
+        anisotropy_polynomial_site_p.emplace_back( 0 );
+        anisotropy_polynomial_terms.reserve( n_terms );
+    }
 
     const scalar thresh = 1e-5;
     for( const auto & [i, axes] : anisotropy_axes )
@@ -476,8 +483,10 @@ try
             if( const auto & terms = anisotropy_terms[i]; !terms.empty() )
             {
                 anisotropy_indices.emplace_back( i );
-                anisotropy_polynomials.emplace_back( AnisotropyPolynomial{
-                    axes.first, axes.second, axes.first.cross( axes.second ).normalized(), terms } );
+                anisotropy_polynomial_bases.emplace_back(
+                    PolynomialBasis{ axes.first, axes.second, axes.first.cross( axes.second ).normalized() } );
+                anisotropy_polynomial_site_p.emplace_back( anisotropy_polynomial_site_p.back() + terms.size() );
+                std::copy( begin( terms ), end( terms ), std::back_inserter( anisotropy_polynomial_terms ) );
             }
             else
             {
