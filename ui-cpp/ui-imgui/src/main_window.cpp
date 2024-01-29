@@ -304,54 +304,54 @@ void MainWindow::handle_keyboard()
 
     if( ctrl && io.KeyShift )
     {
-        if( ImGui::IsKeyPressed( GLFW_KEY_R ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_R ) )
         {
             this->rendering_layer.reset_camera();
         }
-        if( ImGui::IsKeyPressed( GLFW_KEY_F, false ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_F, false ) )
         {
             fullscreen_toggled = true;
         }
     }
     else if( ctrl )
     {
-        if( ImGui::IsKeyPressed( GLFW_KEY_R ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_R ) )
         {
             Configuration_Random( state.get() );
             rendering_layer.needs_data();
             this->ui_shared_state.notify( "Randomized spins" );
         }
-        if( ImGui::IsKeyPressed( GLFW_KEY_F, false ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_F, false ) )
         {
             ui_config_file.window_hide_menubar = !ui_config_file.window_hide_menubar;
         }
 
         //-----------------------------------------------------
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_X ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_X ) )
         {
             this->cut_image();
         }
-        if( ImGui::IsKeyPressed( GLFW_KEY_C ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_C ) )
         {
             Chain_Image_to_Clipboard( global_window_handle->state.get() );
         }
-        if( ImGui::IsKeyPressed( GLFW_KEY_V ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_V ) )
         {
             this->paste_image();
         }
-        if( ImGui::IsKeyPressed( GLFW_KEY_LEFT ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_LeftArrow ) )
         {
             this->insert_image_left();
         }
-        if( ImGui::IsKeyPressed( GLFW_KEY_RIGHT ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_RightArrow ) )
         {
             this->insert_image_right();
         }
 
         //-----------------------------------------------------
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_N ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_N ) )
         {
             auto & conf = ui_shared_state.configurations;
 
@@ -378,12 +378,12 @@ void MainWindow::handle_keyboard()
         if( io.KeyShift )
             scale = 0.1f;
 
-        if( ImGui::IsKeyDown( GLFW_KEY_W ) && !ImGui::IsKeyDown( GLFW_KEY_S ) )
+        if( ImGui::IsKeyDown( ImGuiKey_W ) && !ImGui::IsKeyDown( ImGuiKey_S ) )
         {
             rendering_layer.view.mouseScroll( -scale );
             rendering_layer.needs_redraw();
         }
-        else if( ImGui::IsKeyDown( GLFW_KEY_S ) && !ImGui::IsKeyDown( GLFW_KEY_W ) )
+        else if( ImGui::IsKeyDown( ImGuiKey_S ) && !ImGui::IsKeyDown( ImGuiKey_W ) )
         {
             rendering_layer.view.mouseScroll( scale );
             rendering_layer.needs_redraw();
@@ -398,47 +398,46 @@ void MainWindow::handle_keyboard()
 
         if( this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::REGULAR )
         {
-            if( ImGui::IsKeyDown( GLFW_KEY_A ) && !ImGui::IsKeyDown( GLFW_KEY_D ) )
+            if( ImGui::IsKeyDown( ImGuiKey_A ) && !ImGui::IsKeyDown( ImGuiKey_D ) )
             {
                 rotate_camera = true;
                 phi           = 5 * scale;
             }
-            else if( ImGui::IsKeyDown( GLFW_KEY_D ) && !ImGui::IsKeyDown( GLFW_KEY_A ) )
+            else if( ImGui::IsKeyDown( ImGuiKey_D ) && !ImGui::IsKeyDown( ImGuiKey_A ) )
             {
                 rotate_camera = true;
                 phi           = -5 * scale;
             }
 
-            if( ImGui::IsKeyDown( GLFW_KEY_Q ) && !ImGui::IsKeyDown( GLFW_KEY_E ) )
+            if( ImGui::IsKeyDown( ImGuiKey_Q ) && !ImGui::IsKeyDown( ImGuiKey_E ) )
             {
                 rotate_camera = true;
                 theta         = 5 * scale;
             }
-            else if( ImGui::IsKeyDown( GLFW_KEY_E ) && !ImGui::IsKeyDown( GLFW_KEY_Q ) )
+            else if( ImGui::IsKeyDown( ImGuiKey_E ) && !ImGui::IsKeyDown( ImGuiKey_Q ) )
             {
                 rotate_camera = true;
                 theta         = -5 * scale;
             }
         }
 
-        if( ImGui::IsKeyDown( GLFW_KEY_T ) && !ImGui::IsKeyDown( GLFW_KEY_G ) )
+        if( ImGui::IsKeyDown( ImGuiKey_T ) && !ImGui::IsKeyDown( ImGuiKey_G ) )
         {
             move_camera = true;
             dy          = scale;
         }
-        else if( ImGui::IsKeyDown( GLFW_KEY_G ) && !ImGui::IsKeyDown( GLFW_KEY_T ) )
+        else if( ImGui::IsKeyDown( ImGuiKey_G ) && !ImGui::IsKeyDown( ImGuiKey_T ) )
         {
             move_camera = true;
             dy          = -scale;
         }
 
-        if( ImGui::IsKeyDown( GLFW_KEY_F ) && !ImGui::IsKeyDown( GLFW_KEY_H ) )
+        if( ImGui::IsKeyDown( ImGuiKey_F ) && !ImGui::IsKeyDown( ImGuiKey_H ) )
         {
             move_camera    = true;
-            float duration = io.KeysDownDuration[GLFW_KEY_T];
             dx             = scale;
         }
-        else if( ImGui::IsKeyDown( GLFW_KEY_H ) && !ImGui::IsKeyDown( GLFW_KEY_F ) )
+        else if( ImGui::IsKeyDown( ImGuiKey_H ) && !ImGui::IsKeyDown( ImGuiKey_F ) )
         {
             move_camera = true;
             dx          = -scale;
@@ -462,7 +461,7 @@ void MainWindow::handle_keyboard()
 
         if( this->ui_shared_state.interaction_mode == UiSharedState::InteractionMode::REGULAR )
         {
-            if( ImGui::IsKeyPressed( GLFW_KEY_X, false ) )
+            if( ImGui::IsKeyPressed( ImGuiKey_X, false ) )
             {
                 float camera_distance = glm::length(
                     rendering_layer.view.options().get<VFRendering::View::Option::CENTER_POSITION>()
@@ -487,7 +486,7 @@ void MainWindow::handle_keyboard()
                 rendering_layer.view.updateOptions( options );
                 rendering_layer.needs_redraw();
             }
-            if( ImGui::IsKeyPressed( GLFW_KEY_Y, false ) )
+            if( ImGui::IsKeyPressed( ImGuiKey_Y, false ) )
             {
                 float camera_distance = glm::length(
                     rendering_layer.view.options().get<VFRendering::View::Option::CENTER_POSITION>()
@@ -508,7 +507,7 @@ void MainWindow::handle_keyboard()
                 rendering_layer.view.updateOptions( options );
                 rendering_layer.needs_redraw();
             }
-            if( ImGui::IsKeyPressed( GLFW_KEY_Z, false ) )
+            if( ImGui::IsKeyPressed( ImGuiKey_Z, false ) )
             {
                 float camera_distance = glm::length(
                     rendering_layer.view.options().get<VFRendering::View::Option::CENTER_POSITION>()
@@ -530,7 +529,7 @@ void MainWindow::handle_keyboard()
                 rendering_layer.needs_redraw();
             }
 
-            if( ImGui::IsKeyPressed( GLFW_KEY_C, false ) )
+            if( ImGui::IsKeyPressed( ImGuiKey_C, false ) )
             {
                 rendering_layer.set_camera_orthographic( !ui_shared_state.camera_is_orthographic );
             }
@@ -538,12 +537,12 @@ void MainWindow::handle_keyboard()
 
         //-----------------------------------------------------
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_SPACE, false ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_Space, false ) )
         {
             start_stop();
         }
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_RIGHT ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_RightArrow ) )
         {
             if( System_Get_Index( state.get() ) < Chain_Get_NOI( this->state.get() ) - 1 )
             {
@@ -553,7 +552,7 @@ void MainWindow::handle_keyboard()
             }
         }
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_LEFT ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_LeftArrow ) )
         {
             if( System_Get_Index( state.get() ) > 0 )
             {
@@ -563,49 +562,49 @@ void MainWindow::handle_keyboard()
             }
         }
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_DELETE ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_Delete ) )
         {
             this->delete_image();
         }
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_I, false ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_I, false ) )
         {
             ui_config_file.show_overlays = !ui_config_file.show_overlays;
         }
 
         //-----------------------------------------------------
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_F1, false ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_F1, false ) )
         {
             show_keybindings = !show_keybindings;
         }
-        if( ImGui::IsKeyPressed( GLFW_KEY_F2, false ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_F2, false ) )
         {
             ui_config_file.show_settings = !ui_config_file.show_settings;
         }
-        if( ImGui::IsKeyPressed( GLFW_KEY_F3, false ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_F3, false ) )
         {
             ui_config_file.show_plots = !ui_config_file.show_plots;
         }
-        if( ImGui::IsKeyPressed( GLFW_KEY_F4, false ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_F4, false ) )
         {
             ui_config_file.show_visualisation_widget = !ui_config_file.show_visualisation_widget;
         }
-        if( ImGui::IsKeyPressed( GLFW_KEY_F5, false ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_F5, false ) )
         {
             if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DRAG )
                 this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::REGULAR );
             else
                 this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::DRAG );
         }
-        if( ImGui::IsKeyPressed( GLFW_KEY_F6, false ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_F6, false ) )
         {
             if( ui_shared_state.interaction_mode == UiSharedState::InteractionMode::DEFECT )
                 this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::REGULAR );
             else
                 this->rendering_layer.set_interaction_mode( UiSharedState::InteractionMode::DEFECT );
         }
-        if( ImGui::IsKeyPressed( GLFW_KEY_F7, false ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_F7, false ) )
         {
             if( SPIRIT_PINNING_ENABLED )
             {
@@ -622,44 +621,44 @@ void MainWindow::handle_keyboard()
 
         //-----------------------------------------------------
         // TODO: deactivate method selection if a calculation is running
-        if( ImGui::IsKeyPressed( GLFW_KEY_1, false ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_1, false ) )
         {
             ui_shared_state.selected_mode = GUI_Mode::Minimizer;
         }
-        if( ImGui::IsKeyPressed( GLFW_KEY_2, false ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_2, false ) )
         {
             ui_shared_state.selected_mode = GUI_Mode::MC;
         }
-        if( ImGui::IsKeyPressed( GLFW_KEY_3, false ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_3, false ) )
         {
             ui_shared_state.selected_mode = GUI_Mode::LLG;
         }
-        if( ImGui::IsKeyPressed( GLFW_KEY_4, false ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_4, false ) )
         {
             ui_shared_state.selected_mode = GUI_Mode::GNEB;
         }
-        if( ImGui::IsKeyPressed( GLFW_KEY_5, false ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_5, false ) )
         {
             ui_shared_state.selected_mode = GUI_Mode::MMF;
         }
-        if( ImGui::IsKeyPressed( GLFW_KEY_6, false ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_6, false ) )
         {
             ui_shared_state.selected_mode = GUI_Mode::EMA;
         }
 
         //-----------------------------------------------------
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_F10, false ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_F10, false ) )
         {
             ui_config_file.window_hide_menubar = !ui_config_file.window_hide_menubar;
         }
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_F11, false ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_F11, false ) )
         {
             ui_config_file.window_fullscreen = !ui_config_file.window_fullscreen;
         }
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_HOME, false ) || ImGui::IsKeyPressed( GLFW_KEY_F12, false ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_Home, false ) || ImGui::IsKeyPressed( ImGuiKey_F12, false ) )
         {
             ++ui_shared_state.n_screenshots;
             std::string name
@@ -670,7 +669,7 @@ void MainWindow::handle_keyboard()
 
         //-----------------------------------------------------
 
-        if( ImGui::IsKeyPressed( GLFW_KEY_ENTER, false ) )
+        if( ImGui::IsKeyPressed( ImGuiKey_Enter, false ) )
         {
             if( ui_shared_state.configurations.last_used != "" )
             {
