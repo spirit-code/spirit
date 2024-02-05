@@ -276,7 +276,8 @@ void Biaxial_Anisotropy::Gradient( const vectorfield & spins, vectorfield & grad
 
 #ifdef SPIRIT_USE_CUDA
     const int size = geometry->n_cells_total;
-    CU_Gradient_Biaxial_Anisotropy<<<( size + 1023 ) / 1024, 1024>>>(
+    static constexpr int blockSize = 768;
+    CU_Gradient_Biaxial_Anisotropy<<<( size - 1 + blockSize ) / blockSize, blockSize>>>(
         spins.data(), geometry->atom_types.data(), geometry->n_cell_atoms, this->indices.size(), this->indices.data(),
         this->bases.data(), this->site_p.data(), this->terms.data(), gradient.data(), size );
     CU_CHECK_AND_SYNC();
