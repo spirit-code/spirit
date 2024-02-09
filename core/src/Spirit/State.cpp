@@ -135,9 +135,9 @@ try
         = std::shared_ptr<Data::Parameters_Method_GNEB>( IO::Parameters_Method_GNEB_from_Config( state->config_file ) );
 
     // Create the chain
-    auto sv = std::vector<std::shared_ptr<Data::Spin_System>>();
+    auto sv = std::vector<std::shared_ptr<State::system_t>>();
     sv.push_back( state->active_image );
-    state->chain = std::make_shared<Data::Spin_System_Chain>( sv, params_gneb, false );
+    state->chain = std::make_shared<State::chain_t>( sv, params_gneb, false );
     //------------------------------------------------------------------------------------------
 
     //----------------------- Fill in the state ------------------------------------------------

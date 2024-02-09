@@ -46,7 +46,7 @@ void Move( vectorfield & configuration, const Data::Geometry & geometry, int da,
     std::rotate( configuration.begin(), configuration.begin() + delta, configuration.end() );
 }
 
-void Insert( Data::Spin_System & s, const vectorfield & configuration, int shift, filterfunction filter )
+void Insert( State::system_t & s, const vectorfield & configuration, int shift, filterfunction filter )
 {
     auto & spins     = *s.spins;
     auto & positions = s.geometry->positions;
@@ -69,7 +69,7 @@ void Insert( Data::Spin_System & s, const vectorfield & configuration, int shift
     }
 }
 
-void Domain( Data::Spin_System & s, Vector3 v, filterfunction filter )
+void Domain( State::system_t & s, Vector3 v, filterfunction filter )
 {
     if( v.norm() < 1e-8 )
     {
@@ -96,7 +96,7 @@ void Domain( Data::Spin_System & s, Vector3 v, filterfunction filter )
     }
 }
 
-void Random( Data::Spin_System & s, filterfunction filter, bool external )
+void Random( State::system_t & s, filterfunction filter, bool external )
 {
     auto & spins     = *s.spins;
     auto & positions = s.geometry->positions;
@@ -125,7 +125,7 @@ void Random( Data::Spin_System & s, filterfunction filter, bool external )
     }
 }
 
-void Add_Noise_Temperature( Data::Spin_System & s, scalar temperature, int delta_seed, filterfunction filter )
+void Add_Noise_Temperature( State::system_t & s, scalar temperature, int delta_seed, filterfunction filter )
 {
     if( temperature == 0.0 )
         return;
@@ -153,7 +153,7 @@ void Add_Noise_Temperature( Data::Spin_System & s, scalar temperature, int delta
     Engine::Vectormath::normalize_vectors( *s.spins );
 }
 
-void Hopfion( Data::Spin_System & s, Vector3 pos, scalar r, int order, Vector3 normal, filterfunction filter )
+void Hopfion( State::system_t & s, Vector3 pos, scalar r, int order, Vector3 normal, filterfunction filter )
 {
 
     auto dreibein = Engine::Vectormath::dreibein( normal );
@@ -216,7 +216,7 @@ void Hopfion( Data::Spin_System & s, Vector3 pos, scalar r, int order, Vector3 n
 }
 
 void Skyrmion(
-    Data::Spin_System & s, Vector3 pos, scalar r, scalar order, scalar phase, bool upDown, bool achiral, bool rl,
+    State::system_t & s, Vector3 pos, scalar r, scalar order, scalar phase, bool upDown, bool achiral, bool rl,
     bool experimental, filterfunction filter )
 {
     // bool experimental uses Method similar to PHYSICAL REVIEW B 67, 020401(R) (2003)
@@ -270,7 +270,7 @@ void Skyrmion(
 } // end Skyrmion
 
 void DW_Skyrmion(
-    Data::Spin_System & s, Vector3 pos, scalar dw_radius, scalar dw_width, scalar order, scalar phase, bool upDown,
+    State::system_t & s, Vector3 pos, scalar dw_radius, scalar dw_width, scalar order, scalar phase, bool upDown,
     bool achiral, bool rl, filterfunction filter )
 {
     auto & spins     = *s.spins;
@@ -312,7 +312,7 @@ void DW_Skyrmion(
 }
 
 void SpinSpiral(
-    Data::Spin_System & s, std::string direction_type, Vector3 q, Vector3 axis, scalar theta, filterfunction filter )
+    State::system_t & s, std::string direction_type, Vector3 q, Vector3 axis, scalar theta, filterfunction filter )
 {
     scalar phase;
     Vector3 vx{ 1, 0, 0 }, vy{ 0, 1, 0 }, vz{ 0, 0, 1 };
@@ -429,7 +429,7 @@ void SpinSpiral(
 }
 
 void SpinSpiral(
-    Data::Spin_System & s, std::string direction_type, Vector3 q1, Vector3 q2, Vector3 axis, scalar theta,
+    State::system_t & s, std::string direction_type, Vector3 q1, Vector3 q2, Vector3 axis, scalar theta,
     filterfunction filter )
 {
     Vector3 vx{ 1, 0, 0 }, vy{ 0, 1, 0 }, vz{ 0, 0, 1 };
@@ -564,7 +564,7 @@ void SpinSpiral(
     } // endfor iatom
 }
 
-void Set_Atom_Types( Data::Spin_System & s, int atom_type, filterfunction filter )
+void Set_Atom_Types( State::system_t & s, int atom_type, filterfunction filter )
 {
     auto & spins     = *s.spins;
     auto & geometry  = s.geometry;
@@ -581,7 +581,7 @@ void Set_Atom_Types( Data::Spin_System & s, int atom_type, filterfunction filter
     }
 }
 
-void Set_Pinned( Data::Spin_System & s, bool pinned, filterfunction filter )
+void Set_Pinned( State::system_t & s, bool pinned, filterfunction filter )
 {
     auto & spins     = *s.spins;
     auto & geometry  = s.geometry;

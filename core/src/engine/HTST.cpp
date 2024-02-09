@@ -26,9 +26,12 @@ namespace Engine
 namespace HTST
 {
 
+using system_t = Data::Spin_System<Engine::Hamiltonian>;
+
 // Note the two images should correspond to one minimum and one saddle point
 // Non-extremal images may yield incorrect Hessians and thus incorrect results
-void Calculate( Data::HTST_Info & htst_info, int n_eigenmodes_keep )
+template<>
+void Calculate( Data::HTST_Info<system_t> & htst_info, int n_eigenmodes_keep )
 {
     Log( Utility::Log_Level::All, Utility::Log_Sender::HTST, "---- Prefactor calculation" );
     htst_info.sparse           = false;
@@ -317,7 +320,7 @@ void Calculate( Data::HTST_Info & htst_info, int n_eigenmodes_keep )
          -1, -1 );
 }
 
-scalar Calculate_Zero_Volume( const std::shared_ptr<Data::Spin_System> system )
+scalar Calculate_Zero_Volume( const std::shared_ptr<State::system_t> system )
 {
     int nos                = system->geometry->nos;
     auto & n_cells         = system->geometry->n_cells;

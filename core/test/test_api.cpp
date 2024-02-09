@@ -54,8 +54,8 @@ TEST_CASE( "State", "[state]" )
         REQUIRE( System_Get_Index( state.get() ) == 1 ); // Active is 2nd image
 
         // Arguments for from_indices()
-        std::shared_ptr<Data::Spin_System> image;
-        std::shared_ptr<Data::Spin_System_Chain> chain;
+        std::shared_ptr<State::system_t> image;
+        std::shared_ptr<State::chain_t> chain;
         int idx_image{}, idx_chain{};
 
         // A positive, index beyond the size of the chain should throw an exception

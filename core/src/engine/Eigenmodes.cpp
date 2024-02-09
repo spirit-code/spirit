@@ -22,7 +22,7 @@ namespace Engine
 namespace Eigenmodes
 {
 
-void Check_Eigenmode_Parameters( std::shared_ptr<Data::Spin_System> system )
+void Check_Eigenmode_Parameters( std::shared_ptr<State::system_t> system )
 {
     int nos        = system->nos;
     auto & n_modes = system->ema_parameters->n_modes;
@@ -54,7 +54,7 @@ void Check_Eigenmode_Parameters( std::shared_ptr<Data::Spin_System> system )
     }
 }
 
-void Calculate_Eigenmodes( std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain )
+void Calculate_Eigenmodes( std::shared_ptr<State::system_t> system, int idx_img, int idx_chain )
 {
     int nos = system->nos;
 

@@ -2,7 +2,7 @@
 #ifndef SPIRIT_CORE_IO_OVFFILE_HPP
 #define SPIRIT_CORE_IO_OVFFILE_HPP
 
-#include <data/Spin_System.hpp>
+#include <data/State.hpp>
 
 #include <ovf.h>
 
@@ -12,7 +12,7 @@ namespace IO
 struct OVF_Segment : ::ovf_segment
 {
     OVF_Segment();
-    OVF_Segment( const Data::Spin_System & system );
+    OVF_Segment( const State::system_t & system );
     ~OVF_Segment();
 };
 

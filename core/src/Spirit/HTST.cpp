@@ -10,8 +10,8 @@ scalar HTST_Calculate(
     State * state, int idx_image_minimum, int idx_image_sp, int n_eigenmodes_keep, bool sparse, int idx_chain )
 try
 {
-    std::shared_ptr<Data::Spin_System> image_minimum, image_sp;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image_minimum, image_sp;
+    std::shared_ptr<State::chain_t> chain;
     from_indices( state, idx_image_minimum, idx_chain, image_minimum, chain );
     from_indices( state, idx_image_sp, idx_chain, image_sp, chain );
 
@@ -41,8 +41,8 @@ void HTST_Get_Info(
 try
 {
     int idx_image = -1;
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -83,8 +83,8 @@ void HTST_Get_Eigenvalues_Min( State * state, scalar * eigenvalues_min, int idx_
 try
 {
     int idx_image = -1;
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -110,8 +110,8 @@ void HTST_Get_Eigenvectors_Min( State * state, scalar * eigenvectors_min, int id
 try
 {
     int idx_image = -1;
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -137,8 +137,8 @@ void HTST_Get_Eigenvalues_SP( State * state, scalar * eigenvalues_sp, int idx_ch
 try
 {
     int idx_image = -1;
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -165,8 +165,8 @@ void HTST_Get_Eigenvectors_SP( State * state, scalar * eigenvectors_sp, int idx_
 try
 {
     int idx_image = -1;
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -192,8 +192,8 @@ void HTST_Get_Velocities( State * state, scalar * velocities, int idx_chain ) no
 try
 {
     int idx_image = -1;
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );

@@ -8,16 +8,18 @@
 
 namespace Engine
 {
-
+template<typename system_t, Solver solver>
+class Method_MMF;
 /*
     The Minimum Mode Following (MMF) method
 */
 template<Solver solver>
-class Method_MMF : public Method_Solver<solver>
+class Method_MMF<Data::Spin_System<Engine::Hamiltonian>, solver> : public Method_Solver<solver>
 {
+    using system_t = Data::Spin_System<Engine::Hamiltonian>;
 public:
     // Constructor
-    Method_MMF( std::shared_ptr<Data::Spin_System> system, int idx_chain );
+    Method_MMF( std::shared_ptr<system_t> system, int idx_chain );
 
     // Method name as string
     std::string Name() override;
@@ -40,7 +42,7 @@ private:
     // Sets iteration_allowed to false
     void Finalize() override;
 
-    std::shared_ptr<Data::Spin_System> system;
+    std::shared_ptr<system_t> system;
 
     bool switched1, switched2;
 

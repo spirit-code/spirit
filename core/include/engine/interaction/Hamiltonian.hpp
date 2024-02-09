@@ -90,6 +90,8 @@ class Hamiltonian
     friend class Interaction::Quadruplet;
 
 public:
+    using state_t = vectorfield;
+
     friend void swap( Hamiltonian & first, Hamiltonian & second ) noexcept
     {
         using std::swap;

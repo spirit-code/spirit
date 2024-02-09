@@ -18,8 +18,8 @@ namespace C = Utility::Constants;
 void Quantity_Get_Average_Spin( State * state, scalar s[3], int idx_image, int idx_chain )
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -40,8 +40,8 @@ catch( ... )
 void Quantity_Get_Magnetization( State * state, scalar m[3], int idx_image, int idx_chain )
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -65,8 +65,8 @@ catch( ... )
 scalar Quantity_Get_Topological_Charge( State * state, int idx_image, int idx_chain )
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -93,8 +93,8 @@ int Quantity_Get_Topological_Charge_Density(
     State * state, scalar * charge_density_ptr, int * triangle_indices_ptr, int idx_image, int idx_chain )
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -235,8 +235,8 @@ try
     using namespace Engine;
     using namespace Utility;
 
-    std::shared_ptr<Data::Spin_System> system;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> system;
+    std::shared_ptr<State::chain_t> chain;
     from_indices( state, idx_image, idx_chain, system, chain );
     throw_if_nullptr( f_grad, "f_grad" );
     throw_if_nullptr( eval, "eval" );

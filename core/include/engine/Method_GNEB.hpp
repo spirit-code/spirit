@@ -10,17 +10,20 @@
 
 namespace Engine
 {
-
+template<typename chain_t, Solver solver>
+class Method_GNEB;
 /*
     The geodesic nudged elastic band (GNEB) method
     // TODO: reference to Paper
 */
 template<Solver solver>
-class Method_GNEB : public Method_Solver<solver>
+class Method_GNEB<Data::Spin_System_Chain<Engine::Hamiltonian>, solver> : public Method_Solver<solver>
 {
+    using chain_t = Data::Spin_System_Chain<Engine::Hamiltonian>;
+
 public:
     // Constructor
-    Method_GNEB( std::shared_ptr<Data::Spin_System_Chain> chain, int idx_chain );
+    Method_GNEB( std::shared_ptr<chain_t> chain, int idx_chain );
 
     // Return maximum force components of the images in the chain
     std::vector<scalar> getForceMaxAbsComponent_All() override;
@@ -64,7 +67,7 @@ private:
     // Unlock systems to re-enable access
     void Unlock() override;
 
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<chain_t> chain;
 
     // Last calculated energies
     std::vector<scalar> energies;

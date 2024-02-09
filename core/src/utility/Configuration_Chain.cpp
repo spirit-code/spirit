@@ -1,4 +1,4 @@
-#include <data/Spin_System.hpp>
+#include <data/State.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Configuration_Chain.hpp>
 #include <utility/Configurations.hpp>
@@ -17,7 +17,7 @@ namespace Utility
 namespace Configuration_Chain
 {
 
-void Add_Noise_Temperature( std::shared_ptr<Data::Spin_System_Chain> c, int idx_1, int idx_2, scalar temperature )
+void Add_Noise_Temperature( std::shared_ptr<State::chain_t> c, int idx_1, int idx_2, scalar temperature )
 {
     for( int img = idx_1 + 1; img <= idx_2 - 1; ++img )
     {
@@ -25,7 +25,7 @@ void Add_Noise_Temperature( std::shared_ptr<Data::Spin_System_Chain> c, int idx_
     }
 }
 
-void Homogeneous_Rotation( std::shared_ptr<Data::Spin_System_Chain> c, int idx_1, int idx_2 )
+void Homogeneous_Rotation( std::shared_ptr<State::chain_t> c, int idx_1, int idx_2 )
 {
     auto & spins_1 = *c->images[idx_1]->spins;
     auto & spins_2 = *c->images[idx_2]->spins;
