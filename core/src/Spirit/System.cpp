@@ -20,11 +20,9 @@ catch( ... )
 int System_Get_NOS( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     return image->nos;
 }
@@ -37,11 +35,9 @@ catch( ... )
 scalar * System_Get_Spin_Directions( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     return (scalar *)( *image->spins )[0].data();
 }
@@ -54,11 +50,9 @@ catch( ... )
 scalar * System_Get_Effective_Field( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     return image->effective_field[0].data();
 }
 catch( ... )
@@ -70,11 +64,9 @@ catch( ... )
 scalar * System_Get_Eigenmode( State * state, int idx_mode, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Check mode index
     if( idx_mode >= image->modes.size() )
@@ -103,11 +95,9 @@ catch( ... )
 scalar System_Get_Rx( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     return chain->Rx[idx_image];
 }
@@ -120,11 +110,9 @@ catch( ... )
 scalar System_Get_Energy( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     return image->E;
 }
@@ -137,11 +125,9 @@ catch( ... )
 int System_Get_Energy_Array_Names( State * state, char * names, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     int n_char_array = -1; // Start of with offset -1, because the last contributions gets no "|" delimiter
     for( unsigned int i = 0; i < image->E_array.size(); ++i )
@@ -180,11 +166,9 @@ int System_Get_Energy_Array(
     State * state, scalar * energies, bool divide_by_nspins, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     scalar nd = divide_by_nspins ? 1 / scalar( image->nos ) : 1;
 
@@ -210,11 +194,9 @@ catch( ... )
 void System_Get_Eigenvalues( State * state, scalar * eigenvalues, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     for( unsigned int i = 0; i < image->eigenvalues.size(); ++i )
     {
@@ -229,11 +211,9 @@ catch( ... )
 void System_Print_Energy_Array( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     scalar nd = 1 / (scalar)image->nos;
 
@@ -255,11 +235,9 @@ catch( ... )
 void System_Update_Data( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     image->Lock();
     try
@@ -281,15 +259,12 @@ catch( ... )
 void System_Update_Eigenmodes( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    // Fetch correct indices and pointers for image and chain
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     image->Lock();
-    Engine::Eigenmodes::Calculate_Eigenmodes( image, idx_image, idx_chain );
+    Engine::Eigenmodes::Calculate_Eigenmodes( *image, idx_image, idx_chain );
     image->Unlock();
 }
 catch( ... )

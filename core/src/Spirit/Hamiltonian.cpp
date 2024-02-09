@@ -27,11 +27,8 @@ void Hamiltonian_Set_Boundary_Conditions(
     State * state, const bool * periodical, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( periodical, "periodical" );
 
     image->Lock();
@@ -60,11 +57,8 @@ void Hamiltonian_Set_Field(
     State * state, scalar magnitude, const scalar * normal, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( normal, "normal" );
 
     // Lock mutex because simulations may be running
@@ -109,11 +103,8 @@ void Hamiltonian_Set_Anisotropy(
     State * state, scalar magnitude, const scalar * normal, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( normal, "normal" );
 
     image->Lock();
@@ -165,11 +156,8 @@ catch( ... )
 void Hamiltonian_Set_Cubic_Anisotropy( State * state, scalar magnitude, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     image->Lock();
     try
@@ -217,11 +205,8 @@ void Hamiltonian_Set_Biaxial_Anisotropy(
     const scalar * secondary, int n_terms, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     image->Lock();
     try
@@ -302,11 +287,8 @@ catch( ... )
 void Hamiltonian_Set_Exchange( State * state, int n_shells, const scalar * jij, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( jij, "jij" );
 
     image->Lock();
@@ -342,11 +324,8 @@ void Hamiltonian_Set_DMI(
     State * state, int n_shells, const scalar * dij, int chirality, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( dij, "dij" );
 
     if( chirality != SPIRIT_CHIRALITY_BLOCH && chirality != SPIRIT_CHIRALITY_NEEL
@@ -392,11 +371,8 @@ void Hamiltonian_Set_DDI(
     int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( n_periodic_images, "n_periodic_images" );
 
     image->Lock();
@@ -442,11 +418,8 @@ catch( ... )
 const char * Hamiltonian_Get_Name( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     return strdup( std::string( image->hamiltonian->Name() ).c_str() );
 }
@@ -459,11 +432,8 @@ catch( ... )
 void Hamiltonian_Get_Boundary_Conditions( State * state, bool * periodical, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( periodical, "periodical" );
 
     periodical[0] = image->hamiltonian->boundary_conditions[0];
@@ -478,11 +448,8 @@ catch( ... )
 void Hamiltonian_Get_Field( State * state, scalar * magnitude, scalar * normal, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( magnitude, "magnitude" );
     throw_if_nullptr( normal, "normal" );
 
@@ -518,11 +485,8 @@ void Hamiltonian_Get_Anisotropy(
     State * state, scalar * magnitude, scalar * normal, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( magnitude, "magnitude" );
     throw_if_nullptr( normal, "normal" );
 
@@ -560,11 +524,8 @@ catch( ... )
 void Hamiltonian_Get_Cubic_Anisotropy( State * state, scalar * magnitude, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( magnitude, "magnitude" );
 
     if( image->hamiltonian->Name() == "Heisenberg" )
@@ -593,11 +554,8 @@ catch( ... )
 int Hamiltonian_Get_Biaxial_Anisotropy_N_Atoms( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( auto * interaction = image->hamiltonian->getInteraction<Engine::Interaction::Biaxial_Anisotropy>();
         interaction != nullptr )
@@ -618,11 +576,8 @@ catch( ... )
 int Hamiltonian_Get_Biaxial_Anisotropy_N_Terms( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( auto * interaction = image->hamiltonian->getInteraction<Engine::Interaction::Biaxial_Anisotropy>();
         interaction != nullptr )
@@ -645,11 +600,8 @@ void Hamiltonian_Get_Biaxial_Anisotropy(
     scalar * magnitude, int exponents[][3], const int n_terms, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( indices, "indices" );
     throw_if_nullptr( primary, "primary" );
     throw_if_nullptr( secondary, "secondary" );
@@ -700,11 +652,8 @@ void Hamiltonian_Get_Exchange_Shells(
     State * state, int * n_shells, scalar * jij, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( n_shells, "n_shells" );
     throw_if_nullptr( jij, "jij" );
 
@@ -731,11 +680,8 @@ catch( ... )
 int Hamiltonian_Get_Exchange_N_Pairs( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
@@ -754,11 +700,8 @@ void Hamiltonian_Get_Exchange_Pairs(
     State * state, int idx[][2], int translations[][3], scalar * Jij, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( Jij, "Jij" );
 
     if( image->hamiltonian->Name() == "Heisenberg" )
@@ -789,11 +732,8 @@ void Hamiltonian_Get_DMI_Shells(
     State * state, int * n_shells, scalar * dij, int * chirality, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( n_shells, "n_shells" );
     throw_if_nullptr( dij, "dij" );
     throw_if_nullptr( chirality, "chirality" );
@@ -823,11 +763,8 @@ catch( ... )
 int Hamiltonian_Get_DMI_N_Pairs( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
@@ -847,11 +784,8 @@ void Hamiltonian_Get_DDI(
     int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( ddi_method, "ddi_method" );
     throw_if_nullptr( cutoff_radius, "cutoff_radius" );
     throw_if_nullptr( pb_zero_padding, "pb_zero_padding" );
@@ -920,11 +854,8 @@ void Hamiltonian_Write_Hessian(
     State * state, const char * filename, bool triplet_format, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( filename, "filename" );
 
     // Compute hessian

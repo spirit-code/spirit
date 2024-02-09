@@ -22,11 +22,9 @@ void Parameters_GNEB_Set_Output_Tag( State * state, const char * tag, int idx_ch
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     chain->Lock();
     chain->gneb_parameters->output_file_tag = tag;
@@ -44,11 +42,9 @@ void Parameters_GNEB_Set_Output_Folder( State * state, const char * folder, int 
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     chain->Lock();
     chain->gneb_parameters->output_folder = folder;
@@ -63,11 +59,9 @@ void Parameters_GNEB_Set_Output_General( State * state, bool any, bool initial, 
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     chain->Lock();
     chain->gneb_parameters->output_any     = any;
@@ -86,11 +80,9 @@ void Parameters_GNEB_Set_Output_Energies(
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     chain->Lock();
     chain->gneb_parameters->output_energies_step                  = energies_step;
@@ -108,11 +100,9 @@ void Parameters_GNEB_Set_Output_Chain( State * state, bool chain_step, int chain
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     chain->Lock();
     chain->gneb_parameters->output_chain_step  = chain_step;
@@ -128,11 +118,9 @@ void Parameters_GNEB_Set_N_Iterations( State * state, int n_iterations, int n_it
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     chain->Lock();
     chain->gneb_parameters->n_iterations     = n_iterations;
@@ -148,11 +136,9 @@ catch( ... )
 void Parameters_GNEB_Set_Convergence( State * state, scalar convergence, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     image->Lock();
     auto p               = chain->gneb_parameters;
@@ -170,11 +156,9 @@ catch( ... )
 void Parameters_GNEB_Set_Spring_Constant( State * state, scalar spring_constant, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     chain->Lock();
     auto p             = chain->gneb_parameters;
@@ -193,11 +177,9 @@ void Parameters_GNEB_Set_Spring_Force_Ratio( State * state, scalar ratio, int id
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     chain->Lock();
     auto p                = chain->gneb_parameters;
@@ -218,11 +200,9 @@ void Parameters_GNEB_Set_Path_Shortening_Constant(
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     chain->Lock();
     auto p                      = chain->gneb_parameters;
@@ -242,11 +222,9 @@ void Parameters_GNEB_Set_Moving_Endpoints( State * state, bool moving_endpoints,
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     chain->Lock();
     auto p              = chain->gneb_parameters;
@@ -266,11 +244,9 @@ void Parameters_GNEB_Set_Translating_Endpoints( State * state, bool translating_
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     chain->Lock();
     auto p                   = chain->gneb_parameters;
@@ -290,11 +266,9 @@ void Parameters_GNEB_Set_Equilibrium_Delta_Rx(
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     chain->Lock();
     auto p                        = chain->gneb_parameters;
@@ -317,11 +291,9 @@ catch( ... )
 void Parameters_GNEB_Set_Climbing_Falling( State * state, int image_type, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     chain->Lock();
     chain->image_type[idx_image] = static_cast<Data::GNEB_Image_Type>( image_type );
@@ -339,11 +311,9 @@ void Parameters_GNEB_Set_Image_Type_Automatically( State * state, int idx_chain 
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     for( int img = 1; img < chain->noi - 1; ++img )
     {
@@ -370,11 +340,9 @@ void Parameters_GNEB_Set_N_Energy_Interpolations( State * state, int n, int idx_
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     chain->Lock();
     chain->gneb_parameters->n_E_interpolations = n;
@@ -398,11 +366,9 @@ const char * Parameters_GNEB_Get_Output_Tag( State * state, int idx_chain ) noex
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     return chain->gneb_parameters->output_file_tag.c_str();
 }
@@ -416,11 +382,9 @@ const char * Parameters_GNEB_Get_Output_Folder( State * state, int idx_chain ) n
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     return chain->gneb_parameters->output_folder.c_str();
 }
@@ -435,11 +399,9 @@ void Parameters_GNEB_Get_Output_General(
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     *any     = chain->gneb_parameters->output_any;
     *initial = chain->gneb_parameters->output_initial;
@@ -456,11 +418,9 @@ void Parameters_GNEB_Get_Output_Energies(
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     *energies_step                  = chain->gneb_parameters->output_energies_step;
     *energies_interpolated          = chain->gneb_parameters->output_energies_interpolated;
@@ -476,11 +436,9 @@ void Parameters_GNEB_Get_Output_Chain( State * state, bool * chain_step, int * c
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     *chain_step     = chain->gneb_parameters->output_chain_step;
     *chain_filetype = static_cast<int>( chain->gneb_parameters->output_vf_filetype );
@@ -494,11 +452,9 @@ void Parameters_GNEB_Get_N_Iterations( State * state, int * iterations, int * it
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     auto p          = chain->gneb_parameters;
     *iterations     = p->n_iterations;
@@ -513,11 +469,9 @@ catch( ... )
 scalar Parameters_GNEB_Get_Convergence( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     auto p = chain->gneb_parameters;
     return p->force_convergence;
@@ -531,11 +485,9 @@ catch( ... )
 scalar Parameters_GNEB_Get_Spring_Constant( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     auto p = chain->gneb_parameters;
     return p->spring_constant;
@@ -550,11 +502,9 @@ scalar Parameters_GNEB_Get_Spring_Force_Ratio( State * state, int idx_chain ) no
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     auto p = chain->gneb_parameters;
     return p->spring_force_ratio;
@@ -569,11 +519,9 @@ scalar Parameters_GNEB_Get_Path_Shortening_Constant( State * state, int idx_chai
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     auto p = chain->gneb_parameters;
     return p->path_shortening_constant;
@@ -588,11 +536,9 @@ bool Parameters_GNEB_Get_Moving_Endpoints( State * state, int idx_chain ) noexce
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     auto p = chain->gneb_parameters;
     return static_cast<bool>( p->moving_endpoints );
@@ -607,11 +553,9 @@ bool Parameters_GNEB_Get_Translating_Endpoints( State * state, int idx_chain ) n
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     auto p = chain->gneb_parameters;
     return static_cast<bool>( p->translating_endpoints );
@@ -627,11 +571,9 @@ void Parameters_GNEB_Get_Equilibrium_Delta_Rx(
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     auto p          = chain->gneb_parameters;
     *delta_Rx_left  = p->equilibrium_delta_Rx_left;
@@ -645,11 +587,9 @@ catch( ... )
 int Parameters_GNEB_Get_Climbing_Falling( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     return static_cast<int>( chain->image_type[idx_image] );
 }
@@ -663,11 +603,9 @@ int Parameters_GNEB_Get_N_Energy_Interpolations( State * state, int idx_chain ) 
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     auto p = chain->gneb_parameters;
     return p->n_E_interpolations;

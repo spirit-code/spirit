@@ -307,11 +307,7 @@ try
 {
     check_state( state );
 
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
-    // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     try
     {
@@ -447,12 +443,8 @@ int Geometry_Get_NOS( State * state ) noexcept
 scalar * Geometry_Get_Positions( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
-
+    auto [image, _] = from_indices( state, idx_image, idx_chain );
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
 
     return (scalar *)image->geometry->positions[0].data();
@@ -466,11 +458,9 @@ catch( ... )
 int * Geometry_Get_Atom_Types( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
 
@@ -485,11 +475,9 @@ catch( ... )
 void Geometry_Get_Bounds( State * state, scalar min[3], scalar max[3], int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( min, "min" );
     throw_if_nullptr( max, "max" );
 
@@ -511,11 +499,8 @@ catch( ... )
 void Geometry_Get_Center( State * state, scalar center[3], int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, _] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( center, "center" );
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
@@ -534,11 +519,8 @@ catch( ... )
 void Geometry_Get_Cell_Bounds( State * state, scalar min[3], scalar max[3], int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, _] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( min, "min" );
     throw_if_nullptr( max, "max" );
 
@@ -560,11 +542,8 @@ catch( ... )
 Bravais_Lattice_Type Geometry_Get_Bravais_Lattice_Type( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, _] = from_indices( state, idx_image, idx_chain );
 
     return Bravais_Lattice_Type( image->geometry->classifier );
 }
@@ -579,11 +558,9 @@ void Geometry_Get_Bravais_Vectors(
     State * state, scalar a[3], scalar b[3], scalar c[3], int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    //
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( a, "a" );
     throw_if_nullptr( b, "b" );
     throw_if_nullptr( c, "c" );
@@ -607,11 +584,9 @@ catch( ... )
 int Geometry_Get_N_Cell_Atoms( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    //
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
 
@@ -627,11 +602,9 @@ catch( ... )
 int Geometry_Get_Cell_Atoms( State * state, scalar ** atoms, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     auto g = image->geometry;
     if( atoms != nullptr )
@@ -648,11 +621,9 @@ catch( ... )
 void Geometry_Get_mu_s( State * state, scalar * mu_s, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( mu_s, "mu_s" );
 
     for( int i = 0; i < image->geometry->n_cell_atoms; ++i )
@@ -667,11 +638,9 @@ catch( ... )
 void Geometry_Get_N_Cells( State * state, int n_cells[3], int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( n_cells, "n_cells" );
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
@@ -689,11 +658,9 @@ catch( ... )
 int Geometry_Get_Dimensionality( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
 
@@ -710,11 +677,9 @@ int Geometry_Get_Triangulation(
     State * state, const int ** indices_ptr, int n_cell_step, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
 
@@ -736,11 +701,8 @@ int Geometry_Get_Triangulation_Ranged(
     State * state, const int ** indices_ptr, int n_cell_step, int ranges[6], int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( ranges, "ranges" );
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
@@ -763,9 +725,7 @@ int Geometry_Get_Tetrahedra(
     State * state, const int ** indices_ptr, int n_cell_step, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     auto g                  = image->geometry;
     const auto & tetrahedra = g->tetrahedra( n_cell_step );
@@ -785,9 +745,7 @@ int Geometry_Get_Tetrahedra_Ranged(
     State * state, const int ** indices_ptr, int n_cell_step, int ranges[6], int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( ranges, "ranges" );
 
     auto g                   = image->geometry;

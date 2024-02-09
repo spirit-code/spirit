@@ -16,11 +16,9 @@ void Transition_Homogeneous( State * state, int idx_1, int idx_2, int idx_chain 
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Check indices
     if( idx_2 <= idx_1 )
@@ -37,7 +35,7 @@ try
     chain->Lock();
     try
     {
-        Utility::Configuration_Chain::Homogeneous_Rotation( chain, idx_1, idx_2 );
+        Utility::Configuration_Chain::Homogeneous_Rotation( *chain, idx_1, idx_2 );
         for( int img = 0; img < chain->noi; ++img )
             chain->images[img]->geometry->Apply_Pinning( *chain->images[img]->spins );
 
@@ -81,11 +79,9 @@ void Transition_Add_Noise_Temperature( State * state, scalar temperature, int id
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Check indices
     if( idx_2 <= idx_1 )
@@ -102,7 +98,7 @@ try
     chain->Lock();
     try
     {
-        Utility::Configuration_Chain::Add_Noise_Temperature( chain, idx_1, idx_2, temperature );
+        Utility::Configuration_Chain::Add_Noise_Temperature( *chain, idx_1, idx_2, temperature );
         for( int img = 0; img < chain->noi; ++img )
             chain->images[img]->geometry->Apply_Pinning( *chain->images[img]->spins );
 

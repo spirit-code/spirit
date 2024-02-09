@@ -37,11 +37,9 @@ std::string Get_Extension( const char * file )
 int IO_System_From_Config( State * state, const char * file, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Create System (and lock it)
     std::shared_ptr<State::system_t> system = IO::Spin_System_from_Config( std::string( file ) );
@@ -92,11 +90,9 @@ void IO_Positions_Write(
     State * state, const char * filename, int format, const char * comment, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Write the data
     image->Lock();
@@ -188,11 +184,9 @@ void IO_Image_Read(
     State * state, const char * filename, int idx_image_infile, int idx_image_inchain, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image_inchain, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image_inchain, idx_chain );
 
     image->Lock();
 
@@ -295,11 +289,9 @@ void IO_Image_Write(
     State * state, const char * filename, int format, const char * comment, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Write the data
     image->Lock();
@@ -365,11 +357,9 @@ void IO_Image_Append(
     State * state, const char * filename, int format, const char * comment, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Write the data
     image->Lock();
@@ -442,11 +432,9 @@ void IO_Chain_Read(
     int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, insert_idx, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, insert_idx, idx_chain );
 
     chain->Lock();
     bool success = false;
@@ -654,11 +642,8 @@ try
 {
     int idx_image = 0;
 
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Read the data
     chain->Lock();
@@ -733,11 +718,8 @@ try
 {
     int idx_image = 0;
 
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Read the data
     chain->Lock();
@@ -817,11 +799,9 @@ catch( ... )
 void IO_Image_Write_Neighbours_Exchange( State * state, const char * file, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Write the data
     IO::Write_Neighbours_Exchange( *image, std::string( file ) );
@@ -834,11 +814,9 @@ catch( ... )
 void IO_Image_Write_Neighbours_DMI( State * state, const char * file, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Write the data
     IO::Write_Neighbours_DMI( *image, std::string( file ) );
@@ -853,11 +831,9 @@ void IO_Image_Write_Energy_per_Spin(
     State * state, const char * filename, int format, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Write the data
     image->Lock();
@@ -958,11 +934,9 @@ catch( ... )
 void IO_Image_Write_Energy( State * state, const char * file, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Write the data
     IO::Write_Image_Energy( *image, std::string( file ) );
@@ -978,11 +952,8 @@ try
 {
     int idx_image = -1;
 
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Write the data
     IO::Write_Chain_Energies( *chain, idx_chain, std::string( file ) );
@@ -998,11 +969,8 @@ try
 {
     int idx_image = -1;
 
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Write the data
     IO::Write_Chain_Energies_Interpolated( *chain, std::string( file ) );
@@ -1019,11 +987,9 @@ catch( ... )
 void IO_Eigenmodes_Read( State * state, const char * filename, int idx_image_inchain, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image_inchain, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image_inchain, idx_chain );
 
     // Read the data
     image->Lock();
@@ -1153,11 +1119,9 @@ void IO_Eigenmodes_Write(
     State * state, const char * filename, int format, const char * comment, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Write the data
     image->Lock();

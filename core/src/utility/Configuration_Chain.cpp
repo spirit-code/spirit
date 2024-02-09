@@ -17,18 +17,18 @@ namespace Utility
 namespace Configuration_Chain
 {
 
-void Add_Noise_Temperature( std::shared_ptr<State::chain_t> c, int idx_1, int idx_2, scalar temperature )
+void Add_Noise_Temperature( State::chain_t & c, int idx_1, int idx_2, scalar temperature )
 {
     for( int img = idx_1 + 1; img <= idx_2 - 1; ++img )
     {
-        Configurations::Add_Noise_Temperature( *c->images[img], temperature, img );
+        Configurations::Add_Noise_Temperature( *c.images[img], temperature, img );
     }
 }
 
-void Homogeneous_Rotation( std::shared_ptr<State::chain_t> c, int idx_1, int idx_2 )
+void Homogeneous_Rotation( State::chain_t & c, int idx_1, int idx_2 )
 {
-    auto & spins_1 = *c->images[idx_1]->spins;
-    auto & spins_2 = *c->images[idx_2]->spins;
+    auto & spins_1 = *c.images[idx_1]->spins;
+    auto & spins_2 = *c.images[idx_2]->spins;
 
     scalar angle, rot_angle;
     Vector3 rot_axis;
@@ -36,7 +36,7 @@ void Homogeneous_Rotation( std::shared_ptr<State::chain_t> c, int idx_1, int idx
     Vector3 ey = { 0, 1, 0 };
 
     bool antiparallel = false;
-    for( int i = 0; i < c->images[0]->nos; ++i )
+    for( int i = 0; i < c.images[0]->nos; ++i )
     {
         rot_angle = Engine::Vectormath::angle( spins_1[i], spins_2[i] );
         rot_axis  = spins_1[i].cross( spins_2[i] ).normalized();
@@ -57,7 +57,7 @@ void Homogeneous_Rotation( std::shared_ptr<State::chain_t> c, int idx_1, int idx
             for( int img = idx_1 + 1; img < idx_2; ++img )
             {
                 angle = rot_angle * scalar( img - idx_1 ) / scalar( idx_2 - idx_1 );
-                Engine::Vectormath::rotate( spins_1[i], rot_axis, angle, ( *c->images[img]->spins )[i] );
+                Engine::Vectormath::rotate( spins_1[i], rot_axis, angle, ( *c.images[img]->spins )[i] );
             }
         }
         // Otherwise we simply leave the spin untouched
@@ -65,7 +65,7 @@ void Homogeneous_Rotation( std::shared_ptr<State::chain_t> c, int idx_1, int idx
         {
             for( int img = idx_1 + 1; img < idx_2; ++img )
             {
-                ( *c->images[img]->spins )[i] = spins_1[i];
+                ( *c.images[img]->spins )[i] = spins_1[i];
             }
         }
     }

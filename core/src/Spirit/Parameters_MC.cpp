@@ -19,11 +19,9 @@ using namespace Utility;
 void Parameters_MC_Set_Output_Tag( State * state, const char * tag, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     image->Lock();
     image->mc_parameters->output_file_tag = tag;
@@ -40,11 +38,9 @@ catch( ... )
 void Parameters_MC_Set_Output_Folder( State * state, const char * folder, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     image->Lock();
     image->mc_parameters->output_folder = folder;
@@ -62,11 +58,9 @@ void Parameters_MC_Set_Output_General(
     State * state, bool any, bool initial, bool final, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     image->Lock();
     image->mc_parameters->output_any     = any;
@@ -84,11 +78,9 @@ void Parameters_MC_Set_Output_Energy(
     bool energy_add_readability_lines, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     image->Lock();
     image->mc_parameters->output_energy_step                  = energy_step;
@@ -108,11 +100,9 @@ void Parameters_MC_Set_Output_Configuration(
     int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     image->Lock();
     image->mc_parameters->output_configuration_step    = configuration_step;
@@ -129,11 +119,9 @@ void Parameters_MC_Set_N_Iterations(
     State * state, int n_iterations, int n_iterations_log, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     image->Lock();
     image->mc_parameters->n_iterations     = n_iterations;
@@ -149,11 +137,9 @@ catch( ... )
 void Parameters_MC_Set_Temperature( State * state, scalar T, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     image->Lock();
 
@@ -174,11 +160,9 @@ void Parameters_MC_Set_Metropolis_Cone(
     int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     image->Lock();
 
@@ -218,11 +202,9 @@ catch( ... )
 void Parameters_MC_Set_Random_Sample( State * state, bool random_sample, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     image->mc_parameters->metropolis_random_sample = random_sample;
 }
@@ -239,11 +221,9 @@ catch( ... )
 const char * Parameters_MC_Get_Output_Tag( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     return image->mc_parameters->output_file_tag.c_str();
 }
@@ -256,11 +236,9 @@ catch( ... )
 const char * Parameters_MC_Get_Output_Folder( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     return image->mc_parameters->output_folder.c_str();
 }
@@ -274,11 +252,9 @@ void Parameters_MC_Get_Output_General(
     State * state, bool * any, bool * initial, bool * final, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     *any     = image->mc_parameters->output_any;
     *initial = image->mc_parameters->output_initial;
@@ -294,11 +270,9 @@ void Parameters_MC_Get_Output_Energy(
     bool * energy_add_readability_lines, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     *energy_step                  = image->mc_parameters->output_energy_step;
     *energy_archive               = image->mc_parameters->output_energy_archive;
@@ -316,11 +290,9 @@ void Parameters_MC_Get_Output_Configuration(
     int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     *configuration_step     = image->mc_parameters->output_configuration_step;
     *configuration_archive  = image->mc_parameters->output_configuration_archive;
@@ -335,11 +307,9 @@ void Parameters_MC_Get_N_Iterations(
     State * state, int * iterations, int * iterations_log, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     auto p          = image->mc_parameters;
     *iterations     = p->n_iterations;
@@ -354,11 +324,9 @@ catch( ... )
 scalar Parameters_MC_Get_Temperature( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     return image->mc_parameters->temperature;
 }
@@ -373,11 +341,9 @@ void Parameters_MC_Get_Metropolis_Cone(
     int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     *cone                    = image->mc_parameters->metropolis_step_cone;
     *cone_angle              = image->mc_parameters->metropolis_cone_angle;
@@ -392,11 +358,9 @@ catch( ... )
 bool Parameters_MC_Get_Random_Sample( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     return image->mc_parameters->metropolis_random_sample;
 }
