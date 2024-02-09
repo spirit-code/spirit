@@ -152,7 +152,7 @@ catch( ... )
         fmt::format( "Unable to read logging parameters from config file \"{}\"", config_file_name ) );
 } // End Log_from_Config
 
-std::unique_ptr<Data::Spin_System> Spin_System_from_Config( const std::string & config_file_name )
+std::unique_ptr<State::system_t> Spin_System_from_Config( const std::string & config_file_name )
 try
 {
     Log( Log_Level::Info, Log_Sender::IO, "-------------- Initialising Spin System ------------" );
@@ -172,7 +172,7 @@ try
     // Hamiltonian
     auto hamiltonian = Hamiltonian_from_Config( config_file_name, geometry, boundary_conditions );
     // Spin System
-    auto system = std::make_unique<Data::Spin_System>(
+    auto system = std::make_unique<State::system_t>(
         std::move( hamiltonian ), std::move( geometry ), std::move( llg_params ), std::move( mc_params ),
         std::move( ema_params ), std::move( mmf_params ), false );
 

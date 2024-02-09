@@ -23,12 +23,13 @@ namespace Data
 Spin_System contains all setup information on one system (one set of spins, one image).
 This includes: Spin positions and orientations, Neighbours, Interaction constants, System parameters
 */
+template<typename Hamiltonian>
 class Spin_System
 {
 public:
     // Constructor
     Spin_System(
-        std::unique_ptr<Engine::Hamiltonian> hamiltonian, std::shared_ptr<Geometry> geometry,
+        std::unique_ptr<Hamiltonian> hamiltonian, std::shared_ptr<Geometry> geometry,
         std::unique_ptr<Parameters_Method_LLG> llg_params, std::unique_ptr<Parameters_Method_MC> mc_params,
         std::unique_ptr<Parameters_Method_EMA> ema_params, std::unique_ptr<Parameters_Method_MMF> mmf_params,
         bool iteration_allowed );
@@ -52,9 +53,9 @@ public:
     // Eigenvalues of the system
     std::vector<scalar> eigenvalues;
     // Orientations of the spins: spins[dim][nos]
-    std::shared_ptr<vectorfield> spins;
+    std::shared_ptr<typename Hamiltonian::state_t> spins;
     // Spin Hamiltonian
-    std::shared_ptr<Engine::Hamiltonian> hamiltonian;
+    std::shared_ptr<Hamiltonian> hamiltonian;
     // Geometric information
     std::shared_ptr<Geometry> geometry;
     // Parameters for LLG

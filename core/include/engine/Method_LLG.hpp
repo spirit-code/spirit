@@ -11,16 +11,18 @@
 
 namespace Engine
 {
-
+template<typename system_t, Solver solver>
+class Method_LLG;
 /*
     The Landau-Lifshitz-Gilbert (LLG) method
 */
 template<Solver solver>
-class Method_LLG : public Method_Solver<solver>
+class Method_LLG<Data::Spin_System<Engine::Hamiltonian>, solver> : public Method_Solver<solver>
 {
+    using system_t = Data::Spin_System<Engine::Hamiltonian>;
 public:
     // Constructor
-    Method_LLG( std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain );
+    Method_LLG( std::shared_ptr<system_t> system, int idx_img, int idx_chain );
 
     double get_simulated_time() override;
 

@@ -2,7 +2,8 @@
 #ifndef SPIRIT_CORE_DATA_STATE_HPP
 #define SPIRIT_CORE_DATA_STATE_HPP
 
-#include <engine/Method.hpp>
+#include <data/Spin_System.hpp>
+#include <data/Spin_System_Chain.hpp>
 #include <utility/Exception.hpp>
 
 #include <fmt/chrono.h>
@@ -13,6 +14,13 @@
 #include <string>
 #include <vector>
 
+namespace Engine
+{
+
+class Method;
+
+}
+
 /*
  * The State struct is passed around in an application to make the
  * simulation's state available.
@@ -21,15 +29,21 @@
  */
 struct State
 {
+    using hamiltonian_t = Engine::Hamiltonian;
+
+    using chain_t  = Data::Spin_System_Chain<hamiltonian_t>;
+    using system_t = Data::Spin_System<hamiltonian_t>;
+    using state_t  = hamiltonian_t::state_t;
+
     // Currently "active" chain
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<chain_t> chain;
     // Currently "active" image
-    std::shared_ptr<Data::Spin_System> active_image;
+    std::shared_ptr<system_t> active_image;
     // Spin System instance in clipboard
-    std::shared_ptr<Data::Spin_System> clipboard_image;
+    std::shared_ptr<system_t> clipboard_image;
 
     // Spin configuration in clipboard
-    std::shared_ptr<vectorfield> clipboard_spins;
+    std::shared_ptr<state_t> clipboard_spins;
 
     // Number of Spins
     int nos{ 0 };
@@ -95,8 +109,8 @@ inline void throw_if_nullptr( const void * ptr, const std::string & name )
  *    any change to the corresponding variable (eg. )
  */
 inline void from_indices(
-    const State * state, int & idx_image, int & idx_chain, std::shared_ptr<Data::Spin_System> & image,
-    std::shared_ptr<Data::Spin_System_Chain> & chain )
+    const State * state, int & idx_image, int & idx_chain, std::shared_ptr<State::system_t> & image,
+    std::shared_ptr<State::chain_t> & chain )
 {
     check_state( state );
 

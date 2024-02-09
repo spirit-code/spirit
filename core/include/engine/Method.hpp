@@ -3,6 +3,7 @@
 #define SPIRIT_CORE_ENGINE_METHOD_HPP
 
 #include <Spirit/Spirit_Defines.h>
+#include <data/State.hpp>
 #include <data/Parameters_Method.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <utility/Logging.hpp>
@@ -190,7 +191,7 @@ protected:
     //////////// General /////////////////////////////////////////////////////////
 
     // Systems the Solver will access
-    std::vector<std::shared_ptr<Data::Spin_System>> systems;
+    std::vector<std::shared_ptr<State::system_t>> systems;
 
     // Method Parameters
     std::shared_ptr<Data::Parameters_Method> parameters;

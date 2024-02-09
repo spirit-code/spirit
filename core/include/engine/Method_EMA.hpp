@@ -14,11 +14,16 @@ namespace Engine
 /*
     The Eigenmode Analysis method
 */
-class Method_EMA : public Method
+template<typename system_t>
+class Method_EMA;
+
+template<>
+class Method_EMA<Data::Spin_System<Engine::Hamiltonian>> : public Method
 {
+    using system_t = Data::Spin_System<Engine::Hamiltonian>;
 public:
     // Constructor
-    Method_EMA( std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain );
+    Method_EMA( std::shared_ptr<system_t> system, int idx_img, int idx_chain );
 
     // Method name as string
     std::string Name() override;

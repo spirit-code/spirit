@@ -1,5 +1,6 @@
 #ifndef SPIRIT_SKIP_HTST
 
+#include <data/State.hpp>
 #include <engine/HTST.hpp>
 #include <engine/Hamiltonian.hpp>
 #include <engine/Manifoldmath.hpp>
@@ -20,6 +21,8 @@
 #include <fmt/ostream.h>
 
 namespace C = Utility::Constants;
+using system_t = Data::Spin_System<Engine::Hamiltonian>;
+
 
 namespace Engine
 {
@@ -244,7 +247,8 @@ void Sparse_Get_Lowest_Eigenvectors_VP(
 
 // Note the two images should correspond to one minimum and one saddle point
 // Non-extremal images may yield incorrect Hessians and thus incorrect results
-void Calculate( Data::HTST_Info & htst_info )
+template<>
+void Calculate( Data::HTST_Info<system_t> & htst_info )
 {
     Log( Utility::Log_Level::All, Utility::Log_Sender::HTST, "Sparse Prefactor calculation" );
     bool lowest_mode_spectra    = false;

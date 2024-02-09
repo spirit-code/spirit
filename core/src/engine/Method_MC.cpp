@@ -15,15 +15,16 @@
 #include <iostream>
 
 using namespace Utility;
+using system_t = Data::Spin_System<Engine::Hamiltonian>;
 
 namespace Engine
 {
 
-Method_MC::Method_MC( std::shared_ptr<Data::Spin_System> system, int idx_img, int idx_chain )
+Method_MC<system_t>::Method_MC( std::shared_ptr<system_t> system, int idx_img, int idx_chain )
         : Method( system->mc_parameters, idx_img, idx_chain )
 {
     // Currently we only support a single image being iterated at once:
-    this->systems    = std::vector<std::shared_ptr<Data::Spin_System>>( 1, system );
+    this->systems    = std::vector<std::shared_ptr<system_t>>( 1, system );
     this->SenderName = Log_Sender::MC;
 
     this->noi           = this->systems.size();
@@ -50,7 +51,7 @@ Method_MC::Method_MC( std::shared_ptr<Data::Spin_System> system, int idx_img, in
 
 // This implementation is mostly serial as parallelization is nontrivial
 //      if the range of neighbours for each atom is not pre-defined.
-void Method_MC::Iteration()
+void Method_MC<system_t>::Iteration()
 {
     // Temporaries
     auto & spins_old = *this->systems[0]->spins;
@@ -66,7 +67,7 @@ void Method_MC::Iteration()
 }
 
 // Simple metropolis step
-void Method_MC::Metropolis( const vectorfield & spins_old, vectorfield & spins_new )
+void Method_MC<system_t>::Metropolis( const vectorfield & spins_old, vectorfield & spins_new )
 {
     auto distribution     = std::uniform_real_distribution<scalar>( 0, 1 );
     auto distribution_idx = std::uniform_int_distribution<>( 0, this->nos - 1 );
@@ -192,22 +193,22 @@ void Method_MC::Metropolis( const vectorfield & spins_old, vectorfield & spins_n
 
 // TODO:
 // Implement heat bath algorithm, see Y. Miyatake et al, J Phys C: Solid State Phys 19, 2539 (1986)
-// void Method_MC::HeatBath(const vectorfield & spins_old, vectorfield & spins_new)
+// void Method_MC<system_t>::HeatBath(const vectorfield & spins_old, vectorfield & spins_new)
 // {
 // }
 
-void Method_MC::Hook_Pre_Iteration() {}
+void Method_MC<system_t>::Hook_Pre_Iteration() {}
 
-void Method_MC::Hook_Post_Iteration() {}
+void Method_MC<system_t>::Hook_Post_Iteration() {}
 
-void Method_MC::Initialize() {}
+void Method_MC<system_t>::Initialize() {}
 
-void Method_MC::Finalize()
+void Method_MC<system_t>::Finalize()
 {
     this->systems[0]->iteration_allowed = false;
 }
 
-void Method_MC::Message_Start()
+void Method_MC<system_t>::Message_Start()
 {
     //---- Log messages
     std::vector<std::string> block( 0 );
@@ -235,7 +236,7 @@ void Method_MC::Message_Start()
     Log( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 }
 
-void Method_MC::Message_Step()
+void Method_MC<system_t>::Message_Step()
 {
     // Update time of current step
     auto t_current = std::chrono::system_clock::now();
@@ -281,7 +282,7 @@ void Method_MC::Message_Step()
     this->t_last = t_current;
 }
 
-void Method_MC::Message_End()
+void Method_MC<system_t>::Message_End()
 {
     //---- End timings
     auto t_end = std::chrono::system_clock::now();
@@ -328,10 +329,10 @@ void Method_MC::Message_End()
     Log( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 }
 
-void Method_MC::Save_Current( std::string starttime, int iteration, bool initial, bool final ) {}
+void Method_MC<system_t>::Save_Current( std::string starttime, int iteration, bool initial, bool final ) {}
 
 // Method name as string
-std::string Method_MC::Name()
+std::string Method_MC<system_t>::Name()
 {
     return "MC";
 }

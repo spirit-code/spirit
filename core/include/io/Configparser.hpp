@@ -6,8 +6,7 @@
 #include <data/Parameters_Method_GNEB.hpp>
 #include <data/Parameters_Method_LLG.hpp>
 #include <data/Parameters_Method_MMF.hpp>
-#include <data/Spin_System.hpp>
-#include <data/Spin_System_Chain.hpp>
+#include <data/State.hpp>
 #include <engine/Hamiltonian.hpp>
 
 namespace IO
@@ -20,7 +19,7 @@ namespace IO
 
 void Log_from_Config( const std::string & config_file_name, bool force_quiet = false );
 
-std::unique_ptr<Data::Spin_System> Spin_System_from_Config( const std::string & config_file_name );
+std::unique_ptr<State::system_t> Spin_System_from_Config( const std::string & config_file_name );
 
 Data::Pinning Pinning_from_Config( const std::string & config_file_name, std::size_t n_cell_atoms );
 

@@ -19,8 +19,8 @@ using namespace Utility;
 void Parameters_MC_Set_Output_Tag( State * state, const char * tag, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -40,8 +40,8 @@ catch( ... )
 void Parameters_MC_Set_Output_Folder( State * state, const char * folder, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -62,8 +62,8 @@ void Parameters_MC_Set_Output_General(
     State * state, bool any, bool initial, bool final, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -84,8 +84,8 @@ void Parameters_MC_Set_Output_Energy(
     bool energy_add_readability_lines, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -108,8 +108,8 @@ void Parameters_MC_Set_Output_Configuration(
     int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -129,8 +129,8 @@ void Parameters_MC_Set_N_Iterations(
     State * state, int n_iterations, int n_iterations_log, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -149,8 +149,8 @@ catch( ... )
 void Parameters_MC_Set_Temperature( State * state, scalar T, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -174,8 +174,8 @@ void Parameters_MC_Set_Metropolis_Cone(
     int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -218,8 +218,8 @@ catch( ... )
 void Parameters_MC_Set_Random_Sample( State * state, bool random_sample, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -239,8 +239,8 @@ catch( ... )
 const char * Parameters_MC_Get_Output_Tag( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -256,8 +256,8 @@ catch( ... )
 const char * Parameters_MC_Get_Output_Folder( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -274,8 +274,8 @@ void Parameters_MC_Get_Output_General(
     State * state, bool * any, bool * initial, bool * final, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -294,8 +294,8 @@ void Parameters_MC_Get_Output_Energy(
     bool * energy_add_readability_lines, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -316,8 +316,8 @@ void Parameters_MC_Get_Output_Configuration(
     int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -335,8 +335,8 @@ void Parameters_MC_Get_N_Iterations(
     State * state, int * iterations, int * iterations_log, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -354,8 +354,8 @@ catch( ... )
 scalar Parameters_MC_Get_Temperature( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -373,8 +373,8 @@ void Parameters_MC_Get_Metropolis_Cone(
     int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );
@@ -392,8 +392,8 @@ catch( ... )
 bool Parameters_MC_Get_Random_Sample( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<Data::Spin_System> image;
-    std::shared_ptr<Data::Spin_System_Chain> chain;
+    std::shared_ptr<State::system_t> image;
+    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
     from_indices( state, idx_image, idx_chain, image, chain );

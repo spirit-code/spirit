@@ -4,6 +4,7 @@
 #define SPIRIT_CORE_IO_DATAPARSER_HPP
 
 #include <data/Geometry.hpp>
+#include <data/State.hpp>
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <io/Fileformat.hpp>
@@ -18,7 +19,7 @@ void Read_NonOVF_Spin_Configuration(
     const std::string & file );
 
 void Check_NonOVF_Chain_Configuration(
-    std::shared_ptr<Data::Spin_System_Chain> chain, const std::string & file, int start_image_infile,
+    std::shared_ptr<State::chain_t> chain, const std::string & file, int start_image_infile,
     int end_image_infile, const int insert_idx, int & noi_to_add, int & noi_to_read, const int idx_chain );
 
 void Anisotropy_from_File(

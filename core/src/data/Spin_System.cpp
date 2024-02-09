@@ -1,7 +1,7 @@
 #include <data/Spin_System.hpp>
+#include <engine/Hamiltonian_Defines.hpp>
 #include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
-#include <engine/Hamiltonian_Defines.hpp>
 #include <io/IO.hpp>
 
 #include <algorithm>
@@ -13,8 +13,9 @@
 namespace Data
 {
 
-Spin_System::Spin_System(
-    std::unique_ptr<Engine::Hamiltonian> hamiltonian, std::shared_ptr<Geometry> geometry,
+template<typename Hamiltonian>
+Spin_System<Hamiltonian>::Spin_System(
+    std::unique_ptr<Hamiltonian> hamiltonian, std::shared_ptr<Geometry> geometry,
     std::unique_ptr<Parameters_Method_LLG> llg_params, std::unique_ptr<Parameters_Method_MC> mc_params,
     std::unique_ptr<Parameters_Method_EMA> ema_params, std::unique_ptr<Parameters_Method_MMF> mmf_params,
     bool iteration_allowed )
@@ -46,7 +47,8 @@ catch( ... )
 }
 
 // Copy Constructor
-Spin_System::Spin_System( Spin_System const & other )
+template<typename Hamiltonian>
+Spin_System<Hamiltonian>::Spin_System( Spin_System const & other )
 try
 {
     this->nos         = other.nos;
@@ -64,7 +66,7 @@ try
     this->effective_field = other.effective_field;
 
     this->geometry    = std::make_shared<Data::Geometry>( *other.geometry );
-    this->hamiltonian = std::make_shared<Engine::Hamiltonian>( *other.hamiltonian );
+    this->hamiltonian = std::make_shared<Hamiltonian>( *other.hamiltonian );
 
     this->llg_parameters = std::make_shared<Data::Parameters_Method_LLG>( *other.llg_parameters );
     this->mc_parameters  = std::make_shared<Data::Parameters_Method_MC>( *other.mc_parameters );
@@ -79,7 +81,8 @@ catch( ... )
 }
 
 // Copy assignment operator
-Spin_System & Spin_System::operator=( Spin_System const & other )
+template<typename Hamiltonian>
+Spin_System<Hamiltonian> & Spin_System<Hamiltonian>::operator=( Spin_System<Hamiltonian> const & other )
 try
 {
     if( this != &other )
@@ -117,7 +120,8 @@ catch( ... )
     return *this;
 }
 
-void Spin_System::UpdateEnergy()
+template<typename Hamiltonian>
+void Spin_System<Hamiltonian>::UpdateEnergy()
 try
 {
     this->E_array = this->hamiltonian->Energy_Contributions( *this->spins );
@@ -131,7 +135,8 @@ catch( ... )
     spirit_rethrow( "Spin_System::UpdateEnergy failed" );
 }
 
-void Spin_System::UpdateEffectiveField()
+template<typename Hamiltonian>
+void Spin_System<Hamiltonian>::UpdateEffectiveField()
 try
 {
     this->hamiltonian->Gradient( *this->spins, this->effective_field );
@@ -142,7 +147,8 @@ catch( ... )
     spirit_rethrow( "Spin_System::UpdateEffectiveField failed" );
 }
 
-void Spin_System::Lock() noexcept
+template<typename Hamiltonian>
+void Spin_System<Hamiltonian>::Lock() noexcept
 try
 {
     this->ordered_lock.lock();
@@ -152,7 +158,8 @@ catch( ... )
     spirit_handle_exception_core( "Locking the Spin_System failed!" );
 }
 
-void Spin_System::Unlock() noexcept
+template<typename Hamiltonian>
+void Spin_System<Hamiltonian>::Unlock() noexcept
 try
 {
     this->ordered_lock.unlock();
@@ -163,3 +170,5 @@ catch( ... )
 }
 
 } // namespace Data
+
+template class Data::Spin_System<Engine::Hamiltonian>;

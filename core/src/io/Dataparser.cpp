@@ -200,7 +200,7 @@ void Read_NonOVF_Spin_Configuration(
 }
 
 void Check_NonOVF_Chain_Configuration(
-    std::shared_ptr<Data::Spin_System_Chain> chain, const std::string & file, int start_image_infile,
+    std::shared_ptr<State::chain_t> chain, const std::string & file, int start_image_infile,
     int end_image_infile, const int insert_idx, int & noi_to_add, int & noi_to_read, const int idx_chain )
 {
     IO::Filter_File_Handle file_handle( file, "#" );
