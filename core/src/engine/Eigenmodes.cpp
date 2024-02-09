@@ -22,15 +22,15 @@ namespace Engine
 namespace Eigenmodes
 {
 
-void Check_Eigenmode_Parameters( std::shared_ptr<State::system_t> system )
+void Check_Eigenmode_Parameters( State::system_t & system )
 {
-    int nos        = system->nos;
-    auto & n_modes = system->ema_parameters->n_modes;
+    int nos        = system.nos;
+    auto & n_modes = system.ema_parameters->n_modes;
     if( n_modes > 2 * nos - 2 )
     {
         n_modes = 2 * nos - 2;
-        system->modes.resize( n_modes );
-        system->eigenvalues.resize( n_modes );
+        system.modes.resize( n_modes );
+        system.eigenvalues.resize( n_modes );
 
         Log( Log_Level::Warning, Log_Sender::EMA,
              fmt::format(
@@ -38,11 +38,11 @@ void Check_Eigenmode_Parameters( std::shared_ptr<State::system_t> system )
                  "EMA Parameters is too large. The number is set to {}",
                  n_modes ) );
     }
-    if( n_modes != system->modes.size() )
-        system->modes.resize( n_modes );
+    if( n_modes != system.modes.size() )
+        system.modes.resize( n_modes );
 
     // Initial check of selected_mode
-    auto & n_mode_follow = system->ema_parameters->n_mode_follow;
+    auto & n_mode_follow = system.ema_parameters->n_mode_follow;
     if( n_mode_follow > n_modes - 1 )
     {
         Log( Log_Level::Warning, Log_Sender::EMA,
@@ -54,16 +54,16 @@ void Check_Eigenmode_Parameters( std::shared_ptr<State::system_t> system )
     }
 }
 
-void Calculate_Eigenmodes( std::shared_ptr<State::system_t> system, int idx_img, int idx_chain )
+void Calculate_Eigenmodes( State::system_t & system, int idx_img, int idx_chain )
 {
-    int nos = system->nos;
+    int nos = system.nos;
 
     Check_Eigenmode_Parameters( system );
 
-    auto & n_modes = system->ema_parameters->n_modes;
+    auto & n_modes = system.ema_parameters->n_modes;
 
     // vectorfield mode(nos, Vector3{1, 0, 0});
-    vectorfield spins_initial = *system->spins;
+    vectorfield spins_initial = *system.spins;
 
     Log( Log_Level::Info, Log_Sender::EMA, fmt::format( "Started calculation of {} Eigenmodes ", n_modes ), idx_img,
          idx_chain );
@@ -72,43 +72,43 @@ void Calculate_Eigenmodes( std::shared_ptr<State::system_t> system, int idx_img,
     vectorfield gradient( nos );
 
     // The gradient (unprojected)
-    system->hamiltonian->Gradient( spins_initial, gradient );
-    auto mask = system->geometry->mask_unpinned.data();
-    auto g    = gradient.data();
+    system.hamiltonian->Gradient( spins_initial, gradient );
+    // auto mask = system.geometry->mask_unpinned.data();
+    // auto g    = gradient.data();
     // Backend::par::apply(gradient.size(), [g, mask] SPIRIT_LAMBDA (int idx) {
     //     g[idx] = mask[idx]*g[idx];
     // });
-    Vectormath::set_c_a( 1, gradient, gradient, system->geometry->mask_unpinned );
+    Vectormath::set_c_a( 1, gradient, gradient, system.geometry->mask_unpinned );
 
     VectorX eigenvalues;
     MatrixX eigenvectors;
     SpMatrixX tangent_basis = SpMatrixX( 3 * nos, 2 * nos );
 
-    bool sparse = system->ema_parameters->sparse;
-    bool successful;
+    bool sparse = system.ema_parameters->sparse;
+    bool successful = false;
     if( sparse )
     {
         // The Hessian (unprojected)
         SpMatrixX hessian( 3 * nos, 3 * nos );
-        system->hamiltonian->Sparse_Hessian( spins_initial, hessian );
+        system.hamiltonian->Sparse_Hessian( spins_initial, hessian );
         // Get the eigenspectrum
         SpMatrixX hessian_constrained = SpMatrixX( 2 * nos, 2 * nos );
 
         successful = Eigenmodes::Sparse_Hessian_Partial_Spectrum(
-            system->ema_parameters, spins_initial, gradient, hessian, n_modes, tangent_basis, hessian_constrained,
+            system.ema_parameters, spins_initial, gradient, hessian, n_modes, tangent_basis, hessian_constrained,
             eigenvalues, eigenvectors );
     }
     else
     {
         // The Hessian (unprojected)
         MatrixX hessian( 3 * nos, 3 * nos );
-        system->hamiltonian->Hessian( spins_initial, hessian );
+        system.hamiltonian->Hessian( spins_initial, hessian );
         // Get the eigenspectrum
         MatrixX hessian_constrained = MatrixX::Zero( 2 * nos, 2 * nos );
         MatrixX _tangent_basis      = MatrixX( tangent_basis );
 
         successful = Eigenmodes::Hessian_Partial_Spectrum(
-            system->ema_parameters, spins_initial, gradient, hessian, n_modes, _tangent_basis, hessian_constrained,
+            system.ema_parameters, spins_initial, gradient, hessian, n_modes, _tangent_basis, hessian_constrained,
             eigenvalues, eigenvectors );
 
         tangent_basis = _tangent_basis.sparseView();
@@ -116,21 +116,21 @@ void Calculate_Eigenmodes( std::shared_ptr<State::system_t> system, int idx_img,
 
     if( successful )
     {
-        // get every mode and save it to system->modes
+        // get every mode and save it to system.modes
         for( int i = 0; i < n_modes; i++ )
         {
             // Extract the minimum mode (transform evec_lowest_2N back to 3N)
             VectorX evec_3N = tangent_basis * eigenvectors.col( i );
 
-            // dynamically allocate the system->modes
-            system->modes[i] = std::make_shared<vectorfield>( nos, Vector3{ 1, 0, 0 } );
+            // dynamically allocate the system.modes
+            system.modes[i] = std::make_shared<vectorfield>( nos, Vector3{ 1, 0, 0 } );
 
             // Set the modes
             for( int j = 0; j < nos; j++ )
-                ( *system->modes[i] )[j] = { evec_3N[3 * j], evec_3N[3 * j + 1], evec_3N[3 * j + 2] };
+                ( *system.modes[i] )[j] = { evec_3N[3 * j], evec_3N[3 * j + 1], evec_3N[3 * j + 2] };
 
             // get the eigenvalues
-            system->eigenvalues[i] = eigenvalues( i );
+            system.eigenvalues[i] = eigenvalues( i );
         }
 
         Log( Log_Level::Info, Log_Sender::All, fmt::format( "Finished calculation of {} Eigenmodes ", n_modes ),

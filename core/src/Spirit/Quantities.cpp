@@ -18,11 +18,9 @@ namespace C = Utility::Constants;
 void Quantity_Get_Average_Spin( State * state, scalar s[3], int idx_image, int idx_chain )
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( s, "s" );
 
     // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
@@ -40,11 +38,9 @@ catch( ... )
 void Quantity_Get_Magnetization( State * state, scalar m[3], int idx_image, int idx_chain )
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( m, "m" );
 
     // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
@@ -65,11 +61,9 @@ catch( ... )
 scalar Quantity_Get_Topological_Charge( State * state, int idx_image, int idx_chain )
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
 
@@ -93,11 +87,9 @@ int Quantity_Get_Topological_Charge_Density(
     State * state, scalar * charge_density_ptr, int * triangle_indices_ptr, int idx_image, int idx_chain )
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
 
@@ -235,9 +227,8 @@ try
     using namespace Engine;
     using namespace Utility;
 
-    std::shared_ptr<State::system_t> system;
-    std::shared_ptr<State::chain_t> chain;
-    from_indices( state, idx_image, idx_chain, system, chain );
+    auto [system, chain] = from_indices( state, idx_image, idx_chain );
+
     throw_if_nullptr( f_grad, "f_grad" );
     throw_if_nullptr( eval, "eval" );
     throw_if_nullptr( mode, "mode" );

@@ -39,11 +39,11 @@ Method_EMA<system_t>::Method_EMA( std::shared_ptr<system_t> system, int idx_img,
     this->axis          = vectorfield( this->nos );
     this->spins_initial = *this->systems[0]->spins;
 
-    Eigenmodes::Check_Eigenmode_Parameters( system );
+    Eigenmodes::Check_Eigenmode_Parameters( *system );
 
     // Calculate eigenmodes only in case that the selected mode to follow is not computed yet.
     if( this->systems[0]->modes[this->parameters_ema->n_mode_follow] == NULL )
-        Eigenmodes::Calculate_Eigenmodes( system, idx_img, idx_chain );
+        Eigenmodes::Calculate_Eigenmodes( *system, idx_img, idx_chain );
 
     this->counter = 0;
     // Trigger update on first iteration
@@ -58,7 +58,7 @@ void Method_EMA<system_t>::Iteration()
         this->counter = 0;
 
         // Re-check validity of parameters and system->modes
-        Eigenmodes::Check_Eigenmode_Parameters( this->systems[0] );
+        Eigenmodes::Check_Eigenmode_Parameters( *this->systems[0] );
 
         // Reset members
         this->following_mode = this->parameters_ema->n_mode_follow;

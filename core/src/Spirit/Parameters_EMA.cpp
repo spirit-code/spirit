@@ -10,11 +10,9 @@
 // Clears all the previously calculated modes from memory
 void Parameters_EMA_Clear_Modes( State * state, int idx_image, int idx_chain ) noexcept
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     Log( Utility::Log_Level::Info, Utility::Log_Sender::API, "Clearing modes", idx_image, idx_chain );
 
@@ -34,11 +32,9 @@ void Parameters_EMA_Clear_Modes( State * state, int idx_image, int idx_chain ) n
 void Parameters_EMA_Set_N_Modes( State * state, int n_modes, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( n_modes < 1 || n_modes > 2 * image->nos )
     {
@@ -64,11 +60,9 @@ catch( ... )
 void Parameters_EMA_Set_N_Mode_Follow( State * state, int n_mode_follow, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( n_mode_follow < 0 || n_mode_follow > image->ema_parameters->n_modes - 1 || n_mode_follow >= image->modes.size()
         || image->modes[n_mode_follow] == nullptr )
@@ -91,11 +85,9 @@ catch( ... )
 void Parameters_EMA_Set_Frequency( State * state, scalar frequency, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     image->Lock();
     image->ema_parameters->frequency = frequency;
@@ -109,11 +101,9 @@ catch( ... )
 void Parameters_EMA_Set_Amplitude( State * state, scalar amplitude, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     image->Lock();
     image->ema_parameters->amplitude = amplitude;
@@ -127,11 +117,9 @@ catch( ... )
 void Parameters_EMA_Set_Snapshot( State * state, bool snapshot, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     image->Lock();
     image->ema_parameters->snapshot = snapshot;
@@ -145,11 +133,9 @@ catch( ... )
 void Parameters_EMA_Set_Sparse( State * state, bool sparse, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Setting parameter 'sparse' to {}", sparse ),
          idx_image, idx_chain );
@@ -170,11 +156,9 @@ catch( ... )
 int Parameters_EMA_Get_N_Modes( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     return image->ema_parameters->n_modes;
 }
@@ -187,11 +171,9 @@ catch( ... )
 int Parameters_EMA_Get_N_Mode_Follow( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     return image->ema_parameters->n_mode_follow;
 }
@@ -204,11 +186,9 @@ catch( ... )
 scalar Parameters_EMA_Get_Frequency( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     return image->ema_parameters->frequency;
 }
@@ -221,11 +201,9 @@ catch( ... )
 scalar Parameters_EMA_Get_Amplitude( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     return image->ema_parameters->amplitude;
 }
@@ -238,11 +216,9 @@ catch( ... )
 bool Parameters_EMA_Get_Snapshot( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     return image->ema_parameters->snapshot;
 }
@@ -255,11 +231,9 @@ catch( ... )
 bool Parameters_EMA_Get_Sparse( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     return image->ema_parameters->sparse;
 }

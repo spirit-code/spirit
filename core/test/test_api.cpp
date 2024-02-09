@@ -54,26 +54,25 @@ TEST_CASE( "State", "[state]" )
         REQUIRE( System_Get_Index( state.get() ) == 1 ); // Active is 2nd image
 
         // Arguments for from_indices()
-        std::shared_ptr<State::system_t> image;
-        std::shared_ptr<State::chain_t> chain;
         int idx_image{}, idx_chain{};
+        decltype(from_indices( state.get(), idx_image, idx_chain )) ret_val;
 
         // A positive, index beyond the size of the chain should throw an exception
         idx_chain = 0;
         idx_image = 5;
-        CHECK_THROWS_AS( from_indices( state.get(), idx_image, idx_chain, image, chain ), Utility::Exception );
+        CHECK_THROWS_AS( ret_val = from_indices( state.get(), idx_image, idx_chain ), Utility::Exception );
         // TODO: find a way to see if the exception thrown was the right one
 
         // A negative image index should translate to the active image
         idx_chain = 0;
         idx_image = -5;
-        CHECK_NOTHROW( from_indices( state.get(), idx_image, idx_chain, image, chain ) );
+        CHECK_NOTHROW( ret_val = from_indices( state.get(), idx_image, idx_chain ) );
         REQUIRE( idx_image == 1 );
 
         // A negative chain index should translate to the active chain
         idx_chain = -5;
         idx_image = 0;
-        CHECK_NOTHROW( from_indices( state.get(), idx_image, idx_chain, image, chain ) );
+        CHECK_NOTHROW( ret_val = from_indices( state.get(), idx_image, idx_chain ) );
         REQUIRE( idx_chain == 0 );
     }
 }

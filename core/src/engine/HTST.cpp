@@ -193,9 +193,9 @@ void Calculate( Data::HTST_Info<system_t> & htst_info, int n_eigenmodes_keep )
              fmt::format( "ZERO MODES AT SADDLE POINT (N={})", n_zero_modes_sp ) );
 
         if( is_afm )
-            htst_info.volume_sp = Calculate_Zero_Volume( htst_info.saddle_point );
+            htst_info.volume_sp = Calculate_Zero_Volume( *htst_info.saddle_point );
         else
-            htst_info.volume_sp = Calculate_Zero_Volume( htst_info.saddle_point );
+            htst_info.volume_sp = Calculate_Zero_Volume( *htst_info.saddle_point );
     }
 
     // Calculate "s"
@@ -268,9 +268,9 @@ void Calculate( Data::HTST_Info<system_t> & htst_info, int n_eigenmodes_keep )
              fmt::format( "ZERO MODES AT MINIMUM (N={})", n_zero_modes_minimum ) );
 
         if( is_afm )
-            htst_info.volume_min = Calculate_Zero_Volume( htst_info.minimum );
+            htst_info.volume_min = Calculate_Zero_Volume( *htst_info.minimum );
         else
-            htst_info.volume_min = Calculate_Zero_Volume( htst_info.minimum );
+            htst_info.volume_min = Calculate_Zero_Volume( *htst_info.minimum );
     }
 
     ////////////////////////////////////////////////////////////////////////
@@ -320,14 +320,14 @@ void Calculate( Data::HTST_Info<system_t> & htst_info, int n_eigenmodes_keep )
          -1, -1 );
 }
 
-scalar Calculate_Zero_Volume( const std::shared_ptr<State::system_t> system )
+scalar Calculate_Zero_Volume( const State::system_t & system )
 {
-    int nos                = system->geometry->nos;
-    auto & n_cells         = system->geometry->n_cells;
-    auto & spins           = *system->spins;
-    auto & spin_positions  = system->geometry->positions;
-    auto & geometry        = *system->geometry;
-    auto & bravais_vectors = system->geometry->bravais_vectors;
+    int nos                = system.geometry->nos;
+    auto & n_cells         = system.geometry->n_cells;
+    auto & spins           = *system.spins;
+    auto & spin_positions  = system.geometry->positions;
+    auto & geometry        = *system.geometry;
+    auto & bravais_vectors = system.geometry->bravais_vectors;
 
     // Dimensionality of the zero mode
     int zero_mode_dimensionality = 0;
@@ -335,7 +335,7 @@ scalar Calculate_Zero_Volume( const std::shared_ptr<State::system_t> system )
     for( int ibasis = 0; ibasis < 3; ++ibasis )
     {
         // Only a periodical direction can be a true zero mode
-        if( system->hamiltonian->boundary_conditions[ibasis] && geometry.n_cells[ibasis] > 1 )
+        if( system.hamiltonian->boundary_conditions[ibasis] && geometry.n_cells[ibasis] > 1 )
         {
             // Vector3 shift_pos, test_pos;
             vectorfield spins_shifted( nos, Vector3{ 0, 0, 0 } );

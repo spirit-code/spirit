@@ -412,7 +412,7 @@ void Calculate( Data::HTST_Info<system_t> & htst_info )
         {
             Log( Utility::Log_Level::All, Utility::Log_Sender::HTST,
                  fmt::format( "ZERO MODES AT SADDLE POINT (N={})", n_zero_modes_sp ) );
-            htst_info.volume_sp = HTST::Calculate_Zero_Volume( htst_info.saddle_point );
+            htst_info.volume_sp = HTST::Calculate_Zero_Volume( *htst_info.saddle_point );
         }
     }
 
@@ -478,7 +478,7 @@ void Calculate( Data::HTST_Info<system_t> & htst_info )
         {
             Log( Utility::Log_Level::All, Utility::Log_Sender::HTST,
                  fmt::format( "ZERO MODES AT MINIMUM (N={})", n_zero_modes_minimum ) );
-            htst_info.volume_min = HTST::Calculate_Zero_Volume( htst_info.minimum );
+            htst_info.volume_min = HTST::Calculate_Zero_Volume( *htst_info.minimum );
         }
     }
     // End initial state minimum

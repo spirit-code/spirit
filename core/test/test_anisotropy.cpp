@@ -211,11 +211,8 @@ TEST_CASE( "Biaxial anisotropy", "[anisotropy]" )
 {
     auto state = std::shared_ptr<State>( State_Setup(), State_Delete );
 
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     int idx_image = -1, idx_chain = -1;
-    from_indices( state.get(), idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state.get(), idx_image, idx_chain );
 
     auto * hamiltonian = image->hamiltonian.get();
     REQUIRE( hamiltonian != nullptr );

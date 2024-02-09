@@ -25,11 +25,9 @@ bool Chain_next_Image( State * state, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Apply
     ++chain->idx_active_image;
@@ -51,11 +49,9 @@ bool Chain_prev_Image( State * state, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Apply
     if( idx_image > 0 )
@@ -83,11 +79,9 @@ catch( ... )
 bool Chain_Jump_To_Image( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     chain->idx_active_image = idx_image;
     State_Update( state );
@@ -107,11 +101,9 @@ void Chain_Set_Length( State * state, int n_images, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( n_images < 1 )
     {
@@ -222,11 +214,9 @@ catch( ... )
 void Chain_Image_to_Clipboard( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Copy the image to clipboard
     image->Lock();
@@ -250,11 +240,9 @@ catch( ... )
 void Chain_Replace_Image( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( state->clipboard_image )
     {
@@ -291,11 +279,9 @@ catch( ... )
 void Chain_Insert_Image_Before( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( state->clipboard_image )
     {
@@ -349,11 +335,9 @@ catch( ... )
 void Chain_Insert_Image_After( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( state->clipboard_image )
     {
@@ -405,11 +389,9 @@ void Chain_Push_Back( State * state, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( state->clipboard_image )
     {
@@ -460,11 +442,9 @@ catch( ... )
 bool Chain_Delete_Image( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Apply
     if( chain->noi > 1 )
@@ -522,11 +502,9 @@ bool Chain_Pop_Back( State * state, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( chain->noi > 1 )
     {
@@ -583,11 +561,9 @@ void Chain_Get_Rx( State * state, scalar * Rx, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( Rx, "Rx" );
 
     for( unsigned int i = 0; i < chain->Rx.size(); ++i )
@@ -604,11 +580,9 @@ void Chain_Get_Rx_Interpolated( State * state, scalar * Rx_interpolated, int idx
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( Rx_interpolated, "Rx_interpolated" );
 
     for( unsigned int i = 0; i < chain->Rx_interpolated.size(); ++i )
@@ -625,11 +599,9 @@ void Chain_Get_Energy( State * state, scalar * Energy, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( Energy, "Energy" );
 
     for( int i = 0; i < chain->noi; ++i )
@@ -646,11 +618,9 @@ void Chain_Get_Energy_Interpolated( State * state, scalar * E_interpolated, int 
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( E_interpolated, "E_interpolated" );
 
     for( unsigned int i = 0; i < chain->E_interpolated.size(); ++i )
@@ -667,15 +637,15 @@ catch( ... )
 // try
 // {
 //     int idx_image = -1;
-//     std::shared_ptr<State::system_t> image;
-//     std::shared_ptr<State::chain_t> chain;
+//
+//
 
 //     std::vector<std::vector<scalar>> E_arr_interpolated( chain->E_array_interpolated.size() );
 //     for( unsigned int i = 0; i < chain->E_array_interpolated.size(); i++ )
 //         E_arr_interpolated[i] = std::vector<scalar>( chain->E_array_interpolated[i].size(), 0 );
 
 //     // Fetch correct indices and pointers
-//     from_indices( state, idx_image, idx_chain, image, chain );
+//     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
 //     for( unsigned int i = 0; i < chain->E_array_interpolated.size(); i++ )
 //         for( unsigned int j = 0; j < chain->E_array_interpolated[i].size(); j++ )
@@ -697,11 +667,9 @@ void Chain_Update_Data( State * state, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Apply
     for( int i = 0; i < chain->noi; ++i )
@@ -734,11 +702,9 @@ void Chain_Setup_Data( State * state, int idx_chain ) noexcept
 try
 {
     int idx_image = -1;
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
 
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     chain->Lock();
 

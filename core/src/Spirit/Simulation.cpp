@@ -77,12 +77,8 @@ void Simulation_MC_Start(
     int idx_chain ) noexcept
 try
 {
-    // Fetch correct indices and pointers for image and chain
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Determine wether to stop or start a simulation
     if( image->iteration_allowed )
@@ -135,12 +131,8 @@ void Simulation_LLG_Start(
     int idx_image, int idx_chain ) noexcept
 try
 {
-    // Fetch correct indices and pointers for image and chain
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Determine wether to stop or start a simulation
     if( image->iteration_allowed )
@@ -220,13 +212,9 @@ void Simulation_GNEB_Start(
     int idx_chain ) noexcept
 try
 {
-    // Fetch correct indices and pointers for image and chain
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
     int idx_image = -1;
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Determine wether to stop or start a simulation
     if( image->iteration_allowed )
@@ -316,12 +304,8 @@ void Simulation_MMF_Start(
     int idx_image, int idx_chain ) noexcept
 try
 {
-    // Fetch correct indices and pointers for image and chain
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Determine wether to stop or start a simulation
     if( image->iteration_allowed )
@@ -388,12 +372,8 @@ void Simulation_EMA_Start(
     int idx_chain ) noexcept
 try
 {
-    // Fetch correct indices and pointers for image and chain
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Determine wether to stop or start a simulation
     if( image->iteration_allowed )
@@ -449,12 +429,8 @@ void Simulation_SingleShot( State * state, int idx_image, int idx_chain ) noexce
 void Simulation_N_Shot( State * state, int N, int idx_image, int idx_chain ) noexcept
 try
 {
-    // Fetch correct indices and pointers for image and chain
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Get Method pointer
     std::shared_ptr<Engine::Method> method = nullptr;
@@ -537,12 +513,8 @@ catch( ... )
 void Simulation_Stop( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    // Fetch correct indices and pointers for image and chain
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Determine wether to stop or start a simulation
     if( image->iteration_allowed )
@@ -610,11 +582,8 @@ catch( ... )
 scalar Simulation_Get_MaxTorqueComponent( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
     {
@@ -638,12 +607,9 @@ catch( ... )
 void Simulation_Get_Chain_MaxTorqueComponents( State * state, scalar * torques, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
     int idx_image = -1;
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( torques, "torques" );
 
     if( Simulation_Running_On_Chain( state, idx_chain ) )
@@ -667,11 +633,8 @@ catch( ... )
 scalar Simulation_Get_MaxTorqueNorm( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
     {
@@ -695,12 +658,9 @@ catch( ... )
 void Simulation_Get_Chain_MaxTorqueNorms( State * state, scalar * torques, int idx_chain ) noexcept
 try
 {
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
     int idx_image = -1;
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( torques, "torques" );
 
     if( Simulation_Running_On_Chain( state, idx_chain ) )
@@ -724,12 +684,8 @@ catch( ... )
 scalar Simulation_Get_IterationsPerSecond( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    // Fetch correct indices and pointers for image and chain
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
     {
@@ -753,12 +709,8 @@ catch( ... )
 int Simulation_Get_Iteration( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    // Fetch correct indices and pointers for image and chain
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
     {
@@ -785,12 +737,8 @@ catch( ... )
 scalar Simulation_Get_Time( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    // Fetch correct indices and pointers for image and chain
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
     {
@@ -814,12 +762,8 @@ catch( ... )
 int Simulation_Get_Wall_Time( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    // Fetch correct indices and pointers for image and chain
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
     {
@@ -843,12 +787,8 @@ catch( ... )
 const char * Simulation_Get_Solver_Name( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    // Fetch correct indices and pointers for image and chain
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
     {
@@ -872,12 +812,8 @@ catch( ... )
 const char * Simulation_Get_Method_Name( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    // Fetch correct indices and pointers for image and chain
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
     {
@@ -901,12 +837,8 @@ catch( ... )
 bool Simulation_Running_On_Image( State * state, int idx_image, int idx_chain ) noexcept
 try
 {
-    // Fetch correct indices and pointers for image and chain
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     return image->iteration_allowed;
 }
@@ -919,13 +851,9 @@ catch( ... )
 bool Simulation_Running_On_Chain( State * state, int idx_chain ) noexcept
 try
 {
-    // Fetch correct indices and pointers for image and chain
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
     int idx_image = -1;
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     return state->chain->iteration_allowed;
 }
@@ -938,13 +866,9 @@ catch( ... )
 bool Simulation_Running_Anywhere_On_Chain( State * state, int idx_chain ) noexcept
 try
 {
-    // Fetch correct indices and pointers for image and chain
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
-
     // Fetch correct indices and pointers
     int idx_image = -1;
-    from_indices( state, idx_image, idx_chain, image, chain );
+    auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( Simulation_Running_On_Chain( state, idx_chain ) )
         return true;
