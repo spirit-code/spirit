@@ -371,56 +371,6 @@ if( SPIRIT_USE_CUDA )
 
     ### Need to use nvcc on many source files because they indirectly include cuda.h
     set_source_files_properties(
-        ${CMAKE_CURRENT_LIST_DIR}/src/data/Geometry.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/data/Spin_System.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/data/Spin_System_Chain.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/ABC.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Gaussian.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Zeeman.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Anisotropy.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Cubic_Anisotropy.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Biaxial_Anisotropy.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Exchange.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/DMI.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/DDI.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Quadruplet.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/interaction/Hamiltonian.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Eigenmodes.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/HTST.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Sparse_HTST.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Manifoldmath.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Method.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Method_MC.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Method_LLG.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Method_GNEB.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Method_MMF.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Method_EMA.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Neighbours.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Solver_Kernels.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/engine/Vectormath.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/io/Configwriter.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/io/Configparser.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/io/Dataparser.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/io/Datawriter.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/io/IO.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/io/Filter_File_Handle.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/io/OVF_File.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Chain.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Configurations.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Geometry.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Hamiltonian.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/HTST.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/IO.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Parameters_EMA.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Parameters_GNEB.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Parameters_LLG.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Parameters_MC.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Parameters_MMF.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Simulation.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/State.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/System.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Transitions.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/Spirit/Quantities.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/utility/Configurations.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/utility/Configuration_Chain.cpp
         ${CMAKE_CURRENT_LIST_DIR}/src/utility/Logging.cpp
