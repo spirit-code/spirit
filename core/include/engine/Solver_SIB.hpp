@@ -1,3 +1,9 @@
+#pragma once
+#include <engine/Method_Solver.hpp>
+
+namespace Engine
+{
+
 template<>
 inline void Method_Solver<Solver::SIB>::Initialize()
 {
@@ -59,4 +65,6 @@ template<>
 inline std::string Method_Solver<Solver::SIB>::SolverFullName()
 {
     return "Semi-implicit B";
+}
+
 }

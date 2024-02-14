@@ -1,3 +1,9 @@
+#pragma once
+#include <engine/Method_Solver.hpp>
+
+namespace Engine
+{
+
 template<>
 inline void Method_Solver<Solver::VP_OSO>::Initialize()
 {
@@ -123,4 +129,6 @@ template<>
 inline std::string Method_Solver<Solver::VP_OSO>::SolverFullName()
 {
     return "Velocity Projection using exponential transforms";
+}
+
 }

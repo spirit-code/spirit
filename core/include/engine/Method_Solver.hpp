@@ -386,6 +386,8 @@ inline std::string Method_Solver<Solver::None>::SolverFullName()
     return "None";
 };
 
+} // namespace Engine
+
 // Include headers which specialize the Solver functions
 #include <engine/Solver_Depondt.hpp>
 #include <engine/Solver_Heun.hpp>
@@ -395,7 +397,5 @@ inline std::string Method_Solver<Solver::None>::SolverFullName()
 #include <engine/Solver_SIB.hpp>
 #include <engine/Solver_VP.hpp>
 #include <engine/Solver_VP_OSO.hpp>
-
-} // namespace Engine
 
 #endif
