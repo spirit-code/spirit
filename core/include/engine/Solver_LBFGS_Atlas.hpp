@@ -2,13 +2,13 @@
 #ifndef SPIRIT_CORE_ENGINE_SOLVER_LBFGS_ATLAS_HPP
 #define SPIRIT_CORE_ENGINE_SOLVER_LBFGS_ATLAS_HPP
 
-#include <utility/Constants.hpp>
-// #include <utility/Exception.hpp>
 #include <engine/Backend_par.hpp>
-
-#include <algorithm>
+#include <engine/Method_Solver.hpp>
+#include <utility/Constants.hpp>
 
 using namespace Utility;
+namespace Engine
+{
 
 template<>
 inline void Method_Solver<Solver::LBFGS_Atlas>::Initialize()
@@ -115,5 +115,7 @@ inline std::string Method_Solver<Solver::LBFGS_Atlas>::SolverFullName()
 {
     return "Limited memory Broyden-Fletcher-Goldfarb-Shanno using stereographic atlas";
 }
+
+} // namespace Engine
 
 #endif

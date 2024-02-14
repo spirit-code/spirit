@@ -6,8 +6,6 @@
 #include <data/Spin_System.hpp>
 #include <engine/Method.hpp>
 
-#include <vector>
-
 namespace Engine
 {
 

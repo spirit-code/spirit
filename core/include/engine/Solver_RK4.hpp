@@ -1,3 +1,9 @@
+#pragma once
+#include <engine/Method_Solver.hpp>
+
+namespace Engine
+{
+
 template<>
 inline void Method_Solver<Solver::RungeKutta4>::Initialize()
 {
@@ -156,4 +162,6 @@ template<>
 inline std::string Method_Solver<Solver::RungeKutta4>::SolverFullName()
 {
     return "Runge Kutta (4th order)";
+}
+
 }

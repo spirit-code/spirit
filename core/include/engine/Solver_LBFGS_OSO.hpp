@@ -2,12 +2,13 @@
 #ifndef SPIRIT_CORE_ENGINE_SOLVER_LBFGS_OSO_HPP
 #define SPIRIT_CORE_ENGINE_SOLVER_LBFGS_OSO_HPP
 
+#include <engine/Method_Solver.hpp>
 #include <utility/Constants.hpp>
-// #include <utility/Exception.hpp>
-
-#include <algorithm>
 
 using namespace Utility;
+
+namespace Engine
+{
 
 template<>
 inline void Method_Solver<Solver::LBFGS_OSO>::Initialize()
@@ -85,5 +86,7 @@ inline std::string Method_Solver<Solver::LBFGS_OSO>::SolverFullName()
 {
     return "Limited memory Broyden-Fletcher-Goldfarb-Shanno using exponential transforms";
 }
+
+} // namespace Engine
 
 #endif

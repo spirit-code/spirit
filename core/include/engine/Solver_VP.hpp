@@ -1,3 +1,9 @@
+#pragma once
+#include <engine/Method_Solver.hpp>
+
+namespace Engine
+{
+
 #include <engine/Backend_par.hpp>
 
 template<>
@@ -123,4 +129,6 @@ template<>
 inline std::string Method_Solver<Solver::VP>::SolverFullName()
 {
     return "Velocity Projection";
+}
+
 }

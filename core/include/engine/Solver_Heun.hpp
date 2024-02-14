@@ -1,3 +1,9 @@
+#pragma once
+#include <engine/Method_Solver.hpp>
+
+namespace Engine
+{
+
 template<>
 inline void Method_Solver<Solver::Heun>::Initialize()
 {
@@ -90,3 +96,5 @@ inline std::string Method_Solver<Solver::Heun>::SolverFullName()
 {
     return "Heun";
 }
+
+} // namespace Engine
