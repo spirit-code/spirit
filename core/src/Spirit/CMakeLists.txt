@@ -1,5 +1,5 @@
 set(SOURCE_SPIRIT
-	${SOURCE_SPIRIT}
+    ${SOURCE_SPIRIT}
     ${CMAKE_CURRENT_SOURCE_DIR}/Log.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/State.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Simulation.cpp
@@ -20,5 +20,27 @@ set(SOURCE_SPIRIT
     ${CMAKE_CURRENT_SOURCE_DIR}/Constants.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Version.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
-	PARENT_SCOPE
+    PARENT_SCOPE
 )
+
+if( SPIRIT_USE_CUDA )
+    ### Need to use nvcc on many source files because they indirectly include cuda.h
+    set_source_files_properties(
+        ${CMAKE_CURRENT_LIST_DIR}/Chain.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Configurations.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Geometry.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Hamiltonian.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/HTST.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/IO.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Parameters_EMA.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Parameters_GNEB.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Parameters_LLG.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Parameters_MC.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Parameters_MMF.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Simulation.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/State.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/System.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Transitions.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Quantities.cpp
+        PROPERTIES LANGUAGE CUDA )
+endif()
