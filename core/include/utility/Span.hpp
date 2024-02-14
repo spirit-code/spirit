@@ -1,6 +1,7 @@
 #ifndef SPIRIT_UTILITY_SPAN
 #define SPIRIT_UTILITY_SPAN
 
+#include "utility/Exception.hpp"
 #include <cstddef>
 #include <iterator>
 #include <type_traits>
@@ -58,10 +59,18 @@ public:
 
     constexpr reference operator[]( std::size_t index )
     {
+        if( index < 0 || index >= size_ )
+            spirit_throw(
+                Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Error,
+                "Span: index out of bounds" );
         return data_[index];
     }
     constexpr const_reference operator[]( std::size_t index ) const
     {
+        if( index < 0 || index >= size_ )
+            spirit_throw(
+                Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Error,
+                "Span: index out of bounds" );
         return data_[index];
     }
 
@@ -73,7 +82,6 @@ private:
 // type deduction
 template<typename Iterator>
 using iterator_value_type_t = std::remove_pointer_t<typename std::iterator_traits<Iterator>::pointer>;
-
 
 template<typename T>
 Span( T * data, std::size_t size ) -> Span<T>;
