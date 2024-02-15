@@ -244,7 +244,7 @@ void Check_NonOVF_Chain_Configuration(
 
 // Read from Anisotropy file
 void Anisotropy_from_File(
-    const std::string & anisotropy_file, const std::shared_ptr<Data::Geometry> geometry, int & n_indices,
+    const std::string & anisotropy_file, const Data::Geometry& geometry, int & n_indices,
     intfield & anisotropy_index, scalarfield & anisotropy_magnitude, vectorfield & anisotropy_normal,
     intfield & cubic_anisotropy_index, scalarfield & cubic_anisotropy_magnitude ) noexcept
 try
@@ -283,9 +283,9 @@ try
             if( K_abc )
             {
                 K_temp = { ka, kb, kc };
-                K_temp = { K_temp.dot( geometry->lattice_constant * geometry->bravais_vectors[0] ),
-                           K_temp.dot( geometry->lattice_constant * geometry->bravais_vectors[1] ),
-                           K_temp.dot( geometry->lattice_constant * geometry->bravais_vectors[2] ) };
+                K_temp = { K_temp.dot( geometry.lattice_constant * geometry.bravais_vectors[0] ),
+                           K_temp.dot( geometry.lattice_constant * geometry.bravais_vectors[1] ),
+                           K_temp.dot( geometry.lattice_constant * geometry.bravais_vectors[2] ) };
             }
 
             // Anisotropy vector normalisation
@@ -339,7 +339,7 @@ catch( ... )
 }
 
 void Biaxial_Anisotropy_Axes_from_File(
-    const std::string & anisotropy_axes_file, const std::shared_ptr<Data::Geometry> geometry, int & n_axes,
+    const std::string & anisotropy_axes_file, const Data::Geometry& geometry, int & n_axes,
     std::map<int, std::pair<Vector3, Vector3>> & anisotropy_axes ) noexcept
 try
 {
@@ -373,9 +373,9 @@ try
             if( K1_abc )
             {
                 K1_temp = { k1a, k1b, k1c };
-                K1_temp = { K1_temp.dot( geometry->lattice_constant * geometry->bravais_vectors[0] ),
-                            K1_temp.dot( geometry->lattice_constant * geometry->bravais_vectors[1] ),
-                            K1_temp.dot( geometry->lattice_constant * geometry->bravais_vectors[2] ) };
+                K1_temp = { K1_temp.dot( geometry.lattice_constant * geometry.bravais_vectors[0] ),
+                            K1_temp.dot( geometry.lattice_constant * geometry.bravais_vectors[1] ),
+                            K1_temp.dot( geometry.lattice_constant * geometry.bravais_vectors[2] ) };
             }
             K1_temp.normalize();
 
@@ -385,9 +385,9 @@ try
             if( K2_abc )
             {
                 K2_temp = { k2a, k2b, k2c };
-                K2_temp = { K2_temp.dot( geometry->lattice_constant * geometry->bravais_vectors[0] ),
-                            K2_temp.dot( geometry->lattice_constant * geometry->bravais_vectors[1] ),
-                            K2_temp.dot( geometry->lattice_constant * geometry->bravais_vectors[2] ) };
+                K2_temp = { K2_temp.dot( geometry.lattice_constant * geometry.bravais_vectors[0] ),
+                            K2_temp.dot( geometry.lattice_constant * geometry.bravais_vectors[1] ),
+                            K2_temp.dot( geometry.lattice_constant * geometry.bravais_vectors[2] ) };
             }
 
             // orthogonalize and normalize
@@ -409,7 +409,7 @@ catch( ... )
 }
 
 void Biaxial_Anisotropy_Terms_from_File(
-    const std::string & anisotropy_terms_file, const std::shared_ptr<Data::Geometry>, int & n_terms,
+    const std::string & anisotropy_terms_file, const Data::Geometry &, int & n_terms,
     std::map<int, field<PolynomialTerm>> & anisotropy_terms ) noexcept
 try
 {
@@ -446,7 +446,7 @@ catch( ... )
 
 void Biaxial_Anisotropy_from_File(
     const std::string & anisotropy_axes_file, const std::string & anisotropy_terms_file,
-    const std::shared_ptr<Data::Geometry> geometry, int & n_indices, intfield & anisotropy_indices,
+    const Data::Geometry & geometry, int & n_indices, intfield & anisotropy_indices,
     field<PolynomialBasis> & anisotropy_polynomial_bases, field<unsigned int> & anisotropy_polynomial_site_p,
     field<PolynomialTerm> & anisotropy_polynomial_terms ) noexcept
 try
@@ -548,7 +548,7 @@ void Basis_from_File(
 
 // Read from Pairs file by Markus & Bernd
 void Pairs_from_File(
-    const std::string & pairs_file, const std::shared_ptr<Data::Geometry> geometry, int & nop,
+    const std::string & pairs_file, const Data::Geometry & geometry, int & nop,
     pairfield & exchange_pairs, scalarfield & exchange_magnitudes, pairfield & dmi_pairs, scalarfield & dmi_magnitudes,
     vectorfield & dmi_normals ) noexcept
 try
@@ -586,9 +586,9 @@ try
             if( DMI_abc )
             {
                 D_temp = { Dija, Dijb, Dijc };
-                D_temp = { D_temp.dot( geometry->lattice_constant * geometry->bravais_vectors[0] ),
-                           D_temp.dot( geometry->lattice_constant * geometry->bravais_vectors[1] ),
-                           D_temp.dot( geometry->lattice_constant * geometry->bravais_vectors[2] ) };
+                D_temp = { D_temp.dot( geometry.lattice_constant * geometry.bravais_vectors[0] ),
+                           D_temp.dot( geometry.lattice_constant * geometry.bravais_vectors[1] ),
+                           D_temp.dot( geometry.lattice_constant * geometry.bravais_vectors[2] ) };
             }
 
             if( !DMI_magnitude )
@@ -689,7 +689,7 @@ catch( ... )
 
 // Read from Quadruplet file
 void Quadruplets_from_File(
-    const std::string & quadruplets_file, const std::shared_ptr<Data::Geometry>, int & noq,
+    const std::string & quadruplets_file, const Data::Geometry &, int & noq,
     quadrupletfield & quadruplets, scalarfield & quadruplet_magnitudes ) noexcept
 try
 {

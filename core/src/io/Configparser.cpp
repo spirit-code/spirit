@@ -1220,6 +1220,439 @@ std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config( 
     return parameters;
 }
 
+namespace
+{
+
+void Zeeman_from_Config(
+    const std::string & config_file_name, std::vector<std::string> & parameter_log, scalar & magnitude,
+    Vector3 & normal )
+{
+    try
+    {
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+
+        // Read parameters from config if available
+        config_file_handle.Read_Single( magnitude, "external_field_magnitude" );
+        config_file_handle.Read_Vector3( normal, "external_field_normal" );
+        normal.normalize();
+        if( normal.norm() < 1e-8 )
+        {
+            normal = { 0, 0, 1 };
+            Log( Log_Level::Warning, Log_Sender::IO,
+                 "Input for 'external_field_normal' had norm zero and has been set to (0,0,1)" );
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core(
+            fmt::format( "Unable to read external field from config file \"{}\"", config_file_name ) );
+    }
+
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "external field", magnitude ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "field_normal", normal.transpose() ) );
+}
+
+void Anisotropy_from_Config(
+    const std::string & config_file_name, const Geometry & geometry, std::vector<std::string> & parameter_log,
+    intfield & uniaxial_indices, scalarfield & uniaxial_magnitudes, vectorfield & uniaxial_normals,
+    intfield & cubic_indices, scalarfield & cubic_magnitudes )
+{
+    std::string anisotropy_file{};
+    bool anisotropy_from_file = false;
+    int n_pairs               = 0;
+    scalar K = 0, K4 = 0;
+    Vector3 K_normal = { 0, 0, 0 };
+
+    try
+    {
+
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+
+        // Anisotropy
+        if( config_file_handle.Find( "n_anisotropy" ) )
+            anisotropy_file = config_file_name;
+        else if( config_file_handle.Find( "anisotropy_file" ) )
+            config_file_handle >> anisotropy_file;
+
+        if( !anisotropy_file.empty() )
+        {
+            // The file name should be valid so we try to read it
+            Anisotropy_from_File(
+                anisotropy_file, geometry, n_pairs, uniaxial_indices, uniaxial_magnitudes, uniaxial_normals,
+                cubic_indices, cubic_magnitudes );
+
+            anisotropy_from_file = true;
+            if( !uniaxial_indices.empty() )
+            {
+                K        = uniaxial_magnitudes[0];
+                K_normal = uniaxial_normals[0];
+            }
+            else
+            {
+                K        = 0;
+                K_normal = { 0, 0, 0 };
+            }
+            if( !cubic_indices.empty() )
+                K4 = cubic_magnitudes[0];
+            else
+                K4 = 0;
+        }
+        else
+        {
+            // Read parameters from config
+            config_file_handle.Read_Single( K, "anisotropy_magnitude" );
+            config_file_handle.Read_Vector3( K_normal, "anisotropy_normal" );
+            K_normal.normalize();
+
+            config_file_handle.Read_Single( K4, "cubic_anisotropy_magnitude" );
+
+            if( K != 0 )
+            {
+                // Fill the arrays
+                for( std::size_t i = 0; i < uniaxial_indices.size(); ++i )
+                {
+                    uniaxial_indices[i]    = static_cast<int>( i );
+                    uniaxial_magnitudes[i] = K;
+                    uniaxial_normals[i]    = K_normal;
+                }
+            }
+            else
+            {
+                uniaxial_indices    = intfield( 0 );
+                uniaxial_magnitudes = scalarfield( 0 );
+                uniaxial_normals    = vectorfield( 0 );
+            }
+            if( K4 != 0 )
+            {
+                // Fill the arrays
+                for( std::size_t i = 0; i < cubic_indices.size(); ++i )
+                {
+                    cubic_indices[i]    = static_cast<int>( i );
+                    cubic_magnitudes[i] = K4;
+                }
+            }
+            else
+            {
+                cubic_indices    = intfield( 0 );
+                cubic_magnitudes = scalarfield( 0 );
+            }
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core(
+            fmt::format( "Unable to read anisotropy from config file \"{}\"", config_file_name ) );
+    }
+
+    if( anisotropy_from_file )
+        parameter_log.emplace_back( fmt::format( "    K from file \"{}\"", anisotropy_file ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy[0]", K ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy_normal[0]", K_normal.transpose() ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "cubic_anisotropy_magnitude[0]", K4 ) );
+}
+
+void Biaxial_Anisotropy_from_Config(
+    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
+    intfield & indices, field<PolynomialBasis> & polynomial_bases, field<unsigned int> & polynomial_site_p,
+    field<PolynomialTerm> & polynomial_terms )
+{
+    std::string biaxial_anisotropy_axes_file  = "";
+    std::string biaxial_anisotropy_terms_file = "";
+    int n_biaxial_anisotropy                  = 0;
+    try
+    {
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+
+        if( config_file_handle.Find( "n_biaxial_anisotropy_axes" ) )
+            biaxial_anisotropy_axes_file = config_file_name;
+        else if( config_file_handle.Find( "biaxial_anisotropy_axes_file" ) )
+            config_file_handle >> biaxial_anisotropy_axes_file;
+
+        if( config_file_handle.Find( "n_biaxial_anisotropy_terms" ) )
+            biaxial_anisotropy_terms_file = config_file_name;
+        else if( config_file_handle.Find( "biaxial_anisotropy_terms_file" ) )
+            config_file_handle >> biaxial_anisotropy_terms_file;
+
+        if( biaxial_anisotropy_terms_file.empty() xor biaxial_anisotropy_axes_file.empty() )
+        {
+            Log( Log_Level::Error, Log_Sender::IO,
+                 fmt::format(
+                     "Found incomplete specification for biaxial anisotropy: missing specification for \"{}\"",
+                     biaxial_anisotropy_axes_file.empty() ? "axes" : "terms" ) );
+        }
+        else if( !biaxial_anisotropy_terms_file.empty() && !biaxial_anisotropy_axes_file.empty() )
+        {
+            Biaxial_Anisotropy_from_File(
+                biaxial_anisotropy_axes_file, biaxial_anisotropy_terms_file, geometry, n_biaxial_anisotropy, indices,
+                polynomial_bases, polynomial_site_p, polynomial_terms );
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core(
+            fmt::format( "Could not read biaxial anisotropy from config \"{}\"", config_file_name ) );
+    }
+
+    if( !polynomial_bases.empty() )
+    {
+        const auto & p = polynomial_bases[0];
+        parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "biaxial_anisotropy[0].k1", p.k1.transpose() ) );
+        parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "biaxial_anisotropy[0].k2", p.k2.transpose() ) );
+        parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "biaxial_anisotropy[0].k3", p.k3.transpose() ) );
+    }
+    if( !biaxial_anisotropy_terms_file.empty() )
+        parameter_log.emplace_back(
+            fmt::format( "    biaxial anisotropy terms from file \"{}\"", biaxial_anisotropy_terms_file ) );
+}
+
+void Pair_Interactions_from_Pairs_from_Config(
+    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
+    pairfield & exchange_pairs, scalarfield & exchange_magnitudes, pairfield & dmi_pairs, scalarfield & dmi_magnitudes,
+    vectorfield & dmi_normals )
+{
+    std::string interaction_pairs_file{};
+    int n_pairs = 0;
+
+    try
+    {
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+
+        // Interaction Pairs
+        if( config_file_handle.Find( "n_interaction_pairs" ) )
+            interaction_pairs_file = config_file_name;
+        else if( config_file_handle.Find( "interaction_pairs_file" ) )
+            config_file_handle >> interaction_pairs_file;
+
+        if( !interaction_pairs_file.empty() )
+        {
+            // The file name should be valid so we try to read it
+            Pairs_from_File(
+                interaction_pairs_file, geometry, n_pairs, exchange_pairs, exchange_magnitudes, dmi_pairs,
+                dmi_magnitudes, dmi_normals );
+        }
+        // else
+        //{
+        //	Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg: Default Interaction pairs have not
+        // been implemented yet."); 	throw Exception::System_not_Initialized;
+        //	// Not implemented!
+        //}
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core(
+            fmt::format( "Unable to read interaction pairs from config file \"{}\"", config_file_name ) );
+    }
+}
+
+void Pair_Interactions_from_Shells_from_Config(
+    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
+    scalarfield & exchange_magnitudes, scalarfield & dmi_magnitudes, int & dm_chirality )
+{
+    std::string interaction_shells_file{};
+    int n_shells_exchange = 0;
+    int n_shells_dmi      = 0;
+
+    try
+    {
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+
+        config_file_handle.Read_Single( n_shells_exchange, "n_shells_exchange" );
+        if( exchange_magnitudes.size() != n_shells_exchange )
+            exchange_magnitudes = scalarfield( n_shells_exchange );
+        if( n_shells_exchange > 0 )
+        {
+            if( config_file_handle.Find( "jij" ) )
+            {
+                for( std::size_t ishell = 0; ishell < n_shells_exchange; ++ishell )
+                    config_file_handle >> exchange_magnitudes[ishell];
+            }
+            else
+                Log( Log_Level::Warning, Log_Sender::IO,
+                     fmt::format(
+                         "Hamiltonian_Heisenberg: Keyword 'jij' not found. Using Default: {}",
+                         exchange_magnitudes[0] ) );
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core(
+            fmt::format( "Failed to read exchange parameters from config file \"{}\"", config_file_name ) );
+    }
+
+    try
+    {
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+
+        config_file_handle.Read_Single( n_shells_dmi, "n_shells_dmi" );
+        if( dmi_magnitudes.size() != n_shells_dmi )
+            dmi_magnitudes = scalarfield( n_shells_dmi );
+        if( n_shells_dmi > 0 )
+        {
+            if( config_file_handle.Find( "dij" ) )
+            {
+                for( unsigned int ishell = 0; ishell < n_shells_dmi; ++ishell )
+                    config_file_handle >> dmi_magnitudes[ishell];
+            }
+            else
+                Log( Log_Level::Warning, Log_Sender::IO,
+                     fmt::format(
+                         "Hamiltonian_Heisenberg: Keyword 'dij' not found. Using Default: {}", dmi_magnitudes[0] ) );
+        }
+        config_file_handle.Read_Single( dm_chirality, "dm_chirality" );
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core(
+            fmt::format( "Failed to read DMI parameters from config file \"{}\"", config_file_name ) );
+    }
+
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "n_shells_exchange", n_shells_exchange ) );
+    if( n_shells_exchange > 0 )
+        parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "J_ij[0]", exchange_magnitudes[0] ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "n_shells_dmi", n_shells_dmi ) );
+    if( n_shells_dmi > 0 )
+        parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "D_ij[0]", dmi_magnitudes[0] ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "DM chirality", dm_chirality ) );
+}
+
+void DDI_from_Config(
+    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
+    Engine::Spin::DDI_Method & ddi_method, intfield & ddi_n_periodic_images, bool & ddi_pb_zero_padding,
+    scalar & ddi_radius )
+{
+    std::string ddi_method_str{};
+
+    try
+    {
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+
+        // DDI method
+        config_file_handle.Read_String( ddi_method_str, "ddi_method" );
+        if( ddi_method_str == "none" )
+            ddi_method = Engine::Spin::DDI_Method::None;
+        else if( ddi_method_str == "fft" )
+            ddi_method = Engine::Spin::DDI_Method::FFT;
+        else if( ddi_method_str == "fmm" )
+            ddi_method = Engine::Spin::DDI_Method::FMM;
+        else if( ddi_method_str == "cutoff" )
+            ddi_method = Engine::Spin::DDI_Method::Cutoff;
+        else
+        {
+            Log( Log_Level::Warning, Log_Sender::IO,
+                 fmt::format(
+                     "Hamiltonian_Heisenberg: Keyword 'ddi_method' got passed invalid method \"{}\". Setting to "
+                     "\"none\".",
+                     ddi_method_str ) );
+            ddi_method_str = "none";
+            ddi_method     = Engine::Spin::DDI_Method::None;
+        }
+
+        // Number of periodical images
+        config_file_handle.Read_3Vector( ddi_n_periodic_images, "ddi_n_periodic_images" );
+        config_file_handle.Read_Single( ddi_pb_zero_padding, "ddi_pb_zero_padding" );
+
+        // Dipole-dipole cutoff radius
+        config_file_handle.Read_Single( ddi_radius, "ddi_radius" );
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core(
+            fmt::format( "Unable to read DDI radius from config file \"{}\"", config_file_name ) );
+    }
+
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_method", ddi_method_str ) );
+    parameter_log.emplace_back( fmt::format(
+        "    {:<21} = ({} {} {})", "ddi_n_periodic_images", ddi_n_periodic_images[0], ddi_n_periodic_images[1],
+        ddi_n_periodic_images[2] ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_radius", ddi_radius ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_pb_zero_padding", ddi_pb_zero_padding ) );
+}
+
+void Quadruplets_from_Config(
+    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
+    quadrupletfield & quadruplets, scalarfield & quadruplet_magnitudes )
+{
+    std::string quadruplets_file{};
+    int n_quadruplets = 0;
+
+    try
+    {
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+
+        // Interaction Quadruplets
+        if( config_file_handle.Find( "n_interaction_quadruplets" ) )
+            quadruplets_file = config_file_name;
+        else if( config_file_handle.Find( "interaction_quadruplets_file" ) )
+            config_file_handle >> quadruplets_file;
+
+        if( quadruplets_file.length() > 0 )
+        {
+            // The file name should be valid so we try to read it
+            Quadruplets_from_File( quadruplets_file, geometry, n_quadruplets, quadruplets, quadruplet_magnitudes );
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core(
+            fmt::format( "Unable to read interaction quadruplets from config file \"{}\"", config_file_name ) );
+    }
+}
+
+void Gaussian_from_Config(
+    const std::string & config_file_name, std::vector<std::string> & parameter_log, scalarfield & amplitude,
+    scalarfield & width, vectorfield & center
+
+)
+{
+    auto n_gaussians = amplitude.size();
+
+    try
+    {
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+
+        // N
+        config_file_handle.Read_Single( n_gaussians, "n_gaussians" );
+
+        // Allocate arrays
+        amplitude = scalarfield( n_gaussians, 1.0 );
+        width     = scalarfield( n_gaussians, 1.0 );
+        center    = vectorfield( n_gaussians, Vector3{ 0, 0, 1 } );
+        // Read arrays
+        if( config_file_handle.Find( "gaussians" ) )
+        {
+            for( std::size_t i = 0; i < n_gaussians; ++i )
+            {
+                config_file_handle.GetLine();
+                config_file_handle >> amplitude[i];
+                config_file_handle >> width[i];
+                for( std::uint8_t j = 0; j < 3; ++j )
+                {
+                    config_file_handle >> center[i][j];
+                }
+                center[i].normalize();
+            }
+        }
+        else
+            Log( Log_Level::Error, Log_Sender::IO,
+                 "Hamiltonian_Gaussian: Keyword 'gaussians' not found. Using Default: 1.0 1.0 {0, 0, 1}" );
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core( fmt::format(
+            "Unable to read Hamiltonian_Gaussian parameters from config file  \"{}\"", config_file_name ) );
+    }
+
+    parameter_log.emplace_back( fmt::format( "    {0:<12} = {1}", "n_gaussians", n_gaussians ) );
+    if( n_gaussians > 0 )
+    {
+        parameter_log.emplace_back( fmt::format( "    {0:<12} = {1}", "amplitude[0]", amplitude[0] ) );
+        parameter_log.emplace_back( fmt::format( "    {0:<12} = {1}", "width[0]", width[0] ) );
+        parameter_log.emplace_back( fmt::format( "    {0:<12} = {1}", "center[0]", center[0].transpose() ) );
+    }
+}
+
+} // namespace
+
 std::unique_ptr<Engine::Spin::Hamiltonian> Hamiltonian_from_Config(
     const std::string & config_file_name, const std::shared_ptr<Data::Geometry> geometry,
     const intfield boundary_conditions )
@@ -1287,407 +1720,86 @@ std::unique_ptr<Engine::Spin::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
     const std::string & config_file_name, const std::shared_ptr<Data::Geometry> geometry,
     const intfield boundary_conditions, const std::string & hamiltonian_type )
 {
+    Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Heisenberg: building" );
+
+    std::vector<std::string> parameter_log;
+    parameter_log.emplace_back( "Hamiltonian Heisenberg:" );
+    parameter_log.emplace_back( fmt::format(
+        "    {:<21} = {} {} {}", "boundary conditions", boundary_conditions[0], boundary_conditions[1],
+        boundary_conditions[2] ) );
+
     //-------------- Insert default values here -----------------------------
     // External Magnetic Field
     scalar external_field_magnitude = 0;
     Vector3 external_field_normal   = { 0.0, 0.0, 1.0 };
 
     // Anisotropy
-    std::string anisotropy_file      = "";
-    scalar K                         = 0;
-    scalar K4                        = 0;
-    Vector3 K_normal                 = { 0.0, 0.0, 1.0 };
-    bool anisotropy_from_file        = false;
-    auto anisotropy_indices          = intfield( geometry->n_cell_atoms );
+    auto anisotropy_indices          = intfield( geometry->n_cell_atoms, 0 );
     auto anisotropy_magnitudes       = scalarfield( geometry->n_cell_atoms, 0.0 );
-    auto anisotropy_normals          = vectorfield( geometry->n_cell_atoms, K_normal );
-    auto cubic_anisotropy_indices    = intfield( geometry->n_cell_atoms );
+    auto anisotropy_normals          = vectorfield( geometry->n_cell_atoms, Vector3{ 0.0, 0.0, 1.0 } );
+    auto cubic_anisotropy_indices    = intfield( geometry->n_cell_atoms, 0 );
     auto cubic_anisotropy_magnitudes = scalarfield( geometry->n_cell_atoms, 0.0 );
 
-    int n_biaxial_anisotropy                  = 0;
-    std::string biaxial_anisotropy_axes_file  = "";
-    std::string biaxial_anisotropy_terms_file = "";
     auto biaxial_anisotropy_indices           = intfield( 0 );
     auto biaxial_anisotropy_polynomial_bases  = field<PolynomialBasis>{};
     auto biaxial_anisotropy_polynomial_site_p = field<unsigned int>{};
     auto biaxial_anisotropy_polynomial_terms  = field<PolynomialTerm>{};
 
     // ------------ Pair Interactions ------------
-    int n_pairs                        = 0;
-    std::string interaction_pairs_file = "";
-    auto exchange_pairs                = pairfield( 0 );
-    auto exchange_magnitudes           = scalarfield( 0 );
-    auto dmi_pairs                     = pairfield( 0 );
-    auto dmi_magnitudes                = scalarfield( 0 );
-    auto dmi_normals                   = vectorfield( 0 );
+    auto exchange_pairs      = pairfield( 0 );
+    auto exchange_magnitudes = scalarfield( 0 );
+    auto dmi_pairs           = pairfield( 0 );
+    auto dmi_magnitudes      = scalarfield( 0 );
+    auto dmi_normals         = vectorfield( 0 );
 
-    // Number of shells in which we calculate neighbours
-    std::size_t n_shells_exchange = exchange_magnitudes.size();
-    // DM constant
-    std::size_t n_shells_dmi = dmi_magnitudes.size();
-    int dm_chirality         = 1;
+    int dm_chirality = 1;
 
-    std::string ddi_method_str = "none";
-    auto ddi_method            = Engine::Spin::DDI_Method::None;
-
+    auto ddi_method                = Engine::Spin::DDI_Method::None;
     intfield ddi_n_periodic_images = { 4, 4, 4 };
     scalar ddi_radius              = 0.0;
     bool ddi_pb_zero_padding       = false;
 
     // ------------ Quadruplet Interactions ------------
-    int n_quadruplets            = 0;
-    std::string quadruplets_file = "";
-    auto quadruplets             = quadrupletfield( 0 );
-    auto quadruplet_magnitudes   = scalarfield( 0 );
+    auto quadruplets           = quadrupletfield( 0 );
+    auto quadruplet_magnitudes = scalarfield( 0 );
 
     //------------------------------- Parser --------------------------------
-    Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Heisenberg: building" );
+
     // Iteration variables
     if( !config_file_name.empty() )
     {
-        try
-        {
-            IO::Filter_File_Handle config_file_handle( config_file_name );
+        Zeeman_from_Config( config_file_name, parameter_log, external_field_magnitude, external_field_normal );
 
-            // Read parameters from config if available
-            config_file_handle.Read_Single( external_field_magnitude, "external_field_magnitude" );
-            config_file_handle.Read_Vector3( external_field_normal, "external_field_normal" );
-            external_field_normal.normalize();
-            if( external_field_normal.norm() < 1e-8 )
-            {
-                external_field_normal = { 0, 0, 1 };
-                Log( Log_Level::Warning, Log_Sender::IO,
-                     "Input for 'external_field_normal' had norm zero and has been set to (0,0,1)" );
-            }
-        }
-        catch( ... )
-        {
-            spirit_handle_exception_core(
-                fmt::format( "Unable to read external field from config file \"{}\"", config_file_name ) );
-        }
+        Anisotropy_from_Config(
+            config_file_name, *geometry, parameter_log, anisotropy_indices, anisotropy_magnitudes, anisotropy_normals,
+            cubic_anisotropy_indices, cubic_anisotropy_magnitudes );
 
-        try
-        {
-            IO::Filter_File_Handle config_file_handle( config_file_name );
+        Biaxial_Anisotropy_from_Config(
+            config_file_name, *geometry, parameter_log, biaxial_anisotropy_indices, biaxial_anisotropy_polynomial_bases,
+            biaxial_anisotropy_polynomial_site_p, biaxial_anisotropy_polynomial_terms );
 
-            // Anisotropy
-            if( config_file_handle.Find( "n_anisotropy" ) )
-                anisotropy_file = config_file_name;
-            else if( config_file_handle.Find( "anisotropy_file" ) )
-                config_file_handle >> anisotropy_file;
-
-            if( !anisotropy_file.empty() )
-            {
-                // The file name should be valid so we try to read it
-                Anisotropy_from_File(
-                    anisotropy_file, geometry, n_pairs, anisotropy_indices, anisotropy_magnitudes, anisotropy_normals,
-                    cubic_anisotropy_indices, cubic_anisotropy_magnitudes );
-
-                anisotropy_from_file = true;
-                if( !anisotropy_indices.empty() )
-                {
-                    K        = anisotropy_magnitudes[0];
-                    K_normal = anisotropy_normals[0];
-                }
-                else
-                {
-                    K        = 0;
-                    K_normal = { 0, 0, 0 };
-                }
-                if( !cubic_anisotropy_indices.empty() )
-                    K4 = cubic_anisotropy_magnitudes[0];
-                else
-                    K4 = 0;
-            }
-            else
-            {
-                // Read parameters from config
-                config_file_handle.Read_Single( K, "anisotropy_magnitude" );
-                config_file_handle.Read_Vector3( K_normal, "anisotropy_normal" );
-                K_normal.normalize();
-
-                config_file_handle.Read_Single( K4, "cubic_anisotropy_magnitude" );
-
-                if( K != 0 )
-                {
-                    // Fill the arrays
-                    for( std::size_t i = 0; i < anisotropy_indices.size(); ++i )
-                    {
-                        anisotropy_indices[i]    = static_cast<int>( i );
-                        anisotropy_magnitudes[i] = K;
-                        anisotropy_normals[i]    = K_normal;
-                    }
-                }
-                else
-                {
-                    anisotropy_indices    = intfield( 0 );
-                    anisotropy_magnitudes = scalarfield( 0 );
-                    anisotropy_normals    = vectorfield( 0 );
-                }
-                if( K4 != 0 )
-                {
-                    // Fill the arrays
-                    for( std::size_t i = 0; i < cubic_anisotropy_indices.size(); ++i )
-                    {
-                        cubic_anisotropy_indices[i]    = static_cast<int>( i );
-                        cubic_anisotropy_magnitudes[i] = K4;
-                    }
-                }
-                else
-                {
-                    cubic_anisotropy_indices    = intfield( 0 );
-                    cubic_anisotropy_magnitudes = scalarfield( 0 );
-                }
-            }
-        }
-        catch( ... )
-        {
-            spirit_handle_exception_core(
-                fmt::format( "Unable to read anisotropy from config file \"{}\"", config_file_name ) );
-        }
-
-        try
-        {
-            IO::Filter_File_Handle config_file_handle( config_file_name );
-
-            if( config_file_handle.Find( "n_biaxial_anisotropy_axes" ) )
-                biaxial_anisotropy_axes_file = config_file_name;
-            else if( config_file_handle.Find( "biaxial_anisotropy_axes_file" ) )
-                config_file_handle >> biaxial_anisotropy_axes_file;
-
-            if( config_file_handle.Find( "n_biaxial_anisotropy_terms" ) )
-                biaxial_anisotropy_terms_file = config_file_name;
-            else if( config_file_handle.Find( "biaxial_anisotropy_terms_file" ) )
-                config_file_handle >> biaxial_anisotropy_terms_file;
-
-            if( biaxial_anisotropy_terms_file.empty() xor biaxial_anisotropy_axes_file.empty() )
-            {
-                Log( Log_Level::Error, Log_Sender::IO,
-                     fmt::format(
-                         "Found incomplete specification for biaxial anisotropy: missing specification for \"{}\"",
-                         biaxial_anisotropy_axes_file.empty() ? "axes" : "terms" ) );
-            }
-            else if( !biaxial_anisotropy_terms_file.empty() && !biaxial_anisotropy_axes_file.empty() )
-            {
-                Biaxial_Anisotropy_from_File(
-                    biaxial_anisotropy_axes_file, biaxial_anisotropy_terms_file, geometry, n_biaxial_anisotropy,
-                    biaxial_anisotropy_indices, biaxial_anisotropy_polynomial_bases,
-                    biaxial_anisotropy_polynomial_site_p, biaxial_anisotropy_polynomial_terms );
-            }
-        }
-        catch( ... )
-        {
-            spirit_handle_exception_core(
-                fmt::format( "Could not read biaxial anisotropy from config \"{}\"", config_file_name ) );
-        }
-
-        if( hamiltonian_type == "heisenberg_pairs" )
-        {
-            try
-            {
-                IO::Filter_File_Handle config_file_handle( config_file_name );
-
-                // Interaction Pairs
-                if( config_file_handle.Find( "n_interaction_pairs" ) )
-                    interaction_pairs_file = config_file_name;
-                else if( config_file_handle.Find( "interaction_pairs_file" ) )
-                    config_file_handle >> interaction_pairs_file;
-
-                if( !interaction_pairs_file.empty() )
-                {
-                    // The file name should be valid so we try to read it
-                    Pairs_from_File(
-                        interaction_pairs_file, geometry, n_pairs, exchange_pairs, exchange_magnitudes, dmi_pairs,
-                        dmi_magnitudes, dmi_normals );
-                }
-                // else
-                //{
-                //	Log(Log_Level::Warning, Log_Sender::IO, "Hamiltonian_Heisenberg: Default Interaction pairs have not
-                // been implemented yet."); 	throw Exception::System_not_Initialized;
-                //	// Not implemented!
-                //}
-            }
-            catch( ... )
-            {
-                spirit_handle_exception_core(
-                    fmt::format( "Unable to read interaction pairs from config file \"{}\"", config_file_name ) );
-            }
-        }
+        if( hamiltonian_type == "heisenberg_neighbours" )
+            Pair_Interactions_from_Shells_from_Config(
+                config_file_name, *geometry, parameter_log, exchange_magnitudes, dmi_magnitudes, dm_chirality );
         else
-        {
-            try
-            {
-                IO::Filter_File_Handle config_file_handle( config_file_name );
+            Pair_Interactions_from_Pairs_from_Config(
+                config_file_name, *geometry, parameter_log, exchange_pairs, exchange_magnitudes, dmi_pairs,
+                dmi_magnitudes, dmi_normals );
 
-                config_file_handle.Read_Single( n_shells_exchange, "n_shells_exchange" );
-                if( exchange_magnitudes.size() != n_shells_exchange )
-                    exchange_magnitudes = scalarfield( n_shells_exchange );
-                if( n_shells_exchange > 0 )
-                {
-                    if( config_file_handle.Find( "jij" ) )
-                    {
-                        for( std::size_t ishell = 0; ishell < n_shells_exchange; ++ishell )
-                            config_file_handle >> exchange_magnitudes[ishell];
-                    }
-                    else
-                        Log( Log_Level::Warning, Log_Sender::IO,
-                             fmt::format(
-                                 "Hamiltonian_Heisenberg: Keyword 'jij' not found. Using Default: {}",
-                                 exchange_magnitudes[0] ) );
-                }
-            }
-            catch( ... )
-            {
-                spirit_handle_exception_core(
-                    fmt::format( "Failed to read exchange parameters from config file \"{}\"", config_file_name ) );
-            }
+        DDI_from_Config(
+            config_file_name, *geometry, parameter_log, ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding,
+            ddi_radius );
 
-            try
-            {
-                IO::Filter_File_Handle config_file_handle( config_file_name );
-
-                config_file_handle.Read_Single( n_shells_dmi, "n_shells_dmi" );
-                if( dmi_magnitudes.size() != n_shells_dmi )
-                    dmi_magnitudes = scalarfield( n_shells_dmi );
-                if( n_shells_dmi > 0 )
-                {
-                    if( config_file_handle.Find( "dij" ) )
-                    {
-                        for( unsigned int ishell = 0; ishell < n_shells_dmi; ++ishell )
-                            config_file_handle >> dmi_magnitudes[ishell];
-                    }
-                    else
-                        Log( Log_Level::Warning, Log_Sender::IO,
-                             fmt::format(
-                                 "Hamiltonian_Heisenberg: Keyword 'dij' not found. Using Default: {}",
-                                 dmi_magnitudes[0] ) );
-                }
-                config_file_handle.Read_Single( dm_chirality, "dm_chirality" );
-            }
-            catch( ... )
-            {
-                spirit_handle_exception_core(
-                    fmt::format( "Failed to read DMI parameters from config file \"{}\"", config_file_name ) );
-            }
-        }
-
-        try
-        {
-            IO::Filter_File_Handle config_file_handle( config_file_name );
-
-            // DDI method
-            config_file_handle.Read_String( ddi_method_str, "ddi_method" );
-            if( ddi_method_str == "none" )
-                ddi_method = Engine::Spin::DDI_Method::None;
-            else if( ddi_method_str == "fft" )
-                ddi_method = Engine::Spin::DDI_Method::FFT;
-            else if( ddi_method_str == "fmm" )
-                ddi_method = Engine::Spin::DDI_Method::FMM;
-            else if( ddi_method_str == "cutoff" )
-                ddi_method = Engine::Spin::DDI_Method::Cutoff;
-            else
-            {
-                Log( Log_Level::Warning, Log_Sender::IO,
-                     fmt::format(
-                         "Hamiltonian_Heisenberg: Keyword 'ddi_method' got passed invalid method \"{}\". Setting to "
-                         "\"none\".",
-                         ddi_method_str ) );
-                ddi_method_str = "none";
-            }
-
-            // Number of periodical images
-            config_file_handle.Read_3Vector( ddi_n_periodic_images, "ddi_n_periodic_images" );
-            config_file_handle.Read_Single( ddi_pb_zero_padding, "ddi_pb_zero_padding" );
-
-            // Dipole-dipole cutoff radius
-            config_file_handle.Read_Single( ddi_radius, "ddi_radius" );
-        }
-        catch( ... )
-        {
-            spirit_handle_exception_core(
-                fmt::format( "Unable to read DDI radius from config file \"{}\"", config_file_name ) );
-        }
-
-        try
-        {
-            IO::Filter_File_Handle config_file_handle( config_file_name );
-
-            // Interaction Quadruplets
-            if( config_file_handle.Find( "n_interaction_quadruplets" ) )
-                quadruplets_file = config_file_name;
-            else if( config_file_handle.Find( "interaction_quadruplets_file" ) )
-                config_file_handle >> quadruplets_file;
-
-            if( quadruplets_file.length() > 0 )
-            {
-                // The file name should be valid so we try to read it
-                Quadruplets_from_File( quadruplets_file, geometry, n_quadruplets, quadruplets, quadruplet_magnitudes );
-            }
-        }
-        catch( ... )
-        {
-            spirit_handle_exception_core(
-                fmt::format( "Unable to read interaction quadruplets from config file \"{}\"", config_file_name ) );
-        }
+        Quadruplets_from_Config( config_file_name, *geometry, parameter_log, quadruplets, quadruplet_magnitudes );
     }
     else
         Log( Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Heisenberg: Using default configuration!" );
 
-    // Return
-    std::vector<std::string> parameter_log;
-    parameter_log.emplace_back( "Hamiltonian Heisenberg:" );
-    parameter_log.emplace_back( fmt::format(
-        "    {:<21} = {} {} {}", "boundary conditions", boundary_conditions[0], boundary_conditions[1],
-        boundary_conditions[2] ) );
-    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "external field", external_field_magnitude ) );
-    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "field_normal", external_field_normal.transpose() ) );
-    if( anisotropy_from_file )
-        parameter_log.emplace_back( fmt::format( "    K from file \"{}\"", anisotropy_file ) );
-    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy[0]", K ) );
-    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy_normal[0]", K_normal.transpose() ) );
-    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "cubic_anisotropy_magnitude[0]", K4 ) );
-    if( !biaxial_anisotropy_polynomial_bases.empty() )
-    {
-        const auto & p = biaxial_anisotropy_polynomial_bases[0];
-        parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "biaxial_anisotropy[0].k1", p.k1.transpose() ) );
-        parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "biaxial_anisotropy[0].k2", p.k2.transpose() ) );
-        parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "biaxial_anisotropy[0].k3", p.k3.transpose() ) );
-    }
-    if( !biaxial_anisotropy_terms_file.empty() )
-        parameter_log.emplace_back(
-            fmt::format( "    biaxial anisotropy terms from file \"{}\"", biaxial_anisotropy_terms_file ) );
-    if( hamiltonian_type == "heisenberg_neighbours" )
-    {
-        parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "n_shells_exchange", n_shells_exchange ) );
-        if( n_shells_exchange > 0 )
-            parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "J_ij[0]", exchange_magnitudes[0] ) );
-        parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "n_shells_dmi", n_shells_dmi ) );
-        if( n_shells_dmi > 0 )
-            parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "D_ij[0]", dmi_magnitudes[0] ) );
-        parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "DM chirality", dm_chirality ) );
-    }
-    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_method", ddi_method_str ) );
-    parameter_log.emplace_back( fmt::format(
-        "    {:<21} = ({} {} {})", "ddi_n_periodic_images", ddi_n_periodic_images[0], ddi_n_periodic_images[1],
-        ddi_n_periodic_images[2] ) );
-    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_radius", ddi_radius ) );
-    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_pb_zero_padding", ddi_pb_zero_padding ) );
     Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
     auto hamiltonian = std::make_unique<Engine::Spin::Hamiltonian>( geometry, boundary_conditions );
 
     hamiltonian->pauseUpdateName();
-
-    if( hamiltonian_type == "heisenberg_neighbours" )
-    {
-        hamiltonian->setInteraction<Engine::Spin::Interaction::Exchange>( exchange_magnitudes );
-        hamiltonian->setInteraction<Engine::Spin::Interaction::DMI>( dmi_magnitudes, dm_chirality );
-    }
-    else
-    {
-        hamiltonian->setInteraction<Engine::Spin::Interaction::Exchange>( exchange_pairs, exchange_magnitudes );
-        hamiltonian->setInteraction<Engine::Spin::Interaction::DMI>( dmi_pairs, dmi_magnitudes, dmi_normals );
-    }
 
     hamiltonian->setInteraction<Engine::Spin::Interaction::Zeeman>(
         external_field_magnitude * Utility::Constants::mu_B, external_field_normal );
@@ -1702,6 +1814,17 @@ std::unique_ptr<Engine::Spin::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
         biaxial_anisotropy_indices, biaxial_anisotropy_polynomial_bases, biaxial_anisotropy_polynomial_site_p,
         biaxial_anisotropy_polynomial_terms );
 
+    if( hamiltonian_type == "heisenberg_neighbours" )
+    {
+        hamiltonian->setInteraction<Engine::Spin::Interaction::Exchange>( exchange_magnitudes );
+        hamiltonian->setInteraction<Engine::Spin::Interaction::DMI>( dmi_magnitudes, dm_chirality );
+    }
+    else
+    {
+        hamiltonian->setInteraction<Engine::Spin::Interaction::Exchange>( exchange_pairs, exchange_magnitudes );
+        hamiltonian->setInteraction<Engine::Spin::Interaction::DMI>( dmi_pairs, dmi_magnitudes, dmi_normals );
+    }
+
     hamiltonian->setInteraction<Engine::Spin::Interaction::DDI>(
         ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius );
 
@@ -1714,15 +1837,18 @@ std::unique_ptr<Engine::Spin::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
     assert( hamiltonian->Name() == "Heisenberg" );
     Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Hamiltonian_{}: built", hamiltonian->Name() ) );
     return hamiltonian;
-} // end Hamiltonian_Heisenberg_From_Config
+}
 
 std::unique_ptr<Engine::Spin::Hamiltonian> Hamiltonian_Gaussian_from_Config(
     const std::string & config_file_name, const std::shared_ptr<Data::Geometry> geometry,
     const intfield boundary_conditions )
 {
+    Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Gaussian: building" );
+
+    std::vector<std::string> parameter_log;
+    parameter_log.emplace_back( "Hamiltonian Gaussian:" );
+
     //-------------- Insert default values here -----------------------------
-    // Number of Gaussians
-    std::size_t n_gaussians = 1;
     // Amplitudes
     scalarfield amplitude = { 1 };
     // Widths
@@ -1731,57 +1857,15 @@ std::unique_ptr<Engine::Spin::Hamiltonian> Hamiltonian_Gaussian_from_Config(
     vectorfield center = { Vector3{ 0, 0, 1 } };
 
     //------------------------------- Parser --------------------------------
-    Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Gaussian: building" );
-
     if( !config_file_name.empty() )
     {
-        try
-        {
-            IO::Filter_File_Handle config_file_handle( config_file_name );
-
-            // N
-            config_file_handle.Read_Single( n_gaussians, "n_gaussians" );
-
-            // Allocate arrays
-            amplitude = scalarfield( n_gaussians, 1.0 );
-            width     = scalarfield( n_gaussians, 1.0 );
-            center    = vectorfield( n_gaussians, Vector3{ 0, 0, 1 } );
-            // Read arrays
-            if( config_file_handle.Find( "gaussians" ) )
-            {
-                for( std::size_t i = 0; i < n_gaussians; ++i )
-                {
-                    config_file_handle.GetLine();
-                    config_file_handle >> amplitude[i];
-                    config_file_handle >> width[i];
-                    for( std::uint8_t j = 0; j < 3; ++j )
-                    {
-                        config_file_handle >> center[i][j];
-                    }
-                    center[i].normalize();
-                }
-            }
-            else
-                Log( Log_Level::Error, Log_Sender::IO,
-                     "Hamiltonian_Gaussian: Keyword 'gaussians' not found. Using Default: {0, 0, 1}" );
-        }
-        catch( ... )
-        {
-            spirit_handle_exception_core( fmt::format(
-                "Unable to read Hamiltonian_Gaussian parameters from config file  \"{}\"", config_file_name ) );
-        }
+        Gaussian_from_Config( config_file_name, parameter_log, amplitude, width, center );
     }
     else
         Log( Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Gaussian: Using default configuration!" );
 
-    // Return
-    std::vector<std::string> parameter_log;
-    parameter_log.emplace_back( "Hamiltonian Gaussian:" );
-    parameter_log.emplace_back( fmt::format( "    {0:<12} = {1}", "n_gaussians", n_gaussians ) );
-    parameter_log.emplace_back( fmt::format( "    {0:<12} = {1}", "amplitude[0]", amplitude[0] ) );
-    parameter_log.emplace_back( fmt::format( "    {0:<12} = {1}", "width[0]", width[0] ) );
-    parameter_log.emplace_back( fmt::format( "    {0:<12} = {1}", "center[0]", center[0].transpose() ) );
     Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
+
     auto hamiltonian = std::make_unique<Engine::Spin::Hamiltonian>( geometry, boundary_conditions );
     hamiltonian->pauseUpdateName();
 
