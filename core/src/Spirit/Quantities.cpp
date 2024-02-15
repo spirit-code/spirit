@@ -2,7 +2,7 @@
 #include <Spirit/Quantities.h>
 
 #include <data/State.hpp>
-#include <engine/Eigenmodes.hpp>
+#include <engine/spin/Eigenmodes.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Constants.hpp>

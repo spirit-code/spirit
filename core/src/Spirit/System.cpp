@@ -2,7 +2,7 @@
 #include <Spirit/System.h>
 
 #include <data/State.hpp>
-#include <engine/Eigenmodes.hpp>
+#include <engine/spin/Eigenmodes.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 

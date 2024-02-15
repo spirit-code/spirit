@@ -8,7 +8,7 @@
 #include <data/Parameters_Method_MMF.hpp>
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
-#include <engine/Hamiltonian.hpp>
+#include <engine/spin/Hamiltonian.hpp>
 
 namespace IO
 {

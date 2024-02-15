@@ -1,5 +1,5 @@
 #include <data/Spin_System.hpp>
-#include <engine/Hamiltonian_Defines.hpp>
+#include <engine/spin/Hamiltonian_Defines.hpp>
 #include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
 #include <io/IO.hpp>
