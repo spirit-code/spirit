@@ -1,8 +1,8 @@
 #include <Spirit/Spirit_Defines.h>
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
-#include <engine/spin/Method_LLG.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/spin/Method_LLG.hpp>
 #include <io/IO.hpp>
 #include <io/OVF_File.hpp>
 #include <utility/Logging.hpp>
@@ -11,12 +11,14 @@
 #include <fmt/format.h>
 
 #include <ctime>
-#include <iostream>
 
 using namespace Utility;
-using system_t = Data::Spin_System<Engine::Hamiltonian>;
+using system_t = Data::Spin_System<Engine::Spin::Hamiltonian>;
 
 namespace Engine
+{
+
+namespace Spin
 {
 
 template<Solver solver>
@@ -516,5 +518,7 @@ template class Method_LLG<system_t, Solver::LBFGS_OSO>;
 template class Method_LLG<system_t, Solver::LBFGS_Atlas>;
 template class Method_LLG<system_t, Solver::VP>;
 template class Method_LLG<system_t, Solver::VP_OSO>;
+
+} // namespace Spin
 
 } // namespace Engine

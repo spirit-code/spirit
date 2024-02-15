@@ -4,8 +4,8 @@
 
 #include <engine/spin/interaction/ABC.hpp>
 #include <engine/spin/interaction/Anisotropy.hpp>
-#include <engine/spin/interaction/Cubic_Anisotropy.hpp>
 #include <engine/spin/interaction/Biaxial_Anisotropy.hpp>
+#include <engine/spin/interaction/Cubic_Anisotropy.hpp>
 #include <engine/spin/interaction/DDI.hpp>
 #include <engine/spin/interaction/DMI.hpp>
 #include <engine/spin/interaction/Exchange.hpp>
@@ -15,6 +15,9 @@
 #include <engine/spin/interaction/Zeeman.hpp>
 
 namespace Engine
+{
+
+namespace Spin
 {
 
 // runtime getter
@@ -47,7 +50,7 @@ template<class T, typename... Args>
 T & Hamiltonian::setInteraction( Args &&... args )
 {
     static_assert( std::is_convertible_v<T *, Interaction::Base<T> *>, "T has to be derived from Interaction::Base" );
-    static_assert( std::is_constructible_v<T, Engine::Hamiltonian *, Args...>, "No matching constructor for T" );
+    static_assert( std::is_constructible_v<T, Engine::Spin::Hamiltonian *, Args...>, "No matching constructor for T" );
 
     auto same_name = []( const auto & i ) { return T::name == i->Name(); };
     auto itr       = std::find_if( begin( interactions ), end( interactions ), same_name );
@@ -92,6 +95,8 @@ std::size_t Hamiltonian::deleteInteraction()
     static_assert( std::is_convertible_v<T *, Interaction::Base<T> *>, "T has to be derived from Interaction::Base" );
     return deleteInteraction( T::name );
 };
+
+} // namespace Spin
 
 } // namespace Engine
 #endif

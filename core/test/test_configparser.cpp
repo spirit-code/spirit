@@ -230,7 +230,7 @@ TEST_CASE( "Parse Hamiltonian (Pairs) config and check parsed values using the C
 
     SECTION( "Dipole-Dipole Interaction" )
     {
-        constexpr int ddi_method_ref = static_cast<int>( Engine::DDI_Method::None );
+        constexpr int ddi_method_ref = static_cast<int>( Engine::Spin::DDI_Method::None );
         constexpr std::array<int, 3> n_periodic_images_ref{ 4, 4, 4 };
         constexpr scalar cutoff_radius_ref = 1.3;
         constexpr bool pb_zero_padding_ref = true;

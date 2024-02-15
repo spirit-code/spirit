@@ -3,9 +3,9 @@
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <data/State.hpp>
-#include <engine/spin/Hamiltonian.hpp>
 #include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/spin/Hamiltonian.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
@@ -73,7 +73,7 @@ try
             new_normal.normalize();
 
             // Into the Hamiltonian
-            image->hamiltonian->getInteraction<Engine::Interaction::Zeeman>()->setParameters(
+            image->hamiltonian->getInteraction<Engine::Spin::Interaction::Zeeman>()->setParameters(
                 magnitude * Constants::mu_B, new_normal );
 
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
@@ -129,7 +129,7 @@ try
             vectorfield new_normals( nos, new_normal );
 
             // Update the Hamiltonian
-            image->hamiltonian->getInteraction<Engine::Interaction::Anisotropy>()->setParameters(
+            image->hamiltonian->getInteraction<Engine::Spin::Interaction::Anisotropy>()->setParameters(
                 new_indices, new_magnitudes, new_normals );
 
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
@@ -177,7 +177,7 @@ try
             }
 
             // Update the Hamiltonian
-            image->hamiltonian->getInteraction<Engine::Interaction::Cubic_Anisotropy>()->setParameters(
+            image->hamiltonian->getInteraction<Engine::Spin::Interaction::Cubic_Anisotropy>()->setParameters(
                 new_indices, new_magnitudes );
 
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
@@ -211,7 +211,7 @@ try
     image->Lock();
     try
     {
-        if( auto * interaction = image->hamiltonian->getInteraction<Engine::Interaction::Biaxial_Anisotropy>();
+        if( auto * interaction = image->hamiltonian->getInteraction<Engine::Spin::Interaction::Biaxial_Anisotropy>();
             interaction != nullptr )
         {
             int n_cell_atoms = image->geometry->n_cell_atoms;
@@ -297,7 +297,7 @@ try
         if( image->hamiltonian->Name() == "Heisenberg" )
         {
             // Update the Hamiltonian
-            image->hamiltonian->getInteraction<Engine::Interaction::Exchange>()->setParameters(
+            image->hamiltonian->getInteraction<Engine::Spin::Interaction::Exchange>()->setParameters(
                 scalarfield( jij, jij + n_shells ) );
             std::string message = fmt::format( "Set exchange to {} shells", n_shells );
             if( n_shells > 0 )
@@ -342,7 +342,7 @@ try
         if( image->hamiltonian->Name() == "Heisenberg" )
         {
             // Update the Hamiltonian
-            image->hamiltonian->getInteraction<Engine::Interaction::DMI>()->setParameters(
+            image->hamiltonian->getInteraction<Engine::Spin::Interaction::DMI>()->setParameters(
                 scalarfield( dij, dij + n_shells ), chirality );
 
             std::string message = fmt::format( "Set dmi to {} shells", n_shells );
@@ -385,8 +385,8 @@ try
             new_n_periodic_images[1]   = n_periodic_images[1];
             new_n_periodic_images[2]   = n_periodic_images[2];
 
-            image->hamiltonian->getInteraction<Engine::Interaction::DDI>()->setParameters(
-                Engine::DDI_Method( ddi_method ), new_n_periodic_images, pb_zero_padding, cutoff_radius );
+            image->hamiltonian->getInteraction<Engine::Spin::Interaction::DDI>()->setParameters(
+                Engine::Spin::DDI_Method( ddi_method ), new_n_periodic_images, pb_zero_padding, cutoff_radius );
 
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                  fmt::format(
@@ -457,7 +457,7 @@ try
     {
         scalar field_magnitude = 0;
         Vector3 field_normal   = Vector3::Zero();
-        image->hamiltonian->getInteraction<Engine::Interaction::Zeeman>()->getParameters(
+        image->hamiltonian->getInteraction<Engine::Spin::Interaction::Zeeman>()->getParameters(
             field_magnitude, field_normal );
 
         if( field_magnitude > 0 )
@@ -495,7 +495,7 @@ try
         intfield anisotropy_indices;
         scalarfield anisotropy_magnitudes;
         vectorfield anisotropy_normals;
-        image->hamiltonian->getInteraction<Engine::Interaction::Anisotropy>()->getParameters(
+        image->hamiltonian->getInteraction<Engine::Spin::Interaction::Anisotropy>()->getParameters(
             anisotropy_indices, anisotropy_magnitudes, anisotropy_normals );
         if( !anisotropy_indices.empty() )
         {
@@ -532,7 +532,7 @@ try
     {
         intfield cubic_anisotropy_indices;
         scalarfield cubic_anisotropy_magnitudes;
-        image->hamiltonian->getInteraction<Engine::Interaction::Cubic_Anisotropy>()->getParameters(
+        image->hamiltonian->getInteraction<Engine::Spin::Interaction::Cubic_Anisotropy>()->getParameters(
             cubic_anisotropy_indices, cubic_anisotropy_magnitudes );
 
         if( !cubic_anisotropy_indices.empty() )
@@ -557,7 +557,7 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    if( auto * interaction = image->hamiltonian->getInteraction<Engine::Interaction::Biaxial_Anisotropy>();
+    if( auto * interaction = image->hamiltonian->getInteraction<Engine::Spin::Interaction::Biaxial_Anisotropy>();
         interaction != nullptr )
     {
         return interaction->getN_Atoms();
@@ -579,7 +579,7 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    if( auto * interaction = image->hamiltonian->getInteraction<Engine::Interaction::Biaxial_Anisotropy>();
+    if( auto * interaction = image->hamiltonian->getInteraction<Engine::Spin::Interaction::Biaxial_Anisotropy>();
         interaction != nullptr )
     {
         return interaction->getN_Terms();
@@ -609,7 +609,7 @@ try
     throw_if_nullptr( magnitude, "magnitude" );
     throw_if_nullptr( exponents, "exponents" );
 
-    if( auto * interaction = image->hamiltonian->getInteraction<Engine::Interaction::Biaxial_Anisotropy>();
+    if( auto * interaction = image->hamiltonian->getInteraction<Engine::Spin::Interaction::Biaxial_Anisotropy>();
         interaction != nullptr )
     {
         intfield anisotropy_indices;
@@ -660,7 +660,7 @@ try
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
         scalarfield exchange_shell_magnitudes;
-        image->hamiltonian->getInteraction<Engine::Interaction::Exchange>()->getInitParameters(
+        image->hamiltonian->getInteraction<Engine::Spin::Interaction::Exchange>()->getInitParameters(
             exchange_shell_magnitudes );
 
         *n_shells = exchange_shell_magnitudes.size();
@@ -685,7 +685,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        return image->hamiltonian->getInteraction<Engine::Interaction::Exchange>()->getN_Pairs();
+        return image->hamiltonian->getInteraction<Engine::Spin::Interaction::Exchange>()->getN_Pairs();
     }
 
     return 0;
@@ -708,7 +708,7 @@ try
     {
         pairfield exchange_pairs;
         scalarfield exchange_magnitudes;
-        image->hamiltonian->getInteraction<Engine::Interaction::Exchange>()->getParameters(
+        image->hamiltonian->getInteraction<Engine::Spin::Interaction::Exchange>()->getParameters(
             exchange_pairs, exchange_magnitudes );
 
         for( std::size_t i = 0; i < exchange_pairs.size() && i < exchange_magnitudes.size(); ++i )
@@ -743,7 +743,7 @@ try
         scalarfield dmi_shell_magnitudes;
         int dmi_shell_chirality = 0;
 
-        image->hamiltonian->getInteraction<Engine::Interaction::DMI>()->getInitParameters(
+        image->hamiltonian->getInteraction<Engine::Spin::Interaction::DMI>()->getInitParameters(
             dmi_shell_magnitudes, dmi_shell_chirality );
 
         *n_shells  = dmi_shell_magnitudes.size();
@@ -768,7 +768,7 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        return image->hamiltonian->getInteraction<Engine::Interaction::DMI>()->getN_Pairs();
+        return image->hamiltonian->getInteraction<Engine::Spin::Interaction::DMI>()->getN_Pairs();
     }
 
     return 0;
@@ -792,12 +792,12 @@ try
 
     if( image->hamiltonian->Name() == "Heisenberg" )
     {
-        Engine::DDI_Method method{};
+        Engine::Spin::DDI_Method method{};
         intfield ddi_n_periodic_images;
         scalar ddi_cutoff_radius = 0;
         bool ddi_pb_zero_padding = false;
 
-        image->hamiltonian->getInteraction<Engine::Interaction::DDI>()->getParameters(
+        image->hamiltonian->getInteraction<Engine::Spin::Interaction::DDI>()->getParameters(
             method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_cutoff_radius );
 
         *ddi_method          = (int)method;

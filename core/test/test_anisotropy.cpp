@@ -217,7 +217,7 @@ TEST_CASE( "Biaxial anisotropy", "[anisotropy]" )
     auto * hamiltonian = image->hamiltonian.get();
     REQUIRE( hamiltonian != nullptr );
 
-    auto * interaction = hamiltonian->getInteraction<Engine::Interaction::Biaxial_Anisotropy>();
+    auto * interaction = hamiltonian->getInteraction<Engine::Spin::Interaction::Biaxial_Anisotropy>();
     REQUIRE( interaction != nullptr );
 
     using exponents_t = std::array<unsigned int, 3>;

@@ -4,10 +4,11 @@
 #include <engine/Vectormath.hpp>
 #include <engine/spin/interaction/Exchange.hpp>
 #include <utility/Constants.hpp>
-#include <utility>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
+
+#include <utility>
 
 #ifndef SPIRIT_USE_CUDA
 #include <algorithm>
@@ -29,6 +30,9 @@ using Engine::Indexing::cu_tupel_from_idx;
 #endif
 
 namespace Engine
+{
+
+namespace Spin
 {
 
 namespace Interaction
@@ -306,5 +310,7 @@ void Exchange::Gradient( const vectorfield & spins, vectorfield & gradient )
 };
 
 } // namespace Interaction
+
+} // namespace Spin
 
 } // namespace Engine

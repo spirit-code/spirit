@@ -1,5 +1,5 @@
-#include <engine/Vectormath.hpp>
 #include <engine/Indexing.hpp>
+#include <engine/Vectormath.hpp>
 #include <engine/spin/interaction/Gaussian.hpp>
 #include <utility/Exception.hpp>
 
@@ -12,6 +12,9 @@ using Engine::Indexing::cu_tupel_from_idx;
 #endif
 
 namespace Engine
+{
+
+namespace Spin
 {
 
 namespace Interaction
@@ -129,5 +132,7 @@ void Gaussian::Gradient( const vectorfield & spins, vectorfield & gradient )
 }
 
 } // namespace Interaction
+
+} // namespace Spin
 
 } // namespace Engine

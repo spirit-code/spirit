@@ -10,6 +10,9 @@ using namespace Utility;
 namespace Engine
 {
 
+namespace Spin
+{
+
 template<>
 inline void Method_Solver<Solver::LBFGS_OSO>::Initialize()
 {
@@ -86,6 +89,8 @@ inline std::string Method_Solver<Solver::LBFGS_OSO>::SolverFullName()
 {
     return "Limited memory Broyden-Fletcher-Goldfarb-Shanno using exponential transforms";
 }
+
+} // namespace Spin
 
 } // namespace Engine
 

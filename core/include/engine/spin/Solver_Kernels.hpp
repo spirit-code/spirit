@@ -15,6 +15,10 @@
 
 namespace Engine
 {
+
+namespace Spin
+{
+
 namespace Solver_Kernels
 {
 
@@ -191,6 +195,9 @@ void lbfgs_get_searchdir(
 }
 
 } // namespace Solver_Kernels
+
+} // namespace Spin
+
 } // namespace Engine
 
 #endif

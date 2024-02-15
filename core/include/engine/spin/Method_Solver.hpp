@@ -8,8 +8,8 @@
 #include <data/Spin_System_Chain.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <engine/Method.hpp>
-#include <engine/spin/Solver_Kernels.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/spin/Solver_Kernels.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Timing.hpp>
@@ -26,6 +26,9 @@
 #include <fmt/format.h>
 
 namespace Engine
+{
+
+namespace Spin
 {
 
 enum class Solver
@@ -46,12 +49,12 @@ enum class Solver
  * It is templated to allow a flexible choice of Solver to iterate the systems.
  */
 template<Solver solver>
-class Method_Solver : public Method
+class Method_Solver : public Engine::Method
 {
 public:
     // Constructor to be used in derived classes
     Method_Solver( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain )
-            : Method( parameters, idx_img, idx_chain )
+            : Engine::Method( parameters, idx_img, idx_chain )
     {
     }
 
@@ -385,6 +388,8 @@ inline std::string Method_Solver<Solver::None>::SolverFullName()
 {
     return "None";
 };
+
+} // namespace Spin
 
 } // namespace Engine
 

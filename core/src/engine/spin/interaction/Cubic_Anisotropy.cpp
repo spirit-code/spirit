@@ -30,6 +30,9 @@ using Engine::Indexing::cu_tupel_from_idx;
 namespace Engine
 {
 
+namespace Spin
+{
+
 namespace Interaction
 {
 
@@ -123,13 +126,11 @@ scalar Cubic_Anisotropy::Energy_Single_Spin( const int ispin, const vectorfield 
     return energy;
 };
 
-void Cubic_Anisotropy::Hessian( const vectorfield & spins, MatrixX & hessian )
-{
+void Cubic_Anisotropy::Hessian( const vectorfield & spins, MatrixX & hessian ){
     // TODO
 };
 
-void Cubic_Anisotropy::Sparse_Hessian( const vectorfield & spins, std::vector<triplet> & hessian )
-{
+void Cubic_Anisotropy::Sparse_Hessian( const vectorfield & spins, std::vector<triplet> & hessian ){
     // TODO
 };
 
@@ -185,5 +186,7 @@ void Cubic_Anisotropy::Gradient( const vectorfield & spins, vectorfield & gradie
 };
 
 } // namespace Interaction
+
+} // namespace Spin
 
 } // namespace Engine

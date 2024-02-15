@@ -9,6 +9,10 @@ using Utility::Constants::Pi;
 
 namespace Engine
 {
+
+namespace Spin
+{
+
 namespace Solver_Kernels
 {
 
@@ -242,4 +246,7 @@ void lbfgs_atlas_transform_direction(
 }
 
 } // namespace Solver_Kernels
+
+} // namespace Spin
+
 } // namespace Engine

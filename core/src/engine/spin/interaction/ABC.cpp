@@ -9,6 +9,9 @@ using namespace Data;
 namespace Engine
 {
 
+namespace Spin
+{
+
 namespace Interaction
 {
 
@@ -162,5 +165,7 @@ scalar ABC::Energy_Single_Spin( const int ispin, const vectorfield & spins )
 }
 
 } // namespace Interaction
+
+} // namespace Spin
 
 } // namespace Engine

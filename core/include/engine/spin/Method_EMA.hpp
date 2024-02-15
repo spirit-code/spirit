@@ -11,6 +11,9 @@
 namespace Engine
 {
 
+namespace Spin
+{
+
 /*
     The Eigenmode Analysis method
 */
@@ -18,9 +21,10 @@ template<typename system_t>
 class Method_EMA;
 
 template<>
-class Method_EMA<Data::Spin_System<Engine::Hamiltonian>> : public Method
+class Method_EMA<Data::Spin_System<Engine::Spin::Hamiltonian>> : public Method
 {
-    using system_t = Data::Spin_System<Engine::Hamiltonian>;
+    using system_t = Data::Spin_System<Engine::Spin::Hamiltonian>;
+
 public:
     // Constructor
     Method_EMA( std::shared_ptr<system_t> system, int idx_img, int idx_chain );
@@ -64,6 +68,8 @@ private:
     vectorfield axis;
     vectorfield spins_initial;
 };
+
+} // namespace Spin
 
 } // namespace Engine
 

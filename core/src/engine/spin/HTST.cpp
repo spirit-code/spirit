@@ -1,9 +1,9 @@
 #ifndef SPIRIT_SKIP_HTST
 
-#include <engine/spin/HTST.hpp>
-#include <engine/spin/Hamiltonian.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/spin/HTST.hpp>
+#include <engine/spin/Hamiltonian.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Formatters_Eigen.hpp>
 #include <utility/Logging.hpp>
@@ -19,14 +19,17 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
-namespace C = Utility::Constants;
+namespace C    = Utility::Constants;
+using system_t = Data::Spin_System<Engine::Spin::Hamiltonian>;
 
 namespace Engine
 {
-namespace HTST
+
+namespace Spin
 {
 
-using system_t = Data::Spin_System<Engine::Hamiltonian>;
+namespace HTST
+{
 
 // Note the two images should correspond to one minimum and one saddle point
 // Non-extremal images may yield incorrect Hessians and thus incorrect results
@@ -573,7 +576,10 @@ void Geodesic_Eigen_Decomposition(
     Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST, "---------- Geodesic Eigen Decomposition Done" );
 }
 
-} // end namespace HTST
+} // namespace HTST
+
+} // namespace Spin
+
 } // end namespace Engine
 
 #endif

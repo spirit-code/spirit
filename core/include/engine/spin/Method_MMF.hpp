@@ -8,15 +8,20 @@
 
 namespace Engine
 {
+
+namespace Spin
+{
+
 template<typename system_t, Solver solver>
 class Method_MMF;
 /*
     The Minimum Mode Following (MMF) method
 */
 template<Solver solver>
-class Method_MMF<Data::Spin_System<Engine::Hamiltonian>, solver> : public Method_Solver<solver>
+class Method_MMF<Data::Spin_System<Engine::Spin::Hamiltonian>, solver> : public Method_Solver<solver>
 {
-    using system_t = Data::Spin_System<Engine::Hamiltonian>;
+    using system_t = Data::Spin_System<Engine::Spin::Hamiltonian>;
+
 public:
     // Constructor
     Method_MMF( std::shared_ptr<system_t> system, int idx_chain );
@@ -69,6 +74,8 @@ private:
     void Calculate_Force_Lanczos(
         const std::vector<std::shared_ptr<vectorfield>> configurations, std::vector<vectorfield> & forces );
 };
+
+} // namespace Spin
 
 } // namespace Engine
 

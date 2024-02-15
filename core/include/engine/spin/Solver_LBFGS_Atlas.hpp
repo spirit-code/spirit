@@ -10,6 +10,9 @@ using namespace Utility;
 namespace Engine
 {
 
+namespace Spin
+{
+
 template<>
 inline void Method_Solver<Solver::LBFGS_Atlas>::Initialize()
 {
@@ -115,6 +118,8 @@ inline std::string Method_Solver<Solver::LBFGS_Atlas>::SolverFullName()
 {
     return "Limited memory Broyden-Fletcher-Goldfarb-Shanno using stereographic atlas";
 }
+
+} // namespace Spin
 
 } // namespace Engine
 

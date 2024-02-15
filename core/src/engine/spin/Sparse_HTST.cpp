@@ -1,11 +1,11 @@
 #ifndef SPIRIT_SKIP_HTST
 
 #include <data/State.hpp>
+#include <engine/Manifoldmath.hpp>
+#include <engine/Vectormath.hpp>
 #include <engine/spin/HTST.hpp>
 #include <engine/spin/Hamiltonian.hpp>
-#include <engine/Manifoldmath.hpp>
 #include <engine/spin/Sparse_HTST.hpp>
-#include <engine/Vectormath.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
 
@@ -20,12 +20,15 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
-namespace C = Utility::Constants;
-using system_t = Data::Spin_System<Engine::Hamiltonian>;
-
+namespace C    = Utility::Constants;
+using system_t = Data::Spin_System<Engine::Spin::Hamiltonian>;
 
 namespace Engine
 {
+
+namespace Spin
+{
+
 namespace Sparse_HTST
 {
 
@@ -688,6 +691,9 @@ void Sparse_Geodesic_Eigen_Decomposition(
 }
 
 } // namespace Sparse_HTST
+
+} // namespace Spin
+
 } // namespace Engine
 
 #endif

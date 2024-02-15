@@ -4,6 +4,9 @@
 namespace Engine
 {
 
+namespace Spin
+{
+
 template<>
 inline void Method_Solver<Solver::VP_OSO>::Initialize()
 {
@@ -131,4 +134,6 @@ inline std::string Method_Solver<Solver::VP_OSO>::SolverFullName()
     return "Velocity Projection using exponential transforms";
 }
 
-}
+} // namespace Spin
+
+} // namespace Engine

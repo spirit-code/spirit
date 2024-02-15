@@ -29,7 +29,7 @@ class Method;
  */
 struct State
 {
-    using hamiltonian_t = Engine::Hamiltonian;
+    using hamiltonian_t = Engine::Spin::Hamiltonian;
 
     using chain_t  = Data::Spin_System_Chain<hamiltonian_t>;
     using system_t = Data::Spin_System<hamiltonian_t>;

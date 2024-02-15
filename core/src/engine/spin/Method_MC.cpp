@@ -2,8 +2,8 @@
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <engine/Indexing.hpp>
-#include <engine/spin/Method_MC.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/spin/Method_MC.hpp>
 #include <io/IO.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
@@ -11,13 +11,14 @@
 #include <Eigen/Dense>
 
 #include <cmath>
-#include <ctime>
-#include <iostream>
 
 using namespace Utility;
-using system_t = Data::Spin_System<Engine::Hamiltonian>;
+using system_t = Data::Spin_System<Engine::Spin::Hamiltonian>;
 
 namespace Engine
+{
+
+namespace Spin
 {
 
 Method_MC<system_t>::Method_MC( std::shared_ptr<system_t> system, int idx_img, int idx_chain )
@@ -336,5 +337,7 @@ std::string Method_MC<system_t>::Name()
 {
     return "MC";
 }
+
+} // namespace Spin
 
 } // namespace Engine

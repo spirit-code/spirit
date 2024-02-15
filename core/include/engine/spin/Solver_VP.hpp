@@ -4,6 +4,9 @@
 namespace Engine
 {
 
+namespace Spin
+{
+
 #include <engine/Backend_par.hpp>
 
 template<>
@@ -131,4 +134,6 @@ inline std::string Method_Solver<Solver::VP>::SolverFullName()
     return "Velocity Projection";
 }
 
-}
+} // namespace Spin
+
+} // namespace Engine

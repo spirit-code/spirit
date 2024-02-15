@@ -273,7 +273,7 @@ TEST_CASE( "Dipole-Dipole Interaction", "[physics]" )
     Configuration_Random( state.get() );
     auto & spins = *state->active_image->spins;
 
-    auto * ddi_interaction = state->active_image->hamiltonian->getInteraction<Engine::Interaction::DDI>();
+    auto * ddi_interaction = state->active_image->hamiltonian->getInteraction<Engine::Spin::Interaction::DDI>();
 
     // FFT gradient and energy
     auto grad_fft = vectorfield( state->nos, Vector3::Zero() );

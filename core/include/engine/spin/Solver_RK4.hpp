@@ -4,6 +4,9 @@
 namespace Engine
 {
 
+namespace Spin
+{
+
 template<>
 inline void Method_Solver<Solver::RungeKutta4>::Initialize()
 {
@@ -164,4 +167,6 @@ inline std::string Method_Solver<Solver::RungeKutta4>::SolverFullName()
     return "Runge Kutta (4th order)";
 }
 
-}
+} // namespace Spin
+
+} // namespace Engine

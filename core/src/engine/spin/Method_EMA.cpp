@@ -1,8 +1,8 @@
 #include <Spirit/Spirit_Defines.h>
 #include <data/Spin_System.hpp>
+#include <engine/Vectormath.hpp>
 #include <engine/spin/Eigenmodes.hpp>
 #include <engine/spin/Method_EMA.hpp>
-#include <engine/Vectormath.hpp>
 #include <io/IO.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
@@ -18,9 +18,12 @@
 using namespace Utility;
 namespace C = Utility::Constants;
 
-using system_t = Data::Spin_System<Engine::Hamiltonian>;
+using system_t = Data::Spin_System<Engine::Spin::Hamiltonian>;
 
 namespace Engine
+{
+
+namespace Spin
 {
 
 Method_EMA<system_t>::Method_EMA( std::shared_ptr<system_t> system, int idx_img, int idx_chain )
@@ -141,5 +144,7 @@ std::string Method_EMA<system_t>::SolverName()
 {
     return "None";
 }
+
+} // namespace Spin
 
 } // namespace Engine

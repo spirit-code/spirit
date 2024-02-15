@@ -1,13 +1,14 @@
 #include <data/Spin_System.hpp>
 #include <engine/Backend_par.hpp>
-#include <engine/spin/Hamiltonian.hpp>
 #include <engine/Indexing.hpp>
 #include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/spin/Hamiltonian.hpp>
 #include <utility/Constants.hpp>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
+
 #include <algorithm>
 
 using namespace Data;
@@ -16,6 +17,9 @@ using namespace Utility;
 using Engine::Indexing::check_atom_type;
 
 namespace Engine
+{
+
+namespace Spin
 {
 
 Hamiltonian::Hamiltonian( std::shared_ptr<Geometry> geometry, intfield boundary_conditions )
@@ -330,5 +334,7 @@ std::string_view Hamiltonian::Name() const
 {
     return class_name;
 };
+
+} // namespace Spin
 
 } // namespace Engine

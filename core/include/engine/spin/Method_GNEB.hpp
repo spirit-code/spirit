@@ -10,6 +10,10 @@
 
 namespace Engine
 {
+
+namespace Spin
+{
+
 template<typename chain_t, Solver solver>
 class Method_GNEB;
 /*
@@ -17,9 +21,9 @@ class Method_GNEB;
     // TODO: reference to Paper
 */
 template<Solver solver>
-class Method_GNEB<Data::Spin_System_Chain<Engine::Hamiltonian>, solver> : public Method_Solver<solver>
+class Method_GNEB<Data::Spin_System_Chain<Engine::Spin::Hamiltonian>, solver> : public Method_Solver<solver>
 {
-    using chain_t = Data::Spin_System_Chain<Engine::Hamiltonian>;
+    using chain_t = Data::Spin_System_Chain<Engine::Spin::Hamiltonian>;
 
 public:
     // Constructor
@@ -88,6 +92,8 @@ private:
     vectorfield tangent_endpoints_left;
     vectorfield tangent_endpoints_right;
 };
+
+} // namespace Spin
 
 } // namespace Engine
 

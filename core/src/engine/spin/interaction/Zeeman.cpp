@@ -30,6 +30,9 @@ using Engine::Indexing::cu_tupel_from_idx;
 namespace Engine
 {
 
+namespace Spin
+{
+
 namespace Interaction
 {
 
@@ -155,5 +158,7 @@ void Zeeman::Gradient( const vectorfield & spins, vectorfield & gradient )
 };
 
 } // namespace Interaction
+
+} // namespace Spin
 
 } // namespace Engine
