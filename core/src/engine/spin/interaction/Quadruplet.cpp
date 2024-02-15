@@ -4,10 +4,11 @@
 #include <engine/Vectormath.hpp>
 #include <engine/spin/interaction/Quadruplet.hpp>
 #include <utility/Constants.hpp>
-#include <utility>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
+
+#include <utility>
 
 #ifndef SPIRIT_USE_CUDA
 #include <algorithm>
@@ -29,6 +30,9 @@ using Engine::Indexing::cu_tupel_from_idx;
 #endif
 
 namespace Engine
+{
+
+namespace Spin
 {
 
 namespace Interaction
@@ -134,12 +138,10 @@ scalar Quadruplet::Energy_Single_Spin( const int ispin, const vectorfield & spin
     return 0;
 };
 
-void Quadruplet::Hessian( const vectorfield & spins, MatrixX & hessian )
-{
+void Quadruplet::Hessian( const vectorfield & spins, MatrixX & hessian ){
     // TODO
 };
-void Quadruplet::Sparse_Hessian( const vectorfield & spins, std::vector<triplet> & hessian )
-{
+void Quadruplet::Sparse_Hessian( const vectorfield & spins, std::vector<triplet> & hessian ){
     // TODO
 };
 
@@ -160,5 +162,7 @@ void Quadruplet::Gradient( const vectorfield & spins, vectorfield & gradient )
 };
 
 } // namespace Interaction
+
+} // namespace Spin
 
 } // namespace Engine

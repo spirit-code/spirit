@@ -23,7 +23,7 @@ void Write_Neighbours_Exchange( const State::system_t & system, const std::strin
 {
     pairfield exchange_pairs;
     scalarfield exchange_magnitudes;
-    system.hamiltonian->getInteraction<Engine::Interaction::Exchange>()->getParameters(
+    system.hamiltonian->getInteraction<Engine::Spin::Interaction::Exchange>()->getParameters(
         exchange_pairs, exchange_magnitudes );
 
     std::size_t n_neighbours = exchange_pairs.size();
@@ -71,7 +71,7 @@ void Write_Neighbours_DMI( const State::system_t & system, const std::string & f
     pairfield dmi_pairs;
     scalarfield dmi_magnitudes;
     vectorfield dmi_normals;
-    system.hamiltonian->getInteraction<Engine::Interaction::DMI>()->getParameters(
+    system.hamiltonian->getInteraction<Engine::Spin::Interaction::DMI>()->getParameters(
         dmi_pairs, dmi_magnitudes, dmi_normals );
 
     std::size_t n_neighbours = dmi_pairs.size();
@@ -239,8 +239,7 @@ void Write_Chain_Energies(
 }
 
 void Write_Chain_Energies_Interpolated(
-    const State::chain_t & chain, const std::string & filename, bool normalize_by_nos,
-    bool readability_toggle )
+    const State::chain_t & chain, const std::string & filename, bool normalize_by_nos, bool readability_toggle )
 {
     scalar normalization = 1;
     if( normalize_by_nos )

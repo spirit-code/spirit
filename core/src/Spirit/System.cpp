@@ -264,7 +264,7 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     image->Lock();
-    Engine::Eigenmodes::Calculate_Eigenmodes( *image, idx_image, idx_chain );
+    Engine::Spin::Eigenmodes::Calculate_Eigenmodes( *image, idx_image, idx_chain );
     image->Unlock();
 }
 catch( ... )

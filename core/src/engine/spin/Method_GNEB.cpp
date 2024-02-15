@@ -2,8 +2,8 @@
 #include <data/Spin_System_Chain.hpp>
 #include <engine/Backend_par.hpp>
 #include <engine/Manifoldmath.hpp>
-#include <engine/spin/Method_GNEB.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/spin/Method_GNEB.hpp>
 #include <io/IO.hpp>
 #include <io/OVF_File.hpp>
 #include <utility/Cubic_Hermite_Spline.hpp>
@@ -14,13 +14,15 @@
 #include <Eigen/Geometry>
 
 #include <cmath>
-#include <iostream>
 
 using namespace Utility;
 
-using chain_t = Data::Spin_System_Chain<Engine::Hamiltonian>;
+using chain_t = Data::Spin_System_Chain<Engine::Spin::Hamiltonian>;
 
 namespace Engine
+{
+
+namespace Spin
 {
 
 template<Solver solver>
@@ -678,5 +680,7 @@ template class Method_GNEB<chain_t, Solver::LBFGS_OSO>;
 template class Method_GNEB<chain_t, Solver::LBFGS_Atlas>;
 template class Method_GNEB<chain_t, Solver::VP>;
 template class Method_GNEB<chain_t, Solver::VP_OSO>;
+
+} // namespace Spin
 
 } // namespace Engine

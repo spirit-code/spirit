@@ -13,6 +13,10 @@
 
 namespace Engine
 {
+
+namespace Spin
+{
+
 namespace Sparse_HTST
 {
 
@@ -64,6 +68,9 @@ void sparse_hessian_bordered_3N(
     const vectorfield & image, const vectorfield & gradient, const SpMatrixX & hessian, SpMatrixX & hessian_out );
 
 } // namespace Sparse_HTST
+
+} // namespace Spin
+
 } // namespace Engine
 
 #endif

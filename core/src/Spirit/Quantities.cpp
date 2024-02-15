@@ -2,9 +2,9 @@
 #include <Spirit/Quantities.h>
 
 #include <data/State.hpp>
-#include <engine/spin/Eigenmodes.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/spin/Eigenmodes.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Formatters_Eigen.hpp>
@@ -297,7 +297,7 @@ try
     MatrixX basis_3Nx2N   = MatrixX::Zero( 3 * nos, 2 * nos );
     VectorX eigenvalues;
     MatrixX eigenvectors;
-    bool successful = Eigenmodes::Hessian_Partial_Spectrum(
+    bool successful = Engine::Spin::Eigenmodes::Hessian_Partial_Spectrum(
         system->mmf_parameters, image, grad, hess, n_modes, basis_3Nx2N, hessian_final, eigenvalues, eigenvectors );
 
     if( successful )

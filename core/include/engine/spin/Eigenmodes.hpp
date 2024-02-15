@@ -12,6 +12,10 @@
 
 namespace Engine
 {
+
+namespace Spin
+{
+
 namespace Eigenmodes
 {
 
@@ -43,6 +47,9 @@ bool Sparse_Hessian_Partial_Spectrum(
     VectorX & eigenvalues, MatrixX & eigenvectors );
 
 } // end namespace Eigenmodes
+
+} // namespace Spin
+
 } // end namespace Engine
 
 #endif

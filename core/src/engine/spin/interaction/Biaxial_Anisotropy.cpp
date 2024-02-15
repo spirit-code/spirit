@@ -19,6 +19,9 @@ using Engine::Indexing::cu_check_atom_type;
 namespace Engine
 {
 
+namespace Spin
+{
+
 namespace Interaction
 {
 
@@ -275,7 +278,7 @@ void Biaxial_Anisotropy::Gradient( const vectorfield & spins, vectorfield & grad
     const int N           = geometry->n_cell_atoms;
 
 #ifdef SPIRIT_USE_CUDA
-    const int size = geometry->n_cells_total;
+    const int size                 = geometry->n_cells_total;
     static constexpr int blockSize = 768;
     CU_Gradient_Biaxial_Anisotropy<<<( size - 1 + blockSize ) / blockSize, blockSize>>>(
         spins.data(), geometry->atom_types.data(), geometry->n_cell_atoms, this->indices.size(), this->indices.data(),
@@ -324,5 +327,7 @@ void Biaxial_Anisotropy::Gradient( const vectorfield & spins, vectorfield & grad
 };
 
 } // namespace Interaction
+
+} // namespace Spin
 
 } // namespace Engine

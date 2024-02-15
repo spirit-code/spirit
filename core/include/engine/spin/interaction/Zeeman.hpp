@@ -2,10 +2,13 @@
 #ifndef SPIRIT_CORE_ENGINE_INTERACTION_ZEEMANN_HPP
 #define SPIRIT_CORE_ENGINE_INTERACTION_ZEEMANN_HPP
 
-#include <utility/Constants.hpp>
 #include <engine/spin/interaction/ABC.hpp>
+#include <utility/Constants.hpp>
 
 namespace Engine
+{
+
+namespace Spin
 {
 
 namespace Interaction
@@ -60,6 +63,8 @@ private:
 };
 
 } // namespace Interaction
+
+} // namespace Spin
 
 } // namespace Engine
 #endif

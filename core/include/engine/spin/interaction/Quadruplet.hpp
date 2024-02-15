@@ -7,6 +7,9 @@
 namespace Engine
 {
 
+namespace Spin
+{
+
 namespace Interaction
 {
 
@@ -29,7 +32,7 @@ public:
     };
 
     template<typename Callable>
-    void apply(Callable f);
+    void apply( Callable f );
 
     bool is_contributing() const override;
 
@@ -44,11 +47,11 @@ public:
     scalar Energy_Single_Spin( int ispin, const vectorfield & spins ) override;
 
     // Interaction name as string
-    static constexpr std::string_view name = "Quadruplet";
+    static constexpr std::string_view name          = "Quadruplet";
     static constexpr std::optional<int> spin_order_ = 4;
 
 protected:
-    void updateFromGeometry(const Data::Geometry * geometry) override;
+    void updateFromGeometry( const Data::Geometry * geometry ) override;
 
 private:
     quadrupletfield quadruplets;
@@ -56,6 +59,8 @@ private:
 };
 
 } // namespace Interaction
+
+} // namespace Spin
 
 } // namespace Engine
 #endif

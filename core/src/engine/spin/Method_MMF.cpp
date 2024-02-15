@@ -1,8 +1,8 @@
 #include <Spirit/Spirit_Defines.h>
-#include <engine/spin/Eigenmodes.hpp>
 #include <engine/Manifoldmath.hpp>
-#include <engine/spin/Method_MMF.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/spin/Eigenmodes.hpp>
+#include <engine/spin/Method_MMF.hpp>
 #include <io/IO.hpp>
 #include <io/OVF_File.hpp>
 #include <utility/Logging.hpp>
@@ -18,9 +18,12 @@ using Utility::Log_Level;
 using Utility::Log_Sender;
 namespace C = Utility::Constants;
 
-using system_t = Data::Spin_System<Engine::Hamiltonian>;
+using system_t = Data::Spin_System<Engine::Spin::Hamiltonian>;
 
 namespace Engine
+{
+
+namespace Spin
 {
 
 template<Solver solver>
@@ -631,5 +634,7 @@ template class Method_MMF<system_t, Solver::LBFGS_OSO>;
 template class Method_MMF<system_t, Solver::LBFGS_Atlas>;
 template class Method_MMF<system_t, Solver::VP>;
 template class Method_MMF<system_t, Solver::VP_OSO>;
+
+} // namespace Spin
 
 } // namespace Engine

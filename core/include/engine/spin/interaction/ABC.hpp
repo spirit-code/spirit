@@ -6,8 +6,8 @@
 #include <Spirit/Spirit_Defines.h>
 #include <data/Geometry.hpp>
 #include <engine/Backend_par.hpp>
-#include <engine/spin/Hamiltonian_Defines.hpp>
 #include <engine/Vectormath_Defines.hpp>
+#include <engine/spin/Hamiltonian_Defines.hpp>
 #include <engine/spin/interaction/Hamiltonian.hpp>
 
 #include <memory>
@@ -18,8 +18,12 @@
 namespace Engine
 {
 
+namespace Spin
+{
+
 namespace Interaction
 {
+
 void setOwnerPtr( ABC & interaction, Hamiltonian * hamiltonian ) noexcept;
 /*
  * Abstract base class that specifies the interface an interaction must have.
@@ -191,6 +195,8 @@ inline void setOwnerPtr( ABC & interaction, Hamiltonian * const hamiltonian ) no
 };
 
 } // namespace Interaction
+
+} // namespace Spin
 
 } // namespace Engine
 

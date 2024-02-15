@@ -6,8 +6,8 @@
 #include <Spirit/Spirit_Defines.h>
 #include <data/Geometry.hpp>
 #include <engine/FFT.hpp>
-#include <engine/spin/Hamiltonian_Defines.hpp>
 #include <engine/Vectormath_Defines.hpp>
+#include <engine/spin/Hamiltonian_Defines.hpp>
 #include <utility/Span.hpp>
 
 #include <memory>
@@ -15,6 +15,9 @@
 #include <vector>
 
 namespace Engine
+{
+
+namespace Spin
 {
 
 class Hamiltonian;
@@ -275,6 +278,8 @@ private:
 
     static constexpr int common_spin_order = 2;
 };
+
+} // namespace Spin
 
 } // namespace Engine
 

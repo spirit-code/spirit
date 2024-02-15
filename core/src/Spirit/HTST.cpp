@@ -20,9 +20,9 @@ try
 
 #ifndef SPIRIT_SKIP_HTST
     if( !sparse )
-        Engine::HTST::Calculate( chain->htst_info, n_eigenmodes_keep );
+        Engine::Spin::HTST::Calculate( chain->htst_info, n_eigenmodes_keep );
     else
-        Engine::Sparse_HTST::Calculate( chain->htst_info );
+        Engine::Spin::Sparse_HTST::Calculate( chain->htst_info );
 #endif
 
     return info.prefactor;

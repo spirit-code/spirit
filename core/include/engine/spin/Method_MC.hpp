@@ -9,6 +9,9 @@
 namespace Engine
 {
 
+namespace Spin
+{
+
 template<typename system_t>
 class Method_MC;
 
@@ -16,9 +19,10 @@ class Method_MC;
     The Monte Carlo method
 */
 template<>
-class Method_MC<Data::Spin_System<Engine::Hamiltonian>> : public Method
+class Method_MC<Data::Spin_System<Engine::Spin::Hamiltonian>> : public Method
 {
-    using system_t = Data::Spin_System<Engine::Hamiltonian>;
+    using system_t = Data::Spin_System<Engine::Spin::Hamiltonian>;
+
 public:
     // Constructor
     Method_MC( std::shared_ptr<system_t> system, int idx_img, int idx_chain );
@@ -61,6 +65,8 @@ private:
     // Random vector array
     vectorfield xi;
 };
+
+} // namespace Spin
 
 } // namespace Engine
 

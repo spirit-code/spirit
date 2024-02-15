@@ -7,6 +7,9 @@
 namespace Engine
 {
 
+namespace Spin
+{
+
 namespace Interaction
 {
 
@@ -88,6 +91,8 @@ private:
 };
 
 } // namespace Interaction
+
+} // namespace Spin
 
 } // namespace Engine
 #endif

@@ -1220,7 +1220,7 @@ std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config( 
     return parameters;
 }
 
-std::unique_ptr<Engine::Hamiltonian> Hamiltonian_from_Config(
+std::unique_ptr<Engine::Spin::Hamiltonian> Hamiltonian_from_Config(
     const std::string & config_file_name, const std::shared_ptr<Data::Geometry> geometry,
     const intfield boundary_conditions )
 {
@@ -1253,7 +1253,7 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_from_Config(
         Log( Log_Level::Parameter, Log_Sender::IO, "Hamiltonian: Using default Hamiltonian: " + hamiltonian_type );
 
     // Hamiltonian
-    std::unique_ptr<Engine::Hamiltonian> hamiltonian;
+    std::unique_ptr<Engine::Spin::Hamiltonian> hamiltonian;
     try
     {
         if( hamiltonian_type == "heisenberg_neighbours" || hamiltonian_type == "heisenberg_pairs" )
@@ -1283,7 +1283,7 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_from_Config(
     return hamiltonian;
 }
 
-std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
+std::unique_ptr<Engine::Spin::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
     const std::string & config_file_name, const std::shared_ptr<Data::Geometry> geometry,
     const intfield boundary_conditions, const std::string & hamiltonian_type )
 {
@@ -1328,7 +1328,7 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
     int dm_chirality         = 1;
 
     std::string ddi_method_str = "none";
-    auto ddi_method            = Engine::DDI_Method::None;
+    auto ddi_method            = Engine::Spin::DDI_Method::None;
 
     intfield ddi_n_periodic_images = { 4, 4, 4 };
     scalar ddi_radius              = 0.0;
@@ -1578,13 +1578,13 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
             // DDI method
             config_file_handle.Read_String( ddi_method_str, "ddi_method" );
             if( ddi_method_str == "none" )
-                ddi_method = Engine::DDI_Method::None;
+                ddi_method = Engine::Spin::DDI_Method::None;
             else if( ddi_method_str == "fft" )
-                ddi_method = Engine::DDI_Method::FFT;
+                ddi_method = Engine::Spin::DDI_Method::FFT;
             else if( ddi_method_str == "fmm" )
-                ddi_method = Engine::DDI_Method::FMM;
+                ddi_method = Engine::Spin::DDI_Method::FMM;
             else if( ddi_method_str == "cutoff" )
-                ddi_method = Engine::DDI_Method::Cutoff;
+                ddi_method = Engine::Spin::DDI_Method::Cutoff;
             else
             {
                 Log( Log_Level::Warning, Log_Sender::IO,
@@ -1674,38 +1674,38 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_pb_zero_padding", ddi_pb_zero_padding ) );
     Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
-    auto hamiltonian = std::make_unique<Engine::Hamiltonian>( geometry, boundary_conditions );
+    auto hamiltonian = std::make_unique<Engine::Spin::Hamiltonian>( geometry, boundary_conditions );
 
     hamiltonian->pauseUpdateName();
 
     if( hamiltonian_type == "heisenberg_neighbours" )
     {
-        hamiltonian->setInteraction<Engine::Interaction::Exchange>( exchange_magnitudes );
-        hamiltonian->setInteraction<Engine::Interaction::DMI>( dmi_magnitudes, dm_chirality );
+        hamiltonian->setInteraction<Engine::Spin::Interaction::Exchange>( exchange_magnitudes );
+        hamiltonian->setInteraction<Engine::Spin::Interaction::DMI>( dmi_magnitudes, dm_chirality );
     }
     else
     {
-        hamiltonian->setInteraction<Engine::Interaction::Exchange>( exchange_pairs, exchange_magnitudes );
-        hamiltonian->setInteraction<Engine::Interaction::DMI>( dmi_pairs, dmi_magnitudes, dmi_normals );
+        hamiltonian->setInteraction<Engine::Spin::Interaction::Exchange>( exchange_pairs, exchange_magnitudes );
+        hamiltonian->setInteraction<Engine::Spin::Interaction::DMI>( dmi_pairs, dmi_magnitudes, dmi_normals );
     }
 
-    hamiltonian->setInteraction<Engine::Interaction::Zeeman>(
+    hamiltonian->setInteraction<Engine::Spin::Interaction::Zeeman>(
         external_field_magnitude * Utility::Constants::mu_B, external_field_normal );
 
-    hamiltonian->setInteraction<Engine::Interaction::Anisotropy>(
+    hamiltonian->setInteraction<Engine::Spin::Interaction::Anisotropy>(
         anisotropy_indices, anisotropy_magnitudes, anisotropy_normals );
 
-    hamiltonian->setInteraction<Engine::Interaction::Cubic_Anisotropy>(
+    hamiltonian->setInteraction<Engine::Spin::Interaction::Cubic_Anisotropy>(
         cubic_anisotropy_indices, cubic_anisotropy_magnitudes );
 
-    hamiltonian->setInteraction<Engine::Interaction::Biaxial_Anisotropy>(
+    hamiltonian->setInteraction<Engine::Spin::Interaction::Biaxial_Anisotropy>(
         biaxial_anisotropy_indices, biaxial_anisotropy_polynomial_bases, biaxial_anisotropy_polynomial_site_p,
         biaxial_anisotropy_polynomial_terms );
 
-    hamiltonian->setInteraction<Engine::Interaction::DDI>(
+    hamiltonian->setInteraction<Engine::Spin::Interaction::DDI>(
         ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_radius );
 
-    hamiltonian->setInteraction<Engine::Interaction::Quadruplet>( quadruplets, quadruplet_magnitudes );
+    hamiltonian->setInteraction<Engine::Spin::Interaction::Quadruplet>( quadruplets, quadruplet_magnitudes );
 
     hamiltonian->unpauseUpdateName();
     hamiltonian->updateName();
@@ -1716,7 +1716,7 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
     return hamiltonian;
 } // end Hamiltonian_Heisenberg_From_Config
 
-std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Gaussian_from_Config(
+std::unique_ptr<Engine::Spin::Hamiltonian> Hamiltonian_Gaussian_from_Config(
     const std::string & config_file_name, const std::shared_ptr<Data::Geometry> geometry,
     const intfield boundary_conditions )
 {
@@ -1782,10 +1782,10 @@ std::unique_ptr<Engine::Hamiltonian> Hamiltonian_Gaussian_from_Config(
     parameter_log.emplace_back( fmt::format( "    {0:<12} = {1}", "width[0]", width[0] ) );
     parameter_log.emplace_back( fmt::format( "    {0:<12} = {1}", "center[0]", center[0].transpose() ) );
     Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
-    auto hamiltonian = std::make_unique<Engine::Hamiltonian>( geometry, boundary_conditions );
+    auto hamiltonian = std::make_unique<Engine::Spin::Hamiltonian>( geometry, boundary_conditions );
     hamiltonian->pauseUpdateName();
 
-    hamiltonian->setInteraction<Engine::Interaction::Gaussian>( amplitude, width, center );
+    hamiltonian->setInteraction<Engine::Spin::Interaction::Gaussian>( amplitude, width, center );
 
     hamiltonian->unpauseUpdateName();
     hamiltonian->updateName();

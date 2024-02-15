@@ -7,10 +7,13 @@
 namespace Engine
 {
 
+namespace Spin
+{
+
 namespace Interaction
 {
 
-class Cubic_Anisotropy : public Base<Cubic_Anisotropy>
+class Cubic_Anisotropy : public Interaction::Base<Cubic_Anisotropy>
 {
 public:
     Cubic_Anisotropy( Hamiltonian * hamiltonian, intfield indices, scalarfield magnitudes ) noexcept;
@@ -53,6 +56,8 @@ private:
 };
 
 } // namespace Interaction
+
+} // namespace Spin
 
 } // namespace Engine
 #endif

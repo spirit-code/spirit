@@ -1,6 +1,6 @@
-﻿#include <engine/spin/Hamiltonian.hpp>
-#include <engine/Neighbours.hpp>
+﻿#include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/spin/Hamiltonian.hpp>
 #include <io/Filter_File_Handle.hpp>
 #include <io/IO.hpp>
 #include <utility/Constants.hpp>
@@ -218,7 +218,7 @@ void Parameters_Method_MMF_to_Config(
 }
 
 void Hamiltonian_to_Config(
-    const std::string & config_file, const std::shared_ptr<Engine::Hamiltonian> hamiltonian,
+    const std::string & config_file, const std::shared_ptr<Engine::Spin::Hamiltonian> hamiltonian,
     const std::shared_ptr<Data::Geometry> geometry )
 {
     std::string config = "";
@@ -244,7 +244,7 @@ void Hamiltonian_to_Config(
 }
 
 void Hamiltonian_Heisenberg_to_Config(
-    const std::string & config_file, const std::shared_ptr<Engine::Hamiltonian> hamiltonian,
+    const std::string & config_file, const std::shared_ptr<Engine::Spin::Hamiltonian> hamiltonian,
     const std::shared_ptr<Data::Geometry> geometry )
 {
     int n_cells_tot    = geometry->n_cells[0] * geometry->n_cells[1] * geometry->n_cells[2];
@@ -255,7 +255,7 @@ void Hamiltonian_Heisenberg_to_Config(
     // External Field
     scalar external_field_magnitude = 0;
     Vector3 external_field_normal;
-    hamiltonian->getInteraction<Engine::Interaction::Zeeman>()->getParameters(
+    hamiltonian->getInteraction<Engine::Spin::Interaction::Zeeman>()->getParameters(
         external_field_magnitude, external_field_normal );
 
     config += "###    External Field:\n";
@@ -268,7 +268,7 @@ void Hamiltonian_Heisenberg_to_Config(
     intfield anisotropy_indices;
     scalarfield anisotropy_magnitudes;
     vectorfield anisotropy_normals;
-    hamiltonian->getInteraction<Engine::Interaction::Anisotropy>()->getParameters(
+    hamiltonian->getInteraction<Engine::Spin::Interaction::Anisotropy>()->getParameters(
         anisotropy_indices, anisotropy_magnitudes, anisotropy_normals );
 
     scalar K = 0;
@@ -288,7 +288,7 @@ void Hamiltonian_Heisenberg_to_Config(
         field<unsigned int> polynomial_site_p;
         field<PolynomialTerm> polynomial_terms;
 
-        hamiltonian->getInteraction<Engine::Interaction::Biaxial_Anisotropy>()->getParameters(
+        hamiltonian->getInteraction<Engine::Spin::Interaction::Biaxial_Anisotropy>()->getParameters(
             indices, polynomial_bases, polynomial_site_p, polynomial_terms );
 
         const auto n_anisotropy_axes  = indices.size();
@@ -333,12 +333,14 @@ void Hamiltonian_Heisenberg_to_Config(
     // Pair interactions (Exchange & DMI)
     pairfield exchange_pairs;
     scalarfield exchange_magnitudes;
-    hamiltonian->getInteraction<Engine::Interaction::Exchange>()->getParameters( exchange_pairs, exchange_magnitudes );
+    hamiltonian->getInteraction<Engine::Spin::Interaction::Exchange>()->getParameters(
+        exchange_pairs, exchange_magnitudes );
 
     pairfield dmi_pairs;
     scalarfield dmi_magnitudes;
     vectorfield dmi_normals;
-    hamiltonian->getInteraction<Engine::Interaction::DMI>()->getParameters( dmi_pairs, dmi_magnitudes, dmi_normals );
+    hamiltonian->getInteraction<Engine::Spin::Interaction::DMI>()->getParameters(
+        dmi_pairs, dmi_magnitudes, dmi_normals );
 
     config += "###    Interaction pairs:\n";
     config += fmt::format( "n_interaction_pairs {}\n", exchange_pairs.size() + dmi_pairs.size() );
@@ -369,21 +371,21 @@ void Hamiltonian_Heisenberg_to_Config(
 
     // Dipole-dipole
     std::string ddi_method;
-    Engine::DDI_Method ddi_method_id = Engine::DDI_Method::None;
+    Engine::Spin::DDI_Method ddi_method_id = Engine::Spin::DDI_Method::None;
     intfield ddi_n_periodic_images;
     bool ddi_pb_zero_padding = false;
     scalar ddi_cutoff_radius = 0;
 
-    hamiltonian->getInteraction<Engine::Interaction::DDI>()->getParameters(
+    hamiltonian->getInteraction<Engine::Spin::Interaction::DDI>()->getParameters(
         ddi_method_id, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_cutoff_radius );
 
-    if( ddi_method_id == Engine::DDI_Method::None )
+    if( ddi_method_id == Engine::Spin::DDI_Method::None )
         ddi_method = "none";
-    else if( ddi_method_id == Engine::DDI_Method::FFT )
+    else if( ddi_method_id == Engine::Spin::DDI_Method::FFT )
         ddi_method = "fft";
-    else if( ddi_method_id == Engine::DDI_Method::FMM )
+    else if( ddi_method_id == Engine::Spin::DDI_Method::FMM )
         ddi_method = "fmm";
-    else if( ddi_method_id == Engine::DDI_Method::Cutoff )
+    else if( ddi_method_id == Engine::Spin::DDI_Method::Cutoff )
         ddi_method = "cutoff";
     config += "### Dipole-dipole interaction caclulation method\n### (fft, fmm, cutoff, none)";
     config += fmt::format( "ddi_method                 {}\n", ddi_method );
@@ -397,7 +399,8 @@ void Hamiltonian_Heisenberg_to_Config(
     // Quadruplets
     quadrupletfield quadruplets;
     scalarfield quadruplet_magnitudes;
-    hamiltonian->getInteraction<Engine::Interaction::Quadruplet>()->getParameters( quadruplets, quadruplet_magnitudes );
+    hamiltonian->getInteraction<Engine::Spin::Interaction::Quadruplet>()->getParameters(
+        quadruplets, quadruplet_magnitudes );
 
     config += "###    Quadruplets:\n";
     config += fmt::format( "n_interaction_quadruplets {}\n", quadruplets.size() );
@@ -424,7 +427,7 @@ void Hamiltonian_Heisenberg_to_Config(
 }
 
 void Hamiltonian_Gaussian_to_Config(
-    const std::string & config_file, const std::shared_ptr<Engine::Hamiltonian> hamiltonian )
+    const std::string & config_file, const std::shared_ptr<Engine::Spin::Hamiltonian> hamiltonian )
 {
     std::string config = "";
 
@@ -432,7 +435,7 @@ void Hamiltonian_Gaussian_to_Config(
     scalarfield width( 0 );
     vectorfield center( 0 );
 
-    hamiltonian->getInteraction<Engine::Interaction::Gaussian>()->getParameters( amplitude, width, center );
+    hamiltonian->getInteraction<Engine::Spin::Interaction::Gaussian>()->getParameters( amplitude, width, center );
 
     const auto n_gaussians = amplitude.size();
 

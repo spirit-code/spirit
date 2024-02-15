@@ -1,9 +1,14 @@
 #pragma once
 #include <engine/spin/Method_Solver.hpp>
 
-namespace Engine {
+namespace Engine
+{
+
+namespace Spin
+{
 
 template<>
+
 inline void Method_Solver<Solver::Depondt>::Initialize()
 {
     this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
@@ -93,4 +98,6 @@ inline std::string Method_Solver<Solver::Depondt>::SolverFullName()
     return "Depondt";
 }
 
-}
+} // namespace Spin
+
+} // namespace Engine

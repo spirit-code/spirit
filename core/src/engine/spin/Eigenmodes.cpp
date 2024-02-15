@@ -1,7 +1,6 @@
-#include <engine/spin/Eigenmodes.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <engine/Vectormath.hpp>
-#include <memory>
+#include <engine/spin/Eigenmodes.hpp>
 #include <utility/Formatters_Eigen.hpp>
 // #include <engine/Backend_par.hpp>
 
@@ -14,11 +13,17 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
+#include <memory>
+
 using Utility::Log_Level;
 using Utility::Log_Sender;
 
 namespace Engine
 {
+
+namespace Spin
+{
+
 namespace Eigenmodes
 {
 
@@ -84,7 +89,7 @@ void Calculate_Eigenmodes( State::system_t & system, int idx_img, int idx_chain 
     MatrixX eigenvectors;
     SpMatrixX tangent_basis = SpMatrixX( 3 * nos, 2 * nos );
 
-    bool sparse = system.ema_parameters->sparse;
+    bool sparse     = system.ema_parameters->sparse;
     bool successful = false;
     if( sparse )
     {
@@ -287,4 +292,7 @@ bool Sparse_Hessian_Partial_Spectrum(
 }
 
 } // namespace Eigenmodes
+
+} // namespace Spin
+
 } // namespace Engine

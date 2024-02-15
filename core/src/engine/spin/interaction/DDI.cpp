@@ -30,12 +30,15 @@ using Engine::Indexing::cu_tupel_from_idx;
 namespace Engine
 {
 
+namespace Spin
+{
+
 namespace Interaction
 {
 
 DDI::DDI(
-    Hamiltonian * hamiltonian, Engine::DDI_Method ddi_method, intfield n_periodic_images, const bool pb_zero_padding,
-    const scalar cutoff_radius ) noexcept
+    Hamiltonian * hamiltonian, Engine::Spin::DDI_Method ddi_method, intfield n_periodic_images,
+    const bool pb_zero_padding, const scalar cutoff_radius ) noexcept
         : Interaction::Base<DDI>( hamiltonian, scalarfield( 0 ) ),
           method( ddi_method ),
           ddi_n_periodic_images( std::move( n_periodic_images ) ),
@@ -47,7 +50,7 @@ DDI::DDI(
     this->updateGeometry();
 }
 
-DDI::DDI( Hamiltonian * hamiltonian, Engine::DDI_Method ddi_method, const Data::DDI_Data & ddi_data ) noexcept
+DDI::DDI( Hamiltonian * hamiltonian, Engine::Spin::DDI_Method ddi_method, const Data::DDI_Data & ddi_data ) noexcept
         : DDI( hamiltonian, ddi_method, ddi_data.n_periodic_images, ddi_data.pb_zero_padding, ddi_data.radius )
 {
 }
@@ -394,7 +397,7 @@ void DDI::Energy_per_Spin_FFT( const vectorfield & spins, scalarfield & energy )
     Vectormath::fill( gradients_temp, { 0, 0, 0 } );
     this->Gradient_FFT( spins, gradients_temp );
 
-// TODO: add dot_scaled to Vectormath and use that
+    // TODO: add dot_scaled to Vectormath and use that
 #pragma omp parallel for
     for( int ispin = 0; ispin < geometry->nos; ispin++ )
     {
@@ -528,7 +531,7 @@ void DDI::Gradient_FFT( const vectorfield & spins, vectorfield & gradient )
     const int c_n_cell_atoms               = geometry->n_cell_atoms;
     const int * c_it_bounds_pointwise_mult = it_bounds_pointwise_mult.data();
 
-// Loop over basis atoms (i.e sublattices)
+    // Loop over basis atoms (i.e sublattices)
 #pragma omp parallel for collapse( 4 )
     for( int i_b1 = 0; i_b1 < c_n_cell_atoms; ++i_b1 )
     {
@@ -702,7 +705,7 @@ void DDI::FFT_Spins( const vectorfield & spins, FFT::FFT_Plan & fft_plan ) const
 
     auto & fft_spin_inputs = fft_plan.real_ptr;
 
-// iterate over the **original** system
+    // iterate over the **original** system
 #pragma omp parallel for collapse( 4 )
     for( int c = 0; c < Nc; ++c )
     {
@@ -1041,5 +1044,7 @@ void DDI::Clean_DDI()
 }
 
 } // namespace Interaction
+
+} // namespace Spin
 
 } // namespace Engine

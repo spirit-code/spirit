@@ -9,6 +9,10 @@
 
 namespace Engine
 {
+
+namespace Spin
+{
+
 namespace HTST
 {
 
@@ -34,6 +38,9 @@ void Geodesic_Eigen_Decomposition(
     MatrixX & hessian_geodesic_2N, VectorX & eigenvalues, MatrixX & eigenvectors );
 
 } // namespace HTST
+
+} // namespace Spin
+
 } // namespace Engine
 
 #endif
