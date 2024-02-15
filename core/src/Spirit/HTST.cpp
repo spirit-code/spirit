@@ -1,8 +1,8 @@
 #include <Spirit/HTST.h>
 
 #include <data/State.hpp>
-#include <engine/HTST.hpp>
-#include <engine/Sparse_HTST.hpp>
+#include <engine/spin/HTST.hpp>
+#include <engine/spin/Sparse_HTST.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 

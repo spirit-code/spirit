@@ -9,7 +9,7 @@
 #include <data/Parameters_Method_LLG.hpp>
 #include <data/Parameters_Method_MC.hpp>
 #include <data/Parameters_Method_MMF.hpp>
-#include <engine/Hamiltonian.hpp>
+#include <engine/spin/Hamiltonian.hpp>
 #include <engine/Vectormath_Defines.hpp>
 #include <utility/Ordered_Lock.hpp>
 

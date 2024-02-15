@@ -3,11 +3,11 @@
 #include <Spirit/State.h>
 
 #include <data/State.hpp>
-#include <engine/Method_EMA.hpp>
-#include <engine/Method_GNEB.hpp>
-#include <engine/Method_LLG.hpp>
-#include <engine/Method_MC.hpp>
-#include <engine/Method_MMF.hpp>
+#include <engine/spin/Method_EMA.hpp>
+#include <engine/spin/Method_GNEB.hpp>
+#include <engine/spin/Method_LLG.hpp>
+#include <engine/spin/Method_MC.hpp>
+#include <engine/spin/Method_MMF.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 

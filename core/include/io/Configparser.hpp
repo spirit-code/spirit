@@ -7,7 +7,7 @@
 #include <data/Parameters_Method_LLG.hpp>
 #include <data/Parameters_Method_MMF.hpp>
 #include <data/State.hpp>
-#include <engine/Hamiltonian.hpp>
+#include <engine/spin/Hamiltonian.hpp>
 
 namespace IO
 {

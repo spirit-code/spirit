@@ -1,4 +1,4 @@
-﻿#include <engine/Hamiltonian.hpp>
+﻿#include <engine/spin/Hamiltonian.hpp>
 #include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
 #include <io/Filter_File_Handle.hpp>
