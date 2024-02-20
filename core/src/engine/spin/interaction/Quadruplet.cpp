@@ -61,8 +61,8 @@ void Quadruplet::updateFromGeometry( const Geometry & geometry ) {}
 template<typename Callable>
 void Quadruplet::apply( Callable f )
 {
-    const auto & geometry            = hamiltonian->getGeometry();
-    const auto & boundary_conditions = hamiltonian->getBoundaryConditions();
+    const auto & geometry            = getGeometry();
+    const auto & boundary_conditions = getBoundaryConditions();
 
     for( unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad )
     {

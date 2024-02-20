@@ -27,7 +27,7 @@ public:
         this->dmi_pairs_in         = pPairs;
         this->dmi_magnitudes_in    = pMagnitudes;
         this->dmi_normals_in       = pNormals;
-        hamiltonian->onInteractionChanged();
+        onInteractionChanged();
     };
     void getInitParameters( pairfield & pPairs, scalarfield & pMagnitudes, vectorfield & pNormals ) const
     {
@@ -45,7 +45,7 @@ public:
         this->dmi_pairs_in         = pairfield( 0 );
         this->dmi_magnitudes_in    = scalarfield( 0 );
         this->dmi_normals_in       = vectorfield( 0 );
-        hamiltonian->onInteractionChanged();
+        onInteractionChanged();
     };
     void getInitParameters( scalarfield & shell_magnitudes, int & chirality ) const
     {

@@ -36,7 +36,7 @@ public:
         this->ddi_n_periodic_images = n_periodic_images;
         this->ddi_cutoff_radius     = cutoff_radius;
         this->ddi_pb_zero_padding   = pb_zero_padding;
-        hamiltonian->onInteractionChanged();
+        onInteractionChanged();
     }
     void getParameters(
         DDI_Method & ddi_method, intfield & n_periodic_images, bool & pb_zero_padding, scalar & cutoff_radius ) const

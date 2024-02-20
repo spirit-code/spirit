@@ -75,7 +75,7 @@ __global__ void CU_E_Zeeman(
 
 void Zeeman::Energy_per_Spin( const vectorfield & spins, scalarfield & energy )
 {
-    const auto & geometry = hamiltonian->getGeometry();
+    const auto & geometry = getGeometry();
     const auto N          = geometry.n_cell_atoms;
     const auto & mu_s     = geometry.mu_s;
 
@@ -105,7 +105,7 @@ void Zeeman::Energy_per_Spin( const vectorfield & spins, scalarfield & energy )
 //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
 scalar Zeeman::Energy_Single_Spin( const int ispin, const vectorfield & spins )
 {
-    const auto & geometry = hamiltonian->getGeometry();
+    const auto & geometry = getGeometry();
     const auto & mu_s     = geometry.mu_s;
     return -mu_s[ispin] * this->external_field_magnitude * this->external_field_normal.dot( spins[ispin] );
 };
@@ -132,7 +132,7 @@ __global__ void CU_Gradient_Zeeman(
 
 void Zeeman::Gradient( const vectorfield & spins, vectorfield & gradient )
 {
-    const auto & geometry = hamiltonian->getGeometry();
+    const auto & geometry = getGeometry();
     const auto N          = geometry.n_cell_atoms;
     const auto & mu_s     = geometry.mu_s;
 

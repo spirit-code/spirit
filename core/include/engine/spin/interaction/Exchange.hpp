@@ -27,7 +27,7 @@ public:
         this->exchange_shell_magnitudes = scalarfield( 0 );
         this->exchange_pairs_in         = pPairs;
         this->exchange_magnitudes_in    = pMagnitudes;
-        hamiltonian->onInteractionChanged();
+        onInteractionChanged();
     };
     void getInitParameters( pairfield & pPairs, scalarfield & pMagnitudes ) const
     {
@@ -40,7 +40,7 @@ public:
         this->exchange_pairs_in         = pairfield( 0 );
         this->exchange_magnitudes_in    = scalarfield( 0 );
         this->exchange_shell_magnitudes = pShellMagnitudes;
-        hamiltonian->onInteractionChanged();
+        onInteractionChanged();
     };
     void getInitParameters( scalarfield & pShellMagnitudes ) const
     {

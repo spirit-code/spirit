@@ -132,8 +132,8 @@ __global__ void CU_E_DMI(
 
 void DMI::Energy_per_Spin( const vectorfield & spins, scalarfield & energy )
 {
-    const auto & geometry            = hamiltonian->getGeometry();
-    const auto & boundary_conditions = hamiltonian->getBoundaryConditions();
+    const auto & geometry            = getGeometry();
+    const auto & boundary_conditions = getBoundaryConditions();
 
 #ifdef SPIRIT_USE_CUDA
     int size = geometry.n_cells_total;
@@ -170,8 +170,8 @@ void DMI::Energy_per_Spin( const vectorfield & spins, scalarfield & energy )
 //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
 scalar DMI::Energy_Single_Spin( int ispin, const vectorfield & spins )
 {
-    const auto & geometry            = hamiltonian->getGeometry();
-    const auto & boundary_conditions = hamiltonian->getBoundaryConditions();
+    const auto & geometry            = getGeometry();
+    const auto & boundary_conditions = getBoundaryConditions();
 
     int icell  = ispin / geometry.n_cell_atoms;
     int ibasis = ispin - icell * geometry.n_cell_atoms;
@@ -207,8 +207,8 @@ scalar DMI::Energy_Single_Spin( int ispin, const vectorfield & spins )
 
 void DMI::Hessian( const vectorfield & spins, MatrixX & hessian )
 {
-    const auto & geometry            = hamiltonian->getGeometry();
-    const auto & boundary_conditions = hamiltonian->getBoundaryConditions();
+    const auto & geometry            = getGeometry();
+    const auto & boundary_conditions = getBoundaryConditions();
 
 #pragma omp parallel for
     for( int icell = 0; icell < geometry.n_cells_total; ++icell )
@@ -245,8 +245,8 @@ void DMI::Hessian( const vectorfield & spins, MatrixX & hessian )
 };
 void DMI::Sparse_Hessian( const vectorfield & spins, std::vector<triplet> & hessian )
 {
-    const auto & geometry            = hamiltonian->getGeometry();
-    const auto & boundary_conditions = hamiltonian->getBoundaryConditions();
+    const auto & geometry            = getGeometry();
+    const auto & boundary_conditions = getBoundaryConditions();
 
     for( int icell = 0; icell < geometry.n_cells_total; ++icell )
     {
@@ -307,8 +307,8 @@ __global__ void CU_Gradient_DMI(
 
 void DMI::Gradient( const vectorfield & spins, vectorfield & gradient )
 {
-    const auto & geometry            = hamiltonian->getGeometry();
-    const auto & boundary_conditions = hamiltonian->getBoundaryConditions();
+    const auto & geometry            = getGeometry();
+    const auto & boundary_conditions = getBoundaryConditions();
 
 #ifdef SPIRIT_USE_CUDA
     int size = geometry.n_cells_total;

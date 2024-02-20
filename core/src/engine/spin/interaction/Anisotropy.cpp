@@ -79,7 +79,7 @@ __global__ void CU_E_Anisotropy(
 
 void Anisotropy::Energy_per_Spin( const vectorfield & spins, scalarfield & energy )
 {
-    const auto & geometry = hamiltonian->getGeometry();
+    const auto & geometry = getGeometry();
     const int N           = geometry.n_cell_atoms;
 
 #ifdef SPIRIT_USE_CUDA
@@ -110,7 +110,7 @@ void Anisotropy::Energy_per_Spin( const vectorfield & spins, scalarfield & energ
 scalar Anisotropy::Energy_Single_Spin( const int ispin, const vectorfield & spins )
 {
     scalar energy         = 0;
-    const auto & geometry = hamiltonian->getGeometry();
+    const auto & geometry = getGeometry();
     const int N           = geometry.n_cell_atoms;
 
     int icell  = ispin / N;
@@ -129,7 +129,7 @@ scalar Anisotropy::Energy_Single_Spin( const int ispin, const vectorfield & spin
 
 void Anisotropy::Hessian( const vectorfield & spins, MatrixX & hessian )
 {
-    const auto & geometry = hamiltonian->getGeometry();
+    const auto & geometry = getGeometry();
     const int N           = geometry.n_cell_atoms;
 
     // --- Single Spin elements
@@ -159,7 +159,7 @@ void Anisotropy::Hessian( const vectorfield & spins, MatrixX & hessian )
 
 void Anisotropy::Sparse_Hessian( const vectorfield & spins, std::vector<triplet> & hessian )
 {
-    const auto & geometry = hamiltonian->getGeometry();
+    const auto & geometry = getGeometry();
     const int N           = geometry.n_cell_atoms;
 
     // --- Single Spin elements
@@ -209,7 +209,7 @@ __global__ void CU_Gradient_Anisotropy(
 
 void Anisotropy::Gradient( const vectorfield & spins, vectorfield & gradient )
 {
-    const auto & geometry = hamiltonian->getGeometry();
+    const auto & geometry = getGeometry();
     const int N           = geometry.n_cell_atoms;
 
 #ifdef SPIRIT_USE_CUDA

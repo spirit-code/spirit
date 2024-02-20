@@ -77,7 +77,7 @@ __global__ void CU_E_Cubic_Anisotropy(
 
 void Cubic_Anisotropy::Energy_per_Spin( const vectorfield & spins, scalarfield & energy )
 {
-    const auto & geometry = hamiltonian->getGeometry();
+    const auto & geometry = getGeometry();
     const auto N          = geometry.n_cell_atoms;
 
 #ifdef SPIRIT_USE_CUDA
@@ -107,7 +107,7 @@ void Cubic_Anisotropy::Energy_per_Spin( const vectorfield & spins, scalarfield &
 //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
 scalar Cubic_Anisotropy::Energy_Single_Spin( const int ispin, const vectorfield & spins )
 {
-    const auto & geometry = hamiltonian->getGeometry();
+    const auto & geometry = getGeometry();
 
     int icell  = ispin / geometry.n_cell_atoms;
     int ibasis = ispin - icell * geometry.n_cell_atoms;
@@ -158,7 +158,7 @@ __global__ void CU_Gradient_Cubic_Anisotropy(
 
 void Cubic_Anisotropy::Gradient( const vectorfield & spins, vectorfield & gradient )
 {
-    const auto & geometry = hamiltonian->getGeometry();
+    const auto & geometry = getGeometry();
     const auto N          = geometry.n_cell_atoms;
 
 #ifdef SPIRIT_USE_CUDA
