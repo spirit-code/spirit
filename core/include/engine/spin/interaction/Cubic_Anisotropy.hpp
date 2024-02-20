@@ -23,7 +23,7 @@ public:
     {
         this->cubic_anisotropy_indices    = pIndices;
         this->cubic_anisotropy_magnitudes = pMagnitudes;
-        hamiltonian->onInteractionChanged();
+        onInteractionChanged();
     };
     void getParameters( intfield & pIndices, scalarfield & pMagnitudes ) const
     {

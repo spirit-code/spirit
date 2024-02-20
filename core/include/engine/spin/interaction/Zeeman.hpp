@@ -24,7 +24,7 @@ public:
     {
         this->external_field_magnitude = magnitude;
         this->external_field_normal    = normal;
-        hamiltonian->onInteractionChanged();
+        onInteractionChanged();
     };
     void getParameters( scalar & magnitude, Vector3 & normal ) const
     {

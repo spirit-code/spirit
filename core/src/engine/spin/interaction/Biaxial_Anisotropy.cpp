@@ -78,7 +78,7 @@ __global__ void CU_E_Biaxial_Anisotropy(
 
 void Biaxial_Anisotropy::Energy_per_Spin( const vectorfield & spins, scalarfield & energy )
 {
-    const auto & geometry = hamiltonian->getGeometry();
+    const auto & geometry = getGeometry();
     const int N           = geometry.n_cell_atoms;
 
 #ifdef SPIRIT_USE_CUDA
@@ -121,7 +121,7 @@ void Biaxial_Anisotropy::Energy_per_Spin( const vectorfield & spins, scalarfield
 scalar Biaxial_Anisotropy::Energy_Single_Spin( const int ispin, const vectorfield & spins )
 {
     scalar energy         = 0;
-    const auto & geometry = hamiltonian->getGeometry();
+    const auto & geometry = getGeometry();
     const int N           = geometry.n_cell_atoms;
 
     int icell  = ispin / N;
@@ -155,7 +155,7 @@ scalar Biaxial_Anisotropy::Energy_Single_Spin( const int ispin, const vectorfiel
 template<typename F>
 void Biaxial_Anisotropy::Hessian_Impl( const vectorfield & spins, F f )
 {
-    const auto & geometry = hamiltonian->getGeometry();
+    const auto & geometry = getGeometry();
     const int N           = geometry.n_cell_atoms;
 
     // --- Single Spin elements
@@ -274,7 +274,7 @@ __global__ void CU_Gradient_Biaxial_Anisotropy(
 
 void Biaxial_Anisotropy::Gradient( const vectorfield & spins, vectorfield & gradient )
 {
-    const auto & geometry = hamiltonian->getGeometry();
+    const auto & geometry = getGeometry();
     const int N           = geometry.n_cell_atoms;
 
 #ifdef SPIRIT_USE_CUDA

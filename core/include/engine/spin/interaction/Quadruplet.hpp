@@ -23,7 +23,7 @@ public:
     {
         this->quadruplets           = pQuadruplets;
         this->quadruplet_magnitudes = pMagnitudes;
-        hamiltonian->onInteractionChanged();
+        onInteractionChanged();
     };
     void getParameters( quadrupletfield & pQuadruplets, scalarfield & pMagnitudes ) const
     {

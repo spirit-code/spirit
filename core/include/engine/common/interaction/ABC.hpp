@@ -139,6 +139,21 @@ protected:
     ABC( Owner * hamiltonian, scalarfield energy_per_spin, scalar delta = 1e-3 ) noexcept
             : energy_per_spin( std::move( energy_per_spin ) ), delta( delta ), hamiltonian( hamiltonian ){};
 
+    const Data::Geometry & getGeometry() const
+    {
+        return this->hamiltonian->getGeometry();
+    }
+
+    const intfield & getBoundaryConditions() const
+    {
+        return this->hamiltonian->getBoundaryConditions();
+    }
+
+    void onInteractionChanged()
+    {
+        return this->hamiltonian->onInteractionChanged();
+    }
+
     virtual void updateFromGeometry( const Data::Geometry & geometry ) = 0;
 
     // local compute buffer
@@ -157,11 +172,11 @@ protected:
     static constexpr bool use_redundant_neighbours = false;
 #endif
 
+private:
     // as long as the interaction is only constructible inside the Hamiltonian,
     // it is safe to assume that the Hamiltonian pointed to always exists
     Owner * hamiltonian;
 
-private:
     static constexpr std::string_view name = "Common::Interaction::ABC";
 };
 
@@ -184,21 +199,11 @@ protected:
     Base( Owner * hamiltonian, scalarfield energy_per_spin, scalar delta ) noexcept
             : ABC( hamiltonian, energy_per_spin, delta ){};
 
-    const Data::Geometry & getGeometry()
-    {
-        return this->hamiltonian->getGeometry();
-    }
-
-    const intfield & getBoundaryConditions()
-    {
-        return this->hamiltonian->getBoundaryConditions();
-    }
-
 public:
     [[nodiscard]] std::unique_ptr<ABC> clone( Common::Interaction::Owner * const owner ) const final
     {
-        auto copy         = std::make_unique<Derived>( static_cast<const Derived &>( *this ) );
-        copy->hamiltonian = owner;
+        auto copy = std::make_unique<Derived>( static_cast<const Derived &>( *this ) );
+        setOwnerPtr( *copy, owner );
         return copy;
     }
 

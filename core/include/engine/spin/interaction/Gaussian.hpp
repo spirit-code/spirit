@@ -33,7 +33,7 @@ public:
         this->width       = pWidth;
         this->center      = pCenter;
         this->n_gaussians = amplitude.size();
-        hamiltonian->onInteractionChanged();
+        onInteractionChanged();
     };
     void getParameters( scalarfield & pAmplitude, scalarfield & pWidth, vectorfield & pCenter ) const
     {

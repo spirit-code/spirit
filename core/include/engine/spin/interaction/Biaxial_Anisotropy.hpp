@@ -37,7 +37,7 @@ public:
         this->bases   = pBases;
         this->site_p  = pSite_ptr;
         this->terms   = pTerms;
-        hamiltonian->onInteractionChanged();
+        onInteractionChanged();
     };
     void getParameters(
         intfield & pIndices, field<PolynomialBasis> & pBases, field<unsigned int> & pSite_ptr,

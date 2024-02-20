@@ -24,7 +24,7 @@ public:
         this->anisotropy_indices    = indices;
         this->anisotropy_magnitudes = magnitudes;
         this->anisotropy_normals    = normals;
-        hamiltonian->onInteractionChanged();
+        onInteractionChanged();
     };
     void getParameters( intfield & pIndices, scalarfield & pMagnitudes, vectorfield & pNormals ) const
     {

@@ -106,7 +106,7 @@ void DDI::Energy_per_Spin( const vectorfield & spins, scalarfield & energy )
 
 void DDI::Hessian( const vectorfield & spins, MatrixX & hessian )
 {
-    const auto & geometry = hamiltonian->getGeometry();
+    const auto & geometry = getGeometry();
 
     // Tentative Dipole-Dipole (only works for open boundary conditions)
     if( method != DDI_Method::None )
@@ -198,7 +198,7 @@ scalar DDI::Energy_Single_Spin( const int ispin, const vectorfield & spins )
 
 void DDI::Energy_per_Spin_Direct( const vectorfield & spins, scalarfield & energy )
 {
-    const auto & geometry = hamiltonian->getGeometry();
+    const auto & geometry = getGeometry();
 
     vectorfield gradients_temp;
     gradients_temp.resize( geometry.nos );
@@ -212,8 +212,8 @@ void DDI::Energy_per_Spin_Direct( const vectorfield & spins, scalarfield & energ
 
 void DDI::Energy_per_Spin_Cutoff( const vectorfield & spins, scalarfield & energy )
 {
-    const auto & geometry            = hamiltonian->getGeometry();
-    const auto & boundary_conditions = hamiltonian->getBoundaryConditions();
+    const auto & geometry            = getGeometry();
+    const auto & boundary_conditions = getBoundaryConditions();
 
     const auto & mu_s = geometry.mu_s;
     // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
@@ -290,8 +290,8 @@ void DDI::Energy_per_Spin_Cutoff( const vectorfield & spins, scalarfield & energ
 
 void DDI::Gradient_Cutoff( const vectorfield & spins, vectorfield & gradient )
 {
-    const auto & geometry            = hamiltonian->getGeometry();
-    const auto & boundary_conditions = hamiltonian->getBoundaryConditions();
+    const auto & geometry            = getGeometry();
+    const auto & boundary_conditions = getBoundaryConditions();
     const auto & mu_s                = geometry.mu_s;
 #ifdef SPIRIT_USE_CUDA
 // TODO
@@ -348,7 +348,7 @@ __global__ void CU_E_DDI_FFT(
 
 void DDI::Energy_per_Spin_FFT( const vectorfield & spins, scalarfield & energy )
 {
-    const auto & geometry = hamiltonian->getGeometry();
+    const auto & geometry = getGeometry();
 
 #ifdef SPIRIT_USE_CUDA
     // TODO: maybe the gradient should be cached somehow, it is quite inefficient to calculate it
@@ -482,7 +482,7 @@ __global__ void CU_Write_FFT_Gradients(
 
 void DDI::Gradient_FFT( const vectorfield & spins, vectorfield & gradient )
 {
-    const auto & geometry = hamiltonian->getGeometry();
+    const auto & geometry = getGeometry();
 
 #ifdef SPIRIT_USE_CUDA
     auto & ft_D_matrices = transformed_dipole_matrices;
@@ -611,8 +611,8 @@ void DDI::Gradient_FFT( const vectorfield & spins, vectorfield & gradient )
 
 void DDI::Gradient_Direct( const vectorfield & spins, vectorfield & gradient )
 {
-    const auto & geometry            = hamiltonian->getGeometry();
-    const auto & boundary_conditions = hamiltonian->getBoundaryConditions();
+    const auto & geometry            = getGeometry();
+    const auto & boundary_conditions = getBoundaryConditions();
 
     static constexpr scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4 * C::Pi * 1e-30 );
 
@@ -691,7 +691,7 @@ __global__ void CU_Write_FFT_Spin_Input(
 
 void DDI::FFT_Spins( const vectorfield & spins, FFT::FFT_Plan & fft_plan ) const
 {
-    const auto & geometry = hamiltonian->getGeometry();
+    const auto & geometry = getGeometry();
 
 #ifdef SPIRIT_USE_CUDA
     CU_Write_FFT_Spin_Input<<<( geometry.nos + 1023 ) / 1024, 1024>>>(
@@ -811,7 +811,7 @@ __global__ void CU_Write_FFT_Dipole_Input(
 
 void DDI::FFT_Dipole_Matrices( FFT::FFT_Plan & fft_plan, const int img_a, const int img_b, const int img_c )
 {
-    const auto & geometry = hamiltonian->getGeometry();
+    const auto & geometry = getGeometry();
 
 #ifdef SPIRIT_USE_CUDA
     auto & fft_dipole_inputs = fft_plan.real_ptr;
@@ -932,8 +932,8 @@ void DDI::Prepare_DDI()
     if( method != DDI_Method::FFT )
         return;
 
-    const auto & geometry            = hamiltonian->getGeometry();
-    const auto & boundary_conditions = hamiltonian->getBoundaryConditions();
+    const auto & geometry            = getGeometry();
+    const auto & boundary_conditions = getBoundaryConditions();
 
     // We perform zero-padding in a lattice direction if the dimension of the system is greater than 1 *and*
     //  - the boundary conditions are open, or
