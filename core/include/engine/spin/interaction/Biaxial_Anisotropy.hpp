@@ -22,7 +22,7 @@ class Biaxial_Anisotropy : public Interaction::Base<Biaxial_Anisotropy>
 {
 public:
     Biaxial_Anisotropy(
-        Hamiltonian * hamiltonian, intfield indices, field<PolynomialBasis> pBases, field<unsigned int> pSite_ptr,
+        Common::Interaction::Owner * hamiltonian, intfield indices, field<PolynomialBasis> pBases, field<unsigned int> pSite_ptr,
         field<PolynomialTerm> pTerms ) noexcept;
 
     void setParameters(
@@ -80,7 +80,7 @@ public:
     static constexpr std::optional<int> spin_order_ = std::nullopt;
 
 protected:
-    void updateFromGeometry( const Data::Geometry * geometry ) override;
+    void updateFromGeometry( const Data::Geometry & geometry ) override;
 
 private:
     template<typename F>

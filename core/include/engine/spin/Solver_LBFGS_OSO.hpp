@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SPIRIT_CORE_ENGINE_SOLVER_LBFGS_OSO_HPP
-#define SPIRIT_CORE_ENGINE_SOLVER_LBFGS_OSO_HPP
+#ifndef SPIRIT_CORE_ENGINE_SPIN_SOLVER_LBFGS_OSO_HPP
+#define SPIRIT_CORE_ENGINE_SPIN_SOLVER_LBFGS_OSO_HPP
 
 #include <engine/spin/Method_Solver.hpp>
 #include <utility/Constants.hpp>

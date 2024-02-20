@@ -38,7 +38,7 @@ namespace Spin
 namespace Interaction
 {
 
-Quadruplet::Quadruplet( Hamiltonian * hamiltonian, quadrupletfield quadruplets, scalarfield magnitudes ) noexcept
+Quadruplet::Quadruplet( Common::Interaction::Owner * hamiltonian, quadrupletfield quadruplets, scalarfield magnitudes ) noexcept
         : Interaction::Base<Quadruplet>( hamiltonian, scalarfield( 0 ) ),
           quadruplets( std::move( quadruplets ) ),
           quadruplet_magnitudes( std::move( magnitudes ) )
@@ -46,7 +46,7 @@ Quadruplet::Quadruplet( Hamiltonian * hamiltonian, quadrupletfield quadruplets, 
     this->updateGeometry();
 }
 
-Quadruplet::Quadruplet( Hamiltonian * hamiltonian, const Data::QuadrupletfieldData & quadruplet ) noexcept
+Quadruplet::Quadruplet( Common::Interaction::Owner * hamiltonian, const Data::QuadrupletfieldData & quadruplet ) noexcept
         : Quadruplet( hamiltonian, quadruplet.quadruplets, quadruplet.magnitudes )
 {
 }
@@ -56,13 +56,13 @@ bool Quadruplet::is_contributing() const
     return !quadruplets.empty();
 }
 
-void Quadruplet::updateFromGeometry( const Geometry * geometry ) {}
+void Quadruplet::updateFromGeometry( const Geometry & geometry ) {}
 
 template<typename Callable>
 void Quadruplet::apply( Callable f )
 {
-    const auto * geometry            = hamiltonian->geometry.get();
-    const auto & boundary_conditions = hamiltonian->boundary_conditions;
+    const auto & geometry            = hamiltonian->getGeometry();
+    const auto & boundary_conditions = hamiltonian->getBoundaryConditions();
 
     for( unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad )
     {
@@ -77,32 +77,32 @@ void Quadruplet::apply( Callable f )
         const auto & d_k = quad.d_k;
         const auto & d_l = quad.d_l;
 
-        for( int da = 0; da < geometry->n_cells[0]; ++da )
+        for( int da = 0; da < geometry.n_cells[0]; ++da )
         {
-            for( int db = 0; db < geometry->n_cells[1]; ++db )
+            for( int db = 0; db < geometry.n_cells[1]; ++db )
             {
-                for( int dc = 0; dc < geometry->n_cells[2]; ++dc )
+                for( int dc = 0; dc < geometry.n_cells[2]; ++dc )
                 {
-                    int ispin = i + idx_from_translations( geometry->n_cells, geometry->n_cell_atoms, { da, db, dc } );
+                    int ispin = i + idx_from_translations( geometry.n_cells, geometry.n_cell_atoms, { da, db, dc } );
 #ifdef SPIRIT_USE_CUDA
                     int jspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                        ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
                         { i, j, { d_j[0], d_j[1], d_j[2] } } );
                     int kspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                        ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
                         { i, k, { d_k[0], d_k[1], d_k[2] } } );
                     int lspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                        ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
                         { i, l, { d_l[0], d_l[1], d_l[2] } } );
 #else
                     int jspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                        ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
                         { i, j, d_j } );
                     int kspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                        ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
                         { i, k, d_k } );
                     int lspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                        ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
                         { i, l, d_l } );
 #endif
                     f( iquad, ispin, jspin, kspin, lspin );

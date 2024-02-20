@@ -335,10 +335,11 @@ scalar Calculate_Zero_Volume( const State::system_t & system )
     // Dimensionality of the zero mode
     int zero_mode_dimensionality = 0;
     Vector3 zero_mode_length{ 0, 0, 0 };
+    const auto & boundary_conditions = system.hamiltonian->getBoundaryConditions();
     for( int ibasis = 0; ibasis < 3; ++ibasis )
     {
         // Only a periodical direction can be a true zero mode
-        if( system.hamiltonian->boundary_conditions[ibasis] && geometry.n_cells[ibasis] > 1 )
+        if( boundary_conditions[ibasis] && geometry.n_cells[ibasis] > 1 )
         {
             // Vector3 shift_pos, test_pos;
             vectorfield spins_shifted( nos, Vector3{ 0, 0, 0 } );

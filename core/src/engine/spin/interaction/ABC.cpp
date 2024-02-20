@@ -15,8 +15,6 @@ namespace Spin
 namespace Interaction
 {
 
-void ABC::updateFromGeometry( const Geometry * geometry ){};
-
 scalar ABC::Energy( const vectorfield & spins )
 {
     auto nos = spins.size();

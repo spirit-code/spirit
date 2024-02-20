@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SPIRIT_CORE_ENGINE_EIGENMODES_HPP
-#define SPIRIT_CORE_ENGINE_EIGENMODES_HPP
+#ifndef SPIRIT_CORE_ENGINE_SPIN_EIGENMODES_HPP
+#define SPIRIT_CORE_ENGINE_SPIN_EIGENMODES_HPP
 
 #include <data/Geometry.hpp>
 #include <data/Parameters_Method.hpp>

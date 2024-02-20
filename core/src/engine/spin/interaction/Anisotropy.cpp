@@ -38,7 +38,7 @@ namespace Interaction
 {
 
 Anisotropy::Anisotropy(
-    Hamiltonian * hamiltonian, intfield indices, scalarfield magnitudes, vectorfield normals ) noexcept
+    Common::Interaction::Owner * hamiltonian, intfield indices, scalarfield magnitudes, vectorfield normals ) noexcept
         : Interaction::Base<Anisotropy>( hamiltonian, scalarfield( 0 ) ),
           anisotropy_indices( std::move( indices ) ),
           anisotropy_magnitudes( std::move( magnitudes ) ),
@@ -47,12 +47,12 @@ Anisotropy::Anisotropy(
     this->updateGeometry();
 }
 
-Anisotropy::Anisotropy( Hamiltonian * hamiltonian, const Data::VectorfieldData & anisotropy ) noexcept
+Anisotropy::Anisotropy( Common::Interaction::Owner * hamiltonian, const Data::VectorfieldData & anisotropy ) noexcept
         : Anisotropy( hamiltonian, anisotropy.indices, anisotropy.magnitudes, anisotropy.normals )
 {
 }
 
-void Anisotropy::updateFromGeometry( const Geometry * geometry ) {}
+void Anisotropy::updateFromGeometry( const Geometry & geometry ) {}
 
 bool Anisotropy::is_contributing() const
 {
@@ -79,25 +79,25 @@ __global__ void CU_E_Anisotropy(
 
 void Anisotropy::Energy_per_Spin( const vectorfield & spins, scalarfield & energy )
 {
-    const auto * geometry = hamiltonian->geometry.get();
-    const int N           = geometry->n_cell_atoms;
+    const auto & geometry = hamiltonian->getGeometry();
+    const int N           = geometry.n_cell_atoms;
 
 #ifdef SPIRIT_USE_CUDA
-    int size = geometry->n_cells_total;
+    int size = geometry.n_cells_total;
     CU_E_Anisotropy<<<( size + 1023 ) / 1024, 1024>>>(
-        spins.data(), geometry->atom_types.data(), geometry->n_cell_atoms, this->anisotropy_indices.size(),
+        spins.data(), geometry.atom_types.data(), geometry.n_cell_atoms, this->anisotropy_indices.size(),
         this->anisotropy_indices.data(), this->anisotropy_magnitudes.data(), this->anisotropy_normals.data(),
         energy.data(), size );
     CU_CHECK_AND_SYNC();
 #else
 
 #pragma omp parallel for
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
+    for( int icell = 0; icell < geometry.n_cells_total; ++icell )
     {
         for( int iani = 0; iani < anisotropy_indices.size(); ++iani )
         {
             int ispin = icell * N + anisotropy_indices[iani];
-            if( check_atom_type( geometry->atom_types[ispin] ) )
+            if( check_atom_type( geometry.atom_types[ispin] ) )
                 energy[ispin] -= this->anisotropy_magnitudes[iani]
                                  * std::pow( anisotropy_normals[iani].dot( spins[ispin] ), 2.0 );
         }
@@ -110,17 +110,17 @@ void Anisotropy::Energy_per_Spin( const vectorfield & spins, scalarfield & energ
 scalar Anisotropy::Energy_Single_Spin( const int ispin, const vectorfield & spins )
 {
     scalar energy         = 0;
-    const auto * geometry = hamiltonian->geometry.get();
-    const int N           = geometry->n_cell_atoms;
+    const auto & geometry = hamiltonian->getGeometry();
+    const int N           = geometry.n_cell_atoms;
 
     int icell  = ispin / N;
-    int ibasis = ispin - icell * geometry->n_cell_atoms;
+    int ibasis = ispin - icell * geometry.n_cell_atoms;
 
     for( int iani = 0; iani < anisotropy_indices.size(); ++iani )
     {
         if( anisotropy_indices[iani] == ibasis )
         {
-            if( check_atom_type( geometry->atom_types[ispin] ) )
+            if( check_atom_type( geometry.atom_types[ispin] ) )
                 energy -= anisotropy_magnitudes[iani] * std::pow( anisotropy_normals[iani].dot( spins[ispin] ), 2.0 );
         }
     }
@@ -129,17 +129,17 @@ scalar Anisotropy::Energy_Single_Spin( const int ispin, const vectorfield & spin
 
 void Anisotropy::Hessian( const vectorfield & spins, MatrixX & hessian )
 {
-    const auto * geometry = hamiltonian->geometry.get();
-    const int N           = geometry->n_cell_atoms;
+    const auto & geometry = hamiltonian->getGeometry();
+    const int N           = geometry.n_cell_atoms;
 
     // --- Single Spin elements
 #pragma omp parallel for
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
+    for( int icell = 0; icell < geometry.n_cells_total; ++icell )
     {
         for( int iani = 0; iani < anisotropy_indices.size(); ++iani )
         {
             int ispin = icell * N + anisotropy_indices[iani];
-            if( check_atom_type( geometry->atom_types[ispin] ) )
+            if( check_atom_type( geometry.atom_types[ispin] ) )
             {
                 for( int alpha = 0; alpha < 3; ++alpha )
                 {
@@ -159,16 +159,16 @@ void Anisotropy::Hessian( const vectorfield & spins, MatrixX & hessian )
 
 void Anisotropy::Sparse_Hessian( const vectorfield & spins, std::vector<triplet> & hessian )
 {
-    const auto * geometry = hamiltonian->geometry.get();
-    const int N           = geometry->n_cell_atoms;
+    const auto & geometry = hamiltonian->getGeometry();
+    const int N           = geometry.n_cell_atoms;
 
     // --- Single Spin elements
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
+    for( int icell = 0; icell < geometry.n_cells_total; ++icell )
     {
         for( int iani = 0; iani < anisotropy_indices.size(); ++iani )
         {
             int ispin = icell * N + anisotropy_indices[iani];
-            if( check_atom_type( geometry->atom_types[ispin] ) )
+            if( check_atom_type( geometry.atom_types[ispin] ) )
             {
                 for( int alpha = 0; alpha < 3; ++alpha )
                 {
@@ -209,25 +209,25 @@ __global__ void CU_Gradient_Anisotropy(
 
 void Anisotropy::Gradient( const vectorfield & spins, vectorfield & gradient )
 {
-    const auto * geometry = hamiltonian->geometry.get();
-    const int N           = geometry->n_cell_atoms;
+    const auto & geometry = hamiltonian->getGeometry();
+    const int N           = geometry.n_cell_atoms;
 
 #ifdef SPIRIT_USE_CUDA
-    int size = geometry->n_cells_total;
+    int size = geometry.n_cells_total;
     CU_Gradient_Anisotropy<<<( size + 1023 ) / 1024, 1024>>>(
-        spins.data(), geometry->atom_types.data(), geometry->n_cell_atoms, this->anisotropy_indices.size(),
+        spins.data(), geometry.atom_types.data(), geometry.n_cell_atoms, this->anisotropy_indices.size(),
         this->anisotropy_indices.data(), this->anisotropy_magnitudes.data(), this->anisotropy_normals.data(),
         gradient.data(), size );
     CU_CHECK_AND_SYNC();
 #else
 
 #pragma omp parallel for
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
+    for( int icell = 0; icell < geometry.n_cells_total; ++icell )
     {
         for( int iani = 0; iani < anisotropy_indices.size(); ++iani )
         {
             int ispin = icell * N + anisotropy_indices[iani];
-            if( check_atom_type( geometry->atom_types[ispin] ) )
+            if( check_atom_type( geometry.atom_types[ispin] ) )
                 gradient[ispin] -= 2.0 * this->anisotropy_magnitudes[iani] * this->anisotropy_normals[iani]
                                    * anisotropy_normals[iani].dot( spins[ispin] );
         }

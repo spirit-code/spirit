@@ -17,8 +17,8 @@ namespace Interaction
 class Zeeman : public Interaction::Base<Zeeman>
 {
 public:
-    Zeeman( Hamiltonian * hamiltonian, scalar magnitude, Vector3 normal ) noexcept;
-    Zeeman( Hamiltonian * hamiltonian, const Data::NormalVector & external_field ) noexcept;
+    Zeeman( Common::Interaction::Owner * hamiltonian, scalar magnitude, Vector3 normal ) noexcept;
+    Zeeman( Common::Interaction::Owner * hamiltonian, const Data::NormalVector & external_field ) noexcept;
 
     void setParameters( const scalar & magnitude, const Vector3 & normal )
     {
@@ -49,7 +49,7 @@ public:
     static constexpr std::optional<int> spin_order_ = 1;
 
 protected:
-    void updateFromGeometry( const Data::Geometry * geometry ) override;
+    void updateFromGeometry( const Data::Geometry & geometry ) override;
 
 private:
     // ------------ Single Spin Interactions ------------

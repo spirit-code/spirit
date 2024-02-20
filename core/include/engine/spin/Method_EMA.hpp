@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SPIRIT_CORE_ENGINE_METHOD_EMA_HPP
-#define SPIRIT_CORE_ENGINE_METHOD_EMA_HPP
+#ifndef SPIRIT_CORE_ENGINE_SPIN_METHOD_EMA_HPP
+#define SPIRIT_CORE_ENGINE_SPIN_METHOD_EMA_HPP
 
 #include <Spirit/Spirit_Defines.h>
 #include <engine/Method.hpp>

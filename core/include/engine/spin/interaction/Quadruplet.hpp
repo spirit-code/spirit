@@ -16,8 +16,8 @@ namespace Interaction
 class Quadruplet : public Interaction::Base<Quadruplet>
 {
 public:
-    Quadruplet( Hamiltonian * hamiltonian, quadrupletfield quadruplets, scalarfield magnitudes ) noexcept;
-    Quadruplet( Hamiltonian * hamiltonian, const Data::QuadrupletfieldData & quadruplet ) noexcept;
+    Quadruplet( Common::Interaction::Owner * hamiltonian, quadrupletfield quadruplets, scalarfield magnitudes ) noexcept;
+    Quadruplet( Common::Interaction::Owner * hamiltonian, const Data::QuadrupletfieldData & quadruplet ) noexcept;
 
     void setParameters( const quadrupletfield & pQuadruplets, const scalarfield & pMagnitudes )
     {
@@ -51,7 +51,7 @@ public:
     static constexpr std::optional<int> spin_order_ = 4;
 
 protected:
-    void updateFromGeometry( const Data::Geometry * geometry ) override;
+    void updateFromGeometry( const Data::Geometry & geometry ) override;
 
 private:
     quadrupletfield quadruplets;

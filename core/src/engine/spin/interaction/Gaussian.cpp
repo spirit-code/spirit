@@ -20,7 +20,7 @@ namespace Spin
 namespace Interaction
 {
 
-Gaussian::Gaussian( Hamiltonian * hamiltonian, scalarfield amplitude, scalarfield width, vectorfield center ) noexcept
+Gaussian::Gaussian( Common::Interaction::Owner * hamiltonian, scalarfield amplitude, scalarfield width, vectorfield center ) noexcept
         : Interaction::Base<Gaussian>( hamiltonian, scalarfield( 0 ) ),
           n_gaussians( amplitude.size() ),
           amplitude( std::move( amplitude ) ),
@@ -30,7 +30,7 @@ Gaussian::Gaussian( Hamiltonian * hamiltonian, scalarfield amplitude, scalarfiel
     this->updateGeometry();
 }
 
-void Gaussian::updateFromGeometry( const Geometry * geometry ) {}
+void Gaussian::updateFromGeometry( const Geometry & geometry ) {}
 
 bool Gaussian::is_contributing() const
 {

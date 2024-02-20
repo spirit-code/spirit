@@ -22,56 +22,6 @@ namespace Engine
 namespace Spin
 {
 
-Hamiltonian::Hamiltonian( std::shared_ptr<Geometry> geometry, intfield boundary_conditions )
-        : geometry( std::move( geometry ) ),
-          boundary_conditions( std::move( boundary_conditions ) ),
-          name_update_paused( false ),
-          hamiltonian_class( HAMILTONIAN_CLASS::GENERIC )
-{
-    this->updateInteractions(); // should be a nop, but has to be here semantically
-    this->updateName();
-}
-
-Hamiltonian::Hamiltonian( const Hamiltonian & other )
-        : geometry( other.geometry ),
-          boundary_conditions( other.boundary_conditions ),
-          interactions( 0 ),
-          active_interactions_size( other.active_interactions_size ),
-          common_interactions_size( other.common_interactions_size ),
-          name_update_paused( other.name_update_paused ),
-          hamiltonian_class( other.hamiltonian_class ),
-          class_name( other.class_name )
-{
-    interactions.reserve( other.interactions.capacity() );
-    for( const auto & interaction : other.interactions )
-        interactions.emplace_back( interaction->clone( this ) );
-}
-
-void Hamiltonian::updateActiveInteractions()
-{
-    // take inventory and put the interactions that contribute to the front of the vector
-    const auto is_active                 = []( const auto & i ) { return i->is_active(); };
-    const auto active_partition_boundary = std::partition( begin( interactions ), end( interactions ), is_active );
-    active_interactions_size             = std::distance( begin( interactions ), active_partition_boundary );
-
-    // sort by spin order (may speed up predictions)
-    const auto has_common_spin_order = []( const auto & i ) { return i->spin_order() == common_spin_order; };
-    const auto common_partition_boundary
-        = std::partition( begin( interactions ), active_partition_boundary, has_common_spin_order );
-    common_interactions_size = std::distance( begin( interactions ), common_partition_boundary );
-}
-
-void Hamiltonian::updateInteractions()
-{
-    for( const auto & interaction : interactions )
-    {
-        interaction->updateGeometry();
-    }
-
-    // Update, which terms still contribute
-    this->updateActiveInteractions();
-}
-
 void Hamiltonian::Energy_per_Spin( const vectorfield & spins, scalarfield & energy_per_spin )
 {
     const auto nos = spins.size();
@@ -82,7 +32,7 @@ void Hamiltonian::Energy_per_Spin( const vectorfield & spins, scalarfield & ener
     else
         Vectormath::fill( energy_per_spin, 0 );
 
-    for( const auto & interaction : getActiveInteractions() )
+    for( const auto & interaction : getInteractions() )
     {
         interaction->Energy_per_Spin( spins, energy_per_spin );
     }
@@ -91,6 +41,7 @@ void Hamiltonian::Energy_per_Spin( const vectorfield & spins, scalarfield & ener
 void Hamiltonian::Energy_Contributions_per_Spin( const vectorfield & spins, vectorlabeled<scalarfield> & contributions )
 {
     const auto nos = spins.size();
+    const auto active_interactions_size = getActiveInteractionsSize();
 
     if( contributions.size() != active_interactions_size )
     {
@@ -314,11 +265,8 @@ Data::vectorlabeled<scalar> Hamiltonian::Energy_Contributions( const vectorfield
     return contributions;
 }
 
-void Hamiltonian::updateName()
+void Hamiltonian::updateName_Impl()
 {
-    if( name_update_paused )
-        return;
-
     if( interactions.size() == 1 && hasInteraction<Interaction::Gaussian>() )
         hamiltonian_class = HAMILTONIAN_CLASS::GAUSSIAN;
     else if( !hasInteraction<Interaction::Gaussian>() )
@@ -328,12 +276,6 @@ void Hamiltonian::updateName()
 
     class_name = hamiltonianClassName( hamiltonian_class );
 }
-
-// Hamiltonian name as string
-std::string_view Hamiltonian::Name() const
-{
-    return class_name;
-};
 
 } // namespace Spin
 
