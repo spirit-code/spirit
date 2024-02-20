@@ -26,7 +26,7 @@ namespace Interaction
 {
 
 Biaxial_Anisotropy::Biaxial_Anisotropy(
-    Hamiltonian * hamiltonian, intfield indices, field<PolynomialBasis> bases, field<unsigned int> site_ptr,
+    Common::Interaction::Owner * hamiltonian, intfield indices, field<PolynomialBasis> bases, field<unsigned int> site_ptr,
     field<PolynomialTerm> terms ) noexcept
         : Interaction::Base<Biaxial_Anisotropy>( hamiltonian, scalarfield( 0 ) ),
           indices( std::move( indices ) ),
@@ -37,7 +37,7 @@ Biaxial_Anisotropy::Biaxial_Anisotropy(
     this->updateGeometry();
 }
 
-void Biaxial_Anisotropy::updateFromGeometry( const Geometry * geometry ) {}
+void Biaxial_Anisotropy::updateFromGeometry( const Geometry & geometry ) {}
 
 bool Biaxial_Anisotropy::is_contributing() const
 {
@@ -78,24 +78,24 @@ __global__ void CU_E_Biaxial_Anisotropy(
 
 void Biaxial_Anisotropy::Energy_per_Spin( const vectorfield & spins, scalarfield & energy )
 {
-    const auto * geometry = hamiltonian->geometry.get();
-    const int N           = geometry->n_cell_atoms;
+    const auto & geometry = hamiltonian->getGeometry();
+    const int N           = geometry.n_cell_atoms;
 
 #ifdef SPIRIT_USE_CUDA
-    const int size = geometry->n_cells_total;
+    const int size = geometry.n_cells_total;
     CU_E_Biaxial_Anisotropy<<<( size + 1023 ) / 1024, 1024>>>(
-        spins.data(), geometry->atom_types.data(), geometry->n_cell_atoms, this->indices.size(), this->indices.data(),
+        spins.data(), geometry.atom_types.data(), geometry.n_cell_atoms, this->indices.size(), this->indices.data(),
         this->bases.data(), this->site_p.data(), this->terms.data(), energy.data(), size );
     CU_CHECK_AND_SYNC();
 #else
 
 #pragma omp parallel for
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
+    for( int icell = 0; icell < geometry.n_cells_total; ++icell )
     {
         for( int iani = 0; iani < indices.size(); ++iani )
         {
             int ispin = icell * N + indices[iani];
-            if( check_atom_type( geometry->atom_types[ispin] ) )
+            if( check_atom_type( geometry.atom_types[ispin] ) )
             {
                 const scalar s1 = bases[iani].k1.dot( spins[ispin] );
                 const scalar s2 = bases[iani].k2.dot( spins[ispin] );
@@ -121,17 +121,17 @@ void Biaxial_Anisotropy::Energy_per_Spin( const vectorfield & spins, scalarfield
 scalar Biaxial_Anisotropy::Energy_Single_Spin( const int ispin, const vectorfield & spins )
 {
     scalar energy         = 0;
-    const auto * geometry = hamiltonian->geometry.get();
-    const int N           = geometry->n_cell_atoms;
+    const auto & geometry = hamiltonian->getGeometry();
+    const int N           = geometry.n_cell_atoms;
 
     int icell  = ispin / N;
-    int ibasis = ispin - icell * geometry->n_cell_atoms;
+    int ibasis = ispin - icell * geometry.n_cell_atoms;
 
     for( int iani = 0; iani < indices.size(); ++iani )
     {
         if( indices[iani] == ibasis )
         {
-            if( check_atom_type( geometry->atom_types[ispin] ) )
+            if( check_atom_type( geometry.atom_types[ispin] ) )
             {
                 const scalar s1 = bases[iani].k1.dot( spins[ispin] );
                 const scalar s2 = bases[iani].k2.dot( spins[ispin] );
@@ -155,17 +155,17 @@ scalar Biaxial_Anisotropy::Energy_Single_Spin( const int ispin, const vectorfiel
 template<typename F>
 void Biaxial_Anisotropy::Hessian_Impl( const vectorfield & spins, F f )
 {
-    const auto * geometry = hamiltonian->geometry.get();
-    const int N           = geometry->n_cell_atoms;
+    const auto & geometry = hamiltonian->getGeometry();
+    const int N           = geometry.n_cell_atoms;
 
     // --- Single Spin elements
 #pragma omp parallel for
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
+    for( int icell = 0; icell < geometry.n_cells_total; ++icell )
     {
         for( int iani = 0; iani < indices.size(); ++iani )
         {
             int ispin = icell * N + indices[iani];
-            if( check_atom_type( geometry->atom_types[ispin] ) )
+            if( check_atom_type( geometry.atom_types[ispin] ) )
             {
                 const auto & [k1, k2, k3] = bases[iani];
 
@@ -274,25 +274,25 @@ __global__ void CU_Gradient_Biaxial_Anisotropy(
 
 void Biaxial_Anisotropy::Gradient( const vectorfield & spins, vectorfield & gradient )
 {
-    const auto * geometry = hamiltonian->geometry.get();
-    const int N           = geometry->n_cell_atoms;
+    const auto & geometry = hamiltonian->getGeometry();
+    const int N           = geometry.n_cell_atoms;
 
 #ifdef SPIRIT_USE_CUDA
-    const int size                 = geometry->n_cells_total;
+    const int size                 = geometry.n_cells_total;
     static constexpr int blockSize = 768;
     CU_Gradient_Biaxial_Anisotropy<<<( size - 1 + blockSize ) / blockSize, blockSize>>>(
-        spins.data(), geometry->atom_types.data(), geometry->n_cell_atoms, this->indices.size(), this->indices.data(),
+        spins.data(), geometry.atom_types.data(), geometry.n_cell_atoms, this->indices.size(), this->indices.data(),
         this->bases.data(), this->site_p.data(), this->terms.data(), gradient.data(), size );
     CU_CHECK_AND_SYNC();
 #else
 
 #pragma omp parallel for
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
+    for( int icell = 0; icell < geometry.n_cells_total; ++icell )
     {
         for( int iani = 0; iani < indices.size(); ++iani )
         {
             int ispin = icell * N + indices[iani];
-            if( check_atom_type( geometry->atom_types[ispin] ) )
+            if( check_atom_type( geometry.atom_types[ispin] ) )
             {
                 const auto & [k1, k2, k3] = bases[iani];
 

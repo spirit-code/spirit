@@ -16,8 +16,8 @@ namespace Interaction
 class Anisotropy : public Interaction::Base<Anisotropy>
 {
 public:
-    Anisotropy( Hamiltonian * hamiltonian, intfield indices, scalarfield magnitudes, vectorfield normals ) noexcept;
-    Anisotropy( Hamiltonian * hamiltonian, const Data::VectorfieldData & anisotropy ) noexcept;
+    Anisotropy( Common::Interaction::Owner * hamiltonian, intfield indices, scalarfield magnitudes, vectorfield normals ) noexcept;
+    Anisotropy( Common::Interaction::Owner * hamiltonian, const Data::VectorfieldData & anisotropy ) noexcept;
 
     void setParameters( const intfield & indices, const scalarfield & magnitudes, const vectorfield & normals )
     {
@@ -55,7 +55,7 @@ public:
     static constexpr std::optional<int> spin_order_ = 2;
 
 protected:
-    void updateFromGeometry( const Data::Geometry * geometry ) override;
+    void updateFromGeometry( const Data::Geometry & geometry ) override;
 
 private:
     intfield anisotropy_indices;

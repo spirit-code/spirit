@@ -25,7 +25,7 @@ class Gaussian : public Interaction::Base<Gaussian>
 {
 public:
     // Constructor
-    Gaussian( Hamiltonian * hamiltonian, scalarfield amplitude, scalarfield width, vectorfield center ) noexcept;
+    Gaussian( Common::Interaction::Owner * hamiltonian, scalarfield amplitude, scalarfield width, vectorfield center ) noexcept;
 
     void setParameters( const scalarfield & pAmplitude, const scalarfield & pWidth, const vectorfield & pCenter )
     {
@@ -64,7 +64,7 @@ public:
     static constexpr std::optional<int> spin_order_ = std::nullopt;
 
 protected:
-    void updateFromGeometry( const Data::Geometry * geometry ) override;
+    void updateFromGeometry( const Data::Geometry & geometry ) override;
 
 private:
     // Parameters of the energy landscape

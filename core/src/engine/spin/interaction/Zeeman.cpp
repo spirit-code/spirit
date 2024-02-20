@@ -36,7 +36,7 @@ namespace Spin
 namespace Interaction
 {
 
-Zeeman::Zeeman( Hamiltonian * hamiltonian, scalar magnitude, Vector3 normal ) noexcept
+Zeeman::Zeeman( Common::Interaction::Owner * hamiltonian, scalar magnitude, Vector3 normal ) noexcept
         : Interaction::Base<Zeeman>( hamiltonian, scalarfield( 0 ) ),
           external_field_magnitude( magnitude ),
           external_field_normal( std::move( normal ) )
@@ -44,7 +44,7 @@ Zeeman::Zeeman( Hamiltonian * hamiltonian, scalar magnitude, Vector3 normal ) no
     this->updateGeometry();
 }
 
-Zeeman::Zeeman( Hamiltonian * hamiltonian, const Data::NormalVector & external_field ) noexcept
+Zeeman::Zeeman( Common::Interaction::Owner * hamiltonian, const Data::NormalVector & external_field ) noexcept
         : Zeeman( hamiltonian, external_field.magnitude, external_field.normal )
 {
 }
@@ -54,7 +54,7 @@ bool Zeeman::is_contributing() const
     return std::abs( this->external_field_magnitude ) > 1e-60;
 }
 
-void Zeeman::updateFromGeometry( const Geometry * geometry ){};
+void Zeeman::updateFromGeometry( const Geometry & geometry ){};
 
 #ifdef SPIRIT_USE_CUDA
 __global__ void CU_E_Zeeman(
@@ -75,25 +75,25 @@ __global__ void CU_E_Zeeman(
 
 void Zeeman::Energy_per_Spin( const vectorfield & spins, scalarfield & energy )
 {
-    const auto * geometry = hamiltonian->geometry.get();
-    const auto N          = geometry->n_cell_atoms;
-    const auto & mu_s     = geometry->mu_s;
+    const auto & geometry = hamiltonian->getGeometry();
+    const auto N          = geometry.n_cell_atoms;
+    const auto & mu_s     = geometry.mu_s;
 
 #ifdef SPIRIT_USE_CUDA
-    int size = geometry->n_cells_total;
+    int size = geometry.n_cells_total;
     CU_E_Zeeman<<<( size + 1023 ) / 1024, 1024>>>(
-        spins.data(), geometry->atom_types.data(), N, geometry->mu_s.data(), this->external_field_magnitude,
+        spins.data(), geometry.atom_types.data(), N, geometry.mu_s.data(), this->external_field_magnitude,
         this->external_field_normal, energy.data(), size );
     CU_CHECK_AND_SYNC();
 #else
 
 #pragma omp parallel for
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
+    for( int icell = 0; icell < geometry.n_cells_total; ++icell )
     {
         for( int ibasis = 0; ibasis < N; ++ibasis )
         {
             int ispin = icell * N + ibasis;
-            if( check_atom_type( geometry->atom_types[ispin] ) )
+            if( check_atom_type( geometry.atom_types[ispin] ) )
                 energy[ispin]
                     -= mu_s[ispin] * this->external_field_magnitude * this->external_field_normal.dot( spins[ispin] );
         }
@@ -105,8 +105,8 @@ void Zeeman::Energy_per_Spin( const vectorfield & spins, scalarfield & energy )
 //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
 scalar Zeeman::Energy_Single_Spin( const int ispin, const vectorfield & spins )
 {
-    const auto * geometry = hamiltonian->geometry.get();
-    const auto & mu_s     = geometry->mu_s;
+    const auto & geometry = hamiltonian->getGeometry();
+    const auto & mu_s     = geometry.mu_s;
     return -mu_s[ispin] * this->external_field_magnitude * this->external_field_normal.dot( spins[ispin] );
 };
 
@@ -132,25 +132,25 @@ __global__ void CU_Gradient_Zeeman(
 
 void Zeeman::Gradient( const vectorfield & spins, vectorfield & gradient )
 {
-    const auto * geometry = hamiltonian->geometry.get();
-    const auto N          = geometry->n_cell_atoms;
-    const auto & mu_s     = geometry->mu_s;
+    const auto & geometry = hamiltonian->getGeometry();
+    const auto N          = geometry.n_cell_atoms;
+    const auto & mu_s     = geometry.mu_s;
 
 #ifdef SPIRIT_USE_CUDA
-    int size = geometry->n_cells_total;
+    int size = geometry.n_cells_total;
     CU_Gradient_Zeeman<<<( size + 1023 ) / 1024, 1024>>>(
-        geometry->atom_types.data(), geometry->n_cell_atoms, geometry->mu_s.data(), this->external_field_magnitude,
+        geometry.atom_types.data(), geometry.n_cell_atoms, geometry.mu_s.data(), this->external_field_magnitude,
         this->external_field_normal, gradient.data(), size );
     CU_CHECK_AND_SYNC();
 #else
 
 #pragma omp parallel for
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
+    for( int icell = 0; icell < geometry.n_cells_total; ++icell )
     {
         for( int ibasis = 0; ibasis < N; ++ibasis )
         {
             int ispin = icell * N + ibasis;
-            if( check_atom_type( geometry->atom_types[ispin] ) )
+            if( check_atom_type( geometry.atom_types[ispin] ) )
                 gradient[ispin] -= mu_s[ispin] * this->external_field_magnitude * this->external_field_normal;
         }
     }

@@ -25,9 +25,9 @@ namespace Interaction
 class DDI : public Interaction::Base<DDI>
 {
 public:
-    DDI( Hamiltonian * hamiltonian, Engine::Spin::DDI_Method ddi_method, intfield n_periodic_images,
+    DDI( Common::Interaction::Owner * hamiltonian, Engine::Spin::DDI_Method ddi_method, intfield n_periodic_images,
          bool pb_zero_padding, scalar cutoff_radius ) noexcept;
-    DDI( Hamiltonian * hamiltonian, Engine::Spin::DDI_Method ddi_method, const Data::DDI_Data & ddi_data ) noexcept;
+    DDI( Common::Interaction::Owner * hamiltonian, Engine::Spin::DDI_Method ddi_method, const Data::DDI_Data & ddi_data ) noexcept;
 
     void setParameters(
         DDI_Method ddi_method, const intfield & n_periodic_images, bool pb_zero_padding, scalar cutoff_radius )
@@ -64,7 +64,7 @@ public:
     static constexpr std::optional<int> spin_order_ = 2;
 
 protected:
-    void updateFromGeometry( const Data::Geometry * geometry ) override;
+    void updateFromGeometry( const Data::Geometry & geometry ) override;
 
 private:
     DDI_Method method;

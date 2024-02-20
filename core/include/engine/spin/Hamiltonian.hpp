@@ -1,7 +1,15 @@
 #pragma once
-#ifndef SPIRIT_CORE_ENGINE_HAMILTONIAN_HPP
-#define SPIRIT_CORE_ENGINE_HAMILTONIAN_HPP
+#ifndef SPIRIT_CORE_ENGINE_SPIN_HAMILTONIAN_HPP
+#define SPIRIT_CORE_ENGINE_SPIN_HAMILTONIAN_HPP
 
+#include <Spirit/Hamiltonian.h>
+#include <Spirit/Spirit_Defines.h>
+#include <data/Geometry.hpp>
+#include <data/Misc.hpp>
+#include <engine/FFT.hpp>
+#include <engine/Vectormath_Defines.hpp>
+#include <engine/common/Hamiltonian.hpp>
+#include <engine/spin/Hamiltonian_Defines.hpp>
 #include <engine/spin/interaction/ABC.hpp>
 #include <engine/spin/interaction/Anisotropy.hpp>
 #include <engine/spin/interaction/Biaxial_Anisotropy.hpp>
@@ -10,9 +18,12 @@
 #include <engine/spin/interaction/DMI.hpp>
 #include <engine/spin/interaction/Exchange.hpp>
 #include <engine/spin/interaction/Gaussian.hpp>
-#include <engine/spin/interaction/Hamiltonian.hpp>
 #include <engine/spin/interaction/Quadruplet.hpp>
 #include <engine/spin/interaction/Zeeman.hpp>
+#include <utility/Span.hpp>
+
+#include <memory>
+#include <vector>
 
 namespace Engine
 {
@@ -20,83 +31,96 @@ namespace Engine
 namespace Spin
 {
 
-// runtime getter
-inline Interaction::ABC * Hamiltonian::getInteraction( std::string_view name )
+enum class HAMILTONIAN_CLASS
 {
-    // linear search, because setting and getting an interaction doesn't have to be fast, but iterating over all
-    // (active) interactions has to be.
-    auto same_name = [&name]( const auto & i ) { return name == i->Name(); };
-    auto itr       = std::find_if( begin( interactions ), end( interactions ), same_name );
-    if( itr != end( interactions ) )
-        return itr->get();
-    return nullptr;
+    GENERIC    = SPIRIT_HAMILTONIAN_CLASS_GENERIC,
+    GAUSSIAN   = SPIRIT_HAMILTONIAN_CLASS_GAUSSIAN,
+    HEISENBERG = SPIRIT_HAMILTONIAN_CLASS_HEISENBERG,
 };
 
-// runtime deleter
-inline std::size_t Hamiltonian::deleteInteraction( std::string_view name )
+static constexpr std::string_view hamiltonianClassName( HAMILTONIAN_CLASS cls )
 {
-    auto same_name = [&name]( const auto & i ) { return name == i->Name(); };
-    auto itr       = std::find_if( begin( interactions ), end( interactions ), same_name );
-    if( itr != end( interactions ) )
+    switch( cls )
     {
-        interactions.erase( itr );
-        return 1;
-    }
-    return 0;
+        case HAMILTONIAN_CLASS::GENERIC: return "Generic";
+        case HAMILTONIAN_CLASS::GAUSSIAN: return "Gaussian";
+        case HAMILTONIAN_CLASS::HEISENBERG: return "Heisenberg";
+        default: return "Unknown";
+    };
 }
 
-// compile time setter (has to be wrapped appropriately to be used at runtime)
-template<class T, typename... Args>
-T & Hamiltonian::setInteraction( Args &&... args )
+/*
+    The Heisenberg Hamiltonian for (pure) spin systems
+*/
+class Hamiltonian : public Common::Hamiltonian<Spin::Interaction::ABC>
 {
-    static_assert( std::is_convertible_v<T *, Interaction::Base<T> *>, "T has to be derived from Interaction::Base" );
-    static_assert( std::is_constructible_v<T, Engine::Spin::Hamiltonian *, Args...>, "No matching constructor for T" );
+public:
+    using interaction_t = Spin::Interaction::ABC;
+    using state_t       = typename interaction_t::state_t;
 
-    auto same_name = []( const auto & i ) { return T::name == i->Name(); };
-    auto itr       = std::find_if( begin( interactions ), end( interactions ), same_name );
-    if( itr != end( interactions ) )
+    Hamiltonian( std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions )
+            : Common::Hamiltonian<interaction_t>( std::move( geometry ), std::move( boundary_conditions ) ),
+              hamiltonian_class( HAMILTONIAN_CLASS::GENERIC )
     {
-        **itr = T( this, std::forward<Args>( args )... );
         this->updateName();
-        return static_cast<T &>( **itr );
+    };
+
+    void Hessian( const vectorfield & spins, MatrixX & hessian );
+    void Sparse_Hessian( const vectorfield & spins, SpMatrixX & hessian );
+
+    void Gradient( const vectorfield & spins, vectorfield & gradient );
+    void Gradient_and_Energy( const vectorfield & spins, vectorfield & gradient, scalar & energy );
+
+    void Energy_per_Spin( const vectorfield & spins, scalarfield & contributions );
+    void Energy_Contributions_per_Spin( const vectorfield & spins, Data::vectorlabeled<scalarfield> & contributions );
+    Data::vectorlabeled<scalar> Energy_Contributions( const vectorfield & spins );
+
+    // Calculate the total energy for a single spin to be used in Monte Carlo.
+    //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
+    [[nodiscard]] scalar Energy_Single_Spin( int ispin, const vectorfield & spins );
+
+    [[nodiscard]] scalar Energy( const vectorfield & spins );
+
+    void Gradient_FD( const vectorfield & spins, vectorfield & gradient );
+    void Hessian_FD( const vectorfield & spins, MatrixX & hessian );
+
+    void updateName_Impl() final;
+    [[nodiscard]] std::string_view Name() const final
+    {
+        return class_name;
+    };
+
+private:
+    void partitionActiveInteractions( value_iterator first, value_iterator last ) final
+    {
+        // sort by spin order (may speed up predictions)
+        const auto has_common_spin_order     = []( const auto & i ) { return i->spin_order() == common_spin_order; };
+        const auto common_partition_boundary = std::partition( first, last, has_common_spin_order );
+        common_interactions_size             = std::distance( begin( interactions ), common_partition_boundary );
     }
+    [[nodiscard]] constexpr auto getCommonInteractions() const -> Utility::Span<const value_t>
+    {
+        return Utility::Span( begin( getActiveInteractions() ), common_interactions_size );
+    };
 
-    interactions.emplace_back( std::make_unique<T>( this, std::forward<Args>( args )... ) );
-    this->updateName();
-    return static_cast<T &>( *interactions.back() );
-};
+    [[nodiscard]] constexpr auto getUncommonInteractions() const -> Utility::Span<const value_t>
+    {
+        const auto active_ = getActiveInteractions();
+        return Utility::Span( begin( active_ ) + common_interactions_size, end( active_ ) );
+    };
 
-// compile time getter
-template<class T>
-const T * Hamiltonian::getInteraction() const
-{
-    static_assert( std::is_convertible_v<T *, Interaction::Base<T> *>, "T has to be derived from Interaction::Base" );
-    return dynamic_cast<T *>( getInteraction( T::name ) );
-};
+    scalar delta = 1e-3;
 
-// compile time getter
-template<class T>
-T * Hamiltonian::getInteraction()
-{
-    static_assert( std::is_convertible_v<T *, Interaction::Base<T> *>, "T has to be derived from Interaction::Base" );
-    return dynamic_cast<T *>( getInteraction( T::name ) );
-};
+    // naming mechanism for compatibility with the named subclasses architecture
+    HAMILTONIAN_CLASS hamiltonian_class = HAMILTONIAN_CLASS::GENERIC;
+    std::string_view class_name{ hamiltonianClassName( HAMILTONIAN_CLASS::GENERIC ) };
 
-template<class T>
-bool Hamiltonian::hasInteraction()
-{
-    return ( getInteraction<T>() != nullptr );
-};
-
-// compile time deleter
-template<class T>
-std::size_t Hamiltonian::deleteInteraction()
-{
-    static_assert( std::is_convertible_v<T *, Interaction::Base<T> *>, "T has to be derived from Interaction::Base" );
-    return deleteInteraction( T::name );
+    std::size_t common_interactions_size = 0;
+    static constexpr int common_spin_order = 2;
 };
 
 } // namespace Spin
 
 } // namespace Engine
+
 #endif

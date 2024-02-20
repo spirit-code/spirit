@@ -16,8 +16,8 @@ namespace Interaction
 class Cubic_Anisotropy : public Interaction::Base<Cubic_Anisotropy>
 {
 public:
-    Cubic_Anisotropy( Hamiltonian * hamiltonian, intfield indices, scalarfield magnitudes ) noexcept;
-    Cubic_Anisotropy( Hamiltonian * hamiltonian, const Data::ScalarfieldData & cubic_anisotropy ) noexcept;
+    Cubic_Anisotropy( Common::Interaction::Owner * hamiltonian, intfield indices, scalarfield magnitudes ) noexcept;
+    Cubic_Anisotropy( Common::Interaction::Owner * hamiltonian, const Data::ScalarfieldData & cubic_anisotropy ) noexcept;
 
     void setParameters( const intfield & pIndices, const scalarfield & pMagnitudes )
     {
@@ -48,7 +48,7 @@ public:
     static constexpr std::optional<int> spin_order_ = std::nullopt;
 
 protected:
-    void updateFromGeometry( const Data::Geometry * geometry ) override;
+    void updateFromGeometry( const Data::Geometry & geometry ) override;
 
 private:
     intfield cubic_anisotropy_indices;

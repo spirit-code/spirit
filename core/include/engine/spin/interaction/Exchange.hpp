@@ -17,10 +17,10 @@ class Exchange : public Interaction::Base<Exchange>
 {
 public:
     // pairs initializer
-    Exchange( Hamiltonian * hamiltonian, pairfield pairs, scalarfield magnitudes ) noexcept;
-    Exchange( Hamiltonian * hamiltonian, const Data::ScalarPairfieldData & exchange ) noexcept;
+    Exchange( Common::Interaction::Owner * hamiltonian, pairfield pairs, scalarfield magnitudes ) noexcept;
+    Exchange( Common::Interaction::Owner * hamiltonian, const Data::ScalarPairfieldData & exchange ) noexcept;
     // shell initializer
-    Exchange( Hamiltonian * hamiltonian, const scalarfield & shell_magnitudes ) noexcept;
+    Exchange( Common::Interaction::Owner * hamiltonian, const scalarfield & shell_magnitudes ) noexcept;
 
     void setParameters( const pairfield & pPairs, const scalarfield & pMagnitudes )
     {
@@ -80,7 +80,7 @@ public:
     static constexpr std::optional<int> spin_order_ = 2;
 
 protected:
-    void updateFromGeometry( const Data::Geometry * geometry ) override;
+    void updateFromGeometry( const Data::Geometry & geometry ) override;
 
 private:
     scalarfield exchange_shell_magnitudes;

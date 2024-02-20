@@ -37,7 +37,7 @@ namespace Interaction
 {
 
 DDI::DDI(
-    Hamiltonian * hamiltonian, Engine::Spin::DDI_Method ddi_method, intfield n_periodic_images,
+    Common::Interaction::Owner * hamiltonian, Engine::Spin::DDI_Method ddi_method, intfield n_periodic_images,
     const bool pb_zero_padding, const scalar cutoff_radius ) noexcept
         : Interaction::Base<DDI>( hamiltonian, scalarfield( 0 ) ),
           method( ddi_method ),
@@ -50,7 +50,7 @@ DDI::DDI(
     this->updateGeometry();
 }
 
-DDI::DDI( Hamiltonian * hamiltonian, Engine::Spin::DDI_Method ddi_method, const Data::DDI_Data & ddi_data ) noexcept
+DDI::DDI( Common::Interaction::Owner * hamiltonian, Engine::Spin::DDI_Method ddi_method, const Data::DDI_Data & ddi_data ) noexcept
         : DDI( hamiltonian, ddi_method, ddi_data.n_periodic_images, ddi_data.pb_zero_padding, ddi_data.radius )
 {
 }
@@ -60,10 +60,10 @@ bool DDI::is_contributing() const
     return method != DDI_Method::None;
 }
 
-void DDI::updateFromGeometry( const Geometry * geometry )
+void DDI::updateFromGeometry( const Geometry & geometry )
 {
     if( method == DDI_Method::Cutoff )
-        ddi_pairs = Engine::Neighbours::Get_Pairs_in_Radius( *geometry, this->ddi_cutoff_radius );
+        ddi_pairs = Engine::Neighbours::Get_Pairs_in_Radius( geometry, this->ddi_cutoff_radius );
     else
         ddi_pairs = field<Pair>{};
 
@@ -73,7 +73,7 @@ void DDI::updateFromGeometry( const Geometry * geometry )
     for( std::size_t i = 0; i < this->ddi_pairs.size(); ++i )
     {
         Engine::Neighbours::DDI_from_Pair(
-            *geometry,
+            geometry,
             {
                 this->ddi_pairs[i].i,
                 this->ddi_pairs[i].j,
@@ -106,17 +106,17 @@ void DDI::Energy_per_Spin( const vectorfield & spins, scalarfield & energy )
 
 void DDI::Hessian( const vectorfield & spins, MatrixX & hessian )
 {
-    const auto * geometry = hamiltonian->geometry.get();
+    const auto & geometry = hamiltonian->getGeometry();
 
     // Tentative Dipole-Dipole (only works for open boundary conditions)
     if( method != DDI_Method::None )
     {
         static constexpr scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4 * C::Pi * 1e-30 );
-        for( int idx1 = 0; idx1 < geometry->nos; idx1++ )
+        for( int idx1 = 0; idx1 < geometry.nos; idx1++ )
         {
-            for( int idx2 = 0; idx2 < geometry->nos; idx2++ )
+            for( int idx2 = 0; idx2 < geometry.nos; idx2++ )
             {
-                auto diff = geometry->positions[idx2] - geometry->positions[idx1];
+                auto diff = geometry.positions[idx2] - geometry.positions[idx1];
                 scalar d = diff.norm(), d3 = 0, d5 = 0;
                 scalar Dxx = 0, Dxy = 0, Dxz = 0, Dyy = 0, Dyz = 0, Dzz = 0;
                 if( d > 1e-10 )
@@ -134,15 +134,15 @@ void DDI::Hessian( const vectorfield & spins, MatrixX & hessian )
                 int i = 3 * idx1;
                 int j = 3 * idx2;
 
-                hessian( i + 0, j + 0 ) += -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dxx );
-                hessian( i + 1, j + 0 ) += -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dxy );
-                hessian( i + 2, j + 0 ) += -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dxz );
-                hessian( i + 0, j + 1 ) += -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dxy );
-                hessian( i + 1, j + 1 ) += -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dyy );
-                hessian( i + 2, j + 1 ) += -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dyz );
-                hessian( i + 0, j + 2 ) += -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dxz );
-                hessian( i + 1, j + 2 ) += -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dyz );
-                hessian( i + 2, j + 2 ) += -geometry->mu_s[idx1] * geometry->mu_s[idx2] * ( Dzz );
+                hessian( i + 0, j + 0 ) += -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dxx );
+                hessian( i + 1, j + 0 ) += -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dxy );
+                hessian( i + 2, j + 0 ) += -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dxz );
+                hessian( i + 0, j + 1 ) += -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dxy );
+                hessian( i + 1, j + 1 ) += -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dyy );
+                hessian( i + 2, j + 1 ) += -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dyz );
+                hessian( i + 0, j + 2 ) += -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dxz );
+                hessian( i + 1, j + 2 ) += -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dyz );
+                hessian( i + 2, j + 2 ) += -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dzz );
             }
         }
     }
@@ -198,24 +198,24 @@ scalar DDI::Energy_Single_Spin( const int ispin, const vectorfield & spins )
 
 void DDI::Energy_per_Spin_Direct( const vectorfield & spins, scalarfield & energy )
 {
-    const auto * geometry = hamiltonian->geometry.get();
+    const auto & geometry = hamiltonian->getGeometry();
 
     vectorfield gradients_temp;
-    gradients_temp.resize( geometry->nos );
+    gradients_temp.resize( geometry.nos );
     Vectormath::fill( gradients_temp, { 0, 0, 0 } );
     this->Gradient_Direct( spins, gradients_temp );
 
 #pragma omp parallel for
-    for( int ispin = 0; ispin < geometry->nos; ispin++ )
+    for( int ispin = 0; ispin < geometry.nos; ispin++ )
         energy[ispin] += 0.5 * spins[ispin].dot( gradients_temp[ispin] );
 }
 
 void DDI::Energy_per_Spin_Cutoff( const vectorfield & spins, scalarfield & energy )
 {
-    const auto * geometry            = hamiltonian->geometry.get();
-    const auto & boundary_conditions = hamiltonian->boundary_conditions;
+    const auto & geometry            = hamiltonian->getGeometry();
+    const auto & boundary_conditions = hamiltonian->getBoundaryConditions();
 
-    const auto & mu_s = geometry->mu_s;
+    const auto & mu_s = geometry.mu_s;
     // The translations are in angstr�m, so the |r|[m] becomes |r|[m]*10^-10
     static constexpr scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4 * C::Pi * 1e-30 );
 
@@ -229,17 +229,17 @@ void DDI::Energy_per_Spin_Cutoff( const vectorfield & spins, scalarfield & energ
 // {
 //     if (ddi_magnitudes[i_pair] > 0.0)
 //     {
-//         for (int da = 0; da < geometry->n_cells[0]; ++da)
+//         for (int da = 0; da < geometry.n_cells[0]; ++da)
 //         {
-//             for (int db = 0; db < geometry->n_cells[1]; ++db)
+//             for (int db = 0; db < geometry.n_cells[1]; ++db)
 //             {
-//                 for (int dc = 0; dc < geometry->n_cells[2]; ++dc)
+//                 for (int dc = 0; dc < geometry.n_cells[2]; ++dc)
 //                 {
 //                     std::array<int, 3 > translations = { da, db, dc };
 //                     // int idx_i = ddi_pairs[i_pair].i;
 //                     // int idx_j = ddi_pairs[i_pair].j;
-//                     int idx_i = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations);
-//                     int idx_j = idx_from_translations(geometry->n_cells, geometry->n_cell_atoms, translations,
+//                     int idx_i = idx_from_translations(geometry.n_cells, geometry.n_cell_atoms, translations);
+//                     int idx_j = idx_from_translations(geometry.n_cells, geometry.n_cell_atoms, translations,
 //                     ddi_pairs[i_pair].translations); Energy[idx_i] -= mult / std::pow(ddi_magnitudes[i_pair], 3.0) *
 //                         (3 * spins[idx_j].dot(ddi_normals[i_pair]) * spins[idx_i].dot(ddi_normals[i_pair]) -
 //                         spins[idx_i].dot(spins[idx_j]));
@@ -257,20 +257,20 @@ void DDI::Energy_per_Spin_Cutoff( const vectorfield & spins, scalarfield & energ
     {
         if( ddi_magnitudes[i_pair] > 0.0 )
         {
-            for( int da = 0; da < geometry->n_cells[0]; ++da )
+            for( int da = 0; da < geometry.n_cells[0]; ++da )
             {
-                for( int db = 0; db < geometry->n_cells[1]; ++db )
+                for( int db = 0; db < geometry.n_cells[1]; ++db )
                 {
-                    for( int dc = 0; dc < geometry->n_cells[2]; ++dc )
+                    for( int dc = 0; dc < geometry.n_cells[2]; ++dc )
                     {
                         std::array<int, 3> translations = { da, db, dc };
 
                         int i = ddi_pairs[i_pair].i;
                         int j = ddi_pairs[i_pair].j;
                         int ispin
-                            = i + idx_from_translations( geometry->n_cells, geometry->n_cell_atoms, translations );
+                            = i + idx_from_translations( geometry.n_cells, geometry.n_cell_atoms, translations );
                         int jspin = idx_from_pair(
-                            ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                            ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
                             ddi_pairs[i_pair] );
                         if( jspin >= 0 )
                         {
@@ -290,9 +290,9 @@ void DDI::Energy_per_Spin_Cutoff( const vectorfield & spins, scalarfield & energ
 
 void DDI::Gradient_Cutoff( const vectorfield & spins, vectorfield & gradient )
 {
-    const auto * geometry            = hamiltonian->geometry.get();
-    const auto & boundary_conditions = hamiltonian->boundary_conditions;
-    const auto & mu_s                = geometry->mu_s;
+    const auto & geometry            = hamiltonian->getGeometry();
+    const auto & boundary_conditions = hamiltonian->getBoundaryConditions();
+    const auto & mu_s                = geometry.mu_s;
 #ifdef SPIRIT_USE_CUDA
 // TODO
 #else
@@ -303,11 +303,11 @@ void DDI::Gradient_Cutoff( const vectorfield & spins, vectorfield & gradient )
     {
         if( ddi_magnitudes[i_pair] > 0.0 )
         {
-            for( int da = 0; da < geometry->n_cells[0]; ++da )
+            for( int da = 0; da < geometry.n_cells[0]; ++da )
             {
-                for( int db = 0; db < geometry->n_cells[1]; ++db )
+                for( int db = 0; db < geometry.n_cells[1]; ++db )
                 {
-                    for( int dc = 0; dc < geometry->n_cells[2]; ++dc )
+                    for( int dc = 0; dc < geometry.n_cells[2]; ++dc )
                     {
                         scalar skalar_contrib           = mult / std::pow( ddi_magnitudes[i_pair], 3.0 );
                         std::array<int, 3> translations = { da, db, dc };
@@ -315,9 +315,9 @@ void DDI::Gradient_Cutoff( const vectorfield & spins, vectorfield & gradient )
                         int i = ddi_pairs[i_pair].i;
                         int j = ddi_pairs[i_pair].j;
                         int ispin
-                            = i + idx_from_translations( geometry->n_cells, geometry->n_cell_atoms, translations );
+                            = i + idx_from_translations( geometry.n_cells, geometry.n_cell_atoms, translations );
                         int jspin = idx_from_pair(
-                            ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                            ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
                             ddi_pairs[i_pair] );
                         if( jspin >= 0 )
                         {
@@ -348,21 +348,21 @@ __global__ void CU_E_DDI_FFT(
 
 void DDI::Energy_per_Spin_FFT( const vectorfield & spins, scalarfield & energy )
 {
-    const auto * geometry = hamiltonian->geometry.get();
+    const auto & geometry = hamiltonian->getGeometry();
 
 #ifdef SPIRIT_USE_CUDA
     // TODO: maybe the gradient should be cached somehow, it is quite inefficient to calculate it
     // again just for the energy
-    vectorfield gradients_temp( geometry->nos );
+    vectorfield gradients_temp( geometry.nos );
     Vectormath::fill( gradients_temp, { 0, 0, 0 } );
     this->Gradient( spins, gradients_temp );
-    CU_E_DDI_FFT<<<( geometry->nos + 1023 ) / 1024, 1024>>>(
-        energy.data(), spins.data(), gradients_temp.data(), geometry->nos, geometry->n_cell_atoms,
-        geometry->mu_s.data() );
+    CU_E_DDI_FFT<<<( geometry.nos + 1023 ) / 1024, 1024>>>(
+        energy.data(), spins.data(), gradients_temp.data(), geometry.nos, geometry.n_cell_atoms,
+        geometry.mu_s.data() );
 
     // === DEBUG: begin gradient comparison ===
     // vectorfield gradients_temp_dir;
-    // gradients_temp_dir.resize(geometry->nos);
+    // gradients_temp_dir.resize(geometry.nos);
     // Vectormath::fill(gradients_temp_dir, {0,0,0});
     // Gradient_Direct(spins, gradients_temp_dir);
 
@@ -371,7 +371,7 @@ void DDI::Energy_per_Spin_FFT( const vectorfield & spins, scalarfield & energy )
     // std::array<scalar, 3> avg = {0,0,0};
     // std::array<scalar, 3> avg_ft = {0,0,0};
 
-    // for(int i = 0; i < geometry->nos; i++)
+    // for(int i = 0; i < geometry.nos; i++)
     // {
     //     for(int d = 0; d < 3; d++)
     //     {
@@ -380,26 +380,26 @@ void DDI::Energy_per_Spin_FFT( const vectorfield & spins, scalarfield & energy )
     //         avg_ft[d] += gradients_temp[i][d];
     //     }
     // }
-    // std::cerr << "Avg. Gradient (Direct) = " << avg[0]/geometry->nos << " " << avg[1]/geometry->nos << "
-    // " << avg[2]/geometry->nos << std::endl; std::cerr << "Avg. Gradient (FFT)    = " <<
-    // avg_ft[0]/geometry->nos << " " << avg_ft[1]/geometry->nos << " " << avg_ft[2]/geometry->nos <<
+    // std::cerr << "Avg. Gradient (Direct) = " << avg[0]/geometry.nos << " " << avg[1]/geometry.nos << "
+    // " << avg[2]/geometry.nos << std::endl; std::cerr << "Avg. Gradient (FFT)    = " <<
+    // avg_ft[0]/geometry.nos << " " << avg_ft[1]/geometry.nos << " " << avg_ft[2]/geometry.nos <<
     // std::endl; std::cerr << "Relative Error in %    = " << (avg_ft[0]/avg[0]-1)*100 << " " <<
     // (avg_ft[1]/avg[1]-1)*100 << " " << (avg_ft[2]/avg[2]-1)*100 << std::endl; std::cerr << "Avg. Deviation         =
-    // " << std::pow(deviation[0]/geometry->nos, 0.5) << " " << std::pow(deviation[1]/geometry->nos, 0.5) <<
-    // " " << std::pow(deviation[2]/geometry->nos, 0.5) << std::endl; std::cerr << " ---------------- " <<
+    // " << std::pow(deviation[0]/geometry.nos, 0.5) << " " << std::pow(deviation[1]/geometry.nos, 0.5) <<
+    // " " << std::pow(deviation[2]/geometry.nos, 0.5) << std::endl; std::cerr << " ---------------- " <<
     // std::endl;
     // ==== DEBUG: end gradient comparison ====
 
 #else
     // scalar Energy_DDI = 0;
     vectorfield gradients_temp;
-    gradients_temp.resize( geometry->nos );
+    gradients_temp.resize( geometry.nos );
     Vectormath::fill( gradients_temp, { 0, 0, 0 } );
     this->Gradient_FFT( spins, gradients_temp );
 
     // TODO: add dot_scaled to Vectormath and use that
 #pragma omp parallel for
-    for( int ispin = 0; ispin < geometry->nos; ispin++ )
+    for( int ispin = 0; ispin < geometry.nos; ispin++ )
     {
         energy[ispin] += 0.5 * spins[ispin].dot( gradients_temp[ispin] );
         // Energy_DDI    += 0.5 * spins[ispin].dot(gradients_temp[ispin]);
@@ -482,7 +482,7 @@ __global__ void CU_Write_FFT_Gradients(
 
 void DDI::Gradient_FFT( const vectorfield & spins, vectorfield & gradient )
 {
-    const auto * geometry = hamiltonian->geometry.get();
+    const auto & geometry = hamiltonian->getGeometry();
 
 #ifdef SPIRIT_USE_CUDA
     auto & ft_D_matrices = transformed_dipole_matrices;
@@ -510,14 +510,14 @@ void DDI::Gradient_FFT( const vectorfield & spins, vectorfield & gradient )
 
     FFT::batch_iFour_3D( fft_plan_reverse );
 
-    CU_Write_FFT_Gradients<<<( geometry->nos + 1023 ) / 1024, 1024>>>(
-        res_iFFT.data(), gradient.data(), spin_stride, it_bounds_write_gradients.data(), geometry->n_cell_atoms,
-        geometry->mu_s.data(), sublattice_size );
+    CU_Write_FFT_Gradients<<<( geometry.nos + 1023 ) / 1024, 1024>>>(
+        res_iFFT.data(), gradient.data(), spin_stride, it_bounds_write_gradients.data(), geometry.n_cell_atoms,
+        geometry.mu_s.data(), sublattice_size );
 #else
     // Size of original geometry
-    int Na = geometry->n_cells[0];
-    int Nb = geometry->n_cells[1];
-    int Nc = geometry->n_cells[2];
+    int Na = geometry.n_cells[0];
+    int Nb = geometry.n_cells[1];
+    int Nc = geometry.n_cells[2];
 
     FFT_Spins( spins, this->fft_plan_spins );
 
@@ -528,7 +528,7 @@ void DDI::Gradient_FFT( const vectorfield & spins, vectorfield & gradient )
     auto & res_mult = fft_plan_reverse.cpx_ptr;
 
     // Workaround for compability with intel compiler
-    const int c_n_cell_atoms               = geometry->n_cell_atoms;
+    const int c_n_cell_atoms               = geometry.n_cell_atoms;
     const int * c_it_bounds_pointwise_mult = it_bounds_pointwise_mult.data();
 
     // Loop over basis atoms (i.e sublattices)
@@ -545,7 +545,7 @@ void DDI::Gradient_FFT( const vectorfield & spins, vectorfield & gradient )
                     for( int i_b2 = 0; i_b2 < c_n_cell_atoms; ++i_b2 )
                     {
                         // Look up at which position the correct D-matrices are saved
-                        int & b_inter = inter_sublattice_lookup[i_b1 + i_b2 * geometry->n_cell_atoms];
+                        int & b_inter = inter_sublattice_lookup[i_b1 + i_b2 * geometry.n_cell_atoms];
 
                         int idx_b2
                             = i_b2 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
@@ -584,7 +584,7 @@ void DDI::Gradient_FFT( const vectorfield & spins, vectorfield & gradient )
     FFT::batch_iFour_3D( fft_plan_reverse );
 
     // Workaround for compability with intel compiler
-    const int * c_n_cells = geometry->n_cells.data();
+    const int * c_n_cells = geometry.n_cells.data();
 
     // Place the gradients at the correct positions and mult with correct mu
     for( int c = 0; c < c_n_cells[2]; ++c )
@@ -595,13 +595,13 @@ void DDI::Gradient_FFT( const vectorfield & spins, vectorfield & gradient )
             {
                 for( int i_b1 = 0; i_b1 < c_n_cell_atoms; ++i_b1 )
                 {
-                    int idx_orig = i_b1 + geometry->n_cell_atoms * ( a + Na * ( b + Nb * c ) );
+                    int idx_orig = i_b1 + geometry.n_cell_atoms * ( a + Na * ( b + Nb * c ) );
                     int idx      = i_b1 * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
-                    gradient[idx_orig][0] -= geometry->mu_s[idx_orig] * res_iFFT[idx] / sublattice_size;
+                    gradient[idx_orig][0] -= geometry.mu_s[idx_orig] * res_iFFT[idx] / sublattice_size;
                     gradient[idx_orig][1]
-                        -= geometry->mu_s[idx_orig] * res_iFFT[idx + 1 * spin_stride.comp] / sublattice_size;
+                        -= geometry.mu_s[idx_orig] * res_iFFT[idx + 1 * spin_stride.comp] / sublattice_size;
                     gradient[idx_orig][2]
-                        -= geometry->mu_s[idx_orig] * res_iFFT[idx + 2 * spin_stride.comp] / sublattice_size;
+                        -= geometry.mu_s[idx_orig] * res_iFFT[idx + 2 * spin_stride.comp] / sublattice_size;
                 }
             }
         }
@@ -611,8 +611,8 @@ void DDI::Gradient_FFT( const vectorfield & spins, vectorfield & gradient )
 
 void DDI::Gradient_Direct( const vectorfield & spins, vectorfield & gradient )
 {
-    const auto * geometry            = hamiltonian->geometry.get();
-    const auto & boundary_conditions = hamiltonian->boundary_conditions;
+    const auto & geometry            = hamiltonian->getGeometry();
+    const auto & boundary_conditions = hamiltonian->getBoundaryConditions();
 
     static constexpr scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4 * C::Pi * 1e-30 );
 
@@ -623,13 +623,13 @@ void DDI::Gradient_Direct( const vectorfield & spins, vectorfield & gradient )
     scalar d = 0, d3 = 0, d5 = 0;
     Vector3 diff;
     Vector3 diff_img;
-    for( int idx1 = 0; idx1 < geometry->nos; idx1++ )
+    for( int idx1 = 0; idx1 < geometry.nos; idx1++ )
     {
-        for( int idx2 = 0; idx2 < geometry->nos; idx2++ )
+        for( int idx2 = 0; idx2 < geometry.nos; idx2++ )
         {
             const auto & m2 = spins[idx2];
 
-            diff       = geometry->positions[idx2] - geometry->positions[idx1];
+            diff       = geometry.positions[idx2] - geometry.positions[idx1];
             scalar Dxx = 0, Dxy = 0, Dxz = 0, Dyy = 0, Dyz = 0, Dzz = 0;
 
             for( int a_pb = -img_a; a_pb <= img_a; a_pb++ )
@@ -640,9 +640,9 @@ void DDI::Gradient_Direct( const vectorfield & spins, vectorfield & gradient )
                     {
                         diff_img
                             = diff
-                              + a_pb * geometry->n_cells[0] * geometry->bravais_vectors[0] * geometry->lattice_constant
-                              + b_pb * geometry->n_cells[1] * geometry->bravais_vectors[1] * geometry->lattice_constant
-                              + c_pb * geometry->n_cells[2] * geometry->bravais_vectors[2] * geometry->lattice_constant;
+                              + a_pb * geometry.n_cells[0] * geometry.bravais_vectors[0] * geometry.lattice_constant
+                              + b_pb * geometry.n_cells[1] * geometry.bravais_vectors[1] * geometry.lattice_constant
+                              + c_pb * geometry.n_cells[2] * geometry.bravais_vectors[2] * geometry.lattice_constant;
                         d = diff_img.norm();
                         if( d > 1e-10 )
                         {
@@ -660,11 +660,11 @@ void DDI::Gradient_Direct( const vectorfield & spins, vectorfield & gradient )
             }
 
             gradient[idx1][0]
-                -= ( Dxx * m2[0] + Dxy * m2[1] + Dxz * m2[2] ) * geometry->mu_s[idx1] * geometry->mu_s[idx2];
+                -= ( Dxx * m2[0] + Dxy * m2[1] + Dxz * m2[2] ) * geometry.mu_s[idx1] * geometry.mu_s[idx2];
             gradient[idx1][1]
-                -= ( Dxy * m2[0] + Dyy * m2[1] + Dyz * m2[2] ) * geometry->mu_s[idx1] * geometry->mu_s[idx2];
+                -= ( Dxy * m2[0] + Dyy * m2[1] + Dyz * m2[2] ) * geometry.mu_s[idx1] * geometry.mu_s[idx2];
             gradient[idx1][2]
-                -= ( Dxz * m2[0] + Dyz * m2[1] + Dzz * m2[2] ) * geometry->mu_s[idx1] * geometry->mu_s[idx2];
+                -= ( Dxz * m2[0] + Dyz * m2[1] + Dzz * m2[2] ) * geometry.mu_s[idx1] * geometry.mu_s[idx2];
         }
     }
 }
@@ -691,17 +691,17 @@ __global__ void CU_Write_FFT_Spin_Input(
 
 void DDI::FFT_Spins( const vectorfield & spins, FFT::FFT_Plan & fft_plan ) const
 {
-    const auto * geometry = hamiltonian->geometry.get();
+    const auto & geometry = hamiltonian->getGeometry();
 
 #ifdef SPIRIT_USE_CUDA
-    CU_Write_FFT_Spin_Input<<<( geometry->nos + 1023 ) / 1024, 1024>>>(
-        fft_plan.real_ptr.data(), spins.data(), it_bounds_write_spins.data(), spin_stride, geometry->mu_s.data() );
+    CU_Write_FFT_Spin_Input<<<( geometry.nos + 1023 ) / 1024, 1024>>>(
+        fft_plan.real_ptr.data(), spins.data(), it_bounds_write_spins.data(), spin_stride, geometry.mu_s.data() );
 #else
     // size of original geometry
-    const int Na           = geometry->n_cells[0];
-    const int Nb           = geometry->n_cells[1];
-    const int Nc           = geometry->n_cells[2];
-    const int n_cell_atoms = geometry->n_cell_atoms;
+    const int Na           = geometry.n_cells[0];
+    const int Nb           = geometry.n_cells[1];
+    const int Nc           = geometry.n_cells[2];
+    const int n_cell_atoms = geometry.n_cell_atoms;
 
     auto & fft_spin_inputs = fft_plan.real_ptr;
 
@@ -718,9 +718,9 @@ void DDI::FFT_Spins( const vectorfield & spins, FFT::FFT_Plan & fft_plan ) const
                     int idx_orig = bi + n_cell_atoms * ( a + Na * ( b + Nb * c ) );
                     int idx      = bi * spin_stride.basis + a * spin_stride.a + b * spin_stride.b + c * spin_stride.c;
 
-                    fft_spin_inputs[idx]                        = spins[idx_orig][0] * geometry->mu_s[idx_orig];
-                    fft_spin_inputs[idx + 1 * spin_stride.comp] = spins[idx_orig][1] * geometry->mu_s[idx_orig];
-                    fft_spin_inputs[idx + 2 * spin_stride.comp] = spins[idx_orig][2] * geometry->mu_s[idx_orig];
+                    fft_spin_inputs[idx]                        = spins[idx_orig][0] * geometry.mu_s[idx_orig];
+                    fft_spin_inputs[idx + 1 * spin_stride.comp] = spins[idx_orig][1] * geometry.mu_s[idx_orig];
+                    fft_spin_inputs[idx + 2 * spin_stride.comp] = spins[idx_orig][2] * geometry.mu_s[idx_orig];
                 }
             }
         }
@@ -811,7 +811,7 @@ __global__ void CU_Write_FFT_Dipole_Input(
 
 void DDI::FFT_Dipole_Matrices( FFT::FFT_Plan & fft_plan, const int img_a, const int img_b, const int img_c )
 {
-    const auto * geometry = hamiltonian->geometry.get();
+    const auto & geometry = hamiltonian->getGeometry();
 
 #ifdef SPIRIT_USE_CUDA
     auto & fft_dipole_inputs = fft_plan.real_ptr;
@@ -824,39 +824,39 @@ void DDI::FFT_Dipole_Matrices( FFT::FFT_Plan & fft_plan, const int img_a, const 
     auto cell_atom_translations = field<Vector3>();
 
     for( int i = 0; i < 3; i++ )
-        translation_vectors.push_back( geometry->lattice_constant * geometry->bravais_vectors[i] );
+        translation_vectors.push_back( geometry.lattice_constant * geometry.bravais_vectors[i] );
 
-    for( int i = 0; i < geometry->n_cell_atoms; i++ )
-        cell_atom_translations.push_back( geometry->positions[i] );
+    for( int i = 0; i < geometry.n_cell_atoms; i++ )
+        cell_atom_translations.push_back( geometry.positions[i] );
 
     static constexpr int blockSize = 768;
     CU_Write_FFT_Dipole_Input<<<( sublattice_size + blockSize - 1 ) / blockSize, blockSize>>>(
-        fft_dipole_inputs.data(), it_bounds_write_dipole.data(), translation_vectors.data(), geometry->n_cell_atoms,
-        cell_atom_translations.data(), geometry->n_cells.data(), inter_sublattice_lookup.data(), img.data(),
+        fft_dipole_inputs.data(), it_bounds_write_dipole.data(), translation_vectors.data(), geometry.n_cell_atoms,
+        cell_atom_translations.data(), geometry.n_cells.data(), inter_sublattice_lookup.data(), img.data(),
         dipole_stride );
 #else
     // Prefactor of DDI
     static constexpr scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4 * C::Pi * 1e-30 );
 
     // Size of original geometry
-    const int Na = geometry->n_cells[0];
-    const int Nb = geometry->n_cells[1];
-    const int Nc = geometry->n_cells[2];
+    const int Na = geometry.n_cells[0];
+    const int Nb = geometry.n_cells[1];
+    const int Nc = geometry.n_cells[2];
 
     auto & fft_dipole_inputs = fft_plan.real_ptr;
 
     int b_inter = -1;
-    for( int i_b1 = 0; i_b1 < geometry->n_cell_atoms; ++i_b1 )
+    for( int i_b1 = 0; i_b1 < geometry.n_cell_atoms; ++i_b1 )
     {
-        for( int i_b2 = 0; i_b2 < geometry->n_cell_atoms; ++i_b2 )
+        for( int i_b2 = 0; i_b2 < geometry.n_cell_atoms; ++i_b2 )
         {
             if( i_b1 == i_b2 && i_b1 != 0 )
             {
-                inter_sublattice_lookup[i_b1 + i_b2 * geometry->n_cell_atoms] = 0;
+                inter_sublattice_lookup[i_b1 + i_b2 * geometry.n_cell_atoms] = 0;
                 continue;
             }
             b_inter++;
-            inter_sublattice_lookup[i_b1 + i_b2 * geometry->n_cell_atoms] = b_inter;
+            inter_sublattice_lookup[i_b1 + i_b2 * geometry.n_cell_atoms] = b_inter;
 
             // Iterate over the padded system
             const int * c_n_cells_padded = n_cells_padded.data();
@@ -880,16 +880,16 @@ void DDI::FFT_Dipole_Matrices( FFT::FFT_Plan & fft_plan, const int img_a, const 
                             {
                                 for( int c_pb = -img_c; c_pb <= img_c; c_pb++ )
                                 {
-                                    diff = geometry->lattice_constant
-                                           * ( ( a_idx + a_pb * Na + geometry->cell_atoms[i_b1][0]
-                                                 - geometry->cell_atoms[i_b2][0] )
-                                                   * geometry->bravais_vectors[0]
-                                               + ( b_idx + b_pb * Nb + geometry->cell_atoms[i_b1][1]
-                                                   - geometry->cell_atoms[i_b2][1] )
-                                                     * geometry->bravais_vectors[1]
-                                               + ( c_idx + c_pb * Nc + geometry->cell_atoms[i_b1][2]
-                                                   - geometry->cell_atoms[i_b2][2] )
-                                                     * geometry->bravais_vectors[2] );
+                                    diff = geometry.lattice_constant
+                                           * ( ( a_idx + a_pb * Na + geometry.cell_atoms[i_b1][0]
+                                                 - geometry.cell_atoms[i_b2][0] )
+                                                   * geometry.bravais_vectors[0]
+                                               + ( b_idx + b_pb * Nb + geometry.cell_atoms[i_b1][1]
+                                                   - geometry.cell_atoms[i_b2][1] )
+                                                     * geometry.bravais_vectors[1]
+                                               + ( c_idx + c_pb * Nc + geometry.cell_atoms[i_b1][2]
+                                                   - geometry.cell_atoms[i_b2][2] )
+                                                     * geometry.bravais_vectors[2] );
 
                                     if( diff.norm() > 1e-10 )
                                     {
@@ -932,8 +932,8 @@ void DDI::Prepare_DDI()
     if( method != DDI_Method::FFT )
         return;
 
-    const auto * geometry            = hamiltonian->geometry.get();
-    const auto & boundary_conditions = hamiltonian->boundary_conditions;
+    const auto & geometry            = hamiltonian->getGeometry();
+    const auto & boundary_conditions = hamiltonian->getBoundaryConditions();
 
     // We perform zero-padding in a lattice direction if the dimension of the system is greater than 1 *and*
     //  - the boundary conditions are open, or
@@ -941,8 +941,8 @@ void DDI::Prepare_DDI()
     n_cells_padded.resize( 3 );
     for( int i = 0; i < 3; i++ )
     {
-        n_cells_padded[i]         = geometry->n_cells[i];
-        bool perform_zero_padding = geometry->n_cells[i] > 1 && ( boundary_conditions[i] == 0 || ddi_pb_zero_padding );
+        n_cells_padded[i]         = geometry.n_cells[i];
+        bool perform_zero_padding = geometry.n_cells[i] > 1 && ( boundary_conditions[i] == 0 || ddi_pb_zero_padding );
         if( perform_zero_padding )
             n_cells_padded[i] *= 2;
     }
@@ -959,7 +959,7 @@ void DDI::Prepare_DDI()
             n_cells_padded[i] = 2;
 #endif
 
-    inter_sublattice_lookup.resize( geometry->n_cell_atoms * geometry->n_cell_atoms );
+    inter_sublattice_lookup.resize( geometry.n_cell_atoms * geometry.n_cell_atoms );
 
     // We dont need to transform over length 1 dims
     std::vector<int> fft_dims;
@@ -972,9 +972,9 @@ void DDI::Prepare_DDI()
     // Count how many distinct inter-lattice contributions we need to store
     // TODO: this should be expressible as a closed formula
     n_inter_sublattice = 0;
-    for( int i = 0; i < geometry->n_cell_atoms; i++ )
+    for( int i = 0; i < geometry.n_cell_atoms; i++ )
     {
-        for( int j = 0; j < geometry->n_cell_atoms; j++ )
+        for( int j = 0; j < geometry.n_cell_atoms; j++ )
         {
             if( i != 0 && i == j )
                 continue;
@@ -986,27 +986,27 @@ void DDI::Prepare_DDI()
 #ifdef SPIRIT_USE_CUDA
     // Set the iteration bounds for the nested for loops that are flattened in the kernels
     it_bounds_write_spins
-        = { geometry->n_cell_atoms, geometry->n_cells[0], geometry->n_cells[1], geometry->n_cells[2] };
+        = { geometry.n_cell_atoms, geometry.n_cells[0], geometry.n_cells[1], geometry.n_cells[2] };
 
     it_bounds_write_dipole = { n_cells_padded[0], n_cells_padded[1], n_cells_padded[2] };
 
-    it_bounds_pointwise_mult = { geometry->n_cell_atoms,
+    it_bounds_pointwise_mult = { geometry.n_cell_atoms,
                                  ( n_cells_padded[0] / 2 + 1 ), // due to redundancy in real fft
                                  n_cells_padded[1], n_cells_padded[2] };
 
     it_bounds_write_gradients
-        = { geometry->n_cell_atoms, geometry->n_cells[0], geometry->n_cells[1], geometry->n_cells[2] };
+        = { geometry.n_cell_atoms, geometry.n_cells[0], geometry.n_cells[1], geometry.n_cells[2] };
 #endif
     auto fft_plan_dipole = FFT::FFT_Plan( fft_dims, false, 6 * n_inter_sublattice, sublattice_size );
-    fft_plan_spins       = FFT::FFT_Plan( fft_dims, false, 3 * geometry->n_cell_atoms, sublattice_size );
-    fft_plan_reverse     = FFT::FFT_Plan( fft_dims, true, 3 * geometry->n_cell_atoms, sublattice_size );
+    fft_plan_spins       = FFT::FFT_Plan( fft_dims, false, 3 * geometry.n_cell_atoms, sublattice_size );
+    fft_plan_reverse     = FFT::FFT_Plan( fft_dims, true, 3 * geometry.n_cell_atoms, sublattice_size );
 
 #if defined( SPIRIT_USE_FFTW ) || defined( SPIRIT_USE_CUDA )
     field<int *> temp_s = { &spin_stride.comp, &spin_stride.basis, &spin_stride.a, &spin_stride.b, &spin_stride.c };
     field<int *> temp_d
         = { &dipole_stride.comp, &dipole_stride.basis, &dipole_stride.a, &dipole_stride.b, &dipole_stride.c };
     ;
-    FFT::get_strides( temp_s, { 3, geometry->n_cell_atoms, n_cells_padded[0], n_cells_padded[1], n_cells_padded[2] } );
+    FFT::get_strides( temp_s, { 3, geometry.n_cell_atoms, n_cells_padded[0], n_cells_padded[1], n_cells_padded[2] } );
     FFT::get_strides( temp_d, { 6, n_inter_sublattice, n_cells_padded[0], n_cells_padded[1], n_cells_padded[2] } );
 #ifndef SPIRIT_USE_CUDA
     it_bounds_pointwise_mult = { ( n_cells_padded[0] / 2 + 1 ), // due to redundancy in real fft
@@ -1017,7 +1017,7 @@ void DDI::Prepare_DDI()
     field<int *> temp_d
         = { &dipole_stride.a, &dipole_stride.b, &dipole_stride.c, &dipole_stride.comp, &dipole_stride.basis };
     ;
-    FFT::get_strides( temp_s, { n_cells_padded[0], n_cells_padded[1], n_cells_padded[2], 3, geometry->n_cell_atoms } );
+    FFT::get_strides( temp_s, { n_cells_padded[0], n_cells_padded[1], n_cells_padded[2], 3, geometry.n_cell_atoms } );
     FFT::get_strides( temp_d, { n_cells_padded[0], n_cells_padded[1], n_cells_padded[2], 6, n_inter_sublattice } );
     it_bounds_pointwise_mult = { n_cells_padded[0], n_cells_padded[1], n_cells_padded[2] };
     ( it_bounds_pointwise_mult[fft_dims.size() - 1] /= 2 )++;

@@ -186,7 +186,7 @@ void Method_LLG<system_t, solver>::Calculate_Force_Virtual(
             {
                 if( parameters.stt_use_gradient )
                 {
-                    auto & boundary_conditions = this->systems[0]->hamiltonian->boundary_conditions;
+                    const auto & boundary_conditions = this->systems[0]->hamiltonian->getBoundaryConditions();
 
                     // Gradient approximation for in-plane currents
                     Vectormath::jacobian( image, geometry, boundary_conditions, jacobians );

@@ -7,6 +7,7 @@ set(SOURCE_SPIRIT_ENGINE_SPIN_INTERACTION
 
 set(SOURCE_SPIRIT_ENGINE_SPIN
     ${SOURCE_SPIRIT_ENGINE_SPIN}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Eigenmodes.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/HTST.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Sparse_HTST.cpp
@@ -23,6 +24,7 @@ set(SOURCE_SPIRIT_ENGINE_SPIN
 if( SPIRIT_USE_CUDA )
     ### Need to use nvcc on many source files because they indirectly include cuda.h
     set_source_files_properties(
+        ${CMAKE_CURRENT_LIST_DIR}/Hamiltonian.cpp
         ${CMAKE_CURRENT_LIST_DIR}/Eigenmodes.cpp
         ${CMAKE_CURRENT_LIST_DIR}/HTST.cpp
         ${CMAKE_CURRENT_LIST_DIR}/Sparse_HTST.cpp

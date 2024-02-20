@@ -34,9 +34,7 @@ try
     image->Lock();
     try
     {
-        image->hamiltonian->boundary_conditions[0] = periodical[0];
-        image->hamiltonian->boundary_conditions[1] = periodical[1];
-        image->hamiltonian->boundary_conditions[2] = periodical[2];
+        image->hamiltonian->setBoundaryConditions({periodical[0], periodical[1], periodical[2]});
     }
     catch( ... )
     {
@@ -436,9 +434,10 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( periodical, "periodical" );
 
-    periodical[0] = image->hamiltonian->boundary_conditions[0];
-    periodical[1] = image->hamiltonian->boundary_conditions[1];
-    periodical[2] = image->hamiltonian->boundary_conditions[2];
+    const auto & boundary_conditions = image->hamiltonian->getBoundaryConditions();
+    periodical[0] = boundary_conditions[0];
+    periodical[1] = boundary_conditions[1];
+    periodical[2] = boundary_conditions[2];
 }
 catch( ... )
 {

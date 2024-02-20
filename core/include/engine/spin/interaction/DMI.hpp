@@ -16,9 +16,9 @@ namespace Interaction
 class DMI : public Interaction::Base<DMI>
 {
 public:
-    DMI( Hamiltonian * hamiltonian, pairfield pairs, scalarfield magnitudes, vectorfield normals ) noexcept;
-    DMI( Hamiltonian * hamiltonian, const Data::VectorPairfieldData & dmi ) noexcept;
-    DMI( Hamiltonian * hamiltonian, scalarfield shell_magnitudes, int chirality ) noexcept;
+    DMI( Common::Interaction::Owner * hamiltonian, pairfield pairs, scalarfield magnitudes, vectorfield normals ) noexcept;
+    DMI( Common::Interaction::Owner * hamiltonian, const Data::VectorPairfieldData & dmi ) noexcept;
+    DMI( Common::Interaction::Owner * hamiltonian, scalarfield shell_magnitudes, int chirality ) noexcept;
 
     void setParameters( const pairfield & pPairs, const scalarfield & pMagnitudes, const vectorfield & pNormals )
     {
@@ -85,7 +85,7 @@ public:
     static constexpr std::optional<int> spin_order_ = 2;
 
 protected:
-    void updateFromGeometry( const Data::Geometry * geometry ) override;
+    void updateFromGeometry( const Data::Geometry & geometry ) override;
 
 private:
     scalarfield dmi_shell_magnitudes;

@@ -1,6 +1,6 @@
 #pragma once
-#ifndef SPIRIT_CORE_ENGINE_SOLVER_LBFGS_ATLAS_HPP
-#define SPIRIT_CORE_ENGINE_SOLVER_LBFGS_ATLAS_HPP
+#ifndef SPIRIT_CORE_ENGINE_SPIN_SOLVER_LBFGS_ATLAS_HPP
+#define SPIRIT_CORE_ENGINE_SPIN_SOLVER_LBFGS_ATLAS_HPP
 
 #include <engine/Backend_par.hpp>
 #include <engine/spin/Method_Solver.hpp>

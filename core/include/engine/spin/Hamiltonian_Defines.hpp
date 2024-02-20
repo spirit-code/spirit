@@ -1,17 +1,11 @@
 #pragma once
-#ifndef SPIRIT_CORE_ENGINE_HAMILTONIAN_DEFINES_HPP
-#define SPIRIT_CORE_ENGINE_HAMILTONIAN_DEFINES_HPP
+#ifndef SPIRIT_CORE_ENGINE_SPIN_HAMILTONIAN_DEFINES_HPP
+#define SPIRIT_CORE_ENGINE_SPIN_HAMILTONIAN_DEFINES_HPP
 
 #include <engine/Vectormath_Defines.hpp>
 
 namespace Data
 {
-
-template<typename T>
-using labeled = std::pair<std::string_view, T>;
-
-template<typename T>
-using vectorlabeled = std::vector<labeled<T>>;
 
 struct NormalVector
 {

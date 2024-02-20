@@ -4,6 +4,7 @@
 
 #include <Spirit/Spirit_Defines.h>
 #include <data/Geometry.hpp>
+#include <data/Misc.hpp>
 #include <data/Parameters_Method_EMA.hpp>
 #include <data/Parameters_Method_GNEB.hpp>
 #include <data/Parameters_Method_LLG.hpp>
@@ -57,6 +58,11 @@ public:
     // Spin Hamiltonian
     std::shared_ptr<Hamiltonian> hamiltonian;
     // Geometric information
+    // TODO: replace this public access member by proper accessors
+    // The `Geometry` object is shared with the `Hamiltonian` data member
+    // which requires the geometry to stay constant to keep its internal state valid
+    // as a workaround the current mode of operation is that each change made to the `Geometry`
+    // object requires a subsequent call to `onGeometryChanged()` on each Hamiltonian that uses it
     std::shared_ptr<Geometry> geometry;
     // Parameters for LLG
     std::shared_ptr<Parameters_Method_LLG> llg_parameters;

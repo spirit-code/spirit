@@ -7,12 +7,11 @@
 #include <data/Geometry.hpp>
 #include <engine/Backend_par.hpp>
 #include <engine/Vectormath_Defines.hpp>
+#include <engine/common/interaction/ABC.hpp>
 #include <engine/spin/Hamiltonian_Defines.hpp>
-#include <engine/spin/interaction/Hamiltonian.hpp>
 
 #include <memory>
 #include <optional>
-#include <random>
 #include <vector>
 
 namespace Engine
@@ -24,25 +23,24 @@ namespace Spin
 namespace Interaction
 {
 
-void setOwnerPtr( ABC & interaction, Hamiltonian * hamiltonian ) noexcept;
-/*
- * Abstract base class that specifies the interface an interaction must have.
- */
-class ABC
-{
-    friend void setOwnerPtr( ABC & interaction, Hamiltonian * hamiltonian ) noexcept;
+using Common::Interaction::triplet;
 
+/*
+ * Abstract base class that specifies the interface a spin interaction must have.
+ */
+class ABC : public Common::Interaction::ABC
+{
 public:
-    virtual ~ABC()                 = default;
+    using state_t = vectorfield;
+
+    ~ABC() override                = default;
     ABC( ABC && )                  = default;
     ABC( const ABC & )             = default;
     ABC & operator=( ABC && )      = default;
     ABC & operator=( const ABC & ) = default;
 
     // clone method so we can duplicate std::unique_ptr objects referencing the Interaction
-    virtual std::unique_ptr<ABC> clone( Hamiltonian * new_hamiltonian ) const = 0;
-    virtual void updateGeometry()                                             = 0;
-
+    virtual std::unique_ptr<ABC> clone( Common::Interaction::Owner * new_hamiltonian ) const = 0;
     /*
      * Calculate the energy gradient of a spin configuration.
      * This function uses finite differences and may thus be quite inefficient.
@@ -87,46 +85,13 @@ public:
     // Calculate the total energy for a single spin
     [[nodiscard]] virtual scalar Energy_Single_Spin( int ispin, const vectorfield & spins );
 
-    // Interaction name as string (must be unique per interaction because interactions with the same name cannot exist
-    // within the same hamiltonian at the same time)
-    [[nodiscard]] virtual std::string_view Name() const = 0;
-
     // polynomial order in the spins, connects spin gradient and energy (optional in cases we can't assign an order)
     // having a positive order means that energy can be calculated as spin.dot(gradient)/spin_order
     [[nodiscard]] virtual std::optional<int> spin_order() const = 0;
 
-    [[nodiscard]] virtual bool is_contributing() const
-    {
-        return true;
-    };
-
-    [[nodiscard]] virtual bool is_enabled() const final
-    {
-        return enabled;
-    };
-
-    [[nodiscard]] virtual bool is_active() const final
-    {
-        return is_enabled() && is_contributing();
-    };
-
-    virtual void enable() final
-    {
-        this->enabled = true;
-        hamiltonian->onInteractionChanged();
-    };
-
-    virtual void disable() final
-    {
-        this->enabled = false;
-        hamiltonian->onInteractionChanged();
-    };
-
 protected:
-    ABC( Hamiltonian * hamiltonian, scalarfield energy_per_spin, scalar delta = 1e-3 ) noexcept
-            : energy_per_spin( std::move( energy_per_spin ) ), delta( delta ), hamiltonian( hamiltonian ){};
-
-    virtual void updateFromGeometry( const Data::Geometry * geometry ) = 0;
+    ABC( Common::Interaction::Owner * hamiltonian, scalarfield energy_per_spin, scalar delta = 1e-3 ) noexcept
+            : Common::Interaction::ABC( hamiltonian, std::move( energy_per_spin ) ), delta( delta ){};
 
     // local compute buffer
     scalarfield energy_per_spin;
@@ -144,54 +109,28 @@ protected:
     static constexpr bool use_redundant_neighbours = false;
 #endif
 
-    // as long as the interaction is only constructible inside the Hamiltonian,
-    // it is safe to assume that the Hamiltonian pointed to always exists
-    Hamiltonian * hamiltonian;
-
 private:
-    static constexpr std::string_view name          = "Interaction::ABC";
+    // Interaction name as string (must be unique per interaction because interactions with the same name cannot exist
+    // within the same hamiltonian at the same time)
+    static constexpr std::string_view name          = "Spin::Interaction::ABC";
     static constexpr std::optional<int> spin_order_ = std::nullopt;
 };
 
 /*
- * Interaction Base class to inherit from (using CRTP) when implementing an Interaction
- * CRTP is used because of the clone() and Name() methods, which are identically implemented on each subclass,
- * but they each need specific knowledge of the subclass for these implementations
+ * Specialization of the CRTP base class for (pure) spin interactions. All spin interactions must inherit from this
  */
 template<class Derived>
-class Base : public Interaction::ABC
+class Base : public Common::Interaction::Base<Spin::Interaction::ABC, Derived>
 {
 protected:
-    Base( Hamiltonian * hamiltonian, scalarfield energy_per_spin, scalar delta = 1e-3 ) noexcept
-            : ABC( hamiltonian, energy_per_spin, delta ){};
+    Base( Common::Interaction::Owner * hamiltonian, scalarfield energy_per_spin, scalar delta = 1e-3 ) noexcept
+            : Common::Interaction::Base<Spin::Interaction::ABC, Derived>( hamiltonian, energy_per_spin, delta ){};
 
 public:
-    [[nodiscard]] std::unique_ptr<ABC> clone( Hamiltonian * new_hamiltonian ) const override
-    {
-        auto copy         = std::make_unique<Derived>( static_cast<const Derived &>( *this ) );
-        copy->hamiltonian = new_hamiltonian;
-        return copy;
-    }
-
-    [[nodiscard]] std::string_view Name() const final
-    {
-        return Derived::name;
-    }
-
     std::optional<int> spin_order() const final
     {
         return Derived::spin_order_;
     };
-
-    void updateGeometry() final
-    {
-        this->updateFromGeometry( this->hamiltonian->geometry.get() );
-    }
-};
-
-inline void setOwnerPtr( ABC & interaction, Hamiltonian * const hamiltonian ) noexcept
-{
-    interaction.hamiltonian = hamiltonian;
 };
 
 } // namespace Interaction

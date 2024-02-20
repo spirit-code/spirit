@@ -38,7 +38,7 @@ namespace Spin
 namespace Interaction
 {
 
-Exchange::Exchange( Hamiltonian * hamiltonian, pairfield pairs, scalarfield magnitudes ) noexcept
+Exchange::Exchange( Common::Interaction::Owner * hamiltonian, pairfield pairs, scalarfield magnitudes ) noexcept
         : Interaction::Base<Exchange>( hamiltonian, scalarfield( 0 ) ),
           exchange_pairs_in( std::move( pairs ) ),
           exchange_magnitudes_in( std::move( magnitudes ) )
@@ -46,12 +46,12 @@ Exchange::Exchange( Hamiltonian * hamiltonian, pairfield pairs, scalarfield magn
     this->updateGeometry();
 }
 
-Exchange::Exchange( Hamiltonian * hamiltonian, const ScalarPairfieldData & exchange ) noexcept
+Exchange::Exchange( Common::Interaction::Owner * hamiltonian, const ScalarPairfieldData & exchange ) noexcept
         : Exchange( hamiltonian, exchange.pairs, exchange.magnitudes )
 {
 }
 
-Exchange::Exchange( Hamiltonian * hamiltonian, const scalarfield & shell_magnitudes ) noexcept
+Exchange::Exchange( Common::Interaction::Owner * hamiltonian, const scalarfield & shell_magnitudes ) noexcept
         : Interaction::Base<Exchange>( hamiltonian, scalarfield( 0 ) ), exchange_shell_magnitudes( shell_magnitudes )
 {
     this->updateGeometry();
@@ -62,7 +62,7 @@ bool Exchange::is_contributing() const
     return !exchange_pairs.empty();
 }
 
-void Exchange::updateFromGeometry( const Geometry * geometry )
+void Exchange::updateFromGeometry( const Geometry & geometry )
 {
     this->exchange_pairs      = pairfield( 0 );
     this->exchange_magnitudes = scalarfield( 0 );
@@ -71,7 +71,7 @@ void Exchange::updateFromGeometry( const Geometry * geometry )
         // Generate Exchange neighbours
         intfield exchange_shells( 0 );
         Neighbours::Get_Neighbours_in_Shells(
-            *geometry, exchange_shell_magnitudes.size(), exchange_pairs, exchange_shells, use_redundant_neighbours );
+            geometry, exchange_shell_magnitudes.size(), exchange_pairs, exchange_shells, use_redundant_neighbours );
         for( std::size_t ipair = 0; ipair < exchange_pairs.size(); ++ipair )
         {
             this->exchange_magnitudes.push_back( exchange_shell_magnitudes[exchange_shells[ipair]] );
@@ -120,26 +120,26 @@ __global__ void CU_E_Exchange(
 
 void Exchange::Energy_per_Spin( const vectorfield & spins, scalarfield & energy )
 {
-    const auto * geometry            = hamiltonian->geometry.get();
-    const auto & boundary_conditions = hamiltonian->boundary_conditions;
+    const auto & geometry            = hamiltonian->getGeometry();
+    const auto & boundary_conditions = hamiltonian->getBoundaryConditions();
 
 #ifdef SPIRIT_USE_CUDA
-    int size = geometry->n_cells_total;
+    int size = geometry.n_cells_total;
     CU_E_Exchange<<<( size + 1023 ) / 1024, 1024>>>(
-        spins.data(), geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(),
-        geometry->n_cell_atoms, this->exchange_pairs.size(), this->exchange_pairs.data(),
+        spins.data(), geometry.atom_types.data(), boundary_conditions.data(), geometry.n_cells.data(),
+        geometry.n_cell_atoms, this->exchange_pairs.size(), this->exchange_pairs.data(),
         this->exchange_magnitudes.data(), energy.data(), size );
     CU_CHECK_AND_SYNC();
 #else
 
 #pragma omp parallel for
-    for( unsigned int icell = 0; icell < geometry->n_cells_total; ++icell )
+    for( unsigned int icell = 0; icell < geometry.n_cells_total; ++icell )
     {
         for( unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair )
         {
-            int ispin = exchange_pairs[i_pair].i + icell * geometry->n_cell_atoms;
+            int ispin = exchange_pairs[i_pair].i + icell * geometry.n_cell_atoms;
             int jspin = idx_from_pair(
-                ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
                 exchange_pairs[i_pair] );
             if( jspin >= 0 )
             {
@@ -157,11 +157,11 @@ void Exchange::Energy_per_Spin( const vectorfield & spins, scalarfield & energy 
 //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
 scalar Exchange::Energy_Single_Spin( int ispin, const vectorfield & spins )
 {
-    const auto * geometry            = hamiltonian->geometry.get();
-    const auto & boundary_conditions = hamiltonian->boundary_conditions;
+    const auto & geometry            = hamiltonian->getGeometry();
+    const auto & boundary_conditions = hamiltonian->getBoundaryConditions();
 
-    int icell  = ispin / geometry->n_cell_atoms;
-    int ibasis = ispin - icell * geometry->n_cell_atoms;
+    int icell  = ispin / geometry.n_cell_atoms;
+    int ibasis = ispin - icell * geometry.n_cell_atoms;
 
     Pair pair_inv{};
     scalar Energy = 0;
@@ -171,7 +171,7 @@ scalar Exchange::Energy_Single_Spin( int ispin, const vectorfield & spins )
         if( pair.i == ibasis )
         {
             int jspin = idx_from_pair(
-                ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, pair );
+                ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types, pair );
             if( jspin >= 0 )
                 Energy -= this->exchange_magnitudes[ipair] * spins[ispin].dot( spins[jspin] );
         }
@@ -181,7 +181,7 @@ scalar Exchange::Energy_Single_Spin( int ispin, const vectorfield & spins )
             const auto & t = pair.translations;
             pair_inv       = Pair{ pair.j, pair.i, { -t[0], -t[1], -t[2] } };
             int jspin      = idx_from_pair(
-                ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types, pair_inv );
+                ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types, pair_inv );
             if( jspin >= 0 )
                 Energy -= this->exchange_magnitudes[ipair] * spins[ispin].dot( spins[jspin] );
         }
@@ -192,17 +192,17 @@ scalar Exchange::Energy_Single_Spin( int ispin, const vectorfield & spins )
 
 void Exchange::Hessian( const vectorfield & spins, MatrixX & hessian )
 {
-    const auto * geometry            = hamiltonian->geometry.get();
-    const auto & boundary_conditions = hamiltonian->boundary_conditions;
+    const auto & geometry            = hamiltonian->getGeometry();
+    const auto & boundary_conditions = hamiltonian->getBoundaryConditions();
 
 #pragma omp parallel for
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
+    for( int icell = 0; icell < geometry.n_cells_total; ++icell )
     {
         for( unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair )
         {
-            int ispin = exchange_pairs[i_pair].i + icell * geometry->n_cell_atoms;
+            int ispin = exchange_pairs[i_pair].i + icell * geometry.n_cell_atoms;
             int jspin = idx_from_pair(
-                ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
                 exchange_pairs[i_pair] );
             if( jspin >= 0 )
             {
@@ -223,16 +223,16 @@ void Exchange::Hessian( const vectorfield & spins, MatrixX & hessian )
 
 void Exchange::Sparse_Hessian( const vectorfield & spins, std::vector<triplet> & hessian )
 {
-    const auto * geometry            = hamiltonian->geometry.get();
-    const auto & boundary_conditions = hamiltonian->boundary_conditions;
+    const auto & geometry            = hamiltonian->getGeometry();
+    const auto & boundary_conditions = hamiltonian->getBoundaryConditions();
 
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
+    for( int icell = 0; icell < geometry.n_cells_total; ++icell )
     {
         for( unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair )
         {
-            int ispin = exchange_pairs[i_pair].i + icell * geometry->n_cell_atoms;
+            int ispin = exchange_pairs[i_pair].i + icell * geometry.n_cell_atoms;
             int jspin = idx_from_pair(
-                ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
                 exchange_pairs[i_pair] );
             if( jspin >= 0 )
             {
@@ -276,26 +276,26 @@ __global__ void CU_Gradient_Exchange(
 
 void Exchange::Gradient( const vectorfield & spins, vectorfield & gradient )
 {
-    const auto * geometry            = hamiltonian->geometry.get();
-    const auto & boundary_conditions = hamiltonian->boundary_conditions;
+    const auto & geometry            = hamiltonian->getGeometry();
+    const auto & boundary_conditions = hamiltonian->getBoundaryConditions();
 
 #ifdef SPIRIT_USE_CUDA
-    int size = geometry->n_cells_total;
+    int size = geometry.n_cells_total;
     CU_Gradient_Exchange<<<( size + 1023 ) / 1024, 1024>>>(
-        spins.data(), geometry->atom_types.data(), boundary_conditions.data(), geometry->n_cells.data(),
-        geometry->n_cell_atoms, this->exchange_pairs.size(), this->exchange_pairs.data(),
+        spins.data(), geometry.atom_types.data(), boundary_conditions.data(), geometry.n_cells.data(),
+        geometry.n_cell_atoms, this->exchange_pairs.size(), this->exchange_pairs.data(),
         this->exchange_magnitudes.data(), gradient.data(), size );
     CU_CHECK_AND_SYNC();
 #else
 
 #pragma omp parallel for
-    for( int icell = 0; icell < geometry->n_cells_total; ++icell )
+    for( int icell = 0; icell < geometry.n_cells_total; ++icell )
     {
         for( unsigned int i_pair = 0; i_pair < exchange_pairs.size(); ++i_pair )
         {
-            int ispin = exchange_pairs[i_pair].i + icell * geometry->n_cell_atoms;
+            int ispin = exchange_pairs[i_pair].i + icell * geometry.n_cell_atoms;
             int jspin = idx_from_pair(
-                ispin, boundary_conditions, geometry->n_cells, geometry->n_cell_atoms, geometry->atom_types,
+                ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
                 exchange_pairs[i_pair] );
             if( jspin >= 0 )
             {

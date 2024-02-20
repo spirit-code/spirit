@@ -229,9 +229,9 @@ void Hamiltonian_to_Config(
     else if( hamiltonian->Name() == "Gaussian" )
         name = "gaussian";
     config += fmt::format( "{:<25} {}\n", "hamiltonian", name );
-    config += fmt::format(
-        "{:<25} {} {} {}\n", "boundary_conditions", hamiltonian->boundary_conditions[0],
-        hamiltonian->boundary_conditions[1], hamiltonian->boundary_conditions[2] );
+    config += []( const auto & bc ) {
+        return fmt::format( "{:<25} {} {} {}\n", "boundary_conditions", bc[0], bc[1], bc[2] );
+    }( hamiltonian->getBoundaryConditions() );
     append_to_file( config, config_file );
 
     if( hamiltonian->Name() == "Heisenberg" )
@@ -249,8 +249,6 @@ void Hamiltonian_Heisenberg_to_Config(
 {
     int n_cells_tot    = geometry->n_cells[0] * geometry->n_cells[1] * geometry->n_cells[2];
     std::string config = "";
-
-    const auto & ham = hamiltonian;
 
     // External Field
     scalar external_field_magnitude = 0;
