@@ -4,6 +4,7 @@
 
 #include <engine/FFT.hpp>
 #include <engine/spin/interaction/ABC.hpp>
+#include <utility/Constants.hpp>
 
 namespace Engine
 {
@@ -22,104 +23,158 @@ enum class DDI_Method
 namespace Interaction
 {
 
-class DDI : public Interaction::Base<DDI>
+struct DDI
 {
-public:
-    DDI( Common::Interaction::Owner * hamiltonian, Engine::Spin::DDI_Method ddi_method, intfield n_periodic_images,
-         bool pb_zero_padding, scalar cutoff_radius ) noexcept;
-    DDI( Common::Interaction::Owner * hamiltonian, Engine::Spin::DDI_Method ddi_method, const Data::DDI_Data & ddi_data ) noexcept;
+    using state_t = vectorfield;
 
-    void setParameters(
-        DDI_Method ddi_method, const intfield & n_periodic_images, bool pb_zero_padding, scalar cutoff_radius )
+    struct Data
     {
-        this->method                = ddi_method;
-        this->ddi_n_periodic_images = n_periodic_images;
-        this->ddi_cutoff_radius     = cutoff_radius;
-        this->ddi_pb_zero_padding   = pb_zero_padding;
-        onInteractionChanged();
-    }
-    void getParameters(
-        DDI_Method & ddi_method, intfield & n_periodic_images, bool & pb_zero_padding, scalar & cutoff_radius ) const
+        DDI_Method method    = DDI_Method::None;
+        scalar cutoff_radius = 0.0;
+        bool pb_zero_padding = false;
+        intfield n_periodic_images{};
+    };
+
+    struct Cache
     {
-        ddi_method        = this->method;
-        n_periodic_images = this->ddi_n_periodic_images;
-        cutoff_radius     = this->ddi_cutoff_radius;
-        pb_zero_padding   = this->ddi_pb_zero_padding;
-    }
+        pairfield pairs{};
+        scalarfield magnitudes{};
+        vectorfield normals{};
 
-    bool is_contributing() const override;
+        const ::Data::Geometry * geometry{};
+        const intfield * boundary_conditions{};
 
-    void Energy_per_Spin( const vectorfield & spins, scalarfield & energy ) override;
-    void Hessian( const vectorfield & spins, MatrixX & hessian ) override;
-    void Sparse_Hessian( const vectorfield & spins, std::vector<triplet> & hessian ) override;
+        // Plans for FT / rFT
+        FFT::FFT_Plan fft_plan_spins = FFT::FFT_Plan();
+        FFT::FFT_Plan fft_plan_reverse = FFT::FFT_Plan();
 
-    void Gradient( const vectorfield & spins, vectorfield & gradient ) override;
+        field<FFT::FFT_cpx_type> transformed_dipole_matrices{};
 
-    // Calculate the total energy for a single spin to be used in Monte Carlo.
-    //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
-    scalar Energy_Single_Spin( int ispin, const vectorfield & spins ) override;
+        bool save_dipole_matrices = false;
+        field<FFT::FFT_real_type> dipole_matrices{};
+
+        // Number of inter-sublattice contributions
+        int n_inter_sublattice{};
+        // At which index to look up the inter-sublattice D-matrices
+        field<int> inter_sublattice_lookup{};
+
+        // Lengths of padded system
+        field<int> n_cells_padded{};
+        // Total number of padded spins per sublattice
+        int sublattice_size{};
+
+        FFT::StrideContainer spin_stride{};
+        FFT::StrideContainer dipole_stride{};
+
+        // Bounds for nested for loops. Only important for the CUDA version
+        field<int> it_bounds_pointwise_mult{};
+        field<int> it_bounds_write_gradients{};
+        field<int> it_bounds_write_spins{};
+        field<int> it_bounds_write_dipole{};
+    };
+
+    static bool is_contributing( const Data & data, const Cache & )
+    {
+        return data.method != DDI_Method::None;
+    };
+
+    static void applyGeometry(
+        const ::Data::Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache );
+
+    using Energy              = NonLocal::Energy_Functor<DDI>;
+    using Gradient            = NonLocal::Gradient_Functor<DDI>;
+    using Hessian             = NonLocal::Hessian_Functor<DDI>;
+    using Energy_Single_Spin  = NonLocal::Energy_Single_Spin_Functor<DDI>;
+    using Energy_Total        = NonLocal::Reduce_Functor<Energy>;
+
+    static std::size_t Sparse_Hessian_Size_per_Cell( const Data & data, const Cache & )
+    {
+        if( data.method == DDI_Method::None )
+            return 0;
+        else
+            return 9;
+    };
 
     // Interaction name as string
     static constexpr std::string_view name          = "DDI";
-    static constexpr std::optional<int> spin_order_ = 2;
 
-protected:
-    void updateFromGeometry( const Data::Geometry & geometry ) override;
+    static constexpr bool local = false;
+};
 
-private:
-    DDI_Method method;
-    intfield ddi_n_periodic_images;
-    bool ddi_pb_zero_padding;
-    //      ddi cutoff variables
-    scalar ddi_cutoff_radius;
-    pairfield ddi_pairs;
-    scalarfield ddi_magnitudes;
-    vectorfield ddi_normals;
+template<>
+template<typename F>
+void DDI::Hessian::operator()( const vectorfield & spins, F & f ) const
+{
+    namespace C = Utility::Constants;
 
-    void Energy_per_Spin_Direct( const vectorfield & spins, scalarfield & energy );
-    void Energy_per_Spin_Cutoff( const vectorfield & spins, scalarfield & energy );
-    void Energy_per_Spin_FFT( const vectorfield & spins, scalarfield & energy );
+    if( cache.geometry == nullptr || cache.boundary_conditions == nullptr )
+        // TODO: turn this into an error
+        return;
 
-    void Gradient_Direct( const vectorfield & spins, vectorfield & gradient );
-    void Gradient_Cutoff( const vectorfield & spins, vectorfield & gradient );
-    void Gradient_FFT( const vectorfield & spins, vectorfield & gradient );
+    const auto & geometry = *cache.geometry;
+    const auto nos        = spins.size();
 
-    // Preparations for DDI-Convolution Algorithm
-    void Prepare_DDI();
-    void Clean_DDI();
+    // Tentative Dipole-Dipole (only works for open boundary conditions)
+    if( data.method != DDI_Method::None )
+    {
+        static constexpr scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4 * C::Pi * 1e-30 );
+        for( unsigned int idx1 = 0; idx1 < nos; idx1++ )
+        {
+            for( unsigned int idx2 = 0; idx2 < nos; idx2++ )
+            {
+                auto diff = geometry.positions[idx2] - geometry.positions[idx1];
+                scalar d = diff.norm(), d3 = 0, d5 = 0;
+                scalar Dxx = 0, Dxy = 0, Dxz = 0, Dyy = 0, Dyz = 0, Dzz = 0;
+                if( d > 1e-10 )
+                {
+                    d3 = d * d * d;
+                    d5 = d * d * d * d * d;
+                    Dxx += mult * ( 3 * diff[0] * diff[0] / d5 - 1 / d3 );
+                    Dxy += mult * 3 * diff[0] * diff[1] / d5; // same as Dyx
+                    Dxz += mult * 3 * diff[0] * diff[2] / d5; // same as Dzx
+                    Dyy += mult * ( 3 * diff[1] * diff[1] / d5 - 1 / d3 );
+                    Dyz += mult * 3 * diff[1] * diff[2] / d5; // same as Dzy
+                    Dzz += mult * ( 3 * diff[2] * diff[2] / d5 - 1 / d3 );
+                }
 
-    // Plans for FT / rFT
-    FFT::FFT_Plan fft_plan_spins;
-    FFT::FFT_Plan fft_plan_reverse;
+                const int i = 3 * idx1;
+                const int j = 3 * idx2;
 
-    field<FFT::FFT_cpx_type> transformed_dipole_matrices;
+                f( i + 0, j + 0, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dxx ) );
+                f( i + 1, j + 0, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dxy ) );
+                f( i + 2, j + 0, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dxz ) );
+                f( i + 0, j + 1, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dxy ) );
+                f( i + 1, j + 1, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dyy ) );
+                f( i + 2, j + 1, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dyz ) );
+                f( i + 0, j + 2, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dxz ) );
+                f( i + 1, j + 2, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dyz ) );
+                f( i + 2, j + 2, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dzz ) );
+            }
+        }
+    }
 
-    bool save_dipole_matrices = false;
-    field<FFT::FFT_real_type> dipole_matrices;
-
-    // Number of inter-sublattice contributions
-    int n_inter_sublattice;
-    // At which index to look up the inter-sublattice D-matrices
-    field<int> inter_sublattice_lookup;
-
-    // Lengths of padded system
-    field<int> n_cells_padded;
-    // Total number of padded spins per sublattice
-    int sublattice_size;
-
-    FFT::StrideContainer spin_stride;
-    FFT::StrideContainer dipole_stride;
-
-    // Calculate the FT of the padded D-matrics
-    void FFT_Dipole_Matrices( FFT::FFT_Plan & fft_plan_dipole, int img_a, int img_b, int img_c );
-    // Calculate the FT of the padded spins
-    void FFT_Spins( const vectorfield & spins, FFT::FFT_Plan & fft_plan ) const;
-
-    // Bounds for nested for loops. Only important for the CUDA version
-    field<int> it_bounds_pointwise_mult;
-    field<int> it_bounds_write_gradients;
-    field<int> it_bounds_write_spins;
-    field<int> it_bounds_write_dipole;
+    // // TODO: Dipole-Dipole
+    // for (unsigned int i_pair = 0; i_pair < this->DD_indices.size(); ++i_pair)
+    // {
+    //     // indices
+    //     int idx_1 = DD_indices[i_pair][0];
+    //     int idx_2 = DD_indices[i_pair][1];
+    //     // prefactor
+    //     scalar prefactor = 0.0536814951168
+    //         * mu_s[idx_1] * mu_s[idx_2]
+    //         / std::pow(DD_magnitude[i_pair], 3);
+    //     // components
+    //     for (int alpha = 0; alpha < 3; ++alpha)
+    //     {
+    //         for (int beta = 0; beta < 3; ++beta)
+    //         {
+    //             int idx_h = idx_1 + alpha*nos + 3 * nos*(idx_2 + beta*nos);
+    //             if (alpha == beta)
+    //                 hessian[idx_h] += prefactor;
+    //             hessian[idx_h] += -3.0*prefactor*DD_normal[i_pair][alpha] * DD_normal[i_pair][beta];
+    //         }
+    //     }
+    // }
 };
 
 } // namespace Interaction

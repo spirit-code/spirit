@@ -218,7 +218,7 @@ void Parameters_Method_MMF_to_Config(
 }
 
 void Hamiltonian_to_Config(
-    const std::string & config_file, const std::shared_ptr<Engine::Spin::Hamiltonian> hamiltonian,
+    const std::string & config_file, const std::shared_ptr<Engine::Spin::HamiltonianVariant> hamiltonian,
     const std::shared_ptr<Data::Geometry> geometry )
 {
     std::string config = "";
@@ -244,50 +244,49 @@ void Hamiltonian_to_Config(
 }
 
 void Hamiltonian_Heisenberg_to_Config(
-    const std::string & config_file, const std::shared_ptr<Engine::Spin::Hamiltonian> hamiltonian,
+    const std::string & config_file, const std::shared_ptr<Engine::Spin::HamiltonianVariant> hamiltonian,
     const std::shared_ptr<Data::Geometry> geometry )
 {
     int n_cells_tot    = geometry->n_cells[0] * geometry->n_cells[1] * geometry->n_cells[2];
     std::string config = "";
 
     // External Field
-    scalar external_field_magnitude = 0;
-    Vector3 external_field_normal;
-    hamiltonian->getInteraction<Engine::Spin::Interaction::Zeeman>()->getParameters(
-        external_field_magnitude, external_field_normal );
-
-    config += "###    External Field:\n";
-    config += fmt::format(
-        "{:<25} {}\n", "external_field_magnitude", external_field_magnitude / Utility::Constants::mu_B );
-    config += fmt::format( "{:<25} {}\n", "external_field_normal", external_field_normal.transpose() );
-
-    // Anisotropy
-    config += "###    Anisotropy:\n";
-    intfield anisotropy_indices;
-    scalarfield anisotropy_magnitudes;
-    vectorfield anisotropy_normals;
-    hamiltonian->getInteraction<Engine::Spin::Interaction::Anisotropy>()->getParameters(
-        anisotropy_indices, anisotropy_magnitudes, anisotropy_normals );
-
-    scalar K = 0;
-    Vector3 K_normal{ 0, 0, 0 };
-    if( !anisotropy_indices.empty() )
+    if( const auto * data = hamiltonian->data<Engine::Spin::Interaction::Zeeman>(); data != nullptr )
     {
-        K        = anisotropy_magnitudes[0];
-        K_normal = anisotropy_normals[0];
+        const scalar & external_field_magnitude = data->external_field_magnitude;
+        const Vector3 & external_field_normal   = data->external_field_normal;
+
+        config += "###    External Field:\n";
+        config += fmt::format(
+            "{:<25} {}\n", "external_field_magnitude", external_field_magnitude / Utility::Constants::mu_B );
+        config += fmt::format( "{:<25} {}\n", "external_field_normal", external_field_normal.transpose() );
     }
-    config += fmt::format( "{:<25} {}\n", "anisotropy_magnitude", K );
-    config += fmt::format( "{:<25} {}\n", "anisotropy_normal", K_normal.transpose() );
+    // Anisotropy
 
-    // Biaxial Anisotropy
+    if( const auto * data = hamiltonian->data<Engine::Spin::Interaction::Anisotropy>(); data != nullptr )
     {
-        intfield indices;
-        field<PolynomialBasis> polynomial_bases;
-        field<unsigned int> polynomial_site_p;
-        field<PolynomialTerm> polynomial_terms;
+        config += "###    Anisotropy:\n";
+        const intfield & anisotropy_indices       = data->anisotropy_indices;
+        const scalarfield & anisotropy_magnitudes = data->anisotropy_magnitudes;
+        const vectorfield & anisotropy_normals    = data->anisotropy_normals;
 
-        hamiltonian->getInteraction<Engine::Spin::Interaction::Biaxial_Anisotropy>()->getParameters(
-            indices, polynomial_bases, polynomial_site_p, polynomial_terms );
+        scalar K = 0;
+        Vector3 K_normal{ 0, 0, 0 };
+        if( !anisotropy_indices.empty() )
+        {
+            K        = anisotropy_magnitudes[0];
+            K_normal = anisotropy_normals[0];
+        }
+        config += fmt::format( "{:<25} {}\n", "anisotropy_magnitude", K );
+        config += fmt::format( "{:<25} {}\n", "anisotropy_normal", K_normal.transpose() );
+    }
+    // Biaxial Anisotropy
+    if( const auto * data = hamiltonian->data<Engine::Spin::Interaction::Biaxial_Anisotropy>(); data != nullptr )
+    {
+        const intfield & indices                        = data->indices;
+        const field<PolynomialBasis> & polynomial_bases = data->bases;
+        const field<unsigned int> & polynomial_site_p   = data->site_p;
+        const field<PolynomialTerm> & polynomial_terms  = data->terms;
 
         const auto n_anisotropy_axes  = indices.size();
         const auto n_anisotropy_terms = polynomial_terms.size();
@@ -329,121 +328,125 @@ void Hamiltonian_Heisenberg_to_Config(
     }
 
     // Pair interactions (Exchange & DMI)
-    pairfield exchange_pairs;
-    scalarfield exchange_magnitudes;
-    hamiltonian->getInteraction<Engine::Spin::Interaction::Exchange>()->getParameters(
-        exchange_pairs, exchange_magnitudes );
-
-    pairfield dmi_pairs;
-    scalarfield dmi_magnitudes;
-    vectorfield dmi_normals;
-    hamiltonian->getInteraction<Engine::Spin::Interaction::DMI>()->getParameters(
-        dmi_pairs, dmi_magnitudes, dmi_normals );
-
-    config += "###    Interaction pairs:\n";
-    config += fmt::format( "n_interaction_pairs {}\n", exchange_pairs.size() + dmi_pairs.size() );
-    if( exchange_pairs.size() + dmi_pairs.size() > 0 )
     {
-        config += fmt::format(
-            "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15}    {:^15} {:^15} {:^15} {:^15}\n", "i", "j", "da", "db", "dc",
-            "Jij", "Dij", "Dijx", "Dijy", "Dijz" );
-        // Exchange
-        for( unsigned int i = 0; i < exchange_pairs.size(); ++i )
+        const auto * exchange_cache = hamiltonian->cache<Engine::Spin::Interaction::Exchange>();
+        const auto * dmi_cache      = hamiltonian->cache<Engine::Spin::Interaction::DMI>();
+
+        if( exchange_cache != nullptr && dmi_cache != nullptr )
         {
-            config += fmt::format(
-                "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}    {:^15.8f} {:^15.8f} {:^15.8f} {:^15.8f}\n",
-                exchange_pairs[i].i, exchange_pairs[i].j, exchange_pairs[i].translations[0],
-                exchange_pairs[i].translations[1], exchange_pairs[i].translations[2], exchange_magnitudes[i], 0.0, 0.0,
-                0.0, 0.0 );
-        }
-        // DMI
-        for( unsigned int i = 0; i < dmi_pairs.size(); ++i )
-        {
-            config += fmt::format(
-                "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}    {:^15.8f} {:^15.8f} {:^15.8f} {:^15.8f}\n",
-                dmi_pairs[i].i, dmi_pairs[i].j, dmi_pairs[i].translations[0], dmi_pairs[i].translations[1],
-                dmi_pairs[i].translations[2], 0.0, dmi_magnitudes[i], dmi_normals[i][0], dmi_normals[i][1],
-                dmi_normals[i][2] );
+            const auto & exchange_pairs      = exchange_cache->exchange_pairs;
+            const auto & exchange_magnitudes = exchange_cache->exchange_magnitudes;
+            const auto & dmi_pairs           = dmi_cache->dmi_pairs;
+            const auto & dmi_magnitudes      = dmi_cache->dmi_magnitudes;
+            const auto & dmi_normals         = dmi_cache->dmi_normals;
+
+            config += "###    Interaction pairs:\n";
+            config += fmt::format( "n_interaction_pairs {}\n", exchange_pairs.size() + dmi_pairs.size() );
+            if( exchange_pairs.size() + dmi_pairs.size() > 0 )
+            {
+                config += fmt::format(
+                    "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15}    {:^15} {:^15} {:^15} {:^15}\n", "i", "j", "da", "db",
+                    "dc", "Jij", "Dij", "Dijx", "Dijy", "Dijz" );
+                // Exchange
+                for( unsigned int i = 0; i < exchange_pairs.size(); ++i )
+                {
+                    config += fmt::format(
+                        "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}    {:^15.8f} {:^15.8f} {:^15.8f} {:^15.8f}\n",
+                        exchange_pairs[i].i, exchange_pairs[i].j, exchange_pairs[i].translations[0],
+                        exchange_pairs[i].translations[1], exchange_pairs[i].translations[2], exchange_magnitudes[i],
+                        0.0, 0.0, 0.0, 0.0 );
+                }
+                // DMI
+                for( unsigned int i = 0; i < dmi_pairs.size(); ++i )
+                {
+                    config += fmt::format(
+                        "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}    {:^15.8f} {:^15.8f} {:^15.8f} {:^15.8f}\n",
+                        dmi_pairs[i].i, dmi_pairs[i].j, dmi_pairs[i].translations[0], dmi_pairs[i].translations[1],
+                        dmi_pairs[i].translations[2], 0.0, dmi_magnitudes[i], dmi_normals[i][0], dmi_normals[i][1],
+                        dmi_normals[i][2] );
+                }
+            }
         }
     }
 
     // Dipole-dipole
-    std::string ddi_method;
-    Engine::Spin::DDI_Method ddi_method_id = Engine::Spin::DDI_Method::None;
-    intfield ddi_n_periodic_images;
-    bool ddi_pb_zero_padding = false;
-    scalar ddi_cutoff_radius = 0;
-
-    hamiltonian->getInteraction<Engine::Spin::Interaction::DDI>()->getParameters(
-        ddi_method_id, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_cutoff_radius );
-
-    if( ddi_method_id == Engine::Spin::DDI_Method::None )
-        ddi_method = "none";
-    else if( ddi_method_id == Engine::Spin::DDI_Method::FFT )
-        ddi_method = "fft";
-    else if( ddi_method_id == Engine::Spin::DDI_Method::FMM )
-        ddi_method = "fmm";
-    else if( ddi_method_id == Engine::Spin::DDI_Method::Cutoff )
-        ddi_method = "cutoff";
-    config += "### Dipole-dipole interaction caclulation method\n### (fft, fmm, cutoff, none)";
-    config += fmt::format( "ddi_method                 {}\n", ddi_method );
-    config += "### DDI number of periodic images in (a b c)";
-    config += fmt::format(
-        "ddi_n_periodic_images      {} {} {}\n", ddi_n_periodic_images[0], ddi_n_periodic_images[1],
-        ddi_n_periodic_images[2] );
-    config += "### DDI cutoff radius (if cutoff is used)";
-    config += fmt::format( "ddi_radius                 {}\n", ddi_cutoff_radius );
-
-    // Quadruplets
-    quadrupletfield quadruplets;
-    scalarfield quadruplet_magnitudes;
-    hamiltonian->getInteraction<Engine::Spin::Interaction::Quadruplet>()->getParameters(
-        quadruplets, quadruplet_magnitudes );
-
-    config += "###    Quadruplets:\n";
-    config += fmt::format( "n_interaction_quadruplets {}\n", quadruplets.size() );
-    if( !quadruplets.empty() )
+    if( const auto * data = hamiltonian->data<Engine::Spin::Interaction::DDI>(); data != nullptr )
     {
+        std::string ddi_method;
+
+        const auto & ddi_method_id         = data->method;
+        const auto & ddi_n_periodic_images = data->n_periodic_images;
+        const auto & ddi_pb_zero_padding   = data->pb_zero_padding;
+        const auto & ddi_cutoff_radius     = data->cutoff_radius;
+
+        if( ddi_method_id == Engine::Spin::DDI_Method::None )
+            ddi_method = "none";
+        else if( ddi_method_id == Engine::Spin::DDI_Method::FFT )
+            ddi_method = "fft";
+        else if( ddi_method_id == Engine::Spin::DDI_Method::FMM )
+            ddi_method = "fmm";
+        else if( ddi_method_id == Engine::Spin::DDI_Method::Cutoff )
+            ddi_method = "cutoff";
+        config += "### Dipole-dipole interaction caclulation method\n### (fft, fmm, cutoff, none)";
+        config += fmt::format( "ddi_method                 {}\n", ddi_method );
+        config += "### DDI number of periodic images in (a b c)";
         config += fmt::format(
-            "{:^3} {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15}\n", "i",
-            "j", "k", "l", "da_j", "db_j", "dc_j", "da_k", "db_k", "dc_k", "da_l", "db_l", "dc_l", "Q" );
-        for( unsigned int i = 0; i < quadruplets.size(); ++i )
+            "ddi_n_periodic_images      {} {} {}\n", ddi_n_periodic_images[0], ddi_n_periodic_images[1],
+            ddi_n_periodic_images[2] );
+        config += "### DDI cutoff radius (if cutoff is used)";
+        config += fmt::format( "ddi_radius                 {}\n", ddi_cutoff_radius );
+    }
+    // Quadruplets
+    if( const auto * data = hamiltonian->data<Engine::Spin::Interaction::Quadruplet>(); data != nullptr )
+    {
+        const auto & quadruplets           = data->quadruplets;
+        const auto & quadruplet_magnitudes = data->quadruplet_magnitudes;
+
+        config += "###    Quadruplets:\n";
+        config += fmt::format( "n_interaction_quadruplets {}\n", quadruplets.size() );
+        if( !quadruplets.empty() )
         {
-            // clang-format off
             config += fmt::format(
-                "{:^3} {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}\n",
-                quadruplets[i].i, quadruplets[i].j, quadruplets[i].k, quadruplets[i].l,
-                quadruplets[i].d_j[0], quadruplets[i].d_j[1], quadruplets[i].d_j[2],
-                quadruplets[i].d_k[0], quadruplets[i].d_k[1], quadruplets[i].d_k[2],
-                quadruplets[i].d_l[0], quadruplets[i].d_l[1], quadruplets[i].d_l[2],
-                quadruplet_magnitudes[i] );
-            // clang-format on
+                "{:^3} {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15}\n",
+                "i", "j", "k", "l", "da_j", "db_j", "dc_j", "da_k", "db_k", "dc_k", "da_l", "db_l", "dc_l", "Q" );
+            for( unsigned int i = 0; i < quadruplets.size(); ++i )
+            {
+                // clang-format off
+                config += fmt::format(
+                    "{:^3} {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}\n",
+                    quadruplets[i].i, quadruplets[i].j, quadruplets[i].k, quadruplets[i].l,
+                    quadruplets[i].d_j[0], quadruplets[i].d_j[1], quadruplets[i].d_j[2],
+                    quadruplets[i].d_k[0], quadruplets[i].d_k[1], quadruplets[i].d_k[2],
+                    quadruplets[i].d_l[0], quadruplets[i].d_l[1], quadruplets[i].d_l[2],
+                    quadruplet_magnitudes[i] );
+                // clang-format on
+            }
         }
     }
-
     append_to_file( config, config_file );
 }
 
 void Hamiltonian_Gaussian_to_Config(
-    const std::string & config_file, const std::shared_ptr<Engine::Spin::Hamiltonian> hamiltonian )
+    const std::string & config_file, const std::shared_ptr<Engine::Spin::HamiltonianVariant> hamiltonian )
 {
     std::string config = "";
 
-    scalarfield amplitude( 0 );
-    scalarfield width( 0 );
-    vectorfield center( 0 );
-
-    hamiltonian->getInteraction<Engine::Spin::Interaction::Gaussian>()->getParameters( amplitude, width, center );
-
-    const auto n_gaussians = amplitude.size();
-
-    config += fmt::format( "n_gaussians {}\n", n_gaussians );
-    if( n_gaussians > 0 )
+    if( const auto * data = hamiltonian->data<Engine::Spin::Interaction::Gaussian>(); data != nullptr )
     {
-        config += "gaussians\n";
-        for( std::size_t i = 0; i < n_gaussians; ++i )
+        const scalarfield & amplitude = data->amplitude;
+        const scalarfield & width     = data->width;
+        const vectorfield & center    = data->center;
+
+        const auto n_gaussians = amplitude.size();
+
+        config += fmt::format( "n_gaussians {}\n", n_gaussians );
+        if( n_gaussians > 0 )
         {
-            config += fmt::format( "{} {} {}\n", amplitude[i], width[i], center[i].transpose() );
+            config += "gaussians\n";
+            for( std::size_t i = 0; i < n_gaussians; ++i )
+            {
+                config += fmt::format( "{} {} {}\n", amplitude[i], width[i], center[i].transpose() );
+            }
         }
     }
     append_to_file( config, config_file );

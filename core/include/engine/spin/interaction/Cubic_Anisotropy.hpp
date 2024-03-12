@@ -2,6 +2,7 @@
 #ifndef SPIRIT_CORE_ENGINE_INTERACTION_CUBIC_ANISOTROPY_HPP
 #define SPIRIT_CORE_ENGINE_INTERACTION_CUBIC_ANISOTROPY_HPP
 
+#include <engine/Indexing.hpp>
 #include <engine/spin/interaction/ABC.hpp>
 
 namespace Engine
@@ -13,47 +14,84 @@ namespace Spin
 namespace Interaction
 {
 
-class Cubic_Anisotropy : public Interaction::Base<Cubic_Anisotropy>
+struct Cubic_Anisotropy
 {
-public:
-    Cubic_Anisotropy( Common::Interaction::Owner * hamiltonian, intfield indices, scalarfield magnitudes ) noexcept;
-    Cubic_Anisotropy( Common::Interaction::Owner * hamiltonian, const Data::ScalarfieldData & cubic_anisotropy ) noexcept;
+    using state_t = vectorfield;
 
-    void setParameters( const intfield & pIndices, const scalarfield & pMagnitudes )
+    struct Data
     {
-        this->cubic_anisotropy_indices    = pIndices;
-        this->cubic_anisotropy_magnitudes = pMagnitudes;
-        onInteractionChanged();
-    };
-    void getParameters( intfield & pIndices, scalarfield & pMagnitudes ) const
-    {
-        pIndices    = this->cubic_anisotropy_indices;
-        pMagnitudes = this->cubic_anisotropy_magnitudes;
+        intfield cubic_anisotropy_indices;
+        scalarfield cubic_anisotropy_magnitudes;
     };
 
-    bool is_contributing() const override;
+    static bool verify( const Data & data )
+    {
+        return data.cubic_anisotropy_magnitudes.size() == data.cubic_anisotropy_indices.size();
+    };
 
-    void Energy_per_Spin( const vectorfield & spins, scalarfield & energy ) override;
-    void Hessian( const vectorfield & spins, MatrixX & hessian ) override;
-    void Sparse_Hessian( const vectorfield & spins, std::vector<triplet> & hessian ) override;
+    struct Cache
+    {
+    };
 
-    void Gradient( const vectorfield & spins, vectorfield & gradient ) override;
+    static bool is_contributing( const Data & data, const Cache & )
+    {
+        return !data.cubic_anisotropy_indices.empty();
+    }
+
+    struct IndexType
+    {
+        int ispin, iani;
+    };
+
+    using Index = std::optional<IndexType>;
+
+    static void clearIndex( Index & index )
+    {
+        index.reset();
+    }
+
+    using Energy   = Local::Energy_Functor<Cubic_Anisotropy>;
+    using Gradient = Local::Gradient_Functor<Cubic_Anisotropy>;
+    using Hessian  = Local::Hessian_Functor<Cubic_Anisotropy>;
+
+    static std::size_t Sparse_Hessian_Size_per_Cell( const Data &, const Cache & )
+    {
+        return 0;
+    };
 
     // Calculate the total energy for a single spin to be used in Monte Carlo.
     //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
-    scalar Energy_Single_Spin( int ispin, const vectorfield & spins ) override;
+    using Energy_Single_Spin = Local::Energy_Single_Spin_Functor<Energy, 1>;
 
     // Interaction name as string
-    static constexpr std::string_view name          = "Cubic Anisotropy";
-    static constexpr std::optional<int> spin_order_ = std::nullopt;
+    static constexpr std::string_view name = "Cubic Anisotropy";
 
-protected:
-    void updateFromGeometry( const Data::Geometry & geometry ) override;
+    template<typename IndexVector>
+    static void applyGeometry(
+        const ::Data::Geometry & geometry, const intfield &, const Data & data, Cache &, IndexVector & indices )
+    {
+        using Indexing::check_atom_type;
+        const auto N = geometry.nos;
 
-private:
-    intfield cubic_anisotropy_indices;
-    scalarfield cubic_anisotropy_magnitudes;
+#pragma omp parallel for
+        for( int icell = 0; icell < geometry.n_cells_total; ++icell )
+        {
+            for( int iani = 0; iani < data.cubic_anisotropy_indices.size(); ++iani )
+            {
+                int ispin = icell * N + data.cubic_anisotropy_indices[iani];
+                if( check_atom_type( geometry.atom_types[ispin] ) )
+                    std::get<Index>( indices[ispin] ) = IndexType{ ispin, iani };
+            }
+        }
+    };
 };
+
+template<>
+template<typename F>
+void Cubic_Anisotropy::Hessian::operator()( const Index & index, const vectorfield & spins, F & f ) const
+{
+    // TODO: Not yet implemented
+}
 
 } // namespace Interaction
 

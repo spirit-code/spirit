@@ -19,9 +19,9 @@ class Method_MC;
     The Monte Carlo method
 */
 template<>
-class Method_MC<Data::Spin_System<Engine::Spin::Hamiltonian>> : public Method
+class Method_MC<Data::Spin_System<Engine::Spin::HamiltonianVariant>> : public Method
 {
-    using system_t = Data::Spin_System<Engine::Spin::Hamiltonian>;
+    using system_t = Data::Spin_System<Engine::Spin::HamiltonianVariant>;
 
 public:
     // Constructor

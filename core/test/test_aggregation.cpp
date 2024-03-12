@@ -55,12 +55,12 @@ TEST_CASE( "Ensure that Hamiltonian is really just an aggregator", "[aggregation
         auto & hamiltonian = state->active_image->hamiltonian;
         auto nos           = spins.size();
 
-        if( hamiltonian->getActiveInteractionsSize() == 0 )
+        if( hamiltonian->active_count() == 0 )
         {
             CAPTURE( fmt::format( " Warning: input file \"{}\" didn't specify any interaction to test.", input_file ) );
         }
 
-        auto active_interactions = hamiltonian->getActiveInteractions();
+        auto active_interactions = hamiltonian->active_interactions();
         auto aggregator          = [&active_interactions]( const auto init, const auto & f )
         { return std::accumulate( std::begin( active_interactions ), std::end( active_interactions ), init, f ); };
 

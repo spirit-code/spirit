@@ -13,7 +13,7 @@
 #include <ctime>
 
 using namespace Utility;
-using system_t = Data::Spin_System<Engine::Spin::Hamiltonian>;
+using system_t = Data::Spin_System<Engine::Spin::HamiltonianVariant>;
 
 namespace Engine
 {

@@ -182,17 +182,17 @@ struct FFT_Plan
     void Create_Configuration();
     void Free_Configuration();
     void Clean();
-    FFT_cfg cfg;
+    FFT_cfg cfg{};
 
     // Constructor delegation
     FFT_Plan() : FFT_Plan( { 2, 2, 2 }, true, 1, 8 ) {}
 
     FFT_Plan( std::vector<int> dims, bool inverse, int n_transforms, int len )
-            : dims( dims ),
+            : dims( std::move( dims ) ),
               inverse( inverse ),
               n_transforms( n_transforms ),
-              real_ptr( field<FFT::FFT_real_type>( n_transforms * len ) ),
-              cpx_ptr( field<FFT::FFT_cpx_type>( n_transforms * len ) )
+              cpx_ptr( field<FFT::FFT_cpx_type>( n_transforms * len ) ),
+              real_ptr( field<FFT::FFT_real_type>( n_transforms * len ) )
 
     {
         this->Create_Configuration();
@@ -200,14 +200,17 @@ struct FFT_Plan
 
     // copy constructor
     FFT_Plan( FFT_Plan const & other )
+            : dims( other.dims ),
+              inverse( other.inverse ),
+              n_transforms( other.n_transforms ),
+              cpx_ptr( other.cpx_ptr ),
+              real_ptr( other.real_ptr ),
+              name( other.name )
     {
-        this->dims         = other.dims;
-        this->inverse      = other.inverse;
-        this->n_transforms = other.n_transforms;
-        this->name         = other.name;
-        this->cpx_ptr      = other.cpx_ptr;
-        this->real_ptr     = other.real_ptr;
+        this->cpx_ptr.shrink_to_fit();
+        this->real_ptr.shrink_to_fit();
 
+        this->Free_Configuration();
         this->Create_Configuration();
     }
 

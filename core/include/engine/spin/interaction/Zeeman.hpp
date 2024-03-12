@@ -2,6 +2,7 @@
 #ifndef SPIRIT_CORE_ENGINE_INTERACTION_ZEEMANN_HPP
 #define SPIRIT_CORE_ENGINE_INTERACTION_ZEEMANN_HPP
 
+#include <engine/Indexing.hpp>
 #include <engine/spin/interaction/ABC.hpp>
 #include <utility/Constants.hpp>
 
@@ -14,53 +15,90 @@ namespace Spin
 namespace Interaction
 {
 
-class Zeeman : public Interaction::Base<Zeeman>
+struct Zeeman
 {
-public:
-    Zeeman( Common::Interaction::Owner * hamiltonian, scalar magnitude, Vector3 normal ) noexcept;
-    Zeeman( Common::Interaction::Owner * hamiltonian, const Data::NormalVector & external_field ) noexcept;
+    using state_t = vectorfield;
 
-    void setParameters( const scalar & magnitude, const Vector3 & normal )
+    struct Data
     {
-        this->external_field_magnitude = magnitude;
-        this->external_field_normal    = normal;
-        onInteractionChanged();
+        scalar external_field_magnitude = 0;
+        Vector3 external_field_normal   = { 0, 0, 1 };
+
+        scalar & magnitude() noexcept
+        {
+            return external_field_magnitude;
+        }
+
+        Vector3 & normal() noexcept
+        {
+            return external_field_normal;
+        }
     };
-    void getParameters( scalar & magnitude, Vector3 & normal ) const
+
+    // clang-tidy: ignore
+    typedef int IndexType;
+
+    using Index = std::optional<IndexType>;
+
+    struct Cache
     {
-        magnitude = this->external_field_magnitude;
-        normal    = this->external_field_normal;
+        const ::Data::Geometry * geometry;
     };
 
-    bool is_contributing() const override;
+    static bool is_contributing( const Data & data, const Cache & )
+    {
+        return std::abs( data.external_field_magnitude ) > 1e-60;
+    }
 
-    void Energy_per_Spin( const vectorfield & spins, scalarfield & energy ) override;
-    void Hessian( const vectorfield & spins, MatrixX & hessian ) override;
-    void Sparse_Hessian( const vectorfield & spins, std::vector<triplet> & hessian ) override;
+    static void clearIndex( Index & index )
+    {
+        index.reset();
+    }
 
-    void Gradient( const vectorfield & spins, vectorfield & gradient ) override;
+    using Energy   = Local::Energy_Functor<Zeeman>;
+    using Gradient = Local::Gradient_Functor<Zeeman>;
+    using Hessian  = Local::Hessian_Functor<Zeeman>;
+
+    static std::size_t Sparse_Hessian_Size_per_Cell( const Data &, const Cache & )
+    {
+        return 0;
+    };
 
     // Calculate the total energy for a single spin to be used in Monte Carlo.
     //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
-    scalar Energy_Single_Spin( int ispin, const vectorfield & spins ) override;
+    using Energy_Single_Spin = Local::Energy_Single_Spin_Functor<Energy, 1>;
 
     // Interaction name as string
-    static constexpr std::string_view name          = "Zeeman";
-    static constexpr std::optional<int> spin_order_ = 1;
+    static constexpr std::string_view name = "Zeeman";
 
-protected:
-    void updateFromGeometry( const Data::Geometry & geometry ) override;
+    template<typename IndexVector>
+    static void applyGeometry(
+        const ::Data::Geometry & geometry, const intfield &, const Data &, Cache & cache, IndexVector & indices )
+    {
+        using Indexing::check_atom_type;
 
-private:
-    // ------------ Single Spin Interactions ------------
-    // External magnetic field across the sample
-    scalar external_field_magnitude;
-    Vector3 external_field_normal;
-    // External magnetic field - for now external magnetic field is homogeneous
-    // If required, an additional, inhomogeneous external field should be added
-    //   scalarfield external_field_magnitudes;
-    //   vectorfield external_field_normals;
+        const auto N = geometry.nos;
+
+#pragma omp parallel for
+        for( int icell = 0; icell < geometry.n_cells_total; ++icell )
+        {
+            for( int ibasis = 0; ibasis < N; ++ibasis )
+            {
+                const int ispin = icell * N + ibasis;
+                if( check_atom_type( geometry.atom_types[ispin] ) )
+                {
+                    std::get<Index>( indices[ispin] ) = ispin;
+                }
+            };
+        }
+
+        cache.geometry = &geometry;
+    }
 };
+
+template<>
+template<typename F>
+void Zeeman::Hessian::operator()( const Index &, const vectorfield &, F & ) const {};
 
 } // namespace Interaction
 

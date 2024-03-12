@@ -38,14 +38,14 @@ std::unique_ptr<Data::Parameters_Method_EMA> Parameters_Method_EMA_from_Config( 
 
 std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config( const std::string & config_file_name );
 
-std::unique_ptr<Engine::Spin::Hamiltonian> Hamiltonian_from_Config(
+std::unique_ptr<Engine::Spin::HamiltonianVariant> Hamiltonian_from_Config(
     const std::string & config_file_name, std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions );
 
-std::unique_ptr<Engine::Spin::Hamiltonian> Hamiltonian_Heisenberg_from_Config(
+std::unique_ptr<Engine::Spin::HamiltonianVariant> Hamiltonian_Heisenberg_from_Config(
     const std::string & config_file_name, std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions,
     const std::string & hamiltonian_type );
 
-std::unique_ptr<Engine::Spin::Hamiltonian> Hamiltonian_Gaussian_from_Config(
+std::unique_ptr<Engine::Spin::HamiltonianVariant> Hamiltonian_Gaussian_from_Config(
     const std::string & config_file_name, std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions );
 
 } // namespace IO

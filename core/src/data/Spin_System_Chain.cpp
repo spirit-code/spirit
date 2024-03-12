@@ -53,4 +53,4 @@ catch( ... )
 
 } // namespace Data
 
-template class Data::Spin_System_Chain<Engine::Spin::Hamiltonian>;
+template class Data::Spin_System_Chain<Engine::Spin::HamiltonianVariant>;

@@ -2,6 +2,7 @@
 #ifndef SPIRIT_CORE_ENGINE_INTERACTION_ANISOTROPY_HPP
 #define SPIRIT_CORE_ENGINE_INTERACTION_ANISOTROPY_HPP
 
+#include <engine/Indexing.hpp>
 #include <engine/spin/interaction/ABC.hpp>
 
 namespace Engine
@@ -13,54 +14,96 @@ namespace Spin
 namespace Interaction
 {
 
-class Anisotropy : public Interaction::Base<Anisotropy>
+struct Anisotropy
 {
-public:
-    Anisotropy( Common::Interaction::Owner * hamiltonian, intfield indices, scalarfield magnitudes, vectorfield normals ) noexcept;
-    Anisotropy( Common::Interaction::Owner * hamiltonian, const Data::VectorfieldData & anisotropy ) noexcept;
+    using state_t = vectorfield;
 
-    void setParameters( const intfield & indices, const scalarfield & magnitudes, const vectorfield & normals )
+    struct Data
     {
-        this->anisotropy_indices    = indices;
-        this->anisotropy_magnitudes = magnitudes;
-        this->anisotropy_normals    = normals;
-        onInteractionChanged();
-    };
-    void getParameters( intfield & pIndices, scalarfield & pMagnitudes, vectorfield & pNormals ) const
-    {
-        pIndices    = this->anisotropy_indices;
-        pMagnitudes = this->anisotropy_magnitudes;
-        pNormals    = this->anisotropy_normals;
+        intfield anisotropy_indices;
+        scalarfield anisotropy_magnitudes;
+        vectorfield anisotropy_normals;
     };
 
-    bool is_contributing() const override;
-
-    void Energy_per_Spin( const vectorfield & spins, scalarfield & energy ) override;
-    void Hessian( const vectorfield & spins, MatrixX & hessian ) override;
-    void Sparse_Hessian( const vectorfield & spins, std::vector<triplet> & hessian ) override;
-
-    std::size_t Sparse_Hessian_Size_per_Cell() const override
+    struct Cache
     {
-        return anisotropy_indices.size() * 9;
     };
 
-    void Gradient( const vectorfield & spins, vectorfield & gradient ) override;
+    static bool is_contributing( const Data & data, const Cache & )
+    {
+        return !data.anisotropy_indices.empty();
+    };
+
+    struct IndexType
+    {
+        int ispin, iani;
+    };
+
+    using Index = std::optional<IndexType>;
+
+    static void clearIndex( Index & index )
+    {
+        index.reset();
+    }
+
+    using Energy              = Local::Energy_Functor<Anisotropy>;
+    using Gradient            = Local::Gradient_Functor<Anisotropy>;
+    using Hessian             = Local::Hessian_Functor<Anisotropy>;
+
+    static std::size_t Sparse_Hessian_Size_per_Cell( const Data & data, const Cache & )
+    {
+        return data.anisotropy_indices.size() * 9;
+    };
 
     // Calculate the total energy for a single spin to be used in Monte Carlo.
     //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
-    scalar Energy_Single_Spin( int ispin, const vectorfield & spins ) override;
+    using Energy_Single_Spin = Local::Energy_Single_Spin_Functor<Energy, 1>;
 
     // Interaction name as string
-    static constexpr std::string_view name          = "Anisotropy";
-    static constexpr std::optional<int> spin_order_ = 2;
+    static constexpr std::string_view name = "Anisotropy";
 
-protected:
-    void updateFromGeometry( const Data::Geometry & geometry ) override;
+    template<typename IndexVector>
+    static void applyGeometry(
+        const ::Data::Geometry & geometry, const intfield &, const Data & data, Cache &, IndexVector & indices )
+    {
+        using Indexing::check_atom_type;
+        const auto N = geometry.nos;
 
-private:
-    intfield anisotropy_indices;
-    scalarfield anisotropy_magnitudes;
-    vectorfield anisotropy_normals;
+#pragma omp parallel for
+        for( int icell = 0; icell < geometry.n_cells_total; ++icell )
+        {
+            for( int iani = 0; iani < data.anisotropy_indices.size(); ++iani )
+            {
+                int ispin = icell * N + data.anisotropy_indices[iani];
+                if( check_atom_type( geometry.atom_types[ispin] ) )
+                    std::get<Index>( indices[ispin] ) = IndexType{ ispin, iani };
+            }
+        }
+    };
+};
+
+template<>
+template<typename F>
+void Anisotropy::Hessian::operator()( const Index & index, const vectorfield &, F & f ) const
+{
+    if( !index.has_value() )
+        return;
+
+    const auto & [ispin, iani] = *index;
+
+#pragma unroll
+    for( int alpha = 0; alpha < 3; ++alpha )
+    {
+#pragma unroll
+        for( int beta = 0; beta < 3; ++beta )
+        {
+            int i = 3 * ispin + alpha;
+            int j = 3 * ispin + alpha;
+            f( i, j,
+               -2.0 * data.anisotropy_magnitudes[iani] * data.anisotropy_normals[iani][alpha]
+                   * data.anisotropy_normals[iani][beta] );
+        }
+    }
 };
 
 } // namespace Interaction

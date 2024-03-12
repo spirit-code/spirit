@@ -21,10 +21,12 @@ namespace IO
 
 void Write_Neighbours_Exchange( const State::system_t & system, const std::string & filename )
 {
-    pairfield exchange_pairs;
-    scalarfield exchange_magnitudes;
-    system.hamiltonian->getInteraction<Engine::Spin::Interaction::Exchange>()->getParameters(
-        exchange_pairs, exchange_magnitudes );
+    const auto * cache = system.hamiltonian->cache<Engine::Spin::Interaction::Exchange>();
+    if( cache == nullptr )
+        return;
+
+    const pairfield & exchange_pairs        = cache->exchange_pairs;
+    const scalarfield & exchange_magnitudes = cache->exchange_magnitudes;
 
     std::size_t n_neighbours = exchange_pairs.size();
 
@@ -68,11 +70,13 @@ void Write_Neighbours_Exchange( const State::system_t & system, const std::strin
 
 void Write_Neighbours_DMI( const State::system_t & system, const std::string & filename )
 {
-    pairfield dmi_pairs;
-    scalarfield dmi_magnitudes;
-    vectorfield dmi_normals;
-    system.hamiltonian->getInteraction<Engine::Spin::Interaction::DMI>()->getParameters(
-        dmi_pairs, dmi_magnitudes, dmi_normals );
+    const auto * cache = system.hamiltonian->cache<Engine::Spin::Interaction::DMI>();
+    if( cache == nullptr )
+        return;
+
+    const pairfield & dmi_pairs        = cache->dmi_pairs;
+    const scalarfield & dmi_magnitudes = cache->dmi_magnitudes;
+    const vectorfield & dmi_normals    = cache->dmi_normals;
 
     std::size_t n_neighbours = dmi_pairs.size();
 
