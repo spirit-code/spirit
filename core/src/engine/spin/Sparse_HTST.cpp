@@ -21,7 +21,7 @@
 #include <fmt/ostream.h>
 
 namespace C    = Utility::Constants;
-using system_t = Data::Spin_System<Engine::Spin::Hamiltonian>;
+using system_t = Data::Spin_System<Engine::Spin::HamiltonianVariant>;
 
 namespace Engine
 {

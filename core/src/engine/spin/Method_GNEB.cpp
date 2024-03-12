@@ -17,7 +17,7 @@
 
 using namespace Utility;
 
-using chain_t = Data::Spin_System_Chain<Engine::Spin::Hamiltonian>;
+using chain_t = Data::Spin_System_Chain<Engine::Spin::HamiltonianVariant>;
 
 namespace Engine
 {
@@ -480,8 +480,8 @@ void Method_GNEB<chain_t, solver>::Calculate_Interpolated_Energy_Contributions()
              -1 );
         return;
     }
-    const auto & hamiltonian  = *chain->images[0]->hamiltonian;
-    const auto n_interactions = hamiltonian.getActiveInteractionsSize();
+    auto & hamiltonian  = *chain->images[0]->hamiltonian;
+    const auto n_interactions = hamiltonian.active_count();
 
     // resize if too small
     if( this->chain->E_array_interpolated.size() < n_interactions )
@@ -499,7 +499,7 @@ void Method_GNEB<chain_t, solver>::Calculate_Interpolated_Energy_Contributions()
     // Calculate the energies and the inclinations
     for( int img = 0; img < noi; img++ )
     {
-        const auto & interactions = hamiltonian.getActiveInteractions();
+        const auto interactions = hamiltonian.active_interactions();
         const auto & image        = *this->configurations[img];
         for( std::size_t i = 0; i < n_interactions; ++i )
         {

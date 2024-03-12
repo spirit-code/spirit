@@ -21,9 +21,9 @@ template<typename system_t>
 class Method_EMA;
 
 template<>
-class Method_EMA<Data::Spin_System<Engine::Spin::Hamiltonian>> : public Method
+class Method_EMA<Data::Spin_System<Engine::Spin::HamiltonianVariant>> : public Method
 {
-    using system_t = Data::Spin_System<Engine::Spin::Hamiltonian>;
+    using system_t = Data::Spin_System<Engine::Spin::HamiltonianVariant>;
 
 public:
     // Constructor

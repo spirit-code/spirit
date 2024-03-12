@@ -18,9 +18,9 @@ class Method_MMF;
     The Minimum Mode Following (MMF) method
 */
 template<Solver solver>
-class Method_MMF<Data::Spin_System<Engine::Spin::Hamiltonian>, solver> : public Method_Solver<solver>
+class Method_MMF<Data::Spin_System<Engine::Spin::HamiltonianVariant>, solver> : public Method_Solver<solver>
 {
-    using system_t = Data::Spin_System<Engine::Spin::Hamiltonian>;
+    using system_t = Data::Spin_System<Engine::Spin::HamiltonianVariant>;
 
 public:
     // Constructor

@@ -10,8 +10,7 @@
 #include <engine/common/interaction/ABC.hpp>
 #include <engine/spin/Hamiltonian_Defines.hpp>
 
-#include <memory>
-#include <optional>
+#include <numeric>
 #include <vector>
 
 namespace Engine
@@ -25,113 +24,264 @@ namespace Interaction
 
 using Common::Interaction::triplet;
 
-/*
- * Abstract base class that specifies the interface a spin interaction must have.
- */
-class ABC : public Common::Interaction::ABC
+inline auto dense_hessian_functor( MatrixX & hessian )
 {
-public:
-    using state_t = vectorfield;
+    return [&hessian]( const auto i, const auto j, const auto value ) { hessian( i, j ) += value; };
+}
 
-    ~ABC() override                = default;
-    ABC( ABC && )                  = default;
-    ABC( const ABC & )             = default;
-    ABC & operator=( ABC && )      = default;
-    ABC & operator=( const ABC & ) = default;
+inline auto sparse_hessian_functor( field<triplet> & hessian )
+{
+    return [&hessian]( const auto i, const auto j, const auto value ) { hessian.emplace_back( i, j, value ); };
+}
 
-    // clone method so we can duplicate std::unique_ptr objects referencing the Interaction
-    virtual std::unique_ptr<ABC> clone( Common::Interaction::Owner * new_hamiltonian ) const = 0;
-    /*
-     * Calculate the energy gradient of a spin configuration.
-     * This function uses finite differences and may thus be quite inefficient.
-     */
-    virtual void Gradient_FD( const vectorfield & spins, vectorfield & gradient ) final;
+namespace NonLocal
+{
 
-    /*
-     * Calculate the Hessian matrix of a spin configuration.
-     * This function uses finite differences and may thus be quite inefficient.
-     */
-    virtual void Hessian_FD( const vectorfield & spins, MatrixX & hessian ) final;
+template<typename Functor>
+struct Reduce_Functor
+{
+    using Interaction = typename Functor::Interaction;
+    using Data        = typename Interaction::Data;
+    using Cache       = typename Interaction::Cache;
 
-    /*
-     * Calculate the Energy per spin of a spin configuration.
-     */
-    virtual void Energy_per_Spin( const vectorfield & spins, scalarfield & energy ) = 0;
+    template<typename... Args>
+    constexpr Reduce_Functor( Args &&... args ) noexcept( std::is_nothrow_constructible_v<Functor, Args...> )
+            : functor( std::forward<Args>( args )... ){};
 
-    /*
-     * Calculate the Hessian matrix of a spin configuration.
-     * This function uses finite differences and may thus be quite inefficient. You should
-     * override it if you want to get proper performance.
-     * This function is the fallback for derived classes where it has not been overridden.
-     */
-    virtual void Hessian( const vectorfield & spins, MatrixX & hessian );
-
-    /*
-     */
-    virtual void Sparse_Hessian( const vectorfield & spins, std::vector<triplet> & hessian ) = 0;
-    [[nodiscard]] virtual std::size_t Sparse_Hessian_Size_per_Cell() const;
-
-    /*
-     * Calculate the energy gradient of a spin configuration.
-     * This function uses finite differences and may thus be quite inefficient. You should
-     * override it if you want to get proper performance.
-     * This function is the fallback for derived classes where it has not been overridden.
-     */
-    virtual void Gradient( const vectorfield & spins, vectorfield & gradient );
-
-    // Calculate the Energy of a spin configuration
-    [[nodiscard]] virtual scalar Energy( const vectorfield & spins ) final;
-
-    // Calculate the total energy for a single spin
-    [[nodiscard]] virtual scalar Energy_Single_Spin( int ispin, const vectorfield & spins );
-
-    // polynomial order in the spins, connects spin gradient and energy (optional in cases we can't assign an order)
-    // having a positive order means that energy can be calculated as spin.dot(gradient)/spin_order
-    [[nodiscard]] virtual std::optional<int> spin_order() const = 0;
-
-protected:
-    ABC( Common::Interaction::Owner * hamiltonian, scalarfield energy_per_spin, scalar delta = 1e-3 ) noexcept
-            : Common::Interaction::ABC( hamiltonian, std::move( energy_per_spin ) ), delta( delta ){};
-
-    // local compute buffer
-    scalarfield energy_per_spin;
-
-    scalar delta = 1e-3;
-
-    // maybe used for the GUI
-    bool enabled = true;
-
-#if defined( SPIRIT_USE_OPENMP ) || defined( SPIRIT_USE_CUDA )
-    // When parallelising (cuda or openmp), we need all neighbours per spin
-    static constexpr bool use_redundant_neighbours = true;
-#else
-    // When running on a single thread, we can ignore redundant neighbours
-    static constexpr bool use_redundant_neighbours = false;
-#endif
+    scalar operator()( const typename Interaction::state_t & state ) const
+    {
+        scalarfield energy_per_spin( state.size() );
+        functor( state, energy_per_spin );
+        return std::reduce( begin( energy_per_spin ), end( energy_per_spin ) );
+    };
 
 private:
-    // Interaction name as string (must be unique per interaction because interactions with the same name cannot exist
-    // within the same hamiltonian at the same time)
-    static constexpr std::string_view name          = "Spin::Interaction::ABC";
-    static constexpr std::optional<int> spin_order_ = std::nullopt;
-};
-
-/*
- * Specialization of the CRTP base class for (pure) spin interactions. All spin interactions must inherit from this
- */
-template<class Derived>
-class Base : public Common::Interaction::Base<Spin::Interaction::ABC, Derived>
-{
-protected:
-    Base( Common::Interaction::Owner * hamiltonian, scalarfield energy_per_spin, scalar delta = 1e-3 ) noexcept
-            : Common::Interaction::Base<Spin::Interaction::ABC, Derived>( hamiltonian, energy_per_spin, delta ){};
+    Functor functor;
 
 public:
-    std::optional<int> spin_order() const final
-    {
-        return Derived::spin_order_;
-    };
+    const Data & data = functor.data;
+    Cache & cache     = functor.cache;
 };
+
+template<typename InteractionType>
+struct Energy_Functor
+{
+    using Interaction = InteractionType;
+    using Data        = typename Interaction::Data;
+    using Cache       = typename Interaction::Cache;
+
+    void operator()( const vectorfield & spins, scalarfield & energy ) const;
+
+    constexpr Energy_Functor( const Data & data, Cache & cache ) noexcept : data( data ), cache( cache ){};
+
+    const Data & data;
+    Cache & cache;
+};
+
+template<typename InteractionType>
+struct Gradient_Functor
+{
+    using Interaction = InteractionType;
+    using Data        = typename Interaction::Data;
+    using Cache       = typename Interaction::Cache;
+
+    void operator()( const vectorfield & spins, vectorfield & gradient ) const;
+
+    constexpr Gradient_Functor( const Data & data, Cache & cache ) noexcept : data( data ), cache( cache ){};
+
+    const Data & data;
+    Cache & cache;
+};
+
+template<typename InteractionType>
+struct Hessian_Functor
+{
+    using Interaction = InteractionType;
+    using Data        = typename Interaction::Data;
+    using Cache       = typename Interaction::Cache;
+    template<typename F>
+    void operator()( const vectorfield & spins, F & f ) const;
+
+    constexpr Hessian_Functor( const Data & data, Cache & cache ) noexcept : data( data ), cache( cache ){};
+
+    const Data & data;
+    Cache & cache;
+};
+
+template<typename InteractionType>
+struct Energy_Single_Spin_Functor
+{
+    using Interaction = InteractionType;
+    using Data        = typename Interaction::Data;
+    using Cache       = typename Interaction::Cache;
+
+    scalar operator()( int ispin, const vectorfield & spins ) const;
+
+    constexpr Energy_Single_Spin_Functor( const Data & data, Cache & cache ) noexcept : data( data ), cache( cache ){};
+
+    const Data & data;
+    Cache & cache;
+};
+
+// template<typename GradientFunctor, typename TotalEnergyFunctor>
+// struct Sequential_Gradient_and_Energy_Functor
+// {
+//     static_assert( std::is_same_v<typename GradientFunctor::Interaction, typename TotalEnergyFunctor::Interaction> );
+//     using Interaction = typename GradientFunctor::Interaction;
+//     using Data        = typename Interaction::Data;
+//     using Cache       = typename Interaction::Cache;
+//
+//     constexpr Sequential_Gradient_and_Energy_Functor( const Data & data, Cache & cache ) noexcept(
+//         std::is_nothrow_constructible_v<GradientFunctor, const Data &, Cache &>
+//         && std::is_nothrow_constructible_v<TotalEnergyFunctor, const Data &, Cache &> )
+//             : gradient_func( data, cache ), energy_func( data, cache ){};
+//
+//     scalar operator()( const typename Interaction::state_t & state, vectorfield & gradient ) const
+//     {
+//         gradient_func( index, state, gradient );
+//         return energy_func( index, state );
+//     };
+//
+// private:
+//     GradientFunctor gradient_func;
+//     TotalEnergyFunctor energy_func;
+// };
+
+} // namespace NonLocal
+
+namespace Local
+{
+
+template<typename InteractionType>
+struct Energy_Functor
+{
+    using Interaction = InteractionType;
+    using Data        = typename Interaction::Data;
+    using Cache       = typename Interaction::Cache;
+    using Index       = typename Interaction::Index;
+
+    scalar operator()( const Index & index, const vectorfield & spins ) const;
+
+    constexpr Energy_Functor( const Data & data, Cache & cache ) noexcept : data( data ), cache( cache ){};
+
+    const Data & data;
+    Cache & cache;
+};
+
+template<typename InteractionType>
+struct Gradient_Functor
+{
+    using Interaction = InteractionType;
+    using Data        = typename Interaction::Data;
+    using Cache       = typename Interaction::Cache;
+    using Index       = typename Interaction::Index;
+
+    Vector3 operator()( const Index & index, const vectorfield & spins ) const;
+
+    constexpr Gradient_Functor( const Data & data, Cache & cache ) noexcept : data( data ), cache( cache ){};
+
+    const Data & data;
+    Cache & cache;
+};
+
+template<typename InteractionType>
+struct Hessian_Functor
+{
+    using Interaction = InteractionType;
+    using Data        = typename Interaction::Data;
+    using Cache       = typename Interaction::Cache;
+    using Index       = typename Interaction::Index;
+
+    template<typename F>
+    void operator()( const Index & index, const vectorfield & spins, F & f ) const;
+
+    constexpr Hessian_Functor( const Data & data, Cache & cache ) noexcept : data( data ), cache( cache ){};
+
+    const Data & data;
+    Cache & cache;
+};
+
+template<typename Functor, int weight_factor>
+struct Energy_Single_Spin_Functor
+{
+    using Interaction = typename Functor::Interaction;
+    using Data        = typename Interaction::Data;
+    using Cache       = typename Interaction::Cache;
+    using Index       = typename Interaction::Index;
+
+    template<typename... Args>
+    constexpr Energy_Single_Spin_Functor( Args &&... args ) noexcept(
+        std::is_nothrow_constructible_v<Functor, Args...> )
+            : functor( std::forward<Args>( args )... ){};
+
+    scalar operator()( const Index & index, const typename Interaction::state_t & state ) const
+    {
+        return weight * functor( index, state );
+    };
+
+private:
+    Functor functor;
+    static constexpr scalar weight = weight_factor;
+
+public:
+    const Data & data = functor.data;
+    Cache & cache     = functor.cache;
+};
+
+// template<typename GradientFunctor, typename EnergyFunctor>
+// struct Sequential_Gradient_and_Energy_Functor
+// {
+//     static_assert( std::is_same_v<typename GradientFunctor::Interaction, typename EnergyFunctor::Interaction> );
+//     using Interaction = typename GradientFunctor::Interaction;
+//     using Data        = typename Interaction::Data;
+//     using Cache       = typename Interaction::Cache;
+//     using Index       = typename Interaction::Index;
+//
+//     constexpr Sequential_Gradient_and_Energy_Functor( const Data & data, Cache & cache ) noexcept(
+//         std::is_nothrow_constructible_v<GradientFunctor, const Data &, Cache &>
+//         && std::is_nothrow_constructible_v<EnergyFunctor, const Data &, Cache &> )
+//             : gradient_func( data, cache ), energy_func( data, cache ){};
+//
+//     void operator()(
+//         const Index & index, const typename Interaction::state_t & state, Vector3 & gradient, scalar & energy ) const
+//     {
+//         gradient = gradient_func( index, state );
+//         energy   = energy_func( index, state );
+//     };
+//
+// private:
+//     GradientFunctor gradient_func;
+//     EnergyFunctor energy_func;
+// };
+//
+// template<typename GradientFunctor, std::size_t spin_order>
+// struct Monomial_Gradient_and_Energy_Functor
+// {
+//     static_assert( spin_order > 0 );
+//
+//     using Interaction = typename GradientFunctor::Interaction;
+//     using Data        = typename Interaction::Data;
+//     using Cache       = typename Interaction::Cache;
+//     using Index       = typename Interaction::Index;
+//
+//     template<typename... Args>
+//     constexpr Monomial_Gradient_and_Energy_Functor( Args &&... args ) noexcept(
+//         std::is_nothrow_constructible_v<GradientFunctor, Args...> )
+//             : gradient_func( std::forward<Args>( args )... ){};
+//
+//     std::pair<Vector3, scalar> operator()( const Index & index, const typename Interaction::state_t & state ) const
+//     {
+//         const Vector3 gradient = gradient_func( index, state );
+//         const scalar energy    = prefactor * gradient.dot( state[index.ispin] );
+//         return { gradient, energy };
+//     };
+//
+// private:
+//     GradientFunctor gradient_func;
+//     static constexpr scalar prefactor = 1.0 / scalar( spin_order );
+// };
+
+} // namespace Local
 
 } // namespace Interaction
 

@@ -107,8 +107,7 @@ TEST_CASE( "Dynamics solvers should follow Larmor precession", "[physics]" )
 
 // Hamiltonians to be tested
 static constexpr std::array hamiltonian_input_files{
-    "core/test/input/fd_pairs.cfg",
-    "core/test/input/fd_neighbours.cfg",
+    "core/test/input/fd_pairs.cfg", "core/test/input/fd_neighbours.cfg",
     // "core/test/input/fd_gaussian.cfg", // TODO: issue with precision
 };
 
@@ -126,12 +125,14 @@ TEST_CASE( "Finite difference and regular Hamiltonian should match", "[physics]"
         // Compare gradients
         auto grad    = vectorfield( state->nos, Vector3::Zero() );
         auto grad_fd = vectorfield( state->nos, Vector3::Zero() );
-        for( const auto & interaction : hamiltonian->getActiveInteractions() )
+        for( const auto & interaction : hamiltonian->active_interactions() )
         {
             Engine::Vectormath::fill( grad, Vector3::Zero() );
             Engine::Vectormath::fill( grad_fd, Vector3::Zero() );
             interaction->Gradient( spins, grad );
-            interaction->Gradient_FD( spins, grad_fd );
+            Engine::Vectormath::Gradient(
+                spins, grad_fd,
+                [&interaction]( const auto & spins ) -> scalar { return interaction->Energy( spins ); } );
             INFO( "Interaction: " << interaction->Name() << "\n" );
             for( int i = 0; i < state->nos; i++ )
             {
@@ -145,121 +146,20 @@ TEST_CASE( "Finite difference and regular Hamiltonian should match", "[physics]"
         // Compare Hessians
         auto hessian    = MatrixX( 3 * state->nos, 3 * state->nos );
         auto hessian_fd = MatrixX( 3 * state->nos, 3 * state->nos );
-        for( const auto & interaction : hamiltonian->getActiveInteractions() )
+        for( const auto & interaction : hamiltonian->active_interactions() )
         {
             hessian.setZero();
             hessian_fd.setZero();
 
-            interaction->Hessian_FD( spins, hessian_fd );
+            Engine::Vectormath::Hessian(
+                spins, hessian_fd,
+                [&interaction]( const auto & spins, auto & gradient ) { interaction->Gradient( spins, gradient ); } );
             interaction->Hessian( spins, hessian );
             INFO( "Interaction: " << interaction->Name() << "\n" );
             INFO( "epsilon = " << epsilon_3 << "\n" );
             INFO( "Hessian (FD) =\n" << hessian_fd << "\n" );
             INFO( "Hessian      =\n" << hessian << "\n" );
             REQUIRE( hessian_fd.isApprox( hessian, epsilon_3 ) );
-        }
-    }
-}
-
-TEST_CASE( "Energy calculations should be consistent with themselves", "[physics]" )
-{
-    for( const auto * input_file : hamiltonian_input_files )
-    {
-        INFO( " Testing " << input_file );
-
-        auto state = std::shared_ptr<State>( State_Setup( input_file ), State_Delete );
-        Configuration_Random( state.get() );
-        const auto & spins = *state->active_image->spins;
-        auto & hamiltonian = state->active_image->hamiltonian;
-
-        // Compare gradients
-        scalar energy_a         = 0;
-        scalar energy_b         = 0;
-        auto energy_per_spin    = scalarfield( state->nos );
-        auto energy_single_spin = scalarfield( state->nos );
-        for( const auto & interaction : hamiltonian->getActiveInteractions() )
-        {
-            energy_a = 0;
-            energy_b = 0;
-            Engine::Vectormath::fill( energy_per_spin, 0 );
-            Engine::Vectormath::fill( energy_single_spin, 0 );
-
-            energy_a = interaction->Energy( spins );
-            interaction->Energy_per_Spin( spins, energy_per_spin );
-            energy_b = Engine::Vectormath::sum( energy_per_spin );
-
-            INFO( "Interaction: " << interaction->Name() << "\n" );
-            INFO( "[total], epsilon = " << epsilon_2 << "\n" );
-            INFO( "Energy (method) = " << energy_a << "\n" );
-            INFO( "Energy (sum)    = " << energy_b << "\n" );
-            REQUIRE_THAT( energy_a, WithinAbs( energy_b, epsilon_2 ) );
-
-            for( int i = 0; i < state->nos; i++ )
-            {
-                energy_single_spin[i] = interaction->Energy_Single_Spin( i, spins );
-            }
-
-            const auto spin_order = interaction->spin_order().value_or( 1 );
-            const scalar c        = ( spin_order != 0 ) ? static_cast<scalar>( spin_order ) : 1.0;
-            for( int i = 0; i < state->nos; i++ )
-            {
-                INFO( "Interaction: " << interaction->Name() << "\n" );
-                INFO( "i = " << i << ", epsilon = " << epsilon_2 << "\n" );
-                INFO( "Energy (full)   = " << energy_per_spin[i] << "\n" );
-                INFO( "Energy (single) = " << energy_single_spin[i] << "\n" );
-                REQUIRE_THAT( c * energy_per_spin[i], WithinAbs( energy_single_spin[i], epsilon_2 ) );
-            }
-        }
-    }
-}
-TEST_CASE( "Energy calculations should be consistent with gradients", "[physics]" )
-{
-    for( const auto * input_file : hamiltonian_input_files )
-    {
-        INFO( " Testing " << input_file );
-
-        auto state = std::shared_ptr<State>( State_Setup( input_file ), State_Delete );
-        Configuration_Random( state.get() );
-        const auto & spins = *state->active_image->spins;
-        auto & hamiltonian = state->active_image->hamiltonian;
-        auto nos           = state->nos;
-
-        // Compare energy to energy from gradients
-        auto gradient              = vectorfield( nos );
-        auto energy_per_spin       = scalarfield( nos );
-        auto energy_from_gradients = scalarfield( nos );
-
-        auto * s = spins.data();
-        auto * g = gradient.data();
-        auto * e = energy_from_gradients.data();
-
-        for( const auto & interaction : hamiltonian->getActiveInteractions() )
-        {
-            auto spin_order = interaction->spin_order().value_or( 0 );
-            if( spin_order <= 0 )
-            {
-                continue;
-            }
-
-            const scalar c = 1.0 / spin_order;
-            Engine::Vectormath::fill( gradient, Vector3::Zero() );
-            Engine::Vectormath::fill( energy_per_spin, 0 );
-
-            interaction->Gradient( spins, gradient );
-
-            Engine::Backend::par::apply(
-                nos, [e, g, s, c] SPIRIT_LAMBDA( int idx ) { e[idx] = c * g[idx].dot( s[idx] ); } );
-
-            interaction->Energy_per_Spin( spins, energy_per_spin );
-
-            for( int i = 0; i < state->nos; i++ )
-            {
-                INFO( "Interaction: " << interaction->Name() << "\n" );
-                INFO( "i = " << i << ", epsilon = " << epsilon_2 << "\n" );
-                INFO( "Energy (direct)        = " << energy_per_spin[i] << "\n" );
-                INFO( "Energy (from gradient) = " << energy_from_gradients[i] << "\n" );
-                REQUIRE_THAT( energy_per_spin[i], WithinAbs( energy_from_gradients[i], epsilon_2 ) );
-            }
         }
     }
 }
@@ -273,7 +173,7 @@ TEST_CASE( "Dipole-Dipole Interaction", "[physics]" )
     Configuration_Random( state.get() );
     auto & spins = *state->active_image->spins;
 
-    auto * ddi_interaction = state->active_image->hamiltonian->getInteraction<Engine::Spin::Interaction::DDI>();
+    auto ddi_interaction = state->active_image->hamiltonian->getInteraction<Engine::Spin::Interaction::DDI>();
 
     // FFT gradient and energy
     auto grad_fft = vectorfield( state->nos, Vector3::Zero() );

@@ -2,17 +2,17 @@
 #ifndef SPIRIT_CORE_ENGINE_VECTORMATH_HPP
 #define SPIRIT_CORE_ENGINE_VECTORMATH_HPP
 
-#include <memory>
-#include <vector>
+#include <data/Geometry.hpp>
+#include <engine/Vectormath_Defines.hpp>
 
 #include <Eigen/Core>
 
-#include <data/Geometry.hpp>
-#include <data/Spin_System.hpp>
-#include <engine/Vectormath_Defines.hpp>
+#include <random>
+#include <vector>
 
 namespace Engine
 {
+
 namespace Vectormath
 {
 
@@ -207,7 +207,108 @@ void set_c_cross( const scalar & c, const Vector3 & a, const vectorfield & b, ve
 // out[i] = c * a[i] x b[i]
 void set_c_cross( const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out );
 
+// finite difference implementation for gradients
+template<typename StateType, typename GradientType, typename EnergyFunction>
+void Gradient( const StateType & spins, GradientType & gradient, EnergyFunction && energy, scalar delta = 1e-3 )
+{
+    static_assert( std::is_convertible_v<decltype( energy( spins ) ), scalar> );
+
+    std::size_t nos = spins.size();
+
+    // Calculate finite difference
+    vectorfield spins_plus( nos );
+    vectorfield spins_minus( nos );
+
+    spins_plus  = spins;
+    spins_minus = spins;
+
+    for( std::size_t i = 0; i < nos; ++i )
+    {
+#pragma unroll
+        for( std::uint8_t dim = 0; dim < 3; ++dim )
+        {
+            // Displace
+            spins_plus[i][dim] += delta;
+            spins_minus[i][dim] -= delta;
+
+            // Calculate gradient component
+            scalar E_plus    = energy( spins_plus );
+            scalar E_minus   = energy( spins_minus );
+            gradient[i][dim] = 0.5 * ( E_plus - E_minus ) / delta;
+
+            // Un-Displace
+            spins_plus[i][dim] -= delta;
+            spins_minus[i][dim] += delta;
+        }
+    }
+};
+
+// finite difference implementation for hessians
+template<typename StateType, typename HessianType, typename GradientFunction>
+void Hessian( const StateType & spins, HessianType & hessian, GradientFunction && gradient, scalar delta = 1e-3 )
+{
+    static_assert( std::is_invocable_v<GradientFunction, const StateType &, vectorfield &> );
+
+    // This is a regular finite difference implementation (probably not very efficient)
+    // using the differences between gradient values (not function)
+    // see https://v8doc.sas.com/sashtml/ormp/chap5/sect28.htm
+
+    std::size_t nos = spins.size();
+
+    vectorfield spins_pi( nos );
+    vectorfield spins_mi( nos );
+    vectorfield spins_pj( nos );
+    vectorfield spins_mj( nos );
+
+    spins_pi = spins;
+    spins_mi = spins;
+    spins_pj = spins;
+    spins_mj = spins;
+
+    vectorfield grad_pi( nos );
+    vectorfield grad_mi( nos );
+    vectorfield grad_pj( nos );
+    vectorfield grad_mj( nos );
+
+    for( std::size_t i = 0; i < nos; ++i )
+    {
+        for( std::size_t j = 0; j < nos; ++j )
+        {
+#pragma unroll
+            for( std::uint8_t alpha = 0; alpha < 3; ++alpha )
+            {
+#pragma unroll
+                for( std::uint8_t beta = 0; beta < 3; ++beta )
+                {
+                    // Displace
+                    spins_pi[i][alpha] += delta;
+                    spins_mi[i][alpha] -= delta;
+                    spins_pj[j][beta] += delta;
+                    spins_mj[j][beta] -= delta;
+
+                    // Calculate Hessian component
+                    gradient( spins_pi, grad_pi );
+                    gradient( spins_mi, grad_mi );
+                    gradient( spins_pj, grad_pj );
+                    gradient( spins_mj, grad_mj );
+
+                    hessian( 3 * i + alpha, 3 * j + beta )
+                        = 0.25 / delta
+                          * ( grad_pj[i][alpha] - grad_mj[i][alpha] + grad_pi[j][beta] - grad_mi[j][beta] );
+
+                    // Un-Displace
+                    spins_pi[i][alpha] -= delta;
+                    spins_mi[i][alpha] += delta;
+                    spins_pj[j][beta] -= delta;
+                    spins_mj[j][beta] += delta;
+                }
+            }
+        }
+    }
+};
+
 } // namespace Vectormath
+
 } // namespace Engine
 
 #endif

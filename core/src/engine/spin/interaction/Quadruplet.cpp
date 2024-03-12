@@ -38,84 +38,11 @@ namespace Spin
 namespace Interaction
 {
 
-Quadruplet::Quadruplet( Common::Interaction::Owner * hamiltonian, quadrupletfield quadruplets, scalarfield magnitudes ) noexcept
-        : Interaction::Base<Quadruplet>( hamiltonian, scalarfield( 0 ) ),
-          quadruplets( std::move( quadruplets ) ),
-          quadruplet_magnitudes( std::move( magnitudes ) )
+template<>
+void Quadruplet::Energy::operator()( const vectorfield & spins, scalarfield & energy ) const
 {
-    this->updateGeometry();
-}
-
-Quadruplet::Quadruplet( Common::Interaction::Owner * hamiltonian, const Data::QuadrupletfieldData & quadruplet ) noexcept
-        : Quadruplet( hamiltonian, quadruplet.quadruplets, quadruplet.magnitudes )
-{
-}
-
-bool Quadruplet::is_contributing() const
-{
-    return !quadruplets.empty();
-}
-
-void Quadruplet::updateFromGeometry( const Geometry & geometry ) {}
-
-template<typename Callable>
-void Quadruplet::apply( Callable f )
-{
-    const auto & geometry            = getGeometry();
-    const auto & boundary_conditions = getBoundaryConditions();
-
-    for( unsigned int iquad = 0; iquad < quadruplets.size(); ++iquad )
-    {
-        const auto & quad = quadruplets[iquad];
-
-        const int i = quad.i;
-        const int j = quad.j;
-        const int k = quad.k;
-        const int l = quad.l;
-
-        const auto & d_j = quad.d_j;
-        const auto & d_k = quad.d_k;
-        const auto & d_l = quad.d_l;
-
-        for( int da = 0; da < geometry.n_cells[0]; ++da )
-        {
-            for( int db = 0; db < geometry.n_cells[1]; ++db )
-            {
-                for( int dc = 0; dc < geometry.n_cells[2]; ++dc )
-                {
-                    int ispin = i + idx_from_translations( geometry.n_cells, geometry.n_cell_atoms, { da, db, dc } );
-#ifdef SPIRIT_USE_CUDA
-                    int jspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
-                        { i, j, { d_j[0], d_j[1], d_j[2] } } );
-                    int kspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
-                        { i, k, { d_k[0], d_k[1], d_k[2] } } );
-                    int lspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
-                        { i, l, { d_l[0], d_l[1], d_l[2] } } );
-#else
-                    int jspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
-                        { i, j, d_j } );
-                    int kspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
-                        { i, k, d_k } );
-                    int lspin = idx_from_pair(
-                        ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
-                        { i, l, d_l } );
-#endif
-                    f( iquad, ispin, jspin, kspin, lspin );
-                }
-            }
-        }
-    }
-}
-
-void Quadruplet::Energy_per_Spin( const vectorfield & spins, scalarfield & energy )
-{
-    this->apply(
-        [&spins, &energy, &quadruplet_magnitudes = this->quadruplet_magnitudes](
+    Quadruplet::apply(
+        [&spins, &energy, &quadruplet_magnitudes = data.quadruplet_magnitudes](
             const auto iquad, const auto ispin, const auto jspin, const auto kspin, const auto lspin )
         {
             if( ispin >= 0 && jspin >= 0 && kspin >= 0 && lspin >= 0 )
@@ -127,28 +54,24 @@ void Quadruplet::Energy_per_Spin( const vectorfield & spins, scalarfield & energ
                 energy[kspin] -= quad_energy;
                 energy[lspin] -= quad_energy;
             }
-        } );
+        },
+        data, cache );
 }
 
 // Calculate the total energy for a single spin to be used in Monte Carlo.
 //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
-scalar Quadruplet::Energy_Single_Spin( const int ispin, const vectorfield & spins )
+template<>
+scalar Quadruplet::Energy_Single_Spin::operator()( const int ispin, const vectorfield & spins ) const
 {
     // TODO
     return 0;
 };
 
-void Quadruplet::Hessian( const vectorfield & spins, MatrixX & hessian ){
-    // TODO
-};
-void Quadruplet::Sparse_Hessian( const vectorfield & spins, std::vector<triplet> & hessian ){
-    // TODO
-};
-
-void Quadruplet::Gradient( const vectorfield & spins, vectorfield & gradient )
+template<>
+void Quadruplet::Gradient::operator()( const vectorfield & spins, vectorfield & gradient ) const
 {
-    this->apply(
-        [&spins, &gradient, &quadruplet_magnitudes = this->quadruplet_magnitudes](
+    Quadruplet::apply(
+        [&spins, &gradient, &quadruplet_magnitudes = data.quadruplet_magnitudes](
             const auto iquad, const auto ispin, const auto jspin, const auto kspin, const auto lspin )
         {
             if( ispin >= 0 && jspin >= 0 && kspin >= 0 && lspin >= 0 )
@@ -158,7 +81,8 @@ void Quadruplet::Gradient( const vectorfield & spins, vectorfield & gradient )
                 gradient[kspin] -= quadruplet_magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) ) * spins[lspin];
                 gradient[lspin] -= quadruplet_magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) ) * spins[kspin];
             }
-        } );
+        },
+        data, cache );
 };
 
 } // namespace Interaction

@@ -85,6 +85,9 @@ protected:
 
     Owner( const std::shared_ptr<Data::Geometry> & geometry, const intfield & boundary_conditions )
             : geometry( geometry ), boundary_conditions( boundary_conditions ){};
+
+    virtual void setAsOwner() = 0;
+
 };
 
 void setOwnerPtr( ABC & interaction, Owner * owner ) noexcept;
@@ -211,6 +214,7 @@ public:
     {
         return Derived::name;
     }
+
 };
 
 inline void setOwnerPtr( ABC & interaction, Owner * const owner ) noexcept

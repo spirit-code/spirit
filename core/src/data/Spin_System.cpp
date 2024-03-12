@@ -102,7 +102,7 @@ try
         this->effective_field = other.effective_field;
 
         this->geometry    = std::make_shared<Data::Geometry>( *other.geometry );
-        this->hamiltonian = std::make_shared<Engine::Spin::Hamiltonian>( *other.hamiltonian );
+        this->hamiltonian = std::make_shared<Engine::Spin::HamiltonianVariant>( *other.hamiltonian );
 
         this->llg_parameters = std::make_shared<Data::Parameters_Method_LLG>( *other.llg_parameters );
         this->mc_parameters  = std::make_shared<Data::Parameters_Method_MC>( *other.mc_parameters );
@@ -171,4 +171,4 @@ catch( ... )
 
 } // namespace Data
 
-template class Data::Spin_System<Engine::Spin::Hamiltonian>;
+template class Data::Spin_System<Engine::Spin::HamiltonianVariant>;

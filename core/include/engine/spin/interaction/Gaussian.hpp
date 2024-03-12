@@ -4,8 +4,6 @@
 
 #include <engine/spin/interaction/ABC.hpp>
 
-#include <vector>
-
 namespace Engine
 {
 
@@ -21,57 +19,99 @@ A set of gaussians is summed with weight-factors so as to create an arbitrary en
 E = sum_i^N a_i exp( -l_i^2(m)/(2sigma_i^2) ) where l_i(m) is the distance of m to the gaussian i,
     a_i is the gaussian amplitude and sigma_i the width
 */
-class Gaussian : public Interaction::Base<Gaussian>
+struct Gaussian
 {
-public:
-    // Constructor
-    Gaussian( Common::Interaction::Owner * hamiltonian, scalarfield amplitude, scalarfield width, vectorfield center ) noexcept;
+    using state_t = vectorfield;
 
-    void setParameters( const scalarfield & pAmplitude, const scalarfield & pWidth, const vectorfield & pCenter )
+    struct Data
     {
-        this->amplitude   = pAmplitude;
-        this->width       = pWidth;
-        this->center      = pCenter;
-        this->n_gaussians = amplitude.size();
-        onInteractionChanged();
-    };
-    void getParameters( scalarfield & pAmplitude, scalarfield & pWidth, vectorfield & pCenter ) const
-    {
-        pAmplitude = this->amplitude;
-        pWidth     = this->width;
-        pCenter    = this->center;
+        // Parameters of the energy landscape
+        scalarfield amplitude;
+        scalarfield width;
+        vectorfield center;
     };
 
-    bool is_contributing() const override;
+    struct Cache
+    {
+        std::size_t n_gaussians;
+    };
 
-    // General Hamiltonian functions
-    void Energy_per_Spin( const vectorfield & spins, scalarfield & energy ) override;
-    void Hessian( const vectorfield & spins, MatrixX & hessian ) override;
-    void Sparse_Hessian( const vectorfield & spins, std::vector<triplet> & hessian ) override;
+    static bool is_contributing( const Data & data, const Cache & )
+    {
+        return !data.amplitude.empty();
+    };
 
-    void Gradient( const vectorfield & spins, vectorfield & gradient ) override;
+    typedef int IndexType;
+
+    using Index = std::optional<int>;
+
+    static void clearIndex( Index & index )
+    {
+        index.reset();
+    };
+
+    using Energy   = Local::Energy_Functor<Gaussian>;
+    using Gradient = Local::Gradient_Functor<Gaussian>;
+    using Hessian  = Local::Hessian_Functor<Gaussian>;
+
+    static std::size_t Sparse_Hessian_Size_per_Cell( const Data & data, const Cache & )
+    {
+        return 9 * data.amplitude.size();
+    };
 
     // Calculate the total energy for a single spin
-    scalar Energy_Single_Spin( int ispin, const vectorfield & spins ) override;
-
-    // Calculate the total energy for a single spin and a single gaussian
-    scalar Energy_Single_Spin_Single_Gaussian( int ispin, int igauss, const vectorfield & spins );
-
-    std::size_t n_gaussians = 0;
+    using Energy_Single_Spin = Local::Energy_Single_Spin_Functor<Energy, 1>;
 
     // Interaction name as string
-    static constexpr std::string_view name          = "Gaussian";
-    static constexpr std::optional<int> spin_order_ = std::nullopt;
+    static constexpr std::string_view name = "Gaussian";
 
-protected:
-    void updateFromGeometry( const Data::Geometry & geometry ) override;
+    template<typename IndexVector>
+    static void
+    applyGeometry( const ::Data::Geometry & geometry, const intfield &, const Data &, Cache &, IndexVector & indices )
+    {
+        const auto N = geometry.nos;
 
-private:
-    // Parameters of the energy landscape
-    scalarfield amplitude;
-    scalarfield width;
-    vectorfield center;
+#pragma omp parallel for
+        for( int icell = 0; icell < geometry.n_cells_total; ++icell )
+        {
+            for( int ibasis = 0; ibasis < N; ++ibasis )
+            {
+                const int ispin                   = icell * N + ibasis;
+                std::get<Index>( indices[ispin] ) = ispin;
+            };
+        }
+    }
 };
+
+template<>
+template<typename F>
+void Gaussian::Hessian::operator()( const Index & index, const vectorfield & spins, F & f ) const
+{
+    if( !index.has_value() )
+        return;
+
+    const int ispin = *index;
+    // Calculate Hessian
+    for( unsigned int igauss = 0; igauss < data.amplitude.size(); ++igauss )
+    {
+        // Distance between spin and gaussian center
+        scalar l = 1 - data.center[igauss].dot( spins[ispin] );
+        // Prefactor for all alpha, beta
+        scalar prefactor
+            = data.amplitude[igauss] * std::exp( -std::pow( l, 2 ) / ( 2.0 * std::pow( data.width[igauss], 2 ) ) )
+              / std::pow( data.width[igauss], 2 ) * ( std::pow( l, 2 ) / std::pow( data.width[igauss], 2 ) - 1 );
+        // Effective Field contribution
+        for( std::uint8_t alpha = 0; alpha < 3; ++alpha )
+        {
+            for( std::uint8_t beta = 0; beta < 3; ++beta )
+            {
+                std::size_t i = 3 * ispin + alpha;
+                std::size_t j = 3 * ispin + beta;
+                f( i, j, prefactor * data.center[igauss][alpha] * data.center[igauss][beta] );
+            }
+        }
+    }
+}
 
 } // namespace Interaction
 

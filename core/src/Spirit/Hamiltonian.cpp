@@ -34,7 +34,7 @@ try
     image->Lock();
     try
     {
-        image->hamiltonian->setBoundaryConditions({periodical[0], periodical[1], periodical[2]});
+        image->hamiltonian->setBoundaryConditions( { periodical[0], periodical[1], periodical[2] } );
     }
     catch( ... )
     {
@@ -63,22 +63,18 @@ try
     image->Lock();
     try
     {
-        // Set
-        if( image->hamiltonian->Name() == "Heisenberg" )
-        {
-            // Normals
-            Vector3 new_normal{ normal[0], normal[1], normal[2] };
-            new_normal.normalize();
+        // Normals
+        Vector3 new_normal{ normal[0], normal[1], normal[2] };
+        new_normal.normalize();
 
-            // Into the Hamiltonian
-            image->hamiltonian->getInteraction<Engine::Spin::Interaction::Zeeman>()->setParameters(
-                magnitude * Constants::mu_B, new_normal );
-
+        // Into the Hamiltonian
+        using Engine::Spin::Interaction::Zeeman;
+        const bool success = image->hamiltonian->set_data<Zeeman>( { magnitude * Constants::mu_B, new_normal } );
+        if( success )
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                  fmt::format(
                      "Set external field to {}, direction ({}, {}, {})", magnitude, normal[0], normal[1], normal[2] ),
                  idx_image, idx_chain );
-        }
         else
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
                  fmt::format( "External field cannot be set on {}", image->hamiltonian->Name() ), idx_image,
@@ -108,33 +104,30 @@ try
     image->Lock();
     try
     {
-        if( image->hamiltonian->Name() == "Heisenberg" )
+        int nos          = image->nos;
+        int n_cell_atoms = image->geometry->n_cell_atoms;
+
+        // Indices and Magnitudes
+        intfield new_indices( n_cell_atoms );
+        scalarfield new_magnitudes( n_cell_atoms );
+        for( int i = 0; i < n_cell_atoms; ++i )
         {
-            int nos          = image->nos;
-            int n_cell_atoms = image->geometry->n_cell_atoms;
+            new_indices[i]    = i;
+            new_magnitudes[i] = magnitude;
+        }
+        // Normals
+        Vector3 new_normal{ normal[0], normal[1], normal[2] };
+        new_normal.normalize();
+        vectorfield new_normals( nos, new_normal );
+        // Update the Hamiltonian
+        using Engine::Spin::Interaction::Anisotropy;
+        const bool success = image->hamiltonian->set_data<Anisotropy>( { new_indices, new_magnitudes, new_normals } );
 
-            // Indices and Magnitudes
-            intfield new_indices( n_cell_atoms );
-            scalarfield new_magnitudes( n_cell_atoms );
-            for( int i = 0; i < n_cell_atoms; ++i )
-            {
-                new_indices[i]    = i;
-                new_magnitudes[i] = magnitude;
-            }
-            // Normals
-            Vector3 new_normal{ normal[0], normal[1], normal[2] };
-            new_normal.normalize();
-            vectorfield new_normals( nos, new_normal );
-
-            // Update the Hamiltonian
-            image->hamiltonian->getInteraction<Engine::Spin::Interaction::Anisotropy>()->setParameters(
-                new_indices, new_magnitudes, new_normals );
-
+        if( success )
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                  fmt::format(
                      "Set anisotropy to {}, direction ({}, {}, {})", magnitude, normal[0], normal[1], normal[2] ),
                  idx_image, idx_chain );
-        }
         else
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
                  fmt::format( "Anisotropy cannot be set on {}", image->hamiltonian->Name() ), idx_image, idx_chain );
@@ -160,27 +153,25 @@ try
     image->Lock();
     try
     {
-        if( image->hamiltonian->Name() == "Heisenberg" )
+        int nos          = image->nos;
+        int n_cell_atoms = image->geometry->n_cell_atoms;
+
+        // Indices and Magnitudes
+        intfield new_indices( n_cell_atoms );
+        scalarfield new_magnitudes( n_cell_atoms );
+        for( int i = 0; i < n_cell_atoms; ++i )
         {
-            int nos          = image->nos;
-            int n_cell_atoms = image->geometry->n_cell_atoms;
+            new_indices[i]    = i;
+            new_magnitudes[i] = magnitude;
+        }
 
-            // Indices and Magnitudes
-            intfield new_indices( n_cell_atoms );
-            scalarfield new_magnitudes( n_cell_atoms );
-            for( int i = 0; i < n_cell_atoms; ++i )
-            {
-                new_indices[i]    = i;
-                new_magnitudes[i] = magnitude;
-            }
+        // Update the Hamiltonian
+        using Engine::Spin::Interaction::Cubic_Anisotropy;
+        const bool success = image->hamiltonian->set_data<Cubic_Anisotropy>( { new_indices, new_magnitudes } );
 
-            // Update the Hamiltonian
-            image->hamiltonian->getInteraction<Engine::Spin::Interaction::Cubic_Anisotropy>()->setParameters(
-                new_indices, new_magnitudes );
-
+        if( success )
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                  fmt::format( "Set cubic anisotropy to {}", magnitude ), idx_image, idx_chain );
-        }
         else
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
                  fmt::format( "Cubic anisotropy cannot be set on {}", image->hamiltonian->Name() ), idx_image,
@@ -209,8 +200,10 @@ try
     image->Lock();
     try
     {
-        if( auto * interaction = image->hamiltonian->getInteraction<Engine::Spin::Interaction::Biaxial_Anisotropy>();
-            interaction != nullptr )
+        using Engine::Spin::Interaction::Biaxial_Anisotropy;
+        bool success                       = false;
+        std::size_t new_on_site_terms_size = 0;
+        if( image->hamiltonian->hasInteraction<Biaxial_Anisotropy>() )
         {
             int n_cell_atoms = image->geometry->n_cell_atoms;
 
@@ -258,13 +251,15 @@ try
                     std::back_inserter( new_polynomial_terms ) );
             }
 
-            // Update the Hamiltonian
-            interaction->setParameters(
-                new_indices, new_polynomial_bases, new_polynomial_site_p, new_polynomial_terms );
+            new_on_site_terms_size = new_on_site_terms.size();
 
-            Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-                 fmt::format( "Set {} terms for biaxial anisotropy", new_on_site_terms.size() ), idx_image, idx_chain );
+            // Update the Hamiltonian
+            success = image->hamiltonian->set_data<Biaxial_Anisotropy>(
+                { new_indices, new_polynomial_bases, new_polynomial_site_p, new_polynomial_terms } );
         }
+        if( success )
+            Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
+                 fmt::format( "Set {} terms for biaxial anisotropy", new_on_site_terms_size ), idx_image, idx_chain );
         else
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
                  fmt::format( "Biaxial anisotropy cannot be set on {}", image->hamiltonian->Name() ), idx_image,
@@ -292,11 +287,12 @@ try
     image->Lock();
     try
     {
-        if( image->hamiltonian->Name() == "Heisenberg" )
+        using Engine::Spin::Interaction::Exchange;
+        // Update the Hamiltonian
+        const bool success = image->hamiltonian->set_data<Exchange>( { scalarfield( jij, jij + n_shells ) } );
+
+        if( success )
         {
-            // Update the Hamiltonian
-            image->hamiltonian->getInteraction<Engine::Spin::Interaction::Exchange>()->setParameters(
-                scalarfield( jij, jij + n_shells ) );
             std::string message = fmt::format( "Set exchange to {} shells", n_shells );
             if( n_shells > 0 )
                 message += fmt::format( " Jij[0] = {}", jij[0] );
@@ -337,12 +333,12 @@ try
     image->Lock();
     try
     {
-        if( image->hamiltonian->Name() == "Heisenberg" )
+        using Engine::Spin::Interaction::DMI;
+        // Update the Hamiltonian
+        if( const bool success = image->hamiltonian->set_data<DMI>(
+               { {}, {}, {}, scalarfield( dij, dij + n_shells ), chirality } );
+            success )
         {
-            // Update the Hamiltonian
-            image->hamiltonian->getInteraction<Engine::Spin::Interaction::DMI>()->setParameters(
-                scalarfield( dij, dij + n_shells ), chirality );
-
             std::string message = fmt::format( "Set dmi to {} shells", n_shells );
             if( n_shells > 0 )
                 message += fmt::format( " Dij[0] = {}", dij[0] );
@@ -376,23 +372,22 @@ try
     image->Lock();
     try
     {
-        if( image->hamiltonian->Name() == "Heisenberg" )
-        {
-            auto new_n_periodic_images = intfield( 3 );
-            new_n_periodic_images[0]   = n_periodic_images[0];
-            new_n_periodic_images[1]   = n_periodic_images[1];
-            new_n_periodic_images[2]   = n_periodic_images[2];
+        using Engine::Spin::Interaction::DDI;
+        auto new_n_periodic_images = intfield( 3 );
+        new_n_periodic_images[0]   = n_periodic_images[0];
+        new_n_periodic_images[1]   = n_periodic_images[1];
+        new_n_periodic_images[2]   = n_periodic_images[2];
 
-            image->hamiltonian->getInteraction<Engine::Spin::Interaction::DDI>()->setParameters(
-                Engine::Spin::DDI_Method( ddi_method ), new_n_periodic_images, pb_zero_padding, cutoff_radius );
+        const bool success = image->hamiltonian->set_data<DDI>(
+            { Engine::Spin::DDI_Method( ddi_method ), cutoff_radius, pb_zero_padding, new_n_periodic_images } );
 
+        if( success )
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                  fmt::format(
                      "Set ddi to method {}, periodic images {} {} {}, cutoff radius {} and pb_zero_padding {}",
                      ddi_method, n_periodic_images[0], n_periodic_images[1], n_periodic_images[2], cutoff_radius,
                      pb_zero_padding ),
                  idx_image, idx_chain );
-        }
         else
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
                  fmt::format( "DDI cannot be set on {}", image->hamiltonian->Name() ), idx_image, idx_chain );
@@ -435,9 +430,9 @@ try
     throw_if_nullptr( periodical, "periodical" );
 
     const auto & boundary_conditions = image->hamiltonian->getBoundaryConditions();
-    periodical[0] = boundary_conditions[0];
-    periodical[1] = boundary_conditions[1];
-    periodical[2] = boundary_conditions[2];
+    periodical[0]                    = (bool)boundary_conditions[0];
+    periodical[1]                    = (bool)boundary_conditions[1];
+    periodical[2]                    = (bool)boundary_conditions[2];
 }
 catch( ... )
 {
@@ -452,12 +447,10 @@ try
     throw_if_nullptr( magnitude, "magnitude" );
     throw_if_nullptr( normal, "normal" );
 
-    if( image->hamiltonian->Name() == "Heisenberg" )
+    if( const auto * data = image->hamiltonian->data<Engine::Spin::Interaction::Zeeman>(); data != nullptr )
     {
-        scalar field_magnitude = 0;
-        Vector3 field_normal   = Vector3::Zero();
-        image->hamiltonian->getInteraction<Engine::Spin::Interaction::Zeeman>()->getParameters(
-            field_magnitude, field_normal );
+        const scalar & field_magnitude = data->external_field_magnitude;
+        const Vector3 & field_normal   = data->external_field_normal;
 
         if( field_magnitude > 0 )
         {
@@ -489,13 +482,12 @@ try
     throw_if_nullptr( magnitude, "magnitude" );
     throw_if_nullptr( normal, "normal" );
 
-    if( image->hamiltonian->Name() == "Heisenberg" )
+    using Engine::Spin::Interaction::Anisotropy;
+    if( const auto * data = image->hamiltonian->data<Anisotropy>(); data != nullptr )
     {
-        intfield anisotropy_indices;
-        scalarfield anisotropy_magnitudes;
-        vectorfield anisotropy_normals;
-        image->hamiltonian->getInteraction<Engine::Spin::Interaction::Anisotropy>()->getParameters(
-            anisotropy_indices, anisotropy_magnitudes, anisotropy_normals );
+        const auto & anisotropy_indices    = data->anisotropy_indices;
+        const auto & anisotropy_magnitudes = data->anisotropy_magnitudes;
+        const auto & anisotropy_normals    = data->anisotropy_normals;
         if( !anisotropy_indices.empty() )
         {
             // Magnitude
@@ -527,12 +519,10 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( magnitude, "magnitude" );
 
-    if( image->hamiltonian->Name() == "Heisenberg" )
+    if( const auto * data = image->hamiltonian->data<Engine::Spin::Interaction::Cubic_Anisotropy>(); data != nullptr )
     {
-        intfield cubic_anisotropy_indices;
-        scalarfield cubic_anisotropy_magnitudes;
-        image->hamiltonian->getInteraction<Engine::Spin::Interaction::Cubic_Anisotropy>()->getParameters(
-            cubic_anisotropy_indices, cubic_anisotropy_magnitudes );
+        const auto & cubic_anisotropy_indices    = data->cubic_anisotropy_indices;
+        const auto & cubic_anisotropy_magnitudes = data->cubic_anisotropy_magnitudes;
 
         if( !cubic_anisotropy_indices.empty() )
         {
@@ -556,10 +546,9 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    if( auto * interaction = image->hamiltonian->getInteraction<Engine::Spin::Interaction::Biaxial_Anisotropy>();
-        interaction != nullptr )
+    if( const auto * data = image->hamiltonian->data<Engine::Spin::Interaction::Biaxial_Anisotropy>(); data != nullptr )
     {
-        return interaction->getN_Atoms();
+        return data->indices.size();
     }
     else
     {
@@ -578,10 +567,9 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    if( auto * interaction = image->hamiltonian->getInteraction<Engine::Spin::Interaction::Biaxial_Anisotropy>();
-        interaction != nullptr )
+    if( const auto * data = image->hamiltonian->data<Engine::Spin::Interaction::Biaxial_Anisotropy>(); data != nullptr )
     {
-        return interaction->getN_Terms();
+        return data->terms.size();
     }
     else
     {
@@ -608,17 +596,12 @@ try
     throw_if_nullptr( magnitude, "magnitude" );
     throw_if_nullptr( exponents, "exponents" );
 
-    if( auto * interaction = image->hamiltonian->getInteraction<Engine::Spin::Interaction::Biaxial_Anisotropy>();
-        interaction != nullptr )
+    if( const auto * data = image->hamiltonian->data<Engine::Spin::Interaction::Biaxial_Anisotropy>(); data != nullptr )
     {
-        intfield anisotropy_indices;
-        field<PolynomialBasis> anisotropy_polynomial_basis;
-        field<unsigned int> anisotropy_polynomial_site_p;
-        field<PolynomialTerm> anisotropy_polynomial_terms;
-
-        interaction->getParameters(
-            anisotropy_indices, anisotropy_polynomial_basis, anisotropy_polynomial_site_p,
-            anisotropy_polynomial_terms );
+        const auto & anisotropy_indices           = data->indices;
+        const auto & anisotropy_polynomial_basis  = data->bases;
+        const auto & anisotropy_polynomial_site_p = data->site_p;
+        const auto & anisotropy_polynomial_terms  = data->terms;
 
         std::copy_n( cbegin( anisotropy_indices ), n_indices, indices );
 
@@ -627,7 +610,7 @@ try
             const auto & k1 = anisotropy_polynomial_basis[j].k1;
             std::copy( std::cbegin( k1 ), std::cend( k1 ), primary[j] );
 
-            auto & k2 = anisotropy_polynomial_basis[j].k2;
+            const auto & k2 = anisotropy_polynomial_basis[j].k2;
             std::copy( std::cbegin( k2 ), std::cend( k2 ), secondary[j] );
         }
 
@@ -656,13 +639,10 @@ try
     throw_if_nullptr( n_shells, "n_shells" );
     throw_if_nullptr( jij, "jij" );
 
-    if( image->hamiltonian->Name() == "Heisenberg" )
+    if( const auto * data = image->hamiltonian->data<Engine::Spin::Interaction::Exchange>(); data != nullptr )
     {
-        scalarfield exchange_shell_magnitudes;
-        image->hamiltonian->getInteraction<Engine::Spin::Interaction::Exchange>()->getInitParameters(
-            exchange_shell_magnitudes );
-
-        *n_shells = exchange_shell_magnitudes.size();
+        scalarfield exchange_shell_magnitudes = data->exchange_shell_magnitudes;
+        *n_shells                             = exchange_shell_magnitudes.size();
 
         // Note the array needs to be correctly allocated beforehand!
         for( std::size_t i = 0; i < exchange_shell_magnitudes.size(); ++i )
@@ -682,9 +662,9 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    if( image->hamiltonian->Name() == "Heisenberg" )
+    if( const auto * cache = image->hamiltonian->cache<Engine::Spin::Interaction::Exchange>(); cache != nullptr )
     {
-        return image->hamiltonian->getInteraction<Engine::Spin::Interaction::Exchange>()->getN_Pairs();
+        return cache->exchange_pairs.size();
     }
 
     return 0;
@@ -703,12 +683,10 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( Jij, "Jij" );
 
-    if( image->hamiltonian->Name() == "Heisenberg" )
+    if( const auto * cache = image->hamiltonian->cache<Engine::Spin::Interaction::Exchange>(); cache != nullptr )
     {
-        pairfield exchange_pairs;
-        scalarfield exchange_magnitudes;
-        image->hamiltonian->getInteraction<Engine::Spin::Interaction::Exchange>()->getParameters(
-            exchange_pairs, exchange_magnitudes );
+        const auto & exchange_pairs      = cache->exchange_pairs;
+        const auto & exchange_magnitudes = cache->exchange_magnitudes;
 
         for( std::size_t i = 0; i < exchange_pairs.size() && i < exchange_magnitudes.size(); ++i )
         {
@@ -737,13 +715,10 @@ try
     throw_if_nullptr( dij, "dij" );
     throw_if_nullptr( chirality, "chirality" );
 
-    if( image->hamiltonian->Name() == "Heisenberg" )
+    if( const auto * data = image->hamiltonian->data<Engine::Spin::Interaction::DMI>(); data != nullptr )
     {
-        scalarfield dmi_shell_magnitudes;
-        int dmi_shell_chirality = 0;
-
-        image->hamiltonian->getInteraction<Engine::Spin::Interaction::DMI>()->getInitParameters(
-            dmi_shell_magnitudes, dmi_shell_chirality );
+        const auto & dmi_shell_magnitudes = data->dmi_shell_magnitudes;
+        const auto dmi_shell_chirality    = data->dmi_shell_chirality;
 
         *n_shells  = dmi_shell_magnitudes.size();
         *chirality = dmi_shell_chirality;
@@ -765,9 +740,9 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    if( image->hamiltonian->Name() == "Heisenberg" )
+    if( const auto * cache = image->hamiltonian->cache<Engine::Spin::Interaction::DMI>(); cache != nullptr )
     {
-        return image->hamiltonian->getInteraction<Engine::Spin::Interaction::DMI>()->getN_Pairs();
+        return cache->dmi_pairs.size();
     }
 
     return 0;
@@ -789,22 +764,14 @@ try
     throw_if_nullptr( cutoff_radius, "cutoff_radius" );
     throw_if_nullptr( pb_zero_padding, "pb_zero_padding" );
 
-    if( image->hamiltonian->Name() == "Heisenberg" )
+    if( const auto * data = image->hamiltonian->data<Engine::Spin::Interaction::DDI>(); data != nullptr )
     {
-        Engine::Spin::DDI_Method method{};
-        intfield ddi_n_periodic_images;
-        scalar ddi_cutoff_radius = 0;
-        bool ddi_pb_zero_padding = false;
-
-        image->hamiltonian->getInteraction<Engine::Spin::Interaction::DDI>()->getParameters(
-            method, ddi_n_periodic_images, ddi_pb_zero_padding, ddi_cutoff_radius );
-
-        *ddi_method          = (int)method;
-        n_periodic_images[0] = (int)ddi_n_periodic_images[0];
-        n_periodic_images[1] = (int)ddi_n_periodic_images[1];
-        n_periodic_images[2] = (int)ddi_n_periodic_images[2];
-        *cutoff_radius       = ddi_cutoff_radius;
-        *pb_zero_padding     = ddi_pb_zero_padding;
+        *ddi_method          = (int)data->method;
+        n_periodic_images[0] = (int)data->n_periodic_images[0];
+        n_periodic_images[1] = (int)data->n_periodic_images[1];
+        n_periodic_images[2] = (int)data->n_periodic_images[2];
+        *cutoff_radius       = data->cutoff_radius;
+        *pb_zero_padding     = data->pb_zero_padding;
     }
 }
 catch( ... )

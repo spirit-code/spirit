@@ -21,9 +21,9 @@ class Method_LLG;
     The Landau-Lifshitz-Gilbert (LLG) method
 */
 template<Solver solver>
-class Method_LLG<Data::Spin_System<Engine::Spin::Hamiltonian>, solver> : public Method_Solver<solver>
+class Method_LLG<Data::Spin_System<Engine::Spin::HamiltonianVariant>, solver> : public Method_Solver<solver>
 {
-    using system_t = Data::Spin_System<Engine::Spin::Hamiltonian>;
+    using system_t = Data::Spin_System<Engine::Spin::HamiltonianVariant>;
 
 public:
     // Constructor
