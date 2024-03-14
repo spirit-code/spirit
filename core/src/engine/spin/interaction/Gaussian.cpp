@@ -23,7 +23,7 @@ scalar Gaussian::Energy::operator()( const Index & index, const vectorfield & sp
     {
         // Distance between spin and gaussian center
         scalar l = 1 - data.center[igauss].dot( spins[ispin] );
-        result += data.amplitude[igauss] * std::exp( -std::pow( l, 2 ) / ( 2.0 * std::pow( data.width[igauss], 2 ) ) );
+        result += data.amplitude[igauss] * std::exp( -l * l / ( 2.0 * data.width[igauss] * data.width[igauss] ) );
     };
     return result;
 };
@@ -43,8 +43,8 @@ Vector3 Gaussian::Gradient::operator()( const Index & index, const vectorfield &
         // Scalar product of spin and gaussian center
         scalar l = 1 - data.center[i].dot( spins[ispin] );
         // Prefactor
-        scalar prefactor = data.amplitude[i] * std::exp( -std::pow( l, 2 ) / ( 2.0 * std::pow( data.width[i], 2 ) ) )
-                           * l / std::pow( data.width[i], 2 );
+        scalar prefactor = data.amplitude[i] * std::exp( -l * l / ( 2.0 * data.width[i] * data.width[i] ) ) * l
+                           / ( data.width[i] * data.width[i] );
         // Gradient contribution
         result += prefactor * data.center[i];
     }

@@ -18,8 +18,8 @@ Method::Method( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img
           step( 0 ),
           idx_image( idx_img ),
           idx_chain( idx_chain ),
-          parameters( parameters ),
-          n_iterations_amortize( parameters->n_iterations_amortize )
+          n_iterations_amortize( parameters->n_iterations_amortize ),
+          parameters( parameters )
 {
     // Sender name for log messages
     this->SenderName = Log_Sender::All;

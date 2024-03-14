@@ -15,6 +15,7 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
+#include <optional>
 #include <fstream>
 
 using namespace Utility;
@@ -69,16 +70,14 @@ try
 
         // Into the Hamiltonian
         using Engine::Spin::Interaction::Zeeman;
-        const bool success = image->hamiltonian->set_data<Zeeman>( { magnitude * Constants::mu_B, new_normal } );
-        if( success )
+        const auto error = image->hamiltonian->set_data<Zeeman>( { magnitude * Constants::mu_B, new_normal } );
+        if( !error.has_value() )
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                  fmt::format(
                      "Set external field to {}, direction ({}, {}, {})", magnitude, normal[0], normal[1], normal[2] ),
                  idx_image, idx_chain );
         else
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 fmt::format( "External field cannot be set on {}", image->hamiltonian->Name() ), idx_image,
-                 idx_chain );
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, *error, idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -121,16 +120,15 @@ try
         vectorfield new_normals( nos, new_normal );
         // Update the Hamiltonian
         using Engine::Spin::Interaction::Anisotropy;
-        const bool success = image->hamiltonian->set_data<Anisotropy>( { new_indices, new_magnitudes, new_normals } );
+        const auto error = image->hamiltonian->set_data<Anisotropy>( { new_indices, new_magnitudes, new_normals } );
 
-        if( success )
+        if( !error.has_value() )
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                  fmt::format(
                      "Set anisotropy to {}, direction ({}, {}, {})", magnitude, normal[0], normal[1], normal[2] ),
                  idx_image, idx_chain );
         else
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 fmt::format( "Anisotropy cannot be set on {}", image->hamiltonian->Name() ), idx_image, idx_chain );
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, *error, idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -167,15 +165,13 @@ try
 
         // Update the Hamiltonian
         using Engine::Spin::Interaction::Cubic_Anisotropy;
-        const bool success = image->hamiltonian->set_data<Cubic_Anisotropy>( { new_indices, new_magnitudes } );
+        const auto error = image->hamiltonian->set_data<Cubic_Anisotropy>( { new_indices, new_magnitudes } );
 
-        if( success )
+        if( !error.has_value() )
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                  fmt::format( "Set cubic anisotropy to {}", magnitude ), idx_image, idx_chain );
         else
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 fmt::format( "Cubic anisotropy cannot be set on {}", image->hamiltonian->Name() ), idx_image,
-                 idx_chain );
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, *error, idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -201,7 +197,7 @@ try
     try
     {
         using Engine::Spin::Interaction::Biaxial_Anisotropy;
-        bool success                       = false;
+        std::optional<std::string> error   = std::nullopt;
         std::size_t new_on_site_terms_size = 0;
         if( image->hamiltonian->hasInteraction<Biaxial_Anisotropy>() )
         {
@@ -254,16 +250,14 @@ try
             new_on_site_terms_size = new_on_site_terms.size();
 
             // Update the Hamiltonian
-            success = image->hamiltonian->set_data<Biaxial_Anisotropy>(
+            error = image->hamiltonian->set_data<Biaxial_Anisotropy>(
                 { new_indices, new_polynomial_bases, new_polynomial_site_p, new_polynomial_terms } );
         }
-        if( success )
+        if( !error.has_value() )
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                  fmt::format( "Set {} terms for biaxial anisotropy", new_on_site_terms_size ), idx_image, idx_chain );
         else
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 fmt::format( "Biaxial anisotropy cannot be set on {}", image->hamiltonian->Name() ), idx_image,
-                 idx_chain );
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, *error, idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -289,9 +283,9 @@ try
     {
         using Engine::Spin::Interaction::Exchange;
         // Update the Hamiltonian
-        const bool success = image->hamiltonian->set_data<Exchange>( { scalarfield( jij, jij + n_shells ) } );
+        const auto error = image->hamiltonian->set_data<Exchange>( { scalarfield( jij, jij + n_shells ) } );
 
-        if( success )
+        if( !error.has_value() )
         {
             std::string message = fmt::format( "Set exchange to {} shells", n_shells );
             if( n_shells > 0 )
@@ -299,8 +293,7 @@ try
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API, message, idx_image, idx_chain );
         }
         else
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 fmt::format( "Exchange cannot be set on {}", image->hamiltonian->Name() ), idx_image, idx_chain );
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, *error, idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -335,9 +328,9 @@ try
     {
         using Engine::Spin::Interaction::DMI;
         // Update the Hamiltonian
-        if( const bool success = image->hamiltonian->set_data<DMI>(
-               { {}, {}, {}, scalarfield( dij, dij + n_shells ), chirality } );
-            success )
+        const auto error
+            = image->hamiltonian->set_data<DMI>( { {}, {}, {}, scalarfield( dij, dij + n_shells ), chirality } );
+        if( !error.has_value() )
         {
             std::string message = fmt::format( "Set dmi to {} shells", n_shells );
             if( n_shells > 0 )
@@ -345,8 +338,7 @@ try
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API, message, idx_image, idx_chain );
         }
         else
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 fmt::format( "DMI cannot be set on {}", image->hamiltonian->Name() ), idx_image, idx_chain );
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, *error, idx_image, idx_chain );
     }
     catch( ... )
     {
@@ -378,10 +370,10 @@ try
         new_n_periodic_images[1]   = n_periodic_images[1];
         new_n_periodic_images[2]   = n_periodic_images[2];
 
-        const bool success = image->hamiltonian->set_data<DDI>(
+        const auto error = image->hamiltonian->set_data<DDI>(
             { Engine::Spin::DDI_Method( ddi_method ), cutoff_radius, pb_zero_padding, new_n_periodic_images } );
 
-        if( success )
+        if( !error.has_value() )
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                  fmt::format(
                      "Set ddi to method {}, periodic images {} {} {}, cutoff radius {} and pb_zero_padding {}",
@@ -389,8 +381,7 @@ try
                      pb_zero_padding ),
                  idx_image, idx_chain );
         else
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 fmt::format( "DDI cannot be set on {}", image->hamiltonian->Name() ), idx_image, idx_chain );
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, *error, idx_image, idx_chain );
     }
     catch( ... )
     {

@@ -4,6 +4,7 @@
 #include <engine/Vectormath_Defines.hpp>
 #include <engine/spin/interaction/ABC.hpp>
 #include <engine/spin/interaction/Traits.hpp>
+#include <utility/Exception.hpp>
 
 #include <memory>
 #include <numeric>
@@ -53,7 +54,7 @@ auto make_standalone( InteractionWrapper<InteractionType> & interaction, const I
     -> std::unique_ptr<StandaloneAdapter<typename InteractionType::state_t>>;
 
 template<typename InteractionType>
-class StandaloneAdaptor_NonLocal : public StandaloneAdapter<typename InteractionType::state_t>
+class StandaloneAdaptor_NonLocal final : public StandaloneAdapter<typename InteractionType::state_t>
 {
     static_assert(
         !is_local<InteractionType>::value, "interaction type for non-local standalone adaptor must be non-local" );
@@ -115,13 +116,14 @@ private:
 };
 
 template<typename InteractionType, typename IndexVector>
-class StandaloneAdaptor_Local : public StandaloneAdapter<typename InteractionType::state_t>
+class StandaloneAdaptor_Local final : public StandaloneAdapter<typename InteractionType::state_t>
 {
     static_assert( is_local<InteractionType>::value, "interaction type for local standalone adaptor must be local" );
 
     using Interaction = InteractionType;
     using Data        = typename InteractionType::Data;
     using Cache       = typename InteractionType::Cache;
+    using IndexTuple  = typename IndexVector::value_type;
 
     // private constructor tag with factory function (for std::unique_ptr) declared as friend
     // to make this the only way to instanciate this object
@@ -145,9 +147,9 @@ public:
     {
         auto functor = typename InteractionType::Energy( data, cache );
         return std::transform_reduce(
-            begin( indices ), end( indices ), 0.0, std::plus<scalar>{},
-            [&state, &functor]( const auto & idx )
-            { return functor( std::get<typename InteractionType::Index>( idx ), state ); } );
+            begin( indices ), end( indices ), scalar( 0.0 ), std::plus<scalar>{},
+            [&state, &functor]( const IndexTuple & index )
+            { return functor( std::get<typename InteractionType::Index>( index ), state ); } );
     }
 
     void Energy_per_Spin( const state_t & state, scalarfield & energy_per_spin ) final
@@ -155,8 +157,8 @@ public:
         auto functor = typename InteractionType::Energy( data, cache );
         std::transform(
             begin( indices ), end( indices ), begin( energy_per_spin ),
-            [&state, &functor]( const auto & idx )
-            { return functor( std::get<typename InteractionType::Index>( idx ), state ); } );
+            [&state, &functor]( const IndexTuple & index )
+            { return functor( std::get<typename InteractionType::Index>( index ), state ); } );
     }
 
     scalar Energy_Single_Spin( const int ispin, const state_t & state ) final
@@ -171,8 +173,8 @@ public:
         auto functor = typename InteractionType::Gradient( data, cache );
         std::transform(
             begin( indices ), end( indices ), begin( gradient ),
-            [&state, &functor]( const auto & idx )
-            { return functor( std::get<typename InteractionType::Index>( idx ), state ); } );
+            [&state, &functor]( const IndexTuple & index )
+            { return functor( std::get<typename InteractionType::Index>( index ), state ); } );
     }
 
     void Hessian( const state_t & state, MatrixX & hessian ) final
@@ -180,8 +182,8 @@ public:
         auto functor = typename InteractionType::Hessian( data, cache );
         std::for_each(
             begin( indices ), end( indices ),
-            [&functor, &state, hessian_functor = dense_hessian_functor( hessian )]( const auto & idx )
-            { functor( std::get<typename InteractionType::Index>( idx ), state, hessian_functor ); } );
+            [&functor, &state, hessian_functor = dense_hessian_functor( hessian )]( const IndexTuple & index )
+            { functor( std::get<typename InteractionType::Index>( index ), state, hessian_functor ); } );
     }
 
     constexpr std::string_view Name() const final
@@ -191,7 +193,7 @@ public:
 
 private:
     const Data & data;
-    Cache & cache;
+    const Cache & cache;
     const IndexVector & indices;
 };
 
@@ -282,26 +284,25 @@ private:
     {
     private:
         template<typename U>
-        static auto test( U * p ) -> decltype( p->valid_data(), std::true_type() );
+        static auto test( U & p, typename U::Data & data ) -> decltype( p.valid_data( data ), std::true_type() );
 
         template<typename>
         static std::false_type test( ... );
 
     public:
-        static constexpr bool value = decltype( test<T>( nullptr ) )::value;
+        static constexpr bool value = decltype( test<T>( std::declval<T>(), std::declval<typename T::Data>() ) )::value;
     };
 
 public:
-    // is_contributing
-    bool set_data( const typename Interaction::Data & new_data )
+    // set_data
+    auto set_data( const typename Interaction::Data & new_data ) -> std::optional<std::string>
     {
-
         if constexpr( has_valid_check<Interaction>::value )
             if( !Interaction::valid_data( new_data ) )
-                return false;
+                return fmt::format( "the data passed to interaction \"{}\" is invalid", Interaction::name );
 
         data = new_data;
-        return true;
+        return std::nullopt;
     };
 
     // Sparse_Hessian_Size_per_Cell
@@ -310,58 +311,55 @@ public:
         return Interaction::Sparse_Hessian_Size_per_Cell( data, cache );
     }
 
+    static constexpr bool local = is_local<InteractionType>::value;
+
     Data data;
     Cache cache = Cache();
-
-    static constexpr bool local = is_local<InteractionType>::value;
 };
 
-template<typename... Interactions, typename Iterator>
+template<typename... InteractionType, typename Iterator>
 constexpr Iterator
-generate_nonlocal( std::tuple<InteractionWrapper<Interactions>...> & interactions, Iterator iterator )
+generate_active_nonlocal( std::tuple<InteractionWrapper<InteractionType>...> & interactions, Iterator iterator )
 {
     static_assert(
-        std::conjunction<std::negation<is_local<Interactions>>...>::value,
+        std::conjunction<std::negation<is_local<InteractionType>>...>::value,
         "all interaction types in tuple must be non-local" );
 
-    std::apply(
-        [&iterator]( auto &... tuple_elements )
+    return std::apply(
+        [&iterator]( InteractionWrapper<InteractionType> &... elements )
         {
             ( ...,
-              [&iterator]( auto & element )
+              [&iterator]( InteractionWrapper<InteractionType> & interaction )
               {
-                  if( element.is_contributing() )
-                  {
-                      *( iterator++ ) = std::move( make_standalone( element ) );
-                  }
-              }( tuple_elements ) );
+                  if( interaction.is_contributing() )
+                      *( iterator++ ) = make_standalone( interaction );
+              }( elements ) );
+
+            return iterator;
         },
         interactions );
-
-    return iterator;
 };
 
-template<typename... Interactions, typename IndexVector, typename Iterator>
-constexpr Iterator generate_local(
-    std::tuple<InteractionWrapper<Interactions>...> & interactions, const IndexVector & indices, Iterator iterator )
+template<typename... InteractionType, typename IndexVector, typename Iterator>
+constexpr Iterator generate_active_local(
+    std::tuple<InteractionWrapper<InteractionType>...> & interactions, const IndexVector & indices, Iterator iterator )
 {
-    static_assert( std::conjunction<is_local<Interactions>...>::value, "all interaction types in tuple must be local" );
+    static_assert(
+        std::conjunction<is_local<InteractionType>...>::value, "all interaction types in tuple must be local" );
 
-    std::apply(
-        [&indices, &iterator]( auto &... tuple_elements )
+    return std::apply(
+        [&indices, &iterator]( InteractionWrapper<InteractionType> &... elements )
         {
             ( ...,
-              [&indices, &iterator]( auto & element )
+              [&indices, &iterator]( InteractionWrapper<InteractionType> & interaction )
               {
-                  if( element.is_contributing() )
-                  {
-                      *( iterator++ ) = std::move( make_standalone( element, indices ) );
-                  }
-              }( tuple_elements ) );
+                  if( interaction.is_contributing() )
+                      *( iterator++ ) = make_standalone( interaction, indices );
+              }( elements ) );
+
+            return iterator;
         },
         interactions );
-
-    return iterator;
 };
 
 } // namespace Interaction

@@ -71,14 +71,13 @@ struct Cubic_Anisotropy
         const ::Data::Geometry & geometry, const intfield &, const Data & data, Cache &, IndexVector & indices )
     {
         using Indexing::check_atom_type;
-        const auto N = geometry.nos;
 
 #pragma omp parallel for
         for( int icell = 0; icell < geometry.n_cells_total; ++icell )
         {
             for( int iani = 0; iani < data.cubic_anisotropy_indices.size(); ++iani )
             {
-                int ispin = icell * N + data.cubic_anisotropy_indices[iani];
+                int ispin = icell * geometry.n_cell_atoms + data.cubic_anisotropy_indices[iani];
                 if( check_atom_type( geometry.atom_types[ispin] ) )
                     std::get<Index>( indices[ispin] ) = IndexType{ ispin, iani };
             }

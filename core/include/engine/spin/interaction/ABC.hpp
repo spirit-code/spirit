@@ -24,15 +24,31 @@ namespace Interaction
 
 using Common::Interaction::triplet;
 
-inline auto dense_hessian_functor( MatrixX & hessian )
+struct dense_hessian_functor
 {
-    return [&hessian]( const auto i, const auto j, const auto value ) { hessian( i, j ) += value; };
-}
+    void operator()( const int i, const int j, const scalar value ) const
+    {
+        hessian( i, j ) += value;
+    }
 
-inline auto sparse_hessian_functor( field<triplet> & hessian )
+    constexpr explicit dense_hessian_functor( MatrixX & hessian ) : hessian( hessian ){};
+
+private:
+    MatrixX & hessian;
+};
+
+struct sparse_hessian_functor
 {
-    return [&hessian]( const auto i, const auto j, const auto value ) { hessian.emplace_back( i, j, value ); };
-}
+    void operator()( const int i, const int j, const scalar value ) const
+    {
+        hessian.emplace_back( i, j, value );
+    }
+
+    constexpr explicit sparse_hessian_functor( field<triplet> & hessian ) : hessian( hessian ){};
+
+private:
+    field<triplet> & hessian;
+};
 
 namespace NonLocal
 {
@@ -162,10 +178,10 @@ struct Energy_Functor
 
     scalar operator()( const Index & index, const vectorfield & spins ) const;
 
-    constexpr Energy_Functor( const Data & data, Cache & cache ) noexcept : data( data ), cache( cache ){};
+    constexpr Energy_Functor( const Data & data, const Cache & cache ) noexcept : data( data ), cache( cache ){};
 
     const Data & data;
-    Cache & cache;
+    const Cache & cache;
 };
 
 template<typename InteractionType>
@@ -178,10 +194,10 @@ struct Gradient_Functor
 
     Vector3 operator()( const Index & index, const vectorfield & spins ) const;
 
-    constexpr Gradient_Functor( const Data & data, Cache & cache ) noexcept : data( data ), cache( cache ){};
+    constexpr Gradient_Functor( const Data & data, const Cache & cache ) noexcept : data( data ), cache( cache ){};
 
     const Data & data;
-    Cache & cache;
+    const Cache & cache;
 };
 
 template<typename InteractionType>
@@ -195,10 +211,10 @@ struct Hessian_Functor
     template<typename F>
     void operator()( const Index & index, const vectorfield & spins, F & f ) const;
 
-    constexpr Hessian_Functor( const Data & data, Cache & cache ) noexcept : data( data ), cache( cache ){};
+    constexpr Hessian_Functor( const Data & data, const Cache & cache ) noexcept : data( data ), cache( cache ){};
 
     const Data & data;
-    Cache & cache;
+    const Cache & cache;
 };
 
 template<typename Functor, int weight_factor>
@@ -224,8 +240,8 @@ private:
     static constexpr scalar weight = weight_factor;
 
 public:
-    const Data & data = functor.data;
-    Cache & cache     = functor.cache;
+    const Data & data   = functor.data;
+    const Cache & cache = functor.cache;
 };
 
 // template<typename GradientFunctor, typename EnergyFunctor>

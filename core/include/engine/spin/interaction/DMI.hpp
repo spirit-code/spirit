@@ -69,8 +69,9 @@ struct DMI
     // Interaction name as string
     static constexpr std::string_view name = "DMI";
 
-    // we only read from a common source, so multithreaded solutions shouldn't need redundant neighbours.
-    static constexpr bool use_redundant_neighbours = false;
+    // we have to use redundant neighbours here, because the 'inverse' pair has opposite sign
+    // TODO: check if introducing a sign factor is faster
+    static constexpr bool use_redundant_neighbours = true;
 
     template<typename IndexVector>
     static void applyGeometry(
@@ -126,7 +127,6 @@ struct DMI
                 if( jspin >= 0 )
                 {
                     std::get<Index>( indices[ispin] ).emplace_back( IndexType{ ispin, jspin, (int)i_pair } );
-                    std::get<Index>( indices[jspin] ).emplace_back( IndexType{ ispin, jspin, (int)i_pair } );
                 }
             };
         }
@@ -140,7 +140,7 @@ void DMI::Hessian::operator()( const Index & index, const vectorfield &, F & f )
 
     std::for_each(
         begin( index ), end( index ),
-        [this, &index, &f]( const auto & idx )
+        [this, &index, &f]( const DMI::IndexType & idx )
         {
             const int i       = 3 * idx.ispin;
             const int j       = 3 * idx.jspin;

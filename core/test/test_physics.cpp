@@ -178,8 +178,22 @@ TEST_CASE( "Dipole-Dipole Interaction", "[physics]" )
     // FFT gradient and energy
     auto grad_fft = vectorfield( state->nos, Vector3::Zero() );
     ddi_interaction->Gradient( spins, grad_fft );
-    auto energy_fft = state->active_image->hamiltonian->Energy( spins );
+    auto energy_fft = ddi_interaction->Energy( spins );
+    {
+        auto grad_fft_fd = vectorfield( state->nos, Vector3::Zero() );
+        Engine::Vectormath::Gradient(
+            spins, grad_fft_fd,
+            [&ddi_interaction]( const auto & spins ) -> scalar { return ddi_interaction->Energy( spins ); } );
 
+        INFO( "Interaction: " << ddi_interaction->Name() << "\n" );
+        for( int i = 0; i < state->nos; i++ )
+        {
+            INFO( "i = " << i << ", epsilon = " << epsilon_2 << "\n" );
+            INFO( "Gradient (FD) = " << grad_fft_fd[i].transpose() << "\n" );
+            INFO( "Gradient      = " << grad_fft[i].transpose() << "\n" );
+            REQUIRE( grad_fft_fd[i].isApprox( grad_fft[i], epsilon_2 ) );
+        }
+    }
     // Direct (cutoff) gradient and energy
     auto n_periodic_images = std::vector<int>{ 4, 4, 4 };
     Hamiltonian_Set_DDI( state.get(), SPIRIT_DDI_METHOD_CUTOFF, n_periodic_images.data(), -1 );

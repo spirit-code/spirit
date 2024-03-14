@@ -41,11 +41,11 @@ struct DDI
         scalarfield magnitudes{};
         vectorfield normals{};
 
-        const ::Data::Geometry * geometry{};
-        const intfield * boundary_conditions{};
+        const ::Data::Geometry * geometry    = nullptr;
+        const intfield * boundary_conditions = nullptr;
 
         // Plans for FT / rFT
-        FFT::FFT_Plan fft_plan_spins = FFT::FFT_Plan();
+        FFT::FFT_Plan fft_plan_spins   = FFT::FFT_Plan();
         FFT::FFT_Plan fft_plan_reverse = FFT::FFT_Plan();
 
         field<FFT::FFT_cpx_type> transformed_dipole_matrices{};

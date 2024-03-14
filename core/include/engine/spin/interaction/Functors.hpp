@@ -61,10 +61,10 @@ void apply( std::tuple<Functors...> functors, Args &&... args )
 }
 
 template<typename... Functors, typename ReturnType, typename... Args>
-auto apply_reduce( std::tuple<Functors...> functors, ReturnType zero, Args &&... args )
+auto apply_reduce( std::tuple<Functors...> functors, ReturnType zero, Args &&... args ) -> ReturnType
 {
     return std::apply(
-        [zero, args = std::tuple<Args...>( std::forward<Args>( args )... )]( auto &... functor )
+        [zero, args = std::tuple<Args...>( std::forward<Args>( args )... )]( auto &... functor ) -> ReturnType
         { return ( zero + ... + std::apply( functor, args ) ); },
         functors );
 }
@@ -84,7 +84,7 @@ auto tuple_bind( std::tuple<InteractionWrapper<Interaction>...> & interactions )
 template<typename... InteractionTypes>
 void setPtrAddress(
     std::tuple<InteractionWrapper<InteractionTypes>...> & interactions, const ::Data::Geometry * geometry,
-    const intfield * boundary_conditions )
+    const intfield * boundary_conditions ) noexcept
 {
     if constexpr( sizeof...( InteractionTypes ) == 0 )
         return;
@@ -93,14 +93,14 @@ void setPtrAddress(
         [geometry, boundary_conditions]( InteractionWrapper<InteractionTypes> &... interaction )
         {
             ( ...,
-              [geometry, boundary_conditions]( auto & entry )
+              [geometry, boundary_conditions]( typename InteractionTypes::Cache & entry )
               {
-                  using cache_t = typename std::decay_t<decltype( entry )>::Cache;
-                  if constexpr( has_geometry_member_v<cache_t> )
+                  using cache_t = typename InteractionTypes::Cache;
+                  if constexpr( has_geometry_member<cache_t>::value )
                   {
                       entry.geometry = geometry;
                   }
-                  if constexpr( has_bc_member_v<cache_t> )
+                  if constexpr( has_bc_member<cache_t>::value )
                   {
                       entry.boundary_conditions = boundary_conditions;
                   }
@@ -109,24 +109,21 @@ void setPtrAddress(
         interactions );
 }
 
-template<typename state_t, typename ZeroType, typename... Functors>
+template<typename state_t, typename ReturnType, typename... Functors>
 struct transform_op
 {
     template<typename IndexTuple>
-    auto operator()( const IndexTuple & index )
+    auto operator()( const IndexTuple & index ) -> ReturnType
     {
         return std::apply(
-            [&index, &state = this->state_ref, &zero = this->zero_repr]( Functors &... f )
+            [&index, &state = this->state_ref, &zero = this->zero_repr]( Functors &... f ) -> ReturnType
             {
                 return (
-                    zero + ... + [&state, &zero, &index]( auto & functor )
-                        -> decltype( functor(
-                            std::get<typename std::decay_t<decltype( functor )>::Interaction::Index>( index ), state ) )
+                    zero + ... + [&state, &zero, &index]( Functors & functor )
+                        -> decltype( functor( std::get<typename Functors::Interaction::Index>( index ), state ) )
                     {
-                        using Functor = std::decay_t<decltype( functor )>;
-                        using index_t = typename Functor::Interaction::Index;
-                        if( Functor::Interaction::is_contributing( functor.data, functor.cache ) )
-                            return functor( std::get<index_t>( index ), state );
+                        if( Functors::Interaction::is_contributing( functor.data, functor.cache ) )
+                            return functor( std::get<typename Functors::Interaction::Index>( index ), state );
                         else
                             return zero;
                     }( f ) );
@@ -134,15 +131,15 @@ struct transform_op
             functors );
     };
 
-    constexpr transform_op( std::tuple<Functors...> && functors, ZeroType zero, const state_t & state ) noexcept(
+    constexpr transform_op( std::tuple<Functors...> && functors, ReturnType zero, const state_t & state ) noexcept(
         std::is_nothrow_move_constructible_v<std::tuple<Functors...>>
-        && std::is_nothrow_copy_constructible_v<ZeroType> )
+        && std::is_nothrow_copy_constructible_v<ReturnType> )
             : functors( functors ), state_ref( state ), zero_repr( zero ){};
 
 private:
     std::tuple<Functors...> functors;
     const state_t & state_ref;
-    ZeroType zero_repr;
+    ReturnType zero_repr;
 };
 
 template<typename state_t, typename UnaryOp, typename... Functors>
@@ -151,22 +148,17 @@ struct for_each_op
     template<typename IndexTuple>
     auto operator()( const IndexTuple & index ) -> void
     {
-        if constexpr( sizeof...( Functors ) == 0 )
-            return;
-        else
-            std::apply(
-                [&index, &state = state_ref, &unary_op = unary_op_ref]( auto &... functor ) -> void
-                {
-                    ( ...,
-                      [&state, &index, &unary_op]( auto & functor ) -> void
-                      {
-                          using Functor = std::decay_t<decltype( functor )>;
-                          using index_t = typename Functor::Interaction::Index;
-                          if( Functor::Interaction::is_contributing( functor.data, functor.cache ) )
-                              functor( std::get<index_t>( index ), state, unary_op );
-                      }( functor ) );
-                },
-                functors );
+        std::apply(
+            [&index, &state = state_ref, &unary_op = unary_op_ref]( Functors &... functor ) -> void
+            {
+                ( ...,
+                  [&state, &index, &unary_op]( Functors & functor ) -> void
+                  {
+                      if( Functors::Interaction::is_contributing( functor.data, functor.cache ) )
+                          functor( std::get<typename Functors::Interaction::Index>( index ), state, unary_op );
+                  }( functor ) );
+            },
+            functors );
     };
 
     constexpr for_each_op( std::tuple<Functors...> && functors, const state_t & state, UnaryOp & unary_op ) noexcept(

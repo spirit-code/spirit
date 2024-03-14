@@ -65,7 +65,8 @@ struct Exchange
     // Interaction name as string
     static constexpr std::string_view name = "Exchange";
 
-    // we only read from a common source, so multithreaded solutions shouldn't need redundant neighbours.
+    // the interaction is symmetrical with respect to swapping atoms in a pair,
+    // so multithreaded solutions shouldn't need redundant neighbours.
     static constexpr bool use_redundant_neighbours = false;
 
     template<typename IndexVector>
@@ -119,7 +120,7 @@ struct Exchange
                 if( jspin >= 0 )
                 {
                     std::get<Index>( indices[ispin] ).emplace_back( IndexType{ ispin, jspin, (int)i_pair } );
-                    std::get<Index>( indices[jspin] ).emplace_back( IndexType{ ispin, jspin, (int)i_pair } );
+                    std::get<Index>( indices[jspin] ).emplace_back( IndexType{ jspin, ispin, (int)i_pair } );
                 }
             }
         }
@@ -152,7 +153,5 @@ void Exchange::Hessian::operator()( const Index & index, const vectorfield &, F 
 } // namespace Spin
 
 } // namespace Engine
-
-static_assert(std::is_nothrow_default_constructible<Engine::Spin::Interaction::Exchange::Data>::value);
 
 #endif

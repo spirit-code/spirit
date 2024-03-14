@@ -41,13 +41,9 @@ void FFT_Plan::Create_Configuration()
     int istride = n_transforms, ostride = n_transforms;
     int *inembed = n, *onembed = n;
 
-    int size = 1;
-    for( auto k : dims )
-        size *= k;
-
     int idist = 1, odist = 1;
 
-    if( this->inverse == false )
+    if( !inverse )
         this->cfg = FFTW_PLAN_MANY_DFT_R2C(
             rank, n, n_transforms, this->real_ptr.data(), inembed, istride, idist,
             reinterpret_cast<FFTW_COMPLEX *>( this->cpx_ptr.data() ), onembed, ostride, odist, FFTW_MEASURE );
