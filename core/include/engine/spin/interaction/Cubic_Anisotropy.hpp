@@ -22,6 +22,9 @@ struct Cubic_Anisotropy
     {
         intfield indices;
         scalarfield magnitudes;
+
+        Data( intfield indices, scalarfield magnitudes )
+                : indices( std::move( indices ) ), magnitudes( std::move( magnitudes ) ){};
     };
 
     static bool valid_data( const Data & data )

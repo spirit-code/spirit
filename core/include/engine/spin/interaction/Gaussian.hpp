@@ -29,6 +29,9 @@ struct Gaussian
         scalarfield amplitude;
         scalarfield width;
         vectorfield center;
+
+        Data( scalarfield amplitude, scalarfield width, vectorfield center )
+                : amplitude( std::move( amplitude ) ), width( std::move( width ) ), center( std::move( center ) ){};
     };
 
     static bool valid_data( const Data & data )

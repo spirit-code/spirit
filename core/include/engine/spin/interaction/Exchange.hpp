@@ -25,6 +25,12 @@ struct Exchange
         scalarfield magnitudes{};
 
         scalarfield shell_magnitudes{};
+
+        Data() = default;
+        Data( pairfield pairs, scalarfield magnitudes )
+                : pairs( std::move( pairs ) ), magnitudes( std::move( magnitudes ) ){};
+
+        Data( scalarfield shell_magnitudes ) : shell_magnitudes( std::move( shell_magnitudes ) ){};
     };
 
     static bool valid_data( const Data & data )
@@ -92,8 +98,7 @@ struct Exchange
             // Generate Exchange neighbours
             intfield exchange_shells( 0 );
             Neighbours::Get_Neighbours_in_Shells(
-                geometry, data.shell_magnitudes.size(), cache.pairs, exchange_shells,
-                use_redundant_neighbours );
+                geometry, data.shell_magnitudes.size(), cache.pairs, exchange_shells, use_redundant_neighbours );
             cache.magnitudes.reserve( cache.pairs.size() );
             for( std::size_t ipair = 0; ipair < cache.pairs.size(); ++ipair )
             {

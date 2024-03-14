@@ -22,6 +22,9 @@ struct Quadruplet
     {
         quadrupletfield quadruplets;
         scalarfield magnitudes;
+
+        Data( quadrupletfield quadruplets, scalarfield magnitudes )
+                : quadruplets( std::move( quadruplets ) ), magnitudes( std::move( magnitudes ) ){};
     };
 
     static bool valid_data( const Data & data )

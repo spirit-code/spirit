@@ -23,6 +23,11 @@ struct Anisotropy
         intfield indices;
         scalarfield magnitudes;
         vectorfield normals;
+
+        Data( intfield indices, scalarfield magnitudes, vectorfield normals )
+                : indices( std::move( indices ) ),
+                  magnitudes( std::move( magnitudes ) ),
+                  normals( std::move( normals ) ){};
     };
 
     static bool valid_data( const Data & data )

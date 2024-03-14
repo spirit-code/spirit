@@ -29,6 +29,12 @@ struct Biaxial_Anisotropy
         field<PolynomialBasis> bases;
         field<unsigned int> site_p;
         field<PolynomialTerm> terms;
+
+        Data( intfield indices, field<PolynomialBasis> bases, field<unsigned int> site_p, field<PolynomialTerm> terms )
+                : indices( std::move( indices ) ),
+                  bases( std::move( bases ) ),
+                  site_p( std::move( site_p ) ),
+                  terms( std::move( terms ) ){};
     };
 
     static bool valid_data( const Data & data )
