@@ -15,8 +15,8 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
-#include <optional>
 #include <fstream>
+#include <optional>
 
 using namespace Utility;
 
@@ -70,7 +70,7 @@ try
 
         // Into the Hamiltonian
         using Engine::Spin::Interaction::Zeeman;
-        const auto error = image->hamiltonian->set_data<Zeeman>( { magnitude * Constants::mu_B, new_normal } );
+        const auto error = image->hamiltonian->set_data<Zeeman>( magnitude * Constants::mu_B, new_normal );
         if( !error.has_value() )
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                  fmt::format(
@@ -120,7 +120,7 @@ try
         vectorfield new_normals( nos, new_normal );
         // Update the Hamiltonian
         using Engine::Spin::Interaction::Anisotropy;
-        const auto error = image->hamiltonian->set_data<Anisotropy>( { new_indices, new_magnitudes, new_normals } );
+        const auto error = image->hamiltonian->set_data<Anisotropy>( new_indices, new_magnitudes, new_normals );
 
         if( !error.has_value() )
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
@@ -165,7 +165,7 @@ try
 
         // Update the Hamiltonian
         using Engine::Spin::Interaction::Cubic_Anisotropy;
-        const auto error = image->hamiltonian->set_data<Cubic_Anisotropy>( { new_indices, new_magnitudes } );
+        const auto error = image->hamiltonian->set_data<Cubic_Anisotropy>( new_indices, new_magnitudes );
 
         if( !error.has_value() )
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
@@ -251,7 +251,7 @@ try
 
             // Update the Hamiltonian
             error = image->hamiltonian->set_data<Biaxial_Anisotropy>(
-                { new_indices, new_polynomial_bases, new_polynomial_site_p, new_polynomial_terms } );
+                new_indices, new_polynomial_bases, new_polynomial_site_p, new_polynomial_terms );
         }
         if( !error.has_value() )
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
@@ -283,7 +283,7 @@ try
     {
         using Engine::Spin::Interaction::Exchange;
         // Update the Hamiltonian
-        const auto error = image->hamiltonian->set_data<Exchange>( { {}, {}, scalarfield( jij, jij + n_shells ) } );
+        const auto error = image->hamiltonian->set_data<Exchange>( scalarfield( jij, jij + n_shells ) );
 
         if( !error.has_value() )
         {
@@ -328,8 +328,7 @@ try
     {
         using Engine::Spin::Interaction::DMI;
         // Update the Hamiltonian
-        const auto error
-            = image->hamiltonian->set_data<DMI>( { {}, {}, {}, scalarfield( dij, dij + n_shells ), chirality } );
+        const auto error = image->hamiltonian->set_data<DMI>( scalarfield( dij, dij + n_shells ), chirality );
         if( !error.has_value() )
         {
             std::string message = fmt::format( "Set dmi to {} shells", n_shells );
@@ -371,7 +370,7 @@ try
         new_n_periodic_images[2]   = n_periodic_images[2];
 
         const auto error = image->hamiltonian->set_data<DDI>(
-            { Engine::Spin::DDI_Method( ddi_method ), cutoff_radius, pb_zero_padding, new_n_periodic_images } );
+            Engine::Spin::DDI_Method( ddi_method ), cutoff_radius, pb_zero_padding, new_n_periodic_images );
 
         if( !error.has_value() )
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,

@@ -33,6 +33,12 @@ struct DDI
         scalar cutoff_radius = 0.0;
         bool pb_zero_padding = false;
         intfield n_periodic_images{};
+
+        Data( DDI_Method method, scalar cutoff_radius, bool pb_zero_padding, intfield n_periodic_images )
+                : method( method ),
+                  cutoff_radius( cutoff_radius ),
+                  pb_zero_padding( pb_zero_padding ),
+                  n_periodic_images( std::move( n_periodic_images ) ){};
     };
 
     struct Cache
@@ -81,11 +87,11 @@ struct DDI
     static void applyGeometry(
         const ::Data::Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache );
 
-    using Energy              = NonLocal::Energy_Functor<DDI>;
-    using Gradient            = NonLocal::Gradient_Functor<DDI>;
-    using Hessian             = NonLocal::Hessian_Functor<DDI>;
-    using Energy_Single_Spin  = NonLocal::Energy_Single_Spin_Functor<DDI>;
-    using Energy_Total        = NonLocal::Reduce_Functor<Energy>;
+    using Energy             = NonLocal::Energy_Functor<DDI>;
+    using Gradient           = NonLocal::Gradient_Functor<DDI>;
+    using Hessian            = NonLocal::Hessian_Functor<DDI>;
+    using Energy_Single_Spin = NonLocal::Energy_Single_Spin_Functor<DDI>;
+    using Energy_Total       = NonLocal::Reduce_Functor<Energy>;
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data & data, const Cache & )
     {
@@ -96,7 +102,7 @@ struct DDI
     };
 
     // Interaction name as string
-    static constexpr std::string_view name          = "DDI";
+    static constexpr std::string_view name = "DDI";
 
     static constexpr bool local = false;
 };

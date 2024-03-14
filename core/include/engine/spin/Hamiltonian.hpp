@@ -638,11 +638,11 @@ public:
             hamiltonian );
     };
 
-    template<typename T>
-    [[nodiscard]] auto set_data( const typename T::Data & data ) -> std::optional<std::string>
+    template<typename T, typename... Args>
+    [[nodiscard]] auto set_data( Args &&... args ) -> std::optional<std::string>
     {
         return std::visit(
-            [this, &data]( auto & h ) -> std::optional<std::string>
+            [this, data = typename T::Data( std::forward<Args>( args )... )]( auto & h ) -> std::optional<std::string>
             {
                 if constexpr( h.template hasInteraction<T>() )
                     return h.template set_data<T>( data );
