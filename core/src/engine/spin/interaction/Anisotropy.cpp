@@ -20,7 +20,7 @@ scalar Anisotropy::Energy::operator()( const Index & index, const vectorfield & 
     {
         const auto & [ispin, iani] = *index;
         const auto d               = data.anisotropy_normals[iani].dot( spins[ispin] );
-        return data.anisotropy_magnitudes[iani] * d * d;
+        return -data.anisotropy_magnitudes[iani] * d * d;
     }
     else
     {

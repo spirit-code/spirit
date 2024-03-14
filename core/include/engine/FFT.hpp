@@ -153,7 +153,7 @@ inline void get_strides( field<int *> & strides, const field<int> & maxVal )
 {
     strides.resize( maxVal.size() );
     *( strides[0] ) = 1;
-    for( int i = 1; i < maxVal.size(); i++ )
+    for( unsigned int i = 1; i < maxVal.size(); i++ )
     {
         *( strides[i] ) = *( strides[i - 1] ) * maxVal[i - 1];
     }
@@ -177,17 +177,17 @@ struct FFT_Plan
     field<FFT_cpx_type> cpx_ptr;
     field<FFT_real_type> real_ptr;
 
-    std::string name;
+    std::string name = "";
 
     void Create_Configuration();
     void Free_Configuration();
     void Clean();
-    FFT_cfg cfg{};
+    FFT_cfg cfg = nullptr;
 
     // Constructor delegation
     FFT_Plan() : FFT_Plan( { 2, 2, 2 }, true, 1, 8 ) {}
 
-    FFT_Plan( std::vector<int> dims, bool inverse, int n_transforms, int len )
+    FFT_Plan( std::vector<int> dims, bool inverse, int n_transforms, std::size_t len )
             : dims( std::move( dims ) ),
               inverse( inverse ),
               n_transforms( n_transforms ),
@@ -236,13 +236,13 @@ struct FFT_Plan
     }
 
     // move assignment operator
-    FFT_Plan & operator=( FFT_Plan const && other )
+    FFT_Plan & operator=( FFT_Plan && other )
     {
         if( this != &other )
         {
             this->dims         = std::move( other.dims );
-            this->inverse      = std::move( other.inverse );
-            this->n_transforms = std::move( other.n_transforms );
+            this->inverse      = other.inverse;
+            this->n_transforms = other.n_transforms;
             this->name         = std::move( other.name );
             this->cpx_ptr      = std::move( other.cpx_ptr );
             this->real_ptr     = std::move( other.real_ptr );
@@ -254,6 +254,22 @@ struct FFT_Plan
             this->Create_Configuration();
         }
         return *this;
+    }
+
+    // move constructor
+    FFT_Plan( FFT_Plan && other )
+            : dims( std::move( other.dims ) ),
+              inverse( other.inverse ),
+              n_transforms( other.n_transforms ),
+              cpx_ptr( std::move( other.cpx_ptr ) ),
+              real_ptr( std::move( other.real_ptr ) ),
+              name( std::move( other.name ) )
+    {
+        this->cpx_ptr.shrink_to_fit();
+        this->real_ptr.shrink_to_fit();
+
+        this->Free_Configuration();
+        this->Create_Configuration();
     }
 
     ~FFT_Plan()

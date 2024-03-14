@@ -494,17 +494,18 @@ void Gradient_FFT(
             {
                 for( int a = 0; a < c_it_bounds_pointwise_mult[0]; ++a )
                 {
-                    const int spin_stride_offset
-                        = a * cache.spin_stride.a + b * cache.spin_stride.b + c * cache.spin_stride.c;
                     // Collect the intersublattice contributions
                     for( int i_b2 = 0; i_b2 < c_n_cell_atoms; ++i_b2 )
                     {
                         // Look up at which position the correct D-matrices are saved
                         const int & b_inter = cache.inter_sublattice_lookup[i_b1 + i_b2 * geometry.n_cell_atoms];
 
-                        const int idx_b2 = i_b2 * cache.spin_stride.basis + spin_stride_offset;
-                        const int idx_b1 = i_b1 * cache.spin_stride.basis + spin_stride_offset;
-                        const int idx_d  = b_inter * cache.dipole_stride.basis + spin_stride_offset;
+                        const int idx_b2 = i_b2 * cache.spin_stride.basis + a * cache.spin_stride.a
+                                           + b * cache.spin_stride.b + c * cache.spin_stride.c;
+                        const int idx_b1 = i_b1 * cache.spin_stride.basis + a * cache.spin_stride.a
+                                           + b * cache.spin_stride.b + c * cache.spin_stride.c;
+                        const int idx_d = b_inter * cache.dipole_stride.basis + a * cache.dipole_stride.a
+                                          + b * cache.dipole_stride.b + c * cache.dipole_stride.c;
 
                         auto & fs_x = ft_spins[idx_b2];
                         auto & fs_y = ft_spins[idx_b2 + 1 * cache.spin_stride.comp];
@@ -820,11 +821,10 @@ void FFT_Dipole_Matrices(
                 {
                     for( int a = 0; a < c_n_cells_padded[0]; ++a )
                     {
-                        int a_idx  = a < Na ? a : a - cache.n_cells_padded[0];
-                        int b_idx  = b < Nb ? b : b - cache.n_cells_padded[1];
-                        int c_idx  = c < Nc ? c : c - cache.n_cells_padded[2];
+                        const int a_idx  = a < Na ? a : a - cache.n_cells_padded[0];
+                        const int b_idx  = b < Nb ? b : b - cache.n_cells_padded[1];
+                        const int c_idx  = c < Nc ? c : c - cache.n_cells_padded[2];
                         scalar Dxx = 0, Dxy = 0, Dxz = 0, Dyy = 0, Dyz = 0, Dzz = 0;
-                        Vector3 diff;
                         // Iterate over periodic images
                         for( int a_pb = -img_a; a_pb <= img_a; a_pb++ )
                         {
@@ -832,22 +832,22 @@ void FFT_Dipole_Matrices(
                             {
                                 for( int c_pb = -img_c; c_pb <= img_c; c_pb++ )
                                 {
-                                    diff = geometry.lattice_constant
-                                           * ( ( a_idx + a_pb * Na + geometry.cell_atoms[i_b1][0]
-                                                 - geometry.cell_atoms[i_b2][0] )
-                                                   * geometry.bravais_vectors[0]
-                                               + ( b_idx + b_pb * Nb + geometry.cell_atoms[i_b1][1]
-                                                   - geometry.cell_atoms[i_b2][1] )
-                                                     * geometry.bravais_vectors[1]
-                                               + ( c_idx + c_pb * Nc + geometry.cell_atoms[i_b1][2]
-                                                   - geometry.cell_atoms[i_b2][2] )
-                                                     * geometry.bravais_vectors[2] );
+                                    const Vector3 diff = geometry.lattice_constant
+                                                         * ( ( a_idx + a_pb * Na + geometry.cell_atoms[i_b1][0]
+                                                               - geometry.cell_atoms[i_b2][0] )
+                                                                 * geometry.bravais_vectors[0]
+                                                             + ( b_idx + b_pb * Nb + geometry.cell_atoms[i_b1][1]
+                                                                 - geometry.cell_atoms[i_b2][1] )
+                                                                   * geometry.bravais_vectors[1]
+                                                             + ( c_idx + c_pb * Nc + geometry.cell_atoms[i_b1][2]
+                                                                 - geometry.cell_atoms[i_b2][2] )
+                                                                   * geometry.bravais_vectors[2] );
 
                                     if( diff.norm() > 1e-10 )
                                     {
-                                        auto d  = diff.norm();
-                                        auto d3 = d * d * d;
-                                        auto d5 = d * d * d * d * d;
+                                        const auto d  = diff.norm();
+                                        const auto d3 = d * d * d;
+                                        const auto d5 = d * d * d * d * d;
                                         Dxx += mult * ( 3 * diff[0] * diff[0] / d5 - 1 / d3 );
                                         Dxy += mult * 3 * diff[0] * diff[1] / d5; // same as Dyx
                                         Dxz += mult * 3 * diff[0] * diff[2] / d5; // same as Dzx
@@ -859,8 +859,8 @@ void FFT_Dipole_Matrices(
                             }
                         }
 
-                        int idx = b_inter * cache.dipole_stride.basis + a * cache.dipole_stride.a
-                                  + b * cache.dipole_stride.b + c * cache.dipole_stride.c;
+                        const int idx = b_inter * cache.dipole_stride.basis + a * cache.dipole_stride.a
+                                        + b * cache.dipole_stride.b + c * cache.dipole_stride.c;
 
                         fft_dipole_inputs[idx]                                = Dxx;
                         fft_dipole_inputs[idx + 1 * cache.dipole_stride.comp] = Dxy;

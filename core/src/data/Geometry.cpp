@@ -26,16 +26,16 @@ Geometry::Geometry(
     const Basis_Cell_Composition & cell_composition, scalar lattice_constant, const Pinning & pinning,
     const Defects & defects )
         : bravais_vectors( bravais_vectors ),
+          lattice_constant( lattice_constant ),
           n_cells( n_cells ),
           n_cell_atoms( cell_atoms.size() ),
           cell_atoms( cell_atoms ),
           cell_composition( cell_composition ),
-          lattice_constant( lattice_constant ),
+          pinning( pinning ),
+          defects( defects ),
           nos( cell_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2] ),
           nos_nonvacant( cell_atoms.size() * n_cells[0] * n_cells[1] * n_cells[2] ),
-          n_cells_total( n_cells[0] * n_cells[1] * n_cells[2] ),
-          pinning( pinning ),
-          defects( defects )
+          n_cells_total( n_cells[0] * n_cells[1] * n_cells[2] )
 {
     // Generate positions and atom types
     this->positions = vectorfield( this->nos );
@@ -569,7 +569,8 @@ void Geometry::applyCellComposition()
 
 void Geometry::calculateDimensionality()
 {
-    Vector3 test_vec_basis, test_vec_translations;
+    Vector3 test_vec_basis        = { 0, 0, 1 };
+    Vector3 test_vec_translations = { 0, 0, 1 };
 
     const scalar epsilon = std::numeric_limits<scalar>::epsilon();
 

@@ -85,7 +85,7 @@ struct Biaxial_Anisotropy
         const ::Data::Geometry & geometry, const intfield &, const Data & data, Cache &, IndexVector & indices )
     {
         using Indexing::check_atom_type;
-        const auto N = geometry.nos;
+        const auto N = geometry.n_cell_atoms;
 
 #pragma omp parallel for
         for( int icell = 0; icell < geometry.n_cells_total; ++icell )

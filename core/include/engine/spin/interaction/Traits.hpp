@@ -49,20 +49,11 @@ struct has_bc_member<T, std::void_t<decltype( std::declval<T>().boundary_conditi
 template<typename Interaction>
 using is_local = detail::is_local_impl<Interaction>;
 
-template<typename Interaction>
-static constexpr bool is_local_v = is_local<Interaction>::value;
-
 template<typename T>
 using has_geometry_member = detail::has_geometry_member<T>;
 
 template<typename T>
 using has_bc_member = detail::has_bc_member<T>;
-
-template<typename T>
-static constexpr bool has_geometry_member_v = has_geometry_member<T>::value;
-
-template<typename T>
-static constexpr bool has_bc_member_v = has_bc_member<T>::value;
 
 } // namespace Interaction
 

@@ -10,8 +10,8 @@
 #include <data/Parameters_Method_LLG.hpp>
 #include <data/Parameters_Method_MC.hpp>
 #include <data/Parameters_Method_MMF.hpp>
-#include <engine/spin/Hamiltonian.hpp>
 #include <engine/Vectormath_Defines.hpp>
+#include <engine/spin/Hamiltonian.hpp>
 #include <utility/Ordered_Lock.hpp>
 
 #include <memory>
@@ -38,6 +38,8 @@ public:
     Spin_System( Spin_System const & other );
     // Assignment operator
     Spin_System & operator=( Spin_System const & other );
+    Spin_System( Spin_System && other )             = default;
+    Spin_System & operator=( Spin_System && other ) = default;
 
     // Update
     void UpdateEnergy();
