@@ -20,13 +20,13 @@ struct Cubic_Anisotropy
 
     struct Data
     {
-        intfield cubic_anisotropy_indices;
-        scalarfield cubic_anisotropy_magnitudes;
+        intfield indices;
+        scalarfield magnitudes;
     };
 
-    static bool verify( const Data & data )
+    static bool valid_data( const Data & data )
     {
-        return data.cubic_anisotropy_magnitudes.size() == data.cubic_anisotropy_indices.size();
+        return data.magnitudes.size() == data.indices.size();
     };
 
     struct Cache
@@ -35,7 +35,7 @@ struct Cubic_Anisotropy
 
     static bool is_contributing( const Data & data, const Cache & )
     {
-        return !data.cubic_anisotropy_indices.empty();
+        return !data.indices.empty();
     }
 
     struct IndexType
@@ -75,9 +75,9 @@ struct Cubic_Anisotropy
 #pragma omp parallel for
         for( int icell = 0; icell < geometry.n_cells_total; ++icell )
         {
-            for( int iani = 0; iani < data.cubic_anisotropy_indices.size(); ++iani )
+            for( int iani = 0; iani < data.indices.size(); ++iani )
             {
-                int ispin = icell * geometry.n_cell_atoms + data.cubic_anisotropy_indices[iani];
+                int ispin = icell * geometry.n_cell_atoms + data.indices[iani];
                 if( check_atom_type( geometry.atom_types[ispin] ) )
                     std::get<Index>( indices[ispin] ) = IndexType{ ispin, iani };
             }

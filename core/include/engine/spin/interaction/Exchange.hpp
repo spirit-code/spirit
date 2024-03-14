@@ -21,20 +21,29 @@ struct Exchange
 
     struct Data
     {
-        scalarfield exchange_shell_magnitudes{};
-        pairfield exchange_pairs{};
-        scalarfield exchange_magnitudes{};
+        pairfield pairs{};
+        scalarfield magnitudes{};
+
+        scalarfield shell_magnitudes{};
+    };
+
+    static bool valid_data( const Data & data )
+    {
+        if( !data.shell_magnitudes.empty() )
+            return true;
+        else
+            return data.pairs.empty() || ( data.pairs.size() == data.magnitudes.size() );
     };
 
     struct Cache
     {
-        pairfield exchange_pairs{};
-        scalarfield exchange_magnitudes{};
+        pairfield pairs{};
+        scalarfield magnitudes{};
     };
 
     static bool is_contributing( const Data &, const Cache & cache )
     {
-        return !cache.exchange_pairs.empty();
+        return !cache.pairs.empty();
     }
 
     struct IndexType
@@ -55,7 +64,7 @@ struct Exchange
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data &, const Cache & cache )
     {
-        return cache.exchange_pairs.size() * 2;
+        return cache.pairs.size() * 2;
     };
 
     // Calculate the total energy for a single spin to be used in Monte Carlo.
@@ -76,34 +85,34 @@ struct Exchange
     {
         using Indexing::idx_from_pair;
 
-        cache.exchange_pairs      = pairfield( 0 );
-        cache.exchange_magnitudes = scalarfield( 0 );
-        if( !data.exchange_shell_magnitudes.empty() )
+        cache.pairs      = pairfield( 0 );
+        cache.magnitudes = scalarfield( 0 );
+        if( !data.shell_magnitudes.empty() )
         {
             // Generate Exchange neighbours
             intfield exchange_shells( 0 );
             Neighbours::Get_Neighbours_in_Shells(
-                geometry, data.exchange_shell_magnitudes.size(), cache.exchange_pairs, exchange_shells,
+                geometry, data.shell_magnitudes.size(), cache.pairs, exchange_shells,
                 use_redundant_neighbours );
-            cache.exchange_magnitudes.reserve( cache.exchange_pairs.size() );
-            for( std::size_t ipair = 0; ipair < cache.exchange_pairs.size(); ++ipair )
+            cache.magnitudes.reserve( cache.pairs.size() );
+            for( std::size_t ipair = 0; ipair < cache.pairs.size(); ++ipair )
             {
-                cache.exchange_magnitudes.push_back( data.exchange_shell_magnitudes[exchange_shells[ipair]] );
+                cache.magnitudes.push_back( data.shell_magnitudes[exchange_shells[ipair]] );
             }
         }
         else
         {
             // Use direct list of pairs
-            cache.exchange_pairs      = data.exchange_pairs;
-            cache.exchange_magnitudes = data.exchange_magnitudes;
+            cache.pairs      = data.pairs;
+            cache.magnitudes = data.magnitudes;
             if constexpr( use_redundant_neighbours )
             {
-                for( std::size_t i = 0; i < data.exchange_pairs.size(); ++i )
+                for( std::size_t i = 0; i < data.pairs.size(); ++i )
                 {
-                    const auto & p = data.exchange_pairs[i];
+                    const auto & p = data.pairs[i];
                     const auto & t = p.translations;
-                    cache.exchange_pairs.emplace_back( Pair{ p.j, p.i, { -t[0], -t[1], -t[2] } } );
-                    cache.exchange_magnitudes.push_back( data.exchange_magnitudes[i] );
+                    cache.pairs.emplace_back( Pair{ p.j, p.i, { -t[0], -t[1], -t[2] } } );
+                    cache.magnitudes.push_back( data.magnitudes[i] );
                 }
             }
         }
@@ -111,12 +120,12 @@ struct Exchange
 #pragma omp parallel for
         for( unsigned int icell = 0; icell < geometry.n_cells_total; ++icell )
         {
-            for( unsigned int i_pair = 0; i_pair < cache.exchange_pairs.size(); ++i_pair )
+            for( unsigned int i_pair = 0; i_pair < cache.pairs.size(); ++i_pair )
             {
-                int ispin = cache.exchange_pairs[i_pair].i + icell * geometry.n_cell_atoms;
+                int ispin = cache.pairs[i_pair].i + icell * geometry.n_cell_atoms;
                 int jspin = idx_from_pair(
                     ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
-                    cache.exchange_pairs[i_pair] );
+                    cache.pairs[i_pair] );
                 if( jspin >= 0 )
                 {
                     std::get<Index>( indices[ispin] ).emplace_back( IndexType{ ispin, jspin, (int)i_pair } );
@@ -136,14 +145,14 @@ void Exchange::Hessian::operator()( const Index & index, const vectorfield &, F 
         begin( index ), end( index ),
         [this, &index, &f]( const auto & idx )
         {
-            const int i       = 3 * idx.ispin;
-            const int j       = 3 * idx.jspin;
+            const int i         = 3 * idx.ispin;
+            const int j         = 3 * idx.jspin;
             const auto & i_pair = idx.ipair;
 
 #pragma unroll
             for( int alpha = 0; alpha < 3; ++alpha )
             {
-                f( i + alpha, j + alpha, -cache.exchange_magnitudes[i_pair] );
+                f( i + alpha, j + alpha, -cache.magnitudes[i_pair] );
             }
         } );
 }

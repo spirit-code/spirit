@@ -19,8 +19,8 @@ scalar Anisotropy::Energy::operator()( const Index & index, const vectorfield & 
     if( index.has_value() )
     {
         const auto & [ispin, iani] = *index;
-        const auto d               = data.anisotropy_normals[iani].dot( spins[ispin] );
-        return -data.anisotropy_magnitudes[iani] * d * d;
+        const auto d               = data.normals[iani].dot( spins[ispin] );
+        return -data.magnitudes[iani] * d * d;
     }
     else
     {
@@ -34,8 +34,8 @@ Vector3 Anisotropy::Gradient::operator()( const Index & index, const vectorfield
     if( index.has_value() )
     {
         const auto & [ispin, iani] = *index;
-        return -2.0 * data.anisotropy_magnitudes[iani] * data.anisotropy_normals[iani]
-               * data.anisotropy_normals[iani].dot( spins[ispin] );
+        return -2.0 * data.magnitudes[iani] * data.normals[iani]
+               * data.normals[iani].dot( spins[ispin] );
     }
     else
     {

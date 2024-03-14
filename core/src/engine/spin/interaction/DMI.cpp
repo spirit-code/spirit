@@ -34,8 +34,8 @@ scalar DMI::Energy::operator()( const Index & index, const vectorfield & spins )
         [this, &spins]( const auto & idx ) -> scalar
         {
             const auto & [ispin, jspin, i_pair] = idx;
-            return -0.5 * cache.dmi_magnitudes[i_pair]
-                   * cache.dmi_normals[i_pair].dot( spins[ispin].cross( spins[jspin] ) );
+            return -0.5 * cache.magnitudes[i_pair]
+                   * cache.normals[i_pair].dot( spins[ispin].cross( spins[jspin] ) );
         } );
 }
 
@@ -47,7 +47,7 @@ Vector3 DMI::Gradient::operator()( const Index & index, const vectorfield & spin
         [this, &spins]( const auto & idx ) -> Vector3
         {
             const auto & [ispin, jspin, i_pair] = idx;
-            return -cache.dmi_magnitudes[i_pair] * spins[jspin].cross( cache.dmi_normals[i_pair] );
+            return -cache.magnitudes[i_pair] * spins[jspin].cross( cache.normals[i_pair] );
         } );
 };
 

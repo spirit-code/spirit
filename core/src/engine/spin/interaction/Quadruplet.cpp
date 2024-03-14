@@ -42,12 +42,12 @@ template<>
 void Quadruplet::Energy::operator()( const vectorfield & spins, scalarfield & energy ) const
 {
     Quadruplet::apply(
-        [&spins, &energy, &quadruplet_magnitudes = data.quadruplet_magnitudes](
+        [&spins, &energy, &magnitudes = data.magnitudes](
             const auto iquad, const auto ispin, const auto jspin, const auto kspin, const auto lspin )
         {
             if( ispin >= 0 && jspin >= 0 && kspin >= 0 && lspin >= 0 )
             {
-                const scalar quad_energy = 0.25 * quadruplet_magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) )
+                const scalar quad_energy = 0.25 * magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) )
                                            * ( spins[kspin].dot( spins[lspin] ) );
                 energy[ispin] -= quad_energy;
                 energy[jspin] -= quad_energy;
@@ -71,15 +71,15 @@ template<>
 void Quadruplet::Gradient::operator()( const vectorfield & spins, vectorfield & gradient ) const
 {
     Quadruplet::apply(
-        [&spins, &gradient, &quadruplet_magnitudes = data.quadruplet_magnitudes](
+        [&spins, &gradient, &magnitudes = data.magnitudes](
             const auto iquad, const auto ispin, const auto jspin, const auto kspin, const auto lspin )
         {
             if( ispin >= 0 && jspin >= 0 && kspin >= 0 && lspin >= 0 )
             {
-                gradient[ispin] -= quadruplet_magnitudes[iquad] * spins[jspin] * ( spins[kspin].dot( spins[lspin] ) );
-                gradient[jspin] -= quadruplet_magnitudes[iquad] * spins[ispin] * ( spins[kspin].dot( spins[lspin] ) );
-                gradient[kspin] -= quadruplet_magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) ) * spins[lspin];
-                gradient[lspin] -= quadruplet_magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) ) * spins[kspin];
+                gradient[ispin] -= magnitudes[iquad] * spins[jspin] * ( spins[kspin].dot( spins[lspin] ) );
+                gradient[jspin] -= magnitudes[iquad] * spins[ispin] * ( spins[kspin].dot( spins[lspin] ) );
+                gradient[kspin] -= magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) ) * spins[lspin];
+                gradient[lspin] -= magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) ) * spins[kspin];
             }
         },
         data, cache );

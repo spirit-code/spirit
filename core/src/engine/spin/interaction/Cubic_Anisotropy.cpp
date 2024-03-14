@@ -22,7 +22,7 @@ scalar Cubic_Anisotropy::Energy::operator()( const Index & index, const vectorfi
         return result;
 
     const auto & [ispin, iani] = *index;
-    return -0.5 * data.cubic_anisotropy_magnitudes[iani]
+    return -0.5 * data.magnitudes[iani]
            * ( pow( spins[ispin][0], 4.0 ) + pow( spins[ispin][1], 4.0 ) + pow( spins[ispin][2], 4.0 ) );
 };
 
@@ -38,7 +38,7 @@ Vector3 Cubic_Anisotropy::Gradient::operator()( const Index & index, const vecto
 
     for( int icomp = 0; icomp < 3; ++icomp )
     {
-        result[icomp] = -2.0 * data.cubic_anisotropy_magnitudes[iani] * pow( spins[ispin][icomp], 3.0 );
+        result[icomp] = -2.0 * data.magnitudes[iani] * pow( spins[ispin][icomp], 3.0 );
     }
     return result;
 }

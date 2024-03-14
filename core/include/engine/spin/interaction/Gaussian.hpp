@@ -31,6 +31,11 @@ struct Gaussian
         vectorfield center;
     };
 
+    static bool valid_data( const Data & data )
+    {
+        return ( data.amplitude.size() == data.width.size() && data.amplitude.size() == data.center.size() );
+    };
+
     struct Cache
     {
         std::size_t n_gaussians;

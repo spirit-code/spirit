@@ -34,7 +34,7 @@ scalar Exchange::Energy::operator()( const Index & index, const vectorfield & sp
         [this, &spins]( const Exchange::IndexType & idx ) -> scalar
         {
             const auto & [ispin, jspin, i_pair] = idx;
-            return -0.5 * cache.exchange_magnitudes[i_pair] * spins[ispin].dot( spins[jspin] );
+            return -0.5 * cache.magnitudes[i_pair] * spins[ispin].dot( spins[jspin] );
         } );
 }
 
@@ -46,7 +46,7 @@ Vector3 Exchange::Gradient::operator()( const Index & index, const vectorfield &
         [this, &spins]( const Exchange::IndexType & idx ) -> Vector3
         {
             const auto & [ispin, jspin, i_pair] = idx;
-            return -cache.exchange_magnitudes[i_pair] * spins[jspin];
+            return -cache.magnitudes[i_pair] * spins[jspin];
         } );
 }
 

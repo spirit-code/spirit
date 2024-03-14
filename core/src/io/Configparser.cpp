@@ -1812,12 +1812,12 @@ std::unique_ptr<Engine::Spin::HamiltonianVariant> Hamiltonian_Heisenberg_from_Co
     Interaction::DMI::Data dmi{};
     if( hamiltonian_type == "heisenberg_neighbours" )
     {
-        exchange = Interaction::Exchange::Data{ exchange_magnitudes, {}, {} };
+        exchange = Interaction::Exchange::Data{ {}, {}, exchange_magnitudes };
         dmi      = Interaction::DMI::Data{ {}, {}, {}, dmi_magnitudes, dm_chirality };
     }
     else
     {
-        exchange = Interaction::Exchange::Data{ {}, exchange_pairs, exchange_magnitudes };
+        exchange = Interaction::Exchange::Data{ exchange_pairs, exchange_magnitudes, {} };
         dmi      = Interaction::DMI::Data{ dmi_pairs, dmi_magnitudes, dmi_normals, {}, 0 };
     }
 
