@@ -25,8 +25,8 @@ void Write_Neighbours_Exchange( const State::system_t & system, const std::strin
     if( cache == nullptr )
         return;
 
-    const pairfield & exchange_pairs        = cache->exchange_pairs;
-    const scalarfield & exchange_magnitudes = cache->exchange_magnitudes;
+    const pairfield & exchange_pairs        = cache->pairs;
+    const scalarfield & exchange_magnitudes = cache->magnitudes;
 
     std::size_t n_neighbours = exchange_pairs.size();
 
@@ -74,9 +74,9 @@ void Write_Neighbours_DMI( const State::system_t & system, const std::string & f
     if( cache == nullptr )
         return;
 
-    const pairfield & dmi_pairs        = cache->dmi_pairs;
-    const scalarfield & dmi_magnitudes = cache->dmi_magnitudes;
-    const vectorfield & dmi_normals    = cache->dmi_normals;
+    const pairfield & dmi_pairs        = cache->pairs;
+    const scalarfield & dmi_magnitudes = cache->magnitudes;
+    const vectorfield & dmi_normals    = cache->normals;
 
     std::size_t n_neighbours = dmi_pairs.size();
 

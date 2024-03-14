@@ -20,10 +20,20 @@ struct Anisotropy
 
     struct Data
     {
-        intfield anisotropy_indices;
-        scalarfield anisotropy_magnitudes;
-        vectorfield anisotropy_normals;
+        intfield indices;
+        scalarfield magnitudes;
+        vectorfield normals;
     };
+
+    static bool valid_data( const Data & data )
+    {
+        if( data.indices.size() != data.magnitudes.size() || data.indices.size() != data.normals.size() )
+            return false;
+        if( std::any_of( begin( data.indices ), end( data.indices ), []( const int & i ) { return i < 0; } ) )
+            return false;
+
+        return true;
+    }
 
     struct Cache
     {
@@ -31,7 +41,7 @@ struct Anisotropy
 
     static bool is_contributing( const Data & data, const Cache & )
     {
-        return !data.anisotropy_indices.empty();
+        return !data.indices.empty();
     };
 
     struct IndexType
@@ -46,13 +56,13 @@ struct Anisotropy
         index.reset();
     }
 
-    using Energy              = Local::Energy_Functor<Anisotropy>;
-    using Gradient            = Local::Gradient_Functor<Anisotropy>;
-    using Hessian             = Local::Hessian_Functor<Anisotropy>;
+    using Energy   = Local::Energy_Functor<Anisotropy>;
+    using Gradient = Local::Gradient_Functor<Anisotropy>;
+    using Hessian  = Local::Hessian_Functor<Anisotropy>;
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data & data, const Cache & )
     {
-        return data.anisotropy_indices.size() * 9;
+        return data.indices.size() * 9;
     };
 
     // Calculate the total energy for a single spin to be used in Monte Carlo.
@@ -71,9 +81,9 @@ struct Anisotropy
 #pragma omp parallel for
         for( int icell = 0; icell < geometry.n_cells_total; ++icell )
         {
-            for( int iani = 0; iani < data.anisotropy_indices.size(); ++iani )
+            for( int iani = 0; iani < data.indices.size(); ++iani )
             {
-                int ispin = icell * geometry.n_cell_atoms + data.anisotropy_indices[iani];
+                int ispin = icell * geometry.n_cell_atoms + data.indices[iani];
                 if( check_atom_type( geometry.atom_types[ispin] ) )
                     std::get<Index>( indices[ispin] ) = IndexType{ ispin, iani };
             }
@@ -98,9 +108,7 @@ void Anisotropy::Hessian::operator()( const Index & index, const vectorfield &, 
         {
             int i = 3 * ispin + alpha;
             int j = 3 * ispin + alpha;
-            f( i, j,
-               -2.0 * data.anisotropy_magnitudes[iani] * data.anisotropy_normals[iani][alpha]
-                   * data.anisotropy_normals[iani][beta] );
+            f( i, j, -2.0 * data.magnitudes[iani] * data.normals[iani][alpha] * data.normals[iani][beta] );
         }
     }
 };

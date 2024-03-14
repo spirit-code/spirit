@@ -266,9 +266,9 @@ void Hamiltonian_Heisenberg_to_Config(
     if( const auto * data = hamiltonian->data<Engine::Spin::Interaction::Anisotropy>(); data != nullptr )
     {
         config += "###    Anisotropy:\n";
-        const intfield & anisotropy_indices       = data->anisotropy_indices;
-        const scalarfield & anisotropy_magnitudes = data->anisotropy_magnitudes;
-        const vectorfield & anisotropy_normals    = data->anisotropy_normals;
+        const intfield & anisotropy_indices       = data->indices;
+        const scalarfield & anisotropy_magnitudes = data->magnitudes;
+        const vectorfield & anisotropy_normals    = data->normals;
 
         scalar K = 0;
         Vector3 K_normal{ 0, 0, 0 };
@@ -334,11 +334,11 @@ void Hamiltonian_Heisenberg_to_Config(
 
         if( exchange_cache != nullptr && dmi_cache != nullptr )
         {
-            const auto & exchange_pairs      = exchange_cache->exchange_pairs;
-            const auto & exchange_magnitudes = exchange_cache->exchange_magnitudes;
-            const auto & dmi_pairs           = dmi_cache->dmi_pairs;
-            const auto & dmi_magnitudes      = dmi_cache->dmi_magnitudes;
-            const auto & dmi_normals         = dmi_cache->dmi_normals;
+            const auto & exchange_pairs      = exchange_cache->pairs;
+            const auto & exchange_magnitudes = exchange_cache->magnitudes;
+            const auto & dmi_pairs           = dmi_cache->pairs;
+            const auto & dmi_magnitudes      = dmi_cache->magnitudes;
+            const auto & dmi_normals         = dmi_cache->normals;
 
             config += "###    Interaction pairs:\n";
             config += fmt::format( "n_interaction_pairs {}\n", exchange_pairs.size() + dmi_pairs.size() );
@@ -400,7 +400,7 @@ void Hamiltonian_Heisenberg_to_Config(
     if( const auto * data = hamiltonian->data<Engine::Spin::Interaction::Quadruplet>(); data != nullptr )
     {
         const auto & quadruplets           = data->quadruplets;
-        const auto & quadruplet_magnitudes = data->quadruplet_magnitudes;
+        const auto & quadruplet_magnitudes = data->magnitudes;
 
         config += "###    Quadruplets:\n";
         config += fmt::format( "n_interaction_quadruplets {}\n", quadruplets.size() );

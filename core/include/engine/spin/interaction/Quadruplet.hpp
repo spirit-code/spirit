@@ -21,7 +21,12 @@ struct Quadruplet
     struct Data
     {
         quadrupletfield quadruplets;
-        scalarfield quadruplet_magnitudes;
+        scalarfield magnitudes;
+    };
+
+    static bool valid_data( const Data & data )
+    {
+        return data.quadruplets.size() == data.magnitudes.size();
     };
 
     struct Cache
@@ -35,10 +40,10 @@ struct Quadruplet
         return !data.quadruplets.empty();
     }
 
-    using Energy             = NonLocal::Energy_Functor<Quadruplet>;
-    using Gradient           = NonLocal::Gradient_Functor<Quadruplet>;
-    using Hessian            = NonLocal::Hessian_Functor<Quadruplet>;
-    using Energy_Total       = NonLocal::Reduce_Functor<Energy>;
+    using Energy       = NonLocal::Energy_Functor<Quadruplet>;
+    using Gradient     = NonLocal::Gradient_Functor<Quadruplet>;
+    using Hessian      = NonLocal::Hessian_Functor<Quadruplet>;
+    using Energy_Total = NonLocal::Reduce_Functor<Energy>;
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data &, const Cache & )
     {
@@ -48,7 +53,7 @@ struct Quadruplet
     // Calculate the total energy for a single spin to be used in Monte Carlo.
     //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
     static constexpr scalar weight = 4.0;
-    using Energy_Single_Spin = NonLocal::Energy_Single_Spin_Functor<Quadruplet>;
+    using Energy_Single_Spin       = NonLocal::Energy_Single_Spin_Functor<Quadruplet>;
 
     // Interaction name as string
     static constexpr std::string_view name = "Quadruplet";

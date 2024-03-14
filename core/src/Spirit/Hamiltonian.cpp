@@ -283,7 +283,7 @@ try
     {
         using Engine::Spin::Interaction::Exchange;
         // Update the Hamiltonian
-        const auto error = image->hamiltonian->set_data<Exchange>( { scalarfield( jij, jij + n_shells ) } );
+        const auto error = image->hamiltonian->set_data<Exchange>( { {}, {}, scalarfield( jij, jij + n_shells ) } );
 
         if( !error.has_value() )
         {
@@ -476,9 +476,9 @@ try
     using Engine::Spin::Interaction::Anisotropy;
     if( const auto * data = image->hamiltonian->data<Anisotropy>(); data != nullptr )
     {
-        const auto & anisotropy_indices    = data->anisotropy_indices;
-        const auto & anisotropy_magnitudes = data->anisotropy_magnitudes;
-        const auto & anisotropy_normals    = data->anisotropy_normals;
+        const auto & anisotropy_indices    = data->indices;
+        const auto & anisotropy_magnitudes = data->magnitudes;
+        const auto & anisotropy_normals    = data->normals;
         if( !anisotropy_indices.empty() )
         {
             // Magnitude
@@ -512,8 +512,8 @@ try
 
     if( const auto * data = image->hamiltonian->data<Engine::Spin::Interaction::Cubic_Anisotropy>(); data != nullptr )
     {
-        const auto & cubic_anisotropy_indices    = data->cubic_anisotropy_indices;
-        const auto & cubic_anisotropy_magnitudes = data->cubic_anisotropy_magnitudes;
+        const auto & cubic_anisotropy_indices    = data->indices;
+        const auto & cubic_anisotropy_magnitudes = data->magnitudes;
 
         if( !cubic_anisotropy_indices.empty() )
         {
@@ -632,7 +632,7 @@ try
 
     if( const auto * data = image->hamiltonian->data<Engine::Spin::Interaction::Exchange>(); data != nullptr )
     {
-        scalarfield exchange_shell_magnitudes = data->exchange_shell_magnitudes;
+        scalarfield exchange_shell_magnitudes = data->shell_magnitudes;
         *n_shells                             = exchange_shell_magnitudes.size();
 
         // Note the array needs to be correctly allocated beforehand!
@@ -655,7 +655,7 @@ try
 
     if( const auto * cache = image->hamiltonian->cache<Engine::Spin::Interaction::Exchange>(); cache != nullptr )
     {
-        return cache->exchange_pairs.size();
+        return cache->pairs.size();
     }
 
     return 0;
@@ -676,8 +676,8 @@ try
 
     if( const auto * cache = image->hamiltonian->cache<Engine::Spin::Interaction::Exchange>(); cache != nullptr )
     {
-        const auto & exchange_pairs      = cache->exchange_pairs;
-        const auto & exchange_magnitudes = cache->exchange_magnitudes;
+        const auto & exchange_pairs      = cache->pairs;
+        const auto & exchange_magnitudes = cache->magnitudes;
 
         for( std::size_t i = 0; i < exchange_pairs.size() && i < exchange_magnitudes.size(); ++i )
         {
@@ -708,8 +708,8 @@ try
 
     if( const auto * data = image->hamiltonian->data<Engine::Spin::Interaction::DMI>(); data != nullptr )
     {
-        const auto & dmi_shell_magnitudes = data->dmi_shell_magnitudes;
-        const auto dmi_shell_chirality    = data->dmi_shell_chirality;
+        const auto & dmi_shell_magnitudes = data->shell_magnitudes;
+        const auto dmi_shell_chirality    = data->shell_chirality;
 
         *n_shells  = dmi_shell_magnitudes.size();
         *chirality = dmi_shell_chirality;
@@ -733,7 +733,7 @@ try
 
     if( const auto * cache = image->hamiltonian->cache<Engine::Spin::Interaction::DMI>(); cache != nullptr )
     {
-        return cache->dmi_pairs.size();
+        return cache->pairs.size();
     }
 
     return 0;

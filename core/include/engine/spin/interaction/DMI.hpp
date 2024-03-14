@@ -21,24 +21,37 @@ struct DMI
 
     struct Data
     {
-        pairfield dmi_pairs{};
-        scalarfield dmi_magnitudes{};
-        vectorfield dmi_normals{};
+        pairfield pairs{};
+        scalarfield magnitudes{};
+        vectorfield normals{};
 
-        scalarfield dmi_shell_magnitudes{};
-        int dmi_shell_chirality = 0;
+        scalarfield shell_magnitudes{};
+        int shell_chirality = 0;
+    };
+
+    static bool valid_data( const Data & data )
+    {
+        if( !data.shell_magnitudes.empty() && data.shell_chirality != SPIRIT_CHIRALITY_NEEL
+            && data.shell_chirality != SPIRIT_CHIRALITY_BLOCH && data.shell_chirality != SPIRIT_CHIRALITY_NEEL_INVERSE
+            && data.shell_chirality != SPIRIT_CHIRALITY_BLOCH_INVERSE )
+            return false;
+        if( !data.pairs.empty()
+            && ( data.pairs.size() != data.magnitudes.size() || data.pairs.size() != data.normals.size() ) )
+            return false;
+
+        return true;
     };
 
     struct Cache
     {
-        pairfield dmi_pairs{};
-        scalarfield dmi_magnitudes{};
-        vectorfield dmi_normals{};
+        pairfield pairs{};
+        scalarfield magnitudes{};
+        vectorfield normals{};
     };
 
     static bool is_contributing( const Data &, const Cache & cache )
     {
-        return !cache.dmi_pairs.empty();
+        return !cache.pairs.empty();
     }
 
     struct IndexType
@@ -59,7 +72,7 @@ struct DMI
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data &, const Cache & cache )
     {
-        return cache.dmi_pairs.size() * 3;
+        return cache.pairs.size() * 3;
     };
 
     // Calculate the total energy for a single spin to be used in Monte Carlo.
@@ -80,37 +93,37 @@ struct DMI
     {
         using Indexing::idx_from_pair;
 
-        cache.dmi_pairs      = pairfield( 0 );
-        cache.dmi_magnitudes = scalarfield( 0 );
-        cache.dmi_normals    = vectorfield( 0 );
-        if( !data.dmi_shell_magnitudes.empty() )
+        cache.pairs      = pairfield( 0 );
+        cache.magnitudes = scalarfield( 0 );
+        cache.normals    = vectorfield( 0 );
+        if( !data.shell_magnitudes.empty() )
         {
             // Generate DMI neighbours and normals
             intfield dmi_shells( 0 );
             Neighbours::Get_Neighbours_in_Shells(
-                geometry, data.dmi_shell_magnitudes.size(), cache.dmi_pairs, dmi_shells, use_redundant_neighbours );
-            for( std::size_t ineigh = 0; ineigh < cache.dmi_pairs.size(); ++ineigh )
+                geometry, data.shell_magnitudes.size(), cache.pairs, dmi_shells, use_redundant_neighbours );
+            for( std::size_t ineigh = 0; ineigh < cache.pairs.size(); ++ineigh )
             {
-                cache.dmi_normals.push_back(
-                    Neighbours::DMI_Normal_from_Pair( geometry, cache.dmi_pairs[ineigh], data.dmi_shell_chirality ) );
-                cache.dmi_magnitudes.push_back( data.dmi_shell_magnitudes[dmi_shells[ineigh]] );
+                cache.normals.push_back(
+                    Neighbours::DMI_Normal_from_Pair( geometry, cache.pairs[ineigh], data.shell_chirality ) );
+                cache.magnitudes.push_back( data.shell_magnitudes[dmi_shells[ineigh]] );
             }
         }
         else
         {
             // Use direct list of pairs
-            cache.dmi_pairs      = data.dmi_pairs;
-            cache.dmi_magnitudes = data.dmi_magnitudes;
-            cache.dmi_normals    = data.dmi_normals;
+            cache.pairs      = data.pairs;
+            cache.magnitudes = data.magnitudes;
+            cache.normals    = data.normals;
             if( use_redundant_neighbours )
             {
-                for( std::size_t i = 0; i < data.dmi_pairs.size(); ++i )
+                for( std::size_t i = 0; i < data.pairs.size(); ++i )
                 {
-                    const auto & p = data.dmi_pairs[i];
+                    const auto & p = data.pairs[i];
                     const auto & t = p.translations;
-                    cache.dmi_pairs.emplace_back( Pair{ p.j, p.i, { -t[0], -t[1], -t[2] } } );
-                    cache.dmi_magnitudes.emplace_back( data.dmi_magnitudes[i] );
-                    cache.dmi_normals.emplace_back( -data.dmi_normals[i] );
+                    cache.pairs.emplace_back( Pair{ p.j, p.i, { -t[0], -t[1], -t[2] } } );
+                    cache.magnitudes.emplace_back( data.magnitudes[i] );
+                    cache.normals.emplace_back( -data.normals[i] );
                 }
             }
         }
@@ -118,12 +131,12 @@ struct DMI
 #pragma omp parallel for
         for( unsigned int icell = 0; icell < geometry.n_cells_total; ++icell )
         {
-            for( unsigned int i_pair = 0; i_pair < cache.dmi_pairs.size(); ++i_pair )
+            for( unsigned int i_pair = 0; i_pair < cache.pairs.size(); ++i_pair )
             {
-                int ispin = cache.dmi_pairs[i_pair].i + icell * geometry.n_cell_atoms;
+                int ispin = cache.pairs[i_pair].i + icell * geometry.n_cell_atoms;
                 int jspin = idx_from_pair(
                     ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
-                    cache.dmi_pairs[i_pair] );
+                    cache.pairs[i_pair] );
                 if( jspin >= 0 )
                 {
                     std::get<Index>( indices[ispin] ).emplace_back( IndexType{ ispin, jspin, (int)i_pair } );
@@ -146,20 +159,20 @@ void DMI::Hessian::operator()( const Index & index, const vectorfield &, F & f )
             const int j       = 3 * idx.jspin;
             const auto i_pair = idx.ipair;
 
-            f( i + 2, j + 1, cache.dmi_magnitudes[i_pair] * cache.dmi_normals[i_pair][0] );
-            f( i + 1, j + 2, -cache.dmi_magnitudes[i_pair] * cache.dmi_normals[i_pair][0] );
-            f( i + 0, j + 2, cache.dmi_magnitudes[i_pair] * cache.dmi_normals[i_pair][1] );
-            f( i + 2, j + 0, -cache.dmi_magnitudes[i_pair] * cache.dmi_normals[i_pair][1] );
-            f( i + 1, j + 0, cache.dmi_magnitudes[i_pair] * cache.dmi_normals[i_pair][2] );
-            f( i + 0, j + 1, -cache.dmi_magnitudes[i_pair] * cache.dmi_normals[i_pair][2] );
+            f( i + 2, j + 1, cache.magnitudes[i_pair] * cache.normals[i_pair][0] );
+            f( i + 1, j + 2, -cache.magnitudes[i_pair] * cache.normals[i_pair][0] );
+            f( i + 0, j + 2, cache.magnitudes[i_pair] * cache.normals[i_pair][1] );
+            f( i + 2, j + 0, -cache.magnitudes[i_pair] * cache.normals[i_pair][1] );
+            f( i + 1, j + 0, cache.magnitudes[i_pair] * cache.normals[i_pair][2] );
+            f( i + 0, j + 1, -cache.magnitudes[i_pair] * cache.normals[i_pair][2] );
             if constexpr( !DMI::use_redundant_neighbours )
             {
-                f( j + 1, i + 2, cache.dmi_magnitudes[i_pair] * cache.dmi_normals[i_pair][0] );
-                f( j + 2, i + 1, -cache.dmi_magnitudes[i_pair] * cache.dmi_normals[i_pair][0] );
-                f( j + 2, i + 0, cache.dmi_magnitudes[i_pair] * cache.dmi_normals[i_pair][1] );
-                f( j + 0, i + 2, -cache.dmi_magnitudes[i_pair] * cache.dmi_normals[i_pair][1] );
-                f( j + 0, i + 1, cache.dmi_magnitudes[i_pair] * cache.dmi_normals[i_pair][2] );
-                f( j + 1, i + 0, -cache.dmi_magnitudes[i_pair] * cache.dmi_normals[i_pair][2] );
+                f( j + 1, i + 2, cache.magnitudes[i_pair] * cache.normals[i_pair][0] );
+                f( j + 2, i + 1, -cache.magnitudes[i_pair] * cache.normals[i_pair][0] );
+                f( j + 2, i + 0, cache.magnitudes[i_pair] * cache.normals[i_pair][1] );
+                f( j + 0, i + 2, -cache.magnitudes[i_pair] * cache.normals[i_pair][1] );
+                f( j + 0, i + 1, cache.magnitudes[i_pair] * cache.normals[i_pair][2] );
+                f( j + 1, i + 0, -cache.magnitudes[i_pair] * cache.normals[i_pair][2] );
             }
 
             // #if !( defined( SPIRIT_USE_OPENMP ) || defined( SPIRIT_USE_CUDA ) )
