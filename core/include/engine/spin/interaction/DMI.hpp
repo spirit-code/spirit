@@ -73,11 +73,6 @@ struct DMI
 
     using Index = std::vector<IndexType>;
 
-    static void clearIndex( Index & index )
-    {
-        index.clear();
-    };
-
     using Energy   = Functor::Local::Energy_Functor<DMI>;
     using Gradient = Functor::Local::Gradient_Functor<DMI>;
     using Hessian  = Functor::Local::Hessian_Functor<DMI>;

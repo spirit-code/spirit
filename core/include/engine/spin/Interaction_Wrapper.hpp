@@ -266,13 +266,6 @@ struct InteractionWrapper
         Interaction::applyGeometry( geometry, boundary_conditions, data, cache, indices );
     }
 
-    template<typename IndexTuple>
-    void clearIndex( IndexTuple & indices ) const
-    {
-        if constexpr( local )
-            Interaction::clearIndex( std::get<typename Interaction::Index>( indices ) );
-    }
-
     // is_contributing
     bool is_contributing() const
     {

@@ -45,11 +45,6 @@ struct Zeeman
         return std::abs( data.external_field_magnitude ) > 1e-60;
     }
 
-    static void clearIndex( Index & index )
-    {
-        index.reset();
-    }
-
     using Energy   = Functor::Local::Energy_Functor<Zeeman>;
     using Gradient = Functor::Local::Gradient_Functor<Zeeman>;
     using Hessian  = Functor::Local::Hessian_Functor<Zeeman>;
