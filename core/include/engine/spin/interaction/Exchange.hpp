@@ -115,7 +115,6 @@ struct Exchange
             cache.magnitudes = data.magnitudes;
         }
 
-#pragma omp parallel for
         for( unsigned int icell = 0; icell < geometry.n_cells_total; ++icell )
         {
             for( unsigned int i_pair = 0; i_pair < cache.pairs.size(); ++i_pair )

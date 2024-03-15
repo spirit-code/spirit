@@ -87,7 +87,6 @@ struct Anisotropy
     {
         using Indexing::check_atom_type;
 
-#pragma omp parallel for
         for( int icell = 0; icell < geometry.n_cells_total; ++icell )
         {
             for( int iani = 0; iani < data.indices.size(); ++iani )
