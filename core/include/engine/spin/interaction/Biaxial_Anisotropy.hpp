@@ -97,14 +97,12 @@ struct Biaxial_Anisotropy
         using Indexing::check_atom_type;
         const auto N = geometry.n_cell_atoms;
 
-#pragma omp parallel for
         for( int icell = 0; icell < geometry.n_cells_total; ++icell )
         {
             for( int iani = 0; iani < data.indices.size(); ++iani )
             {
                 int ispin = icell * N + data.indices[iani];
                 if( check_atom_type( geometry.atom_types[ispin] ) )
-
                     std::get<Index>( indices[ispin] ) = IndexType{ ispin, iani };
             }
         }

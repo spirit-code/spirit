@@ -81,7 +81,6 @@ struct Gaussian
     static void
     applyGeometry( const ::Data::Geometry & geometry, const intfield &, const Data &, Cache &, IndexVector & indices )
     {
-#pragma omp parallel for
         for( int icell = 0; icell < geometry.n_cells_total; ++icell )
         {
             for( int ibasis = 0; ibasis < geometry.n_cell_atoms; ++ibasis )

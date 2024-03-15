@@ -74,7 +74,6 @@ struct Zeeman
 
         const auto N = geometry.n_cell_atoms;
 
-#pragma omp parallel for
         for( int icell = 0; icell < geometry.n_cells_total; ++icell )
         {
             for( int ibasis = 0; ibasis < N; ++ibasis )
