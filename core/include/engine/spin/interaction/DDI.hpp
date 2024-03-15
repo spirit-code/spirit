@@ -3,7 +3,7 @@
 #define SPIRIT_CORE_ENGINE_INTERACTION_DDI_HPP
 
 #include <engine/FFT.hpp>
-#include <engine/spin/interaction/ABC.hpp>
+#include <engine/spin/interaction/Functor_Prototpyes.hpp>
 #include <utility/Constants.hpp>
 
 namespace Engine
@@ -87,11 +87,11 @@ struct DDI
     static void applyGeometry(
         const ::Data::Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache );
 
-    using Energy             = NonLocal::Energy_Functor<DDI>;
-    using Gradient           = NonLocal::Gradient_Functor<DDI>;
-    using Hessian            = NonLocal::Hessian_Functor<DDI>;
-    using Energy_Single_Spin = NonLocal::Energy_Single_Spin_Functor<DDI>;
-    using Energy_Total       = NonLocal::Reduce_Functor<Energy>;
+    using Energy             = Functor::NonLocal::Energy_Functor<DDI>;
+    using Gradient           = Functor::NonLocal::Gradient_Functor<DDI>;
+    using Hessian            = Functor::NonLocal::Hessian_Functor<DDI>;
+    using Energy_Single_Spin = Functor::NonLocal::Energy_Single_Spin_Functor<DDI>;
+    using Energy_Total       = Functor::NonLocal::Reduce_Functor<Energy>;
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data & data, const Cache & )
     {

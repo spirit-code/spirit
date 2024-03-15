@@ -2,12 +2,13 @@
 
 #include <data/Geometry.hpp>
 #include <engine/Vectormath_Defines.hpp>
-#include <engine/spin/interaction/ABC.hpp>
-#include <engine/spin/interaction/Traits.hpp>
+#include <engine/spin/interaction/Functor_Prototpyes.hpp>
+#include <engine/spin/Interaction_Traits.hpp>
 #include <utility/Exception.hpp>
 
 #include <memory>
 #include <numeric>
+#include <optional>
 #include <string_view>
 #include <tuple>
 
@@ -46,11 +47,11 @@ template<typename InteractionType>
 struct InteractionWrapper;
 
 template<typename InteractionType>
-auto make_standalone( InteractionWrapper<InteractionType> & interaction )
+auto make_standalone( InteractionWrapper<InteractionType> & interaction ) noexcept
     -> std::unique_ptr<StandaloneAdapter<typename InteractionType::state_t>>;
 
 template<typename InteractionType, typename IndexVector>
-auto make_standalone( InteractionWrapper<InteractionType> & interaction, const IndexVector & indices )
+auto make_standalone( InteractionWrapper<InteractionType> & interaction, const IndexVector & indices ) noexcept
     -> std::unique_ptr<StandaloneAdapter<typename InteractionType::state_t>>;
 
 template<typename InteractionType>
@@ -74,7 +75,7 @@ public:
     using state_t = typename InteractionType::state_t;
 
     template<typename T>
-    friend auto make_standalone( InteractionWrapper<T> & interaction )
+    friend auto make_standalone( InteractionWrapper<T> & interaction ) noexcept
         -> std::unique_ptr<StandaloneAdapter<typename T::state_t>>;
 
     constexpr StandaloneAdaptor_NonLocal( constructor_tag, const Data & data, Cache & cache ) noexcept
@@ -101,7 +102,7 @@ public:
 
     void Hessian( const state_t & state, MatrixX & hessian ) final
     {
-        auto hessian_functor = dense_hessian_functor( hessian );
+        auto hessian_functor = Functor::dense_hessian_wrapper( hessian );
         std::invoke( typename InteractionType::Hessian( data, cache ), state, hessian_functor );
     }
 
@@ -136,7 +137,7 @@ public:
     using state_t = typename InteractionType::state_t;
 
     template<typename T, typename V>
-    friend auto make_standalone( InteractionWrapper<T> & interaction, const V & indices )
+    friend auto make_standalone( InteractionWrapper<T> & interaction, const V & indices ) noexcept
         -> std::unique_ptr<StandaloneAdapter<typename T::state_t>>;
 
     constexpr StandaloneAdaptor_Local(
@@ -182,7 +183,7 @@ public:
         auto functor = typename InteractionType::Hessian( data, cache );
         std::for_each(
             begin( indices ), end( indices ),
-            [&functor, &state, hessian_functor = dense_hessian_functor( hessian )]( const IndexTuple & index )
+            [&functor, &state, hessian_functor = Functor::dense_hessian_wrapper( hessian )]( const IndexTuple & index )
             { functor( std::get<typename InteractionType::Index>( index ), state, hessian_functor ); } );
     }
 
@@ -198,7 +199,7 @@ private:
 };
 
 template<typename InteractionType>
-auto make_standalone( InteractionWrapper<InteractionType> & interaction )
+auto make_standalone( InteractionWrapper<InteractionType> & interaction ) noexcept
     -> std::unique_ptr<StandaloneAdapter<typename InteractionType::state_t>>
 {
     static_assert(
@@ -208,7 +209,7 @@ auto make_standalone( InteractionWrapper<InteractionType> & interaction )
 };
 
 template<typename InteractionType, typename IndexVector>
-auto make_standalone( InteractionWrapper<InteractionType> & interaction, const IndexVector & indices )
+auto make_standalone( InteractionWrapper<InteractionType> & interaction, const IndexVector & indices ) noexcept
     -> std::unique_ptr<StandaloneAdapter<typename InteractionType::state_t>>
 {
     static_assert( is_local<InteractionType>::value, "interaction type for local standalone adaptor must be local" );
@@ -227,11 +228,11 @@ struct InteractionWrapper
         std::is_default_constructible<Cache>::value, "InteractionType::Cache has to be default constructible" );
 
     template<typename T>
-    friend auto make_standalone( InteractionWrapper<T> & interaction )
+    friend auto make_standalone( InteractionWrapper<T> & interaction ) noexcept
         -> std::unique_ptr<StandaloneAdapter<typename T::state_t>>;
 
     template<typename T, typename IndexVector>
-    friend auto make_standalone( InteractionWrapper<T> & interaction, const IndexVector & indices )
+    friend auto make_standalone( InteractionWrapper<T> & interaction, const IndexVector & indices ) noexcept
         -> std::unique_ptr<StandaloneAdapter<typename T::state_t>>;
 
     explicit InteractionWrapper( typename InteractionType::Data && init_data ) : data( init_data ), cache(){};
@@ -295,13 +296,13 @@ private:
 
 public:
     // set_data
-    auto set_data( const typename Interaction::Data & new_data ) -> std::optional<std::string>
+    auto set_data( typename Interaction::Data && new_data ) -> std::optional<std::string>
     {
         if constexpr( has_valid_check<Interaction>::value )
             if( !Interaction::valid_data( new_data ) )
                 return fmt::format( "the data passed to interaction \"{}\" is invalid", Interaction::name );
 
-        data = new_data;
+        data = std::move( new_data );
         return std::nullopt;
     };
 

@@ -9,11 +9,18 @@
 #include <engine/FFT.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Vectormath_Defines.hpp>
+#include <engine/spin/Functor_Dispatch.hpp>
 #include <engine/spin/Hamiltonian_Defines.hpp>
-#include <engine/spin/interaction/Functors.hpp>
-#include <engine/spin/interaction/Wrapper.hpp>
-#include <engine/spin/interaction/all.hpp>
-#include <utility/Span.hpp>
+#include <engine/spin/Interaction_Wrapper.hpp>
+#include <engine/spin/interaction/Anisotropy.hpp>
+#include <engine/spin/interaction/Biaxial_Anisotropy.hpp>
+#include <engine/spin/interaction/Cubic_Anisotropy.hpp>
+#include <engine/spin/interaction/DDI.hpp>
+#include <engine/spin/interaction/DMI.hpp>
+#include <engine/spin/interaction/Exchange.hpp>
+#include <engine/spin/interaction/Gaussian.hpp>
+#include <engine/spin/interaction/Quadruplet.hpp>
+#include <engine/spin/interaction/Zeeman.hpp>
 #include <utility/Variadic_Traits.hpp>
 
 #include <variant>
@@ -24,19 +31,52 @@ namespace Engine
 namespace Spin
 {
 
-using Interaction::tuple_bind;
+namespace Trait
+{
+
+template<typename T>
+struct Index
+{
+    using type = typename T::Index;
+};
+
+} // namespace Trait
+
+namespace Interaction
+{
+
+template<typename... InteractionTypes>
+void setPtrAddress(
+    std::tuple<InteractionWrapper<InteractionTypes>...> & interactions, const ::Data::Geometry * geometry,
+    const intfield * boundary_conditions ) noexcept
+{
+    std::apply(
+        [geometry, boundary_conditions]( InteractionWrapper<InteractionTypes> &... interaction )
+        {
+            ( ...,
+              [geometry, boundary_conditions]( typename InteractionTypes::Cache & entry )
+              {
+                  using cache_t = typename InteractionTypes::Cache;
+                  if constexpr( has_geometry_member<cache_t>::value )
+                      entry.geometry = geometry;
+
+                  if constexpr( has_bc_member<cache_t>::value )
+                      entry.boundary_conditions = boundary_conditions;
+              }( interaction.cache ) );
+        },
+        interactions );
+}
+
+} // namespace Interaction
 
 // Hamiltonian for (pure) spin systems
 template<typename state_type, typename... InteractionTypes>
 class Hamiltonian
 {
-    static_assert( std::conjunction_v<std::is_same<state_type, typename InteractionTypes::state_t>...> );
+    static_assert( std::conjunction<std::is_same<state_type, typename InteractionTypes::state_t>...>::value );
 
     template<typename... Ts>
     using WrappedInteractions = std::tuple<Interaction::InteractionWrapper<Ts>...>;
-
-    template<typename... Ts>
-    using IndexTupleTemplate = std::tuple<typename Ts::Index...>;
 
     template<template<class> class Pred, template<class...> class Variadic>
     using filtered = typename Utility::variadic_filter<Pred, Variadic, InteractionTypes...>::type;
@@ -56,6 +96,12 @@ class Hamiltonian
               local( std::make_tuple( std::get<I_local>( std::forward<Tuple>( data ) )... ) ),
               nonlocal( std::make_tuple( std::get<I_nonlocal>( std::forward<Tuple>( data ) )... ) )
     {
+        static_assert(
+            Utility::are_disjoint<std::index_sequence<I_local...>, std::index_sequence<I_nonlocal...>>::value );
+
+        static_assert( sizeof...( InteractionTypes ) == std::tuple_size<Tuple>::value );
+        static_assert( sizeof...( I_local ) + sizeof...( I_nonlocal ) == std::tuple_size<Tuple>::value );
+
         applyGeometry();
     };
 
@@ -156,9 +202,9 @@ public:
 
         std::transform(
             begin( indices ), end( indices ), begin( energy_per_spin ),
-            Interaction::transform_op( tuple_bind<Accessor::Energy>( local ), scalar( 0.0 ), state ) );
+            Functor::transform_op( Functor::tuple_dispatch<Accessor::Energy>( local ), scalar( 0.0 ), state ) );
 
-        Interaction::Functors::apply( tuple_bind<Accessor::Energy>( nonlocal ), state, energy_per_spin );
+        Functor::apply( Functor::tuple_dispatch<Accessor::Energy>( nonlocal ), state, energy_per_spin );
     };
 
     void Energy_Contributions_per_Spin( const state_t & state, Data::vectorlabeled<scalarfield> & contributions )
@@ -199,32 +245,32 @@ public:
     //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
     [[nodiscard]] scalar Energy_Single_Spin( const int ispin, const state_t & state )
     {
-        return Interaction::transform_op( tuple_bind<Accessor::Energy_Single_Spin>( local ), scalar( 0.0 ), state )(
+        return std::invoke(
+                   Functor::transform_op( Functor::tuple_dispatch<Accessor::Energy_Single_Spin>( local ), scalar( 0.0 ), state ),
                    indices[ispin] )
-               + Interaction::Functors::apply_reduce(
-                   tuple_bind<Accessor::Energy_Single_Spin>( nonlocal ), scalar( 0.0 ), ispin, state );
+               + Functor::apply_reduce(
+                   Functor::tuple_dispatch<Accessor::Energy_Single_Spin>( nonlocal ), scalar( 0.0 ), ispin, state );
     };
 
     [[nodiscard]] scalar Energy( const state_t & state )
     {
         return std::transform_reduce(
                    begin( indices ), end( indices ), scalar( 0.0 ), std::plus{},
-                   Interaction::transform_op( tuple_bind<Accessor::Energy>( local ), scalar( 0.0 ), state ) )
-               + Interaction::Functors::apply_reduce(
-                   tuple_bind<Accessor::Energy_Total>( nonlocal ), scalar( 0.0 ), state );
+                   Functor::transform_op( Functor::tuple_dispatch<Accessor::Energy>( local ), scalar( 0.0 ), state ) )
+               + Functor::apply_reduce( Functor::tuple_dispatch<Accessor::Energy_Total>( nonlocal ), scalar( 0.0 ), state );
     };
 
     void Hessian( const state_t & state, MatrixX & hessian )
     {
         hessian.setZero();
-        Hessian_Impl( state, Interaction::dense_hessian_functor( hessian ) );
+        Hessian_Impl( state, Interaction::Functor::dense_hessian_wrapper( hessian ) );
     };
 
     void Sparse_Hessian( const state_t & state, SpMatrixX & hessian )
     {
         field<Common::Interaction::triplet> tripletList;
         tripletList.reserve( geometry->n_cells_total * Sparse_Hessian_Size_per_Cell() );
-        Hessian_Impl( state, Interaction::sparse_hessian_functor( tripletList ) );
+        Hessian_Impl( state, Interaction::Functor::sparse_hessian_wrapper( tripletList ) );
         hessian.setFromTriplets( begin( tripletList ), end( tripletList ) );
     };
 
@@ -246,9 +292,9 @@ public:
 
         std::transform(
             begin( indices ), end( indices ), begin( gradient ),
-            Interaction::transform_op( tuple_bind<Accessor::Gradient>( local ), Vector3{ 0.0, 0.0, 0.0 }, state ) );
+            Functor::transform_op( Functor::tuple_dispatch<Accessor::Gradient>( local ), Vector3{ 0.0, 0.0, 0.0 }, state ) );
 
-        Interaction::Functors::apply( tuple_bind<Accessor::Gradient>( nonlocal ), state, gradient );
+        Functor::apply( Functor::tuple_dispatch<Accessor::Gradient>( nonlocal ), state, gradient );
     };
 
     // provided for backwards compatibility, this function no longer serves a purpose
@@ -310,8 +356,8 @@ public:
     template<class T>
     [[nodiscard]] static constexpr bool hasInteraction()
     {
-        return Utility::has_type<Interaction::InteractionWrapper<T>, LocalInteractionTuple>::value
-               || Utility::has_type<Interaction::InteractionWrapper<T>, NonLocalInteractionTuple>::value;
+        return Utility::contains<Interaction::InteractionWrapper<T>, LocalInteractionTuple>::value
+               || Utility::contains<Interaction::InteractionWrapper<T>, NonLocalInteractionTuple>::value;
     };
 
     void applyGeometry()
@@ -362,15 +408,15 @@ public:
     };
 
     template<typename T>
-    [[nodiscard]] auto set_data( const typename T::Data & data )
+    [[nodiscard]] auto set_data( typename T::Data && data )
         -> std::enable_if_t<hasInteraction<T>(), std::optional<std::string>>
     {
         std::optional<std::string> error{};
 
         if constexpr( hasInteraction_Local<T>() )
-            error = std::get<Interaction::InteractionWrapper<T>>( local ).set_data( data );
+            error = std::get<Interaction::InteractionWrapper<T>>( local ).set_data( std::move( data ) );
         else if constexpr( hasInteraction_NonLocal<T>() )
-            error = std::get<Interaction::InteractionWrapper<T>>( nonlocal ).set_data( data );
+            error = std::get<Interaction::InteractionWrapper<T>>( nonlocal ).set_data( std::move( data ) );
         else
             error = fmt::format( "The Hamiltonian doesn't contain an interaction of type \"{}\"", T::name );
 
@@ -418,9 +464,9 @@ private:
     {
         std::for_each(
             begin( indices ), end( indices ),
-            Interaction::for_each_op( tuple_bind<Accessor::Hessian>( local ), state, hessian ) );
+            Functor::for_each_op( Functor::tuple_dispatch<Accessor::Hessian>( local ), state, hessian ) );
 
-        Interaction::Functors::apply( tuple_bind<Accessor::Hessian>( nonlocal ), state, hessian );
+        Functor::apply( Functor::tuple_dispatch<Accessor::Hessian>( nonlocal ), state, hessian );
     };
 
     template<typename InteractionType>
@@ -455,14 +501,14 @@ private:
     [[nodiscard]] static constexpr bool hasInteraction_Local()
     {
         return is_local<T>::value
-               && Utility::has_type<Interaction::InteractionWrapper<T>, LocalInteractionTuple>::value;
+               && Utility::contains<Interaction::InteractionWrapper<T>, LocalInteractionTuple>::value;
     };
 
     template<class T>
     [[nodiscard]] static constexpr bool hasInteraction_NonLocal()
     {
         return !is_local<T>::value
-               && Utility::has_type<Interaction::InteractionWrapper<T>, NonLocalInteractionTuple>::value;
+               && Utility::contains<Interaction::InteractionWrapper<T>, NonLocalInteractionTuple>::value;
     };
 
     std::shared_ptr<Data::Geometry> geometry;
@@ -625,7 +671,7 @@ public:
     };
 
     template<typename T>
-    [[nodiscard]] auto cache() -> const typename T::Cache *
+    [[nodiscard]] auto cache() const -> const typename T::Cache *
     {
         return std::visit(
             []( const auto & h ) -> const typename T::Cache *
@@ -642,10 +688,11 @@ public:
     [[nodiscard]] auto set_data( Args &&... args ) -> std::optional<std::string>
     {
         return std::visit(
-            [this, data = typename T::Data( std::forward<Args>( args )... )]( auto & h ) -> std::optional<std::string>
+            [this,
+             data = typename T::Data( std::forward<Args>( args )... )]( auto & h ) mutable -> std::optional<std::string>
             {
                 if constexpr( h.template hasInteraction<T>() )
-                    return h.template set_data<T>( data );
+                    return h.template set_data<T>( std::move( data ) );
                 else
                     return fmt::format(
                         "Interaction \"{}\" cannot be set on Hamiltonian \"{}\" ", T::name, this->Name() );

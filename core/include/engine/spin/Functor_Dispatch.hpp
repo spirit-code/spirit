@@ -1,7 +1,7 @@
 #pragma once
 
-#include <engine/spin/interaction/Traits.hpp>
-#include <engine/spin/interaction/Wrapper.hpp>
+#include <engine/spin/Interaction_Traits.hpp>
+#include <engine/spin/Interaction_Wrapper.hpp>
 
 #include <tuple>
 
@@ -31,22 +31,18 @@ using Hessian = typename T::Hessian;
 
 } // namespace Accessor
 
-namespace Trait
+namespace Functor
 {
 
-template<typename T>
-struct Index
+template<template<class> class FunctorAccessor, typename... InteractionTypes>
+auto tuple_dispatch( std::tuple<Interaction::InteractionWrapper<InteractionTypes>...> & interactions )
+    -> std::tuple<FunctorAccessor<InteractionTypes>...>
 {
-    using type = typename T::Index;
+    return std::apply(
+        []( Interaction::InteractionWrapper<InteractionTypes> &... interaction )
+        { return std::make_tuple( interaction.template make_functor<FunctorAccessor>()... ); },
+        interactions );
 };
-
-} // namespace Trait
-
-namespace Interaction
-{
-
-namespace Functors
-{
 
 template<typename... Functors, typename... Args>
 void apply( std::tuple<Functors...> functors, Args &&... args )
@@ -67,46 +63,6 @@ auto apply_reduce( std::tuple<Functors...> functors, ReturnType zero, Args &&...
         [zero, args = std::tuple<Args...>( std::forward<Args>( args )... )]( auto &... functor ) -> ReturnType
         { return ( zero + ... + std::apply( functor, args ) ); },
         functors );
-}
-
-} // namespace Functors
-
-template<template<class> class FunctorAccessor, typename... Interaction>
-auto tuple_bind( std::tuple<InteractionWrapper<Interaction>...> & interactions )
-    -> std::tuple<FunctorAccessor<Interaction>...>
-{
-    return std::apply(
-        []( InteractionWrapper<Interaction> &... interaction )
-        { return std::make_tuple( interaction.template make_functor<FunctorAccessor>()... ); },
-        interactions );
-};
-
-template<typename... InteractionTypes>
-void setPtrAddress(
-    std::tuple<InteractionWrapper<InteractionTypes>...> & interactions, const ::Data::Geometry * geometry,
-    const intfield * boundary_conditions ) noexcept
-{
-    if constexpr( sizeof...( InteractionTypes ) == 0 )
-        return;
-
-    std::apply(
-        [geometry, boundary_conditions]( InteractionWrapper<InteractionTypes> &... interaction )
-        {
-            ( ...,
-              [geometry, boundary_conditions]( typename InteractionTypes::Cache & entry )
-              {
-                  using cache_t = typename InteractionTypes::Cache;
-                  if constexpr( has_geometry_member<cache_t>::value )
-                  {
-                      entry.geometry = geometry;
-                  }
-                  if constexpr( has_bc_member<cache_t>::value )
-                  {
-                      entry.boundary_conditions = boundary_conditions;
-                  }
-              }( interaction.cache ) );
-        },
-        interactions );
 }
 
 template<typename state_t, typename ReturnType, typename... Functors>
@@ -171,7 +127,7 @@ private:
     UnaryOp & unary_op_ref;
 };
 
-} // namespace Interaction
+} // namespace Functors
 
 } // namespace Spin
 

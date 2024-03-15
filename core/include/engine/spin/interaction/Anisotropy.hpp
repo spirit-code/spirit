@@ -3,7 +3,11 @@
 #define SPIRIT_CORE_ENGINE_INTERACTION_ANISOTROPY_HPP
 
 #include <engine/Indexing.hpp>
-#include <engine/spin/interaction/ABC.hpp>
+#include <engine/spin/interaction/Functor_Prototpyes.hpp>
+
+#include <Eigen/Dense>
+
+#include <optional>
 
 namespace Engine
 {
@@ -61,9 +65,9 @@ struct Anisotropy
         index.reset();
     }
 
-    using Energy   = Local::Energy_Functor<Anisotropy>;
-    using Gradient = Local::Gradient_Functor<Anisotropy>;
-    using Hessian  = Local::Hessian_Functor<Anisotropy>;
+    using Energy   = Functor::Local::Energy_Functor<Anisotropy>;
+    using Gradient = Functor::Local::Gradient_Functor<Anisotropy>;
+    using Hessian  = Functor::Local::Hessian_Functor<Anisotropy>;
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data & data, const Cache & )
     {
@@ -72,7 +76,7 @@ struct Anisotropy
 
     // Calculate the total energy for a single spin to be used in Monte Carlo.
     //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
-    using Energy_Single_Spin = Local::Energy_Single_Spin_Functor<Energy, 1>;
+    using Energy_Single_Spin = Functor::Local::Energy_Single_Spin_Functor<Energy, 1>;
 
     // Interaction name as string
     static constexpr std::string_view name = "Anisotropy";
@@ -97,6 +101,36 @@ struct Anisotropy
 };
 
 template<>
+inline scalar Anisotropy::Energy::operator()( const Index & index, const vectorfield & spins ) const
+{
+    if( index.has_value() )
+    {
+        const auto & [ispin, iani] = *index;
+        const auto d               = data.normals[iani].dot( spins[ispin] );
+        return -data.magnitudes[iani] * d * d;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+template<>
+inline Vector3 Anisotropy::Gradient::operator()( const Index & index, const vectorfield & spins ) const
+{
+    if( index.has_value() )
+    {
+        const auto & [ispin, iani] = *index;
+        return -2.0 * data.magnitudes[iani] * data.normals[iani]
+               * data.normals[iani].dot( spins[ispin] );
+    }
+    else
+    {
+        return Vector3::Zero();
+    }
+}
+
+template<>
 template<typename F>
 void Anisotropy::Hessian::operator()( const Index & index, const vectorfield &, F & f ) const
 {
@@ -116,7 +150,7 @@ void Anisotropy::Hessian::operator()( const Index & index, const vectorfield &, 
             f( i, j, -2.0 * data.magnitudes[iani] * data.normals[iani][alpha] * data.normals[iani][beta] );
         }
     }
-};
+}
 
 } // namespace Interaction
 

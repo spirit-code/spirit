@@ -3,7 +3,11 @@
 #define SPIRIT_CORE_ENGINE_INTERACTION_BIAXIAL_ANISOTROPY_HPP
 
 #include <engine/Indexing.hpp>
-#include <engine/spin/interaction/ABC.hpp>
+#include <engine/spin/interaction/Functor_Prototpyes.hpp>
+
+#include <Eigen/Dense>
+
+#include <optional>
 
 namespace Engine
 {
@@ -70,9 +74,9 @@ struct Biaxial_Anisotropy
         index.reset();
     }
 
-    using Energy   = Local::Energy_Functor<Biaxial_Anisotropy>;
-    using Gradient = Local::Gradient_Functor<Biaxial_Anisotropy>;
-    using Hessian  = Local::Hessian_Functor<Biaxial_Anisotropy>;
+    using Energy   = Functor::Local::Energy_Functor<Biaxial_Anisotropy>;
+    using Gradient = Functor::Local::Gradient_Functor<Biaxial_Anisotropy>;
+    using Hessian  = Functor::Local::Hessian_Functor<Biaxial_Anisotropy>;
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data & data, const Cache & )
     {
@@ -81,7 +85,7 @@ struct Biaxial_Anisotropy
 
     // Calculate the total energy for a single spin to be used in Monte Carlo.
     //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
-    using Energy_Single_Spin = Local::Energy_Single_Spin_Functor<Energy, 1>;
+    using Energy_Single_Spin = Functor::Local::Energy_Single_Spin_Functor<Energy, 1>;
 
     // Interaction name as string
     static constexpr std::string_view name = "Biaxial Anisotropy";
@@ -106,6 +110,66 @@ struct Biaxial_Anisotropy
         }
     };
 };
+
+template<>
+inline scalar Biaxial_Anisotropy::Energy::operator()( const Index & index, const vectorfield & spins ) const
+{
+    using std::pow;
+    scalar result = 0;
+    if( !index.has_value() )
+        return result;
+
+    const auto & [ispin, iani] = *index;
+    const scalar s1            = data.bases[iani].k1.dot( spins[ispin] );
+    const scalar s2            = data.bases[iani].k2.dot( spins[ispin] );
+    const scalar s3            = data.bases[iani].k3.dot( spins[ispin] );
+
+    const scalar sin_theta_2 = 1 - s1 * s1;
+
+    for( auto iterm = data.site_p[iani]; iterm < data.site_p[iani + 1]; ++iterm )
+    {
+        const auto & [coeff, n1, n2, n3] = data.terms[iterm];
+        result += coeff * pow( sin_theta_2, n1 ) * pow( s2, n2 ) * pow( s3, n3 );
+    }
+
+    return result;
+}
+
+template<>
+inline Vector3 Biaxial_Anisotropy::Gradient::operator()( const Index & index, const vectorfield & spins ) const
+{
+    using std::pow;
+    Vector3 result = Vector3::Zero();
+    if( !index.has_value() )
+        return result;
+
+    const auto & [ispin, iani] = *index;
+    const auto & [k1, k2, k3]  = data.bases[iani];
+
+    const scalar s1 = k1.dot( spins[ispin] );
+    const scalar s2 = k2.dot( spins[ispin] );
+    const scalar s3 = k3.dot( spins[ispin] );
+
+    const scalar sin_theta_2 = 1 - s1 * s1;
+
+    for( auto iterm = data.site_p[iani]; iterm < data.site_p[iani + 1]; ++iterm )
+    {
+        const auto & [coeff, n1, n2, n3] = data.terms[iterm];
+
+        const scalar a = pow( s2, n2 );
+        const scalar b = pow( s3, n3 );
+        const scalar c = pow( sin_theta_2, n1 );
+
+        if( n1 > 0 )
+            result += k1 * ( coeff * a * b * n1 * ( -2.0 * s1 * pow( sin_theta_2, n1 - 1 ) ) );
+        if( n2 > 0 )
+            result += k2 * ( coeff * b * c * n2 * pow( s2, n2 - 1 ) );
+        if( n3 > 0 )
+            result += k3 * ( coeff * a * c * n3 * pow( s3, n3 - 1 ) );
+    }
+
+    return result;
+}
 
 template<>
 template<typename F>

@@ -3,8 +3,9 @@
 #define SPIRIT_CORE_ENGINE_INTERACTION_ZEEMANN_HPP
 
 #include <engine/Indexing.hpp>
-#include <engine/spin/interaction/ABC.hpp>
-#include <utility/Constants.hpp>
+#include <engine/spin/interaction/Functor_Prototpyes.hpp>
+
+#include <optional>
 
 namespace Engine
 {
@@ -49,9 +50,9 @@ struct Zeeman
         index.reset();
     }
 
-    using Energy   = Local::Energy_Functor<Zeeman>;
-    using Gradient = Local::Gradient_Functor<Zeeman>;
-    using Hessian  = Local::Hessian_Functor<Zeeman>;
+    using Energy   = Functor::Local::Energy_Functor<Zeeman>;
+    using Gradient = Functor::Local::Gradient_Functor<Zeeman>;
+    using Hessian  = Functor::Local::Hessian_Functor<Zeeman>;
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data &, const Cache & )
     {
@@ -60,7 +61,7 @@ struct Zeeman
 
     // Calculate the total energy for a single spin to be used in Monte Carlo.
     //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
-    using Energy_Single_Spin = Local::Energy_Single_Spin_Functor<Energy, 1>;
+    using Energy_Single_Spin = Functor::Local::Energy_Single_Spin_Functor<Energy, 1>;
 
     // Interaction name as string
     static constexpr std::string_view name = "Zeeman";
@@ -89,6 +90,38 @@ struct Zeeman
         cache.geometry = &geometry;
     }
 };
+
+template<>
+inline scalar Zeeman::Energy::operator()( const Index & index, const vectorfield & spins ) const
+{
+    if( cache.geometry == nullptr )
+        return 0;
+
+    if( index.has_value() && *index >= 0 )
+    {
+        const auto & mu_s  = cache.geometry->mu_s;
+        const auto & ispin = *index;
+        return -mu_s[ispin] * data.external_field_magnitude * data.external_field_normal.dot( spins[ispin] );
+    }
+    else
+        return 0;
+}
+
+template<>
+inline Vector3 Zeeman::Gradient::operator()( const Index & index, const vectorfield & ) const
+{
+    if( cache.geometry == nullptr )
+        return Vector3::Zero();
+
+    if( index.has_value() && *index >= 0 )
+    {
+        const auto & mu_s  = cache.geometry->mu_s;
+        const auto & ispin = *index;
+        return -mu_s[ispin] * data.external_field_magnitude * data.external_field_normal;
+    }
+    else
+        return Vector3::Zero();
+}
 
 template<>
 template<typename F>
