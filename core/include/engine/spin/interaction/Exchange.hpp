@@ -84,16 +84,15 @@ struct Exchange
     // Interaction name as string
     static constexpr std::string_view name = "Exchange";
 
-    // the interaction is symmetrical with respect to swapping atoms in a pair,
-    // so multithreaded solutions shouldn't need redundant neighbours.
-    static constexpr bool use_redundant_neighbours = false;
-
     template<typename IndexVector>
     static void applyGeometry(
         const ::Data::Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache,
         IndexVector & indices )
     {
         using Indexing::idx_from_pair;
+
+        // redundant neighbours are captured when expanding pairs below
+        static constexpr bool use_redundant_neighbours = false;
 
         cache.pairs      = pairfield( 0 );
         cache.magnitudes = scalarfield( 0 );
@@ -114,16 +113,6 @@ struct Exchange
             // Use direct list of pairs
             cache.pairs      = data.pairs;
             cache.magnitudes = data.magnitudes;
-            if constexpr( use_redundant_neighbours )
-            {
-                for( std::size_t i = 0; i < data.pairs.size(); ++i )
-                {
-                    const auto & p = data.pairs[i];
-                    const auto & t = p.translations;
-                    cache.pairs.emplace_back( Pair{ p.j, p.i, { -t[0], -t[1], -t[2] } } );
-                    cache.magnitudes.push_back( data.magnitudes[i] );
-                }
-            }
         }
 
 #pragma omp parallel for
@@ -176,7 +165,7 @@ void Exchange::Hessian::operator()( const Index & index, const vectorfield &, F 
 
     std::for_each(
         begin( index ), end( index ),
-        [this, &index, &f]( const auto & idx )
+        [this, &index, &f]( const Exchange::IndexType & idx )
         {
             const int i         = 3 * idx.ispin;
             const int j         = 3 * idx.jspin;

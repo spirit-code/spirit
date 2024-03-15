@@ -68,6 +68,7 @@ struct DMI
     struct IndexType
     {
         int ispin, jspin, ipair;
+        bool inverse;
     };
 
     using Index = std::vector<IndexType>;
@@ -93,16 +94,15 @@ struct DMI
     // Interaction name as string
     static constexpr std::string_view name = "DMI";
 
-    // we have to use redundant neighbours here, because the 'inverse' pair has opposite sign
-    // TODO: check if introducing a sign factor is faster
-    static constexpr bool use_redundant_neighbours = true;
-
     template<typename IndexVector>
     static void applyGeometry(
         const ::Data::Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache,
         IndexVector & indices )
     {
         using Indexing::idx_from_pair;
+
+        // redundant neighbours are captured when expanding pairs below
+        static constexpr bool use_redundant_neighbours = false;
 
         cache.pairs      = pairfield( 0 );
         cache.magnitudes = scalarfield( 0 );
@@ -126,17 +126,6 @@ struct DMI
             cache.pairs      = data.pairs;
             cache.magnitudes = data.magnitudes;
             cache.normals    = data.normals;
-            if( use_redundant_neighbours )
-            {
-                for( std::size_t i = 0; i < data.pairs.size(); ++i )
-                {
-                    const auto & p = data.pairs[i];
-                    const auto & t = p.translations;
-                    cache.pairs.emplace_back( Pair{ p.j, p.i, { -t[0], -t[1], -t[2] } } );
-                    cache.magnitudes.emplace_back( data.magnitudes[i] );
-                    cache.normals.emplace_back( -data.normals[i] );
-                }
-            }
         }
 
 #pragma omp parallel for
@@ -150,7 +139,8 @@ struct DMI
                     cache.pairs[i_pair] );
                 if( jspin >= 0 )
                 {
-                    std::get<Index>( indices[ispin] ).emplace_back( IndexType{ ispin, jspin, (int)i_pair } );
+                    std::get<Index>( indices[ispin] ).emplace_back( IndexType{ ispin, jspin, (int)i_pair, false } );
+                    std::get<Index>( indices[jspin] ).emplace_back( IndexType{ jspin, ispin, (int)i_pair, true } );
                 }
             };
         }
@@ -162,10 +152,10 @@ inline scalar DMI::Energy::operator()( const Index & index, const vectorfield & 
 {
     return std::transform_reduce(
         begin( index ), end( index ), scalar( 0.0 ), std::plus<scalar>{},
-        [this, &spins]( const auto & idx ) -> scalar
+        [this, &spins]( const DMI::IndexType & idx ) -> scalar
         {
-            const auto & [ispin, jspin, i_pair] = idx;
-            return -0.5 * cache.magnitudes[i_pair]
+            const auto & [ispin, jspin, i_pair, inverse] = idx;
+            return ( inverse ? 0.5 : -0.5 ) * cache.magnitudes[i_pair]
                    * cache.normals[i_pair].dot( spins[ispin].cross( spins[jspin] ) );
         } );
 }
@@ -175,10 +165,10 @@ inline Vector3 DMI::Gradient::operator()( const Index & index, const vectorfield
 {
     return std::transform_reduce(
         begin( index ), end( index ), Vector3{ 0.0, 0.0, 0.0 }, std::plus<Vector3>{},
-        [this, &spins]( const auto & idx ) -> Vector3
+        [this, &spins]( const DMI::IndexType & idx ) -> Vector3
         {
-            const auto & [ispin, jspin, i_pair] = idx;
-            return -cache.magnitudes[i_pair] * spins[jspin].cross( cache.normals[i_pair] );
+            const auto & [ispin, jspin, i_pair, inverse] = idx;
+            return ( inverse ? 1.0 : -1.0 ) * cache.magnitudes[i_pair] * spins[jspin].cross( cache.normals[i_pair] );
         } );
 }
 
@@ -194,25 +184,14 @@ void DMI::Hessian::operator()( const Index & index, const vectorfield &, F & f )
             const int i       = 3 * idx.ispin;
             const int j       = 3 * idx.jspin;
             const auto i_pair = idx.ipair;
+            const scalar sign = ( idx.inverse ? -1.0 : 1.0 );
 
-            f( i + 2, j + 1, cache.magnitudes[i_pair] * cache.normals[i_pair][0] );
-            f( i + 1, j + 2, -cache.magnitudes[i_pair] * cache.normals[i_pair][0] );
-            f( i + 0, j + 2, cache.magnitudes[i_pair] * cache.normals[i_pair][1] );
-            f( i + 2, j + 0, -cache.magnitudes[i_pair] * cache.normals[i_pair][1] );
-            f( i + 1, j + 0, cache.magnitudes[i_pair] * cache.normals[i_pair][2] );
-            f( i + 0, j + 1, -cache.magnitudes[i_pair] * cache.normals[i_pair][2] );
-            if constexpr( !DMI::use_redundant_neighbours )
-            {
-                f( j + 1, i + 2, cache.magnitudes[i_pair] * cache.normals[i_pair][0] );
-                f( j + 2, i + 1, -cache.magnitudes[i_pair] * cache.normals[i_pair][0] );
-                f( j + 2, i + 0, cache.magnitudes[i_pair] * cache.normals[i_pair][1] );
-                f( j + 0, i + 2, -cache.magnitudes[i_pair] * cache.normals[i_pair][1] );
-                f( j + 0, i + 1, cache.magnitudes[i_pair] * cache.normals[i_pair][2] );
-                f( j + 1, i + 0, -cache.magnitudes[i_pair] * cache.normals[i_pair][2] );
-            }
-
-            // #if !( defined( SPIRIT_USE_OPENMP ) || defined( SPIRIT_USE_CUDA ) )
-            // #endif
+            f( i + 2, j + 1, sign * cache.magnitudes[i_pair] * cache.normals[i_pair][0] );
+            f( i + 1, j + 2, -sign * cache.magnitudes[i_pair] * cache.normals[i_pair][0] );
+            f( i + 0, j + 2, sign * cache.magnitudes[i_pair] * cache.normals[i_pair][1] );
+            f( i + 2, j + 0, -sign * cache.magnitudes[i_pair] * cache.normals[i_pair][1] );
+            f( i + 1, j + 0, sign * cache.magnitudes[i_pair] * cache.normals[i_pair][2] );
+            f( i + 0, j + 1, -sign * cache.magnitudes[i_pair] * cache.normals[i_pair][2] );
         } );
 };
 
