@@ -5,6 +5,8 @@
 #include <engine/Indexing.hpp>
 #include <engine/spin/interaction/Functor_Prototpyes.hpp>
 
+#include <vector>
+
 namespace Engine
 {
 
@@ -43,10 +45,21 @@ struct Quadruplet
         return !data.quadruplets.empty();
     }
 
-    using Energy       = Functor::NonLocal::Energy_Functor<Quadruplet>;
-    using Gradient     = Functor::NonLocal::Gradient_Functor<Quadruplet>;
-    using Hessian      = Functor::NonLocal::Hessian_Functor<Quadruplet>;
-    using Energy_Total = Functor::NonLocal::Reduce_Functor<Energy>;
+    struct IndexType
+    {
+        int ispin, jspin, kspin, lspin, iquad;
+    };
+
+    using Index = std::vector<IndexType>;
+
+    static void clearIndex( Index & index )
+    {
+        index.clear();
+    };
+
+    using Energy   = Functor::Local::Energy_Functor<Quadruplet>;
+    using Gradient = Functor::Local::Gradient_Functor<Quadruplet>;
+    using Hessian  = Functor::Local::Hessian_Functor<Quadruplet>;
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data &, const Cache & )
     {
@@ -55,34 +68,18 @@ struct Quadruplet
 
     // Calculate the total energy for a single spin to be used in Monte Carlo.
     //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
-    static constexpr scalar weight = 4.0;
-    using Energy_Single_Spin       = Functor::NonLocal::Energy_Single_Spin_Functor<Quadruplet>;
+    using Energy_Single_Spin       = Functor::Local::Energy_Single_Spin_Functor<Energy, 4>;
 
     // Interaction name as string
     static constexpr std::string_view name = "Quadruplet";
 
-    static constexpr bool local = false;
+    static constexpr bool local = true;
 
+    template<typename IndexVector>
     static void applyGeometry(
-        const ::Data::Geometry & geometry, const intfield & boundary_conditions, const Data &, Cache & cache )
+        const ::Data::Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache,
+        IndexVector & indices )
     {
-        cache.geometry            = &geometry;
-        cache.boundary_conditions = &boundary_conditions;
-    };
-
-    friend void Energy::operator()( const vectorfield & spins, scalarfield & energy ) const;
-    friend void Gradient::operator()( const vectorfield & spins, vectorfield & gradient ) const;
-
-private:
-    template<typename Callable>
-    static void apply( Callable && f, const Data & data, const Cache & cache )
-    {
-        if( !cache.geometry || !cache.boundary_conditions )
-            // TODO: turn this into an error
-            return;
-
-        const auto & geometry            = *cache.geometry;
-        const auto & boundary_conditions = *cache.boundary_conditions;
         using Indexing::idx_from_pair;
 
         for( int iquad = 0; iquad < data.quadruplets.size(); ++iquad )
@@ -101,17 +98,6 @@ private:
             for( unsigned int icell = 0; icell < geometry.n_cells_total; ++icell )
             {
                 int ispin = i + icell * geometry.n_cell_atoms;
-#ifdef SPIRIT_USE_CUDA
-                int jspin = idx_from_pair(
-                    ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
-                    { i, j, { d_j[0], d_j[1], d_j[2] } } );
-                int kspin = idx_from_pair(
-                    ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
-                    { i, k, { d_k[0], d_k[1], d_k[2] } } );
-                int lspin = idx_from_pair(
-                    ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
-                    { i, l, { d_l[0], d_l[1], d_l[2] } } );
-#else
                 int jspin = idx_from_pair(
                     ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
                     { i, j, d_j } );
@@ -121,16 +107,50 @@ private:
                 int lspin = idx_from_pair(
                     ispin, boundary_conditions, geometry.n_cells, geometry.n_cell_atoms, geometry.atom_types,
                     { i, l, d_l } );
-#endif
-                f( iquad, ispin, jspin, kspin, lspin );
+
+                if( jspin < 0 || kspin < 0 || lspin < 0 )
+                    continue;
+
+                std::get<Index>( indices[ispin] ).emplace_back( IndexType{ ispin, jspin, kspin, lspin, (int)iquad } );
+                std::get<Index>( indices[jspin] ).emplace_back( IndexType{ jspin, ispin, kspin, lspin, (int)iquad } );
+                std::get<Index>( indices[kspin] ).emplace_back( IndexType{ kspin, lspin, ispin, jspin, (int)iquad } );
+                std::get<Index>( indices[lspin] ).emplace_back( IndexType{ lspin, kspin, ispin, jspin, (int)iquad } );
             }
         }
-    }
+
+        cache.geometry            = &geometry;
+        cache.boundary_conditions = &boundary_conditions;
+    };
 };
 
 template<>
+inline scalar Quadruplet::Energy::operator()( const Index & index, const vectorfield & spins ) const
+{
+    return std::transform_reduce(
+        begin( index ), end( index ), scalar( 0.0 ), std::plus<scalar>{},
+        [this, &spins]( const Quadruplet::IndexType & idx ) -> scalar
+        {
+            const auto & [ispin, jspin, kspin, lspin, iquad] = idx;
+            return -0.25 * data.magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) )
+                   * ( spins[kspin].dot( spins[lspin] ) );
+        } );
+}
+
+template<>
+inline Vector3 Quadruplet::Gradient::operator()( const Index & index, const vectorfield & spins ) const
+{
+    return std::transform_reduce(
+        begin( index ), end( index ), Vector3{ 0.0, 0.0, 0.0 }, std::plus<Vector3>{},
+        [this, &spins]( const Quadruplet::IndexType & idx ) -> Vector3
+        {
+            const auto & [ispin, jspin, kspin, lspin, iquad] = idx;
+            return spins[jspin] * ( -data.magnitudes[iquad] * ( spins[kspin].dot( spins[lspin] ) ) );
+        } );
+}
+
+template<>
 template<typename F>
-void Quadruplet::Hessian::operator()( const vectorfield & spins, F & f ) const {
+void Quadruplet::Hessian::operator()( const Index & index, const vectorfield & spins, F & f ) const {
     // TODO
 };
 
