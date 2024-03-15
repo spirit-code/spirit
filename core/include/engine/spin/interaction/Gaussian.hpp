@@ -2,7 +2,11 @@
 #ifndef SPIRIT_CORE_ENGINE_INTERACTION_GAUSSIAN_HPP
 #define SPIRIT_CORE_ENGINE_INTERACTION_GAUSSIAN_HPP
 
-#include <engine/spin/interaction/ABC.hpp>
+#include <engine/spin/interaction/Functor_Prototpyes.hpp>
+
+#include <Eigen/Dense>
+
+#include <optional>
 
 namespace Engine
 {
@@ -58,9 +62,9 @@ struct Gaussian
         index.reset();
     };
 
-    using Energy   = Local::Energy_Functor<Gaussian>;
-    using Gradient = Local::Gradient_Functor<Gaussian>;
-    using Hessian  = Local::Hessian_Functor<Gaussian>;
+    using Energy   = Functor::Local::Energy_Functor<Gaussian>;
+    using Gradient = Functor::Local::Gradient_Functor<Gaussian>;
+    using Hessian  = Functor::Local::Hessian_Functor<Gaussian>;
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data & data, const Cache & )
     {
@@ -68,7 +72,7 @@ struct Gaussian
     };
 
     // Calculate the total energy for a single spin
-    using Energy_Single_Spin = Local::Energy_Single_Spin_Functor<Energy, 1>;
+    using Energy_Single_Spin = Functor::Local::Energy_Single_Spin_Functor<Energy, 1>;
 
     // Interaction name as string
     static constexpr std::string_view name = "Gaussian";
@@ -88,6 +92,48 @@ struct Gaussian
         }
     }
 };
+
+template<>
+inline scalar Gaussian::Energy::operator()( const Index & index, const vectorfield & spins ) const
+{
+    scalar result = 0;
+
+    if( !index.has_value() )
+        return result;
+
+    const int ispin = *index;
+
+    for( unsigned int igauss = 0; igauss < data.amplitude.size(); ++igauss )
+    {
+        // Distance between spin and gaussian center
+        scalar l = 1 - data.center[igauss].dot( spins[ispin] );
+        result += data.amplitude[igauss] * std::exp( -l * l / ( 2.0 * data.width[igauss] * data.width[igauss] ) );
+    };
+    return result;
+}
+
+template<>
+inline Vector3 Gaussian::Gradient::operator()( const Index & index, const vectorfield & spins ) const
+{
+    Vector3 result = Vector3::Zero();
+
+    if( !index.has_value() )
+        return result;
+
+    const int ispin = *index;
+    // Calculate gradient
+    for( unsigned int i = 0; i < data.amplitude.size(); ++i )
+    {
+        // Scalar product of spin and gaussian center
+        scalar l = 1 - data.center[i].dot( spins[ispin] );
+        // Prefactor
+        scalar prefactor = data.amplitude[i] * std::exp( -l * l / ( 2.0 * data.width[i] * data.width[i] ) ) * l
+                           / ( data.width[i] * data.width[i] );
+        // Gradient contribution
+        result += prefactor * data.center[i];
+    }
+    return result;
+}
 
 template<>
 template<typename F>

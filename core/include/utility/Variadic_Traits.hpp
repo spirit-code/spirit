@@ -6,35 +6,6 @@
 namespace Utility
 {
 
-// filter for variadic parameter packs
-// adapted from: https://stackoverflow.com/questions/60006076/filter-types-in-a-parameter-pack
-// template<template<class> class, template<class...> class, class...>
-// struct variadic_filter;
-//
-// template<template<class> class Pred, template<class...> class Variadic>
-// struct variadic_filter<Pred, Variadic>
-// {
-//     using type = Variadic<>;
-// };
-//
-// template<template<class> class Pred, template<class...> class Variadic, class T, class... Ts>
-// struct variadic_filter<Pred, Variadic, T, Ts...>
-// {
-// private:
-//     template<class, class>
-//     struct Cons;
-//     template<class Head, class... Tail>
-//     struct Cons<Head, Variadic<Tail...>>
-//     {
-//         using type = Variadic<Head, Tail...>;
-//     };
-//
-// public:
-//     using type = typename std::conditional<
-//         Pred<T>::value, typename Cons<T, typename variadic_filter<Pred, Variadic, Ts...>::type>::type,
-//         typename variadic_filter<Pred, Variadic, Ts...>::type>::type;
-// };
-
 template<template<class> class Pred, template<class...> class Variadic, class... Ts>
 struct variadic_filter
 {
@@ -57,16 +28,9 @@ private:
     };
 
 public:
-    using type = typename std::conditional<
-        sizeof...( Ts ) == 0, Variadic<>, typename Impl<Pred, Variadic<>, Ts...>::type>::type;
+    using type =
+        typename std::conditional<sizeof...( Ts ) == 0, Variadic<>, typename Impl<Pred, Variadic<>, Ts...>::type>::type;
 };
-
-// template<template<class> class Pred, template<class...> class Variadic, class... Ts>
-// struct variadic_filter
-// {
-//     using type = std::conditional_t<
-//         sizeof...( Ts ) == 0, variadic_filter<Pred, Variadic>, variadic_filter<Pred, Variadic, Ts...>>;
-// };
 
 template<template<class> class Pred, template<class...> class Variadic, class... Ts>
 using variadic_filter_t = typename variadic_filter<Pred, Variadic, Ts...>::type;
@@ -129,15 +93,13 @@ template<class T, template<class...> class Variadic = std::tuple>
 struct all_same;
 
 template<template<class...> class Variadic>
-struct all_same<Variadic<>, Variadic>
+struct all_same<Variadic<>, Variadic> : std::true_type
 {
-    static constexpr bool value = true;
 };
 
 template<typename Head, typename... Tail, template<class...> class Variadic>
-struct all_same<Variadic<Head, Tail...>, Variadic>
+struct all_same<Variadic<Head, Tail...>, Variadic> : std::conjunction<std::is_same<Head, Tail>...>
 {
-    static constexpr bool value = std::conjunction_v<std::is_same<Head, Tail>...>;
 };
 
 template<class T>
@@ -145,15 +107,23 @@ static constexpr bool all_same_v = all_same<T>::value;
 
 // trait to detemine if a type is contained in a tuple
 template<typename T, typename Variadic>
-struct has_type;
+struct contains;
 
-template<typename T, typename... Us, template<typename...>typename Variadic>
-struct has_type<T, Variadic<Us...>> : std::disjunction<std::is_same<T, Us>...>
+template<typename T, typename... Us, template<typename...> typename Variadic>
+struct contains<T, Variadic<Us...>> : std::disjunction<std::is_same<T, Us>...>
 {
 };
 
 template<typename T, typename... Us>
-static constexpr bool has_type_v = has_type<T, Us...>::value;
+static constexpr bool contains_v = contains<T, Us...>::value;
+
+template<std::size_t I, typename Variadic>
+struct contains_index;
+
+template<std::size_t I, std::size_t... Js>
+struct contains_index<I, std::index_sequence<Js...>> : std::disjunction<std::bool_constant<I == Js>...>
+{
+};
 
 template<template<class> class F, typename T, typename = void>
 struct has_attr_impl : std::false_type
@@ -167,5 +137,21 @@ struct has_attr_impl<F, T, std::void_t<typename F<T>::type>> : std::true_type
 
 template<template<class> class F, typename T>
 using has_attr = has_attr_impl<F, T>;
+
+// test if two variadics are disjoint
+template<typename, typename>
+struct are_disjoint;
+
+template<std::size_t... Is, std::size_t... Js>
+struct are_disjoint<std::index_sequence<Is...>, std::index_sequence<Js...>>
+        : std::negation<std::disjunction<contains_index<Is, std::index_sequence<Js...>>...>>
+{
+};
+
+template<template<class...> class FirstVariadic, class... Ts, typename SecondVariadic>
+struct are_disjoint<FirstVariadic<Ts...>, SecondVariadic>
+        : std::negation<std::disjunction<contains<Ts, SecondVariadic>...>>
+{
+};
 
 } // namespace Utility

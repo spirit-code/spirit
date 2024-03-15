@@ -4,7 +4,11 @@
 
 #include <engine/Indexing.hpp>
 #include <engine/Neighbours.hpp>
-#include <engine/spin/interaction/ABC.hpp>
+#include <engine/spin/interaction/Functor_Prototpyes.hpp>
+
+#include <Eigen/Dense>
+
+#include <vector>
 
 namespace Engine
 {
@@ -73,9 +77,9 @@ struct DMI
         index.clear();
     };
 
-    using Energy   = Local::Energy_Functor<DMI>;
-    using Gradient = Local::Gradient_Functor<DMI>;
-    using Hessian  = Local::Hessian_Functor<DMI>;
+    using Energy   = Functor::Local::Energy_Functor<DMI>;
+    using Gradient = Functor::Local::Gradient_Functor<DMI>;
+    using Hessian  = Functor::Local::Hessian_Functor<DMI>;
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data &, const Cache & cache )
     {
@@ -84,7 +88,7 @@ struct DMI
 
     // Calculate the total energy for a single spin to be used in Monte Carlo.
     //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
-    using Energy_Single_Spin = Local::Energy_Single_Spin_Functor<Energy, 2>;
+    using Energy_Single_Spin = Functor::Local::Energy_Single_Spin_Functor<Energy, 2>;
 
     // Interaction name as string
     static constexpr std::string_view name = "DMI";
@@ -152,6 +156,31 @@ struct DMI
         }
     }
 };
+
+template<>
+inline scalar DMI::Energy::operator()( const Index & index, const vectorfield & spins ) const
+{
+    return std::transform_reduce(
+        begin( index ), end( index ), scalar( 0.0 ), std::plus<scalar>{},
+        [this, &spins]( const auto & idx ) -> scalar
+        {
+            const auto & [ispin, jspin, i_pair] = idx;
+            return -0.5 * cache.magnitudes[i_pair]
+                   * cache.normals[i_pair].dot( spins[ispin].cross( spins[jspin] ) );
+        } );
+}
+
+template<>
+inline Vector3 DMI::Gradient::operator()( const Index & index, const vectorfield & spins ) const
+{
+    return std::transform_reduce(
+        begin( index ), end( index ), Vector3{ 0.0, 0.0, 0.0 }, std::plus<Vector3>{},
+        [this, &spins]( const auto & idx ) -> Vector3
+        {
+            const auto & [ispin, jspin, i_pair] = idx;
+            return -cache.magnitudes[i_pair] * spins[jspin].cross( cache.normals[i_pair] );
+        } );
+}
 
 template<>
 template<typename F>

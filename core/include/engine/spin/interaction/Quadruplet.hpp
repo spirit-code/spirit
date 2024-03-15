@@ -3,7 +3,7 @@
 #define SPIRIT_CORE_ENGINE_INTERACTION_QUADRUPLET_HPP
 
 #include <engine/Indexing.hpp>
-#include <engine/spin/interaction/ABC.hpp>
+#include <engine/spin/interaction/Functor_Prototpyes.hpp>
 
 namespace Engine
 {
@@ -43,10 +43,10 @@ struct Quadruplet
         return !data.quadruplets.empty();
     }
 
-    using Energy       = NonLocal::Energy_Functor<Quadruplet>;
-    using Gradient     = NonLocal::Gradient_Functor<Quadruplet>;
-    using Hessian      = NonLocal::Hessian_Functor<Quadruplet>;
-    using Energy_Total = NonLocal::Reduce_Functor<Energy>;
+    using Energy       = Functor::NonLocal::Energy_Functor<Quadruplet>;
+    using Gradient     = Functor::NonLocal::Gradient_Functor<Quadruplet>;
+    using Hessian      = Functor::NonLocal::Hessian_Functor<Quadruplet>;
+    using Energy_Total = Functor::NonLocal::Reduce_Functor<Energy>;
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data &, const Cache & )
     {
@@ -56,7 +56,7 @@ struct Quadruplet
     // Calculate the total energy for a single spin to be used in Monte Carlo.
     //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
     static constexpr scalar weight = 4.0;
-    using Energy_Single_Spin       = NonLocal::Energy_Single_Spin_Functor<Quadruplet>;
+    using Energy_Single_Spin       = Functor::NonLocal::Energy_Single_Spin_Functor<Quadruplet>;
 
     // Interaction name as string
     static constexpr std::string_view name = "Quadruplet";

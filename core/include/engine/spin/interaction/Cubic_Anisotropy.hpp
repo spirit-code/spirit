@@ -3,7 +3,11 @@
 #define SPIRIT_CORE_ENGINE_INTERACTION_CUBIC_ANISOTROPY_HPP
 
 #include <engine/Indexing.hpp>
-#include <engine/spin/interaction/ABC.hpp>
+#include <engine/spin/interaction/Functor_Prototpyes.hpp>
+
+#include <Eigen/Dense>
+
+#include <optional>
 
 namespace Engine
 {
@@ -53,9 +57,9 @@ struct Cubic_Anisotropy
         index.reset();
     }
 
-    using Energy   = Local::Energy_Functor<Cubic_Anisotropy>;
-    using Gradient = Local::Gradient_Functor<Cubic_Anisotropy>;
-    using Hessian  = Local::Hessian_Functor<Cubic_Anisotropy>;
+    using Energy   = Functor::Local::Energy_Functor<Cubic_Anisotropy>;
+    using Gradient = Functor::Local::Gradient_Functor<Cubic_Anisotropy>;
+    using Hessian  = Functor::Local::Hessian_Functor<Cubic_Anisotropy>;
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data &, const Cache & )
     {
@@ -64,7 +68,7 @@ struct Cubic_Anisotropy
 
     // Calculate the total energy for a single spin to be used in Monte Carlo.
     //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
-    using Energy_Single_Spin = Local::Energy_Single_Spin_Functor<Energy, 1>;
+    using Energy_Single_Spin = Functor::Local::Energy_Single_Spin_Functor<Energy, 1>;
 
     // Interaction name as string
     static constexpr std::string_view name = "Cubic Anisotropy";
@@ -87,6 +91,36 @@ struct Cubic_Anisotropy
         }
     };
 };
+
+template<>
+inline scalar Cubic_Anisotropy::Energy::operator()( const Index & index, const vectorfield & spins ) const
+{
+    using std::pow;
+    scalar result = 0;
+    if( !index.has_value() )
+        return result;
+
+    const auto & [ispin, iani] = *index;
+    return -0.5 * data.magnitudes[iani]
+           * ( pow( spins[ispin][0], 4.0 ) + pow( spins[ispin][1], 4.0 ) + pow( spins[ispin][2], 4.0 ) );
+}
+
+template<>
+inline Vector3 Cubic_Anisotropy::Gradient::operator()( const Index & index, const vectorfield & spins ) const
+{
+    using std::pow;
+    Vector3 result = Vector3::Zero();
+    if( !index.has_value() )
+        return result;
+
+    const auto & [ispin, iani] = *index;
+
+    for( int icomp = 0; icomp < 3; ++icomp )
+    {
+        result[icomp] = -2.0 * data.magnitudes[iani] * pow( spins[ispin][icomp], 3.0 );
+    }
+    return result;
+}
 
 template<>
 template<typename F>

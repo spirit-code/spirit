@@ -13,6 +13,7 @@
 namespace Data
 {
 
+// TODO(important): check why there are two geometry objects in this thing and why they aren't necessarily shared
 template<typename Hamiltonian>
 Spin_System<Hamiltonian>::Spin_System(
     std::unique_ptr<Hamiltonian> hamiltonian, std::shared_ptr<Geometry> geometry,
@@ -102,7 +103,7 @@ try
         this->effective_field = other.effective_field;
 
         this->geometry    = std::make_shared<Data::Geometry>( *other.geometry );
-        this->hamiltonian = std::make_shared<Engine::Spin::HamiltonianVariant>( *other.hamiltonian );
+        this->hamiltonian = std::make_shared<Hamiltonian>( *other.hamiltonian );
 
         this->llg_parameters = std::make_shared<Data::Parameters_Method_LLG>( *other.llg_parameters );
         this->mc_parameters  = std::make_shared<Data::Parameters_Method_MC>( *other.mc_parameters );

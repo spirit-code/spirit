@@ -4,7 +4,11 @@
 
 #include <engine/Indexing.hpp>
 #include <engine/Neighbours.hpp>
-#include <engine/spin/interaction/ABC.hpp>
+#include <engine/spin/interaction/Functor_Prototpyes.hpp>
+
+#include <Eigen/Dense>
+
+#include <vector>
 
 namespace Engine
 {
@@ -64,9 +68,9 @@ struct Exchange
         index.clear();
     };
 
-    using Energy   = Local::Energy_Functor<Exchange>;
-    using Gradient = Local::Gradient_Functor<Exchange>;
-    using Hessian  = Local::Hessian_Functor<Exchange>;
+    using Energy   = Functor::Local::Energy_Functor<Exchange>;
+    using Gradient = Functor::Local::Gradient_Functor<Exchange>;
+    using Hessian  = Functor::Local::Hessian_Functor<Exchange>;
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data &, const Cache & cache )
     {
@@ -75,7 +79,7 @@ struct Exchange
 
     // Calculate the total energy for a single spin to be used in Monte Carlo.
     //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
-    using Energy_Single_Spin = Local::Energy_Single_Spin_Functor<Energy, 2>;
+    using Energy_Single_Spin = Functor::Local::Energy_Single_Spin_Functor<Energy, 2>;
 
     // Interaction name as string
     static constexpr std::string_view name = "Exchange";
@@ -140,6 +144,30 @@ struct Exchange
         }
     };
 };
+
+template<>
+inline scalar Exchange::Energy::operator()( const Index & index, const vectorfield & spins ) const
+{
+    return std::transform_reduce(
+        begin( index ), end( index ), scalar( 0.0 ), std::plus<scalar>{},
+        [this, &spins]( const Exchange::IndexType & idx ) -> scalar
+        {
+            const auto & [ispin, jspin, i_pair] = idx;
+            return -0.5 * cache.magnitudes[i_pair] * spins[ispin].dot( spins[jspin] );
+        } );
+}
+
+template<>
+inline Vector3 Exchange::Gradient::operator()( const Index & index, const vectorfield & spins ) const
+{
+    return std::transform_reduce(
+        begin( index ), end( index ), Vector3{0.0, 0.0, 0.0}, std::plus<Vector3>{},
+        [this, &spins]( const Exchange::IndexType & idx ) -> Vector3
+        {
+            const auto & [ispin, jspin, i_pair] = idx;
+            return -cache.magnitudes[i_pair] * spins[jspin];
+        } );
+}
 
 template<>
 template<typename F>
