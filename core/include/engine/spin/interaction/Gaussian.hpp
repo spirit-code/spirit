@@ -57,11 +57,6 @@ struct Gaussian
 
     using Index = std::optional<int>;
 
-    static void clearIndex( Index & index )
-    {
-        index.reset();
-    };
-
     using Energy   = Functor::Local::Energy_Functor<Gaussian>;
     using Gradient = Functor::Local::Gradient_Functor<Gaussian>;
     using Hessian  = Functor::Local::Hessian_Functor<Gaussian>;

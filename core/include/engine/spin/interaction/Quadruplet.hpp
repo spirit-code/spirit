@@ -52,11 +52,6 @@ struct Quadruplet
 
     using Index = std::vector<IndexType>;
 
-    static void clearIndex( Index & index )
-    {
-        index.clear();
-    };
-
     using Energy   = Functor::Local::Energy_Functor<Quadruplet>;
     using Gradient = Functor::Local::Gradient_Functor<Quadruplet>;
     using Hessian  = Functor::Local::Hessian_Functor<Quadruplet>;

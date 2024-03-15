@@ -67,6 +67,18 @@ void setPtrAddress(
         interactions );
 }
 
+template<typename T>
+void clearIndex( std::optional<T> & index )
+{
+    index.reset();
+}
+
+template<typename T>
+void clearIndex( T & index )
+{
+    index.clear();
+}
+
 } // namespace Interaction
 
 // Hamiltonian for (pure) spin systems
@@ -246,7 +258,8 @@ public:
     [[nodiscard]] scalar Energy_Single_Spin( const int ispin, const state_t & state )
     {
         return std::invoke(
-                   Functor::transform_op( Functor::tuple_dispatch<Accessor::Energy_Single_Spin>( local ), scalar( 0.0 ), state ),
+                   Functor::transform_op(
+                       Functor::tuple_dispatch<Accessor::Energy_Single_Spin>( local ), scalar( 0.0 ), state ),
                    indices[ispin] )
                + Functor::apply_reduce(
                    Functor::tuple_dispatch<Accessor::Energy_Single_Spin>( nonlocal ), scalar( 0.0 ), ispin, state );
@@ -257,7 +270,8 @@ public:
         return std::transform_reduce(
                    begin( indices ), end( indices ), scalar( 0.0 ), std::plus{},
                    Functor::transform_op( Functor::tuple_dispatch<Accessor::Energy>( local ), scalar( 0.0 ), state ) )
-               + Functor::apply_reduce( Functor::tuple_dispatch<Accessor::Energy_Total>( nonlocal ), scalar( 0.0 ), state );
+               + Functor::apply_reduce(
+                   Functor::tuple_dispatch<Accessor::Energy_Total>( nonlocal ), scalar( 0.0 ), state );
     };
 
     void Hessian( const state_t & state, MatrixX & hessian )
@@ -292,7 +306,8 @@ public:
 
         std::transform(
             begin( indices ), end( indices ), begin( gradient ),
-            Functor::transform_op( Functor::tuple_dispatch<Accessor::Gradient>( local ), Vector3{ 0.0, 0.0, 0.0 }, state ) );
+            Functor::transform_op(
+                Functor::tuple_dispatch<Accessor::Gradient>( local ), Vector3{ 0.0, 0.0, 0.0 }, state ) );
 
         Functor::apply( Functor::tuple_dispatch<Accessor::Gradient>( nonlocal ), state, gradient );
     };
@@ -376,12 +391,8 @@ public:
         {
             std::for_each(
                 begin( indices ), end( indices ),
-                [&interactions = local]( IndexTuple & index )
-                {
-                    std::apply(
-                        [&index]( const auto &... interaction ) { ( ..., interaction.clearIndex( index ) ); },
-                        interactions );
-                } );
+                []( IndexTuple & index_tuple )
+                { std::apply( []( auto &... index ) { ( ..., Interaction::clearIndex( index ) ); }, index_tuple ); } );
         }
 
         std::apply(
@@ -486,15 +497,19 @@ private:
 
         if constexpr( is_local<InteractionType>::value )
         {
+            std::for_each(
+                begin( indices ), end( indices ),
+                []( IndexTuple & index_tuple )
+                { Interaction::clearIndex( std::get<typename InteractionType::Index>( index_tuple ) ); } );
+
             std::get<Interaction::InteractionWrapper<InteractionType>>( local ).applyGeometry(
                 *geometry, boundary_conditions, indices );
         }
-        else if constexpr( !is_local<InteractionType>::value )
+        else
         {
             std::get<Interaction::InteractionWrapper<InteractionType>>( nonlocal )
                 .applyGeometry( *geometry, boundary_conditions );
         };
-        // std::unreachable();
     };
 
     template<class T>

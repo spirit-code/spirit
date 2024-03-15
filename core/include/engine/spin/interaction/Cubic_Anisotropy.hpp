@@ -52,11 +52,6 @@ struct Cubic_Anisotropy
 
     using Index = std::optional<IndexType>;
 
-    static void clearIndex( Index & index )
-    {
-        index.reset();
-    }
-
     using Energy   = Functor::Local::Energy_Functor<Cubic_Anisotropy>;
     using Gradient = Functor::Local::Gradient_Functor<Cubic_Anisotropy>;
     using Hessian  = Functor::Local::Hessian_Functor<Cubic_Anisotropy>;

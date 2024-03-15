@@ -60,11 +60,6 @@ struct Anisotropy
 
     using Index = std::optional<IndexType>;
 
-    static void clearIndex( Index & index )
-    {
-        index.reset();
-    }
-
     using Energy   = Functor::Local::Energy_Functor<Anisotropy>;
     using Gradient = Functor::Local::Gradient_Functor<Anisotropy>;
     using Hessian  = Functor::Local::Hessian_Functor<Anisotropy>;

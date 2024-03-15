@@ -63,11 +63,6 @@ struct Exchange
 
     using Index = std::vector<IndexType>;
 
-    static void clearIndex( Index & index )
-    {
-        index.clear();
-    };
-
     using Energy   = Functor::Local::Energy_Functor<Exchange>;
     using Gradient = Functor::Local::Gradient_Functor<Exchange>;
     using Hessian  = Functor::Local::Hessian_Functor<Exchange>;
