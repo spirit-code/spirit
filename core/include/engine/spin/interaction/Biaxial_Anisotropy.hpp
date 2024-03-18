@@ -69,9 +69,9 @@ struct Biaxial_Anisotropy
 
     using Index = std::optional<IndexType>;
 
-    using Energy   = Functor::Local::Energy_Functor<Biaxial_Anisotropy>;
-    using Gradient = Functor::Local::Gradient_Functor<Biaxial_Anisotropy>;
-    using Hessian  = Functor::Local::Hessian_Functor<Biaxial_Anisotropy>;
+    using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<Biaxial_Anisotropy>>;
+    using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<Biaxial_Anisotropy>>;
+    using Hessian  = Functor::Local::Hessian_Functor<Functor::Local::DataRef<Biaxial_Anisotropy>>;
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data & data, const Cache & )
     {
@@ -105,6 +105,29 @@ struct Biaxial_Anisotropy
 };
 
 template<>
+struct Functor::Local::DataRef<Biaxial_Anisotropy>
+{
+    using Interaction = Biaxial_Anisotropy;
+    using Data        = typename Interaction::Data;
+    using Cache       = typename Interaction::Cache;
+
+    DataRef( const Data & data, const Cache & cache ) noexcept
+            : data( data ),
+              cache( cache ),
+              bases( data.bases.data() ),
+              site_p( data.site_p.data() ),
+              terms( data.terms.data() ){};
+
+    const Data & data;
+    const Cache & cache;
+
+protected:
+    const PolynomialBasis * bases;
+    const unsigned int * site_p;
+    const PolynomialTerm * terms;
+};
+
+template<>
 inline scalar Biaxial_Anisotropy::Energy::operator()( const Index & index, const vectorfield & spins ) const
 {
     using std::pow;
@@ -113,15 +136,15 @@ inline scalar Biaxial_Anisotropy::Energy::operator()( const Index & index, const
         return result;
 
     const auto & [ispin, iani] = *index;
-    const scalar s1            = data.bases[iani].k1.dot( spins[ispin] );
-    const scalar s2            = data.bases[iani].k2.dot( spins[ispin] );
-    const scalar s3            = data.bases[iani].k3.dot( spins[ispin] );
+    const scalar s1            = bases[iani].k1.dot( spins[ispin] );
+    const scalar s2            = bases[iani].k2.dot( spins[ispin] );
+    const scalar s3            = bases[iani].k3.dot( spins[ispin] );
 
     const scalar sin_theta_2 = 1 - s1 * s1;
 
-    for( auto iterm = data.site_p[iani]; iterm < data.site_p[iani + 1]; ++iterm )
+    for( auto iterm = site_p[iani]; iterm < site_p[iani + 1]; ++iterm )
     {
-        const auto & [coeff, n1, n2, n3] = data.terms[iterm];
+        const auto & [coeff, n1, n2, n3] = terms[iterm];
         result += coeff * pow( sin_theta_2, n1 ) * pow( s2, n2 ) * pow( s3, n3 );
     }
 
@@ -137,7 +160,7 @@ inline Vector3 Biaxial_Anisotropy::Gradient::operator()( const Index & index, co
         return result;
 
     const auto & [ispin, iani] = *index;
-    const auto & [k1, k2, k3]  = data.bases[iani];
+    const auto & [k1, k2, k3]  = bases[iani];
 
     const scalar s1 = k1.dot( spins[ispin] );
     const scalar s2 = k2.dot( spins[ispin] );
@@ -145,9 +168,9 @@ inline Vector3 Biaxial_Anisotropy::Gradient::operator()( const Index & index, co
 
     const scalar sin_theta_2 = 1 - s1 * s1;
 
-    for( auto iterm = data.site_p[iani]; iterm < data.site_p[iani + 1]; ++iterm )
+    for( auto iterm = site_p[iani]; iterm < site_p[iani + 1]; ++iterm )
     {
-        const auto & [coeff, n1, n2, n3] = data.terms[iterm];
+        const auto & [coeff, n1, n2, n3] = terms[iterm];
 
         const scalar a = pow( s2, n2 );
         const scalar b = pow( s3, n3 );
@@ -165,15 +188,15 @@ inline Vector3 Biaxial_Anisotropy::Gradient::operator()( const Index & index, co
 }
 
 template<>
-template<typename F>
-void Biaxial_Anisotropy::Hessian::operator()( const Index & index, const vectorfield & spins, F & f ) const
+template<typename Callable>
+void Biaxial_Anisotropy::Hessian::operator()( const Index & index, const vectorfield & spins, Callable & hessian ) const
 {
     using std::pow;
     if( !index.has_value() )
         return;
 
     const auto & [ispin, iani] = *index;
-    const auto & [k1, k2, k3]  = data.bases[iani];
+    const auto & [k1, k2, k3]  = bases[iani];
 
     const scalar s1 = k1.dot( spins[ispin] );
     const scalar s2 = k2.dot( spins[ispin] );
@@ -181,9 +204,9 @@ void Biaxial_Anisotropy::Hessian::operator()( const Index & index, const vectorf
 
     const scalar st2 = 1 - s1 * s1;
 
-    for( auto iterm = data.site_p[iani]; iterm < data.site_p[iani + 1]; ++iterm )
+    for( auto iterm = site_p[iani]; iterm < site_p[iani + 1]; ++iterm )
     {
-        const auto & [coeff, n1, n2, n3] = data.terms[iterm];
+        const auto & [coeff, n1, n2, n3] = terms[iterm];
 
         const scalar a = pow( s2, n2 );
         const scalar b = pow( s3, n3 );
@@ -209,7 +232,7 @@ void Biaxial_Anisotropy::Hessian::operator()( const Index & index, const vectorf
 #pragma unroll
             for( int beta = 0; beta < 3; ++beta )
             {
-                f( 3 * ispin + alpha, 3 * ispin + beta,
+                hessian( 3 * ispin + alpha, 3 * ispin + beta,
                    k1[alpha] * ( p_11 * k1[beta] + p_12 * k2[beta] + p_13 * k3[beta] )
                        + k2[alpha] * ( p_12 * k1[beta] + p_22 * k2[beta] + p_23 * k3[beta] )
                        + k3[alpha] * ( p_13 * k1[beta] + p_23 * k2[beta] + p_33 * k3[beta] ) );

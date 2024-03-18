@@ -25,6 +25,7 @@ namespace Functor
 
 struct dense_hessian_wrapper
 {
+    // If this operation should be used in a parallelized algorithm this object this needs a mutex
     void operator()( const int i, const int j, const scalar value ) const
     {
         hessian( i, j ) += value;
@@ -40,6 +41,7 @@ struct sparse_hessian_wrapper
 {
     using triplet = Common::Interaction::triplet;
 
+    // If this operation should be used in a parallelized algorithm this object needs a mutex
     void operator()( const int i, const int j, const scalar value ) const
     {
         hessian.emplace_back( i, j, value );
@@ -93,53 +95,53 @@ public:
     decltype( functor.cache ) cache = functor.cache;
 };
 
-template<typename InteractionType>
-struct Energy_Functor : DataRef<InteractionType>
+template<typename DataRef>
+struct Energy_Functor : public DataRef
 {
-    using Interaction = InteractionType;
+    using Interaction = typename DataRef::Interaction;
     using Data        = typename Interaction::Data;
     using Cache       = typename Interaction::Cache;
 
     void operator()( const vectorfield & spins, scalarfield & energy ) const;
 
-    using DataRef<InteractionType>::DataRef;
+    using DataRef::DataRef;
 };
 
-template<typename InteractionType>
-struct Gradient_Functor : DataRef<InteractionType>
+template<typename DataRef>
+struct Gradient_Functor : public DataRef
 {
-    using Interaction = InteractionType;
+    using Interaction = typename DataRef::Interaction;
     using Data        = typename Interaction::Data;
     using Cache       = typename Interaction::Cache;
 
     void operator()( const vectorfield & spins, vectorfield & gradient ) const;
 
-    using DataRef<InteractionType>::DataRef;
+    using DataRef::DataRef;
 };
 
-template<typename InteractionType>
-struct Hessian_Functor : DataRef<InteractionType>
+template<typename DataRef>
+struct Hessian_Functor : public DataRef
 {
-    using Interaction = InteractionType;
+    using Interaction = typename DataRef::Interaction;
     using Data        = typename Interaction::Data;
     using Cache       = typename Interaction::Cache;
 
-    template<typename F>
-    void operator()( const vectorfield & spins, F & f ) const;
+    template<typename Callable>
+    void operator()( const vectorfield & spins, Callable & hessian ) const;
 
-    using DataRef<InteractionType>::DataRef;
+    using DataRef::DataRef;
 };
 
-template<typename InteractionType>
-struct Energy_Single_Spin_Functor : DataRef<InteractionType>
+template<typename DataRef>
+struct Energy_Single_Spin_Functor : public DataRef
 {
-    using Interaction = InteractionType;
+    using Interaction = typename DataRef::Interaction;
     using Data        = typename Interaction::Data;
     using Cache       = typename Interaction::Cache;
 
     scalar operator()( int ispin, const vectorfield & spins ) const;
 
-    using DataRef<InteractionType>::DataRef;
+    using DataRef::DataRef;
 };
 
 } // namespace NonLocal
@@ -161,44 +163,44 @@ struct DataRef
     const Cache & cache;
 };
 
-template<typename InteractionType>
-struct Energy_Functor : DataRef<InteractionType>
+template<typename DataRef>
+struct Energy_Functor : public DataRef
 {
-    using Interaction = InteractionType;
+    using Interaction = typename DataRef::Interaction;
     using Data        = typename Interaction::Data;
     using Cache       = typename Interaction::Cache;
     using Index       = typename Interaction::Index;
 
     scalar operator()( const Index & index, const vectorfield & spins ) const;
 
-    using DataRef<InteractionType>::DataRef;
+    using DataRef::DataRef;
 };
 
-template<typename InteractionType>
-struct Gradient_Functor : DataRef<InteractionType>
+template<typename DataRef>
+struct Gradient_Functor : public DataRef
 {
-    using Interaction = InteractionType;
+    using Interaction = typename DataRef::Interaction;
     using Data        = typename Interaction::Data;
     using Cache       = typename Interaction::Cache;
     using Index       = typename Interaction::Index;
 
     Vector3 operator()( const Index & index, const vectorfield & spins ) const;
 
-    using DataRef<InteractionType>::DataRef;
+    using DataRef::DataRef;
 };
 
-template<typename InteractionType>
-struct Hessian_Functor : DataRef<InteractionType>
+template<typename DataRef>
+struct Hessian_Functor : public DataRef
 {
-    using Interaction = InteractionType;
+    using Interaction = typename DataRef::Interaction;
     using Data        = typename Interaction::Data;
     using Cache       = typename Interaction::Cache;
     using Index       = typename Interaction::Index;
 
-    template<typename F>
-    void operator()( const Index & index, const vectorfield & spins, F & f ) const;
+    template<typename Callable>
+    void operator()( const Index & index, const vectorfield & spins, Callable & hessian ) const;
 
-    using DataRef<InteractionType>::DataRef;
+    using DataRef::DataRef;
 };
 
 template<typename Functor, int weight_factor>

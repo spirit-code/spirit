@@ -52,9 +52,9 @@ struct Quadruplet
 
     using Index = std::vector<IndexType>;
 
-    using Energy   = Functor::Local::Energy_Functor<Quadruplet>;
-    using Gradient = Functor::Local::Gradient_Functor<Quadruplet>;
-    using Hessian  = Functor::Local::Hessian_Functor<Quadruplet>;
+    using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<Quadruplet>>;
+    using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<Quadruplet>>;
+    using Hessian  = Functor::Local::Hessian_Functor<Functor::Local::DataRef<Quadruplet>>;
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data &, const Cache & )
     {
@@ -119,6 +119,27 @@ struct Quadruplet
 };
 
 template<>
+struct Functor::Local::DataRef<Quadruplet>
+{
+    using Interaction = Quadruplet;
+    using Data        = typename Interaction::Data;
+    using Cache       = typename Interaction::Cache;
+
+    DataRef( const Data & data, const Cache & cache ) noexcept
+            : data( data ),
+              cache( cache ),
+              magnitudes( data.magnitudes.data() )
+    {
+    }
+
+    const Data & data;
+    const Cache & cache;
+
+protected:
+    const scalar * magnitudes;
+};
+
+template<>
 inline scalar Quadruplet::Energy::operator()( const Index & index, const vectorfield & spins ) const
 {
     return std::transform_reduce(
@@ -126,7 +147,7 @@ inline scalar Quadruplet::Energy::operator()( const Index & index, const vectorf
         [this, &spins]( const Quadruplet::IndexType & idx ) -> scalar
         {
             const auto & [ispin, jspin, kspin, lspin, iquad] = idx;
-            return -0.25 * data.magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) )
+            return -0.25 * magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) )
                    * ( spins[kspin].dot( spins[lspin] ) );
         } );
 }
@@ -139,13 +160,13 @@ inline Vector3 Quadruplet::Gradient::operator()( const Index & index, const vect
         [this, &spins]( const Quadruplet::IndexType & idx ) -> Vector3
         {
             const auto & [ispin, jspin, kspin, lspin, iquad] = idx;
-            return spins[jspin] * ( -data.magnitudes[iquad] * ( spins[kspin].dot( spins[lspin] ) ) );
+            return spins[jspin] * ( -magnitudes[iquad] * ( spins[kspin].dot( spins[lspin] ) ) );
         } );
 }
 
 template<>
-template<typename F>
-void Quadruplet::Hessian::operator()( const Index & index, const vectorfield & spins, F & f ) const {
+template<typename Callable>
+void Quadruplet::Hessian::operator()( const Index & index, const vectorfield & spins, Callable & hessian ) const {
     // TODO
 };
 

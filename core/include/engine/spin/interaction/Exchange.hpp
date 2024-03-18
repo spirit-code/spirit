@@ -63,9 +63,9 @@ struct Exchange
 
     using Index = std::vector<IndexType>;
 
-    using Energy   = Functor::Local::Energy_Functor<Exchange>;
-    using Gradient = Functor::Local::Gradient_Functor<Exchange>;
-    using Hessian  = Functor::Local::Hessian_Functor<Exchange>;
+    using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<Exchange>>;
+    using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<Exchange>>;
+    using Hessian  = Functor::Local::Hessian_Functor<Functor::Local::DataRef<Exchange>>;
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data &, const Cache & cache )
     {
@@ -129,6 +129,25 @@ struct Exchange
 };
 
 template<>
+struct Functor::Local::DataRef<Exchange>
+{
+    using Interaction = Exchange;
+    using Data        = typename Interaction::Data;
+    using Cache       = typename Interaction::Cache;
+
+    DataRef( const Data & data, const Cache & cache ) noexcept
+            : data( data ), cache( cache ), magnitudes( cache.magnitudes.data() )
+    {
+    }
+
+    const Data & data;
+    const Cache & cache;
+
+protected:
+    const scalar * magnitudes;
+};
+
+template<>
 inline scalar Exchange::Energy::operator()( const Index & index, const vectorfield & spins ) const
 {
     return std::transform_reduce(
@@ -136,7 +155,7 @@ inline scalar Exchange::Energy::operator()( const Index & index, const vectorfie
         [this, &spins]( const Exchange::IndexType & idx ) -> scalar
         {
             const auto & [ispin, jspin, i_pair] = idx;
-            return -0.5 * cache.magnitudes[i_pair] * spins[ispin].dot( spins[jspin] );
+            return -0.5 * magnitudes[i_pair] * spins[ispin].dot( spins[jspin] );
         } );
 }
 
@@ -144,22 +163,22 @@ template<>
 inline Vector3 Exchange::Gradient::operator()( const Index & index, const vectorfield & spins ) const
 {
     return std::transform_reduce(
-        begin( index ), end( index ), Vector3{0.0, 0.0, 0.0}, std::plus<Vector3>{},
+        begin( index ), end( index ), Vector3{ 0.0, 0.0, 0.0 }, std::plus<Vector3>{},
         [this, &spins]( const Exchange::IndexType & idx ) -> Vector3
         {
             const auto & [ispin, jspin, i_pair] = idx;
-            return -cache.magnitudes[i_pair] * spins[jspin];
+            return -magnitudes[i_pair] * spins[jspin];
         } );
 }
 
 template<>
-template<typename F>
-void Exchange::Hessian::operator()( const Index & index, const vectorfield &, F & f ) const
+template<typename Callable>
+void Exchange::Hessian::operator()( const Index & index, const vectorfield &, Callable & hessian ) const
 {
 
     std::for_each(
         begin( index ), end( index ),
-        [this, &index, &f]( const Exchange::IndexType & idx )
+        [this, &index, &hessian]( const Exchange::IndexType & idx )
         {
             const int i         = 3 * idx.ispin;
             const int j         = 3 * idx.jspin;
@@ -168,7 +187,7 @@ void Exchange::Hessian::operator()( const Index & index, const vectorfield &, F 
 #pragma unroll
             for( int alpha = 0; alpha < 3; ++alpha )
             {
-                f( i + alpha, j + alpha, -cache.magnitudes[i_pair] );
+                hessian( i + alpha, j + alpha, -magnitudes[i_pair] );
             }
         } );
 }

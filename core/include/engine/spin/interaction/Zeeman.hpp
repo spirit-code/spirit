@@ -45,9 +45,9 @@ struct Zeeman
         return std::abs( data.external_field_magnitude ) > 1e-60;
     }
 
-    using Energy   = Functor::Local::Energy_Functor<Zeeman>;
-    using Gradient = Functor::Local::Gradient_Functor<Zeeman>;
-    using Hessian  = Functor::Local::Hessian_Functor<Zeeman>;
+    using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<Zeeman>>;
+    using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<Zeeman>>;
+    using Hessian  = Functor::Local::Hessian_Functor<Functor::Local::DataRef<Zeeman>>;
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data &, const Cache & )
     {
@@ -86,16 +86,37 @@ struct Zeeman
 };
 
 template<>
+struct Functor::Local::DataRef<Zeeman>
+{
+    using Interaction = Zeeman;
+    using Data        = typename Interaction::Data;
+    using Cache       = typename Interaction::Cache;
+
+    DataRef( const Data & data, const Cache & cache ) noexcept
+            : data( data ),
+              cache( cache ),
+              external_field_magnitude( data.external_field_magnitude ),
+              external_field_normal( data.external_field_normal ),
+              mu_s( cache.geometry->mu_s.data() )
+    {
+    }
+
+    const Data & data;
+    const Cache & cache;
+
+protected:
+    const scalar external_field_magnitude;
+    const Vector3 external_field_normal;
+    const scalar * mu_s;
+};
+
+template<>
 inline scalar Zeeman::Energy::operator()( const Index & index, const vectorfield & spins ) const
 {
-    if( cache.geometry == nullptr )
-        return 0;
-
     if( index.has_value() && *index >= 0 )
     {
-        const auto & mu_s  = cache.geometry->mu_s;
         const auto & ispin = *index;
-        return -mu_s[ispin] * data.external_field_magnitude * data.external_field_normal.dot( spins[ispin] );
+        return -mu_s[ispin] * external_field_magnitude * external_field_normal.dot( spins[ispin] );
     }
     else
         return 0;
@@ -104,22 +125,18 @@ inline scalar Zeeman::Energy::operator()( const Index & index, const vectorfield
 template<>
 inline Vector3 Zeeman::Gradient::operator()( const Index & index, const vectorfield & ) const
 {
-    if( cache.geometry == nullptr )
-        return Vector3::Zero();
-
     if( index.has_value() && *index >= 0 )
     {
-        const auto & mu_s  = cache.geometry->mu_s;
         const auto & ispin = *index;
-        return -mu_s[ispin] * data.external_field_magnitude * data.external_field_normal;
+        return -mu_s[ispin] * external_field_magnitude * external_field_normal;
     }
     else
         return Vector3::Zero();
 }
 
 template<>
-template<typename F>
-void Zeeman::Hessian::operator()( const Index &, const vectorfield &, F & ) const {};
+template<typename Callable>
+void Zeeman::Hessian::operator()( const Index &, const vectorfield &, Callable & ) const {};
 
 } // namespace Interaction
 

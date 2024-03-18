@@ -57,9 +57,9 @@ struct Gaussian
 
     using Index = std::optional<int>;
 
-    using Energy   = Functor::Local::Energy_Functor<Gaussian>;
-    using Gradient = Functor::Local::Gradient_Functor<Gaussian>;
-    using Hessian  = Functor::Local::Hessian_Functor<Gaussian>;
+    using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<Gaussian>>;
+    using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<Gaussian>>;
+    using Hessian  = Functor::Local::Hessian_Functor<Functor::Local::DataRef<Gaussian>>;
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data & data, const Cache & )
     {
@@ -88,6 +88,33 @@ struct Gaussian
 };
 
 template<>
+struct Functor::Local::DataRef<Gaussian>
+{
+    using Interaction = Gaussian;
+    using Data        = typename Interaction::Data;
+    using Cache       = typename Interaction::Cache;
+
+    DataRef( const Data & data, const Cache & cache ) noexcept
+            : data( data ),
+              cache( cache ),
+              n_gaussians( data.amplitude.size() ),
+              amplitude( data.amplitude.data() ),
+              width( data.width.data() ),
+              center( data.center.data() )
+    {
+    }
+
+    const Data & data;
+    const Cache & cache;
+
+protected:
+    std::size_t n_gaussians;
+    const scalar * amplitude;
+    const scalar * width;
+    const Vector3 * center;
+};
+
+template<>
 inline scalar Gaussian::Energy::operator()( const Index & index, const vectorfield & spins ) const
 {
     scalar result = 0;
@@ -97,11 +124,11 @@ inline scalar Gaussian::Energy::operator()( const Index & index, const vectorfie
 
     const int ispin = *index;
 
-    for( unsigned int igauss = 0; igauss < data.amplitude.size(); ++igauss )
+    for( unsigned int igauss = 0; igauss < n_gaussians; ++igauss )
     {
         // Distance between spin and gaussian center
-        scalar l = 1 - data.center[igauss].dot( spins[ispin] );
-        result += data.amplitude[igauss] * std::exp( -l * l / ( 2.0 * data.width[igauss] * data.width[igauss] ) );
+        scalar l = 1 - center[igauss].dot( spins[ispin] );
+        result += amplitude[igauss] * std::exp( -l * l / ( 2.0 * width[igauss] * width[igauss] ) );
     };
     return result;
 }
@@ -116,36 +143,35 @@ inline Vector3 Gaussian::Gradient::operator()( const Index & index, const vector
 
     const int ispin = *index;
     // Calculate gradient
-    for( unsigned int i = 0; i < data.amplitude.size(); ++i )
+    for( unsigned int i = 0; i < n_gaussians; ++i )
     {
         // Scalar product of spin and gaussian center
-        scalar l = 1 - data.center[i].dot( spins[ispin] );
+        scalar l = 1 - center[i].dot( spins[ispin] );
         // Prefactor
-        scalar prefactor = data.amplitude[i] * std::exp( -l * l / ( 2.0 * data.width[i] * data.width[i] ) ) * l
-                           / ( data.width[i] * data.width[i] );
+        scalar prefactor
+            = amplitude[i] * std::exp( -l * l / ( 2.0 * width[i] * width[i] ) ) * l / ( width[i] * width[i] );
         // Gradient contribution
-        result += prefactor * data.center[i];
+        result += prefactor * center[i];
     }
     return result;
 }
 
 template<>
-template<typename F>
-void Gaussian::Hessian::operator()( const Index & index, const vectorfield & spins, F & f ) const
+template<typename Callable>
+void Gaussian::Hessian::operator()( const Index & index, const vectorfield & spins, Callable & hessian ) const
 {
     if( !index.has_value() )
         return;
 
     const int ispin = *index;
     // Calculate Hessian
-    for( unsigned int igauss = 0; igauss < data.amplitude.size(); ++igauss )
+    for( unsigned int igauss = 0; igauss < n_gaussians; ++igauss )
     {
         // Distance between spin and gaussian center
-        scalar l = 1 - data.center[igauss].dot( spins[ispin] );
+        scalar l = 1 - center[igauss].dot( spins[ispin] );
         // Prefactor for all alpha, beta
-        scalar prefactor
-            = data.amplitude[igauss] * std::exp( -std::pow( l, 2 ) / ( 2.0 * std::pow( data.width[igauss], 2 ) ) )
-              / std::pow( data.width[igauss], 2 ) * ( std::pow( l, 2 ) / std::pow( data.width[igauss], 2 ) - 1 );
+        scalar prefactor = amplitude[igauss] * std::exp( -std::pow( l, 2 ) / ( 2.0 * std::pow( width[igauss], 2 ) ) )
+                           / std::pow( width[igauss], 2 ) * ( std::pow( l, 2 ) / std::pow( width[igauss], 2 ) - 1 );
         // Effective Field contribution
         for( std::uint8_t alpha = 0; alpha < 3; ++alpha )
         {
@@ -153,7 +179,7 @@ void Gaussian::Hessian::operator()( const Index & index, const vectorfield & spi
             {
                 std::size_t i = 3 * ispin + alpha;
                 std::size_t j = 3 * ispin + beta;
-                f( i, j, prefactor * data.center[igauss][alpha] * data.center[igauss][beta] );
+                hessian( i, j, prefactor * center[igauss][alpha] * center[igauss][beta] );
             }
         }
     }
