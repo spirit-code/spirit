@@ -93,16 +93,14 @@ struct Functor::Local::DataRef<Zeeman>
     using Cache       = typename Interaction::Cache;
 
     DataRef( const Data & data, const Cache & cache ) noexcept
-            : data( data ),
-              cache( cache ),
+            : is_contributing( Interaction::is_contributing( data, cache ) ),
               external_field_magnitude( data.external_field_magnitude ),
               external_field_normal( data.external_field_normal ),
               mu_s( cache.geometry->mu_s.data() )
     {
     }
 
-    const Data & data;
-    const Cache & cache;
+    const bool is_contributing;
 
 protected:
     const scalar external_field_magnitude;
@@ -113,7 +111,7 @@ protected:
 template<>
 inline scalar Zeeman::Energy::operator()( const Index & index, const vectorfield & spins ) const
 {
-    if( index.has_value() && *index >= 0 )
+    if( is_contributing && index.has_value() && *index >= 0 )
     {
         const auto & ispin = *index;
         return -mu_s[ispin] * external_field_magnitude * external_field_normal.dot( spins[ispin] );
@@ -125,7 +123,7 @@ inline scalar Zeeman::Energy::operator()( const Index & index, const vectorfield
 template<>
 inline Vector3 Zeeman::Gradient::operator()( const Index & index, const vectorfield & ) const
 {
-    if( index.has_value() && *index >= 0 )
+    if( is_contributing && index.has_value() && *index >= 0 )
     {
         const auto & ispin = *index;
         return -mu_s[ispin] * external_field_magnitude * external_field_normal;

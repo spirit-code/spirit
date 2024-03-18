@@ -94,12 +94,10 @@ struct Functor::Local::DataRef<Cubic_Anisotropy>
     using Cache       = typename Interaction::Cache;
 
     DataRef( const Data & data, const Cache & cache ) noexcept
-            : data( data ),
-              cache( cache ),
+            : is_contributing( Interaction::is_contributing( data, cache ) ),
               magnitudes( data.magnitudes.data() ){}
 
-    const Data & data;
-    const Cache & cache;
+    const bool is_contributing;
 
 protected:
     const scalar * magnitudes;
@@ -111,7 +109,7 @@ inline scalar Cubic_Anisotropy::Energy::operator()( const Index & index, const v
 {
     using std::pow;
     scalar result = 0;
-    if( !index.has_value() )
+    if( !is_contributing || !index.has_value() )
         return result;
 
     const auto & [ispin, iani] = *index;
@@ -124,7 +122,7 @@ inline Vector3 Cubic_Anisotropy::Gradient::operator()( const Index & index, cons
 {
     using std::pow;
     Vector3 result = Vector3::Zero();
-    if( !index.has_value() )
+    if( !is_contributing || !index.has_value() )
         return result;
 
     const auto & [ispin, iani] = *index;

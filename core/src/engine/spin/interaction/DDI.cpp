@@ -110,6 +110,9 @@ void DDI::applyGeometry(
 template<>
 void DDI::Energy::operator()( const vectorfield & spins, scalarfield & energy ) const
 {
+    if (!is_contributing)
+        return;
+
     if( cache.geometry == nullptr || cache.boundary_conditions == nullptr )
         // TODO: turn this into an error
         return;
@@ -129,6 +132,9 @@ void DDI::Energy::operator()( const vectorfield & spins, scalarfield & energy ) 
 template<>
 void DDI::Gradient::operator()( const vectorfield & spins, vectorfield & gradient ) const
 {
+    if (!is_contributing)
+        return;
+
     if( cache.geometry == nullptr || cache.boundary_conditions == nullptr )
         // TODO: turn this into an error
         return;
@@ -150,6 +156,9 @@ void DDI::Gradient::operator()( const vectorfield & spins, vectorfield & gradien
 template<>
 scalar DDI::Energy_Single_Spin::operator()( const int ispin, const vectorfield & spins ) const
 {
+    if (!is_contributing)
+        return 0;
+
     // TODO
     return 0;
 };

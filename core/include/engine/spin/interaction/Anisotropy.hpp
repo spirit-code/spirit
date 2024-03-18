@@ -102,10 +102,11 @@ struct Functor::Local::DataRef<Anisotropy>
     using Cache       = typename Interaction::Cache;
 
     DataRef( const Data & data, const Cache & cache ) noexcept
-            : data( data ), cache( cache ), normals( data.normals.data() ), magnitudes( data.magnitudes.data() ){};
+            : is_contributing( Interaction::is_contributing( data, cache ) ),
+              normals( data.normals.data() ),
+              magnitudes( data.magnitudes.data() ){};
 
-    const Data & data;
-    const Cache & cache;
+    const bool is_contributing;
 
 protected:
     const Vector3 * normals;
@@ -115,7 +116,7 @@ protected:
 template<>
 inline scalar Anisotropy::Energy::operator()( const Index & index, const vectorfield & spins ) const
 {
-    if( index.has_value() )
+    if( is_contributing && index.has_value() )
     {
         const auto & [ispin, iani] = *index;
         const auto d               = normals[iani].dot( spins[ispin] );
@@ -130,7 +131,7 @@ inline scalar Anisotropy::Energy::operator()( const Index & index, const vectorf
 template<>
 inline Vector3 Anisotropy::Gradient::operator()( const Index & index, const vectorfield & spins ) const
 {
-    if( index.has_value() )
+    if( is_contributing && index.has_value() )
     {
         const auto & [ispin, iani] = *index;
         return -2.0 * magnitudes[iani] * normals[iani] * normals[iani].dot( spins[ispin] );
@@ -145,7 +146,7 @@ template<>
 template<typename Callable>
 void Anisotropy::Hessian::operator()( const Index & index, const vectorfield &, Callable & hessian ) const
 {
-    if( !index.has_value() )
+    if( !is_contributing || !index.has_value() )
         return;
 
     const auto & [ispin, iani] = *index;

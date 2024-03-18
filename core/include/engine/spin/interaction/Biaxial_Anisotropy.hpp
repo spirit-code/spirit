@@ -112,14 +112,12 @@ struct Functor::Local::DataRef<Biaxial_Anisotropy>
     using Cache       = typename Interaction::Cache;
 
     DataRef( const Data & data, const Cache & cache ) noexcept
-            : data( data ),
-              cache( cache ),
+            : is_contributing( Interaction::is_contributing( data, cache ) ),
               bases( data.bases.data() ),
               site_p( data.site_p.data() ),
               terms( data.terms.data() ){};
 
-    const Data & data;
-    const Cache & cache;
+    const bool is_contributing;
 
 protected:
     const PolynomialBasis * bases;
@@ -132,7 +130,7 @@ inline scalar Biaxial_Anisotropy::Energy::operator()( const Index & index, const
 {
     using std::pow;
     scalar result = 0;
-    if( !index.has_value() )
+    if( !is_contributing || !index.has_value() )
         return result;
 
     const auto & [ispin, iani] = *index;
@@ -156,7 +154,7 @@ inline Vector3 Biaxial_Anisotropy::Gradient::operator()( const Index & index, co
 {
     using std::pow;
     Vector3 result = Vector3::Zero();
-    if( !index.has_value() )
+    if( !is_contributing || !index.has_value() )
         return result;
 
     const auto & [ispin, iani] = *index;
@@ -192,7 +190,7 @@ template<typename Callable>
 void Biaxial_Anisotropy::Hessian::operator()( const Index & index, const vectorfield & spins, Callable & hessian ) const
 {
     using std::pow;
-    if( !index.has_value() )
+    if( !is_contributing || !index.has_value() )
         return;
 
     const auto & [ispin, iani] = *index;

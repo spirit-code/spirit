@@ -47,13 +47,10 @@ auto tuple_dispatch( std::tuple<Interaction::InteractionWrapper<InteractionTypes
 template<typename... Functors, typename... Args>
 void apply( std::tuple<Functors...> functors, Args &&... args )
 {
-    if constexpr( sizeof...( Functors ) == 0 )
-        return;
-    else
-        std::apply(
-            [args = std::tuple<Args...>( std::forward<Args>( args )... )]( auto &... functor ) -> void
-            { ( ..., std::apply( functor, args ) ); },
-            functors );
+    std::apply(
+        [args = std::tuple<Args...>( std::forward<Args>( args )... )]( auto &... functor ) -> void
+        { ( ..., std::apply( functor, args ) ); },
+        functors );
 }
 
 template<typename... Functors, typename ReturnType, typename... Args>
@@ -72,17 +69,12 @@ struct transform_op
     auto operator()( const IndexTuple & index ) -> ReturnType
     {
         return std::apply(
-            [&index, &state = this->state_ref, &zero = this->zero_repr]( Functors &... f ) -> ReturnType
+            [&index, &state = this->state_ref, zero = this->zero_repr]( Functors &... f ) -> ReturnType
             {
                 return (
-                    zero + ... + [&state, &zero, &index]( Functors & functor )
+                    zero + ... + [&state, &index]( Functors & functor )
                         -> decltype( functor( std::get<typename Functors::Interaction::Index>( index ), state ) )
-                    {
-                        if( Functors::Interaction::is_contributing( functor.data, functor.cache ) )
-                            return functor( std::get<typename Functors::Interaction::Index>( index ), state );
-                        else
-                            return zero;
-                    }( f ) );
+                    { return functor( std::get<typename Functors::Interaction::Index>( index ), state ); }( f ) );
             },
             functors );
     };
@@ -108,10 +100,8 @@ struct for_each_op
             [&index, &state = state_ref, &unary_op = unary_op_ref]( Functors &... functor ) -> void
             {
                 ( ...,
-                  [&state, &index, &unary_op]( Functors & functor ) -> void
-                  {
-                      if( Functors::Interaction::is_contributing( functor.data, functor.cache ) )
-                          functor( std::get<typename Functors::Interaction::Index>( index ), state, unary_op );
+                  [&state, &index, &unary_op]( Functors & functor ) -> void {
+                      functor( std::get<typename Functors::Interaction::Index>( index ), state, unary_op );
                   }( functor ) );
             },
             functors );
@@ -127,7 +117,7 @@ private:
     UnaryOp & unary_op_ref;
 };
 
-} // namespace Functors
+} // namespace Functor
 
 } // namespace Spin
 
