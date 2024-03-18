@@ -322,9 +322,11 @@ set( SOURCE_SPIRIT_ENGINE_SPIN )
 set( SOURCE_SPIRIT_ENGINE_SPIN_INTERACTION )
 set( SOURCE_SPIRIT_IO )
 set( SOURCE_SPIRIT_UTILITY )
+### CUDA enabled source files
+set( SPIRIT_CUDA_SOURCES )
 ### Add Subdirectories
-add_subdirectory( ${CMAKE_CURRENT_LIST_DIR}/src )
-add_subdirectory( ${CMAKE_CURRENT_LIST_DIR}/include )
+add_subdirectory( src )
+add_subdirectory( include )
 ####################################################################
 
 
@@ -382,11 +384,7 @@ if( SPIRIT_USE_CUDA )
     set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DSPIRIT_USE_CUDA )
 
     ### Need to use nvcc on many source files because they indirectly include cuda.h
-    set_source_files_properties(
-        ${CMAKE_CURRENT_LIST_DIR}/src/utility/Configurations.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/utility/Configuration_Chain.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/src/utility/Logging.cpp
-        PROPERTIES LANGUAGE CUDA )
+    set_source_files_properties( ${SPIRIT_CUDA_SOURCES} PROPERTIES LANGUAGE CUDA )
 
     set_source_files_properties(
         ${CMAKE_CURRENT_LIST_DIR}/test/test_api.cpp

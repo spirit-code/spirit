@@ -25,7 +25,8 @@ set(SOURCE_SPIRIT
 
 if( SPIRIT_USE_CUDA )
     ### Need to use nvcc on many source files because they indirectly include cuda.h
-    set_source_files_properties(
+    SET(SPIRIT_CUDA_SOURCES
+        ${SPIRIT_CUDA_SOURCES}
         ${CMAKE_CURRENT_LIST_DIR}/Chain.cpp
         ${CMAKE_CURRENT_LIST_DIR}/Configurations.cpp
         ${CMAKE_CURRENT_LIST_DIR}/Geometry.cpp
@@ -42,5 +43,6 @@ if( SPIRIT_USE_CUDA )
         ${CMAKE_CURRENT_LIST_DIR}/System.cpp
         ${CMAKE_CURRENT_LIST_DIR}/Transitions.cpp
         ${CMAKE_CURRENT_LIST_DIR}/Quantities.cpp
-        PROPERTIES LANGUAGE CUDA )
+        PARENT_SCOPE
+    )
 endif()

@@ -1,4 +1,4 @@
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/common)
+add_subdirectory(common)
 set(HEADER_SPIRIT_ENGINE_COMMON
     ${HEADER_SPIRIT_ENGINE_SPIN}
     PARENT_SCOPE
@@ -9,7 +9,7 @@ set(HEADER_SPIRIT_ENGINE_COMMON_INTERACTION
     PARENT_SCOPE
 )
 
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/spin)
+add_subdirectory(spin)
 
 set(HEADER_SPIRIT_ENGINE_SPIN
     ${HEADER_SPIRIT_ENGINE_SPIN}

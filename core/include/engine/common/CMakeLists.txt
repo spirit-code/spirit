@@ -1,4 +1,4 @@
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/interaction)
+add_subdirectory(interaction)
 
 set(SOURCE_SPIRIT_ENGINE_COMMON_INTERACTION
     ${SOURCE_SPIRIT_ENGINE_COMMON_INTERACTION}
