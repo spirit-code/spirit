@@ -87,10 +87,10 @@ struct DDI
     static void applyGeometry(
         const ::Data::Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache );
 
-    using Energy             = Functor::NonLocal::Energy_Functor<DDI>;
-    using Gradient           = Functor::NonLocal::Gradient_Functor<DDI>;
-    using Hessian            = Functor::NonLocal::Hessian_Functor<DDI>;
-    using Energy_Single_Spin = Functor::NonLocal::Energy_Single_Spin_Functor<DDI>;
+    using Energy             = Functor::NonLocal::Energy_Functor<Functor::NonLocal::DataRef<DDI>>;
+    using Gradient           = Functor::NonLocal::Gradient_Functor<Functor::NonLocal::DataRef<DDI>>;
+    using Hessian            = Functor::NonLocal::Hessian_Functor<Functor::NonLocal::DataRef<DDI>>;
+    using Energy_Single_Spin = Functor::NonLocal::Energy_Single_Spin_Functor<Functor::NonLocal::DataRef<DDI>>;
     using Energy_Total       = Functor::NonLocal::Reduce_Functor<Energy>;
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data & data, const Cache & )

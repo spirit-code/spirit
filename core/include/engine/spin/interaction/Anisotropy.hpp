@@ -60,9 +60,9 @@ struct Anisotropy
 
     using Index = std::optional<IndexType>;
 
-    using Energy   = Functor::Local::Energy_Functor<Anisotropy>;
-    using Gradient = Functor::Local::Gradient_Functor<Anisotropy>;
-    using Hessian  = Functor::Local::Hessian_Functor<Anisotropy>;
+    using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<Anisotropy>>;
+    using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<Anisotropy>>;
+    using Hessian  = Functor::Local::Hessian_Functor<Functor::Local::DataRef<Anisotropy>>;
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data & data, const Cache & )
     {
@@ -95,13 +95,31 @@ struct Anisotropy
 };
 
 template<>
+struct Functor::Local::DataRef<Anisotropy>
+{
+    using Interaction = Anisotropy;
+    using Data        = typename Interaction::Data;
+    using Cache       = typename Interaction::Cache;
+
+    DataRef( const Data & data, const Cache & cache ) noexcept
+            : data( data ), cache( cache ), normals( data.normals.data() ), magnitudes( data.magnitudes.data() ){};
+
+    const Data & data;
+    const Cache & cache;
+
+protected:
+    const Vector3 * normals;
+    const scalar * magnitudes;
+};
+
+template<>
 inline scalar Anisotropy::Energy::operator()( const Index & index, const vectorfield & spins ) const
 {
     if( index.has_value() )
     {
         const auto & [ispin, iani] = *index;
-        const auto d               = data.normals[iani].dot( spins[ispin] );
-        return -data.magnitudes[iani] * d * d;
+        const auto d               = normals[iani].dot( spins[ispin] );
+        return -magnitudes[iani] * d * d;
     }
     else
     {
@@ -115,8 +133,7 @@ inline Vector3 Anisotropy::Gradient::operator()( const Index & index, const vect
     if( index.has_value() )
     {
         const auto & [ispin, iani] = *index;
-        return -2.0 * data.magnitudes[iani] * data.normals[iani]
-               * data.normals[iani].dot( spins[ispin] );
+        return -2.0 * magnitudes[iani] * normals[iani] * normals[iani].dot( spins[ispin] );
     }
     else
     {
@@ -125,8 +142,8 @@ inline Vector3 Anisotropy::Gradient::operator()( const Index & index, const vect
 }
 
 template<>
-template<typename F>
-void Anisotropy::Hessian::operator()( const Index & index, const vectorfield &, F & f ) const
+template<typename Callable>
+void Anisotropy::Hessian::operator()( const Index & index, const vectorfield &, Callable & hessian ) const
 {
     if( !index.has_value() )
         return;
@@ -139,9 +156,9 @@ void Anisotropy::Hessian::operator()( const Index & index, const vectorfield &, 
 #pragma unroll
         for( int beta = 0; beta < 3; ++beta )
         {
-            int i = 3 * ispin + alpha;
-            int j = 3 * ispin + alpha;
-            f( i, j, -2.0 * data.magnitudes[iani] * data.normals[iani][alpha] * data.normals[iani][beta] );
+            const int i = 3 * ispin + alpha;
+            const int j = 3 * ispin + alpha;
+            hessian( i, j, -2.0 * magnitudes[iani] * normals[iani][alpha] * normals[iani][beta] );
         }
     }
 }

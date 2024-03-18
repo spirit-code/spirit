@@ -52,9 +52,9 @@ struct Cubic_Anisotropy
 
     using Index = std::optional<IndexType>;
 
-    using Energy   = Functor::Local::Energy_Functor<Cubic_Anisotropy>;
-    using Gradient = Functor::Local::Gradient_Functor<Cubic_Anisotropy>;
-    using Hessian  = Functor::Local::Hessian_Functor<Cubic_Anisotropy>;
+    using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<Cubic_Anisotropy>>;
+    using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<Cubic_Anisotropy>>;
+    using Hessian  = Functor::Local::Hessian_Functor<Functor::Local::DataRef<Cubic_Anisotropy>>;
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data &, const Cache & )
     {
@@ -87,6 +87,26 @@ struct Cubic_Anisotropy
 };
 
 template<>
+struct Functor::Local::DataRef<Cubic_Anisotropy>
+{
+    using Interaction = Cubic_Anisotropy;
+    using Data        = typename Interaction::Data;
+    using Cache       = typename Interaction::Cache;
+
+    DataRef( const Data & data, const Cache & cache ) noexcept
+            : data( data ),
+              cache( cache ),
+              magnitudes( data.magnitudes.data() ){}
+
+    const Data & data;
+    const Cache & cache;
+
+protected:
+    const scalar * magnitudes;
+};
+
+
+template<>
 inline scalar Cubic_Anisotropy::Energy::operator()( const Index & index, const vectorfield & spins ) const
 {
     using std::pow;
@@ -95,7 +115,7 @@ inline scalar Cubic_Anisotropy::Energy::operator()( const Index & index, const v
         return result;
 
     const auto & [ispin, iani] = *index;
-    return -0.5 * data.magnitudes[iani]
+    return -0.5 * magnitudes[iani]
            * ( pow( spins[ispin][0], 4.0 ) + pow( spins[ispin][1], 4.0 ) + pow( spins[ispin][2], 4.0 ) );
 }
 
@@ -111,14 +131,14 @@ inline Vector3 Cubic_Anisotropy::Gradient::operator()( const Index & index, cons
 
     for( int icomp = 0; icomp < 3; ++icomp )
     {
-        result[icomp] = -2.0 * data.magnitudes[iani] * pow( spins[ispin][icomp], 3.0 );
+        result[icomp] = -2.0 * magnitudes[iani] * pow( spins[ispin][icomp], 3.0 );
     }
     return result;
 }
 
 template<>
-template<typename F>
-void Cubic_Anisotropy::Hessian::operator()( const Index & index, const vectorfield & spins, F & f ) const
+template<typename Callable>
+void Cubic_Anisotropy::Hessian::operator()( const Index & index, const vectorfield & spins, Callable & hessian ) const
 {
     // TODO: Not yet implemented
 }

@@ -73,9 +73,9 @@ struct DMI
 
     using Index = std::vector<IndexType>;
 
-    using Energy   = Functor::Local::Energy_Functor<DMI>;
-    using Gradient = Functor::Local::Gradient_Functor<DMI>;
-    using Hessian  = Functor::Local::Hessian_Functor<DMI>;
+    using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<DMI>>;
+    using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<DMI>>;
+    using Hessian  = Functor::Local::Hessian_Functor<Functor::Local::DataRef<DMI>>;
 
     static std::size_t Sparse_Hessian_Size_per_Cell( const Data &, const Cache & cache )
     {
@@ -142,6 +142,26 @@ struct DMI
 };
 
 template<>
+struct Functor::Local::DataRef<DMI>
+{
+    using Interaction = DMI;
+    using Data        = typename Interaction::Data;
+    using Cache       = typename Interaction::Cache;
+
+    DataRef( const Data & data, const Cache & cache ) noexcept
+            : data( data ), cache( cache ), magnitudes( cache.magnitudes.data() ), normals( cache.normals.data() )
+    {
+    }
+
+    const Data & data;
+    const Cache & cache;
+
+protected:
+    const scalar * magnitudes;
+    const Vector3 * normals;
+};
+
+template<>
 inline scalar DMI::Energy::operator()( const Index & index, const vectorfield & spins ) const
 {
     return std::transform_reduce(
@@ -149,8 +169,8 @@ inline scalar DMI::Energy::operator()( const Index & index, const vectorfield & 
         [this, &spins]( const DMI::IndexType & idx ) -> scalar
         {
             const auto & [ispin, jspin, i_pair, inverse] = idx;
-            return ( inverse ? 0.5 : -0.5 ) * cache.magnitudes[i_pair]
-                   * cache.normals[i_pair].dot( spins[ispin].cross( spins[jspin] ) );
+            return ( inverse ? 0.5 : -0.5 ) * magnitudes[i_pair]
+                   * normals[i_pair].dot( spins[ispin].cross( spins[jspin] ) );
         } );
 }
 
@@ -162,30 +182,30 @@ inline Vector3 DMI::Gradient::operator()( const Index & index, const vectorfield
         [this, &spins]( const DMI::IndexType & idx ) -> Vector3
         {
             const auto & [ispin, jspin, i_pair, inverse] = idx;
-            return ( inverse ? 1.0 : -1.0 ) * cache.magnitudes[i_pair] * spins[jspin].cross( cache.normals[i_pair] );
+            return ( inverse ? 1.0 : -1.0 ) * magnitudes[i_pair] * spins[jspin].cross( normals[i_pair] );
         } );
 }
 
 template<>
-template<typename F>
-void DMI::Hessian::operator()( const Index & index, const vectorfield &, F & f ) const
+template<typename Callable>
+void DMI::Hessian::operator()( const Index & index, const vectorfield &, Callable & hessian ) const
 {
 
     std::for_each(
         begin( index ), end( index ),
-        [this, &index, &f]( const DMI::IndexType & idx )
+        [this, &index, &hessian]( const DMI::IndexType & idx )
         {
             const int i       = 3 * idx.ispin;
             const int j       = 3 * idx.jspin;
             const auto i_pair = idx.ipair;
             const scalar sign = ( idx.inverse ? -1.0 : 1.0 );
 
-            f( i + 2, j + 1, sign * cache.magnitudes[i_pair] * cache.normals[i_pair][0] );
-            f( i + 1, j + 2, -sign * cache.magnitudes[i_pair] * cache.normals[i_pair][0] );
-            f( i + 0, j + 2, sign * cache.magnitudes[i_pair] * cache.normals[i_pair][1] );
-            f( i + 2, j + 0, -sign * cache.magnitudes[i_pair] * cache.normals[i_pair][1] );
-            f( i + 1, j + 0, sign * cache.magnitudes[i_pair] * cache.normals[i_pair][2] );
-            f( i + 0, j + 1, -sign * cache.magnitudes[i_pair] * cache.normals[i_pair][2] );
+            hessian( i + 2, j + 1, sign * magnitudes[i_pair] * normals[i_pair][0] );
+            hessian( i + 1, j + 2, -sign * magnitudes[i_pair] * normals[i_pair][0] );
+            hessian( i + 0, j + 2, sign * magnitudes[i_pair] * normals[i_pair][1] );
+            hessian( i + 2, j + 0, -sign * magnitudes[i_pair] * normals[i_pair][1] );
+            hessian( i + 1, j + 0, sign * magnitudes[i_pair] * normals[i_pair][2] );
+            hessian( i + 0, j + 1, -sign * magnitudes[i_pair] * normals[i_pair][2] );
         } );
 };
 
