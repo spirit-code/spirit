@@ -95,8 +95,7 @@ struct Functor::Local::DataRef<Gaussian>
     using Cache       = typename Interaction::Cache;
 
     DataRef( const Data & data, const Cache & cache ) noexcept
-            : data( data ),
-              cache( cache ),
+            : is_contributing( Interaction::is_contributing( data, cache ) ),
               n_gaussians( data.amplitude.size() ),
               amplitude( data.amplitude.data() ),
               width( data.width.data() ),
@@ -104,8 +103,7 @@ struct Functor::Local::DataRef<Gaussian>
     {
     }
 
-    const Data & data;
-    const Cache & cache;
+    const bool is_contributing;
 
 protected:
     std::size_t n_gaussians;
@@ -119,7 +117,7 @@ inline scalar Gaussian::Energy::operator()( const Index & index, const vectorfie
 {
     scalar result = 0;
 
-    if( !index.has_value() )
+    if( !is_contributing || !index.has_value() )
         return result;
 
     const int ispin = *index;
@@ -138,7 +136,7 @@ inline Vector3 Gaussian::Gradient::operator()( const Index & index, const vector
 {
     Vector3 result = Vector3::Zero();
 
-    if( !index.has_value() )
+    if( !is_contributing || !index.has_value() )
         return result;
 
     const int ispin = *index;
@@ -160,7 +158,7 @@ template<>
 template<typename Callable>
 void Gaussian::Hessian::operator()( const Index & index, const vectorfield & spins, Callable & hessian ) const
 {
-    if( !index.has_value() )
+    if( !is_contributing || !index.has_value() )
         return;
 
     const int ispin = *index;

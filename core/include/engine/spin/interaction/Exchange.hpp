@@ -136,12 +136,11 @@ struct Functor::Local::DataRef<Exchange>
     using Cache       = typename Interaction::Cache;
 
     DataRef( const Data & data, const Cache & cache ) noexcept
-            : data( data ), cache( cache ), magnitudes( cache.magnitudes.data() )
+            : is_contributing( Interaction::is_contributing( data, cache ) ), magnitudes( cache.magnitudes.data() )
     {
     }
 
-    const Data & data;
-    const Cache & cache;
+    const bool is_contributing;
 
 protected:
     const scalar * magnitudes;
@@ -150,6 +149,7 @@ protected:
 template<>
 inline scalar Exchange::Energy::operator()( const Index & index, const vectorfield & spins ) const
 {
+    // don't need to check for `is_contributing` here, because the `transform` will short circuit correctly
     return std::transform_reduce(
         begin( index ), end( index ), scalar( 0.0 ), std::plus<scalar>{},
         [this, &spins]( const Exchange::IndexType & idx ) -> scalar
@@ -162,6 +162,7 @@ inline scalar Exchange::Energy::operator()( const Index & index, const vectorfie
 template<>
 inline Vector3 Exchange::Gradient::operator()( const Index & index, const vectorfield & spins ) const
 {
+    // don't need to check for `is_contributing` here, because the `transform` will short circuit correctly
     return std::transform_reduce(
         begin( index ), end( index ), Vector3{ 0.0, 0.0, 0.0 }, std::plus<Vector3>{},
         [this, &spins]( const Exchange::IndexType & idx ) -> Vector3
@@ -175,7 +176,7 @@ template<>
 template<typename Callable>
 void Exchange::Hessian::operator()( const Index & index, const vectorfield &, Callable & hessian ) const
 {
-
+    // don't need to check for `is_contributing` here, because `for_each` will short circuit properly
     std::for_each(
         begin( index ), end( index ),
         [this, &index, &hessian]( const Exchange::IndexType & idx )

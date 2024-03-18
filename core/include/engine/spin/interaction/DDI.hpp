@@ -108,10 +108,12 @@ struct DDI
 };
 
 template<>
-template<typename F>
-void DDI::Hessian::operator()( const vectorfield & spins, F & f ) const
+template<typename Callable>
+void DDI::Hessian::operator()( const vectorfield & spins, Callable & hessian ) const
 {
     namespace C = Utility::Constants;
+    if( !is_contributing )
+        return;
 
     if( cache.geometry == nullptr || cache.boundary_conditions == nullptr )
         // TODO: turn this into an error
@@ -146,15 +148,15 @@ void DDI::Hessian::operator()( const vectorfield & spins, F & f ) const
                 const int i = 3 * idx1;
                 const int j = 3 * idx2;
 
-                f( i + 0, j + 0, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dxx ) );
-                f( i + 1, j + 0, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dxy ) );
-                f( i + 2, j + 0, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dxz ) );
-                f( i + 0, j + 1, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dxy ) );
-                f( i + 1, j + 1, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dyy ) );
-                f( i + 2, j + 1, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dyz ) );
-                f( i + 0, j + 2, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dxz ) );
-                f( i + 1, j + 2, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dyz ) );
-                f( i + 2, j + 2, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dzz ) );
+                hessian( i + 0, j + 0, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dxx ) );
+                hessian( i + 1, j + 0, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dxy ) );
+                hessian( i + 2, j + 0, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dxz ) );
+                hessian( i + 0, j + 1, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dxy ) );
+                hessian( i + 1, j + 1, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dyy ) );
+                hessian( i + 2, j + 1, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dyz ) );
+                hessian( i + 0, j + 2, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dxz ) );
+                hessian( i + 1, j + 2, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dyz ) );
+                hessian( i + 2, j + 2, -geometry.mu_s[idx1] * geometry.mu_s[idx2] * ( Dzz ) );
             }
         }
     }

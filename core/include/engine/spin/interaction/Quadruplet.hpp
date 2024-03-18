@@ -126,14 +126,12 @@ struct Functor::Local::DataRef<Quadruplet>
     using Cache       = typename Interaction::Cache;
 
     DataRef( const Data & data, const Cache & cache ) noexcept
-            : data( data ),
-              cache( cache ),
+            : is_contributing( Interaction::is_contributing( data, cache ) ),
               magnitudes( data.magnitudes.data() )
     {
     }
 
-    const Data & data;
-    const Cache & cache;
+    const bool is_contributing;
 
 protected:
     const scalar * magnitudes;

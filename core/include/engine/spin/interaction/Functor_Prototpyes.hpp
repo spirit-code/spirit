@@ -67,6 +67,7 @@ struct DataRef
 
     const Data & data;
     Cache & cache;
+    bool is_contributing = Interaction::is_contributing( data, cache );
 };
 
 template<typename Functor>
@@ -91,8 +92,7 @@ private:
     Functor functor;
 
 public:
-    decltype( functor.data ) data   = functor.data;
-    decltype( functor.cache ) cache = functor.cache;
+    bool is_contributing = functor.is_contributing;
 };
 
 template<typename DataRef>
@@ -161,6 +161,7 @@ struct DataRef
 
     const Data & data;
     const Cache & cache;
+    const bool is_contributing = Interaction::is_contributing( data, cache );
 };
 
 template<typename DataRef>
@@ -226,8 +227,7 @@ private:
     static constexpr scalar weight = weight_factor;
 
 public:
-    decltype( functor.data ) data   = functor.data;
-    decltype( functor.cache ) cache = functor.cache;
+    const bool is_contributing = functor.is_contributing;
 };
 
 } // namespace Local
