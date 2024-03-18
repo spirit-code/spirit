@@ -9,9 +9,11 @@ set(SOURCE_SPIRIT_DATA
 
 if( SPIRIT_USE_CUDA )
     ### Need to use nvcc on many source files because they indirectly include cuda.h
-    set_source_files_properties(
+    SET(SPIRIT_CUDA_SOURCES
+        ${SPIRIT_CUDA_SOURCES}
         ${CMAKE_CURRENT_LIST_DIR}/Geometry.cpp
         ${CMAKE_CURRENT_LIST_DIR}/Spin_System.cpp
         ${CMAKE_CURRENT_LIST_DIR}/Spin_System_Chain.cpp
-        PROPERTIES LANGUAGE CUDA )
+        PARENT_SCOPE
+    )
 endif()

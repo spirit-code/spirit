@@ -6,7 +6,9 @@ set(SOURCE_SPIRIT_ENGINE_SPIN_INTERACTION
 
 if( SPIRIT_USE_CUDA )
     ### Need to use nvcc on many source files because they indirectly include cuda.h
-    set_source_files_properties(
+    SET(SPIRIT_CUDA_SOURCES
+        ${SPIRIT_CUDA_SOURCES}
         ${CMAKE_CURRENT_LIST_DIR}/DDI.cpp
-        PROPERTIES LANGUAGE CUDA )
+        PARENT_SCOPE
+    )
 endif()
