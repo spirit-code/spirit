@@ -21,8 +21,13 @@
     #include <thrust/copy.h>
     #include <thrust/fill.h>
     #include <thrust/for_each.h>
+    #include <thrust/optional.h>
     #include <thrust/transform.h>
     #include <thrust/transform_reduce.h>
+    #include <thrust/universal_vector.h>
+    #include <thrust/iterator/zip_iterator.h>
+    #include <thrust/zip_function.h>
+
     #include <thrust/execution_policy.h>
 
     #define THRUST_IGNORE_CUB_VERSION_CHECK
@@ -65,7 +70,89 @@ using std::transform_reduce;
 #ifndef SPIRIT_USE_CUDA
 using namespace cpu;
 #else
-using namespace cpu;
+using thrust::optional;
+
+template<typename T>
+using vector = thrust::universal_vector<T>;
+
+using thrust::plus;
+
+using thrust::copy;
+using thrust::fill;
+using thrust::fill_n;
+using thrust::for_each;
+using thrust::transform;
+
+namespace device
+{
+
+template<class InputIt, class T, class BinaryReductionOp, class UnaryTransformOp>
+__device__ __forceinline__ T
+transform_reduce( InputIt first, InputIt last, T init, BinaryReductionOp reduce, UnaryTransformOp transform )
+{
+    {
+        auto t_it   = cub::TransformInputIterator<T, UnaryTransformOp, InputIt>( first, transform );
+        auto t_last = cub::TransformInputIterator<T, UnaryTransformOp, InputIt>( last, transform );
+        // no parallelization, because as a __device__ function this is called per thread
+        for( ; t_it != t_last; ++t_it )
+        {
+            init = reduce( init, *t_it );
+        }
+    }
+    return init;
+}
+
+} // namespace device
+
+// requires that `reduce` is a `__host__ __device__` functor
+template<class InputIt, class T, class BinaryReductionOp, class UnaryTransformOp>
+__host__ __device__ T
+transform_reduce( InputIt first, InputIt last, T && init, BinaryReductionOp && reduce, UnaryTransformOp && transform )
+{
+#ifdef __CUDA_ARCH__
+    return Backend::device::transform_reduce(
+        first, last, std::forward<T>( init ), std::forward<BinaryReductionOp>( reduce ),
+        std::forward<UnaryTransformOp>( transform ) );
+#else
+    return thrust::transform_reduce(
+        first, last, std::forward<UnaryTransformOp>( transform ), std::forward<T>( init ),
+        std::forward<BinaryReductionOp>( reduce ) );
+#endif
+};
+
+template<class DerivedPolicy, class InputIt, class T, class BinaryReductionOp, class UnaryTransformOp>
+__host__ __device__ T transform_reduce(
+    const thrust::detail::execution_policy_base<DerivedPolicy> & policy, InputIt first1, InputIt last1, T && init,
+    BinaryReductionOp && reduce, UnaryTransformOp && transform )
+{
+    return thrust::transform_reduce(
+        policy, first1, last1, std::forward<UnaryTransformOp>( transform ), std::forward<T>( init ),
+        std::forward<BinaryReductionOp>( reduce ) );
+};
+
+template<class InputIt1, class InputIt2, class T, class BinaryReductionOp, class BinaryTransformOp>
+__host__ __device__ T transform_reduce(
+    InputIt1 first1, InputIt1 last1, InputIt2 first2, T && init, BinaryReductionOp && reduce,
+    BinaryTransformOp && transform )
+{
+    return Backend::transform_reduce(
+        thrust::make_zip_iterator( first1, first2 ),
+        thrust::make_zip_iterator( last1, first2 + std::distance( first1, last1 ) ), std::forward<T>( init ),
+        std::forward<BinaryReductionOp>( reduce ),
+        thrust::make_zip_function( std::forward<BinaryTransformOp>( transform ) ) );
+};
+
+template<class DerivedPolicy, class InputIt1, class InputIt2, class T, class BinaryReductionOp, class BinaryTransformOp>
+__host__ __device__ T transform_reduce(
+    const thrust::detail::execution_policy_base<DerivedPolicy> & policy, InputIt1 first1, InputIt1 last1,
+    InputIt2 first2, T && init, BinaryReductionOp && reduce, BinaryTransformOp && transform )
+{
+    return thrust::transform_reduce(
+        policy, thrust::make_zip_iterator( first1, first2 ),
+        thrust::make_zip_iterator( last1, first2 + std::distance( first1, last1 ) ),
+        thrust::make_zip_function( std::forward<BinaryTransformOp>( transform ) ), std::forward<T>( init ),
+        std::forward<BinaryReductionOp>( reduce ) );
+};
 #endif
 
 namespace par

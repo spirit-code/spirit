@@ -188,7 +188,7 @@ public:
     {
         using std::begin, std::end;
         auto functor = typename InteractionType::Hessian( data, cache );
-        Backend::for_each(
+        Backend::cpu::for_each(
             begin( indices ), end( indices ),
             [&state, &functor, hessian_functor = Functor::dense_hessian_wrapper( hessian )]( const IndexTuple & index )
             { functor( std::get<typename InteractionType::Index>( index ), state, hessian_functor ); } );

@@ -108,6 +108,7 @@ struct Exchange
             cache.magnitudes = data.magnitudes;
         }
 
+        std::vector<Index> indices_local( indices.size(), Index{} );
         for( unsigned int icell = 0; icell < geometry.n_cells_total; ++icell )
         {
             for( unsigned int i_pair = 0; i_pair < cache.pairs.size(); ++i_pair )
@@ -118,11 +119,14 @@ struct Exchange
                     cache.pairs[i_pair] );
                 if( jspin >= 0 )
                 {
-                    std::get<Index>( indices[ispin] ).emplace_back( IndexType{ ispin, jspin, (int)i_pair } );
-                    std::get<Index>( indices[jspin] ).emplace_back( IndexType{ jspin, ispin, (int)i_pair } );
+                    indices_local[ispin].push_back( IndexType{ ispin, jspin, (int)i_pair } );
+                    indices_local[jspin].push_back( IndexType{ jspin, ispin, (int)i_pair } );
                 }
             }
         }
+
+        for( auto i = 0; i < indices.size(); ++i )
+            swap(std::get<Index>( indices[i] ), indices_local[i]);
     };
 };
 
@@ -148,10 +152,10 @@ protected:
 template<>
 inline scalar Exchange::Energy::operator()( const Index & index, const Vector3 * spins ) const
 {
-    // don't need to check for `is_contributing` here, because the `transform` will short circuit correctly
+    // don't need to check for `is_contributing` here, because the `transform_reduce` will short circuit correctly
     return Backend::transform_reduce(
         index.begin(), index.end(), scalar( 0.0 ), Backend::plus<scalar>{},
-        [this, &spins]( const Exchange::IndexType & idx ) -> scalar
+        [this, spins] SPIRIT_HOSTDEVICE( const Exchange::IndexType & idx ) -> scalar
         {
             const auto & [ispin, jspin, i_pair] = idx;
             return -0.5 * magnitudes[i_pair] * spins[ispin].dot( spins[jspin] );
@@ -161,10 +165,10 @@ inline scalar Exchange::Energy::operator()( const Index & index, const Vector3 *
 template<>
 inline Vector3 Exchange::Gradient::operator()( const Index & index, const Vector3 * spins ) const
 {
-    // don't need to check for `is_contributing` here, because the `transform` will short circuit correctly
+    // don't need to check for `is_contributing` here, because the `transform_reduce` will short circuit correctly
     return Backend::transform_reduce(
         index.begin(), index.end(), Vector3{ 0.0, 0.0, 0.0 }, Backend::plus<Vector3>{},
-        [this, &spins]( const Exchange::IndexType & idx ) -> Vector3
+        [this, spins] SPIRIT_HOSTDEVICE( const Exchange::IndexType & idx ) -> Vector3
         {
             const auto & [ispin, jspin, i_pair] = idx;
             return -magnitudes[i_pair] * spins[jspin];
@@ -176,7 +180,7 @@ template<typename Callable>
 void Exchange::Hessian::operator()( const Index & index, const vectorfield &, Callable & hessian ) const
 {
     // don't need to check for `is_contributing` here, because `for_each` will short circuit properly
-    std::for_each(
+    Backend::cpu::for_each(
         index.begin(), index.end(),
         [this, &index, &hessian]( const Exchange::IndexType & idx )
         {
