@@ -185,7 +185,7 @@ bool ncg_atlas_check_coordinates(
 
 void lbfgs_atlas_transform_direction(
     std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<scalarfield> & a3_coords,
-    std::vector<field<vector2field>> & atlas_updates, std::vector<field<vector2field>> & grad_updates,
+    std::vector<std::vector<vector2field>> & atlas_updates, std::vector<std::vector<vector2field>> & grad_updates,
     std::vector<vector2field> & searchdir, std::vector<vector2field> & grad_pr, scalarfield & rho )
 {
     int noi = configurations.size();
@@ -209,8 +209,8 @@ void lbfgs_atlas_transform_direction(
         field<Vector2 *> t1( n_mem ), t2( n_mem );
         for( int n = 0; n < n_mem; n++ )
         {
-            t1[n] = ( atlas_updates[img][n].data() );
-            t2[n] = ( grad_updates[img][n].data() );
+            t1[n] = raw_pointer_cast( atlas_updates[img][n].data() );
+            t2[n] = raw_pointer_cast( grad_updates[img][n].data() );
         }
 
         auto a_up = t1.data();

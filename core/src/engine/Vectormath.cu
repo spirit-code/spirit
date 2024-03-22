@@ -54,7 +54,7 @@ void get_random_vectorfield(
     std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, vectorfield & xi )
 {
     unsigned int n = xi.size();
-    cu_get_random_vectorfield<<<( n + 1023 ) / 1024, 1024>>>( xi.data(), n );
+    cu_get_random_vectorfield<<<( n + 1023 ) / 1024, 1024>>>( raw_pointer_cast( xi.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -95,7 +95,7 @@ void get_random_vector_unitsphere(
 // void get_random_vectorfield_unitsphere(std::mt19937 & prng, vectorfield & xi)
 // {
 //     int n = xi.size();
-//     cu_get_random_vectorfield<<<(n+1023)/1024, 1024>>>(xi.data(), n);
+//     cu_get_random_vectorfield<<<(n+1023)/1024, raw_pointer_cast( 1024>>>(xi.data() ), n);
 //     CU_CHECK_AND_SYNC();
 // }
 // The above CUDA implementation does not work correctly.
@@ -124,7 +124,7 @@ __global__ void cu_fill( scalar * sf, scalar s, const size_t N )
 void fill( scalarfield & sf, scalar s )
 {
     unsigned int n = sf.size();
-    cu_fill<<<( n + 1023 ) / 1024, 1024>>>( sf.data(), s, n );
+    cu_fill<<<( n + 1023 ) / 1024, 1024>>>( raw_pointer_cast( sf.data() ), s, n );
     CU_CHECK_AND_SYNC();
 }
 __global__ void cu_fill_mask( scalar * sf, scalar s, const int * mask, const size_t N )
@@ -138,7 +138,7 @@ __global__ void cu_fill_mask( scalar * sf, scalar s, const int * mask, const siz
 void fill( scalarfield & sf, scalar s, const intfield & mask )
 {
     unsigned int n = sf.size();
-    cu_fill_mask<<<( n + 1023 ) / 1024, 1024>>>( sf.data(), s, mask.data(), n );
+    cu_fill_mask<<<( n + 1023 ) / 1024, 1024>>>( raw_pointer_cast( sf.data() ), s, raw_pointer_cast( mask.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -153,7 +153,7 @@ __global__ void cu_scale( scalar * sf, scalar s, const size_t N )
 void scale( scalarfield & sf, scalar s )
 {
     unsigned int n = sf.size();
-    cu_scale<<<( n + 1023 ) / 1024, 1024>>>( sf.data(), s, n );
+    cu_scale<<<( n + 1023 ) / 1024, 1024>>>( raw_pointer_cast( sf.data() ), s, n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -168,7 +168,7 @@ __global__ void cu_add( scalar * sf, scalar s, const size_t N )
 void add( scalarfield & sf, scalar s )
 {
     unsigned int n = sf.size();
-    cu_add<<<( n + 1023 ) / 1024, 1024>>>( sf.data(), s, n );
+    cu_add<<<( n + 1023 ) / 1024, 1024>>>( raw_pointer_cast( sf.data() ), s, n );
     cudaDeviceSynchronize();
 }
 
@@ -179,10 +179,12 @@ scalar sum( const scalarfield & sf )
     // Determine temporary storage size and allocate
     void * d_temp_storage     = NULL;
     size_t temp_storage_bytes = 0;
-    cub::DeviceReduce::Sum( d_temp_storage, temp_storage_bytes, sf.data(), ret.data(), sf.size() );
+    cub::DeviceReduce::Sum(
+        d_temp_storage, temp_storage_bytes, raw_pointer_cast( sf.data() ), raw_pointer_cast( ret.data() ), sf.size() );
     cudaMalloc( &d_temp_storage, temp_storage_bytes );
     // Reduction
-    cub::DeviceReduce::Sum( d_temp_storage, temp_storage_bytes, sf.data(), ret.data(), sf.size() );
+    cub::DeviceReduce::Sum(
+        d_temp_storage, temp_storage_bytes, raw_pointer_cast( sf.data() ), raw_pointer_cast( ret.data() ), sf.size() );
     CU_CHECK_AND_SYNC();
     cudaFree( d_temp_storage );
     return ret[0];
@@ -204,7 +206,9 @@ __global__ void cu_divide( const scalar * numerator, const scalar * denominator,
 void divide( const scalarfield & numerator, const scalarfield & denominator, scalarfield & out )
 {
     unsigned int n = numerator.size();
-    cu_divide<<<( n + 1023 ) / 1024, 1024>>>( numerator.data(), denominator.data(), out.data(), n );
+    cu_divide<<<( n + 1023 ) / 1024, 1024>>>(
+        raw_pointer_cast( numerator.data() ), raw_pointer_cast( denominator.data() ), raw_pointer_cast( out.data() ),
+        n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -226,7 +230,7 @@ __global__ void cu_fill( Vector3 * vf1, Vector3 v2, const size_t N )
 void fill( vectorfield & vf, const Vector3 & v )
 {
     unsigned int n = vf.size();
-    cu_fill<<<( n + 1023 ) / 1024, 1024>>>( vf.data(), v, n );
+    cu_fill<<<( n + 1023 ) / 1024, 1024>>>( raw_pointer_cast( vf.data() ), v, n );
     CU_CHECK_AND_SYNC();
 }
 __global__ void cu_fill_mask( Vector3 * vf1, Vector3 v2, const int * mask, const size_t N )
@@ -240,7 +244,7 @@ __global__ void cu_fill_mask( Vector3 * vf1, Vector3 v2, const int * mask, const
 void fill( vectorfield & vf, const Vector3 & v, const intfield & mask )
 {
     unsigned int n = vf.size();
-    cu_fill_mask<<<( n + 1023 ) / 1024, 1024>>>( vf.data(), v, mask.data(), n );
+    cu_fill_mask<<<( n + 1023 ) / 1024, 1024>>>( raw_pointer_cast( vf.data() ), v, raw_pointer_cast( mask.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -255,7 +259,7 @@ __global__ void cu_normalize_vectors( Vector3 * vf, const size_t N )
 void normalize_vectors( vectorfield & vf )
 {
     unsigned int n = vf.size();
-    cu_normalize_vectors<<<( n + 1023 ) / 1024, 1024>>>( vf.data(), n );
+    cu_normalize_vectors<<<( n + 1023 ) / 1024, 1024>>>( raw_pointer_cast( vf.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -270,7 +274,7 @@ __global__ void cu_norm( const Vector3 * vf, scalar * norm, const size_t N )
 void norm( const vectorfield & vf, scalarfield & norm )
 {
     unsigned int n = vf.size();
-    cu_norm<<<( n + 1023 ) / 1024, 1024>>>( vf.data(), norm.data(), n );
+    cu_norm<<<( n + 1023 ) / 1024, 1024>>>( raw_pointer_cast( vf.data() ), raw_pointer_cast( norm.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -294,11 +298,15 @@ scalar max_abs_component( const vectorfield & vf )
     void * d_temp_storage     = NULL;
     size_t temp_storage_bytes = 0;
     auto lam = [] __host__ __device__( const scalar & a, const scalar & b ) { return ( a > b ) ? a : b; };
-    cub::DeviceReduce::Reduce( d_temp_storage, temp_storage_bytes, vf[0].data(), out.data(), N, lam, init );
+    cub::DeviceReduce::Reduce(
+        d_temp_storage, temp_storage_bytes, raw_pointer_cast( vf[0].data() ), raw_pointer_cast( out.data() ), N, lam,
+        init );
     // Allocate temporary storage
     cudaMalloc( &d_temp_storage, temp_storage_bytes );
     // Run reduction
-    cub::DeviceReduce::Reduce( d_temp_storage, temp_storage_bytes, vf[0].data(), out.data(), N, lam, init );
+    cub::DeviceReduce::Reduce(
+        d_temp_storage, temp_storage_bytes, raw_pointer_cast( vf[0].data() ), raw_pointer_cast( out.data() ), N, lam,
+        init );
     CU_CHECK_AND_SYNC();
     cudaFree( d_temp_storage );
     return std::abs( out[0] );
@@ -311,8 +319,8 @@ scalar max_norm( const vectorfield & vf )
     // Declare, allocate, and initialize device-accessible pointers for input and output
     size_t N = vf.size();
     scalarfield temp( N, 0 );
-    auto o = temp.data();
-    auto v = vf.data();
+    auto o = raw_pointer_cast( temp.data() );
+    auto v = raw_pointer_cast( vf.data() );
     Backend::par::apply(
         N, [o, v] SPIRIT_LAMBDA( int idx )
         { o[idx] = v[idx][0] * v[idx][0] + v[idx][1] * v[idx][1] + v[idx][2] * v[idx][2]; } );
@@ -322,11 +330,15 @@ scalar max_norm( const vectorfield & vf )
     auto lam = [] __host__ __device__( const scalar & a, const scalar & b ) { return ( a > b ) ? a : b; };
 
     scalar init = 0;
-    cub::DeviceReduce::Reduce( d_temp_storage, temp_storage_bytes, temp.data(), ret.data(), N, lam, init );
+    cub::DeviceReduce::Reduce(
+        d_temp_storage, temp_storage_bytes, raw_pointer_cast( temp.data() ), raw_pointer_cast( ret.data() ), N, lam,
+        init );
     // Allocate temporary storage
     cudaMalloc( &d_temp_storage, temp_storage_bytes );
     // Run reduction
-    cub::DeviceReduce::Reduce( d_temp_storage, temp_storage_bytes, temp.data(), ret.data(), N, lam, init );
+    cub::DeviceReduce::Reduce(
+        d_temp_storage, temp_storage_bytes, raw_pointer_cast( temp.data() ), raw_pointer_cast( ret.data() ), N, lam,
+        init );
     CU_CHECK_AND_SYNC();
     cudaFree( d_temp_storage );
     return std::sqrt( ret[0] );
@@ -343,7 +355,7 @@ __global__ void cu_scale( Vector3 * vf1, scalar sc, const size_t N )
 void scale( vectorfield & vf, const scalar & sc )
 {
     unsigned int n = vf.size();
-    cu_scale<<<( n + 1023 ) / 1024, 1024>>>( vf.data(), sc, n );
+    cu_scale<<<( n + 1023 ) / 1024, 1024>>>( raw_pointer_cast( vf.data() ), sc, n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -361,7 +373,7 @@ __global__ void cu_scale( Vector3 * vf1, const scalar * sf, bool inverse, const 
 void scale( vectorfield & vf, const scalarfield & sf, bool inverse )
 {
     unsigned int n = vf.size();
-    cu_scale<<<( n + 1023 ) / 1024, 1024>>>( vf.data(), sf.data(), inverse, n );
+    cu_scale<<<( n + 1023 ) / 1024, 1024>>>( raw_pointer_cast( vf.data() ), raw_pointer_cast( sf.data() ), inverse, n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -384,11 +396,15 @@ Vector3 sum( const vectorfield & vf )
     // Determine temporary device storage requirements
     void * d_temp_storage     = NULL;
     size_t temp_storage_bytes = 0;
-    cub::DeviceReduce::Reduce( d_temp_storage, temp_storage_bytes, vf.data(), ret.data(), vf.size(), add_op, init );
+    cub::DeviceReduce::Reduce(
+        d_temp_storage, temp_storage_bytes, raw_pointer_cast( vf.data() ), raw_pointer_cast( ret.data() ), vf.size(),
+        add_op, init );
     // Allocate temporary storage
     cudaMalloc( &d_temp_storage, temp_storage_bytes );
     // Run reduction
-    cub::DeviceReduce::Reduce( d_temp_storage, temp_storage_bytes, vf.data(), ret.data(), vf.size(), add_op, init );
+    cub::DeviceReduce::Reduce(
+        d_temp_storage, temp_storage_bytes, raw_pointer_cast( vf.data() ), raw_pointer_cast( ret.data() ), vf.size(),
+        add_op, init );
     CU_CHECK_AND_SYNC();
     cudaFree( d_temp_storage );
     return ret[0];
@@ -420,7 +436,8 @@ scalar dot( const vectorfield & vf1, const vectorfield & vf2 )
     scalar ret;
 
     // Dot product
-    cu_dot<<<( n + 1023 ) / 1024, 1024>>>( vf1.data(), vf2.data(), sf.data(), n );
+    cu_dot<<<( n + 1023 ) / 1024, 1024>>>(
+        raw_pointer_cast( vf1.data() ), raw_pointer_cast( vf2.data() ), raw_pointer_cast( sf.data() ), n );
     CU_CHECK_AND_SYNC();
 
     // reduction
@@ -433,7 +450,8 @@ void dot( const vectorfield & vf1, const vectorfield & vf2, scalarfield & s )
     unsigned int n = vf1.size();
 
     // Dot product
-    cu_dot<<<( n + 1023 ) / 1024, 1024>>>( vf1.data(), vf2.data(), s.data(), n );
+    cu_dot<<<( n + 1023 ) / 1024, 1024>>>(
+        raw_pointer_cast( vf1.data() ), raw_pointer_cast( vf2.data() ), raw_pointer_cast( s.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -452,7 +470,8 @@ void dot( const scalarfield & s1, const scalarfield & s2, scalarfield & out )
     unsigned int n = s1.size();
 
     // Dot product
-    cu_scalardot<<<( n + 1023 ) / 1024, 1024>>>( s1.data(), s2.data(), out.data(), n );
+    cu_scalardot<<<( n + 1023 ) / 1024, 1024>>>(
+        raw_pointer_cast( s1.data() ), raw_pointer_cast( s2.data() ), raw_pointer_cast( out.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -470,7 +489,8 @@ void cross( const vectorfield & vf1, const vectorfield & vf2, vectorfield & s )
     unsigned int n = vf1.size();
 
     // Dot product
-    cu_cross<<<( n + 1023 ) / 1024, 1024>>>( vf1.data(), vf2.data(), s.data(), n );
+    cu_cross<<<( n + 1023 ) / 1024, 1024>>>(
+        raw_pointer_cast( vf1.data() ), raw_pointer_cast( vf2.data() ), raw_pointer_cast( s.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -486,7 +506,7 @@ __global__ void cu_add_c_a( const scalar c, Vector3 a, Vector3 * out, const size
 void add_c_a( const scalar & c, const Vector3 & a, vectorfield & out )
 {
     unsigned int n = out.size();
-    cu_add_c_a<<<( n + 1023 ) / 1024, 1024>>>( c, a, out.data(), n );
+    cu_add_c_a<<<( n + 1023 ) / 1024, 1024>>>( c, a, raw_pointer_cast( out.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -502,7 +522,7 @@ __global__ void cu_add_c_a2( const scalar c, const Vector3 * a, Vector3 * out, c
 void add_c_a( const scalar & c, const vectorfield & a, vectorfield & out )
 {
     unsigned int n = out.size();
-    cu_add_c_a2<<<( n + 1023 ) / 1024, 1024>>>( c, a.data(), out.data(), n );
+    cu_add_c_a2<<<( n + 1023 ) / 1024, 1024>>>( c, raw_pointer_cast( a.data() ), raw_pointer_cast( out.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -518,7 +538,8 @@ __global__ void cu_add_c_a2_mask( const scalar c, const Vector3 * a, Vector3 * o
 void add_c_a( const scalar & c, const vectorfield & a, vectorfield & out, const intfield & mask )
 {
     unsigned int n = out.size();
-    cu_add_c_a2_mask<<<( n + 1023 ) / 1024, 1024>>>( c, a.data(), out.data(), mask.data(), n );
+    cu_add_c_a2_mask<<<( n + 1023 ) / 1024, 1024>>>(
+        c, raw_pointer_cast( a.data() ), raw_pointer_cast( out.data() ), raw_pointer_cast( mask.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -534,7 +555,8 @@ __global__ void cu_add_c_a3( const scalar * c, const Vector3 * a, Vector3 * out,
 void add_c_a( const scalarfield & c, const vectorfield & a, vectorfield & out )
 {
     unsigned int n = out.size();
-    cu_add_c_a3<<<( n + 1023 ) / 1024, 1024>>>( c.data(), a.data(), out.data(), n );
+    cu_add_c_a3<<<( n + 1023 ) / 1024, 1024>>>(
+        raw_pointer_cast( c.data() ), raw_pointer_cast( a.data() ), raw_pointer_cast( out.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -550,7 +572,7 @@ __global__ void cu_set_c_a( const scalar c, Vector3 a, Vector3 * out, const size
 void set_c_a( const scalar & c, const Vector3 & a, vectorfield & out )
 {
     unsigned int n = out.size();
-    cu_set_c_a<<<( n + 1023 ) / 1024, 1024>>>( c, a, out.data(), n );
+    cu_set_c_a<<<( n + 1023 ) / 1024, 1024>>>( c, a, raw_pointer_cast( out.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 __global__ void cu_set_c_a_mask( const scalar c, Vector3 a, Vector3 * out, const int * mask, const size_t N )
@@ -565,7 +587,8 @@ __global__ void cu_set_c_a_mask( const scalar c, Vector3 a, Vector3 * out, const
 void set_c_a( const scalar & c, const Vector3 & a, vectorfield & out, const intfield & mask )
 {
     unsigned int n = out.size();
-    cu_set_c_a_mask<<<( n + 1023 ) / 1024, 1024>>>( c, a, out.data(), mask.data(), n );
+    cu_set_c_a_mask<<<( n + 1023 ) / 1024, 1024>>>(
+        c, a, raw_pointer_cast( out.data() ), raw_pointer_cast( mask.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -581,7 +604,7 @@ __global__ void cu_set_c_a2( const scalar c, const Vector3 * a, Vector3 * out, c
 void set_c_a( const scalar & c, const vectorfield & a, vectorfield & out )
 {
     unsigned int n = out.size();
-    cu_set_c_a2<<<( n + 1023 ) / 1024, 1024>>>( c, a.data(), out.data(), n );
+    cu_set_c_a2<<<( n + 1023 ) / 1024, 1024>>>( c, raw_pointer_cast( a.data() ), raw_pointer_cast( out.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 __global__ void cu_set_c_a2_mask( const scalar c, const Vector3 * a, Vector3 * out, const int * mask, const size_t N )
@@ -596,7 +619,8 @@ __global__ void cu_set_c_a2_mask( const scalar c, const Vector3 * a, Vector3 * o
 void set_c_a( const scalar & c, const vectorfield & a, vectorfield & out, const intfield & mask )
 {
     unsigned int n = out.size();
-    cu_set_c_a2_mask<<<( n + 1023 ) / 1024, 1024>>>( c, a.data(), out.data(), mask.data(), n );
+    cu_set_c_a2_mask<<<( n + 1023 ) / 1024, 1024>>>(
+        c, raw_pointer_cast( a.data() ), raw_pointer_cast( out.data() ), raw_pointer_cast( mask.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -612,7 +636,8 @@ __global__ void cu_set_c_a3( const scalar * c, const Vector3 * a, Vector3 * out,
 void set_c_a( const scalarfield & c, const vectorfield & a, vectorfield & out )
 {
     unsigned int n = out.size();
-    cu_set_c_a3<<<( n + 1023 ) / 1024, 1024>>>( c.data(), a.data(), out.data(), n );
+    cu_set_c_a3<<<( n + 1023 ) / 1024, 1024>>>(
+        raw_pointer_cast( c.data() ), raw_pointer_cast( a.data() ), raw_pointer_cast( out.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -628,7 +653,8 @@ __global__ void cu_add_c_dot( const scalar c, Vector3 a, const Vector3 * b, scal
 void add_c_dot( const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out )
 {
     unsigned int n = out.size();
-    cu_add_c_dot<<<( n + 1023 ) / 1024, 1024>>>( c, a, b.data(), out.data(), n );
+    cu_add_c_dot<<<( n + 1023 ) / 1024, 1024>>>(
+        c, a, raw_pointer_cast( b.data() ), raw_pointer_cast( out.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -644,7 +670,8 @@ __global__ void cu_add_c_dot( const scalar c, const Vector3 * a, const Vector3 *
 void add_c_dot( const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out )
 {
     unsigned int n = out.size();
-    cu_add_c_dot<<<( n + 1023 ) / 1024, 1024>>>( c, a.data(), b.data(), out.data(), n );
+    cu_add_c_dot<<<( n + 1023 ) / 1024, 1024>>>(
+        c, raw_pointer_cast( a.data() ), raw_pointer_cast( b.data() ), raw_pointer_cast( out.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -660,7 +687,8 @@ __global__ void cu_set_c_dot( const scalar c, Vector3 a, const Vector3 * b, scal
 void set_c_dot( const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out )
 {
     unsigned int n = out.size();
-    cu_set_c_dot<<<( n + 1023 ) / 1024, 1024>>>( c, a, b.data(), out.data(), n );
+    cu_set_c_dot<<<( n + 1023 ) / 1024, 1024>>>(
+        c, a, raw_pointer_cast( b.data() ), raw_pointer_cast( out.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -676,7 +704,8 @@ __global__ void cu_set_c_dot( const scalar c, const Vector3 * a, const Vector3 *
 void set_c_dot( const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out )
 {
     unsigned int n = out.size();
-    cu_set_c_dot<<<( n + 1023 ) / 1024, 1024>>>( c, a.data(), b.data(), out.data(), n );
+    cu_set_c_dot<<<( n + 1023 ) / 1024, 1024>>>(
+        c, raw_pointer_cast( a.data() ), raw_pointer_cast( b.data() ), raw_pointer_cast( out.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -692,7 +721,8 @@ __global__ void cu_add_c_cross( const scalar c, const Vector3 a, const Vector3 *
 void add_c_cross( const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out )
 {
     unsigned int n = out.size();
-    cu_add_c_cross<<<( n + 1023 ) / 1024, 1024>>>( c, a, b.data(), out.data(), n );
+    cu_add_c_cross<<<( n + 1023 ) / 1024, 1024>>>(
+        c, a, raw_pointer_cast( b.data() ), raw_pointer_cast( out.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -708,7 +738,8 @@ __global__ void cu_add_c_cross( const scalar c, const Vector3 * a, const Vector3
 void add_c_cross( const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out )
 {
     unsigned int n = out.size();
-    cu_add_c_cross<<<( n + 1023 ) / 1024, 1024>>>( c, a.data(), b.data(), out.data(), n );
+    cu_add_c_cross<<<( n + 1023 ) / 1024, 1024>>>(
+        c, raw_pointer_cast( a.data() ), raw_pointer_cast( b.data() ), raw_pointer_cast( out.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -724,7 +755,9 @@ __global__ void cu_add_c_cross( const scalar * c, const Vector3 * a, const Vecto
 void add_c_cross( const scalarfield & c, const vectorfield & a, const vectorfield & b, vectorfield & out )
 {
     unsigned int n = out.size();
-    cu_add_c_cross<<<( n + 1023 ) / 1024, 1024>>>( c.data(), a.data(), b.data(), out.data(), n );
+    cu_add_c_cross<<<( n + 1023 ) / 1024, 1024>>>(
+        raw_pointer_cast( c.data() ), raw_pointer_cast( a.data() ), raw_pointer_cast( b.data() ),
+        raw_pointer_cast( out.data() ), n );
     cudaDeviceSynchronize();
 }
 
@@ -740,7 +773,8 @@ __global__ void cu_set_c_cross( const scalar c, const Vector3 a, const Vector3 *
 void set_c_cross( const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out )
 {
     unsigned int n = out.size();
-    cu_set_c_cross<<<( n + 1023 ) / 1024, 1024>>>( c, a, b.data(), out.data(), n );
+    cu_set_c_cross<<<( n + 1023 ) / 1024, 1024>>>(
+        c, a, raw_pointer_cast( b.data() ), raw_pointer_cast( out.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -756,7 +790,8 @@ __global__ void cu_set_c_cross( const scalar c, const Vector3 * a, const Vector3
 void set_c_cross( const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out )
 {
     unsigned int n = out.size();
-    cu_set_c_cross<<<( n + 1023 ) / 1024, 1024>>>( c, a.data(), b.data(), out.data(), n );
+    cu_set_c_cross<<<( n + 1023 ) / 1024, 1024>>>(
+        c, raw_pointer_cast( a.data() ), raw_pointer_cast( b.data() ), raw_pointer_cast( out.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 

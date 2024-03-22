@@ -8,8 +8,6 @@
 
 #include <Eigen/Dense>
 
-#include <vector>
-
 namespace Engine
 {
 
@@ -61,7 +59,7 @@ struct Exchange
         int ispin, jspin, ipair;
     };
 
-    using Index = std::vector<IndexType>;
+    using Index = Backend::vector<IndexType>;
 
     using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<Exchange>>;
     using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<Exchange>>;
@@ -136,7 +134,8 @@ struct Functor::Local::DataRef<Exchange>
     using Cache       = typename Interaction::Cache;
 
     DataRef( const Data & data, const Cache & cache ) noexcept
-            : is_contributing( Interaction::is_contributing( data, cache ) ), magnitudes( cache.magnitudes.data() )
+            : is_contributing( Interaction::is_contributing( data, cache ) ),
+              magnitudes( raw_pointer_cast( cache.magnitudes.data() ) )
     {
     }
 
@@ -147,11 +146,11 @@ protected:
 };
 
 template<>
-inline scalar Exchange::Energy::operator()( const Index & index, const vectorfield & spins ) const
+inline scalar Exchange::Energy::operator()( const Index & index, const Vector3 * spins ) const
 {
     // don't need to check for `is_contributing` here, because the `transform` will short circuit correctly
-    return std::transform_reduce(
-        begin( index ), end( index ), scalar( 0.0 ), std::plus<scalar>{},
+    return Backend::transform_reduce(
+        index.begin(), index.end(), scalar( 0.0 ), Backend::plus<scalar>{},
         [this, &spins]( const Exchange::IndexType & idx ) -> scalar
         {
             const auto & [ispin, jspin, i_pair] = idx;
@@ -160,11 +159,11 @@ inline scalar Exchange::Energy::operator()( const Index & index, const vectorfie
 }
 
 template<>
-inline Vector3 Exchange::Gradient::operator()( const Index & index, const vectorfield & spins ) const
+inline Vector3 Exchange::Gradient::operator()( const Index & index, const Vector3 * spins ) const
 {
     // don't need to check for `is_contributing` here, because the `transform` will short circuit correctly
-    return std::transform_reduce(
-        begin( index ), end( index ), Vector3{ 0.0, 0.0, 0.0 }, std::plus<Vector3>{},
+    return Backend::transform_reduce(
+        index.begin(), index.end(), Vector3{ 0.0, 0.0, 0.0 }, Backend::plus<Vector3>{},
         [this, &spins]( const Exchange::IndexType & idx ) -> Vector3
         {
             const auto & [ispin, jspin, i_pair] = idx;
@@ -178,7 +177,7 @@ void Exchange::Hessian::operator()( const Index & index, const vectorfield &, Ca
 {
     // don't need to check for `is_contributing` here, because `for_each` will short circuit properly
     std::for_each(
-        begin( index ), end( index ),
+        index.begin(), index.end(),
         [this, &index, &hessian]( const Exchange::IndexType & idx )
         {
             const int i         = 3 * idx.ispin;

@@ -32,10 +32,10 @@ class managed_allocator : public std::allocator<T>
 public:
     using value_type = T;
 
-    template<typename _Tp1>
+    template<typename Tp1>
     struct rebind
     {
-        using other = managed_allocator<_Tp1>;
+        using other = managed_allocator<Tp1>;
     };
 
     value_type * allocate( size_t n )

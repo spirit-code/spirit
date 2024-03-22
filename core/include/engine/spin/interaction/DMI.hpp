@@ -8,8 +8,6 @@
 
 #include <Eigen/Dense>
 
-#include <vector>
-
 namespace Engine
 {
 
@@ -71,7 +69,7 @@ struct DMI
         bool inverse;
     };
 
-    using Index = std::vector<IndexType>;
+    using Index = Backend::vector<IndexType>;
 
     using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<DMI>>;
     using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<DMI>>;
@@ -150,8 +148,8 @@ struct Functor::Local::DataRef<DMI>
 
     DataRef( const Data & data, const Cache & cache ) noexcept
             : is_contributing( Interaction::is_contributing( data, cache ) ),
-              magnitudes( cache.magnitudes.data() ),
-              normals( cache.normals.data() )
+              magnitudes( raw_pointer_cast( cache.magnitudes.data() ) ),
+              normals( raw_pointer_cast( cache.normals.data() ) )
     {
     }
 
@@ -163,10 +161,10 @@ protected:
 };
 
 template<>
-inline scalar DMI::Energy::operator()( const Index & index, const vectorfield & spins ) const
+inline scalar DMI::Energy::operator()( const Index & index, const Vector3 * spins ) const
 {
-    return std::transform_reduce(
-        begin( index ), end( index ), scalar( 0.0 ), std::plus<scalar>{},
+    return Backend::transform_reduce(
+        begin( index ), end( index ), scalar( 0.0 ), Backend::plus<scalar>{},
         [this, &spins]( const DMI::IndexType & idx ) -> scalar
         {
             const auto & [ispin, jspin, i_pair, inverse] = idx;
@@ -176,10 +174,10 @@ inline scalar DMI::Energy::operator()( const Index & index, const vectorfield & 
 }
 
 template<>
-inline Vector3 DMI::Gradient::operator()( const Index & index, const vectorfield & spins ) const
+inline Vector3 DMI::Gradient::operator()( const Index & index, const Vector3 * spins ) const
 {
-    return std::transform_reduce(
-        begin( index ), end( index ), Vector3{ 0.0, 0.0, 0.0 }, std::plus<Vector3>{},
+    return Backend::transform_reduce(
+        begin( index ), end( index ), Vector3{ 0.0, 0.0, 0.0 }, Backend::plus<Vector3>{},
         [this, &spins]( const DMI::IndexType & idx ) -> Vector3
         {
             const auto & [ispin, jspin, i_pair, inverse] = idx;

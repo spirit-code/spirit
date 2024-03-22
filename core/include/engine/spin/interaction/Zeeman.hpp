@@ -5,8 +5,6 @@
 #include <engine/Indexing.hpp>
 #include <engine/spin/interaction/Functor_Prototpyes.hpp>
 
-#include <optional>
-
 namespace Engine
 {
 
@@ -33,7 +31,7 @@ struct Zeeman
     // clang-tidy: ignore
     typedef int IndexType;
 
-    using Index = std::optional<IndexType>;
+    using Index = Backend::optional<IndexType>;
 
     struct Cache
     {
@@ -96,7 +94,7 @@ struct Functor::Local::DataRef<Zeeman>
             : is_contributing( Interaction::is_contributing( data, cache ) ),
               external_field_magnitude( data.external_field_magnitude ),
               external_field_normal( data.external_field_normal ),
-              mu_s( cache.geometry->mu_s.data() )
+              mu_s( raw_pointer_cast( cache.geometry->mu_s.data() ) )
     {
     }
 
@@ -109,7 +107,7 @@ protected:
 };
 
 template<>
-inline scalar Zeeman::Energy::operator()( const Index & index, const vectorfield & spins ) const
+inline scalar Zeeman::Energy::operator()( const Index & index, const Vector3 * spins ) const
 {
     if( is_contributing && index.has_value() && *index >= 0 )
     {
@@ -121,7 +119,7 @@ inline scalar Zeeman::Energy::operator()( const Index & index, const vectorfield
 }
 
 template<>
-inline Vector3 Zeeman::Gradient::operator()( const Index & index, const vectorfield & ) const
+inline Vector3 Zeeman::Gradient::operator()( const Index & index, const Vector3 * ) const
 {
     if( is_contributing && index.has_value() && *index >= 0 )
     {

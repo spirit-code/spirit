@@ -5,8 +5,6 @@
 #include <engine/Indexing.hpp>
 #include <engine/spin/interaction/Functor_Prototpyes.hpp>
 
-#include <vector>
-
 namespace Engine
 {
 
@@ -50,7 +48,7 @@ struct Quadruplet
         int ispin, jspin, kspin, lspin, iquad;
     };
 
-    using Index = std::vector<IndexType>;
+    using Index = Backend::vector<IndexType>;
 
     using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<Quadruplet>>;
     using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<Quadruplet>>;
@@ -63,7 +61,7 @@ struct Quadruplet
 
     // Calculate the total energy for a single spin to be used in Monte Carlo.
     //      Note: therefore the energy of pairs is weighted x2 and of quadruplets x4.
-    using Energy_Single_Spin       = Functor::Local::Energy_Single_Spin_Functor<Energy, 4>;
+    using Energy_Single_Spin = Functor::Local::Energy_Single_Spin_Functor<Energy, 4>;
 
     // Interaction name as string
     static constexpr std::string_view name = "Quadruplet";
@@ -127,7 +125,7 @@ struct Functor::Local::DataRef<Quadruplet>
 
     DataRef( const Data & data, const Cache & cache ) noexcept
             : is_contributing( Interaction::is_contributing( data, cache ) ),
-              magnitudes( data.magnitudes.data() )
+              magnitudes( raw_pointer_cast( data.magnitudes.data() ) )
     {
     }
 
@@ -138,10 +136,10 @@ protected:
 };
 
 template<>
-inline scalar Quadruplet::Energy::operator()( const Index & index, const vectorfield & spins ) const
+inline scalar Quadruplet::Energy::operator()( const Index & index, const Vector3 * spins ) const
 {
-    return std::transform_reduce(
-        begin( index ), end( index ), scalar( 0.0 ), std::plus<scalar>{},
+    return Backend::transform_reduce(
+        index.begin(), index.end(), scalar( 0.0 ), Backend::plus<scalar>{},
         [this, &spins]( const Quadruplet::IndexType & idx ) -> scalar
         {
             const auto & [ispin, jspin, kspin, lspin, iquad] = idx;
@@ -151,10 +149,10 @@ inline scalar Quadruplet::Energy::operator()( const Index & index, const vectorf
 }
 
 template<>
-inline Vector3 Quadruplet::Gradient::operator()( const Index & index, const vectorfield & spins ) const
+inline Vector3 Quadruplet::Gradient::operator()( const Index & index, const Vector3 * spins ) const
 {
-    return std::transform_reduce(
-        begin( index ), end( index ), Vector3{ 0.0, 0.0, 0.0 }, std::plus<Vector3>{},
+    return Backend::transform_reduce(
+        index.begin(), index.end(), Vector3{ 0.0, 0.0, 0.0 }, Backend::plus<Vector3>{},
         [this, &spins]( const Quadruplet::IndexType & idx ) -> Vector3
         {
             const auto & [ispin, jspin, kspin, lspin, iquad] = idx;

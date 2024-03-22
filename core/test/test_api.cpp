@@ -55,7 +55,7 @@ TEST_CASE( "State", "[state]" )
 
         // Arguments for from_indices()
         int idx_image{}, idx_chain{};
-        decltype(from_indices( state.get(), idx_image, idx_chain )) ret_val;
+        decltype( from_indices( state.get(), idx_image, idx_chain ) ) ret_val;
 
         // A positive, index beyond the size of the chain should throw an exception
         idx_chain = 0;

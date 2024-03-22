@@ -2,8 +2,8 @@
 #include <Spirit/Simulation.h>
 
 #include <data/State.hpp>
-#include <engine/spin/Hamiltonian.hpp>
 #include <engine/Indexing.hpp>
+#include <engine/spin/Hamiltonian.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Formatters_Eigen.hpp>
 #include <utility/Logging.hpp>
@@ -447,7 +447,7 @@ try
     auto [image, _] = from_indices( state, idx_image, idx_chain );
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
 
-    return (scalar *)image->geometry->positions[0].data();
+    return (scalar *)raw_pointer_cast( image->geometry->positions[0].data() );
 }
 catch( ... )
 {
@@ -464,7 +464,7 @@ try
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
 
-    return (int *)image->geometry->atom_types.data();
+    return (int *)raw_pointer_cast( image->geometry->atom_types.data() );
 }
 catch( ... )
 {

@@ -20,6 +20,8 @@
 
 using namespace Utility;
 
+using std::begin, std::end, std::cbegin, std::cend;
+
 /*------------------------------------------------------------------------------------------------------ */
 /*---------------------------------- Set Parameters ---------------------------------------------------- */
 /*------------------------------------------------------------------------------------------------------ */
@@ -220,7 +222,7 @@ try
                 if( magnitude[i] == 0 )
                     continue;
 
-                new_on_site_terms.emplace_back(
+                new_on_site_terms.push_back(
                     PolynomialTerm{ magnitude[i], exponents[i][0], exponents[i][1], exponents[i][2] } );
             };
 

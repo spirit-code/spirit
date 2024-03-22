@@ -143,7 +143,7 @@ inline void tupel_from_idx( const int & idx, intfield & tupel, const intfield & 
 
 inline int idx_from_translations(
     const intfield & n_cells, const int n_cell_atoms, const std::array<int, 3> & translations_i,
-    const int translations[3] )
+    const std::array<int, 3> & translations )
 {
     const int Na = n_cells[0];
     const int Nb = n_cells[1];
@@ -168,7 +168,7 @@ inline int idx_from_translations(
 
 inline bool boundary_conditions_fulfilled(
     const intfield & n_cells, const intfield & boundary_conditions, const std::array<int, 3> & translations_i,
-    const int translations_j[3] )
+    const std::array<int, 3> & translations_j )
 {
     const int da = translations_i[0] + translations_j[0];
     const int db = translations_i[1] + translations_j[1];
@@ -467,12 +467,7 @@ field<T> change_dimensions(
             {
                 for( int iatom = 0; iatom < n_cell_atoms_new; ++iatom )
                 {
-#ifdef SPIRIT_USE_CUDA
-                    int idx_new
-                        = iatom + idx_from_translations( n_cells_new, n_cell_atoms_new, { i, j, k }, shift.data() );
-#else
                     int idx_new = iatom + idx_from_translations( n_cells_new, n_cell_atoms_new, { i, j, k }, shift );
-#endif
 
                     if( ( iatom < n_cell_atoms_old ) && ( i < n_cells_old[0] ) && ( j < n_cells_old[1] )
                         && ( k < n_cells_old[2] ) )

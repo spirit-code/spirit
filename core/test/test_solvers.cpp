@@ -130,7 +130,7 @@ TEST_CASE( "Solvers should find Skyrmion collapse barrier with GNEB method", "[s
         Simulation_GNEB_Start( state.get(), solver );
 
         // Get saddle point index and energy
-        int idx_sp      = 1;
+        int idx_sp       = 1;
         scalar energy_sp = System_Get_Energy( state.get(), 0 );
         for( int idx = 1; idx < NOI - 1; ++idx )
         {

@@ -6,6 +6,7 @@
 #include <Spirit/Spirit_Defines.h>
 #include <data/Geometry.hpp>
 #include <data/Misc.hpp>
+#include <engine/Backend_par.hpp>
 #include <engine/FFT.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Vectormath_Defines.hpp>
@@ -68,7 +69,7 @@ void setPtrAddress(
 }
 
 template<typename T>
-void clearIndex( std::optional<T> & index )
+void clearIndex( Backend::optional<T> & index )
 {
     index.reset();
 }
@@ -205,6 +206,8 @@ public:
 
     void Energy_per_Spin( const state_t & state, scalarfield & energy_per_spin )
     {
+        using std::begin, std::end;
+
         const auto nos = state.size();
 
         if( energy_per_spin.size() != nos )
@@ -212,7 +215,7 @@ public:
         else
             Vectormath::fill( energy_per_spin, 0.0 );
 
-        std::transform(
+        Backend::transform(
             begin( indices ), end( indices ), begin( energy_per_spin ),
             Functor::transform_op( Functor::tuple_dispatch<Accessor::Energy>( local ), scalar( 0.0 ), state ) );
 
@@ -221,6 +224,8 @@ public:
 
     void Energy_Contributions_per_Spin( const state_t & state, Data::vectorlabeled<scalarfield> & contributions )
     {
+        using std::begin, std::end;
+
         auto active           = active_interactions();
         const auto & n_active = active.size();
 
@@ -229,7 +234,7 @@ public:
             contributions = Data::vectorlabeled<scalarfield>( n_active, { "", scalarfield( state.size(), 0.0 ) } );
         }
 
-        std::transform(
+        Backend::transform(
             begin( active ), end( active ), begin( contributions ),
             [&state]( const StandaloneInteractionType & interaction )
             {
@@ -241,11 +246,13 @@ public:
 
     [[nodiscard]] Data::vectorlabeled<scalar> Energy_Contributions( const state_t & state )
     {
+        using std::begin, std::end;
+
         auto active           = active_interactions();
         const auto & n_active = active.size();
         Data::vectorlabeled<scalar> contributions( n_active, { "", 0.0 } );
 
-        std::transform(
+        Backend::transform(
             begin( active ), end( active ), begin( contributions ),
             [&state]( const StandaloneInteractionType & interaction )
             { return std::make_pair( interaction->Name(), interaction->Energy( state ) ); } );
@@ -267,8 +274,9 @@ public:
 
     [[nodiscard]] scalar Energy( const state_t & state )
     {
-        return std::transform_reduce(
-                   begin( indices ), end( indices ), scalar( 0.0 ), std::plus{},
+        using std::begin, std::end;
+        return Backend::transform_reduce(
+                   begin( indices ), end( indices ), scalar( 0.0 ), Backend::plus{},
                    Functor::transform_op( Functor::tuple_dispatch<Accessor::Energy>( local ), scalar( 0.0 ), state ) )
                + Functor::apply_reduce(
                    Functor::tuple_dispatch<Accessor::Energy_Total>( nonlocal ), scalar( 0.0 ), state );
@@ -282,7 +290,8 @@ public:
 
     void Sparse_Hessian( const state_t & state, SpMatrixX & hessian )
     {
-        field<Common::Interaction::triplet> tripletList;
+        using std::begin, std::end;
+        std::vector<Common::Interaction::triplet> tripletList;
         tripletList.reserve( geometry->n_cells_total * Sparse_Hessian_Size_per_Cell() );
         Hessian_Impl( state, Interaction::Functor::sparse_hessian_wrapper( tripletList ) );
         hessian.setFromTriplets( begin( tripletList ), end( tripletList ) );
@@ -297,6 +306,7 @@ public:
 
     void Gradient( const state_t & state, vectorfield & gradient )
     {
+        using std::begin, std::end;
         const auto nos = state.size();
 
         if( gradient.size() != nos )
@@ -304,7 +314,7 @@ public:
         else
             Vectormath::fill( gradient, Vector3::Zero() );
 
-        std::transform(
+        Backend::transform(
             begin( indices ), end( indices ), begin( gradient ),
             Functor::transform_op(
                 Functor::tuple_dispatch<Accessor::Gradient>( local ), Vector3{ 0.0, 0.0, 0.0 }, state ) );
@@ -438,7 +448,7 @@ public:
     template<typename T>
     [[nodiscard]] auto cache() const -> const typename T::Cache &
     {
-        static_assert( hasInteraction<T>(), "The Hamiltonian doesn't contain an interaction that type" );
+        static_assert( hasInteraction<T>(), "The Hamiltonian doesn't contain an interaction of that type" );
 
         if constexpr( hasInteraction_Local<T>() )
             return std::get<Interaction::InteractionWrapper<T>>( local ).cache;

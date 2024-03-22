@@ -7,8 +7,6 @@
 
 #include <Eigen/Dense>
 
-#include <optional>
-
 namespace Engine
 {
 
@@ -67,7 +65,7 @@ struct Biaxial_Anisotropy
         int ispin, iani;
     };
 
-    using Index = std::optional<IndexType>;
+    using Index = Backend::optional<IndexType>;
 
     using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<Biaxial_Anisotropy>>;
     using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<Biaxial_Anisotropy>>;
@@ -113,9 +111,9 @@ struct Functor::Local::DataRef<Biaxial_Anisotropy>
 
     DataRef( const Data & data, const Cache & cache ) noexcept
             : is_contributing( Interaction::is_contributing( data, cache ) ),
-              bases( data.bases.data() ),
-              site_p( data.site_p.data() ),
-              terms( data.terms.data() ){};
+              bases( raw_pointer_cast( data.bases.data() ) ),
+              site_p( raw_pointer_cast( data.site_p.data() ) ),
+              terms( raw_pointer_cast( data.terms.data() ) ){};
 
     const bool is_contributing;
 
@@ -126,7 +124,7 @@ protected:
 };
 
 template<>
-inline scalar Biaxial_Anisotropy::Energy::operator()( const Index & index, const vectorfield & spins ) const
+inline scalar Biaxial_Anisotropy::Energy::operator()( const Index & index, const Vector3 * spins ) const
 {
     using std::pow;
     scalar result = 0;
@@ -150,7 +148,7 @@ inline scalar Biaxial_Anisotropy::Energy::operator()( const Index & index, const
 }
 
 template<>
-inline Vector3 Biaxial_Anisotropy::Gradient::operator()( const Index & index, const vectorfield & spins ) const
+inline Vector3 Biaxial_Anisotropy::Gradient::operator()( const Index & index, const Vector3 * spins ) const
 {
     using std::pow;
     Vector3 result = Vector3::Zero();
@@ -217,9 +215,9 @@ void Biaxial_Anisotropy::Hessian::operator()( const Index & index, const vectorf
         const scalar p_33 = n3 <= 1 ? 0
             : n3 * ( n3 - 1 ) * ( coeff * a * c * pow( s3, n3 - 2 ) );
         const scalar p_12 = n2 == 0 || n1 == 0 ? 0
-            : b * coeff * n2 * pow( s2, n2 - 1 ) * ( -2 * n1 * s1 ) * pow( s1, n1 - 1 );
+            : b * coeff * n2 * pow( s2, n2 - 1 ) * ( -2.0 * n1 * s1 ) * pow( s1, n1 - 1 );
         const scalar p_13 = n3 == 0 || n1 == 0 ? 0
-            : a * coeff * n3 * pow( s3, n3 - 1 ) * ( -2 * n1 * s1 ) * pow( s1, n1 - 1 );
+            : a * coeff * n3 * pow( s3, n3 - 1 ) * ( -2.0 * n1 * s1 ) * pow( s1, n1 - 1 );
         const scalar p_23 = n2 == 0 || n3 == 0 ? 0
             : c * coeff * n2 * pow( s2, n2 - 1 ) * n3 * pow( s3, n3 - 1 );
         // clang-format on

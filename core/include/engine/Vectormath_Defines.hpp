@@ -30,38 +30,36 @@ using Vector2 = Eigen::Matrix<scalar, 2, 1>;
 #ifdef SPIRIT_USE_CUDA
 // The general field, using the managed allocator
 #include "Managed_Allocator.hpp"
-template<typename T>
-using field = std::vector<T, managed_allocator<T>>;
+#include <thrust/universal_vector.h>
 
-struct Site
+template<typename T>
+using field = thrust::universal_vector<T>;
+
+#define SPIRIT_HOSTDEVICE __host__ __device__
+
+template<typename T>
+T * raw_pointer_cast( typename field<T>::pointer ptr )
 {
-    // Basis index
-    int i;
-    // Translations of the basis cell
-    int translations[3];
-};
-struct Pair
-{
-    // Basis indices of first and second atom of pair
-    int i, j;
-    // Translations of the basis cell of second atom of pair
-    int translations[3];
-};
-struct Triplet
-{
-    int i, j, k;
-    int d_j[3], d_k[3];
-};
-struct Quadruplet
-{
-    int i, j, k, l;
-    int d_j[3], d_k[3], d_l[3];
-};
+    return ptr.get();
+}
 
 #else
 // The general field
 template<typename T>
 using field = std::vector<T>;
+
+#define SPIRIT_HOSTDEVICE
+
+// Definition for OpenMP reduction operation using Vector3's
+#pragma omp declare reduction( + : Vector3 : omp_out = omp_out + omp_in ) initializer( omp_priv = Vector3::Zero() )
+#endif
+
+// unpack thrust pointers if a raw pointer is strictly needed instead
+template<typename T>
+T * raw_pointer_cast( T * ptr )
+{
+    return ptr;
+}
 
 struct Site
 {
@@ -86,11 +84,8 @@ struct Quadruplet
     std::array<int, 3> d_j, d_k, d_l;
 };
 
-// Definition for OpenMP reduction operation using Vector3's
-#pragma omp declare reduction( + : Vector3 : omp_out = omp_out + omp_in ) initializer( omp_priv = Vector3::Zero() )
-#endif
-
-struct PolynomialBasis {
+struct PolynomialBasis
+{
     Vector3 k1, k2, k3;
 };
 
@@ -106,7 +101,8 @@ struct AnisotropyPolynomial
     field<PolynomialTerm> terms;
 };
 
-struct PolynomialField {
+struct PolynomialField
+{
     field<PolynomialBasis> basis;
     field<unsigned int> site_p;
     field<PolynomialTerm> terms;

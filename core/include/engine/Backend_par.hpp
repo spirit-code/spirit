@@ -4,20 +4,70 @@
 
 #include <engine/Vectormath_Defines.hpp>
 
+#include <algorithm>
+#include <numeric>
+#include <optional>
+#include <vector>
+
+#ifdef SPIRIT_USE_STDPAR
+#include <execution>
+#define SPIRIT_CPU_PAR std::execution::par,
+#else
+#define SPIRIT_CPU_PAR
+#endif
+
 // clang-format off
 #ifdef SPIRIT_USE_CUDA
+    #include <thrust/copy.h>
+    #include <thrust/fill.h>
+    #include <thrust/for_each.h>
+    #include <thrust/transform.h>
+    #include <thrust/transform_reduce.h>
+    #include <thrust/execution_policy.h>
+
     #define THRUST_IGNORE_CUB_VERSION_CHECK
     #include <cub/cub.cuh>
+    #include <cub/iterator/transform_input_iterator.cuh>
+
+    #define SPIRIT_PAR
+
     #define SPIRIT_LAMBDA __device__
 #else
+    #define SPIRIT_PAR SPIRIT_CPU_PAR
+
     #define SPIRIT_LAMBDA
 #endif
 // clang-format on
 
 namespace Engine
 {
+
 namespace Backend
 {
+
+namespace cpu
+{
+
+using std::optional;
+using std::vector;
+
+using std::plus;
+
+using std::copy;
+using std::fill;
+using std::fill_n;
+using std::for_each;
+using std::transform;
+using std::transform_reduce;
+
+} // namespace cpu
+
+#ifndef SPIRIT_USE_CUDA
+using namespace cpu;
+#else
+using namespace cpu;
+#endif
+
 namespace par
 {
 
@@ -211,6 +261,8 @@ void apply( int N, const F & f )
 
 #endif
 } // namespace par
+
 } // namespace Backend
+
 } // namespace Engine
 #endif

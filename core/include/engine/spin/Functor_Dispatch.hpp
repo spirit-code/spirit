@@ -4,6 +4,7 @@
 #include <engine/spin/Interaction_Wrapper.hpp>
 
 #include <tuple>
+#include <type_traits>
 
 namespace Engine
 {
@@ -66,13 +67,13 @@ template<typename state_t, typename ReturnType, typename... Functors>
 struct transform_op
 {
     template<typename IndexTuple>
-    auto operator()( const IndexTuple & index ) -> ReturnType
+    SPIRIT_HOSTDEVICE auto operator()( const IndexTuple & index ) -> ReturnType
     {
         return std::apply(
-            [&index, &state = this->state_ref, zero = this->zero_repr]( Functors &... f ) -> ReturnType
+            [this, &index]( Functors &... f ) -> ReturnType
             {
                 return (
-                    zero + ... + [&state, &index]( Functors & functor )
+                    zero + ... + [this, &index]( Functors & functor )
                         -> decltype( functor( std::get<typename Functors::Interaction::Index>( index ), state ) )
                     { return functor( std::get<typename Functors::Interaction::Index>( index ), state ); }( f ) );
             },
@@ -82,12 +83,12 @@ struct transform_op
     constexpr transform_op( std::tuple<Functors...> && functors, ReturnType zero, const state_t & state ) noexcept(
         std::is_nothrow_move_constructible_v<std::tuple<Functors...>>
         && std::is_nothrow_copy_constructible_v<ReturnType> )
-            : functors( functors ), state_ref( state ), zero_repr( zero ){};
+            : functors( functors ), state( raw_pointer_cast( state.data() ) ), zero( zero ){};
 
 private:
     std::tuple<Functors...> functors;
-    const state_t & state_ref;
-    ReturnType zero_repr;
+    const std::decay_t<typename state_t::value_type> * state;
+    ReturnType zero;
 };
 
 template<typename state_t, typename UnaryOp, typename... Functors>

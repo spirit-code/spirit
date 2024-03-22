@@ -7,8 +7,6 @@
 
 #include <Eigen/Dense>
 
-#include <optional>
-
 namespace Engine
 {
 
@@ -50,7 +48,7 @@ struct Cubic_Anisotropy
         int ispin, iani;
     };
 
-    using Index = std::optional<IndexType>;
+    using Index = Backend::optional<IndexType>;
 
     using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<Cubic_Anisotropy>>;
     using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<Cubic_Anisotropy>>;
@@ -95,7 +93,9 @@ struct Functor::Local::DataRef<Cubic_Anisotropy>
 
     DataRef( const Data & data, const Cache & cache ) noexcept
             : is_contributing( Interaction::is_contributing( data, cache ) ),
-              magnitudes( data.magnitudes.data() ){}
+              magnitudes( raw_pointer_cast( data.magnitudes.data() ) )
+    {
+    }
 
     const bool is_contributing;
 
@@ -103,9 +103,8 @@ protected:
     const scalar * magnitudes;
 };
 
-
 template<>
-inline scalar Cubic_Anisotropy::Energy::operator()( const Index & index, const vectorfield & spins ) const
+inline scalar Cubic_Anisotropy::Energy::operator()( const Index & index, const Vector3 * spins ) const
 {
     using std::pow;
     scalar result = 0;
@@ -118,7 +117,7 @@ inline scalar Cubic_Anisotropy::Energy::operator()( const Index & index, const v
 }
 
 template<>
-inline Vector3 Cubic_Anisotropy::Gradient::operator()( const Index & index, const vectorfield & spins ) const
+inline Vector3 Cubic_Anisotropy::Gradient::operator()( const Index & index, const Vector3 * spins ) const
 {
     using std::pow;
     Vector3 result = Vector3::Zero();

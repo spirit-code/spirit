@@ -563,7 +563,7 @@ void Method_MMF<system_t, solver>::Save_Current( std::string starttime, int iter
                     IO::VF_FileFormat format = this->systems[0]->llg_parameters->output_vf_filetype;
 
                     // open and write
-                    IO::OVF_File( energyFilePerSpin ).write_segment( segment, data.data(), static_cast<int>( format ) );
+                    IO::OVF_File( energyFilePerSpin ).write_segment( segment, raw_pointer_cast( data.data() ), static_cast<int>( format ) );
 
                     Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                          fmt::format(
