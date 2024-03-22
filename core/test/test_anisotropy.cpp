@@ -244,16 +244,16 @@ TEST_CASE( "Biaxial anisotropy", "[anisotropy]" )
 
         REQUIRE( n_terms > 0 );
 
-        intfield indices( n_atoms );
-        field<std::array<scalar, 3>> primary( n_atoms );
+        std::vector<int> indices( n_atoms );
+        std::vector<std::array<scalar, 3>> primary( n_atoms );
         std::vector<std::array<scalar, 3>> secondary( n_atoms );
-        field<int> site_p( n_atoms + 1 );
-        scalarfield magnitudes( n_terms );
+        std::vector<int> site_p( n_atoms + 1 );
+        std::vector<scalar> magnitudes( n_terms );
         std::vector exponents( n_terms, std::array{ 0, 0, 0 } );
 
         Hamiltonian_Get_Biaxial_Anisotropy(
-            state.get(), indices.data(), array_cast( primary ), array_cast( secondary ), site_p.data(), n_atoms,
-            magnitudes.data(), array_cast( exponents ), n_terms );
+            state.get(), indices.data(), array_cast( primary ), array_cast( secondary ),
+            site_p.data(), n_atoms, magnitudes.data(), array_cast( exponents ), n_terms );
 
         REQUIRE( site_p[0] == 0 );
         for( int i = 0; i < n_atoms; ++i )
@@ -261,7 +261,7 @@ TEST_CASE( "Biaxial anisotropy", "[anisotropy]" )
             REQUIRE( site_p[i + 1] - site_p[i] == init_n_terms );
         }
 
-        intfield indices_ref( n_atoms );
+        std::vector<int> indices_ref( n_atoms );
         std::iota( begin( indices_ref ), end( indices_ref ), 0 );
 
         REQUIRE_THAT( indices, Equals( indices_ref ) );

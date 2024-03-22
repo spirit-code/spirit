@@ -153,8 +153,8 @@ protected:
     scalarfield alpha;
 
     // Atlas coords
-    std::vector<field<vector2field>> atlas_updates;
-    std::vector<field<vector2field>> grad_atlas_updates;
+    std::vector<std::vector<vector2field>> atlas_updates;
+    std::vector<std::vector<vector2field>> grad_atlas_updates;
     std::vector<scalarfield> atlas_coords3;
     std::vector<vector2field> atlas_directions;
     std::vector<vector2field> atlas_residuals;
@@ -162,8 +162,8 @@ protected:
     std::vector<vector2field> atlas_q_vec;
 
     // OSO
-    std::vector<field<vectorfield>> delta_a;
-    std::vector<field<vectorfield>> delta_grad;
+    std::vector<std::vector<vectorfield>> delta_a;
+    std::vector<std::vector<vectorfield>> delta_grad;
     std::vector<vectorfield> searchdir;
     std::vector<vectorfield> grad;
     std::vector<vectorfield> grad_pr;

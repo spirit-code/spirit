@@ -47,10 +47,10 @@ struct sparse_hessian_wrapper
         hessian.emplace_back( i, j, value );
     }
 
-    constexpr explicit sparse_hessian_wrapper( field<triplet> & hessian ) : hessian( hessian ){};
+    constexpr explicit sparse_hessian_wrapper( std::vector<triplet> & hessian ) : hessian( hessian ){};
 
 private:
-    field<triplet> & hessian;
+    std::vector<triplet> & hessian;
 };
 
 namespace NonLocal
@@ -83,9 +83,10 @@ struct Reduce_Functor
 
     scalar operator()( const typename Interaction::state_t & state ) const
     {
+        using std::begin, std::end;
         scalarfield energy_per_spin( state.size() );
         functor( state, energy_per_spin );
-        return std::reduce( begin( energy_per_spin ), end( energy_per_spin ) );
+        return std::reduce( SPIRIT_CPU_PAR begin( energy_per_spin ), end( energy_per_spin ) );
     };
 
 private:
@@ -172,7 +173,7 @@ struct Energy_Functor : public DataRef
     using Cache       = typename Interaction::Cache;
     using Index       = typename Interaction::Index;
 
-    scalar operator()( const Index & index, const vectorfield & spins ) const;
+    SPIRIT_HOSTDEVICE scalar operator()( const Index & index, const Vector3 * spins ) const;
 
     using DataRef::DataRef;
 };
@@ -185,7 +186,7 @@ struct Gradient_Functor : public DataRef
     using Cache       = typename Interaction::Cache;
     using Index       = typename Interaction::Index;
 
-    Vector3 operator()( const Index & index, const vectorfield & spins ) const;
+    SPIRIT_HOSTDEVICE Vector3 operator()( const Index & index, const Vector3 * spins ) const;
 
     using DataRef::DataRef;
 };
@@ -217,9 +218,10 @@ struct Energy_Single_Spin_Functor
         std::is_nothrow_constructible_v<Functor, Args...> )
             : functor( std::forward<Args>( args )... ){};
 
-    scalar operator()( const Index & index, const typename Interaction::state_t & state ) const
+    template<typename... OpArgs>
+    SPIRIT_HOSTDEVICE scalar operator()( OpArgs && ... args ) const
     {
-        return weight * functor( index, state );
+        return weight * functor( std::forward<OpArgs>(args)... );
     };
 
 private:

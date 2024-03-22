@@ -6,8 +6,6 @@
 
 #include <Eigen/Dense>
 
-#include <optional>
-
 namespace Engine
 {
 
@@ -55,7 +53,7 @@ struct Gaussian
 
     typedef int IndexType;
 
-    using Index = std::optional<int>;
+    using Index = Backend::optional<IndexType>;
 
     using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<Gaussian>>;
     using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<Gaussian>>;
@@ -97,9 +95,9 @@ struct Functor::Local::DataRef<Gaussian>
     DataRef( const Data & data, const Cache & cache ) noexcept
             : is_contributing( Interaction::is_contributing( data, cache ) ),
               n_gaussians( data.amplitude.size() ),
-              amplitude( data.amplitude.data() ),
-              width( data.width.data() ),
-              center( data.center.data() )
+              amplitude( raw_pointer_cast( data.amplitude.data() ) ),
+              width( raw_pointer_cast( data.width.data() ) ),
+              center( raw_pointer_cast( data.center.data() ) )
     {
     }
 
@@ -113,7 +111,7 @@ protected:
 };
 
 template<>
-inline scalar Gaussian::Energy::operator()( const Index & index, const vectorfield & spins ) const
+inline scalar Gaussian::Energy::operator()( const Index & index, const Vector3 * spins ) const
 {
     scalar result = 0;
 
@@ -132,7 +130,7 @@ inline scalar Gaussian::Energy::operator()( const Index & index, const vectorfie
 }
 
 template<>
-inline Vector3 Gaussian::Gradient::operator()( const Index & index, const vectorfield & spins ) const
+inline Vector3 Gaussian::Gradient::operator()( const Index & index, const Vector3 * spins ) const
 {
     Vector3 result = Vector3::Zero();
 

@@ -33,11 +33,11 @@ Method_LLG<system_t, solver>::Method_LLG( std::shared_ptr<system_t> system, int 
     this->nos = this->systems[0]->nos;
 
     // Forces
-    this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos ) );
-    this->forces_virtual = std::vector<vectorfield>( this->noi, vectorfield( this->nos ) );
-    this->Gradient       = std::vector<vectorfield>( this->noi, vectorfield( this->nos ) );
-    this->xi             = vectorfield( this->nos, { 0, 0, 0 } );
-    this->s_c_grad       = vectorfield( this->nos, { 0, 0, 0 } );
+    this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, Vector3::Zero() ) );
+    this->forces_virtual = std::vector<vectorfield>( this->noi, vectorfield( this->nos, Vector3::Zero() ) );
+    this->Gradient       = std::vector<vectorfield>( this->noi, vectorfield( this->nos, Vector3::Zero() ) );
+    this->xi             = vectorfield( this->nos, Vector3::Zero() );
+    this->s_c_grad       = vectorfield( this->nos, Vector3::Zero() );
     this->jacobians      = field<Matrix3>( this->nos, Matrix3::Zero() );
 
     this->temperature_distribution = scalarfield( this->nos, 0 );
@@ -137,6 +137,7 @@ void Method_LLG<system_t, solver>::Calculate_Force_Virtual(
     std::vector<vectorfield> & forces_virtual )
 {
     using namespace Utility;
+    using std::begin, std::end;
 
     for( std::size_t i = 0; i < configurations.size(); ++i )
     {
@@ -191,13 +192,9 @@ void Method_LLG<system_t, solver>::Calculate_Force_Virtual(
                     // Gradient approximation for in-plane currents
                     Vectormath::jacobian( image, geometry, boundary_conditions, jacobians );
 
-                    // clang-format off
-                    Backend::par::apply(image.size(), [s_c_grad = s_c_grad.data(), jacobians=jacobians.data(), direction=je] SPIRIT_LAMBDA (int idx)
-                            {
-                                s_c_grad[idx] = jacobians[idx] * direction;
-                            }
-                        );
-                    // clang-format on
+                    Backend::transform(
+                        SPIRIT_PAR begin( jacobians ), end( jacobians ), begin( s_c_grad ),
+                        [je] SPIRIT_HOSTDEVICE( const Matrix3 & jacobian ) { return jacobian * je; } );
 
                     Vectormath::add_c_a(
                         dtg * a_j * ( damping - beta ), s_c_grad, force_virtual ); // TODO: a_j durch b_j ersetzen
@@ -238,7 +235,7 @@ template<Solver solver>
 bool Method_LLG<system_t, solver>::Converged()
 {
     // Check if all images converged
-    return std::all_of( this->force_converged.begin(), this->force_converged.end(), []( bool b ) { return b; } );
+    return std::all_of( begin( force_converged ), end( force_converged ), []( bool b ) { return b; } );
 }
 
 template<Solver solver>
@@ -453,7 +450,8 @@ void Method_LLG<system_t, solver>::Save_Current( std::string starttime, int iter
                     IO::VF_FileFormat format = this->systems[0]->llg_parameters->output_vf_filetype;
 
                     // open and write
-                    IO::OVF_File( energyFilePerSpin ).write_segment( segment, data.data(), static_cast<int>( format ) );
+                    IO::OVF_File( energyFilePerSpin )
+                        .write_segment( segment, raw_pointer_cast( data.data() ), static_cast<int>( format ) );
 
                     Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                          fmt::format(

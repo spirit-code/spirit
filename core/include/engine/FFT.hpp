@@ -182,7 +182,7 @@ struct FFT_Plan
     void Create_Configuration();
     void Free_Configuration();
     void Clean();
-    FFT_cfg cfg = nullptr;
+    FFT_cfg cfg = FFT_cfg();
 
     // Constructor delegation
     FFT_Plan() : FFT_Plan( { 2, 2, 2 }, true, 1, 8 ) {}

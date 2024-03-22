@@ -7,8 +7,6 @@
 
 #include <Eigen/Dense>
 
-#include <optional>
-
 namespace Engine
 {
 
@@ -36,6 +34,8 @@ struct Anisotropy
 
     static bool valid_data( const Data & data )
     {
+        using std::begin, std::end;
+
         if( data.indices.size() != data.magnitudes.size() || data.indices.size() != data.normals.size() )
             return false;
         if( std::any_of( begin( data.indices ), end( data.indices ), []( const int & i ) { return i < 0; } ) )
@@ -58,7 +58,7 @@ struct Anisotropy
         int ispin, iani;
     };
 
-    using Index = std::optional<IndexType>;
+    using Index = Backend::optional<IndexType>;
 
     using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<Anisotropy>>;
     using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<Anisotropy>>;
@@ -103,8 +103,8 @@ struct Functor::Local::DataRef<Anisotropy>
 
     DataRef( const Data & data, const Cache & cache ) noexcept
             : is_contributing( Interaction::is_contributing( data, cache ) ),
-              normals( data.normals.data() ),
-              magnitudes( data.magnitudes.data() ){};
+              normals( raw_pointer_cast( data.normals.data() ) ),
+              magnitudes( raw_pointer_cast( data.magnitudes.data() ) ){};
 
     const bool is_contributing;
 
@@ -114,7 +114,7 @@ protected:
 };
 
 template<>
-inline scalar Anisotropy::Energy::operator()( const Index & index, const vectorfield & spins ) const
+inline scalar Anisotropy::Energy::operator()( const Index & index, const Vector3 * spins ) const
 {
     if( is_contributing && index.has_value() )
     {
@@ -129,7 +129,7 @@ inline scalar Anisotropy::Energy::operator()( const Index & index, const vectorf
 }
 
 template<>
-inline Vector3 Anisotropy::Gradient::operator()( const Index & index, const vectorfield & spins ) const
+inline Vector3 Anisotropy::Gradient::operator()( const Index & index, const Vector3 * spins ) const
 {
     if( is_contributing && index.has_value() )
     {

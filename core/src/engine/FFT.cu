@@ -22,22 +22,22 @@ void iFour_3D( FFT_cfg cfg, FFT_cpx_type * in, FFT_real_type * out )
 
 void batch_Four_3D( FFT_Plan & plan )
 {
-    auto res = cufftExecR2C( plan.cfg, plan.real_ptr.data(), plan.cpx_ptr.data() );
+    auto res = cufftExecR2C( plan.cfg, raw_pointer_cast( plan.real_ptr.data() ), raw_pointer_cast( plan.cpx_ptr.data() ) );
     if( res != CUFFT_SUCCESS )
     {
         Log( Utility::Log_Level::Error, Utility::Log_Sender::All,
-             fmt::format( "cufftExecR2C failed with error: {}", res ) );
+             fmt::format( "cufftExecR2C failed with error: {}", static_cast<int>( res ) ) );
     }
     cudaDeviceSynchronize();
 }
 
 void batch_iFour_3D( FFT_Plan & plan )
 {
-    auto res = cufftExecC2R( plan.cfg, plan.cpx_ptr.data(), plan.real_ptr.data() );
+    auto res = cufftExecC2R( plan.cfg, raw_pointer_cast( plan.cpx_ptr.data() ), raw_pointer_cast( plan.real_ptr.data() ) );
     if( res != CUFFT_SUCCESS )
     {
         Log( Utility::Log_Level::Error, Utility::Log_Sender::All,
-             fmt::format( "cufftExecC2R failed with error: {}", res ) );
+             fmt::format( "cufftExecC2R failed with error: {}", static_cast<int>( res ) ) );
     }
     cudaDeviceSynchronize();
 }
@@ -64,7 +64,7 @@ void FFT_Plan::Create_Configuration()
         if( res != CUFFT_SUCCESS )
         {
             Log( Utility::Log_Level::Error, Utility::Log_Sender::All,
-                 fmt::format( "cufftPlanMany failed with error: {}", res ) );
+                 fmt::format( "cufftPlanMany failed with error: {}", static_cast<int>( res ) ) );
         }
     }
     else
@@ -74,7 +74,7 @@ void FFT_Plan::Create_Configuration()
         if( res != CUFFT_SUCCESS )
         {
             Log( Utility::Log_Level::Error, Utility::Log_Sender::All,
-                 fmt::format( "cufftPlanMany failed with error: {}", res ) );
+                 fmt::format( "cufftPlanMany failed with error: {}", static_cast<int>( res ) ) );
         }
     }
 }
@@ -85,7 +85,7 @@ void FFT_Plan::Free_Configuration()
     if( res != CUFFT_SUCCESS )
     {
         Log( Utility::Log_Level::Error, Utility::Log_Sender::All,
-             fmt::format( "cufftDestroy failed with error: {}", res ) );
+             fmt::format( "cufftDestroy( {} ) failed with error: {}", this->cfg, static_cast<int>( res ) ) );
     }
 }
 

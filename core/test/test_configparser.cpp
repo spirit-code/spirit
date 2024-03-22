@@ -109,8 +109,9 @@ TEST_CASE( "Parse Hamiltonian (Pairs) config and check parsed values using the C
         std::vector exponents( n_terms, std::array{ 0, 0, 0 } );
 
         Hamiltonian_Get_Biaxial_Anisotropy(
-            state.get(), indices.data(), array_cast( primary ), array_cast( secondary ), site_p.data(), n_atoms,
-            magnitudes.data(), array_cast( exponents ), n_terms );
+            state.get(), raw_pointer_cast( indices.data() ), array_cast( primary ), array_cast( secondary ),
+            raw_pointer_cast( site_p.data() ), n_atoms, raw_pointer_cast( magnitudes.data() ), array_cast( exponents ),
+            n_terms );
 
         if( n_atoms > 0 )
         {
@@ -197,7 +198,8 @@ TEST_CASE( "Parse Hamiltonian (Pairs) config and check parsed values using the C
         std::vector<std::array<int, 3>> translations( n_pairs );
         std::vector<scalar> Jij( n_pairs );
 
-        Hamiltonian_Get_Exchange_Pairs( state.get(), array_cast( indices ), array_cast( translations ), Jij.data() );
+        Hamiltonian_Get_Exchange_Pairs(
+            state.get(), array_cast( indices ), array_cast( translations ), raw_pointer_cast( Jij.data() ) );
 
         // use std::map to compare them, because the order of the exchange terms need not be fixed
         using exchange_idx = std::tuple<int, int, int, int, int>;
@@ -240,7 +242,8 @@ TEST_CASE( "Parse Hamiltonian (Pairs) config and check parsed values using the C
         scalar cutoff_radius = 0;
         bool pb_zero_padding = false;
 
-        Hamiltonian_Get_DDI( state.get(), &ddi_method, n_periodic_images.data(), &cutoff_radius, &pb_zero_padding );
+        Hamiltonian_Get_DDI(
+            state.get(), &ddi_method, raw_pointer_cast( n_periodic_images.data() ), &cutoff_radius, &pb_zero_padding );
 
         REQUIRE( ddi_method == ddi_method_ref );
         REQUIRE( n_periodic_images == n_periodic_images_ref );

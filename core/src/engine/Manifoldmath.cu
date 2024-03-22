@@ -21,8 +21,8 @@ void project_parallel( vectorfield & vf1, const vectorfield & vf2 )
 {
     scalar proj = Vectormath::dot( vf1, vf2 );
     Backend::par::apply(
-        vf1.size(),
-        [vf1 = vf1.data(), vf2 = vf2.data(), proj] SPIRIT_LAMBDA( int idx ) { vf1[idx] = proj * vf2[idx]; } );
+        vf1.size(), [vf1 = raw_pointer_cast( vf1.data() ), vf2 = raw_pointer_cast( vf2.data() ),
+                     proj] SPIRIT_LAMBDA( int idx ) { vf1[idx] = proj * vf2[idx]; } );
 }
 
 __global__ void cu_project_orthogonal( Vector3 * vf1, const Vector3 * vf2, scalar proj, size_t N )
@@ -42,7 +42,8 @@ void project_orthogonal( vectorfield & vf1, const vectorfield & vf2 )
     // Get projection
     scalar proj = Vectormath::dot( vf1, vf2 );
     // Project vf1
-    cu_project_orthogonal<<<( n + 1023 ) / 1024, 1024>>>( vf1.data(), vf2.data(), proj, n );
+    cu_project_orthogonal<<<( n + 1023 ) / 1024, 1024>>>(
+        raw_pointer_cast( vf1.data() ), raw_pointer_cast( vf2.data() ), proj, n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -71,7 +72,8 @@ __global__ void cu_project_tangential( Vector3 * vf1, const Vector3 * vf2, size_
 void project_tangential( vectorfield & vf1, const vectorfield & vf2 )
 {
     int n = vf1.size();
-    cu_project_tangential<<<( n + 1023 ) / 1024, 1024>>>( vf1.data(), vf2.data(), n );
+    cu_project_tangential<<<( n + 1023 ) / 1024, 1024>>>(
+        raw_pointer_cast( vf1.data() ), raw_pointer_cast( vf2.data() ), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -111,7 +113,8 @@ scalar dist_geodesic( const vectorfield & vf1, const vectorfield & vf2 )
     int n = vf1.size();
     scalarfield sf( n );
 
-    cu_dist_geodesic_2<<<( n + 1023 ) / 1024, 1024>>>( vf1.data(), vf2.data(), sf.data(), n );
+    cu_dist_geodesic_2<<<( n + 1023 ) / 1024, 1024>>>(
+        raw_pointer_cast( vf1.data() ), raw_pointer_cast( vf2.data() ), raw_pointer_cast( sf.data() ), n );
     CU_CHECK_AND_SYNC();
 
     scalar dist = Vectormath::sum( sf );

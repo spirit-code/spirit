@@ -19,8 +19,15 @@
 using Utility::Log_Level;
 using Utility::Log_Sender;
 
+using std::begin, std::end;
+
 namespace
 {
+
+// default factory for forwarding the parsed data
+template<typename In>
+static constexpr auto forwarding_factory
+    = []( const std::map<std::string_view, int> & ) { return []( In row ) -> In { return row; }; };
 
 /*
  * Universal implementation of a table parser.
@@ -73,11 +80,6 @@ private:
     };
 
 public:
-    // default factory for forwarding the parsed data
-    template<typename In = read_row_t>
-    static constexpr auto forwarding_factory
-        = []( const std::map<std::string_view, int> & ) { return []( In row ) -> In { return row; }; };
-
     // parse function, transform_factory expects a second oder function whose result can transform the read in row into
     // a format that should be stored
     template<typename F>
@@ -142,7 +144,7 @@ public:
 
         // read data row by row and store a transformed version of it
         auto row = std::make_tuple( Args{}... );                     // read buffer
-        field<std::decay_t<decltype( transform( row ) )>> data( 0 ); // return value
+        std::vector<std::decay_t<decltype( transform( row ) )>> data( 0 ); // return value
         for( int row_idx = 0; row_idx < table_size; ++row_idx )
         {
             // read a new line and stop reading if EOF
@@ -437,7 +439,7 @@ try
 
     anisotropy_terms.clear();
     for( const auto & [i, term] : data )
-        anisotropy_terms[i].emplace_back( term );
+        anisotropy_terms[i].push_back( term );
 }
 catch( ... )
 {
@@ -471,7 +473,7 @@ try
 
     if( n_terms > 0 )
     {
-        anisotropy_polynomial_site_p.emplace_back( 0 );
+        anisotropy_polynomial_site_p.push_back( 0 );
         anisotropy_polynomial_terms.reserve( n_terms );
     }
 
@@ -482,10 +484,10 @@ try
         {
             if( const auto & terms = anisotropy_terms[i]; !terms.empty() )
             {
-                anisotropy_indices.emplace_back( i );
-                anisotropy_polynomial_bases.emplace_back(
+                anisotropy_indices.push_back( i );
+                anisotropy_polynomial_bases.push_back(
                     PolynomialBasis{ axes.first, axes.second, axes.first.cross( axes.second ).normalized() } );
-                anisotropy_polynomial_site_p.emplace_back( anisotropy_polynomial_site_p.back() + terms.size() );
+                anisotropy_polynomial_site_p.push_back( anisotropy_polynomial_site_p.back() + terms.size() );
                 std::copy( begin( terms ), end( terms ), std::back_inserter( anisotropy_polynomial_terms ) );
             }
             else

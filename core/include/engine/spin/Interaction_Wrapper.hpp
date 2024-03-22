@@ -37,7 +37,7 @@ struct StandaloneAdapter
     virtual scalar Energy_Single_Spin( int ispin, const state_t & state )                = 0;
     virtual void Gradient( const state_t & state, vectorfield & gradient )               = 0;
     virtual void Hessian( const state_t & state, MatrixX & hessian )                     = 0;
-    virtual constexpr std::string_view Name() const                                      = 0;
+    virtual std::string_view Name() const                                                = 0;
 
 protected:
     constexpr explicit StandaloneAdapter() noexcept = default;
@@ -106,7 +106,7 @@ public:
         std::invoke( typename InteractionType::Hessian( data, cache ), state, hessian_functor );
     }
 
-    constexpr std::string_view Name() const final
+    std::string_view Name() const final
     {
         return InteractionType::name;
     }
@@ -146,48 +146,55 @@ public:
 
     scalar Energy( const state_t & state ) final
     {
+        using std::begin, std::end;
         auto functor = typename InteractionType::Energy( data, cache );
-        return std::transform_reduce(
-            begin( indices ), end( indices ), scalar( 0.0 ), std::plus<scalar>{},
-            [&state, &functor]( const IndexTuple & index )
-            { return functor( std::get<typename InteractionType::Index>( index ), state ); } );
+        const auto * state_ptr = raw_pointer_cast( state.data() );
+        return Backend::transform_reduce(
+            begin( indices ), end( indices ), scalar( 0.0 ), Backend::plus<scalar>{},
+            [state_ptr, functor] SPIRIT_HOSTDEVICE( const IndexTuple & index )
+            { return functor( std::get<typename InteractionType::Index>( index ), state_ptr ); } );
     }
 
     void Energy_per_Spin( const state_t & state, scalarfield & energy_per_spin ) final
     {
+        using std::begin, std::end;
         auto functor = typename InteractionType::Energy( data, cache );
-        std::transform(
+        const auto * state_ptr = raw_pointer_cast( state.data() );
+        Backend::transform(
             begin( indices ), end( indices ), begin( energy_per_spin ),
-            [&state, &functor]( const IndexTuple & index )
-            { return functor( std::get<typename InteractionType::Index>( index ), state ); } );
+            [state_ptr, functor] SPIRIT_HOSTDEVICE( const IndexTuple & index )
+            { return functor( std::get<typename InteractionType::Index>( index ), state_ptr ); } );
     }
 
     scalar Energy_Single_Spin( const int ispin, const state_t & state ) final
     {
         return std::invoke(
             typename InteractionType::Energy( data, cache ),
-            std::get<typename InteractionType::Index>( indices[ispin] ), state );
+            std::get<typename InteractionType::Index>( indices[ispin] ), raw_pointer_cast( state.data() ) );
     }
 
     void Gradient( const state_t & state, vectorfield & gradient ) final
     {
+        using std::begin, std::end;
         auto functor = typename InteractionType::Gradient( data, cache );
-        std::transform(
+        const auto * state_ptr = raw_pointer_cast( state.data() );
+        Backend::transform(
             begin( indices ), end( indices ), begin( gradient ),
-            [&state, &functor]( const IndexTuple & index )
-            { return functor( std::get<typename InteractionType::Index>( index ), state ); } );
+            [state_ptr, functor] SPIRIT_HOSTDEVICE( const IndexTuple & index )
+            { return functor( std::get<typename InteractionType::Index>( index ), state_ptr ); } );
     }
 
     void Hessian( const state_t & state, MatrixX & hessian ) final
     {
+        using std::begin, std::end;
         auto functor = typename InteractionType::Hessian( data, cache );
-        std::for_each(
+        Backend::for_each(
             begin( indices ), end( indices ),
-            [&functor, &state, hessian_functor = Functor::dense_hessian_wrapper( hessian )]( const IndexTuple & index )
+            [&state, &functor, hessian_functor = Functor::dense_hessian_wrapper( hessian )]( const IndexTuple & index )
             { functor( std::get<typename InteractionType::Index>( index ), state, hessian_functor ); } );
     }
 
-    constexpr std::string_view Name() const final
+    std::string_view Name() const final
     {
         return InteractionType::name;
     }
@@ -243,13 +250,6 @@ struct InteractionWrapper
     make_functor() noexcept( std::is_nothrow_constructible<FunctorAccessor<InteractionType>, Data, Cache>::value )
     {
         return FunctorAccessor<InteractionType>( data, cache );
-    }
-
-    template<template<typename> typename FunctorAccessor>
-    friend FunctorAccessor<InteractionType> make_functor( InteractionWrapper & interaction ) noexcept(
-        std::is_nothrow_invocable<decltype( interaction.make_functor )>::value )
-    {
-        return interaction.make_functor();
     }
 
     // applyGeometry

@@ -17,10 +17,10 @@ template<>
 inline void Method_Solver<Solver::LBFGS_OSO>::Initialize()
 {
     this->n_lbfgs_memory = 3; // how many previous iterations are stored in the memory
-    this->delta_a        = std::vector<field<vectorfield>>(
-        this->noi, field<vectorfield>( this->n_lbfgs_memory, vectorfield( this->nos, { 0, 0, 0 } ) ) );
-    this->delta_grad = std::vector<field<vectorfield>>(
-        this->noi, field<vectorfield>( this->n_lbfgs_memory, vectorfield( this->nos, { 0, 0, 0 } ) ) );
+    this->delta_a        = std::vector<std::vector<vectorfield>>(
+        this->noi, std::vector<vectorfield>( this->n_lbfgs_memory, vectorfield( this->nos, { 0, 0, 0 } ) ) );
+    this->delta_grad = std::vector<std::vector<vectorfield>>(
+        this->noi, std::vector<vectorfield>( this->n_lbfgs_memory, vectorfield( this->nos, { 0, 0, 0 } ) ) );
     this->rho            = scalarfield( this->n_lbfgs_memory, 0 );
     this->alpha          = scalarfield( this->n_lbfgs_memory, 0 );
     this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
