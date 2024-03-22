@@ -69,13 +69,13 @@ void setPtrAddress(
 }
 
 template<typename T>
-void clearIndex( Backend::optional<T> & index )
+SPIRIT_HOSTDEVICE void clearIndex( Backend::optional<T> & index )
 {
     index.reset();
 }
 
 template<typename T>
-void clearIndex( T & index )
+SPIRIT_HOSTDEVICE void clearIndex( T & index )
 {
     index.clear();
 }
@@ -276,7 +276,7 @@ public:
     {
         using std::begin, std::end;
         return Backend::transform_reduce(
-                   begin( indices ), end( indices ), scalar( 0.0 ), Backend::plus{},
+                   begin( indices ), end( indices ), scalar( 0.0 ), Backend::plus<scalar>{},
                    Functor::transform_op( Functor::tuple_dispatch<Accessor::Energy>( local ), scalar( 0.0 ), state ) )
                + Functor::apply_reduce(
                    Functor::tuple_dispatch<Accessor::Energy_Total>( nonlocal ), scalar( 0.0 ), state );
@@ -399,7 +399,7 @@ public:
         }
         else
         {
-            std::for_each(
+                Backend::cpu::for_each(
                 begin( indices ), end( indices ),
                 []( IndexTuple & index_tuple )
                 { std::apply( []( auto &... index ) { ( ..., Interaction::clearIndex( index ) ); }, index_tuple ); } );
@@ -483,7 +483,7 @@ private:
     template<typename Callable>
     void Hessian_Impl( const state_t & state, Callable hessian )
     {
-        std::for_each(
+        Backend::cpu::for_each(
             begin( indices ), end( indices ),
             Functor::for_each_op( Functor::tuple_dispatch<Accessor::Hessian>( local ), state, hessian ) );
 
@@ -507,7 +507,7 @@ private:
 
         if constexpr( is_local<InteractionType>::value )
         {
-            std::for_each(
+            Backend::cpu::for_each(
                 begin( indices ), end( indices ),
                 []( IndexTuple & index_tuple )
                 { Interaction::clearIndex( std::get<typename InteractionType::Index>( index_tuple ) ); } );

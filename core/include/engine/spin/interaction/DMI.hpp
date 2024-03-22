@@ -121,6 +121,7 @@ struct DMI
             cache.normals    = data.normals;
         }
 
+        std::vector<Index> indices_local( indices.size(), Index{} );
         for( unsigned int icell = 0; icell < geometry.n_cells_total; ++icell )
         {
             for( unsigned int i_pair = 0; i_pair < cache.pairs.size(); ++i_pair )
@@ -131,11 +132,14 @@ struct DMI
                     cache.pairs[i_pair] );
                 if( jspin >= 0 )
                 {
-                    std::get<Index>( indices[ispin] ).emplace_back( IndexType{ ispin, jspin, (int)i_pair, false } );
-                    std::get<Index>( indices[jspin] ).emplace_back( IndexType{ jspin, ispin, (int)i_pair, true } );
+                    indices_local[ispin].push_back( IndexType{ ispin, jspin, (int)i_pair, false } );
+                    indices_local[jspin].push_back( IndexType{ jspin, ispin, (int)i_pair, true } );
                 }
             };
         }
+
+        for( auto i = 0; i < indices.size(); ++i )
+            swap( std::get<Index>( indices[i] ), indices_local[i] );
     }
 };
 
@@ -163,9 +167,10 @@ protected:
 template<>
 inline scalar DMI::Energy::operator()( const Index & index, const Vector3 * spins ) const
 {
+    // don't need to check for `is_contributing` here, because `transform_reduce` will short circuit properly
     return Backend::transform_reduce(
-        begin( index ), end( index ), scalar( 0.0 ), Backend::plus<scalar>{},
-        [this, &spins]( const DMI::IndexType & idx ) -> scalar
+        index.begin(), index.end(), scalar( 0.0 ), Backend::plus<scalar>{},
+        [this, spins] SPIRIT_HOSTDEVICE( const DMI::IndexType & idx ) -> scalar
         {
             const auto & [ispin, jspin, i_pair, inverse] = idx;
             return ( inverse ? 0.5 : -0.5 ) * magnitudes[i_pair]
@@ -176,9 +181,10 @@ inline scalar DMI::Energy::operator()( const Index & index, const Vector3 * spin
 template<>
 inline Vector3 DMI::Gradient::operator()( const Index & index, const Vector3 * spins ) const
 {
+    // don't need to check for `is_contributing` here, because `transform_reduce` will short circuit properly
     return Backend::transform_reduce(
-        begin( index ), end( index ), Vector3{ 0.0, 0.0, 0.0 }, Backend::plus<Vector3>{},
-        [this, &spins]( const DMI::IndexType & idx ) -> Vector3
+        index.end(), index.begin(), Vector3{ 0.0, 0.0, 0.0 }, Backend::plus<Vector3>{},
+        [this, spins] SPIRIT_HOSTDEVICE( const DMI::IndexType & idx ) -> Vector3
         {
             const auto & [ispin, jspin, i_pair, inverse] = idx;
             return ( inverse ? 1.0 : -1.0 ) * magnitudes[i_pair] * spins[jspin].cross( normals[i_pair] );
@@ -189,9 +195,9 @@ template<>
 template<typename Callable>
 void DMI::Hessian::operator()( const Index & index, const vectorfield &, Callable & hessian ) const
 {
-
-    std::for_each(
-        begin( index ), end( index ),
+    // don't need to check for `is_contributing` here, because `for_each` will short circuit properly
+    Backend::cpu::for_each(
+        index.begin(), index.end(),
         [this, &index, &hessian]( const DMI::IndexType & idx )
         {
             const int i       = 3 * idx.ispin;

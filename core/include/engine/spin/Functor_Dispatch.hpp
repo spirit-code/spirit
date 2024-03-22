@@ -49,7 +49,7 @@ template<typename... Functors, typename... Args>
 void apply( std::tuple<Functors...> functors, Args &&... args )
 {
     std::apply(
-        [args = std::tuple<Args...>( std::forward<Args>( args )... )]( auto &... functor ) -> void
+        [args = std::tuple<Args...>( std::forward<Args>( args )... )]( const Functors &... functor ) -> void
         { ( ..., std::apply( functor, args ) ); },
         functors );
 }
@@ -58,7 +58,7 @@ template<typename... Functors, typename ReturnType, typename... Args>
 auto apply_reduce( std::tuple<Functors...> functors, ReturnType zero, Args &&... args ) -> ReturnType
 {
     return std::apply(
-        [zero, args = std::tuple<Args...>( std::forward<Args>( args )... )]( auto &... functor ) -> ReturnType
+        [zero, args = std::tuple<Args...>( std::forward<Args>( args )... )]( const Functors &... functor ) -> ReturnType
         { return ( zero + ... + std::apply( functor, args ) ); },
         functors );
 }
@@ -67,15 +67,15 @@ template<typename state_t, typename ReturnType, typename... Functors>
 struct transform_op
 {
     template<typename IndexTuple>
-    SPIRIT_HOSTDEVICE auto operator()( const IndexTuple & index ) -> ReturnType
+    SPIRIT_HOSTDEVICE auto operator()( const IndexTuple & index ) const -> ReturnType
     {
         return std::apply(
-            [this, &index]( Functors &... f ) -> ReturnType
+            [this, &index]( const Functors &... functor ) -> ReturnType
             {
                 return (
-                    zero + ... + [this, &index]( Functors & functor )
-                        -> decltype( functor( std::get<typename Functors::Interaction::Index>( index ), state ) )
-                    { return functor( std::get<typename Functors::Interaction::Index>( index ), state ); }( f ) );
+                    zero + ... +
+                    [this, &index]( const Functors & functor )
+                    { return functor( std::get<typename Functors::Interaction::Index>( index ), state ); }( functor ) );
             },
             functors );
     };
@@ -95,13 +95,13 @@ template<typename state_t, typename UnaryOp, typename... Functors>
 struct for_each_op
 {
     template<typename IndexTuple>
-    auto operator()( const IndexTuple & index ) -> void
+    auto operator()( const IndexTuple & index ) const -> void
     {
         std::apply(
-            [&index, &state = state_ref, &unary_op = unary_op_ref]( Functors &... functor ) -> void
+            [this, &index]( const Functors &... functor ) -> void
             {
                 ( ...,
-                  [&state, &index, &unary_op]( Functors & functor ) -> void {
+                  [this, &index]( const Functors & functor ) -> void {
                       functor( std::get<typename Functors::Interaction::Index>( index ), state, unary_op );
                   }( functor ) );
             },
@@ -110,12 +110,12 @@ struct for_each_op
 
     constexpr for_each_op( std::tuple<Functors...> && functors, const state_t & state, UnaryOp & unary_op ) noexcept(
         std::is_nothrow_move_constructible_v<std::tuple<Functors...>> )
-            : functors( functors ), state_ref( state ), unary_op_ref( unary_op ){};
+            : functors( functors ), state( state ), unary_op( unary_op ){};
 
 private:
     std::tuple<Functors...> functors;
-    const state_t & state_ref;
-    UnaryOp & unary_op_ref;
+    const state_t & state;
+    UnaryOp & unary_op;
 };
 
 } // namespace Functor
