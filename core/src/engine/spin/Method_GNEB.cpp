@@ -255,7 +255,7 @@ void Method_GNEB<chain_t, solver>::Calculate_Force(
         }
 // Apply pinning mask
 #ifdef SPIRIT_ENABLE_PINNING
-        Vectormath::set_c_a( 1, F_total[img], F_total[img], chain->images[img]->geometry->mask_unpinned );
+        Vectormath::set_c_a( 1, F_total[img], F_total[img], chain->images[img]->hamiltonian->get_geometry().mask_unpinned );
 #endif // SPIRIT_ENABLE_PINNING
 
         // Copy out
@@ -390,7 +390,7 @@ void Method_GNEB<chain_t, solver>::Calculate_Force_Virtual(
 
 // Apply Pinning
 #ifdef SPIRIT_ENABLE_PINNING
-        Vectormath::set_c_a( 1, force_virtual, force_virtual, chain->images[i]->geometry->mask_unpinned );
+        Vectormath::set_c_a( 1, force_virtual, force_virtual, chain->images[i]->hamiltonian->get_geometry().mask_unpinned );
 #endif // SPIRIT_ENABLE_PINNING
     }
 }

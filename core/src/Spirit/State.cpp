@@ -277,7 +277,7 @@ try
 
     // Geometry
     IO::append_to_file( "\n\n\n", cfg );
-    IO::Geometry_to_Config( cfg, state->active_image->geometry );
+    IO::Geometry_to_Config( cfg, state->active_image->hamiltonian->get_geometry() );
 
     // LLG
     IO::append_to_file( "\n\n\n", cfg );
@@ -297,7 +297,7 @@ try
 
     // Hamiltonian
     IO::append_to_file( "\n\n\n", cfg );
-    IO::Hamiltonian_to_Config( cfg, state->active_image->hamiltonian, state->active_image->geometry );
+    IO::Hamiltonian_to_Config( cfg, state->active_image->hamiltonian );
 }
 catch( ... )
 {

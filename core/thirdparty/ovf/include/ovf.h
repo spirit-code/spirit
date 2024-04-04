@@ -100,13 +100,13 @@ DLLEXPORT int ovf_read_segment_data_8(struct ovf_file *, int index, const struct
 
 /* write a segment (header and data) to the file, overwriting all contents.
     The new header will have segment count = 1 */
-DLLEXPORT int ovf_write_segment_4(struct ovf_file *, const struct ovf_segment *, float *data, int format=OVF_FORMAT_BIN);
-DLLEXPORT int ovf_write_segment_8(struct ovf_file *, const struct ovf_segment *, double *data, int format=OVF_FORMAT_BIN);
+DLLEXPORT int ovf_write_segment_4(struct ovf_file *, const struct ovf_segment *, const float *data, int format=OVF_FORMAT_BIN);
+DLLEXPORT int ovf_write_segment_8(struct ovf_file *, const struct ovf_segment *, const double *data, int format=OVF_FORMAT_BIN);
 
 /* append a segment (header and data) to the file.
     The segment count will be incremented */
-DLLEXPORT int ovf_append_segment_4(struct ovf_file *, const struct ovf_segment *, float *data, int format=OVF_FORMAT_BIN);
-DLLEXPORT int ovf_append_segment_8(struct ovf_file *, const struct ovf_segment *, double *data, int format=OVF_FORMAT_BIN);
+DLLEXPORT int ovf_append_segment_4(struct ovf_file *, const struct ovf_segment *, const float *data, int format=OVF_FORMAT_BIN);
+DLLEXPORT int ovf_append_segment_8(struct ovf_file *, const struct ovf_segment *, const double *data, int format=OVF_FORMAT_BIN);
 
 /* retrieve the most recent error message and clear it */
 DLLEXPORT const char * ovf_latest_message(struct ovf_file *);

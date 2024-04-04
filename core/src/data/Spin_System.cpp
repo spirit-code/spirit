@@ -16,16 +16,16 @@ namespace Data
 // TODO(important): check why there are two geometry objects in this thing and why they aren't necessarily shared
 template<typename Hamiltonian>
 Spin_System<Hamiltonian>::Spin_System(
-    std::unique_ptr<Hamiltonian> hamiltonian, std::shared_ptr<Geometry> geometry,
+    std::unique_ptr<Hamiltonian> hamiltonian,
     std::unique_ptr<Parameters_Method_LLG> llg_params, std::unique_ptr<Parameters_Method_MC> mc_params,
     std::unique_ptr<Parameters_Method_EMA> ema_params, std::unique_ptr<Parameters_Method_MMF> mmf_params,
     bool iteration_allowed )
-try : hamiltonian( std::move( hamiltonian ) ), geometry( std::move( geometry ) ), llg_parameters( std::move( llg_params ) ),
+try : hamiltonian( std::move( hamiltonian ) ), llg_parameters( std::move( llg_params ) ),
     mc_parameters( std::move( mc_params ) ), ema_parameters( std::move( ema_params ) ), mmf_parameters( std::move( mmf_params ) ),
     iteration_allowed( iteration_allowed ), singleshot_allowed( false )
 {
     // Get Number of Spins
-    this->nos = this->geometry->nos;
+    this->nos = this->hamiltonian->get_geometry().nos;
 
     // Initialize Spins Array
     this->spins = std::make_shared<vectorfield>( nos );
@@ -66,7 +66,6 @@ try
     this->E_array         = other.E_array;
     this->effective_field = other.effective_field;
 
-    this->geometry    = std::make_shared<Data::Geometry>( *other.geometry );
     this->hamiltonian = std::make_shared<Hamiltonian>( *other.hamiltonian );
 
     this->llg_parameters = std::make_shared<Data::Parameters_Method_LLG>( *other.llg_parameters );
@@ -102,7 +101,6 @@ try
         this->E_array         = other.E_array;
         this->effective_field = other.effective_field;
 
-        this->geometry    = std::make_shared<Data::Geometry>( *other.geometry );
         this->hamiltonian = std::make_shared<Hamiltonian>( *other.hamiltonian );
 
         this->llg_parameters = std::make_shared<Data::Parameters_Method_LLG>( *other.llg_parameters );

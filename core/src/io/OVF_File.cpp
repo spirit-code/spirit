@@ -13,7 +13,7 @@ OVF_Segment::OVF_Segment( const State::system_t & system )
 {
     ovf_segment_initialize( this );
 
-    auto & geometry = *system.geometry;
+    const auto & geometry = system.hamiltonian->get_geometry();
 
     this->valuedim      = 0;
     this->valuelabels   = const_cast<char *>( "" );
@@ -114,7 +114,7 @@ void OVF_File::read_segment_data( int index, const ovf_segment & segment, double
     }
 }
 
-void OVF_File::write_segment( const ovf_segment & segment, float * data, int format )
+void OVF_File::write_segment( const ovf_segment & segment, const float * data, int format )
 {
     if( ovf_write_segment_4( this, &segment, data, format ) != OVF_OK )
     {
@@ -124,7 +124,7 @@ void OVF_File::write_segment( const ovf_segment & segment, float * data, int for
     }
 }
 
-void OVF_File::write_segment( const ovf_segment & segment, double * data, int format )
+void OVF_File::write_segment( const ovf_segment & segment, const double * data, int format )
 {
     if( ovf_write_segment_8( this, &segment, data, format ) != OVF_OK )
     {
@@ -134,7 +134,7 @@ void OVF_File::write_segment( const ovf_segment & segment, double * data, int fo
     }
 }
 
-void OVF_File::append_segment( const ovf_segment & segment, float * data, int format )
+void OVF_File::append_segment( const ovf_segment & segment, const float * data, int format )
 {
     if( ovf_append_segment_4( this, &segment, data, format ) != OVF_OK )
     {
@@ -145,7 +145,7 @@ void OVF_File::append_segment( const ovf_segment & segment, float * data, int fo
     }
 }
 
-void OVF_File::append_segment( const ovf_segment & segment, double * data, int format )
+void OVF_File::append_segment( const ovf_segment & segment, const double * data, int format )
 {
     if( ovf_append_segment_8( this, &segment, data, format ) != OVF_OK )
     {

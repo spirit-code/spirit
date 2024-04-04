@@ -107,8 +107,8 @@ try
                  idx_image, idx_chain );
 
         // Helper variables
-        auto & geometry = *image->geometry;
-        auto fileformat = (IO::VF_FileFormat)format;
+        const auto & geometry = image->hamiltonian->get_geometry();
+        auto fileformat       = (IO::VF_FileFormat)format;
 
         switch( fileformat )
         {
@@ -195,8 +195,9 @@ try
         const std::string extension = Get_Extension( filename );
 
         // Helper variables
-        auto & spins    = *image->spins;
-        auto & geometry = *image->geometry;
+        auto & spins = *image->spins;
+        // TODO: eliminate this copy
+        auto geometry = image->hamiltonian->get_geometry();
 
         // Open
         auto file = IO::OVF_File( filename, true );
@@ -211,6 +212,7 @@ try
                  idx_image_inchain, idx_chain );
 
             IO::Read_NonOVF_Spin_Configuration( spins, geometry, image->nos, idx_image_infile, filename );
+            image->hamiltonian->set_geometry( geometry );
             image->Unlock();
             return;
         }
@@ -511,8 +513,8 @@ try
             // Read the images
             for( int i = insert_idx; i < noi_to_read; i++ )
             {
-                auto & spins    = *images[i]->spins;
-                auto & geometry = *images[i]->geometry;
+                auto & spins          = *images[i]->spins;
+                const auto & geometry = images[i]->hamiltonian->get_geometry();
 
                 // Segment header
                 auto segment = IO::OVF_Segment();
@@ -600,9 +602,11 @@ try
             {
                 for( int i = insert_idx; i < noi_to_read; i++ )
                 {
+                    // TODO: eliminate this copy
+                    auto geometry = chain->images[i]->hamiltonian->get_geometry();
                     IO::Read_NonOVF_Spin_Configuration(
-                        *chain->images[i]->spins, *chain->images[i]->geometry, chain->images[i]->nos,
-                        start_image_infile, filename );
+                        *chain->images[i]->spins, geometry, chain->images[i]->nos, start_image_infile, filename );
+                    chain->images[i]->hamiltonian->set_geometry( geometry );
                     start_image_infile++;
                 }
                 success = true;

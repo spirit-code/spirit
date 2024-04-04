@@ -238,7 +238,7 @@ TEST_CASE( "Biaxial anisotropy", "[anisotropy]" )
 
         const int n_atoms = Hamiltonian_Get_Biaxial_Anisotropy_N_Atoms( state.get() );
 
-        REQUIRE( n_atoms == hamiltonian->getGeometry().n_cell_atoms );
+        REQUIRE( n_atoms == hamiltonian->get_geometry().n_cell_atoms );
 
         const int n_terms = Hamiltonian_Get_Biaxial_Anisotropy_N_Terms( state.get() );
 

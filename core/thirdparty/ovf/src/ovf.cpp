@@ -290,7 +290,7 @@ catch( ... )
 }
 
 
-int ovf_write_segment_4(struct ovf_file *ovf_file_ptr, const struct ovf_segment *segment, float *data, int format)
+int ovf_write_segment_4(struct ovf_file *ovf_file_ptr, const struct ovf_segment *segment, const float *data, int format)
 try
 {
     if( !ovf_file_ptr )
@@ -341,7 +341,7 @@ catch( ... )
 }
 
 
-int ovf_write_segment_8(struct ovf_file *ovf_file_ptr, const struct ovf_segment *segment, double *data, int format)
+int ovf_write_segment_8(struct ovf_file *ovf_file_ptr, const struct ovf_segment *segment, const double *data, int format)
 try
 {
     if( !ovf_file_ptr )
@@ -392,7 +392,7 @@ catch( ... )
 }
 
 
-int ovf_append_segment_4(struct ovf_file *ovf_file_ptr, const struct ovf_segment *segment, float *data, int format)
+int ovf_append_segment_4(struct ovf_file *ovf_file_ptr, const struct ovf_segment *segment, const float *data, int format)
 try
 {
     if( !ovf_file_ptr )
@@ -450,7 +450,7 @@ catch( ... )
 }
 
 
-int ovf_append_segment_8(struct ovf_file *ovf_file_ptr, const struct ovf_segment *segment, double *data, int format)
+int ovf_append_segment_8(struct ovf_file *ovf_file_ptr, const struct ovf_segment *segment, const double *data, int format)
 try
 {
     if( !ovf_file_ptr )

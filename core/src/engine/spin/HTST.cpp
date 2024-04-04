@@ -169,7 +169,7 @@ void Calculate( Data::HTST_Info<system_t> & htst_info, int n_eigenmodes_keep )
         // Calculate_Perpendicular_Velocity_2N(image_sp, hessian_geodesic_sp_2N, basis_sp, htst_info.eigenvectors_sp,
         // perpendicular_velocity_sp);
         Calculate_Perpendicular_Velocity(
-            image_sp, htst_info.saddle_point->geometry->mu_s, hessian_geodesic_sp_3N, basis_sp,
+            image_sp, htst_info.saddle_point->hamiltonian->get_geometry().mu_s, hessian_geodesic_sp_3N, basis_sp,
             htst_info.eigenvectors_sp, htst_info.perpendicular_velocity );
 
         // Reduce the number of saved eigenmodes
@@ -325,17 +325,15 @@ void Calculate( Data::HTST_Info<system_t> & htst_info, int n_eigenmodes_keep )
 
 scalar Calculate_Zero_Volume( const State::system_t & system )
 {
-    int nos                = system.geometry->nos;
-    auto & n_cells         = system.geometry->n_cells;
-    auto & spins           = *system.spins;
-    auto & spin_positions  = system.geometry->positions;
-    auto & geometry        = *system.geometry;
-    auto & bravais_vectors = system.geometry->bravais_vectors;
+    const auto & spins           = *system.spins;
+    const auto & geometry        = system.hamiltonian->get_geometry();
+    const int nos                = geometry.nos;
+    const auto & bravais_vectors = geometry.bravais_vectors;
 
     // Dimensionality of the zero mode
     int zero_mode_dimensionality = 0;
     Vector3 zero_mode_length{ 0, 0, 0 };
-    const auto & boundary_conditions = system.hamiltonian->getBoundaryConditions();
+    const auto & boundary_conditions = system.hamiltonian->get_boundary_conditions();
     for( int ibasis = 0; ibasis < 3; ++ibasis )
     {
         // Only a periodical direction can be a true zero mode

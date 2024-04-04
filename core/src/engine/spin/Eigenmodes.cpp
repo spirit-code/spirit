@@ -83,7 +83,7 @@ void Calculate_Eigenmodes( State::system_t & system, int idx_img, int idx_chain 
     // Backend::par::apply(gradient.size(), [g, mask] SPIRIT_LAMBDA (int idx) {
     //     g[idx] = mask[idx]*g[idx];
     // });
-    Vectormath::set_c_a( 1, gradient, gradient, system.geometry->mask_unpinned );
+    Vectormath::set_c_a( 1, gradient, gradient, system.hamiltonian->get_geometry().mask_unpinned );
 
     VectorX eigenvalues;
     MatrixX eigenvectors;

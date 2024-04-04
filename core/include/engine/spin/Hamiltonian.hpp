@@ -106,11 +106,12 @@ class Hamiltonian
 
     using LocalInteractions = filtered<Interaction::is_local, Backend::tuple>;
 
+    // TODO: The Hamiltonian class should take a Geometry object instead of a pointer
     template<class Tuple, std::size_t... I_local, std::size_t... I_nonlocal>
     Hamiltonian(
-        std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions, std::index_sequence<I_local...>,
+        Data::Geometry geometry, intfield boundary_conditions, std::index_sequence<I_local...>,
         std::index_sequence<I_nonlocal...>, Tuple && data )
-            : geometry( std::move( geometry ) ),
+            : geometry( std::make_shared<::Data::Geometry>( std::move( geometry ) ) ),
               boundary_conditions( std::move( boundary_conditions ) ),
               indices( 0 ),
               index_storage( 0 ),
@@ -151,7 +152,7 @@ public:
     using StandaloneInteractionType = std::unique_ptr<Interaction::StandaloneAdapter<state_t>>;
 
     template<typename... DataTypes>
-    Hamiltonian( std::shared_ptr<Data::Geometry> geometry, intfield boundary_conditions, DataTypes &&... data )
+    Hamiltonian( Data::Geometry geometry, intfield boundary_conditions, DataTypes &&... data )
             : Hamiltonian(
                 geometry, boundary_conditions, local_indices{}, nonlocal_indices{},
                 std::make_tuple(
@@ -160,8 +161,6 @@ public:
     // rule of five, because we use pointers to the geometry and the boundary_conditions in the cache
     // this choice should keep the interfaces a bit cleaner and allow adding more global dependencies
     // in the future.
-    // TODO: Turn the Geometry into a stack member variable of this class or ensure otherwise that we
-    // are notified whenever the address of the Geometry object might have changed
     ~Hamiltonian() = default;
     Hamiltonian( const Hamiltonian & other )
             : geometry( other.geometry ),
@@ -479,25 +478,36 @@ public:
         // std::unreachable();
     };
 
-    [[nodiscard]] const auto & getBoundaryConditions() const
+    [[nodiscard]] const auto & get_boundary_conditions() const
     {
         return boundary_conditions;
     }
 
-    void setBoundaryConditions( const intfield & bc )
+    void set_boundary_conditions( const intfield & bc )
     {
         boundary_conditions = bc;
         applyGeometry();
     }
 
-    [[nodiscard]] const auto & getGeometry() const
+    [[nodiscard]] const auto & get_geometry() const
     {
         return *geometry;
     }
 
-    void setGeometry( const ::Data::Geometry & g )
+    void set_geometry( const ::Data::Geometry & g )
     {
-        *geometry = g;
+        // lazy copy mechanism for the geometry
+        // We allow shallow copies when the geometry stays the same,
+        // but if we wnat to change it we ensure that we are the sole owner of the Geometry
+        // This only works, because the Geometry class is only shared between Hamiltonian objects
+        if( geometry.use_count() > 1 || geometry == nullptr )
+        {
+            geometry = std::make_shared<::Data::Geometry>( g );
+        }
+        else
+        {
+            *geometry = g;
+        }
         applyGeometry();
     }
 
@@ -701,27 +711,27 @@ public:
         return std::visit( []( auto & h ) { return h.active_interactions(); }, hamiltonian );
     };
 
-    [[nodiscard]] auto getBoundaryConditions() const -> const intfield &
+    [[nodiscard]] auto get_boundary_conditions() const -> const intfield &
     {
         return std::visit(
-            []( const auto & h ) -> decltype( auto ) { return h.getBoundaryConditions(); }, hamiltonian );
+            []( const auto & h ) -> decltype( auto ) { return h.get_boundary_conditions(); }, hamiltonian );
     };
 
     void setBoundaryConditions( const intfield & boundary_conditions )
     {
         std::visit(
-            [&boundary_conditions]( auto & h ) { return h.setBoundaryConditions( boundary_conditions ); },
+            [&boundary_conditions]( auto & h ) { return h.set_boundary_conditions( boundary_conditions ); },
             hamiltonian );
     };
 
-    [[nodiscard]] auto getGeometry() const -> const ::Data::Geometry &
+    [[nodiscard]] auto get_geometry() const -> const ::Data::Geometry &
     {
-        return std::visit( []( const auto & h ) -> decltype( auto ) { return h.getGeometry(); }, hamiltonian );
+        return std::visit( []( const auto & h ) -> decltype( auto ) { return h.get_geometry(); }, hamiltonian );
     };
 
-    void setGeometry( const ::Data::Geometry & geometry )
+    void set_geometry( const ::Data::Geometry & geometry )
     {
-        std::visit( [&geometry]( auto & h ) { h.setGeometry( geometry ); }, hamiltonian );
+        std::visit( [&geometry]( auto & h ) { h.set_geometry( geometry ); }, hamiltonian );
     };
 
     template<class T>
