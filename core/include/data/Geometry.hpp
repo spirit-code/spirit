@@ -6,6 +6,7 @@
 #include <Spirit/Spirit_Defines.h>
 #include <engine/Vectormath_Defines.hpp>
 
+#include <memory>
 #include <vector>
 
 namespace Data
@@ -77,6 +78,18 @@ struct Basis_Cell_Composition
 // Geometry contains all geometric information of a system
 class Geometry
 {
+    struct Cache
+    {
+        std::vector<triangle_t> _triangulation{};
+        std::vector<tetrahedron_t> _tetrahedra{};
+
+        // Temporaries to tell wether the triangulation or tetrahedra
+        // need to be updated when the corresponding function is called
+        int last_update_n_cell_step = 0;
+        intfield last_update_n_cells{};
+        std::array<int, 6> last_update_cell_ranges{};
+    };
+
 public:
     // ---------- Constructor
     //  Build a regular lattice from a defined basis cell and translations
@@ -85,13 +98,78 @@ public:
         const Basis_Cell_Composition & cell_composition, scalar lattice_constant, const Pinning & pinning,
         const Defects & defects );
 
+    // rule of five for the cache data member
+    Geometry( const Geometry & other )
+            : bravais_vectors( other.bravais_vectors ),
+              lattice_constant( other.lattice_constant ),
+              n_cells( other.n_cells ),
+              n_cell_atoms( other.n_cell_atoms ),
+              cell_atoms( other.cell_atoms ),
+              cell_composition( other.cell_composition ),
+              pinning( other.pinning ),
+              defects( other.defects ),
+              classifier( other.classifier ),
+              nos( other.nos ),
+              nos_nonvacant( other.nos_nonvacant ),
+              n_cells_total( other.n_cells_total ),
+              positions( other.positions ),
+              mu_s( other.mu_s ),
+              atom_types( other.atom_types ),
+              mask_unpinned( other.mask_unpinned ),
+              mask_pinned_cells( other.mask_pinned_cells ),
+              dimensionality( other.dimensionality ),
+              dimensionality_basis( other.dimensionality_basis ),
+              center( other.center ),
+              bounds_min( other.bounds_min ),
+              bounds_max( other.bounds_max ),
+              cell_bounds_min( other.cell_bounds_min ),
+              cell_bounds_max( other.cell_bounds_max ),
+              cache( std::make_unique<Cache>( *other.cache ) ){};
+
+    Geometry & operator=( const Geometry & other )
+    {
+        if( this != &other )
+        {
+            bravais_vectors      = other.bravais_vectors;
+            lattice_constant     = other.lattice_constant;
+            n_cells              = other.n_cells;
+            n_cell_atoms         = other.n_cell_atoms;
+            cell_atoms           = other.cell_atoms;
+            cell_composition     = other.cell_composition;
+            pinning              = other.pinning;
+            defects              = other.defects;
+            classifier           = other.classifier;
+            nos                  = other.nos;
+            nos_nonvacant        = other.nos_nonvacant;
+            n_cells_total        = other.n_cells_total;
+            positions            = other.positions;
+            mu_s                 = other.mu_s;
+            atom_types           = other.atom_types;
+            mask_unpinned        = other.mask_unpinned;
+            mask_pinned_cells    = other.mask_pinned_cells;
+            dimensionality       = other.dimensionality;
+            dimensionality_basis = other.dimensionality_basis;
+            center               = other.center;
+            bounds_min           = other.bounds_min;
+            bounds_max           = other.bounds_max;
+            cell_bounds_min      = other.cell_bounds_min;
+            cell_bounds_max      = other.cell_bounds_max;
+            cache                = std::make_unique<Cache>( *other.cache );
+        }
+        return *this;
+    }
+
+    Geometry( Geometry && other )             = default;
+    Geometry & operator=( Geometry && other ) = default;
+    ~Geometry()                               = default;
+
     // ---------- Convenience functions
     // Retrieve triangulation, if 2D
     const std::vector<triangle_t> &
-    triangulation( int n_cell_step = 1, std::array<int, 6> ranges = { 0, -1, 0, -1, 0, -1 } );
+    triangulation( int n_cell_step = 1, std::array<int, 6> ranges = { 0, -1, 0, -1, 0, -1 } ) const;
     // Retrieve tetrahedra, if 3D
     const std::vector<tetrahedron_t> &
-    tetrahedra( int n_cell_step = 1, std::array<int, 6> ranges = { 0, -1, 0, -1, 0, -1 } );
+    tetrahedra( int n_cell_step = 1, std::array<int, 6> ranges = { 0, -1, 0, -1, 0, -1 } ) const;
     // Introduce disorder into the atom types
     // void disorder(scalar mixing);
     static std::vector<Vector3> BravaisVectorsSC();
@@ -100,7 +178,7 @@ public:
     static std::vector<Vector3> BravaisVectorsHex2D60();
     static std::vector<Vector3> BravaisVectorsHex2D120();
     // Pinning
-    void Apply_Pinning( vectorfield & vf );
+    void Apply_Pinning( vectorfield & vf ) const;
 
     // ---------- Basic information set, which (in theory) defines everything
     // Basis vectors {a, b, c} of the unit cell
@@ -160,15 +238,7 @@ private:
     // Calculate and update the type lattice
     void calculateGeometryType();
 
-    //
-    std::vector<triangle_t> _triangulation;
-    std::vector<tetrahedron_t> _tetrahedra;
-
-    // Temporaries to tell wether the triangulation or tetrahedra
-    // need to be updated when the corresponding function is called
-    int last_update_n_cell_step;
-    intfield last_update_n_cells;
-    std::array<int, 6> last_update_cell_ranges;
+    std::unique_ptr<Cache> cache = std::make_unique<Cache>();
 };
 
 // TODO: find better place (?)

@@ -13,7 +13,7 @@
 
 void Helper_System_Set_Geometry( State::system_t & system, const Data::Geometry & new_geometry )
 {
-    auto old_geometry = *system.geometry;
+    const auto & old_geometry = system.hamiltonian->get_geometry();
 
     int nos    = new_geometry.nos;
     system.nos = nos;
@@ -27,10 +27,7 @@ void Helper_System_Set_Geometry( State::system_t & system, const Data::Geometry 
         new_geometry.n_cells, { 0, 0, 0 } );
 
     // Update the system geometry
-    *system.geometry = new_geometry;
-
-    // Update the internal state of the interactions
-    system.hamiltonian->onGeometryChanged();
+    system.hamiltonian->set_geometry( new_geometry );
 }
 
 void Helper_State_Set_Geometry(
@@ -164,7 +161,7 @@ try
     }
 
     // The new geometry
-    const auto & old_geometry = *state->active_image->geometry;
+    const auto & old_geometry = state->active_image->hamiltonian->get_geometry();
     auto new_geometry         = Data::Geometry(
         bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms, old_geometry.cell_composition,
         old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects );
@@ -190,7 +187,7 @@ try
     auto n_cells = intfield{ n_cells_i[0], n_cells_i[1], n_cells_i[2] };
 
     // The new geometry
-    auto & old_geometry = *state->active_image->geometry;
+    const auto & old_geometry = state->active_image->hamiltonian->get_geometry();
     auto new_geometry   = Data::Geometry(
         old_geometry.bravais_vectors, n_cells, old_geometry.cell_atoms, old_geometry.cell_composition,
         old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects );
@@ -221,7 +218,7 @@ try
 
     throw_if_nullptr( atoms, "atoms" );
 
-    auto & old_geometry = *state->active_image->geometry;
+    const auto & old_geometry = state->active_image->hamiltonian->get_geometry();
 
     // The new arrays
     std::vector<Vector3> cell_atoms( 0 );
@@ -311,7 +308,7 @@ try
 
     try
     {
-        auto & old_geometry = *state->active_image->geometry;
+        const auto & old_geometry = state->active_image->hamiltonian->get_geometry();
 
         auto new_composition = old_geometry.cell_composition;
         for( auto & m : new_composition.mu_s )
@@ -351,7 +348,7 @@ try
             fmt::format( "Cannot set atom types for less than one site (you passed {})", n_atoms ) );
     }
 
-    auto & old_geometry = *state->active_image->geometry;
+    const auto & old_geometry = state->active_image->hamiltonian->get_geometry();
 
     auto new_composition = old_geometry.cell_composition;
     for( std::size_t i = 0; i < static_cast<std::size_t>( n_atoms ); ++i )
@@ -393,8 +390,8 @@ try
     };
 
     // The new geometry
-    auto & old_geometry = *state->active_image->geometry;
-    auto new_geometry   = Data::Geometry(
+    const auto & old_geometry = state->active_image->hamiltonian->get_geometry();
+    auto new_geometry         = Data::Geometry(
         bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms, old_geometry.cell_composition,
         old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects );
 
@@ -418,8 +415,8 @@ try
     check_state( state );
 
     // The new geometry
-    auto & old_geometry = *state->active_image->geometry;
-    auto new_geometry   = Data::Geometry(
+    const auto & old_geometry = state->active_image->hamiltonian->get_geometry();
+    auto new_geometry         = Data::Geometry(
         old_geometry.bravais_vectors, old_geometry.n_cells, old_geometry.cell_atoms, old_geometry.cell_composition,
         lattice_constant, old_geometry.pinning, old_geometry.defects );
 
@@ -446,8 +443,8 @@ try
     // Fetch correct indices and pointers
     auto [image, _] = from_indices( state, idx_image, idx_chain );
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
-
-    return (scalar *)raw_pointer_cast( image->geometry->positions[0].data() );
+    static vectorfield positions = image->hamiltonian->get_geometry().positions;
+    return (scalar *)raw_pointer_cast( positions[0].data() );
 }
 catch( ... )
 {
@@ -463,8 +460,8 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
-
-    return (int *)raw_pointer_cast( image->geometry->atom_types.data() );
+    static intfield atom_types = image->hamiltonian->get_geometry().atom_types;
+    return (int *)raw_pointer_cast( atom_types.data() );
 }
 catch( ... )
 {
@@ -483,11 +480,11 @@ try
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
 
-    auto g = image->geometry;
+    const auto & g = image->hamiltonian->get_geometry();
     for( std::uint8_t dim = 0; dim < 3; ++dim )
     {
-        min[dim] = g->bounds_min[dim];
-        max[dim] = g->bounds_max[dim];
+        min[dim] = g.bounds_min[dim];
+        max[dim] = g.bounds_max[dim];
     }
 }
 catch( ... )
@@ -505,10 +502,10 @@ try
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
 
-    auto g = image->geometry;
+    const auto & g = image->hamiltonian->get_geometry();
     for( std::uint8_t dim = 0; dim < 3; ++dim )
     {
-        center[dim] = g->center[dim];
+        center[dim] = g.center[dim];
     }
 }
 catch( ... )
@@ -526,11 +523,11 @@ try
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
 
-    auto g = image->geometry;
+    const auto & g = image->hamiltonian->get_geometry();
     for( std::uint8_t dim = 0; dim < 3; ++dim )
     {
-        min[dim] = g->cell_bounds_min[dim];
-        max[dim] = g->cell_bounds_max[dim];
+        min[dim] = g.cell_bounds_min[dim];
+        max[dim] = g.cell_bounds_max[dim];
     }
 }
 catch( ... )
@@ -545,7 +542,7 @@ try
     // Fetch correct indices and pointers
     auto [image, _] = from_indices( state, idx_image, idx_chain );
 
-    return Bravais_Lattice_Type( image->geometry->classifier );
+    return Bravais_Lattice_Type( image->hamiltonian->get_geometry().classifier );
 }
 catch( ... )
 {
@@ -567,12 +564,12 @@ try
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
 
-    auto g = image->geometry;
+    const auto & g = image->hamiltonian->get_geometry();
     for( std::uint8_t dim = 0; dim < 3; ++dim )
     {
-        a[dim] = g->bravais_vectors[dim][0];
-        b[dim] = g->bravais_vectors[dim][1];
-        c[dim] = g->bravais_vectors[dim][2];
+        a[dim] = g.bravais_vectors[dim][0];
+        b[dim] = g.bravais_vectors[dim][1];
+        c[dim] = g.bravais_vectors[dim][2];
     }
 }
 catch( ... )
@@ -590,7 +587,7 @@ try
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
 
-    return image->geometry->n_cell_atoms;
+    return image->hamiltonian->get_geometry().n_cell_atoms;
 }
 catch( ... )
 {
@@ -606,11 +603,11 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    auto g = image->geometry;
+    static vectorfield cell_atoms = image->hamiltonian->get_geometry().cell_atoms;
     if( atoms != nullptr )
-        *atoms = reinterpret_cast<scalar *>( g->cell_atoms[0].data() );
+        *atoms = reinterpret_cast<scalar *>( cell_atoms[0].data() );
 
-    return g->cell_atoms.size();
+    return cell_atoms.size();
 }
 catch( ... )
 {
@@ -626,8 +623,7 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( mu_s, "mu_s" );
 
-    for( int i = 0; i < image->geometry->n_cell_atoms; ++i )
-        mu_s[i] = image->geometry->mu_s[i];
+    std::copy( begin( image->hamiltonian->get_geometry().mu_s ), end( image->hamiltonian->get_geometry().mu_s ), mu_s );
 }
 catch( ... )
 {
@@ -645,10 +641,10 @@ try
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
 
-    auto g     = image->geometry;
-    n_cells[0] = g->n_cells[0];
-    n_cells[1] = g->n_cells[1];
-    n_cells[2] = g->n_cells[2];
+    const auto & g = image->hamiltonian->get_geometry();
+    n_cells[0]     = g.n_cells[0];
+    n_cells[1]     = g.n_cells[1];
+    n_cells[2]     = g.n_cells[2];
 }
 catch( ... )
 {
@@ -664,8 +660,7 @@ try
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
 
-    auto g = image->geometry;
-    return g->dimensionality;
+    return image->hamiltonian->get_geometry().dimensionality;
 }
 catch( ... )
 {
@@ -683,8 +678,8 @@ try
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
 
-    auto g                 = image->geometry;
-    const auto & triangles = g->triangulation( n_cell_step );
+    const auto & g         = image->hamiltonian->get_geometry();
+    const auto & triangles = g.triangulation( n_cell_step );
     if( indices_ptr != nullptr )
     {
         *indices_ptr = reinterpret_cast<const int *>( triangles.data() );
@@ -707,8 +702,8 @@ try
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
     std::array<int, 6> range = { ranges[0], ranges[1], ranges[2], ranges[3], ranges[4], ranges[5] };
-    auto g                   = image->geometry;
-    const auto & triangles   = g->triangulation( n_cell_step, range );
+    const auto & g           = image->hamiltonian->get_geometry();
+    const auto & triangles   = g.triangulation( n_cell_step, range );
     if( indices_ptr != nullptr )
     {
         *indices_ptr = reinterpret_cast<const int *>( triangles.data() );
@@ -727,8 +722,8 @@ try
 {
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    auto g                  = image->geometry;
-    const auto & tetrahedra = g->tetrahedra( n_cell_step );
+    const auto & g          = image->hamiltonian->get_geometry();
+    const auto & tetrahedra = g.tetrahedra( n_cell_step );
     if( indices_ptr != nullptr )
     {
         *indices_ptr = reinterpret_cast<const int *>( tetrahedra.data() );
@@ -748,10 +743,10 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( ranges, "ranges" );
 
-    auto g                   = image->geometry;
+    const auto & g           = image->hamiltonian->get_geometry();
     std::array<int, 6> range = { ranges[0], ranges[1], ranges[2], ranges[3], ranges[4], ranges[5] };
 
-    const auto & tetrahedra = g->tetrahedra( n_cell_step, range );
+    const auto & tetrahedra = g.tetrahedra( n_cell_step, range );
     if( indices_ptr != nullptr )
     {
         *indices_ptr = reinterpret_cast<const int *>( tetrahedra.data() );

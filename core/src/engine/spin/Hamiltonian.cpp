@@ -74,7 +74,7 @@ namespace Spin
 // scalar Hamiltonian<FirstInteraction, Interactions...>::Energy_Single_Spin( int ispin, const vectorfield & spins )
 // {
 //     scalar energy = 0;
-//     if( check_atom_type( this->geometry->atom_types[ispin] ) )
+//     if( check_atom_type( this->hamiltonian->get_geometry().atom_types[ispin] ) )
 //     {
 //         apply_active( [&spins, &energy]( auto & interaction ) { energy += interaction->Energy_Single_Spin( spins ); } );
 //     }

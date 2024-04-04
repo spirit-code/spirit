@@ -87,8 +87,8 @@ Geometry::Geometry(
     this->calculateGeometryType();
 
     // For updates of triangulation and tetrahedra
-    this->last_update_n_cell_step = -1;
-    this->last_update_n_cells     = intfield( 3, -1 );
+    this->cache->last_update_n_cell_step = -1;
+    this->cache->last_update_n_cells     = intfield( 3, -1 );
 }
 
 void Geometry::generatePositions()
@@ -226,7 +226,7 @@ catch( ... )
     return std::vector<triangle_t>( 0 );
 }
 
-const std::vector<triangle_t> & Geometry::triangulation( int n_cell_step, std::array<int, 6> ranges )
+const std::vector<triangle_t> & Geometry::triangulation( int n_cell_step, std::array<int, 6> ranges ) const
 {
     // Only every n_cell_step'th cell is used. So we check if there is still enough cells in all
     //      directions. Note: when visualising, 'n_cell_step' can be used to e.g. olny visualise
@@ -234,25 +234,25 @@ const std::vector<triangle_t> & Geometry::triangulation( int n_cell_step, std::a
     if( ( n_cells[0] / n_cell_step < 2 && n_cells[0] > 1 ) || ( n_cells[1] / n_cell_step < 2 && n_cells[1] > 1 )
         || ( n_cells[2] / n_cell_step < 2 && n_cells[2] > 1 ) )
     {
-        _triangulation.clear();
-        return _triangulation;
+        cache->_triangulation.clear();
+        return cache->_triangulation;
     }
 
     // 2D: triangulation
     if( this->dimensionality == 2 )
     {
         // Check if the tetrahedra for this combination of n_cells and n_cell_step has already been calculated
-        if( this->last_update_n_cell_step != n_cell_step || this->last_update_n_cells[0] != n_cells[0]
-            || this->last_update_n_cells[1] != n_cells[1] || this->last_update_n_cells[2] != n_cells[2]
-            || this->last_update_cell_ranges != ranges )
+        if( cache->last_update_n_cell_step != n_cell_step || cache->last_update_n_cells[0] != n_cells[0]
+            || cache->last_update_n_cells[1] != n_cells[1] || cache->last_update_n_cells[2] != n_cells[2]
+            || cache->last_update_cell_ranges != ranges )
         {
-            this->last_update_n_cell_step = n_cell_step;
-            this->last_update_n_cells[0]  = n_cells[0];
-            this->last_update_n_cells[1]  = n_cells[1];
-            this->last_update_n_cells[2]  = n_cells[2];
-            this->last_update_cell_ranges = ranges;
+            cache->last_update_n_cell_step = n_cell_step;
+            cache->last_update_n_cells[0]  = n_cells[0];
+            cache->last_update_n_cells[1]  = n_cells[1];
+            cache->last_update_n_cells[2]  = n_cells[2];
+            cache->last_update_cell_ranges = ranges;
 
-            _triangulation.clear();
+            cache->_triangulation.clear();
 
             std::vector<vector2_t> points;
 
@@ -280,8 +280,8 @@ const std::vector<triangle_t> & Geometry::triangulation( int n_cell_step, std::a
 
             if( ( ( n_a <= 1 || n_b <= 1 ) && dimensionality_basis != 2 ) || n_points < 3 )
             {
-                _triangulation.clear();
-                return _triangulation;
+                cache->_triangulation.clear();
+                return cache->_triangulation;
             }
             points.resize( n_points );
 
@@ -304,45 +304,45 @@ const std::vector<triangle_t> & Geometry::triangulation( int n_cell_step, std::a
                     }
                 }
             }
-            _triangulation = compute_delaunay_triangulation_2D( points );
+            cache->_triangulation = compute_delaunay_triangulation_2D( points );
         }
     } // endif 2D
     // 0D, 1D and 3D give no triangulation
     else
     {
-        _triangulation.clear();
+        cache->_triangulation.clear();
     }
-    return _triangulation;
+    return cache->_triangulation;
 }
 
-const std::vector<tetrahedron_t> & Geometry::tetrahedra( int n_cell_step, std::array<int, 6> ranges )
+const std::vector<tetrahedron_t> & Geometry::tetrahedra( int n_cell_step, std::array<int, 6> ranges ) const
 {
     // Only every n_cell_step'th cell is used. So we check if there is still enough cells in all directions. Note: when
     // visualising, 'n_cell_step' can be used to e.g. olny visualise every 2nd spin.
     if( ( n_cells[0] / n_cell_step < 2 ) || ( n_cells[1] / n_cell_step < 2 ) || ( n_cells[2] / n_cell_step < 2 ) )
     {
-        _tetrahedra.clear();
-        return _tetrahedra;
+        cache->_tetrahedra.clear();
+        return cache->_tetrahedra;
     }
 
     // --- 0-2 D gives no tetrahedra
     if( this->dimensionality != 3 )
     {
-        _tetrahedra.clear();
-        return _tetrahedra;
+        cache->_tetrahedra.clear();
+        return cache->_tetrahedra;
     }
 
     // --- 3D: Tetrahedra
     // Check if the tetrahedra for this combination of n_cells and n_cell_step has already been calculated
-    if( ( this->last_update_n_cell_step != n_cell_step ) || ( this->last_update_n_cells[0] != n_cells[0] )
-        || ( this->last_update_n_cells[1] != n_cells[1] ) || ( this->last_update_n_cells[2] != n_cells[2] )
-        || ( this->last_update_cell_ranges != ranges ) )
+    if( ( cache->last_update_n_cell_step != n_cell_step ) || ( cache->last_update_n_cells[0] != n_cells[0] )
+        || ( cache->last_update_n_cells[1] != n_cells[1] ) || ( cache->last_update_n_cells[2] != n_cells[2] )
+        || ( cache->last_update_cell_ranges != ranges ) )
     {
-        this->last_update_n_cell_step = n_cell_step;
-        this->last_update_n_cells[0]  = n_cells[0];
-        this->last_update_n_cells[1]  = n_cells[1];
-        this->last_update_n_cells[2]  = n_cells[2];
-        this->last_update_cell_ranges = ranges;
+        cache->last_update_n_cell_step = n_cell_step;
+        cache->last_update_n_cells[0]  = n_cells[0];
+        cache->last_update_n_cells[1]  = n_cells[1];
+        cache->last_update_n_cells[2]  = n_cells[2];
+        cache->last_update_cell_ranges = ranges;
 
         // Calculate the number of lattice translations covered by the given ranges
         std::int64_t a_min = ( ranges[0] >= 0 ) && ( ranges[0] <= n_cells[0] ) ? ranges[0] : 0;
@@ -370,15 +370,15 @@ const std::vector<tetrahedron_t> & Geometry::tetrahedra( int n_cell_step, std::a
         // at least one of the translation directions is not used
         if( ( ( n_a <= 1 || n_b <= 1 || n_c <= 1 ) && dimensionality_basis < 3 ) || n_points < 4 )
         {
-            _tetrahedra.clear();
-            return _tetrahedra;
+            cache->_tetrahedra.clear();
+            return cache->_tetrahedra;
         }
 
         // If we have only one spin in the basis our lattice is a simple regular geometry meaning everything can be
         // calculated by hand
         if( n_cell_atoms == 1 )
         {
-            _tetrahedra.clear();
+            cache->_tetrahedra.clear();
             std::array<int, 24> cell_indices{ 0, 1, 5, 3, 1, 3, 2, 5, 3, 2, 5, 6, 7, 6, 5, 3, 4, 7, 5, 3, 0, 4, 3, 5 };
             int x_offset = 1;
             int y_offset = n_a;
@@ -408,7 +408,7 @@ const std::vector<tetrahedron_t> & Geometry::tetrahedra( int n_cell_step, std::a
                             {
                                 tetrahedron[k] = base_index + offsets[cell_indices[j * 4 + k]];
                             }
-                            _tetrahedra.push_back( tetrahedron );
+                            cache->_tetrahedra.push_back( tetrahedron );
                         }
                     }
                 }
@@ -438,11 +438,11 @@ const std::vector<tetrahedron_t> & Geometry::tetrahedra( int n_cell_step, std::a
                     }
                 }
             }
-            _tetrahedra = compute_delaunay_triangulation_3D( points );
+            cache->_tetrahedra = compute_delaunay_triangulation_3D( points );
         }
     }
 
-    return _tetrahedra;
+    return cache->_tetrahedra;
 }
 
 std::vector<Vector3> Geometry::BravaisVectorsSC()
@@ -807,7 +807,7 @@ void Geometry::calculateGeometryType()
     }
 }
 
-void Geometry::Apply_Pinning( vectorfield & vf )
+void Geometry::Apply_Pinning( vectorfield & vf ) const
 {
 #if defined( SPIRIT_ENABLE_PINNING )
     std::int64_t N     = this->n_cell_atoms;

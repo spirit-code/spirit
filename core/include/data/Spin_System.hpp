@@ -30,10 +30,9 @@ class Spin_System
 public:
     // Constructor
     Spin_System(
-        std::unique_ptr<Hamiltonian> hamiltonian, std::shared_ptr<Geometry> geometry,
-        std::unique_ptr<Parameters_Method_LLG> llg_params, std::unique_ptr<Parameters_Method_MC> mc_params,
-        std::unique_ptr<Parameters_Method_EMA> ema_params, std::unique_ptr<Parameters_Method_MMF> mmf_params,
-        bool iteration_allowed );
+        std::unique_ptr<Hamiltonian> hamiltonian, std::unique_ptr<Parameters_Method_LLG> llg_params,
+        std::unique_ptr<Parameters_Method_MC> mc_params, std::unique_ptr<Parameters_Method_EMA> ema_params,
+        std::unique_ptr<Parameters_Method_MMF> mmf_params, bool iteration_allowed );
     // Copy constructor
     Spin_System( Spin_System const & other );
     // Assignment operator
@@ -59,13 +58,6 @@ public:
     std::shared_ptr<typename Hamiltonian::state_t> spins;
     // Spin Hamiltonian
     std::shared_ptr<Hamiltonian> hamiltonian;
-    // Geometric information
-    // TODO: replace this public access member by proper accessors
-    // The `Geometry` object is shared with the `Hamiltonian` data member
-    // which requires the geometry to stay constant to keep its internal state valid
-    // as a workaround the current mode of operation is that each change made to the `Geometry`
-    // object requires a subsequent call to `onGeometryChanged()` on each Hamiltonian that uses it
-    std::shared_ptr<Geometry> geometry;
     // Parameters for LLG
     std::shared_ptr<Parameters_Method_LLG> llg_parameters;
     // Parameters for MC

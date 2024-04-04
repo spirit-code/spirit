@@ -68,9 +68,9 @@ Method_LLG<system_t, solver>::Method_LLG( std::shared_ptr<system_t> system, int 
 template<Solver solver>
 void Method_LLG<system_t, solver>::Prepare_Thermal_Field()
 {
-    auto & parameters = *this->systems[0]->llg_parameters;
-    auto & geometry   = *this->systems[0]->geometry;
-    auto & damping    = parameters.damping;
+    auto & parameters     = *this->systems[0]->llg_parameters;
+    const auto & geometry = this->systems[0]->hamiltonian->get_geometry();
+    const auto & damping  = parameters.damping;
 
     if( parameters.temperature > 0 || parameters.temperature_gradient_inclination != 0 )
     {
@@ -123,7 +123,8 @@ void Method_LLG<system_t, solver>::Calculate_Force(
         this->systems[img]->hamiltonian->Gradient_and_Energy( *configurations[img], Gradient[img], current_energy );
 
 #ifdef SPIRIT_ENABLE_PINNING
-        Vectormath::set_c_a( 1, Gradient[img], Gradient[img], this->systems[img]->geometry->mask_unpinned );
+        Vectormath::set_c_a(
+            1, Gradient[img], Gradient[img], this->systems[img]->hamiltonian->get_geometry().mask_unpinned );
 #endif // SPIRIT_ENABLE_PINNING
 
         // Copy out
@@ -176,7 +177,7 @@ void Method_LLG<system_t, solver>::Calculate_Force_Virtual(
         // Dynamics simulation
         else
         {
-            auto & geometry = *this->systems[0]->geometry;
+            const auto & geometry = this->systems[0]->hamiltonian->get_geometry();
 
             Vectormath::set_c_a( dtg, force, force_virtual );
             Vectormath::add_c_cross( dtg * damping, image, force, force_virtual );
@@ -187,7 +188,7 @@ void Method_LLG<system_t, solver>::Calculate_Force_Virtual(
             {
                 if( parameters.stt_use_gradient )
                 {
-                    const auto & boundary_conditions = this->systems[0]->hamiltonian->getBoundaryConditions();
+                    const auto & boundary_conditions = this->systems[0]->hamiltonian->get_boundary_conditions();
 
                     // Gradient approximation for in-plane currents
                     Vectormath::jacobian( image, geometry, boundary_conditions, jacobians );
@@ -220,7 +221,8 @@ void Method_LLG<system_t, solver>::Calculate_Force_Virtual(
         }
 // Apply Pinning
 #ifdef SPIRIT_ENABLE_PINNING
-        Vectormath::set_c_a( 1, force_virtual, force_virtual, this->systems[0]->geometry->mask_unpinned );
+        Vectormath::set_c_a(
+            1, force_virtual, force_virtual, this->systems[0]->hamiltonian->get_geometry().mask_unpinned );
 #endif // SPIRIT_ENABLE_PINNING
     }
 }

@@ -29,8 +29,8 @@ Method_MC<system_t>::Method_MC( std::shared_ptr<system_t> system, int idx_img, i
     this->SenderName = Log_Sender::MC;
 
     this->noi           = this->systems.size();
-    this->nos           = this->systems[0]->geometry->nos;
-    this->nos_nonvacant = this->systems[0]->geometry->nos_nonvacant;
+    this->nos           = this->systems[0]->hamiltonian->get_geometry().nos;
+    this->nos_nonvacant = this->systems[0]->hamiltonian->get_geometry().nos_nonvacant;
 
     this->xi = vectorfield( this->nos, { 0, 0, 0 } );
 
@@ -110,7 +110,7 @@ void Method_MC<system_t>::Metropolis( const vectorfield & spins_old, vectorfield
             // Faster, but worse statistics
             ispin = idx;
 
-        if( Indexing::check_atom_type( this->systems[0]->geometry->atom_types[ispin] ) )
+        if( Indexing::check_atom_type( this->systems[0]->hamiltonian->get_geometry().atom_types[ispin] ) )
         {
             // Sample a cone
             if( this->parameters_mc->metropolis_step_cone )

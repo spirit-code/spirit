@@ -45,7 +45,7 @@ try
 
     // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
 
-    auto mag = Engine::Vectormath::Magnetization( *image->spins, image->geometry->mu_s );
+    auto mag = Engine::Vectormath::Magnetization( *image->spins, image->hamiltonian->get_geometry().mu_s );
     image->M = Vector3{ mag[0], mag[1], mag[2] };
 
     // image->Unlock();
@@ -71,7 +71,7 @@ try
     int dimensionality = Geometry_Get_Dimensionality( state, idx_image, idx_chain );
     if( dimensionality == 2 )
         charge = Engine::Vectormath::TopologicalCharge(
-            *image->spins, *image->geometry, image->hamiltonian->getBoundaryConditions() );
+            *image->spins, image->hamiltonian->get_geometry(), image->hamiltonian->get_boundary_conditions() );
 
     // image->Unlock();
 
@@ -100,7 +100,7 @@ try
     if( dimensionality == 2 )
     {
         Engine::Vectormath::TopologicalChargeDensity(
-            *image->spins, *image->geometry, image->hamiltonian->getBoundaryConditions(), charge_density,
+            *image->spins, image->hamiltonian->get_geometry(), image->hamiltonian->get_boundary_conditions(), charge_density,
             triangle_indices );
     }
 
@@ -246,7 +246,7 @@ try
 
     // The gradient force (unprojected)
     system->hamiltonian->Gradient( image, grad );
-    Vectormath::set_c_a( 1, grad, grad, system->geometry->mask_unpinned );
+    Vectormath::set_c_a( 1, grad, grad, system->hamiltonian->get_geometry().mask_unpinned );
 
     // Output
     for( unsigned int _i = 0; _i < nos; ++_i )
@@ -271,7 +271,7 @@ try
 
     // The gradient (unprojected)
     system->hamiltonian->Gradient( image, grad );
-    Vectormath::set_c_a( 1, grad, grad, system->geometry->mask_unpinned );
+    Vectormath::set_c_a( 1, grad, grad, system->hamiltonian->get_geometry().mask_unpinned );
 
     // The Hessian (unprojected)
     system->hamiltonian->Hessian( image, hess );
@@ -281,7 +281,7 @@ try
     {
         for( int j = 0; j < nos; ++j )
         {
-            if( ( !system->geometry->mask_unpinned[i] ) || ( !system->geometry->mask_unpinned[j] ) )
+            if( ( !system->hamiltonian->get_geometry().mask_unpinned[i] ) || ( !system->hamiltonian->get_geometry().mask_unpinned[j] ) )
             {
                 hess.block<3, 3>( 3 * i, 3 * j ).setZero();
             }
@@ -340,7 +340,7 @@ try
             Manifoldmath::invert_parallel( grad, minimum_mode );
 
             // Copy out the forces
-            Vectormath::set_c_a( -1, grad, force, system->geometry->mask_unpinned );
+            Vectormath::set_c_a( -1, grad, force, system->hamiltonian->get_geometry().mask_unpinned );
         }
         // Otherwise we follow some chosen mode, as long as it is not orthogonal to the gradient
         else if( mode_grad_angle > 1e-8 )
@@ -353,11 +353,11 @@ try
             int sign = ( scalar( 0 ) < mode_grad ) - ( mode_grad < scalar( 0 ) );
 
             // Calculate the force
-            // Vectormath::set_c_a(mode_grad, minimum_mode, force, system->geometry->mask_unpinned);
-            Vectormath::set_c_a( sign, minimum_mode, force, system->geometry->mask_unpinned );
+            // Vectormath::set_c_a(mode_grad, minimum_mode, force, system->hamiltonian->get_geometry().mask_unpinned);
+            Vectormath::set_c_a( sign, minimum_mode, force, system->hamiltonian->get_geometry().mask_unpinned );
 
             // // Copy out the forces
-            // Vectormath::set_c_a(1, grad, force, system->geometry->mask_unpinned);
+            // Vectormath::set_c_a(1, grad, force, system->hamiltonian->get_geometry().mask_unpinned);
         }
         else
         {
@@ -373,7 +373,7 @@ try
                           << std::endl;
 
             // Copy out the forces
-            Vectormath::set_c_a( 1, grad, force, system->geometry->mask_unpinned );
+            Vectormath::set_c_a( 1, grad, force, system->hamiltonian->get_geometry().mask_unpinned );
         }
     }
     else

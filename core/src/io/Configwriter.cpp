@@ -50,66 +50,66 @@ void Log_Levels_to_Config( const std::string & config_file )
     append_to_file( config, config_file );
 }
 
-void Geometry_to_Config( const std::string & config_file, const std::shared_ptr<Data::Geometry> geometry )
+void Geometry_to_Config( const std::string & config_file, const Data::Geometry & geometry )
 {
     // TODO: this needs to be updated!
     std::string config = "";
     config += "#################### Geometry ####################\n";
 
     // Bravais lattice/vectors
-    if( geometry->classifier == Data::BravaisLatticeType::SC )
+    if( geometry.classifier == Data::BravaisLatticeType::SC )
         config += "bravais_lattice sc\n";
-    else if( geometry->classifier == Data::BravaisLatticeType::FCC )
+    else if( geometry.classifier == Data::BravaisLatticeType::FCC )
         config += "bravais_lattice fcc\n";
-    else if( geometry->classifier == Data::BravaisLatticeType::BCC )
+    else if( geometry.classifier == Data::BravaisLatticeType::BCC )
         config += "bravais_lattice bcc\n";
-    else if( geometry->classifier == Data::BravaisLatticeType::Hex2D )
+    else if( geometry.classifier == Data::BravaisLatticeType::Hex2D )
         config += "bravais_lattice hex2d120\n";
     else
     {
         config += "bravais_vectors\n";
         config += fmt::format(
-            "{0}\n{1}\n{2}\n", geometry->bravais_vectors[0].transpose(), geometry->bravais_vectors[1].transpose(),
-            geometry->bravais_vectors[2].transpose() );
+            "{0}\n{1}\n{2}\n", geometry.bravais_vectors[0].transpose(), geometry.bravais_vectors[1].transpose(),
+            geometry.bravais_vectors[2].transpose() );
     }
 
     // Number of cells
     config
-        += fmt::format( "n_basis_cells {} {} {}\n", geometry->n_cells[0], geometry->n_cells[1], geometry->n_cells[2] );
+        += fmt::format( "n_basis_cells {} {} {}\n", geometry.n_cells[0], geometry.n_cells[1], geometry.n_cells[2] );
 
     // Optionally basis
-    if( geometry->n_cell_atoms > 1 )
+    if( geometry.n_cell_atoms > 1 )
     {
         config += "basis\n";
-        config += fmt::format( "{}\n", geometry->n_cell_atoms );
-        for( int i = 0; i < geometry->n_cell_atoms; ++i )
+        config += fmt::format( "{}\n", geometry.n_cell_atoms );
+        for( int i = 0; i < geometry.n_cell_atoms; ++i )
         {
-            config += fmt::format( "{}\n", geometry->cell_atoms[i].transpose() );
+            config += fmt::format( "{}\n", geometry.cell_atoms[i].transpose() );
         }
     }
 
     // Magnetic moment
-    if( !geometry->cell_composition.disordered )
+    if( !geometry.cell_composition.disordered )
     {
         config += "mu_s                     ";
-        for( int i = 0; i < geometry->n_cell_atoms; ++i )
-            config += fmt::format( " {}", geometry->mu_s[i] );
+        for( int i = 0; i < geometry.n_cell_atoms; ++i )
+            config += fmt::format( " {}", geometry.mu_s[i] );
         config += "\n";
     }
     else
     {
-        auto & iatom         = geometry->cell_composition.iatom;
-        auto & atom_type     = geometry->cell_composition.atom_type;
-        auto & mu_s          = geometry->cell_composition.mu_s;
-        auto & concentration = geometry->cell_composition.concentration;
+        const auto & iatom         = geometry.cell_composition.iatom;
+        const auto & atom_type     = geometry.cell_composition.atom_type;
+        const auto & mu_s          = geometry.cell_composition.mu_s;
+        const auto & concentration = geometry.cell_composition.concentration;
         config += fmt::format( "atom_types    {}\n", iatom.size() );
         for( std::size_t i = 0; i < iatom.size(); ++i )
             config += fmt::format( "{}   {}   {}   {}\n", iatom[i], atom_type[i], mu_s[i], concentration[i] );
     }
 
     // Optionally lattice constant
-    if( std::abs( geometry->lattice_constant - 1 ) > 1e-6 )
-        config += fmt::format( "lattice_constant {}\n", geometry->lattice_constant );
+    if( std::abs( geometry.lattice_constant - 1 ) > 1e-6 )
+        config += fmt::format( "lattice_constant {}\n", geometry.lattice_constant );
 
     config += "################## End Geometry ##################";
     append_to_file( config, config_file );
@@ -218,8 +218,7 @@ void Parameters_Method_MMF_to_Config(
 }
 
 void Hamiltonian_to_Config(
-    const std::string & config_file, const std::shared_ptr<Engine::Spin::HamiltonianVariant> hamiltonian,
-    const std::shared_ptr<Data::Geometry> geometry )
+    const std::string & config_file, const std::shared_ptr<Engine::Spin::HamiltonianVariant> hamiltonian )
 {
     std::string config = "";
     config += "################### Hamiltonian ##################\n";
@@ -231,11 +230,11 @@ void Hamiltonian_to_Config(
     config += fmt::format( "{:<25} {}\n", "hamiltonian", name );
     config += []( const auto & bc ) {
         return fmt::format( "{:<25} {} {} {}\n", "boundary_conditions", bc[0], bc[1], bc[2] );
-    }( hamiltonian->getBoundaryConditions() );
+    }( hamiltonian->get_boundary_conditions() );
     append_to_file( config, config_file );
 
     if( hamiltonian->Name() == "Heisenberg" )
-        Hamiltonian_Heisenberg_to_Config( config_file, hamiltonian, geometry );
+        Hamiltonian_Heisenberg_to_Config( config_file, hamiltonian );
     else if( hamiltonian->Name() == "Gaussian" )
         Hamiltonian_Gaussian_to_Config( config_file, hamiltonian );
 
@@ -244,10 +243,8 @@ void Hamiltonian_to_Config(
 }
 
 void Hamiltonian_Heisenberg_to_Config(
-    const std::string & config_file, const std::shared_ptr<Engine::Spin::HamiltonianVariant> hamiltonian,
-    const std::shared_ptr<Data::Geometry> geometry )
+    const std::string & config_file, const std::shared_ptr<Engine::Spin::HamiltonianVariant> hamiltonian )
 {
-    int n_cells_tot    = geometry->n_cells[0] * geometry->n_cells[1] * geometry->n_cells[2];
     std::string config = "";
 
     // External Field

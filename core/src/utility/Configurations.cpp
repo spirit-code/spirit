@@ -49,7 +49,7 @@ void Move( vectorfield & configuration, const Data::Geometry & geometry, int da,
 void Insert( State::system_t & s, const vectorfield & configuration, int shift, filterfunction filter )
 {
     auto & spins     = *s.spins;
-    auto & positions = s.geometry->positions;
+    auto & positions = s.hamiltonian->get_geometry().positions;
     int nos          = s.nos;
     if( shift < 0 )
         shift += nos;
@@ -85,7 +85,7 @@ void Domain( State::system_t & s, Vector3 v, filterfunction filter )
     }
 
     auto & spins     = *s.spins;
-    auto & positions = s.geometry->positions;
+    auto & positions = s.hamiltonian->get_geometry().positions;
 
     for( int iatom = 0; iatom < s.nos; ++iatom )
     {
@@ -99,7 +99,7 @@ void Domain( State::system_t & s, Vector3 v, filterfunction filter )
 void Random( State::system_t & s, filterfunction filter, bool external )
 {
     auto & spins     = *s.spins;
-    auto & positions = s.geometry->positions;
+    auto & positions = s.hamiltonian->get_geometry().positions;
 
     auto distribution = std::uniform_real_distribution<scalar>( -1, 1 );
     if( !external )
@@ -131,7 +131,7 @@ void Add_Noise_Temperature( State::system_t & s, scalar temperature, int delta_s
         return;
 
     auto & spins     = *s.spins;
-    auto & positions = s.geometry->positions;
+    auto & positions = s.hamiltonian->get_geometry().positions;
     vectorfield xi( spins.size() );
     intfield mask;
 
@@ -156,10 +156,10 @@ void Add_Noise_Temperature( State::system_t & s, scalar temperature, int delta_s
 void Hopfion( State::system_t & s, Vector3 pos, scalar r, int order, Vector3 normal, filterfunction filter )
 {
 
-    auto dreibein = Engine::Vectormath::dreibein( normal );
-    auto & spins  = *s.spins;
-    auto positions
-        = Engine::Vectormath::Rotated_View<vectorfield, Vector3>( s.geometry->positions, dreibein, pos, pos );
+    auto dreibein  = Engine::Vectormath::dreibein( normal );
+    auto & spins   = *s.spins;
+    auto positions = Engine::Vectormath::Rotated_View<vectorfield, Vector3>(
+        s.hamiltonian->get_geometry().positions, dreibein, pos, pos );
 
     using std::acos;
     using std::atan;
@@ -221,8 +221,8 @@ void Skyrmion(
 {
     // bool experimental uses Method similar to PHYSICAL REVIEW B 67, 020401(R) (2003)
 
-    auto & spins     = *s.spins;
-    auto & positions = s.geometry->positions;
+    auto & spins           = *s.spins;
+    const auto & positions = s.hamiltonian->get_geometry().positions;
 
     // skaled to fit with
     scalar r_new = r;
@@ -234,19 +234,18 @@ void Skyrmion(
     scalar distance, phi_i, theta_i;
     for( iatom = 0; iatom < s.nos; ++iatom )
     {
-        distance = std::sqrt(
-            std::pow( s.geometry->positions[iatom][0] - pos[0], 2 )
-            + std::pow( s.geometry->positions[iatom][1] - pos[1], 2 ) );
+        distance
+            = std::sqrt( std::pow( positions[iatom][0] - pos[0], 2 ) + std::pow( positions[iatom][1] - pos[1], 2 ) );
         distance = distance / r_new;
         if( filter( spins[iatom], positions[iatom] ) )
         {
-            double x = ( s.geometry->positions[iatom][0] - pos[0] ) / distance / r_new;
+            double x = ( positions[iatom][0] - pos[0] ) / distance / r_new;
             phi_i    = std::acos( std::max( -1.0, std::min( 1.0, x ) ) );
             if( distance == 0 )
             {
                 phi_i = 0;
             }
-            if( s.geometry->positions[iatom][1] - pos[1] < 0.0 )
+            if( positions[iatom][1] - pos[1] < 0.0 )
             {
                 phi_i = -phi_i;
             }
@@ -273,29 +272,28 @@ void DW_Skyrmion(
     State::system_t & s, Vector3 pos, scalar dw_radius, scalar dw_width, scalar order, scalar phase, bool upDown,
     bool achiral, bool rl, filterfunction filter )
 {
-    auto & spins     = *s.spins;
-    auto & positions = s.geometry->positions;
+    auto & spins           = *s.spins;
+    const auto & positions = s.hamiltonian->get_geometry().positions;
 
     int iatom, ksi = ( (int)rl ) * 2 - 1, dir = ( (int)upDown ) * 2 - 1;
     scalar distance, phi_i, theta_i;
     for( iatom = 0; iatom < s.nos; ++iatom )
     {
-        distance = std::sqrt(
-            std::pow( s.geometry->positions[iatom][0] - pos[0], 2 )
-            + std::pow( s.geometry->positions[iatom][1] - pos[1], 2 ) );
+        distance
+            = std::sqrt( std::pow( positions[iatom][0] - pos[0], 2 ) + std::pow( positions[iatom][1] - pos[1], 2 ) );
         if( filter( spins[iatom], positions[iatom] ) )
         {
             theta_i = std::asin( std::tanh( -2 * ( distance + dw_radius ) / dw_width ) )
                       + std::asin( std::tanh( -2 * ( distance - dw_radius ) / dw_width ) ) + Constants::Pi;
 
-            double x = ( s.geometry->positions[iatom][0] - pos[0] ) / distance;
+            double x = ( positions[iatom][0] - pos[0] ) / distance;
 
             phi_i = std::acos( std::max( -1.0, std::min( 1.0, x ) ) );
             if( distance == 0 )
             {
                 phi_i = 0;
             }
-            if( s.geometry->positions[iatom][1] - pos[1] < 0.0 )
+            if( positions[iatom][1] - pos[1] < 0.0 )
             {
                 phi_i = -phi_i;
             }
@@ -318,9 +316,9 @@ void SpinSpiral(
     Vector3 vx{ 1, 0, 0 }, vy{ 0, 1, 0 }, vz{ 0, 0, 1 };
     Vector3 e1, e2;
 
-    Vector3 a1 = s.geometry->bravais_vectors[0];
-    Vector3 a2 = s.geometry->bravais_vectors[1];
-    Vector3 a3 = s.geometry->bravais_vectors[2];
+    Vector3 a1 = s.hamiltonian->get_geometry().bravais_vectors[0];
+    Vector3 a2 = s.hamiltonian->get_geometry().bravais_vectors[1];
+    Vector3 a3 = s.hamiltonian->get_geometry().bravais_vectors[2];
 
     // -------------------- Preparation --------------------
     axis.normalize();
@@ -384,8 +382,8 @@ void SpinSpiral(
     v2 = ( e2 - proj2 * axis - proj3 * v1 ).normalized();
 
     // -------------------- Spin Spiral creation --------------------
-    auto & spins     = *s.spins;
-    auto & positions = s.geometry->positions;
+    auto & spins           = *s.spins;
+    const auto & positions = s.hamiltonian->get_geometry().positions;
     if( direction_type == "Reciprocal Lattice" )
     {
         // bi = 2*pi*(aj x ak) / (ai * (aj x ak))
@@ -416,7 +414,7 @@ void SpinSpiral(
         if( filter( spins[iatom], positions[iatom] ) )
         {
             // Phase is scalar product of spin position and q
-            phase = s.geometry->positions[iatom].dot( q );
+            phase = s.hamiltonian->get_geometry().positions[iatom].dot( q );
             // phase = phase / 180.0 * Pi;// / period;
             // The opening angle determines how far from the axis the spins rotate around it.
             //		The rotation is done by alternating between v1 and v2 periodically
@@ -436,9 +434,9 @@ void SpinSpiral(
     Vector3 e1, e2;
     Vector3 qm, qk;
 
-    Vector3 a1 = s.geometry->bravais_vectors[0];
-    Vector3 a2 = s.geometry->bravais_vectors[1];
-    Vector3 a3 = s.geometry->bravais_vectors[2];
+    Vector3 a1 = s.hamiltonian->get_geometry().bravais_vectors[0];
+    Vector3 a2 = s.hamiltonian->get_geometry().bravais_vectors[1];
+    Vector3 a3 = s.hamiltonian->get_geometry().bravais_vectors[2];
 
     // -------------------- Preparation --------------------
     axis.normalize();
@@ -513,7 +511,7 @@ void SpinSpiral(
 
     // -------------------- Spin Spiral creation --------------------
     auto & spins     = *s.spins;
-    auto & positions = s.geometry->positions;
+    auto & positions = s.hamiltonian->get_geometry().positions;
     if( direction_type == "Reciprocal Lattice" )
     {
         // bi = 2*pi*(aj x ak) / (ai * (aj x ak))
@@ -552,7 +550,7 @@ void SpinSpiral(
         if( filter( spins[iatom], positions[iatom] ) )
         {
             // Phase is scalar product of spin position and q
-            auto & r = s.geometry->positions[iatom];
+            const auto & r = s.hamiltonian->get_geometry().positions[iatom];
             // phase = phase / 180.0 * Pi;// / period;
             // The opening angle determines how far from the axis the spins rotate around it.
             //		The rotation is done by alternating between v1 and v2 periodically
@@ -566,36 +564,38 @@ void SpinSpiral(
 
 void Set_Atom_Types( State::system_t & s, int atom_type, filterfunction filter )
 {
-    auto & spins     = *s.spins;
-    auto & geometry  = s.geometry;
-    auto & positions = geometry->positions;
+    auto & spins           = *s.spins;
+    auto geometry          = s.hamiltonian->get_geometry();
+    const auto & positions = geometry.positions;
 
     for( int iatom = 0; iatom < s.nos; ++iatom )
     {
         if( filter( spins[iatom], positions[iatom] ) )
         {
-            geometry->atom_types[iatom] = atom_type;
+            geometry.atom_types[iatom] = atom_type;
             if( atom_type < 0 )
-                geometry->mu_s[iatom] = 0.0;
+                geometry.mu_s[iatom] = 0.0;
         }
     }
+    s.hamiltonian->set_geometry( geometry );
 }
 
 void Set_Pinned( State::system_t & s, bool pinned, filterfunction filter )
 {
-    auto & spins     = *s.spins;
-    auto & geometry  = s.geometry;
-    auto & positions = geometry->positions;
+    auto & spins           = *s.spins;
+    auto geometry          = s.hamiltonian->get_geometry();
+    const auto & positions = geometry.positions;
 
     int unpinned = (int)!pinned;
     for( int iatom = 0; iatom < s.nos; ++iatom )
     {
         if( filter( spins[iatom], positions[iatom] ) )
         {
-            geometry->mask_unpinned[iatom]     = unpinned;
-            geometry->mask_pinned_cells[iatom] = spins[iatom];
+            geometry.mask_unpinned[iatom]     = unpinned;
+            geometry.mask_pinned_cells[iatom] = spins[iatom];
         }
     }
+    s.hamiltonian->set_geometry( geometry );
 }
 
 } // namespace Configurations

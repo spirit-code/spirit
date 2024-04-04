@@ -106,7 +106,7 @@ try
     try
     {
         int nos          = image->nos;
-        int n_cell_atoms = image->geometry->n_cell_atoms;
+        int n_cell_atoms = image->hamiltonian->get_geometry().n_cell_atoms;
 
         // Indices and Magnitudes
         intfield new_indices( n_cell_atoms );
@@ -154,7 +154,7 @@ try
     try
     {
         int nos          = image->nos;
-        int n_cell_atoms = image->geometry->n_cell_atoms;
+        int n_cell_atoms = image->hamiltonian->get_geometry().n_cell_atoms;
 
         // Indices and Magnitudes
         intfield new_indices( n_cell_atoms );
@@ -203,7 +203,7 @@ try
         std::size_t new_on_site_terms_size = 0;
         if( image->hamiltonian->hasInteraction<Biaxial_Anisotropy>() )
         {
-            int n_cell_atoms = image->geometry->n_cell_atoms;
+            int n_cell_atoms = image->hamiltonian->get_geometry().n_cell_atoms;
 
             const auto new_primary   = Vector3{ primary[0], primary[1], primary[2] }.normalized();
             const auto new_secondary = [&secondary, &new_primary]()
@@ -421,7 +421,7 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( periodical, "periodical" );
 
-    const auto & boundary_conditions = image->hamiltonian->getBoundaryConditions();
+    const auto & boundary_conditions = image->hamiltonian->get_boundary_conditions();
     periodical[0]                    = (bool)boundary_conditions[0];
     periodical[1]                    = (bool)boundary_conditions[1];
     periodical[2]                    = (bool)boundary_conditions[2];
@@ -817,7 +817,7 @@ try
     throw_if_nullptr( filename, "filename" );
 
     // Compute hessian
-    auto nos = image->geometry->nos;
+    auto nos = image->hamiltonian->get_geometry().nos;
     SpMatrixX hessian( 3 * nos, 3 * nos );
     image->hamiltonian->Sparse_Hessian( *image->spins, hessian );
 
