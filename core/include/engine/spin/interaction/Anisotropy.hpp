@@ -58,7 +58,8 @@ struct Anisotropy
         int ispin, iani;
     };
 
-    using Index = Backend::optional<IndexType>;
+    using Index        = const IndexType *;
+    using IndexStorage = Backend::optional<IndexType>;
 
     using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<Anisotropy>>;
     using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<Anisotropy>>;
@@ -76,9 +77,9 @@ struct Anisotropy
     // Interaction name as string
     static constexpr std::string_view name = "Anisotropy";
 
-    template<typename IndexVector>
+    template<typename IndexStorageVector>
     static void applyGeometry(
-        const ::Data::Geometry & geometry, const intfield &, const Data & data, Cache &, IndexVector & indices )
+        const ::Data::Geometry & geometry, const intfield &, const Data & data, Cache &, IndexStorageVector & indices )
     {
         using Indexing::check_atom_type;
 
@@ -88,7 +89,7 @@ struct Anisotropy
             {
                 int ispin = icell * geometry.n_cell_atoms + data.indices[iani];
                 if( check_atom_type( geometry.atom_types[ispin] ) )
-                    std::get<Index>( indices[ispin] ) = IndexType{ ispin, iani };
+                    Backend::get<IndexStorage>( indices[ispin] ) = IndexType{ ispin, iani };
             }
         }
     };
@@ -116,7 +117,7 @@ protected:
 template<>
 inline scalar Anisotropy::Energy::operator()( const Index & index, const Vector3 * spins ) const
 {
-    if( is_contributing && index.has_value() )
+    if( is_contributing && index != nullptr )
     {
         const auto & [ispin, iani] = *index;
         const auto d               = normals[iani].dot( spins[ispin] );
@@ -131,7 +132,7 @@ inline scalar Anisotropy::Energy::operator()( const Index & index, const Vector3
 template<>
 inline Vector3 Anisotropy::Gradient::operator()( const Index & index, const Vector3 * spins ) const
 {
-    if( is_contributing && index.has_value() )
+    if( is_contributing && index != nullptr )
     {
         const auto & [ispin, iani] = *index;
         return -2.0 * magnitudes[iani] * normals[iani] * normals[iani].dot( spins[ispin] );
@@ -146,7 +147,7 @@ template<>
 template<typename Callable>
 void Anisotropy::Hessian::operator()( const Index & index, const vectorfield &, Callable & hessian ) const
 {
-    if( !is_contributing || !index.has_value() )
+    if( !is_contributing || index == nullptr )
         return;
 
     const auto & [ispin, iani] = *index;

@@ -33,14 +33,20 @@ using Vector2 = Eigen::Matrix<scalar, 2, 1>;
 #include <thrust/universal_vector.h>
 
 template<typename T>
-using field = thrust::universal_vector<T>;
+using field = std::vector<T, managed_allocator<T>>;
 
 #define SPIRIT_HOSTDEVICE __host__ __device__
 
 template<typename T>
-T * raw_pointer_cast( typename field<T>::pointer ptr )
+constexpr T * raw_pointer_cast( typename field<T>::pointer ptr ) noexcept
 {
-    return ptr.get();
+    return static_cast<T *>( ptr.get() );
+}
+
+template<typename Iter>
+constexpr auto raw_pointer_cast( Iter ptr ) noexcept -> typename std::iterator_traits<Iter>::pointer
+{
+    return static_cast<typename std::iterator_traits<Iter>::pointer>( &( *ptr ) );
 }
 
 #else
@@ -56,7 +62,7 @@ using field = std::vector<T>;
 
 // unpack thrust pointers if a raw pointer is strictly needed instead
 template<typename T>
-T * raw_pointer_cast( T * ptr )
+constexpr SPIRIT_HOSTDEVICE T * raw_pointer_cast( T * ptr ) noexcept
 {
     return ptr;
 }

@@ -150,9 +150,9 @@ public:
         auto functor = typename InteractionType::Energy( data, cache );
         const auto * state_ptr = raw_pointer_cast( state.data() );
         return Backend::transform_reduce(
-            begin( indices ), end( indices ), scalar( 0.0 ), Backend::plus<scalar>{},
+            indices.begin(), indices.end(), scalar( 0.0 ), Backend::plus<scalar>{},
             [state_ptr, functor] SPIRIT_HOSTDEVICE( const IndexTuple & index )
-            { return functor( std::get<typename InteractionType::Index>( index ), state_ptr ); } );
+            { return functor( Backend::get<typename InteractionType::Index>( index ), state_ptr ); } );
     }
 
     void Energy_per_Spin( const state_t & state, scalarfield & energy_per_spin ) final
@@ -161,16 +161,16 @@ public:
         auto functor = typename InteractionType::Energy( data, cache );
         const auto * state_ptr = raw_pointer_cast( state.data() );
         Backend::transform(
-            begin( indices ), end( indices ), begin( energy_per_spin ),
+            indices.begin(), indices.end(), energy_per_spin.begin(),
             [state_ptr, functor] SPIRIT_HOSTDEVICE( const IndexTuple & index )
-            { return functor( std::get<typename InteractionType::Index>( index ), state_ptr ); } );
+            { return functor( Backend::get<typename InteractionType::Index>( index ), state_ptr ); } );
     }
 
     scalar Energy_Single_Spin( const int ispin, const state_t & state ) final
     {
         return std::invoke(
             typename InteractionType::Energy( data, cache ),
-            std::get<typename InteractionType::Index>( indices[ispin] ), raw_pointer_cast( state.data() ) );
+            Backend::get<typename InteractionType::Index>( indices[ispin] ), raw_pointer_cast( state.data() ) );
     }
 
     void Gradient( const state_t & state, vectorfield & gradient ) final
@@ -179,9 +179,9 @@ public:
         auto functor = typename InteractionType::Gradient( data, cache );
         const auto * state_ptr = raw_pointer_cast( state.data() );
         Backend::transform(
-            begin( indices ), end( indices ), begin( gradient ),
+            indices.begin(), indices.end(), gradient.begin(),
             [state_ptr, functor] SPIRIT_HOSTDEVICE( const IndexTuple & index )
-            { return functor( std::get<typename InteractionType::Index>( index ), state_ptr ); } );
+            { return functor( Backend::get<typename InteractionType::Index>( index ), state_ptr ); } );
     }
 
     void Hessian( const state_t & state, MatrixX & hessian ) final
@@ -189,9 +189,9 @@ public:
         using std::begin, std::end;
         auto functor = typename InteractionType::Hessian( data, cache );
         Backend::cpu::for_each(
-            begin( indices ), end( indices ),
+            indices.begin(), indices.end(),
             [&state, &functor, hessian_functor = Functor::dense_hessian_wrapper( hessian )]( const IndexTuple & index )
-            { functor( std::get<typename InteractionType::Index>( index ), state, hessian_functor ); } );
+            { functor( Backend::get<typename InteractionType::Index>( index ), state, hessian_functor ); } );
     }
 
     std::string_view Name() const final
@@ -313,13 +313,13 @@ public:
 
 template<typename... InteractionType, typename Iterator>
 constexpr Iterator
-generate_active_nonlocal( std::tuple<InteractionWrapper<InteractionType>...> & interactions, Iterator iterator )
+generate_active_nonlocal( Backend::tuple<InteractionWrapper<InteractionType>...> & interactions, Iterator iterator )
 {
     static_assert(
         std::conjunction<std::negation<is_local<InteractionType>>...>::value,
         "all interaction types in tuple must be non-local" );
 
-    return std::apply(
+    return Backend::apply(
         [&iterator]( InteractionWrapper<InteractionType> &... elements )
         {
             ( ...,
@@ -336,12 +336,12 @@ generate_active_nonlocal( std::tuple<InteractionWrapper<InteractionType>...> & i
 
 template<typename... InteractionType, typename IndexVector, typename Iterator>
 constexpr Iterator generate_active_local(
-    std::tuple<InteractionWrapper<InteractionType>...> & interactions, const IndexVector & indices, Iterator iterator )
+    Backend::tuple<InteractionWrapper<InteractionType>...> & interactions, const IndexVector & indices, Iterator iterator )
 {
     static_assert(
         std::conjunction<is_local<InteractionType>...>::value, "all interaction types in tuple must be local" );
 
-    return std::apply(
+    return Backend::apply(
         [&indices, &iterator]( InteractionWrapper<InteractionType> &... elements )
         {
             ( ...,

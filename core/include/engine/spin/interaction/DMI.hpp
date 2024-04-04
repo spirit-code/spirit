@@ -4,6 +4,7 @@
 
 #include <engine/Indexing.hpp>
 #include <engine/Neighbours.hpp>
+#include <engine/Span.hpp>
 #include <engine/spin/interaction/Functor_Prototpyes.hpp>
 
 #include <Eigen/Dense>
@@ -69,7 +70,8 @@ struct DMI
         bool inverse;
     };
 
-    using Index = Backend::vector<IndexType>;
+    using Index        = Engine::Span<const IndexType>;
+    using IndexStorage = Backend::vector<IndexType>;
 
     using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<DMI>>;
     using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<DMI>>;
@@ -87,10 +89,10 @@ struct DMI
     // Interaction name as string
     static constexpr std::string_view name = "DMI";
 
-    template<typename IndexVector>
+    template<typename IndexStorageVector>
     static void applyGeometry(
         const ::Data::Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache,
-        IndexVector & indices )
+        IndexStorageVector & indices )
     {
         using Indexing::idx_from_pair;
 
@@ -121,7 +123,7 @@ struct DMI
             cache.normals    = data.normals;
         }
 
-        std::vector<Index> indices_local( indices.size(), Index{} );
+        field<IndexStorage> indices_local( indices.size(), IndexStorage{} );
         for( unsigned int icell = 0; icell < geometry.n_cells_total; ++icell )
         {
             for( unsigned int i_pair = 0; i_pair < cache.pairs.size(); ++i_pair )
@@ -139,7 +141,7 @@ struct DMI
         }
 
         for( auto i = 0; i < indices.size(); ++i )
-            swap( std::get<Index>( indices[i] ), indices_local[i] );
+            swap( Backend::get<IndexStorage>( indices[i] ), indices_local[i] );
     }
 };
 
@@ -183,7 +185,7 @@ inline Vector3 DMI::Gradient::operator()( const Index & index, const Vector3 * s
 {
     // don't need to check for `is_contributing` here, because `transform_reduce` will short circuit properly
     return Backend::transform_reduce(
-        index.end(), index.begin(), Vector3{ 0.0, 0.0, 0.0 }, Backend::plus<Vector3>{},
+        index.begin(), index.end(), Vector3{ 0.0, 0.0, 0.0 }, Backend::plus<Vector3>{},
         [this, spins] SPIRIT_HOSTDEVICE( const DMI::IndexType & idx ) -> Vector3
         {
             const auto & [ispin, jspin, i_pair, inverse] = idx;

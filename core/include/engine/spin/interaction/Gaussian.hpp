@@ -53,7 +53,8 @@ struct Gaussian
 
     typedef int IndexType;
 
-    using Index = Backend::optional<IndexType>;
+    using Index        = const IndexType *;
+    using IndexStorage = Backend::optional<IndexType>;
 
     using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<Gaussian>>;
     using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<Gaussian>>;
@@ -70,16 +71,16 @@ struct Gaussian
     // Interaction name as string
     static constexpr std::string_view name = "Gaussian";
 
-    template<typename IndexVector>
+    template<typename IndexStorageVector>
     static void
-    applyGeometry( const ::Data::Geometry & geometry, const intfield &, const Data &, Cache &, IndexVector & indices )
+    applyGeometry( const ::Data::Geometry & geometry, const intfield &, const Data &, Cache &, IndexStorageVector & indices )
     {
         for( int icell = 0; icell < geometry.n_cells_total; ++icell )
         {
             for( int ibasis = 0; ibasis < geometry.n_cell_atoms; ++ibasis )
             {
                 const int ispin                   = icell * geometry.n_cell_atoms + ibasis;
-                std::get<Index>( indices[ispin] ) = ispin;
+                Backend::get<IndexStorage>( indices[ispin] ) = ispin;
             };
         }
     }
@@ -115,7 +116,7 @@ inline scalar Gaussian::Energy::operator()( const Index & index, const Vector3 *
 {
     scalar result = 0;
 
-    if( !is_contributing || !index.has_value() )
+    if( !is_contributing || index == nullptr )
         return result;
 
     const int ispin = *index;
@@ -134,7 +135,7 @@ inline Vector3 Gaussian::Gradient::operator()( const Index & index, const Vector
 {
     Vector3 result = Vector3::Zero();
 
-    if( !is_contributing || !index.has_value() )
+    if( !is_contributing || index == nullptr )
         return result;
 
     const int ispin = *index;
@@ -156,7 +157,7 @@ template<>
 template<typename Callable>
 void Gaussian::Hessian::operator()( const Index & index, const vectorfield & spins, Callable & hessian ) const
 {
-    if( !is_contributing || !index.has_value() )
+    if( !is_contributing || index == nullptr )
         return;
 
     const int ispin = *index;

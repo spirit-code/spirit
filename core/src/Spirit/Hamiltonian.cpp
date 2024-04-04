@@ -119,7 +119,7 @@ try
         // Normals
         Vector3 new_normal{ normal[0], normal[1], normal[2] };
         new_normal.normalize();
-        vectorfield new_normals( nos, new_normal );
+        vectorfield new_normals( n_cell_atoms, new_normal );
         // Update the Hamiltonian
         using Engine::Spin::Interaction::Anisotropy;
         const auto error = image->hamiltonian->set_data<Anisotropy>( new_indices, new_magnitudes, new_normals );

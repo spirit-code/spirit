@@ -12,37 +12,92 @@
 #ifdef SPIRIT_USE_STDPAR
 #include <execution>
 #define SPIRIT_CPU_PAR std::execution::par,
+#elseifdef SPIRIT_USE_OPENMP
+
+namespace execution
+{
+
+struct Par
+{
+    constexpr Par() noexcept = default;
+};
+
+bool constexpr operator==( const Par & first, const Par & second )
+{
+    return true;
+};
+bool constexpr operator!=( const Par & first, const Par & second )
+{
+    return false;
+};
+
+static constexpr Par par = Par();
+
+} // namespace execution
+
+#define SPIRIT_CPU_PAR ::execution::par,
 #else
 #define SPIRIT_CPU_PAR
 #endif
 
-// clang-format off
-#ifdef SPIRIT_USE_CUDA
-    #include <thrust/copy.h>
-    #include <thrust/fill.h>
-    #include <thrust/for_each.h>
-    #include <thrust/optional.h>
-    #include <thrust/transform.h>
-    #include <thrust/transform_reduce.h>
-    #include <thrust/universal_vector.h>
-    #include <thrust/iterator/zip_iterator.h>
-    #include <thrust/zip_function.h>
+#ifndef SPIRIT_USE_CUDA
+#define SPIRIT_PAR SPIRIT_CPU_PAR
 
-    #include <thrust/execution_policy.h>
-
-    #define THRUST_IGNORE_CUB_VERSION_CHECK
-    #include <cub/cub.cuh>
-    #include <cub/iterator/transform_input_iterator.cuh>
-
-    #define SPIRIT_PAR
-
-    #define SPIRIT_LAMBDA __device__
+#define SPIRIT_LAMBDA
 #else
-    #define SPIRIT_PAR SPIRIT_CPU_PAR
+#include <thrust/copy.h>
+#include <thrust/fill.h>
+#include <thrust/iterator/zip_iterator.h>
+#include <thrust/optional.h>
+#include <thrust/transform.h>
+#include <thrust/zip_function.h>
 
-    #define SPIRIT_LAMBDA
+#include <cub/cub.cuh>
+#include <cuda/std/tuple>
+
+template<typename Iter>
+struct is_host_iterator
+        : std::conjunction<
+              std::negation<std::is_pointer<Iter>>,
+              std::disjunction<
+                  std::is_same<Iter, typename field<typename std::iterator_traits<Iter>::value_type>::iterator>,
+                  std::is_same<Iter, typename field<typename std::iterator_traits<Iter>::value_type>::const_iterator>,
+                  std::is_same<Iter, typename std::vector<typename std::iterator_traits<Iter>::value_type>::iterator>,
+                  std::is_same<
+                      Iter, typename std::vector<typename std::iterator_traits<Iter>::value_type>::const_iterator>>>
+{
+};
+
+namespace execution
+{
+
+namespace cuda
+{
+
+struct Par
+{
+    constexpr Par() noexcept = default;
+};
+
+bool constexpr operator==( const Par & first, const Par & second )
+{
+    return true;
+};
+bool constexpr operator!=( const Par & first, const Par & second )
+{
+    return false;
+};
+
+static constexpr Par par = Par();
+
+} // namespace cuda
+
+} // namespace execution
+
+#define SPIRIT_PAR
+
+#define SPIRIT_LAMBDA __device__
 #endif
-// clang-format on
 
 namespace Engine
 {
@@ -52,9 +107,13 @@ namespace Backend
 
 namespace cpu
 {
-
 using std::optional;
 using std::vector;
+
+using std::apply;
+using std::get;
+using std::make_tuple;
+using std::tuple;
 
 using std::plus;
 
@@ -71,63 +130,206 @@ using std::transform_reduce;
 using namespace cpu;
 #else
 using thrust::optional;
-
 template<typename T>
-using vector = thrust::universal_vector<T>;
+using vector = field<T>;
+
+using cuda::std::apply;
+using cuda::std::get;
+using cuda::std::make_tuple;
+using cuda::std::tuple;
 
 using thrust::plus;
 
 using thrust::copy;
 using thrust::fill;
 using thrust::fill_n;
-using thrust::for_each;
-using thrust::transform;
 
 namespace device
 {
+// no parallelization, because as a __device__ function these are called per thread
 
 template<class InputIt, class T, class BinaryReductionOp, class UnaryTransformOp>
 __device__ __forceinline__ T
 transform_reduce( InputIt first, InputIt last, T init, BinaryReductionOp reduce, UnaryTransformOp transform )
 {
-    {
-        auto t_it   = cub::TransformInputIterator<T, UnaryTransformOp, InputIt>( first, transform );
-        auto t_last = cub::TransformInputIterator<T, UnaryTransformOp, InputIt>( last, transform );
-        // no parallelization, because as a __device__ function this is called per thread
-        for( ; t_it != t_last; ++t_it )
-        {
-            init = reduce( init, *t_it );
-        }
-    }
+    while( first != last )
+        init = reduce( init, transform( *( first++ ) ) );
+
     return init;
-}
+};
+
+template<class InputIt1, class InputIt2, class T, class BinaryReductionOp, class BinaryTransformOp>
+__device__ __forceinline__ T transform_reduce(
+    InputIt1 first1, InputIt1 last1, InputIt2 first2, T init, BinaryReductionOp reduce, BinaryTransformOp transform )
+{
+    while( first1 != last1 )
+        init = reduce( init, transform( *( first1++ ), *( first2++ ) ) );
+
+    return init;
+};
+
+template<class InputIt, class OutputIt, class UnaryOp>
+__device__ __forceinline__ OutputIt transform( InputIt first, InputIt last, OutputIt d_first, UnaryOp unary_op )
+{
+    while( first != last )
+        *( d_first++ ) = unary_op( *( first++ ) );
+
+    return d_first;
+};
+
+template<class InputIt1, class InputIt2, class OutputIt, class BinaryOp>
+__device__ __forceinline__ OutputIt
+transform( InputIt1 first1, InputIt1 last1, InputIt2 first2, OutputIt d_first, BinaryOp binary_op )
+{
+    while( first1 != last1 )
+        *( d_first++ ) = binary_op( *( first1++ ), *( first2++ ) );
+
+    return d_first;
+};
 
 } // namespace device
 
-// requires that `reduce` is a `__host__ __device__` functor
-template<class InputIt, class T, class BinaryReductionOp, class UnaryTransformOp>
-__host__ __device__ T
-transform_reduce( InputIt first, InputIt last, T && init, BinaryReductionOp && reduce, UnaryTransformOp && transform )
+namespace kernel
 {
-#ifdef __CUDA_ARCH__
-    return Backend::device::transform_reduce(
-        first, last, std::forward<T>( init ), std::forward<BinaryReductionOp>( reduce ),
-        std::forward<UnaryTransformOp>( transform ) );
-#else
-    return thrust::transform_reduce(
-        first, last, std::forward<UnaryTransformOp>( transform ), std::forward<T>( init ),
-        std::forward<BinaryReductionOp>( reduce ) );
-#endif
+
+template<class InputIt, class OutputIt, class UnaryOp>
+__global__ void transform_n( InputIt first, int N, OutputIt d_first, UnaryOp unary_op )
+{
+    static_assert( std::is_pointer<InputIt>::value );
+    static_assert( std::is_pointer<OutputIt>::value );
+
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if( idx < N )
+    {
+        d_first[idx] = unary_op( first[idx] );
+    }
 };
 
-template<class DerivedPolicy, class InputIt, class T, class BinaryReductionOp, class UnaryTransformOp>
-__host__ __device__ T transform_reduce(
-    const thrust::detail::execution_policy_base<DerivedPolicy> & policy, InputIt first1, InputIt last1, T && init,
-    BinaryReductionOp && reduce, UnaryTransformOp && transform )
+template<class InputIt1, class InputIt2, class OutputIt, class BinaryOp>
+__global__ void transform_n( InputIt1 first1, int N, InputIt2 first2, OutputIt d_first, BinaryOp binary_op )
 {
-    return thrust::transform_reduce(
-        policy, first1, last1, std::forward<UnaryTransformOp>( transform ), std::forward<T>( init ),
-        std::forward<BinaryReductionOp>( reduce ) );
+    static_assert( std::is_pointer<InputIt1>::value );
+    static_assert( std::is_pointer<InputIt2>::value );
+    static_assert( std::is_pointer<OutputIt>::value );
+
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
+    if( idx < N )
+    {
+        d_first[idx] = binary_op( first1[idx], first2[idx] );
+    }
+};
+
+} // namespace kernel
+
+namespace host
+{
+
+template<class InputIt, class T, class BinaryReductionOp, class UnaryTransformOp>
+__host__ T transform_reduce( InputIt first, InputIt last, T init, BinaryReductionOp reduce, UnaryTransformOp transform )
+{
+    const int N = std::distance( first, last );
+
+    field<T> ret( 1, init );
+
+    auto t_first = cub::TransformInputIterator<T, UnaryTransformOp, InputIt>( first, transform );
+
+    // Determine temporary storage size and allocate
+    void * d_temp_storage     = nullptr;
+    size_t temp_storage_bytes = 0;
+    cub::DeviceReduce::Reduce( d_temp_storage, temp_storage_bytes, t_first, ret.data(), N, reduce, init );
+    cudaMalloc( &d_temp_storage, temp_storage_bytes );
+    // Reduction
+    cub::DeviceReduce::Reduce( d_temp_storage, temp_storage_bytes, t_first, ret.data(), N, reduce, init );
+    CU_CHECK_AND_SYNC();
+    cudaFree( d_temp_storage );
+    return ret[0];
+}
+
+template<class InputIt, class OutputIt, class UnaryOp>
+__host__ OutputIt transform( InputIt first, InputIt last, OutputIt d_first, UnaryOp unary_op )
+{
+    const int N                = std::distance( first, last );
+    static const int blockSize = []()
+    {
+        int blockSize   = 0;
+        int minGridSize = 0;
+        CU_HANDLE_ERROR( cudaOccupancyMaxPotentialBlockSize(
+            &blockSize, &minGridSize,
+            &Backend::kernel::transform_n<
+                std::decay_t<decltype( raw_pointer_cast( first ) )>,
+                std::decay_t<decltype( raw_pointer_cast( d_first ) )>, UnaryOp> ) );
+        return blockSize;
+    }();
+    Backend::kernel::transform_n<<<( N + blockSize - 1 ) / blockSize, blockSize>>>(
+        raw_pointer_cast( first ), N, raw_pointer_cast( d_first ), unary_op );
+    CU_CHECK_AND_SYNC();
+    return std::next( d_first, N );
+}
+
+template<class InputIt1, class InputIt2, class OutputIt, class BinaryOp>
+__host__ OutputIt transform( InputIt1 first1, InputIt1 last1, InputIt2 first2, OutputIt d_first, BinaryOp binary_op )
+{
+    const int N                = std::distance( first1, last1 );
+    static const int blockSize = []()
+    {
+        int blockSize   = 0;
+        int minGridSize = 0;
+        CU_HANDLE_ERROR( cudaOccupancyMaxPotentialBlockSize(
+            &blockSize, &minGridSize,
+            &Backend::kernel::transform_n<
+                std::decay_t<decltype( raw_pointer_cast( first1 ) )>,
+                std::decay_t<decltype( raw_pointer_cast( first2 ) )>,
+                std::decay_t<decltype( raw_pointer_cast( d_first ) )>, BinaryOp> ) );
+        return blockSize;
+    }();
+
+    Backend::kernel::transform_n<<<( N + blockSize - 1 ) / blockSize, blockSize>>>(
+        raw_pointer_cast( first1 ), N, raw_pointer_cast( first2 ), raw_pointer_cast( d_first ), binary_op );
+    CU_CHECK_AND_SYNC();
+    return std::next( d_first, N );
+}
+
+} // namespace host
+
+// requires that `reduce` is a `__host__ __device__` functor
+template<class InputIt, class T, class BinaryReductionOp, class UnaryTransformOp>
+__host__ auto
+transform_reduce( InputIt first, InputIt last, T init, BinaryReductionOp reduce, UnaryTransformOp transform ) ->
+    typename std::enable_if<is_host_iterator<typename std::decay<InputIt>::type>::value, T>::type
+{
+    const int N = std::distance( first, last );
+
+    field<T> ret( 1, init );
+
+    using pointer_t = typename std::iterator_traits<InputIt>::pointer;
+
+    auto t_first = cub::TransformInputIterator<T, UnaryTransformOp, pointer_t>( raw_pointer_cast( first ), transform );
+
+    // Determine temporary storage size and allocate
+    void * d_temp_storage     = nullptr;
+    size_t temp_storage_bytes = 0;
+    cub::DeviceReduce::Reduce( d_temp_storage, temp_storage_bytes, t_first, ret.data(), N, reduce, init );
+    cudaMalloc( &d_temp_storage, temp_storage_bytes );
+    // Reduction
+    cub::DeviceReduce::Reduce( d_temp_storage, temp_storage_bytes, t_first, ret.data(), N, reduce, init );
+    CU_CHECK_AND_SYNC();
+    cudaFree( d_temp_storage );
+    return ret[0];
+}
+
+template<class InputIt, class T, class BinaryReductionOp, class UnaryTransformOp>
+__host__ __device__ auto
+transform_reduce( InputIt first, InputIt last, T init, BinaryReductionOp && reduce, UnaryTransformOp && transform ) ->
+    typename std::enable_if<!is_host_iterator<typename std::decay<InputIt>::type>::value, T>::type
+{
+    return
+#ifdef __CUDA_ARCH__
+        Backend::device
+#else
+        Backend::host
+#endif
+        ::transform_reduce(
+            first, last, init, std::forward<BinaryReductionOp>( reduce ), std::forward<UnaryTransformOp>( transform ) );
 };
 
 template<class InputIt1, class InputIt2, class T, class BinaryReductionOp, class BinaryTransformOp>
@@ -142,19 +344,66 @@ __host__ __device__ T transform_reduce(
         thrust::make_zip_function( std::forward<BinaryTransformOp>( transform ) ) );
 };
 
-template<class DerivedPolicy, class InputIt1, class InputIt2, class T, class BinaryReductionOp, class BinaryTransformOp>
-__host__ __device__ T transform_reduce(
-    const thrust::detail::execution_policy_base<DerivedPolicy> & policy, InputIt1 first1, InputIt1 last1,
-    InputIt2 first2, T && init, BinaryReductionOp && reduce, BinaryTransformOp && transform )
+template<class InputIt, class OutputIt, class UnaryOp>
+__host__ auto transform( InputIt first, InputIt last, OutputIt && d_first, UnaryOp && unary_op ) ->
+    typename std::enable_if<is_host_iterator<typename std::decay<InputIt>::type>::value, OutputIt>::type
 {
-    return thrust::transform_reduce(
-        policy, thrust::make_zip_iterator( first1, first2 ),
-        thrust::make_zip_iterator( last1, first2 + std::distance( first1, last1 ) ),
-        thrust::make_zip_function( std::forward<BinaryTransformOp>( transform ) ), std::forward<T>( init ),
-        std::forward<BinaryReductionOp>( reduce ) );
-};
+    return Backend::host::transform(
+        first, last, std::forward<OutputIt>( d_first ), std::forward<UnaryOp>( unary_op ) );
+}
+
+template<class InputIt, class OutputIt, class UnaryOp>
+__host__ __device__ auto transform( InputIt first, InputIt last, OutputIt && d_first, UnaryOp && unary_op ) ->
+    typename std::enable_if<!is_host_iterator<typename std::decay<InputIt>::type>::value, OutputIt>::type
+{
+    return
+#ifdef __CUDA_ARCH__
+        Backend::device
+#else
+        Backend::host
+#endif
+        ::transform( first, last, std::forward<OutputIt>( d_first ), std::forward<UnaryOp>( unary_op ) );
+}
+
+template<class InputIt1, class InputIt2, class OutputIt, class BinaryOp>
+__host__ auto
+transform( InputIt1 first1, InputIt1 last1, InputIt2 && first2, OutputIt && d_first, BinaryOp && binary_op ) ->
+    typename std::enable_if<
+        std::conjunction<
+            is_host_iterator<typename std::decay<InputIt1>::type>,
+            is_host_iterator<typename std::decay<InputIt2>::type>>::value,
+        OutputIt>::type
+{
+    return Backend::host::transform(
+        first1, last1, std::forward<InputIt2>( first2 ), std::forward<OutputIt>( d_first ),
+        std::forward<BinaryOp>( binary_op ) );
+}
+
+template<class InputIt1, class InputIt2, class OutputIt, class BinaryOp>
+__host__ __device__ auto
+transform( InputIt1 first1, InputIt1 last1, InputIt2 && first2, OutputIt && d_first, BinaryOp && binary_op ) ->
+    typename std::enable_if<
+        !std::conjunction<
+            is_host_iterator<typename std::decay<InputIt1>::type>,
+            is_host_iterator<typename std::decay<InputIt2>::type>>::value,
+        OutputIt>::type
+{
+    return
+#ifdef __CUDA_ARCH__
+        Backend::device
+#else
+        Backend::host
+#endif
+        ::transform(
+            first1, last1, std::forward<InputIt2>( first2 ), std::forward<OutputIt>( d_first ),
+            std::forward<BinaryOp>( binary_op ) );
+}
+
 #endif
 
+// TODO: migrate all of these to the new stdlib conforming backend
+// This still needs an implementation of a `counting_iterator` class that should be wrapped around to index based bounds in the CUDA implementation,
+// because these are closer to the CUDA kernel implementation
 namespace par
 {
 
@@ -191,7 +440,7 @@ scalar reduce( int N, const F f )
     static scalarfield ret( 1, 0 );
 
     // Determine temporary storage size and allocate
-    void * d_temp_storage     = NULL;
+    void * d_temp_storage     = nullptr;
     size_t temp_storage_bytes = 0;
     cub::DeviceReduce::Sum( d_temp_storage, temp_storage_bytes, sf.data(), ret.data(), sf.size() );
     cudaMalloc( &d_temp_storage, temp_storage_bytes );
@@ -224,7 +473,7 @@ scalar reduce( const field<A> & vf1, const F f )
     // Vectormath::fill(ret, 0);
 
     // Determine temporary storage size and allocate
-    void * d_temp_storage     = NULL;
+    void * d_temp_storage     = nullptr;
     size_t temp_storage_bytes = 0;
     cub::DeviceReduce::Sum( d_temp_storage, temp_storage_bytes, sf.data(), ret.data(), sf.size() );
     cudaMalloc( &d_temp_storage, temp_storage_bytes );
@@ -254,7 +503,7 @@ scalar reduce( const field<A> & vf1, const field<B> & vf2, const F f )
     static scalarfield ret( 1, 0 );
     // Vectormath::fill(ret, 0);
     // Determine temporary storage size and allocate
-    void * d_temp_storage     = NULL;
+    void * d_temp_storage     = nullptr;
     size_t temp_storage_bytes = 0;
     cub::DeviceReduce::Sum( d_temp_storage, temp_storage_bytes, sf.data(), ret.data(), sf.size() );
     cudaMalloc( &d_temp_storage, temp_storage_bytes );

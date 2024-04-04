@@ -3,6 +3,7 @@
 #define SPIRIT_CORE_ENGINE_INTERACTION_QUADRUPLET_HPP
 
 #include <engine/Indexing.hpp>
+#include <engine/Span.hpp>
 #include <engine/spin/interaction/Functor_Prototpyes.hpp>
 
 namespace Engine
@@ -48,7 +49,8 @@ struct Quadruplet
         int ispin, jspin, kspin, lspin, iquad;
     };
 
-    using Index = Backend::vector<IndexType>;
+    using Index        = Engine::Span<const IndexType>;
+    using IndexStorage = Backend::vector<IndexType>;
 
     using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<Quadruplet>>;
     using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<Quadruplet>>;
@@ -68,14 +70,14 @@ struct Quadruplet
 
     static constexpr bool local = true;
 
-    template<typename IndexVector>
+    template<typename IndexStorageVector>
     static void applyGeometry(
         const ::Data::Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache,
-        IndexVector & indices )
+        IndexStorageVector & indices )
     {
         using Indexing::idx_from_pair;
 
-        std::vector<Index> indices_local( indices.size(), Index{} );
+        std::vector<IndexStorage> indices_local( indices.size(), IndexStorage{} );
         for( int iquad = 0; iquad < data.quadruplets.size(); ++iquad )
         {
             const auto & quad = data.quadruplets[iquad];
@@ -113,7 +115,7 @@ struct Quadruplet
         }
 
         for( auto i = 0; i < indices.size(); ++i )
-            swap( std::get<Index>( indices[i] ), indices_local[i] );
+            swap( Backend::get<IndexStorage>( indices[i] ), indices_local[i] );
 
         cache.geometry            = &geometry;
         cache.boundary_conditions = &boundary_conditions;

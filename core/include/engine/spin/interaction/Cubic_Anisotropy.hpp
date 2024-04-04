@@ -48,7 +48,8 @@ struct Cubic_Anisotropy
         int ispin, iani;
     };
 
-    using Index = Backend::optional<IndexType>;
+    using Index        = const IndexType *;
+    using IndexStorage = Backend::optional<IndexType>;
 
     using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<Cubic_Anisotropy>>;
     using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<Cubic_Anisotropy>>;
@@ -66,9 +67,9 @@ struct Cubic_Anisotropy
     // Interaction name as string
     static constexpr std::string_view name = "Cubic Anisotropy";
 
-    template<typename IndexVector>
+    template<typename IndexStorageVector>
     static void applyGeometry(
-        const ::Data::Geometry & geometry, const intfield &, const Data & data, Cache &, IndexVector & indices )
+        const ::Data::Geometry & geometry, const intfield &, const Data & data, Cache &, IndexStorageVector & indices )
     {
         using Indexing::check_atom_type;
 
@@ -78,7 +79,7 @@ struct Cubic_Anisotropy
             {
                 int ispin = icell * geometry.n_cell_atoms + data.indices[iani];
                 if( check_atom_type( geometry.atom_types[ispin] ) )
-                    std::get<Index>( indices[ispin] ) = IndexType{ ispin, iani };
+                    Backend::get<IndexStorage>( indices[ispin] ) = IndexType{ ispin, iani };
             }
         }
     };
@@ -108,7 +109,7 @@ inline scalar Cubic_Anisotropy::Energy::operator()( const Index & index, const V
 {
     using std::pow;
     scalar result = 0;
-    if( !is_contributing || !index.has_value() )
+    if( !is_contributing || index == nullptr )
         return result;
 
     const auto & [ispin, iani] = *index;
@@ -121,7 +122,7 @@ inline Vector3 Cubic_Anisotropy::Gradient::operator()( const Index & index, cons
 {
     using std::pow;
     Vector3 result = Vector3::Zero();
-    if( !is_contributing || !index.has_value() )
+    if( !is_contributing || index == nullptr )
         return result;
 
     const auto & [ispin, iani] = *index;

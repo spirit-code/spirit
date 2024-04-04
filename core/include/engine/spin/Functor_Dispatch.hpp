@@ -1,5 +1,6 @@
 #pragma once
 
+#include <engine/Span.hpp>
 #include <engine/spin/Interaction_Traits.hpp>
 #include <engine/spin/Interaction_Wrapper.hpp>
 
@@ -36,30 +37,30 @@ namespace Functor
 {
 
 template<template<class> class FunctorAccessor, typename... InteractionTypes>
-auto tuple_dispatch( std::tuple<Interaction::InteractionWrapper<InteractionTypes>...> & interactions )
-    -> std::tuple<FunctorAccessor<InteractionTypes>...>
+auto tuple_dispatch( Backend::tuple<Interaction::InteractionWrapper<InteractionTypes>...> & interactions )
+    -> Backend::tuple<FunctorAccessor<InteractionTypes>...>
 {
-    return std::apply(
+    return Backend::apply(
         []( Interaction::InteractionWrapper<InteractionTypes> &... interaction )
-        { return std::make_tuple( interaction.template make_functor<FunctorAccessor>()... ); },
+        { return Backend::make_tuple( interaction.template make_functor<FunctorAccessor>()... ); },
         interactions );
 };
 
 template<typename... Functors, typename... Args>
-void apply( std::tuple<Functors...> functors, Args &&... args )
+void apply( Backend::tuple<Functors...> functors, Args &&... args )
 {
-    std::apply(
-        [args = std::tuple<Args...>( std::forward<Args>( args )... )]( const Functors &... functor ) -> void
-        { ( ..., std::apply( functor, args ) ); },
+    Backend::apply(
+        [args = Backend::tuple<Args...>( std::forward<Args>( args )... )]( const Functors &... functor ) -> void
+        { ( ..., Backend::apply( functor, args ) ); },
         functors );
 }
 
 template<typename... Functors, typename ReturnType, typename... Args>
-auto apply_reduce( std::tuple<Functors...> functors, ReturnType zero, Args &&... args ) -> ReturnType
+auto apply_reduce( Backend::tuple<Functors...> functors, ReturnType zero, Args &&... args ) -> ReturnType
 {
-    return std::apply(
-        [zero, args = std::tuple<Args...>( std::forward<Args>( args )... )]( const Functors &... functor ) -> ReturnType
-        { return ( zero + ... + std::apply( functor, args ) ); },
+    return Backend::apply(
+        [zero, args = Backend::tuple<Args...>( std::forward<Args>( args )... )]( const Functors &... functor ) -> ReturnType
+        { return ( zero + ... + Backend::apply( functor, args ) ); },
         functors );
 }
 
@@ -69,24 +70,24 @@ struct transform_op
     template<typename IndexTuple>
     SPIRIT_HOSTDEVICE auto operator()( const IndexTuple & index ) const -> ReturnType
     {
-        return std::apply(
+        return Backend::apply(
             [this, &index]( const Functors &... functor ) -> ReturnType
             {
                 return (
                     zero + ... +
                     [this, &index]( const Functors & functor )
-                    { return functor( std::get<typename Functors::Interaction::Index>( index ), state ); }( functor ) );
+                    { return functor( Backend::get<typename Functors::Interaction::Index>( index ), state ); }( functor ) );
             },
             functors );
     };
 
-    constexpr transform_op( std::tuple<Functors...> && functors, ReturnType zero, const state_t & state ) noexcept(
-        std::is_nothrow_move_constructible_v<std::tuple<Functors...>>
+    constexpr transform_op( Backend::tuple<Functors...> && functors, ReturnType zero, const state_t & state ) noexcept(
+        std::is_nothrow_move_constructible_v<Backend::tuple<Functors...>>
         && std::is_nothrow_copy_constructible_v<ReturnType> )
-            : functors( functors ), state( raw_pointer_cast( state.data() ) ), zero( zero ){};
+            : functors( std::move( functors ) ), state( raw_pointer_cast( state.data() ) ), zero( zero ){};
 
 private:
-    std::tuple<Functors...> functors;
+    Backend::tuple<Functors...> functors;
     const std::decay_t<typename state_t::value_type> * state;
     ReturnType zero;
 };
@@ -97,23 +98,23 @@ struct for_each_op
     template<typename IndexTuple>
     auto operator()( const IndexTuple & index ) const -> void
     {
-        std::apply(
+        Backend::apply(
             [this, &index]( const Functors &... functor ) -> void
             {
                 ( ...,
                   [this, &index]( const Functors & functor ) -> void {
-                      functor( std::get<typename Functors::Interaction::Index>( index ), state, unary_op );
+                      functor( Backend::get<typename Functors::Interaction::Index>( index ), state, unary_op );
                   }( functor ) );
             },
             functors );
     };
 
-    constexpr for_each_op( std::tuple<Functors...> && functors, const state_t & state, UnaryOp & unary_op ) noexcept(
-        std::is_nothrow_move_constructible_v<std::tuple<Functors...>> )
-            : functors( functors ), state( state ), unary_op( unary_op ){};
+    constexpr for_each_op( Backend::tuple<Functors...> && functors, const state_t & state, UnaryOp & unary_op ) noexcept(
+        std::is_nothrow_move_constructible_v<Backend::tuple<Functors...>> )
+            : functors( std::move( functors ) ), state( state ), unary_op( unary_op ){};
 
 private:
-    std::tuple<Functors...> functors;
+    Backend::tuple<Functors...> functors;
     const state_t & state;
     UnaryOp & unary_op;
 };

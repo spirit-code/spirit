@@ -4,6 +4,7 @@
 
 #include <engine/Indexing.hpp>
 #include <engine/Neighbours.hpp>
+#include <engine/Span.hpp>
 #include <engine/spin/interaction/Functor_Prototpyes.hpp>
 
 #include <Eigen/Dense>
@@ -59,7 +60,8 @@ struct Exchange
         int ispin, jspin, ipair;
     };
 
-    using Index = Backend::vector<IndexType>;
+    using Index        = Engine::Span<const IndexType>;
+    using IndexStorage = Backend::vector<IndexType>;
 
     using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<Exchange>>;
     using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<Exchange>>;
@@ -77,10 +79,10 @@ struct Exchange
     // Interaction name as string
     static constexpr std::string_view name = "Exchange";
 
-    template<typename IndexVector>
+    template<typename IndexStorageVector>
     static void applyGeometry(
         const ::Data::Geometry & geometry, const intfield & boundary_conditions, const Data & data, Cache & cache,
-        IndexVector & indices )
+        IndexStorageVector & indices )
     {
         using Indexing::idx_from_pair;
 
@@ -108,7 +110,7 @@ struct Exchange
             cache.magnitudes = data.magnitudes;
         }
 
-        std::vector<Index> indices_local( indices.size(), Index{} );
+        field<IndexStorage> indices_local( indices.size(), IndexStorage{} );
         for( unsigned int icell = 0; icell < geometry.n_cells_total; ++icell )
         {
             for( unsigned int i_pair = 0; i_pair < cache.pairs.size(); ++i_pair )
@@ -126,7 +128,7 @@ struct Exchange
         }
 
         for( auto i = 0; i < indices.size(); ++i )
-            swap(std::get<Index>( indices[i] ), indices_local[i]);
+            swap( Backend::get<IndexStorage>( indices[i] ), indices_local[i] );
     };
 };
 
