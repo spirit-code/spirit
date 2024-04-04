@@ -101,17 +101,16 @@ TEST_CASE( "Parse Hamiltonian (Pairs) config and check parsed values using the C
         REQUIRE( n_terms > n_atoms );
         REQUIRE( n_terms == n_terms_ref );
 
-        intfield indices( n_atoms );
-        field<std::array<scalar, 3>> primary( n_atoms );
+        std::vector<int> indices( n_atoms );
+        std::vector<std::array<scalar, 3>> primary( n_atoms );
         std::vector<std::array<scalar, 3>> secondary( n_atoms );
-        field<int> site_p( n_atoms + 1 );
-        scalarfield magnitudes( n_terms );
+        std::vector<int> site_p( n_atoms + 1 );
+        std::vector<scalar> magnitudes( n_terms );
         std::vector exponents( n_terms, std::array{ 0, 0, 0 } );
 
         Hamiltonian_Get_Biaxial_Anisotropy(
-            state.get(), raw_pointer_cast( indices.data() ), array_cast( primary ), array_cast( secondary ),
-            raw_pointer_cast( site_p.data() ), n_atoms, raw_pointer_cast( magnitudes.data() ), array_cast( exponents ),
-            n_terms );
+            state.get(), indices.data(), array_cast( primary ), array_cast( secondary ), site_p.data(), n_atoms,
+            magnitudes.data(), array_cast( exponents ), n_terms );
 
         if( n_atoms > 0 )
         {
@@ -161,36 +160,13 @@ TEST_CASE( "Parse Hamiltonian (Pairs) config and check parsed values using the C
         }
     }
 
-    auto index_invert       = []( const std::array<int, 2> & idx ) { return std::array{ idx[1], idx[0] }; };
-    auto translation_invert = []( const std::array<int, 3> & t ) { return std::array{ -t[0], -t[1], -t[2] }; };
-
-    auto duplicate_invert = []( const auto & arr, auto inverter )
-    {
-        static constexpr std::size_t N = std::tuple_size_v<std::decay_t<decltype( arr )>>;
-        using value_type               = typename std::decay_t<decltype( arr )>::value_type;
-        std::array<value_type, 2 * N> out{};
-        std::copy( begin( arr ), end( arr ), begin( out ) );
-        std::transform( begin( arr ), end( arr ), begin( out ) + N, inverter );
-        return out;
-    };
-
     SECTION( "Heisenberg Exchange" )
     {
-        constexpr std::array<std::array<int, 2>, 3> indices_decl
+        constexpr std::array<std::array<int, 2>, 3> indices_ref
             = { std::array{ 0, 0 }, std::array{ 0, 0 }, std::array{ 0, 0 } };
-        constexpr std::array<std::array<int, 3>, 3> translations_decl
+        constexpr std::array<std::array<int, 3>, 3> translations_ref
             = { std::array{ 1, 0, 0 }, std::array{ 0, 1, 0 }, std::array{ 0, 0, 1 } };
-        constexpr std::array<scalar, 3> Jij_decl{ 10.0, 10.0, 10.0 };
-
-#if( defined( SPIRIT_USE_CUDA ) || defined( SPIRIT_USE_OPENMP ) )
-        const auto indices_ref      = duplicate_invert( indices_decl, index_invert );
-        const auto translations_ref = duplicate_invert( translations_decl, translation_invert );
-        const auto Jij_ref          = duplicate_invert( Jij_decl, []( const auto & i ) { return i; } );
-#else
-        constexpr auto indices_ref      = indices_decl;
-        constexpr auto translations_ref = translations_decl;
-        constexpr auto Jij_ref          = Jij_decl;
-#endif
+        constexpr std::array<scalar, 3> Jij_ref{ 10.0, 10.0, 10.0 };
 
         const int n_pairs = Hamiltonian_Get_Exchange_N_Pairs( state.get() );
 
@@ -198,8 +174,7 @@ TEST_CASE( "Parse Hamiltonian (Pairs) config and check parsed values using the C
         std::vector<std::array<int, 3>> translations( n_pairs );
         std::vector<scalar> Jij( n_pairs );
 
-        Hamiltonian_Get_Exchange_Pairs(
-            state.get(), array_cast( indices ), array_cast( translations ), raw_pointer_cast( Jij.data() ) );
+        Hamiltonian_Get_Exchange_Pairs( state.get(), array_cast( indices ), array_cast( translations ), Jij.data() );
 
         // use std::map to compare them, because the order of the exchange terms need not be fixed
         using exchange_idx = std::tuple<int, int, int, int, int>;
@@ -242,8 +217,7 @@ TEST_CASE( "Parse Hamiltonian (Pairs) config and check parsed values using the C
         scalar cutoff_radius = 0;
         bool pb_zero_padding = false;
 
-        Hamiltonian_Get_DDI(
-            state.get(), &ddi_method, raw_pointer_cast( n_periodic_images.data() ), &cutoff_radius, &pb_zero_padding );
+        Hamiltonian_Get_DDI( state.get(), &ddi_method, n_periodic_images.data(), &cutoff_radius, &pb_zero_padding );
 
         REQUIRE( ddi_method == ddi_method_ref );
         REQUIRE( n_periodic_images == n_periodic_images_ref );
