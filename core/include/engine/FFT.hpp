@@ -26,6 +26,7 @@
 
 #ifdef SPIRIT_USE_CUDA
 #include <cufft.h>
+#include <optional>
 #endif
 
 namespace Engine
@@ -114,7 +115,7 @@ inline void addTo( FFT_cpx_type & a, const FFT_cpx_type & b, bool overwrite )
 // these are single precision types!
 using FFT_real_type = cufftReal;
 using FFT_cpx_type  = cufftComplex;
-using FFT_cfg       = cufftHandle;
+using FFT_cfg       = std::optional<cufftHandle>;
 
 // scalar product of two complex vectors
 inline __device__ FFT_cpx_type mult3D(
