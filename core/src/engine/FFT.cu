@@ -22,24 +22,36 @@ void iFour_3D( FFT_cfg cfg, FFT_cpx_type * in, FFT_real_type * out )
 
 void batch_Four_3D( FFT_Plan & plan )
 {
-    auto res = cufftExecR2C( plan.cfg, raw_pointer_cast( plan.real_ptr.data() ), raw_pointer_cast( plan.cpx_ptr.data() ) );
-    if( res != CUFFT_SUCCESS )
+    if( plan.cfg.has_value() )
     {
-        Log( Utility::Log_Level::Error, Utility::Log_Sender::All,
-             fmt::format( "cufftExecR2C failed with error: {}", static_cast<int>( res ) ) );
+        auto res = cufftExecR2C(
+            *plan.cfg, raw_pointer_cast( plan.real_ptr.data() ), raw_pointer_cast( plan.cpx_ptr.data() ) );
+        if( res != CUFFT_SUCCESS )
+        {
+            Log( Utility::Log_Level::Error, Utility::Log_Sender::All,
+                 fmt::format( "cufftExecR2C failed with error: {}", static_cast<int>( res ) ) );
+        }
+        cudaDeviceSynchronize();
     }
-    cudaDeviceSynchronize();
+    else
+        Log( Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format( "cufftPlan has not been initialized" ) );
 }
 
 void batch_iFour_3D( FFT_Plan & plan )
 {
-    auto res = cufftExecC2R( plan.cfg, raw_pointer_cast( plan.cpx_ptr.data() ), raw_pointer_cast( plan.real_ptr.data() ) );
-    if( res != CUFFT_SUCCESS )
+    if( plan.cfg.has_value() )
     {
-        Log( Utility::Log_Level::Error, Utility::Log_Sender::All,
-             fmt::format( "cufftExecC2R failed with error: {}", static_cast<int>( res ) ) );
+        auto res = cufftExecC2R(
+            *plan.cfg, raw_pointer_cast( plan.cpx_ptr.data() ), raw_pointer_cast( plan.real_ptr.data() ) );
+        if( res != CUFFT_SUCCESS )
+        {
+            Log( Utility::Log_Level::Error, Utility::Log_Sender::All,
+                 fmt::format( "cufftExecC2R failed with error: {}", static_cast<int>( res ) ) );
+        }
+        cudaDeviceSynchronize();
     }
-    cudaDeviceSynchronize();
+    else
+        Log( Utility::Log_Level::Error, Utility::Log_Sender::All, fmt::format( "cufftPlan has not been initialized" ) );
 }
 
 void FFT_Plan::Create_Configuration()
@@ -57,35 +69,54 @@ void FFT_Plan::Create_Configuration()
     }
     int idist = 1, odist = 1;
 
-    if( this->inverse == false )
+    if( this->cfg.has_value() )
+        Free_Configuration();
+
+    if( !this->inverse )
     {
+        cufftHandle handle;
         auto res = cufftPlanMany(
-            &this->cfg, rank, n, inembed, istride, idist, onembed, ostride, odist, CUFFT_R2C, n_transforms );
+            &handle, rank, n, inembed, istride, idist, onembed, ostride, odist, CUFFT_R2C, n_transforms );
         if( res != CUFFT_SUCCESS )
         {
             Log( Utility::Log_Level::Error, Utility::Log_Sender::All,
                  fmt::format( "cufftPlanMany failed with error: {}", static_cast<int>( res ) ) );
         }
+        else
+        {
+            this->cfg.emplace( handle );
+        }
     }
     else
     {
+        cufftHandle handle;
         auto res = cufftPlanMany(
-            &this->cfg, rank, n, inembed, istride, idist, onembed, ostride, odist, CUFFT_C2R, n_transforms );
+            &handle, rank, n, inembed, istride, idist, onembed, ostride, odist, CUFFT_C2R, n_transforms );
         if( res != CUFFT_SUCCESS )
         {
             Log( Utility::Log_Level::Error, Utility::Log_Sender::All,
                  fmt::format( "cufftPlanMany failed with error: {}", static_cast<int>( res ) ) );
+        }
+        else
+        {
+            this->cfg.emplace( handle );
         }
     }
 }
 
 void FFT_Plan::Free_Configuration()
 {
-    auto res = cufftDestroy( this->cfg );
+    if( !this->cfg.has_value() )
+        return;
+    auto res = cufftDestroy( *this->cfg );
     if( res != CUFFT_SUCCESS )
     {
         Log( Utility::Log_Level::Error, Utility::Log_Sender::All,
-             fmt::format( "cufftDestroy( {} ) failed with error: {}", this->cfg, static_cast<int>( res ) ) );
+             fmt::format( "cufftDestroy( {} ) failed with error: {}", *this->cfg, static_cast<int>( res ) ) );
+    }
+    else
+    {
+        this->cfg.reset();
     }
 }
 
