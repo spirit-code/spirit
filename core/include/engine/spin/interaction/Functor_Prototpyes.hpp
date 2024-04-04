@@ -3,6 +3,7 @@
 #include <Spirit/Hamiltonian.h>
 #include <Spirit/Spirit_Defines.h>
 #include <data/Geometry.hpp>
+#include <engine/Span.hpp>
 #include <engine/Backend_par.hpp>
 #include <engine/Vectormath_Defines.hpp>
 #include <engine/common/interaction/ABC.hpp>
@@ -19,6 +20,22 @@ namespace Spin
 
 namespace Interaction
 {
+
+template<typename IndexType>
+Engine::Span<const IndexType> make_index( const Backend::vector<IndexType> & index_storage )
+{
+    using std::begin, std::end;
+    return Engine::Span<const IndexType>( index_storage.begin(), index_storage.end() );
+}
+
+template<typename IndexType>
+const IndexType * make_index( const Backend::optional<IndexType> & index_storage )
+{
+    if( index_storage.has_value() )
+        return &( *index_storage );
+    else
+        return nullptr;
+}
 
 namespace Functor
 {

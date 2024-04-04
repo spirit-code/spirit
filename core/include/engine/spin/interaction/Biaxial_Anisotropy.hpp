@@ -65,7 +65,8 @@ struct Biaxial_Anisotropy
         int ispin, iani;
     };
 
-    using Index = Backend::optional<IndexType>;
+    using Index        = const IndexType *;
+    using IndexStorage = Backend::optional<IndexType>;
 
     using Energy   = Functor::Local::Energy_Functor<Functor::Local::DataRef<Biaxial_Anisotropy>>;
     using Gradient = Functor::Local::Gradient_Functor<Functor::Local::DataRef<Biaxial_Anisotropy>>;
@@ -83,9 +84,9 @@ struct Biaxial_Anisotropy
     // Interaction name as string
     static constexpr std::string_view name = "Biaxial Anisotropy";
 
-    template<typename IndexVector>
+    template<typename IndexStorageVector>
     static void applyGeometry(
-        const ::Data::Geometry & geometry, const intfield &, const Data & data, Cache &, IndexVector & indices )
+        const ::Data::Geometry & geometry, const intfield &, const Data & data, Cache &, IndexStorageVector & indices )
     {
         using Indexing::check_atom_type;
         const auto N = geometry.n_cell_atoms;
@@ -96,7 +97,7 @@ struct Biaxial_Anisotropy
             {
                 int ispin = icell * N + data.indices[iani];
                 if( check_atom_type( geometry.atom_types[ispin] ) )
-                    std::get<Index>( indices[ispin] ) = IndexType{ ispin, iani };
+                    Backend::get<IndexStorage>( indices[ispin] ) = IndexType{ ispin, iani };
             }
         }
     };
@@ -128,7 +129,7 @@ inline scalar Biaxial_Anisotropy::Energy::operator()( const Index & index, const
 {
     using std::pow;
     scalar result = 0;
-    if( !is_contributing || !index.has_value() )
+    if( !is_contributing || index == nullptr )
         return result;
 
     const auto & [ispin, iani] = *index;
@@ -152,7 +153,7 @@ inline Vector3 Biaxial_Anisotropy::Gradient::operator()( const Index & index, co
 {
     using std::pow;
     Vector3 result = Vector3::Zero();
-    if( !is_contributing || !index.has_value() )
+    if( !is_contributing || index == nullptr )
         return result;
 
     const auto & [ispin, iani] = *index;
@@ -188,7 +189,7 @@ template<typename Callable>
 void Biaxial_Anisotropy::Hessian::operator()( const Index & index, const vectorfield & spins, Callable & hessian ) const
 {
     using std::pow;
-    if( !is_contributing || !index.has_value() )
+    if( !is_contributing || index == nullptr )
         return;
 
     const auto & [ispin, iani] = *index;
@@ -228,10 +229,11 @@ void Biaxial_Anisotropy::Hessian::operator()( const Index & index, const vectorf
 #pragma unroll
             for( int beta = 0; beta < 3; ++beta )
             {
-                hessian( 3 * ispin + alpha, 3 * ispin + beta,
-                   k1[alpha] * ( p_11 * k1[beta] + p_12 * k2[beta] + p_13 * k3[beta] )
-                       + k2[alpha] * ( p_12 * k1[beta] + p_22 * k2[beta] + p_23 * k3[beta] )
-                       + k3[alpha] * ( p_13 * k1[beta] + p_23 * k2[beta] + p_33 * k3[beta] ) );
+                hessian(
+                    3 * ispin + alpha, 3 * ispin + beta,
+                    k1[alpha] * ( p_11 * k1[beta] + p_12 * k2[beta] + p_13 * k3[beta] )
+                        + k2[alpha] * ( p_12 * k1[beta] + p_22 * k2[beta] + p_23 * k3[beta] )
+                        + k3[alpha] * ( p_13 * k1[beta] + p_23 * k2[beta] + p_33 * k3[beta] ) );
             }
         }
     }

@@ -31,7 +31,8 @@ struct Zeeman
     // clang-tidy: ignore
     typedef int IndexType;
 
-    using Index = Backend::optional<IndexType>;
+    using Index        = const IndexType *;
+    using IndexStorage = Backend::optional<IndexType>;
 
     struct Cache
     {
@@ -59,9 +60,9 @@ struct Zeeman
     // Interaction name as string
     static constexpr std::string_view name = "Zeeman";
 
-    template<typename IndexVector>
+    template<typename IndexStorageVector>
     static void applyGeometry(
-        const ::Data::Geometry & geometry, const intfield &, const Data &, Cache & cache, IndexVector & indices )
+        const ::Data::Geometry & geometry, const intfield &, const Data &, Cache & cache, IndexStorageVector & indices )
     {
         using Indexing::check_atom_type;
 
@@ -74,7 +75,7 @@ struct Zeeman
                 const int ispin = icell * N + ibasis;
                 if( check_atom_type( geometry.atom_types[ispin] ) )
                 {
-                    std::get<Index>( indices[ispin] ) = ispin;
+                    Backend::get<IndexStorage>( indices[ispin] ) = ispin;
                 }
             };
         }
@@ -109,7 +110,7 @@ protected:
 template<>
 inline scalar Zeeman::Energy::operator()( const Index & index, const Vector3 * spins ) const
 {
-    if( is_contributing && index.has_value() && *index >= 0 )
+    if( is_contributing && index != nullptr && *index >= 0 )
     {
         const auto & ispin = *index;
         return -mu_s[ispin] * external_field_magnitude * external_field_normal.dot( spins[ispin] );
@@ -121,7 +122,7 @@ inline scalar Zeeman::Energy::operator()( const Index & index, const Vector3 * s
 template<>
 inline Vector3 Zeeman::Gradient::operator()( const Index & index, const Vector3 * ) const
 {
-    if( is_contributing && index.has_value() && *index >= 0 )
+    if( is_contributing && index != nullptr && *index >= 0 )
     {
         const auto & ispin = *index;
         return -mu_s[ispin] * external_field_magnitude * external_field_normal;
