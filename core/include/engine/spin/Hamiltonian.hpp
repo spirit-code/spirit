@@ -149,7 +149,7 @@ public:
     using IndexStorageTuple  = typename Utility::variadic_map<Trait::IndexStorage, Backend::tuple, LocalInteractions>::type;
     using IndexStorageVector = field<IndexStorageTuple>;
 
-    using StandaloneInteractionType = std::unique_ptr<Interaction::StandaloneAdapter<state_t>>;
+    using StandaloneInteractionType = std::unique_ptr<Interaction::StandaloneAdaptor<state_t>>;
 
     template<typename... DataTypes>
     Hamiltonian( Data::Geometry geometry, intfield boundary_conditions, DataTypes &&... data )
@@ -353,18 +353,18 @@ public:
         return Backend::apply( f, local ) + Backend::apply( f, nonlocal );
     }
 
-    [[nodiscard]] auto active_interactions() -> std::vector<std::unique_ptr<Interaction::StandaloneAdapter<state_t>>>
+    [[nodiscard]] auto active_interactions() -> std::vector<std::unique_ptr<Interaction::StandaloneAdaptor<state_t>>>
     {
-        auto interactions = std::vector<std::unique_ptr<Interaction::StandaloneAdapter<state_t>>>( active_count() );
+        auto interactions = std::vector<std::unique_ptr<Interaction::StandaloneAdaptor<state_t>>>( active_count() );
         auto it           = Interaction::generate_active_local( local, indices, interactions.begin() );
         Interaction::generate_active_nonlocal( nonlocal, it );
         return interactions;
     };
 
     [[nodiscard]] auto active_interactions() const
-        -> std::vector<std::unique_ptr<const Interaction::StandaloneAdapter<state_t>>>
+        -> std::vector<std::unique_ptr<const Interaction::StandaloneAdaptor<state_t>>>
     {
-        auto interactions = std::vector<std::unique_ptr<Interaction::StandaloneAdapter<state_t>>>( active_count() );
+        auto interactions = std::vector<std::unique_ptr<Interaction::StandaloneAdaptor<state_t>>>( active_count() );
         auto it           = Interaction::generate_active_local( local, indices, interactions.begin() );
         Interaction::generate_active_nonlocal( nonlocal, it );
         return interactions;
@@ -372,7 +372,7 @@ public:
 
     // compile time getter
     template<class T>
-    [[nodiscard]] constexpr auto getInteraction() -> std::unique_ptr<Interaction::StandaloneAdapter<state_t>>
+    [[nodiscard]] constexpr auto getInteraction() -> std::unique_ptr<Interaction::StandaloneAdaptor<state_t>>
     {
         if constexpr( hasInteraction_Local<T>() )
             return Interaction::make_standalone( Backend::get<Interaction::InteractionWrapper<T>>( local ), indices );
@@ -385,7 +385,7 @@ public:
     // compile time getter
     template<class T>
     [[nodiscard]] constexpr auto getInteraction() const
-        -> std::unique_ptr<const Interaction::StandaloneAdapter<state_t>>
+        -> std::unique_ptr<const Interaction::StandaloneAdaptor<state_t>>
     {
         if constexpr( hasInteraction_Local<T>() )
             return Interaction::make_standalone( Backend::get<Interaction::InteractionWrapper<T>>( local ), indices );
@@ -706,7 +706,7 @@ public:
         return std::visit( []( const auto & h ) { return h.active_count(); }, hamiltonian );
     }
 
-    [[nodiscard]] auto active_interactions() -> std::vector<std::unique_ptr<Interaction::StandaloneAdapter<state_t>>>
+    [[nodiscard]] auto active_interactions() -> std::vector<std::unique_ptr<Interaction::StandaloneAdaptor<state_t>>>
     {
         return std::visit( []( auto & h ) { return h.active_interactions(); }, hamiltonian );
     };
@@ -741,7 +741,7 @@ public:
     };
 
     template<class T>
-    [[nodiscard]] auto getInteraction() -> std::unique_ptr<Interaction::StandaloneAdapter<state_t>>
+    [[nodiscard]] auto getInteraction() -> std::unique_ptr<Interaction::StandaloneAdaptor<state_t>>
     {
         return std::visit( []( auto & h ) { return h.template getInteraction<T>(); }, hamiltonian );
     };
