@@ -22,13 +22,13 @@ namespace Interaction
 {
 
 template<typename state_type>
-struct StandaloneAdapter
+struct StandaloneAdaptor
 {
-    virtual ~StandaloneAdapter()                               = default;
-    StandaloneAdapter( const StandaloneAdapter & )             = delete;
-    StandaloneAdapter( StandaloneAdapter && )                  = delete;
-    StandaloneAdapter & operator=( const StandaloneAdapter & ) = delete;
-    StandaloneAdapter & operator=( StandaloneAdapter && )      = delete;
+    virtual ~StandaloneAdaptor()                               = default;
+    StandaloneAdaptor( const StandaloneAdaptor & )             = delete;
+    StandaloneAdaptor( StandaloneAdaptor && )                  = delete;
+    StandaloneAdaptor & operator=( const StandaloneAdaptor & ) = delete;
+    StandaloneAdaptor & operator=( StandaloneAdaptor && )      = delete;
 
     using state_t = state_type;
 
@@ -40,7 +40,7 @@ struct StandaloneAdapter
     virtual std::string_view Name() const                                                = 0;
 
 protected:
-    constexpr explicit StandaloneAdapter() noexcept = default;
+    constexpr explicit StandaloneAdaptor() noexcept = default;
 };
 
 template<typename InteractionType>
@@ -48,14 +48,14 @@ struct InteractionWrapper;
 
 template<typename InteractionType>
 auto make_standalone( InteractionWrapper<InteractionType> & interaction ) noexcept
-    -> std::unique_ptr<StandaloneAdapter<typename InteractionType::state_t>>;
+    -> std::unique_ptr<StandaloneAdaptor<typename InteractionType::state_t>>;
 
 template<typename InteractionType, typename IndexVector>
 auto make_standalone( InteractionWrapper<InteractionType> & interaction, const IndexVector & indices ) noexcept
-    -> std::unique_ptr<StandaloneAdapter<typename InteractionType::state_t>>;
+    -> std::unique_ptr<StandaloneAdaptor<typename InteractionType::state_t>>;
 
 template<typename InteractionType>
-class StandaloneAdaptor_NonLocal final : public StandaloneAdapter<typename InteractionType::state_t>
+class StandaloneAdaptor_NonLocal final : public StandaloneAdaptor<typename InteractionType::state_t>
 {
     static_assert(
         !is_local<InteractionType>::value, "interaction type for non-local standalone adaptor must be non-local" );
@@ -76,10 +76,10 @@ public:
 
     template<typename T>
     friend auto make_standalone( InteractionWrapper<T> & interaction ) noexcept
-        -> std::unique_ptr<StandaloneAdapter<typename T::state_t>>;
+        -> std::unique_ptr<StandaloneAdaptor<typename T::state_t>>;
 
     constexpr StandaloneAdaptor_NonLocal( constructor_tag, const Data & data, Cache & cache ) noexcept
-            : StandaloneAdapter<state_t>(), data( data ), cache( cache ){};
+            : StandaloneAdaptor<state_t>(), data( data ), cache( cache ){};
 
     scalar Energy( const state_t & state ) final
     {
@@ -117,7 +117,7 @@ private:
 };
 
 template<typename InteractionType, typename IndexVector>
-class StandaloneAdaptor_Local final : public StandaloneAdapter<typename InteractionType::state_t>
+class StandaloneAdaptor_Local final : public StandaloneAdaptor<typename InteractionType::state_t>
 {
     static_assert( is_local<InteractionType>::value, "interaction type for local standalone adaptor must be local" );
 
@@ -138,11 +138,11 @@ public:
 
     template<typename T, typename V>
     friend auto make_standalone( InteractionWrapper<T> & interaction, const V & indices ) noexcept
-        -> std::unique_ptr<StandaloneAdapter<typename T::state_t>>;
+        -> std::unique_ptr<StandaloneAdaptor<typename T::state_t>>;
 
     constexpr StandaloneAdaptor_Local(
         constructor_tag, const Data & data, Cache & cache, const IndexVector & indices ) noexcept
-            : StandaloneAdapter<state_t>(), data( data ), cache( cache ), indices( indices ){};
+            : StandaloneAdaptor<state_t>(), data( data ), cache( cache ), indices( indices ){};
 
     scalar Energy( const state_t & state ) final
     {
@@ -207,7 +207,7 @@ private:
 
 template<typename InteractionType>
 auto make_standalone( InteractionWrapper<InteractionType> & interaction ) noexcept
-    -> std::unique_ptr<StandaloneAdapter<typename InteractionType::state_t>>
+    -> std::unique_ptr<StandaloneAdaptor<typename InteractionType::state_t>>
 {
     static_assert(
         !is_local<InteractionType>::value, "interaction type for non-local standalone adaptor must be non-local" );
@@ -217,7 +217,7 @@ auto make_standalone( InteractionWrapper<InteractionType> & interaction ) noexce
 
 template<typename InteractionType, typename IndexVector>
 auto make_standalone( InteractionWrapper<InteractionType> & interaction, const IndexVector & indices ) noexcept
-    -> std::unique_ptr<StandaloneAdapter<typename InteractionType::state_t>>
+    -> std::unique_ptr<StandaloneAdaptor<typename InteractionType::state_t>>
 {
     static_assert( is_local<InteractionType>::value, "interaction type for local standalone adaptor must be local" );
     using T = StandaloneAdaptor_Local<InteractionType, IndexVector>;
@@ -236,11 +236,11 @@ struct InteractionWrapper
 
     template<typename T>
     friend auto make_standalone( InteractionWrapper<T> & interaction ) noexcept
-        -> std::unique_ptr<StandaloneAdapter<typename T::state_t>>;
+        -> std::unique_ptr<StandaloneAdaptor<typename T::state_t>>;
 
     template<typename T, typename IndexVector>
     friend auto make_standalone( InteractionWrapper<T> & interaction, const IndexVector & indices ) noexcept
-        -> std::unique_ptr<StandaloneAdapter<typename T::state_t>>;
+        -> std::unique_ptr<StandaloneAdaptor<typename T::state_t>>;
 
     explicit InteractionWrapper( typename InteractionType::Data && init_data ) : data( init_data ), cache(){};
     explicit InteractionWrapper( const typename InteractionType::Data & init_data ) : data( init_data ), cache(){};
