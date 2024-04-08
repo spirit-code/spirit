@@ -2,7 +2,7 @@
 #ifndef SPIRIT_CORE_ENGINE_SPIN_SOLVER_LBFGS_ATLAS_HPP
 #define SPIRIT_CORE_ENGINE_SPIN_SOLVER_LBFGS_ATLAS_HPP
 
-#include <engine/Backend_par.hpp>
+#include <engine/Backend.hpp>
 #include <engine/spin/Method_Solver.hpp>
 #include <utility/Constants.hpp>
 
@@ -63,11 +63,13 @@ inline void Method_Solver<Solver::LBFGS_Atlas>::Iteration()
         auto & image    = *this->configurations[img];
         auto & grad_ref = this->atlas_residuals[img];
 
-        auto fv = this->forces_virtual[img].data();
-        auto f  = this->forces[img].data();
-        auto s  = image.data();
+        const auto * s = image.data();
+        const auto * f = this->forces[img].data();
+        auto * fv      = this->forces_virtual[img].data();
 
-        Backend::par::apply( this->nos, [f, fv, s] SPIRIT_LAMBDA( int idx ) { fv[idx] = s[idx].cross( f[idx] ); } );
+        Backend::for_each_n(
+            Backend::make_counting_iterator( 0 ), this->nos,
+            [s, f, fv] SPIRIT_LAMBDA( int idx ) { fv[idx] = s[idx].cross( f[idx] ); } );
 
         Solver_Kernels::atlas_calc_gradients( grad_ref, image, this->forces[img], this->atlas_coords3[img] );
     }
@@ -84,16 +86,18 @@ inline void Method_Solver<Solver::LBFGS_Atlas>::Iteration()
         a_norm_rms = std::max(
             a_norm_rms,
             scalar( sqrt(
-                Backend::par::reduce(
-                    this->atlas_directions[img], [] SPIRIT_LAMBDA( const Vector2 & v ) { return v.squaredNorm(); } )
+                Backend::transform_reduce(
+                    this->atlas_directions[img].begin(), this->atlas_directions[img].end(), scalar( 0.0 ),
+                    Backend::plus<scalar>{}, [] SPIRIT_LAMBDA( const Vector2 & v ) { return v.squaredNorm(); } )
                 / nos ) ) );
     }
     scalar scaling = ( a_norm_rms > maxmove ) ? maxmove / a_norm_rms : 1.0;
 
     for( int img = 0; img < noi; img++ )
     {
-        auto d = atlas_directions[img].data();
-        Backend::par::apply( nos, [scaling, d] SPIRIT_LAMBDA( int idx ) { d[idx] *= scaling; } );
+        auto * d = atlas_directions[img].data();
+        Backend::for_each_n(
+            Backend::make_counting_iterator( 0 ), nos, [scaling, d] SPIRIT_LAMBDA( int idx ) { d[idx] *= scaling; } );
     }
 
     // Rotate spins

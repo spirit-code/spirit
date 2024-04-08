@@ -1,0 +1,9 @@
+set(HEADER_SPIRIT_ENGINE_BACKEND
+    ${HEADER_SPIRIT_ENGINE_BACKEND}
+    ${CMAKE_CURRENT_SOURCE_DIR}/types.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/algorithms_openmp.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/algorithms_cuda.cuh
+    ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
+    PARENT_SCOPE
+)
+

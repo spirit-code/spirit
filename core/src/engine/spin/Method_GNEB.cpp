@@ -1,6 +1,6 @@
 #include <Spirit/Spirit_Defines.h>
 #include <data/Spin_System_Chain.hpp>
-#include <engine/Backend_par.hpp>
+#include <engine/Backend.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/spin/Method_GNEB.hpp>
@@ -108,10 +108,10 @@ void Method_GNEB<chain_t, solver>::Calculate_Force(
         // Multiply gradient with -1 to get effective field and copy to F_gradient.
         // We do it the following way so that the effective field can be e.g. displayed,
         //      while the gradient force is manipulated (e.g. projected)
-        auto eff_field = this->chain->images[img]->effective_field.data();
-        auto f_grad    = F_gradient[img].data();
-        Backend::par::apply(
-            image.size(),
+        auto * eff_field = this->chain->images[img]->effective_field.data();
+        auto * f_grad    = F_gradient[img].data();
+        Backend::for_each_n(
+            Backend::make_counting_iterator( 0 ), image.size(),
             [eff_field, f_grad] SPIRIT_LAMBDA( int idx )
             {
                 eff_field[idx] *= -1;
@@ -255,7 +255,8 @@ void Method_GNEB<chain_t, solver>::Calculate_Force(
         }
 // Apply pinning mask
 #ifdef SPIRIT_ENABLE_PINNING
-        Vectormath::set_c_a( 1, F_total[img], F_total[img], chain->images[img]->hamiltonian->get_geometry().mask_unpinned );
+        Vectormath::set_c_a(
+            1, F_total[img], F_total[img], chain->images[img]->hamiltonian->get_geometry().mask_unpinned );
 #endif // SPIRIT_ENABLE_PINNING
 
         // Copy out
@@ -273,7 +274,7 @@ void Method_GNEB<chain_t, solver>::Calculate_Force(
         if( chain->gneb_parameters->translating_endpoints )
         {
             // clang-format off
-            Backend::par::apply(nos,
+            Backend::for_each_n( Backend::make_counting_iterator( 0 ), nos,
                 [
                     F_translation_left  = F_translation_left.data(),
                     F_translation_right = F_translation_right.data(),
@@ -281,7 +282,7 @@ void Method_GNEB<chain_t, solver>::Calculate_Force(
                     F_gradient_right    = F_gradient[noi-1].data(),
                     spins_left  = this->chain->images[0]->spins->data(),
                     spins_right = this->chain->images[noi-1]->spins->data()
-                ] SPIRIT_LAMBDA ( int idx)
+                ] SPIRIT_LAMBDA ( int idx )
                 {
                     const Vector3 axis = spins_left[idx].cross(spins_right[idx]);
                     const scalar angle = acos(spins_left[idx].dot(spins_right[idx]));
@@ -326,7 +327,7 @@ void Method_GNEB<chain_t, solver>::Calculate_Force(
             auto spring_constant = ( ( img == 0 ) ? 1.0 : -1.0 ) * this->chain->gneb_parameters->spring_constant;
             auto projection      = Vectormath::dot( F_gradient[img], tangents[img] );
 
-            auto F_translation = ( img == 0 ) ? F_translation_left.data() : F_translation_right.data();
+            const auto * F_translation = ( img == 0 ) ? F_translation_left.data() : F_translation_right.data();
 
             // std::cout << " === " << img << " ===\n";
             // fmt::print( "tangent_coeff = {}\n",  spring_constant * (delta_Rx - delta_Rx0) );
@@ -334,7 +335,7 @@ void Method_GNEB<chain_t, solver>::Calculate_Force(
             // fmt::print( "delta_Rx0 {}\n", delta_Rx0 );
 
             // clang-format off
-            Backend::par::apply(
+            Backend::for_each_n( Backend::make_counting_iterator( 0 ),
                 nos,
                 [
                     F_total       = F_total[img].data(),
@@ -378,7 +379,7 @@ void Method_GNEB<chain_t, solver>::Calculate_Force_Virtual(
         }
 
         auto & image         = *configurations[i];
-        auto & force         = forces[i];
+        const auto & force   = forces[i];
         auto & force_virtual = forces_virtual[i];
         auto & parameters    = *this->systems[i]->llg_parameters;
 
@@ -390,7 +391,8 @@ void Method_GNEB<chain_t, solver>::Calculate_Force_Virtual(
 
 // Apply Pinning
 #ifdef SPIRIT_ENABLE_PINNING
-        Vectormath::set_c_a( 1, force_virtual, force_virtual, chain->images[i]->hamiltonian->get_geometry().mask_unpinned );
+        Vectormath::set_c_a(
+            1, force_virtual, force_virtual, chain->images[i]->hamiltonian->get_geometry().mask_unpinned );
 #endif // SPIRIT_ENABLE_PINNING
     }
 }
@@ -480,7 +482,7 @@ void Method_GNEB<chain_t, solver>::Calculate_Interpolated_Energy_Contributions()
              -1 );
         return;
     }
-    auto & hamiltonian  = *chain->images[0]->hamiltonian;
+    auto & hamiltonian        = *chain->images[0]->hamiltonian;
     const auto n_interactions = hamiltonian.active_count();
 
     // resize if too small
@@ -500,7 +502,7 @@ void Method_GNEB<chain_t, solver>::Calculate_Interpolated_Energy_Contributions()
     for( int img = 0; img < noi; img++ )
     {
         const auto interactions = hamiltonian.active_interactions();
-        const auto & image        = *this->configurations[img];
+        const auto & image      = *this->configurations[img];
         for( std::size_t i = 0; i < n_interactions; ++i )
         {
             Vectormath::fill( temp_field, Vector3::Zero() );

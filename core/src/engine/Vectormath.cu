@@ -1,6 +1,6 @@
 #ifdef SPIRIT_USE_CUDA
 
-#include <engine/Backend_par.hpp>
+#include <engine/Backend.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Exception.hpp>
@@ -321,7 +321,7 @@ scalar max_norm( const vectorfield & vf )
     scalarfield temp( N, 0 );
     auto o = raw_pointer_cast( temp.data() );
     auto v = raw_pointer_cast( vf.data() );
-    Backend::par::apply(
+    Backend::for_each_n( Backend::make_counting_iterator( 0 ),
         N, [o, v] SPIRIT_LAMBDA( int idx )
         { o[idx] = v[idx][0] * v[idx][0] + v[idx][1] * v[idx][1] + v[idx][2] * v[idx][2]; } );
 

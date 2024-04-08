@@ -7,7 +7,7 @@ namespace Engine
 namespace Spin
 {
 
-#include <engine/Backend_par.hpp>
+#include <engine/Backend.hpp>
 
 template<>
 inline void Method_Solver<Solver::VP>::Initialize()
@@ -48,7 +48,7 @@ inline void Method_Solver<Solver::VP>::Iteration()
         auto v    = velocities[i].data();
         auto v_pr = velocities_previous[i].data();
 
-        Backend::par::apply(
+        Backend::for_each_n( Backend::make_counting_iterator( 0 ),
             forces[i].size(),
             [f, f_pr, v, v_pr] SPIRIT_LAMBDA( int idx )
             {
@@ -73,7 +73,7 @@ inline void Method_Solver<Solver::VP>::Iteration()
         auto m_temp = this->m;
 
         // Calculate the new velocity
-        Backend::par::apply(
+        Backend::for_each_n( Backend::make_counting_iterator( 0 ),
             force.size(),
             [f, f_pr, v, m_temp] SPIRIT_LAMBDA( int idx ) { v[idx] += 0.5 / m_temp * ( f_pr[idx] + f[idx] ); } );
 
@@ -109,10 +109,10 @@ inline void Method_Solver<Solver::VP>::Iteration()
         }
         else
         {
-            Backend::par::apply( force.size(), [f, v, ratio] SPIRIT_LAMBDA( int idx ) { v[idx] = f[idx] * ratio; } );
+            Backend::for_each_n( Backend::make_counting_iterator( 0 ), force.size(), [f, v, ratio] SPIRIT_LAMBDA( int idx ) { v[idx] = f[idx] * ratio; } );
         }
 
-        Backend::par::apply(
+        Backend::for_each_n( Backend::make_counting_iterator( 0 ),
             force.size(),
             [conf, conf_temp, dt, m_temp, v, f] SPIRIT_LAMBDA( int idx )
             {
