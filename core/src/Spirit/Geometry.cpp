@@ -188,7 +188,7 @@ try
 
     // The new geometry
     const auto & old_geometry = state->active_image->hamiltonian->get_geometry();
-    auto new_geometry   = Data::Geometry(
+    auto new_geometry         = Data::Geometry(
         old_geometry.bravais_vectors, n_cells, old_geometry.cell_atoms, old_geometry.cell_composition,
         old_geometry.lattice_constant, old_geometry.pinning, old_geometry.defects );
 
@@ -603,7 +603,7 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    static vectorfield cell_atoms = image->hamiltonian->get_geometry().cell_atoms;
+    static std::vector<Vector3> cell_atoms = image->hamiltonian->get_geometry().cell_atoms;
     if( atoms != nullptr )
         *atoms = reinterpret_cast<scalar *>( cell_atoms[0].data() );
 

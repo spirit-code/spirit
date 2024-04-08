@@ -1,3 +1,9 @@
+add_subdirectory(backend)
+set(HEADER_SPIRIT_ENGINE_BACKEND
+    ${HEADER_SPIRIT_ENGINE_BACKEND}
+    PARENT_SCOPE
+)
+
 add_subdirectory(common)
 set(HEADER_SPIRIT_ENGINE_COMMON
     ${HEADER_SPIRIT_ENGINE_SPIN}
@@ -23,12 +29,14 @@ set(HEADER_SPIRIT_ENGINE_SPIN_INTERACTION
 
 set(HEADER_SPIRIT_ENGINE
     ${HEADER_SPIRIT_ENGINE}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Backend.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Method.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Neighbours.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Vectormath_Defines.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Manifoldmath.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Managed_Allocator.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Counting_Iterator.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     ${CMAKE_CURRENT_SOURCE_DIR}/FFT.hpp
     PARENT_SCOPE

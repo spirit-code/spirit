@@ -8,8 +8,7 @@
 #include <Eigen/Core>
 #include <complex>
 #include <data/Spin_System.hpp>
-#include <engine/Backend_par.hpp>
-#include <engine/Backend_seq.hpp>
+#include <engine/Backend.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/Vectormath_Defines.hpp>
 

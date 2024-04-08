@@ -1,6 +1,6 @@
 #ifdef SPIRIT_USE_CUDA
 
-#include <engine/Backend_par.hpp>
+#include <engine/Backend.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Constants.hpp>
@@ -20,7 +20,7 @@ namespace Manifoldmath
 void project_parallel( vectorfield & vf1, const vectorfield & vf2 )
 {
     scalar proj = Vectormath::dot( vf1, vf2 );
-    Backend::par::apply(
+    Backend::for_each_n( Backend::make_counting_iterator( 0 ),
         vf1.size(), [vf1 = raw_pointer_cast( vf1.data() ), vf2 = raw_pointer_cast( vf2.data() ),
                      proj] SPIRIT_LAMBDA( int idx ) { vf1[idx] = proj * vf2[idx]; } );
 }
