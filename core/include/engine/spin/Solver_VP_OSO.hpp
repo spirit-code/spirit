@@ -48,10 +48,10 @@ inline void Method_Solver<Solver::VP_OSO>::Iteration()
     // Set previous
     for( int img = 0; img < noi; ++img )
     {
-        auto g    = grad[img].data();
-        auto g_pr = grad_pr[img].data();
-        auto v    = velocities[img].data();
-        auto v_pr = velocities_previous[img].data();
+        const auto * g = grad[img].data();
+        const auto * v = velocities[img].data();
+        auto * g_pr    = grad_pr[img].data();
+        auto * v_pr    = velocities_previous[img].data();
 
         Backend::for_each_n(
             Backend::make_counting_iterator( 0 ), nos,
@@ -76,11 +76,11 @@ inline void Method_Solver<Solver::VP_OSO>::Iteration()
 
     for( int img = 0; img < noi; ++img )
     {
-        auto & velocity = velocities[img];
-        auto g          = this->grad[img].data();
-        auto g_pr       = this->grad_pr[img].data();
-        auto v          = velocities[img].data();
-        auto m_temp     = this->m;
+        const auto * g    = this->grad[img].data();
+        const auto * g_pr = this->grad_pr[img].data();
+        auto & velocity   = velocities[img];
+        auto * v          = velocities[img].data();
+        auto m_temp       = this->m;
 
         // Calculate the new velocity
         Backend::for_each_n( Backend::make_counting_iterator( 0 ),
@@ -97,10 +97,10 @@ inline void Method_Solver<Solver::VP_OSO>::Iteration()
     }
     for( int img = 0; img < noi; ++img )
     {
-        auto sd     = this->searchdir[img].data();
-        auto v      = this->velocities[img].data();
-        auto g      = this->grad[img].data();
-        auto m_temp = this->m;
+        const auto * g = this->grad[img].data();
+        auto * sd      = this->searchdir[img].data();
+        auto * v       = this->velocities[img].data();
+        auto m_temp    = this->m;
 
         scalar dt    = this->systems[img]->llg_parameters->dt;
         scalar ratio = projection_full / force_norm2_full;

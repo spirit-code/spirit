@@ -50,9 +50,9 @@ inline void Method_Solver<Solver::LBFGS_OSO>::Iteration()
         auto & image    = *this->configurations[img];
         auto & grad_ref = this->grad[img];
 
-        auto fv = this->forces_virtual[img].data();
-        auto f  = this->forces[img].data();
-        auto s  = image.data();
+        const auto * f  = this->forces[img].data();
+        const auto * s  = image.data();
+        auto * fv = this->forces_virtual[img].data();
 
         Backend::for_each_n( Backend::make_counting_iterator( 0 ), this->nos, [f, fv, s] SPIRIT_LAMBDA( int idx ) { fv[idx] = s[idx].cross( f[idx] ); } );
 
