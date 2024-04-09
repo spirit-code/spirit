@@ -36,7 +36,6 @@ set(HEADER_SPIRIT_ENGINE
     ${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Manifoldmath.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Managed_Allocator.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Counting_Iterator.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     ${CMAKE_CURRENT_SOURCE_DIR}/FFT.hpp
     PARENT_SCOPE

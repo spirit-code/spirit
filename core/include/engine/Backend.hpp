@@ -2,7 +2,7 @@
 #ifndef SPIRIT_CORE_ENGINE_BACKEND_PAR_HPP
 #define SPIRIT_CORE_ENGINE_BACKEND_PAR_HPP
 
-#include <engine/Counting_Iterator.hpp>
+#include <engine/backend/Counting_Iterator.hpp>
 #include <engine/Vectormath_Defines.hpp>
 #include <engine/backend/types.hpp>
 #include <engine/backend/algorithms_openmp.hpp>

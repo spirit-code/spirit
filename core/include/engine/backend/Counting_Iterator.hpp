@@ -28,11 +28,11 @@ public:
 
     constexpr explicit counting_iterator( T value ) noexcept : m_value( value ){};
 
-    constexpr value_type operator*() const noexcept
+    [[nodiscard]] constexpr value_type operator*() const noexcept
     {
         return m_value;
     }
-    constexpr value_type operator[]( difference_type n ) const noexcept
+    [[nodiscard]] constexpr value_type operator[]( difference_type n ) const noexcept
     {
         return m_value + n;
     }
@@ -63,7 +63,7 @@ public:
         return tmp;
     }
 
-    constexpr counting_iterator operator+( T n ) const noexcept
+    [[nodiscard]] constexpr counting_iterator operator+( T n ) const noexcept
     {
         return counting_iterator( m_value + n );
     }
@@ -74,12 +74,12 @@ public:
         return *this;
     }
 
-    constexpr counting_iterator operator-( difference_type n ) const noexcept
+    [[nodiscard]] constexpr counting_iterator operator-( difference_type n ) const noexcept
     {
         return counting_iterator( m_value - n );
     }
     template<typename U>
-    constexpr counting_iterator operator-( const counting_iterator<U> & other ) const noexcept
+    [[nodiscard]] constexpr difference_type operator-( const counting_iterator<U> & other ) const noexcept
     {
         return static_cast<difference_type>( m_value - other.m_value );
     }
@@ -91,37 +91,43 @@ public:
     }
 
     template<typename U, typename V>
-    friend constexpr bool operator==( const counting_iterator<U> & lhs, const counting_iterator<V> & rhs ) noexcept
+    [[nodiscard]] friend constexpr bool
+    operator==( const counting_iterator<U> & lhs, const counting_iterator<V> & rhs ) noexcept
     {
         return lhs.m_value == rhs.m_value;
     };
 
     template<typename U, typename V>
-    friend constexpr bool operator!=( const counting_iterator<U> & lhs, const counting_iterator<V> & rhs ) noexcept
+    [[nodiscard]] friend constexpr bool
+    operator!=( const counting_iterator<U> & lhs, const counting_iterator<V> & rhs ) noexcept
     {
         return lhs.m_value != rhs.m_value;
     };
 
     template<typename U, typename V>
-    friend constexpr bool operator<( const counting_iterator<U> & lhs, const counting_iterator<V> & rhs ) noexcept
+    [[nodiscard]] friend constexpr bool
+    operator<( const counting_iterator<U> & lhs, const counting_iterator<V> & rhs ) noexcept
     {
         return lhs.m_value < rhs.m_value;
     };
 
     template<typename U, typename V>
-    friend constexpr bool operator<=( const counting_iterator<U> & lhs, const counting_iterator<V> & rhs ) noexcept
+    [[nodiscard]] friend constexpr bool
+    operator<=( const counting_iterator<U> & lhs, const counting_iterator<V> & rhs ) noexcept
     {
         return lhs.m_value <= rhs.m_value;
     };
 
     template<typename U, typename V>
-    friend constexpr bool operator>( const counting_iterator<U> & lhs, const counting_iterator<V> & rhs ) noexcept
+    [[nodiscard]] friend constexpr bool
+    operator>( const counting_iterator<U> & lhs, const counting_iterator<V> & rhs ) noexcept
     {
         return lhs.m_value > rhs.m_value;
     };
 
     template<typename U, typename V>
-    friend constexpr bool operator>=( const counting_iterator<U> & lhs, const counting_iterator<V> & rhs ) noexcept
+    [[nodiscard]] friend constexpr bool
+    operator>=( const counting_iterator<U> & lhs, const counting_iterator<V> & rhs ) noexcept
     {
         return lhs.m_value >= rhs.m_value;
     };
@@ -131,9 +137,9 @@ private:
 };
 
 template<typename T>
-counting_iterator<T> make_counting_iterator( T value )
+[[nodiscard]] auto make_counting_iterator( T && value ) noexcept -> counting_iterator<typename std::decay<T>::type>
 {
-    return counting_iterator<T>( value );
+    return counting_iterator<typename std::decay<T>::type>( std::forward<T>( value ) );
 }
 
 #else
