@@ -25,7 +25,7 @@ void sib_transform( const vectorfield & spins, const vectorfield & force, vector
     auto * o       = out.data();
 
     Backend::for_each_n(
-        Backend::make_counting_iterator( 0 ), n,
+        SPIRIT_PAR Backend::make_counting_iterator( 0 ), n,
         [s, f, o] SPIRIT_LAMBDA( int idx )
         {
             Vector3 e1 = s[idx];
@@ -58,7 +58,7 @@ void oso_calc_gradients( vectorfield & grad, const vectorfield & spins, const ve
     auto * g       = grad.data();
 
     Backend::for_each_n(
-        Backend::make_counting_iterator( 0 ), spins.size(),
+        SPIRIT_PAR Backend::make_counting_iterator( 0 ), spins.size(),
         [s, f, t, g] SPIRIT_LAMBDA( int idx ) { g[idx] = t * ( -s[idx].cross( f[idx] ) ); } );
 }
 
@@ -73,7 +73,7 @@ void oso_rotate( std::vector<std::shared_ptr<vectorfield>> & configurations, std
         auto * sd = searchdir[img].data();
 
         Backend::for_each_n(
-            Backend::make_counting_iterator( 0 ), nos,
+            SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
             [s, sd] SPIRIT_LAMBDA( int idx )
             {
                 const scalar theta = ( sd[idx] ).norm();
@@ -100,7 +100,7 @@ scalar maximum_rotation( const vectorfield & searchdir, scalar maxmove )
     scalar theta_rms = 0;
     theta_rms        = sqrt(
         Backend::transform_reduce(
-            searchdir.begin(), searchdir.end(), scalar( 0.0 ), Backend::plus<scalar>{},
+            SPIRIT_PAR searchdir.begin(), searchdir.end(), scalar( 0.0 ), Backend::plus<scalar>{},
             [] SPIRIT_LAMBDA( const Vector3 & v ) { return v.squaredNorm(); } )
         / nos );
     scalar scaling = ( theta_rms > maxmove ) ? maxmove / theta_rms : 1.0;
@@ -119,7 +119,7 @@ void atlas_rotate(
         const auto * d  = searchdir[img].data();
         const auto * a3 = a3_coords[img].data();
         Backend::for_each_n(
-            Backend::make_counting_iterator( 0 ), nos,
+            SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
             [spins, d, a3] SPIRIT_LAMBDA( int idx )
             {
                 const scalar gamma = ( 1 + spins[idx][2] * a3[idx] );
@@ -141,7 +141,7 @@ void atlas_calc_gradients(
     auto * g        = residuals.data();
 
     Backend::for_each_n(
-        Backend::make_counting_iterator( 0 ), spins.size(),
+        SPIRIT_PAR Backend::make_counting_iterator( 0 ), spins.size(),
         [s, a3, f, g] SPIRIT_LAMBDA( int idx )
         {
             scalar J00 = s[idx][1] * s[idx][1] + s[idx][2] * ( s[idx][2] + a3[idx] );
@@ -173,7 +173,7 @@ bool ncg_atlas_check_coordinates(
         int * res       = &result[0];
 
         Backend::for_each_n(
-            Backend::make_counting_iterator( 0 ), nos,
+            SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
             [s, a3, tol, res] SPIRIT_LAMBDA( int idx )
             {
                 if( s[idx][2] * a3[idx] < tol && res[0] == int( false ) )
@@ -218,7 +218,7 @@ void lbfgs_atlas_transform_direction(
         auto ** g_up = t2.data();
 
         Backend::for_each_n(
-            Backend::make_counting_iterator( 0 ), nos,
+            SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
             [s, a3, sd, g_pr, rh, a_up, g_up, n_mem] SPIRIT_LAMBDA( int idx )
             {
                 scalar factor = 1;

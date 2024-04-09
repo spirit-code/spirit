@@ -20,9 +20,10 @@ namespace Manifoldmath
 void project_parallel( vectorfield & vf1, const vectorfield & vf2 )
 {
     scalar proj = Vectormath::dot( vf1, vf2 );
-    Backend::for_each_n( Backend::make_counting_iterator( 0 ),
-        vf1.size(), [vf1 = raw_pointer_cast( vf1.data() ), vf2 = raw_pointer_cast( vf2.data() ),
-                     proj] SPIRIT_LAMBDA( int idx ) { vf1[idx] = proj * vf2[idx]; } );
+    Backend::for_each_n(
+        SPIRIT_PAR Backend::make_counting_iterator( 0 ), vf1.size(),
+        [vf1 = raw_pointer_cast( vf1.data() ), vf2 = raw_pointer_cast( vf2.data() ), proj] SPIRIT_LAMBDA( int idx )
+        { vf1[idx] = proj * vf2[idx]; } );
 }
 
 __global__ void cu_project_orthogonal( Vector3 * vf1, const Vector3 * vf2, scalar proj, size_t N )

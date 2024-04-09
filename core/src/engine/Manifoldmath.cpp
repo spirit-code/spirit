@@ -20,8 +20,8 @@ namespace Manifoldmath
 void project_parallel( vectorfield & vf1, const vectorfield & vf2 )
 {
     scalar proj = Vectormath::dot( vf1, vf2 );
-    Backend::for_each_n( Backend::make_counting_iterator( 0 ),
-        vf1.size(),
+    Backend::for_each_n(
+        SPIRIT_PAR Backend::make_counting_iterator( 0 ), vf1.size(),
         [vf1 = vf1.data(), vf2 = vf2.data(), proj] SPIRIT_LAMBDA( int idx ) { vf1[idx] = proj * vf2[idx]; } );
 }
 
@@ -76,7 +76,7 @@ void Geodesic_Tangent(
     vectorfield & tangent, const vectorfield & image_1, const vectorfield & image_2, const vectorfield & image_mid )
 {
     // clang-format off
-    Backend::for_each_n( Backend::make_counting_iterator( 0 ),
+    Backend::for_each_n( SPIRIT_PAR Backend::make_counting_iterator( 0 ),
         image_1.size(),
         [
             image_minus = image_1.data(),

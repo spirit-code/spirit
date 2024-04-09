@@ -321,8 +321,9 @@ scalar max_norm( const vectorfield & vf )
     scalarfield temp( N, 0 );
     auto o = raw_pointer_cast( temp.data() );
     auto v = raw_pointer_cast( vf.data() );
-    Backend::for_each_n( Backend::make_counting_iterator( 0 ),
-        N, [o, v] SPIRIT_LAMBDA( int idx )
+    Backend::for_each_n(
+        SPIRIT_PAR Backend::make_counting_iterator( 0 ), N,
+        [o, v] SPIRIT_LAMBDA( int idx )
         { o[idx] = v[idx][0] * v[idx][0] + v[idx][1] * v[idx][1] + v[idx][2] * v[idx][2]; } );
 
     void * d_temp_storage     = NULL;

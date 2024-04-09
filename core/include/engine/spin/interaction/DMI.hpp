@@ -171,7 +171,7 @@ inline scalar DMI::Energy::operator()( const Index & index, const Vector3 * spin
 {
     // don't need to check for `is_contributing` here, because `transform_reduce` will short circuit properly
     return Backend::transform_reduce(
-        index.begin(), index.end(), scalar( 0.0 ), Backend::plus<scalar>{},
+        SPIRIT_PAR index.begin(), index.end(), scalar( 0.0 ), Backend::plus<scalar>{},
         [this, spins] SPIRIT_HOSTDEVICE( const DMI::IndexType & idx ) -> scalar
         {
             const auto & [ispin, jspin, i_pair, inverse] = idx;
@@ -185,7 +185,7 @@ inline Vector3 DMI::Gradient::operator()( const Index & index, const Vector3 * s
 {
     // don't need to check for `is_contributing` here, because `transform_reduce` will short circuit properly
     return Backend::transform_reduce(
-        index.begin(), index.end(), Vector3{ 0.0, 0.0, 0.0 }, Backend::plus<Vector3>{},
+        SPIRIT_PAR index.begin(), index.end(), Vector3{ 0.0, 0.0, 0.0 }, Backend::plus<Vector3>{},
         [this, spins] SPIRIT_HOSTDEVICE( const DMI::IndexType & idx ) -> Vector3
         {
             const auto & [ispin, jspin, i_pair, inverse] = idx;

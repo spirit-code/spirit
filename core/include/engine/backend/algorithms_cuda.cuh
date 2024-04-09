@@ -188,6 +188,25 @@ __host__ OutputIt transform( InputIt1 first1, InputIt1 last1, InputIt2 first2, O
 
 } // namespace host
 
+template<class InputIt>
+__host__ __device__ auto reduce( InputIt first, InputIt last ) -> typename std::iterator_traits<InputIt>::value_type
+{
+    const int N = std::distance( first, last );
+
+    field<typename std::iterator_traits<InputIt>::value_type> ret( 1 );
+
+    // Determine temporary storage size and allocate
+    void * d_temp_storage     = nullptr;
+    size_t temp_storage_bytes = 0;
+    cub::DeviceReduce::Sum( d_temp_storage, temp_storage_bytes, raw_pointer_cast( first ), ret.data(), N );
+    cudaMalloc( &d_temp_storage, temp_storage_bytes );
+    // Reduction
+    cub::DeviceReduce::Sum( d_temp_storage, temp_storage_bytes, raw_pointer_cast( first ), ret.data(), N );
+    CU_CHECK_AND_SYNC();
+    cudaFree( d_temp_storage );
+    return ret[0];
+}
+
 // requires that `reduce` is a `__host__ __device__` functor
 template<class InputIt, class T, class BinaryReductionOp, class UnaryTransformOp>
 __host__ auto

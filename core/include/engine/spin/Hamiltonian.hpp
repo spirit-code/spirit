@@ -146,7 +146,8 @@ public:
     using LocalInteractionTuple = filtered<is_local, WrappedInteractions>;
     using IndexTuple            = typename Utility::variadic_map<Trait::Index, Backend::tuple, LocalInteractions>::type;
     using IndexVector           = field<IndexTuple>;
-    using IndexStorageTuple  = typename Utility::variadic_map<Trait::IndexStorage, Backend::tuple, LocalInteractions>::type;
+    using IndexStorageTuple =
+        typename Utility::variadic_map<Trait::IndexStorage, Backend::tuple, LocalInteractions>::type;
     using IndexStorageVector = field<IndexStorageTuple>;
 
     using StandaloneInteractionType = std::unique_ptr<Interaction::StandaloneAdaptor<state_t>>;
@@ -233,7 +234,7 @@ public:
             Vectormath::fill( energy_per_spin, 0.0 );
 
         Backend::transform(
-            indices.begin(), indices.end(), energy_per_spin.begin(),
+            SPIRIT_PAR indices.begin(), indices.end(), energy_per_spin.begin(),
             Functor::transform_op( Functor::tuple_dispatch<Accessor::Energy>( local ), scalar( 0.0 ), state ) );
 
         Functor::apply( Functor::tuple_dispatch<Accessor::Energy>( nonlocal ), state, energy_per_spin );
@@ -269,7 +270,7 @@ public:
         const auto & n_active = active.size();
         Data::vectorlabeled<scalar> contributions( n_active, { "", 0.0 } );
 
-            Backend::cpu::transform(
+        Backend::cpu::transform(
             active.begin(), active.end(), contributions.begin(),
             [&state]( const StandaloneInteractionType & interaction )
             { return std::make_pair( interaction->Name(), interaction->Energy( state ) ); } );
@@ -293,7 +294,7 @@ public:
     {
         using std::begin, std::end;
         return Backend::transform_reduce(
-                   indices.begin(), indices.end(), scalar( 0.0 ), Backend::plus<scalar>{},
+                   SPIRIT_PAR indices.begin(), indices.end(), scalar( 0.0 ), Backend::plus<scalar>{},
                    Functor::transform_op( Functor::tuple_dispatch<Accessor::Energy>( local ), scalar( 0.0 ), state ) )
                + Functor::apply_reduce(
                    Functor::tuple_dispatch<Accessor::Energy_Total>( nonlocal ), scalar( 0.0 ), state );
@@ -332,7 +333,7 @@ public:
             Vectormath::fill( gradient, Vector3::Zero() );
 
         Backend::transform(
-            indices.begin(), indices.end(), gradient.begin(),
+            SPIRIT_PAR indices.begin(), indices.end(), gradient.begin(),
             Functor::transform_op(
                 Functor::tuple_dispatch<Accessor::Gradient>( local ), Vector3{ 0.0, 0.0, 0.0 }, state ) );
 
@@ -542,7 +543,8 @@ private:
             Backend::cpu::for_each(
                 index_storage.begin(), index_storage.end(),
                 []( IndexStorageTuple & index_tuple ) {
-                    Interaction::clearIndexStorage( Backend::get<typename InteractionType::IndexStorage>( index_tuple ) );
+                    Interaction::clearIndexStorage(
+                        Backend::get<typename InteractionType::IndexStorage>( index_tuple ) );
                 } );
 
             Backend::get<Interaction::InteractionWrapper<InteractionType>>( local ).applyGeometry(
@@ -566,8 +568,8 @@ private:
         {
             for( int i = 0; i < indices.size(); ++i )
             {
-                Backend::get<typename InteractionType::Index>( indices[i] )
-                    = Interaction::make_index( Backend::get<typename InteractionType::IndexStorage>( index_storage[i] ) );
+                Backend::get<typename InteractionType::Index>( indices[i] ) = Interaction::make_index(
+                    Backend::get<typename InteractionType::IndexStorage>( index_storage[i] ) );
             }
         }
         else
@@ -580,7 +582,8 @@ private:
                 []( const IndexStorageTuple & storage ) -> IndexTuple
                 {
                     return Backend::apply(
-                        []( const auto &... item ) { return Backend::make_tuple( Interaction::make_index( item )... ); },
+                        []( const auto &... item )
+                        { return Backend::make_tuple( Interaction::make_index( item )... ); },
                         storage );
                 } );
         }

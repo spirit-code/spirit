@@ -156,7 +156,7 @@ inline scalar Exchange::Energy::operator()( const Index & index, const Vector3 *
 {
     // don't need to check for `is_contributing` here, because the `transform_reduce` will short circuit correctly
     return Backend::transform_reduce(
-        index.begin(), index.end(), scalar( 0.0 ), Backend::plus<scalar>{},
+        SPIRIT_PAR index.begin(), index.end(), scalar( 0.0 ), Backend::plus<scalar>{},
         [this, spins] SPIRIT_HOSTDEVICE( const Exchange::IndexType & idx ) -> scalar
         {
             const auto & [ispin, jspin, i_pair] = idx;
@@ -169,7 +169,7 @@ inline Vector3 Exchange::Gradient::operator()( const Index & index, const Vector
 {
     // don't need to check for `is_contributing` here, because the `transform_reduce` will short circuit correctly
     return Backend::transform_reduce(
-        index.begin(), index.end(), Vector3{ 0.0, 0.0, 0.0 }, Backend::plus<Vector3>{},
+        SPIRIT_PAR index.begin(), index.end(), Vector3{ 0.0, 0.0, 0.0 }, Backend::plus<Vector3>{},
         [this, spins] SPIRIT_HOSTDEVICE( const Exchange::IndexType & idx ) -> Vector3
         {
             const auto & [ispin, jspin, i_pair] = idx;

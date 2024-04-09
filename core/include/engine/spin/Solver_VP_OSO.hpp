@@ -54,7 +54,7 @@ inline void Method_Solver<Solver::VP_OSO>::Iteration()
         auto * v_pr    = velocities_previous[img].data();
 
         Backend::for_each_n(
-            Backend::make_counting_iterator( 0 ), nos,
+            SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
             [g, g_pr, v, v_pr] SPIRIT_LAMBDA( int idx )
             {
                 g_pr[idx] = g[idx];
@@ -83,8 +83,9 @@ inline void Method_Solver<Solver::VP_OSO>::Iteration()
         auto m_temp       = this->m;
 
         // Calculate the new velocity
-        Backend::for_each_n( Backend::make_counting_iterator( 0 ),
-            nos, [g, g_pr, v, m_temp] SPIRIT_LAMBDA( int idx ) { v[idx] += 0.5 / m_temp * ( g_pr[idx] + g[idx] ); } );
+        Backend::for_each_n(
+            SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
+            [g, g_pr, v, m_temp] SPIRIT_LAMBDA( int idx ) { v[idx] += 0.5 / m_temp * ( g_pr[idx] + g[idx] ); } );
 
         // Get the projection of the velocity on the force
         projection[img]  = Vectormath::dot( velocity, this->grad[img] );
@@ -112,11 +113,13 @@ inline void Method_Solver<Solver::VP_OSO>::Iteration()
         }
         else
         {
-            Backend::for_each_n( Backend::make_counting_iterator( 0 ), nos, [g, v, ratio] SPIRIT_LAMBDA( int idx ) { v[idx] = g[idx] * ratio; } );
+            Backend::for_each_n(
+                SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
+                [g, v, ratio] SPIRIT_LAMBDA( int idx ) { v[idx] = g[idx] * ratio; } );
         }
 
-        Backend::for_each_n( Backend::make_counting_iterator( 0 ),
-            nos,
+        Backend::for_each_n(
+            SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
             [sd, dt, m_temp, v, g] SPIRIT_LAMBDA( int idx ) { sd[idx] = dt * v[idx] + 0.5 / m_temp * dt * g[idx]; } );
     }
     Solver_Kernels::oso_rotate( this->configurations, this->searchdir );

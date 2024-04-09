@@ -1,8 +1,8 @@
+#include <engine/Backend.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/spin/Eigenmodes.hpp>
 #include <utility/Formatters_Eigen.hpp>
-#include <engine/Backend.hpp>
 
 #include <Spectra/MatOp/SparseSymMatProd.h> // Also includes <Spectra/MatOp/DenseSymMatProd.h>
 #include <Spectra/SymEigsSolver.h>
@@ -80,7 +80,8 @@ void Calculate_Eigenmodes( State::system_t & system, int idx_img, int idx_chain 
     system.hamiltonian->Gradient( spins_initial, gradient );
     // auto mask = system.geometry->mask_unpinned.data();
     // auto g    = gradient.data();
-    // Backend::for_each_n( Backend::make_counting_iterator( 0 ), gradient.size(), [g, mask] SPIRIT_LAMBDA (int idx) {
+    // Backend::for_each_n( SPIRIT_PAR Backend::make_counting_iterator( 0 ), gradient.size(), [g, mask] SPIRIT_LAMBDA
+    // (int idx) {
     //     g[idx] = mask[idx]*g[idx];
     // });
     Vectormath::set_c_a( 1, gradient, gradient, system.hamiltonian->get_geometry().mask_unpinned );
