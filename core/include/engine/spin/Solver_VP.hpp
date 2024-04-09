@@ -48,8 +48,8 @@ inline void Method_Solver<Solver::VP>::Iteration()
         const auto * v = velocities[i].data();
         auto * v_pr    = velocities_previous[i].data();
 
-        Backend::for_each_n( Backend::make_counting_iterator( 0 ),
-            forces[i].size(),
+        Backend::for_each_n(
+            SPIRIT_PAR Backend::make_counting_iterator( 0 ), forces[i].size(),
             [f, f_pr, v, v_pr] SPIRIT_LAMBDA( int idx )
             {
                 f_pr[idx] = f[idx];
@@ -72,8 +72,8 @@ inline void Method_Solver<Solver::VP>::Iteration()
         auto m_temp = this->m;
 
         // Calculate the new velocity
-        Backend::for_each_n( Backend::make_counting_iterator( 0 ),
-            force.size(),
+        Backend::for_each_n(
+            SPIRIT_PAR Backend::make_counting_iterator( 0 ), force.size(),
             [f, f_pr, v, m_temp] SPIRIT_LAMBDA( int idx ) { v[idx] += 0.5 / m_temp * ( f_pr[idx] + f[idx] ); } );
 
         // Get the projection of the velocity on the force
@@ -106,11 +106,13 @@ inline void Method_Solver<Solver::VP>::Iteration()
         }
         else
         {
-            Backend::for_each_n( Backend::make_counting_iterator( 0 ), force.size(), [f, v, ratio] SPIRIT_LAMBDA( int idx ) { v[idx] = f[idx] * ratio; } );
+            Backend::for_each_n(
+                SPIRIT_PAR Backend::make_counting_iterator( 0 ), force.size(),
+                [f, v, ratio] SPIRIT_LAMBDA( int idx ) { v[idx] = f[idx] * ratio; } );
         }
 
-        Backend::for_each_n( Backend::make_counting_iterator( 0 ),
-            force.size(),
+        Backend::for_each_n(
+            SPIRIT_PAR Backend::make_counting_iterator( 0 ), force.size(),
             [conf, conf_temp, dt, m_temp, v, f] SPIRIT_LAMBDA( int idx )
             {
                 conf_temp[idx] = conf[idx] + dt * v[idx] + 0.5 / m_temp * dt * f[idx];

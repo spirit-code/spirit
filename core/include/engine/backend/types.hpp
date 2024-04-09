@@ -11,26 +11,26 @@
 #ifdef SPIRIT_USE_STDPAR
 #include <execution>
 
-#elseifdef SPIRIT_USE_OPENMP
+#elif defined( SPIRIT_USE_OPENMP )
 
 namespace execution
 {
 
-struct Par
+struct par_t
 {
-    constexpr Par() noexcept = default;
+    constexpr par_t() noexcept = default;
 };
 
-bool constexpr operator==( const Par & first, const Par & second )
+bool constexpr operator==( const par_t &, const par_t & )
 {
     return true;
 };
-bool constexpr operator!=( const Par & first, const Par & second )
+bool constexpr operator!=( const par_t &, const par_t & )
 {
     return false;
 };
 
-static constexpr Par par = Par();
+static constexpr par_t par = par_t();
 
 } // namespace execution
 
@@ -48,22 +48,6 @@ namespace execution
 
 namespace cuda
 {
-
-struct Par
-{
-    constexpr Par() noexcept = default;
-};
-
-bool constexpr operator==( const Par & first, const Par & second )
-{
-    return true;
-};
-bool constexpr operator!=( const Par & first, const Par & second )
-{
-    return false;
-};
-
-static constexpr Par par = Par();
 
 } // namespace cuda
 
@@ -89,7 +73,6 @@ using std::make_tuple;
 using std::tuple;
 
 using std::plus;
-
 
 } // namespace cpu
 

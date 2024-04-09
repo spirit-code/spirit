@@ -111,7 +111,7 @@ void Method_GNEB<chain_t, solver>::Calculate_Force(
         auto * eff_field = this->chain->images[img]->effective_field.data();
         auto * f_grad    = F_gradient[img].data();
         Backend::for_each_n(
-            Backend::make_counting_iterator( 0 ), image.size(),
+            SPIRIT_PAR Backend::make_counting_iterator( 0 ), image.size(),
             [eff_field, f_grad] SPIRIT_LAMBDA( int idx )
             {
                 eff_field[idx] *= -1;
@@ -274,7 +274,7 @@ void Method_GNEB<chain_t, solver>::Calculate_Force(
         if( chain->gneb_parameters->translating_endpoints )
         {
             // clang-format off
-            Backend::for_each_n( Backend::make_counting_iterator( 0 ), nos,
+            Backend::for_each_n( SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
                 [
                     F_translation_left  = F_translation_left.data(),
                     F_translation_right = F_translation_right.data(),
@@ -335,7 +335,7 @@ void Method_GNEB<chain_t, solver>::Calculate_Force(
             // fmt::print( "delta_Rx0 {}\n", delta_Rx0 );
 
             // clang-format off
-            Backend::for_each_n( Backend::make_counting_iterator( 0 ),
+            Backend::for_each_n( SPIRIT_PAR Backend::make_counting_iterator( 0 ),
                 nos,
                 [
                     F_total       = F_total[img].data(),

@@ -103,7 +103,7 @@ struct Reduce_Functor
         using std::begin, std::end;
         scalarfield energy_per_spin( state.size() );
         functor( state, energy_per_spin );
-        return std::reduce( SPIRIT_CPU_PAR begin( energy_per_spin ), end( energy_per_spin ) );
+        return Backend::cpu::reduce( SPIRIT_CPU_PAR begin( energy_per_spin ), end( energy_per_spin ) );
     };
 
 private:

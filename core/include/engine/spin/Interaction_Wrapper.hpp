@@ -2,8 +2,8 @@
 
 #include <data/Geometry.hpp>
 #include <engine/Vectormath_Defines.hpp>
-#include <engine/spin/interaction/Functor_Prototpyes.hpp>
 #include <engine/spin/Interaction_Traits.hpp>
+#include <engine/spin/interaction/Functor_Prototpyes.hpp>
 #include <utility/Exception.hpp>
 
 #include <memory>
@@ -147,10 +147,10 @@ public:
     scalar Energy( const state_t & state ) final
     {
         using std::begin, std::end;
-        auto functor = typename InteractionType::Energy( data, cache );
+        auto functor           = typename InteractionType::Energy( data, cache );
         const auto * state_ptr = raw_pointer_cast( state.data() );
         return Backend::transform_reduce(
-            indices.begin(), indices.end(), scalar( 0.0 ), Backend::plus<scalar>{},
+            SPIRIT_PAR indices.begin(), indices.end(), scalar( 0.0 ), Backend::plus<scalar>{},
             [state_ptr, functor] SPIRIT_HOSTDEVICE( const IndexTuple & index )
             { return functor( Backend::get<typename InteractionType::Index>( index ), state_ptr ); } );
     }
@@ -158,10 +158,10 @@ public:
     void Energy_per_Spin( const state_t & state, scalarfield & energy_per_spin ) final
     {
         using std::begin, std::end;
-        auto functor = typename InteractionType::Energy( data, cache );
+        auto functor           = typename InteractionType::Energy( data, cache );
         const auto * state_ptr = raw_pointer_cast( state.data() );
         Backend::transform(
-            indices.begin(), indices.end(), energy_per_spin.begin(),
+            SPIRIT_PAR indices.begin(), indices.end(), energy_per_spin.begin(),
             [state_ptr, functor] SPIRIT_HOSTDEVICE( const IndexTuple & index )
             { return functor( Backend::get<typename InteractionType::Index>( index ), state_ptr ); } );
     }
@@ -176,10 +176,10 @@ public:
     void Gradient( const state_t & state, vectorfield & gradient ) final
     {
         using std::begin, std::end;
-        auto functor = typename InteractionType::Gradient( data, cache );
+        auto functor           = typename InteractionType::Gradient( data, cache );
         const auto * state_ptr = raw_pointer_cast( state.data() );
         Backend::transform(
-            indices.begin(), indices.end(), gradient.begin(),
+            SPIRIT_PAR indices.begin(), indices.end(), gradient.begin(),
             [state_ptr, functor] SPIRIT_HOSTDEVICE( const IndexTuple & index )
             { return functor( Backend::get<typename InteractionType::Index>( index ), state_ptr ); } );
     }
@@ -336,7 +336,8 @@ generate_active_nonlocal( Backend::tuple<InteractionWrapper<InteractionType>...>
 
 template<typename... InteractionType, typename IndexVector, typename Iterator>
 constexpr Iterator generate_active_local(
-    Backend::tuple<InteractionWrapper<InteractionType>...> & interactions, const IndexVector & indices, Iterator iterator )
+    Backend::tuple<InteractionWrapper<InteractionType>...> & interactions, const IndexVector & indices,
+    Iterator iterator )
 {
     static_assert(
         std::conjunction<is_local<InteractionType>...>::value, "all interaction types in tuple must be local" );

@@ -146,7 +146,7 @@ inline scalar Quadruplet::Energy::operator()( const Index & index, const Vector3
 {
     // don't need to check for `is_contributing` here, because the `transform_reduce` will short circuit correctly
     return Backend::transform_reduce(
-        index.begin(), index.end(), scalar( 0.0 ), Backend::plus<scalar>{},
+        SPIRIT_PAR index.begin(), index.end(), scalar( 0.0 ), Backend::plus<scalar>{},
         [this, spins] SPIRIT_HOSTDEVICE( const Quadruplet::IndexType & idx ) -> scalar
         {
             const auto & [ispin, jspin, kspin, lspin, iquad] = idx;
@@ -160,7 +160,7 @@ inline Vector3 Quadruplet::Gradient::operator()( const Index & index, const Vect
 {
     // don't need to check for `is_contributing` here, because the `transform_reduce` will short circuit correctly
     return Backend::transform_reduce(
-        index.begin(), index.end(), Vector3{ 0.0, 0.0, 0.0 }, Backend::plus<Vector3>{},
+        SPIRIT_PAR index.begin(), index.end(), Vector3{ 0.0, 0.0, 0.0 }, Backend::plus<Vector3>{},
         [this, spins] SPIRIT_HOSTDEVICE( const Quadruplet::IndexType & idx ) -> Vector3
         {
             const auto & [ispin, jspin, kspin, lspin, iquad] = idx;

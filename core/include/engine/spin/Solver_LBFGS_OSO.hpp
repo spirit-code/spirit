@@ -54,7 +54,9 @@ inline void Method_Solver<Solver::LBFGS_OSO>::Iteration()
         const auto * s  = image.data();
         auto * fv = this->forces_virtual[img].data();
 
-        Backend::for_each_n( Backend::make_counting_iterator( 0 ), this->nos, [f, fv, s] SPIRIT_LAMBDA( int idx ) { fv[idx] = s[idx].cross( f[idx] ); } );
+        Backend::for_each_n(
+            SPIRIT_PAR Backend::make_counting_iterator( 0 ), this->nos,
+            [f, s, fv] SPIRIT_LAMBDA( int idx ) { fv[idx] = s[idx].cross( f[idx] ); } );
 
         Solver_Kernels::oso_calc_gradients( grad_ref, image, this->forces[img] );
     }
