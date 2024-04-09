@@ -23,27 +23,27 @@
 
 // Reduce required precision if float accuracy
 #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
-constexpr int digits_a = 12;
-constexpr int digits_b = 4;
-constexpr int digits_c = 1;
+[[maybe_unused]] constexpr int digits_a = 12;
+[[maybe_unused]] constexpr int digits_b = 4;
+[[maybe_unused]] constexpr int digits_c = 1;
 #else
-constexpr int digits_a = 1;
-constexpr int digits_b = 4;
-constexpr int digits_c = 1;
+[[maybe_unused]] constexpr int digits_a = 1;
+[[maybe_unused]] constexpr int digits_b = 4;
+[[maybe_unused]] constexpr int digits_c = 1;
 #endif
 
 #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
-constexpr scalar epsilon_2 = 1e-10;
-constexpr scalar epsilon_3 = 1e-12;
-constexpr scalar epsilon_4 = 1e-12;
-constexpr scalar epsilon_5 = 1e-6;
-constexpr scalar epsilon_6 = 1e-7;
+[[maybe_unused]] constexpr scalar epsilon_2 = 1e-10;
+[[maybe_unused]] constexpr scalar epsilon_3 = 1e-12;
+[[maybe_unused]] constexpr scalar epsilon_4 = 1e-12;
+[[maybe_unused]] constexpr scalar epsilon_5 = 1e-6;
+[[maybe_unused]] constexpr scalar epsilon_6 = 1e-7;
 #else
-constexpr scalar epsilon_2 = 1e-2;
-constexpr scalar epsilon_3 = 1e-3;
-constexpr scalar epsilon_4 = 1e-4;
-constexpr scalar epsilon_5 = 1e-5;
-constexpr scalar epsilon_6 = 1e-6;
+[[maybe_unused]] constexpr scalar epsilon_2 = 1e-2;
+[[maybe_unused]] constexpr scalar epsilon_3 = 1e-3;
+[[maybe_unused]] constexpr scalar epsilon_4 = 1e-4;
+[[maybe_unused]] constexpr scalar epsilon_5 = 1e-5;
+[[maybe_unused]] constexpr scalar epsilon_6 = 1e-6;
 #endif
 
 namespace C = Utility::Constants;
