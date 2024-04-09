@@ -43,10 +43,10 @@ inline void Method_Solver<Solver::VP>::Iteration()
     // Set previous
     for( int i = 0; i < noi; ++i )
     {
-        auto f    = forces[i].data();
-        auto f_pr = forces_previous[i].data();
-        auto v    = velocities[i].data();
-        auto v_pr = velocities_previous[i].data();
+        const auto * f = forces[i].data();
+        auto * f_pr    = forces_previous[i].data();
+        const auto * v = velocities[i].data();
+        auto * v_pr    = velocities_previous[i].data();
 
         Backend::for_each_n( Backend::make_counting_iterator( 0 ),
             forces[i].size(),
@@ -65,11 +65,10 @@ inline void Method_Solver<Solver::VP>::Iteration()
     {
         auto & velocity   = velocities[i];
         auto & force      = forces[i];
-        auto & force_prev = forces_previous[i];
 
-        auto f      = forces[i].data();
-        auto f_pr   = forces_previous[i].data();
-        auto v      = velocities[i].data();
+        const auto * f      = forces[i].data();
+        const auto * f_pr   = forces_previous[i].data();
+        auto * v      = velocities[i].data();
         auto m_temp = this->m;
 
         // Calculate the new velocity
@@ -90,17 +89,15 @@ inline void Method_Solver<Solver::VP>::Iteration()
     {
         auto & velocity           = velocities[i];
         auto & force              = forces[i];
-        auto & configuration      = *( configurations[i] );
-        auto & configuration_temp = *( configurations_temp[i] );
 
-        auto f         = forces[i].data();
-        auto v         = velocities[i].data();
-        auto conf      = ( configurations[i] )->data();
-        auto conf_temp = ( configurations_temp[i] )->data();
+        const auto * f         = forces[i].data();
+        auto * v         = velocities[i].data();
+        auto * conf      = ( configurations[i] )->data();
+        auto * conf_temp = ( configurations_temp[i] )->data();
 
-        scalar dt    = this->systems[i]->llg_parameters->dt;
-        scalar ratio = projection_full / force_norm2_full;
-        auto m_temp  = this->m;
+        const scalar dt    = this->systems[i]->llg_parameters->dt;
+        const scalar ratio = projection_full / force_norm2_full;
+        const auto m_temp  = this->m;
 
         // Calculate the projected velocity
         if( projection_full <= 0 )

@@ -60,7 +60,6 @@ void lbfgs_get_searchdir(
     scalar epsilon = sizeof( scalar ) == sizeof( float ) ? 1e-30 : 1e-300;
 
     int noi     = grad.size();
-    int nos     = grad[0].size();
     int m_index = local_iter % num_mem; // memory index
     int c_ind   = 0;
 
