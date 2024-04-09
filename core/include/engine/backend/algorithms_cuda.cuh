@@ -41,6 +41,9 @@ using thrust::fill_n;
 using thrust::for_each;
 using thrust::for_each_n;
 
+namespace detail
+{
+
 namespace device
 {
 
@@ -152,12 +155,12 @@ __host__ OutputIt transform( InputIt first, InputIt last, OutputIt d_first, Unar
         int minGridSize = 0;
         CU_HANDLE_ERROR( cudaOccupancyMaxPotentialBlockSize(
             &blockSize, &minGridSize,
-            &Backend::cuda::kernel::transform_n<
+            &Backend::cuda::detail::kernel::transform_n<
                 std::decay_t<decltype( raw_pointer_cast( first ) )>,
                 std::decay_t<decltype( raw_pointer_cast( d_first ) )>, UnaryOp> ) );
         return blockSize;
     }();
-    Backend::cuda::kernel::transform_n<<<( N + blockSize - 1 ) / blockSize, blockSize>>>(
+    Backend::cuda::detail::kernel::transform_n<<<( N + blockSize - 1 ) / blockSize, blockSize>>>(
         raw_pointer_cast( first ), N, raw_pointer_cast( d_first ), unary_op );
     CU_CHECK_AND_SYNC();
     return std::next( d_first, N );
@@ -173,20 +176,22 @@ __host__ OutputIt transform( InputIt1 first1, InputIt1 last1, InputIt2 first2, O
         int minGridSize = 0;
         CU_HANDLE_ERROR( cudaOccupancyMaxPotentialBlockSize(
             &blockSize, &minGridSize,
-            &Backend::cuda::kernel::transform_n<
+            &Backend::cuda::detail::kernel::transform_n<
                 std::decay_t<decltype( raw_pointer_cast( first1 ) )>,
                 std::decay_t<decltype( raw_pointer_cast( first2 ) )>,
                 std::decay_t<decltype( raw_pointer_cast( d_first ) )>, BinaryOp> ) );
         return blockSize;
     }();
 
-    Backend::cuda::kernel::transform_n<<<( N + blockSize - 1 ) / blockSize, blockSize>>>(
+    Backend::cuda::detail::kernel::transform_n<<<( N + blockSize - 1 ) / blockSize, blockSize>>>(
         raw_pointer_cast( first1 ), N, raw_pointer_cast( first2 ), raw_pointer_cast( d_first ), binary_op );
     CU_CHECK_AND_SYNC();
     return std::next( d_first, N );
 }
 
 } // namespace host
+
+} // namespace detail
 
 template<class InputIt>
 __host__ __device__ auto reduce( InputIt first, InputIt last ) -> typename std::iterator_traits<InputIt>::value_type
@@ -238,11 +243,11 @@ __host__ __device__ auto
 transform_reduce( InputIt first, InputIt last, T init, BinaryReductionOp && reduce, UnaryTransformOp && transform ) ->
     typename std::enable_if<!is_host_iterator<typename std::decay<InputIt>::type>::value, T>::type
 {
-    return
+    return Backend::cuda::detail::
 #ifdef __CUDA_ARCH__
-        Backend::cuda::device
+        device
 #else
-        Backend::cuda::host
+        host
 #endif
         ::transform_reduce(
             first, last, init, std::forward<BinaryReductionOp>( reduce ), std::forward<UnaryTransformOp>( transform ) );
@@ -264,7 +269,7 @@ template<class InputIt, class OutputIt, class UnaryOp>
 __host__ auto transform( InputIt first, InputIt last, OutputIt && d_first, UnaryOp && unary_op ) ->
     typename std::enable_if<is_host_iterator<typename std::decay<InputIt>::type>::value, OutputIt>::type
 {
-    return Backend::cuda::host::transform(
+    return Backend::cuda::detail::host::transform(
         first, last, std::forward<OutputIt>( d_first ), std::forward<UnaryOp>( unary_op ) );
 }
 
@@ -272,11 +277,11 @@ template<class InputIt, class OutputIt, class UnaryOp>
 __host__ __device__ auto transform( InputIt first, InputIt last, OutputIt && d_first, UnaryOp && unary_op ) ->
     typename std::enable_if<!is_host_iterator<typename std::decay<InputIt>::type>::value, OutputIt>::type
 {
-    return
+    return Backend::cuda::detail::
 #ifdef __CUDA_ARCH__
-        Backend::cuda::device
+        device
 #else
-        Backend::cuda::host
+        host
 #endif
         ::transform( first, last, std::forward<OutputIt>( d_first ), std::forward<UnaryOp>( unary_op ) );
 }
@@ -290,7 +295,7 @@ transform( InputIt1 first1, InputIt1 last1, InputIt2 && first2, OutputIt && d_fi
             is_host_iterator<typename std::decay<InputIt2>::type>>::value,
         OutputIt>::type
 {
-    return Backend::cuda::host::transform(
+    return Backend::cuda::detail::host::transform(
         first1, last1, std::forward<InputIt2>( first2 ), std::forward<OutputIt>( d_first ),
         std::forward<BinaryOp>( binary_op ) );
 }
@@ -304,11 +309,11 @@ transform( InputIt1 first1, InputIt1 last1, InputIt2 && first2, OutputIt && d_fi
             is_host_iterator<typename std::decay<InputIt2>::type>>::value,
         OutputIt>::type
 {
-    return
+    return Backend::cuda::detail::
 #ifdef __CUDA_ARCH__
-        Backend::cuda::device
+        device
 #else
-        Backend::cuda::host
+        host
 #endif
         ::transform(
             first1, last1, std::forward<InputIt2>( first2 ), std::forward<OutputIt>( d_first ),
