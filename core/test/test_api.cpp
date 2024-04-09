@@ -13,9 +13,9 @@
 auto inputfile = "core/test/input/api.cfg";
 // Reduce required precision if float accuracy
 #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
-constexpr scalar epsilon_rough = 1e-12;
+[[maybe_unused]] constexpr scalar epsilon_rough = 1e-12;
 #else
-constexpr scalar epsilon_rough = 1e-6;
+[[maybe_unused]] constexpr scalar epsilon_rough = 1e-6;
 #endif
 
 using Catch::Matchers::WithinAbs;

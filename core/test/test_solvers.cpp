@@ -17,13 +17,13 @@
 
 // Reduce required precision if float accuracy
 #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
-constexpr int digits_a = 7;
-constexpr int digits_b = 8;
-constexpr int digits_c = 5;
+[[maybe_unused]] constexpr int digits_a = 7;
+[[maybe_unused]] constexpr int digits_b = 8;
+[[maybe_unused]] constexpr int digits_c = 5;
 #else
-constexpr int digits_a = 6;
-constexpr int digits_b = 4;
-constexpr int digits_c = 1;
+[[maybe_unused]] constexpr int digits_a = 6;
+[[maybe_unused]] constexpr int digits_b = 4;
+[[maybe_unused]] constexpr int digits_c = 1;
 #endif
 
 template<typename T>

@@ -11,13 +11,13 @@ using Catch::Matchers::WithinAbs;
 
 // Reduce required precision if float accuracy
 #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
-constexpr scalar epsilon_close = 1e-12;
-constexpr scalar epsilon_apprx = 1e-11;
-constexpr scalar epsilon_rough = 1e-11;
+[[maybe_unused]] constexpr scalar epsilon_close = 1e-12;
+[[maybe_unused]] constexpr scalar epsilon_apprx = 1e-11;
+[[maybe_unused]] constexpr scalar epsilon_rough = 1e-11;
 #else
-constexpr scalar epsilon_close = 1e-7;
-constexpr scalar epsilon_apprx = 1e-5;
-constexpr scalar epsilon_rough = 1e-2;
+[[maybe_unused]] constexpr scalar epsilon_close = 1e-7;
+[[maybe_unused]] constexpr scalar epsilon_apprx = 1e-5;
+[[maybe_unused]] constexpr scalar epsilon_rough = 1e-2;
 #endif
 
 TEST_CASE( "Vectormath operations", "[vectormath]" )
