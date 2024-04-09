@@ -22,6 +22,7 @@ option( SPIRIT_ENABLE_DEFECTS   "Enable defects and disorder in the lattice."   
 option( SPIRIT_BUILD_TEST       "Build unit tests for the Spirit library."               ON  )
 option( SPIRIT_TEST_COVERAGE    "Build in debug with special flags for coverage checks." OFF )
 option( SPIRIT_USE_CUDA         "Use CUDA to speed up certain parts of the code."        OFF )
+option( SPIRIT_USE_STDPAR       "Use parallel STL to speed up certain parts of the code." OFF )
 option( SPIRIT_USE_OPENMP       "Use OpenMP to speed up certain parts of the code."      OFF )
 option( SPIRIT_USE_THREADS      "Use std threads to speed up certain parts of the code." OFF )
 option( SPIRIT_USE_FFTW         "If available, use the FFTW library instead of kissFFT." ON  )
@@ -58,6 +59,7 @@ set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 if( SPIRIT_USE_CUDA )
     ### If CUDA is used, we use float and and we cannot use OpenMP
     ### and we cannot build for JS or Julia
+    set( SPIRIT_USE_STDPAR       OFF )
     set( SPIRIT_USE_OPENMP       OFF )
     set( SPIRIT_SCALAR_TYPE      float )
     set( SPIRIT_BUILD_FOR_JS     OFF )
@@ -65,6 +67,12 @@ if( SPIRIT_USE_CUDA )
     set( SPIRIT_USE_FFTW         OFF )
     ### Enable CUDA language support
     enable_language( CUDA )
+endif()
+#-----
+if( SPIRIT_USE_STDPAR )
+    set( SPIRIT_USE_CUDA         OFF )
+    set( SPIRIT_BUILD_FOR_JS     OFF )
+    set( SPIRIT_BUILD_FOR_JULIA  OFF )
 endif()
 #-----
 if( SPIRIT_USE_OPENMP )
@@ -217,6 +225,18 @@ if( SPIRIT_USE_OPENMP )
 endif()
 ####################################################################
 
+######### TBB decisions ############################################
+if( SPIRIT_USE_STDPAR )
+    include( FindTBB )
+    if( TBB_FOUND )
+        set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DSPIRIT_USE_STDPAR )
+        message( STATUS ">> using TBB for parallel STL" )
+    else()
+        message( WARNING ">> TBB could not be found." )
+        set( SPIRIT_USE_STDPAR OFF )
+    endif()
+endif()
+######### TBB decisions ############################################
 
 ######## FFT decisions #############################################
 
@@ -371,7 +391,7 @@ target_include_directories( ${META_PROJECT_NAME} PRIVATE
     ${FFT_INCLUDE_DIRS} )
 
 target_link_libraries( ${META_PROJECT_NAME} INTERFACE
-    ${qhull_LIBS} ${OVF_LIBRARIES_STATIC} ${FFT_LIB} ${THREAD_LIBS} )
+    ${qhull_LIBS} ${OVF_LIBRARIES_STATIC} ${FFT_LIB} ${THREAD_LIBS} ${TBB_LIB} )
 
 ### Flag needed to use fmt as header-only
 set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DFMT_HEADER_ONLY )
@@ -708,7 +728,7 @@ endif()
 set( SPIRIT_OBJS             $<TARGET_OBJECTS:${META_PROJECT_NAME}>  PARENT_SCOPE )
 set( SPIRIT_LIBRARIES        ${META_PROJECT_NAME}                    PARENT_SCOPE )
 set( SPIRIT_LIBRARIES_STATIC ${META_PROJECT_NAME}_static             PARENT_SCOPE )
-set( SPIRIT_LINK_DEPS        ${qhull_LIBS} ${OVF_LIBRARIES_STATIC} ${FFT_LIB} ${THREAD_LIBS} PARENT_SCOPE )
+set( SPIRIT_LINK_DEPS        ${qhull_LIBS} ${OVF_LIBRARIES_STATIC} ${FFT_LIB} ${THREAD_LIBS} ${TBB_LIB} PARENT_SCOPE )
 set( SPIRIT_INCLUDE_DIRS     ${SPIRIT_INCLUDE_DIRS}                  PARENT_SCOPE )
 ### Meta information
 set( META_PROJECT_NAME        ${META_PROJECT_NAME}        PARENT_SCOPE )
