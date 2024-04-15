@@ -200,6 +200,7 @@ public:
     }
 
 private:
+    // all member variables must be read only to avoid race conditions in the parallelized Backend
     const Data & data;
     const Cache & cache;
     const IndexVector & indices;
@@ -255,14 +256,14 @@ struct InteractionWrapper
     // applyGeometry
     void applyGeometry( const ::Data::Geometry & geometry, const intfield & boundary_conditions )
     {
-        static_assert( !local );
+        static_assert( !is_local<InteractionType>::value );
         Interaction::applyGeometry( geometry, boundary_conditions, data, cache );
     }
 
     template<typename IndexVector>
     void applyGeometry( const ::Data::Geometry & geometry, const intfield & boundary_conditions, IndexVector & indices )
     {
-        static_assert( local );
+        static_assert( is_local<InteractionType>::value );
         Interaction::applyGeometry( geometry, boundary_conditions, data, cache, indices );
     }
 
@@ -304,8 +305,6 @@ public:
     {
         return Interaction::Sparse_Hessian_Size_per_Cell( data, cache );
     }
-
-    static constexpr bool local = is_local<InteractionType>::value;
 
     Data data;
     Cache cache = Cache();
