@@ -293,20 +293,16 @@ scalar max_abs_component( const vectorfield & vf )
     // CustomMaxAbs    max_op;
     size_t N = 3 * vf.size();
     scalarfield out( 1, 0 );
-    scalar init = 0;
     // Determine temporary device storage requirements
     void * d_temp_storage     = NULL;
     size_t temp_storage_bytes = 0;
-    auto lam = [] __host__ __device__( const scalar & a, const scalar & b ) { return ( a > b ) ? a : b; };
-    cub::DeviceReduce::Reduce(
-        d_temp_storage, temp_storage_bytes, raw_pointer_cast( vf[0].data() ), raw_pointer_cast( out.data() ), N, lam,
-        init );
+    cub::DeviceReduce::Max(
+        d_temp_storage, temp_storage_bytes, raw_pointer_cast( vf[0].data() ), raw_pointer_cast( out.data() ), N );
     // Allocate temporary storage
     cudaMalloc( &d_temp_storage, temp_storage_bytes );
     // Run reduction
-    cub::DeviceReduce::Reduce(
-        d_temp_storage, temp_storage_bytes, raw_pointer_cast( vf[0].data() ), raw_pointer_cast( out.data() ), N, lam,
-        init );
+    cub::DeviceReduce::Max(
+        d_temp_storage, temp_storage_bytes, raw_pointer_cast( vf[0].data() ), raw_pointer_cast( out.data() ), N );
     CU_CHECK_AND_SYNC();
     cudaFree( d_temp_storage );
     return std::abs( out[0] );
@@ -314,32 +310,21 @@ scalar max_abs_component( const vectorfield & vf )
 
 scalar max_norm( const vectorfield & vf )
 {
-    static scalarfield ret( 1, 0 );
+    scalarfield ret( 1, 0 );
 
     // Declare, allocate, and initialize device-accessible pointers for input and output
-    size_t N = vf.size();
-    scalarfield temp( N, 0 );
-    auto o = raw_pointer_cast( temp.data() );
-    auto v = raw_pointer_cast( vf.data() );
-    Backend::for_each_n(
-        SPIRIT_PAR Backend::make_counting_iterator( 0 ), N,
-        [o, v] SPIRIT_LAMBDA( int idx )
-        { o[idx] = v[idx][0] * v[idx][0] + v[idx][1] * v[idx][1] + v[idx][2] * v[idx][2]; } );
+    const size_t N = vf.size();
+    auto normSq    = Backend::cuda::make_transform_iterator(
+        Backend::cuda::device_iterator_cast( vf.begin() ),
+        [] SPIRIT_LAMBDA( const Vector3 & v ) { return v.squaredNorm(); } );
 
     void * d_temp_storage     = NULL;
     size_t temp_storage_bytes = 0;
-    auto lam = [] __host__ __device__( const scalar & a, const scalar & b ) { return ( a > b ) ? a : b; };
-
-    scalar init = 0;
-    cub::DeviceReduce::Reduce(
-        d_temp_storage, temp_storage_bytes, raw_pointer_cast( temp.data() ), raw_pointer_cast( ret.data() ), N, lam,
-        init );
+    cub::DeviceReduce::Max( d_temp_storage, temp_storage_bytes, normSq, raw_pointer_cast( ret.data() ), N );
     // Allocate temporary storage
     cudaMalloc( &d_temp_storage, temp_storage_bytes );
     // Run reduction
-    cub::DeviceReduce::Reduce(
-        d_temp_storage, temp_storage_bytes, raw_pointer_cast( temp.data() ), raw_pointer_cast( ret.data() ), N, lam,
-        init );
+    cub::DeviceReduce::Max( d_temp_storage, temp_storage_bytes, normSq, raw_pointer_cast( ret.data() ), N );
     CU_CHECK_AND_SYNC();
     cudaFree( d_temp_storage );
     return std::sqrt( ret[0] );

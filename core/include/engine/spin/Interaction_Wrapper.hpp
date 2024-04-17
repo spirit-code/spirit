@@ -151,7 +151,7 @@ public:
         const auto * state_ptr = raw_pointer_cast( state.data() );
         return Backend::transform_reduce(
             SPIRIT_PAR indices.begin(), indices.end(), scalar( 0.0 ), Backend::plus<scalar>{},
-            [state_ptr, functor] SPIRIT_HOSTDEVICE( const IndexTuple & index )
+            [state_ptr, functor] SPIRIT_LAMBDA( const IndexTuple & index )
             { return functor( Backend::get<typename InteractionType::Index>( index ), state_ptr ); } );
     }
 
@@ -162,7 +162,7 @@ public:
         const auto * state_ptr = raw_pointer_cast( state.data() );
         Backend::transform(
             SPIRIT_PAR indices.begin(), indices.end(), energy_per_spin.begin(),
-            [state_ptr, functor] SPIRIT_HOSTDEVICE( const IndexTuple & index )
+            [state_ptr, functor] SPIRIT_LAMBDA( const IndexTuple & index )
             { return functor( Backend::get<typename InteractionType::Index>( index ), state_ptr ); } );
     }
 
@@ -180,7 +180,7 @@ public:
         const auto * state_ptr = raw_pointer_cast( state.data() );
         Backend::transform(
             SPIRIT_PAR indices.begin(), indices.end(), gradient.begin(),
-            [state_ptr, functor] SPIRIT_HOSTDEVICE( const IndexTuple & index )
+            [state_ptr, functor] SPIRIT_LAMBDA( const IndexTuple & index )
             { return functor( Backend::get<typename InteractionType::Index>( index ), state_ptr ); } );
     }
 

@@ -77,7 +77,6 @@ struct Quadruplet
     {
         using Indexing::idx_from_pair;
 
-        std::vector<IndexStorage> indices_local( indices.size(), IndexStorage{} );
         for( int iquad = 0; iquad < data.quadruplets.size(); ++iquad )
         {
             const auto & quad = data.quadruplets[iquad];
@@ -107,15 +106,16 @@ struct Quadruplet
                 if( jspin < 0 || kspin < 0 || lspin < 0 )
                     continue;
 
-                indices_local[ispin].push_back( IndexType{ ispin, jspin, kspin, lspin, (int)iquad } );
-                indices_local[jspin].push_back( IndexType{ jspin, ispin, kspin, lspin, (int)iquad } );
-                indices_local[kspin].push_back( IndexType{ kspin, lspin, ispin, jspin, (int)iquad } );
-                indices_local[lspin].push_back( IndexType{ lspin, kspin, ispin, jspin, (int)iquad } );
+                Backend::get<IndexStorage>( indices[ispin] )
+                    .push_back( IndexType{ ispin, jspin, kspin, lspin, (int)iquad } );
+                Backend::get<IndexStorage>( indices[jspin] )
+                    .push_back( IndexType{ jspin, ispin, kspin, lspin, (int)iquad } );
+                Backend::get<IndexStorage>( indices[kspin] )
+                    .push_back( IndexType{ kspin, lspin, ispin, jspin, (int)iquad } );
+                Backend::get<IndexStorage>( indices[lspin] )
+                    .push_back( IndexType{ lspin, kspin, ispin, jspin, (int)iquad } );
             }
         }
-
-        for( auto i = 0; i < indices.size(); ++i )
-            swap( Backend::get<IndexStorage>( indices[i] ), indices_local[i] );
 
         cache.geometry            = &geometry;
         cache.boundary_conditions = &boundary_conditions;
@@ -146,8 +146,8 @@ inline scalar Quadruplet::Energy::operator()( const Index & index, const Vector3
 {
     // don't need to check for `is_contributing` here, because the `transform_reduce` will short circuit correctly
     return Backend::transform_reduce(
-        SPIRIT_PAR index.begin(), index.end(), scalar( 0.0 ), Backend::plus<scalar>{},
-        [this, spins] SPIRIT_HOSTDEVICE( const Quadruplet::IndexType & idx ) -> scalar
+        index.begin(), index.end(), scalar( 0.0 ), Backend::plus<scalar>{},
+        [this, spins] SPIRIT_LAMBDA( const Quadruplet::IndexType & idx ) -> scalar
         {
             const auto & [ispin, jspin, kspin, lspin, iquad] = idx;
             return -0.25 * magnitudes[iquad] * ( spins[ispin].dot( spins[jspin] ) )
@@ -160,8 +160,8 @@ inline Vector3 Quadruplet::Gradient::operator()( const Index & index, const Vect
 {
     // don't need to check for `is_contributing` here, because the `transform_reduce` will short circuit correctly
     return Backend::transform_reduce(
-        SPIRIT_PAR index.begin(), index.end(), Vector3{ 0.0, 0.0, 0.0 }, Backend::plus<Vector3>{},
-        [this, spins] SPIRIT_HOSTDEVICE( const Quadruplet::IndexType & idx ) -> Vector3
+        index.begin(), index.end(), Vector3{ 0.0, 0.0, 0.0 }, Backend::plus<Vector3>{},
+        [this, spins] SPIRIT_LAMBDA( const Quadruplet::IndexType & idx ) -> Vector3
         {
             const auto & [ispin, jspin, kspin, lspin, iquad] = idx;
             return spins[jspin] * ( -magnitudes[iquad] * ( spins[kspin].dot( spins[lspin] ) ) );

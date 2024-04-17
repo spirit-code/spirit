@@ -224,8 +224,6 @@ public:
 
     void Energy_per_Spin( const state_t & state, scalarfield & energy_per_spin )
     {
-        using std::begin, std::end;
-
         const auto nos = state.size();
 
         if( energy_per_spin.size() != nos )
@@ -242,8 +240,6 @@ public:
 
     void Energy_Contributions_per_Spin( const state_t & state, Data::vectorlabeled<scalarfield> & contributions )
     {
-        using std::begin, std::end;
-
         auto active           = active_interactions();
         const auto & n_active = active.size();
 
@@ -264,8 +260,6 @@ public:
 
     [[nodiscard]] Data::vectorlabeled<scalar> Energy_Contributions( const state_t & state )
     {
-        using std::begin, std::end;
-
         auto active           = active_interactions();
         const auto & n_active = active.size();
         Data::vectorlabeled<scalar> contributions( n_active, { "", 0.0 } );
@@ -292,7 +286,6 @@ public:
 
     [[nodiscard]] scalar Energy( const state_t & state )
     {
-        using std::begin, std::end;
         return Backend::transform_reduce(
                    SPIRIT_PAR indices.begin(), indices.end(), scalar( 0.0 ), Backend::plus<scalar>{},
                    Functor::transform_op( Functor::tuple_dispatch<Accessor::Energy>( local ), scalar( 0.0 ), state ) )
@@ -308,7 +301,6 @@ public:
 
     void Sparse_Hessian( const state_t & state, SpMatrixX & hessian )
     {
-        using std::begin, std::end;
         std::vector<Common::Interaction::triplet> tripletList;
         tripletList.reserve( geometry->n_cells_total * Sparse_Hessian_Size_per_Cell() );
         Hessian_Impl( state, Interaction::Functor::sparse_hessian_wrapper( tripletList ) );
@@ -324,7 +316,6 @@ public:
 
     void Gradient( const state_t & state, vectorfield & gradient )
     {
-        using std::begin, std::end;
         const auto nos = state.size();
 
         if( gradient.size() != nos )

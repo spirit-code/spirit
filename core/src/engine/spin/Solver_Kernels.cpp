@@ -18,15 +18,15 @@ namespace Solver_Kernels
 
 void sib_transform( const vectorfield & spins, const vectorfield & force, vectorfield & out )
 {
-    int n = spins.size();
+    const int n = spins.size();
 
-    const auto * s = spins.data();
-    const auto * f = force.data();
-    auto * o       = out.data();
+    const auto * s = raw_pointer_cast( spins.data() );
+    const auto * f = raw_pointer_cast( force.data() );
+    auto * o       = raw_pointer_cast( out.data() );
 
     Backend::for_each_n(
         SPIRIT_PAR Backend::make_counting_iterator( 0 ), n,
-        [s, f, o] SPIRIT_LAMBDA( int idx )
+        [s, f, o] SPIRIT_LAMBDA( const int idx )
         {
             Vector3 e1 = s[idx];
             Vector3 A  = 0.5 * f[idx];
@@ -53,13 +53,13 @@ void oso_calc_gradients( vectorfield & grad, const vectorfield & spins, const ve
 {
     const Matrix3 t = ( Matrix3() << 0, 0, 1, 0, -1, 0, 1, 0, 0 ).finished();
 
-    const auto * s = spins.data();
-    const auto * f = forces.data();
-    auto * g       = grad.data();
+    const auto * s = raw_pointer_cast( spins.data() );
+    const auto * f = raw_pointer_cast( forces.data() );
+    auto * g       = raw_pointer_cast( grad.data() );
 
     Backend::for_each_n(
         SPIRIT_PAR Backend::make_counting_iterator( 0 ), spins.size(),
-        [s, f, t, g] SPIRIT_LAMBDA( int idx ) { g[idx] = t * ( -s[idx].cross( f[idx] ) ); } );
+        [s, f, t, g] SPIRIT_LAMBDA( const int idx ) { g[idx] = t * ( -s[idx].cross( f[idx] ) ); } );
 }
 
 void oso_rotate( std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & searchdir )
@@ -69,12 +69,12 @@ void oso_rotate( std::vector<std::shared_ptr<vectorfield>> & configurations, std
     for( int img = 0; img < noi; ++img )
     {
 
-        auto * s  = configurations[img]->data();
-        auto * sd = searchdir[img].data();
+        auto * s  = raw_pointer_cast( configurations[img]->data() );
+        auto * sd = raw_pointer_cast( searchdir[img].data() );
 
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
-            [s, sd] SPIRIT_LAMBDA( int idx )
+            [s, sd] SPIRIT_LAMBDA( const int idx )
             {
                 const scalar theta = ( sd[idx] ).norm();
                 const scalar q = cos( theta ), w = 1 - q, x = -sd[idx][0] / theta, y = -sd[idx][1] / theta,
@@ -115,12 +115,12 @@ void atlas_rotate(
     int nos = configurations[0]->size();
     for( int img = 0; img < noi; img++ )
     {
-        auto * spins    = configurations[img]->data();
-        const auto * d  = searchdir[img].data();
-        const auto * a3 = a3_coords[img].data();
+        auto * spins    = raw_pointer_cast( configurations[img]->data() );
+        const auto * d  = raw_pointer_cast( searchdir[img].data() );
+        const auto * a3 = raw_pointer_cast( a3_coords[img].data() );
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
-            [spins, d, a3] SPIRIT_LAMBDA( int idx )
+            [spins, d, a3] SPIRIT_LAMBDA( const int idx )
             {
                 const scalar gamma = ( 1 + spins[idx][2] * a3[idx] );
                 const scalar denom = ( spins[idx].head<2>().squaredNorm() ) / gamma
@@ -135,14 +135,14 @@ void atlas_rotate(
 void atlas_calc_gradients(
     vector2field & residuals, const vectorfield & spins, const vectorfield & forces, const scalarfield & a3_coords )
 {
-    const auto * s  = spins.data();
-    const auto * a3 = a3_coords.data();
-    const auto * f  = forces.data();
-    auto * g        = residuals.data();
+    const auto * s  = raw_pointer_cast( spins.data() );
+    const auto * a3 = raw_pointer_cast( a3_coords.data() );
+    const auto * f  = raw_pointer_cast( forces.data() );
+    auto * g        = raw_pointer_cast( residuals.data() );
 
     Backend::for_each_n(
         SPIRIT_PAR Backend::make_counting_iterator( 0 ), spins.size(),
-        [s, a3, f, g] SPIRIT_LAMBDA( int idx )
+        [s, a3, f, g] SPIRIT_LAMBDA( const int idx )
         {
             scalar J00 = s[idx][1] * s[idx][1] + s[idx][2] * ( s[idx][2] + a3[idx] );
             scalar J10 = -s[idx][0] * s[idx][1];
@@ -168,13 +168,13 @@ bool ncg_atlas_check_coordinates(
 
     for( int img = 0; img < noi; img++ )
     {
-        const auto * s  = spins[0]->data();
-        const auto * a3 = a3_coords[img].data();
-        int * res       = &result[0];
+        const auto * s  = raw_pointer_cast( spins[0]->data() );
+        const auto * a3 = raw_pointer_cast( a3_coords[img].data() );
+        int * res       = raw_pointer_cast( result.data() );
 
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
-            [s, a3, tol, res] SPIRIT_LAMBDA( int idx )
+            [s, a3, tol, res] SPIRIT_LAMBDA( const int idx )
             {
                 if( s[idx][2] * a3[idx] < tol && res[0] == int( false ) )
                     res[0] = int( true );
@@ -199,11 +199,11 @@ void lbfgs_atlas_transform_direction(
 
     for( int img = 0; img < noi; img++ )
     {
-        const auto * s = ( *configurations[img] ).data();
-        auto * a3      = a3_coords[img].data();
-        auto * sd      = searchdir[img].data();
-        auto * g_pr    = grad_pr[img].data();
-        auto * rh      = rho.data();
+        const auto * s = raw_pointer_cast( ( *configurations[img] ).data() );
+        auto * a3      = raw_pointer_cast( a3_coords[img].data() );
+        auto * sd      = raw_pointer_cast( searchdir[img].data() );
+        auto * g_pr    = raw_pointer_cast( grad_pr[img].data() );
+        auto * rh      = raw_pointer_cast( rho.data() );
 
         auto n_mem = atlas_updates[img].size();
 
@@ -214,12 +214,12 @@ void lbfgs_atlas_transform_direction(
             t2[n] = raw_pointer_cast( grad_updates[img][n].data() );
         }
 
-        auto ** a_up = t1.data();
-        auto ** g_up = t2.data();
+        auto ** a_up = raw_pointer_cast( t1.data() );
+        auto ** g_up = raw_pointer_cast( t2.data() );
 
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
-            [s, a3, sd, g_pr, rh, a_up, g_up, n_mem] SPIRIT_LAMBDA( int idx )
+            [s, a3, sd, g_pr, rh, a_up, g_up, n_mem] SPIRIT_LAMBDA( const int idx )
             {
                 scalar factor = 1;
                 if( s[idx][2] * a3[idx] < 0 )

@@ -34,11 +34,11 @@ public:
     constexpr Span( T * data, size_type size ) noexcept : data_( data ), size_( size ){};
 
     template<typename Iterator>
-    constexpr Span( Iterator begin, size_type size ) noexcept : data_( &( *begin ) ), size_( size ){};
+    constexpr Span( Iterator begin, size_type size ) noexcept : data_( std::addressof( *begin ) ), size_( size ){};
 
     template<typename Iterator>
     constexpr Span( Iterator begin, Iterator end ) noexcept
-            : data_( &( *begin ) ), size_( static_cast<size_type>( std::distance( begin, end ) ) ){};
+            : data_( std::addressof( *begin ) ), size_( static_cast<size_type>( std::distance( begin, end ) ) ){};
 
     SPIRIT_HOSTDEVICE constexpr pointer begin()
     {

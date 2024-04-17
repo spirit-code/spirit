@@ -48,14 +48,14 @@ inline void Method_Solver<Solver::VP_OSO>::Iteration()
     // Set previous
     for( int img = 0; img < noi; ++img )
     {
-        const auto * g = grad[img].data();
-        const auto * v = velocities[img].data();
-        auto * g_pr    = grad_pr[img].data();
-        auto * v_pr    = velocities_previous[img].data();
+        const auto * g = raw_pointer_cast( grad[img].data() );
+        const auto * v = raw_pointer_cast( velocities[img].data() );
+        auto * g_pr    = raw_pointer_cast( grad_pr[img].data() );
+        auto * v_pr    = raw_pointer_cast( velocities_previous[img].data() );
 
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
-            [g, g_pr, v, v_pr] SPIRIT_LAMBDA( int idx )
+            [g, g_pr, v, v_pr] SPIRIT_LAMBDA( const int idx )
             {
                 g_pr[idx] = g[idx];
                 v_pr[idx] = v[idx];
@@ -76,16 +76,17 @@ inline void Method_Solver<Solver::VP_OSO>::Iteration()
 
     for( int img = 0; img < noi; ++img )
     {
-        const auto * g    = this->grad[img].data();
-        const auto * g_pr = this->grad_pr[img].data();
+        const auto * g    = raw_pointer_cast( this->grad[img].data() );
+        const auto * g_pr = raw_pointer_cast( this->grad_pr[img].data() );
         auto & velocity   = velocities[img];
-        auto * v          = velocities[img].data();
+        auto * v          = raw_pointer_cast( velocities[img].data() );
         auto m_temp       = this->m;
 
         // Calculate the new velocity
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
-            [g, g_pr, v, m_temp] SPIRIT_LAMBDA( int idx ) { v[idx] += 0.5 / m_temp * ( g_pr[idx] + g[idx] ); } );
+            [g, g_pr, v, m_temp] SPIRIT_LAMBDA( const int idx )
+            { v[idx] += 0.5 / m_temp * ( g_pr[idx] + g[idx] ); } );
 
         // Get the projection of the velocity on the force
         projection[img]  = Vectormath::dot( velocity, this->grad[img] );
@@ -98,9 +99,9 @@ inline void Method_Solver<Solver::VP_OSO>::Iteration()
     }
     for( int img = 0; img < noi; ++img )
     {
-        const auto * g = this->grad[img].data();
-        auto * sd      = this->searchdir[img].data();
-        auto * v       = this->velocities[img].data();
+        const auto * g = raw_pointer_cast( this->grad[img].data() );
+        auto * sd      = raw_pointer_cast( this->searchdir[img].data() );
+        auto * v       = raw_pointer_cast( this->velocities[img].data() );
         auto m_temp    = this->m;
 
         scalar dt    = this->systems[img]->llg_parameters->dt;
@@ -115,12 +116,13 @@ inline void Method_Solver<Solver::VP_OSO>::Iteration()
         {
             Backend::for_each_n(
                 SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
-                [g, v, ratio] SPIRIT_LAMBDA( int idx ) { v[idx] = g[idx] * ratio; } );
+                [g, v, ratio] SPIRIT_LAMBDA( const int idx ) { v[idx] = g[idx] * ratio; } );
         }
 
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
-            [sd, dt, m_temp, v, g] SPIRIT_LAMBDA( int idx ) { sd[idx] = dt * v[idx] + 0.5 / m_temp * dt * g[idx]; } );
+            [sd, dt, m_temp, v, g] SPIRIT_LAMBDA( const int idx )
+            { sd[idx] = dt * v[idx] + 0.5 / m_temp * dt * g[idx]; } );
     }
     Solver_Kernels::oso_rotate( this->configurations, this->searchdir );
 }

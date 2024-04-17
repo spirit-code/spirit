@@ -43,14 +43,14 @@ inline void Method_Solver<Solver::VP>::Iteration()
     // Set previous
     for( int i = 0; i < noi; ++i )
     {
-        const auto * f = forces[i].data();
-        auto * f_pr    = forces_previous[i].data();
-        const auto * v = velocities[i].data();
-        auto * v_pr    = velocities_previous[i].data();
+        const auto * f = raw_pointer_cast( forces[i].data() );
+        auto * f_pr    = raw_pointer_cast( forces_previous[i].data() );
+        const auto * v = raw_pointer_cast( velocities[i].data() );
+        auto * v_pr    = raw_pointer_cast( velocities_previous[i].data() );
 
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), forces[i].size(),
-            [f, f_pr, v, v_pr] SPIRIT_LAMBDA( int idx )
+            [f, f_pr, v, v_pr] SPIRIT_LAMBDA( const int idx )
             {
                 f_pr[idx] = f[idx];
                 v_pr[idx] = v[idx];
@@ -63,18 +63,19 @@ inline void Method_Solver<Solver::VP>::Iteration()
 
     for( int i = 0; i < noi; ++i )
     {
-        auto & velocity   = velocities[i];
-        auto & force      = forces[i];
+        auto & velocity = velocities[i];
+        auto & force    = forces[i];
 
-        const auto * f      = forces[i].data();
-        const auto * f_pr   = forces_previous[i].data();
-        auto * v      = velocities[i].data();
-        auto m_temp = this->m;
+        const auto * f    = raw_pointer_cast( forces[i].data() );
+        const auto * f_pr = raw_pointer_cast( forces_previous[i].data() );
+        auto * v          = raw_pointer_cast( velocities[i].data() );
+        auto m_temp       = this->m;
 
         // Calculate the new velocity
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), force.size(),
-            [f, f_pr, v, m_temp] SPIRIT_LAMBDA( int idx ) { v[idx] += 0.5 / m_temp * ( f_pr[idx] + f[idx] ); } );
+            [f, f_pr, v, m_temp] SPIRIT_LAMBDA( const int idx )
+            { v[idx] += 0.5 / m_temp * ( f_pr[idx] + f[idx] ); } );
 
         // Get the projection of the velocity on the force
         projection[i]  = Vectormath::dot( velocity, force );
@@ -87,13 +88,13 @@ inline void Method_Solver<Solver::VP>::Iteration()
     }
     for( int i = 0; i < noi; ++i )
     {
-        auto & velocity           = velocities[i];
-        auto & force              = forces[i];
+        auto & velocity = velocities[i];
+        auto & force    = forces[i];
 
-        const auto * f         = forces[i].data();
-        auto * v         = velocities[i].data();
-        auto * conf      = ( configurations[i] )->data();
-        auto * conf_temp = ( configurations_temp[i] )->data();
+        const auto * f   = raw_pointer_cast( forces[i].data() );
+        auto * v         = raw_pointer_cast( velocities[i].data() );
+        auto * conf      = raw_pointer_cast( ( configurations[i] )->data() );
+        auto * conf_temp = raw_pointer_cast( ( configurations_temp[i] )->data() );
 
         const scalar dt    = this->systems[i]->llg_parameters->dt;
         const scalar ratio = projection_full / force_norm2_full;
@@ -108,12 +109,12 @@ inline void Method_Solver<Solver::VP>::Iteration()
         {
             Backend::for_each_n(
                 SPIRIT_PAR Backend::make_counting_iterator( 0 ), force.size(),
-                [f, v, ratio] SPIRIT_LAMBDA( int idx ) { v[idx] = f[idx] * ratio; } );
+                [f, v, ratio] SPIRIT_LAMBDA( const int idx ) { v[idx] = f[idx] * ratio; } );
         }
 
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), force.size(),
-            [conf, conf_temp, dt, m_temp, v, f] SPIRIT_LAMBDA( int idx )
+            [conf, conf_temp, dt, m_temp, v, f] SPIRIT_LAMBDA( const int idx )
             {
                 conf_temp[idx] = conf[idx] + dt * v[idx] + 0.5 / m_temp * dt * f[idx];
                 conf[idx]      = conf_temp[idx].normalized();

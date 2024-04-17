@@ -53,9 +53,9 @@ void lbfgs_get_searchdir(
     using std::begin, std::end;
 
     // std::cerr << "lbfgs searchdir \n";
-    static auto dot     = [] SPIRIT_HOSTDEVICE( const Vec & v1, const Vec & v2 ) { return v1.dot( v2 ); };
-    static auto set     = [] SPIRIT_HOSTDEVICE( const Vec & x ) { return x; };
-    static auto inverse = [] SPIRIT_HOSTDEVICE( const Vec & x ) { return -x; };
+    static auto dot     = [] SPIRIT_LAMBDA( const Vec & v1, const Vec & v2 ) { return v1.dot( v2 ); };
+    static auto set     = [] SPIRIT_LAMBDA( const Vec & x ) { return x; };
+    static auto inverse = [] SPIRIT_LAMBDA( const Vec & x ) { return -x; };
 
     scalar epsilon = sizeof( scalar ) == sizeof( float ) ? 1e-30 : 1e-300;
 
@@ -88,7 +88,7 @@ void lbfgs_get_searchdir(
             Backend::transform(
                 SPIRIT_PAR begin( grad[img] ), end( grad[img] ), begin( grad_pr[img] ),
                 begin( delta_grad[img][m_index] ),
-                [] SPIRIT_HOSTDEVICE( const Vec & g, const Vec & g_pr ) { return g - g_pr; } );
+                [] SPIRIT_LAMBDA( const Vec & g, const Vec & g_pr ) { return g - g_pr; } );
         }
 
         scalar rinv_temp = 0;
@@ -125,7 +125,7 @@ void lbfgs_get_searchdir(
                 Backend::transform(
                     SPIRIT_PAR begin( q_vec[img] ), end( q_vec[img] ), begin( delta_grad[img][c_ind] ),
                     begin( q_vec[img] ),
-                    [a] SPIRIT_HOSTDEVICE( const Vec & q, const Vec & d ) -> Vec { return q - a * d; } );
+                    [a] SPIRIT_LAMBDA( const Vec & q, const Vec & d ) -> Vec { return q - a * d; } );
             }
         }
 
@@ -145,7 +145,7 @@ void lbfgs_get_searchdir(
                 inv_rhody2 = 1.0 / ( epsilon );
             Backend::transform(
                 SPIRIT_PAR begin( q_vec[img] ), end( q_vec[img] ), begin( searchdir[img] ),
-                [inv_rhody2] SPIRIT_HOSTDEVICE( const Vec & q ) { return inv_rhody2 * q; } );
+                [inv_rhody2] SPIRIT_LAMBDA( const Vec & q ) { return inv_rhody2 * q; } );
         }
 
         for( int k = 0; k < num_mem; k++ )
@@ -169,7 +169,7 @@ void lbfgs_get_searchdir(
                 Backend::transform(
                     SPIRIT_PAR begin( searchdir[img] ), end( searchdir[img] ), begin( delta_a[img][c_ind] ),
                     begin( searchdir[img] ),
-                    [alph] SPIRIT_HOSTDEVICE( const Vec & sd, const Vec & da ) { return sd + alph * da; } );
+                    [alph] SPIRIT_LAMBDA( const Vec & sd, const Vec & da ) { return sd + alph * da; } );
             }
         }
 

@@ -16,13 +16,12 @@ namespace Data
 // TODO(important): check why there are two geometry objects in this thing and why they aren't necessarily shared
 template<typename Hamiltonian>
 Spin_System<Hamiltonian>::Spin_System(
-    std::unique_ptr<Hamiltonian> hamiltonian,
-    std::unique_ptr<Parameters_Method_LLG> llg_params, std::unique_ptr<Parameters_Method_MC> mc_params,
-    std::unique_ptr<Parameters_Method_EMA> ema_params, std::unique_ptr<Parameters_Method_MMF> mmf_params,
-    bool iteration_allowed )
+    std::unique_ptr<Hamiltonian> hamiltonian, std::unique_ptr<Parameters_Method_LLG> llg_params,
+    std::unique_ptr<Parameters_Method_MC> mc_params, std::unique_ptr<Parameters_Method_EMA> ema_params,
+    std::unique_ptr<Parameters_Method_MMF> mmf_params, bool iteration_allowed )
 try : hamiltonian( std::move( hamiltonian ) ), llg_parameters( std::move( llg_params ) ),
-    mc_parameters( std::move( mc_params ) ), ema_parameters( std::move( ema_params ) ), mmf_parameters( std::move( mmf_params ) ),
-    iteration_allowed( iteration_allowed ), singleshot_allowed( false )
+    mc_parameters( std::move( mc_params ) ), ema_parameters( std::move( ema_params ) ),
+    mmf_parameters( std::move( mmf_params ) ), iteration_allowed( iteration_allowed ), singleshot_allowed( false )
 {
     // Get Number of Spins
     this->nos = this->hamiltonian->get_geometry().nos;
@@ -31,7 +30,7 @@ try : hamiltonian( std::move( hamiltonian ) ), llg_parameters( std::move( llg_pa
     this->spins = std::make_shared<vectorfield>( nos );
 
     // Initialize Modes container
-    this->modes = std::vector<std::shared_ptr<vectorfield>>( this->ema_parameters->n_modes, NULL );
+    this->modes = std::vector<std::shared_ptr<vectorfield>>( this->ema_parameters->n_modes, nullptr );
 
     // Initialize Eigenvalues vector
     this->eigenvalues = std::vector<scalar>( this->modes.size(), 0 );
@@ -54,12 +53,12 @@ try
 {
     this->nos         = other.nos;
     this->spins       = std::make_unique<vectorfield>( *other.spins );
-    this->modes       = std::vector<std::shared_ptr<vectorfield>>( other.modes.size(), NULL );
+    this->modes       = std::vector<std::shared_ptr<vectorfield>>( other.modes.size(), nullptr );
     this->eigenvalues = other.eigenvalues;
 
     // copy the modes
     for( int i = 0; i < other.modes.size(); i++ )
-        if( other.modes[i] != NULL )
+        if( other.modes[i] != nullptr )
             this->modes[i] = std::make_shared<vectorfield>( *other.modes[i] );
 
     this->E               = other.E;
