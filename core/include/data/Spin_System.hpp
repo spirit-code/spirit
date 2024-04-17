@@ -15,7 +15,7 @@
 #include <utility/Ordered_Lock.hpp>
 
 #include <memory>
-#include <random>
+#include <optional>
 
 namespace Data
 {
@@ -51,7 +51,7 @@ public:
     // Number of spins
     int nos;
     // Eigenmodes of the system: modes[nem][dim][nos]
-    std::vector<std::shared_ptr<vectorfield>> modes;
+    std::vector<std::optional<vectorfield>> modes;
     // Eigenvalues of the system
     std::vector<scalar> eigenvalues;
     // Orientations of the spins: spins[dim][nos]

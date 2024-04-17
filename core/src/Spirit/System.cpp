@@ -77,7 +77,7 @@ try
     }
 
     // Check if mode has been calculated
-    if( !image->modes[idx_mode] )
+    if( !image->modes[idx_mode].has_value() )
     {
         Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
              fmt::format( "Mode {} has not yet been calculated.", idx_mode ) );

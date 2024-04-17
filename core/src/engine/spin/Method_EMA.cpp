@@ -45,7 +45,7 @@ Method_EMA<system_t>::Method_EMA( std::shared_ptr<system_t> system, int idx_img,
     Eigenmodes::Check_Eigenmode_Parameters( *system );
 
     // Calculate eigenmodes only in case that the selected mode to follow is not computed yet.
-    if( this->systems[0]->modes[this->parameters_ema->n_mode_follow] == NULL )
+    if( !this->systems[0]->modes[this->parameters_ema->n_mode_follow].has_value() )
         Eigenmodes::Calculate_Eigenmodes( *system, idx_img, idx_chain );
 
     this->counter = 0;
