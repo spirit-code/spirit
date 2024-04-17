@@ -30,24 +30,11 @@ using Vector2 = Eigen::Matrix<scalar, 2, 1>;
 #ifdef SPIRIT_USE_CUDA
 // The general field, using the managed allocator
 #include "Managed_Allocator.hpp"
-#include <thrust/universal_vector.h>
 
 template<typename T>
 using field = std::vector<T, managed_allocator<T>>;
 
 #define SPIRIT_HOSTDEVICE __host__ __device__
-
-template<typename T>
-constexpr T * raw_pointer_cast( typename field<T>::pointer ptr ) noexcept
-{
-    return static_cast<T *>( ptr.get() );
-}
-
-template<typename Iter>
-constexpr auto raw_pointer_cast( Iter ptr ) noexcept -> typename std::iterator_traits<Iter>::pointer
-{
-    return static_cast<typename std::iterator_traits<Iter>::pointer>( &( *ptr ) );
-}
 
 #else
 // The general field
@@ -59,8 +46,17 @@ using field = std::vector<T>;
 // Definition for OpenMP reduction operation using Vector3's
 #pragma omp declare reduction( + : Vector3 : omp_out = omp_out + omp_in ) initializer( omp_priv = Vector3::Zero() )
 #endif
+// cast an iterator to its underlying raw pointer type
+template<typename Iter>
+constexpr auto raw_pointer_cast( Iter ptr ) noexcept -> typename std::iterator_traits<Iter>::pointer
+{
+    static_assert(
+        std::is_same<typename std::decay<Iter>::type::iterator_category, std::random_access_iterator_tag>::value,
+        "contiguous iterator is needed here. Otherwise there is no valid conversion" );
+    return static_cast<typename std::iterator_traits<Iter>::pointer>( std::addressof( *ptr ) );
+}
 
-// unpack thrust pointers if a raw pointer is strictly needed instead
+// noop for raw pointer types to make this operation idempotent
 template<typename T>
 constexpr SPIRIT_HOSTDEVICE T * raw_pointer_cast( T * ptr ) noexcept
 {

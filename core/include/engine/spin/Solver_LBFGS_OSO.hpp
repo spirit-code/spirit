@@ -50,13 +50,13 @@ inline void Method_Solver<Solver::LBFGS_OSO>::Iteration()
         auto & image    = *this->configurations[img];
         auto & grad_ref = this->grad[img];
 
-        const auto * f  = this->forces[img].data();
-        const auto * s  = image.data();
-        auto * fv = this->forces_virtual[img].data();
+        const auto * f = raw_pointer_cast( this->forces[img].data() );
+        const auto * s = raw_pointer_cast( image.data() );
+        auto * fv      = raw_pointer_cast( this->forces_virtual[img].data() );
 
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), this->nos,
-            [f, s, fv] SPIRIT_LAMBDA( int idx ) { fv[idx] = s[idx].cross( f[idx] ); } );
+            [f, s, fv] SPIRIT_LAMBDA( const int idx ) { fv[idx] = s[idx].cross( f[idx] ); } );
 
         Solver_Kernels::oso_calc_gradients( grad_ref, image, this->forces[img] );
     }

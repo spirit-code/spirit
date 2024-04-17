@@ -20,9 +20,9 @@ namespace Manifoldmath
 void project_parallel( vectorfield & vf1, const vectorfield & vf2 )
 {
     scalar proj = Vectormath::dot( vf1, vf2 );
-    Backend::for_each_n(
-        SPIRIT_PAR Backend::make_counting_iterator( 0 ), vf1.size(),
-        [vf1 = vf1.data(), vf2 = vf2.data(), proj] SPIRIT_LAMBDA( int idx ) { vf1[idx] = proj * vf2[idx]; } );
+    Backend::transform(
+        SPIRIT_PAR vf2.begin(), vf2.end(), vf1.begin(),
+        [proj] SPIRIT_LAMBDA( const Vector3 & v ) { return proj * v; } );
 }
 
 void project_orthogonal( vectorfield & vf1, const vectorfield & vf2 )
@@ -76,14 +76,14 @@ void Geodesic_Tangent(
     vectorfield & tangent, const vectorfield & image_1, const vectorfield & image_2, const vectorfield & image_mid )
 {
     // clang-format off
-    Backend::for_each_n( SPIRIT_PAR Backend::make_counting_iterator( 0 ),
+    Backend::cpu::for_each_n( SPIRIT_PAR Backend::make_counting_iterator( 0 ),
         image_1.size(),
         [
             image_minus = image_1.data(),
             image_plus  = image_2.data(),
             image_mid   = image_mid.data(),
             tangent     = tangent.data()
-        ] SPIRIT_LAMBDA ( int idx )
+        ] ( const int idx )
         {
             const Vector3 ex = { 1, 0, 0 };
             const Vector3 ey = { 0, 1, 0 };

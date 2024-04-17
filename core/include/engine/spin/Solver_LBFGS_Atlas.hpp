@@ -63,13 +63,13 @@ inline void Method_Solver<Solver::LBFGS_Atlas>::Iteration()
         auto & image    = *this->configurations[img];
         auto & grad_ref = this->atlas_residuals[img];
 
-        const auto * s = image.data();
-        const auto * f = this->forces[img].data();
-        auto * fv      = this->forces_virtual[img].data();
+        const auto * s = raw_pointer_cast( image.data() );
+        const auto * f = raw_pointer_cast( this->forces[img].data() );
+        auto * fv      = raw_pointer_cast( this->forces_virtual[img].data() );
 
-        Backend::for_each_n(
-            SPIRIT_PAR Backend::make_counting_iterator( 0 ), this->nos,
-            [s, f, fv] SPIRIT_LAMBDA( int idx ) { fv[idx] = s[idx].cross( f[idx] ); } );
+        Backend::transform(
+            SPIRIT_PAR image.begin(), image.end(), forces[img].begin(), forces_virtual[img].begin(),
+            [] SPIRIT_LAMBDA( const Vector3 & s, const Vector3 & f ) { return s.cross( f ); } );
 
         Solver_Kernels::atlas_calc_gradients( grad_ref, image, this->forces[img], this->atlas_coords3[img] );
     }
@@ -95,10 +95,9 @@ inline void Method_Solver<Solver::LBFGS_Atlas>::Iteration()
 
     for( int img = 0; img < noi; img++ )
     {
-        auto * d = atlas_directions[img].data();
-        Backend::for_each_n(
-            SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
-            [scaling, d] SPIRIT_LAMBDA( int idx ) { d[idx] *= scaling; } );
+        Backend::for_each(
+            SPIRIT_PAR atlas_directions[img].begin(), atlas_directions[img].end(),
+            [scaling] SPIRIT_LAMBDA( Vector2 & d ) { d *= scaling; } );
     }
 
     // Rotate spins

@@ -195,7 +195,7 @@ void Method_LLG<system_t, solver>::Calculate_Force_Virtual(
 
                     Backend::transform(
                         SPIRIT_PAR begin( jacobians ), end( jacobians ), begin( s_c_grad ),
-                        [je] SPIRIT_HOSTDEVICE( const Matrix3 & jacobian ) { return jacobian * je; } );
+                        [je] SPIRIT_LAMBDA( const Matrix3 & jacobian ) { return jacobian * je; } );
 
                     Vectormath::add_c_a(
                         dtg * a_j * ( damping - beta ), s_c_grad, force_virtual ); // TODO: a_j durch b_j ersetzen

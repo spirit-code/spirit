@@ -1,7 +1,7 @@
 #pragma once
 
-#include <engine/backend/Counting_Iterator.hpp>
 #include <engine/Vectormath_Defines.hpp>
+#include <engine/backend/Counting_Iterator.hpp>
 
 #include <functional>
 #include <optional>
@@ -37,17 +37,33 @@ static constexpr par_t par = par_t();
 #endif
 
 #ifdef SPIRIT_USE_CUDA
-#include <thrust/functional.h>
-#include <thrust/iterator/zip_iterator.h>
-#include <thrust/optional.h>
+#include <thrust/execution_policy.h>
 
+#include <cuda/std/optional>
 #include <cuda/std/tuple>
+#include <cuda/std/functional>
 
 namespace execution
 {
 
 namespace cuda
 {
+
+struct par_t
+{
+    constexpr par_t() noexcept = default;
+};
+
+bool constexpr operator==( const par_t &, const par_t & )
+{
+    return true;
+};
+bool constexpr operator!=( const par_t &, const par_t & )
+{
+    return false;
+};
+
+static constexpr par_t par = par_t();
 
 } // namespace cuda
 
@@ -77,16 +93,24 @@ using std::plus;
 } // namespace cpu
 
 #ifdef SPIRIT_USE_CUDA
-using thrust::optional;
+
+namespace cuda
+{
+
+using ::cuda::std::optional;
 template<typename T>
 using vector = field<T>;
 
-using cuda::std::apply;
-using cuda::std::get;
-using cuda::std::make_tuple;
-using cuda::std::tuple;
+using ::cuda::std::apply;
+using ::cuda::std::get;
+using ::cuda::std::make_tuple;
+using ::cuda::std::tuple;
 
-using thrust::plus;
+using ::cuda::std::plus;
+
+} // namespace cuda
+
+using namespace Backend::cuda;
 
 #else
 using namespace cpu;

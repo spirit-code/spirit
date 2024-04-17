@@ -108,11 +108,11 @@ void Method_GNEB<chain_t, solver>::Calculate_Force(
         // Multiply gradient with -1 to get effective field and copy to F_gradient.
         // We do it the following way so that the effective field can be e.g. displayed,
         //      while the gradient force is manipulated (e.g. projected)
-        auto * eff_field = this->chain->images[img]->effective_field.data();
-        auto * f_grad    = F_gradient[img].data();
+        auto * eff_field = raw_pointer_cast( this->chain->images[img]->effective_field.data() );
+        auto * f_grad    = raw_pointer_cast( F_gradient[img].data() );
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), image.size(),
-            [eff_field, f_grad] SPIRIT_LAMBDA( int idx )
+            [eff_field, f_grad] SPIRIT_LAMBDA( const int idx )
             {
                 eff_field[idx] *= -1;
                 f_grad[idx] = eff_field[idx];
@@ -273,16 +273,22 @@ void Method_GNEB<chain_t, solver>::Calculate_Force(
         // Overall translational force
         if( chain->gneb_parameters->translating_endpoints )
         {
+            const auto * F_gradient_left   = raw_pointer_cast( F_gradient[0].data() );
+            const auto * F_gradient_right  = raw_pointer_cast( F_gradient[noi - 1].data() );
+            const auto * spins_left        = raw_pointer_cast( this->chain->images[0]->spins->data() );
+            const auto * spins_right       = raw_pointer_cast( this->chain->images[noi - 1]->spins->data() );
+            auto * F_translation_left_ptr  = raw_pointer_cast( F_translation_left.data() );
+            auto * F_translation_right_ptr = raw_pointer_cast( F_translation_right.data() );
             // clang-format off
             Backend::for_each_n( SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
                 [
-                    F_translation_left  = F_translation_left.data(),
-                    F_translation_right = F_translation_right.data(),
-                    F_gradient_left     = F_gradient[0].data(),
-                    F_gradient_right    = F_gradient[noi-1].data(),
-                    spins_left  = this->chain->images[0]->spins->data(),
-                    spins_right = this->chain->images[noi-1]->spins->data()
-                ] SPIRIT_LAMBDA ( int idx )
+                    F_gradient_left,
+                    F_gradient_right,
+                    spins_left,
+                    spins_right,
+                    F_translation_left_ptr,
+                    F_translation_right_ptr
+                ] SPIRIT_LAMBDA ( const int idx )
                 {
                     const Vector3 axis = spins_left[idx].cross(spins_right[idx]);
                     const scalar angle = acos(spins_left[idx].dot(spins_right[idx]));
@@ -294,10 +300,10 @@ void Method_GNEB<chain_t, solver>::Calculate_Force(
                         rotation_matrix = Matrix3::Identity();
 
                     const Vector3 F_gradient_right_rotated = rotation_matrix * F_gradient_right[idx];
-                    F_translation_left[idx] = -0.5 * (F_gradient_left[idx] + F_gradient_right_rotated);
+                    F_translation_left_ptr[idx] = -0.5 * (F_gradient_left[idx] + F_gradient_right_rotated);
 
                     const Vector3 F_gradient_left_rotated = rotation_matrix.transpose() * F_gradient_left[idx];
-                    F_translation_right[idx] = -0.5 * (F_gradient_left_rotated + F_gradient_right[idx]);
+                    F_translation_right_ptr[idx] = -0.5 * (F_gradient_left_rotated + F_gradient_right[idx]);
                 }
             );
             // clang-format on
@@ -327,36 +333,24 @@ void Method_GNEB<chain_t, solver>::Calculate_Force(
             auto spring_constant = ( ( img == 0 ) ? 1.0 : -1.0 ) * this->chain->gneb_parameters->spring_constant;
             auto projection      = Vectormath::dot( F_gradient[img], tangents[img] );
 
-            const auto * F_translation = ( img == 0 ) ? F_translation_left.data() : F_translation_right.data();
+            const auto * F_translation
+                = raw_pointer_cast( ( img == 0 ) ? F_translation_left.data() : F_translation_right.data() );
+            const auto tangent_coeff = spring_constant * ( delta_Rx - delta_Rx0 );
+            const auto * F_grad      = raw_pointer_cast( F_gradient[img].data() );
+            const auto * tang        = raw_pointer_cast( tangents[img].data() );
+            auto * F_tot             = raw_pointer_cast( F_total[img].data() );
+            auto * force             = raw_pointer_cast( forces[img].data() );
 
-            // std::cout << " === " << img << " ===\n";
-            // fmt::print( "tangent_coeff = {}\n",  spring_constant * (delta_Rx - delta_Rx0) );
-            // fmt::print( "delta_Rx {}\n", delta_Rx );
-            // fmt::print( "delta_Rx0 {}\n", delta_Rx0 );
-
-            // clang-format off
-            Backend::for_each_n( SPIRIT_PAR Backend::make_counting_iterator( 0 ),
-                nos,
-                [
-                    F_total       = F_total[img].data(),
-                    F_gradient    = F_gradient[img].data(),
-                    forces        = forces[img].data(),
-                    tangents      = tangents[img].data(),
-                    tangent_coeff = spring_constant * (delta_Rx - delta_Rx0),
-                    F_translation,
-                    projection,
-                    rotational_coeff
-                ] SPIRIT_LAMBDA ( int idx )
+            Backend::for_each_n(
+                SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
+                [F_tot, F_grad, force, tang, tangent_coeff, F_translation, projection,
+                 rotational_coeff] SPIRIT_LAMBDA( const int idx )
                 {
-                    forces[idx] =   rotational_coeff * (F_gradient[idx] - projection * tangents[idx])
-                                    + tangent_coeff * tangents[idx]
-                                    + F_translation[idx];
+                    force[idx] = rotational_coeff * ( F_grad[idx] - projection * tang[idx] ) + tangent_coeff * tang[idx]
+                                 + F_translation[idx];
 
-                    // std::cout << F_translation[idx].transpose() << "\n";
-                    F_total[idx] = forces[idx];
-                }
-            );
-            // clang-format on
+                    F_tot[idx] = force[idx];
+                } );
         }
     }
 

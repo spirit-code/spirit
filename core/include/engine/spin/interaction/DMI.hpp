@@ -123,7 +123,6 @@ struct DMI
             cache.normals    = data.normals;
         }
 
-        field<IndexStorage> indices_local( indices.size(), IndexStorage{} );
         for( unsigned int icell = 0; icell < geometry.n_cells_total; ++icell )
         {
             for( unsigned int i_pair = 0; i_pair < cache.pairs.size(); ++i_pair )
@@ -134,14 +133,13 @@ struct DMI
                     cache.pairs[i_pair] );
                 if( jspin >= 0 )
                 {
-                    indices_local[ispin].push_back( IndexType{ ispin, jspin, (int)i_pair, false } );
-                    indices_local[jspin].push_back( IndexType{ jspin, ispin, (int)i_pair, true } );
+                    Backend::get<IndexStorage>( indices[ispin] )
+                        .push_back( IndexType{ ispin, jspin, (int)i_pair, false } );
+                    Backend::get<IndexStorage>( indices[jspin] )
+                        .push_back( IndexType{ jspin, ispin, (int)i_pair, true } );
                 }
             };
         }
-
-        for( auto i = 0; i < indices.size(); ++i )
-            swap( Backend::get<IndexStorage>( indices[i] ), indices_local[i] );
     }
 };
 
@@ -171,8 +169,8 @@ inline scalar DMI::Energy::operator()( const Index & index, const Vector3 * spin
 {
     // don't need to check for `is_contributing` here, because `transform_reduce` will short circuit properly
     return Backend::transform_reduce(
-        SPIRIT_PAR index.begin(), index.end(), scalar( 0.0 ), Backend::plus<scalar>{},
-        [this, spins] SPIRIT_HOSTDEVICE( const DMI::IndexType & idx ) -> scalar
+        index.begin(), index.end(), scalar( 0.0 ), Backend::plus<scalar>{},
+        [this, spins] SPIRIT_LAMBDA( const DMI::IndexType & idx ) -> scalar
         {
             const auto & [ispin, jspin, i_pair, inverse] = idx;
             return ( inverse ? 0.5 : -0.5 ) * magnitudes[i_pair]
@@ -185,8 +183,8 @@ inline Vector3 DMI::Gradient::operator()( const Index & index, const Vector3 * s
 {
     // don't need to check for `is_contributing` here, because `transform_reduce` will short circuit properly
     return Backend::transform_reduce(
-        SPIRIT_PAR index.begin(), index.end(), Vector3{ 0.0, 0.0, 0.0 }, Backend::plus<Vector3>{},
-        [this, spins] SPIRIT_HOSTDEVICE( const DMI::IndexType & idx ) -> Vector3
+        index.begin(), index.end(), Vector3{ 0.0, 0.0, 0.0 }, Backend::plus<Vector3>{},
+        [this, spins] SPIRIT_LAMBDA( const DMI::IndexType & idx ) -> Vector3
         {
             const auto & [ispin, jspin, i_pair, inverse] = idx;
             return ( inverse ? 1.0 : -1.0 ) * magnitudes[i_pair] * spins[jspin].cross( normals[i_pair] );
