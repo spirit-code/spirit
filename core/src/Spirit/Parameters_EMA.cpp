@@ -65,7 +65,7 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( n_mode_follow < 0 || n_mode_follow > image->ema_parameters->n_modes - 1 || n_mode_follow >= image->modes.size()
-        || image->modes[n_mode_follow] == nullptr )
+        || !image->modes[n_mode_follow].has_value() )
     {
         Log( Utility::Log_Level::Debug, Utility::Log_Sender::API, fmt::format( "Illegal value of mode to follow" ),
              idx_image, idx_chain );

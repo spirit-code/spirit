@@ -425,7 +425,7 @@ try
              idx_image, idx_chain );
 
     // The eigenmode was potentially not calculated, yet
-    if( image->modes[idx_mode] == nullptr )
+    if( !image->modes[idx_mode].has_value() )
         Log( Utility::Log_Level::Warning, Utility::Log_Sender::EMA,
              fmt::format(
                  "Eigenmode number {} has not "

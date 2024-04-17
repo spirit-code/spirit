@@ -1053,8 +1053,8 @@ try
         for( int idx = 0; idx < n_eigenmodes; idx++ )
         {
             // If the mode buffer is created by resizing then it needs to be allocated
-            if( image->modes[idx] == NULL )
-                image->modes[idx] = std::make_shared<vectorfield>( spins.size(), Vector3{ 1, 0, 0 } );
+            if( !image->modes[idx].has_value() )
+                image->modes[idx].emplace(vectorfield( spins.size(), Vector3{ 1, 0, 0 } ));
 
             // Read header
             file.read_segment_header( idx + 1, segment );
@@ -1155,7 +1155,7 @@ try
                 // Determine number of modes
                 int n_modes = 0;
                 for( int i = 0; i < image->modes.size(); i++ )
-                    if( image->modes[i] != nullptr )
+                    if( image->modes[i].has_value() )
                         ++n_modes;
 
                 // Open

@@ -30,7 +30,7 @@ try : hamiltonian( std::move( hamiltonian ) ), llg_parameters( std::move( llg_pa
     this->spins = std::make_shared<vectorfield>( nos );
 
     // Initialize Modes container
-    this->modes = std::vector<std::shared_ptr<vectorfield>>( this->ema_parameters->n_modes, nullptr );
+    this->modes = std::vector<std::optional<vectorfield>>( this->ema_parameters->n_modes, std::nullopt );
 
     // Initialize Eigenvalues vector
     this->eigenvalues = std::vector<scalar>( this->modes.size(), 0 );
@@ -53,13 +53,8 @@ try
 {
     this->nos         = other.nos;
     this->spins       = std::make_unique<vectorfield>( *other.spins );
-    this->modes       = std::vector<std::shared_ptr<vectorfield>>( other.modes.size(), nullptr );
+    this->modes       = other.modes;
     this->eigenvalues = other.eigenvalues;
-
-    // copy the modes
-    for( int i = 0; i < other.modes.size(); i++ )
-        if( other.modes[i] != nullptr )
-            this->modes[i] = std::make_shared<vectorfield>( *other.modes[i] );
 
     this->E               = other.E;
     this->E_array         = other.E_array;
@@ -88,13 +83,8 @@ try
     {
         this->nos         = other.nos;
         this->spins       = std::make_unique<vectorfield>( *other.spins );
-        this->modes       = std::vector<std::shared_ptr<vectorfield>>( other.modes.size(), NULL );
+        this->modes       = other.modes;
         this->eigenvalues = other.eigenvalues;
-
-        // copy the modes
-        for( int i = 0; i < other.modes.size(); i++ )
-            if( other.modes[i] != NULL )
-                this->modes[i] = std::make_shared<vectorfield>( *other.modes[i] );
 
         this->E               = other.E;
         this->E_array         = other.E_array;
