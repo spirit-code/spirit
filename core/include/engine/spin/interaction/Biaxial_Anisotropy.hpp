@@ -3,7 +3,7 @@
 #define SPIRIT_CORE_ENGINE_INTERACTION_BIAXIAL_ANISOTROPY_HPP
 
 #include <engine/Indexing.hpp>
-#include <engine/spin/interaction/Functor_Prototpyes.hpp>
+#include <engine/spin/interaction/Functor_Prototypes.hpp>
 
 #include <Eigen/Dense>
 

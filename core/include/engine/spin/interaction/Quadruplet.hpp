@@ -4,7 +4,7 @@
 
 #include <engine/Indexing.hpp>
 #include <engine/Span.hpp>
-#include <engine/spin/interaction/Functor_Prototpyes.hpp>
+#include <engine/spin/interaction/Functor_Prototypes.hpp>
 
 namespace Engine
 {
