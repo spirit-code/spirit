@@ -40,7 +40,8 @@ TEST_CASE( "Parse Hamiltonian (Pairs) config and check parsed values using the C
     SECTION( "External field" )
     {
         scalar magnitude_ref{ 25.0 };
-        std::array<scalar, 3> direction_ref{ 0.0, 1.0 / std::sqrt( 2.0 ), 1.0 / std::sqrt( 2.0 ) };
+        const scalar component_ref = 1.0 / std::sqrt( 2.0 );
+        std::array<scalar, 3> direction_ref{ 0.0, component_ref, component_ref };
 
         scalar magnitude{};
         std::array<scalar, 3> direction{};

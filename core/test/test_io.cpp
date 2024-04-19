@@ -141,7 +141,6 @@ TEST_CASE( "IO-CHAIN-READ", "[io-chain]" )
     for( auto file : filetypes )
     {
         auto file_name = file.first;
-        auto file_type = file.second;
         INFO( "IO chain" + file.first );
 
         IO_Chain_Read( state.get(), file_name.c_str() );
