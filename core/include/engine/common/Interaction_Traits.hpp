@@ -5,7 +5,7 @@
 namespace Engine
 {
 
-namespace Spin
+namespace Common
 {
 
 namespace Interaction

@@ -3,7 +3,7 @@
 #define SPIRIT_CORE_ENGINE_INTERACTION_DDI_HPP
 
 #include <engine/FFT.hpp>
-#include <engine/spin/interaction/Functor_Prototpyes.hpp>
+#include <engine/spin/interaction/Functor_Prototypes.hpp>
 #include <utility/Constants.hpp>
 
 namespace Engine

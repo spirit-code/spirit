@@ -2,7 +2,7 @@
 #ifndef SPIRIT_CORE_ENGINE_INTERACTION_GAUSSIAN_HPP
 #define SPIRIT_CORE_ENGINE_INTERACTION_GAUSSIAN_HPP
 
-#include <engine/spin/interaction/Functor_Prototpyes.hpp>
+#include <engine/spin/interaction/Functor_Prototypes.hpp>
 
 #include <Eigen/Dense>
 

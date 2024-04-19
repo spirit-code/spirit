@@ -1,16 +1,15 @@
 #pragma once
 
 #include <engine/Span.hpp>
-#include <engine/spin/Interaction_Traits.hpp>
-#include <engine/spin/Interaction_Wrapper.hpp>
+#include <engine/common/Interaction_Traits.hpp>
+#include <engine/common/Interaction_Wrapper.hpp>
 
-#include <tuple>
 #include <type_traits>
 
 namespace Engine
 {
 
-namespace Spin
+namespace Common
 {
 
 namespace Accessor
@@ -36,12 +35,12 @@ using Hessian = typename T::Hessian;
 namespace Functor
 {
 
-template<template<class> class FunctorAccessor, typename... InteractionTypes>
-auto tuple_dispatch( Backend::tuple<Interaction::InteractionWrapper<InteractionTypes>...> & interactions )
-    -> Backend::tuple<FunctorAccessor<InteractionTypes>...>
+template<template<class> class FunctorAccessor, typename... WrappedInteractionTypes>
+auto tuple_dispatch( Backend::tuple<WrappedInteractionTypes...> & interactions )
+    -> Backend::tuple<FunctorAccessor<typename WrappedInteractionTypes::Interaction>...>
 {
     return Backend::apply(
-        []( Interaction::InteractionWrapper<InteractionTypes> &... interaction )
+        []( WrappedInteractionTypes &... interaction )
         { return Backend::make_tuple( interaction.template make_functor<FunctorAccessor>()... ); },
         interactions );
 };

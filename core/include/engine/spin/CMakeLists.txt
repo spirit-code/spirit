@@ -7,13 +7,10 @@ set(SOURCE_SPIRIT_ENGINE_SPIN_INTERACTION
 
 set(HEADER_SPIRIT_ENGINE_SPIN
     ${HEADER_SPIRIT_ENGINE_SPIN}
-    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian_Defines.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Functor_Dispatch.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Interaction_Traits.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Interaction_Wrapper.hpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Eigenmodes.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/HTST.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interaction_Standalone_Adaptor.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Solver_SIB.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Solver_Heun.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Solver_Depondt.hpp
