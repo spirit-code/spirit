@@ -252,8 +252,8 @@ TEST_CASE( "Biaxial anisotropy", "[anisotropy]" )
         std::vector exponents( n_terms, std::array{ 0, 0, 0 } );
 
         Hamiltonian_Get_Biaxial_Anisotropy(
-            state.get(), indices.data(), array_cast( primary ), array_cast( secondary ),
-            site_p.data(), n_atoms, magnitudes.data(), array_cast( exponents ), n_terms );
+            state.get(), indices.data(), array_cast( primary ), array_cast( secondary ), site_p.data(), n_atoms,
+            magnitudes.data(), array_cast( exponents ), n_terms );
 
         REQUIRE( site_p[0] == 0 );
         for( int i = 0; i < n_atoms; ++i )
