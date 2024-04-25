@@ -75,35 +75,32 @@ scalar dist_geodesic( const vectorfield & v1, const vectorfield & v2 )
 void Geodesic_Tangent(
     vectorfield & tangent, const vectorfield & image_1, const vectorfield & image_2, const vectorfield & image_mid )
 {
-    // clang-format off
-    Backend::cpu::for_each_n( SPIRIT_PAR Backend::make_counting_iterator( 0 ),
-        image_1.size(),
-        [
-            image_minus = image_1.data(),
-            image_plus  = image_2.data(),
-            image_mid   = image_mid.data(),
-            tangent     = tangent.data()
-        ] ( const int idx )
+    const auto * image_minus = raw_pointer_cast( image_1.data() );
+    const auto * image_plus  = raw_pointer_cast( image_2.data() );
+    const auto * image_zero  = raw_pointer_cast( image_mid.data() );
+    auto * tang              = raw_pointer_cast( tangent.data() );
+
+    Backend::for_each_n(
+        SPIRIT_PAR Backend::make_counting_iterator( 0 ), image_1.size(),
+        [image_minus, image_plus, image_zero, tang] SPIRIT_LAMBDA( const int idx )
         {
-            const Vector3 ex = { 1, 0, 0 };
-            const Vector3 ey = { 0, 1, 0 };
-            scalar epsilon   = 1e-15;
+            const Vector3 ex     = { 1, 0, 0 };
+            const Vector3 ey     = { 0, 1, 0 };
+            const scalar epsilon = 1e-15;
 
             Vector3 axis = image_plus[idx].cross( image_minus[idx] );
 
             // If the spins are anti-parallel, we choose an arbitrary axis
-            if( std::abs(image_minus[idx].dot(image_plus[idx]) + 1) < epsilon ) // Check if anti-parallel
+            if( std::abs( image_minus[idx].dot( image_plus[idx] ) + 1 ) < epsilon ) // Check if anti-parallel
             {
-                if( std::abs( image_mid[idx].dot( ex ) - 1 ) > epsilon ) // Check if parallel to ex
+                if( std::abs( image_zero[idx].dot( ex ) - 1 ) > epsilon ) // Check if parallel to ex
                     axis = ex;
                 else
                     axis = ey;
             }
-            tangent[idx] = image_mid[idx].cross( axis );
-        }
-    );
-    Manifoldmath::normalize(tangent);
-    // clang-format on
+            tang[idx] = image_zero[idx].cross( axis );
+        } );
+    Manifoldmath::normalize( tangent );
 };
 
 /*
