@@ -88,6 +88,11 @@ using std::get;
 using std::make_tuple;
 using std::tuple;
 
+using std::divides;
+using std::minus;
+using std::modulus;
+using std::multiplies;
+using std::negate;
 using std::plus;
 
 } // namespace cpu
@@ -106,6 +111,11 @@ using ::cuda::std::get;
 using ::cuda::std::make_tuple;
 using ::cuda::std::tuple;
 
+using ::cuda::std::divides;
+using ::cuda::std::minus;
+using ::cuda::std::modulus;
+using ::cuda::std::multiplies;
+using ::cuda::std::negate;
 using ::cuda::std::plus;
 
 } // namespace cuda
