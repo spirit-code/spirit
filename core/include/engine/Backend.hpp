@@ -4,6 +4,7 @@
 
 #include <engine/Vectormath_Defines.hpp>
 #include <engine/backend/Counting_Iterator.hpp>
+#include <engine/backend/Functor.hpp>
 #include <engine/backend/algorithms_cuda.cuh>
 #include <engine/backend/algorithms_openmp.hpp>
 #include <engine/backend/types.hpp>
