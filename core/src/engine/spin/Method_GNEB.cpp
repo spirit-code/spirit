@@ -78,12 +78,6 @@ Method_GNEB<chain_t, solver>::Method_GNEB( std::shared_ptr<chain_t> chain, int i
 }
 
 template<Solver solver>
-std::vector<scalar> Method_GNEB<chain_t, solver>::getForceMaxAbsComponent_All()
-{
-    return this->force_max_abs_component_all;
-}
-
-template<Solver solver>
 std::vector<scalar> Method_GNEB<chain_t, solver>::getTorqueMaxNorm_All()
 {
     return this->max_torque_all;

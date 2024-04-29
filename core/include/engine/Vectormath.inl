@@ -150,44 +150,6 @@ void norm( const field<V> & vector, scalarfield & norm )
         [] SPIRIT_LAMBDA( const V & v ) -> scalar { return v.norm(); } );
 }
 
-inline std::pair<scalar, scalar> minmax_component( const vectorfield & v1 )
-{
-    scalar minval = 1e6, maxval = -1e6;
-    std::pair<scalar, scalar> minmax;
-#pragma omp parallel for reduction( min : minval ) reduction( max : maxval )
-    for( unsigned int i = 0; i < v1.size(); ++i )
-    {
-        for( int dim = 0; dim < 3; ++dim )
-        {
-            if( v1[i][dim] < minval )
-                minval = v1[i][dim];
-            if( v1[i][dim] > maxval )
-                maxval = v1[i][dim];
-        }
-    }
-    minmax.first  = minval;
-    minmax.second = maxval;
-    return minmax;
-}
-
-template<typename V>
-scalar max_abs_component( const field<V> & vector );
-
-// Maximum absolute component of a vectorfield
-template<>
-inline scalar max_abs_component( const field<Vector3> & vector )
-{
-    // We want the Maximum of Absolute Values of all force components on all images
-    scalar absmax = 0;
-    // Find minimum and maximum values
-    std::pair<scalar, scalar> minmax = minmax_component( vector );
-    // Mamimum of absolute values
-    absmax = std::max( absmax, std::abs( minmax.first ) );
-    absmax = std::max( absmax, std::abs( minmax.second ) );
-    // Return
-    return absmax;
-}
-
 // Maximum norm of a vectorfield
 template<typename V>
 scalar max_norm( const field<V> & vector )

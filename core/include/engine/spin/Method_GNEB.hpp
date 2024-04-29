@@ -30,9 +30,6 @@ public:
     Method_GNEB( std::shared_ptr<chain_t> chain, int idx_chain );
 
     // Return maximum force components of the images in the chain
-    std::vector<scalar> getForceMaxAbsComponent_All() override;
-
-    // Return maximum force components of the images in the chain
     std::vector<scalar> getTorqueMaxNorm_All() override;
 
     // Method name as string

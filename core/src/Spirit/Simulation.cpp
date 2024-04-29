@@ -579,57 +579,6 @@ catch( ... )
     spirit_handle_exception_api( -1, -1 );
 }
 
-scalar Simulation_Get_MaxTorqueComponent( State * state, int idx_image, int idx_chain ) noexcept
-try
-{
-    // Fetch correct indices and pointers
-    auto [image, chain] = from_indices( state, idx_image, idx_chain );
-
-    if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
-    {
-        if( state->method_image[idx_image] )
-            return state->method_image[idx_image]->getForceMaxAbsComponent();
-    }
-    else if( Simulation_Running_On_Chain( state, idx_chain ) )
-    {
-        if( state->method_chain )
-            return state->method_chain->getForceMaxAbsComponent();
-    }
-
-    return 0;
-}
-catch( ... )
-{
-    spirit_handle_exception_api( idx_image, idx_chain );
-    return 0;
-}
-
-void Simulation_Get_Chain_MaxTorqueComponents( State * state, scalar * torques, int idx_chain ) noexcept
-try
-{
-    // Fetch correct indices and pointers
-    int idx_image = -1;
-    auto [image, chain] = from_indices( state, idx_image, idx_chain );
-    throw_if_nullptr( torques, "torques" );
-
-    if( Simulation_Running_On_Chain( state, idx_chain ) )
-    {
-        std::vector<scalar> t( chain->noi, 0 );
-
-        if( state->method_chain )
-            t = state->method_chain->getTorqueMaxNorm_All();
-
-        for( int i = 0; i < chain->noi; ++i )
-        {
-            torques[i] = t[i];
-        }
-    }
-}
-catch( ... )
-{
-    spirit_handle_exception_api( -1, idx_chain );
-}
-
 scalar Simulation_Get_MaxTorqueNorm( State * state, int idx_image, int idx_chain ) noexcept
 try
 {

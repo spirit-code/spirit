@@ -49,18 +49,6 @@ public:
     // Get the number of milliseconds since the Method started iterating
     virtual std::int64_t getWallTime() final;
 
-    /*
-     * NOTE: This is a bad convergence criterion and is therefore currently being phased out
-     * Maximum of the absolutes of all components of the force - needs to be updated at each calculation
-     */
-    virtual scalar getForceMaxAbsComponent() final;
-
-    /*
-     * Maximum of the absolutes of all components of the force for all images the method uses
-     * The default is that this returns simply {getForceMaxAbsComponent()}
-     */
-    virtual std::vector<scalar> getForceMaxAbsComponent_All();
-
     // Maximum norm of the torque - needs to be updated at each calculation
     virtual scalar getTorqueMaxNorm() final;
 
