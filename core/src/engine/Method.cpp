@@ -144,16 +144,6 @@ std::int64_t Method::getWallTime()
     return dt_ms.count();
 }
 
-scalar Method::getForceMaxAbsComponent()
-{
-    return this->force_max_abs_component;
-}
-
-std::vector<scalar> Method::getForceMaxAbsComponent_All()
-{
-    return { this->force_max_abs_component };
-}
-
 scalar Method::getTorqueMaxNorm()
 {
     return this->max_torque;

@@ -130,22 +130,6 @@ Get information
 */
 
 /*
-Get maximum torque component.
-
-If a MC, LLG, MMF or EMA simulation is running this returns the max. torque on the current image.
-
-If a GNEB simulation is running this returns the max. torque on the current chain.
-*/
-PREFIX scalar Simulation_Get_MaxTorqueComponent( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
-
-/*
-Get maximum torque components on the images of a chain.
-
-Will only work if a GNEB simulation is running.
-*/
-PREFIX void Simulation_Get_Chain_MaxTorqueComponents( State * state, scalar * torques, int idx_chain = -1 ) SUFFIX;
-
-/*
 Get maximum torque norm.
 
 If a MC, LLG, MMF or EMA simulation is running this returns the max. torque on the current image.

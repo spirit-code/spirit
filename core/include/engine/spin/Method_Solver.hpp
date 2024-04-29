@@ -109,9 +109,6 @@ protected:
              this->idx_chain );
     }
 
-    // Calculate maximum of absolute values of force components for a spin configuration
-    virtual scalar Force_on_Image_MaxAbsComponent( const vectorfield & image, vectorfield & force ) final;
-
     // Calculate maximum torque for a spin configuration
     virtual scalar MaxTorque_on_Image( const vectorfield & image, vectorfield & force ) final;
 
@@ -211,17 +208,6 @@ protected:
     std::vector<std::shared_ptr<vectorfield>> configurations_predictor;
     std::vector<std::shared_ptr<vectorfield>> configurations_temp;
 };
-
-// Return the maximum of absolute values of force components for an image
-template<Solver solver>
-scalar Method_Solver<solver>::Force_on_Image_MaxAbsComponent( const vectorfield & image, vectorfield & force )
-{
-    // Take out component in direction of v2
-    Manifoldmath::project_tangential( force, image );
-
-    // We want the Maximum of Absolute Values of all force components on all images
-    return Vectormath::max_abs_component( force );
-}
 
 // Return the maximum norm of the torque for an image
 template<Solver solver>

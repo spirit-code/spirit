@@ -128,10 +128,6 @@ void normalize_vectors( field<V> & vector );
 template<typename V>
 void norm( const field<V> & vector, scalarfield & norm );
 
-// Maximum absolute component of a vectorfield
-template<typename V>
-scalar max_abs_component( const field<V> & vector );
-
 // Maximum norm of a vectorfield
 template<typename V>
 scalar max_norm( const field<V> & vector );

@@ -128,9 +128,6 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
 
     SECTION( "Normalization" )
     {
-        scalar mc = Engine::Vectormath::max_abs_component( vf1 );
-        REQUIRE( mc == 1 );
-
         Vector3 vtest1 = vf1[0].normalized();
         Vector3 vtest2 = vf2[0].normalized();
         Engine::Vectormath::normalize_vectors( vf1 );
@@ -140,22 +137,6 @@ TEST_CASE( "Vectormath operations", "[vectormath]" )
             REQUIRE( vf1[i] == vtest1 );
             REQUIRE( vf2[i] == vtest2 );
         }
-    }
-
-    SECTION( "MAX Abs component" )
-    {
-        Vector3 vtest1 = vf1[0].normalized();
-        Vector3 vtest2 = vf2[0].normalized();
-        scalar vmc1    = std::max( vtest1[0], std::max( vtest1[1], vtest1[2] ) );
-        scalar vmc2    = std::max( vtest2[0], std::max( vtest2[1], vtest2[2] ) );
-
-        Engine::Vectormath::normalize_vectors( vf1 );
-        Engine::Vectormath::normalize_vectors( vf2 );
-        scalar vfmc1 = Engine::Vectormath::max_abs_component( vf1 );
-        scalar vfmc2 = Engine::Vectormath::max_abs_component( vf2 );
-
-        REQUIRE( vfmc1 == vmc1 );
-        REQUIRE( vfmc2 == vmc2 );
     }
 
     SECTION( "MAX norm" )

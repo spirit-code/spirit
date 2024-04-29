@@ -861,7 +861,7 @@ void MainWindow::updateStatusBar()
     this->m_Label_FPS->setText(
         QString::fromLatin1( "FPS: " ) + QString::number( (int)this->spinWidget->getFramesPerSecond() ) );
 
-    scalar F = Simulation_Get_MaxTorqueComponent( state.get() );
+    scalar F = Simulation_Get_MaxTorqueNorm( state.get() );
     if( !Simulation_Running_On_Chain( state.get() ) )
         this->m_Label_Torque->setText( QString::fromLatin1( "F_max: " ) + QString::number( F, 'E', 2 ) );
 
@@ -881,7 +881,7 @@ void MainWindow::updateStatusBar()
     if( Simulation_Running_On_Chain( state.get() ) )
     {
         scalar * f = new scalar[Chain_Get_NOI( state.get() )];
-        Simulation_Get_Chain_MaxTorqueComponents( state.get(), f );
+        Simulation_Get_Chain_MaxTorqueNorms( state.get(), f );
         scalar f_current = f[System_Get_Index( state.get() )];
         this->m_Label_Torque->setText(
             QString::fromLatin1( "F_current: " ) + QString::number( f_current, 'E', 2 )
