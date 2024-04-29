@@ -63,349 +63,167 @@ void get_random_vectorfield_unitsphere( std::mt19937 & prng, vectorfield & xi )
     }
 }
 
-/////////////////////////////////////////////////////////////////
-
-void fill( scalarfield & sf, scalar s )
-{
-#pragma omp parallel for
-    for( unsigned int i = 0; i < sf.size(); ++i )
-        sf[i] = s;
-}
-void fill( scalarfield & sf, scalar s, const intfield & mask )
-{
-#pragma omp parallel for
-    for( unsigned int i = 0; i < sf.size(); ++i )
-        sf[i] = mask[i] * s;
-}
-
-void scale( scalarfield & sf, scalar s )
-{
-#pragma omp parallel for
-    for( unsigned int i = 0; i < sf.size(); ++i )
-        sf[i] *= s;
-}
-
-void add( scalarfield & sf, scalar s )
-{
-#pragma omp parallel for
-    for( unsigned int i = 0; i < sf.size(); ++i )
-        sf[i] += s;
-}
-
-scalar sum( const scalarfield & sf )
-{
-    scalar ret = 0;
-#pragma omp parallel for reduction( + : ret )
-    for( unsigned int i = 0; i < sf.size(); ++i )
-        ret += sf[i];
-    return ret;
-}
-
-scalar mean( const scalarfield & sf )
-{
-    scalar ret = sum( sf ) / sf.size();
-    return ret;
-}
-
-void set_range( scalarfield & sf, scalar sf_min, scalar sf_max )
-{
-#pragma omp parallel for
-    for( unsigned int i = 0; i < sf.size(); ++i )
-        sf[i] = std::min( std::max( sf_min, sf[i] ), sf_max );
-}
-
-void fill( vectorfield & vf, const Vector3 & v )
-{
-#pragma omp parallel for
-    for( unsigned int i = 0; i < vf.size(); ++i )
-        vf[i] = v;
-}
-void fill( vectorfield & vf, const Vector3 & v, const intfield & mask )
-{
-#pragma omp parallel for
-    for( unsigned int i = 0; i < vf.size(); ++i )
-        vf[i] = mask[i] * v;
-}
-
-void normalize_vectors( vectorfield & vf )
-{
-#pragma omp parallel for
-    for( unsigned int i = 0; i < vf.size(); ++i )
-        vf[i].normalize();
-}
-
-void norm( const vectorfield & vf, scalarfield & norm )
-{
-    for( unsigned int i = 0; i < vf.size(); ++i )
-        norm[i] = vf[i].norm();
-}
-
-std::pair<scalar, scalar> minmax_component( const vectorfield & v1 )
-{
-    scalar minval = 1e6, maxval = -1e6;
-    std::pair<scalar, scalar> minmax;
-#pragma omp parallel for reduction( min : minval ) reduction( max : maxval )
-    for( unsigned int i = 0; i < v1.size(); ++i )
-    {
-        for( int dim = 0; dim < 3; ++dim )
-        {
-            if( v1[i][dim] < minval )
-                minval = v1[i][dim];
-            if( v1[i][dim] > maxval )
-                maxval = v1[i][dim];
-        }
-    }
-    minmax.first  = minval;
-    minmax.second = maxval;
-    return minmax;
-}
-
-scalar max_abs_component( const vectorfield & vf )
-{
-    // We want the Maximum of Absolute Values of all force components on all images
-    scalar absmax = 0;
-    // Find minimum and maximum values
-    std::pair<scalar, scalar> minmax = minmax_component( vf );
-    // Mamimum of absolute values
-    absmax = std::max( absmax, std::abs( minmax.first ) );
-    absmax = std::max( absmax, std::abs( minmax.second ) );
-    // Return
-    return absmax;
-}
-
-void scale( vectorfield & vf, const scalar & sc )
-{
-#pragma omp parallel for
-    for( unsigned int i = 0; i < vf.size(); ++i )
-        vf[i] *= sc;
-}
-
-void scale( vectorfield & vf, const scalarfield & sf, bool inverse )
-{
-    if( inverse )
-    {
-#pragma omp parallel for
-        for( unsigned int i = 0; i < vf.size(); ++i )
-            vf[i] /= sf[i];
-    }
-    else
-    {
-#pragma omp parallel for
-        for( unsigned int i = 0; i < vf.size(); ++i )
-            vf[i] *= sf[i];
-    }
-}
-
-Vector3 sum( const vectorfield & vf )
-{
-    Vector3 ret = { 0, 0, 0 };
-#pragma omp parallel for reduction( + : ret )
-    for( unsigned int i = 0; i < vf.size(); ++i )
-        ret += vf[i];
-    return ret;
-}
-
-Vector3 mean( const vectorfield & vf )
-{
-    Vector3 ret = sum( vf ) / vf.size();
-    return ret;
-}
-
-void divide( const scalarfield & numerator, const scalarfield & denominator, scalarfield & out )
-{
-#pragma omp parallel for
-    for( unsigned int i = 0; i < out.size(); ++i )
-        out[i] = numerator[i] / denominator[i];
-}
-
-// computes the inner product of two vectorfields v1 and v2
-scalar dot( const vectorfield & v1, const vectorfield & v2 )
-{
-    scalar ret = 0;
-#pragma omp parallel for reduction( + : ret )
-    for( unsigned int i = 0; i < v1.size(); ++i )
-        ret += v1[i].dot( v2[i] );
-    return ret;
-}
-
-// computes the inner products of vectors in vf1 and vf2
-// vf1 and vf2 are vectorfields
-void dot( const vectorfield & vf1, const vectorfield & vf2, scalarfield & out )
-{
-#pragma omp parallel for
-    for( unsigned int i = 0; i < vf1.size(); ++i )
-        out[i] = vf1[i].dot( vf2[i] );
-}
-
-// computes the product of scalars in s1 and s2
-// s1 and s2 are scalarfields
-void dot( const scalarfield & s1, const scalarfield & s2, scalarfield & out )
-{
-#pragma omp parallel for
-    for( unsigned int i = 0; i < s1.size(); i++ )
-        out[i] = s1[i] * s2[i];
-}
-
-// computes the vector (cross) products of vectors in v1 and v2
-// v1 and v2 are vector fields
-void cross( const vectorfield & v1, const vectorfield & v2, vectorfield & out )
-{
-#pragma omp parallel for
-    for( unsigned int i = 0; i < v1.size(); ++i )
-        out[i] = v1[i].cross( v2[i] );
-}
-
-// out[i] += c*a
-void add_c_a( const scalar & c, const Vector3 & vec, vectorfield & out )
-{
-#pragma omp parallel for
-    for( unsigned int idx = 0; idx < out.size(); ++idx )
-        out[idx] += c * vec;
-}
-// out[i] += c*a[i]
-void add_c_a( const scalar & c, const vectorfield & vf, vectorfield & out )
-{
-#pragma omp parallel for
-    for( unsigned int idx = 0; idx < out.size(); ++idx )
-        out[idx] += c * vf[idx];
-}
-void add_c_a( const scalar & c, const vectorfield & vf, vectorfield & out, const intfield & mask )
-{
-#pragma omp parallel for
-    for( unsigned int idx = 0; idx < out.size(); ++idx )
-        out[idx] += mask[idx] * c * vf[idx];
-}
-// out[i] += c[i]*a[i]
-void add_c_a( const scalarfield & c, const vectorfield & vf, vectorfield & out )
-{
-#pragma omp parallel for
-    for( unsigned int idx = 0; idx < out.size(); ++idx )
-        out[idx] += c[idx] * vf[idx];
-}
-
-// out[i] = c*a
-void set_c_a( const scalar & c, const Vector3 & vec, vectorfield & out )
-{
-#pragma omp parallel for
-    for( unsigned int idx = 0; idx < out.size(); ++idx )
-        out[idx] = c * vec;
-}
-// out[i] = c*a
-void set_c_a( const scalar & c, const Vector3 & vec, vectorfield & out, const intfield & mask )
-{
-#pragma omp parallel for
-    for( unsigned int idx = 0; idx < out.size(); ++idx )
-        out[idx] = mask[idx] * c * vec;
-}
-
-// out[i] = c*a[i]
-void set_c_a( const scalar & c, const vectorfield & vf, vectorfield & out )
-{
-#pragma omp parallel for
-    for( unsigned int idx = 0; idx < out.size(); ++idx )
-        out[idx] = c * vf[idx];
-}
-// out[i] = c*a[i]
-void set_c_a( const scalar & c, const vectorfield & vf, vectorfield & out, const intfield & mask )
-{
-#pragma omp parallel for
-    for( unsigned int idx = 0; idx < out.size(); ++idx )
-        out[idx] = mask[idx] * c * vf[idx];
-}
-// out[i] = c[i]*a[i]
-void set_c_a( const scalarfield & c, const vectorfield & vf, vectorfield & out )
-{
-#pragma omp parallel for
-    for( unsigned int idx = 0; idx < out.size(); ++idx )
-        out[idx] = c[idx] * vf[idx];
-}
-
-// out[i] += c * a*b[i]
-void add_c_dot( const scalar & c, const Vector3 & vec, const vectorfield & vf, scalarfield & out )
-{
-#pragma omp parallel for
-    for( unsigned int idx = 0; idx < out.size(); ++idx )
-        out[idx] += c * vec.dot( vf[idx] );
-}
-// out[i] += c * a[i]*b[i]
-void add_c_dot( const scalar & c, const vectorfield & vf1, const vectorfield & vf2, scalarfield & out )
-{
-#pragma omp parallel for
-    for( unsigned int idx = 0; idx < out.size(); ++idx )
-        out[idx] += c * vf1[idx].dot( vf2[idx] );
-}
-
-// out[i] = c * a*b[i]
-void set_c_dot( const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out )
-{
-#pragma omp parallel for
-    for( unsigned int idx = 0; idx < out.size(); ++idx )
-        out[idx] = c * a.dot( b[idx] );
-}
-// out[i] = c * a[i]*b[i]
-void set_c_dot( const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out )
-{
-#pragma omp parallel for
-    for( unsigned int idx = 0; idx < out.size(); ++idx )
-        out[idx] = c * a[idx].dot( b[idx] );
-}
-
-// out[i] += c * a x b[i]
-void add_c_cross( const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out )
-{
-#pragma omp parallel for
-    for( unsigned int idx = 0; idx < out.size(); ++idx )
-        out[idx] += c * a.cross( b[idx] );
-}
-// out[i] += c * a[i] x b[i]
-void add_c_cross( const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out )
-{
-#pragma omp parallel for
-    for( unsigned int idx = 0; idx < out.size(); ++idx )
-        out[idx] += c * a[idx].cross( b[idx] );
-}
-// out[i] += c[i] * a[i] x b[i]
-void add_c_cross( const scalarfield & c, const vectorfield & a, const vectorfield & b, vectorfield & out )
-{
-#pragma omp parallel for
-    for( unsigned int idx = 0; idx < out.size(); ++idx )
-        out[idx] += c[idx] * a[idx].cross( b[idx] );
-}
-
-// out[i] = c * a x b[i]
-void set_c_cross( const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out )
-{
-#pragma omp parallel for
-    for( unsigned int idx = 0; idx < out.size(); ++idx )
-        out[idx] = c * a.cross( b[idx] );
-}
-// out[i] = c * a[i] x b[i]
-void set_c_cross( const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out )
-{
-#pragma omp parallel for
-    for( unsigned int idx = 0; idx < out.size(); ++idx )
-        out[idx] = c * a[idx].cross( b[idx] );
-}
-
-scalar max_norm( const vectorfield & vf )
-{
-    scalar max_norm = 0;
-#pragma omp parallel for reduction( max : max_norm )
-    for( int i = 0; i < vf.size(); i++ )
-    {
-        max_norm = std::max( max_norm, vf[i].squaredNorm() );
-    }
-    return sqrt( max_norm );
-}
 } // namespace Vectormath
+
 } // namespace Engine
 
 #endif
 
 namespace Engine
 {
+
 namespace Vectormath
 {
+
+// out[i] += c*a
+void add_c_a( const scalar & c, const Vector3 & vec, vectorfield & out )
+{
+    const Vector3 a = c * vec;
+    Backend::for_each( SPIRIT_PAR out.begin(), out.end(), [a] SPIRIT_LAMBDA( Vector3 & v ) { v += a; } );
+}
+
+// out[i] += c*a[i]
+void add_c_a( const scalar & c, const vectorfield & vf, vectorfield & out )
+{
+    Backend::transform(
+        SPIRIT_PAR out.begin(), out.end(), vf.begin(), out.begin(),
+        [c] SPIRIT_LAMBDA( const Vector3 & res, const Vector3 & a ) -> Vector3 { return res + c * a; } );
+}
+
+void add_c_a( const scalar & c, const vectorfield & vf, vectorfield & out, const intfield & mask )
+{
+    const auto * v = raw_pointer_cast( vf.data() );
+    const auto * m = raw_pointer_cast( mask.data() );
+    auto * o       = raw_pointer_cast( out.data() );
+    Backend::for_each_n(
+        Backend::make_counting_iterator( 0 ), out.size(),
+        [c, v, m, o] SPIRIT_LAMBDA( const int idx ) { o[idx] += m[idx] * c * v[idx]; } );
+}
+
+// out[i] += c[i]*a[i]
+void add_c_a( const scalarfield & c, const vectorfield & vf, vectorfield & out )
+{
+    const auto * cc = raw_pointer_cast( c.data() );
+    const auto * v  = raw_pointer_cast( vf.data() );
+    auto * o        = raw_pointer_cast( out.data() );
+    Backend::for_each_n(
+        Backend::make_counting_iterator( 0 ), out.size(),
+        [v, cc, o] SPIRIT_LAMBDA( const int idx ) { o[idx] += cc[idx] * v[idx]; } );
+}
+
+// out[i] = c*a
+void set_c_a( const scalar & c, const Vector3 & vec, vectorfield & out )
+{
+    Vectormath::fill( out, Vector3( c * vec ) );
+}
+
+// out[i] = c*a
+void set_c_a( const scalar & c, const Vector3 & vec, vectorfield & out, const intfield & mask )
+{
+    Vectormath::fill( out, Vector3( c * vec ), mask );
+}
+
+// out[i] = c*a[i]
+void set_c_a( const scalar & c, const vectorfield & vf, vectorfield & out )
+{
+    Backend::transform( SPIRIT_PAR vf.begin(), vf.end(), out.begin(), Backend::scale( c ) );
+}
+
+// out[i] = c*a[i]
+void set_c_a( const scalar & c, const vectorfield & vf, vectorfield & out, const intfield & mask )
+{
+    Backend::transform(
+        SPIRIT_PAR vf.begin(), vf.end(), mask.begin(), out.begin(),
+        [c] SPIRIT_LAMBDA( const Vector3 & a, const int cond ) -> Vector3 { return c * cond * a; } );
+}
+// out[i] = c[i]*a[i]
+void set_c_a( const scalarfield & c, const vectorfield & vf, vectorfield & out )
+{
+    Backend::transform(
+        SPIRIT_PAR vf.begin(), vf.end(), c.begin(), out.begin(),
+        [] SPIRIT_LAMBDA( const Vector3 & a, const scalar c ) -> Vector3 { return c * a; } );
+}
+
+// out[i] += c * a*b[i]
+void add_c_dot( const scalar & c, const Vector3 & vec, const vectorfield & vf, scalarfield & out )
+{
+    Backend::transform(
+        SPIRIT_PAR vf.begin(), vf.end(), out.begin(), out.begin(),
+        [c, vec] SPIRIT_LAMBDA( const Vector3 & a, const scalar res ) -> scalar { return res + c * vec.dot( a ); } );
+}
+// out[i] += c * a[i]*b[i]
+void add_c_dot( const scalar & c, const vectorfield & vf1, const vectorfield & vf2, scalarfield & out )
+{
+    const auto * v1 = raw_pointer_cast( vf1.data() );
+    const auto * v2 = raw_pointer_cast( vf2.data() );
+    auto * o        = raw_pointer_cast( out.data() );
+    Backend::for_each_n(
+        SPIRIT_PAR Backend::make_counting_iterator( 0 ), out.size(),
+        [c, v1, v2, o] SPIRIT_LAMBDA( const int idx ) { o[idx] += c * v1[idx].dot( v2[idx] ); } );
+}
+
+// out[i] = c * a*b[i]
+void set_c_dot( const scalar & c, const Vector3 & a, const vectorfield & b, scalarfield & out )
+{
+    Backend::transform(
+        SPIRIT_PAR b.begin(), b.end(), out.begin(),
+        [c, a] SPIRIT_LAMBDA( const Vector3 & b ) -> scalar { return c * a.dot( b ); } );
+}
+// out[i] = c * a[i]*b[i]
+void set_c_dot( const scalar & c, const vectorfield & a, const vectorfield & b, scalarfield & out )
+{
+    Backend::transform(
+        SPIRIT_PAR a.begin(), a.end(), b.begin(), out.begin(),
+        [c] SPIRIT_LAMBDA( const Vector3 & a, const Vector3 & b ) -> scalar { return c * a.dot( b ); } );
+}
+
+// out[i] += c * a x b[i]
+void add_c_cross( const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out )
+{
+    Backend::transform(
+        SPIRIT_PAR b.begin(), b.end(), out.begin(), out.begin(),
+        [c, a] SPIRIT_LAMBDA( const Vector3 & b, const Vector3 & res ) -> Vector3 { return res + c * a.cross( b ); } );
+}
+// out[i] += c * a[i] x b[i]
+void add_c_cross( const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out )
+{
+    const auto * aa = raw_pointer_cast( a.data() );
+    const auto * bb = raw_pointer_cast( b.data() );
+    auto * o        = raw_pointer_cast( out.data() );
+    Backend::for_each_n(
+        SPIRIT_PAR Backend::make_counting_iterator( 0 ), out.size(),
+        [c, aa, bb, o] SPIRIT_LAMBDA( const int idx ) { o[idx] += c * aa[idx].cross( bb[idx] ); } );
+}
+
+// out[i] += c[i] * a[i] x b[i]
+void add_c_cross( const scalarfield & c, const vectorfield & a, const vectorfield & b, vectorfield & out )
+{
+    const auto * cc = raw_pointer_cast( c.data() );
+    const auto * aa = raw_pointer_cast( a.data() );
+    const auto * bb = raw_pointer_cast( b.data() );
+    auto * o        = raw_pointer_cast( out.data() );
+
+    Backend::for_each_n(
+        SPIRIT_PAR Backend::make_counting_iterator( 0 ), out.size(),
+        [cc, aa, bb, o] SPIRIT_LAMBDA( const int idx ) { o[idx] += cc[idx] * aa[idx].cross( bb[idx] ); } );
+}
+
+
+// out[i] = c * a x b[i]
+void set_c_cross( const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out )
+{
+    Backend::transform(
+        SPIRIT_PAR b.begin(), b.end(), out.begin(),
+        [c, a] SPIRIT_LAMBDA( const Vector3 & b ) -> Vector3 { return c * a.cross( b ); } );
+}
+
+// out[i] = c * a[i] x b[i]
+void set_c_cross( const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out )
+{
+    Backend::transform(
+        SPIRIT_PAR a.begin(), a.end(), b.begin(), out.begin(),
+        [c] SPIRIT_LAMBDA( const Vector3 & a, const Vector3 & b ) -> Vector3 { return c * a.cross( b ); } );
+}
 
 // Constructs a rotation matrix that rotates to a frame with "normal" as the z-axis
 Matrix3 dreibein( const Vector3 & normal )
@@ -430,15 +248,6 @@ Matrix3 dreibein( const Vector3 & normal )
     dreibein.row( 1 ) = y_hat.normalized();
     dreibein.row( 2 ) = normal.normalized();
     return dreibein;
-}
-
-scalar angle( const Vector3 & v1, const Vector3 & v2 )
-{
-    scalar r = v1.dot( v2 );
-    // Prevent NaNs from occurring
-    r = std::fmax( -1.0, std::fmin( 1.0, r ) );
-    // Angle
-    return std::acos( r );
 }
 
 /////////////////////////////////////////////////////////////////
@@ -493,13 +302,12 @@ Vector3 decompose( const Vector3 & v, const std::vector<Vector3> & basis )
 
 /////////////////////////////////////////////////////////////////
 
-std::array<scalar, 3> Magnetization( const vectorfield & vf, const scalarfield & mu_s )
+Vector3 Magnetization( const vectorfield & vf, const scalarfield & mu_s )
 {
-    vectorfield temp_vf = vf;
-    scale( temp_vf, mu_s );
-    Vector3 vfmean = mean( temp_vf );
-    std::array<scalar, 3> M{ vfmean[0], vfmean[1], vfmean[2] };
-    return M;
+    return Backend::transform_reduce(
+               SPIRIT_PAR vf.begin(), vf.end(), mu_s.begin(), zero_value<Vector3>(), Backend::plus<Vector3>{},
+               [] SPIRIT_LAMBDA( const Vector3 & v, const scalar s ) { return s * v; } )
+           / vf.size();
 }
 
 void TopologicalChargeDensity(
@@ -628,7 +436,7 @@ scalar TopologicalCharge( const vectorfield & vf, const Data::Geometry & geom, c
     scalarfield charge_density( 0 );
     std::vector<int> triangle_indices( 0 );
     TopologicalChargeDensity( vf, geom, boundary_conditions, charge_density, triangle_indices );
-    return sum( charge_density );
+    return Vectormath::sum( charge_density );
 }
 
 void get_gradient_distribution(
@@ -646,7 +454,7 @@ void get_gradient_distribution(
     scalar bmax     = geometry.bounds_max.dot( gradient_direction );
     scalar dist_min = std::min( bmin, bmax );
     // Set the starting point
-    add( distribution, gradient_start - gradient_inclination * dist_min );
+    Vectormath::add( distribution, gradient_start - gradient_inclination * dist_min );
 
     // Cut off negative values
     set_range( distribution, range_min, range_max );
@@ -903,4 +711,5 @@ void jacobian(
 }
 
 } // namespace Vectormath
+
 } // namespace Engine

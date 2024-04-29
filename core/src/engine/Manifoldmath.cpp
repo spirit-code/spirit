@@ -11,62 +11,61 @@
 
 namespace C = Utility::Constants;
 
-#ifndef SPIRIT_USE_CUDA
-
 namespace Engine
 {
+
 namespace Manifoldmath
 {
+
 void project_parallel( vectorfield & vf1, const vectorfield & vf2 )
 {
     scalar proj = Vectormath::dot( vf1, vf2 );
     Backend::transform(
         SPIRIT_PAR vf2.begin(), vf2.end(), vf1.begin(),
-        [proj] SPIRIT_LAMBDA( const Vector3 & v ) { return proj * v; } );
+        [proj] SPIRIT_LAMBDA( const Vector3 & v ) -> Vector3 { return proj * v; } );
 }
 
 void project_orthogonal( vectorfield & vf1, const vectorfield & vf2 )
 {
-    scalar x = Vectormath::dot( vf1, vf2 );
-// TODO: replace the loop with Vectormath Kernel
-#pragma omp parallel for
-    for( unsigned int i = 0; i < vf1.size(); ++i )
-        vf1[i] -= x * vf2[i];
+    const scalar x = Vectormath::dot( vf1, vf2 );
+    Backend::transform(
+        SPIRIT_PAR vf1.begin(), vf1.end(), vf2.begin(), vf1.begin(),
+        [x] SPIRIT_LAMBDA( const Vector3 & v1, const Vector3 & v2 ) -> Vector3 { return v1 - x * v2; } );
 }
 
 void invert_parallel( vectorfield & vf1, const vectorfield & vf2 )
 {
-    scalar x = Vectormath::dot( vf1, vf2 );
-// TODO: replace the loop with Vectormath Kernel
-#pragma omp parallel for
-    for( unsigned int i = 0; i < vf1.size(); ++i )
-        vf1[i] -= 2 * x * vf2[i];
+    const scalar x = Vectormath::dot( vf1, vf2 );
+    Backend::transform(
+        SPIRIT_PAR vf1.begin(), vf1.end(), vf2.begin(), vf1.begin(),
+        [x] SPIRIT_LAMBDA( const Vector3 & v1, const Vector3 & v2 ) -> Vector3 { return v1 - 2 * x * v2; } );
 }
 
 void invert_orthogonal( vectorfield & vf1, const vectorfield & vf2 )
 {
     vectorfield vf3 = vf1;
     project_orthogonal( vf3, vf2 );
-// TODO: replace the loop with Vectormath Kernel
-#pragma omp parallel for
-    for( unsigned int i = 0; i < vf1.size(); ++i )
-        vf1[i] -= 2 * vf3[i];
+    Backend::transform(
+        SPIRIT_PAR vf1.begin(), vf1.end(), vf3.begin(), vf1.begin(),
+        [] SPIRIT_LAMBDA( const Vector3 & v1, const Vector3 & v3 ) -> Vector3 { return v1 - 2 * v3; } );
 }
 
 void project_tangential( vectorfield & vf1, const vectorfield & vf2 )
 {
-#pragma omp parallel for
-    for( unsigned int i = 0; i < vf1.size(); ++i )
-        vf1[i] -= vf1[i].dot( vf2[i] ) * vf2[i];
+    Backend::transform(
+        SPIRIT_PAR vf1.begin(), vf1.end(), vf2.begin(), vf1.begin(),
+        [] SPIRIT_LAMBDA( const Vector3 & v1, const Vector3 & v2 ) -> Vector3 { return v1 - v1.dot( v2 ) * v2; } );
 }
 
 scalar dist_geodesic( const vectorfield & v1, const vectorfield & v2 )
 {
-    scalar dist = 0;
-#pragma omp parallel for reduction( + : dist )
-    for( unsigned int i = 0; i < v1.size(); ++i )
-        dist += pow( Vectormath::angle( v1[i], v2[i] ), 2 );
-    return sqrt( dist );
+    return sqrt( Backend::transform_reduce(
+        SPIRIT_PAR v1.begin(), v1.end(), v2.begin(), scalar( 0 ), Backend::plus<scalar>{},
+        [] SPIRIT_LAMBDA( const Vector3 & v1, const Vector3 & v2 ) -> scalar
+        {
+            const scalar phi = Vectormath::angle( v1, v2 );
+            return phi * phi;
+        } ) );
 }
 
 /*
@@ -82,7 +81,7 @@ void Geodesic_Tangent(
 
     Backend::for_each_n(
         SPIRIT_PAR Backend::make_counting_iterator( 0 ), image_1.size(),
-        [image_minus, image_plus, image_zero, tang] SPIRIT_LAMBDA( const int idx )
+        [image_minus, image_plus, image_zero, tang] SPIRIT_LAMBDA( const int idx ) -> void
         {
             const Vector3 ex     = { 1, 0, 0 };
             const Vector3 ey     = { 0, 1, 0 };
@@ -201,15 +200,7 @@ void Tangents(
         }
     } // end for idx_img
 } // end Tangents
-} // namespace Manifoldmath
-} // namespace Engine
 
-#endif
-
-namespace Engine
-{
-namespace Manifoldmath
-{
 scalar norm( const vectorfield & vf )
 {
     scalar x = Vectormath::dot( vf, vf );
