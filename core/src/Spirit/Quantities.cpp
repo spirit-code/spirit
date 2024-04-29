@@ -46,7 +46,7 @@ try
     // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
 
     auto mag = Engine::Vectormath::Magnetization( *image->spins, image->hamiltonian->get_geometry().mu_s );
-    image->M = Vector3{ mag[0], mag[1], mag[2] };
+    image->M = mag;
 
     // image->Unlock();
 

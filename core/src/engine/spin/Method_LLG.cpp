@@ -181,7 +181,7 @@ void Method_LLG<system_t, solver>::Calculate_Force_Virtual(
 
             Vectormath::set_c_a( dtg, force, force_virtual );
             Vectormath::add_c_cross( dtg * damping, image, force, force_virtual );
-            Vectormath::scale( force_virtual, geometry.mu_s, true );
+            Vectormath::divide( force_virtual, geometry.mu_s );
 
             // STT
             if( a_j > 0 )

@@ -34,6 +34,7 @@ set(HEADER_SPIRIT_ENGINE
     ${CMAKE_CURRENT_SOURCE_DIR}/Neighbours.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Vectormath_Defines.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.inl
     ${CMAKE_CURRENT_SOURCE_DIR}/Manifoldmath.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Managed_Allocator.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
