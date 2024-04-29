@@ -46,6 +46,33 @@ using field = std::vector<T>;
 // Definition for OpenMP reduction operation using Vector3's
 #pragma omp declare reduction( + : Vector3 : omp_out = omp_out + omp_in ) initializer( omp_priv = Vector3::Zero() )
 #endif
+
+template<typename T>
+struct has_zero_method
+{
+private:
+    template<typename U>
+    static auto test(int) -> decltype(U::Zero(), std::true_type{});
+
+    template<typename U>
+    static auto test(...) -> std::false_type;
+public:
+    static constexpr bool value = decltype(test<T>(0))::value;
+};
+
+// utility function to get a zero valued object of type T
+// this should only be useful in templated code
+template<typename T>
+SPIRIT_HOSTDEVICE T zero_value() noexcept
+{
+    if constexpr( has_zero_method<T>::value )
+        return T::Zero();
+    else if constexpr( std::is_arithmetic<T>::value )
+        return T(0);
+    else
+        return T();
+}
+
 // cast an iterator to its underlying raw pointer type
 template<typename Iter>
 constexpr auto raw_pointer_cast( Iter ptr ) noexcept -> typename std::iterator_traits<Iter>::pointer

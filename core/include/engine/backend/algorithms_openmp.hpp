@@ -30,6 +30,17 @@ auto reduce_n( const ::execution::par_t &, ForwardIt first, Size n ) ->
     return init;
 };
 
+template<typename ForwardIt, typename Size, typename T>
+auto reduce_n( const ::execution::par_t &, ForwardIt first, Size n, T init, Backend::plus<T>{} ) -> T
+{
+#pragma omp parallel for reduction( + : init )
+    for( Size i = 0; i < n; ++i )
+    {
+        init += *( first + i );
+    }
+    return init;
+};
+
 template<typename ForwardIt1, typename Size, typename ForwardIt2, typename UnaryOp>
 ForwardIt2 transform_n( const ::execution::par_t &, ForwardIt1 first, Size n, ForwardIt2 d_first, UnaryOp unary_op )
 {
@@ -133,6 +144,13 @@ auto reduce( const ::execution::par_t & exec, ForwardIt first, ForwardIt last ) 
     typename std::iterator_traits<ForwardIt>::value_type
 {
     return Backend::cpu::detail::reduce_n( exec, first, std::distance( first, last ) );
+};
+
+template<typename ForwardIt, typename T, typename BinaryOp>
+auto reduce( const ::execution::par_t & exec, ForwardIt first, ForwardIt last, T init, BinaryOp binary_op ) ->
+    typename std::iterator_traits<ForwardIt>::value_type
+{
+    return Backend::cpu::detail::reduce_n( exec, first, std::distance( first, last ), init, binary_op );
 };
 
 template<typename ForwardIt1, typename ForwardIt2, typename UnaryOp>

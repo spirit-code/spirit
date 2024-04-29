@@ -113,7 +113,7 @@ using ::cuda::std::plus;
 using namespace Backend::cuda;
 
 #else
-using namespace cpu;
+using namespace Backend::cpu;
 #endif
 
 } // namespace Backend

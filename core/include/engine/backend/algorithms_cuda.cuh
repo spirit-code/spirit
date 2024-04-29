@@ -293,13 +293,13 @@ __host__ __device__ auto fill( InputIt first, InputIt last, const T & value ) ->
 #else
     std
 #endif
-        ::fill( first, last, value );
+    ::fill( first, last, value );
 }
 
 template<class InputIt, class T>
 __host__ auto fill( const ::execution::cuda::par_t &, InputIt first, InputIt last, const T & value ) -> void
 {
-    Backend::cuda::detail::par ::fill( first, last, value );
+    Backend::cuda::detail::par::fill( first, last, value );
 }
 
 template<class InputIt, class Size, class T>
@@ -317,7 +317,7 @@ __host__ __device__ auto fill_n( InputIt first, Size n, const T & value ) -> Inp
 template<class InputIt, class Size, class T>
 __host__ auto fill_n( const ::execution::cuda::par_t &, InputIt first, Size n, const T & value ) -> InputIt
 {
-    return Backend::cuda::detail::par ::fill_n( first, n, value );
+    return Backend::cuda::detail::par::fill_n( first, n, value );
 }
 
 // ===== for_each ======================================================================================================
@@ -444,7 +444,18 @@ namespace detail
 namespace seq
 {
 
-template<class InputIt, class OutputIt, class UnaryOp>
+template<class InputIt, class OutputIt, class T, class BinaryOp>
+__device__ __forceinline__ auto reduce( InputIt first, InputIt last, T init, BinaryOp binary_op ) -> T
+{
+    static_assert( is_device_iterator<InputIt>::value );
+
+    while( first != last )
+        init = binary_op( init, *( first++ ) );
+
+    return init;
+};
+
+template<class InputIt>
 __device__ __forceinline__ auto reduce( InputIt first, InputIt last ) ->
     typename std::iterator_traits<InputIt>::value_type
 {
@@ -460,6 +471,27 @@ __device__ __forceinline__ auto reduce( InputIt first, InputIt last ) ->
 } // namespace seq
 
 } // namespace detail
+
+template<class InputIt, class T, class BinaryOp>
+__host__ auto reduce( const ::execution::cuda::par_t &, InputIt first, InputIt last, T init, BinaryOp binary_op ) -> T
+{
+    const int N = std::distance( first, last );
+
+    field<T> ret( 1, init );
+
+    // Determine temporary storage size and allocate
+    void * d_temp_storage     = nullptr;
+    size_t temp_storage_bytes = 0;
+    cub::DeviceReduce::Reduce(
+        d_temp_storage, temp_storage_bytes, device_iterator_cast( first ), ret.data(), N, binary_op, init );
+    cudaMalloc( &d_temp_storage, temp_storage_bytes );
+    // Reduction
+    cub::DeviceReduce::Reduce(
+        d_temp_storage, temp_storage_bytes, device_iterator_cast( first ), ret.data(), N, binary_op, init );
+    CU_CHECK_AND_SYNC();
+    cudaFree( d_temp_storage );
+    return ret[0];
+}
 
 template<class InputIt>
 __host__ auto reduce( const ::execution::cuda::par_t &, InputIt first, InputIt last ) ->
@@ -479,6 +511,18 @@ __host__ auto reduce( const ::execution::cuda::par_t &, InputIt first, InputIt l
     CU_CHECK_AND_SYNC();
     cudaFree( d_temp_storage );
     return ret[0];
+}
+
+template<class InputIt, class T, class BinaryOp>
+__host__ auto reduce( InputIt first, InputIt last, T init, BinaryOp binary_op ) -> T
+{
+    return
+#ifdef __CUDA_ARCH__
+        Backend::cuda::detail::seq
+#else
+        std
+#endif
+        ::reduce( first, last, init, binary_op );
 }
 
 template<class InputIt>
