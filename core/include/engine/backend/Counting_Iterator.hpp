@@ -2,8 +2,8 @@
 
 #include <engine/Vectormath_Defines.hpp>
 
-#include <type_traits>
 #include <iterator>
+#include <type_traits>
 
 namespace Engine
 {
@@ -17,24 +17,24 @@ class counting_iterator
 public:
     using value_type        = T;
     using difference_type   = std::ptrdiff_t;
-    using pointer           = T *;
-    using reference         = T &;
+    using pointer           = value_type *;
+    using reference         = value_type;
     using iterator_category = std::random_access_iterator_tag;
 
     static_assert( std::is_integral<T>::value );
     static_assert( std::is_convertible<value_type, difference_type>::value );
 
     SPIRIT_HOSTDEVICE constexpr counting_iterator() noexcept : m_value( T{} ){};
-    SPIRIT_HOSTDEVICE constexpr explicit counting_iterator( T value ) noexcept : m_value( value ){};
+    SPIRIT_HOSTDEVICE constexpr explicit counting_iterator( T value ) noexcept : m_value( std::move( value ) ){};
     SPIRIT_HOSTDEVICE constexpr counting_iterator( const counting_iterator & other ) noexcept
             : m_value( other.m_value ){};
     constexpr counting_iterator & operator=( const counting_iterator & other ) noexcept = default;
 
-    [[nodiscard]] SPIRIT_HOSTDEVICE constexpr value_type operator*() const noexcept
+    [[nodiscard]] SPIRIT_HOSTDEVICE constexpr reference operator*() const noexcept
     {
         return m_value;
     }
-    [[nodiscard]] SPIRIT_HOSTDEVICE constexpr value_type operator[]( difference_type n ) const noexcept
+    [[nodiscard]] SPIRIT_HOSTDEVICE constexpr reference operator[]( difference_type n ) const noexcept
     {
         return m_value + n;
     }
@@ -145,6 +145,22 @@ template<typename T>
 {
     return counting_iterator<T>( value );
 }
+
+namespace cuda
+{
+
+using Backend::counting_iterator;
+using Backend::make_counting_iterator;
+
+} // namespace cuda
+
+namespace cpu
+{
+
+using Backend::counting_iterator;
+using Backend::make_counting_iterator;
+
+} // namespace cpu
 
 } // namespace Backend
 

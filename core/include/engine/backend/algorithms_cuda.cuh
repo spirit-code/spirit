@@ -57,7 +57,7 @@ struct is_device_iterator<T *> : std::true_type
 };
 
 template<typename Incrementable>
-struct is_device_iterator<Backend::counting_iterator<Incrementable>> : std::true_type
+struct is_device_iterator<Backend::cuda::counting_iterator<Incrementable>> : std::true_type
 {
 };
 
