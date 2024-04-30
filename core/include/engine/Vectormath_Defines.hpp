@@ -75,7 +75,7 @@ SPIRIT_HOSTDEVICE T zero_value() noexcept
 
 // cast an iterator to its underlying raw pointer type
 template<typename Iter>
-constexpr auto raw_pointer_cast( Iter ptr ) noexcept -> typename std::iterator_traits<Iter>::pointer
+[[nodiscard]] constexpr auto raw_pointer_cast( Iter ptr ) noexcept -> typename std::iterator_traits<Iter>::pointer
 {
     static_assert(
         std::is_same<typename std::decay<Iter>::type::iterator_category, std::random_access_iterator_tag>::value,
