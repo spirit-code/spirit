@@ -80,6 +80,8 @@ namespace Backend
 namespace cpu
 {
 
+using std::forward;
+
 using std::optional;
 using std::vector;
 
@@ -101,6 +103,8 @@ using std::plus;
 
 namespace cuda
 {
+
+using ::cuda::std::forward;
 
 using ::cuda::std::optional;
 template<typename T>
