@@ -181,7 +181,7 @@ __host__ __device__ auto copy( InputIt first, InputIt last, OutputIt && d_first 
 #else
         std
 #endif
-        ::copy( first, last, std::forward<OutputIt>( d_first ) );
+        ::copy( first, last, Backend::forward<OutputIt>( d_first ) );
 }
 
 template<class InputIt, class OutputIt>
@@ -199,7 +199,7 @@ __host__ __device__ auto copy_n( InputIt && first, Size n, OutputIt && d_first )
 #else
         std
 #endif
-        ::copy_n( std::forward<InputIt>( first ), n, std::forward<OutputIt>( d_first ) );
+        ::copy_n( Backend::forward<InputIt>( first ), n, Backend::forward<OutputIt>( d_first ) );
 }
 
 template<class InputIt, class Size, class OutputIt>
@@ -290,7 +290,7 @@ __host__ __device__ auto fill( InputIt first, InputIt last, const T & value ) ->
 #else
     std
 #endif
-    ::fill( first, last, value );
+        ::fill( first, last, value );
 }
 
 template<class InputIt, class T>
@@ -397,7 +397,7 @@ __host__ void for_each( InputIt first, InputIt last, UnaryOp && unary_op )
 } // namespace detail
 
 template<class InputIt, class UnaryOp>
-__host__ __device__ auto for_each( InputIt first, InputIt last, UnaryOp unary_op ) -> UnaryOp
+__host__ __device__ auto for_each( InputIt first, InputIt last, UnaryOp && unary_op ) -> UnaryOp
 {
     return
 #ifdef __CUDA_ARCH__
@@ -405,13 +405,13 @@ __host__ __device__ auto for_each( InputIt first, InputIt last, UnaryOp unary_op
 #else
         std
 #endif
-        ::for_each( first, last, unary_op );
+        ::for_each( first, last, Backend::forward<UnaryOp>( unary_op ) );
 }
 
 template<class InputIt, class UnaryOp>
-__host__ auto for_each( const ::execution::cuda::par_t &, InputIt first, InputIt last, UnaryOp unary_op ) -> void
+__host__ auto for_each( const ::execution::cuda::par_t &, InputIt first, InputIt last, UnaryOp && unary_op ) -> void
 {
-    Backend::cuda::detail::par ::for_each( first, last, unary_op );
+    Backend::cuda::detail::par::for_each( first, last, std::forward<UnaryOp>( unary_op ) );
 }
 
 template<class InputIt, class Size, class UnaryOp>
@@ -423,13 +423,13 @@ __host__ __device__ auto for_each_n( InputIt && first, Size n, UnaryOp && unary_
 #else
         std
 #endif
-        ::for_each_n( std::forward<InputIt>( first ), n, std::forward<UnaryOp>( unary_op ) );
+        ::for_each_n( Backend::forward<InputIt>( first ), n, Backend::forward<UnaryOp>( unary_op ) );
 }
 
 template<class InputIt, class Size, class UnaryOp>
 __host__ auto for_each_n( const ::execution::cuda::par_t &, InputIt && first, Size n, UnaryOp && unary_op ) -> InputIt
 {
-    return Backend::cuda::detail::par ::for_each_n(
+    return Backend::cuda::detail::par::for_each_n(
         std::forward<InputIt>( first ), n, std::forward<UnaryOp>( unary_op ) );
 }
 
@@ -511,7 +511,7 @@ __host__ auto reduce( const ::execution::cuda::par_t &, InputIt first, InputIt l
 }
 
 template<class InputIt, class T, class BinaryOp>
-__host__ auto reduce( InputIt first, InputIt last, T init, BinaryOp binary_op ) -> T
+__host__ auto reduce( InputIt first, InputIt last, T init, BinaryOp && binary_op ) -> T
 {
     return
 #ifdef __CUDA_ARCH__
@@ -519,7 +519,7 @@ __host__ auto reduce( InputIt first, InputIt last, T init, BinaryOp binary_op ) 
 #else
         std
 #endif
-        ::reduce( first, last, init, binary_op );
+        ::reduce( first, last, init, Backend::forward<BinaryOp>( binary_op ) );
 }
 
 template<class InputIt>
@@ -650,7 +650,7 @@ __host__ __device__ auto transform( InputIt first, InputIt last, OutputIt && d_f
 #else
         std
 #endif
-        ::transform( first, last, std::forward<OutputIt>( d_first ), std::forward<UnaryOp>( unary_op ) );
+        ::transform( first, last, Backend::forward<OutputIt>( d_first ), Backend::forward<UnaryOp>( unary_op ) );
 }
 
 template<class InputIt, class OutputIt, class UnaryOp>
@@ -658,7 +658,7 @@ __host__ __device__ auto
 transform( const ::execution::cuda::par_t &, InputIt first, InputIt last, OutputIt && d_first, UnaryOp && unary_op )
     -> OutputIt
 {
-    return Backend::cuda::detail::par ::transform(
+    return Backend::cuda::detail::par::transform(
         first, last, std::forward<OutputIt>( d_first ), std::forward<UnaryOp>( unary_op ) );
 }
 
@@ -673,8 +673,8 @@ transform( InputIt1 first1, InputIt1 last1, InputIt2 && first2, OutputIt && d_fi
         std
 #endif
         ::transform(
-            first1, last1, std::forward<InputIt2>( first2 ), std::forward<OutputIt>( d_first ),
-            std::forward<BinaryOp>( binary_op ) );
+            first1, last1, Backend::forward<InputIt2>( first2 ), Backend::forward<OutputIt>( d_first ),
+            Backend::forward<BinaryOp>( binary_op ) );
 }
 
 template<class InputIt1, class InputIt2, class OutputIt, class BinaryOp>
@@ -682,7 +682,7 @@ __host__ auto transform(
     const ::execution::cuda::par_t &, InputIt1 first1, InputIt1 last1, InputIt2 && first2, OutputIt && d_first,
     BinaryOp && binary_op ) -> OutputIt
 {
-    return Backend::cuda::detail::par ::transform(
+    return Backend::cuda::detail::par::transform(
         first1, last1, std::forward<InputIt2>( first2 ), std::forward<OutputIt>( d_first ),
         std::forward<BinaryOp>( binary_op ) );
 }
@@ -760,7 +760,8 @@ transform_reduce( InputIt first, InputIt last, T init, BinaryReductionOp && redu
         std
 #endif
         ::transform_reduce(
-            first, last, init, std::forward<BinaryReductionOp>( reduce ), std::forward<UnaryTransformOp>( transform ) );
+            first, last, init, Backend::forward<BinaryReductionOp>( reduce ),
+            Backend::forward<UnaryTransformOp>( transform ) );
 };
 
 template<class InputIt, class T, class BinaryReductionOp, class UnaryTransformOp>
@@ -785,9 +786,9 @@ __host__ __device__ auto transform_reduce(
 #endif
         ::transform_reduce(
             Backend::cuda::make_zip_iterator( first1, first2 ),
-            Backend::cuda::make_zip_iterator( last1, first2 + std::distance( first1, last1 ) ), std::forward<T>( init ),
-            std::forward<BinaryReductionOp>( reduce ),
-            Backend::cuda::make_zip_function( std::forward<BinaryTransformOp>( transform ) ) );
+            Backend::cuda::make_zip_iterator( last1, first2 + std::distance( first1, last1 ) ),
+            Backend::forward<T>( init ), Backend::forward<BinaryReductionOp>( reduce ),
+            Backend::cuda::make_zip_function( Backend::forward<BinaryTransformOp>( transform ) ) );
 }
 
 template<class InputIt1, class InputIt2, class T, class BinaryReductionOp, class BinaryTransformOp>
