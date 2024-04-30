@@ -3,8 +3,8 @@
 #ifdef SPIRIT_USE_CUDA
 #include <engine/backend/types.hpp>
 
-#include <thrust/iterator/zip_iterator.h>
-#include <thrust/zip_function.h>
+#include <engine/backend/Transform_Iterator.hpp>
+#include <engine/backend/Zip_Iterator.hpp>
 
 #include <cub/cub.cuh>
 
@@ -61,13 +61,13 @@ struct is_device_iterator<Backend::counting_iterator<Incrementable>> : std::true
 {
 };
 
-template<typename IteratorTuple>
-struct is_device_iterator<thrust::zip_iterator<IteratorTuple>> : std::true_type
+template<typename InputIt, typename UnaryOp, typename Value>
+struct is_device_iterator<Backend::cuda::transform_iterator<Value, UnaryOp, InputIt>> : std::true_type
 {
 };
 
-template<typename InputIt, typename UnaryOp, typename Value>
-struct is_device_iterator<cub::TransformInputIterator<Value, UnaryOp, InputIt>> : std::true_type
+template<typename IteratorTuple>
+struct is_device_iterator<Backend::cuda::zip_iterator<IteratorTuple>> : std::true_type
 {
 };
 
@@ -83,17 +83,6 @@ auto device_iterator_cast( Iter it )
     {
         return raw_pointer_cast( it );
     }
-}
-
-// factory function for type deduction of the `cub::TransformInputIterator` class template
-template<
-    typename UnaryOp, typename InputIt,
-    typename Value = decltype( std::declval<UnaryOp>()( *std::declval<InputIt>() ) )>
-SPIRIT_HOSTDEVICE auto make_transform_iterator( InputIt it, UnaryOp unary_op )
-    -> cub::TransformInputIterator<Value, UnaryOp, InputIt>
-{
-    static_assert( detail::is_device_iterator<InputIt>::value );
-    return cub::TransformInputIterator<Value, UnaryOp, InputIt>( it, unary_op );
 }
 
 // TODO: replace most of these overloads by cub implementations (like cub::DeviceFor) once these become widely available
@@ -787,10 +776,10 @@ __host__ __device__ auto transform_reduce(
         std
 #endif
         ::transform_reduce(
-            thrust::make_zip_iterator( first1, first2 ),
-            thrust::make_zip_iterator( last1, first2 + std::distance( first1, last1 ) ), std::forward<T>( init ),
+            Backend::cuda::make_zip_iterator( first1, first2 ),
+            Backend::cuda::make_zip_iterator( last1, first2 + std::distance( first1, last1 ) ), std::forward<T>( init ),
             std::forward<BinaryReductionOp>( reduce ),
-            thrust::make_zip_function( std::forward<BinaryTransformOp>( transform ) ) );
+            Backend::cuda::make_zip_function( std::forward<BinaryTransformOp>( transform ) ) );
 }
 
 template<class InputIt1, class InputIt2, class T, class BinaryReductionOp, class BinaryTransformOp>
@@ -798,12 +787,12 @@ __host__ auto transform_reduce(
     const ::execution::cuda::par_t &, InputIt1 first1, InputIt1 last1, InputIt2 first2, T && init,
     BinaryReductionOp && reduce, BinaryTransformOp && transform ) -> T
 {
-    return Backend::cuda::detail::par ::transform_reduce(
-        thrust::make_zip_iterator( device_iterator_cast( first1 ), device_iterator_cast( first2 ) ),
-        thrust::make_zip_iterator(
+    return Backend::cuda::detail::par::transform_reduce(
+        Backend::cuda::make_zip_iterator( device_iterator_cast( first1 ), device_iterator_cast( first2 ) ),
+        Backend::cuda::make_zip_iterator(
             device_iterator_cast( last1 ), device_iterator_cast( first2 ) + std::distance( first1, last1 ) ),
         std::forward<T>( init ), std::forward<BinaryReductionOp>( reduce ),
-        thrust::make_zip_function( std::forward<BinaryTransformOp>( transform ) ) );
+        Backend::cuda::make_zip_function( std::forward<BinaryTransformOp>( transform ) ) );
 }
 
 } // namespace cuda
