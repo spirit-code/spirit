@@ -71,18 +71,26 @@ struct is_device_iterator<Backend::cuda::zip_iterator<IteratorTuple>> : std::tru
 {
 };
 
+template<typename Iter>
+struct is_field_iterator
+        : std::disjunction<
+              std::is_same<Iter, typename field<typename std::iterator_traits<Iter>::value_type>::iterator>,
+              std::is_same<Iter, typename field<typename std::iterator_traits<Iter>::value_type>::const_iterator>>
+{
+};
+
 } // namespace detail
 
 // cast the iterator to a device iterator (casting normal iterators to raw pointers using `raw_pointer_cast`)
 template<typename Iter>
-auto device_iterator_cast( Iter it )
+[[nodiscard]] auto device_iterator_cast( Iter it )
 {
     if constexpr( detail::is_device_iterator<std::decay_t<Iter>>::value )
         return it;
-    else
-    {
+    else if constexpr( detail::is_field_iterator<std::decay_t<Iter>>::value )
         return raw_pointer_cast( it );
-    }
+    else
+        return;
 }
 
 // TODO: replace most of these overloads by cub implementations (like cub::DeviceFor) once these become widely available
