@@ -53,6 +53,9 @@ private:
     // Sets iteration_allowed to false for the corresponding method
     void Finalize() override;
 
+    void Message_Block_Step( std::vector<std::string> & block ) override;
+    void Message_Block_End( std::vector<std::string> & block ) override;
+
     // Last calculated forces
     std::vector<vectorfield> Gradient;
     // Convergence parameters

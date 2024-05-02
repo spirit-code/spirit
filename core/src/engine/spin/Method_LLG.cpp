@@ -308,6 +308,22 @@ void Method_LLG<solver>::Finalize()
 }
 
 template<Solver solver>
+void Method_LLG<solver>::Message_Block_Step( std::vector<std::string> & block )
+{
+    if( !( this->systems[0]->llg_parameters->direct_minimization || solver == Solver::VP || solver == Solver::VP_OSO
+           || solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas ) )
+        block.emplace_back( fmt::format( "    Simulated time:       {} ps", this->get_simulated_time() ) );
+}
+
+template<Solver solver>
+void Method_LLG<solver>::Message_Block_End( std::vector<std::string> & block )
+{
+    if( !( this->systems[0]->llg_parameters->direct_minimization || solver == Solver::VP || solver == Solver::VP_OSO
+           || solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas ) )
+        block.emplace_back( fmt::format( "    Simulated time:       {} ps", this->get_simulated_time() ) );
+}
+
+template<Solver solver>
 void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, bool initial, bool final )
 {
     // History save

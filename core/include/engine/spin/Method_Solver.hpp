@@ -126,9 +126,14 @@ protected:
     virtual void Finalize() override;
 
     // Log message blocks
-    virtual void Message_Start() override;
-    virtual void Message_Step() override;
-    virtual void Message_End() override;
+    void Message_Start() final;
+    void Message_Step() final;
+    void Message_End() final;
+
+    // Log message Customization point for solver specific data
+    virtual void Message_Block_Start( std::vector<std::string> & block );
+    virtual void Message_Block_Step( std::vector<std::string> & block );
+    virtual void Message_Block_End( std::vector<std::string> & block );
 
     //////////// DEPONDT ////////////////////////////////////////////////////////////
     // Temporaries for virtual forces
@@ -244,14 +249,19 @@ void Method_Solver<solver>::Message_Start()
         fmt::runtime( "    Maximum torque:              {:." + fmt::format( "{}", this->print_precision ) + "f}" ),
         this->max_torque ) );
     block.emplace_back( fmt::format( "    Solver: {}", this->SolverFullName() ) );
-    if( this->Name() == "GNEB" )
-    {
-        scalar length = Manifoldmath::dist_geodesic( *this->configurations[0], *this->configurations[this->noi - 1] );
-        block.emplace_back( fmt::format( "    Total path length: {}", length ) );
-    }
+    // solver specific message
+    this->Message_Block_Start( block );
     block.emplace_back( "-----------------------------------------------------" );
     Log( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 }
+template<Solver solver>
+void Method_Solver<solver>::Message_Block_Start( std::vector<std::string> & ){}
+
+template<Solver solver>
+void Method_Solver<solver>::Message_Block_Step( std::vector<std::string> & ){}
+
+template<Solver solver>
+void Method_Solver<solver>::Message_Block_End( std::vector<std::string> & ){}
 
 template<Solver solver>
 void Method_Solver<solver>::Message_Step()
@@ -259,11 +269,6 @@ void Method_Solver<solver>::Message_Step()
     using namespace Utility;
 
     std::string percentage = fmt::format( "{:.2f}%:", 100 * double( this->iteration ) / double( this->n_iterations ) );
-    bool llg_dynamics
-        = this->Name() == "LLG"
-          && !(
-              this->systems[0]->llg_parameters->direct_minimization || solver == Solver::VP || solver == Solver::VP_OSO
-              || solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas );
 
     // Update time of current step
     auto t_current = std::chrono::system_clock::now();
@@ -280,13 +285,8 @@ void Method_Solver<solver>::Message_Step()
     block.emplace_back( fmt::format(
         "    Iterations / sec:     {:.2f}",
         this->n_iterations_log / Timing::SecondsPassed( t_current - this->t_last ) ) );
-    if( llg_dynamics )
-        block.emplace_back( fmt::format( "    Simulated time:       {} ps", this->get_simulated_time() ) );
-    if( this->Name() == "GNEB" )
-    {
-        scalar length = Manifoldmath::dist_geodesic( *this->configurations[0], *this->configurations[this->noi - 1] );
-        block.emplace_back( fmt::format( "    Total path length:    {}", length ) );
-    }
+    // solver specific message
+    this->Message_Block_Step( block );
     block.emplace_back( fmt::format(
         fmt::runtime( "    Force convergence parameter: {:." + fmt::format( "{}", this->print_precision ) + "f}" ),
         this->parameters->force_convergence ) );
@@ -305,11 +305,6 @@ void Method_Solver<solver>::Message_End()
     using namespace Utility;
 
     std::string percentage = fmt::format( "{:.2f}%:", 100 * double( this->iteration ) / double( this->n_iterations ) );
-    bool llg_dynamics
-        = this->Name() == "LLG"
-          && !(
-              this->systems[0]->llg_parameters->direct_minimization || solver == Solver::VP || solver == Solver::VP_OSO
-              || solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas );
 
     //---- End timings
     auto t_end = std::chrono::system_clock::now();
@@ -333,13 +328,8 @@ void Method_Solver<solver>::Message_End()
         fmt::format( "    Completed {:>8} {} / {} iterations", percentage, this->iteration, this->n_iterations ) );
     block.emplace_back( fmt::format(
         "    Iterations / sec:  {:.2f}", this->iteration / Timing::SecondsPassed( t_end - this->t_start ) ) );
-    if( llg_dynamics )
-        block.emplace_back( fmt::format( "    Simulated time:    {} ps", this->get_simulated_time() ) );
-    if( this->Name() == "GNEB" )
-    {
-        scalar length = Manifoldmath::dist_geodesic( *this->configurations[0], *this->configurations[this->noi - 1] );
-        block.emplace_back( fmt::format( "    Total path length: {}", length ) );
-    }
+    // solver specific message
+    this->Message_Block_End( block );
     block.emplace_back( fmt::format(
         fmt::runtime( "    Force convergence parameter: {:." + fmt::format( "{}", this->print_precision ) + "f}" ),
         this->parameters->force_convergence ) );
