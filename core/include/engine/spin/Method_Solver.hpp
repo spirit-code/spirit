@@ -109,9 +109,6 @@ protected:
              this->idx_chain );
     }
 
-    // Calculate maximum torque for a spin configuration
-    virtual scalar MaxTorque_on_Image( const vectorfield & image, vectorfield & force ) final;
-
     // ...
     // virtual bool Iterations_Allowed() override;
 
@@ -208,15 +205,6 @@ protected:
     std::vector<std::shared_ptr<vectorfield>> configurations_predictor;
     std::vector<std::shared_ptr<vectorfield>> configurations_temp;
 };
-
-// Return the maximum norm of the torque for an image
-template<Solver solver>
-scalar Method_Solver<solver>::MaxTorque_on_Image( const vectorfield & image, vectorfield & force )
-{
-    // Take out component in direction of v2
-    Manifoldmath::project_tangential( force, image );
-    return Vectormath::max_norm( force );
-}
 
 template<Solver solver>
 bool Method_Solver<solver>::Converged()

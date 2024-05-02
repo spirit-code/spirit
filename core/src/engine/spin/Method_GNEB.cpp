@@ -409,7 +409,8 @@ void Method_GNEB<solver>::Hook_Post_Iteration()
 
     for( int img = 0; img < chain->noi; ++img )
     {
-        scalar fmax = this->MaxTorque_on_Image( *( this->systems[img]->spins ), F_total[img] );
+        Manifoldmath::project_tangential( F_total[img], *( this->systems[img]->spins ) );
+        const scalar fmax = Vectormath::max_norm( F_total[img] );
         // Set maximum per image
         this->max_torque_all[img] = fmax;
         // Set maximum overall
