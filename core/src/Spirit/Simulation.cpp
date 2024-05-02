@@ -21,7 +21,7 @@ void free_run_info( Simulation_Run_Info info ) noexcept
 };
 
 // Helper function to start a simulation once a Method has been created
-void run_method( Engine::Method & method, bool singleshot, Simulation_Run_Info * info = nullptr )
+void run_method( State::Method & method, bool singleshot, Simulation_Run_Info * info = nullptr )
 {
     if( singleshot )
     {
@@ -112,8 +112,8 @@ try
         if( n_iterations_log > 0 )
             image->mc_parameters->n_iterations_log = n_iterations_log;
 
-        std::shared_ptr<Engine::Method> method
-            = std::make_shared<Engine::Spin::Method_MC<State::system_t>>( image, idx_image, idx_chain );
+        std::shared_ptr<State::Method> method
+            = std::make_shared<Engine::Spin::Method_MC>( image, idx_image, idx_chain );
 
         image->Unlock();
 
@@ -166,30 +166,30 @@ try
         if( n_iterations_log > 0 )
             image->llg_parameters->n_iterations_log = n_iterations_log;
 
-        std::shared_ptr<Engine::Method> method;
+        std::shared_ptr<State::Method> method;
         if( solver_type == int( Engine::Spin::Solver::SIB ) )
-            method = std::make_shared<Engine::Spin::Method_LLG<State::system_t, Engine::Spin::Solver::SIB>>(
-                image, idx_image, idx_chain );
+            method
+                = std::make_shared<Engine::Spin::Method_LLG<Engine::Spin::Solver::SIB>>( image, idx_image, idx_chain );
         else if( solver_type == int( Engine::Spin::Solver::Heun ) )
-            method = std::make_shared<Engine::Spin::Method_LLG<State::system_t, Engine::Spin::Solver::Heun>>(
-                image, idx_image, idx_chain );
+            method
+                = std::make_shared<Engine::Spin::Method_LLG<Engine::Spin::Solver::Heun>>( image, idx_image, idx_chain );
         else if( solver_type == int( Engine::Spin::Solver::Depondt ) )
-            method = std::make_shared<Engine::Spin::Method_LLG<State::system_t, Engine::Spin::Solver::Depondt>>(
+            method = std::make_shared<Engine::Spin::Method_LLG<Engine::Spin::Solver::Depondt>>(
                 image, idx_image, idx_chain );
         else if( solver_type == int( Engine::Spin::Solver::RungeKutta4 ) )
-            method = std::make_shared<Engine::Spin::Method_LLG<State::system_t, Engine::Spin::Solver::RungeKutta4>>(
+            method = std::make_shared<Engine::Spin::Method_LLG<Engine::Spin::Solver::RungeKutta4>>(
                 image, idx_image, idx_chain );
         else if( solver_type == int( Engine::Spin::Solver::VP ) )
-            method = std::make_shared<Engine::Spin::Method_LLG<State::system_t, Engine::Spin::Solver::VP>>(
-                image, idx_image, idx_chain );
+            method
+                = std::make_shared<Engine::Spin::Method_LLG<Engine::Spin::Solver::VP>>( image, idx_image, idx_chain );
         else if( solver_type == int( Engine::Spin::Solver::LBFGS_OSO ) )
-            method = std::make_shared<Engine::Spin::Method_LLG<State::system_t, Engine::Spin::Solver::LBFGS_OSO>>(
+            method = std::make_shared<Engine::Spin::Method_LLG<Engine::Spin::Solver::LBFGS_OSO>>(
                 image, idx_image, idx_chain );
         else if( solver_type == int( Engine::Spin::Solver::LBFGS_Atlas ) )
-            method = std::make_shared<Engine::Spin::Method_LLG<State::system_t, Engine::Spin::Solver::LBFGS_Atlas>>(
+            method = std::make_shared<Engine::Spin::Method_LLG<Engine::Spin::Solver::LBFGS_Atlas>>(
                 image, idx_image, idx_chain );
         else if( solver_type == int( Engine::Spin::Solver::VP_OSO ) )
-            method = std::make_shared<Engine::Spin::Method_LLG<State::system_t, Engine::Spin::Solver::VP_OSO>>(
+            method = std::make_shared<Engine::Spin::Method_LLG<Engine::Spin::Solver::VP_OSO>>(
                 image, idx_image, idx_chain );
         else
             spirit_throw(
@@ -213,7 +213,7 @@ void Simulation_GNEB_Start(
 try
 {
     // Fetch correct indices and pointers
-    int idx_image = -1;
+    int idx_image       = -1;
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Determine wether to stop or start a simulation
@@ -262,26 +262,23 @@ try
             if( n_iterations_log > 0 )
                 chain->gneb_parameters->n_iterations_log = n_iterations_log;
 
-            std::shared_ptr<Engine::Method> method;
+            std::shared_ptr<State::Method> method;
             if( solver_type == int( Engine::Spin::Solver::SIB ) )
-                method = std::make_shared<Engine::Spin::Method_GNEB<State::chain_t, Engine::Spin::Solver::SIB>>( chain, idx_chain );
+                method = std::make_shared<Engine::Spin::Method_GNEB<Engine::Spin::Solver::SIB>>( chain, idx_chain );
             else if( solver_type == int( Engine::Spin::Solver::Heun ) )
-                method
-                    = std::make_shared<Engine::Spin::Method_GNEB<State::chain_t, Engine::Spin::Solver::Heun>>( chain, idx_chain );
+                method = std::make_shared<Engine::Spin::Method_GNEB<Engine::Spin::Solver::Heun>>( chain, idx_chain );
             else if( solver_type == int( Engine::Spin::Solver::Depondt ) )
-                method = std::make_shared<Engine::Spin::Method_GNEB<State::chain_t, Engine::Spin::Solver::Depondt>>(
-                    chain, idx_chain );
+                method = std::make_shared<Engine::Spin::Method_GNEB<Engine::Spin::Solver::Depondt>>( chain, idx_chain );
             else if( solver_type == int( Engine::Spin::Solver::VP ) )
-                method = std::make_shared<Engine::Spin::Method_GNEB<State::chain_t, Engine::Spin::Solver::VP>>( chain, idx_chain );
+                method = std::make_shared<Engine::Spin::Method_GNEB<Engine::Spin::Solver::VP>>( chain, idx_chain );
             else if( solver_type == int( Engine::Spin::Solver::LBFGS_OSO ) )
-                method = std::make_shared<Engine::Spin::Method_GNEB<State::chain_t, Engine::Spin::Solver::LBFGS_OSO>>(
-                    chain, idx_chain );
+                method
+                    = std::make_shared<Engine::Spin::Method_GNEB<Engine::Spin::Solver::LBFGS_OSO>>( chain, idx_chain );
             else if( solver_type == int( Engine::Spin::Solver::LBFGS_Atlas ) )
-                method = std::make_shared<Engine::Spin::Method_GNEB<State::chain_t, Engine::Spin::Solver::LBFGS_Atlas>>(
+                method = std::make_shared<Engine::Spin::Method_GNEB<Engine::Spin::Solver::LBFGS_Atlas>>(
                     chain, idx_chain );
             else if( solver_type == int( Engine::Spin::Solver::VP_OSO ) )
-                method
-                    = std::make_shared<Engine::Spin::Method_GNEB<State::chain_t, Engine::Spin::Solver::VP_OSO>>( chain, idx_chain );
+                method = std::make_shared<Engine::Spin::Method_GNEB<Engine::Spin::Solver::VP_OSO>>( chain, idx_chain );
             else
                 spirit_throw(
                     Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Warning,
@@ -339,18 +336,18 @@ try
         if( n_iterations_log > 0 )
             image->mmf_parameters->n_iterations_log = n_iterations_log;
 
-        std::shared_ptr<Engine::Method> method;
+        std::shared_ptr<State::Method> method;
         if( solver_type == int( Engine::Spin::Solver::SIB ) )
-            method = std::make_shared<Engine::Spin::Method_MMF<State::system_t, Engine::Spin::Solver::SIB>>( image, idx_chain );
+            method = std::make_shared<Engine::Spin::Method_MMF<Engine::Spin::Solver::SIB>>( image, idx_chain );
         else if( solver_type == int( Engine::Spin::Solver::Heun ) )
-            method = std::make_shared<Engine::Spin::Method_MMF<State::system_t, Engine::Spin::Solver::Heun>>( image, idx_chain );
+            method = std::make_shared<Engine::Spin::Method_MMF<Engine::Spin::Solver::Heun>>( image, idx_chain );
         else if( solver_type == int( Engine::Spin::Solver::Depondt ) )
-            method = std::make_shared<Engine::Spin::Method_MMF<State::system_t, Engine::Spin::Solver::Depondt>>( image, idx_chain );
+            method = std::make_shared<Engine::Spin::Method_MMF<Engine::Spin::Solver::Depondt>>( image, idx_chain );
         // else if (solver_type == int(Engine::Spin::Solver::NCG))
         //     method = std::shared_ptr<Engine::Method>(
         //         new Engine::Spin::Method_MMF<Engine::Spin::Solver::NCG>( image, idx_chain ) );
         else if( solver_type == int( Engine::Spin::Solver::VP ) )
-            method = std::make_shared<Engine::Spin::Method_MMF<State::system_t, Engine::Spin::Solver::VP>>( image, idx_chain );
+            method = std::make_shared<Engine::Spin::Method_MMF<Engine::Spin::Solver::VP>>( image, idx_chain );
         else
             spirit_throw(
                 Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Warning,
@@ -407,7 +404,7 @@ try
         if( n_iterations_log > 0 )
             image->ema_parameters->n_iterations_log = n_iterations_log;
 
-        auto method = std::make_shared<Engine::Spin::Method_EMA<State::system_t>>( image, idx_image, idx_chain );
+        auto method = std::make_shared<Engine::Spin::Method_EMA>( image, idx_image, idx_chain );
 
         image->Unlock();
 
@@ -433,7 +430,7 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Get Method pointer
-    std::shared_ptr<Engine::Method> method = nullptr;
+    std::shared_ptr<State::Method> method = nullptr;
     if( image->iteration_allowed && image->singleshot_allowed )
         method = state->method_image[idx_image];
     else if( chain->iteration_allowed && chain->singleshot_allowed )
@@ -608,7 +605,7 @@ void Simulation_Get_Chain_MaxTorqueNorms( State * state, scalar * torques, int i
 try
 {
     // Fetch correct indices and pointers
-    int idx_image = -1;
+    int idx_image       = -1;
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( torques, "torques" );
 
@@ -801,7 +798,7 @@ bool Simulation_Running_On_Chain( State * state, int idx_chain ) noexcept
 try
 {
     // Fetch correct indices and pointers
-    int idx_image = -1;
+    int idx_image       = -1;
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     return state->chain->iteration_allowed;
@@ -816,7 +813,7 @@ bool Simulation_Running_Anywhere_On_Chain( State * state, int idx_chain ) noexce
 try
 {
     // Fetch correct indices and pointers
-    int idx_image = -1;
+    int idx_image       = -1;
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     if( Simulation_Running_On_Chain( state, idx_chain ) )

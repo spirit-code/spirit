@@ -24,10 +24,12 @@ namespace Data
 Spin_System contains all setup information on one system (one set of spins, one image).
 This includes: Spin positions and orientations, Neighbours, Interaction constants, System parameters
 */
-template<typename Hamiltonian>
+template<typename HamiltonianType>
 class Spin_System
 {
 public:
+    using Hamiltonian = HamiltonianType;
+
     // Constructor
     Spin_System(
         std::unique_ptr<Hamiltonian> hamiltonian, std::unique_ptr<Parameters_Method_LLG> llg_params,

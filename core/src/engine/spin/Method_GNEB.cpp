@@ -17,8 +17,6 @@
 
 using namespace Utility;
 
-using chain_t = Data::Spin_System_Chain<Engine::Spin::HamiltonianVariant>;
-
 namespace Engine
 {
 
@@ -26,7 +24,7 @@ namespace Spin
 {
 
 template<Solver solver>
-Method_GNEB<chain_t, solver>::Method_GNEB( std::shared_ptr<chain_t> chain, int idx_chain )
+Method_GNEB<solver>::Method_GNEB( std::shared_ptr<chain_t> chain, int idx_chain )
         : Method_Solver<solver>( chain->gneb_parameters, -1, idx_chain ), chain( chain )
 {
     this->systems    = chain->images;
@@ -78,13 +76,13 @@ Method_GNEB<chain_t, solver>::Method_GNEB( std::shared_ptr<chain_t> chain, int i
 }
 
 template<Solver solver>
-std::vector<scalar> Method_GNEB<chain_t, solver>::getTorqueMaxNorm_All()
+std::vector<scalar> Method_GNEB<solver>::getTorqueMaxNorm_All()
 {
     return this->max_torque_all;
 }
 
 template<Solver solver>
-void Method_GNEB<chain_t, solver>::Calculate_Force(
+void Method_GNEB<solver>::Calculate_Force(
     const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces )
 {
     // We assume here that we receive a vector of configurations that corresponds to the vector of systems we gave the
@@ -351,7 +349,7 @@ void Method_GNEB<chain_t, solver>::Calculate_Force(
 } // end Calculate
 
 template<Solver solver>
-void Method_GNEB<chain_t, solver>::Calculate_Force_Virtual(
+void Method_GNEB<solver>::Calculate_Force_Virtual(
     const std::vector<std::shared_ptr<vectorfield>> & configurations, const std::vector<vectorfield> & forces,
     std::vector<vectorfield> & forces_virtual )
 {
@@ -386,24 +384,24 @@ void Method_GNEB<chain_t, solver>::Calculate_Force_Virtual(
 }
 
 template<Solver solver>
-bool Method_GNEB<chain_t, solver>::Converged()
+bool Method_GNEB<solver>::Converged()
 {
     return this->max_torque < this->chain->gneb_parameters->force_convergence;
 }
 
 template<Solver solver>
-bool Method_GNEB<chain_t, solver>::Iterations_Allowed()
+bool Method_GNEB<solver>::Iterations_Allowed()
 {
     return this->chain->iteration_allowed;
 }
 
 template<Solver solver>
-void Method_GNEB<chain_t, solver>::Hook_Pre_Iteration()
+void Method_GNEB<solver>::Hook_Pre_Iteration()
 {
 }
 
 template<Solver solver>
-void Method_GNEB<chain_t, solver>::Hook_Post_Iteration()
+void Method_GNEB<solver>::Hook_Post_Iteration()
 {
     // --- Convergence Parameter Update
     this->max_torque = 0;
@@ -451,7 +449,7 @@ void Method_GNEB<chain_t, solver>::Hook_Post_Iteration()
 }
 
 template<Solver solver>
-void Method_GNEB<chain_t, solver>::Calculate_Interpolated_Energy_Contributions()
+void Method_GNEB<solver>::Calculate_Interpolated_Energy_Contributions()
 {
     // This whole method could be made faster by calculating the energies from the gradients and not allocating the
     // temporaries eacht time the method is called, but since this method should be called rather sparingly it should
@@ -510,13 +508,13 @@ void Method_GNEB<chain_t, solver>::Calculate_Interpolated_Energy_Contributions()
 }
 
 template<Solver solver>
-void Method_GNEB<chain_t, solver>::Finalize()
+void Method_GNEB<solver>::Finalize()
 {
     this->chain->iteration_allowed = false;
 }
 
 template<Solver solver>
-void Method_GNEB<chain_t, solver>::Save_Current( std::string starttime, int iteration, bool initial, bool final )
+void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bool initial, bool final )
 {
     // History save
     this->history_iteration.push_back( this->iteration );
@@ -643,33 +641,33 @@ void Method_GNEB<chain_t, solver>::Save_Current( std::string starttime, int iter
 }
 
 template<Solver solver>
-void Method_GNEB<chain_t, solver>::Lock()
+void Method_GNEB<solver>::Lock()
 {
     this->chain->Lock();
 }
 
 template<Solver solver>
-void Method_GNEB<chain_t, solver>::Unlock()
+void Method_GNEB<solver>::Unlock()
 {
     this->chain->Unlock();
 }
 
 // Method name as string
 template<Solver solver>
-std::string Method_GNEB<chain_t, solver>::Name()
+std::string Method_GNEB<solver>::Name()
 {
     return "GNEB";
 }
 
 // Template instantiations
-template class Method_GNEB<chain_t, Solver::SIB>;
-template class Method_GNEB<chain_t, Solver::Heun>;
-template class Method_GNEB<chain_t, Solver::Depondt>;
-template class Method_GNEB<chain_t, Solver::RungeKutta4>;
-template class Method_GNEB<chain_t, Solver::LBFGS_OSO>;
-template class Method_GNEB<chain_t, Solver::LBFGS_Atlas>;
-template class Method_GNEB<chain_t, Solver::VP>;
-template class Method_GNEB<chain_t, Solver::VP_OSO>;
+template class Method_GNEB<Solver::SIB>;
+template class Method_GNEB<Solver::Heun>;
+template class Method_GNEB<Solver::Depondt>;
+template class Method_GNEB<Solver::RungeKutta4>;
+template class Method_GNEB<Solver::LBFGS_OSO>;
+template class Method_GNEB<Solver::LBFGS_Atlas>;
+template class Method_GNEB<Solver::VP>;
+template class Method_GNEB<Solver::VP_OSO>;
 
 } // namespace Spin
 

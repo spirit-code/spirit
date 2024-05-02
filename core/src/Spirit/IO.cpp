@@ -624,7 +624,7 @@ try
     {
         // Update llg simulation information array size
         for( int i = state->method_image.size(); i < chain->noi; ++i )
-            state->method_image.push_back( std::shared_ptr<Engine::Method>() );
+            state->method_image.push_back( std::shared_ptr<State::Method>() );
 
         // Update state
         State_Update( state );

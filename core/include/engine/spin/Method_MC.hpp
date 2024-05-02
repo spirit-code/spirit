@@ -4,7 +4,7 @@
 
 #include <Spirit/Spirit_Defines.h>
 #include <data/Spin_System.hpp>
-#include <engine/Method.hpp>
+#include <engine/spin/Method.hpp>
 
 namespace Engine
 {
@@ -12,17 +12,11 @@ namespace Engine
 namespace Spin
 {
 
-template<typename system_t>
-class Method_MC;
-
 /*
     The Monte Carlo method
 */
-template<>
-class Method_MC<Data::Spin_System<Engine::Spin::HamiltonianVariant>> : public Method
+class Method_MC : public Method
 {
-    using system_t = Data::Spin_System<Engine::Spin::HamiltonianVariant>;
-
 public:
     // Constructor
     Method_MC( std::shared_ptr<system_t> system, int idx_img, int idx_chain );

@@ -3,7 +3,6 @@
 #define SPIRIT_CORE_ENGINE_METHOD_HPP
 
 #include <Spirit/Spirit_Defines.h>
-#include <data/State.hpp>
 #include <data/Parameters_Method.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <utility/Logging.hpp>
@@ -21,6 +20,7 @@ namespace Engine
  * This class provides the possibility to have pointers to different template instantiations
  * of the Method class at runtime. This is needed e.g. to extract information to the State.
  */
+template<typename system_t>
 class Method
 {
 public:
@@ -179,7 +179,7 @@ protected:
     //////////// General /////////////////////////////////////////////////////////
 
     // Systems the Solver will access
-    std::vector<std::shared_ptr<State::system_t>> systems;
+    std::vector<std::shared_ptr<system_t>> systems;
 
     // Method Parameters
     std::shared_ptr<Data::Parameters_Method> parameters;

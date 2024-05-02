@@ -149,8 +149,8 @@ try
     state->nos = state->active_image->nos;
 
     // Methods
-    state->method_image = std::vector<std::shared_ptr<Engine::Method>>( state->noi );
-    state->method_chain = std::shared_ptr<Engine::Method>();
+    state->method_image = std::vector<std::shared_ptr<State::Method>>( state->noi );
+    state->method_chain = std::shared_ptr<State::Method>();
 
     // Set quiet method parameters
     if( state->quiet )

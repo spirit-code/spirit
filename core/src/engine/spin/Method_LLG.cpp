@@ -13,7 +13,6 @@
 #include <ctime>
 
 using namespace Utility;
-using system_t = Data::Spin_System<Engine::Spin::HamiltonianVariant>;
 
 namespace Engine
 {
@@ -22,7 +21,7 @@ namespace Spin
 {
 
 template<Solver solver>
-Method_LLG<system_t, solver>::Method_LLG( std::shared_ptr<system_t> system, int idx_img, int idx_chain )
+Method_LLG<solver>::Method_LLG( std::shared_ptr<system_t> system, int idx_img, int idx_chain )
         : Method_Solver<solver>( system->llg_parameters, idx_img, idx_chain ), picoseconds_passed( 0 )
 {
     // Currently we only support a single image being iterated at once:
@@ -66,7 +65,7 @@ Method_LLG<system_t, solver>::Method_LLG( std::shared_ptr<system_t> system, int 
 }
 
 template<Solver solver>
-void Method_LLG<system_t, solver>::Prepare_Thermal_Field()
+void Method_LLG<solver>::Prepare_Thermal_Field()
 {
     auto & parameters     = *this->systems[0]->llg_parameters;
     const auto & geometry = this->systems[0]->hamiltonian->get_geometry();
@@ -113,7 +112,7 @@ void Method_LLG<system_t, solver>::Prepare_Thermal_Field()
 }
 
 template<Solver solver>
-void Method_LLG<system_t, solver>::Calculate_Force(
+void Method_LLG<solver>::Calculate_Force(
     const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces )
 {
     // Loop over images to calculate the total force on each Image
@@ -133,7 +132,7 @@ void Method_LLG<system_t, solver>::Calculate_Force(
 }
 
 template<Solver solver>
-void Method_LLG<system_t, solver>::Calculate_Force_Virtual(
+void Method_LLG<solver>::Calculate_Force_Virtual(
     const std::vector<std::shared_ptr<vectorfield>> & configurations, const std::vector<vectorfield> & forces,
     std::vector<vectorfield> & forces_virtual )
 {
@@ -228,25 +227,25 @@ void Method_LLG<system_t, solver>::Calculate_Force_Virtual(
 }
 
 template<Solver solver>
-double Method_LLG<system_t, solver>::get_simulated_time()
+double Method_LLG<solver>::get_simulated_time()
 {
     return this->picoseconds_passed;
 }
 
 template<Solver solver>
-bool Method_LLG<system_t, solver>::Converged()
+bool Method_LLG<solver>::Converged()
 {
     // Check if all images converged
     return std::all_of( begin( force_converged ), end( force_converged ), []( bool b ) { return b; } );
 }
 
 template<Solver solver>
-void Method_LLG<system_t, solver>::Hook_Pre_Iteration()
+void Method_LLG<solver>::Hook_Pre_Iteration()
 {
 }
 
 template<Solver solver>
-void Method_LLG<system_t, solver>::Hook_Post_Iteration()
+void Method_LLG<solver>::Hook_Post_Iteration()
 {
     // Increment the time counter (picoseconds)
     this->picoseconds_passed += this->systems[0]->llg_parameters->dt;
@@ -303,13 +302,13 @@ void Method_LLG<system_t, solver>::Hook_Post_Iteration()
 }
 
 template<Solver solver>
-void Method_LLG<system_t, solver>::Finalize()
+void Method_LLG<solver>::Finalize()
 {
     this->systems[0]->iteration_allowed = false;
 }
 
 template<Solver solver>
-void Method_LLG<system_t, solver>::Save_Current( std::string starttime, int iteration, bool initial, bool final )
+void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, bool initial, bool final )
 {
     // History save
     this->history_iteration.push_back( this->iteration );
@@ -504,20 +503,20 @@ void Method_LLG<system_t, solver>::Save_Current( std::string starttime, int iter
 
 // Method name as string
 template<Solver solver>
-std::string Method_LLG<system_t, solver>::Name()
+std::string Method_LLG<solver>::Name()
 {
     return "LLG";
 }
 
 // Template instantiations
-template class Method_LLG<system_t, Solver::SIB>;
-template class Method_LLG<system_t, Solver::Heun>;
-template class Method_LLG<system_t, Solver::Depondt>;
-template class Method_LLG<system_t, Solver::RungeKutta4>;
-template class Method_LLG<system_t, Solver::LBFGS_OSO>;
-template class Method_LLG<system_t, Solver::LBFGS_Atlas>;
-template class Method_LLG<system_t, Solver::VP>;
-template class Method_LLG<system_t, Solver::VP_OSO>;
+template class Method_LLG<Solver::SIB>;
+template class Method_LLG<Solver::Heun>;
+template class Method_LLG<Solver::Depondt>;
+template class Method_LLG<Solver::RungeKutta4>;
+template class Method_LLG<Solver::LBFGS_OSO>;
+template class Method_LLG<Solver::LBFGS_Atlas>;
+template class Method_LLG<Solver::VP>;
+template class Method_LLG<Solver::VP_OSO>;
 
 } // namespace Spin
 
