@@ -515,6 +515,28 @@ void Method_GNEB<solver>::Finalize()
 }
 
 template<Solver solver>
+void Method_GNEB<solver>::Message_Block_Start( std::vector<std::string> & block )
+{
+        scalar length = Manifoldmath::dist_geodesic( *this->configurations[0], *this->configurations[this->noi - 1] );
+        block.emplace_back( fmt::format( "    Total path length: {}", length ) );
+}
+
+template<Solver solver>
+void Method_GNEB<solver>::Message_Block_Step( std::vector<std::string> & block )
+{
+        scalar length = Manifoldmath::dist_geodesic( *this->configurations[0], *this->configurations[this->noi - 1] );
+        block.emplace_back( fmt::format( "    Total path length: {}", length ) );
+}
+
+template<Solver solver>
+void Method_GNEB<solver>::Message_Block_End( std::vector<std::string> & block )
+{
+        scalar length = Manifoldmath::dist_geodesic( *this->configurations[0], *this->configurations[this->noi - 1] );
+        block.emplace_back( fmt::format( "    Total path length: {}", length ) );
+}
+
+
+template<Solver solver>
 void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bool initial, bool final )
 {
     // History save
@@ -562,22 +584,25 @@ void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bo
                     this->Name(), this->SolverFullName(), iteration, this->max_torque );
 
                 // write/append the first image
-                auto segment      = IO::OVF_Segment( *this->chain->images[0] );
-                std::string title = fmt::format( "SPIRIT Version {}", Utility::version_full );
-                segment.title     = strdup( title.c_str() );
-                std::string output_comment
-                    = fmt::format( "{}\n# Desc: Image {} of {}", output_comment_base, 0, chain->noi );
-                segment.comment     = strdup( output_comment.c_str() );
-                segment.valuedim    = 3;
-                segment.valuelabels = strdup( "spin_x spin_y spin_z" );
-                segment.valueunits  = strdup( "none none none" );
-                auto & spins        = *this->chain->images[0]->spins;
-                IO::OVF_File( chainFile ).write_segment( segment, spins[0].data(), static_cast<int>( format ) );
+                auto segment = IO::OVF_Segment( *this->chain->images[0] );
+                {
+                    std::string title = fmt::format( "SPIRIT Version {}", Utility::version_full );
+                    segment.title     = strdup( title.c_str() );
+                    std::string output_comment
+                        = fmt::format( "{}\n# Desc: Image {} of {}", output_comment_base, 0, chain->noi );
+                    segment.comment     = strdup( output_comment.c_str() );
+                    segment.valuedim    = 3;
+                    segment.valuelabels = strdup( "spin_x spin_y spin_z" );
+                    segment.valueunits  = strdup( "none none none" );
+                    auto & spins        = *this->chain->images[0]->spins;
+                    IO::OVF_File( chainFile ).write_segment( segment, spins[0].data(), static_cast<int>( format ) );
+                }
                 // Append all the others
                 for( int i = 1; i < this->chain->noi; i++ )
                 {
-                    auto & spins    = *this->chain->images[i]->spins;
-                    output_comment  = fmt::format( "{}\n# Desc: Image {} of {}", output_comment_base, i, chain->noi );
+                    auto & spins = *this->chain->images[i]->spins;
+                    std::string output_comment
+                        = fmt::format( "{}\n# Desc: Image {} of {}", output_comment_base, i, chain->noi );
                     segment.comment = strdup( output_comment.c_str() );
                     IO::OVF_File( chainFile ).append_segment( segment, spins[0].data(), static_cast<int>( format ) );
                 }

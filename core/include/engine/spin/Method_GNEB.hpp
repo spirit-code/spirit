@@ -57,6 +57,10 @@ private:
     // Sets iteration_allowed to false for the chain
     void Finalize() override;
 
+    void Message_Block_Start( std::vector<std::string> & block ) override;
+    void Message_Block_Step( std::vector<std::string> & block ) override;
+    void Message_Block_End( std::vector<std::string> & block ) override;
+
     bool Iterations_Allowed() override;
 
     // Lock systems in order to prevent otherwise access
