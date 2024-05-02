@@ -42,6 +42,11 @@ void invert_orthogonal( vectorfield & vf1, const vectorfield & vf2 );
 //      Note: vf2 must have normalized vectors
 void project_tangential( vectorfield & vf1, const vectorfield & vf2 );
 
+// Return the maximal norm of the projection of the vectorfield onto the tangent spaces
+//      defined by the field of normal vectors
+//      Note: the vectors of the normal_field must have unit length
+scalar max_tangential_norm( const vectorfield & vector_field, const vectorfield & normal_field );
+
 // The tangential projector is a matrix which projects any vector into the tangent
 //      space of a vectorfield, considered to live on the direct product of N unit
 //      spheres. It is a 3N x 3N matrix.

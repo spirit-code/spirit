@@ -417,7 +417,8 @@ void Method_MMF<solver>::Hook_Post_Iteration()
     // Loop over images to calculate the maximum torques
     for( unsigned int img = 0; img < this->systems.size(); ++img )
     {
-        auto fmax = this->MaxTorque_on_Image( *( this->systems[img]->spins ), this->forces_virtual[img] );
+        Manifoldmath::project_tangential( this->forces_virtual[img], *( this->systems[img]->spins ) );
+        const scalar fmax = Vectormath::max_norm( this->forces_virtual[img] );
         if( fmax > 0 )
             this->max_torque = fmax;
         else

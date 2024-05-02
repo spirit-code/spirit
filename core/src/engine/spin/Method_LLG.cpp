@@ -255,8 +255,8 @@ void Method_LLG<solver>::Hook_Post_Iteration()
     for( std::size_t img = 0; img < this->systems.size(); ++img )
     {
         this->force_converged[img] = false;
-        // auto fmax = this->Force_on_Image_MaxAbsComponent(*(this->systems[img]->spins), this->forces_virtual[img]);
-        auto fmax = this->MaxTorque_on_Image( *( this->systems[img]->spins ), this->forces_virtual[img] );
+        Manifoldmath::project_tangential( this->forces_virtual[img], *( this->systems[img]->spins ) );
+        const scalar fmax = Vectormath::max_norm( this->forces_virtual[img] );
 
         if( fmax > 0 )
             this->max_torque = fmax;

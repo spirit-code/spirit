@@ -57,6 +57,14 @@ void project_tangential( vectorfield & vf1, const vectorfield & vf2 )
         [] SPIRIT_LAMBDA( const Vector3 & v1, const Vector3 & v2 ) -> Vector3 { return v1 - v1.dot( v2 ) * v2; } );
 }
 
+scalar max_tangential_norm( const vectorfield & vector_field, const vectorfield & normal_field )
+{
+    return sqrt( Backend::transform_reduce(
+        SPIRIT_PAR vector_field.begin(), vector_field.end(), normal_field.begin(), scalar( 0 ),
+        [] SPIRIT_LAMBDA( const scalar lhs, const scalar rhs ) { return ( lhs < rhs ) ? rhs : lhs; },
+        [] SPIRIT_LAMBDA( const Vector3 & v, const Vector3 & n ) { return ( v - v.dot( n ) * n ).squaredNorm(); } ) );
+}
+
 scalar dist_geodesic( const vectorfield & v1, const vectorfield & v2 )
 {
     return sqrt( Backend::transform_reduce(
