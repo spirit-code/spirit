@@ -1,6 +1,7 @@
 #include <data/Spin_System.hpp>
 #include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/spin/Hamiltonian.hpp>
 #include <io/IO.hpp>
 
 #include <algorithm>

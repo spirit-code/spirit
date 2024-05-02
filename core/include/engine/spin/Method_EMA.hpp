@@ -3,7 +3,7 @@
 #define SPIRIT_CORE_ENGINE_SPIN_METHOD_EMA_HPP
 
 #include <Spirit/Spirit_Defines.h>
-#include <engine/Method.hpp>
+#include <engine/spin/Method.hpp>
 
 #include <data/Parameters_Method_EMA.hpp>
 #include <data/Parameters_Method_LLG.hpp>
@@ -17,14 +17,9 @@ namespace Spin
 /*
     The Eigenmode Analysis method
 */
-template<typename system_t>
-class Method_EMA;
 
-template<>
-class Method_EMA<Data::Spin_System<Engine::Spin::HamiltonianVariant>> : public Method
+class Method_EMA : public Method
 {
-    using system_t = Data::Spin_System<Engine::Spin::HamiltonianVariant>;
-
 public:
     // Constructor
     Method_EMA( std::shared_ptr<system_t> system, int idx_img, int idx_chain );

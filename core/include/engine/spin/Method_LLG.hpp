@@ -15,16 +15,12 @@ namespace Engine
 namespace Spin
 {
 
-template<typename system_t, Solver solver>
-class Method_LLG;
 /*
     The Landau-Lifshitz-Gilbert (LLG) method
 */
 template<Solver solver>
-class Method_LLG<Data::Spin_System<Engine::Spin::HamiltonianVariant>, solver> : public Method_Solver<solver>
+class Method_LLG : public Method_Solver<solver>
 {
-    using system_t = Data::Spin_System<Engine::Spin::HamiltonianVariant>;
-
 public:
     // Constructor
     Method_LLG( std::shared_ptr<system_t> system, int idx_img, int idx_chain );

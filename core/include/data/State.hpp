@@ -4,6 +4,8 @@
 
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
+#include <engine/spin/Hamiltonian.hpp>
+#include <engine/spin/Method.hpp>
 #include <utility/Exception.hpp>
 
 #include <fmt/chrono.h>
@@ -14,13 +16,6 @@
 #include <string>
 #include <vector>
 
-namespace Engine
-{
-
-class Method;
-
-}
-
 /*
  * The State struct is passed around in an application to make the
  * simulation's state available.
@@ -29,11 +24,12 @@ class Method;
  */
 struct State
 {
+    using hamiltonian_t = Engine::Spin::hamiltonian_t;
+    using state_t       = typename hamiltonian_t::state_t;
+    using chain_t       = Engine::Spin::chain_t;
+    using system_t      = Engine::Spin::system_t;
 
-    using hamiltonian_t = Engine::Spin::HamiltonianVariant;
-    using chain_t  = Data::Spin_System_Chain<hamiltonian_t>;
-    using system_t = Data::Spin_System<hamiltonian_t>;
-    using state_t  = hamiltonian_t::state_t;
+    using Method = Engine::Spin::Method;
 
     // Currently "active" chain
     std::shared_ptr<chain_t> chain;
@@ -54,9 +50,9 @@ struct State
 
     // The Methods
     //    max. noi*noc methods on images [noc][noi]
-    std::vector<std::shared_ptr<Engine::Method>> method_image{};
+    std::vector<std::shared_ptr<Method>> method_image{};
     //    max. noc methods on the entire chain [noc]
-    std::shared_ptr<Engine::Method> method_chain{};
+    std::shared_ptr<Method> method_chain{};
 
     // Timepoint of creation
     std::chrono::system_clock::time_point datetime_creation = std::chrono::system_clock::now();

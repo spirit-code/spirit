@@ -151,7 +151,7 @@ try
             chain->image_type.push_back( Data::GNEB_Image_Type::Normal );
 
             // Add to state
-            state->method_image.push_back( std::shared_ptr<Engine::Method>() );
+            state->method_image.push_back( std::shared_ptr<State::Method>() );
 
             chain->Unlock();
         }
@@ -305,7 +305,7 @@ try
         chain->image_type.insert( chain->image_type.begin() + idx_image, Data::GNEB_Image_Type::Normal );
 
         // Add to state
-        state->method_image.insert( state->method_image.begin() + idx_image, std::shared_ptr<Engine::Method>() );
+        state->method_image.insert( state->method_image.begin() + idx_image, std::shared_ptr<State::Method>() );
 
         // Increment active image so that we don't switch between images
         ++chain->idx_active_image;
@@ -361,7 +361,7 @@ try
         chain->image_type.insert( chain->image_type.begin() + idx_image + 1, Data::GNEB_Image_Type::Normal );
 
         // Add to state
-        state->method_image.insert( state->method_image.begin() + idx_image + 1, std::shared_ptr<Engine::Method>() );
+        state->method_image.insert( state->method_image.begin() + idx_image + 1, std::shared_ptr<State::Method>() );
 
         chain->Unlock();
 
@@ -415,7 +415,7 @@ try
         chain->image_type.push_back( Data::GNEB_Image_Type::Normal );
 
         // Add to state
-        state->method_image.push_back( std::shared_ptr<Engine::Method>() );
+        state->method_image.push_back( std::shared_ptr<State::Method>() );
 
         chain->Unlock();
 

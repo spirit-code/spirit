@@ -18,15 +18,13 @@
 using namespace Utility;
 namespace C = Utility::Constants;
 
-using system_t = Data::Spin_System<Engine::Spin::HamiltonianVariant>;
-
 namespace Engine
 {
 
 namespace Spin
 {
 
-Method_EMA<system_t>::Method_EMA( std::shared_ptr<system_t> system, int idx_img, int idx_chain )
+Method_EMA::Method_EMA( std::shared_ptr<system_t> system, int idx_img, int idx_chain )
         : Method( system->ema_parameters, idx_img, idx_chain )
 {
     this->systems        = std::vector<std::shared_ptr<system_t>>( 1, system );
@@ -53,7 +51,7 @@ Method_EMA<system_t>::Method_EMA( std::shared_ptr<system_t> system, int idx_img,
     this->following_mode = -1;
 }
 
-void Method_EMA<system_t>::Iteration()
+void Method_EMA::Iteration()
 {
     // If the mode index has changed
     if( this->following_mode != this->parameters_ema->n_mode_follow )
@@ -99,15 +97,15 @@ void Method_EMA<system_t>::Iteration()
     std::this_thread::sleep_for( std::chrono::milliseconds( 50 ) );
 }
 
-void Method_EMA<system_t>::Save_Current( std::string starttime, int iteration, bool initial, bool final ) {}
+void Method_EMA::Save_Current( std::string starttime, int iteration, bool initial, bool final ) {}
 
-void Method_EMA<system_t>::Hook_Pre_Iteration() {}
+void Method_EMA::Hook_Pre_Iteration() {}
 
-void Method_EMA<system_t>::Hook_Post_Iteration() {}
+void Method_EMA::Hook_Post_Iteration() {}
 
-void Method_EMA<system_t>::Initialize() {}
+void Method_EMA::Initialize() {}
 
-void Method_EMA<system_t>::Finalize()
+void Method_EMA::Finalize()
 {
     this->Lock();
     // The initial spin configuration must be restored
@@ -115,7 +113,7 @@ void Method_EMA<system_t>::Finalize()
     this->Unlock();
 }
 
-void Method_EMA<system_t>::Message_Start()
+void Method_EMA::Message_Start()
 {
     //---- Log messages
     Log( Log_Level::All, this->SenderName,
@@ -129,18 +127,18 @@ void Method_EMA<system_t>::Message_Start()
          this->idx_image, this->idx_chain );
 }
 
-void Method_EMA<system_t>::Message_Step() {}
+void Method_EMA::Message_Step() {}
 
-void Method_EMA<system_t>::Message_End() {}
+void Method_EMA::Message_End() {}
 
 // Method name as string
-std::string Method_EMA<system_t>::Name()
+std::string Method_EMA::Name()
 {
     return "EMA";
 }
 
 // Solver name as string
-std::string Method_EMA<system_t>::SolverName()
+std::string Method_EMA::SolverName()
 {
     return "None";
 }

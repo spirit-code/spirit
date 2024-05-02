@@ -1,6 +1,7 @@
 #include <engine/Manifoldmath.hpp>
 #include <engine/Method.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/spin/Method.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
@@ -13,7 +14,8 @@ using namespace Utility;
 namespace Engine
 {
 
-Method::Method( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain )
+template<typename system_t>
+Method<system_t>::Method( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain )
         : iteration( 0 ),
           step( 0 ),
           idx_image( idx_img ),
@@ -54,7 +56,8 @@ Method::Method( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img
 #endif
 }
 
-void Method::Iterate()
+template<typename system_t>
+void Method<system_t>::Iterate()
 {
     //---- Start timings
     this->starttime = Timing::CurrentDateTime();
@@ -112,7 +115,8 @@ void Method::Iterate()
     this->Save_Current( this->starttime, this->iteration, false, true );
 }
 
-scalar Method::getIterationsPerSecond()
+template<typename system_t>
+scalar Method<system_t>::getIterationsPerSecond()
 {
     scalar l_ips = 0.0;
     for( std::size_t i = 0; i < t_iterations.size() - 1; ++i )
@@ -123,12 +127,14 @@ scalar Method::getIterationsPerSecond()
     return this->ips;
 }
 
-int Method::getNIterations()
+template<typename system_t>
+int Method<system_t>::getNIterations()
 {
     return this->iteration;
 }
 
-double Method::get_simulated_time()
+template<typename system_t>
+double Method<system_t>::get_simulated_time()
 {
     // Not Implemented!
     spirit_throw(
@@ -136,7 +142,8 @@ double Method::get_simulated_time()
         "Tried to use Method::get_simulated_time() of the Method base class!" );
 }
 
-std::int64_t Method::getWallTime()
+template<typename system_t>
+std::int64_t Method<system_t>::getWallTime()
 {
     auto t_current                           = std::chrono::system_clock::now();
     std::chrono::duration<scalar> dt_seconds = t_current - this->t_start;
@@ -144,12 +151,14 @@ std::int64_t Method::getWallTime()
     return dt_ms.count();
 }
 
-scalar Method::getTorqueMaxNorm()
+template<typename system_t>
+scalar Method<system_t>::getTorqueMaxNorm()
 {
     return this->max_torque;
 }
 
-std::vector<scalar> Method::getTorqueMaxNorm_All()
+template<typename system_t>
+std::vector<scalar> Method<system_t>::getTorqueMaxNorm_All()
 {
     return { this->max_torque };
 }
@@ -157,25 +166,33 @@ std::vector<scalar> Method::getTorqueMaxNorm_All()
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////// Protected functions
 
-void Method::Initialize() {}
+template<typename system_t>
+void Method<system_t>::Initialize() {}
 
-void Method::Message_Start() {}
-void Method::Message_Step() {}
-void Method::Message_End() {}
+template<typename system_t>
+void Method<system_t>::Message_Start() {}
+template<typename system_t>
+void Method<system_t>::Message_Step() {}
+template<typename system_t>
+void Method<system_t>::Message_End() {}
 
-void Method::Iteration() {}
+template<typename system_t>
+void Method<system_t>::Iteration() {}
 
-bool Method::ContinueIterating()
+template<typename system_t>
+bool Method<system_t>::ContinueIterating()
 {
     return this->iteration < this->n_iterations && this->Iterations_Allowed() && !this->StopFile_Present();
 }
 
-bool Method::Iterations_Allowed()
+template<typename system_t>
+bool Method<system_t>::Iterations_Allowed()
 {
     return this->systems[0]->iteration_allowed;
 }
 
-bool Method::Walltime_Expired( std::chrono::duration<scalar> dt_seconds )
+template<typename system_t>
+bool Method<system_t>::Walltime_Expired( std::chrono::duration<scalar> dt_seconds )
 {
     if( this->parameters->max_walltime_sec <= 0 )
         return false;
@@ -183,13 +200,15 @@ bool Method::Walltime_Expired( std::chrono::duration<scalar> dt_seconds )
         return dt_seconds.count() > this->parameters->max_walltime_sec;
 }
 
-bool Method::StopFile_Present()
+template<typename system_t>
+bool Method<system_t>::StopFile_Present()
 {
     std::ifstream f( "STOP" );
     return f.good();
 }
 
-void Method::Save_Current( std::string starttime, int iteration, bool initial, bool final )
+template<typename system_t>
+void Method<system_t>::Save_Current( std::string starttime, int iteration, bool initial, bool final )
 {
     // Not Implemented!
     spirit_throw(
@@ -197,7 +216,8 @@ void Method::Save_Current( std::string starttime, int iteration, bool initial, b
         "Tried to use Method::Save_Current() of the Method base class!" );
 }
 
-void Method::Hook_Pre_Iteration()
+template<typename system_t>
+void Method<system_t>::Hook_Pre_Iteration()
 {
     // Not Implemented!
     spirit_throw(
@@ -205,7 +225,8 @@ void Method::Hook_Pre_Iteration()
         "Tried to use Method::Save_Current() of the Method base class!" );
 }
 
-void Method::Hook_Post_Iteration()
+template<typename system_t>
+void Method<system_t>::Hook_Post_Iteration()
 {
     // Not Implemented!
     spirit_throw(
@@ -213,7 +234,8 @@ void Method::Hook_Post_Iteration()
         "Tried to use Method::Save_Current() of the Method base class!" );
 }
 
-void Method::Finalize()
+template<typename system_t>
+void Method<system_t>::Finalize()
 {
     // Not Implemented!
     spirit_throw(
@@ -221,19 +243,22 @@ void Method::Finalize()
         "Tried to use Method::Save_Current() of the Method base class!" );
 }
 
-void Method::Lock()
+template<typename system_t>
+void Method<system_t>::Lock()
 {
     for( auto & system : this->systems )
         system->Lock();
 }
 
-void Method::Unlock()
+template<typename system_t>
+void Method<system_t>::Unlock()
 {
     for( auto & system : this->systems )
         system->Unlock();
 }
 
-std::string Method::Name()
+template<typename system_t>
+std::string Method<system_t>::Name()
 {
     // Not Implemented!
     Log( Log_Level::Error, Log_Sender::All, std::string( "Tried to use Method::Name() of the Method base class!" ) );
@@ -241,7 +266,8 @@ std::string Method::Name()
 }
 
 // Solver name as string
-std::string Method::SolverName()
+template<typename system_t>
+std::string Method<system_t>::SolverName()
 {
     // Not Implemented!
     Log( Log_Level::Error, Log_Sender::All,
@@ -250,7 +276,8 @@ std::string Method::SolverName()
     return "--";
 }
 
-std::string Method::SolverFullName()
+template<typename system_t>
+std::string Method<system_t>::SolverFullName()
 {
     // Not Implemented!
     Log( Log_Level::Error, Log_Sender::All,
@@ -258,5 +285,7 @@ std::string Method::SolverFullName()
          this->idx_chain );
     return "--";
 }
+
+template class Method<Engine::Spin::system_t>;
 
 } // namespace Engine

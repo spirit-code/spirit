@@ -14,17 +14,13 @@ namespace Engine
 namespace Spin
 {
 
-template<typename chain_t, Solver solver>
-class Method_GNEB;
 /*
     The geodesic nudged elastic band (GNEB) method
     // TODO: reference to Paper
 */
 template<Solver solver>
-class Method_GNEB<Data::Spin_System_Chain<Engine::Spin::HamiltonianVariant>, solver> : public Method_Solver<solver>
+class Method_GNEB : public Method_Solver<solver>
 {
-    using chain_t = Data::Spin_System_Chain<Engine::Spin::HamiltonianVariant>;
-
 public:
     // Constructor
     Method_GNEB( std::shared_ptr<chain_t> chain, int idx_chain );

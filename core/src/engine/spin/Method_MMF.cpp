@@ -18,8 +18,6 @@ using Utility::Log_Level;
 using Utility::Log_Sender;
 namespace C = Utility::Constants;
 
-using system_t = Data::Spin_System<Engine::Spin::HamiltonianVariant>;
-
 namespace Engine
 {
 
@@ -27,7 +25,7 @@ namespace Spin
 {
 
 template<Solver solver>
-Method_MMF<system_t, solver>::Method_MMF( std::shared_ptr<system_t> system, int idx_chain )
+Method_MMF<solver>::Method_MMF( std::shared_ptr<system_t> system, int idx_chain )
         : Method_Solver<solver>( system->mmf_parameters, -1, idx_chain )
 {
     this->systems = std::vector<std::shared_ptr<system_t>>( 1, system );
@@ -70,7 +68,7 @@ Method_MMF<system_t, solver>::Method_MMF( std::shared_ptr<system_t> system, int 
 };
 
 template<Solver solver>
-void Method_MMF<system_t, solver>::Calculate_Force(
+void Method_MMF<solver>::Calculate_Force(
     const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces )
 {
     // if (this->mm_function == "Spectra Matrix")
@@ -179,7 +177,7 @@ void check_modes(
 }
 
 template<Solver solver>
-void Method_MMF<system_t, solver>::Calculate_Force_Spectra_Matrix(
+void Method_MMF<solver>::Calculate_Force_Spectra_Matrix(
     const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces )
 {
     auto & image = *configurations[0];
@@ -401,18 +399,18 @@ void printmatrix( MatrixX & m )
 
 // Check if the Forces are converged
 template<Solver solver>
-bool Method_MMF<system_t, solver>::Converged()
+bool Method_MMF<solver>::Converged()
 {
     return this->max_torque < this->systems[0]->mmf_parameters->force_convergence;
 }
 
 template<Solver solver>
-void Method_MMF<system_t, solver>::Hook_Pre_Iteration()
+void Method_MMF<solver>::Hook_Pre_Iteration()
 {
 }
 
 template<Solver solver>
-void Method_MMF<system_t, solver>::Hook_Post_Iteration()
+void Method_MMF<solver>::Hook_Post_Iteration()
 {
     // --- Convergence Parameter Update
     this->max_torque = 0;
@@ -428,7 +426,7 @@ void Method_MMF<system_t, solver>::Hook_Post_Iteration()
 }
 
 template<Solver solver>
-void Method_MMF<system_t, solver>::Save_Current( std::string starttime, int iteration, bool initial, bool final )
+void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, bool initial, bool final )
 {
     // History save
     this->history_iteration.push_back( this->iteration );
@@ -613,27 +611,27 @@ void Method_MMF<system_t, solver>::Save_Current( std::string starttime, int iter
 }
 
 template<Solver solver>
-void Method_MMF<system_t, solver>::Finalize()
+void Method_MMF<solver>::Finalize()
 {
     this->systems[0]->iteration_allowed = false;
 }
 
 // Method name as string
 template<Solver solver>
-std::string Method_MMF<system_t, solver>::Name()
+std::string Method_MMF<solver>::Name()
 {
     return "MMF";
 }
 
 // Template instantiations
-template class Method_MMF<system_t, Solver::SIB>;
-template class Method_MMF<system_t, Solver::Heun>;
-template class Method_MMF<system_t, Solver::Depondt>;
-template class Method_MMF<system_t, Solver::RungeKutta4>;
-template class Method_MMF<system_t, Solver::LBFGS_OSO>;
-template class Method_MMF<system_t, Solver::LBFGS_Atlas>;
-template class Method_MMF<system_t, Solver::VP>;
-template class Method_MMF<system_t, Solver::VP_OSO>;
+template class Method_MMF<Solver::SIB>;
+template class Method_MMF<Solver::Heun>;
+template class Method_MMF<Solver::Depondt>;
+template class Method_MMF<Solver::RungeKutta4>;
+template class Method_MMF<Solver::LBFGS_OSO>;
+template class Method_MMF<Solver::LBFGS_Atlas>;
+template class Method_MMF<Solver::VP>;
+template class Method_MMF<Solver::VP_OSO>;
 
 } // namespace Spin
 
