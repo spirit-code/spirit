@@ -47,7 +47,6 @@ Method_MMF<solver>::Method_MMF( std::shared_ptr<system_t> system, int idx_chain 
     // Forces
     this->gradient     = vectorfield( this->nos, { 0, 0, 0 } );
     this->minimum_mode = vectorfield( this->nos, { 0, 0, 0 } );
-    this->xi           = vectorfield( this->nos, { 0, 0, 0 } );
 
     // Last iteration
     this->spins_last = vectorfield( this->nos );

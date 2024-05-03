@@ -43,7 +43,6 @@ Method_GNEB<solver>::Method_GNEB( std::shared_ptr<chain_t> chain, int idx_chain 
     this->F_gradient = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) ); // [noi][nos]
     this->F_spring   = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) ); // [noi][nos]
     this->f_shrink   = vectorfield( this->nos, { 0, 0, 0 } );                                        // [nos]
-    this->xi         = vectorfield( this->nos, { 0, 0, 0 } );
 
     this->F_translation_left  = vectorfield( this->nos, { 0, 0, 0 } );
     this->F_translation_right = vectorfield( this->nos, { 0, 0, 0 } );
