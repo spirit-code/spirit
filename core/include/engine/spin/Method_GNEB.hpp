@@ -61,12 +61,12 @@ private:
     void Message_Block_Step( std::vector<std::string> & block ) override;
     void Message_Block_End( std::vector<std::string> & block ) override;
 
-    bool Iterations_Allowed() override;
-
     // Lock systems in order to prevent otherwise access
     void Lock() override;
     // Unlock systems to re-enable access
     void Unlock() override;
+    // Check if iterations are allowed
+    bool Iterations_Allowed() override;
 
     std::shared_ptr<chain_t> chain;
 

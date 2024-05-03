@@ -27,23 +27,23 @@ namespace Spin
 Method_EMA::Method_EMA( std::shared_ptr<system_t> system, int idx_img, int idx_chain )
         : Method( system->ema_parameters, idx_img, idx_chain )
 {
-    this->systems        = std::vector<std::shared_ptr<system_t>>( 1, system );
+    this->system         =  system;
     this->SenderName     = Log_Sender::EMA;
     this->parameters_ema = system->ema_parameters;
 
-    this->noi = this->systems.size();
-    this->nos = this->systems[0]->nos;
+    this->noi = 1;
+    this->nos = this->system->nos;
 
     // Attributes needed for applying a mode the spins
     this->angle         = scalarfield( this->nos );
     this->angle_initial = scalarfield( this->nos );
     this->axis          = vectorfield( this->nos );
-    this->spins_initial = *this->systems[0]->spins;
+    this->spins_initial = *this->system->spins;
 
     Eigenmodes::Check_Eigenmode_Parameters( *system );
 
     // Calculate eigenmodes only in case that the selected mode to follow is not computed yet.
-    if( !this->systems[0]->modes[this->parameters_ema->n_mode_follow].has_value() )
+    if( !this->system->modes[this->parameters_ema->n_mode_follow].has_value() )
         Eigenmodes::Calculate_Eigenmodes( *system, idx_img, idx_chain );
 
     this->counter = 0;
@@ -59,15 +59,15 @@ void Method_EMA::Iteration()
         this->counter = 0;
 
         // Re-check validity of parameters and system->modes
-        Eigenmodes::Check_Eigenmode_Parameters( *this->systems[0] );
+        Eigenmodes::Check_Eigenmode_Parameters( *this->system );
 
         // Reset members
         this->following_mode = this->parameters_ema->n_mode_follow;
         // Restore the initial spin configuration
-        ( *this->systems[0]->spins ) = this->spins_initial;
+        ( *this->system->spins ) = this->spins_initial;
 
         // Set the new mode
-        this->mode = *this->systems[0]->modes[following_mode];
+        this->mode = *this->system->modes[following_mode];
 
         // Find the axes of rotation for the mode to visualize
         for( int idx = 0; idx < this->nos; idx++ )
@@ -77,7 +77,7 @@ void Method_EMA::Iteration()
         }
     }
 
-    auto & image = *this->systems[0]->spins;
+    auto & image = *this->system->spins;
 
     // Calculate n for that iteration based on the initial n displacement vector
     scalar t_angle;
@@ -109,7 +109,7 @@ void Method_EMA::Finalize()
 {
     this->Lock();
     // The initial spin configuration must be restored
-    ( *this->systems[0]->spins ) = this->spins_initial;
+    ( *this->system->spins ) = this->spins_initial;
     this->Unlock();
 }
 
@@ -130,6 +130,19 @@ void Method_EMA::Message_Start()
 void Method_EMA::Message_Step() {}
 
 void Method_EMA::Message_End() {}
+
+void Method_EMA::Lock(){
+    this->system->Lock();
+}
+
+void Method_EMA::Unlock(){
+    this->system->Unlock();
+}
+
+bool Method_EMA::Iterations_Allowed()
+{
+    return this->system->iteration_allowed;
+}
 
 // Method name as string
 std::string Method_EMA::Name()

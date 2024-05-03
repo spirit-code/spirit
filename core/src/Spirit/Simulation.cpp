@@ -21,7 +21,7 @@ void free_run_info( Simulation_Run_Info info ) noexcept
 };
 
 // Helper function to start a simulation once a Method has been created
-void run_method( State::Method & method, bool singleshot, Simulation_Run_Info * info = nullptr )
+void run_method( Engine::Method & method, bool singleshot, Simulation_Run_Info * info = nullptr )
 {
     if( singleshot )
     {
@@ -112,7 +112,7 @@ try
         if( n_iterations_log > 0 )
             image->mc_parameters->n_iterations_log = n_iterations_log;
 
-        std::shared_ptr<State::Method> method
+        std::shared_ptr<Engine::Method> method
             = std::make_shared<Engine::Spin::Method_MC>( image, idx_image, idx_chain );
 
         image->Unlock();
@@ -166,7 +166,7 @@ try
         if( n_iterations_log > 0 )
             image->llg_parameters->n_iterations_log = n_iterations_log;
 
-        std::shared_ptr<State::Method> method;
+        std::shared_ptr<Engine::Method> method;
         if( solver_type == int( Engine::Spin::Solver::SIB ) )
             method
                 = std::make_shared<Engine::Spin::Method_LLG<Engine::Spin::Solver::SIB>>( image, idx_image, idx_chain );
@@ -262,7 +262,7 @@ try
             if( n_iterations_log > 0 )
                 chain->gneb_parameters->n_iterations_log = n_iterations_log;
 
-            std::shared_ptr<State::Method> method;
+            std::shared_ptr<Engine::Method> method;
             if( solver_type == int( Engine::Spin::Solver::SIB ) )
                 method = std::make_shared<Engine::Spin::Method_GNEB<Engine::Spin::Solver::SIB>>( chain, idx_chain );
             else if( solver_type == int( Engine::Spin::Solver::Heun ) )
@@ -336,7 +336,7 @@ try
         if( n_iterations_log > 0 )
             image->mmf_parameters->n_iterations_log = n_iterations_log;
 
-        std::shared_ptr<State::Method> method;
+        std::shared_ptr<Engine::Method> method;
         if( solver_type == int( Engine::Spin::Solver::SIB ) )
             method = std::make_shared<Engine::Spin::Method_MMF<Engine::Spin::Solver::SIB>>( image, idx_chain );
         else if( solver_type == int( Engine::Spin::Solver::Heun ) )
@@ -430,7 +430,7 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Get Method pointer
-    std::shared_ptr<State::Method> method = nullptr;
+    std::shared_ptr<Engine::Method> method = nullptr;
     if( image->iteration_allowed && image->singleshot_allowed )
         method = state->method_image[idx_image];
     else if( chain->iteration_allowed && chain->singleshot_allowed )

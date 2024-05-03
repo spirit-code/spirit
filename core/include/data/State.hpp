@@ -29,8 +29,6 @@ struct State
     using chain_t       = Engine::Spin::chain_t;
     using system_t      = Engine::Spin::system_t;
 
-    using Method = Engine::Spin::Method;
-
     // Currently "active" chain
     std::shared_ptr<chain_t> chain;
     // Currently "active" image
@@ -50,9 +48,9 @@ struct State
 
     // The Methods
     //    max. noi*noc methods on images [noc][noi]
-    std::vector<std::shared_ptr<Method>> method_image{};
+    std::vector<std::shared_ptr<Engine::Method>> method_image{};
     //    max. noc methods on the entire chain [noc]
-    std::shared_ptr<Method> method_chain{};
+    std::shared_ptr<Engine::Method> method_chain{};
 
     // Timepoint of creation
     std::chrono::system_clock::time_point datetime_creation = std::chrono::system_clock::now();
