@@ -8,6 +8,7 @@
 #include <data/Spin_System_Chain.hpp>
 #include <engine/Manifoldmath.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/common/Method_Solver.hpp>
 #include <engine/spin/Method.hpp>
 #include <engine/spin/Solver_Kernels.hpp>
 #include <utility/Constants.hpp>
@@ -31,7 +32,7 @@ namespace Engine
 namespace Spin
 {
 
-enum class Solver
+enum struct Solver
 {
     None        = -1,
     SIB         = Solver_SIB,
@@ -43,6 +44,22 @@ enum class Solver
     VP          = Solver_VP,
     VP_OSO      = Solver_VP_OSO
 };
+
+constexpr auto common_solver( Spin::Solver solver ) -> Common::Solver
+{
+    switch( solver )
+    {
+        case Solver::None: return Common::Solver::None;
+        case Solver::SIB: return Common::Solver::SIB;
+        case Solver::Heun: return Common::Solver::Heun;
+        case Solver::Depondt: return Common::Solver::Depondt;
+        case Solver::RungeKutta4: return Common::Solver::RungeKutta4;
+        case Solver::LBFGS_OSO: return Common::Solver::LBFGS_OSO;
+        case Solver::LBFGS_Atlas: return Common::Solver::LBFGS_Atlas;
+        case Solver::VP: return Common::Solver::VP;
+        case Solver::VP_OSO: return Common::Solver::VP_OSO;
+    }
+}
 
 // default implementation (to be overwritten by class template specialization)
 template<Solver solver>
@@ -158,10 +175,6 @@ protected:
     std::vector<vectorfield> forces_virtual;
     // Pointers to Configurations (for Solver methods)
     std::vector<std::shared_ptr<vectorfield>> configurations;
-
-    // Random vector array
-    vectorfield xi;
-
 };
 
 template<Solver solver>

@@ -5,6 +5,7 @@
 #include <Spirit/Spirit_Defines.h>
 #include <data/Parameters_Method_LLG.hpp>
 #include <data/Spin_System.hpp>
+#include <engine/common/Method_LLG.hpp>
 #include <engine/spin/Method_Solver.hpp>
 
 #include <vector>
@@ -56,17 +57,12 @@ private:
     void Message_Block_Step( std::vector<std::string> & block ) override;
     void Message_Block_End( std::vector<std::string> & block ) override;
 
+    std::vector<Common::Method_LLG<common_solver(solver)>> common_methods;
+
     // Last calculated forces
     std::vector<vectorfield> Gradient;
     // Convergence parameters
     std::vector<bool> force_converged;
-    // Temperature distribution
-    scalarfield temperature_distribution;
-    // Field for stt gradient method
-    vectorfield s_c_grad;
-
-    // Jacobians of spin configurations
-    field<Matrix3> jacobians;
 
     // Current energy
     scalar current_energy = 0;

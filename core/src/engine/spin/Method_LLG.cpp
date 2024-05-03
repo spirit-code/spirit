@@ -29,17 +29,13 @@ Method_LLG<solver>::Method_LLG( std::shared_ptr<system_t> system, int idx_img, i
     this->SenderName = Utility::Log_Sender::LLG;
 
     this->noi = this->systems.size();
-    this->nos = this->systems[0]->nos;
+    this->nos = this->systems[0]->nos;  // assume all systems have the same size
 
-    // Forces
-    this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, Vector3::Zero() ) );
-    this->forces_virtual = std::vector<vectorfield>( this->noi, vectorfield( this->nos, Vector3::Zero() ) );
-    this->Gradient       = std::vector<vectorfield>( this->noi, vectorfield( this->nos, Vector3::Zero() ) );
-    this->xi             = vectorfield( this->nos, Vector3::Zero() );
-    this->s_c_grad       = vectorfield( this->nos, Vector3::Zero() );
-    this->jacobians      = field<Matrix3>( this->nos, Matrix3::Zero() );
-
-    this->temperature_distribution = scalarfield( this->nos, 0 );
+    // Forces (assume all systems have the same size)
+    this->forces         = std::vector( this->noi, vectorfield( this->nos, Vector3::Zero() ) );
+    this->forces_virtual = std::vector( this->noi, vectorfield( this->nos, Vector3::Zero() ) );
+    this->Gradient       = std::vector( this->noi, vectorfield( this->nos, Vector3::Zero() ) );
+    this->common_methods = std::vector( this->noi, Common::Method_LLG<common_solver( solver )>( this->nos ) );
 
     // We assume it is not converged before the first iteration
     this->force_converged = std::vector<bool>( this->noi, false );
@@ -67,47 +63,10 @@ Method_LLG<solver>::Method_LLG( std::shared_ptr<system_t> system, int idx_img, i
 template<Solver solver>
 void Method_LLG<solver>::Prepare_Thermal_Field()
 {
-    auto & parameters     = *this->systems[0]->llg_parameters;
-    const auto & geometry = this->systems[0]->hamiltonian->get_geometry();
-    const auto & damping  = parameters.damping;
-
-    if( parameters.temperature > 0 || parameters.temperature_gradient_inclination != 0 )
+    for( int i = 0; i < this->noi; ++i )
     {
-        scalar epsilon = std::sqrt( 2 * damping * parameters.dt * Constants::gamma / Constants::mu_B * Constants::k_B )
-                         / ( 1 + damping * damping );
-
-        // PRNG gives Gaussian RN with width 1 -> scale by epsilon and sqrt(T/mu_s)
-        auto distribution = std::normal_distribution<scalar>{ 0, 1 };
-
-        // If we have a temperature gradient, we use the distribution (scalarfield)
-        if( parameters.temperature_gradient_inclination != 0 )
-        {
-            // Calculate distribution
-            Vectormath::get_gradient_distribution(
-                geometry, parameters.temperature_gradient_direction, parameters.temperature,
-                parameters.temperature_gradient_inclination, this->temperature_distribution, 0, 1e30 );
-
-            // TODO: parallelization of this is actually not quite so trivial
-            // #pragma omp parallel for
-            for( std::size_t i = 0; i < this->xi.size(); ++i )
-            {
-                for( int dim = 0; dim < 3; ++dim )
-                    this->xi[i][dim] = epsilon * std::sqrt( this->temperature_distribution[i] / geometry.mu_s[i] )
-                                       * distribution( parameters.prng );
-            }
-        }
-        // If we only have homogeneous temperature we do it more efficiently
-        else if( parameters.temperature > 0 )
-        {
-            // TODO: parallelization of this is actually not quite so trivial
-            // #pragma omp parallel for
-            for( std::size_t i = 0; i < this->xi.size(); ++i )
-            {
-                for( int dim = 0; dim < 3; ++dim )
-                    this->xi[i][dim] = epsilon * std::sqrt( parameters.temperature / geometry.mu_s[i] )
-                                       * distribution( parameters.prng );
-            }
-        }
+        common_methods[i].Prepare_Thermal_Field(
+            *this->systems[i]->llg_parameters, this->systems[i]->hamiltonian->get_geometry() );
     }
 }
 
@@ -136,93 +95,12 @@ void Method_LLG<solver>::Calculate_Force_Virtual(
     const std::vector<std::shared_ptr<vectorfield>> & configurations, const std::vector<vectorfield> & forces,
     std::vector<vectorfield> & forces_virtual )
 {
-    using namespace Utility;
-    using std::begin, std::end;
-
-    for( std::size_t i = 0; i < configurations.size(); ++i )
+    for( int i = 0; i < this->noi; ++i )
     {
-        auto & image         = *configurations[i];
-        auto & force         = forces[i];
-        auto & force_virtual = forces_virtual[i];
-        auto & parameters    = *this->systems[i]->llg_parameters;
-
-        //////////
-        // time steps
-        scalar damping = parameters.damping;
-        // dt = time_step [ps] * gyromagnetic ratio / mu_B / (1+damping^2) <- not implemented
-        scalar dtg     = parameters.dt * Constants::gamma / Constants::mu_B / ( 1 + damping * damping );
-        scalar sqrtdtg = dtg / std::sqrt( parameters.dt );
-        // STT
-        // - monolayer
-        scalar a_j      = parameters.stt_magnitude;
-        Vector3 s_c_vec = parameters.stt_polarisation_normal;
-        // - gradient
-        scalar b_j  = a_j;             // pre-factor b_j = u*mu_s/gamma (see bachelorthesis Constantin)
-        scalar beta = parameters.beta; // non-adiabatic parameter of correction term
-        Vector3 je  = s_c_vec;         // direction of current
-        //////////
-
-        // This is the force calculation as it should be for direct minimization
-        // TODO: Also calculate force for VP solvers without additional scaling
-        if( solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas )
-        {
-            Vectormath::set_c_cross( 1.0, image, force, force_virtual );
-        }
-        else if( parameters.direct_minimization || solver == Solver::VP || solver == Solver::VP_OSO )
-        {
-            dtg = parameters.dt * Constants::gamma / Constants::mu_B;
-            Vectormath::set_c_cross( dtg, image, force, force_virtual );
-        }
-        // Dynamics simulation
-        else
-        {
-            const auto & geometry = this->systems[0]->hamiltonian->get_geometry();
-
-            Vectormath::set_c_a( dtg, force, force_virtual );
-            Vectormath::add_c_cross( dtg * damping, image, force, force_virtual );
-            Vectormath::divide( force_virtual, geometry.mu_s );
-
-            // STT
-            if( a_j > 0 )
-            {
-                if( parameters.stt_use_gradient )
-                {
-                    const auto & boundary_conditions = this->systems[0]->hamiltonian->get_boundary_conditions();
-
-                    // Gradient approximation for in-plane currents
-                    Vectormath::jacobian( image, geometry, boundary_conditions, jacobians );
-
-                    Backend::transform(
-                        SPIRIT_PAR begin( jacobians ), end( jacobians ), begin( s_c_grad ),
-                        [je] SPIRIT_LAMBDA( const Matrix3 & jacobian ) { return jacobian * je; } );
-
-                    Vectormath::add_c_a(
-                        dtg * a_j * ( damping - beta ), s_c_grad, force_virtual ); // TODO: a_j durch b_j ersetzen
-                    Vectormath::add_c_cross(
-                        dtg * a_j * ( 1 + beta * damping ), s_c_grad, image,
-                        force_virtual ); // TODO: a_j durch b_j ersetzen
-                    // Gradient in current richtung, daher => *(-1)
-                }
-                else
-                {
-                    // Monolayer approximation
-                    Vectormath::add_c_a( -dtg * a_j * ( damping - beta ), s_c_vec, force_virtual );
-                    Vectormath::add_c_cross( -dtg * a_j * ( 1 + beta * damping ), s_c_vec, image, force_virtual );
-                }
-            }
-
-            // Temperature
-            if( parameters.temperature > 0 || parameters.temperature_gradient_inclination != 0 )
-            {
-                Vectormath::add_c_a( 1, this->xi, force_virtual );
-                Vectormath::add_c_cross( damping, image, this->xi, force_virtual );
-            }
-        }
-// Apply Pinning
-#ifdef SPIRIT_ENABLE_PINNING
-        Vectormath::set_c_a(
-            1, force_virtual, force_virtual, this->systems[0]->hamiltonian->get_geometry().mask_unpinned );
-#endif // SPIRIT_ENABLE_PINNING
+        const auto & sys = *this->systems[i];
+        common_methods[i].Virtual_Force_Spin(
+            *sys.llg_parameters, sys.hamiltonian->get_geometry(), sys.hamiltonian->get_boundary_conditions(),
+            *configurations[i], forces[i], forces_virtual[i] );
     }
 }
 
