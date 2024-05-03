@@ -67,12 +67,19 @@ public:
     // //      or the calculation is stopped externally (via the API).
     // virtual void Iterate() override;
 
+    // Lock systems in order to prevent otherwise access
+    void Lock() override;
+    // Unlock systems to re-enable access
+    void Unlock() override;
+    // Check if iterations are allowed
+    bool Iterations_Allowed() override;
+
     // Solver name as string
-    virtual std::string SolverName() override;
-    virtual std::string SolverFullName() override;
+    std::string SolverName() override;
+    std::string SolverFullName() override;
 
     // Iteration represents one iteration of a certain Solver
-    virtual void Iteration() override;
+    void Iteration() override;
 
 protected:
     // Prepare random numbers for thermal fields, if needed
@@ -122,8 +129,8 @@ protected:
     }
 
     // Initialise contains the initialisations of arrays etc. for a certain solver
-    virtual void Initialize() override;
-    virtual void Finalize() override;
+    void Initialize() override;
+    void Finalize() override;
 
     // Log message blocks
     void Message_Start() final;
@@ -134,6 +141,8 @@ protected:
     virtual void Message_Block_Start( std::vector<std::string> & block );
     virtual void Message_Block_Step( std::vector<std::string> & block );
     virtual void Message_Block_End( std::vector<std::string> & block );
+
+    std::vector<std::shared_ptr<system_t>> systems;
 
     //////////// DEPONDT ////////////////////////////////////////////////////////////
     // Temporaries for virtual forces
@@ -228,6 +237,24 @@ void Method_Solver<solver>::Initialize(){};
 template<Solver solver>
 void Method_Solver<solver>::Finalize(){};
 
+template<Solver solver>
+void Method_Solver<solver>::Lock()
+{
+    std::for_each( systems.begin(), systems.end(), []( const std::shared_ptr<system_t> & system ) { system->Lock(); } );
+};
+
+template<Solver solver>
+void Method_Solver<solver>::Unlock()
+{
+    std::for_each( systems.begin(), systems.end(), []( const std::shared_ptr<system_t> & system ) { system->Unlock(); } );
+};
+
+template<Solver solver>
+bool Method_Solver<solver>::Iterations_Allowed()
+{
+    return this->systems[0]->iteration_allowed;
+};
+
 // Default implementation: do nothing
 template<Solver solver>
 void Method_Solver<solver>::Iteration(){};
@@ -255,13 +282,19 @@ void Method_Solver<solver>::Message_Start()
     Log( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 }
 template<Solver solver>
-void Method_Solver<solver>::Message_Block_Start( std::vector<std::string> & ){}
+void Method_Solver<solver>::Message_Block_Start( std::vector<std::string> & )
+{
+}
 
 template<Solver solver>
-void Method_Solver<solver>::Message_Block_Step( std::vector<std::string> & ){}
+void Method_Solver<solver>::Message_Block_Step( std::vector<std::string> & )
+{
+}
 
 template<Solver solver>
-void Method_Solver<solver>::Message_Block_End( std::vector<std::string> & ){}
+void Method_Solver<solver>::Message_Block_End( std::vector<std::string> & )
+{
+}
 
 template<Solver solver>
 void Method_Solver<solver>::Message_Step()

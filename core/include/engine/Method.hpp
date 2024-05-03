@@ -20,7 +20,6 @@ namespace Engine
  * This class provides the possibility to have pointers to different template instantiations
  * of the Method class at runtime. This is needed e.g. to extract information to the State.
  */
-template<typename system_t>
 class Method
 {
 public:
@@ -104,18 +103,18 @@ public:
      *   This function should be overridden by specialized methods to ensure systems are
      *   safely locked during iterations.
      */
-    virtual void Lock();
+    virtual void Lock() = 0;
     /*
      * Unlock systems to re-enable access
      *   This function should be overridden by specialized methods to ensure systems are
      *   correctly unlocked after iterations.
      */
-    virtual void Unlock();
+    virtual void Unlock() = 0;
 
     //////////// Check for stopping criteria //////////////////////////////////////////
 
     // Check if iterations allowed
-    virtual bool Iterations_Allowed();
+    virtual bool Iterations_Allowed() = 0;
 
     // Check wether to continue iterating - stop file, convergence etc.
     virtual bool ContinueIterating();
@@ -177,9 +176,6 @@ protected:
     std::vector<scalar> force_max_abs_component_all;
 
     //////////// General /////////////////////////////////////////////////////////
-
-    // Systems the Solver will access
-    std::vector<std::shared_ptr<system_t>> systems;
 
     // Method Parameters
     std::shared_ptr<Data::Parameters_Method> parameters;

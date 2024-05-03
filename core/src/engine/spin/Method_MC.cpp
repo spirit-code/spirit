@@ -24,12 +24,12 @@ Method_MC::Method_MC( std::shared_ptr<system_t> system, int idx_img, int idx_cha
         : Method( system->mc_parameters, idx_img, idx_chain )
 {
     // Currently we only support a single image being iterated at once:
-    this->systems    = std::vector<std::shared_ptr<system_t>>( 1, system );
+    this->system     = system;
     this->SenderName = Log_Sender::MC;
 
-    this->noi           = this->systems.size();
-    this->nos           = this->systems[0]->hamiltonian->get_geometry().nos;
-    this->nos_nonvacant = this->systems[0]->hamiltonian->get_geometry().nos_nonvacant;
+    this->noi           = 1;
+    this->nos           = this->system->hamiltonian->get_geometry().nos;
+    this->nos_nonvacant = this->system->hamiltonian->get_geometry().nos_nonvacant;
 
     this->xi = vectorfield( this->nos, { 0, 0, 0 } );
 
@@ -54,7 +54,7 @@ Method_MC::Method_MC( std::shared_ptr<system_t> system, int idx_img, int idx_cha
 void Method_MC::Iteration()
 {
     // Temporaries
-    auto & spins_old = *this->systems[0]->spins;
+    auto & spins_old = *this->system->spins;
     auto spins_new   = spins_old;
 
     // Generate randomly displaced spin configuration according to cone radius
@@ -109,7 +109,7 @@ void Method_MC::Metropolis( const vectorfield & spins_old, vectorfield & spins_n
             // Faster, but worse statistics
             ispin = idx;
 
-        if( Indexing::check_atom_type( this->systems[0]->hamiltonian->get_geometry().atom_types[ispin] ) )
+        if( Indexing::check_atom_type( this->system->hamiltonian->get_geometry().atom_types[ispin] ) )
         {
             // Sample a cone
             if( this->parameters_mc->metropolis_step_cone )
@@ -156,8 +156,8 @@ void Method_MC::Metropolis( const vectorfield & spins_old, vectorfield & spins_n
             }
 
             // Energy difference of configurations with and without displacement
-            scalar Eold  = this->systems[0]->hamiltonian->Energy_Single_Spin( ispin, spins_old );
-            scalar Enew  = this->systems[0]->hamiltonian->Energy_Single_Spin( ispin, spins_new );
+            scalar Eold  = this->system->hamiltonian->Energy_Single_Spin( ispin, spins_old );
+            scalar Enew  = this->system->hamiltonian->Energy_Single_Spin( ispin, spins_new );
             scalar Ediff = Enew - Eold;
 
             // Metropolis criterion: reject the step if energy rose
@@ -205,8 +205,23 @@ void Method_MC::Initialize() {}
 
 void Method_MC::Finalize()
 {
-    this->systems[0]->iteration_allowed = false;
+    this->system->iteration_allowed = false;
 }
+
+void Method_MC::Lock(){
+    this->system->Lock();
+}
+
+void Method_MC::Unlock(){
+    this->system->Unlock();
+}
+
+bool Method_MC::Iterations_Allowed()
+{
+    return this->system->iteration_allowed;
+}
+
+
 
 void Method_MC::Message_Start()
 {
@@ -242,7 +257,7 @@ void Method_MC::Message_Step()
     auto t_current = std::chrono::system_clock::now();
 
     // Update the system's energy
-    this->systems[0]->UpdateEnergy();
+    this->system->UpdateEnergy();
 
     // Send log message
     std::vector<std::string> block( 0 );
@@ -275,7 +290,7 @@ void Method_MC::Message_Step()
                 "    Current cone angle (deg): {:>6.3f} (non-adaptive)", this->cone_angle * 180 / Constants::Pi ) );
         }
     }
-    block.emplace_back( fmt::format( "    Total energy:             {:20.10f}", this->systems[0]->E ) );
+    block.emplace_back( fmt::format( "    Total energy:             {:20.10f}", this->system->E ) );
     Log( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 
     // Update time of last step
@@ -295,7 +310,7 @@ void Method_MC::Message_End()
         reason = "The maximum walltime has been reached";
 
     // Update the system's energy
-    this->systems[0]->UpdateEnergy();
+    this->system->UpdateEnergy();
 
     //---- Log messages
     std::vector<std::string> block;
@@ -324,7 +339,7 @@ void Method_MC::Message_End()
                 "    Cone angle (deg): {:>6.3f} (non-adaptive)", this->cone_angle * 180 / Constants::Pi ) );
         }
     }
-    block.emplace_back( fmt::format( "    Total energy:     {:20.10f}", this->systems[0]->E ) );
+    block.emplace_back( fmt::format( "    Total energy:     {:20.10f}", this->system->E ) );
     block.emplace_back( "-----------------------------------------------------" );
     Log( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 }

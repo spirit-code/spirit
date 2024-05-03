@@ -52,6 +52,16 @@ private:
     void Message_Step() override;
     void Message_End() override;
 
+    // Lock system in order to prevent otherwise access
+    void Lock() override;
+    // Unlock system to re-enable access
+    void Unlock() override;
+    // Check if iterations are allowed
+    bool Iterations_Allowed() override;
+
+    // System the Solver will access
+    std::shared_ptr<system_t> system;
+
     std::shared_ptr<Data::Parameters_Method_EMA> parameters_ema;
 
     int counter;
