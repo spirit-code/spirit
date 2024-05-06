@@ -46,13 +46,6 @@ Method::Method( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img
         this->t_iterations.push_back( std::chrono::system_clock::now() );
     this->ips       = 0;
     this->starttime = Timing::CurrentDateTime();
-
-// Printing precision for scalars
-#ifdef CORE_SCALAR_TYPE_FLOAT
-    this->print_precision = 8;
-#else
-    this->print_precision = 12;
-#endif
 }
 
 void Method::Iterate()
