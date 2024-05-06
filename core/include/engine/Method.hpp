@@ -181,7 +181,11 @@ protected:
     std::shared_ptr<Data::Parameters_Method> parameters;
 
     // Precision for the conversion of scalar to string
-    int print_precision;
+#ifdef CORE_SCALAR_TYPE_FLOAT
+    static constexpr int print_precision = 8;
+#else
+    static constexpr int print_precision = 12;
+#endif
 };
 
 } // namespace Engine
