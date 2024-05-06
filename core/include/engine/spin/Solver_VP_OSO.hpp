@@ -8,6 +8,32 @@ namespace Spin
 {
 
 template<>
+class SolverData<Solver::VP_OSO> : public Method
+{
+protected:
+    using Method::Method;
+    // "Mass of our particle" which we accelerate
+    static constexpr scalar mass = 1.0;
+
+    // Force in previous step [noi][nos]
+    std::vector<vectorfield> forces_previous;
+    // Velocity in previous step [noi][nos]
+    std::vector<vectorfield> velocities_previous;
+    // Velocity used in the Steps [noi][nos]
+    std::vector<vectorfield> velocities;
+    // Projection of velocities onto the forces [noi]
+    std::vector<scalar> projection;
+    // |force|^2
+    std::vector<scalar> force_norm2;
+
+    std::vector<vectorfield> grad;
+    std::vector<vectorfield> grad_pr;
+    std::vector<vectorfield> searchdir;
+
+    std::vector<std::shared_ptr<vectorfield>> configurations_temp;
+};
+
+template<>
 inline void Method_Solver<Solver::VP_OSO>::Initialize()
 {
     this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
@@ -80,13 +106,12 @@ inline void Method_Solver<Solver::VP_OSO>::Iteration()
         const auto * g_pr = raw_pointer_cast( this->grad_pr[img].data() );
         auto & velocity   = velocities[img];
         auto * v          = raw_pointer_cast( velocities[img].data() );
-        auto m_temp       = this->m;
 
         // Calculate the new velocity
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
-            [g, g_pr, v, m_temp] SPIRIT_LAMBDA( const int idx )
-            { v[idx] += 0.5 / m_temp * ( g_pr[idx] + g[idx] ); } );
+            [g, g_pr, v] SPIRIT_LAMBDA( const int idx )
+            { v[idx] += 0.5 / mass * ( g_pr[idx] + g[idx] ); } );
 
         // Get the projection of the velocity on the force
         projection[img]  = Vectormath::dot( velocity, this->grad[img] );
@@ -102,7 +127,6 @@ inline void Method_Solver<Solver::VP_OSO>::Iteration()
         const auto * g = raw_pointer_cast( this->grad[img].data() );
         auto * sd      = raw_pointer_cast( this->searchdir[img].data() );
         auto * v       = raw_pointer_cast( this->velocities[img].data() );
-        auto m_temp    = this->m;
 
         scalar dt    = this->systems[img]->llg_parameters->dt;
         scalar ratio = projection_full / force_norm2_full;
@@ -121,8 +145,8 @@ inline void Method_Solver<Solver::VP_OSO>::Iteration()
 
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
-            [sd, dt, m_temp, v, g] SPIRIT_LAMBDA( const int idx )
-            { sd[idx] = dt * v[idx] + 0.5 / m_temp * dt * g[idx]; } );
+            [sd, dt, v, g] SPIRIT_LAMBDA( const int idx )
+            { sd[idx] = dt * v[idx] + 0.5 / mass * dt * g[idx]; } );
     }
     Solver_Kernels::oso_rotate( this->configurations, this->searchdir );
 }

@@ -7,7 +7,29 @@ namespace Engine
 namespace Spin
 {
 
-#include <engine/Backend.hpp>
+
+template<>
+class SolverData<Solver::VP> : public Method
+{
+protected:
+    using Method::Method;
+    //////////// VP ///////////////////////////////////////////////////////////////
+    // "Mass of our particle" which we accelerate
+    static constexpr scalar mass = 1.0;
+
+    // Force in previous step [noi][nos]
+    std::vector<vectorfield> forces_previous;
+    // Velocity in previous step [noi][nos]
+    std::vector<vectorfield> velocities_previous;
+    // Velocity used in the Steps [noi][nos]
+    std::vector<vectorfield> velocities;
+    // Projection of velocities onto the forces [noi]
+    std::vector<scalar> projection;
+    // |force|^2
+    std::vector<scalar> force_norm2;
+
+    std::vector<std::shared_ptr<vectorfield>> configurations_temp;
+};
 
 template<>
 inline void Method_Solver<Solver::VP>::Initialize()
@@ -69,13 +91,12 @@ inline void Method_Solver<Solver::VP>::Iteration()
         const auto * f    = raw_pointer_cast( forces[i].data() );
         const auto * f_pr = raw_pointer_cast( forces_previous[i].data() );
         auto * v          = raw_pointer_cast( velocities[i].data() );
-        auto m_temp       = this->m;
 
         // Calculate the new velocity
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), force.size(),
-            [f, f_pr, v, m_temp] SPIRIT_LAMBDA( const int idx )
-            { v[idx] += 0.5 / m_temp * ( f_pr[idx] + f[idx] ); } );
+            [f, f_pr, v] SPIRIT_LAMBDA( const int idx )
+            { v[idx] += 0.5 / mass * ( f_pr[idx] + f[idx] ); } );
 
         // Get the projection of the velocity on the force
         projection[i]  = Vectormath::dot( velocity, force );
@@ -98,7 +119,6 @@ inline void Method_Solver<Solver::VP>::Iteration()
 
         const scalar dt    = this->systems[i]->llg_parameters->dt;
         const scalar ratio = projection_full / force_norm2_full;
-        const auto m_temp  = this->m;
 
         // Calculate the projected velocity
         if( projection_full <= 0 )
@@ -114,9 +134,9 @@ inline void Method_Solver<Solver::VP>::Iteration()
 
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), force.size(),
-            [conf, conf_temp, dt, m_temp, v, f] SPIRIT_LAMBDA( const int idx )
+            [conf, conf_temp, dt,  v, f] SPIRIT_LAMBDA( const int idx )
             {
-                conf_temp[idx] = conf[idx] + dt * v[idx] + 0.5 / m_temp * dt * f[idx];
+                conf_temp[idx] = conf[idx] + dt * v[idx] + 0.5 / mass * dt * f[idx];
                 conf[idx]      = conf_temp[idx].normalized();
             } );
     }

@@ -6,7 +6,6 @@
 #include <engine/spin/Method_Solver.hpp>
 #include <utility/Constants.hpp>
 
-using namespace Utility;
 namespace Engine
 {
 
@@ -14,15 +13,44 @@ namespace Spin
 {
 
 template<>
+class SolverData<Solver::LBFGS_Atlas> : public Method
+{
+protected:
+    using Method::Method;
+    // General
+    static constexpr int n_lbfgs_memory = 3; // how many updates the solver tracks to estimate the hessian
+    static constexpr scalar maxmove     = 0.05;
+    int local_iter;
+    scalarfield rho;
+    scalarfield alpha;
+
+    // Atlas coords
+    std::vector<std::vector<vector2field>> atlas_updates;
+    std::vector<std::vector<vector2field>> grad_atlas_updates;
+    std::vector<scalarfield> atlas_coords3;
+    std::vector<vector2field> atlas_directions;
+    std::vector<vector2field> atlas_residuals;
+    std::vector<vector2field> atlas_residuals_last;
+    std::vector<vector2field> atlas_q_vec;
+
+    // Actual Forces on the configurations
+    std::vector<vectorfield> forces_predictor;
+    // Virtual Forces used in the Steps
+    std::vector<vectorfield> forces_virtual_predictor;
+
+    std::vector<std::shared_ptr<vectorfield>> configurations_predictor;
+    std::vector<std::shared_ptr<vectorfield>> configurations_temp;
+};
+
+template<>
 inline void Method_Solver<Solver::LBFGS_Atlas>::Initialize()
 {
-    this->n_lbfgs_memory = 3; // how many updates the solver tracks to estimate the hessian
-    this->atlas_updates  = std::vector<std::vector<vector2field>>(
-        this->noi, std::vector<vector2field>( this->n_lbfgs_memory, vector2field( this->nos, { 0, 0 } ) ) );
+    this->atlas_updates = std::vector<std::vector<vector2field>>(
+        this->noi, std::vector<vector2field>( n_lbfgs_memory, vector2field( this->nos, { 0, 0 } ) ) );
     this->grad_atlas_updates = std::vector<std::vector<vector2field>>(
-        this->noi, std::vector<vector2field>( this->n_lbfgs_memory, vector2field( this->nos, { 0, 0 } ) ) );
-    this->rho                  = scalarfield( this->n_lbfgs_memory, 0 );
-    this->alpha                = scalarfield( this->n_lbfgs_memory, 0 );
+        this->noi, std::vector<vector2field>( n_lbfgs_memory, vector2field( this->nos, { 0, 0 } ) ) );
+    this->rho                  = scalarfield( n_lbfgs_memory, 0 );
+    this->alpha                = scalarfield( n_lbfgs_memory, 0 );
     this->forces               = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
     this->forces_virtual       = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
     this->atlas_coords3        = std::vector<scalarfield>( this->noi, scalarfield( this->nos, 1 ) );
@@ -30,7 +58,6 @@ inline void Method_Solver<Solver::LBFGS_Atlas>::Initialize()
     this->atlas_residuals      = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0, 0 } ) );
     this->atlas_residuals_last = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0, 0 } ) );
     this->atlas_q_vec          = std::vector<vector2field>( this->noi, vector2field( this->nos, { 0, 0 } ) );
-    this->maxmove              = 0.05;
     this->local_iter           = 0;
 
     for( int img = 0; img < this->noi; img++ )
@@ -63,10 +90,6 @@ inline void Method_Solver<Solver::LBFGS_Atlas>::Iteration()
         auto & image    = *this->configurations[img];
         auto & grad_ref = this->atlas_residuals[img];
 
-        const auto * s = raw_pointer_cast( image.data() );
-        const auto * f = raw_pointer_cast( this->forces[img].data() );
-        auto * fv      = raw_pointer_cast( this->forces_virtual[img].data() );
-
         Backend::transform(
             SPIRIT_PAR image.begin(), image.end(), forces[img].begin(), forces_virtual[img].begin(),
             [] SPIRIT_LAMBDA( const Vector3 & s, const Vector3 & f ) { return s.cross( f ); } );
@@ -77,7 +100,7 @@ inline void Method_Solver<Solver::LBFGS_Atlas>::Iteration()
     // Calculate search direction
     Solver_Kernels::lbfgs_get_searchdir(
         this->local_iter, this->rho, this->alpha, this->atlas_q_vec, this->atlas_directions, this->atlas_updates,
-        this->grad_atlas_updates, this->atlas_residuals, this->atlas_residuals_last, this->n_lbfgs_memory, maxmove );
+        this->grad_atlas_updates, this->atlas_residuals, this->atlas_residuals_last, n_lbfgs_memory, maxmove );
 
     scalar a_norm_rms = 0;
     // Scale by averaging

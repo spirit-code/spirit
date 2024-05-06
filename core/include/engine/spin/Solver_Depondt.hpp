@@ -8,7 +8,27 @@ namespace Spin
 {
 
 template<>
+class SolverData<Solver::Depondt> : public Method
+{
+protected:
+    using Method::Method;
+    // Temporaries for virtual forces
+    std::vector<vectorfield> rotationaxis;
+    std::vector<scalarfield> forces_virtual_norm;
+    // Preccession angle
+    scalarfield angle;
 
+    // Actual Forces on the configurations
+    std::vector<vectorfield> forces_predictor;
+    // Virtual Forces used in the Steps
+    std::vector<vectorfield> forces_virtual_predictor;
+
+    std::vector<std::shared_ptr<vectorfield>> configurations_predictor;
+
+    vectorfield temp1;
+};
+
+template<>
 inline void Method_Solver<Solver::Depondt>::Initialize()
 {
     this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
