@@ -8,6 +8,19 @@ namespace Spin
 {
 
 template<>
+class SolverData<Solver::SIB> : public Method
+{
+protected:
+    using Method::Method;
+    // Actual Forces on the configurations
+    std::vector<vectorfield> forces_predictor;
+    // Virtual Forces used in the Steps
+    std::vector<vectorfield> forces_virtual_predictor;
+
+    std::vector<std::shared_ptr<vectorfield>> configurations_predictor;
+};
+
+template<>
 inline void Method_Solver<Solver::SIB>::Initialize()
 {
     this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos ) ); // [noi][nos]

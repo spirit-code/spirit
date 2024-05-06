@@ -8,6 +8,28 @@ namespace Spin
 {
 
 template<>
+class SolverData<Solver::RungeKutta4> : public Method
+{
+protected:
+    using Method::Method;
+
+    std::vector<std::shared_ptr<vectorfield>> configurations_k1;
+    std::vector<std::shared_ptr<vectorfield>> configurations_k2;
+    std::vector<std::shared_ptr<vectorfield>> configurations_k3;
+    std::vector<std::shared_ptr<vectorfield>> configurations_k4;
+
+    // Actual Forces on the configurations
+    std::vector<vectorfield> forces_predictor;
+    // Virtual Forces used in the Steps
+    std::vector<vectorfield> forces_virtual_predictor;
+
+    std::vector<std::shared_ptr<vectorfield>> configurations_predictor;
+    std::vector<std::shared_ptr<vectorfield>> configurations_temp;
+
+    vectorfield temp1;
+};
+
+template<>
 inline void Method_Solver<Solver::RungeKutta4>::Initialize()
 {
     this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );

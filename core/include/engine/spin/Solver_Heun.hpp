@@ -8,6 +8,22 @@ namespace Spin
 {
 
 template<>
+class SolverData<Solver::Heun> : public Method
+{
+protected:
+    using Method::Method;
+    // Actual Forces on the configurations
+    std::vector<vectorfield> forces_predictor;
+    // Virtual Forces used in the Steps
+    std::vector<vectorfield> forces_virtual_predictor;
+
+    std::vector<std::shared_ptr<vectorfield>> configurations_predictor;
+    std::vector<std::shared_ptr<vectorfield>> configurations_temp;
+
+    vectorfield temp1;
+};
+
+template<>
 inline void Method_Solver<Solver::Heun>::Initialize()
 {
     this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );

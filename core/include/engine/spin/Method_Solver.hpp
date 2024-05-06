@@ -44,17 +44,25 @@ enum class Solver
     VP_OSO      = Solver_VP_OSO
 };
 
+// default implementation (to be overwritten by class template specialization)
+template<Solver solver>
+class SolverData : public Method
+{
+protected:
+    using Method::Method;
+};
+
 /*
  * Base Class for Solver-based Simulation/Calculation Methods.
  * It is templated to allow a flexible choice of Solver to iterate the systems.
  */
 template<Solver solver>
-class Method_Solver : public Method
+class Method_Solver : public SolverData<solver>
 {
 public:
     // Constructor to be used in derived classes
     Method_Solver( std::shared_ptr<Data::Parameters_Method> parameters, int idx_img, int idx_chain )
-            : Method( parameters, idx_img, idx_chain )
+            : SolverData<solver>( parameters, idx_img, idx_chain )
     {
     }
 
@@ -144,80 +152,16 @@ protected:
 
     std::vector<std::shared_ptr<system_t>> systems;
 
-    //////////// DEPONDT ////////////////////////////////////////////////////////////
-    // Temporaries for virtual forces
-    std::vector<vectorfield> rotationaxis;
-    std::vector<scalarfield> forces_virtual_norm;
-    // Preccession angle
-    scalarfield angle;
-
-    //////////// LBFGS ////////////////////////////////////////////////////////////
-
-    // General
-    int n_lbfgs_memory;
-    int local_iter;
-    scalar maxmove;
-    scalarfield rho;
-    scalarfield alpha;
-
-    // Atlas coords
-    std::vector<std::vector<vector2field>> atlas_updates;
-    std::vector<std::vector<vector2field>> grad_atlas_updates;
-    std::vector<scalarfield> atlas_coords3;
-    std::vector<vector2field> atlas_directions;
-    std::vector<vector2field> atlas_residuals;
-    std::vector<vector2field> atlas_residuals_last;
-    std::vector<vector2field> atlas_q_vec;
-
-    // OSO
-    std::vector<std::vector<vectorfield>> delta_a;
-    std::vector<std::vector<vectorfield>> delta_grad;
-    std::vector<vectorfield> searchdir;
-    std::vector<vectorfield> grad;
-    std::vector<vectorfield> grad_pr;
-    std::vector<vectorfield> q_vec;
-
-    // buffer variables for checking convergence for solver and Newton-Raphson
-    // std::vector<scalarfield> r_dot_d, dda2;
-
-    //////////// VP ///////////////////////////////////////////////////////////////
-    // "Mass of our particle" which we accelerate
-    scalar m = 1.0;
-
-    // Force in previous step [noi][nos]
-    std::vector<vectorfield> forces_previous;
-    // Velocity in previous step [noi][nos]
-    std::vector<vectorfield> velocities_previous;
-    // Velocity used in the Steps [noi][nos]
-    std::vector<vectorfield> velocities;
-    // Projection of velocities onto the forces [noi]
-    std::vector<scalar> projection;
-    // |force|^2
-    std::vector<scalar> force_norm2;
-
-    // Temporary Spins arrays
-    vectorfield temp1, temp2;
-
     // Actual Forces on the configurations
     std::vector<vectorfield> forces;
-    std::vector<vectorfield> forces_predictor;
     // Virtual Forces used in the Steps
     std::vector<vectorfield> forces_virtual;
-    std::vector<vectorfield> forces_virtual_predictor;
-
-    // RK 4
-    std::vector<std::shared_ptr<vectorfield>> configurations_k1;
-    std::vector<std::shared_ptr<vectorfield>> configurations_k2;
-    std::vector<std::shared_ptr<vectorfield>> configurations_k3;
-    std::vector<std::shared_ptr<vectorfield>> configurations_k4;
+    // Pointers to Configurations (for Solver methods)
+    std::vector<std::shared_ptr<vectorfield>> configurations;
 
     // Random vector array
     vectorfield xi;
 
-    // Pointers to Configurations (for Solver methods)
-    std::vector<std::shared_ptr<vectorfield>> configurations;
-    std::vector<std::shared_ptr<vectorfield>> configurations_predictor;
-    std::vector<std::shared_ptr<vectorfield>> configurations_temp;
 };
 
 template<Solver solver>
@@ -246,7 +190,8 @@ void Method_Solver<solver>::Lock()
 template<Solver solver>
 void Method_Solver<solver>::Unlock()
 {
-    std::for_each( systems.begin(), systems.end(), []( const std::shared_ptr<system_t> & system ) { system->Unlock(); } );
+    std::for_each(
+        systems.begin(), systems.end(), []( const std::shared_ptr<system_t> & system ) { system->Unlock(); } );
 };
 
 template<Solver solver>
@@ -270,11 +215,10 @@ void Method_Solver<solver>::Message_Start()
     block.emplace_back( fmt::format( "    Going to iterate {} step(s)", this->n_log ) );
     block.emplace_back( fmt::format( "                with {} iterations per step", this->n_iterations_log ) );
     block.emplace_back( fmt::format(
-        fmt::format( "    Force convergence parameter: {{:.{}f}}", print_precision ),
+        fmt::format( "    Force convergence parameter: {{:.{}f}}", Method::print_precision ),
         this->parameters->force_convergence ) );
-    block.emplace_back( fmt::format(
-        fmt::format( "    Maximum torque:              {{:.{}f}}", print_precision ),
-        this->max_torque ) );
+    block.emplace_back(
+        fmt::format( fmt::format( "    Maximum torque:              {{:.{}f}}", Method::print_precision ), this->max_torque ) );
     block.emplace_back( fmt::format( "    Solver: {}", this->SolverFullName() ) );
     // solver specific message
     this->Message_Block_Start( block );
@@ -321,11 +265,10 @@ void Method_Solver<solver>::Message_Step()
     // solver specific message
     this->Message_Block_Step( block );
     block.emplace_back( fmt::format(
-        fmt::format( "    Force convergence parameter: {{:.{}f}}", print_precision ),
+        fmt::format( "    Force convergence parameter: {{:.{}f}}", Method::print_precision ),
         this->parameters->force_convergence ) );
-    block.emplace_back( fmt::format(
-        fmt::format( "    Maximum torque:              {{:.{}f}}", print_precision ),
-        this->max_torque ) );
+    block.emplace_back(
+        fmt::format( fmt::format( "    Maximum torque:              {{:.{}f}}", Method::print_precision ), this->max_torque ) );
     Log( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 
     // Update time of last step
@@ -364,11 +307,10 @@ void Method_Solver<solver>::Message_End()
     // solver specific message
     this->Message_Block_End( block );
     block.emplace_back( fmt::format(
-        fmt::format( "    Force convergence parameter: {{:.{}f}}", print_precision ),
+        fmt::format( "    Force convergence parameter: {{:.{}f}}", Method::print_precision ),
         this->parameters->force_convergence ) );
-    block.emplace_back( fmt::format(
-        fmt::format( "    Maximum torque:              {{:.{}f}}", print_precision ),
-        this->max_torque ) );
+    block.emplace_back(
+        fmt::format( fmt::format( "    Maximum torque:              {{:.{}f}}", Method::print_precision ), this->max_torque ) );
     block.emplace_back( fmt::format( "    Solver: {}", this->SolverFullName() ) );
     block.emplace_back( "-----------------------------------------------------" );
     Log( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );

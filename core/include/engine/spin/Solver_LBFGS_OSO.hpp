@@ -5,8 +5,6 @@
 #include <engine/spin/Method_Solver.hpp>
 #include <utility/Constants.hpp>
 
-using namespace Utility;
-
 namespace Engine
 {
 
@@ -14,15 +12,45 @@ namespace Spin
 {
 
 template<>
+class SolverData<Solver::LBFGS_OSO> : public Method
+{
+protected:
+    using Method::Method;
+    // General
+    static constexpr int n_lbfgs_memory = 3; // how many previous iterations are stored in the memory
+    static constexpr scalar maxmove     = Utility::Constants::Pi / 200.0;
+    int local_iter;
+    scalarfield rho;
+    scalarfield alpha;
+
+    // OSO
+    std::vector<std::vector<vectorfield>> delta_a;
+    std::vector<std::vector<vectorfield>> delta_grad;
+    std::vector<vectorfield> searchdir;
+    std::vector<vectorfield> grad;
+    std::vector<vectorfield> grad_pr;
+    std::vector<vectorfield> q_vec;
+
+    // Actual Forces on the configurations
+    std::vector<vectorfield> forces_predictor;
+    // Virtual Forces used in the Steps
+    std::vector<vectorfield> forces_virtual_predictor;
+
+    std::vector<std::shared_ptr<vectorfield>> configurations_predictor;
+    std::vector<std::shared_ptr<vectorfield>> configurations_temp;
+};
+
+template<>
 inline void Method_Solver<Solver::LBFGS_OSO>::Initialize()
 {
-    this->n_lbfgs_memory = 3; // how many previous iterations are stored in the memory
-    this->delta_a        = std::vector<std::vector<vectorfield>>(
-        this->noi, std::vector<vectorfield>( this->n_lbfgs_memory, vectorfield( this->nos, { 0, 0, 0 } ) ) );
+    using namespace Utility;
+
+    this->delta_a = std::vector<std::vector<vectorfield>>(
+        this->noi, std::vector<vectorfield>( n_lbfgs_memory, vectorfield( this->nos, { 0, 0, 0 } ) ) );
     this->delta_grad = std::vector<std::vector<vectorfield>>(
-        this->noi, std::vector<vectorfield>( this->n_lbfgs_memory, vectorfield( this->nos, { 0, 0, 0 } ) ) );
-    this->rho            = scalarfield( this->n_lbfgs_memory, 0 );
-    this->alpha          = scalarfield( this->n_lbfgs_memory, 0 );
+        this->noi, std::vector<vectorfield>( n_lbfgs_memory, vectorfield( this->nos, { 0, 0, 0 } ) ) );
+    this->rho            = scalarfield( n_lbfgs_memory, 0 );
+    this->alpha          = scalarfield( n_lbfgs_memory, 0 );
     this->forces         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
     this->forces_virtual = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
     this->searchdir      = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
@@ -30,7 +58,6 @@ inline void Method_Solver<Solver::LBFGS_OSO>::Initialize()
     this->grad_pr        = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
     this->q_vec          = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
     this->local_iter     = 0;
-    this->maxmove        = Constants::Pi / 200.0;
 };
 
 /*
@@ -64,7 +91,7 @@ inline void Method_Solver<Solver::LBFGS_OSO>::Iteration()
     // calculate search direction
     Solver_Kernels::lbfgs_get_searchdir(
         this->local_iter, this->rho, this->alpha, this->q_vec, this->searchdir, this->delta_a, this->delta_grad,
-        this->grad, this->grad_pr, this->n_lbfgs_memory, maxmove );
+        this->grad, this->grad_pr, n_lbfgs_memory, maxmove );
 
     // Scale direction
     scalar scaling = 1;
