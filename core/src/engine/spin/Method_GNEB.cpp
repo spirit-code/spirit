@@ -99,8 +99,8 @@ void Method_GNEB<solver>::Calculate_Force(
         // Multiply gradient with -1 to get effective field and copy to F_gradient.
         // We do it the following way so that the effective field can be e.g. displayed,
         //      while the gradient force is manipulated (e.g. projected)
-        auto * eff_field = raw_pointer_cast( this->chain->images[img]->effective_field.data() );
-        auto * f_grad    = raw_pointer_cast( F_gradient[img].data() );
+        auto * eff_field = this->chain->images[img]->effective_field.data();
+        auto * f_grad    = F_gradient[img].data();
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), image.size(),
             [eff_field, f_grad] SPIRIT_LAMBDA( const int idx )
@@ -264,12 +264,12 @@ void Method_GNEB<solver>::Calculate_Force(
         // Overall translational force
         if( chain->gneb_parameters->translating_endpoints )
         {
-            const auto * F_gradient_left   = raw_pointer_cast( F_gradient[0].data() );
-            const auto * F_gradient_right  = raw_pointer_cast( F_gradient[noi - 1].data() );
-            const auto * spins_left        = raw_pointer_cast( this->chain->images[0]->spins->data() );
-            const auto * spins_right       = raw_pointer_cast( this->chain->images[noi - 1]->spins->data() );
-            auto * F_translation_left_ptr  = raw_pointer_cast( F_translation_left.data() );
-            auto * F_translation_right_ptr = raw_pointer_cast( F_translation_right.data() );
+            const auto * F_gradient_left   = F_gradient[0].data();
+            const auto * F_gradient_right  = F_gradient[noi - 1].data();
+            const auto * spins_left        = this->chain->images[0]->spins->data();
+            const auto * spins_right       = this->chain->images[noi - 1]->spins->data();
+            auto * F_translation_left_ptr  = F_translation_left.data();
+            auto * F_translation_right_ptr = F_translation_right.data();
             // clang-format off
             Backend::for_each_n( SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
                 [
@@ -325,12 +325,12 @@ void Method_GNEB<solver>::Calculate_Force(
             auto projection      = Vectormath::dot( F_gradient[img], tangents[img] );
 
             const auto * F_translation
-                = raw_pointer_cast( ( img == 0 ) ? F_translation_left.data() : F_translation_right.data() );
+                = ( img == 0 ) ? F_translation_left.data() : F_translation_right.data();
             const auto tangent_coeff = spring_constant * ( delta_Rx - delta_Rx0 );
-            const auto * F_grad      = raw_pointer_cast( F_gradient[img].data() );
-            const auto * tang        = raw_pointer_cast( tangents[img].data() );
-            auto * F_tot             = raw_pointer_cast( F_total[img].data() );
-            auto * force             = raw_pointer_cast( forces[img].data() );
+            const auto * F_grad      = F_gradient[img].data();
+            const auto * tang        = tangents[img].data();
+            auto * F_tot             = F_total[img].data();
+            auto * force             = forces[img].data();
 
             Backend::for_each_n(
                 SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,

@@ -83,10 +83,10 @@ inline void Method_Solver<Solver::VP_OSO>::Iteration()
     // Set previous
     for( int img = 0; img < noi; ++img )
     {
-        const auto * g = raw_pointer_cast( grad[img].data() );
-        const auto * v = raw_pointer_cast( velocities[img].data() );
-        auto * g_pr    = raw_pointer_cast( grad_pr[img].data() );
-        auto * v_pr    = raw_pointer_cast( velocities_previous[img].data() );
+        const auto * g = grad[img].data();
+        const auto * v = velocities[img].data();
+        auto * g_pr    = grad_pr[img].data();
+        auto * v_pr    = velocities_previous[img].data();
 
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
@@ -111,10 +111,10 @@ inline void Method_Solver<Solver::VP_OSO>::Iteration()
 
     for( int img = 0; img < noi; ++img )
     {
-        const auto * g    = raw_pointer_cast( this->grad[img].data() );
-        const auto * g_pr = raw_pointer_cast( this->grad_pr[img].data() );
+        const auto * g    = this->grad[img].data();
+        const auto * g_pr = this->grad_pr[img].data();
         auto & velocity   = velocities[img];
-        auto * v          = raw_pointer_cast( velocities[img].data() );
+        auto * v          = velocities[img].data();
 
         // Calculate the new velocity
         Backend::for_each_n(
@@ -133,9 +133,9 @@ inline void Method_Solver<Solver::VP_OSO>::Iteration()
     }
     for( int img = 0; img < noi; ++img )
     {
-        const auto * g = raw_pointer_cast( this->grad[img].data() );
-        auto * sd      = raw_pointer_cast( this->searchdir[img].data() );
-        auto * v       = raw_pointer_cast( this->velocities[img].data() );
+        const auto * g = this->grad[img].data();
+        auto * sd      = this->searchdir[img].data();
+        auto * v       = this->velocities[img].data();
 
         scalar dt    = this->llg_parameters[img]->dt;
         scalar ratio = projection_full / force_norm2_full;

@@ -80,9 +80,9 @@ inline void Method_Solver<Solver::LBFGS_OSO>::Iteration()
         auto & image    = *this->configurations[img];
         auto & grad_ref = this->grad[img];
 
-        const auto * f = raw_pointer_cast( this->forces[img].data() );
-        const auto * s = raw_pointer_cast( image.data() );
-        auto * fv      = raw_pointer_cast( this->forces_virtual[img].data() );
+        const auto * f = this->forces[img].data();
+        const auto * s = image.data();
+        auto * fv      = this->forces_virtual[img].data();
 
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), this->nos,

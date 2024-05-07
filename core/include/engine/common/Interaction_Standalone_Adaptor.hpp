@@ -88,7 +88,7 @@ public:
     {
         using std::begin, std::end;
         auto functor           = typename InteractionType::Energy( data, cache );
-        const auto * state_ptr = raw_pointer_cast( state.data() );
+        const auto * state_ptr = state.data();
         return Backend::transform_reduce(
             SPIRIT_PAR indices.begin(), indices.end(), scalar( 0.0 ), Backend::plus<scalar>{},
             [state_ptr, functor] SPIRIT_LAMBDA( const IndexTuple & index )
@@ -99,7 +99,7 @@ public:
     {
         using std::begin, std::end;
         auto functor           = typename InteractionType::Energy( data, cache );
-        const auto * state_ptr = raw_pointer_cast( state.data() );
+        const auto * state_ptr = state.data();
         Backend::transform(
             SPIRIT_PAR indices.begin(), indices.end(), energy_per_spin.begin(),
             [state_ptr, functor] SPIRIT_LAMBDA( const IndexTuple & index )
@@ -110,7 +110,7 @@ public:
     {
         return std::invoke(
             typename InteractionType::Energy( data, cache ),
-            Backend::get<typename InteractionType::Index>( indices[ispin] ), raw_pointer_cast( state.data() ) );
+            Backend::get<typename InteractionType::Index>( indices[ispin] ), state.data() );
     }
 
     std::string_view Name() const final

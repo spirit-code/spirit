@@ -92,9 +92,9 @@ void add_c_a( const scalar & c, const vectorfield & vf, vectorfield & out )
 
 void add_c_a( const scalar & c, const vectorfield & vf, vectorfield & out, const intfield & mask )
 {
-    const auto * v = raw_pointer_cast( vf.data() );
-    const auto * m = raw_pointer_cast( mask.data() );
-    auto * o       = raw_pointer_cast( out.data() );
+    const auto * v = vf.data();
+    const auto * m = mask.data();
+    auto * o       = out.data();
     Backend::for_each_n(
         Backend::make_counting_iterator( 0 ), out.size(),
         [c, v, m, o] SPIRIT_LAMBDA( const int idx ) { o[idx] += m[idx] * c * v[idx]; } );
@@ -103,9 +103,9 @@ void add_c_a( const scalar & c, const vectorfield & vf, vectorfield & out, const
 // out[i] += c[i]*a[i]
 void add_c_a( const scalarfield & c, const vectorfield & vf, vectorfield & out )
 {
-    const auto * cc = raw_pointer_cast( c.data() );
-    const auto * v  = raw_pointer_cast( vf.data() );
-    auto * o        = raw_pointer_cast( out.data() );
+    const auto * cc = c.data();
+    const auto * v  = vf.data();
+    auto * o        = out.data();
     Backend::for_each_n(
         Backend::make_counting_iterator( 0 ), out.size(),
         [v, cc, o] SPIRIT_LAMBDA( const int idx ) { o[idx] += cc[idx] * v[idx]; } );
@@ -154,9 +154,9 @@ void add_c_dot( const scalar & c, const Vector3 & vec, const vectorfield & vf, s
 // out[i] += c * a[i]*b[i]
 void add_c_dot( const scalar & c, const vectorfield & vf1, const vectorfield & vf2, scalarfield & out )
 {
-    const auto * v1 = raw_pointer_cast( vf1.data() );
-    const auto * v2 = raw_pointer_cast( vf2.data() );
-    auto * o        = raw_pointer_cast( out.data() );
+    const auto * v1 = vf1.data();
+    const auto * v2 = vf2.data();
+    auto * o        = out.data();
     Backend::for_each_n(
         SPIRIT_PAR Backend::make_counting_iterator( 0 ), out.size(),
         [c, v1, v2, o] SPIRIT_LAMBDA( const int idx ) { o[idx] += c * v1[idx].dot( v2[idx] ); } );
@@ -187,9 +187,9 @@ void add_c_cross( const scalar & c, const Vector3 & a, const vectorfield & b, ve
 // out[i] += c * a[i] x b[i]
 void add_c_cross( const scalar & c, const vectorfield & a, const vectorfield & b, vectorfield & out )
 {
-    const auto * aa = raw_pointer_cast( a.data() );
-    const auto * bb = raw_pointer_cast( b.data() );
-    auto * o        = raw_pointer_cast( out.data() );
+    const auto * aa = a.data();
+    const auto * bb = b.data();
+    auto * o        = out.data();
     Backend::for_each_n(
         SPIRIT_PAR Backend::make_counting_iterator( 0 ), out.size(),
         [c, aa, bb, o] SPIRIT_LAMBDA( const int idx ) { o[idx] += c * aa[idx].cross( bb[idx] ); } );
@@ -198,10 +198,10 @@ void add_c_cross( const scalar & c, const vectorfield & a, const vectorfield & b
 // out[i] += c[i] * a[i] x b[i]
 void add_c_cross( const scalarfield & c, const vectorfield & a, const vectorfield & b, vectorfield & out )
 {
-    const auto * cc = raw_pointer_cast( c.data() );
-    const auto * aa = raw_pointer_cast( a.data() );
-    const auto * bb = raw_pointer_cast( b.data() );
-    auto * o        = raw_pointer_cast( out.data() );
+    const auto * cc = c.data();
+    const auto * aa = a.data();
+    const auto * bb = b.data();
+    auto * o        = out.data();
 
     Backend::for_each_n(
         SPIRIT_PAR Backend::make_counting_iterator( 0 ), out.size(),

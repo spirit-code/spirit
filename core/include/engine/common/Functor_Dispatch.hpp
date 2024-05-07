@@ -83,7 +83,7 @@ struct transform_op
     constexpr transform_op( Backend::tuple<Functors...> && functors, ReturnType zero, const state_t & state ) noexcept(
         std::is_nothrow_move_constructible_v<Backend::tuple<Functors...>>
         && std::is_nothrow_copy_constructible_v<ReturnType> )
-            : functors( std::move( functors ) ), state( raw_pointer_cast( state.data() ) ), zero( zero ){};
+            : functors( std::move( functors ) ), state( state.data() ), zero( zero ){};
 
 private:
     Backend::tuple<Functors...> functors;

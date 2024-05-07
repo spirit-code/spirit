@@ -54,7 +54,7 @@ void get_random_vectorfield(
     std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, vectorfield & xi )
 {
     unsigned int n = xi.size();
-    cu_get_random_vectorfield<<<( n + 1023 ) / 1024, 1024>>>( raw_pointer_cast( xi.data() ), n );
+    cu_get_random_vectorfield<<<( n + 1023 ) / 1024, 1024>>>( xi.data(), n );
     CU_CHECK_AND_SYNC();
 }
 
@@ -95,7 +95,7 @@ void get_random_vector_unitsphere(
 // void get_random_vectorfield_unitsphere(std::mt19937 & prng, vectorfield & xi)
 // {
 //     int n = xi.size();
-//     cu_get_random_vectorfield<<<(n+1023)/1024, raw_pointer_cast( 1024>>>(xi.data() ), n);
+//     cu_get_random_vectorfield<<<(n+1023)/1024, 1024>>>(xi.data(), n);
 //     CU_CHECK_AND_SYNC();
 // }
 // The above CUDA implementation does not work correctly.

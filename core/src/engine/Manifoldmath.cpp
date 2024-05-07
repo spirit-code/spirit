@@ -82,10 +82,10 @@ scalar dist_geodesic( const vectorfield & v1, const vectorfield & v2 )
 void Geodesic_Tangent(
     vectorfield & tangent, const vectorfield & image_1, const vectorfield & image_2, const vectorfield & image_mid )
 {
-    const auto * image_minus = raw_pointer_cast( image_1.data() );
-    const auto * image_plus  = raw_pointer_cast( image_2.data() );
-    const auto * image_zero  = raw_pointer_cast( image_mid.data() );
-    auto * tang              = raw_pointer_cast( tangent.data() );
+    const auto * image_minus = image_1.data();
+    const auto * image_plus  = image_2.data();
+    const auto * image_zero  = image_mid.data();
+    auto * tang              = tangent.data();
 
     Backend::for_each_n(
         SPIRIT_PAR Backend::make_counting_iterator( 0 ), image_1.size(),

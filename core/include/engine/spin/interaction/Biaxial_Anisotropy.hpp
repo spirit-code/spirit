@@ -112,9 +112,9 @@ struct Functor::Local::DataRef<Biaxial_Anisotropy>
 
     DataRef( const Data & data, const Cache & cache ) noexcept
             : is_contributing( Interaction::is_contributing( data, cache ) ),
-              bases( raw_pointer_cast( data.bases.data() ) ),
-              site_p( raw_pointer_cast( data.site_p.data() ) ),
-              terms( raw_pointer_cast( data.terms.data() ) ){};
+              bases( data.bases.data() ),
+              site_p( data.site_p.data() ),
+              terms( data.terms.data() ){};
 
     const bool is_contributing;
 

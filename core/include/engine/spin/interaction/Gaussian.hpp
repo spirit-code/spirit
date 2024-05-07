@@ -96,9 +96,9 @@ struct Functor::Local::DataRef<Gaussian>
     DataRef( const Data & data, const Cache & cache ) noexcept
             : is_contributing( Interaction::is_contributing( data, cache ) ),
               n_gaussians( data.amplitude.size() ),
-              amplitude( raw_pointer_cast( data.amplitude.data() ) ),
-              width( raw_pointer_cast( data.width.data() ) ),
-              center( raw_pointer_cast( data.center.data() ) )
+              amplitude( data.amplitude.data() ),
+              width( data.width.data() ),
+              center( data.center.data() )
     {
     }
 

@@ -74,10 +74,10 @@ inline void Method_Solver<Solver::VP>::Iteration()
     // Set previous
     for( int i = 0; i < noi; ++i )
     {
-        const auto * f = raw_pointer_cast( forces[i].data() );
-        auto * f_pr    = raw_pointer_cast( forces_previous[i].data() );
-        const auto * v = raw_pointer_cast( velocities[i].data() );
-        auto * v_pr    = raw_pointer_cast( velocities_previous[i].data() );
+        const auto * f = forces[i].data();
+        auto * f_pr    = forces_previous[i].data();
+        const auto * v = velocities[i].data();
+        auto * v_pr    = velocities_previous[i].data();
 
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), forces[i].size(),
@@ -97,9 +97,9 @@ inline void Method_Solver<Solver::VP>::Iteration()
         auto & velocity = velocities[i];
         auto & force    = forces[i];
 
-        const auto * f    = raw_pointer_cast( forces[i].data() );
-        const auto * f_pr = raw_pointer_cast( forces_previous[i].data() );
-        auto * v          = raw_pointer_cast( velocities[i].data() );
+        const auto * f    = forces[i].data();
+        const auto * f_pr = forces_previous[i].data();
+        auto * v          = velocities[i].data();
 
         // Calculate the new velocity
         Backend::for_each_n(
@@ -120,10 +120,10 @@ inline void Method_Solver<Solver::VP>::Iteration()
         auto & velocity = velocities[i];
         auto & force    = forces[i];
 
-        const auto * f   = raw_pointer_cast( forces[i].data() );
-        auto * v         = raw_pointer_cast( velocities[i].data() );
-        auto * conf      = raw_pointer_cast( ( configurations[i] )->data() );
-        auto * conf_temp = raw_pointer_cast( ( configurations_temp[i] )->data() );
+        const auto * f   = forces[i].data();
+        auto * v         = velocities[i].data();
+        auto * conf      = ( configurations[i] )->data();
+        auto * conf_temp = ( configurations_temp[i] )->data();
 
         const scalar dt    = this->llg_parameters[i]->dt;
         const scalar ratio = projection_full / force_norm2_full;
