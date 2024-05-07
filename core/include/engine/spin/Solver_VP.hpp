@@ -32,6 +32,8 @@ protected:
     std::vector<scalar> force_norm2;
 
     std::vector<std::shared_ptr<vectorfield>> configurations_temp;
+
+    std::vector<std::shared_ptr<const Data::Parameters_Method_LLG>> llg_parameters;
 };
 
 template<>
@@ -49,6 +51,10 @@ inline void Method_Solver<Solver::VP>::Initialize()
     this->forces_previous     = velocities;                                                              // [noi][nos]
     this->projection          = std::vector<scalar>( this->noi, 0 );                                     // [noi]
     this->force_norm2         = std::vector<scalar>( this->noi, 0 );                                     // [noi]
+
+    this->llg_parameters = std::vector<std::shared_ptr<const Data::Parameters_Method_LLG>>( this->noi, nullptr );
+    for( int i = 0; i < this->noi; i++ )
+        this->llg_parameters[i] = this->systems[i]->llg_parameters;
 }
 
 /*
@@ -98,8 +104,7 @@ inline void Method_Solver<Solver::VP>::Iteration()
         // Calculate the new velocity
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), force.size(),
-            [f, f_pr, v] SPIRIT_LAMBDA( const int idx )
-            { v[idx] += 0.5 / mass * ( f_pr[idx] + f[idx] ); } );
+            [f, f_pr, v] SPIRIT_LAMBDA( const int idx ) { v[idx] += 0.5 / mass * ( f_pr[idx] + f[idx] ); } );
 
         // Get the projection of the velocity on the force
         projection[i]  = Vectormath::dot( velocity, force );
@@ -120,7 +125,7 @@ inline void Method_Solver<Solver::VP>::Iteration()
         auto * conf      = raw_pointer_cast( ( configurations[i] )->data() );
         auto * conf_temp = raw_pointer_cast( ( configurations_temp[i] )->data() );
 
-        const scalar dt    = this->systems[i]->llg_parameters->dt;
+        const scalar dt    = this->llg_parameters[i]->dt;
         const scalar ratio = projection_full / force_norm2_full;
 
         // Calculate the projected velocity
@@ -137,7 +142,7 @@ inline void Method_Solver<Solver::VP>::Iteration()
 
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), force.size(),
-            [conf, conf_temp, dt,  v, f] SPIRIT_LAMBDA( const int idx )
+            [conf, conf_temp, dt, v, f] SPIRIT_LAMBDA( const int idx )
             {
                 conf_temp[idx] = conf[idx] + dt * v[idx] + 0.5 / mass * dt * f[idx];
                 conf[idx]      = conf_temp[idx].normalized();
