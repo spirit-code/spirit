@@ -61,12 +61,34 @@ constexpr auto common_solver( Spin::Solver solver ) -> Common::Solver
     }
 }
 
-// default implementation (to be overwritten by class template specialization)
-template<Solver solver>
-class SolverData : public Method
+class SolverMethods : public Method
 {
 protected:
     using Method::Method;
+
+    virtual void Prepare_Thermal_Field() = 0;
+    virtual void Calculate_Force(
+        const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces ) = 0;
+    virtual void Calculate_Force_Virtual(
+        const std::vector<std::shared_ptr<vectorfield>> & configurations, const std::vector<vectorfield> & forces,
+        std::vector<vectorfield> & forces_virtual ) = 0;
+    // Actual Forces on the configurations
+    std::vector<vectorfield> forces;
+    // Virtual Forces used in the Steps
+    std::vector<vectorfield> forces_virtual;
+    // Pointers to Configurations (for Solver methods)
+    std::vector<std::shared_ptr<vectorfield>> configurations;
+};
+
+// default implementation (to be overwritten by class template specialization)
+template<Solver solver>
+class SolverData : public SolverMethods
+{
+protected:
+    using SolverMethods::SolverMethods;
+    using SolverMethods::Prepare_Thermal_Field;
+    using SolverMethods::Calculate_Force;
+    using SolverMethods::Calculate_Force_Virtual;
 };
 
 /*
@@ -108,7 +130,7 @@ public:
 
 protected:
     // Prepare random numbers for thermal fields, if needed
-    virtual void Prepare_Thermal_Field() {}
+    void Prepare_Thermal_Field() override {}
 
     /*
      * Calculate Forces onto Systems
@@ -116,8 +138,8 @@ protected:
      *   calculated. This function is used in `the Solver_...` functions.
      * TODO: maybe rename to separate from deterministic and stochastic force functions
      */
-    virtual void Calculate_Force(
-        const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces )
+    void Calculate_Force(
+        const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces ) override
     {
         Log( Utility::Log_Level::Error, Utility::Log_Sender::All,
              "Tried to use Method_Solver::Calculate_Force() of the Method_Solver class!", this->idx_image,
@@ -131,9 +153,9 @@ protected:
      *   temperature. This function is used in `the Solver_...` functions.
      * Default implementation: direct minimization
      */
-    virtual void Calculate_Force_Virtual(
+    void Calculate_Force_Virtual(
         const std::vector<std::shared_ptr<vectorfield>> & configurations, const std::vector<vectorfield> & forces,
-        std::vector<vectorfield> & forces_virtual )
+        std::vector<vectorfield> & forces_virtual ) override
     {
         // Not Implemented!
         Log( Utility::Log_Level::Error, Utility::Log_Sender::All,
@@ -169,12 +191,6 @@ protected:
 
     std::vector<std::shared_ptr<system_t>> systems;
 
-    // Actual Forces on the configurations
-    std::vector<vectorfield> forces;
-    // Virtual Forces used in the Steps
-    std::vector<vectorfield> forces_virtual;
-    // Pointers to Configurations (for Solver methods)
-    std::vector<std::shared_ptr<vectorfield>> configurations;
 };
 
 template<Solver solver>
