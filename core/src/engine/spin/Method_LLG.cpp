@@ -346,7 +346,7 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
 
                     // open and write
                     IO::OVF_File( energyFilePerSpin )
-                        .write_segment( segment, raw_pointer_cast( data.data() ), static_cast<int>( format ) );
+                        .write_segment( segment, data.data(), static_cast<int>( format ) );
 
                     Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                          fmt::format(

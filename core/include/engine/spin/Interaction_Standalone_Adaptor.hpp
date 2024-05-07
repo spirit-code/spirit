@@ -101,7 +101,7 @@ public:
     {
         using std::begin, std::end;
         auto functor           = typename InteractionType::Gradient( this->data, this->cache );
-        const auto * state_ptr = raw_pointer_cast( state.data() );
+        const auto * state_ptr = state.data();
         Backend::transform(
             SPIRIT_PAR this->indices.begin(), this->indices.end(), gradient.begin(),
             [state_ptr, functor] SPIRIT_LAMBDA( const IndexTuple & index )

@@ -906,7 +906,7 @@ try
                 // Open
                 auto file = IO::OVF_File( filename );
                 // Write
-                file.write_segment( segment, raw_pointer_cast( data.data() ), format );
+                file.write_segment( segment, data.data(), format );
 
                 Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                      fmt::format( "Wrote spins to file \"{}\" in {} format", filename, str( fileformat ) ), idx_image,

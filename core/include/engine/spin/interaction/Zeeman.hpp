@@ -95,7 +95,7 @@ struct Functor::Local::DataRef<Zeeman>
             : is_contributing( Interaction::is_contributing( data, cache ) ),
               external_field_magnitude( data.external_field_magnitude ),
               external_field_normal( data.external_field_normal ),
-              mu_s( raw_pointer_cast( cache.geometry->mu_s.data() ) )
+              mu_s( cache.geometry->mu_s.data() )
     {
     }
 

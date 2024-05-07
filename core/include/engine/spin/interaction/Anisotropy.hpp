@@ -104,8 +104,8 @@ struct Functor::Local::DataRef<Anisotropy>
 
     DataRef( const Data & data, const Cache & cache ) noexcept
             : is_contributing( Interaction::is_contributing( data, cache ) ),
-              normals( raw_pointer_cast( data.normals.data() ) ),
-              magnitudes( raw_pointer_cast( data.magnitudes.data() ) ){};
+              normals( data.normals.data() ),
+              magnitudes( data.magnitudes.data() ){};
 
     const bool is_contributing;
 

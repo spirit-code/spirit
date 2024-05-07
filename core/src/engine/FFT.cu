@@ -25,7 +25,7 @@ void batch_Four_3D( FFT_Plan & plan )
     if( plan.cfg.has_value() )
     {
         auto res = cufftExecR2C(
-            *plan.cfg, raw_pointer_cast( plan.real_ptr.data() ), raw_pointer_cast( plan.cpx_ptr.data() ) );
+            *plan.cfg, plan.real_ptr.data(), plan.cpx_ptr.data() );
         if( res != CUFFT_SUCCESS )
         {
             Log( Utility::Log_Level::Error, Utility::Log_Sender::All,
@@ -42,7 +42,7 @@ void batch_iFour_3D( FFT_Plan & plan )
     if( plan.cfg.has_value() )
     {
         auto res = cufftExecC2R(
-            *plan.cfg, raw_pointer_cast( plan.cpx_ptr.data() ), raw_pointer_cast( plan.real_ptr.data() ) );
+            *plan.cfg, plan.cpx_ptr.data(), plan.real_ptr.data() );
         if( res != CUFFT_SUCCESS )
         {
             Log( Utility::Log_Level::Error, Utility::Log_Sender::All,

@@ -321,8 +321,8 @@ void Energy_per_Spin_FFT(
     Vectormath::fill( gradients_temp, { 0, 0, 0 } );
     Gradient_FFT( geometry, boundary_conditions, cache, spins, gradients_temp );
     CU_E_DDI_FFT<<<( geometry.nos + 1023 ) / 1024, 1024>>>(
-        raw_pointer_cast( energy.data() ), raw_pointer_cast( spins.data() ), raw_pointer_cast( gradients_temp.data() ),
-        geometry.nos, geometry.n_cell_atoms, raw_pointer_cast( geometry.mu_s.data() ) );
+        energy.data(), spins.data(), gradients_temp.data(),
+        geometry.nos, geometry.n_cell_atoms, geometry.mu_s.data() );
 
     // === DEBUG: begin gradient comparison ===
     // vectorfield gradients_temp_dir;
@@ -462,9 +462,9 @@ void Gradient_FFT(
     // TODO: also parallelize over i_b1
     // Loop over basis atoms (i.e sublattices) and add contribution of each sublattice
     CU_FFT_Pointwise_Mult<<<( spins.size() + 1023 ) / 1024, 1024>>>(
-        raw_pointer_cast( ft_D_matrices.data() ), raw_pointer_cast( ft_spins.data() ),
-        raw_pointer_cast( res_mult.data() ), raw_pointer_cast( cache.it_bounds_pointwise_mult.data() ),
-        raw_pointer_cast( cache.inter_sublattice_lookup.data() ), cache.dipole_stride, cache.spin_stride );
+        ft_D_matrices.data(), ft_spins.data(),
+        res_mult.data(), cache.it_bounds_pointwise_mult.data(),
+        cache.inter_sublattice_lookup.data(), cache.dipole_stride, cache.spin_stride );
     // cudaDeviceSynchronize();
     // std::cerr << "\n\n>>>>>>>>>>>  Pointwise_Mult       <<<<<<<<<\n";
     // for( int i = 0; i < 10; i++ )
@@ -474,9 +474,9 @@ void Gradient_FFT(
     FFT::batch_iFour_3D( cache.fft_plan_reverse );
 
     CU_Write_FFT_Gradients<<<( geometry.nos + 1023 ) / 1024, 1024>>>(
-        raw_pointer_cast( res_iFFT.data() ), raw_pointer_cast( gradient.data() ), cache.spin_stride,
-        raw_pointer_cast( cache.it_bounds_write_gradients.data() ), geometry.n_cell_atoms,
-        raw_pointer_cast( geometry.mu_s.data() ), cache.sublattice_size );
+        res_iFFT.data(), gradient.data(), cache.spin_stride,
+        cache.it_bounds_write_gradients.data(), geometry.n_cell_atoms,
+        geometry.mu_s.data(), cache.sublattice_size );
 #else
     // Size of original geometry
     int Na = geometry.n_cells[0];
@@ -493,7 +493,7 @@ void Gradient_FFT(
 
     // Workaround for compability with intel compiler
     const int c_n_cell_atoms               = geometry.n_cell_atoms;
-    const int * c_it_bounds_pointwise_mult = raw_pointer_cast( cache.it_bounds_pointwise_mult.data() );
+    const int * c_it_bounds_pointwise_mult = cache.it_bounds_pointwise_mult.data();
 
     // Loop over basis atoms (i.e sublattices)
 #pragma omp parallel for collapse( 4 )
@@ -548,7 +548,7 @@ void Gradient_FFT(
     FFT::batch_iFour_3D( cache.fft_plan_reverse );
 
     // Workaround for compability with intel compiler
-    const int * c_n_cells = raw_pointer_cast( geometry.n_cells.data() );
+    const int * c_n_cells = geometry.n_cells.data();
 
     // Place the gradients at the correct positions and mult with correct mu
     for( int c = 0; c < c_n_cells[2]; ++c )
@@ -659,8 +659,8 @@ void FFT_Spins(
 {
 #ifdef SPIRIT_USE_CUDA
     CU_Write_FFT_Spin_Input<<<( geometry.nos + 1023 ) / 1024, 1024>>>(
-        raw_pointer_cast( fft_plan.real_ptr.data() ), raw_pointer_cast( spins.data() ),
-        raw_pointer_cast( it_bounds_write_spins.data() ), spin_stride, raw_pointer_cast( geometry.mu_s.data() ) );
+        fft_plan.real_ptr.data(), spins.data(),
+        it_bounds_write_spins.data(), spin_stride, geometry.mu_s.data() );
 #else
     // size of original geometry
     const int Na           = geometry.n_cells[0];
@@ -796,10 +796,10 @@ void FFT_Dipole_Matrices(
 
     static constexpr int blockSize = 768;
     CU_Write_FFT_Dipole_Input<<<( cache.sublattice_size + blockSize - 1 ) / blockSize, blockSize>>>(
-        raw_pointer_cast( fft_dipole_inputs.data() ), raw_pointer_cast( cache.it_bounds_write_dipole.data() ),
-        raw_pointer_cast( translation_vectors.data() ), geometry.n_cell_atoms,
-        raw_pointer_cast( cell_atom_translations.data() ), raw_pointer_cast( geometry.n_cells.data() ),
-        raw_pointer_cast( cache.inter_sublattice_lookup.data() ), raw_pointer_cast( img.data() ), cache.dipole_stride );
+        fft_dipole_inputs.data(), cache.it_bounds_write_dipole.data(),
+        translation_vectors.data(), geometry.n_cell_atoms,
+        cell_atom_translations.data(), geometry.n_cells.data(),
+        cache.inter_sublattice_lookup.data(), img.data(), cache.dipole_stride );
 #else
     // Prefactor of DDI
     static constexpr scalar mult = C::mu_0 * C::mu_B * C::mu_B / ( 4 * C::Pi * 1e-30 );
@@ -825,7 +825,7 @@ void FFT_Dipole_Matrices(
             cache.inter_sublattice_lookup[i_b1 + i_b2 * geometry.n_cell_atoms] = b_inter;
 
             // Iterate over the padded system
-            const int * c_n_cells_padded = raw_pointer_cast( cache.n_cells_padded.data() );
+            const int * c_n_cells_padded = cache.n_cells_padded.data();
 
 #pragma omp parallel for collapse( 3 )
             for( int c = 0; c < c_n_cells_padded[2]; ++c )

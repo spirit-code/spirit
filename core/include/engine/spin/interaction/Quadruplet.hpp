@@ -131,7 +131,7 @@ struct Functor::Local::DataRef<Quadruplet>
 
     DataRef( const Data & data, const Cache & cache ) noexcept
             : is_contributing( Interaction::is_contributing( data, cache ) ),
-              magnitudes( raw_pointer_cast( data.magnitudes.data() ) )
+              magnitudes( data.magnitudes.data() )
     {
     }
 

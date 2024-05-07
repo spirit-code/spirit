@@ -444,7 +444,7 @@ try
     auto [image, _] = from_indices( state, idx_image, idx_chain );
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
     static vectorfield positions = image->hamiltonian->get_geometry().positions;
-    return (scalar *)raw_pointer_cast( positions[0].data() );
+    return (scalar *)positions[0].data();
 }
 catch( ... )
 {
@@ -461,7 +461,7 @@ try
 
     // TODO: we should also check if idx_image < 0 and log the promotion to idx_active_image
     static intfield atom_types = image->hamiltonian->get_geometry().atom_types;
-    return (int *)raw_pointer_cast( atom_types.data() );
+    return (int *)atom_types.data();
 }
 catch( ... )
 {
