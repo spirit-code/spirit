@@ -8,10 +8,13 @@ namespace Spin
 {
 
 template<>
-class SolverData<Solver::RungeKutta4> : public Method
+class SolverData<Solver::RungeKutta4> : public SolverMethods
 {
 protected:
-    using Method::Method;
+    using SolverMethods::SolverMethods;
+    using SolverMethods::Prepare_Thermal_Field;
+    using SolverMethods::Calculate_Force;
+    using SolverMethods::Calculate_Force_Virtual;
 
     std::vector<std::shared_ptr<vectorfield>> configurations_k1;
     std::vector<std::shared_ptr<vectorfield>> configurations_k2;

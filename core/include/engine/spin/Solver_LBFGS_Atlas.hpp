@@ -13,10 +13,13 @@ namespace Spin
 {
 
 template<>
-class SolverData<Solver::LBFGS_Atlas> : public Method
+class SolverData<Solver::LBFGS_Atlas> : public SolverMethods
 {
 protected:
-    using Method::Method;
+    using SolverMethods::SolverMethods;
+    using SolverMethods::Prepare_Thermal_Field;
+    using SolverMethods::Calculate_Force;
+    using SolverMethods::Calculate_Force_Virtual;
     // General
     static constexpr int n_lbfgs_memory = 3; // how many updates the solver tracks to estimate the hessian
     static constexpr scalar maxmove     = 0.05;

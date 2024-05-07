@@ -9,10 +9,13 @@ namespace Spin
 
 
 template<>
-class SolverData<Solver::VP> : public Method
+class SolverData<Solver::VP> : public SolverMethods
 {
 protected:
-    using Method::Method;
+    using SolverMethods::SolverMethods;
+    using SolverMethods::Prepare_Thermal_Field;
+    using SolverMethods::Calculate_Force;
+    using SolverMethods::Calculate_Force_Virtual;
     //////////// VP ///////////////////////////////////////////////////////////////
     // "Mass of our particle" which we accelerate
     static constexpr scalar mass = 1.0;

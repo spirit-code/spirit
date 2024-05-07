@@ -8,10 +8,13 @@ namespace Spin
 {
 
 template<>
-class SolverData<Solver::Depondt> : public Method
+class SolverData<Solver::Depondt> : public SolverMethods
 {
 protected:
-    using Method::Method;
+    using SolverMethods::SolverMethods;
+    using SolverMethods::Prepare_Thermal_Field;
+    using SolverMethods::Calculate_Force;
+    using SolverMethods::Calculate_Force_Virtual;
     // Temporaries for virtual forces
     std::vector<vectorfield> rotationaxis;
     std::vector<scalarfield> forces_virtual_norm;

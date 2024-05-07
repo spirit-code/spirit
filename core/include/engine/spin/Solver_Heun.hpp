@@ -8,10 +8,13 @@ namespace Spin
 {
 
 template<>
-class SolverData<Solver::Heun> : public Method
+class SolverData<Solver::Heun> : public SolverMethods
 {
 protected:
-    using Method::Method;
+    using SolverMethods::SolverMethods;
+    using SolverMethods::Prepare_Thermal_Field;
+    using SolverMethods::Calculate_Force;
+    using SolverMethods::Calculate_Force_Virtual;
     // Actual Forces on the configurations
     std::vector<vectorfield> forces_predictor;
     // Virtual Forces used in the Steps
