@@ -34,6 +34,8 @@ protected:
     std::vector<vectorfield> searchdir;
 
     std::vector<std::shared_ptr<vectorfield>> configurations_temp;
+
+    std::vector<std::shared_ptr<const Data::Parameters_Method_LLG>> llg_parameters;
 };
 
 template<>
@@ -54,6 +56,10 @@ inline void Method_Solver<Solver::VP_OSO>::Initialize()
     this->projection          = std::vector<scalar>( this->noi, 0 ); // [noi]
     this->force_norm2         = std::vector<scalar>( this->noi, 0 ); // [noi]
     this->searchdir           = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
+
+    this->llg_parameters = std::vector<std::shared_ptr<const Data::Parameters_Method_LLG>>( this->noi, nullptr );
+    for( int i = 0; i < this->noi; i++ )
+        this->llg_parameters[i] = this->systems[i]->llg_parameters;
 }
 
 /*
@@ -131,7 +137,7 @@ inline void Method_Solver<Solver::VP_OSO>::Iteration()
         auto * sd      = raw_pointer_cast( this->searchdir[img].data() );
         auto * v       = raw_pointer_cast( this->velocities[img].data() );
 
-        scalar dt    = this->systems[img]->llg_parameters->dt;
+        scalar dt    = this->llg_parameters[img]->dt;
         scalar ratio = projection_full / force_norm2_full;
 
         // Calculate the projected velocity
