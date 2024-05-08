@@ -613,23 +613,26 @@ void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bo
         };
 
         Calculate_Interpolated_Energy_Contributions();
-        auto writeOutputEnergies = [this, preChainFile, preEnergiesFile, iteration]( const std::string & suffix )
-        {
-            bool normalize   = this->chain->gneb_parameters->output_energies_divide_by_nspins;
-            bool readability = this->chain->gneb_parameters->output_energies_add_readability_lines;
+        IO::Flags flags;
+        if( this->chain->gneb_parameters->output_energies_divide_by_nspins )
+            flags |= IO::Flag::Normalize_by_nos;
+        if( this->chain->gneb_parameters->output_energies_add_readability_lines )
+            flags |= IO::Flag::Readability;
 
+        auto writeOutputEnergies = [this, flags, preChainFile, preEnergiesFile, iteration]( const std::string & suffix )
+        {
             // File name
             std::string energiesFile             = preEnergiesFile + suffix + ".txt";
             std::string energiesFileInterpolated = preEnergiesFile + "-interpolated" + suffix + ".txt";
             // std::string energiesFilePerSpin = preEnergiesFile + "PerSpin" + suffix + ".txt";
 
             // Energies
-            IO::Write_Chain_Energies( *this->chain, iteration, energiesFile, normalize, readability );
+            IO::Write_Chain_Energies( *this->chain, iteration, energiesFile, flags );
 
             // Interpolated Energies
             if( this->chain->gneb_parameters->output_energies_interpolated )
             {
-                IO::Write_Chain_Energies_Interpolated( *this->chain, energiesFileInterpolated, normalize, readability );
+                IO::Write_Chain_Energies_Interpolated( *this->chain, energiesFileInterpolated, flags );
             }
             /*if (this->systems[0]->llg_parameters->output_energy_spin_resolved)
             {

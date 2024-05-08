@@ -95,18 +95,20 @@ void Write_Neighbours_DMI( const State::system_t & system, const std::string & f
 
 void Write_Energy_Header(
     const State::system_t & system, const std::string & filename, const std::vector<std::string> && firstcolumns,
-    bool contributions, bool normalize_by_nos, bool readability_toggle )
+    Flags flags )
 {
+    verify_flags( flags, Flag::Contributions | Flag::Readability | Flag::Normalize_by_nos, __func__ );
+
     std::string separator = "";
     std::string line      = "";
     for( const auto & column : firstcolumns )
     {
-        if( readability_toggle )
+        if( flags & Flag::Readability )
             separator += "----------------------++";
         // Centered column titles
         line += fmt::format( " {:^20} ||", column );
     }
-    if( contributions )
+    if( flags & Flag::Contributions )
     {
         bool first = true;
         for( const auto & pair : system.E_array )
@@ -116,12 +118,12 @@ void Write_Energy_Header(
             else
             {
                 line += "|";
-                if( readability_toggle )
+                if( flags & Flag::Readability )
                     separator += "+";
             }
             // Centered column titles
             line += fmt::format( " {:^20} ", pair.first );
-            if( readability_toggle )
+            if( flags & Flag::Readability )
                 separator += "----------------------";
         }
     }
@@ -129,22 +131,24 @@ void Write_Energy_Header(
     separator += "\n";
 
     std::string header;
-    if( readability_toggle )
+    if( flags & Flag::Readability )
         header = separator + line + separator;
     else
+    {
         header = line;
-    if( !readability_toggle )
         std::replace( header.begin(), header.end(), '|', ' ' );
+    }
 
     write_to_file( header, filename );
 }
 
 void Append_Image_Energy(
-    const State::system_t & system, const int iteration, const std::string & filename, bool normalize_by_nos,
-    bool readability_toggle )
+    const State::system_t & system, const int iteration, const std::string & filename, Flags flags )
 {
+    verify_flags( flags, Flag::Readability | Flag::Normalize_by_nos, __func__ );
+
     scalar normalization = 1;
-    if( normalize_by_nos )
+    if( flags & Flag::Normalize_by_nos )
         normalization = static_cast<scalar>( 1.0 / static_cast<double>( system.nos ) );
 
     // s.UpdateEnergy();
@@ -157,17 +161,18 @@ void Append_Image_Energy(
     }
     line += "\n";
 
-    if( !readability_toggle )
+    if( !( flags & Flag::Readability ) )
         std::replace( line.begin(), line.end(), '|', ' ' );
 
     append_to_file( line, filename );
 }
 
-void Write_Image_Energy(
-    const State::system_t & system, const std::string & filename, bool normalize_by_nos, bool readability_toggle )
+void Write_Image_Energy( const State::system_t & system, const std::string & filename, Flags flags )
 {
+    verify_flags( flags, Flag::Readability | Flag::Normalize_by_nos, __func__ );
+
     scalar normalization = 1;
-    if( normalize_by_nos )
+    if( flags & Flag::Normalize_by_nos )
         normalization = static_cast<scalar>( 1.0 / static_cast<double>( system.nos ) );
 
     Write_Energy_Header( system, filename, { "E_tot" } );
@@ -179,18 +184,19 @@ void Write_Image_Energy(
     }
     line += "\n";
 
-    if( !readability_toggle )
+    if( !( flags & Flag::Readability ) )
         std::replace( line.begin(), line.end(), '|', ' ' );
 
     append_to_file( line, filename );
 }
 
 void Write_Chain_Energies(
-    const State::chain_t & chain, const int iteration, const std::string & filename, bool normalize_by_nos,
-    bool readability_toggle )
+    const State::chain_t & chain, const int iteration, const std::string & filename, Flags flags )
 {
+    verify_flags( flags, Flag::Readability | Flag::Normalize_by_nos, __func__ );
+
     scalar normalization = 1;
-    if( normalize_by_nos )
+    if( flags & Flag::Normalize_by_nos )
         normalization = static_cast<scalar>( 1.0 / static_cast<double>( chain.images[0]->nos ) );
 
     Write_Energy_Header( *chain.images[0], filename, { "image", "Rx", "E_tot" } );
@@ -206,18 +212,19 @@ void Write_Chain_Energies(
         }
         line += "\n";
 
-        if( !readability_toggle )
+        if( !( flags & Flag::Readability ) )
             std::replace( line.begin(), line.end(), '|', ' ' );
 
         append_to_file( line, filename );
     }
 }
 
-void Write_Chain_Energies_Interpolated(
-    const State::chain_t & chain, const std::string & filename, bool normalize_by_nos, bool readability_toggle )
+void Write_Chain_Energies_Interpolated( const State::chain_t & chain, const std::string & filename, Flags flags )
 {
+    verify_flags( flags, Flag::Readability | Flag::Normalize_by_nos, __func__ );
+
     scalar normalization = 1;
-    if( normalize_by_nos )
+    if( flags & Flag::Normalize_by_nos )
         normalization = static_cast<scalar>( 1.0 / static_cast<double>( chain.images[0]->nos ) );
 
     Write_Energy_Header( *chain.images[0], filename, { "image", "iinterp", "Rx", "E_tot" } );
@@ -247,7 +254,7 @@ void Write_Chain_Energies_Interpolated(
             line += "\n";
 
             // Whether to use space or | as column separator
-            if( !readability_toggle )
+            if( !( flags & Flag::Readability ) )
                 std::replace( line.begin(), line.end(), '|', ' ' );
 
             // Write

@@ -273,12 +273,14 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
             }
         };
 
+        IO::Flags flags;
+        if( this->systems[0]->llg_parameters->output_energy_divide_by_nspins )
+            flags |= IO::Flag::Normalize_by_nos;
+        if( this->systems[0]->llg_parameters->output_energy_add_readability_lines )
+            flags |= IO::Flag::Readability;
         auto writeOutputEnergy
-            = [this, preSpinsFile, preEnergyFile, iteration]( const std::string & suffix, bool append )
+            = [this, flags, preSpinsFile, preEnergyFile, iteration]( const std::string & suffix, bool append )
         {
-            bool normalize   = this->systems[0]->llg_parameters->output_energy_divide_by_nspins;
-            bool readability = this->systems[0]->llg_parameters->output_energy_add_readability_lines;
-
             // File name
             std::string energyFile        = preEnergyFile + suffix + ".txt";
             std::string energyFilePerSpin = preEnergyFile + "-perSpin" + suffix + ".txt";
@@ -290,15 +292,15 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
                 std::ifstream f( energyFile );
                 if( !f.good() )
                     IO::Write_Energy_Header(
-                        *this->systems[0], energyFile, { "iteration", "E_tot" }, true, normalize, readability );
+                        *this->systems[0], energyFile, { "iteration", "E_tot" }, IO::Flag::Contributions | flags );
                 // Append Energy to File
-                IO::Append_Image_Energy( *this->systems[0], iteration, energyFile, normalize, readability );
+                IO::Append_Image_Energy( *this->systems[0], iteration, energyFile, flags );
             }
             else
             {
                 IO::Write_Energy_Header(
-                    *this->systems[0], energyFile, { "iteration", "E_tot" }, true, normalize, readability );
-                IO::Append_Image_Energy( *this->systems[0], iteration, energyFile, normalize, readability );
+                    *this->systems[0], energyFile, { "iteration", "E_tot" }, IO::Flag::Contributions | flags );
+                IO::Append_Image_Energy( *this->systems[0], iteration, energyFile, flags );
                 if( this->systems[0]->llg_parameters->output_energy_spin_resolved )
                 {
                     // Gather the data

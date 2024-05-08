@@ -38,8 +38,8 @@ std::unique_ptr<Data::Parameters_Method_EMA> Parameters_Method_EMA_from_Config( 
 
 std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config( const std::string & config_file_name );
 
-std::unique_ptr<Engine::Spin::HamiltonianVariant> Hamiltonian_from_Config(
-    const std::string & config_file_name, Data::Geometry geometry, intfield boundary_conditions );
+std::unique_ptr<Engine::Spin::HamiltonianVariant>
+Hamiltonian_from_Config( const std::string & config_file_name, Data::Geometry geometry, intfield boundary_conditions );
 
 std::unique_ptr<Engine::Spin::HamiltonianVariant> Hamiltonian_Heisenberg_from_Config(
     const std::string & config_file_name, Data::Geometry geometry, intfield boundary_conditions,
