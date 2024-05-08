@@ -8,12 +8,7 @@
 #include <fmt/format.h>
 
 #include <algorithm>
-#include <cctype>
 #include <cstring>
-#include <fstream>
-#include <iomanip>
-#include <iostream>
-#include <sstream>
 #include <string>
 
 namespace IO
@@ -28,16 +23,7 @@ void Write_Neighbours_Exchange( const State::system_t & system, const std::strin
     const pairfield & exchange_pairs        = cache->pairs;
     const scalarfield & exchange_magnitudes = cache->magnitudes;
 
-    std::size_t n_neighbours = exchange_pairs.size();
-
-#if defined( SPIRIT_USE_OPENMP )
-    // When parallelising (cuda or openmp), all neighbours per spin are already there
-    const bool mirror_neighbours = false;
-#else
-    // When running on a single thread, we need to re-create redundant neighbours
-    const bool mirror_neighbours = true;
-    n_neighbours *= 2;
-#endif
+    const std::size_t n_neighbours = 2 * exchange_pairs.size();
 
     std::string output;
     output.reserve( int( 0x02000000 ) ); // reserve 32[MByte]
@@ -54,14 +40,11 @@ void Write_Neighbours_Exchange( const State::system_t & system, const std::strin
                 "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}\n", exchange_pairs[i].i, exchange_pairs[i].j,
                 exchange_pairs[i].translations[0], exchange_pairs[i].translations[1], exchange_pairs[i].translations[2],
                 exchange_magnitudes[i] );
-            if( mirror_neighbours )
-            {
-                // Mirrored interactions
-                output += fmt::format(
-                    "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}\n", exchange_pairs[i].j, exchange_pairs[i].i,
-                    ( -1 ) * exchange_pairs[i].translations[0], ( -1 ) * exchange_pairs[i].translations[1],
-                    ( -1 ) * exchange_pairs[i].translations[2], exchange_magnitudes[i] );
-            }
+            // Mirrored interactions
+            output += fmt::format(
+                "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}\n", exchange_pairs[i].j, exchange_pairs[i].i,
+                ( -1 ) * exchange_pairs[i].translations[0], ( -1 ) * exchange_pairs[i].translations[1],
+                ( -1 ) * exchange_pairs[i].translations[2], exchange_magnitudes[i] );
         }
     }
 
@@ -78,16 +61,7 @@ void Write_Neighbours_DMI( const State::system_t & system, const std::string & f
     const scalarfield & dmi_magnitudes = cache->magnitudes;
     const vectorfield & dmi_normals    = cache->normals;
 
-    std::size_t n_neighbours = dmi_pairs.size();
-
-#if defined( SPIRIT_USE_OPENMP )
-    // When parallelising (cuda or openmp), all neighbours per spin are already there
-    const bool mirror_neighbours = false;
-#else
-    // When running on a single thread, we need to re-create redundant neighbours
-    const bool mirror_neighbours = true;
-    n_neighbours *= 2;
-#endif
+    const std::size_t n_neighbours = 2 * dmi_pairs.size();
 
     std::string output;
     output.reserve( int( 0x02000000 ) ); // reserve 32[MByte]
@@ -107,15 +81,12 @@ void Write_Neighbours_DMI( const State::system_t & system, const std::string & f
                 dmi_pairs[i].j, dmi_pairs[i].translations[0], dmi_pairs[i].translations[1],
                 dmi_pairs[i].translations[2], dmi_magnitudes[i], dmi_normals[i][0], dmi_normals[i][1],
                 dmi_normals[i][2] );
-            if( mirror_neighbours )
-            {
-                // Mirrored interactions
-                output += fmt::format(
-                    "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f} {:^15.8f} {:^15.8f} {:^15.8f}\n", dmi_pairs[i].j,
-                    dmi_pairs[i].i, ( -1 ) * dmi_pairs[i].translations[0], ( -1 ) * dmi_pairs[i].translations[1],
-                    ( -1 ) * dmi_pairs[i].translations[2], dmi_magnitudes[i], ( -1 ) * dmi_normals[i][0],
-                    ( -1 ) * dmi_normals[i][1], ( -1 ) * dmi_normals[i][2] );
-            }
+            // Mirrored interactions
+            output += fmt::format(
+                "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f} {:^15.8f} {:^15.8f} {:^15.8f}\n", dmi_pairs[i].j,
+                dmi_pairs[i].i, ( -1 ) * dmi_pairs[i].translations[0], ( -1 ) * dmi_pairs[i].translations[1],
+                ( -1 ) * dmi_pairs[i].translations[2], dmi_magnitudes[i], ( -1 ) * dmi_normals[i][0],
+                ( -1 ) * dmi_normals[i][1], ( -1 ) * dmi_normals[i][2] );
         }
     }
 
