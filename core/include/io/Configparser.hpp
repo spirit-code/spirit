@@ -8,6 +8,7 @@
 #include <data/Parameters_Method_MMF.hpp>
 #include <data/State.hpp>
 #include <engine/spin/Hamiltonian.hpp>
+#include <io/hamiltonian/Hamiltonian.hpp>
 
 namespace IO
 {
@@ -37,16 +38,6 @@ Parameters_Method_GNEB_from_Config( const std::string & config_file_name );
 std::unique_ptr<Data::Parameters_Method_EMA> Parameters_Method_EMA_from_Config( const std::string & config_file_name );
 
 std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config( const std::string & config_file_name );
-
-std::unique_ptr<Engine::Spin::HamiltonianVariant>
-Hamiltonian_from_Config( const std::string & config_file_name, Data::Geometry geometry, intfield boundary_conditions );
-
-std::unique_ptr<Engine::Spin::HamiltonianVariant> Hamiltonian_Heisenberg_from_Config(
-    const std::string & config_file_name, Data::Geometry geometry, intfield boundary_conditions,
-    const std::string & hamiltonian_type );
-
-std::unique_ptr<Engine::Spin::HamiltonianVariant> Hamiltonian_Gaussian_from_Config(
-    const std::string & config_file_name, Data::Geometry geometry, intfield boundary_conditions );
 
 } // namespace IO
 

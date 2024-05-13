@@ -1,6 +1,7 @@
 ﻿#include <engine/Neighbours.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/spin/Hamiltonian.hpp>
+#include <io/Configwriter.hpp>
 #include <io/Filter_File_Handle.hpp>
 #include <io/IO.hpp>
 #include <utility/Constants.hpp>
