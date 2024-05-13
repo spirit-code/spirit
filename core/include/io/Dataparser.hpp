@@ -1,4 +1,3 @@
-
 #pragma once
 #ifndef SPIRIT_CORE_IO_DATAPARSER_HPP
 #define SPIRIT_CORE_IO_DATAPARSER_HPP
@@ -22,37 +21,9 @@ void Check_NonOVF_Chain_Configuration(
     std::shared_ptr<State::chain_t> chain, const std::string & file, int start_image_infile,
     int end_image_infile, const int insert_idx, int & noi_to_add, int & noi_to_read, const int idx_chain );
 
-void Anisotropy_from_File(
-    const std::string & anisotropy_file, const Data::Geometry & geometry, int & n_indices,
-    intfield & anisotropy_index, scalarfield & anisotropy_magnitude, vectorfield & anisotropy_normal,
-    intfield & cubic_anisotropy_index, scalarfield & cubic_anisotropy_magnitude ) noexcept;
-
-void Biaxial_Anisotropy_Axes_from_File(
-    const std::string & anisotropy_axes_file, const Data::Geometry & geometry, int & n_axes,
-    std::map<int, std::pair<Vector3, Vector3>> & anisotropy_axes ) noexcept;
-
-void Biaxial_Anisotropy_Terms_from_File(
-    const std::string & anisotropy_terms_file, const Data::Geometry & geometry, int & n_terms,
-    std::map<int, field<PolynomialTerm>> & anisotropy_terms ) noexcept;
-
-void Biaxial_Anisotropy_from_File(
-    const std::string & anisotropy_axes_file, const std::string & anisotropy_terms_file,
-    const Data::Geometry & geometry, int & n_indices, intfield & anisotropy_indices,
-    field<PolynomialBasis> & anisotropy_polynomial_bases, field<unsigned int> & anisotropy_polynomial_site_p,
-    field<PolynomialTerm> & anisotropy_polynomial_terms ) noexcept;
-
 void Basis_from_File(
     const std::string & basis_file, Data::Basis_Cell_Composition & cell_composition, std::vector<Vector3> & cell_atoms,
     std::size_t & n_cell_atoms ) noexcept;
-
-void Pairs_from_File(
-    const std::string & pairs_file, const Data::Geometry & geometry, int & nop,
-    pairfield & exchange_pairs, scalarfield & exchange_magnitudes, pairfield & dmi_pairs, scalarfield & dmi_magnitudes,
-    vectorfield & dmi_normals ) noexcept;
-
-void Quadruplets_from_File(
-    const std::string & quadruplets_file, const Data::Geometry & geometry, int & noq,
-    quadrupletfield & quadruplets, scalarfield & quadruplet_magnitudes ) noexcept;
 
 void Defects_from_File(
     const std::string & defects_file, int & n_defects, field<Site> & defect_sites, intfield & defect_types ) noexcept;

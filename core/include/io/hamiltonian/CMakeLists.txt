@@ -1,0 +1,9 @@
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/hamiltonian)
+
+set(HEADER_SPIRIT_IO_HAMILTONIAN
+    ${HEADER_SPIRIT_IO_HAMILTONIAN}
+    ${CMAKE_CURRENT_SOURCE_DIR}/Interactions.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
+    PARENT_SCOPE
+)
