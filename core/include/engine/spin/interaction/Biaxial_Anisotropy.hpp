@@ -4,6 +4,7 @@
 
 #include <engine/Indexing.hpp>
 #include <engine/spin/interaction/Functor_Prototypes.hpp>
+#include <utility/Fastpow.hpp>
 
 #include <Eigen/Dense>
 
@@ -127,7 +128,7 @@ protected:
 template<>
 inline scalar Biaxial_Anisotropy::Energy::operator()( const Index & index, const Vector3 * spins ) const
 {
-    using std::pow;
+    using Utility::fastpow;
     scalar result = 0;
     if( !is_contributing || index == nullptr )
         return result;
@@ -142,7 +143,7 @@ inline scalar Biaxial_Anisotropy::Energy::operator()( const Index & index, const
     for( auto iterm = site_p[iani]; iterm < site_p[iani + 1]; ++iterm )
     {
         const auto & [coeff, n1, n2, n3] = terms[iterm];
-        result += coeff * pow( sin_theta_2, n1 ) * pow( s2, n2 ) * pow( s3, n3 );
+        result += coeff * fastpow( sin_theta_2, n1 ) * fastpow( s2, n2 ) * fastpow( s3, n3 );
     }
 
     return result;
@@ -151,7 +152,7 @@ inline scalar Biaxial_Anisotropy::Energy::operator()( const Index & index, const
 template<>
 inline Vector3 Biaxial_Anisotropy::Gradient::operator()( const Index & index, const Vector3 * spins ) const
 {
-    using std::pow;
+    using Utility::fastpow;
     Vector3 result = Vector3::Zero();
     if( !is_contributing || index == nullptr )
         return result;
@@ -169,16 +170,16 @@ inline Vector3 Biaxial_Anisotropy::Gradient::operator()( const Index & index, co
     {
         const auto & [coeff, n1, n2, n3] = terms[iterm];
 
-        const scalar a = pow( s2, n2 );
-        const scalar b = pow( s3, n3 );
-        const scalar c = pow( sin_theta_2, n1 );
+        const scalar a = fastpow( s2, n2 );
+        const scalar b = fastpow( s3, n3 );
+        const scalar c = fastpow( sin_theta_2, n1 );
 
         if( n1 > 0 )
-            result += k1 * ( coeff * a * b * n1 * ( -2.0 * s1 * pow( sin_theta_2, n1 - 1 ) ) );
+            result += k1 * ( coeff * a * b * n1 * ( -2.0 * s1 * fastpow( sin_theta_2, n1 - 1 ) ) );
         if( n2 > 0 )
-            result += k2 * ( coeff * b * c * n2 * pow( s2, n2 - 1 ) );
+            result += k2 * ( coeff * b * c * n2 * fastpow( s2, n2 - 1 ) );
         if( n3 > 0 )
-            result += k3 * ( coeff * a * c * n3 * pow( s3, n3 - 1 ) );
+            result += k3 * ( coeff * a * c * n3 * fastpow( s3, n3 - 1 ) );
     }
 
     return result;
@@ -188,7 +189,7 @@ template<>
 template<typename Callable>
 void Biaxial_Anisotropy::Hessian::operator()( const Index & index, const vectorfield & spins, Callable & hessian ) const
 {
-    using std::pow;
+    using Utility::fastpow;
     if( !is_contributing || index == nullptr )
         return;
 
@@ -205,22 +206,22 @@ void Biaxial_Anisotropy::Hessian::operator()( const Index & index, const vectorf
     {
         const auto & [coeff, n1, n2, n3] = terms[iterm];
 
-        const scalar a = pow( s2, n2 );
-        const scalar b = pow( s3, n3 );
-        const scalar c = pow( st2, n1 );
+        const scalar a = fastpow( s2, n2 );
+        const scalar b = fastpow( s3, n3 );
+        const scalar c = fastpow( st2, n1 );
         // clang-format off
         const scalar p_11 = n1 <= 1 ? 0
-            : 2 * n1 * ( 2 * n1 * s1 * s1 - 1 ) * ( coeff * a * b * pow( st2, n1 - 2 ) );
+            : 2 * n1 * ( 2 * n1 * s1 * s1 - 1 ) * ( coeff * a * b * fastpow( st2, n1 - 2 ) );
         const scalar p_22 = n2 <= 1 ? 0
-            : n2 * ( n2 - 1 ) * ( coeff * b * c * pow( s2, n2 - 2 ) );
+            : n2 * ( n2 - 1 ) * ( coeff * b * c * fastpow( s2, n2 - 2 ) );
         const scalar p_33 = n3 <= 1 ? 0
-            : n3 * ( n3 - 1 ) * ( coeff * a * c * pow( s3, n3 - 2 ) );
+            : n3 * ( n3 - 1 ) * ( coeff * a * c * fastpow( s3, n3 - 2 ) );
         const scalar p_12 = n2 == 0 || n1 == 0 ? 0
-            : b * coeff * n2 * pow( s2, n2 - 1 ) * ( -2.0 * n1 * s1 ) * pow( s1, n1 - 1 );
+            : b * coeff * n2 * fastpow( s2, n2 - 1 ) * ( -2.0 * n1 * s1 ) * fastpow( s1, n1 - 1 );
         const scalar p_13 = n3 == 0 || n1 == 0 ? 0
-            : a * coeff * n3 * pow( s3, n3 - 1 ) * ( -2.0 * n1 * s1 ) * pow( s1, n1 - 1 );
+            : a * coeff * n3 * fastpow( s3, n3 - 1 ) * ( -2.0 * n1 * s1 ) * fastpow( s1, n1 - 1 );
         const scalar p_23 = n2 == 0 || n3 == 0 ? 0
-            : c * coeff * n2 * pow( s2, n2 - 1 ) * n3 * pow( s3, n3 - 1 );
+            : c * coeff * n2 * fastpow( s2, n2 - 1 ) * n3 * fastpow( s3, n3 - 1 );
         // clang-format on
 
 #pragma unroll

@@ -4,6 +4,7 @@
 
 #include <engine/Indexing.hpp>
 #include <engine/spin/interaction/Functor_Prototypes.hpp>
+#include <utility/Fastpow.hpp>
 
 #include <Eigen/Dense>
 
@@ -107,20 +108,20 @@ protected:
 template<>
 inline scalar Cubic_Anisotropy::Energy::operator()( const Index & index, const Vector3 * spins ) const
 {
-    using std::pow;
+    using Utility::fastpow;
     scalar result = 0;
     if( !is_contributing || index == nullptr )
         return result;
 
     const auto & [ispin, iani] = *index;
     return -0.5 * magnitudes[iani]
-           * ( pow( spins[ispin][0], 4.0 ) + pow( spins[ispin][1], 4.0 ) + pow( spins[ispin][2], 4.0 ) );
+           * ( fastpow( spins[ispin][0], 4u ) + fastpow( spins[ispin][1], 4u ) + fastpow( spins[ispin][2], 4u ) );
 }
 
 template<>
 inline Vector3 Cubic_Anisotropy::Gradient::operator()( const Index & index, const Vector3 * spins ) const
 {
-    using std::pow;
+    using Utility::fastpow;
     Vector3 result = Vector3::Zero();
     if( !is_contributing || index == nullptr )
         return result;
@@ -129,7 +130,7 @@ inline Vector3 Cubic_Anisotropy::Gradient::operator()( const Index & index, cons
 
     for( int icomp = 0; icomp < 3; ++icomp )
     {
-        result[icomp] = -2.0 * magnitudes[iani] * pow( spins[ispin][icomp], 3.0 );
+        result[icomp] = -2.0 * magnitudes[iani] * fastpow( spins[ispin][icomp], 3u );
     }
     return result;
 }
