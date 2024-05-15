@@ -28,14 +28,14 @@ void sib_transform( const vectorfield & spins, const vectorfield & force, vector
         SPIRIT_PAR Backend::make_counting_iterator( 0 ), n,
         [s, f, o] SPIRIT_LAMBDA( const int idx )
         {
-            Vector3 e1 = s[idx];
-            Vector3 A  = 0.5 * f[idx];
-
+            const Vector3 e1   = s[idx];
+            const Vector3 A    = 0.5 * f[idx];
+            const scalar Anorm = A.norm();
             // 1/determinant(A)
-            scalar detAi = 1.0 / ( 1 + pow( A.norm(), 2.0 ) );
+            const scalar detAi = 1.0 / ( 1 + Anorm * Anorm );
 
             // calculate equation witho the predictor?
-            Vector3 a2 = e1 - e1.cross( A );
+            const Vector3 a2 = e1 - e1.cross( A );
 
             o[idx][0]
                 = ( a2[0] * ( A[0] * A[0] + 1 ) + a2[1] * ( A[0] * A[1] - A[2] ) + a2[2] * ( A[0] * A[2] + A[1] ) )
