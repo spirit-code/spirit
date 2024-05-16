@@ -41,7 +41,7 @@ auto tuple_dispatch( Backend::tuple<WrappedInteractionTypes...> & interactions )
 {
     return Backend::apply(
         []( WrappedInteractionTypes &... interaction )
-        { return Backend::make_tuple( interaction.template make_functor<FunctorAccessor>()... ); },
+        { return Backend::make_tuple( Interaction::make_functor<FunctorAccessor>( interaction )... ); },
         interactions );
 };
 

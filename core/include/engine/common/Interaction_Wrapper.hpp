@@ -39,13 +39,6 @@ struct InteractionWrapper
     explicit InteractionWrapper( typename InteractionType::Data && init_data ) : data( init_data ), cache(){};
     explicit InteractionWrapper( const typename InteractionType::Data & init_data ) : data( init_data ), cache(){};
 
-    template<template<typename> typename FunctorAccessor>
-    FunctorAccessor<InteractionType>
-    make_functor() noexcept( std::is_nothrow_constructible<FunctorAccessor<InteractionType>, Data, Cache>::value )
-    {
-        return FunctorAccessor<InteractionType>( data, cache );
-    }
-
     // applyGeometry
     void applyGeometry( const ::Data::Geometry & geometry, const intfield & boundary_conditions )
     {
@@ -102,6 +95,14 @@ public:
     Data data;
     Cache cache = Cache();
 };
+
+template<template<typename> typename FunctorAccessor, typename InteractionType>
+FunctorAccessor<InteractionType> make_functor( InteractionWrapper<InteractionType> & interaction ) noexcept(
+    std::is_nothrow_constructible<
+        FunctorAccessor<InteractionType>, typename InteractionType::Data, typename InteractionType::Cache>::value )
+{
+    return FunctorAccessor<InteractionType>( interaction.data, interaction.cache );
+}
 
 template<typename StandaloneFactoryType, typename... WrappedInteractionType, typename Iterator>
 constexpr Iterator
