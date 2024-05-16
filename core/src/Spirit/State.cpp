@@ -89,6 +89,12 @@ try
 #else
     block.emplace_back( "    Not using OpenMP" );
 #endif
+// Log STL parallelization info
+#ifdef SPIRIT_USE_STDPAR
+    block.emplace_back( "    Using parallel STL" );
+#else
+    block.emplace_back( "    Not using parallel STL" );
+#endif
 // Log CUDA info
 #ifdef SPIRIT_USE_CUDA
     block.emplace_back( "    Using CUDA" );
