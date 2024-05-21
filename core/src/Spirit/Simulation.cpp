@@ -167,7 +167,7 @@ try
             image->llg_parameters->n_iterations_log = n_iterations_log;
 
         std::shared_ptr<Engine::Method> method
-            = [solver_type, img = &image, idx_image, idx_chain]() -> std::shared_ptr<Engine::Method>
+            = [solver_type, &img = image, idx_image, idx_chain]() -> std::shared_ptr<Engine::Method>
         {
             using Engine::Spin::Solver;
             using Engine::Spin::Method_LLG;
@@ -265,7 +265,7 @@ try
                 chain->gneb_parameters->n_iterations_log = n_iterations_log;
 
             std::shared_ptr<Engine::Method> method
-                = [solver_type, chn = &chain, idx_chain]() -> std::shared_ptr<Engine::Method>
+                = [solver_type, &chn = chain, idx_chain]() -> std::shared_ptr<Engine::Method>
             {
                 using Engine::Spin::Method_GNEB;
                 using Engine::Spin::Solver;
@@ -347,7 +347,7 @@ try
             image->mmf_parameters->n_iterations_log = n_iterations_log;
 
         std::shared_ptr<Engine::Method> method
-            = [solver_type, img = &image, idx_chain]() -> std::shared_ptr<Engine::Method>
+            = [solver_type, &img = image, idx_chain]() -> std::shared_ptr<Engine::Method>
         {
             using Engine::Spin::Solver;
             using Engine::Spin::Method_MMF;
