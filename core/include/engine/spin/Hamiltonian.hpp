@@ -126,7 +126,7 @@ public:
     explicit HamiltonianVariant( Gaussian && gaussian ) noexcept( std::is_nothrow_move_constructible_v<Gaussian> )
             : base_t( std::move( gaussian ) ){};
 
-    explicit HamiltonianVariant( Heisenberg && heisenberg ) noexcept( std::is_nothrow_move_constructible_v<Gaussian> )
+    explicit HamiltonianVariant( Heisenberg && heisenberg ) noexcept( std::is_nothrow_move_constructible_v<Heisenberg> )
             : base_t( std::move( heisenberg ) ){};
 
     [[nodiscard]] std::string_view Name() const noexcept
