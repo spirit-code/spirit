@@ -166,35 +166,37 @@ try
         if( n_iterations_log > 0 )
             image->llg_parameters->n_iterations_log = n_iterations_log;
 
-        std::shared_ptr<Engine::Method> method;
-        if( solver_type == int( Engine::Spin::Solver::SIB ) )
-            method
-                = std::make_shared<Engine::Spin::Method_LLG<Engine::Spin::Solver::SIB>>( image, idx_image, idx_chain );
-        else if( solver_type == int( Engine::Spin::Solver::Heun ) )
-            method
-                = std::make_shared<Engine::Spin::Method_LLG<Engine::Spin::Solver::Heun>>( image, idx_image, idx_chain );
-        else if( solver_type == int( Engine::Spin::Solver::Depondt ) )
-            method = std::make_shared<Engine::Spin::Method_LLG<Engine::Spin::Solver::Depondt>>(
-                image, idx_image, idx_chain );
-        else if( solver_type == int( Engine::Spin::Solver::RungeKutta4 ) )
-            method = std::make_shared<Engine::Spin::Method_LLG<Engine::Spin::Solver::RungeKutta4>>(
-                image, idx_image, idx_chain );
-        else if( solver_type == int( Engine::Spin::Solver::VP ) )
-            method
-                = std::make_shared<Engine::Spin::Method_LLG<Engine::Spin::Solver::VP>>( image, idx_image, idx_chain );
-        else if( solver_type == int( Engine::Spin::Solver::LBFGS_OSO ) )
-            method = std::make_shared<Engine::Spin::Method_LLG<Engine::Spin::Solver::LBFGS_OSO>>(
-                image, idx_image, idx_chain );
-        else if( solver_type == int( Engine::Spin::Solver::LBFGS_Atlas ) )
-            method = std::make_shared<Engine::Spin::Method_LLG<Engine::Spin::Solver::LBFGS_Atlas>>(
-                image, idx_image, idx_chain );
-        else if( solver_type == int( Engine::Spin::Solver::VP_OSO ) )
-            method = std::make_shared<Engine::Spin::Method_LLG<Engine::Spin::Solver::VP_OSO>>(
-                image, idx_image, idx_chain );
-        else
-            spirit_throw(
-                Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Warning,
-                fmt::format( "Invalid solver_type {}", solver_type ) );
+        std::shared_ptr<Engine::Method> method
+            = [solver_type, img = &image, idx_image, idx_chain]() -> std::shared_ptr<Engine::Method>
+        {
+            using Engine::Spin::Solver;
+            using Engine::Spin::Method_LLG;
+            // clang-format off
+            switch( static_cast<Solver>( solver_type ) )
+            {
+                case Solver::SIB:
+                    return std::make_shared<Method_LLG<Solver::SIB>>( img, idx_image, idx_chain );
+                case Solver::Heun:
+                    return std::make_shared<Method_LLG<Solver::Heun>>( img, idx_image, idx_chain );
+                case Solver::Depondt:
+                    return std::make_shared<Method_LLG<Solver::Depondt>>( img, idx_image, idx_chain );
+                case Solver::RungeKutta4:
+                    return std::make_shared<Method_LLG<Solver::RungeKutta4>>( img, idx_image, idx_chain );
+                case Solver::VP:
+                    return std::make_shared<Method_LLG<Solver::VP>>( img, idx_image, idx_chain );
+                case Solver::LBFGS_OSO:
+                    return std::make_shared<Method_LLG<Solver::LBFGS_OSO>>( img, idx_image, idx_chain );
+                case Solver::LBFGS_Atlas:
+                    return std::make_shared<Method_LLG<Solver::LBFGS_Atlas>>( img, idx_image, idx_chain );
+                case Solver::VP_OSO:
+                    return std::make_shared<Method_LLG<Solver::VP_OSO>>( img, idx_image, idx_chain );
+                default:
+                    spirit_throw(
+                        Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Warning,
+                        fmt::format( "Invalid solver_type {}", solver_type ) );
+            }
+            // clang-format on
+        }();
 
         image->Unlock();
 
@@ -262,27 +264,35 @@ try
             if( n_iterations_log > 0 )
                 chain->gneb_parameters->n_iterations_log = n_iterations_log;
 
-            std::shared_ptr<Engine::Method> method;
-            if( solver_type == int( Engine::Spin::Solver::SIB ) )
-                method = std::make_shared<Engine::Spin::Method_GNEB<Engine::Spin::Solver::SIB>>( chain, idx_chain );
-            else if( solver_type == int( Engine::Spin::Solver::Heun ) )
-                method = std::make_shared<Engine::Spin::Method_GNEB<Engine::Spin::Solver::Heun>>( chain, idx_chain );
-            else if( solver_type == int( Engine::Spin::Solver::Depondt ) )
-                method = std::make_shared<Engine::Spin::Method_GNEB<Engine::Spin::Solver::Depondt>>( chain, idx_chain );
-            else if( solver_type == int( Engine::Spin::Solver::VP ) )
-                method = std::make_shared<Engine::Spin::Method_GNEB<Engine::Spin::Solver::VP>>( chain, idx_chain );
-            else if( solver_type == int( Engine::Spin::Solver::LBFGS_OSO ) )
-                method
-                    = std::make_shared<Engine::Spin::Method_GNEB<Engine::Spin::Solver::LBFGS_OSO>>( chain, idx_chain );
-            else if( solver_type == int( Engine::Spin::Solver::LBFGS_Atlas ) )
-                method = std::make_shared<Engine::Spin::Method_GNEB<Engine::Spin::Solver::LBFGS_Atlas>>(
-                    chain, idx_chain );
-            else if( solver_type == int( Engine::Spin::Solver::VP_OSO ) )
-                method = std::make_shared<Engine::Spin::Method_GNEB<Engine::Spin::Solver::VP_OSO>>( chain, idx_chain );
-            else
-                spirit_throw(
-                    Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Warning,
-                    fmt::format( "Invalid solver_type {}", solver_type ) );
+            std::shared_ptr<Engine::Method> method
+                = [solver_type, chn = &chain, idx_chain]() -> std::shared_ptr<Engine::Method>
+            {
+                using Engine::Spin::Method_GNEB;
+                using Engine::Spin::Solver;
+                // clang-format off
+                switch( static_cast<Solver>( solver_type ) )
+                {
+                    case Solver::SIB:
+                        return std::make_shared<Method_GNEB<Solver::SIB>>( chn, idx_chain );
+                    case Solver::Heun:
+                        return std::make_shared<Method_GNEB<Solver::Heun>>( chn, idx_chain );
+                    case Solver::Depondt:
+                        return std::make_shared<Method_GNEB<Solver::Depondt>>( chn, idx_chain );
+                    case Solver::VP:
+                        return std::make_shared<Method_GNEB<Solver::VP>>( chn, idx_chain );
+                    case Solver::LBFGS_OSO:
+                        return std::make_shared<Method_GNEB<Solver::LBFGS_OSO>>( chn, idx_chain );
+                    case Solver::LBFGS_Atlas:
+                        return std::make_shared<Method_GNEB<Solver::LBFGS_Atlas>>( chn, idx_chain );
+                    case Solver::VP_OSO:
+                        return std::make_shared<Method_GNEB<Solver::VP_OSO>>( chn, idx_chain );
+                    default:
+                        spirit_throw(
+                            Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Warning,
+                            fmt::format( "Invalid solver_type {}", solver_type ) );
+                }
+                // clang-format on
+            }();
 
             chain->Unlock();
 
@@ -336,22 +346,31 @@ try
         if( n_iterations_log > 0 )
             image->mmf_parameters->n_iterations_log = n_iterations_log;
 
-        std::shared_ptr<Engine::Method> method;
-        if( solver_type == int( Engine::Spin::Solver::SIB ) )
-            method = std::make_shared<Engine::Spin::Method_MMF<Engine::Spin::Solver::SIB>>( image, idx_chain );
-        else if( solver_type == int( Engine::Spin::Solver::Heun ) )
-            method = std::make_shared<Engine::Spin::Method_MMF<Engine::Spin::Solver::Heun>>( image, idx_chain );
-        else if( solver_type == int( Engine::Spin::Solver::Depondt ) )
-            method = std::make_shared<Engine::Spin::Method_MMF<Engine::Spin::Solver::Depondt>>( image, idx_chain );
-        // else if (solver_type == int(Engine::Spin::Solver::NCG))
-        //     method = std::shared_ptr<Engine::Method>(
-        //         new Engine::Spin::Method_MMF<Engine::Spin::Solver::NCG>( image, idx_chain ) );
-        else if( solver_type == int( Engine::Spin::Solver::VP ) )
-            method = std::make_shared<Engine::Spin::Method_MMF<Engine::Spin::Solver::VP>>( image, idx_chain );
-        else
-            spirit_throw(
-                Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Warning,
-                fmt::format( "Invalid solver_type {}", solver_type ) );
+        std::shared_ptr<Engine::Method> method
+            = [solver_type, img = &image, idx_chain]() -> std::shared_ptr<Engine::Method>
+        {
+            using Engine::Spin::Solver;
+            using Engine::Spin::Method_MMF;
+            // clang-format off
+            switch ( static_cast<Solver>( solver_type ) )
+            {
+                case Solver::SIB:
+                    return std::make_shared<Method_MMF<Solver::SIB>>( img, idx_chain );
+                case Solver::Heun:
+                    return std::make_shared<Method_MMF<Solver::Heun>>( img, idx_chain );
+                case Solver::Depondt:
+                    return std::make_shared<Method_MMF<Solver::Depondt>>( img, idx_chain );
+                // case Solver::NCG:
+                //     return std::make_shared<Method_MMF<Solver::NCG>>( img, idx_chain );
+                case Solver::VP:
+                    return std::make_shared<Method_MMF<Solver::VP>>( img, idx_chain );
+                default:
+                    spirit_throw(
+                        Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Warning,
+                        fmt::format( "Invalid solver_type {}", solver_type ) );
+            }
+            // clang-format on
+        }();
 
         image->Unlock();
 
