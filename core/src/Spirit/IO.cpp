@@ -118,7 +118,7 @@ try
             case IO::VF_FileFormat::OVF_TEXT:
             case IO::VF_FileFormat::OVF_CSV:
             {
-                auto segment = IO::OVF_Segment( *image );
+                auto segment = IO::OVF_Segment( image->hamiltonian->get_geometry() );
 
                 std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
                 segment.title       = strdup( title.c_str() );
@@ -317,7 +317,7 @@ try
             case IO::VF_FileFormat::OVF_TEXT:
             case IO::VF_FileFormat::OVF_CSV:
             {
-                auto segment = IO::OVF_Segment( *image );
+                auto segment = IO::OVF_Segment( image->hamiltonian->get_geometry() );
                 auto & spins = *image->spins;
 
                 std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
@@ -388,7 +388,7 @@ try
                         fmt::format( "Cannot append to non-OVF file \"{}\"", filename ) );
                 }
 
-                auto segment = IO::OVF_Segment( *image );
+                auto segment = IO::OVF_Segment( image->hamiltonian->get_geometry() );
                 auto & spins = *image->spins;
 
                 std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
@@ -668,7 +668,7 @@ try
                 // Open
                 auto file = IO::OVF_File( filename );
 
-                auto segment = IO::OVF_Segment( *image );
+                auto segment = IO::OVF_Segment( image->hamiltonian->get_geometry() );
                 auto & spins = *image->spins;
 
                 std::string title       = fmt::format( "SPIRIT Version {}", Utility::version_full );
@@ -749,7 +749,7 @@ try
                         fmt::format( "Cannot append to non-OVF file \"{}\"", filename ) );
                 }
 
-                auto segment = IO::OVF_Segment( *image );
+                auto segment = IO::OVF_Segment( image->hamiltonian->get_geometry() );
                 auto & spins = *image->spins;
 
                 std::string title       = fmt::format( "SPIRIT Version {}", Utility::version_full );
@@ -884,7 +884,7 @@ try
             case IO::VF_FileFormat::OVF_TEXT:
             case IO::VF_FileFormat::OVF_CSV:
             {
-                auto segment = IO::OVF_Segment( *image );
+                auto segment = IO::OVF_Segment( image->hamiltonian->get_geometry() );
 
                 std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
                 segment.title       = strdup( title.c_str() );
@@ -1148,7 +1148,7 @@ try
             case IO::VF_FileFormat::OVF_TEXT:
             case IO::VF_FileFormat::OVF_CSV:
             {
-                auto segment      = IO::OVF_Segment( *image );
+                auto segment      = IO::OVF_Segment( image->hamiltonian->get_geometry() );
                 std::string title = fmt::format( "SPIRIT Version {}", Utility::version_full );
                 segment.title     = strdup( title.c_str() );
 
@@ -1183,7 +1183,7 @@ try
                 file.write_segment( segment, image->eigenvalues.data(), format );
 
                 /////// Eigenmodes
-                segment             = IO::OVF_Segment( *image );
+                segment             = IO::OVF_Segment( image->hamiltonian->get_geometry() );
                 segment.valuedim    = 3;
                 segment.valuelabels = strdup( "mode_x mode_y mode_z" );
                 segment.valueunits  = strdup( "none none none" );
