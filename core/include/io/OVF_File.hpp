@@ -12,7 +12,7 @@ namespace IO
 struct OVF_Segment : ::ovf_segment
 {
     OVF_Segment();
-    OVF_Segment( const State::system_t & system );
+    OVF_Segment( const Data::Geometry & geometry );
     ~OVF_Segment();
 };
 

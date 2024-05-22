@@ -255,7 +255,7 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
 
                 // Spin Configuration
                 auto & spins        = *this->systems[0]->spins;
-                auto segment        = IO::OVF_Segment( *this->systems[0] );
+                auto segment        = IO::OVF_Segment( this->systems[0]->hamiltonian->get_geometry() );
                 std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
                 segment.title       = strdup( title.c_str() );
                 segment.comment     = strdup( output_comment.c_str() );
@@ -324,7 +324,7 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
                     }
 
                     // Segment
-                    auto segment = IO::OVF_Segment( *this->systems[0] );
+                    auto segment = IO::OVF_Segment( this->systems[0]->hamiltonian->get_geometry() );
 
                     std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
                     segment.title       = strdup( title.c_str() );

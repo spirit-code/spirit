@@ -9,11 +9,9 @@ OVF_Segment::OVF_Segment()
     ovf_segment_initialize( this );
 }
 
-OVF_Segment::OVF_Segment( const State::system_t & system )
+OVF_Segment::OVF_Segment( const Data::Geometry & geometry )
 {
     ovf_segment_initialize( this );
-
-    const auto & geometry = system.hamiltonian->get_geometry();
 
     this->valuedim      = 0;
     this->valuelabels   = const_cast<char *>( "" );

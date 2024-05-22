@@ -583,7 +583,7 @@ void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bo
                     this->Name(), this->SolverFullName(), iteration, this->max_torque );
 
                 // write/append the first image
-                auto segment = IO::OVF_Segment( *this->chain->images[0] );
+                auto segment = IO::OVF_Segment( this->chain->images[0]->hamiltonian->get_geometry() );
                 {
                     std::string title = fmt::format( "SPIRIT Version {}", Utility::version_full );
                     segment.title     = strdup( title.c_str() );
