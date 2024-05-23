@@ -29,7 +29,7 @@ Method_LLG<solver>::Method_LLG( std::shared_ptr<system_t> system, int idx_img, i
     this->SenderName = Utility::Log_Sender::LLG;
 
     this->noi = this->systems.size();
-    this->nos = this->systems[0]->nos;  // assume all systems have the same size
+    this->nos = this->systems[0]->nos; // assume all systems have the same size
 
     // Forces (assume all systems have the same size)
     this->forces         = std::vector( this->noi, vectorfield( this->nos, Vector3::Zero() ) );
@@ -239,8 +239,7 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
         preEnergyFile = this->parameters->output_folder + "/" + fileTag + "Image-" + s_img + "_Energy";
 
         // Function to write or append image and energy files
-        auto writeOutputConfiguration
-            = [this, preSpinsFile, preEnergyFile, iteration]( const std::string & suffix, bool append )
+        auto writeOutputConfiguration = [this, preSpinsFile, iteration]( const std::string & suffix, bool append )
         {
             try
             {
@@ -278,8 +277,7 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
             flags |= IO::Flag::Normalize_by_nos;
         if( this->systems[0]->llg_parameters->output_energy_add_readability_lines )
             flags |= IO::Flag::Readability;
-        auto writeOutputEnergy
-            = [this, flags, preSpinsFile, preEnergyFile, iteration]( const std::string & suffix, bool append )
+        auto writeOutputEnergy = [this, flags, preEnergyFile, iteration]( const std::string & suffix, bool append )
         {
             // File name
             std::string energyFile        = preEnergyFile + suffix + ".txt";
@@ -308,53 +306,10 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
                     this->systems[0]->UpdateEnergy();
                     this->systems[0]->hamiltonian->Energy_Contributions_per_Spin(
                         *this->systems[0]->spins, contributions_spins );
-                    int datasize = ( 1 + contributions_spins.size() ) * this->systems[0]->nos;
-                    scalarfield data( datasize, 0 );
-                    for( int ispin = 0; ispin < this->systems[0]->nos; ++ispin )
-                    {
-                        scalar E_spin = 0;
-                        int j         = 1;
-                        for( const auto & contribution : contributions_spins )
-                        {
-                            E_spin += contribution.second[ispin];
-                            data[ispin + j] = contribution.second[ispin];
-                            ++j;
-                        }
-                        data[ispin] = E_spin;
-                    }
 
-                    // Segment
-                    auto segment = IO::OVF_Segment( this->systems[0]->hamiltonian->get_geometry() );
-
-                    std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
-                    segment.title       = strdup( title.c_str() );
-                    std::string comment = fmt::format( "Energy per spin. Total={}meV", this->systems[0]->E );
-                    for( const auto & contribution : this->systems[0]->E_array )
-                        comment += fmt::format( ", {}={}meV", contribution.first, contribution.second );
-                    segment.comment  = strdup( comment.c_str() );
-                    segment.valuedim = 1 + this->systems[0]->E_array.size();
-
-                    std::string valuelabels = "Total";
-                    std::string valueunits  = "meV";
-                    for( const auto & pair : this->systems[0]->E_array )
-                    {
-                        valuelabels += fmt::format( " {}", pair.first );
-                        valueunits += " meV";
-                    }
-                    segment.valuelabels = strdup( valuelabels.c_str() );
-
-                    // File format
-                    IO::VF_FileFormat format = this->systems[0]->llg_parameters->output_vf_filetype;
-
-                    // open and write
-                    IO::OVF_File( energyFilePerSpin )
-                        .write_segment( segment, data.data(), static_cast<int>( format ) );
-
-                    Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-                         fmt::format(
-                             "Wrote spins to file \"{}\" with format {}", energyFilePerSpin,
-                             static_cast<int>( format ) ),
-                         -1, -1 );
+                    IO::Write_Image_Energy_Contributions(
+                        this->systems[0]->hamiltonian->get_geometry(), this->systems[0]->E, this->systems[0]->E_array,
+                        contributions_spins, energyFilePerSpin, this->systems[0]->llg_parameters->output_vf_filetype );
                 }
             }
         };
