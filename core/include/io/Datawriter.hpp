@@ -36,6 +36,12 @@ void Write_Chain_Energies_Interpolated(
     const State::chain_t & chain, const std::string & filename,
     Flags flags = Flag::Readability | Flag::Normalize_by_nos );
 
+// Save interaction-resolved energy contributions of a spin system
+void Write_Image_Energy_Contributions(
+    const Data::Geometry & geometry, scalar enery_total, const Data::vectorlabeled<scalar> & energy_contributions_total,
+    const Data::vectorlabeled<scalarfield> & contributions_per_spin, const std::string & filename,
+    IO::VF_FileFormat format );
+
 } // namespace IO
 
 #endif

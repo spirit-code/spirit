@@ -268,4 +268,51 @@ void Write_Chain_Energies_Interpolated( const State::chain_t & chain, const std:
     }
 }
 
+void Write_Image_Energy_Contributions(
+    const Data::Geometry & geometry, const scalar enery_total,
+    const Data::vectorlabeled<scalar> & energy_contributions_total,
+    const Data::vectorlabeled<scalarfield> & contributions_per_spin, const std::string & filename,
+    const IO::VF_FileFormat format )
+{
+    const std::size_t nos      = geometry.nos;
+    const std::size_t valuedim = 1 + contributions_per_spin.size();
+    scalarfield data( valuedim * nos, 0 );
+    for( std::size_t ispin = 0; ispin < nos; ++ispin )
+    {
+        scalar E_spin = 0;
+        std::size_t j = 1;
+        for( const auto & [_, contribution] : contributions_per_spin )
+        {
+            E_spin += contribution[ispin];
+            data[ispin * valuedim + j] = contribution[ispin];
+            ++j;
+        }
+        data[ispin * valuedim] = E_spin;
+    }
+
+    IO::OVF_Segment segment( geometry );
+    std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
+    segment.title       = strdup( title.c_str() );
+    std::string comment = fmt::format( "Energy per spin. Total={}meV", enery_total );
+    for( const auto & [label, contribution] : energy_contributions_total )
+        comment += fmt::format( ", {}={}meV", label, contribution );
+    segment.comment  = strdup( comment.c_str() );
+    segment.valuedim = 1 + energy_contributions_total.size();
+
+    std::string valuelabels = "Total";
+    std::string valueunits  = "meV";
+    for( const auto & [label, _] : energy_contributions_total )
+    {
+        valuelabels += fmt::format( " {}", label );
+        valueunits += " meV";
+    }
+    segment.valuelabels = strdup( valuelabels.c_str() );
+
+    // open and write
+    IO::OVF_File( filename ).write_segment( segment, data.data(), static_cast<int>( format ) );
+
+    Log( Utility::Log_Level::Info, Utility::Log_Sender::IO,
+         fmt::format( "Wrote spins to file \"{}\" with format {}", filename, static_cast<int>( format ) ), -1, -1 );
+}
+
 } // namespace IO
