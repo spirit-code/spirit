@@ -2,33 +2,34 @@
 #ifndef SPIRIT_CORE_UTILITY_VERSION_HPP
 #define SPIRIT_CORE_UTILITY_VERSION_HPP
 
-#include <string>
+#include <string_view>
 
 namespace Utility
 {
 
-const int version_major = ${META_VERSION_MAJOR};
-const int version_minor = ${META_VERSION_MINOR};
-const int version_patch = ${META_VERSION_PATCH};
+static constexpr int version_major = ${META_VERSION_MAJOR};
+static constexpr int version_minor = ${META_VERSION_MINOR};
+static constexpr int version_patch = ${META_VERSION_PATCH};
 
-const std::string version          = "${META_VERSION}";
-const std::string version_revision = "${META_VERSION_REVISION}";
-const std::string version_full     = "${META_VERSION} (${META_VERSION_REVISION})";
+static constexpr std::string_view version          = "${META_VERSION}";
+static constexpr std::string_view version_revision = "${META_VERSION_REVISION}";
+static constexpr std::string_view version_full     = "${META_VERSION} (${META_VERSION_REVISION})";
 
-const std::string compiler         = "${META_COMPILER}";
-const std::string compiler_version = "${META_COMPILER_VERSION}";
-const std::string compiler_full    = "${META_COMPILER_FULL}";
+static constexpr std::string_view compiler         = "${META_COMPILER}";
+static constexpr std::string_view compiler_version = "${META_COMPILER_VERSION}";
+static constexpr std::string_view compiler_full    = "${META_COMPILER_FULL}";
 
-const std::string scalartype = "${SPIRIT_SCALAR_TYPE}";
+static constexpr std::string_view scalartype = "${SPIRIT_SCALAR_TYPE}";
 
-const std::string pinning = "${SPIRIT_ENABLE_PINNING}";
-const std::string defects = "${SPIRIT_ENABLE_DEFECTS}";
+static constexpr std::string_view pinning = "${SPIRIT_ENABLE_PINNING}";
+static constexpr std::string_view defects = "${SPIRIT_ENABLE_DEFECTS}";
 
-const std::string cuda    = "${SPIRIT_USE_CUDA}";
-const std::string openmp  = "${SPIRIT_USE_OPENMP}";
-const std::string threads = "${SPIRIT_USE_THREADS}";
+static constexpr std::string_view cuda    = "${SPIRIT_USE_CUDA}";
+static constexpr std::string_view openmp  = "${SPIRIT_USE_OPENMP}";
+static constexpr std::string_view stdpar  = "${SPIRIT_USE_STDPAR}";
+static constexpr std::string_view threads = "${SPIRIT_USE_THREADS}";
 
-const std::string fftw = "${SPIRIT_USE_FFTW}";
+static constexpr std::string_view fftw = "${SPIRIT_USE_FFTW}";
 
 } // namespace Utility
 
