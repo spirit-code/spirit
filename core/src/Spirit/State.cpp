@@ -49,12 +49,12 @@ try
     block.emplace_back( "========== Spirit State: Initialising... ============" );
 
     // Log version info
-    block.emplace_back( "==========     Version:  " + version );
+    block.emplace_back( fmt::format( "==========     Version:  {}", version ) );
     // Log revision hash
-    block.emplace_back( "==========     Revision: " + version_revision );
+    block.emplace_back( fmt::format( "==========     Revision: {}", version_revision ) );
     Log( Log_Level::All, Log_Sender::All, block );
     // Log compiler
-    Log( Log_Level::Info, Log_Sender::All, "==========     Compiled with: " + compiler_full );
+    Log( Log_Level::Info, Log_Sender::All, fmt::format( "==========     Compiled with: {}", compiler_full ) );
 
     // Log whether running in "quiet" mode
     if( state->quiet )
