@@ -29,10 +29,10 @@ std::vector<std::vector<scalar>> Interpolate(
         for( int j = 0; j < n_interpolations + 1; ++j )
         {
             t   = j / static_cast<scalar>( n_interpolations + 1 );
-            h00 = 2 * std::pow( t, 3 ) - 3 * std::pow( t, 2 ) + 1;
-            h10 = -2 * std::pow( t, 3 ) + 3 * std::pow( t, 2 );
-            h01 = std::pow( t, 3 ) - 2 * std::pow( t, 2 ) + t;
-            h11 = std::pow( t, 3 ) - std::pow( t, 2 );
+            h00 = 2 * /*pow(t, 3)*/ t * t * t - 3 * /*pow(t, 2)*/ t * t + 1;
+            h10 = -2 * /*pow(t, 3)*/ t * t * t + 3 * /*pow(t, 2)*/ t * t;
+            h01 = /*pow(t, 3)*/ t * t * t - 2 * /*pow(t, 2)*/ t * t + t;
+            h11 = /*pow(t, 3)*/ t * t * t - /*pow(t, 2)*/ t * t;
 
             idx            = i * ( n_interpolations + 1 ) + j;
             result[0][idx] = x0 + t * ( x1 - x0 );
