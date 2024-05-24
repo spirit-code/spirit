@@ -290,7 +290,7 @@ void Method_MC::Message_Step()
                 "    Current cone angle (deg): {:>6.3f} (non-adaptive)", this->cone_angle * 180 / Constants::Pi ) );
         }
     }
-    block.emplace_back( fmt::format( "    Total energy:             {:20.10f}", this->system->E ) );
+    block.emplace_back( fmt::format( "    Total energy:             {:20.10f}", this->system->E.total ) );
     Log( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 
     // Update time of last step
@@ -339,7 +339,7 @@ void Method_MC::Message_End()
                 "    Cone angle (deg): {:>6.3f} (non-adaptive)", this->cone_angle * 180 / Constants::Pi ) );
         }
     }
-    block.emplace_back( fmt::format( "    Total energy:     {:20.10f}", this->system->E ) );
+    block.emplace_back( fmt::format( "    Total energy:     {:20.10f}", this->system->E.total ) );
     block.emplace_back( "-----------------------------------------------------" );
     Log( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 }

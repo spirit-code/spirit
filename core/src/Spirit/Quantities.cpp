@@ -45,8 +45,8 @@ try
 
     // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
 
-    auto mag = Engine::Vectormath::Magnetization( *image->spins, image->hamiltonian->get_geometry().mu_s );
-    image->M = mag;
+    auto mag      = Engine::Vectormath::Magnetization( *image->spins, image->hamiltonian->get_geometry().mu_s );
+    image->M.mean = mag;
 
     // image->Unlock();
 
@@ -100,8 +100,8 @@ try
     if( dimensionality == 2 )
     {
         Engine::Vectormath::TopologicalChargeDensity(
-            *image->spins, image->hamiltonian->get_geometry(), image->hamiltonian->get_boundary_conditions(), charge_density,
-            triangle_indices );
+            *image->spins, image->hamiltonian->get_geometry(), image->hamiltonian->get_boundary_conditions(),
+            charge_density, triangle_indices );
     }
 
     if( charge_density_ptr != nullptr && triangle_indices_ptr != nullptr )
@@ -281,7 +281,8 @@ try
     {
         for( int j = 0; j < nos; ++j )
         {
-            if( ( !system->hamiltonian->get_geometry().mask_unpinned[i] ) || ( !system->hamiltonian->get_geometry().mask_unpinned[j] ) )
+            if( ( !system->hamiltonian->get_geometry().mask_unpinned[i] )
+                || ( !system->hamiltonian->get_geometry().mask_unpinned[j] ) )
             {
                 hess.block<3, 3>( 3 * i, 3 * j ).setZero();
             }

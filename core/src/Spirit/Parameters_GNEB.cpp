@@ -317,9 +317,9 @@ try
 
     for( int img = 1; img < chain->noi - 1; ++img )
     {
-        scalar E0 = chain->images[img - 1]->E;
-        scalar E1 = chain->images[img]->E;
-        scalar E2 = chain->images[img + 1]->E;
+        scalar E0 = chain->images[img - 1]->E.total;
+        scalar E1 = chain->images[img]->E.total;
+        scalar E2 = chain->images[img + 1]->E.total;
 
         // Maximum
         if( E0 < E1 && E1 > E2 )

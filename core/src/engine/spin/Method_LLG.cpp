@@ -148,13 +148,13 @@ void Method_LLG<solver>::Hook_Post_Iteration()
     // Update the system's Energy
     // ToDo: copy instead of recalculating
 
-    this->systems[0]->E = current_energy;
+    this->systems[0]->E.total = current_energy;
 
     // ToDo: How to update eff_field without numerical overhead?
     // systems[0]->effective_field = Gradient[0];
     // Vectormath::scale(systems[0]->effective_field, -1);
     Manifoldmath::project_tangential( this->forces[0], *this->systems[0]->spins );
-    Vectormath::set_c_a( 1, this->forces[0], this->systems[0]->effective_field );
+    Vectormath::set_c_a( 1, this->forces[0], this->systems[0]->M.effective_field );
     // systems[0]->UpdateEffectiveField();
 
     // TODO: In order to update Rx with the neighbouring images etc., we need the state -> how to do this?
@@ -204,16 +204,20 @@ void Method_LLG<solver>::Message_Block_End( std::vector<std::string> & block )
 template<Solver solver>
 void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, bool initial, bool final )
 {
+    if( this->systems.empty() || this->systems[0] == nullptr )
+        return;
+    auto & sys = *this->systems[0];
+
     // History save
     this->history_iteration.push_back( this->iteration );
     this->history_max_torque.push_back( this->max_torque );
-    this->history_energy.push_back( this->systems[0]->E );
+    this->history_energy.push_back( sys.E.total );
 
     // this->history["max_torque"].push_back( this->max_torque );
-    // this->systems[0]->UpdateEnergy();
-    // this->history["E"].push_back( this->systems[0]->E );
+    // sys.UpdateEnergy();
+    // this->history["E"].push_back( sys.E );
     // Removed magnetization, since at the moment it required a temporary allocation to compute
-    // auto mag = Engine::Vectormath::Magnetization( *this->systems[0]->spins );
+    // auto mag = Engine::Vectormath::Magnetization( *sys.spins );
     // this->history["M_z"].push_back( mag[2] );
 
     // File save
@@ -228,10 +232,10 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
         std::string preEnergyFile;
         std::string fileTag;
 
-        if( this->systems[0]->llg_parameters->output_file_tag == "<time>" )
+        if( sys.llg_parameters->output_file_tag == "<time>" )
             fileTag = starttime + "_";
-        else if( this->systems[0]->llg_parameters->output_file_tag != "" )
-            fileTag = this->systems[0]->llg_parameters->output_file_tag + "_";
+        else if( sys.llg_parameters->output_file_tag != "" )
+            fileTag = sys.llg_parameters->output_file_tag + "_";
         else
             fileTag = "";
 
@@ -239,7 +243,8 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
         preEnergyFile = this->parameters->output_folder + "/" + fileTag + "Image-" + s_img + "_Energy";
 
         // Function to write or append image and energy files
-        auto writeOutputConfiguration = [this, preSpinsFile, iteration]( const std::string & suffix, bool append )
+        auto writeOutputConfiguration
+            = [this, &sys, preSpinsFile, iteration]( const std::string & suffix, bool append )
         {
             try
             {
@@ -250,11 +255,11 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
                     this->Name(), this->SolverFullName(), iteration, this->max_torque );
 
                 // File format
-                IO::VF_FileFormat format = this->systems[0]->llg_parameters->output_vf_filetype;
+                IO::VF_FileFormat format = sys.llg_parameters->output_vf_filetype;
 
                 // Spin Configuration
-                auto & spins        = *this->systems[0]->spins;
-                auto segment        = IO::OVF_Segment( this->systems[0]->hamiltonian->get_geometry() );
+                auto & spins        = *sys.spins;
+                auto segment        = IO::OVF_Segment( sys.hamiltonian->get_geometry() );
                 std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
                 segment.title       = strdup( title.c_str() );
                 segment.comment     = strdup( output_comment.c_str() );
@@ -262,9 +267,9 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
                 segment.valuelabels = strdup( "spin_x spin_y spin_z" );
                 segment.valueunits  = strdup( "none none none" );
                 if( append )
-                    IO::OVF_File( spinsFile ).append_segment( segment, spins[0].data(), int( format ) );
+                    IO::OVF_File( spinsFile ).append_segment( segment, spins[0].data(), static_cast<int>( format ) );
                 else
-                    IO::OVF_File( spinsFile ).write_segment( segment, spins[0].data(), int( format ) );
+                    IO::OVF_File( spinsFile ).write_segment( segment, spins[0].data(), static_cast<int>( format ) );
             }
             catch( ... )
             {
@@ -273,11 +278,11 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
         };
 
         IO::Flags flags;
-        if( this->systems[0]->llg_parameters->output_energy_divide_by_nspins )
+        if( sys.llg_parameters->output_energy_divide_by_nspins )
             flags |= IO::Flag::Normalize_by_nos;
-        if( this->systems[0]->llg_parameters->output_energy_add_readability_lines )
+        if( sys.llg_parameters->output_energy_add_readability_lines )
             flags |= IO::Flag::Readability;
-        auto writeOutputEnergy = [this, flags, preEnergyFile, iteration]( const std::string & suffix, bool append )
+        auto writeOutputEnergy = [&sys, flags, preEnergyFile, iteration]( const std::string & suffix, bool append )
         {
             // File name
             std::string energyFile        = preEnergyFile + suffix + ".txt";
@@ -290,26 +295,24 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
                 std::ifstream f( energyFile );
                 if( !f.good() )
                     IO::Write_Energy_Header(
-                        *this->systems[0], energyFile, { "iteration", "E_tot" }, IO::Flag::Contributions | flags );
+                        sys.E, energyFile, { "iteration", "E_tot" }, IO::Flag::Contributions | flags );
                 // Append Energy to File
-                IO::Append_Image_Energy( *this->systems[0], iteration, energyFile, flags );
+                IO::Append_Image_Energy( sys.E, sys.hamiltonian->get_geometry(), iteration, energyFile, flags );
             }
             else
             {
                 IO::Write_Energy_Header(
-                    *this->systems[0], energyFile, { "iteration", "E_tot" }, IO::Flag::Contributions | flags );
-                IO::Append_Image_Energy( *this->systems[0], iteration, energyFile, flags );
-                if( this->systems[0]->llg_parameters->output_energy_spin_resolved )
+                    sys.E, energyFile, { "iteration", "E_tot" }, IO::Flag::Contributions | flags );
+                IO::Append_Image_Energy( sys.E, sys.hamiltonian->get_geometry(), iteration, energyFile, flags );
+                if( sys.llg_parameters->output_energy_spin_resolved )
                 {
                     // Gather the data
                     Data::vectorlabeled<scalarfield> contributions_spins( 0 );
-                    this->systems[0]->UpdateEnergy();
-                    this->systems[0]->hamiltonian->Energy_Contributions_per_Spin(
-                        *this->systems[0]->spins, contributions_spins );
+                    sys.UpdateEnergy();
+                    sys.hamiltonian->Energy_Contributions_per_Spin( *sys.spins, sys.E.per_interaction_per_spin );
 
                     IO::Write_Image_Energy_Contributions(
-                        this->systems[0]->hamiltonian->get_geometry(), this->systems[0]->E, this->systems[0]->E_array,
-                        contributions_spins, energyFilePerSpin, this->systems[0]->llg_parameters->output_vf_filetype );
+                        sys.E, sys.hamiltonian->get_geometry(), energyFilePerSpin, sys.llg_parameters->output_vf_filetype );
                 }
             }
         };
@@ -328,21 +331,21 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
         }
 
         // Single file output
-        if( this->systems[0]->llg_parameters->output_configuration_step )
+        if( sys.llg_parameters->output_configuration_step )
         {
             writeOutputConfiguration( "_" + s_iter, false );
         }
-        if( this->systems[0]->llg_parameters->output_energy_step )
+        if( sys.llg_parameters->output_energy_step )
         {
             writeOutputEnergy( "_" + s_iter, false );
         }
 
         // Archive file output (appending)
-        if( this->systems[0]->llg_parameters->output_configuration_archive )
+        if( sys.llg_parameters->output_configuration_archive )
         {
             writeOutputConfiguration( "-archive", true );
         }
-        if( this->systems[0]->llg_parameters->output_energy_archive )
+        if( sys.llg_parameters->output_energy_archive )
         {
             writeOutputEnergy( "-archive", true );
         }
