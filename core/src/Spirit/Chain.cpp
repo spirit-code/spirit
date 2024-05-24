@@ -606,7 +606,7 @@ try
 
     for( int i = 0; i < chain->noi; ++i )
     {
-        Energy[i] = chain->images[i]->E;
+        Energy[i] = chain->images[i]->E.total;
     }
 }
 catch( ... )

@@ -36,10 +36,8 @@ try : hamiltonian( std::move( hamiltonian ) ), llg_parameters( std::move( llg_pa
     this->eigenvalues = std::vector<scalar>( this->modes.size(), 0 );
 
     // ...
-    this->E               = 0;
-    this->E_array         = vectorlabeled<scalar>( 0 );
-    this->M               = Vector3{ 0, 0, 0 };
-    this->effective_field = vectorfield( this->nos );
+    this->E               = System_Energy{ 0 , vectorlabeled<scalar>(0), vectorlabeled<scalarfield>( 0 )};
+    this->M               = System_Magnetization{ Vector3{ 0, 0, 0 }, vectorfield( this->nos ) };
 }
 catch( ... )
 {
@@ -57,8 +55,7 @@ try
     this->eigenvalues = other.eigenvalues;
 
     this->E               = other.E;
-    this->E_array         = other.E_array;
-    this->effective_field = other.effective_field;
+    this->M               = other.M;
 
     this->hamiltonian = std::make_shared<Hamiltonian>( *other.hamiltonian );
 
@@ -87,8 +84,7 @@ try
         this->eigenvalues = other.eigenvalues;
 
         this->E               = other.E;
-        this->E_array         = other.E_array;
-        this->effective_field = other.effective_field;
+        this->M               = other.M;
 
         this->hamiltonian = std::make_shared<Hamiltonian>( *other.hamiltonian );
 
@@ -112,11 +108,11 @@ template<typename Hamiltonian>
 void Spin_System<Hamiltonian>::UpdateEnergy()
 try
 {
-    this->E_array = this->hamiltonian->Energy_Contributions( *this->spins );
+    this->E.per_interaction = this->hamiltonian->Energy_Contributions( *this->spins );
     scalar sum    = 0;
-    for( auto & E_item : E_array )
+    for( auto & E_item : E.per_interaction )
         sum += E_item.second;
-    this->E = sum;
+    this->E.total = sum;
 }
 catch( ... )
 {
@@ -127,8 +123,8 @@ template<typename Hamiltonian>
 void Spin_System<Hamiltonian>::UpdateEffectiveField()
 try
 {
-    this->hamiltonian->Gradient( *this->spins, this->effective_field );
-    Engine::Vectormath::scale( this->effective_field, -1 );
+    this->hamiltonian->Gradient( *this->spins, this->M.effective_field );
+    Engine::Vectormath::scale( this->M.effective_field, -1 );
 }
 catch( ... )
 {

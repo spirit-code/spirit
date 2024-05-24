@@ -22,8 +22,8 @@ void Helper_System_Set_Geometry( State::system_t & system, const Data::Geometry 
     *system.spins = Engine::Indexing::change_dimensions(
         *system.spins, old_geometry.n_cell_atoms, old_geometry.n_cells, new_geometry.n_cell_atoms, new_geometry.n_cells,
         { 0, 0, 1 } );
-    system.effective_field = Engine::Indexing::change_dimensions(
-        system.effective_field, old_geometry.n_cell_atoms, old_geometry.n_cells, new_geometry.n_cell_atoms,
+    system.M.effective_field = Engine::Indexing::change_dimensions(
+        system.M.effective_field, old_geometry.n_cell_atoms, old_geometry.n_cells, new_geometry.n_cell_atoms,
         new_geometry.n_cells, { 0, 0, 0 } );
 
     // Update the system geometry

@@ -808,7 +808,8 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Write the data
-    IO::Write_Neighbours_Exchange( *image, std::string( file ) );
+    if( const auto * cache = image->hamiltonian->cache<Engine::Spin::Interaction::Exchange>(); cache != nullptr )
+        IO::Write_Neighbours_Exchange( *cache, std::string( file ) );
 }
 catch( ... )
 {
@@ -823,7 +824,8 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Write the data
-    IO::Write_Neighbours_DMI( *image, std::string( file ) );
+    if( const auto * cache = image->hamiltonian->cache<Engine::Spin::Interaction::DMI>(); cache != nullptr )
+        IO::Write_Neighbours_DMI( *cache, std::string( file ) );
 }
 catch( ... )
 {
@@ -846,17 +848,16 @@ try
     auto & spins  = *image->spins;
 
     // Gather the data
-    Data::vectorlabeled<scalarfield> contributions_spins( 0 );
     system.UpdateEnergy();
-    system.hamiltonian->Energy_Contributions_per_Spin( spins, contributions_spins );
-    int dataperspin = 1 + contributions_spins.size();
+    system.hamiltonian->Energy_Contributions_per_Spin( spins, image->E.per_interaction_per_spin );
+    int dataperspin = 1 + image->E.per_interaction_per_spin.size();
     int datasize    = dataperspin * system.nos;
     scalarfield data( datasize, 0 );
     for( int ispin = 0; ispin < system.nos; ++ispin )
     {
         scalar E_spin = 0;
         int j         = 1;
-        for( auto & contribution : contributions_spins )
+        for( auto & contribution : image->E.per_interaction_per_spin )
         {
             E_spin += contribution.second[ispin];
             data[ispin * dataperspin + j] = contribution.second[ispin];
@@ -888,15 +889,15 @@ try
 
                 std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
                 segment.title       = strdup( title.c_str() );
-                std::string comment = fmt::format( "Energy per spin. Total={}meV", system.E );
-                for( auto & contribution : system.E_array )
+                std::string comment = fmt::format( "Energy per spin. Total={}meV", system.E.total );
+                for( auto & contribution : system.E.per_interaction )
                     comment += fmt::format( ", {}={}meV", contribution.first, contribution.second );
                 segment.comment  = strdup( comment.c_str() );
-                segment.valuedim = 1 + system.E_array.size();
+                segment.valuedim = 1 + system.E.per_interaction.size();
 
                 std::string valuelabels = "Total";
                 std::string valueunits  = "meV";
-                for( auto & pair : system.E_array )
+                for( auto & pair : system.E.per_interaction )
                 {
                     valuelabels += fmt::format( " {}", pair.first );
                     valueunits += " meV";
@@ -943,7 +944,7 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Write the data
-    IO::Write_Image_Energy( *image, std::string( file ) );
+    IO::Write_Image_Energy( image->E, image->hamiltonian->get_geometry(), std::string( file ) );
 }
 catch( ... )
 {
@@ -1054,7 +1055,7 @@ try
         {
             // If the mode buffer is created by resizing then it needs to be allocated
             if( !image->modes[idx].has_value() )
-                image->modes[idx].emplace(vectorfield( spins.size(), Vector3{ 1, 0, 0 } ));
+                image->modes[idx].emplace( vectorfield( spins.size(), Vector3{ 1, 0, 0 } ) );
 
             // Read header
             file.read_segment_header( idx + 1, segment );

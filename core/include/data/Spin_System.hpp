@@ -24,6 +24,23 @@ namespace Data
 Spin_System contains all setup information on one system (one set of spins, one image).
 This includes: Spin positions and orientations, Neighbours, Interaction constants, System parameters
 */
+
+struct System_Energy
+{
+    // Total energy of the spin system (to be updated from outside, i.e. SIB, GNEB, ...)
+    scalar total;
+    Data::vectorlabeled<scalar> per_interaction;
+    Data::vectorlabeled<scalarfield> per_interaction_per_spin;
+};
+
+struct System_Magnetization
+{
+    // Mean of magnetization
+    Vector3 mean;
+    // Total effective field of the spins [3][nos]
+    vectorfield effective_field;
+};
+
 template<typename HamiltonianType>
 class Spin_System
 {
@@ -72,18 +89,16 @@ public:
     bool iteration_allowed;
     bool singleshot_allowed;
 
-    // Total energy of the spin system (to be updated from outside, i.e. SIB, GNEB, ...)
-    scalar E;
-    Data::vectorlabeled<scalar> E_array;
-    // Mean of magnetization
-    Vector3 M;
-    // Total effective field of the spins [3][nos]
-    vectorfield effective_field;
+    System_Energy E;
+    System_Magnetization M;
 
 private:
     // FIFO mutex for thread-safety
     Utility::OrderedLock ordered_lock;
 };
+
+template<typename Hamiltonian>
+class Spin_System;
 
 } // namespace Data
 

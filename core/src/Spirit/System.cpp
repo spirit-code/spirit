@@ -53,7 +53,7 @@ try
 
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
-    return image->effective_field[0].data();
+    return image->M.effective_field[0].data();
 }
 catch( ... )
 {
@@ -114,7 +114,7 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    return image->E;
+    return image->E.total;
 }
 catch( ... )
 {
@@ -130,9 +130,9 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     int n_char_array = -1; // Start of with offset -1, because the last contributions gets no "|" delimiter
-    for( unsigned int i = 0; i < image->E_array.size(); ++i )
+    for( unsigned int i = 0; i < image->E.per_interaction.size(); ++i )
     {
-        n_char_array += image->E_array[i].first.size()
+        n_char_array += image->E.per_interaction[i].first.size()
                         + 1; // Add +1 because we separate the contribution names with the character "|"
     }
 
@@ -144,13 +144,13 @@ try
     else
     { // Else we try to fill the provided char array
         int idx = 0;
-        for( unsigned int i = 0; i < image->E_array.size(); ++i )
+        for( unsigned int i = 0; i < image->E.per_interaction.size(); ++i )
         {
-            for( const char & cur_char : ( image->E_array[i] ).first )
+            for( const char & cur_char : ( image->E.per_interaction[i] ).first )
             {
                 names[idx++] = cur_char;
             }
-            if( i != image->E_array.size() - 1 )
+            if( i != image->E.per_interaction.size() - 1 )
                 names[idx++] = '|';
         }
         return -1;
@@ -174,13 +174,13 @@ try
 
     if( energies == nullptr )
     {
-        return image->E_array.size();
+        return image->E.per_interaction.size();
     }
     else
     {
-        for( unsigned int i = 0; i < image->E_array.size(); ++i )
+        for( unsigned int i = 0; i < image->E.per_interaction.size(); ++i )
         {
-            energies[i] = nd * image->E_array[i].second;
+            energies[i] = nd * image->E.per_interaction[i].second;
         }
         return -1;
     }
@@ -217,12 +217,12 @@ try
 
     scalar nd = 1 / (scalar)image->nos;
 
-    std::cerr << "E_tot = " << image->E * nd << "  ||  ";
+    std::cerr << "E_tot = " << image->E.total * nd << "  ||  ";
 
-    for( unsigned int i = 0; i < image->E_array.size(); ++i )
+    for( unsigned int i = 0; i < image->E.per_interaction.size(); ++i )
     {
-        std::cerr << image->E_array[i].first << " = " << image->E_array[i].second * nd;
-        if( i < image->E_array.size() - 1 )
+        std::cerr << image->E.per_interaction[i].first << " = " << image->E.per_interaction[i].second * nd;
+        if( i < image->E.per_interaction.size() - 1 )
             std::cerr << "  |  ";
     }
     std::cerr << std::endl;

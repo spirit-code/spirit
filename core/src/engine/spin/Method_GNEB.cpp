@@ -94,12 +94,12 @@ void Method_GNEB<solver>::Calculate_Force(
 
         // Calculate the Gradient and Energy of the image
         this->chain->images[img]->hamiltonian->Gradient_and_Energy(
-            image, this->chain->images[img]->effective_field, energies[img] );
+            image, this->chain->images[img]->M.effective_field, energies[img] );
 
         // Multiply gradient with -1 to get effective field and copy to F_gradient.
         // We do it the following way so that the effective field can be e.g. displayed,
         //      while the gradient force is manipulated (e.g. projected)
-        auto * eff_field = this->chain->images[img]->effective_field.data();
+        auto * eff_field = this->chain->images[img]->M.effective_field.data();
         auto * f_grad    = F_gradient[img].data();
         Backend::for_each_n(
             SPIRIT_PAR Backend::make_counting_iterator( 0 ), image.size(),
@@ -138,7 +138,7 @@ void Method_GNEB<solver>::Calculate_Force(
         // Calculate the inclinations at the data points
         std::vector<scalar> dE_dRx( chain->noi, 0 );
         for( int i = 0; i < chain->noi; ++i )
-            dE_dRx[i] = Vectormath::dot( this->chain->images[i]->effective_field, this->tangents[i] );
+            dE_dRx[i] = Vectormath::dot( this->chain->images[i]->M.effective_field, this->tangents[i] );
 
         int n_interpolations = 20;
         auto interp          = Utility::Cubic_Hermite_Spline::Interpolate( Rx, energies, dE_dRx, n_interpolations );
@@ -427,7 +427,7 @@ void Method_GNEB<solver>::Hook_Post_Iteration()
     for( int i = 0; i < chain->noi; ++i )
     {
         // dy/dx
-        dE_dRx[i] = Vectormath::dot( this->chain->images[i]->effective_field, this->tangents[i] );
+        dE_dRx[i] = Vectormath::dot( this->chain->images[i]->M.effective_field, this->tangents[i] );
         // for (int j = 0; j < chain->images[i]->nos; ++j)
         // {
         // 	dE_dRx[i] += this->chain->images[i]->effective_field[j].dot(this->tangents[i][j]);
@@ -441,7 +441,7 @@ void Method_GNEB<solver>::Hook_Post_Iteration()
     chain->Rx = this->Rx;
     //      E
     for( int img = 0; img < chain->noi; ++img )
-        chain->images[img]->E = this->energies[img];
+        chain->images[img]->E.total = this->energies[img];
     //      Rx interpolated
     chain->Rx_interpolated = interp[0];
     //      E interpolated
@@ -541,7 +541,7 @@ void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bo
     // History save
     this->history_iteration.push_back( this->iteration );
     this->history_max_torque.push_back( this->max_torque );
-    this->history_energy.push_back( this->systems[0]->E );
+    this->history_energy.push_back( this->systems[0]->E.total );
 
     // File save
     if( this->parameters->output_any )

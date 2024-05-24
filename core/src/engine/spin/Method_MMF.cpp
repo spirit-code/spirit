@@ -433,6 +433,10 @@ void Method_MMF<solver>::Hook_Post_Iteration()
 template<Solver solver>
 void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, bool initial, bool final )
 {
+    if( this->systems.empty() || this->systems[0] == nullptr )
+        return;
+    auto & sys = *this->systems[0];
+
     // History save
     this->history_iteration.push_back( this->iteration );
     this->history_max_torque.push_back( this->max_torque );
@@ -460,7 +464,7 @@ void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, boo
         preEnergyFile = this->parameters->output_folder + "/" + fileTag + "Image-" + s_img + "_Energy";
 
         // Function to write or append image and energy files
-        auto writeOutputConfiguration = [this, preSpinsFile, iteration]( const std::string & suffix, bool append )
+        auto writeOutputConfiguration = [this, &sys, preSpinsFile, iteration]( const std::string & suffix, bool append )
         {
             try
             {
@@ -471,11 +475,11 @@ void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, boo
                     this->Name(), this->SolverFullName(), iteration, this->max_torque );
 
                 // File format
-                IO::VF_FileFormat format = this->systems[0]->mmf_parameters->output_vf_filetype;
+                IO::VF_FileFormat format = sys.mmf_parameters->output_vf_filetype;
 
                 // Spin Configuration
-                auto & spins        = *this->systems[0]->spins;
-                auto segment        = IO::OVF_Segment( this->systems[0]->hamiltonian->get_geometry() );
+                auto & spins        = *sys.spins;
+                auto segment        = IO::OVF_Segment( sys.hamiltonian->get_geometry() );
                 std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
                 segment.title       = strdup( title.c_str() );
                 segment.comment     = strdup( output_comment.c_str() );
@@ -494,12 +498,12 @@ void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, boo
         };
 
         IO::Flags flags;
-        if( this->systems[0]->llg_parameters->output_energy_divide_by_nspins )
+        if( sys.llg_parameters->output_energy_divide_by_nspins )
             flags |= IO::Flag::Normalize_by_nos;
-        if( this->systems[0]->llg_parameters->output_energy_add_readability_lines )
+        if( sys.llg_parameters->output_energy_add_readability_lines )
             flags |= IO::Flag::Readability;
         auto writeOutputEnergy
-            = [this, flags, preSpinsFile, preEnergyFile, iteration]( const std::string & suffix, bool append )
+            = [&sys, flags, preSpinsFile, preEnergyFile, iteration]( const std::string & suffix, bool append )
         {
             // File name
             std::string energyFile        = preEnergyFile + suffix + ".txt";
@@ -512,27 +516,25 @@ void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, boo
                 std::ifstream f( energyFile );
                 if( !f.good() )
                     IO::Write_Energy_Header(
-                        *this->systems[0], energyFile, { "iteration", "E_tot" }, IO::Flag::Contributions | flags );
+                        sys.E, energyFile, { "iteration", "E_tot" }, IO::Flag::Contributions | flags );
                 // Append Energy to File
-                IO::Append_Image_Energy( *this->systems[0], iteration, energyFile, flags );
+                IO::Append_Image_Energy( sys.E, sys.hamiltonian->get_geometry(), iteration, energyFile, flags );
             }
             else
             {
-                IO::Write_Energy_Header(
-                    *this->systems[0], energyFile, { "iteration", "E_tot" }, IO::Flag::Contributions | flags );
-                IO::Append_Image_Energy( *this->systems[0], iteration, energyFile, flags );
-                if( this->systems[0]->mmf_parameters->output_energy_spin_resolved )
+                IO::Write_Energy_Header( sys.E, energyFile, { "iteration", "E_tot" }, IO::Flag::Contributions | flags );
+                IO::Append_Image_Energy( sys.E, sys.hamiltonian->get_geometry(), iteration, energyFile, flags );
+                if( sys.mmf_parameters->output_energy_spin_resolved )
                 {
                     // Gather the data
                     Data::vectorlabeled<scalarfield> contributions_spins( 0 );
-                    this->systems[0]->UpdateEnergy(); // needed to populate `E` and `E_array`
-                    this->systems[0]->hamiltonian->Energy_Contributions_per_Spin(
-                        *this->systems[0]->spins, contributions_spins );
+                    sys.UpdateEnergy(); // needed to populate `E.total` and `E.per_interaction`
+                    sys.hamiltonian->Energy_Contributions_per_Spin( *sys.spins, sys.E.per_interaction_per_spin );
 
                     // write out the data
                     IO::Write_Image_Energy_Contributions(
-                        this->systems[0]->hamiltonian->get_geometry(), this->systems[0]->E, this->systems[0]->E_array,
-                        contributions_spins, energyFilePerSpin, this->systems[0]->mmf_parameters->output_vf_filetype );
+                        sys.E, sys.hamiltonian->get_geometry(), energyFilePerSpin,
+                        sys.mmf_parameters->output_vf_filetype );
                 }
             }
         };
@@ -551,21 +553,21 @@ void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, boo
         }
 
         // Single file output
-        if( this->systems[0]->mmf_parameters->output_configuration_step )
+        if( sys.mmf_parameters->output_configuration_step )
         {
             writeOutputConfiguration( "_" + s_iter, false );
         }
-        if( this->systems[0]->mmf_parameters->output_energy_step )
+        if( sys.mmf_parameters->output_energy_step )
         {
             writeOutputEnergy( "_" + s_iter, false );
         }
 
         // Archive file output (appending)
-        if( this->systems[0]->mmf_parameters->output_configuration_archive )
+        if( sys.mmf_parameters->output_configuration_archive )
         {
             writeOutputConfiguration( "-archive", true );
         }
-        if( this->systems[0]->mmf_parameters->output_energy_archive )
+        if( sys.mmf_parameters->output_energy_archive )
         {
             writeOutputEnergy( "-archive", true );
         }
