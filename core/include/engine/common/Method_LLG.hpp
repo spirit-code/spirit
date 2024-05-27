@@ -1,5 +1,7 @@
 #pragma once
 
+#include "engine/backend/Transform_Iterator.hpp"
+#include "engine/backend/Zip_Iterator.hpp"
 #include <Spirit/Spirit_Defines.h>
 #include <data/Parameters_Method_LLG.hpp>
 #include <data/Spin_System.hpp>
@@ -18,10 +20,7 @@ struct Method_LLG
 {
     constexpr Method_LLG() noexcept = default;
     constexpr Method_LLG( const int nos )
-            : temperature_distribution( nos, 0.0 ),
-              xi( nos, Vector3::Zero() ),
-              jacobians( nos, Matrix3::Zero() ),
-              s_c_grad( nos, Vector3::Zero() ){};
+            : temperature_distribution( nos, 0.0 ), xi( nos, Vector3::Zero() ), jacobians( nos, Matrix3::Zero() ){};
 
     void Prepare_Thermal_Field( Data::Parameters_Method_LLG & parameters, const Data::Geometry & geometry )
     {
@@ -115,9 +114,12 @@ struct Method_LLG
         // Dynamics simulation
         else
         {
-            Vectormath::set_c_a( dtg, force, force_virtual );
-            Vectormath::add_c_cross( dtg * damping, image, force, force_virtual );
-            Vectormath::divide( force_virtual, geometry.mu_s );
+            Backend::transform(
+                SPIRIT_PAR Backend::make_zip_iterator( force.begin(), image.begin(), geometry.mu_s.begin() ),
+                Backend::make_zip_iterator( force.end(), image.end(), geometry.mu_s.end() ), force_virtual.begin(),
+                Backend::make_zip_function(
+                    [dtg, damping] SPIRIT_LAMBDA( const Vector3 & f, const Vector3 & n, const scalar mu_s ) -> Vector3
+                    { return dtg / mu_s * ( f + damping * n.cross( f ) ); } ) );
 
             // STT
             if( a_j > 0 )
@@ -125,39 +127,48 @@ struct Method_LLG
                 if( parameters.stt_use_gradient )
                 {
                     if( jacobians.size() != geometry.nos )
-                        jacobians = field<Matrix3>(geometry.nos, Matrix3::Zero());
-
-                    if( s_c_grad.size() != geometry.nos )
-                        s_c_grad = vectorfield(geometry.nos, Vector3::Zero());
+                        jacobians = field<Matrix3>( geometry.nos, Matrix3::Zero() );
 
                     // Gradient approximation for in-plane currents
                     Vectormath::jacobian( image, geometry, boundary_conditions, jacobians );
 
-                    // TODO: merge these operations to eliminate the use of `s_c_grad`
-                    Backend::transform(
-                        SPIRIT_PAR begin( jacobians ), end( jacobians ), begin( s_c_grad ),
-                        [je] SPIRIT_LAMBDA( const Matrix3 & jacobian ) { return jacobian * je; } );
-
-                    Vectormath::add_c_a(
-                        dtg * a_j * ( damping - beta ), s_c_grad, force_virtual ); // TODO: a_j durch b_j ersetzen
-                    Vectormath::add_c_cross(
-                        dtg * a_j * ( 1 + beta * damping ), s_c_grad, image,
-                        force_virtual ); // TODO: a_j durch b_j ersetzen
                     // Gradient in current richtung, daher => *(-1)
+                    // TODO: a_j durch b_j ersetzen
+                    const scalar c1 = dtg * a_j * ( damping - beta );
+                    const scalar c2 = dtg * a_j * ( 1 + beta * damping );
+                    Backend::for_each_n(
+                        SPIRIT_PAR Backend::make_zip_iterator(
+                            force_virtual.begin(), image.begin(), jacobians.begin() ),
+                        force_virtual.size(),
+                        Backend::make_zip_function(
+                            [c1, c2, je] SPIRIT_LAMBDA( Vector3 & fv, const Vector3 & n, const Matrix3 & jacobian )
+                            {
+                                const Vector3 s_c_vec = jacobian * je;
+                                fv += c1 * s_c_vec + c2 * s_c_vec.cross( n );
+                            } ) );
                 }
                 else
                 {
+                    const Vector3 v1 = -dtg * a_j * ( damping - beta ) * s_c_vec;
+                    const Vector3 v2 = -dtg * a_j * ( 1 + beta * damping ) * s_c_vec;
                     // Monolayer approximation
-                    Vectormath::add_c_a( -dtg * a_j * ( damping - beta ), s_c_vec, force_virtual );
-                    Vectormath::add_c_cross( -dtg * a_j * ( 1 + beta * damping ), s_c_vec, image, force_virtual );
+                    Backend::for_each_n(
+                        SPIRIT_PAR Backend::make_zip_iterator( force_virtual.begin(), image.begin() ),
+                        force_virtual.size(),
+                        Backend::make_zip_function( [v1, v2] SPIRIT_LAMBDA( Vector3 & fv, const Vector3 & n )
+                                                    { fv += v1 + v2.cross( n ); } ) );
                 }
             }
 
             // Temperature
             if( parameters.temperature > 0 || parameters.temperature_gradient_inclination != 0 )
             {
-                Vectormath::add_c_a( 1, xi, force_virtual );
-                Vectormath::add_c_cross( damping, image, xi, force_virtual );
+                Backend::for_each_n(
+                    SPIRIT_PAR Backend::make_zip_iterator( force_virtual.begin(), xi.begin(), image.begin() ),
+                    force_virtual.size(),
+                    Backend::make_zip_function(
+                        [damping] SPIRIT_LAMBDA( Vector3 & fv, const Vector3 & xi, const Vector3 & n )
+                        { fv += xi + damping * n.cross( xi ); } ) );
             }
         }
 // Apply Pinning
@@ -172,7 +183,6 @@ private:
     vectorfield xi;
 
     field<Matrix3> jacobians;
-    vectorfield s_c_grad;
 };
 
 } // namespace Common
