@@ -666,18 +666,29 @@ endif()
 
 ######### IDE Folders ##############################################
 ### Folder include
-source_group( "include\\data"    FILES ${HEADER_SPIRIT_DATA} )
-source_group( "include\\engine"  FILES ${HEADER_SPIRIT_ENGINE} )
-source_group( "include\\io"      FILES ${HEADER_SPIRIT_IO} )
-source_group( "include\\utility" FILES ${HEADER_SPIRIT_UTILITY} )
-source_group( "include\\spirit"  FILES ${HEADER_SPIRIT} )
+source_group( "include\\data"                               FILES ${HEADER_SPIRIT_DATA} )
+source_group( "include\\engine"                             FILES ${HEADER_SPIRIT_ENGINE} )
+source_group( "include\\engine\\backend"                    FILES ${HEADER_SPIRIT_ENGINE_BACKEND} )
+source_group( "include\\engine\\common"                     FILES ${HEADER_SPIRIT_ENGINE_COMMON} )
+source_group( "include\\engine\\common\\interaction"        FILES ${HEADER_SPIRIT_ENGINE_COMMON_INTERACTION} )
+source_group( "include\\engine\\spin"                       FILES ${HEADER_SPIRIT_ENGINE_SPIN} )
+source_group( "include\\engine\\spin\\interaction"          FILES ${HEADER_SPIRIT_ENGINE_SPIN_INTERACTION} )
+source_group( "include\\io"                                 FILES ${HEADER_SPIRIT_IO} )
+source_group( "include\\io\\hamiltonian"                    FILES ${HEADER_SPIRIT_IO_HAMILTONIAN} )
+source_group( "include\\utility"                            FILES ${HEADER_SPIRIT_UTILITY} )
+source_group( "include\\spirit"                             FILES ${HEADER_SPIRIT} )
 ### Folder src
-source_group( "src"          FILES ${SOURCE_SPIRIT_ROOT} ) #${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
-source_group( "src\\data"    FILES ${SOURCE_SPIRIT_DATA} )
-source_group( "src\\engine"  FILES ${SOURCE_SPIRIT_ENGINE} )
-source_group( "src\\io"      FILES ${SOURCE_SPIRIT_IO} )
-source_group( "src\\utility" FILES ${SOURCE_SPIRIT_UTILITY} )
-source_group( "src\\spirit"  FILES ${SOURCE_SPIRIT} )
+source_group( "src"                                         FILES ${SOURCE_SPIRIT_ROOT} ) #${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
+source_group( "src\\data"                                   FILES ${SOURCE_SPIRIT_DATA} )
+source_group( "src\\engine"                                 FILES ${SOURCE_SPIRIT_ENGINE} )
+source_group( "src\\engine\\common"                         FILES ${SOURCE_SPIRIT_ENGINE_COMMON} )
+source_group( "src\\engine\\common\\interaction"            FILES ${SOURCE_SPIRIT_ENGINE_COMMON_INTERACTION} )
+source_group( "src\\engine\\spin"                           FILES ${SOURCE_SPIRIT_ENGINE_SPIN} )
+source_group( "src\\engine\\spin\\interaction"              FILES ${SOURCE_SPIRIT_ENGINE_SPIN_INTERACTION} )
+source_group( "src\\io"                                     FILES ${SOURCE_SPIRIT_IO} )
+source_group( "src\\io\\hamiltonian"                        FILES ${SOURCE_SPIRIT_IO_HAMILTONIAN} )
+source_group( "src\\utility"                                FILES ${SOURCE_SPIRIT_UTILITY} )
+source_group( "src\\spirit"                                 FILES ${SOURCE_SPIRIT} )
 ####################################################################
 
 
