@@ -103,7 +103,7 @@ struct Method_LLG
 
         // This is the force calculation as it should be for direct minimization
         // TODO: Also calculate force for VP solvers without additional scaling
-        if( solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas )
+        if constexpr( solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas )
         {
             Vectormath::set_c_cross( 1.0, image, force, force_virtual );
         }
