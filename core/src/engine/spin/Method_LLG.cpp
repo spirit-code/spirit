@@ -188,16 +188,22 @@ void Method_LLG<solver>::Finalize()
 template<Solver solver>
 void Method_LLG<solver>::Message_Block_Step( std::vector<std::string> & block )
 {
-    if( !( this->systems[0]->llg_parameters->direct_minimization || solver == Solver::VP || solver == Solver::VP_OSO
-           || solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas ) )
+    if constexpr(
+        solver == Solver::VP || solver == Solver::VP_OSO || solver == Solver::LBFGS_OSO
+        || solver == Solver::LBFGS_Atlas )
+        return;
+    else if( !this->systems[0]->llg_parameters->direct_minimization )
         block.emplace_back( fmt::format( "    Simulated time:       {} ps", this->get_simulated_time() ) );
 }
 
 template<Solver solver>
 void Method_LLG<solver>::Message_Block_End( std::vector<std::string> & block )
 {
-    if( !( this->systems[0]->llg_parameters->direct_minimization || solver == Solver::VP || solver == Solver::VP_OSO
-           || solver == Solver::LBFGS_OSO || solver == Solver::LBFGS_Atlas ) )
+    if constexpr(
+        solver == Solver::VP || solver == Solver::VP_OSO || solver == Solver::LBFGS_OSO
+        || solver == Solver::LBFGS_Atlas )
+        return;
+    else if( !this->systems[0]->llg_parameters->direct_minimization )
         block.emplace_back( fmt::format( "    Simulated time:       {} ps", this->get_simulated_time() ) );
 }
 
@@ -243,8 +249,7 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
         preEnergyFile = this->parameters->output_folder + "/" + fileTag + "Image-" + s_img + "_Energy";
 
         // Function to write or append image and energy files
-        auto writeOutputConfiguration
-            = [this, &sys, preSpinsFile, iteration]( const std::string & suffix, bool append )
+        auto writeOutputConfiguration = [this, &sys, preSpinsFile, iteration]( const std::string & suffix, bool append )
         {
             try
             {
@@ -301,8 +306,7 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
             }
             else
             {
-                IO::Write_Energy_Header(
-                    sys.E, energyFile, { "iteration", "E_tot" }, IO::Flag::Contributions | flags );
+                IO::Write_Energy_Header( sys.E, energyFile, { "iteration", "E_tot" }, IO::Flag::Contributions | flags );
                 IO::Append_Image_Energy( sys.E, sys.hamiltonian->get_geometry(), iteration, energyFile, flags );
                 if( sys.llg_parameters->output_energy_spin_resolved )
                 {
@@ -312,7 +316,8 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
                     sys.hamiltonian->Energy_Contributions_per_Spin( *sys.spins, sys.E.per_interaction_per_spin );
 
                     IO::Write_Image_Energy_Contributions(
-                        sys.E, sys.hamiltonian->get_geometry(), energyFilePerSpin, sys.llg_parameters->output_vf_filetype );
+                        sys.E, sys.hamiltonian->get_geometry(), energyFilePerSpin,
+                        sys.llg_parameters->output_vf_filetype );
                 }
             }
         };
