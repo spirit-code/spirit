@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Spirit/Spirit_Defines.h>
+#include <data/Pair.hpp>
 
 #include <Eigen/Core>
 #include <Eigen/Sparse>
@@ -95,11 +96,6 @@ struct Site
     // Basis index
     int i;
     // Translations of the basis cell
-    std::array<int, 3> translations;
-};
-struct Pair
-{
-    int i, j;
     std::array<int, 3> translations;
 };
 struct Triplet

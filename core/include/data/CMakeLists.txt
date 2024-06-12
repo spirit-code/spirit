@@ -3,6 +3,7 @@ set(HEADER_SPIRIT_DATA
     ${CMAKE_CURRENT_SOURCE_DIR}/State.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Geometry.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Misc.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Pair.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Spin_System.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Spin_System_Chain.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Parameters_Method.hpp
