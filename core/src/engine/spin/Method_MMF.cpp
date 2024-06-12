@@ -483,13 +483,15 @@ void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, boo
                 std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
                 segment.title       = strdup( title.c_str() );
                 segment.comment     = strdup( output_comment.c_str() );
-                segment.valuedim    = 3;
-                segment.valuelabels = strdup( "spin_x spin_y spin_z" );
-                segment.valueunits  = strdup( "none none none" );
+                segment.valuedim    = IO::Spin::State::valuedim;
+                segment.valuelabels = strdup( IO::Spin::State::valuelabels.data() );
+                segment.valueunits  = strdup( IO::Spin::State::valueunits.data() );
+
+                const IO::Spin::State::Buffer buffer( spins );
                 if( append )
-                    IO::OVF_File( spinsFile ).append_segment( segment, spins[0].data(), int( format ) );
+                    IO::OVF_File( spinsFile ).append_segment( segment, buffer.data(), int( format ) );
                 else
-                    IO::OVF_File( spinsFile ).write_segment( segment, spins[0].data(), int( format ) );
+                    IO::OVF_File( spinsFile ).write_segment( segment, buffer.data(), int( format ) );
             }
             catch( ... )
             {
