@@ -8,6 +8,7 @@ set(HEADER_SPIRIT_IO
     ${CMAKE_CURRENT_SOURCE_DIR}/Configparser.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Configwriter.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Dataparser.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Dataparser.inl
     ${CMAKE_CURRENT_SOURCE_DIR}/Datawriter.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Tableparser.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt

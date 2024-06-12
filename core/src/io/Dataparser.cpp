@@ -23,8 +23,11 @@ using Utility::Log_Sender;
 namespace IO
 {
 
+namespace Spin
+{
+
 // Reads a non-OVF spins file with plain text and discarding any headers starting with '#'
-void Read_NonOVF_Spin_Configuration(
+void Read_NonOVF_System_Configuration(
     vectorfield & spins, Data::Geometry & geometry, const int nos, const int idx_image_infile,
     const std::string & file )
 {
@@ -54,9 +57,11 @@ void Read_NonOVF_Spin_Configuration(
     Engine::Vectormath::normalize_vectors( spins );
 }
 
+} // namespace Spin
+
 void Check_NonOVF_Chain_Configuration(
-    std::shared_ptr<State::chain_t> chain, const std::string & file, int start_image_infile,
-    int end_image_infile, const int insert_idx, int & noi_to_add, int & noi_to_read, const int idx_chain )
+    std::shared_ptr<::State::chain_t> chain, const std::string & file, int start_image_infile, int end_image_infile,
+    const int insert_idx, int & noi_to_add, int & noi_to_read, const int idx_chain )
 {
     IO::Filter_File_Handle file_handle( file, "#" );
 

@@ -211,7 +211,7 @@ try
                      filename, file.latest_message() ),
                  idx_image_inchain, idx_chain );
 
-            IO::Read_NonOVF_Spin_Configuration( spins, geometry, image->nos, idx_image_infile, filename );
+            IO::Read_NonOVF_System_Configuration( spins, geometry, image->nos, idx_image_infile, filename );
             image->hamiltonian->set_geometry( geometry );
             image->Unlock();
             return;
@@ -247,13 +247,13 @@ try
             segment.N = std::min( segment.N, image->nos );
         }
 
-        if( segment.valuedim != 3 )
+        if( segment.valuedim != IO::State::valuedim )
         {
             spirit_throw(
                 Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
                 fmt::format(
-                    "Segment {}/{} in OVF file \"{}\" should have 3 columns, but only has {}. Will not read.",
-                    idx_image_infile + 1, file.n_segments, filename, segment.valuedim ) );
+                    "Segment {}/{} in OVF file \"{}\" should have {} columns, but only has {}. Will not read.",
+                    idx_image_infile + 1, file.n_segments, filename, IO::State::valuedim, segment.valuedim ) );
         }
 
         // Read data
@@ -323,12 +323,13 @@ try
                 std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
                 segment.title       = strdup( title.c_str() );
                 segment.comment     = strdup( comment );
-                segment.valuedim    = 3;
-                segment.valuelabels = strdup( "spin_x spin_y spin_z" );
-                segment.valueunits  = strdup( "none none none" );
+                segment.valuedim    = IO::State::valuedim;
+                segment.valuelabels = strdup( IO::State::valuelabels.data() );
+                segment.valueunits  = strdup( IO::State::valueunits.data() );
 
                 // Open and write
-                IO::OVF_File( filename ).write_segment( segment, spins[0].data(), format );
+                const auto buffer = IO::State::Buffer( spins );
+                IO::OVF_File( filename ).write_segment( segment, buffer.data(), format );
 
                 Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                      fmt::format( "Wrote spins to file \"{}\" in {} format", filename, str( fileformat ) ), idx_image,
@@ -394,12 +395,13 @@ try
                 std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
                 segment.title       = strdup( title.c_str() );
                 segment.comment     = strdup( comment );
-                segment.valuedim    = 3;
-                segment.valuelabels = strdup( "spin_x spin_y spin_z" );
-                segment.valueunits  = strdup( "none none none" );
+                segment.valuedim    = IO::State::valuedim;
+                segment.valuelabels = strdup( IO::State::valuelabels.data() );
+                segment.valueunits  = strdup( IO::State::valueunits.data() );
 
-                // Write
-                file.append_segment( segment, spins[0].data(), int( fileformat ) );
+                // Open and write
+                const auto buffer = IO::State::Buffer( spins );
+                IO::OVF_File( filename ).write_segment( segment, buffer.data(), format );
 
                 break;
             }
@@ -546,13 +548,14 @@ try
                     segment.N = std::min( segment.N, image->nos );
                 }
 
-                if( segment.valuedim != 3 )
+                if( segment.valuedim != IO::State::valuedim )
                 {
                     spirit_throw(
                         Utility::Exception_Classifier::Bad_File_Content, Utility::Log_Level::Error,
                         fmt::format(
-                            "Segment {}/{} in OVF file \"{}\" should have 3 columns, but only has {}. Will not read.",
-                            start_image_infile + 1, file.n_segments, filename, segment.valuedim ) );
+                            "Segment {}/{} in OVF file \"{}\" should have {} columns, but only has {}. Will not read.",
+                            start_image_infile + 1, file.n_segments, filename, IO::State::valuedim,
+                            segment.valuedim ) );
                 }
 
                 // Read data
@@ -604,7 +607,7 @@ try
                 {
                     // TODO: eliminate this copy
                     auto geometry = chain->images[i]->hamiltonian->get_geometry();
-                    IO::Read_NonOVF_Spin_Configuration(
+                    IO::Read_NonOVF_System_Configuration(
                         *chain->images[i]->spins, geometry, chain->images[i]->nos, start_image_infile, filename );
                     chain->images[i]->hamiltonian->set_geometry( geometry );
                     start_image_infile++;
@@ -673,16 +676,16 @@ try
 
                 std::string title       = fmt::format( "SPIRIT Version {}", Utility::version_full );
                 segment.title           = strdup( title.c_str() );
-                segment.valuedim        = 3;
-                segment.valuelabels     = strdup( "spin_x spin_y spin_z" );
-                segment.valueunits      = strdup( "none none none" );
                 std::string comment_str = "";
+                comment_str             = fmt::format( "Image {} of {}. {}", 1, chain->noi, comment );
+                segment.comment         = strdup( comment_str.c_str() );
+                segment.valuedim        = IO::State::valuedim;
+                segment.valuelabels     = strdup( IO::State::valuelabels.data() );
+                segment.valueunits      = strdup( IO::State::valueunits.data() );
 
-                comment_str     = fmt::format( "Image {} of {}. {}", 1, chain->noi, comment );
-                segment.comment = strdup( comment_str.c_str() );
-
-                // Write
-                file.write_segment( segment, spins[0].data(), int( fileformat ) );
+                // Open and write
+                const IO::State::Buffer buffer( spins );
+                IO::OVF_File( filename ).write_segment( segment, buffer.data(), format );
 
                 for( int i = 1; i < chain->noi; i++ )
                 {
@@ -754,21 +757,21 @@ try
 
                 std::string title       = fmt::format( "SPIRIT Version {}", Utility::version_full );
                 segment.title           = strdup( title.c_str() );
-                segment.valuedim        = 3;
-                segment.valuelabels     = strdup( "spin_x spin_y spin_z" );
-                segment.valueunits      = strdup( "none none none" );
                 std::string comment_str = "";
 
-                comment_str     = fmt::format( "Image {} of {}. {}", 0, chain->noi, comment );
-                segment.comment = strdup( comment_str.c_str() );
+                comment_str         = fmt::format( "Image {} of {}. {}", 0, chain->noi, comment );
+                segment.comment     = strdup( comment_str.c_str() );
+                segment.valuedim    = IO::State::valuedim;
+                segment.valuelabels = strdup( IO::State::valuelabels.data() );
+                segment.valueunits  = strdup( IO::State::valueunits.data() );
 
                 // Write
                 for( int i = 0; i < chain->noi; i++ )
                 {
                     comment_str     = fmt::format( "Image {} of {}. {}", i, chain->noi, comment );
                     segment.comment = strdup( comment_str.c_str() );
-
-                    file.write_segment( segment, spins[0].data(), int( fileformat ) );
+                    const IO::State::Buffer buffer( spins );
+                    file.write_segment( segment, buffer.data(), int( fileformat ) );
                 }
 
                 break;

@@ -590,9 +590,9 @@ void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bo
                     std::string output_comment
                         = fmt::format( "{}\n# Desc: Image {} of {}", output_comment_base, 0, chain->noi );
                     segment.comment     = strdup( output_comment.c_str() );
-                    segment.valuedim    = 3;
-                    segment.valuelabels = strdup( "spin_x spin_y spin_z" );
-                    segment.valueunits  = strdup( "none none none" );
+                    segment.valuedim    = IO::Spin::State::valuedim;
+                    segment.valuelabels = strdup( IO::Spin::State::valuelabels.data() );
+                    segment.valueunits  = strdup( IO::Spin::State::valueunits.data() );
                     auto & spins        = *this->chain->images[0]->spins;
                     IO::OVF_File( chainFile ).write_segment( segment, spins[0].data(), static_cast<int>( format ) );
                 }
