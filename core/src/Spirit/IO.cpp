@@ -184,7 +184,6 @@ void IO_Image_Read(
     State * state, const char * filename, int idx_image_infile, int idx_image_inchain, int idx_chain ) noexcept
 try
 {
-
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image_inchain, idx_chain );
 
@@ -291,7 +290,6 @@ void IO_Image_Write(
     State * state, const char * filename, int format, const char * comment, int idx_image, int idx_chain ) noexcept
 try
 {
-
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
@@ -308,8 +306,7 @@ try
                      filename ),
                  idx_image, idx_chain );
 
-        auto fileformat = (IO::VF_FileFormat)format;
-        switch( fileformat )
+        switch( auto fileformat = static_cast<IO::VF_FileFormat>( format ) )
         {
             case IO::VF_FileFormat::OVF_BIN:
             case IO::VF_FileFormat::OVF_BIN4:

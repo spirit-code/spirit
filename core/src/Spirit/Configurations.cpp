@@ -130,15 +130,15 @@ void Configuration_From_Clipboard(
     scalar r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
-
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( position, "position" );
     throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
+    const auto & geometry = image->hamiltonian->get_geometry();
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
-    Vector3 vpos = image->hamiltonian->get_geometry().center + _pos;
+    Vector3 vpos = geometry.center + _pos;
 
     // Create position filter
     auto filter = get_filter( vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -146,7 +146,7 @@ try
     // Apply configuration
     image->Lock();
     Utility::Configurations::Insert( *image, *state->clipboard_spins, 0, filter );
-    image->hamiltonian->get_geometry().Apply_Pinning( *image->spins );
+    geometry.Apply_Pinning( *image->spins );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -172,12 +172,12 @@ try
         throw_if_nullptr( position, "position" );
         throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
+        const auto & geometry = image->hamiltonian->get_geometry();
         // Get relative position
         Vector3 vpos{ position[0], position[1], position[2] };
         Vector3 vshift{ shift[0], shift[1], shift[2] };
 
-        Vector3 decomposed
-            = Engine::Vectormath::decompose( vshift, image->hamiltonian->get_geometry().bravais_vectors );
+        Vector3 decomposed = Engine::Vectormath::decompose( vshift, geometry.bravais_vectors );
 
         int da = (int)std::round( decomposed[0] );
         int db = (int)std::round( decomposed[1] );
@@ -186,8 +186,7 @@ try
         if( da == 0 && db == 0 && dc == 0 )
             return false;
 
-        const auto & geometry = image->hamiltonian->get_geometry();
-        const int delta       = geometry.n_cell_atoms * da + geometry.n_cell_atoms * geometry.n_cells[0] * db
+        const int delta = geometry.n_cell_atoms * da + geometry.n_cell_atoms * geometry.n_cells[0] * db
                           + geometry.n_cell_atoms * geometry.n_cells[0] * geometry.n_cells[1] * dc;
 
         // Create position filter
@@ -222,16 +221,16 @@ void Configuration_Domain(
     scalar r_cut_cylindrical, scalar r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
-
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( direction, "direction" );
     throw_if_nullptr( position, "position" );
     throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
+    const auto & geometry = image->hamiltonian->get_geometry();
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
-    Vector3 vpos = image->hamiltonian->get_geometry().center + _pos;
+    Vector3 vpos = geometry.center + _pos;
 
     // Create position filter
     auto filter = get_filter( vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -240,7 +239,7 @@ try
     Vector3 vdir{ direction[0], direction[1], direction[2] };
     image->Lock();
     Utility::Configurations::Domain( *image, vdir, filter );
-    image->hamiltonian->get_geometry().Apply_Pinning( *image->spins );
+    geometry.Apply_Pinning( *image->spins );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -279,15 +278,15 @@ void Configuration_PlusZ(
     scalar r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
-
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( position, "position" );
     throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
+    const auto & geometry = image->hamiltonian->get_geometry();
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
-    Vector3 vpos = image->hamiltonian->get_geometry().center + _pos;
+    Vector3 vpos = geometry.center + _pos;
 
     // Create position filter
     auto filter = get_filter( vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -296,7 +295,7 @@ try
     Vector3 vdir{ 0, 0, 1 };
     image->Lock();
     Utility::Configurations::Domain( *image, vdir, filter );
-    image->hamiltonian->get_geometry().Apply_Pinning( *image->spins );
+    geometry.Apply_Pinning( *image->spins );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -313,15 +312,15 @@ void Configuration_MinusZ(
     scalar r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
-
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( position, "position" );
     throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
+    const auto & geometry = image->hamiltonian->get_geometry();
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
-    Vector3 vpos = image->hamiltonian->get_geometry().center + _pos;
+    Vector3 vpos = geometry.center + _pos;
 
     // Create position filter
     auto filter = get_filter( vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -330,7 +329,7 @@ try
     Vector3 vdir{ 0, 0, -1 };
     image->Lock();
     Utility::Configurations::Domain( *image, vdir, filter );
-    image->hamiltonian->get_geometry().Apply_Pinning( *image->spins );
+    geometry.Apply_Pinning( *image->spins );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -347,15 +346,15 @@ void Configuration_Random(
     scalar r_cut_spherical, bool inverted, bool external, int idx_image, int idx_chain ) noexcept
 try
 {
-
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( position, "position" );
     throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
+    const auto & geometry = image->hamiltonian->get_geometry();
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
-    Vector3 vpos = image->hamiltonian->get_geometry().center + _pos;
+    Vector3 vpos = geometry.center + _pos;
 
     // Create position filter
     auto filter = get_filter( vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -363,7 +362,7 @@ try
     // Apply configuration
     image->Lock();
     Utility::Configurations::Random( *image, filter, external );
-    image->hamiltonian->get_geometry().Apply_Pinning( *image->spins );
+    geometry.Apply_Pinning( *image->spins );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -380,15 +379,15 @@ void Configuration_Add_Noise_Temperature(
     scalar r_cut_cylindrical, scalar r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
-
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( position, "position" );
     throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
+    const auto & geometry = image->hamiltonian->get_geometry();
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
-    Vector3 vpos = image->hamiltonian->get_geometry().center + _pos;
+    Vector3 vpos = geometry.center + _pos;
 
     // Create position filter
     auto filter = get_filter( vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -411,8 +410,6 @@ catch( ... )
 void Configuration_Displace_Eigenmode( State * state, int idx_mode, int idx_image, int idx_chain ) noexcept
 try
 {
-    // Fetch correct indices and pointers for image and chain
-
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
@@ -470,16 +467,16 @@ void Configuration_Hopfion(
     int idx_chain ) noexcept
 try
 {
-
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( position, "position" );
     throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
     throw_if_nullptr( normal, "normal" );
 
+    const auto & geometry = image->hamiltonian->get_geometry();
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
-    Vector3 vpos = image->hamiltonian->get_geometry().center + _pos;
+    Vector3 vpos = geometry.center + _pos;
 
     // Set cutoff radius
     if( r_cut_spherical < 0 )
@@ -491,7 +488,7 @@ try
     // Apply configuration
     image->Lock();
     Utility::Configurations::Hopfion( *image, vpos, r, order, { normal[0], normal[1], normal[2] }, filter );
-    image->hamiltonian->get_geometry().Apply_Pinning( *image->spins );
+    geometry.Apply_Pinning( *image->spins );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -512,15 +509,15 @@ void Configuration_Skyrmion(
     int idx_chain ) noexcept
 try
 {
-
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( position, "position" );
     throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
+    const auto & geometry = image->hamiltonian->get_geometry();
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
-    Vector3 vpos = image->hamiltonian->get_geometry().center + _pos;
+    Vector3 vpos = geometry.center + _pos;
 
     // Set cutoff radius
     if( r_cut_cylindrical < 0 )
@@ -532,7 +529,7 @@ try
     // Apply configuration
     image->Lock();
     Utility::Configurations::Skyrmion( *image, vpos, r, order, phase, upDown, achiral, rl, false, filter );
-    image->hamiltonian->get_geometry().Apply_Pinning( *image->spins );
+    geometry.Apply_Pinning( *image->spins );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -561,15 +558,15 @@ void Configuration_DW_Skyrmion(
     bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
-
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( position, "position" );
     throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
+    const auto & geometry = image->hamiltonian->get_geometry();
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
-    Vector3 vpos = image->hamiltonian->get_geometry().center + _pos;
+    Vector3 vpos = geometry.center + _pos;
 
     // Set cutoff radius
     if( r_cut_cylindrical < 0 )
@@ -582,7 +579,7 @@ try
     image->Lock();
     Utility::Configurations::DW_Skyrmion(
         *image, vpos, dw_radius, dw_width, order, phase, upDown, achiral, rl, filter );
-    image->hamiltonian->get_geometry().Apply_Pinning( *image->spins );
+    geometry.Apply_Pinning( *image->spins );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -613,7 +610,6 @@ void Configuration_SpinSpiral(
     int idx_chain ) noexcept
 try
 {
-
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( q, "q" );
@@ -621,9 +617,10 @@ try
     throw_if_nullptr( position, "position" );
     throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
+    const auto & geometry = image->hamiltonian->get_geometry();
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
-    Vector3 vpos = image->hamiltonian->get_geometry().center + _pos;
+    Vector3 vpos = geometry.center + _pos;
 
     // Create position filter
     auto filter = get_filter( vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -634,7 +631,7 @@ try
     Vector3 vaxis{ axis[0], axis[1], axis[2] };
     image->Lock();
     Utility::Configurations::SpinSpiral( *image, dir_type, vq, vaxis, theta, filter );
-    image->hamiltonian->get_geometry().Apply_Pinning( *image->spins );
+    geometry.Apply_Pinning( *image->spins );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -656,7 +653,6 @@ void Configuration_SpinSpiral_2q(
     bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
-
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( q1, "q1" );
@@ -665,9 +661,10 @@ try
     throw_if_nullptr( position, "position" );
     throw_if_nullptr( r_cut_rectangular, "r_cut_rectangular" );
 
+    const auto & geometry = image->hamiltonian->get_geometry();
     // Get relative position
     Vector3 _pos{ position[0], position[1], position[2] };
-    Vector3 vpos = image->hamiltonian->get_geometry().center + _pos;
+    Vector3 vpos = geometry.center + _pos;
 
     // Create position filter
     auto filter = get_filter( vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -701,7 +698,6 @@ void Configuration_Set_Pinned(
     scalar r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
-
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( position, "position" );
@@ -734,7 +730,6 @@ void Configuration_Set_Atom_Type(
     scalar r_cut_spherical, bool inverted, int idx_image, int idx_chain ) noexcept
 try
 {
-
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( position, "position" );

@@ -249,11 +249,11 @@ try
     Vectormath::set_c_a( 1, grad, grad, system->hamiltonian->get_geometry().mask_unpinned );
 
     // Output
-    for( unsigned int _i = 0; _i < nos; ++_i )
+    for( unsigned int i = 0; i < nos; ++i )
     {
         for( int dim = 0; dim < 3; ++dim )
         {
-            f_grad[3 * _i + dim] = -grad[_i][dim];
+            f_grad[3 * i + dim] = -grad[i][dim];
         }
     }
 
