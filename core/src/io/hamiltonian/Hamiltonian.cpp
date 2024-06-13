@@ -169,6 +169,7 @@ std::unique_ptr<Engine::Spin::HamiltonianVariant> Hamiltonian_Gaussian_from_Conf
 
 } // namespace
 
+template<>
 std::unique_ptr<Engine::Spin::HamiltonianVariant>
 Hamiltonian_from_Config( const std::string & config_file_name, Data::Geometry geometry, intfield boundary_conditions )
 {
@@ -198,7 +199,8 @@ Hamiltonian_from_Config( const std::string & config_file_name, Data::Geometry ge
         }
     }
     else
-        Log( Log_Level::Parameter, Log_Sender::IO, fmt::format( "Hamiltonian: Using default Hamiltonian: {}", hamiltonian_type ) );
+        Log( Log_Level::Parameter, Log_Sender::IO,
+             fmt::format( "Hamiltonian: Using default Hamiltonian: {}", hamiltonian_type ) );
 
     // Hamiltonian
     std::unique_ptr<Engine::Spin::HamiltonianVariant> hamiltonian;
@@ -228,7 +230,8 @@ Hamiltonian_from_Config( const std::string & config_file_name, Data::Geometry ge
     }
 
     // Return
-    Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Hamiltonian: built hamiltonian of type: {}", hamiltonian_type ) );
+    Log( Log_Level::Debug, Log_Sender::IO,
+         fmt::format( "Hamiltonian: built hamiltonian of type: {}", hamiltonian_type ) );
     return hamiltonian;
 }
 

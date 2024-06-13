@@ -38,12 +38,6 @@ void Parameters_Method_MMF_to_Config(
 void Hamiltonian_to_Config(
     const std::string & config_file, const std::shared_ptr<Engine::Spin::HamiltonianVariant> hamiltonian );
 
-void Hamiltonian_Heisenberg_to_Config(
-    const std::string & config_file, const std::shared_ptr<Engine::Spin::HamiltonianVariant> hamiltonian );
-
-void Hamiltonian_Gaussian_to_Config(
-    const std::string & config_file, const std::shared_ptr<Engine::Spin::HamiltonianVariant> hamiltonian );
-
 } // namespace IO
 
 #endif

@@ -218,30 +218,8 @@ void Parameters_Method_MMF_to_Config(
     append_to_file( config, config_file );
 }
 
-void Hamiltonian_to_Config(
-    const std::string & config_file, const std::shared_ptr<Engine::Spin::HamiltonianVariant> hamiltonian )
+namespace
 {
-    std::string config = "";
-    config += "################### Hamiltonian ##################\n";
-    std::string name;
-    if( hamiltonian->Name() == "Heisenberg" )
-        name = "heisenberg_pairs";
-    else if( hamiltonian->Name() == "Gaussian" )
-        name = "gaussian";
-    config += fmt::format( "{:<25} {}\n", "hamiltonian", name );
-    config += []( const auto & bc ) {
-        return fmt::format( "{:<25} {} {} {}\n", "boundary_conditions", bc[0], bc[1], bc[2] );
-    }( hamiltonian->get_boundary_conditions() );
-    append_to_file( config, config_file );
-
-    if( hamiltonian->Name() == "Heisenberg" )
-        Hamiltonian_Heisenberg_to_Config( config_file, hamiltonian );
-    else if( hamiltonian->Name() == "Gaussian" )
-        Hamiltonian_Gaussian_to_Config( config_file, hamiltonian );
-
-    config = "################# End Hamiltonian ################";
-    append_to_file( config, config_file );
-}
 
 void Hamiltonian_Heisenberg_to_Config(
     const std::string & config_file, const std::shared_ptr<Engine::Spin::HamiltonianVariant> hamiltonian )
@@ -447,6 +425,33 @@ void Hamiltonian_Gaussian_to_Config(
             }
         }
     }
+    append_to_file( config, config_file );
+}
+
+} // namespace
+
+void Hamiltonian_to_Config(
+    const std::string & config_file, const std::shared_ptr<Engine::Spin::HamiltonianVariant> hamiltonian )
+{
+    std::string config = "";
+    config += "################### Hamiltonian ##################\n";
+    std::string name;
+    if( hamiltonian->Name() == "Heisenberg" )
+        name = "heisenberg_pairs";
+    else if( hamiltonian->Name() == "Gaussian" )
+        name = "gaussian";
+    config += fmt::format( "{:<25} {}\n", "hamiltonian", name );
+    config += []( const auto & bc ) {
+        return fmt::format( "{:<25} {} {} {}\n", "boundary_conditions", bc[0], bc[1], bc[2] );
+    }( hamiltonian->get_boundary_conditions() );
+    append_to_file( config, config_file );
+
+    if( hamiltonian->Name() == "Heisenberg" )
+        Hamiltonian_Heisenberg_to_Config( config_file, hamiltonian );
+    else if( hamiltonian->Name() == "Gaussian" )
+        Hamiltonian_Gaussian_to_Config( config_file, hamiltonian );
+
+    config = "################# End Hamiltonian ################";
     append_to_file( config, config_file );
 }
 
