@@ -27,7 +27,8 @@ Matrix3 dreibein( const Vector3 & normal );
 // Angle between two vectors, assuming both are normalized
 SPIRIT_HOSTDEVICE scalar angle( const Vector3 & v1, const Vector3 & v2 );
 // Rotate a vector around an axis by a certain degree (Implemented with Rodrigue's formula)
-void rotate( const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out );
+SPIRIT_HOSTDEVICE Vector3 rotated( const Vector3 & v, const Vector3 & axis, const scalar angle );
+SPIRIT_HOSTDEVICE void rotate( const Vector3 & v, const Vector3 & axis, const scalar angle, Vector3 & v_out );
 void rotate( const vectorfield & v, const vectorfield & axis, const scalarfield & angle, vectorfield & v_out );
 
 // Decompose a vector into numbers of translations in a basis
@@ -47,11 +48,19 @@ void TopologicalChargeDensity(
 // Calculate the topological charge inside a vectorfield
 scalar TopologicalCharge( const vectorfield & vf, const Data::Geometry & geom, const intfield & boundary_conditions );
 
-void get_random_vector( std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec );
-void get_random_vectorfield( std::mt19937 & prng, vectorfield & xi );
+#ifdef SPIRIT_USE_CUDA
+__global__ void cu_get_random_vectorfield( Vector3 * xi, const size_t N );
+#endif
+
+template<typename RandomFunc>
+void get_random_vector( std::uniform_real_distribution<scalar> & distribution, RandomFunc & prng, Vector3 & vec );
+template<typename RandomFunc>
+void get_random_vectorfield( RandomFunc & prng, vectorfield & xi );
+template<typename RandomFunc>
 void get_random_vector_unitsphere(
-    std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec );
-void get_random_vectorfield_unitsphere( std::mt19937 & prng, vectorfield & xi );
+    std::uniform_real_distribution<scalar> & distribution, RandomFunc & prng, Vector3 & vec );
+template<typename RandomFunc>
+void get_random_vectorfield_unitsphere( RandomFunc & prng, vectorfield & xi );
 
 // Calculate a gradient scalar distribution according to a starting value, direction and inclination
 void get_gradient_distribution(

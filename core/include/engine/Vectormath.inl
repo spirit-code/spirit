@@ -3,6 +3,9 @@
 #include <data/Geometry.hpp>
 #include <engine/Backend.hpp>
 #include <engine/Vectormath_Defines.hpp>
+#include <utility/Constants.hpp>
+
+#include <random>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -35,6 +38,124 @@ public:
         return rotation_matrix * ( field[idx] - shift_pre ) + shift_post;
     }
 };
+
+template<typename RandomFunc>
+void get_random_vector( std::uniform_real_distribution<scalar> & distribution, RandomFunc & prng, Vector3 & vec )
+{
+    for( int dim = 0; dim < 3; ++dim )
+    {
+        vec[dim] = distribution( prng );
+    }
+}
+
+#ifndef SPIRIT_USE_CUDA
+
+template<typename RandomFunc>
+void get_random_vectorfield( RandomFunc & prng, vectorfield & xi )
+{
+    // PRNG gives RN [-1,1] -> multiply with epsilon
+    auto distribution = std::uniform_real_distribution<scalar>( -1, 1 );
+// TODO: parallelization of this is actually not quite so trivial
+#pragma omp parallel for
+    for( unsigned int i = 0; i < xi.size(); ++i )
+    {
+        get_random_vector( distribution, prng, xi[i] );
+    }
+}
+
+template<typename RandomFunc>
+void get_random_vector_unitsphere(
+    std::uniform_real_distribution<scalar> & distribution, RandomFunc & prng, Vector3 & vec )
+{
+    const scalar v_z = distribution( prng );
+    const scalar phi = distribution( prng ) * Utility::Constants::Pi;
+
+    const scalar r_xy = std::sqrt( 1 - v_z * v_z );
+
+    vec[0] = r_xy * std::cos( phi );
+    vec[1] = r_xy * std::sin( phi );
+    vec[2] = v_z;
+}
+
+template<typename RandomFunc>
+void get_random_vectorfield_unitsphere( RandomFunc & prng, vectorfield & xi )
+{
+    // PRNG gives RN [-1,1] -> multiply with epsilon
+    auto distribution = std::uniform_real_distribution<scalar>( -1, 1 );
+// TODO: parallelization of this is actually not quite so trivial
+#pragma omp parallel for
+    for( unsigned int i = 0; i < xi.size(); ++i )
+    {
+        get_random_vector_unitsphere( distribution, prng, xi[i] );
+    }
+}
+
+#else
+
+template<typename RandomFunc>
+void get_random_vectorfield(
+    std::uniform_real_distribution<scalar> & distribution, RandomFunc & prng, vectorfield & xi )
+{
+    unsigned int n = xi.size();
+    cu_get_random_vectorfield<<<( n + 1023 ) / 1024, 1024>>>( xi.data(), n );
+    CU_CHECK_AND_SYNC();
+}
+
+template<typename RandomFunc>
+void get_random_vector_unitsphere(
+    std::uniform_real_distribution<scalar> & distribution, RandomFunc & prng, Vector3 & vec )
+{
+    scalar v_z = distribution( prng );
+    scalar phi = distribution( prng );
+
+    scalar r_xy = std::sqrt( 1 - v_z * v_z );
+
+    vec[0] = r_xy * std::cos( 2 * Utility::Constants::Pi * phi );
+    vec[1] = r_xy * std::sin( 2 * Utility::Constants::Pi * phi );
+    vec[2] = v_z;
+}
+// __global__ void cu_get_random_vectorfield_unitsphere(Vector3 * xi, const size_t N)
+// {
+//     unsigned long long subsequence = 0;
+//     unsigned long long offset= 0;
+
+//     curandState_t state;
+//     for(int idx = blockIdx.x * blockDim.x + threadIdx.x;
+//         idx < N;
+//         idx +=  blockDim.x * gridDim.x)
+//     {
+//         curand_init(idx,subsequence,offset,&state);
+
+//         scalar v_z = llroundf(curand_uniform(&state))*2-1;
+//         scalar phi = llroundf(curand_uniform(&state))*2-1;
+
+// 	    scalar r_xy = std::sqrt(1 - v_z*v_z);
+
+//         xi[idx][0] = r_xy * std::cos(2*Pi*phi);
+//         xi[idx][1] = r_xy * std::sin(2*Pi*phi);
+//         xi[idx][2] = v_z;
+//     }
+// }
+// void get_random_vectorfield_unitsphere(std::mt19937 & prng, vectorfield & xi)
+// {
+//     int n = xi.size();
+//     cu_get_random_vectorfield<<<(n+1023)/1024, 1024>>>(xi.data(), n);
+//     CU_CHECK_AND_SYNC();
+// }
+// The above CUDA implementation does not work correctly.
+template<typename RandomFunc>
+void get_random_vectorfield_unitsphere( RandomFunc & prng, vectorfield & xi )
+{
+    // PRNG gives RN [-1,1] -> multiply with epsilon
+    auto distribution = std::uniform_real_distribution<scalar>( -1, 1 );
+// TODO: parallelization of this is actually not quite so trivial
+#pragma omp parallel for
+    for( unsigned int i = 0; i < xi.size(); ++i )
+    {
+        get_random_vector_unitsphere( distribution, prng, xi[i] );
+    }
+}
+#endif
 
 SPIRIT_HOSTDEVICE inline scalar angle( const Vector3 & v1, const Vector3 & v2 )
 {

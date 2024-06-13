@@ -18,7 +18,6 @@ set(SOURCE_SPIRIT_ENGINE
     ${CMAKE_CURRENT_SOURCE_DIR}/Method.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Neighbours.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.cu
     PARENT_SCOPE
 )
 
