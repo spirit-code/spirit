@@ -1,5 +1,6 @@
 #include <data/State.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/StateType.hpp>
 #include <utility/Configuration_Chain.hpp>
 #include <utility/Configurations.hpp>
 #include <utility/Constants.hpp>
@@ -12,6 +13,9 @@
 #include <string>
 #include <vector>
 
+using Engine::Field;
+using Engine::get;
+
 namespace Utility
 {
 namespace Configuration_Chain
@@ -22,14 +26,14 @@ void Add_Noise_Temperature( State::chain_t & c, int idx_1, int idx_2, scalar tem
     auto prng = std::mt19937( 123456789 );
     for( int img = idx_1 + 1; img <= idx_2 - 1; ++img )
     {
-        Configurations::Add_Noise_Temperature_Sphere( *c.images[img]->spins, c.images[img]->hamiltonian->get_geometry(), temperature, prng );
+        Configurations::Add_Noise_Temperature_Sphere( get<Field::Spin>( *c.images[img]->state ), c.images[img]->hamiltonian->get_geometry(), temperature, prng );
     }
 }
 
 void Homogeneous_Rotation( State::chain_t & c, int idx_1, int idx_2 )
 {
-    auto & spins_1 = *c.images[idx_1]->spins;
-    auto & spins_2 = *c.images[idx_2]->spins;
+    auto & spins_1 = get<Field::Spin>( *c.images[idx_1]->state );
+    auto & spins_2 = get<Field::Spin>( *c.images[idx_2]->state );
 
     scalar angle, rot_angle;
     Vector3 rot_axis;
@@ -58,7 +62,7 @@ void Homogeneous_Rotation( State::chain_t & c, int idx_1, int idx_2 )
             for( int img = idx_1 + 1; img < idx_2; ++img )
             {
                 angle = rot_angle * scalar( img - idx_1 ) / scalar( idx_2 - idx_1 );
-                Engine::Vectormath::rotate( spins_1[i], rot_axis, angle, ( *c.images[img]->spins )[i] );
+                Engine::Vectormath::rotate( spins_1[i], rot_axis, angle, get<Field::Spin>( *c.images[img]->state )[i] );
             }
         }
         // Otherwise we simply leave the spin untouched
@@ -66,7 +70,7 @@ void Homogeneous_Rotation( State::chain_t & c, int idx_1, int idx_2 )
         {
             for( int img = idx_1 + 1; img < idx_2; ++img )
             {
-                ( *c.images[img]->spins )[i] = spins_1[i];
+                get<Field::Spin>( *c.images[img]->state )[i] = spins_1[i];
             }
         }
     }

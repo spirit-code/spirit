@@ -194,7 +194,7 @@ try
         const std::string extension = Get_Extension( filename );
 
         // Helper variables
-        auto & spins = *image->spins;
+        auto & system_state = *image->state;
         // TODO: eliminate this copy
         auto geometry = image->hamiltonian->get_geometry();
 
@@ -210,7 +210,7 @@ try
                      filename, file.latest_message() ),
                  idx_image_inchain, idx_chain );
 
-            IO::Read_NonOVF_System_Configuration( spins, geometry, image->nos, idx_image_infile, filename );
+            IO::Read_NonOVF_System_Configuration( system_state, geometry, image->nos, idx_image_infile, filename );
             image->hamiltonian->set_geometry( geometry );
             image->Unlock();
             return;
@@ -256,8 +256,11 @@ try
         }
 
         // Read data
-        file.read_segment_data( idx_image_infile, segment, spins[0].data() );
+        file.read_segment_data( idx_image_infile, segment, system_state[0].data() );
+        using Engine::Field;
+        using Engine::get;
 
+        vectorfield & spins = get<Field::Spin>( system_state );
         for( std::size_t ispin = 0; ispin < spins.size(); ++ispin )
         {
             if( spins[ispin].norm() < 1e-5 )
@@ -314,8 +317,8 @@ try
             case IO::VF_FileFormat::OVF_TEXT:
             case IO::VF_FileFormat::OVF_CSV:
             {
-                auto segment = IO::OVF_Segment( image->hamiltonian->get_geometry() );
-                auto & spins = *image->spins;
+                auto segment              = IO::OVF_Segment( image->hamiltonian->get_geometry() );
+                const auto & system_state = *image->state;
 
                 std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
                 segment.title       = strdup( title.c_str() );
@@ -325,7 +328,7 @@ try
                 segment.valueunits  = strdup( IO::State::valueunits.data() );
 
                 // Open and write
-                const auto buffer = IO::State::Buffer( spins );
+                const auto buffer = IO::State::Buffer( system_state );
                 IO::OVF_File( filename ).write_segment( segment, buffer.data(), format );
 
                 Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
@@ -386,8 +389,8 @@ try
                         fmt::format( "Cannot append to non-OVF file \"{}\"", filename ) );
                 }
 
-                auto segment = IO::OVF_Segment( image->hamiltonian->get_geometry() );
-                auto & spins = *image->spins;
+                auto segment              = IO::OVF_Segment( image->hamiltonian->get_geometry() );
+                const auto & system_state = *image->state;
 
                 std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
                 segment.title       = strdup( title.c_str() );
@@ -397,7 +400,7 @@ try
                 segment.valueunits  = strdup( IO::State::valueunits.data() );
 
                 // Open and write
-                const auto buffer = IO::State::Buffer( spins );
+                const auto buffer = IO::State::Buffer( system_state );
                 IO::OVF_File( filename ).write_segment( segment, buffer.data(), format );
 
                 break;
@@ -512,9 +515,7 @@ try
             // Read the images
             for( int i = insert_idx; i < noi_to_read; i++ )
             {
-                auto & spins          = *images[i]->spins;
-                const auto & geometry = images[i]->hamiltonian->get_geometry();
-
+                auto & system_state = *images[i]->state;
                 // Segment header
                 auto segment = IO::OVF_Segment();
 
@@ -556,9 +557,9 @@ try
                 }
 
                 // Read data
-                file.read_segment_data( start_image_infile, segment, spins[0].data() );
-
-                for( int ispin = 0; ispin < spins.size(); ++ispin )
+                file.read_segment_data( start_image_infile, segment, system_state[0].data() );
+                auto & spins = Engine::get<Engine::Field::Spin>( system_state );
+                for( unsigned int ispin = 0; ispin < spins.size(); ++ispin )
                 {
                     if( spins[ispin].norm() < 1e-5 )
                     {
@@ -605,7 +606,7 @@ try
                     // TODO: eliminate this copy
                     auto geometry = chain->images[i]->hamiltonian->get_geometry();
                     IO::Read_NonOVF_System_Configuration(
-                        *chain->images[i]->spins, geometry, chain->images[i]->nos, start_image_infile, filename );
+                        *chain->images[i]->state, geometry, chain->images[i]->nos, start_image_infile, filename );
                     chain->images[i]->hamiltonian->set_geometry( geometry );
                     start_image_infile++;
                 }
@@ -668,8 +669,8 @@ try
                 // Open
                 auto file = IO::OVF_File( filename );
 
-                auto segment = IO::OVF_Segment( image->hamiltonian->get_geometry() );
-                auto & spins = *image->spins;
+                auto segment              = IO::OVF_Segment( image->hamiltonian->get_geometry() );
+                const auto & system_state = *image->state;
 
                 std::string title       = fmt::format( "SPIRIT Version {}", Utility::version_full );
                 segment.title           = strdup( title.c_str() );
@@ -681,15 +682,14 @@ try
                 segment.valueunits      = strdup( IO::State::valueunits.data() );
 
                 // Open and write
-                const IO::State::Buffer buffer( spins );
+                const IO::State::Buffer buffer( system_state );
                 IO::OVF_File( filename ).write_segment( segment, buffer.data(), format );
 
                 for( int i = 1; i < chain->noi; i++ )
                 {
                     comment_str     = fmt::format( "Image {} of {}. {}", i + 1, chain->noi, comment );
                     segment.comment = strdup( comment_str.c_str() );
-
-                    file.append_segment( segment, ( *images[i]->spins )[0].data(), int( fileformat ) );
+                    file.append_segment( segment, IO::State::Buffer( *images[i]->state ).data(), int( fileformat ) );
                 }
 
                 break;
@@ -749,8 +749,8 @@ try
                         fmt::format( "Cannot append to non-OVF file \"{}\"", filename ) );
                 }
 
-                auto segment = IO::OVF_Segment( image->hamiltonian->get_geometry() );
-                auto & spins = *image->spins;
+                auto segment        = IO::OVF_Segment( image->hamiltonian->get_geometry() );
+                auto & system_state = *image->state;
 
                 std::string title       = fmt::format( "SPIRIT Version {}", Utility::version_full );
                 segment.title           = strdup( title.c_str() );
@@ -767,7 +767,7 @@ try
                 {
                     comment_str     = fmt::format( "Image {} of {}. {}", i, chain->noi, comment );
                     segment.comment = strdup( comment_str.c_str() );
-                    const IO::State::Buffer buffer( spins );
+                    const IO::State::Buffer buffer( system_state );
                     file.write_segment( segment, buffer.data(), int( fileformat ) );
                 }
 
@@ -845,7 +845,7 @@ try
     image->Lock();
 
     auto & system = *image;
-    auto & spins  = *image->spins;
+    auto & spins  = *image->state;
 
     // Gather the data
     system.UpdateEnergy();
@@ -1002,7 +1002,7 @@ try
     {
         const std::string extension = Get_Extension( filename );
 
-        auto & spins = *image->spins;
+        auto & spins = *image->state;
 
         // Open
         auto file = IO::OVF_File( filename, true );

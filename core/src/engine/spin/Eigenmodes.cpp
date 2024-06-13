@@ -68,7 +68,7 @@ void Calculate_Eigenmodes( State::system_t & system, int idx_img, int idx_chain 
     auto & n_modes = system.ema_parameters->n_modes;
 
     // vectorfield mode(nos, Vector3{1, 0, 0});
-    vectorfield spins_initial = *system.spins;
+    auto spins_initial = *system.state;
 
     Log( Log_Level::Info, Log_Sender::EMA, fmt::format( "Started calculation of {} Eigenmodes ", n_modes ), idx_img,
          idx_chain );

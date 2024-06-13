@@ -23,7 +23,7 @@ TEST_CASE( "Trivial", "[EMA]" )
     Configuration_PlusZ( state.get() );
 
     Simulation_EMA_Start( state.get(), 20 );
-    const auto & spins = *state->active_image->spins;
+    const auto & spins = *state->active_image->state;
     auto gradient      = vectorfield( state->nos );
     state->active_image->hamiltonian->Gradient( spins, gradient );
     Vector3 gradient_expected{ 6, -6, -22.8942 };

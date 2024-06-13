@@ -44,7 +44,7 @@ Method_LLG<solver>::Method_LLG( std::shared_ptr<system_t> system, int idx_img, i
     // Create shared pointers to the method's systems' spin configurations
     this->configurations = std::vector<std::shared_ptr<vectorfield>>( this->noi );
     for( int i = 0; i < this->noi; ++i )
-        this->configurations[i] = this->systems[i]->spins;
+        this->configurations[i] = this->systems[i]->state;
 
     // Allocate force array
     // this->force = std::vector<vectorfield>(this->noi, vectorfield(this->nos, Vector3::Zero()));	// [noi][3*nos]
@@ -133,7 +133,7 @@ void Method_LLG<solver>::Hook_Post_Iteration()
     for( std::size_t img = 0; img < this->systems.size(); ++img )
     {
         this->force_converged[img] = false;
-        Manifoldmath::project_tangential( this->forces_virtual[img], *( this->systems[img]->spins ) );
+        Manifoldmath::project_tangential( this->forces_virtual[img], *( this->systems[img]->state ) );
         const scalar fmax = Vectormath::max_norm( this->forces_virtual[img] );
 
         if( fmax > 0 )
@@ -153,7 +153,7 @@ void Method_LLG<solver>::Hook_Post_Iteration()
     // ToDo: How to update eff_field without numerical overhead?
     // systems[0]->effective_field = Gradient[0];
     // Vectormath::scale(systems[0]->effective_field, -1);
-    Manifoldmath::project_tangential( this->forces[0], *this->systems[0]->spins );
+    Manifoldmath::project_tangential( this->forces[0], *this->systems[0]->state );
     Vectormath::set_c_a( 1, this->forces[0], this->systems[0]->M.effective_field );
     // systems[0]->UpdateEffectiveField();
 
@@ -263,7 +263,7 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
                 IO::VF_FileFormat format = sys.llg_parameters->output_vf_filetype;
 
                 // Spin Configuration
-                auto & spins        = *sys.spins;
+                auto & spins        = *sys.state;
                 auto segment        = IO::OVF_Segment( sys.hamiltonian->get_geometry() );
                 std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
                 segment.title       = strdup( title.c_str() );
@@ -315,7 +315,7 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
                     // Gather the data
                     Data::vectorlabeled<scalarfield> contributions_spins( 0 );
                     sys.UpdateEnergy();
-                    sys.hamiltonian->Energy_Contributions_per_Spin( *sys.spins, sys.E.per_interaction_per_spin );
+                    sys.hamiltonian->Energy_Contributions_per_Spin( *sys.state, sys.E.per_interaction_per_spin );
 
                     IO::Write_Image_Energy_Contributions(
                         sys.E, sys.hamiltonian->get_geometry(), energyFilePerSpin,

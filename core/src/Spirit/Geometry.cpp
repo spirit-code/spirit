@@ -3,6 +3,7 @@
 
 #include <data/State.hpp>
 #include <engine/Indexing.hpp>
+#include <engine/StateType.hpp>
 #include <engine/spin/Hamiltonian.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Formatters_Eigen.hpp>
@@ -11,6 +12,22 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
+namespace
+{
+
+using Engine::Field;
+using Engine::get;
+using Engine::quantity;
+
+template<typename T>
+void Helper_Change_Dimensions(
+    field<T> & f, const Data::Geometry & old_geometry, const Data::Geometry & new_geometry, T && value )
+{
+    f = Engine::Indexing::change_dimensions(
+        f, old_geometry.n_cell_atoms, old_geometry.n_cells, new_geometry.n_cell_atoms, new_geometry.n_cells,
+        std::move( value ) );
+}
+
 void Helper_System_Set_Geometry( State::system_t & system, const Data::Geometry & new_geometry )
 {
     const auto & old_geometry = system.hamiltonian->get_geometry();
@@ -18,13 +35,8 @@ void Helper_System_Set_Geometry( State::system_t & system, const Data::Geometry 
     int nos    = new_geometry.nos;
     system.nos = nos;
 
-    // Move the vector-fields to the new geometry
-    *system.spins = Engine::Indexing::change_dimensions(
-        *system.spins, old_geometry.n_cell_atoms, old_geometry.n_cells, new_geometry.n_cell_atoms, new_geometry.n_cells,
-        { 0, 0, 1 } );
-    system.M.effective_field = Engine::Indexing::change_dimensions(
-        system.M.effective_field, old_geometry.n_cell_atoms, old_geometry.n_cells, new_geometry.n_cell_atoms,
-        new_geometry.n_cells, { 0, 0, 0 } );
+    Helper_Change_Dimensions( get<Field::Spin>( *system.state ), old_geometry, new_geometry, { 0, 0, 1 } );
+    Helper_Change_Dimensions( system.M.effective_field, old_geometry, new_geometry, { 0, 0, 0 } );
 
     // Update the system geometry
     system.hamiltonian->set_geometry( new_geometry );
@@ -79,10 +91,8 @@ void Helper_State_Set_Geometry(
     }
 
     // Deal with clipboard configuration of State
-    if( state.clipboard_spins )
-        *state.clipboard_spins = Engine::Indexing::change_dimensions(
-            *state.clipboard_spins, old_geometry.n_cell_atoms, old_geometry.n_cells, new_geometry.n_cell_atoms,
-            new_geometry.n_cells, { 0, 0, 1 } );
+    if( state.clipboard_spins != nullptr )
+        Helper_Change_Dimensions( *state.clipboard_spins, old_geometry, new_geometry, { 0, 0, 1 } );
 
     // TODO: Deal with Methods
     // for (auto& chain_method_image : state.method_image)
@@ -97,6 +107,8 @@ void Helper_State_Set_Geometry(
     //     method_chain->Update_Geometry(new_geometry.n_cell_atoms, new_geometry.n_cells, new_geometry.n_cells);
     // }
 }
+
+} // namespace
 
 void Geometry_Set_Bravais_Lattice_Type( State * state, Bravais_Lattice_Type lattice_type ) noexcept
 try

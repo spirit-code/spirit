@@ -12,5 +12,6 @@ set(HEADER_SPIRIT_ENGINE_COMMON
     ${CMAKE_CURRENT_SOURCE_DIR}/Interaction_Standalone_Adaptor.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Interaction_Traits.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Interaction_Wrapper.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/StateType.hpp
     PARENT_SCOPE
 )

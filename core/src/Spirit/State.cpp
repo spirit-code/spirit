@@ -130,11 +130,13 @@ try
     Log( Log_Level::All, Log_Sender::All, "=====================================================" );
     //------------------------------------------------------------------------------------------
 
+    using Engine::Field;
+    using Engine::get;
     //---------------------- Initialize spin_system --------------------------------------------
     state->active_image = IO::Spin_System_from_Config( state->config_file );
     auto & image        = state->active_image;
     Configurations::Random_Sphere(
-        *image->spins, image->hamiltonian->get_geometry(), image->llg_parameters->prng );
+        get<Field::Spin>( *image->state ), image->hamiltonian->get_geometry(), image->llg_parameters->prng );
     //------------------------------------------------------------------------------------------
 
     //----------------------- Initialize spin system chain -------------------------------------

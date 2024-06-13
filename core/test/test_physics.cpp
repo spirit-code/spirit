@@ -119,7 +119,7 @@ TEST_CASE( "Finite difference and regular Hamiltonian should match", "[physics]"
 
         auto state = std::shared_ptr<State>( State_Setup( input_file ), State_Delete );
         Configuration_Random( state.get() );
-        const auto & spins = *state->active_image->spins;
+        const auto & spins = *state->active_image->state;
         auto & hamiltonian = state->active_image->hamiltonian;
 
         // Compare gradients
@@ -171,7 +171,7 @@ TEST_CASE( "Dipole-Dipole Interaction", "[physics]" )
     auto state                = std::shared_ptr<State>( State_Setup( input_file ), State_Delete );
 
     Configuration_Random( state.get() );
-    auto & spins = *state->active_image->spins;
+    auto & spins = *state->active_image->state;
 
     auto ddi_interaction = state->active_image->hamiltonian->getInteraction<Engine::Spin::Interaction::DDI>();
 

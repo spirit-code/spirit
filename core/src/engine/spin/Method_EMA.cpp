@@ -38,7 +38,7 @@ Method_EMA::Method_EMA( std::shared_ptr<system_t> system, int idx_img, int idx_c
     this->angle         = scalarfield( this->nos );
     this->angle_initial = scalarfield( this->nos );
     this->axis          = vectorfield( this->nos );
-    this->spins_initial = *this->system->spins;
+    this->spins_initial = *this->system->state;
 
     Eigenmodes::Check_Eigenmode_Parameters( *system );
 
@@ -64,7 +64,7 @@ void Method_EMA::Iteration()
         // Reset members
         this->following_mode = this->parameters_ema->n_mode_follow;
         // Restore the initial spin configuration
-        ( *this->system->spins ) = this->spins_initial;
+        ( *this->system->state ) = this->spins_initial;
 
         // Set the new mode
         this->mode = *this->system->modes[following_mode];
@@ -77,7 +77,7 @@ void Method_EMA::Iteration()
         }
     }
 
-    auto & image = *this->system->spins;
+    auto & image = *this->system->state;
 
     // Calculate n for that iteration based on the initial n displacement vector
     scalar t_angle;
@@ -109,7 +109,7 @@ void Method_EMA::Finalize()
 {
     this->Lock();
     // The initial spin configuration must be restored
-    ( *this->system->spins ) = this->spins_initial;
+    ( *this->system->state ) = this->spins_initial;
     this->Unlock();
 }
 

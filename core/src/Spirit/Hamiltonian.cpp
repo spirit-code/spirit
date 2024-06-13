@@ -817,7 +817,7 @@ try
     // Compute hessian
     auto nos = image->hamiltonian->get_geometry().nos;
     SpMatrixX hessian( 3 * nos, 3 * nos );
-    image->hamiltonian->Sparse_Hessian( *image->spins, hessian );
+    image->hamiltonian->Sparse_Hessian( *image->state, hessian );
 
     if( triplet_format )
         saveTriplets( std::string( filename ), hessian );

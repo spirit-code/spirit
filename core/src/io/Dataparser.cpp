@@ -1,3 +1,4 @@
+#include <engine/StateType.hpp>
 #include <engine/Vectormath.hpp>
 #include <io/Dataparser.hpp>
 #include <io/Filter_File_Handle.hpp>

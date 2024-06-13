@@ -2,9 +2,13 @@
 #include <Spirit/System.h>
 
 #include <data/State.hpp>
+#include <engine/StateType.hpp>
 #include <engine/spin/Eigenmodes.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
+
+using Engine::Field;
+using Engine::get;
 
 int System_Get_Index( State * state ) noexcept
 try
@@ -39,7 +43,7 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    return (scalar *)( *image->spins )[0].data();
+    return (scalar *)get<Field::Spin>( *image->state )[0].data();
 }
 catch( ... )
 {
