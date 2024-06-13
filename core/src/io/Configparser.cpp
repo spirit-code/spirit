@@ -172,7 +172,8 @@ try
     // MMF Parameters
     auto mmf_params = Parameters_Method_MMF_from_Config( config_file_name );
     // Hamiltonian
-    auto hamiltonian = Hamiltonian_from_Config( config_file_name, std::move( geometry ), std::move( boundary_conditions ) );
+    auto hamiltonian = Hamiltonian_from_Config<::State::hamiltonian_t>(
+        config_file_name, std::move( geometry ), std::move( boundary_conditions ) );
     // Spin System
     auto system = std::make_unique<::State::system_t>(
         std::move( hamiltonian ), std::move( llg_params ), std::move( mc_params ), std::move( ema_params ),
