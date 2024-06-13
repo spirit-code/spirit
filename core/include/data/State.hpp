@@ -37,7 +37,7 @@ struct State
     std::shared_ptr<system_t> clipboard_image;
 
     // Spin configuration in clipboard
-    std::shared_ptr<state_t> clipboard_spins;
+    std::shared_ptr<vectorfield> clipboard_spins;
 
     // Number of Spins
     int nos{ 0 };
@@ -81,7 +81,7 @@ inline void check_state( const State * state )
 }
 
 // Check if the given pointer is a null pointer and, if so, throw with a suitable message
-inline void throw_if_nullptr( const void * ptr, const std::string & name )
+inline void throw_if_nullptr( const void * ptr, const std::string_view name )
 {
     if( ptr == nullptr )
     {
