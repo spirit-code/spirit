@@ -75,8 +75,7 @@ void Geometry_to_Config( const std::string & config_file, const Data::Geometry &
     }
 
     // Number of cells
-    config
-        += fmt::format( "n_basis_cells {} {} {}\n", geometry.n_cells[0], geometry.n_cells[1], geometry.n_cells[2] );
+    config += fmt::format( "n_basis_cells {} {} {}\n", geometry.n_cells[0], geometry.n_cells[1], geometry.n_cells[2] );
 
     // Optionally basis
     if( geometry.n_cell_atoms > 1 )

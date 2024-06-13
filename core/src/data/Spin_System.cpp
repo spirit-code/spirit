@@ -13,7 +13,6 @@
 namespace Data
 {
 
-// TODO(important): check why there are two geometry objects in this thing and why they aren't necessarily shared
 template<typename Hamiltonian>
 Spin_System<Hamiltonian>::Spin_System(
     std::unique_ptr<Hamiltonian> hamiltonian, std::unique_ptr<Parameters_Method_LLG> llg_params,
@@ -36,8 +35,8 @@ try : hamiltonian( std::move( hamiltonian ) ), llg_parameters( std::move( llg_pa
     this->eigenvalues = std::vector<scalar>( this->modes.size(), 0 );
 
     // ...
-    this->E               = System_Energy{ 0 , vectorlabeled<scalar>(0), vectorlabeled<scalarfield>( 0 )};
-    this->M               = System_Magnetization{ Vector3{ 0, 0, 0 }, vectorfield( this->nos ) };
+    this->E = System_Energy{ 0, vectorlabeled<scalar>( 0 ), vectorlabeled<scalarfield>( 0 ) };
+    this->M = System_Magnetization{ Vector3{ 0, 0, 0 }, vectorfield( this->nos ) };
 }
 catch( ... )
 {
@@ -54,8 +53,8 @@ try
     this->modes       = other.modes;
     this->eigenvalues = other.eigenvalues;
 
-    this->E               = other.E;
-    this->M               = other.M;
+    this->E = other.E;
+    this->M = other.M;
 
     this->hamiltonian = std::make_shared<Hamiltonian>( *other.hamiltonian );
 
@@ -83,8 +82,8 @@ try
         this->modes       = other.modes;
         this->eigenvalues = other.eigenvalues;
 
-        this->E               = other.E;
-        this->M               = other.M;
+        this->E = other.E;
+        this->M = other.M;
 
         this->hamiltonian = std::make_shared<Hamiltonian>( *other.hamiltonian );
 
@@ -109,7 +108,7 @@ void Spin_System<Hamiltonian>::UpdateEnergy()
 try
 {
     this->E.per_interaction = this->hamiltonian->Energy_Contributions( *this->state );
-    scalar sum    = 0;
+    scalar sum              = 0;
     for( auto & E_item : E.per_interaction )
         sum += E_item.second;
     this->E.total = sum;
