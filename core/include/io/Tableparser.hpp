@@ -10,6 +10,30 @@
 namespace IO
 {
 
+namespace detail
+{
+
+template<typename T, typename Tuple, std::size_t... Is>
+constexpr T make_from_tuple_impl( std::index_sequence<Is...>, Tuple && tuple )
+{
+    return T{ std::get<Is>( tuple )... };
+}
+
+} // namespace detail
+
+// aggregate support for std::make_from_tuple
+template<typename T, typename Tuple>
+constexpr T make_from_tuple( Tuple && tuple )
+{
+    if constexpr( std::is_aggregate<T>::value )
+    {
+        return detail::make_from_tuple_impl<T>(
+            std::make_index_sequence<std::tuple_size<std::decay_t<Tuple>>::value>(), std::forward<Tuple>( tuple ) );
+    }
+    else
+        return std::make_from_tuple<T>( std::forward<Tuple>( tuple ) );
+}
+
 // default factory for forwarding the parsed data
 template<typename In>
 static constexpr auto forwarding_factory
