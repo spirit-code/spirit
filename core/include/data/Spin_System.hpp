@@ -75,7 +75,7 @@ public:
     // Eigenvalues of the system
     std::vector<scalar> eigenvalues;
     // Orientations of the spins: spins[dim][nos]
-    std::shared_ptr<typename Hamiltonian::state_t> spins;
+    std::shared_ptr<typename Hamiltonian::state_t> state;
     // Spin Hamiltonian
     std::shared_ptr<Hamiltonian> hamiltonian;
     // Parameters for LLG

@@ -684,7 +684,7 @@ try
             if( i > 0 )
                 chain->Rx[i]
                     = chain->Rx[i - 1]
-                      + Engine::Manifoldmath::dist_geodesic( *chain->images[i - 1]->spins, *chain->images[i]->spins );
+                      + Engine::Manifoldmath::dist_geodesic( *chain->images[i - 1]->state, *chain->images[i]->state );
         }
         catch( ... )
         {

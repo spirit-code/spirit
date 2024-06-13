@@ -1,6 +1,7 @@
 #pragma once
 
 #include <engine/Span.hpp>
+#include <engine/common/StateType.hpp>
 #include <engine/common/Interaction_Traits.hpp>
 #include <engine/common/Interaction_Wrapper.hpp>
 
@@ -87,7 +88,7 @@ struct transform_op
 
 private:
     Backend::tuple<Functors...> functors;
-    const std::decay_t<typename state_t::value_type> * state;
+    typename state_traits<state_t>::const_pointer state;
     ReturnType zero;
 };
 

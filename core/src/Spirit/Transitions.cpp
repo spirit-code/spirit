@@ -4,6 +4,7 @@
 
 #include <data/Spin_System_Chain.hpp>
 #include <data/State.hpp>
+#include <engine/StateType.hpp>
 #include <utility/Configuration_Chain.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
@@ -11,6 +12,9 @@
 #include <fmt/format.h>
 
 #include <memory>
+
+using Engine::Field;
+using Engine::get;
 
 void Transition_Homogeneous( State * state, int idx_1, int idx_2, int idx_chain ) noexcept
 try
@@ -37,7 +41,8 @@ try
     {
         Utility::Configuration_Chain::Homogeneous_Rotation( *chain, idx_1, idx_2 );
         for( int img = 0; img < chain->noi; ++img )
-            chain->images[img]->hamiltonian->get_geometry().Apply_Pinning( *chain->images[img]->spins );
+            chain->images[img]->hamiltonian->get_geometry().Apply_Pinning(
+                get<Field::Spin>( *chain->images[img]->state ) );
 
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
              fmt::format( "Set homogeneous transition between images {} and {}", idx_1 + 1, idx_2 + 1 ), -1,
@@ -100,7 +105,8 @@ try
     {
         Utility::Configuration_Chain::Add_Noise_Temperature( *chain, idx_1, idx_2, temperature );
         for( int img = 0; img < chain->noi; ++img )
-            chain->images[img]->hamiltonian->get_geometry().Apply_Pinning( *chain->images[img]->spins );
+            chain->images[img]->hamiltonian->get_geometry().Apply_Pinning(
+                get<Field::Spin>( *chain->images[img]->state ) );
 
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
              fmt::format( "Added noise with temperature T={} to images {} - {}", temperature, idx_1 + 1, idx_2 + 1 ),

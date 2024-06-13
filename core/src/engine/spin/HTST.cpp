@@ -41,8 +41,8 @@ void Calculate( Data::HTST_Info<system_t> & htst_info, int n_eigenmodes_keep )
     const scalar epsilon       = 1e-4;
     const scalar epsilon_force = 1e-8;
 
-    auto & image_minimum = *htst_info.minimum->spins;
-    auto & image_sp      = *htst_info.saddle_point->spins;
+    auto & image_minimum = *htst_info.minimum->state;
+    auto & image_sp      = *htst_info.saddle_point->state;
 
     int nos = image_minimum.size();
 
@@ -325,7 +325,7 @@ void Calculate( Data::HTST_Info<system_t> & htst_info, int n_eigenmodes_keep )
 
 scalar Calculate_Zero_Volume( const State::system_t & system )
 {
-    const auto & spins           = *system.spins;
+    const auto & spins           = *system.state;
     const auto & geometry        = system.hamiltonian->get_geometry();
     const int nos                = geometry.nos;
     const auto & bravais_vectors = geometry.bravais_vectors;

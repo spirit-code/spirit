@@ -9,6 +9,7 @@
 #include <Spirit/Version.h>
 #include <data/State.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/StateType.hpp>
 
 #include "catch.hpp"
 
@@ -20,6 +21,10 @@
 #include <sstream>
 
 using Catch::Matchers::WithinAbs;
+
+using Engine::StateType;
+using Engine::Field;
+using Engine::get;
 
 // Reduce required precision if float accuracy
 #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
@@ -51,9 +56,9 @@ TEST_CASE( "Ensure that Hamiltonian is really just an aggregator", "[aggregation
 
         auto state = std::shared_ptr<State>( State_Setup( input_file ), State_Delete );
         Configuration_Random( state.get() );
-        const auto & spins = *state->active_image->spins;
+        const auto & spins = *state->active_image->state;
         auto & hamiltonian = state->active_image->hamiltonian;
-        auto nos           = spins.size();
+        auto nos           = get<Field::Spin>( spins ).size();
 
         if( hamiltonian->active_count() == 0 )
         {
@@ -82,10 +87,11 @@ TEST_CASE( "Ensure that Hamiltonian is really just an aggregator", "[aggregation
             scalarfield( nos, 0 ),
             [&spins]( const scalarfield & v, const auto & interaction ) -> scalarfield
             {
-                auto energy_per_spin = scalarfield( spins.size(), 0 );
+                const auto nos = get<Field::Spin>( spins ).size();
+                auto energy_per_spin = scalarfield( nos, 0 );
                 interaction->Energy_per_Spin( spins, energy_per_spin );
 #pragma omp parallel for
-                for( std::size_t i = 0; i < spins.size(); ++i )
+                for( std::size_t i = 0; i < nos; ++i )
                     energy_per_spin[i] += v[i];
 
                 return energy_per_spin;
@@ -106,7 +112,7 @@ TEST_CASE( "Ensure that Hamiltonian is really just an aggregator", "[aggregation
             vectorfield( nos, Vector3::Zero() ),
             [&spins]( const vectorfield & v, const auto & interaction ) -> vectorfield
             {
-                auto gradient = vectorfield( spins.size(), Vector3::Zero() );
+                auto gradient = vectorfield( get<Field::Spin>( spins ).size(), Vector3::Zero() );
                 interaction->Gradient( spins, gradient );
                 Engine::Vectormath::add_c_a( 1.0, v, gradient );
                 return gradient;

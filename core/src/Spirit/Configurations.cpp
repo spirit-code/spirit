@@ -2,6 +2,7 @@
 #include <Spirit/Spirit_Defines.h>
 
 #include <data/State.hpp>
+#include <engine/StateType.hpp>
 #include <engine/Vectormath.hpp>
 #include <memory>
 #include <utility/Configurations.hpp>
@@ -11,6 +12,9 @@
 
 #include <fmt/format.h>
 #include <Eigen/Dense>
+
+using Engine::Field;
+using Engine::get;
 
 auto get_filter(
     const Vector3 & position, const scalar r_cut_rectangular[3], scalar r_cut_cylindrical, scalar r_cut_spherical,
@@ -116,7 +120,7 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    state->clipboard_spins = std::make_shared<vectorfield>( *image->spins );
+    state->clipboard_spins = std::make_shared<vectorfield>( get<Field::Spin>( *image->state ) );
     Log( Utility::Log_Level::Info, Utility::Log_Sender::API, "Copied spin configuration to clipboard.", idx_image,
          idx_chain );
 }
@@ -145,8 +149,8 @@ try
 
     // Apply configuration
     image->Lock();
-    Utility::Configurations::Insert( *image->spins, geometry, *state->clipboard_spins, 0, filter );
-    geometry.Apply_Pinning( *image->spins );
+    Utility::Configurations::Insert( get<Field::Spin>( *image->state ), geometry, *state->clipboard_spins, 0, filter );
+    geometry.Apply_Pinning( get<Field::Spin>( *image->state ) );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -193,8 +197,9 @@ try
         auto filter = get_filter( vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
 
         image->Lock();
-        Utility::Configurations::Insert( *image->spins, geometry, *state->clipboard_spins, delta, filter );
-        image->hamiltonian->get_geometry().Apply_Pinning( *image->spins );
+        Utility::Configurations::Insert(
+            get<Field::Spin>( *image->state ), geometry, *state->clipboard_spins, delta, filter );
+        geometry.Apply_Pinning( get<Field::Spin>( *image->state ) );
         image->Unlock();
 
         auto filterstring
@@ -238,8 +243,8 @@ try
     // Apply configuration
     Vector3 vdir{ direction[0], direction[1], direction[2] };
     image->Lock();
-    Utility::Configurations::Domain( *image->spins, geometry, vdir, filter );
-    geometry.Apply_Pinning( *image->spins );
+    Utility::Configurations::Domain( get<Field::Spin>( *image->state ), geometry, vdir, filter );
+    geometry.Apply_Pinning( get<Field::Spin>( *image->state ) );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -294,8 +299,8 @@ try
     // Apply configuration
     Vector3 vdir{ 0, 0, 1 };
     image->Lock();
-    Utility::Configurations::Domain( *image->spins, geometry, vdir, filter );
-    geometry.Apply_Pinning( *image->spins );
+    Utility::Configurations::Domain( get<Field::Spin>( *image->state ), geometry, vdir, filter );
+    geometry.Apply_Pinning( get<Field::Spin>( *image->state ) );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -328,8 +333,8 @@ try
     // Apply configuration
     Vector3 vdir{ 0, 0, -1 };
     image->Lock();
-    Utility::Configurations::Domain( *image->spins, geometry, vdir, filter );
-    geometry.Apply_Pinning( *image->spins );
+    Utility::Configurations::Domain( get<Field::Spin>( *image->state ), geometry, vdir, filter );
+    geometry.Apply_Pinning( get<Field::Spin>( *image->state ) );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -373,9 +378,9 @@ try
         {
             prng = &image->llg_parameters->prng;
         }
-        Utility::Configurations::Random_Sphere( *image->spins, geometry, *prng, filter );
+        Utility::Configurations::Random_Sphere( get<Field::Spin>( *image->state ), geometry, *prng, filter );
     }
-    geometry.Apply_Pinning( *image->spins );
+    geometry.Apply_Pinning( get<Field::Spin>( *image->state ) );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -408,8 +413,9 @@ try
     // Apply configuration
     image->Lock();
     std::mt19937 prng{ 123456789 };
-    Utility::Configurations::Add_Noise_Temperature_Sphere( *image->spins, geometry, temperature, prng, filter );
-    geometry.Apply_Pinning( *image->spins );
+    Utility::Configurations::Add_Noise_Temperature_Sphere(
+        get<Field::Spin>( *image->state ), geometry, temperature, prng, filter );
+    geometry.Apply_Pinning( get<Field::Spin>( *image->state ) );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -447,7 +453,7 @@ try
     {
         image->Lock();
 
-        auto & spins = *image->spins;
+        auto & spins = get<Field::Spin>( *image->state );
         auto & mode  = *image->modes[idx_mode];
         int nos      = spins.size();
 
@@ -502,8 +508,8 @@ try
     // Apply configuration
     image->Lock();
     Utility::Configurations::Hopfion(
-        *image->spins, geometry, vpos, r, order, { normal[0], normal[1], normal[2] }, filter );
-    geometry.Apply_Pinning( *image->spins );
+        get<Field::Spin>( *image->state ), geometry, vpos, r, order, { normal[0], normal[1], normal[2] }, filter );
+    geometry.Apply_Pinning( get<Field::Spin>( *image->state ) );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -544,8 +550,8 @@ try
     // Apply configuration
     image->Lock();
     Utility::Configurations::Skyrmion(
-        *image->spins, geometry, vpos, r, order, phase, upDown, achiral, rl, false, filter );
-    geometry.Apply_Pinning( *image->spins );
+        get<Field::Spin>( *image->state ), geometry, vpos, r, order, phase, upDown, achiral, rl, false, filter );
+    geometry.Apply_Pinning( get<Field::Spin>( *image->state ) );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -594,8 +600,9 @@ try
     // Apply configuration
     image->Lock();
     Utility::Configurations::DW_Skyrmion(
-        *image->spins, geometry, vpos, dw_radius, dw_width, order, phase, upDown, achiral, rl, filter );
-    geometry.Apply_Pinning( *image->spins );
+        get<Field::Spin>( *image->state ), geometry, vpos, dw_radius, dw_width, order, phase, upDown, achiral, rl,
+        filter );
+    geometry.Apply_Pinning( get<Field::Spin>( *image->state ) );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -646,8 +653,9 @@ try
     Vector3 vq{ q[0], q[1], q[2] };
     Vector3 vaxis{ axis[0], axis[1], axis[2] };
     image->Lock();
-    Utility::Configurations::SpinSpiral( *image->spins, geometry, dir_type, vq, vaxis, theta, filter );
-    geometry.Apply_Pinning( *image->spins );
+    Utility::Configurations::SpinSpiral(
+        get<Field::Spin>( *image->state ), geometry, dir_type, vq, vaxis, theta, filter );
+    geometry.Apply_Pinning( get<Field::Spin>( *image->state ) );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -691,7 +699,8 @@ try
     Vector3 vq2{ q2[0], q2[1], q2[2] };
     Vector3 vaxis{ axis[0], axis[1], axis[2] };
     image->Lock();
-    Utility::Configurations::SpinSpiral( *image->spins, geometry, dir_type, vq1, vq2, vaxis, theta, filter );
+    Utility::Configurations::SpinSpiral(
+        get<Field::Spin>( *image->state ), geometry, dir_type, vq1, vq2, vaxis, theta, filter );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -729,7 +738,7 @@ try
     // Apply configuration
     image->Lock();
     auto geometry = image->hamiltonian->get_geometry();
-    Utility::Configurations::Set_Pinned( geometry, *image->spins, pinned, filter );
+    Utility::Configurations::Set_Pinned( geometry, get<Field::Spin>( *image->state ), pinned, filter );
     image->hamiltonian->set_geometry( geometry );
     image->Unlock();
 

@@ -3,6 +3,7 @@
 
 #include <data/State.hpp>
 #include <engine/Manifoldmath.hpp>
+#include <engine/StateType.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/spin/Eigenmodes.hpp>
 #include <utility/Constants.hpp>
@@ -15,6 +16,9 @@
 
 namespace C = Utility::Constants;
 
+using Engine::Field;
+using Engine::get;
+
 void Quantity_Get_Average_Spin( State * state, scalar s[3], int idx_image, int idx_chain )
 try
 {
@@ -25,7 +29,7 @@ try
 
     // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
 
-    auto mean = Engine::Vectormath::mean( *image->spins );
+    auto mean = Engine::Vectormath::mean( get<Field::Spin>( *image->state ) );
 
     for( int i = 0; i < 3; ++i )
         s[i] = mean[i];
@@ -45,7 +49,8 @@ try
 
     // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
 
-    auto mag      = Engine::Vectormath::Magnetization( *image->spins, image->hamiltonian->get_geometry().mu_s );
+    const auto mag = Engine::Vectormath::Magnetization(
+        get<Field::Spin>( *image->state ), image->hamiltonian->get_geometry().mu_s );
     image->M.mean = mag;
 
     // image->Unlock();
@@ -71,7 +76,8 @@ try
     int dimensionality = Geometry_Get_Dimensionality( state, idx_image, idx_chain );
     if( dimensionality == 2 )
         charge = Engine::Vectormath::TopologicalCharge(
-            *image->spins, image->hamiltonian->get_geometry(), image->hamiltonian->get_boundary_conditions() );
+            get<Field::Spin>( *image->state ), image->hamiltonian->get_geometry(),
+            image->hamiltonian->get_boundary_conditions() );
 
     // image->Unlock();
 
@@ -100,8 +106,8 @@ try
     if( dimensionality == 2 )
     {
         Engine::Vectormath::TopologicalChargeDensity(
-            *image->spins, image->hamiltonian->get_geometry(), image->hamiltonian->get_boundary_conditions(),
-            charge_density, triangle_indices );
+            get<Field::Spin>( *image->state ), image->hamiltonian->get_geometry(),
+            image->hamiltonian->get_boundary_conditions(), charge_density, triangle_indices );
     }
 
     if( charge_density_ptr != nullptr && triangle_indices_ptr != nullptr )
@@ -235,8 +241,8 @@ try
     throw_if_nullptr( forces, "forces" );
 
     // Copy std::vector<Eigen::Vector3> into one single Eigen::VectorX
-    const int nos = system->nos;
-    auto & image  = *system->spins;
+    const unsigned int nos = system->nos;
+    auto & image           = *system->state;
 
     vectorfield grad( nos, { 0, 0, 0 } );
     vectorfield minimum_mode( nos, { 0, 0, 0 } );

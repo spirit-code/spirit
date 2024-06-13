@@ -54,7 +54,7 @@ Method_MC::Method_MC( std::shared_ptr<system_t> system, int idx_img, int idx_cha
 void Method_MC::Iteration()
 {
     // Temporaries
-    auto & spins_old = *this->system->spins;
+    auto & spins_old = *this->system->state;
     auto spins_new   = spins_old;
 
     // Generate randomly displaced spin configuration according to cone radius

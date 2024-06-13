@@ -60,7 +60,7 @@ Method_MMF<solver>::Method_MMF( std::shared_ptr<system_t> system, int idx_chain 
 
     // Create shared pointers to the method's systems' spin configurations
     this->configurations    = std::vector<std::shared_ptr<vectorfield>>( 1 );
-    this->configurations[0] = this->system->spins;
+    this->configurations[0] = this->system->state;
 
     //---- Initialise Solver-specific variables
     this->Initialize();
@@ -421,7 +421,7 @@ void Method_MMF<solver>::Hook_Post_Iteration()
     // Loop over images to calculate the maximum torques
     for( unsigned int img = 0; img < this->systems.size(); ++img )
     {
-        Manifoldmath::project_tangential( this->forces_virtual[img], *( this->systems[img]->spins ) );
+        Manifoldmath::project_tangential( this->forces_virtual[img], *( this->systems[img]->state ) );
         const scalar fmax = Vectormath::max_norm( this->forces_virtual[img] );
         if( fmax > 0 )
             this->max_torque = fmax;
@@ -478,7 +478,7 @@ void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, boo
                 IO::VF_FileFormat format = sys.mmf_parameters->output_vf_filetype;
 
                 // Spin Configuration
-                auto & spins        = *sys.spins;
+                const auto & spins  = *sys.state;
                 auto segment        = IO::OVF_Segment( sys.hamiltonian->get_geometry() );
                 std::string title   = fmt::format( "SPIRIT Version {}", Utility::version_full );
                 segment.title       = strdup( title.c_str() );
@@ -531,7 +531,7 @@ void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, boo
                     // Gather the data
                     Data::vectorlabeled<scalarfield> contributions_spins( 0 );
                     sys.UpdateEnergy(); // needed to populate `E.total` and `E.per_interaction`
-                    sys.hamiltonian->Energy_Contributions_per_Spin( *sys.spins, sys.E.per_interaction_per_spin );
+                    sys.hamiltonian->Energy_Contributions_per_Spin( *sys.state, sys.E.per_interaction_per_spin );
 
                     // write out the data
                     IO::Write_Image_Energy_Contributions(

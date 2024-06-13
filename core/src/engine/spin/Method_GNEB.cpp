@@ -59,7 +59,7 @@ Method_GNEB<solver>::Method_GNEB( std::shared_ptr<chain_t> chain, int idx_chain 
     // Create shared pointers to the method's systems' spin configurations
     this->configurations = std::vector<std::shared_ptr<vectorfield>>( this->noi );
     for( int i = 0; i < this->noi; ++i )
-        this->configurations[i] = this->systems[i]->spins;
+        this->configurations[i] = this->systems[i]->state;
 
     // History
     // this->history = std::map<std::string, std::vector<scalar>>{ { "max_torque", { this->max_torque } } };
@@ -203,10 +203,10 @@ void Method_GNEB<solver>::Calculate_Force(
                 // Calculate finite difference secants
                 vectorfield t_plus( nos );
                 vectorfield t_minus( nos );
-                Vectormath::set_c_a( 1, *this->chain->images[img + 1]->spins, t_plus );
-                Vectormath::add_c_a( -1, *this->chain->images[img]->spins, t_plus );
-                Vectormath::set_c_a( 1, *this->chain->images[img]->spins, t_minus );
-                Vectormath::add_c_a( -1, *this->chain->images[img - 1]->spins, t_minus );
+                Vectormath::set_c_a( 1, *this->chain->images[img + 1]->state, t_plus );
+                Vectormath::add_c_a( -1, *this->chain->images[img]->state, t_plus );
+                Vectormath::set_c_a( 1, *this->chain->images[img]->state, t_minus );
+                Vectormath::add_c_a( -1, *this->chain->images[img - 1]->state, t_minus );
                 Manifoldmath::normalize( t_plus );
                 Manifoldmath::normalize( t_minus );
                 // Get the finite difference (path shrinking) direction
@@ -266,8 +266,8 @@ void Method_GNEB<solver>::Calculate_Force(
         {
             const auto * F_gradient_left   = F_gradient[0].data();
             const auto * F_gradient_right  = F_gradient[noi - 1].data();
-            const auto * spins_left        = this->chain->images[0]->spins->data();
-            const auto * spins_right       = this->chain->images[noi - 1]->spins->data();
+            const auto * spins_left        = this->chain->images[0]->state->data();
+            const auto * spins_right       = this->chain->images[noi - 1]->state->data();
             auto * F_translation_left_ptr  = F_translation_left.data();
             auto * F_translation_right_ptr = F_translation_right.data();
             // clang-format off
@@ -408,7 +408,7 @@ void Method_GNEB<solver>::Hook_Post_Iteration()
 
     for( int img = 0; img < chain->noi; ++img )
     {
-        Manifoldmath::project_tangential( F_total[img], *( this->systems[img]->spins ) );
+        Manifoldmath::project_tangential( F_total[img], *( this->systems[img]->state ) );
         const scalar fmax = Vectormath::max_norm( F_total[img] );
         // Set maximum per image
         this->max_torque_all[img] = fmax;
@@ -417,7 +417,7 @@ void Method_GNEB<solver>::Hook_Post_Iteration()
             this->max_torque = fmax;
 
         // Set the effective fields
-        Manifoldmath::project_tangential( this->forces[img], *this->systems[img]->spins );
+        Manifoldmath::project_tangential( this->forces[img], *this->systems[img]->state );
         // Vectormath::set_c_a(1, this->forces[img], this->systems[img]->effective_field);
     }
 
@@ -593,13 +593,13 @@ void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bo
                     segment.valuedim    = IO::Spin::State::valuedim;
                     segment.valuelabels = strdup( IO::Spin::State::valuelabels.data() );
                     segment.valueunits  = strdup( IO::Spin::State::valueunits.data() );
-                    auto & spins        = *this->chain->images[0]->spins;
+                    auto & spins        = *this->chain->images[0]->state;
                     IO::OVF_File( chainFile ).write_segment( segment, spins[0].data(), static_cast<int>( format ) );
                 }
                 // Append all the others
                 for( int i = 1; i < this->chain->noi; i++ )
                 {
-                    auto & spins = *this->chain->images[i]->spins;
+                    auto & spins = *this->chain->images[i]->state;
                     std::string output_comment
                         = fmt::format( "{}\n# Desc: Image {} of {}", output_comment_base, i, chain->noi );
                     segment.comment = strdup( output_comment.c_str() );

@@ -261,8 +261,8 @@ void Calculate( Data::HTST_Info<system_t> & htst_info )
     const scalar epsilon       = 1e-4;
     const scalar epsilon_force = 1e-8;
 
-    auto & image_minimum = *htst_info.minimum->spins;
-    auto & image_sp      = *htst_info.saddle_point->spins;
+    auto & image_minimum = *htst_info.minimum->state;
+    auto & image_sp      = *htst_info.saddle_point->state;
 
     std::size_t nos = image_minimum.size();
 

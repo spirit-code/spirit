@@ -27,7 +27,7 @@ try : hamiltonian( std::move( hamiltonian ) ), llg_parameters( std::move( llg_pa
     this->nos = this->hamiltonian->get_geometry().nos;
 
     // Initialize Spins Array
-    this->spins = std::make_shared<vectorfield>( nos );
+    this->state = std::make_shared<typename Hamiltonian::state_t>( Engine::make_state<typename Hamiltonian::state_t>( nos ) );
 
     // Initialize Modes container
     this->modes = std::vector<std::optional<vectorfield>>( this->ema_parameters->n_modes, std::nullopt );
@@ -50,7 +50,7 @@ Spin_System<Hamiltonian>::Spin_System( Spin_System const & other )
 try
 {
     this->nos         = other.nos;
-    this->spins       = std::make_unique<vectorfield>( *other.spins );
+    this->state       = std::make_shared<typename Hamiltonian::state_t>( *other.state );
     this->modes       = other.modes;
     this->eigenvalues = other.eigenvalues;
 
@@ -79,7 +79,7 @@ try
     if( this != &other )
     {
         this->nos         = other.nos;
-        this->spins       = std::make_unique<vectorfield>( *other.spins );
+        this->state       = std::make_unique<typename Hamiltonian::state_t>( *other.state );
         this->modes       = other.modes;
         this->eigenvalues = other.eigenvalues;
 
@@ -108,7 +108,7 @@ template<typename Hamiltonian>
 void Spin_System<Hamiltonian>::UpdateEnergy()
 try
 {
-    this->E.per_interaction = this->hamiltonian->Energy_Contributions( *this->spins );
+    this->E.per_interaction = this->hamiltonian->Energy_Contributions( *this->state );
     scalar sum    = 0;
     for( auto & E_item : E.per_interaction )
         sum += E_item.second;
@@ -123,7 +123,7 @@ template<typename Hamiltonian>
 void Spin_System<Hamiltonian>::UpdateEffectiveField()
 try
 {
-    this->hamiltonian->Gradient( *this->spins, this->M.effective_field );
+    this->hamiltonian->Gradient( *this->state, this->M.effective_field );
     Engine::Vectormath::scale( this->M.effective_field, -1 );
 }
 catch( ... )

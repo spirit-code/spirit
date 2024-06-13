@@ -89,7 +89,7 @@ public:
     {
         using std::begin, std::end;
         auto functor           = typename InteractionType::Energy( data, cache );
-        const auto * state_ptr = state.data();
+        typename state_traits<state_t>::const_pointer state_ptr = state.data();
         return Backend::transform_reduce(
             SPIRIT_PAR indices.begin(), indices.end(), scalar( 0.0 ), Backend::plus<scalar>{},
             [state_ptr, functor] SPIRIT_LAMBDA( const IndexTuple & index )
@@ -100,7 +100,7 @@ public:
     {
         using std::begin, std::end;
         auto functor           = typename InteractionType::Energy( data, cache );
-        const auto * state_ptr = state.data();
+        typename state_traits<state_t>::const_pointer state_ptr = state.data();
         Backend::transform(
             SPIRIT_PAR indices.begin(), indices.end(), energy_per_spin.begin(),
             [state_ptr, functor] SPIRIT_LAMBDA( const IndexTuple & index )

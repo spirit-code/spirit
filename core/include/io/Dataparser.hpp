@@ -6,6 +6,7 @@
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <data/State.hpp>
+#include <engine/StateType.hpp>
 #include <io/Fileformat.hpp>
 #include <io/Filter_File_Handle.hpp>
 #include <io/IO.hpp>
@@ -18,7 +19,7 @@ namespace IO
 namespace Spin
 {
 
-using StateType = vectorfield;
+using StateType = Engine::Spin::StateType;
 
 namespace State
 {
