@@ -102,13 +102,14 @@ inline void throw_if_nullptr( const void * ptr, const std::string & name )
  *  - In case of negative (non-existing) indices the function should throw an exception before doing
  *    any change to the corresponding variable (eg. )
  */
-[[nodiscard]] inline auto from_indices( const State * state, int & idx_image, int & idx_chain )
-    -> std::pair<std::shared_ptr<State::system_t>, std::shared_ptr<State::chain_t>>
+template<typename State>
+[[nodiscard]] auto from_indices( const State * state, int & idx_image, int & idx_chain )
+    -> std::pair<std::shared_ptr<typename State::system_t>, std::shared_ptr<typename State::chain_t>>
 {
     check_state( state );
 
-    std::shared_ptr<State::system_t> image;
-    std::shared_ptr<State::chain_t> chain;
+    std::shared_ptr<typename State::system_t> image;
+    std::shared_ptr<typename State::chain_t> chain;
 
     // Chain
     idx_chain = 0;
