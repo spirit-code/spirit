@@ -20,10 +20,10 @@ namespace Eigenmodes
 {
 
 // Check whether system members and EMA parameters are consistent with eachother
-void Check_Eigenmode_Parameters( State::system_t & system );
+void Check_Eigenmode_Parameters( system_t & system );
 
 // Calculate a systems eigenmodes according to its EMA parameters
-void Calculate_Eigenmodes( State::system_t & system, int idx_img, int idx_chain );
+void Calculate_Eigenmodes( system_t & system, int idx_img, int idx_chain );
 
 // Calculate the full eigenspectrum of a Hessian (needs to be self-adjoint)
 // gradient and hessian should be the 3N-dimensional representations without constraints
