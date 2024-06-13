@@ -12,9 +12,9 @@
 #include <fmt/format.h>
 #include <Eigen/Dense>
 
-std::function<bool( const Vector3 &, const Vector3 & )> get_filter(
+auto get_filter(
     const Vector3 & position, const scalar r_cut_rectangular[3], scalar r_cut_cylindrical, scalar r_cut_spherical,
-    bool inverted )
+    bool inverted ) -> std::function<bool( const Vector3 & )>
 {
     bool no_cut_rectangular_x = r_cut_rectangular[0] < 0;
     bool no_cut_rectangular_y = r_cut_rectangular[1] < 0;
@@ -22,12 +22,12 @@ std::function<bool( const Vector3 &, const Vector3 & )> get_filter(
     bool no_cut_cylindrical   = r_cut_cylindrical < 0;
     bool no_cut_spherical     = r_cut_spherical < 0;
 
-    std::function<bool( const Vector3 &, const Vector3 & )> filter;
+    std::function<bool( const Vector3 & )> filter;
     if( !inverted )
     {
         filter = [position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, no_cut_rectangular_x,
                   no_cut_rectangular_y, no_cut_rectangular_z, no_cut_cylindrical,
-                  no_cut_spherical]( const Vector3 &, const Vector3 & positions )
+                  no_cut_spherical]( const Vector3 & positions )
         {
             Vector3 r_rectangular = positions - position;
             scalar r_cylindrical
@@ -44,7 +44,7 @@ std::function<bool( const Vector3 &, const Vector3 & )> get_filter(
     {
         filter = [position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, no_cut_rectangular_x,
                   no_cut_rectangular_y, no_cut_rectangular_z, no_cut_cylindrical,
-                  no_cut_spherical]( const Vector3 & spin, const Vector3 & positions )
+                  no_cut_spherical]( const Vector3 & positions )
         {
             Vector3 r_rectangular = positions - position;
             scalar r_cylindrical
@@ -145,7 +145,7 @@ try
 
     // Apply configuration
     image->Lock();
-    Utility::Configurations::Insert( *image, *state->clipboard_spins, 0, filter );
+    Utility::Configurations::Insert( *image->spins, geometry, *state->clipboard_spins, 0, filter );
     geometry.Apply_Pinning( *image->spins );
     image->Unlock();
 
@@ -193,7 +193,7 @@ try
         auto filter = get_filter( vpos, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
 
         image->Lock();
-        Utility::Configurations::Insert( *image, *state->clipboard_spins, delta, filter );
+        Utility::Configurations::Insert( *image->spins, geometry, *state->clipboard_spins, delta, filter );
         image->hamiltonian->get_geometry().Apply_Pinning( *image->spins );
         image->Unlock();
 
@@ -238,7 +238,7 @@ try
     // Apply configuration
     Vector3 vdir{ direction[0], direction[1], direction[2] };
     image->Lock();
-    Utility::Configurations::Domain( *image, vdir, filter );
+    Utility::Configurations::Domain( *image->spins, geometry, vdir, filter );
     geometry.Apply_Pinning( *image->spins );
     image->Unlock();
 
@@ -294,7 +294,7 @@ try
     // Apply configuration
     Vector3 vdir{ 0, 0, 1 };
     image->Lock();
-    Utility::Configurations::Domain( *image, vdir, filter );
+    Utility::Configurations::Domain( *image->spins, geometry, vdir, filter );
     geometry.Apply_Pinning( *image->spins );
     image->Unlock();
 
@@ -328,7 +328,7 @@ try
     // Apply configuration
     Vector3 vdir{ 0, 0, -1 };
     image->Lock();
-    Utility::Configurations::Domain( *image, vdir, filter );
+    Utility::Configurations::Domain( *image->spins, geometry, vdir, filter );
     geometry.Apply_Pinning( *image->spins );
     image->Unlock();
 
@@ -361,7 +361,20 @@ try
 
     // Apply configuration
     image->Lock();
-    Utility::Configurations::Random( *image, filter, external );
+    {
+        std::optional<std::mt19937> external_prng;
+        std::mt19937 * prng = nullptr;
+        if( external )
+        {
+            external_prng.emplace( std::mt19937{ 123456789 } );
+            prng = &*external_prng;
+        }
+        else
+        {
+            prng = &image->llg_parameters->prng;
+        }
+        Utility::Configurations::Random_Sphere( *image->spins, geometry, *prng, filter );
+    }
     geometry.Apply_Pinning( *image->spins );
     image->Unlock();
 
@@ -394,8 +407,9 @@ try
 
     // Apply configuration
     image->Lock();
-    Utility::Configurations::Add_Noise_Temperature( *image, temperature, 0, filter );
-    image->hamiltonian->get_geometry().Apply_Pinning( *image->spins );
+    std::mt19937 prng{ 123456789 };
+    Utility::Configurations::Add_Noise_Temperature_Sphere( *image->spins, geometry, temperature, prng, filter );
+    geometry.Apply_Pinning( *image->spins );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -487,7 +501,8 @@ try
 
     // Apply configuration
     image->Lock();
-    Utility::Configurations::Hopfion( *image, vpos, r, order, { normal[0], normal[1], normal[2] }, filter );
+    Utility::Configurations::Hopfion(
+        *image->spins, geometry, vpos, r, order, { normal[0], normal[1], normal[2] }, filter );
     geometry.Apply_Pinning( *image->spins );
     image->Unlock();
 
@@ -528,7 +543,8 @@ try
 
     // Apply configuration
     image->Lock();
-    Utility::Configurations::Skyrmion( *image, vpos, r, order, phase, upDown, achiral, rl, false, filter );
+    Utility::Configurations::Skyrmion(
+        *image->spins, geometry, vpos, r, order, phase, upDown, achiral, rl, false, filter );
     geometry.Apply_Pinning( *image->spins );
     image->Unlock();
 
@@ -578,7 +594,7 @@ try
     // Apply configuration
     image->Lock();
     Utility::Configurations::DW_Skyrmion(
-        *image, vpos, dw_radius, dw_width, order, phase, upDown, achiral, rl, filter );
+        *image->spins, geometry, vpos, dw_radius, dw_width, order, phase, upDown, achiral, rl, filter );
     geometry.Apply_Pinning( *image->spins );
     image->Unlock();
 
@@ -630,7 +646,7 @@ try
     Vector3 vq{ q[0], q[1], q[2] };
     Vector3 vaxis{ axis[0], axis[1], axis[2] };
     image->Lock();
-    Utility::Configurations::SpinSpiral( *image, dir_type, vq, vaxis, theta, filter );
+    Utility::Configurations::SpinSpiral( *image->spins, geometry, dir_type, vq, vaxis, theta, filter );
     geometry.Apply_Pinning( *image->spins );
     image->Unlock();
 
@@ -675,7 +691,7 @@ try
     Vector3 vq2{ q2[0], q2[1], q2[2] };
     Vector3 vaxis{ axis[0], axis[1], axis[2] };
     image->Lock();
-    Utility::Configurations::SpinSpiral( *image, dir_type, vq1, vq2, vaxis, theta, filter );
+    Utility::Configurations::SpinSpiral( *image->spins, geometry, dir_type, vq1, vq2, vaxis, theta, filter );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -712,7 +728,9 @@ try
 
     // Apply configuration
     image->Lock();
-    Utility::Configurations::Set_Pinned( *image, pinned, filter );
+    auto geometry = image->hamiltonian->get_geometry();
+    Utility::Configurations::Set_Pinned( geometry, *image->spins, pinned, filter );
+    image->hamiltonian->set_geometry( geometry );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );
@@ -744,7 +762,9 @@ try
 
     // Apply configuration
     image->Lock();
-    Utility::Configurations::Set_Atom_Types( *image, atom_type, filter );
+    auto geometry = image->hamiltonian->get_geometry();
+    Utility::Configurations::Set_Atom_Types( geometry, atom_type, filter );
+    image->hamiltonian->set_geometry( geometry );
     image->Unlock();
 
     auto filterstring = filter_to_string( position, r_cut_rectangular, r_cut_cylindrical, r_cut_spherical, inverted );

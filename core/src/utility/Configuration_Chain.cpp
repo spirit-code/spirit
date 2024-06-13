@@ -19,9 +19,10 @@ namespace Configuration_Chain
 
 void Add_Noise_Temperature( State::chain_t & c, int idx_1, int idx_2, scalar temperature )
 {
+    auto prng = std::mt19937( 123456789 );
     for( int img = idx_1 + 1; img <= idx_2 - 1; ++img )
     {
-        Configurations::Add_Noise_Temperature( *c.images[img], temperature, img );
+        Configurations::Add_Noise_Temperature_Sphere( *c.images[img]->spins, c.images[img]->hamiltonian->get_geometry(), temperature, prng );
     }
 }
 
