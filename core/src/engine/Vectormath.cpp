@@ -7,73 +7,43 @@
 
 #include <Eigen/Dense>
 
+#ifdef SPIRIT_USE_CUDA
+#include <curand.h>
+#include <curand_kernel.h>
+
+#include <cub/cub.cuh>
+#endif
+
 #include <algorithm>
 #include <array>
 
 using namespace Utility;
 using Utility::Constants::Pi;
 
-#ifndef SPIRIT_USE_CUDA
-
 namespace Engine
 {
+
 namespace Vectormath
 {
 
-void get_random_vector( std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec )
+#ifdef SPIRIT_USE_CUDA
+// TODO: improve random number generation - this one might give undefined behaviour!
+__global__ void cu_get_random_vectorfield( Vector3 * xi, const size_t N )
 {
-    for( int dim = 0; dim < 3; ++dim )
+    unsigned long long subsequence = 0;
+    unsigned long long offset      = 0;
+
+    curandState_t state;
+    for( int idx = blockIdx.x * blockDim.x + threadIdx.x; idx < N; idx += blockDim.x * gridDim.x )
     {
-        vec[dim] = distribution( prng );
+        curand_init( idx, subsequence, offset, &state );
+        for( int dim = 0; dim < 3; ++dim )
+        {
+            xi[idx][dim] = llroundf( curand_uniform( &state ) ) * 2 - 1;
+        }
     }
 }
-void get_random_vectorfield( std::mt19937 & prng, vectorfield & xi )
-{
-    // PRNG gives RN [-1,1] -> multiply with epsilon
-    auto distribution = std::uniform_real_distribution<scalar>( -1, 1 );
-// TODO: parallelization of this is actually not quite so trivial
-#pragma omp parallel for
-    for( unsigned int i = 0; i < xi.size(); ++i )
-    {
-        get_random_vector( distribution, prng, xi[i] );
-    }
-}
-
-void get_random_vector_unitsphere(
-    std::uniform_real_distribution<scalar> & distribution, std::mt19937 & prng, Vector3 & vec )
-{
-    scalar v_z = distribution( prng );
-    scalar phi = distribution( prng ) * Pi;
-
-    scalar r_xy = std::sqrt( 1 - v_z * v_z );
-
-    vec[0] = r_xy * std::cos( phi );
-    vec[1] = r_xy * std::sin( phi );
-    vec[2] = v_z;
-}
-void get_random_vectorfield_unitsphere( std::mt19937 & prng, vectorfield & xi )
-{
-    // PRNG gives RN [-1,1] -> multiply with epsilon
-    auto distribution = std::uniform_real_distribution<scalar>( -1, 1 );
-// TODO: parallelization of this is actually not quite so trivial
-#pragma omp parallel for
-    for( unsigned int i = 0; i < xi.size(); ++i )
-    {
-        get_random_vector_unitsphere( distribution, prng, xi[i] );
-    }
-}
-
-} // namespace Vectormath
-
-} // namespace Engine
-
 #endif
-
-namespace Engine
-{
-
-namespace Vectormath
-{
 
 // out[i] += c*a
 void add_c_a( const scalar & c, const Vector3 & vec, vectorfield & out )
@@ -208,7 +178,6 @@ void add_c_cross( const scalarfield & c, const vectorfield & a, const vectorfiel
         [cc, aa, bb, o] SPIRIT_LAMBDA( const int idx ) { o[idx] += cc[idx] * aa[idx].cross( bb[idx] ); } );
 }
 
-
 // out[i] = c * a x b[i]
 void set_c_cross( const scalar & c, const Vector3 & a, const vectorfield & b, vectorfield & out )
 {
@@ -281,17 +250,29 @@ scalar solid_angle_2( const Vector3 & v1, const Vector3 & v2, const Vector3 & v3
     return solid_angle;
 }
 
-void rotate( const Vector3 & v, const Vector3 & axis, const scalar & angle, Vector3 & v_out )
+Vector3 rotated( const Vector3 & v, const Vector3 & axis, const scalar angle )
 {
-    v_out = v * std::cos( angle ) + axis.cross( v ) * std::sin( angle )
-            + axis * axis.dot( v ) * ( 1 - std::cos( angle ) );
+    return
+#ifdef __CUDA_ARCH__
+        v * cosf( angle ) + axis.cross( v ) * sinf( angle ) + axis * axis.dot( v ) * ( 1 - cosf( angle ) );
+#else
+        v * std::cos( angle ) + axis.cross( v ) * std::sin( angle ) + axis * axis.dot( v ) * ( 1 - std::cos( angle ) );
+#endif
+}
+
+void rotate( const Vector3 & v, const Vector3 & axis, const scalar angle, Vector3 & v_out )
+{
+    v_out = rotated( v, axis, angle );
 }
 
 // XXX: should we add test for that function since it's calling the already tested rotat()
 void rotate( const vectorfield & v, const vectorfield & axis, const scalarfield & angle, vectorfield & v_out )
 {
-    for( unsigned int i = 0; i < v_out.size(); i++ )
-        rotate( v[i], axis[i], angle[i], v_out[i] );
+    Backend::transform(
+        SPIRIT_PAR Backend::make_zip_iterator( v.cbegin(), axis.cbegin(), angle.cbegin() ),
+        Backend::make_zip_iterator( v.cend(), axis.cend(), angle.cend() ), v_out.begin(),
+        Backend::make_zip_function( [] SPIRIT_LAMBDA( const Vector3 & v, const Vector3 & axis, const scalar angle )
+                                    { return rotated( v, axis, angle ); } ) );
 }
 
 Vector3 decompose( const Vector3 & v, const std::vector<Vector3> & basis )

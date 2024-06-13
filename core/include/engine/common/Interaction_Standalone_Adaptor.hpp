@@ -1,5 +1,6 @@
 #pragma once
 
+#include <engine/common/StateType.hpp>
 #include <engine/common/Interaction_Wrapper.hpp>
 
 namespace Engine
