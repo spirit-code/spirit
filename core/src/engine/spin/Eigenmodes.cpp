@@ -27,7 +27,7 @@ namespace Spin
 namespace Eigenmodes
 {
 
-void Check_Eigenmode_Parameters( State::system_t & system )
+void Check_Eigenmode_Parameters( system_t & system )
 {
     int nos        = system.nos;
     auto & n_modes = system.ema_parameters->n_modes;
@@ -59,7 +59,7 @@ void Check_Eigenmode_Parameters( State::system_t & system )
     }
 }
 
-void Calculate_Eigenmodes( State::system_t & system, int idx_img, int idx_chain )
+void Calculate_Eigenmodes( system_t & system, int idx_img, int idx_chain )
 {
     int nos = system.nos;
 

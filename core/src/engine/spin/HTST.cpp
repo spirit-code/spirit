@@ -20,7 +20,6 @@
 #include <fmt/ostream.h>
 
 namespace C    = Utility::Constants;
-using system_t = Data::Spin_System<Engine::Spin::HamiltonianVariant>;
 
 namespace Engine
 {
@@ -323,7 +322,7 @@ void Calculate( Data::HTST_Info<system_t> & htst_info, int n_eigenmodes_keep )
          -1, -1 );
 }
 
-scalar Calculate_Zero_Volume( const State::system_t & system )
+scalar Calculate_Zero_Volume( const system_t & system )
 {
     const auto & spins           = *system.state;
     const auto & geometry        = system.hamiltonian->get_geometry();

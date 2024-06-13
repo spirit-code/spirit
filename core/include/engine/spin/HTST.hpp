@@ -30,7 +30,7 @@ void Calculate_Dynamical_Matrix(
     const vectorfield & spins, const scalarfield & mu_s, const MatrixX & hessian, MatrixX & velocity );
 
 // Calculate the zero volume of a spin system
-scalar Calculate_Zero_Volume( const State::system_t & system );
+scalar Calculate_Zero_Volume( const system_t & system );
 
 // Generates the geodesic Hessian in 2N-representation and calculates it's eigenvalues and eigenvectors
 void Geodesic_Eigen_Decomposition(
