@@ -214,10 +214,8 @@ public:
 
     void Energy_per_Spin( const state_t & state, scalarfield & energy_per_spin )
     {
-        const auto nos = state.size();
-
-        if( energy_per_spin.size() != nos )
-            energy_per_spin = scalarfield( nos, 0.0 );
+        if( energy_per_spin.size() != geometry->nos )
+            energy_per_spin = scalarfield( geometry->nos, 0.0 );
         else
             Vectormath::fill( energy_per_spin, 0.0 );
 
@@ -235,14 +233,14 @@ public:
 
         if( contributions.size() != n_active )
         {
-            contributions = Data::vectorlabeled<scalarfield>( n_active, { "", scalarfield( state.size(), 0.0 ) } );
+            contributions = Data::vectorlabeled<scalarfield>( n_active, { "", scalarfield( geometry->nos, 0.0 ) } );
         }
 
         Backend::cpu::transform(
             active.begin(), active.end(), contributions.begin(),
-            [&state]( const std::unique_ptr<InteractionAdaptorType> & interaction )
+            [&state, nos=geometry->nos]( const std::unique_ptr<InteractionAdaptorType> & interaction )
             {
-                scalarfield energy_per_spin( state.size(), 0.0 );
+                scalarfield energy_per_spin( nos, 0.0 );
                 interaction->Energy_per_Spin( state, energy_per_spin );
                 return std::make_pair( interaction->Name(), energy_per_spin );
             } );
