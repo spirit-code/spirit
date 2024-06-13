@@ -58,6 +58,7 @@ public:
     Spin_System & operator=( Spin_System const & other );
     Spin_System( Spin_System && other )             = default;
     Spin_System & operator=( Spin_System && other ) = default;
+    ~Spin_System()                                  = default;
 
     // Update
     void UpdateEnergy();
