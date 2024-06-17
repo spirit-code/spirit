@@ -11,11 +11,43 @@ namespace IO
 namespace
 {
 
+std::string Hamiltonian_Type_from_Config( const std::string & config_file_name, const std::string_view default_type )
+{
+    std::string hamiltonian_type{ default_type };
+
+    // Hamiltonian type
+    if( !config_file_name.empty() )
+    {
+        try
+        {
+            Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian: deciding type" );
+            IO::Filter_File_Handle config_file_handle( config_file_name );
+
+            // What hamiltonian do we use?
+            config_file_handle.Read_Single( hamiltonian_type, "hamiltonian" );
+        }
+        catch( ... )
+        {
+            spirit_handle_exception_core( fmt::format(
+                "Unable to read Hamiltonian type from config file  \"{}\". Using default.", config_file_name ) );
+            hamiltonian_type = default_type;
+        }
+    }
+    else
+        Log( Log_Level::Parameter, Log_Sender::IO,
+             fmt::format( "Hamiltonian: Using default Hamiltonian: {}", hamiltonian_type ) );
+
+    return hamiltonian_type;
+}
+
 std::unique_ptr<Engine::Spin::HamiltonianVariant> Hamiltonian_Heisenberg_from_Config(
     const std::string & config_file_name, Data::Geometry geometry, intfield boundary_conditions,
     const std::string_view hamiltonian_type )
 {
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Heisenberg: building" );
+    // pull in the relevant namespaces and type we want to build
+    namespace Interaction = Engine::Spin::Interaction;
+    using Engine::Spin::HamiltonianVariant;
 
     std::vector<std::string> parameter_log;
     parameter_log.emplace_back( "Hamiltonian Heisenberg:" );
@@ -92,8 +124,6 @@ std::unique_ptr<Engine::Spin::HamiltonianVariant> Hamiltonian_Heisenberg_from_Co
 
     Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
-    using namespace Engine::Spin;
-
     auto zeeman
         = Interaction::Zeeman::Data( external_field_magnitude * Utility::Constants::mu_B, external_field_normal );
 
@@ -135,6 +165,9 @@ std::unique_ptr<Engine::Spin::HamiltonianVariant> Hamiltonian_Gaussian_from_Conf
     const std::string & config_file_name, Data::Geometry geometry, intfield boundary_conditions )
 {
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian_Gaussian: building" );
+    // pull in the relevant namespaces and type we want to build
+    namespace Interaction = Engine::Spin::Interaction;
+    using Engine::Spin::HamiltonianVariant;
 
     std::vector<std::string> parameter_log;
     parameter_log.emplace_back( "Hamiltonian Gaussian:" );
@@ -156,7 +189,6 @@ std::unique_ptr<Engine::Spin::HamiltonianVariant> Hamiltonian_Gaussian_from_Conf
         Log( Log_Level::Parameter, Log_Sender::IO, "Hamiltonian_Gaussian: Using default configuration!" );
 
     Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
-    using namespace Engine::Spin;
 
     auto hamiltonian = std::make_unique<HamiltonianVariant>( HamiltonianVariant::Gaussian(
         std::move( geometry ), std::move( boundary_conditions ),
@@ -173,34 +205,10 @@ template<>
 std::unique_ptr<Engine::Spin::HamiltonianVariant>
 Hamiltonian_from_Config( const std::string & config_file_name, Data::Geometry geometry, intfield boundary_conditions )
 {
-    //-------------- Insert default values here -----------------------------
-    // The type of hamiltonian we will use
-    std::string hamiltonian_type = "heisenberg_neighbours";
-
     //------------------------------- Parser --------------------------------
     Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian: building" );
 
-    // Hamiltonian type
-    if( !config_file_name.empty() )
-    {
-        try
-        {
-            Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian: deciding type" );
-            IO::Filter_File_Handle config_file_handle( config_file_name );
-
-            // What hamiltonian do we use?
-            config_file_handle.Read_Single( hamiltonian_type, "hamiltonian" );
-        }
-        catch( ... )
-        {
-            spirit_handle_exception_core( fmt::format(
-                "Unable to read Hamiltonian type from config file  \"{}\". Using default.", config_file_name ) );
-            hamiltonian_type = "heisenberg_neighbours";
-        }
-    }
-    else
-        Log( Log_Level::Parameter, Log_Sender::IO,
-             fmt::format( "Hamiltonian: Using default Hamiltonian: {}", hamiltonian_type ) );
+    const std::string hamiltonian_type = Hamiltonian_Type_from_Config( config_file_name, "heisenberg_neighbours" );
 
     // Hamiltonian
     std::unique_ptr<Engine::Spin::HamiltonianVariant> hamiltonian;
