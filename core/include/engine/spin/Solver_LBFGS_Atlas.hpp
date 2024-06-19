@@ -124,9 +124,12 @@ inline void Method_Solver<Solver::LBFGS_Atlas>::Iteration()
             *this->configurations[img], this->atlas_coords3[img], this->atlas_directions[img] );
     }
 
-    const auto condition = [this]( const scalarfield & a3 )
-    { return Solver_Kernels::ncg_atlas_check_coordinates( *this->configurations[0], a3, -0.6 ); };
-    if( std::any_of( this->atlas_coords3.begin(), this->atlas_coords3.end(), condition ) )
+    if( std::any_of(
+            Backend::cpu::make_zip_iterator( this->configurations.begin(), this->atlas_coords3.begin() ),
+            Backend::cpu::make_zip_iterator( this->configurations.end(), this->atlas_coords3.end() ),
+            Backend::cpu::make_zip_function(
+                []( const std::shared_ptr<vectorfield> & spins, const scalarfield & a3 ) -> bool
+                { return Solver_Kernels::ncg_atlas_check_coordinates( *spins, a3, -0.6 ); } ) ) )
     {
         const auto m_inverse = [] SPIRIT_LAMBDA( const scalar s ) { return scalar( 1.0 ) / s; };
         Backend::transform( SPIRIT_PAR rho.begin(), rho.end(), rho.begin(), m_inverse );
