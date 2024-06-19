@@ -17,6 +17,7 @@ set(SOURCE_SPIRIT_ENGINE
     ${CMAKE_CURRENT_SOURCE_DIR}/Manifoldmath.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Method.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Neighbours.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Solver_Kernels.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Vectormath.cpp
     PARENT_SCOPE
 )
@@ -28,6 +29,7 @@ if( SPIRIT_USE_CUDA )
         ${CMAKE_CURRENT_LIST_DIR}/Manifoldmath.cpp
         ${CMAKE_CURRENT_LIST_DIR}/Method.cpp
         ${CMAKE_CURRENT_LIST_DIR}/Neighbours.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Solver_Kernels.cpp
         ${CMAKE_CURRENT_LIST_DIR}/Vectormath.cpp
         PARENT_SCOPE
     )

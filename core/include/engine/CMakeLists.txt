@@ -39,6 +39,8 @@ set(HEADER_SPIRIT_ENGINE
     ${CMAKE_CURRENT_SOURCE_DIR}/Managed_Allocator.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     ${CMAKE_CURRENT_SOURCE_DIR}/FFT.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Solver_Kernels.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Solver_Kernels.inl
     ${CMAKE_CURRENT_SOURCE_DIR}/StateType.hpp
     PARENT_SCOPE
 )

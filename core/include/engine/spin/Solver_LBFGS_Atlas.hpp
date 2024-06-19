@@ -6,6 +6,8 @@
 #include <engine/spin/Method_Solver.hpp>
 #include <utility/Constants.hpp>
 
+#include <utility>
+
 namespace Engine
 {
 
@@ -16,10 +18,10 @@ template<>
 class SolverData<Solver::LBFGS_Atlas> : public SolverMethods
 {
 protected:
-    using SolverMethods::SolverMethods;
-    using SolverMethods::Prepare_Thermal_Field;
     using SolverMethods::Calculate_Force;
     using SolverMethods::Calculate_Force_Virtual;
+    using SolverMethods::Prepare_Thermal_Field;
+    using SolverMethods::SolverMethods;
     // General
     static constexpr int n_lbfgs_memory = 3; // how many updates the solver tracks to estimate the hessian
     static constexpr scalar maxmove     = 0.05;
@@ -35,14 +37,6 @@ protected:
     std::vector<vector2field> atlas_residuals;
     std::vector<vector2field> atlas_residuals_last;
     std::vector<vector2field> atlas_q_vec;
-
-    // Actual Forces on the configurations
-    std::vector<vectorfield> forces_predictor;
-    // Virtual Forces used in the Steps
-    std::vector<vectorfield> forces_virtual_predictor;
-
-    std::vector<std::shared_ptr<vectorfield>> configurations_predictor;
-    std::vector<std::shared_ptr<vectorfield>> configurations_temp;
 };
 
 template<>
@@ -124,16 +118,26 @@ inline void Method_Solver<Solver::LBFGS_Atlas>::Iteration()
         Backend::for_each(
             SPIRIT_PAR atlas_directions[img].begin(), atlas_directions[img].end(),
             [scaling] SPIRIT_LAMBDA( Vector2 & d ) { d *= scaling; } );
+
+        // Rotate spins
+        Solver_Kernels::atlas_rotate(
+            *this->configurations[img], this->atlas_coords3[img], this->atlas_directions[img] );
     }
 
-    // Rotate spins
-    Solver_Kernels::atlas_rotate( this->configurations, this->atlas_coords3, this->atlas_directions );
-
-    if( Solver_Kernels::ncg_atlas_check_coordinates( this->configurations, this->atlas_coords3, -0.6 ) )
+    const auto condition = [this]( const scalarfield & a3 )
+    { return Solver_Kernels::ncg_atlas_check_coordinates( *this->configurations[0], a3, -0.6 ); };
+    if( std::any_of( this->atlas_coords3.begin(), this->atlas_coords3.end(), condition ) )
     {
-        Solver_Kernels::lbfgs_atlas_transform_direction(
-            this->configurations, this->atlas_coords3, this->atlas_updates, this->grad_atlas_updates,
-            this->atlas_directions, this->atlas_residuals_last, this->rho );
+        const auto m_inverse = [] SPIRIT_LAMBDA( const scalar s ) { return scalar( 1.0 ) / s; };
+        Backend::transform( SPIRIT_PAR rho.begin(), rho.end(), rho.begin(), m_inverse );
+
+        for( int img = 0; img < noi; ++img )
+            Solver_Kernels::lbfgs_atlas_transform_direction(
+                *this->configurations[img], this->atlas_coords3[img], this->atlas_updates[img],
+                this->grad_atlas_updates[img], this->atlas_directions[img], this->atlas_residuals_last[img],
+                this->rho );
+
+        Backend::transform( SPIRIT_PAR rho.begin(), rho.end(), rho.begin(), m_inverse );
     }
 }
 

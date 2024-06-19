@@ -11,10 +11,10 @@ template<>
 class SolverData<Solver::SIB> : public SolverMethods
 {
 protected:
-    using SolverMethods::SolverMethods;
-    using SolverMethods::Prepare_Thermal_Field;
     using SolverMethods::Calculate_Force;
     using SolverMethods::Calculate_Force_Virtual;
+    using SolverMethods::Prepare_Thermal_Field;
+    using SolverMethods::SolverMethods;
     // Actual Forces on the configurations
     std::vector<vectorfield> forces_predictor;
     // Virtual Forces used in the Steps
@@ -58,8 +58,10 @@ inline void Method_Solver<Solver::SIB>::Iteration()
         auto & predictor = *this->configurations_predictor[i];
 
         Solver_Kernels::sib_transform( image, forces_virtual[i], predictor );
-        Vectormath::add_c_a( 1, image, predictor );
-        Vectormath::scale( predictor, 0.5 );
+        Backend::transform(
+            SPIRIT_PAR predictor.begin(), predictor.end(), image.begin(), predictor.begin(),
+            [] SPIRIT_LAMBDA( const Vector3 & predictor, const Vector3 & image )
+            { return 0.5 * ( predictor + image ); } );
     }
 
     // Second part of the step
