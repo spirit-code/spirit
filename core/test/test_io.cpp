@@ -66,7 +66,7 @@ TEST_CASE( "IO: files written and read back in should restore the spin configura
 
 TEST_CASE( "IO-EIGENMODE-WRITE", "[io-ema]" )
 {
-    auto state = std::shared_ptr<State>( State_Setup( "core/test/input/fd_pairs.cfg" ), State_Delete );
+    auto state = std::shared_ptr<State>( State_Setup( inputfile ), State_Delete );
 
     // Files to be written
     std::vector<std::pair<std::string, int>> files{
