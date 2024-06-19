@@ -11,19 +11,17 @@ template<>
 class SolverData<Solver::Heun> : public SolverMethods
 {
 protected:
-    using SolverMethods::SolverMethods;
-    using SolverMethods::Prepare_Thermal_Field;
     using SolverMethods::Calculate_Force;
     using SolverMethods::Calculate_Force_Virtual;
+    using SolverMethods::Prepare_Thermal_Field;
+    using SolverMethods::SolverMethods;
     // Actual Forces on the configurations
     std::vector<vectorfield> forces_predictor;
     // Virtual Forces used in the Steps
     std::vector<vectorfield> forces_virtual_predictor;
 
     std::vector<std::shared_ptr<vectorfield>> configurations_predictor;
-    std::vector<std::shared_ptr<vectorfield>> configurations_temp;
-
-    vectorfield temp1;
+    std::vector<std::shared_ptr<vectorfield>> delta_configurations;
 };
 
 template<>
@@ -35,15 +33,13 @@ inline void Method_Solver<Solver::Heun>::Initialize()
     this->forces_predictor         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
     this->forces_virtual_predictor = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
 
-    this->configurations_temp = std::vector<std::shared_ptr<vectorfield>>( this->noi );
-    for( int i = 0; i < this->noi; i++ )
-        configurations_temp[i] = std::make_shared<vectorfield>( this->nos );
-
     this->configurations_predictor = std::vector<std::shared_ptr<vectorfield>>( this->noi );
     for( int i = 0; i < this->noi; i++ )
         configurations_predictor[i] = std::make_shared<vectorfield>( this->nos );
 
-    this->temp1 = vectorfield( this->nos, { 0, 0, 0 } );
+    this->delta_configurations = std::vector<std::shared_ptr<vectorfield>>( this->noi );
+    for( int i = 0; i < this->noi; i++ )
+        delta_configurations[i] = std::make_shared<vectorfield>( this->nos );
 }
 
 /*
@@ -67,17 +63,10 @@ inline void Method_Solver<Solver::Heun>::Iteration()
     // Predictor for each image
     for( int i = 0; i < this->noi; ++i )
     {
-        auto & conf           = *this->configurations[i];
-        auto & conf_temp      = *this->configurations_temp[i];
-        auto & conf_predictor = *this->configurations_predictor[i];
-
         // First step - Predictor
-        Vectormath::set_c_cross( -1, conf, forces_virtual[i], conf_temp ); // temp1 = -( conf x A )
-        Vectormath::set_c_a( 1, conf, conf_predictor );                    // configurations_predictor = conf
-        Vectormath::add_c_a( 1, conf_temp, conf_predictor );               // configurations_predictor = conf + dt*temp1
-
-        // Normalize spins
-        Vectormath::normalize_vectors( conf_predictor );
+        Solver_Kernels::heun_predictor(
+            *this->configurations[i], this->forces_virtual[i], *this->delta_configurations[i],
+            *this->configurations_predictor[i] );
     }
 
     // Calculate_Force for the Corrector
@@ -88,22 +77,10 @@ inline void Method_Solver<Solver::Heun>::Iteration()
     // Corrector step for each image
     for( int i = 0; i < this->noi; i++ )
     {
-        auto & conf           = *this->configurations[i];
-        auto & conf_temp      = *this->configurations_temp[i];
-        auto & conf_predictor = *this->configurations_predictor[i];
-
-        // Second step - Corrector
-        Vectormath::scale( conf_temp, 0.5 );       // configurations_temp = 0.5 * configurations_temp
-        Vectormath::add_c_a( 1, conf, conf_temp ); // configurations_temp = conf + 0.5 * configurations_temp
-        Vectormath::set_c_cross( -1, conf_predictor, forces_virtual_predictor[i], temp1 ); // temp1 = - ( conf' x A' )
-        Vectormath::add_c_a(
-            0.5, temp1, conf_temp ); // configurations_temp = conf + 0.5 * configurations_temp + 0.5 * temp1
-
-        // Normalize spins
-        Vectormath::normalize_vectors( conf_temp );
-
-        // Copy out
-        conf = conf_temp;
+        // Second Step - Corrector
+        Solver_Kernels::heun_corrector(
+            this->forces_virtual_predictor[i], *this->delta_configurations[i],
+            *this->configurations_predictor[i], *this->configurations[i] );
     }
 }
 

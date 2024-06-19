@@ -71,17 +71,8 @@ inline void Method_Solver<Solver::Depondt>::Iteration()
     // Predictor for each image
     for( int i = 0; i < this->noi; ++i )
     {
-        auto & conf           = *this->configurations[i];
-        auto & conf_predictor = *this->configurations_predictor[i];
-
-        // For Rotation matrix R := R( H_normed, angle )
-        Vectormath::norm( forces_virtual[i], angle ); // angle = |forces_virtual|
-
-        Vectormath::set_c_a( 1, forces_virtual[i], rotationaxis[i] ); // rotationaxis = |forces_virtual|
-        Vectormath::normalize_vectors( rotationaxis[i] );             // normalize rotation axis
-
-        // Get spin predictor n' = R(H) * n
-        Vectormath::rotate( conf, rotationaxis[i], angle, conf_predictor );
+        Solver_Kernels::depondt_predictor(
+            forces_virtual[i], rotationaxis[i], angle, *configurations[i], *configurations_predictor[i] );
     }
 
     // Calculate_Force for the Corrector
@@ -92,20 +83,8 @@ inline void Method_Solver<Solver::Depondt>::Iteration()
     // Corrector step for each image
     for( int i = 0; i < this->noi; i++ )
     {
-        auto & conf = *this->configurations[i];
-
-        // Calculate the linear combination of the two forces_virtuals
-        Vectormath::set_c_a( 0.5, forces_virtual[i], temp1 );           // H = H/2
-        Vectormath::add_c_a( 0.5, forces_virtual_predictor[i], temp1 ); // H = (H + H')/2
-
-        // Get the rotation angle as norm of temp1 ...For Rotation matrix R' := R( H'_normed, angle' )
-        Vectormath::norm( temp1, angle ); // angle' = |forces_virtual lin combination|
-
-        // Normalize temp1 to get rotation axes
-        Vectormath::normalize_vectors( temp1 );
-
-        // Get new spin conf n_new = R( (H+H')/2 ) * n
-        Vectormath::rotate( conf, temp1, angle, conf );
+        Solver_Kernels::depondt_corrector(
+            forces_virtual[i], forces_virtual_predictor[i], temp1, angle, *configurations[i] );
     }
 }
 

@@ -33,14 +33,6 @@ protected:
     std::vector<vectorfield> grad;
     std::vector<vectorfield> grad_pr;
     std::vector<vectorfield> q_vec;
-
-    // Actual Forces on the configurations
-    std::vector<vectorfield> forces_predictor;
-    // Virtual Forces used in the Steps
-    std::vector<vectorfield> forces_virtual_predictor;
-
-    std::vector<std::shared_ptr<vectorfield>> configurations_predictor;
-    std::vector<std::shared_ptr<vectorfield>> configurations_temp;
 };
 
 template<>
@@ -104,10 +96,9 @@ inline void Method_Solver<Solver::LBFGS_OSO>::Iteration()
     for( int img = 0; img < noi; img++ )
     {
         Vectormath::scale( searchdir[img], scaling );
+        // rotate spins
+        Solver_Kernels::oso_rotate( *this->configurations[img], this->searchdir[img] );
     }
-
-    // rotate spins
-    Solver_Kernels::oso_rotate( this->configurations, this->searchdir );
 }
 
 template<>

@@ -7,10 +7,10 @@
 #include <data/Parameters_Method.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <engine/Manifoldmath.hpp>
+#include <engine/Solver_Kernels.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/common/Method_Solver.hpp>
 #include <engine/spin/Method.hpp>
-#include <engine/spin/Solver_Kernels.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Timing.hpp>

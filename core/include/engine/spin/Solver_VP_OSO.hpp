@@ -15,19 +15,11 @@ protected:
     using SolverMethods::Prepare_Thermal_Field;
     using SolverMethods::Calculate_Force;
     using SolverMethods::Calculate_Force_Virtual;
-    // "Mass of our particle" which we accelerate
-    static constexpr scalar mass = 1.0;
 
     // Force in previous step [noi][nos]
     std::vector<vectorfield> forces_previous;
-    // Velocity in previous step [noi][nos]
-    std::vector<vectorfield> velocities_previous;
     // Velocity used in the Steps [noi][nos]
     std::vector<vectorfield> velocities;
-    // Projection of velocities onto the forces [noi]
-    std::vector<scalar> projection;
-    // |force|^2
-    std::vector<scalar> force_norm2;
 
     std::vector<vectorfield> grad;
     std::vector<vectorfield> grad_pr;
@@ -49,12 +41,9 @@ inline void Method_Solver<Solver::VP_OSO>::Initialize()
         configurations_temp[i] = std::make_shared<vectorfield>( this->nos );
 
     this->velocities = std::vector<vectorfield>( this->noi, vectorfield( this->nos, Vector3::Zero() ) ); // [noi][nos]
-    this->velocities_previous = velocities;                                                              // [noi][nos]
-    this->forces_previous     = velocities;                                                              // [noi][nos]
+    this->forces_previous     = forces;                                                                  // [noi][nos]
     this->grad                = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
     this->grad_pr             = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
-    this->projection          = std::vector<scalar>( this->noi, 0 ); // [noi]
-    this->force_norm2         = std::vector<scalar>( this->noi, 0 ); // [noi]
     this->searchdir           = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
 
     this->llg_parameters = std::vector<std::shared_ptr<const Data::Parameters_Method_LLG>>( this->noi, nullptr );
@@ -77,24 +66,10 @@ inline void Method_Solver<Solver::VP_OSO>::Initialize()
 template<>
 inline void Method_Solver<Solver::VP_OSO>::Iteration()
 {
-    scalar projection_full  = 0;
-    scalar force_norm2_full = 0;
-
     // Set previous
     for( int img = 0; img < noi; ++img )
     {
-        const auto * g = grad[img].data();
-        const auto * v = velocities[img].data();
-        auto * g_pr    = grad_pr[img].data();
-        auto * v_pr    = velocities_previous[img].data();
-
-        Backend::for_each_n(
-            SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
-            [g, g_pr, v, v_pr] SPIRIT_LAMBDA( const int idx )
-            {
-                g_pr[idx] = g[idx];
-                v_pr[idx] = v[idx];
-            } );
+        Backend::copy( SPIRIT_PAR grad[img].begin(), grad[img].end(), grad_pr[img].begin() );
     }
 
     // Get the forces on the configurations
@@ -107,57 +82,27 @@ inline void Method_Solver<Solver::VP_OSO>::Iteration()
         auto & grad  = this->grad[img];
         Solver_Kernels::oso_calc_gradients( grad, image, this->forces[img] );
         Vectormath::scale( grad, -1.0 );
+
+        Solver_Kernels::VP::bare_velocity( this->grad[img], this->grad_pr[img], velocities[img] );
     }
+
+    // Get the total projection of the velocity on the force
+    const Vector2 projections = Backend::cpu::transform_reduce(
+        velocities.begin(), velocities.end(), grad.begin(), Vector2{ 0.0, 0.0 }, Backend::plus<Vector2>{},
+        []( const vectorfield & velocity, const vectorfield & force ) -> Vector2
+        { return Vector2{ Vectormath::dot( velocity, force ), Vectormath::dot( force, force ) }; } );
 
     for( int img = 0; img < noi; ++img )
     {
-        const auto * g    = this->grad[img].data();
-        const auto * g_pr = this->grad_pr[img].data();
-        auto & velocity   = velocities[img];
-        auto * v          = velocities[img].data();
-
-        // Calculate the new velocity
-        Backend::for_each_n(
-            SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
-            [g, g_pr, v] SPIRIT_LAMBDA( const int idx )
-            { v[idx] += 0.5 / mass * ( g_pr[idx] + g[idx] ); } );
-
-        // Get the projection of the velocity on the force
-        projection[img]  = Vectormath::dot( velocity, this->grad[img] );
-        force_norm2[img] = Vectormath::dot( this->grad[img], this->grad[img] );
-    }
-    for( int img = 0; img < noi; ++img )
-    {
-        projection_full += projection[img];
-        force_norm2_full += force_norm2[img];
-    }
-    for( int img = 0; img < noi; ++img )
-    {
-        const auto * g = this->grad[img].data();
-        auto * sd      = this->searchdir[img].data();
-        auto * v       = this->velocities[img].data();
-
-        scalar dt    = this->llg_parameters[img]->dt;
-        scalar ratio = projection_full / force_norm2_full;
-
         // Calculate the projected velocity
-        if( projection_full <= 0 )
-        {
-            Vectormath::fill( velocities[img], { 0, 0, 0 } );
-        }
-        else
-        {
-            Backend::for_each_n(
-                SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
-                [g, v, ratio] SPIRIT_LAMBDA( const int idx ) { v[idx] = g[idx] * ratio; } );
-        }
+        Solver_Kernels::VP::projected_velocity( projections, grad[img], velocities[img] );
 
-        Backend::for_each_n(
-            SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
-            [sd, dt, v, g] SPIRIT_LAMBDA( const int idx )
-            { sd[idx] = dt * v[idx] + 0.5 / mass * dt * g[idx]; } );
+        // Apply the projected velocity
+        Solver_Kernels::VP::set_step( velocities[img], grad[img], this->llg_parameters[img]->dt, searchdir[img] );
+
+        // rotate spins
+        Solver_Kernels::oso_rotate( *this->configurations[img], this->searchdir[img] );
     }
-    Solver_Kernels::oso_rotate( this->configurations, this->searchdir );
 }
 
 template<>
