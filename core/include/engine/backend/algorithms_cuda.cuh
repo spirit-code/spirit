@@ -66,8 +66,19 @@ struct is_device_iterator<Backend::cuda::transform_iterator<Value, UnaryOp, Inpu
 {
 };
 
+template<typename... Iterators>
+struct is_device_iterator<Backend::cuda::zip_iterator<Backend::tuple<Iterators...>>>
+        : std::conjunction<is_device_iterator<Iterators>...>
+{
+};
+
+template<typename Iter>
+struct is_zip_iterator : std::false_type
+{
+};
+
 template<typename IteratorTuple>
-struct is_device_iterator<Backend::cuda::zip_iterator<IteratorTuple>> : std::true_type
+struct is_zip_iterator<Backend::cuda::zip_iterator<IteratorTuple>> : std::true_type
 {
 };
 
@@ -81,16 +92,25 @@ struct is_field_iterator
 
 } // namespace detail
 
+// tag class for invalid call to `device_iterator_cast`
+// This makes compile errors from nvcc much easier to parse
+struct invalid_device_iterator_cast
+{
+};
+
 // cast the iterator to a device iterator (casting normal iterators to raw pointers using `raw_pointer_cast`)
 template<typename Iter>
 [[nodiscard]] auto device_iterator_cast( Iter it )
 {
     if constexpr( detail::is_device_iterator<std::decay_t<Iter>>::value )
         return it;
+    else if constexpr( detail::is_zip_iterator<std::decay_t<Iter>>::value )
+        return Backend::apply(
+            []( auto &&... iter ) { return Backend::cuda::make_zip_iterator( device_iterator_cast( iter )... ); }, it.get() );
     else if constexpr( detail::is_field_iterator<std::decay_t<Iter>>::value )
         return raw_pointer_cast( it );
     else
-        return;
+        return invalid_device_iterator_cast{};
 }
 
 // TODO: replace most of these overloads by cub implementations (like cub::DeviceFor) once these become widely available
