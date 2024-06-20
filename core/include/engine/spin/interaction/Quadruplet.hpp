@@ -130,8 +130,7 @@ struct Functor::Local::DataRef<Quadruplet>
     using Cache       = typename Interaction::Cache;
 
     DataRef( const Data & data, const Cache & cache ) noexcept
-            : is_contributing( Interaction::is_contributing( data, cache ) ),
-              magnitudes( data.magnitudes.data() )
+            : is_contributing( Interaction::is_contributing( data, cache ) ), magnitudes( data.magnitudes.data() )
     {
     }
 
@@ -170,8 +169,26 @@ inline Vector3 Quadruplet::Gradient::operator()( const Index & index, const Vect
 
 template<>
 template<typename Callable>
-void Quadruplet::Hessian::operator()( const Index & index, const vectorfield & spins, Callable & hessian ) const {
-    // TODO
+void Quadruplet::Hessian::operator()( const Index & index, const vectorfield & spins, Callable & hessian ) const
+{
+    Backend::cpu::for_each(
+        index.begin(), index.end(),
+        [this, &index, &spins, &hessian]( const Quadruplet::IndexType & idx )
+        {
+            const auto & [ispin, jspin, kspin, lspin, iquad] = idx;
+
+#pragma unroll
+            for( int alpha = 0; alpha < 3; ++alpha )
+            {
+                hessian( 3 * ispin + alpha, 3 * jspin + alpha, -magnitudes[iquad] * spins[kspin].dot( spins[lspin] ) );
+#pragma unroll
+                for( int beta = 0; beta < 3; ++beta )
+                {
+                    hessian( 3 * ispin + alpha, 3 * kspin + beta, -magnitudes[iquad] * spins[jspin][alpha] * spins[lspin][beta] );
+                    hessian( 3 * ispin + alpha, 3 * lspin + beta, -magnitudes[iquad] * spins[jspin][alpha] * spins[kspin][beta] );
+                }
+            }
+        } );
 };
 
 } // namespace Interaction
