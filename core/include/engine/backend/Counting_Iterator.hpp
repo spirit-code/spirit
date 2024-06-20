@@ -11,6 +11,9 @@ namespace Engine
 namespace Backend
 {
 
+namespace cuda
+{
+
 template<typename T>
 class counting_iterator
 {
@@ -146,21 +149,18 @@ template<typename T>
     return counting_iterator<T>( value );
 }
 
-namespace cuda
-{
-
-using Backend::counting_iterator;
-using Backend::make_counting_iterator;
-
 } // namespace cuda
 
 namespace cpu
 {
 
-using Backend::counting_iterator;
-using Backend::make_counting_iterator;
+using Backend::cuda::counting_iterator;
+using Backend::cuda::make_counting_iterator;
 
 } // namespace cpu
+
+using Backend::cuda::counting_iterator;
+using Backend::cuda::make_counting_iterator;
 
 } // namespace Backend
 

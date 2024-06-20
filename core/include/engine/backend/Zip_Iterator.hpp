@@ -13,17 +13,6 @@ namespace Backend
 namespace cuda
 {
 
-template<typename IteratorTuple>
-class zip_iterator;
-
-template<typename... Iterators>
-[[nodiscard]] SPIRIT_HOSTDEVICE constexpr auto make_zip_iterator( Backend::tuple<Iterators...> tuple )
-    -> zip_iterator<Backend::tuple<Iterators...>>;
-
-template<typename... Iterators>
-[[nodiscard]] SPIRIT_HOSTDEVICE constexpr auto make_zip_iterator( Iterators... iter )
-    -> zip_iterator<Backend::tuple<Iterators...>>;
-
 // zip iterator (similar to `thrust::zip_function`)
 template<typename Function>
 class zip_function
@@ -148,7 +137,7 @@ public:
 
     [[nodiscard]] SPIRIT_HOSTDEVICE constexpr difference_type operator-( const zip_iterator & other ) const noexcept
     {
-        return static_cast<difference_type>( get<0>( m_state ) - get<0>( other.m_state ) );
+        return static_cast<difference_type>( Backend::get<0>( m_state ) - Backend::get<0>( other.m_state ) );
     }
 
     SPIRIT_HOSTDEVICE constexpr zip_iterator & operator-=( const difference_type n ) noexcept
@@ -157,40 +146,45 @@ public:
         return *this;
     }
 
+    SPIRIT_HOSTDEVICE constexpr IteratorTuple & get() noexcept
+    {
+        return m_state;
+    }
+
     [[nodiscard]] friend SPIRIT_HOSTDEVICE constexpr bool
     operator==( const zip_iterator & lhs, const zip_iterator & rhs ) noexcept
     {
-        return get<0>( lhs.m_state ) == get<0>( rhs.m_state );
+        return Backend::get<0>( lhs.m_state ) == Backend::get<0>( rhs.m_state );
     };
 
     [[nodiscard]] friend SPIRIT_HOSTDEVICE constexpr bool
     operator!=( const zip_iterator & lhs, const zip_iterator & rhs ) noexcept
     {
-        return get<0>( lhs.m_state ) != get<0>( rhs.m_state );
+        return Backend::get<0>( lhs.m_state ) != Backend::get<0>( rhs.m_state );
     };
 
     [[nodiscard]] friend SPIRIT_HOSTDEVICE constexpr bool
     operator<( const zip_iterator & lhs, const zip_iterator & rhs ) noexcept
     {
-        return get<0>( lhs.m_state ) < get<0>( rhs.m_state );
+        return Backend::get<0>( lhs.m_state ) < Backend::get<0>( rhs.m_state );
     };
 
     [[nodiscard]] friend SPIRIT_HOSTDEVICE constexpr bool
     operator<=( const zip_iterator & lhs, const zip_iterator & rhs ) noexcept
     {
-        return get<0>( lhs.m_state ) <= get<0>( rhs.m_state );
+        return Backend::get<0>( lhs.m_state ) <= Backend::get<0>( rhs.m_state );
     };
 
     [[nodiscard]] friend SPIRIT_HOSTDEVICE constexpr bool
     operator>( const zip_iterator & lhs, const zip_iterator & rhs ) noexcept
     {
-        return get<0>( lhs.m_state ) > get<0>( rhs.m_state );
+        return Backend::get<0>( lhs.m_state ) > Backend::get<0>( rhs.m_state );
     };
 
     [[nodiscard]] friend SPIRIT_HOSTDEVICE constexpr bool
     operator>=( const zip_iterator & lhs, const zip_iterator & rhs ) noexcept
     {
-        return get<0>( lhs.m_state ) >= get<0>( rhs.m_state );
+        return Backend::get<0>( lhs.m_state ) >= Backend::get<0>( rhs.m_state );
     };
 
 private:
@@ -219,12 +213,14 @@ namespace cpu
 using Backend::cuda::make_zip_function;
 using Backend::cuda::make_zip_iterator;
 using Backend::cuda::zip_iterator;
+using Backend::cuda::zip_function;
 
 } // namespace cpu
 
 using Backend::cuda::make_zip_function;
 using Backend::cuda::make_zip_iterator;
 using Backend::cuda::zip_iterator;
+using Backend::cuda::zip_function;
 
 } // namespace Backend
 
