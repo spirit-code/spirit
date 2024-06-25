@@ -57,11 +57,11 @@ public:
     // ------------------------------------------------------
 
     // Method name as string
-    virtual std::string Name();
+    virtual std::string_view Name();
 
     // Solver name as string
-    virtual std::string SolverName();
-    virtual std::string SolverFullName();
+    virtual std::string_view SolverName();
+    virtual std::string_view SolverFullName();
 
     // ------------------------------------------------------
 

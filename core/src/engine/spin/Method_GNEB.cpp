@@ -682,7 +682,7 @@ void Method_GNEB<solver>::Unlock()
 
 // Method name as string
 template<Solver solver>
-std::string Method_GNEB<solver>::Name()
+std::string_view Method_GNEB<solver>::Name()
 {
     return "GNEB";
 }

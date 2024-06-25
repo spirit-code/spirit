@@ -25,10 +25,10 @@ public:
     Method_EMA( std::shared_ptr<system_t> system, int idx_img, int idx_chain );
 
     // Method name as string
-    std::string Name() override;
+    std::string_view Name() override;
 
     // Solver name as string
-    std::string SolverName() override;
+    std::string_view SolverName() override;
 
 private:
     // Iteration does one time step of the oscillation

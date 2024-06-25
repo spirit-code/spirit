@@ -61,6 +61,40 @@ constexpr auto common_solver( Spin::Solver solver ) -> Common::Solver
     }
 }
 
+constexpr auto name( Spin::Solver solver ) -> std::string_view
+{
+    switch( solver )
+    {
+        case Solver::None: return "None";
+        case Solver::SIB: return "SIB";
+        case Solver::Heun: return "Heun";
+        case Solver::Depondt: return "Depondt";
+        case Solver::RungeKutta4: return "RK4";
+        case Solver::LBFGS_OSO: return "LBFGS_OSO";
+        case Solver::LBFGS_Atlas: return "LBFGS_Atlas";
+        case Solver::VP: return "VP";
+        case Solver::VP_OSO: return "VP_OSO";
+        default: return "Unknown";
+    }
+}
+
+constexpr auto full_name( Spin::Solver solver ) -> std::string_view
+{
+    switch( solver )
+    {
+        case Solver::None: return "None";
+        case Solver::SIB: return "Semi-implicit B";
+        case Solver::Heun: return "Heun";
+        case Solver::Depondt: return "Depondt";
+        case Solver::RungeKutta4: return "Runge Kutta (4th order)";
+        case Solver::LBFGS_OSO: return "Limited memory Broyden-Fletcher-Goldfarb-Shanno using exponential transforms";
+        case Solver::LBFGS_Atlas: return "Limited memory Broyden-Fletcher-Goldfarb-Shanno using stereographic atlas";
+        case Solver::VP: return "Velocity Projection";
+        case Solver::VP_OSO: return "Velocity Projection using exponential transforms";
+        default: return "Unknown";
+    }
+}
+
 class SolverMethods : public Method
 {
 protected:
@@ -122,8 +156,8 @@ public:
     bool Iterations_Allowed() override;
 
     // Solver name as string
-    std::string SolverName() override;
-    std::string SolverFullName() override;
+    std::string_view SolverName() override;
+    std::string_view SolverFullName() override;
 
     // Iteration represents one iteration of a certain Solver
     void Iteration() override;
@@ -345,16 +379,16 @@ void Method_Solver<solver>::Message_End()
     Log( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 }
 
-template<>
-inline std::string Method_Solver<Solver::None>::SolverName()
+template<Solver solver>
+std::string_view Method_Solver<solver>::SolverName()
 {
-    return "None";
+    return name( solver );
 };
 
-template<>
-inline std::string Method_Solver<Solver::None>::SolverFullName()
+template<Solver solver>
+std::string_view Method_Solver<solver>::SolverFullName()
 {
-    return "None";
+    return full_name( solver );
 };
 
 } // namespace Spin

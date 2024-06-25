@@ -212,7 +212,7 @@ void Method::Finalize()
         "Tried to use Method::Save_Current() of the Method base class!" );
 }
 
-std::string Method::Name()
+std::string_view Method::Name()
 {
     // Not Implemented!
     Log( Log_Level::Error, Log_Sender::All, std::string( "Tried to use Method::Name() of the Method base class!" ) );
@@ -221,7 +221,7 @@ std::string Method::Name()
 
 // Solver name as string
 
-std::string Method::SolverName()
+std::string_view Method::SolverName()
 {
     // Not Implemented!
     Log( Log_Level::Error, Log_Sender::All,
@@ -230,7 +230,7 @@ std::string Method::SolverName()
     return "--";
 }
 
-std::string Method::SolverFullName()
+std::string_view Method::SolverFullName()
 {
     // Not Implemented!
     Log( Log_Level::Error, Log_Sender::All,

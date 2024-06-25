@@ -115,18 +115,6 @@ inline void Method_Solver<Solver::RungeKutta4>::Iteration()
     }
 }
 
-template<>
-inline std::string Method_Solver<Solver::RungeKutta4>::SolverName()
-{
-    return "RK4";
-}
-
-template<>
-inline std::string Method_Solver<Solver::RungeKutta4>::SolverFullName()
-{
-    return "Runge Kutta (4th order)";
-}
-
 } // namespace Spin
 
 } // namespace Engine

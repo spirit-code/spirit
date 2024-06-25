@@ -29,7 +29,7 @@ public:
     double get_simulated_time() override;
 
     // Method name as string
-    std::string Name() override;
+    std::string_view Name() override;
 
     // Prepare random numbers for thermal fields, if needed
     void Prepare_Thermal_Field() override;
