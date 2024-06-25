@@ -22,7 +22,7 @@ public:
     Method_MC( std::shared_ptr<system_t> system, int idx_img, int idx_chain );
 
     // Method name as string
-    std::string Name() override;
+    std::string_view Name() override;
 
 private:
     // Solver_Iteration represents one iteration of a certain Solver

@@ -404,7 +404,7 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    return strdup( std::string( image->hamiltonian->Name() ).c_str() );
+    return strdup( image->hamiltonian->Name().data() );
 }
 catch( ... )
 {

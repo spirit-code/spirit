@@ -758,12 +758,12 @@ try
     if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
     {
         if( state->method_image[idx_image] )
-            return state->method_image[idx_image]->SolverName().c_str();
+            return strdup( state->method_image[idx_image]->SolverName().data() );
     }
     else if( Simulation_Running_On_Chain( state, idx_chain ) )
     {
         if( state->method_chain )
-            return state->method_chain->SolverName().c_str();
+            return strdup( state->method_chain->SolverName().data() );
     }
 
     return "";
@@ -783,12 +783,12 @@ try
     if( Simulation_Running_On_Image( state, idx_image, idx_chain ) )
     {
         if( state->method_image[idx_image] )
-            return state->method_image[idx_image]->Name().c_str();
+            return strdup( state->method_image[idx_image]->Name().data() );
     }
     else if( Simulation_Running_On_Chain( state, idx_chain ) )
     {
         if( state->method_chain )
-            return state->method_chain->Name().c_str();
+            return strdup( state->method_chain->Name().data() );
     }
 
     return "";

@@ -76,18 +76,6 @@ inline void Method_Solver<Solver::SIB>::Iteration()
     }
 }
 
-template<>
-inline std::string Method_Solver<Solver::SIB>::SolverName()
-{
-    return "SIB";
-}
-
-template<>
-inline std::string Method_Solver<Solver::SIB>::SolverFullName()
-{
-    return "Semi-implicit B";
-}
-
 } // namespace Spin
 
 } // namespace Engine

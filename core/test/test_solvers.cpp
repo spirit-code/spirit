@@ -9,6 +9,7 @@
 #include <Spirit/System.h>
 #include <Spirit/Transitions.h>
 #include <Spirit/Version.h>
+#include <engine/spin/Method_Solver.hpp>
 
 #include "catch.hpp"
 
@@ -40,9 +41,11 @@ constexpr auto inputfile = "core/test/input/solvers.cfg";
 
 TEST_CASE( "Solvers should find Skyrmion energy minimum with direct minimization", "[solvers]" )
 {
-    std::vector<int> solvers{
-        Solver_LBFGS_Atlas, Solver_LBFGS_OSO, Solver_VP_OSO,  Solver_VP,
-        Solver_Heun,        Solver_SIB,       Solver_Depondt, Solver_RungeKutta4,
+    using Engine::Spin::Solver;
+
+    std::vector<Solver> solvers{
+        Solver::LBFGS_Atlas, Solver::LBFGS_OSO, Solver::VP_OSO,  Solver::VP,
+        Solver::Heun,        Solver::SIB,       Solver::Depondt, Solver::RungeKutta4,
     };
     // Expected values
     scalar energy_expected = -5849.69140625f;
@@ -61,14 +64,15 @@ TEST_CASE( "Solvers should find Skyrmion energy minimum with direct minimization
     Parameters_LLG_Set_Direct_Minimization( state.get(), true );
     for( auto solver : solvers )
     {
-        INFO( "Direct minimisation using " << solver << " solver" );
+        INFO(
+            fmt::format( "Direct minimisation using solver \"{}: {}\"", static_cast<int>( solver ), name( solver ) ) );
 
         // Put a skyrmion in the center of the space
         Configuration_PlusZ( state.get() );
         Configuration_Skyrmion( state.get(), 5, 1, -90, false, false, false );
 
         // Perform simulation until convergence
-        Simulation_LLG_Start( state.get(), solver );
+        Simulation_LLG_Start( state.get(), static_cast<int>( solver ) );
 
         // Check the values of energy and magnetization
         scalar energy = System_Get_Energy( state.get() );
@@ -82,10 +86,12 @@ TEST_CASE( "Solvers should find Skyrmion energy minimum with direct minimization
 
 TEST_CASE( "Solvers should find Skyrmion collapse barrier with GNEB method", "[solvers]" )
 {
+    using Engine::Spin::Solver;
+
     constexpr int NOI = 9;
     // Solvers to be tested
-    std::vector<int> solvers = {
-        Solver_LBFGS_Atlas, Solver_LBFGS_OSO, Solver_VP_OSO, Solver_VP, Solver_Heun, Solver_Depondt,
+    std::vector<Solver> solvers = {
+        Solver::LBFGS_Atlas, Solver::LBFGS_OSO, Solver::VP_OSO, Solver::VP, Solver::Heun, Solver::Depondt,
     };
     // Expected values
     scalar energy_sp_expected = -5811.5244140625;
@@ -108,7 +114,7 @@ TEST_CASE( "Solvers should find Skyrmion collapse barrier with GNEB method", "[s
     // Calculate energy and magnetization at saddle point for every solver
     for( auto solver : solvers )
     {
-        INFO( "GNEB using " << solver << " solver" );
+        INFO( fmt::format( "GNEB using solver \"{}: {}\"", static_cast<int>( solver ), name( solver ) ) );
 
         // Put a skyrmion in the center of the space
         Chain_Jump_To_Image( state.get(), 0 );
@@ -116,7 +122,7 @@ TEST_CASE( "Solvers should find Skyrmion collapse barrier with GNEB method", "[s
         Configuration_Skyrmion( state.get(), 5, 1, -90, false, false, false );
 
         // Perform simulation until convergence
-        Simulation_LLG_Start( state.get(), solver );
+        Simulation_LLG_Start( state.get(), static_cast<int>( solver ) );
 
         // Create a skyrmion collapse transition
         Chain_Jump_To_Image( state.get(), NOI - 1 );
@@ -125,9 +131,9 @@ TEST_CASE( "Solvers should find Skyrmion collapse barrier with GNEB method", "[s
         Transition_Homogeneous( state.get(), 0, NOI - 1 );
 
         // Perform simulation until convergence
-        Simulation_GNEB_Start( state.get(), solver, 20'000 );
+        Simulation_GNEB_Start( state.get(), static_cast<int>( solver ), 20'000 );
         Parameters_GNEB_Set_Image_Type_Automatically( state.get() );
-        Simulation_GNEB_Start( state.get(), solver );
+        Simulation_GNEB_Start( state.get(), static_cast<int>( solver ) );
 
         // Get saddle point index and energy
         int idx_sp       = 1;

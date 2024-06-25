@@ -101,18 +101,6 @@ inline void Method_Solver<Solver::LBFGS_OSO>::Iteration()
     }
 }
 
-template<>
-inline std::string Method_Solver<Solver::LBFGS_OSO>::SolverName()
-{
-    return "LBFGS_OSO";
-}
-
-template<>
-inline std::string Method_Solver<Solver::LBFGS_OSO>::SolverFullName()
-{
-    return "Limited memory Broyden-Fletcher-Goldfarb-Shanno using exponential transforms";
-}
-
 } // namespace Spin
 
 } // namespace Engine

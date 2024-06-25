@@ -10,6 +10,7 @@
 #include <Spirit/Version.h>
 #include <data/State.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/spin/Method_Solver.hpp>
 
 #include "catch.hpp"
 
@@ -39,12 +40,13 @@ using Catch::Matchers::WithinAbs;
 
 TEST_CASE( "Dynamics solvers should follow Larmor precession", "[physics]" )
 {
+    using Engine::Spin::Solver;
     constexpr auto input_file = "core/test/input/physics_larmor.cfg";
-    std::vector<int> solvers{
-        Solver_Heun,
-        Solver_Depondt,
-        Solver_SIB,
-        Solver_RungeKutta4,
+    std::vector<Solver> solvers{
+        Solver::Heun,
+        Solver::Depondt,
+        Solver::SIB,
+        Solver::RungeKutta4,
     };
 
     // Create State
@@ -82,11 +84,13 @@ TEST_CASE( "Dynamics solvers should follow Larmor precession", "[physics]" )
     {
         // Set spin parallel to x-axis
         Configuration_Domain( state.get(), init_direction );
-        Simulation_LLG_Start( state.get(), solver, -1, -1, true );
+        Simulation_LLG_Start( state.get(), static_cast<int>( solver ), -1, -1, true );
 
         for( int i = 0; i < 100; i++ )
         {
-            INFO( "Solver " << solver << " failed spin trajectory test at iteration " << i );
+            INFO( fmt::format(
+                "Solver \"{}: {}\" failed spin trajectory test at iteration {}", static_cast<int>( solver ),
+                name( solver ), i ) );
 
             // A single iteration
             Simulation_SingleShot( state.get() );
@@ -110,9 +114,10 @@ TEST_CASE(
     "RK4 should not dephase spins while they precess with active exchange interaction and open boundary conditions",
     "[physics]" )
 {
+    using Engine::Spin::Solver;
     constexpr auto input_file = "core/test/input/physics_dephasing.cfg";
-    std::vector<int> solvers{
-        Solver_RungeKutta4,
+    std::vector<Solver> solvers{
+        Solver::RungeKutta4,
     };
 
     // Create State
@@ -187,8 +192,9 @@ TEST_CASE(
 
         for( int i = 0; i < 1000; ++i )
         {
-            INFO(
-                fmt::format( "Solver {} failed spin dephasing test at iteration {}", static_cast<int>( solver ), i ) );
+            INFO( fmt::format(
+                "Solver \"{}: {}\" failed spin dephasing test at iteration {}", static_cast<int>( solver ),
+                name( solver ), i ) );
 
             // A single iteration
             Simulation_SingleShot( state.get() );

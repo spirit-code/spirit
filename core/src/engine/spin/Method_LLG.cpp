@@ -364,7 +364,7 @@ void Method_LLG<solver>::Save_Current( std::string starttime, int iteration, boo
 
 // Method name as string
 template<Solver solver>
-std::string Method_LLG<solver>::Name()
+std::string_view Method_LLG<solver>::Name()
 {
     return "LLG";
 }

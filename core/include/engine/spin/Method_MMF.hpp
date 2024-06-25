@@ -23,7 +23,7 @@ public:
     Method_MMF( std::shared_ptr<system_t> system, int idx_chain );
 
     // Method name as string
-    std::string Name() override;
+    std::string_view Name() override;
 
 private:
     // Calculate Forces onto Systems

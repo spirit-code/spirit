@@ -144,18 +144,6 @@ inline void Method_Solver<Solver::LBFGS_Atlas>::Iteration()
     }
 }
 
-template<>
-inline std::string Method_Solver<Solver::LBFGS_Atlas>::SolverName()
-{
-    return "LBFGS_Atlas";
-}
-
-template<>
-inline std::string Method_Solver<Solver::LBFGS_Atlas>::SolverFullName()
-{
-    return "Limited memory Broyden-Fletcher-Goldfarb-Shanno using stereographic atlas";
-}
-
 } // namespace Spin
 
 } // namespace Engine

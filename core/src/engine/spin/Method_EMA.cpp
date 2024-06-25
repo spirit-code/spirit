@@ -118,7 +118,7 @@ void Method_EMA::Message_Start()
     //---- Log messages
     Log( Log_Level::All, this->SenderName,
          {
-             "------------  Started  " + this->Name() + " Visualization ------------",
+             fmt::format( "------------  Started  {} Visualization ------------", this->Name() ),
              "    Mode frequency  " + fmt::format( "{}", this->parameters_ema->frequency ),
              "    Mode amplitude  " + fmt::format( "{}", this->parameters_ema->amplitude ),
              "    Number of modes " + fmt::format( "{}", this->parameters_ema->n_modes ),
@@ -145,13 +145,13 @@ bool Method_EMA::Iterations_Allowed()
 }
 
 // Method name as string
-std::string Method_EMA::Name()
+std::string_view Method_EMA::Name()
 {
     return "EMA";
 }
 
 // Solver name as string
-std::string Method_EMA::SolverName()
+std::string_view Method_EMA::SolverName()
 {
     return "None";
 }

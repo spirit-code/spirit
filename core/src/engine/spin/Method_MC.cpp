@@ -347,7 +347,7 @@ void Method_MC::Message_End()
 void Method_MC::Save_Current( std::string starttime, int iteration, bool initial, bool final ) {}
 
 // Method name as string
-std::string Method_MC::Name()
+std::string_view Method_MC::Name()
 {
     return "MC";
 }

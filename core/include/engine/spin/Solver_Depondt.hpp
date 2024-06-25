@@ -88,18 +88,6 @@ inline void Method_Solver<Solver::Depondt>::Iteration()
     }
 }
 
-template<>
-inline std::string Method_Solver<Solver::Depondt>::SolverName()
-{
-    return "Depondt";
-}
-
-template<>
-inline std::string Method_Solver<Solver::Depondt>::SolverFullName()
-{
-    return "Depondt";
-}
-
 } // namespace Spin
 
 } // namespace Engine

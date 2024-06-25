@@ -81,18 +81,6 @@ inline void Method_Solver<Solver::VP>::Iteration()
     }
 }
 
-template<>
-inline std::string Method_Solver<Solver::VP>::SolverName()
-{
-    return "VP";
-}
-
-template<>
-inline std::string Method_Solver<Solver::VP>::SolverFullName()
-{
-    return "Velocity Projection";
-}
-
 } // namespace Spin
 
 } // namespace Engine
