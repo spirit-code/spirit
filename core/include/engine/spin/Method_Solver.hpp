@@ -149,9 +149,9 @@ public:
     // virtual void Iterate() override;
 
     // Lock systems in order to prevent otherwise access
-    void Lock() override;
+    void lock() override;
     // Unlock systems to re-enable access
-    void Unlock() override;
+    void unlock() override;
     // Check if iterations are allowed
     bool Iterations_Allowed() override;
 
@@ -245,16 +245,16 @@ template<Solver solver>
 void Method_Solver<solver>::Finalize(){};
 
 template<Solver solver>
-void Method_Solver<solver>::Lock()
+void Method_Solver<solver>::lock()
 {
-    std::for_each( systems.begin(), systems.end(), []( const std::shared_ptr<system_t> & system ) { system->Lock(); } );
+    std::for_each( systems.begin(), systems.end(), []( const std::shared_ptr<system_t> & system ) { system->lock(); } );
 };
 
 template<Solver solver>
-void Method_Solver<solver>::Unlock()
+void Method_Solver<solver>::unlock()
 {
     std::for_each(
-        systems.begin(), systems.end(), []( const std::shared_ptr<system_t> & system ) { system->Unlock(); } );
+        systems.begin(), systems.end(), []( const std::shared_ptr<system_t> & system ) { system->unlock(); } );
 };
 
 template<Solver solver>

@@ -16,12 +16,12 @@ void Parameters_EMA_Clear_Modes( State * state, int idx_image, int idx_chain ) n
 
     Log( Utility::Log_Level::Info, Utility::Log_Sender::API, "Clearing modes", idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     for( auto & el : image->modes )
     {
         el.reset();
     }
-    image->Unlock();
+    image->unlock();
 }
 
 /*------------------------------------------------------------------------------------------------------ */
@@ -44,12 +44,12 @@ try
     }
     else
     {
-        image->Lock();
+        image->lock();
         image->ema_parameters->n_modes = n_modes;
         image->modes.resize( n_modes );
         image->eigenvalues.resize( n_modes );
         image->ema_parameters->n_mode_follow = std::min( image->ema_parameters->n_mode_follow, n_modes );
-        image->Unlock();
+        image->unlock();
     }
 }
 catch( ... )
@@ -72,9 +72,9 @@ try
     }
     else
     {
-        image->Lock();
+        image->lock();
         image->ema_parameters->n_mode_follow = n_mode_follow;
-        image->Unlock();
+        image->unlock();
     }
 }
 catch( ... )
@@ -89,9 +89,9 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     image->ema_parameters->frequency = frequency;
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -105,9 +105,9 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     image->ema_parameters->amplitude = amplitude;
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -121,9 +121,9 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     image->ema_parameters->snapshot = snapshot;
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -139,9 +139,9 @@ try
 
     Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Setting parameter 'sparse' to {}", sparse ),
          idx_image, idx_chain );
-    image->Lock();
+    image->lock();
     image->ema_parameters->sparse = sparse;
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {

@@ -243,7 +243,7 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     try
     {
         image->UpdateEnergy();
@@ -252,7 +252,7 @@ try
     {
         spirit_handle_exception_api( idx_image, idx_chain );
     }
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -267,9 +267,9 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     Engine::Spin::Eigenmodes::Calculate_Eigenmodes( *image, idx_image, idx_chain );
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {

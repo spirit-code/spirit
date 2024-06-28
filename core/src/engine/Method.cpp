@@ -69,7 +69,7 @@ void Method::Iterate()
         t_current = std::chrono::system_clock::now();
 
         // Lock Systems
-        this->Lock();
+        this->lock();
 
         // Pre-iteration hook
         this->Hook_Pre_Iteration();
@@ -92,7 +92,7 @@ void Method::Iterate()
         }
 
         // Unlock systems
-        this->Unlock();
+        this->unlock();
     }
 
     //---- Finalize (set iterations_allowed to false etc.)

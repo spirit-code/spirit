@@ -53,9 +53,9 @@ private:
     void Message_End() override;
 
     // Lock system in order to prevent otherwise access
-    void Lock() override;
+    void lock() override;
     // Unlock system to re-enable access
-    void Unlock() override;
+    void unlock() override;
     // Check if iterations are allowed
     bool Iterations_Allowed() override;
 

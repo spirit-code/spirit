@@ -65,8 +65,8 @@ public:
     void UpdateEffectiveField();
 
     // For multithreading
-    void Lock() noexcept;
-    void Unlock() noexcept;
+    void lock() noexcept;
+    void unlock() noexcept;
 
     // Number of spins
     int nos;

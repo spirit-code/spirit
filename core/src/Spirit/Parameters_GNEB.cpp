@@ -26,9 +26,9 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    chain->Lock();
+    chain->lock();
     chain->gneb_parameters->output_file_tag = tag;
-    chain->Unlock();
+    chain->unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, fmt::format( "Set GNEB output tag = \"{}\"", tag ),
          idx_image, idx_chain );
@@ -46,9 +46,9 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    chain->Lock();
+    chain->lock();
     chain->gneb_parameters->output_folder = folder;
-    chain->Unlock();
+    chain->unlock();
 }
 catch( ... )
 {
@@ -63,11 +63,11 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    chain->Lock();
+    chain->lock();
     chain->gneb_parameters->output_any     = any;
     chain->gneb_parameters->output_initial = initial;
     chain->gneb_parameters->output_final   = final;
-    chain->Unlock();
+    chain->unlock();
 }
 catch( ... )
 {
@@ -84,12 +84,12 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    chain->Lock();
+    chain->lock();
     chain->gneb_parameters->output_energies_step                  = energies_step;
     chain->gneb_parameters->output_energies_interpolated          = energies_interpolated;
     chain->gneb_parameters->output_energies_divide_by_nspins      = energies_divide_by_nos;
     chain->gneb_parameters->output_energies_add_readability_lines = energies_add_readability_lines;
-    chain->Unlock();
+    chain->unlock();
 }
 catch( ... )
 {
@@ -104,10 +104,10 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    chain->Lock();
+    chain->lock();
     chain->gneb_parameters->output_chain_step  = chain_step;
     chain->gneb_parameters->output_vf_filetype = IO::VF_FileFormat( chain_filetype );
-    chain->Unlock();
+    chain->unlock();
 }
 catch( ... )
 {
@@ -122,10 +122,10 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    chain->Lock();
+    chain->lock();
     chain->gneb_parameters->n_iterations     = n_iterations;
     chain->gneb_parameters->n_iterations_log = n_iterations_log;
-    chain->Unlock();
+    chain->unlock();
 }
 catch( ... )
 {
@@ -140,10 +140,10 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     auto p               = chain->gneb_parameters;
     p->force_convergence = convergence;
-    image->Unlock();
+    image->unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
          fmt::format( "Set GNEB force convergence = {}", convergence ), idx_image, idx_chain );
@@ -160,10 +160,10 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    chain->Lock();
+    chain->lock();
     auto p             = chain->gneb_parameters;
     p->spring_constant = spring_constant;
-    chain->Unlock();
+    chain->unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
          fmt::format( "Set GNEB spring constant = {}", spring_constant ), idx_image, idx_chain );
@@ -181,11 +181,11 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    chain->Lock();
+    chain->lock();
     auto p                = chain->gneb_parameters;
     ratio                 = std::max( std::min( ratio, scalar( 1 ) ), scalar( 0 ) );
     p->spring_force_ratio = ratio;
-    chain->Unlock();
+    chain->unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
          fmt::format( "Set GNEB spring force ratio (E vs Rx) = {}", ratio ), idx_image, idx_chain );
@@ -204,10 +204,10 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    chain->Lock();
+    chain->lock();
     auto p                      = chain->gneb_parameters;
     p->path_shortening_constant = path_shortening_constant;
-    chain->Unlock();
+    chain->unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
          fmt::format( "Set GNEB path shortening constant = {}", path_shortening_constant ), idx_image, idx_chain );
@@ -226,10 +226,10 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    chain->Lock();
+    chain->lock();
     auto p              = chain->gneb_parameters;
     p->moving_endpoints = moving_endpoints;
-    chain->Unlock();
+    chain->unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
          fmt::format( "Set GNEB moving endpoints = {}", moving_endpoints ), idx_image, idx_chain );
@@ -248,10 +248,10 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    chain->Lock();
+    chain->lock();
     auto p                   = chain->gneb_parameters;
     p->translating_endpoints = translating_endpoints;
-    chain->Unlock();
+    chain->unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
          fmt::format( "Set GNEB translating endpoints = {}", translating_endpoints ), idx_image, idx_chain );
@@ -270,12 +270,12 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    chain->Lock();
+    chain->lock();
     auto p                        = chain->gneb_parameters;
     p->equilibrium_delta_Rx_left  = delta_Rx_left;
     p->equilibrium_delta_Rx_right = delta_Rx_right;
 
-    chain->Unlock();
+    chain->unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
          fmt::format(
@@ -295,9 +295,9 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    chain->Lock();
+    chain->lock();
     chain->image_type[idx_image] = static_cast<Data::GNEB_Image_Type>( image_type );
-    chain->Unlock();
+    chain->unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, fmt::format( "Set GNEB image type = {}", image_type ),
          idx_image, idx_chain );
@@ -344,13 +344,13 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    chain->Lock();
+    chain->lock();
     chain->gneb_parameters->n_E_interpolations = n;
     int size_interpolated                      = chain->noi + ( chain->noi - 1 ) * n;
     chain->Rx_interpolated                     = std::vector<scalar>( size_interpolated, 0 );
     chain->E_interpolated                      = std::vector<scalar>( size_interpolated, 0 );
     chain->E_array_interpolated = std::vector<std::vector<scalar>>( 7, std::vector<scalar>( size_interpolated, 0 ) );
-    chain->Unlock();
+    chain->unlock();
 }
 catch( ... )
 {

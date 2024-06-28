@@ -59,8 +59,8 @@ public:
         bool iteration_allowed = false );
 
     // For multithreading
-    void Lock() noexcept;
-    void Unlock() noexcept;
+    void lock() noexcept;
+    void unlock() noexcept;
 
     int noi; // Number of Images
     std::vector<std::shared_ptr<system_t>> images;

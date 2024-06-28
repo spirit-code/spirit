@@ -23,9 +23,9 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     image->mc_parameters->output_file_tag = tag;
-    image->Unlock();
+    image->unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, fmt::format( "Set MC output tag = \"{}\"", tag ),
          idx_image, idx_chain );
@@ -42,9 +42,9 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     image->mc_parameters->output_folder = folder;
-    image->Unlock();
+    image->unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, "Set MC Output Folder = " + std::string( folder ),
          idx_image, idx_chain );
@@ -62,11 +62,11 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     image->mc_parameters->output_any     = any;
     image->mc_parameters->output_initial = initial;
     image->mc_parameters->output_final   = final;
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -82,13 +82,13 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     image->mc_parameters->output_energy_step                  = energy_step;
     image->mc_parameters->output_energy_archive               = energy_archive;
     image->mc_parameters->output_energy_spin_resolved         = energy_spin_resolved;
     image->mc_parameters->output_energy_divide_by_nspins      = energy_divide_by_nos;
     image->mc_parameters->output_energy_add_readability_lines = energy_add_readability_lines;
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -104,11 +104,11 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     image->mc_parameters->output_configuration_step    = configuration_step;
     image->mc_parameters->output_configuration_archive = configuration_archive;
     image->mc_parameters->output_vf_filetype           = IO::VF_FileFormat( configuration_filetype );
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -123,10 +123,10 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     image->mc_parameters->n_iterations     = n_iterations;
     image->mc_parameters->n_iterations_log = n_iterations_log;
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -141,14 +141,14 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
 
     image->mc_parameters->temperature = T;
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, fmt::format( "Set MC temperature to {}", T ),
          idx_image, idx_chain );
 
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -164,7 +164,7 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
 
     image->mc_parameters->metropolis_step_cone = cone;
 
@@ -192,7 +192,7 @@ try
         Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
              "Deactivated MC conical random number generation.", idx_image, idx_chain );
 
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {

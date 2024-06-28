@@ -103,13 +103,13 @@ public:
      *   This function should be overridden by specialized methods to ensure systems are
      *   safely locked during iterations.
      */
-    virtual void Lock() = 0;
+    virtual void lock() = 0;
     /*
      * Unlock systems to re-enable access
      *   This function should be overridden by specialized methods to ensure systems are
      *   correctly unlocked after iterations.
      */
-    virtual void Unlock() = 0;
+    virtual void unlock() = 0;
 
     //////////// Check for stopping criteria //////////////////////////////////////////
 

@@ -32,7 +32,7 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( periodical, "periodical" );
 
-    image->Lock();
+    image->lock();
     try
     {
         image->hamiltonian->setBoundaryConditions( { periodical[0], periodical[1], periodical[2] } );
@@ -41,7 +41,7 @@ try
     {
         spirit_handle_exception_api( idx_image, idx_chain );
     }
-    image->Unlock();
+    image->unlock();
 
     Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
          fmt::format( "Set boundary conditions to {} {} {}", periodical[0], periodical[1], periodical[2] ), idx_image,
@@ -61,7 +61,7 @@ try
     throw_if_nullptr( normal, "normal" );
 
     // Lock mutex because simulations may be running
-    image->Lock();
+    image->lock();
     try
     {
         // Normals
@@ -85,7 +85,7 @@ try
     }
 
     // Unlock mutex
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -100,7 +100,7 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( normal, "normal" );
 
-    image->Lock();
+    image->lock();
     try
     {
         int nos          = image->nos;
@@ -135,7 +135,7 @@ try
         spirit_handle_exception_api( idx_image, idx_chain );
     }
 
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -148,7 +148,7 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     try
     {
         int nos          = image->nos;
@@ -178,7 +178,7 @@ try
         spirit_handle_exception_api( idx_image, idx_chain );
     }
 
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -193,7 +193,7 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     try
     {
         using Engine::Spin::Interaction::Biaxial_Anisotropy;
@@ -264,7 +264,7 @@ try
         spirit_handle_exception_api( idx_image, idx_chain );
     }
 
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -278,7 +278,7 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( jij, "jij" );
 
-    image->Lock();
+    image->lock();
     try
     {
         using Engine::Spin::Interaction::Exchange;
@@ -300,7 +300,7 @@ try
         spirit_handle_exception_api( idx_image, idx_chain );
     }
 
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -323,7 +323,7 @@ try
         return;
     }
 
-    image->Lock();
+    image->lock();
     try
     {
         using Engine::Spin::Interaction::DMI;
@@ -344,7 +344,7 @@ try
         spirit_handle_exception_api( idx_image, idx_chain );
     }
 
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -360,7 +360,7 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( n_periodic_images, "n_periodic_images" );
 
-    image->Lock();
+    image->lock();
     try
     {
         using Engine::Spin::Interaction::DDI;
@@ -387,7 +387,7 @@ try
         spirit_handle_exception_api( idx_image, idx_chain );
     }
 
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
