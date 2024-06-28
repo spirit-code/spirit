@@ -10,10 +10,10 @@
 
 using namespace QtCharts;
 
-static const int SIZE = 30;
-static const int INCR = 3;
-static const int REGU = 8;
-static const int TRIA = 10;
+static constexpr int SIZE = 30;
+static constexpr int INCR = 3;
+static constexpr int REGU = 8;
+static constexpr int TRIA = 10;
 
 PlotWidget::PlotWidget( std::shared_ptr<State> state, bool plot_image_energies, bool plot_interpolated )
         : plot_image_energies( plot_image_energies ), plot_interpolated( plot_interpolated )
@@ -121,10 +121,16 @@ PlotWidget::PlotWidget( std::shared_ptr<State> state, bool plot_image_energies, 
 
     // Create Axes
     this->chart->createDefaultAxes();
-    this->chart->axisX()->setTitleText( "Rx" );
-    this->chart->axisX()->setMin( -0.04 );
-    this->chart->axisX()->setMax( 1.04 );
-    this->chart->axisY()->setTitleText( "E" );
+    if( auto axes = this->chart->axes( Qt::Horizontal ); !axes.empty() )
+    {
+        axes[0]->setTitleText( "Rx" );
+        axes[0]->setMin( -0.04 );
+        axes[0]->setMax( 1.04 );
+    }
+    if( auto axes = this->chart->axes( Qt::Horizontal ); !axes.empty() )
+    {
+        axes[0]->setTitleText( "E" );
+    }
 
     // Fill the Series with initial values
     this->plotEnergies();
@@ -164,13 +170,13 @@ void PlotWidget::plotEnergies()
     }
 
     // Replacement data vectors
-    auto empty      = QVector<QPointF>( 0 );
-    auto current    = QVector<QPointF>( 0 );
-    auto normal     = QVector<QPointF>( 0 );
-    auto climbing   = QVector<QPointF>( 0 );
-    auto falling    = QVector<QPointF>( 0 );
-    auto stationary = QVector<QPointF>( 0 );
-    auto interp     = QVector<QPointF>( 0 );
+    const auto empty = QVector<QPointF>( 0 );
+    auto current     = QVector<QPointF>( 0 );
+    auto normal      = QVector<QPointF>( 0 );
+    auto climbing    = QVector<QPointF>( 0 );
+    auto falling     = QVector<QPointF>( 0 );
+    auto stationary  = QVector<QPointF>( 0 );
+    auto interp      = QVector<QPointF>( 0 );
 
     // Min and max yaxis values
     float ymin = 1e8, ymax = -1e8;
@@ -202,14 +208,14 @@ void PlotWidget::plotEnergies()
             if( divide_by_nos )
                 energies[i] /= nos;
 
-            if( Parameters_GNEB_Get_Climbing_Falling( state.get(), i ) == 0 )
-                normal.push_back( QPointF( Rx[i], energies[i] ) );
-            else if( Parameters_GNEB_Get_Climbing_Falling( state.get(), i ) == 1 )
-                climbing.push_back( QPointF( Rx[i], energies[i] ) );
-            else if( Parameters_GNEB_Get_Climbing_Falling( state.get(), i ) == 2 )
-                falling.push_back( QPointF( Rx[i], energies[i] ) );
-            else if( Parameters_GNEB_Get_Climbing_Falling( state.get(), i ) == 3 )
-                stationary.push_back( QPointF( Rx[i], energies[i] ) );
+            switch( Parameters_GNEB_Get_Climbing_Falling( state.get(), i ) )
+            {
+                case 0: normal.push_back( QPointF( Rx[i], energies[i] ) ); break;
+                case 1: climbing.push_back( QPointF( Rx[i], energies[i] ) ); break;
+                case 2: falling.push_back( QPointF( Rx[i], energies[i] ) ); break;
+                case 3: stationary.push_back( QPointF( Rx[i], energies[i] ) ); break;
+                default: break;
+            }
 
             if( energies[i] < ymin )
                 ymin = energies[i];
@@ -241,31 +247,31 @@ void PlotWidget::plotEnergies()
     }
 
     // Set marker type for current image
-    if( Parameters_GNEB_Get_Climbing_Falling( state.get() ) == 0 )
+    switch( Parameters_GNEB_Get_Climbing_Falling( state.get() ) )
     {
-        series_E_current->setMarkerShape( QScatterSeries::MarkerShapeCircle );
-        series_E_current->setMarkerSize( REGU );
-        series_E_current->setBrush( QColor( "Red" ) );
-    }
-    else if( Parameters_GNEB_Get_Climbing_Falling( state.get() ) == 1 )
-    {
-        series_E_current->setMarkerShape( QScatterSeries::MarkerShapeRectangle );
-        series_E_current->setMarkerSize( TRIA );
-        series_E_current->setBrush( triangleUpRed.scaled( TRIA, TRIA ) );
-        series_E_current->setPen( QColor( Qt::transparent ) );
-    }
-    else if( Parameters_GNEB_Get_Climbing_Falling( state.get() ) == 2 )
-    {
-        series_E_current->setMarkerShape( QScatterSeries::MarkerShapeRectangle );
-        series_E_current->setMarkerSize( TRIA );
-        series_E_current->setBrush( triangleDownRed.scaled( TRIA, TRIA ) );
-        series_E_current->setPen( QColor( Qt::transparent ) );
-    }
-    else if( Parameters_GNEB_Get_Climbing_Falling( state.get() ) == 3 )
-    {
-        series_E_current->setMarkerShape( QScatterSeries::MarkerShapeRectangle );
-        series_E_current->setMarkerSize( REGU );
-        series_E_current->setBrush( QColor( "Red" ) );
+        case 0:
+            series_E_current->setMarkerShape( QScatterSeries::MarkerShapeCircle );
+            series_E_current->setMarkerSize( REGU );
+            series_E_current->setBrush( QColor( "Red" ) );
+            break;
+        case 1:
+            series_E_current->setMarkerShape( QScatterSeries::MarkerShapeRectangle );
+            series_E_current->setMarkerSize( TRIA );
+            series_E_current->setBrush( triangleUpRed.scaled( TRIA, TRIA ) );
+            series_E_current->setPen( QColor( Qt::transparent ) );
+            break;
+        case 2:
+            series_E_current->setMarkerShape( QScatterSeries::MarkerShapeRectangle );
+            series_E_current->setMarkerSize( TRIA );
+            series_E_current->setBrush( triangleDownRed.scaled( TRIA, TRIA ) );
+            series_E_current->setPen( QColor( Qt::transparent ) );
+            break;
+        case 3:
+            series_E_current->setMarkerShape( QScatterSeries::MarkerShapeRectangle );
+            series_E_current->setMarkerSize( REGU );
+            series_E_current->setBrush( QColor( "Red" ) );
+            break;
+        default: break;
     }
 
     // Clear series

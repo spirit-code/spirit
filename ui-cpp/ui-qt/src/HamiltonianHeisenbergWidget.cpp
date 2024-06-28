@@ -15,7 +15,7 @@ void normalize( T v[3] )
 {
     T len = 0.0;
     for( int i = 0; i < 3; ++i )
-        len += std::pow( v[i], 2 );
+        len += v[i] * v[i];
     if( len == 0.0 )
         throw Exception_Division_by_zero;
     for( int i = 0; i < 3; ++i )
