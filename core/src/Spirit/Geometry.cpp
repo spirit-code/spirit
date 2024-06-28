@@ -49,7 +49,7 @@ void Helper_State_Set_Geometry(
     Simulation_Stop_All( &state );
 
     // Lock to avoid memory errors
-    state.chain->Lock();
+    state.chain->lock();
     try
     {
         // Modify all systems in the chain
@@ -63,7 +63,7 @@ void Helper_State_Set_Geometry(
         spirit_handle_exception_api( -1, -1 );
     }
     // Unlock again
-    state.chain->Unlock();
+    state.chain->unlock();
 
     // Retrieve total number of spins
     int nos = state.active_image->nos;
@@ -76,7 +76,7 @@ void Helper_State_Set_Geometry(
     {
         auto & system = *state.clipboard_image;
         // Lock to avoid memory errors
-        system.Lock();
+        system.lock();
         try
         {
             // Modify
@@ -87,7 +87,7 @@ void Helper_State_Set_Geometry(
             spirit_handle_exception_api( -1, -1 );
         }
         // Unlock
-        system.Unlock();
+        system.unlock();
     }
 
     // Deal with clipboard configuration of State

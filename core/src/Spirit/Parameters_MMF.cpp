@@ -19,10 +19,10 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    chain->Lock();
+    chain->lock();
     auto p             = image->mmf_parameters;
     p->output_file_tag = tag;
-    chain->Unlock();
+    chain->unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, fmt::format( "Set MMF output tag = \"{}\"", tag ),
          idx_image, idx_chain );
@@ -39,10 +39,10 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     auto p           = image->mmf_parameters;
     p->output_folder = folder;
-    image->Unlock();
+    image->unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, "Set MMF Output Folder = " + std::string( folder ),
          idx_image, idx_chain );
@@ -60,12 +60,12 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     auto p            = image->mmf_parameters;
     p->output_any     = any;
     p->output_initial = initial;
     p->output_final   = final;
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -81,14 +81,14 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     auto p                                 = image->mmf_parameters;
     p->output_energy_step                  = energy_step;
     p->output_energy_archive               = energy_archive;
     p->output_energy_spin_resolved         = energy_spin_resolved;
     p->output_energy_divide_by_nspins      = energy_divide_by_nos;
     p->output_energy_add_readability_lines = energy_add_readability_lines;
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -104,12 +104,12 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     auto p                          = image->mmf_parameters;
     p->output_configuration_step    = configuration_step;
     p->output_configuration_archive = configuration_archive;
     p->output_vf_filetype           = IO::VF_FileFormat( configuration_filetype );
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -124,11 +124,11 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     auto p              = image->mmf_parameters;
     p->n_iterations     = n_iterations;
     p->n_iterations_log = n_iterations_log;
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -151,12 +151,12 @@ try
     }
     else
     {
-        image->Lock();
+        image->lock();
         auto p     = image->mmf_parameters;
         p->n_modes = n_modes;
         image->modes.resize( n_modes );
         p->n_mode_follow = std::min( p->n_mode_follow, n_modes );
-        image->Unlock();
+        image->unlock();
 
         Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
              fmt::format( "Set MMF number of modes = {}", n_modes ), idx_image, idx_chain );
@@ -185,9 +185,9 @@ try
     }
     else
     {
-        image->Lock();
+        image->lock();
         p->n_mode_follow = n_mode_follow;
-        image->Unlock();
+        image->unlock();
 
         Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
              fmt::format( "Set MMF mode to follow = {}", n_mode_follow ), idx_image, idx_chain );

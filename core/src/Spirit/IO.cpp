@@ -43,7 +43,7 @@ try
 
     // Create System (and lock it)
     std::shared_ptr<State::system_t> system = IO::Spin_System_from_Config( std::string( file ) );
-    system->Lock();
+    system->lock();
 
     // Filter for unacceptable differences to other systems in the chain
     for( int i = 0; i < chain->noi; ++i )
@@ -57,7 +57,7 @@ try
     }
 
     // Set System
-    image->Lock();
+    image->lock();
     try
     {
         *image = *system;
@@ -66,7 +66,7 @@ try
     {
         spirit_handle_exception_api( idx_image, idx_chain );
     }
-    image->Unlock();
+    image->unlock();
 
     // Initial configuration
     scalar defaultPos[3]  = { 0, 0, 0 };
@@ -95,7 +95,7 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Write the data
-    image->Lock();
+    image->lock();
     try
     {
         if( Get_Extension( filename ) != ".ovf" )
@@ -148,7 +148,7 @@ try
     {
         spirit_handle_exception_api( idx_image, idx_chain );
     }
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -187,7 +187,7 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image_inchain, idx_chain );
 
-    image->Lock();
+    image->lock();
 
     try
     {
@@ -212,7 +212,7 @@ try
 
             IO::Read_NonOVF_System_Configuration( system_state, geometry, image->nos, idx_image_infile, filename );
             image->hamiltonian->set_geometry( geometry );
-            image->Unlock();
+            image->unlock();
             return;
         }
 
@@ -282,7 +282,7 @@ try
     {
         spirit_handle_exception_api( idx_image_inchain, idx_chain );
     }
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -297,7 +297,7 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Write the data
-    image->Lock();
+    image->lock();
 
     try
     {
@@ -349,7 +349,7 @@ try
     {
         spirit_handle_exception_api( idx_image, idx_chain );
     }
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -365,7 +365,7 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Write the data
-    image->Lock();
+    image->lock();
 
     try
     {
@@ -420,7 +420,7 @@ try
     {
         spirit_handle_exception_api( idx_image, idx_chain );
     }
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -440,7 +440,7 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, insert_idx, idx_chain );
 
-    chain->Lock();
+    chain->lock();
     bool success = false;
 
     // Read the data
@@ -506,10 +506,10 @@ try
             // Add the images if you need that
             if( noi_to_add > 0 )
             {
-                chain->Unlock();
+                chain->unlock();
                 Chain_Image_to_Clipboard( state, noi - 1 );
                 Chain_Set_Length( state, noi + noi_to_add );
-                chain->Lock();
+                chain->lock();
             }
 
             // Read the images
@@ -592,10 +592,10 @@ try
             // Add the images if you need that
             if( noi_to_add > 0 )
             {
-                chain->Unlock();
+                chain->unlock();
                 Chain_Image_to_Clipboard( state, noi - 1 );
                 Chain_Set_Length( state, noi + noi_to_add );
-                chain->Lock();
+                chain->lock();
             }
 
             // Read the images
@@ -619,7 +619,7 @@ try
         spirit_handle_exception_api( insert_idx, idx_chain );
     }
 
-    chain->Unlock();
+    chain->unlock();
 
     if( success )
     {
@@ -651,7 +651,7 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Read the data
-    chain->Lock();
+    chain->lock();
     try
     {
         auto fileformat = (IO::VF_FileFormat)format;
@@ -710,7 +710,7 @@ try
     {
         spirit_handle_exception_api( idx_image, idx_chain );
     }
-    chain->Unlock();
+    chain->unlock();
 }
 catch( ... )
 {
@@ -726,7 +726,7 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Read the data
-    chain->Lock();
+    chain->lock();
     try
     {
         auto fileformat = (IO::VF_FileFormat)format;
@@ -788,7 +788,7 @@ try
     {
         spirit_handle_exception_api( idx_image, idx_chain );
     }
-    chain->Unlock();
+    chain->unlock();
 }
 catch( ... )
 {
@@ -842,7 +842,7 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Write the data
-    image->Lock();
+    image->lock();
 
     auto & system = *image;
     auto & spins  = *image->state;
@@ -928,7 +928,7 @@ try
         spirit_handle_exception_api( idx_image, idx_chain );
     }
 
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -997,7 +997,7 @@ try
     auto [image, chain] = from_indices( state, idx_image_inchain, idx_chain );
 
     // Read the data
-    image->Lock();
+    image->lock();
     try
     {
         const std::string extension = Get_Extension( filename );
@@ -1113,7 +1113,7 @@ try
     {
         spirit_handle_exception_api( idx_image_inchain, idx_chain );
     }
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -1129,7 +1129,7 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Write the data
-    image->Lock();
+    image->lock();
     try
     {
         if( Get_Extension( filename ) != ".ovf" )
@@ -1217,7 +1217,7 @@ try
     {
         spirit_handle_exception_api( idx_image, idx_chain );
     }
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {

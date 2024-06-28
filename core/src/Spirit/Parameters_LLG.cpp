@@ -24,9 +24,9 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     image->llg_parameters->output_file_tag = tag;
-    image->Unlock();
+    image->unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, fmt::format( "Set LLG output tag = \"{}\"", tag ),
          idx_image, idx_chain );
@@ -43,9 +43,9 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     image->llg_parameters->output_folder = folder;
-    image->Unlock();
+    image->unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, "Set LLG Output Folder = " + std::string( folder ),
          idx_image, idx_chain );
@@ -63,11 +63,11 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     image->llg_parameters->output_any     = any;
     image->llg_parameters->output_initial = initial;
     image->llg_parameters->output_final   = final;
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -83,13 +83,13 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     image->llg_parameters->output_energy_step                  = energy_step;
     image->llg_parameters->output_energy_archive               = energy_archive;
     image->llg_parameters->output_energy_spin_resolved         = energy_spin_resolved;
     image->llg_parameters->output_energy_divide_by_nspins      = energy_divide_by_nos;
     image->llg_parameters->output_energy_add_readability_lines = energy_add_readability_lines;
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -105,11 +105,11 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     image->llg_parameters->output_configuration_step    = configuration_step;
     image->llg_parameters->output_configuration_archive = configuration_archive;
     image->llg_parameters->output_vf_filetype           = IO::VF_FileFormat( configuration_filetype );
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -124,10 +124,10 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     image->llg_parameters->n_iterations     = n_iterations;
     image->llg_parameters->n_iterations_log = n_iterations_log;
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -141,10 +141,10 @@ try
 
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     auto p                 = image->llg_parameters;
     p->direct_minimization = direct;
-    image->Unlock();
+    image->unlock();
 
     if( direct )
         Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, "Set LLG solver to direct minimization",
@@ -165,10 +165,10 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     auto p               = image->llg_parameters;
     p->force_convergence = convergence;
-    image->Unlock();
+    image->unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
          fmt::format( "Set LLG force convergence = {}", convergence ), idx_image, idx_chain );
@@ -185,10 +185,10 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     auto p = image->llg_parameters;
     p->dt  = dt;
-    image->Unlock();
+    image->unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, fmt::format( "Set LLG dt = {}", dt ), idx_image,
          idx_chain );
@@ -205,10 +205,10 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     auto p     = image->llg_parameters;
     p->damping = damping;
-    image->Unlock();
+    image->unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, fmt::format( "Set LLG damping = {}", damping ),
          idx_image, idx_chain );
@@ -225,10 +225,10 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
     auto p  = image->llg_parameters;
     p->beta = beta;
-    image->Unlock();
+    image->unlock();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, fmt::format( "Set LLG beta = {}", beta ), idx_image,
          idx_chain );
@@ -245,14 +245,14 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
 
     image->llg_parameters->temperature = T;
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, fmt::format( "Set LLG temperature to {}", T ),
          idx_image, idx_chain );
 
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -267,7 +267,7 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
 
     Vector3 v_direction                                     = Vector3{ direction[0], direction[1], direction[2] };
     image->llg_parameters->temperature_gradient_inclination = inclination;
@@ -278,7 +278,7 @@ try
              "Set LLG temperature gradient to inclination={}, direction={}", inclination, v_direction.transpose() ),
          idx_image, idx_chain );
 
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {
@@ -293,7 +293,7 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    image->Lock();
+    image->lock();
 
     // Gradient or monolayer
     image->llg_parameters->stt_use_gradient = use_gradient;
@@ -323,7 +323,7 @@ try
         Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, "STT: using the pinned monolayer approximation",
              idx_image, idx_chain );
 
-    image->Unlock();
+    image->unlock();
 }
 catch( ... )
 {

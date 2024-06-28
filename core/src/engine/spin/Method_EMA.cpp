@@ -107,10 +107,10 @@ void Method_EMA::Initialize() {}
 
 void Method_EMA::Finalize()
 {
-    this->Lock();
+    this->lock();
     // The initial spin configuration must be restored
     ( *this->system->state ) = this->spins_initial;
-    this->Unlock();
+    this->unlock();
 }
 
 void Method_EMA::Message_Start()
@@ -131,12 +131,12 @@ void Method_EMA::Message_Step() {}
 
 void Method_EMA::Message_End() {}
 
-void Method_EMA::Lock(){
-    this->system->Lock();
+void Method_EMA::lock(){
+    this->system->lock();
 }
 
-void Method_EMA::Unlock(){
-    this->system->Unlock();
+void Method_EMA::unlock(){
+    this->system->unlock();
 }
 
 bool Method_EMA::Iterations_Allowed()

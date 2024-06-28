@@ -138,12 +138,12 @@ try
         for( idx_image = chain->noi - 1; idx_image < n_images - 1; ++idx_image )
         {
             // Copy the clipboard image
-            state->clipboard_image->Lock();
+            state->clipboard_image->lock();
             auto copy = std::make_shared<State::system_t>( *state->clipboard_image );
-            state->clipboard_image->Unlock();
+            state->clipboard_image->unlock();
 
-            chain->Lock();
-            copy->Lock();
+            chain->lock();
+            copy->lock();
 
             // Add to chain
             chain->noi++;
@@ -153,7 +153,7 @@ try
             // Add to state
             state->method_image.push_back( std::shared_ptr<Engine::Method>() );
 
-            chain->Unlock();
+            chain->unlock();
         }
 
         // Update state
@@ -173,7 +173,7 @@ try
             // Stop any simulations running on an image we want to remove
             Simulation_Stop( state, idx_image, idx_chain );
 
-            chain->Lock();
+            chain->lock();
             try
             {
                 // Remove from chain
@@ -183,7 +183,7 @@ try
 
                 state->noi = state->chain->noi;
 
-                chain->images.back()->Unlock();
+                chain->images.back()->unlock();
                 chain->images.pop_back();
                 chain->image_type.pop_back();
 
@@ -194,7 +194,7 @@ try
             {
                 spirit_handle_exception_api( idx_image, idx_chain );
             }
-            chain->Unlock();
+            chain->unlock();
         }
         // Update state
         State_Update( state );
@@ -219,7 +219,7 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Copy the image to clipboard
-    image->Lock();
+    image->lock();
     try
     {
         state->clipboard_image = std::make_shared<State::system_t>( *image );
@@ -228,7 +228,7 @@ try
     {
         spirit_handle_exception_api( idx_image, idx_chain );
     }
-    image->Unlock();
+    image->unlock();
 
     Log( Utility::Log_Level::Info, Utility::Log_Sender::API, "Copied image to clipboard.", idx_image, idx_chain );
 }
@@ -247,21 +247,21 @@ try
     if( state->clipboard_image )
     {
         // Copy the clipboard image
-        state->clipboard_image->Lock();
+        state->clipboard_image->lock();
         auto copy = std::make_shared<State::system_t>( *state->clipboard_image );
-        state->clipboard_image->Unlock();
+        state->clipboard_image->unlock();
 
-        chain->Lock();
-        copy->Lock();
+        chain->lock();
+        copy->lock();
 
         // Replace in chain
-        chain->images[idx_image]->Unlock();
+        chain->images[idx_image]->unlock();
         chain->images[idx_image] = copy;
 
         // Update state
         state->active_image = state->chain->images[state->idx_active_image];
 
-        chain->Unlock();
+        chain->unlock();
 
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API, "Replaced image.", idx_image, idx_chain );
     }
@@ -292,12 +292,12 @@ try
         }
 
         // Copy the clipboard image
-        state->clipboard_image->Lock();
+        state->clipboard_image->lock();
         auto copy = std::make_shared<State::system_t>( *state->clipboard_image );
-        state->clipboard_image->Unlock();
+        state->clipboard_image->unlock();
 
-        chain->Lock();
-        copy->Lock();
+        chain->lock();
+        copy->lock();
 
         // Add to chain
         chain->noi++;
@@ -310,7 +310,7 @@ try
         // Increment active image so that we don't switch between images
         ++chain->idx_active_image;
 
-        chain->Unlock();
+        chain->unlock();
 
         // Update state
         State_Update( state );
@@ -348,12 +348,12 @@ try
         }
 
         // Copy the clipboard image
-        state->clipboard_image->Lock();
+        state->clipboard_image->lock();
         auto copy = std::make_shared<State::system_t>( *state->clipboard_image );
-        state->clipboard_image->Unlock();
+        state->clipboard_image->unlock();
 
-        chain->Lock();
-        copy->Lock();
+        chain->lock();
+        copy->lock();
 
         // Add to chain
         chain->noi++;
@@ -363,7 +363,7 @@ try
         // Add to state
         state->method_image.insert( state->method_image.begin() + idx_image + 1, std::shared_ptr<Engine::Method>() );
 
-        chain->Unlock();
+        chain->unlock();
 
         // Update state
         State_Update( state );
@@ -402,12 +402,12 @@ try
         }
 
         // Copy the clipboard image
-        state->clipboard_image->Lock();
+        state->clipboard_image->lock();
         auto copy = std::make_shared<State::system_t>( *state->clipboard_image );
-        state->clipboard_image->Unlock();
+        state->clipboard_image->unlock();
 
-        chain->Lock();
-        copy->Lock();
+        chain->lock();
+        copy->lock();
 
         // Add to chain
         chain->noi++;
@@ -417,7 +417,7 @@ try
         // Add to state
         state->method_image.push_back( std::shared_ptr<Engine::Method>() );
 
-        chain->Unlock();
+        chain->unlock();
 
         // Update state
         State_Update( state );
@@ -452,7 +452,7 @@ try
         // Stop any simulations running on an image we want to remove
         Simulation_Stop( state, idx_image, idx_chain );
 
-        chain->Lock();
+        chain->lock();
         try
         {
             // Remove from chain
@@ -462,7 +462,7 @@ try
 
             state->noi = state->chain->noi;
 
-            chain->images[idx_image]->Unlock();
+            chain->images[idx_image]->unlock();
             chain->images.erase( chain->images.begin() + idx_image );
             chain->image_type.erase( chain->image_type.begin() + idx_image );
 
@@ -473,7 +473,7 @@ try
         {
             spirit_handle_exception_api( idx_image, idx_chain );
         }
-        chain->Unlock();
+        chain->unlock();
 
         // Update State
         State_Update( state );
@@ -511,7 +511,7 @@ try
         // Stop any simulations running on an image we want to remove
         Simulation_Stop( state, idx_image, idx_chain );
 
-        chain->Lock();
+        chain->lock();
         try
         {
             // Remove from chain
@@ -521,7 +521,7 @@ try
 
             state->noi = state->chain->noi;
 
-            chain->images.back()->Unlock();
+            chain->images.back()->unlock();
             chain->images.pop_back();
             chain->image_type.pop_back();
 
@@ -532,7 +532,7 @@ try
         {
             spirit_handle_exception_api( idx_image, idx_chain );
         }
-        chain->Unlock();
+        chain->unlock();
 
         // Update state
         State_Update( state );
@@ -677,7 +677,7 @@ try
         // Engine::Energy::Update(*chain->images[i]);
         // chain->images[i]->E = chain->images[i]->hamiltonian_isotropichain->Energy(chain->images[i]->spins);
 
-        chain->images[i]->Lock();
+        chain->images[i]->lock();
         try
         {
             chain->images[i]->UpdateEnergy();
@@ -690,7 +690,7 @@ try
         {
             spirit_handle_exception_api( idx_image, idx_chain );
         }
-        chain->images[i]->Unlock();
+        chain->images[i]->unlock();
     }
 }
 catch( ... )
@@ -706,7 +706,7 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    chain->Lock();
+    chain->lock();
 
     try
     {
@@ -724,7 +724,7 @@ try
         spirit_handle_exception_api( idx_image, idx_chain );
     }
 
-    chain->Unlock();
+    chain->unlock();
 
     // Initial data update
     Chain_Update_Data( state, idx_chain );

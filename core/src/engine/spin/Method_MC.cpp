@@ -208,12 +208,12 @@ void Method_MC::Finalize()
     this->system->iteration_allowed = false;
 }
 
-void Method_MC::Lock(){
-    this->system->Lock();
+void Method_MC::lock(){
+    this->system->lock();
 }
 
-void Method_MC::Unlock(){
-    this->system->Unlock();
+void Method_MC::unlock(){
+    this->system->unlock();
 }
 
 bool Method_MC::Iterations_Allowed()

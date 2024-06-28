@@ -102,7 +102,7 @@ try
     else
     {
         // We are not iterating, so we create the Method and call Iterate
-        image->Lock();
+        image->lock();
 
         image->iteration_allowed  = true;
         image->singleshot_allowed = singleshot;
@@ -115,7 +115,7 @@ try
         std::shared_ptr<Engine::Method> method
             = std::make_shared<Engine::Spin::Method_MC>( image, idx_image, idx_chain );
 
-        image->Unlock();
+        image->unlock();
 
         state->method_image[idx_image] = method;
         run_method( *method, singleshot, info );
@@ -156,7 +156,7 @@ try
     else
     {
         // We are not iterating, so we create the Method and call Iterate
-        image->Lock();
+        image->lock();
 
         image->iteration_allowed  = true;
         image->singleshot_allowed = singleshot;
@@ -198,7 +198,7 @@ try
             // clang-format on
         }();
 
-        image->Unlock();
+        image->unlock();
 
         state->method_image[idx_image] = method;
         run_method( *method, singleshot, info );
@@ -254,7 +254,7 @@ try
         }
         else
         {
-            chain->Lock();
+            chain->lock();
 
             chain->iteration_allowed  = true;
             chain->singleshot_allowed = singleshot;
@@ -294,7 +294,7 @@ try
                 // clang-format on
             }();
 
-            chain->Unlock();
+            chain->unlock();
 
             state->method_chain = method;
             run_method( *method, singleshot, info );
@@ -336,7 +336,7 @@ try
     else
     {
         // We are not iterating, so we create the Method and call Iterate
-        image->Lock();
+        image->lock();
 
         image->iteration_allowed  = true;
         image->singleshot_allowed = singleshot;
@@ -372,7 +372,7 @@ try
             // clang-format on
         }();
 
-        image->Unlock();
+        image->unlock();
 
         state->method_image[idx_image] = method;
         run_method( *method, singleshot, info );
@@ -413,7 +413,7 @@ try
     else
     {
         // We are not iterating, so we create the Method and call Iterate
-        image->Lock();
+        image->lock();
 
         image->iteration_allowed  = true;
         image->singleshot_allowed = singleshot;
@@ -425,7 +425,7 @@ try
 
         auto method = std::make_shared<Engine::Spin::Method_EMA>( image, idx_image, idx_chain );
 
-        image->Unlock();
+        image->unlock();
 
         state->method_image[idx_image] = method;
 
@@ -470,7 +470,7 @@ try
     if( method->ContinueIterating() && !method->Walltime_Expired( t_current - method->t_start ) )
     {
         // Lock Systems
-        method->Lock();
+        method->lock();
         for( int i = 0; i < N; i++ )
         {
             // Pre-iteration hook
@@ -497,7 +497,7 @@ try
             ++method->iteration;
         }
         // Unlock systems
-        method->Unlock();
+        method->unlock();
     }
 
     // Check the conditions again after the iteration was performed,
@@ -536,7 +536,7 @@ try
     if( image->iteration_allowed )
     {
         // Currently iterating image, so we stop
-        image->Lock();
+        image->lock();
         image->iteration_allowed = false;
         if( image->singleshot_allowed )
         {
@@ -550,12 +550,12 @@ try
             //---- Finalize (set iterations_allowed to false etc.)
             method->Finalize();
         }
-        image->Unlock();
+        image->unlock();
     }
     else if( chain->iteration_allowed )
     {
         // Currently iterating chain, so we stop
-        chain->Lock();
+        chain->lock();
         chain->iteration_allowed = false;
         if( chain->singleshot_allowed )
         {
@@ -568,7 +568,7 @@ try
             //---- Finalize (set iterations_allowed to false etc.)
             method->Finalize();
         }
-        chain->Unlock();
+        chain->unlock();
     }
     else
     {

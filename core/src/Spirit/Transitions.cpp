@@ -36,7 +36,7 @@ try
         return;
     }
 
-    chain->Lock();
+    chain->lock();
     try
     {
         Utility::Configuration_Chain::Homogeneous_Rotation( *chain, idx_1, idx_2 );
@@ -52,7 +52,7 @@ try
     {
         spirit_handle_exception_api( idx_image, idx_chain );
     }
-    chain->Unlock();
+    chain->unlock();
 }
 catch( ... )
 {
@@ -100,7 +100,7 @@ try
         return;
     }
 
-    chain->Lock();
+    chain->lock();
     try
     {
         Utility::Configuration_Chain::Add_Noise_Temperature( *chain, idx_1, idx_2, temperature );
@@ -116,7 +116,7 @@ try
     {
         spirit_handle_exception_api( idx_image, idx_chain );
     }
-    chain->Unlock();
+    chain->unlock();
 }
 catch( ... )
 {

@@ -131,7 +131,7 @@ catch( ... )
 }
 
 template<typename Hamiltonian>
-void Spin_System<Hamiltonian>::Lock() noexcept
+void Spin_System<Hamiltonian>::lock() noexcept
 try
 {
     this->ordered_lock.lock();
@@ -142,7 +142,7 @@ catch( ... )
 }
 
 template<typename Hamiltonian>
-void Spin_System<Hamiltonian>::Unlock() noexcept
+void Spin_System<Hamiltonian>::unlock() noexcept
 try
 {
     this->ordered_lock.unlock();

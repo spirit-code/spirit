@@ -27,7 +27,7 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( s, "s" );
 
-    // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
+    // image->lock(); // Mutex locks in these functions may cause problems with the performance of UIs
 
     auto mean = Engine::Vectormath::mean( get<Field::Spin>( *image->state ) );
 
@@ -47,13 +47,13 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( m, "m" );
 
-    // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
+    // image->lock(); // Mutex locks in these functions may cause problems with the performance of UIs
 
     const auto mag = Engine::Vectormath::Magnetization(
         get<Field::Spin>( *image->state ), image->hamiltonian->get_geometry().mu_s );
     image->M.mean = mag;
 
-    // image->Unlock();
+    // image->unlock();
 
     for( int i = 0; i < 3; ++i )
         m[i] = mag[i];
@@ -70,7 +70,7 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
+    // image->lock(); // Mutex locks in these functions may cause problems with the performance of UIs
 
     scalar charge      = 0;
     int dimensionality = Geometry_Get_Dimensionality( state, idx_image, idx_chain );
@@ -79,7 +79,7 @@ try
             get<Field::Spin>( *image->state ), image->hamiltonian->get_geometry(),
             image->hamiltonian->get_boundary_conditions() );
 
-    // image->Unlock();
+    // image->unlock();
 
     return charge;
 }
@@ -97,7 +97,7 @@ try
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
-    // image->Lock(); // Mutex locks in these functions may cause problems with the performance of UIs
+    // image->lock(); // Mutex locks in these functions may cause problems with the performance of UIs
 
     int dimensionality = Geometry_Get_Dimensionality( state, idx_image, idx_chain );
     scalarfield charge_density( 0 );
@@ -121,7 +121,7 @@ try
         }
     }
 
-    // image->Unlock();
+    // image->unlock();
 
     return charge_density.size(); // return the number of triangles
 }

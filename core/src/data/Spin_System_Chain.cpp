@@ -26,12 +26,12 @@ Spin_System_Chain<Hamiltonian>::Spin_System_Chain(
 }
 
 template<typename Hamiltonian>
-void Spin_System_Chain<Hamiltonian>::Lock() noexcept
+void Spin_System_Chain<Hamiltonian>::lock() noexcept
 try
 {
     this->ordered_lock.lock();
     for( auto & image : this->images )
-        image->Lock();
+        image->lock();
 }
 catch( ... )
 {
@@ -39,11 +39,11 @@ catch( ... )
 }
 
 template<typename Hamiltonian>
-void Spin_System_Chain<Hamiltonian>::Unlock() noexcept
+void Spin_System_Chain<Hamiltonian>::unlock() noexcept
 try
 {
     for( auto & image : this->images )
-        image->Unlock();
+        image->unlock();
     this->ordered_lock.unlock();
 }
 catch( ... )

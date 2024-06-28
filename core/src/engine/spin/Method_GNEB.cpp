@@ -669,15 +669,15 @@ void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bo
 }
 
 template<Solver solver>
-void Method_GNEB<solver>::Lock()
+void Method_GNEB<solver>::lock()
 {
-    this->chain->Lock();
+    this->chain->lock();
 }
 
 template<Solver solver>
-void Method_GNEB<solver>::Unlock()
+void Method_GNEB<solver>::unlock()
 {
-    this->chain->Unlock();
+    this->chain->unlock();
 }
 
 // Method name as string
