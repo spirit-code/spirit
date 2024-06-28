@@ -287,28 +287,34 @@ void PlotWidget::plotEnergies()
     series_E_current->replace( current );
 
     // Rescale y axis
-    float delta = 0.1 * ( ymax - ymin );
-    if( delta < 1e-6 )
-        delta = 0.1;
+    if( auto axes = this->chart->axes( Qt::Vertical ); !axes.empty() )
+    {
+        float delta = 0.1 * ( ymax - ymin );
+        if( delta < 1e-6 )
+            delta = 0.1;
 
-    this->chart->axisY()->setMin( ymin - delta );
-    this->chart->axisY()->setMax( ymax + delta );
+        axes[0]->setMin( ymin - delta );
+        axes[0]->setMax( ymax + delta );
+    }
 
     // Rescale x axis
-    if( !renormalize_Rx && Rx_tot > 0 )
+    if( auto axes = this->chart->axes( Qt::Horizontal ); !axes.empty() )
     {
-        delta = 0.04 * Rx_tot;
-        this->chart->axisX()->setMin( Rx[0] - delta );
-        this->chart->axisX()->setMax( Rx[noi - 1] + delta );
-    }
-    else if( Rx_tot > 0 )
-    {
-        this->chart->axisX()->setMin( -0.04 );
-        this->chart->axisX()->setMax( 1.04 );
-    }
-    else
-    {
-        this->chart->axisX()->setMin( -0.04 );
-        this->chart->axisX()->setMax( 0.04 );
+        if( !renormalize_Rx && Rx_tot > 0 )
+        {
+            const float delta = 0.04 * Rx_tot;
+            axes[0]->setMin( Rx[0] - delta );
+            axes[0]->setMax( Rx[noi - 1] + delta );
+        }
+        else if( Rx_tot > 0 )
+        {
+            axes[0]->setMin( -0.04 );
+            axes[0]->setMax( 1.04 );
+        }
+        else
+        {
+            axes[0]->setMin( -0.04 );
+            axes[0]->setMax( 0.04 );
+        }
     }
 }
