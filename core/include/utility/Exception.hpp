@@ -24,6 +24,7 @@ enum class Exception_Classifier
     Bad_File_Content,
     Standard_Exception,
     API_GOT_NULLPTR,
+    Unknown_Solver,
     // Unrecoverable
     System_not_Initialized,
     Simulated_domain_too_small,

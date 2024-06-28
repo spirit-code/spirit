@@ -20,6 +20,17 @@ void free_run_info( Simulation_Run_Info info ) noexcept
     delete[] info.history_max_torque;
 };
 
+namespace
+{
+
+using Engine::Spin::Solver;
+
+// alias for efficiently smuggling a constexpr value into a C++17 lambda
+template<Solver solver>
+using solver_tag = std::integral_constant<Solver, solver>;
+
+} // namespace
+
 // Helper function to start a simulation once a Method has been created
 void run_method( Engine::Method & method, bool singleshot, Simulation_Run_Info * info = nullptr )
 {
@@ -102,20 +113,19 @@ try
     else
     {
         // We are not iterating, so we create the Method and call Iterate
-        image->lock();
+        std::shared_ptr<Engine::Method> method = [&, &img = image]
+        {
+            std::scoped_lock _{ *img };
+            img->iteration_allowed  = true;
+            img->singleshot_allowed = singleshot;
 
-        image->iteration_allowed  = true;
-        image->singleshot_allowed = singleshot;
+            if( n_iterations > 0 )
+                img->mc_parameters->n_iterations = n_iterations;
+            if( n_iterations_log > 0 )
+                img->mc_parameters->n_iterations_log = n_iterations_log;
 
-        if( n_iterations > 0 )
-            image->mc_parameters->n_iterations = n_iterations;
-        if( n_iterations_log > 0 )
-            image->mc_parameters->n_iterations_log = n_iterations_log;
-
-        std::shared_ptr<Engine::Method> method
-            = std::make_shared<Engine::Spin::Method_MC>( image, idx_image, idx_chain );
-
-        image->unlock();
+            return std::make_shared<Engine::Spin::Method_MC>( img, idx_image, idx_chain );
+        }();
 
         state->method_image[idx_image] = method;
         run_method( *method, singleshot, info );
@@ -156,49 +166,44 @@ try
     else
     {
         // We are not iterating, so we create the Method and call Iterate
-        image->lock();
-
-        image->iteration_allowed  = true;
-        image->singleshot_allowed = singleshot;
-
-        if( n_iterations > 0 )
-            image->llg_parameters->n_iterations = n_iterations;
-        if( n_iterations_log > 0 )
-            image->llg_parameters->n_iterations_log = n_iterations_log;
-
-        std::shared_ptr<Engine::Method> method
-            = [solver_type, &img = image, idx_image, idx_chain]() -> std::shared_ptr<Engine::Method>
+        std::shared_ptr<Engine::Method> method = [solver_type, &img = image, singleshot, n_iterations, n_iterations_log,
+                                                  idx_image, idx_chain]() -> std::shared_ptr<Engine::Method>
         {
             using Engine::Spin::Solver;
             using Engine::Spin::Method_LLG;
-            // clang-format off
+
+            // delay setting variables until after we have determined the solver
+            const auto dispatcher = [&]( auto && tag )
+            {
+                std::scoped_lock _{ *img };
+
+                img->iteration_allowed  = true;
+                img->singleshot_allowed = singleshot;
+
+                if( n_iterations > 0 )
+                    img->llg_parameters->n_iterations = n_iterations;
+                if( n_iterations_log > 0 )
+                    img->llg_parameters->n_iterations_log = n_iterations_log;
+
+                return std::make_shared<Method_LLG<std::decay_t<decltype( tag )>::value>>( img, idx_image, idx_chain );
+            };
+
             switch( static_cast<Solver>( solver_type ) )
             {
-                case Solver::SIB:
-                    return std::make_shared<Method_LLG<Solver::SIB>>( img, idx_image, idx_chain );
-                case Solver::Heun:
-                    return std::make_shared<Method_LLG<Solver::Heun>>( img, idx_image, idx_chain );
-                case Solver::Depondt:
-                    return std::make_shared<Method_LLG<Solver::Depondt>>( img, idx_image, idx_chain );
-                case Solver::RungeKutta4:
-                    return std::make_shared<Method_LLG<Solver::RungeKutta4>>( img, idx_image, idx_chain );
-                case Solver::VP:
-                    return std::make_shared<Method_LLG<Solver::VP>>( img, idx_image, idx_chain );
-                case Solver::LBFGS_OSO:
-                    return std::make_shared<Method_LLG<Solver::LBFGS_OSO>>( img, idx_image, idx_chain );
-                case Solver::LBFGS_Atlas:
-                    return std::make_shared<Method_LLG<Solver::LBFGS_Atlas>>( img, idx_image, idx_chain );
-                case Solver::VP_OSO:
-                    return std::make_shared<Method_LLG<Solver::VP_OSO>>( img, idx_image, idx_chain );
+                case Solver::SIB: return dispatcher( solver_tag<Solver::SIB>{} );
+                case Solver::Heun: return dispatcher( solver_tag<Solver::Heun>{} );
+                case Solver::Depondt: return dispatcher( solver_tag<Solver::Depondt>{} );
+                case Solver::RungeKutta4: return dispatcher( solver_tag<Solver::RungeKutta4>{} );
+                case Solver::VP: return dispatcher( solver_tag<Solver::VP>{} );
+                case Solver::LBFGS_OSO: return dispatcher( solver_tag<Solver::LBFGS_OSO>{} );
+                case Solver::LBFGS_Atlas: return dispatcher( solver_tag<Solver::LBFGS_Atlas>{} );
+                case Solver::VP_OSO: return dispatcher( solver_tag<Solver::VP_OSO>{} );
                 default:
                     spirit_throw(
-                        Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Warning,
+                        Utility::Exception_Classifier::Unknown_Solver, Utility::Log_Level::Warning,
                         fmt::format( "Invalid solver_type {}", solver_type ) );
             }
-            // clang-format on
         }();
-
-        image->unlock();
 
         state->method_image[idx_image] = method;
         run_method( *method, singleshot, info );
@@ -254,47 +259,42 @@ try
         }
         else
         {
-            chain->lock();
-
-            chain->iteration_allowed  = true;
-            chain->singleshot_allowed = singleshot;
-
-            if( n_iterations > 0 )
-                chain->gneb_parameters->n_iterations = n_iterations;
-            if( n_iterations_log > 0 )
-                chain->gneb_parameters->n_iterations_log = n_iterations_log;
-
-            std::shared_ptr<Engine::Method> method
-                = [solver_type, &chn = chain, idx_chain]() -> std::shared_ptr<Engine::Method>
+            std::shared_ptr<Engine::Method> method = [solver_type, &chn = chain, singleshot, n_iterations,
+                                                      n_iterations_log, idx_chain]() -> std::shared_ptr<Engine::Method>
             {
                 using Engine::Spin::Method_GNEB;
                 using Engine::Spin::Solver;
-                // clang-format off
+
+                // delay setting variables until after we have determined the solver
+                const auto dispatcher = [&]( auto && tag )
+                {
+                    std::scoped_lock _{ *chn };
+                    chn->iteration_allowed  = true;
+                    chn->singleshot_allowed = singleshot;
+
+                    if( n_iterations > 0 )
+                        chn->gneb_parameters->n_iterations = n_iterations;
+                    if( n_iterations_log > 0 )
+                        chn->gneb_parameters->n_iterations_log = n_iterations_log;
+
+                    return std::make_shared<Method_GNEB<std::decay_t<decltype( tag )>::value>>( chn, idx_chain );
+                };
+
                 switch( static_cast<Solver>( solver_type ) )
                 {
-                    case Solver::SIB:
-                        return std::make_shared<Method_GNEB<Solver::SIB>>( chn, idx_chain );
-                    case Solver::Heun:
-                        return std::make_shared<Method_GNEB<Solver::Heun>>( chn, idx_chain );
-                    case Solver::Depondt:
-                        return std::make_shared<Method_GNEB<Solver::Depondt>>( chn, idx_chain );
-                    case Solver::VP:
-                        return std::make_shared<Method_GNEB<Solver::VP>>( chn, idx_chain );
-                    case Solver::LBFGS_OSO:
-                        return std::make_shared<Method_GNEB<Solver::LBFGS_OSO>>( chn, idx_chain );
-                    case Solver::LBFGS_Atlas:
-                        return std::make_shared<Method_GNEB<Solver::LBFGS_Atlas>>( chn, idx_chain );
-                    case Solver::VP_OSO:
-                        return std::make_shared<Method_GNEB<Solver::VP_OSO>>( chn, idx_chain );
+                    case Solver::SIB: return dispatcher( solver_tag<Solver::SIB>{} );
+                    case Solver::Heun: return dispatcher( solver_tag<Solver::Heun>{} );
+                    case Solver::Depondt: return dispatcher( solver_tag<Solver::Depondt>{} );
+                    case Solver::VP: return dispatcher( solver_tag<Solver::VP>{} );
+                    case Solver::LBFGS_OSO: return dispatcher( solver_tag<Solver::LBFGS_OSO>{} );
+                    case Solver::LBFGS_Atlas: return dispatcher( solver_tag<Solver::LBFGS_Atlas>{} );
+                    case Solver::VP_OSO: return dispatcher( solver_tag<Solver::VP_OSO>{} );
                     default:
                         spirit_throw(
-                            Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Warning,
+                            Utility::Exception_Classifier::Unknown_Solver, Utility::Log_Level::Warning,
                             fmt::format( "Invalid solver_type {}", solver_type ) );
                 }
-                // clang-format on
             }();
-
-            chain->unlock();
 
             state->method_chain = method;
             run_method( *method, singleshot, info );
@@ -336,43 +336,40 @@ try
     else
     {
         // We are not iterating, so we create the Method and call Iterate
-        image->lock();
-
-        image->iteration_allowed  = true;
-        image->singleshot_allowed = singleshot;
-
-        if( n_iterations > 0 )
-            image->mmf_parameters->n_iterations = n_iterations;
-        if( n_iterations_log > 0 )
-            image->mmf_parameters->n_iterations_log = n_iterations_log;
-
-        std::shared_ptr<Engine::Method> method
-            = [solver_type, &img = image, idx_chain]() -> std::shared_ptr<Engine::Method>
+        std::shared_ptr<Engine::Method> method = [solver_type, &img = image, singleshot, n_iterations, n_iterations_log,
+                                                  idx_chain]() -> std::shared_ptr<Engine::Method>
         {
             using Engine::Spin::Solver;
             using Engine::Spin::Method_MMF;
-            // clang-format off
-            switch ( static_cast<Solver>( solver_type ) )
+
+            // delay setting variables until after we have determined the solver
+            const auto dispatcher = [&]( auto && tag )
             {
-                case Solver::SIB:
-                    return std::make_shared<Method_MMF<Solver::SIB>>( img, idx_chain );
-                case Solver::Heun:
-                    return std::make_shared<Method_MMF<Solver::Heun>>( img, idx_chain );
-                case Solver::Depondt:
-                    return std::make_shared<Method_MMF<Solver::Depondt>>( img, idx_chain );
-                // case Solver::NCG:
-                //     return std::make_shared<Method_MMF<Solver::NCG>>( img, idx_chain );
-                case Solver::VP:
-                    return std::make_shared<Method_MMF<Solver::VP>>( img, idx_chain );
+                std::scoped_lock _{ *img };
+                img->iteration_allowed  = true;
+                img->singleshot_allowed = singleshot;
+
+                if( n_iterations > 0 )
+                    img->mmf_parameters->n_iterations = n_iterations;
+                if( n_iterations_log > 0 )
+                    img->mmf_parameters->n_iterations_log = n_iterations_log;
+
+                return std::make_shared<Method_MMF<std::decay_t<decltype( tag )>::value>>( img, idx_chain );
+            };
+
+            switch( static_cast<Solver>( solver_type ) )
+            {
+                case Solver::SIB: return dispatcher( solver_tag<Solver::SIB>{} );
+                case Solver::Heun: return dispatcher( solver_tag<Solver::Heun>{} );
+                case Solver::Depondt: return dispatcher( solver_tag<Solver::Depondt>{} );
+                // case Solver::NCG: return dispatcher( solver_tag<Solver::NCG>{} );
+                case Solver::VP: return dispatcher( solver_tag<Solver::VP>{} );
                 default:
                     spirit_throw(
-                        Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Warning,
+                        Utility::Exception_Classifier::Unknown_Solver, Utility::Log_Level::Warning,
                         fmt::format( "Invalid solver_type {}", solver_type ) );
             }
-            // clang-format on
         }();
-
-        image->unlock();
 
         state->method_image[idx_image] = method;
         run_method( *method, singleshot, info );
@@ -413,19 +410,19 @@ try
     else
     {
         // We are not iterating, so we create the Method and call Iterate
-        image->lock();
+        std::shared_ptr<Engine::Method> method = [&, &img = image]
+        {
+            std::scoped_lock _{ *img };
+            img->iteration_allowed  = true;
+            img->singleshot_allowed = singleshot;
 
-        image->iteration_allowed  = true;
-        image->singleshot_allowed = singleshot;
+            if( n_iterations > 0 )
+                img->ema_parameters->n_iterations = n_iterations;
+            if( n_iterations_log > 0 )
+                img->ema_parameters->n_iterations_log = n_iterations_log;
 
-        if( n_iterations > 0 )
-            image->ema_parameters->n_iterations = n_iterations;
-        if( n_iterations_log > 0 )
-            image->ema_parameters->n_iterations_log = n_iterations_log;
-
-        auto method = std::make_shared<Engine::Spin::Method_EMA>( image, idx_image, idx_chain );
-
-        image->unlock();
+            return std::make_shared<Engine::Spin::Method_EMA>( img, idx_image, idx_chain );
+        }();
 
         state->method_image[idx_image] = method;
 
@@ -470,7 +467,8 @@ try
     if( method->ContinueIterating() && !method->Walltime_Expired( t_current - method->t_start ) )
     {
         // Lock Systems
-        method->lock();
+        std::scoped_lock _{ *method };
+
         for( int i = 0; i < N; i++ )
         {
             // Pre-iteration hook
@@ -496,8 +494,6 @@ try
             }
             ++method->iteration;
         }
-        // Unlock systems
-        method->unlock();
     }
 
     // Check the conditions again after the iteration was performed,
@@ -536,7 +532,7 @@ try
     if( image->iteration_allowed )
     {
         // Currently iterating image, so we stop
-        image->lock();
+        std::scoped_lock _{ *image };
         image->iteration_allowed = false;
         if( image->singleshot_allowed )
         {
@@ -550,12 +546,11 @@ try
             //---- Finalize (set iterations_allowed to false etc.)
             method->Finalize();
         }
-        image->unlock();
     }
     else if( chain->iteration_allowed )
     {
         // Currently iterating chain, so we stop
-        chain->lock();
+        std::scoped_lock _{ *chain };
         chain->iteration_allowed = false;
         if( chain->singleshot_allowed )
         {
@@ -568,7 +563,6 @@ try
             //---- Finalize (set iterations_allowed to false etc.)
             method->Finalize();
         }
-        chain->unlock();
     }
     else
     {
