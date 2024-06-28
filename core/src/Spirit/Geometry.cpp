@@ -623,7 +623,8 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( mu_s, "mu_s" );
 
-    std::copy( begin( image->hamiltonian->get_geometry().mu_s ), end( image->hamiltonian->get_geometry().mu_s ), mu_s );
+    const auto & g = image->hamiltonian->get_geometry();
+    std::copy_n( g.mu_s.begin(), g.n_cell_atoms, mu_s );
 }
 catch( ... )
 {
