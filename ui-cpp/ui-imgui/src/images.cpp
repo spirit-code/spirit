@@ -7,7 +7,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb/stb_image.h>
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
-#include <stb/stb_image_resize.h>
+#include <stb/stb_image_resize2.h>
 
 #include <fmt/format.h>
 
@@ -68,8 +68,8 @@ bool glfw_set_app_icon( GLFWwindow * glfw_window )
 {
     images::Image icon_338( "res/Logo_Ghost_Final_Notext.png" );
 
-    const int num_channels = 4;
-    const std::array<int, 15> resolutions{ 16, 20, 24, 28, 30, 31, 32, 40, 42, 47, 48, 56, 60, 63, 84 };
+    static constexpr int num_channels = 4;
+    static constexpr std::array<int, 15> resolutions{ 16, 20, 24, 28, 30, 31, 32, 40, 42, 47, 48, 56, 60, 63, 84 };
     std::vector<std::vector<stbir_uint8>> data( resolutions.size() );
     std::array<GLFWimage, resolutions.size()> glfw_images;
 
@@ -84,9 +84,9 @@ bool glfw_set_app_icon( GLFWwindow * glfw_window )
             glfw_images[i].width  = resolutions[i];
             glfw_images[i].height = resolutions[i];
 
-            stbir_resize_uint8(
+            stbir_resize_uint8_linear(
                 icon_338.image_data, icon_338.width, icon_338.height, 0, glfw_images[i].pixels, resolutions[i],
-                resolutions[i], 0, num_channels );
+                resolutions[i], 0, static_cast<stbir_pixel_layout>( num_channels ) );
 
             // fmt::print( "resized     {}\n", resolutions[i] );
         }
