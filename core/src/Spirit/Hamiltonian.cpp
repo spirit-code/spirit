@@ -35,7 +35,7 @@ try
     image->lock();
     try
     {
-        image->hamiltonian->setBoundaryConditions( { periodical[0], periodical[1], periodical[2] } );
+        image->hamiltonian->set_boundary_conditions( { periodical[0], periodical[1], periodical[2] } );
     }
     catch( ... )
     {
