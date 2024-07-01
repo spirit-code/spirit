@@ -73,15 +73,13 @@ void RenderingLayer::draw( int display_w, int display_h )
             update_widgets = true;
     }
 
-    for( auto renderer_widget_iterator = renderer_widgets.begin(); renderer_widget_iterator != renderer_widgets.end(); )
+    if( auto new_end = std::remove_if(
+            renderer_widgets.begin(), renderer_widgets.end(),
+            []( const std::shared_ptr<RendererWidget> & rw ) { return rw->remove_; } );
+        new_end != renderer_widgets.end() )
     {
-        if( ( *renderer_widget_iterator )->remove_ )
-        {
-            renderer_widget_iterator = renderer_widgets.erase( renderer_widget_iterator );
-            update_widgets           = true;
-        }
-        else
-            ++renderer_widget_iterator;
+        renderer_widgets.erase( new_end, renderer_widgets.end() );
+        update_widgets = true;
     }
 
     if( update_widgets )
