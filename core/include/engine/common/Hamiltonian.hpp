@@ -592,7 +592,7 @@ public:
             []( const auto & h ) -> decltype( auto ) { return h.get_boundary_conditions(); }, hamiltonian );
     };
 
-    void setBoundaryConditions( const intfield & boundary_conditions )
+    void set_boundary_conditions( const intfield & boundary_conditions )
     {
         std::visit(
             [&boundary_conditions]( auto & h ) { return h.set_boundary_conditions( boundary_conditions ); },
