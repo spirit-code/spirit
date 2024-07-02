@@ -431,19 +431,12 @@ public:
 
     void set_geometry( const ::Data::Geometry & g )
     {
-        // lazy copy mechanism for the geometry
-        // We allow shallow copies when the geometry stays the same,
-        // but if we want to change it we ensure that we are the sole owner of the Geometry
-        // This only works, because the Geometry class is only shared between Hamiltonian objects
-        if( geometry.use_count() > 1 || geometry == nullptr )
-        {
-            geometry = std::make_shared<::Data::Geometry>( g );
-        }
-        else
-        {
-            *geometry = g;
-        }
-        applyGeometry();
+        set_geometry_impl( g );
+    }
+
+    void set_geometry( ::Data::Geometry && g )
+    {
+        set_geometry_impl( std::move( g ) );
     }
 
 private:
@@ -482,6 +475,25 @@ private:
                 .applyGeometry( *geometry, boundary_conditions );
         };
     };
+
+    template<typename Geometry>
+    void set_geometry_impl( Geometry && g )
+    {
+        static_assert( std::is_same_v<std::decay_t<Geometry>, ::Data::Geometry> );
+        // lazy copy mechanism for the geometry
+        // We allow shallow copies when the geometry stays the same,
+        // but if we want to change it we ensure that we are the sole owner of the Geometry
+        // This only works, because the Geometry class is only shared between Hamiltonian objects
+        if( geometry.use_count() > 1 || geometry == nullptr )
+        {
+            geometry = std::make_shared<::Data::Geometry>( std::forward<Geometry>( g ) );
+        }
+        else
+        {
+            *geometry = std::forward<Geometry>( g );
+        }
+        applyGeometry();
+    }
 
     template<typename InteractionType = void>
     void updateIndexVector()
@@ -607,6 +619,11 @@ public:
     void set_geometry( const ::Data::Geometry & geometry )
     {
         std::visit( [&geometry]( auto & h ) { h.set_geometry( geometry ); }, hamiltonian );
+    };
+
+    void set_geometry( ::Data::Geometry && geometry )
+    {
+        std::visit( [&geometry]( auto & h ) { h.set_geometry( std::move( geometry ) ); }, hamiltonian );
     };
 
     template<class T>
