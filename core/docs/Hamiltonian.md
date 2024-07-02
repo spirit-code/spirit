@@ -30,25 +30,25 @@ $$ -->
 The anisotropy term is implemented in terms of three components:
 - uniaxial anisotropy
 
-![Uniaxial Anisotropy](https://math.vercel.app/?from=%5Cmathcal%7BH%7D_%7BA_1%7D%5B%5Cvec%7Bn%7D%5D%20%3D%20-%20%5Csum_i%20%5Csum_j%20K_j%20%28%5Chat%7BK%7D_j%5Ccdot%5Cvec%7Bn%7D_i%29%5E2%20%3D%20-%20%5Csum_i%20%5Csum_j%20K_j%20%5B%5Ccos%28%5Ctheta_j%29%5D%5E2%0A.svg)
+![Uniaxial Anisotropy](https://math.vercel.app/?from=%5Cmathcal%7BH%7D_%7BA_1%7D%5B%5Cvec%7Bn%7D%5D%20%3D%20-%20%5Csum_j%20K_j%20%28%5Chat%7BK%7D_j%5Ccdot%5Cvec%7Bn%7D_j%29%5E2%20%3D%20-%20%5Csum_j%20K_j%20%5B%5Ccos%28%5Ctheta_j%29%5D%5E2.svg)
 
-<!-- $$ \mathcal{H}_{A_1}[\vec{n}] = - \sum_i \sum_j K_j (\hat{K}_j\cdot\vec{n}_i)^2 = - \sum_i \sum_j K_j [\cos(\theta_j)]^2 $$ -->
+<!-- $$ \mathcal{H}_{A_1}[\vec{n}] = - \sum_j K_j (\hat{K}_j\cdot\vec{n}_j)^2 = - \sum_j K_j [\cos(\theta_j)]^2 $$ -->
 
 - cubic anisotropy
 
-![Cubic Anisotropy](https://math.vercel.app/?from=%5Cmathcal%7BH%7D_%7BA_c%7D%5B%5Cvec%7Bn%7D%5D%20%3D%20-%20%5Cfrac%7B1%7D%7B2%7D%20%5Csum_i%20%5Csum_j%20K_j%20%28%5B%5Cvec%7Bn%7D_i%5D_x%5E4%20%2B%20%5B%5Cvec%7Bn%7D_i%5D_y%5E4%20%2B%20%5B%5Cvec%7Bn%7D_i%5D_z%5E4%29%0A.svg)
+![Cubic Anisotropy](https://math.vercel.app/?from=%5Cmathcal%7BH%7D_%7BA_c%7D%5B%5Cvec%7Bn%7D%5D%20%3D%20-%20%5Cfrac%7B1%7D%7B2%7D%20%5Csum_j%20K_j%20%28%5B%5Cvec%7Bn%7D_j%5D_x%5E4%20%2B%20%5B%5Cvec%7Bn%7D_j%5D_y%5E4%20%2B%20%5B%5Cvec%7Bn%7D_j%5D_z%5E4%29.svg)
 
-<!-- $$ \mathcal{H}_{A_c}[\vec{n}] = - \frac{1}{2} \sum_i \sum_j K_j ([\vec{n}_i]_x^4 + [\vec{n}_i]_y^4 + [\vec{n}_i]_z^4) $$ -->
+<!-- $$ \mathcal{H}_{A_c}[\vec{n}] = - \frac{1}{2} \sum_j K_j ([\vec{n}_j]_x^4 + [\vec{n}_j]_y^4 + [\vec{n}_j]_z^4) $$ -->
 
 - biaxial anisotropy
 
-![Biaxial Anisotropy](https://math.vercel.app/?from=%5Cbegin%7Balignedat%7D%7B1%7D%0A%5Cmathcal%7BH%7D_%7BA_2%7D%20%3D%26%20%5Csum_%7Bi%2Cj%7D%20%5Csum_%7Bn_1%2Cn_2%2Cn_3%7D%20K_j%5E%7B%28n_1%2C%20n_2%2C%20n_3%29%7D%20%281%20-%20%28%5Chat%7BK%7D_j%5E%7B%281%29%7D%5Ccdot%5Cvec%7Bn%7D_i%29%5E2%29%5E%7Bn_1%7D%20%5Ccdot%20%28%5Chat%7BK%7D_j%5E%7B%282%29%7D%5Ccdot%5Cvec%7Bn%7D_i%29%5E%7Bn_2%7D%20%5Ccdot%20%28%28%5Chat%7BK%7D_j%5E%7B%281%29%7D%20%5Ctimes%20%5Chat%7BK%7D_j%5E%7B%282%29%7D%20%29%20%5Ccdot%5Cvec%7Bn%7D_i%29%5E%7Bn_3%7D%20%5C%5C%0A%3D%26%20%5Csum_%7Bi%2Cj%7D%20%5Csum_%7Bn_1%2Cn_2%2Cn_3%7D%20K_j%5E%7B%28n_1%2C%20n_2%2C%20n_3%29%7D%20%5Ccdot%20%5B%5Csin%28%5Ctheta_j%29%5D%5E%7B2n_1%7D%20%5Ccdot%20%5B%5Ccos%28%5Cvarphi_j%29%5Csin%28%5Ctheta_j%29%5D%5E%7Bn_2%7D%20%5Ccdot%20%5B%5Csin%28%5Cvarphi_j%29%5Csin%28%5Ctheta_j%29%5D%5E%7Bn_3%7D%20%5C%5C%0A%3D%26%20%5Csum_%7Bi%2Cj%7D%20%5Csum_%7Bn_1%2Cn_2%2Cn_3%7D%20K_j%5E%7B%28n_1%2C%20n_2%2C%20n_3%29%7D%20%5Ccdot%20%5B%5Csin%28%5Ctheta_j%29%5D%5E%7B2n_1%20%2B%20n_2%20%2B%20n_3%7D%20%5Ccdot%20%5B%5Ccos%28%5Cvarphi_j%29%5D%5E%7Bn_2%7D%20%5Ccdot%20%5B%5Csin%28%5Cvarphi_j%29%5D%5E%7Bn_3%7D%20%5C%5C%0A%5Cend%7Balignedat%7D.svg)
+![Biaxial Anisotropy](https://math.vercel.app/?from=%5Cbegin%7Balignedat%7D%7B1%7D%0A%5Cmathcal%7BH%7D_%7BA_2%7D%20%3D%26%20%5Csum_%7Bj%7D%20%5Csum_%7Bn_1%2Cn_2%2Cn_3%7D%20K_j%5E%7B%28n_1%2C%20n_2%2C%20n_3%29%7D%20%281%20-%20%28%5Chat%7BK%7D_j%5E%7B%281%29%7D%5Ccdot%5Cvec%7Bn%7D_j%29%5E2%29%5E%7Bn_1%7D%20%5Ccdot%20%28%5Chat%7BK%7D_j%5E%7B%282%29%7D%5Ccdot%5Cvec%7Bn%7D_j%29%5E%7Bn_2%7D%20%5Ccdot%20%28%28%5Chat%7BK%7D_j%5E%7B%281%29%7D%20%5Ctimes%20%5Chat%7BK%7D_j%5E%7B%282%29%7D%20%29%20%5Ccdot%5Cvec%7Bn%7D_j%29%5E%7Bn_3%7D%20%5C%5C%0A%3D%26%20%5Csum_%7Bj%7D%20%5Csum_%7Bn_1%2Cn_2%2Cn_3%7D%20K_j%5E%7B%28n_1%2C%20n_2%2C%20n_3%29%7D%20%5Ccdot%20%5B%5Csin%28%5Ctheta_j%29%5D%5E%7B2n_1%7D%20%5Ccdot%20%5B%5Ccos%28%5Cvarphi_j%29%5Csin%28%5Ctheta_j%29%5D%5E%7Bn_2%7D%20%5Ccdot%20%5B%5Csin%28%5Cvarphi_j%29%5Csin%28%5Ctheta_j%29%5D%5E%7Bn_3%7D%20%5C%5C%0A%3D%26%20%5Csum_%7Bj%7D%20%5Csum_%7Bn_1%2Cn_2%2Cn_3%7D%20K_j%5E%7B%28n_1%2C%20n_2%2C%20n_3%29%7D%20%5Ccdot%20%5B%5Csin%28%5Ctheta_j%29%5D%5E%7B2n_1%20%2B%20n_2%20%2B%20n_3%7D%20%5Ccdot%20%5B%5Ccos%28%5Cvarphi_j%29%5D%5E%7Bn_2%7D%20%5Ccdot%20%5B%5Csin%28%5Cvarphi_j%29%5D%5E%7Bn_3%7D%20%5C%5C%0A%5Cend%7Balignedat%7D.svg)
 
 <!-- $$
 \begin{alignedat}{1}
-\mathcal{H}_{A_2} =& \sum_{i,j} \sum_{n_1,n_2,n_3} K_j^{(n_1, n_2, n_3)} (1 - (\hat{K}_j^{(1)}\cdot\vec{n}_i)^2)^{n_1} \cdot (\hat{K}_j^{(2)}\cdot\vec{n}_i)^{n_2} \cdot ((\hat{K}_j^{(1)} \times \hat{K}_j^{(2)} ) \cdot\vec{n}_i)^{n_3} \\
-=& \sum_{i,j} \sum_{n_1,n_2,n_3} K_j^{(n_1, n_2, n_3)} \cdot [\sin(\theta_j)]^{2n_1} \cdot [\cos(\varphi_j)\sin(\theta_j)]^{n_2} \cdot [\sin(\varphi_j)\sin(\theta_j)]^{n_3} \\
-=& \sum_{i,j} \sum_{n_1,n_2,n_3} K_j^{(n_1, n_2, n_3)} \cdot [\sin(\theta_j)]^{2n_1 + n_2 + n_3} \cdot [\cos(\varphi_j)]^{n_2} \cdot [\sin(\varphi_j)]^{n_3} \\
+\mathcal{H}_{A_2} =& \sum_{j} \sum_{n_1,n_2,n_3} K_j^{(n_1, n_2, n_3)} (1 - (\hat{K}_j^{(1)}\cdot\vec{n}_j)^2)^{n_1} \cdot (\hat{K}_j^{(2)}\cdot\vec{n}_j)^{n_2} \cdot ((\hat{K}_j^{(1)} \times \hat{K}_j^{(2)} ) \cdot\vec{n}_j)^{n_3} \\
+=& \sum_{j} \sum_{n_1,n_2,n_3} K_j^{(n_1, n_2, n_3)} \cdot [\sin(\theta_j)]^{2n_1} \cdot [\cos(\varphi_j)\sin(\theta_j)]^{n_2} \cdot [\sin(\varphi_j)\sin(\theta_j)]^{n_3} \\
+=& \sum_{j} \sum_{n_1,n_2,n_3} K_j^{(n_1, n_2, n_3)} \cdot [\sin(\theta_j)]^{2n_1 + n_2 + n_3} \cdot [\cos(\varphi_j)]^{n_2} \cdot [\sin(\varphi_j)]^{n_3} \\
 \end{alignedat}
 $$ -->
 
