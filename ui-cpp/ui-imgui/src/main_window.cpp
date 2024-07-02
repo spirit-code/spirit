@@ -1814,20 +1814,16 @@ void MainWindow::show_notifications()
     auto & io    = ImGui::GetIO();
     auto & style = ImGui::GetStyle();
 
-    int i_notification = 0;
-    float pos_y        = io.DisplaySize.y - 20;
+    float pos_y = io.DisplaySize.y - 20;
 
-    for( auto notification_iterator = ui_shared_state.notifications.begin();
-         notification_iterator != ui_shared_state.notifications.end(); )
+    // expire timed out notifications before drawing
+    ui_shared_state.expire_notifications( io.DeltaTime );
+
+    const auto & notifications = ui_shared_state.notifications;
+    for( unsigned int i_notification = 0; i_notification < notifications.size(); ++i_notification )
     {
-        auto & notification = *notification_iterator;
-        if( notification.timer > notification.timeout )
-        {
-            notification_iterator = ui_shared_state.notifications.erase( notification_iterator );
-            continue;
-        }
-
-        float alpha = 0.8f;
+        const auto & notification = notifications[i_notification];
+        float alpha               = 0.8f;
 
         ImVec2 text_size = ImGui::CalcTextSize( notification.message.c_str() );
         float distance   = text_size.y + 2 * style.FramePadding.y + 2 * style.WindowPadding.y;
@@ -1864,11 +1860,6 @@ void MainWindow::show_notifications()
 
         ImGui::PopStyleVar();
         ImGui::PopStyleVar();
-
-        notification.timer += io.DeltaTime;
-
-        ++notification_iterator;
-        ++i_notification;
     }
 }
 
