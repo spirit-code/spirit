@@ -131,8 +131,8 @@ _Get_Eigenvalues.restype = None
 
 
 def get_eigenvalues(p_state, idx_image=-1, idx_chain=-1):
-    noe = parameters.ema.getNModes(p_state, idx_image, idx_chain)
-    eigenvalues = (noe * scalar)()
+    n_modes = parameters.ema.get_n_modes(p_state, idx_image, idx_chain)
+    eigenvalues = (n_modes * scalar)()
     _Get_Eigenvalues(
         ctypes.c_void_p(p_state),
         eigenvalues,
