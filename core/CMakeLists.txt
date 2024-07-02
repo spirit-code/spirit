@@ -593,7 +593,7 @@ if( SPIRIT_BUILD_FOR_PYTHON )
     if( SPIRIT_BUILD_TEST )
         message( STATUS ">> Setting up unit tests for python bindings" )
         # find_package( PythonInterp 2.7 REQUIRED )
-        find_package( PythonInterp REQUIRED )
+        find_package( Python3 COMPONENTS Interpreter NumPy REQUIRED )
 
         #----- Enable CTest testing
         enable_testing()
@@ -604,7 +604,7 @@ if( SPIRIT_BUILD_FOR_PYTHON )
             add_test(
                 NAME                ${test_name}
                 WORKING_DIRECTORY   ${CMAKE_SOURCE_DIR}
-                COMMAND             ${PYTHON_EXECUTABLE} "${SPIRIT_PYTHON_MODULE_DIR}/test/${src}" )
+                COMMAND             ${Python3_EXECUTABLE} "${SPIRIT_PYTHON_MODULE_DIR}/test/${src}" )
             # Properties
             set_tests_properties( ${test_name}
                 PROPERTIES ENVIRONMENT "PYTHONPATH=${SPIRIT_PYTHON_MODULE_DIR}:$PYTHONPATH" )
