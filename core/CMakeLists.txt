@@ -352,9 +352,7 @@ add_subdirectory( src )
 add_subdirectory( include )
 ####################################################################
 
-
-############ Create object library #################################
-add_library( ${META_PROJECT_NAME} OBJECT
+set( SPIRIT_CPP_HEADERS
     ${HEADER_SPIRIT_DATA}
     ${HEADER_SPIRIT_ENGINE_BACKEND}
     ${HEADER_SPIRIT_ENGINE_COMMON_INTERACTION}
@@ -365,7 +363,9 @@ add_library( ${META_PROJECT_NAME} OBJECT
     ${HEADER_SPIRIT}
     ${HEADER_SPIRIT_IO_HAMILTONIAN}
     ${HEADER_SPIRIT_IO}
-    ${HEADER_SPIRIT_UTILITY}
+    ${HEADER_SPIRIT_UTILITY} )
+
+set( SPIRIT_CPP_SOURCES
     ${SOURCE_SPIRIT_ROOT}
     ${SOURCE_SPIRIT_DATA}
     ${SOURCE_SPIRIT_ENGINE_COMMON}
@@ -377,6 +377,11 @@ add_library( ${META_PROJECT_NAME} OBJECT
     ${SOURCE_SPIRIT_IO}
     ${SOURCE_SPIRIT_IO_HAMILTONIAN}
     ${SOURCE_SPIRIT_UTILITY} )
+
+############ Create object library #################################
+add_library( ${META_PROJECT_NAME} OBJECT
+    ${SPIRIT_CPP_HEADERS}
+    ${SPIRIT_CPP_SOURCES} )
 
 set_target_properties( ${META_PROJECT_NAME} PROPERTIES
     CXX_STANDARD            17
@@ -758,8 +763,8 @@ set( META_VERSION_REVISION    ${META_VERSION_REVISION}    PARENT_SCOPE )
 
 
 if( SPIRIT_PRINT_SOURCES )
-    MESSAGE( STATUS ">> Headers:                    ${HEADER_SPIRIT_DATA} ${HEADER_SPIRIT_ENGINE} ${HEADER_SPIRIT} ${HEADER_SPIRIT_UTILITY}" )
-    MESSAGE( STATUS ">> Sources:                    ${SOURCE_SPIRIT_ROOT} ${SOURCE_SPIRIT_DATA} ${SOURCE_SPIRIT_ENGINE} ${SOURCE_SPIRIT} ${SOURCE_SPIRIT_UTILITY}" )
+    MESSAGE( STATUS ">> Headers:                    ${SPIRIT_CPP_HEADERS}" )
+    MESSAGE( STATUS ">> Sources:                    ${SPIRIT_CPP_SOURCES}" )
 endif()
 MESSAGE( STATUS ">> --------------------- Spirit done ---------------------------------- <<" )
 message( STATUS ">> CMake CXX Flags:        ${CMAKE_CXX_FLAGS}" )
