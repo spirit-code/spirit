@@ -27,11 +27,11 @@ If you intend to *present and/or publish* scientific results or visualisations f
 please cite [`G. P. Müller et al., Phys. Rev. B 99, 224414 (2019)`](https://link.aps.org/doi/10.1103/PhysRevB.99.224414) and read the [docs/REFERENCE.md](docs/REFERENCE.md).
 
 **This is an open project and contributions and collaborations are always welcome!!**
-See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) on how to contribute or write an email to m.sallermann@fz-juelich.de<br />
+See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) on how to contribute or write an email to moritz.sallermann@rwth-aachen.de or t.puerling@fz-juelich.de<br />
 For contributions and affiliations, see [docs/CONTRIBUTORS.md](docs/CONTRIBUTORS.md).
 
 Please note that a version of the *Spirit Web interface* is hosted by the Research Centre Jülich at
-http://juspin.de
+https://juspin.de
 
 
 &nbsp;
@@ -66,9 +66,9 @@ Introduction <a name="Introduction"></a>
 
 #### A modern framework for magnetism science on clusters, desktops & laptops and even your Phone
 
-**Spirit** is a **platform-independent** framework for spin dynamics, written in C++14.
-It combines the traditional cluster work, using using the command-line, with modern
-visualisation capabilites in order to maximize scientists' productivity.
+**Spirit** is a **platform-independent** framework for spin dynamics, written in C++17.
+It combines the traditional cluster work, using the command-line, with modern
+visualisation capabilities in order to maximize scientists' productivity.
 
 > "It is unworthy of excellent men to lose hours like slaves in
 >  the labour of calculation which could safely be relegated to
@@ -76,14 +76,14 @@ visualisation capabilites in order to maximize scientists' productivity.
 > - Gottfried Wilhelm Leibniz
 
 *Our goal is to build such machines*. The core library of the *Spirit* framework provides an
-**easy to use API**, which can be used from almost any programming language,
+**easy to use API**, which can be embedded into almost any programming language,
 and includes ready-to-use python bindings.
 A **powerful desktop user interface** is available, providing real-time visualisation and
-control of parameters.
+control over system parameters.
 
 ### *Physics Features*
 
-- Atomistic Spin Lattice Heisenberg Model including also DMI and dipole-dipole
+- Atomistic Spin Lattice [Heisenberg Model](core/docs/Hamiltonian.md) including among others DMI and dipole-dipole
 - **Spin Dynamics simulations** obeying the
   [Landau-Lifschitz-Gilbert equation](https://en.wikipedia.org/wiki/Landau%E2%80%93Lifshitz%E2%80%93Gilbert_equation)
 - Direct **Energy minimisation** with different solvers
@@ -96,7 +96,7 @@ control of parameters.
 - Standalone core library with C API which can be used from almost any programming language
 - **Python package** making complex simulation workflows easy
 - Desktop UI with powerful, live **3D visualisations** and direct control of most system parameters
-- Modular backends including **parallelisation on GPU** (CUDA) and **CPU** (OpenMP)
+- Modular backends including **parallelisation on GPU** (CUDA) and **CPU** (OpenMP and STL parallelisation)
 
 ### *Documentation*
 
@@ -131,11 +131,11 @@ using the [VFRendering](https://github.com/FlorianRhiem/VFRendering) library.
 It provides functionality to
 
 - Control Calculations
-- Locally insert Configurations (homogeneous, skyrmions, spin spiral, ... )
+- Locally insert Configurations (homogeneous, skyrmions, spin spiral, …)
 - Generate homogeneous Transition Paths
 - Change parameters of the Hamiltonian
 - Change parameters of the Method and Solver
-- Configure the Visualization (arrows, isosurfaces, lighting, ...)
+- Configure the visualisation (arrows, isosurfaces, lighting, …)
 
 See the [UI-QT Reference](docs/UI-Qt.md) for the key bindings of the various features.
 
@@ -219,4 +219,4 @@ def evaluate(p_state):
 ```
 
 Obviously you may easily create significantly more complex workflows and use Python
-to e.g. pre- or post-process data or to distribute your work on a cluster and much more!
+to e.g., pre- or post-process data or to distribute your work on a cluster and much more!
