@@ -575,6 +575,7 @@ if( SPIRIT_BUILD_FOR_PYTHON )
         "defects          = \"${SPIRIT_ENABLE_DEFECTS}\"\n"
         "cuda             = \"${SPIRIT_USE_CUDA}\"\n"
         "openmp           = \"${SPIRIT_USE_OPENMP}\"\n"
+        "stdpar           = \"${SPIRIT_USE_STDPAR}\"\n"
         "threads          = \"${SPIRIT_USE_THREADS}\"\n"
         "fftw             = \"${SPIRIT_USE_FFTW}\"" )
 
