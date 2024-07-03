@@ -161,7 +161,7 @@ as input parameter after the `hamiltonian` keyword.
 
 The Hamiltonian is defined as
 
-![](https://math.now.sh?from=%0A%09%5Cmathcal%7BH%7D%20%3D%0A%20%20%20%20%20%20-%20%5Csum_i%20%5Cmu_i%20%5Cvec%7BB%7D%5Ccdot%5Cvec%7Bn%7D_i%0A%20%20%20%20%20%20%20-%20%5Csum_i%20%5Csum_j%20K_j%20%28%5Chat%7BK%7D_j%5Ccdot%5Cvec%7Bn%7D_i%29%5E2%5C%5C%0A%20%20%20%20%20%20-%20%5Csum%5Climits_%7B%5Cbraket%7Bij%7D%7D%5C%2C%20J_%7Bij%7D%20%5Cvec%7Bn%7D_i%5Ccdot%5Cvec%7Bn%7D_j%0A%20%20%20%20%20%20%20-%20%5Csum%5Climits_%7B%5Cbraket%7Bij%7D%7D%5C%2C%20%5Cvec%7BD%7D_%7Bij%7D%20%5Ccdot%20(%5Cvec%7Bn%7D_i%5Ctimes%5Cvec%7Bn%7D_j)%5C%5C%0A%20%20%20%20%20%20%2B%20%5Cfrac%7B1%7D%7B2%7D%5Cfrac%7B%5Cmu_0%7D%7B4%5Cpi%7D%20%5Csum_%7B%5Csubstack%7Bi%2Cj%20%5C%5C%20i%20%5Cneq%20j%7D%7D%20%5Cmu_i%20%5Cmu_j%20%5Cfrac%7B(%5Cvec%7Bn%7D_i%20%5Ccdot%20%5Chat%7Br%7D_%7Bij%7D)%20(%5Cvec%7Bn%7D_j%5Ccdot%5Chat%7Br%7D_%7Bij%7D)%20-%20%5Cvec%7Bn%7D_i%20%5Cvec%7Bn%7D_j%7D%7B%7Br_%7Bij%7D%7D%5E3%7D)
+![](https://math.vercel.app/?bgcolor=auto&from=%0A%09%5Cmathcal%7BH%7D%20%3D%0A%20%20%20%20%20%20-%20%5Csum_i%20%5Cmu_i%20%5Cvec%7BB%7D%5Ccdot%5Cvec%7Bn%7D_i%0A%20%20%20%20%20%20%20-%20%5Csum_i%20%5Csum_j%20K_j%20%28%5Chat%7BK%7D_j%5Ccdot%5Cvec%7Bn%7D_i%29%5E2%5C%5C%0A%20%20%20%20%20%20-%20%5Csum%5Climits_%7B%5Cbraket%7Bij%7D%7D%5C%2C%20J_%7Bij%7D%20%5Cvec%7Bn%7D_i%5Ccdot%5Cvec%7Bn%7D_j%0A%20%20%20%20%20%20%20-%20%5Csum%5Climits_%7B%5Cbraket%7Bij%7D%7D%5C%2C%20%5Cvec%7BD%7D_%7Bij%7D%20%5Ccdot%20(%5Cvec%7Bn%7D_i%5Ctimes%5Cvec%7Bn%7D_j)%5C%5C%0A%20%20%20%20%20%20%2B%20%5Cfrac%7B1%7D%7B2%7D%5Cfrac%7B%5Cmu_0%7D%7B4%5Cpi%7D%20%5Csum_%7B%5Csubstack%7Bi%2Cj%20%5C%5C%20i%20%5Cneq%20j%7D%7D%20%5Cmu_i%20%5Cmu_j%20%5Cfrac%7B(%5Cvec%7Bn%7D_i%20%5Ccdot%20%5Chat%7Br%7D_%7Bij%7D)%20(%5Cvec%7Bn%7D_j%5Ccdot%5Chat%7Br%7D_%7Bij%7D)%20-%20%5Cvec%7Bn%7D_i%20%5Cvec%7Bn%7D_j%7D%7B%7Br_%7Bij%7D%7D%5E3%7D)
 
 where `<ij>` denotes the unique pairs of interacting spins `i` and `j`.
 For more details, such as the notation used here, see [Phys. Rev. B **99** 224414 (2019)](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.99.224414).
@@ -297,7 +297,7 @@ interaction_quadruplets_file input/quadruplets.txt
 
 Note that the quadruplet interaction is defined as
 
-![](https://math.now.sh?from=E_%5Cmathrm%7BQuad%7D%20%3D%20-%20%5Csum%5Climits_%7Bijkl%7D%5C%2C%20K_%7Bijkl%7D%20%5Cleft%28%5Cvec%7Bn%7D_i%5Ccdot%5Cvec%7Bn%7D_j%5Cright%29%5Cleft(%5Cvec%7Bn%7D_k%5Ccdot%5Cvec%7Bn%7D_l%5Cright))
+![](https://math.vercel.app/?bgcolor=auto&from=E_%5Cmathrm%7BQuad%7D%20%3D%20-%20%5Csum%5Climits_%7Bijkl%7D%5C%2C%20K_%7Bijkl%7D%20%5Cleft%28%5Cvec%7Bn%7D_i%5Ccdot%5Cvec%7Bn%7D_j%5Cright%29%5Cleft(%5Cvec%7Bn%7D_k%5Ccdot%5Cvec%7Bn%7D_l%5Cright))
 
 **Units:**
 
