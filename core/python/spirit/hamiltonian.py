@@ -548,7 +548,9 @@ _Get_Biaxial_Anisotropy.argtypes = [
 _Get_Biaxial_Anisotropy.restype = None
 
 
-def get_biaxial_anisotropy(p_state, n_indices=None, n_terms=None, idx_image=-1, idx_chain=-1):
+def get_biaxial_anisotropy(
+    p_state, n_indices=None, n_terms=None, idx_image=-1, idx_chain=-1
+):
     """Get the data representing the biaxial anisotropy."""
     if n_indices is None:
         n_indices_ = get_biaxial_anisotropy_n_atoms(

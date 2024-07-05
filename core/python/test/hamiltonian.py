@@ -114,6 +114,7 @@ class Hamiltonian_set_get(TestParameters):
         for i in range(n_atoms):
             self.assertEqual(res.site_p[i + 1] - res.site_p[i], n_terms_atom)
 
+
 #########
 
 
