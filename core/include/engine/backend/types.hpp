@@ -39,9 +39,9 @@ static constexpr par_t par = par_t();
 #ifdef SPIRIT_USE_CUDA
 #include <thrust/execution_policy.h>
 
+#include <cuda/std/functional>
 #include <cuda/std/optional>
 #include <cuda/std/tuple>
-#include <cuda/std/functional>
 
 namespace execution
 {

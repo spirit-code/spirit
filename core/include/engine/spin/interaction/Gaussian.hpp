@@ -33,7 +33,7 @@ struct Gaussian
         vectorfield center;
 
         Data( scalarfield amplitude, scalarfield width, vectorfield center )
-                : amplitude( std::move( amplitude ) ), width( std::move( width ) ), center( std::move( center ) ){};
+                : amplitude( std::move( amplitude ) ), width( std::move( width ) ), center( std::move( center ) ) {};
     };
 
     static bool valid_data( const Data & data )
@@ -72,14 +72,14 @@ struct Gaussian
     static constexpr std::string_view name = "Gaussian";
 
     template<typename IndexStorageVector>
-    static void
-    applyGeometry( const ::Data::Geometry & geometry, const intfield &, const Data &, Cache &, IndexStorageVector & indices )
+    static void applyGeometry(
+        const ::Data::Geometry & geometry, const intfield &, const Data &, Cache &, IndexStorageVector & indices )
     {
         for( int icell = 0; icell < geometry.n_cells_total; ++icell )
         {
             for( int ibasis = 0; ibasis < geometry.n_cell_atoms; ++ibasis )
             {
-                const int ispin                   = icell * geometry.n_cell_atoms + ibasis;
+                const int ispin                              = icell * geometry.n_cell_atoms + ibasis;
                 Backend::get<IndexStorage>( indices[ispin] ) = ispin;
             };
         }

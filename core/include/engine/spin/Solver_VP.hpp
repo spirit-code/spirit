@@ -11,10 +11,10 @@ template<>
 class SolverData<Solver::VP> : public SolverMethods
 {
 protected:
-    using SolverMethods::SolverMethods;
-    using SolverMethods::Prepare_Thermal_Field;
     using SolverMethods::Calculate_Force;
     using SolverMethods::Calculate_Force_Virtual;
+    using SolverMethods::Prepare_Thermal_Field;
+    using SolverMethods::SolverMethods;
     //////////// VP ///////////////////////////////////////////////////////////////
 
     // Force in previous step [noi][nos]

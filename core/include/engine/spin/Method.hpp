@@ -12,9 +12,9 @@ namespace Spin
 {
 
 using hamiltonian_t = Engine::Spin::HamiltonianVariant;
-using system_t = Data::Spin_System<hamiltonian_t>;
-using chain_t  = Data::Spin_System_Chain<hamiltonian_t>;
+using system_t      = Data::Spin_System<hamiltonian_t>;
+using chain_t       = Data::Spin_System_Chain<hamiltonian_t>;
 
-}
+} // namespace Spin
 
-}
+} // namespace Engine

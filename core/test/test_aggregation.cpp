@@ -8,8 +8,8 @@
 #include <Spirit/System.h>
 #include <Spirit/Version.h>
 #include <data/State.hpp>
-#include <engine/Vectormath.hpp>
 #include <engine/StateType.hpp>
+#include <engine/Vectormath.hpp>
 
 #include "catch.hpp"
 
@@ -22,9 +22,9 @@
 
 using Catch::Matchers::WithinAbs;
 
-using Engine::StateType;
 using Engine::Field;
 using Engine::get;
+using Engine::StateType;
 
 // Reduce required precision if float accuracy
 #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
@@ -71,8 +71,7 @@ TEST_CASE( "Ensure that Hamiltonian is really just an aggregator", "[aggregation
 
         scalar energy_hamiltonian = hamiltonian->Energy( spins );
         scalar energy_aggregated  = aggregator(
-            0.0,
-            [&spins]( const scalar v, const auto & interaction ) -> scalar
+            0.0, [&spins]( const scalar v, const auto & interaction ) -> scalar
             { return v + interaction->Energy( spins ); } );
 
         INFO( "Hamiltonian::Energy" )
@@ -87,7 +86,7 @@ TEST_CASE( "Ensure that Hamiltonian is really just an aggregator", "[aggregation
             scalarfield( nos, 0 ),
             [&spins]( const scalarfield & v, const auto & interaction ) -> scalarfield
             {
-                const auto nos = get<Field::Spin>( spins ).size();
+                const auto nos       = get<Field::Spin>( spins ).size();
                 auto energy_per_spin = scalarfield( nos, 0 );
                 interaction->Energy_per_Spin( spins, energy_per_spin );
 #pragma omp parallel for

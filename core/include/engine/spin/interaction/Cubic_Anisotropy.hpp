@@ -27,7 +27,7 @@ struct Cubic_Anisotropy
         scalarfield magnitudes;
 
         Data( intfield indices, scalarfield magnitudes )
-                : indices( std::move( indices ) ), magnitudes( std::move( magnitudes ) ){};
+                : indices( std::move( indices ) ), magnitudes( std::move( magnitudes ) ) {};
     };
 
     static bool valid_data( const Data & data )
@@ -94,8 +94,7 @@ struct Functor::Local::DataRef<Cubic_Anisotropy>
     using Cache       = typename Interaction::Cache;
 
     DataRef( const Data & data, const Cache & cache ) noexcept
-            : is_contributing( Interaction::is_contributing( data, cache ) ),
-              magnitudes( data.magnitudes.data() )
+            : is_contributing( Interaction::is_contributing( data, cache ) ), magnitudes( data.magnitudes.data() )
     {
     }
 

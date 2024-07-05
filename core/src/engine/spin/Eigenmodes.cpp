@@ -129,7 +129,7 @@ void Calculate_Eigenmodes( system_t & system, int idx_img, int idx_chain )
             VectorX evec_3N = tangent_basis * eigenvectors.col( i );
 
             // dynamically allocate the system.modes
-            system.modes[i].emplace(vectorfield( nos, Vector3{ 1, 0, 0 } ));
+            system.modes[i].emplace( vectorfield( nos, Vector3{ 1, 0, 0 } ) );
 
             // Set the modes
             for( int j = 0; j < nos; j++ )

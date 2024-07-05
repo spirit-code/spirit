@@ -11,10 +11,10 @@ template<>
 class SolverData<Solver::Depondt> : public SolverMethods
 {
 protected:
-    using SolverMethods::SolverMethods;
-    using SolverMethods::Prepare_Thermal_Field;
     using SolverMethods::Calculate_Force;
     using SolverMethods::Calculate_Force_Virtual;
+    using SolverMethods::Prepare_Thermal_Field;
+    using SolverMethods::SolverMethods;
     // Temporaries for virtual forces
     std::vector<vectorfield> rotationaxis;
     std::vector<scalarfield> forces_virtual_norm;

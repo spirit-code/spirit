@@ -26,7 +26,8 @@ try : hamiltonian( std::move( hamiltonian ) ), llg_parameters( std::move( llg_pa
     this->nos = this->hamiltonian->get_geometry().nos;
 
     // Initialize Spins Array
-    this->state = std::make_shared<typename Hamiltonian::state_t>( Engine::make_state<typename Hamiltonian::state_t>( nos ) );
+    this->state
+        = std::make_shared<typename Hamiltonian::state_t>( Engine::make_state<typename Hamiltonian::state_t>( nos ) );
 
     // Initialize Modes container
     this->modes = std::vector<std::optional<vectorfield>>( this->ema_parameters->n_modes, std::nullopt );

@@ -28,7 +28,7 @@ struct identity
 template<typename Functor>
 struct discard
 {
-    constexpr explicit discard( Functor f ) noexcept : functor( f ){};
+    constexpr explicit discard( Functor f ) noexcept : functor( f ) {};
 
     template<typename... Args>
     SPIRIT_HOSTDEVICE void operator()( Args &&... args )
@@ -73,7 +73,7 @@ struct cross<Vector3>
 template<typename T>
 struct scale
 {
-    constexpr explicit scale( T value ) noexcept : value( value ){};
+    constexpr explicit scale( T value ) noexcept : value( value ) {};
 
     template<typename Arg>
     [[nodiscard]] SPIRIT_HOSTDEVICE auto operator()( const Arg & arg ) const
@@ -104,4 +104,3 @@ using namespace Backend::Functor;
 } // namespace Backend
 
 } // namespace Engine
-

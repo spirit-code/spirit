@@ -19,7 +19,7 @@
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
-namespace C    = Utility::Constants;
+namespace C = Utility::Constants;
 
 namespace Engine
 {

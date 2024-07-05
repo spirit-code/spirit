@@ -106,7 +106,8 @@ template<typename Iter>
         return it;
     else if constexpr( detail::is_zip_iterator<std::decay_t<Iter>>::value )
         return Backend::apply(
-            []( auto &&... iter ) { return Backend::cuda::make_zip_iterator( device_iterator_cast( iter )... ); }, it.get() );
+            []( auto &&... iter ) { return Backend::cuda::make_zip_iterator( device_iterator_cast( iter )... ); },
+            it.get() );
     else if constexpr( detail::is_field_iterator<std::decay_t<Iter>>::value )
         return raw_pointer_cast( it );
     else

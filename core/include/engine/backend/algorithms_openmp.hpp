@@ -171,7 +171,8 @@ ForwardIt3 transform(
 
 template<typename ForwardIt, typename T, typename BinaryReductionOp, typename UnaryOp>
 T transform_reduce(
-    const ::execution::par_t & exec, ForwardIt first, ForwardIt last, T init, BinaryReductionOp reduce, UnaryOp unary_op )
+    const ::execution::par_t & exec, ForwardIt first, ForwardIt last, T init, BinaryReductionOp reduce,
+    UnaryOp unary_op )
 {
     return Backend::cpu::detail::transform_reduce_n(
         exec, first, std::distance( first, last ), init, reduce, unary_op );

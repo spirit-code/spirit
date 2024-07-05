@@ -1,10 +1,10 @@
 #pragma once
 
-#include <engine/backend/Zip_Iterator.hpp>
 #include <Spirit/Spirit_Defines.h>
 #include <data/Parameters_Method_LLG.hpp>
 #include <data/Spin_System.hpp>
 #include <engine/Vectormath.hpp>
+#include <engine/backend/Zip_Iterator.hpp>
 #include <engine/spin/Method_Solver.hpp>
 #include <utility/Constants.hpp>
 
@@ -19,7 +19,7 @@ struct Method_LLG
 {
     constexpr Method_LLG() noexcept = default;
     constexpr Method_LLG( const int nos )
-            : temperature_distribution( nos, 0.0 ), xi( nos, Vector3::Zero() ), jacobians( nos, Matrix3::Zero() ){};
+            : temperature_distribution( nos, 0.0 ), xi( nos, Vector3::Zero() ), jacobians( nos, Matrix3::Zero() ) {};
 
     void Prepare_Thermal_Field( Data::Parameters_Method_LLG & parameters, const Data::Geometry & geometry )
     {

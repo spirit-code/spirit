@@ -827,25 +827,26 @@ bool RangeSliderFloat(
         display_format = "(%.3f, %.3f)";
     int decimal_precision = ImParseFormatPrecision( display_format, 3 );
 
-    const bool hovered = ImGui::ItemHoverable(frame_bb, id, g.LastItemData.InFlags);
-    bool temp_input_is_active = ImGui::TempInputIsActive(id);
-    if (!temp_input_is_active)
+    const bool hovered        = ImGui::ItemHoverable( frame_bb, id, g.LastItemData.InFlags );
+    bool temp_input_is_active = ImGui::TempInputIsActive( id );
+    if( !temp_input_is_active )
     {
         // Tabbing or CTRL-clicking on Slider turns it into an input box
-        const bool clicked = hovered && ImGui::IsMouseClicked(0, id);
-        const bool make_active = (clicked || g.NavActivateId == id);
-        if (make_active && clicked)
-            ImGui::SetKeyOwner(ImGuiKey_MouseLeft, id);
-        if (make_active)
-            if ((clicked && g.IO.KeyCtrl) || (g.NavActivateId == id && (g.NavActivateFlags & ImGuiActivateFlags_PreferInput)))
+        const bool clicked     = hovered && ImGui::IsMouseClicked( 0, id );
+        const bool make_active = ( clicked || g.NavActivateId == id );
+        if( make_active && clicked )
+            ImGui::SetKeyOwner( ImGuiKey_MouseLeft, id );
+        if( make_active )
+            if( ( clicked && g.IO.KeyCtrl )
+                || ( g.NavActivateId == id && ( g.NavActivateFlags & ImGuiActivateFlags_PreferInput ) ) )
                 temp_input_is_active = true;
 
-        if (make_active && !temp_input_is_active)
+        if( make_active && !temp_input_is_active )
         {
-            ImGui::SetActiveID(id, window);
-            ImGui::SetFocusID(id, window);
-            ImGui::FocusWindow(window);
-            g.ActiveIdUsingNavDirMask |= (1 << ImGuiDir_Left) | (1 << ImGuiDir_Right);
+            ImGui::SetActiveID( id, window );
+            ImGui::SetFocusID( id, window );
+            ImGui::FocusWindow( window );
+            g.ActiveIdUsingNavDirMask |= ( 1 << ImGuiDir_Left ) | ( 1 << ImGuiDir_Right );
         }
     }
 

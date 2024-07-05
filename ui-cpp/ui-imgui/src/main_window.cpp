@@ -142,7 +142,7 @@ void MainWindow::handle_mouse()
 #ifdef __APPLE__
     bool ctrl = io.KeySuper;
 #else
-    bool ctrl    = io.KeyCtrl;
+    bool ctrl = io.KeyCtrl;
 #endif
 
 #if defined( __APPLE__ )
@@ -299,7 +299,7 @@ void MainWindow::handle_keyboard()
 #ifdef __APPLE__
     bool ctrl = io.KeySuper;
 #else
-    bool ctrl    = io.KeyCtrl;
+    bool ctrl = io.KeyCtrl;
 #endif
 
     if( ctrl && io.KeyShift )
@@ -434,8 +434,8 @@ void MainWindow::handle_keyboard()
 
         if( ImGui::IsKeyDown( ImGuiKey_F ) && !ImGui::IsKeyDown( ImGuiKey_H ) )
         {
-            move_camera    = true;
-            dx             = scale;
+            move_camera = true;
+            dx          = scale;
         }
         else if( ImGui::IsKeyDown( ImGuiKey_H ) && !ImGui::IsKeyDown( ImGuiKey_F ) )
         {

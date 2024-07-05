@@ -20,7 +20,7 @@ class OrderedLock
     bool locked_;
 
 public:
-    OrderedLock() : locked_( false ){};
+    OrderedLock() : locked_( false ) {};
 
     void lock()
     {

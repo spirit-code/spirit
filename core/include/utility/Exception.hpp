@@ -48,7 +48,7 @@ public:
         Exception_Classifier classifier, Log_Level level, const std::string & message, const char * file,
         unsigned int line, const char * function ) noexcept( false )
             : std::runtime_error(
-                fmt::format( "{}:{} in function \'{}\':\n{:>49}{}", file, line, function, " ", message ) ),
+                  fmt::format( "{}:{} in function \'{}\':\n{:>49}{}", file, line, function, " ", message ) ),
               classifier( classifier ),
               level( level ),
               file( file ),

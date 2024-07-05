@@ -324,13 +324,12 @@ void Method_GNEB<solver>::Calculate_Force(
             auto spring_constant = ( ( img == 0 ) ? 1.0 : -1.0 ) * this->chain->gneb_parameters->spring_constant;
             auto projection      = Vectormath::dot( F_gradient[img], tangents[img] );
 
-            const auto * F_translation
-                = ( img == 0 ) ? F_translation_left.data() : F_translation_right.data();
-            const auto tangent_coeff = spring_constant * ( delta_Rx - delta_Rx0 );
-            const auto * F_grad      = F_gradient[img].data();
-            const auto * tang        = tangents[img].data();
-            auto * F_tot             = F_total[img].data();
-            auto * force             = forces[img].data();
+            const auto * F_translation = ( img == 0 ) ? F_translation_left.data() : F_translation_right.data();
+            const auto tangent_coeff   = spring_constant * ( delta_Rx - delta_Rx0 );
+            const auto * F_grad        = F_gradient[img].data();
+            const auto * tang          = tangents[img].data();
+            auto * F_tot               = F_total[img].data();
+            auto * force               = forces[img].data();
 
             Backend::for_each_n(
                 SPIRIT_PAR Backend::make_counting_iterator( 0 ), nos,
@@ -516,24 +515,23 @@ void Method_GNEB<solver>::Finalize()
 template<Solver solver>
 void Method_GNEB<solver>::Message_Block_Start( std::vector<std::string> & block )
 {
-        scalar length = Manifoldmath::dist_geodesic( *this->configurations[0], *this->configurations[this->noi - 1] );
-        block.emplace_back( fmt::format( "    Total path length: {}", length ) );
+    scalar length = Manifoldmath::dist_geodesic( *this->configurations[0], *this->configurations[this->noi - 1] );
+    block.emplace_back( fmt::format( "    Total path length: {}", length ) );
 }
 
 template<Solver solver>
 void Method_GNEB<solver>::Message_Block_Step( std::vector<std::string> & block )
 {
-        scalar length = Manifoldmath::dist_geodesic( *this->configurations[0], *this->configurations[this->noi - 1] );
-        block.emplace_back( fmt::format( "    Total path length: {}", length ) );
+    scalar length = Manifoldmath::dist_geodesic( *this->configurations[0], *this->configurations[this->noi - 1] );
+    block.emplace_back( fmt::format( "    Total path length: {}", length ) );
 }
 
 template<Solver solver>
 void Method_GNEB<solver>::Message_Block_End( std::vector<std::string> & block )
 {
-        scalar length = Manifoldmath::dist_geodesic( *this->configurations[0], *this->configurations[this->noi - 1] );
-        block.emplace_back( fmt::format( "    Total path length: {}", length ) );
+    scalar length = Manifoldmath::dist_geodesic( *this->configurations[0], *this->configurations[this->noi - 1] );
+    block.emplace_back( fmt::format( "    Total path length: {}", length ) );
 }
-
 
 template<Solver solver>
 void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bool initial, bool final )

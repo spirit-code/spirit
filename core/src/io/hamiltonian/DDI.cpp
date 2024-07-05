@@ -63,4 +63,4 @@ void DDI_from_Config(
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_pb_zero_padding", ddi_pb_zero_padding ) );
 }
 
-}
+} // namespace IO

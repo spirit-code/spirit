@@ -68,8 +68,8 @@ public:
     }
 
     virtual void show_content() = 0;
-    virtual void hook_pre_show(){};
-    virtual void hook_post_show(){};
+    virtual void hook_pre_show() {};
+    virtual void hook_post_show() {};
 
 private:
     ImGuiID get_root_dock_node_id();

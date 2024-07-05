@@ -23,8 +23,7 @@ DebugWidget::DebugWidget( std::shared_ptr<State> state )
 
     // Connect Signals
     connect(
-        this->comboBox_ShowLevel,
-        static_cast<void ( QComboBox::* )( int )>( &QComboBox::currentIndexChanged ), this,
+        this->comboBox_ShowLevel, static_cast<void ( QComboBox::* )( int )>( &QComboBox::currentIndexChanged ), this,
         &DebugWidget::LoadFromLog );
     connect( this->pushButton_All, &QPushButton::clicked, this, &DebugWidget::AllPressed );
     connect( this->checkBox_IO, &QCheckBox::stateChanged, this, &DebugWidget::LoadFromLog );

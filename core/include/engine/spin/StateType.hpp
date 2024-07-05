@@ -34,7 +34,7 @@ using StateType = vectorfield;
 using StatePtr  = Vector3 *;
 using StateCPtr = const Vector3 *;
 
-}
+} // namespace Spin
 
 template<typename state_type>
 struct state_traits;
@@ -42,17 +42,18 @@ struct state_traits;
 template<>
 struct state_traits<Spin::StateType>
 {
-    using type            = Spin::StateType;
-    using pointer         = Spin::StateType::pointer;
-    using const_pointer   = Spin::StateType::const_pointer;
+    using type          = Spin::StateType;
+    using pointer       = Spin::StateType::pointer;
+    using const_pointer = Spin::StateType::const_pointer;
 };
 
 template<typename state_t>
 state_t make_state( int nos );
 
 template<>
-inline Spin::StateType make_state( int nos ){
+inline Spin::StateType make_state( int nos )
+{
     return vectorfield( nos );
 };
 
-}
+} // namespace Engine

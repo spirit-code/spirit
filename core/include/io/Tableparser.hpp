@@ -54,8 +54,8 @@ public:
     using read_row_t = std::tuple<Args...>;
     using labels_t   = std::array<std::string_view, n_columns>;
 
-    constexpr TableParser( labels_t && labels ) : labels( std::forward<labels_t>( labels ) ){};
-    constexpr TableParser( const labels_t & labels ) : labels( labels ){};
+    constexpr TableParser( labels_t && labels ) : labels( std::forward<labels_t>( labels ) ) {};
+    constexpr TableParser( const labels_t & labels ) : labels( labels ) {};
 
     template<typename... InitArgs, typename = std::enable_if_t<std::is_constructible_v<labels_t, InitArgs &&...>>>
     constexpr explicit TableParser( InitArgs &&... labels ) : labels( std::forward<InitArgs>( labels )... )

@@ -57,7 +57,7 @@ private:
     void Message_Block_Step( std::vector<std::string> & block ) override;
     void Message_Block_End( std::vector<std::string> & block ) override;
 
-    std::vector<Common::Method_LLG<common_solver(solver)>> common_methods;
+    std::vector<Common::Method_LLG<common_solver( solver )>> common_methods;
 
     // Last calculated forces
     std::vector<vectorfield> Gradient;

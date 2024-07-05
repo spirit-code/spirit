@@ -38,7 +38,7 @@ struct DDI
                 : method( method ),
                   cutoff_radius( cutoff_radius ),
                   pb_zero_padding( pb_zero_padding ),
-                  n_periodic_images( std::move( n_periodic_images ) ){};
+                  n_periodic_images( std::move( n_periodic_images ) ) {};
     };
 
     struct Cache

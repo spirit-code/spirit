@@ -52,6 +52,7 @@ template<typename Hamiltonian>
 class Spin_System_Chain
 {
     using system_t = Spin_System<Hamiltonian>;
+
 public:
     // Constructor
     Spin_System_Chain(

@@ -29,7 +29,7 @@ struct Anisotropy
         Data( intfield indices, scalarfield magnitudes, vectorfield normals )
                 : indices( std::move( indices ) ),
                   magnitudes( std::move( magnitudes ) ),
-                  normals( std::move( normals ) ){};
+                  normals( std::move( normals ) ) {};
     };
 
     static bool valid_data( const Data & data )
@@ -105,7 +105,7 @@ struct Functor::Local::DataRef<Anisotropy>
     DataRef( const Data & data, const Cache & cache ) noexcept
             : is_contributing( Interaction::is_contributing( data, cache ) ),
               normals( data.normals.data() ),
-              magnitudes( data.magnitudes.data() ){};
+              magnitudes( data.magnitudes.data() ) {};
 
     const bool is_contributing;
 

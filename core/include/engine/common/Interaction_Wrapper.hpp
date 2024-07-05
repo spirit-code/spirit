@@ -36,8 +36,8 @@ struct InteractionWrapper
     template<typename AdaptorType>
     friend class StandaloneFactory;
 
-    explicit InteractionWrapper( typename InteractionType::Data && init_data ) : data( init_data ), cache(){};
-    explicit InteractionWrapper( const typename InteractionType::Data & init_data ) : data( init_data ), cache(){};
+    explicit InteractionWrapper( typename InteractionType::Data && init_data ) : data( init_data ), cache() {};
+    explicit InteractionWrapper( const typename InteractionType::Data & init_data ) : data( init_data ), cache() {};
 
     // applyGeometry
     void applyGeometry( const ::Data::Geometry & geometry, const intfield & boundary_conditions )

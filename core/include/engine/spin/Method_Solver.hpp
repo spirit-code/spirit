@@ -102,10 +102,12 @@ protected:
 
     virtual void Prepare_Thermal_Field() = 0;
     virtual void Calculate_Force(
-        const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces ) = 0;
+        const std::vector<std::shared_ptr<vectorfield>> & configurations, std::vector<vectorfield> & forces )
+        = 0;
     virtual void Calculate_Force_Virtual(
         const std::vector<std::shared_ptr<vectorfield>> & configurations, const std::vector<vectorfield> & forces,
-        std::vector<vectorfield> & forces_virtual ) = 0;
+        std::vector<vectorfield> & forces_virtual )
+        = 0;
     // Actual Forces on the configurations
     std::vector<vectorfield> forces;
     // Virtual Forces used in the Steps
@@ -119,10 +121,10 @@ template<Solver solver>
 class SolverData : public SolverMethods
 {
 protected:
-    using SolverMethods::SolverMethods;
-    using SolverMethods::Prepare_Thermal_Field;
     using SolverMethods::Calculate_Force;
     using SolverMethods::Calculate_Force_Virtual;
+    using SolverMethods::Prepare_Thermal_Field;
+    using SolverMethods::SolverMethods;
 };
 
 /*
@@ -224,7 +226,6 @@ protected:
     virtual void Message_Block_End( std::vector<std::string> & block );
 
     std::vector<std::shared_ptr<system_t>> systems;
-
 };
 
 template<Solver solver>
@@ -238,11 +239,11 @@ bool Method_Solver<solver>::Converged()
 
 // Default implementation: do nothing
 template<Solver solver>
-void Method_Solver<solver>::Initialize(){};
+void Method_Solver<solver>::Initialize() {};
 
 // Default implementation: do nothing
 template<Solver solver>
-void Method_Solver<solver>::Finalize(){};
+void Method_Solver<solver>::Finalize() {};
 
 template<Solver solver>
 void Method_Solver<solver>::lock()
@@ -265,7 +266,7 @@ bool Method_Solver<solver>::Iterations_Allowed()
 
 // Default implementation: do nothing
 template<Solver solver>
-void Method_Solver<solver>::Iteration(){};
+void Method_Solver<solver>::Iteration() {};
 
 template<Solver solver>
 void Method_Solver<solver>::Message_Start()
@@ -280,8 +281,8 @@ void Method_Solver<solver>::Message_Start()
     block.emplace_back( fmt::format(
         fmt::format( "    Force convergence parameter: {{:.{}f}}", Method::print_precision ),
         this->parameters->force_convergence ) );
-    block.emplace_back(
-        fmt::format( fmt::format( "    Maximum torque:              {{:.{}f}}", Method::print_precision ), this->max_torque ) );
+    block.emplace_back( fmt::format(
+        fmt::format( "    Maximum torque:              {{:.{}f}}", Method::print_precision ), this->max_torque ) );
     block.emplace_back( fmt::format( "    Solver: {}", this->SolverFullName() ) );
     // solver specific message
     this->Message_Block_Start( block );
@@ -330,8 +331,8 @@ void Method_Solver<solver>::Message_Step()
     block.emplace_back( fmt::format(
         fmt::format( "    Force convergence parameter: {{:.{}f}}", Method::print_precision ),
         this->parameters->force_convergence ) );
-    block.emplace_back(
-        fmt::format( fmt::format( "    Maximum torque:              {{:.{}f}}", Method::print_precision ), this->max_torque ) );
+    block.emplace_back( fmt::format(
+        fmt::format( "    Maximum torque:              {{:.{}f}}", Method::print_precision ), this->max_torque ) );
     Log( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );
 
     // Update time of last step
@@ -372,8 +373,8 @@ void Method_Solver<solver>::Message_End()
     block.emplace_back( fmt::format(
         fmt::format( "    Force convergence parameter: {{:.{}f}}", Method::print_precision ),
         this->parameters->force_convergence ) );
-    block.emplace_back(
-        fmt::format( fmt::format( "    Maximum torque:              {{:.{}f}}", Method::print_precision ), this->max_torque ) );
+    block.emplace_back( fmt::format(
+        fmt::format( "    Maximum torque:              {{:.{}f}}", Method::print_precision ), this->max_torque ) );
     block.emplace_back( fmt::format( "    Solver: {}", this->SolverFullName() ) );
     block.emplace_back( "-----------------------------------------------------" );
     Log( Log_Level::All, this->SenderName, block, this->idx_image, this->idx_chain );

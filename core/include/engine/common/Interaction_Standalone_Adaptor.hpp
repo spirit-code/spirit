@@ -1,7 +1,7 @@
 #pragma once
 
-#include <engine/common/StateType.hpp>
 #include <engine/common/Interaction_Wrapper.hpp>
+#include <engine/common/StateType.hpp>
 
 namespace Engine
 {
@@ -66,7 +66,7 @@ public:
 
 protected:
     StandaloneAdaptor_NonLocal( const Data & data, Cache & cache ) noexcept
-            : AdaptorInterface(), data( data ), cache( cache ){};
+            : AdaptorInterface(), data( data ), cache( cache ) {};
 
     const Data & data;
     Cache & cache;
@@ -88,7 +88,7 @@ public:
     scalar Energy( const state_t & state ) final
     {
         using std::begin, std::end;
-        auto functor           = typename InteractionType::Energy( data, cache );
+        auto functor                                            = typename InteractionType::Energy( data, cache );
         typename state_traits<state_t>::const_pointer state_ptr = state.data();
         return Backend::transform_reduce(
             SPIRIT_PAR indices.begin(), indices.end(), scalar( 0.0 ), Backend::plus<scalar>{},
@@ -99,7 +99,7 @@ public:
     void Energy_per_Spin( const state_t & state, scalarfield & energy_per_spin ) final
     {
         using std::begin, std::end;
-        auto functor           = typename InteractionType::Energy( data, cache );
+        auto functor                                            = typename InteractionType::Energy( data, cache );
         typename state_traits<state_t>::const_pointer state_ptr = state.data();
         Backend::transform(
             SPIRIT_PAR indices.begin(), indices.end(), energy_per_spin.begin(),
@@ -121,7 +121,7 @@ public:
 
 protected:
     StandaloneAdaptor_Local( const Data & data, Cache & cache, const IndexVector & indices ) noexcept
-            : AdaptorInterface(), data( data ), cache( cache ), indices( indices ){};
+            : AdaptorInterface(), data( data ), cache( cache ), indices( indices ) {};
 
     // all member variables must be read only to avoid race conditions in the parallelized Backend
     const Data & data;

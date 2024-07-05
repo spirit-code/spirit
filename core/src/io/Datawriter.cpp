@@ -137,7 +137,8 @@ void Write_Energy_Header(
 }
 
 void Append_Image_Energy(
-    const Data::System_Energy & E, const Data::Geometry & geometry, const int iteration, const std::string & filename, Flags flags )
+    const Data::System_Energy & E, const Data::Geometry & geometry, const int iteration, const std::string & filename,
+    Flags flags )
 {
     verify_flags( flags, Flag::Readability | Flag::Normalize_by_nos, __func__ );
 
@@ -159,7 +160,8 @@ void Append_Image_Energy(
     append_to_file( line, filename );
 }
 
-void Write_Image_Energy( const Data::System_Energy & E, const Data::Geometry & geometry, const std::string & filename, Flags flags )
+void Write_Image_Energy(
+    const Data::System_Energy & E, const Data::Geometry & geometry, const std::string & filename, Flags flags )
 {
     verify_flags( flags, Flag::Readability | Flag::Normalize_by_nos, __func__ );
 

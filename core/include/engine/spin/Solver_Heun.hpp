@@ -79,8 +79,8 @@ inline void Method_Solver<Solver::Heun>::Iteration()
     {
         // Second Step - Corrector
         Solver_Kernels::heun_corrector(
-            this->forces_virtual_predictor[i], *this->delta_configurations[i],
-            *this->configurations_predictor[i], *this->configurations[i] );
+            this->forces_virtual_predictor[i], *this->delta_configurations[i], *this->configurations_predictor[i],
+            *this->configurations[i] );
     }
 }
 

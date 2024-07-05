@@ -1,6 +1,6 @@
 #include <io/IO.hpp>
-#include <utility/Logging.hpp>
 #include <utility/Exception.hpp>
+#include <utility/Logging.hpp>
 
 #include <fmt/format.h>
 

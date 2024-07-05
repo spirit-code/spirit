@@ -321,8 +321,7 @@ void Energy_per_Spin_FFT(
     Vectormath::fill( gradients_temp, { 0, 0, 0 } );
     Gradient_FFT( geometry, boundary_conditions, cache, spins, gradients_temp );
     CU_E_DDI_FFT<<<( geometry.nos + 1023 ) / 1024, 1024>>>(
-        energy.data(), spins.data(), gradients_temp.data(),
-        geometry.nos, geometry.n_cell_atoms, geometry.mu_s.data() );
+        energy.data(), spins.data(), gradients_temp.data(), geometry.nos, geometry.n_cell_atoms, geometry.mu_s.data() );
 
     // === DEBUG: begin gradient comparison ===
     // vectorfield gradients_temp_dir;
@@ -462,8 +461,7 @@ void Gradient_FFT(
     // TODO: also parallelize over i_b1
     // Loop over basis atoms (i.e sublattices) and add contribution of each sublattice
     CU_FFT_Pointwise_Mult<<<( spins.size() + 1023 ) / 1024, 1024>>>(
-        ft_D_matrices.data(), ft_spins.data(),
-        res_mult.data(), cache.it_bounds_pointwise_mult.data(),
+        ft_D_matrices.data(), ft_spins.data(), res_mult.data(), cache.it_bounds_pointwise_mult.data(),
         cache.inter_sublattice_lookup.data(), cache.dipole_stride, cache.spin_stride );
     // cudaDeviceSynchronize();
     // std::cerr << "\n\n>>>>>>>>>>>  Pointwise_Mult       <<<<<<<<<\n";
@@ -474,9 +472,8 @@ void Gradient_FFT(
     FFT::batch_iFour_3D( cache.fft_plan_reverse );
 
     CU_Write_FFT_Gradients<<<( geometry.nos + 1023 ) / 1024, 1024>>>(
-        res_iFFT.data(), gradient.data(), cache.spin_stride,
-        cache.it_bounds_write_gradients.data(), geometry.n_cell_atoms,
-        geometry.mu_s.data(), cache.sublattice_size );
+        res_iFFT.data(), gradient.data(), cache.spin_stride, cache.it_bounds_write_gradients.data(),
+        geometry.n_cell_atoms, geometry.mu_s.data(), cache.sublattice_size );
 #else
     // Size of original geometry
     int Na = geometry.n_cells[0];
@@ -541,7 +538,7 @@ void Gradient_FFT(
                     }
                 }
             } // end iteration over padded lattice cells
-        }     // end iteration over second sublattice
+        } // end iteration over second sublattice
     }
 
     // Inverse Fourier Transform
@@ -659,8 +656,7 @@ void FFT_Spins(
 {
 #ifdef SPIRIT_USE_CUDA
     CU_Write_FFT_Spin_Input<<<( geometry.nos + 1023 ) / 1024, 1024>>>(
-        fft_plan.real_ptr.data(), spins.data(),
-        it_bounds_write_spins.data(), spin_stride, geometry.mu_s.data() );
+        fft_plan.real_ptr.data(), spins.data(), it_bounds_write_spins.data(), spin_stride, geometry.mu_s.data() );
 #else
     // size of original geometry
     const int Na           = geometry.n_cells[0];
@@ -796,9 +792,8 @@ void FFT_Dipole_Matrices(
 
     static constexpr int blockSize = 768;
     CU_Write_FFT_Dipole_Input<<<( cache.sublattice_size + blockSize - 1 ) / blockSize, blockSize>>>(
-        fft_dipole_inputs.data(), cache.it_bounds_write_dipole.data(),
-        translation_vectors.data(), geometry.n_cell_atoms,
-        cell_atom_translations.data(), geometry.n_cells.data(),
+        fft_dipole_inputs.data(), cache.it_bounds_write_dipole.data(), translation_vectors.data(),
+        geometry.n_cell_atoms, cell_atom_translations.data(), geometry.n_cells.data(),
         cache.inter_sublattice_lookup.data(), img.data(), cache.dipole_stride );
 #else
     // Prefactor of DDI
