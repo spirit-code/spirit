@@ -27,7 +27,7 @@ namespace Spin
 Method_EMA::Method_EMA( std::shared_ptr<system_t> system, int idx_img, int idx_chain )
         : Method( system->ema_parameters, idx_img, idx_chain )
 {
-    this->system         =  system;
+    this->system         = system;
     this->SenderName     = Log_Sender::EMA;
     this->parameters_ema = system->ema_parameters;
 
@@ -131,11 +131,13 @@ void Method_EMA::Message_Step() {}
 
 void Method_EMA::Message_End() {}
 
-void Method_EMA::lock(){
+void Method_EMA::lock()
+{
     this->system->lock();
 }
 
-void Method_EMA::unlock(){
+void Method_EMA::unlock()
+{
     this->system->unlock();
 }
 

@@ -33,10 +33,12 @@ struct DMI
 
         Data() = default;
         Data( pairfield pairs, scalarfield magnitudes, vectorfield normals )
-                : pairs( std::move( pairs ) ), magnitudes( std::move( magnitudes ) ), normals( std::move( normals ) ){};
+                : pairs( std::move( pairs ) ),
+                  magnitudes( std::move( magnitudes ) ),
+                  normals( std::move( normals ) ) {};
 
         Data( scalarfield shell_magnitudes, int shell_chirality )
-                : shell_magnitudes( std::move( shell_magnitudes ) ), shell_chirality( shell_chirality ){};
+                : shell_magnitudes( std::move( shell_magnitudes ) ), shell_chirality( shell_chirality ) {};
     };
 
     static bool valid_data( const Data & data )

@@ -31,9 +31,9 @@ struct Exchange
 
         Data() = default;
         Data( pairfield pairs, scalarfield magnitudes )
-                : pairs( std::move( pairs ) ), magnitudes( std::move( magnitudes ) ){};
+                : pairs( std::move( pairs ) ), magnitudes( std::move( magnitudes ) ) {};
 
-        Data( scalarfield shell_magnitudes ) : shell_magnitudes( std::move( shell_magnitudes ) ){};
+        Data( scalarfield shell_magnitudes ) : shell_magnitudes( std::move( shell_magnitudes ) ) {};
     };
 
     static bool valid_data( const Data & data )
@@ -136,8 +136,7 @@ struct Functor::Local::DataRef<Exchange>
     using Cache       = typename Interaction::Cache;
 
     DataRef( const Data & data, const Cache & cache ) noexcept
-            : is_contributing( Interaction::is_contributing( data, cache ) ),
-              magnitudes( cache.magnitudes.data() )
+            : is_contributing( Interaction::is_contributing( data, cache ) ), magnitudes( cache.magnitudes.data() )
     {
     }
 

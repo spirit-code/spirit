@@ -31,7 +31,7 @@ public:
 
     constexpr Span() noexcept = default;
 
-    constexpr Span( T * data, size_type size ) noexcept : data_( data ), size_( size ){};
+    constexpr Span( T * data, size_type size ) noexcept : data_( data ), size_( size ) {};
 
     template<typename Iterator>
     constexpr Span( Iterator begin, size_type size ) noexcept : data_( std::addressof( *begin ) ), size_( size ){};

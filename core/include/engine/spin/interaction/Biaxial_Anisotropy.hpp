@@ -37,7 +37,7 @@ struct Biaxial_Anisotropy
                 : indices( std::move( indices ) ),
                   bases( std::move( bases ) ),
                   site_p( std::move( site_p ) ),
-                  terms( std::move( terms ) ){};
+                  terms( std::move( terms ) ) {};
     };
 
     static bool valid_data( const Data & data )
@@ -115,7 +115,7 @@ struct Functor::Local::DataRef<Biaxial_Anisotropy>
             : is_contributing( Interaction::is_contributing( data, cache ) ),
               bases( data.bases.data() ),
               site_p( data.site_p.data() ),
-              terms( data.terms.data() ){};
+              terms( data.terms.data() ) {};
 
     const bool is_contributing;
 

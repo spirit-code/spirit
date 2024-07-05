@@ -206,12 +206,10 @@ TEST_CASE(
 }
 
 // Hamiltonians to be tested
-static constexpr std::array hamiltonian_input_files{
-    "core/test/input/fd_pairs.cfg",
-    "core/test/input/fd_neighbours.cfg",
-    // "core/test/input/fd_gaussian.cfg", // TODO: issue with precision
-    "core/test/input/fd_quadruplet.cfg"
-};
+static constexpr std::array hamiltonian_input_files{ "core/test/input/fd_pairs.cfg",
+                                                     "core/test/input/fd_neighbours.cfg",
+                                                     // "core/test/input/fd_gaussian.cfg", // TODO: issue with precision
+                                                     "core/test/input/fd_quadruplet.cfg" };
 
 TEST_CASE( "Finite difference and regular Hamiltonian should match", "[physics]" )
 {

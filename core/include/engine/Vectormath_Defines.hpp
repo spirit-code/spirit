@@ -53,12 +53,13 @@ struct has_zero_method
 {
 private:
     template<typename U>
-    static auto test(int) -> decltype(U::Zero(), std::true_type{});
+    static auto test( int ) -> decltype( U::Zero(), std::true_type{} );
 
     template<typename U>
-    static auto test(...) -> std::false_type;
+    static auto test( ... ) -> std::false_type;
+
 public:
-    static constexpr bool value = decltype(test<T>(0))::value;
+    static constexpr bool value = decltype( test<T>( 0 ) )::value;
 };
 
 // utility function to get a zero valued object of type T
@@ -69,7 +70,7 @@ SPIRIT_HOSTDEVICE T zero_value() noexcept
     if constexpr( has_zero_method<T>::value )
         return T::Zero();
     else if constexpr( std::is_arithmetic<T>::value )
-        return T(0);
+        return T( 0 );
     else
         return T();
 }

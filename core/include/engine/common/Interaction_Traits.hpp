@@ -57,6 +57,6 @@ using has_bc_member = detail::has_bc_member<T>;
 
 } // namespace Interaction
 
-} // namespace Spin
+} // namespace Common
 
 } // namespace Engine

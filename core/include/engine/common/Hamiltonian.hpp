@@ -145,9 +145,9 @@ public:
     template<typename... DataTypes>
     Hamiltonian( Data::Geometry geometry, intfield boundary_conditions, DataTypes &&... data )
             : Hamiltonian(
-                geometry, boundary_conditions, local_indices{}, nonlocal_indices{},
-                std::make_tuple(
-                    Interaction::InteractionWrapper<InteractionTypes>( std::forward<DataTypes>( data ) )... ) ){};
+                  geometry, boundary_conditions, local_indices{}, nonlocal_indices{},
+                  std::make_tuple(
+                      Interaction::InteractionWrapper<InteractionTypes>( std::forward<DataTypes>( data ) )... ) ){};
 
     // rule of five, because we use pointers to the geometry and the boundary_conditions in the cache
     // this choice should keep the interfaces a bit cleaner and allow adding more global dependencies
@@ -238,7 +238,7 @@ public:
 
         Backend::cpu::transform(
             active.begin(), active.end(), contributions.begin(),
-            [&state, nos=geometry->nos]( const std::unique_ptr<InteractionAdaptorType> & interaction )
+            [&state, nos = geometry->nos]( const std::unique_ptr<InteractionAdaptorType> & interaction )
             {
                 scalarfield energy_per_spin( nos, 0.0 );
                 interaction->Energy_per_Spin( state, energy_per_spin );
@@ -361,13 +361,11 @@ public:
 
         Backend::apply(
             [this]( auto &... interaction ) -> void
-            { ( ..., interaction.applyGeometry( *geometry, boundary_conditions, index_storage ) ); },
-            local );
+            { ( ..., interaction.applyGeometry( *geometry, boundary_conditions, index_storage ) ); }, local );
 
         Backend::apply(
             [this]( auto &... interaction ) -> void
-            { ( ..., interaction.applyGeometry( *geometry, boundary_conditions ) ); },
-            nonlocal );
+            { ( ..., interaction.applyGeometry( *geometry, boundary_conditions ) ); }, nonlocal );
 
         updateIndexVector();
     }
@@ -385,8 +383,8 @@ public:
     };
 
     template<typename T>
-    [[nodiscard]] auto set_data( typename T::Data && data )
-        -> std::enable_if_t<hasInteraction<T>(), std::optional<std::string>>
+    [[nodiscard]] auto
+    set_data( typename T::Data && data ) -> std::enable_if_t<hasInteraction<T>(), std::optional<std::string>>
     {
         std::optional<std::string> error{};
 
@@ -519,8 +517,7 @@ private:
                 {
                     return Backend::apply(
                         []( const auto &... item )
-                        { return Backend::make_tuple( Interaction::make_index( item )... ); },
-                        storage );
+                        { return Backend::make_tuple( Interaction::make_index( item )... ); }, storage );
                 } );
         }
     };
@@ -684,7 +681,7 @@ public:
 
 protected:
     explicit constexpr HamiltonianVariant( Variant && hamiltonian ) noexcept
-            : hamiltonian( std::move( hamiltonian ) ){};
+            : hamiltonian( std::move( hamiltonian ) ) {};
 
     Variant hamiltonian;
 
@@ -694,7 +691,6 @@ private:
     {
         return static_cast<const Derived *>( this )->Name();
     }
-
 };
 
 } // namespace Common

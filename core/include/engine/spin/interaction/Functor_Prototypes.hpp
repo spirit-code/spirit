@@ -30,7 +30,7 @@ struct dense_hessian_wrapper
         hessian( i, j ) += value;
     }
 
-    constexpr explicit dense_hessian_wrapper( MatrixX & hessian ) : hessian( hessian ){};
+    constexpr explicit dense_hessian_wrapper( MatrixX & hessian ) : hessian( hessian ) {};
 
 private:
     MatrixX & hessian;
@@ -46,7 +46,7 @@ struct sparse_hessian_wrapper
         hessian.emplace_back( i, j, value );
     }
 
-    constexpr explicit sparse_hessian_wrapper( std::vector<triplet> & hessian ) : hessian( hessian ){};
+    constexpr explicit sparse_hessian_wrapper( std::vector<triplet> & hessian ) : hessian( hessian ) {};
 
 private:
     std::vector<triplet> & hessian;
@@ -64,7 +64,7 @@ struct DataRef
     using Data        = typename Interaction::Data;
     using Cache       = typename Interaction::Cache;
 
-    constexpr DataRef( const Data & data, Cache & cache ) noexcept : data( data ), cache( cache ){};
+    constexpr DataRef( const Data & data, Cache & cache ) noexcept : data( data ), cache( cache ) {};
 
     const Data & data;
     Cache & cache;
@@ -135,7 +135,7 @@ struct DataRef
     using Cache       = typename Interaction::Cache;
     using Index       = typename Interaction::Index;
 
-    constexpr DataRef( const Data & data, const Cache & cache ) noexcept : data( data ), cache( cache ){};
+    constexpr DataRef( const Data & data, const Cache & cache ) noexcept : data( data ), cache( cache ) {};
 
     const Data & data;
     const Cache & cache;

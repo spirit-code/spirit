@@ -39,4 +39,4 @@ void Zeeman_from_Config(
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "field_normal", normal.transpose() ) );
 }
 
-}
+} // namespace IO

@@ -9,13 +9,13 @@
 namespace IO
 {
 
-void Write_Neighbours_Exchange( const Engine::Spin::Interaction::Exchange::Cache & cache, const std::string & filename );
+void Write_Neighbours_Exchange(
+    const Engine::Spin::Interaction::Exchange::Cache & cache, const std::string & filename );
 
 void Write_Neighbours_DMI( const Engine::Spin::Interaction::DMI::Cache & cache, const std::string & filename );
 
 void Write_Energy_Header(
-    const Data::System_Energy & E, const std::string & filename,
-    const std::vector<std::string> && firstcolumns,
+    const Data::System_Energy & E, const std::string & filename, const std::vector<std::string> && firstcolumns,
     Flags flags = Flag::Contributions | Flag::Normalize_by_nos | Flag::Readability );
 
 // Appends the Energy of a spin system with energy contributions (without header)

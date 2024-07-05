@@ -1,9 +1,9 @@
 #pragma once
 
 #include <engine/Span.hpp>
-#include <engine/common/StateType.hpp>
 #include <engine/common/Interaction_Traits.hpp>
 #include <engine/common/Interaction_Wrapper.hpp>
+#include <engine/common/StateType.hpp>
 
 #include <type_traits>
 
@@ -42,8 +42,7 @@ auto tuple_dispatch( Backend::tuple<WrappedInteractionTypes...> & interactions )
 {
     return Backend::apply(
         []( WrappedInteractionTypes &... interaction )
-        { return Backend::make_tuple( Interaction::make_functor<FunctorAccessor>( interaction )... ); },
-        interactions );
+        { return Backend::make_tuple( Interaction::make_functor<FunctorAccessor>( interaction )... ); }, interactions );
 };
 
 template<typename... Functors, typename... Args>
@@ -51,16 +50,15 @@ void apply( Backend::tuple<Functors...> functors, Args &&... args )
 {
     Backend::apply(
         [args = Backend::tuple<Args...>( std::forward<Args>( args )... )]( const Functors &... functor ) -> void
-        { ( ..., Backend::apply( functor, args ) ); },
-        functors );
+        { ( ..., Backend::apply( functor, args ) ); }, functors );
 }
 
 template<typename... Functors, typename ReturnType, typename... Args>
 auto apply_reduce( Backend::tuple<Functors...> functors, ReturnType zero, Args &&... args ) -> ReturnType
 {
     return Backend::apply(
-        [zero, args = Backend::tuple<Args...>( std::forward<Args>( args )... )]( const Functors &... functor ) -> ReturnType
-        { return ( zero + ... + Backend::apply( functor, args ) ); },
+        [zero, args = Backend::tuple<Args...>( std::forward<Args>( args )... )](
+            const Functors &... functor ) -> ReturnType { return ( zero + ... + Backend::apply( functor, args ) ); },
         functors );
 }
 
@@ -75,8 +73,9 @@ struct transform_op
             {
                 return (
                     zero + ... +
-                    [this, &index]( const Functors & functor )
-                    { return functor( Backend::get<typename Functors::Interaction::Index>( index ), state ); }( functor ) );
+                    [this, &index]( const Functors & functor ) {
+                        return functor( Backend::get<typename Functors::Interaction::Index>( index ), state );
+                    }( functor ) );
             },
             functors );
     };
@@ -84,7 +83,7 @@ struct transform_op
     constexpr transform_op( Backend::tuple<Functors...> && functors, ReturnType zero, const state_t & state ) noexcept(
         std::is_nothrow_move_constructible_v<Backend::tuple<Functors...>>
         && std::is_nothrow_copy_constructible_v<ReturnType> )
-            : functors( std::move( functors ) ), state( state.data() ), zero( zero ){};
+            : functors( std::move( functors ) ), state( state.data() ), zero( zero ) {};
 
 private:
     Backend::tuple<Functors...> functors;
@@ -109,9 +108,10 @@ struct for_each_op
             functors );
     };
 
-    constexpr for_each_op( Backend::tuple<Functors...> && functors, const state_t & state, UnaryOp & unary_op ) noexcept(
-        std::is_nothrow_move_constructible_v<Backend::tuple<Functors...>> )
-            : functors( std::move( functors ) ), state( state ), unary_op( unary_op ){};
+    constexpr for_each_op(
+        Backend::tuple<Functors...> && functors, const state_t & state,
+        UnaryOp & unary_op ) noexcept( std::is_nothrow_move_constructible_v<Backend::tuple<Functors...>> )
+            : functors( std::move( functors ) ), state( state ), unary_op( unary_op ) {};
 
 private:
     Backend::tuple<Functors...> functors;
@@ -121,6 +121,6 @@ private:
 
 } // namespace Functor
 
-} // namespace Spin
+} // namespace Common
 
 } // namespace Engine

@@ -145,8 +145,8 @@ private:
 template<
     typename UnaryOp, typename InputIt,
     typename Value = decltype( std::declval<UnaryOp>()( *std::declval<InputIt>() ) )>
-[[nodiscard]] SPIRIT_HOSTDEVICE constexpr auto make_transform_iterator( InputIt iter, UnaryOp unary_op )
-    -> transform_iterator<Value, UnaryOp, InputIt>
+[[nodiscard]] SPIRIT_HOSTDEVICE constexpr auto
+make_transform_iterator( InputIt iter, UnaryOp unary_op ) -> transform_iterator<Value, UnaryOp, InputIt>
 {
     return transform_iterator<Value, UnaryOp, InputIt>( iter, unary_op );
 }

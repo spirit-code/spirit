@@ -53,7 +53,7 @@ public:
     template<typename AdaptorType>
     friend class Common::Interaction::StandaloneFactory;
 
-    StandaloneAdaptor_NonLocal( constructor_tag, const Data & data, Cache & cache ) noexcept : base_t( data, cache ){};
+    StandaloneAdaptor_NonLocal( constructor_tag, const Data & data, Cache & cache ) noexcept : base_t( data, cache ) {};
 
     void Gradient( const state_t & state, vectorfield & gradient ) final
     {
@@ -95,7 +95,7 @@ public:
     friend class Common::Interaction::StandaloneFactory;
 
     StandaloneAdaptor_Local( constructor_tag, const Data & data, Cache & cache, const IndexVector & indices ) noexcept
-            : base_t( data, cache, indices ){};
+            : base_t( data, cache, indices ) {};
 
     void Gradient( const state_t & state, vectorfield & gradient ) final
     {
@@ -138,8 +138,8 @@ public:
     constexpr StandaloneFactory() = default;
 
     template<typename InteractionType>
-    static auto make_standalone( InteractionWrapper<InteractionType> & interaction ) noexcept
-        -> std::unique_ptr<AdaptorType>
+    static auto
+    make_standalone( InteractionWrapper<InteractionType> & interaction ) noexcept -> std::unique_ptr<AdaptorType>
     {
         static_assert(
             !is_local<InteractionType>::value, "interaction type for non-local standalone adaptor must be non-local" );

@@ -60,6 +60,6 @@ auto within_digits( T value, int decimals_required_equal )
     return Catch::Matchers::WithinAbs( value, std::pow( 10, -using_decimals ) );
 }
 
-} // namespace Matchers
+} // namespace CustomMatchers
 
 } // namespace Catch

@@ -15,10 +15,10 @@ template<>
 class SolverData<Solver::LBFGS_OSO> : public SolverMethods
 {
 protected:
-    using SolverMethods::SolverMethods;
-    using SolverMethods::Prepare_Thermal_Field;
     using SolverMethods::Calculate_Force;
     using SolverMethods::Calculate_Force_Virtual;
+    using SolverMethods::Prepare_Thermal_Field;
+    using SolverMethods::SolverMethods;
     // General
     static constexpr int n_lbfgs_memory = 3; // how many previous iterations are stored in the memory
     static constexpr scalar maxmove     = Utility::Constants::Pi / 200.0;

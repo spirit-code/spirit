@@ -25,7 +25,7 @@ struct Quadruplet
         scalarfield magnitudes;
 
         Data( quadrupletfield quadruplets, scalarfield magnitudes )
-                : quadruplets( std::move( quadruplets ) ), magnitudes( std::move( magnitudes ) ){};
+                : quadruplets( std::move( quadruplets ) ), magnitudes( std::move( magnitudes ) ) {};
     };
 
     static bool valid_data( const Data & data )
@@ -184,8 +184,12 @@ void Quadruplet::Hessian::operator()( const Index & index, const vectorfield & s
 #pragma unroll
                 for( int beta = 0; beta < 3; ++beta )
                 {
-                    hessian( 3 * ispin + alpha, 3 * kspin + beta, -magnitudes[iquad] * spins[jspin][alpha] * spins[lspin][beta] );
-                    hessian( 3 * ispin + alpha, 3 * lspin + beta, -magnitudes[iquad] * spins[jspin][alpha] * spins[kspin][beta] );
+                    hessian(
+                        3 * ispin + alpha, 3 * kspin + beta,
+                        -magnitudes[iquad] * spins[jspin][alpha] * spins[lspin][beta] );
+                    hessian(
+                        3 * ispin + alpha, 3 * lspin + beta,
+                        -magnitudes[iquad] * spins[jspin][alpha] * spins[kspin][beta] );
                 }
             }
         } );

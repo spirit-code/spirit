@@ -43,8 +43,8 @@ struct Flags
     using value_type = unsigned int;
 
     constexpr Flags() noexcept = default;
-    constexpr Flags( Flag flag ) noexcept : m_value( flag ){};
-    constexpr Flags( value_type flags ) noexcept : m_value( flags ){};
+    constexpr Flags( Flag flag ) noexcept : m_value( flag ) {};
+    constexpr Flags( value_type flags ) noexcept : m_value( flags ) {};
 
     constexpr operator bool() const
     {

@@ -1,6 +1,6 @@
 #include <data/State.hpp>
-#include <engine/Vectormath.hpp>
 #include <engine/StateType.hpp>
+#include <engine/Vectormath.hpp>
 #include <utility/Configuration_Chain.hpp>
 #include <utility/Configurations.hpp>
 #include <utility/Constants.hpp>
@@ -26,7 +26,8 @@ void Add_Noise_Temperature( State::chain_t & c, int idx_1, int idx_2, scalar tem
     auto prng = std::mt19937( 123456789 );
     for( int img = idx_1 + 1; img <= idx_2 - 1; ++img )
     {
-        Configurations::Add_Noise_Temperature_Sphere( get<Field::Spin>( *c.images[img]->state ), c.images[img]->hamiltonian->get_geometry(), temperature, prng );
+        Configurations::Add_Noise_Temperature_Sphere(
+            get<Field::Spin>( *c.images[img]->state ), c.images[img]->hamiltonian->get_geometry(), temperature, prng );
     }
 }
 

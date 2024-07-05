@@ -25,7 +25,7 @@ struct Zeeman
 
         Data( scalar external_field_magnitude, Vector3 external_field_normal )
                 : external_field_magnitude( external_field_magnitude ),
-                  external_field_normal( std::move( external_field_normal ) ){};
+                  external_field_normal( std::move( external_field_normal ) ) {};
     };
 
     // clang-tidy: ignore

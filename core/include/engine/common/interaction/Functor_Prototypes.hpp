@@ -3,8 +3,8 @@
 #include <Spirit/Hamiltonian.h>
 #include <Spirit/Spirit_Defines.h>
 #include <data/Geometry.hpp>
-#include <engine/Span.hpp>
 #include <engine/Backend.hpp>
+#include <engine/Span.hpp>
 #include <engine/Vectormath_Defines.hpp>
 
 #include <vector>
@@ -38,7 +38,6 @@ const IndexType * make_index( const Backend::optional<IndexType> & index_storage
 
 namespace Functor
 {
-
 
 namespace NonLocal
 {
@@ -88,9 +87,9 @@ struct Energy_Single_Spin_Functor
             : functor( std::forward<Args>( args )... ){};
 
     template<typename... OpArgs>
-    SPIRIT_HOSTDEVICE scalar operator()( OpArgs && ... args ) const
+    SPIRIT_HOSTDEVICE scalar operator()( OpArgs &&... args ) const
     {
-        return weight * functor( std::forward<OpArgs>(args)... );
+        return weight * functor( std::forward<OpArgs>( args )... );
     };
 
 private:
@@ -107,6 +106,6 @@ public:
 
 } // namespace Interaction
 
-} // namespace Spin
+} // namespace Common
 
 } // namespace Engine

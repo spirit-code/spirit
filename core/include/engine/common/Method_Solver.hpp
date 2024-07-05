@@ -23,4 +23,4 @@ enum struct Solver
 
 }
 
-}
+} // namespace Engine

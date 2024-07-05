@@ -67,11 +67,9 @@ void depondt_predictor(
     const vectorfield & force_virtual, vectorfield & axis, scalarfield & angle, const vectorfield & configuration,
     vectorfield & predictor );
 
-
 void depondt_corrector(
     const vectorfield & force_virtual, const vectorfield & force_virtual_predictor, vectorfield & axis,
     scalarfield & angle, vectorfield & configuration );
-
 
 // OSO coordinates
 void oso_rotate( vectorfield & spins, const vectorfield & searchdir );

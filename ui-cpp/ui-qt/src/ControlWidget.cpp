@@ -209,7 +209,8 @@ void ControlWidget::play_pause()
         {
             if( thread_chain.joinable() )
                 thread_chain.join();
-            this->thread_chain = std::thread( &Simulation_GNEB_Start, this->state.get(), solver, -1, -1, false, nullptr, -1 );
+            this->thread_chain
+                = std::thread( &Simulation_GNEB_Start, this->state.get(), solver, -1, -1, false, nullptr, -1 );
         }
         else if( this->s_method == "MMF" )
         {

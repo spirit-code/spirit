@@ -11,10 +11,10 @@ template<>
 class SolverData<Solver::VP_OSO> : public SolverMethods
 {
 protected:
-    using SolverMethods::SolverMethods;
-    using SolverMethods::Prepare_Thermal_Field;
     using SolverMethods::Calculate_Force;
     using SolverMethods::Calculate_Force_Virtual;
+    using SolverMethods::Prepare_Thermal_Field;
+    using SolverMethods::SolverMethods;
 
     // Force in previous step [noi][nos]
     std::vector<vectorfield> forces_previous;
@@ -41,10 +41,10 @@ inline void Method_Solver<Solver::VP_OSO>::Initialize()
         configurations_temp[i] = std::make_shared<vectorfield>( this->nos );
 
     this->velocities = std::vector<vectorfield>( this->noi, vectorfield( this->nos, Vector3::Zero() ) ); // [noi][nos]
-    this->forces_previous     = forces;                                                                  // [noi][nos]
-    this->grad                = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
-    this->grad_pr             = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
-    this->searchdir           = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
+    this->forces_previous = forces;                                                                      // [noi][nos]
+    this->grad            = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
+    this->grad_pr         = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
+    this->searchdir       = std::vector<vectorfield>( this->noi, vectorfield( this->nos, { 0, 0, 0 } ) );
 
     this->llg_parameters = std::vector<std::shared_ptr<const Data::Parameters_Method_LLG>>( this->noi, nullptr );
     for( int i = 0; i < this->noi; i++ )

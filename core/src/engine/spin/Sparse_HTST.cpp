@@ -394,7 +394,8 @@ void Calculate( Data::HTST_Info<system_t> & htst_info )
         Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Evaluate the dynamical matrix" );
         SpMatrixX velocity( 3 * nos, 3 * nos );
         Sparse_Calculate_Dynamical_Matrix(
-            image_sp, htst_info.saddle_point->hamiltonian->get_geometry().mu_s, sparse_hessian_sp_geodesic_3N, velocity );
+            image_sp, htst_info.saddle_point->hamiltonian->get_geometry().mu_s, sparse_hessian_sp_geodesic_3N,
+            velocity );
         SpMatrixX projected_velocity = tangent_basis.transpose() * velocity * tangent_basis;
 
         Log( Utility::Log_Level::Info, Utility::Log_Sender::HTST, "    Solving H^-1 V q_1 ..." );

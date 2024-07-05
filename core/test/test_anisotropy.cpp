@@ -316,9 +316,8 @@ TEST_CASE( "Biaxial anisotropy", "[anisotropy]" )
         const auto test = [&state, &interaction,
                            &term_info]( const int idx, const scalar theta, const scalar phi, const auto &... terms )
         {
-            auto make_spherical = []( const scalar theta, const scalar phi ) -> Vector3 {
-                return { cos( phi ) * sin( theta ), sin( phi ) * sin( theta ), cos( theta ) };
-            };
+            auto make_spherical = []( const scalar theta, const scalar phi ) -> Vector3
+            { return { cos( phi ) * sin( theta ), sin( phi ) * sin( theta ), cos( theta ) }; };
 
             static constexpr std::size_t N = sizeof...( terms );
 

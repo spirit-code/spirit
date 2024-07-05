@@ -19,9 +19,9 @@ class zip_function
 {
 public:
     explicit constexpr zip_function( Function func ) noexcept( std::is_nothrow_move_constructible<Function>::value )
-            : func( std::move( func ) ){};
+            : func( std::move( func ) ) {};
     explicit constexpr zip_function( Function && func ) noexcept( std::is_nothrow_move_constructible<Function>::value )
-            : func( std::move( func ) ){};
+            : func( std::move( func ) ) {};
 
     template<typename Tuple>
     SPIRIT_HOSTDEVICE constexpr auto operator()( Tuple && args ) -> decltype( auto )
@@ -117,8 +117,7 @@ public:
     {
         return Backend::apply(
             [n] SPIRIT_HOSTDEVICE( const Iterators &... it )
-            { return zip_iterator( Backend::make_tuple( ( it + n )... ) ); },
-            m_state );
+            { return zip_iterator( Backend::make_tuple( ( it + n )... ) ); }, m_state );
     }
 
     SPIRIT_HOSTDEVICE constexpr zip_iterator & operator+=( const difference_type n ) noexcept
@@ -131,8 +130,7 @@ public:
     {
         return Backend::apply(
             [n] SPIRIT_HOSTDEVICE( const Iterators &... it )
-            { return zip_iterator( Backend::make_tuple( ( it - n )... ) ); },
-            m_state );
+            { return zip_iterator( Backend::make_tuple( ( it - n )... ) ); }, m_state );
     }
 
     [[nodiscard]] SPIRIT_HOSTDEVICE constexpr difference_type operator-( const zip_iterator & other ) const noexcept
@@ -192,15 +190,15 @@ private:
 };
 
 template<typename... Iterators>
-[[nodiscard]] SPIRIT_HOSTDEVICE constexpr auto make_zip_iterator( Backend::tuple<Iterators...> tuple )
-    -> zip_iterator<Backend::tuple<Iterators...>>
+[[nodiscard]] SPIRIT_HOSTDEVICE constexpr auto
+make_zip_iterator( Backend::tuple<Iterators...> tuple ) -> zip_iterator<Backend::tuple<Iterators...>>
 {
     return zip_iterator<Backend::tuple<Iterators...>>( tuple );
 }
 
 template<typename... Iterators>
-[[nodiscard]] SPIRIT_HOSTDEVICE constexpr auto make_zip_iterator( Iterators... iter )
-    -> zip_iterator<Backend::tuple<Iterators...>>
+[[nodiscard]] SPIRIT_HOSTDEVICE constexpr auto
+make_zip_iterator( Iterators... iter ) -> zip_iterator<Backend::tuple<Iterators...>>
 {
     return zip_iterator<Backend::tuple<Iterators...>>( Backend::make_tuple( iter... ) );
 }
@@ -212,15 +210,15 @@ namespace cpu
 
 using Backend::cuda::make_zip_function;
 using Backend::cuda::make_zip_iterator;
-using Backend::cuda::zip_iterator;
 using Backend::cuda::zip_function;
+using Backend::cuda::zip_iterator;
 
 } // namespace cpu
 
 using Backend::cuda::make_zip_function;
 using Backend::cuda::make_zip_iterator;
-using Backend::cuda::zip_iterator;
 using Backend::cuda::zip_function;
+using Backend::cuda::zip_iterator;
 
 } // namespace Backend
 

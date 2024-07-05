@@ -22,4 +22,4 @@ constexpr T fastpow( T base, Exp exp ) noexcept
     return result;
 }
 
-}
+} // namespace Utility
