@@ -243,6 +243,7 @@ try
     // Copy std::vector<Eigen::Vector3> into one single Eigen::VectorX
     const unsigned int nos = system->nos;
     auto & image           = *system->state;
+    const auto & geometry  = system->hamiltonian->get_geometry();
 
     vectorfield grad( nos, { 0, 0, 0 } );
     vectorfield minimum_mode( nos, { 0, 0, 0 } );
@@ -252,7 +253,7 @@ try
 
     // The gradient force (unprojected)
     system->hamiltonian->Gradient( image, grad );
-    Vectormath::set_c_a( 1, grad, grad, system->hamiltonian->get_geometry().mask_unpinned );
+    Vectormath::set_c_a( 1, grad, grad, geometry.mask_unpinned );
 
     // Output
     for( unsigned int i = 0; i < nos; ++i )
@@ -277,7 +278,7 @@ try
 
     // The gradient (unprojected)
     system->hamiltonian->Gradient( image, grad );
-    Vectormath::set_c_a( 1, grad, grad, system->hamiltonian->get_geometry().mask_unpinned );
+    Vectormath::set_c_a( 1, grad, grad, geometry.mask_unpinned );
 
     // The Hessian (unprojected)
     system->hamiltonian->Hessian( image, hess );
@@ -287,8 +288,7 @@ try
     {
         for( int j = 0; j < nos; ++j )
         {
-            if( ( !system->hamiltonian->get_geometry().mask_unpinned[i] )
-                || ( !system->hamiltonian->get_geometry().mask_unpinned[j] ) )
+            if( ( !geometry.mask_unpinned[i] ) || ( !geometry.mask_unpinned[j] ) )
             {
                 hess.block<3, 3>( 3 * i, 3 * j ).setZero();
             }
@@ -305,7 +305,7 @@ try
     VectorX eigenvalues;
     MatrixX eigenvectors;
     bool successful = Engine::Spin::Eigenmodes::Hessian_Partial_Spectrum(
-        system->mmf_parameters, image, grad, hess, n_modes, basis_3Nx2N, hessian_final, eigenvalues, eigenvectors );
+        geometry, image, grad, hess, n_modes, basis_3Nx2N, hessian_final, eigenvalues, eigenvectors );
 
     if( successful )
     {
@@ -347,7 +347,7 @@ try
             Manifoldmath::invert_parallel( grad, minimum_mode );
 
             // Copy out the forces
-            Vectormath::set_c_a( -1, grad, force, system->hamiltonian->get_geometry().mask_unpinned );
+            Vectormath::set_c_a( -1, grad, force, geometry.mask_unpinned );
         }
         // Otherwise we follow some chosen mode, as long as it is not orthogonal to the gradient
         else if( mode_grad_angle > 1e-8 )
@@ -360,11 +360,11 @@ try
             int sign = ( scalar( 0 ) < mode_grad ) - ( mode_grad < scalar( 0 ) );
 
             // Calculate the force
-            // Vectormath::set_c_a(mode_grad, minimum_mode, force, system->hamiltonian->get_geometry().mask_unpinned);
-            Vectormath::set_c_a( sign, minimum_mode, force, system->hamiltonian->get_geometry().mask_unpinned );
+            // Vectormath::set_c_a(mode_grad, minimum_mode, force, geometry.mask_unpinned);
+            Vectormath::set_c_a( sign, minimum_mode, force, geometry.mask_unpinned );
 
             // // Copy out the forces
-            // Vectormath::set_c_a(1, grad, force, system->hamiltonian->get_geometry().mask_unpinned);
+            // Vectormath::set_c_a(1, grad, force, geometry.mask_unpinned);
         }
         else
         {
@@ -380,7 +380,7 @@ try
                           << std::endl;
 
             // Copy out the forces
-            Vectormath::set_c_a( 1, grad, force, system->hamiltonian->get_geometry().mask_unpinned );
+            Vectormath::set_c_a( 1, grad, force, geometry.mask_unpinned );
         }
     }
     else

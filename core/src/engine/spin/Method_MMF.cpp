@@ -182,7 +182,9 @@ void Method_MMF<solver>::Calculate_Force_Spectra_Matrix(
     auto & image = *configurations[0];
     auto & force = forces[0];
     // auto& force_virtual = forces_virtual[0];
-    auto & parameters = *this->systems[0]->mmf_parameters;
+    auto & parameters     = *this->systems[0]->mmf_parameters;
+    auto & hamiltonian    = *this->systems[0]->hamiltonian;
+    const auto & geometry = hamiltonian.get_geometry();
 
     const int nos = this->nos;
 
@@ -198,11 +200,11 @@ void Method_MMF<solver>::Calculate_Force_Spectra_Matrix(
     mode_negative = std::max( 0, std::min( n_modes - 1, mode_negative ) );
 
     // The gradient (unprojected)
-    this->systems[0]->hamiltonian->Gradient( image, gradient );
-    Vectormath::set_c_a( 1, gradient, gradient, this->systems[0]->hamiltonian->get_geometry().mask_unpinned );
+    hamiltonian.Gradient( image, gradient );
+    Vectormath::set_c_a( 1, gradient, gradient, geometry.mask_unpinned );
 
     // The Hessian (unprojected)
-    this->systems[0]->hamiltonian->Hessian( image, hessian );
+    hamiltonian.Hessian( image, hessian );
 
     Eigen::Ref<VectorX> image_3N    = Eigen::Map<VectorX>( image[0].data(), 3 * nos );
     Eigen::Ref<VectorX> gradient_3N = Eigen::Map<VectorX>( gradient[0].data(), 3 * nos );
@@ -216,7 +218,7 @@ void Method_MMF<solver>::Calculate_Force_Spectra_Matrix(
     VectorX eigenvalues;
     MatrixX eigenvectors;
     bool successful = Eigenmodes::Hessian_Partial_Spectrum(
-        this->parameters, image, gradient, hessian, n_modes, basis_3Nx2N, hessian_final, eigenvalues, eigenvectors );
+        geometry, image, gradient, hessian, n_modes, basis_3Nx2N, hessian_final, eigenvalues, eigenvectors );
 
     if( successful )
     {
@@ -335,7 +337,7 @@ void Method_MMF<solver>::Calculate_Force_Spectra_Matrix(
             Manifoldmath::invert_parallel( gradient, minimum_mode );
 
             // Copy out the forces
-            Vectormath::set_c_a( -1, gradient, force, this->systems[0]->hamiltonian->get_geometry().mask_unpinned );
+            Vectormath::set_c_a( -1, gradient, force, geometry.mask_unpinned );
         }
         else
         {
@@ -345,7 +347,7 @@ void Method_MMF<solver>::Calculate_Force_Spectra_Matrix(
                 Manifoldmath::invert_parallel( gradient, minimum_mode );
 
                 // Copy out the forces
-                Vectormath::set_c_a( -1, gradient, force, this->systems[0]->hamiltonian->get_geometry().mask_unpinned );
+                Vectormath::set_c_a( -1, gradient, force, geometry.mask_unpinned );
             }
             else if( mode_grad_angle > 1e-8 )
             {
@@ -354,17 +356,15 @@ void Method_MMF<solver>::Calculate_Force_Spectra_Matrix(
                 {
                     // Calculate the force
                     // Vectormath::set_c_a(mode_grad, this->minimum_mode, force,
-                    // this->systems[0]->hamiltonian->get_geometry().mask_unpinned);
+                    // geometry.mask_unpinned);
                     int sign
                         = static_cast<int>( scalar( 0 ) < mode_grad ) - static_cast<int>( mode_grad < scalar( 0 ) );
-                    Vectormath::set_c_a(
-                        sign, this->minimum_mode, force, this->systems[0]->hamiltonian->get_geometry().mask_unpinned );
+                    Vectormath::set_c_a( sign, this->minimum_mode, force, geometry.mask_unpinned );
                 }
                 else
                 {
                     // Copy out the forces
-                    Vectormath::set_c_a(
-                        1, gradient, force, this->systems[0]->hamiltonian->get_geometry().mask_unpinned );
+                    Vectormath::set_c_a( 1, gradient, force, geometry.mask_unpinned );
                 }
             }
             else
@@ -375,14 +375,12 @@ void Method_MMF<solver>::Calculate_Force_Spectra_Matrix(
                     Manifoldmath::invert_parallel( gradient, minimum_mode );
 
                     // Copy out the forces
-                    Vectormath::set_c_a(
-                        -1, gradient, force, this->systems[0]->hamiltonian->get_geometry().mask_unpinned );
+                    Vectormath::set_c_a( -1, gradient, force, geometry.mask_unpinned );
                 }
                 else
                 {
                     // Copy out the forces
-                    Vectormath::set_c_a(
-                        1, gradient, force, this->systems[0]->hamiltonian->get_geometry().mask_unpinned );
+                    Vectormath::set_c_a( 1, gradient, force, geometry.mask_unpinned );
                 }
             }
         }
