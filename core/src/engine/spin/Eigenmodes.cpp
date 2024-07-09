@@ -101,8 +101,8 @@ void Calculate_Eigenmodes( system_t & system, int idx_img, int idx_chain )
         SpMatrixX hessian_constrained = SpMatrixX( 2 * nos, 2 * nos );
 
         successful = Eigenmodes::Sparse_Hessian_Partial_Spectrum(
-            system.ema_parameters, spins_initial, gradient, hessian, n_modes, tangent_basis, hessian_constrained,
-            eigenvalues, eigenvectors );
+            system.hamiltonian->get_geometry(), spins_initial, gradient, hessian, n_modes, tangent_basis,
+            hessian_constrained, eigenvalues, eigenvectors );
     }
     else
     {
@@ -114,8 +114,8 @@ void Calculate_Eigenmodes( system_t & system, int idx_img, int idx_chain )
         MatrixX _tangent_basis      = MatrixX( tangent_basis );
 
         successful = Eigenmodes::Hessian_Partial_Spectrum(
-            system.ema_parameters, spins_initial, gradient, hessian, n_modes, _tangent_basis, hessian_constrained,
-            eigenvalues, eigenvectors );
+            system.hamiltonian->get_geometry(), spins_initial, gradient, hessian, n_modes, _tangent_basis,
+            hessian_constrained, eigenvalues, eigenvectors );
 
         tangent_basis = _tangent_basis.sparseView();
     }
@@ -154,10 +154,73 @@ void Calculate_Eigenmodes( system_t & system, int idx_img, int idx_chain )
     }
 }
 
+namespace
+{
+
+// TODO: These methods only replace the eigenmodes with known values.
+// Doing proper projections to eliminate the pinned degrees of freedom should be a better approach.
+
+void Apply_Pinning_Constrained( const Data::Geometry & geometry, MatrixX & hessian_constrained )
+{
+#ifdef SPIRIT_ENABLE_PINNING
+    const int nos = geometry.nos;
+    for( int i = 0; i < nos; ++i )
+    {
+        if( geometry.mask_unpinned[i] != 0 )
+        {
+            // Remove interaction block
+            for( int j = 0; j < nos; ++j )
+            {
+                hessian_constrained.block<2, 2>( 2 * i, 2 * j ).setZero();
+                hessian_constrained.block<2, 2>( 2 * j, 2 * i ).setZero();
+            }
+            // Set diagonal matrix entries of pinned spins to a large value
+            hessian_constrained.block<2, 2>( 2 * i, 2 * i ).setZero();
+            hessian_constrained.block<2, 2>( 2 * i, 2 * i ).diagonal().setConstant( nos * 1e5 );
+        }
+    }
+#endif
+}
+
+void Apply_Pinning_Constrained( const Data::Geometry & geometry, SpMatrixX & hessian_constrained )
+{
+#ifdef SPIRIT_ENABLE_PINNING
+    const int nos = geometry.nos;
+
+    std::vector<Eigen::Triplet<SpMatrixX::Scalar>> tripletList{};
+    tripletList.reserve( hessian_constrained.size() + 2 * geometry.mask_unpinned.size() );
+
+    hessian_constrained.makeCompressed();
+    // the outer index will hit every site exactly twice
+    for( SpMatrixX::Index k = 0; k < hessian_constrained.outerSize(); ++k )
+    {
+        // skip pinned outer index while setting diagonal
+        if( geometry.mask_unpinned[k / 2] == 0 )
+        {
+            tripletList.emplace_back( k, k, nos * 1e5 );
+            continue;
+        }
+
+        // only keep non-pinned inner index
+        for( SpMatrixX::InnerIterator it( hessian_constrained, k ); it; ++it )
+        {
+            if( geometry.mask_unpinned[it.index() / 2] != 0 )
+            {
+                tripletList.emplace_back( it.row(), it.col(), it.value() );
+            }
+        }
+    };
+
+    // overwrite from new triplets
+    hessian_constrained.setFromTriplets( tripletList.begin(), tripletList.end() );
+#endif
+}
+
+} // namespace
+
 bool Hessian_Full_Spectrum(
-    const std::shared_ptr<Data::Parameters_Method> parameters, const vectorfield & spins, const vectorfield & gradient,
-    const MatrixX & hessian, MatrixX & tangent_basis, MatrixX & hessian_constrained, VectorX & eigenvalues,
-    MatrixX & eigenvectors )
+    const Data::Geometry & geometry, const vectorfield & spins, const vectorfield & gradient, const MatrixX & hessian,
+    MatrixX & tangent_basis, MatrixX & hessian_constrained, VectorX & eigenvalues, MatrixX & eigenvectors )
 {
     std::size_t nos = spins.size();
 
@@ -170,6 +233,9 @@ bool Hessian_Full_Spectrum(
     // Manifoldmath::hessian_weingarten(spins, gradient, hessian, tangent_basis, hessian_constrained);
     // Manifoldmath::hessian_spherical(spins, gradient, hessian, tangent_basis, hessian_constrained);
     // Manifoldmath::hessian_covariant(spins, gradient, hessian, tangent_basis, hessian_constrained);
+
+    // Remove degrees of freedom of pinned spins
+    Apply_Pinning_Constrained( geometry, hessian_constrained );
 
     // Create and initialize a Eigen solver. Note: the hessian matrix should be symmetric!
     Eigen::SelfAdjointEigenSolver<MatrixX> hessian_spectrum( hessian_constrained );
@@ -184,9 +250,9 @@ bool Hessian_Full_Spectrum(
 }
 
 bool Hessian_Partial_Spectrum(
-    const std::shared_ptr<Data::Parameters_Method> parameters, const vectorfield & spins, const vectorfield & gradient,
-    const MatrixX & hessian, std::size_t n_modes, MatrixX & tangent_basis, MatrixX & hessian_constrained,
-    VectorX & eigenvalues, MatrixX & eigenvectors )
+    const Data::Geometry & geometry, const vectorfield & spins, const vectorfield & gradient, const MatrixX & hessian,
+    std::size_t n_modes, MatrixX & tangent_basis, MatrixX & hessian_constrained, VectorX & eigenvalues,
+    MatrixX & eigenvectors )
 {
     std::size_t nos = spins.size();
 
@@ -196,37 +262,20 @@ bool Hessian_Partial_Spectrum(
     // If we have only one spin, we can only calculate the full spectrum
     if( n_modes == nos )
         return Hessian_Full_Spectrum(
-            parameters, spins, gradient, hessian, tangent_basis, hessian_constrained, eigenvalues, eigenvectors );
+            geometry, spins, gradient, hessian, tangent_basis, hessian_constrained, eigenvalues, eigenvectors );
 
     // Calculate the final Hessian to use for the minimum mode
     // TODO: add option to choose different Hessian calculation
     hessian_constrained = MatrixX::Zero( 2 * nos, 2 * nos );
     tangent_basis       = MatrixX::Zero( 3 * nos, 2 * nos );
     Manifoldmath::hessian_bordered( spins, gradient, hessian, tangent_basis, hessian_constrained );
-// Manifoldmath::hessian_projected(spins, gradient, hessian, tangent_basis, hessian_constrained);
-// Manifoldmath::hessian_weingarten(spins, gradient, hessian, tangent_basis, hessian_constrained);
-// Manifoldmath::hessian_spherical(spins, gradient, hessian, tangent_basis, hessian_constrained);
-// Manifoldmath::hessian_covariant(spins, gradient, hessian, tangent_basis, hessian_constrained);
+    // Manifoldmath::hessian_projected(spins, gradient, hessian, tangent_basis, hessian_constrained);
+    // Manifoldmath::hessian_weingarten(spins, gradient, hessian, tangent_basis, hessian_constrained);
+    // Manifoldmath::hessian_spherical(spins, gradient, hessian, tangent_basis, hessian_constrained);
+    // Manifoldmath::hessian_covariant(spins, gradient, hessian, tangent_basis, hessian_constrained);
 
-// Remove degrees of freedom of pinned spins
-#ifdef SPIRIT_ENABLE_PINNING
-    for( std::size_t i = 0; i < nos; ++i )
-    {
-        // TODO: pinning is now in Data::Geometry
-        // if (!parameters->pinning->mask_unpinned[i])
-        // {
-        //     // Remove interaction block
-        //     for (int j=0; j<nos; ++j)
-        //     {
-        //         hessian_constrained.block<2,2>(2*i,2*j).setZero();
-        //         hessian_constrained.block<2,2>(2*j,2*i).setZero();
-        //     }
-        //     // Set diagonal matrix entries of pinned spins to a large value
-        //     hessian_constrained.block<2,2>(2*i,2*i).setZero();
-        //     hessian_constrained.block<2,2>(2*i,2*i).diagonal().setConstant(nos*1e5);
-        // }
-    }
-#endif // SPIRIT_ENABLE_PINNING
+    // Remove degrees of freedom of pinned spins
+    Apply_Pinning_Constrained( geometry, hessian_constrained );
 
     // Create the Spectra Matrix product operation
     Spectra::DenseSymMatProd<scalar> op( hessian_constrained );
@@ -249,9 +298,9 @@ bool Hessian_Partial_Spectrum(
 }
 
 bool Sparse_Hessian_Partial_Spectrum(
-    const std::shared_ptr<Data::Parameters_Method> parameters, const vectorfield & spins, const vectorfield & gradient,
-    const SpMatrixX & hessian, int n_modes, SpMatrixX & tangent_basis, SpMatrixX & hessian_constrained,
-    VectorX & eigenvalues, MatrixX & eigenvectors )
+    const Data::Geometry & geometry, const vectorfield & spins, const vectorfield & gradient, const SpMatrixX & hessian,
+    int n_modes, SpMatrixX & tangent_basis, SpMatrixX & hessian_constrained, VectorX & eigenvalues,
+    MatrixX & eigenvectors )
 {
     int nos = spins.size();
 
@@ -266,7 +315,8 @@ bool Sparse_Hessian_Partial_Spectrum(
 
     hessian_constrained = tangent_basis.transpose() * hessian_constrained_3N * tangent_basis;
 
-    // TODO: Pinning (see non-sparse function for)
+    // Remove degrees of freedom of pinned spins
+    Apply_Pinning_Constrained( geometry, hessian_constrained );
 
     hessian_constrained.makeCompressed();
     int ncv = std::min( 2 * nos, std::max( 2 * n_modes + 1, 20 ) ); // This is the default value used by scipy.sparse
