@@ -27,6 +27,7 @@ struct StandaloneAdaptor
     virtual void Energy_per_Spin( const state_t & state, scalarfield & energy_per_spin ) = 0;
     virtual scalar Energy_Single_Spin( int ispin, const state_t & state )                = 0;
     virtual std::string_view Name() const                                                = 0;
+    virtual bool is_contributing() const                                                 = 0;
 
 protected:
     constexpr StandaloneAdaptor() = default;
@@ -62,6 +63,11 @@ public:
     std::string_view Name() const final
     {
         return InteractionType::name;
+    }
+
+    bool is_contributing() const final
+    {
+        return InteractionType::is_contributing( data, cache );
     }
 
 protected:
@@ -117,6 +123,11 @@ public:
     std::string_view Name() const final
     {
         return InteractionType::name;
+    }
+
+    bool is_contributing() const final
+    {
+        return InteractionType::is_contributing( data, cache );
     }
 
 protected:
