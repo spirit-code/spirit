@@ -928,16 +928,12 @@ void Prepare_DDI(
     }
 
     // Count how many distinct inter-lattice contributions we need to store
-    // TODO: this should be expressible as a closed formula
-    cache.n_inter_sublattice = 0;
-    for( int i = 0; i < geometry.n_cell_atoms; i++ )
+    if( geometry.n_cell_atoms == 0 )
+        cache.n_inter_sublattice = 0;
+    else
     {
-        for( int j = 0; j < geometry.n_cell_atoms; j++ )
-        {
-            if( i != 0 && i == j )
-                continue;
-            cache.n_inter_sublattice++;
-        }
+        const auto nca           = geometry.n_cell_atoms;
+        cache.n_inter_sublattice = nca * ( nca - 1 ) + 1;
     }
 
     // Create FFT plans
