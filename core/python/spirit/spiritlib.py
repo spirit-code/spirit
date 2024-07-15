@@ -1,3 +1,6 @@
+__all__ = ("_spirit", "wrap_function")
+
+
 ### Get the operating system and according library name
 def _get_spirit_lib_name():
     from sys import platform as _platform
@@ -16,7 +19,7 @@ def _get_spirit_lib_name():
 
 
 ### Get the Spirit library as CDLL
-def load_spirit_library():
+def _load_spirit_library():
     import os
     import ctypes
 
@@ -26,10 +29,11 @@ def load_spirit_library():
     libname = _get_spirit_lib_name()
 
     ### Load the Spirit library
-    _spirit = ctypes.CDLL(spirit_py_dir + "/" + libname)
+    return ctypes.CDLL(os.path.join(spirit_py_dir, libname))
 
-    ### Return
-    return _spirit
+
+### store library in a module variable such that the import system may load it only once
+_spirit = _load_spirit_library()
 
 
 ### Wrap a function in a thread for it to be interruptible

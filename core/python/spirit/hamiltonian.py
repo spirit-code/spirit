@@ -10,11 +10,10 @@ from typing import NamedTuple
 
 import numpy as np
 
-from spirit import spiritlib
 from spirit.scalar import scalar
 
 ### Load Library
-_spirit = spiritlib.load_spirit_library()
+from spirit.spiritlib import _spirit
 
 ### DM vector chirality
 CHIRALITY_BLOCH = 1

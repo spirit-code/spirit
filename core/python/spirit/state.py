@@ -35,11 +35,10 @@ You can pass an input file specifying your initial system parameters.
 If you do not pass an input file, the implemented defaults are used.
 """
 
-from spirit import spiritlib
 import ctypes
 
 ### Load Library
-_spirit = spiritlib.load_spirit_library()
+from spirit.spiritlib import _spirit
 
 
 ### State wrapper class to be used in 'with' statement

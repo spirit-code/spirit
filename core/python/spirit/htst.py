@@ -7,13 +7,13 @@ Harmonic transition state theory.
 Note that `calculate_prefactor` needs to be called before using any of the getter functions.
 """
 
-from spirit import spiritlib, system
+from spirit import system
 from spirit.scalar import scalar
 import ctypes
 import numpy as np
 
 ### Load Library
-_spirit = spiritlib.load_spirit_library()
+from spirit.spiritlib import _spirit
 
 
 _Calculate = _spirit.HTST_Calculate

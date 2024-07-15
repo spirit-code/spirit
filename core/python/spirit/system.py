@@ -9,7 +9,7 @@ import ctypes
 from numpy import frombuffer
 
 ### Load Library
-_spirit = spiritlib.load_spirit_library()
+from spirit.spiritlib import _spirit
 
 ### Get Chain index
 _Get_Index = _spirit.System_Get_Index

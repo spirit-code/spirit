@@ -13,12 +13,11 @@ All configuration setters support the following arguments with default values:
 - `inverted=False`: exactly inverts the above restrictions
 """
 
-from spirit import spiritlib
 from spirit.scalar import scalar
 import ctypes
 
 ### Load Library
-_spirit = spiritlib.load_spirit_library()
+from spirit.spiritlib import _spirit
 
 _Domain = _spirit.Configuration_Domain
 _Domain.argtypes = [

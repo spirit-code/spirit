@@ -3,12 +3,11 @@ Minimum mode following (MMF)
 -------------------------------------------------------------
 """
 
-from spirit import spiritlib
 from spirit.io import FILEFORMAT_OVF_TEXT
 import ctypes
 
 ### Load Library
-_spirit = spiritlib.load_spirit_library()
+from spirit.spiritlib import _spirit
 
 ## ---------------------------------- Set ----------------------------------
 

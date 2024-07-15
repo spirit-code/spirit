@@ -3,11 +3,10 @@ Log
 ====================
 """
 
-from spirit import spiritlib
 import ctypes
 
 ### Load Library
-_spirit = spiritlib.load_spirit_library()
+from spirit.spiritlib import _spirit
 
 # Log levels
 LEVEL_ALL = 0

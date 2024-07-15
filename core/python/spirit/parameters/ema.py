@@ -6,11 +6,10 @@ This method, if needed, calculates modes (they can also be read in from a file)
 and perturbs the spin system periodically in the direction of the eigenmode.
 """
 
-from spirit import spiritlib
 import ctypes
 
 # Load Library
-_spirit = spiritlib.load_spirit_library()
+from spirit.spiritlib import _spirit
 
 _EMA_Clear_Modes = _spirit.Parameters_EMA_Clear_Modes
 _EMA_Clear_Modes.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int]

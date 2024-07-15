@@ -3,13 +3,12 @@ Monte Carlo (MC)
 -------------------------------------------------------------
 """
 
-from spirit import spiritlib
 from spirit.io import FILEFORMAT_OVF_TEXT
 from spirit.scalar import scalar
 import ctypes
 
 ### Load Library
-_spirit = spiritlib.load_spirit_library()
+from spirit.spiritlib import _spirit
 
 ## ---------------------------------- Set ----------------------------------
 
