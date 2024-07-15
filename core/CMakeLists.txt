@@ -720,9 +720,13 @@ endif()
 
 #----- Shared library and python tests
 if( SPIRIT_BUILD_FOR_PYTHON )
-    install( TARGETS ${META_PROJECT_NAME}_python DESTINATION bin COMPONENT spirit_core_python )
     install( DIRECTORY python/spirit DESTINATION python COMPONENT spirit_core_python
         FILES_MATCHING PATTERN "*.py" )
+    install( TARGETS ${META_PROJECT_NAME}_python DESTINATION python/spirit COMPONENT spirit_core_python )
+    install( FILES python/setup.py DESTINATION python COMPONENT spirit_core_python )
+    install( FILES python/pyproject.toml DESTINATION python COMPONENT spirit_core_python )
+    install( FILES python/README.md DESTINATION python COMPONENT spirit_core_python )
+    install( FILES python/LICENSE.txt DESTINATION python COMPONENT spirit_core_python )
     if( SPIRIT_BUILD_TEST )
         # install( TARGETS ${PYTHON_TEST_EXECUTABLES} DESTINATION python/test )
         install( DIRECTORY python/test/ DESTINATION test/python COMPONENT spirit_core_python
