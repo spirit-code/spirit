@@ -6,13 +6,13 @@ Change or get info on the current geometrical configuration, e.g.
 number of cells in the three crystal translation directions.
 """
 
-from spirit import spiritlib, system
+from spirit import system
 from spirit.scalar import scalar
 import ctypes
 import numpy as np
 
 ### Load Library
-_spirit = spiritlib.load_spirit_library()
+from spirit.spiritlib import _spirit
 
 
 ### Bravais lattice types

@@ -16,7 +16,7 @@ from spirit.scalar import scalar
 import ctypes
 
 ### Load Library
-_spirit = spiritlib.load_spirit_library()
+from spirit.spiritlib import _spirit
 
 
 ###     We use a thread for PlayPause, so that KeyboardInterrupt can be forwarded to the CDLL call

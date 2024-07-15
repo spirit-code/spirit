@@ -3,12 +3,11 @@ Transition
 ====================
 """
 
-from spirit import spiritlib
 from spirit.scalar import scalar
 import ctypes
 
 ### Load Library
-_spirit = spiritlib.load_spirit_library()
+from spirit.spiritlib import _spirit
 
 _Homogeneous = _spirit.Transition_Homogeneous
 _Homogeneous.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_int]
