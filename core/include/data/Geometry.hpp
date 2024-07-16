@@ -176,6 +176,27 @@ private:
     mutable Cache cache = Cache();
 };
 
+// check if the number of sites described by the two geometries is the same.
+inline bool same_size( const Data::Geometry & lhs, const Data::Geometry & rhs ) noexcept
+{
+    if( lhs.nos != rhs.nos )
+        return false;
+
+    if( lhs.n_cell_atoms != rhs.n_cell_atoms )
+        return false;
+
+    if( lhs.n_cells.size() != rhs.n_cells.size() )
+        return false;
+
+    for( unsigned int i = 0; i < lhs.n_cells.size(); ++i )
+    {
+        if( lhs.n_cells[i] != rhs.n_cells[i] )
+            return false;
+    }
+
+    return true;
+};
+
 // TODO: find better place (?)
 std::vector<triangle_t> compute_delaunay_triangulation_2D( const std::vector<vector2_t> & points );
 
