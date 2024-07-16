@@ -19,6 +19,11 @@ using Engine::Field;
 using Engine::get;
 using Engine::quantity;
 
+/* NOTE: This function invalidates the pointer to the array it resizes.
+ * There is no (simple) way to not invalidate this pointer when the size of the geometry is changed, because of a
+ * required call to `std::vector<T>::resize()`. Therefore, `Helper_Change_Dimensions()` should be called only if
+ * strictly necessary.
+ */
 template<typename T>
 void Helper_Change_Dimensions(
     field<T> & f, const Data::Geometry & old_geometry, const Data::Geometry & new_geometry, T && value )
@@ -35,9 +40,11 @@ void Helper_System_Set_Geometry( State::system_t & system, const Data::Geometry 
     int nos    = new_geometry.nos;
     system.nos = nos;
 
-    Helper_Change_Dimensions( get<Field::Spin>( *system.state ), old_geometry, new_geometry, { 0, 0, 1 } );
-    Helper_Change_Dimensions( system.M.effective_field, old_geometry, new_geometry, { 0, 0, 0 } );
-
+    if( !same_size( old_geometry, new_geometry ) )
+    {
+        Helper_Change_Dimensions( get<Field::Spin>( *system.state ), old_geometry, new_geometry, { 0, 0, 1 } );
+        Helper_Change_Dimensions( system.M.effective_field, old_geometry, new_geometry, { 0, 0, 0 } );
+    }
     // Update the system geometry
     system.hamiltonian->set_geometry( new_geometry );
 }
@@ -72,7 +79,7 @@ void Helper_State_Set_Geometry(
     state.nos = nos;
 
     // Deal with clipboard image of State
-    if( state.clipboard_image )
+    if( state.clipboard_image != nullptr )
     {
         auto & system = *state.clipboard_image;
         // Lock to avoid memory errors
@@ -91,7 +98,7 @@ void Helper_State_Set_Geometry(
     }
 
     // Deal with clipboard configuration of State
-    if( state.clipboard_spins != nullptr )
+    if( state.clipboard_spins != nullptr && !same_size( old_geometry, new_geometry ) )
         Helper_Change_Dimensions( *state.clipboard_spins, old_geometry, new_geometry, { 0, 0, 1 } );
 
     // TODO: Deal with Methods
