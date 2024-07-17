@@ -22,10 +22,11 @@ struct Anisotropy
 
     struct Data
     {
-        intfield indices;
-        scalarfield magnitudes;
-        vectorfield normals;
+        intfield indices{};
+        scalarfield magnitudes{};
+        vectorfield normals{};
 
+        Data() = default;
         Data( intfield indices, scalarfield magnitudes, vectorfield normals )
                 : indices( std::move( indices ) ),
                   magnitudes( std::move( magnitudes ) ),

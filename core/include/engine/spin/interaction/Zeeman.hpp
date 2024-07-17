@@ -23,6 +23,7 @@ struct Zeeman
         scalar external_field_magnitude = 0;
         Vector3 external_field_normal   = { 0, 0, 1 };
 
+        Data() = default;
         Data( scalar external_field_magnitude, Vector3 external_field_normal )
                 : external_field_magnitude( external_field_magnitude ),
                   external_field_normal( std::move( external_field_normal ) ) {};
