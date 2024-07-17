@@ -34,6 +34,7 @@ struct DDI
         bool pb_zero_padding = false;
         intfield n_periodic_images{};
 
+        Data() = default;
         Data( DDI_Method method, scalar cutoff_radius, bool pb_zero_padding, intfield n_periodic_images )
                 : method( method ),
                   cutoff_radius( cutoff_radius ),

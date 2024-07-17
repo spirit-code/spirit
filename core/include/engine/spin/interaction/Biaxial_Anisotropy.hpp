@@ -28,11 +28,12 @@ struct Biaxial_Anisotropy
 
     struct Data
     {
-        intfield indices;
-        field<PolynomialBasis> bases;
-        field<unsigned int> site_p;
-        field<PolynomialTerm> terms;
+        intfield indices{};
+        field<PolynomialBasis> bases{};
+        field<unsigned int> site_p{};
+        field<PolynomialTerm> terms{};
 
+        Data() = default;
         Data( intfield indices, field<PolynomialBasis> bases, field<unsigned int> site_p, field<PolynomialTerm> terms )
                 : indices( std::move( indices ) ),
                   bases( std::move( bases ) ),

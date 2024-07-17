@@ -28,10 +28,11 @@ struct Gaussian
     struct Data
     {
         // Parameters of the energy landscape
-        scalarfield amplitude;
-        scalarfield width;
-        vectorfield center;
+        scalarfield amplitude{};
+        scalarfield width{};
+        vectorfield center{};
 
+        Data() = default;
         Data( scalarfield amplitude, scalarfield width, vectorfield center )
                 : amplitude( std::move( amplitude ) ), width( std::move( width ) ), center( std::move( center ) ) {};
     };

@@ -21,9 +21,10 @@ struct Quadruplet
 
     struct Data
     {
-        quadrupletfield quadruplets;
-        scalarfield magnitudes;
+        quadrupletfield quadruplets{};
+        scalarfield magnitudes{};
 
+        Data() = default;
         Data( quadrupletfield quadruplets, scalarfield magnitudes )
                 : quadruplets( std::move( quadruplets ) ), magnitudes( std::move( magnitudes ) ) {};
     };

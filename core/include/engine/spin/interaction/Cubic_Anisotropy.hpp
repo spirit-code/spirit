@@ -23,9 +23,10 @@ struct Cubic_Anisotropy
 
     struct Data
     {
-        intfield indices;
-        scalarfield magnitudes;
+        intfield indices{};
+        scalarfield magnitudes{};
 
+        Data() = default;
         Data( intfield indices, scalarfield magnitudes )
                 : indices( std::move( indices ) ), magnitudes( std::move( magnitudes ) ) {};
     };
