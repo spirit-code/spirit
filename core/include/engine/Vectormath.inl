@@ -276,8 +276,8 @@ template<typename V>
 scalar max_norm( const field<V> & vector )
 {
     return sqrt( Backend::transform_reduce(
-        SPIRIT_PAR vector.begin(), vector.end(), scalar( 0 ), [] SPIRIT_LAMBDA( const scalar & lhs, const scalar & rhs )
-        { return ( lhs < rhs ) ? rhs : lhs; }, [] SPIRIT_LAMBDA( const V & v ) { return v.squaredNorm(); } ) );
+        SPIRIT_PAR vector.begin(), vector.end(), scalar( 0 ), Backend::max<scalar>{},
+        [] SPIRIT_LAMBDA( const V & v ) { return v.squaredNorm(); } ) );
 }
 
 // TODO: move this function to manifold??

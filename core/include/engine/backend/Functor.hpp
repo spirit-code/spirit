@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <data/Geometry.hpp>
 #include <engine/Backend.hpp>
 #include <engine/Vectormath_Defines.hpp>
@@ -83,6 +84,15 @@ struct scale
 
 private:
     T value;
+};
+
+template<typename T>
+struct max
+{
+    [[nodiscard]] SPIRIT_HOSTDEVICE constexpr auto operator()( const T & lhs, const T & rhs ) const
+    {
+        return std::max( lhs, rhs );
+    }
 };
 
 } // namespace Functor
