@@ -78,7 +78,8 @@ ForwardIt2 transform_n( const ::execution::par_t &, ForwardIt1 first, Size n, Fo
     {
         *( d_first + i ) = unary_op( *( first + i ) );
     }
-    return std::next( d_first, n );
+    std::advance( d_first, n );
+    return d_first;
 }
 
 template<typename ForwardIt1, typename Size, typename ForwardIt2, typename ForwardIt3, typename BinaryOp>
@@ -90,7 +91,8 @@ ForwardIt3 transform_n(
     {
         *( d_first + i ) = binary_op( *( first1 + i ), *( first2 + i ) );
     }
-    return std::next( d_first, n );
+    std::advance( d_first, n );
+    return d_first;
 }
 
 template<typename ForwardIt, typename Size, typename T, typename UnaryOp>
@@ -189,7 +191,8 @@ ForwardIt2 copy_n( const ::execution::par_t &, ForwardIt1 first, Size n, Forward
     {
         *( d_first + i ) = *( first + i );
     }
-    return std::next( d_first, n );
+    std::advance( d_first, n );
+    return d_first;
 }
 
 template<typename ForwardIt, typename Size, typename T>
