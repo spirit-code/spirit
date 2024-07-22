@@ -180,7 +180,8 @@ __host__ OutputIt copy_n( InputIt first, const int n, OutputIt d_first )
     Backend::cuda::detail::kernel::copy_n<<<( n + blockSize - 1 ) / blockSize, blockSize>>>(
         device_iterator_cast( first ), n, device_iterator_cast( d_first ) );
     CU_CHECK_AND_SYNC();
-    return std::next( d_first, n );
+    std::advance( d_first, n );
+    return d_first;
 }
 
 template<class InputIt, class OutputIt>
@@ -290,7 +291,8 @@ __host__ InputIt fill_n( InputIt first, const int n, const T & value )
     Backend::cuda::detail::kernel::fill_n<<<( n + blockSize - 1 ) / blockSize, blockSize>>>(
         device_iterator_cast( first ), n, value );
     CU_CHECK_AND_SYNC();
-    return std::next( first, n );
+    std::advance( first, n );
+    return first;
 }
 
 template<class InputIt, class T>
@@ -404,7 +406,8 @@ __host__ InputIt for_each_n( InputIt first, const int n, UnaryOp unary_op )
     Backend::cuda::detail::kernel::for_each_n<<<( n + blockSize - 1 ) / blockSize, blockSize>>>(
         device_iterator_cast( first ), n, unary_op );
     CU_CHECK_AND_SYNC();
-    return std::next( first, n );
+    std::advance( first, n );
+    return first;
 }
 
 template<class InputIt, class UnaryOp>
@@ -632,7 +635,8 @@ __host__ OutputIt transform( InputIt first, InputIt last, OutputIt d_first, Unar
     Backend::cuda::detail::kernel::transform_n<<<( n + blockSize - 1 ) / blockSize, blockSize>>>(
         device_iterator_cast( first ), n, device_iterator_cast( d_first ), unary_op );
     CU_CHECK_AND_SYNC();
-    return std::next( d_first, n );
+    std::advance( d_first, n );
+    return d_first;
 }
 
 template<class InputIt1, class InputIt2, class OutputIt, class BinaryOp>
@@ -655,7 +659,8 @@ __host__ OutputIt transform( InputIt1 first1, InputIt1 last1, InputIt2 first2, O
     Backend::cuda::detail::kernel::transform_n<<<( n + blockSize - 1 ) / blockSize, blockSize>>>(
         device_iterator_cast( first1 ), n, device_iterator_cast( first2 ), device_iterator_cast( d_first ), binary_op );
     CU_CHECK_AND_SYNC();
-    return std::next( d_first, n );
+    std::advance( d_first, n );
+    return d_first;
 }
 
 } // namespace par
