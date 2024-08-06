@@ -626,7 +626,8 @@ public:
     template<class T>
     [[nodiscard]] bool hasInteraction()
     {
-        return std::visit( []( auto & h ) { return h.template hasInteraction<T>(); }, hamiltonian );
+        return std::visit(
+            []( auto & h ) { return std::decay_t<decltype( h )>::template hasInteraction<T>(); }, hamiltonian );
     };
 
     template<class T>
@@ -641,7 +642,7 @@ public:
         return std::visit(
             []( const auto & h ) -> const typename T::Data *
             {
-                if constexpr( h.template hasInteraction<T>() )
+                if constexpr( std::decay_t<decltype( h )>::template hasInteraction<T>() )
                     return &h.template data<T>();
                 else
                     return nullptr;
@@ -655,7 +656,7 @@ public:
         return std::visit(
             []( const auto & h ) -> const typename T::Cache *
             {
-                if constexpr( h.template hasInteraction<T>() )
+                if constexpr( std::decay_t<decltype( h )>::template hasInteraction<T>() )
                     return &h.template cache<T>();
                 else
                     return nullptr;
@@ -670,7 +671,7 @@ public:
             [this,
              data = typename T::Data( std::forward<Args>( args )... )]( auto & h ) mutable -> std::optional<std::string>
             {
-                if constexpr( h.template hasInteraction<T>() )
+                if constexpr( std::decay_t<decltype( h )>::template hasInteraction<T>() )
                     return h.template set_data<T>( std::move( data ) );
                 else
                     return fmt::format(
