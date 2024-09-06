@@ -275,6 +275,10 @@ try
                 spins[ispin].normalize();
         }
 
+#ifdef SPIRIT_ENABLE_DEFECTS
+        image->hamiltonian->set_geometry( geometry );
+#endif
+
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API, fmt::format( "Read image from file \"{}\"", filename ),
              idx_image_inchain, idx_chain );
     }
@@ -518,7 +522,10 @@ try
                 auto & system_state = *images[i]->state;
                 // Segment header
                 auto segment = IO::OVF_Segment();
-
+#ifdef SPIRIT_ENABLE_DEFECTS
+                // TODO: eluminate this copy
+                auto geometry = images[i]->hamiltonian->get_geometry();
+#endif
                 // Read header
                 file.read_segment_header( start_image_infile, segment );
 
@@ -574,6 +581,9 @@ try
                 }
 
                 start_image_infile++;
+#ifdef SPIRIT_ENABLE_DEFECTS
+                images[i]->hamiltonian->set_geometry( geometry );
+#endif
             }
 
             success = true;
