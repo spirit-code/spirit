@@ -18,7 +18,7 @@ set( SPIRIT_BUILD_FOR_CXX     ON   CACHE BOOL "Build the static library for C++ 
 set( SPIRIT_ENABLE_PINNING    OFF  CACHE BOOL "Enable pinning individual or rows of spins." )
 set( SPIRIT_ENABLE_DEFECTS    OFF  CACHE BOOL "Enable defects and disorder in the lattice." )
 ### Options for Spirit
-set( SPIRIT_BUILD_TEST        ON   CACHE BOOL "Build unit tests for the Spirit library." )
+set( SPIRIT_BUILD_TEST        OFF  CACHE BOOL "Build unit tests for the Spirit library." )
 set( SPIRIT_TEST_COVERAGE     OFF  CACHE BOOL "Build in debug mode with special flags for coverage checks." )
 set( SPIRIT_USE_CUDA          OFF  CACHE BOOL "Use CUDA to speed up certain parts of the code." )
 set( SPIRIT_USE_STDPAR        OFF  CACHE BOOL "Use parallel STL to speed up certain parts of the code." )
