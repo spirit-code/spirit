@@ -683,7 +683,7 @@ try
 
                 // Open and write
                 const IO::State::Buffer buffer( system_state );
-                IO::OVF_File( filename ).write_segment( segment, buffer.data(), format );
+                file.write_segment( segment, buffer.data(), format );
 
                 for( int i = 1; i < chain->noi; i++ )
                 {
