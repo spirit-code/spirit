@@ -143,8 +143,9 @@ jobs:
             parallelisation: ""
           - os: ubuntu-24.04
             parallelisation: "openmp"
-          - os: ubuntu-24.04
-            parallelisation: "cuda"
+          # this build cannot be configured currently
+          # - os: ubuntu-24.04
+          #   parallelisation: "cuda"
           - os: macos-13
             parallelisation: ""
           - os: macos-13
@@ -153,6 +154,7 @@ jobs:
             parallelisation: ""
           - os: windows-2022
             parallelisation: "openmp"
+
     env:
       BUILD_TYPE: Release
       CMAKE_FLAGS: >
