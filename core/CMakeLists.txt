@@ -421,6 +421,7 @@ if( SPIRIT_USE_CUDA )
         ${CMAKE_CURRENT_LIST_DIR}/test/test_api.cpp
         ${CMAKE_CURRENT_LIST_DIR}/test/test_io.cpp
         ${CMAKE_CURRENT_LIST_DIR}/test/test_physics.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/test/test_solvers.cpp
         ${CMAKE_CURRENT_LIST_DIR}/test/test_vectormath.cpp
         ${CMAKE_CURRENT_LIST_DIR}/test/test_manifoldmath.cpp
         ${CMAKE_CURRENT_LIST_DIR}/test/test_ema.cpp
@@ -428,6 +429,13 @@ if( SPIRIT_USE_CUDA )
         ${CMAKE_CURRENT_LIST_DIR}/test/test_aggregation.cpp
         ${CMAKE_CURRENT_LIST_DIR}/test/test_configparser.cpp
         PROPERTIES LANGUAGE CUDA )
+
+        if( SPIRIT_ENABLE_PINNING )
+            set_source_files_properties(
+                ${CMAKE_CURRENT_LIST_DIR}/test/test_pinning.cpp
+                PROPERTIES LANGUAGE CUDA )
+        endif()
+
 endif()
 
 ### Coverage flags and linking if needed
