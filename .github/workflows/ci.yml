@@ -100,6 +100,10 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y xorg-dev libglu1-mesa-dev libgtk-3-dev
 
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
     - name: 📚 Install python packages
       run: pip install --user numpy
 
@@ -291,6 +295,13 @@ jobs:
         echo "/opt/nvidia/hpc_sdk/Linux_x86_64/23.3/compilers/bin" >> $GITHUB_PATH
         echo "/opt/nvidia/hpc_sdk/Linux_x86_64/23.3/math_libs/lib64" >> $GITHUB_PATH
 
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: 📚 Install python packages
+      run: pip install --user numpy
+
     - name: 📁 Create build folder
       run: cmake -E make_directory ${{runner.workspace}}/build
 
@@ -317,9 +328,6 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       run: cmake --build . --config $BUILD_TYPE -j 2
 
-    - name: 📚 Install python packages
-      run: pip install --user numpy
-
     - name: 🧪 Test
       if: matrix.parallelisation != 'cuda'
       shell: bash
@@ -342,6 +350,13 @@ jobs:
     - name: 📁 Create build folder
       run: cmake -E make_directory ${{runner.workspace}}/build
 
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+
+    - name: 📚 Install python packages
+      run: pip install --user numpy
+
     - name: ⚙ Configure
       shell: bash
       working-directory: ${{runner.workspace}}/build
@@ -351,9 +366,6 @@ jobs:
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake --build . --config $BUILD_TYPE -j 2
-
-    - name: 📚 Install python packages
-      run: pip install --user numpy
 
     - name: 🧪 Test
       shell: bash
@@ -381,6 +393,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
 
     - name: 📚 Install python packages
       run: pip install --user numpy
@@ -472,6 +488,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
     - uses: actions/setup-python@v4
       with:
         python-version: '3.x'
