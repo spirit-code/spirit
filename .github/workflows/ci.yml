@@ -231,14 +231,13 @@ jobs:
       shell: bash
       working-directory: ${{runner.workspace}}/build
       run: >
-        CUDA_PATH=/usr/local/cuda
+        CUDA_PATH=/usr/local/cuda-12.5
         cmake $GITHUB_WORKSPACE
         -DCMAKE_CUDA_COMPILER=clang++
         -DSPIRIT_CUDA_ARCH=70
         -DCMAKE_BUILD_TYPE=$BUILD_TYPE
         $CMAKE_FLAGS
         -DSPIRIT_USE_CUDA=ON
-        -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-12.5/
 
     - name: ⚙ Configure with OpenMP
       if: matrix.parallelisation == 'openmp'
