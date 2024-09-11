@@ -202,7 +202,13 @@ jobs:
       run: |
         choco install llvm ninja -y
         choco upgrade llvm
-        "CMAKE_FLAGS=$env:CMAKE_FLAGS -G Ninja" >> $env:GITHUB_ENV
+
+        if ($env:CMAKE_FLAGS) {
+          $env:CMAKE_FLAGS = "$($env:CMAKE_FLAGS) -G Ninja"
+        } else {
+          $env:CMAKE_FLAGS = "-G Ninja"
+        }
+        "CMAKE_FLAGS=$($env:CMAKE_FLAGS)" | Out-File -FilePath $env:GITHUB_ENV -Append
 
     - uses: actions/setup-python@v4
       with:
