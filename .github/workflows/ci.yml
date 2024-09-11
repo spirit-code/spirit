@@ -291,9 +291,9 @@ jobs:
         curl https://developer.download.nvidia.com/hpc-sdk/ubuntu/DEB-GPG-KEY-NVIDIA-HPC-SDK | sudo gpg --dearmor -o /usr/share/keyrings/nvidia-hpcsdk-archive-keyring.gpg
         echo 'deb [signed-by=/usr/share/keyrings/nvidia-hpcsdk-archive-keyring.gpg] https://developer.download.nvidia.com/hpc-sdk/ubuntu/amd64 /' | sudo tee /etc/apt/sources.list.d/nvhpc.list
         sudo apt-get update -y
-        sudo apt-get install -y nvhpc-23-3
-        echo "/opt/nvidia/hpc_sdk/Linux_x86_64/23.3/compilers/bin" >> $GITHUB_PATH
-        echo "/opt/nvidia/hpc_sdk/Linux_x86_64/23.3/math_libs/lib64" >> $GITHUB_PATH
+        sudo apt-get install -y nvhpc-24-5
+        echo "/opt/nvidia/hpc_sdk/Linux_x86_64/24.5/compilers/bin" >> $GITHUB_PATH
+        echo "/opt/nvidia/hpc_sdk/Linux_x86_64/24.5/math_libs/lib64" >> $GITHUB_PATH
 
     - uses: actions/setup-python@v4
       with:
