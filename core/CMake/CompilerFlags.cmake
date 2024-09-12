@@ -48,6 +48,9 @@ elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
     MESSAGE( STATUS ">> Chose compiler:                MSVC" )
     ### Compiler Flags
     set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNOMINMAX" )
+    if (CMAKE_BUILD_TYPE MATCHES "[dD]ebug")
+        set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -bigobj" )
+    endif()
 ######################################################################
 
 ######## Intel Compiler - icc ########################################
