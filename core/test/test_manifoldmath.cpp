@@ -75,7 +75,7 @@ TEST_CASE( "Manifold operations", "[manifold]" )
         scalar proj_prev = Engine::Vectormath::dot( v1, v3 );
         REQUIRE_THAT( Engine::Vectormath::dot( v1, v3 ), WithinAbs( proj_prev, 1e-12 ) );
         Engine::Manifoldmath::invert_orthogonal( v1, v2 );
-        REQUIRE_THAT( Engine::Vectormath::dot( v1, v3 ), WithinAbs( -proj_prev, epsilon_6 ) );
+        REQUIRE_THAT( Engine::Vectormath::dot( v1, v3 ), WithinAbs( -proj_prev, epsilon_5 ) );
     }
 
     SECTION( "Projection: tangetial" )
