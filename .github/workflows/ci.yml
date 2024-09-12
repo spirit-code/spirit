@@ -472,7 +472,11 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        coverage run --source spirit --omit=spirit/spiritlib.py setup.py test > cov.txt
+        coverage run --source spirit --omit=spirit/spiritlib.py \
+          -m unittest discover \
+            --start-directory ./test \
+            --pattern "*.py" \
+          > cov.txt
         head cov.txt
         coverage report -m
         coverage xml
