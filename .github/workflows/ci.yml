@@ -157,6 +157,7 @@ jobs:
 
     env:
       BUILD_TYPE: Release
+      BUILD_SYSTEM_FLAG: ${{ matrix.os == 'windows-2022' && '-G Ninja' || '' }}
       CMAKE_FLAGS: >
         -DCMAKE_C_COMPILER=clang
         -DCMAKE_CXX_COMPILER=clang++
@@ -205,13 +206,6 @@ jobs:
         choco install llvm ninja -y
         choco upgrade llvm
 
-        if ($env:CMAKE_FLAGS) {
-          $env:CMAKE_FLAGS = "${env:CMAKE_FLAGS} -G Ninja"
-        } else {
-          $env:CMAKE_FLAGS = "-G Ninja"
-        }
-        "CMAKE_FLAGS=\"${env:CMAKE_FLAGS}\"" | Out-File -FilePath $env:GITHUB_ENV -Append
-
     - uses: actions/setup-python@v4
       with:
         python-version: '3.x'
@@ -226,7 +220,11 @@ jobs:
       if: matrix.parallelisation == ''
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS
+      run: >
+        cmake $GITHUB_WORKSPACE
+        $BUILD_SYSTEM_FLAG
+        -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+        $CMAKE_FLAGS
 
     - name: ⚙ Configure with CUDA
       if: matrix.parallelisation == 'cuda'
@@ -245,7 +243,11 @@ jobs:
       if: matrix.parallelisation == 'openmp'
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS -DSPIRIT_USE_OPENMP=ON
+      run: >
+        cmake $GITHUB_WORKSPACE
+        -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+        $CMAKE_FLAGS
+        -DSPIRIT_USE_OPENMP=ON
 
     - name: 🛠 Build
       shell: bash
