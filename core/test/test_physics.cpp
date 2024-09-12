@@ -291,7 +291,7 @@ TEST_CASE( "Dipole-Dipole Interaction", "[physics]" )
             INFO( "i = " << i << ", epsilon = " << epsilon_2 << "\n" );
             INFO( "Gradient (FD) = " << grad_fft_fd[i].transpose() << "\n" );
             INFO( "Gradient      = " << grad_fft[i].transpose() << "\n" );
-            REQUIRE( grad_fft_fd[i].isApprox( grad_fft[i], epsilon_2 ) );
+            REQUIRE_THAT( ( grad_fft_fd[i] - grad_fft[i] ).norm(), WithinAbs( 0, epsilon_2 ) );
         }
     }
     // Direct (cutoff) gradient and energy

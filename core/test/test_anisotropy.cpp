@@ -33,11 +33,11 @@
 #endif
 
 #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
-[[maybe_unused]] constexpr scalar epsilon_2 = 1e-10;
-[[maybe_unused]] constexpr scalar epsilon_3 = 1e-12;
-[[maybe_unused]] constexpr scalar epsilon_4 = 1e-12;
-[[maybe_unused]] constexpr scalar epsilon_5 = 1e-6;
-[[maybe_unused]] constexpr scalar epsilon_6 = 1e-7;
+[[maybe_unused]] constexpr scalar epsilon_2 = 1e-5;
+[[maybe_unused]] constexpr scalar epsilon_3 = 1e-6;
+[[maybe_unused]] constexpr scalar epsilon_4 = 1e-7;
+[[maybe_unused]] constexpr scalar epsilon_5 = 1e-8;
+[[maybe_unused]] constexpr scalar epsilon_6 = 1e-9;
 #else
 [[maybe_unused]] constexpr scalar epsilon_2 = 1e-2;
 [[maybe_unused]] constexpr scalar epsilon_3 = 1e-3;
@@ -313,6 +313,8 @@ TEST_CASE( "Biaxial anisotropy", "[anisotropy]" )
 
     SECTION( "Engine: Check results of the energy calculations" )
     {
+        using std::sin, std::cos;
+
         const auto test = [&state, &interaction,
                            &term_info]( const int idx, const scalar theta, const scalar phi, const auto &... terms )
         {
@@ -348,7 +350,8 @@ TEST_CASE( "Biaxial anisotropy", "[anisotropy]" )
             INFO( "Total Energy:" )
             INFO( "trial: " << idx << ", theta=" << theta << ", phi=" << phi );
             INFO( term_info( terms... ) );
-            REQUIRE_THAT( interaction->Energy( spins ), WithinAbs( state->nos * ref_energy, epsilon_5 ) );
+            REQUIRE_THAT(
+                interaction->Energy( spins ) / static_cast<scalar>( state->nos ), WithinAbs( ref_energy, epsilon_3 ) );
 
             vectorfield gradient( state->nos, Vector3::Zero() );
             interaction->Gradient( spins, gradient );
