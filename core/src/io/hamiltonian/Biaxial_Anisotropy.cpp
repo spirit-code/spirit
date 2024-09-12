@@ -3,6 +3,7 @@
 #include <io/Filter_File_Handle.hpp>
 #include <io/Tableparser.hpp>
 
+#include <iso646.h>
 #include <vector>
 
 using Utility::Log_Level, Utility::Log_Sender;
