@@ -64,7 +64,7 @@ auto reduce_n( const ::execution::par_t &, ForwardIt first, Size n, T init, Bina
         {
             local_result = binary_op( local_result, *( first + i ) );
         }
-#pragma critical
+#pragma omp critical
         init = binary_op( init, local_result );
     }
     return init;
@@ -129,7 +129,7 @@ T transform_reduce_n(
         {
             local_result = reduce( local_result, unary_op( *( first + i ) ) );
         }
-#pragma critical
+#pragma omp critical
         init = reduce( init, local_result );
     }
     return init;
@@ -175,7 +175,7 @@ T transform_reduce_n(
         {
             local_result = reduce( local_result, binary_op( *( first1 + i ), *( first2 + i ) ) );
         }
-#pragma critical
+#pragma omp critical
         init = reduce( init, local_result );
     }
     return init;
