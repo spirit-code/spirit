@@ -153,10 +153,8 @@ void Anisotropy::Hessian::operator()( const Index & index, const vectorfield &, 
 
     const auto & [ispin, iani] = *index;
 
-#pragma unroll
     for( int alpha = 0; alpha < 3; ++alpha )
     {
-#pragma unroll
         for( int beta = 0; beta < 3; ++beta )
         {
             const int i = 3 * ispin + alpha;

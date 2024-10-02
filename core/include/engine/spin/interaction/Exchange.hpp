@@ -185,7 +185,6 @@ void Exchange::Hessian::operator()( const Index & index, const vectorfield &, Ca
             const int j         = 3 * idx.jspin;
             const auto & i_pair = idx.ipair;
 
-#pragma unroll
             for( int alpha = 0; alpha < 3; ++alpha )
             {
                 hessian( i + alpha, j + alpha, -magnitudes[i_pair] );
