@@ -514,6 +514,16 @@ jobs:
     - name: 📚 Install python packages
       run: pip install --user numpy
 
+    - name: Force upgrade to gcc-12 on Ubuntu 22.04
+      if: matrix.os == 'ubuntu-22.04'
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get --purge remove -y "g++*"
+        sudo apt-get install -y g++-12
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-12 10
+        sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-12 10
+
     - name: 📚 Install required system packages
       if: matrix.os == 'ubuntu-22.04'
       run: |
