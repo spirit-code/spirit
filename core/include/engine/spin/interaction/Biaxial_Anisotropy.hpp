@@ -225,10 +225,8 @@ void Biaxial_Anisotropy::Hessian::operator()( const Index & index, const vectorf
             : c * coeff * n2 * fastpow( s2, n2 - 1 ) * n3 * fastpow( s3, n3 - 1 );
         // clang-format on
 
-#pragma unroll
         for( int alpha = 0; alpha < 3; ++alpha )
         {
-#pragma unroll
             for( int beta = 0; beta < 3; ++beta )
             {
                 hessian(

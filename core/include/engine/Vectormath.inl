@@ -332,7 +332,6 @@ void Gradient( const StateType & spins, GradientType & gradient, EnergyFunction 
 
     for( std::size_t i = 0; i < nos; ++i )
     {
-#pragma unroll
         for( std::uint8_t dim = 0; dim < 3; ++dim )
         {
             // Displace
@@ -381,10 +380,8 @@ void Hessian( const StateType & spins, HessianType & hessian, GradientFunction &
     {
         for( std::size_t j = 0; j < nos; ++j )
         {
-#pragma unroll
             for( std::uint8_t alpha = 0; alpha < 3; ++alpha )
             {
-#pragma unroll
                 for( std::uint8_t beta = 0; beta < 3; ++beta )
                 {
                     // Displace

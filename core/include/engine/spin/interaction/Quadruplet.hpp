@@ -178,11 +178,9 @@ void Quadruplet::Hessian::operator()( const Index & index, const vectorfield & s
         {
             const auto & [ispin, jspin, kspin, lspin, iquad] = idx;
 
-#pragma unroll
             for( int alpha = 0; alpha < 3; ++alpha )
             {
                 hessian( 3 * ispin + alpha, 3 * jspin + alpha, -magnitudes[iquad] * spins[kspin].dot( spins[lspin] ) );
-#pragma unroll
                 for( int beta = 0; beta < 3; ++beta )
                 {
                     hessian(
