@@ -18,14 +18,14 @@ jobs:
       SOURCES: "find core/include/ core/src/ ui-cpp/utility/ ui-cpp/ui-imgui/include/ ui-cpp/ui-imgui/src/ -iname *.hpp -o -iname *.cpp"
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: 📚 Install required system packages
       run: |
         sudo apt-get update
         sudo apt-get install -y xorg-dev libglu1-mesa-dev libgtk-3-dev tree
 
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.10'
 
@@ -92,7 +92,7 @@ jobs:
       OMP_NUM_THREADS: 4
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: 📚 Install required system packages
       if: matrix.os == 'ubuntu-22.04'
@@ -100,7 +100,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y xorg-dev libglu1-mesa-dev libgtk-3-dev
 
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.x'
 
@@ -167,7 +167,7 @@ jobs:
       OMP_NUM_THREADS: 4
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: 📚 Install LLVM 17 and some libs (Ubuntu)
       if: matrix.os == 'ubuntu-24.04'
@@ -206,7 +206,7 @@ jobs:
         choco install llvm ninja -y
         choco upgrade llvm
 
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.x'
 
@@ -281,7 +281,7 @@ jobs:
       OMP_NUM_THREADS: 4
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Force upgrade to gcc-12 on Ubuntu 22.04 
       if: matrix.os == 'ubuntu-22.04'
@@ -305,7 +305,7 @@ jobs:
         echo "/opt/nvidia/hpc_sdk/Linux_x86_64/24.5/compilers/bin" >> $GITHUB_PATH
         echo "/opt/nvidia/hpc_sdk/Linux_x86_64/24.5/math_libs/lib64" >> $GITHUB_PATH
 
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.x'
 
@@ -360,12 +360,12 @@ jobs:
         -DSPIRIT_BUILD_TEST=ON
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: 📁 Create build folder
       run: cmake -E make_directory ${{runner.workspace}}/build
 
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.x'
 
@@ -407,9 +407,9 @@ jobs:
       EXCLUDETESTS: solver
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.x'
 
@@ -506,9 +506,9 @@ jobs:
         -DSPIRIT_BUILD_TEST=ON
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.x'
 
@@ -568,7 +568,7 @@ jobs:
       CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_USE_CUDA=ON -DSPIRIT_CUDA_ARCH=70
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Force downgrade to gcc-10 on Ubuntu 22.04 to avoid a bug in gcc-11.3 header
       if: matrix.config.os == 'ubuntu-22.04'
@@ -614,7 +614,7 @@ jobs:
       CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=ON
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: 📚 Install Qt5
       run: |
@@ -649,7 +649,7 @@ jobs:
       EMSCRIPTEN_VERSION: "3.1.38"
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: 📚 Install Emscripten
       working-directory: ${{runner.workspace}}
@@ -715,8 +715,8 @@ jobs:
       SPIRIT_ADD_VERSION_SUFFIX: true
 
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/setup-python@v4
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.x'
 
@@ -780,7 +780,7 @@ jobs:
       CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=ON -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_BUNDLE_APP=ON
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: 📚 Install required system packages
       if: matrix.os == 'ubuntu-latest'
@@ -841,7 +841,7 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: 📄 Generate a changelog
       id: changelog
