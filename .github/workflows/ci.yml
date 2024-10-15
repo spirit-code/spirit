@@ -713,7 +713,7 @@ jobs:
 
     - name: 📦 Archive mobile web app
       if: matrix.target == 'mobile'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: webapp-mobile
         path: ui-web/
@@ -721,7 +721,7 @@ jobs:
 
     - name: 📦 Archive desktop web app
       if: matrix.target == 'desktop'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: webapp-desktop
         path: ui-cpp/ui-imgui/webapp/
@@ -846,7 +846,7 @@ jobs:
 
     - name: 📦 Archive ubuntu package
       if: matrix.os == 'ubuntu-latest'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: spirit-ubuntu
         path: ${{runner.workspace}}/build/*.tar.gz
@@ -854,7 +854,7 @@ jobs:
 
     - name: 📦 Archive macOS package
       if: matrix.os == 'macos-latest'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: spirit-macos
         path: |
@@ -867,7 +867,7 @@ jobs:
 
     - name: 📦 Archive windows package
       if: matrix.os == 'windows-latest'
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: spirit-windows
         path: ${{runner.workspace}}/build/*.zip
