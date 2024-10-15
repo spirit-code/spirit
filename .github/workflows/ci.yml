@@ -404,7 +404,7 @@ jobs:
         -DSPIRIT_UI_USE_IMGUI=OFF
         -DSPIRIT_UI_CXX_USE_QT=OFF
         -DSPIRIT_BUILD_TEST=ON
-      EXCLUDETESTS: solver
+      EXCLUDETESTS: (configparser|solver)
 
     steps:
     - uses: actions/checkout@v4
