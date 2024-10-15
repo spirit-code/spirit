@@ -1,3 +1,4 @@
+---
 name: CI
 
 on: [push, pull_request]
@@ -15,7 +16,14 @@ jobs:
         -DSPIRIT_UI_CXX_USE_QT=OFF
         -DSPIRIT_ENABLE_PINNING=ON
         -DSPIRIT_ENABLE_DEFECTS=ON
-      SOURCES: "find core/include/ core/src/ ui-cpp/utility/ ui-cpp/ui-imgui/include/ ui-cpp/ui-imgui/src/ -iname *.hpp -o -iname *.cpp"
+      SOURCES: >
+        find
+          core/include/
+          core/src/
+          ui-cpp/utility/
+          ui-cpp/ui-imgui/include/
+          ui-cpp/ui-imgui/src/
+          -iname *.hpp -o -iname *.cpp"
 
     steps:
     - uses: actions/checkout@v4
@@ -120,7 +128,11 @@ jobs:
       if: matrix.parallelisation == 'openmp'
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DSPIRIT_USE_OPENMP=ON $CMAKE_FLAGS
+      run: >
+        cmake $GITHUB_WORKSPACE
+        -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+        -DSPIRIT_USE_OPENMP=ON
+        $CMAKE_FLAGS
 
     - name: 🛠 Build
       shell: bash
@@ -325,7 +337,11 @@ jobs:
       if: matrix.parallelisation == 'openmp'
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE $CMAKE_FLAGS -DSPIRIT_USE_OPENMP=ON
+      run: >
+        cmake $GITHUB_WORKSPACE
+        -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+        $CMAKE_FLAGS
+        -DSPIRIT_USE_OPENMP=ON
 
     - name: ⚙ Configure with CUDA
       if: matrix.parallelisation == 'cuda'
@@ -564,13 +580,22 @@ jobs:
       if: matrix.configuration == 'single-precision'
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DSPIRIT_SCALAR_TYPE="float" $CMAKE_FLAGS
+      run: >
+        cmake $GITHUB_WORKSPACE
+        -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+        -DSPIRIT_SCALAR_TYPE="float"
+        $CMAKE_FLAGS
 
     - name: ⚙ Configure pinning-and-defects build
       if: matrix.configuration == 'pinning-and-defects'
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DSPIRIT_ENABLE_PINNING=ON -DSPIRIT_ENABLE_DEFECTS=ON $CMAKE_FLAGS
+      run: >
+        cmake $GITHUB_WORKSPACE
+        -DCMAKE_BUILD_TYPE=$Debug
+        -DSPIRIT_ENABLE_PINNING=ON
+        -DSPIRIT_ENABLE_DEFECTS=ON
+        $CMAKE_FLAGS
 
     - name: 🛠 Build
       shell: bash
@@ -591,7 +616,11 @@ jobs:
           - os: ubuntu-22.04
     env:
       BUILD_TYPE: Release
-      CMAKE_FLAGS: -DSPIRIT_UI_USE_IMGUI=OFF -DSPIRIT_UI_CXX_USE_QT=OFF -DSPIRIT_USE_CUDA=ON -DSPIRIT_CUDA_ARCH=70
+      CMAKE_FLAGS: >
+        -DSPIRIT_UI_USE_IMGUI=OFF
+        -DSPIRIT_UI_CXX_USE_QT=OFF
+        -DSPIRIT_USE_CUDA=ON
+        -DSPIRIT_CUDA_ARCH=70
 
     steps:
     - uses: actions/checkout@v4
@@ -692,17 +721,24 @@ jobs:
       if: matrix.target == 'mobile'
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: |
-        source ${{runner.workspace}}/emsdk/emsdk_env.sh
-        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DSPIRIT_UI_USE_IMGUI=OFF $CMAKE_FLAGS -DCMAKE_TOOLCHAIN_FILE=${{runner.workspace}}/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
+      run: >
+        source ${{runner.workspace}}/emsdk/emsdk_env.sh;
+        cmake $GITHUB_WORKSPACE
+        -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+        -DSPIRIT_UI_USE_IMGUI=OFF
+        $CMAKE_FLAGS
+        -DCMAKE_TOOLCHAIN_FILE=${{runner.workspace}}/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
 
     - name: ⚙ Configure (desktop)
       if: matrix.target == 'desktop'
       shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: |
-        source ${{runner.workspace}}/emsdk/emsdk_env.sh
-        cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DSPIRIT_UI_USE_IMGUI=ON $CMAKE_FLAGS -DCMAKE_TOOLCHAIN_FILE=${{runner.workspace}}/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
+      run: >
+        source ${{runner.workspace}}/emsdk/emsdk_env.sh;
+        cmake $GITHUB_WORKSPACE
+        -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+        -DSPIRIT_UI_USE_IMGUI=ON $CMAKE_FLAGS
+        -DCMAKE_TOOLCHAIN_FILE=${{runner.workspace}}/emsdk/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake
 
     - name: 🛠 Build
       shell: bash
