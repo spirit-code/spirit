@@ -494,8 +494,6 @@ jobs:
             os: ubuntu-24.04
           - configuration: "single-precision"
             os: macos-13
-          - configuration: "single-precision"
-            os: windows-2022
           - configuration: "pinning-and-defects"
             os: ubuntu-24.04
     env:
