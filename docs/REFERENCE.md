@@ -1,27 +1,48 @@
 # Reference
 
 The **Spirit** framework is a scientific project.
-If you present and/or publish scientific results or
-visualisations that used Spirit, you should add a reference.
+If you present and/or publish scientific results or visualizations that used **Spirit**, please always cite [the Spirit paper](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.99.224414), the (version-independent) Zenodo entry for **Spirit**, and mention the version. When referring to **Spirit** as a scientific project.
 
-
-### The Framework
-
-If you used Spirit to produce scientific results or when referring to it as a
-scientific project, please cite [the paper](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.99.224414).
-
-    \bibitem{mueller_spirit_2019}{
-        G. P. Müller, M. Hoffmann, C. Disselkamp, D. Schürhoff, S. Mavros, M. Sallermann, N. S. Kiselev, H. Jónsson, S. Blügel.
-        "Spirit: Multifunctional framework for atomistic spin simulations."
-        Phys. Rev. B \textbf{99}, 224414 (2019)
+    @article{spiritPaper,
+      title = {Spirit: Multifunctional framework for atomistic spin simulations},
+      author = {M\"uller, Gideon P. and Hoffmann, Markus and Di\ss{}elkamp, Constantin and Sch\"urhoff, Daniel and Mavros, Stefanos and Sallermann, Moritz and Kiselev, Nikolai S. and J\'onsson, Hannes and Bl\"ugel, Stefan},
+      journal = {Phys. Rev. B},
+      volume = {99},
+      issue = {22},
+      pages = {224414},
+      numpages = {16},
+      year = {2019},
+      month = {Jun},
+      publisher = {American Physical Society},
+      doi = {10.1103/PhysRevB.99.224414},
+      url = {https://link.aps.org/doi/10.1103/PhysRevB.99.224414}
     }
 
-When referring to code of this framework please add a reference to our GitHub page.
+If you used **Spirit** to produce scientific results, please cite
+
+    @misc{spiritCode,
+      author       = {Müller, G. P. and Hoffmann, M. and Disselkamp, C. and Schürhoff, D. and Mavros, S. and Sallermann, M. and Kiselev, N. S. and  Jónsson, H. and Blügel, S.},
+      title        = {{SPIRIT}},
+      month        = jan,
+      year         = 2021,
+      publisher    = {Zenodo},
+      doi          = {10.5281/zenodo.7261158},
+      url          = {https://doi.org/10.5281/zenodo.7261158},
+      howpublished  = {Zenodo}
+    }
+
+You may need to update the DOI and Zenodo URL to the specific version you were using.
+
+### Source Code
+
+When referring to specific sections of code you may also reference our GitHub page.
 You may use e.g. the following TeX code:
 
-    \bibitem{spirit}
-    {Spirit spin simulation framework} (see spirit-code.github.io)
-
+    @misc{spiritWeb,
+      author = {},
+      title = {{Spirit spin simulation framework}},
+      howpublished = {\url{https://spirit-code.github.io}}
+    }
 
 ### Specific Methods
 
@@ -90,4 +111,4 @@ You may use e.g. the following TeX code:
 
 ---
 
-[Home](Readme.md)
+[Home](README.md)
