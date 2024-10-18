@@ -19,6 +19,7 @@ Spirit - Spin Simulation Framework
     Input file specification     <../core/docs/Input>
     Definitions                  <../core/docs/Definitions>
     Additional features          <../core/docs/Features>
+    Hamiltonian                  <../core/docs/Hamiltonian>
 
 .. toctree::
     :maxdepth: 2

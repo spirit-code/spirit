@@ -46,8 +46,8 @@ sys.path.insert( 0, os.path.join( os.path.dirname( __file__ ), "core", "python" 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx_markdown_tables', 'sphinx.ext.intersphinx',
-                'sphinx.ext.coverage', 'sphinx.ext.autodoc']
+extensions = ['sphinx_markdown_tables', 'myst_parser',
+              'sphinx.ext.intersphinx', 'sphinx.ext.coverage', 'sphinx.ext.autodoc']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -58,25 +58,14 @@ templates_path = ['_templates']
 # source_suffix = ['.rst', '.md']
 # source_suffix = '.md'
 
-source_parsers = {'.md': 'recommonmark.parser.CommonMarkParser'}
+source_suffix = {
+    '.rst': 'restructuredtext',
+    '.md': 'markdown',
+}
 
-
-# from recommonmark.parser import CommonMarkParser
-
-# The suffix of source filenames.
-
-# source_suffix = ['.rst', '.md']
-
-# parsers = {
-#     '.md': CommonMarkParser,
-# }
-
-# from sphinxcontrib.pandoc_markdown import MarkdownParser
-
-source_suffix = ['.rst', '.md']
-# source_parsers = {
-#    '.md': MarkdownParser,
-# }
+myst_enable_extensions = [
+    'dollarmath',
+]
 
 
 # The master toctree document.
@@ -87,7 +76,7 @@ master_doc = 'docs/index'
 
 # General information about the project.
 project = u'Spirit'
-copyright = u'2017, Gideon Mueller and contributors'
+copyright = u'2024, Gideon Mueller and contributors'
 author = u'Gideon Mueller and contributors'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -104,12 +93,19 @@ author = u'Gideon Mueller and contributors'
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = None
+language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
-exclude_patterns = ['.github', '_build', '../core/docs/python-api/spirit.rst', 'Thumbs.db', '.DS_Store']
+exclude_patterns = [
+    '.venv',
+    '.github',
+    '_build',
+    '../core/docs/python-api/spirit.rst',
+    'Thumbs.db',
+    '.DS_Store',
+]
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'sphinx'
@@ -212,7 +208,7 @@ texinfo_documents = [
 
 
 # Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/': None}
+intersphinx_mapping = {'python': ('https://docs.python.org/', None)}
 
 
 def run_apidoc(_):
@@ -244,13 +240,32 @@ def run_apidoc(_):
     build_dir = os.path.join(source_dir, 'build')
     if not os.path.exists(build_dir):
         os.mkdir(build_dir)
-    subprocess.check_call(['cmake', '..', '-DSPIRIT_BUILD_FOR_CXX=OFF', '-DSPIRIT_SKIP_HTST=ON'], cwd=build_dir)
+    subprocess.check_call([
+            'cmake',
+            '..',
+            '-DSPIRIT_BUILD_FOR_CXX=OFF',
+            '-DSPIRIT_BUILD_TEST=ON',
+            '-DSPIRIT_SKIP_HTST=ON',
+        ],
+        cwd=build_dir
+    )
     subprocess.check_call(['make'], cwd=build_dir)
 
     # See https://stackoverflow.com/a/30144019
     env = os.environ.copy()
-    env["SPHINX_APIDOC_OPTIONS"] = 'members,special-members,private-members,undoc-members,show-inheritance'
+    env["SPHINX_APIDOC_OPTIONS"] = ','.join(
+        [
+            'members',
+            'special-members',
+            'private-members',
+            'undoc-members',
+            'show-inheritance',
+        ]
+    )
     subprocess.check_call([cmd_path] + options, env=env)
+
+    if not os.path.exists(apidoc_dir):
+        os.mkdir(apidoc_dir)
 
     #####################
     with open(os.path.join(apidoc_dir, 'parameters.rst'), "w") as parameters_file:
@@ -265,22 +280,6 @@ def run_apidoc(_):
             parameters_file.write(generated_file.read())
         with open(os.path.join(apidoc_dir, 'spirit.parameters.mmf.rst'), 'r') as generated_file:
             parameters_file.write(generated_file.read())
-
-    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
-    print("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx")
-    testfile = os.path.join(apidoc_dir, 'spirit.log.rst')
-    with open(testfile, 'r') as f:
-        print(f.read())
-    print("yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy")
-    print("yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy")
-    testfile = os.path.join(apidoc_dir, 'spirit.geometry.rst')
-    with open(testfile, 'r') as f:
-        print(f.read())
-    print("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz")
-    print("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz")
-
-    if not os.path.exists(apidoc_dir):
-        os.mkdir(apidoc_dir)
 
 def setup(app):
     app.connect('builder-inited', run_apidoc)

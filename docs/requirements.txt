@@ -1,5 +1,6 @@
 pandoc
 sphinx-markdown-tables
+myst-parser
 numpy
 cmake
 gcc7
