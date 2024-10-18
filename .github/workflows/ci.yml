@@ -158,9 +158,9 @@ jobs:
           # this build cannot be configured currently
           # - os: ubuntu-24.04
           #   parallelisation: "cuda"
-          - os: macos-13
+          - os: macos-14
             parallelisation: ""
-          - os: macos-13
+          - os: macos-14
             parallelisation: "openmp"
           - os: windows-2022
             parallelisation: ""
@@ -203,7 +203,7 @@ jobs:
         echo "/usr/local/cuda-12.5/lib64" >> $GITHUB_PATH
 
     - name: 📚 Install LLVM (MacOS)
-      if: matrix.os == 'macos-13'
+      if: matrix.os == 'macos-14'
       shell: bash
       run: |
         brew update
@@ -411,7 +411,7 @@ jobs:
       matrix:
         include:
           - os: ubuntu-22.04
-          - os: macos-13
+          - os: macos-14
     env:
       BUILD_TYPE: Debug
       CMAKE_FLAGS: >
@@ -537,7 +537,7 @@ jobs:
           - configuration: "single-precision"
             os: ubuntu-24.04
           - configuration: "single-precision"
-            os: macos-13
+            os: macos-14
           - configuration: "pinning-and-defects"
             os: ubuntu-24.04
     env:
