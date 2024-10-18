@@ -18,6 +18,8 @@ If you present and/or publish scientific results or visualizations that used **S
       url = {https://link.aps.org/doi/10.1103/PhysRevB.99.224414}
     }
 
+- G. P. Müller, M. Hoffmann, C. Disselkamp, D. Schürhoff, S. Mavros, M. Sallermann, N. S. Kiselev, H. Jónsson, S. Blügel. "Spirit: Multifunctional framework for atomistic spin simulations." Phys. Rev. B 99, 224414 (2019)
+
 If you used **Spirit** to produce scientific results, please cite
 
     @misc{spiritCode,
@@ -31,6 +33,8 @@ If you used **Spirit** to produce scientific results, please cite
       howpublished  = {Zenodo}
     }
 
+- G. P. Müller, M. Sallermann, S. Mavros, F. Rhiem, D. Schürhoff, M. Hoffmann, I. Meyer, C. Disselkamp, M. Redies, P. Buhl, J. R. Suckert, A. V. Ivanov, N. S. Kiselev, H. Jónsson, S. Blügel (2023). spirit-code/spirit: New Desktop GUI, update to C++14 (v2.2.0). Zenodo. https://doi.org/10.5281/zenodo.7746552
+
 You may need to update the DOI and Zenodo URL to the specific version you were using.
 
 ### Source Code
@@ -43,6 +47,8 @@ You may use e.g. the following TeX code:
       title = {{Spirit spin simulation framework}},
       howpublished = {\url{https://spirit-code.github.io}}
     }
+
+- Spirit spin simulation framework (see https://spirit-code.github.io)
 
 ### Specific Methods
 
