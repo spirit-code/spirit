@@ -69,7 +69,7 @@ myst_enable_extensions = [
 
 
 # The master toctree document.
-master_doc = 'docs/index'
+master_doc = 'index'
 
 
 # man_pages = [ master_doc, ("docs/BUILD", "build", "building", "authors", "sectionbuild") ]
