@@ -202,12 +202,13 @@ jobs:
         echo "/usr/local/cuda-12.5/bin" >> $GITHUB_PATH
         echo "/usr/local/cuda-12.5/lib64" >> $GITHUB_PATH
 
-    - name: 📚 Install LLVM (MacOS)
+    # Workaround, because the setup-python action doesn't set up the PATH correctly
+    - name: 📚 Install LLVM and numpy (MacOS)
       if: matrix.os == 'macos-14'
       shell: bash
       run: |
         brew update
-        brew install llvm
+        brew install llvm numpy
         echo "/usr/local/opt/llvm/bin" >> $GITHUB_PATH
         echo "/opt/homebrew/opt/llvm/bin" >> $GITHUB_PATH
 
@@ -219,10 +220,12 @@ jobs:
         choco upgrade llvm
 
     - uses: actions/setup-python@v5
+      if: matrix.os != 'macos-14'
       with:
         python-version: '3.x'
 
     - name: 📚 Install python packages
+      if: matrix.os != 'macos-14'
       run: pip install --user numpy
 
     - name: 📁 Create build folder
