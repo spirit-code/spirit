@@ -21,13 +21,13 @@ If you present and/or publish scientific results or visualizations that used **S
 If you used **Spirit** to produce scientific results, please cite
 
     @misc{spiritCode,
-      author       = {Müller, G. P. and Hoffmann, M. and Disselkamp, C. and Schürhoff, D. and Mavros, S. and Sallermann, M. and Kiselev, N. S. and  Jónsson, H. and Blügel, S.},
+      author       = {Müller, Gideon P. and Sallermann, Moritz and Mavros, Stefanos and Rhiem, Florian and Schürhoff, Daniel and Hoffmann, Markus and Meyer, Ingo and Disselkamp, Constantin and Redies, Matthias and Buhl, Patrick and Suckert, Jens Rene and Ivanov, Aleksei V. and Kiselev, Nikolai S. and Jónsson, Hannes and Blügel, Stefan},
       title        = {{SPIRIT}},
-      month        = jan,
-      year         = 2021,
+      month        = mar,
+      year         = 2023,
       publisher    = {Zenodo},
-      doi          = {10.5281/zenodo.7261158},
-      url          = {https://doi.org/10.5281/zenodo.7261158},
+      doi          = {10.5281/zenodo.7746552},
+      url          = {https://doi.org/10.5281/zenodo.7746552},
       howpublished  = {Zenodo}
     }
 
