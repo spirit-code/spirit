@@ -1,7 +1,11 @@
 # Reference
 
 The **Spirit** framework is a scientific project.
-If you present and/or publish scientific results or visualizations that used **Spirit**, please always cite [the Spirit paper](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.99.224414), the (version-independent) Zenodo entry for **Spirit**, and mention the version. When referring to **Spirit** as a scientific project.
+If you present and/or publish scientific results or visualizations that used **Spirit**, please always cite [the Spirit paper](https://journals.aps.org/prb/abstract/10.1103/PhysRevB.99.224414), the (version-independent) [Zenodo entry](https://doi.org/10.5281/zenodo.7746552) for **Spirit**, and mention the version.
+
+### Framework
+
+When referring to **Spirit** as a scientific project, please Cite:
 
     @article{spiritPaper,
       title = {Spirit: Multifunctional framework for atomistic spin simulations},
