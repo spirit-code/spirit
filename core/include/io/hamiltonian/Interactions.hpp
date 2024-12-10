@@ -30,7 +30,7 @@ void Biaxial_Anisotropy_from_Config(
 void Pair_Interactions_from_Pairs_from_Config(
     const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
     pairfield & exchange_pairs, scalarfield & exchange_magnitudes, pairfield & dmi_pairs, scalarfield & dmi_magnitudes,
-    vectorfield & dmi_normals );
+    vectorfield & dmi_normals, Engine::Spin::Interaction::Two_Site_Anisotropy::Data & anisotropy );
 
 void Pair_Interactions_from_Shells_from_Config(
     const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,

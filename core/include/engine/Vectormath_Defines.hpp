@@ -144,6 +144,7 @@ struct Neighbour : Pair
 using intfield    = field<int>;
 using scalarfield = field<scalar>;
 using vectorfield = field<Vector3>;
+using matrixfield = field<Matrix3>;
 
 // Additional fields
 using pairfield       = field<Pair>;

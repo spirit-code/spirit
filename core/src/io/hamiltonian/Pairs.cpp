@@ -3,6 +3,7 @@
 #include <io/Filter_File_Handle.hpp>
 #include <io/Tableparser.hpp>
 
+#include <bitset>
 #include <vector>
 
 using Utility::Log_Level, Utility::Log_Sender;
@@ -16,54 +17,107 @@ namespace
 // Read from Pairs file by Markus & Bernd
 void Pairs_from_File(
     const std::string & pairs_file, const Data::Geometry & geometry, int & nop, pairfield & exchange_pairs,
-    scalarfield & exchange_magnitudes, pairfield & dmi_pairs, scalarfield & dmi_magnitudes,
-    vectorfield & dmi_normals ) noexcept
+    scalarfield & exchange_magnitudes, pairfield & dmi_pairs, scalarfield & dmi_magnitudes, vectorfield & dmi_normals,
+    Engine::Spin::Interaction::Two_Site_Anisotropy::Data & anisotropy ) noexcept
 try
 {
     Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Reading spin pairs from file \"{}\"", pairs_file ) );
 
-    using PairTableParser = TableParserInit<std::array<int, 5>, std::array<scalar, 8>>;
-    const PairTableParser parser(
-        { "i", "j", "da", "db", "dc", "dij", "dijx", "dijy", "dijz", "dija", "dijb", "dijc", "jij" } );
+    using PairTableParser = TableParserInit<std::array<int, 5>, std::array<scalar, 14>>;
+    const PairTableParser parser( { "i", "j", "da", "db", "dc", "dij", "dijx", "dijy", "dijz", "dija", "dijb", "dijc",
+                                    "jij", "kijxx", "kijyy", "kijzz", "kijxy", "kijxz", "kijyz" } );
 
     auto transform_factory = [&pairs_file, &geometry]( const std::map<std::string_view, int> & idx )
     {
-        bool DMI_xyz = false, DMI_abc = false, DMI_magnitude = false;
+        const bool DMI_xyz       = idx.at( "dijx" ) >= 0 && idx.at( "dijy" ) >= 0 && idx.at( "dijz" ) >= 0;
+        const bool DMI_abc       = idx.at( "dija" ) >= 0 && idx.at( "dijb" ) >= 0 && idx.at( "dijc" ) >= 0;
+        const bool DMI_magnitude = idx.at( "dij" ) >= 0;
 
-        if( idx.at( "dijx" ) >= 0 && idx.at( "dijy" ) >= 0 && idx.at( "dijz" ) >= 0 )
-            DMI_xyz = true;
-        if( idx.at( "dija" ) >= 0 && idx.at( "dijb" ) >= 0 && idx.at( "dijc" ) >= 0 )
-            DMI_abc = true;
-        if( idx.at( "dij" ) >= 0 )
-            DMI_magnitude = true;
+        const std::bitset<3> Kdiag = [&idx]
+        {
+            std::bitset<3> flags{};
+            flags[0] = idx.at( "kijxx" ) >= 0;
+            flags[1] = idx.at( "kijyy" ) >= 0;
+            flags[2] = idx.at( "kijzz" ) >= 0;
+            return flags;
+        }();
 
-        if( idx.at( "j" ) < 0 && !DMI_xyz && !DMI_abc )
+        if( idx.at( "j" ) < 0 && !DMI_xyz && !DMI_abc && Kdiag.count() == 1 )
             Log( Log_Level::Warning, Log_Sender::IO,
                  fmt::format( "No interactions could be found in pairs file \"{}\"", pairs_file ) );
 
-        return [DMI_xyz, DMI_abc, DMI_magnitude,
-                &geometry]( const PairTableParser::read_row_t & row ) -> std::tuple<Pair, scalar, Vector3, scalar>
+        if( Kdiag.count() == 3 )
+            Log( Log_Level::Warning, Log_Sender::IO,
+                 fmt::format(
+                     "Found three diagonal elements for two-site anisotropy, adjusting Heisenberg exchange!"
+                     "file: \"{}\"! ",
+                     pairs_file ) );
+
+        return [DMI_xyz, DMI_abc, DMI_magnitude, Kdiag, &geometry]( const PairTableParser::read_row_t & row )
+                   -> std::tuple<Pair, scalar, Vector3, scalar, std::optional<Matrix3>>
         {
-            auto [i, j, da, db, dc, Dij, Dijx, Dijy, Dijz, Dija, Dijb, Dijc, Jij] = row;
+            struct RowData
+            {
+                int i, j, da, db, dc;
+                scalar Dij, Dijx, Dijy, Dijz, Dija, Dijb, Dijc, Jij;
+                scalar Kijxx, Kijyy, Kijzz, Kijxy, Kijxz, Kijyz;
+            };
+
+            auto data = IO::make_from_tuple<RowData>( row );
 
             Vector3 D_temp = Vector3::Zero();
             if( DMI_xyz )
-                D_temp = { Dijx, Dijy, Dijz };
+                D_temp = { data.Dijx, data.Dijy, data.Dijz };
             // Anisotropy vector orientation
             if( DMI_abc )
             {
-                D_temp = { Dija, Dijb, Dijc };
+                D_temp = { data.Dija, data.Dijb, data.Dijc };
                 D_temp = { D_temp.dot( geometry.lattice_constant * geometry.bravais_vectors[0] ),
                            D_temp.dot( geometry.lattice_constant * geometry.bravais_vectors[1] ),
                            D_temp.dot( geometry.lattice_constant * geometry.bravais_vectors[2] ) };
             }
 
             if( !DMI_magnitude )
-                Dij = D_temp.norm();
+                data.Dij = D_temp.norm();
 
             D_temp.normalize();
 
-            return std::make_tuple( Pair{ i, j, { da, db, dc } }, Jij, D_temp, Dij );
+            const auto Kij = [&d = data, &Kdiag]
+            {
+                std::optional<Matrix3> Kij = std::nullopt;
+                if( Kdiag.count() < 2 )
+                    return Kij;
+                else if( d.Kijxx == 0 && d.Kijxy == 0 && d.Kijxz == 0 && d.Kijyy == 0 && d.Kijyz == 0 && d.Kijzz == 0 )
+                    return Kij;
+                else if( Kdiag.count() == 2 )
+                {
+                    if( !Kdiag[0] )
+                        d.Kijxx = -( d.Kijyy + d.Kijzz );
+                    else if( !Kdiag[1] )
+                        d.Kijyy = -( d.Kijxx + d.Kijzz );
+                    else
+                        d.Kijzz = -( d.Kijxx + d.Kijyy );
+                }
+                else
+                {
+                    const scalar tr = ( d.Kijxx + d.Kijyy + d.Kijzz ) / 3.0;
+                    d.Kijxx -= tr;
+                    d.Kijyy -= tr;
+                    d.Kijyy -= tr;
+                    d.Jij += tr;
+                }
+
+                Kij.emplace( Matrix3{} );
+                // clang-format off
+                (*Kij) << d.Kijxx, d.Kijxy, d.Kijxz,
+                        d.Kijxy, d.Kijyy, d.Kijyz,
+                        d.Kijxz, d.Kijyz, d.Kijzz;
+                // clang-format on
+                return Kij;
+            }();
+
+            return std::make_tuple(
+                Pair{ data.i, data.j, { data.da, data.db, data.dc } }, data.Jij, D_temp, data.Dij, Kij );
         };
     };
 
@@ -85,7 +139,7 @@ try
         };
 
         // Add the indices and parameters to the corresponding lists and deduplicate entries
-        for( const auto & [pair, Jij, D_vec, Dij] : data )
+        for( const auto & [pair, Jij, D_vec, Dij, Kij] : data )
         {
             if( Jij != 0 )
             {
@@ -141,13 +195,37 @@ try
                     dmi_normals.push_back( D_vec );
                 }
             }
+            if( Kij.has_value() )
+            {
+                bool already_in{ false };
+                int atposition = -1;
+                for( std::size_t icheck = 0; icheck < anisotropy.pairs.size(); ++icheck )
+                {
+                    if( predicate( pair, anisotropy.pairs[icheck] ) == 0 )
+                        continue;
+
+                    already_in = true;
+                    atposition = icheck;
+                    break;
+                }
+                if( already_in )
+                {
+                    anisotropy.matrices[atposition] += *Kij;
+                }
+                else
+                {
+                    anisotropy.pairs.push_back( pair );
+                    anisotropy.matrices.push_back( *Kij );
+                }
+            }
         }
     }
 
     Log( Log_Level::Parameter, Log_Sender::IO,
          fmt::format(
-             "Done reading {} spin pairs from file \"{}\", giving {} exchange and {} DM (symmetry-reduced) pairs.", nop,
-             pairs_file, exchange_pairs.size(), dmi_pairs.size() ) );
+             "Done reading {} spin pairs from file \"{}\", giving {} exchange, {} DM (symmetry-reduced), and {} "
+             "two-site anisotropy pairs.",
+             nop, pairs_file, exchange_pairs.size(), dmi_pairs.size(), anisotropy.pairs.size() ) );
 }
 catch( ... )
 {
@@ -159,7 +237,7 @@ catch( ... )
 void Pair_Interactions_from_Pairs_from_Config(
     const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
     pairfield & exchange_pairs, scalarfield & exchange_magnitudes, pairfield & dmi_pairs, scalarfield & dmi_magnitudes,
-    vectorfield & dmi_normals )
+    vectorfield & dmi_normals, Engine::Spin::Interaction::Two_Site_Anisotropy::Data & anisotropy )
 {
     std::string interaction_pairs_file{};
     int n_pairs = 0;
@@ -179,7 +257,7 @@ void Pair_Interactions_from_Pairs_from_Config(
             // The file name should be valid so we try to read it
             Pairs_from_File(
                 interaction_pairs_file, geometry, n_pairs, exchange_pairs, exchange_magnitudes, dmi_pairs,
-                dmi_magnitudes, dmi_normals );
+                dmi_magnitudes, dmi_normals, anisotropy );
         }
         // else
         //{
@@ -256,6 +334,9 @@ void Pair_Interactions_from_Shells_from_Config(
         spirit_handle_exception_core(
             fmt::format( "Failed to read DMI parameters from config file \"{}\"", config_file_name ) );
     }
+
+    Log( Log_Level::Warning, Log_Sender::IO,
+         "Hamiltonian_Heisenberg: two-site anisotropy not supported when using neighbours." );
 
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "n_shells_exchange", n_shells_exchange ) );
     if( n_shells_exchange > 0 )

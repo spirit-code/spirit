@@ -86,6 +86,10 @@ std::unique_ptr<Engine::Spin::HamiltonianVariant> Hamiltonian_Heisenberg_from_Co
     scalar ddi_radius              = 0.0;
     bool ddi_pb_zero_padding       = false;
 
+    Engine::Spin::Interaction::Two_Site_Anisotropy::Data two_site_anisotropy{};
+    two_site_anisotropy.pairs    = pairfield( 0 );
+    two_site_anisotropy.matrices = matrixfield( 0 );
+
     // ------------ Quadruplet Interactions ------------
     auto quadruplets           = quadrupletfield( 0 );
     auto quadruplet_magnitudes = scalarfield( 0 );
@@ -111,7 +115,7 @@ std::unique_ptr<Engine::Spin::HamiltonianVariant> Hamiltonian_Heisenberg_from_Co
         else
             Pair_Interactions_from_Pairs_from_Config(
                 config_file_name, geometry, parameter_log, exchange_pairs, exchange_magnitudes, dmi_pairs,
-                dmi_magnitudes, dmi_normals );
+                dmi_magnitudes, dmi_normals, two_site_anisotropy );
 
         DDI_from_Config(
             config_file_name, geometry, parameter_log, ddi_method, ddi_n_periodic_images, ddi_pb_zero_padding,
@@ -154,7 +158,7 @@ std::unique_ptr<Engine::Spin::HamiltonianVariant> Hamiltonian_Heisenberg_from_Co
 
     auto hamiltonian = std::make_unique<Engine::Spin::HamiltonianVariant>( HamiltonianVariant::Heisenberg(
         std::move( geometry ), std::move( boundary_conditions ), zeeman, anisotropy, biaxial_anisotropy,
-        cubic_anisotropy, exchange, dmi, quadruplet, ddi ) );
+        cubic_anisotropy, exchange, dmi, two_site_anisotropy, quadruplet, ddi ) );
 
     assert( hamiltonian->Name() == "Heisenberg" );
     Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Hamiltonian_{}: built", hamiltonian->Name() ) );

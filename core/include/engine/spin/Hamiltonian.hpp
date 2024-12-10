@@ -13,6 +13,7 @@
 #include <engine/spin/interaction/Exchange.hpp>
 #include <engine/spin/interaction/Gaussian.hpp>
 #include <engine/spin/interaction/Quadruplet.hpp>
+#include <engine/spin/interaction/Two_Site_Anisotropy.hpp>
 #include <engine/spin/interaction/Zeeman.hpp>
 #include <utility/Variadic_Traits.hpp>
 
@@ -102,8 +103,8 @@ struct HamiltonianVariantTypes
     using Gaussian   = Hamiltonian<state_t, AdaptorType, Interaction::Gaussian>;
     using Heisenberg = Hamiltonian<
         state_t, AdaptorType, Interaction::Zeeman, Interaction::Anisotropy, Interaction::Biaxial_Anisotropy,
-        Interaction::Cubic_Anisotropy, Interaction::Exchange, Interaction::DMI, Interaction::Quadruplet,
-        Interaction::DDI>;
+        Interaction::Cubic_Anisotropy, Interaction::Exchange, Interaction::DMI, Interaction::Two_Site_Anisotropy,
+        Interaction::Quadruplet, Interaction::DDI>;
 
     using Variant = std::variant<Gaussian, Heisenberg>;
 };
