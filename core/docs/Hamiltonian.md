@@ -4,14 +4,15 @@ Heisenberg Hamiltonian
 ### Hamiltonian
 The Spin-Hamiltonian is defined as
 
-![Hamiltonian](https://math.vercel.app/?bgcolor=auto&from=%5Cmathcal%7BH%7D%5B%5Cvec%7Bn%7D%5D%20%3D%0A%20%20%20%20%5Cmathcal%7BH%7D_%7BZ%7D%5B%5Cvec%7Bn%7D%5D%0A%20%20%20%20%2B%20%5Cmathcal%7BH%7D_%7BA%7D%5B%5Cvec%7Bn%7D%5D%0A%20%20%20%20%2B%20%5Cmathcal%7BH%7D_%7BXC%7D%5B%5Cvec%7Bn%7D%5D%0A%20%20%20%20%2B%20%5Cmathcal%7BH%7D_%7BDMI%7D%5B%5Cvec%7Bn%7D%5D%0A%20%20%20%20%2B%20%5Cmathcal%7BH%7D_%7BDDI%7D%5B%5Cvec%7Bn%7D%5D%0A%20%20%20%20%2B%20%5Cmathcal%7BH%7D_%7BQuad%7D%5B%5Cvec%7Bn%7D%5D%0A.svg)
+![Hamiltonian](https://math.vercel.app/?bgcolor=auto&from=%5Cmathcal%7BH%7D%5B%5Cvec%7Bn%7D%5D%20%3D%0A%20%20%20%20%5Cmathcal%7BH%7D_%7BZ%7D%5B%5Cvec%7Bn%7D%5D%0A%20%20%20%20%2B%20%5Cmathcal%7BH%7D_%7BA%7D%5B%5Cvec%7Bn%7D%5D%0A%20%20%20%20%2B%20%5Cmathcal%7BH%7D_%7BIXC%7D%5B%5Cvec%7Bn%7D%5D%0A%20%20%20%20%2B%20%5Cmathcal%7BH%7D_%7BDMI%7D%5B%5Cvec%7Bn%7D%5D%0A%20%20%20%20%2B%20%5Cmathcal%7BH%7D_%7BAXC%7D%5B%5Cvec%7Bn%7D%5D%0A%20%20%20%20%2B%20%5Cmathcal%7BH%7D_%7BDDI%7D%5B%5Cvec%7Bn%7D%5D%0A%20%20%20%20%2B%20%5Cmathcal%7BH%7D_%7BQuad%7D%5B%5Cvec%7Bn%7D%5D.svg)
 
 <!-- $$
 \mathcal{H}[\vec{n}] =
     \mathcal{H}_{Z}[\vec{n}]
     + \mathcal{H}_{A}[\vec{n}]
-    + \mathcal{H}_{XC}[\vec{n}]
+    + \mathcal{H}_{IXC}[\vec{n}]
     + \mathcal{H}_{DMI}[\vec{n}]
+    + \mathcal{H}_{AXC}[\vec{n}]
     + \mathcal{H}_{DDI}[\vec{n}]
     + \mathcal{H}_{Quad}[\vec{n}]
 $$ -->
@@ -71,9 +72,9 @@ $$ -->
 ### Exchange
 - symmetric exchange interaction
 
-![Exchange](https://math.vercel.app/?bgcolor=auto&from=%5Cmathcal%7BH%7D_%7BXC%7D%5B%5Cvec%7Bn%7D%5D%20%3D%20-%20%5Csum%5Climits_%7B%5Cbraket%7Bij%7D%7D%5C%2C%20J_%7Bij%7D%20%5Cvec%7Bn%7D_i%5Ccdot%5Cvec%7Bn%7D_j.svg)
+![Exchange](https://math.vercel.app/?bgcolor=auto&from=%5Cmathcal%7BH%7D_%7BIXC%7D%5B%5Cvec%7Bn%7D%5D%20%3D%20-%20%5Csum%5Climits_%7B%5Cbraket%7Bij%7D%7D%5C%2C%20J_%7Bij%7D%20%5Cvec%7Bn%7D_i%5Ccdot%5Cvec%7Bn%7D_j.svg)
 
-<!-- $$ \mathcal{H}_{XC}[\vec{n}] = - \sum\limits_{\braket{ij}}\, J_{ij} \vec{n}_i\cdot\vec{n}_j $$ -->
+<!-- $$ \mathcal{H}_{IXC}[\vec{n}] = - \sum\limits_{\braket{ij}}\, J_{ij} \vec{n}_i\cdot\vec{n}_j $$ -->
 
 - Dzyaloshinskii–Moriya interaction (antisymmetric exchange)
 
@@ -81,7 +82,26 @@ $$ -->
 
 <!-- $$ \mathcal{H}_{DMI}[\vec{n}] = - \sum\limits_{\braket{ij}}\, \vec{D}_{ij} \cdot (\vec{n}_i\times\vec{n}_j) $$ -->
 
-where it is important to note that `<ij>` denotes the unique pairs of interacting spins `i` and `j`.
+
+- Two-Site Anisotropy (anisotropic symmetric exchange)
+
+![Two-Site Anisotropy](https://math.vercel.app/?bgcolor=auto&from=%5Cmathcal%7BH%7D_%7BAXC%7D%5B%5Cvec%7Bn%7D%5D%20%3D%20-%20%5Csum%5Climits_%7B%5Cbraket%7Bij%7D%7D%5C%2C%20%5Cvec%7Bn%7D_i%5Ccdot%20%5Cmathbf%7BK%7D_%7Bij%7D%5Cvec%7Bn%7D_j.svg)
+
+<!-- $$ \mathcal{H}_{AXC}[\vec{n}] = - \sum\limits_{\braket{ij}}\, \vec{n}_i\cdot \mathbf{K}_{ij}\vec{n}_j $$ -->
+
+where $\mathbf{K}_{ij}$ is the symmetric, traceless part of the general two-site coupling:
+
+
+![Two-Site Anisotropy Tensor](https://math.vercel.app/?bgcolor=auto&from=%5Cmathbf%7BK%7D_%7Bij%7D%20%3D%20%5Cleft%28%5Cbegin%7Barray%7D%7Bccc%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20K_%7Bij%7D%5E%7Bxx%7D%20%26%20K_%7Bij%7D%5E%7Bxy%7D%20%26%20K_%7Bij%7D%5E%7Bxz%7D%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20K_%7Bij%7D%5E%7Bxy%7D%20%26%20K_%7Bij%7D%5E%7Byy%7D%20%26%20K_%7Bij%7D%5E%7Byz%7D%20%5C%5C%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20K_%7Bij%7D%5E%7Bxz%7D%20%26%20K_%7Bij%7D%5E%7Byz%7D%20%26%20K_%7Bij%7D%5E%7Bzz%7D%0A%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%20%5Cend%7Barray%7D%5Cright%29%5C%2C%2C%5Cquad%20%5Cmathrm%7Btr%7D%5C%2C%5Cmathbf%7BK%7D_%7Bij%7D%20%3D%200.svg)
+
+<!-- $$ \bm{K}_{ij} = \left(\begin{array}{ccc}
+                            K_{ij}^{xx} & K_{ij}^{xy} & K_{ij}^{xz} \\
+                            K_{ij}^{xy} & K_{ij}^{yy} & K_{ij}^{yz} \\
+                            K_{ij}^{xz} & K_{ij}^{yz} & K_{ij}^{zz}
+                            \end{array}\right)\,,\quad \mathrm{tr}\,\bm{K}_{ij} = 0 $$ -->
+
+
+The index `<ij>` denotes the unique pairs of interacting spins `i` and `j`.
 
 ---
 

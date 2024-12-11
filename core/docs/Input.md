@@ -256,10 +256,10 @@ hamiltonian       heisenberg_pairs
 
 ### Pairs
 n_interaction_pairs 3
-i j   da db dc    Jij   Dij  Dijx Dijy Dijz
-0 0    1  0  0   10.0   6.0   1.0  0.0  0.0
-0 0    0  1  0   10.0   6.0   0.0  1.0  0.0
-0 0    0  0  1   10.0   6.0   0.0  0.0  1.0
+i j   da db dc    Jij   Dij  Dijx Dijy Dijz   Kijxx  Kijyy  Kijxy  Kijxz  Kijyz
+0 0    1  0  0   10.0   6.0   1.0  0.0  0.0    -0.3   -0.3    0.0    0.0    0.0
+0 0    0  1  0   10.0   6.0   0.0  1.0  0.0    -0.3   -0.3    0.0    0.0    0.0
+0 0    0  0  1   10.0   6.0   0.0  0.0  1.0    -0.3   -0.3    0.0    0.0    0.0
 
 ### Quadruplets
 n_interaction_quadruplets 1
