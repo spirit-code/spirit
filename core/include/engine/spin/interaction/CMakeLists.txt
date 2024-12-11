@@ -5,6 +5,7 @@ set(HEADER_SPIRIT_ENGINE_SPIN_INTERACTION
     ${CMAKE_CURRENT_SOURCE_DIR}/Anisotropy.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Cubic_Anisotropy.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Biaxial_Anisotropy.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Two_Site_Anisotropy.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Exchange.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DMI.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/DDI.hpp
