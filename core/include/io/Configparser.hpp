@@ -10,6 +10,8 @@
 #include <engine/spin/Hamiltonian.hpp>
 #include <io/hamiltonian/Hamiltonian.hpp>
 
+#include <toml++/toml.hpp>
+
 namespace IO
 {
 
@@ -19,6 +21,7 @@ namespace IO
  */
 
 void Log_from_Config( const std::string & config_file_name, bool force_quiet = false );
+void Log_from_TOML( const toml::table & tbl, bool force_quiet = false );
 
 std::unique_ptr<::State::system_t> Spin_System_from_Config( const std::string & config_file_name );
 
