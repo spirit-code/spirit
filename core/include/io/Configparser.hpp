@@ -31,17 +31,23 @@ Data::Geometry Geometry_from_Config( const std::string & config_file_name );
 
 intfield Boundary_Conditions_from_Config( const std::string & config_file_name );
 
-std::unique_ptr<Data::Parameters_Method_LLG> Parameters_Method_LLG_from_Config( const std::string & config_file_name );
+auto Parameters_Method_LLG_from_Config( const std::string & ) -> std::unique_ptr<Data::Parameters_Method_LLG>;
+auto Parameters_Method_LLG_from_TOML( const toml::table & ) -> std::unique_ptr<Data::Parameters_Method_LLG>;
 
-std::unique_ptr<Data::Parameters_Method_MC> Parameters_Method_MC_from_Config( const std::string & config_file_name );
+auto Parameters_Method_MC_from_Config( const std::string & ) -> std::unique_ptr<Data::Parameters_Method_MC>;
+auto Parameters_Method_MC_from_TOML( const toml::table & ) -> std::unique_ptr<Data::Parameters_Method_MC>;
 
-std::unique_ptr<Data::Parameters_Method_GNEB>
-Parameters_Method_GNEB_from_Config( const std::string & config_file_name );
+auto Parameters_Method_GNEB_from_Config( const std::string & ) -> std::unique_ptr<Data::Parameters_Method_GNEB>;
+auto Parameters_Method_GNEB_from_TOML( const toml::table & ) -> std::unique_ptr<Data::Parameters_Method_GNEB>;
 
-std::unique_ptr<Data::Parameters_Method_EMA> Parameters_Method_EMA_from_Config( const std::string & config_file_name );
+auto Parameters_Method_EMA_from_Config( const std::string & ) -> std::unique_ptr<Data::Parameters_Method_EMA>;
+auto Parameters_Method_EMA_from_TOML( const toml::table & ) -> std::unique_ptr<Data::Parameters_Method_EMA>;
 
-std::unique_ptr<Data::Parameters_Method_MMF> Parameters_Method_MMF_from_Config( const std::string & config_file_name );
+auto Parameters_Method_MMF_from_Config( const std::string & ) -> std::unique_ptr<Data::Parameters_Method_MMF>;
+auto Parameters_Method_MMF_from_TOML( const toml::table & ) -> std::unique_ptr<Data::Parameters_Method_MMF>;
 
 } // namespace IO
+
+#include <io/Configparser.inl>
 
 #endif

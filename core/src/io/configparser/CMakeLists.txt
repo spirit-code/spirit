@@ -2,6 +2,7 @@ set(SOURCE_SPIRIT_IO_CONFIGPARSER
     ${SOURCE_SPIRIT_IO_CONFIGPARSER}
     ${CMAKE_CURRENT_SOURCE_DIR}/Converter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Logging.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Parameters.cpp
     PARENT_SCOPE
 )
 
@@ -10,6 +11,7 @@ if( SPIRIT_USE_CUDA )
         ${SPIRIT_CUDA_SOURCES}
         ${CMAKE_CURRENT_LIST_DIR}/Converter.cpp
         ${CMAKE_CURRENT_LIST_DIR}/Logging.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Parameters.cpp
     PARENT_SCOPE
 )
 endif()
