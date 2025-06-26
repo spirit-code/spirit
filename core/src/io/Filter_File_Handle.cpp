@@ -11,6 +11,12 @@
 namespace IO
 {
 
+// Check if string has the given prefix (replacement for C++20 std::string::starts_with)
+bool string_starts_with( std::string_view string, std::string_view prefix )
+{
+    return std::mismatch( prefix.begin(), prefix.end(), string.begin(), string.end() ).first == prefix.end();
+}
+
 // Removes a set of chars from a string
 inline void remove_chars_from_string( std::string & str, const std::string & chars_to_remove )
 {
@@ -41,33 +47,46 @@ bool remove_comments_from_string( std::string & str, const std::string & comment
 }
 
 Filter_File_Handle::Filter_File_Handle( const std::string & filename, const std::string & comment_tag )
-        : filename( filename ), comment_tag( comment_tag )
+        : filename_( fmt::format( "{}{}", file_prefix, filename ) ), comment_tag( comment_tag )
 {
     // Open the file
-    this->in_file_stream = std::ifstream( filename, std::ios::in | std::ios::binary );
-
+    this->in_file_stream = std::make_unique<std::ifstream>( filename, std::ios::in | std::ios::binary );
     // Check success
-    if( !this->in_file_stream.is_open() )
+    if( !static_cast<std::ifstream *>( this->in_file_stream.get() )->is_open() )
     {
         spirit_throw(
             Utility::Exception_Classifier::File_not_Found, Utility::Log_Level::Error,
             fmt::format( "Could not open file \"{}\"", filename ) );
     }
+    this->Initialize();
+}
 
+Filter_File_Handle::Filter_File_Handle( std::unique_ptr<std::istream> stream, const std::string & comment_tag )
+        : filename_( std::nullopt ), comment_tag( comment_tag )
+{
+    this->in_file_stream = stream ? std::move( stream ) : std::make_unique<std::istringstream>( "" );
+    this->Initialize();
+}
+
+void Filter_File_Handle::Initialize()
+{
     // Find begging and end positions of the file stream indicator
-    this->position_file_beg = this->in_file_stream.tellg();
-    this->in_file_stream.seekg( 0, std::ios::end );
-    this->position_file_end = this->in_file_stream.tellg();
-    this->in_file_stream.seekg( 0, std::ios::beg );
+    this->position_file_beg = this->in_file_stream->tellg();
+    this->in_file_stream->seekg( 0, std::ios::end );
+    this->position_file_end = this->in_file_stream->tellg();
+    this->in_file_stream->seekg( 0, std::ios::beg );
 
     // Set limits of the file stream indicator to begging and end positions (eq. ResetLimits())
     this->position_start = this->position_file_beg;
     this->position_stop  = this->position_file_end;
 }
 
-Filter_File_Handle::~Filter_File_Handle()
+Filter_File_Handle Filter_File_Handle::from_string( const std::string & string, std::string_view prefix )
 {
-    in_file_stream.close();
+    if( string_starts_with( string, prefix ) )
+        return Filter_File_Handle( string.substr( prefix.size() ) );
+    else
+        return Filter_File_Handle( std::make_unique<std::istringstream>( string ) );
 }
 
 void Filter_File_Handle::ResetLimits()
@@ -81,7 +100,7 @@ bool Filter_File_Handle::GetLine_Handle( const std::string & str_to_remove )
     this->current_line = "";
 
     // If there is a next line
-    if( std::getline( this->in_file_stream, this->current_line ) )
+    if( std::getline( *this->in_file_stream, this->current_line ) )
     {
         this->n_lines++;
 
@@ -92,7 +111,7 @@ bool Filter_File_Handle::GetLine_Handle( const std::string & str_to_remove )
         if( !str_to_remove.empty() )
             remove_chars_from_string( this->current_line, str_to_remove );
 
-        // If the string does not start with a comment identifier
+        // If the string does not start with a comment identifier and is not empty
         if( remove_comments_from_string( this->current_line, this->comment_tag ) )
         {
             return true;
@@ -115,18 +134,23 @@ bool Filter_File_Handle::GetLine( const std::string & str_to_remove )
     return false;
 }
 
+std::string_view Filter_File_Handle::CurrentLine() const
+{
+    return this->current_line;
+}
+
 void Filter_File_Handle::To_Start()
 {
-    in_file_stream.clear();
-    in_file_stream.seekg( 0, std::ios::beg );
+    in_file_stream->clear();
+    in_file_stream->seekg( 0, std::ios::beg );
 }
 
 bool Filter_File_Handle::Find( const std::string & keyword, const bool ignore_case )
 {
-    in_file_stream.clear();
-    in_file_stream.seekg( this->position_start );
+    in_file_stream->clear();
+    in_file_stream->seekg( this->position_start );
 
-    while( GetLine() && ( this->in_file_stream.tellg() <= this->position_stop ) )
+    while( GetLine() && ( this->in_file_stream->tellg() <= this->position_stop ) )
     {
         if( Find_in_Line( this->current_line, keyword, ignore_case ) )
             return true;
@@ -199,5 +223,13 @@ int Filter_File_Handle::Get_N_Non_Comment_Lines()
     ResetLimits();
     return ( this->n_lines - this->n_comment_lines );
 }
+
+std::string_view Filter_File_Handle::filename() const noexcept
+{
+    if( this->filename_.has_value() )
+        return *this->filename_;
+    else
+        return ":string:";
+};
 
 } // namespace IO

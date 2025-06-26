@@ -10,7 +10,8 @@
 
 #include <fmt/format.h>
 
-#include <fstream>
+#include <memory>
+#include <optional>
 #include <sstream>
 #include <string>
 
@@ -23,19 +24,29 @@ namespace IO
 class Filter_File_Handle
 {
 public:
-    const std::string filename;
-    const std::string comment_tag;
+    static constexpr std::string_view file_prefix = "file://";
 
     // Constructs a Filter_File_Handle with string filename
     Filter_File_Handle( const std::string & filename, const std::string & comment_tag = "#" );
+    // Constructs a Filter_File_Handle with arbitrary stream
+    Filter_File_Handle( std::unique_ptr<std::istream> stream, const std::string & comment_tag = "#" );
+    // Wrapper to construct a Filter_File_Handle from either the string or the file it points to, if it starts with the prefix
+    static Filter_File_Handle from_string( const std::string & string, std::string_view prefix = file_prefix );
+
     // Destructor
-    ~Filter_File_Handle();
+    ~Filter_File_Handle()                                        = default;
+    Filter_File_Handle & operator=( const Filter_File_Handle & ) = delete;
+    Filter_File_Handle & operator=( Filter_File_Handle && )      = delete;
+    Filter_File_Handle( const Filter_File_Handle & )             = delete;
+    Filter_File_Handle( Filter_File_Handle && )                  = delete;
 
     // Reset the file stream to the start of the file
     void To_Start();
 
     // Reads the next line of file into the handle and into the iss
     bool GetLine( const std::string & str_to_remove = "" );
+    // Gives a view into the current line that is held by the iss
+    std::string_view CurrentLine() const;
     // Tries to find s in the current file and if found outputs the line into internal iss
     bool Find( const std::string & keyword, bool ignore_case = true );
     // Returns the number of lines which are not starting with a comment
@@ -50,7 +61,7 @@ public:
      * NOTE: Capitalization is ignored (expected).
      */
     template<typename T>
-    bool Read_Single( T & var, const std::string & keyword, const bool log_notfound = true )
+    bool Read_Single( T & var, const std::string & keyword, const bool log_notfound = true ) noexcept
     try
     {
         if( Find( keyword ) )
@@ -86,7 +97,7 @@ public:
     }
 
     // Reads a Vector3 into var, with optional logging in case of failure.
-    void Read_Vector3( Vector3 & var, const std::string & keyword, const bool log_notfound = true )
+    void Read_Vector3( Vector3 & var, const std::string & keyword, const bool log_notfound = true ) noexcept
     try
     {
         if( Find( keyword ) )
@@ -102,7 +113,7 @@ public:
 
     // Reads a 3-component object, with optional logging in case of failure
     template<typename T>
-    void Read_3Vector( T & var, const std::string & keyword, const bool log_notfound = true )
+    void Read_3Vector( T & var, const std::string & keyword, const bool log_notfound = true ) noexcept
     try
     {
         if( Find( keyword ) )
@@ -116,8 +127,13 @@ public:
         spirit_handle_exception_core( fmt::format( "Failed to read 3Vector \"{}\".", keyword ) );
     }
 
+    [[nodiscard]] std::string_view filename() const noexcept;
+
 private:
-    std::ifstream in_file_stream;
+    const std::optional<const std::string> filename_;
+    const std::string comment_tag;
+
+    std::unique_ptr<std::istream> in_file_stream;
     std::istringstream iss{ "" };
 
     std::string current_line{ "" };
@@ -134,6 +150,7 @@ private:
     std::ios::pos_type position_start;
     std::ios::pos_type position_stop;
 
+    void Initialize();
     // Reset the limits of the file stream indicator
     void ResetLimits();
     // Reads next line of file into the handle (false -> end-of-file)
