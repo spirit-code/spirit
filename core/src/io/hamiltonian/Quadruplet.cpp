@@ -14,13 +14,12 @@ namespace
 {
 
 // Read from Quadruplet file
-void Quadruplets_from_File(
-    const std::string & quadruplets_file, const Data::Geometry &, int & noq, quadrupletfield & quadruplets,
-    scalarfield & quadruplet_magnitudes ) noexcept
+auto Quadruplets_from_File( Filter_File_Handle & quadruplets_file, const Data::Geometry & ) noexcept
+    -> Engine::Spin::Interaction::Quadruplet::Data
 try
 {
     Log( Log_Level::Debug, Log_Sender::IO,
-         fmt::format( "Reading spin quadruplets from file \"{}\"", quadruplets_file ) );
+         fmt::format( "Reading spin quadruplets from \"{}\"", quadruplets_file.filename() ) );
 
     // parser initialization
     using QuadrupletTableParser = TableParserInit<std::array<int, 13>, std::array<scalar, 1>>;
@@ -32,7 +31,8 @@ try
     {
         if( idx.at( "q" ) < 0 )
             Log( Log_Level::Warning, Log_Sender::IO,
-                 fmt::format( "No interactions could be found in header of quadruplets file ", quadruplets_file ) );
+                 fmt::format(
+                     "No interactions could be found in header of quadruplets file ", quadruplets_file.filename() ) );
 
         return []( const QuadrupletTableParser::read_row_t & row ) -> std::tuple<Quadruplet, scalar>
         {
@@ -42,45 +42,72 @@ try
         };
     };
     const auto data = parser.parse( quadruplets_file, "n_interaction_quadruplets", 20, transform_factory );
-    noq             = data.size();
+
+    auto quadruplets = Engine::Spin::Interaction::Quadruplet::Data{};
+    quadruplets.quadruplets.reserve( data.size() );
+    quadruplets.magnitudes.reserve( data.size() );
 
     for( const auto & [quadruplet, magnitude] : data )
     {
         if( magnitude != 0 )
         {
-            quadruplets.push_back( quadruplet );
-            quadruplet_magnitudes.push_back( magnitude );
+            quadruplets.quadruplets.push_back( quadruplet );
+            quadruplets.magnitudes.push_back( magnitude );
         }
     }
+
+    return quadruplets;
 }
 catch( ... )
 {
-    spirit_rethrow( fmt::format( "Could not read quadruplets from file  \"{}\"", quadruplets_file ) );
+    spirit_handle_exception_core(
+        fmt::format( "Could not read quadruplets from file  \"{}\"", quadruplets_file.filename() ) );
+    return Engine::Spin::Interaction::Quadruplet::Data{};
 }
 
 } // namespace
 
-void Quadruplets_from_Config(
-    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
-    quadrupletfield & quadruplets, scalarfield & quadruplet_magnitudes )
+namespace convert
 {
-    std::string quadruplets_file{};
-    int n_quadruplets = 0;
+
+namespace Interaction
+{
+
+auto Quadruplets( const std::string & config_file_name ) -> toml::table
+{
+    toml::table tbl{};
 
     try
     {
         IO::Filter_File_Handle config_file_handle( config_file_name );
 
-        // Interaction Quadruplets
         if( config_file_handle.Find( "n_interaction_quadruplets" ) )
-            quadruplets_file = config_file_name;
-        else if( config_file_handle.Find( "interaction_quadruplets_file" ) )
-            config_file_handle >> quadruplets_file;
-
-        if( quadruplets_file.length() > 0 )
         {
-            // The file name should be valid so we try to read it
-            Quadruplets_from_File( quadruplets_file, geometry, n_quadruplets, quadruplets, quadruplet_magnitudes );
+            int n_quadruplets = 0;
+            config_file_handle >> n_quadruplets;
+            tbl.insert(
+                "quadruplets",
+                [n_quadruplets, &config_file_handle]() -> std::string
+                {
+                    if( n_quadruplets <= 0 )
+                        return "";
+
+                    std::stringstream oss;
+                    oss << '\n';
+                    for( int i = 0; i < n_quadruplets + 1; ++i )
+                    {
+                        if( !config_file_handle.GetLine() )
+                            break;
+                        oss << config_file_handle.CurrentLine() << '\n';
+                    }
+                    return oss.str();
+                }() );
+        }
+        else if( config_file_handle.Find( "interaction_quadruplets_file" ) )
+        {
+            std::string quadruplets_file = "";
+            config_file_handle >> quadruplets_file;
+            tbl.insert( "quadruplets", fmt::format( "{}{}", Filter_File_Handle::file_prefix, quadruplets_file ) );
         }
     }
     catch( ... )
@@ -88,6 +115,39 @@ void Quadruplets_from_Config(
         spirit_handle_exception_core(
             fmt::format( "Unable to read interaction quadruplets from config file \"{}\"", config_file_name ) );
     }
+
+    return tbl;
+}
+
+} // namespace Interaction
+
+} // namespace convert
+
+auto Quadruplets_from_TOML(
+    const toml::table & tbl, const Data::Geometry & geometry,
+    std::vector<std::string> & parameter_log ) -> Engine::Spin::Interaction::Quadruplet::Data
+{
+    auto quadruplets = tbl["quadruplets"].as_string();
+    if( !quadruplets )
+        return {};
+
+    auto quadruplets_handle = Filter_File_Handle::from_string( quadruplets->get() );
+    const auto result       = Quadruplets_from_File( quadruplets_handle, geometry );
+
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "n_quadruplets", result.quadruplets.size() ) );
+
+    return result;
+}
+
+void Quadruplets_from_Config(
+    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
+    quadrupletfield & quadruplets, scalarfield & quadruplet_magnitudes )
+{
+    const auto data
+        = Quadruplets_from_TOML( convert::Interaction::Quadruplets( config_file_name ), geometry, parameter_log );
+
+    quadruplets           = data.quadruplets;
+    quadruplet_magnitudes = data.magnitudes;
 }
 
 } // namespace IO

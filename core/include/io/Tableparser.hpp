@@ -102,7 +102,7 @@ public:
     // a format that should be stored
     template<typename F>
     [[nodiscard]] decltype( auto ) parse(
-        const std::string & table_file, const std::string & table_size_id, const std::size_t n_columns_read,
+        Filter_File_Handle & file_handle, const std::string & table_size_id, const std::size_t n_columns_read,
         F transform_factory = forwarding_factory<read_row_t> ) const
     {
         using Utility::Log_Level, Utility::Log_Sender;
@@ -113,14 +113,12 @@ public:
         std::fill( begin( column_idx ), end( column_idx ), -1 );  // initialize with sentinal value
         int table_size{ 0 };                                      // table size for single config file setup
 
-        IO::Filter_File_Handle file_handle( table_file );
-
         if( file_handle.Find( table_size_id ) )
         {
             // Read n interaction pairs
             file_handle >> table_size;
             Log( Log_Level::Debug, Log_Sender::IO,
-                 fmt::format( "Table file {} should have {} rows", table_file, table_size ) );
+                 fmt::format( "Table file {} should have {} rows", file_handle.filename(), table_size ) );
             // if we know the expected size, we can reserve the necessary space
         }
         else
@@ -129,7 +127,8 @@ public:
             table_size = (int)1e8;
             // First line should contain the columns
             file_handle.To_Start();
-            Log( Log_Level::Debug, Log_Sender::IO, "Trying to parse columns from top of file " + table_file );
+            Log( Log_Level::Debug, Log_Sender::IO,
+                 fmt::format( "Trying to parse columns from top of {}", file_handle.filename() ) );
         }
 
         file_handle.GetLine();
@@ -151,8 +150,8 @@ public:
             {
                 Log( Log_Level::Warning, Log_Sender::IO,
                      fmt::format(
-                         "Unknown column \"{}\" in header of table file \"{}\" below \"{}\"", columns[i], table_file,
-                         table_size_id ) );
+                         "Unknown column \"{}\" in header of table file \"{}\" below \"{}\"", columns[i],
+                         file_handle.filename(), table_size_id ) );
             }
         }
 

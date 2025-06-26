@@ -15,12 +15,12 @@ namespace
 
 // Read from Anisotropy file
 void Anisotropy_from_File(
-    const std::string & anisotropy_file, const Data::Geometry & geometry, int & n_indices, intfield & anisotropy_index,
+    Filter_File_Handle & anisotropy_file, const Data::Geometry & geometry, intfield & anisotropy_index,
     scalarfield & anisotropy_magnitude, vectorfield & anisotropy_normal, intfield & cubic_anisotropy_index,
     scalarfield & cubic_anisotropy_magnitude ) noexcept
 try
 {
-    Log( Log_Level::Debug, Log_Sender::IO, "Reading anisotropy from file " + anisotropy_file );
+    Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Reading anisotropy from {}", anisotropy_file.filename() ) );
 
     // parser initialization
     using AnisotropyTableParser = TableParserInit<std::array<int, 1>, std::array<scalar, 8>>;
@@ -40,7 +40,8 @@ try
 
         if( !K_xyz && !K_abc )
             Log( Log_Level::Warning, Log_Sender::IO,
-                 fmt::format( "No anisotropy data could be found in header of file \"{}\"", anisotropy_file ) );
+                 fmt::format(
+                     "No anisotropy data could be found in header of file \"{}\"", anisotropy_file.filename() ) );
 
         return [K_xyz, K_abc, K_magnitude,
                 &geometry]( const AnisotropyTableParser::read_row_t & row ) -> std::tuple<int, scalar, Vector3, scalar>
@@ -79,14 +80,13 @@ try
 
     const std::string anisotropy_size_id = "n_anisotropy";
     const auto data                      = parser.parse( anisotropy_file, anisotropy_size_id, 6ul, transform_factory );
-    n_indices                            = data.size();
 
-    // Arrays
-    anisotropy_index           = intfield( 0 );
-    anisotropy_magnitude       = scalarfield( 0 );
-    anisotropy_normal          = vectorfield( 0 );
-    cubic_anisotropy_index     = intfield( 0 );
-    cubic_anisotropy_magnitude = scalarfield( 0 );
+    const auto reset = [size = data.size()]( auto & container ) { container.clear(), container.reserve( size ); };
+    reset( anisotropy_index );
+    reset( anisotropy_normal );
+    reset( anisotropy_magnitude );
+    reset( cubic_anisotropy_index );
+    reset( cubic_anisotropy_magnitude );
 
     for( const auto & [i, k, k_vec, k4] : data )
     {
@@ -106,95 +106,66 @@ try
 }
 catch( ... )
 {
-    spirit_rethrow( fmt::format( "Could not read anisotropies from file \"{}\"", anisotropy_file ) );
+    spirit_rethrow( fmt::format( "Could not read anisotropies from file \"{}\"", anisotropy_file.filename() ) );
 }
 
 } // namespace
 
-void Anisotropy_from_Config(
-    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
-    intfield & uniaxial_indices, scalarfield & uniaxial_magnitudes, vectorfield & uniaxial_normals,
-    intfield & cubic_indices, scalarfield & cubic_magnitudes )
+namespace convert
 {
-    std::string anisotropy_file{};
-    bool anisotropy_from_file = false;
-    int n_pairs               = 0;
+
+namespace Interaction
+{
+
+auto Anisotropy( const std::string & config_file_name ) -> toml::table
+{
+    toml::table tbl{};
+
     scalar K = 0, K4 = 0;
     Vector3 K_normal = { 0, 0, 0 };
 
     try
     {
-
         IO::Filter_File_Handle config_file_handle( config_file_name );
-
-        // Anisotropy
         if( config_file_handle.Find( "n_anisotropy" ) )
-            anisotropy_file = config_file_name;
-        else if( config_file_handle.Find( "anisotropy_file" ) )
-            config_file_handle >> anisotropy_file;
-
-        if( !anisotropy_file.empty() )
         {
-            // The file name should be valid so we try to read it
-            Anisotropy_from_File(
-                anisotropy_file, geometry, n_pairs, uniaxial_indices, uniaxial_magnitudes, uniaxial_normals,
-                cubic_indices, cubic_magnitudes );
+            int n_anisotropy = 0;
+            config_file_handle >> n_anisotropy;
+            tbl.insert(
+                "anisotropy",
+                [n_anisotropy, &config_file_handle]() -> std::string
+                {
+                    if( n_anisotropy <= 0 )
+                        return "";
 
-            anisotropy_from_file = true;
-            if( !uniaxial_indices.empty() )
-            {
-                K        = uniaxial_magnitudes[0];
-                K_normal = uniaxial_normals[0];
-            }
-            else
-            {
-                K        = 0;
-                K_normal = { 0, 0, 0 };
-            }
-            if( !cubic_indices.empty() )
-                K4 = cubic_magnitudes[0];
-            else
-                K4 = 0;
+                    std::stringstream oss;
+                    oss << '\n';
+                    for( int i = 0; i < n_anisotropy + 1; ++i )
+                    {
+                        if( !config_file_handle.GetLine() )
+                            break;
+                        oss << config_file_handle.CurrentLine() << '\n';
+                    }
+                    return oss.str();
+                }() );
+        }
+        else if( config_file_handle.Find( "anisotropy_file" ) )
+        {
+            std::string anisotropy_file = "";
+            config_file_handle >> anisotropy_file;
+            tbl.insert( "anisotropy", fmt::format( "{}{}", Filter_File_Handle::file_prefix, anisotropy_file ) );
         }
         else
         {
             // Read parameters from config
             config_file_handle.Read_Single( K, "anisotropy_magnitude" );
+            tbl.insert( "anisotropy_magnitude", K );
+
             config_file_handle.Read_Vector3( K_normal, "anisotropy_normal" );
-            K_normal.normalize();
+            tbl.insert( "anisotropy_normal", toml_array_from_container( K_normal ) );
 
             config_file_handle.Read_Single( K4, "cubic_anisotropy_magnitude" );
-
-            if( K != 0 )
-            {
-                // Fill the arrays
-                for( std::size_t i = 0; i < uniaxial_indices.size(); ++i )
-                {
-                    uniaxial_indices[i]    = static_cast<int>( i );
-                    uniaxial_magnitudes[i] = K;
-                    uniaxial_normals[i]    = K_normal;
-                }
-            }
-            else
-            {
-                uniaxial_indices    = intfield( 0 );
-                uniaxial_magnitudes = scalarfield( 0 );
-                uniaxial_normals    = vectorfield( 0 );
-            }
-            if( K4 != 0 )
-            {
-                // Fill the arrays
-                for( std::size_t i = 0; i < cubic_indices.size(); ++i )
-                {
-                    cubic_indices[i]    = static_cast<int>( i );
-                    cubic_magnitudes[i] = K4;
-                }
-            }
-            else
-            {
-                cubic_indices    = intfield( 0 );
-                cubic_magnitudes = scalarfield( 0 );
-            }
+            tbl.insert( "cubic_anisotropy_magnitude", K4 );
         }
     }
     catch( ... )
@@ -203,11 +174,91 @@ void Anisotropy_from_Config(
             fmt::format( "Unable to read anisotropy from config file \"{}\"", config_file_name ) );
     }
 
-    if( anisotropy_from_file )
-        parameter_log.emplace_back( fmt::format( "    K from file \"{}\"", anisotropy_file ) );
+    return tbl;
+}
+
+} // namespace Interaction
+
+} // namespace convert
+
+auto Anisotropy_from_TOML(
+    const toml::table & tbl, const Data::Geometry & geometry, std::vector<std::string> & parameter_log )
+    -> std::pair<Engine::Spin::Interaction::Anisotropy::Data, Engine::Spin::Interaction::Cubic_Anisotropy::Data>
+{
+    Engine::Spin::Interaction::Anisotropy::Data anisotropy{};
+    Engine::Spin::Interaction::Cubic_Anisotropy::Data cubic_anisotropy{};
+
+    scalar K = 0, K4 = 0;
+    Vector3 K_normal = { 0, 0, 0 };
+
+    if( auto anisotropy_table = tbl["anisotropy"].as_string() )
+    {
+        auto file_handle = Filter_File_Handle::from_string( anisotropy_table->get() );
+        Anisotropy_from_File(
+            file_handle, geometry, anisotropy.indices, anisotropy.magnitudes, anisotropy.normals,
+            cubic_anisotropy.indices, cubic_anisotropy.magnitudes );
+
+        if( !anisotropy.indices.empty() )
+        {
+            K        = anisotropy.magnitudes[0];
+            K_normal = anisotropy.normals[0];
+        }
+        if( !cubic_anisotropy.indices.empty() )
+            K4 = cubic_anisotropy.magnitudes[0];
+
+        parameter_log.emplace_back( fmt::format( "    K from table \"{}\"", file_handle.filename() ) );
+    }
+    else
+    {
+        K  = tbl["anisotropy_magnitude"].value_or<scalar>( 0.0 );
+        K4 = tbl["cubic_anisotropy_magnitude"].value_or<scalar>( 0.0 );
+        if( auto normal = tbl["anisotropy_normal"].as_array() )
+        {
+            try
+            {
+                K_normal = toml_array_transform<Vector3>::transform( *normal ).normalized();
+            }
+            catch( ... )
+            {
+                spirit_handle_exception_core( "Error parsing anisotropy_normal" );
+            }
+        }
+
+        if( K != 0 && K_normal.norm() > 1e-8 )
+        {
+            anisotropy.magnitudes = scalarfield( geometry.n_cell_atoms, K );
+            anisotropy.normals    = vectorfield( geometry.n_cell_atoms, K_normal );
+            anisotropy.indices    = intfield( geometry.n_cell_atoms );
+            std::iota( anisotropy.indices.begin(), anisotropy.indices.end(), 0 );
+        }
+
+        if( K4 != 0 )
+        {
+            cubic_anisotropy.magnitudes = scalarfield( geometry.n_cell_atoms, K4 );
+            cubic_anisotropy.indices    = intfield( geometry.n_cell_atoms );
+            std::iota( cubic_anisotropy.indices.begin(), cubic_anisotropy.indices.end(), 0 );
+        }
+    }
+
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy[0]", K ) );
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy_normal[0]", K_normal.transpose() ) );
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "cubic_anisotropy_magnitude[0]", K4 ) );
+
+    return { anisotropy, cubic_anisotropy };
 }
 
+void Anisotropy_from_Config(
+    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
+    intfield & uniaxial_indices, scalarfield & uniaxial_magnitudes, vectorfield & uniaxial_normals,
+    intfield & cubic_indices, scalarfield & cubic_magnitudes )
+{
+    const auto [uniaxial, cubic]
+        = Anisotropy_from_TOML( convert::Interaction::Anisotropy( config_file_name ), geometry, parameter_log );
+
+    uniaxial_indices    = uniaxial.indices;
+    uniaxial_magnitudes = uniaxial.magnitudes;
+    uniaxial_normals    = uniaxial.normals;
+    cubic_indices       = cubic.indices;
+    cubic_magnitudes    = cubic.magnitudes;
+}
 } // namespace IO

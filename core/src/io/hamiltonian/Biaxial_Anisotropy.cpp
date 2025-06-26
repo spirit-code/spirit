@@ -15,7 +15,7 @@ namespace
 {
 
 void Biaxial_Anisotropy_Axes_from_File(
-    const std::string & anisotropy_axes_file, const Data::Geometry & geometry, int & n_axes,
+    Filter_File_Handle & file_handle, const Data::Geometry & geometry, int & n_axes,
     std::map<int, std::pair<Vector3, Vector3>> & anisotropy_axes ) noexcept
 try
 {
@@ -25,7 +25,7 @@ try
         { "i", "k1x", "k1y", "k1z", "k1a", "k1b", "k1c", "k2x", "k2y", "k2z", "k2a", "k2b", "k2c" } );
 
     // factory function for creating a lambda that transforms the row that is read
-    auto transform_factory = [&anisotropy_axes_file, &geometry]( const std::map<std::string_view, int> & idx )
+    auto transform_factory = [&file_handle, &geometry]( const std::map<std::string_view, int> & idx )
     {
         bool K1_xyz = ( idx.at( "k1x" ) >= 0 && idx.at( "k1y" ) >= 0 && idx.at( "k1z" ) >= 0 );
         bool K1_abc = ( idx.at( "k1a" ) >= 0 && idx.at( "k1b" ) >= 0 && idx.at( "k1c" ) >= 0 );
@@ -34,7 +34,7 @@ try
 
         if( !( ( K1_xyz || K1_abc ) && ( K2_xyz || K2_abc ) ) )
             Log( Log_Level::Warning, Log_Sender::IO,
-                 fmt::format( "No anisotropy data could be found in header of file \"{}\"", anisotropy_axes_file ) );
+                 fmt::format( "No anisotropy data could be found in header of \"{}\"", file_handle.filename() ) );
 
         return [K1_xyz, K1_abc, K2_xyz, K2_abc, &geometry](
                    const AnisotropyTableParser::read_row_t & row ) -> std::pair<int, std::pair<Vector3, Vector3>>
@@ -73,18 +73,18 @@ try
         };
     };
 
-    const auto data = parser.parse( anisotropy_axes_file, "n_biaxial_anisotropy_axes", 7ul, transform_factory );
+    const auto data = parser.parse( file_handle, "n_biaxial_anisotropy_axes", 7ul, transform_factory );
     n_axes          = data.size();
 
     anisotropy_axes = std::map( begin( data ), end( data ) );
 }
 catch( ... )
 {
-    spirit_rethrow( fmt::format( "Could not read anisotropy axes from file \"{}\"", anisotropy_axes_file ) );
+    spirit_rethrow( fmt::format( "Could not read anisotropy axes from \"{}\"", file_handle.filename() ) );
 }
 
 void Biaxial_Anisotropy_Terms_from_File(
-    const std::string & anisotropy_terms_file, const Data::Geometry &, int & n_terms,
+    Filter_File_Handle & file_handle, const Data::Geometry &, int & n_terms,
     std::map<int, field<PolynomialTerm>> & anisotropy_terms ) noexcept
 try
 {
@@ -94,12 +94,12 @@ try
     const AnisotropyTableParser parser( { "i", "n1", "n2", "n3", "k" } );
 
     // factory function for creating a lambda that transforms the row that is read
-    auto transform_factory = [&anisotropy_terms_file]( const std::map<std::string_view, int> & idx )
+    auto transform_factory = [&file_handle]( const std::map<std::string_view, int> & idx )
     {
         if( idx.at( "i" ) < 0 || idx.at( "k" ) < 0
             || ( idx.at( "n1" ) < 0 && idx.at( "n2" ) < 0 && idx.at( "n3" ) < 0 ) )
             Log( Log_Level::Warning, Log_Sender::IO,
-                 fmt::format( "No anisotropy data could be found in header of file \"{}\"", anisotropy_terms_file ) );
+                 fmt::format( "No anisotropy data could be found in header of \"{}\"", file_handle.filename() ) );
 
         return []( AnisotropyTableParser::read_row_t row ) -> std::pair<int, PolynomialTerm>
         {
@@ -108,7 +108,7 @@ try
         };
     };
 
-    const auto data = parser.parse( anisotropy_terms_file, "n_biaxial_anisotropy_terms", 6ul, transform_factory );
+    const auto data = parser.parse( file_handle, "n_biaxial_anisotropy_terms", 6ul, transform_factory );
     n_terms         = data.size();
 
     anisotropy_terms.clear();
@@ -117,12 +117,12 @@ try
 }
 catch( ... )
 {
-    spirit_rethrow( fmt::format( "Could not read anisotropy terms from file \"{}\"", anisotropy_terms_file ) );
+    spirit_rethrow( fmt::format( "Could not read anisotropy terms from \"{}\"", file_handle.filename() ) );
 }
 
 void Biaxial_Anisotropy_from_File(
-    const std::string & anisotropy_axes_file, const std::string & anisotropy_terms_file,
-    const Data::Geometry & geometry, int & n_indices, intfield & anisotropy_indices,
+    Filter_File_Handle & anisotropy_axes_file, Filter_File_Handle & anisotropy_terms_file,
+    const Data::Geometry & geometry, intfield & anisotropy_indices,
     field<PolynomialBasis> & anisotropy_polynomial_bases, field<unsigned int> & anisotropy_polynomial_site_p,
     field<PolynomialTerm> & anisotropy_polynomial_terms ) noexcept
 try
@@ -131,13 +131,13 @@ try
     auto anisotropy_axes  = std::map<int, std::pair<Vector3, Vector3>>();
     auto anisotropy_terms = std::map<int, field<PolynomialTerm>>();
 
-    Log( Log_Level::Debug, Log_Sender::IO, "Reading anisotropy axes from file " + anisotropy_axes_file );
+    Log( Log_Level::Debug, Log_Sender::IO,
+         fmt::format( "Reading anisotropy axes from {}", anisotropy_axes_file.filename() ) );
     Biaxial_Anisotropy_Axes_from_File( anisotropy_axes_file, geometry, n_axes, anisotropy_axes );
 
-    Log( Log_Level::Debug, Log_Sender::IO, "Reading anisotropy terms from file " + anisotropy_terms_file );
+    Log( Log_Level::Debug, Log_Sender::IO,
+         fmt::format( "Reading anisotropy terms from {}", anisotropy_terms_file.filename() ) );
     Biaxial_Anisotropy_Terms_from_File( anisotropy_terms_file, geometry, n_terms, anisotropy_terms );
-
-    n_indices = n_axes + n_terms;
 
     // Arrays
     anisotropy_indices           = intfield{};
@@ -188,51 +188,140 @@ try
 catch( ... )
 {
     spirit_rethrow( fmt::format(
-        "Could not read anisotropies from files \"{}\" & \"{}\" ", anisotropy_axes_file, anisotropy_terms_file ) );
+        "Could not read anisotropies from files \"{}\" & \"{}\" ", anisotropy_axes_file.filename(),
+        anisotropy_terms_file.filename() ) );
 }
 
 } // namespace
 
-void Biaxial_Anisotropy_from_Config(
-    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
-    intfield & indices, field<PolynomialBasis> & polynomial_bases, field<unsigned int> & polynomial_site_p,
-    field<PolynomialTerm> & polynomial_terms )
+namespace convert
 {
-    std::string biaxial_anisotropy_axes_file  = "";
-    std::string biaxial_anisotropy_terms_file = "";
-    int n_biaxial_anisotropy                  = 0;
+
+namespace Interaction
+{
+
+auto Biaxial_Anisotropy( const std::string & config_file_name ) -> toml::table
+{
+    toml::table tbl;
     try
     {
         IO::Filter_File_Handle config_file_handle( config_file_name );
 
         if( config_file_handle.Find( "n_biaxial_anisotropy_axes" ) )
-            biaxial_anisotropy_axes_file = config_file_name;
+        {
+            int n_biaxial_anisotropy_axes = 0;
+            config_file_handle >> n_biaxial_anisotropy_axes;
+            tbl.insert(
+                "biaxial_anisotropy_axes",
+                [n_biaxial_anisotropy_axes, &config_file_handle]() -> std::string
+                {
+                    if( n_biaxial_anisotropy_axes == 0 )
+                        return "";
+
+                    std::stringstream oss;
+                    oss << '\n';
+                    for( int i = 0; i < n_biaxial_anisotropy_axes + 1; ++i )
+                    {
+                        if( !config_file_handle.GetLine() )
+                            break;
+                        oss << config_file_handle.CurrentLine() << '\n';
+                    }
+                    return oss.str();
+                }() );
+        }
         else if( config_file_handle.Find( "biaxial_anisotropy_axes_file" ) )
+        {
+            std::string biaxial_anisotropy_axes_file = "";
             config_file_handle >> biaxial_anisotropy_axes_file;
+            tbl.insert(
+                "biaxial_anisotropy_axes",
+                fmt::format( "{}{}", Filter_File_Handle::file_prefix, biaxial_anisotropy_axes_file ) );
+        }
 
         if( config_file_handle.Find( "n_biaxial_anisotropy_terms" ) )
-            biaxial_anisotropy_terms_file = config_file_name;
-        else if( config_file_handle.Find( "biaxial_anisotropy_terms_file" ) )
-            config_file_handle >> biaxial_anisotropy_terms_file;
+        {
+            int n_biaxial_anisotropy_terms = 0;
+            config_file_handle >> n_biaxial_anisotropy_terms;
+            tbl.insert(
+                "biaxial_anisotropy_terms",
+                [n_biaxial_anisotropy_terms, &config_file_handle]() -> std::string
+                {
+                    if( n_biaxial_anisotropy_terms == 0 )
+                        return "";
 
-        if( biaxial_anisotropy_terms_file.empty() xor biaxial_anisotropy_axes_file.empty() )
-        {
-            Log( Log_Level::Error, Log_Sender::IO,
-                 fmt::format(
-                     "Found incomplete specification for biaxial anisotropy: missing specification for \"{}\"",
-                     biaxial_anisotropy_axes_file.empty() ? "axes" : "terms" ) );
+                    std::stringstream oss;
+                    oss << '\n';
+                    for( int i = 0; i < n_biaxial_anisotropy_terms + 1; ++i )
+                    {
+                        if( !config_file_handle.GetLine() )
+                            break;
+                        oss << config_file_handle.CurrentLine() << '\n';
+                    }
+                    return oss.str();
+                }() );
         }
-        else if( !biaxial_anisotropy_terms_file.empty() && !biaxial_anisotropy_axes_file.empty() )
+        else if( config_file_handle.Find( "biaxial_anisotropy_terms_file" ) )
         {
-            Biaxial_Anisotropy_from_File(
-                biaxial_anisotropy_axes_file, biaxial_anisotropy_terms_file, geometry, n_biaxial_anisotropy, indices,
-                polynomial_bases, polynomial_site_p, polynomial_terms );
+            std::string biaxial_anisotropy_terms_file = "";
+            config_file_handle >> biaxial_anisotropy_terms_file;
+            tbl.insert(
+                "biaxial_anisotropy_terms",
+                fmt::format( "{}{}", Filter_File_Handle::file_prefix, biaxial_anisotropy_terms_file ) );
         }
     }
     catch( ... )
     {
         spirit_handle_exception_core(
             fmt::format( "Could not read biaxial anisotropy from config \"{}\"", config_file_name ) );
+    }
+
+    return tbl;
+}
+
+} // namespace Interaction
+
+} // namespace convert
+
+void Biaxial_Anisotropy_from_TOML(
+    const toml::table & tbl, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
+    intfield & indices, field<PolynomialBasis> & polynomial_bases, field<unsigned int> & polynomial_site_p,
+    field<PolynomialTerm> & polynomial_terms )
+{
+    try
+    {
+        auto biaxial_anisotropy_axes_handle = [&tbl]() -> std::optional<Filter_File_Handle>
+        {
+            if( auto value = tbl["biaxial_anisotropy_axes"].value<std::string>() )
+                return Filter_File_Handle::from_string_optional( *value );
+            else
+                return std::nullopt;
+        }();
+
+        auto biaxial_anisotropy_terms_handle = [&tbl]() -> std::optional<Filter_File_Handle>
+        {
+            if( auto value = tbl["biaxial_anisotropy_terms"].value<std::string>() )
+                return Filter_File_Handle::from_string_optional( *value );
+            else
+                return std::nullopt;
+        }();
+
+        if( !biaxial_anisotropy_terms_handle xor !biaxial_anisotropy_axes_handle )
+        {
+            Log( Log_Level::Error, Log_Sender::IO,
+                 fmt::format(
+                     "Incomplete specification for biaxial anisotropy: missing or invalid specification for \"{}\"",
+                     biaxial_anisotropy_axes_handle ? "axes" : "terms" ) );
+        }
+        else if( biaxial_anisotropy_terms_handle && biaxial_anisotropy_axes_handle )
+        {
+            Biaxial_Anisotropy_from_File(
+                *biaxial_anisotropy_axes_handle, *biaxial_anisotropy_terms_handle, geometry, indices, polynomial_bases,
+                polynomial_site_p, polynomial_terms );
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core( "Could not read biaxial anisotropy!" );
     }
 
     if( !polynomial_bases.empty() )
@@ -242,9 +331,17 @@ void Biaxial_Anisotropy_from_Config(
         parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "biaxial_anisotropy[0].k2", p.k2.transpose() ) );
         parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "biaxial_anisotropy[0].k3", p.k3.transpose() ) );
     }
-    if( !biaxial_anisotropy_terms_file.empty() )
-        parameter_log.emplace_back(
-            fmt::format( "    biaxial anisotropy terms from file \"{}\"", biaxial_anisotropy_terms_file ) );
+    if( !polynomial_terms.empty() )
+        parameter_log.emplace_back( fmt::format( "    Read {} biaxial anisotropy terms!", polynomial_terms.size() ) );
 }
 
+void Biaxial_Anisotropy_from_Config(
+    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
+    intfield & indices, field<PolynomialBasis> & polynomial_bases, field<unsigned int> & polynomial_site_p,
+    field<PolynomialTerm> & polynomial_terms )
+{
+    return Biaxial_Anisotropy_from_TOML(
+        convert::Interaction::Biaxial_Anisotropy( config_file_name ), geometry, parameter_log, indices,
+        polynomial_bases, polynomial_site_p, polynomial_terms );
+}
 } // namespace IO
