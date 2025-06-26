@@ -89,6 +89,22 @@ Filter_File_Handle Filter_File_Handle::from_string( const std::string & string, 
         return Filter_File_Handle( std::make_unique<std::istringstream>( string ) );
 }
 
+std::optional<Filter_File_Handle>
+Filter_File_Handle::from_string_optional( const std::string & string, std::string_view prefix ) noexcept
+{
+    try
+    {
+        if( string_starts_with( string, prefix ) )
+            return std::optional<Filter_File_Handle>( std::in_place, string.substr( prefix.size() ) );
+        else
+            return std::optional<Filter_File_Handle>( std::in_place, std::make_unique<std::istringstream>( string ) );
+    }
+    catch( ... )
+    {
+        return std::nullopt;
+    }
+}
+
 void Filter_File_Handle::ResetLimits()
 {
     this->position_start = this->position_file_beg;

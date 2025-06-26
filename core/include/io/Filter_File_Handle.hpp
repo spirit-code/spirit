@@ -31,7 +31,9 @@ public:
     // Constructs a Filter_File_Handle with arbitrary stream
     Filter_File_Handle( std::unique_ptr<std::istream> stream, const std::string & comment_tag = "#" );
     // Wrapper to construct a Filter_File_Handle from either the string or the file it points to, if it starts with the prefix
-    static Filter_File_Handle from_string( const std::string & string, std::string_view prefix = file_prefix );
+    static auto from_string( const std::string & string, std::string_view prefix = file_prefix ) -> Filter_File_Handle;
+    static auto from_string_optional( const std::string & string, std::string_view prefix = file_prefix ) noexcept
+        -> std::optional<Filter_File_Handle>;
 
     // Destructor
     ~Filter_File_Handle()                                        = default;
