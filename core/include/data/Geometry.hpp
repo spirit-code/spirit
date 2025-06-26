@@ -6,7 +6,7 @@
 #include <Spirit/Spirit_Defines.h>
 #include <engine/Vectormath_Defines.hpp>
 
-#include <memory>
+#include <numeric>
 #include <vector>
 
 namespace Data
@@ -76,6 +76,22 @@ struct Basis_Cell_Composition
 
     // Chemical concentration of an atom on a specific lattice site (if disorder is activated)
     std::vector<scalar> concentration;
+
+    static Basis_Cell_Composition make_default( const std::size_t size, const bool disordered = false )
+    {
+        return Basis_Cell_Composition{ disordered,
+                                       /*iatom=*/
+                                       [size]
+                                       {
+                                           std::vector<int> iatom( size );
+                                           std::iota( iatom.begin(), iatom.end(), 0 );
+                                           return iatom;
+                                       }(),
+                                       /*atom_type=*/std::vector<int>( size, 0 ),
+                                       /*mu_s=*/std::vector<scalar>( size, 1 ),
+                                       /*spin_qn=*/std::vector<int>( size, 1 ),
+                                       /*concentration=*/{} };
+    }
 };
 
 // Geometry contains all geometric information of a system

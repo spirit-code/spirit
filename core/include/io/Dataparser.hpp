@@ -45,15 +45,11 @@ void Check_NonOVF_Chain_Configuration(
     std::shared_ptr<::State::chain_t> chain, const std::string & file, int start_image_infile, int end_image_infile,
     const int insert_idx, int & noi_to_add, int & noi_to_read, const int idx_chain );
 
-void Basis_from_File(
-    const std::string & basis_file, Data::Basis_Cell_Composition & cell_composition, std::vector<Vector3> & cell_atoms,
-    std::size_t & n_cell_atoms ) noexcept;
-
-void Defects_from_File(
-    const std::string & defects_file, int & n_defects, field<Site> & defect_sites, intfield & defect_types ) noexcept;
+auto Basis_from_File( Filter_File_Handle & basis_file ) noexcept -> std::vector<Vector3>;
+auto Defects_from_File( Filter_File_Handle & defects_file ) noexcept -> Data::Defects;
 
 void Pinned_from_File(
-    const std::string & pinned_file, int & n_pinned, field<Site> & pinned_sites, vectorfield & pinned_spins ) noexcept;
+    Filter_File_Handle & pinned_file, int & n_pinned, field<Site> & pinned_sites, vectorfield & pinned_spins ) noexcept;
 
 } // namespace IO
 

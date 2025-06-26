@@ -15,6 +15,17 @@
 namespace IO
 {
 
+namespace detail
+{
+
+struct BravaisConfig
+{
+    std::vector<Vector3> vectors          = std::vector{ Vector3{ 1, 0, 0 }, Vector3{ 0, 1, 0 }, Vector3{ 0, 0, 1 } };
+    Data::BravaisLatticeType lattice_type = Data::BravaisLatticeType::SC;
+    std::string lattice_type_str          = "sc";
+};
+
+} // namespace detail
 /*
  * Note that due to the modular structure of the input parsers, input may be given in one or in separate files.
  * Input may be given incomplete. In this case a log entry is created and default values are used.
@@ -25,11 +36,8 @@ void Log_from_TOML( const toml::table & tbl, bool force_quiet = false );
 
 std::unique_ptr<::State::system_t> Spin_System_from_Config( const std::string & config_file_name );
 
-Data::Pinning Pinning_from_Config( const std::string & config_file_name, std::size_t n_cell_atoms );
-
-Data::Geometry Geometry_from_Config( const std::string & config_file_name );
-
-intfield Boundary_Conditions_from_Config( const std::string & config_file_name );
+auto Geometry_from_Config( const std::string & config_file_name ) -> Data::Geometry;
+auto Boundary_Conditions_from_Config( const std::string & config_file_name ) -> intfield;
 
 auto Parameters_Method_LLG_from_Config( const std::string & ) -> std::unique_ptr<Data::Parameters_Method_LLG>;
 auto Parameters_Method_LLG_from_TOML( const toml::table & ) -> std::unique_ptr<Data::Parameters_Method_LLG>;

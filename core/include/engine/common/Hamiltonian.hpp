@@ -15,6 +15,8 @@
 #include <engine/common/Interaction_Wrapper.hpp>
 #include <utility/Variadic_Traits.hpp>
 
+#include <memory>
+
 namespace Engine
 {
 

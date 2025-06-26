@@ -1,4 +1,5 @@
 #include <io/Configparser.hpp>
+#include <io/Dataparser.hpp>
 #include <io/Filter_File_Handle.hpp>
 #include <io/configparser/Converter.hpp>
 #include <utility/Logging.hpp>
@@ -12,19 +13,6 @@ namespace IO
 
 namespace convert
 {
-
-namespace
-{
-
-template<typename Container>
-auto toml_array_from_container( const Container & iterable ) -> toml::array
-{
-    toml::array result{};
-    result.insert( result.begin(), iterable.begin(), iterable.end() );
-    return result;
-}
-
-} // namespace
 
 using Utility::Log_Level;
 using Utility::Log_Sender;
@@ -520,6 +508,404 @@ auto Parameters_Method_MC( const std::string & config_file_name ) -> toml::table
         { "metropolis_random_sample", parameters.metropolis_random_sample },
     };
 };
+
+auto Boundary_Conditions( const std::string & config_file_name ) -> toml::table
+try
+{
+    // Boundary conditions (a, b, c)
+    std::vector<int> boundary_conditions_i = { 0, 0, 0 };
+    intfield boundary_conditions           = { false, false, false };
+
+    if( !config_file_name.empty() )
+    {
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+
+        // Boundary conditions
+        config_file_handle.Read_3Vector( boundary_conditions_i, "boundary_conditions" );
+        boundary_conditions[0] = static_cast<int>( boundary_conditions_i[0] != 0 );
+        boundary_conditions[1] = static_cast<int>( boundary_conditions_i[1] != 0 );
+        boundary_conditions[2] = static_cast<int>( boundary_conditions_i[2] != 0 );
+    }
+
+    return toml::table{ { "boundary_conditions", toml_array_from_container( boundary_conditions ) } };
+}
+catch( ... )
+{
+    spirit_rethrow( fmt::format( "Unable to parse boundary conditions from config file \"{}\"", config_file_name ) );
+    return toml::table{};
+} // End boundary_conditions from Config
+
+auto Bravais_Vectors( const std::string & config_file_name ) -> toml::table
+{
+    toml::table result{};
+
+    auto convert_bravais = []( const std::vector<Vector3> & vectors )
+    {
+        toml::array result;
+        result.reserve( vectors.size() );
+        std::transform(
+            vectors.begin(), vectors.end(), std::back_inserter( result ),
+            []( const auto & v ) { return toml::array{ v[0], v[1], v[2] }; } );
+        return result;
+    };
+
+    try
+    {
+        std::vector<Vector3> bravais_vectors{ { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+
+        // Bravais lattice type or manually specified vectors/matrix
+        if( config_file_handle.Find( "bravais_lattice" ) )
+        {
+            std::string bravais_lattice = "";
+            config_file_handle >> bravais_lattice;
+            result.insert( "bravais_lattice", bravais_lattice );
+        }
+        if( config_file_handle.Find( "bravais_vectors" ) )
+        {
+            config_file_handle.GetLine();
+            config_file_handle >> bravais_vectors[0][0] >> bravais_vectors[0][1] >> bravais_vectors[0][2];
+            config_file_handle.GetLine();
+            config_file_handle >> bravais_vectors[1][0] >> bravais_vectors[1][1] >> bravais_vectors[1][2];
+            config_file_handle.GetLine();
+            config_file_handle >> bravais_vectors[2][0] >> bravais_vectors[2][1] >> bravais_vectors[2][2];
+            result.insert( "bravais_vectors", convert_bravais( bravais_vectors ) );
+        }
+        if( config_file_handle.Find( "bravais_matrix" ) )
+        {
+            config_file_handle.GetLine();
+            config_file_handle >> bravais_vectors[0][0] >> bravais_vectors[1][0] >> bravais_vectors[2][0];
+            config_file_handle.GetLine();
+            config_file_handle >> bravais_vectors[0][1] >> bravais_vectors[1][1] >> bravais_vectors[2][1];
+            config_file_handle.GetLine();
+            config_file_handle >> bravais_vectors[0][2] >> bravais_vectors[1][2] >> bravais_vectors[2][2];
+            result.insert( "bravais_matrix", convert_bravais( bravais_vectors ) );
+        }
+    }
+    catch( ... )
+    {
+        spirit_rethrow( fmt::format( "Unable to parse bravais vectors from config file \"{}\"", config_file_name ) );
+    } // End Basis_from_Config
+
+    return result;
+}
+
+auto Pinning( const std::string & config_file_name, std::size_t n_cell_atoms ) -> toml::table
+{
+#ifndef SPIRIT_ENABLE_PINNING
+    Log( Log_Level::Parameter, Log_Sender::IO, "Pinning is disabled" );
+    if( !config_file_name.empty() )
+    {
+        try
+        {
+            IO::Filter_File_Handle config_file_handle( config_file_name );
+            if( config_file_handle.Find( "pinning_cell" ) )
+                Log( Log_Level::Warning, Log_Sender::IO,
+                     "You specified a pinning cell even though pinning is disabled!" );
+        }
+        catch( ... )
+        {
+            spirit_handle_exception_core( fmt::format(
+                "Failed to read pinning parameters from file \"{}\". Leaving values at default.", config_file_name ) );
+        }
+    }
+
+    return Data::Pinning{ 0, 0, 0, 0, 0, 0, vectorfield( 0 ), field<Site>( 0 ), vectorfield( 0 ) };
+#else
+    vectorfield pinned_cell( n_cell_atoms, Vector3{ 0, 0, 1 } );
+    //-------------- Insert default values here -----------------------------
+    int na = 0, na_left = 0, na_right = 0;
+    int nb = 0, nb_left = 0, nb_right = 0;
+    int nc = 0, nc_left = 0, nc_right = 0;
+    // Additional pinned sites
+    field<Site> pinned_sites( 0 );
+    vectorfield pinned_spins( 0 );
+    int n_pinned = 0;
+
+    toml::table tbl;
+
+    //------------------------------- Parser --------------------------------
+    Log( Log_Level::Debug, Log_Sender::IO, "going to read pinning" );
+    if( !config_file_name.empty() )
+    {
+        try
+        {
+            Filter_File_Handle config_file_handle( config_file_name );
+
+            {
+                toml::array pinning_boundary{};
+                // N_a
+                config_file_handle.Read_Single( na_left, "pin_na_left", false );
+                config_file_handle.Read_Single( na_right, "pin_na_right", false );
+                config_file_handle.Read_Single( na, "pin_na ", false );
+
+                if( na_left == 0 || na_right == 0 )
+                    pinning_boundary.push_back( na );
+                else
+                    pinning_boundary.push_back( toml::array{ na_left, na_right } );
+
+                // N_b
+                config_file_handle.Read_Single( nb_left, "pin_nb_left", false );
+                config_file_handle.Read_Single( nb_right, "pin_nb_right", false );
+                config_file_handle.Read_Single( nb, "pin_nb ", false );
+                if( nb_left == 0 || nb_right == 0 )
+                    pinning_boundary.push_back( nb );
+                else
+                    pinning_boundary.push_back( toml::array{ nb_left, nb_right } );
+
+                // N_c
+                config_file_handle.Read_Single( nc_left, "pin_nc_left", false );
+                config_file_handle.Read_Single( nc_right, "pin_nc_right", false );
+                config_file_handle.Read_Single( nc, "pin_nc ", false );
+                if( nc_left == 0 || nc_right == 0 )
+                    pinning_boundary.push_back( nc );
+                else
+                    pinning_boundary.push_back( toml::array{ nc_left, nc_right } );
+
+                const auto specified = []( const auto & node )
+                {
+                    auto value = node.as_integer();
+                    return !value || *value != 0;
+                };
+                if( std::any_of( pinning_boundary.begin(), pinning_boundary.end(), specified ) )
+                    tbl.insert( "boundary", pinning_boundary );
+            };
+
+            // How should the cells be pinned
+            if( config_file_handle.Find( "pinning_cell" ) )
+            {
+                for( std::size_t i = 0; i < n_cell_atoms; ++i )
+                {
+                    config_file_handle.GetLine();
+                    config_file_handle >> pinned_cell[i][0] >> pinned_cell[i][1] >> pinned_cell[i][2];
+                }
+                tbl.insert( "pinning_cell", toml_array_transform<toml::array>::transform( pinned_cell ) );
+            }
+
+            // Additional pinned sites
+            std::string pinned_file = "";
+            if( config_file_handle.Find( "n_pinned" ) )
+            {
+                config_file_handle.Read_Single( n_pinned, "n_pinned" );
+                std::stringstream oss{ "\n" };
+                for( int i = 0; i < n_pinned; ++i )
+                {
+                    if( !config_file_handle.GetLine() )
+                        break;
+                    oss << config_file_handle.CurrentLine() << '\n';
+                }
+                tbl.insert( "pinned", oss.str() );
+            }
+            else if( config_file_handle.Find( "pinned_from_file" ) )
+            {
+                config_file_handle >> pinned_file;
+                tbl.insert( "pinned", fmt::format( "{}{}", Filter_File_Handle::file_prefix, pinned_file ) );
+            }
+        }
+        catch( ... )
+        {
+            spirit_handle_exception_core( fmt::format(
+                "Failed to read Pinning from file \"{}\". Leaving values at default.", config_file_name ) );
+        }
+    }
+
+    // Return Pinning
+    Log( Log_Level::Debug, Log_Sender::IO, "pinning has been read" );
+    return tbl;
+#endif // SPIRIT_ENABLE_PINNING
+}
+
+auto Basis_Cell_Composition( const std::string & config_file_name, const std::size_t n_cell_atoms ) -> toml::table
+{
+    toml::table tbl;
+    auto cell_composition = Data::Basis_Cell_Composition{ /*disordered=*/false,
+                                                          /*iatom=*/
+                                                          [n_cell_atoms]
+                                                          {
+                                                              std::vector<int> iatom( n_cell_atoms );
+                                                              std::iota( iatom.begin(), iatom.end(), 0 );
+                                                              return iatom;
+                                                          }(),
+                                                          /*atom_type=*/std::vector<int>( n_cell_atoms, 0 ),
+                                                          /*mu_s=*/std::vector<scalar>( n_cell_atoms, 1 ),
+                                                          /*spin_qn=*/std::vector<int>( n_cell_atoms, 1 ),
+                                                          /*concentration=*/{} };
+    try
+    {
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+
+        // Spin moment
+        if( !config_file_handle.Find( "atom_types" ) )
+        {
+            if( config_file_handle.Find( "mu_s" ) )
+            {
+                for( std::size_t iatom = 0; iatom < n_cell_atoms; ++iatom )
+                {
+                    if( !( config_file_handle >> cell_composition.mu_s[iatom] ) )
+                    {
+                        Log( Log_Level::Warning, Log_Sender::IO,
+                             fmt::format(
+                                 "Not enough values specified after 'mu_s'. Expected {}. Using "
+                                 "mu_s[{}]=mu_s[0]={}",
+                                 n_cell_atoms, iatom, cell_composition.mu_s[0] ) );
+                        cell_composition.mu_s[iatom] = cell_composition.mu_s[0];
+                    }
+                }
+
+                tbl.insert( "mu_s", toml_array_transform<toml::array>::transform( cell_composition.mu_s ) );
+            }
+
+            if( config_file_handle.Find( "spin_qn" ) )
+            {
+                for( std::size_t iatom = 0; iatom < n_cell_atoms; ++iatom )
+                {
+                    if( !( config_file_handle >> cell_composition.spin_qn[iatom] ) )
+                    {
+                        Log( Log_Level::Warning, Log_Sender::IO,
+                             fmt::format(
+                                 "Not enough values specified after 'spin_qn'. Expected {}. Using "
+                                 "spin_qn[{}]=spin_qn[0]={}",
+                                 n_cell_atoms, iatom, cell_composition.spin_qn[0] ) );
+                        cell_composition.spin_qn[iatom] = cell_composition.spin_qn[0];
+                    }
+                }
+                tbl.insert( "spin_qn", toml_array_transform<toml::array>::transform( cell_composition.spin_qn ) );
+            }
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core( fmt::format( "Unable to read mu_s from config file \"{}\"", config_file_name ) );
+    }
+
+    // Defects
+#ifdef SPIRIT_ENABLE_DEFECTS
+    try
+    {
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+
+        int n_defects = 0;
+
+        std::string defects_file = "";
+        if( config_file_handle.Find( "n_defects" ) )
+        {
+            config_file_handle >> n_defects;
+            std::stringstream oss{ "\n" };
+            for( int i = 0; i < n_defects; ++i )
+            {
+                if( !config_file_handle.GetLine() )
+                    break;
+                oss << config_file_handle.CurrentLine() << '\n';
+            }
+            tbl.insert( "defects", oss.str() );
+        }
+        else if( config_file_handle.Find( "defects_from_file" ) )
+        {
+            config_file_handle >> defects_file;
+            tbl.insert( "defects", fmt::format( "{}{}", Filter_File_Handle::file_prefix, defects_file ) );
+        }
+
+        // Disorder
+        if( config_file_handle.Find( "atom_types" ) )
+        {
+            config_file_handle >> n_atom_types;
+            std::stringstream oss{ "\n" };
+            for( int i = 0; i < n_atom_types; ++i )
+            {
+                if( !config_file_handle.GetLine() )
+                    break;
+                oss << config_file_handle.CurrentLine() << '\n';
+            }
+            tbl.insert( "atom_types", oss.str() );
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core( fmt::format(
+            "Failed to read defect parameters from file \"{}\". Leaving values at default.", config_file_name ) );
+    }
+#else
+    Log( Log_Level::Parameter, Log_Sender::IO, "Disorder is disabled" );
+#endif
+    return tbl;
+}
+
+auto Geometry( const std::string & config_file_name ) -> toml::table
+{
+    toml::table tbl{};
+    //-------------- Insert default values here -----------------------------
+    // Atoms in the basis
+    std::size_t n_cell_atoms = 1;
+    // Lattice Constant [Angstrom]
+    scalar lattice_constant = 1;
+    // Number of translations nT for each basis direction
+    intfield n_cells = { 100, 100, 1 };
+
+    try
+    {
+        //------------------------------- Parser --------------------------------
+        Log( Log_Level::Debug, Log_Sender::IO, "Geometry: building" );
+        if( !config_file_name.empty() )
+        {
+            try
+            {
+                IO::Filter_File_Handle config_file_handle( config_file_name );
+
+                // Lattice constant
+                config_file_handle.Read_Single( lattice_constant, "lattice_constant" );
+                tbl.insert( "lattice_constant", lattice_constant );
+
+                // Get the bravais lattice type and vectors
+                {
+                    auto bravais = Bravais_Vectors( config_file_name );
+                    tbl.insert( bravais.begin(), bravais.end() );
+                }
+                // Read number of basis cells
+                config_file_handle.Read_3Vector( n_cells, "n_basis_cells" );
+                tbl.insert( "n_basis_cells", toml_array_transform<toml::array>::transform( n_cells ) );
+
+                // Basis
+                if( config_file_handle.Find( "basis_file" ) )
+                {
+                    std::string basis_file = "";
+                    config_file_handle >> basis_file;
+                    Filter_File_Handle( basis_file ).Read_Single( n_cell_atoms, "n_basis" );
+                    tbl.insert( "basis", fmt::format( "{}{}", Filter_File_Handle::file_prefix, basis_file ) );
+                }
+                else if( config_file_handle.Find( "basis" ) )
+                {
+                    config_file_handle.GetLine();
+                    config_file_handle >> n_cell_atoms;
+                    std::ostringstream oss;
+                    for( unsigned int i = 0; i < n_cell_atoms; ++i )
+                    {
+                        if( !config_file_handle.GetLine() )
+                            break;
+                        oss << config_file_handle.CurrentLine() << '\n';
+                    }
+                    tbl.insert( "basis", fmt::format( "\n{}\n{}", n_cell_atoms, oss.str() ) );
+                }
+            }
+            catch( ... )
+            {
+                spirit_handle_exception_core( fmt::format(
+                    "Failed to read Geometry parameters from file \"{}\". Leaving values at default.",
+                    config_file_name ) );
+            }
+
+            {
+                const auto composition_table = Basis_Cell_Composition( config_file_name, n_cell_atoms );
+                tbl.insert( composition_table.begin(), composition_table.end() );
+            }
+        }
+        return tbl;
+    }
+    catch( ... )
+    {
+        spirit_rethrow( fmt::format( "Unable to parse geometry from config file \"{}\"", config_file_name ) );
+        return toml::table{};
+    }
+} // End Geometry from Config
 
 } // namespace convert
 

@@ -8,12 +8,8 @@
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 
-#include <algorithm>
-#include <fstream>
 #include <iostream>
-#include <sstream>
 #include <string>
-#include <thread>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -103,84 +99,79 @@ void Check_NonOVF_Chain_Configuration(
 }
 
 // Read Basis from file
-void Basis_from_File(
-    const std::string & basis_file, Data::Basis_Cell_Composition & cell_composition, std::vector<Vector3> & cell_atoms,
-    std::size_t & n_cell_atoms ) noexcept
+auto Basis_from_File( Filter_File_Handle & basis_file ) noexcept -> std::vector<Vector3>
 {
-
-    Log( Log_Level::Info, Log_Sender::IO, "Reading basis from file " + basis_file );
-
-    Filter_File_Handle basis_file_handle( basis_file );
+    Log( Log_Level::Info, Log_Sender::IO, fmt::format( "Reading basis from {}", basis_file.filename() ) );
 
     // Read basis cell
-    if( basis_file_handle.Find( "basis" ) )
+    if( basis_file.Find( "basis" ) )
     {
+        std::size_t n_cell_atoms = 0;
         // Read number of atoms in the basis cell
-        basis_file_handle.GetLine();
-        basis_file_handle >> n_cell_atoms;
-        cell_atoms = std::vector<Vector3>( n_cell_atoms );
-        cell_composition.iatom.resize( n_cell_atoms );
-        cell_composition.atom_type = std::vector<int>( n_cell_atoms, 0 );
-        cell_composition.mu_s      = std::vector<scalar>( n_cell_atoms, 1 );
+        basis_file.GetLine();
+        basis_file >> n_cell_atoms;
 
         // Read atom positions
+        std::vector<Vector3> cell_atoms( n_cell_atoms );
         for( std::size_t iatom = 0; iatom < n_cell_atoms; ++iatom )
         {
-            basis_file_handle.GetLine();
-            basis_file_handle >> cell_atoms[iatom][0] >> cell_atoms[iatom][1] >> cell_atoms[iatom][2];
-            cell_composition.iatom[iatom] = static_cast<int>( iatom );
+            basis_file.GetLine();
+            basis_file >> cell_atoms[iatom][0] >> cell_atoms[iatom][1] >> cell_atoms[iatom][2];
         }
+        return cell_atoms;
     }
+
+    return { { 0, 0, 0 } };
 }
 
-void Defects_from_File(
-    const std::string & defects_file, int & n_defects, field<Site> & defect_sites, intfield & defect_types ) noexcept
-try
+auto Defects_from_File( Filter_File_Handle & defects_file ) noexcept -> Data::Defects
 {
-    n_defects    = 0;
-    defect_sites = field<Site>( 0 );
-    defect_types = intfield( 0 );
+    auto defect_sites = field<Site>( 0 );
+    auto defect_types = intfield( 0 );
+#ifdef SPIRIT_ENABLE_DEFECTS
+    int n_defects = 0;
 
-    Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Reading defects from file \"{}\"", defects_file ) );
-    Filter_File_Handle myfile( defects_file );
+    Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Reading defects from {}", defects_file.filename() ) );
     int nod = 0;
 
-    if( myfile.Find( "n_defects" ) )
+    if( defects_file.Find( "n_defects" ) )
     {
         // Read n interaction pairs
-        myfile >> nod;
-        Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "File \"{}\" should have {} defects", defects_file, nod ) );
+        defects_file >> nod;
+        Log( Log_Level::Debug, Log_Sender::IO,
+             fmt::format( "File \"{}\" should have {} defects", defects_file.filename(), nod ) );
     }
     else
     {
         // Read the whole file
         nod = (int)1e8;
         // First line should contain the columns
-        myfile.To_Start();
+        defects_file.To_Start();
         Log( Log_Level::Debug, Log_Sender::IO,
-             fmt::format( "Trying to parse defects from top of file \"{}\"", defects_file ) );
+             fmt::format( "Trying to parse defects from top of \"{}\"", defects_file.filename() ) );
     }
 
-    while( myfile.GetLine() && n_defects < nod )
+    while( defects_file.GetLine() && n_defects < nod )
     {
         Site site{};
         int type{ 0 };
-        myfile >> site.i >> site.translations[0] >> site.translations[1] >> site.translations[2] >> type;
+        defects_file >> site.i >> site.translations[0] >> site.translations[1] >> site.translations[2] >> type;
         defect_sites.push_back( site );
         defect_types.push_back( type );
         ++n_defects;
     }
 
     Log( Log_Level::Parameter, Log_Sender::IO,
-         fmt::format( "Done reading {} defects from file \"{}\"", n_defects, defects_file ) );
-}
-catch( ... )
-{
-    spirit_rethrow( fmt::format( "Could not read defects file \"{}\"", defects_file ) );
+         fmt::format( "Done reading {} defects from file \"{}\"", n_defects, defects_file.filename() ) );
+
+#else
+    Log( Log_Level::Parameter, Log_Sender::IO, "Disorder is disabled" );
+#endif
+    return Data::Defects{ defect_sites, defect_types };
 }
 
 void Pinned_from_File(
-    const std::string & pinned_file, int & n_pinned, field<Site> & pinned_sites, vectorfield & pinned_spins ) noexcept
+    Filter_File_Handle & pinned_file, int & n_pinned, field<Site> & pinned_sites, vectorfield & pinned_spins ) noexcept
 try
 {
     int nop      = 0;
@@ -188,31 +179,31 @@ try
     pinned_sites = field<Site>( 0 );
     pinned_spins = vectorfield( 0 );
 
-    Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Reading pinned sites from file \"{}\"", pinned_file ) );
-    Filter_File_Handle myfile( pinned_file );
+    Log( Log_Level::Debug, Log_Sender::IO,
+         fmt::format( "Reading pinned sites from file \"{}\"", pinned_file.filename() ) );
 
-    if( myfile.Find( "n_pinned" ) )
+    if( pinned_file.Find( "n_pinned" ) )
     {
         // Read n interaction pairs
-        myfile >> nop;
+        pinned_file >> nop;
         Log( Log_Level::Debug, Log_Sender::IO,
-             fmt::format( "File \"{}\" should have {} pinned sites", pinned_file, nop ) );
+             fmt::format( "File \"{}\" should have {} pinned sites", pinned_file.filename(), nop ) );
     }
     else
     {
         // Read the whole file
         nop = (int)1e8;
         // First line should contain the columns
-        myfile.To_Start();
+        pinned_file.To_Start();
         Log( Log_Level::Debug, Log_Sender::IO,
-             fmt::format( "Trying to parse pinned sites from top of file \"{}\"", pinned_file ) );
+             fmt::format( "Trying to parse pinned sites from top of file \"{}\"", pinned_file.filename() ) );
     }
 
-    while( myfile.GetLine() && n_pinned < nop )
+    while( pinned_file.GetLine() && n_pinned < nop )
     {
         Site site{};
         Vector3 orientation{};
-        myfile >> site.i >> site.translations[0] >> site.translations[1] >> site.translations[2] >> orientation.x()
+        pinned_file >> site.i >> site.translations[0] >> site.translations[1] >> site.translations[2] >> orientation.x()
             >> orientation.y() >> orientation.z();
         pinned_sites.push_back( site );
         pinned_spins.push_back( orientation );
@@ -220,11 +211,11 @@ try
     }
 
     Log( Log_Level::Parameter, Log_Sender::IO,
-         fmt::format( "Done reading {} pinned sites from file \"{}\"", n_pinned, pinned_file ) );
+         fmt::format( "Done reading {} pinned sites from file \"{}\"", n_pinned, pinned_file.filename() ) );
 }
 catch( ... )
 {
-    spirit_rethrow( fmt::format( "Could not read pinned sites file  \"{}\"", pinned_file ) );
+    spirit_rethrow( fmt::format( "Could not read pinned sites file  \"{}\"", pinned_file.filename() ) );
 }
 
 } // namespace IO
