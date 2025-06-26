@@ -47,8 +47,8 @@ struct toml_array_transform
 
     [[nodiscard]] static auto transform( const toml::node & node ) -> T
     {
-        if( auto v = node.as<T>() )
-            return v->get();
+        if( auto v = node.value<T>() )
+            return *v;
         else
             spirit_throw(
                 Utility::Exception_Classifier::Input_parse_failed, Utility::Log_Level::Error,
