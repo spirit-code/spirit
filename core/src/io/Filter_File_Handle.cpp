@@ -128,7 +128,7 @@ bool Filter_File_Handle::GetLine_Handle( const std::string & str_to_remove )
             remove_chars_from_string( this->current_line, str_to_remove );
 
         // If the string does not start with a comment identifier and is not empty
-        if( remove_comments_from_string( this->current_line, this->comment_tag ) )
+        if( remove_comments_from_string( this->current_line, this->comment_tag ) && !this->current_line.empty() )
         {
             return true;
         }
