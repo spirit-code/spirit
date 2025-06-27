@@ -7,17 +7,11 @@
 #include <toml++/toml.hpp>
 
 #include <memory>
-#include <string>
 
 namespace IO
 {
 
 template<typename Hamiltonian>
-std::unique_ptr<Hamiltonian>
-Hamiltonian_from_Config( const std::string & config_file_name, Data::Geometry geometry, intfield boundary_conditions );
-
-template<typename Hamiltonian>
-std::unique_ptr<Hamiltonian>
-Hamiltonian_from_TOML( const toml::table & tbl, Data::Geometry geometry, intfield boundary_conditions );
+std::unique_ptr<Hamiltonian> Hamiltonian_from_TOML( const toml::table & tbl, Data::Geometry geometry );
 
 } // namespace IO

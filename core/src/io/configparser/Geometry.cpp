@@ -456,43 +456,4 @@ auto Geometry_from_TOML( const toml::table & tbl ) -> Data::Geometry
     return geometry;
 };
 
-auto Geometry_from_Config( const std::string & config_file_name ) -> Data::Geometry
-{
-    return Geometry_from_TOML( convert::Geometry( config_file_name ) );
-}
-
-auto Boundary_Conditions_from_TOML( const toml::table & tbl ) -> intfield
-{
-    intfield boundary_conditions{ false, false, false };
-    if( auto array = tbl["boundary_conditions"].as_array() )
-    {
-        const int array_size = static_cast<int>( array->size() );
-        if( array->size() != 3 )
-            Log( Log_Level::Warning, Log_Sender::IO,
-                 fmt::format(
-                     "Too {} entries in boundary conditions, expected 3, found {}", array_size < 3 ? "few" : "many",
-                     array_size ) );
-
-        for( int i = 0; i < 3 && i < array_size; ++i )
-        {
-            if( auto value = ( *array )[i].as_integer() )
-                boundary_conditions[i] = static_cast<int>( *value != 0 );
-            else
-                spirit_throw(
-                    Utility::Exception_Classifier::Input_parse_failed, Log_Level::Error,
-                    "Invalid type in boundary conditions encountered." );
-        }
-    }
-    else
-        Log( Log_Level::Warning, Log_Sender::IO,
-             "No boundary conditions specified, using open boundary conditions in all "
-             "dimensions." );
-    return boundary_conditions;
-}
-
-auto Boundary_Conditions_from_Config( const std::string & config_file_name ) -> intfield
-{
-    return Boundary_Conditions_from_TOML( convert::Boundary_Conditions( config_file_name ) );
-}
-
 } // namespace IO

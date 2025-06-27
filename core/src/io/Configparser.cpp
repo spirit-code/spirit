@@ -4,6 +4,7 @@
 #include <io/Dataparser.hpp>
 #include <io/Filter_File_Handle.hpp>
 #include <io/IO.hpp>
+#include <io/configparser/Converter.hpp>
 #include <io/hamiltonian/Hamiltonian.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Exception.hpp>
@@ -22,30 +23,25 @@ using Utility::Log_Sender;
 namespace IO
 {
 
-std::unique_ptr<::State::system_t> Spin_System_from_Config( const std::string & config_file_name )
+auto Spin_System_from_TOML( const toml::table & tbl ) -> std::unique_ptr<::State::system_t>
 try
 {
     Log( Log_Level::Info, Log_Sender::IO, "-------------- Initialising Spin System ------------" );
 
-    // Geometry
-    auto geometry = Geometry_from_Config( config_file_name );
-    // Boundary conditions
-    auto boundary_conditions = Boundary_Conditions_from_Config( config_file_name );
-    // LLG Parameters
-    auto llg_params = Parameters_Method_LLG_from_Config( config_file_name );
-    // MC Parameters
-    auto mc_params = Parameters_Method_MC_from_Config( config_file_name );
-    // EMA Parameters
-    auto ema_params = Parameters_Method_EMA_from_Config( config_file_name );
-    // MMF Parameters
-    auto mmf_params = Parameters_Method_MMF_from_Config( config_file_name );
-    // Hamiltonian
-    auto hamiltonian = Hamiltonian_from_Config<::State::hamiltonian_t>(
-        config_file_name, std::move( geometry ), std::move( boundary_conditions ) );
-    // Spin System
+    auto invoke = []( auto parser, auto * tbl, auto &&... args )
+    { return std::invoke( parser, tbl ? *tbl : toml::table{}, std::forward<decltype( args )>( args )... ); };
+
+    auto hamiltonian = invoke(
+        Hamiltonian_from_TOML<::State::hamiltonian_t>, tbl["hamiltonian"].as_table(),
+        /*geometry=*/invoke( Geometry_from_TOML, tbl["geometry"].as_table() ) );
+    auto llg_params = invoke( Parameters_Method_LLG_from_TOML, tbl.at_path( "method.llg" ).as_table() );
+    auto mc_params  = invoke( Parameters_Method_MC_from_TOML, tbl.at_path( "method.mc" ).as_table() );
+    auto ema_params = invoke( Parameters_Method_EMA_from_TOML, tbl.at_path( "method.ema" ).as_table() );
+    auto mmf_params = invoke( Parameters_Method_MMF_from_TOML, tbl.at_path( "method.mmf" ).as_table() );
+
     auto system = std::make_unique<::State::system_t>(
         std::move( hamiltonian ), std::move( llg_params ), std::move( mc_params ), std::move( ema_params ),
-        std::move( mmf_params ), false );
+        std::move( mmf_params ), /*allow_iterations=*/false );
 
     Log( Log_Level::Info, Log_Sender::IO, "-------------- Spin System Initialised -------------" );
 
@@ -53,9 +49,8 @@ try
 }
 catch( ... )
 {
-    spirit_handle_exception_core(
-        fmt::format( "Unable to initialize spin system from config file \"{}\"", config_file_name ) );
+    spirit_handle_exception_core( fmt::format( "Unable to initialize spin system" ) );
     return nullptr;
-} // End Spin_System_from_Config
+} // End Spin_System_from_TOML
 
 } // namespace IO

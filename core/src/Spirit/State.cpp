@@ -66,11 +66,11 @@ try
     else
         Log( Log_Level::All, Log_Sender::All, "No config file. Will use default parameters." );
     //------------------------------------------------------------------------------------------
-
+    const auto tbl = IO::convert::Config( state->config_file );
     //---------------------- Initialize the log ------------------------------------------------
     try
     {
-        IO::Log_from_Config( state->config_file, state->quiet );
+        IO::Log_from_TOML( tbl, state->quiet );
     }
     catch( ... )
     {
@@ -133,7 +133,7 @@ try
     using Engine::Field;
     using Engine::get;
     //---------------------- Initialize spin_system --------------------------------------------
-    state->active_image = IO::Spin_System_from_Config( state->config_file );
+    state->active_image = IO::Spin_System_from_TOML( tbl );
     auto & image        = state->active_image;
     Configurations::Random_Sphere(
         image->state->spin, image->hamiltonian->get_geometry(), image->llg_parameters->prng );
@@ -141,8 +141,7 @@ try
 
     //----------------------- Initialize spin system chain -------------------------------------
     // Get parameters
-    auto params_gneb
-        = std::shared_ptr<Data::Parameters_Method_GNEB>( IO::Parameters_Method_GNEB_from_Config( state->config_file ) );
+    auto params_gneb = std::shared_ptr<Data::Parameters_Method_GNEB>( IO::Parameters_Method_GNEB_from_TOML( tbl ) );
 
     // Create the chain
     auto sv = std::vector<std::shared_ptr<State::system_t>>();

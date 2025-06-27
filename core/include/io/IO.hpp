@@ -32,3 +32,4 @@ void dump_to_file( const std::string & str, const std::string & filename );
 #include "Configwriter.hpp"
 #include "Dataparser.hpp"
 #include "Datawriter.hpp"
+#include "configparser/Converter.hpp"

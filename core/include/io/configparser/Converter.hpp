@@ -13,6 +13,9 @@ namespace IO
 namespace convert
 {
 
+namespace detail
+{
+
 auto Logging( const std::string & config_file_name ) -> toml::table;
 
 auto Parameters_Method_EMA( const std::string & config_file_name ) -> toml::table;
@@ -26,6 +29,10 @@ auto Boundary_Conditions( const std::string & config_file_name ) -> toml::table;
 auto Pinning( const std::string & config_file_name, std::size_t n_cell_atoms ) -> toml::table;
 auto Geometry( const std::string & config_file_name ) -> toml::table;
 auto Hamiltonian( const std::string & config_file_name ) -> toml::table;
+
+} // namespace detail
+
+auto Config( const std::string & config_file_name ) -> toml::table;
 
 } // namespace convert
 

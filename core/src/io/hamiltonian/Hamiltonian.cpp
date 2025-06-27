@@ -13,15 +13,50 @@ namespace IO
     if( auto error = ( expr ); error.has_value() )                                                                     \
         Log( Log_Level::Error, Log_Sender::IO, *error );
 
+namespace
+{
+
+auto Boundary_Conditions_from_TOML( const toml::table & tbl ) -> intfield
+{
+    intfield boundary_conditions{ false, false, false };
+    if( auto array = tbl["boundary_conditions"].as_array() )
+    {
+        const int array_size = static_cast<int>( array->size() );
+        if( array->size() != 3 )
+            Log( Log_Level::Warning, Log_Sender::IO,
+                 fmt::format(
+                     "Too {} entries in boundary conditions, expected 3, found {}", array_size < 3 ? "few" : "many",
+                     array_size ) );
+
+        for( int i = 0; i < 3 && i < array_size; ++i )
+        {
+            if( auto value = ( *array )[i].as_integer() )
+                boundary_conditions[i] = static_cast<int>( *value != 0 );
+            else
+                spirit_throw(
+                    Utility::Exception_Classifier::Input_parse_failed, Log_Level::Error,
+                    "Invalid type in boundary conditions encountered." );
+        }
+    }
+    else
+        Log( Log_Level::Warning, Log_Sender::IO,
+             "No boundary conditions specified, using open boundary conditions in all "
+             "dimensions." );
+    return boundary_conditions;
+}
+
+} // namespace
+
 template<>
-auto Hamiltonian_from_TOML( const toml::table & tbl, Data::Geometry geometry, intfield boundary_conditions )
+auto Hamiltonian_from_TOML( const toml::table & tbl, Data::Geometry geometry )
     -> std::unique_ptr<Engine::Spin::Hamiltonian>
 {
     namespace Interaction = Engine::Spin::Interaction;
     using Engine::Spin::Hamiltonian;
 
-    std::vector<std::string> parameter_log;
+    auto boundary_conditions = Boundary_Conditions_from_TOML( tbl );
 
+    std::vector<std::string> parameter_log;
     auto zeeman                    = Zeeman_from_TOML( tbl, parameter_log );
     auto [uniaxial_ani, cubic_ani] = Anisotropy_from_TOML( tbl, geometry, parameter_log );
     auto biaxial_ani               = Biaxial_Anisotropy_from_TOML( tbl, geometry, parameter_log );
@@ -48,12 +83,4 @@ auto Hamiltonian_from_TOML( const toml::table & tbl, Data::Geometry geometry, in
     return hamiltonian;
 }
 
-template<>
-auto Hamiltonian_from_Config(
-    const std::string & config_file_name, Data::Geometry geometry,
-    intfield boundary_conditions ) -> std::unique_ptr<Engine::Spin::Hamiltonian>
-{
-    return Hamiltonian_from_TOML<Engine::Spin::Hamiltonian>(
-        convert::Hamiltonian( config_file_name ), std::move( geometry ), std::move( boundary_conditions ) );
-}
 } // namespace IO

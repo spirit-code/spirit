@@ -99,9 +99,4 @@ catch( ... )
     spirit_handle_exception_core( "Unable to read logging parameters" );
 } // End Log_from_TOML
 
-void Log_from_Config( const std::string & config_file_name, bool force_quiet )
-{
-    return Log_from_TOML( convert::Logging( config_file_name ), force_quiet );
-} // End Log_from_Config
-
 } // namespace IO

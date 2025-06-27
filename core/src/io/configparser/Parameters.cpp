@@ -80,12 +80,6 @@ auto Parameters_Method_EMA_from_TOML( const toml::table & tbl ) -> std::unique_p
     return parameters;
 }
 
-auto Parameters_Method_EMA_from_Config( const std::string & config_file_name )
-    -> std::unique_ptr<Data::Parameters_Method_EMA>
-{
-    return Parameters_Method_EMA_from_TOML( convert::Parameters_Method_EMA( config_file_name ) );
-}
-
 auto Parameters_Method_GNEB_from_TOML( const toml::table & tbl ) -> std::unique_ptr<Data::Parameters_Method_GNEB>
 {
     // Default parameters
@@ -165,11 +159,6 @@ auto Parameters_Method_GNEB_from_TOML( const toml::table & tbl ) -> std::unique_
     return parameters;
 } // end Parameters_Method_LLG_from_Config
 
-auto Parameters_Method_GNEB_from_Config( const std::string & config_file_name )
-    -> std::unique_ptr<Data::Parameters_Method_GNEB>
-{
-    return Parameters_Method_GNEB_from_TOML( convert::Parameters_Method_GNEB( config_file_name ) );
-}
 auto Parameters_Method_LLG_from_TOML( const toml::table & tbl ) -> std::unique_ptr<Data::Parameters_Method_LLG>
 {
     // Default parameters
@@ -281,12 +270,6 @@ auto Parameters_Method_LLG_from_TOML( const toml::table & tbl ) -> std::unique_p
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters LLG: built" );
     return parameters;
 } // end Parameters_Method_LLG_from_Config
-
-auto Parameters_Method_LLG_from_Config( const std::string & config_file_name )
-    -> std::unique_ptr<Data::Parameters_Method_LLG>
-{
-    return Parameters_Method_LLG_from_TOML( convert::Parameters_Method_LLG( config_file_name ) );
-}
 
 auto Parameters_Method_MC_from_TOML( const toml::table & tbl ) -> std::unique_ptr<Data::Parameters_Method_MC>
 {
@@ -404,12 +387,6 @@ auto Parameters_Method_MC_from_TOML( const toml::table & tbl ) -> std::unique_pt
     return parameters;
 }
 
-auto Parameters_Method_MC_from_Config( const std::string & config_file_name )
-    -> std::unique_ptr<Data::Parameters_Method_MC>
-{
-    return Parameters_Method_MC_from_TOML( convert::Parameters_Method_MC( config_file_name ) );
-}
-
 auto Parameters_Method_MMF_from_TOML( const toml::table & tbl ) -> std::unique_ptr<Data::Parameters_Method_MMF>
 {
     // Default parameters
@@ -482,11 +459,5 @@ auto Parameters_Method_MMF_from_TOML( const toml::table & tbl ) -> std::unique_p
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters MMF: built" );
     return parameters;
 }
-
-auto Parameters_Method_MMF_from_Config( const std::string & config_file_name )
-    -> std::unique_ptr<Data::Parameters_Method_MMF>
-{
-    return Parameters_Method_MMF_from_TOML( convert::Parameters_Method_MMF( config_file_name ) );
-};
 
 } // namespace IO

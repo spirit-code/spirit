@@ -17,6 +17,9 @@ namespace convert
 using Utility::Log_Level;
 using Utility::Log_Sender;
 
+namespace detail
+{
+
 auto Logging( const std::string & config_file_name ) -> toml::table
 {
     // Verbosity and Reject Level are read as integers
@@ -1355,6 +1358,7 @@ auto Hamiltonian( const std::string & config_file_name ) -> toml::table
     const auto extend           = []( toml::table & tbl, toml::table && ext ) { tbl.insert( ext.begin(), ext.end() ); };
 
     toml::table tbl;
+    extend( tbl, Boundary_Conditions( config_file_name ) );
     if( hamiltonian_type == "gaussian" )
     {
         extend( tbl, Interaction::Gaussian( config_file_name ) );
@@ -1377,6 +1381,25 @@ auto Hamiltonian( const std::string & config_file_name ) -> toml::table
             fmt::format( "Hamiltonian: Invalid type \"{}\"", hamiltonian_type ) );
 
     return tbl;
+}
+
+} // namespace detail
+
+auto Config( const std::string & config_file_name ) -> toml::table
+{
+    return toml::table{
+        { "logging", detail::Logging( config_file_name ) },
+        { "geometry", detail::Geometry( config_file_name ) },
+        { "hamiltonian", detail::Hamiltonian( config_file_name ) },
+        { "method",
+          toml::table{
+              { "llg", detail::Parameters_Method_LLG( config_file_name ) },
+              { "mc", detail::Parameters_Method_MC( config_file_name ) },
+              { "mmf", detail::Parameters_Method_MMF( config_file_name ) },
+              { "ema", detail::Parameters_Method_EMA( config_file_name ) },
+              { "gneb", detail::Parameters_Method_LLG( config_file_name ) },
+          } },
+    };
 }
 
 } // namespace convert

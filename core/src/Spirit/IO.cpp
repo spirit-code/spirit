@@ -46,7 +46,7 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Create System (and lock it)
-    std::shared_ptr<State::system_t> system = IO::Spin_System_from_Config( std::string( file ) );
+    std::shared_ptr<State::system_t> system = IO::Spin_System_from_TOML( IO::convert::Config( std::string( file ) ) );
     system->lock();
 
     // Filter for unacceptable differences to other systems in the chain
@@ -356,8 +356,7 @@ try
                 const auto & system_state = *image->state;
 
                 IO::HDF5::write_fields(
-                    filename, vtk_geometry,
-                    { IO::VTK::FieldDescriptor{ "spins", &system_state.spin } } );
+                    filename, vtk_geometry, { IO::VTK::FieldDescriptor{ "spins", &system_state.spin } } );
                 break;
             }
             case IO::VF_FileFormat::VTK_XML_TEXT:

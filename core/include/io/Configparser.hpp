@@ -31,27 +31,14 @@ struct BravaisConfig
  * Input may be given incomplete. In this case a log entry is created and default values are used.
  */
 
-void Log_from_Config( const std::string & config_file_name, bool force_quiet = false );
 void Log_from_TOML( const toml::table & tbl, bool force_quiet = false );
+auto Spin_System_from_TOML( const toml::table & ) -> std::unique_ptr<::State::system_t>;
+auto Geometry_from_TOML( const toml::table & ) -> Data::Geometry;
 
-std::unique_ptr<::State::system_t> Spin_System_from_Config( const std::string & config_file_name );
-
-auto Geometry_from_Config( const std::string & config_file_name ) -> Data::Geometry;
-auto Boundary_Conditions_from_Config( const std::string & config_file_name ) -> intfield;
-
-auto Parameters_Method_LLG_from_Config( const std::string & ) -> std::unique_ptr<Data::Parameters_Method_LLG>;
 auto Parameters_Method_LLG_from_TOML( const toml::table & ) -> std::unique_ptr<Data::Parameters_Method_LLG>;
-
-auto Parameters_Method_MC_from_Config( const std::string & ) -> std::unique_ptr<Data::Parameters_Method_MC>;
 auto Parameters_Method_MC_from_TOML( const toml::table & ) -> std::unique_ptr<Data::Parameters_Method_MC>;
-
-auto Parameters_Method_GNEB_from_Config( const std::string & ) -> std::unique_ptr<Data::Parameters_Method_GNEB>;
 auto Parameters_Method_GNEB_from_TOML( const toml::table & ) -> std::unique_ptr<Data::Parameters_Method_GNEB>;
-
-auto Parameters_Method_EMA_from_Config( const std::string & ) -> std::unique_ptr<Data::Parameters_Method_EMA>;
 auto Parameters_Method_EMA_from_TOML( const toml::table & ) -> std::unique_ptr<Data::Parameters_Method_EMA>;
-
-auto Parameters_Method_MMF_from_Config( const std::string & ) -> std::unique_ptr<Data::Parameters_Method_MMF>;
 auto Parameters_Method_MMF_from_TOML( const toml::table & ) -> std::unique_ptr<Data::Parameters_Method_MMF>;
 
 } // namespace IO
