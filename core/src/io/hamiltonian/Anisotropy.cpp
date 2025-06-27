@@ -2,6 +2,7 @@
 #include <io/Dataparser.hpp>
 #include <io/Filter_File_Handle.hpp>
 #include <io/Tableparser.hpp>
+#include <io/configparser/Converter.hpp>
 
 #include <vector>
 
@@ -110,76 +111,6 @@ catch( ... )
 }
 
 } // namespace
-
-namespace convert
-{
-
-namespace Interaction
-{
-
-auto Anisotropy( const std::string & config_file_name ) -> toml::table
-{
-    toml::table tbl{};
-
-    scalar K = 0, K4 = 0;
-    Vector3 K_normal = { 0, 0, 0 };
-
-    try
-    {
-        IO::Filter_File_Handle config_file_handle( config_file_name );
-        if( config_file_handle.Find( "n_anisotropy" ) )
-        {
-            int n_anisotropy = 0;
-            config_file_handle >> n_anisotropy;
-            tbl.insert(
-                "anisotropy",
-                [n_anisotropy, &config_file_handle]() -> std::string
-                {
-                    if( n_anisotropy <= 0 )
-                        return "";
-
-                    std::stringstream oss;
-                    oss << '\n';
-                    for( int i = 0; i < n_anisotropy + 1; ++i )
-                    {
-                        if( !config_file_handle.GetLine() )
-                            break;
-                        oss << config_file_handle.CurrentLine() << '\n';
-                    }
-                    return oss.str();
-                }() );
-        }
-        else if( config_file_handle.Find( "anisotropy_file" ) )
-        {
-            std::string anisotropy_file = "";
-            config_file_handle >> anisotropy_file;
-            tbl.insert( "anisotropy", fmt::format( "{}{}", Filter_File_Handle::file_prefix, anisotropy_file ) );
-        }
-        else
-        {
-            // Read parameters from config
-            config_file_handle.Read_Single( K, "anisotropy_magnitude" );
-            tbl.insert( "anisotropy_magnitude", K );
-
-            config_file_handle.Read_Vector3( K_normal, "anisotropy_normal" );
-            tbl.insert( "anisotropy_normal", toml_array_from_container( K_normal ) );
-
-            config_file_handle.Read_Single( K4, "cubic_anisotropy_magnitude" );
-            tbl.insert( "cubic_anisotropy_magnitude", K4 );
-        }
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_core(
-            fmt::format( "Unable to read anisotropy from config file \"{}\"", config_file_name ) );
-    }
-
-    return tbl;
-}
-
-} // namespace Interaction
-
-} // namespace convert
 
 auto Anisotropy_from_TOML(
     const toml::table & tbl, const Data::Geometry & geometry, std::vector<std::string> & parameter_log )

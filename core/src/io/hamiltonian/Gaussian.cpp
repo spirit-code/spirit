@@ -2,6 +2,7 @@
 #include <io/Dataparser.hpp>
 #include <io/Filter_File_Handle.hpp>
 #include <io/Tableparser.hpp>
+#include <io/configparser/Converter.hpp>
 
 #include <vector>
 
@@ -9,67 +10,6 @@ using Utility::Log_Level, Utility::Log_Sender;
 
 namespace IO
 {
-
-namespace convert
-{
-
-namespace Interaction
-{
-
-auto Gaussian( const std::string & config_file_name ) -> toml::table
-{
-    toml::table tbl;
-
-    try
-    {
-        IO::Filter_File_Handle config_file_handle( config_file_name );
-
-        // N
-        int n_gaussians = 0;
-        config_file_handle.Read_Single( n_gaussians, "n_gaussians" );
-        if( n_gaussians <= 0 )
-            return tbl;
-
-        tbl.insert(
-            "gaussians",
-            [n_gaussians, &config_file_handle]() -> std::string
-            {
-                std::ostringstream oss;
-                oss << "\n";
-
-                int i = 0;
-                if( config_file_handle.Find( "gaussians" ) )
-                {
-                    for( ; i < n_gaussians; ++i )
-                    {
-                        if( !config_file_handle.GetLine() )
-                            break;
-                        oss << config_file_handle.CurrentLine() << '\n';
-                    }
-                }
-                else
-                    Log( Log_Level::Error, Log_Sender::IO,
-                         "Hamiltonian_Gaussian: Keyword 'gaussians' not found. Using Default: 1.0 1.0 {0, 0, 1}" );
-
-                // pad missing lines with the default value
-                for( ; i < n_gaussians; ++i )
-                    oss << "1.0  1.0  0 0 1\n";
-
-                return oss.str();
-            }() );
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_core( fmt::format(
-            "Unable to read Hamiltonian_Gaussian parameters from config file  \"{}\"", config_file_name ) );
-    }
-
-    return tbl;
-}
-
-} // namespace Interaction
-
-} // namespace convert
 
 void Gaussian_from_TOML(
     const toml::table & tbl, std::vector<std::string> & parameter_log, scalarfield & amplitude, scalarfield & width,

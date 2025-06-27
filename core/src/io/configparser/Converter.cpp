@@ -907,6 +907,419 @@ auto Geometry( const std::string & config_file_name ) -> toml::table
     }
 } // End Geometry from Config
 
+namespace Interaction
+{
+
+auto Anisotropy( const std::string & config_file_name ) -> toml::table
+{
+    toml::table tbl{};
+
+    scalar K = 0, K4 = 0;
+    Vector3 K_normal = { 0, 0, 0 };
+
+    try
+    {
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+        if( config_file_handle.Find( "n_anisotropy" ) )
+        {
+            int n_anisotropy = 0;
+            config_file_handle >> n_anisotropy;
+            tbl.insert(
+                "anisotropy",
+                [n_anisotropy, &config_file_handle]() -> std::string
+                {
+                    if( n_anisotropy <= 0 )
+                        return "";
+
+                    std::stringstream oss;
+                    oss << '\n';
+                    for( int i = 0; i < n_anisotropy + 1; ++i )
+                    {
+                        if( !config_file_handle.GetLine() )
+                            break;
+                        oss << config_file_handle.CurrentLine() << '\n';
+                    }
+                    return oss.str();
+                }() );
+        }
+        else if( config_file_handle.Find( "anisotropy_file" ) )
+        {
+            std::string anisotropy_file = "";
+            config_file_handle >> anisotropy_file;
+            tbl.insert( "anisotropy", fmt::format( "{}{}", Filter_File_Handle::file_prefix, anisotropy_file ) );
+        }
+        else
+        {
+            // Read parameters from config
+            config_file_handle.Read_Single( K, "anisotropy_magnitude" );
+            tbl.insert( "anisotropy_magnitude", K );
+
+            config_file_handle.Read_Vector3( K_normal, "anisotropy_normal" );
+            tbl.insert( "anisotropy_normal", toml_array_from_container( K_normal ) );
+
+            config_file_handle.Read_Single( K4, "cubic_anisotropy_magnitude" );
+            tbl.insert( "cubic_anisotropy_magnitude", K4 );
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core(
+            fmt::format( "Unable to read anisotropy from config file \"{}\"", config_file_name ) );
+    }
+
+    return tbl;
+}
+
+auto Biaxial_Anisotropy( const std::string & config_file_name ) -> toml::table
+{
+    toml::table tbl;
+    try
+    {
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+
+        if( config_file_handle.Find( "n_biaxial_anisotropy_axes" ) )
+        {
+            int n_biaxial_anisotropy_axes = 0;
+            config_file_handle >> n_biaxial_anisotropy_axes;
+            tbl.insert(
+                "biaxial_anisotropy_axes",
+                [n_biaxial_anisotropy_axes, &config_file_handle]() -> std::string
+                {
+                    if( n_biaxial_anisotropy_axes == 0 )
+                        return "";
+
+                    std::stringstream oss;
+                    oss << '\n';
+                    for( int i = 0; i < n_biaxial_anisotropy_axes + 1; ++i )
+                    {
+                        if( !config_file_handle.GetLine() )
+                            break;
+                        oss << config_file_handle.CurrentLine() << '\n';
+                    }
+                    return oss.str();
+                }() );
+        }
+        else if( config_file_handle.Find( "biaxial_anisotropy_axes_file" ) )
+        {
+            std::string biaxial_anisotropy_axes_file = "";
+            config_file_handle >> biaxial_anisotropy_axes_file;
+            tbl.insert(
+                "biaxial_anisotropy_axes",
+                fmt::format( "{}{}", Filter_File_Handle::file_prefix, biaxial_anisotropy_axes_file ) );
+        }
+
+        if( config_file_handle.Find( "n_biaxial_anisotropy_terms" ) )
+        {
+            int n_biaxial_anisotropy_terms = 0;
+            config_file_handle >> n_biaxial_anisotropy_terms;
+            tbl.insert(
+                "biaxial_anisotropy_terms",
+                [n_biaxial_anisotropy_terms, &config_file_handle]() -> std::string
+                {
+                    if( n_biaxial_anisotropy_terms == 0 )
+                        return "";
+
+                    std::stringstream oss;
+                    oss << '\n';
+                    for( int i = 0; i < n_biaxial_anisotropy_terms + 1; ++i )
+                    {
+                        if( !config_file_handle.GetLine() )
+                            break;
+                        oss << config_file_handle.CurrentLine() << '\n';
+                    }
+                    return oss.str();
+                }() );
+        }
+        else if( config_file_handle.Find( "biaxial_anisotropy_terms_file" ) )
+        {
+            std::string biaxial_anisotropy_terms_file = "";
+            config_file_handle >> biaxial_anisotropy_terms_file;
+            tbl.insert(
+                "biaxial_anisotropy_terms",
+                fmt::format( "{}{}", Filter_File_Handle::file_prefix, biaxial_anisotropy_terms_file ) );
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core(
+            fmt::format( "Could not read biaxial anisotropy from config \"{}\"", config_file_name ) );
+    }
+
+    return tbl;
+}
+
+auto DDI( const std::string & config_file_name ) -> toml::table
+{
+    std::string ddi_method_str{};
+    intfield ddi_n_periodic_images = { 4, 4, 4 };
+    bool ddi_pb_zero_padding       = false;
+    scalar ddi_radius              = 0.0;
+
+    try
+    {
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+
+        config_file_handle.Read_String( ddi_method_str, "ddi_method" );
+        config_file_handle.Read_3Vector( ddi_n_periodic_images, "ddi_n_periodic_images" );
+        config_file_handle.Read_Single( ddi_pb_zero_padding, "ddi_pb_zero_padding" );
+        config_file_handle.Read_Single( ddi_radius, "ddi_radius" );
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core(
+            fmt::format( "Unable to read DDI radius from config file \"{}\"", config_file_name ) );
+    };
+
+    if( ddi_method_str.empty() || ddi_radius == 0 )
+        return toml::table{};
+    else
+        return toml::table{
+            { "ddi_method", ddi_method_str },
+            { "ddi_radius", ddi_radius },
+            { "ddi_n_periodic_images", toml_array_from_container( ddi_n_periodic_images ) },
+            { "ddi_pb_zero_padding", ddi_pb_zero_padding },
+        };
+}
+
+auto Gaussian( const std::string & config_file_name ) -> toml::table
+{
+    toml::table tbl;
+
+    try
+    {
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+
+        // N
+        int n_gaussians = 0;
+        config_file_handle.Read_Single( n_gaussians, "n_gaussians" );
+        if( n_gaussians <= 0 )
+            return tbl;
+
+        tbl.insert(
+            "gaussians",
+            [n_gaussians, &config_file_handle]() -> std::string
+            {
+                std::ostringstream oss;
+                oss << "\n";
+
+                int i = 0;
+                if( config_file_handle.Find( "gaussians" ) )
+                {
+                    for( ; i < n_gaussians; ++i )
+                    {
+                        if( !config_file_handle.GetLine() )
+                            break;
+                        oss << config_file_handle.CurrentLine() << '\n';
+                    }
+                }
+                else
+                    Log( Log_Level::Error, Log_Sender::IO,
+                         "Hamiltonian_Gaussian: Keyword 'gaussians' not found. Using Default: 1.0 1.0 {0, 0, 1}" );
+
+                // pad missing lines with the default value
+                for( ; i < n_gaussians; ++i )
+                    oss << "1.0  1.0  0 0 1\n";
+
+                return oss.str();
+            }() );
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core( fmt::format(
+            "Unable to read Hamiltonian_Gaussian parameters from config file  \"{}\"", config_file_name ) );
+    }
+
+    return tbl;
+}
+
+auto Pair_Interactions_from_Pairs( const std::string & config_file_name ) -> toml::table
+{
+    toml::table tbl{};
+
+    try
+    {
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+
+        // Interaction Pairs
+        if( config_file_handle.Find( "n_interaction_pairs" ) )
+        {
+            int n_pairs = 0;
+            config_file_handle >> n_pairs;
+            tbl.insert(
+                "pairs",
+                [n_pairs, &config_file_handle]() -> std::string
+                {
+                    if( n_pairs <= 0 )
+                        return "";
+
+                    std::stringstream oss;
+                    oss << '\n';
+                    for( int i = 0; i < n_pairs + 1; ++i )
+                    {
+                        if( !config_file_handle.GetLine() )
+                            break;
+                        oss << config_file_handle.CurrentLine() << '\n';
+                    }
+                    return oss.str();
+                }() );
+        }
+        else if( config_file_handle.Find( "interaction_pairs_file" ) )
+        {
+            std::string pairs_file = "";
+            config_file_handle >> pairs_file;
+            tbl.insert( "interaction_pairs", fmt::format( "{}{}", Filter_File_Handle::file_prefix, pairs_file ) );
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core(
+            fmt::format( "Unable to read interaction pairs from config file \"{}\"", config_file_name ) );
+    }
+
+    return tbl;
+}
+
+auto Pair_Interactions_from_Shells( const std::string & config_file_name ) -> toml::table
+{
+    toml::table tbl{};
+
+    try
+    {
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+
+        int n_shells_exchange = 0;
+        config_file_handle.Read_Single( n_shells_exchange, "n_shells_exchange" );
+
+        if( n_shells_exchange > 0 )
+        {
+            auto exchange_magnitudes = scalarfield( n_shells_exchange );
+            if( config_file_handle.Find( "jij" ) )
+            {
+                for( int ishell = 0; ishell < n_shells_exchange; ++ishell )
+                    config_file_handle >> exchange_magnitudes[ishell];
+            }
+            else
+                Log( Log_Level::Warning, Log_Sender::IO,
+                     fmt::format(
+                         "Hamiltonian_Heisenberg: Keyword 'jij' not found. Using Default: {}",
+                         exchange_magnitudes[0] ) );
+
+            tbl.insert( "exchange_shells", toml_array_from_container( exchange_magnitudes ) );
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core(
+            fmt::format( "Failed to read exchange parameters from config file \"{}\"", config_file_name ) );
+    }
+
+    try
+    {
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+
+        int n_shells_dmi = 0;
+        int dm_chirality = 0;
+        config_file_handle.Read_Single( n_shells_dmi, "n_shells_dmi" );
+        if( n_shells_dmi > 0 )
+        {
+            auto dmi_magnitudes = scalarfield( n_shells_dmi );
+            if( config_file_handle.Find( "dij" ) )
+            {
+                for( int ishell = 0; ishell < n_shells_dmi; ++ishell )
+                    config_file_handle >> dmi_magnitudes[ishell];
+            }
+            else
+                Log( Log_Level::Warning, Log_Sender::IO,
+                     fmt::format(
+                         "Hamiltonian_Heisenberg: Keyword 'dij' not found. Using Default: {}", dmi_magnitudes[0] ) );
+            tbl.insert( "dmi_shells", toml_array_from_container( dmi_magnitudes ) );
+        }
+
+        config_file_handle.Read_Single( dm_chirality, "dm_chirality" );
+        tbl.insert( "dmi_chirality", dm_chirality );
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core(
+            fmt::format( "Failed to read DMI parameters from config file \"{}\"", config_file_name ) );
+    }
+
+    return tbl;
+}
+
+auto Quadruplets( const std::string & config_file_name ) -> toml::table
+{
+    toml::table tbl{};
+
+    try
+    {
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+
+        if( config_file_handle.Find( "n_interaction_quadruplets" ) )
+        {
+            int n_quadruplets = 0;
+            config_file_handle >> n_quadruplets;
+            tbl.insert(
+                "quadruplets",
+                [n_quadruplets, &config_file_handle]() -> std::string
+                {
+                    if( n_quadruplets <= 0 )
+                        return "";
+
+                    std::stringstream oss;
+                    oss << '\n';
+                    for( int i = 0; i < n_quadruplets + 1; ++i )
+                    {
+                        if( !config_file_handle.GetLine() )
+                            break;
+                        oss << config_file_handle.CurrentLine() << '\n';
+                    }
+                    return oss.str();
+                }() );
+        }
+        else if( config_file_handle.Find( "interaction_quadruplets_file" ) )
+        {
+            std::string quadruplets_file = "";
+            config_file_handle >> quadruplets_file;
+            tbl.insert( "quadruplets", fmt::format( "{}{}", Filter_File_Handle::file_prefix, quadruplets_file ) );
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core(
+            fmt::format( "Unable to read interaction quadruplets from config file \"{}\"", config_file_name ) );
+    }
+
+    return tbl;
+}
+
+auto Zeeman( const std::string & config_file_name ) -> toml::table
+{
+    scalar magnitude = 0.0;
+    Vector3 normal   = { 0.0, 0.0, 1.0 };
+
+    try
+    {
+        IO::Filter_File_Handle config_file_handle( config_file_name );
+
+        // Read parameters from config if available
+        config_file_handle.Read_Single( magnitude, "external_field_magnitude" );
+        config_file_handle.Read_Vector3( normal, "external_field_normal" );
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core(
+            fmt::format( "Unable to read external field from config file \"{}\"", config_file_name ) );
+    }
+
+    return toml::table{
+        { "external_field_magnitude", magnitude },
+        { "external_field_normal", toml_array_from_container( normal ) },
+    };
+}
+
+} // namespace Interaction
+
 } // namespace convert
 
 } // namespace IO

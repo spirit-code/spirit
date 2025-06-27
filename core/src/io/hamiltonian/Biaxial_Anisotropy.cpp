@@ -2,6 +2,7 @@
 #include <io/Dataparser.hpp>
 #include <io/Filter_File_Handle.hpp>
 #include <io/Tableparser.hpp>
+#include <io/configparser/Converter.hpp>
 
 #include <iso646.h>
 #include <vector>
@@ -193,94 +194,6 @@ catch( ... )
 }
 
 } // namespace
-
-namespace convert
-{
-
-namespace Interaction
-{
-
-auto Biaxial_Anisotropy( const std::string & config_file_name ) -> toml::table
-{
-    toml::table tbl;
-    try
-    {
-        IO::Filter_File_Handle config_file_handle( config_file_name );
-
-        if( config_file_handle.Find( "n_biaxial_anisotropy_axes" ) )
-        {
-            int n_biaxial_anisotropy_axes = 0;
-            config_file_handle >> n_biaxial_anisotropy_axes;
-            tbl.insert(
-                "biaxial_anisotropy_axes",
-                [n_biaxial_anisotropy_axes, &config_file_handle]() -> std::string
-                {
-                    if( n_biaxial_anisotropy_axes == 0 )
-                        return "";
-
-                    std::stringstream oss;
-                    oss << '\n';
-                    for( int i = 0; i < n_biaxial_anisotropy_axes + 1; ++i )
-                    {
-                        if( !config_file_handle.GetLine() )
-                            break;
-                        oss << config_file_handle.CurrentLine() << '\n';
-                    }
-                    return oss.str();
-                }() );
-        }
-        else if( config_file_handle.Find( "biaxial_anisotropy_axes_file" ) )
-        {
-            std::string biaxial_anisotropy_axes_file = "";
-            config_file_handle >> biaxial_anisotropy_axes_file;
-            tbl.insert(
-                "biaxial_anisotropy_axes",
-                fmt::format( "{}{}", Filter_File_Handle::file_prefix, biaxial_anisotropy_axes_file ) );
-        }
-
-        if( config_file_handle.Find( "n_biaxial_anisotropy_terms" ) )
-        {
-            int n_biaxial_anisotropy_terms = 0;
-            config_file_handle >> n_biaxial_anisotropy_terms;
-            tbl.insert(
-                "biaxial_anisotropy_terms",
-                [n_biaxial_anisotropy_terms, &config_file_handle]() -> std::string
-                {
-                    if( n_biaxial_anisotropy_terms == 0 )
-                        return "";
-
-                    std::stringstream oss;
-                    oss << '\n';
-                    for( int i = 0; i < n_biaxial_anisotropy_terms + 1; ++i )
-                    {
-                        if( !config_file_handle.GetLine() )
-                            break;
-                        oss << config_file_handle.CurrentLine() << '\n';
-                    }
-                    return oss.str();
-                }() );
-        }
-        else if( config_file_handle.Find( "biaxial_anisotropy_terms_file" ) )
-        {
-            std::string biaxial_anisotropy_terms_file = "";
-            config_file_handle >> biaxial_anisotropy_terms_file;
-            tbl.insert(
-                "biaxial_anisotropy_terms",
-                fmt::format( "{}{}", Filter_File_Handle::file_prefix, biaxial_anisotropy_terms_file ) );
-        }
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_core(
-            fmt::format( "Could not read biaxial anisotropy from config \"{}\"", config_file_name ) );
-    }
-
-    return tbl;
-}
-
-} // namespace Interaction
-
-} // namespace convert
 
 void Biaxial_Anisotropy_from_TOML(
     const toml::table & tbl, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,

@@ -2,6 +2,7 @@
 #include <io/Dataparser.hpp>
 #include <io/Filter_File_Handle.hpp>
 #include <io/Tableparser.hpp>
+#include <io/configparser/Converter.hpp>
 
 #include <vector>
 
@@ -9,49 +10,6 @@ using Utility::Log_Level, Utility::Log_Sender;
 
 namespace IO
 {
-
-namespace convert
-{
-
-namespace Interaction
-{
-
-auto DDI( const std::string & config_file_name ) -> toml::table
-{
-    std::string ddi_method_str{};
-    intfield ddi_n_periodic_images = { 4, 4, 4 };
-    bool ddi_pb_zero_padding       = false;
-    scalar ddi_radius              = 0.0;
-
-    try
-    {
-        IO::Filter_File_Handle config_file_handle( config_file_name );
-
-        config_file_handle.Read_String( ddi_method_str, "ddi_method" );
-        config_file_handle.Read_3Vector( ddi_n_periodic_images, "ddi_n_periodic_images" );
-        config_file_handle.Read_Single( ddi_pb_zero_padding, "ddi_pb_zero_padding" );
-        config_file_handle.Read_Single( ddi_radius, "ddi_radius" );
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_core(
-            fmt::format( "Unable to read DDI radius from config file \"{}\"", config_file_name ) );
-    };
-
-    if( ddi_method_str.empty() || ddi_radius == 0 )
-        return toml::table{};
-    else
-        return toml::table{
-            { "ddi_method", ddi_method_str },
-            { "ddi_radius", ddi_radius },
-            { "ddi_n_periodic_images", toml_array_from_container( ddi_n_periodic_images ) },
-            { "ddi_pb_zero_padding", ddi_pb_zero_padding },
-        };
-}
-
-} // namespace Interaction
-
-} // namespace convert
 
 void DDI_from_TOML(
     const toml::table & tbl, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,

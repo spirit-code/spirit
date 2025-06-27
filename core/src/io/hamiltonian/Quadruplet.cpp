@@ -2,6 +2,7 @@
 #include <io/Dataparser.hpp>
 #include <io/Filter_File_Handle.hpp>
 #include <io/Tableparser.hpp>
+#include <io/configparser/Converter.hpp>
 
 #include <vector>
 
@@ -66,62 +67,6 @@ catch( ... )
 }
 
 } // namespace
-
-namespace convert
-{
-
-namespace Interaction
-{
-
-auto Quadruplets( const std::string & config_file_name ) -> toml::table
-{
-    toml::table tbl{};
-
-    try
-    {
-        IO::Filter_File_Handle config_file_handle( config_file_name );
-
-        if( config_file_handle.Find( "n_interaction_quadruplets" ) )
-        {
-            int n_quadruplets = 0;
-            config_file_handle >> n_quadruplets;
-            tbl.insert(
-                "quadruplets",
-                [n_quadruplets, &config_file_handle]() -> std::string
-                {
-                    if( n_quadruplets <= 0 )
-                        return "";
-
-                    std::stringstream oss;
-                    oss << '\n';
-                    for( int i = 0; i < n_quadruplets + 1; ++i )
-                    {
-                        if( !config_file_handle.GetLine() )
-                            break;
-                        oss << config_file_handle.CurrentLine() << '\n';
-                    }
-                    return oss.str();
-                }() );
-        }
-        else if( config_file_handle.Find( "interaction_quadruplets_file" ) )
-        {
-            std::string quadruplets_file = "";
-            config_file_handle >> quadruplets_file;
-            tbl.insert( "quadruplets", fmt::format( "{}{}", Filter_File_Handle::file_prefix, quadruplets_file ) );
-        }
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_core(
-            fmt::format( "Unable to read interaction quadruplets from config file \"{}\"", config_file_name ) );
-    }
-
-    return tbl;
-}
-
-} // namespace Interaction
-
-} // namespace convert
 
 auto Quadruplets_from_TOML(
     const toml::table & tbl, const Data::Geometry & geometry,

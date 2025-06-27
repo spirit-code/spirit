@@ -2,6 +2,7 @@
 #include <io/Dataparser.hpp>
 #include <io/Filter_File_Handle.hpp>
 #include <io/Tableparser.hpp>
+#include <io/configparser/Converter.hpp>
 
 #include <vector>
 
@@ -162,131 +163,6 @@ catch( ... )
 }
 
 } // namespace
-
-namespace convert
-{
-
-namespace Interaction
-{
-
-auto Pair_Interactions_from_Pairs( const std::string & config_file_name ) -> toml::table
-{
-    toml::table tbl{};
-
-    try
-    {
-        IO::Filter_File_Handle config_file_handle( config_file_name );
-
-        // Interaction Pairs
-        if( config_file_handle.Find( "n_interaction_pairs" ) )
-        {
-            int n_pairs = 0;
-            config_file_handle >> n_pairs;
-            tbl.insert(
-                "pairs",
-                [n_pairs, &config_file_handle]() -> std::string
-                {
-                    if( n_pairs <= 0 )
-                        return "";
-
-                    std::stringstream oss;
-                    oss << '\n';
-                    for( int i = 0; i < n_pairs + 1; ++i )
-                    {
-                        if( !config_file_handle.GetLine() )
-                            break;
-                        oss << config_file_handle.CurrentLine() << '\n';
-                    }
-                    return oss.str();
-                }() );
-        }
-        else if( config_file_handle.Find( "interaction_pairs_file" ) )
-        {
-            std::string pairs_file = "";
-            config_file_handle >> pairs_file;
-            tbl.insert( "interaction_pairs", fmt::format( "{}{}", Filter_File_Handle::file_prefix, pairs_file ) );
-        }
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_core(
-            fmt::format( "Unable to read interaction pairs from config file \"{}\"", config_file_name ) );
-    }
-
-    return tbl;
-}
-
-auto Pair_Interactions_from_Shells( const std::string & config_file_name ) -> toml::table
-{
-    toml::table tbl{};
-
-    try
-    {
-        IO::Filter_File_Handle config_file_handle( config_file_name );
-
-        int n_shells_exchange = 0;
-        config_file_handle.Read_Single( n_shells_exchange, "n_shells_exchange" );
-
-        if( n_shells_exchange > 0 )
-        {
-            auto exchange_magnitudes = scalarfield( n_shells_exchange );
-            if( config_file_handle.Find( "jij" ) )
-            {
-                for( int ishell = 0; ishell < n_shells_exchange; ++ishell )
-                    config_file_handle >> exchange_magnitudes[ishell];
-            }
-            else
-                Log( Log_Level::Warning, Log_Sender::IO,
-                     fmt::format(
-                         "Hamiltonian_Heisenberg: Keyword 'jij' not found. Using Default: {}",
-                         exchange_magnitudes[0] ) );
-
-            tbl.insert( "exchange_shells", toml_array_from_container( exchange_magnitudes ) );
-        }
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_core(
-            fmt::format( "Failed to read exchange parameters from config file \"{}\"", config_file_name ) );
-    }
-
-    try
-    {
-        IO::Filter_File_Handle config_file_handle( config_file_name );
-
-        int n_shells_dmi = 0;
-        int dm_chirality = 0;
-        config_file_handle.Read_Single( n_shells_dmi, "n_shells_dmi" );
-        if( n_shells_dmi > 0 )
-        {
-            auto dmi_magnitudes = scalarfield( n_shells_dmi );
-            if( config_file_handle.Find( "dij" ) )
-            {
-                for( int ishell = 0; ishell < n_shells_dmi; ++ishell )
-                    config_file_handle >> dmi_magnitudes[ishell];
-            }
-            else
-                Log( Log_Level::Warning, Log_Sender::IO,
-                     fmt::format(
-                         "Hamiltonian_Heisenberg: Keyword 'dij' not found. Using Default: {}", dmi_magnitudes[0] ) );
-            tbl.insert( "dmi_shells", toml_array_from_container( dmi_magnitudes ) );
-        }
-
-        config_file_handle.Read_Single( dm_chirality, "dm_chirality" );
-        tbl.insert( "dmi_chirality", dm_chirality );
-    }
-    catch( ... )
-    {
-        spirit_handle_exception_core(
-            fmt::format( "Failed to read DMI parameters from config file \"{}\"", config_file_name ) );
-    }
-
-    return tbl;
-}
-
-} // namespace Interaction
-
-} // namespace convert
 
 void Pair_Interactions_from_Pairs_from_TOML(
     const toml::table & tbl, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
