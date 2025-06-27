@@ -1320,6 +1320,65 @@ auto Zeeman( const std::string & config_file_name ) -> toml::table
 
 } // namespace Interaction
 
+std::string Hamiltonian_Type( const std::string & config_file_name, const std::string_view default_type )
+{
+    std::string hamiltonian_type{ default_type };
+
+    // Hamiltonian type
+    if( !config_file_name.empty() )
+    {
+        try
+        {
+            Log( Log_Level::Debug, Log_Sender::IO, "Hamiltonian: deciding type" );
+            IO::Filter_File_Handle config_file_handle( config_file_name );
+
+            // What hamiltonian do we use?
+            config_file_handle.Read_Single( hamiltonian_type, "hamiltonian" );
+        }
+        catch( ... )
+        {
+            spirit_handle_exception_core( fmt::format(
+                "Unable to read Hamiltonian type from config file  \"{}\". Using default.", config_file_name ) );
+            hamiltonian_type = default_type;
+        }
+    }
+    else
+        Log( Log_Level::Parameter, Log_Sender::IO,
+             fmt::format( "Hamiltonian: Using default Hamiltonian: {}", hamiltonian_type ) );
+
+    return hamiltonian_type;
+}
+
+auto Hamiltonian( const std::string & config_file_name ) -> toml::table
+{
+    const auto hamiltonian_type = Hamiltonian_Type( config_file_name, "heisenberg_neighbours" );
+    const auto extend           = []( toml::table & tbl, toml::table && ext ) { tbl.insert( ext.begin(), ext.end() ); };
+
+    toml::table tbl;
+    if( hamiltonian_type == "gaussian" )
+    {
+        extend( tbl, Interaction::Gaussian( config_file_name ) );
+    }
+    else if( hamiltonian_type == "heisenberg_neighbours" || hamiltonian_type == "heisenberg_pairs" )
+    {
+        extend( tbl, Interaction::Zeeman( config_file_name ) );
+        extend( tbl, Interaction::Anisotropy( config_file_name ) );
+        extend( tbl, Interaction::Biaxial_Anisotropy( config_file_name ) );
+        if( hamiltonian_type == "heisenberg_pairs" )
+            extend( tbl, Interaction::Pair_Interactions_from_Pairs( config_file_name ) );
+        else
+            extend( tbl, Interaction::Pair_Interactions_from_Shells( config_file_name ) );
+        extend( tbl, Interaction::Quadruplets( config_file_name ) );
+        extend( tbl, Interaction::DDI( config_file_name ) );
+    }
+    else
+        spirit_throw(
+            Utility::Exception_Classifier::Input_parse_failed, Log_Level::Error,
+            fmt::format( "Hamiltonian: Invalid type \"{}\"", hamiltonian_type ) );
+
+    return tbl;
+}
+
 } // namespace convert
 
 } // namespace IO

@@ -199,24 +199,36 @@ void Pair_Interactions_from_Shells_from_TOML(
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "DM chirality", dm_chirality ) );
 }
 
-void Pair_Interactions_from_Pairs_from_Config(
-    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
-    pairfield & exchange_pairs, scalarfield & exchange_magnitudes, pairfield & dmi_pairs, scalarfield & dmi_magnitudes,
-    vectorfield & dmi_normals )
+auto Pair_Interactions_from_TOML(
+    const toml::table & tbl, const Data::Geometry & geometry, std::vector<std::string> & parameter_log )
+    -> std::pair<Engine::Spin::Interaction::Exchange::Data, Engine::Spin::Interaction::DMI::Data>
 {
+    Engine::Spin::Interaction::Exchange::Data exchange{};
+    Engine::Spin::Interaction::DMI::Data dmi{};
 
-    return Pair_Interactions_from_Pairs_from_TOML(
-        convert::Interaction::Pair_Interactions_from_Pairs( config_file_name ), geometry, parameter_log, exchange_pairs,
-        exchange_magnitudes, dmi_pairs, dmi_magnitudes, dmi_normals );
-}
+    Pair_Interactions_from_Pairs_from_TOML(
+        tbl, geometry, parameter_log, exchange.pairs, exchange.magnitudes, dmi.pairs, dmi.magnitudes, dmi.normals );
 
-void Pair_Interactions_from_Shells_from_Config(
-    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
-    scalarfield & exchange_magnitudes, scalarfield & dmi_magnitudes, int & dm_chirality )
-{
-    return Pair_Interactions_from_Shells_from_TOML(
-        convert::Interaction::Pair_Interactions_from_Shells( config_file_name ), geometry, parameter_log,
-        exchange_magnitudes, dmi_magnitudes, dm_chirality );
+    Pair_Interactions_from_Shells_from_TOML(
+        tbl, geometry, parameter_log, exchange.shell_magnitudes, dmi.shell_magnitudes, dmi.shell_chirality );
+
+    if( !exchange.pairs.empty() && !exchange.shell_magnitudes.empty() )
+    {
+        Log( Log_Level::Warning, Log_Sender::IO,
+             "Found pairs and shells for Exchange interactions. Ignoring the pair configuration..." );
+        exchange.pairs.clear();
+        exchange.magnitudes.clear();
+    }
+
+    if( !dmi.pairs.empty() && !dmi.shell_magnitudes.empty() )
+    {
+        Log( Log_Level::Warning, Log_Sender::IO, "Found pairs and shells for DMI. Ignoring the pair configuration..." );
+        dmi.pairs.clear();
+        dmi.magnitudes.clear();
+        dmi.normals.clear();
+    }
+
+    return { exchange, dmi };
 }
 
 } // namespace IO

@@ -178,18 +178,4 @@ auto Anisotropy_from_TOML(
     return { anisotropy, cubic_anisotropy };
 }
 
-void Anisotropy_from_Config(
-    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
-    intfield & uniaxial_indices, scalarfield & uniaxial_magnitudes, vectorfield & uniaxial_normals,
-    intfield & cubic_indices, scalarfield & cubic_magnitudes )
-{
-    const auto [uniaxial, cubic]
-        = Anisotropy_from_TOML( convert::Interaction::Anisotropy( config_file_name ), geometry, parameter_log );
-
-    uniaxial_indices    = uniaxial.indices;
-    uniaxial_magnitudes = uniaxial.magnitudes;
-    uniaxial_normals    = uniaxial.normals;
-    cubic_indices       = cubic.indices;
-    cubic_magnitudes    = cubic.magnitudes;
-}
 } // namespace IO

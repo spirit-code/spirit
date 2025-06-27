@@ -9,40 +9,29 @@
 namespace IO
 {
 
-void Gaussian_from_Config(
-    const std::string & config_file_name, std::vector<std::string> & parameter_log, scalarfield & amplitude,
-    scalarfield & width, vectorfield & center );
+auto Gaussian_from_TOML( const toml::table & tbl, std::vector<std::string> & parameter_log )
+    -> Engine::Spin::Interaction::Gaussian::Data;
 
-void Zeeman_from_Config(
-    const std::string & config_file_name, std::vector<std::string> & parameter_log, scalar & magnitude,
-    Vector3 & normal );
+auto Zeeman_from_TOML( const toml::table & tbl, std::vector<std::string> & parameter_log )
+    -> Engine::Spin::Interaction::Zeeman::Data;
 
-void Anisotropy_from_Config(
-    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
-    intfield & uniaxial_indices, scalarfield & uniaxial_magnitudes, vectorfield & uniaxial_normals,
-    intfield & cubic_indices, scalarfield & cubic_magnitudes );
+auto Anisotropy_from_TOML(
+    const toml::table & tbl, const Data::Geometry & geometry, std::vector<std::string> & parameter_log )
+    -> std::pair<Engine::Spin::Interaction::Anisotropy::Data, Engine::Spin::Interaction::Cubic_Anisotropy::Data>;
 
-void Biaxial_Anisotropy_from_Config(
-    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
-    intfield & indices, field<PolynomialBasis> & polynomial_bases, field<unsigned int> & polynomial_site_p,
-    field<PolynomialTerm> & polynomial_terms );
+auto Biaxial_Anisotropy_from_TOML(
+    const toml::table & tbl, const Data::Geometry & geometry,
+    std::vector<std::string> & parameter_log ) -> Engine::Spin::Interaction::Biaxial_Anisotropy::Data;
 
-void Pair_Interactions_from_Pairs_from_Config(
-    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
-    pairfield & exchange_pairs, scalarfield & exchange_magnitudes, pairfield & dmi_pairs, scalarfield & dmi_magnitudes,
-    vectorfield & dmi_normals );
+auto Pair_Interactions_from_TOML(
+    const toml::table & tbl, const Data::Geometry & geometry, std::vector<std::string> & parameter_log )
+    -> std::pair<Engine::Spin::Interaction::Exchange::Data, Engine::Spin::Interaction::DMI::Data>;
 
-void Pair_Interactions_from_Shells_from_Config(
-    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
-    scalarfield & exchange_magnitudes, scalarfield & dmi_magnitudes, int & dm_chirality );
+auto Quadruplets_from_TOML(
+    const toml::table & tbl, const Data::Geometry & geometry,
+    std::vector<std::string> & parameter_log ) -> Engine::Spin::Interaction::Quadruplet::Data;
 
-void Quadruplets_from_Config(
-    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
-    quadrupletfield & quadruplets, scalarfield & quadruplet_magnitudes );
-
-void DDI_from_Config(
-    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
-    Engine::Spin::DDI_Method & ddi_method, intfield & ddi_n_periodic_images, bool & ddi_pb_zero_padding,
-    scalar & ddi_radius );
+auto DDI_from_TOML( const toml::table & tbl, const Data::Geometry & geometry, std::vector<std::string> & parameter_log )
+    -> Engine::Spin::Interaction::DDI::Data;
 
 } // namespace IO

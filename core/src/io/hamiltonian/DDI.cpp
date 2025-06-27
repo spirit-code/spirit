@@ -11,12 +11,10 @@ using Utility::Log_Level, Utility::Log_Sender;
 namespace IO
 {
 
-void DDI_from_TOML(
-    const toml::table & tbl, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
-    Engine::Spin::DDI_Method & ddi_method, intfield & ddi_n_periodic_images, bool & ddi_pb_zero_padding,
-    scalar & ddi_radius )
+auto DDI_from_TOML( const toml::table & tbl, const Data::Geometry & geometry, std::vector<std::string> & parameter_log )
+    -> Engine::Spin::Interaction::DDI::Data
 {
-    const auto [ddi_method_str, ddi_method_] = [&tbl]() -> std::pair<std::string_view, Engine::Spin::DDI_Method>
+    const auto [ddi_method_str, ddi_method] = [&tbl]() -> std::pair<std::string_view, Engine::Spin::DDI_Method>
     {
         auto method_str = tbl["ddi_method"].value<std::string>();
         if( !method_str )
@@ -39,10 +37,10 @@ void DDI_from_TOML(
             return { "none", Engine::Spin::DDI_Method::None };
         }
     }();
-    ddi_method = ddi_method_;
-    ddi_radius = tbl["ddi_radius"].value_or<scalar>( 0.0 );
 
-    ddi_n_periodic_images = [&tbl]
+    const auto ddi_radius = tbl["ddi_radius"].value_or<scalar>( 0.0 );
+
+    const auto ddi_n_periodic_images = [&tbl]
     {
         auto result = intfield{ 4, 4, 4 };
         auto array  = tbl["ddi_n_periodic_images"];
@@ -67,7 +65,7 @@ void DDI_from_TOML(
         return result;
     }();
 
-    ddi_pb_zero_padding = tbl["ddi_pb_zero_padding"].value_or( false );
+    const auto ddi_pb_zero_padding = tbl["ddi_pb_zero_padding"].value_or( false );
 
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_method", ddi_method_str ) );
     parameter_log.emplace_back( fmt::format(
@@ -75,16 +73,8 @@ void DDI_from_TOML(
         ddi_n_periodic_images[2] ) );
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_radius", ddi_radius ) );
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_pb_zero_padding", ddi_pb_zero_padding ) );
-}
 
-void DDI_from_Config(
-    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
-    Engine::Spin::DDI_Method & ddi_method, intfield & ddi_n_periodic_images, bool & ddi_pb_zero_padding,
-    scalar & ddi_radius )
-{
-    return DDI_from_TOML(
-        convert::Interaction::DDI( config_file_name ), geometry, parameter_log, ddi_method, ddi_n_periodic_images,
-        ddi_pb_zero_padding, ddi_radius );
+    return { ddi_method, ddi_radius, ddi_pb_zero_padding, ddi_n_periodic_images };
 }
 
 } // namespace IO

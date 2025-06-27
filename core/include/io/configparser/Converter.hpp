@@ -25,20 +25,7 @@ auto Bravais_Vectors( const std::string & config_file_name ) -> toml::table;
 auto Boundary_Conditions( const std::string & config_file_name ) -> toml::table;
 auto Pinning( const std::string & config_file_name, std::size_t n_cell_atoms ) -> toml::table;
 auto Geometry( const std::string & config_file_name ) -> toml::table;
-
-namespace Interaction
-{
-
-auto Anisotropy( const std::string & config_file_name ) -> toml::table;
-auto Biaxial_Anisotropy( const std::string & config_file_name ) -> toml::table;
-auto DDI( const std::string & config_file_name ) -> toml::table;
-auto Gaussian( const std::string & config_file_name ) -> toml::table;
-auto Pair_Interactions_from_Pairs( const std::string & config_file_name ) -> toml::table;
-auto Pair_Interactions_from_Shells( const std::string & config_file_name ) -> toml::table;
-auto Quadruplets( const std::string & config_file_name ) -> toml::table;
-auto Zeeman( const std::string & config_file_name ) -> toml::table;
-
-} // namespace Interaction
+auto Hamiltonian( const std::string & config_file_name ) -> toml::table;
 
 } // namespace convert
 

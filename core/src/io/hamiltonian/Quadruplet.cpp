@@ -84,15 +84,4 @@ auto Quadruplets_from_TOML(
     return result;
 }
 
-void Quadruplets_from_Config(
-    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
-    quadrupletfield & quadruplets, scalarfield & quadruplet_magnitudes )
-{
-    const auto data
-        = Quadruplets_from_TOML( convert::Interaction::Quadruplets( config_file_name ), geometry, parameter_log );
-
-    quadruplets           = data.quadruplets;
-    quadruplet_magnitudes = data.magnitudes;
-}
-
 } // namespace IO

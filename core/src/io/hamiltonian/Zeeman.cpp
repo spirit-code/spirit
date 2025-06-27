@@ -34,15 +34,4 @@ auto Zeeman_from_TOML( const toml::table & tbl, std::vector<std::string> & param
     return data;
 }
 
-void Zeeman_from_Config(
-    const std::string & config_file_name, std::vector<std::string> & parameter_log, scalar & magnitude,
-    Vector3 & normal )
-{
-    const auto tbl  = convert::Interaction::Zeeman( config_file_name );
-    const auto data = Zeeman_from_TOML( tbl, parameter_log );
-
-    magnitude = data.external_field_magnitude;
-    normal    = data.external_field_normal;
-}
-
 } // namespace IO

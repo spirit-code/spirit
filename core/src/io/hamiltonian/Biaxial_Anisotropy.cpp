@@ -195,11 +195,11 @@ catch( ... )
 
 } // namespace
 
-void Biaxial_Anisotropy_from_TOML(
-    const toml::table & tbl, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
-    intfield & indices, field<PolynomialBasis> & polynomial_bases, field<unsigned int> & polynomial_site_p,
-    field<PolynomialTerm> & polynomial_terms )
+auto Biaxial_Anisotropy_from_TOML(
+    const toml::table & tbl, const Data::Geometry & geometry,
+    std::vector<std::string> & parameter_log ) -> Engine::Spin::Interaction::Biaxial_Anisotropy::Data
 {
+    Engine::Spin::Interaction::Biaxial_Anisotropy::Data data{};
     try
     {
         auto biaxial_anisotropy_axes_handle = [&tbl]() -> std::optional<Filter_File_Handle>
@@ -228,8 +228,8 @@ void Biaxial_Anisotropy_from_TOML(
         else if( biaxial_anisotropy_terms_handle && biaxial_anisotropy_axes_handle )
         {
             Biaxial_Anisotropy_from_File(
-                *biaxial_anisotropy_axes_handle, *biaxial_anisotropy_terms_handle, geometry, indices, polynomial_bases,
-                polynomial_site_p, polynomial_terms );
+                *biaxial_anisotropy_axes_handle, *biaxial_anisotropy_terms_handle, geometry, data.indices, data.bases,
+                data.site_p, data.terms );
         }
     }
     catch( ... )
@@ -237,24 +237,17 @@ void Biaxial_Anisotropy_from_TOML(
         spirit_handle_exception_core( "Could not read biaxial anisotropy!" );
     }
 
-    if( !polynomial_bases.empty() )
+    if( !data.bases.empty() )
     {
-        const auto & p = polynomial_bases[0];
+        const auto & p = data.bases[0];
         parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "biaxial_anisotropy[0].k1", p.k1.transpose() ) );
         parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "biaxial_anisotropy[0].k2", p.k2.transpose() ) );
         parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "biaxial_anisotropy[0].k3", p.k3.transpose() ) );
     }
-    if( !polynomial_terms.empty() )
-        parameter_log.emplace_back( fmt::format( "    Read {} biaxial anisotropy terms!", polynomial_terms.size() ) );
+    if( !data.terms.empty() )
+        parameter_log.emplace_back( fmt::format( "    Read {} biaxial anisotropy terms!", data.terms.size() ) );
+
+    return data;
 }
 
-void Biaxial_Anisotropy_from_Config(
-    const std::string & config_file_name, const Data::Geometry & geometry, std::vector<std::string> & parameter_log,
-    intfield & indices, field<PolynomialBasis> & polynomial_bases, field<unsigned int> & polynomial_site_p,
-    field<PolynomialTerm> & polynomial_terms )
-{
-    return Biaxial_Anisotropy_from_TOML(
-        convert::Interaction::Biaxial_Anisotropy( config_file_name ), geometry, parameter_log, indices,
-        polynomial_bases, polynomial_site_p, polynomial_terms );
-}
 } // namespace IO
