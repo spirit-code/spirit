@@ -24,17 +24,21 @@ auto Parameters_Method_EMA_from_TOML( const toml::table & tbl ) -> std::unique_p
     // Parse
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters EMA: building" );
     // Output parameters
-    read_single( parameters->output_folder, tbl["output_folder"] );
-    read_single( parameters->output_file_tag, tbl["output_file_tag"] );
-    read_single( parameters->output_any, tbl["output_any"] );
-    read_single( parameters->output_initial, tbl["output_initial"] );
-    read_single( parameters->output_final, tbl["output_final"] );
-    read_single( parameters->output_energy_divide_by_nspins, tbl["output_energy_divide_by_nspins"] );
-    read_single( parameters->output_energy_spin_resolved, tbl["output_energy_spin_resolved"] );
-    read_single( parameters->output_energy_step, tbl["output_energy_step"] );
-    read_single( parameters->output_energy_archive, tbl["output_energy_archive"] );
-    read_single( parameters->output_configuration_step, tbl["output_configuration_step"] );
-    read_single( parameters->output_configuration_archive, tbl["output_configuration_archive"] );
+    if( auto output_table = tbl["output"].as_table() )
+    {
+        auto & output = *output_table;
+        read_single( parameters->output_folder, output["folder"] );
+        read_single( parameters->output_file_tag, output["file_tag"] );
+        read_single( parameters->output_any, output["any"] );
+        read_single( parameters->output_initial, output["initial"] );
+        read_single( parameters->output_final, output["final"] );
+        read_single( parameters->output_energy_divide_by_nspins, output["energy_divide_by_nspins"] );
+        read_single( parameters->output_energy_spin_resolved, output["energy_spin_resolved"] );
+        read_single( parameters->output_energy_step, output["energy_step"] );
+        read_single( parameters->output_energy_archive, output["energy_archive"] );
+        read_single( parameters->output_configuration_step, output["configuration_step"] );
+        read_single( parameters->output_configuration_archive, output["configuration_archive"] );
+    }
     // Method parameters
     read_single( str_max_walltime, tbl["max_walltime"] );
     parameters->max_walltime_sec
@@ -94,17 +98,21 @@ auto Parameters_Method_GNEB_from_TOML( const toml::table & tbl ) -> std::unique_
     // Parse
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters GNEB: building" );
     // Output parameters
-    read_single( parameters->output_file_tag, tbl["output_file_tag"] );
-    read_single( parameters->output_folder, tbl["output_folder"] );
-    read_single( parameters->output_any, tbl["output_any"] );
-    read_single( parameters->output_initial, tbl["output_initial"] );
-    read_single( parameters->output_final, tbl["output_final"] );
-    read_single( parameters->output_energies_step, tbl["output_energies_step"] );
-    read_single( parameters->output_energies_add_readability_lines, tbl["output_energies_add_readability_lines"] );
-    read_single( parameters->output_energies_interpolated, tbl["output_energies_interpolated"] );
-    read_single( parameters->output_energies_divide_by_nspins, tbl["output_energies_divide_by_nspins"] );
-    read_single( parameters->output_chain_step, tbl["output_chain_step"] );
-    read_single( output_chain_filetype, tbl["output_chain_filetype"] );
+    if( auto output_table = tbl["output"].as_table() )
+    {
+        auto & output = *output_table;
+        read_single( parameters->output_file_tag, output["file_tag"] );
+        read_single( parameters->output_folder, output["folder"] );
+        read_single( parameters->output_any, output["any"] );
+        read_single( parameters->output_initial, output["initial"] );
+        read_single( parameters->output_final, output["final"] );
+        read_single( parameters->output_energies_step, output["energies_step"] );
+        read_single( parameters->output_energies_add_readability_lines, output["energies_add_readability_lines"] );
+        read_single( parameters->output_energies_interpolated, output["energies_interpolated"] );
+        read_single( parameters->output_energies_divide_by_nspins, output["energies_divide_by_nspins"] );
+        read_single( parameters->output_chain_step, output["chain_step"] );
+        read_single( output_chain_filetype, output["chain_filetype"] );
+    }
     parameters->output_vf_filetype = IO::VF_FileFormat( output_chain_filetype );
     // Method parameters
     read_single( str_max_walltime, tbl["max_walltime"] );
@@ -176,22 +184,26 @@ auto Parameters_Method_LLG_from_TOML( const toml::table & tbl ) -> std::unique_p
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters LLG: building" );
     // Output parameters
     // Configuration output filetype
-    read_single( parameters->output_file_tag, tbl["output_file_tag"] );
-    read_single( parameters->output_folder, tbl["output_folder"] );
-    read_single( parameters->output_any, tbl["output_any"] );
-    read_single( parameters->output_initial, tbl["output_initial"] );
-    read_single( parameters->output_final, tbl["output_final"] );
-    read_single( parameters->output_energy_spin_resolved, tbl["output_energy_spin_resolved"] );
-    read_single( parameters->output_energy_step, tbl["output_energy_step"] );
-    read_single( parameters->output_energy_archive, tbl["output_energy_archive"] );
-    read_single( parameters->output_energy_divide_by_nspins, tbl["output_energy_divide_by_nspins"] );
-    read_single( parameters->output_energy_add_readability_lines, tbl["output_energy_add_readability_lines"] );
-    read_single( parameters->output_configuration_step, tbl["output_configuration_step"] );
-    read_single( parameters->output_configuration_archive, tbl["output_configuration_archive"] );
+    if( auto output_table = tbl["output"].as_table() )
     {
-        int output_configuration_filetype = static_cast<int>( parameters->output_vf_filetype );
-        read_single( output_configuration_filetype, tbl["output_configuration_filetype"] );
-        parameters->output_vf_filetype = IO::VF_FileFormat( output_configuration_filetype );
+        auto & output = *output_table;
+        read_single( parameters->output_file_tag, output["file_tag"] );
+        read_single( parameters->output_folder, output["folder"] );
+        read_single( parameters->output_any, output["any"] );
+        read_single( parameters->output_initial, output["initial"] );
+        read_single( parameters->output_final, output["final"] );
+        read_single( parameters->output_energy_spin_resolved, output["energy_spin_resolved"] );
+        read_single( parameters->output_energy_step, output["energy_step"] );
+        read_single( parameters->output_energy_archive, output["energy_archive"] );
+        read_single( parameters->output_energy_divide_by_nspins, output["energy_divide_by_nspins"] );
+        read_single( parameters->output_energy_add_readability_lines, output["energy_add_readability_lines"] );
+        read_single( parameters->output_configuration_step, output["configuration_step"] );
+        read_single( parameters->output_configuration_archive, output["configuration_archive"] );
+        {
+            int output_configuration_filetype = static_cast<int>( parameters->output_vf_filetype );
+            read_single( output_configuration_filetype, output["configuration_filetype"] );
+            parameters->output_vf_filetype = IO::VF_FileFormat( output_configuration_filetype );
+        }
     }
     // Method parameters
     {
@@ -290,19 +302,23 @@ auto Parameters_Method_MC_from_TOML( const toml::table & tbl ) -> std::unique_pt
     // Parse
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters MC: building" );
     // Output parameters
-    read_single( parameters->output_file_tag, tbl["output_file_tag"] );
-    read_single( parameters->output_folder, tbl["output_folder"] );
-    read_single( parameters->output_any, tbl["output_any"] );
-    read_single( parameters->output_initial, tbl["output_initial"] );
-    read_single( parameters->output_final, tbl["output_final"] );
-    read_single( parameters->output_energy_spin_resolved, tbl["output_energy_spin_resolved"] );
-    read_single( parameters->output_energy_step, tbl["output_energy_step"] );
-    read_single( parameters->output_energy_archive, tbl["output_energy_archive"] );
-    read_single( parameters->output_energy_divide_by_nspins, tbl["output_energy_divide_by_nspins"] );
-    read_single( parameters->output_energy_add_readability_lines, tbl["output_energy_add_readability_lines"] );
-    read_single( parameters->output_configuration_step, tbl["output_configuration_step"] );
-    read_single( parameters->output_configuration_archive, tbl["output_configuration_archive"] );
-    read_single( output_configuration_filetype, tbl["output_configuration_filetype"] );
+    if( auto output_table = tbl["output"].as_table() )
+    {
+        auto & output = *output_table;
+        read_single( parameters->output_file_tag, output["file_tag"] );
+        read_single( parameters->output_folder, output["folder"] );
+        read_single( parameters->output_any, output["any"] );
+        read_single( parameters->output_initial, output["initial"] );
+        read_single( parameters->output_final, output["final"] );
+        read_single( parameters->output_energy_spin_resolved, output["energy_spin_resolved"] );
+        read_single( parameters->output_energy_step, output["energy_step"] );
+        read_single( parameters->output_energy_archive, output["energy_archive"] );
+        read_single( parameters->output_energy_divide_by_nspins, output["energy_divide_by_nspins"] );
+        read_single( parameters->output_energy_add_readability_lines, output["energy_add_readability_lines"] );
+        read_single( parameters->output_configuration_step, output["configuration_step"] );
+        read_single( parameters->output_configuration_archive, output["configuration_archive"] );
+        read_single( output_configuration_filetype, output["configuration_filetype"] );
+    }
     parameters->output_vf_filetype = IO::VF_FileFormat( output_configuration_filetype );
     // Method parameters
     read_single( str_max_walltime, tbl["max_walltime"] );
@@ -402,19 +418,23 @@ auto Parameters_Method_MMF_from_TOML( const toml::table & tbl ) -> std::unique_p
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters MMF: building" );
 
     // Output parameters
-    read_single( parameters->output_file_tag, tbl["output_file_tag"] );
-    read_single( parameters->output_folder, tbl["output_folder"] );
-    read_single( parameters->output_any, tbl["output_any"] );
-    read_single( parameters->output_initial, tbl["output_initial"] );
-    read_single( parameters->output_final, tbl["output_final"] );
-    read_single( parameters->output_energy_step, tbl["output_energy_step"] );
-    read_single( parameters->output_energy_archive, tbl["output_energy_archive"] );
-    read_single( parameters->output_energy_divide_by_nspins, tbl["output_energy_divide_by_nspins"] );
-    read_single( parameters->output_energy_add_readability_lines, tbl["output_energy_add_readability_lines"] );
-    read_single( parameters->output_configuration_step, tbl["output_configuration_step"] );
-    read_single( parameters->output_configuration_archive, tbl["output_configuration_archive"] );
-    read_single( output_configuration_filetype, tbl["output_configuration_filetype"] );
-    parameters->output_vf_filetype = IO::VF_FileFormat( output_configuration_filetype );
+    if( auto output_table = tbl["output"].as_table() )
+    {
+        auto & output = *output_table;
+        read_single( parameters->output_file_tag, output["file_tag"] );
+        read_single( parameters->output_folder, output["folder"] );
+        read_single( parameters->output_any, output["any"] );
+        read_single( parameters->output_initial, output["initial"] );
+        read_single( parameters->output_final, output["final"] );
+        read_single( parameters->output_energy_step, output["energy_step"] );
+        read_single( parameters->output_energy_archive, output["energy_archive"] );
+        read_single( parameters->output_energy_divide_by_nspins, output["energy_divide_by_nspins"] );
+        read_single( parameters->output_energy_add_readability_lines, output["energy_add_readability_lines"] );
+        read_single( parameters->output_configuration_step, output["configuration_step"] );
+        read_single( parameters->output_configuration_archive, output["configuration_archive"] );
+        read_single( output_configuration_filetype, output["configuration_filetype"] );
+        parameters->output_vf_filetype = IO::VF_FileFormat( output_configuration_filetype );
+    }
     // Method parameters
     read_single( str_max_walltime, tbl["max_walltime"] );
     parameters->max_walltime_sec

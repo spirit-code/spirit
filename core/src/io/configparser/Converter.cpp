@@ -147,17 +147,20 @@ auto Parameters_Method_EMA( const std::string & config_file_name ) -> toml::tabl
 
     return toml::table{
         // Output parameters
-        { "output_file_tag", parameters.output_file_tag },
-        { "output_folder", parameters.output_folder },
-        { "output_any", parameters.output_any },
-        { "output_initial", parameters.output_initial },
-        { "output_final", parameters.output_final },
-        { "output_energy_divide_by_nspins", parameters.output_energy_divide_by_nspins },
-        { "output_energy_spin_resolved", parameters.output_energy_spin_resolved },
-        { "output_energy_step", parameters.output_energy_step },
-        { "output_energy_archive", parameters.output_energy_archive },
-        { "output_configuration_step", parameters.output_configuration_step },
-        { "output_configuration_archive", parameters.output_configuration_archive },
+        { "output",
+          toml::table{
+              { "file_tag", parameters.output_file_tag },
+              { "folder", parameters.output_folder },
+              { "any", parameters.output_any },
+              { "initial", parameters.output_initial },
+              { "final", parameters.output_final },
+              { "energy_divide_by_nspins", parameters.output_energy_divide_by_nspins },
+              { "energy_spin_resolved", parameters.output_energy_spin_resolved },
+              { "energy_step", parameters.output_energy_step },
+              { "energy_archive", parameters.output_energy_archive },
+              { "configuration_step", parameters.output_configuration_step },
+              { "configuration_archive", parameters.output_configuration_archive },
+          } },
         // Method parameters
         { "max_walltime", str_max_walltime },
         { "n_iterations", parameters.n_iterations },
@@ -226,17 +229,20 @@ auto Parameters_Method_GNEB( const std::string & config_file_name ) -> toml::tab
     }
 
     return toml::table{
-        { "output_file_tag", parameters.output_file_tag },
-        { "output_folder", parameters.output_folder },
-        { "output_any", parameters.output_any },
-        { "output_initial", parameters.output_initial },
-        { "output_final", parameters.output_final },
-        { "output_energies_step", parameters.output_energies_step },
-        { "output_energies_add_readability_lines", parameters.output_energies_add_readability_lines },
-        { "output_energies_interpolated", parameters.output_energies_interpolated },
-        { "output_energies_divide_by_nspins", parameters.output_energies_divide_by_nspins },
-        { "output_chain_step", parameters.output_chain_step },
-        { "output_chain_filetype", output_chain_filetype },
+        { "output",
+          toml::table{
+              { "file_tag", parameters.output_file_tag },
+              { "folder", parameters.output_folder },
+              { "any", parameters.output_any },
+              { "initial", parameters.output_initial },
+              { "final", parameters.output_final },
+              { "energies_step", parameters.output_energies_step },
+              { "energies_add_readability_lines", parameters.output_energies_add_readability_lines },
+              { "energies_interpolated", parameters.output_energies_interpolated },
+              { "energies_divide_by_nspins", parameters.output_energies_divide_by_nspins },
+              { "chain_step", parameters.output_chain_step },
+              { "chain_filetype", output_chain_filetype },
+          } },
         // Method parameters
         { "max_walltime", str_max_walltime },
         { "spring_constant", parameters.spring_constant },
@@ -305,18 +311,21 @@ auto Parameters_Method_MMF( const std::string & config_file_name ) -> toml::tabl
     }
 
     return toml::table{
-        { "output_file_tag", parameters.output_file_tag },
-        { "output_folder", parameters.output_folder },
-        { "output_any", parameters.output_any },
-        { "output_initial", parameters.output_initial },
-        { "output_final", parameters.output_final },
-        { "output_energy_step", parameters.output_energy_step },
-        { "output_energy_archive", parameters.output_energy_archive },
-        { "output_energy_divide_by_nspins", parameters.output_energy_divide_by_nspins },
-        { "output_energy_add_readability_lines", parameters.output_energy_add_readability_lines },
-        { "output_configuration_step", parameters.output_configuration_step },
-        { "output_configuration_archive", parameters.output_configuration_archive },
-        { "output_configuration_filetype", output_configuration_filetype },
+        { "output",
+          toml::table{
+              { "file_tag", parameters.output_file_tag },
+              { "folder", parameters.output_folder },
+              { "any", parameters.output_any },
+              { "initial", parameters.output_initial },
+              { "final", parameters.output_final },
+              { "energy_step", parameters.output_energy_step },
+              { "energy_archive", parameters.output_energy_archive },
+              { "energy_divide_by_nspins", parameters.output_energy_divide_by_nspins },
+              { "energy_add_readability_lines", parameters.output_energy_add_readability_lines },
+              { "configuration_step", parameters.output_configuration_step },
+              { "configuration_archive", parameters.output_configuration_archive },
+              { "configuration_filetype", output_configuration_filetype },
+          } },
         // Method parameters
         { "max_walltime", str_max_walltime },
         { "force_convergence", parameters.force_convergence },
@@ -386,19 +395,22 @@ auto Parameters_Method_LLG( const std::string & config_file_name ) -> toml::tabl
     }
 
     return toml::table{
-        { "output_file_tag", parameters.output_file_tag },
-        { "output_folder", parameters.output_folder },
-        { "output_any", parameters.output_any },
-        { "output_initial", parameters.output_initial },
-        { "output_final", parameters.output_final },
-        { "output_energy_spin_resolved", parameters.output_energy_spin_resolved },
-        { "output_energy_step", parameters.output_energy_step },
-        { "output_energy_archive", parameters.output_energy_archive },
-        { "output_energy_divide_by_nspins", parameters.output_energy_divide_by_nspins },
-        { "output_energy_add_readability_lines", parameters.output_energy_add_readability_lines },
-        { "output_configuration_step", parameters.output_configuration_step },
-        { "output_configuration_archive", parameters.output_configuration_archive },
-        { "output_configuration_filetype", output_configuration_filetype },
+        { "output",
+          toml::table{
+              { "file_tag", parameters.output_file_tag },
+              { "folder", parameters.output_folder },
+              { "any", parameters.output_any },
+              { "initial", parameters.output_initial },
+              { "final", parameters.output_final },
+              { "energy_spin_resolved", parameters.output_energy_spin_resolved },
+              { "energy_step", parameters.output_energy_step },
+              { "energy_archive", parameters.output_energy_archive },
+              { "energy_divide_by_nspins", parameters.output_energy_divide_by_nspins },
+              { "energy_add_readability_lines", parameters.output_energy_add_readability_lines },
+              { "configuration_step", parameters.output_configuration_step },
+              { "configuration_archive", parameters.output_configuration_archive },
+              { "configuration_filetype", output_configuration_filetype },
+          } },
         // Method parameters
         { "max_walltime", str_max_walltime },
         { "seed", parameters.rng_seed },
@@ -482,20 +494,24 @@ auto Parameters_Method_MC( const std::string & config_file_name ) -> toml::table
     }
     else
         Log( Log_Level::Parameter, Log_Sender::IO, "Parameters MC: Using default configuration!" );
+
     return toml::table{
-        { "output_file_tag", parameters.output_file_tag },
-        { "output_folder", parameters.output_folder },
-        { "output_any", parameters.output_any },
-        { "output_initial", parameters.output_initial },
-        { "output_final", parameters.output_final },
-        { "output_energy_spin_resolved", parameters.output_energy_spin_resolved },
-        { "output_energy_step", parameters.output_energy_step },
-        { "output_energy_archive", parameters.output_energy_archive },
-        { "output_energy_divide_by_nspins", parameters.output_energy_divide_by_nspins },
-        { "output_energy_add_readability_lines", parameters.output_energy_add_readability_lines },
-        { "output_configuration_step", parameters.output_configuration_step },
-        { "output_configuration_archive", parameters.output_configuration_archive },
-        { "output_configuration_filetype", output_configuration_filetype },
+        { "output",
+          toml::table{
+              { "file_tag", parameters.output_file_tag },
+              { "folder", parameters.output_folder },
+              { "any", parameters.output_any },
+              { "initial", parameters.output_initial },
+              { "final", parameters.output_final },
+              { "energy_spin_resolved", parameters.output_energy_spin_resolved },
+              { "energy_step", parameters.output_energy_step },
+              { "energy_archive", parameters.output_energy_archive },
+              { "energy_divide_by_nspins", parameters.output_energy_divide_by_nspins },
+              { "energy_add_readability_lines", parameters.output_energy_add_readability_lines },
+              { "configuration_step", parameters.output_configuration_step },
+              { "configuration_archive", parameters.output_configuration_archive },
+              { "configuration_filetype", output_configuration_filetype },
+          } },
         // Method parameters
         { "max_walltime", str_max_walltime },
         { "seed", parameters.rng_seed },
@@ -1388,6 +1404,7 @@ auto Hamiltonian( const std::string & config_file_name ) -> toml::table
 auto Config( const std::string & config_file_name ) -> toml::table
 {
     return toml::table{
+        { "version", "0.1" },
         { "logging", detail::Logging( config_file_name ) },
         { "geometry", detail::Geometry( config_file_name ) },
         { "hamiltonian", detail::Hamiltonian( config_file_name ) },
