@@ -41,6 +41,12 @@ auto Parameters_Method_GNEB_from_TOML( const toml::table & ) -> std::unique_ptr<
 auto Parameters_Method_EMA_from_TOML( const toml::table & ) -> std::unique_ptr<Data::Parameters_Method_EMA>;
 auto Parameters_Method_MMF_from_TOML( const toml::table & ) -> std::unique_ptr<Data::Parameters_Method_MMF>;
 
+template<typename T, typename Enable = void>
+struct toml_array_transform;
+
+template<typename Container>
+auto toml_array_from_container( const Container & iterable ) -> toml::array;
+
 } // namespace IO
 
 #include <io/Configparser.inl>
