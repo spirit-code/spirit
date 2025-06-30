@@ -19,6 +19,7 @@ set(SOURCE_SPIRIT
     ${CMAKE_CURRENT_SOURCE_DIR}/Quantities.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Constants.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Version.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Legacy.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt
     PARENT_SCOPE
 )
@@ -43,6 +44,7 @@ if( SPIRIT_USE_CUDA )
         ${CMAKE_CURRENT_LIST_DIR}/System.cpp
         ${CMAKE_CURRENT_LIST_DIR}/Transitions.cpp
         ${CMAKE_CURRENT_LIST_DIR}/Quantities.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Legacy.cpp
         PARENT_SCOPE
     )
 endif()

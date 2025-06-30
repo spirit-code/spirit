@@ -22,3 +22,4 @@ Full API reference
     Spirit/State.h              <State>
     Spirit/System.h             <System>
     Spirit/Transitions.h        <Transitions>
+    Spirit/Legacy.h             <Legacy>

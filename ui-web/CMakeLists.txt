@@ -320,6 +320,8 @@ set( INTERFACE_EXPORT_FUNCTIONS
     # Transition
     '_Transition_Homogeneous'
     '_Transition_Add_Noise_Temperature'
+    # Legacy
+    '_Legacy_Convert_Config_to_TOML'
 )
 ######## Set export functions for VFRendering ########################
 set( INTERFACE_EXPORT_FUNCTIONS ${INTERFACE_EXPORT_FUNCTIONS}
