@@ -19,6 +19,8 @@ using Utility::Log_Sender;
 namespace IO
 {
 
+static constexpr auto toml_flags = toml::toml_formatter::default_flags & ~toml::format_flags::indent_sub_tables;
+
 /*
  * This is a simple RAII file handle that allows streaming strings into a file.
  * Optionally, if CORE_USE_THREADS is defined, it can launch these operations on
@@ -48,10 +50,10 @@ public:
         myfile.close();
     }
 
-    void write( const toml::table & tbl )
+    void write( toml::toml_formatter formatter )
     {
         Log( Log_Level::Debug, Log_Sender::All, fmt::format( "Started {} file '{}'", operation, filename ) );
-        myfile << tbl;
+        myfile << formatter;
         Log( Log_Level::Debug, Log_Sender::All, fmt::format( "Finished {} file '{}'", operation, filename ) );
     }
 
@@ -91,7 +93,7 @@ catch( ... )
 void write_to_file( const toml::table & tbl, const std::string & filename )
 try
 {
-    OutFileHandle( filename, false ).write( tbl );
+    OutFileHandle( filename, false ).write( toml::default_formatter{ tbl, toml_flags } );
 }
 catch( ... )
 {
@@ -110,7 +112,7 @@ catch( ... )
 void append_to_file( const toml::table & tbl, const std::string & filename )
 try
 {
-    OutFileHandle( filename, true ).write( tbl );
+    OutFileHandle( filename, true ).write( toml::default_formatter{ tbl, toml_flags } );
 }
 catch( ... )
 {
@@ -130,7 +132,7 @@ void dump_to_file( const toml::table & tbl, const std::string & filename )
 {
 #ifdef CORE_USE_THREADS
     // Fire and forget
-    std::thread( write_to_file, str, filename ).detach();
+    std::thread( write_to_file, tbl, filename ).detach();
 #else
     write_to_file( tbl, filename );
 #endif
