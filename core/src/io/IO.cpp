@@ -48,6 +48,13 @@ public:
         myfile.close();
     }
 
+    void write( const toml::table & tbl )
+    {
+        Log( Log_Level::Debug, Log_Sender::All, fmt::format( "Started {} file '{}'", operation, filename ) );
+        myfile << tbl;
+        Log( Log_Level::Debug, Log_Sender::All, fmt::format( "Finished {} file '{}'", operation, filename ) );
+    }
+
     void write( const std::string & str )
     {
         Log( Log_Level::Debug, Log_Sender::All, fmt::format( "Started {} file '{}'", operation, filename ) );
@@ -81,10 +88,29 @@ catch( ... )
     spirit_handle_exception_core( fmt::format( "Unable to write to file \"{}\"", filename ) );
 }
 
+void write_to_file( const toml::table & tbl, const std::string & filename )
+try
+{
+    OutFileHandle( filename, false ).write( tbl );
+}
+catch( ... )
+{
+    spirit_handle_exception_core( fmt::format( "Unable to write to file \"{}\"", filename ) );
+}
+
 void append_to_file( const std::string & str, const std::string & filename )
 try
 {
     OutFileHandle( filename, true ).write( str );
+}
+catch( ... )
+{
+    spirit_handle_exception_core( fmt::format( "Unable to append to file \"{}\"", filename ) );
+}
+void append_to_file( const toml::table & tbl, const std::string & filename )
+try
+{
+    OutFileHandle( filename, true ).write( tbl );
 }
 catch( ... )
 {
@@ -98,6 +124,15 @@ void dump_to_file( const std::string & str, const std::string & filename )
     std::thread( write_to_file, str, filename ).detach();
 #else
     write_to_file( str, filename );
+#endif
+}
+void dump_to_file( const toml::table & tbl, const std::string & filename )
+{
+#ifdef CORE_USE_THREADS
+    // Fire and forget
+    std::thread( write_to_file, str, filename ).detach();
+#else
+    write_to_file( tbl, filename );
 #endif
 }
 

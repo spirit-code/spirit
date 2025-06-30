@@ -265,9 +265,40 @@ try
 {
     check_state( state );
 
-    Log( Log_Level::Info, Log_Sender::All, "Writing State configuration to file " + std::string( config_file ) );
+    const std::string cfg = std::string( config_file );
 
-    std::string cfg = std::string( config_file );
+    Log( Log_Level::Info, Log_Sender::All, "Writing State configuration to file " + cfg );
+
+    const auto extension = [&cfg]
+    {
+        auto n = cfg.rfind( '.' );
+        if( n != std::string::npos )
+            return cfg.substr( n );
+        else
+            return std::string( "" );
+    }();
+
+    if( extension == ".toml" )
+    {
+        IO::write_to_file( IO::escape_lines( comment ), cfg );
+
+        toml::table tbl;
+        tbl.insert( "logging", IO::Logging_to_TOML() );
+        tbl.insert( "geometry", IO::Geometry_to_TOML( state->active_image->hamiltonian->get_geometry() ) );
+        tbl.insert(
+            "method", toml::table{
+                          { "llg", IO::Parameters_Method_LLG_to_TOML( *state->active_image->llg_parameters ) },
+                          { "ema", IO::Parameters_Method_EMA_to_TOML( *state->active_image->ema_parameters ) },
+                          { "mmf", IO::Parameters_Method_MMF_to_TOML( *state->active_image->mmf_parameters ) },
+                          { "mc", IO::Parameters_Method_MC_to_TOML( *state->active_image->mc_parameters ) },
+                          { "gneb", IO::Parameters_Method_GNEB_to_TOML( *state->chain->gneb_parameters ) },
+                      } );
+        tbl.insert( "hamiltonian", IO::Hamiltonian_to_TOML( *state->active_image->hamiltonian ) );
+
+        IO::append_to_file( tbl, cfg );
+
+        return;
+    }
 
     // Header
     std::string header{ comment };

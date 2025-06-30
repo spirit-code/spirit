@@ -84,4 +84,34 @@ auto Quadruplets_from_TOML(
     return result;
 }
 
+auto Quadruplets_to_TOML( const Engine::Spin::Interaction::Quadruplet::Data * data ) -> toml::table
+{
+    if( !data )
+        return toml::table{};
+
+    const auto & quadruplets           = data->quadruplets;
+    const auto & quadruplet_magnitudes = data->magnitudes;
+
+    std::ostringstream oss;
+    if( !quadruplets.empty() )
+    {
+        oss << fmt::format(
+            "{:^3} {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15}\n", "i",
+            "j", "k", "l", "da_j", "db_j", "dc_j", "da_k", "db_k", "dc_k", "da_l", "db_l", "dc_l", "Q" );
+        for( unsigned int i = 0; i < quadruplets.size(); ++i )
+        {
+            // clang-format off
+            oss << fmt::format(
+                "{:^3} {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}\n",
+                quadruplets[i].i, quadruplets[i].j, quadruplets[i].k, quadruplets[i].l,
+                quadruplets[i].d_j[0], quadruplets[i].d_j[1], quadruplets[i].d_j[2],
+                quadruplets[i].d_k[0], quadruplets[i].d_k[1], quadruplets[i].d_k[2],
+                quadruplets[i].d_l[0], quadruplets[i].d_l[1], quadruplets[i].d_l[2],
+                quadruplet_magnitudes[i] );
+            // clang-format on
+        }
+    }
+    return toml::table{ { "quadruplets", oss.str() } };
+}
+
 } // namespace IO

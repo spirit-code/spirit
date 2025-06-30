@@ -1,4 +1,5 @@
 #include <io/Configparser.hpp>
+#include <io/Configwriter.hpp>
 #include <io/Dataparser.hpp>
 #include <io/Filter_File_Handle.hpp>
 #include <io/configparser/Converter.hpp>
@@ -145,33 +146,7 @@ auto Parameters_Method_EMA( const std::string & config_file_name ) -> toml::tabl
     else
         Log( Log_Level::Parameter, Log_Sender::IO, "Parameters EMA: Using default configuration!" );
 
-    return toml::table{
-        // Output parameters
-        { "output",
-          toml::table{
-              { "file_tag", parameters.output_file_tag },
-              { "folder", parameters.output_folder },
-              { "any", parameters.output_any },
-              { "initial", parameters.output_initial },
-              { "final", parameters.output_final },
-              { "energy_divide_by_nspins", parameters.output_energy_divide_by_nspins },
-              { "energy_spin_resolved", parameters.output_energy_spin_resolved },
-              { "energy_step", parameters.output_energy_step },
-              { "energy_archive", parameters.output_energy_archive },
-              { "configuration_step", parameters.output_configuration_step },
-              { "configuration_archive", parameters.output_configuration_archive },
-          } },
-        // Method parameters
-        { "max_walltime", str_max_walltime },
-        { "n_iterations", parameters.n_iterations },
-        { "n_iterations_log", parameters.n_iterations_log },
-        { "n_modes", parameters.n_modes },
-        { "n_mode_follow", parameters.n_mode_follow },
-        { "frequency", parameters.frequency },
-        { "amplitude", parameters.amplitude },
-        { "sparse", parameters.sparse },
-
-    };
+    return Parameters_Method_EMA_to_TOML( parameters );
 }; // namespace IO
 
 auto Parameters_Method_GNEB( const std::string & config_file_name ) -> toml::table
@@ -227,36 +202,7 @@ auto Parameters_Method_GNEB( const std::string & config_file_name ) -> toml::tab
                 fmt::format( "Unable to parse GNEB parameters from config file \"{}\"", config_file_name ) );
         }
     }
-
-    return toml::table{
-        { "output",
-          toml::table{
-              { "file_tag", parameters.output_file_tag },
-              { "folder", parameters.output_folder },
-              { "any", parameters.output_any },
-              { "initial", parameters.output_initial },
-              { "final", parameters.output_final },
-              { "energies_step", parameters.output_energies_step },
-              { "energies_add_readability_lines", parameters.output_energies_add_readability_lines },
-              { "energies_interpolated", parameters.output_energies_interpolated },
-              { "energies_divide_by_nspins", parameters.output_energies_divide_by_nspins },
-              { "chain_step", parameters.output_chain_step },
-              { "chain_filetype", output_chain_filetype },
-          } },
-        // Method parameters
-        { "max_walltime", str_max_walltime },
-        { "spring_constant", parameters.spring_constant },
-        { "force_convergence", parameters.force_convergence },
-        { "n_iterations", parameters.n_iterations },
-        { "n_iterations_log", parameters.n_iterations_log },
-        { "n_iterations_amortize", parameters.n_iterations_amortize },
-        { "n_energy_interpolations", parameters.n_E_interpolations },
-        { "moving_endpoints", parameters.moving_endpoints },
-        { "equilibrium_delta_Rx_left", parameters.equilibrium_delta_Rx_left },
-        { "equilibrium_delta_Rx_right", parameters.equilibrium_delta_Rx_right },
-        { "translating_endpoints", parameters.translating_endpoints },
-
-    };
+    return Parameters_Method_GNEB_to_TOML( parameters );
 };
 
 auto Parameters_Method_MMF( const std::string & config_file_name ) -> toml::table
@@ -310,31 +256,7 @@ auto Parameters_Method_MMF( const std::string & config_file_name ) -> toml::tabl
         }
     }
 
-    return toml::table{
-        { "output",
-          toml::table{
-              { "file_tag", parameters.output_file_tag },
-              { "folder", parameters.output_folder },
-              { "any", parameters.output_any },
-              { "initial", parameters.output_initial },
-              { "final", parameters.output_final },
-              { "energy_step", parameters.output_energy_step },
-              { "energy_archive", parameters.output_energy_archive },
-              { "energy_divide_by_nspins", parameters.output_energy_divide_by_nspins },
-              { "energy_add_readability_lines", parameters.output_energy_add_readability_lines },
-              { "configuration_step", parameters.output_configuration_step },
-              { "configuration_archive", parameters.output_configuration_archive },
-              { "configuration_filetype", output_configuration_filetype },
-          } },
-        // Method parameters
-        { "max_walltime", str_max_walltime },
-        { "force_convergence", parameters.force_convergence },
-        { "n_iterations", parameters.n_iterations },
-        { "n_iterations_log", parameters.n_iterations_log },
-        { "n_iterations_amortize", parameters.n_iterations_amortize },
-        { "n_modes", parameters.n_modes },
-        { "n_mode_follow", parameters.n_mode_follow },
-    };
+    return Parameters_Method_MMF_to_TOML( parameters );
 };
 
 auto Parameters_Method_LLG( const std::string & config_file_name ) -> toml::table
@@ -393,42 +315,7 @@ auto Parameters_Method_LLG( const std::string & config_file_name ) -> toml::tabl
                 fmt::format( "Unable to parse LLG parameters from config file \"{}\"", config_file_name ) );
         }
     }
-
-    return toml::table{
-        { "output",
-          toml::table{
-              { "file_tag", parameters.output_file_tag },
-              { "folder", parameters.output_folder },
-              { "any", parameters.output_any },
-              { "initial", parameters.output_initial },
-              { "final", parameters.output_final },
-              { "energy_spin_resolved", parameters.output_energy_spin_resolved },
-              { "energy_step", parameters.output_energy_step },
-              { "energy_archive", parameters.output_energy_archive },
-              { "energy_divide_by_nspins", parameters.output_energy_divide_by_nspins },
-              { "energy_add_readability_lines", parameters.output_energy_add_readability_lines },
-              { "configuration_step", parameters.output_configuration_step },
-              { "configuration_archive", parameters.output_configuration_archive },
-              { "configuration_filetype", output_configuration_filetype },
-          } },
-        // Method parameters
-        { "max_walltime", str_max_walltime },
-        { "seed", parameters.rng_seed },
-        { "n_iterations", parameters.n_iterations },
-        { "n_iterations_log", parameters.n_iterations_log },
-        { "n_iterations_amortize", parameters.n_iterations_amortize },
-        { "dt", parameters.dt },
-        { "temperature", parameters.temperature },
-        { "temperature_gradient_direction", toml_array_from_container( parameters.temperature_gradient_direction ) },
-        { "temperature_gradient_inclination", parameters.temperature_gradient_inclination },
-        { "damping", parameters.damping },
-        { "beta", parameters.beta },
-        // config_file_handle.Read_Single(parameters.renorm_sd, "llg_renorm");
-        { "stt_use_gradient", parameters.stt_use_gradient },
-        { "stt_magnitude", parameters.stt_magnitude },
-        { "stt_polarisation_normal", toml_array_from_container( parameters.stt_polarisation_normal ) },
-        { "force_convergence", parameters.force_convergence },
-    };
+    return Parameters_Method_LLG_to_TOML( parameters );
 };
 
 auto Parameters_Method_MC( const std::string & config_file_name ) -> toml::table
@@ -494,38 +381,7 @@ auto Parameters_Method_MC( const std::string & config_file_name ) -> toml::table
     }
     else
         Log( Log_Level::Parameter, Log_Sender::IO, "Parameters MC: Using default configuration!" );
-
-    return toml::table{
-        { "output",
-          toml::table{
-              { "file_tag", parameters.output_file_tag },
-              { "folder", parameters.output_folder },
-              { "any", parameters.output_any },
-              { "initial", parameters.output_initial },
-              { "final", parameters.output_final },
-              { "energy_spin_resolved", parameters.output_energy_spin_resolved },
-              { "energy_step", parameters.output_energy_step },
-              { "energy_archive", parameters.output_energy_archive },
-              { "energy_divide_by_nspins", parameters.output_energy_divide_by_nspins },
-              { "energy_add_readability_lines", parameters.output_energy_add_readability_lines },
-              { "configuration_step", parameters.output_configuration_step },
-              { "configuration_archive", parameters.output_configuration_archive },
-              { "configuration_filetype", output_configuration_filetype },
-          } },
-        // Method parameters
-        { "max_walltime", str_max_walltime },
-        { "seed", parameters.rng_seed },
-        { "n_iterations", parameters.n_iterations },
-        { "n_iterations_log", parameters.n_iterations_log },
-        { "n_iterations_amortize", parameters.n_iterations_amortize },
-        { "temperature", parameters.temperature },
-        { "metropolis_step", metropolis_step },
-        // Metropolis method parameters
-        { "metropolis_use_adaptive_cone", parameters.metropolis_cone_adaptive },
-        { "acceptance_ratio", parameters.acceptance_ratio_target },
-        { "metropolis_cone_angle", parameters.metropolis_cone_angle },
-        { "metropolis_random_sample", parameters.metropolis_random_sample },
-    };
+    return Parameters_Method_MC_to_TOML( parameters );
 };
 
 auto Boundary_Conditions( const std::string & config_file_name ) -> toml::table
@@ -557,17 +413,6 @@ catch( ... )
 auto Bravais_Vectors( const std::string & config_file_name ) -> toml::table
 {
     toml::table result{};
-
-    auto convert_bravais = []( const std::vector<Vector3> & vectors )
-    {
-        toml::array result;
-        result.reserve( vectors.size() );
-        std::transform(
-            vectors.begin(), vectors.end(), std::back_inserter( result ),
-            []( const auto & v ) { return toml::array{ v[0], v[1], v[2] }; } );
-        return result;
-    };
-
     try
     {
         std::vector<Vector3> bravais_vectors{ { 1, 0, 0 }, { 0, 1, 0 }, { 0, 0, 1 } };
@@ -588,7 +433,7 @@ auto Bravais_Vectors( const std::string & config_file_name ) -> toml::table
             config_file_handle >> bravais_vectors[1][0] >> bravais_vectors[1][1] >> bravais_vectors[1][2];
             config_file_handle.GetLine();
             config_file_handle >> bravais_vectors[2][0] >> bravais_vectors[2][1] >> bravais_vectors[2][2];
-            result.insert( "bravais_vectors", convert_bravais( bravais_vectors ) );
+            result.insert( "bravais_vectors", toml_array_from_container( bravais_vectors ) );
         }
         if( config_file_handle.Find( "bravais_matrix" ) )
         {
@@ -598,7 +443,7 @@ auto Bravais_Vectors( const std::string & config_file_name ) -> toml::table
             config_file_handle >> bravais_vectors[0][1] >> bravais_vectors[1][1] >> bravais_vectors[2][1];
             config_file_handle.GetLine();
             config_file_handle >> bravais_vectors[0][2] >> bravais_vectors[1][2] >> bravais_vectors[2][2];
-            result.insert( "bravais_matrix", convert_bravais( bravais_vectors ) );
+            result.insert( "bravais_matrix", toml_array_from_container( bravais_vectors ) );
         }
     }
     catch( ... )
@@ -737,18 +582,7 @@ auto Pinning( const std::string & config_file_name, std::size_t n_cell_atoms ) -
 auto Basis_Cell_Composition( const std::string & config_file_name, const std::size_t n_cell_atoms ) -> toml::table
 {
     toml::table tbl;
-    auto cell_composition = Data::Basis_Cell_Composition{ /*disordered=*/false,
-                                                          /*iatom=*/
-                                                          [n_cell_atoms]
-                                                          {
-                                                              std::vector<int> iatom( n_cell_atoms );
-                                                              std::iota( iatom.begin(), iatom.end(), 0 );
-                                                              return iatom;
-                                                          }(),
-                                                          /*atom_type=*/std::vector<int>( n_cell_atoms, 0 ),
-                                                          /*mu_s=*/std::vector<scalar>( n_cell_atoms, 1 ),
-                                                          /*spin_qn=*/std::vector<int>( n_cell_atoms, 1 ),
-                                                          /*concentration=*/{} };
+    auto cell_composition = Data::Basis_Cell_Composition::make_default( n_cell_atoms, /*disordered=*/false );
     try
     {
         IO::Filter_File_Handle config_file_handle( config_file_name );

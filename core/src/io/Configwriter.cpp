@@ -19,6 +19,46 @@
 namespace IO
 {
 
+namespace detail
+{
+
+class Line : public std::string
+{
+    friend std::istream & operator>>( std::istream & is, Line & line )
+    {
+        return std::getline( is, line );
+    }
+};
+
+} // namespace detail
+
+std::string escape_lines( const std::string & comment, const char comment_char )
+{
+    std::istringstream iss( comment );
+    const bool is_commented = std::all_of(
+        std::istream_iterator<detail::Line>( iss ), std::istream_iterator<detail::Line>(),
+        [comment_char]( const std::string & line )
+        {
+            if( line.empty() )
+                return true;
+            const auto first_non_wspace = std::find_if_not( line.begin(), line.end(), std::iswspace );
+            return first_non_wspace == line.end() || *first_non_wspace == comment_char;
+        } );
+
+    if( !is_commented )
+    {
+        std::istringstream iss_( comment );
+        std::ostringstream oss{};
+        for( std::string line; std::getline( iss_, line ); )
+            oss << comment_char << ( line.empty() ? "" : " " ) << line << '\n';
+        return oss.str();
+    }
+    else
+    {
+        return comment;
+    }
+}
+
 void Folders_to_Config(
     const std::string & config_file, const std::shared_ptr<Data::Parameters_Method_LLG> parameters_llg,
     const std::shared_ptr<Data::Parameters_Method_MC> parameters_mc,

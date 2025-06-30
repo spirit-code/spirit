@@ -52,4 +52,19 @@ auto Gaussian_from_TOML( const toml::table & tbl, std::vector<std::string> & par
     return data;
 }
 
+auto Gaussian_to_TOML( const Engine::Spin::Interaction::Gaussian::Data * data ) -> toml::table
+{
+    if( !data || data->amplitude.empty() )
+        return toml::table{};
+    else
+    {
+        auto & [amplitude, width, center] = *data;
+        std::ostringstream oss;
+        for( unsigned int i = 0; i < amplitude.size(); ++i )
+            oss << fmt::format( "{} {} {} {} {}\n", amplitude[i], width[i], center[i][0], center[i][1], center[i][2] );
+
+        return toml::table{ { "gaussian", oss.str() } };
+    }
+}
+
 } // namespace IO

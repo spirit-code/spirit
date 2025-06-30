@@ -178,4 +178,48 @@ auto Anisotropy_from_TOML(
     return { anisotropy, cubic_anisotropy };
 }
 
+auto Anisotropy_to_TOML(
+    const Engine::Spin::Interaction::Anisotropy::Data * uniaxial,
+    const Engine::Spin::Interaction::Cubic_Anisotropy::Data * cubic ) -> toml::table
+{
+    struct Row
+    {
+        Vector3 K_normal = Vector3::Zero();
+        scalar K = 0, K4 = 0;
+    };
+
+    const auto n_uniaxial = uniaxial ? uniaxial->indices.size() : 0;
+    const auto n_cubic    = cubic ? cubic->indices.size() : 0;
+    std::unordered_map<int, Row> output{};
+    output.reserve( n_uniaxial + n_cubic ); // reserve for the worst case of no overlap
+    for( unsigned int i = 0; i < n_uniaxial; ++i )
+    {
+        auto & row   = output[uniaxial->indices[i]];
+        row.K        = uniaxial->magnitudes[i];
+        row.K_normal = uniaxial->normals[i];
+    };
+    for( unsigned int i = 0; i < n_cubic; ++i )
+    {
+        output[cubic->indices[i]].K4 = cubic->magnitudes[i];
+    }
+
+    if( !output.empty() )
+    {
+        std::ostringstream oss;
+        oss << '\n'
+            << fmt::format( "{:^3}   {:^15} {:^15} {:^15}  {:^15}  {:^15}\n", "i", "K1x", "K1y", "K1z", "K", "K4" );
+        for( auto & [idx, row] : output )
+        {
+            oss << fmt::format(
+                "{:^3}   {:^15.8f} {:^15.8f} {:^15.8f}  {:^15.8f}  {:^15.8f}\n", idx, row.K_normal[0], row.K_normal[1],
+                row.K_normal[2], row.K, row.K4 );
+        }
+        return toml::table{ { "anisotropy", oss.str() } };
+    }
+    else
+    {
+        return toml::table{};
+    }
+}
+
 } // namespace IO

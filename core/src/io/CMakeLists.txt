@@ -1,8 +1,14 @@
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/configparser)
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/configwriter)
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/hamiltonian)
 
 set(SOURCE_SPIRIT_IO_CONFIGPARSER
     ${SOURCE_SPIRIT_IO_CONFIGPARSER}
+    PARENT_SCOPE
+)
+
+set(SOURCE_SPIRIT_IO_CONFIGWRITER
+    ${SOURCE_SPIRIT_IO_CONFIGWRITER}
     PARENT_SCOPE
 )
 

@@ -125,7 +125,7 @@ auto Pinning_from_TOML( const toml::table & tbl, std::size_t n_cell_atoms ) -> D
 
     //------------------------------- Parser --------------------------------
     Log( Log_Level::Debug, Log_Sender::IO, "going to read pinning" );
-    if( auto pinning_boundary = tbl["boundary"].as_array() )
+    if( auto pinning_boundary = tbl["pinning_boundary"].as_array() )
     {
         auto read_boundary = []( const auto & node, auto & left, auto & right )
         {
@@ -152,7 +152,7 @@ auto Pinning_from_TOML( const toml::table & tbl, std::size_t n_cell_atoms ) -> D
 
     if( na_left > 0 || na_right > 0 || nb_left > 0 || nb_right > 0 || nc_left > 0 || nc_right > 0 )
     {
-        if( auto cell = tbl["cell"]; cell && cell.is_array() )
+        if( auto cell = tbl["pinning_cell"]; cell && cell.is_array() )
         {
             pinned_cell = toml_array_transform<vectorfield>::transform( *cell.node() );
             if( pinned_cell.size() > n_cell_atoms )

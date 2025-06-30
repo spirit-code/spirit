@@ -5,6 +5,8 @@
 #include <Spirit/Spirit_Defines.h>
 #include <io/Fileformat.hpp>
 
+#include <toml++/toml.hpp>
+
 #include <string>
 #include <vector>
 
@@ -13,15 +15,18 @@ namespace IO
 
 // Overwrites the file with the given string
 void write_to_file( const std::string & str, const std::string & filename );
+void write_to_file( const toml::table & tbl, const std::string & filename );
 
 // Appends the string to a file
 void append_to_file( const std::string & str, const std::string & filename );
+void append_to_file( const toml::table & tbl, const std::string & filename );
 
 /*
  * Writes the given string to a file, but may create and detach a thread, if
  * CORE_USE_THREADS is defined to do it asynchronously (i.e. fire & forget)
  */
 void dump_to_file( const std::string & str, const std::string & filename );
+void dump_to_file( const toml::table & tbl, const std::string & filename );
 
 } // namespace IO
 

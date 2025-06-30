@@ -77,4 +77,30 @@ auto DDI_from_TOML( const toml::table & tbl, const Data::Geometry & geometry, st
     return { ddi_method, ddi_radius, ddi_pb_zero_padding, ddi_n_periodic_images };
 }
 
+auto DDI_to_TOML( const Engine::Spin::Interaction::DDI::Data * data ) -> toml::table
+{
+    if( !data )
+        return toml::table{};
+
+    const auto ddi_method_str = [ddi_method = data->method]
+    {
+        using Engine::Spin::DDI_Method;
+        switch( ddi_method )
+        {
+            case DDI_Method::None: return "none";
+            case DDI_Method::Cutoff: return "cutoff";
+            case DDI_Method::FFT: return "fft";
+            case DDI_Method::FMM: return "fmm";
+            default: return "unknown";
+        }
+    }();
+
+    return toml::table{
+        { "ddi_method", ddi_method_str },
+        { "ddi_radius", data->cutoff_radius },
+        { "pb_zero_padding", data->pb_zero_padding },
+        { "n_periodic_images", toml_array_from_container( data->n_periodic_images ) },
+    };
+}
+
 } // namespace IO

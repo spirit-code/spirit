@@ -34,4 +34,15 @@ auto Zeeman_from_TOML( const toml::table & tbl, std::vector<std::string> & param
     return data;
 }
 
+auto Zeeman_to_TOML( const Engine::Spin::Interaction::Zeeman::Data * data ) -> toml::table
+{
+    if( !data )
+        return toml::table{};
+    else
+        return toml::table{
+            { "external_field_magnitude", data->external_field_magnitude / Utility::Constants::mu_B },
+            { "external_field_normal", toml_array_from_container( data->external_field_normal ) },
+        };
+}
+
 } // namespace IO

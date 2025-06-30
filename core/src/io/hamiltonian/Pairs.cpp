@@ -231,4 +231,50 @@ auto Pair_Interactions_from_TOML(
     return { exchange, dmi };
 }
 
+auto Pair_Interactions_to_TOML(
+    const Engine::Spin::Interaction::Exchange::Cache * exchange,
+    const Engine::Spin::Interaction::DMI::Cache * dmi ) -> toml::table
+{
+    if( ( exchange && !exchange->pairs.size() ) || ( dmi && !dmi->pairs.size() ) )
+    {
+        std::ostringstream oss;
+        oss << '\n'
+            << fmt::format(
+                   "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15}    {:^15} {:^15} {:^15} {:^15}\n", "i", "j", "da", "db",
+                   "dc", "Jij", "Dij", "Dijx", "Dijy", "Dijz" );
+
+        if( exchange )
+        {
+            // Exchange
+            const auto & exchange_pairs      = exchange->pairs;
+            const auto & exchange_magnitudes = exchange->magnitudes;
+            for( unsigned int i = 0; i < exchange_pairs.size(); ++i )
+            {
+                oss << fmt::format(
+                    "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}    {:^15.8f} {:^15.8f} {:^15.8f} {:^15.8f}\n",
+                    exchange_pairs[i].i, exchange_pairs[i].j, exchange_pairs[i].translations[0],
+                    exchange_pairs[i].translations[1], exchange_pairs[i].translations[2], exchange_magnitudes[i], 0.0,
+                    0.0, 0.0, 0.0 );
+            }
+        }
+        if( dmi )
+        {
+            // DMI
+            const auto & dmi_pairs      = dmi->pairs;
+            const auto & dmi_magnitudes = dmi->magnitudes;
+            const auto & dmi_normals    = dmi->normals;
+            for( unsigned int i = 0; i < dmi_pairs.size(); ++i )
+            {
+                oss << fmt::format(
+                    "{:^3} {:^3}    {:^3} {:^3} {:^3}    {:^15.8f}    {:^15.8f} {:^15.8f} {:^15.8f} {:^15.8f}\n",
+                    dmi_pairs[i].i, dmi_pairs[i].j, dmi_pairs[i].translations[0], dmi_pairs[i].translations[1],
+                    dmi_pairs[i].translations[2], 0.0, dmi_magnitudes[i], dmi_normals[i][0], dmi_normals[i][1],
+                    dmi_normals[i][2] );
+            }
+        }
+        return toml::table{ { "pairs", oss.str() } };
+    }
+    return toml::table{};
+}
+
 } // namespace IO

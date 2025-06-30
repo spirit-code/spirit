@@ -250,4 +250,54 @@ auto Biaxial_Anisotropy_from_TOML(
     return data;
 }
 
+auto Biaxial_Anisotropy_to_TOML( const Engine::Spin::Interaction::Biaxial_Anisotropy::Data * data ) -> toml::table
+{
+    if( !data )
+        return toml::table{};
+
+    const intfield & indices                        = data->indices;
+    const field<PolynomialBasis> & polynomial_bases = data->bases;
+    const field<unsigned int> & polynomial_site_p   = data->site_p;
+    const field<PolynomialTerm> & polynomial_terms  = data->terms;
+
+    const auto n_anisotropy_axes  = indices.size();
+    const auto n_anisotropy_terms = polynomial_terms.size();
+
+    assert( n_anisotropy_axes != 0 || n_anisotropy_terms == 0 );
+
+    toml::table tbl;
+    if( n_anisotropy_axes > 0 )
+    {
+        std::ostringstream oss;
+        oss << fmt::format(
+            "{:^3}   {:^15} {:^15} {:^15}  {:^15} {:^15} {:^15}\n", "i", "K1x", "K1y", "K1z", "K2x", "K2y", "K2z" );
+
+        for( std::size_t i = 0; i < n_anisotropy_axes; ++i )
+        {
+            oss << fmt::format(
+                "{:^3}   {:^15.8f} {:^15.8f} {:^15.8f}  {:^15.8f} {:^15.8f} {:^15.8f}\n", indices[i],
+                polynomial_bases[i].k1[0], polynomial_bases[i].k1[1], polynomial_bases[i].k1[2],
+                polynomial_bases[i].k2[0], polynomial_bases[i].k2[1], polynomial_bases[i].k2[2] );
+        }
+        tbl.insert( "biaxial_anisotropy_axes", oss.str() );
+    }
+
+    if( n_anisotropy_terms > 0 )
+    {
+        std::ostringstream oss;
+        oss << fmt::format( "{:^3}  {:^3} {:^3} {:^3}  {:^15}\n", "i", "n1", "n2", "n3", "k" );
+        for( std::size_t i = 0; i < n_anisotropy_terms; ++i )
+        {
+            for( std::size_t j = polynomial_site_p[i]; j < polynomial_site_p[i + 1]; ++j )
+            {
+                const auto & p = polynomial_terms[j];
+                oss << fmt::format( "{:^3}  {:^3} {:^3} {:^3}  {:^15.8f}\n", i, p.n1, p.n2, p.n3, p.coefficient );
+            }
+        }
+        tbl.insert( "biaxial_anisotropy_terms", oss.str() );
+    }
+
+    return tbl;
+}
+
 } // namespace IO

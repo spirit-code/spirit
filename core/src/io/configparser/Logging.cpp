@@ -52,8 +52,8 @@ try
     }
     else
     {
-        auto i_level_file    = tbl["file_level"].value_or( 5 );
-        auto i_level_console = tbl["console_level"].value_or( 5 );
+        auto i_level_file    = tbl["log_file_level"].value_or( 5 );
+        auto i_level_console = tbl["log_console_level"].value_or( 5 );
         Log.level_file       = Log_Level( i_level_file );
         Log.level_console    = Log_Level( i_level_console );
 
