@@ -22,9 +22,11 @@ auto Zeeman_from_TOML( const toml::table & tbl, std::vector<std::string> & param
     -> Engine::Spin::Interaction::Zeeman::Data;
 auto Zeeman_to_TOML( const Engine::Spin::Interaction::Zeeman::Data * data ) -> toml::table;
 
+using Anisotropy_from_TOML_result_t
+    = std::pair<Engine::Spin::Interaction::Anisotropy::Data, Engine::Spin::Interaction::Cubic_Anisotropy::Data>;
 auto Anisotropy_from_TOML(
-    const toml::table & tbl, const Data::Geometry & geometry, std::vector<std::string> & parameter_log )
-    -> std::pair<Engine::Spin::Interaction::Anisotropy::Data, Engine::Spin::Interaction::Cubic_Anisotropy::Data>;
+    const toml::table & tbl, const Data::Geometry & geometry,
+    std::vector<std::string> & parameter_log ) -> Anisotropy_from_TOML_result_t;
 auto Anisotropy_to_TOML(
     const Engine::Spin::Interaction::Anisotropy::Data * uniaxial,
     const Engine::Spin::Interaction::Cubic_Anisotropy::Data * cubic ) -> toml::table;
@@ -34,9 +36,11 @@ auto Biaxial_Anisotropy_from_TOML(
     std::vector<std::string> & parameter_log ) -> Engine::Spin::Interaction::Biaxial_Anisotropy::Data;
 auto Biaxial_Anisotropy_to_TOML( const Engine::Spin::Interaction::Biaxial_Anisotropy::Data * data ) -> toml::table;
 
+using Pair_Interactions_from_TOML_result_t
+    = std::pair<Engine::Spin::Interaction::Exchange::Data, Engine::Spin::Interaction::DMI::Data>;
 auto Pair_Interactions_from_TOML(
-    const toml::table & tbl, const Data::Geometry & geometry, std::vector<std::string> & parameter_log )
-    -> std::pair<Engine::Spin::Interaction::Exchange::Data, Engine::Spin::Interaction::DMI::Data>;
+    const toml::table & tbl, const Data::Geometry & geometry,
+    std::vector<std::string> & parameter_log ) -> Pair_Interactions_from_TOML_result_t;
 auto Pair_Interactions_to_TOML(
     const Engine::Spin::Interaction::Exchange::Cache * exchange,
     const Engine::Spin::Interaction::DMI::Cache * dmi ) -> toml::table;

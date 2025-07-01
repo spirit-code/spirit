@@ -112,11 +112,11 @@ catch( ... )
 } // namespace
 
 auto Anisotropy_from_TOML(
-    const toml::table & tbl, const Data::Geometry & geometry, std::vector<std::string> & parameter_log )
-    -> std::pair<Engine::Spin::Interaction::Anisotropy::Data, Engine::Spin::Interaction::Cubic_Anisotropy::Data>
+    const toml::table & tbl, const Data::Geometry & geometry,
+    std::vector<std::string> & parameter_log ) -> Anisotropy_from_TOML_result_t
 {
-    Engine::Spin::Interaction::Anisotropy::Data anisotropy{};
-    Engine::Spin::Interaction::Cubic_Anisotropy::Data cubic_anisotropy{};
+    Anisotropy_from_TOML_result_t result{};
+    auto & [anisotropy, cubic_anisotropy] = result;
 
     scalar K = 0, K4 = 0;
     Vector3 K_normal = { 0, 0, 0 };
@@ -174,7 +174,7 @@ auto Anisotropy_from_TOML(
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy_normal[0]", K_normal.transpose() ) );
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "cubic_anisotropy_magnitude[0]", K4 ) );
 
-    return { anisotropy, cubic_anisotropy };
+    return result;
 }
 
 auto Anisotropy_to_TOML(

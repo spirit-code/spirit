@@ -198,12 +198,14 @@ void Pair_Interactions_from_Shells_from_TOML(
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "DM chirality", dm_chirality ) );
 }
 
+using pair_result_t = std::pair<Engine::Spin::Interaction::Exchange::Data, Engine::Spin::Interaction::DMI::Data>;
+
 auto Pair_Interactions_from_TOML(
-    const toml::table & tbl, const Data::Geometry & geometry, std::vector<std::string> & parameter_log )
-    -> std::pair<Engine::Spin::Interaction::Exchange::Data, Engine::Spin::Interaction::DMI::Data>
+    const toml::table & tbl, const Data::Geometry & geometry,
+    std::vector<std::string> & parameter_log ) -> pair_result_t
 {
-    Engine::Spin::Interaction::Exchange::Data exchange{};
-    Engine::Spin::Interaction::DMI::Data dmi{};
+    pair_result_t result{};
+    auto & [exchange, dmi] = result;
 
     Pair_Interactions_from_Pairs_from_TOML(
         tbl, geometry, parameter_log, exchange.pairs, exchange.magnitudes, dmi.pairs, dmi.magnitudes, dmi.normals );
@@ -227,7 +229,7 @@ auto Pair_Interactions_from_TOML(
         dmi.normals.clear();
     }
 
-    return { exchange, dmi };
+    return result;
 }
 
 auto Pair_Interactions_to_TOML(
