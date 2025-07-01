@@ -9,10 +9,6 @@ using Utility::Log_Sender;
 namespace IO
 {
 
-#define log_error( expr )                                                                                              \
-    if( auto error = ( expr ); error.has_value() )                                                                     \
-        Log( Log_Level::Error, Log_Sender::IO, *error );
-
 namespace
 {
 
@@ -70,6 +66,12 @@ auto Hamiltonian_from_TOML( const toml::table & root, Data::Geometry geometry )
         }
     }();
 
+    const auto log_error = []( std::optional<std::string> error ) -> void
+    {
+        if( error )
+            Log( Log_Level::Error, Log_Sender::IO, *error );
+    };
+
     auto boundary_conditions = Boundary_Conditions_from_TOML( tbl );
 
     std::vector<std::string> parameter_log;
@@ -102,20 +104,18 @@ auto Hamiltonian_from_TOML( const toml::table & root, Data::Geometry geometry )
 auto Hamiltonian_to_TOML( const Engine::Spin::Hamiltonian & hamiltonian ) -> toml::table
 {
     namespace Interaction = Engine::Spin::Interaction;
-    const auto insert     = []( auto & tbl, auto && values ) { tbl.insert( values.begin(), values.end() ); };
-
     toml::table tbl;
-    insert( tbl, Boundary_Conditions_to_TOML( hamiltonian.get_boundary_conditions() ) );
-    insert( tbl, Zeeman_to_TOML( hamiltonian.data<Interaction::Zeeman>() ) );
-    insert(
-        tbl, Anisotropy_to_TOML(
-                 hamiltonian.data<Interaction::Anisotropy>(), hamiltonian.data<Interaction::Cubic_Anisotropy>() ) );
-    insert(
-        tbl, Pair_Interactions_to_TOML(
-                 hamiltonian.cache<Interaction::Exchange>(), hamiltonian.cache<Interaction::DMI>() ) );
-    insert( tbl, Quadruplets_to_TOML( hamiltonian.data<Interaction::Quadruplet>() ) );
-    insert( tbl, Gaussian_to_TOML( hamiltonian.data<Interaction::Gaussian>() ) );
-    insert( tbl, DDI_to_TOML( hamiltonian.data<Interaction::DDI>() ) );
+    const auto insert = [&tbl]( auto && values ) { tbl.insert( values.begin(), values.end() ); };
+
+    insert( Boundary_Conditions_to_TOML( hamiltonian.get_boundary_conditions() ) );
+    insert( Zeeman_to_TOML( hamiltonian.data<Interaction::Zeeman>() ) );
+    insert( Anisotropy_to_TOML(
+        hamiltonian.data<Interaction::Anisotropy>(), hamiltonian.data<Interaction::Cubic_Anisotropy>() ) );
+    insert( Pair_Interactions_to_TOML(
+        hamiltonian.cache<Interaction::Exchange>(), hamiltonian.cache<Interaction::DMI>() ) );
+    insert( Quadruplets_to_TOML( hamiltonian.data<Interaction::Quadruplet>() ) );
+    insert( Gaussian_to_TOML( hamiltonian.data<Interaction::Gaussian>() ) );
+    insert( DDI_to_TOML( hamiltonian.data<Interaction::DDI>() ) );
     return tbl;
 }
 
