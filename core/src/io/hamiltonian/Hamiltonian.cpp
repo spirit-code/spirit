@@ -53,11 +53,22 @@ auto Boundary_Conditions_to_TOML( const intfield & bc ) -> toml::table
 } // namespace
 
 template<>
-auto Hamiltonian_from_TOML( const toml::table & tbl, Data::Geometry geometry )
+auto Hamiltonian_from_TOML( const toml::table & root, Data::Geometry geometry )
     -> std::unique_ptr<Engine::Spin::Hamiltonian>
 {
     namespace Interaction = Engine::Spin::Interaction;
     using Engine::Spin::Hamiltonian;
+    const toml::table default_table{};
+    const auto & tbl = [node_view = root.at_path( "hamiltonian" ).as_table(), &default_table]() -> const toml::table &
+    {
+        if( node_view )
+            return *node_view;
+        else
+        {
+            Log( Log_Level::Warning, Log_Sender::IO, "Missing config section: 'hamiltonian'. Using defaults..." );
+            return default_table;
+        }
+    }();
 
     auto boundary_conditions = Boundary_Conditions_from_TOML( tbl );
 

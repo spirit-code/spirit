@@ -12,6 +12,6 @@ namespace IO
 {
 
 template<typename Hamiltonian>
-std::unique_ptr<Hamiltonian> Hamiltonian_from_TOML( const toml::table & tbl, Data::Geometry geometry );
+std::unique_ptr<Hamiltonian> Hamiltonian_from_TOML( const toml::table & root, Data::Geometry geometry );
 
 } // namespace IO

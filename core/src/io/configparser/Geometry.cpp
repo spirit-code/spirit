@@ -293,9 +293,21 @@ auto Basis_Cell_Composition_from_TOML( const toml::table & tbl, std::size_t n_ce
 
 } // namespace detail
 
-auto Geometry_from_TOML( const toml::table & tbl ) -> Data::Geometry
+auto Geometry_from_TOML( const toml::table & root ) -> Data::Geometry
 {
     Log( Log_Level::Debug, Log_Sender::IO, "Geometry: building" );
+    const toml::table default_table{};
+    const auto & tbl = [node_view = root.at_path( "geometry" ).as_table(), &default_table]() -> const toml::table &
+    {
+        if( node_view )
+            return *node_view;
+        else
+        {
+            Log( Log_Level::Warning, Log_Sender::IO, "Missing config section: 'geometry'. Using defaults..." );
+            return default_table;
+        }
+    }();
+
     const auto lattice_constant = tbl["lattice_constant"].value_or<scalar>( 1.0 );
     const auto bravais          = detail::Bravais_Vectors_from_TOML( tbl );
     const auto n_cells          = [&tbl]

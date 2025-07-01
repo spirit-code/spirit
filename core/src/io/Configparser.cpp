@@ -23,21 +23,17 @@ using Utility::Log_Sender;
 namespace IO
 {
 
-auto Spin_System_from_TOML( const toml::table & tbl ) -> std::unique_ptr<::State::system_t>
+auto Spin_System_from_TOML( const toml::table & root ) -> std::unique_ptr<::State::system_t>
 try
 {
     Log( Log_Level::Info, Log_Sender::IO, "-------------- Initialising Spin System ------------" );
 
-    auto invoke = []( auto parser, auto * tbl, auto &&... args )
-    { return std::invoke( parser, tbl ? *tbl : toml::table{}, std::forward<decltype( args )>( args )... ); };
-
-    auto hamiltonian = invoke(
-        Hamiltonian_from_TOML<::State::hamiltonian_t>, tbl["hamiltonian"].as_table(),
-        /*geometry=*/invoke( Geometry_from_TOML, tbl["geometry"].as_table() ) );
-    auto llg_params = invoke( Parameters_Method_LLG_from_TOML, tbl.at_path( "method.llg" ).as_table() );
-    auto mc_params  = invoke( Parameters_Method_MC_from_TOML, tbl.at_path( "method.mc" ).as_table() );
-    auto ema_params = invoke( Parameters_Method_EMA_from_TOML, tbl.at_path( "method.ema" ).as_table() );
-    auto mmf_params = invoke( Parameters_Method_MMF_from_TOML, tbl.at_path( "method.mmf" ).as_table() );
+    using Hamiltonian = ::State::hamiltonian_t;
+    auto hamiltonian  = Hamiltonian_from_TOML<Hamiltonian>( root, Geometry_from_TOML( root ) );
+    auto llg_params   = Parameters_Method_LLG_from_TOML( root );
+    auto mc_params    = Parameters_Method_MC_from_TOML( root );
+    auto ema_params   = Parameters_Method_EMA_from_TOML( root );
+    auto mmf_params   = Parameters_Method_MMF_from_TOML( root );
 
     auto system = std::make_unique<::State::system_t>(
         std::move( hamiltonian ), std::move( llg_params ), std::move( mc_params ), std::move( ema_params ),

@@ -46,7 +46,11 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Create System (and lock it)
-    std::shared_ptr<State::system_t> system = IO::Spin_System_from_TOML( IO::convert::Config( std::string( file ) ) );
+    std::shared_ptr<State::system_t> system = [file]
+    {
+        const auto tbl = IO::convert::Config( std::string( file ) );
+        return IO::Spin_System_from_TOML( tbl );
+    }();
     system->lock();
 
     // Filter for unacceptable differences to other systems in the chain

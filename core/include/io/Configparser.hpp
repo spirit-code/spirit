@@ -31,7 +31,7 @@ struct BravaisConfig
  * Input may be given incomplete. In this case a log entry is created and default values are used.
  */
 
-void Log_from_TOML( const toml::table & tbl, bool force_quiet = false );
+void Log_from_TOML( const toml::table &, bool force_quiet = false );
 auto Spin_System_from_TOML( const toml::table & ) -> std::unique_ptr<::State::system_t>;
 auto Geometry_from_TOML( const toml::table & ) -> Data::Geometry;
 
