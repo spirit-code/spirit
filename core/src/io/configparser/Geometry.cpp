@@ -147,7 +147,7 @@ auto Pinning_from_TOML( const toml::table & tbl, std::size_t n_cell_atoms ) -> D
             read_boundary( ( *pinning_boundary )[2], nc_left, nc_right );
         }
         else
-            Log( Log_Level::Error, Log_Sender::IO, "Wrong number of pinning boundary pinning regions specified!" );
+            Log( Log_Level::Error, Log_Sender::IO, "Wrong number of pinning boundary regions specified!" );
     }
 
     if( na_left > 0 || na_right > 0 || nb_left > 0 || nb_right > 0 || nc_left > 0 || nc_right > 0 )
@@ -237,8 +237,17 @@ auto Basis_Cell_Composition_from_TOML( const toml::table & tbl, std::size_t n_ce
     else
     {
         auto cell_composition = Data::Basis_Cell_Composition::make_default( n_cell_atoms, /*disordered=*/false );
-        auto parse_quantity   = []( const auto & node, auto & container, std::string_view label )
+        auto parse_quantity   = [&tbl]( const std::string_view label, auto & container )
         {
+            const auto node = tbl[label];
+            if( !node )
+            {
+                Log( Log_Level::Warning, Log_Sender::IO,
+                     fmt::format(
+                         "Keyword '{}' not found. Using Default: {}", label, container.empty() ? 0 : container[0] ) );
+                return;
+            }
+
             using ValueType = typename std::decay_t<decltype( container )>::value_type;
             auto msg        = [label]( auto count, auto idx, auto value )
             {
@@ -274,17 +283,9 @@ auto Basis_Cell_Composition_from_TOML( const toml::table & tbl, std::size_t n_ce
             }
         };
 
-        if( auto mu_s = tbl["mu_s"] )
-            parse_quantity( *mu_s.node(), cell_composition.mu_s, "mu_s" );
-        else
-            Log( Log_Level::Warning, Log_Sender::IO,
-                 fmt::format( "Keyword 'mu_s' not found. Using Default: {}", cell_composition.mu_s[0] ) );
+        parse_quantity( "mu_s", cell_composition.mu_s );
+        parse_quantity( "spin_qn", cell_composition.spin_qn );
 
-        if( auto spin_qn = tbl["spin_qn"] )
-            parse_quantity( *spin_qn.node(), cell_composition.spin_qn, "spin_qn" );
-        else
-            Log( Log_Level::Warning, Log_Sender::IO,
-                 fmt::format( "Keyword 'spin_qn' not found. Using Default: {}", cell_composition.spin_qn[0] ) );
         return cell_composition;
     }
 }
