@@ -1,19 +1,19 @@
 set(SOURCE_SPIRIT_IO_CONFIGPARSER
     ${SOURCE_SPIRIT_IO_CONFIGPARSER}
-    ${CMAKE_CURRENT_SOURCE_DIR}/Converter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Geometry.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Logging.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Parameters.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Spin_System.cpp
     PARENT_SCOPE
 )
 
 if( SPIRIT_USE_CUDA )
     SET(SPIRIT_CUDA_SOURCES
         ${SPIRIT_CUDA_SOURCES}
-        ${CMAKE_CURRENT_LIST_DIR}/Converter.cpp
         ${CMAKE_CURRENT_LIST_DIR}/Geometry.cpp
         ${CMAKE_CURRENT_LIST_DIR}/Logging.cpp
         ${CMAKE_CURRENT_LIST_DIR}/Parameters.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Spin_System.cpp
     PARENT_SCOPE
 )
 endif()

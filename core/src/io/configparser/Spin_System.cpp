@@ -3,9 +3,8 @@
 #include <io/Configparser.hpp>
 #include <io/Dataparser.hpp>
 #include <io/Filter_File_Handle.hpp>
+#include <io/Hamiltonian.hpp>
 #include <io/IO.hpp>
-#include <io/configparser/Converter.hpp>
-#include <io/hamiltonian/Hamiltonian.hpp>
 #include <utility/Constants.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>

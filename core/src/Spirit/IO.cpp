@@ -6,6 +6,7 @@
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <data/State.hpp>
+#include <io/Configconverter.hpp>
 #include <io/Filter_File_Handle.hpp>
 #include <io/HDF5_File.hpp>
 #include <io/IO.hpp>

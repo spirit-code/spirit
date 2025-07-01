@@ -20,8 +20,7 @@ set(SOURCE_SPIRIT_IO_HAMILTONIAN
 set(SOURCE_SPIRIT_IO
     ${SOURCE_SPIRIT_IO}
     ${CMAKE_CURRENT_SOURCE_DIR}/IO.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Configparser.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Configwriter.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Configconverter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Dataparser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Datawriter.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Filter_File_Handle.cpp
@@ -36,8 +35,7 @@ if( SPIRIT_USE_CUDA )
     ### Need to use nvcc on many source files because they indirectly include cuda.h
     SET(SPIRIT_CUDA_SOURCES
         ${SPIRIT_CUDA_SOURCES}
-        ${CMAKE_CURRENT_LIST_DIR}/Configwriter.cpp
-        ${CMAKE_CURRENT_LIST_DIR}/Configparser.cpp
+        ${CMAKE_CURRENT_LIST_DIR}/Configconverter.cpp
         ${CMAKE_CURRENT_LIST_DIR}/Dataparser.cpp
         ${CMAKE_CURRENT_LIST_DIR}/Datawriter.cpp
         ${CMAKE_CURRENT_LIST_DIR}/IO.cpp

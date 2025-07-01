@@ -6,8 +6,13 @@
 #include <io/Filter_File_Handle.hpp>
 #include <io/IO.hpp>
 
+#include <memory>
+
 namespace IO
 {
+
+template<typename Hamiltonian>
+std::unique_ptr<Hamiltonian> Hamiltonian_from_TOML( const toml::table & root, Data::Geometry geometry );
 
 auto Gaussian_from_TOML( const toml::table & tbl, std::vector<std::string> & parameter_log )
     -> Engine::Spin::Interaction::Gaussian::Data;

@@ -15,33 +15,6 @@
 namespace IO
 {
 
-std::string escape_lines( const std::string & comment, const char comment_char = '#' );
-
-void Folders_to_Config(
-    const std::string & config_file, const std::shared_ptr<Data::Parameters_Method_LLG> parameters_llg,
-    const std::shared_ptr<Data::Parameters_Method_MC> parameters_mc,
-    const std::shared_ptr<Data::Parameters_Method_GNEB> parameters_gneb,
-    const std::shared_ptr<Data::Parameters_Method_MMF> parameters_mmf );
-
-void Log_Levels_to_Config( const std::string & config_file );
-
-void Geometry_to_Config( const std::string & config_file, const Data::Geometry & geometry );
-
-void Parameters_Method_LLG_to_Config(
-    const std::string & config_file, const std::shared_ptr<Data::Parameters_Method_LLG> parameters );
-
-void Parameters_Method_MC_to_Config(
-    const std::string & config_file, const std::shared_ptr<Data::Parameters_Method_MC> parameters );
-
-void Parameters_Method_GNEB_to_Config(
-    const std::string & config_file, const std::shared_ptr<Data::Parameters_Method_GNEB> parameters );
-
-void Parameters_Method_MMF_to_Config(
-    const std::string & config_file, const std::shared_ptr<Data::Parameters_Method_MMF> parameters );
-
-void Hamiltonian_to_Config(
-    const std::string & config_file, const std::shared_ptr<Engine::Spin::Hamiltonian> hamiltonian );
-
 auto Logging_to_TOML() -> toml::table;
 auto Geometry_to_TOML( const Data::Geometry & ) -> toml::table;
 auto Hamiltonian_to_TOML( const Engine::Spin::Hamiltonian & ) -> toml::table;

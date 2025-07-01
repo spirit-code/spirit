@@ -1,8 +1,8 @@
 #include <Spirit/Legacy.h>
 #include <Spirit/Spirit_Defines.h>
 
+#include <io/Configconverter.hpp>
 #include <io/IO.hpp>
-#include <io/configparser/Converter.hpp>
 
 void Legacy_Convert_Config_to_TOML( const char * config, const char * toml_config ) noexcept
 try

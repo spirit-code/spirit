@@ -2,6 +2,7 @@
 #include <Spirit/State.h>
 
 #include <data/State.hpp>
+#include <io/Configconverter.hpp>
 #include <io/IO.hpp>
 #include <utility/Configuration_Chain.hpp>
 #include <utility/Configurations.hpp>
@@ -11,6 +12,51 @@
 #include <fmt/format.h>
 
 using namespace Utility;
+
+namespace
+{
+
+namespace detail
+{
+
+class Line : public std::string
+{
+    friend std::istream & operator>>( std::istream & is, Line & line )
+    {
+        return std::getline( is, line );
+    }
+};
+
+} // namespace detail
+
+std::string escape_lines( const std::string & comment, const char comment_char = '#' )
+{
+    std::istringstream iss( comment );
+    const bool is_commented = std::all_of(
+        std::istream_iterator<detail::Line>( iss ), std::istream_iterator<detail::Line>(),
+        [comment_char]( const std::string & line )
+        {
+            if( line.empty() )
+                return true;
+            const auto first_non_wspace = std::find_if_not( line.begin(), line.end(), std::iswspace );
+            return first_non_wspace == line.end() || *first_non_wspace == comment_char;
+        } );
+
+    if( !is_commented )
+    {
+        std::istringstream iss_( comment );
+        std::ostringstream oss{};
+        for( std::string line; std::getline( iss_, line ); )
+            oss << comment_char << ( line.empty() ? "" : " " ) << line << '\n';
+        return oss.str();
+    }
+    else
+    {
+        return comment;
+    }
+}
+
+} // namespace
 
 // Forward declaration of helper function
 void Save_Initial_Final( State * state, bool initial ) noexcept;
@@ -278,66 +324,26 @@ try
             return std::string( "" );
     }();
 
-    if( extension == ".toml" )
-    {
-        IO::write_to_file( IO::escape_lines( comment ), cfg );
+    if( extension != ".toml" )
+        Log( Log_Level::Warning, Log_Sender::All,
+             "The output format is toml. Consider using a '.toml' file extension!" );
 
-        toml::table tbl;
-        tbl.insert( "logging", IO::Logging_to_TOML() );
-        tbl.insert( "geometry", IO::Geometry_to_TOML( state->active_image->hamiltonian->get_geometry() ) );
-        tbl.insert(
-            "method", toml::table{
-                          { "llg", IO::Parameters_Method_LLG_to_TOML( *state->active_image->llg_parameters ) },
-                          { "ema", IO::Parameters_Method_EMA_to_TOML( *state->active_image->ema_parameters ) },
-                          { "mmf", IO::Parameters_Method_MMF_to_TOML( *state->active_image->mmf_parameters ) },
-                          { "mc", IO::Parameters_Method_MC_to_TOML( *state->active_image->mc_parameters ) },
-                          { "gneb", IO::Parameters_Method_GNEB_to_TOML( *state->chain->gneb_parameters ) },
-                      } );
-        tbl.insert( "hamiltonian", IO::Hamiltonian_to_TOML( *state->active_image->hamiltonian ) );
+    IO::write_to_file( ::escape_lines( comment ), cfg );
 
-        IO::append_to_file( tbl, cfg );
+    toml::table tbl;
+    tbl.insert( "logging", IO::Logging_to_TOML() );
+    tbl.insert( "geometry", IO::Geometry_to_TOML( state->active_image->hamiltonian->get_geometry() ) );
+    tbl.insert(
+        "method", toml::table{
+                      { "llg", IO::Parameters_Method_LLG_to_TOML( *state->active_image->llg_parameters ) },
+                      { "ema", IO::Parameters_Method_EMA_to_TOML( *state->active_image->ema_parameters ) },
+                      { "mmf", IO::Parameters_Method_MMF_to_TOML( *state->active_image->mmf_parameters ) },
+                      { "mc", IO::Parameters_Method_MC_to_TOML( *state->active_image->mc_parameters ) },
+                      { "gneb", IO::Parameters_Method_GNEB_to_TOML( *state->chain->gneb_parameters ) },
+                  } );
+    tbl.insert( "hamiltonian", IO::Hamiltonian_to_TOML( *state->active_image->hamiltonian ) );
 
-        return;
-    }
-
-    // Header
-    std::string header{ comment };
-    if( !header.empty() )
-        header += "\n";
-    IO::write_to_file( header, cfg );
-
-    // Folders
-    IO::Folders_to_Config(
-        cfg, state->active_image->llg_parameters, state->active_image->mc_parameters, state->chain->gneb_parameters,
-        state->active_image->mmf_parameters );
-
-    // Log Parameters
-    IO::append_to_file( "\n\n\n", cfg );
-    IO::Log_Levels_to_Config( cfg );
-
-    // Geometry
-    IO::append_to_file( "\n\n\n", cfg );
-    IO::Geometry_to_Config( cfg, state->active_image->hamiltonian->get_geometry() );
-
-    // LLG
-    IO::append_to_file( "\n\n\n", cfg );
-    IO::Parameters_Method_LLG_to_Config( cfg, state->active_image->llg_parameters );
-
-    // MC
-    IO::append_to_file( "\n\n\n", cfg );
-    IO::Parameters_Method_MC_to_Config( cfg, state->active_image->mc_parameters );
-
-    // GNEB
-    IO::append_to_file( "\n\n\n", cfg );
-    IO::Parameters_Method_GNEB_to_Config( cfg, state->chain->gneb_parameters );
-
-    // MMF
-    IO::append_to_file( "\n\n\n", cfg );
-    IO::Parameters_Method_MMF_to_Config( cfg, state->active_image->mmf_parameters );
-
-    // Hamiltonian
-    IO::append_to_file( "\n\n\n", cfg );
-    IO::Hamiltonian_to_Config( cfg, state->active_image->hamiltonian );
+    IO::append_to_file( tbl, cfg );
 }
 catch( ... )
 {

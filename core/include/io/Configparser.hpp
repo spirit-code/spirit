@@ -8,24 +8,13 @@
 #include <data/Parameters_Method_MMF.hpp>
 #include <data/State.hpp>
 #include <engine/spin/Hamiltonian.hpp>
-#include <io/hamiltonian/Hamiltonian.hpp>
+#include <io/Hamiltonian.hpp>
 
 #include <toml++/toml.hpp>
 
 namespace IO
 {
 
-namespace detail
-{
-
-struct BravaisConfig
-{
-    std::vector<Vector3> vectors          = std::vector{ Vector3{ 1, 0, 0 }, Vector3{ 0, 1, 0 }, Vector3{ 0, 0, 1 } };
-    Data::BravaisLatticeType lattice_type = Data::BravaisLatticeType::SC;
-    std::string lattice_type_str          = "sc";
-};
-
-} // namespace detail
 /*
  * Note that due to the modular structure of the input parsers, input may be given in one or in separate files.
  * Input may be given incomplete. In this case a log entry is created and default values are used.

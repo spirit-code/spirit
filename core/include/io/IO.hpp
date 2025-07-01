@@ -37,4 +37,3 @@ void dump_to_file( const toml::table & tbl, const std::string & filename );
 #include "Configwriter.hpp"
 #include "Dataparser.hpp"
 #include "Datawriter.hpp"
-#include "configparser/Converter.hpp"

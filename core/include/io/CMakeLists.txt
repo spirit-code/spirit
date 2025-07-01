@@ -1,10 +1,3 @@
-add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/configparser)
-
-set(HEADER_SPIRIT_IO_CONFIGPARSER
-    ${HEADER_SPIRIT_IO_CONFIGPARSER}
-    PARENT_SCOPE
-)
-
 set(HEADER_SPIRIT_IO
     ${HEADER_SPIRIT_IO}
     ${CMAKE_CURRENT_SOURCE_DIR}/IO.hpp
@@ -13,11 +6,13 @@ set(HEADER_SPIRIT_IO
     ${CMAKE_CURRENT_SOURCE_DIR}/OVF_File.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/XML_File.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Filter_File_Handle.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Configconverter.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Configparser.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Configwriter.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Dataparser.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Dataparser.inl
     ${CMAKE_CURRENT_SOURCE_DIR}/Datawriter.hpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/Hamiltonian.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/Tableparser.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/VTK_Geometry.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.txt

@@ -1,7 +1,6 @@
 #include <io/Configparser.hpp>
 #include <io/Dataparser.hpp>
 #include <io/Filter_File_Handle.hpp>
-#include <io/configparser/Converter.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Timing.hpp>
 
@@ -20,6 +19,13 @@ namespace detail
 
 namespace
 {
+
+struct BravaisConfig
+{
+    std::vector<Vector3> vectors          = std::vector{ Vector3{ 1, 0, 0 }, Vector3{ 0, 1, 0 }, Vector3{ 0, 0, 1 } };
+    Data::BravaisLatticeType lattice_type = Data::BravaisLatticeType::SC;
+    std::string lattice_type_str          = "sc";
+};
 
 auto Bravais_Vectors_from_TOML( const toml::table & tbl ) -> BravaisConfig
 {
