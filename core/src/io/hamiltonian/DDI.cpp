@@ -37,7 +37,7 @@ auto DDI_from_TOML( const toml::table & tbl, const Data::Geometry & geometry, st
         }
     }();
 
-    const auto ddi_radius = tbl["ddi_radius"].value_or<scalar>( 0.0 );
+    const auto ddi_radius = static_cast<scalar>( tbl["ddi_radius"].value_or( 0.0 ) );
 
     const auto ddi_n_periodic_images = [&tbl]
     {

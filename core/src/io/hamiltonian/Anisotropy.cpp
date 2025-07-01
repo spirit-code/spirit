@@ -140,8 +140,8 @@ auto Anisotropy_from_TOML(
     }
     else
     {
-        K  = tbl["anisotropy_magnitude"].value_or<scalar>( 0.0 );
-        K4 = tbl["cubic_anisotropy_magnitude"].value_or<scalar>( 0.0 );
+        K  = static_cast<scalar>( tbl["anisotropy_magnitude"].value_or( 0.0 ) );
+        K4 = static_cast<scalar>( tbl["cubic_anisotropy_magnitude"].value_or( 0.0 ) );
         if( auto normal = tbl["anisotropy_normal"].as_array() )
         {
             try

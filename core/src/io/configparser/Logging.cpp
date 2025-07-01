@@ -18,8 +18,8 @@ try
 {
     const auto section = tbl["logging"];
 
-    std::string file_tag      = section["output_file_tag"].value_or( "" );
-    std::string output_folder = section["output_folder"].value_or( "." );
+    std::string file_tag      = section["output_file_tag"].value_or<std::string>( "" );
+    std::string output_folder = section["output_folder"].value_or<std::string>( "." );
 
     Log.file_tag      = file_tag;
     Log.output_folder = output_folder;

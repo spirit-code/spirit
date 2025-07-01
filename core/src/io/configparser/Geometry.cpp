@@ -315,7 +315,7 @@ auto Geometry_from_TOML( const toml::table & root ) -> Data::Geometry
         }
     }();
 
-    const auto lattice_constant = tbl["lattice_constant"].value_or<scalar>( 1.0 );
+    const auto lattice_constant = static_cast<scalar>( tbl["lattice_constant"].value_or( 1.0 ) );
     const auto bravais          = detail::Bravais_Vectors_from_TOML( tbl );
     const auto n_cells          = [&tbl]
     {
