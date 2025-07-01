@@ -96,6 +96,7 @@ auto Hamiltonian_from_TOML( const toml::table & root, Data::Geometry geometry )
     log_error( hamiltonian->set_data<Interaction::Gaussian>( std::move( gaussian ) ) );
 
     Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Hamiltonian built: \"{}\"", hamiltonian->Name() ) );
+    Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
     return hamiltonian;
 }
 
