@@ -84,7 +84,6 @@ auto Hamiltonian_from_TOML( const toml::table & root, Data::Geometry geometry )
     Log( Log_Level::Debug, Log_Sender::IO, "Building Hamiltonian" );
     using Engine::Spin::Hamiltonian;
     auto hamiltonian = std::make_unique<Hamiltonian>( std::move( geometry ), std::move( boundary_conditions ) );
-    zeeman.external_field_magnitude *= Utility::Constants::mu_B;
     log_error( hamiltonian->set_data<Interaction::Zeeman>( std::move( zeeman ) ) );
     log_error( hamiltonian->set_data<Interaction::Anisotropy>( std::move( uniaxial_ani ) ) );
     log_error( hamiltonian->set_data<Interaction::Cubic_Anisotropy>( std::move( cubic_ani ) ) );
