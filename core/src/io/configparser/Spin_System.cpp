@@ -22,17 +22,18 @@ using Utility::Log_Sender;
 namespace IO
 {
 
-auto Spin_System_from_TOML( const toml::table & root ) -> std::unique_ptr<::State::system_t>
+auto Spin_System_from_TOML( const toml::table & root, const Defaults & defaults ) -> std::unique_ptr<::State::system_t>
 try
 {
     Log( Log_Level::Info, Log_Sender::IO, "-------------- Initialising Spin System ------------" );
 
     using Hamiltonian = ::State::hamiltonian_t;
     auto hamiltonian  = Hamiltonian_from_TOML<Hamiltonian>( root, Geometry_from_TOML( root ) );
-    auto llg_params   = Parameters_Method_LLG_from_TOML( root );
-    auto mc_params    = Parameters_Method_MC_from_TOML( root );
-    auto ema_params   = Parameters_Method_EMA_from_TOML( root );
-    auto mmf_params   = Parameters_Method_MMF_from_TOML( root );
+
+    auto llg_params = Parameters_Method_LLG_from_TOML( root, defaults );
+    auto mc_params  = Parameters_Method_MC_from_TOML( root, defaults );
+    auto ema_params = Parameters_Method_EMA_from_TOML( root, defaults );
+    auto mmf_params = Parameters_Method_MMF_from_TOML( root, defaults );
 
     auto system = std::make_unique<::State::system_t>(
         std::move( hamiltonian ), std::move( llg_params ), std::move( mc_params ), std::move( ema_params ),

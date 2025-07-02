@@ -47,6 +47,37 @@ void read_value( const toml::table & tbl, std::string_view key, T & dest, bool l
             fmt::format( "Failed converting value for key: '{}', using default: {}", key, detail::transpose( dest ) ) );
 }
 
+template<typename T>
+void read_value_with_default(
+    const toml::table & tbl, std::string_view key, T & dest, const std::optional<T> & default_value,
+    bool log_missing = true ) noexcept
+{
+    using namespace Utility;
+    const auto node = tbl.at_path( key );
+    if( !node )
+    {
+        if( default_value )
+        {
+            dest = *default_value;
+            Log( Log_Level::Info, Log_Sender::IO,
+                 fmt::format( "Key '{}' was set to global default: {}", key, detail::transpose( *default_value ) ) );
+            return;
+        }
+
+        if( log_missing )
+            Log( Log_Level::Warning, Log_Sender::IO,
+                 fmt::format( "Missing key encountererd!: '{}', using default: {}", key, detail::transpose( dest ) ) );
+        return;
+    }
+
+    if( auto result = toml_transform<T>( *node.node() ) )
+        dest = *result;
+    else
+        Log(
+            Log_Level::Error, Log_Sender::IO,
+            fmt::format( "Failed converting value for key: '{}', using default: {}", key, detail::transpose( dest ) ) );
+}
+
 namespace detail
 {
 

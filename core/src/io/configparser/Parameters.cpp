@@ -23,7 +23,16 @@ std::string missing_section_message( std::string_view name )
 
 } // namespace
 
-auto Parameters_Method_EMA_from_TOML( const toml::table & root ) -> std::unique_ptr<Data::Parameters_Method_EMA>
+auto Defaults_from_TOML( const toml::table & root ) -> Defaults
+{
+    return { /*output=*/{
+        /*file_tag=*/root.at_path( "defaults.output.file_tag" ).value<std::string>(),
+        /*directory=*/root.at_path( "defaults.output.folder" ).value<std::string>(),
+    } };
+}
+
+auto Parameters_Method_EMA_from_TOML( const toml::table & root, const Defaults & defaults )
+    -> std::unique_ptr<Data::Parameters_Method_EMA>
 {
     static constexpr std::string_view config_path = "method.ema";
 
@@ -43,8 +52,8 @@ auto Parameters_Method_EMA_from_TOML( const toml::table & root ) -> std::unique_
         if( auto output_table = tbl["output"].as_table() )
         {
             auto & output = *output_table;
-            read_value( output, "folder", parameters->output_folder );
-            read_value( output, "file_tag", parameters->output_file_tag );
+            read_value_with_default( output, "folder", parameters->output_folder, defaults.output.directory );
+            read_value_with_default( output, "file_tag", parameters->output_file_tag, defaults.output.file_tag );
             read_value( output, "any", parameters->output_any );
             read_value( output, "initial", parameters->output_initial );
             read_value( output, "final", parameters->output_final );
@@ -105,7 +114,8 @@ auto Parameters_Method_EMA_from_TOML( const toml::table & root ) -> std::unique_
     return parameters;
 }
 
-auto Parameters_Method_GNEB_from_TOML( const toml::table & node ) -> std::unique_ptr<Data::Parameters_Method_GNEB>
+auto Parameters_Method_GNEB_from_TOML( const toml::table & node, const Defaults & defaults )
+    -> std::unique_ptr<Data::Parameters_Method_GNEB>
 {
     static constexpr std::string_view config_path = "method.gneb";
 
@@ -128,8 +138,8 @@ auto Parameters_Method_GNEB_from_TOML( const toml::table & node ) -> std::unique
         if( auto output_table = tbl["output"].as_table() )
         {
             auto & output = *output_table;
-            read_value( output, "file_tag", parameters->output_file_tag );
-            read_value( output, "folder", parameters->output_folder );
+            read_value_with_default( output, "file_tag", parameters->output_file_tag, defaults.output.file_tag );
+            read_value_with_default( output, "folder", parameters->output_folder, defaults.output.directory );
             read_value( output, "any", parameters->output_any );
             read_value( output, "initial", parameters->output_initial );
             read_value( output, "final", parameters->output_final );
@@ -199,7 +209,8 @@ auto Parameters_Method_GNEB_from_TOML( const toml::table & node ) -> std::unique
     return parameters;
 } // end Parameters_Method_LLG_from_Config
 
-auto Parameters_Method_LLG_from_TOML( const toml::table & node ) -> std::unique_ptr<Data::Parameters_Method_LLG>
+auto Parameters_Method_LLG_from_TOML( const toml::table & node, const Defaults & defaults )
+    -> std::unique_ptr<Data::Parameters_Method_LLG>
 {
     static constexpr std::string_view config_path = "method.llg";
 
@@ -225,8 +236,8 @@ auto Parameters_Method_LLG_from_TOML( const toml::table & node ) -> std::unique_
         if( auto output_table = tbl["output"].as_table() )
         {
             auto & output = *output_table;
-            read_value( output, "file_tag", parameters->output_file_tag );
-            read_value( output, "folder", parameters->output_folder );
+            read_value_with_default( output, "file_tag", parameters->output_file_tag, defaults.output.file_tag );
+            read_value_with_default( output, "folder", parameters->output_folder, defaults.output.directory );
             read_value( output, "any", parameters->output_any );
             read_value( output, "initial", parameters->output_initial );
             read_value( output, "final", parameters->output_final );
@@ -327,7 +338,8 @@ auto Parameters_Method_LLG_from_TOML( const toml::table & node ) -> std::unique_
     return parameters;
 } // end Parameters_Method_LLG_from_Config
 
-auto Parameters_Method_MC_from_TOML( const toml::table & node ) -> std::unique_ptr<Data::Parameters_Method_MC>
+auto Parameters_Method_MC_from_TOML( const toml::table & node, const Defaults & defaults )
+    -> std::unique_ptr<Data::Parameters_Method_MC>
 {
     static constexpr std::string_view config_path = "method.mc";
 
@@ -355,8 +367,8 @@ auto Parameters_Method_MC_from_TOML( const toml::table & node ) -> std::unique_p
         if( auto output_table = tbl["output"].as_table() )
         {
             auto & output = *output_table;
-            read_value( output, "file_tag", parameters->output_file_tag );
-            read_value( output, "folder", parameters->output_folder );
+            read_value_with_default( output, "file_tag", parameters->output_file_tag, defaults.output.file_tag );
+            read_value_with_default( output, "folder", parameters->output_folder, defaults.output.directory );
             read_value( output, "any", parameters->output_any );
             read_value( output, "initial", parameters->output_initial );
             read_value( output, "final", parameters->output_final );
@@ -458,7 +470,8 @@ auto Parameters_Method_MC_from_TOML( const toml::table & node ) -> std::unique_p
     return parameters;
 }
 
-auto Parameters_Method_MMF_from_TOML( const toml::table & node ) -> std::unique_ptr<Data::Parameters_Method_MMF>
+auto Parameters_Method_MMF_from_TOML( const toml::table & node, const Defaults & defaults )
+    -> std::unique_ptr<Data::Parameters_Method_MMF>
 {
     static constexpr std::string_view config_path = "parameters.mmf";
 
@@ -480,8 +493,8 @@ auto Parameters_Method_MMF_from_TOML( const toml::table & node ) -> std::unique_
         if( auto output_table = tbl["output"].as_table() )
         {
             auto & output = *output_table;
-            read_value( output, "file_tag", parameters->output_file_tag );
-            read_value( output, "folder", parameters->output_folder );
+            read_value_with_default( output, "file_tag", parameters->output_file_tag, defaults.output.file_tag );
+            read_value_with_default( output, "folder", parameters->output_folder, defaults.output.directory );
             read_value( output, "any", parameters->output_any );
             read_value( output, "initial", parameters->output_initial );
             read_value( output, "final", parameters->output_final );

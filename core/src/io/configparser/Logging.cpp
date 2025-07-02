@@ -13,24 +13,27 @@ using Utility::Log_Sender;
 namespace IO
 {
 
-void Log_from_TOML( const toml::table & tbl, bool force_quiet )
+void Log_from_TOML( const toml::table & tbl, const Defaults & defaults, bool force_quiet )
 try
 {
+    {
+        std::string file_tag      = "";
+        std::string output_folder = ".";
+
+        read_value_with_default( tbl, "logging.output.file_tag", file_tag, defaults.output.file_tag, false );
+        read_value_with_default( tbl, "logging.output.folder", output_folder, defaults.output.directory, false );
+        Log.file_tag      = file_tag;
+        Log.output_folder = output_folder;
+
+        if( file_tag == "<time>" )
+            Log.file_name = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
+        else if( !file_tag.empty() )
+            Log.file_name = "Log_" + file_tag + ".txt";
+        else
+            Log.file_name = "Log.txt";
+    }
+
     const auto section = tbl["logging"];
-
-    std::string file_tag      = section["output_file_tag"].value_or<std::string>( "" );
-    std::string output_folder = section["output_folder"].value_or<std::string>( "." );
-
-    Log.file_tag      = file_tag;
-    Log.output_folder = output_folder;
-
-    if( file_tag == "<time>" )
-        Log.file_name = "Log_" + Utility::Timing::CurrentDateTime() + ".txt";
-    else if( !file_tag.empty() )
-        Log.file_name = "Log_" + file_tag + ".txt";
-    else
-        Log.file_name = "Log.txt";
-
     // "Quiet" settings
     if( force_quiet )
     {

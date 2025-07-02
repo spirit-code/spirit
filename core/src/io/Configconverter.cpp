@@ -21,7 +21,72 @@ using Utility::Log_Sender;
 namespace detail
 {
 
-auto Logging( const std::string & config_file_name ) -> toml::table
+auto Defaults( const std::string & config_file_name ) -> IO::Defaults
+{
+    std::string output_folder = ".";
+    std::string file_tag      = "";
+
+    IO::Defaults defaults{};
+    try
+    {
+        if( !config_file_name.empty() )
+        {
+            try
+            {
+                Log( Log_Level::Debug, Log_Sender::IO, "Building Defaults" );
+                IO::Filter_File_Handle config_file_handle( config_file_name );
+                config_file_handle.Read_Single( file_tag, "output_file_tag" );
+                if( file_tag != "" )
+                    defaults.output.file_tag.emplace( file_tag );
+
+                std::array<std::string, 6> directory_keys{ "ema_output_folder", "gneb_output_folder",
+                                                           "llg_output_folder", "mc_output_folder",
+                                                           "mmf_output_folder", "log_output_folder" };
+
+                std::unordered_map<std::string, int> counts;
+                for( const auto & key : directory_keys )
+                {
+                    std::string value;
+                    config_file_handle.Read_Single( value, key );
+                    counts[value] += 1;
+                }
+                // select default by majority vote
+                const auto it = std::max_element(
+                    counts.begin(), counts.end(),
+                    []( const auto & lhs, const auto & rhs ) { return lhs.second < rhs.second; } );
+                if( it != counts.end() && it->second > 1 )
+                {
+                    defaults.output.directory.emplace( it->first );
+                };
+            }
+            catch( ... )
+            {
+                spirit_rethrow( fmt::format( "Failed to read default values from file \"{}\".", config_file_name ) );
+            }
+        }
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core(
+            fmt::format( "Unable to read logging parameters from config file \"{}\"", config_file_name ) );
+    }
+    return defaults;
+}
+
+void Apply_Defaults( const IO::Defaults & defaults, toml::table & values )
+{
+    auto & output = *values["output"].as_table();
+    if( auto v = output["file_tag"].as<std::string>(); v && *v == defaults.output.file_tag )
+        output.erase( "file_tag" );
+
+    if( auto v = output["folder"].as<std::string>(); v && *v == defaults.output.directory )
+        output.erase( "folder" );
+
+    if( output.empty() )
+        values.erase( "output" );
+}
+
+auto Logging( const std::string & config_file_name, const IO::Defaults & defaults ) -> toml::table
 {
     // Verbosity and Reject Level are read as integers
     int i_level_file = 5, i_level_console = 5;
@@ -83,9 +148,12 @@ auto Logging( const std::string & config_file_name ) -> toml::table
             fmt::format( "Unable to read logging parameters from config file \"{}\"", config_file_name ) );
     }
 
-    return toml::table{
-        { "output_file_tag", file_tag },
-        { "output_folder", output_folder },
+    auto result = toml::table{
+        { "output",
+          toml::table{
+              { "file_tag", file_tag },
+              { "folder", output_folder },
+          } },
         { "log_file_level", i_level_file },
         { "log_console_level", i_level_console },
         { "log_to_file", messages_to_file },
@@ -97,9 +165,11 @@ auto Logging( const std::string & config_file_name ) -> toml::table
         { "save_neighbours_initial", save_neighbours_initial },
         { "save_neighbours_final", save_neighbours_final },
     };
+    Apply_Defaults( defaults, result );
+    return result;
 }
 
-auto Parameters_Method_EMA( const std::string & config_file_name ) -> toml::table
+auto Parameters_Method_EMA( const std::string & config_file_name, const IO::Defaults & defaults ) -> toml::table
 { // Default parameters
     auto parameters = Data::Parameters_Method_EMA{};
 
@@ -146,10 +216,12 @@ auto Parameters_Method_EMA( const std::string & config_file_name ) -> toml::tabl
     else
         Log( Log_Level::Parameter, Log_Sender::IO, "Parameters EMA: Using default configuration!" );
 
-    return Parameters_Method_EMA_to_TOML( parameters );
+    auto result = Parameters_Method_EMA_to_TOML( parameters );
+    Apply_Defaults( defaults, result );
+    return result;
 }; // namespace IO
 
-auto Parameters_Method_GNEB( const std::string & config_file_name ) -> toml::table
+auto Parameters_Method_GNEB( const std::string & config_file_name, const IO::Defaults & defaults ) -> toml::table
 {
     // Default parameters
     auto parameters = Data::Parameters_Method_GNEB{};
@@ -202,10 +274,12 @@ auto Parameters_Method_GNEB( const std::string & config_file_name ) -> toml::tab
                 fmt::format( "Unable to parse GNEB parameters from config file \"{}\"", config_file_name ) );
         }
     }
-    return Parameters_Method_GNEB_to_TOML( parameters );
+    auto result = Parameters_Method_GNEB_to_TOML( parameters );
+    Apply_Defaults( defaults, result );
+    return result;
 };
 
-auto Parameters_Method_MMF( const std::string & config_file_name ) -> toml::table
+auto Parameters_Method_MMF( const std::string & config_file_name, const IO::Defaults & defaults ) -> toml::table
 {
     // Default parameters
     auto parameters = Data::Parameters_Method_MMF{};
@@ -256,10 +330,12 @@ auto Parameters_Method_MMF( const std::string & config_file_name ) -> toml::tabl
         }
     }
 
-    return Parameters_Method_MMF_to_TOML( parameters );
+    auto result = Parameters_Method_MMF_to_TOML( parameters );
+    Apply_Defaults( defaults, result );
+    return result;
 };
 
-auto Parameters_Method_LLG( const std::string & config_file_name ) -> toml::table
+auto Parameters_Method_LLG( const std::string & config_file_name, const IO::Defaults & defaults ) -> toml::table
 {
     Data::Parameters_Method_LLG parameters{};
 
@@ -315,10 +391,12 @@ auto Parameters_Method_LLG( const std::string & config_file_name ) -> toml::tabl
                 fmt::format( "Unable to parse LLG parameters from config file \"{}\"", config_file_name ) );
         }
     }
-    return Parameters_Method_LLG_to_TOML( parameters );
+    auto result = Parameters_Method_LLG_to_TOML( parameters );
+    Apply_Defaults( defaults, result );
+    return result;
 };
 
-auto Parameters_Method_MC( const std::string & config_file_name ) -> toml::table
+auto Parameters_Method_MC( const std::string & config_file_name, const IO::Defaults & defaults ) -> toml::table
 {
     // Default parameters
     auto parameters = Data::Parameters_Method_MC{};
@@ -381,7 +459,9 @@ auto Parameters_Method_MC( const std::string & config_file_name ) -> toml::table
     }
     else
         Log( Log_Level::Parameter, Log_Sender::IO, "Parameters MC: Using default configuration!" );
-    return Parameters_Method_MC_to_TOML( parameters );
+    auto result = Parameters_Method_MC_to_TOML( parameters );
+    Apply_Defaults( defaults, result );
+    return result;
 };
 
 auto Boundary_Conditions( const std::string & config_file_name ) -> toml::table
@@ -1237,20 +1317,34 @@ auto Hamiltonian( const std::string & config_file_name ) -> toml::table
 
 auto Config( const std::string & config_file_name ) -> toml::table
 {
-    return toml::table{
-        { "version", "0.1" },
-        { "logging", detail::Logging( config_file_name ) },
-        { "geometry", detail::Geometry( config_file_name ) },
-        { "hamiltonian", detail::Hamiltonian( config_file_name ) },
-        { "method",
-          toml::table{
-              { "llg", detail::Parameters_Method_LLG( config_file_name ) },
-              { "mc", detail::Parameters_Method_MC( config_file_name ) },
-              { "mmf", detail::Parameters_Method_MMF( config_file_name ) },
-              { "ema", detail::Parameters_Method_EMA( config_file_name ) },
-              { "gneb", detail::Parameters_Method_LLG( config_file_name ) },
+    auto defaults = detail::Defaults( config_file_name );
+    auto result   = toml::table{
+          { "version", "0.1" },
+          { "logging", detail::Logging( config_file_name, defaults ) },
+          { "geometry", detail::Geometry( config_file_name ) },
+          { "hamiltonian", detail::Hamiltonian( config_file_name ) },
+          { "method",
+            toml::table{
+                { "llg", detail::Parameters_Method_LLG( config_file_name, defaults ) },
+                { "mc", detail::Parameters_Method_MC( config_file_name, defaults ) },
+                { "mmf", detail::Parameters_Method_MMF( config_file_name, defaults ) },
+                { "ema", detail::Parameters_Method_EMA( config_file_name, defaults ) },
+                { "gneb", detail::Parameters_Method_LLG( config_file_name, defaults ) },
           } },
     };
+
+    if( defaults.output.file_tag || defaults.output.directory )
+    {
+        toml::table output{};
+        if( defaults.output.file_tag )
+            output.insert( "file_tag", *defaults.output.file_tag );
+
+        if( defaults.output.directory )
+            output.insert( "folder", *defaults.output.directory );
+
+        result.insert( "defaults", toml::table{ { "output", output } } );
+    }
+    return result;
 }
 
 } // namespace convert

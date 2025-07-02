@@ -50,7 +50,7 @@ try
     std::shared_ptr<State::system_t> system = [file]
     {
         const auto tbl = IO::convert::Config( std::string( file ) );
-        return IO::Spin_System_from_TOML( tbl );
+        return IO::Spin_System_from_TOML( tbl, IO::Defaults_from_TOML( tbl ) );
     }();
     system->lock();
 

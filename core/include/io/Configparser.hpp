@@ -15,20 +15,37 @@
 namespace IO
 {
 
+struct Defaults
+{
+    struct Output
+    {
+        std::optional<std::string> file_tag;
+        std::optional<std::string> directory;
+    };
+
+    Output output;
+};
+
 /*
  * Note that due to the modular structure of the input parsers, input may be given in one or in separate files.
  * Input may be given incomplete. In this case a log entry is created and default values are used.
  */
+auto Defaults_from_TOML( const toml::table & ) -> Defaults;
 
-void Log_from_TOML( const toml::table &, bool force_quiet = false );
-auto Spin_System_from_TOML( const toml::table & ) -> std::unique_ptr<::State::system_t>;
+void Log_from_TOML( const toml::table &, const Defaults &, bool force_quiet = false );
+auto Spin_System_from_TOML( const toml::table &, const Defaults & ) -> std::unique_ptr<::State::system_t>;
 auto Geometry_from_TOML( const toml::table & ) -> Data::Geometry;
 
-auto Parameters_Method_LLG_from_TOML( const toml::table & ) -> std::unique_ptr<Data::Parameters_Method_LLG>;
-auto Parameters_Method_MC_from_TOML( const toml::table & ) -> std::unique_ptr<Data::Parameters_Method_MC>;
-auto Parameters_Method_GNEB_from_TOML( const toml::table & ) -> std::unique_ptr<Data::Parameters_Method_GNEB>;
-auto Parameters_Method_EMA_from_TOML( const toml::table & ) -> std::unique_ptr<Data::Parameters_Method_EMA>;
-auto Parameters_Method_MMF_from_TOML( const toml::table & ) -> std::unique_ptr<Data::Parameters_Method_MMF>;
+auto Parameters_Method_LLG_from_TOML( const toml::table &, const Defaults & )
+    -> std::unique_ptr<Data::Parameters_Method_LLG>;
+auto Parameters_Method_MC_from_TOML( const toml::table &, const Defaults & )
+    -> std::unique_ptr<Data::Parameters_Method_MC>;
+auto Parameters_Method_GNEB_from_TOML( const toml::table &, const Defaults & )
+    -> std::unique_ptr<Data::Parameters_Method_GNEB>;
+auto Parameters_Method_EMA_from_TOML( const toml::table &, const Defaults & )
+    -> std::unique_ptr<Data::Parameters_Method_EMA>;
+auto Parameters_Method_MMF_from_TOML( const toml::table &, const Defaults & )
+    -> std::unique_ptr<Data::Parameters_Method_MMF>;
 
 template<typename T>
 auto toml_transform( const toml::node & node ) noexcept -> std::optional<T>;
