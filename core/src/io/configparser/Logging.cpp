@@ -71,7 +71,7 @@ try
         // Log the parameters
         Log( Log_Level::Debug, Log_Sender::IO, "Building Log" );
         if( !section )
-            Log( Log_Level::Warning, Log_Sender::IO, "Missing config section: 'logging'. Using defeaults..." );
+            Log( Log_Level::Warning, Log_Sender::IO, "Missing config section: 'logging'. Using defaults..." );
         std::vector<std::string> block;
         block.emplace_back( "Logging parameters" );
         block.emplace_back( fmt::format( "    file tag on output = \"{}\"", Log.file_tag ) );
