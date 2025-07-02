@@ -543,7 +543,7 @@ auto Pinning( const std::string & config_file_name, std::size_t n_cell_atoms ) -
                     config_file_handle.GetLine();
                     config_file_handle >> pinned_cell[i][0] >> pinned_cell[i][1] >> pinned_cell[i][2];
                 }
-                tbl.insert( "pinning_cell", toml_array_transform<toml::array>::transform( pinned_cell ) );
+                tbl.insert( "pinning_cell", toml_array_from_container( pinned_cell ) );
             }
 
             // Additional pinned sites
@@ -605,7 +605,7 @@ auto Basis_Cell_Composition( const std::string & config_file_name, const std::si
                     }
                 }
 
-                tbl.insert( "mu_s", toml_array_transform<toml::array>::transform( cell_composition.mu_s ) );
+                tbl.insert( "mu_s", toml_array_from_container( cell_composition.mu_s ) );
             }
 
             if( config_file_handle.Find( "spin_qn" ) )
@@ -622,7 +622,7 @@ auto Basis_Cell_Composition( const std::string & config_file_name, const std::si
                         cell_composition.spin_qn[iatom] = cell_composition.spin_qn[0];
                     }
                 }
-                tbl.insert( "spin_qn", toml_array_transform<toml::array>::transform( cell_composition.spin_qn ) );
+                tbl.insert( "spin_qn", toml_array_from_container( cell_composition.spin_qn ) );
             }
         }
     }
@@ -715,7 +715,7 @@ auto Geometry( const std::string & config_file_name ) -> toml::table
                 }
                 // Read number of basis cells
                 config_file_handle.Read_3Vector( n_cells, "n_basis_cells" );
-                tbl.insert( "n_basis_cells", toml_array_transform<toml::array>::transform( n_cells ) );
+                tbl.insert( "n_basis_cells", toml_array_from_container( n_cells ) );
 
                 // Basis
                 if( config_file_handle.Find( "basis_file" ) )

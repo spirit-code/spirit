@@ -181,11 +181,11 @@ void Pair_Interactions_from_Shells_from_TOML(
     const toml::table & tbl, const Data::Geometry &, std::vector<std::string> & parameter_log,
     scalarfield & exchange_magnitudes, scalarfield & dmi_magnitudes, int & dm_chirality )
 {
-    if( auto exchange_shells = tbl["exchange_shells"].as_array() )
-        exchange_magnitudes = toml_array_transform<scalarfield>::transform( *exchange_shells );
+    if( auto exchange_shells = toml_transform<scalarfield>( tbl["exchange_shells"] ) )
+        exchange_magnitudes = *exchange_shells;
 
-    if( auto dmi_shells = tbl["dmi_shells"].as_array() )
-        dmi_magnitudes = toml_array_transform<scalarfield>::transform( *dmi_shells );
+    if( auto dmi_shells = toml_transform<scalarfield>( tbl["dmi_shells"] ) )
+        dmi_magnitudes = *dmi_shells;
 
     dm_chirality = tbl["dmi_chirality"].value_or<int>( 0 );
 

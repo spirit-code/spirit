@@ -13,46 +13,29 @@ namespace IO
 {
 
 template<typename T>
-void read_single( T & dest, toml::node_view<const toml::node> node ) noexcept
+void read_value( const toml::table & tbl, std::string_view key, T & dest, bool log_missing = true ) noexcept
 {
-    if( node )
+    using namespace Utility;
+    const auto node = tbl.at_path( key );
+    if( !node )
     {
-        try
-        {
-            dest = toml_array_transform<T>::transform( *node.node() );
-        }
-        catch( ... )
-        {
-            spirit_handle_exception_core( "Type error while reading entry." );
-        }
+        if( log_missing )
+            Log( Log_Level::Warning, Log_Sender::IO,
+                 fmt::format( "Missing key encountererd!: '{}', using default: {}", key, dest ) );
+        return;
     }
-}
 
-template<typename T, typename U>
-void read_single( T & dest, toml::node_view<const toml::node> node, U && default_value ) noexcept
+    if( auto result = toml_transform<T>( *node.node() ) )
+        dest = *result;
+    else
+        Log( Log_Level::Error, Log_Sender::IO,
+             fmt::format( "Failed converting value for key: '{}', using default: {}", key, dest ) );
+}
+namespace detail
 {
-    dest = node.value_or( std::forward<U>( default_value ) );
-}
-
-inline void read_Vector3( Vector3 & dest, toml::node_view<const toml::node> node ) noexcept
-{
-    if( auto arr = node.as_array(); arr && arr->size() == 3 )
-    {
-        Vector3 result{};
-        for( int i = 0; i < 3; ++i )
-        {
-            if( auto value = ( *arr )[i].value<double>() )
-                result[i] = *value;
-            else
-                return;
-        }
-
-        dest = result;
-    }
-}
 
 // Primary template: fallback for scalar types
-template<typename T, typename Enable>
+template<typename T, typename Enable = void>
 struct toml_array_transform
 {
     using value_type = T;
@@ -174,13 +157,36 @@ struct toml_array_transform<toml::array>
     };
 };
 
+} // namespace detail
+
+template<typename T>
+auto toml_transform( const toml::node & node ) noexcept -> std::optional<T>
+{
+    std::optional<T> result;
+    try
+    {
+        result.emplace( detail::toml_array_transform<T>::transform( node ) );
+    }
+    catch( ... )
+    {
+        spirit_handle_exception_core( "Error while converting toml node." );
+    }
+    return result;
+}
+
+template<typename T>
+auto toml_transform( toml::node_view<const toml::node> node_view ) noexcept -> std::optional<T>
+{
+    if( node_view )
+        return toml_transform<T>( *node_view.node() );
+    else
+        return std::nullopt;
+}
+
 template<typename Container>
 auto toml_array_from_container( const Container & iterable ) -> toml::array
 {
-    return toml_array_transform<toml::array>::transform( iterable );
-    // toml::array result{};
-    // result.insert( result.begin(), iterable.begin(), iterable.end() );
-    // return result;
+    return detail::toml_array_transform<toml::array>::transform( iterable );
 }
 
 } // namespace IO

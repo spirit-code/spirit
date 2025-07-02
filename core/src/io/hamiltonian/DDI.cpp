@@ -41,27 +41,19 @@ auto DDI_from_TOML( const toml::table & tbl, const Data::Geometry & geometry, st
 
     const auto ddi_n_periodic_images = [&tbl]
     {
-        auto result = intfield{ 4, 4, 4 };
-        auto array  = tbl["ddi_n_periodic_images"];
-        if( !array )
-            return result;
-
-        try
+        std::optional<intfield> result;
+        auto array = tbl["ddi_n_periodic_images"];
+        if( array )
         {
-            result = toml_array_transform<intfield>::transform( *array.node() );
-            if( result.size() != 3 )
+            result = toml_transform<intfield>( *array.node() );
+            if( result && result->size() != 3 )
             {
                 Log( Log_Level::Warning, Log_Sender::IO,
                      "Wrong sized array 'ddi_n_periodic_images', expected 3, found {}. Setting to (4,4,4)..." );
-                result = { 4, 4, 4 };
+                result.emplace( { 4, 4, 4 } );
             }
         }
-        catch( ... )
-        {
-            spirit_handle_exception_core( "Failed reading 'ddi_n_periodic_images'" );
-        }
-
-        return result;
+        return result.value_or( { 4, 4, 4 } );
     }();
 
     const auto ddi_pb_zero_padding = tbl["ddi_pb_zero_padding"].value_or( false );

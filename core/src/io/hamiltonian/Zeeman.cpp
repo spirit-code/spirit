@@ -16,11 +16,11 @@ auto Zeeman_from_TOML( const toml::table & tbl, std::vector<std::string> & param
     Engine::Spin::Interaction::Zeeman::Data data{ 0, { 0, 0, 1 } };
 
     scalar magnitude = data.external_field_magnitude;
-    read_single( magnitude, tbl["external_field_magnitude"] );
+    read_value( tbl, "external_field_magnitude", magnitude );
     data.external_field_magnitude = magnitude * Utility::Constants::mu_B;
 
     auto & normal = data.external_field_normal;
-    read_Vector3( normal, tbl["external_field_normal"] );
+    read_value( tbl, "external_field_normal", normal );
     normal.normalize();
     if( normal.norm() < 1e-8 )
     {

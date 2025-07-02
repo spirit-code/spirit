@@ -144,14 +144,8 @@ auto Anisotropy_from_TOML(
         K4 = static_cast<scalar>( tbl["cubic_anisotropy_magnitude"].value_or( 0.0 ) );
         if( auto normal = tbl["anisotropy_normal"].as_array() )
         {
-            try
-            {
-                K_normal = toml_array_transform<Vector3>::transform( *normal ).normalized();
-            }
-            catch( ... )
-            {
-                spirit_handle_exception_core( "Error parsing anisotropy_normal" );
-            }
+            if( auto parsed_k = toml_transform<Vector3>( *normal ) )
+                K_normal = parsed_k->normalized();
         }
 
         if( K != 0 && K_normal.norm() > 1e-8 )

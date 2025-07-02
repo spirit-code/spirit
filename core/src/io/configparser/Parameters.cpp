@@ -23,7 +23,7 @@ std::string missing_section_message( std::string_view name )
 
 } // namespace
 
-auto Parameters_Method_EMA_from_TOML( const toml::table & node ) -> std::unique_ptr<Data::Parameters_Method_EMA>
+auto Parameters_Method_EMA_from_TOML( const toml::table & root ) -> std::unique_ptr<Data::Parameters_Method_EMA>
 {
     static constexpr std::string_view config_path = "method.ema";
 
@@ -35,7 +35,7 @@ auto Parameters_Method_EMA_from_TOML( const toml::table & node ) -> std::unique_
     // Maximum wall time
     std::string str_max_walltime = "0";
 
-    if( const auto * tbl_view = node.at_path( config_path ).as_table() )
+    if( const auto * tbl_view = root.at_path( config_path ).as_table() )
     {
         const auto & tbl = *tbl_view;
 
@@ -43,29 +43,29 @@ auto Parameters_Method_EMA_from_TOML( const toml::table & node ) -> std::unique_
         if( auto output_table = tbl["output"].as_table() )
         {
             auto & output = *output_table;
-            read_single( parameters->output_folder, output["folder"] );
-            read_single( parameters->output_file_tag, output["file_tag"] );
-            read_single( parameters->output_any, output["any"] );
-            read_single( parameters->output_initial, output["initial"] );
-            read_single( parameters->output_final, output["final"] );
-            read_single( parameters->output_energy_divide_by_nspins, output["energy_divide_by_nspins"] );
-            read_single( parameters->output_energy_spin_resolved, output["energy_spin_resolved"] );
-            read_single( parameters->output_energy_step, output["energy_step"] );
-            read_single( parameters->output_energy_archive, output["energy_archive"] );
-            read_single( parameters->output_configuration_step, output["configuration_step"] );
-            read_single( parameters->output_configuration_archive, output["configuration_archive"] );
+            read_value( output, "folder", parameters->output_folder );
+            read_value( output, "file_tag", parameters->output_file_tag );
+            read_value( output, "any", parameters->output_any );
+            read_value( output, "initial", parameters->output_initial );
+            read_value( output, "final", parameters->output_final );
+            read_value( output, "energy_divide_by_nspins", parameters->output_energy_divide_by_nspins );
+            read_value( output, "energy_spin_resolved", parameters->output_energy_spin_resolved );
+            read_value( output, "energy_step", parameters->output_energy_step );
+            read_value( output, "energy_archive", parameters->output_energy_archive );
+            read_value( output, "configuration_step", parameters->output_configuration_step );
+            read_value( output, "configuration_archive", parameters->output_configuration_archive );
         }
         // Method parameters
-        read_single( str_max_walltime, tbl["max_walltime"] );
+        read_value( tbl, "max_walltime", str_max_walltime );
         parameters->max_walltime_sec
             = static_cast<long int>( Utility::Timing::DurationFromString( str_max_walltime ).count() );
-        read_single( parameters->n_iterations, tbl["n_iterations"] );
-        read_single( parameters->n_iterations_log, tbl["n_iterations_log"] );
-        read_single( parameters->n_modes, tbl["n_modes"] );
-        read_single( parameters->n_mode_follow, tbl["n_mode_follow"] );
-        read_single( parameters->frequency, tbl["frequency"] );
-        read_single( parameters->amplitude, tbl["amplitude"] );
-        read_single( parameters->sparse, tbl["sparse"] );
+        read_value( tbl, "n_iterations", parameters->n_iterations );
+        read_value( tbl, "n_iterations_log", parameters->n_iterations_log );
+        read_value( tbl, "n_modes", parameters->n_modes );
+        read_value( tbl, "n_mode_follow", parameters->n_mode_follow );
+        read_value( tbl, "frequency", parameters->frequency );
+        read_value( tbl, "amplitude", parameters->amplitude );
+        read_value( tbl, "sparse", parameters->sparse );
     }
     else
     {
@@ -128,33 +128,33 @@ auto Parameters_Method_GNEB_from_TOML( const toml::table & node ) -> std::unique
         if( auto output_table = tbl["output"].as_table() )
         {
             auto & output = *output_table;
-            read_single( parameters->output_file_tag, output["file_tag"] );
-            read_single( parameters->output_folder, output["folder"] );
-            read_single( parameters->output_any, output["any"] );
-            read_single( parameters->output_initial, output["initial"] );
-            read_single( parameters->output_final, output["final"] );
-            read_single( parameters->output_energies_step, output["energies_step"] );
-            read_single( parameters->output_energies_add_readability_lines, output["energies_add_readability_lines"] );
-            read_single( parameters->output_energies_interpolated, output["energies_interpolated"] );
-            read_single( parameters->output_energies_divide_by_nspins, output["energies_divide_by_nspins"] );
-            read_single( parameters->output_chain_step, output["chain_step"] );
-            read_single( output_chain_filetype, output["chain_filetype"] );
+            read_value( output, "file_tag", parameters->output_file_tag );
+            read_value( output, "folder", parameters->output_folder );
+            read_value( output, "any", parameters->output_any );
+            read_value( output, "initial", parameters->output_initial );
+            read_value( output, "final", parameters->output_final );
+            read_value( output, "energies_step", parameters->output_energies_step );
+            read_value( output, "energies_add_readability_lines", parameters->output_energies_add_readability_lines );
+            read_value( output, "energies_interpolated", parameters->output_energies_interpolated );
+            read_value( output, "energies_divide_by_nspins", parameters->output_energies_divide_by_nspins );
+            read_value( output, "chain_step", parameters->output_chain_step );
+            read_value( output, "chain_filetype", output_chain_filetype );
         }
         parameters->output_vf_filetype = IO::VF_FileFormat( output_chain_filetype );
         // Method parameters
-        read_single( str_max_walltime, tbl["max_walltime"] );
+        read_value( tbl, "max_walltime", str_max_walltime );
         parameters->max_walltime_sec
             = static_cast<long int>( Utility::Timing::DurationFromString( str_max_walltime ).count() );
-        read_single( parameters->spring_constant, tbl["spring_constant"] );
-        read_single( parameters->force_convergence, tbl["force_convergence"] );
-        read_single( parameters->n_iterations, tbl["n_iterations"] );
-        read_single( parameters->n_iterations_log, tbl["n_iterations_log"] );
-        read_single( parameters->n_iterations_amortize, tbl["n_iterations_amortize"] );
-        read_single( parameters->n_E_interpolations, tbl["n_energy_interpolations"] );
-        read_single( parameters->moving_endpoints, tbl["moving_endpoints"] );
-        read_single( parameters->equilibrium_delta_Rx_left, tbl["equilibrium_delta_Rx_left"] );
-        read_single( parameters->equilibrium_delta_Rx_right, tbl["equilibrium_delta_Rx_right"] );
-        read_single( parameters->translating_endpoints, tbl["translating_endpoints"] );
+        read_value( tbl, "spring_constant", parameters->spring_constant );
+        read_value( tbl, "force_convergence", parameters->force_convergence );
+        read_value( tbl, "n_iterations", parameters->n_iterations );
+        read_value( tbl, "n_iterations_log", parameters->n_iterations_log );
+        read_value( tbl, "n_iterations_amortize", parameters->n_iterations_amortize );
+        read_value( tbl, "n_energy_interpolations", parameters->n_E_interpolations );
+        read_value( tbl, "moving_endpoints", parameters->moving_endpoints );
+        read_value( tbl, "equilibrium_delta_Rx_left", parameters->equilibrium_delta_Rx_left );
+        read_value( tbl, "equilibrium_delta_Rx_right", parameters->equilibrium_delta_Rx_right );
+        read_value( tbl, "translating_endpoints", parameters->translating_endpoints );
     }
     else
     {
@@ -225,52 +225,52 @@ auto Parameters_Method_LLG_from_TOML( const toml::table & node ) -> std::unique_
         if( auto output_table = tbl["output"].as_table() )
         {
             auto & output = *output_table;
-            read_single( parameters->output_file_tag, output["file_tag"] );
-            read_single( parameters->output_folder, output["folder"] );
-            read_single( parameters->output_any, output["any"] );
-            read_single( parameters->output_initial, output["initial"] );
-            read_single( parameters->output_final, output["final"] );
-            read_single( parameters->output_energy_spin_resolved, output["energy_spin_resolved"] );
-            read_single( parameters->output_energy_step, output["energy_step"] );
-            read_single( parameters->output_energy_archive, output["energy_archive"] );
-            read_single( parameters->output_energy_divide_by_nspins, output["energy_divide_by_nspins"] );
-            read_single( parameters->output_energy_add_readability_lines, output["energy_add_readability_lines"] );
-            read_single( parameters->output_configuration_step, output["configuration_step"] );
-            read_single( parameters->output_configuration_archive, output["configuration_archive"] );
+            read_value( output, "file_tag", parameters->output_file_tag );
+            read_value( output, "folder", parameters->output_folder );
+            read_value( output, "any", parameters->output_any );
+            read_value( output, "initial", parameters->output_initial );
+            read_value( output, "final", parameters->output_final );
+            read_value( output, "energy_spin_resolved", parameters->output_energy_spin_resolved );
+            read_value( output, "energy_step", parameters->output_energy_step );
+            read_value( output, "energy_archive", parameters->output_energy_archive );
+            read_value( output, "energy_divide_by_nspins", parameters->output_energy_divide_by_nspins );
+            read_value( output, "energy_add_readability_lines", parameters->output_energy_add_readability_lines );
+            read_value( output, "configuration_step", parameters->output_configuration_step );
+            read_value( output, "configuration_archive", parameters->output_configuration_archive );
             {
                 int output_configuration_filetype = static_cast<int>( parameters->output_vf_filetype );
-                read_single( output_configuration_filetype, output["configuration_filetype"] );
+                read_value( output, "configuration_filetype", output_configuration_filetype );
                 parameters->output_vf_filetype = IO::VF_FileFormat( output_configuration_filetype );
             }
         }
 
         // Method parameters
         {
-            read_single( str_max_walltime, tbl["max_walltime"] );
+            read_value( tbl, "max_walltime", str_max_walltime );
             parameters->max_walltime_sec
                 = static_cast<long int>( Utility::Timing::DurationFromString( str_max_walltime ).count() );
         }
 
-        read_single( parameters->rng_seed, tbl["seed"] );
+        read_value( tbl, "seed", parameters->rng_seed );
         parameters->prng = std::mt19937( parameters->rng_seed );
 
-        read_single( parameters->n_iterations, tbl["n_iterations"] );
-        read_single( parameters->n_iterations_log, tbl["n_iterations_log"] );
-        read_single( parameters->n_iterations_amortize, tbl["n_iterations_amortize"] );
-        read_single( parameters->dt, tbl["dt"] );
-        read_single( parameters->temperature, tbl["temperature"] );
+        read_value( tbl, "n_iterations", parameters->n_iterations );
+        read_value( tbl, "n_iterations_log", parameters->n_iterations_log );
+        read_value( tbl, "n_iterations_amortize", parameters->n_iterations_amortize );
+        read_value( tbl, "dt", parameters->dt );
+        read_value( tbl, "temperature", parameters->temperature );
 
-        read_Vector3( parameters->temperature_gradient_direction, tbl["llg_temperature_gradient_direction"] );
+        read_value( tbl, "llg_temperature_gradient_direction", parameters->temperature_gradient_direction );
         parameters->temperature_gradient_direction.normalize();
 
-        read_single( parameters->temperature_gradient_inclination, tbl["temperature_gradient_inclination"] );
-        read_single( parameters->damping, tbl["damping"] );
-        read_single( parameters->beta, tbl["beta"] );
-        read_single( parameters->stt_use_gradient, tbl["stt_use_gradient"] );
-        read_single( parameters->stt_magnitude, tbl["stt_magnitude"] );
-        read_Vector3( parameters->stt_polarisation_normal, tbl["llg_stt_polarisation_normal"] );
+        read_value( tbl, "temperature_gradient_inclination", parameters->temperature_gradient_inclination );
+        read_value( tbl, "damping", parameters->damping );
+        read_value( tbl, "beta", parameters->beta );
+        read_value( tbl, "stt_use_gradient", parameters->stt_use_gradient );
+        read_value( tbl, "stt_magnitude", parameters->stt_magnitude );
+        read_value( tbl, "llg_stt_polarisation_normal", parameters->stt_polarisation_normal );
         parameters->stt_polarisation_normal.normalize();
-        read_single( parameters->force_convergence, tbl["force_convergence"] );
+        read_value( tbl, "force_convergence", parameters->force_convergence );
     }
     else
     {
@@ -355,37 +355,37 @@ auto Parameters_Method_MC_from_TOML( const toml::table & node ) -> std::unique_p
         if( auto output_table = tbl["output"].as_table() )
         {
             auto & output = *output_table;
-            read_single( parameters->output_file_tag, output["file_tag"] );
-            read_single( parameters->output_folder, output["folder"] );
-            read_single( parameters->output_any, output["any"] );
-            read_single( parameters->output_initial, output["initial"] );
-            read_single( parameters->output_final, output["final"] );
-            read_single( parameters->output_energy_spin_resolved, output["energy_spin_resolved"] );
-            read_single( parameters->output_energy_step, output["energy_step"] );
-            read_single( parameters->output_energy_archive, output["energy_archive"] );
-            read_single( parameters->output_energy_divide_by_nspins, output["energy_divide_by_nspins"] );
-            read_single( parameters->output_energy_add_readability_lines, output["energy_add_readability_lines"] );
-            read_single( parameters->output_configuration_step, output["configuration_step"] );
-            read_single( parameters->output_configuration_archive, output["configuration_archive"] );
-            read_single( output_configuration_filetype, output["configuration_filetype"] );
+            read_value( output, "file_tag", parameters->output_file_tag );
+            read_value( output, "folder", parameters->output_folder );
+            read_value( output, "any", parameters->output_any );
+            read_value( output, "initial", parameters->output_initial );
+            read_value( output, "final", parameters->output_final );
+            read_value( output, "energy_spin_resolved", parameters->output_energy_spin_resolved );
+            read_value( output, "energy_step", parameters->output_energy_step );
+            read_value( output, "energy_archive", parameters->output_energy_archive );
+            read_value( output, "energy_divide_by_nspins", parameters->output_energy_divide_by_nspins );
+            read_value( output, "energy_add_readability_lines", parameters->output_energy_add_readability_lines );
+            read_value( output, "configuration_step", parameters->output_configuration_step );
+            read_value( output, "configuration_archive", parameters->output_configuration_archive );
+            read_value( output, "configuration_filetype", output_configuration_filetype );
         }
         parameters->output_vf_filetype = IO::VF_FileFormat( output_configuration_filetype );
         // Method parameters
-        read_single( str_max_walltime, tbl["max_walltime"] );
+        read_value( tbl, "max_walltime", str_max_walltime );
         parameters->max_walltime_sec
             = static_cast<long int>( Utility::Timing::DurationFromString( str_max_walltime ).count() );
-        read_single( parameters->rng_seed, tbl["seed"] );
+        read_value( tbl, "seed", parameters->rng_seed );
         parameters->prng = std::mt19937( parameters->rng_seed );
-        read_single( parameters->n_iterations, tbl["n_iterations"] );
-        read_single( parameters->n_iterations_log, tbl["n_iterations_log"] );
-        read_single( parameters->n_iterations_amortize, tbl["n_iterations_amortize"] );
-        read_single( parameters->temperature, tbl["temperature"] );
+        read_value( tbl, "n_iterations", parameters->n_iterations );
+        read_value( tbl, "n_iterations_log", parameters->n_iterations_log );
+        read_value( tbl, "n_iterations_amortize", parameters->n_iterations_amortize );
+        read_value( tbl, "temperature", parameters->temperature );
         // Metropolis method parameters
         {
             // Metropolis Step variable
             std::string metropolis_step = "cone";
 
-            read_single( metropolis_step, tbl["metropolis_step"] );
+            read_value( tbl, "metropolis_step", metropolis_step );
             std::transform( metropolis_step.begin(), metropolis_step.end(), metropolis_step.begin(), ::tolower );
 
             if( metropolis_step == "sphere" )
@@ -401,10 +401,10 @@ auto Parameters_Method_MC_from_TOML( const toml::table & node ) -> std::unique_p
                      fmt::format( "Metropolis step \"{}\" unknown. Using \"cone\"...", metropolis_step ) );
             }
         }
-        read_single( parameters->metropolis_cone_adaptive, tbl["metropolis_use_adaptive_cone"] );
-        read_single( parameters->acceptance_ratio_target, tbl["acceptance_ratio"] );
-        read_single( parameters->metropolis_cone_angle, tbl["metropolis_cone_angle"] );
-        read_single( parameters->metropolis_random_sample, tbl["metropolis_random_sample"] );
+        read_value( tbl, "metropolis_use_adaptive_cone", parameters->metropolis_cone_adaptive );
+        read_value( tbl, "acceptance_ratio", parameters->acceptance_ratio_target );
+        read_value( tbl, "metropolis_cone_angle", parameters->metropolis_cone_angle );
+        read_value( tbl, "metropolis_random_sample", parameters->metropolis_random_sample );
     }
     else
     {
@@ -480,30 +480,30 @@ auto Parameters_Method_MMF_from_TOML( const toml::table & node ) -> std::unique_
         if( auto output_table = tbl["output"].as_table() )
         {
             auto & output = *output_table;
-            read_single( parameters->output_file_tag, output["file_tag"] );
-            read_single( parameters->output_folder, output["folder"] );
-            read_single( parameters->output_any, output["any"] );
-            read_single( parameters->output_initial, output["initial"] );
-            read_single( parameters->output_final, output["final"] );
-            read_single( parameters->output_energy_step, output["energy_step"] );
-            read_single( parameters->output_energy_archive, output["energy_archive"] );
-            read_single( parameters->output_energy_divide_by_nspins, output["energy_divide_by_nspins"] );
-            read_single( parameters->output_energy_add_readability_lines, output["energy_add_readability_lines"] );
-            read_single( parameters->output_configuration_step, output["configuration_step"] );
-            read_single( parameters->output_configuration_archive, output["configuration_archive"] );
-            read_single( output_configuration_filetype, output["configuration_filetype"] );
+            read_value( output, "file_tag", parameters->output_file_tag );
+            read_value( output, "folder", parameters->output_folder );
+            read_value( output, "any", parameters->output_any );
+            read_value( output, "initial", parameters->output_initial );
+            read_value( output, "final", parameters->output_final );
+            read_value( output, "energy_step", parameters->output_energy_step );
+            read_value( output, "energy_archive", parameters->output_energy_archive );
+            read_value( output, "energy_divide_by_nspins", parameters->output_energy_divide_by_nspins );
+            read_value( output, "energy_add_readability_lines", parameters->output_energy_add_readability_lines );
+            read_value( output, "configuration_step", parameters->output_configuration_step );
+            read_value( output, "configuration_archive", parameters->output_configuration_archive );
+            read_value( output, "configuration_filetype", output_configuration_filetype );
             parameters->output_vf_filetype = IO::VF_FileFormat( output_configuration_filetype );
         }
         // Method parameters
-        read_single( str_max_walltime, tbl["max_walltime"] );
+        read_value( tbl, "max_walltime", str_max_walltime );
         parameters->max_walltime_sec
             = static_cast<long int>( Utility::Timing::DurationFromString( str_max_walltime ).count() );
-        read_single( parameters->force_convergence, tbl["force_convergence"] );
-        read_single( parameters->n_iterations, tbl["n_iterations"] );
-        read_single( parameters->n_iterations_log, tbl["n_iterations_log"] );
-        read_single( parameters->n_iterations_amortize, tbl["n_iterations_amortize"] );
-        read_single( parameters->n_modes, tbl["n_modes"] );
-        read_single( parameters->n_mode_follow, tbl["n_mode_follow"] );
+        read_value( tbl, "force_convergence", parameters->force_convergence );
+        read_value( tbl, "n_iterations", parameters->n_iterations );
+        read_value( tbl, "n_iterations_log", parameters->n_iterations_log );
+        read_value( tbl, "n_iterations_amortize", parameters->n_iterations_amortize );
+        read_value( tbl, "n_modes", parameters->n_modes );
+        read_value( tbl, "n_mode_follow", parameters->n_mode_follow );
     }
     else
     {

@@ -61,14 +61,16 @@ auto Bravais_Vectors_from_TOML( const toml::table & tbl ) -> BravaisConfig
         {
             try
             {
-                using matrix_t             = std::array<std::array<scalar, 3>, 3>;
-                const auto bravais_vectors = toml_array_transform<matrix_t>::transform( *vectors.node() );
-                bravais.emplace(
-                    BravaisConfig{ std::vector<Vector3>( 3, Vector3::Zero() ), Type::Irregular, "irregular" } );
-                for( int i = 0; i < 3; ++i )
-                    for( int j = 0; j < 3; ++j )
-                        bravais->vectors[i][j] = bravais_vectors[i][j];
-                Log( Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: irregular" );
+                using matrix_t = std::array<std::array<scalar, 3>, 3>;
+                if( const auto bravais_vectors = toml_transform<matrix_t>( *vectors.node() ) )
+                {
+                    bravais.emplace(
+                        BravaisConfig{ std::vector<Vector3>( 3, Vector3::Zero() ), Type::Irregular, "irregular" } );
+                    for( int i = 0; i < 3; ++i )
+                        for( int j = 0; j < 3; ++j )
+                            bravais->vectors[i][j] = ( *bravais_vectors )[i][j];
+                    Log( Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: irregular" );
+                }
             }
             catch( ... )
             {
@@ -85,14 +87,16 @@ auto Bravais_Vectors_from_TOML( const toml::table & tbl ) -> BravaisConfig
         {
             try
             {
-                using matrix_t            = std::array<std::array<scalar, 3>, 3>;
-                const auto bravais_matrix = toml_array_transform<matrix_t>::transform( *matrix.node() );
-                bravais.emplace(
-                    BravaisConfig{ std::vector<Vector3>( 3, Vector3::Zero() ), Type::Irregular, "irregular" } );
-                for( int i = 0; i < 3; ++i )
-                    for( int j = 0; j < 3; ++j )
-                        bravais->vectors[i][j] = bravais_matrix[j][i];
-                Log( Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: irregular" );
+                using matrix_t = std::array<std::array<scalar, 3>, 3>;
+                if( const auto bravais_matrix = toml_transform<matrix_t>( *matrix.node() ) )
+                {
+                    bravais.emplace(
+                        BravaisConfig{ std::vector<Vector3>( 3, Vector3::Zero() ), Type::Irregular, "irregular" } );
+                    for( int i = 0; i < 3; ++i )
+                        for( int j = 0; j < 3; ++j )
+                            bravais->vectors[i][j] = ( *bravais_matrix )[j][i];
+                    Log( Log_Level::Parameter, Log_Sender::IO, "Bravais lattice type: irregular" );
+                }
             }
             catch( ... )
             {
@@ -160,16 +164,19 @@ auto Pinning_from_TOML( const toml::table & tbl, std::size_t n_cell_atoms ) -> D
     {
         if( auto cell = tbl["pinning_cell"]; cell && cell.is_array() )
         {
-            pinned_cell = toml_array_transform<vectorfield>::transform( *cell.node() );
-            if( pinned_cell.size() > n_cell_atoms )
+            if( auto parsed_cell = toml_transform<vectorfield>( *cell.node() ) )
             {
-                Log( Log_Level::Warning, Log_Sender::IO, "Too many pinned cells specified. Truncating..." );
-                pinned_cell.resize( n_cell_atoms );
+                pinned_cell = std::move( *parsed_cell );
+                if( pinned_cell.size() > n_cell_atoms )
+                {
+                    Log( Log_Level::Warning, Log_Sender::IO, "Too many pinned cells specified. Truncating..." );
+                    pinned_cell.resize( n_cell_atoms );
+                }
+                else if( pinned_cell.size() < n_cell_atoms )
+                    spirit_throw(
+                        Utility::Exception_Classifier::Input_parse_failed, Log_Level::Error,
+                        "Too few pinned cells specified." );
             }
-            else if( pinned_cell.size() < n_cell_atoms )
-                spirit_throw(
-                    Utility::Exception_Classifier::Input_parse_failed, Log_Level::Error,
-                    "Too few pinned cells specified." );
         }
         else
         {
