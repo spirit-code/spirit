@@ -6,6 +6,7 @@
 #include <data/Spin_System.hpp>
 #include <data/Spin_System_Chain.hpp>
 #include <data/State.hpp>
+#include <filesystem>
 #include <io/Configconverter.hpp>
 #include <io/Filter_File_Handle.hpp>
 #include <io/HDF5_File.hpp>
@@ -49,7 +50,20 @@ try
     // Create System (and lock it)
     std::shared_ptr<State::system_t> system = [file]
     {
-        const auto tbl = IO::convert::Config( std::string( file ) );
+        const auto tbl = [file = std::string( file )]
+        {
+            if( std::filesystem::path( file ).extension() == ".toml" )
+                return toml::parse_file( file );
+            else if( file.empty() )
+                return toml::table{};
+            else
+            {
+                Log(
+                    Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                    "The file \"{}\" is using the deprecated config format. Please convert your config file to toml." );
+                return IO::convert::Config( file );
+            };
+        }();
         return IO::Spin_System_from_TOML( tbl, IO::Defaults_from_TOML( tbl ) );
     }();
     system->lock();

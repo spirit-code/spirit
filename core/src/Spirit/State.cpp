@@ -2,6 +2,7 @@
 #include <Spirit/State.h>
 
 #include <data/State.hpp>
+#include <filesystem>
 #include <io/Configconverter.hpp>
 #include <io/IO.hpp>
 #include <utility/Configuration_Chain.hpp>
@@ -112,7 +113,21 @@ try
     else
         Log( Log_Level::All, Log_Sender::All, "No config file. Will use default parameters." );
     //------------------------------------------------------------------------------------------
-    const auto tbl      = IO::convert::Config( state->config_file );
+    const auto tbl = [&config_file = std::as_const( state->config_file )]
+    {
+        if( std::filesystem::path( config_file ).extension() == ".toml" )
+            return toml::parse_file( config_file );
+        else if( config_file.empty() )
+            return toml::table{};
+        else
+        {
+            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
+                 fmt::format(
+                     "The file \"{}\" is using the deprecated config format. Please convert your config file to toml.",
+                     config_file ) );
+            return IO::convert::Config( config_file );
+        };
+    }();
     const auto defaults = IO::Defaults_from_TOML( tbl );
     //---------------------- Initialize the log ------------------------------------------------
     try
@@ -317,16 +332,7 @@ try
 
     Log( Log_Level::Info, Log_Sender::All, "Writing State configuration to file " + cfg );
 
-    const auto extension = [&cfg]
-    {
-        auto n = cfg.rfind( '.' );
-        if( n != std::string::npos )
-            return cfg.substr( n );
-        else
-            return std::string( "" );
-    }();
-
-    if( extension != ".toml" )
+    if( std::filesystem::path( cfg ).extension() != ".toml" )
         Log( Log_Level::Warning, Log_Sender::All,
              "The output format is toml. Consider using a '.toml' file extension!" );
 
