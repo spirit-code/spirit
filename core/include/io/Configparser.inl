@@ -12,6 +12,20 @@
 namespace IO
 {
 
+namespace detail
+{
+
+template<typename T>
+auto transpose( T && value ) -> decltype( auto )
+{
+    if constexpr( !is_eigen_type_v<std::decay_t<T>> )
+        return std::forward<T>( value );
+    else
+        return value.transpose();
+}
+
+} // namespace detail
+
 template<typename T>
 void read_value( const toml::table & tbl, std::string_view key, T & dest, bool log_missing = true ) noexcept
 {
@@ -21,16 +35,18 @@ void read_value( const toml::table & tbl, std::string_view key, T & dest, bool l
     {
         if( log_missing )
             Log( Log_Level::Warning, Log_Sender::IO,
-                 fmt::format( "Missing key encountererd!: '{}', using default: {}", key, dest ) );
+                 fmt::format( "Missing key encountererd!: '{}', using default: {}", key, detail::transpose( dest ) ) );
         return;
     }
 
     if( auto result = toml_transform<T>( *node.node() ) )
         dest = *result;
     else
-        Log( Log_Level::Error, Log_Sender::IO,
-             fmt::format( "Failed converting value for key: '{}', using default: {}", key, dest ) );
+        Log(
+            Log_Level::Error, Log_Sender::IO,
+            fmt::format( "Failed converting value for key: '{}', using default: {}", key, detail::transpose( dest ) ) );
 }
+
 namespace detail
 {
 

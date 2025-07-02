@@ -27,6 +27,20 @@ using Matrix3c = Eigen::Matrix<std::complex<scalar>, 3, 3>;
 // 2D Eigen typedefs
 using Vector2 = Eigen::Matrix<scalar, 2, 1>;
 
+// Type trait to detect Eigen types
+template<typename T, typename = void>
+struct is_eigen_type : std::false_type
+{
+};
+
+template<typename T>
+struct is_eigen_type<T, std::void_t<typename T::Base>> : std::is_base_of<Eigen::EigenBase<T>, T>
+{
+};
+
+template<typename T>
+static constexpr bool is_eigen_type_v = is_eigen_type<T>::value;
+
 // Different definitions for regular C++ and CUDA
 #ifdef SPIRIT_USE_CUDA
 // The general field, using the managed allocator
