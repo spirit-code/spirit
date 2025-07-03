@@ -30,6 +30,8 @@ struct Defaults
  * Note that due to the modular structure of the input parsers, input may be given in one or in separate files.
  * Input may be given incomplete. In this case a log entry is created and default values are used.
  */
+auto TOML_from_Config( const std::string & config_file ) -> toml::table;
+
 auto Defaults_from_TOML( const toml::table & ) -> Defaults;
 
 void Log_from_TOML( const toml::table &, const Defaults &, bool force_quiet = false );

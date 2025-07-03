@@ -113,21 +113,7 @@ try
     else
         Log( Log_Level::All, Log_Sender::All, "No config file. Will use default parameters." );
     //------------------------------------------------------------------------------------------
-    const auto tbl = [&config_file = std::as_const( state->config_file )]
-    {
-        if( std::filesystem::path( config_file ).extension() == ".toml" )
-            return toml::parse_file( config_file );
-        else if( config_file.empty() )
-            return toml::table{};
-        else
-        {
-            Log( Utility::Log_Level::Warning, Utility::Log_Sender::API,
-                 fmt::format(
-                     "The file \"{}\" is using the deprecated config format. Please convert your config file to toml.",
-                     config_file ) );
-            return IO::convert::Config( config_file );
-        };
-    }();
+    const auto tbl      = IO::TOML_from_Config( state->config_file );
     const auto defaults = IO::Defaults_from_TOML( tbl );
     //---------------------- Initialize the log ------------------------------------------------
     try
