@@ -13,7 +13,7 @@ of a **spin dynamics simulation**:
     from spirit import simulation
 
     # Create a state using an input file
-    with state.State("input/input.cfg") as p_state:
+    with state.State("input/input.toml") as p_state:
         # Start a LLG simulation using the SIB solver
         simulation.start(p_state, simulation.METHOD_LLG, simulation.SOLVER_SIB)
 
@@ -25,7 +25,7 @@ or call setup and delete manually:
     from spirit import simulation
 
     # Create a state using an input file
-    p_state = state.setup("input/input.cfg")
+    p_state = state.setup("input/input.toml")
     # Start a LLG simulation using the SIB solver
     simulation.start(p_state, simulation.METHOD_LLG, simulation.SOLVER_SIB)
     # Delete the state and free memory etc.

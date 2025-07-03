@@ -20,7 +20,7 @@ from spirit import parameters
 from spirit import io
 from spirit import log
 
-cfgfile = "input/input.cfg"
+cfgfile = "input/input.toml"
 quiet = False
 
 with state.State(cfgfile, quiet) as p_state:

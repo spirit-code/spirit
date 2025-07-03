@@ -14,7 +14,7 @@ from spirit import configuration
 from spirit import simulation
 from spirit import io
 
-cfgfile = "input/input.cfg"
+cfgfile = "input/input.toml"
 quiet = False
 
 with state.State(cfgfile, quiet) as p_state:

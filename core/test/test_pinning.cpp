@@ -38,7 +38,7 @@ namespace C = Utility::Constants;
 TEST_CASE( "Dynamics solvers should follow Larmor precession with one pinned spin and Heisenber exchange", "[physics]" )
 {
     using Engine::Spin::Solver;
-    constexpr auto input_file = "core/test/input/physics_pinning.cfg";
+    constexpr auto input_file = "core/test/input/physics_pinning.toml";
     const std::vector<Solver> solvers{
         Solver::RungeKutta4,
         Solver::Heun,

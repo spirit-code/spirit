@@ -17,7 +17,7 @@ import unittest
 failing test we load a p_state once and we use constructor and destructor
 of each test (setUp/tearDown) to clean that p_state"""
 
-cfgfile = spirit_py_dir + "/../test/input/api.cfg"  # Input File
+cfgfile = spirit_py_dir + "/../test/input/api.toml"  # Input File
 p_state = state.setup(cfgfile)  # State setup
 chain.image_to_clipboard(p_state)  # Copy p_state to Clipboard
 

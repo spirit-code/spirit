@@ -12,7 +12,7 @@ solver:
 ```Python
 from spirit import simulation, state
 
-with state.State("input/input.cfg") as p_state:
+with state.State("input/input.toml") as p_state:
     simulation.start(p_state, simulation.METHOD_LLG, simulation.SOLVER_VP)
 ```
 
@@ -22,7 +22,7 @@ dynamics:
 ```Python
 from spirit import parameters, simulation, state
 
-with state.State("input/input.cfg") as p_state:
+with state.State("input/input.toml") as p_state:
     parameters.llg.set_direct_minimization(p_state, True)
     simulation.start(p_state, simulation.METHOD_LLG, simulation.SOLVER_DEPONDT)
 ```
@@ -36,7 +36,7 @@ To perform an LLG dynamics simulation:
 ```Python
 from spirit import simulation, state
 
-with state.State("input/input.cfg") as p_state:
+with state.State("input/input.toml") as p_state:
     simulation.start(p_state, simulation.METHOD_LLG, simulation.SOLVER_DEPONDT)
 ```
 
@@ -64,7 +64,7 @@ from spirit import state, chain, configuration, transition, simulation
 
 noi = 7
 
-with state.State("input/input.cfg") as p_state:
+with state.State("input/input.toml") as p_state:
     ### Copy the first image and set chain length
     chain.image_to_clipboard(p_state)
     chain.set_length(p_state, noi)

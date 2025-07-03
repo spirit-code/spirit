@@ -14,7 +14,7 @@
 
 #include <catch.hpp>
 
-const char inputfile[] = "core/test/input/fd_pairs.cfg";
+const char inputfile[] = "core/test/input/fd_pairs.toml";
 
 using Catch::Matchers::WithinAbs;
 

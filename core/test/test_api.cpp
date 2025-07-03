@@ -10,7 +10,7 @@
 
 #include <catch.hpp>
 
-auto inputfile = "core/test/input/api.cfg";
+auto inputfile = "core/test/input/api.toml";
 // Reduce required precision if float accuracy
 #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
 [[maybe_unused]] constexpr scalar epsilon_rough = 1e-12;
@@ -35,7 +35,7 @@ TEST_CASE( "State", "[state]" )
         // Test the default config with a nonexistent file
         CHECK_NOTHROW(
             state
-            = std::shared_ptr<State>( State_Setup( "__surely__this__file__does__not__exist__.cfg" ), State_Delete ) );
+            = std::shared_ptr<State>( State_Setup( "__surely__this__file__does__not__exist__.toml" ), State_Delete ) );
         REQUIRE( state != nullptr );
         REQUIRE( state->config_file.empty() );
         CHECK_NOTHROW( Configuration_PlusZ( state.get() ) );

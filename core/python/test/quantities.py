@@ -11,7 +11,7 @@ import unittest
 
 ##########
 
-cfgfile = spirit_py_dir + "/../test/input/api.cfg"  # Input File
+cfgfile = spirit_py_dir + "/../test/input/api.toml"  # Input File
 
 p_state = state.setup(cfgfile)  # State setup
 

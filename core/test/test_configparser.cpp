@@ -33,7 +33,7 @@ using Catch::Matchers::WithinAbs;
 // TODO: Implement proper `Get_{Exchange,DMI}_Shells` API functions and do the same for neighbours.
 TEST_CASE( "Parse Hamiltonian (Pairs) config and check parsed values using the C-API", "[configparser]" )
 {
-    static constexpr auto input_file = "core/test/input/configparser_hamiltonian_pairs.cfg";
+    static constexpr auto input_file = "core/test/input/configparser_hamiltonian_pairs.toml";
 
     auto state = std::shared_ptr<State>( State_Setup( input_file ), State_Delete );
     REQUIRE( state != nullptr );

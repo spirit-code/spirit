@@ -41,7 +41,7 @@ using Catch::Matchers::WithinAbs;
 TEST_CASE( "Dynamics solvers should follow Larmor precession", "[physics]" )
 {
     using Engine::Spin::Solver;
-    constexpr auto input_file = "core/test/input/physics_larmor.cfg";
+    constexpr auto input_file = "core/test/input/physics_larmor.toml";
     std::vector<Solver> solvers{
         Solver::Heun,
         Solver::Depondt,
@@ -117,7 +117,7 @@ TEST_CASE(
     "[physics]" )
 {
     using Engine::Spin::Solver;
-    constexpr auto input_file = "core/test/input/physics_dephasing.cfg";
+    constexpr auto input_file = "core/test/input/physics_dephasing.toml";
     std::vector<Solver> solvers{
         Solver::RungeKutta4,
     };
@@ -210,10 +210,11 @@ TEST_CASE(
 }
 
 // Hamiltonians to be tested
-static constexpr std::array hamiltonian_input_files{ "core/test/input/fd_pairs.cfg",
-                                                     "core/test/input/fd_neighbours.cfg",
-                                                     // "core/test/input/fd_gaussian.cfg", // TODO: issue with precision
-                                                     "core/test/input/fd_quadruplet.cfg" };
+static constexpr std::array hamiltonian_input_files{
+    "core/test/input/fd_pairs.toml", "core/test/input/fd_neighbours.toml",
+    // "core/test/input/fd_gaussian.toml", // TODO: issue with precision
+    "core/test/input/fd_quadruplet.toml"
+};
 
 TEST_CASE( "Finite difference and regular Hamiltonian should match", "[physics]" )
 {
@@ -277,7 +278,7 @@ TEST_CASE( "Finite difference and regular Hamiltonian should match", "[physics]"
 TEST_CASE( "Dipole-Dipole Interaction", "[physics]" )
 {
     // Config file where only DDI is enabled
-    constexpr auto input_file = "core/test/input/physics_ddi.cfg";
+    constexpr auto input_file = "core/test/input/physics_ddi.toml";
     auto state                = std::shared_ptr<State>( State_Setup( input_file ), State_Delete );
     REQUIRE( state != nullptr );
     REQUIRE( !state->config_file.empty() );

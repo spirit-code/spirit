@@ -1,0 +1,260 @@
+############## Spirit Configuration ##############
+
+### Output Folders
+[defaults.output]
+file_tag = "<time>"
+folder = "output"
+
+[logging]
+output.folder = "."
+### Levels of information
+# 0 = ALL     - Anything
+# 1 = SEVERE  - Severe error
+# 2 = ERROR   - Error which can be handled
+# 3 = WARNING - Possible unintended behaviour etc
+# 4 = PARAMETER - Input parameter logging
+# 5 = INFO      - Status information etc
+# 6 = DEBUG     - Deeper status, eg numerical
+
+### Print log messages to the console
+log_to_console = true
+### Print messages up to (including) log_console_level
+console_level  = 5
+
+### Save the log as a file
+log_to_file = 1
+### Save messages up to (including) log_file_level
+file_level  = 4
+
+### Save input parameters on State creation/deletion
+save_input_initial  = false
+save_input_final    = false
+
+### Save atom positions on State creation/deletion
+save_positions_initial = false
+save_positions_final   = false
+
+### Save exchange and DM neighbours on State creation/deletion
+save_neighbours_initial = false
+save_neighbours_final   = false
+
+
+
+################## Hamiltonian ###################
+[hamiltonian]
+### Hamiltonian Type
+### Boundary_conditions (a b c): 0(open), 1(periodical)
+boundary_conditions       = [1, 0, 0]
+
+### External magnetic field vector[T]
+external_field_magnitude  = 0.0
+external_field_normal     = [0.0, 0.0, 1.0]
+
+### Uniaxial anisotropy constant [meV]
+anisotropy_magnitude      = 0.0
+anisotropy_normal         = [0.0, 0.0, 1.0]
+
+### Dipole-dipole interaction caclulation method
+### (fft, fmm, cutoff, none)
+ddi_method                = "fft"
+
+### DDI number of periodic images in (a b c)
+ddi_n_periodic_images     = [4, 4, 4]
+
+### DDI cutoff radius (if cutoff is used)
+ddi_radius                = 10.0
+ddi_pb_zero_padding       = true
+
+### Pairs
+pairs = ""
+
+################ End Hamiltonian #################
+
+
+################### Geometry #####################
+[geometry]
+### µSpin
+mu_s = 2.17
+### Lattice constant for basis and translations
+lattice_constant = 2.77
+
+bravais_vectors = """
+ 3   0 -1
+ 0   1  0
+0.3  -2  1
+"""
+
+### Number of basis cells along principal
+### directions (a b c)
+n_basis_cells = [5, 5, 5]
+
+basis = """
+2
+0 0 0
+0.5 0.2 0.7
+"""
+
+
+
+################# MC Parameters ##################
+[method.mc]
+### Maximum wall time for single simulation
+### hh:mm:ss, where 0:0:0 is infinity
+max_walltime     = "0:0:0"
+
+### Seed for Random Number Generator
+seed             = 20006
+
+### Number of iterations
+n_iterations     = 2000000
+### Number of iterations after which to save
+n_iterations_log = 2000
+
+### Temperature [K]
+temperature      = 0
+
+### Acceptance ratio
+acceptance_ratio = 0.5
+
+### Output configuration
+[method.mc.output]
+any     = true
+initial = true
+final   = true
+
+energy_step             = false
+energy_archive          = true
+energy_spin_resolved    = false
+energy_divide_by_nspins = true
+
+configuration_step    = true
+configuration_archive = false
+############### End MC Parameters ################
+
+
+[method.llg]
+################ LLG Parameters ##################
+### Maximum wall time for single simulation
+### hh:mm:ss, where 0:0:0 is infinity
+max_walltime        = "0:0:0"
+
+### Seed for Random Number Generator
+seed                = 20006
+
+### Number of iterations
+n_iterations        = 2000000
+### Number of iterations after which to save
+n_iterations_log    = 2000
+
+### Temperature [K]
+temperature         = 0
+
+### Damping [none]
+damping             = 0.3
+### Non-adiabatic damping
+beta                = 0.1
+
+### Time step dt
+dt                  = 1.0E-3
+
+### Bools 0 = false || 1 = true
+renorm              = false
+
+### 0 = use the pinned monolayer approximation
+### 1 = use the gradient approximation
+stt_use_gradient        = false
+### Spin transfer torque parameter proportional
+### to injected current density
+stt_magnitude           = 0.0
+### Spin current polarisation normal vector
+stt_polarisation_normal = [1.0, 0.0, 0.0]
+
+### Force convergence parameter
+force_convergence   = 10e-9
+
+### Output configuration
+[method.llg.output]
+any     = true
+initial = true
+final   = true
+
+energy_step             = false
+energy_archive          = true
+energy_spin_resolved    = false
+energy_divide_by_nspins = true
+
+configuration_step    = true
+configuration_archive = false
+
+
+
+################ GNEB Parameters #################
+[method.gneb]
+### Maximum wall time for single simulation
+### hh:mm:ss, where 0:0:0 is infinity
+max_walltime       = "0:0:0"
+
+spring_constant    = 1.0
+
+### Bools 0 = false || 1 = true
+renorm             = true
+
+### Number of GNEB Energy interpolations
+n_energy_interpolations = 10
+
+### Force convergence parameter
+force_convergence  = 1e-7
+
+### Number of iterations and saves
+n_iterations       = 200000
+n_iterations_log   = 200
+
+### Output configuration
+[method.gneb.output]
+output_any     = true
+output_initial = false
+output_final   = true
+
+output_energies_step             = false
+output_energies_interpolated     = true
+output_energies_divide_by_nspins = true
+
+output_chain_step = false
+
+
+
+################ MMF Parameters ##################
+[method.mmf]
+### Maximum wall time for single simulation
+### hh:mm:ss, where 0:0:0 is infinity
+max_walltime       = "0:0:0"
+
+### Force convergence parameter
+force_convergence  = 1e-7
+
+### Number of iterations
+n_iterations       = 200000
+### Number of iterations after which to save
+n_iterations_log   = 200
+
+### Output configuration
+[method.mmf.output]
+any     = true
+initial = false
+final   = true
+
+energy_step             = false
+energy_archive          = true
+energy_divide_by_nspins = true
+
+configuration_step    = false
+configuration_archive = true
+
+
+
+################ EMA Parameters ##################
+[method.ema]
+### Number of n_modes
+n_modes            = 10
+### Mode to visualize
+n_mode_follow      = 0

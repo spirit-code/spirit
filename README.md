@@ -165,7 +165,7 @@ workflow, never having to re-compile when testing, debugging or adding features.
 The most simple example of a **spin dynamics simulation** would be
 ``` python
 from spirit import state, simulation
-with state.State("input/input.cfg") as p_state:
+with state.State("input/input.toml") as p_state:
     simulation.start(p_state, simulation.METHOD_LLG, simulation.SOLVER_SIB)
 ```
 Where `SOLVER_SIB` denotes the semi-implicit method B and the starting configuration

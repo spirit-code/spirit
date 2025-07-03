@@ -11,7 +11,7 @@ import unittest
 
 ##########
 
-cfgfile = spirit_py_dir + "/../../input/input.cfg"
+cfgfile = spirit_py_dir + "/../../input/input.toml"
 
 
 class TestState(unittest.TestCase):

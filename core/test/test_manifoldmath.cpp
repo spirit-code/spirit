@@ -6,7 +6,7 @@
 
 using Catch::Matchers::WithinAbs;
 
-auto inputfile = "core/test/input/api.cfg";
+auto inputfile = "core/test/input/api.toml";
 // Reduce required precision if float accuracy
 #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
 [[maybe_unused]] constexpr scalar epsilon_2 = 1e-10;

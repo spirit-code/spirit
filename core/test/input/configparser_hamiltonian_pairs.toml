@@ -2,62 +2,55 @@
 
 
 ### Output Folders
-output_file_tag    test_configparser_hamiltonian_pairs
-log_output_folder  .
-llg_output_folder  output
-mc_output_folder   output
-gneb_output_folder output
-mmf_output_folder  output
+[defaults.output]
+file_tag = "test_configparser_hamiltonian_pairs"
+folder = "output"
 
 
 ################## Hamiltonian ###################
-
-### Hamiltonian Type (heisenberg_neighbours, heisenberg_pairs, gaussian)
-hamiltonian                heisenberg_pairs
-
+[hamiltonian]
 ### boundary_conditions (in a b c) = 0(open), 1(periodical)
-boundary_conditions        0 0 0
+boundary_conditions        = [0, 0, 0]
 
 ### external magnetic field vector[T]
-external_field_magnitude   25.0
-external_field_normal      0.0 1.0 1.0
-### µSpin
-mu_s                       2.0
+external_field_magnitude   = 25.0
+external_field_normal      = [0.0, 1.0, 1.0]
 
 ### Uniaxial anisotropy constant [meV]
-anisotropy_magnitude       1.0
-anisotropy_normal          0.0 0.0 1.0
+anisotropy_magnitude       = 1.0
+anisotropy_normal          = [0.0, 0.0, 1.0]
 
 ### Cubic anisotropy constant [meV]
-cubic_anisotropy_magnitude 4.0
+cubic_anisotropy_magnitude = 4.0
 
 ### Dipole-dipole interaction caclulation method
 ### (fft, fmm, cutoff, none)
-ddi_method                 none
+ddi_method                 = "none"
 
 ### DDI number of periodic images in (a b c)
-ddi_n_periodic_images      4 4 4
+ddi_n_periodic_images      = [4, 4, 4]
 
 ### DDI cutoff radius (if cutoff is used)
-ddi_radius                 1.3
+ddi_radius                 = 1.3
 
 # If set to 1 zero padding is performed even for periodic directions, if set to 0 it is skipped for peridodic directions (improves speed and memory footprint)
-ddi_pb_zero_padding        1
+ddi_pb_zero_padding        = true
 
 
 ### Pairs
-n_interaction_pairs 3
+pairs = """
 i j   da db dc   Dijx Dijy Dijz   Jij
 0 0   1  0  0    6.0  0.0  0.0    10.0
 0 0   0  1  0    0.0  6.0  0.0    10.0
 0 0   0  0  1    0.0  0.0  6.0    10.0
-
+"""
 ### Biaxual Anisotropy
-n_biaxial_anisotropy_axes 1
+biaxial_anisotropy_axes = """
 i   K1x  K1y  K1z     K2x  K2y  K2z
 0   0.0  0.0  1.0     0.3  0.0  0.3 
+"""
 
-n_biaxial_anisotropy_terms 7
+biaxial_anisotropy_terms = """
 i   n1 n2 n3    k
 0   1  0  0     3.0
 0   2  0  0     1.8
@@ -66,16 +59,18 @@ i   n1 n2 n3    k
 0   0  4  0     3.2
 0   3  2  0    -1.6
 0   3  4  0     1.6
+"""
 
 ################ End Hamiltonian #################
 
 
-
+[logging]
+output.folder = "."
 ############### Logging Parameters ###############
 ### Save input parameters on creation of State
-log_input_save_initial  0
+input_save_initial = false
 ### Save input parameters on deletion of State
-log_input_save_final    0
+input_save_final   = false
 ### Levels of information
 # 0 = ALL     - Anything
 # 1 = SEVERE  - Severe error
@@ -86,31 +81,34 @@ log_input_save_final    0
 # 6 = DEBUG     - Deeper status, eg numerical
 
 ### Print log messages to the console
-log_to_console    1
+log_to_console = true
 ### Print messages up to (including) log_console_level
-log_console_level 5
+console_level  = 5
 
 ### Save the log as a file
-log_to_file    1
+log_to_file    = true
 ### Save messages up to (including) log_file_level
-log_file_level 3
+file_level     = 3
 ############# End Logging Parameters #############
 
 
 
 ################### Geometry #####################
+[geometry]
+### µSpin
+mu_s = 2.0
+
 ### The bravais lattice type
-bravais_lattice sc
+bravais_lattice = "sc"
 
 ### Number of basis cells along principal
 ### directions (a b c)
-n_basis_cells 2 2 1
+n_basis_cells = [2, 2, 1]
 ################# End Geometry ###################
 
 ################ EMA Parameters ##################
+[method.ema]
 ### Number of n_modes (for this system max is 6)
-ema_n_modes             7
+n_modes         = 7
 ### Mode to visualize (for this system max is 5)
-ema_n_mode_follow       12
-############## End EMA Parameters ################
-
+n_mode_follow   = 12

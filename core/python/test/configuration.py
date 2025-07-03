@@ -12,7 +12,7 @@ import unittest
 
 ##########
 
-cfgfile = spirit_py_dir + "/../test/input/api.cfg"
+cfgfile = spirit_py_dir + "/../test/input/api.toml"
 
 
 class TestConfigurations(unittest.TestCase):

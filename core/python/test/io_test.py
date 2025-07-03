@@ -11,7 +11,7 @@ import unittest
 
 ##########
 
-cfgfile = spirit_py_dir + "/../test/input/fd_pairs.cfg"  # Input File
+cfgfile = spirit_py_dir + "/../test/input/fd_pairs.toml"  # Input File
 io_image_test = spirit_py_dir + "/test/io_test_files/io_image_test"
 io_chain_test = spirit_py_dir + "/test/io_test_files/io_chain_test"
 

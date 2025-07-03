@@ -15,7 +15,7 @@ of a **spin dynamics simulation**:
 #import "Spirit/State.h"
 #import "Spirit/Simulation.h"
 
-const char * cfgfile = "input/input.cfg";  // Input file
+const char * cfgfile = "input/input.toml";  // Input file
 State * p_state = State_Setup(cfgfile);    // State setup
 Simulation_LLG_Start(p_state, Solver_SIB); // Start a LLG simulation using the SIB solver
 State_Delete(p_state)                      // State cleanup

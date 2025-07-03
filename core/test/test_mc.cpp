@@ -35,7 +35,7 @@ using Catch::Matchers::WithinAbs;
 
 TEST_CASE( "Direction Constrained Monte Carlo should preserve direction", "[mc]" )
 {
-    constexpr auto input_file = "core/test/input/mc.cfg";
+    constexpr auto input_file = "core/test/input/mc.toml";
 
     // Set up the initial direction of the spins
     auto state = std::shared_ptr<State>( State_Setup( input_file ), State_Delete );
@@ -82,7 +82,7 @@ TEST_CASE( "Direction Constrained Monte Carlo should preserve direction", "[mc]"
 
 TEST_CASE( "Single Spin Energy Difference should agree with plain energy difference", "[mc]" )
 {
-    constexpr auto input_file      = "core/test/input/mc.cfg";
+    constexpr auto input_file      = "core/test/input/mc.toml";
     static constexpr int n_samples = 50;
 
     // Set up the initial direction of the spins

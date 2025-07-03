@@ -12,7 +12,7 @@ import unittest
 
 ##########
 
-cfgfile = spirit_py_dir + "/../test/input/fd_neighbours.cfg"  # Input File
+cfgfile = spirit_py_dir + "/../test/input/fd_neighbours.toml"  # Input File
 
 p_state = state.setup(cfgfile)  # State setup
 

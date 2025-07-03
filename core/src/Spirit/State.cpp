@@ -383,7 +383,7 @@ try
     {
         if( ( Log.save_input_initial && initial ) || ( Log.save_input_final && !initial ) )
         {
-            std::string file    = folder + "/input/" + tag + suffix + ".cfg";
+            std::string file    = folder + "/input/" + tag + suffix + ".toml";
             std::string comment = fmt::format(
                 "###\n### Original configuration file was called\n###   \"{}\"\n###\n", state->config_file );
             State_To_Config( state, file.c_str(), comment.c_str() );

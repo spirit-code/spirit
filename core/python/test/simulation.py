@@ -16,7 +16,7 @@ SIB = simulation.SOLVER_SIB
 
 ##########
 
-cfgfile = spirit_py_dir + "/../test/input/solvers.cfg"  # Input File
+cfgfile = spirit_py_dir + "/../test/input/solvers.toml"  # Input File
 
 p_state = state.setup(cfgfile)  # State setup
 

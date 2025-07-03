@@ -1,0 +1,87 @@
+############ Spirit Configuration ###############
+
+################## General ######################
+[defaults.output]
+file_tag   = "test_larmor_precession"
+
+[logging]
+log_to_console = true
+log_to_file    = true
+console_level  = 5
+################## End General ##################
+
+################## Geometry #####################
+[geometry]
+### The bravais lattice type
+bravais_lattice = "sc"
+
+### Number of basis cells along principal
+### directions (a b c)
+n_basis_cells = [1, 1, 1]
+
+### µSpin
+mu_s = 2.0
+
+################## Hamiltonian ##################
+[hamiltonian]
+### boundary_conditions (in a b c) = 0(open), 1(periodical)
+boundary_conditions = [1, 1, 0]
+
+### external magnetic field vector[T]
+external_field_magnitude = 1.0
+external_field_normal    = [0.0, 0.0, 1.0]
+
+### Uniaxial anisotropy constant [meV]
+anisotropy_magnitude = 0.0
+anisotropy_normal    = [0.0, 0.0, 1.0]
+
+### Exchange constants [meV] for the respective shells
+exchange_shells = [10.0]
+
+### Chirality of DM vectors (+/-1=bloch, +/-2=neel)
+dmi_chirality  = 1
+
+### DM constant [meV]
+dmi_shells = [6.0]
+
+### Dipole-Dipole radius
+ddi_radius = 0.0
+
+############ Method Output ######################
+
+[method.llg.output]
+any     = false # Write any output at all
+initial = true  # Save before the first iteration
+final   = true  # Save after the last iteration
+
+#energy_step             = false  # Save system energy at each step
+#energy_archive          = true   # Archive system energy at each step
+#energy_spin_resolved    = false  # Also save energies for each spin
+#energy_divide_by_nspins = true   # Normalize energies with number of spins
+
+#configuration_step      = true   # Save spin configuration at each step
+#configuration_archive   = false  # Archive spin configuration at each step
+
+########## Method parameters ####################
+[method.llg]
+### Maximum wall time for single simulation
+### hh:mm:ss, where 0:0:0 is infinity
+llg_max_walltime = "0:5:0"
+### Force = convergence parameter
+force_convergence = 1e-8
+### Number = of iterations
+n_iterations      = 2000000
+### Number = of iterations after which to save
+n_iterations_log  = 1000
+### Seed = for Random Number Generator
+seed              = 20006
+### Damping = [none]
+damping           = 0.0
+### Time = step dt
+dt                = 1e-3
+### Temperature = [K]
+temperature       = 0
+### Spin = transfer torque parameter proportional to injected current density
+stt_magnitude     = 0.0
+### Spin = current polarisation normal vector
+stt_polarisation_normal = [1.0, 0.0, 0.0]

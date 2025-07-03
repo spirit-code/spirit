@@ -1,20 +1,15 @@
 ############## Spirit Configuration ##############
-
+version = "0.1"
 
 ### Output Folders
-output_file_tag    api_test
-log_output_folder  .
-llg_output_folder  output
-mc_output_folder   output
-gneb_output_folder output
-mmf_output_folder  output
+[defaults.output]
+file_tag = "api_test"
+folder = "output"
 
-
-############### Logging Parameters ###############
-### Save input parameters on creation of State
-log_input_save_initial  0
+[logging]
+input_save_initial = false
 ### Save input parameters on deletion of State
-log_input_save_final    0
+input_save_final   = false
 ### Levels of information
 # 0 = ALL     - Anything
 # 1 = SEVERE  - Severe error
@@ -25,27 +20,24 @@ log_input_save_final    0
 # 6 = DEBUG     - Deeper status, eg numerical
 
 ### Print log messages to the console
-log_to_console    1
+log_to_console    = 1
 ### Print messages up to (including) log_console_level
-log_console_level 5
+log_console_level = 5
 
 ### Save the log as a file
-log_to_file    1
+log_to_file    = 1
 ### Save messages up to (including) log_file_level
-log_file_level 3
-############# End Logging Parameters #############
+log_file_level = 3
 
 
 
-################### Geometry #####################
-### The bravais lattice type
-bravais_lattice hex2d
-basis
+[geometry]
+bravais_lattice = "hex2d"
+basis = """
 2
 0 0 0
 0.333 0.333 0.0
-
+"""
 ### Number of basis cells along principal
 ### directions (a b c)
-n_basis_cells 50 50 1
-################# End Geometry ###################
+n_basis_cells = [50, 50, 1]

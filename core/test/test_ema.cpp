@@ -6,7 +6,7 @@
 
 #include <catch.hpp>
 
-constexpr auto inputfile = "core/test/input/fd_pairs.cfg";
+constexpr auto inputfile = "core/test/input/fd_pairs.toml";
 // constexpr auto testfile = "method_EMA_test.txt";
 
 TEST_CASE( "Trivial", "[EMA]" )

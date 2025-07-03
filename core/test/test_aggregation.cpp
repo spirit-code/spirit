@@ -45,9 +45,9 @@ TEST_CASE( "Ensure that Hamiltonian is really just an aggregator", "[aggregation
 {
     // Hamiltonians to be tested
     std::vector<const char *> hamiltonian_input_files{
-        "core/test/input/fd_gaussian.cfg",
-        "core/test/input/fd_pairs.cfg",
-        "core/test/input/fd_neighbours.cfg",
+        "core/test/input/fd_gaussian.toml",
+        "core/test/input/fd_pairs.toml",
+        "core/test/input/fd_neighbours.toml",
     };
 
     for( const auto * input_file : hamiltonian_input_files )

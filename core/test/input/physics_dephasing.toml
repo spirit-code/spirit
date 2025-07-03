@@ -1,0 +1,160 @@
+############## Spirit Configuration ##############
+
+
+
+### Output Folders
+[defaults.output]
+file_tag  = "<time>"
+folder    = "output"
+
+[logging]
+output.folder = "."
+### Save input parameters on State creation/deletion
+save_input_initial  = false
+save_input_final    = false
+
+### Save atom positions on State creation/deletion
+save_positions_initial = false
+save_positions_final   = false
+
+### Save exchange and DM neighbours on State creation/deletion
+save_neighbours_initial = false
+save_neighbours_final   = false
+############### Logging Parameters ###############
+### Levels of information
+# 0 = ALL     - Anything
+# 1 = SEVERE  - Severe error
+# 2 = ERROR   - Error which can be handled
+# 3 = WARNING - Possible unintended behaviour etc
+# 4 = PARAMETER - Input parameter logging
+# 5 = INFO      - Status information etc
+# 6 = DEBUG     - Deeper status, eg numerical
+
+### Print log messages to the console
+log_to_console = true
+### Print messages up to (including) log_console_level
+console_level  = 5
+
+### Save the log as a file
+log_to_file   = true
+### Save messages up to (including) log_file_level
+file_level    = 4
+
+
+
+################## Hamiltonian ###################
+[hamiltonian]
+### Boundary_conditions (a b c): 0(open), 1(periodical)
+boundary_conditions       = [0, 0, 0 ]
+
+### External magnetic field vector[T]
+external_field_magnitude  = 0.0
+external_field_normal     = [0.0, 0.0, 1.0]
+
+### Uniaxial anisotropy constant [meV]
+anisotropy_magnitude      = 1.0
+anisotropy_normal         = [0.0, 0.0, 1.0]
+
+### Dipole-dipole interaction caclulation method
+### (fft, fmm, cutoff, none)
+ddi_method             = "none"
+
+### DDI number of periodic images in (a b c)
+ddi_n_periodic_images  =  [4, 4, 4]
+
+### DDI cutoff radius (if cutoff is used)
+ddi_radius             = 0.0
+
+# If set to 1 zero padding is performed even for periodic directions, if set to 0 it is skipped for peridodic directions (improves speed and memory footprint)
+ddi_pb_zero_padding = true
+
+### Pairs
+pairs = """
+i j   da db dc    Jij
+0 0    1  0  0   10.0
+0 0    0  1  0   10.0
+0 0    0  0  1   10.0
+"""
+
+################ End Hamiltonian #################
+
+
+
+################### Geometry #####################
+[geometry]
+### µSpin
+mu_s             = 2.0
+### Lattice constant for basis and translations
+lattice_constant = 1.0
+
+### The bravais lattice type
+bravais_lattice  = "sc"
+
+### Number of basis cells along principal
+### directions (a b c)
+n_basis_cells    = [10, 10, 10]
+################# End Geometry ###################
+
+
+
+
+
+[method.llg]
+################ LLG Parameters ##################
+### Maximum wall time for single simulation
+### hh:mm:ss, where 0:0:0 is infinity
+max_walltime        = "0:0:0"
+
+### Seed for Random Number Generator
+seed                = 20006
+
+### Number of iterations
+n_iterations        = 2000000
+### Number of iterations after which to save
+n_iterations_log      = 2000
+### Number of iterations that gets run with no checks or outputs (Increasing this boosts performance, especially in CUDA builds)
+n_iterations_amortize = 1
+
+### Temperature [K]
+temperature                      = 0
+temperature_gradient_direction   = [1, 0, 0]
+temperature_gradient_inclination = 0
+
+### Damping [none]
+damping             = 0.0
+### Non-adiabatic damping
+beta                = 0.0
+
+### Time step dt
+dt                  = 1.0E-3
+
+### Bools 0 = false || 1 = true
+renorm              = true
+
+### 0 = use the pinned monolayer approximation
+### 1 = use the gradient approximation
+stt_use_gradient        = false
+### Spin transfer torque parameter proportional
+### to injected current density
+stt_magnitude           = 0.0
+### Spin current polarisation normal vector
+stt_polarisation_normal = [1.0, 0.0, 0.0]
+
+### Force convergence parameter
+force_convergence   = 10e-9
+
+### Output configuration
+[method.llg.output]
+any     = true
+initial = true
+final   = true
+
+energy_step                  = false
+energy_archive               = true
+energy_spin_resolved         = false
+energy_divide_by_nspins      = true
+energy_add_readability_lines = true
+
+configuration_step     = true
+configuration_archive  = false
+configuration_filetype = 3

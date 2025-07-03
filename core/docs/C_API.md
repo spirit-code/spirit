@@ -14,7 +14,7 @@ solver:
 #include <Spirit/State.h>
 #include <memory>
 
-auto state = std::shared_ptr<State>(State_Setup("input/input.cfg"), State_Delete);
+auto state = std::shared_ptr<State>(State_Setup("input/input.toml"), State_Delete);
 Simulation_LLG_Start(state.get(), Solver_VP);
 ```
 
@@ -27,7 +27,7 @@ dynamics:
 #include <Spirit/State.h>
 #include <memory>
 
-auto state = std::shared_ptr<State>(State_Setup("input/input.cfg"), State_Delete);
+auto state = std::shared_ptr<State>(State_Setup("input/input.toml"), State_Delete);
 Parameters_LLG_Set_Direct_Minimization(state.get(), true);
 Simulation_LLG_Start(state.get(), Solver_Depondt);
 ```
@@ -43,7 +43,7 @@ To perform an LLG dynamics simulation:
 #include <Spirit/State.h>
 #include <memory>
 
-auto state = std::shared_ptr<State>(State_Setup("input/input.cfg"), State_Delete);
+auto state = std::shared_ptr<State>(State_Setup("input/input.toml"), State_Delete);
 Simulation_LLG_Start(state.get(), Solver_Depondt);
 ```
 
@@ -75,7 +75,7 @@ discretised by "images" on a "chain". The procedure follows these steps:
 
 int NOI = 7;
 
-auto state = std::shared_ptr<State>(State_Setup("input/input.cfg"), State_Delete);
+auto state = std::shared_ptr<State>(State_Setup("input/input.toml"), State_Delete);
 
 // Copy the first image and set chain length
 Chain_Image_to_Clipboard(state.get());

@@ -40,7 +40,7 @@ int main( int argc, char ** argv )
     bool show_version = false;
     bool quiet        = false;
 
-    std::string cfgfile   = "input/input.cfg";
+    std::string cfgfile   = "input/input.toml";
     std::string imagefile = "";
     std::string chainfile = "";
 

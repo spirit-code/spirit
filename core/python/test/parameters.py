@@ -11,8 +11,8 @@ import unittest
 
 ##########
 
-# cfgfile = "core/test/input/fd_neighbours.cfg"   # Input File
-cfgfile = spirit_py_dir + "/../test/input/api.cfg"  # Input File
+# cfgfile = "core/test/input/fd_neighbours.toml"   # Input File
+cfgfile = spirit_py_dir + "/../test/input/api.toml"  # Input File
 
 p_state = state.setup(cfgfile)  # State setup
 

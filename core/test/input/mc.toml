@@ -1,0 +1,84 @@
+############ Spirit Configuration ###############
+
+[defaults.output]
+file_tag = "test_mc"
+
+[logging]
+log_to_console = true
+log_to_file    = true
+console_level  = 5
+################## End General ##################
+
+[geometry]
+### The bravais lattice type
+bravais_lattice = "sc"
+
+### Number of basis cells along principal
+### directions (a b c)
+n_basis_cells = [5, 5, 5]
+
+
+[hamiltonian]
+### boundary_conditions (in a b c) = 0(open), 1(periodical)
+boundary_conditions = [1, 1, 1]
+
+### external magnetic field vector[T]
+external_field_magnitude = 0.0
+external_field_normal    = [0.0, 0.0, 1.0]
+
+### µSpin
+mu_s = 2.0
+
+### Uniaxial anisotropy constant [meV]
+anisotropy_magnitude = 3.0
+anisotropy_normal    = [0.0, 0.0, 1.0]
+
+### Exchange constants [meV] for the respective shells
+### Jij should appear after the >Number_of_neighbour_shells<
+exhange_shells = 10.0
+
+### Chirality of DM vectors (+/-1=bloch, +/-2=neel)
+dmi_chirality = 1
+
+### DM constant [meV]
+dmi_shells = []
+
+### Dipole-Dipole radius
+ddi_radius = 0.0
+
+
+################# MC Parameters ##################
+[method.mc]
+### Maximum wall time for single simulation
+### hh:mm:ss, where 0:0:0 is infinity
+max_walltime     = "0:0:0"
+
+### Seed for Random Number Generator
+seed             = 20006
+
+### Number of iterations
+n_iterations     = 2000000
+### Number of iterations after which to save
+n_iterations_log = 2000
+n_iterations_amortize = 1
+### Temperature [K]
+temperature      = 30
+### Acceptance ratio
+acceptance_ratio = 0.5
+
+### Output configuration
+[method.mc.output]
+any     = true
+initial = true
+final   = true
+
+energy_step                  = false
+energy_archive               = true
+energy_spin_resolved         = false
+energy_divide_by_nspins      = true
+energy_add_readability_lines = true
+
+
+configuration_step     = true
+configuration_archive  = false
+configuration_filetype = 3

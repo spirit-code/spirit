@@ -11,7 +11,7 @@ import unittest
 
 ##########
 
-cfgfile = spirit_py_dir + "/../test/input/fd_neighbours.cfg"  # Input File
+cfgfile = spirit_py_dir + "/../test/input/fd_neighbours.toml"  # Input File
 
 p_state = state.setup(cfgfile)  # State setup
 
@@ -25,7 +25,7 @@ class TestParameters(unittest.TestCase):
 class Geometry(TestParameters):
     def test_bounds(self):
         minb, maxb = geometry.get_bounds(self.p_state)
-        # From the api.cfg the space is 2:2:1 particles
+        # From the api.toml the space is 2:2:1 particles
         self.assertEqual(minb[0], 0)
         self.assertEqual(minb[1], 0)
         self.assertEqual(minb[2], 0)
@@ -35,14 +35,14 @@ class Geometry(TestParameters):
 
     def test_center(self):
         center = geometry.get_center(self.p_state)
-        # From the api.cfg the space is 2:2:1 particles
+        # From the api.toml the space is 2:2:1 particles
         self.assertEqual(center[0], 0.5)
         self.assertEqual(center[1], 0.5)
         self.assertEqual(center[2], 0)
 
     def test_bravais_vector(self):
         a, b, c = geometry.get_bravais_vectors(self.p_state)
-        # From the api.cfg the bravais vectors are (1,0,0), (0,1,0), (0,0,1)
+        # From the api.toml the bravais vectors are (1,0,0), (0,1,0), (0,0,1)
         self.assertEqual(a[0], b[1])
         self.assertEqual(b[1], c[2])
         # Check also that the bravais lattice type matches simple cubic

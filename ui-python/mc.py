@@ -68,7 +68,7 @@ susceptibility_samples = []
 specific_heat_samples = []
 binder_cumulant_samples = []
 
-cfgfile = "ui-python/input.cfg"  # Input File
+cfgfile = "ui-python/input.toml"  # Input File
 with state.State(cfgfile) as p_state:  # State setup
     # Set parameters
     hamiltonian.set_field(p_state, 0.0, [0, 0, 1])

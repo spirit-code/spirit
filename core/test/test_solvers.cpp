@@ -38,7 +38,7 @@ auto within_digits( T value, int decimals_required_equal )
     return Catch::Matchers::WithinAbs( value, std::pow( 10, -using_decimals ) );
 }
 
-constexpr auto inputfile = "core/test/input/solvers.cfg";
+constexpr auto inputfile = "core/test/input/solvers.toml";
 
 TEST_CASE( "Solvers should find Skyrmion energy minimum with direct minimization", "[solvers]" )
 {
