@@ -72,7 +72,7 @@ auto Hamiltonian_from_TOML( const toml::table & root, Data::Geometry geometry )
 
     auto boundary_conditions = Boundary_Conditions_from_TOML( tbl );
 
-    std::vector<std::string> parameter_log;
+    std::vector<std::string> parameter_log{ "" };
     auto zeeman                    = Zeeman_from_TOML( tbl, parameter_log );
     auto [uniaxial_ani, cubic_ani] = Anisotropy_from_TOML( tbl, geometry, parameter_log );
     auto biaxial_ani               = Biaxial_Anisotropy_from_TOML( tbl, geometry, parameter_log );
@@ -95,6 +95,7 @@ auto Hamiltonian_from_TOML( const toml::table & root, Data::Geometry geometry )
     log_error( hamiltonian->set_data<Interaction::Gaussian>( std::move( gaussian ) ) );
 
     Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Hamiltonian built: \"{}\"", hamiltonian->Name() ) );
+    parameter_log[0] = fmt::format( "Hamiltonian {}:", hamiltonian->Name() );
     Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
     return hamiltonian;
 }
