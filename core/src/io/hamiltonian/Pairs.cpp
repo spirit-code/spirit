@@ -181,12 +181,27 @@ void Pair_Interactions_from_Shells_from_TOML(
     const toml::table & tbl, const Data::Geometry &, std::vector<std::string> & parameter_log,
     scalarfield & exchange_magnitudes, scalarfield & dmi_magnitudes, int & dm_chirality )
 {
-    if( auto exchange_shells = toml_transform<scalarfield>( tbl["exchange_shells"] ) )
-        exchange_magnitudes = *exchange_shells;
+    const auto parse_shells = [&tbl]( auto & dest, const auto & labels )
+    {
+        for( const auto & label : labels )
+        {
+            const auto node = tbl[label];
+            if( auto scalar_value = node.as_floating_point() )
+            {
+                if( scalar_value->get() != 0 )
+                    dest = scalarfield( 1, scalar_value->get() );
+                return;
+            }
+            else if( auto exchange_shells = toml_transform<scalarfield>( node ) )
+            {
+                dest = *exchange_shells;
+                return;
+            }
+        }
+    };
 
-    if( auto dmi_shells = toml_transform<scalarfield>( tbl["dmi_shells"] ) )
-        dmi_magnitudes = *dmi_shells;
-
+    parse_shells( exchange_magnitudes, std::array{ "Jij", "exchange_shells" } );
+    parse_shells( dmi_magnitudes, std::array{ "Dij", "dmi_shells" } );
     dm_chirality = tbl["dmi_chirality"].value_or<int>( 0 );
 
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "n_shells_exchange", exchange_magnitudes.size() ) );

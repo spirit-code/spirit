@@ -35,13 +35,13 @@ anisotropy_normal    = [0.0, 0.0, 1.0]
 
 ### Exchange constants [meV] for the respective shells
 ### Jij should appear after the >Number_of_neighbour_shells<
-exhange_shells = 10.0
+Jij = 10.0
 
 ### Chirality of DM vectors (+/-1=bloch, +/-2=neel)
 dmi_chirality = 1
 
 ### DM constant [meV]
-dmi_shells = []
+Dij = []
 
 ### Dipole-Dipole radius
 ddi_radius = 0.0
