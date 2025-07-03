@@ -1,5 +1,6 @@
 add_subdirectory(${PROJECT_SOURCE_DIR}/include/Spirit)
 add_subdirectory(${PROJECT_SOURCE_DIR}/include/data)
+add_subdirectory(${PROJECT_SOURCE_DIR}/include/deprecated)
 add_subdirectory(${PROJECT_SOURCE_DIR}/include/engine)
 add_subdirectory(${PROJECT_SOURCE_DIR}/include/io)
 add_subdirectory(${PROJECT_SOURCE_DIR}/include/utility)
@@ -12,6 +13,10 @@ set(HEADER_SPIRIT
 set(HEADER_SPIRIT_DATA
     ${HEADER_SPIRIT_DATA}
     PARENT_SCOPE
+)
+
+set(HEADER_SPIRIT_DEPRECATED
+    ${HEADER_SPIRIT_DEPRECATED}
 )
 
 set(HEADER_SPIRIT_ENGINE

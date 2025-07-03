@@ -1,5 +1,6 @@
 #include <Spirit/Spirit_Defines.h>
 #include <Spirit/State.h>
+#include <deprecated/Deprecated.hpp>
 
 #include <data/State.hpp>
 #include <filesystem>
@@ -318,7 +319,15 @@ try
 
     Log( Log_Level::Info, Log_Sender::All, "Writing State configuration to file " + cfg );
 
-    if( std::filesystem::path( cfg ).extension() != ".toml" )
+    if( const auto extension = std::filesystem::path( cfg ).extension(); extension == ".cfg" )
+    {
+        Log( Log_Level::Warning, Log_Sender::All,
+             "You are using the deprecated '.cfg' format. It will be removed in a future release."
+             "Please switch to the toml base configuration." );
+        deprecated::State_to_Config( *state, config_file, comment );
+        return;
+    }
+    else if( extension != ".toml" )
         Log( Log_Level::Warning, Log_Sender::All,
              "The output format is toml. Consider using a '.toml' file extension!" );
 

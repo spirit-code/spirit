@@ -1,5 +1,6 @@
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/Spirit)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/data)
+add_subdirectory(${PROJECT_SOURCE_DIR}/src/deprecated)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/engine)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/io)
 add_subdirectory(${PROJECT_SOURCE_DIR}/src/utility)
@@ -17,6 +18,11 @@ set(SOURCE_SPIRIT
 
 set(SOURCE_SPIRIT_DATA
     ${SOURCE_SPIRIT_DATA}
+    PARENT_SCOPE
+)
+
+set(SOURCE_SPIRIT_DEPRECATED
+    ${SOURCE_SPIRIT_DEPRECATED}
     PARENT_SCOPE
 )
 
