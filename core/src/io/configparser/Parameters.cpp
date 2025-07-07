@@ -31,7 +31,7 @@ auto Defaults_from_TOML( const toml::table & root ) -> Defaults
     } };
 }
 
-auto Parameters_Method_EMA_from_TOML( const toml::table & root, const Defaults & defaults )
+auto Parameters_Method_EMA_from_TOML( const toml::table & tbl, const Defaults & defaults )
     -> std::unique_ptr<Data::Parameters_Method_EMA>
 {
     static constexpr std::string_view config_path = "method.ema";
@@ -44,42 +44,46 @@ auto Parameters_Method_EMA_from_TOML( const toml::table & root, const Defaults &
     // Maximum wall time
     std::string str_max_walltime = "0";
 
-    if( const auto * tbl_view = root.at_path( config_path ).as_table() )
+    if( tbl.at_path( config_path ).as_table() )
     {
-        const auto & tbl = *tbl_view;
+        constexpr auto prefix = []( const std::string_view key ) { return fmt::format( "{}.{}", config_path, key ); };
 
         // Output parameters
-        if( auto output_table = tbl["output"].as_table() )
+        if( tbl.at_path( prefix( "output" ) ).as_table() )
         {
-            auto & output = *output_table;
-            read_value_with_default( output, "folder", parameters->output_folder, defaults.output.directory );
-            read_value_with_default( output, "file_tag", parameters->output_file_tag, defaults.output.file_tag );
-            read_value( output, "any", parameters->output_any );
-            read_value( output, "initial", parameters->output_initial );
-            read_value( output, "final", parameters->output_final );
-            read_value( output, "energy_divide_by_nspins", parameters->output_energy_divide_by_nspins );
-            read_value( output, "energy_spin_resolved", parameters->output_energy_spin_resolved );
-            read_value( output, "energy_step", parameters->output_energy_step );
-            read_value( output, "energy_archive", parameters->output_energy_archive );
-            read_value( output, "configuration_step", parameters->output_configuration_step );
-            read_value( output, "configuration_archive", parameters->output_configuration_archive );
+            constexpr auto o_prefix
+                = []( const std::string_view key ) { return fmt::format( "{}.output.{}", config_path, key ); };
+
+            read_value_with_default( tbl, o_prefix( "folder" ), parameters->output_folder, defaults.output.directory );
+            read_value_with_default(
+                tbl, o_prefix( "file_tag" ), parameters->output_file_tag, defaults.output.file_tag );
+            read_value( tbl, o_prefix( "any" ), parameters->output_any );
+            read_value( tbl, o_prefix( "initial" ), parameters->output_initial );
+            read_value( tbl, o_prefix( "final" ), parameters->output_final );
+            read_value( tbl, o_prefix( "energy_divide_by_nspins" ), parameters->output_energy_divide_by_nspins );
+            read_value( tbl, o_prefix( "energy_spin_resolved" ), parameters->output_energy_spin_resolved );
+            read_value( tbl, o_prefix( "energy_step" ), parameters->output_energy_step );
+            read_value( tbl, o_prefix( "energy_archive" ), parameters->output_energy_archive );
+            read_value( tbl, o_prefix( "configuration_step" ), parameters->output_configuration_step );
+            read_value( tbl, o_prefix( "configuration_archive" ), parameters->output_configuration_archive );
         }
+        else
+            Log( Log_Level::Warning, Log_Sender::IO, missing_section_message( prefix( "output" ) ) );
+
         // Method parameters
-        read_value( tbl, "max_walltime", str_max_walltime );
+        read_value( tbl, prefix( "max_walltime" ), str_max_walltime );
         parameters->max_walltime_sec
             = static_cast<long int>( Utility::Timing::DurationFromString( str_max_walltime ).count() );
-        read_value( tbl, "n_iterations", parameters->n_iterations );
-        read_value( tbl, "n_iterations_log", parameters->n_iterations_log );
-        read_value( tbl, "n_modes", parameters->n_modes );
-        read_value( tbl, "n_mode_follow", parameters->n_mode_follow );
-        read_value( tbl, "frequency", parameters->frequency );
-        read_value( tbl, "amplitude", parameters->amplitude );
-        read_value( tbl, "sparse", parameters->sparse );
+        read_value( tbl, prefix( "n_iterations" ), parameters->n_iterations );
+        read_value( tbl, prefix( "n_iterations_log" ), parameters->n_iterations_log );
+        read_value( tbl, prefix( "n_modes" ), parameters->n_modes );
+        read_value( tbl, prefix( "n_mode_follow" ), parameters->n_mode_follow );
+        read_value( tbl, prefix( "frequency" ), parameters->frequency );
+        read_value( tbl, prefix( "amplitude" ), parameters->amplitude );
+        read_value( tbl, prefix( "sparse" ), parameters->sparse );
     }
     else
-    {
         Log( Log_Level::Warning, Log_Sender::IO, missing_section_message( config_path ) );
-    }
 
     // Return
     std::vector<std::string> parameter_log;
@@ -93,28 +97,28 @@ auto Parameters_Method_EMA_from_TOML( const toml::table & root, const Defaults &
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "sparse", parameters->sparse ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "maximum walltime", str_max_walltime ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<30} = {}", "output_configuration_archive", parameters->output_configuration_archive ) );
+        fmt::format( "    {:<30} = {}", "output.configuration_archive", parameters->output_configuration_archive ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<30} = {}", "output_configuration_step", parameters->output_configuration_step ) );
+        fmt::format( "    {:<30} = {}", "output.configuration_step", parameters->output_configuration_step ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<30} = {}", "output_energy_archive", parameters->output_energy_archive ) );
+        fmt::format( "    {:<30} = {}", "output.energy_archive", parameters->output_energy_archive ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<30} = {}", "output_energy_step", parameters->output_energy_step ) );
+        fmt::format( "    {:<30} = {}", "output.energy_step", parameters->output_energy_step ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<30} = {}", "output_energy_spin_resolved", parameters->output_energy_spin_resolved ) );
+        fmt::format( "    {:<30} = {}", "output.energy_spin_resolved", parameters->output_energy_spin_resolved ) );
     parameter_log.emplace_back( fmt::format(
-        "    {:<30} = {}", "output_energy_divide_by_nspins", parameters->output_energy_divide_by_nspins ) );
-    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_final", parameters->output_final ) );
-    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_initial", parameters->output_initial ) );
-    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_any", parameters->output_any ) );
-    parameter_log.emplace_back( fmt::format( "    {:<17} = \"{}\"", "output_folder", parameters->output_folder ) );
+        "    {:<30} = {}", "output.energy_divide_by_nspins", parameters->output_energy_divide_by_nspins ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output.final", parameters->output_final ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output.initial", parameters->output_initial ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output.any", parameters->output_any ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = \"{}\"", "output.folder", parameters->output_folder ) );
     Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters EMA: built" );
     return parameters;
 }
 
-auto Parameters_Method_GNEB_from_TOML( const toml::table & node, const Defaults & defaults )
+auto Parameters_Method_GNEB_from_TOML( const toml::table & tbl, const Defaults & defaults )
     -> std::unique_ptr<Data::Parameters_Method_GNEB>
 {
     static constexpr std::string_view config_path = "method.gneb";
@@ -125,9 +129,9 @@ auto Parameters_Method_GNEB_from_TOML( const toml::table & node, const Defaults 
     // Maximum wall time
     std::string str_max_walltime = "0";
 
-    if( const auto * tbl_view = node.at_path( config_path ).as_table() )
+    if( tbl.at_path( config_path ).as_table() )
     {
-        const auto & tbl = *tbl_view;
+        constexpr auto prefix = []( const std::string_view key ) { return fmt::format( "{}.{}", config_path, key ); };
 
         // Chain output filetype
         int output_chain_filetype = static_cast<int>( parameters->output_vf_filetype );
@@ -135,41 +139,46 @@ auto Parameters_Method_GNEB_from_TOML( const toml::table & node, const Defaults 
         // Parse
         Log( Log_Level::Debug, Log_Sender::IO, "Parameters GNEB: building" );
         // Output parameters
-        if( auto output_table = tbl["output"].as_table() )
+        if( tbl.at_path( prefix( "output" ) ).as_table() )
         {
-            auto & output = *output_table;
-            read_value_with_default( output, "file_tag", parameters->output_file_tag, defaults.output.file_tag );
-            read_value_with_default( output, "folder", parameters->output_folder, defaults.output.directory );
-            read_value( output, "any", parameters->output_any );
-            read_value( output, "initial", parameters->output_initial );
-            read_value( output, "final", parameters->output_final );
-            read_value( output, "energies_step", parameters->output_energies_step );
-            read_value( output, "energies_add_readability_lines", parameters->output_energies_add_readability_lines );
-            read_value( output, "energies_interpolated", parameters->output_energies_interpolated );
-            read_value( output, "energies_divide_by_nspins", parameters->output_energies_divide_by_nspins );
-            read_value( output, "chain_step", parameters->output_chain_step );
-            read_value( output, "chain_filetype", output_chain_filetype );
+            constexpr auto o_prefix
+                = []( const std::string_view key ) { return fmt::format( "{}.output.{}", config_path, key ); };
+
+            read_value_with_default( tbl, prefix( "file_tag" ), parameters->output_file_tag, defaults.output.file_tag );
+            read_value_with_default( tbl, prefix( "folder" ), parameters->output_folder, defaults.output.directory );
+            read_value( tbl, o_prefix( "any" ), parameters->output_any );
+            read_value( tbl, o_prefix( "initial" ), parameters->output_initial );
+            read_value( tbl, o_prefix( "final" ), parameters->output_final );
+            read_value( tbl, o_prefix( "energies_step" ), parameters->output_energies_step );
+            read_value(
+                tbl, o_prefix( "energies_add_readability_lines" ), parameters->output_energies_add_readability_lines );
+            read_value( tbl, o_prefix( "energies_interpolated" ), parameters->output_energies_interpolated );
+            read_value( tbl, o_prefix( "energies_divide_by_nspins" ), parameters->output_energies_divide_by_nspins );
+            read_value( tbl, o_prefix( "chain_step" ), parameters->output_chain_step );
+            read_value( tbl, o_prefix( "chain_filetype" ), output_chain_filetype );
         }
+        else
+            Log( Log_Level::Warning, Log_Sender::IO, missing_section_message( prefix( "output" ) ) );
+
         parameters->output_vf_filetype = IO::VF_FileFormat( output_chain_filetype );
+
         // Method parameters
-        read_value( tbl, "max_walltime", str_max_walltime );
+        read_value( tbl, prefix( "max_walltime" ), str_max_walltime );
         parameters->max_walltime_sec
             = static_cast<long int>( Utility::Timing::DurationFromString( str_max_walltime ).count() );
-        read_value( tbl, "spring_constant", parameters->spring_constant );
-        read_value( tbl, "force_convergence", parameters->force_convergence );
-        read_value( tbl, "n_iterations", parameters->n_iterations );
-        read_value( tbl, "n_iterations_log", parameters->n_iterations_log );
-        read_value( tbl, "n_iterations_amortize", parameters->n_iterations_amortize );
-        read_value( tbl, "n_energy_interpolations", parameters->n_E_interpolations );
-        read_value( tbl, "moving_endpoints", parameters->moving_endpoints );
-        read_value( tbl, "equilibrium_delta_Rx_left", parameters->equilibrium_delta_Rx_left );
-        read_value( tbl, "equilibrium_delta_Rx_right", parameters->equilibrium_delta_Rx_right );
-        read_value( tbl, "translating_endpoints", parameters->translating_endpoints );
+        read_value( tbl, prefix( "spring_constant" ), parameters->spring_constant );
+        read_value( tbl, prefix( "force_convergence" ), parameters->force_convergence );
+        read_value( tbl, prefix( "n_iterations" ), parameters->n_iterations );
+        read_value( tbl, prefix( "n_iterations_log" ), parameters->n_iterations_log );
+        read_value( tbl, prefix( "n_iterations_amortize" ), parameters->n_iterations_amortize );
+        read_value( tbl, prefix( "n_energy_interpolations" ), parameters->n_E_interpolations );
+        read_value( tbl, prefix( "moving_endpoints" ), parameters->moving_endpoints );
+        read_value( tbl, prefix( "equilibrium_delta_Rx_left" ), parameters->equilibrium_delta_Rx_left );
+        read_value( tbl, prefix( "equilibrium_delta_Rx_right" ), parameters->equilibrium_delta_Rx_right );
+        read_value( tbl, prefix( "translating_endpoints" ), parameters->translating_endpoints );
     }
     else
-    {
         Log( Log_Level::Warning, Log_Sender::IO, missing_section_message( config_path ) );
-    }
 
     // Return
     std::vector<std::string> parameter_log;
@@ -191,25 +200,25 @@ auto Parameters_Method_GNEB_from_TOML( const toml::table & node, const Defaults 
         fmt::format( "    {:<18} = {}", "equilibrium_delta_Rx_right", parameters->equilibrium_delta_Rx_right ) );
     parameter_log.emplace_back(
         fmt::format( "    {:<18} = {}", "translating_endpoints", parameters->translating_endpoints ) );
-    parameter_log.emplace_back( fmt::format( "    {:<18} = \"{}\"", "output_folder", parameters->output_folder ) );
-    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "output_any", parameters->output_any ) );
-    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "output_initial", parameters->output_initial ) );
-    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "output_final", parameters->output_final ) );
+    parameter_log.emplace_back( fmt::format( "    {:<18} = \"{}\"", "output.folder", parameters->output_folder ) );
+    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "output.any", parameters->output_any ) );
+    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "output.initial", parameters->output_initial ) );
+    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "output.final", parameters->output_final ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<18} = {}", "output_energies_step", parameters->output_energies_step ) );
+        fmt::format( "    {:<18} = {}", "output.energies_step", parameters->output_energies_step ) );
     parameter_log.emplace_back( fmt::format(
-        "    {:<18} = {}", "output_energies_add_readability_lines",
+        "    {:<18} = {}", "output.energies_add_readability_lines",
         parameters->output_energies_add_readability_lines ) );
-    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "output_chain_step", parameters->output_chain_step ) );
+    parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "output.chain_step", parameters->output_chain_step ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<18} = {}", "output_chain_filetype", static_cast<int>( parameters->output_vf_filetype ) ) );
+        fmt::format( "    {:<18} = {}", "output.chain_filetype", static_cast<int>( parameters->output_vf_filetype ) ) );
     Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters GNEB: built" );
     return parameters;
 } // end Parameters_Method_LLG_from_Config
 
-auto Parameters_Method_LLG_from_TOML( const toml::table & node, const Defaults & defaults )
+auto Parameters_Method_LLG_from_TOML( const toml::table & tbl, const Defaults & defaults )
     -> std::unique_ptr<Data::Parameters_Method_LLG>
 {
     static constexpr std::string_view config_path = "method.llg";
@@ -227,66 +236,70 @@ auto Parameters_Method_LLG_from_TOML( const toml::table & node, const Defaults &
     parameters->rng_seed = random();
     parameters->prng     = std::mt19937( parameters->rng_seed );
 
-    if( const auto * tbl_view = node.at_path( config_path ).as_table() )
+    if( tbl.at_path( config_path ).as_table() )
     {
-        const auto & tbl = *tbl_view;
+        constexpr auto prefix = []( const std::string_view key ) { return fmt::format( "{}.{}", config_path, key ); };
 
         // Output parameters
         // Configuration output filetype
-        if( auto output_table = tbl["output"].as_table() )
+        if( tbl.at_path( prefix( "output" ) ).as_table() )
         {
-            auto & output = *output_table;
-            read_value_with_default( output, "file_tag", parameters->output_file_tag, defaults.output.file_tag );
-            read_value_with_default( output, "folder", parameters->output_folder, defaults.output.directory );
-            read_value( output, "any", parameters->output_any );
-            read_value( output, "initial", parameters->output_initial );
-            read_value( output, "final", parameters->output_final );
-            read_value( output, "energy_spin_resolved", parameters->output_energy_spin_resolved );
-            read_value( output, "energy_step", parameters->output_energy_step );
-            read_value( output, "energy_archive", parameters->output_energy_archive );
-            read_value( output, "energy_divide_by_nspins", parameters->output_energy_divide_by_nspins );
-            read_value( output, "energy_add_readability_lines", parameters->output_energy_add_readability_lines );
-            read_value( output, "configuration_step", parameters->output_configuration_step );
-            read_value( output, "configuration_archive", parameters->output_configuration_archive );
+            constexpr auto o_prefix
+                = []( const std::string_view key ) { return fmt::format( "{}.output.{}", config_path, key ); };
+
+            read_value_with_default(
+                tbl, o_prefix( "file_tag" ), parameters->output_file_tag, defaults.output.file_tag );
+            read_value_with_default( tbl, o_prefix( "folder" ), parameters->output_folder, defaults.output.directory );
+            read_value( tbl, o_prefix( "any" ), parameters->output_any );
+            read_value( tbl, o_prefix( "initial" ), parameters->output_initial );
+            read_value( tbl, o_prefix( "final" ), parameters->output_final );
+            read_value( tbl, o_prefix( "energy_spin_resolved" ), parameters->output_energy_spin_resolved );
+            read_value( tbl, o_prefix( "energy_step" ), parameters->output_energy_step );
+            read_value( tbl, o_prefix( "energy_archive" ), parameters->output_energy_archive );
+            read_value( tbl, o_prefix( "energy_divide_by_nspins" ), parameters->output_energy_divide_by_nspins );
+            read_value(
+                tbl, o_prefix( "energy_add_readability_lines" ), parameters->output_energy_add_readability_lines );
+            read_value( tbl, o_prefix( "configuration_step" ), parameters->output_configuration_step );
+            read_value( tbl, o_prefix( "configuration_archive" ), parameters->output_configuration_archive );
             {
                 int output_configuration_filetype = static_cast<int>( parameters->output_vf_filetype );
-                read_value( output, "configuration_filetype", output_configuration_filetype );
+                read_value( tbl, o_prefix( "configuration_filetype" ), output_configuration_filetype );
                 parameters->output_vf_filetype = IO::VF_FileFormat( output_configuration_filetype );
             }
         }
+        else
+            Log( Log_Level::Warning, Log_Sender::IO, missing_section_message( prefix( "output" ) ) );
 
         // Method parameters
         {
-            read_value( tbl, "max_walltime", str_max_walltime );
+            read_value( tbl, prefix( "max_walltime" ), str_max_walltime );
             parameters->max_walltime_sec
                 = static_cast<long int>( Utility::Timing::DurationFromString( str_max_walltime ).count() );
         }
 
-        read_value( tbl, "seed", parameters->rng_seed );
+        read_value( tbl, prefix( "seed" ), parameters->rng_seed );
         parameters->prng = std::mt19937( parameters->rng_seed );
 
-        read_value( tbl, "n_iterations", parameters->n_iterations );
-        read_value( tbl, "n_iterations_log", parameters->n_iterations_log );
-        read_value( tbl, "n_iterations_amortize", parameters->n_iterations_amortize );
-        read_value( tbl, "dt", parameters->dt );
-        read_value( tbl, "temperature", parameters->temperature );
+        read_value( tbl, prefix( "n_iterations" ), parameters->n_iterations );
+        read_value( tbl, prefix( "n_iterations_log" ), parameters->n_iterations_log );
+        read_value( tbl, prefix( "n_iterations_amortize" ), parameters->n_iterations_amortize );
+        read_value( tbl, prefix( "dt" ), parameters->dt );
+        read_value( tbl, prefix( "temperature" ), parameters->temperature );
 
-        read_value( tbl, "llg_temperature_gradient_direction", parameters->temperature_gradient_direction );
+        read_value( tbl, prefix( "llg_temperature_gradient_direction" ), parameters->temperature_gradient_direction );
         parameters->temperature_gradient_direction.normalize();
 
-        read_value( tbl, "temperature_gradient_inclination", parameters->temperature_gradient_inclination );
-        read_value( tbl, "damping", parameters->damping );
-        read_value( tbl, "beta", parameters->beta );
-        read_value( tbl, "stt_use_gradient", parameters->stt_use_gradient );
-        read_value( tbl, "stt_magnitude", parameters->stt_magnitude );
-        read_value( tbl, "llg_stt_polarisation_normal", parameters->stt_polarisation_normal );
+        read_value( tbl, prefix( "temperature_gradient_inclination" ), parameters->temperature_gradient_inclination );
+        read_value( tbl, prefix( "damping" ), parameters->damping );
+        read_value( tbl, prefix( "beta" ), parameters->beta );
+        read_value( tbl, prefix( "stt_use_gradient" ), parameters->stt_use_gradient );
+        read_value( tbl, prefix( "stt_magnitude" ), parameters->stt_magnitude );
+        read_value( tbl, prefix( "llg_stt_polarisation_normal" ), parameters->stt_polarisation_normal );
         parameters->stt_polarisation_normal.normalize();
-        read_value( tbl, "force_convergence", parameters->force_convergence );
+        read_value( tbl, prefix( "force_convergence" ), parameters->force_convergence );
     }
     else
-    {
         Log( Log_Level::Warning, Log_Sender::IO, missing_section_message( config_path ) );
-    }
 
     // Return
     std::vector<std::string> parameter_log;
@@ -311,26 +324,26 @@ auto Parameters_Method_LLG_from_TOML( const toml::table & node, const Defaults &
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations_log", parameters->n_iterations_log ) );
     parameter_log.emplace_back(
         fmt::format( "    {:<17} = {}", "n_iterations_amortize", parameters->n_iterations_amortize ) );
-    parameter_log.emplace_back( fmt::format( "    {:<17} = \"{}\"", "output_folder", parameters->output_folder ) );
-    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_any", parameters->output_any ) );
-    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_initial", parameters->output_initial ) );
-    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_final", parameters->output_final ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = \"{}\"", "output.folder", parameters->output_folder ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output.any", parameters->output_any ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output.initial", parameters->output_initial ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output.final", parameters->output_final ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<30} = {}", "output_energy_step", parameters->output_energy_step ) );
+        fmt::format( "    {:<30} = {}", "output.energy_step", parameters->output_energy_step ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<30} = {}", "output_energy_archive", parameters->output_energy_archive ) );
+        fmt::format( "    {:<30} = {}", "output.energy_archive", parameters->output_energy_archive ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<30} = {}", "output_energy_spin_resolved", parameters->output_energy_spin_resolved ) );
+        fmt::format( "    {:<30} = {}", "output.energy_spin_resolved", parameters->output_energy_spin_resolved ) );
     parameter_log.emplace_back( fmt::format(
-        "    {:<30} = {}", "output_energy_divide_by_nspins", parameters->output_energy_divide_by_nspins ) );
+        "    {:<30} = {}", "output.energy_divide_by_nspins", parameters->output_energy_divide_by_nspins ) );
     parameter_log.emplace_back( fmt::format(
-        "    {:<30} = {}", "output_energy_add_readability_lines", parameters->output_energy_add_readability_lines ) );
+        "    {:<30} = {}", "output.energy_add_readability_lines", parameters->output_energy_add_readability_lines ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<30} = {}", "output_configuration_step", parameters->output_configuration_step ) );
+        fmt::format( "    {:<30} = {}", "output.configuration_step", parameters->output_configuration_step ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<30} = {}", "output_configuration_archive", parameters->output_configuration_archive ) );
+        fmt::format( "    {:<30} = {}", "output.configuration_archive", parameters->output_configuration_archive ) );
     parameter_log.emplace_back( fmt::format(
-        "    {:<30} = {}", "output_configuration_filetype", static_cast<int>( parameters->output_vf_filetype ) ) );
+        "    {:<30} = {}", "output.configuration_filetype", static_cast<int>( parameters->output_vf_filetype ) ) );
 
     Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
@@ -358,46 +371,53 @@ auto Parameters_Method_MC_from_TOML( const toml::table & node, const Defaults & 
 
     if( const auto * tbl_view = node.at_path( config_path ).as_table() )
     {
-        const auto & tbl = *tbl_view;
+        constexpr auto prefix = []( const std::string_view key ) { return fmt::format( "{}.{}", config_path, key ); };
+        const auto & tbl      = *tbl_view;
 
         // Configuration output filetype
         int output_configuration_filetype = static_cast<int>( parameters->output_vf_filetype );
 
         // Output parameters
-        if( auto output_table = tbl["output"].as_table() )
+        if( tbl.at_path( prefix( "output" ) ).as_table() )
         {
-            auto & output = *output_table;
-            read_value_with_default( output, "file_tag", parameters->output_file_tag, defaults.output.file_tag );
-            read_value_with_default( output, "folder", parameters->output_folder, defaults.output.directory );
-            read_value( output, "any", parameters->output_any );
-            read_value( output, "initial", parameters->output_initial );
-            read_value( output, "final", parameters->output_final );
-            read_value( output, "energy_spin_resolved", parameters->output_energy_spin_resolved );
-            read_value( output, "energy_step", parameters->output_energy_step );
-            read_value( output, "energy_archive", parameters->output_energy_archive );
-            read_value( output, "energy_divide_by_nspins", parameters->output_energy_divide_by_nspins );
-            read_value( output, "energy_add_readability_lines", parameters->output_energy_add_readability_lines );
-            read_value( output, "configuration_step", parameters->output_configuration_step );
-            read_value( output, "configuration_archive", parameters->output_configuration_archive );
-            read_value( output, "configuration_filetype", output_configuration_filetype );
+            constexpr auto o_prefix
+                = []( const std::string_view key ) { return fmt::format( "{}.output.{}", config_path, key ); };
+            read_value_with_default(
+                tbl, o_prefix( "file_tag" ), parameters->output_file_tag, defaults.output.file_tag );
+            read_value_with_default( tbl, o_prefix( "folder" ), parameters->output_folder, defaults.output.directory );
+            read_value( tbl, o_prefix( "any" ), parameters->output_any );
+            read_value( tbl, o_prefix( "initial" ), parameters->output_initial );
+            read_value( tbl, o_prefix( "final" ), parameters->output_final );
+            read_value( tbl, o_prefix( "energy_spin_resolved" ), parameters->output_energy_spin_resolved );
+            read_value( tbl, o_prefix( "energy_step" ), parameters->output_energy_step );
+            read_value( tbl, o_prefix( "energy_archive" ), parameters->output_energy_archive );
+            read_value( tbl, o_prefix( "energy_divide_by_nspins" ), parameters->output_energy_divide_by_nspins );
+            read_value(
+                tbl, o_prefix( "energy_add_readability_lines" ), parameters->output_energy_add_readability_lines );
+            read_value( tbl, o_prefix( "configuration_step" ), parameters->output_configuration_step );
+            read_value( tbl, o_prefix( "configuration_archive" ), parameters->output_configuration_archive );
+            read_value( tbl, o_prefix( "configuration_filetype" ), output_configuration_filetype );
         }
+        else
+            Log( Log_Level::Warning, Log_Sender::IO, missing_section_message( prefix( "output" ) ) );
         parameters->output_vf_filetype = IO::VF_FileFormat( output_configuration_filetype );
+
         // Method parameters
-        read_value( tbl, "max_walltime", str_max_walltime );
+        read_value( tbl, prefix( "max_walltime" ), str_max_walltime );
         parameters->max_walltime_sec
             = static_cast<long int>( Utility::Timing::DurationFromString( str_max_walltime ).count() );
-        read_value( tbl, "seed", parameters->rng_seed );
+        read_value( tbl, prefix( "seed" ), parameters->rng_seed );
         parameters->prng = std::mt19937( parameters->rng_seed );
-        read_value( tbl, "n_iterations", parameters->n_iterations );
-        read_value( tbl, "n_iterations_log", parameters->n_iterations_log );
-        read_value( tbl, "n_iterations_amortize", parameters->n_iterations_amortize );
-        read_value( tbl, "temperature", parameters->temperature );
+        read_value( tbl, prefix( "n_iterations" ), parameters->n_iterations );
+        read_value( tbl, prefix( "n_iterations_log" ), parameters->n_iterations_log );
+        read_value( tbl, prefix( "n_iterations_amortize" ), parameters->n_iterations_amortize );
+        read_value( tbl, prefix( "temperature" ), parameters->temperature );
         // Metropolis method parameters
         {
             // Metropolis Step variable
             std::string metropolis_step = "cone";
 
-            read_value( tbl, "metropolis_step", metropolis_step );
+            read_value( tbl, prefix( "metropolis_step" ), metropolis_step );
             std::transform( metropolis_step.begin(), metropolis_step.end(), metropolis_step.begin(), ::tolower );
 
             if( metropolis_step == "sphere" )
@@ -413,15 +433,13 @@ auto Parameters_Method_MC_from_TOML( const toml::table & node, const Defaults & 
                      fmt::format( "Metropolis step \"{}\" unknown. Using \"cone\"...", metropolis_step ) );
             }
         }
-        read_value( tbl, "metropolis_use_adaptive_cone", parameters->metropolis_cone_adaptive );
-        read_value( tbl, "acceptance_ratio", parameters->acceptance_ratio_target );
-        read_value( tbl, "metropolis_cone_angle", parameters->metropolis_cone_angle );
-        read_value( tbl, "metropolis_random_sample", parameters->metropolis_random_sample );
+        read_value( tbl, prefix( "metropolis_use_adaptive_cone" ), parameters->metropolis_cone_adaptive );
+        read_value( tbl, prefix( "acceptance_ratio" ), parameters->acceptance_ratio_target );
+        read_value( tbl, prefix( "metropolis_cone_angle" ), parameters->metropolis_cone_angle );
+        read_value( tbl, prefix( "metropolis_random_sample" ), parameters->metropolis_random_sample );
     }
     else
-    {
         Log( Log_Level::Warning, Log_Sender::IO, missing_section_message( config_path ) );
-    }
 
     // Return
     std::vector<std::string> parameter_log;
@@ -444,33 +462,33 @@ auto Parameters_Method_MC_from_TOML( const toml::table & node, const Defaults & 
     parameter_log.emplace_back(
         fmt::format( "    {:<17} = {}", "n_iterations_amortize", parameters->n_iterations_amortize ) );
     // output parameters
-    parameter_log.emplace_back( fmt::format( "    {:<17} = \"{}\"", "output_folder", parameters->output_folder ) );
-    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_any", parameters->output_any ) );
-    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_initial", parameters->output_initial ) );
-    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_final", parameters->output_final ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = \"{}\"", "output.folder", parameters->output_folder ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output.any", parameters->output_any ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output.initial", parameters->output_initial ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output.final", parameters->output_final ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<30} = {}", "output_energy_step", parameters->output_energy_step ) );
+        fmt::format( "    {:<30} = {}", "output.energy_step", parameters->output_energy_step ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<30} = {}", "output_energy_archive", parameters->output_energy_archive ) );
+        fmt::format( "    {:<30} = {}", "output.energy_archive", parameters->output_energy_archive ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<30} = {}", "output_energy_spin_resolved", parameters->output_energy_spin_resolved ) );
+        fmt::format( "    {:<30} = {}", "output.energy_spin_resolved", parameters->output_energy_spin_resolved ) );
     parameter_log.emplace_back( fmt::format(
-        "    {:<30} = {}", "output_energy_divide_by_nspins", parameters->output_energy_divide_by_nspins ) );
+        "    {:<30} = {}", "output.energy_divide_by_nspins", parameters->output_energy_divide_by_nspins ) );
     parameter_log.emplace_back( fmt::format(
-        "    {:<30} = {}", "output_energy_add_readability_lines", parameters->output_energy_add_readability_lines ) );
+        "    {:<30} = {}", "output.energy_add_readability_lines", parameters->output_energy_add_readability_lines ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<30} = {}", "output_configuration_step", parameters->output_configuration_step ) );
+        fmt::format( "    {:<30} = {}", "output.configuration_step", parameters->output_configuration_step ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<30} = {}", "output_configuration_archive", parameters->output_configuration_archive ) );
+        fmt::format( "    {:<30} = {}", "output.configuration_archive", parameters->output_configuration_archive ) );
     parameter_log.emplace_back( fmt::format(
-        "    {:<30} = {}", "output_configuration_filetype", static_cast<int>( parameters->output_vf_filetype ) ) );
+        "    {:<30} = {}", "output.configuration_filetype", static_cast<int>( parameters->output_vf_filetype ) ) );
     Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters MC: built" );
     return parameters;
 }
 
-auto Parameters_Method_MMF_from_TOML( const toml::table & node, const Defaults & defaults )
+auto Parameters_Method_MMF_from_TOML( const toml::table & tbl, const Defaults & defaults )
     -> std::unique_ptr<Data::Parameters_Method_MMF>
 {
     static constexpr std::string_view config_path = "parameters.mmf";
@@ -482,46 +500,51 @@ auto Parameters_Method_MMF_from_TOML( const toml::table & node, const Defaults &
     // Maximum wall time
     std::string str_max_walltime = "0";
 
-    if( const auto * tbl_view = node.at_path( config_path ).as_table() )
+    if( tbl.at_path( config_path ).as_table() )
     {
-        const auto & tbl = *tbl_view;
+        constexpr auto prefix = []( const std::string_view key ) { return fmt::format( "{}.{}", config_path, key ); };
 
         // Configuration output filetype
         int output_configuration_filetype = static_cast<int>( parameters->output_vf_filetype );
 
         // Output parameters
-        if( auto output_table = tbl["output"].as_table() )
+        if( tbl.at_path( prefix( "output" ) ).as_table() )
         {
-            auto & output = *output_table;
-            read_value_with_default( output, "file_tag", parameters->output_file_tag, defaults.output.file_tag );
-            read_value_with_default( output, "folder", parameters->output_folder, defaults.output.directory );
-            read_value( output, "any", parameters->output_any );
-            read_value( output, "initial", parameters->output_initial );
-            read_value( output, "final", parameters->output_final );
-            read_value( output, "energy_step", parameters->output_energy_step );
-            read_value( output, "energy_archive", parameters->output_energy_archive );
-            read_value( output, "energy_divide_by_nspins", parameters->output_energy_divide_by_nspins );
-            read_value( output, "energy_add_readability_lines", parameters->output_energy_add_readability_lines );
-            read_value( output, "configuration_step", parameters->output_configuration_step );
-            read_value( output, "configuration_archive", parameters->output_configuration_archive );
-            read_value( output, "configuration_filetype", output_configuration_filetype );
+            constexpr auto o_prefix
+                = []( const std::string_view key ) { return fmt::format( "{}.output.{}", config_path, key ); };
+
+            read_value_with_default(
+                tbl, o_prefix( "file_tag" ), parameters->output_file_tag, defaults.output.file_tag );
+            read_value_with_default( tbl, o_prefix( "folder" ), parameters->output_folder, defaults.output.directory );
+            read_value( tbl, o_prefix( "any" ), parameters->output_any );
+            read_value( tbl, o_prefix( "initial" ), parameters->output_initial );
+            read_value( tbl, o_prefix( "final" ), parameters->output_final );
+            read_value( tbl, o_prefix( "energy_step" ), parameters->output_energy_step );
+            read_value( tbl, o_prefix( "energy_archive" ), parameters->output_energy_archive );
+            read_value( tbl, o_prefix( "energy_divide_by_nspins" ), parameters->output_energy_divide_by_nspins );
+            read_value(
+                tbl, o_prefix( "energy_add_readability_lines" ), parameters->output_energy_add_readability_lines );
+            read_value( tbl, o_prefix( "configuration_step" ), parameters->output_configuration_step );
+            read_value( tbl, o_prefix( "configuration_archive" ), parameters->output_configuration_archive );
+            read_value( tbl, o_prefix( "configuration_filetype" ), output_configuration_filetype );
             parameters->output_vf_filetype = IO::VF_FileFormat( output_configuration_filetype );
         }
+        else
+            Log( Log_Level::Warning, Log_Sender::IO, missing_section_message( prefix( "output" ) ) );
+
         // Method parameters
-        read_value( tbl, "max_walltime", str_max_walltime );
+        read_value( tbl, prefix( "max_walltime" ), str_max_walltime );
         parameters->max_walltime_sec
             = static_cast<long int>( Utility::Timing::DurationFromString( str_max_walltime ).count() );
-        read_value( tbl, "force_convergence", parameters->force_convergence );
-        read_value( tbl, "n_iterations", parameters->n_iterations );
-        read_value( tbl, "n_iterations_log", parameters->n_iterations_log );
-        read_value( tbl, "n_iterations_amortize", parameters->n_iterations_amortize );
-        read_value( tbl, "n_modes", parameters->n_modes );
-        read_value( tbl, "n_mode_follow", parameters->n_mode_follow );
+        read_value( tbl, prefix( "force_convergence" ), parameters->force_convergence );
+        read_value( tbl, prefix( "n_iterations" ), parameters->n_iterations );
+        read_value( tbl, prefix( "n_iterations_log" ), parameters->n_iterations_log );
+        read_value( tbl, prefix( "n_iterations_amortize" ), parameters->n_iterations_amortize );
+        read_value( tbl, prefix( "n_modes" ), parameters->n_modes );
+        read_value( tbl, prefix( "n_mode_follow" ), parameters->n_mode_follow );
     }
     else
-    {
-        Log( Log_Level::Warning, Log_Sender::IO, "Section 'method.mmf' missing: using defaults..." );
-    }
+        Log( Log_Level::Warning, Log_Sender::IO, missing_section_message( config_path ) );
 
     // Return
     std::vector<std::string> parameter_log;
@@ -533,24 +556,24 @@ auto Parameters_Method_MMF_from_TOML( const toml::table & node, const Defaults &
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "n_iterations_log", parameters->n_iterations_log ) );
     parameter_log.emplace_back(
         fmt::format( "    {:<17} = {}", "n_iterations_amortize", parameters->n_iterations_amortize ) );
-    parameter_log.emplace_back( fmt::format( "    {:<17} = \"{}\"", "output_folder", parameters->output_folder ) );
-    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_any", parameters->output_any ) );
-    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_initial", parameters->output_initial ) );
-    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output_final", parameters->output_final ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = \"{}\"", "output.folder", parameters->output_folder ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output.any", parameters->output_any ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output.initial", parameters->output_initial ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "output.final", parameters->output_final ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<30} = {}", "output_energy_step", parameters->output_energy_step ) );
+        fmt::format( "    {:<30} = {}", "output.energy_step", parameters->output_energy_step ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<30} = {}", "output_energy_archive", parameters->output_energy_archive ) );
+        fmt::format( "    {:<30} = {}", "output.energy_archive", parameters->output_energy_archive ) );
     parameter_log.emplace_back( fmt::format(
-        "    {:<30} = {}", "output_energy_divide_by_nspins", parameters->output_energy_divide_by_nspins ) );
+        "    {:<30} = {}", "output.energy_divide_by_nspins", parameters->output_energy_divide_by_nspins ) );
     parameter_log.emplace_back( fmt::format(
-        "    {:<30} = {}", "output_energy_add_readability_lines", parameters->output_energy_add_readability_lines ) );
+        "    {:<30} = {}", "output.energy_add_readability_lines", parameters->output_energy_add_readability_lines ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<30} = {}", "output_configuration_step", parameters->output_configuration_step ) );
+        fmt::format( "    {:<30} = {}", "output.configuration_step", parameters->output_configuration_step ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<30} = {}", "output_configuration_archive", parameters->output_configuration_archive ) );
+        fmt::format( "    {:<30} = {}", "output.configuration_archive", parameters->output_configuration_archive ) );
     parameter_log.emplace_back( fmt::format(
-        "    {:<30} = {}", "output_configuration_filetype", static_cast<int>( parameters->output_vf_filetype ) ) );
+        "    {:<30} = {}", "output.configuration_filetype", static_cast<int>( parameters->output_vf_filetype ) ) );
     Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters MMF: built" );
