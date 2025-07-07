@@ -7,22 +7,6 @@
 output.file_tag = "<time>"
 output.folder   = "output"
 
-[logging]
-output.folder = "."
-### Save input parameters on State creation/deletion
-save_input_initial  = false
-save_input_final    = false
-
-### Save atom positions on State creation/deletion
-save_positions_initial = false
-save_positions_final   = false
-
-### Save exchange and DM neighbours on State creation/deletion
-save_neighbours_initial = false
-save_neighbours_final   = false
-
-
-
 ################## Hamiltonian ###################
 [hamiltonian]
 ### Boundary_conditions (a b c): 0(open), 1(periodical)
@@ -79,7 +63,19 @@ bravais_lattice = "sc"
 n_basis_cells = [100, 100, 1]
 ################# End Geometry ###################
 
+[logging]
+output.folder = "."
+### Save input parameters on State creation/deletion
+save_input_initial  = false
+save_input_final    = false
 
+### Save atom positions on State creation/deletion
+save_positions_initial = false
+save_positions_final   = false
+
+### Save exchange and DM neighbours on State creation/deletion
+save_neighbours_initial = false
+save_neighbours_final   = false
 
 ############### Logging Parameters ###############
 ### Levels of information
@@ -126,11 +122,11 @@ temperature      = 0
 acceptance_ratio = 0.5
 
 ### Output configuration
-output_any     = 1
-output_initial = 1
-output_final   = 1
-
 [method.mc.output]
+output_any     = true
+output_initial = true
+output_final   = true
+
 energy_step                  = false
 energy_archive               = true
 energy_spin_resolved         = false
@@ -173,12 +169,12 @@ beta                = 0.1
 ### Time step dt
 dt                  = 1.0E-3
 
-### Bools 0 = false || 1 = true
-renorm              = 1
+### Renormalize spins
+renorm              = true
 
-### 0 = use the pinned monolayer approximation
-### 1 = use the gradient approximation
-stt_use_gradient        = 0
+### false = use the pinned monolayer approximation
+### true  = use the gradient approximation
+stt_use_gradient        = false
 ### Spin transfer torque parameter proportional
 ### to injected current density
 stt_magnitude           = 0.0
