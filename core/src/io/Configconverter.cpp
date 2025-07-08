@@ -376,7 +376,7 @@ auto Parameters_Method_LLG( const std::string & config_file_name, const IO::Defa
             config_file_handle.Read_Vector3(
                 parameters.temperature_gradient_direction, "llg_temperature_gradient_direction" );
             config_file_handle.Read_Single(
-                parameters.temperature_gradient_inclination, "llg_temperature_gradient_inclination" );
+                parameters.temperature_gradient_magnitude, "llg_temperature_gradient_inclination" );
             config_file_handle.Read_Single( parameters.damping, "llg_damping" );
             config_file_handle.Read_Single( parameters.beta, "llg_beta" );
             // config_file_handle.Read_Single(parameters.renorm_sd, "llg_renorm");
@@ -884,14 +884,19 @@ auto Anisotropy( const std::string & config_file_name ) -> toml::table
         else
         {
             // Read parameters from config
-            config_file_handle.Read_Single( K, "anisotropy_magnitude" );
-            tbl.insert( "anisotropy_magnitude", K );
+            {
+                toml::table ani_tbl;
+                config_file_handle.Read_Single( K, "anisotropy_magnitude" );
+                ani_tbl.insert( "magnitude", K );
 
-            config_file_handle.Read_Vector3( K_normal, "anisotropy_normal" );
-            tbl.insert( "anisotropy_normal", toml_array_from_container( K_normal ) );
+                config_file_handle.Read_Vector3( K_normal, "anisotropy_normal" );
+                ani_tbl.insert( "normal", toml_array_from_container( K_normal ) );
+
+                tbl.insert( "anisotropy", as_inline( std::move( ani_tbl ) ) );
+            }
 
             config_file_handle.Read_Single( K4, "cubic_anisotropy_magnitude" );
-            tbl.insert( "cubic_anisotropy_magnitude", K4 );
+            tbl.insert( "cubic_anisotropy", as_inline( toml::table{ { "magnitude", K4 } } ) );
         }
     }
     catch( ... )
@@ -1228,8 +1233,8 @@ auto Quadruplets( const std::string & config_file_name ) -> toml::table
 
 auto Zeeman( const std::string & config_file_name ) -> toml::table
 {
-    scalar magnitude = 0.0;
-    Vector3 normal   = { 0.0, 0.0, 1.0 };
+    scalar magnitude  = 0.0;
+    Vector3 direction = { 0.0, 0.0, 1.0 };
 
     try
     {
@@ -1237,7 +1242,7 @@ auto Zeeman( const std::string & config_file_name ) -> toml::table
 
         // Read parameters from config if available
         config_file_handle.Read_Single( magnitude, "external_field_magnitude" );
-        config_file_handle.Read_Vector3( normal, "external_field_normal" );
+        config_file_handle.Read_Vector3( direction, "external_field_direction" );
     }
     catch( ... )
     {
@@ -1245,10 +1250,10 @@ auto Zeeman( const std::string & config_file_name ) -> toml::table
             fmt::format( "Unable to read external field from config file \"{}\"", config_file_name ) );
     }
 
-    return toml::table{
-        { "external_field_magnitude", magnitude },
-        { "external_field_normal", toml_array_from_container( normal ) },
-    };
+    return toml::table{ { "external_field", as_inline( toml::table{
+                                                { "magnitude", magnitude },
+                                                { "direction", toml_array_from_container( direction ) },
+                                            } ) } };
 }
 
 } // namespace Interaction

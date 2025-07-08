@@ -47,12 +47,11 @@ save_neighbours_final   = false
 boundary_conditions       = [1, 0, 0]
 
 ### External magnetic field vector[T]
-external_field_magnitude  = 0.0
-external_field_normal     = [0.0, 0.0, 1.0]
+external_field = { magnitude = 0.0, normal = [0.0, 0.0, 1.0] }
 
 ### Uniaxial anisotropy constant [meV]
-anisotropy_magnitude      = 0.0
-anisotropy_normal         = [0.0, 0.0, 1.0]
+anisotropy.magnitude      = 0.0
+anisotropy.normal         = [0.0, 0.0, 1.0]
 
 ### Dipole-dipole interaction caclulation method
 ### (fft, fmm, cutoff, none)

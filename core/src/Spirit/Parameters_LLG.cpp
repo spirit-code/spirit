@@ -269,9 +269,9 @@ try
 
     image->lock();
 
-    Vector3 v_direction                                     = Vector3{ direction[0], direction[1], direction[2] };
-    image->llg_parameters->temperature_gradient_inclination = inclination;
-    image->llg_parameters->temperature_gradient_direction   = v_direction;
+    Vector3 v_direction                                   = Vector3{ direction[0], direction[1], direction[2] };
+    image->llg_parameters->temperature_gradient_magnitude = inclination;
+    image->llg_parameters->temperature_gradient_direction = v_direction;
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
          fmt::format(
@@ -541,7 +541,7 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Inclination
-    *inclination = image->llg_parameters->temperature_gradient_inclination;
+    *inclination = image->llg_parameters->temperature_gradient_magnitude;
     // Direction
     direction[0] = image->llg_parameters->temperature_gradient_direction[0];
     direction[1] = image->llg_parameters->temperature_gradient_direction[1];

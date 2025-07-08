@@ -109,13 +109,13 @@ _Set_Anisotropy.argtypes = [
 _Set_Anisotropy.restype = None
 
 
-def set_anisotropy(p_state, magnitude, direction, idx_image=-1, idx_chain=-1):
+def set_anisotropy(p_state, magnitude, normal, idx_image=-1, idx_chain=-1):
     """Set the (homogeneous) magnetocrystalline anisotropy."""
     vec3 = scalar * 3
     _Set_Anisotropy(
         ctypes.c_void_p(p_state),
         scalar(magnitude),
-        vec3(*direction),
+        vec3(*normal),
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
     )
@@ -349,15 +349,15 @@ def get_field(p_state, idx_image=-1, idx_chain=-1):
     the external magnetic field.
     """
     magnitude = scalar()
-    normal = (3 * scalar)()
+    direction = (3 * scalar)()
     _Get_Field(
         ctypes.c_void_p(p_state),
         ctypes.byref(magnitude),
-        normal,
+        direction,
         ctypes.c_int(idx_image),
         ctypes.c_int(idx_chain),
     )
-    return float(magnitude.value), [n for n in normal]
+    return float(magnitude.value), [n for n in direction]
 
 
 _Get_DDI = _spirit.Hamiltonian_Get_DDI

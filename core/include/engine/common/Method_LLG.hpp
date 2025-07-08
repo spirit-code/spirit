@@ -26,7 +26,7 @@ struct Method_LLG
         namespace Constants  = Utility::Constants;
         const auto & damping = parameters.damping;
 
-        if( parameters.temperature <= 0 && parameters.temperature_gradient_inclination == 0 )
+        if( parameters.temperature <= 0 && parameters.temperature_gradient_magnitude == 0 )
             return;
 
         // ensure appropriately sized
@@ -41,7 +41,7 @@ struct Method_LLG
         auto distribution = std::normal_distribution<scalar>{ 0, 1 };
 
         // If we have a temperature gradient, we use the distribution (scalarfield)
-        if( parameters.temperature_gradient_inclination != 0 )
+        if( parameters.temperature_gradient_magnitude != 0 )
         {
             // ensure appropriately sized
             if( temperature_distribution.size() != xi.size() )
@@ -50,7 +50,7 @@ struct Method_LLG
             // Calculate distribution
             Vectormath::get_gradient_distribution(
                 geometry, parameters.temperature_gradient_direction, parameters.temperature,
-                parameters.temperature_gradient_inclination, temperature_distribution, 0, 1e30 );
+                parameters.temperature_gradient_magnitude, temperature_distribution, 0, 1e30 );
 
             // TODO: parallelization of this is actually not quite so trivial
             // #pragma omp parallel for
@@ -160,7 +160,7 @@ struct Method_LLG
             }
 
             // Temperature
-            if( parameters.temperature > 0 || parameters.temperature_gradient_inclination != 0 )
+            if( parameters.temperature > 0 || parameters.temperature_gradient_magnitude != 0 )
             {
                 Backend::for_each_n(
                     SPIRIT_PAR Backend::make_zip_iterator( force_virtual.begin(), xi.begin(), image.begin() ),

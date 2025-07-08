@@ -300,7 +300,7 @@ Returns the global base temperature [K].
 ### Parameters_LLG_Get_Temperature_Gradient
 
 ```C
-void Parameters_LLG_Get_Temperature_Gradient(State *state, float * direction, float normal[3], int idx_image=-1, int idx_chain=-1)
+void Parameters_LLG_Get_Temperature_Gradient(State *state, float * inclination, float direction[3], int idx_image=-1, int idx_chain=-1)
 ```
 
 Retrieves the temperature gradient.

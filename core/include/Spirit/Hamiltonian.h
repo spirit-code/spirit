@@ -78,7 +78,7 @@ PREFIX void Hamiltonian_Set_Boundary_Conditions(
 
 // Set the (homogeneous) external magnetic field [T]
 PREFIX void Hamiltonian_Set_Field(
-    State * state, scalar magnitude, const scalar * normal, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+    State * state, scalar magnitude, const scalar * direction, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Set a global uniaxial anisotropy [meV]
 PREFIX void Hamiltonian_Set_Anisotropy(
@@ -131,7 +131,7 @@ Hamiltonian_Get_Boundary_Conditions( State * state, bool * periodical, int idx_i
 
 // Retrieves the external magnetic field [T]
 PREFIX void Hamiltonian_Get_Field(
-    State * state, scalar * magnitude, scalar * normal, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+    State * state, scalar * magnitude, scalar * direction, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
 // Retrieves the uniaxial anisotropy [meV]
 PREFIX void Hamiltonian_Get_Anisotropy(

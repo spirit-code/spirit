@@ -28,12 +28,12 @@ mu_s = 2.0
 boundary_conditions = [1, 1, 0]
 
 ### external magnetic field vector[T]
-external_field_magnitude = 25.0
-external_field_normal    = [0.0, 0.0, 1.0]
+external_field.magnitude = 25.0
+external_field.direction = [0.0, 0.0, 1.0]
 
 ### Uniaxial anisotropy constant [meV]
-anisotropy_magnitude = 0.0
-anisotropy_normal    = [0.0, 0.0, 1.0]
+anisotropy.magnitude = 0.0
+anisotropy.normal    = [0.0, 0.0, 1.0]
 
 ### Exchange constants [meV] for the respective shells
 Jij = 10.0

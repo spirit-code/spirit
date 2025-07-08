@@ -28,12 +28,11 @@ mu_s = 2.0
 boundary_conditions = [0, 0, 0]
 
 ### external magnetic field vector[T]
-external_field_magnitude = 1
-external_field_normal    = [0.0, 0.0, 1.0]
+external_field = [0.0, 0.0, 1.0]
 
 ### Uniaxial anisotropy constant [meV]
-anisotropy_magnitude = 0.0
-anisotropy_normal    = [0.0, 0.0, 1.0]
+anisotropy.magnitude = 0.0
+anisotropy.normal    = [0.0, 0.0, 1.0]
 
 ### Dipole-Dipole radius
 ddi_radius = 0.0

@@ -13,15 +13,15 @@ folder = "output"
 boundary_conditions        = [0, 0, 0]
 
 ### external magnetic field vector[T]
-external_field_magnitude   = 25.0
-external_field_normal      = [0.0, 1.0, 1.0]
+external_field.magnitude   = 25.0
+external_field.direction   = [0.0, 1.0, 1.0]
 
 ### Uniaxial anisotropy constant [meV]
-anisotropy_magnitude       = 1.0
-anisotropy_normal          = [0.0, 0.0, 1.0]
+anisotropy.magnitude       = 1.0
+anisotropy.normal          = [0.0, 0.0, 1.0]
 
 ### Cubic anisotropy constant [meV]
-cubic_anisotropy_magnitude = 4.0
+cubic_anisotropy.magnitude = 4.0
 
 ### Dipole-dipole interaction caclulation method
 ### (fft, fmm, cutoff, none)

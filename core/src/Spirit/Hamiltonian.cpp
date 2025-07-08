@@ -53,19 +53,19 @@ catch( ... )
 }
 
 void Hamiltonian_Set_Field(
-    State * state, scalar magnitude, const scalar * normal, int idx_image, int idx_chain ) noexcept
+    State * state, scalar magnitude, const scalar * direction, int idx_image, int idx_chain ) noexcept
 try
 {
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
-    throw_if_nullptr( normal, "normal" );
+    throw_if_nullptr( direction, "direction" );
 
     // Lock mutex because simulations may be running
     image->lock();
     try
     {
         // Normals
-        Vector3 new_normal{ normal[0], normal[1], normal[2] };
+        Vector3 new_normal{ direction[0], direction[1], direction[2] };
         new_normal.normalize();
 
         // Into the Hamiltonian
@@ -74,7 +74,8 @@ try
         if( !error.has_value() )
             Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
                  fmt::format(
-                     "Set external field to {}, direction ({}, {}, {})", magnitude, normal[0], normal[1], normal[2] ),
+                     "Set external field to {}, direction ({}, {}, {})", magnitude, direction[0], direction[1],
+                     direction[2] ),
                  idx_image, idx_chain );
         else
             Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, *error, idx_image, idx_chain );
@@ -429,32 +430,33 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void Hamiltonian_Get_Field( State * state, scalar * magnitude, scalar * normal, int idx_image, int idx_chain ) noexcept
+void Hamiltonian_Get_Field(
+    State * state, scalar * magnitude, scalar * direction, int idx_image, int idx_chain ) noexcept
 try
 {
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
     throw_if_nullptr( magnitude, "magnitude" );
-    throw_if_nullptr( normal, "normal" );
+    throw_if_nullptr( direction, "direction" );
 
     if( const auto * data = image->hamiltonian->data<Engine::Spin::Interaction::Zeeman>(); data != nullptr )
     {
-        const scalar & field_magnitude = data->external_field_magnitude;
-        const Vector3 & field_normal   = data->external_field_normal;
+        const scalar & field_magnitude  = data->external_field_magnitude;
+        const Vector3 & field_direction = data->external_field_direction;
 
         if( field_magnitude > 0 )
         {
-            *magnitude = field_magnitude / Constants::mu_B;
-            normal[0]  = field_normal[0];
-            normal[1]  = field_normal[1];
-            normal[2]  = field_normal[2];
+            *magnitude   = field_magnitude / Constants::mu_B;
+            direction[0] = field_direction[0];
+            direction[1] = field_direction[1];
+            direction[2] = field_direction[2];
         }
         else
         {
-            *magnitude = 0;
-            normal[0]  = 0;
-            normal[1]  = 0;
-            normal[2]  = 1;
+            *magnitude   = 0;
+            direction[0] = 0;
+            direction[1] = 0;
+            direction[2] = 1;
         }
     }
 }

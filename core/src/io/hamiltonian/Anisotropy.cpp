@@ -140,14 +140,9 @@ auto Anisotropy_from_TOML(
     }
     else
     {
-        K  = static_cast<scalar>( tbl["anisotropy_magnitude"].value_or( 0.0 ) );
-        K4 = static_cast<scalar>( tbl["cubic_anisotropy_magnitude"].value_or( 0.0 ) );
-        if( auto normal = tbl["anisotropy_normal"].as_array() )
-        {
-            if( auto parsed_k = toml_transform<Vector3>( *normal ) )
-                K_normal = parsed_k->normalized();
-        }
-
+        read_value( tbl, "anisotropy.magnitude", K );
+        read_value( tbl, "anisotropy.normal", K_normal );
+        K_normal.normalize();
         if( K != 0 && K_normal.norm() > 1e-8 )
         {
             anisotropy.magnitudes = scalarfield( geometry.n_cell_atoms, K );
@@ -155,6 +150,11 @@ auto Anisotropy_from_TOML(
             anisotropy.indices    = intfield( geometry.n_cell_atoms );
             std::iota( anisotropy.indices.begin(), anisotropy.indices.end(), 0 );
         }
+
+        if( tbl["cubic_anisotropy"].is_table() )
+            read_value( tbl, "cubic_anisotropy.magnitude", K4 );
+        else
+            read_value( tbl, "cubic_anisotropy", K4 );
 
         if( K4 != 0 )
         {
@@ -164,9 +164,9 @@ auto Anisotropy_from_TOML(
         }
     }
 
-    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy[0]", K ) );
-    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy_normal[0]", K_normal.transpose() ) );
-    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "cubic_anisotropy_magnitude[0]", K4 ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy.magnitude[0]", K ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "anisotropy.normal[0]", K_normal.transpose() ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "cubic_anisotropy.magnitude[0]", K4 ) );
 
     return result;
 }

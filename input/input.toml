@@ -13,12 +13,12 @@ output.folder   = "output"
 boundary_conditions       = [1, 1, 0]
 
 ### External magnetic field vector[T]
-external_field_magnitude  = 25.0
-external_field_normal     = [0.0, 0.0, 1.0]
+external_field.magnitude  = 25.0
+external_field.direction  = [0.0, 0.0, 1.0]
 
 ### Uniaxial anisotropy constant [meV]
-anisotropy_magnitude      = 0.0
-anisotropy_normal         = [0.0, 0.0, 1.0]
+anisotropy.magnitude      = 0.0
+anisotropy.normal         = [0.0, 0.0, 1.0]
 
 ### Dipole-dipole interaction caclulation method
 ### (fft, fmm, cutoff, none)
@@ -158,8 +158,8 @@ n_iterations_amortize = 1
 
 ### Temperature [K]
 temperature                      = 0
-temperature_gradient_direction   = [1, 0, 0]
-temperature_gradient_inclination = 0
+temperature_gradient.magnitude   = 0
+temperature_gradient.direction   = [1, 0, 0]
 
 ### Damping [none]
 damping             = 0.3

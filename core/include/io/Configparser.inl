@@ -47,6 +47,102 @@ void read_value( const toml::table & tbl, std::string_view key, T & dest, bool l
             fmt::format( "Failed converting value for key: '{}', using default: {}", key, detail::transpose( dest ) ) );
 }
 
+inline void read_Vector3(
+    const toml::table & tbl, std::string_view key, scalar & dest_magnitude, Vector3 & dest_direction,
+    bool log_missing = true ) noexcept
+{
+    const auto default_msg = [&dest_magnitude, &dest_direction]
+    { return fmt::format( "using default: {{ magnitude = {}, direction = ({}) }}", dest_magnitude, dest_direction ); };
+
+    using namespace Utility;
+    const auto node = tbl.at_path( key );
+    if( !node )
+    {
+        if( log_missing )
+            Log( Log_Level::Warning, Log_Sender::IO,
+                 fmt::format( "Missing key encountererd!: '{}', {}", key, default_msg() ) );
+        return;
+    }
+
+    if( node.is_array() )
+    {
+        if( auto vec = toml_transform<Vector3>( node ) )
+        {
+            dest_magnitude = vec->norm();
+            vec->normalize();
+            if( vec->norm() > 1e-2 ) // This should be either 1 or close to zero.
+                dest_direction = *vec;
+            else
+            {
+                dest_magnitude = 0.0;
+                Log( Log_Level::Warning, Log_Sender::IO,
+                     fmt::format(
+                         "Cannot deduce direction for key '{}', the provided vector is too close to zero. "
+                         "Setting to {{ magnitue = {}, direction = ({}) }}",
+                         key, dest_magnitude, dest_direction.transpose() ) );
+            }
+        }
+        else
+            Log( Log_Level::Error, Log_Sender::IO,
+                 fmt::format( "Failed converting array to Vector3 for key: '{}', {}", key, default_msg() ) );
+    }
+    else if( const auto * node_tbl = node.as_table() )
+    {
+        static constexpr std::string_view m_key = "magnitude";
+        static constexpr std::string_view n_key = "direction";
+
+        bool found_magitude  = false;
+        bool found_direction = false;
+        for( const auto & [provided_key, provided_value] : *node_tbl )
+        {
+            if( provided_key == m_key )
+            {
+                found_magitude = true;
+                if( auto magnitude = toml_transform<scalar>( provided_value ) )
+                    dest_magnitude = *magnitude;
+                else
+                    Log( Log_Level::Warning, Log_Sender::IO,
+                         fmt::format(
+                             "Wrong type for key: '{}.{}', expected floating point, using defaukt {}", key, m_key,
+                             dest_magnitude ) );
+            }
+            else if( provided_key == n_key )
+            {
+                found_direction = true;
+                if( auto direction = toml_transform<Vector3>( provided_value ) )
+                {
+                    direction->normalize();
+                    if( direction->norm() > 1e-2 )
+                        dest_direction = *direction;
+                    else
+                        Log( Log_Level::Warning, Log_Sender::IO,
+                             fmt::format(
+                                 "Failed normalizing Vector3: '{}.{}', using defaukt {}", key, n_key,
+                                 dest_direction.transpose() ) );
+                }
+                else
+                    Log( Log_Level::Warning, Log_Sender::IO,
+                         fmt::format(
+                             "Failed converting node to Vector3: '{}.{}', using defaukt {}", key, n_key,
+                             dest_direction.transpose() ) );
+            }
+            else
+                Log( Log_Level::Warning, Log_Sender::IO,
+                     fmt::format(
+                         "Unknown key '{}' encountered in table: {}, valid keys are '{}' and '{}'", provided_key.str(),
+                         key, m_key, n_key ) );
+        }
+
+        if( !found_magitude )
+            Log( Log_Level::Warning, Log_Sender::IO,
+                 fmt::format( "Missing key encountererd: '{}.{}', using default {}", key, m_key, dest_magnitude ) );
+        if( !found_direction )
+            Log( Log_Level::Warning, Log_Sender::IO,
+                 fmt::format(
+                     "Missing key encountererd!: '{}.{}', using default {}", key, n_key, dest_direction.transpose() ) );
+    };
+}
+
 template<typename T>
 void read_value_with_default(
     const toml::table & tbl, std::string_view key, T & dest, const std::optional<T> & default_value,

@@ -125,7 +125,7 @@ Set the boundary conditions along the translation directions [a, b, c]
 ### Hamiltonian_Set_Field
 
 ```C
-void Hamiltonian_Set_Field(State *state, float magnitude, const float* normal, int idx_image=-1, int idx_chain=-1)
+void Hamiltonian_Set_Field(State *state, float magnitude, const float* direction, int idx_image=-1, int idx_chain=-1)
 ```
 
 Set the (homogeneous) external magnetic field [T]
@@ -221,7 +221,7 @@ Retrieves the boundary conditions
 ### Hamiltonian_Get_Field
 
 ```C
-void Hamiltonian_Get_Field(State *state, float * magnitude, float * normal, int idx_image=-1, int idx_chain=-1)
+void Hamiltonian_Get_Field(State *state, float * magnitude, float * direction, int idx_image=-1, int idx_chain=-1)
 ```
 
 Retrieves the external magnetic field [T]

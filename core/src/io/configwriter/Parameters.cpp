@@ -41,8 +41,11 @@ auto Parameters_Method_LLG_to_TOML( const Data::Parameters_Method_LLG & paramete
         { "n_iterations_amortize", parameters.n_iterations_amortize },
         { "dt", parameters.dt },
         { "temperature", parameters.temperature },
-        { "temperature_gradient_direction", toml_array_from_container( parameters.temperature_gradient_direction ) },
-        { "temperature_gradient_inclination", parameters.temperature_gradient_inclination },
+        { "temperature_gradient",
+          as_inline( toml::table{
+              { "direction", toml_array_from_container( parameters.temperature_gradient_direction ) },
+              { "magnitude", parameters.temperature_gradient_magnitude },
+          } ) },
         { "damping", parameters.damping },
         { "beta", parameters.beta },
         // config_file_handle.Read_Single(parameters.renorm_sd, "llg_renorm");

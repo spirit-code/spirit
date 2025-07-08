@@ -286,10 +286,9 @@ auto Parameters_Method_LLG_from_TOML( const toml::table & tbl, const Defaults & 
         read_value( tbl, prefix( "dt" ), parameters->dt );
         read_value( tbl, prefix( "temperature" ), parameters->temperature );
 
-        read_value( tbl, prefix( "llg_temperature_gradient_direction" ), parameters->temperature_gradient_direction );
-        parameters->temperature_gradient_direction.normalize();
-
-        read_value( tbl, prefix( "temperature_gradient_inclination" ), parameters->temperature_gradient_inclination );
+        read_Vector3(
+            tbl, prefix( "temperature_gradient" ), parameters->temperature_gradient_magnitude,
+            parameters->temperature_gradient_direction );
         read_value( tbl, prefix( "damping" ), parameters->damping );
         read_value( tbl, prefix( "beta" ), parameters->beta );
         read_value( tbl, prefix( "stt_use_gradient" ), parameters->stt_use_gradient );
@@ -310,7 +309,7 @@ auto Parameters_Method_LLG_from_TOML( const toml::table & tbl, const Defaults & 
     parameter_log.emplace_back( fmt::format(
         "    {:<17} = {}", "temperature gradient direction", parameters->temperature_gradient_direction.transpose() ) );
     parameter_log.emplace_back( fmt::format(
-        "    {:<17} = {}", "temperature gradient inclination", parameters->temperature_gradient_inclination ) );
+        "    {:<17} = {}", "temperature gradient inclination", parameters->temperature_gradient_magnitude ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "damping", parameters->damping ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "beta", parameters->beta ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "stt use gradient", parameters->stt_use_gradient ) );

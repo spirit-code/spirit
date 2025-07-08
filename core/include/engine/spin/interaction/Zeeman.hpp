@@ -22,13 +22,13 @@ struct Zeeman
 
     struct Data
     {
-        scalar external_field_magnitude = 0;
-        Vector3 external_field_normal   = { 0, 0, 1 };
+        scalar external_field_magnitude  = 0;
+        Vector3 external_field_direction = { 0, 0, 1 };
 
         Data() = default;
-        Data( scalar external_field_magnitude, Vector3 external_field_normal )
+        Data( scalar external_field_magnitude, Vector3 external_field_direction )
                 : external_field_magnitude( external_field_magnitude ),
-                  external_field_normal( std::move( external_field_normal ) ) {};
+                  external_field_direction( std::move( external_field_direction ) ) {};
     };
 
     struct Index
@@ -99,7 +99,7 @@ struct Functor::Local::DataRef<Zeeman>
     DataRef( const Data & data, const Cache & cache ) noexcept
             : is_contributing( Interaction::is_contributing( data, cache ) ),
               external_field_magnitude( data.external_field_magnitude ),
-              external_field_normal( data.external_field_normal ),
+              external_field_direction( data.external_field_direction ),
               mu_s( cache.geometry->mu_s.data() )
     {
     }
@@ -108,7 +108,7 @@ struct Functor::Local::DataRef<Zeeman>
 
 protected:
     const scalar external_field_magnitude;
-    const Vector3 external_field_normal;
+    const Vector3 external_field_direction;
     const scalar * mu_s;
 };
 
@@ -121,7 +121,8 @@ inline scalar Zeeman::Energy::operator()( Span<const Index> index, quantity<cons
         return Backend::transform_reduce(
             index.begin(), index.end(), scalar( 0.0 ), Backend::plus<scalar>{},
             [this, state] SPIRIT_LAMBDA( const Index & idx ) -> scalar {
-                return -mu_s[idx.ispin] * external_field_magnitude * external_field_normal.dot( state.spin[idx.ispin] );
+                return -mu_s[idx.ispin] * external_field_magnitude
+                       * external_field_direction.dot( state.spin[idx.ispin] );
             } );
 }
 
@@ -134,7 +135,7 @@ inline Vector3 Zeeman::Gradient::operator()( Span<const Index> index, quantity<c
         return Backend::transform_reduce(
             index.begin(), index.end(), Vector3{ Vector3::Zero() }, Backend::plus<Vector3>{},
             [this] SPIRIT_LAMBDA( const Index & idx ) -> Vector3
-            { return -mu_s[idx.ispin] * external_field_magnitude * external_field_normal; } );
+            { return -mu_s[idx.ispin] * external_field_magnitude * external_field_direction; } );
 }
 
 template<>

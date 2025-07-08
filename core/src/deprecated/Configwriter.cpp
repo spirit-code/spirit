@@ -234,13 +234,13 @@ void Hamiltonian_Heisenberg_to_Config(
     // External Field
     if( const auto * data = hamiltonian->data<Engine::Spin::Interaction::Zeeman>(); data != nullptr )
     {
-        const scalar & external_field_magnitude = data->external_field_magnitude;
-        const Vector3 & external_field_normal   = data->external_field_normal;
+        const scalar & external_field_magnitude  = data->external_field_magnitude;
+        const Vector3 & external_field_direction = data->external_field_direction;
 
         config += "###    External Field:\n";
         config += fmt::format(
             "{:<25} {}\n", "external_field_magnitude", external_field_magnitude / Utility::Constants::mu_B );
-        config += fmt::format( "{:<25} {}\n", "external_field_normal", external_field_normal.transpose() );
+        config += fmt::format( "{:<25} {}\n", "external_field_normal", external_field_direction.transpose() );
     }
     // Anisotropy
 

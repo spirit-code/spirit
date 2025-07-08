@@ -26,8 +26,8 @@ struct Parameters_Method_LLG : Parameters_Method_Solver
     // Temperature [K]
     scalar temperature = 0;
     // Temperature gradient [K]
-    Vector3 temperature_gradient_direction  = Vector3{ 1, 0, 0 };
-    scalar temperature_gradient_inclination = 0;
+    Vector3 temperature_gradient_direction = Vector3{ 1, 0, 0 };
+    scalar temperature_gradient_magnitude  = 0;
 
     // - true:  use gradient approximation for STT
     // - false: use pinned monolayer approximation with current in z-direction

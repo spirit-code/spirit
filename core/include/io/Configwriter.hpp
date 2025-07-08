@@ -25,6 +25,12 @@ auto Parameters_Method_GNEB_to_TOML( const Data::Parameters_Method_GNEB & ) -> t
 auto Parameters_Method_EMA_to_TOML( const Data::Parameters_Method_EMA & ) -> toml::table;
 auto Parameters_Method_MMF_to_TOML( const Data::Parameters_Method_MMF & ) -> toml::table;
 
+inline auto as_inline( toml::table && tbl ) -> toml::table
+{
+    tbl.is_inline( true );
+    return tbl;
+}
+
 } // namespace IO
 
 #endif
