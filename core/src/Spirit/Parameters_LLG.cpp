@@ -3,6 +3,7 @@
 #include <data/State.hpp>
 #include <engine/Vectormath.hpp>
 #include <utility/Constants.hpp>
+#include <utility/Enum.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Formatters_Eigen.hpp>
 #include <utility/Logging.hpp>
@@ -285,49 +286,69 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void Parameters_LLG_Set_STT(
-    State * state, bool use_gradient, scalar magnitude, const scalar normal[3], int idx_image, int idx_chain ) noexcept
+void Parameters_LLG_Set_Spin_Current(
+    State * state, int model, scalar magnitude, const scalar normal[3], int idx_image, int idx_chain ) noexcept
 try
 {
-
     // Fetch correct indices and pointers
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     image->lock();
 
-    // Gradient or monolayer
-    image->llg_parameters->stt_use_gradient = use_gradient;
+    // Spin current model SOT (Gradient) or STT (monolayer)
+    if( auto model_enum = Utility::Enum::from_integral<Data::SC_Model>( model ) )
+        image->llg_parameters->spin_current_model = *model_enum;
     // Magnitude
-    image->llg_parameters->stt_magnitude = magnitude;
+    image->llg_parameters->spin_current_vector_magnitude = magnitude;
     // Normal
-    image->llg_parameters->stt_polarisation_normal[0] = normal[0];
-    image->llg_parameters->stt_polarisation_normal[1] = normal[1];
-    image->llg_parameters->stt_polarisation_normal[2] = normal[2];
-    if( image->llg_parameters->stt_polarisation_normal.norm() < 0.9 )
+    image->llg_parameters->spin_current_vector_direction[0] = normal[0];
+    image->llg_parameters->spin_current_vector_direction[1] = normal[1];
+    image->llg_parameters->spin_current_vector_direction[2] = normal[2];
+    if( image->llg_parameters->spin_current_vector_direction.norm() < 0.9 )
     {
-        image->llg_parameters->stt_polarisation_normal = { 0, 0, 1 };
+        image->llg_parameters->spin_current_vector_direction = { 0, 0, 1 };
         Log( Utility::Log_Level::Warning, Utility::Log_Sender::API, "s_c_vec = {0,0,0} replaced by {0,0,1}" );
     }
     else
-        image->llg_parameters->stt_polarisation_normal.normalize();
+        image->llg_parameters->spin_current_vector_direction.normalize();
 
     Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
          fmt::format(
              "Set LLG spin current to {}, direction ({})", magnitude,
-             image->llg_parameters->stt_polarisation_normal.transpose() ),
+             image->llg_parameters->spin_current_vector_direction.transpose() ),
          idx_image, idx_chain );
-    if( use_gradient )
-        Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, "STT: using the gradient approximation",
-             idx_image, idx_chain );
-    else
-        Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API, "STT: using the pinned monolayer approximation",
-             idx_image, idx_chain );
+
+    switch( image->llg_parameters->spin_current_model )
+    {
+        case( Data::SC_Model::ORBIT_TORQUE ):
+        {
+            Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
+                 "Spin Current: using the spin-orbit torque model (gradient approximation)", idx_image, idx_chain );
+            break;
+        }
+        case( Data::SC_Model::TRANSFER_TORQUE ):
+        {
+            Log( Utility::Log_Level::Parameter, Utility::Log_Sender::API,
+                 "Spin Current: using the using the spin-transfer torque model (pinned monolayer approximation)",
+                 idx_image, idx_chain );
+            break;
+        }
+    }
 
     image->unlock();
 }
 catch( ... )
 {
     spirit_handle_exception_api( idx_image, idx_chain );
+}
+
+void Parameters_LLG_Set_STT(
+    State * state, bool use_gradient, scalar magnitude, const scalar normal[3], int idx_image, int idx_chain ) noexcept
+{
+    Log_deprecated( API, "Use Parameters_LLG_Set_Spin_Current() instead." );
+
+    const int model = use_gradient ? LLG_SC_Model_Orbit_Torque : LLG_SC_Model_Transfer_Torque;
+    Parameters_LLG_Set_Spin_Current( state, model, magnitude, normal, idx_image, idx_chain );
 }
 
 /*------------------------------------------------------------------------------------------------------ */
@@ -552,8 +573,8 @@ catch( ... )
     spirit_handle_exception_api( idx_image, idx_chain );
 }
 
-void Parameters_LLG_Get_STT(
-    State * state, bool * use_gradient, scalar * magnitude, scalar normal[3], int idx_image, int idx_chain ) noexcept
+void Parameters_LLG_Get_Spin_Current(
+    State * state, int * model, scalar * magnitude, scalar direction[3], int idx_image, int idx_chain ) noexcept
 try
 {
 
@@ -561,16 +582,26 @@ try
     auto [image, chain] = from_indices( state, idx_image, idx_chain );
 
     // Gradient or monolayer
-    *use_gradient = image->llg_parameters->stt_use_gradient;
+    *model = static_cast<int>( image->llg_parameters->spin_current_model );
 
     // Magnitude
-    *magnitude = image->llg_parameters->stt_magnitude;
-    // Normal
-    normal[0] = image->llg_parameters->stt_polarisation_normal[0];
-    normal[1] = image->llg_parameters->stt_polarisation_normal[1];
-    normal[2] = image->llg_parameters->stt_polarisation_normal[2];
+    *magnitude = image->llg_parameters->spin_current_vector_magnitude;
+    // Direction
+    direction[0] = image->llg_parameters->spin_current_vector_direction[0];
+    direction[1] = image->llg_parameters->spin_current_vector_direction[1];
+    direction[2] = image->llg_parameters->spin_current_vector_direction[2];
 }
 catch( ... )
 {
     spirit_handle_exception_api( idx_image, idx_chain );
+}
+
+void Parameters_LLG_Get_STT(
+    State * state, bool * use_gradient, scalar * magnitude, scalar normal[3], int idx_image, int idx_chain ) noexcept
+{
+    Log_deprecated( API, "Use Parameters_LLG_Get_Spin_Current() instead." );
+
+    int model = use_gradient ? LLG_SC_Model_Orbit_Torque : LLG_SC_Model_Transfer_Torque;
+    Parameters_LLG_Get_Spin_Current( state, &model, magnitude, normal, idx_image, idx_chain );
+    *use_gradient = ( model == LLG_SC_Model_Orbit_Torque );
 }

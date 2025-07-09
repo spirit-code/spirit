@@ -4,7 +4,7 @@
 #include "IO.h"
 #include "Spirit_Defines.h"
 
-#include "DLL_Define_Export.h"
+#include "DLL_Define.h"
 
 struct State;
 
@@ -173,5 +173,5 @@ PREFIX void Parameters_MC_Get_Metropolis_Parameters(
 // Returns whether spins should be sampled randomly or in sequence.
 PREFIX bool Parameters_MC_Get_Random_Sample( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-#include "DLL_Undefine_Export.h"
+#include "DLL_Undefine.h"
 #endif

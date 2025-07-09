@@ -17,6 +17,21 @@
 #define Log Utility::LoggingHandler::getInstance()
 #endif
 
+#ifndef Log_once
+#define Log_once( ... )                                                                                                \
+    {                                                                                                                  \
+        [[maybe_unused]] static bool _ = ( Log( __VA_ARGS__ ), true );                                                 \
+    }
+#endif
+
+// This macro is
+#ifndef Log_deprecated
+#define Log_deprecated( Sender, msg )                                                                                  \
+    Log_once(                                                                                                          \
+        Utility::Log_Level::Warning, Utility::Log_Sender::Sender,                                                      \
+        ( fmt::format( "{}() is deprecated: {}", __func__, msg ) ) )
+#endif
+
 namespace Utility
 {
 

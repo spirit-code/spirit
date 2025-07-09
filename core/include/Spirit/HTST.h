@@ -3,7 +3,7 @@
 #define SPIRIT_CORE_HTST_H
 #include "Spirit_Defines.h"
 
-#include "DLL_Define_Export.h"
+#include "DLL_Define.h"
 
 struct State;
 
@@ -87,5 +87,5 @@ has been called.
 */
 PREFIX void HTST_Get_Velocities( State * state, scalar * velocities, int idx_chain = -1 ) SUFFIX;
 
-#include "DLL_Undefine_Export.h"
+#include "DLL_Undefine.h"
 #endif

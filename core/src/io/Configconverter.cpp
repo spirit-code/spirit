@@ -380,9 +380,14 @@ auto Parameters_Method_LLG( const std::string & config_file_name, const IO::Defa
             config_file_handle.Read_Single( parameters.damping, "llg_damping" );
             config_file_handle.Read_Single( parameters.beta, "llg_beta" );
             // config_file_handle.Read_Single(parameters.renorm_sd, "llg_renorm");
-            config_file_handle.Read_Single( parameters.stt_use_gradient, "llg_stt_use_gradient" );
-            config_file_handle.Read_Single( parameters.stt_magnitude, "llg_stt_magnitude" );
-            config_file_handle.Read_Vector3( parameters.stt_polarisation_normal, "llg_stt_polarisation_normal" );
+            {
+                using Data::SC_Model;
+                bool stt_use_gradient = parameters.spin_current_model == SC_Model::ORBIT_TORQUE;
+                config_file_handle.Read_Single( stt_use_gradient, "llg_stt_use_gradient" );
+                parameters.spin_current_model = stt_use_gradient ? SC_Model::ORBIT_TORQUE : SC_Model::TRANSFER_TORQUE;
+            }
+            config_file_handle.Read_Single( parameters.spin_current_vector_magnitude, "llg_stt_magnitude" );
+            config_file_handle.Read_Vector3( parameters.spin_current_vector_direction, "llg_stt_polarisation_normal" );
             config_file_handle.Read_Single( parameters.force_convergence, "llg_force_convergence" );
         }
         catch( ... )

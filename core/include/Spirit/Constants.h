@@ -1,7 +1,7 @@
 #pragma once
 #ifndef SPIRIT_CORE_CONSTANTS_H
 #define SPIRIT_CORE_CONSTANTS_H
-#include "DLL_Define_Export.h"
+#include "DLL_Define.h"
 
 #include "Spirit_Defines.h"
 
@@ -40,5 +40,5 @@ PREFIX scalar Constants_g_e() SUFFIX;
 // Pi [rad]
 PREFIX scalar Constants_Pi() SUFFIX;
 
-#include "DLL_Undefine_Export.h"
+#include "DLL_Undefine.h"
 #endif

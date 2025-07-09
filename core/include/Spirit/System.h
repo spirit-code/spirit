@@ -3,7 +3,7 @@
 #define SPIRIT_CORE_SYSTEM_H
 #include "Spirit_Defines.h"
 
-#include "DLL_Define_Export.h"
+#include "DLL_Define.h"
 
 struct State;
 
@@ -85,5 +85,5 @@ PREFIX void System_Update_Data( State * state, int idx_image = -1, int idx_chain
 // Update Eigenmodes (primarily for visualisation or saving)
 PREFIX void System_Update_Eigenmodes( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-#include "DLL_Undefine_Export.h"
+#include "DLL_Undefine.h"
 #endif

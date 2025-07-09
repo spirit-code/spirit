@@ -83,8 +83,6 @@ dt              = 0.001
 ### Temperature [K]
 temperature     = 0
 
-### Spin transfer torque parameter proportional to injected current density
-stt_magnitude   = 0.0
-
-### Spin current polarisation normal vector
-stt_polarisation_normal = [1.0, 0.0, 0.0]
+### Spin current vector
+spin_current_vector.magnitude = 0.0
+spin_current_vector.direction = [1.0, 0.0, 0.0]

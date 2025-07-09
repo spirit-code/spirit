@@ -3,7 +3,7 @@
 #define SPIRIT_CORE_UTILITY_H
 #include "Spirit_Defines.h"
 
-#include "DLL_Define_Export.h"
+#include "DLL_Define.h"
 
 struct State;
 

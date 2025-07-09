@@ -3,7 +3,7 @@
 #define SPIRIT_CORE_TRANSITIONS_H
 #include "Spirit_Defines.h"
 
-#include "DLL_Define_Export.h"
+#include "DLL_Define.h"
 
 struct State;
 
@@ -48,5 +48,5 @@ Adds some stochastic noise to the transition between two images.
 PREFIX void
 Transition_Add_Noise_Temperature( State * state, scalar temperature, int idx_1, int idx_2, int idx_chain = -1 ) SUFFIX;
 
-#include "DLL_Undefine_Export.h"
+#include "DLL_Undefine.h"
 #endif

@@ -172,14 +172,14 @@ dt                  = 1.0E-3
 ### Renormalize spins
 renorm              = true
 
-### false = use the pinned monolayer approximation
-### true  = use the gradient approximation
-stt_use_gradient        = false
-### Spin transfer torque parameter proportional
-### to injected current density
-stt_magnitude           = 0.0
-### Spin current polarisation normal vector
-stt_polarisation_normal = [1.0, 0.0, 0.0]
+### Spin current model:
+### 'orbit_torque':    pinned monolayer approximation
+### 'transfer_torque': gradient approximation
+spin_current_model            = "transfer_torque"
+### Spin current vector:
+### proportional to the injected current density
+spin_current_vector.magnitude = 0.0
+spin_current_vector.direction = [1.0, 0.0, 0.0]
 
 ### Force convergence parameter
 force_convergence   = 10e-9

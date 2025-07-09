@@ -3,7 +3,7 @@
 #define SPIRIT_CORE_HAMILTONIAN_H
 #include "Spirit_Defines.h"
 
-#include "DLL_Define_Export.h"
+#include "DLL_Define.h"
 
 struct State;
 
@@ -199,5 +199,5 @@ If triplet_format is set to true the hessian is written as a list of triplets, r
 PREFIX void Hamiltonian_Write_Hessian(
     State * state, const char * filename, bool triplet_format = true, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-#include "DLL_Undefine_Export.h"
+#include "DLL_Undefine.h"
 #endif

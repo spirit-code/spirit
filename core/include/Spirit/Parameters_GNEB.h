@@ -4,7 +4,7 @@
 #include "IO.h"
 #include "Spirit_Defines.h"
 
-#include "DLL_Define_Export.h"
+#include "DLL_Define.h"
 
 struct State;
 
@@ -201,5 +201,5 @@ PREFIX int Parameters_GNEB_Get_Climbing_Falling( State * state, int idx_image = 
 // Returns the number of energy values interpolated between images.
 PREFIX int Parameters_GNEB_Get_N_Energy_Interpolations( State * state, int idx_chain = -1 ) SUFFIX;
 
-#include "DLL_Undefine_Export.h"
+#include "DLL_Undefine.h"
 #endif

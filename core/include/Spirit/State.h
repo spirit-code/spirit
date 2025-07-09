@@ -1,7 +1,7 @@
 #pragma once
 #ifndef SPIRIT_CORE_STATE_H
 #define SPIRIT_CORE_STATE_H
-#include "DLL_Define_Export.h"
+#include "DLL_Define.h"
 
 /*
 State
@@ -93,5 +93,5 @@ Format: `yyyy-mm-dd_hh-mm-ss`
 */
 PREFIX const char * State_DateTime( State * state ) SUFFIX;
 
-#include "DLL_Undefine_Export.h"
+#include "DLL_Undefine.h"
 #endif

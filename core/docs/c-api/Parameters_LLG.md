@@ -7,6 +7,28 @@ LLG Parameters
 #include "Spirit/Parameters_LLG.h"
 ```
 
+Defintion of Spin Current Models
+--------------------------------------------------------------------
+
+### Sphere
+
+```C
+LLG_SC_Model_Transfer_Torque            0
+```
+
+`Transfer_Torque`: Model a spin current applying a transfer torque using the pinned monolayer approximation.
+
+
+
+### Cone
+
+```C
+LLG_SC_Model_Orbit_Torque               1
+```
+
+`Orbit_Torque`: Model a spin current applying an orbit torque using the gradient approximation.
+
+
 
 
 Set Output
@@ -140,11 +162,27 @@ Set the Gilbert damping parameter [unitless].
 
 
 
+### Parameters_LLG_Set_Spin_Current
+
+```C
+void Parameters_LLG_Set_Spin_Current(State * state, int model, scalar magnitude, const scalar normal[3], int idx_image = -1, int idx_chain = -1 )
+```
+
+Set the spin current configuration.
+
+- model: SC_Model_Orbit_Torque or SC_Model_Transfer_Torque
+- magnitude: current strength
+- direction: current direction or polarisation direction, array of shape (3)
+
+
+
 ### Parameters_LLG_Set_STT
 
 ```C
 void Parameters_LLG_Set_STT(State *state, bool use_gradient, float magnitude, const float normal[3], int idx_image=-1, int idx_chain=-1)
 ```
+
+Deprecated: use `Parameters_LLG_Set_Spin_Current()` instead.
 
 Set the spin current configuration.
 
@@ -310,15 +348,30 @@ Retrieves the temperature gradient.
 
 
 
+### Parameters_LLG_Get_Spin_Current
+
+```C
+void Parameters_LLG_Get_Spin_Current(State * state, int * model, scalar * magnitude, scalar direction[3], int idx_image = -1, int idx_chain = -1 )
+```
+
+Returns the spin current configuration.
+
+- model: switch for the spin current model
+- magnitude
+- direction, array of shape (3)
+
+
+
 ### Parameters_LLG_Get_STT
 
 ```C
 void Parameters_LLG_Get_STT(State *state, bool * use_gradient, float * magnitude, float normal[3], int idx_image=-1, int idx_chain=-1)
 ```
 
+Deprecated: use `Parameters_LLG_Get_Spin_Current()` instead.
+
 Returns the spin current configuration.
 
+- whether the spatial gradient is used
 - magnitude
 - direction, array of shape (3)
-- whether the spatial gradient is used
-

@@ -16,35 +16,73 @@ namespace detail
 {
 
 template<typename T>
-auto transpose( T && value ) -> decltype( auto )
+auto pre_format( T && value ) -> decltype( auto )
 {
-    if constexpr( !is_eigen_type_v<std::decay_t<T>> )
-        return std::forward<T>( value );
-    else
+    if constexpr( is_eigen_type_v<std::decay_t<T>> )
         return value.transpose();
+    else if constexpr( std::is_enum_v<std::decay_t<T>> )
+        return name( value );
+    else
+        return std::forward<T>( value );
 }
 
 } // namespace detail
 
-template<typename T>
+template<typename T, typename = std::enable_if_t<!std::is_enum_v<T> && "Use `read_enum()` for enum types!">>
 void read_value( const toml::table & tbl, std::string_view key, T & dest, bool log_missing = true ) noexcept
 {
+    static_assert( !std::is_enum_v<T> );
+
     using namespace Utility;
     const auto node = tbl.at_path( key );
     if( !node )
     {
         if( log_missing )
             Log( Log_Level::Warning, Log_Sender::IO,
-                 fmt::format( "Missing key encountererd!: '{}', using default: {}", key, detail::transpose( dest ) ) );
+                 fmt::format( "Missing key encountererd: '{}', using default: {}", key, detail::pre_format( dest ) ) );
         return;
     }
 
     if( auto result = toml_transform<T>( *node.node() ) )
         dest = *result;
     else
-        Log(
-            Log_Level::Error, Log_Sender::IO,
-            fmt::format( "Failed converting value for key: '{}', using default: {}", key, detail::transpose( dest ) ) );
+        Log( Log_Level::Error, Log_Sender::IO,
+             fmt::format(
+                 "Failed converting value for key: '{}', using default: {}", key, detail::pre_format( dest ) ) );
+}
+
+template<typename Enum, typename = std::enable_if_t<std::is_enum_v<Enum> && "Use `read_value() for non-enum types!`">>
+void read_enum( const toml::table & tbl, std::string_view key, Enum & dest, bool log_missing = true ) noexcept
+{
+    using Utility::Enum::from_string;
+
+    static_assert( std::is_enum_v<Enum> );
+    static_assert( std::is_same_v<decltype( name( std::declval<Enum>() ) ), std::string_view> );
+    static_assert( std::is_same_v<decltype( from_string<Enum>( std::declval<std::string>() ) ), std::optional<Enum>> );
+
+    using namespace Utility;
+    const auto node = tbl.at_path( key );
+    if( !node )
+    {
+        if( log_missing )
+            Log( Log_Level::Warning, Log_Sender::IO,
+                 fmt::format( "Missing key encountererd: '{}', using default: {}", key, detail::pre_format( dest ) ) );
+        return;
+    }
+    if( auto result_str = toml_transform<std::string>( *node.node() ) )
+    {
+        if( auto result_enum = from_string<Enum>( *result_str ) )
+            dest = *result_enum;
+        else
+            Log( Log_Level::Error, Log_Sender::IO,
+                 fmt::format(
+                     "Unknown value '{}' for key: '{}', using default: {}", *result_str, key,
+                     detail::pre_format( dest ) ) );
+    }
+    else
+        Log( Log_Level::Error, Log_Sender::IO,
+             fmt::format(
+                 "Failed converting value for key: '{}', using default: {}", key, detail::pre_format( dest ) ) );
 }
 
 inline void read_Vector3(
@@ -156,22 +194,22 @@ void read_value_with_default(
         {
             dest = *default_value;
             Log( Log_Level::Info, Log_Sender::IO,
-                 fmt::format( "Key '{}' was set to global default: {}", key, detail::transpose( *default_value ) ) );
+                 fmt::format( "Key '{}' was set to global default: {}", key, detail::pre_format( *default_value ) ) );
             return;
         }
 
         if( log_missing )
             Log( Log_Level::Warning, Log_Sender::IO,
-                 fmt::format( "Missing key encountererd!: '{}', using default: {}", key, detail::transpose( dest ) ) );
+                 fmt::format( "Missing key encountererd!: '{}', using default: {}", key, detail::pre_format( dest ) ) );
         return;
     }
 
     if( auto result = toml_transform<T>( *node.node() ) )
         dest = *result;
     else
-        Log(
-            Log_Level::Error, Log_Sender::IO,
-            fmt::format( "Failed converting value for key: '{}', using default: {}", key, detail::transpose( dest ) ) );
+        Log( Log_Level::Error, Log_Sender::IO,
+             fmt::format(
+                 "Failed converting value for key: '{}', using default: {}", key, detail::pre_format( dest ) ) );
 }
 
 namespace detail

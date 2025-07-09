@@ -3,6 +3,8 @@ Landau-Lifshitz-Gilbert (LLG)
 -------------------------------------------------------------
 """
 
+from spirit._compat._warnings import deprecated
+
 from spirit.io import FILEFORMAT_OVF_TEXT
 from spirit.scalar import scalar
 import ctypes
@@ -11,6 +13,13 @@ import ctypes
 from spirit.spiritlib import _spirit
 
 ### ---------------------------------- Set ----------------------------------
+
+# Spin current model: transfer torque (pinned monolayer approximation)
+SPIN_CURRENT_MODEL_TRANSFER_TORQUE = 0
+
+# Spin current model: orbit torque (gradient approximation)
+SPIN_CURRENT_MODEL_ORBIT_TORQUE = 1
+
 
 _LLG_Set_Output_Tag = _spirit.Parameters_LLG_Set_Output_Tag
 _LLG_Set_Output_Tag.argtypes = [
@@ -269,18 +278,6 @@ def set_damping(p_state, damping, idx_image=-1, idx_chain=-1):
     )
 
 
-_LLG_Set_STT = _spirit.Parameters_LLG_Set_STT
-_LLG_Set_STT.argtypes = [
-    ctypes.c_void_p,
-    ctypes.c_bool,
-    scalar,
-    ctypes.POINTER(3 * scalar),
-    ctypes.c_int,
-    ctypes.c_int,
-]
-_LLG_Set_STT.restype = None
-
-
 _LLG_Set_Non_Adiabatic_Damping = _spirit.Parameters_LLG_Set_Non_Adiabatic_Damping
 _LLG_Set_Non_Adiabatic_Damping.argtypes = [
     ctypes.c_void_p,
@@ -301,6 +298,38 @@ def set_non_adiabatic_damping(p_state, beta, idx_image=-1, idx_chain=-1):
     )
 
 
+_LLG_Set_Spin_Current = _spirit.Parameters_LLG_Set_Spin_Current
+_LLG_Set_Spin_Current.argtypes = [
+    ctypes.c_void_p,
+    ctypes.c_int,
+    scalar,
+    ctypes.POINTER(3 * scalar),
+    ctypes.c_int,
+    ctypes.c_int,
+]
+_LLG_Set_Spin_Current.restype = None
+
+
+def set_spin_current(p_state, model, magnitude, direction, idx_image=-1, idx_chain=-1):
+    """Set the spin current configuration.
+
+    - `model`: Refer to the `SPIN_CURRENT_MODEL_*` values for avaibale models
+    - `magnitude`: current strength
+    - `direction`: current direction or polarisation direction, array of `shape(3)`
+    """
+    vec3 = scalar * 3
+    direction = vec3(*direction)
+    ctypes.cast(direction, ctypes.POINTER(vec3))
+    _LLG_Set_Spin_Current(
+        ctypes.c_void_p(p_state),
+        ctypes.c_int(model),
+        scalar(magnitude),
+        direction,
+        ctypes.c_int(idx_image),
+        ctypes.c_int(idx_chain),
+    )
+
+
 _LLG_Set_STT = _spirit.Parameters_LLG_Set_STT
 _LLG_Set_STT.argtypes = [
     ctypes.c_void_p,
@@ -313,8 +342,13 @@ _LLG_Set_STT.argtypes = [
 _LLG_Set_STT.restype = None
 
 
+@deprecated("use 'set_spin_current()' instead.")
 def set_stt(p_state, use_gradient, magnitude, direction, idx_image=-1, idx_chain=-1):
-    """Set the spin current configuration.
+    """
+    .. deprecated:: 3.0
+       Use :func:`set_spin_current` instead.
+
+    Set the spin current configuration.
 
     - `use_gradient`: `True`: use the spatial gradient, `False`: monolayer approximation
     - `magnitude`: current strength
@@ -493,6 +527,39 @@ def get_non_adiabatic_damping(p_state, idx_image=-1, idx_chain=-1):
     )
 
 
+_LLG_Get_Spin_Current = _spirit.Parameters_LLG_Get_Spin_Current
+_LLG_Get_Spin_Current.argtypes = [
+    ctypes.c_void_p,
+    ctypes.POINTER(ctypes.c_int),
+    ctypes.POINTER(scalar),
+    ctypes.POINTER(scalar),
+    ctypes.c_int,
+    ctypes.c_int,
+]
+_LLG_Get_Spin_Current.restype = None
+
+
+def get_spin_current(p_state, idx_image=-1, idx_chain=-1):
+    """Returns the spin current configuration.
+
+    - which model is used for the spin current
+    - vector magnitude
+    - vector direction, array of `shape(3)`
+    """
+    model = ctypes.c_int()
+    magnitude = scalar()
+    direction = (3 * scalar)()
+    _LLG_Get_Spin_Current(
+        ctypes.c_void_p(p_state),
+        ctypes.pointer(model),
+        ctypes.pointer(magnitude),
+        direction,
+        ctypes.c_int(idx_image),
+        ctypes.c_int(idx_chain),
+    )
+    return int(model.value), float(magnitude.value), [float(i) for i in direction]
+
+
 _LLG_Get_STT = _spirit.Parameters_LLG_Get_STT
 _LLG_Get_STT.argtypes = [
     ctypes.c_void_p,
@@ -505,8 +572,13 @@ _LLG_Get_STT.argtypes = [
 _LLG_Get_STT.restype = None
 
 
+@deprecated("use 'get_spin_current()' instead.")
 def get_stt(p_state, idx_image=-1, idx_chain=-1):
-    """Returns the spin current configuration.
+    """
+    .. deprecated:: 3.0
+       Use :func:`get_spin_current` instead.
+
+    Returns the spin current configuration.
 
     - magnitude
     - direction, array of `shape(3)`

@@ -173,7 +173,8 @@ if( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" )
     endif()
 elseif( "${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC" )
     ### Disable unnecessary warnings on Windows, such as C4996 and C4267, C4244
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNOMINMAX /utf-8 /wd4018 /wd4244 /wd4267 /wd4661 /wd4996" )
+    ### Treat deprecation as a warning: /w34996
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNOMINMAX /utf-8 /wd4018 /wd4244 /wd4267 /wd4661 /wd4996 /w34996" )
 endif()
 ###
 message( STATUS ">> We are on the platform: ${PLATFORM_NAME}" )

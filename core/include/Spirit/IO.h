@@ -1,7 +1,7 @@
 #pragma once
 #ifndef SPIRIT_CORE_IO_H
 #define SPIRIT_CORE_IO_H
-#include "DLL_Define_Export.h"
+#include "DLL_Define.h"
 
 struct State;
 
@@ -162,5 +162,5 @@ PREFIX void IO_Eigenmodes_Write(
     State * state, const char * file, int format = IO_Fileformat_OVF_text, const char * comment = "-",
     int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-#include "DLL_Undefine_Export.h"
+#include "DLL_Undefine.h"
 #endif

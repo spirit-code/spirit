@@ -146,9 +146,9 @@ void Parameters_Method_LLG_to_Config(
     config += fmt::format( "{:<35} {}\n", "llg_damping", parameters->damping );
     config += fmt::format(
         "{:<35} {}\n", "llg_dt", parameters->dt * Utility::Constants::mu_B / Utility::Constants::gamma );
-    config += fmt::format( "{:<35} {}\n", "llg_stt_magnitude", parameters->stt_magnitude );
-    config
-        += fmt::format( "{:<35} {}\n", "llg_stt_polarisation_normal", parameters->stt_polarisation_normal.transpose() );
+    config += fmt::format( "{:<35} {}\n", "llg_stt_magnitude", parameters->spin_current_vector_magnitude );
+    config += fmt::format(
+        "{:<35} {}\n", "llg_stt_polarisation_normal", parameters->spin_current_vector_direction.transpose() );
     config += "############### End LLG Parameters ###############";
     append_to_file( config, config_file );
 }

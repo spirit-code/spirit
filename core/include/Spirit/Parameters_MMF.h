@@ -3,7 +3,7 @@
 #define SPIRIT_CORE_PARAMETERS_MMF_H
 #include "IO.h"
 
-#include "DLL_Define_Export.h"
+#include "DLL_Define.h"
 
 struct State;
 
@@ -120,5 +120,5 @@ PREFIX int Parameters_MMF_Get_N_Modes( State * state, int idx_image = -1, int id
 // Returns the index of the mode which to follow.
 PREFIX int Parameters_MMF_Get_N_Mode_Follow( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-#include "DLL_Undefine_Export.h"
+#include "DLL_Undefine.h"
 #endif

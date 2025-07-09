@@ -1,7 +1,7 @@
 #pragma once
 #ifndef SPIRIT_CORE_LOG_H
 #define SPIRIT_CORE_LOG_H
-#include "DLL_Define_Export.h"
+#include "DLL_Define.h"
 
 #include <vector>
 
@@ -121,5 +121,5 @@ PREFIX bool Log_Get_Output_To_File( State * state ) SUFFIX;
 // Returns the file logging level
 PREFIX int Log_Get_Output_File_Level( State * state ) SUFFIX;
 
-#include "DLL_Undefine_Export.h"
+#include "DLL_Undefine.h"
 #endif

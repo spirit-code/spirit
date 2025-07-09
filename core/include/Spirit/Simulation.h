@@ -3,7 +3,7 @@
 #define SPIRIT_CORE_SIMULATION_H
 #include "Spirit_Defines.h"
 
-#include "DLL_Define_Export.h"
+#include "DLL_Define.h"
 
 struct State;
 
@@ -212,5 +212,5 @@ PREFIX bool Simulation_Running_On_Chain( State * state, int idx_chain = -1 ) SUF
 // Check if a simulation is running on any or all images of a chain
 PREFIX bool Simulation_Running_Anywhere_On_Chain( State * state, int idx_chain = -1 ) SUFFIX;
 
-#include "DLL_Undefine_Export.h"
+#include "DLL_Undefine.h"
 #endif

@@ -4,7 +4,7 @@
 #include "IO.h"
 #include "Spirit_Defines.h"
 
-#include "DLL_Define_Export.h"
+#include "DLL_Define.h"
 
 struct State;
 
@@ -16,6 +16,10 @@ LLG Parameters
 #include "Spirit/Parameters_LLG.h"
 ```
 */
+// Monolayer approximation for spin current: transfer torque
+#define LLG_SC_Model_Transfer_Torque 0
+// Gradient model for spin current: orbit torque
+#define LLG_SC_Model_Orbit_Torque 1
 
 /*
 Set Output
@@ -107,11 +111,24 @@ Parameters_LLG_Set_Non_Adiabatic_Damping( State * state, scalar beta, int idx_im
 /*
 Set the spin current configuration.
 
+- model: SC_Model_Orbit_Torque or SC_Model_Transfer_Torque
+- magnitude: current strength
+- direction: current direction or polarisation direction, array of shape (3)
+*/
+PREFIX void Parameters_LLG_Set_Spin_Current(
+    State * state, int model, scalar magnitude, const scalar normal[3], int idx_image = -1, int idx_chain = -1 ) SUFFIX;
+/*
+Deprecated: Use Parameters_LLG_Set_Spin_Current() instead.
+
+Set the spin current configuration.
+
 - use_gradient: `True`: use the spatial gradient, `False`: monolayer approximation
 - magnitude: current strength
 - direction: current direction or polarisation direction, array of shape (3)
 */
-PREFIX void Parameters_LLG_Set_STT(
+
+PREFIX_DEPRECATED( "Use Parameters_LLG_Set_Spin_Current() instead." )
+void Parameters_LLG_Set_STT(
     State * state, bool use_gradient, scalar magnitude, const scalar normal[3], int idx_image = -1,
     int idx_chain = -1 ) SUFFIX;
 
@@ -191,13 +208,27 @@ PREFIX void Parameters_LLG_Get_Temperature_Gradient(
 /*
 Returns the spin current configuration.
 
+- model: switch for the spin current model
+- magnitude
+- direction, array of shape (3)
+*/
+PREFIX void Parameters_LLG_Get_Spin_Current(
+    State * state, int * model, scalar * magnitude, scalar direction[3], int idx_image = -1,
+    int idx_chain = -1 ) SUFFIX;
+/*
+
+Deprecated: Use Use Parameters_LLG_Get_Spin_Current() instead.
+
+Returns the spin current configuration.
+
 - magnitude
 - direction, array of shape (3)
 - whether the spatial gradient is used
 */
-PREFIX void Parameters_LLG_Get_STT(
+PREFIX_DEPRECATED( "Use Parameters_LLG_Get_Spin_Current() instead." )
+void Parameters_LLG_Get_STT(
     State * state, bool * use_gradient, scalar * magnitude, scalar normal[3], int idx_image = -1,
     int idx_chain = -1 ) SUFFIX;
 
-#include "DLL_Undefine_Export.h"
+#include "DLL_Undefine.h"
 #endif

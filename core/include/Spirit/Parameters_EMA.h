@@ -4,7 +4,7 @@
 #include "IO.h"
 #include "Spirit_Defines.h"
 
-#include "DLL_Define_Export.h"
+#include "DLL_Define.h"
 
 struct State;
 
@@ -72,5 +72,5 @@ PREFIX bool Parameters_EMA_Get_Snapshot( State * state, int idx_image = -1, int 
 // Returns whether to use sparse matrices.
 PREFIX bool Parameters_EMA_Get_Sparse( State * state, int idx_image = -1, int idx_chain = -1 ) SUFFIX;
 
-#include "DLL_Undefine_Export.h"
+#include "DLL_Undefine.h"
 #endif

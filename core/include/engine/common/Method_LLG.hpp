@@ -82,22 +82,7 @@ struct Method_LLG
         const intfield & boundary_conditions, const vectorfield & image, const vectorfield & force,
         vectorfield & force_virtual )
     {
-        //////////
         namespace Constants = Utility::Constants;
-        // time steps
-        scalar damping = parameters.damping;
-        // dt = time_step [ps] * gyromagnetic ratio / mu_B / (1+damping^2) <- not implemented
-        scalar dtg     = parameters.dt * Constants::gamma / Constants::mu_B / ( 1 + damping * damping );
-        scalar sqrtdtg = dtg / std::sqrt( parameters.dt );
-        // STT
-        // - monolayer
-        scalar a_j      = parameters.stt_magnitude;
-        Vector3 s_c_vec = parameters.stt_polarisation_normal;
-        // - gradient
-        scalar b_j  = a_j;             // pre-factor b_j = u*mu_s/gamma (see bachelorthesis Constantin)
-        scalar beta = parameters.beta; // non-adiabatic parameter of correction term
-        Vector3 je  = s_c_vec;         // direction of current
-        //////////
 
         // This is the force calculation as it should be for direct minimization
         // TODO: Also calculate force for VP solvers without additional scaling
@@ -107,12 +92,26 @@ struct Method_LLG
         }
         else if( parameters.direct_minimization || solver == Solver::VP || solver == Solver::VP_OSO )
         {
-            dtg = parameters.dt * Constants::gamma / Constants::mu_B;
-            Vectormath::set_c_cross( dtg, image, force, force_virtual );
+            Vectormath::set_c_cross( parameters.dt * Constants::gamma / Constants::mu_B, image, force, force_virtual );
         }
         // Dynamics simulation
         else
         {
+            //////////
+            // time steps
+            scalar damping = parameters.damping;
+            // dt = time_step [ps] * gyromagnetic ratio / mu_B / (1+damping^2) <- not implemented
+            scalar dtg = parameters.dt * Constants::gamma / Constants::mu_B / ( 1 + damping * damping );
+            // STT
+            // - monolayer
+            scalar a_j      = parameters.spin_current_vector_magnitude;
+            Vector3 s_c_vec = parameters.spin_current_vector_direction;
+            // - gradient
+            // scalar b_j  = a_j;          // pre-factor b_j = u*mu_s/gamma (see bachelorthesis Constantin)
+            scalar beta = parameters.beta; // non-adiabatic parameter of correction term
+            Vector3 je  = s_c_vec;         // direction of current
+            //////////
+
             Backend::transform(
                 SPIRIT_PAR Backend::make_zip_iterator( force.begin(), image.begin(), geometry.mu_s.begin() ),
                 Backend::make_zip_iterator( force.end(), image.end(), geometry.mu_s.end() ), force_virtual.begin(),
@@ -123,39 +122,48 @@ struct Method_LLG
             // STT
             if( a_j > 0 )
             {
-                if( parameters.stt_use_gradient )
+                switch( parameters.spin_current_model )
                 {
-                    if( jacobians.size() != geometry.nos )
-                        jacobians = field<Matrix3>( geometry.nos, Matrix3::Zero() );
+                    case Data::SC_Model::ORBIT_TORQUE:
+                    {
+                        if( jacobians.size() != geometry.nos )
+                            jacobians = field<Matrix3>( geometry.nos, Matrix3::Zero() );
 
-                    // Gradient approximation for in-plane currents
-                    Vectormath::jacobian( image, geometry, boundary_conditions, jacobians );
+                        // Gradient approximation for in-plane currents
+                        Vectormath::jacobian( image, geometry, boundary_conditions, jacobians );
 
-                    // Gradient in current richtung, daher => *(-1)
-                    // TODO: a_j durch b_j ersetzen
-                    const scalar c1 = dtg * a_j * ( damping - beta );
-                    const scalar c2 = dtg * a_j * ( 1 + beta * damping );
-                    Backend::for_each_n(
-                        SPIRIT_PAR Backend::make_zip_iterator(
-                            force_virtual.begin(), image.begin(), jacobians.begin() ),
-                        force_virtual.size(),
-                        Backend::make_zip_function(
-                            [c1, c2, je] SPIRIT_LAMBDA( Vector3 & fv, const Vector3 & n, const Matrix3 & jacobian )
-                            {
-                                const Vector3 s_c_vec = jacobian * je;
-                                fv += c1 * s_c_vec + c2 * s_c_vec.cross( n );
-                            } ) );
-                }
-                else
-                {
-                    const Vector3 v1 = -dtg * a_j * ( damping - beta ) * s_c_vec;
-                    const Vector3 v2 = -dtg * a_j * ( 1 + beta * damping ) * s_c_vec;
-                    // Monolayer approximation
-                    Backend::for_each_n(
-                        SPIRIT_PAR Backend::make_zip_iterator( force_virtual.begin(), image.begin() ),
-                        force_virtual.size(),
-                        Backend::make_zip_function( [v1, v2] SPIRIT_LAMBDA( Vector3 & fv, const Vector3 & n )
-                                                    { fv += v1 + v2.cross( n ); } ) );
+                        // Gradient in current richtung, daher => *(-1)
+                        // TODO: a_j durch b_j ersetzen
+                        const scalar c1 = dtg * a_j * ( damping - beta );
+                        const scalar c2 = dtg * a_j * ( 1 + beta * damping );
+                        Backend::for_each_n(
+                            SPIRIT_PAR Backend::make_zip_iterator(
+                                force_virtual.begin(), image.begin(), jacobians.begin() ),
+                            force_virtual.size(),
+                            Backend::make_zip_function(
+                                [c1, c2, je] SPIRIT_LAMBDA( Vector3 & fv, const Vector3 & n, const Matrix3 & jacobian )
+                                {
+                                    const Vector3 s_c_vec = jacobian * je;
+                                    fv += c1 * s_c_vec + c2 * s_c_vec.cross( n );
+                                } ) );
+                        break;
+                    }
+                    case Data::SC_Model::TRANSFER_TORQUE:
+                    {
+                        const Vector3 v1 = -dtg * a_j * ( damping - beta ) * s_c_vec;
+                        const Vector3 v2 = -dtg * a_j * ( 1 + beta * damping ) * s_c_vec;
+                        // Monolayer approximation
+                        Backend::for_each_n(
+                            SPIRIT_PAR Backend::make_zip_iterator( force_virtual.begin(), image.begin() ),
+                            force_virtual.size(),
+                            Backend::make_zip_function( [v1, v2] SPIRIT_LAMBDA( Vector3 & fv, const Vector3 & n )
+                                                        { fv += v1 + v2.cross( n ); } ) );
+                        break;
+                    }
+                    default:
+                    {
+                        // std::unreachable();  // This should be unreachable if all the other checks work
+                    }
                 }
             }
 

@@ -48,12 +48,23 @@ auto Parameters_Method_LLG_to_TOML( const Data::Parameters_Method_LLG & paramete
           } ) },
         { "damping", parameters.damping },
         { "beta", parameters.beta },
-        // config_file_handle.Read_Single(parameters.renorm_sd, "llg_renorm");
-        { "stt_use_gradient", parameters.stt_use_gradient },
-        { "stt_magnitude", parameters.stt_magnitude },
-        { "stt_polarisation_normal", toml_array_from_container( parameters.stt_polarisation_normal ) },
+        { "spin_current_model",
+          [model = parameters.spin_current_model]
+          {
+              switch( model )
+              {
+                  case Data::SC_Model::ORBIT_TORQUE: return "orbit_torque";
+                  case Data::SC_Model::TRANSFER_TORQUE: return "transfer_torque";
+                  default: return "unknown";
+              }
+          }() },
+        { "spin_current_vector",
+          as_inline( toml::table{
+              { "magnitude", parameters.spin_current_vector_magnitude },
+              { "direction", toml_array_from_container( parameters.spin_current_vector_direction ) },
+          } ) },
         { "force_convergence", parameters.force_convergence },
-    };
+    }; // namespace IO
 };
 
 auto Parameters_Method_MC_to_TOML( const Data::Parameters_Method_MC & parameters ) -> toml::table

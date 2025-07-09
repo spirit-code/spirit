@@ -5,3 +5,6 @@
 
 #undef PREFIX
 #undef SUFFIX
+
+#undef DEPRECATED
+#undef PREFIX_DEPRECATED

@@ -3,7 +3,7 @@
 #define SPIRIT_CORE_CHAIN_H
 #include "Spirit_Defines.h"
 
-#include "DLL_Define_Export.h"
+#include "DLL_Define.h"
 
 struct State;
 
@@ -157,5 +157,5 @@ You probably won't need this.
 */
 PREFIX void Chain_Setup_Data( State * state, int idx_chain = -1 ) SUFFIX;
 
-#include "DLL_Undefine_Export.h"
+#include "DLL_Undefine.h"
 #endif

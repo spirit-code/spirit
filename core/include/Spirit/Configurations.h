@@ -3,7 +3,7 @@
 #define SPIRIT_CORE_CONFIGURATIONS_H
 #include "Spirit_Defines.h"
 
-#include "DLL_Define_Export.h"
+#include "DLL_Define.h"
 
 struct State;
 
@@ -158,5 +158,5 @@ PREFIX void Configuration_Set_Atom_Type(
     scalar r_cut_cylindrical = -1, scalar r_cut_spherical = -1, bool inverted = false, int idx_image = -1,
     int idx_chain = -1 ) SUFFIX;
 
-#include "DLL_Undefine_Export.h"
+#include "DLL_Undefine.h"
 #endif

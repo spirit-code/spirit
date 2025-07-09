@@ -3,7 +3,7 @@
 #define SPIRIT_CORE_GEOMETRY_H
 #include "Spirit_Defines.h"
 
-#include "DLL_Define_Export.h"
+#include "DLL_Define.h"
 
 struct State;
 
@@ -197,5 +197,5 @@ PREFIX int Geometry_Get_Tetrahedra_Ranged(
     State * state, const int ** indices_ptr, int n_cell_step, int ranges[6], int idx_image = -1,
     int idx_chain = -1 ) SUFFIX;
 
-#include "DLL_Undefine_Export.h"
+#include "DLL_Undefine.h"
 #endif

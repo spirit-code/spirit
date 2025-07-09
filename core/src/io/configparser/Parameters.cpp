@@ -291,10 +291,10 @@ auto Parameters_Method_LLG_from_TOML( const toml::table & tbl, const Defaults & 
             parameters->temperature_gradient_direction );
         read_value( tbl, prefix( "damping" ), parameters->damping );
         read_value( tbl, prefix( "beta" ), parameters->beta );
-        read_value( tbl, prefix( "stt_use_gradient" ), parameters->stt_use_gradient );
-        read_value( tbl, prefix( "stt_magnitude" ), parameters->stt_magnitude );
-        read_value( tbl, prefix( "llg_stt_polarisation_normal" ), parameters->stt_polarisation_normal );
-        parameters->stt_polarisation_normal.normalize();
+        read_enum( tbl, prefix( "spin_current_model" ), parameters->spin_current_model );
+        read_Vector3(
+            tbl, prefix( "spin_current_vector" ), parameters->spin_current_vector_magnitude,
+            parameters->spin_current_vector_direction );
         read_value( tbl, prefix( "force_convergence" ), parameters->force_convergence );
     }
     else
@@ -312,10 +312,11 @@ auto Parameters_Method_LLG_from_TOML( const toml::table & tbl, const Defaults & 
         "    {:<17} = {}", "temperature gradient inclination", parameters->temperature_gradient_magnitude ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "damping", parameters->damping ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "beta", parameters->beta ) );
-    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "stt use gradient", parameters->stt_use_gradient ) );
-    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "stt magnitude", parameters->stt_magnitude ) );
+    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "stt model", name( parameters->spin_current_model ) ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<17} = {}", "stt normal", parameters->stt_polarisation_normal.transpose() ) );
+        fmt::format( "    {:<17} = {}", "stt magnitude", parameters->spin_current_vector_magnitude ) );
+    parameter_log.emplace_back(
+        fmt::format( "    {:<17} = {}", "stt direction", parameters->spin_current_vector_direction.transpose() ) );
     parameter_log.emplace_back(
         fmt::format( "    {:<17} = {:e}", "force convergence", parameters->force_convergence ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "maximum walltime", str_max_walltime ) );
