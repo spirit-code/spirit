@@ -72,7 +72,7 @@ auto Geometry_to_TOML( const Data::Geometry & geometry ) -> toml::table
         const auto & types = geometry.defects.types;
 
         std::ostringstream oss;
-        oss << '\n';
+        oss << '\n' << "i   da  db  dc   type";
         for( std::size_t i = 0; i < sites.size(); ++i )
         {
             const auto & t = sites[i].translations;

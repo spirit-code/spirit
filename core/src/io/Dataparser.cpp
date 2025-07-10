@@ -151,19 +151,20 @@ auto Defects_from_File( Filter_File_Handle & defects_file ) noexcept -> Data::De
              fmt::format( "Trying to parse defects from top of \"{}\"", defects_file.filename() ) );
     }
 
-    while( defects_file.GetLine() && n_defects < nod )
+    using DefectsParser = TableParser<int, int, int, int, int>;
+    DefectsParser parser( { "i", "da", "db", "dc", "type" } );
+
+    auto data = parser.parse( defects_file, "n_defects", 5 );
+    defect_sites.reserve( data.size() );
+    defect_types.reserve( data.size() );
+    for( auto [i, da, db, dc, type] : data )
     {
-        Site site{};
-        int type{ 0 };
-        defects_file >> site.i >> site.translations[0] >> site.translations[1] >> site.translations[2] >> type;
-        defect_sites.push_back( site );
-        defect_types.push_back( type );
-        ++n_defects;
+        defect_sites.emplace_back( Site{ i, { da, db, dc } } );
+        defect_types.emplace_back( type );
     }
 
     Log( Log_Level::Parameter, Log_Sender::IO,
-         fmt::format( "Done reading {} defects from file \"{}\"", n_defects, defects_file.filename() ) );
-
+         fmt::format( "Done reading {} defects from file \"{}\"", defect_sites.size(), defects_file.filename() ) );
 #else
     Log( Log_Level::Parameter, Log_Sender::IO, "Disorder is disabled" );
 #endif

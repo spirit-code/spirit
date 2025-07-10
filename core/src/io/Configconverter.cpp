@@ -724,11 +724,12 @@ auto Basis_Cell_Composition( const std::string & config_file_name, const std::si
 
         int n_defects = 0;
 
-        std::string defects_file = "";
+        std::string defects_file_name = "";
         if( config_file_handle.Find( "n_defects" ) )
         {
             config_file_handle >> n_defects;
-            std::stringstream oss{ "\n" };
+            std::stringstream oss{};
+            oss << '\n' << "i da db dc type\n";
             for( int i = 0; i < n_defects; ++i )
             {
                 if( !config_file_handle.GetLine() )
@@ -739,8 +740,55 @@ auto Basis_Cell_Composition( const std::string & config_file_name, const std::si
         }
         else if( config_file_handle.Find( "defects_from_file" ) )
         {
-            config_file_handle >> defects_file;
-            tbl.insert( "defects", fmt::format( "{}{}", Filter_File_Handle::file_prefix, defects_file ) );
+            config_file_handle >> defects_file_name;
+            Filter_File_Handle defects_file( defects_file_name );
+            auto defect_sites = field<Site>( 0 );
+            auto defect_types = intfield( 0 );
+            int n_defects     = 0;
+
+            Log( Log_Level::Debug, Log_Sender::IO, fmt::format( "Reading defects from {}", defects_file.filename() ) );
+            int nod = 0;
+
+            if( defects_file.Find( "n_defects" ) )
+            {
+                // Read n interaction pairs
+                defects_file >> nod;
+                Log( Log_Level::Debug, Log_Sender::IO,
+                     fmt::format( "File \"{}\" should have {} defects", defects_file.filename(), nod ) );
+            }
+            else
+            {
+                // Read the whole file
+                nod = (int)1e8;
+                // First line should contain the columns
+                defects_file.To_Start();
+                Log( Log_Level::Debug, Log_Sender::IO,
+                     fmt::format( "Trying to parse defects from top of \"{}\"", defects_file.filename() ) );
+            }
+
+            while( defects_file.GetLine() && n_defects < nod )
+            {
+                Site site{};
+                int type{ 0 };
+                defects_file >> site.i >> site.translations[0] >> site.translations[1] >> site.translations[2] >> type;
+                defect_sites.push_back( site );
+                defect_types.push_back( type );
+                ++n_defects;
+            }
+
+            Log( Log_Level::Parameter, Log_Sender::IO,
+                 fmt::format( "Done reading {} defects from file \"{}\"", n_defects, defects_file.filename() ) );
+
+            std::stringstream oss{};
+            if( !defect_sites.empty() )
+                oss << '\n' << "i da db dc type\n";
+            for( unsigned int i = 0; i < defect_sites.size(); ++i )
+            {
+                const auto & t = defect_sites[i].translations;
+                oss << fmt::format( "{} {} {} {} {}", defect_sites[i].i, t[0], t[1], t[2], defect_types[i] );
+            }
+
+            tbl.insert( "defects", oss.str() );
         }
 
         // Disorder
