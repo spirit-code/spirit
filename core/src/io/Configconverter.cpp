@@ -632,7 +632,7 @@ auto Pinning( const std::string & config_file_name, std::size_t n_cell_atoms ) -
             }
 
             // Additional pinned sites
-            std::string pinned_file = "";
+            std::string pinned_file_name = "";
             if( config_file_handle.Find( "n_pinned" ) )
             {
                 config_file_handle.Read_Single( n_pinned, "n_pinned" );
@@ -647,8 +647,59 @@ auto Pinning( const std::string & config_file_name, std::size_t n_cell_atoms ) -
             }
             else if( config_file_handle.Find( "pinned_from_file" ) )
             {
-                config_file_handle >> pinned_file;
-                tbl.insert( "pinned", fmt::format( "{}{}", Filter_File_Handle::file_prefix, pinned_file ) );
+                config_file_handle >> pinned_file_name;
+                Filter_File_Handle pinned_file( pinned_file_name );
+
+                int nop      = 0;
+                n_pinned     = 0;
+                pinned_sites = field<Site>( 0 );
+                pinned_spins = vectorfield( 0 );
+
+                Log( Log_Level::Debug, Log_Sender::IO,
+                     fmt::format( "Reading pinned sites from file \"{}\"", pinned_file.filename() ) );
+
+                if( pinned_file.Find( "n_pinned" ) )
+                {
+                    // Read n interaction pairs
+                    pinned_file >> nop;
+                    Log( Log_Level::Debug, Log_Sender::IO,
+                         fmt::format( "File \"{}\" should have {} pinned sites", pinned_file.filename(), nop ) );
+                }
+                else
+                {
+                    // Read the whole file
+                    nop = (int)1e8;
+                    // First line should contain the columns
+                    pinned_file.To_Start();
+                    Log(
+                        Log_Level::Debug, Log_Sender::IO,
+                        fmt::format( "Trying to parse pinned sites from top of file \"{}\"", pinned_file.filename() ) );
+                }
+
+                while( pinned_file.GetLine() && n_pinned < nop )
+                {
+                    Site site{};
+                    Vector3 orientation{};
+                    pinned_file >> site.i >> site.translations[0] >> site.translations[1] >> site.translations[2]
+                        >> orientation.x() >> orientation.y() >> orientation.z();
+                    pinned_sites.push_back( site );
+                    pinned_spins.push_back( orientation );
+                    ++n_pinned;
+                }
+
+                std::stringstream oss{};
+                if( !pinned_sites.empty() )
+                {
+                    oss << '\n' << "i  da db dc  x y z\n";
+                    for( unsigned int i = 0; i < pinned_sites.size(); ++i )
+                    {
+                        const auto & t = pinned_sites[i].translations;
+                        oss << fmt::format(
+                            "{}  {} {} {}  {}", pinned_sites[i].i, t[0], t[1], t[2], pinned_spins[i].transpose() );
+                    }
+                }
+
+                tbl.insert( "pinned", oss.str() );
             }
         }
         catch( ... )

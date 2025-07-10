@@ -100,13 +100,17 @@ auto Geometry_to_TOML( const Data::Geometry & geometry ) -> toml::table
         const auto & spins = pinning.spins;
 
         std::ostringstream oss;
-        for( unsigned int i = 0; i < pinning.sites.size(); ++i )
+        if( !pinning.sites.empty() )
         {
-            const auto & t = sites[i].translations;
-            oss << fmt::format(
-                "{}  {} {} {}  {} {} {}", sites[i].i, t[0], t[1], t[2], spins[i][0], spins[i][1], spins[i][2] );
+            oss << '\n' << "i  da db dc  x y z";
+            for( unsigned int i = 0; i < pinning.sites.size(); ++i )
+            {
+                const auto & t = sites[i].translations;
+                oss << fmt::format(
+                    "{}  {} {} {}  {} {} {}", sites[i].i, t[0], t[1], t[2], spins[i][0], spins[i][1], spins[i][2] );
+            }
+            tbl.insert( "pinned", oss.str() );
         }
-        tbl.insert( "pinned", oss.str() );
     }
 #endif
     return tbl;

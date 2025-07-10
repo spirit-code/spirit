@@ -200,19 +200,22 @@ try
              fmt::format( "Trying to parse pinned sites from top of file \"{}\"", pinned_file.filename() ) );
     }
 
-    while( pinned_file.GetLine() && n_pinned < nop )
+    using DefectsParser = TableParser<int, int, int, int, scalar, scalar, scalar>;
+    DefectsParser parser( { "i", "da", "db", "dc", "x", "y", "z" } );
+
+    auto data = parser.parse( pinned_file, "n_defects", 5 );
+    n_pinned  = data.size();
+
+    pinned_sites.reserve( data.size() );
+    pinned_spins.reserve( data.size() );
+    for( auto [i, da, db, dc, x, y, z] : data )
     {
-        Site site{};
-        Vector3 orientation{};
-        pinned_file >> site.i >> site.translations[0] >> site.translations[1] >> site.translations[2] >> orientation.x()
-            >> orientation.y() >> orientation.z();
-        pinned_sites.push_back( site );
-        pinned_spins.push_back( orientation );
-        ++n_pinned;
+        pinned_sites.emplace_back( Site{ i, { da, db, dc } } );
+        pinned_spins.emplace_back( Vector3{ x, y, z } );
     }
 
     Log( Log_Level::Parameter, Log_Sender::IO,
-         fmt::format( "Done reading {} pinned sites from file \"{}\"", n_pinned, pinned_file.filename() ) );
+         fmt::format( "Done reading {} pinned sites from file \"{}\"", pinned_sites.size(), pinned_file.filename() ) );
 }
 catch( ... )
 {
