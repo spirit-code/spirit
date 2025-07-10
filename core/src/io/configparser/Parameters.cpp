@@ -351,7 +351,7 @@ auto Parameters_Method_LLG_from_TOML( const toml::table & tbl, const Defaults & 
     return parameters;
 } // end Parameters_Method_LLG_from_Config
 
-auto Parameters_Method_MC_from_TOML( const toml::table & node, const Defaults & defaults )
+auto Parameters_Method_MC_from_TOML( const toml::table & tbl, const Defaults & defaults )
     -> std::unique_ptr<Data::Parameters_Method_MC>
 {
     static constexpr std::string_view config_path = "method.mc";
@@ -369,10 +369,9 @@ auto Parameters_Method_MC_from_TOML( const toml::table & node, const Defaults & 
     // Maximum wall time
     std::string str_max_walltime = "0";
 
-    if( const auto * tbl_view = node.at_path( config_path ).as_table() )
+    if( tbl.at_path( config_path ).as_table() )
     {
         constexpr auto prefix = []( const std::string_view key ) { return fmt::format( "{}.{}", config_path, key ); };
-        const auto & tbl      = *tbl_view;
 
         // Configuration output filetype
         int output_configuration_filetype = static_cast<int>( parameters->output_vf_filetype );
