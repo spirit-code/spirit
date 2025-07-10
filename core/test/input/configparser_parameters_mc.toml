@@ -1,0 +1,31 @@
+[defaults.output]
+file_tag = "test_configparser_mc"
+folder = "output"
+
+[method.mc]
+max_walltime     = "0:0:0"
+seed             = 20006
+n_iterations     = 2000000
+n_iterations_log = 2000
+n_iterations_amortize = 1
+
+temperature                        = 42
+acceptance_ratio                   = 0.3
+metropolis_step                    = "sphere"
+metropolis_use_adaptive_cone       = false
+metropolis_cone_angle              = 25.0
+
+[method.mc.output]
+any     = true
+initial = true
+final   = true
+
+energy_step                  = false
+energy_archive               = true
+energy_spin_resolved         = false
+energy_divide_by_nspins      = true
+energy_add_readability_lines = true
+
+configuration_step     = true
+configuration_archive  = false
+configuration_filetype = 3

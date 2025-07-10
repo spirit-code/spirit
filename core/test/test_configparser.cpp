@@ -346,3 +346,96 @@ TEST_CASE( "Parameters LLG: Parse config and check parsed values using the C-API
         REQUIRE_THAT( Parameters_LLG_Get_Output_Folder( state.get() ), Equals( "output" ) );
     }
 }
+
+TEST_CASE( "Parameters MC: Parse config and check parsed values using the C-API", "[configparser]" )
+{
+    static constexpr auto input_file = "core/test/input/configparser_parameters_mc.toml";
+
+    auto state = std::shared_ptr<State>( State_Setup( input_file ), State_Delete );
+    REQUIRE( state != nullptr );
+    REQUIRE( !state->config_file.empty() );
+
+    // TODO: make sure that the provided values aren't the default ones,
+    // Otherwise the test also passes when parsing fails completely.
+    const long ref_max_walltime     = 0;
+    const int ref_seed              = 20006;
+    const int n_iterations          = 2000000;
+    const int n_iterations_log      = 2000;
+    const int n_iterations_amortize = 1;
+
+    const scalar ref_temperature = 42;
+
+    const int metropolis_step                       = MC_Metropolis_Step_Spin_Sphere;
+    const bool metropolis_use_adaptive_cone         = false;
+    const bool metropolis_random_sample             = false;
+    const scalar metropolis_cone_angle              = 25.0;
+    const scalar metropolis_target_acceptance_ratio = 0.3;
+
+    const bool output_any     = true;
+    const bool output_initial = true;
+    const bool output_final   = true;
+
+    const bool output_energy_step                  = false;
+    const bool output_energy_archive               = true;
+    const bool output_energy_spin_resolved         = false;
+    const bool output_energy_divide_by_nspins      = true;
+    const bool output_energy_add_readability_lines = true;
+
+    const bool output_configuration_step    = true;
+    const bool output_configuration_archive = false;
+    const int output_configuration_filetype = 3;
+
+    SECTION( "Simulation: Iterations" )
+    {
+        int iterations, iterations_log;
+        Parameters_MC_Get_N_Iterations( state.get(), &iterations, &iterations_log );
+
+        REQUIRE( iterations == n_iterations );
+        REQUIRE( iterations_log == n_iterations_log );
+    }
+    SECTION( "Simulation: General" )
+    {
+        REQUIRE_THAT( Parameters_MC_Get_Temperature( state.get() ), WithinAbs( ref_temperature, epsilon_2 ) );
+
+        Parameters_MC_Metropolis_Parameters params;
+        Parameters_MC_Get_Metropolis_Parameters( state.get(), &params );
+
+        REQUIRE( params.step == metropolis_step );
+        REQUIRE( params.use_adaptive_cone == metropolis_use_adaptive_cone );
+        REQUIRE_THAT( params.cone_angle, WithinAbs( metropolis_cone_angle, epsilon_2 ) );
+        REQUIRE_THAT( params.target_acceptance_ratio, WithinAbs( metropolis_target_acceptance_ratio, epsilon_2 ) );
+    }
+    SECTION( "Output: General" )
+    {
+        bool any, initial, final;
+        Parameters_MC_Get_Output_General( state.get(), &any, &initial, &final );
+        REQUIRE( any == output_any );
+        REQUIRE( initial == output_initial );
+        REQUIRE( final == output_final );
+    }
+    SECTION( "Output: Energy" )
+    {
+        bool step, archive, spin_resolved, divide_by_nspins, readability_lines;
+        Parameters_MC_Get_Output_Energy(
+            state.get(), &step, &archive, &spin_resolved, &divide_by_nspins, &readability_lines );
+        REQUIRE( step == output_energy_step );
+        REQUIRE( archive == output_energy_archive );
+        REQUIRE( spin_resolved == output_energy_spin_resolved );
+        REQUIRE( divide_by_nspins == output_energy_divide_by_nspins );
+        REQUIRE( readability_lines == output_energy_add_readability_lines );
+    }
+    SECTION( "Output: Configuration" )
+    {
+        bool step, archive;
+        int filetype;
+        Parameters_MC_Get_Output_Configuration( state.get(), &step, &archive, &filetype );
+        REQUIRE( step == output_configuration_step );
+        REQUIRE( archive == output_configuration_archive );
+        REQUIRE( filetype == output_configuration_filetype );
+    }
+    SECTION( "Output: Path" )
+    {
+        REQUIRE_THAT( Parameters_MC_Get_Output_Tag( state.get() ), Equals( "test_configparser_mc" ) );
+        REQUIRE_THAT( Parameters_MC_Get_Output_Folder( state.get() ), Equals( "output" ) );
+    }
+}
