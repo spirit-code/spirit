@@ -100,7 +100,7 @@ private:
 public:
     // parse function, transform_factory expects a second oder function whose result can transform the read in row into
     // a format that should be stored
-    template<typename F>
+    template<typename F = decltype( forwarding_factory<read_row_t> )>
     [[nodiscard]] decltype( auto ) parse(
         Filter_File_Handle & file_handle, const std::string & table_size_id, const std::size_t n_columns_read,
         F transform_factory = forwarding_factory<read_row_t> ) const
