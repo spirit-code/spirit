@@ -792,6 +792,7 @@ auto Basis_Cell_Composition( const std::string & config_file_name, const std::si
         }
 
         // Disorder
+        int n_atom_types = 0;
         if( config_file_handle.Find( "atom_types" ) )
         {
             config_file_handle >> n_atom_types;
