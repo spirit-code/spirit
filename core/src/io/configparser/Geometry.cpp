@@ -1,6 +1,7 @@
 #include <io/Configparser.hpp>
 #include <io/Dataparser.hpp>
 #include <io/Filter_File_Handle.hpp>
+#include <io/Tableparser.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Timing.hpp>
 
@@ -224,26 +225,83 @@ auto Basis_Cell_Composition_from_TOML( const toml::table & tbl, std::size_t n_ce
 
     if( auto atom_types = tbl["atom_types"].value<std::string>(); enable_defects && atom_types )
     {
-        // Disorder
-        auto file_handle         = Filter_File_Handle::from_string( *atom_types );
-        std::size_t n_atom_types = 0;
-        file_handle >> n_atom_types;
+        using AtomTypesParser = TableParser<int, int, scalar, scalar, int>;
+        const AtomTypesParser parser( { "i", "type", "c", "mu_s", "spin_qn" } );
 
-        auto cell_composition = Data::Basis_Cell_Composition::make_default( n_atom_types, /*disordered=*/true );
-        // TODO: turn this into a table with headings to allow for user defined column ordering and defaulted columns
-        for( unsigned int itype = 0; itype < n_atom_types; ++itype )
+        // Disorder
+        auto file_handle = Filter_File_Handle::from_string( *atom_types );
+
+        const auto factory = []( const auto & headings )
         {
-            file_handle.GetLine();
-            file_handle >> cell_composition.iatom[itype];
-            file_handle >> cell_composition.atom_type[itype];
-            file_handle >> cell_composition.concentration[itype];
-            file_handle >> cell_composition.mu_s[itype];
-            file_handle >> cell_composition.spin_qn[itype];
+            const auto set_default
+                = [&headings]( const char * label, auto default_value ) -> std::optional<decltype( default_value )>
+            {
+                if( headings.at( label ) < 0 )
+                {
+                    Log( Log_Level::Warning, Log_Sender::IO,
+                         fmt::format(
+                             "Table 'atom_types' has missing column '{}', using default value {}", label,
+                             default_value ) );
+                    return std::optional{ default_value };
+                }
+                else
+                    return std::nullopt;
+            };
+
+            auto default_mu_s    = set_default( "mu_s", scalar( 1.0 ) );
+            auto default_spin_qn = set_default( "spin_qn", 1 );
+
+            if( headings.at( "i" ) < 0 || headings.at( "type" ) < 0 || headings.at( "c" ) < 0 )
+            {
+                spirit_throw(
+                    Utility::Exception_Classifier::Input_parse_failed, Utility::Log_Level::Error,
+                    "The columns 'i', 'type' and 'c' are required. Cannot parse atom types!" );
+            }
+
+            return [default_spin_qn, default_mu_s]( const AtomTypesParser::read_row_t & row )
+            {
+                struct Row
+                {
+                    int iatom, type;
+                    scalar concentration;
+                    scalar mu_s;
+                    int spin_qn;
+                };
+
+                auto result = IO::make_from_tuple<Row>( row );
+
+                if( default_mu_s )
+                    result.mu_s = *default_mu_s;
+
+                if( default_spin_qn )
+                    result.spin_qn = *default_spin_qn;
+
+                return result;
+            };
+        };
+        const auto data = parser.parse( file_handle, "n_atom_types", 5, factory );
+
+        auto cell_composition = Data::Basis_Cell_Composition{ true, {}, {}, {}, {}, {} };
+        cell_composition.iatom.reserve( data.size() );
+        cell_composition.atom_type.reserve( data.size() );
+        cell_composition.concentration.reserve( data.size() );
+        cell_composition.mu_s.reserve( data.size() );
+        cell_composition.spin_qn.reserve( data.size() );
+
+        for( const auto & row : data )
+        {
+            cell_composition.iatom.push_back( row.iatom );
+            cell_composition.atom_type.push_back( row.type );
+            cell_composition.concentration.push_back( row.concentration );
+            cell_composition.mu_s.push_back( row.mu_s );
+            cell_composition.spin_qn.push_back( row.spin_qn );
         }
-        Log( Log_Level::Warning, Log_Sender::IO,
-             fmt::format(
-                 "{} atom types, iatom={} atom type={} concentration={}", n_atom_types, cell_composition.iatom[0],
-                 cell_composition.atom_type[0], cell_composition.concentration[0] ) );
+
+        if( !data.empty() )
+            Log( Log_Level::Warning, Log_Sender::IO,
+                 fmt::format(
+                     "{} atom types, iatom={} atom type={} concentration={}", data.size(), cell_composition.iatom[0],
+                     cell_composition.atom_type[0], cell_composition.concentration[0] ) );
 
         return cell_composition;
     }

@@ -59,7 +59,7 @@ auto Geometry_to_TOML( const Data::Geometry & geometry ) -> toml::table
         const auto & spin_qn       = geometry.cell_composition.spin_qn;
 
         std::ostringstream oss;
-        oss << '\n';
+        oss << '\n' << "i   type   c   mu_s   spin_qn\n";
         for( std::size_t i = 0; i < iatom.size(); ++i )
             oss << fmt::format(
                 "{}   {}   {}   {}   {}\n", iatom[i], atom_type[i], concentration[i], mu_s[i], spin_qn[i] );

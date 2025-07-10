@@ -747,7 +747,8 @@ auto Basis_Cell_Composition( const std::string & config_file_name, const std::si
         if( config_file_handle.Find( "atom_types" ) )
         {
             config_file_handle >> n_atom_types;
-            std::stringstream oss{ "\n" };
+            std::stringstream oss{};
+            oss << '\n' << "i  type   mu_s   c\n";
             for( int i = 0; i < n_atom_types; ++i )
             {
                 if( !config_file_handle.GetLine() )
