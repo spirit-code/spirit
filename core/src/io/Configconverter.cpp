@@ -559,7 +559,7 @@ auto Pinning( const std::string & config_file_name, std::size_t n_cell_atoms ) -
         }
     }
 
-    return Data::Pinning{ 0, 0, 0, 0, 0, 0, vectorfield( 0 ), field<Site>( 0 ), vectorfield( 0 ) };
+    return toml::table{};
 #else
     vectorfield pinned_cell( n_cell_atoms, Vector3{ 0, 0, 1 } );
     //-------------- Insert default values here -----------------------------
@@ -628,7 +628,7 @@ auto Pinning( const std::string & config_file_name, std::size_t n_cell_atoms ) -
                     config_file_handle.GetLine();
                     config_file_handle >> pinned_cell[i][0] >> pinned_cell[i][1] >> pinned_cell[i][2];
                 }
-                tbl.insert( "pinning_cell", toml_array_from_container( pinned_cell ) );
+                tbl.insert( "cell", toml_array_from_container( pinned_cell ) );
             }
 
             // Additional pinned sites
@@ -935,6 +935,11 @@ auto Geometry( const std::string & config_file_name ) -> toml::table
             {
                 const auto composition_table = Basis_Cell_Composition( config_file_name, n_cell_atoms );
                 tbl.insert( composition_table.begin(), composition_table.end() );
+            }
+            {
+                const auto pinning = Pinning( config_file_name, n_cell_atoms );
+                if( !pinning.empty() )
+                    tbl.insert( "pinning", pinning );
             }
         }
         return tbl;
