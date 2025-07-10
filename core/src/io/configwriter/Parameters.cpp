@@ -93,22 +93,25 @@ auto Parameters_Method_MC_to_TOML( const Data::Parameters_Method_MC & parameters
         { "n_iterations_log", parameters.n_iterations_log },
         { "n_iterations_amortize", parameters.n_iterations_amortize },
         { "temperature", parameters.temperature },
-        { "metropolis_step",
-          [step = parameters.metropolis_step]
-          {
-              switch( step )
-              {
-                  case Data::Metropolis_Step::SPHERE: return "sphere";
-                  case Data::Metropolis_Step::CONE: return "cone";
-                  case Data::Metropolis_Step::SEMI_CLASSICAL: return "semi_classical";
-                  default: return "unknown";
-              }
-          }() },
-        // Metropolis method parameters
-        { "metropolis_use_adaptive_cone", parameters.metropolis_cone_adaptive },
-        { "acceptance_ratio", parameters.acceptance_ratio_target },
-        { "metropolis_cone_angle", parameters.metropolis_cone_angle },
-        { "metropolis_random_sample", parameters.metropolis_random_sample },
+        { "metropolis",
+          toml::table{
+              { "acceptance_ratio", parameters.acceptance_ratio_target },
+              { "step",
+                [step = parameters.metropolis_step]
+                {
+                    switch( step )
+                    {
+                        case Data::Metropolis_Step::SPHERE: return "sphere";
+                        case Data::Metropolis_Step::CONE: return "cone";
+                        case Data::Metropolis_Step::SEMI_CLASSICAL: return "semi_classical";
+                        default: return "unknown";
+                    }
+                }() },
+              // Metropolis method parameters
+              { "use_adaptive_cone", parameters.metropolis_cone_adaptive },
+              { "cone_angle", parameters.metropolis_cone_angle },
+              { "random_sample", parameters.metropolis_random_sample },
+          } },
     }; // namespace IO
 };
 

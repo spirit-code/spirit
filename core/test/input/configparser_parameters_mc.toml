@@ -10,10 +10,10 @@ n_iterations_log = 2000
 n_iterations_amortize = 1
 
 temperature                        = 42
-acceptance_ratio                   = 0.3
-metropolis_step                    = "sphere"
-metropolis_use_adaptive_cone       = false
-metropolis_cone_angle              = 25.0
+metropolis.acceptance_ratio        = 0.3
+metropolis.step                    = "sphere"
+metropolis.use_adaptive_cone       = false
+metropolis.cone_angle              = 25.0
 
 [method.mc.output]
 any     = true

@@ -118,6 +118,7 @@ n_iterations_amortize = 1
 ### Temperature [K]
 temperature      = 0
 
+[method.mc.metropolis]
 ### Acceptance ratio
 acceptance_ratio = 0.5
 

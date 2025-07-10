@@ -412,11 +412,17 @@ auto Parameters_Method_MC_from_TOML( const toml::table & tbl, const Defaults & d
         read_value( tbl, prefix( "n_iterations_amortize" ), parameters->n_iterations_amortize );
         read_value( tbl, prefix( "temperature" ), parameters->temperature );
         // Metropolis method parameters
-        read_enum( tbl, prefix( "metropolis_step" ), parameters->metropolis_step );
-        read_value( tbl, prefix( "metropolis_use_adaptive_cone" ), parameters->metropolis_cone_adaptive );
-        read_value( tbl, prefix( "acceptance_ratio" ), parameters->acceptance_ratio_target );
-        read_value( tbl, prefix( "metropolis_cone_angle" ), parameters->metropolis_cone_angle );
-        read_value( tbl, prefix( "metropolis_random_sample" ), parameters->metropolis_random_sample );
+
+        if( tbl.at_path( prefix( "metropolis" ) ).as_table() )
+        {
+            constexpr auto m_prefix
+                = []( const std::string_view key ) { return fmt::format( "{}.metropolis.{}", config_path, key ); };
+            read_enum( tbl, m_prefix( "step" ), parameters->metropolis_step );
+            read_value( tbl, m_prefix( "use_adaptive_cone" ), parameters->metropolis_cone_adaptive );
+            read_value( tbl, m_prefix( "acceptance_ratio" ), parameters->acceptance_ratio_target );
+            read_value( tbl, m_prefix( "cone_angle" ), parameters->metropolis_cone_angle );
+            read_value( tbl, m_prefix( "random_sample" ), parameters->metropolis_random_sample );
+        }
     }
     else
         Log( Log_Level::Warning, Log_Sender::IO, missing_section_message( config_path ) );
