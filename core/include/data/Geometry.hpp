@@ -90,7 +90,7 @@ struct Basis_Cell_Composition
                                        /*atom_type=*/std::vector<int>( size, 0 ),
                                        /*mu_s=*/std::vector<scalar>( size, 1 ),
                                        /*spin_qn=*/std::vector<int>( size, 1 ),
-                                       /*concentration=*/{} };
+                                       /*concentration=*/std::vector<scalar>( disordered ? 0 : size, 0 ) };
     }
 };
 
