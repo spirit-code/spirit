@@ -413,26 +413,7 @@ auto Parameters_Method_MC_from_TOML( const toml::table & node, const Defaults & 
         read_value( tbl, prefix( "n_iterations_amortize" ), parameters->n_iterations_amortize );
         read_value( tbl, prefix( "temperature" ), parameters->temperature );
         // Metropolis method parameters
-        {
-            // Metropolis Step variable
-            std::string metropolis_step = "cone";
-
-            read_value( tbl, prefix( "metropolis_step" ), metropolis_step );
-            std::transform( metropolis_step.begin(), metropolis_step.end(), metropolis_step.begin(), ::tolower );
-
-            if( metropolis_step == "sphere" )
-                parameters->metropolis_step = Data::Metropolis_Step::SPHERE;
-            else if( metropolis_step == "cone" )
-                parameters->metropolis_step = Data::Metropolis_Step::CONE;
-            else if( metropolis_step == "semi_classical" )
-                parameters->metropolis_step = Data::Metropolis_Step::SEMI_CLASSICAL;
-            else
-            {
-                parameters->metropolis_step = Data::Metropolis_Step::CONE;
-                Log( Log_Level::Warning, Log_Sender::IO,
-                     fmt::format( "Metropolis step \"{}\" unknown. Using \"cone\"...", metropolis_step ) );
-            }
-        }
+        read_enum( tbl, prefix( "metropolis_step" ), parameters->metropolis_step );
         read_value( tbl, prefix( "metropolis_use_adaptive_cone" ), parameters->metropolis_cone_adaptive );
         read_value( tbl, prefix( "acceptance_ratio" ), parameters->acceptance_ratio_target );
         read_value( tbl, prefix( "metropolis_cone_angle" ), parameters->metropolis_cone_angle );

@@ -12,6 +12,7 @@
 #include <engine/common/Method_Solver.hpp>
 #include <engine/spin/Method.hpp>
 #include <utility/Constants.hpp>
+#include <utility/Enum.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Timing.hpp>
 
@@ -74,7 +75,7 @@ constexpr auto name( Spin::Solver solver ) -> std::string_view
         case Solver::LBFGS_Atlas: return "LBFGS_Atlas";
         case Solver::VP: return "VP";
         case Solver::VP_OSO: return "VP_OSO";
-        default: return "Unknown";
+        default: return Utility::Enum::unknown;
     }
 }
 
@@ -91,7 +92,7 @@ constexpr auto full_name( Spin::Solver solver ) -> std::string_view
         case Solver::LBFGS_Atlas: return "Limited memory Broyden-Fletcher-Goldfarb-Shanno using stereographic atlas";
         case Solver::VP: return "Velocity Projection";
         case Solver::VP_OSO: return "Velocity Projection using exponential transforms";
-        default: return "Unknown";
+        default: return Utility::Enum::unknown;
     }
 }
 

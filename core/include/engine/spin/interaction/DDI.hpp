@@ -7,6 +7,7 @@
 #include <engine/spin/StateType.hpp>
 #include <engine/spin/interaction/Functor_Prototypes.hpp>
 #include <utility/Constants.hpp>
+#include <utility/Enum.hpp>
 
 namespace Engine
 {
@@ -21,6 +22,43 @@ enum class DDI_Method
     Cutoff = SPIRIT_DDI_METHOD_CUTOFF,
     None   = SPIRIT_DDI_METHOD_NONE
 };
+
+constexpr std::string_view name( DDI_Method method ) noexcept
+{
+    switch( method )
+    {
+        case DDI_Method::FFT: return "FFT";
+        case DDI_Method::FMM: return "FMM";
+        case DDI_Method::Cutoff: return "Cutoff";
+        case DDI_Method::None: return "None";
+        default: return Utility::Enum::unknown;
+    }
+}
+
+} // namespace Spin
+
+} // namespace Engine
+
+template<>
+inline constexpr auto ::Utility::Enum::from_string<Engine::Spin::DDI_Method>( std::string_view str )
+    -> std::optional<Engine::Spin::DDI_Method>
+{
+    if( str == "fft" )
+        return { Engine::Spin::DDI_Method::FFT };
+    else if( str == "fmm" )
+        return { Engine::Spin::DDI_Method::FMM };
+    else if( str == "cutoff" )
+        return { Engine::Spin::DDI_Method::Cutoff };
+    else if( str == "none" )
+        return { Engine::Spin::DDI_Method::None };
+    else
+        return std::nullopt;
+}
+
+namespace Engine
+{
+namespace Spin
+{
 
 namespace Interaction
 {

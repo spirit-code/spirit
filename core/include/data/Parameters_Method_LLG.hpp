@@ -25,7 +25,7 @@ constexpr auto name( SC_Model step ) -> std::string_view
     {
         case SC_Model::TRANSFER_TORQUE: return "transfer torque (monolayer)";
         case SC_Model::ORBIT_TORQUE: return "orbit torque (gradient)";
-        default: return "unknown";
+        default: return Utility::Enum::unknown;
     }
 }
 

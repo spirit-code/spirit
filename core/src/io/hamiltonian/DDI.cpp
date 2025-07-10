@@ -2,6 +2,7 @@
 #include <io/Dataparser.hpp>
 #include <io/Filter_File_Handle.hpp>
 #include <io/Tableparser.hpp>
+#include <utility/Enum.hpp>
 
 #include <vector>
 
