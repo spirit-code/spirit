@@ -14,52 +14,27 @@ namespace IO
 auto DDI_from_TOML( const toml::table & tbl, const Data::Geometry & geometry, std::vector<std::string> & parameter_log )
     -> Engine::Spin::Interaction::DDI::Data
 {
-    const auto [ddi_method_str, ddi_method] = [&tbl]() -> std::pair<std::string_view, Engine::Spin::DDI_Method>
+    auto ddi_method = Engine::Spin::DDI_Method::None;
+    read_enum( tbl, "ddi_method", ddi_method );
+
+    scalar ddi_radius = 0.0;
+    read_value( tbl, "ddi_radius", ddi_radius );
+
+    intfield ddi_n_periodic_images{ 4, 4, 4 };
+    read_value( tbl, "ddi_n_periodic_images", ddi_n_periodic_images );
+    if( ddi_n_periodic_images.size() != 3 )
     {
-        auto method_str = tbl["ddi_method"].value<std::string>();
-        if( !method_str )
-            return { "none", Engine::Spin::DDI_Method::None };
+        Log( Log_Level::Warning, Log_Sender::IO,
+             fmt::format(
+                 "Wrong size for 'ddi_n_periodic_images', expected 3 got{}, setting to (4, 4, 4)",
+                 ddi_n_periodic_images.size() ) );
+        ddi_n_periodic_images = { 4, 4, 4 };
+    }
 
-        if( *method_str == "none" )
-            return { "none", Engine::Spin::DDI_Method::None };
-        else if( *method_str == "fft" )
-            return { "fft", Engine::Spin::DDI_Method::FFT };
-        else if( *method_str == "fmm" )
-            return { "ffm", Engine::Spin::DDI_Method::FMM };
-        else if( *method_str == "cutoff" )
-            return { "cutoff", Engine::Spin::DDI_Method::Cutoff };
-        else
-        {
-            if( *method_str != "none" )
-                Log( Log_Level::Warning, Log_Sender::IO,
-                     fmt::format(
-                         "Keyword 'ddi_method' got passed invalid method \"{}\". Setting to \"none\".", *method_str ) );
-            return { "none", Engine::Spin::DDI_Method::None };
-        }
-    }();
+    bool ddi_pb_zero_padding = false;
+    read_value( tbl, "ddi_pb_zero_padding", ddi_pb_zero_padding );
 
-    const auto ddi_radius = static_cast<scalar>( tbl["ddi_radius"].value_or( 0.0 ) );
-
-    const auto ddi_n_periodic_images = [&tbl]
-    {
-        std::optional<intfield> result;
-        auto array = tbl["ddi_n_periodic_images"];
-        if( array )
-        {
-            result = toml_transform<intfield>( *array.node() );
-            if( result && result->size() != 3 )
-            {
-                Log( Log_Level::Warning, Log_Sender::IO,
-                     "Wrong sized array 'ddi_n_periodic_images', expected 3, found {}. Setting to (4,4,4)..." );
-                result.emplace( { 4, 4, 4 } );
-            }
-        }
-        return result.value_or( { 4, 4, 4 } );
-    }();
-
-    const auto ddi_pb_zero_padding = tbl["ddi_pb_zero_padding"].value_or( false );
-
-    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_method", ddi_method_str ) );
+    parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "ddi_method", name( ddi_method ) ) );
     parameter_log.emplace_back( fmt::format(
         "    {:<21} = ({} {} {})", "ddi_n_periodic_images", ddi_n_periodic_images[0], ddi_n_periodic_images[1],
         ddi_n_periodic_images[2] ) );

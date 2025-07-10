@@ -202,7 +202,7 @@ void Pair_Interactions_from_Shells_from_TOML(
 
     parse_shells( exchange_magnitudes, std::array{ "Jij", "exchange_shells" } );
     parse_shells( dmi_magnitudes, std::array{ "Dij", "dmi_shells" } );
-    dm_chirality = tbl["dmi_chirality"].value_or<int>( 0 );
+    read_value( tbl, "dmi_chirality", dm_chirality );
 
     parameter_log.emplace_back( fmt::format( "    {:<21} = {}", "n_shells_exchange", exchange_magnitudes.size() ) );
     if( !exchange_magnitudes.empty() )
