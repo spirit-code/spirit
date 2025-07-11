@@ -477,7 +477,7 @@ auto Parameters_Method_MC_from_TOML( const toml::table & tbl, const Defaults & d
 auto Parameters_Method_MMF_from_TOML( const toml::table & tbl, const Defaults & defaults )
     -> std::unique_ptr<Data::Parameters_Method_MMF>
 {
-    static constexpr std::string_view config_path = "parameters.mmf";
+    static constexpr std::string_view config_path = "method.mmf";
 
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters MMF: building" );
     // Default parameters
@@ -507,6 +507,7 @@ auto Parameters_Method_MMF_from_TOML( const toml::table & tbl, const Defaults & 
             read_value( tbl, o_prefix( "final" ), parameters->output_final );
             read_value( tbl, o_prefix( "energy_step" ), parameters->output_energy_step );
             read_value( tbl, o_prefix( "energy_archive" ), parameters->output_energy_archive );
+            read_value( tbl, o_prefix( "energy_spin_resolved" ), parameters->output_energy_spin_resolved );
             read_value( tbl, o_prefix( "energy_divide_by_nspins" ), parameters->output_energy_divide_by_nspins );
             read_value(
                 tbl, o_prefix( "energy_add_readability_lines" ), parameters->output_energy_add_readability_lines );

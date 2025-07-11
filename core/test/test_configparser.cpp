@@ -2,6 +2,7 @@
 #include <Spirit/Constants.h>
 #include <Spirit/Hamiltonian.h>
 #include <Spirit/Parameters_EMA.h>
+#include <Spirit/Parameters_MMF.h>
 #include <Spirit/Simulation.h>
 #include <Spirit/State.h>
 #include <Spirit/System.h>
@@ -628,5 +629,84 @@ TEST_CASE( "Parameters EMA: Parse config and check parsed values using the C-API
     SECTION( "Output" )
     {
         // TODO: Not currently part of the API
+    }
+}
+
+TEST_CASE( "Parameters MMF: Parse config and check parsed values using the C-API", "[configparser]" )
+{
+    static constexpr auto input_file = "core/test/input/configparser_parameters_mmf.toml";
+
+    auto state = std::shared_ptr<State>( State_Setup( input_file ), State_Delete );
+    REQUIRE( state != nullptr );
+    REQUIRE( !state->config_file.empty() );
+
+    const int max_walltime_sec           = 0;
+    const long int n_iterations          = 20000;
+    const long int n_iterations_log      = 20;
+    const long int n_iterations_amortize = 1;
+
+    const scalar force_convergence = 1e-7; // Not part of the API
+    const int n_modes              = 8;
+    const int n_mode_follow        = 2;
+
+    const bool output_any     = true;
+    const bool output_initial = false;
+    const bool output_final   = false;
+
+    const bool output_energy_step                  = false;
+    const bool output_energy_archive               = true;
+    const bool output_energy_spin_resolved         = true;
+    const bool output_energy_divide_by_nspins      = true;
+    const bool output_energy_add_readability_lines = true;
+
+    const bool output_configuration_step    = false;
+    const bool output_configuration_archive = true;
+    const int output_vf_filetype            = 3;
+
+    SECTION( "Simulation: Iterations" )
+    {
+        int iterations, iterations_log;
+        Parameters_MMF_Get_N_Iterations( state.get(), &iterations, &iterations_log );
+
+        REQUIRE( iterations == n_iterations );
+        REQUIRE( iterations_log == n_iterations_log );
+    }
+    SECTION( "Simulation: General" )
+    {
+        REQUIRE( n_modes == Parameters_MMF_Get_N_Modes( state.get() ) );
+        REQUIRE( n_mode_follow == Parameters_MMF_Get_N_Mode_Follow( state.get() ) );
+    }
+    SECTION( "Output: General" )
+    {
+        bool any, initial, final;
+        Parameters_MMF_Get_Output_General( state.get(), &any, &initial, &final );
+        REQUIRE( any == output_any );
+        REQUIRE( initial == output_initial );
+        REQUIRE( final == output_final );
+    }
+    SECTION( "Output: Energy" )
+    {
+        bool step, archive, spin_resolved, divide_by_nspins, readability_lines;
+        Parameters_MMF_Get_Output_Energy(
+            state.get(), &step, &archive, &spin_resolved, &divide_by_nspins, &readability_lines );
+        REQUIRE( step == output_energy_step );
+        REQUIRE( archive == output_energy_archive );
+        REQUIRE( spin_resolved == output_energy_spin_resolved );
+        REQUIRE( divide_by_nspins == output_energy_divide_by_nspins );
+        REQUIRE( readability_lines == output_energy_add_readability_lines );
+    }
+    SECTION( "Output: Configuration" )
+    {
+        bool step, archive;
+        int filetype;
+        Parameters_MMF_Get_Output_Configuration( state.get(), &step, &archive, &filetype );
+        REQUIRE( step == output_configuration_step );
+        REQUIRE( archive == output_configuration_archive );
+        REQUIRE( filetype == output_vf_filetype );
+    }
+    SECTION( "Output: Path" )
+    {
+        REQUIRE_THAT( Parameters_MMF_Get_Output_Tag( state.get() ), Equals( "test_configparser_mmf" ) );
+        REQUIRE_THAT( Parameters_MMF_Get_Output_Folder( state.get() ), Equals( "output" ) );
     }
 }
