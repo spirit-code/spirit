@@ -1,0 +1,32 @@
+### Output Folders
+[defaults]
+output.file_tag = "test_configparser_ema"
+output.folder   = "output"
+
+[method.ema]
+max_walltime        = "0:0:0"
+n_iterations        = 200000
+n_iterations_log    = 200
+
+n_modes         = 8
+n_mode_follow   = 2
+frequency       = 3.14
+amplitude       = 4.2
+sparse          = true
+
+### Output configuration
+[method.ema.output]
+any     = false
+initial = false
+final   = false
+
+energy_step                  = false
+energy_archive               = true
+energy_divide_by_nspins      = true
+energy_spin_resolved         = false
+energy_add_readability_lines = true
+
+configuration_step     = false
+configuration_archive  = true
+configuration_filetype = 3
+############## End EMA Parameters ################

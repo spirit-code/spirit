@@ -1,6 +1,7 @@
 #include <Spirit/Configurations.h>
 #include <Spirit/Constants.h>
 #include <Spirit/Hamiltonian.h>
+#include <Spirit/Parameters_EMA.h>
 #include <Spirit/Simulation.h>
 #include <Spirit/State.h>
 #include <Spirit/System.h>
@@ -573,5 +574,59 @@ TEST_CASE( "Parameters GNEB: Parse config and check parsed values using the C-AP
     {
         REQUIRE_THAT( Parameters_GNEB_Get_Output_Tag( state.get() ), Equals( "test_configparser_gneb" ) );
         REQUIRE_THAT( Parameters_GNEB_Get_Output_Folder( state.get() ), Equals( "output" ) );
+    }
+}
+
+TEST_CASE( "Parameters EMA: Parse config and check parsed values using the C-API", "[configparser]" )
+{
+    static constexpr auto input_file = "core/test/input/configparser_parameters_ema.toml";
+
+    auto state = std::shared_ptr<State>( State_Setup( input_file ), State_Delete );
+    REQUIRE( state != nullptr );
+    REQUIRE( !state->config_file.empty() );
+
+    const int max_walltime_sec           = 0;
+    const long int n_iterations          = 20000;
+    const long int n_iterations_log      = 20;
+    const long int n_iterations_amortize = 1;
+
+    const int n_modes       = 8;
+    const int n_mode_follow = 2;
+
+    const scalar frequency = 3.14;
+    const scalar amplitude = 4.2;
+    const bool snapshot    = false; // not part of the config
+    const bool sparse      = true;
+
+    const bool output_any     = true;
+    const bool output_initial = false;
+    const bool output_final   = false;
+
+    const bool output_energy_step                  = false;
+    const bool output_energy_archive               = true;
+    const bool output_energy_spin_resolved         = true;
+    const bool output_energy_divide_by_nspins      = true;
+    const bool output_energy_add_readability_lines = true;
+    const bool output_energy_interpolated          = true;
+    const int output_vf_filetype                   = 3;
+
+    SECTION( "Simulation: Iterations" )
+    {
+        // TODO: Not currently part of the API
+    }
+
+    SECTION( "Simulation: General" )
+    {
+        REQUIRE( n_modes == Parameters_EMA_Get_N_Modes( state.get() ) );
+        REQUIRE( n_mode_follow == Parameters_EMA_Get_N_Mode_Follow( state.get() ) );
+        REQUIRE_THAT( Parameters_EMA_Get_Frequency( state.get() ), WithinAbs( frequency, epsilon_2 ) );
+        REQUIRE_THAT( Parameters_EMA_Get_Amplitude( state.get() ), WithinAbs( amplitude, epsilon_2 ) );
+        REQUIRE( snapshot == Parameters_EMA_Get_Snapshot( state.get() ) );
+        REQUIRE( sparse == Parameters_EMA_Get_Sparse( state.get() ) );
+    }
+
+    SECTION( "Output" )
+    {
+        // TODO: Not currently part of the API
     }
 }
