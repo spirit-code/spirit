@@ -1,0 +1,34 @@
+[defaults.output]
+file_tag = "test_configparser_gneb"
+folder = "output"
+
+[method.gneb]
+max_walltime            = "0:0:0"
+seed                    = 1023
+spring_constant         = 1.5
+force_convergence       = 1e-7
+
+n_iterations          = 20000
+n_iterations_log      = 20
+n_iterations_amortize = 1
+
+n_energy_interpolations    = 10
+
+moving_endpoints           = true
+translating_endpoints      = true
+equilibrium_delta_Rx_left  = 0.5
+equilibrium_delta_Rx_right = 0.5
+
+### Output configuration
+[method.gneb.output]
+any     = true
+initial = false
+final   = false
+
+energies_step                  = false
+energies_interpolated          = true
+energies_divide_by_nspins      = true
+energies_add_readability_lines = true
+
+chain_step     = true
+chain_filetype = 3

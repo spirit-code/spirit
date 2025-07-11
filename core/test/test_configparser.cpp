@@ -471,3 +471,107 @@ TEST_CASE( "Parameters MC: Parse config and check parsed values using the C-API"
         REQUIRE_THAT( Parameters_MC_Get_Output_Folder( state.get() ), Equals( "output" ) );
     }
 }
+
+TEST_CASE( "Parameters GNEB: Parse config and check parsed values using the C-API", "[configparser]" )
+{
+    static constexpr auto input_file = "core/test/input/configparser_parameters_gneb.toml";
+
+    auto state = std::shared_ptr<State>( State_Setup( input_file ), State_Delete );
+    REQUIRE( state != nullptr );
+    REQUIRE( !state->config_file.empty() );
+
+    const long int max_walltime_sec      = 0;
+    const int rng_seed                   = 2006;
+    const long int n_iterations          = 20000;
+    const long int n_iterations_log      = 20;
+    const long int n_iterations_amortize = 1;
+
+    const scalar temperature = 0;
+
+    const double force_convergence        = 1e-7;
+    const scalar spring_constant          = 1.5;
+    const scalar spring_force_ratio       = 0; // Not part of the config
+    const scalar path_shortening_constant = 0; // Not part of the config
+    const int n_E_interpolations          = 10;
+
+    const bool moving_endpoints      = true;
+    const bool translating_endpoints = true;
+
+    const scalar equilibrium_delta_Rx_left  = 0.5;
+    const scalar equilibrium_delta_Rx_right = 0.5;
+
+    const bool escape_first = false; // Neither part of the config nor the API
+
+    const std::string output_folder   = "output";
+    const std::string output_file_tag = "<time>";
+    const bool output_any             = true;
+    const bool output_initial         = false;
+    const bool output_final           = false;
+
+    const bool output_energies_step                  = false;
+    const bool output_energies_divide_by_nspins      = true;
+    const bool output_energies_add_readability_lines = true;
+    const bool output_energies_interpolated          = true;
+    const bool output_chain_step                     = true;
+    const int output_vf_filetype                     = 3;
+
+    SECTION( "Simulation: Iterations" )
+    {
+        int iterations, iterations_log;
+        Parameters_GNEB_Get_N_Iterations( state.get(), &iterations, &iterations_log );
+
+        REQUIRE( iterations == n_iterations );
+        REQUIRE( iterations_log == n_iterations_log );
+    }
+    SECTION( "Simulation: General" )
+    {
+        REQUIRE( moving_endpoints == Parameters_GNEB_Get_Moving_Endpoints( state.get() ) );
+        REQUIRE( translating_endpoints == Parameters_GNEB_Get_Translating_Endpoints( state.get() ) );
+        REQUIRE( n_E_interpolations == Parameters_GNEB_Get_N_Energy_Interpolations( state.get() ) );
+
+        scalar left, right;
+        Parameters_GNEB_Get_Equilibrium_Delta_Rx( state.get(), &left, &right );
+        REQUIRE_THAT( left, WithinAbs( equilibrium_delta_Rx_left, epsilon_2 ) );
+        REQUIRE_THAT( right, WithinAbs( equilibrium_delta_Rx_right, epsilon_2 ) );
+
+        REQUIRE_THAT( Parameters_GNEB_Get_Convergence( state.get() ), WithinAbs( force_convergence, epsilon_2 ) );
+        REQUIRE_THAT( Parameters_GNEB_Get_Spring_Constant( state.get() ), WithinAbs( spring_constant, epsilon_2 ) );
+
+        // REQUIRE_THAT(
+        //     Parameters_GNEB_Get_Spring_Force_Ratio( state.get() ), WithinAbs( spring_force_ratio, epsilon_2 ) );
+        // REQUIRE_THAT(
+        //     Parameters_GNEB_Get_Path_Shortening_Constant( state.get() ),
+        //     WithinAbs( path_shortening_constant, epsilon_2 ) );
+    }
+    SECTION( "Simulation: Temperature" ) {}
+    SECTION( "Output: General" )
+    {
+        bool any, initial, final;
+        Parameters_GNEB_Get_Output_General( state.get(), &any, &initial, &final );
+        REQUIRE( any == output_any );
+        REQUIRE( initial == output_initial );
+        REQUIRE( final == output_final );
+    }
+    SECTION( "Output: Energies" )
+    {
+        bool step, interpolated, divide_by_nspins, readability_lines;
+        Parameters_GNEB_Get_Output_Energies( state.get(), &step, &interpolated, &divide_by_nspins, &readability_lines );
+        REQUIRE( step == output_energies_step );
+        REQUIRE( interpolated == output_energies_interpolated );
+        REQUIRE( divide_by_nspins == output_energies_divide_by_nspins );
+        REQUIRE( readability_lines == output_energies_add_readability_lines );
+    }
+    SECTION( "Output: Configuration" )
+    {
+        bool step;
+        int filetype;
+        Parameters_GNEB_Get_Output_Chain( state.get(), &step, &filetype );
+        REQUIRE( step == output_chain_step );
+        REQUIRE( filetype == output_vf_filetype );
+    }
+    SECTION( "Output: Path" )
+    {
+        REQUIRE_THAT( Parameters_GNEB_Get_Output_Tag( state.get() ), Equals( "test_configparser_gneb" ) );
+        REQUIRE_THAT( Parameters_GNEB_Get_Output_Folder( state.get() ), Equals( "output" ) );
+    }
+}
