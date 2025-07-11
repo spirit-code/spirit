@@ -421,8 +421,11 @@ auto Geometry_from_TOML( const toml::table & root ) -> Data::Geometry
                 basis = std::vector<Vector3>{ { 0, 0, 0 } };
             return basis;
         }
-        else
-            return std::vector<Vector3>{ { 0, 0, 0 } };
+        else if( const auto * array = tbl["basis"].as_array() )
+            if( auto basis = toml_transform<vectorfield>( *array ) )
+                return *basis;
+
+        return std::vector<Vector3>{ { 0, 0, 0 } };
     }();
     const auto n_cell_atoms = cell_atoms.size();
 

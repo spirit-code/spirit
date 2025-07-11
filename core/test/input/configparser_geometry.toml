@@ -1,0 +1,49 @@
+############## Spirit Configuration ##############
+
+
+### Output Folders
+[defaults.output]
+file_tag = "test_configparser_geometry"
+folder = "output"
+
+
+[geometry]
+### µSpin
+mu_s = 2.0
+
+### Number of basis cells along principal
+### directions (a b c)
+n_basis_cells = [2, 2, 1]
+
+
+basis = """
+  0   0 0
+0.5 0.5 0
+"""
+
+[logging]
+output.folder = "."
+############### Logging Parameters ###############
+### Save input parameters on creation of State
+input_save_initial = false
+### Save input parameters on deletion of State
+input_save_final   = false
+### Levels of information
+# 0 = ALL     - Anything
+# 1 = SEVERE  - Severe error
+# 2 = ERROR   - Error which can be handled
+# 3 = WARNING - Possible unintended behaviour etc
+# 4 = PARAMETER - Input parameter logging
+# 5 = INFO      - Status information etc
+# 6 = DEBUG     - Deeper status, eg numerical
+
+### Print log messages to the console
+log_to_console = true
+### Print messages up to (including) log_console_level
+console_level  = 5
+
+### Save the log as a file
+log_to_file    = false
+### Save messages up to (including) log_file_level
+file_level     = 3
+############# End Logging Parameters #############

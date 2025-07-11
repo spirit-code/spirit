@@ -8,7 +8,7 @@
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 
-#include <iostream>
+#include <sstream>
 #include <string>
 
 #include <Eigen/Core>
@@ -103,25 +103,52 @@ auto Basis_from_File( Filter_File_Handle & basis_file ) noexcept -> std::vector<
 {
     Log( Log_Level::Info, Log_Sender::IO, fmt::format( "Reading basis from {}", basis_file.filename() ) );
 
-    // Read basis cell
-    if( basis_file.Find( "basis" ) )
-    {
-        std::size_t n_cell_atoms = 0;
-        // Read number of atoms in the basis cell
-        basis_file.GetLine();
-        basis_file >> n_cell_atoms;
+    // Get first line after 'basis' keyword or first line
+    if( !basis_file.Find( "basis" ) )
+        basis_file.To_Start();
+    basis_file.GetLine();
 
-        // Read atom positions
-        std::vector<Vector3> cell_atoms( n_cell_atoms );
+    // check specification type
+    std::string first_line_str = std::string{ basis_file.CurrentLine() };
+    std::istringstream iss{ first_line_str };
+    auto first_line = std::vector<scalar>( std::istream_iterator<scalar>( iss ), std::istream_iterator<scalar>() );
+
+    if( !first_line.empty() && first_line.size() != 2 )
+    {
+        std::vector<Vector3> cell_atoms{};
+        std::size_t n_cell_atoms = 0;
+        if( first_line.size() == 1 )
+        {
+            // This is the old format, starting with a single number to indicate the count.
+            basis_file >> n_cell_atoms;
+            cell_atoms.reserve( n_cell_atoms );
+        }
+        else if( first_line.size() >= 3 )
+        {
+            // If the list starts with data this is also fine, we just parse the whole file in that case.
+            n_cell_atoms = static_cast<std::size_t>( 1e8 );
+            cell_atoms.reserve( n_cell_atoms );
+            cell_atoms.emplace_back( first_line[0], first_line[1], first_line[2] );
+        }
+
         for( std::size_t iatom = 0; iatom < n_cell_atoms; ++iatom )
         {
-            basis_file.GetLine();
-            basis_file >> cell_atoms[iatom][0] >> cell_atoms[iatom][1] >> cell_atoms[iatom][2];
+            if( !basis_file.GetLine() )
+                break;
+
+            Vector3 pos = Vector3::Zero();
+            basis_file >> pos[0] >> pos[1] >> pos[2];
+            cell_atoms.emplace_back( pos );
         }
+        cell_atoms.shrink_to_fit();
         return cell_atoms;
     }
-
-    return { { 0, 0, 0 } };
+    else
+    {
+        Log( Log_Level::Warning, Log_Sender::IO,
+             fmt::format( "No basis vectors found in '{}', using default (0 0 0)", basis_file.filename() ) );
+        return { { 0, 0, 0 } };
+    }
 }
 
 auto Defects_from_File( Filter_File_Handle & defects_file ) noexcept -> Data::Defects

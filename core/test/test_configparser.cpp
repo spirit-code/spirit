@@ -229,6 +229,38 @@ TEST_CASE( "Hamiltonian: Parse Hamiltonian (Pairs) config and check parsed value
         REQUIRE( pb_zero_padding == pb_zero_padding_ref );
     }
 }
+TEST_CASE( "Geometry", "[configparser]" )
+{
+    static constexpr auto input_file = "core/test/input/configparser_geometry.toml";
+
+    // Create a state with two images. Let the second one to be the active
+    auto state = std::shared_ptr<State>( State_Setup( input_file ), State_Delete );
+    REQUIRE( state != nullptr );
+    REQUIRE( !state->config_file.empty() );
+
+    SECTION( "Basis" )
+    {
+        const auto ref_basis = std::array<Vector3, 2>{ {
+            { 0, 0, 0 },
+            { 0.5, 0.5, 0 },
+        } };
+
+        REQUIRE( ref_basis.size() == Geometry_Get_N_Cell_Atoms( state.get() ) );
+
+        Vector3 * basis     = nullptr;
+        std::size_t n_basis = Geometry_Get_Cell_Atoms( state.get(), reinterpret_cast<scalar **>( &basis ) );
+        REQUIRE( n_basis == ref_basis.size() );
+
+        for( unsigned int i = 0; i < ref_basis.size() && i < n_basis; ++i )
+        {
+            const auto & ref   = ref_basis[i];
+            const auto & found = basis[i];
+            INFO( fmt::format( "basis vector (expected): {} {} {}", ref[0], ref[1], ref[2] ) );
+            INFO( fmt::format( "basis vector (found):    {} {} {}", found[0], found[1], found[2] ) )
+            REQUIRE_THAT( ( ref_basis[i] - basis[i] ).norm(), WithinAbs( 0, epsilon_2 ) );
+        }
+    }
+}
 
 // TODO: Add verification for parsing any of the parameter sets.
 TEST_CASE( "Parameters LLG: Parse config and check parsed values using the C-API", "[configparser]" )
