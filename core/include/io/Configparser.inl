@@ -90,7 +90,10 @@ inline void read_Vector3(
     bool log_missing = true ) noexcept
 {
     const auto default_msg = [&dest_magnitude, &dest_direction]
-    { return fmt::format( "using default: {{ magnitude = {}, direction = ({}) }}", dest_magnitude, dest_direction ); };
+    {
+        return fmt::format(
+            "using default: {{ magnitude = {}, direction = ({}) }}", dest_magnitude, dest_direction.transpose() );
+    };
 
     using namespace Utility;
     const auto node = tbl.at_path( key );
