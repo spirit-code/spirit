@@ -293,6 +293,7 @@ install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/kiss_fft/COPYING  DESTI
 install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/ovf/README.md     DESTINATION licenses RENAME ovf.md        COMPONENT spirit_licenses )
 install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/spectra/LICENSE   DESTINATION licenses RENAME spectra.txt   COMPONENT spirit_licenses )
 install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/tinyxml2/LICENSE  DESTINATION licenses RENAME tinyxml2.txt  COMPONENT spirit_licenses )
+install( FILES ${CMAKE_CURRENT_LIST_DIR}/core/thirdparty/toml++/LICENSE    DESTINATION licenses RENAME tomlplusplus.txt  COMPONENT spirit_licenses )
 
 install( FILES ${CMAKE_CURRENT_LIST_DIR}/ui-cpp/thirdparty/Lyra/LICENSE.txt DESTINATION licenses RENAME lyra.txt COMPONENT spirit_licenses )
 

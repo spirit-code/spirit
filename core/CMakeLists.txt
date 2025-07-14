@@ -438,6 +438,7 @@ target_include_directories( ${META_PROJECT_NAME} PRIVATE
     ${libfmt_INCLUDE_DIRS}
     ${qhull_INCLUDE_DIRS}
     ${FFT_INCLUDE_DIRS}
+    ${TOML_INCLUDE_DIRS}
     ${XML_INCLUDE_DIRS}
     ${HDF5_INCLUDE_DIRS} )
 
