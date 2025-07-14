@@ -456,6 +456,9 @@ if( SPIRIT_USE_CUDA )
     target_link_libraries( ${META_PROJECT_NAME} INTERFACE ${SPIRIT_CUDA_LIBS} )
     set_target_properties( ${META_PROJECT_NAME} PROPERTIES CUDA_SEPERABLE_COMPILATION ON )
     set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DSPIRIT_USE_CUDA )
+    ### Fix a compiler bug with nvcc (see https://github.com/marzer/tomlplusplus/issues/213)
+    set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DTOML_RETURN_BOOL_FROM_FOR_EACH_BROKEN=1 )
+    set( SPIRIT_COMPILE_DEFINITIONS ${SPIRIT_COMPILE_DEFINITIONS} -DTOML_RETURN_BOOL_FROM_FOR_EACH_BROKEN_ACKNOWLEDGED=1 )
 
     ### Need to use nvcc on many source files because they indirectly include cuda.h
     set_source_files_properties( ${SPIRIT_CUDA_SOURCES} PROPERTIES LANGUAGE CUDA )
