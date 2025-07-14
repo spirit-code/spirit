@@ -135,9 +135,6 @@ auto Parameters_Method_GNEB_from_TOML( const toml::table & tbl, const Defaults &
     {
         constexpr auto prefix = []( const std::string_view key ) { return fmt::format( "{}.{}", config_path, key ); };
 
-        // Chain output filetype
-        int output_chain_filetype = static_cast<int>( parameters->output_vf_filetype );
-
         // Parse
         Log( Log_Level::Debug, Log_Sender::IO, "Parameters GNEB: building" );
         // Output parameters
@@ -157,12 +154,10 @@ auto Parameters_Method_GNEB_from_TOML( const toml::table & tbl, const Defaults &
             read_value( tbl, o_prefix( "energies_interpolated" ), parameters->output_energies_interpolated );
             read_value( tbl, o_prefix( "energies_divide_by_nspins" ), parameters->output_energies_divide_by_nspins );
             read_value( tbl, o_prefix( "chain_step" ), parameters->output_chain_step );
-            read_value( tbl, o_prefix( "chain_filetype" ), output_chain_filetype );
+            read_enum( tbl, o_prefix( "chain_filetype" ), parameters->output_vf_filetype );
         }
         else
             Log( Log_Level::Warning, Log_Sender::IO, missing_section_message( prefix( "output" ) ) );
-
-        parameters->output_vf_filetype = IO::VF_FileFormat( output_chain_filetype );
 
         // Method parameters
         read_value( tbl, prefix( "max_walltime" ), str_max_walltime );
@@ -213,7 +208,7 @@ auto Parameters_Method_GNEB_from_TOML( const toml::table & tbl, const Defaults &
         parameters->output_energies_add_readability_lines ) );
     parameter_log.emplace_back( fmt::format( "    {:<18} = {}", "output.chain_step", parameters->output_chain_step ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<18} = {}", "output.chain_filetype", static_cast<int>( parameters->output_vf_filetype ) ) );
+        fmt::format( "    {:<18} = {}", "output.chain_filetype", Enum::to_string( parameters->output_vf_filetype ) ) );
     Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters GNEB: built" );
@@ -263,11 +258,7 @@ auto Parameters_Method_LLG_from_TOML( const toml::table & tbl, const Defaults & 
                 tbl, o_prefix( "energy_add_readability_lines" ), parameters->output_energy_add_readability_lines );
             read_value( tbl, o_prefix( "configuration_step" ), parameters->output_configuration_step );
             read_value( tbl, o_prefix( "configuration_archive" ), parameters->output_configuration_archive );
-            {
-                int output_configuration_filetype = static_cast<int>( parameters->output_vf_filetype );
-                read_value( tbl, o_prefix( "configuration_filetype" ), output_configuration_filetype );
-                parameters->output_vf_filetype = IO::VF_FileFormat( output_configuration_filetype );
-            }
+            read_enum( tbl, o_prefix( "configuration_filetype" ), parameters->output_vf_filetype );
         }
         else
             Log( Log_Level::Warning, Log_Sender::IO, missing_section_message( prefix( "output" ) ) );
@@ -346,7 +337,7 @@ auto Parameters_Method_LLG_from_TOML( const toml::table & tbl, const Defaults & 
     parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output.configuration_archive", parameters->output_configuration_archive ) );
     parameter_log.emplace_back( fmt::format(
-        "    {:<30} = {}", "output.configuration_filetype", static_cast<int>( parameters->output_vf_filetype ) ) );
+        "    {:<30} = {}", "output.configuration_filetype", Enum::to_string( parameters->output_vf_filetype ) ) );
 
     Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
@@ -376,9 +367,6 @@ auto Parameters_Method_MC_from_TOML( const toml::table & tbl, const Defaults & d
     {
         constexpr auto prefix = []( const std::string_view key ) { return fmt::format( "{}.{}", config_path, key ); };
 
-        // Configuration output filetype
-        int output_configuration_filetype = static_cast<int>( parameters->output_vf_filetype );
-
         // Output parameters
         if( tbl.at_path( prefix( "output" ) ).as_table() )
         {
@@ -398,11 +386,10 @@ auto Parameters_Method_MC_from_TOML( const toml::table & tbl, const Defaults & d
                 tbl, o_prefix( "energy_add_readability_lines" ), parameters->output_energy_add_readability_lines );
             read_value( tbl, o_prefix( "configuration_step" ), parameters->output_configuration_step );
             read_value( tbl, o_prefix( "configuration_archive" ), parameters->output_configuration_archive );
-            read_value( tbl, o_prefix( "configuration_filetype" ), output_configuration_filetype );
+            read_enum( tbl, o_prefix( "configuration_filetype" ), parameters->output_vf_filetype );
         }
         else
             Log( Log_Level::Warning, Log_Sender::IO, missing_section_message( prefix( "output" ) ) );
-        parameters->output_vf_filetype = IO::VF_FileFormat( output_configuration_filetype );
 
         // Method parameters
         read_value( tbl, prefix( "max_walltime" ), str_max_walltime );
@@ -470,7 +457,7 @@ auto Parameters_Method_MC_from_TOML( const toml::table & tbl, const Defaults & d
     parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output.configuration_archive", parameters->output_configuration_archive ) );
     parameter_log.emplace_back( fmt::format(
-        "    {:<30} = {}", "output.configuration_filetype", static_cast<int>( parameters->output_vf_filetype ) ) );
+        "    {:<30} = {}", "output.configuration_filetype", Enum::to_string( parameters->output_vf_filetype ) ) );
     Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters MC: built" );
@@ -493,9 +480,6 @@ auto Parameters_Method_MMF_from_TOML( const toml::table & tbl, const Defaults & 
     {
         constexpr auto prefix = []( const std::string_view key ) { return fmt::format( "{}.{}", config_path, key ); };
 
-        // Configuration output filetype
-        int output_configuration_filetype = static_cast<int>( parameters->output_vf_filetype );
-
         // Output parameters
         if( tbl.at_path( prefix( "output" ) ).as_table() )
         {
@@ -516,8 +500,7 @@ auto Parameters_Method_MMF_from_TOML( const toml::table & tbl, const Defaults & 
                 tbl, o_prefix( "energy_add_readability_lines" ), parameters->output_energy_add_readability_lines );
             read_value( tbl, o_prefix( "configuration_step" ), parameters->output_configuration_step );
             read_value( tbl, o_prefix( "configuration_archive" ), parameters->output_configuration_archive );
-            read_value( tbl, o_prefix( "configuration_filetype" ), output_configuration_filetype );
-            parameters->output_vf_filetype = IO::VF_FileFormat( output_configuration_filetype );
+            read_enum( tbl, o_prefix( "configuration_filetype" ), parameters->output_vf_filetype );
         }
         else
             Log( Log_Level::Warning, Log_Sender::IO, missing_section_message( prefix( "output" ) ) );
@@ -563,7 +546,7 @@ auto Parameters_Method_MMF_from_TOML( const toml::table & tbl, const Defaults & 
     parameter_log.emplace_back(
         fmt::format( "    {:<30} = {}", "output.configuration_archive", parameters->output_configuration_archive ) );
     parameter_log.emplace_back( fmt::format(
-        "    {:<30} = {}", "output.configuration_filetype", static_cast<int>( parameters->output_vf_filetype ) ) );
+        "    {:<30} = {}", "output.configuration_filetype", Enum::to_string( parameters->output_vf_filetype ) ) );
     Log( Log_Level::Parameter, Log_Sender::IO, parameter_log );
 
     Log( Log_Level::Debug, Log_Sender::IO, "Parameters MMF: built" );

@@ -34,7 +34,7 @@ auto Parameters_Method_LLG_to_TOML( const Data::Parameters_Method_LLG & paramete
               { "energy_add_readability_lines", parameters.output_energy_add_readability_lines },
               { "configuration_step", parameters.output_configuration_step },
               { "configuration_archive", parameters.output_configuration_archive },
-              { "configuration_filetype", to_integral( parameters.output_vf_filetype ) },
+              { "configuration_filetype", to_string( parameters.output_vf_filetype ) },
           } },
         // Method parameters
         { "max_walltime", DurationToString( parameters.max_walltime_sec ) },
@@ -78,7 +78,7 @@ auto Parameters_Method_MC_to_TOML( const Data::Parameters_Method_MC & parameters
               { "energy_add_readability_lines", parameters.output_energy_add_readability_lines },
               { "configuration_step", parameters.output_configuration_step },
               { "configuration_archive", parameters.output_configuration_archive },
-              { "configuration_filetype", to_integral( parameters.output_vf_filetype ) },
+              { "configuration_filetype", to_string( parameters.output_vf_filetype ) },
           } },
         // Method parameters
         { "max_walltime", DurationToString( parameters.max_walltime_sec ) },
@@ -114,7 +114,7 @@ auto Parameters_Method_GNEB_to_TOML( const Data::Parameters_Method_GNEB & parame
               { "energies_interpolated", parameters.output_energies_interpolated },
               { "energies_divide_by_nspins", parameters.output_energies_divide_by_nspins },
               { "chain_step", parameters.output_chain_step },
-              { "chain_filetype", to_integral( parameters.output_vf_filetype ) },
+              { "chain_filetype", to_string( parameters.output_vf_filetype ) },
           } },
         // Method parameters
         { "max_walltime", DurationToString( parameters.max_walltime_sec ) },

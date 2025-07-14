@@ -21,7 +21,7 @@ auto pre_format( T && value ) -> decltype( auto )
     if constexpr( is_eigen_type_v<std::decay_t<T>> )
         return value.transpose();
     else if constexpr( std::is_enum_v<std::decay_t<T>> )
-        return Utility::Enum::name( value );
+        return Utility::Enum::to_string( value );
     else
         return std::forward<T>( value );
 }
@@ -54,6 +54,7 @@ void read_value( const toml::table & tbl, std::string_view key, T & dest, bool l
 template<typename Enum, typename = std::enable_if_t<std::is_enum_v<Enum> && "Use `read_value() for non-enum types!`">>
 void read_enum( const toml::table & tbl, std::string_view key, Enum & dest, bool log_missing = true ) noexcept
 {
+    using Utility::Enum::from_integral;
     using Utility::Enum::from_string;
     using Utility::Enum::name;
 
@@ -70,21 +71,39 @@ void read_enum( const toml::table & tbl, std::string_view key, Enum & dest, bool
                  fmt::format( "Missing key encountererd: '{}', using default: {}", key, detail::pre_format( dest ) ) );
         return;
     }
-    if( auto result_str = toml_transform<std::string>( *node.node() ) )
+    else if( node.is_integer() )
     {
-        std::transform( result_str->begin(), result_str->end(), result_str->begin(), ::tolower );
-        if( auto result_enum = from_string<Enum>( *result_str ) )
-            dest = *result_enum;
-        else
-            Log( Log_Level::Error, Log_Sender::IO,
-                 fmt::format(
-                     "Unknown value '{}' for key: '{}', using default: {}", *result_str, key,
-                     detail::pre_format( dest ) ) );
+        if( auto result_int = toml_transform<int>( *node.node() ) )
+        {
+            if( auto result_enum = from_integral<Enum>( *result_int ) )
+                dest = *result_enum;
+            else
+                Log( Log_Level::Error, Log_Sender::IO,
+                     fmt::format(
+                         "Unknown value '{}' for key: '{}', using default: {}", *result_int, key,
+                         detail::pre_format( dest ) ) );
+            return;
+        }
     }
-    else
-        Log( Log_Level::Error, Log_Sender::IO,
-             fmt::format(
-                 "Failed converting value for key: '{}', using default: {}", key, detail::pre_format( dest ) ) );
+    else if( node.is_string() )
+    {
+        if( auto result_str = toml_transform<std::string>( *node.node() ) )
+        {
+            std::transform( result_str->begin(), result_str->end(), result_str->begin(), ::tolower );
+            if( auto result_enum = from_string<Enum>( *result_str ) )
+                dest = *result_enum;
+            else
+                Log( Log_Level::Error, Log_Sender::IO,
+                     fmt::format(
+                         "Unknown value '{}' for key: '{}', using default: {}", *result_str, key,
+                         detail::pre_format( dest ) ) );
+            return;
+        }
+    }
+
+    // Fallthrough case when the type is invalid or the conversion failed due to other reaseons.
+    Log( Log_Level::Error, Log_Sender::IO,
+         fmt::format( "Failed converting value for key: '{}', using default: {}", key, detail::pre_format( dest ) ) );
 }
 
 inline void read_Vector3(
