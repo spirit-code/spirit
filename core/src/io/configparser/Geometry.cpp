@@ -422,7 +422,7 @@ auto Geometry_from_TOML( const toml::table & root ) -> Data::Geometry
             return basis;
         }
         else if( const auto * array = tbl["basis"].as_array() )
-            if( auto basis = toml_transform<vectorfield>( *array ) )
+            if( auto basis = toml_transform<std::vector<Vector3>>( *array ) )
                 return *basis;
 
         return std::vector<Vector3>{ { 0, 0, 0 } };
