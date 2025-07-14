@@ -11,6 +11,7 @@
 #include <data/State.hpp>
 #include <engine/Vectormath.hpp>
 #include <engine/spin/Method_Solver.hpp>
+#include <utility/Enum.hpp>
 
 #include "catch.hpp"
 
@@ -18,7 +19,8 @@
 #include <Eigen/Dense>
 
 using Catch::Matchers::WithinAbs;
-namespace C = Utility::Constants;
+namespace C    = Utility::Constants;
+namespace Enum = Utility::Enum;
 
 // Reduce required precision if float accuracy
 #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
@@ -111,7 +113,7 @@ TEST_CASE( "Dynamics solvers should follow Larmor precession with one pinned spi
         {
             INFO( fmt::format(
                 "Solver {}: \"{}\" failed spin trajectory test at iteration {}", static_cast<int>( solver ),
-                name( solver ), i ) );
+                Enum::name( solver ), i ) );
 
             // A single iteration
             Simulation_SingleShot( state.get() );

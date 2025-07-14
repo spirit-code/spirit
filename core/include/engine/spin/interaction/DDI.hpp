@@ -23,42 +23,16 @@ enum class DDI_Method
     None   = SPIRIT_DDI_METHOD_NONE
 };
 
-constexpr std::string_view name( DDI_Method method ) noexcept
+inline constexpr auto enum_table( DDI_Method )
 {
-    switch( method )
-    {
-        case DDI_Method::FFT: return "FFT";
-        case DDI_Method::FMM: return "FMM";
-        case DDI_Method::Cutoff: return "Cutoff";
-        case DDI_Method::None: return "None";
-        default: return Utility::Enum::unknown;
-    }
+    using E = Utility::Enum::ShortTableElementType<DDI_Method>;
+    return std::array{
+        E{ DDI_Method::FFT, "fft", "FFT" },
+        E{ DDI_Method::FMM, "fmm", "FMM" },
+        E{ DDI_Method::Cutoff, "cutoff", "Cutoff" },
+        E{ DDI_Method::None, "none", "None" },
+    };
 }
-
-} // namespace Spin
-
-} // namespace Engine
-
-template<>
-inline constexpr auto ::Utility::Enum::from_string<Engine::Spin::DDI_Method>( std::string_view str )
-    -> std::optional<Engine::Spin::DDI_Method>
-{
-    if( str == "fft" )
-        return { Engine::Spin::DDI_Method::FFT };
-    else if( str == "fmm" )
-        return { Engine::Spin::DDI_Method::FMM };
-    else if( str == "cutoff" )
-        return { Engine::Spin::DDI_Method::Cutoff };
-    else if( str == "none" )
-        return { Engine::Spin::DDI_Method::None };
-    else
-        return std::nullopt;
-}
-
-namespace Engine
-{
-namespace Spin
-{
 
 namespace Interaction
 {

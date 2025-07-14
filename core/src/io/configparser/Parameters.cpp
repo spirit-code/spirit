@@ -1,5 +1,6 @@
 #include <io/Configparser.hpp>
 #include <io/Filter_File_Handle.hpp>
+#include <utility/Enum.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Timing.hpp>
 
@@ -9,6 +10,7 @@
 
 using Utility::Log_Level;
 using Utility::Log_Sender;
+namespace Enum = Utility::Enum;
 
 namespace IO
 {
@@ -312,7 +314,8 @@ auto Parameters_Method_LLG_from_TOML( const toml::table & tbl, const Defaults & 
         "    {:<17} = {}", "temperature gradient inclination", parameters->temperature_gradient_magnitude ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "damping", parameters->damping ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "beta", parameters->beta ) );
-    parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "stt model", name( parameters->spin_current_model ) ) );
+    parameter_log.emplace_back(
+        fmt::format( "    {:<17} = {}", "stt model", Enum::name( parameters->spin_current_model ) ) );
     parameter_log.emplace_back(
         fmt::format( "    {:<17} = {}", "stt magnitude", parameters->spin_current_vector_magnitude ) );
     parameter_log.emplace_back(
@@ -433,7 +436,7 @@ auto Parameters_Method_MC_from_TOML( const toml::table & tbl, const Defaults & d
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "seed", parameters->rng_seed ) );
     parameter_log.emplace_back( fmt::format( "    {:<17} = {}", "temperature", parameters->temperature ) );
     parameter_log.emplace_back(
-        fmt::format( "    {:<17} = {}", "metropolis_step", name( parameters->metropolis_step ) ) );
+        fmt::format( "    {:<17} = {}", "metropolis_step", Enum::name( parameters->metropolis_step ) ) );
     parameter_log.emplace_back(
         fmt::format( "    {:<17} = {}", "target_acceptance_ratio", parameters->acceptance_ratio_target ) );
     parameter_log.emplace_back(

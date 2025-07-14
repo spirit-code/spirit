@@ -15,6 +15,7 @@
 #include <io/VTK_Geometry.hpp>
 #include <io/XML_File.hpp>
 #include <memory>
+#include <utility/Enum.hpp>
 #include <utility/Exception.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Version.hpp>
@@ -24,6 +25,8 @@
 
 #include <memory>
 #include <string>
+
+namespace Enum = Utility::Enum;
 
 // Helper function
 std::string Get_Extension( const char * file )
@@ -141,7 +144,7 @@ try
                 IO::OVF_File( filename ).write_segment( segment, geometry.positions[0].data(), format );
 
                 Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-                     fmt::format( "Wrote positions to file \"{}\" in {} format", filename, str( fileformat ) ),
+                     fmt::format( "Wrote positions to file \"{}\" in {} format", filename, Enum::name( fileformat ) ),
                      idx_image, idx_chain );
 
                 break;
@@ -392,7 +395,7 @@ try
             }
         }
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-             fmt::format( "Wrote spins to file \"{}\" in {} format", filename, str( fileformat ) ), idx_image,
+             fmt::format( "Wrote spins to file \"{}\" in {} format", filename, Enum::name( fileformat ) ), idx_image,
              idx_chain );
     }
     catch( ... )
@@ -476,7 +479,7 @@ try
             }
         }
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-             fmt::format( "Appended spins to file \"{}\" in {} format", filename, str( fileformat ) ), idx_image,
+             fmt::format( "Appended spins to file \"{}\" in {} format", filename, Enum::name( fileformat ) ), idx_image,
              idx_chain );
     }
     catch( ... )
@@ -772,7 +775,7 @@ try
         }
 
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-             fmt::format( "Wrote chain to file \"{}\" in {} format", filename, str( fileformat ) ), idx_image,
+             fmt::format( "Wrote chain to file \"{}\" in {} format", filename, Enum::name( fileformat ) ), idx_image,
              idx_chain );
     }
     catch( ... )
@@ -850,7 +853,7 @@ try
             }
         }
         Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-             fmt::format( "Wrote chain to file \"{}\" in {} format", filename, str( fileformat ) ), idx_image,
+             fmt::format( "Wrote chain to file \"{}\" in {} format", filename, Enum::name( fileformat ) ), idx_image,
              idx_chain );
     }
     catch( ... )
@@ -979,8 +982,8 @@ try
                 file.write_segment( segment, data.data(), format );
 
                 Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-                     fmt::format( "Wrote spins to file \"{}\" in {} format", filename, str( fileformat ) ), idx_image,
-                     idx_chain );
+                     fmt::format( "Wrote spins to file \"{}\" in {} format", filename, Enum::name( fileformat ) ),
+                     idx_image, idx_chain );
 
                 break;
             }
@@ -1269,7 +1272,7 @@ try
                 }
 
                 Log( Utility::Log_Level::Info, Utility::Log_Sender::API,
-                     fmt::format( "Wrote eigenmodes to file \"{}\" in {} format", filename, str( fileformat ) ),
+                     fmt::format( "Wrote eigenmodes to file \"{}\" in {} format", filename, Enum::name( fileformat ) ),
                      idx_image, idx_chain );
 
                 break;

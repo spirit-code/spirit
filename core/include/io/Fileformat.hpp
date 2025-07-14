@@ -3,7 +3,9 @@
 #define SPIRIT_CORE_IO_FILEFORMAT_HPP
 
 #include <Spirit/IO.h>
+#include <utility/Enum.hpp>
 
+#include <array>
 #include <ostream>
 #include <type_traits>
 
@@ -25,26 +27,22 @@ enum class VF_FileFormat
     VTK_XML_TEXT = IO_Fileformat_VTK_XML_text,
 };
 
-inline std::string str( IO::VF_FileFormat format )
+inline constexpr auto enum_table( IO::VF_FileFormat )
 {
-    if( format == IO::VF_FileFormat::OVF_BIN )
-        return "binary OVF";
-    else if( format == IO::VF_FileFormat::OVF_BIN4 )
-        return "binary-4 OVF";
-    else if( format == IO::VF_FileFormat::OVF_BIN8 )
-        return "binary-8 OVF";
-    else if( format == IO::VF_FileFormat::OVF_TEXT )
-        return "text OVF";
-    else if( format == IO::VF_FileFormat::OVF_CSV )
-        return "CSV OVF";
-    else if( format == IO::VF_FileFormat::VTK_HDF )
-        return "HDF5 (VTK)";
-    else if( format == IO::VF_FileFormat::VTK_XML_BIN )
-        return "XML with binary data (VTK)";
-    else if( format == IO::VF_FileFormat::VTK_XML_TEXT )
-        return "XML with ascii data (VTK)";
-    else
-        return "unknown";
+    using E = Utility::Enum::TableElementType<IO::VF_FileFormat>;
+    return std::array{
+        // clang-format off
+        E{ VF_FileFormat::OVF_BIN,  "ovf_bin",  "binary OVF",   "binary OVF"   },
+        E{ VF_FileFormat::OVF_BIN4, "ovf_bin4", "binary-4 OVF", "binary-4 OVF" },
+        E{ VF_FileFormat::OVF_BIN8, "ovf_bin8", "binary-8 OVF", "binary-8 OVF" },
+        E{ VF_FileFormat::OVF_TEXT, "ovf_text", "text OVF",     "text OVF"     },
+        E{ VF_FileFormat::OVF_CSV,  "ovf_csv",  "CSV OVF",      "CSV OVF"      },
+
+        E{ VF_FileFormat::VTK_HDF,     "vtk_hdf",      "HDF5 (VTK)",       "HDF5 (VTK)" },
+        E{ VF_FileFormat::VTK_XML_BIN, "vtk_xml_bin",  "XML binary (VTK)", "XML with binary data (VTK)" },
+        E{ VF_FileFormat::VTK_XML_TEXT,"vtk_xml_text", "XML ascii (VTK)",  "XML with ascii data (VTK)" },
+        // clang-format on
+    };
 }
 
 } // namespace IO

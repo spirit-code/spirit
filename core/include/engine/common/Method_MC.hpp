@@ -121,7 +121,9 @@ void trial_spin( const int idx, StateType & state, Hamiltonian & hamiltonian, Sh
             default:
                 spirit_throw(
                     Utility::Exception_Classifier::Unknown_Solver, Utility::Log_Level::Error,
-                    fmt::format( "Unsupported metropolis step '{}'!", name( shared.parameters_mc.metropolis_step ) ) );
+                    fmt::format(
+                        "Unsupported metropolis step '{}'!",
+                        Utility::Enum::name( shared.parameters_mc.metropolis_step ) ) );
         };
     }();
 
@@ -240,7 +242,9 @@ void trial_spin_magnetization_constrained(
             default:
                 spirit_throw(
                     Utility::Exception_Classifier::Unknown_Solver, Utility::Log_Level::Error,
-                    fmt::format( "Unsupported metropolis step '{}'!", name( shared.parameters_mc.metropolis_step ) ) );
+                    fmt::format(
+                        "Unsupported metropolis step '{}'!",
+                        Utility::Enum::name( shared.parameters_mc.metropolis_step ) ) );
         };
     }();
 

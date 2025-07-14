@@ -177,7 +177,7 @@ try
                 Log( Utility::Log_Level::Error, Utility::Log_Sender::API,
                      fmt::format(
                          "Got unknown Metropolis step '{}'! Current Metropolis step is '{}'", step,
-                         name( image->mc_parameters->metropolis_step ) ),
+                         Enum::name( image->mc_parameters->metropolis_step ) ),
                      idx_image, idx_chain );
         }
 

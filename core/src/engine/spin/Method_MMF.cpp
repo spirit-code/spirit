@@ -8,6 +8,7 @@
 #include <io/OVF_File.hpp>
 #include <io/VTK_Geometry.hpp>
 #include <io/XML_File.hpp>
+#include <utility/Enum.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Version.hpp>
 
@@ -20,7 +21,8 @@
 using Utility::Exception_Classifier;
 using Utility::Log_Level;
 using Utility::Log_Sender;
-namespace C = Utility::Constants;
+namespace C    = Utility::Constants;
+namespace Enum = Utility::Enum;
 
 namespace Engine
 {
@@ -537,7 +539,8 @@ void Method_MMF<solver>::Save_Current( std::string starttime, int iteration, boo
                         spirit_throw(
                             Exception_Classifier::Not_Implemented, Log_Level::Error,
                             fmt::format(
-                                "\"writeOutputConfiguration()\" not implemented for file format: {}", str( format ) ) );
+                                "\"writeOutputConfiguration()\" not implemented for file format: {}",
+                                Enum::name( format ) ) );
                 }
             }
             catch( ... )

@@ -6,6 +6,7 @@
 #include <Spirit/Spirit_Defines.h>
 #include <data/Parameters_Method_GNEB.hpp>
 #include <data/Spin_System.hpp>
+#include <utility/Enum.hpp>
 
 namespace Data
 {
@@ -17,6 +18,17 @@ enum class GNEB_Image_Type
     Falling    = GNEB_IMAGE_FALLING,
     Stationary = GNEB_IMAGE_STATIONARY
 };
+
+inline constexpr auto enum_table( GNEB_Image_Type )
+{
+    using E = Utility::Enum::ShortTableElementType<GNEB_Image_Type>;
+    return std::array{
+        E{ GNEB_Image_Type::Normal, "normal", "Normal" },
+        E{ GNEB_Image_Type::Climbing, "climbing", "Climbing" },
+        E{ GNEB_Image_Type::Falling, "falling", "Falling" },
+        E{ GNEB_Image_Type::Stationary, "stationary", "Stationary" },
+    };
+}
 
 template<typename system_t>
 struct HTST_Info

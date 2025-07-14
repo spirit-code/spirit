@@ -17,6 +17,8 @@
 #include <cmath>
 #include <string>
 
+namespace Enum = Utility::Enum;
+
 // Reduce required precision if float accuracy
 #ifdef SPIRIT_SCALAR_TYPE_DOUBLE
 [[maybe_unused]] constexpr int digits_a = 7;
@@ -67,8 +69,8 @@ TEST_CASE( "Solvers should find Skyrmion energy minimum with direct minimization
     Parameters_LLG_Set_Direct_Minimization( state.get(), true );
     for( auto solver : solvers )
     {
-        INFO(
-            fmt::format( "Direct minimisation using solver \"{}: {}\"", static_cast<int>( solver ), name( solver ) ) );
+        INFO( fmt::format(
+            "Direct minimisation using solver \"{}: {}\"", static_cast<int>( solver ), Enum::name( solver ) ) );
 
         // Put a skyrmion in the center of the space
         Configuration_PlusZ( state.get() );
@@ -119,7 +121,7 @@ TEST_CASE( "Solvers should find Skyrmion collapse barrier with GNEB method", "[s
     // Calculate energy and magnetization at saddle point for every solver
     for( auto solver : solvers )
     {
-        INFO( fmt::format( "GNEB using solver \"{}: {}\"", static_cast<int>( solver ), name( solver ) ) );
+        INFO( fmt::format( "GNEB using solver \"{}: {}\"", static_cast<int>( solver ), Enum::name( solver ) ) );
 
         // Put a skyrmion in the center of the space
         Chain_Jump_To_Image( state.get(), 0 );

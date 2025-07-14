@@ -18,35 +18,15 @@ enum struct Metropolis_Step
     SEMI_CLASSICAL = MC_Metropolis_Step_Spin_Semi_Classical,
 };
 
-constexpr auto name( Metropolis_Step step ) -> std::string_view
+inline constexpr auto enum_table( Metropolis_Step )
 {
-    switch( step )
-    {
-        case Metropolis_Step::SPHERE: return "sphere";
-        case Metropolis_Step::CONE: return "cone";
-        case Metropolis_Step::SEMI_CLASSICAL: return "semi-classical";
-        default: return Utility::Enum::unknown;
-    }
+    using E = Utility::Enum::TableElementType<Metropolis_Step>;
+    return std::array{
+        E{ Metropolis_Step::SPHERE, "sphere", "Sphere", "Sphere" },
+        E{ Metropolis_Step::CONE, "cone", "Cone", "Cone" },
+        E{ Metropolis_Step::SEMI_CLASSICAL, "semi_classical", "Semi-Classical", "Semi-Classical" },
+    };
 }
-
-} // namespace Data
-
-template<>
-inline constexpr auto ::Utility::Enum::from_string<Data::Metropolis_Step>( std::string_view str )
-    -> std::optional<Data::Metropolis_Step>
-{
-    if( str == "sphere" )
-        return Data::Metropolis_Step::SPHERE;
-    else if( str == "cone" )
-        return Data::Metropolis_Step::CONE;
-    else if( str == "semi_classical" )
-        return Data::Metropolis_Step::SEMI_CLASSICAL;
-    else
-        return std::nullopt;
-}
-
-namespace Data
-{
 
 // LLG_Parameters contains all LLG information about the spin system
 struct Parameters_Method_MC : public Parameters_Method

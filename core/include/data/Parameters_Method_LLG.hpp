@@ -19,33 +19,17 @@ enum struct SC_Model
     ORBIT_TORQUE    = LLG_SC_Model_Orbit_Torque,
 };
 
-constexpr auto name( SC_Model step ) -> std::string_view
+inline constexpr auto enum_table( SC_Model )
 {
-    switch( step )
-    {
-        case SC_Model::TRANSFER_TORQUE: return "transfer torque (monolayer)";
-        case SC_Model::ORBIT_TORQUE: return "orbit torque (gradient)";
-        default: return Utility::Enum::unknown;
-    }
+    using E = Utility::Enum::TableElementType<SC_Model>;
+    return std::array{
+        // clang-format off
+        E{ SC_Model::TRANSFER_TORQUE, "transfer_torque", "Monolayer (STT)", "Pinned Monolayer Approximation (Transfer Torque)" },
+        E{ SC_Model::ORBIT_TORQUE,    "orbit_torque",    "Gradient (SOT)",  "Gradient Approximation (Orbit Torque)"            },
+        // clang-format on
+    };
 }
 
-} // namespace Data
-
-template<>
-inline constexpr auto ::Utility::Enum::from_string<Data::SC_Model>( std::string_view str )
-    -> std::optional<Data::SC_Model>
-{
-    using Data::SC_Model;
-    if( str == "stt" || str == "transfer_torque" || "spin_transfer_torque" || str == "monolayer" )
-        return std::optional{ SC_Model::TRANSFER_TORQUE };
-    else if( str == "sot" || "orbit_torque" || "spin_orbit_torque" || str == "gradient" )
-        return std::optional{ SC_Model::ORBIT_TORQUE };
-    else
-        return std::nullopt;
-}
-
-namespace Data
-{
 // LLG_Parameters contains all LLG information about the spin system
 struct Parameters_Method_LLG : Parameters_Method_Solver
 {

@@ -7,6 +7,7 @@
 #include <io/IO.hpp>
 #include <io/OVF_File.hpp>
 #include <utility/Cubic_Hermite_Spline.hpp>
+#include <utility/Enum.hpp>
 #include <utility/Logging.hpp>
 #include <utility/Version.hpp>
 
@@ -630,7 +631,8 @@ void Method_GNEB<solver>::Save_Current( std::string starttime, int iteration, bo
                         spirit_throw(
                             Exception_Classifier::Not_Implemented, Log_Level::Error,
                             fmt::format(
-                                "\"writeOutputConfiguration()\" not implemented for file format: {}", str( format ) ) );
+                                "\"writeOutputConfiguration()\" not implemented for file format: {}",
+                                Enum::name( format ) ) );
                 }
             }
             catch( ... )

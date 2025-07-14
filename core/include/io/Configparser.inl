@@ -21,7 +21,7 @@ auto pre_format( T && value ) -> decltype( auto )
     if constexpr( is_eigen_type_v<std::decay_t<T>> )
         return value.transpose();
     else if constexpr( std::is_enum_v<std::decay_t<T>> )
-        return name( value );
+        return Utility::Enum::name( value );
     else
         return std::forward<T>( value );
 }
@@ -55,6 +55,7 @@ template<typename Enum, typename = std::enable_if_t<std::is_enum_v<Enum> && "Use
 void read_enum( const toml::table & tbl, std::string_view key, Enum & dest, bool log_missing = true ) noexcept
 {
     using Utility::Enum::from_string;
+    using Utility::Enum::name;
 
     static_assert( std::is_enum_v<Enum> );
     static_assert( std::is_same_v<decltype( name( std::declval<Enum>() ) ), std::string_view> );
@@ -71,6 +72,7 @@ void read_enum( const toml::table & tbl, std::string_view key, Enum & dest, bool
     }
     if( auto result_str = toml_transform<std::string>( *node.node() ) )
     {
+        std::transform( result_str->begin(), result_str->end(), result_str->begin(), ::tolower );
         if( auto result_enum = from_string<Enum>( *result_str ) )
             dest = *result_enum;
         else

@@ -1,5 +1,8 @@
 #include <io/Configparser.hpp>
 
+using Utility::Enum::to_integral;
+using Utility::Enum::to_string;
+
 namespace IO
 {
 
@@ -31,7 +34,7 @@ auto Parameters_Method_LLG_to_TOML( const Data::Parameters_Method_LLG & paramete
               { "energy_add_readability_lines", parameters.output_energy_add_readability_lines },
               { "configuration_step", parameters.output_configuration_step },
               { "configuration_archive", parameters.output_configuration_archive },
-              { "configuration_filetype", static_cast<int>( parameters.output_vf_filetype ) },
+              { "configuration_filetype", to_integral( parameters.output_vf_filetype ) },
           } },
         // Method parameters
         { "max_walltime", DurationToString( parameters.max_walltime_sec ) },
@@ -48,16 +51,7 @@ auto Parameters_Method_LLG_to_TOML( const Data::Parameters_Method_LLG & paramete
           } ) },
         { "damping", parameters.damping },
         { "beta", parameters.beta },
-        { "spin_current_model",
-          [model = parameters.spin_current_model]
-          {
-              switch( model )
-              {
-                  case Data::SC_Model::ORBIT_TORQUE: return "orbit_torque";
-                  case Data::SC_Model::TRANSFER_TORQUE: return "transfer_torque";
-                  default: return "unknown";
-              }
-          }() },
+        { "spin_current_model", to_string( parameters.spin_current_model ) },
         { "spin_current_vector",
           as_inline( toml::table{
               { "magnitude", parameters.spin_current_vector_magnitude },
@@ -84,7 +78,7 @@ auto Parameters_Method_MC_to_TOML( const Data::Parameters_Method_MC & parameters
               { "energy_add_readability_lines", parameters.output_energy_add_readability_lines },
               { "configuration_step", parameters.output_configuration_step },
               { "configuration_archive", parameters.output_configuration_archive },
-              { "configuration_filetype", static_cast<int>( parameters.output_vf_filetype ) },
+              { "configuration_filetype", to_integral( parameters.output_vf_filetype ) },
           } },
         // Method parameters
         { "max_walltime", DurationToString( parameters.max_walltime_sec ) },
@@ -96,17 +90,7 @@ auto Parameters_Method_MC_to_TOML( const Data::Parameters_Method_MC & parameters
         { "metropolis",
           toml::table{
               { "acceptance_ratio", parameters.acceptance_ratio_target },
-              { "step",
-                [step = parameters.metropolis_step]
-                {
-                    switch( step )
-                    {
-                        case Data::Metropolis_Step::SPHERE: return "sphere";
-                        case Data::Metropolis_Step::CONE: return "cone";
-                        case Data::Metropolis_Step::SEMI_CLASSICAL: return "semi_classical";
-                        default: return "unknown";
-                    }
-                }() },
+              { "step", to_string( parameters.metropolis_step ) },
               // Metropolis method parameters
               { "use_adaptive_cone", parameters.metropolis_cone_adaptive },
               { "cone_angle", parameters.metropolis_cone_angle },
@@ -130,7 +114,7 @@ auto Parameters_Method_GNEB_to_TOML( const Data::Parameters_Method_GNEB & parame
               { "energies_interpolated", parameters.output_energies_interpolated },
               { "energies_divide_by_nspins", parameters.output_energies_divide_by_nspins },
               { "chain_step", parameters.output_chain_step },
-              { "chain_filetype", static_cast<int>( parameters.output_vf_filetype ) },
+              { "chain_filetype", to_integral( parameters.output_vf_filetype ) },
           } },
         // Method parameters
         { "max_walltime", DurationToString( parameters.max_walltime_sec ) },
@@ -194,7 +178,7 @@ auto Parameters_Method_MMF_to_TOML( const Data::Parameters_Method_MMF & paramete
               { "energy_add_readability_lines", parameters.output_energy_add_readability_lines },
               { "configuration_step", parameters.output_configuration_step },
               { "configuration_archive", parameters.output_configuration_archive },
-              { "configuration_filetype", static_cast<int>( parameters.output_vf_filetype ) },
+              { "configuration_filetype", to_string( parameters.output_vf_filetype ) },
           } },
         // Method parameters
         { "max_walltime", DurationToString( parameters.max_walltime_sec ) },

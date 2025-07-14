@@ -62,38 +62,22 @@ constexpr auto common_solver( Spin::Solver solver ) -> Common::Solver
     }
 }
 
-constexpr auto name( Spin::Solver solver ) -> std::string_view
+inline constexpr auto enum_table( Solver )
 {
-    switch( solver )
-    {
-        case Solver::None: return "None";
-        case Solver::SIB: return "SIB";
-        case Solver::Heun: return "Heun";
-        case Solver::Depondt: return "Depondt";
-        case Solver::RungeKutta4: return "RK4";
-        case Solver::LBFGS_OSO: return "LBFGS_OSO";
-        case Solver::LBFGS_Atlas: return "LBFGS_Atlas";
-        case Solver::VP: return "VP";
-        case Solver::VP_OSO: return "VP_OSO";
-        default: return Utility::Enum::unknown;
-    }
-}
-
-constexpr auto full_name( Spin::Solver solver ) -> std::string_view
-{
-    switch( solver )
-    {
-        case Solver::None: return "None";
-        case Solver::SIB: return "Semi-implicit B";
-        case Solver::Heun: return "Heun";
-        case Solver::Depondt: return "Depondt";
-        case Solver::RungeKutta4: return "Runge Kutta (4th order)";
-        case Solver::LBFGS_OSO: return "Limited memory Broyden-Fletcher-Goldfarb-Shanno using exponential transforms";
-        case Solver::LBFGS_Atlas: return "Limited memory Broyden-Fletcher-Goldfarb-Shanno using stereographic atlas";
-        case Solver::VP: return "Velocity Projection";
-        case Solver::VP_OSO: return "Velocity Projection using exponential transforms";
-        default: return Utility::Enum::unknown;
-    }
+    using E = Utility::Enum::TableElementType<Solver>;
+    return std::array{
+        // clang-format off
+        E{ Solver::None,        "none",        "None",        "None" },
+        E{ Solver::SIB,         "sib",         "SIB",         "Semi-implicit B" },
+        E{ Solver::Heun,        "heun",        "Heun",        "Heun" },
+        E{ Solver::Depondt,     "depondt",     "Depondt",     "Depondt" },
+        E{ Solver::RungeKutta4, "rk4",         "RK4",         "Runge Kutta (4th order)" },
+        E{ Solver::LBFGS_OSO,   "lbfgs_oso",   "LBFGS_OSO",   "Limited memory Broyden-Fletcher-Goldfarb-Shanno using exponential transforms" },
+        E{ Solver::LBFGS_Atlas, "lbfgs_atlas", "LBFGS_Atlas", "Limited memory Broyden-Fletcher-Goldfarb-Shanno using stereographic atlas" },
+        E{ Solver::VP,          "vp",          "VP",          "Velocity Projection" },
+        E{ Solver::VP_OSO,      "vp_oso",      "VP_OSO",      "Velocity Projection using exponential transforms" },
+        // clang-format on
+    };
 }
 
 class SolverMethods : public Method
@@ -384,13 +368,13 @@ void Method_Solver<solver>::Message_End()
 template<Solver solver>
 std::string_view Method_Solver<solver>::SolverName()
 {
-    return name( solver );
+    return Utility::Enum::name( solver );
 };
 
 template<Solver solver>
 std::string_view Method_Solver<solver>::SolverFullName()
 {
-    return full_name( solver );
+    return Utility::Enum::full_name( solver );
 };
 
 } // namespace Spin

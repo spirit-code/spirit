@@ -3,8 +3,11 @@
 #include <io/XML_File.hpp>
 #include <utility/Base64.hpp>
 #include <utility/Endian.hpp>
+#include <utility/Enum.hpp>
 
 #include <tinyxml2/tinyxml2.h>
+
+namespace Enum = Utility::Enum;
 
 namespace IO
 {
@@ -218,7 +221,7 @@ void write_fields(
         default:
             spirit_throw(
                 Utility::Exception_Classifier::Unknown_Exception, Utility::Log_Level::Error,
-                fmt::format( "Invalid format {} passed to XML::write_fields()", str( format ) ) );
+                fmt::format( "Invalid format {} passed to XML::write_fields()", Enum::name( format ) ) );
     }
 };
 
