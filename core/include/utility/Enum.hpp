@@ -51,6 +51,23 @@ constexpr std::string_view name( const T enum_value )
     return unknown;
 }
 
+namespace detail
+{
+
+template<typename T>
+constexpr std::string_view full_name( const ShortTableElementType<T> & entry )
+{
+    return std::get<2>( entry );
+}
+
+template<typename T>
+constexpr std::string_view full_name( const TableElementType<T> & entry )
+{
+    return std::get<3>( entry );
+}
+
+} // namespace detail
+
 template<typename T>
 constexpr std::string_view full_name( const T enum_value )
 {
@@ -58,13 +75,7 @@ constexpr std::string_view full_name( const T enum_value )
     // constexpr compatible linear search
     for( const auto & entry : enum_table( T{} ) )
         if( std::get<0>( entry ) == enum_value )
-        {
-            // support for the short table format
-            if constexpr( 3 == std::tuple_size_v<std::decay_t<decltype( entry )>> )
-                return std::get<2>( entry );
-            else
-                return std::get<3>( entry );
-        }
+            return detail::full_name( entry );
     return unknown;
 }
 
