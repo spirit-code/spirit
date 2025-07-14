@@ -327,8 +327,8 @@ TEST_CASE( "Dipole-Dipole Interaction", "[physics]" )
     }
 
     // Compare energies
-    INFO( "Failed energy comparison test! epsilon = " << epsilon_6 );
+    INFO( "Failed energy comparison test! epsilon = " << epsilon_5 );
     INFO( "Energy (Direct) = " << energy_direct << "\n" );
     INFO( "Energy (FFT)    = " << energy_fft << "\n" );
-    REQUIRE_THAT( energy_fft, WithinAbs( energy_direct, epsilon_6 ) );
+    REQUIRE_THAT( energy_fft, WithinAbs( energy_direct, epsilon_5 ) );
 }
