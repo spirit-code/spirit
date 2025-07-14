@@ -3,7 +3,6 @@
 #include <deprecated/Deprecated.hpp>
 
 #include <data/State.hpp>
-#include <filesystem>
 #include <io/Configconverter.hpp>
 #include <io/IO.hpp>
 #include <utility/Configuration_Chain.hpp>
@@ -12,6 +11,9 @@
 #include <utility/Version.hpp>
 
 #include <fmt/format.h>
+
+#include <cwctype>
+#include <filesystem>
 
 using namespace Utility;
 
