@@ -15,9 +15,9 @@ struct Parameters_Method
 {
     // --------------- Iterations ------------
     // Number of iterations carried out when pressing "play" or calling "iterate"
-    long int n_iterations = 1e6;
+    long int n_iterations = 1'000'000;
     // Number of iterations after which the Method should save data
-    long int n_iterations_log = 1e3;
+    long int n_iterations_log = 1'000;
     // Number of iterations that are executed without any checks (values greater than 1 can be beneficial for CUDA in
     // order to minimize host<->device transfers)
     long int n_iterations_amortize = 1;
