@@ -520,16 +520,16 @@ auto Geometry_from_TOML( const toml::table & root ) -> Data::Geometry
 
     // Defects
 #ifdef SPIRIT_ENABLE_DEFECTS
-    if( defect_sites.empty() )
+    if( defects.sites.empty() )
         parameter_log.emplace_back( "    no defects" );
     else
     {
-        parameter_log.emplace_back( fmt::format( "    {} defects (showing first 10 sites):", defect_sites.size() ) );
-        for( std::size_t i = 0; i < std::min( defect_sites.size(), static_cast<std::size_t>( 10 ) ); ++i )
+        parameter_log.emplace_back( fmt::format( "    {} defects (showing first 10 sites):", defects.sites.size() ) );
+        for( std::size_t i = 0; i < std::min( defects.sites.size(), static_cast<std::size_t>( 10 ) ); ++i )
         {
             parameter_log.emplace_back( fmt::format(
-                "        defect[{}]: translations=({} {} {}), type=", i, defect_sites[i].translations[0],
-                defect_sites[i].translations[1], defect_sites[i].translations[2], defect_types[i] ) );
+                "        defect[{}]: translations=({} {} {}), type=", i, defects.sites[i].translations[0],
+                defects.sites[i].translations[1], defects.sites[i].translations[2], defects.types[i] ) );
         }
     }
 #endif
