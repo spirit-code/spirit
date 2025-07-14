@@ -127,7 +127,7 @@ Set the spin current configuration.
 - direction: current direction or polarisation direction, array of shape (3)
 */
 
-PREFIX_DEPRECATED( "Use Parameters_LLG_Set_Spin_Current() instead." )
+DEPRECATED( "Use Parameters_LLG_Set_Spin_Current() instead." )
 void Parameters_LLG_Set_STT(
     State * state, bool use_gradient, scalar magnitude, const scalar normal[3], int idx_image = -1,
     int idx_chain = -1 ) SUFFIX;
@@ -225,7 +225,7 @@ Returns the spin current configuration.
 - direction, array of shape (3)
 - whether the spatial gradient is used
 */
-PREFIX_DEPRECATED( "Use Parameters_LLG_Get_Spin_Current() instead." )
+DEPRECATED( "Use Parameters_LLG_Get_Spin_Current() instead." )
 void Parameters_LLG_Get_STT(
     State * state, bool * use_gradient, scalar * magnitude, scalar normal[3], int idx_image = -1,
     int idx_chain = -1 ) SUFFIX;

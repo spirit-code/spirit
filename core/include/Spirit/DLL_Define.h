@@ -5,30 +5,22 @@
 
 // clang-format off
 #ifdef _WIN32
-
-    #ifdef __cplusplus
-        #define PREFIX extern "C" __declspec(dllexport)
-        #define SUFFIX noexcept
-    #else
-        #define PREFIX __declspec(dllexport)
-        #define SUFFIX
-    #endif
-
+    #define WIN_PREFIX __declspec(dllexport)
 #else
+    #define WIN_PREFIX
+#endif
 
-    #ifdef __cplusplus
-        #define PREFIX extern "C"
-        #define SUFFIX noexcept
-    #else
-        #define PREFIX
-        #define SUFFIX
-    #endif
-
+#ifdef __cplusplus
+    #define PREFIX extern "C" WIN_PREFIX
+    #define SUFFIX noexcept
+#else
+    #define PREFIX WIN_EXPORT
+    #define SUFFIX
 #endif
 
 #if defined( __cplusplus )
     // Standard for C++14 and later
-    #define DEPRECATED( msg ) [[deprecated( msg )]]
+    #define DEPRECATED( msg ) extern "C" [[deprecated( msg )]] WIN_PREFIX
 #elif defined( __STDC_VERSION__ ) && __STDC_VERSION__ >= 202311L
     // Standard for C23
     #define DEPRECATED( msg ) [[deprecated( msg )]]
@@ -39,7 +31,5 @@
 #else
     #define DEPRECATED( msg )
 #endif
-
-#define PREFIX_DEPRECATED( msg ) PREFIX DEPRECATED( msg )
 
 // clang-format on

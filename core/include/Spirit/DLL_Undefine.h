@@ -3,8 +3,9 @@
  * prevents the leakage of the defines to code which includes these headers
  */
 
+#undef WIN_PREFIX
+
 #undef PREFIX
 #undef SUFFIX
 
 #undef DEPRECATED
-#undef PREFIX_DEPRECATED
