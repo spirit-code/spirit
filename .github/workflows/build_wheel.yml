@@ -89,3 +89,61 @@ jobs:
           with state.State(quiet=False) as p_state:
             pass
           EOF
+
+  deploy-testpypi:
+    name: Deploy to TestPyPI
+    if: github.ref == 'refs/heads/develop'
+    needs: ['build_wheels', 'install_wheels']
+    runs-on: ubuntu-latest
+    environment: 'publish-testpypi'
+    permissions:
+      id-token: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: cibw-wheels-ubuntu-latest
+          path: dist
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: cibw-wheels-macos-latest
+          path: dist
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: cibw-wheels-windows-latest
+          path: dist
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+
+  deploy-pypi:
+    name: Deploy to PyPI
+    if: github.ref == 'refs/heads/master'
+    needs: ['build_wheels', 'install_wheels']
+    runs-on: ubuntu-latest
+    environment: 'publish-pypi'
+    permissions:
+      id-token: write
+
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: cibw-wheels-ubuntu-latest
+          path: dist
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: cibw-wheels-macos-latest
+          path: dist
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: cibw-wheels-windows-latest
+          path: dist
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
